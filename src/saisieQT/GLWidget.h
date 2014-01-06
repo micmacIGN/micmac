@@ -81,7 +81,11 @@ public:
 
     GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
     GLdouble    projMatrix(int i)   { return _projMatrix[i]; }
-    GLint       VP(int i)           { return _glViewport[i]; }
+
+    GLint       ViewPort(int i)     { return _glViewport[i]; }
+
+    GLint       vpWidth()     { return _glViewport[2]; }
+    GLint       vpHeight()    { return _glViewport[3]; }
 
     void        setMatrices();
 
@@ -284,13 +288,9 @@ private:
     int         _previousTime;
     int         _currentTime;    
 
-    GLfloat     _g_tmpoMatrix[9];
-    GLfloat     _g_rotationOx[9];
-    GLfloat     _g_rotationOy[9];
-    GLfloat     _g_rotationOz[9];
-    GLfloat     _g_rotationMatrix[9];
-    GLfloat     _g_glMatrix[16];
     QTime       _time;
+
+    GLfloat     _rotationMatrix[16];
 
     c3DCamera   _g_Cam;
 

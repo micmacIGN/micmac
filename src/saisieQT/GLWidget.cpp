@@ -91,6 +91,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
             if (doZoom) setZoom(m_GLData->getBBoxMaxSize());
 
+            resetRotationMatrix();
             resetTranslationMatrix();
         }
 
@@ -103,7 +104,6 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
             //position de l'image dans la vue gl
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
-
             glGetDoublev (GL_MODELVIEW_MATRIX, _g_Cam.getModelViewMatrix());
 
             m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
@@ -164,19 +164,19 @@ void GLWidget::paintGL()
         {
 
             // CAMERA BEGIN ===================
-            zoom();
-
-            static GLfloat trans44[16], rot44[16], tmp[16];
-            m33_to_m44( _g_rotationMatrix, rot44 );
-            setTranslate_m3(  _params.m_translationMatrix, trans44 );
-
-            mult( rot44, trans44, tmp );
-            transpose( tmp, _g_glMatrix );
-            glLoadMatrixf( _g_glMatrix );
-
+            zoom();            
             // CAMERA END ===================
 
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glPushMatrix();
+
+            glMultMatrixf(_rotationMatrix);
+            glTranslatef(_params.m_translationMatrix[0],_params.m_translationMatrix[1],_params.m_translationMatrix[2]);
+
             m_GLData->draw();
+
+            glPopMatrix();
         }
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();
@@ -202,8 +202,8 @@ void GLWidget::paintGL()
 
     if (!m_messagesToDisplay.empty())
     {
-        int _glViewport2 = (int) _g_Cam.VP(2);
-        int _glViewport3 = (int) _g_Cam.VP(3);
+        int _glViewport2 = (int) _g_Cam.ViewPort(2);
+        int _glViewport3 = (int) _g_Cam.ViewPort(3);
 
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
         ll_curHeight = lr_curHeight = lc_curHeight = _glViewport3 - m_font.pointSize()*m_messagesToDisplay.size();
@@ -380,8 +380,8 @@ void GLWidget::drawGradientBackground()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    int w = (_g_Cam.VP(2)>>1)+1;
-    int h = (_g_Cam.VP(3)>>1)+1;
+    int w = (_g_Cam.ViewPort(2)>>1)+1;
+    int h = (_g_Cam.ViewPort(3)>>1)+1;
     glOrtho(-w,w,-h,h,-2.f, 2.f);
 
     const uchar BkgColor[3] = {(uchar) _BGColor0.red(),(uchar) _BGColor0.green(), (uchar) _BGColor0.blue()};
@@ -406,6 +406,9 @@ void GLWidget::drawPolygon()
 {
     _g_Cam.orthoProjection();
 
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
     if (m_bDisplayMode2D)
     {
         _g_Cam.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
@@ -425,8 +428,7 @@ void mglOrtho( GLdouble left, GLdouble right,
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(left, right, bottom, top, near_val, far_val);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+
 }
 
 // zoom in 3D mode
@@ -502,17 +504,17 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     crossprod(eye, top, s);
     crossprod(s, eye, u);
 
-    _g_rotationMatrix[0] = s[0];
-    _g_rotationMatrix[1] = s[1];
-    _g_rotationMatrix[2] = s[2];
+//    _g_rotationMatrix[0] = s[0];
+//    _g_rotationMatrix[1] = s[1];
+//    _g_rotationMatrix[2] = s[2];
 
-    _g_rotationMatrix[3] = u[0];
-    _g_rotationMatrix[4] = u[1];
-    _g_rotationMatrix[5] = u[2];
+//    _g_rotationMatrix[3] = u[0];
+//    _g_rotationMatrix[4] = u[1];
+//    _g_rotationMatrix[5] = u[2];
 
-    _g_rotationMatrix[6] = -eye[0];
-    _g_rotationMatrix[7] = -eye[1];
-    _g_rotationMatrix[8] = -eye[2];
+//    _g_rotationMatrix[6] = -eye[0];
+//    _g_rotationMatrix[7] = -eye[1];
+//    _g_rotationMatrix[8] = -eye[2];
 
     resetTranslationMatrix();
 }
@@ -541,8 +543,8 @@ void GLWidget::zoomFit()
 {
     if (hasDataLoaded() && !m_GLData->isImgEmpty())
     {
-        float rw = (float)m_GLData->glMaskedImage._m_image->width()  / (float) _g_Cam.VP(2);
-        float rh = (float)m_GLData->glMaskedImage._m_image->height() / (float) _g_Cam.VP(3);
+        float rw = (float)m_GLData->glMaskedImage._m_image->width()  / (float) _g_Cam.vpWidth();
+        float rh = (float)m_GLData->glMaskedImage._m_image->height() / (float) _g_Cam.vpHeight();
 
         if(rw>rh)
             setZoom(1.f/rw); //orientation landscape
@@ -654,52 +656,53 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             QPoint dPWin = event->pos() - m_lastPosWindow;
 
-            float _glViewport2 = (float) _g_Cam.VP(2);
-            float _glViewport3 = (float) _g_Cam.VP(3);
+            float _glViewport2 = (float) _g_Cam.ViewPort(2);
+            float _glViewport3 = (float) _g_Cam.ViewPort(3);
 
-            if ( event->buttons() == Qt::LeftButton ) // rotation autour de X et Y
+
+            if ( event->buttons())
             {
-                float d_angleX = _params.m_speed * dPWin.y() / _glViewport3;
-                float d_angleY = _params.m_speed * dPWin.x() / _glViewport2;
-
-                setRotateOx_m33( d_angleX, _g_rotationOx );
-                setRotateOy_m33( d_angleY, _g_rotationOy );
-
-                mult_m33( _g_rotationOx, _g_rotationMatrix, _g_tmpoMatrix );
-                mult_m33( _g_rotationOy, _g_tmpoMatrix, _g_rotationMatrix );
-            }
-            else if ( event->buttons() == Qt::MiddleButton )
-            {
-                if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
+                float rX,rY,rZ;
+                rX = rY = rZ = 0;
+                if ( event->buttons() == Qt::LeftButton ) // rotation autour de X et Y
                 {
-                    if (dPWin.y() > 0) _params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
-                    else if (dPWin.y() < 0) _params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
+                    rX = 50.0f * _params.m_speed * dPWin.y() / _g_Cam.vpWidth();
+                    rY = 50.0f * _params.m_speed * dPWin.x() / _g_Cam.vpHeight();
                 }
-                else if((_glViewport2!=0.f) || (_glViewport3!=0.f)) // TRANSLATION VIEW
+                else if ( event->buttons() == Qt::MiddleButton )
                 {
-                    if (m_bDisplayMode2D)
+                    if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
                     {
-                        QPointF dp = pos - m_lastPosImage;
-
-                        _g_Cam.m_glPosition[0] += _params.m_speed * dp.x()/_glViewport2;
-                        _g_Cam.m_glPosition[1] += _params.m_speed * dp.y()/_glViewport3;
+                        if (dPWin.y() > 0) _params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
+                        else if (dPWin.y() < 0) _params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
                     }
-                    else
+                    else if((_glViewport2!=0.f) || (_glViewport3!=0.f)) // TRANSLATION VIEW
                     {
-                        _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_glViewport2;
-                        _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_glViewport3;
+                        if (m_bDisplayMode2D)
+                        {
+                            QPointF dp = pos - m_lastPosImage;
+
+                            _g_Cam.m_glPosition[0] += _params.m_speed * dp.x()/_glViewport2;
+                            _g_Cam.m_glPosition[1] += _params.m_speed * dp.y()/_glViewport3;
+                        }
+                        else
+                        {
+                            _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_glViewport2;
+                            _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_glViewport3;
+                        }
                     }
                 }
-            }
-            else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
-            {
-                float d_angleZ =  _params.m_speed * dPWin.x() / _glViewport2;
+                else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
+                    rZ = 50.0f * _params.m_speed * dPWin.x() / _glViewport2;
 
-                setRotateOz_m33( d_angleZ, _g_rotationOz );
+                glMatrixMode(GL_MODELVIEW);
+                glLoadIdentity();
+                glMultMatrixf(_rotationMatrix);
 
-                mult_m33( _g_rotationOz, _g_rotationMatrix, _g_tmpoMatrix );
-
-                for (int i = 0; i < 9; ++i) _g_rotationMatrix[i] = _g_tmpoMatrix[i];
+                glRotatef(rX,1.0,0.0,0.0);
+                glRotatef(rY,0.0,1.0,0.0);
+                glRotatef(rZ,0.0,0.0,1.0);
+                glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
             }
         }
 
@@ -724,7 +727,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         int idx1 = -1;
         int idx2;
 
-        pos.setY(_g_Cam.VP(3) - pos.y());
+        pos.setY(_g_Cam.ViewPort(3) - pos.y());
 
         for (int aK=0; aK < m_GLData->Clouds.size();++aK)
         {
@@ -793,7 +796,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             {
                 for (int aK=0; aK < polygon.size(); ++aK)
                 {
-                    polyg.add(QPointF(polygon[aK].x(), (float)_g_Cam.VP(3) - polygon[aK].y()));
+                    polyg.add(QPointF(polygon[aK].x(), (float)_g_Cam.ViewPort(3) - polygon[aK].y()));
                 }
             }
             else
@@ -896,9 +899,10 @@ void GLWidget::Select(int mode, bool saveInfos)
             info.selection_mode   = mode;
 
             for (int aK=0; aK<4; ++aK)
-                info.glViewport[aK] = _g_Cam.VP(aK);
+                info.glViewport[aK] = _g_Cam.ViewPort(aK);
             for (int aK=0; aK<16; ++aK)
             {
+                // TODO faire plus simple
                 info.mvmatrix[aK]   = _g_Cam.mvMatrix(aK);
                 info.projmatrix[aK] = _g_Cam.projMatrix(aK);
             }
@@ -1075,9 +1079,9 @@ void GLWidget::resetView()
 
 void GLWidget::resetRotationMatrix()
 {
-    _g_rotationMatrix[0] = _g_rotationMatrix[4] = _g_rotationMatrix[8] = 1;
-    _g_rotationMatrix[1] = _g_rotationMatrix[2] = _g_rotationMatrix[3] = 0;
-    _g_rotationMatrix[5] = _g_rotationMatrix[6] = _g_rotationMatrix[7] = 0;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
 }
 
 void GLWidget::resetTranslationMatrix()
@@ -1089,6 +1093,7 @@ void GLWidget::resetTranslationMatrix()
         _params.m_translationMatrix[0] = -center.x;
         _params.m_translationMatrix[1] = -center.y;
         _params.m_translationMatrix[2] = -center.z;
+
     }
 }
 

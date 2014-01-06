@@ -762,7 +762,7 @@ void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
       if (aMessage!="")
          fprintf(aFP,"Context=[%s]\n",aMessage.c_str());
 
-      for (int aK=0 ; aK<GlobMessErrContext.size() ; aK++)
+      for (int aK=0 ; aK<(int)GlobMessErrContext.size() ; aK++)
          fprintf(aFP,"GMEC:%s\n",GlobMessErrContext[aK].c_str()),
 
       fprintf(aFP,"MM3D-Command=[%s]\n",GlobArcArgv.c_str());
