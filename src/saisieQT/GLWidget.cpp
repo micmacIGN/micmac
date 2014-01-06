@@ -10,7 +10,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , m_font(font())
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
-  , m_bFirstAction(true)  
+  , m_bFirstAction(true)
   , m_GLData(NULL)
   , m_bDisplayMode2D(false)
   , _params(ViewportParameters())
@@ -81,6 +81,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
 
+    // TODO AVIRER d'ici
     if (hasDataLoaded())
     {
         clearPolyline();
@@ -164,7 +165,7 @@ void GLWidget::paintGL()
         {
 
             // CAMERA BEGIN ===================
-            zoom();            
+            zoom();
             // CAMERA END ===================
 
             glMatrixMode(GL_MODELVIEW);
@@ -449,17 +450,17 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
 
     switch (mode)
     {
-        case TRANSFORM_CAMERA:
-            clearPolyline();
-            break;
-        case SELECTION:
-        {
-            if(m_GLData->is3D()) //3D
-                _g_Cam.setMatrices();
-        }
-            break;
-        default:
-            break;
+    case TRANSFORM_CAMERA:
+        clearPolyline();
+        break;
+    case SELECTION:
+    {
+        if(m_GLData->is3D()) //3D
+            _g_Cam.setMatrices();
+    }
+        break;
+    default:
+        break;
     }
 
     constructMessagesList(showmessage);
@@ -467,56 +468,35 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
-    makeCurrent();
 
-    GLdouble eye[3] = {0.0, 0.0, 0.0};
-    GLdouble top[3] = {0.0, 0.0, 0.0};
-    GLdouble s[3]   = {0.0, 0.0, 0.0};
-    GLdouble u[3]   = {0.0, 0.0, 0.0};
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     switch (orientation)
     {
     case TOP_VIEW:
-        eye[2] = -1.0;
-        top[1] =  1.0;
+        glRotatef(90.0f,1.0f,0.0f,0.0f);
         break;
     case BOTTOM_VIEW:
-        eye[2] =  1.0;
-        top[1] = -1.0;
+        glRotatef(-90.0f,1.0f,0.0f,0.0f);
         break;
     case FRONT_VIEW:
-        eye[1] = 1.0;
-        top[2] = 1.0;
+        glRotatef(0.0,1.0f,0.0f,0.0f);
         break;
     case BACK_VIEW:
-        eye[1] = -1.0;
-        top[2] =  1.0;
+        glRotatef(180.0f,0.0f,1.0f,0.0f);
         break;
     case LEFT_VIEW:
-        eye[0] = 1.0;
-        top[2] = 1.0;
+        glRotatef(90.0f,0.0f,1.0f,0.0f);
         break;
     case RIGHT_VIEW:
-        eye[0] = -1.0;
-        top[2] =  1.0;
+        glRotatef(-90.0f,0.0f,1.0f,0.0f);
     }
 
-    crossprod(eye, top, s);
-    crossprod(s, eye, u);
-
-//    _g_rotationMatrix[0] = s[0];
-//    _g_rotationMatrix[1] = s[1];
-//    _g_rotationMatrix[2] = s[2];
-
-//    _g_rotationMatrix[3] = u[0];
-//    _g_rotationMatrix[4] = u[1];
-//    _g_rotationMatrix[5] = u[2];
-
-//    _g_rotationMatrix[6] = -eye[0];
-//    _g_rotationMatrix[7] = -eye[1];
-//    _g_rotationMatrix[8] = -eye[2];
+    glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
 
     resetTranslationMatrix();
+
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -541,19 +521,24 @@ void GLWidget::setZoom(float value)
 
 void GLWidget::zoomFit()
 {
-    if (hasDataLoaded() && !m_GLData->isImgEmpty())
+    if (hasDataLoaded())
     {
-        float rw = (float)m_GLData->glMaskedImage._m_image->width()  / (float) _g_Cam.vpWidth();
-        float rh = (float)m_GLData->glMaskedImage._m_image->height() / (float) _g_Cam.vpHeight();
+        if(!m_GLData->isImgEmpty())
+        {
+            float rw = (float)m_GLData->glMaskedImage._m_image->width()  / (float) _g_Cam.vpWidth();
+            float rh = (float)m_GLData->glMaskedImage._m_image->height() / (float) _g_Cam.vpHeight();
 
-        if(rw>rh)
-            setZoom(1.f/rw); //orientation landscape
+            if(rw>rh)
+                setZoom(1.f/rw); //orientation landscape
+            else
+                setZoom(1.f/rh); //orientation portrait
+
+            _g_Cam.scaleAndTranslate(-rw, -rh, _params.m_zoom);
+
+            m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
+        }
         else
-            setZoom(1.f/rh); //orientation portrait
-
-        _g_Cam.scaleAndTranslate(-rw, -rh, _params.m_zoom);
-
-        m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
+            setZoom(m_GLData->getBBoxMaxSize());
     }
 }
 
@@ -578,11 +563,11 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 
     m_lastClickZoom = event->pos();
 
-    #if QT_VER==5
-      setZoom(_params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
-    #else
-      setZoom(_params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
-    #endif
+#if QT_VER==5
+    setZoom(_params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
+#else
+    setZoom(_params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
+#endif
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -639,12 +624,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (hasDataLoaded())
     {
         _parentSet->setCurrentWidgetIdx(_idx);
-	
-	#if QT_VER == 5
-	    QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
-	#else
-	    QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
-	#endif
+
+#if QT_VER == 5
+        QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
+#else
+        QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
+#endif
 
         if (m_bDisplayMode2D)  m_lastMoveImage = pos;
 
@@ -716,11 +701,11 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (hasDataLoaded() && m_GLData->Clouds.size())
     {
-	#if QT_VER == 5
-	    QPointF pos = event->localPos();
-	#else
-	    QPointF pos = event->posF();
-	#endif
+#if QT_VER == 5
+        QPointF pos = event->localPos();
+#else
+        QPointF pos = event->posF();
+#endif
 
         _g_Cam.setMatrices();
 
@@ -880,7 +865,7 @@ void GLWidget::Select(int mode, bool saveInfos)
                         P.setVisible(true);
                     }
                         break;
-                    case NONE:                        
+                    case NONE:
                         P.setVisible(false);
                         break;
                     }
@@ -1184,7 +1169,7 @@ void c3DCamera::getProjection(QPointF &P2D, Pt3dr P)
 QPointF c3DCamera::WindowToImage(QPointF const &pt, float zoom)
 {
     QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f+ _projMatrix[12]),
-                -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projMatrix[13]));
+            -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projMatrix[13]));
 
     res /= zoom;
 
