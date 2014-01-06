@@ -145,7 +145,10 @@ public:
     void        setBBoxMaxSize(float aS){_diam = aS;}
 
     Pt3dr       getBBoxCenter(){return _center;}
-    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;}
+    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;} // TODO a verifier : pourquoi le centre cGLData est initialisé avec BBoxCenter
+
+    void        setGlobalCenter(Pt3dr aCenter);
+
 
 private:
 

@@ -489,6 +489,18 @@ void cGLData::draw()
     disableOptionLine();
 }
 
+void cGLData::setGlobalCenter(Pt3d<double> aCenter)
+{
+    setBBoxCenter(aCenter);
+    pBall->setPosition(aCenter);
+    pAxis->setPosition(aCenter);
+    pBbox->setPosition(aCenter);
+
+    for (int aK=0; aK < Clouds.size();++aK)
+       Clouds[aK]->setPosition(aCenter);
+
+}
+
 //********************************************************************************
 
 ViewportParameters::ViewportParameters()

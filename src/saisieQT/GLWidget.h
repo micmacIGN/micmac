@@ -264,9 +264,6 @@ protected:
     //! states if display is 2D or 3D
     bool        m_bDisplayMode2D;
 
-    //! data position in the gl viewport
-    //GLfloat     m_glPosition[2];
-
     QPointF     m_lastMoveImage;
     QPoint      m_lastClickZoom;
 
