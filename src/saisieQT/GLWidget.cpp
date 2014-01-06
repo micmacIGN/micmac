@@ -148,7 +148,6 @@ void GLWidget::paintGL()
 
     //gradient color background
     drawGradientBackground();
-    //we clear background
     glClear(GL_DEPTH_BUFFER_BIT);
 
     if (hasDataLoaded())
@@ -163,17 +162,14 @@ void GLWidget::paintGL()
         }
         else if(m_GLData->is3D())
         {
-
-            // CAMERA BEGIN ===================
             zoom();
-            // CAMERA END ===================
 
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
             glPushMatrix();
 
             glMultMatrixf(_rotationMatrix);
-            glTranslatef(_params.m_translationMatrix[0],_params.m_translationMatrix[1],_params.m_translationMatrix[2]);
+            glTranslatef(_translationMatrix[0],_translationMatrix[1],_translationMatrix[2]);
 
             m_GLData->draw();
 
@@ -429,7 +425,6 @@ void mglOrtho( GLdouble left, GLdouble right,
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(left, right, bottom, top, near_val, far_val);
-
 }
 
 // zoom in 3D mode
@@ -672,8 +667,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         }
                         else
                         {
-                            _params.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_glViewport2;
-                            _params.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_glViewport3;
+                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_glViewport2;
+                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_glViewport3;
                         }
                     }
                 }
@@ -1066,10 +1061,9 @@ void GLWidget::resetTranslationMatrix()
     {
         Pt3dr center = m_GLData->getBBoxCenter();
 
-        _params.m_translationMatrix[0] = -center.x;
-        _params.m_translationMatrix[1] = -center.y;
-        _params.m_translationMatrix[2] = -center.z;
-
+        _translationMatrix[0] = -center.x;
+        _translationMatrix[1] = -center.y;
+        _translationMatrix[2] = -center.z;
     }
 }
 
