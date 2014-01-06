@@ -501,7 +501,7 @@ void BanniereMM3D()
     std::cout << "  **                                                                    **\n";
     std::cout << "  **                                                                    **\n";
     std::cout << "  **  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    **\n";
-    std::cout << "  **     G.Maillet, L. Girod                                            **\n";
+    std::cout << "  **     G Maillet, L Girod                                            **\n";
     std::cout << "  **                                                                    **\n";
     std::cout << "  **               Contact: Marc.Pierrot-Deseilligny@ensg.eu            **\n";
     std::cout << "  **                                                                    **\n";

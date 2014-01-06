@@ -163,20 +163,20 @@ int  NuageBascule_main(int argc,char ** argv)
     (
 	argc,argv,
 	LArgMain()  << EAMC(aNameIn,"Name of input depth map")
-                    << EAMC(aNameOut,"Name of outptut depth map")
+                    << EAMC(aNameOut,"Name of output depth map")
                     << EAMC(aNameRes,"Name result"),
 	LArgMain()  
-                    << EAM(ByP,"ByP",true,"By process in parall, Def = true (faster and avoid memory overflow)")
+                    << EAM(ByP,"ByP",true,"By process in parallel, Def = true (faster and avoid memory overflow)")
                     << EAM(AutoResize,"AutoResize",true,"Clip result to minimal size, Def = true")
                     << EAM(AutoClipIn,"AutoClipIn",true,"Clip result to minimal size")
                     << EAM(aBoxIn,"BoxIn",true,"Box input")
-                    << EAM(aSzDecoup,"SzDecoup",true,"Size of split for paral")
+                    << EAM(aSzDecoup,"SzDecoup",true,"Size of split for parallel")
                     << EAM(ICalledByP,"InternallCalledByP",true,"Internal purpose : dont use")
                     << EAM(aSuplOut,"InternallSuplOut",true,"Internal purpose : dont use")
-                    << EAM(mShowCom,"ShowCom",true,"Show commande, def = false")
+                    << EAM(mShowCom,"ShowCom",true,"Show command, def = false")
                     << EAM(mTileFile,"TileFile",true,"Tile for Big File, def= no tiling for file < 4 Giga Byte")
-                    << EAM(mParal,"Paral",true,"Do in paral , tuning purpose, def=true")
-                    << EAM(mSeuilEtir,"SeuilE",true,"Thrashold for etiring (def = 5.0)")
+                    << EAM(mParal,"Paral",true,"Do in parallel, tuning purpose, def=true")
+                    << EAM(mSeuilEtir,"SeuilE",true,"Threshold for etiring (def = 5.0)")
     );
     Tiff_Im::SetDefTileFile(mTileFile);
 
