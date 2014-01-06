@@ -173,25 +173,25 @@ const std::vector<cMMCom> & getAvailableCommands()
    if (aRes.empty())
    {
        aRes.push_back(cMMCom("Ann",Ann_main," matches points of interest of two images"));
-       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualisation of camera in ply file",cArgLogCom(2)));
+       aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualization of camera in ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
 	   aRes.push_back(cMMCom("Arsenic",Arsenic_main," IN DEV : Radiometric equalization from tie points"));
-       aRes.push_back(cMMCom("Digeo",Digeo_main," In devlopment- Will compute tie points "));
+       aRes.push_back(cMMCom("Digeo",Digeo_main," In development- Will compute tie points "));
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac",cArgLogCom(2)));
 	   aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main,"Convert Orientation from Apero-Micmac workflow to PMVS format"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
-       aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Chang coordinate system of orientation",cArgLogCom(2)));
+       aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Change coordinate system of orientation",cArgLogCom(2)));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
-       aRes.push_back(cMMCom("CreateEpip",CreateEpip_main," Tool create epipolar images"));
-       aRes.push_back(cMMCom("CoherEpip",CoherEpi_main," Tool test coherence between conjugate epipolar depth-map"));
+       aRes.push_back(cMMCom("CreateEpip",CreateEpip_main," Create epipolar images"));
+       aRes.push_back(cMMCom("CoherEpip",CoherEpi_main," Test coherence between conjugate epipolar depth-map"));
        aRes.push_back(cMMCom("Dequant",Dequant_main," Tool for dequantifying an image"));
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
-       aRes.push_back(cMMCom("TifDev",TiffDev_main," Develop, raw-jpg-tif, in adequat tiff file"));
+       aRes.push_back(cMMCom("TifDev",TiffDev_main," Develop raw-jpg-tif, in suitable tiff file"));
 
 	   aRes.push_back(cMMCom("Drunk", Drunk_main,"Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
@@ -226,7 +226,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MICMAC",MICMAC_main," Computes image matching from oriented images"));
        aRes.push_back(cMMCom("MMPyram",MMPyram_main," Computes pyram for micmac (internal use)",cArgLogCom(2)));
 
-       aRes.push_back(cMMCom("MMCalcSzWCor",CalcSzWCor_main," Compute Image of Size of correlation windows (Atomic tool, for adaptatibe window in geom imgae)",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MMCalcSzWCor",CalcSzWCor_main," Compute Image of Size of correlation windows (Atomic tool, for adaptative window in geom imgae)",cArgLogCom(2)));
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
 
        aRes.push_back(cMMCom("MMTestOrient",MMTestOrient_main," Tool for testing quality of orientation"));
@@ -278,9 +278,9 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
        aRes.push_back(cMMCom("Vodka",Vignette_main," IN DEV : Compute the vignette correction parameters from tie points",cArgLogCom(1)));
        aRes.push_back(cMMCom("mmxv",mmxv_main," Interface to xv (due to problem in tiff lib)"));
-       aRes.push_back(cMMCom("CmpIm",CmpIm_main," Tool basic for comparison of images"));
+       aRes.push_back(cMMCom("CmpIm",CmpIm_main," Basic tool for images comparison"));
        aRes.push_back(cMMCom("ImMire",GenMire_main," For generation of some synthetic calibration image"));
-       aRes.push_back(cMMCom("ImRandGray",GrayTexture_main," Generate Randon Gray Textured Images"));
+       aRes.push_back(cMMCom("ImRandGray",GrayTexture_main," Generate Random Gray Textured Images"));
        aRes.push_back(cMMCom("Undist",Undist_main," Tool for removing images distortion"));
 
        aRes.push_back(cMMCom("CheckDependencies",CheckDependencies_main," check dependencies to third-party tools"));
@@ -288,7 +288,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("XYZ2Im",XYZ2Im_main," tool to transform a 3D point (text file) to their 2D proj in cam or cloud"));
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
-       aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool 2 develop MPO stereo format in pair of image"));
+       aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool to develop MPO stereo format in pair of images"));
 
 #ifdef SAISIE_QT
        aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main,"Interactive tool for initial capture of GCP"));
@@ -323,7 +323,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 #endif
 
 #endif
-	   aRes.push_back(cMMCom("TestLib",SampleLibElise_main," To call the programm illustrating the library"));
+       aRes.push_back(cMMCom("TestLib",SampleLibElise_main," To call the program illustrating the library"));
    }
    return aRes;
 }
@@ -381,7 +381,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("X2",TD_Sol2,"Some stuff "));
    aRes.push_back(cMMCom("X3",TD_Sol3,"Some stuff "));
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
-   aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square libray "));
+   aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square library "));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
    aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
    aRes.push_back(cMMCom("Tests_Vincent",Vincent_main,"tests de Vincent"));
@@ -393,10 +393,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
    aRes.push_back(cMMCom("TD_GenApp",TD_GenereAppuis_main,"TD Generate GCP"));
    aRes.push_back(cMMCom("TD_Test",TD_Exemple_main,"Test TD "));
-   aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0  of example fro DocElise  "));
-   aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2  of example fro DocElise  "));
-   aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualisation of epipolar pair (cut)  "));
-   aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualisation of epipolar pair (cut)  "));
+   aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0 of example from DocElise  "));
+   aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2 of example from DocElise  "));
+   aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualization of epipolar pair (cut)  "));
+   aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualization of epipolar pair (cut)  "));
    return aRes;
 }
 
