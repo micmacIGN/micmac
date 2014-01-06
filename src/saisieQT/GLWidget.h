@@ -288,6 +288,7 @@ private:
     QTime       _time;
 
     GLfloat     _rotationMatrix[16];
+    GLfloat     _translationMatrix[3];
 
     c3DCamera   _g_Cam;
 
