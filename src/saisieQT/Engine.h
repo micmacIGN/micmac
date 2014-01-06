@@ -40,9 +40,7 @@ public:
     //! Line width
     float m_LineWidth;
 
-    //! Translation matrix
-    float m_translationMatrix[3];
-
+    //! Rotation and translation speed
 	float m_speed;
 };
 
