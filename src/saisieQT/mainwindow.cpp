@@ -347,6 +347,21 @@ void MainWindow::on_actionHelpShortcuts_triggered()
     QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
 }
 
+void MainWindow::on_actionAbout_triggered()
+{
+    QFont font("Courier New", 9, QFont::Normal);
+
+    QMessageBox msgbox(QMessageBox::Information, tr("Saisie"),QString(getBanniereMM3D().c_str()));
+    msgbox.setFont(font);
+
+    //trick to enlarge QMessageBox...
+    QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QGridLayout* layout = (QGridLayout*)msgbox.layout();
+    layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+
+    msgbox.exec();
+}
+
 void MainWindow::on_actionAdd_triggered()
 {
     CurrentWidget()->Select(ADD);

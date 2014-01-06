@@ -489,6 +489,18 @@ void cGLData::draw()
     disableOptionLine();
 }
 
+void cGLData::setGlobalCenter(Pt3d<double> aCenter)
+{
+    setBBoxCenter(aCenter);
+    pBall->setPosition(aCenter);
+    pAxis->setPosition(aCenter);
+    pBbox->setPosition(aCenter);
+
+    for (int aK=0; aK < Clouds.size();++aK)
+       Clouds[aK]->setPosition(aCenter);
+
+}
+
 //********************************************************************************
 
 ViewportParameters::ViewportParameters()
@@ -496,19 +508,13 @@ ViewportParameters::ViewportParameters()
     , m_PointSize(1)
     , m_LineWidth(1.f)
     , m_speed(2.f)
-{
-    m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
-}
+{}
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
     : m_zoom(params.m_zoom)
     , m_PointSize(params.m_PointSize)
     , m_LineWidth(params.m_LineWidth)
-{
-    m_translationMatrix[0] = params.m_translationMatrix[0];
-    m_translationMatrix[1] = params.m_translationMatrix[1];
-    m_translationMatrix[2] = params.m_translationMatrix[2];
-}
+{}
 
 ViewportParameters::~ViewportParameters(){}
 
@@ -518,10 +524,6 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
     {
         m_zoom = par.m_zoom;
         m_PointSize = par.m_PointSize;
-
-        m_translationMatrix[0] = par.m_translationMatrix[0];
-        m_translationMatrix[1] = par.m_translationMatrix[1];
-        m_translationMatrix[2] = par.m_translationMatrix[2];
         m_LineWidth = par.m_LineWidth;
     }
 
@@ -532,8 +534,6 @@ void ViewportParameters::reset()
 {
     m_zoom = m_LineWidth = 1.f;
     m_PointSize = 1;
-
-    m_translationMatrix[0] = m_translationMatrix[1] = m_translationMatrix[2] = 0.f;
 }
 
 void ViewportParameters::ptSizeUp(bool up)

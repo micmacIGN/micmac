@@ -81,7 +81,11 @@ public:
 
     GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
     GLdouble    projMatrix(int i)   { return _projMatrix[i]; }
-    GLint       VP(int i)           { return _glViewport[i]; }
+
+    GLint       ViewPort(int i)     { return _glViewport[i]; }
+
+    GLint       vpWidth()     { return _glViewport[2]; }
+    GLint       vpHeight()    { return _glViewport[3]; }
 
     void        setMatrices();
 
@@ -206,6 +210,7 @@ public:
 
     std::list<MessageToDisplay>::iterator GetLastMessage();
 
+    void rotateMatrix(GLfloat *matrix, float rX, float rY, float rZ, float factor = 1.0f);
 public slots:
     void zoom();
 
@@ -231,9 +236,6 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
-    //! Draw widget gradient background
-    void drawGradientBackground();
-    
     //! Draw selection polygon
     void drawPolygon();
 
@@ -260,9 +262,6 @@ protected:
     //! states if display is 2D or 3D
     bool        m_bDisplayMode2D;
 
-    //! data position in the gl viewport
-    //GLfloat     m_glPosition[2];
-
     QPointF     m_lastMoveImage;
     QPoint      m_lastClickZoom;
 
@@ -284,13 +283,10 @@ private:
     int         _previousTime;
     int         _currentTime;    
 
-    GLfloat     _g_tmpoMatrix[9];
-    GLfloat     _g_rotationOx[9];
-    GLfloat     _g_rotationOy[9];
-    GLfloat     _g_rotationOz[9];
-    GLfloat     _g_rotationMatrix[9];
-    GLfloat     _g_glMatrix[16];
     QTime       _time;
+
+    GLfloat     _rotationMatrix[16];
+    GLfloat     _translationMatrix[3];
 
     c3DCamera   _g_Cam;
 
