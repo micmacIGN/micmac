@@ -561,7 +561,7 @@ void cPolygon::close()
     _bSelectedPoint = false;
 }
 
-void cPolygon::removeClosestPoint(QPointF pos)
+void cPolygon::RemoveNearestOrClose(QPointF pos)
 {
     if ((_idx >=0)&&(_idx<size())&&_bPolyIsClosed)
     {
@@ -571,12 +571,6 @@ void cPolygon::removeClosestPoint(QPointF pos)
 
         if (size() < 3)
             setClosed(false);
-
-    }
-    else if (size() == 2)
-    {
-        removePoint(1);
-        setClosed(false);
     }
     else // close polygon
         close();
@@ -695,6 +689,15 @@ void cPolygon::finalMovePoint(QPointF pos)
         _helper->clear();
 
         resetSelectedPoint();
+    }
+}
+
+void cPolygon::RemoveLastPoint()
+{
+    if (size() >= 1)
+    {
+        removePoint(size()-1);
+        setClosed(false);
     }
 }
 
@@ -893,6 +896,38 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
+}
+
+void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE,GL_ZERO);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+
+    w = (w>>1)+1;
+    h = (h>>1)+1;
+
+    glOrtho(-w,w,-h,h,-2.f, 2.f);
+
+    const uchar BkgColor[3] = {(uchar) c1.red(),(uchar) c1.green(), (uchar) c1.blue()};
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    //Gradient "texture" drawing
+    glBegin(GL_QUADS);
+    //user-defined background color for gradient start
+    glColor3ubv(BkgColor);
+    glVertex2f(-w,h);
+    glVertex2f(w,h);
+    //and the inverse of points color for gradient end
+    glColor3ub(c2.red(),c2.green(),c2.blue());
+    glVertex2f(w,-h);
+    glVertex2f(-w,-h);
+    glEnd();
+
+    glDisable(GL_BLEND);
 }
 
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
