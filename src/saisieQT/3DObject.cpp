@@ -561,7 +561,7 @@ void cPolygon::close()
     _bSelectedPoint = false;
 }
 
-void cPolygon::removeClosestPoint(QPointF pos)
+void cPolygon::rightClick(QPointF pos, bool removeLastPoint)
 {
     if ((_idx >=0)&&(_idx<size())&&_bPolyIsClosed)
     {
@@ -573,9 +573,9 @@ void cPolygon::removeClosestPoint(QPointF pos)
             setClosed(false);
 
     }
-    else if (size() == 2)
+    else if ((size() == 2) || removeLastPoint)
     {
-        removePoint(1);
+        removePoint(size()-1);
         setClosed(false);
     }
     else // close polygon

@@ -54,8 +54,8 @@ int AperoChImMM_main(int argc,char ** argv)
 	LArgMain()  << EAMC(aFullDir,"Dir + Pattern")
                     << EAMC(AeroIn,"Orientation"),
 	LArgMain()  
-                    << EAM(ExpTxt,"ExpTxt",true,"Have tie point been exported in text format (def = false)")
-                    << EAM(Out,"Out",true,"Out Put destination (Def= same as Orientation-parameter)")
+                    << EAM(ExpTxt,"ExpTxt",true,"Have tie points been exported in text format (def = false)")
+                    << EAM(Out,"Out",true,"Output destination (Def= same as Orientation-parameter)")
     );
 
 	
