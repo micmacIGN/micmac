@@ -211,6 +211,7 @@ public:
     std::list<MessageToDisplay>::iterator GetLastMessage();
 
     void rotateMatrix(GLfloat *matrix, float rX, float rY, float rZ, float factor = 1.0f);
+    void resetProjectionMatrice();
 public slots:
     void zoom();
 

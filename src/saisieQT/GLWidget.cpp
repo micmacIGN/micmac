@@ -81,41 +81,31 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
 
-    // TODO AVIRER d'ici
-    if (hasDataLoaded())
+    // TODO a simplifier /////////////////////////////
+
+    clearPolyline();
+
+    if (m_GLData->is3D())
     {
-        clearPolyline();
+        m_bDisplayMode2D = false;
 
-        if (m_GLData->is3D())
-        {
-            m_bDisplayMode2D = false;
-
-            if (doZoom) setZoom(m_GLData->getBBoxMaxSize());
-
-            resetRotationMatrix();
-            resetTranslationMatrix();
-        }
-
-        if (!m_GLData->isImgEmpty())
-        {
-            m_bDisplayMode2D = true;
-
-            if (doZoom) zoomFit();
-
-            //position de l'image dans la vue gl
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glGetDoublev (GL_MODELVIEW_MATRIX, _g_Cam.getModelViewMatrix());
-
-            m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
-        }
-
-        glGetIntegerv (GL_VIEWPORT, _g_Cam.getGLViewport());
-
-        constructMessagesList(showMessage);
-
-        update();
+        resetRotationMatrix();
+        resetTranslationMatrix();
     }
+
+    if (!m_GLData->isImgEmpty())
+    {
+        m_bDisplayMode2D = true;
+        resetProjectionMatrice();
+        m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
+    }
+
+    if (doZoom) zoomFit();
+
+    constructMessagesList(showMessage);
+
+    //  //////////////////////////////////////////////////////////////////////////
+    update();
 }
 
 void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
@@ -153,7 +143,7 @@ void GLWidget::paintGL()
 
     if (hasDataLoaded())
     {
-        if (!m_GLData->isImgEmpty())
+        if (m_bDisplayMode2D)
         {
             _g_Cam.doProjection(m_lastClickZoom, _params.m_zoom);
 
@@ -161,7 +151,7 @@ void GLWidget::paintGL()
 
             glPopMatrix();
         }
-        else if(m_GLData->is3D())
+        else
         {
             zoom();
 
@@ -200,11 +190,8 @@ void GLWidget::paintGL()
 
     if (!m_messagesToDisplay.empty())
     {
-        int _glViewport2 = (int) _g_Cam.ViewPort(2);
-        int _glViewport3 = (int) _g_Cam.ViewPort(3);
-
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
-        ll_curHeight = lr_curHeight = lc_curHeight = _glViewport3 - m_font.pointSize()*m_messagesToDisplay.size();
+        ll_curHeight = lr_curHeight = lc_curHeight = _g_Cam.vpHeight() - m_font.pointSize()*m_messagesToDisplay.size();
         int uc_curHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
@@ -217,16 +204,16 @@ void GLWidget::paintGL()
                 ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
                 break;
             case LOWER_RIGHT_MESSAGE:
-                lr_curHeight -= renderTextLine(*it, _glViewport2 - 120, lr_curHeight);
+                lr_curHeight -= renderTextLine(*it, _g_Cam.vpWidth() - 120, lr_curHeight);
                 break;
             case LOWER_CENTER_MESSAGE:
-                lc_curHeight -= renderTextLine(*it,(_glViewport2-rect.width())/2, lc_curHeight);
+                lc_curHeight -= renderTextLine(*it,(_g_Cam.vpWidth()-rect.width())/2, lc_curHeight);
                 break;
             case UPPER_CENTER_MESSAGE:
-                uc_curHeight += renderTextLine(*it,(_glViewport2-rect.width())/2, uc_curHeight+rect.height());
+                uc_curHeight += renderTextLine(*it,(_g_Cam.vpWidth()-rect.width())/2, uc_curHeight+rect.height());
                 break;
             case SCREEN_CENTER_MESSAGE:
-                renderTextLine(*it,(_glViewport2-rect.width())/2, (_glViewport3-rect.height())/2,12);
+                renderTextLine(*it,(_g_Cam.vpWidth()-rect.width())/2, (_g_Cam.vpHeight()-rect.height())/2,12);
             }
             ++it;
         }
@@ -382,7 +369,7 @@ void GLWidget::drawPolygon()
         _g_Cam.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
         _g_Cam.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
     }
-    else if (m_GLData->is3D())
+    else
     {
         m_GLData->m_polygon.draw();
         m_GLData->m_polygon.helper()->draw();
@@ -421,7 +408,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
         break;
     case SELECTION:
     {
-        if(m_GLData->is3D()) //3D
+        if(!m_bDisplayMode2D) //3D
             _g_Cam.setMatrices();
     }
         break;
@@ -515,7 +502,7 @@ void GLWidget::zoomFactor(int percent)
         m_lastClickZoom = m_lastPosWindow;
         setZoom(0.01f * percent);
     }
-    else if (hasDataLoaded() && m_GLData->is3D())
+    else if (hasDataLoaded() && !m_bDisplayMode2D)
         setZoom(m_GLData->getBBoxMaxSize() / (float) percent * 100.f);
 }
 
@@ -694,7 +681,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             idx2 = -1; // TODO a verifier, pourquoi init à -1 , probleme si plus 2 nuages...
             QPointF proj;
 
-            Cloud *a_cloud = m_GLData->Clouds[aK];
+            GlCloud *a_cloud = m_GLData->Clouds[aK];
 
             for (int bK=0; bK < a_cloud->size();++bK)
             {
@@ -714,7 +701,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         if ((idx1>=0) && (idx2>=0))
         {
             //final center:
-            Cloud *a_cloud = m_GLData->Clouds[idx1];
+            GlCloud *a_cloud = m_GLData->Clouds[idx1];
             Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
             m_GLData->setGlobalCenter(Pt);
@@ -795,7 +782,7 @@ void GLWidget::Select(int mode, bool saveInfos)
         {
             for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
             {
-                Cloud *a_cloud = m_GLData->Clouds[aK];
+                GlCloud *a_cloud = m_GLData->Clouds[aK];
 
                 for (uint bK=0; bK < (uint) a_cloud->size();++bK)
                 {
@@ -1043,6 +1030,13 @@ void GLWidget::resetTranslationMatrix()
         _translationMatrix[1] = -center.y;
         _translationMatrix[2] = -center.z;
     }
+}
+
+void GLWidget::resetProjectionMatrice()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glGetDoublev (GL_MODELVIEW_MATRIX, _g_Cam.getModelViewMatrix());
 }
 
 //------------------------------------------------------------------------
