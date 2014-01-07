@@ -1068,3 +1068,20 @@ void cGLData::setGlobalCenter(Pt3d<double> aCenter)
 }
 
 //********************************************************************************
+
+
+void cMessages2DGL::displayNewMessage(const QString &message, MessagePosition pos, QColor color)
+{
+    if (message.isEmpty())
+    {
+        m_messagesToDisplay.clear();
+
+        return;
+    }
+
+    MessageToDisplay mess;
+    mess.message = message;
+    mess.position = pos;
+    mess.color = color;
+    m_messagesToDisplay.push_back(mess);
+}
