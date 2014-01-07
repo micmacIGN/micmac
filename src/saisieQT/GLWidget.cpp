@@ -5,7 +5,6 @@ const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
 GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
-  , m_font(font())
   , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
@@ -15,6 +14,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
+  , _messageManager(this)
   , _idx(idx)
   , _parentSet(theSet)
 {
@@ -40,6 +40,8 @@ void GLWidget::resizeGL(int width, int height)
 
     glViewport( 0, 0, width, height );
     glGetIntegerv (GL_VIEWPORT, _matrixManager.getGLViewport());
+
+    _messageManager.wh(width, height);
 
     zoomFit();
 }
@@ -122,24 +124,6 @@ void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
     _BGColor1 = col1;
 }
 
-int GLWidget::renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont)
-{
-    qglColor(messageTD.color);
-
-    m_font.setPointSize(sizeFont);
-
-    renderText(x, y, messageTD.message,m_font);
-
-    return (QFontMetrics(m_font).boundingRect(messageTD.message).height()*5)/4;
-}
-
-std::list<MessageToDisplay>::iterator GLWidget::GetLastMessage()
-{
-    std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
-
-    return it;
-}
-
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -177,11 +161,11 @@ void GLWidget::paintGL()
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();
 
-        if (m_bDrawMessages && m_messagesToDisplay.size())
+        if (m_bDrawMessages && _messageManager.size())
         {
             if (m_bDisplayMode2D)
             {
-                GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
+                _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
 
                 float px = m_lastMoveImage.x();
                 float py = m_lastMoveImage.y();
@@ -189,46 +173,14 @@ void GLWidget::paintGL()
                 float h  = m_GLData->glMaskedImage._m_image->height();
 
                 if  ((px>=0.f)&&(py>=0.f)&&(px<w)&&(py<h))
-                    (--GetLastMessage())->message = QString::number(px,'f',1) + ", " + QString::number(h-py,'f',1) + " px";
+                    _messageManager.GetPenultimateMessage()->message = QString::number(px,'f',1) + ", " + QString::number(h-py,'f',1) + " px";
             }
             else
-                computeFPS(m_messagesToDisplay.back());
+                computeFPS(_messageManager.LastMessage());
         }
     }
 
-    if (!m_messagesToDisplay.empty())
-    {
-        int _glViewport2 = (int) _matrixManager.vpWidth();
-        int _glViewport3 = (int) _matrixManager.vpHeight();
-
-        int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
-        ll_curHeight = lr_curHeight = lc_curHeight = _glViewport3 - m_font.pointSize()*m_messagesToDisplay.size();
-        int uc_curHeight = 10;            //upper center
-
-        std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
-        while (it != m_messagesToDisplay.end())
-        {
-            QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-            switch(it->position)
-            {
-            case LOWER_LEFT_MESSAGE:
-                ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
-                break;
-            case LOWER_RIGHT_MESSAGE:
-                lr_curHeight -= renderTextLine(*it, _glViewport2 - 120, lr_curHeight);
-                break;
-            case LOWER_CENTER_MESSAGE:
-                lc_curHeight -= renderTextLine(*it,(_glViewport2-rect.width())/2, lc_curHeight);
-                break;
-            case UPPER_CENTER_MESSAGE:
-                uc_curHeight += renderTextLine(*it,(_glViewport2-rect.width())/2, uc_curHeight+rect.height());
-                break;
-            case SCREEN_CENTER_MESSAGE:
-                renderTextLine(*it,(_glViewport2-rect.width())/2, (_glViewport3-rect.height())/2,12);
-            }
-            ++it;
-        }
-    }
+    _messageManager.draw();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -348,24 +300,6 @@ void GLWidget::dropEvent(QDropEvent *event)
     }
 
     event->ignore();
-}
-
-void GLWidget::displayNewMessage(const QString& message,
-                                 MessagePosition pos,
-                                 QColor color)
-{
-    if (message.isEmpty())
-    {
-        m_messagesToDisplay.clear();
-
-        return;
-    }
-
-    MessageToDisplay mess;
-    mess.message = message;
-    mess.position = pos;
-    mess.color = color;
-    m_messagesToDisplay.push_back(mess);
 }
 
 void GLWidget::drawPolygon()
@@ -932,7 +866,7 @@ void GLWidget::constructMessagesList(bool show)
 {
     m_bDrawMessages = show;
 
-    displayNewMessage(QString());
+    _messageManager.displayNewMessage(QString());
 
     if (m_bDrawMessages)
     {
@@ -940,28 +874,28 @@ void GLWidget::constructMessagesList(bool show)
         {
             if(m_bDisplayMode2D)
             {
-                displayNewMessage(tr("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                displayNewMessage(tr("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
+                _messageManager.displayNewMessage(tr("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                _messageManager.displayNewMessage(tr("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
             else
             {
                 if (m_interactionMode == TRANSFORM_CAMERA)
                 {
-                    displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
-                    displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+                    _messageManager.displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
+                    _messageManager.displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
                 }
                 else if (m_interactionMode == SELECTION)
                 {
-                    displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
-                    displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
-                    displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
+                    _messageManager.displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
+                    _messageManager.displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
+                    _messageManager.displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
                 }
 
-                displayNewMessage(tr("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
+                _messageManager.displayNewMessage(tr("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
         }
         else
-            displayNewMessage(tr("Drag & drop images or ply files"));
+            _messageManager.displayNewMessage(tr("Drag & drop images or ply files"));
     }
 
     update();

@@ -353,6 +353,131 @@ public:
     void draw();
 
 };
+//====================================================================================
+
+//! Default message positions on screen
+enum MessagePosition {  LOWER_LEFT_MESSAGE,
+                        LOWER_RIGHT_MESSAGE,
+                        LOWER_CENTER_MESSAGE,
+                        UPPER_CENTER_MESSAGE,
+                        SCREEN_CENTER_MESSAGE
+};
+
+//! Temporary Message to display
+struct MessageToDisplay
+{
+    MessageToDisplay():
+        color(Qt::white)
+    {}
+
+    //! Message
+    QString message;
+
+    //! Color
+    QColor color;
+
+    //! Message position on screen
+    MessagePosition position;
+};
+
+#include <QGLWidget>
+
+class cMessages2DGL : public cObjectGL
+{
+public:
+
+    cMessages2DGL(QGLWidget *glw):
+        glwid(glw)
+    {}
+
+    void draw(){
+
+        if (!m_messagesToDisplay.empty())
+        {
+
+            int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
+            ll_curHeight = lr_curHeight = lc_curHeight = h - m_font.pointSize()*m_messagesToDisplay.size();
+            int uc_curHeight = 10;            //upper center
+
+            std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
+            while (it != m_messagesToDisplay.end())
+            {
+                QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+                switch(it->position)
+                {
+                case LOWER_LEFT_MESSAGE:
+                    ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
+                    break;
+                case LOWER_RIGHT_MESSAGE:
+                    lr_curHeight -= renderTextLine(*it, w - 120, lr_curHeight);
+                    break;
+                case LOWER_CENTER_MESSAGE:
+                    lc_curHeight -= renderTextLine(*it,(w-rect.width())/2, lc_curHeight);
+                    break;
+                case UPPER_CENTER_MESSAGE:
+                    uc_curHeight += renderTextLine(*it,(w-rect.width())/2, uc_curHeight+rect.height());
+                    break;
+                case SCREEN_CENTER_MESSAGE:
+                    renderTextLine(*it,(w-rect.width())/2, (h-rect.height())/2,12);
+                }
+                ++it;
+            }
+        }
+    }
+
+    int renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont = 10)
+    {
+        glwid->qglColor(messageTD.color);
+
+        m_font.setPointSize(sizeFont);
+
+        glwid->renderText(x, y, messageTD.message,m_font);
+
+        return (QFontMetrics(m_font).boundingRect(messageTD.message).height()*5)/4;
+    }
+
+    void displayNewMessage(const QString& message,
+                                       MessagePosition pos = SCREEN_CENTER_MESSAGE,
+                                       QColor color = Qt::white);
+
+    std::list<MessageToDisplay>::iterator GetLastMessage()
+    {
+        std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
+
+        return it;
+    }
+
+    std::list<MessageToDisplay>::iterator GetPenultimateMessage()
+    {
+        return --GetLastMessage();
+    }
+
+    MessageToDisplay& LastMessage()
+    {
+        return m_messagesToDisplay.back();
+    }
+
+    void wh(int ww,int hh)
+    {
+        w=ww;
+        h=hh;
+    }
+
+    int size(){return m_messagesToDisplay.size();}
+
+private:
+    list<MessageToDisplay> m_messagesToDisplay;
+
+    //! Default font
+    QFont m_font;
+
+    QGLWidget *glwid;
+
+    int w;
+    int h;
+};
+
+//====================================================================================
 
 class cData;
 class GlCloud;
@@ -410,5 +535,7 @@ private:
     float       _diam;
     Pt3dr       _center;
 };
+
+//====================================================================================
 
 #endif //__3DObject__
