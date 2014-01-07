@@ -879,12 +879,7 @@ void GLWidget::undo()
 
             if (!m_bDisplayMode2D)
             {
-                for (int bK=0; bK<16;++bK)
-                {
-                    _matrixManager.getModelViewMatrix()[bK]  = infos.mvmatrix[bK];
-                    _matrixManager.getProjectionMatrix()[bK] = infos.projmatrix[bK];
-                }
-                for (int bK=0; bK<4;++bK)  _matrixManager.getGLViewport()[bK] = infos.glViewport[bK];
+                _matrixManager.importMatrices(infos);
 
                 if (aK==0) m_bFirstAction = true;
                 else m_bFirstAction = false;

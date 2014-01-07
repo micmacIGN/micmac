@@ -30,6 +30,7 @@ public:
 
     void        setMatrices();
 
+    void        importMatrices(selectInfos &infos);
     void        exportMatrices(selectInfos &infos);
 
     void        resetPosition(){m_glPosition[0] = m_glPosition[1] = 0.f;}
