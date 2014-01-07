@@ -23,11 +23,9 @@
 #include "Data.h"
 #include "Engine.h"
 #include "3DTools.h"
-
-
 #include "3DObject.h"
-
 #include "MatrixManager.h"
+#include "GLWidgetSet.h"
 
 class GLWidgetSet;
 
