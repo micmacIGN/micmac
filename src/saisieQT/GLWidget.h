@@ -38,31 +38,6 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          RIGHT_VIEW     /**< Right view **/
 };
 
-//! Default message positions on screen
-enum MessagePosition {  LOWER_LEFT_MESSAGE,
-                        LOWER_RIGHT_MESSAGE,
-                        LOWER_CENTER_MESSAGE,
-                        UPPER_CENTER_MESSAGE,
-                        SCREEN_CENTER_MESSAGE
-};
-
-//! Temporary Message to display
-struct MessageToDisplay
-{
-    MessageToDisplay():
-        color(Qt::white)
-    {}
-
-    //! Message
-    QString message;
-
-    //! Color
-    QColor color;
-
-    //! Message position on screen
-    MessagePosition position;
-};
-
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -74,19 +49,6 @@ public:
 
     //! Destructor
     ~GLWidget(){}
-
-    //! Interaction mode (only in 3D)
-    enum INTERACTION_MODE { TRANSFORM_CAMERA,
-                            SELECTION
-    };
-
-    //! Displays a status message
-    /** \param message message (if message is empty, all messages will be cleared)
-        \param pos message position on screen
-    **/
-    virtual void displayNewMessage(const QString& message,
-                                   MessagePosition pos = SCREEN_CENTER_MESSAGE,
-                                   QColor color = Qt::white);
 
     //! States if data (cloud, camera or image) is loaded
     bool hasDataLoaded();
@@ -105,7 +67,7 @@ public:
     void zoomFactor(int percent);
 
     //! Switch between move mode and selection mode (only in 3D)
-    void setInteractionMode(INTERACTION_MODE mode, bool showmessage);
+    void setInteractionMode(int mode, bool showmessage);
 
     bool getInteractionMode(){return m_interactionMode;}
 
@@ -156,11 +118,7 @@ public:
     void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
     cGLData* getGLData(){return m_GLData;}
 
-    void setBackgroundColors(QColor const &col0, QColor const &col1);
-
-    int renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
-
-    std::list<MessageToDisplay>::iterator GetLastMessage();
+    void setBackgroundColors(QColor const &col0, QColor const &col1);   
 
     void rotateMatrix(GLfloat *matrix, float rX, float rY, float rZ, float factor = 1.0f);
 
@@ -197,19 +155,13 @@ protected:
     //! GL context aspect ratio (width/height)
     float m_glRatio;
 
-    //! Default font
-    QFont m_font;
-
     //! States if messages should be displayed
     bool m_bDrawMessages;
 
     //! Current interaction mode (with mouse)
-    INTERACTION_MODE m_interactionMode;
+    int m_interactionMode;
 
     bool m_bFirstAction;
-
-    //! List of messages to display
-    list<MessageToDisplay> m_messagesToDisplay;
 
     //! Data to display
     cGLData    *m_GLData;
@@ -244,6 +196,7 @@ private:
     GLfloat     _translationMatrix[3];
 
     MatrixManager _matrixManager;
+    cMessages2DGL _messageManager;
 
     int         _idx;
 

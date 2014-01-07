@@ -14,6 +14,12 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
+//! Interaction mode (only in 3D)
+enum INTERACTION_MODE {
+    TRANSFORM_CAMERA,
+    SELECTION
+};
+
 enum LINE_STYLE
 {
     LINE_NOSTIPPLE,
@@ -353,6 +359,127 @@ public:
     void draw();
 
 };
+//====================================================================================
+
+//! Default message positions on screen
+enum MessagePosition {  LOWER_LEFT_MESSAGE,
+                        LOWER_RIGHT_MESSAGE,
+                        LOWER_CENTER_MESSAGE,
+                        UPPER_CENTER_MESSAGE,
+                        SCREEN_CENTER_MESSAGE
+};
+
+//! Temporary Message to display
+struct MessageToDisplay
+{
+    MessageToDisplay():
+        color(Qt::white)
+    {}
+
+    //! Message
+    QString message;
+
+    //! Color
+    QColor color;
+
+    //! Message position on screen
+    MessagePosition position;
+};
+
+#include <QGLWidget>
+
+class cMessages2DGL : public cObjectGL
+{
+public:
+
+    cMessages2DGL(QGLWidget *glw):
+        glwid(glw)
+    {}
+
+    void draw();
+
+    int renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
+
+    void displayNewMessage(const QString& message,
+                                       MessagePosition pos = SCREEN_CENTER_MESSAGE,
+                                       QColor color = Qt::white);
+
+    void constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded)
+    {
+        //m_bDrawMessages = show;
+
+        displayNewMessage(QString());
+
+        if (show)
+        {
+            if(dataloaded)
+            {
+                if(m_bDisplayMode2D)
+                {
+                    displayNewMessage(QString("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                    displayNewMessage(QString("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
+                }
+                else
+                {
+                    if (mode == TRANSFORM_CAMERA)
+                    {
+                        displayNewMessage(QString("Move mode"),UPPER_CENTER_MESSAGE);
+                        displayNewMessage(QString("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+                    }
+                    else if (mode == SELECTION)
+                    {
+                        displayNewMessage(QString("Selection mode"),UPPER_CENTER_MESSAGE);
+                        displayNewMessage(QString("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
+                        displayNewMessage(QString("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
+                    }
+
+                    displayNewMessage(QString("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
+                }
+            }
+            else
+                displayNewMessage(QString("Drag & drop images or ply files"));
+        }
+
+    }
+
+    std::list<MessageToDisplay>::iterator GetLastMessage()
+    {
+        std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
+
+        return it;
+    }
+
+    std::list<MessageToDisplay>::iterator GetPenultimateMessage()
+    {
+        return --GetLastMessage();
+    }
+
+    MessageToDisplay& LastMessage()
+    {
+        return m_messagesToDisplay.back();
+    }
+
+    void wh(int ww,int hh)
+    {
+        w=ww;
+        h=hh;
+    }
+
+    int size(){return m_messagesToDisplay.size();}
+
+private:
+    list<MessageToDisplay> m_messagesToDisplay;
+
+    //! Default font
+    QFont m_font;
+
+    QGLWidget *glwid;
+
+    int w;
+    int h;
+};
+
+//====================================================================================
 
 class cData;
 class GlCloud;
@@ -410,5 +537,7 @@ private:
     float       _diam;
     Pt3dr       _center;
 };
+
+//====================================================================================
 
 #endif //__3DObject__
