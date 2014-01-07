@@ -10960,6 +10960,207 @@ void xml_init(cSectionName & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< double > & cScoreMM1P::PdsAR()
+{
+   return mPdsAR;
+}
+
+const cTplValGesInit< double > & cScoreMM1P::PdsAR()const 
+{
+   return mPdsAR;
+}
+
+
+cTplValGesInit< double > & cScoreMM1P::PdsDistor()
+{
+   return mPdsDistor;
+}
+
+const cTplValGesInit< double > & cScoreMM1P::PdsDistor()const 
+{
+   return mPdsDistor;
+}
+
+
+cTplValGesInit< double > & cScoreMM1P::AmplImDistor()
+{
+   return mAmplImDistor;
+}
+
+const cTplValGesInit< double > & cScoreMM1P::AmplImDistor()const 
+{
+   return mAmplImDistor;
+}
+
+
+cTplValGesInit< double > & cScoreMM1P::SeuilDist()
+{
+   return mSeuilDist;
+}
+
+const cTplValGesInit< double > & cScoreMM1P::SeuilDist()const 
+{
+   return mSeuilDist;
+}
+
+
+cTplValGesInit< double > & cScoreMM1P::PdsDistBord()
+{
+   return mPdsDistBord;
+}
+
+const cTplValGesInit< double > & cScoreMM1P::PdsDistBord()const 
+{
+   return mPdsDistBord;
+}
+
+
+cTplValGesInit< double > & cScoreMM1P::SeuilDisBord()
+{
+   return mSeuilDisBord;
+}
+
+const cTplValGesInit< double > & cScoreMM1P::SeuilDisBord()const 
+{
+   return mSeuilDisBord;
+}
+
+cElXMLTree * ToXMLTree(const cScoreMM1P & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ScoreMM1P",eXMLBranche);
+   if (anObj.PdsAR().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PdsAR"),anObj.PdsAR().Val())->ReTagThis("PdsAR"));
+   if (anObj.PdsDistor().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PdsDistor"),anObj.PdsDistor().Val())->ReTagThis("PdsDistor"));
+   if (anObj.AmplImDistor().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("AmplImDistor"),anObj.AmplImDistor().Val())->ReTagThis("AmplImDistor"));
+   if (anObj.SeuilDist().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilDist"),anObj.SeuilDist().Val())->ReTagThis("SeuilDist"));
+   if (anObj.PdsDistBord().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PdsDistBord"),anObj.PdsDistBord().Val())->ReTagThis("PdsDistBord"));
+   if (anObj.SeuilDisBord().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilDisBord"),anObj.SeuilDisBord().Val())->ReTagThis("SeuilDisBord"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cScoreMM1P & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.PdsAR(),aTree->Get("PdsAR",1),double(1.0)); //tototo 
+
+   xml_init(anObj.PdsDistor(),aTree->Get("PdsDistor",1),double(0.5)); //tototo 
+
+   xml_init(anObj.AmplImDistor(),aTree->Get("AmplImDistor",1),double(100.0)); //tototo 
+
+   xml_init(anObj.SeuilDist(),aTree->Get("SeuilDist",1),double(0.5)); //tototo 
+
+   xml_init(anObj.PdsDistBord(),aTree->Get("PdsDistBord",1),double(0.25)); //tototo 
+
+   xml_init(anObj.SeuilDisBord(),aTree->Get("SeuilDisBord",1),double(3.0)); //tototo 
+}
+
+
+cTplValGesInit< double > & cSectionScoreQualite::PdsAR()
+{
+   return ScoreMM1P().Val().PdsAR();
+}
+
+const cTplValGesInit< double > & cSectionScoreQualite::PdsAR()const 
+{
+   return ScoreMM1P().Val().PdsAR();
+}
+
+
+cTplValGesInit< double > & cSectionScoreQualite::PdsDistor()
+{
+   return ScoreMM1P().Val().PdsDistor();
+}
+
+const cTplValGesInit< double > & cSectionScoreQualite::PdsDistor()const 
+{
+   return ScoreMM1P().Val().PdsDistor();
+}
+
+
+cTplValGesInit< double > & cSectionScoreQualite::AmplImDistor()
+{
+   return ScoreMM1P().Val().AmplImDistor();
+}
+
+const cTplValGesInit< double > & cSectionScoreQualite::AmplImDistor()const 
+{
+   return ScoreMM1P().Val().AmplImDistor();
+}
+
+
+cTplValGesInit< double > & cSectionScoreQualite::SeuilDist()
+{
+   return ScoreMM1P().Val().SeuilDist();
+}
+
+const cTplValGesInit< double > & cSectionScoreQualite::SeuilDist()const 
+{
+   return ScoreMM1P().Val().SeuilDist();
+}
+
+
+cTplValGesInit< double > & cSectionScoreQualite::PdsDistBord()
+{
+   return ScoreMM1P().Val().PdsDistBord();
+}
+
+const cTplValGesInit< double > & cSectionScoreQualite::PdsDistBord()const 
+{
+   return ScoreMM1P().Val().PdsDistBord();
+}
+
+
+cTplValGesInit< double > & cSectionScoreQualite::SeuilDisBord()
+{
+   return ScoreMM1P().Val().SeuilDisBord();
+}
+
+const cTplValGesInit< double > & cSectionScoreQualite::SeuilDisBord()const 
+{
+   return ScoreMM1P().Val().SeuilDisBord();
+}
+
+
+cTplValGesInit< cScoreMM1P > & cSectionScoreQualite::ScoreMM1P()
+{
+   return mScoreMM1P;
+}
+
+const cTplValGesInit< cScoreMM1P > & cSectionScoreQualite::ScoreMM1P()const 
+{
+   return mScoreMM1P;
+}
+
+cElXMLTree * ToXMLTree(const cSectionScoreQualite & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionScoreQualite",eXMLBranche);
+   if (anObj.ScoreMM1P().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ScoreMM1P().Val())->ReTagThis("ScoreMM1P"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cSectionScoreQualite & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ScoreMM1P(),aTree->Get("ScoreMM1P",1)); //tototo 
+}
+
+
 cTplValGesInit< double > & cFMNtBySort::PercFusion()
 {
    return mPercFusion;
@@ -11918,6 +12119,94 @@ const cSectionName & cParamFusionMNT::SectionName()const
 }
 
 
+cTplValGesInit< double > & cParamFusionMNT::PdsAR()
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().PdsAR();
+}
+
+const cTplValGesInit< double > & cParamFusionMNT::PdsAR()const 
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().PdsAR();
+}
+
+
+cTplValGesInit< double > & cParamFusionMNT::PdsDistor()
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().PdsDistor();
+}
+
+const cTplValGesInit< double > & cParamFusionMNT::PdsDistor()const 
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().PdsDistor();
+}
+
+
+cTplValGesInit< double > & cParamFusionMNT::AmplImDistor()
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().AmplImDistor();
+}
+
+const cTplValGesInit< double > & cParamFusionMNT::AmplImDistor()const 
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().AmplImDistor();
+}
+
+
+cTplValGesInit< double > & cParamFusionMNT::SeuilDist()
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().SeuilDist();
+}
+
+const cTplValGesInit< double > & cParamFusionMNT::SeuilDist()const 
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().SeuilDist();
+}
+
+
+cTplValGesInit< double > & cParamFusionMNT::PdsDistBord()
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().PdsDistBord();
+}
+
+const cTplValGesInit< double > & cParamFusionMNT::PdsDistBord()const 
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().PdsDistBord();
+}
+
+
+cTplValGesInit< double > & cParamFusionMNT::SeuilDisBord()
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().SeuilDisBord();
+}
+
+const cTplValGesInit< double > & cParamFusionMNT::SeuilDisBord()const 
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().SeuilDisBord();
+}
+
+
+cTplValGesInit< cScoreMM1P > & cParamFusionMNT::ScoreMM1P()
+{
+   return SectionScoreQualite().Val().ScoreMM1P();
+}
+
+const cTplValGesInit< cScoreMM1P > & cParamFusionMNT::ScoreMM1P()const 
+{
+   return SectionScoreQualite().Val().ScoreMM1P();
+}
+
+
+cTplValGesInit< cSectionScoreQualite > & cParamFusionMNT::SectionScoreQualite()
+{
+   return mSectionScoreQualite;
+}
+
+const cTplValGesInit< cSectionScoreQualite > & cParamFusionMNT::SectionScoreQualite()const 
+{
+   return mSectionScoreQualite;
+}
+
+
 double & cParamFusionMNT::FMNTSeuilCorrel()
 {
    return ParamAlgoFusionMNT().FMNTSeuilCorrel();
@@ -12254,6 +12543,8 @@ cElXMLTree * ToXMLTree(const cParamFusionMNT & anObj)
    if (anObj.DicoLoc().IsInit())
       aRes->AddFils(ToXMLTree(anObj.DicoLoc().Val())->ReTagThis("DicoLoc"));
    aRes->AddFils(ToXMLTree(anObj.SectionName())->ReTagThis("SectionName"));
+   if (anObj.SectionScoreQualite().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.SectionScoreQualite().Val())->ReTagThis("SectionScoreQualite"));
    aRes->AddFils(ToXMLTree(anObj.ParamAlgoFusionMNT())->ReTagThis("ParamAlgoFusionMNT"));
    aRes->AddFils(ToXMLTree(anObj.GenereRes())->ReTagThis("GenereRes"));
    aRes->AddFils(ToXMLTree(anObj.GenereInput())->ReTagThis("GenereInput"));
@@ -12271,6 +12562,8 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.DicoLoc(),aTree->Get("DicoLoc",1)); //tototo 
 
    xml_init(anObj.SectionName(),aTree->Get("SectionName",1)); //tototo 
+
+   xml_init(anObj.SectionScoreQualite(),aTree->Get("SectionScoreQualite",1)); //tototo 
 
    xml_init(anObj.ParamAlgoFusionMNT(),aTree->Get("ParamAlgoFusionMNT",1)); //tototo 
 
