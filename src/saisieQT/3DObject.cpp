@@ -561,13 +561,13 @@ void cPolygon::close()
     _bSelectedPoint = false;
 }
 
-void cPolygon::RemoveNearestOrClose(QPointF pos)
+void cPolygon::removeNearestOrClose(QPointF pos)
 {
     if ((_idx >=0)&&(_idx<size())&&_bPolyIsClosed)
     {
-        removePoint(_idx);   // remove closest point
+        removePoint(_idx);   // remove nearest point
 
-        findClosestPoint(pos);
+        findNearestPoint(pos);
 
         if (size() < 3)
             setClosed(false);
@@ -622,7 +622,7 @@ void cPolygon::removePoint(int i)
     _idx = -1;
 }
 
-void cPolygon::findClosestPoint(QPointF const &pos)
+void cPolygon::findNearestPoint(QPointF const &pos)
 {
     if (_bPolyIsClosed)
     {
@@ -669,13 +669,13 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
     {
-        if (insertMode || isPointSelected())                    // INSERT POLYGON POINT
+        if (insertMode || isPointSelected()) // insert polygon point
 
             _helper->build(pos, insertMode);
 
-        else                                // SELECT CLOSEST POLYGON POINT
+        else                                // select nearest polygon point
 
-            findClosestPoint(pos);
+            findNearestPoint(pos);
     }
 }
 
@@ -692,7 +692,7 @@ void cPolygon::finalMovePoint(QPointF pos)
     }
 }
 
-void cPolygon::RemoveLastPoint()
+void cPolygon::removeLastPoint()
 {
     if (size() >= 1)
     {

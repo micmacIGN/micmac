@@ -707,8 +707,8 @@ int ClipIm_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()  << EAM(aNameIn)
-                    << EAM(P0)
-                    << EAM(Sz)  ,
+                    << EAMC(P0,"P0")
+                    << EAMC(Sz,"SZ")  ,
         LArgMain()  << EAM(aNameOut,"Out",true)
     );
 
