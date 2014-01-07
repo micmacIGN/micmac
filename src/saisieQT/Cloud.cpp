@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 
-using namespace Cloud_;
 
 static PlyProperty vert_props[] = {
     {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
@@ -42,7 +41,7 @@ static PlyProperty oriented_vert_props[] = {
 /*!
     Read a ply file, store the point cloud
 */
-Cloud* Cloud::loadPly(string i_filename ,int* incre)
+GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 {
     vector <Vertex> ptList;
 
@@ -208,20 +207,20 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
 
     if(incre) *incre = 0;
 
-    return new Cloud(ptList);
+    return new GlCloud(ptList);
 }
 
-void Cloud::addVertex(const Vertex &vert)
+void GlCloud::addVertex(const Vertex &vert)
 {
     _vertices.push_back(vert);
 }
 
-int Cloud::size()
+int GlCloud::size()
 {
     return _vertices.size();
 }
 
-Vertex& Cloud::getVertex(uint nb_vert)
+Vertex& GlCloud::getVertex(uint nb_vert)
 {
     if (_vertices.size() > nb_vert)
     {
@@ -235,12 +234,12 @@ Vertex& Cloud::getVertex(uint nb_vert)
     return _vertices[0];
 }
 
-void Cloud::clear()
+void GlCloud::clear()
 {
     _vertices.clear();
 }
 
-Cloud::Cloud(vector<Vertex> const & vVertex)
+GlCloud::GlCloud(vector<Vertex> const & vVertex)
 {
     for (uint aK=0; aK< vVertex.size(); aK++)
     {
@@ -251,7 +250,7 @@ Cloud::Cloud(vector<Vertex> const & vVertex)
     _scale = 1.f;
 }
 
-void Cloud::draw()
+void GlCloud::draw()
 {
     glEnable(GL_DEPTH_TEST);
 
@@ -274,7 +273,7 @@ void Cloud::draw()
     glDisable(GL_DEPTH_TEST);
 }
 
-void Cloud::setBufferGl(bool onlyColor)
+void GlCloud::setBufferGl(bool onlyColor)
 {
     if(_vertexbuffer.isCreated() && !onlyColor)
         _vertexbuffer.destroy();

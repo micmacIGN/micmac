@@ -74,7 +74,7 @@ public:
 
     CamStenope* loadCamera(QString aNameFile);
 
-    Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
+    GlCloud*      loadCloud(string i_ply_file , int *incre = NULL);
 
     void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
@@ -136,7 +136,7 @@ public:
     cAxis       *pAxis;
     cBBox       *pBbox;
 
-    QVector < Cloud* > Clouds;
+    QVector < GlCloud* > Clouds;
 
     //info coming from cData
     float       getBBoxMaxSize(){return _diam;}
