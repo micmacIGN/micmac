@@ -685,7 +685,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             idx2 = -1; // TODO a verifier, pourquoi init à -1 , probleme si plus 2 nuages...
             QPointF proj;
 
-            Cloud *a_cloud = m_GLData->Clouds[aK];
+            GlCloud *a_cloud = m_GLData->Clouds[aK];
 
             for (int bK=0; bK < a_cloud->size();++bK)
             {
@@ -705,7 +705,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         if ((idx1>=0) && (idx2>=0))
         {
             //final center:
-            Cloud *a_cloud = m_GLData->Clouds[idx1];
+            GlCloud *a_cloud = m_GLData->Clouds[idx1];
             Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
             m_GLData->setGlobalCenter(Pt);
@@ -786,7 +786,7 @@ void GLWidget::Select(int mode, bool saveInfos)
         {
             for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
             {
-                Cloud *a_cloud = m_GLData->Clouds[aK];
+                GlCloud *a_cloud = m_GLData->Clouds[aK];
 
                 for (uint bK=0; bK < (uint) a_cloud->size();++bK)
                 {
