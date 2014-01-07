@@ -75,6 +75,17 @@ void MatrixManager::setMatrices()
     glGetIntegerv(GL_VIEWPORT, _glViewport);
 }
 
+void MatrixManager::exportMatrices(selectInfos &infos)
+{
+    for (int aK=0; aK<4; ++aK)
+        infos.glViewport[aK] = _glViewport[aK];
+    for (int aK=0; aK<16; ++aK)
+    {
+        infos.mvmatrix[aK]   = _mvMatrix[aK];
+        infos.projmatrix[aK] = _projMatrix[aK];
+    }
+}
+
 void MatrixManager::getProjection(QPointF &P2D, Pt3dr P)
 {
     GLdouble xp,yp,zp;
@@ -84,8 +95,8 @@ void MatrixManager::getProjection(QPointF &P2D, Pt3dr P)
 
 QPointF MatrixManager::WindowToImage(QPointF const &pt, float zoom)
 {
-    QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f+ _projMatrix[12]),
-            -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projMatrix[13]));
+    QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f + _projMatrix[12]),
+                -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
 
     res /= zoom;
 
