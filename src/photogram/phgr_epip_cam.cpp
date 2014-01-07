@@ -941,7 +941,7 @@ void cChangEpip::OneIteration(int aDeg,double aSeuil,double aPond)
 
 
 cChangEpip::cChangEpip(const ElPackHomologue & aPck,double anAmpl,int aDegre) :
-     mDegre   (ElMin(aDegre,round_down(sqrt(aPck.size() /20) -1))),
+     mDegre   (ElMin(aDegre,round_down(sqrt(double(aPck.size() /20) -1)))),
      mPck     (aPck),
      mAmpl    (anAmpl),
      mCurPoly (0,anAmpl)
