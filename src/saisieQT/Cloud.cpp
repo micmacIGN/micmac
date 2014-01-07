@@ -43,7 +43,7 @@ static PlyProperty oriented_vert_props[] = {
 */
 GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 {
-    vector <Vertex> ptList;
+    vector <GlVertex> ptList;
 
     PlyFile * thePlyFile;
 
@@ -105,7 +105,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                             printf ("vertex--: %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue, vertex->alpha);
                         #endif
 
-                        ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha )));
+                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha )));
                     }
                     break;
                 }
@@ -140,7 +140,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                                 printf ("vertex: %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue);
                             #endif
 
-                            ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue )));
+                            ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue )));
                         }
                     }
                     else
@@ -164,7 +164,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                             int Green = (int) ((vertex->ny + 1.f)*122.5);
                             int Blue  = (int) ((vertex->nz + 1.f)*122.5);
 
-                            ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor(Red, Green, Blue )));
+                            ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor(Red, Green, Blue )));
                         }
                     }
                     break;
@@ -186,7 +186,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                             printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
                         #endif
 
-                        ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( 255, 255, 255 )));
+                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( 255, 255, 255 )));
                 }
                 break;
                 }
@@ -210,7 +210,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
     return new GlCloud(ptList);
 }
 
-void GlCloud::addVertex(const Vertex &vert)
+void GlCloud::addVertex(const GlVertex &vert)
 {
     _vertices.push_back(vert);
 }
@@ -220,7 +220,7 @@ int GlCloud::size()
     return _vertices.size();
 }
 
-Vertex& GlCloud::getVertex(uint nb_vert)
+GlVertex& GlCloud::getVertex(uint nb_vert)
 {
     if (_vertices.size() > nb_vert)
     {
@@ -239,7 +239,7 @@ void GlCloud::clear()
     _vertices.clear();
 }
 
-GlCloud::GlCloud(vector<Vertex> const & vVertex)
+GlCloud::GlCloud(vector<GlVertex> const & vVertex)
 {
     for (uint aK=0; aK< vVertex.size(); aK++)
     {
@@ -290,7 +290,7 @@ void GlCloud::setBufferGl(bool onlyColor)
 
     for(uint bK=0; bK< sizeCloud; bK++)
     {
-        Vertex vert = getVertex(bK);
+        GlVertex vert = getVertex(bK);
         Pt3dr  pos  = vert.getPosition();
         QColor colo = vert.getColor();
         if(!onlyColor)

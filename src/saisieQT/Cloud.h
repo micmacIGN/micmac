@@ -12,18 +12,18 @@
 
 #include "3DObject.h"
 
-#define Vertex cObject
+#define GlVertex cObject
 
 class GlCloud : public cObjectGL
 {
 public:
     GlCloud(){}
-    GlCloud(vector<Vertex> const &);
+    GlCloud(vector<GlVertex> const &);
 
     static GlCloud* loadPly(string,  int *incre = NULL);
 
-    void    addVertex( const Vertex & );
-    Vertex& getVertex( uint );
+    void    addVertex( const GlVertex & );
+    GlVertex& getVertex( uint );
     int     size();
 
     void    clear();
@@ -33,7 +33,7 @@ public:
     void    draw();
 
 private:
-    vector<Vertex> _vertices;
+    vector<GlVertex> _vertices;
 
     QGLBuffer   _vertexbuffer;
     QGLBuffer   _vertexColor;

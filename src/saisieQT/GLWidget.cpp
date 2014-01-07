@@ -790,7 +790,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 
                 for (uint bK=0; bK < (uint) a_cloud->size();++bK)
                 {
-                    Vertex &P  = a_cloud->getVertex( bK );
+                    GlVertex &P  = a_cloud->getVertex( bK );
                     Pt3dr  Pt = P.getPosition();
 
                     switch (mode)
