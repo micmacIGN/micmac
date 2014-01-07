@@ -33,7 +33,6 @@ class cObject
         cObject(Pt3dr pt, QColor col);
         virtual ~cObject();
 
-
         Pt3dr   getPosition()   { return _position; }
         QColor  getColor()      { return _color;    }
         float   getScale()      { return _scale;    }
