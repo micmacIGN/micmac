@@ -425,7 +425,6 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -453,7 +452,6 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
 
     resetTranslationMatrix();
-
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -582,7 +580,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void GLWidget::rotateMatrix(GLfloat* matrix, float rX, float rY, float rZ,float factor)
+void GLWidget::rotateMatrix(GLfloat* matrix, float rX, float rY, float rZ, float factor)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -682,7 +680,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         {
             float sqrD;
             float dist = FLT_MAX;
-            idx2 = -1; // TODO a verifier, pourquoi init à -1 , probleme si plus 2 nuages...
+            idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
             QPointF proj;
 
             GlCloud *a_cloud = m_GLData->Clouds[aK];
@@ -784,6 +782,14 @@ void GLWidget::Select(int mode, bool saveInfos)
         }
         else
         {
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+
+            glMultMatrixf(_rotationMatrix);
+            glTranslatef(_translationMatrix[0],_translationMatrix[1],_translationMatrix[2]);
+
+            glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
+
             for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
             {
                 GlCloud *a_cloud = m_GLData->Clouds[aK];
