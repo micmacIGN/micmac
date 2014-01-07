@@ -167,9 +167,9 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        void    findClosestPoint(const QPointF &pos);
+        void    findNearestPoint(const QPointF &pos);
 
-        void    RemoveNearestOrClose(QPointF pos); //remove closest or last point, or close polygon
+        void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
 
         void    setpointSize(float size) { _pointSize = size; }
 
@@ -210,7 +210,7 @@ class cPolygon : public cObjectGL
 
         void    finalMovePoint(QPointF pos);
 
-        void    RemoveLastPoint();
+        void    removeLastPoint();
 
 protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
