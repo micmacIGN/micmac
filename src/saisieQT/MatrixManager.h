@@ -2,6 +2,7 @@
 #define __MATRIXMANAGER__
 
 #include "3DObject.h"
+#include "Engine.h"
 
 class MatrixManager
 {
@@ -22,12 +23,14 @@ public:
     GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
     GLdouble    projMatrix(int i)   { return _projMatrix[i]; }
 
-    GLint       ViewPort(int i)     { return _glViewport[i]; }
+    GLint       Viewport(int i)     { return _glViewport[i]; }
 
     GLint       vpWidth()     { return _glViewport[2]; }
     GLint       vpHeight()    { return _glViewport[3]; }
 
     void        setMatrices();
+
+    void        exportMatrices(selectInfos &infos);
 
     void        resetPosition(){m_glPosition[0] = m_glPosition[1] = 0.f;}
 

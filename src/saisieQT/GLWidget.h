@@ -165,8 +165,9 @@ public:
     std::list<MessageToDisplay>::iterator GetLastMessage();
 
     void rotateMatrix(GLfloat *matrix, float rX, float rY, float rZ, float factor = 1.0f);
-    void resetProjectionMatrice();
+
 public slots:
+
     void zoom();
 
     void onWheelEvent(float wheelDelta_deg);
@@ -177,8 +178,11 @@ signals:
     void filesDropped(const QStringList& filenames);
 
 protected:
+    //! inherited from QGLWidget
     void resizeGL(int w, int h);
     void paintGL();
+
+    //! inherited from QWidget
     void mouseDoubleClickEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
@@ -186,10 +190,8 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
-
-    //inherited from QWidget (drag & drop support)
-    virtual void dragEnterEvent(QDragEnterEvent* event);
-    virtual void dropEvent(QDropEvent* event);
+    void dragEnterEvent(QDragEnterEvent* event);
+    void dropEvent(QDropEvent* event);
 
     //! Draw selection polygon
     void drawPolygon();
