@@ -204,6 +204,7 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
+    void resetProjectionMatrice();
 };
 
 #endif  /* _GLWIDGET_H */
