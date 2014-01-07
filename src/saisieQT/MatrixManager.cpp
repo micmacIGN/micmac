@@ -75,6 +75,17 @@ void MatrixManager::setMatrices()
     glGetIntegerv(GL_VIEWPORT, _glViewport);
 }
 
+void MatrixManager::importMatrices(selectInfos &infos)
+{
+    for (int aK=0; aK<4; ++aK)
+        _glViewport[aK] = infos.glViewport[aK];
+    for (int aK=0; aK<16; ++aK)
+    {
+        _mvMatrix[aK] = infos.mvmatrix[aK];
+        _projMatrix[aK] = infos.projmatrix[aK];
+    }
+}
+
 void MatrixManager::exportMatrices(selectInfos &infos)
 {
     for (int aK=0; aK<4; ++aK)
