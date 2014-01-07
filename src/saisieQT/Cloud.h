@@ -39,10 +39,5 @@ private:
     QGLBuffer   _vertexColor;
 };
 
-            QGLBuffer   _vertexbuffer;
-            QGLBuffer   _vertexColor;
-    };
-
-}
 
 #endif
