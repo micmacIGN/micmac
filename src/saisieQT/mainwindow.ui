@@ -165,7 +165,7 @@ QStatusBar
     </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
-      <string>Zoom</string>
+      <string>&amp;Zoom</string>
      </property>
      <addaction name="actionZoom_Moins"/>
      <addaction name="actionZoom_Plus"/>

@@ -40,7 +40,6 @@ namespace Cloud_
             QGLBuffer   _vertexbuffer;
             QGLBuffer   _vertexColor;
     };
-
 }
 
 #endif
