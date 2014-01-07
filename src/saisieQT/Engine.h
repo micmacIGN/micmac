@@ -101,58 +101,7 @@ private:
     QDir        _Dir;
 };
 
-// TODO a mettre dans object3d
-class cGLData : cObjectGL
-{
-public:
 
-    cGLData();
-    cGLData(QMaskedImage &qMaskedImage);
-    cGLData(cData *data);
-
-    ~cGLData();
-
-    void        draw();
-
-    bool        is3D(){return Clouds.size() || Cams.size();}
-
-    cMaskedImageGL glMaskedImage;
-
-    QImage      *pQMask;
-
-    //! Point list for polygonal selection
-    cPolygon    m_polygon;
-
-    bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
-
-    QImage*     getMask(){return pQMask;}
-
-    void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
-
-    //3D
-    QVector < cCam* > Cams;
-
-    cBall       *pBall;
-    cAxis       *pAxis;
-    cBBox       *pBbox;
-
-    QVector < GlCloud* > Clouds;
-
-    //info coming from cData
-    float       getBBoxMaxSize(){return _diam;}
-    void        setBBoxMaxSize(float aS){_diam = aS;}
-
-    Pt3dr       getBBoxCenter(){return _center;}
-    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;} // TODO a verifier : pourquoi le centre cGLData est initialisé avec BBoxCenter
-
-    void        setGlobalCenter(Pt3dr aCenter);
-
-
-private:
-
-    float       _diam;
-    Pt3dr       _center;
-};
 
 class cEngine
 {    

@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #include "StdAfx.h"
+#include <process.h>
 
 #ifdef __USE_EL_COMMAND__
 /*********************************************************/
@@ -62,7 +63,7 @@ std::string GetUnikId()
 {
    double aTSec = ElTimeOfDay();
 
-   return         ToString(getpid()) 
+   return         ToString(_getpid()) 
           + "_" + ToString(Round(aTSec,1e3,1.0)) 
           + "_" + ToString(Round(aTSec,1,1e-3))
           + "_" + ToString(Round(aTSec,1e-3,1e-6));

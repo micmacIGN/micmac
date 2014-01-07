@@ -223,7 +223,7 @@ void cEngine::do3DMasks()
 {
     CamStenope* pCam;
     GlCloud *pCloud;
-    Vertex vert;
+    GlVertex vert;
     Pt2dr ptIm;
 
     for (int cK=0;cK < _Data->getNbCameras();++cK)
@@ -416,92 +416,6 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 
 //********************************************************************************
 
-cGLData::cGLData():
-    _diam(1.f){}
-
-cGLData::cGLData(QMaskedImage &qMaskedImage):
-    glMaskedImage(qMaskedImage),
-    pQMask(qMaskedImage._m_mask),
-    pBall(NULL),
-    pAxis(NULL),
-    pBbox(NULL)
-{
-
-}
-
-cGLData::cGLData(cData *data):
-    _diam(1.f)
-{
-    for (int aK = 0; aK < data->getNbClouds();++aK)
-    {
-        GlCloud *pCloud = data->getCloud(aK);
-        Clouds.push_back(pCloud);
-        pCloud->setBufferGl();
-    }
-
-    Pt3dr center = data->getBBoxCenter();
-    float scale = data->getBBoxMaxSize() / 1.5f;
-
-    pBall = new cBall(center, scale);
-    pAxis = new cAxis(center, scale);
-    pBbox = new cBBox(center, scale, data->getMin(), data->getMax());
-
-    for (int i=0; i< data->getNbCameras(); i++)
-    {
-        cCam *pCam = new cCam(data->getCamera(i), scale);
-
-        Cams.push_back(pCam);
-    }
-
-    setBBoxMaxSize(data->getBBoxMaxSize());
-    setBBoxCenter(data->getBBoxCenter());
-}
-
-cGLData::~cGLData()
-{
-    glMaskedImage.deallocImages();
-
-   qDeleteAll(Cams);
-    Cams.clear();
-
-    if(pBall != NULL) delete pBall;
-    if(pAxis != NULL) delete pAxis;
-    if(pBbox != NULL) delete pBbox;
-
-   //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
-    Clouds.clear();
-}
-
-void cGLData::draw()
-{
-    enableOptionLine();
-
-    for (int i=0; i<Clouds.size();i++)
-        Clouds[i]->draw();
-
-    pBall->draw();
-    pAxis->draw();
-    pBbox->draw();
-
-    //cameras
-    for (int i=0; i< Cams.size();i++) Cams[i]->draw();
-
-    disableOptionLine();
-}
-
-void cGLData::setGlobalCenter(Pt3d<double> aCenter)
-{
-    setBBoxCenter(aCenter);
-    pBall->setPosition(aCenter);
-    pAxis->setPosition(aCenter);
-    pBbox->setPosition(aCenter);
-
-    for (int aK=0; aK < Clouds.size();++aK)
-       Clouds[aK]->setPosition(aCenter);
-
-}
-
-//********************************************************************************
 
 ViewportParameters::ViewportParameters()
     : m_zoom(1.f)
