@@ -630,8 +630,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         }
                         else
                         {
-                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_g_Cam.vpWidth();
-                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_g_Cam.vpHeight();
+                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_matrixManager.vpWidth();
+                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_matrixManager.vpHeight();
                         }
                     }
                 }
@@ -672,7 +672,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
             idx2 = -1; // TODO a verifier, pourquoi init à -1 , probleme si plus 2 nuages...
             QPointF proj;
 
-            Cloud *a_cloud = m_GLData->Clouds[aK];
+            GlCloud *a_cloud = m_GLData->Clouds[aK];
 
             for (int bK=0; bK < a_cloud->size();++bK)
             {
@@ -692,7 +692,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         if ((idx1>=0) && (idx2>=0))
         {
             //final center:
-            Cloud *a_cloud = m_GLData->Clouds[idx1];
+            GlCloud *a_cloud = m_GLData->Clouds[idx1];
             Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
             m_GLData->setGlobalCenter(Pt);
@@ -773,7 +773,7 @@ void GLWidget::Select(int mode, bool saveInfos)
         {
             for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
             {
-                Cloud *a_cloud = m_GLData->Clouds[aK];
+                GlCloud *a_cloud = m_GLData->Clouds[aK];
 
                 for (uint bK=0; bK < (uint) a_cloud->size();++bK)
                 {
@@ -783,7 +783,7 @@ void GLWidget::Select(int mode, bool saveInfos)
                     switch (mode)
                     {
                     case ADD:
-                        _g_Cam.getProjection(P2D, Pt);
+                        _matrixManager.getProjection(P2D, Pt);
                         pointInside = polyg.isPointInsidePoly(P2D);
                         if (m_bFirstAction)
                             P.setVisible(pointInside);
@@ -793,7 +793,7 @@ void GLWidget::Select(int mode, bool saveInfos)
                     case SUB:
                         if (P.isVisible())
                         {
-                            _g_Cam.getProjection(P2D, Pt);
+                            _matrixManager.getProjection(P2D, Pt);
                             pointInside = polyg.isPointInsidePoly(P2D);
                             P.setVisible(!pointInside);
                         }
@@ -1027,6 +1027,6 @@ void GLWidget::resetProjectionMatrice()
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glGetDoublev (GL_MODELVIEW_MATRIX, _g_Cam.getModelViewMatrix());
+    glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
 }
 
