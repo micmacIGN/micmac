@@ -261,12 +261,12 @@ void MainWindow::on_actionToggleMode_toggled(bool mode)
     {
         GLWidget *widget = CurrentWidget();
 
-        widget->setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
+        widget->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 
-        widget->showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
+        widget->showBall(mode ? TRANSFORM_CAMERA : SELECTION && _Engine->getData()->isDataLoaded());
         widget->showAxis(false);
 
-        if (mode == GLWidget::SELECTION)
+        if (mode == SELECTION)
         {
             widget->showCams(false);
             widget->showBBox(false);

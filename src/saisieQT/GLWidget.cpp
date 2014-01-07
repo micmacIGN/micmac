@@ -333,7 +333,7 @@ void GLWidget::zoom()
     }
 }
 
-void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
+void GLWidget::setInteractionMode(int mode, bool showmessage)
 {
     m_interactionMode = mode;
 
@@ -867,37 +867,39 @@ void GLWidget::constructMessagesList(bool show)
 {
     m_bDrawMessages = show;
 
-    _messageManager.displayNewMessage(QString());
+    _messageManager.constructMessagesList(show,m_interactionMode,m_bDisplayMode2D,hasDataLoaded());
 
-    if (m_bDrawMessages)
-    {
-        if(hasDataLoaded())
-        {
-            if(m_bDisplayMode2D)
-            {
-                _messageManager.displayNewMessage(tr("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                _messageManager.displayNewMessage(tr("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
-            }
-            else
-            {
-                if (m_interactionMode == TRANSFORM_CAMERA)
-                {
-                    _messageManager.displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
-                    _messageManager.displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
-                }
-                else if (m_interactionMode == SELECTION)
-                {
-                    _messageManager.displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
-                    _messageManager.displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
-                    _messageManager.displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
-                }
+//    _messageManager.displayNewMessage(QString());
 
-                _messageManager.displayNewMessage(tr("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
-            }
-        }
-        else
-            _messageManager.displayNewMessage(tr("Drag & drop images or ply files"));
-    }
+//    if (m_bDrawMessages)
+//    {
+//        if(hasDataLoaded())
+//        {
+//            if(m_bDisplayMode2D)
+//            {
+//                _messageManager.displayNewMessage(tr("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+//                _messageManager.displayNewMessage(tr("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
+//            }
+//            else
+//            {
+//                if (m_interactionMode == TRANSFORM_CAMERA)
+//                {
+//                    _messageManager.displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
+//                    _messageManager.displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+//                }
+//                else if (m_interactionMode == SELECTION)
+//                {
+//                    _messageManager.displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
+//                    _messageManager.displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
+//                    _messageManager.displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
+//                }
+
+//                _messageManager.displayNewMessage(tr("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
+//            }
+//        }
+//        else
+//            _messageManager.displayNewMessage(tr("Drag & drop images or ply files"));
+//    }
 
     update();
 }
