@@ -1070,6 +1070,52 @@ void cGLData::setGlobalCenter(Pt3d<double> aCenter)
 //********************************************************************************
 
 
+void cMessages2DGL::draw(){
+
+    if (!m_messagesToDisplay.empty())
+    {
+
+        int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
+        ll_curHeight = lr_curHeight = lc_curHeight = h - m_font.pointSize()*m_messagesToDisplay.size();
+        int uc_curHeight = 10;            //upper center
+
+        std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
+        while (it != m_messagesToDisplay.end())
+        {
+            QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+            switch(it->position)
+            {
+            case LOWER_LEFT_MESSAGE:
+                ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
+                break;
+            case LOWER_RIGHT_MESSAGE:
+                lr_curHeight -= renderTextLine(*it, w - 120, lr_curHeight);
+                break;
+            case LOWER_CENTER_MESSAGE:
+                lc_curHeight -= renderTextLine(*it,(w-rect.width())/2, lc_curHeight);
+                break;
+            case UPPER_CENTER_MESSAGE:
+                uc_curHeight += renderTextLine(*it,(w-rect.width())/2, uc_curHeight+rect.height());
+                break;
+            case SCREEN_CENTER_MESSAGE:
+                renderTextLine(*it,(w-rect.width())/2, (h-rect.height())/2,12);
+            }
+            ++it;
+        }
+    }
+}
+
+int cMessages2DGL::renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont)
+{
+    glwid->qglColor(messageTD.color);
+
+    m_font.setPointSize(sizeFont);
+
+    glwid->renderText(x, y, messageTD.message,m_font);
+
+    return (QFontMetrics(m_font).boundingRect(messageTD.message).height()*5)/4;
+}
+
 void cMessages2DGL::displayNewMessage(const QString &message, MessagePosition pos, QColor color)
 {
     if (message.isEmpty())

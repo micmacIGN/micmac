@@ -50,11 +50,6 @@ public:
     //! Destructor
     ~GLWidget(){}
 
-    //! Interaction mode (only in 3D)
-    enum INTERACTION_MODE { TRANSFORM_CAMERA,
-                            SELECTION
-    };
-
     //! States if data (cloud, camera or image) is loaded
     bool hasDataLoaded();
 
@@ -72,7 +67,7 @@ public:
     void zoomFactor(int percent);
 
     //! Switch between move mode and selection mode (only in 3D)
-    void setInteractionMode(INTERACTION_MODE mode, bool showmessage);
+    void setInteractionMode(int mode, bool showmessage);
 
     bool getInteractionMode(){return m_interactionMode;}
 
@@ -164,7 +159,7 @@ protected:
     bool m_bDrawMessages;
 
     //! Current interaction mode (with mouse)
-    INTERACTION_MODE m_interactionMode;
+    int m_interactionMode;
 
     bool m_bFirstAction;
 
