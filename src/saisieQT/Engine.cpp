@@ -36,9 +36,9 @@ void cLoader::setSelectionFilename()
     _SelectionOut = _Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
 }
 
-Cloud* cLoader::loadCloud( string i_ply_file, int* incre )
+GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 {
-    return Cloud::loadPly( i_ply_file, incre );
+    return GlCloud::loadPly( i_ply_file, incre );
 }
 
 void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
@@ -222,7 +222,7 @@ void  cEngine::loadImage(QString imgName)
 void cEngine::do3DMasks()
 {
     CamStenope* pCam;
-    Cloud *pCloud;
+    GlCloud *pCloud;
     Vertex vert;
     Pt2dr ptIm;
 
@@ -434,7 +434,7 @@ cGLData::cGLData(cData *data):
 {
     for (int aK = 0; aK < data->getNbClouds();++aK)
     {
-        Cloud *pCloud = data->getCloud(aK);
+        GlCloud *pCloud = data->getCloud(aK);
         Clouds.push_back(pCloud);
         pCloud->setBufferGl();
     }

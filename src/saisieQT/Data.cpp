@@ -10,7 +10,7 @@ cData::~cData()
     clearAll();
 }
 
-void cData::addCloud(Cloud * aCloud)
+void cData::addCloud(GlCloud * aCloud)
 {
     _Clouds.push_back(aCloud);
 }
@@ -76,7 +76,7 @@ void cData::computeBBox()
 {  
     for (uint bK=0; bK < _Clouds.size();++bK)
     {
-        Cloud * aCloud = _Clouds[bK];
+        GlCloud * aCloud = _Clouds[bK];
 
         for (int aK=0; aK < aCloud->size(); ++aK)
         {

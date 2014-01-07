@@ -81,41 +81,31 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
 
-    // TODO AVIRER d'ici
-    if (hasDataLoaded())
+    // TODO a simplifier /////////////////////////////
+
+    clearPolyline();
+
+    if (m_GLData->is3D())
     {
-        clearPolyline();
+        m_bDisplayMode2D = false;
 
-        if (m_GLData->is3D())
-        {
-            m_bDisplayMode2D = false;
-
-            if (doZoom) setZoom(m_GLData->getBBoxMaxSize());
-
-            resetRotationMatrix();
-            resetTranslationMatrix();
-        }
-
-        if (!m_GLData->isImgEmpty())
-        {
-            m_bDisplayMode2D = true;
-
-            if (doZoom) zoomFit();
-
-            //position de l'image dans la vue gl
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
-
-            m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
-        }
-
-        glGetIntegerv (GL_VIEWPORT, _matrixManager.getGLViewport());
-
-        constructMessagesList(showMessage);
-
-        update();
+        resetRotationMatrix();
+        resetTranslationMatrix();
     }
+
+    if (!m_GLData->isImgEmpty())
+    {
+        m_bDisplayMode2D = true;
+        resetProjectionMatrice();
+        m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
+    }
+
+    if (doZoom) zoomFit();
+
+    constructMessagesList(showMessage);
+
+    //  //////////////////////////////////////////////////////////////////////////
+    update();
 }
 
 void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
@@ -153,7 +143,7 @@ void GLWidget::paintGL()
 
     if (hasDataLoaded())
     {
-        if (!m_GLData->isImgEmpty())
+        if (m_bDisplayMode2D)
         {
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
@@ -161,7 +151,7 @@ void GLWidget::paintGL()
 
             glPopMatrix();
         }
-        else if(m_GLData->is3D())
+        else
         {
             zoom();
 
@@ -200,11 +190,8 @@ void GLWidget::paintGL()
 
     if (!m_messagesToDisplay.empty())
     {
-        int _glViewport2 = (int) _matrixManager.ViewPort(2);
-        int _glViewport3 = (int) _matrixManager.ViewPort(3);
-
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
-        ll_curHeight = lr_curHeight = lc_curHeight = _glViewport3 - m_font.pointSize()*m_messagesToDisplay.size();
+        ll_curHeight = lr_curHeight = lc_curHeight = _matrixManager.vpHeight() - m_font.pointSize()*m_messagesToDisplay.size();
         int uc_curHeight = 10;            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
@@ -217,16 +204,16 @@ void GLWidget::paintGL()
                 ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
                 break;
             case LOWER_RIGHT_MESSAGE:
-                lr_curHeight -= renderTextLine(*it, _glViewport2 - 120, lr_curHeight);
+                lr_curHeight -= renderTextLine(*it, _matrixManager.vpWidth() - 120, lr_curHeight);
                 break;
             case LOWER_CENTER_MESSAGE:
-                lc_curHeight -= renderTextLine(*it,(_glViewport2-rect.width())/2, lc_curHeight);
+                lc_curHeight -= renderTextLine(*it,(_matrixManager.vpWidth()-rect.width())/2, lc_curHeight);
                 break;
             case UPPER_CENTER_MESSAGE:
-                uc_curHeight += renderTextLine(*it,(_glViewport2-rect.width())/2, uc_curHeight+rect.height());
+                uc_curHeight += renderTextLine(*it,(_matrixManager.vpWidth()-rect.width())/2, uc_curHeight+rect.height());
                 break;
             case SCREEN_CENTER_MESSAGE:
-                renderTextLine(*it,(_glViewport2-rect.width())/2, (_glViewport3-rect.height())/2,12);
+                renderTextLine(*it,(_matrixManager.vpWidth()-rect.width())/2, (_matrixManager.vpHeight()-rect.height())/2,12);
             }
             ++it;
         }
@@ -382,7 +369,7 @@ void GLWidget::drawPolygon()
         _matrixManager.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
         _matrixManager.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
     }
-    else if (m_GLData->is3D())
+    else
     {
         m_GLData->m_polygon.draw();
         m_GLData->m_polygon.helper()->draw();
@@ -412,7 +399,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
         break;
     case SELECTION:
     {
-        if(m_GLData->is3D()) //3D
+        if(!m_bDisplayMode2D) //3D
             _matrixManager.setMatrices();
     }
         break;
@@ -506,7 +493,7 @@ void GLWidget::zoomFactor(int percent)
         m_lastClickZoom = m_lastPosWindow;
         setZoom(0.01f * percent);
     }
-    else if (hasDataLoaded() && m_GLData->is3D())
+    else if (hasDataLoaded() && !m_bDisplayMode2D)
         setZoom(m_GLData->getBBoxMaxSize() / (float) percent * 100.f);
 }
 
@@ -603,7 +590,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 #if QT_VER == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
 #else
-        QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
 #endif
 
         if (m_bDisplayMode2D)  m_lastMoveImage = pos;
@@ -643,8 +630,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         }
                         else
                         {
-                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_matrixManager.vpWidth();
-                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_matrixManager.vpHeight();
+                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_g_Cam.vpWidth();
+                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_g_Cam.vpHeight();
                         }
                     }
                 }
@@ -796,7 +783,7 @@ void GLWidget::Select(int mode, bool saveInfos)
                     switch (mode)
                     {
                     case ADD:
-                        _matrixManager.getProjection(P2D, Pt);
+                        _g_Cam.getProjection(P2D, Pt);
                         pointInside = polyg.isPointInsidePoly(P2D);
                         if (m_bFirstAction)
                             P.setVisible(pointInside);
@@ -806,7 +793,7 @@ void GLWidget::Select(int mode, bool saveInfos)
                     case SUB:
                         if (P.isVisible())
                         {
-                            _matrixManager.getProjection(P2D, Pt);
+                            _g_Cam.getProjection(P2D, Pt);
                             pointInside = polyg.isPointInsidePoly(P2D);
                             P.setVisible(!pointInside);
                         }
@@ -1034,5 +1021,12 @@ void GLWidget::resetTranslationMatrix()
         _translationMatrix[1] = -center.y;
         _translationMatrix[2] = -center.z;
     }
+}
+
+void GLWidget::resetProjectionMatrice()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glGetDoublev (GL_MODELVIEW_MATRIX, _g_Cam.getModelViewMatrix());
 }
 

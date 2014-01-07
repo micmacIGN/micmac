@@ -1,6 +1,12 @@
 <?xml version="1.0" ?>
 
 <MMCameraDataBase>
+ <CameraEntry>
+        <Name> Loemi </Name>
+        <SzCaptMm>  50 30 </SzCaptMm>
+        <ShortName> Loemi </ShortName>
+   </CameraEntry>
+
 
 <CameraEntry> 
         <Name> Ricoh GR DIGITAL 3 </Name>
