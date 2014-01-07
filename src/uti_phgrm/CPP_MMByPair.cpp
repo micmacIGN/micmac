@@ -520,6 +520,7 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
     {
 
        aCpleE = StdCpleEpip(mDir,mOri,anI1->mNameIm,anI2->mNameIm);
+std::cout << " CCCCPle " << anI1->mNameIm << " " << anI2->mNameIm << " " << aCpleE->Ok() << "\n";
        if (! aCpleE->Ok()) return;
        if (aCpleE->RatioCam() <0.1) return;
 
@@ -773,7 +774,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mZoomF        (1),
     mParalMMIndiv (false),
     mDelaunay     (false),
-    mAddMMImSec      (false),
+    mAddMMImSec   (false),
     mDiffInStrip  (1),
     mStripIsFirt  (true),
     mDirBasc      ("MTD-Nuage"),
@@ -795,6 +796,21 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      StdReadEnum(mModeHelp,mType,mStrType,eNbTypeMMByP);
   }
 
+
+  if (mType==eGround)
+  {
+     mStrQualOr = "High";
+  }
+  else if (mType==eStatute)
+  {
+     mStrQualOr = "Low";
+     mAddMMImSec = true;
+  }
+  else if (mType==eTestIGN)
+  {
+     mStrQualOr = "High";
+     mDelaunay = true;
+  }
 
 
   ElInitArgMain
@@ -831,8 +847,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   mByEpi = mByMM1P;
 
   mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
-  if (! EAMIsInit(&mAddMMImSec))
-     mAddMMImSec = (mType==eStatute);
+
+
   if (mModeHelp) 
       StdEXIT(0);
   if (! EAMIsInit(&mZoom0))
@@ -992,7 +1008,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
 
-     if ((mType == eStatute) && mRIEInParal)
+     if (  ((mType == eStatute) || (mType==eTestIGN)) && mRIEInParal)
      {
        aMatchCom = aMatchCom + " RIE=true ";
      }
@@ -1163,7 +1179,7 @@ void cAppliMMByPair::DoFusion()
 
 void cAppliMMByPair::DoMDT()
 {
-  if (mType==eStatute) DoMDTStatute();
+  if (  (mType==eStatute) || (mType==eTestIGN))  DoMDTStatute();
   if (mType==eGround)  DoMDTGround();
 }
 
