@@ -200,8 +200,8 @@ void GLWidget::paintGL()
 
     if (!m_messagesToDisplay.empty())
     {
-        int _glViewport2 = (int) _matrixManager.ViewPort(2);
-        int _glViewport3 = (int) _matrixManager.ViewPort(3);
+        int _glViewport2 = (int) _matrixManager.vpWidth();
+        int _glViewport3 = (int) _matrixManager.vpHeight();
 
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
         ll_curHeight = lr_curHeight = lc_curHeight = _glViewport3 - m_font.pointSize()*m_messagesToDisplay.size();
@@ -412,7 +412,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
         break;
     case SELECTION:
     {
-        if(m_GLData->is3D()) //3D
+        if(hasDataLoaded() && m_GLData->is3D()) //3D
             _matrixManager.setMatrices();
     }
         break;
@@ -603,7 +603,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 #if QT_VER == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
 #else
-        QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
 #endif
 
         if (m_bDisplayMode2D)  m_lastMoveImage = pos;
@@ -676,7 +676,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         int idx1 = -1;
         int idx2;
 
-        pos.setY(_matrixManager.ViewPort(3) - pos.y());
+        pos.setY(_matrixManager.vpHeight() - pos.y());
 
         for (int aK=0; aK < m_GLData->Clouds.size();++aK)
         {
@@ -736,7 +736,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             {
                 for (int aK=0; aK < polygon.size(); ++aK)
                 {
-                    polyg.add(QPointF(polygon[aK].x(), (float)_matrixManager.ViewPort(3) - polygon[aK].y()));
+                    polyg.add(QPointF(polygon[aK].x(), (float)_matrixManager.vpHeight() - polygon[aK].y()));
                 }
             }
             else
@@ -838,14 +838,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             info.poly   = m_GLData->m_polygon.getVector();
             info.selection_mode   = mode;
 
-            for (int aK=0; aK<4; ++aK)
-                info.glViewport[aK] = _matrixManager.ViewPort(aK);
-            for (int aK=0; aK<16; ++aK)
-            {
-                // TODO faire plus simple
-                info.mvmatrix[aK]   = _matrixManager.mvMatrix(aK);
-                info.projmatrix[aK] = _matrixManager.projMatrix(aK);
-            }
+            _matrixManager.exportMatrices(info);
 
             _infos.push_back(info);
         }
