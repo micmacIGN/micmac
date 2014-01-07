@@ -1,9 +1,5 @@
 ﻿#include "Cloud.h"
 
-#include <fstream>
-#include <iostream>
-
-
 static PlyProperty vert_props[] = {
     {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
     {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},

@@ -1,9 +1,9 @@
 #ifndef DATA_H
 #define DATA_H
 
-#include "3DObject.h"
-#include "Cloud.h"
 #include <QImage>
+#include "Cloud.h"
+
 class GlCloud;
 
 class cData
