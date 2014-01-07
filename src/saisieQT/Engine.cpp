@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "general/bitm.h"
 
 cLoader::cLoader()
  : _FilenamesIn(),
