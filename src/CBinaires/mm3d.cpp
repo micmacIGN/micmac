@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+//#include <process.h>
 
 
 
@@ -81,7 +82,7 @@ FILE * FileLogMM3d(const std::string & aDir)
         if (aRes ==0)
         {
              int aModulo = 1000;
-             int aPId = getpid();
+             int aPId = 0;//_getpid();
              double aTimeSleep = (aPId%aModulo) / double(aModulo);
              SleepProcess (aTimeSleep);
         }

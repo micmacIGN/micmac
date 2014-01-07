@@ -85,7 +85,7 @@ void MainWindow::connectActions()
 
 void MainWindow::createMenus()
 {
-    _RFMenu = new QMenu(tr("Recent files"), this);
+    _RFMenu = new QMenu(tr("&Recent files"), this);
 
     _ui->menuFile->insertMenu(_ui->actionSave_selection, _RFMenu);
     _ui->menuFile->insertSeparator(_ui->actionSave_selection);
@@ -300,6 +300,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text += "F6: \t"+tr("show cameras") +"\n";
     }
     text += "F7: \t"+tr("show messages") +"\n";
+    text += "F8: \t"+tr("2D mode / 3D mode") +"\n";
 
     if (!_bMode2D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
@@ -314,16 +315,16 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text+= "Ctrl+4: \tzoom 25%\n";
     }
 
-    text += "Shift+R: \t"+tr("reset view") +"\n";
-    text += "F8: \t"+tr("2D mode / 3D mode") +"\n\n";
+    text += "Shift+R: \t"+tr("reset view") +"\n\n";
+
 
     text += tr("Selection menu:") +"\n\n";
     if (!_bMode2D)
     {
-        text += "F9: \t"+tr("move mode / selection mode") +"\n\n";
+        text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
     }
     text += tr("Left click : \tadd a vertex to polyline") +"\n";
-    text += tr("Right click: \tclose polyline") +"\n";
+    text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
     text += tr("Echap: \tdelete polyline") +"\n";
     if (!_bMode2D)
     {
@@ -336,22 +337,24 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text += tr("Del: \tremove pixels inside polyline") +"\n";
     }
     text += tr("Shift+click: \tinsert vertex in polyline") +"\n";
+    text += tr("Ctrl+right click: remove last vertex") +"\n";
     text += tr("Drag & drop: move polyline vertex") +"\n";
-    text += tr("Right click: \tdelete polyline vertex") +"\n";
     text += "Ctrl+A: \t"+tr("select all") +"\n";
     text += "Ctrl+D: \t"+tr("select none") +"\n";
     text += "Ctrl+R: \t"+tr("reset") +"\n";
     text += "Ctrl+I: \t"+tr("invert selection") +"\n";
     text += "Ctrl+Z: \t"+tr("undo last selection") +"\n";
 
-    QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
+    QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
+    msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
+    msgbox.exec();
 }
 
 void MainWindow::on_actionAbout_triggered()
 {
     QFont font("Courier New", 9, QFont::Normal);
 
-    QMessageBox msgbox(QMessageBox::Information, tr("Saisie"),QString(getBanniereMM3D().c_str()));
+    QMessageBox msgbox(QMessageBox::NoIcon, tr("Saisie"),QString(getBanniereMM3D().c_str()));
     msgbox.setFont(font);
 
     //trick to enlarge QMessageBox...

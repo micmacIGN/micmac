@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 
+#include <fstream>
+#include <iostream>
+
 #ifdef Int
     #undef Int
 #endif
@@ -12,35 +15,32 @@
 
 #include "3DObject.h"
 
-namespace Cloud_
+#define GlVertex cObject
+
+class GlCloud : public cObjectGL
 {
-    #define Vertex cObject
+public:
+    GlCloud(){}
+    GlCloud(vector<GlVertex> const &);
 
-    class Cloud : public cObjectGL
-    {
-        public:
-            Cloud(){}
-            Cloud(vector<Vertex> const &);
+    static GlCloud* loadPly(string,  int *incre = NULL);
 
-            static Cloud* loadPly(string,  int *incre = NULL);
+    void    addVertex( const GlVertex & );
+    GlVertex& getVertex( uint );
+    int     size();
 
-            void    addVertex( const Vertex & );
-            Vertex& getVertex( uint );
-            int     size();
+    void    clear();
 
-            void    clear();
+    void    setBufferGl(bool onlyColor=false);
 
-            void    setBufferGl(bool onlyColor=false);
+    void    draw();
 
-            void    draw();
+private:
+    vector<GlVertex> _vertices;
 
-        private:
-            vector<Vertex> _vertices;
+    QGLBuffer   _vertexbuffer;
+    QGLBuffer   _vertexColor;
+};
 
-            QGLBuffer   _vertexbuffer;
-            QGLBuffer   _vertexColor;
-    };
-
-}
 
 #endif
