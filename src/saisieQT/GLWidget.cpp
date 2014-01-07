@@ -1,7 +1,5 @@
 #include "GLWidget.h"
 
-#include "GLWidgetSet.h"
-
 //Min and max zoom ratio (relative)
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;

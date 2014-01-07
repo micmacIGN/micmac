@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 
+#include <fstream>
+#include <iostream>
+
 #ifdef Int
     #undef Int
 #endif

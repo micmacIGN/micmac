@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /* Ceci est commentaire */
 #include "StdAfx.h"
 #include <iterator>
-#include <process.h>
+//#include <process.h>
 
 using namespace NS_ParamChantierPhotogram;
 
@@ -759,7 +759,7 @@ void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
    {
       fprintf(aFP,"Exit with code %d \n",aCode);
       fprintf(aFP,"Generated from line %d  of file %s \n",aLine,aFile);
-      fprintf(aFP,"PID=%d\n",_getpid());
+//      fprintf(aFP,"PID=%d\n",_getpid());
       if (aMessage!="")
          fprintf(aFP,"Context=[%s]\n",aMessage.c_str());
 

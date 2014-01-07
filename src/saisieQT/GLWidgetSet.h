@@ -4,6 +4,8 @@
 #include "GLWidget.h"
 #include <QVector>
 
+class GLWidget;
+
 class GLWidgetSet
 {
 public:
