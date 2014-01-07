@@ -122,7 +122,7 @@ QStatusBar
      <bool>false</bool>
     </property>
     <property name="title">
-     <string>Selection</string>
+     <string>&amp;Selection</string>
     </property>
     <addaction name="actionToggleMode"/>
     <addaction name="actionAdd"/>
@@ -136,7 +136,7 @@ QStatusBar
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionLoad_plys"/>
     <addaction name="actionLoad_camera"/>
@@ -150,7 +150,7 @@ QStatusBar
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <widget class="QMenu" name="menuStandard_views">
      <property name="title">
@@ -189,7 +189,7 @@ QStatusBar
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
     <addaction name="actionHelpShortcuts"/>
@@ -685,7 +685,7 @@ QStatusBar
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About</string>
+    <string>&amp;About</string>
    </property>
   </action>
  </widget>

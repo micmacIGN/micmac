@@ -544,7 +544,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
         m_lastPosImage =  m_bDisplayMode2D ? _g_Cam.WindowToImage(m_lastPosWindow, _params.m_zoom) : m_lastPosWindow;
 
-        if ( event->button() == Qt::LeftButton )
+        if (event->button() == Qt::LeftButton)
         {
             if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
             {
@@ -565,13 +565,13 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         }
         else if (event->button() == Qt::RightButton)
 
-            if(event->modifiers() & Qt::ControlModifier)
+            if (event->modifiers() & Qt::ControlModifier)
 
-                m_GLData->m_polygon.RemoveLastPoint();
+                m_GLData->m_polygon.removeLastPoint();
 
             else
 
-                m_GLData->m_polygon.RemoveNearestOrClose(m_lastPosImage);
+                m_GLData->m_polygon.removeNearestOrClose(m_lastPosImage);
 
         else if (event->button() == Qt::MiddleButton)
 
@@ -585,7 +585,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     {
         m_GLData->m_polygon.finalMovePoint(m_lastPosImage); //ne pas factoriser
 
-        m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
+        m_GLData->m_polygon.findNearestPoint(m_lastPosImage);
 
         update();
     }
