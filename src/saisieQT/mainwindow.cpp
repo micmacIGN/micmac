@@ -85,7 +85,7 @@ void MainWindow::connectActions()
 
 void MainWindow::createMenus()
 {
-    _RFMenu = new QMenu(tr("Recent files"), this);
+    _RFMenu = new QMenu(tr("&Recent files"), this);
 
     _ui->menuFile->insertMenu(_ui->actionSave_selection, _RFMenu);
     _ui->menuFile->insertSeparator(_ui->actionSave_selection);
@@ -337,7 +337,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text += tr("Del: \tremove pixels inside polyline") +"\n";
     }
     text += tr("Shift+click: \tinsert vertex in polyline") +"\n";
-    text += tr("Ctrl+ right click: remove last vertex in polyline") +"\n";
+    text += tr("Ctrl+right click: remove last vertex") +"\n";
     text += tr("Drag & drop: move polyline vertex") +"\n";
     text += "Ctrl+A: \t"+tr("select all") +"\n";
     text += "Ctrl+D: \t"+tr("select none") +"\n";
@@ -345,7 +345,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
     text += "Ctrl+I: \t"+tr("invert selection") +"\n";
     text += "Ctrl+Z: \t"+tr("undo last selection") +"\n";
 
-    QMessageBox msgbox(QMessageBox::Information, tr("Saisie- shortcuts"),text);
+    QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
     msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
     msgbox.exec();
 }

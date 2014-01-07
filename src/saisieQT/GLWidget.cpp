@@ -660,7 +660,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
                     rZ = (float)dPWin.x() / _g_Cam.vpWidth();
 
-                rotateMatrix(_rotationMatrix,rX, rY, rZ,50.0f *_params.m_speed);
+                rotateMatrix(_rotationMatrix, rX, rY, rZ, 50.0f *_params.m_speed);
             }
         }
 
