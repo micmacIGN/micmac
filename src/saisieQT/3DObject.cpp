@@ -561,13 +561,13 @@ void cPolygon::close()
     _bSelectedPoint = false;
 }
 
-void cPolygon::RemoveNearestOrClose(QPointF pos)
+void cPolygon::removeNearestOrClose(QPointF pos)
 {
     if ((_idx >=0)&&(_idx<size())&&_bPolyIsClosed)
     {
-        removePoint(_idx);   // remove closest point
+        removePoint(_idx);   // remove nearest point
 
-        findClosestPoint(pos);
+        findNearestPoint(pos);
 
         if (size() < 3)
             setClosed(false);
@@ -622,7 +622,7 @@ void cPolygon::removePoint(int i)
     _idx = -1;
 }
 
-void cPolygon::findClosestPoint(QPointF const &pos)
+void cPolygon::findNearestPoint(QPointF const &pos)
 {
     if (_bPolyIsClosed)
     {
@@ -669,13 +669,13 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
     {
-        if (insertMode || isPointSelected())                    // INSERT POLYGON POINT
+        if (insertMode || isPointSelected()) // insert polygon point
 
             _helper->build(pos, insertMode);
 
-        else                                // SELECT CLOSEST POLYGON POINT
+        else                                // select nearest polygon point
 
-            findClosestPoint(pos);
+            findNearestPoint(pos);
     }
 }
 
@@ -692,7 +692,7 @@ void cPolygon::finalMovePoint(QPointF pos)
     }
 }
 
-void cPolygon::RemoveLastPoint()
+void cPolygon::removeLastPoint()
 {
     if (size() >= 1)
     {
@@ -982,3 +982,89 @@ void cObjectGL::disableOptionLine()
 }
 
 
+cGLData::cGLData():
+    _diam(1.f){}
+
+cGLData::cGLData(QMaskedImage &qMaskedImage):
+    glMaskedImage(qMaskedImage),
+    pQMask(qMaskedImage._m_mask),
+    pBall(NULL),
+    pAxis(NULL),
+    pBbox(NULL)
+{
+
+}
+
+cGLData::cGLData(cData *data):
+    _diam(1.f)
+{
+    for (int aK = 0; aK < data->getNbClouds();++aK)
+    {
+        GlCloud *pCloud = data->getCloud(aK);
+        Clouds.push_back(pCloud);
+        pCloud->setBufferGl();
+    }
+
+    Pt3dr center = data->getBBoxCenter();
+    float scale = data->getBBoxMaxSize() / 1.5f;
+
+    pBall = new cBall(center, scale);
+    pAxis = new cAxis(center, scale);
+    pBbox = new cBBox(center, scale, data->getMin(), data->getMax());
+
+    for (int i=0; i< data->getNbCameras(); i++)
+    {
+        cCam *pCam = new cCam(data->getCamera(i), scale);
+
+        Cams.push_back(pCam);
+    }
+
+    setBBoxMaxSize(data->getBBoxMaxSize());
+    setBBoxCenter(data->getBBoxCenter());
+}
+
+cGLData::~cGLData()
+{
+    glMaskedImage.deallocImages();
+
+   qDeleteAll(Cams);
+    Cams.clear();
+
+    if(pBall != NULL) delete pBall;
+    if(pAxis != NULL) delete pAxis;
+    if(pBbox != NULL) delete pBbox;
+
+   //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
+    Clouds.clear();
+}
+
+void cGLData::draw()
+{
+    enableOptionLine();
+
+    for (int i=0; i<Clouds.size();i++)
+        Clouds[i]->draw();
+
+    pBall->draw();
+    pAxis->draw();
+    pBbox->draw();
+
+    //cameras
+    for (int i=0; i< Cams.size();i++) Cams[i]->draw();
+
+    disableOptionLine();
+}
+
+void cGLData::setGlobalCenter(Pt3d<double> aCenter)
+{
+    setBBoxCenter(aCenter);
+    pBall->setPosition(aCenter);
+    pAxis->setPosition(aCenter);
+    pBbox->setPosition(aCenter);
+
+    for (int aK=0; aK < Clouds.size();++aK)
+       Clouds[aK]->setPosition(aCenter);
+
+}
+
+//********************************************************************************

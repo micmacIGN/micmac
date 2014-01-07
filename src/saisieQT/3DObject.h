@@ -8,6 +8,7 @@
 #endif
 #include <QColor>
 #include <QGLWidget>
+#include <QGLShaderProgram>
 
 #include "GL/glu.h"
 
@@ -167,9 +168,9 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        void    findClosestPoint(const QPointF &pos);
+        void    findNearestPoint(const QPointF &pos);
 
-        void    RemoveNearestOrClose(QPointF pos); //remove closest or last point, or close polygon
+        void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
 
         void    setpointSize(float size) { _pointSize = size; }
 
@@ -210,7 +211,7 @@ class cPolygon : public cObjectGL
 
         void    finalMovePoint(QPointF pos);
 
-        void    RemoveLastPoint();
+        void    removeLastPoint();
 
 protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -248,7 +249,7 @@ private:
 
     cPolygon* _polygon;
 };
-#include <QGLShaderProgram>
+
 
 class cImageGL : public cObjectGL
 {
@@ -351,6 +352,63 @@ public:
 
     void draw();
 
+};
+
+class cData;
+class GlCloud;
+
+#include "Data.h"
+
+class cGLData : cObjectGL
+{
+public:
+
+    cGLData();
+    cGLData(QMaskedImage &qMaskedImage);
+    cGLData(cData *data);
+
+    ~cGLData();
+
+    void        draw();
+
+    bool        is3D(){return Clouds.size() || Cams.size();}
+
+    cMaskedImageGL glMaskedImage;
+
+    QImage      *pQMask;
+
+    //! Point list for polygonal selection
+    cPolygon    m_polygon;
+
+    bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
+
+    QImage*     getMask(){return pQMask;}
+
+    void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
+
+    //3D
+    QVector < cCam* > Cams;
+
+    cBall       *pBall;
+    cAxis       *pAxis;
+    cBBox       *pBbox;
+
+    QVector < GlCloud* > Clouds;
+
+    //info coming from cData
+    float       getBBoxMaxSize(){return _diam;}
+    void        setBBoxMaxSize(float aS){_diam = aS;}
+
+    Pt3dr       getBBoxCenter(){return _center;}
+    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;} // TODO a verifier : pourquoi le centre cGLData est initialisé avec BBoxCenter
+
+    void        setGlobalCenter(Pt3dr aCenter);
+
+
+private:
+
+    float       _diam;
+    Pt3dr       _center;
 };
 
 #endif //__3DObject__

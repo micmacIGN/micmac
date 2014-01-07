@@ -1,7 +1,5 @@
 #include "GLWidget.h"
 
-#include "GLWidgetSet.h"
-
 //Min and max zoom ratio (relative)
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
@@ -41,7 +39,7 @@ void GLWidget::resizeGL(int width, int height)
     m_glRatio  = (float) width/height;
 
     glViewport( 0, 0, width, height );
-    glGetIntegerv (GL_VIEWPORT, _g_Cam.getGLViewport());
+    glGetIntegerv (GL_VIEWPORT, _matrixManager.getGLViewport());
 
     zoomFit();
 }
@@ -105,12 +103,12 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
             //position de l'image dans la vue gl
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
-            glGetDoublev (GL_MODELVIEW_MATRIX, _g_Cam.getModelViewMatrix());
+            glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
 
             m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
         }
 
-        glGetIntegerv (GL_VIEWPORT, _g_Cam.getGLViewport());
+        glGetIntegerv (GL_VIEWPORT, _matrixManager.getGLViewport());
 
         constructMessagesList(showMessage);
 
@@ -147,7 +145,7 @@ void GLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
-    cImageGL::drawGradientBackground(_g_Cam.vpWidth(), _g_Cam.vpHeight(), _BGColor0, _BGColor1);
+    cImageGL::drawGradientBackground(_matrixManager.vpWidth(), _matrixManager.vpHeight(), _BGColor0, _BGColor1);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -155,7 +153,7 @@ void GLWidget::paintGL()
     {
         if (!m_GLData->isImgEmpty())
         {
-            _g_Cam.doProjection(m_lastClickZoom, _params.m_zoom);
+            _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
             m_GLData->glMaskedImage.draw();
 
@@ -200,8 +198,8 @@ void GLWidget::paintGL()
 
     if (!m_messagesToDisplay.empty())
     {
-        int _glViewport2 = (int) _g_Cam.ViewPort(2);
-        int _glViewport3 = (int) _g_Cam.ViewPort(3);
+        int _glViewport2 = (int) _matrixManager.vpWidth();
+        int _glViewport3 = (int) _matrixManager.vpHeight();
 
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
         ll_curHeight = lr_curHeight = lc_curHeight = _glViewport3 - m_font.pointSize()*m_messagesToDisplay.size();
@@ -372,30 +370,21 @@ void GLWidget::displayNewMessage(const QString& message,
 
 void GLWidget::drawPolygon()
 {
-    _g_Cam.orthoProjection();
+    _matrixManager.orthoProjection();
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     if (m_bDisplayMode2D)
     {
-        _g_Cam.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
-        _g_Cam.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
+        _matrixManager.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
+        _matrixManager.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
     }
     else if (m_GLData->is3D())
     {
         m_GLData->m_polygon.draw();
         m_GLData->m_polygon.helper()->draw();
     }
-}
-
-void mglOrtho( GLdouble left, GLdouble right,
-               GLdouble bottom, GLdouble top,
-               GLdouble near_val, GLdouble far_val )
-{
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(left, right, bottom, top, near_val, far_val);
 }
 
 // zoom in 3D mode
@@ -406,7 +395,7 @@ void GLWidget::zoom()
         GLdouble zoom = (GLdouble) _params.m_zoom;
         GLdouble far  = (GLdouble) 2.f*m_GLData->getBBoxMaxSize();
 
-        mglOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-far, far);
+        MatrixManager::mglOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-far, far);
     }
 }
 
@@ -421,8 +410,8 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
         break;
     case SELECTION:
     {
-        if(m_GLData->is3D()) //3D
-            _g_Cam.setMatrices();
+        if(hasDataLoaded() && m_GLData->is3D()) //3D
+            _matrixManager.setMatrices();
     }
         break;
     default:
@@ -434,7 +423,6 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -462,7 +450,6 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
     glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
 
     resetTranslationMatrix();
-
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -491,15 +478,15 @@ void GLWidget::zoomFit()
     {
         if(!m_GLData->isImgEmpty())
         {
-            float rw = (float)m_GLData->glMaskedImage._m_image->width()  / (float) _g_Cam.vpWidth();
-            float rh = (float)m_GLData->glMaskedImage._m_image->height() / (float) _g_Cam.vpHeight();
+            float rw = (float)m_GLData->glMaskedImage._m_image->width()  / (float) _matrixManager.vpWidth();
+            float rh = (float)m_GLData->glMaskedImage._m_image->height() / (float) _matrixManager.vpHeight();
 
             if(rw>rh)
                 setZoom(1.f/rw); //orientation landscape
             else
                 setZoom(1.f/rh); //orientation portrait
 
-            _g_Cam.scaleAndTranslate(-rw, -rh, _params.m_zoom);
+            _matrixManager.scaleAndTranslate(-rw, -rh, _params.m_zoom);
 
             m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
         }
@@ -542,9 +529,9 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         m_lastPosWindow = event->pos();
 
-        m_lastPosImage =  m_bDisplayMode2D ? _g_Cam.WindowToImage(m_lastPosWindow, _params.m_zoom) : m_lastPosWindow;
+        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom) : m_lastPosWindow;
 
-        if ( event->button() == Qt::LeftButton )
+        if (event->button() == Qt::LeftButton)
         {
             if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
             {
@@ -565,13 +552,13 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         }
         else if (event->button() == Qt::RightButton)
 
-            if(event->modifiers() & Qt::ControlModifier)
+            if (event->modifiers() & Qt::ControlModifier)
 
-                m_GLData->m_polygon.RemoveLastPoint();
+                m_GLData->m_polygon.removeLastPoint();
 
             else
 
-                m_GLData->m_polygon.RemoveNearestOrClose(m_lastPosImage);
+                m_GLData->m_polygon.removeNearestOrClose(m_lastPosImage);
 
         else if (event->button() == Qt::MiddleButton)
 
@@ -585,13 +572,13 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     {
         m_GLData->m_polygon.finalMovePoint(m_lastPosImage); //ne pas factoriser
 
-        m_GLData->m_polygon.findClosestPoint(m_lastPosImage);
+        m_GLData->m_polygon.findNearestPoint(m_lastPosImage);
 
         update();
     }
 }
 
-void GLWidget::rotateMatrix(GLfloat* matrix, float rX, float rY, float rZ,float factor)
+void GLWidget::rotateMatrix(GLfloat* matrix, float rX, float rY, float rZ, float factor)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -610,9 +597,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         _parentSet->setCurrentWidgetIdx(_idx);
 
 #if QT_VER == 5
-        QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
 #else
-        QPointF pos = m_bDisplayMode2D ?  _g_Cam.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
 #endif
 
         if (m_bDisplayMode2D)  m_lastMoveImage = pos;
@@ -631,8 +618,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 rX = rY = rZ = 0;
                 if ( event->buttons() == Qt::LeftButton ) // rotation autour de X et Y
                 {
-                    rX = (float)dPWin.y() / _g_Cam.vpWidth();
-                    rY = (float)dPWin.x() / _g_Cam.vpHeight();
+                    rX = (float)dPWin.y() / _matrixManager.vpWidth();
+                    rY = (float)dPWin.x() / _matrixManager.vpHeight();
                 }
                 else if ( event->buttons() == Qt::MiddleButton )
                 {
@@ -641,26 +628,26 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         if (dPWin.y() > 0) _params.m_zoom *= pow(2.f, ((float)dPWin.y()) *.05f);
                         else if (dPWin.y() < 0) _params.m_zoom /= pow(2.f, -((float)dPWin.y()) *.05f);
                     }
-                    else if((_g_Cam.vpWidth()!=0.f) || (_g_Cam.vpHeight()!=0.f)) // TRANSLATION VIEW
+                    else if((_matrixManager.vpWidth()!=0.f) || (_matrixManager.vpHeight()!=0.f)) // TRANSLATION VIEW
                     {
                         if (m_bDisplayMode2D)
                         {
                             QPointF dp = pos - m_lastPosImage;
 
-                            _g_Cam.m_glPosition[0] += _params.m_speed * dp.x()/_g_Cam.vpWidth();
-                            _g_Cam.m_glPosition[1] += _params.m_speed * dp.y()/_g_Cam.vpHeight();
+                            _matrixManager.m_glPosition[0] += _params.m_speed * dp.x()/_matrixManager.vpWidth();
+                            _matrixManager.m_glPosition[1] += _params.m_speed * dp.y()/_matrixManager.vpHeight();
                         }
                         else
                         {
-                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_g_Cam.vpWidth();
-                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_g_Cam.vpHeight();
+                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_matrixManager.vpWidth();
+                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_matrixManager.vpHeight();
                         }
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
-                    rZ = (float)dPWin.x() / _g_Cam.vpWidth();
+                    rZ = (float)dPWin.x() / _matrixManager.vpWidth();
 
-                rotateMatrix(_rotationMatrix,rX, rY, rZ,50.0f *_params.m_speed);
+                rotateMatrix(_rotationMatrix, rX, rY, rZ, 50.0f *_params.m_speed);
             }
         }
 
@@ -680,25 +667,25 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         QPointF pos = event->posF();
 #endif
 
-        _g_Cam.setMatrices();
+        _matrixManager.setMatrices();
 
         int idx1 = -1;
         int idx2;
 
-        pos.setY(_g_Cam.ViewPort(3) - pos.y());
+        pos.setY(_matrixManager.vpHeight() - pos.y());
 
         for (int aK=0; aK < m_GLData->Clouds.size();++aK)
         {
             float sqrD;
             float dist = FLT_MAX;
-            idx2 = -1; // TODO a verifier, pourquoi init à -1 , probleme si plus 2 nuages...
+            idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
             QPointF proj;
 
-            Cloud *a_cloud = m_GLData->Clouds[aK];
+            GlCloud *a_cloud = m_GLData->Clouds[aK];
 
             for (int bK=0; bK < a_cloud->size();++bK)
             {
-                _g_Cam.getProjection(proj, a_cloud->getVertex( bK ).getPosition());
+                _matrixManager.getProjection(proj, a_cloud->getVertex( bK ).getPosition());
 
                 sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
 
@@ -714,7 +701,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         if ((idx1>=0) && (idx2>=0))
         {
             //final center:
-            Cloud *a_cloud = m_GLData->Clouds[idx1];
+            GlCloud *a_cloud = m_GLData->Clouds[idx1];
             Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
             m_GLData->setGlobalCenter(Pt);
@@ -745,7 +732,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             {
                 for (int aK=0; aK < polygon.size(); ++aK)
                 {
-                    polyg.add(QPointF(polygon[aK].x(), (float)_g_Cam.ViewPort(3) - polygon[aK].y()));
+                    polyg.add(QPointF(polygon[aK].x(), (float)_matrixManager.vpHeight() - polygon[aK].y()));
                 }
             }
             else
@@ -793,19 +780,27 @@ void GLWidget::Select(int mode, bool saveInfos)
         }
         else
         {
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+
+            glMultMatrixf(_rotationMatrix);
+            glTranslatef(_translationMatrix[0],_translationMatrix[1],_translationMatrix[2]);
+
+            glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
+
             for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
             {
-                Cloud *a_cloud = m_GLData->Clouds[aK];
+                GlCloud *a_cloud = m_GLData->Clouds[aK];
 
                 for (uint bK=0; bK < (uint) a_cloud->size();++bK)
                 {
-                    Vertex &P  = a_cloud->getVertex( bK );
+                    GlVertex &P  = a_cloud->getVertex( bK );
                     Pt3dr  Pt = P.getPosition();
 
                     switch (mode)
                     {
                     case ADD:
-                        _g_Cam.getProjection(P2D, Pt);
+                        _matrixManager.getProjection(P2D, Pt);
                         pointInside = polyg.isPointInsidePoly(P2D);
                         if (m_bFirstAction)
                             P.setVisible(pointInside);
@@ -815,7 +810,7 @@ void GLWidget::Select(int mode, bool saveInfos)
                     case SUB:
                         if (P.isVisible())
                         {
-                            _g_Cam.getProjection(P2D, Pt);
+                            _matrixManager.getProjection(P2D, Pt);
                             pointInside = polyg.isPointInsidePoly(P2D);
                             P.setVisible(!pointInside);
                         }
@@ -847,14 +842,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             info.poly   = m_GLData->m_polygon.getVector();
             info.selection_mode   = mode;
 
-            for (int aK=0; aK<4; ++aK)
-                info.glViewport[aK] = _g_Cam.ViewPort(aK);
-            for (int aK=0; aK<16; ++aK)
-            {
-                // TODO faire plus simple
-                info.mvmatrix[aK]   = _g_Cam.mvMatrix(aK);
-                info.projmatrix[aK] = _g_Cam.projMatrix(aK);
-            }
+            _matrixManager.exportMatrices(info);
 
             _infos.push_back(info);
         }
@@ -895,12 +883,7 @@ void GLWidget::undo()
 
             if (!m_bDisplayMode2D)
             {
-                for (int bK=0; bK<16;++bK)
-                {
-                    _g_Cam.getModelViewMatrix()[bK]  = infos.mvmatrix[bK];
-                    _g_Cam.getProjectionMatrix()[bK] = infos.projmatrix[bK];
-                }
-                for (int bK=0; bK<4;++bK)  _g_Cam.getGLViewport()[bK] = infos.glViewport[bK];
+                _matrixManager.importMatrices(infos);
 
                 if (aK==0) m_bFirstAction = true;
                 else m_bFirstAction = false;
@@ -990,7 +973,7 @@ void GLWidget::reset()
     resetRotationMatrix();
     resetTranslationMatrix();
 
-    _g_Cam.resetPosition();
+    _matrixManager.resetPosition();
 
     clearPolyline();
 
@@ -1044,115 +1027,4 @@ void GLWidget::resetTranslationMatrix()
         _translationMatrix[2] = -center.z;
     }
 }
-
-//------------------------------------------------------------------------
-
-c3DCamera::c3DCamera()
-{
-    _mvMatrix   = new GLdouble[16];
-    _projMatrix = new GLdouble[16];
-    _glViewport = new GLint[4];
-
-    m_glPosition[0] = m_glPosition[1] = 0.f;
-}
-
-c3DCamera::~c3DCamera()
-{
-    delete [] _mvMatrix;
-    delete [] _projMatrix;
-    delete [] _glViewport;
-}
-
-void c3DCamera::doProjection(QPointF point, float zoom)
-{
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glPushMatrix();
-    glMultMatrixd(_projMatrix);
-
-    if(_projMatrix[0] != zoom)
-    {
-        GLint recal;
-        GLdouble wx, wy, wz;
-
-        recal = _glViewport[3] - (GLint) point.y() - 1.f;
-
-        gluUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
-                      _mvMatrix, _projMatrix, _glViewport, &wx, &wy, &wz);
-
-        glTranslatef(wx,wy,0);
-        glScalef(zoom/_projMatrix[0], zoom/_projMatrix[0], 1.f);
-        glTranslatef(-wx,-wy,0);
-    }
-
-    glTranslatef(m_glPosition[0],m_glPosition[1],0.f);
-
-    m_glPosition[0] = m_glPosition[1] = 0.f;
-
-    glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
-}
-
-void c3DCamera::orthoProjection()
-{
-    mglOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
-}
-
-void c3DCamera::scaleAndTranslate(float x, float y, float zoom)
-{
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glPushMatrix();
-    glScalef(zoom, zoom, 1.f);
-    glTranslatef(x,y,0.f);
-    glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
-    glPopMatrix();
-
-    m_glPosition[0] = m_glPosition[1] = 0.f;
-}
-
-void c3DCamera::setMatrices()
-{
-    glMatrixMode(GL_MODELVIEW);
-    glGetDoublev(GL_MODELVIEW_MATRIX, _mvMatrix);
-
-    glMatrixMode(GL_PROJECTION);
-    glGetDoublev(GL_PROJECTION_MATRIX, _projMatrix);
-
-    glGetIntegerv(GL_VIEWPORT, _glViewport);
-}
-
-void c3DCamera::getProjection(QPointF &P2D, Pt3dr P)
-{
-    GLdouble xp,yp,zp;
-    gluProject(P.x,P.y,P.z,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
-    P2D = QPointF(xp,yp);
-}
-
-QPointF c3DCamera::WindowToImage(QPointF const &pt, float zoom)
-{
-    QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f+ _projMatrix[12]),
-            -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f- _projMatrix[13]));
-
-    res /= zoom;
-
-    return res;
-}
-
-QPointF c3DCamera::ImageToWindow(QPointF const &im, float zoom)
-{
-    return QPointF (im.x()*zoom + .5f*_glViewport[2]*(1.f + _projMatrix[12]),
-            - 1.f - im.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
-}
-
-cPolygon c3DCamera::PolygonImageToWindow(cPolygon polygon, float zoom)
-{
-    cPolygon poly = polygon;
-    poly.clearPoints();
-    for (int aK = 0;aK < polygon.size(); ++aK)
-        poly.add(ImageToWindow(polygon[aK],zoom));
-
-    return poly;
-}
-
 

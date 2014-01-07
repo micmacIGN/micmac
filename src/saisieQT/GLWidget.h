@@ -23,9 +23,9 @@
 #include "Data.h"
 #include "Engine.h"
 #include "3DTools.h"
-
-
 #include "3DObject.h"
+#include "MatrixManager.h"
+#include "GLWidgetSet.h"
 
 class GLWidgetSet;
 
@@ -62,54 +62,6 @@ struct MessageToDisplay
     //! Message position on screen
     MessagePosition position;
 };
-
-class c3DCamera
-{
-public:
-    c3DCamera();
-    ~c3DCamera();
-
-    GLdouble*   getModelViewMatrix(){return _mvMatrix;}
-    GLdouble*   getProjectionMatrix(){return _projMatrix;}
-    GLint*      getGLViewport(){return _glViewport;}
-
-    void        doProjection(QPointF point, float zoom);
-
-    void        orthoProjection();
-
-    void        scaleAndTranslate(float x, float y, float zoom);
-
-    GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
-    GLdouble    projMatrix(int i)   { return _projMatrix[i]; }
-
-    GLint       ViewPort(int i)     { return _glViewport[i]; }
-
-    GLint       vpWidth()     { return _glViewport[2]; }
-    GLint       vpHeight()    { return _glViewport[3]; }
-
-    void        setMatrices();
-
-    void        resetPosition(){m_glPosition[0] = m_glPosition[1] = 0.f;}
-
-    //! 3D point projection in viewport
-    void        getProjection(QPointF &P2D, Pt3dr P);
-
-    //! Project a point from window to image
-    QPointF     WindowToImage(const QPointF &pt, float zoom);
-
-    //! Project a point from image to window
-    QPointF     ImageToWindow(const QPointF &im, float zoom);
-
-    cPolygon    PolygonImageToWindow(cPolygon polygon, float zoom);
-
-    GLfloat     m_glPosition[2];
-
-private:
-    GLdouble    *_mvMatrix;
-    GLdouble    *_projMatrix;
-    GLint       *_glViewport;
-};
-
 
 class GLWidget : public QGLWidget
 {
@@ -211,7 +163,9 @@ public:
     std::list<MessageToDisplay>::iterator GetLastMessage();
 
     void rotateMatrix(GLfloat *matrix, float rX, float rY, float rZ, float factor = 1.0f);
+
 public slots:
+
     void zoom();
 
     void onWheelEvent(float wheelDelta_deg);
@@ -222,8 +176,11 @@ signals:
     void filesDropped(const QStringList& filenames);
 
 protected:
+    //! inherited from QGLWidget
     void resizeGL(int w, int h);
     void paintGL();
+
+    //! inherited from QWidget
     void mouseDoubleClickEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
@@ -231,10 +188,8 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
-
-    //inherited from QWidget (drag & drop support)
-    virtual void dragEnterEvent(QDragEnterEvent* event);
-    virtual void dropEvent(QDropEvent* event);
+    void dragEnterEvent(QDragEnterEvent* event);
+    void dropEvent(QDropEvent* event);
 
     //! Draw selection polygon
     void drawPolygon();
@@ -288,7 +243,7 @@ private:
     GLfloat     _rotationMatrix[16];
     GLfloat     _translationMatrix[3];
 
-    c3DCamera   _g_Cam;
+    MatrixManager _matrixManager;
 
     int         _idx;
 
