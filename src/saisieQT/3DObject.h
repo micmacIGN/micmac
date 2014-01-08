@@ -78,16 +78,16 @@ class cObjectGL : public cObject
         void    disableOptionLine();
 };
 
-class cPoint : public cObjectGL
+class cPoint : public cObjectGL, public QPointF
 {
     public:
-    cPoint(QPainter * painter,
-           QPointF position,
-           QString name,
+    cPoint(QPointF pos = QPointF(0.f,0.f),
+            QString name = "",
            QColor color = Qt::red,
            float diameter = 3.f,
            bool isSelected = true,
-           bool showName = true
+           bool showName = true,
+           QPainter * painter =NULL
            );
 
         void draw();
@@ -208,7 +208,8 @@ class cPolygon : public cObjectGL
 
         void    setpointSize(float size) { _pointSize = size; }
 
-        void    add(QPointF const &pt){ _points.push_back(pt); }
+        void    add(cPoint const &pt){_points.push_back(pt);}
+        void    add(QPointF const &pt){ _points.push_back(cPoint(pt)); }
         void    addPoint(QPointF const &pt);
 
         void    clear();
@@ -219,8 +220,8 @@ class cPolygon : public cObjectGL
 
         int     size(){ return _points.size(); }
 
-        QPointF & operator[](int ak){ return _points[ak]; }
-        const QPointF & operator[](int ak) const { return _points[ak]; }
+        cPoint & operator[](int ak){ return _points[ak]; }
+        const cPoint & operator[](int ak) const { return _points[ak]; }
 
         cPolygon & operator = (const cPolygon &);
 
@@ -230,8 +231,8 @@ class cPolygon : public cObjectGL
 
         void    removePoint( int i );
 
-        QVector <QPointF> const getVector(){ return _points; }
-        void setVector(QVector <QPointF> const &aPts){ _points = aPts; }
+        QVector <QPointF> const getVector();
+        void setVector(QVector <cPoint> const &aPts){ _points = aPts; }
 
         int     idx(){return _idx;}
 
@@ -250,7 +251,8 @@ class cPolygon : public cObjectGL
     protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
-        QVector <QPointF>   _points;
+        //QVector <QPointF>   _points;
+        QVector <cPoint>    _points;
         cPolygonHelper*     _helper;
         QColor              _lineColor;
         int                 _idx;
