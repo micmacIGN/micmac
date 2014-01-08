@@ -520,7 +520,6 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
     {
 
        aCpleE = StdCpleEpip(mDir,mOri,anI1->mNameIm,anI2->mNameIm);
-std::cout << " CCCCPle " << anI1->mNameIm << " " << anI2->mNameIm << " " << aCpleE->Ok() << "\n";
        if (! aCpleE->Ok()) return;
        if (aCpleE->RatioCam() <0.1) return;
 
