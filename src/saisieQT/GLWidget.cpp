@@ -115,20 +115,17 @@ void GLWidget::paintGL()
         {
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
-            m_GLData->glMaskedImage.draw();
-
-            glPopMatrix();
+            m_GLData->glMaskedImage.draw();            
         }
         else
         {
-
             _matrixManager.zoom(_params.m_zoom,2.f*m_GLData->getBBoxMaxSize(),m_glRatio);
             _matrixManager.applyTransfo();
 
-            m_GLData->draw();
-
-            glPopMatrix();
+            m_GLData->draw();        
         }
+
+        glPopMatrix();
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();
 
@@ -291,8 +288,6 @@ void GLWidget::setInteractionMode(int mode, bool showmessage)
         if(hasDataLoaded() && !m_bDisplayMode2D) //3D
             _matrixManager.setMatrices();
     }
-        break;
-    default:
         break;
     }
 
@@ -513,18 +508,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     }
                     else if((_matrixManager.vpWidth()!=0.f) || (_matrixManager.vpHeight()!=0.f)) // TRANSLATION VIEW
                     {
-                        if (m_bDisplayMode2D)
-                        {
-                            QPointF dp = pos - m_lastPosImage;
+                            QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin.x(),-dPWin.y())*m_GLData->getBBoxMaxSize();
 
-                            _matrixManager.m_glPosition[0] += _params.m_speed * dp.x()/_matrixManager.vpWidth();
-                            _matrixManager.m_glPosition[1] += _params.m_speed * dp.y()/_matrixManager.vpHeight();
-                        }
-                        else
-                        {
-                            _matrixManager.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_matrixManager.vpWidth();
-                            _matrixManager.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_matrixManager.vpHeight();
-                        }
+                            _matrixManager.m_translationMatrix[0] += _params.m_speed * dp.x()/_matrixManager.vpWidth();
+                            _matrixManager.m_translationMatrix[1] += _params.m_speed * dp.y()/_matrixManager.vpHeight();
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
@@ -550,49 +537,8 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         QPointF pos = event->posF();
 #endif
 
-        _matrixManager.setMatrices();
-
-        int idx1 = -1;
-        int idx2;
-
-        pos.setY(_matrixManager.vpHeight() - pos.y());
-
-        for (int aK=0; aK < m_GLData->Clouds.size();++aK)
-        {
-            float sqrD;
-            float dist = FLT_MAX;
-            idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
-            QPointF proj;
-
-            GlCloud *a_cloud = m_GLData->Clouds[aK];
-
-            for (int bK=0; bK < a_cloud->size();++bK)
-            {
-                _matrixManager.getProjection(proj, a_cloud->getVertex( bK ).getPosition());
-
-                sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
-
-                if (sqrD < dist )
-                {
-                    dist = sqrD;
-                    idx1 = aK;
-                    idx2 = bK;
-                }
-            }
-        }
-
-        if ((idx1>=0) && (idx2>=0))
-        {
-            //final center:
-            GlCloud *a_cloud = m_GLData->Clouds[idx1];
-            Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
-
-            m_GLData->setGlobalCenter(Pt);
-
-            _matrixManager.resetTranslationMatrix(Pt);
-
+        if (m_GLData->position2DClouds(_matrixManager,pos))
             update();
-        }
     }
 }
 
@@ -731,13 +677,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 void GLWidget::clearPolyline()
 {
     if (hasDataLoaded())
-    {
-        cPolygon &poly = m_GLData->m_polygon;
-
-        poly.clear();
-        poly.setClosed(false);
-        poly.helper()->clear();
-    }
+        m_GLData->m_polygon.clear();
 
     update();
 }
@@ -829,11 +769,7 @@ void GLWidget::resetView()
 {
     if (!m_bDisplayMode2D)
     {
-        _matrixManager.resetRotationMatrix();
-        _matrixManager.resetPosition();
-
-        if (hasDataLoaded())
-            _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
+        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
 
         showBall(hasDataLoaded());
         showAxis(false);

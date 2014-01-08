@@ -441,8 +441,10 @@ private:
 
 class cData;
 class GlCloud;
+class MatrixManager;
 
 #include "Data.h"
+#include "MatrixManager.h"
 
 class cGLData : cObjectGL
 {
@@ -494,7 +496,7 @@ public:
 
     void        setGlobalCenter(Pt3dr aCenter);
 
-
+    bool        position2DClouds(MatrixManager &mm,QPointF pos);
 private:
 
     float       _diam;

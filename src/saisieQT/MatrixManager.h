@@ -4,6 +4,8 @@
 #include "3DObject.h"
 #include "Engine.h"
 
+class selectInfos;
+
 class MatrixManager
 {
 public:
@@ -36,8 +38,6 @@ public:
     void        importMatrices(selectInfos &infos);
     void        exportMatrices(selectInfos &infos);
 
-    void        resetPosition(){m_glPosition[0] = m_glPosition[1] = 0.f;}
-
     //! 3D point projection in viewport
     void        getProjection(QPointF &P2D, Pt3dr P);
 
@@ -51,8 +51,6 @@ public:
 
     static void mglOrtho( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val );
 
-    GLfloat     m_glPosition[2];
-
     //! Reset rotation matrix
     void        resetRotationMatrix();
 
@@ -61,14 +59,7 @@ public:
     //! Reset translation matrix
     void        resetTranslationMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
 
-    void        resetAllMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f))
-    {
-                resetRotationMatrix();
-
-                resetModelViewMatrix();
-
-                resetTranslationMatrix(center);
-    }
+    void        resetAllMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
 
     void        applyTransfo();
 
