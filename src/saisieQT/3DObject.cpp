@@ -460,6 +460,49 @@ void cCam::draw()
     }
 }
 
+
+cPoint::cPoint(QPainter * painter,
+               QPointF position,
+               QString name,
+               QColor color,
+               float diameter,
+               bool isSelected,
+               bool showName):
+    _diameter(diameter),
+    _bShowName(showName),
+    _name(name),
+    _painter(painter)
+{
+    setPosition(Pt3dr(position.x(),position.y(),0.f));
+    setColor(color);
+    setSelected(isSelected);
+}
+
+void cPoint::draw()
+{
+    //glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+    //glDrawUnitCircle(2, _position.x, _position.y);
+
+    _painter->setPen(_color);
+    _painter->drawEllipse(QPointF(_position.x, _position.y), _diameter, _diameter);
+
+    if (_bShowName)
+    {
+        QFontMetrics metrics = QFontMetrics(_font);
+        int border = qMax(4, metrics.leading());
+
+        QRect rect = QFontMetrics(_font).boundingRect(_name);
+
+        QRect rectg(_position.x-border, _position.y-border, rect.width()+border, rect.height()+border);
+        rectg.translate(QPoint(10, -rectg.height()-5));
+
+        _painter->setRenderHint(QPainter::TextAntialiasing);
+        _painter->setPen(Qt::white);
+        _painter->fillRect(rectg, QColor(0, 0, 0, 127));
+        _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
+    }
+}
+
 cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this,lineWidth)),
     _lineColor(lineColor),
