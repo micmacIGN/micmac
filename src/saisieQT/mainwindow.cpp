@@ -258,22 +258,7 @@ void MainWindow::on_actionShow_messages_toggled(bool state)
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
     if (!_bMode2D)
-    {
-        GLWidget *widget = CurrentWidget();
-
-        widget->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
-
-        widget->showBall(mode ? TRANSFORM_CAMERA : SELECTION && _Engine->getData()->isDataLoaded());
-        widget->showAxis(false);
-
-        if (mode == SELECTION)
-        {
-            widget->showCams(false);
-            widget->showBBox(false);
-        }
-
-        widget->update();
-    }
+        CurrentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 }
 
 void MainWindow::on_actionHelpShortcuts_triggered()
