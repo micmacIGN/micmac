@@ -107,12 +107,6 @@ public:
     //! Reset view
     void resetView();
 
-    //! Reset rotation matrix
-    void resetRotationMatrix();
-
-    //! Reset translation matrix
-    void resetTranslationMatrix();
-
     ViewportParameters* getParams(){return &_params;}
 
     void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
@@ -120,7 +114,7 @@ public:
 
     void setBackgroundColors(QColor const &col0, QColor const &col1);   
 
-    void rotateMatrix(GLfloat *matrix, float rX, float rY, float rZ, float factor = 1.0f);
+    void rotateMatrix(GLdouble *matrix, float rX, float rY, float rZ, float factor = 1.0f);
 
 public slots:
 
@@ -183,7 +177,6 @@ private:
     //! selection infos stack
     QVector <selectInfos> _infos;
 
-    void        setProjectionMatrix();
     void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
@@ -191,9 +184,6 @@ private:
     int         _currentTime;    
 
     QTime       _time;
-
-    GLfloat     _rotationMatrix[16];
-    GLfloat     _translationMatrix[3];
 
     MatrixManager _matrixManager;
     cMessages2DGL _messageManager;
@@ -204,7 +194,6 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
-    void resetProjectionMatrice();
 };
 
 #endif  /* _GLWIDGET_H */
