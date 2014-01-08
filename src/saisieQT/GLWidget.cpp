@@ -5,7 +5,6 @@ const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
 GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
-  , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_GLData(NULL)
@@ -29,7 +28,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     setMouseTracking(true);
 
-    constructMessagesList(m_bDrawMessages);
+    constructMessagesList(true);
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -100,9 +99,9 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
         m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
     }
 
-    if (doZoom) zoomFit();
-
     constructMessagesList(showMessage);
+
+    if (doZoom) zoomFit();
 
     //  //////////////////////////////////////////////////////////////////////////
     update();
@@ -132,7 +131,7 @@ void GLWidget::paintGL()
 
     if (hasDataLoaded())
     {
-        if (!m_GLData->isImgEmpty())
+        if (m_bDisplayMode2D)
         {
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
@@ -140,7 +139,7 @@ void GLWidget::paintGL()
 
             glPopMatrix();
         }
-        else if(m_GLData->is3D())
+        else
         {
             zoom();
 
@@ -153,23 +152,8 @@ void GLWidget::paintGL()
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();
 
-        if (m_bDrawMessages && _messageManager.size())
-        {
-            if (m_bDisplayMode2D)
-            {
-                _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
-
-                float px = m_lastMoveImage.x();
-                float py = m_lastMoveImage.y();
-                float w  = m_GLData->glMaskedImage._m_image->width();
-                float h  = m_GLData->glMaskedImage._m_image->height();
-
-                if  ((px>=0.f)&&(py>=0.f)&&(px<w)&&(py<h))
-                    _messageManager.GetPenultimateMessage()->message = QString::number(px,'f',1) + ", " + QString::number(h-py,'f',1) + " px";
-            }
-            else
-                computeFPS(_messageManager.LastMessage());
-        }
+        if (_messageManager.DrawMessages() && !m_bDisplayMode2D)
+            computeFPS(_messageManager.LastMessage());
     }
 
     _messageManager.draw();
@@ -306,7 +290,7 @@ void GLWidget::drawPolygon()
         _matrixManager.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
         _matrixManager.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
     }
-    else if (m_GLData->is3D())
+    else
     {
         m_GLData->m_polygon.draw();
         m_GLData->m_polygon.helper()->draw();
@@ -336,7 +320,7 @@ void GLWidget::setInteractionMode(int mode, bool showmessage)
         break;
     case SELECTION:
     {
-        if(hasDataLoaded() && m_GLData->is3D()) //3D
+        if(hasDataLoaded() && !m_bDisplayMode2D) //3D
             _matrixManager.setMatrices();
     }
         break;
@@ -398,6 +382,14 @@ void GLWidget::setZoom(float value)
 
     _params.m_zoom = value;
 
+    printf("SET ZOOM\n");
+
+    if(m_bDisplayMode2D && _messageManager.DrawMessages())
+    {
+         printf("SET ZOOM MESSAGE\n");
+        _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
+    }
+
     update();
 }
 
@@ -405,7 +397,7 @@ void GLWidget::zoomFit()
 {
     if (hasDataLoaded())
     {
-        if(!m_GLData->isImgEmpty())
+        if(m_bDisplayMode2D)
         {
             float rw = (float)m_GLData->glMaskedImage._m_image->width()  / (float) _matrixManager.vpWidth();
             float rh = (float)m_GLData->glMaskedImage._m_image->height() / (float) _matrixManager.vpHeight();
@@ -431,7 +423,7 @@ void GLWidget::zoomFactor(int percent)
         m_lastClickZoom = m_lastPosWindow;
         setZoom(0.01f * percent);
     }
-    else if (hasDataLoaded() && m_GLData->is3D())
+    else if (hasDataLoaded())
         setZoom(m_GLData->getBBoxMaxSize() / (float) percent * 100.f);
 }
 
@@ -519,7 +511,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
 #endif
 
-        if (m_bDisplayMode2D)  m_lastMoveImage = pos;
+        if (m_bDisplayMode2D)
+        {
+            m_lastMoveImage = pos;
+            if (_messageManager.DrawMessages())
+            {
+                float w  = m_GLData->glMaskedImage._m_image->width();
+                float h  = m_GLData->glMaskedImage._m_image->height();
+                if  ((pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<w)&&(pos.y()<h))
+                    _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(h-pos.y(),'f',1) + " px";
+            }
+        }
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
 
@@ -842,8 +844,6 @@ void GLWidget::showBBox(bool show)
 
 void GLWidget::constructMessagesList(bool show)
 {
-    m_bDrawMessages = show;
-
     _messageManager.constructMessagesList(show,m_interactionMode,m_bDisplayMode2D,hasDataLoaded());
 
     update();

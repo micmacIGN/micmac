@@ -392,6 +392,7 @@ class cMessages2DGL : public cObjectGL
 public:
 
     cMessages2DGL(QGLWidget *glw):
+        _bDrawMessages(true),
         glwid(glw)
     {}
 
@@ -403,60 +404,13 @@ public:
                                        MessagePosition pos = SCREEN_CENTER_MESSAGE,
                                        QColor color = Qt::white);
 
-    void constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded)
-    {
-        //m_bDrawMessages = show;
+    void constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded);
 
-        displayNewMessage(QString());
+    std::list<MessageToDisplay>::iterator GetLastMessage();
 
-        if (show)
-        {
-            if(dataloaded)
-            {
-                if(m_bDisplayMode2D)
-                {
-                    displayNewMessage(QString("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                    displayNewMessage(QString("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
-                }
-                else
-                {
-                    if (mode == TRANSFORM_CAMERA)
-                    {
-                        displayNewMessage(QString("Move mode"),UPPER_CENTER_MESSAGE);
-                        displayNewMessage(QString("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
-                    }
-                    else if (mode == SELECTION)
-                    {
-                        displayNewMessage(QString("Selection mode"),UPPER_CENTER_MESSAGE);
-                        displayNewMessage(QString("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
-                        displayNewMessage(QString("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
-                    }
+    std::list<MessageToDisplay>::iterator GetPenultimateMessage();
 
-                    displayNewMessage(QString("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
-                }
-            }
-            else
-                displayNewMessage(QString("Drag & drop images or ply files"));
-        }
-
-    }
-
-    std::list<MessageToDisplay>::iterator GetLastMessage()
-    {
-        std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
-
-        return it;
-    }
-
-    std::list<MessageToDisplay>::iterator GetPenultimateMessage()
-    {
-        return --GetLastMessage();
-    }
-
-    MessageToDisplay& LastMessage()
-    {
-        return m_messagesToDisplay.back();
-    }
+    MessageToDisplay& LastMessage();
 
     void wh(int ww,int hh)
     {
@@ -464,9 +418,14 @@ public:
         h=hh;
     }
 
+    bool DrawMessages(){return _bDrawMessages && size();}
+
     int size(){return m_messagesToDisplay.size();}
 
 private:
+
+    bool _bDrawMessages;
+
     list<MessageToDisplay> m_messagesToDisplay;
 
     //! Default font
