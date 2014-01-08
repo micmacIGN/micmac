@@ -278,7 +278,6 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 	#include "../src/EtalonnagePolygone/lib/pointe.h"
 #endif
 
-// POISSON
 #if (ELISE_windows)
     #ifdef INT
         #undef INT
@@ -296,6 +295,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
     #include <Windows.h>
 
     #include <Psapi.h>
+    #include <process.h>
 #endif // _WIN32
 #include "poisson/Poisson.h"
 
