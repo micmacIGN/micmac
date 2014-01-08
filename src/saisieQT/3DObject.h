@@ -471,6 +471,11 @@ public:
 
     void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
 
+    bool        isNewMask()
+    {
+        return !isImgEmpty() ? glMaskedImage._m_newMask : true;
+    }
+
     //3D
     QVector < cCam* > Cams;
 

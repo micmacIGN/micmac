@@ -56,12 +56,25 @@ public:
     //! Reset rotation matrix
     void        resetRotationMatrix();
 
+    void        resetModelViewMatrix();
+
     //! Reset translation matrix
     void        resetTranslationMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
+
+    void        resetAllMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f))
+    {
+                resetRotationMatrix();
+
+                resetModelViewMatrix();
+
+                resetTranslationMatrix(center);
+    }
 
     void        applyTransfo();
 
     void        setModelViewMatrix();
+
+    void        zoom(float zoom, float far,float m_glRatio);
 
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
