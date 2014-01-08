@@ -153,6 +153,13 @@ void MatrixManager::resetTranslationMatrix(Pt3dr center)
     m_translationMatrix[2] = -center.z;
 }
 
+void MatrixManager::resetModelViewMatrix()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glGetDoublev (GL_MODELVIEW_MATRIX, getModelViewMatrix());
+}
+
 void MatrixManager::applyTransfo()
 {
     glMatrixMode(GL_MODELVIEW);
@@ -172,6 +179,11 @@ void MatrixManager::setModelViewMatrix()
     glTranslated(m_translationMatrix[0],m_translationMatrix[1],m_translationMatrix[2]);
 
     glGetDoublev (GL_MODELVIEW_MATRIX, _mvMatrix);
+}
+
+void MatrixManager::zoom(float zoom, float far,float m_glRatio)
+{
+    MatrixManager::mglOrtho((GLdouble)-zoom*m_glRatio,(GLdouble)zoom*m_glRatio,(GLdouble)-zoom, (GLdouble)zoom,(GLdouble)-far,(GLdouble) far);
 }
 
 void MatrixManager::rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor)

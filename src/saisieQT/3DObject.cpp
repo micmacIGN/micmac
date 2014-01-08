@@ -990,7 +990,8 @@ cGLData::cGLData(QMaskedImage &qMaskedImage):
     pQMask(qMaskedImage._m_mask),
     pBall(NULL),
     pAxis(NULL),
-    pBbox(NULL)
+    pBbox(NULL),
+    _center(Pt3dr(0.f,0.f,0.f))
 {
 
 }
