@@ -173,3 +173,20 @@ void MatrixManager::setModelViewMatrix()
 
     glGetDoublev (GL_MODELVIEW_MATRIX, _mvMatrix);
 }
+
+void MatrixManager::rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor)
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMultMatrixd(matrix);
+
+    glRotated(rX * factor,1.0,0.0,0.0);
+    glRotated(rY * factor,0.0,1.0,0.0);
+    glRotated(rZ * factor,0.0,0.0,1.0);
+    glGetDoublev(GL_MODELVIEW_MATRIX, matrix);
+}
+
+void MatrixManager::rotateMatrix(float rX, float rY, float rZ, float factor)
+{
+    rotateMatrix(m_rotationMatrix, rX, rY, rZ, factor);
+}
