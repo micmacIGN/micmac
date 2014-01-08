@@ -5,8 +5,6 @@ const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
 GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
-  , m_font(font())
-  , m_bDrawMessages(true)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_GLData(NULL)
@@ -15,10 +13,11 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
+  , _messageManager(this)
   , _idx(idx)
   , _parentSet(theSet)
 {
-    resetRotationMatrix();
+    _matrixManager.resetRotationMatrix();
 
     _time.start();
 
@@ -29,7 +28,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     setMouseTracking(true);
 
-    constructMessagesList(m_bDrawMessages);
+    constructMessagesList(true);
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -40,6 +39,8 @@ void GLWidget::resizeGL(int width, int height)
 
     glViewport( 0, 0, width, height );
     glGetIntegerv (GL_VIEWPORT, _matrixManager.getGLViewport());
+
+    _messageManager.wh(width, height);
 
     zoomFit();
 }
@@ -79,65 +80,44 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
 
-    // TODO AVIRER d'ici
-    if (hasDataLoaded())
+    // TODO a simplifier /////////////////////////////
+
+    clearPolyline();
+
+    if (m_GLData->is3D())
     {
-        clearPolyline();
+        m_bDisplayMode2D = false;
 
-        if (m_GLData->is3D())
-        {
-            m_bDisplayMode2D = false;
-
-            if (doZoom) setZoom(m_GLData->getBBoxMaxSize());
-
-            resetRotationMatrix();
-            resetTranslationMatrix();
-        }
-
-        if (!m_GLData->isImgEmpty())
-        {
-            m_bDisplayMode2D = true;
-
-            if (doZoom) zoomFit();
-
-            //position de l'image dans la vue gl
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
-
-            m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
-        }
-
-        glGetIntegerv (GL_VIEWPORT, _matrixManager.getGLViewport());
-
-        constructMessagesList(showMessage);
-
-        update();
+        _matrixManager.resetRotationMatrix();
+        _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
     }
+
+    if (!m_GLData->isImgEmpty())
+    {
+        m_bDisplayMode2D = true;
+        resetProjectionMatrice();
+        m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
+    }
+
+    constructMessagesList(showMessage);
+
+    if (doZoom) zoomFit();
+
+    //  //////////////////////////////////////////////////////////////////////////
+    update();
+}
+
+void GLWidget::resetProjectionMatrice()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
 }
 
 void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
 {
     _BGColor0 = col0;
     _BGColor1 = col1;
-}
-
-int GLWidget::renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont)
-{
-    qglColor(messageTD.color);
-
-    m_font.setPointSize(sizeFont);
-
-    renderText(x, y, messageTD.message,m_font);
-
-    return (QFontMetrics(m_font).boundingRect(messageTD.message).height()*5)/4;
-}
-
-std::list<MessageToDisplay>::iterator GLWidget::GetLastMessage()
-{
-    std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
-
-    return it;
 }
 
 void GLWidget::paintGL()
@@ -151,7 +131,7 @@ void GLWidget::paintGL()
 
     if (hasDataLoaded())
     {
-        if (!m_GLData->isImgEmpty())
+        if (m_bDisplayMode2D)
         {
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
@@ -159,16 +139,11 @@ void GLWidget::paintGL()
 
             glPopMatrix();
         }
-        else if(m_GLData->is3D())
+        else
         {
             zoom();
 
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glPushMatrix();
-
-            glMultMatrixf(_rotationMatrix);
-            glTranslatef(_translationMatrix[0],_translationMatrix[1],_translationMatrix[2]);
+            _matrixManager.applyTransfo();
 
             m_GLData->draw();
 
@@ -177,58 +152,11 @@ void GLWidget::paintGL()
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();
 
-        if (m_bDrawMessages && m_messagesToDisplay.size())
-        {
-            if (m_bDisplayMode2D)
-            {
-                GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
-
-                float px = m_lastMoveImage.x();
-                float py = m_lastMoveImage.y();
-                float w  = m_GLData->glMaskedImage._m_image->width();
-                float h  = m_GLData->glMaskedImage._m_image->height();
-
-                if  ((px>=0.f)&&(py>=0.f)&&(px<w)&&(py<h))
-                    (--GetLastMessage())->message = QString::number(px,'f',1) + ", " + QString::number(h-py,'f',1) + " px";
-            }
-            else
-                computeFPS(m_messagesToDisplay.back());
-        }
+        if (_messageManager.DrawMessages() && !m_bDisplayMode2D)
+            computeFPS(_messageManager.LastMessage());
     }
 
-    if (!m_messagesToDisplay.empty())
-    {
-        int _glViewport2 = (int) _matrixManager.vpWidth();
-        int _glViewport3 = (int) _matrixManager.vpHeight();
-
-        int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
-        ll_curHeight = lr_curHeight = lc_curHeight = _glViewport3 - m_font.pointSize()*m_messagesToDisplay.size();
-        int uc_curHeight = 10;            //upper center
-
-        std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
-        while (it != m_messagesToDisplay.end())
-        {
-            QRect rect = QFontMetrics(m_font).boundingRect(it->message);
-            switch(it->position)
-            {
-            case LOWER_LEFT_MESSAGE:
-                ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
-                break;
-            case LOWER_RIGHT_MESSAGE:
-                lr_curHeight -= renderTextLine(*it, _glViewport2 - 120, lr_curHeight);
-                break;
-            case LOWER_CENTER_MESSAGE:
-                lc_curHeight -= renderTextLine(*it,(_glViewport2-rect.width())/2, lc_curHeight);
-                break;
-            case UPPER_CENTER_MESSAGE:
-                uc_curHeight += renderTextLine(*it,(_glViewport2-rect.width())/2, uc_curHeight+rect.height());
-                break;
-            case SCREEN_CENTER_MESSAGE:
-                renderTextLine(*it,(_glViewport2-rect.width())/2, (_glViewport3-rect.height())/2,12);
-            }
-            ++it;
-        }
-    }
+    _messageManager.draw();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -350,24 +278,6 @@ void GLWidget::dropEvent(QDropEvent *event)
     event->ignore();
 }
 
-void GLWidget::displayNewMessage(const QString& message,
-                                 MessagePosition pos,
-                                 QColor color)
-{
-    if (message.isEmpty())
-    {
-        m_messagesToDisplay.clear();
-
-        return;
-    }
-
-    MessageToDisplay mess;
-    mess.message = message;
-    mess.position = pos;
-    mess.color = color;
-    m_messagesToDisplay.push_back(mess);
-}
-
 void GLWidget::drawPolygon()
 {
     _matrixManager.orthoProjection();
@@ -380,7 +290,7 @@ void GLWidget::drawPolygon()
         _matrixManager.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
         _matrixManager.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
     }
-    else if (m_GLData->is3D())
+    else
     {
         m_GLData->m_polygon.draw();
         m_GLData->m_polygon.helper()->draw();
@@ -399,7 +309,7 @@ void GLWidget::zoom()
     }
 }
 
-void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
+void GLWidget::setInteractionMode(int mode, bool showmessage)
 {
     m_interactionMode = mode;
 
@@ -410,7 +320,7 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
         break;
     case SELECTION:
     {
-        if(hasDataLoaded() && m_GLData->is3D()) //3D
+        if(hasDataLoaded() && !m_bDisplayMode2D) //3D
             _matrixManager.setMatrices();
     }
         break;
@@ -423,33 +333,36 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    switch (orientation)
+    if (hasDataLoaded())
     {
-    case TOP_VIEW:
-        glRotatef(90.0f,1.0f,0.0f,0.0f);
-        break;
-    case BOTTOM_VIEW:
-        glRotatef(-90.0f,1.0f,0.0f,0.0f);
-        break;
-    case FRONT_VIEW:
-        glRotatef(0.0,1.0f,0.0f,0.0f);
-        break;
-    case BACK_VIEW:
-        glRotatef(180.0f,0.0f,1.0f,0.0f);
-        break;
-    case LEFT_VIEW:
-        glRotatef(90.0f,0.0f,1.0f,0.0f);
-        break;
-    case RIGHT_VIEW:
-        glRotatef(-90.0f,0.0f,1.0f,0.0f);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        switch (orientation)
+        {
+        case TOP_VIEW:
+            glRotatef(90.0f,1.0f,0.0f,0.0f);
+            break;
+        case BOTTOM_VIEW:
+            glRotatef(-90.0f,1.0f,0.0f,0.0f);
+            break;
+        case FRONT_VIEW:
+            glRotatef(0.0,1.0f,0.0f,0.0f);
+            break;
+        case BACK_VIEW:
+            glRotatef(180.0f,0.0f,1.0f,0.0f);
+            break;
+        case LEFT_VIEW:
+            glRotatef(90.0f,0.0f,1.0f,0.0f);
+            break;
+        case RIGHT_VIEW:
+            glRotatef(-90.0f,0.0f,1.0f,0.0f);
+        }
+
+        glGetDoublev(GL_MODELVIEW_MATRIX, _matrixManager.m_rotationMatrix);
+
+        _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
     }
-
-    glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
-
-    resetTranslationMatrix();
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -469,6 +382,14 @@ void GLWidget::setZoom(float value)
 
     _params.m_zoom = value;
 
+    printf("SET ZOOM\n");
+
+    if(m_bDisplayMode2D && _messageManager.DrawMessages())
+    {
+         printf("SET ZOOM MESSAGE\n");
+        _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
+    }
+
     update();
 }
 
@@ -476,7 +397,7 @@ void GLWidget::zoomFit()
 {
     if (hasDataLoaded())
     {
-        if(!m_GLData->isImgEmpty())
+        if(m_bDisplayMode2D)
         {
             float rw = (float)m_GLData->glMaskedImage._m_image->width()  / (float) _matrixManager.vpWidth();
             float rh = (float)m_GLData->glMaskedImage._m_image->height() / (float) _matrixManager.vpHeight();
@@ -502,7 +423,7 @@ void GLWidget::zoomFactor(int percent)
         m_lastClickZoom = m_lastPosWindow;
         setZoom(0.01f * percent);
     }
-    else if (hasDataLoaded() && m_GLData->is3D())
+    else if (hasDataLoaded())
         setZoom(m_GLData->getBBoxMaxSize() / (float) percent * 100.f);
 }
 
@@ -578,18 +499,6 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void GLWidget::rotateMatrix(GLfloat* matrix, float rX, float rY, float rZ, float factor)
-{
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMultMatrixf(matrix);
-
-    glRotatef(rX * factor,1.0,0.0,0.0);
-    glRotatef(rY * factor,0.0,1.0,0.0);
-    glRotatef(rZ * factor,0.0,0.0,1.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
-}
-
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
@@ -602,7 +511,17 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
 #endif
 
-        if (m_bDisplayMode2D)  m_lastMoveImage = pos;
+        if (m_bDisplayMode2D)
+        {
+            m_lastMoveImage = pos;
+            if (_messageManager.DrawMessages())
+            {
+                float w  = m_GLData->glMaskedImage._m_image->width();
+                float h  = m_GLData->glMaskedImage._m_image->height();
+                if  ((pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<w)&&(pos.y()<h))
+                    _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(h-pos.y(),'f',1) + " px";
+            }
+        }
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
 
@@ -639,15 +558,15 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         }
                         else
                         {
-                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_matrixManager.vpWidth();
-                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_matrixManager.vpHeight();
+                            _matrixManager.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_matrixManager.vpWidth();
+                            _matrixManager.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_matrixManager.vpHeight();
                         }
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
                     rZ = (float)dPWin.x() / _matrixManager.vpWidth();
 
-                rotateMatrix(_rotationMatrix, rX, rY, rZ, 50.0f *_params.m_speed);
+                _matrixManager.rotateMatrix(rX, rY, rZ, 50.0f *_params.m_speed);
             }
         }
 
@@ -706,7 +625,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
             m_GLData->setGlobalCenter(Pt);
 
-            resetTranslationMatrix();
+            _matrixManager.resetTranslationMatrix(Pt);
 
             update();
         }
@@ -780,13 +699,7 @@ void GLWidget::Select(int mode, bool saveInfos)
         }
         else
         {
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-
-            glMultMatrixf(_rotationMatrix);
-            glTranslatef(_translationMatrix[0],_translationMatrix[1],_translationMatrix[2]);
-
-            glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
+            _matrixManager.setModelViewMatrix();
 
             for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
             {
@@ -931,49 +844,19 @@ void GLWidget::showBBox(bool show)
 
 void GLWidget::constructMessagesList(bool show)
 {
-    m_bDrawMessages = show;
-
-    displayNewMessage(QString());
-
-    if (m_bDrawMessages)
-    {
-        if(hasDataLoaded())
-        {
-            if(m_bDisplayMode2D)
-            {
-                displayNewMessage(tr("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                displayNewMessage(tr("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
-            }
-            else
-            {
-                if (m_interactionMode == TRANSFORM_CAMERA)
-                {
-                    displayNewMessage(tr("Move mode"),UPPER_CENTER_MESSAGE);
-                    displayNewMessage(tr("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
-                }
-                else if (m_interactionMode == SELECTION)
-                {
-                    displayNewMessage(tr("Selection mode"),UPPER_CENTER_MESSAGE);
-                    displayNewMessage(tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
-                    displayNewMessage(tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
-                }
-
-                displayNewMessage(tr("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
-            }
-        }
-        else
-            displayNewMessage(tr("Drag & drop images or ply files"));
-    }
+    _messageManager.constructMessagesList(show,m_interactionMode,m_bDisplayMode2D,hasDataLoaded());
 
     update();
 }
 
 void GLWidget::reset()
 {
-    resetRotationMatrix();
-    resetTranslationMatrix();
-
-    _matrixManager.resetPosition();
+    if (!m_bDisplayMode2D)
+    {
+        _matrixManager.resetRotationMatrix();
+        if (hasDataLoaded()) _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
+        _matrixManager.resetPosition();
+    }
 
     clearPolyline();
 
@@ -994,11 +877,13 @@ void GLWidget::resetView()
         zoomFit();
     else
     {
-        resetRotationMatrix();
-        resetTranslationMatrix();
+        _matrixManager.resetRotationMatrix();
 
         if (hasDataLoaded())
+        {
             setZoom(m_GLData->getBBoxMaxSize());
+            _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
+        }
 
         showBall(hasDataLoaded());
         showAxis(false);
@@ -1008,23 +893,3 @@ void GLWidget::resetView()
 
     update();
 }
-
-void GLWidget::resetRotationMatrix()
-{
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
-}
-
-void GLWidget::resetTranslationMatrix()
-{
-    if (hasDataLoaded())
-    {
-        Pt3dr center = m_GLData->getBBoxCenter();
-
-        _translationMatrix[0] = -center.x;
-        _translationMatrix[1] = -center.y;
-        _translationMatrix[2] = -center.z;
-    }
-}
-

@@ -14,6 +14,12 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
+//! Interaction mode (only in 3D)
+enum INTERACTION_MODE {
+    TRANSFORM_CAMERA,
+    SELECTION
+};
+
 enum LINE_STYLE
 {
     LINE_NOSTIPPLE,
@@ -26,7 +32,6 @@ class cObject
         cObject();
         cObject(Pt3dr pt, QColor col);
         virtual ~cObject();
-
 
         Pt3dr   getPosition()   { return _position; }
         QColor  getColor()      { return _color;    }
@@ -353,6 +358,86 @@ public:
     void draw();
 
 };
+//====================================================================================
+
+//! Default message positions on screen
+enum MessagePosition {  LOWER_LEFT_MESSAGE,
+                        LOWER_RIGHT_MESSAGE,
+                        LOWER_CENTER_MESSAGE,
+                        UPPER_CENTER_MESSAGE,
+                        SCREEN_CENTER_MESSAGE
+};
+
+//! Temporary Message to display
+struct MessageToDisplay
+{
+    MessageToDisplay():
+        color(Qt::white)
+    {}
+
+    //! Message
+    QString message;
+
+    //! Color
+    QColor color;
+
+    //! Message position on screen
+    MessagePosition position;
+};
+
+#include <QGLWidget>
+
+class cMessages2DGL : public cObjectGL
+{
+public:
+
+    cMessages2DGL(QGLWidget *glw):
+        _bDrawMessages(true),
+        glwid(glw)
+    {}
+
+    void draw();
+
+    int renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);
+
+    void displayNewMessage(const QString& message,
+                                       MessagePosition pos = SCREEN_CENTER_MESSAGE,
+                                       QColor color = Qt::white);
+
+    void constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded);
+
+    std::list<MessageToDisplay>::iterator GetLastMessage();
+
+    std::list<MessageToDisplay>::iterator GetPenultimateMessage();
+
+    MessageToDisplay& LastMessage();
+
+    void wh(int ww,int hh)
+    {
+        w=ww;
+        h=hh;
+    }
+
+    bool DrawMessages(){return _bDrawMessages && size();}
+
+    int size(){return m_messagesToDisplay.size();}
+
+private:
+
+    bool _bDrawMessages;
+
+    list<MessageToDisplay> m_messagesToDisplay;
+
+    //! Default font
+    QFont m_font;
+
+    QGLWidget *glwid;
+
+    int w;
+    int h;
+};
+
+//====================================================================================
 
 class cData;
 class GlCloud;
@@ -410,5 +495,7 @@ private:
     float       _diam;
     Pt3dr       _center;
 };
+
+//====================================================================================
 
 #endif //__3DObject__

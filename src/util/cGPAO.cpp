@@ -63,8 +63,8 @@ std::string GetUnikId()
 {
    double aTSec = ElTimeOfDay();
 
-   //return         ToString(_getpid())
-     return  "_" + ToString(Round(aTSec,1e3,1.0))
+   return         ToString(mm_getpid())
+          + "_" + ToString(Round(aTSec,1e3,1.0))
           + "_" + ToString(Round(aTSec,1,1e-3))
           + "_" + ToString(Round(aTSec,1e-3,1e-6));
 }

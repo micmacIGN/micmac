@@ -30,6 +30,9 @@ public:
 
     void        setMatrices();
 
+    void        rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor);
+    void        rotateMatrix(float rX, float rY, float rZ, float factor);
+
     void        importMatrices(selectInfos &infos);
     void        exportMatrices(selectInfos &infos);
 
@@ -50,10 +53,23 @@ public:
 
     GLfloat     m_glPosition[2];
 
+    //! Reset rotation matrix
+    void        resetRotationMatrix();
+
+    //! Reset translation matrix
+    void        resetTranslationMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
+
+    void        applyTransfo();
+
+    void        setModelViewMatrix();
+
+    GLdouble    m_rotationMatrix[16];
+    GLdouble    m_translationMatrix[3];
+
 private:
     GLdouble    *_mvMatrix;
     GLdouble    *_projMatrix;
-    GLint       *_glViewport;
+    GLint       *_glViewport;    
 };
 
 #endif

@@ -1068,3 +1068,120 @@ void cGLData::setGlobalCenter(Pt3d<double> aCenter)
 }
 
 //********************************************************************************
+
+
+void cMessages2DGL::draw(){
+
+    if (DrawMessages())
+    {
+        int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
+        ll_curHeight = lr_curHeight = lc_curHeight = h - m_font.pointSize()*m_messagesToDisplay.size();
+        int uc_curHeight = 10;            //upper center
+
+        std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
+        while (it != m_messagesToDisplay.end())
+        {
+            QRect rect = QFontMetrics(m_font).boundingRect(it->message);
+            switch(it->position)
+            {
+            case LOWER_LEFT_MESSAGE:
+                ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
+                break;
+            case LOWER_RIGHT_MESSAGE:
+                lr_curHeight -= renderTextLine(*it, w - 120, lr_curHeight);
+                break;
+            case LOWER_CENTER_MESSAGE:
+                lc_curHeight -= renderTextLine(*it,(w-rect.width())/2, lc_curHeight);
+                break;
+            case UPPER_CENTER_MESSAGE:
+                uc_curHeight += renderTextLine(*it,(w-rect.width())/2, uc_curHeight+rect.height());
+                break;
+            case SCREEN_CENTER_MESSAGE:
+                renderTextLine(*it,(w-rect.width())/2, (h-rect.height())/2,12);
+            }
+            ++it;
+        }
+    }
+}
+
+int cMessages2DGL::renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont)
+{
+    glwid->qglColor(messageTD.color);
+
+    m_font.setPointSize(sizeFont);
+
+    glwid->renderText(x, y, messageTD.message,m_font);
+
+    return (QFontMetrics(m_font).boundingRect(messageTD.message).height()*5)/4;
+}
+
+void cMessages2DGL::displayNewMessage(const QString &message, MessagePosition pos, QColor color)
+{
+    if (message.isEmpty())
+    {
+        m_messagesToDisplay.clear();
+
+        return;
+    }
+
+    MessageToDisplay mess;
+    mess.message = message;
+    mess.position = pos;
+    mess.color = color;
+    m_messagesToDisplay.push_back(mess);
+}
+
+void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded)
+{
+    _bDrawMessages = show;
+
+    displayNewMessage(QString());
+
+    if (show)
+    {
+        if(dataloaded)
+        {
+            if(m_bDisplayMode2D)
+            {
+                displayNewMessage(QString("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
+            }
+            else
+            {
+                if (mode == TRANSFORM_CAMERA)
+                {
+                    displayNewMessage(QString("Move mode"),UPPER_CENTER_MESSAGE);
+                    displayNewMessage(QString("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+                }
+                else if (mode == SELECTION)
+                {
+                    displayNewMessage(QString("Selection mode"),UPPER_CENTER_MESSAGE);
+                    displayNewMessage(QString("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
+                    displayNewMessage(QString("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
+                }
+
+                displayNewMessage(QString("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
+            }
+        }
+        else
+            displayNewMessage(QString("Drag & drop images or ply files"));
+    }
+
+}
+
+std::list<MessageToDisplay>::iterator cMessages2DGL::GetLastMessage()
+{
+    std::list<MessageToDisplay>::iterator it = --m_messagesToDisplay.end();
+
+    return it;
+}
+
+std::list<MessageToDisplay>::iterator cMessages2DGL::GetPenultimateMessage()
+{
+    return --GetLastMessage();
+}
+
+MessageToDisplay &cMessages2DGL::LastMessage()
+{
+    return m_messagesToDisplay.back();
+}
