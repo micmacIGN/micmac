@@ -497,6 +497,11 @@ public:
     void        setGlobalCenter(Pt3dr aCenter);
 
     bool        position2DClouds(MatrixManager &mm,QPointF pos);
+
+    void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
+
+    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction,MatrixManager &mm);
+
 private:
 
     float       _diam;

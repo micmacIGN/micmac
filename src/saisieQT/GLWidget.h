@@ -95,9 +95,6 @@ public:
     //! Undo last action
     void undo();
 
-    //! Undo all past selection actions
-    void undoAll();
-
     //! Get the selection infos stack
     QVector <selectInfos> getSelectInfos(){return _infos;}
 
