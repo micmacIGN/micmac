@@ -340,6 +340,7 @@ template <class Type> class  cLoadedCP
         const std::string & NameNuage() {return mNameNuage;}
         Im2D_U_INT1   ImCorrel() {return  mImCorrel;}
 
+        std::string NameMM1P(const std::string aPref);
         Tiff_Im FileMM1P(const std::string aPref);
 
     private :
@@ -551,10 +552,14 @@ template <class Type> void  cLoadedCP<Type>::SetSz(const Pt2di & aSz)
    }
 
 }
+template <class Type> std::string cLoadedCP<Type>::NameMM1P(const std::string aPref)
+{
+    return  mParam.WorkDirPFM().Val() + aPref + "-" +  mNameIm + ".tif";
+}
+
 template <class Type> Tiff_Im cLoadedCP<Type>::FileMM1P(const std::string aPref)
 {
-    std::string aName = mParam.WorkDirPFM().Val() + aPref + "-" +  mNameIm + ".tif";
-    return Tiff_Im::StdConv(aName);
+    return Tiff_Im::StdConv(NameMM1P(aPref));
 }
 
 template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer) 
@@ -607,6 +612,12 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
                std::cout << "HHHHH " << aSM1P.PdsAR().Val()  << " " << mNameIm << "\n";
                std::cout << FileMM1P("Depth").sz() << "\n";
 
+               Tiff_Im::Create8BFromFonc
+               (
+                   NameMM1P("Quality"),
+                   FileMM1P("Mask").sz(),
+                   aFCor
+               );
  getchar();
                // Tiff
            }
