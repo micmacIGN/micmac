@@ -292,6 +292,8 @@ void GLWidget::setInteractionMode(int mode, bool showmessage)
     }
 
     constructMessagesList(showmessage);
+
+    update();
 }
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
@@ -546,120 +548,27 @@ void GLWidget::Select(int mode, bool saveInfos)
 {
     if (hasDataLoaded())
     {
-        QPointF P2D;
-        bool pointInside;
-        cPolygon polyg;
+
+        cPolygon polyg = m_GLData->m_polygon;
 
         if(mode == ADD || mode == SUB)
         {
-            cPolygon &polygon = m_GLData->m_polygon;
-
-            if ((polygon.size() < 3) || (!polygon.isClosed()))
+            if ((polyg.size() < 3) || (!polyg.isClosed()))
                 return;
 
             if (!m_bDisplayMode2D)
-            {
-                for (int aK=0; aK < polygon.size(); ++aK)
-                {
-                    polyg.add(QPointF(polygon[aK].x(), (float)_matrixManager.vpHeight() - polygon[aK].y()));
-                }
-            }
-            else
-                polyg = polygon;
+                for (int aK=0; aK < polyg.size(); ++aK)
+                    polyg[aK].setY((float)_matrixManager.vpHeight() - polyg[aK].y());
         }
 
         if (m_bDisplayMode2D)
-        {
-            QPainter    p;
-            QBrush SBrush(Qt::white);
-            QBrush NSBrush(Qt::black);
-
-            p.begin(m_GLData->getMask());
-            p.setCompositionMode(QPainter::CompositionMode_Source);
-            p.setPen(Qt::NoPen);
-
-            if(mode == ADD)
-            {
-                if (m_bFirstAction)
-                {
-                    p.fillRect(m_GLData->getMask()->rect(), Qt::black);
-                }
-                p.setBrush(SBrush);
-                p.drawPolygon(polyg.getVector().data(),polyg.size());
-            }
-            else if(mode == SUB)
-            {
-                p.setBrush(NSBrush);
-                p.drawPolygon(polyg.getVector().data(),polyg.size());
-            }
-            else if(mode == ALL)
-            {
-                p.fillRect(m_GLData->getMask()->rect(), Qt::white);
-            }
-            else if(mode == NONE)
-            {
-                p.fillRect(m_GLData->getMask()->rect(), Qt::black);
-            }
-            p.end();
-
-            if(mode == INVERT)
-                m_GLData->getMask()->invertPixels(QImage::InvertRgb);
-
-            m_GLData->glMaskedImage._m_mask->ImageToTexture(m_GLData->getMask());
-        }
+            m_GLData->editImageMask(mode,polyg,m_bFirstAction);
         else
-        {
-            _matrixManager.setModelViewMatrix();
-
-            for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
-            {
-                GlCloud *a_cloud = m_GLData->Clouds[aK];
-
-                for (uint bK=0; bK < (uint) a_cloud->size();++bK)
-                {
-                    GlVertex &P  = a_cloud->getVertex( bK );
-                    Pt3dr  Pt = P.getPosition();
-
-                    switch (mode)
-                    {
-                    case ADD:
-                        _matrixManager.getProjection(P2D, Pt);
-                        pointInside = polyg.isPointInsidePoly(P2D);
-                        if (m_bFirstAction)
-                            P.setVisible(pointInside);
-                        else
-                            P.setVisible(pointInside||P.isVisible());
-                        break;
-                    case SUB:
-                        if (P.isVisible())
-                        {
-                            _matrixManager.getProjection(P2D, Pt);
-                            pointInside = polyg.isPointInsidePoly(P2D);
-                            P.setVisible(!pointInside);
-                        }
-                        break;
-                    case INVERT:
-                        P.setVisible(!P.isVisible());
-                        break;
-                    case ALL:
-                    {
-                        m_bFirstAction = true;
-                        P.setVisible(true);
-                    }
-                        break;
-                    case NONE:
-                        P.setVisible(false);
-                        break;
-                    }
-                }
-
-                a_cloud->setBufferGl(true);
-            }
-        }
+            m_GLData->editCloudMask(mode,polyg,m_bFirstAction,_matrixManager);
 
         if (((mode == ADD)||(mode == SUB)) && (m_bFirstAction)) m_bFirstAction = false;
 
-        if (saveInfos)
+        if (saveInfos) // TODO A deplacer
         {
             selectInfos info;
             info.poly   = m_GLData->m_polygon.getVector();
@@ -671,6 +580,8 @@ void GLWidget::Select(int mode, bool saveInfos)
         }
 
         clearPolyline();
+
+        update();
     }
 }
 
@@ -679,10 +590,9 @@ void GLWidget::clearPolyline()
     if (hasDataLoaded())
         m_GLData->m_polygon.clear();
 
-    update();
 }
 
-void GLWidget::undo()
+void GLWidget::undo() // TODO A deplacer
 {
     if (_infos.size() && hasDataLoaded())
     {
@@ -753,14 +663,13 @@ void GLWidget::constructMessagesList(bool show)
 
 void GLWidget::reset()
 {
-
     clearPolyline();
 
     _params.reset();
 
     m_bFirstAction = true;
 
-    m_GLData = NULL;
+    m_GLData = NULL; //  TODO le m_GLData est il bien delete?
 
     resetView();
 }

@@ -1118,6 +1118,97 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
     return foundPosition;
 }
 
+void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
+{
+    QPainter    p;
+    QBrush SBrush(Qt::white);
+    QBrush NSBrush(Qt::black);
+    QRect  rect = getMask()->rect();
+
+    p.begin(getMask());
+    p.setCompositionMode(QPainter::CompositionMode_Source);
+    p.setPen(Qt::NoPen);
+
+    if(mode == ADD)
+    {
+        if (m_bFirstAction)
+            p.fillRect(rect, Qt::black);
+
+        p.setBrush(SBrush);
+        p.drawPolygon(polyg.getVector().data(),polyg.size());
+    }
+    else if(mode == SUB)
+    {
+        p.setBrush(NSBrush);
+        p.drawPolygon(polyg.getVector().data(),polyg.size());
+    }
+    else if(mode == ALL)
+
+        p.fillRect(rect, Qt::white);
+
+    else if(mode == NONE)
+        p.fillRect(rect, Qt::black);
+
+    p.end();
+
+    if(mode == INVERT)
+        getMask()->invertPixels(QImage::InvertRgb);
+
+    glMaskedImage._m_mask->ImageToTexture(getMask());
+}
+
+void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
+{
+    mm.setModelViewMatrix();
+    QPointF P2D;
+    bool pointInside;
+
+    for (int aK=0; aK < Clouds.size(); ++aK)
+    {
+        GlCloud *a_cloud = Clouds[aK];
+
+        for (uint bK=0; bK < (uint) a_cloud->size();++bK)
+        {
+            GlVertex &P  = a_cloud->getVertex( bK );
+            Pt3dr  Pt = P.getPosition();
+
+            switch (mode)
+            {
+            case ADD:
+                mm.getProjection(P2D, Pt);
+                pointInside = polyg.isPointInsidePoly(P2D);
+                if (m_bFirstAction)
+                    P.setVisible(pointInside);
+                else
+                    P.setVisible(pointInside||P.isVisible());
+                break;
+            case SUB:
+                if (P.isVisible())
+                {
+                    mm.getProjection(P2D, Pt);
+                    pointInside = polyg.isPointInsidePoly(P2D);
+                    P.setVisible(!pointInside);
+                }
+                break;
+            case INVERT:
+                P.setVisible(!P.isVisible());
+                break;
+            case ALL:
+            {
+                m_bFirstAction = true;
+                P.setVisible(true);
+            }
+                break;
+            case NONE:
+                P.setVisible(false);
+                break;
+            }
+        }
+
+        a_cloud->setBufferGl(true);
+    }
+}
+
 //********************************************************************************
 
 
