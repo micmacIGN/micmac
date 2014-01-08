@@ -18,7 +18,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _idx(idx)
   , _parentSet(theSet)
 {
-    resetRotationMatrix();
+    _matrixManager.resetRotationMatrix();
 
     _time.start();
 
@@ -90,8 +90,8 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
             if (doZoom) setZoom(m_GLData->getBBoxMaxSize());
 
-            resetRotationMatrix();
-            resetTranslationMatrix();
+            _matrixManager.resetRotationMatrix();
+            _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
         }
 
         if (!m_GLData->isImgEmpty())
@@ -163,12 +163,7 @@ void GLWidget::paintGL()
         {
             zoom();
 
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glPushMatrix();
-
-            glMultMatrixf(_rotationMatrix);
-            glTranslatef(_translationMatrix[0],_translationMatrix[1],_translationMatrix[2]);
+            _matrixManager.applyTransfo();
 
             m_GLData->draw();
 
@@ -423,33 +418,36 @@ void GLWidget::setInteractionMode(INTERACTION_MODE mode, bool showmessage)
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    switch (orientation)
+    if (hasDataLoaded())
     {
-    case TOP_VIEW:
-        glRotatef(90.0f,1.0f,0.0f,0.0f);
-        break;
-    case BOTTOM_VIEW:
-        glRotatef(-90.0f,1.0f,0.0f,0.0f);
-        break;
-    case FRONT_VIEW:
-        glRotatef(0.0,1.0f,0.0f,0.0f);
-        break;
-    case BACK_VIEW:
-        glRotatef(180.0f,0.0f,1.0f,0.0f);
-        break;
-    case LEFT_VIEW:
-        glRotatef(90.0f,0.0f,1.0f,0.0f);
-        break;
-    case RIGHT_VIEW:
-        glRotatef(-90.0f,0.0f,1.0f,0.0f);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        switch (orientation)
+        {
+        case TOP_VIEW:
+            glRotatef(90.0f,1.0f,0.0f,0.0f);
+            break;
+        case BOTTOM_VIEW:
+            glRotatef(-90.0f,1.0f,0.0f,0.0f);
+            break;
+        case FRONT_VIEW:
+            glRotatef(0.0,1.0f,0.0f,0.0f);
+            break;
+        case BACK_VIEW:
+            glRotatef(180.0f,0.0f,1.0f,0.0f);
+            break;
+        case LEFT_VIEW:
+            glRotatef(90.0f,0.0f,1.0f,0.0f);
+            break;
+        case RIGHT_VIEW:
+            glRotatef(-90.0f,0.0f,1.0f,0.0f);
+        }
+
+        glGetDoublev(GL_MODELVIEW_MATRIX, _matrixManager.m_rotationMatrix);
+
+        _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
     }
-
-    glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
-
-    resetTranslationMatrix();
 }
 
 void GLWidget::onWheelEvent(float wheelDelta_deg)
@@ -578,16 +576,16 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void GLWidget::rotateMatrix(GLfloat* matrix, float rX, float rY, float rZ, float factor)
+void GLWidget::rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glMultMatrixf(matrix);
+    glMultMatrixd(matrix);
 
-    glRotatef(rX * factor,1.0,0.0,0.0);
-    glRotatef(rY * factor,0.0,1.0,0.0);
-    glRotatef(rZ * factor,0.0,0.0,1.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+    glRotated(rX * factor,1.0,0.0,0.0);
+    glRotated(rY * factor,0.0,1.0,0.0);
+    glRotated(rZ * factor,0.0,0.0,1.0);
+    glGetDoublev(GL_MODELVIEW_MATRIX, matrix);
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -639,15 +637,15 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         }
                         else
                         {
-                            _translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_matrixManager.vpWidth();
-                            _translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_matrixManager.vpHeight();
+                            _matrixManager.m_translationMatrix[0] += _params.m_speed*dPWin.x()*m_GLData->getBBoxMaxSize()/_matrixManager.vpWidth();
+                            _matrixManager.m_translationMatrix[1] -= _params.m_speed*dPWin.y()*m_GLData->getBBoxMaxSize()/_matrixManager.vpHeight();
                         }
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
                     rZ = (float)dPWin.x() / _matrixManager.vpWidth();
 
-                rotateMatrix(_rotationMatrix, rX, rY, rZ, 50.0f *_params.m_speed);
+                rotateMatrix(_matrixManager.m_rotationMatrix, rX, rY, rZ, 50.0f *_params.m_speed);
             }
         }
 
@@ -706,7 +704,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
             m_GLData->setGlobalCenter(Pt);
 
-            resetTranslationMatrix();
+            _matrixManager.resetTranslationMatrix(Pt);
 
             update();
         }
@@ -780,13 +778,7 @@ void GLWidget::Select(int mode, bool saveInfos)
         }
         else
         {
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-
-            glMultMatrixf(_rotationMatrix);
-            glTranslatef(_translationMatrix[0],_translationMatrix[1],_translationMatrix[2]);
-
-            glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
+            _matrixManager.setModelViewMatrix();
 
             for (int aK=0; aK < m_GLData->Clouds.size(); ++aK)
             {
@@ -970,8 +962,9 @@ void GLWidget::constructMessagesList(bool show)
 
 void GLWidget::reset()
 {
-    resetRotationMatrix();
-    resetTranslationMatrix();
+    _matrixManager.resetRotationMatrix();
+    if (hasDataLoaded())
+        _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
 
     _matrixManager.resetPosition();
 
@@ -994,11 +987,13 @@ void GLWidget::resetView()
         zoomFit();
     else
     {
-        resetRotationMatrix();
-        resetTranslationMatrix();
+        _matrixManager.resetRotationMatrix();
 
         if (hasDataLoaded())
+        {
             setZoom(m_GLData->getBBoxMaxSize());
+            _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
+        }
 
         showBall(hasDataLoaded());
         showAxis(false);
@@ -1007,24 +1002,5 @@ void GLWidget::resetView()
     }
 
     update();
-}
-
-void GLWidget::resetRotationMatrix()
-{
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glGetFloatv(GL_MODELVIEW_MATRIX, _rotationMatrix);
-}
-
-void GLWidget::resetTranslationMatrix()
-{
-    if (hasDataLoaded())
-    {
-        Pt3dr center = m_GLData->getBBoxCenter();
-
-        _translationMatrix[0] = -center.x;
-        _translationMatrix[1] = -center.y;
-        _translationMatrix[2] = -center.z;
-    }
 }
 
