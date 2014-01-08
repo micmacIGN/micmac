@@ -17,7 +17,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _idx(idx)
   , _parentSet(theSet)
 {
-    _matrixManager.resetRotationMatrix();
+    _matrixManager.resetAllMatrix();
 
     _time.start();
 
@@ -80,38 +80,18 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
 
-    // TODO a simplifier /////////////////////////////
-
     clearPolyline();
 
-    if (m_GLData->is3D())
-    {
-        m_bDisplayMode2D = false;
+    m_bDisplayMode2D = !m_GLData->isImgEmpty();
+    m_bFirstAction = m_GLData->isNewMask();
 
-        _matrixManager.resetRotationMatrix();
-        _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
-    }
-
-    if (!m_GLData->isImgEmpty())
-    {
-        m_bDisplayMode2D = true;
-        resetProjectionMatrice();
-        m_bFirstAction = m_GLData->glMaskedImage._m_newMask;
-    }
+    _matrixManager.resetAllMatrix(m_GLData->getBBoxCenter());
 
     constructMessagesList(showMessage);
 
     if (doZoom) zoomFit();
 
-    //  //////////////////////////////////////////////////////////////////////////
     update();
-}
-
-void GLWidget::resetProjectionMatrice()
-{
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glGetDoublev (GL_MODELVIEW_MATRIX, _matrixManager.getModelViewMatrix());
 }
 
 void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
@@ -141,8 +121,8 @@ void GLWidget::paintGL()
         }
         else
         {
-            zoom();
 
+            _matrixManager.zoom(_params.m_zoom,2.f*m_GLData->getBBoxMaxSize(),m_glRatio);
             _matrixManager.applyTransfo();
 
             m_GLData->draw();
@@ -297,18 +277,6 @@ void GLWidget::drawPolygon()
     }
 }
 
-// zoom in 3D mode
-void GLWidget::zoom()
-{
-    if (m_GLData != NULL)
-    {
-        GLdouble zoom = (GLdouble) _params.m_zoom;
-        GLdouble far  = (GLdouble) 2.f*m_GLData->getBBoxMaxSize();
-
-        MatrixManager::mglOrtho(-zoom*m_glRatio,zoom*m_glRatio,-zoom, zoom,-far, far);
-    }
-}
-
 void GLWidget::setInteractionMode(int mode, bool showmessage)
 {
     m_interactionMode = mode;
@@ -382,13 +350,9 @@ void GLWidget::setZoom(float value)
 
     _params.m_zoom = value;
 
-    printf("SET ZOOM\n");
-
     if(m_bDisplayMode2D && _messageManager.DrawMessages())
-    {
-         printf("SET ZOOM MESSAGE\n");
         _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
-    }
+
 
     update();
 }
@@ -797,9 +761,7 @@ void GLWidget::undo()
             if (!m_bDisplayMode2D)
             {
                 _matrixManager.importMatrices(infos);
-
-                if (aK==0) m_bFirstAction = true;
-                else m_bFirstAction = false;
+                m_bFirstAction = (aK==0);
             }
 
             Select(infos.selection_mode, false);
@@ -851,12 +813,6 @@ void GLWidget::constructMessagesList(bool show)
 
 void GLWidget::reset()
 {
-    if (!m_bDisplayMode2D)
-    {
-        _matrixManager.resetRotationMatrix();
-        if (hasDataLoaded()) _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
-        _matrixManager.resetPosition();
-    }
 
     clearPolyline();
 
@@ -871,25 +827,21 @@ void GLWidget::reset()
 
 void GLWidget::resetView()
 {
-    constructMessagesList(true);
-
-    if (m_bDisplayMode2D)
-        zoomFit();
-    else
+    if (!m_bDisplayMode2D)
     {
         _matrixManager.resetRotationMatrix();
+        _matrixManager.resetPosition();
 
         if (hasDataLoaded())
-        {
-            setZoom(m_GLData->getBBoxMaxSize());
             _matrixManager.resetTranslationMatrix(m_GLData->getBBoxCenter());
-        }
 
         showBall(hasDataLoaded());
         showAxis(false);
         showBBox(false);
         showCams(false);
     }
+
+    zoomFit();
 
     update();
 }

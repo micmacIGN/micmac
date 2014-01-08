@@ -116,8 +116,6 @@ public:
 
 public slots:
 
-    void zoom();
-
     void onWheelEvent(float wheelDelta_deg);
 
 signals:
@@ -192,7 +190,7 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
-    void resetProjectionMatrice();
+
 };
 
 #endif  /* _GLWIDGET_H */
