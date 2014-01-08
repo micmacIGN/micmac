@@ -589,6 +589,8 @@ void cPolygon::clear()
     _points.clear();
     _idx = -1;
     _bSelectedPoint = false;
+    setClosed(false);
+    if(_helper!=NULL) helper()->clear();
 }
 
 void cPolygon::insertPoint(int i, const QPointF &value)
@@ -1066,6 +1068,54 @@ void cGLData::setGlobalCenter(Pt3d<double> aCenter)
     for (int aK=0; aK < Clouds.size();++aK)
        Clouds[aK]->setPosition(aCenter);
 
+}
+
+bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
+{
+    bool foundPosition = false;
+    mm.setMatrices();
+
+    int idx1 = -1;
+    int idx2;
+
+    pos.setY(mm.vpHeight() - pos.y());
+
+    for (int aK=0; aK < Clouds.size();++aK)
+    {
+        float sqrD;
+        float dist = FLT_MAX;
+        idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
+        QPointF proj;
+
+        GlCloud *a_cloud = Clouds[aK];
+
+        for (int bK=0; bK < a_cloud->size();++bK)
+        {
+            mm.getProjection(proj, a_cloud->getVertex( bK ).getPosition());
+
+            sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
+
+            if (sqrD < dist )
+            {
+                dist = sqrD;
+                idx1 = aK;
+                idx2 = bK;
+            }
+        }
+    }
+
+    if ((idx1>=0) && (idx2>=0))
+    {
+        //final center:
+        GlCloud *a_cloud = Clouds[idx1];
+        Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
+
+        setGlobalCenter(Pt);
+        mm.resetTranslationMatrix(Pt);
+        foundPosition = true;
+    }
+
+    return foundPosition;
 }
 
 //********************************************************************************

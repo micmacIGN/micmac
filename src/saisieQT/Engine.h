@@ -101,7 +101,7 @@ private:
     QDir        _Dir;
 };
 
-
+class cGLData;
 
 class cEngine
 {    

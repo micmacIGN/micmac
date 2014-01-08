@@ -6,7 +6,7 @@ MatrixManager::MatrixManager()
     _projMatrix = new GLdouble[16];
     _glViewport = new GLint[4];
 
-    m_glPosition[0] = m_glPosition[1] = 0.f;
+    resetAllMatrix();
 }
 
 MatrixManager::~MatrixManager()
@@ -39,9 +39,9 @@ void MatrixManager::doProjection(QPointF point, float zoom)
         glTranslatef(-wx,-wy,0);
     }
 
-    glTranslatef(m_glPosition[0],m_glPosition[1],0.f);
+    glTranslatef(m_translationMatrix[0],m_translationMatrix[1],0.f);
 
-    m_glPosition[0] = m_glPosition[1] = 0.f;
+    m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
 }
@@ -61,7 +61,7 @@ void MatrixManager::scaleAndTranslate(float x, float y, float zoom)
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
     glPopMatrix();
 
-    m_glPosition[0] = m_glPosition[1] = 0.f;
+    m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 }
 
 void MatrixManager::setMatrices()
@@ -151,6 +151,15 @@ void MatrixManager::resetTranslationMatrix(Pt3dr center)
     m_translationMatrix[0] = -center.x;
     m_translationMatrix[1] = -center.y;
     m_translationMatrix[2] = -center.z;
+}
+
+void MatrixManager::resetAllMatrix(Pt3d<double> center)
+{
+    resetRotationMatrix();
+
+    resetModelViewMatrix();
+
+    resetTranslationMatrix(center);
 }
 
 void MatrixManager::resetModelViewMatrix()
