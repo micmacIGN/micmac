@@ -16,6 +16,14 @@ MatrixManager::~MatrixManager()
     delete [] _glViewport;
 }
 
+void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    m_glRatio  = (float) width/height;
+
+    glViewport( 0, 0, width, height );
+    glGetIntegerv (GL_VIEWPORT, getGLViewport());
+}
+
 void MatrixManager::doProjection(QPointF point, float zoom)
 {
     glMatrixMode(GL_PROJECTION);
@@ -190,9 +198,9 @@ void MatrixManager::setModelViewMatrix()
     glGetDoublev (GL_MODELVIEW_MATRIX, _mvMatrix);
 }
 
-void MatrixManager::zoom(float zoom, float far,float m_glRatio)
+void MatrixManager::zoom(float zoom, float far)
 {
-    MatrixManager::mglOrtho((GLdouble)-zoom*m_glRatio,(GLdouble)zoom*m_glRatio,(GLdouble)-zoom, (GLdouble)zoom,(GLdouble)-far,(GLdouble) far);
+    MatrixManager::mglOrtho((GLdouble)-zoom*getGlRatio(),(GLdouble)zoom*getGlRatio(),(GLdouble)-zoom, (GLdouble)zoom,(GLdouble)-far,(GLdouble) far);
 }
 
 void MatrixManager::rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor)

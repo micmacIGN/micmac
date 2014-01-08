@@ -16,6 +16,8 @@ public:
     GLdouble*   getProjectionMatrix(){return _projMatrix;}
     GLint*      getGLViewport(){return _glViewport;}
 
+    void        setGLViewport(GLint x, GLint y,GLsizei width, GLsizei height);
+
     void        doProjection(QPointF point, float zoom);
 
     void        orthoProjection();
@@ -65,12 +67,17 @@ public:
 
     void        setModelViewMatrix();
 
-    void        zoom(float zoom, float far,float m_glRatio);
+    void        zoom(float zoom, float far);
+
+    float       getGlRatio(){return m_glRatio;}
 
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
 
 private:
+    //! GL context aspect ratio (width/height)
+    float       m_glRatio;
+
     GLdouble    *_mvMatrix;
     GLdouble    *_projMatrix;
     GLint       *_glViewport;    

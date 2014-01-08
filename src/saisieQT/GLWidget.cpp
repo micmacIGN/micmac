@@ -23,8 +23,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     setFocusPolicy(Qt::StrongFocus);
 
-    //drag & drop handling
-    setAcceptDrops(true);
+    setAcceptDrops(true);           //drag & drop handling
 
     setMouseTracking(true);
 
@@ -35,11 +34,7 @@ void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
 
-    m_glRatio  = (float) width/height;
-
-    glViewport( 0, 0, width, height );
-    glGetIntegerv (GL_VIEWPORT, _matrixManager.getGLViewport());
-
+    _matrixManager.setGLViewport(0,0,width, height);
     _messageManager.wh(width, height);
 
     zoomFit();
@@ -94,12 +89,6 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
     update();
 }
 
-void GLWidget::setBackgroundColors(const QColor &col0, const QColor &col1)
-{
-    _BGColor0 = col0;
-    _BGColor1 = col1;
-}
-
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -119,7 +108,7 @@ void GLWidget::paintGL()
         }
         else
         {
-            _matrixManager.zoom(_params.m_zoom,2.f*m_GLData->getBBoxMaxSize(),m_glRatio);
+            _matrixManager.zoom(_params.m_zoom,2.f*m_GLData->getBBoxMaxSize());
             _matrixManager.applyTransfo();
 
             m_GLData->draw();        
@@ -206,11 +195,6 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     }
 }
 
-bool GLWidget::hasDataLoaded()
-{
-    return (m_GLData == NULL) ? false : true;
-}
-
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
@@ -223,7 +207,7 @@ void GLWidget::dropEvent(QDropEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
 
-    if (mimeData->hasFormat("text/uri-list"))
+    if (mimeData->hasFormat("text/uri-list")) // TODO peut etre deplacer fractoriser la gestion de drop fichier!!!
     {
         QByteArray data = mimeData->data("text/uri-list");
         QStringList fileNames = QUrl::fromPercentEncoding(data).split(QRegExp("\\n+"),QString::SkipEmptyParts);
@@ -236,11 +220,6 @@ void GLWidget::dropEvent(QDropEvent *event)
             fileNames[i].remove("file:///");
 #else
             fileNames[i].remove("file://");
-#endif
-
-#ifdef _DEBUG
-            QString formatedMessage = QString("File dropped: %1").arg(fileNames[i]);
-            printf(" %s\n",qPrintable(formatedMessage));
 #endif
         }
 
@@ -262,7 +241,7 @@ void GLWidget::drawPolygon()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    if (m_bDisplayMode2D)
+    if (m_bDisplayMode2D) // TODO pas beau !!!
     {
         _matrixManager.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
         _matrixManager.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
@@ -289,6 +268,15 @@ void GLWidget::setInteractionMode(int mode, bool showmessage)
             _matrixManager.setMatrices();
     }
         break;
+    }
+
+    showBall(mode ? TRANSFORM_CAMERA : SELECTION && hasDataLoaded());
+    showAxis(false);
+
+    if (mode == SELECTION)
+    {
+        showCams(false);
+        showBBox(false);
     }
 
     constructMessagesList(showmessage);
