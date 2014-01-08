@@ -30,6 +30,9 @@ public:
 
     void        setMatrices();
 
+    void        rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor);
+    void        rotateMatrix(float rX, float rY, float rZ, float factor);
+
     void        importMatrices(selectInfos &infos);
     void        exportMatrices(selectInfos &infos);
 

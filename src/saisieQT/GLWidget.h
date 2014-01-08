@@ -114,8 +114,6 @@ public:
 
     void setBackgroundColors(QColor const &col0, QColor const &col1);   
 
-    void rotateMatrix(GLdouble *matrix, float rX, float rY, float rZ, float factor = 1.0f);
-
 public slots:
 
     void zoom();
@@ -194,6 +192,7 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
+    void resetProjectionMatrice();
 };
 
 #endif  /* _GLWIDGET_H */
