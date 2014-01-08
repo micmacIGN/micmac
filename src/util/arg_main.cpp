@@ -73,6 +73,14 @@ void AddMessErrContext(const std::string & aMes)
    GlobMessErrContext.push_back(aMes);
 }
 
+int mm_getpid()
+{
+#if ELISE_windows
+    return _getpid();
+#else
+    return getpid();
+#endif
+}
 
 void MemoArg(int argc,char** argv)   
 {
@@ -759,7 +767,7 @@ void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
    {
       fprintf(aFP,"Exit with code %d \n",aCode);
       fprintf(aFP,"Generated from line %d  of file %s \n",aLine,aFile);
-//      fprintf(aFP,"PID=%d\n",_getpid());
+      fprintf(aFP,"PID=%d\n",mm_getpid());
       if (aMessage!="")
          fprintf(aFP,"Context=[%s]\n",aMessage.c_str());
 

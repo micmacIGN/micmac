@@ -63,7 +63,7 @@ void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 
 void AddMessErrContext(const std::string & aMes);
 
-
+int mm_getpid();
 
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 
