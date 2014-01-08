@@ -461,29 +461,28 @@ void cCam::draw()
 }
 
 
-cPoint::cPoint(QPainter * painter,
-               QPointF position,
-               QString name,
+cPoint::cPoint(QPointF pos, QString name,
                QColor color,
                float diameter,
                bool isSelected,
-               bool showName):
+               bool showName, QPainter * painter):
+    QPointF(pos),
     _diameter(diameter),
     _bShowName(showName),
     _name(name),
     _painter(painter)
 {
-    setPosition(Pt3dr(position.x(),position.y(),0.f));
+
     setColor(color);
     setSelected(isSelected);
 }
 
 void cPoint::draw()
 {
-    //glColor3f(_color.redF(),_color.greenF(),_color.blueF());
-    //glDrawUnitCircle(2, _position.x, _position.y);
+    glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+    glDrawUnitCircle(2, x(), y());
 
-    _painter->setPen(_color);
+    /*_painter->setPen(_color);
     _painter->drawEllipse(QPointF(_position.x, _position.y), _diameter, _diameter);
 
     if (_bShowName)
@@ -500,7 +499,7 @@ void cPoint::draw()
         _painter->setPen(Qt::white);
         _painter->fillRect(rectg, QColor(0, 0, 0, 127));
         _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
-    }
+    }*/
 }
 
 cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int style):
@@ -553,7 +552,7 @@ void cPolygon::draw()
 
     glColor3f(_color.redF(),_color.greenF(),_color.blueF());
 
-    if ((_idx >=0) && (_points.size() > _idx))
+    /*if ((_idx >=0) && (_points.size() > _idx))
     {
         //draw points
         for (int aK = 0;aK < _idx; ++aK)
@@ -567,10 +566,11 @@ void cPolygon::draw()
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
     }
     else
-    {
+    {*/
         for (int aK = 0;aK < _points.size(); ++aK)
-            glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
-    }
+            _points[aK].draw();
+            //glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
+    //}
     disableOptionLine();
 }
 
@@ -622,9 +622,9 @@ void cPolygon::removeNearestOrClose(QPointF pos)
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = pt;
+        _points[size()-1] = cPoint(pt);
 
-    _points.push_back(pt);
+    add(pt);
 }
 
 void cPolygon::clear()
@@ -638,7 +638,7 @@ void cPolygon::clear()
 
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
-    _points.insert(i,value);
+    _points.insert(i,cPoint(value));
     _idx = -1;
 }
 
@@ -665,6 +665,17 @@ void cPolygon::removePoint(int i)
 {
     _points.remove(i);
     _idx = -1;
+}
+
+const QVector<QPointF> cPolygon::getVector()
+{
+    QVector <QPointF> points;
+
+    for(int aK=0; aK < _points.size(); ++aK)
+    {
+        points.push_back(_points[aK]);
+    }
+    return points;
 }
 
 void cPolygon::findNearestPoint(QPointF const &pos)
@@ -709,7 +720,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
         if (nbVertex == 1)     // add current mouse position to polygon (dynamic display)
             add(pos);
         else if (nbVertex > 1) // replace last point by the current one
-            _points[nbVertex-1] = pos;
+            _points[nbVertex-1] = cPoint(pos);
 
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
@@ -725,7 +736,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
 }
 
 
-void cPolygon::finalMovePoint(QPointF pos)
+void cPolygon::finalMovePoint(QPointF pos) //TODO
 {
     if ((_idx>=0) && _helper->size()) //  fin de deplacement point
     {

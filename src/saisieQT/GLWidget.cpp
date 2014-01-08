@@ -123,6 +123,12 @@ void GLWidget::paintGL()
     }
 
     _messageManager.draw();
+
+    QPainter painter(this);
+    //cPoint pt2D(&painter, _matrixManager.WindowToImage(QPointF(200,200),_params.m_zoom),"5120");
+    //cPoint pt2D(QPointF(200,200),"5120", &painter);
+    //pt2D.draw();
+    painter.end();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -593,7 +599,7 @@ void GLWidget::undo() // TODO A deplacer
 
             cPolygon Polygon;
             Polygon.setClosed(true);
-            Polygon.setVector(infos.poly);
+            //Polygon.setVector(infos.poly);
             m_GLData->setPolygon(Polygon);
 
             if (!m_bDisplayMode2D)
