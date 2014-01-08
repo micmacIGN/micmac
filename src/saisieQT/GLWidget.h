@@ -51,7 +51,7 @@ public:
     ~GLWidget(){}
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded();
+    bool hasDataLoaded(){ return (m_GLData != NULL);}
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -95,9 +95,6 @@ public:
     //! Undo last action
     void undo();
 
-    //! Undo all past selection actions
-    void undoAll();
-
     //! Get the selection infos stack
     QVector <selectInfos> getSelectInfos(){return _infos;}
 
@@ -112,11 +109,13 @@ public:
     void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
     cGLData* getGLData(){return m_GLData;}
 
-    void setBackgroundColors(QColor const &col0, QColor const &col1);   
+    void setBackgroundColors(QColor const &col0, QColor const &col1)
+    {
+        _BGColor0 = col0;
+        _BGColor1 = col1;
+    }
 
 public slots:
-
-    void zoom();
 
     void onWheelEvent(float wheelDelta_deg);
 
@@ -143,12 +142,6 @@ protected:
 
     //! Draw selection polygon
     void drawPolygon();
-
-    //! GL context aspect ratio (width/height)
-    float m_glRatio;
-
-    //! States if messages should be displayed
-    bool m_bDrawMessages;
 
     //! Current interaction mode (with mouse)
     int m_interactionMode;
@@ -192,7 +185,7 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
-    void resetProjectionMatrice();
+
 };
 
 #endif  /* _GLWIDGET_H */

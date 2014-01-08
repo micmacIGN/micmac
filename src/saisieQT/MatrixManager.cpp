@@ -6,7 +6,7 @@ MatrixManager::MatrixManager()
     _projMatrix = new GLdouble[16];
     _glViewport = new GLint[4];
 
-    m_glPosition[0] = m_glPosition[1] = 0.f;
+    resetAllMatrix();
 }
 
 MatrixManager::~MatrixManager()
@@ -14,6 +14,14 @@ MatrixManager::~MatrixManager()
     delete [] _mvMatrix;
     delete [] _projMatrix;
     delete [] _glViewport;
+}
+
+void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    m_glRatio  = (float) width/height;
+
+    glViewport( 0, 0, width, height );
+    glGetIntegerv (GL_VIEWPORT, getGLViewport());
 }
 
 void MatrixManager::doProjection(QPointF point, float zoom)
@@ -39,9 +47,9 @@ void MatrixManager::doProjection(QPointF point, float zoom)
         glTranslatef(-wx,-wy,0);
     }
 
-    glTranslatef(m_glPosition[0],m_glPosition[1],0.f);
+    glTranslatef(m_translationMatrix[0],m_translationMatrix[1],0.f);
 
-    m_glPosition[0] = m_glPosition[1] = 0.f;
+    m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
 }
@@ -61,7 +69,7 @@ void MatrixManager::scaleAndTranslate(float x, float y, float zoom)
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
     glPopMatrix();
 
-    m_glPosition[0] = m_glPosition[1] = 0.f;
+    m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 }
 
 void MatrixManager::setMatrices()
@@ -153,6 +161,22 @@ void MatrixManager::resetTranslationMatrix(Pt3dr center)
     m_translationMatrix[2] = -center.z;
 }
 
+void MatrixManager::resetAllMatrix(Pt3d<double> center)
+{
+    resetRotationMatrix();
+
+    resetModelViewMatrix();
+
+    resetTranslationMatrix(center);
+}
+
+void MatrixManager::resetModelViewMatrix()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glGetDoublev (GL_MODELVIEW_MATRIX, getModelViewMatrix());
+}
+
 void MatrixManager::applyTransfo()
 {
     glMatrixMode(GL_MODELVIEW);
@@ -172,6 +196,11 @@ void MatrixManager::setModelViewMatrix()
     glTranslated(m_translationMatrix[0],m_translationMatrix[1],m_translationMatrix[2]);
 
     glGetDoublev (GL_MODELVIEW_MATRIX, _mvMatrix);
+}
+
+void MatrixManager::zoom(float zoom, float far)
+{
+    MatrixManager::mglOrtho((GLdouble)-zoom*getGlRatio(),(GLdouble)zoom*getGlRatio(),(GLdouble)-zoom, (GLdouble)zoom,(GLdouble)-far,(GLdouble) far);
 }
 
 void MatrixManager::rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor)

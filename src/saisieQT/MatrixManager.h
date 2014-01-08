@@ -4,6 +4,8 @@
 #include "3DObject.h"
 #include "Engine.h"
 
+class selectInfos;
+
 class MatrixManager
 {
 public:
@@ -13,6 +15,8 @@ public:
     GLdouble*   getModelViewMatrix(){return _mvMatrix;}
     GLdouble*   getProjectionMatrix(){return _projMatrix;}
     GLint*      getGLViewport(){return _glViewport;}
+
+    void        setGLViewport(GLint x, GLint y,GLsizei width, GLsizei height);
 
     void        doProjection(QPointF point, float zoom);
 
@@ -36,8 +40,6 @@ public:
     void        importMatrices(selectInfos &infos);
     void        exportMatrices(selectInfos &infos);
 
-    void        resetPosition(){m_glPosition[0] = m_glPosition[1] = 0.f;}
-
     //! 3D point projection in viewport
     void        getProjection(QPointF &P2D, Pt3dr P);
 
@@ -51,22 +53,31 @@ public:
 
     static void mglOrtho( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val );
 
-    GLfloat     m_glPosition[2];
-
     //! Reset rotation matrix
     void        resetRotationMatrix();
 
+    void        resetModelViewMatrix();
+
     //! Reset translation matrix
     void        resetTranslationMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
+
+    void        resetAllMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
 
     void        applyTransfo();
 
     void        setModelViewMatrix();
 
+    void        zoom(float zoom, float far);
+
+    float       getGlRatio(){return m_glRatio;}
+
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
 
 private:
+    //! GL context aspect ratio (width/height)
+    float       m_glRatio;
+
     GLdouble    *_mvMatrix;
     GLdouble    *_projMatrix;
     GLint       *_glViewport;    

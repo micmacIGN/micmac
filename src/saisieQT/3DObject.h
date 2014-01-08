@@ -9,6 +9,7 @@
 #include <QColor>
 #include <QGLWidget>
 #include <QGLShaderProgram>
+#include <QPainter>
 
 #include "GL/glu.h"
 
@@ -37,11 +38,13 @@ class cObject
         QColor  getColor()      { return _color;    }
         float   getScale()      { return _scale;    }
         bool    isVisible()     { return _bVisible; }
+        bool    isSelected()    { return _bSelected;}
 
         void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
         void    setColor(QColor const &aCol)   { _color = aCol;    }
-        void    setVisible(bool aVis)          { _bVisible = aVis; }
         void    setScale(float aScale)         { _scale = aScale;  }
+        void    setVisible(bool aVis)          { _bVisible = aVis; }
+        void    setSelected(bool aSel)         { _bSelected = aSel;}
 
         cObject & operator = (const cObject &);
 
@@ -53,11 +56,12 @@ class cObject
 
         float   _alpha;
         bool    _bVisible;
+        bool    _bSelected;
 };
 
 class cObjectGL : public cObject
 {
-   public:
+    public:
         cObjectGL(){}
         virtual ~cObjectGL(){}
 
@@ -65,13 +69,38 @@ class cObjectGL : public cObject
 
         void    setLineWidth(float width){_lineWidth = width;}
 
+    protected:
+
         float   _lineWidth;
 
-protected:
+        void    enableOptionLine();
 
-        void enableOptionLine();
+        void    disableOptionLine();
+};
 
-        void disableOptionLine();        
+class cPoint : public cObjectGL, public QPointF
+{
+    public:
+    cPoint(QPointF pos = QPointF(0.f,0.f),
+            QString name = "",
+           QColor color = Qt::red,
+           float diameter = 3.f,
+           bool isSelected = true,
+           bool showName = true,
+           QPainter * painter =NULL
+           );
+
+        void draw();
+
+    private:
+        float   _diameter;
+        bool    _bShowName;
+        QString _name;
+
+        //! Default font
+        QFont   _font;
+
+        QPainter *_painter;
 };
 
 class cCircle : public cObjectGL
@@ -139,7 +168,7 @@ class cBBox : public cObjectGL
         void    draw();
 
         void set(Pt3d<double> min, Pt3d<double> max);
-private:
+    private:
         Pt3dr   _min;
         Pt3dr   _max;
 };
@@ -165,7 +194,7 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(float lineWidth = 1.0f, QColor lineColor = Qt::green,  QColor pointColor = Qt::red,int style = LINE_NOSTIPPLE);
+        cPolygon(float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
 
         void    draw();
 
@@ -179,7 +208,8 @@ class cPolygon : public cObjectGL
 
         void    setpointSize(float size) { _pointSize = size; }
 
-        void    add(QPointF const &pt){ _points.push_back(pt); }
+        void    add(cPoint const &pt){_points.push_back(pt);}
+        void    add(QPointF const &pt){ _points.push_back(cPoint(pt)); }
         void    addPoint(QPointF const &pt);
 
         void    clear();
@@ -190,8 +220,8 @@ class cPolygon : public cObjectGL
 
         int     size(){ return _points.size(); }
 
-        QPointF & operator[](int ak){ return _points[ak]; }
-        const QPointF & operator[](int ak) const { return _points[ak]; }
+        cPoint & operator[](int ak){ return _points[ak]; }
+        const cPoint & operator[](int ak) const { return _points[ak]; }
 
         cPolygon & operator = (const cPolygon &);
 
@@ -201,8 +231,8 @@ class cPolygon : public cObjectGL
 
         void    removePoint( int i );
 
-        QVector <QPointF> const getVector(){ return _points; }
-        void setVector(QVector <QPointF> const &aPts){ _points = aPts; }
+        QVector <QPointF> const getVector();
+        void setVector(QVector <cPoint> const &aPts){ _points = aPts; }
 
         int     idx(){return _idx;}
 
@@ -218,15 +248,16 @@ class cPolygon : public cObjectGL
 
         void    removeLastPoint();
 
-protected:
+    protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
-        QVector <QPointF>   _points;
+        //QVector <QPointF>   _points;
+        QVector <cPoint>    _points;
         cPolygonHelper*     _helper;
         QColor              _lineColor;
         int                 _idx;
 
-private:
+    private:
         float               _pointSize;
         float               _sqr_radius;
 
@@ -241,18 +272,17 @@ private:
 
 class cPolygonHelper : public cPolygon
 {
+    public:
 
-public:
+        cPolygonHelper(cPolygon* polygon, float lineWidth, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
-    cPolygonHelper(cPolygon* polygon, float lineWidth, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        void   build(const QPointF &pos, bool insertMode);
 
-    void   build(const QPointF &pos, bool insertMode);
+        void   setPoints(QPointF p1, QPointF p2, QPointF p3);
 
-    void   setPoints(QPointF p1, QPointF p2, QPointF p3);
+    private:
 
-private:
-
-    cPolygon* _polygon;
+        cPolygon* _polygon;
 };
 
 
@@ -441,8 +471,10 @@ private:
 
 class cData;
 class GlCloud;
+class MatrixManager;
 
 #include "Data.h"
+#include "MatrixManager.h"
 
 class cGLData : cObjectGL
 {
@@ -471,6 +503,11 @@ public:
 
     void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
 
+    bool        isNewMask()
+    {
+        return !isImgEmpty() ? glMaskedImage._m_newMask : true;
+    }
+
     //3D
     QVector < cCam* > Cams;
 
@@ -489,6 +526,11 @@ public:
 
     void        setGlobalCenter(Pt3dr aCenter);
 
+    bool        position2DClouds(MatrixManager &mm,QPointF pos);
+
+    void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
+
+    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction,MatrixManager &mm);
 
 private:
 

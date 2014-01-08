@@ -460,6 +460,48 @@ void cCam::draw()
     }
 }
 
+
+cPoint::cPoint(QPointF pos, QString name,
+               QColor color,
+               float diameter,
+               bool isSelected,
+               bool showName, QPainter * painter):
+    QPointF(pos),
+    _diameter(diameter),
+    _bShowName(showName),
+    _name(name),
+    _painter(painter)
+{
+
+    setColor(color);
+    setSelected(isSelected);
+}
+
+void cPoint::draw()
+{
+    glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+    glDrawUnitCircle(2, x(), y());
+
+    /*_painter->setPen(_color);
+    _painter->drawEllipse(QPointF(_position.x, _position.y), _diameter, _diameter);
+
+    if (_bShowName)
+    {
+        QFontMetrics metrics = QFontMetrics(_font);
+        int border = qMax(4, metrics.leading());
+
+        QRect rect = QFontMetrics(_font).boundingRect(_name);
+
+        QRect rectg(_position.x-border, _position.y-border, rect.width()+border, rect.height()+border);
+        rectg.translate(QPoint(10, -rectg.height()-5));
+
+        _painter->setRenderHint(QPainter::TextAntialiasing);
+        _painter->setPen(Qt::white);
+        _painter->fillRect(rectg, QColor(0, 0, 0, 127));
+        _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
+    }*/
+}
+
 cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this,lineWidth)),
     _lineColor(lineColor),
@@ -510,7 +552,7 @@ void cPolygon::draw()
 
     glColor3f(_color.redF(),_color.greenF(),_color.blueF());
 
-    if ((_idx >=0) && (_points.size() > _idx))
+    /*if ((_idx >=0) && (_points.size() > _idx))
     {
         //draw points
         for (int aK = 0;aK < _idx; ++aK)
@@ -524,10 +566,11 @@ void cPolygon::draw()
             glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
     }
     else
-    {
+    {*/
         for (int aK = 0;aK < _points.size(); ++aK)
-            glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
-    }
+            _points[aK].draw();
+            //glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
+    //}
     disableOptionLine();
 }
 
@@ -579,9 +622,9 @@ void cPolygon::removeNearestOrClose(QPointF pos)
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = pt;
+        _points[size()-1] = cPoint(pt);
 
-    _points.push_back(pt);
+    add(pt);
 }
 
 void cPolygon::clear()
@@ -589,11 +632,13 @@ void cPolygon::clear()
     _points.clear();
     _idx = -1;
     _bSelectedPoint = false;
+    setClosed(false);
+    if(_helper!=NULL) helper()->clear();
 }
 
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
-    _points.insert(i,value);
+    _points.insert(i,cPoint(value));
     _idx = -1;
 }
 
@@ -620,6 +665,17 @@ void cPolygon::removePoint(int i)
 {
     _points.remove(i);
     _idx = -1;
+}
+
+const QVector<QPointF> cPolygon::getVector()
+{
+    QVector <QPointF> points;
+
+    for(int aK=0; aK < _points.size(); ++aK)
+    {
+        points.push_back(_points[aK]);
+    }
+    return points;
 }
 
 void cPolygon::findNearestPoint(QPointF const &pos)
@@ -664,7 +720,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
         if (nbVertex == 1)     // add current mouse position to polygon (dynamic display)
             add(pos);
         else if (nbVertex > 1) // replace last point by the current one
-            _points[nbVertex-1] = pos;
+            _points[nbVertex-1] = cPoint(pos);
 
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
@@ -680,7 +736,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
 }
 
 
-void cPolygon::finalMovePoint(QPointF pos)
+void cPolygon::finalMovePoint(QPointF pos) //TODO
 {
     if ((_idx>=0) && _helper->size()) //  fin de deplacement point
     {
@@ -990,7 +1046,8 @@ cGLData::cGLData(QMaskedImage &qMaskedImage):
     pQMask(qMaskedImage._m_mask),
     pBall(NULL),
     pAxis(NULL),
-    pBbox(NULL)
+    pBbox(NULL),
+    _center(Pt3dr(0.f,0.f,0.f))
 {
 
 }
@@ -1065,6 +1122,145 @@ void cGLData::setGlobalCenter(Pt3d<double> aCenter)
     for (int aK=0; aK < Clouds.size();++aK)
        Clouds[aK]->setPosition(aCenter);
 
+}
+
+bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
+{
+    bool foundPosition = false;
+    mm.setMatrices();
+
+    int idx1 = -1;
+    int idx2;
+
+    pos.setY(mm.vpHeight() - pos.y());
+
+    for (int aK=0; aK < Clouds.size();++aK)
+    {
+        float sqrD;
+        float dist = FLT_MAX;
+        idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
+        QPointF proj;
+
+        GlCloud *a_cloud = Clouds[aK];
+
+        for (int bK=0; bK < a_cloud->size();++bK)
+        {
+            mm.getProjection(proj, a_cloud->getVertex( bK ).getPosition());
+
+            sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
+
+            if (sqrD < dist )
+            {
+                dist = sqrD;
+                idx1 = aK;
+                idx2 = bK;
+            }
+        }
+    }
+
+    if ((idx1>=0) && (idx2>=0))
+    {
+        //final center:
+        GlCloud *a_cloud = Clouds[idx1];
+        Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
+
+        setGlobalCenter(Pt);
+        mm.resetTranslationMatrix(Pt);
+        foundPosition = true;
+    }
+
+    return foundPosition;
+}
+
+void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
+{
+    QPainter    p;
+    QBrush SBrush(Qt::white);
+    QBrush NSBrush(Qt::black);
+    QRect  rect = getMask()->rect();
+
+    p.begin(getMask());
+    p.setCompositionMode(QPainter::CompositionMode_Source);
+    p.setPen(Qt::NoPen);
+
+    if(mode == ADD)
+    {
+        if (m_bFirstAction)
+            p.fillRect(rect, Qt::black);
+
+        p.setBrush(SBrush);
+        p.drawPolygon(polyg.getVector().data(),polyg.size());
+    }
+    else if(mode == SUB)
+    {
+        p.setBrush(NSBrush);
+        p.drawPolygon(polyg.getVector().data(),polyg.size());
+    }
+    else if(mode == ALL)
+
+        p.fillRect(rect, Qt::white);
+
+    else if(mode == NONE)
+        p.fillRect(rect, Qt::black);
+
+    p.end();
+
+    if(mode == INVERT)
+        getMask()->invertPixels(QImage::InvertRgb);
+
+    glMaskedImage._m_mask->ImageToTexture(getMask());
+}
+
+void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
+{
+    mm.setModelViewMatrix();
+    QPointF P2D;
+    bool pointInside;
+
+    for (int aK=0; aK < Clouds.size(); ++aK)
+    {
+        GlCloud *a_cloud = Clouds[aK];
+
+        for (uint bK=0; bK < (uint) a_cloud->size();++bK)
+        {
+            GlVertex &P  = a_cloud->getVertex( bK );
+            Pt3dr  Pt = P.getPosition();
+
+            switch (mode)
+            {
+            case ADD:
+                mm.getProjection(P2D, Pt);
+                pointInside = polyg.isPointInsidePoly(P2D);
+                if (m_bFirstAction)
+                    P.setVisible(pointInside);
+                else
+                    P.setVisible(pointInside||P.isVisible());
+                break;
+            case SUB:
+                if (P.isVisible())
+                {
+                    mm.getProjection(P2D, Pt);
+                    pointInside = polyg.isPointInsidePoly(P2D);
+                    P.setVisible(!pointInside);
+                }
+                break;
+            case INVERT:
+                P.setVisible(!P.isVisible());
+                break;
+            case ALL:
+            {
+                m_bFirstAction = true;
+                P.setVisible(true);
+            }
+                break;
+            case NONE:
+                P.setVisible(false);
+                break;
+            }
+        }
+
+        a_cloud->setBufferGl(true);
+    }
 }
 
 //********************************************************************************
