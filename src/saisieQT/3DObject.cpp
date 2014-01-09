@@ -488,7 +488,7 @@ void cPoint::draw()
         _painter->setPen(isSelected() ? _selectionColor : _color);
         _painter->drawEllipse(QPointF(x(), y()), _diameter, _diameter);
 
-        if (_bShowName)
+        if ((_bShowName) && (_name != ""))
         {
             QFontMetrics metrics = QFontMetrics(_font);
             int border = qMax(4, metrics.leading());
@@ -515,6 +515,7 @@ cPolygon::cPolygon(QPainter* painter, QGLWidget *widget, float lineWidth, QColor
     _sqr_radius(2500.f),
     _bPolyIsClosed(false),
     _bSelectedPoint(false),
+    _bShowPolygon(true),
     _style(style)
 {
     setColor(pointColor);
@@ -530,6 +531,7 @@ cPolygon::cPolygon(QPainter* painter, QGLWidget *widget, float lineWidth, QColor
     _sqr_radius(2500.f),
     _bPolyIsClosed(false),
     _bSelectedPoint(false),
+    _bShowPolygon(true),
     _style(style)
 {
     if (!withHelper) _helper = NULL;
@@ -545,21 +547,24 @@ void cPolygon::draw()
     {
         _painter->setRenderHint(QPainter::Antialiasing,true);
 
-        QPen penline(_lineColor);
-        penline.setWidthF(0.75f);
-        if(_style == LINE_STIPPLE)
+        if (_bShowPolygon)
         {
-            penline.setWidthF(1.f);
-            penline.setStyle(Qt::CustomDashLine);
-            penline.setDashPattern(_dashes);
+            QPen penline(_lineColor);
+            penline.setWidthF(0.75f);
+            if(_style == LINE_STIPPLE)
+            {
+                penline.setWidthF(1.f);
+                penline.setStyle(Qt::CustomDashLine);
+                penline.setDashPattern(_dashes);
+            }
+
+            _painter->setPen( penline);
+
+            if(isClosed())
+                _painter->drawPolygon(getVector().data(),size());
+            else
+                _painter->drawPolyline(getVector().data(),size());
         }
-
-        _painter->setPen( penline);
-
-        if(isClosed())
-            _painter->drawPolygon(getVector().data(),size());
-        else
-            _painter->drawPolyline(getVector().data(),size());
 
         for (int aK = 0;aK < _points.size(); ++aK)
             _points[aK].draw();
@@ -775,6 +780,12 @@ void cPolygon::setPainter(QPainter *painter, QGLWidget *widget)
 
     if (_helper != NULL)
         _helper->setPainter(_painter, _widget);
+}
+
+void cPolygon::showNames(bool show)
+{
+    for (int aK=0; aK < _points.size(); ++aK)
+        _points[aK].showName(show);
 }
 
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)

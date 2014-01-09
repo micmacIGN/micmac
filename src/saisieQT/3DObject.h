@@ -89,12 +89,15 @@ class cPoint : public cObjectGL, public QPointF
            QColor selectionColor = Qt::blue,
            float diameter = 3.f,
            bool isSelected = false,
-           bool showName = true
+           bool showName = false
            );
 
         void draw();
 
-    private:
+        void setName(QString name){_name = name;}
+        void showName(bool show){_bShowName = show;}
+
+private:
         float   _diameter;
         bool    _bShowName;
         QString _name;
@@ -255,6 +258,9 @@ class cPolygon : public cObjectGL
 
         void    setPainter(QPainter * painter, QGLWidget* widget);
 
+        void    showNames(bool show = true);
+
+        void    showPolygon(bool showPolygon = true){_bShowPolygon = showPolygon;}
 
     protected:
         cPolygon(QPainter * painter, QGLWidget *widget, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -263,6 +269,7 @@ class cPolygon : public cObjectGL
         cPolygonHelper*     _helper;
         QColor              _lineColor;
         int                 _idx;
+
         QPainter *          _painter;
         QGLWidget*          _widget;
 
@@ -275,6 +282,9 @@ class cPolygon : public cObjectGL
 
         //!states if point with index _idx is selected
         bool                _bSelectedPoint;
+
+        //!states if segments should be displayed
+        bool                _bShowPolygon;
 
         int                 _style;
         QVector<qreal>      _dashes;
