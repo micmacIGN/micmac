@@ -34,7 +34,6 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
     QGLFormat tformGL(QGL::SampleBuffers);
     tformGL.setSamples(16);
     setFormat(tformGL);
-
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -126,16 +125,13 @@ void GLWidget::paintGL()
         glPopMatrix();
 
 
-
         if (_messageManager.DrawMessages() && !m_bDisplayMode2D)
             computeFPS(_messageManager.LastMessage());
     }
 
     _messageManager.draw();
 
-
     if (hasDataLoaded()&&(m_bDisplayMode2D || (m_interactionMode == SELECTION))) drawPolygon();
-   // painter.end();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -220,7 +216,7 @@ void GLWidget::dropEvent(QDropEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
 
-    if (mimeData->hasFormat("text/uri-list")) // TODO peut etre deplacer fractoriser la gestion de drop fichier!!!
+    if (mimeData->hasFormat("text/uri-list")) // TODO peut etre deplacer factoriser la gestion de drop fichier!!!
     {
         QByteArray data = mimeData->data("text/uri-list");
         QStringList fileNames = QUrl::fromPercentEncoding(data).split(QRegExp("\\n+"),QString::SkipEmptyParts);
@@ -254,22 +250,21 @@ void GLWidget::drawPolygon()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    _painter->begin(this);
+
     if (m_bDisplayMode2D) // TODO pas beau !!!
     {
-        _painter->begin(this);
         _matrixManager.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
         _matrixManager.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
-        _painter->setRenderHint(QPainter::Antialiasing,false);
-        _painter->end();
     }
     else
     {
-        _painter->begin(this);
         m_GLData->m_polygon.draw();
         m_GLData->m_polygon.helper()->draw();
-        _painter->setRenderHint(QPainter::Antialiasing,false);
-        _painter->end();
     }
+
+    _painter->setRenderHint(QPainter::Antialiasing,false);
+    _painter->end();
 }
 
 void GLWidget::setInteractionMode(int mode, bool showmessage)
@@ -459,7 +454,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton && hasDataLoaded() )
     {
-        m_GLData->m_polygon.finalMovePoint(m_lastPosImage); //ne pas factoriser
+        m_GLData->m_polygon.finalMovePoint(); //ne pas factoriser
 
         m_GLData->m_polygon.findNearestPoint(m_lastPosImage);
 
@@ -596,7 +591,6 @@ void GLWidget::clearPolyline()
 {
     if (hasDataLoaded())
         m_GLData->m_polygon.clear();
-
 }
 
 void GLWidget::undo() // TODO A deplacer

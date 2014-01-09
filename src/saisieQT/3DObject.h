@@ -84,10 +84,11 @@ class cPoint : public cObjectGL, public QPointF
     cPoint(QPainter * painter = NULL,
            QGLWidget * widget = NULL,
            QPointF pos = QPointF(0.f,0.f),
-           QString name = "tata",
+           QString name = "",
            QColor color = Qt::red,
+           QColor selectionColor = Qt::blue,
            float diameter = 3.f,
-           bool isSelected = true,
+           bool isSelected = false,
            bool showName = true
            );
 
@@ -97,6 +98,8 @@ class cPoint : public cObjectGL, public QPointF
         float   _diameter;
         bool    _bShowName;
         QString _name;
+
+        QColor  _selectionColor;
 
         //! Default font
         QFont   _font;
@@ -211,7 +214,7 @@ class cPolygon : public cObjectGL
         void    setpointSize(float size) { _pointSize = size; }
 
         void    add(cPoint const &pt){_points.push_back(pt);}
-        void    add(QPointF const &pt){ _points.push_back(cPoint(_painter, _widget, pt)); }
+        void    add(QPointF const &pt, bool selected=false){ _points.push_back(cPoint(_painter, _widget, pt)); _points.back().setSelected(selected); }
         void    addPoint(QPointF const &pt);
 
         void    clear();
@@ -234,23 +237,24 @@ class cPolygon : public cObjectGL
         void    removePoint( int i );
 
         QVector <QPointF> const getVector();
-        void setVector(QVector <cPoint> const &aPts){ _points = aPts; }
+        void    setVector(QVector <cPoint> const &aPts){ _points = aPts; }
 
         int     idx(){return _idx;}
 
-        void    setPointSelected(){ _bSelectedPoint = true; }
+        void    setPointSelected();
         bool    isPointSelected(){ return _bSelectedPoint; }
-        void    resetSelectedPoint(){ _bSelectedPoint = false; }
+        void    resetSelectedPoint();
 
         cPolygonHelper* helper() { return _helper; }
 
         void    refreshHelper(QPointF pos, bool insertMode);
 
-        void    finalMovePoint(QPointF pos);
+        void    finalMovePoint();
 
         void    removeLastPoint();
 
         void    setPainter(QPainter * painter, QGLWidget* widget);
+
 
     protected:
         cPolygon(QPainter * painter, QGLWidget *widget, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -273,6 +277,7 @@ class cPolygon : public cObjectGL
         bool                _bSelectedPoint;
 
         int                 _style;
+        QVector<qreal>      _dashes;
 };
 
 class cPolygonHelper : public cPolygon
@@ -287,7 +292,7 @@ class cPolygonHelper : public cPolygon
 
     private:
 
-        cPolygon* _polygon;
+        cPolygon* _polygon;     
 };
 
 
