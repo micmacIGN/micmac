@@ -500,7 +500,7 @@ void cPoint::draw()
             QRect rectg(x()-border, y()-border, rect.width()+border, rect.height()+border);
             rectg.translate(QPoint(10, -rectg.height()-5));
 
-            _painter->setRenderHint(QPainter::TextAntialiasing);
+            //_painter->setRenderHint(QPainter::TextAntialiasing);
             _painter->setPen(Qt::white);
             _painter->fillRect(rectg, QColor(0, 0, 0, 127));
             _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
@@ -586,8 +586,22 @@ void cPolygon::draw()
     {*/
     if(_painter != NULL && _widget !=NULL)
     {
-        _painter->setPen(_lineColor);
-        _painter->setRenderHint(QPainter::HighQualityAntialiasing,true);
+
+        _painter->setRenderHint(QPainter::Antialiasing,true);
+
+        QPen penline(_lineColor);
+        penline.setWidthF(0.75f);
+        if(_style == LINE_STIPPLE)
+        {
+            penline.setWidthF(1.f);
+            penline.setStyle(Qt::CustomDashLine);
+            QVector<qreal> dashes;
+            qreal space = 4;
+            dashes << 3 << space;
+            penline.setDashPattern(dashes);
+        }
+
+        _painter->setPen( penline);
 
         if(isClosed())
             _painter->drawPolygon(getVector().data(),size());
@@ -596,7 +610,6 @@ void cPolygon::draw()
 
         for (int aK = 0;aK < _points.size(); ++aK)
             _points[aK].draw();
-        //glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
 
     }
 
