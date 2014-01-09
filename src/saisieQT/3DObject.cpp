@@ -1039,7 +1039,11 @@ void cObjectGL::disableOptionLine()
 
 
 cGLData::cGLData():
-    _diam(1.f){}
+    _diam(1.f)
+
+{
+    initOptions();
+}
 
 cGLData::cGLData(QMaskedImage &qMaskedImage):
     glMaskedImage(qMaskedImage),
@@ -1049,12 +1053,15 @@ cGLData::cGLData(QMaskedImage &qMaskedImage):
     pBbox(NULL),
     _center(Pt3dr(0.f,0.f,0.f))
 {
-
+    initOptions();
 }
 
 cGLData::cGLData(cData *data):
     _diam(1.f)
+
 {
+    initOptions();
+
     for (int aK = 0; aK < data->getNbClouds();++aK)
     {
         GlCloud *pCloud = data->getCloud(aK);
@@ -1261,6 +1268,24 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
 
         a_cloud->setBufferGl(true);
     }
+}
+
+void cGLData::GprintBits(const size_t size, const void * const ptr)
+{
+    unsigned char *b = (unsigned char*) ptr;
+    unsigned char byte;
+    int i, j;
+
+    for (i=size-1;i>=0;i--)
+    {
+        for (j=7;j>=0;j--)
+        {
+            byte = b[i] & (1<<j);
+            byte >>= j;
+            printf("%u", byte);
+        }
+    }
+    puts("");
 }
 
 //********************************************************************************

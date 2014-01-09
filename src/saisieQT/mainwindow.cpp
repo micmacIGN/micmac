@@ -216,7 +216,7 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
     {
         CurrentWidget()->showBall(state);
 
-        if (state)
+        if (state && _ui->actionShow_axis->isChecked())
         {
             CurrentWidget()->showAxis(!state);
             _ui->actionShow_axis->setChecked(!state);
@@ -236,7 +236,7 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
     {
         CurrentWidget()->showAxis(state);
 
-        if (state)
+        if (state && _ui->actionShow_ball->isChecked())
         {
             CurrentWidget()->showBall(!state);
             _ui->actionShow_ball->setChecked(!state);
