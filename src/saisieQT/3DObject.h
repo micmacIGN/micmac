@@ -542,6 +542,7 @@ public:
 
     void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction,MatrixManager &mm);
 
+    void        setPainter(QPainter *, QGLWidget *widget);
     enum Option {
       OpNO          = 0x00,
       OpShow_Ball   = 0x01,
