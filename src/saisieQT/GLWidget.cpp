@@ -30,6 +30,11 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
     constructMessagesList(true);
 
     _painter = new QPainter();
+
+    QGLFormat tformGL(QGL::SampleBuffers);
+    tformGL.setSamples(16);
+    setFormat(tformGL);
+
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -254,12 +259,16 @@ void GLWidget::drawPolygon()
         _painter->begin(this);
         _matrixManager.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
         _matrixManager.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
+        _painter->setRenderHint(QPainter::Antialiasing,false);
         _painter->end();
     }
     else
     {
+        _painter->begin(this);
         m_GLData->m_polygon.draw();
         m_GLData->m_polygon.helper()->draw();
+        _painter->setRenderHint(QPainter::Antialiasing,false);
+        _painter->end();
     }
 }
 
