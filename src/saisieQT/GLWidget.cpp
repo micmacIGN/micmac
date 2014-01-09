@@ -618,14 +618,21 @@ void GLWidget::undo() // TODO A deplacer
 void GLWidget::showAxis(bool show)
 {
     if (hasDataLoaded())
+    {
+        m_GLData->showOption(cGLData::OpShow_Axis);
         m_GLData->pAxis->setVisible(show);
+    }
     update();
 }
 
 void GLWidget::showBall(bool show)
 {
     if (hasDataLoaded())
+    {
+
+        m_GLData->showOption(cGLData::OpShow_Ball);
         m_GLData->pBall->setVisible(show);
+    }
     update();
 }
 
@@ -643,7 +650,10 @@ void GLWidget::showCams(bool show)
 void GLWidget::showBBox(bool show)
 {
     if (hasDataLoaded())
+    {
+        m_GLData->showOption(cGLData::OpShow_BBox);
         m_GLData->pBbox->setVisible(show);
+    }
 
     update();
 }
