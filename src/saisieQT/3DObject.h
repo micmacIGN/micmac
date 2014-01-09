@@ -480,13 +480,18 @@ class MatrixManager;
 
 #include "Data.h"
 #include "MatrixManager.h"
+#include <QFlags>
+
+
 
 class cGLData : cObjectGL
 {
 public:
 
     cGLData();
+
     cGLData(QMaskedImage &qMaskedImage);
+
     cGLData(cData *data);
 
     ~cGLData();
@@ -537,14 +542,48 @@ public:
 
     void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction,MatrixManager &mm);
 
-    void        setPainter(QPainter *, QGLWidget *widget);
+    enum Option {
+      OpNO          = 0x00,
+      OpShow_Ball   = 0x01,
+      OpShow_Axis   = 0x02,
+      OpShow_BBox   = 0x04,
+      OpShow_Mess   = 0x08
+    //  OpShow_Ball    = 0x10,
+    //  OpShow_Ball      = 0x20
+      // ...
+    };
+
+    Q_DECLARE_FLAGS(options, Option)
+
+    options     _options;
+
+    void        GprintBits(size_t const size, void const * const ptr);    
+
+    void        showOption(QFlags<Option> option)
+    {
+        //GprintBits(sizeof(QFlags<Option>),&option);
+
+        _options ^= option;
+
+        GprintBits(sizeof(QFlags<Option>),&_options);
+
+    }
 
 private:
 
+    void        initOptions()
+    {
+        _options = options(OpShow_Ball|OpShow_Mess);
+        GprintBits(sizeof(QFlags<Option>),&_options);
+    }
+
     float       _diam;
     Pt3dr       _center;
+
+
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS(cGLData::options)
 //====================================================================================
 
 #endif //__3DObject__
