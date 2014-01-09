@@ -6,13 +6,15 @@ cObject::cObject() :
     _color(QColor(255,255,255)),
     _scale(1.f),
     _alpha(0.6f),
-    _bVisible(false)
+    _bVisible(false),
+    _bSelected(false)
 {}
 
 cObject::cObject(Pt3dr pos, QColor col) :
     _scale(1.f),
     _alpha(0.6f),
-    _bVisible(true)
+    _bVisible(true),
+    _bSelected(false)
 {
     _position  = pos;
     _color     = col;
@@ -30,6 +32,7 @@ cObject& cObject::operator =(const cObject& aB)
 
         _alpha    = aB._alpha;
         _bVisible = aB._bVisible;
+        _bSelected= aB._bSelected;
     }
 
     return *this;
@@ -462,7 +465,7 @@ void cCam::draw()
 
 
 cPoint::cPoint(QPainter * painter, QGLWidget *widget, QPointF pos, QString name,
-               QColor color,
+               QColor color, QColor selectionColor,
                float diameter,
                bool isSelected,
                bool showName):
@@ -470,24 +473,19 @@ cPoint::cPoint(QPainter * painter, QGLWidget *widget, QPointF pos, QString name,
     _diameter(diameter),
     _bShowName(showName),
     _name(name),
+    _selectionColor(selectionColor),
     _painter(painter),
     _widget(widget)
 {
-
     setColor(color);
     setSelected(isSelected);
 }
 
 void cPoint::draw()
 {
-    /*glColor3f(_color.redF(),_color.greenF(),_color.blueF());
-    glDrawUnitCircle(2, x(), y());*/
-
      if (_painter != NULL)
      {
-       // _painter->begin(_widget);
-
-        _painter->setPen(_color);
+        _painter->setPen(isSelected() ? _selectionColor : _color);
         _painter->drawEllipse(QPointF(x(), y()), _diameter, _diameter);
 
         if (_bShowName)
@@ -500,13 +498,10 @@ void cPoint::draw()
             QRect rectg(x()-border, y()-border, rect.width()+border, rect.height()+border);
             rectg.translate(QPoint(10, -rectg.height()-5));
 
-            //_painter->setRenderHint(QPainter::TextAntialiasing);
-            _painter->setPen(Qt::white);
-            _painter->fillRect(rectg, QColor(0, 0, 0, 127));
+            _painter->setPen(isSelected() ? Qt::black : Qt::white);
+            _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
             _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
         }
-
-        //_painter->end();
     }
 }
 
@@ -540,53 +535,14 @@ cPolygon::cPolygon(QPainter* painter, QGLWidget *widget, float lineWidth, QColor
     if (!withHelper) _helper = NULL;
     setColor(pointColor);
     setLineWidth(lineWidth);
+
+    _dashes << 3 << 4;
 }
 
 void cPolygon::draw()
 {
-
-
-  /*
-    enableOptionLine();
-
-    glColor3f(_lineColor.redF(),_lineColor.greenF(),_lineColor.blueF());
-
-    if(_style == LINE_STIPPLE)
-    {
-        glLineStipple(2, 0xAAAA);
-        glEnable(GL_LINE_STIPPLE);
-    }
-
-    //draw segments
-    glBegin(_bPolyIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-    for (int aK = 0;aK < _points.size(); ++aK)
-        glVertex2f(_points[aK].x(), _points[aK].y());
-    glEnd();
-
-    if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
-
-    glColor3f(_color.redF(),_color.greenF(),_color.blueF());
-
-    disableOptionLine();
-*/
-    /*if ((_idx >=0) && (_points.size() > _idx))
-    {
-        //draw points
-        for (int aK = 0;aK < _idx; ++aK)
-            glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
-
-        glColor3f(0.f,0.f,1.f);
-        glDrawUnitCircle(2, _points[_idx].x(), _points[_idx].y());
-
-        glColor3f(_color.redF(),_color.greenF(),_color.blueF());
-        for (int aK = _idx+1;aK < _points.size(); ++aK)
-            glDrawUnitCircle(2, _points[aK].x(), _points[aK].y());
-    }
-    else
-    {*/
     if(_painter != NULL && _widget !=NULL)
     {
-
         _painter->setRenderHint(QPainter::Antialiasing,true);
 
         QPen penline(_lineColor);
@@ -595,10 +551,7 @@ void cPolygon::draw()
         {
             penline.setWidthF(1.f);
             penline.setStyle(Qt::CustomDashLine);
-            QVector<qreal> dashes;
-            qreal space = 4;
-            dashes << 3 << space;
-            penline.setDashPattern(dashes);
+            penline.setDashPattern(_dashes);
         }
 
         _painter->setPen( penline);
@@ -610,9 +563,7 @@ void cPolygon::draw()
 
         for (int aK = 0;aK < _points.size(); ++aK)
             _points[aK].draw();
-
     }
-
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -680,7 +631,7 @@ void cPolygon::clear()
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
     _points.insert(i,cPoint(_painter, _widget, value));
-    _idx = -1;
+    resetSelectedPoint();
 }
 
 void cPolygon::insertPoint()
@@ -719,11 +670,29 @@ const QVector<QPointF> cPolygon::getVector()
     return points;
 }
 
+void cPolygon::setPointSelected()
+{
+    _bSelectedPoint = true;
+
+    if (_idx >=0 && _idx < _points.size())
+        _points[_idx].setSelected(true);
+}
+
+void cPolygon::resetSelectedPoint()
+{
+    _bSelectedPoint = false;
+
+    if (_idx >=0 && _idx < _points.size())
+        _points[_idx].setSelected(false);
+    _idx = -1;
+}
+
 void cPolygon::findNearestPoint(QPointF const &pos)
 {
     if (_bPolyIsClosed)
     {
-        _idx = -1;
+        resetSelectedPoint();
+
         float dist, dist2, x, y, dx, dy;
         dist2 = _sqr_radius;
         x = pos.x();
@@ -742,7 +711,10 @@ void cPolygon::findNearestPoint(QPointF const &pos)
                 _idx = aK;
             }
         }
-    }
+
+        if (_idx >=0 && _idx <_points.size())
+            _points[_idx].setSelected(true);
+     }
 }
 
 cPolygonHelper::cPolygonHelper( cPolygon* polygon,float lineWidth, QPainter *painter, QGLWidget *widget, QColor lineColor, QColor pointColor):
@@ -762,9 +734,8 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
             add(pos);
         else if (nbVertex > 1) // replace last point by the current one
             _points[nbVertex-1] = cPoint(_painter, _widget, pos);
-
     }
-    else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'opération
+    else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'operation
     {
         if (insertMode || isPointSelected()) // insert polygon point
 
@@ -776,7 +747,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     }
 }
 
-void cPolygon::finalMovePoint(QPointF pos) //TODO
+void cPolygon::finalMovePoint()
 {
     if ((_idx>=0) && _helper->size()) //  fin de deplacement point
     {
@@ -805,7 +776,6 @@ void cPolygon::setPainter(QPainter *painter, QGLWidget *widget)
     if (_helper != NULL)
         _helper->setPainter(_painter, _widget);
 }
-
 
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
 {
@@ -917,7 +887,6 @@ cImageGL::cImageGL(float gamma) :
 
     _texLocation    = _program.uniformLocation("tex");
     _gammaLocation  = _program.uniformLocation("gamma");
-
 }
 
 cImageGL::~cImageGL()
@@ -1176,7 +1145,6 @@ void cGLData::setGlobalCenter(Pt3d<double> aCenter)
 
     for (int aK=0; aK < Clouds.size();++aK)
        Clouds[aK]->setPosition(aCenter);
-
 }
 
 bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)

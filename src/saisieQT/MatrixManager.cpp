@@ -133,7 +133,7 @@ cPolygon MatrixManager::PolygonImageToWindow(cPolygon polygon, float zoom)
     cPolygon poly = polygon;
     poly.clearPoints();
     for (int aK = 0;aK < polygon.size(); ++aK)
-        poly.add(ImageToWindow(polygon[aK],zoom));
+        poly.add(ImageToWindow(polygon[aK],zoom),polygon[aK].isSelected());
 
     return poly;
 }
