@@ -186,6 +186,8 @@ private:
     QColor      _BGColor0;
     QColor      _BGColor1;
 
+    QPainter*    _painter;
+
 };
 
 #endif  /* _GLWIDGET_H */

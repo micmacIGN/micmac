@@ -28,6 +28,8 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
     setMouseTracking(true);
 
     constructMessagesList(true);
+
+    _painter = new QPainter();
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -75,6 +77,8 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
 
+    m_GLData->setPainter(_painter, this);
+
     clearPolyline();
 
     m_bDisplayMode2D = !m_GLData->isImgEmpty();
@@ -91,7 +95,9 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
 void GLWidget::paintGL()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
     cImageGL::drawGradientBackground(_matrixManager.vpWidth(), _matrixManager.vpHeight(), _BGColor0, _BGColor1);
@@ -116,7 +122,7 @@ void GLWidget::paintGL()
 
         glPopMatrix();
 
-        if (m_bDisplayMode2D || (m_interactionMode == SELECTION)) drawPolygon();
+
 
         if (_messageManager.DrawMessages() && !m_bDisplayMode2D)
             computeFPS(_messageManager.LastMessage());
@@ -124,11 +130,9 @@ void GLWidget::paintGL()
 
     _messageManager.draw();
 
-    QPainter painter(this);
-    //cPoint pt2D(&painter, _matrixManager.WindowToImage(QPointF(200,200),_params.m_zoom),"5120");
-    //cPoint pt2D(QPointF(200,200),"5120", &painter);
-    //pt2D.draw();
-    painter.end();
+
+    if (hasDataLoaded()&&(m_bDisplayMode2D || (m_interactionMode == SELECTION))) drawPolygon();
+   // painter.end();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -249,8 +253,10 @@ void GLWidget::drawPolygon()
 
     if (m_bDisplayMode2D) // TODO pas beau !!!
     {
+        _painter->begin(this);
         _matrixManager.PolygonImageToWindow(m_GLData->m_polygon, _params.m_zoom).draw();
         _matrixManager.PolygonImageToWindow(*(m_GLData->m_polygon.helper()), _params.m_zoom).draw();
+        _painter->end();
     }
     else
     {
@@ -599,7 +605,7 @@ void GLWidget::undo() // TODO A deplacer
 
             cPolygon Polygon;
             Polygon.setClosed(true);
-            //Polygon.setVector(infos.poly);
+            //Polygon.setVector(infos.poly); //TODO
             m_GLData->setPolygon(Polygon);
 
             if (!m_bDisplayMode2D)
