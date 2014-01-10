@@ -29,14 +29,7 @@
 
 class GLWidgetSet;
 
-//! View orientation
-enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
-                         BOTTOM_VIEW,	/**< Bottom view **/
-                         FRONT_VIEW,	/**< Front view **/
-                         BACK_VIEW,     /**< Back view **/
-                         LEFT_VIEW,     /**< Left view **/
-                         RIGHT_VIEW     /**< Right view **/
-};
+
 
 class GLWidget : public QGLWidget
 {
@@ -90,7 +83,11 @@ public:
     void Select(int mode, bool saveInfos = true);
 
     //! Delete current polyline
-    void clearPolyline();
+    void clearPolyline()
+    {
+        if (hasDataLoaded())
+            m_GLData->m_polygon.clear();
+    }
 
     //! Undo last action
     void undo();
@@ -114,6 +111,12 @@ public:
         _BGColor0 = col0;
         _BGColor1 = col1;
     }
+
+    float width(){  return m_GLData->glMaskedImage._m_image->width(); }
+    float height(){ return m_GLData->glMaskedImage._m_image->height();}
+
+    GLint vpWidth(){  return _matrixManager.vpWidth(); }
+    GLint vpHeight(){  return _matrixManager.vpHeight(); }
 
 public slots:
 
@@ -140,8 +143,8 @@ protected:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 
-    //! Draw selection polygon
-    void drawPolygon();
+
+    void Overlay();
 
     //! Current interaction mode (with mouse)
     int m_interactionMode;
@@ -179,7 +182,7 @@ private:
     MatrixManager _matrixManager;
     cMessages2DGL _messageManager;
 
-    int         _idx;
+    int         _idWidget;
 
     GLWidgetSet* _parentSet;
 
