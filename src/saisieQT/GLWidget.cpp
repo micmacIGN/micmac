@@ -498,7 +498,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (mode == ADD || mode == SUB) m_bFirstAction = false;
 
-        if (saveInfos) // TODO A deplacer
+        if (saveInfos) // TODO --> manager SelectHistory
         {
             selectInfos info;
             info.poly   = polygon().getVector();
@@ -515,7 +515,7 @@ void GLWidget::Select(int mode, bool saveInfos)
     }
 }
 
-void GLWidget::undo() // TODO A deplacer
+void GLWidget::undo() // TODO --> manager SelectHistory
 {
     if (_infos.size() && hasDataLoaded())
     {
@@ -528,7 +528,7 @@ void GLWidget::undo() // TODO A deplacer
 
             cPolygon Polygon;
             Polygon.setClosed(true);
-            //Polygon.setVector(infos.poly); //TODO
+            //Polygon.setVector(infos.poly); // TODO --> implementer setVector(QVector<QPointF>)
             m_GLData->setPolygon(Polygon);
 
             if (!m_bDisplayMode2D)
@@ -559,7 +559,7 @@ void GLWidget::reset()
 
     m_bFirstAction = true;
 
-    m_GLData = NULL; //  TODO le m_GLData est il bien delete?
+    m_GLData = NULL;
 
     resetView();
 }

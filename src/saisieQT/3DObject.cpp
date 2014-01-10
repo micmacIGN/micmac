@@ -1326,12 +1326,15 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
 
     //GprintBits(sizeof(QFlags<Option>),&_options);
 
-    pBall->setVisible(stateOption(OpShow_Ball));
-    pAxis->setVisible(stateOption(OpShow_Axis));
-    pBbox->setVisible(stateOption(OpShow_BBox));
+    if(isImgEmpty())
+    {
+        pBall->setVisible(stateOption(OpShow_Ball));
+        pAxis->setVisible(stateOption(OpShow_Axis));
+        pBbox->setVisible(stateOption(OpShow_BBox));
 
-    for (int i=0; i < Cams.size();i++)
-        Cams[i]->setVisible(stateOption(OpShow_Cams));
+        for (int i=0; i < Cams.size();i++)
+            Cams[i]->setVisible(stateOption(OpShow_Cams));
+    }
 }
 
 //********************************************************************************
