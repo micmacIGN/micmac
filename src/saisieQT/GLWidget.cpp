@@ -10,11 +10,12 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , m_GLData(NULL)
   , m_bDisplayMode2D(false)
   , _params(ViewportParameters())
+  , _actionId(0)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
   , _messageManager(this)
-  , _idWidget(idx)
+  , _widgetId(idx)
   , _parentSet(theSet)
 {
     _matrixManager.resetAllMatrix();
@@ -233,6 +234,35 @@ void GLWidget::dropEvent(QDropEvent *event)
     event->ignore();
 }
 
+/*void GLWidget::contextMenuEvent(QContextMenuEvent * event)
+{
+    QMenu menu(this);
+
+    if ((event->modifiers() & Qt::ShiftModifier))
+    {
+        menu.addAction("Undo");
+        menu.addAction("Redo");
+        menu.addAction("Refute");
+        menu.addAction("Show names");
+    }
+    else if ((event->modifiers() & Qt::ControlModifier))
+    {
+        menu.addAction("AllW");
+        menu.addAction("ThisW");
+        menu.addAction("ThisP");
+    }
+    else
+    {
+        menu.addAction("Validate");
+        menu.addAction("Dubious");
+        menu.addAction("Refuted");
+        menu.addAction("Highlight");
+        menu.addAction("Refuted");
+    }
+
+    menu.exec(event->globalPos());
+}*/
+
 void GLWidget::Overlay()
 {
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
@@ -400,7 +430,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
     {
-        _parentSet->setCurrentWidgetIdx(_idWidget);
+        _parentSet->setCurrentWidgetIdx(_widgetId);
 
 #if QT_VER == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
@@ -506,6 +536,15 @@ void GLWidget::Select(int mode, bool saveInfos)
 
             _matrixManager.exportMatrices(info);
 
+            if (_actionId == _infos.size())
+            {
+                _actionId++;
+            }
+            else
+            {
+                _infos.pop_back();
+            }
+
             _infos.push_back(info);
         }
 
@@ -522,7 +561,7 @@ void GLWidget::undo() // TODO A deplacer
         if ((!m_bDisplayMode2D) || (_infos.size() == 1))
             Select(ALL, false);
 
-        for (int aK = 0; aK < _infos.size()-1; ++aK)
+        for (int aK = 0; aK < _actionId - 1; ++aK)
         {
             selectInfos &infos = _infos[aK];
 
@@ -540,7 +579,32 @@ void GLWidget::undo() // TODO A deplacer
             Select(infos.selection_mode, false);
         }
 
-        _infos.pop_back();
+        _actionId--;
+
+        //_infos.pop_back();
+    }
+}
+
+void GLWidget::redo()
+{
+    if (_infos.size() && hasDataLoaded() && _actionId < _infos.size())
+    {
+        selectInfos &infos = _infos[_actionId];
+
+        cPolygon Polygon;
+        Polygon.setClosed(true);
+        //Polygon.setVector(infos.poly); //TODO
+        m_GLData->setPolygon(Polygon);
+
+        if (!m_bDisplayMode2D)
+        {
+            _matrixManager.importMatrices(infos);
+            m_bFirstAction = (_actionId==0);
+        }
+
+        Select(infos.selection_mode, false);
+
+        _actionId++;
     }
 }
 
