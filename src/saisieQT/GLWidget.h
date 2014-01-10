@@ -18,7 +18,7 @@
 #include <QMimeData>
 #include <QTime>
 #include <QPainter>
-
+//#include <QMenu> //pour contextMenuEvent
 
 #include "Data.h"
 #include "Engine.h"
@@ -79,6 +79,9 @@ public:
     //! Undo last action
     void undo();
 
+    //! Redo
+    void redo();
+
     //! Get the selection infos stack
     QVector <selectInfos> getSelectInfos(){return _infos;}
 
@@ -132,6 +135,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 
+    //void contextMenuEvent(QContextMenuEvent *event);
 
     void Overlay();
 
@@ -160,6 +164,8 @@ private:
     //! selection infos stack
     QVector <selectInfos> _infos;
 
+    int         _actionId;
+
     void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
@@ -171,7 +177,7 @@ private:
     MatrixManager _matrixManager;
     cMessages2DGL _messageManager;
 
-    int         _idWidget;
+    int         _widgetId;
 
     GLWidgetSet* _parentSet;
 
