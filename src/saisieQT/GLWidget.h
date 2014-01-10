@@ -112,11 +112,13 @@ public:
         _BGColor1 = col1;
     }
 
-    float width(){  return m_GLData->glMaskedImage._m_image->width(); }
-    float height(){ return m_GLData->glMaskedImage._m_image->height();}
+    float imWidth(){  return m_GLData->glMaskedImage._m_image->width(); }
+    float imHeight(){ return m_GLData->glMaskedImage._m_image->height();}
 
     GLint vpWidth(){  return _matrixManager.vpWidth(); }
     GLint vpHeight(){  return _matrixManager.vpHeight(); }
+
+    cPolygon & polygon(){ return m_GLData->m_polygon;}
 
 public slots:
 
