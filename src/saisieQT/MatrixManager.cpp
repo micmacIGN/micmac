@@ -203,6 +203,37 @@ void MatrixManager::zoom(float zoom, float far)
     MatrixManager::mglOrtho((GLdouble)-zoom*getGlRatio(),(GLdouble)zoom*getGlRatio(),(GLdouble)-zoom, (GLdouble)zoom,(GLdouble)-far,(GLdouble) far);
 }
 
+void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerScene)
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    switch (orientation)
+    {
+    case TOP_VIEW:
+        glRotatef(90.0f,1.0f,0.0f,0.0f);
+        break;
+    case BOTTOM_VIEW:
+        glRotatef(-90.0f,1.0f,0.0f,0.0f);
+        break;
+    case FRONT_VIEW:
+        glRotatef(0.0,1.0f,0.0f,0.0f);
+        break;
+    case BACK_VIEW:
+        glRotatef(180.0f,0.0f,1.0f,0.0f);
+        break;
+    case LEFT_VIEW:
+        glRotatef(90.0f,0.0f,1.0f,0.0f);
+        break;
+    case RIGHT_VIEW:
+        glRotatef(-90.0f,0.0f,1.0f,0.0f);
+    }
+
+    glGetDoublev(GL_MODELVIEW_MATRIX, m_rotationMatrix);
+
+    resetTranslationMatrix(centerScene);
+}
+
 void MatrixManager::rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor)
 {
     glMatrixMode(GL_MODELVIEW);

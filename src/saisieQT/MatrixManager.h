@@ -4,6 +4,15 @@
 #include "3DObject.h"
 #include "Engine.h"
 
+//! View orientation
+enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
+                         BOTTOM_VIEW,	/**< Bottom view **/
+                         FRONT_VIEW,	/**< Front view **/
+                         BACK_VIEW,     /**< Back view **/
+                         LEFT_VIEW,     /**< Left view **/
+                         RIGHT_VIEW     /**< Right view **/
+};
+
 class selectInfos;
 
 class MatrixManager
@@ -13,7 +22,9 @@ public:
     ~MatrixManager();
 
     GLdouble*   getModelViewMatrix(){return _mvMatrix;}
+
     GLdouble*   getProjectionMatrix(){return _projMatrix;}
+
     GLint*      getGLViewport(){return _glViewport;}
 
     void        setGLViewport(GLint x, GLint y,GLsizei width, GLsizei height);
@@ -25,11 +36,13 @@ public:
     void        scaleAndTranslate(float x, float y, float zoom);
 
     GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
+
     GLdouble    projMatrix(int i)   { return _projMatrix[i]; }
 
     GLint       Viewport(int i)     { return _glViewport[i]; }
 
     GLint       vpWidth()     { return _glViewport[2]; }
+
     GLint       vpHeight()    { return _glViewport[3]; }
 
     void        setMatrices();
@@ -70,6 +83,8 @@ public:
     void        zoom(float zoom, float far);
 
     float       getGlRatio(){return m_glRatio;}
+
+    void        setView(VIEW_ORIENTATION orientation, Pt3d<double> centerScene);
 
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
