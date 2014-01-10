@@ -397,6 +397,11 @@ void MainWindow::on_actionUndo_triggered()
     CurrentWidget()->undo();
 }
 
+void MainWindow::on_actionRedo_triggered()
+{
+    CurrentWidget()->redo();
+}
+
 void MainWindow::on_actionSetViewTop_triggered()
 {
     if (!_bMode2D)
