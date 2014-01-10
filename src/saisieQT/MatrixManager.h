@@ -57,10 +57,10 @@ public:
     void        getProjection(QPointF &P2D, Pt3dr P);
 
     //! Project a point from window to image
-    QPointF     WindowToImage(const QPointF &pt, float zoom);
+    QPointF     WindowToImage(const QPointF &winPt, float zoom);
 
     //! Project a point from image to window
-    QPointF     ImageToWindow(const QPointF &im, float zoom);
+    QPointF     ImageToWindow(const QPointF &imPt, float zoom);
 
     cPolygon    PolygonImageToWindow(cPolygon polygon, float zoom);
 

@@ -112,20 +112,20 @@ void MatrixManager::getProjection(QPointF &P2D, Pt3dr P)
     P2D = QPointF(xp,yp);
 }
 
-QPointF MatrixManager::WindowToImage(QPointF const &pt, float zoom)
+QPointF MatrixManager::WindowToImage(QPointF const &winPt, float zoom)
 {
-    QPointF res( pt.x()         - .5f*_glViewport[2]*(1.f + _projMatrix[12]),
-                -pt.y()  -1.f   + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
+    QPointF res( winPt.x()         - .5f*_glViewport[2]*(1.f + _projMatrix[12]),
+                -winPt.y()  -1.f   + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
 
     res /= zoom;
 
     return res;
 }
 
-QPointF MatrixManager::ImageToWindow(QPointF const &im, float zoom)
+QPointF MatrixManager::ImageToWindow(QPointF const &imPt, float zoom)
 {
-    return QPointF (im.x()*zoom + .5f*_glViewport[2]*(1.f + _projMatrix[12]),
-            - 1.f - im.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
+    return QPointF (imPt.x()*zoom + .5f*_glViewport[2]*(1.f + _projMatrix[12]),
+            - 1.f - imPt.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
 }
 
 cPolygon MatrixManager::PolygonImageToWindow(cPolygon polygon, float zoom)
