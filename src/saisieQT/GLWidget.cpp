@@ -239,10 +239,6 @@ void GLWidget::dropEvent(QDropEvent *event)
 
 void GLWidget::drawPolygon()
 {
-    _matrixManager.orthoProjection();
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
     _painter->begin(this);
 
@@ -265,31 +261,7 @@ void GLWidget::setInteractionMode(int mode, bool showmessage)
 {
     m_interactionMode = mode;
 
-    switch (mode)
-    {
-    case TRANSFORM_CAMERA:
-        clearPolyline();
-        break;
-    case SELECTION:
-    {
-        if(hasDataLoaded() && !m_bDisplayMode2D) //3D
-            _matrixManager.setMatrices();
-    }
-        break;
-    }
-
-    showBall(mode ? TRANSFORM_CAMERA : SELECTION && hasDataLoaded());
-    showAxis(false);
-
-    if (mode == SELECTION)
-    {
-        showCams(false);
-        showBBox(false);
-    }
-
-    constructMessagesList(showmessage);
-
-    update();
+    resetView(false,showmessage,false);
 }
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
@@ -679,17 +651,24 @@ void GLWidget::reset()
     resetView();
 }
 
-void GLWidget::resetView(bool zoomfit, bool showMessage)
+void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
 {
-    _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
+    if (resetMatrix)
+        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
+
+    if(m_interactionMode == TRANSFORM_CAMERA)
+        clearPolyline();
 
     if (!m_bDisplayMode2D)
     {
-
-        showBall(hasDataLoaded());
+        showBall(m_interactionMode == TRANSFORM_CAMERA && hasDataLoaded());
         showAxis(false);
-        showBBox(false);
-        showCams(false);
+        if (m_interactionMode == SELECTION)
+        {
+            _matrixManager.setMatrices();
+            showBBox(false);
+            showCams(false);
+        }
     }
 
     constructMessagesList(showMessage);
