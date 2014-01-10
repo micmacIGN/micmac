@@ -435,7 +435,7 @@ void MainWindow::on_actionSetViewRight_triggered()
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    CurrentWidget()->resetView();
+    CurrentWidget()->resetView(true,true);
 }
 
 void MainWindow::on_actionZoom_Plus_triggered()

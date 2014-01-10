@@ -88,13 +88,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
     m_bDisplayMode2D = !m_GLData->isImgEmpty();
     m_bFirstAction = m_GLData->isNewMask();
 
-    _matrixManager.resetAllMatrix(m_GLData->getBBoxCenter());
-
-    constructMessagesList(showMessage);
-
-    if (doZoom) zoomFit();
-
-    update();
+    resetView(showMessage, doZoom);
 }
 
 void GLWidget::paintGL()
@@ -685,11 +679,12 @@ void GLWidget::reset()
     resetView();
 }
 
-void GLWidget::resetView()
+void GLWidget::resetView(bool zoomfit, bool showMessage)
 {
+    _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
+
     if (!m_bDisplayMode2D)
     {
-        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
 
         showBall(hasDataLoaded());
         showAxis(false);
@@ -697,7 +692,9 @@ void GLWidget::resetView()
         showCams(false);
     }
 
-    zoomFit();
+    constructMessagesList(showMessage);
+
+    if (zoomfit) zoomFit();
 
     update();
 }

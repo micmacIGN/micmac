@@ -102,7 +102,7 @@ public:
     void reset();
 
     //! Reset view
-    void resetView();
+    void resetView(bool zoomfit = true, bool showMessage = true);
 
     ViewportParameters* getParams(){return &_params;}
 
