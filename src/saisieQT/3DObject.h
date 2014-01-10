@@ -561,8 +561,8 @@ public:
       OpShow_Ball   = 0x01,
       OpShow_Axis   = 0x02,
       OpShow_BBox   = 0x04,
-      OpShow_Mess   = 0x08
-    //  OpShow_Ball    = 0x10,
+      OpShow_Mess   = 0x08,
+      OpShow_Cams   = 0x10
     //  OpShow_Ball      = 0x20
       // ...
     };
@@ -573,27 +573,19 @@ public:
 
     void        GprintBits(size_t const size, void const * const ptr);    
 
-    void        showOption(QFlags<Option> option)
-    {
-        //GprintBits(sizeof(QFlags<Option>),&option);
+    void        setOption(QFlags<Option> option,bool show);
 
-        _options ^= option;
-
-        GprintBits(sizeof(QFlags<Option>),&_options);
-
-    }
+    bool stateOption(QFlags<Option> option){return _options & option; }
 
 private:
 
     void        initOptions()
     {
-        _options = options(OpShow_Ball|OpShow_Mess);
-        GprintBits(sizeof(QFlags<Option>),&_options);
+        _options = options(OpShow_Mess);
     }
 
     float       _diam;
     Pt3dr       _center;
-
 
 };
 

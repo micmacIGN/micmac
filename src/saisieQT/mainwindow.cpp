@@ -214,11 +214,11 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        CurrentWidget()->showBall(state);
+        CurrentWidget()->setOption(cGLData::OpShow_Ball,state);
 
         if (state && _ui->actionShow_axis->isChecked())
         {
-            CurrentWidget()->showAxis(!state);
+            CurrentWidget()->setOption(cGLData::OpShow_BBox,!state);
             _ui->actionShow_axis->setChecked(!state);
         }
     }
@@ -227,18 +227,18 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
     if(!_bMode2D)
-        CurrentWidget()->showBBox(state);
+        CurrentWidget()->setOption(cGLData::OpShow_BBox,state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        CurrentWidget()->showAxis(state);
+        CurrentWidget()->setOption(cGLData::OpShow_Axis,state);
 
         if (state && _ui->actionShow_ball->isChecked())
         {
-            CurrentWidget()->showBall(!state);
+            CurrentWidget()->setOption(cGLData::OpShow_Ball,!state);
             _ui->actionShow_ball->setChecked(!state);
         }
     }
@@ -247,12 +247,12 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 void MainWindow::on_actionShow_cams_toggled(bool state)
 {
     if (!_bMode2D)
-        CurrentWidget()->showCams(state);
+        CurrentWidget()->setOption(cGLData::OpShow_Cams,state);
 }
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    CurrentWidget()->constructMessagesList(state);
+    CurrentWidget()->setOption(cGLData::OpShow_Mess,state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)

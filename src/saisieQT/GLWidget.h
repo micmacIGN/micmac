@@ -64,20 +64,7 @@ public:
 
     bool getInteractionMode(){return m_interactionMode;}
 
-    //! Shows axis or not
-    void showAxis(bool show);
-
-    //! Shows ball or not
-    void showBall(bool show);
-
-    //! Shows cams or not
-    void showCams(bool show);
-
-    //! Shows bounding box or not
-    void showBBox(bool show);
-
-    //! Construct help messages
-    void constructMessagesList(bool show);
+    void setOption(QFlags<cGLData::Option> option, bool show = true);
 
     //! Apply selection to data
     void Select(int mode, bool saveInfos = true);

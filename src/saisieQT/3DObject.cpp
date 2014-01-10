@@ -1315,8 +1315,26 @@ void cGLData::GprintBits(const size_t size, const void * const ptr)
     }
     puts("");
 }
-//********************************************************************************
 
+void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
+{
+
+    if(show)
+        _options |=  option;
+    else
+        _options &= ~option;
+
+    //GprintBits(sizeof(QFlags<Option>),&_options);
+
+    pBall->setVisible(stateOption(OpShow_Ball));
+    pAxis->setVisible(stateOption(OpShow_Axis));
+    pBbox->setVisible(stateOption(OpShow_BBox));
+
+    for (int i=0; i < Cams.size();i++)
+        Cams[i]->setVisible(stateOption(OpShow_Cams));
+}
+
+//********************************************************************************
 
 void cMessages2DGL::draw(){
 

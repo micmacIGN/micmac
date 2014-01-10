@@ -27,7 +27,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     setMouseTracking(true);
 
-    constructMessagesList(true);
+    setOption(cGLData::OpShow_Mess);
 
     _painter = new QPainter();
 
@@ -544,52 +544,11 @@ void GLWidget::undo() // TODO A deplacer
     }
 }
 
-void GLWidget::showAxis(bool show)
+void GLWidget::setOption(QFlags<cGLData::Option> option,bool show)
 {
-    if (hasDataLoaded())
-    {
-        m_GLData->showOption(cGLData::OpShow_Axis);
-        m_GLData->pAxis->setVisible(show);
-    }
-    update();
-}
+    if (hasDataLoaded()) m_GLData->setOption(option,show);
 
-void GLWidget::showBall(bool show)
-{
-    if (hasDataLoaded())
-    {
-
-        m_GLData->showOption(cGLData::OpShow_Ball);
-        m_GLData->pBall->setVisible(show);
-    }
-    update();
-}
-
-void GLWidget::showCams(bool show)
-{
-    if (hasDataLoaded())
-    {
-        for (int i=0; i < m_GLData->Cams.size();i++)
-            m_GLData->Cams[i]->setVisible(show);
-    }
-
-    update();
-}
-
-void GLWidget::showBBox(bool show)
-{
-    if (hasDataLoaded())
-    {
-        m_GLData->showOption(cGLData::OpShow_BBox);
-        m_GLData->pBbox->setVisible(show);
-    }
-
-    update();
-}
-
-void GLWidget::constructMessagesList(bool show)
-{
-    _messageManager.constructMessagesList(show,m_interactionMode,m_bDisplayMode2D,hasDataLoaded());
+    if( option & cGLData::OpShow_Mess)_messageManager.constructMessagesList(show,m_interactionMode,m_bDisplayMode2D,hasDataLoaded());
 
     update();
 }
@@ -614,17 +573,19 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
 
     if (!m_bDisplayMode2D)
     {
-        showBall(m_interactionMode == TRANSFORM_CAMERA && hasDataLoaded());
-        showAxis(false);
+        setOption(cGLData::OpShow_Ball, m_interactionMode == TRANSFORM_CAMERA);
+
+        setOption(cGLData::OpShow_Axis, false);
+
         if (m_interactionMode == SELECTION)
         {
             _matrixManager.setMatrices();
-            showBBox(false);
-            showCams(false);
+
+            setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams,false);
         }
     }
 
-    constructMessagesList(showMessage);
+    setOption(cGLData::OpShow_Mess,showMessage);
 
     if (zoomfit) zoomFit();
 
