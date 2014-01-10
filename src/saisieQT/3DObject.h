@@ -82,7 +82,6 @@ class cPoint : public cObjectGL, public QPointF
 {
     public:
     cPoint(QPainter * painter = NULL,
-           QGLWidget * widget = NULL,
            QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            QColor color = Qt::red,
@@ -202,7 +201,7 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(QPainter* painter = NULL, QGLWidget* widget = NULL, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+        cPolygon(QPainter* painter = NULL, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
 
         void    draw();
 
@@ -217,7 +216,7 @@ class cPolygon : public cObjectGL
         void    setpointSize(float size) { _pointSize = size; }
 
         void    add(cPoint const &pt){_points.push_back(pt);}
-        void    add(QPointF const &pt, bool selected=false){ _points.push_back(cPoint(_painter, _widget, pt)); _points.back().setSelected(selected); }
+        void    add(QPointF const &pt, bool selected=false){ _points.push_back(cPoint(_painter, pt)); _points.back().setSelected(selected); }
         void    addPoint(QPointF const &pt);
 
         void    clear();
@@ -256,22 +255,21 @@ class cPolygon : public cObjectGL
 
         void    removeLastPoint();
 
-        void    setPainter(QPainter * painter, QGLWidget* widget);
+        void    setPainter(QPainter * painter);
 
         void    showNames(bool show = true);
 
         void    showPolygon(bool showPolygon = true){_bShowPolygon = showPolygon;}
 
     protected:
-        cPolygon(QPainter * painter, QGLWidget *widget, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
+        cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
         QVector <cPoint>    _points;
         cPolygonHelper*     _helper;
         QColor              _lineColor;
         int                 _idx;
 
-        QPainter *          _painter;
-        QGLWidget*          _widget;
+        QPainter *          _painter;        
 
     private:
         float               _pointSize;
@@ -294,7 +292,7 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter, QGLWidget *widget, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter,QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
         void   build(const QPointF &pos, bool insertMode);
 
@@ -557,7 +555,7 @@ public:
 
     void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction,MatrixManager &mm);
 
-    void        setPainter(QPainter *, QGLWidget *widget);
+    void        setPainter(QPainter *);
     enum Option {
       OpNO          = 0x00,
       OpShow_Ball   = 0x01,

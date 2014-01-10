@@ -464,7 +464,7 @@ void cCam::draw()
 }
 
 
-cPoint::cPoint(QPainter * painter, QGLWidget *widget, QPointF pos, QString name,
+cPoint::cPoint(QPainter * painter, QPointF pos, QString name,
                QColor color, QColor selectionColor,
                float diameter,
                bool isSelected,
@@ -474,8 +474,7 @@ cPoint::cPoint(QPainter * painter, QGLWidget *widget, QPointF pos, QString name,
     _bShowName(showName),
     _name(name),
     _selectionColor(selectionColor),
-    _painter(painter),
-    _widget(widget)
+    _painter(painter)
 {
     setColor(color);
     setSelected(isSelected);
@@ -505,12 +504,11 @@ void cPoint::draw()
     }
 }
 
-cPolygon::cPolygon(QPainter* painter, QGLWidget *widget, float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(this,lineWidth, painter, widget)),
+cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
+    _helper(new cPolygonHelper(this,lineWidth, painter)),
     _lineColor(lineColor),
     _idx(-1),
     _painter(painter),
-    _widget(widget),
     _pointSize(6.f),
     _sqr_radius(2500.f),
     _bPolyIsClosed(false),
@@ -522,11 +520,10 @@ cPolygon::cPolygon(QPainter* painter, QGLWidget *widget, float lineWidth, QColor
     setLineWidth(lineWidth);
 }
 
-cPolygon::cPolygon(QPainter* painter, QGLWidget *widget, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
+cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineColor(lineColor),
     _idx(-1),
     _painter(painter),
-    _widget(widget),
     _pointSize(6.f),
     _sqr_radius(2500.f),
     _bPolyIsClosed(false),
@@ -543,7 +540,7 @@ cPolygon::cPolygon(QPainter* painter, QGLWidget *widget, float lineWidth, QColor
 
 void cPolygon::draw()
 {
-    if(_painter != NULL && _widget !=NULL)
+    if(_painter != NULL)
     {
         _painter->setRenderHint(QPainter::Antialiasing,true);
 
@@ -619,7 +616,7 @@ void cPolygon::removeNearestOrClose(QPointF pos)
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = cPoint(_painter, _widget, pt);
+        _points[size()-1] = cPoint(_painter, pt);
 
     add(pt);
 }
@@ -635,7 +632,7 @@ void cPolygon::clear()
 
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
-    _points.insert(i,cPoint(_painter, _widget, value));
+    _points.insert(i,cPoint(_painter, value));
     resetSelectedPoint();
 }
 
@@ -722,8 +719,8 @@ void cPolygon::findNearestPoint(QPointF const &pos)
      }
 }
 
-cPolygonHelper::cPolygonHelper( cPolygon* polygon,float lineWidth, QPainter *painter, QGLWidget *widget, QColor lineColor, QColor pointColor):
-    cPolygon(painter, widget,lineWidth, lineColor, pointColor,false),
+cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor, QColor pointColor):
+    cPolygon(painter, lineWidth, lineColor, pointColor,false),
     _polygon(polygon)
 {
 
@@ -738,7 +735,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
         if (nbVertex == 1)     // add current mouse position to polygon (dynamic display)
             add(pos);
         else if (nbVertex > 1) // replace last point by the current one
-            _points[nbVertex-1] = cPoint(_painter, _widget, pos);
+            _points[nbVertex-1] = cPoint(_painter, pos);
     }
     else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'operation
     {
@@ -773,13 +770,12 @@ void cPolygon::removeLastPoint()
     }
 }
 
-void cPolygon::setPainter(QPainter *painter, QGLWidget *widget)
+void cPolygon::setPainter(QPainter *painter)
 {
     _painter = painter;
-    _widget = widget;
 
     if (_helper != NULL)
-        _helper->setPainter(_painter, _widget);
+        _helper->setPainter(_painter);
 }
 
 void cPolygon::showNames(bool show)
@@ -1297,9 +1293,9 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
     }
 }
 
-void cGLData::setPainter(QPainter * painter, QGLWidget* widget)
+void cGLData::setPainter(QPainter * painter)
 {
-    m_polygon.setPainter(painter, widget);
+    m_polygon.setPainter(painter);
 }
 
 void cGLData::GprintBits(const size_t size, const void * const ptr)

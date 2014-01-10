@@ -81,7 +81,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
     m_GLData = aData;
 
-    m_GLData->setPainter(_painter, this);
+    m_GLData->setPainter(_painter);
 
     clearPolyline();
 
