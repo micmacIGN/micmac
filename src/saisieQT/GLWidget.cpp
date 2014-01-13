@@ -238,17 +238,15 @@ void GLWidget::Overlay()
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
         _painter->begin(this);
+        _painter->setRenderHint(QPainter::Antialiasing,false);
 
-        if (m_bDisplayMode2D) // TODO pas beau !!!
+        if (m_bDisplayMode2D)
         {
-            _matrixManager.PolygonImageToWindow(polygon(), _params.m_zoom).draw();
-            _matrixManager.PolygonImageToWindow(*(polygon().helper()), _params.m_zoom).draw();
+            _painter->scale(_params.m_zoom,-_params.m_zoom);
+            _painter->translate(_matrixManager.translateImgToWin(_params.m_zoom));
         }
-        else
-        {
-            polygon().draw();
-            polygon().helper()->draw();
-        }
+
+        polygon().draw();
 
         _painter->setRenderHint(QPainter::Antialiasing,false);
         _painter->end();

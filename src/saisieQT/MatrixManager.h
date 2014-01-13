@@ -25,6 +25,8 @@ public:
 
     GLdouble*   getProjectionMatrix(){return _projMatrix;}
 
+    QPointF     translateImgToWin(float zoom);
+
     GLint*      getGLViewport(){return _glViewport;}
 
     void        setGLViewport(GLint x, GLint y,GLsizei width, GLsizei height);

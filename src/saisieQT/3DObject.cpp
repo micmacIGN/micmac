@@ -484,23 +484,33 @@ void cPoint::draw()
 {
      if (_painter != NULL)
      {
-        _painter->setPen(isSelected() ? _selectionColor : _color);
-        _painter->drawEllipse(QPointF(x(), y()), _diameter, _diameter);
+         QPen penline(isSelected() ? _selectionColor : _color);
+         penline.setCosmetic(true);
+        _painter->setPen(penline);
+
+        QPointF pt = _painter->transform().map((QPointF)*this);
+
+        _painter->setWorldMatrixEnabled(false);
+
+        _painter->drawEllipse(pt, _diameter, _diameter);
 
         if ((_bShowName) && (_name != ""))
-        {
+        {        
+
             QFontMetrics metrics = QFontMetrics(_font);
-            int border = qMax(4, metrics.leading());
+            int border = (float) qMax(4, metrics.leading());
 
             QRect rect = QFontMetrics(_font).boundingRect(_name);
 
-            QRect rectg(x()-border, y()-border, rect.width()+border, rect.height()+border);
+            QRect rectg(pt.x()-border, pt.y()-border, rect.width()+border, rect.height()+border);
             rectg.translate(QPoint(10, -rectg.height()-5));
 
             _painter->setPen(isSelected() ? Qt::black : Qt::white);
             _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
             _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
         }
+
+         _painter->setWorldMatrixEnabled(true);
     }
 }
 
@@ -547,6 +557,7 @@ void cPolygon::draw()
         if (_bShowPolygon)
         {
             QPen penline(_lineColor);
+            penline.setCosmetic(true);
             penline.setWidthF(0.75f);
             if(_style == LINE_STIPPLE)
             {
@@ -565,6 +576,9 @@ void cPolygon::draw()
 
         for (int aK = 0;aK < _points.size(); ++aK)
             _points[aK].draw();
+
+         if(helper()!=NULL)
+             helper()->draw();
     }
 }
 

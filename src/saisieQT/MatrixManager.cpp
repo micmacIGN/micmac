@@ -250,3 +250,9 @@ void MatrixManager::rotateMatrix(float rX, float rY, float rZ, float factor)
 {
     rotateMatrix(m_rotationMatrix, rX, rY, rZ, factor);
 }
+
+
+QPointF MatrixManager::translateImgToWin(float zoom)
+{
+   return  QPointF(.5f*vpWidth()*(1.f +  getProjectionMatrix()[12])/zoom,-(.5f*vpHeight()*(1.f - getProjectionMatrix()[13])/zoom));
+}
