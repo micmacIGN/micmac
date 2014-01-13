@@ -261,5 +261,5 @@ void MatrixManager::translate(float tX, float tY, float tZ, float factor)
 
 QPointF MatrixManager::translateImgToWin(float zoom)
 {
-   return  QPointF(.5f*vpWidth()*(1.f +  getProjectionMatrix()[12])/zoom,-(.5f*vpHeight()*(1.f - getProjectionMatrix()[13])/zoom));
+    return  QPointF(vpWidth()*(1.f +  getProjectionMatrix()[12]),-vpHeight()*(1.f - getProjectionMatrix()[13]))*.5f/zoom;
 }

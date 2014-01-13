@@ -177,21 +177,33 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             else
                 _params.ptSizeUp(false);
             break;
+        case Qt::Key_W:
+                setCursor(Qt::SizeAllCursor);
+                polygon().helper()->clear();
+                polygon().setSelected(true);
+            break;
         default:
             event->ignore();
             break;
         }
     }
+
     update();
 }
 
 void GLWidget::keyReleaseEvent(QKeyEvent* event)
 {
-    if ((event->key() == Qt::Key_Shift) && hasDataLoaded())
+    if(hasDataLoaded())
     {
-        polygon().helper()->clear();
-        polygon().resetSelectedPoint();
+        if (event->key() == Qt::Key_Shift )
+        {
+            polygon().helper()->clear();
+            polygon().resetSelectedPoint();
+        }
+        polygon().setSelected(false);
+        update();
     }
+    setCursor(Qt::ArrowCursor);
 }
 
 void GLWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -267,7 +279,6 @@ void GLWidget::Overlay()
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
         _painter->begin(this);
-        _painter->setRenderHint(QPainter::Antialiasing,false);
 
         if (m_bDisplayMode2D)
         {
@@ -277,7 +288,6 @@ void GLWidget::Overlay()
 
         polygon().draw();
 
-        _painter->setRenderHint(QPainter::Antialiasing,false);
         _painter->end();
     }
 }
@@ -448,11 +458,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
 
-            if(event->modifiers() & Qt::ControlModifier)                // MOVE POLYGON
+            if(polygon().isSelected())                    // MOVE POLYGON
 
                 polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom));
 
-            else
+            else                                                        // REFRESH HELPER POLYGON
+
                 polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
         }
         if (m_interactionMode == TRANSFORM_CAMERA)
@@ -461,12 +472,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
             if ( event->buttons())
             {
-                float rX,rY,rZ;
-                rX = rY = rZ = 0;
+                Pt3dr r(0,0,0);
+
                 if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
                 {
-                    rX = dPWin.y() / vpWidth();
-                    rY = dPWin.x() / vpHeight();
+                    r.x = dPWin.y() / vpWidth();
+                    r.y = dPWin.x() / vpHeight();
                 }
                 else if ( event->buttons() == Qt::MiddleButton ){
 
@@ -481,9 +492,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
-                    rZ = (float)dPWin.x() / vpWidth();
+                    r.z = (float)dPWin.x() / vpWidth();
 
-                _matrixManager.rotate(rX, rY, rZ, 50.0f *_params.m_speed);
+                _matrixManager.rotate(r.x, r.y, r.z, 50.0f *_params.m_speed);
             }
         }
 
@@ -520,8 +531,7 @@ void GLWidget::Select(int mode, bool saveInfos)
                 return;
 
             if (!m_bDisplayMode2D)
-                for (int aK=0; aK < polyg.size(); ++aK)
-                    polyg[aK].setY((float)_matrixManager.vpHeight() - polyg[aK].y());
+                polyg.flipY((float)_matrixManager.vpHeight());
         }
 
         if (m_bDisplayMode2D)
@@ -533,9 +543,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (saveInfos) // TODO --> manager SelectHistory
         {
-            selectInfos info;
-            info.poly   = polygon().getVector();
-            info.selection_mode   = mode;
+            selectInfos info(polygon().getVector(),mode);
 
             _matrixManager.exportMatrices(info);
 
