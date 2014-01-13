@@ -129,7 +129,6 @@ private:
     enum { MaxRecentFiles = 3 };
     QAction *               _recentFileActs[MaxRecentFiles];
     QString                 _curFile;
-    QStringList             _FilenamesIn;
 
     QMenu*                  _RFMenu; //recent files menu
 

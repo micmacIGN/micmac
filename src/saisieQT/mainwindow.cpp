@@ -121,8 +121,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
-        _FilenamesIn = filenames;
-
         for (int i=0; i< filenames.size();++i)
         {
             QFile Fout(filenames[i]);
@@ -197,7 +195,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             _Engine->setFilenamesOut();
         }
 
-        _Engine->AllocAndSetGLData();
+        _Engine->allocAndSetGLData();
         for (uint aK = 0; aK < NbWidgets();++aK)
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
 
@@ -376,7 +374,7 @@ void MainWindow::on_actionReset_triggered()
     {
         closeAll();
 
-        addFiles(_FilenamesIn);
+        addFiles(_Engine->getFilenamesIn());
     }
     else
     {
@@ -391,15 +389,27 @@ void MainWindow::on_actionRemove_triggered()
 
 void MainWindow::on_actionUndo_triggered()
 {   
-    if (_bMode2D)    
-        CurrentWidget()->setGLData(_Engine->getGLData(CurrentWidgetIdx()),_ui->actionShow_messages,false);
+    QVector <selectInfos> vInfos = CurrentWidget()->getSelectInfos();
 
-    CurrentWidget()->undo();
+    if (vInfos.size())
+    {
+        if (_bMode2D)
+        {
+            int idx = CurrentWidgetIdx();
+
+            _Engine->reloadImage(idx);
+
+            CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+        }
+
+        vInfos.pop_back();
+        CurrentWidget()->applyInfos(vInfos);
+    }
 }
 
 void MainWindow::on_actionRedo_triggered()
 {
-    CurrentWidget()->redo();
+
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
@@ -479,12 +489,14 @@ void MainWindow::on_actionLoad_image_triggered()
 
     if (!img_filename.isEmpty())
     {
-        _FilenamesIn.clear();
-        _FilenamesIn.push_back(img_filename);
+        //TODO: factoriser
+        QStringList & filenames = _Engine->getFilenamesIn();
+        filenames.clear();
+        filenames.push_back(img_filename);
 
         setCurrentFile(img_filename);
 
-        addFiles(_FilenamesIn);
+        addFiles(filenames);
     }
 }
 
@@ -524,9 +536,9 @@ void MainWindow::openRecentFile()
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
     {
-        _FilenamesIn = QStringList(action->data().toString());
+        _Engine->setFilenamesIn(QStringList(action->data().toString()));
 
-        addFiles(_FilenamesIn);
+        addFiles(_Engine->getFilenamesIn());
     }
 }
 

@@ -76,14 +76,10 @@ public:
             m_GLData->m_polygon.clear();
     }
 
-    //! Undo last action
-    void undo();
-
-    //! Redo
-    void redo();
-
     //! Get the selection infos stack
     QVector <selectInfos> getSelectInfos(){return _infos;}
+
+    void applyInfos(QVector <selectInfos> &infos);
 
     //! Avoid all past actions
     void reset();
@@ -110,6 +106,7 @@ public:
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
+    void refreshMessagePosition(QPointF pos);
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
@@ -164,8 +161,6 @@ private:
     //! selection infos stack
     QVector <selectInfos> _infos;
 
-    int         _actionId;
-
     void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
@@ -185,7 +180,6 @@ private:
     QColor      _BGColor1;
 
     QPainter*    _painter;
-
 };
 
 #endif  /* _GLWIDGET_H */
