@@ -51,7 +51,6 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
     setFilenameOut(mask_filename);
 
-
     // TODO factoriser le chargement d'image
     if (maskedImg._m_image->isNull())
     {
@@ -92,7 +91,6 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
     if (QFile::exists(mask_filename))
     {
-
         maskedImg._m_newMask = false;
 
         maskedImg._m_mask = new QImage( mask_filename );
@@ -209,6 +207,11 @@ void cEngine::loadImages(QStringList filenames)
     _Loader->setFilenamesOut();
 }
 
+void  cEngine::loadImage(int aK)
+{
+    loadImage(getFilenamesIn()[aK]);
+}
+
 void  cEngine::loadImage(QString imgName)
 {
     QMaskedImage maskedImg(_Gamma);
@@ -216,6 +219,20 @@ void  cEngine::loadImage(QString imgName)
     _Loader->loadImage(imgName, maskedImg);
 
     _Data->pushBackMaskedImage(maskedImg);
+}
+
+void cEngine::reloadImage(int aK)
+{
+    QString imgName = getFilenamesIn()[aK];
+
+    QMaskedImage maskedImg(_Gamma);
+
+    _Loader->loadImage(imgName, maskedImg);
+
+    if (aK < _Data->getNbImages())
+        _Data->getMaskedImage(aK) = maskedImg;
+
+    reallocAndSetGLData(aK);
 }
 
 void cEngine::do3DMasks()
@@ -393,7 +410,7 @@ void cEngine::unloadAll()
     _vGLData.clear();
 }
 
-void cEngine::AllocAndSetGLData()
+void cEngine::allocAndSetGLData()
 {
     _vGLData.clear();
 
@@ -402,7 +419,16 @@ void cEngine::AllocAndSetGLData()
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data));
+}
 
+void cEngine::reallocAndSetGLData(int aK)
+{
+    delete _vGLData[aK];
+
+    if (_Data->is3D())
+        _vGLData[aK] = new cGLData(_Data);
+    else
+        _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK));
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)

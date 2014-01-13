@@ -1124,14 +1124,14 @@ cGLData::~cGLData()
 {
     glMaskedImage.deallocImages();
 
-   qDeleteAll(Cams);
+    qDeleteAll(Cams);
     Cams.clear();
 
     if(pBall != NULL) delete pBall;
     if(pAxis != NULL) delete pAxis;
     if(pBbox != NULL) delete pBbox;
 
-   //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
+    //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
     Clouds.clear();
 }
 

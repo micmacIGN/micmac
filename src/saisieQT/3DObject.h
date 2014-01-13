@@ -554,7 +554,7 @@ public:
 
     void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
 
-    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction,MatrixManager &mm);
+    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        setPainter(QPainter *);
     enum Option {

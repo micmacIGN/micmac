@@ -86,6 +86,7 @@ public:
     void        setFilenameOut(QString str);
     void        setSelectionFilename();
 
+    QStringList& getFilenamesIn() {return _FilenamesIn;}
     QStringList getFilenamesOut() {return _FilenamesOut;}
     QString     getSelectionFilename() {return _SelectionOut;}
 
@@ -119,6 +120,8 @@ public:
     //! Set input filenames
     void    setFilenamesIn(QStringList const &strl){_Loader->setFilenamesIn(strl);}
 
+    QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
+
     //! Set output filenames
     void    setFilenamesOut(){_Loader->setFilenamesOut();}
 
@@ -138,7 +141,10 @@ public:
     void    loadImages(QStringList);
 
     //! Load image (and mask) file
-    void    loadImage(QString imgName);
+    void    loadImage(QString );
+    void    loadImage(int aK);
+
+    void    reloadImage(int aK);
 
     void    unloadAll();
 
@@ -155,7 +161,9 @@ public:
     cData*  getData()  {return _Data;}
 
     //!looks for data and creates GLobjects
-    void    AllocAndSetGLData();
+    void    allocAndSetGLData();
+
+    void    reallocAndSetGLData(int aK);
 
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
@@ -163,6 +171,7 @@ public:
     void     setGamma(float aGamma) {_Gamma = aGamma;}
 
     float    getGamma() { return _Gamma;}
+
 
 private:
 

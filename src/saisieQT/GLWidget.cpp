@@ -10,7 +10,6 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , m_GLData(NULL)
   , m_bDisplayMode2D(false)
   , _params(ViewportParameters())
-  , _actionId(0)
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
@@ -426,6 +425,12 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void GLWidget::refreshMessagePosition(QPointF pos)
+{
+    if (_messageManager.DrawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
+        _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
+}
+
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
@@ -439,11 +444,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 #endif
 
         if (m_bDisplayMode2D)
-        {
-            m_lastMoveImage = pos;
-            if (_messageManager.DrawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
-                _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
-        }
+
+            refreshMessagePosition(m_lastMoveImage = pos);
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
 
@@ -530,22 +532,11 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (saveInfos) // TODO --> manager SelectHistory
         {
-            cout << "saving infos " << endl;
-
             selectInfos info;
             info.poly   = polygon().getVector();
             info.selection_mode   = mode;
 
             _matrixManager.exportMatrices(info);
-
-            if (_actionId == _infos.size())
-            {
-                _actionId++;
-            }
-            else
-            {
-                _infos.pop_back();
-            }
 
             _infos.push_back(info);
         }
@@ -556,57 +547,23 @@ void GLWidget::Select(int mode, bool saveInfos)
     }
 }
 
-void GLWidget::undo() // TODO --> manager SelectHistory
-{
-    if (_infos.size() && hasDataLoaded())
+void GLWidget::applyInfos(QVector <selectInfos> &vInfos) // TODO --> manager SelectHistory
+{   
+    if (hasDataLoaded())
     {
-        if ((!m_bDisplayMode2D) || (_actionId == 1))
-            Select(ALL, false);
-
-        cout << " actionId : " << _actionId << endl;
-
-        for (int aK = 0; aK < _actionId - 1; ++aK)
+        for (int aK = 0; aK < vInfos.size() ; aK++)
         {
-            selectInfos &infos = _infos[aK];
-
             cPolygon Polygon;
             Polygon.setClosed(true);
-            Polygon.setVector(infos.poly);
+            Polygon.setVector(vInfos[aK].poly);
             m_GLData->setPolygon(Polygon);
 
             if (!m_bDisplayMode2D)
-            {
-                _matrixManager.importMatrices(infos);
-                m_bFirstAction = (aK==0);
-            }
 
-            Select(infos.selection_mode, false);
+                _matrixManager.importMatrices(vInfos[aK]);
+
+            Select(vInfos[aK].selection_mode, false);
         }
-
-        if (_actionId > 0) _actionId--;
-    }
-}
-
-void GLWidget::redo()
-{
-    if (_infos.size() && hasDataLoaded() && _actionId < _infos.size())
-    {
-        selectInfos &infos = _infos[_actionId];
-
-        cPolygon Polygon;
-        Polygon.setClosed(true);
-        Polygon.setVector(infos.poly);
-        m_GLData->setPolygon(Polygon);
-
-        if (!m_bDisplayMode2D)
-        {
-            _matrixManager.importMatrices(infos);
-            m_bFirstAction = (_actionId==0);
-        }
-
-        Select(infos.selection_mode, false);
-
-        _actionId++;
     }
 }
 
@@ -637,6 +594,8 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
 
     clearPolyline();
 
+    setOption(cGLData::OpShow_Mess,showMessage);
+
     if (!m_bDisplayMode2D)
     {
         setOption(cGLData::OpShow_Ball, m_interactionMode == TRANSFORM_CAMERA);
@@ -650,8 +609,8 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
             setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams,false);
         }
     }
-
-    setOption(cGLData::OpShow_Mess,showMessage);
+//    else
+//        refreshMessagePosition(m_lastPosImage); //TODO: debugger
 
     if (zoomfit) zoomFit();
 

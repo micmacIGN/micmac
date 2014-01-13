@@ -32,7 +32,7 @@ class cData
         int getNbImages()  {return _MaskedImages.size(); }
 
         CamStenope *   getCamera(int aK) {return aK < (int)_Cameras.size() ? _Cameras[aK] : NULL;}
-        GlCloud *        getCloud(int aK)  {return aK < (int)_Clouds.size() ? _Clouds[aK] : NULL;  }
+        GlCloud *      getCloud(int aK)  {return aK < (int)_Clouds.size() ? _Clouds[aK] : NULL;  }
         QImage *       getImage(int aK)  {return aK < (int)_MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_image : NULL;  }
         QImage *       getMask(int aK)   {return aK < (int)_MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_mask  : NULL;    }
 
@@ -53,8 +53,8 @@ class cData
    private:
 
         vector <CamStenope *> _Cameras;
-        vector <GlCloud *>      _Clouds;
-        vector<QMaskedImage>  _MaskedImages;
+        vector <GlCloud *>    _Clouds;
+        vector <QMaskedImage> _MaskedImages;
 
         //!Bounding box of all data
         Pt3dr   _min, _max;
