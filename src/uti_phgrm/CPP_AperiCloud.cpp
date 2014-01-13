@@ -47,6 +47,7 @@ int AperiCloud_main(int argc,char ** argv)
     //std::vector<std::string> ImPl;
     int ExpTxt=0;
     int PlyBin=1;
+    int CalPerIm=0;
     std::string Out="";
 
     int RGB = -1;
@@ -67,6 +68,7 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(aSeuilEc,"SeuilEc",true,"Max residual (def =10)")
                     << EAM(aLimBsH,"LimBsH",true,"Limit ratio base to high (Def=1e-2)")
                     << EAM(WithPoints,"WithPoints",true,"Do we add point cloud ? (Def=true) ")
+                    << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=False)")
     );
 
 	if (Out=="")
@@ -79,6 +81,12 @@ int AperiCloud_main(int argc,char ** argv)
        RGB = RGB ? 3  : 1;
     }
 
+	string aXmlName="Apero-Cloud.xml";
+	if (CalPerIm)
+	{
+		aXmlName="Apero-Cloud-PerIm.xml";
+	}
+
 	#if (ELISE_windows)
 		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 	#endif
@@ -87,7 +95,7 @@ int AperiCloud_main(int argc,char ** argv)
     //std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR  "Apero ")
     //                   + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
     std::string aCom =   MM3dBinFile_quotes("Apero")
-                       + ToStrBlkCorr( MMDir()+std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml") )+" "
+                       + ToStrBlkCorr( MMDir()+std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR)+ aXmlName)+" "
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
                        + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
