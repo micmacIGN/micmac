@@ -240,6 +240,7 @@ class cPolygon : public cObjectGL
 
         QVector <QPointF> const getVector();
         void    setVector(QVector <cPoint> const &aPts){ _points = aPts; }
+        void    setVector(QVector <QPointF> const &aPts);
 
         int     idx(){return _idx;}
 
@@ -555,7 +556,7 @@ public:
 
     void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
 
-    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction,MatrixManager &mm);
+    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        setPainter(QPainter *);
     enum Option {

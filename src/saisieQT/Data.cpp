@@ -48,7 +48,6 @@ void cData::clearImages()
     reset();
 }
 
-
 void cData::clearAll()
 {
     clearClouds();

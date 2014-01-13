@@ -686,6 +686,15 @@ const QVector<QPointF> cPolygon::getVector()
     return points;
 }
 
+void cPolygon::setVector(const QVector<QPointF> &aPts)
+{
+    _points.clear();
+    for(int aK=0; aK < aPts.size(); ++aK)
+    {
+        _points.push_back(cPoint(_painter, aPts[aK]));
+    }
+}
+
 void cPolygon::setPointSelected()
 {
     _bSelectedPoint = true;
@@ -1135,14 +1144,14 @@ cGLData::~cGLData()
 {
     glMaskedImage.deallocImages();
 
-   qDeleteAll(Cams);
+    qDeleteAll(Cams);
     Cams.clear();
 
     if(pBall != NULL) delete pBall;
     if(pAxis != NULL) delete pAxis;
     if(pBbox != NULL) delete pBbox;
 
-   //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
+    //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
     Clouds.clear();
 }
 

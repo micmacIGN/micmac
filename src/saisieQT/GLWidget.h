@@ -18,7 +18,7 @@
 #include <QMimeData>
 #include <QTime>
 #include <QPainter>
-
+//#include <QMenu> //pour contextMenuEvent
 
 #include "Data.h"
 #include "Engine.h"
@@ -76,11 +76,10 @@ public:
             m_GLData->m_polygon.clear();
     }
 
-    //! Undo last action
-    void undo();
-
     //! Get the selection infos stack
     QVector <selectInfos> getSelectInfos(){return _infos;}
+
+    void applyInfos(QVector <selectInfos> &infos);
 
     //! Avoid all past actions
     void reset();
@@ -107,6 +106,7 @@ public:
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
+    void refreshMessagePosition(QPointF pos);
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
@@ -132,6 +132,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 
+    //void contextMenuEvent(QContextMenuEvent *event);
 
     void Overlay();
 
@@ -171,7 +172,7 @@ private:
     MatrixManager _matrixManager;
     cMessages2DGL _messageManager;
 
-    int         _idWidget;
+    int         _widgetId;
 
     GLWidgetSet* _parentSet;
 
@@ -179,7 +180,6 @@ private:
     QColor      _BGColor1;
 
     QPainter*    _painter;
-
 };
 
 #endif  /* _GLWIDGET_H */
