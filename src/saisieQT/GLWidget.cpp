@@ -530,6 +530,8 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (saveInfos) // TODO --> manager SelectHistory
         {
+            cout << "saving infos " << endl;
+
             selectInfos info;
             info.poly   = polygon().getVector();
             info.selection_mode   = mode;
@@ -558,8 +560,10 @@ void GLWidget::undo() // TODO --> manager SelectHistory
 {
     if (_infos.size() && hasDataLoaded())
     {
-        if ((!m_bDisplayMode2D) || (_infos.size() == 1))
+        if ((!m_bDisplayMode2D) || (_actionId == 1))
             Select(ALL, false);
+
+        cout << " actionId : " << _actionId << endl;
 
         for (int aK = 0; aK < _actionId - 1; ++aK)
         {
@@ -567,7 +571,7 @@ void GLWidget::undo() // TODO --> manager SelectHistory
 
             cPolygon Polygon;
             Polygon.setClosed(true);
-            //Polygon.setVector(infos.poly); // TODO --> implementer setVector(QVector<QPointF>)
+            Polygon.setVector(infos.poly);
             m_GLData->setPolygon(Polygon);
 
             if (!m_bDisplayMode2D)
@@ -579,9 +583,7 @@ void GLWidget::undo() // TODO --> manager SelectHistory
             Select(infos.selection_mode, false);
         }
 
-        _actionId--;
-
-        //_infos.pop_back();
+        if (_actionId > 0) _actionId--;
     }
 }
 
@@ -593,7 +595,7 @@ void GLWidget::redo()
 
         cPolygon Polygon;
         Polygon.setClosed(true);
-        //Polygon.setVector(infos.poly); //TODO
+        Polygon.setVector(infos.poly);
         m_GLData->setPolygon(Polygon);
 
         if (!m_bDisplayMode2D)

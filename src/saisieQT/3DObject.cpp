@@ -672,6 +672,15 @@ const QVector<QPointF> cPolygon::getVector()
     return points;
 }
 
+void cPolygon::setVector(const QVector<QPointF> &aPts)
+{
+    _points.clear();
+    for(int aK=0; aK < aPts.size(); ++aK)
+    {
+        _points.push_back(cPoint(_painter, aPts[aK]));
+    }
+}
+
 void cPolygon::setPointSelected()
 {
     _bSelectedPoint = true;
