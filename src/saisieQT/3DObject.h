@@ -240,6 +240,7 @@ class cPolygon : public cObjectGL
 
         QVector <QPointF> const getVector();
         void    setVector(QVector <cPoint> const &aPts){ _points = aPts; }
+        void    setVector(QVector <QPointF> const &aPts);
 
         int     idx(){return _idx;}
 
