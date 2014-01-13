@@ -234,7 +234,7 @@ void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerSce
     resetTranslationMatrix(centerScene);
 }
 
-void MatrixManager::rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor)
+void MatrixManager::rotate(GLdouble* matrix, float rX, float rY, float rZ, float factor)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -246,9 +246,16 @@ void MatrixManager::rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ,
     glGetDoublev(GL_MODELVIEW_MATRIX, matrix);
 }
 
-void MatrixManager::rotateMatrix(float rX, float rY, float rZ, float factor)
+void MatrixManager::rotate(float rX, float rY, float rZ, float factor)
 {
-    rotateMatrix(m_rotationMatrix, rX, rY, rZ, factor);
+    rotate(m_rotationMatrix, rX, rY, rZ, factor);
+}
+
+void MatrixManager::translate(float tX, float tY, float tZ, float factor)
+{
+    m_translationMatrix[0] += factor * tX;
+    m_translationMatrix[1] += factor * tY;
+    m_translationMatrix[2] += factor * tZ;
 }
 
 

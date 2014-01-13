@@ -425,30 +425,27 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             {
                 float rX,rY,rZ;
                 rX = rY = rZ = 0;
-                if ( event->buttons() == Qt::LeftButton ) // rotation autour de X et Y
+                if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
                 {
                     rX = dPWin.y() / vpWidth();
                     rY = dPWin.x() / vpHeight();
                 }
-                else if ( event->buttons() == Qt::MiddleButton )
-                {
-                    if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
-                    {
-                        if      (dPWin.y() > 0) _params.m_zoom *= pow(2.f,  dPWin.y() *.05f);
-                        else if (dPWin.y() < 0) _params.m_zoom /= pow(2.f, -dPWin.y() *.05f);
-                    }
-                    else if( vpWidth() || vpHeight()) // TRANSLATION VIEW
-                    {
-                            QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin .x(),-dPWin .y()) * m_GLData->getBBoxMaxSize();
+                else if ( event->buttons() == Qt::MiddleButton ){
 
-                            _matrixManager.m_translationMatrix[0] += _params.m_speed * dp.x()/vpWidth();
-                            _matrixManager.m_translationMatrix[1] += _params.m_speed * dp.y()/vpHeight();
+                    if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
+
+                        _params.changeZoom(dPWin.y());
+
+                    else if( vpWidth() || vpHeight())                   // TRANSLATION VIEW
+                    {
+                        QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin .x(),-dPWin .y()) * m_GLData->getBBoxMaxSize();
+                        _matrixManager.translate(dp.x()/vpWidth(),dp.y()/vpHeight(),0.0,_params.m_speed);
                     }
                 }
-                else if (event->buttons() == Qt::RightButton)           // rotation autour de Z
+                else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     rZ = (float)dPWin.x() / vpWidth();
 
-                _matrixManager.rotateMatrix(rX, rY, rZ, 50.0f *_params.m_speed);
+                _matrixManager.rotate(rX, rY, rZ, 50.0f *_params.m_speed);
             }
         }
 

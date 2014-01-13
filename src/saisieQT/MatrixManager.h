@@ -49,8 +49,8 @@ public:
 
     void        setMatrices();
 
-    void        rotateMatrix(GLdouble* matrix, float rX, float rY, float rZ, float factor);
-    void        rotateMatrix(float rX, float rY, float rZ, float factor);
+    void        rotate(GLdouble* matrix, float rX, float rY, float rZ, float factor);
+    void        rotate(float rX, float rY, float rZ, float factor);
 
     void        importMatrices(selectInfos &infos);
     void        exportMatrices(selectInfos &infos);
@@ -91,6 +91,7 @@ public:
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
 
+    void        translate(float tX, float tY, float tZ, float factor);
 private:
     //! GL context aspect ratio (width/height)
     float       m_glRatio;
