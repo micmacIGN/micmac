@@ -261,6 +261,8 @@ class cPolygon : public cObjectGL
 
         void    showPolygon(bool showPolygon = true){_bShowPolygon = showPolygon;}
 
+        void    translate(QPointF Tr);
+
     protected:
         cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 

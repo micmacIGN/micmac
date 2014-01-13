@@ -414,9 +414,15 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         }
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
+        {
 
-            polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
+            if(event->modifiers() & Qt::ControlModifier)                // MOVE POLYGON
 
+                polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom));
+
+            else
+                polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
+        }
         if (m_interactionMode == TRANSFORM_CAMERA)
         {
             QPointF dPWin = QPointF(event->pos() - m_lastPosWindow);
