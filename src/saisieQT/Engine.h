@@ -52,6 +52,13 @@ public:
 
 struct selectInfos
 {
+
+    selectInfos(){}
+    selectInfos(QVector <QPointF> pol,int mode)
+    {
+        poly = pol;
+        selection_mode = mode;
+    }
     //! polyline infos
     QVector <QPointF> poly;
 
@@ -61,6 +68,8 @@ struct selectInfos
     GLdouble    mvmatrix[16];
     GLdouble    projmatrix[16];
     GLint       glViewport[4];
+
+
 };
 
 //! Selection mode

@@ -264,6 +264,9 @@ class cPolygon : public cObjectGL
 
         void    translate(QPointF Tr);
 
+        void    flipY(float height);
+
+
     protected:
         cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 

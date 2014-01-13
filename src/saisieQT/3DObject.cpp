@@ -556,7 +556,7 @@ void cPolygon::draw()
 
         if (_bShowPolygon)
         {
-            QPen penline(_lineColor);
+            QPen penline(isSelected() ? QColor(0,140,180) : _lineColor);
             penline.setCosmetic(true);
             penline.setWidthF(0.75f);
             if(_style == LINE_STIPPLE)
@@ -579,6 +579,8 @@ void cPolygon::draw()
 
          if(helper()!=NULL)
              helper()->draw();
+
+         _painter->setRenderHint(QPainter::Antialiasing,false);
     }
 }
 
@@ -811,6 +813,12 @@ void cPolygon::translate(QPointF Tr)
 {
     for (int aK=0; aK < _points.size(); ++aK)
         _points[aK] += Tr;
+}
+
+void cPolygon::flipY(float height)
+{
+    for (int aK=0; aK < size(); ++aK)
+        _points[aK].setY(height - _points[aK].y());
 }
 
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
