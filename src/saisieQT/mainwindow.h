@@ -91,6 +91,7 @@ protected slots:
     void on_actionReset_triggered();
     void on_actionRemove_triggered();
     void on_actionUndo_triggered();
+    void on_actionRedo_triggered();
 
     //File Menu
     void on_actionLoad_plys_triggered();
@@ -128,7 +129,6 @@ private:
     enum { MaxRecentFiles = 3 };
     QAction *               _recentFileActs[MaxRecentFiles];
     QString                 _curFile;
-    QStringList             _FilenamesIn;
 
     QMenu*                  _RFMenu; //recent files menu
 

@@ -14,7 +14,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _previousTime(0)
   , _currentTime(0)
   , _messageManager(this)
-  , _idWidget(idx)
+  , _widgetId(idx)
   , _parentSet(theSet)
 {
     _matrixManager.resetAllMatrix();
@@ -233,6 +233,35 @@ void GLWidget::dropEvent(QDropEvent *event)
     event->ignore();
 }
 
+/*void GLWidget::contextMenuEvent(QContextMenuEvent * event)
+{
+    QMenu menu(this);
+
+    if ((event->modifiers() & Qt::ShiftModifier))
+    {
+        menu.addAction("Undo");
+        menu.addAction("Redo");
+        menu.addAction("Refute");
+        menu.addAction("Show names");
+    }
+    else if ((event->modifiers() & Qt::ControlModifier))
+    {
+        menu.addAction("AllW");
+        menu.addAction("ThisW");
+        menu.addAction("ThisP");
+    }
+    else
+    {
+        menu.addAction("Validate");
+        menu.addAction("Dubious");
+        menu.addAction("Refuted");
+        menu.addAction("Highlight");
+        menu.addAction("Refuted");
+    }
+
+    menu.exec(event->globalPos());
+}*/
+
 void GLWidget::Overlay()
 {
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
@@ -394,11 +423,17 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void GLWidget::refreshMessagePosition(QPointF pos)
+{
+    if (_messageManager.DrawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
+        _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
+}
+
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
     {
-        _parentSet->setCurrentWidgetIdx(_idWidget);
+        _parentSet->setCurrentWidgetIdx(_widgetId);
 
 #if QT_VER == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
@@ -407,11 +442,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 #endif
 
         if (m_bDisplayMode2D)
-        {
-            m_lastMoveImage = pos;
-            if (_messageManager.DrawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
-                _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
-        }
+
+            refreshMessagePosition(m_lastMoveImage = pos);
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
@@ -516,32 +548,23 @@ void GLWidget::Select(int mode, bool saveInfos)
     }
 }
 
-void GLWidget::undo() // TODO --> manager SelectHistory
-{
-    if (_infos.size() && hasDataLoaded())
+void GLWidget::applyInfos(QVector <selectInfos> &vInfos) // TODO --> manager SelectHistory
+{   
+    if (hasDataLoaded())
     {
-        if ((!m_bDisplayMode2D) || (_infos.size() == 1))
-            Select(ALL, false);
-
-        for (int aK = 0; aK < _infos.size()-1; ++aK)
+        for (int aK = 0; aK < vInfos.size() ; aK++)
         {
-            selectInfos &infos = _infos[aK];
-
             cPolygon Polygon;
             Polygon.setClosed(true);
-            //Polygon.setVector(infos.poly); // TODO --> implementer setVector(QVector<QPointF>)
+            Polygon.setVector(vInfos[aK].poly);
             m_GLData->setPolygon(Polygon);
 
             if (!m_bDisplayMode2D)
-            {
-                _matrixManager.importMatrices(infos);
-                m_bFirstAction = (aK==0);
-            }
 
-            Select(infos.selection_mode, false);
+                _matrixManager.importMatrices(vInfos[aK]);
+
+            Select(vInfos[aK].selection_mode, false);
         }
-
-        _infos.pop_back();
     }
 }
 
@@ -572,6 +595,8 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
 
     clearPolyline();
 
+    setOption(cGLData::OpShow_Mess,showMessage);
+
     if (!m_bDisplayMode2D)
     {
         setOption(cGLData::OpShow_Ball, m_interactionMode == TRANSFORM_CAMERA);
@@ -585,8 +610,8 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
             setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams,false);
         }
     }
-
-    setOption(cGLData::OpShow_Mess,showMessage);
+//    else
+//        refreshMessagePosition(m_lastPosImage); //TODO: debugger
 
     if (zoomfit) zoomFit();
 
