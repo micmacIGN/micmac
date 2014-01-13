@@ -798,6 +798,12 @@ void cPolygon::showNames(bool show)
         _points[aK].showName(show);
 }
 
+void cPolygon::translate(QPointF Tr)
+{
+    for (int aK=0; aK < _points.size(); ++aK)
+        _points[aK] += Tr;
+}
+
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
 {
     QPointF p2(segB.x() - segA.x(), segB.y() - segA.y());
