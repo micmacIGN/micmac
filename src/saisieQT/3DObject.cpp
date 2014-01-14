@@ -530,6 +530,12 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor p
     setLineWidth(lineWidth);
 }
 
+cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
+    _bPolyIsClosed(isClosed)
+{
+    setVector(points);
+}
+
 cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineColor(lineColor),
     _idx(-1),
@@ -1500,9 +1506,17 @@ HistoryManager::HistoryManager():
 
 void HistoryManager::push_back(selectInfos &infos)
 {
-    _actionIdx++;
+    int sz = _infos.size();
+
+    if (_actionIdx < sz)
+    {
+        for (int aK=_actionIdx; aK < sz; ++aK)
+            _infos.pop_back();
+    }
 
     _infos.push_back(infos);
+
+    _actionIdx++;
 }
 
 
