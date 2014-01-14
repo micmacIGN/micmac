@@ -27,6 +27,34 @@ enum LINE_STYLE
     LINE_STIPPLE
 };
 
+struct selectInfos
+{
+
+    selectInfos(){}
+    selectInfos(QVector <QPointF> pol,int mode)
+    {
+        poly = pol;
+        selection_mode = mode;
+    }
+    //! polyline infos
+    QVector <QPointF> poly;
+
+    //! selection mode
+    int         selection_mode;
+
+    GLdouble    mvmatrix[16];
+    GLdouble    projmatrix[16];
+    GLint       glViewport[4];
+};
+
+//! Selection mode
+enum SELECTION_MODE { SUB,
+                      ADD,
+                      INVERT,
+                      ALL,
+                      NONE
+                    };
+
 class cObject
 {
     public:
@@ -530,7 +558,9 @@ public:
 
     QImage*     getMask(){return pQMask;}
 
-    void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
+    void        setPolygon(cPolygon const &aPoly){ m_polygon = aPoly; }
+
+    void        clearPolygon(){ m_polygon.clear(); }
 
     bool        isNewMask()
     {
@@ -593,6 +623,32 @@ private:
     float       _diam;
     Pt3dr       _center;
 
+};
+
+class HistoryManager
+{
+public:
+
+    HistoryManager();
+
+    void    push_back(selectInfos &infos);
+
+    //! Get the selection infos stack
+    QVector <selectInfos> & getSelectInfos(){ return _infos; }
+
+    int    getActionIdx(){ return _actionIdx; }
+
+    int    size(){ return _infos.size(); }
+
+    void   reset();
+    void   undo() { _actionIdx--; }
+
+private:
+    //! selection infos stack
+    QVector <selectInfos> _infos;
+
+    //! current action index
+    int        _actionIdx;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(cGLData::options)

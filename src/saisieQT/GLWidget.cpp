@@ -133,58 +133,61 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     }
     else
     {
-        switch(event->key())
+        if (hasDataLoaded())
         {
-        case Qt::Key_Escape:
-            clearPolyline();
-            break;
-        case Qt::Key_1:
-            zoomFactor(100);
-            break;
-        case Qt::Key_2:
-            zoomFactor(200);
-            break;
-        case Qt::Key_4:
-            zoomFactor(400);
-            break;
-        case Qt::Key_9:
-            zoomFit();
-            break;
-        case Qt::Key_G:
-            m_GLData->glMaskedImage._m_image->incGamma(0.2f);
-            break;
-        case Qt::Key_H:
-            m_GLData->glMaskedImage._m_image->incGamma(-0.2f);
-            break;
-        case Qt::Key_J:
-            m_GLData->glMaskedImage._m_image->setGamma(1.0f);
-            break;
-        case Qt::Key_Plus:
-            if (m_bDisplayMode2D)
+            switch(event->key())
             {
-                m_lastClickZoom = m_lastPosWindow;
-                setZoom(_params.m_zoom*1.5f);
+            case Qt::Key_Escape:
+                m_GLData->clearPolygon();
+                break;
+            case Qt::Key_1:
+                zoomFactor(100);
+                break;
+            case Qt::Key_2:
+                zoomFactor(200);
+                break;
+            case Qt::Key_4:
+                zoomFactor(400);
+                break;
+            case Qt::Key_9:
+                zoomFit();
+                break;
+            case Qt::Key_G:
+                m_GLData->glMaskedImage._m_image->incGamma(0.2f);
+                break;
+            case Qt::Key_H:
+                m_GLData->glMaskedImage._m_image->incGamma(-0.2f);
+                break;
+            case Qt::Key_J:
+                m_GLData->glMaskedImage._m_image->setGamma(1.0f);
+                break;
+            case Qt::Key_Plus:
+                if (m_bDisplayMode2D)
+                {
+                    m_lastClickZoom = m_lastPosWindow;
+                    setZoom(_params.m_zoom*1.5f);
+                }
+                else
+                    _params.ptSizeUp(true);
+                break;
+            case Qt::Key_Minus:
+                if (m_bDisplayMode2D)
+                {
+                    m_lastClickZoom = m_lastPosWindow;
+                    setZoom(_params.m_zoom/1.5f);
+                }
+                else
+                    _params.ptSizeUp(false);
+                break;
+            case Qt::Key_W:
+                    setCursor(Qt::SizeAllCursor);
+                    polygon().helper()->clear();
+                    polygon().setSelected(true);
+                break;
+            default:
+                event->ignore();
+                break;
             }
-            else
-                _params.ptSizeUp(true);
-            break;
-        case Qt::Key_Minus:
-            if (m_bDisplayMode2D)
-            {
-                m_lastClickZoom = m_lastPosWindow;
-                setZoom(_params.m_zoom/1.5f);
-            }
-            else
-                _params.ptSizeUp(false);
-            break;
-        case Qt::Key_W:
-                setCursor(Qt::SizeAllCursor);
-                polygon().helper()->clear();
-                polygon().setSelected(true);
-            break;
-        default:
-            event->ignore();
-            break;
         }
     }
 
@@ -541,37 +544,44 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (mode == ADD || mode == SUB) m_bFirstAction = false;
 
-        if (saveInfos) // TODO --> manager SelectHistory
-        {
-            selectInfos info(polygon().getVector(),mode);
+        selectInfos info(polygon().getVector(),mode);
 
-            _matrixManager.exportMatrices(info);
+        _matrixManager.exportMatrices(info);
 
-            _infos.push_back(info);
-        }
+        _historyManager.push_back(info);
 
-        clearPolyline();
+        m_GLData->clearPolygon();
 
         update();
     }
 }
 
-void GLWidget::applyInfos(QVector <selectInfos> &vInfos) // TODO --> manager SelectHistory
-{   
+void GLWidget::applyInfos()
+{
     if (hasDataLoaded())
     {
-        for (int aK = 0; aK < vInfos.size() ; aK++)
+        int actionIdx = _historyManager.getActionIdx();
+
+        QVector <selectInfos> vInfos = _historyManager.getSelectInfos();
+
+        if (actionIdx < 0 || actionIdx >= vInfos.size()) return;
+
+        _historyManager.reset();
+
+        for (int aK = 0; aK < actionIdx ; aK++)
         {
+            selectInfos &infos = vInfos[aK];
+
             cPolygon Polygon;
             Polygon.setClosed(true);
-            Polygon.setVector(vInfos[aK].poly);
+            Polygon.setVector(infos.poly);
             m_GLData->setPolygon(Polygon);
 
             if (!m_bDisplayMode2D)
 
-                _matrixManager.importMatrices(vInfos[aK]);
+                _matrixManager.importMatrices(infos);
 
-            Select(vInfos[aK].selection_mode, false);
+            Select(infos.selection_mode, false);
         }
     }
 }
@@ -601,7 +611,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
     if (resetMatrix)
         _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
 
-    clearPolyline();
+    if (hasDataLoaded()) m_GLData->clearPolygon();
 
     setOption(cGLData::OpShow_Mess,showMessage);
 
