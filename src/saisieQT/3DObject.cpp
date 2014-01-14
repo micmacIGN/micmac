@@ -1491,3 +1491,21 @@ MessageToDisplay &cMessages2DGL::LastMessage()
 {
     return m_messagesToDisplay.back();
 }
+
+//********************************************************************************
+
+HistoryManager::HistoryManager():
+    _actionIdx(0)
+{}
+
+void HistoryManager::push_back(selectInfos &infos)
+{
+    _infos.push_back(infos);
+    _actionIdx++;
+}
+
+void HistoryManager::reset()
+{
+    _actionIdx = 0;
+    _infos.clear();
+}

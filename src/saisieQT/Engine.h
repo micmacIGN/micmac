@@ -50,36 +50,6 @@ public:
 	float m_speed;
 };
 
-struct selectInfos
-{
-
-    selectInfos(){}
-    selectInfos(QVector <QPointF> pol,int mode)
-    {
-        poly = pol;
-        selection_mode = mode;
-    }
-    //! polyline infos
-    QVector <QPointF> poly;
-
-    //! selection mode
-    int         selection_mode;
-
-    GLdouble    mvmatrix[16];
-    GLdouble    projmatrix[16];
-    GLint       glViewport[4];
-
-
-};
-
-//! Selection mode
-enum SELECTION_MODE { SUB,
-                      ADD,
-                      INVERT,
-                      ALL,
-                      NONE
-                    };
-
 class cLoader
 {
 

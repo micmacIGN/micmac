@@ -388,10 +388,8 @@ void MainWindow::on_actionRemove_triggered()
 }
 
 void MainWindow::on_actionUndo_triggered()
-{   
-    QVector <selectInfos> vInfos = CurrentWidget()->getSelectInfos();
-
-    if (vInfos.size())
+{    
+    if (CurrentWidget()->getHistoryManager()->size())
     {
         if (_bMode2D)
         {
@@ -402,8 +400,8 @@ void MainWindow::on_actionUndo_triggered()
             CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
         }
 
-        vInfos.pop_back();
-        CurrentWidget()->applyInfos(vInfos);
+        CurrentWidget()->getHistoryManager()->undo();
+        CurrentWidget()->applyInfos();
     }
 }
 
@@ -519,7 +517,7 @@ void MainWindow::on_actionSave_as_triggered()
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    _Engine->saveSelectInfos(CurrentWidget()->getSelectInfos());
+    _Engine->saveSelectInfos(CurrentWidget()->getHistoryManager()->getSelectInfos());
 }
 
 void MainWindow::closeAll()

@@ -69,17 +69,7 @@ public:
     //! Apply selection to data
     void Select(int mode, bool saveInfos = true);
 
-    //! Delete current polyline
-    void clearPolyline()
-    {
-        if (hasDataLoaded())
-            m_GLData->m_polygon.clear();
-    }
-
-    //! Get the selection infos stack
-    QVector <selectInfos> getSelectInfos(){return _infos;}
-
-    void applyInfos(QVector <selectInfos> &infos);
+    void applyInfos();
 
     //! Avoid all past actions
     void reset();
@@ -87,10 +77,11 @@ public:
     //! Reset view
     void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true);
 
-    ViewportParameters* getParams(){return &_params;}
+    ViewportParameters* getParams(){ return &_params; }
+    HistoryManager* getHistoryManager(){ return &_historyManager; }
 
-    void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
-    cGLData* getGLData(){return m_GLData;}
+    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
+    cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
     {
@@ -107,6 +98,7 @@ public:
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
     void refreshMessagePosition(QPointF pos);
+
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
@@ -158,9 +150,6 @@ private:
     //! Window parameters (zoom, etc.)
     ViewportParameters _params;
 
-    //! selection infos stack
-    QVector <selectInfos> _infos;
-
     void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
@@ -169,17 +158,18 @@ private:
 
     QTime       _time;
 
-    MatrixManager _matrixManager;
-    cMessages2DGL _messageManager;
+    MatrixManager   _matrixManager;
+    cMessages2DGL   _messageManager;
+    HistoryManager  _historyManager;
 
-    int         _widgetId;
+    int             _widgetId;
 
-    GLWidgetSet* _parentSet;
+    GLWidgetSet*    _parentSet;
 
     QColor      _BGColor0;
     QColor      _BGColor1;
 
-    QPainter*    _painter;
+    QPainter*   _painter;
 };
 
 #endif  /* _GLWIDGET_H */
