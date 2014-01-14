@@ -544,11 +544,14 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (mode == ADD || mode == SUB) m_bFirstAction = false;
 
-        selectInfos info(polygon().getVector(),mode);
+        if (saveInfos)
+        {
+            selectInfos info(polygon().getVector(),mode);
 
-        _matrixManager.exportMatrices(info);
+            _matrixManager.exportMatrices(info);
 
-        _historyManager.push_back(info);
+            _historyManager.push_back(info);
+        }
 
         m_GLData->clearPolygon();
 
@@ -564,9 +567,7 @@ void GLWidget::applyInfos()
 
         QVector <selectInfos> vInfos = _historyManager.getSelectInfos();
 
-        if (actionIdx < 0 || actionIdx >= vInfos.size()) return;
-
-        _historyManager.reset();
+        if (actionIdx < 0 || actionIdx > vInfos.size()) return;
 
         for (int aK = 0; aK < actionIdx ; aK++)
         {

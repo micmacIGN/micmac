@@ -387,29 +387,6 @@ void MainWindow::on_actionRemove_triggered()
     CurrentWidget()->Select(SUB);
 }
 
-void MainWindow::on_actionUndo_triggered()
-{    
-    if (CurrentWidget()->getHistoryManager()->size())
-    {
-        if (_bMode2D)
-        {
-            int idx = CurrentWidgetIdx();
-
-            _Engine->reloadImage(idx);
-
-            CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
-        }
-
-        CurrentWidget()->getHistoryManager()->undo();
-        CurrentWidget()->applyInfos();
-    }
-}
-
-void MainWindow::on_actionRedo_triggered()
-{
-
-}
-
 void MainWindow::on_actionSetViewTop_triggered()
 {
     if (!_bMode2D)
@@ -625,4 +602,22 @@ void MainWindow::on_action2D_3D_mode_triggered()
 void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
+}
+
+void MainWindow::undo(bool undo)
+{
+    if (CurrentWidget()->getHistoryManager()->size())
+    {
+        if (_bMode2D)
+        {
+            int idx = CurrentWidgetIdx();
+
+            _Engine->reloadImage(idx);
+
+            CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+        }
+
+        undo ? CurrentWidget()->getHistoryManager()->undo() : CurrentWidget()->getHistoryManager()->redo();
+        CurrentWidget()->applyInfos();
+    }
 }
