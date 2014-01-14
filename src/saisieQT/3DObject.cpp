@@ -1500,12 +1500,11 @@ HistoryManager::HistoryManager():
 
 void HistoryManager::push_back(selectInfos &infos)
 {
-    _infos.push_back(infos);
     _actionIdx++;
+
+    _infos.push_back(infos);
 }
 
-void HistoryManager::reset()
-{
-    _actionIdx = 0;
-    _infos.clear();
-}
+
+
+

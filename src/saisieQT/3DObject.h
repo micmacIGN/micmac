@@ -634,14 +634,15 @@ public:
     void    push_back(selectInfos &infos);
 
     //! Get the selection infos stack
-    QVector <selectInfos> & getSelectInfos(){ return _infos; }
+    QVector <selectInfos> getSelectInfos(){ return _infos; }
 
     int    getActionIdx(){ return _actionIdx; }
 
     int    size(){ return _infos.size(); }
 
-    void   reset();
-    void   undo() { _actionIdx--; }
+    void   undo() { if (_actionIdx > 0)  _actionIdx--; }
+
+    void   redo() { if (_actionIdx < _infos.size()) _actionIdx++; }
 
 private:
     //! selection infos stack
