@@ -230,6 +230,7 @@ class cPolygon : public cObjectGL
     public:
 
         cPolygon(QPainter* painter = NULL, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+        cPolygon(QVector <QPointF> points, bool isClosed);
 
         void    draw();
 
@@ -638,11 +639,13 @@ public:
 
     int    getActionIdx(){ return _actionIdx; }
 
-    int    size(){ return _infos.size(); }
+    int    size() { return _infos.size(); }
 
     void   undo() { if (_actionIdx > 0)  _actionIdx--; }
 
     void   redo() { if (_actionIdx < _infos.size()) _actionIdx++; }
+
+    void   reset(){ _actionIdx = 0; _infos.clear(); }
 
 private:
     //! selection infos stack

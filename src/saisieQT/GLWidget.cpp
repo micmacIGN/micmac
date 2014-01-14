@@ -573,10 +573,7 @@ void GLWidget::applyInfos()
         {
             selectInfos &infos = vInfos[aK];
 
-            cPolygon Polygon;
-            Polygon.setClosed(true);
-            Polygon.setVector(infos.poly);
-            m_GLData->setPolygon(Polygon);
+            m_GLData->setPolygon(cPolygon(infos.poly, true));
 
             if (!m_bDisplayMode2D)
 
@@ -599,6 +596,7 @@ void GLWidget::setOption(QFlags<cGLData::Option> option,bool show)
 void GLWidget::reset()
 {
     _params.reset();
+    _historyManager.reset();
 
     m_bFirstAction = true;
 
