@@ -4,7 +4,7 @@
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
-GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
+GLWidget::GLWidget(int idx, GLWidgetSet<GLWidget> *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_GLData(NULL)
@@ -33,7 +33,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     QGLFormat tformGL(QGL::SampleBuffers);
     tformGL.setSamples(16);
-    setFormat(tformGL);
+    setFormat(tformGL); 
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -76,6 +76,13 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
             dynMess.message = "fps: " + QString::number(fps,'f',1);
     }
 }
+
+/*void GLWidget::testAuto()
+{
+    cout << "position image : " << m_lastPosImage.x() << " "  << m_lastPosImage.y() << endl;
+
+    //m_GLData->glMaskedImage._m_image
+}*/
 
 void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
@@ -128,7 +135,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 {
     if(event->modifiers().testFlag(Qt::ControlModifier))
     {
-        if(event->key() == Qt::Key_1)    zoomFactor(50);
+        if(event->key() == Qt::Key_1)         zoomFactor(50);
         else if(event->key() == Qt::Key_2)    zoomFactor(25);
     }
     else
@@ -248,35 +255,6 @@ void GLWidget::dropEvent(QDropEvent *event)
     event->ignore();
 }
 
-/*void GLWidget::contextMenuEvent(QContextMenuEvent * event)
-{
-    QMenu menu(this);
-
-    if ((event->modifiers() & Qt::ShiftModifier))
-    {
-        menu.addAction("Undo");
-        menu.addAction("Redo");
-        menu.addAction("Refute");
-        menu.addAction("Show names");
-    }
-    else if ((event->modifiers() & Qt::ControlModifier))
-    {
-        menu.addAction("AllW");
-        menu.addAction("ThisW");
-        menu.addAction("ThisP");
-    }
-    else
-    {
-        menu.addAction("Validate");
-        menu.addAction("Dubious");
-        menu.addAction("Refuted");
-        menu.addAction("Highlight");
-        menu.addAction("Refuted");
-    }
-
-    menu.exec(event->globalPos());
-}*/
-
 void GLWidget::Overlay()
 {
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
@@ -394,7 +372,11 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         {
             if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
             {
+                //if (event->modifiers() & Qt::ControlModifier)
 
+                   // testAuto();
+
+                //else
                 if(!polygon().isClosed())             // ADD POINT
 
                     polygon().addPoint(m_lastPosImage);
@@ -430,7 +412,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     {
         polygon().finalMovePoint(); //ne pas factoriser
 
-        polygon().findNearestPoint(m_lastPosImage);
+        polygon().getNearest(m_lastPosImage);
 
         update();
     }
@@ -633,4 +615,95 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
     if (zoomfit) zoomFit();
 
     update();
+}
+
+
+MyGLWidget::MyGLWidget(int idx, GLWidgetSet<MyGLWidget> *theSet, const QGLWidget *shared) : GLWidget(idx, theSet, shared)
+{
+    QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
+
+    _validate  = new QAction(QIcon(IconFolder + "smile.ico"),           tr("Validate"), this);
+    _dubious   = new QAction(QIcon(IconFolder + "interrogation.ico"),   tr("Dubious") , this);
+    _refuted   = new QAction(QIcon(IconFolder + "refuted.ico"),         tr("Refuted") , this);
+    _highLight = new QAction(QIcon(IconFolder + "HL.ico"),              tr("Highlight"), this);
+    _noSaisie  = new QAction(QIcon(IconFolder + "vide.ico"),            tr("Not captured"), this);
+
+    _signalMapper = new QSignalMapper (this);
+
+    connect(_validate,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_dubious,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_refuted,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    connect(_noSaisie,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+
+    connect(_highLight,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+
+    _signalMapper->setMapping (_validate,  NS_SaisiePts::eEPI_Valide);
+    _signalMapper->setMapping (_dubious,   NS_SaisiePts::eEPI_Douteux);
+    _signalMapper->setMapping (_refuted,   NS_SaisiePts::eEPI_Refute);
+    _signalMapper->setMapping (_noSaisie,  NS_SaisiePts::eEPI_NonSaisi);
+    _signalMapper->setMapping (_highLight, -1);
+
+    connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(setPointState(int)));
+}
+
+void MyGLWidget::setGLData(cGLData *aData, bool showMessage, bool doZoom)
+{
+    GLWidget::setGLData(aData, showMessage, doZoom);
+
+    if (hasDataLoaded()) polygon().showPolygon(false);
+}
+
+void MyGLWidget::contextMenuEvent(QContextMenuEvent * event)
+{
+    QMenu menu(this);
+
+    if ((event->modifiers() & Qt::ShiftModifier))
+    {
+        menu.addAction("Refute");
+        menu.addAction("Show names");
+    }
+    else if ((event->modifiers() & Qt::ControlModifier))
+    {
+        menu.addAction("AllW");
+        menu.addAction("ThisW");
+        menu.addAction("ThisP");
+    }
+    else
+    {
+        //TODO: gerer le mode SaisieAppuis / SaisieMasque
+
+        //if (!m_GLData->m_polygon.isPolygonShown()) //TODO: remplacer
+        {
+            menu.addAction(_validate);
+            menu.addAction(_dubious);
+            menu.addAction(_refuted);
+            menu.addAction(_noSaisie);
+            menu.addAction(_highLight);
+        }
+    }
+
+    menu.exec(event->globalPos());
+}
+
+void MyGLWidget::setPointState(int state)
+{
+    polygon().setNearestPointState(m_lastPosImage, state);
+}
+
+void MyGLWidget::mousePressEvent(QMouseEvent *event)
+{
+    if(hasDataLoaded())
+    {
+        m_lastPosWindow = event->pos();
+
+        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom) : m_lastPosWindow;
+
+        if (event->button() == Qt::LeftButton)
+
+            polygon().addPoint(m_lastPosImage);
+
+        else if (event->button() == Qt::MiddleButton)
+
+            m_lastClickZoom = m_lastPosWindow; //TODO: est-ce qu'il faut le garder ??
+    }
 }

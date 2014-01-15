@@ -16,6 +16,7 @@
 
 #include "Engine.h"
 #include "GLWidgetSet.h"
+#include "GLWidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -24,7 +25,7 @@ class MainWindow;
 const QColor colorBG0(65,65,60);
 const QColor colorBG1(120,115,115);
 
-class MainWindow : public QMainWindow, public GLWidgetSet
+class MainWindow : public QMainWindow, public GLWidgetSet<GLWidget>
 {
     Q_OBJECT
 

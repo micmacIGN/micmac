@@ -1,11 +1,11 @@
-#ifndef GLWIDGETGRID_H
-#define GLWIDGETGRID_H
+#ifndef GLWIDGETSET_H
+#define GLWIDGETSET_H
 
-#include "GLWidget.h"
 #include <QVector>
+#include <QColor>
+#include <iostream>
 
-class GLWidget;
-
+template<class T>
 class GLWidgetSet
 {
 public:
@@ -13,18 +13,18 @@ public:
     ~GLWidgetSet();
 
     void setCurrentWidgetIdx(uint aK);
-    uint CurrentWidgetIdx(){return _currentWidget;}
+    uint CurrentWidgetIdx(){ return _currentWidget; }
 
-    GLWidget* getWidget(uint aK){return _Widgets[aK];}
+    T* getWidget(uint aK){ return _Widgets[aK]; }
 
-    GLWidget* CurrentWidget(){return _Widgets[_currentWidget];}
+    T* CurrentWidget(){ return _Widgets[_currentWidget]; }
 
-    uint NbWidgets() const {return (uint) _Widgets.size();}
+    uint NbWidgets() const { return (uint) _Widgets.size(); }
 
 private:
 
-    QVector <GLWidget*>  _Widgets;
-    uint                 _currentWidget;
+    QVector <T*>  _Widgets;
+    uint          _currentWidget;
 };
 
-#endif // GLWIDGETGRID_H
+#endif // GLWIDGETSET_H

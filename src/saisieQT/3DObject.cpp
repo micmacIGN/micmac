@@ -468,11 +468,15 @@ cPoint::cPoint(QPainter * painter, QPointF pos, QString name,
                QColor color, QColor selectionColor,
                float diameter,
                bool isSelected,
-               bool showName):
+               bool showName,
+               int state,
+               bool highlight):
     QPointF(pos),
     _diameter(diameter),
     _bShowName(showName),
     _name(name),
+    _state(state),
+    _highlight(highlight),
     _selectionColor(selectionColor),
     _painter(painter)
 {
@@ -486,33 +490,65 @@ void cPoint::draw()
      {
          QPen penline(isSelected() ? _selectionColor : _color);
          penline.setCosmetic(true);
-        _painter->setPen(penline);
+         _painter->setPen(penline);
 
-        QPointF pt = _painter->transform().map((QPointF)*this);
+         QPointF pt = _painter->transform().map((QPointF)*this);
 
-        _painter->setWorldMatrixEnabled(false);
+         _painter->setWorldMatrixEnabled(false);
 
-        _painter->drawEllipse(pt, _diameter, _diameter);
+         switch(_state)
+         {
+              case   NS_SaisiePts::eEPI_NonSaisi :
+                     _painter->setPen(Qt::yellow);
+              break;
 
-        if ((_bShowName) && (_name != ""))
-        {        
+              case   NS_SaisiePts::eEPI_Refute :
+                     _painter->setPen(Qt::red);
+              break;
 
-            QFontMetrics metrics = QFontMetrics(_font);
-            int border = (float) qMax(4, metrics.leading());
+              case   NS_SaisiePts::eEPI_Douteux :
+                    _painter->setPen(QColor(255, 127, 0, 255) );
+              break;
 
-            QRect rect = QFontMetrics(_font).boundingRect(_name);
+              case NS_SaisiePts::eEPI_Valide :
+                     _painter->setPen(Qt::green);
+              break;
 
-            QRect rectg(pt.x()-border, pt.y()-border, rect.width()+border, rect.height()+border);
-            rectg.translate(QPoint(10, -rectg.height()-5));
+              case  NS_SaisiePts::eEPI_Disparu :
+             //TODO
+              break;
 
-            _painter->setPen(isSelected() ? Qt::black : Qt::white);
-            _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
-            _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
-        }
+              case NS_SaisiePts::eEPI_NonValue :
+              break;
+         }
+
+         _painter->drawEllipse(pt, _diameter, _diameter);
+         if (_highlight) _painter->drawEllipse(pt, _diameter + 5, _diameter + 5);
+
+
+         if ((_bShowName) && (_name != ""))
+         {
+
+             QFontMetrics metrics = QFontMetrics(_font);
+             int border = (float) qMax(4, metrics.leading());
+
+             QRect rect = QFontMetrics(_font).boundingRect(_name);
+
+             QRect rectg(pt.x()-border, pt.y()-border, rect.width()+border, rect.height()+border);
+             rectg.translate(QPoint(10, -rectg.height()-5));
+
+             _painter->setPen(isSelected() ? Qt::black : Qt::white);
+             _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
+             _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
+         }
 
          _painter->setWorldMatrixEnabled(true);
-    }
+     }
 }
+
+//********************************************************************************
+
+float cPolygon::_sqr_radius = 2500.f;
 
 cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this,lineWidth, painter)),
@@ -520,7 +556,6 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor p
     _idx(-1),
     _painter(painter),
     _pointSize(6.f),
-    _sqr_radius(2500.f),
     _bPolyIsClosed(false),
     _bSelectedPoint(false),
     _bShowPolygon(true),
@@ -541,7 +576,6 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _idx(-1),
     _painter(painter),
     _pointSize(6.f),
-    _sqr_radius(2500.f),
     _bPolyIsClosed(false),
     _bSelectedPoint(false),
     _bShowPolygon(true),
@@ -626,7 +660,7 @@ void cPolygon::removeNearestOrClose(QPointF pos)
     {
         removePoint(_idx);   // remove nearest point
 
-        findNearestPoint(pos);
+        getNearest(pos);
 
         if (size() < 3)
             setClosed(false);
@@ -720,14 +754,14 @@ void cPolygon::resetSelectedPoint()
     _idx = -1;
 }
 
-void cPolygon::findNearestPoint(QPointF const &pos)
+void cPolygon::getNearest(QPointF const &pos, float aSeuil)
 {
     if (_bPolyIsClosed)
     {
         resetSelectedPoint();
 
         float dist, dist2, x, y, dx, dy;
-        dist2 = _sqr_radius;
+        dist2 = aSeuil;
         x = pos.x();
         y = pos.y();
 
@@ -747,7 +781,25 @@ void cPolygon::findNearestPoint(QPointF const &pos)
 
         if (_idx >=0 && _idx <_points.size())
             _points[_idx].setSelected(true);
-     }
+    }
+}
+
+void cPolygon::setNearestPointState(const QPointF &pos, int state)
+{
+    getNearest(pos, 400000.f);
+
+    if (_idx >=0 && _idx <_points.size())
+    {
+        if (state > 0)
+            _points[_idx].setState(state);
+        else if (state == NS_SaisiePts::eEPI_NonValue)
+        {
+            //TODO: cWinIm l.661
+            _points.remove(_idx);
+        }
+        else
+            _points[_idx].highlight();
+    }
 }
 
 cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor, QColor pointColor):
@@ -776,7 +828,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
 
         else                                // select nearest polygon point
 
-            findNearestPoint(pos);
+            getNearest(pos);
     }
 }
 

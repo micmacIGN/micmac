@@ -13,6 +13,8 @@
 
 #include "GL/glu.h"
 
+#include "../uti_phgrm/SaisiePts/cParamSaisiePts.h"
+
 #define QMaskedImage cMaskedImage<QImage>
 
 //! Interaction mode (only in 3D)
@@ -116,18 +118,25 @@ class cPoint : public cObjectGL, public QPointF
            QColor selectionColor = Qt::blue,
            float diameter = 3.f,
            bool isSelected = false,
-           bool showName = false
+           bool showName = false,
+           int  state = NS_SaisiePts::eEPI_NonValue,
+           bool highlight = false
            );
 
         void draw();
 
-        void setName(QString name){_name = name;}
-        void showName(bool show){_bShowName = show;}
+        void setName(QString name){ _name = name; }
+        void setState(int state){ _state = state; }
+        void showName(bool show){ _bShowName = show; }
+
+        void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
 
 private:
         float   _diameter;
         bool    _bShowName;
         QString _name;
+        int     _state;
+        bool    _highlight;
 
         QColor  _selectionColor;
 
@@ -238,7 +247,9 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        void    findNearestPoint(const QPointF &pos);
+        void    getNearest(const QPointF &pos, float aSeuil = _sqr_radius);
+
+        void    setNearestPointState(const  QPointF &pos, int state);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
 
@@ -289,7 +300,8 @@ class cPolygon : public cObjectGL
 
         void    showNames(bool show = true);
 
-        void    showPolygon(bool showPolygon = true){_bShowPolygon = showPolygon;}
+        void    showPolygon(bool showPolygon = true){_bShowPolygon = showPolygon; }
+        bool    isPolygonShown(){ return _bShowPolygon; }
 
         void    translate(QPointF Tr);
 
@@ -308,7 +320,7 @@ class cPolygon : public cObjectGL
 
     private:
         float               _pointSize;
-        float               _sqr_radius;
+        static float        _sqr_radius;
 
         //!states if polygon is closed
         bool                _bPolyIsClosed;
@@ -612,7 +624,7 @@ public:
 
     void        setOption(QFlags<Option> option,bool show);
 
-    bool stateOption(QFlags<Option> option){return _options & option; }
+    bool        stateOption(QFlags<Option> option){return _options & option; }
 
 private:
 
@@ -625,6 +637,8 @@ private:
     Pt3dr       _center;
 
 };
+
+//====================================================================================
 
 class HistoryManager
 {
