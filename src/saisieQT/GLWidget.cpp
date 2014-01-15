@@ -544,11 +544,14 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (mode == ADD || mode == SUB) m_bFirstAction = false;
 
-        selectInfos info(polygon().getVector(),mode);
+        if (saveInfos)
+        {
+            selectInfos info(polygon().getVector(),mode);
 
-        _matrixManager.exportMatrices(info);
+            _matrixManager.exportMatrices(info);
 
-        _historyManager.push_back(info);
+            _historyManager.push_back(info);
+        }
 
         m_GLData->clearPolygon();
 
@@ -564,18 +567,13 @@ void GLWidget::applyInfos()
 
         QVector <selectInfos> vInfos = _historyManager.getSelectInfos();
 
-        if (actionIdx < 0 || actionIdx >= vInfos.size()) return;
-
-        _historyManager.reset();
+        if (actionIdx < 0 || actionIdx > vInfos.size()) return;
 
         for (int aK = 0; aK < actionIdx ; aK++)
         {
             selectInfos &infos = vInfos[aK];
 
-            cPolygon Polygon;
-            Polygon.setClosed(true);
-            Polygon.setVector(infos.poly);
-            m_GLData->setPolygon(Polygon);
+            m_GLData->setPolygon(cPolygon(infos.poly, true));
 
             if (!m_bDisplayMode2D)
 
@@ -598,6 +596,7 @@ void GLWidget::setOption(QFlags<cGLData::Option> option,bool show)
 void GLWidget::reset()
 {
     _params.reset();
+    _historyManager.reset();
 
     m_bFirstAction = true;
 
