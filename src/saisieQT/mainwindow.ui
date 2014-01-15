@@ -131,9 +131,9 @@ QStatusBar
     <addaction name="actionSelect_none"/>
     <addaction name="actionReset"/>
     <addaction name="actionInvertSelected"/>
+    <addaction name="separator"/>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
-    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
