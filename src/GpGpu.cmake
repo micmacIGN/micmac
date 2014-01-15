@@ -4,7 +4,8 @@
 
  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20 -use_fast_math)
  #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -gencode=arch=compute_20,code=compute_20)
-set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
+#set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
+set(GENCODE_SM20 -gencode=arch=compute_35,code=sm_35 )
   #set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20)
 
  set(libStatGpGpuTools GpGpuTools)

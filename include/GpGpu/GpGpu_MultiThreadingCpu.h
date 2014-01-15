@@ -238,9 +238,9 @@ void CSimpleJobCpuGpu<T>::KillJob()
             _gpGpuThread = NULL;
         }
     }
-    _mutexCompu.unlock();
-    _mutexCopy.unlock();
-    _mutexPreCompute.unlock();
+//    _mutexCompu.unlock();
+ //   _mutexCopy.unlock();
+ //   _mutexPreCompute.unlock();
 }
 
 template< class T >
