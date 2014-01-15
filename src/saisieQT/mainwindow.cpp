@@ -85,7 +85,7 @@ void MainWindow::connectActions()
 
 void MainWindow::createMenus()
 {
-    _RFMenu = new QMenu(tr("Recent files"), this);
+    _RFMenu = new QMenu(tr("&Recent files"), this);
 
     _ui->menuFile->insertMenu(_ui->actionSave_selection, _RFMenu);
     _ui->menuFile->insertSeparator(_ui->actionSave_selection);
@@ -121,8 +121,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
-        _FilenamesIn = filenames;
-
         for (int i=0; i< filenames.size();++i)
         {
             QFile Fout(filenames[i]);
@@ -197,7 +195,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             _Engine->setFilenamesOut();
         }
 
-        _Engine->AllocAndSetGLData();
+        _Engine->allocAndSetGLData();
         for (uint aK = 0; aK < NbWidgets();++aK)
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
 
@@ -214,11 +212,11 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        CurrentWidget()->showBall(state);
+        CurrentWidget()->setOption(cGLData::OpShow_Ball,state);
 
-        if (state)
+        if (state && _ui->actionShow_axis->isChecked())
         {
-            CurrentWidget()->showAxis(!state);
+            CurrentWidget()->setOption(cGLData::OpShow_BBox,!state);
             _ui->actionShow_axis->setChecked(!state);
         }
     }
@@ -227,18 +225,18 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
     if(!_bMode2D)
-        CurrentWidget()->showBBox(state);
+        CurrentWidget()->setOption(cGLData::OpShow_BBox,state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        CurrentWidget()->showAxis(state);
+        CurrentWidget()->setOption(cGLData::OpShow_Axis,state);
 
-        if (state)
+        if (state && _ui->actionShow_ball->isChecked())
         {
-            CurrentWidget()->showBall(!state);
+            CurrentWidget()->setOption(cGLData::OpShow_Ball,!state);
             _ui->actionShow_ball->setChecked(!state);
         }
     }
@@ -247,33 +245,18 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 void MainWindow::on_actionShow_cams_toggled(bool state)
 {
     if (!_bMode2D)
-        CurrentWidget()->showCams(state);
+        CurrentWidget()->setOption(cGLData::OpShow_Cams,state);
 }
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    CurrentWidget()->constructMessagesList(state);
+    CurrentWidget()->setOption(cGLData::OpShow_Mess,state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
     if (!_bMode2D)
-    {
-        GLWidget *widget = CurrentWidget();
-
-        widget->setInteractionMode(mode ? GLWidget::SELECTION : GLWidget::TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
-
-        widget->showBall(mode ? GLWidget::TRANSFORM_CAMERA : GLWidget::SELECTION && _Engine->getData()->isDataLoaded());
-        widget->showAxis(false);
-
-        if (mode == GLWidget::SELECTION)
-        {
-            widget->showCams(false);
-            widget->showBBox(false);
-        }
-
-        widget->update();
-    }
+        CurrentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 }
 
 void MainWindow::on_actionHelpShortcuts_triggered()
@@ -300,6 +283,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text += "F6: \t"+tr("show cameras") +"\n";
     }
     text += "F7: \t"+tr("show messages") +"\n";
+    text += "F8: \t"+tr("2D mode / 3D mode") +"\n";
 
     if (!_bMode2D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
@@ -314,16 +298,16 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text+= "Ctrl+4: \tzoom 25%\n";
     }
 
-    text += "Shift+R: \t"+tr("reset view") +"\n";
-    text += "F8: \t"+tr("2D mode / 3D mode") +"\n\n";
+    text += "Shift+R: \t"+tr("reset view") +"\n\n";
+
 
     text += tr("Selection menu:") +"\n\n";
     if (!_bMode2D)
     {
-        text += "F9: \t"+tr("move mode / selection mode") +"\n\n";
+        text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
     }
     text += tr("Left click : \tadd a vertex to polyline") +"\n";
-    text += tr("Right click: \tclose polyline") +"\n";
+    text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
     text += tr("Echap: \tdelete polyline") +"\n";
     if (!_bMode2D)
     {
@@ -336,22 +320,24 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text += tr("Del: \tremove pixels inside polyline") +"\n";
     }
     text += tr("Shift+click: \tinsert vertex in polyline") +"\n";
+    text += tr("Ctrl+right click: remove last vertex") +"\n";
     text += tr("Drag & drop: move polyline vertex") +"\n";
-    text += tr("Right click: \tdelete polyline vertex") +"\n";
     text += "Ctrl+A: \t"+tr("select all") +"\n";
     text += "Ctrl+D: \t"+tr("select none") +"\n";
     text += "Ctrl+R: \t"+tr("reset") +"\n";
     text += "Ctrl+I: \t"+tr("invert selection") +"\n";
     text += "Ctrl+Z: \t"+tr("undo last selection") +"\n";
 
-    QMessageBox::information(NULL, tr("Saisie - shortcuts"), text);
+    QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
+    msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
+    msgbox.exec();
 }
 
 void MainWindow::on_actionAbout_triggered()
 {
     QFont font("Courier New", 9, QFont::Normal);
 
-    QMessageBox msgbox(QMessageBox::Information, tr("Saisie"),QString(getBanniereMM3D().c_str()));
+    QMessageBox msgbox(QMessageBox::NoIcon, tr("Saisie"),QString(getBanniereMM3D().c_str()));
     msgbox.setFont(font);
 
     //trick to enlarge QMessageBox...
@@ -388,7 +374,7 @@ void MainWindow::on_actionReset_triggered()
     {
         closeAll();
 
-        addFiles(_FilenamesIn);
+        addFiles(_Engine->getFilenamesIn());
     }
     else
     {
@@ -399,14 +385,6 @@ void MainWindow::on_actionReset_triggered()
 void MainWindow::on_actionRemove_triggered()
 {
     CurrentWidget()->Select(SUB);
-}
-
-void MainWindow::on_actionUndo_triggered()
-{   
-    if (_bMode2D)    
-        CurrentWidget()->setGLData(_Engine->getGLData(CurrentWidgetIdx()),_ui->actionShow_messages,false);
-
-    CurrentWidget()->undo();
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
@@ -447,7 +425,7 @@ void MainWindow::on_actionSetViewRight_triggered()
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    CurrentWidget()->resetView();
+    CurrentWidget()->resetView(true,true,true);
 }
 
 void MainWindow::on_actionZoom_Plus_triggered()
@@ -486,12 +464,14 @@ void MainWindow::on_actionLoad_image_triggered()
 
     if (!img_filename.isEmpty())
     {
-        _FilenamesIn.clear();
-        _FilenamesIn.push_back(img_filename);
+        //TODO: factoriser
+        QStringList & filenames = _Engine->getFilenamesIn();
+        filenames.clear();
+        filenames.push_back(img_filename);
 
         setCurrentFile(img_filename);
 
-        addFiles(_FilenamesIn);
+        addFiles(filenames);
     }
 }
 
@@ -514,7 +494,7 @@ void MainWindow::on_actionSave_as_triggered()
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    _Engine->saveSelectInfos(CurrentWidget()->getSelectInfos());
+    _Engine->saveSelectInfos(CurrentWidget()->getHistoryManager()->getSelectInfos());
 }
 
 void MainWindow::closeAll()
@@ -531,9 +511,9 @@ void MainWindow::openRecentFile()
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
     {
-        _FilenamesIn = QStringList(action->data().toString());
+        _Engine->setFilenamesIn(QStringList(action->data().toString()));
 
-        addFiles(_FilenamesIn);
+        addFiles(_Engine->getFilenamesIn());
     }
 }
 
@@ -622,4 +602,22 @@ void MainWindow::on_action2D_3D_mode_triggered()
 void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
+}
+
+void MainWindow::undo(bool undo)
+{
+    if (CurrentWidget()->getHistoryManager()->size())
+    {
+        if (_bMode2D)
+        {
+            int idx = CurrentWidgetIdx();
+
+            _Engine->reloadImage(idx);
+
+            CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+        }
+
+        undo ? CurrentWidget()->getHistoryManager()->undo() : CurrentWidget()->getHistoryManager()->redo();
+        CurrentWidget()->applyInfos();
+    }
 }

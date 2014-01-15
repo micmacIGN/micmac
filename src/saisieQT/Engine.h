@@ -31,6 +31,12 @@ public:
 
     void    ptSizeUp(bool up);
 
+    void    changeZoom(float DChange)
+    {
+        if      (DChange > 0) m_zoom *= pow(2.f,  DChange *.05f);
+        else if (DChange < 0) m_zoom /= pow(2.f, -DChange *.05f);
+    }
+
     //! Current zoom
     float m_zoom;
 
@@ -44,27 +50,6 @@ public:
 	float m_speed;
 };
 
-struct selectInfos
-{
-    //! polyline infos
-    QVector <QPointF> poly;
-
-    //! selection mode
-    int         selection_mode;
-
-    GLdouble    mvmatrix[16];
-    GLdouble    projmatrix[16];
-    GLint       glViewport[4];
-};
-
-//! Selection mode
-enum SELECTION_MODE { SUB,
-                      ADD,
-                      INVERT,
-                      ALL,
-                      NONE
-                    };
-
 class cLoader
 {
 
@@ -74,7 +59,7 @@ public:
 
     CamStenope* loadCamera(QString aNameFile);
 
-    Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
+    GlCloud*      loadCloud(string i_ply_file , int *incre = NULL);
 
     void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
@@ -86,6 +71,7 @@ public:
     void        setFilenameOut(QString str);
     void        setSelectionFilename();
 
+    QStringList& getFilenamesIn() {return _FilenamesIn;}
     QStringList getFilenamesOut() {return _FilenamesOut;}
     QString     getSelectionFilename() {return _SelectionOut;}
 
@@ -101,58 +87,7 @@ private:
     QDir        _Dir;
 };
 
-// TODO a mettre dans object3d
-class cGLData : cObjectGL
-{
-public:
-
-    cGLData();
-    cGLData(QMaskedImage &qMaskedImage);
-    cGLData(cData *data);
-
-    ~cGLData();
-
-    void        draw();
-
-    bool        is3D(){return Clouds.size() || Cams.size();}
-
-    cMaskedImageGL glMaskedImage;
-
-    QImage      *pQMask;
-
-    //! Point list for polygonal selection
-    cPolygon    m_polygon;
-
-    bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
-
-    QImage*     getMask(){return pQMask;}
-
-    void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
-
-    //3D
-    QVector < cCam* > Cams;
-
-    cBall       *pBall;
-    cAxis       *pAxis;
-    cBBox       *pBbox;
-
-    QVector < Cloud* > Clouds;
-
-    //info coming from cData
-    float       getBBoxMaxSize(){return _diam;}
-    void        setBBoxMaxSize(float aS){_diam = aS;}
-
-    Pt3dr       getBBoxCenter(){return _center;}
-    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;} // TODO a verifier : pourquoi le centre cGLData est initialisé avec BBoxCenter
-
-    void        setGlobalCenter(Pt3dr aCenter);
-
-
-private:
-
-    float       _diam;
-    Pt3dr       _center;
-};
+class cGLData;
 
 class cEngine
 {    
@@ -169,6 +104,8 @@ public:
 
     //! Set input filenames
     void    setFilenamesIn(QStringList const &strl){_Loader->setFilenamesIn(strl);}
+
+    QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
 
     //! Set output filenames
     void    setFilenamesOut(){_Loader->setFilenamesOut();}
@@ -189,7 +126,10 @@ public:
     void    loadImages(QStringList);
 
     //! Load image (and mask) file
-    void    loadImage(QString imgName);
+    void    loadImage(QString );
+    void    loadImage(int aK);
+
+    void    reloadImage(int aK);
 
     void    unloadAll();
 
@@ -206,7 +146,9 @@ public:
     cData*  getData()  {return _Data;}
 
     //!looks for data and creates GLobjects
-    void    AllocAndSetGLData();
+    void    allocAndSetGLData();
+
+    void    reallocAndSetGLData(int aK);
 
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);

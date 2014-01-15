@@ -82,6 +82,8 @@ eTypeMMByP  Str2eTypeMMByP(const std::string & aName)
       return eGround;
    else if (aName=="eStatute")
       return eStatute;
+   else if (aName=="eTestIGN")
+      return eTestIGN;
    else if (aName=="eNbTypeMMByP")
       return eNbTypeMMByP;
   else
@@ -101,6 +103,8 @@ std::string  eToString(const eTypeMMByP & anObj)
       return  "eGround";
    if (anObj==eStatute)
       return  "eStatute";
+   if (anObj==eTestIGN)
+      return  "eTestIGN";
    if (anObj==eNbTypeMMByP)
       return  "eNbTypeMMByP";
  std::cout << "Enum = eTypeMMByP\n";

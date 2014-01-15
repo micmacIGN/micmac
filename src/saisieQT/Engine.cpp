@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "general/bitm.h"
 
 cLoader::cLoader()
  : _FilenamesIn(),
@@ -36,9 +35,9 @@ void cLoader::setSelectionFilename()
     _SelectionOut = _Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
 }
 
-Cloud* cLoader::loadCloud( string i_ply_file, int* incre )
+GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 {
-    return Cloud::loadPly( i_ply_file, incre );
+    return GlCloud::loadPly( i_ply_file, incre );
 }
 
 void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
@@ -51,7 +50,6 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
     QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
 
     setFilenameOut(mask_filename);
-
 
     // TODO factoriser le chargement d'image
     if (maskedImg._m_image->isNull())
@@ -93,7 +91,6 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
     if (QFile::exists(mask_filename))
     {
-
         maskedImg._m_newMask = false;
 
         maskedImg._m_mask = new QImage( mask_filename );
@@ -210,6 +207,11 @@ void cEngine::loadImages(QStringList filenames)
     _Loader->setFilenamesOut();
 }
 
+void  cEngine::loadImage(int aK)
+{
+    loadImage(getFilenamesIn()[aK]);
+}
+
 void  cEngine::loadImage(QString imgName)
 {
     QMaskedImage maskedImg(_Gamma);
@@ -219,11 +221,25 @@ void  cEngine::loadImage(QString imgName)
     _Data->pushBackMaskedImage(maskedImg);
 }
 
+void cEngine::reloadImage(int aK)
+{
+    QString imgName = getFilenamesIn()[aK];
+
+    QMaskedImage maskedImg(_Gamma);
+
+    _Loader->loadImage(imgName, maskedImg);
+
+    if (aK < _Data->getNbImages())
+        _Data->getMaskedImage(aK) = maskedImg;
+
+    reallocAndSetGLData(aK);
+}
+
 void cEngine::do3DMasks()
 {
     CamStenope* pCam;
-    Cloud *pCloud;
-    Vertex vert;
+    GlCloud *pCloud;
+    GlVertex vert;
     Pt2dr ptIm;
 
     for (int cK=0;cK < _Data->getNbCameras();++cK)
@@ -394,7 +410,7 @@ void cEngine::unloadAll()
     _vGLData.clear();
 }
 
-void cEngine::AllocAndSetGLData()
+void cEngine::allocAndSetGLData()
 {
     _vGLData.clear();
 
@@ -403,7 +419,16 @@ void cEngine::AllocAndSetGLData()
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data));
+}
 
+void cEngine::reallocAndSetGLData(int aK)
+{
+    delete _vGLData[aK];
+
+    if (_Data->is3D())
+        _vGLData[aK] = new cGLData(_Data);
+    else
+        _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK));
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)
@@ -416,92 +441,6 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 
 //********************************************************************************
 
-cGLData::cGLData():
-    _diam(1.f){}
-
-cGLData::cGLData(QMaskedImage &qMaskedImage):
-    glMaskedImage(qMaskedImage),
-    pQMask(qMaskedImage._m_mask),
-    pBall(NULL),
-    pAxis(NULL),
-    pBbox(NULL)
-{
-
-}
-
-cGLData::cGLData(cData *data):
-    _diam(1.f)
-{
-    for (int aK = 0; aK < data->getNbClouds();++aK)
-    {
-        Cloud *pCloud = data->getCloud(aK);
-        Clouds.push_back(pCloud);
-        pCloud->setBufferGl();
-    }
-
-    Pt3dr center = data->getBBoxCenter();
-    float scale = data->getBBoxMaxSize() / 1.5f;
-
-    pBall = new cBall(center, scale);
-    pAxis = new cAxis(center, scale);
-    pBbox = new cBBox(center, scale, data->getMin(), data->getMax());
-
-    for (int i=0; i< data->getNbCameras(); i++)
-    {
-        cCam *pCam = new cCam(data->getCamera(i), scale);
-
-        Cams.push_back(pCam);
-    }
-
-    setBBoxMaxSize(data->getBBoxMaxSize());
-    setBBoxCenter(data->getBBoxCenter());
-}
-
-cGLData::~cGLData()
-{
-    glMaskedImage.deallocImages();
-
-   qDeleteAll(Cams);
-    Cams.clear();
-
-    if(pBall != NULL) delete pBall;
-    if(pAxis != NULL) delete pAxis;
-    if(pBbox != NULL) delete pBbox;
-
-   //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
-    Clouds.clear();
-}
-
-void cGLData::draw()
-{
-    enableOptionLine();
-
-    for (int i=0; i<Clouds.size();i++)
-        Clouds[i]->draw();
-
-    pBall->draw();
-    pAxis->draw();
-    pBbox->draw();
-
-    //cameras
-    for (int i=0; i< Cams.size();i++) Cams[i]->draw();
-
-    disableOptionLine();
-}
-
-void cGLData::setGlobalCenter(Pt3d<double> aCenter)
-{
-    setBBoxCenter(aCenter);
-    pBall->setPosition(aCenter);
-    pAxis->setPosition(aCenter);
-    pBbox->setPosition(aCenter);
-
-    for (int aK=0; aK < Clouds.size();++aK)
-       Clouds[aK]->setPosition(aCenter);
-
-}
-
-//********************************************************************************
 
 ViewportParameters::ViewportParameters()
     : m_zoom(1.f)

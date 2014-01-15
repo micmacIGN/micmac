@@ -340,6 +340,9 @@ template <class Type> class  cLoadedCP
         const std::string & NameNuage() {return mNameNuage;}
         Im2D_U_INT1   ImCorrel() {return  mImCorrel;}
 
+        std::string NameMM1P(const std::string aPref);
+        Tiff_Im FileMM1P(const std::string aPref);
+
     private :
 
         cFusionCarteProf<Type>  & mFCP;
@@ -348,6 +351,8 @@ template <class Type> class  cLoadedCP
         double                      mSeuilC;
         cInterfChantierNameManipulateur * mICNM;
 
+        std::string   mFus;
+        std::string   mNameIm;
         std::string   mNameNuage;
         cXML_ParamNuage3DMaille  mNuage;
         cImage_Profondeur        mIP;
@@ -490,6 +495,8 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
   mSeuilC  (mPAlg.FMNTSeuilCorrel()),
   mICNM    (aFCP.ICNM()),
 
+  mFus         (aFus),
+  mNameIm      (StdPrefix(mFus).substr(6,std::string::npos)),
   mNameNuage  (mICNM->Dir()+mICNM->Assoc1To2(mParam.KeyNuage(),anId,aFus,true)),
   mNuage      (StdGetObjFromFile<cXML_ParamNuage3DMaille>
                  (
@@ -545,6 +552,15 @@ template <class Type> void  cLoadedCP<Type>::SetSz(const Pt2di & aSz)
    }
 
 }
+template <class Type> std::string cLoadedCP<Type>::NameMM1P(const std::string aPref)
+{
+    return  mParam.WorkDirPFM().Val() + aPref + "-" +  mNameIm + ".tif";
+}
+
+template <class Type> Tiff_Im cLoadedCP<Type>::FileMM1P(const std::string aPref)
+{
+    return Tiff_Im::StdConv(NameMM1P(aPref));
+}
 
 template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer) 
 {
@@ -565,8 +581,52 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
    ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(),mBoxImCur._p0),mImMasq.out());
    if (mHasCorrel)
    {
-       Tiff_Im aTifCorrel = Tiff_Im::StdConv(mNameCorrel);
-       ELISE_COPY(mImCorrel.all_pts(),trans(aTifCorrel.in(),mBoxImCur._p0),mImCorrel.out());
+       const cSectionScoreQualite  * aSSQ  = mParam.SectionScoreQualite().PtrVal();
+       if (aSSQ)
+       {
+           if (aSSQ->ScoreMM1P().IsInit())
+           {
+               const cScoreMM1P & aSM1P = aSSQ->ScoreMM1P().Val();
+               // std::string aName = StdPrefix(mFus).substr(6,std::string::npos);
+
+               Fonc_Num aF1 =  FileMM1P("Score-AR").in_proj();
+               double aP1 = aSSQ->PdsAR().Val();
+
+               Fonc_Num aF2 = FileMM1P("Dist").in_proj();
+               aF2 = aF2 /  aSSQ->AmplImDistor().Val();
+               aF2  = 255 / (1.0 + aF2 /aSSQ->SeuilDist().Val());
+               double aP2 = aSSQ->PdsDistor().Val();
+
+               Fonc_Num aF3 = FileMM1P("Mask").in_proj();
+               double aD = aSSQ->SeuilDisBord().Val();
+               aF3 = extinc_32(aF3,aD);
+               aF3 = 255 * ( Min(1.0,aF3/aD));
+               double aP3 = aSSQ->PdsDistBord().Val();
+
+               Fonc_Num aFCor = (aF1 * aP1 + aF2*aP2 + aF3*aP3) / (aP1 + aP2 + aP3) ;
+
+               
+
+
+               ELISE_COPY(mImCorrel.all_pts(),trans(aFCor,mBoxImCur._p0),mImCorrel.out());
+               std::cout << "HHHHH " << aSM1P.PdsAR().Val()  << " " << mNameIm << "\n";
+               std::cout << FileMM1P("Depth").sz() << "\n";
+
+               Tiff_Im::Create8BFromFonc
+               (
+                   NameMM1P("Quality"),
+                   FileMM1P("Mask").sz(),
+                   aFCor
+               );
+ getchar();
+               // Tiff
+           }
+       }
+       else
+       {
+           Tiff_Im aTifCorrel = Tiff_Im::StdConv(mNameCorrel);
+           ELISE_COPY(mImCorrel.all_pts(),trans(aTifCorrel.in(),mBoxImCur._p0),mImCorrel.out());
+       }
    }
    return true;
 }

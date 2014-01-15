@@ -64,8 +64,6 @@ class cArgLogCom
 
 const cArgLogCom  cArgLogCom::NoLog(-1);
 
-
-
 // MPD : suspecte un problème d'écrasement mutuel entre processus dans le logfile, inhibe temporairement pour 
 // valider / invalider le diagnostic
 static bool DOLOG_MM3d = true;
@@ -81,7 +79,8 @@ FILE * FileLogMM3d(const std::string & aDir)
         if (aRes ==0)
         {
              int aModulo = 1000;
-             int aPId = getpid();
+             int aPId = mm_getpid();
+
              double aTimeSleep = (aPId%aModulo) / double(aModulo);
              SleepProcess (aTimeSleep);
         }
@@ -100,7 +99,7 @@ void LogTime(FILE * aFp,const std::string & aMes)
   time ( &rawtime );
   timeinfo = localtime ( &rawtime );
 
-  fprintf(aFp," PID : %d ;   %s %s",getpid(),aMes.c_str(),asctime (timeinfo));
+  fprintf(aFp," PID : %d ;   %s %s",mm_getpid(),aMes.c_str(),asctime (timeinfo));
 }
 
 void LogIn(int  argc,char **  argv,const std::string & aDir)

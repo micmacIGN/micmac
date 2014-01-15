@@ -3961,6 +3961,77 @@ cElXMLTree * ToXMLTree(const cSectionName &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cScoreMM1P
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cScoreMM1P & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & PdsAR();
+        const cTplValGesInit< double > & PdsAR()const ;
+
+        cTplValGesInit< double > & PdsDistor();
+        const cTplValGesInit< double > & PdsDistor()const ;
+
+        cTplValGesInit< double > & AmplImDistor();
+        const cTplValGesInit< double > & AmplImDistor()const ;
+
+        cTplValGesInit< double > & SeuilDist();
+        const cTplValGesInit< double > & SeuilDist()const ;
+
+        cTplValGesInit< double > & PdsDistBord();
+        const cTplValGesInit< double > & PdsDistBord()const ;
+
+        cTplValGesInit< double > & SeuilDisBord();
+        const cTplValGesInit< double > & SeuilDisBord()const ;
+    private:
+        cTplValGesInit< double > mPdsAR;
+        cTplValGesInit< double > mPdsDistor;
+        cTplValGesInit< double > mAmplImDistor;
+        cTplValGesInit< double > mSeuilDist;
+        cTplValGesInit< double > mPdsDistBord;
+        cTplValGesInit< double > mSeuilDisBord;
+};
+cElXMLTree * ToXMLTree(const cScoreMM1P &);
+
+class cSectionScoreQualite
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cSectionScoreQualite & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & PdsAR();
+        const cTplValGesInit< double > & PdsAR()const ;
+
+        cTplValGesInit< double > & PdsDistor();
+        const cTplValGesInit< double > & PdsDistor()const ;
+
+        cTplValGesInit< double > & AmplImDistor();
+        const cTplValGesInit< double > & AmplImDistor()const ;
+
+        cTplValGesInit< double > & SeuilDist();
+        const cTplValGesInit< double > & SeuilDist()const ;
+
+        cTplValGesInit< double > & PdsDistBord();
+        const cTplValGesInit< double > & PdsDistBord()const ;
+
+        cTplValGesInit< double > & SeuilDisBord();
+        const cTplValGesInit< double > & SeuilDisBord()const ;
+
+        cTplValGesInit< cScoreMM1P > & ScoreMM1P();
+        const cTplValGesInit< cScoreMM1P > & ScoreMM1P()const ;
+    private:
+        cTplValGesInit< cScoreMM1P > mScoreMM1P;
+};
+cElXMLTree * ToXMLTree(const cSectionScoreQualite &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cFMNtBySort
 {
     public:
@@ -4285,6 +4356,30 @@ class cParamFusionMNT
         cSectionName & SectionName();
         const cSectionName & SectionName()const ;
 
+        cTplValGesInit< double > & PdsAR();
+        const cTplValGesInit< double > & PdsAR()const ;
+
+        cTplValGesInit< double > & PdsDistor();
+        const cTplValGesInit< double > & PdsDistor()const ;
+
+        cTplValGesInit< double > & AmplImDistor();
+        const cTplValGesInit< double > & AmplImDistor()const ;
+
+        cTplValGesInit< double > & SeuilDist();
+        const cTplValGesInit< double > & SeuilDist()const ;
+
+        cTplValGesInit< double > & PdsDistBord();
+        const cTplValGesInit< double > & PdsDistBord()const ;
+
+        cTplValGesInit< double > & SeuilDisBord();
+        const cTplValGesInit< double > & SeuilDisBord()const ;
+
+        cTplValGesInit< cScoreMM1P > & ScoreMM1P();
+        const cTplValGesInit< cScoreMM1P > & ScoreMM1P()const ;
+
+        cTplValGesInit< cSectionScoreQualite > & SectionScoreQualite();
+        const cTplValGesInit< cSectionScoreQualite > & SectionScoreQualite()const ;
+
         double & FMNTSeuilCorrel();
         const double & FMNTSeuilCorrel()const ;
 
@@ -4377,6 +4472,7 @@ class cParamFusionMNT
     private:
         cTplValGesInit< cChantierDescripteur > mDicoLoc;
         cSectionName mSectionName;
+        cTplValGesInit< cSectionScoreQualite > mSectionScoreQualite;
         cParamAlgoFusionMNT mParamAlgoFusionMNT;
         cParamGenereStr mGenereRes;
         cParamGenereStrVois mGenereInput;

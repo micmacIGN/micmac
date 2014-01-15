@@ -337,11 +337,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   int    aNbZM = 0;
 
 
-  if (mNbIm < mNbMinIV)
-  {
-      std::cout << "For Nb Im = " << mNbIm << " NbVI= " << mNbMinIV << "\n";
-      ELISE_ASSERT(false,"Nb image is < to min visible image ...");
-  }
+ if (mNbIm < mNbMinIV && !mUseImSec)
+ {
+     std::cout << "For Nb Im = " << mNbIm << " NbVI= " << mNbMinIV << "\n";
+     ELISE_ASSERT(false,"Nb image is < to min visible image ...");
+ }
 
 
   if (! mModePB)
