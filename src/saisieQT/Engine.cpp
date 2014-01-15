@@ -42,7 +42,6 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 
 void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 {    
-
     maskedImg._m_image = new QImage( aNameFile );
 
     QFileInfo fi(aNameFile);
