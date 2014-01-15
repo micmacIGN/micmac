@@ -18,7 +18,11 @@
 #include <QMimeData>
 #include <QTime>
 #include <QPainter>
-//#include <QMenu> //pour contextMenuEvent
+
+//contextMenuEvent
+#include <QMenu>
+#include <QSignalMapper>
+#include <QIcon>
 
 #include "Data.h"
 #include "Engine.h"
@@ -27,9 +31,9 @@
 #include "MatrixManager.h"
 #include "GLWidgetSet.h"
 
-class GLWidgetSet;
+class GLWidget;
 
-
+class GLWidgetSet <GLWidget>;
 
 class GLWidget : public QGLWidget
 {
@@ -38,7 +42,7 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared);
+    GLWidget(int idx, GLWidgetSet<GLWidget> *theSet, const QGLWidget *shared);
 
     //! Destructor
     ~GLWidget(){}
@@ -124,8 +128,6 @@ protected:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 
-    //void contextMenuEvent(QContextMenuEvent *event);
-
     void Overlay();
 
     //! Current interaction mode (with mouse)
@@ -145,12 +147,16 @@ protected:
     QPointF     m_lastPosImage;
     QPoint      m_lastPosWindow;
 
-private:
+    MatrixManager   _matrixManager;
 
     //! Window parameters (zoom, etc.)
     ViewportParameters _params;
 
+private:
+
     void        computeFPS(MessageToDisplay &dynMess);
+
+    //void        testAuto();
 
     int         _frameCount;
     int         _previousTime;
@@ -158,18 +164,50 @@ private:
 
     QTime       _time;
 
-    MatrixManager   _matrixManager;
+
     cMessages2DGL   _messageManager;
     HistoryManager  _historyManager;
 
     int             _widgetId;
 
-    GLWidgetSet*    _parentSet;
+    GLWidgetSet <GLWidget>*    _parentSet;
 
     QColor      _BGColor0;
     QColor      _BGColor1;
 
     QPainter*   _painter;
+};
+
+class MyGLWidget : public GLWidget
+{
+    Q_OBJECT
+
+public:
+    //! Default constructor
+    MyGLWidget(int idx, GLWidgetSet<MyGLWidget> *theSet, const QGLWidget *shared);
+
+    //! Destructor
+    ~MyGLWidget(){}
+
+    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
+
+public slots:
+
+    void    setPointState(int state);
+
+protected:
+    void    mousePressEvent(QMouseEvent *event);
+
+    void    contextMenuEvent(QContextMenuEvent *event);
+
+private:
+    QSignalMapper*          _signalMapper;
+
+    QAction     *_validate;
+    QAction     *_dubious;
+    QAction     *_refuted;
+    QAction     *_noSaisie;
+    QAction     *_highLight;
 };
 
 #endif  /* _GLWIDGET_H */
