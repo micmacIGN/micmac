@@ -18,11 +18,7 @@
 #include <QMimeData>
 #include <QTime>
 #include <QPainter>
-
-//contextMenuEvent
-#include <QMenu>
-#include <QSignalMapper>
-#include <QIcon>
+//#include <QMenu> //pour contextMenuEvent
 
 #include "Data.h"
 #include "Engine.h"
@@ -31,11 +27,9 @@
 #include "MatrixManager.h"
 #include "GLWidgetSet.h"
 
-class GLWidget;
-
 class GLWidgetSet;
 
-class cMessages2DGL;
+
 
 class GLWidget : public QGLWidget
 {
@@ -44,7 +38,7 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared, bool ptMode);
+    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared);
 
     //! Destructor
     ~GLWidget(){}
@@ -86,8 +80,8 @@ public:
     ViewportParameters* getParams(){ return &_params; }
     HistoryManager* getHistoryManager(){ return &_historyManager; }
 
-    void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
-    cGLData*     getGLData(){ return m_GLData; }
+    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
+    cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
     {
@@ -103,15 +97,11 @@ public:
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
-    void refreshPositionMessage(QPointF pos);
-
-    void createContexMenuActions();
+    void refreshMessagePosition(QPointF pos);
 
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
-
-    void setPointState(int state);
 
 signals:
 
@@ -134,12 +124,12 @@ protected:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 
-    void contextMenuEvent(QContextMenuEvent *event);
+    //void contextMenuEvent(QContextMenuEvent *event);
 
-    void overlay();
+    void Overlay();
 
     //! Current interaction mode (with mouse)
-    int  m_interactionMode;
+    int m_interactionMode;
 
     bool m_bFirstAction;
 
@@ -149,24 +139,18 @@ protected:
     //! states if display is 2D or 3D
     bool        m_bDisplayMode2D;
 
-    bool        m_bPointMode;
-
     QPointF     m_lastMoveImage;
     QPoint      m_lastClickZoom;
 
     QPointF     m_lastPosImage;
     QPoint      m_lastPosWindow;
 
-    MatrixManager   _matrixManager;
+private:
 
     //! Window parameters (zoom, etc.)
     ViewportParameters _params;
 
-private:
-
     void        computeFPS(MessageToDisplay &dynMess);
-
-    //void        testAuto();
 
     int         _frameCount;
     int         _previousTime;
@@ -174,33 +158,18 @@ private:
 
     QTime       _time;
 
-
+    MatrixManager   _matrixManager;
     cMessages2DGL   _messageManager;
     HistoryManager  _historyManager;
 
     int             _widgetId;
 
-    GLWidgetSet* _parentSet;
+    GLWidgetSet*    _parentSet;
 
     QColor      _BGColor0;
     QColor      _BGColor1;
 
     QPainter*   _painter;
-
-    QSignalMapper*          _signalMapper;
-
-    QAction     *_showNames;
-    QAction     *_rename;
-
-    QAction     *_AllW;
-    QAction     *_ThisP;
-    QAction     *_ThisW;
-
-    QAction     *_validate;
-    QAction     *_dubious;
-    QAction     *_refuted;
-    QAction     *_noSaisie;
-    QAction     *_highLight;
 };
 
 #endif  /* _GLWIDGET_H */
