@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.9)
 project(saisieQT)
 
+IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+    add_definitions(-DELISE_Darwin)
+endif()
+
 set(saisie_SRCS saisieQT_main.cpp
 		saisieMasqQT_main.cpp
 		saisieAppuisInitQT_main.cpp
