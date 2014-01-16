@@ -12,18 +12,21 @@ set(saisie_SRCS saisieQT_main.cpp
 		3DObject.cpp
 		GLWidgetSet.cpp
 		MatrixManager.cpp)
-
-set(saisie_HEADERS saisieQT_main.h
-		   GLWidget.h
-		   mainwindow.h
-		   Cloud.h
-		   Engine.h
-		   Data.h
-		   3DObject.h
-		   3DTools.h
-		   SaisieGlsl.glsl
-		   GLWidgetSet.h
-		   MatrixManager.h)
+		
+set( saisie_HEADERS_nomoc
+   MatrixManager.h
+   Cloud.h
+   saisieQT_main.h
+   Data.h
+   3DTools.h
+   SaisieGlsl.glsl
+   Engine.h
+   GLWidgetSet.h
+   3DObject.h )
+   
+set( saisie_HEADERS_tomoc
+   GLWidget.h
+   mainwindow.h )
 
 if ( NOT ${qt_version} EQUAL 0 )
    ADD_DEFINITIONS(-DQT_VER=${qt_version})
@@ -63,9 +66,9 @@ if ( NOT ${qt_version} EQUAL 0 )
 			   ${PROJECT_BINARY_DIR} )
 
       IF(WIN32)
-	      add_executable(SaisieQT WIN32 ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+	      add_executable(SaisieQT WIN32 ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} )
       else()
-	      add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+	      add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} )
       endif()
       
       qt5_use_modules(SaisieQT Widgets Core Gui Xml Concurrent OpenGL)
@@ -75,10 +78,10 @@ if ( NOT ${qt_version} EQUAL 0 )
 				     ${X11_LIBRARIES} )
    elseif ( ${qt_version} EQUAL 4 )
       QT4_WRAP_UI(saisie_ui mainwindow.ui)
-      QT4_WRAP_CPP(saisie_HEADERS_MOC ${saisie_HEADERS})
+      QT4_WRAP_CPP(saisie_HEADERS_tomoc_MOC ${saisie_HEADERS_tomoc})
       INCLUDE(${QT_USE_FILE})
       include_directories( ${PROJECT_BINARY_DIR} )
-      add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_MOC})
+      add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_tomoc_MOC} ${saisie_HEADERS_nomoc})
       target_link_libraries(SaisieQT ${OPENGL_LIBRARIES}
                                      ${QT_LIBRARIES}
 				     elise

@@ -120,6 +120,15 @@ else()
    message( "OpenGL or GLU not available, Qt graphical tools disabled" )
 endif()
 
+if ( NOT ${qt_version} EQUAL 0 )
+   set( WITH_SAISIEQT true )
+   message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
+endif()
+
+if (${WITH_SAISIEQT})
+   add_definitions(-DSAISIE_QT)
+endif()
+
 # CUDA
 if (${CUDA_ENABLED})
 
@@ -144,11 +153,6 @@ endif()
 if (${WITH_ETALONPOLY})
 	add_definitions(-DETA_POLYGON)
 endif()
-
-if (${WITH_SAISIEQT})
-	add_definitions(-DSAISIE_QT)
-endif()
-
 
 # MERCURIAL
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
