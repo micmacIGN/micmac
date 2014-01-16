@@ -22,17 +22,22 @@ cObject::cObject(Pt3dr pos, QColor col) :
 
 cObject::~cObject(){}
 
+void cObject::setSelected(bool aSel)
+{
+    _bSelected = aSel;
+}
+
 cObject& cObject::operator =(const cObject& aB)
 {
     if (this != &aB)
     {
-        _position = aB._position;
-        _color    = aB._color;
-        _scale    = aB._scale;
+        _position  = aB._position;
+        _color     = aB._color;
+        _scale     = aB._scale;
 
-        _alpha    = aB._alpha;
-        _bVisible = aB._bVisible;
-        _bSelected= aB._bSelected;
+        _alpha     = aB._alpha;
+        _bVisible  = aB._bVisible;
+        _bSelected = aB._bSelected;
     }
 
     return *this;
@@ -525,10 +530,8 @@ void cPoint::draw()
          _painter->drawEllipse(pt, _diameter, _diameter);
          if (_highlight) _painter->drawEllipse(pt, _diameter + 5, _diameter + 5);
 
-
          if ((_bShowName) && (_name != ""))
          {
-
              QFontMetrics metrics = QFontMetrics(_font);
              int border = (float) qMax(4, metrics.leading());
 
@@ -594,6 +597,8 @@ void cPolygon::draw()
     {
         _painter->setRenderHint(QPainter::Antialiasing,true);
 
+        int sz = _points.size();
+
         if (_bShowPolygon)
         {
             QPen penline(isSelected() ? QColor(0,140,180) : _lineColor);
@@ -613,12 +618,16 @@ void cPolygon::draw()
             else
                 _painter->drawPolyline(getVector().data(),size());
         }
+        else
+            sz--; //to avoid drawing point below mouse cursor in SaisiePts mode
 
-        for (int aK = 0;aK < _points.size(); ++aK)
+        if((helper()!=NULL) && _bShowPolygon)
+             helper()->draw();
+
+        for (int aK = 0;aK < sz; ++aK)
             _points[aK].draw();
 
-         if(helper()!=NULL)
-             helper()->draw();
+
 
          _painter->setRenderHint(QPainter::Antialiasing,false);
     }
@@ -672,7 +681,7 @@ void cPolygon::removeNearestOrClose(QPointF pos)
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = cPoint(_painter, pt);
+        _points[size()-1] = cPoint(_painter, pt, "", _color);
 
     add(pt);
 }
@@ -786,14 +795,17 @@ void cPolygon::getNearest(QPointF const &pos, float aSeuil)
 
 void cPolygon::setNearestPointState(const QPointF &pos, int state)
 {
+    setClosed(true);
     getNearest(pos, 400000.f);
 
+    cout << "_idx : " << _idx << " state " << state << endl;
     if (_idx >=0 && _idx <_points.size())
     {
         if (state > 0)
             _points[_idx].setState(state);
         else if (state == NS_SaisiePts::eEPI_NonValue)
         {
+            cout << "removing point" << endl;
             //TODO: cWinIm l.661
             _points.remove(_idx);
         }
@@ -1507,7 +1519,7 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
         {
             if(m_bDisplayMode2D)
             {
-                displayNewMessage(QString("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString("PIXEL POSITION"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
                 displayNewMessage(QString("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
             else
@@ -1528,7 +1540,8 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
             }
         }
         else
-            displayNewMessage(QString("Drag & drop images or ply files"));
+
+            displayNewMessage(QString("Drag & drop files"));
     }
 
 }

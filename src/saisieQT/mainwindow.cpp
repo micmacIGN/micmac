@@ -1,9 +1,9 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
+MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, bool ptMode, QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, ptMode),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
         _layout(new QGridLayout)

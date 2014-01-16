@@ -1,30 +1,30 @@
 #ifndef GLWIDGETSET_H
 #define GLWIDGETSET_H
 
+#include "GLWidget.h"
 #include <QVector>
-#include <QColor>
-#include <iostream>
 
-template<class T>
+class GLWidget;
+
 class GLWidgetSet
 {
 public:
-    GLWidgetSet(uint aNb, QColor color1, QColor color2);
+    GLWidgetSet(uint aNb, QColor color1, QColor color2, bool PointMode = false);
     ~GLWidgetSet();
 
     void setCurrentWidgetIdx(uint aK);
-    uint CurrentWidgetIdx(){ return _currentWidget; }
+    uint CurrentWidgetIdx(){return _currentWidget;}
 
-    T* getWidget(uint aK){ return _Widgets[aK]; }
+    GLWidget* getWidget(uint aK){return _Widgets[aK];}
 
-    T* CurrentWidget(){ return _Widgets[_currentWidget]; }
+    GLWidget* CurrentWidget(){return _Widgets[_currentWidget];}
 
-    uint NbWidgets() const { return (uint) _Widgets.size(); }
+    uint NbWidgets() const {return (uint) _Widgets.size();}
 
 private:
 
-    QVector <T*>  _Widgets;
-    uint          _currentWidget;
+    QVector <GLWidget*>  _Widgets;
+    uint                 _currentWidget;
 };
 
 #endif // GLWIDGETSET_H

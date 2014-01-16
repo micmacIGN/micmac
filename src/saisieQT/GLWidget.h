@@ -33,7 +33,9 @@
 
 class GLWidget;
 
-class GLWidgetSet <GLWidget>;
+class GLWidgetSet;
+
+class cMessages2DGL;
 
 class GLWidget : public QGLWidget
 {
@@ -42,7 +44,7 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(int idx, GLWidgetSet<GLWidget> *theSet, const QGLWidget *shared);
+    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared, bool ptMode);
 
     //! Destructor
     ~GLWidget(){}
@@ -84,8 +86,8 @@ public:
     ViewportParameters* getParams(){ return &_params; }
     HistoryManager* getHistoryManager(){ return &_historyManager; }
 
-    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
-    cGLData*    getGLData(){ return m_GLData; }
+    void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
+    cGLData*     getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
     {
@@ -101,11 +103,15 @@ public:
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
-    void refreshMessagePosition(QPointF pos);
+    void refreshPositionMessage(QPointF pos);
+
+    void createContexMenuActions();
 
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
+
+    void setPointState(int state);
 
 signals:
 
@@ -128,10 +134,12 @@ protected:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 
-    void Overlay();
+    void contextMenuEvent(QContextMenuEvent *event);
+
+    void overlay();
 
     //! Current interaction mode (with mouse)
-    int m_interactionMode;
+    int  m_interactionMode;
 
     bool m_bFirstAction;
 
@@ -140,6 +148,8 @@ protected:
 
     //! states if display is 2D or 3D
     bool        m_bDisplayMode2D;
+
+    bool        m_bPointMode;
 
     QPointF     m_lastMoveImage;
     QPoint      m_lastClickZoom;
@@ -170,38 +180,21 @@ private:
 
     int             _widgetId;
 
-    GLWidgetSet <GLWidget>*    _parentSet;
+    GLWidgetSet* _parentSet;
 
     QColor      _BGColor0;
     QColor      _BGColor1;
 
     QPainter*   _painter;
-};
 
-class MyGLWidget : public GLWidget
-{
-    Q_OBJECT
-
-public:
-    //! Default constructor
-    MyGLWidget(int idx, GLWidgetSet<MyGLWidget> *theSet, const QGLWidget *shared);
-
-    //! Destructor
-    ~MyGLWidget(){}
-
-    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
-
-public slots:
-
-    void    setPointState(int state);
-
-protected:
-    void    mousePressEvent(QMouseEvent *event);
-
-    void    contextMenuEvent(QContextMenuEvent *event);
-
-private:
     QSignalMapper*          _signalMapper;
+
+    QAction     *_showNames;
+    QAction     *_rename;
+
+    QAction     *_AllW;
+    QAction     *_ThisP;
+    QAction     *_ThisW;
 
     QAction     *_validate;
     QAction     *_dubious;

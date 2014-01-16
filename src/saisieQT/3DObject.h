@@ -74,7 +74,7 @@ class cObject
         void    setColor(QColor const &aCol)   { _color = aCol;    }
         void    setScale(float aScale)         { _scale = aScale;  }
         void    setVisible(bool aVis)          { _bVisible = aVis; }
-        void    setSelected(bool aSel)         { _bSelected = aSel;}
+        void    setSelected(bool aSel);
 
         cObject & operator = (const cObject &);
 
@@ -256,7 +256,7 @@ class cPolygon : public cObjectGL
         void    setpointSize(float size) { _pointSize = size; }
 
         void    add(cPoint const &pt){_points.push_back(pt);}
-        void    add(QPointF const &pt, bool selected=false){ _points.push_back(cPoint(_painter, pt)); _points.back().setSelected(selected); }
+        void    add(QPointF const &pt, bool selected=false){ _points.push_back(cPoint(_painter, pt, "", _color)); _points.back().setSelected(selected); }
         void    addPoint(QPointF const &pt);
 
         void    clear();
@@ -314,7 +314,7 @@ class cPolygon : public cObjectGL
         QVector <cPoint>    _points;
         cPolygonHelper*     _helper;
         QColor              _lineColor;
-        int                 _idx;
+        int                 _idx;       //! index of current point
 
         QPainter *          _painter;        
 
