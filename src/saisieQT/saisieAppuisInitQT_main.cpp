@@ -13,7 +13,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     }
 
     Pt2di aSzW(800,600);
-    Pt2di aNbFen(1,1);
+    Pt2di aNbFen(-1,-1);
     string aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add;
     aNameAuto = "NONE";
     aPrefix2Add = "";
@@ -21,7 +21,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray);
 
-    MainWindow w(aSzW, aNbFen);
+    MainWindow w(aSzW, aNbFen, true, true);
 
     w.show();
 
