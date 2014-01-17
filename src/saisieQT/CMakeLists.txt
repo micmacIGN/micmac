@@ -23,7 +23,7 @@ set( saisie_HEADERS_nomoc
    saisieQT_main.h
    Data.h
    3DTools.h
-   SaisieGlsl.glsl
+   #SaisieGlsl.glsl
    Engine.h
    GLWidgetSet.h
    3DObject.h )
@@ -33,14 +33,7 @@ set( saisie_HEADERS_tomoc
    mainwindow.h )
 
 if ( NOT ${qt_version} EQUAL 0 )
-   ADD_DEFINITIONS(-DQT_VER=${qt_version})
    if ( ${qt_version} EQUAL 5 )
-      if ( MSVC )
-	 include("FindWindowsSDK.txt")
-	 set( CMAKE_PREFIX_PATH "${WINDOWSSDK_DIRS}\\Lib" )	
-	 message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
-      endif()
-
       if ( WIN32 )
 	      #cmake_policy(SET CMP0020 NEW)
       ENDIF()

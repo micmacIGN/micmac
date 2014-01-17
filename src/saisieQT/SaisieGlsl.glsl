@@ -1,7 +1,7 @@
 #define GLSL(version, shader)  "#version " #version "\n" #shader
 
 // VERTEX SHADER
-const GLchar* vertexShader =GLSL(120,
+const char * vertexShader =GLSL(120,
 
 uniform highp mat4 matrix;
 varying vec2 vTexCoord;
@@ -17,7 +17,7 @@ void main(void)
 );
 
 // FRAGMENT SHADER
-const GLchar* fragmentGamma =GLSL(120,
+const char * fragmentGamma =GLSL(120,
 
 uniform mediump vec4 color;
 uniform sampler2D tex;
