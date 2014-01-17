@@ -264,14 +264,23 @@ void ELISE_fp::AssertIsDirectory(const std::string &  aName )
 void ELISE_fp::RmFile(const std::string & aFile)
 {
 #if ELISE_windows
-	string aFileCopy = aFile;
-	replace( aFileCopy.begin(), aFileCopy.end(), '/', '\\' );
-	std::string aNameCom = std::string(SYS_RM)+" \""+aFileCopy+"\"";
+	if ( DeleteFile( aFile.c_str() )==0 )
+	{
+		DWORD error_code = GetLastError();
+		cerr << "unable to delete file [" << aFile << "] ";
+		if ( error_code==ERROR_FILE_NOT_FOUND )
+			 cerr << "which does not exist" << endl;
+		else if ( error_code==ERROR_ACCESS_DENIED )
+			cerr << "which is read-only"  << endl;
+		else
+			cerr << "for a mysterious reason"  << endl;
+	}
+	return;
 #else
     // MODIF MPD LES "" ne passent pas
 	std::string aNameCom = std::string(SYS_RM)+ " " +aFile;
+	::System(aNameCom.c_str());
 #endif
-	VoidSystem(aNameCom.c_str());
 }
 
 void ELISE_fp::MvFile(const std::string & aName1,const std::string &  aDest)
