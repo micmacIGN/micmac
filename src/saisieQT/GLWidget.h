@@ -10,7 +10,11 @@
 #include <QGLContext>
 #include <QDebug>
 
-#include "GL/glu.h"
+#ifdef ELISE_Darwin
+	#include "OpenGL/glu.h"
+#else
+	#include "GL/glu.h"
+#endif
 
 #include <QUrl>
 #include <QtGui/QMouseEvent>

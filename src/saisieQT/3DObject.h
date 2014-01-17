@@ -11,7 +11,11 @@
 #include <QGLShaderProgram>
 #include <QPainter>
 
-#include "GL/glu.h"
+#ifdef ELISE_Darwin
+	#include "OpenGL/glu.h"	
+#else
+	#include "GL/glu.h"
+#endif
 
 #define QMaskedImage cMaskedImage<QImage>
 
