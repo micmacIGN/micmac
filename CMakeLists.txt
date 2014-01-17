@@ -131,7 +131,7 @@ else()
 endif()
 
 if ( NOT ${qt_version} EQUAL 0 )
-   set( WITH_SAISIEQT true )
+   #set( WITH_SAISIEQT true )
    message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
 endif()
 
