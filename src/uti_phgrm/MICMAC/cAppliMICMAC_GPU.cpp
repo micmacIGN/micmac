@@ -1629,11 +1629,14 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         else
-        {
+        {            
             while( anZComputed < mZMaxGlob )
             {
-
                 cellules Mask = IMmGg.MaskVolumeBlock()[abs(anZComputed-mZMinGlob)/INTERZ];
+
+                IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
+
+                IMmGg.ReallocHostData(Mask.Dz,idPreBuf);
 
                 // calcul des projections
                 Tabul_Projection( anZComputed,Mask.Dz,0);
