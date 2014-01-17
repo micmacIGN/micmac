@@ -90,6 +90,11 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
         m_bFirstAction   =  m_GLData->isNewMask();
 
         resetView(showMessage, doZoom);
+
+        if (!aData->m_polygon.bShowLines())
+        {
+            m_GLData->m_polygon.setClosed(true); //ne pas mettre dans le constructeur car mis a false dans resetView
+        }
     }
 }
 
@@ -360,6 +365,8 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
+
+
     if(hasDataLoaded())
     {
         m_lastPosWindow = event->pos();
@@ -375,18 +382,22 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                     polygon().addPoint(m_lastPosImage);
 
-                else if (event->modifiers() & Qt::ShiftModifier) // INSERT POINT
+                else if ((event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
                     polygon().insertPoint();
 
                 else if (polygon().idx() != -1) // SELECT POINT
 
                     polygon().setPointSelected();
+
+                else if (!polygon().bShowLines())
+
+                    polygon().add(m_lastPosImage);
             }
         }
         else if (event->button() == Qt::RightButton)
         {
-            if (polygon().isShown())
+            if (polygon().bShowLines())
             {
                 if (event->modifiers() & Qt::ControlModifier)
 
@@ -395,7 +406,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                 else
 
                     polygon().removeNearestOrClose(m_lastPosImage);
-            }
+            }            
         }
         else if (event->button() == Qt::MiddleButton)
 
@@ -405,7 +416,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ( event->button() == Qt::LeftButton && hasDataLoaded() )
+    if ( event->button() == Qt::LeftButton && hasDataLoaded() && polygon().bShowLines())
     {
         polygon().finalMovePoint(); //ne pas factoriser
 
@@ -685,6 +696,5 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
 void GLWidget::setPointState(int state)
 {
-    cout << "pos Image : " << m_lastPosImage.x() << " " << m_lastPosImage.y() << endl;
     polygon().setNearestPointState(m_lastPosImage, state);
 }

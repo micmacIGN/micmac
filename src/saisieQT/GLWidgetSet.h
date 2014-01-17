@@ -9,7 +9,7 @@ class GLWidget;
 class GLWidgetSet
 {
 public:
-    GLWidgetSet(uint aNb, QColor color1, QColor color2);
+    GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt);
     ~GLWidgetSet();
 
     void setCurrentWidgetIdx(uint aK);

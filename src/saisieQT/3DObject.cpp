@@ -490,32 +490,59 @@ void cPoint::draw()
      {
          QPen penline(isSelected() ? _selectionColor : _color);
          penline.setCosmetic(true);
-        _painter->setPen(penline);
+         _painter->setPen(penline);
 
-        QPointF pt = _painter->transform().map((QPointF)*this);
+         QPointF pt = _painter->transform().map((QPointF)*this);
 
-        _painter->setWorldMatrixEnabled(false);
+         _painter->setWorldMatrixEnabled(false);
 
-        _painter->drawEllipse(pt, _diameter, _diameter);
+         switch(_state)
+         {
+         case   NS_SaisiePts::eEPI_NonSaisi :
+             _painter->setPen(Qt::yellow);
+             break;
 
-        if ((_bShowName) && (_name != ""))
-        {        
+         case   NS_SaisiePts::eEPI_Refute :
+             _painter->setPen(Qt::red);
+             break;
 
-            QFontMetrics metrics = QFontMetrics(_font);
-            int border = (float) qMax(4, metrics.leading());
+         case   NS_SaisiePts::eEPI_Douteux :
+             _painter->setPen(QColor(255, 127, 0, 255) );
+             break;
 
-            QRect rect = QFontMetrics(_font).boundingRect(_name);
+         case NS_SaisiePts::eEPI_Valide :
+             _painter->setPen(Qt::green);
+             break;
 
-            QRect rectg(pt.x()-border, pt.y()-border, rect.width()+border, rect.height()+border);
-            rectg.translate(QPoint(10, -rectg.height()-5));
+         case  NS_SaisiePts::eEPI_Disparu :
+             //TODO
+             break;
 
-            _painter->setPen(isSelected() ? Qt::black : Qt::white);
-            _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
-            _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
-        }
+         case NS_SaisiePts::eEPI_NonValue :
+             break;
+         }
+
+         _painter->drawEllipse(pt, _diameter, _diameter);
+         if (_highlight) _painter->drawEllipse(pt, _diameter + 5, _diameter + 5);
+
+         if ((_bShowName) && (_name != ""))
+         {
+
+             QFontMetrics metrics = QFontMetrics(_font);
+             int border = (float) qMax(4, metrics.leading());
+
+             QRect rect = QFontMetrics(_font).boundingRect(_name);
+
+             QRect rectg(pt.x()-border, pt.y()-border, rect.width()+border, rect.height()+border);
+             rectg.translate(QPoint(10, -rectg.height()-5));
+
+             _painter->setPen(isSelected() ? Qt::black : Qt::white);
+             _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
+             _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
+         }
 
          _painter->setWorldMatrixEnabled(true);
-    }
+     }
 }
 
 //********************************************************************************
@@ -523,14 +550,14 @@ void cPoint::draw()
 float cPolygon::_sqr_radius = 2500.f;
 
 cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(this,lineWidth, painter)),
+    _helper(new cPolygonHelper(this, lineWidth, painter)),
     _lineColor(lineColor),
     _idx(-1),
     _painter(painter),
     _pointSize(6.f),
-    _bPolyIsClosed(false),
+    _bIsClosed(false),
     _bSelectedPoint(false),
-    _bShowPolygon(true),
+    _bShowLines(true),
     _style(style)
 {
     setColor(pointColor);
@@ -538,7 +565,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor p
 }
 
 cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
-    _bPolyIsClosed(isClosed)
+    _bIsClosed(isClosed)
 {
     setVector(points);
 }
@@ -548,9 +575,9 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _idx(-1),
     _painter(painter),
     _pointSize(6.f),
-    _bPolyIsClosed(false),
+    _bIsClosed(false),
     _bSelectedPoint(false),
-    _bShowPolygon(true),
+    _bShowLines(true),
     _style(style)
 {
     if (!withHelper) _helper = NULL;
@@ -566,9 +593,7 @@ void cPolygon::draw()
     {
         _painter->setRenderHint(QPainter::Antialiasing,true);
 
-        int sz = _points.size();
-
-        if (_bShowPolygon)
+        if (_bShowLines)
         {
             QPen penline(isSelected() ? QColor(0,140,180) : _lineColor);
             penline.setCosmetic(true);
@@ -582,15 +607,13 @@ void cPolygon::draw()
 
             _painter->setPen( penline);
 
-            if(isClosed())
+            if(_bIsClosed)
                 _painter->drawPolygon(getVector().data(),size());
             else
                 _painter->drawPolyline(getVector().data(),size());
         }
-        else
-            sz--; //avoid drawing last point (dynamic line display of polygon not necessary in point mode)
 
-        for (int aK = 0;aK < sz; ++aK)
+        for (int aK = 0;aK < _points.size(); ++aK)
             _points[aK].draw();
 
         if(helper()!=NULL)
@@ -606,7 +629,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
     {
         _lineWidth        = aP._lineWidth;
         _pointSize        = aP._pointSize;
-        _bPolyIsClosed    = aP._bPolyIsClosed;
+        _bIsClosed        = aP._bIsClosed;
         _idx              = aP._idx;
 
         _points           = aP._points;
@@ -619,12 +642,12 @@ void cPolygon::close()
 {
     int sz = _points.size();
 
-    if ((sz>1)&&(!_bPolyIsClosed))
+    if ((sz>1)&&(!_bIsClosed))
     {
         //remove last point if needed
         if (sz > 2) _points.resize(sz-1);
 
-        _bPolyIsClosed = true;
+        _bIsClosed = true;
     }
 
     _bSelectedPoint = false;
@@ -632,14 +655,13 @@ void cPolygon::close()
 
 void cPolygon::removeNearestOrClose(QPointF pos)
 {
-    if ((_idx >=0)&&(_idx<size())&&_bPolyIsClosed)
+    if ((_idx >=0)&&(_idx<size())&&_bIsClosed)
     {
         removePoint(_idx);   // remove nearest point
 
         findNearestPoint(pos);
 
-        if (size() < 3)
-            setClosed(false);
+        if (size() < 3) _bIsClosed = false;
     }
     else // close polygon
         close();
@@ -647,8 +669,9 @@ void cPolygon::removeNearestOrClose(QPointF pos)
 
 void cPolygon::setNearestPointState(const QPointF &pos, int state)
 {
-    setClosed(true);
+    _bIsClosed = true;
     findNearestPoint(pos, 400000.f);
+    _bIsClosed = false;
 
     if (_idx >=0 && _idx <_points.size())
     {
@@ -683,7 +706,7 @@ void cPolygon::clear()
     _points.clear();
     _idx = -1;
     _bSelectedPoint = false;
-    setClosed(false);
+    _bIsClosed = false;
     if(_helper!=NULL) helper()->clear();
 }
 
@@ -695,7 +718,7 @@ void cPolygon::insertPoint(int i, const QPointF &value)
 
 void cPolygon::insertPoint()
 {
-    if ((size() >=2) && _helper->size()>1 && _bPolyIsClosed)
+    if ((size() >=2) && _helper->size()>1 && _bIsClosed)
     {
         int idx = -1;
         QPointF Pt1 = (*_helper)[0];
@@ -757,7 +780,7 @@ void cPolygon::resetSelectedPoint()
 
 void cPolygon::findNearestPoint(QPointF const &pos, float sqr_radius)
 {
-    if (_bPolyIsClosed)
+    if (_bIsClosed)
     {
         resetSelectedPoint();
 
@@ -785,31 +808,24 @@ void cPolygon::findNearestPoint(QPointF const &pos, float sqr_radius)
      }
 }
 
-cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor, QColor pointColor):
-    cPolygon(painter, lineWidth, lineColor, pointColor,false),
-    _polygon(polygon)
-{
-
-}
-
 void cPolygon::refreshHelper(QPointF pos, bool insertMode)
 {
     int nbVertex = size();
 
-    if(!isClosed())
+    if(!_bIsClosed)
     {
-        if (nbVertex == 1)     // add current mouse position to polygon (dynamic display)
+        if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
             add(pos);
-        else if (nbVertex > 1) // replace last point by the current one
-            _points[nbVertex-1] = cPoint(_painter, pos);
+        else if (nbVertex > 1)               // replace last point by the current one
+            _points[nbVertex-1] = cPoint(_painter, pos);          
     }
-    else if(nbVertex)                       // move vertex or insert vertex (dynamic display) en court d'operation
+    else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en court d'operation
     {
-        if (insertMode || isPointSelected()) // insert polygon point
+        if (_bShowLines && (insertMode || isPointSelected())) // insert polygon point
 
             _helper->build(pos, insertMode);
 
-        else                                // select nearest polygon point
+        else                                 // select nearest polygon point
 
             findNearestPoint(pos);
     }
@@ -817,9 +833,10 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
 
 void cPolygon::finalMovePoint()
 {
-    if ((_idx>=0) && _helper->size()) //  fin de deplacement point
+    if ((_idx>=0) && _helper->size())   // after point move
     {
         _points[_idx] = (*_helper)[1];
+        _points[_idx].setColor(_color); // reset color to polygon color
 
         _helper->clear();
 
@@ -832,7 +849,7 @@ void cPolygon::removeLastPoint()
     if (size() >= 1)
     {
         removePoint(size()-1);
-        setClosed(false);
+        _bIsClosed = false;
     }
 }
 
@@ -850,9 +867,9 @@ void cPolygon::showNames(bool show)
         _points[aK].showName(show);
 }
 
-void cPolygon::show(bool show)
+void cPolygon::showLines(bool show)
 {
-    _bShowPolygon = show;
+    _bShowLines = show;
 
     _color = show ? Qt::red : Qt::green;
 }
@@ -867,6 +884,49 @@ void cPolygon::flipY(float height)
 {
     for (int aK=0; aK < size(); ++aK)
         _points[aK].setY(height - _points[aK].y());
+}
+
+bool cPolygon::isPointInsidePoly(const QPointF& P)
+{
+    int vertices=_points.size();
+    if (vertices<3)
+        return false;
+
+    bool inside = false;
+
+    QPointF A = _points[0];
+    QPointF B;
+
+    for (int i=1;i<=vertices;++i)
+    {
+        B = _points[i%vertices];
+
+        //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
+        if (((B.y() <= P.y()) && (P.y()<A.y())) ||
+                ((A.y() <= P.y()) && (P.y()<B.y())))
+        {
+            float ABy = A.y()-B.y();
+            float t = (P.x()-B.x())*ABy-(A.x()-B.x())*(P.y()-B.y());
+            if (ABy<0)
+                t=-t;
+
+            if (t<0)
+                inside = !inside;
+        }
+
+        A=B;
+    }
+
+    return inside;
+}
+
+//********************************************************************************
+
+cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor, QColor pointColor):
+    cPolygon(painter, lineWidth, lineColor, pointColor,false),
+    _polygon(polygon)
+{
+
 }
 
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
@@ -930,39 +990,8 @@ void cPolygonHelper::setPoints(QPointF p1,QPointF p2,QPointF p3)
     add(p3);
 }
 
-bool cPolygon::isPointInsidePoly(const QPointF& P)
-{
-    int vertices=_points.size();
-    if (vertices<3)
-        return false;
+//********************************************************************************
 
-    bool inside = false;
-
-    QPointF A = _points[0];
-    QPointF B;
-
-    for (int i=1;i<=vertices;++i)
-    {
-        B = _points[i%vertices];
-
-        //Point Inclusion in Polygon Test (inspired from W. Randolph Franklin - WRF)
-        if (((B.y() <= P.y()) && (P.y()<A.y())) ||
-                ((A.y() <= P.y()) && (P.y()<B.y())))
-        {
-            float ABy = A.y()-B.y();
-            float t = (P.x()-B.x())*ABy-(A.x()-B.x())*(P.y()-B.y());
-            if (ABy<0)
-                t=-t;
-
-            if (t<0)
-                inside = !inside;
-        }
-
-        A=B;
-    }
-
-    return inside;
-}
 
 //invalid GL list index
 const GLuint GL_INVALID_LIST_ID = (~0);
@@ -1096,6 +1125,8 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
     glDisable(GL_BLEND);
 }
 
+//********************************************************************************
+
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
 {
     _m_mask     = new cImageGL();
@@ -1131,6 +1162,8 @@ void cMaskedImageGL::draw()
     glEnable(GL_ALPHA_TEST);
 }
 
+//********************************************************************************
+
 void cObjectGL::enableOptionLine()
 {
     glDisable(GL_DEPTH_TEST);
@@ -1147,6 +1180,7 @@ void cObjectGL::disableOptionLine()
     glEnable(GL_DEPTH_TEST);
 }
 
+//********************************************************************************
 
 cGLData::cGLData():
     _diam(1.f)
@@ -1166,7 +1200,7 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt):
 {
     initOptions();
 
-    m_polygon.show(!modePt);
+    m_polygon.showLines(!modePt);
 }
 
 cGLData::cGLData(cData *data):
@@ -1319,6 +1353,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         p.fillRect(rect, Qt::white);
 
     else if(mode == NONE)
+
         p.fillRect(rect, Qt::black);
 
     p.end();
