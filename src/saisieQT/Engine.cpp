@@ -410,12 +410,12 @@ void cEngine::unloadAll()
     _vGLData.clear();
 }
 
-void cEngine::allocAndSetGLData()
+void cEngine::allocAndSetGLData(bool modePt)
 {
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK)));
+        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), modePt));
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data));
@@ -423,12 +423,13 @@ void cEngine::allocAndSetGLData()
 
 void cEngine::reallocAndSetGLData(int aK)
 {
+    bool modePt = _vGLData[aK]->mode();
     delete _vGLData[aK];
 
     if (_Data->is3D())
         _vGLData[aK] = new cGLData(_Data);
     else
-        _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK));
+        _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK), modePt);
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)

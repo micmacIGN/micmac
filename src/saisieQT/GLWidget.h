@@ -18,7 +18,11 @@
 #include <QMimeData>
 #include <QTime>
 #include <QPainter>
-//#include <QMenu> //pour contextMenuEvent
+
+//contextMenuEvent
+#include <QMenu>
+#include <QSignalMapper>
+#include <QIcon>
 
 #include "Data.h"
 #include "Engine.h"
@@ -77,8 +81,8 @@ public:
     //! Reset view
     void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true);
 
-    ViewportParameters* getParams(){ return &_params; }
-    HistoryManager* getHistoryManager(){ return &_historyManager; }
+    ViewportParameters* getParams()         { return &_params; }
+    HistoryManager*     getHistoryManager() { return &_historyManager; }
 
     void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
     cGLData*    getGLData(){ return m_GLData; }
@@ -89,19 +93,23 @@ public:
         _BGColor1 = col1;
     }
 
-    float imWidth(){  return m_GLData->glMaskedImage._m_image->width(); }
+    float imWidth() { return m_GLData->glMaskedImage._m_image->width(); }
     float imHeight(){ return m_GLData->glMaskedImage._m_image->height();}
 
-    GLint vpWidth(){  return _matrixManager.vpWidth(); }
-    GLint vpHeight(){  return _matrixManager.vpHeight(); }
+    GLint vpWidth() { return _matrixManager.vpWidth(); }
+    GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
-    void refreshMessagePosition(QPointF pos);
+    void refreshPositionMessage(QPointF pos);
+
+    void createContexMenuActions();
 
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
+
+    void setPointState(int state);
 
 signals:
 
@@ -124,7 +132,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 
-    //void contextMenuEvent(QContextMenuEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event);
 
     void Overlay();
 
@@ -170,6 +178,21 @@ private:
     QColor      _BGColor1;
 
     QPainter*   _painter;
+
+    QSignalMapper*          _signalMapper;
+
+    QAction     *_showNames;
+    QAction     *_rename;
+
+    QAction     *_AllW;
+    QAction     *_ThisP;
+    QAction     *_ThisW;
+
+    QAction     *_validate;
+    QAction     *_dubious;
+    QAction     *_refuted;
+    QAction     *_noSaisie;
+    QAction     *_highLight;
 };
 
 #endif  /* _GLWIDGET_H */

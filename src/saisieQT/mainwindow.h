@@ -29,7 +29,7 @@ class MainWindow : public QMainWindow, public GLWidgetSet
     Q_OBJECT
 
 public:
-    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, bool mode2D = false, QWidget *parent = 0 );
+    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, bool mode2D = false, bool modePt = false, QWidget *parent = 0 );
     ~MainWindow();
 
     void setPostFix(QString str);
@@ -141,5 +141,7 @@ private:
 
     QSignalMapper*          _signalMapper;
     QGridLayout*            _layout;
+
+    bool                    _bModePt;
 };
 #endif // MAINWINDOW_H

@@ -115,27 +115,33 @@ class cPoint : public cObjectGL, public QPointF
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
            float diameter = 3.f,
+           int  state = NS_SaisiePts::eEPI_NonValue,
            bool isSelected = false,
-           bool showName = false
-           );
+           bool showName   = false,
+           bool highlight  = false);
 
         void draw();
 
-        void setName(QString name){_name = name;}
-        void showName(bool show){_bShowName = show;}
+        void setName(QString name){ _name = name; }
+        void setState(int state){ _state = state; }
+        void showName(bool show){ _bShowName = show; }
+
+       void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
 
 private:
-        float   _diameter;
-        bool    _bShowName;
-        QString _name;
+       QString _name;
+       float   _diameter;
+       int     _state;
+       bool    _bShowName;
+       bool    _highlight;
 
-        QColor  _selectionColor;
+       QColor  _selectionColor;
 
-        //! Default font
-        QFont   _font;
+       //! Default font
+       QFont   _font;
 
-        QPainter *_painter;
-        QGLWidget *_widget;
+       QPainter *_painter;
+       QGLWidget *_widget;
 };
 
 class cCircle : public cObjectGL
@@ -238,14 +244,16 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        void    findNearestPoint(const QPointF &pos);
+        void    findNearestPoint(const QPointF &pos, float sqr_radius = _sqr_radius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
+
+        void    setNearestPointState(const  QPointF &pos, int state);
 
         void    setpointSize(float size) { _pointSize = size; }
 
         void    add(cPoint const &pt){_points.push_back(pt);}
-        void    add(QPointF const &pt, bool selected=false){ _points.push_back(cPoint(_painter, pt)); _points.back().setSelected(selected); }
+        void    add(QPointF const &pt, bool selected=false);
         void    addPoint(QPointF const &pt);
 
         void    clear();
@@ -289,12 +297,12 @@ class cPolygon : public cObjectGL
 
         void    showNames(bool show = true);
 
-        void    showPolygon(bool showPolygon = true){_bShowPolygon = showPolygon;}
+        void    show(bool show = true);
+        bool    isShown() { return _bShowPolygon; }
 
         void    translate(QPointF Tr);
 
         void    flipY(float height);
-
 
     protected:
         cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -308,7 +316,7 @@ class cPolygon : public cObjectGL
 
     private:
         float               _pointSize;
-        float               _sqr_radius;
+        static float        _sqr_radius;
 
         //!states if polygon is closed
         bool                _bPolyIsClosed;
@@ -538,7 +546,7 @@ public:
 
     cGLData();
 
-    cGLData(QMaskedImage &qMaskedImage);
+    cGLData(QMaskedImage &qMaskedImage, bool modePt = false);
 
     cGLData(cData *data);
 
@@ -612,8 +620,9 @@ public:
 
     void        setOption(QFlags<Option> option,bool show);
 
-    bool stateOption(QFlags<Option> option){return _options & option; }
+    bool        stateOption(QFlags<Option> option){ return _options & option; }
 
+    bool        mode() { return _modePt; }
 private:
 
     void        initOptions()
@@ -623,6 +632,8 @@ private:
 
     float       _diam;
     Pt3dr       _center;
+
+    bool        _modePt;
 
 };
 

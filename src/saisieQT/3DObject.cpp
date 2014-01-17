@@ -26,13 +26,13 @@ cObject& cObject::operator =(const cObject& aB)
 {
     if (this != &aB)
     {
-        _position = aB._position;
-        _color    = aB._color;
-        _scale    = aB._scale;
+        _position  = aB._position;
+        _color     = aB._color;
+        _scale     = aB._scale;
 
-        _alpha    = aB._alpha;
-        _bVisible = aB._bVisible;
-        _bSelected= aB._bSelected;
+        _alpha     = aB._alpha;
+        _bVisible  = aB._bVisible;
+        _bSelected = aB._bSelected;
     }
 
     return *this;
@@ -467,12 +467,16 @@ void cCam::draw()
 cPoint::cPoint(QPainter * painter, QPointF pos, QString name,
                QColor color, QColor selectionColor,
                float diameter,
+               int state,
                bool isSelected,
-               bool showName):
+               bool showName,
+               bool highlight):
     QPointF(pos),
-    _diameter(diameter),
-    _bShowName(showName),
     _name(name),
+    _diameter(diameter),
+    _state(state),
+    _bShowName(showName),
+    _highlight(highlight),
     _selectionColor(selectionColor),
     _painter(painter)
 {
@@ -514,13 +518,16 @@ void cPoint::draw()
     }
 }
 
+//********************************************************************************
+
+float cPolygon::_sqr_radius = 2500.f;
+
 cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this,lineWidth, painter)),
     _lineColor(lineColor),
     _idx(-1),
     _painter(painter),
     _pointSize(6.f),
-    _sqr_radius(2500.f),
     _bPolyIsClosed(false),
     _bSelectedPoint(false),
     _bShowPolygon(true),
@@ -541,7 +548,6 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _idx(-1),
     _painter(painter),
     _pointSize(6.f),
-    _sqr_radius(2500.f),
     _bPolyIsClosed(false),
     _bSelectedPoint(false),
     _bShowPolygon(true),
@@ -559,6 +565,8 @@ void cPolygon::draw()
     if(_painter != NULL)
     {
         _painter->setRenderHint(QPainter::Antialiasing,true);
+
+        int sz = _points.size();
 
         if (_bShowPolygon)
         {
@@ -579,11 +587,13 @@ void cPolygon::draw()
             else
                 _painter->drawPolyline(getVector().data(),size());
         }
+        else
+            sz--; //avoid drawing last point (dynamic line display of polygon not necessary in point mode)
 
-        for (int aK = 0;aK < _points.size(); ++aK)
+        for (int aK = 0;aK < sz; ++aK)
             _points[aK].draw();
 
-         if(helper()!=NULL)
+        if(helper()!=NULL)
              helper()->draw();
 
          _painter->setRenderHint(QPainter::Antialiasing,false);
@@ -635,10 +645,35 @@ void cPolygon::removeNearestOrClose(QPointF pos)
         close();
 }
 
+void cPolygon::setNearestPointState(const QPointF &pos, int state)
+{
+    setClosed(true);
+    findNearestPoint(pos, 400000.f);
+
+    if (_idx >=0 && _idx <_points.size())
+    {
+        if (state > 0)
+            _points[_idx].setState(state);
+        else if (state == NS_SaisiePts::eEPI_NonValue)
+        {
+            //TODO: cWinIm l.661
+            _points.remove(_idx);
+        }
+        else
+            _points[_idx].highlight();
+    }
+}
+
+void cPolygon::add(const QPointF &pt, bool selected)
+{
+    _points.push_back(cPoint(_painter, pt, "", _color));
+    _points.back().setSelected(selected);
+}
+
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = cPoint(_painter, pt);
+        _points[size()-1] = cPoint(_painter, pt, "", _color);
 
     add(pt);
 }
@@ -720,14 +755,14 @@ void cPolygon::resetSelectedPoint()
     _idx = -1;
 }
 
-void cPolygon::findNearestPoint(QPointF const &pos)
+void cPolygon::findNearestPoint(QPointF const &pos, float sqr_radius)
 {
     if (_bPolyIsClosed)
     {
         resetSelectedPoint();
 
         float dist, dist2, x, y, dx, dy;
-        dist2 = _sqr_radius;
+        dist2 = sqr_radius;
         x = pos.x();
         y = pos.y();
 
@@ -813,6 +848,13 @@ void cPolygon::showNames(bool show)
 {
     for (int aK=0; aK < _points.size(); ++aK)
         _points[aK].showName(show);
+}
+
+void cPolygon::show(bool show)
+{
+    _bShowPolygon = show;
+
+    _color = show ? Qt::red : Qt::green;
 }
 
 void cPolygon::translate(QPointF Tr)
@@ -1113,15 +1155,18 @@ cGLData::cGLData():
     initOptions();
 }
 
-cGLData::cGLData(QMaskedImage &qMaskedImage):
+cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt):
     glMaskedImage(qMaskedImage),
     pQMask(qMaskedImage._m_mask),
     pBall(NULL),
     pAxis(NULL),
     pBbox(NULL),
-    _center(Pt3dr(0.f,0.f,0.f))
+    _center(Pt3dr(0.f,0.f,0.f)),
+    _modePt(modePt)
 {
     initOptions();
+
+    m_polygon.show(!modePt);
 }
 
 cGLData::cGLData(cData *data):
@@ -1455,7 +1500,7 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
         {
             if(m_bDisplayMode2D)
             {
-                displayNewMessage(QString("POSITION PIXEL"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString("PIXEL POSITION"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
                 displayNewMessage(QString("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
             else
@@ -1476,7 +1521,7 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
             }
         }
         else
-            displayNewMessage(QString("Drag & drop images or ply files"));
+            displayNewMessage(QString("Drag & drop files"));
     }
 
 }
