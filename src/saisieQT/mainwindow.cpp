@@ -3,7 +3,7 @@
 
 MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, bool modePt, QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, modePt),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
         _layout(new QGridLayout),

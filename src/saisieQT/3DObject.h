@@ -130,7 +130,7 @@ class cPoint : public cObjectGL, public QPointF
         void setState(int state){ _state = state; }
         void showName(bool show){ _bShowName = show; }
 
-       void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
+        void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
 
 private:
        QString _name;
@@ -256,15 +256,15 @@ class cPolygon : public cObjectGL
 
         void    setpointSize(float size) { _pointSize = size; }
 
-        void    add(cPoint const &pt){_points.push_back(pt);}
+        void    add(cPoint const &pt){ _points.push_back(pt); }
         void    add(QPointF const &pt, bool selected=false);
         void    addPoint(QPointF const &pt);
 
         void    clear();
-        void    clearPoints() {_points.clear();}
+        void    clearPoints() { _points.clear(); }
 
-        void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
-        bool    isClosed(){ return _bPolyIsClosed; }
+        void    setClosed(bool closed) { _bIsClosed = closed; }
+        bool    isClosed(){ return _bIsClosed; }
 
         int     size(){ return _points.size(); }
 
@@ -301,8 +301,8 @@ class cPolygon : public cObjectGL
 
         void    showNames(bool show = true);
 
-        void    show(bool show = true);
-        bool    isShown() { return _bShowPolygon; }
+        void    showLines(bool show = true);
+        bool    bShowLines() { return _bShowLines; }
 
         void    translate(QPointF Tr);
 
@@ -323,13 +323,13 @@ class cPolygon : public cObjectGL
         static float        _sqr_radius;
 
         //!states if polygon is closed
-        bool                _bPolyIsClosed;
+        bool                _bIsClosed;
 
         //!states if point with index _idx is selected
         bool                _bSelectedPoint;
 
         //!states if segments should be displayed
-        bool                _bShowPolygon;
+        bool                _bShowLines;
 
         int                 _style;
         QVector<qreal>      _dashes;
@@ -339,7 +339,7 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter,QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
         void   build(const QPointF &pos, bool insertMode);
 
