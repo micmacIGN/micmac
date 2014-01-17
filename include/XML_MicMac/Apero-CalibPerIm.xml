@@ -1,0 +1,148 @@
+<!--
+  For saving the results, the easiest way is to store directly the intrinsic calibration
+  in the file of external orientation. See the   <ExportPose> section.
+
+Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Apero-CalibPerIm.xml DirectoryChantier=/media/data1/ExempleDoc/MurSaintMartin/ +AeroIn=Mur +AeroOut=MurCalibrPerIm-1 +PatternAllIm="IMGP41((6[7-9])|([7-8][0-9])).JPG"
+
+-->
+<ParamApero>
+
+
+      <DicoLoc>
+            <Symb>  AeroIn=XXX  </Symb>
+            <Symb>  AeroOut=XXXX  </Symb>
+            <Symb>  PatternAllIm=XXXX  </Symb>
+       </DicoLoc>
+
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> NKS-Set-Homol@@dat  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@dat   </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+             <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@-${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@-${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+          <CalibrationCameraInc>
+               <Name>Generate-CalibPerIm</Name>
+               <CalValueInit>
+                    <CalFromFileExtern>
+                         <NameFile>  #### </NameFile>
+                         <NameTag>CalibrationInternConique</NameTag>
+                         <AutorizeNonExisting>false</AutorizeNonExisting>
+                    </CalFromFileExtern>
+               </CalValueInit>
+               <CalibPerPose>
+                    <KeyPose2Cal> NKS-Assoc-Id </KeyPose2Cal>
+                    <KeyInitFromPose>NKS-Assoc-FromFocMm@Ori-${AeroIn}/AutoCal@.xml</KeyInitFromPose>
+               </CalibPerPose>
+          </CalibrationCameraInc>
+                                                            
+
+          <PoseCameraInc>
+	           <PatternName>     ${PatternAllIm} </PatternName>
+
+	           <CalcNameCalib>  Generate-CalibPerIm </CalcNameCalib>
+                   <PosValueInit>
+                       <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+          </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXX </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+              <SLMGlob>
+                   <RappelOnAngles>
+                        <ParamF>
+                             <PatternNameApply>.*</PatternNameApply>
+                             <Incertitude>0.150000</Incertitude>
+                             <OnCur>true</OnCur>
+                        </ParamF>
+                        <TetaApply>0</TetaApply>
+                        <TetaApply>1</TetaApply>
+                        <TetaApply>2</TetaApply>
+                   </RappelOnAngles>
+                   <RappelOnCentres>
+                        <ParamF>
+                             <PatternNameApply>.*</PatternNameApply>
+                             <Incertitude>1.000000</Incertitude>
+                             <OnCur>true</OnCur>
+                        </ParamF>
+                        <OnlyWhenNoCentreInit>true</OnlyWhenNoCentreInit>
+                   </RappelOnCentres>
+              </SLMGlob>
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eAllParamFiges  </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                       <Messages>  LIB  FOCALE </Messages>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+
+                            <ExportPose>
+                                <PatternSel> (.*)  </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@-${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                            </ExportPose>
+                    </SectionExport>
+
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+</ParamApero>
+
+
+
