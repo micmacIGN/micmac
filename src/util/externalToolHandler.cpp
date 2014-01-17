@@ -214,7 +214,8 @@ string printResult( const string &i_tool )
 
 int CheckDependencies_main(int argc,char ** argv)
 {
-    cout << "mercurial revision " << __HG_REV__ << endl;
+	cout << "Qt version : " << QT_VERSION << endl;
+    cout << "mercurial revision : " << __HG_REV__ << endl;
     cout << endl;
     cout << "byte order   : " << ( MSBF_PROCESSOR()?"big-endian":"little-endian" ) << endl;
     cout << "address size : " << sizeof(int*)*8 << " bits" << endl;

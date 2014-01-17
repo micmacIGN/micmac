@@ -198,9 +198,15 @@ void MatrixManager::setModelViewMatrix()
     glGetDoublev (GL_MODELVIEW_MATRIX, _mvMatrix);
 }
 
-void MatrixManager::zoom(float zoom, float far)
+void MatrixManager::zoom(float zoom, float farr)
 {
-    MatrixManager::mglOrtho((GLdouble)-zoom*getGlRatio(),(GLdouble)zoom*getGlRatio(),(GLdouble)-zoom, (GLdouble)zoom,(GLdouble)-far,(GLdouble) far);
+    MatrixManager::mglOrtho(
+		(GLdouble)( -zoom*getGlRatio() ),
+		(GLdouble)( zoom*getGlRatio() ),
+		(GLdouble)( -zoom ),
+		(GLdouble)zoom,
+		(GLdouble)( -farr ),
+		(GLdouble)farr);
 }
 
 void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerScene)
