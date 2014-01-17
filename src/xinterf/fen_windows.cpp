@@ -296,10 +296,10 @@ DVD::DVD
    if ( IS_WIN95 )
    {
       if ( !RegisterWin95() )
-         exit(-1);
+         e-xit(-1);
    }
    else if ( !RegisterClass(&_wc ) )
-      exit(-1);
+      e-xit(-1);
 
    hInst = hInstance; 
    _init_carac = false;
@@ -316,7 +316,7 @@ void DVD::init_carac(HDC hdc)
 			||	(_bits_per_pixel == 0)
 			||	(_bits_per_pixel > 32)
 			)
-			exit(-1);
+			e-xit(-1);
 		_nb_oct_pp = _bits_per_pixel /8;
 
 	}
@@ -417,7 +417,7 @@ DVV::DVV
 	}
 
    if ( !_hWnd ) 
-      exit(-1);
+      e-xit(-1);
 
    ShowWindow( _hWnd, dvd->_nCmdShow ); 
    UpdateWindow( _hWnd );   
@@ -481,7 +481,7 @@ DVV::DVV
 			);
 
 	if (_hbm==0)
-		exit(-1);
+		e-xit(-1);
 
 
 //================================================
@@ -612,7 +612,7 @@ void DVV::bitm_set_rgb(int x,int y,int r,int g,int b)
 		}
 		break;
 		default :
-			exit(-1);
+			e-xit(-1);
 	}
 
 }
@@ -629,7 +629,7 @@ void DVV::show_rect(int x1,int y1,int x2,int y2)
 				SRCCOPY 
 			)
 	)
-		exit(-1);
+		e-xit(-1);
 
 
 

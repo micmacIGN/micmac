@@ -252,10 +252,51 @@ void PbHom(const std::string & anOri)
     std::cout << "\n";
 }
 
+void DebugDrag()
+{
+   std::string aDir = "/media/data1/Jeux-Tests/Dragon-2/MEC2Im-Epi_Im1_Right_IMGP7511_IMGP7512.tif-Epi_Im2_Left_IMGP7511_IMGP7512.tif/";
+   std::string aNamePx = "Px1_Num6_DeZoom2_LeChantier.tif";
+   std::string aNameMasq = "AutoMask_LeChantier_Num_5.tif";
+
+   Tiff_Im aTP = Tiff_Im::StdConv(aDir+aNamePx);
+   Tiff_Im aTM = Tiff_Im::StdConv(aDir+aNameMasq);
+
+   double aMinPx;
+   ELISE_COPY
+   (
+        aTP.all_pts(),
+        aTP.in() * aTM.in(),
+        VMin(aMinPx)
+   );
+
+   std::cout << "MIN PX " << aMinPx << "\n";
+}
+
 
 int MPDtest_main (int argc,char** argv)
 {
-   BanniereMM3D(); exit(0);
+   DebugDrag();
+
+
+   FILE * aFP = FopenNN("TEST.txt","a+","Log File");
+   fprintf(aFP,"AAAAAAAAA\n");
+   std::cout << "WAITING\n";
+   getchar();
+   fclose(aFP);
+   StdEXIT(0);
+
+
+   {
+      while (1)
+      {
+             for (int aK=0 ; aK<3 ; aK++)
+                 std::cout << GetUnikId() << "\n";
+             getchar();
+      }
+   }
+
+
+   BanniereMM3D(); StdEXIT(0);
    PbHom("Test-Four");
    PbHom("RadialExtended");
 

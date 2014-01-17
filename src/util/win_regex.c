@@ -3309,7 +3309,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
   DEBUG_PRINT_DOUBLE_STRING (d, string1, size1, string2, size2);
   DEBUG_PRINT1 ("'\n");
 
-  /* This loops over pattern commands.  It exits by returning from the
+  /* This loops over pattern commands.  It e xits by returning from the
      function if the match is complete, or it drops through if the match
      fails at this starting point in the input data.  */
   for (;;)
@@ -3644,7 +3644,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
 
           /* If just failed to match something this time around with a
              group that's operated on by a repetition operator, try to
-             force exit from the ``loop'', and restore the register
+             force e xit from the ``loop'', and restore the register
              information for this group that we had before trying this
              last match.  */
           if ((!MATCHED_SOMETHING (reg_info[*p])
@@ -3675,7 +3675,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
 
               /* If the next operation is a jump backwards in the pattern
 	         to an on_failure_jump right before the start_memory
-                 corresponding to this stop_memory, exit from the loop
+                 corresponding to this stop_memory, e xit from the loop
                  by forcing a failure after pushing on the stack the
                  on_failure_jump's jump in the pattern, and d.  */
               if (mcnt < 0 && (re_opcode_t) *p1 == on_failure_jump

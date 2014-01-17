@@ -1,14 +1,5 @@
 ﻿#include "Cloud.h"
 
-#include <fstream>
-#include <iostream>
-
-#include "poisson/ply.h"
-
-
-using namespace std;
-using namespace Cloud_;
-
 static PlyProperty vert_props[] = {
     {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
     {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
@@ -46,9 +37,9 @@ static PlyProperty oriented_vert_props[] = {
 /*!
     Read a ply file, store the point cloud
 */
-Cloud* Cloud::loadPly(string i_filename ,int* incre)
+GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 {
-    vector <Vertex> ptList;
+    vector <GlVertex> ptList;
 
     PlyFile * thePlyFile;
 
@@ -110,7 +101,7 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
                             printf ("vertex--: %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue, vertex->alpha);
                         #endif
 
-                        ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha )));
+                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha )));
                     }
                     break;
                 }
@@ -145,7 +136,7 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
                                 printf ("vertex: %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue);
                             #endif
 
-                            ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue )));
+                            ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue )));
                         }
                     }
                     else
@@ -169,7 +160,7 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
                             int Green = (int) ((vertex->ny + 1.f)*122.5);
                             int Blue  = (int) ((vertex->nz + 1.f)*122.5);
 
-                            ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor(Red, Green, Blue )));
+                            ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor(Red, Green, Blue )));
                         }
                     }
                     break;
@@ -191,7 +182,7 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
                             printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
                         #endif
 
-                        ptList.push_back( Vertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( 255, 255, 255 )));
+                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( 255, 255, 255 )));
                 }
                 break;
                 }
@@ -212,20 +203,20 @@ Cloud* Cloud::loadPly(string i_filename ,int* incre)
 
     if(incre) *incre = 0;
 
-    return new Cloud(ptList);
+    return new GlCloud(ptList);
 }
 
-void Cloud::addVertex(const Vertex &vert)
+void GlCloud::addVertex(const GlVertex &vert)
 {
     _vertices.push_back(vert);
 }
 
-int Cloud::size()
+int GlCloud::size()
 {
     return _vertices.size();
 }
 
-Vertex& Cloud::getVertex(uint nb_vert)
+GlVertex& GlCloud::getVertex(uint nb_vert)
 {
     if (_vertices.size() > nb_vert)
     {
@@ -239,12 +230,12 @@ Vertex& Cloud::getVertex(uint nb_vert)
     return _vertices[0];
 }
 
-void Cloud::clear()
+void GlCloud::clear()
 {
     _vertices.clear();
 }
 
-Cloud::Cloud(vector<Vertex> const & vVertex)
+GlCloud::GlCloud(vector<GlVertex> const & vVertex)
 {
     for (uint aK=0; aK< vVertex.size(); aK++)
     {
@@ -255,7 +246,7 @@ Cloud::Cloud(vector<Vertex> const & vVertex)
     _scale = 1.f;
 }
 
-void Cloud::draw()
+void GlCloud::draw()
 {
     glEnable(GL_DEPTH_TEST);
 
@@ -278,7 +269,7 @@ void Cloud::draw()
     glDisable(GL_DEPTH_TEST);
 }
 
-void Cloud::setBufferGl(bool onlyColor)
+void GlCloud::setBufferGl(bool onlyColor)
 {
     if(_vertexbuffer.isCreated() && !onlyColor)
         _vertexbuffer.destroy();
@@ -295,7 +286,7 @@ void Cloud::setBufferGl(bool onlyColor)
 
     for(uint bK=0; bK< sizeCloud; bK++)
     {
-        Vertex vert = getVertex(bK);
+        GlVertex vert = getVertex(bK);
         Pt3dr  pos  = vert.getPosition();
         QColor colo = vert.getColor();
         if(!onlyColor)

@@ -7,18 +7,10 @@ cData::cData()
 
 cData::~cData()
 {
-    for (int aK=0; aK < getNbCameras();++aK) delete _Cameras[aK];
-    for (int aK=0; aK < getNbClouds();++aK)  delete _Clouds[aK];
-    for (int aK=0; aK < getNbImages();++aK)  delete _Images[aK];
-    for (int aK=0; aK < getNbMasks();++aK)   delete _Masks[aK];
-
-    _Cameras.clear();
-    _Clouds.clear();
-    _Images.clear();
-    _Masks.clear();
+    clearAll();
 }
 
-void cData::addCloud(Cloud * aCloud)
+void cData::addCloud(GlCloud * aCloud)
 {
     _Clouds.push_back(aCloud);
 }
@@ -28,29 +20,14 @@ void cData::addCamera(CamStenope * aCam)
     _Cameras.push_back(aCam);
 }
 
-void cData::addImage(QImage * aImg)
+void cData::pushBackMaskedImage(QMaskedImage maskedImage)
 {
-    QImage *_glImg = NULL;
-    _glImg = new QImage(aImg->size(),aImg->format());
-    *_glImg = QGLWidget::convertToGLFormat( *aImg );
-    _Images.push_back(_glImg);
-
-    _curImgIdx = _Images.size() - 1;
-}
-
-void cData::addMask(QImage * aImg)
-{
-    QImage *_glMask = NULL;
-    _glMask = new QImage(aImg->size(),aImg->format());
-    *_glMask = QGLWidget::convertToGLFormat( *aImg );
-    _Masks.push_back(_glMask);
+    _MaskedImages.push_back(maskedImage);
 }
 
 void cData::clearClouds()
 {
-    for (uint aK=0; aK < (uint)getNbClouds();++aK)
-        delete _Clouds[aK];
-
+    qDeleteAll(_Clouds);
     _Clouds.clear();
 
     reset();
@@ -58,8 +35,7 @@ void cData::clearClouds()
 
 void cData::clearCameras()
 {
-    for (uint aK=0; aK < (uint)getNbCameras();++aK)
-        delete _Cameras[aK];
+    qDeleteAll(_Cameras);
 
     _Cameras.clear();
 
@@ -68,34 +44,24 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
-    for (uint aK=0; aK < (uint)getNbCameras();++aK)
-        delete _Images[aK];
-
-    _Images.clear();
-
+    _MaskedImages.clear();
     reset();
 }
 
-void cData::clearMasks()
+void cData::clearAll()
 {
-    for (uint aK=0; aK < (uint)getNbMasks();++aK)
-        delete _Masks[aK];
-
-    _Masks.clear();
-
-    reset();
+    clearClouds();
+    clearCameras();
+    clearImages();
 }
 
 void cData::reset()
 {
-    m_minX = m_minY = m_minZ =  FLT_MAX;
-    m_maxX = m_maxY = m_maxZ = -FLT_MAX;
-    _center = Pt3dr(0.f,0.f,0.f);
-    _curImgIdx = 0;
-    _bEmptyMask = true;
+    _min.x = _min.y = _min.z =  FLT_MAX;
+    _max.x = _max.y = _max.z = -FLT_MAX;
 }
 
-int cData::getSizeClouds()
+int cData::getCloudsSize()
 {
     int sizeClouds = 0;
     for (int aK=0; aK < getNbClouds();++aK)
@@ -105,22 +71,22 @@ int cData::getSizeClouds()
 }
 
 //compute bounding box
-void cData::getBB()
+void cData::computeBBox()
 {  
     for (uint bK=0; bK < _Clouds.size();++bK)
     {
-        Cloud * aCloud = _Clouds[bK];
+        GlCloud * aCloud = _Clouds[bK];
 
         for (int aK=0; aK < aCloud->size(); ++aK)
         {
             Pt3dr vert = aCloud->getVertex(aK).getPosition();
 
-            if (vert.x > m_maxX) m_maxX = vert.x;
-            if (vert.x < m_minX) m_minX = vert.x;
-            if (vert.y > m_maxY) m_maxY = vert.y;
-            if (vert.y < m_minY) m_minY = vert.y;
-            if (vert.z > m_maxZ) m_maxZ = vert.z;
-            if (vert.z < m_minZ) m_minZ = vert.z;
+            if (vert.x > _max.x) _max.x = vert.x;
+            if (vert.x < _min.x) _min.x = vert.x;
+            if (vert.y > _max.y) _max.y = vert.y;
+            if (vert.y < _min.y) _min.y = vert.y;
+            if (vert.z > _max.z) _max.z = vert.z;
+            if (vert.z < _min.z) _min.z = vert.z;
         }
     }
 
@@ -141,50 +107,25 @@ void cData::getBB()
         {
             Pt3dr C = vert[aK];
 
-            if (C.x > m_maxX) m_maxX = C.x;
-            if (C.x < m_minX) m_minX = C.x;
-            if (C.y > m_maxY) m_maxY = C.y;
-            if (C.y < m_minY) m_minY = C.y;
-            if (C.z > m_maxZ) m_maxZ = C.z;
-            if (C.z < m_minZ) m_minZ = C.z;
+            if (C.x > _max.x) _max.x = C.x;
+            if (C.x < _min.x) _min.x = C.x;
+            if (C.y > _max.y) _max.y = C.y;
+            if (C.y < _min.y) _min.y = C.y;
+            if (C.z > _max.z) _max.z = C.z;
+            if (C.z < _min.z) _min.z = C.z;
         }
     }
-
-    _center.x = (m_minX + m_maxX) * .5f;
-    _center.y = (m_minY + m_maxY) * .5f;
-    _center.z = (m_minZ + m_maxZ) * .5f;
-
-    m_diam = max(m_maxX-m_minX, max(m_maxY-m_minY, m_maxZ-m_minZ));   
 }
 
-void cData::applyGamma(float aGamma)
+// compute BBox center
+Pt3dr cData::getBBoxCenter()
 {
-    for (uint aK=0; aK<_Images.size();++aK)
-        applyGammaToImage(aK, aGamma);
+    return Pt3dr((_min.x + _max.x) * .5f, (_min.y + _max.y) * .5f, (_min.z + _max.z) * .5f);
 }
 
-void cData::applyGammaToImage(int aK, float aGamma)
+// compute BB max size
+float cData::getBBoxMaxSize()
 {
-    if (aGamma == 1.f) return;
-
-    QRgb pixel;
-    int r,g,b;
-
-    float _gamma = 1.f / aGamma;
-
-    for(int i=0; i< getImage(aK)->width();++i)
-        for(int j=0; j< getImage(aK)->height();++j)
-        {
-            pixel = getImage(aK)->pixel(i,j);
-
-            r = 255*pow((float) qRed(pixel)  / 255.f, _gamma);
-            g = 255*pow((float) qGreen(pixel)/ 255.f, _gamma);
-            b = 255*pow((float) qBlue(pixel) / 255.f, _gamma);
-
-            if (r>255) r = 255;
-            if (g>255) g = 255;
-            if (b>255) b = 255;
-
-            getImage(aK)->setPixel(i,j, qRgb(r,g,b) );
-        }
+    return max(_max.x-_min.x, max(_max.y-_min.y, _max.z-_min.z));
 }
+

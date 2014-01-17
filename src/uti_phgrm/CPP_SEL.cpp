@@ -84,7 +84,7 @@ int SEL_main(int argc,char ** argv)
                       << EAM(aN2) ,
            LArgMain() << EAM(aRedr,"R",true)
                       << EAM(aFilter,"F",true)
-                      << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT")
+                      << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT MMD")
                       << EAM(aKeyCompl,"KCpl",true)
                       << EAM(aSzW,"SzW",true)
     );
@@ -136,6 +136,10 @@ int SEL_main(int argc,char ** argv)
        else if (aKeyH=="NT")
        {
           aKeyCompl = "NKS-Assoc-CplIm2Hom@@txt";
+       }
+       else if (aKeyH=="MMD")
+       {
+          aKeyCompl = "NKS-Assoc-CplIm2Hom@-DenseM@dat";
        }
        else
        {

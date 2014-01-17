@@ -29,10 +29,13 @@ public:
 
     void    reset();
 
-    void    setGamma(float aGamma) {m_gamma = aGamma;}
-    float   getGamma() {return m_gamma;}
-
     void    ptSizeUp(bool up);
+
+    void    changeZoom(float DChange)
+    {
+        if      (DChange > 0) m_zoom *= pow(2.f,  DChange *.05f);
+        else if (DChange < 0) m_zoom /= pow(2.f, -DChange *.05f);
+    }
 
     //! Current zoom
     float m_zoom;
@@ -43,51 +46,22 @@ public:
     //! Line width
     float m_LineWidth;
 
-    //! Rotation angles
-    float m_angleX;
-    float m_angleY;
-    float m_angleZ;
-
-    //! Translation matrix
-    float m_translationMatrix[3];
-
-    float m_gamma;
-
+    //! Rotation and translation speed
 	float m_speed;
 };
 
-struct selectInfos
+class cLoader
 {
-    //! Ortho camera infos
-    ViewportParameters params;
 
-    //! polyline infos
-    QVector <QPointF>  poly;
-
-    //! selection mode
-    int                selection_mode;
-};
-
-//! Selection mode
-enum SELECTION_MODE { SUB,
-                      ADD,
-                      INVERT,
-                      ALL,
-                      NONE
-                    };
-
-class cLoader : QObject   
-{
-    Q_OBJECT
 public:
 
     cLoader();
 
     CamStenope* loadCamera(QString aNameFile);
 
-    Cloud*      loadCloud(string i_ply_file , int *incre = NULL);
+    GlCloud*      loadCloud(string i_ply_file , int *incre = NULL);
 
-    void        loadImage(QString aNameFile, QImage* &aImg, QImage* &aImgMask);
+    void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
     void        setDir(QDir aDir){_Dir = aDir;}
     QDir        getDir(){return _Dir;}
@@ -97,9 +71,9 @@ public:
     void        setFilenameOut(QString str);
     void        setSelectionFilename();
 
+    QStringList& getFilenamesIn() {return _FilenamesIn;}
     QStringList getFilenamesOut() {return _FilenamesOut;}
     QString     getSelectionFilename() {return _SelectionOut;}
-
 
     void        setPostFix(QString str);
 
@@ -113,37 +87,7 @@ private:
     QDir        _Dir;
 };
 
-class cGLData
-{
-public:
-
-    cGLData();
-    ~cGLData();
-
-    void clear();
-
-    bool is2D(){return pImg != NULL;}
-    bool is3D(){return Clouds.size() || Cams.size();}
-
-    //2D
-    cImageGL    *pImg;
-    cImageGL    *pMask;
-
-    //! Point list for polygonal selection
-    cPolygon    m_polygon;
-
-    //! Point list for polygonal insertion
-    cPolygon    m_dihedron;
-
-    //3D
-    QVector < cCam* > Cams;
-
-    cBall       *pBall;
-    cAxis       *pAxis;
-    cBBox       *pBbox;
-
-    QVector < Cloud* > Clouds;
-};
+class cGLData;
 
 class cEngine
 {    
@@ -160,6 +104,8 @@ public:
 
     //! Set input filenames
     void    setFilenamesIn(QStringList const &strl){_Loader->setFilenamesIn(strl);}
+
+    QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
 
     //! Set output filenames
     void    setFilenamesOut(){_Loader->setFilenamesOut();}
@@ -180,32 +126,45 @@ public:
     void    loadImages(QStringList);
 
     //! Load image (and mask) file
-    void    loadImage(QString imgName);
+    void    loadImage(QString );
+    void    loadImage(int aK);
+
+    void    reloadImage(int aK);
 
     void    unloadAll();
 
     //! Compute mask binary images: projection of visible points into loaded cameras
-    void    doMasks();
+    void    do3DMasks();
 
     //! Creates binary image from selection and saves
-    void    doMaskImage();
+    void    doMaskImage(ushort idCur);
+
+    void    saveMask(ushort idCur);
 
     void    saveSelectInfos(QVector <selectInfos> const &Infos);
 
     cData*  getData()  {return _Data;}
 
     //!looks for data and creates GLobjects
-    void    setGLData();
+    void    allocAndSetGLData();
+
+    void    reallocAndSetGLData(int aK);
 
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
+
+    void     setGamma(float aGamma) {_Gamma = aGamma;}
+
+    float    getGamma() { return _Gamma;}
 
 private:
 
     cLoader*            _Loader;
     cData*              _Data;
 
-    QVector <cGLData*>  _GLData;
+    QVector <cGLData*>  _vGLData;
+
+    float               _Gamma;
 };
 
 

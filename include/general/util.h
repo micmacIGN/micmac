@@ -53,6 +53,17 @@ extern void mem_raz(void *,tFileOffset);
 extern int MemoArgc;
 extern char ** MemoArgv;
 
+std::string GetUnikId();
+std::string Dir2Write();
+
+void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage);
+#define ElEXIT(aCode,aMessage) ElExit(__LINE__,__FILE__,aCode,aMessage)
+//  Il existe des exit qui n'ont pas besoin d'etres traces, par exemple sur les help
+#define StdEXIT(aCode)  exit(aCode)
+
+void AddMessErrContext(const std::string & aMes);
+
+int mm_getpid();
 
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 
@@ -1340,6 +1351,13 @@ class cElHour
       bool operator==( const cElHour &i_b ) const;
       bool operator!=( const cElHour &i_b ) const;
       
+     // read/write in raw binary format
+     void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
+     void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
+     
+     static void getCurrentHour_local( cElHour &o_localHour );
+     static void getCurrentHour_UTC( cElHour &o_utcHour );
+
     private :
        int mH;
        int mM;
@@ -1375,6 +1393,13 @@ class cElDate
 		bool operator==( const cElDate &i_b ) const;
 		bool operator!=( const cElDate &i_b ) const;
       
+	// read/write in raw binary format
+	void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
+	void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
+	
+	static void getCurrentDate_local( cElDate &o_localDate );
+	static void getCurrentDate_UTC( cElDate &o_utcDate );
+      
     private :
          int mD;
          int mM;
@@ -1394,7 +1419,6 @@ class cElDate
 
 
 	 static bool PrivIsBissextile(int aY);
-
 };
 
 bool operator < (const cElDate & aD1, const cElDate & aD2);
@@ -1502,7 +1526,11 @@ void BasicComputeIntervaleDelta
               );
 double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec);
 
+std::string getBanniereMM3D();
+
 void BanniereMM3D();
+
+
 
 extern "C" {
 FILE * ElFopen(const char *path, const char *mode);

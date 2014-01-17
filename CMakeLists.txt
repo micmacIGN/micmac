@@ -1,4 +1,4 @@
-# fichier contenant la fonction gerant les en-tetes précompilées
+# fichier contenant la fonction gerant les en-tetes precompilees
 include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
 
 cmake_minimum_required( VERSION 2.8.1 )
@@ -79,7 +79,7 @@ IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
     add_definitions(-DELISE_Darwin)
 endif()
 
-# DEFINITION : Dossier des exe et Dll nécessaires sous windows
+# DEFINITION : Dossier des exe et Dll necessaires sous windows
 set(BinAuxWinDir ${PROJECT_SOURCE_DIR}/binaire-aux/BIN_AUX_WIN32)
 
 # DEFINITIION : des chemins binaires sous UNIX
@@ -87,6 +87,57 @@ set(UnixBinPath
 		/bin
 		/usr/bin
 		/usr/local/bin)
+
+set(qt_version 0)
+find_package(OpenGL)
+if ( OPENGL_FOUND AND OPENGL_GLU_FOUND )
+   message( STATUS "-----> OpenGL found" )
+   
+    if ( MSVC )
+		include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
+		# ajoute /lib a tous les répertoires contenant un SDK
+		foreach( sdk_dir ${WINDOWSSDK_DIRS} )
+			list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
+		endforeach()		
+		set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
+		message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
+    endif()
+
+   find_package(Qt5Widgets QUIET)
+   find_package(Qt5Core QUIET)
+   find_package(Qt5Gui QUIET)
+   find_package(Qt5Xml QUIET)
+   find_package(Qt5Concurrent QUIET)
+   find_package(Qt5OpenGL QUIET)
+   if ( Qt5Widgets_FOUND AND
+	Qt5Core_FOUND AND
+	Qt5Gui_FOUND AND
+	Qt5Xml_FOUND AND
+	Qt5Concurrent_FOUND AND
+	Qt5OpenGL_FOUND )
+      message( STATUS "-----> Qt5 found" )
+      set(qt_version 5)
+   else()
+      FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
+      if ( QT4_FOUND )
+	 message( STATUS "-----> Qt4 found" )
+	 set(qt_version 4)
+      else()
+	 message( "Qt not available, Qt graphical tools disabled" )
+      endif()
+   endif()
+else()
+   message( "OpenGL or GLU not available, Qt graphical tools disabled" )
+endif()
+
+if ( NOT ${qt_version} EQUAL 0 )
+   set( WITH_SAISIEQT true )
+   message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
+endif()
+
+if (${WITH_SAISIEQT})
+   add_definitions(-DSAISIE_QT)
+endif()
 
 # CUDA
 if (${CUDA_ENABLED})
@@ -110,15 +161,8 @@ endif()
 # Etalonnage polygone
 
 if (${WITH_ETALONPOLY})
-
 	add_definitions(-DETA_POLYGON)
-
 endif()
-
-if (${WITH_SAISIEQT})
-	add_definitions(-DSAISIE_QT)
-endif()
-
 
 # MERCURIAL
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
@@ -129,7 +173,7 @@ else()
 	# Affiche la revision MICMAC
 	EXECUTE_PROCESS(
 		COMMAND
-		hg log -l 1 -b "default" --template "{rev}"
+		hg identify --num
 		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 		RESULT_VARIABLE hg_result
 		OUTPUT_VARIABLE HG_REVISION_DIST
@@ -141,12 +185,18 @@ else()
 	set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
 	
 	if ( NOT ${hg_result} )
+	   set( HG_REVISION_DIST \"${HG_REVISION_DIST}\" )
 	   CONFIGURE_FILE (
 	      "include/general/HG_defines.h.in"
 	      "${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
 	   )
 	endif()
 endif()
+
+CONFIGURE_FILE (
+	"include/general/CMake_defines.h.in"
+	"${CMAKE_SOURCE_DIR}/include/general/CMake_defines.h"
+)
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
@@ -278,7 +328,7 @@ IF(${WITH_MATIS_ORI})
 ENDIF()
 
 
-# VERIFICATION si ImageMagick est installé
+# VERIFICATION si ImageMagick est installe
 
 find_package(ImageMagick REQUIRED)
 
@@ -287,7 +337,7 @@ if(NOT ImageMagick_FOUND)
 	MESSAGE("http://www.imagemagick.org/script/index.php")
 endif(NOT ImageMagick_FOUND)
 
-# VERIFICATION si exiftool est installé
+# VERIFICATION si exiftool est installe
 
 find_program(EXIF_EXECUTABLE exiftool
 				PATHS 	${BinAuxWinDir} ${UnixBinPath}
@@ -296,11 +346,11 @@ find_program(EXIF_EXECUTABLE exiftool
 
 if(EXIF_EXECUTABLE_NOTFOUND)
 
-	message("Exiftool non trouvé!!")
+	message("Exiftool non trouve!!")
 
 endif()
 
-# VERIFICATION si exiv2 est installé
+# VERIFICATION si exiv2 est installe
 find_program(EXIV2_EXECUTABLE exiv2
 				PATHS 	${BinAuxWinDir} ${UnixBinPath}
 				DOC "Chemin vers la commande exiv2"
@@ -308,7 +358,7 @@ find_program(EXIV2_EXECUTABLE exiv2
 
 if(EXIV2_EXECUTABLE_NOTFOUND)
 
-	message("Exiv2 non trouvé!!")
+	message("Exiv2 non trouve!!")
 
 endif(EXIV2_EXECUTABLE_NOTFOUND)
 
@@ -319,16 +369,24 @@ endif()
 
 if(NOT WIN32)
 
-	# VERIFICATION si Proj4 est installé
+	# VERIFICATION si Proj4 est installe
 	#find_program(PROJ4_EXECUTABLE proj4 PATHS ${UnixBinPath} )
 	if(PROJ4_EXECUTABLE_FOUND)
 
-		message("Proj4 non trouvé!!")
+		message("Proj4 non trouve!!")
 
 	endif()
 
-	# VERIFICATION si X11 est présent sous MacOS et Linux
-	FIND_PACKAGE(X11)
+	# VERIFICATION si X11 est present sous MacOS et Linux
+	OPTION(NO_X11  "ignoring X11 libraries even if existing" OFF)
+
+	IF (NOT NO_X11)
+		#message("Trying to find X11 packageÉ")
+		FIND_PACKAGE(X11)
+	ELSE()
+		message("Ignoring X11 package...")
+		set(X11_LIBRARY_DIR "") # au cas ou on ait fait une passe de cmake sans actier 'NO_X11'
+	ENDIF()
 
 	IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
 		set( DYN_LIB_LIBRARY dl )
@@ -336,9 +394,9 @@ if(NOT WIN32)
 
 	IF (X11_FOUND)
 		#message("X11 Found : ")
-	  #message("   include dir   : " ${X11_INCLUDE_DIR} )
-	  #message("   libraries     : " ${X11_LIBRARIES} )
-	  #message("   libraries dir : " ${X11_LIBRARY_DIR} )
+	  	#message("   include dir   : " ${X11_INCLUDE_DIR} )
+	 	#message("   libraries     : " ${X11_LIBRARIES} )
+	  	#message("   libraries dir : " ${X11_LIBRARY_DIR} )
         INCLUDE_DIRECTORIES( ${X11_INCLUDE_DIR} )
 	ELSE()
 		add_definitions(-DNO_X11)
@@ -353,7 +411,7 @@ ELSE()
 
 	if(MAKE_EXECUTABLE_NOTFOUND)
 
-		message("Make non trouvé!!")
+		message("Make non trouve!!")
 
 	endif()
 
@@ -367,11 +425,11 @@ IF (MSVC)
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
         else()
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
-            # la valeur par défaut Zm1000 genere une erreur sous windows XP
+            # la valeur par defaut Zm1000 genere une erreur sous windows XP
 			set(zm_value "/Zm200")
 			string( FIND "${CMAKE_CXX_FLAGS}" "/Zm1000" has_zm1000 )
 			if ( ${has_zm1000} LESS 0 )
-				# la valeur par défaut Zm1000 n'existe plus a partir de la version 2.8.11
+				# la valeur par defaut Zm1000 n'existe plus a partir de la version 2.8.11
 				set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${zm_value}")
 			else()
 				# REPLACE pour eviter le conflit Zm1000 vs ZmXXX
@@ -393,7 +451,7 @@ IF (CMAKE_COMPILER_IS_GNUCC)
 	ADD_DEFINITIONS(-O2 -Wall)
 ENDIF()
 
-# DEFINITION : Windows : le projet debug est généré directement sous bin pour avoir les informations de Debug
+# DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug
 
 IF (MSVC)
 	 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
@@ -414,7 +472,7 @@ set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)
 ADD_SUBDIRECTORY(${ELISE_DIR})
 
-# INSTALLATION : Liste des exe et Dll nécessaires sous windows
+# INSTALLATION : Liste des exe et Dll necessaires sous windows
 if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
 	configure_file( ${BinAuxWinDir}/convert.exe ${PROJECT_SOURCE_DIR}/binaire-aux/convert.exe COPYONLY )
 	configure_file( ${BinAuxWinDir}/exiftool.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiftool.exe COPYONLY )

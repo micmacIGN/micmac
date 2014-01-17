@@ -106,7 +106,7 @@ void  ExempleUtilisationCoxRoy
                                       (
                                           aSzX,aSzY,
                                           aZmin,aZmax,
-                                          false,          // on choisit la  4 Connexite
+                                          false,          // on choisit la  4 Conne-xite
                                           true            // Stocke sur UCHAR
                                       );
 
@@ -506,7 +506,7 @@ template <class cCRNode> class cTplCoxRoyAlgo : public cInterfaceCoxRoyAlgo
            int TopMaxFlowStd(short **Sol);
 
 
-           inline int NbEdges() const {return eNbEdges;} // 6 ou 10 suivant la connexite
+           inline int NbEdges() const {return eNbEdges;} // 6 ou 10 suivant la conne-xite
            inline bool Cnx8() const {return NbEdges() == 10;}
 
 
@@ -1097,7 +1097,11 @@ template <class cCRNode> cTplCoxRoyAlgo<cCRNode>::cTplCoxRoyAlgo
 
 	// printf("--- init ---\n");
 
-	if( mLNodes==NULL ) { printf("Out of Mem! n\n");exit(0); }
+	if( mLNodes==NULL ) 
+        { 
+              printf("Out of Mem! n\n");
+              ElEXIT(-1,"Cox Roy Out of Memory"); 
+        }
 
 
 	mSinkFlow=0;

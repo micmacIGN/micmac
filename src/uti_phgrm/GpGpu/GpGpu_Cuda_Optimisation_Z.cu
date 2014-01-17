@@ -403,12 +403,22 @@ void ReadLine_V02(
 template<class T> __global__
 void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax)
 {
+//    extern __shared__ float sharedMemory[];
+
+//    ushort*   S_BuffICost0 = (ushort*)sharedMemory;
+//    uint*     S_BuffFCost0 = (uint*)&S_BuffICost0[sizeBuffer + 2*WARPSIZE];
+//    uint*     S_BuffFCost1 = (uint*)&S_BuffFCost0[sizeBuffer + 2*WARPSIZE];
+//    short2*   S_BuffIndex  = (short2*)&S_BuffFCost1[sizeBuffer + 2*WARPSIZE];
+//    uint*     pit_Id       = (uint*)&S_BuffIndex[WARPSIZE];
+//    uint*     pit_Stream   = pit_Id + 1;
+
     __shared__ short2   S_BuffIndex[WARPSIZE];
     __shared__ ushort   S_BuffICost0[NAPPEMAX + 2*WARPSIZE];
     __shared__ uint     S_BuffFCost0[NAPPEMAX + 2*WARPSIZE];
     __shared__ uint     S_BuffFCost1[NAPPEMAX + 2*WARPSIZE];
     __shared__ uint     pit_Id;
     __shared__ uint     pit_Stream;
+
 
     p_ReadLine p(threadIdx.x,penteMax);
 
@@ -455,7 +465,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
     streamICost.readFrom<eARRIERE>(S_BuffFCost[p.Id_Buf] + p.tid, NAPPEMAX - p.ID_Bf_Icost);
     streamICost.ReverseIncre<eARRIERE>();
 
-    p.reverse(S_BuffIndex);
+    p.reverse(S_BuffIndex,NAPPEMAX);
 
     if(p.ID_Bf_Icost > NAPPEMAX)
     {
@@ -477,6 +487,8 @@ extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
     uint deltaMax = 3;
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O.NBlines(),1,1);
+    //ushort sizeBuff = NAPPEMAX;//d2O._m_DzMax ;
+    //uint   sizeSharedMemory = (sizeof(ushort)+sizeof(uint)*2)*(sizeBuff + 2 * WARPSIZE) + sizeof(short2)*WARPSIZE + 2 * sizeof(uint);
 
     Run_V02< uint ><<<Blocks,Threads>>>
                                   (
