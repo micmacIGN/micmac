@@ -2929,6 +2929,14 @@ class cCpleEpip
              const std::string & PrefLeft =   "Left_",
              const std::string & PrefRight =  "Right_"
          );
+         Pt2dr RatioExp() const;
+         double RatioCam() const;
+         const bool & Ok() const;
+         const int & SzX() const;
+         const int & SzY() const;
+
+         double BSurHOfPx(bool Im1,double aPx);
+         Fonc_Num BSurHOfPx(bool Im1,Fonc_Num aPx);
 
          std::string Dir();
 
@@ -2953,8 +2961,10 @@ class cCpleEpip
 
 
          void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1,bool InParal=true,bool DoIm=true,const char * NameHom= 0,int aDegPloCor=-1);
-         const bool & Ok() const;
          void AssertOk() const;
+
+         void LockMess(const std::string & aMes);
+         void SetNameLock(const std::string & anExt);
      private :
          
          Box2dr   BoxCam(const CamStenope & aCam,const CamStenope & aCamOut,bool Show) const;
@@ -2984,6 +2994,11 @@ class cCpleEpip
          CamStenopeIdeale   mCamOut2;
          bool               mOk;
          bool               mFirstIsLeft;
+         int                mSzX;
+         int                mSzY;
+         double             mPxInf;
+
+         std::string        mFileLock;
 };
 std::string LocDirMec2Im(const std::string & Im1,const std::string & Im2);
 std::string StdNameImDeZoom(const std::string & Im1,int aDeZoom);

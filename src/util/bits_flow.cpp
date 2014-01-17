@@ -435,6 +435,30 @@ void byte_inv_4(void * t)
      );
 }
 
+void byte_inv_8(void * t)
+{
+     ElSwap
+     (
+          ((char *) t)[0],
+          ((char *) t)[7]
+     );
+     ElSwap
+     (
+          ((char *) t)[1],
+          ((char *) t)[6]
+     );
+     ElSwap
+     (
+          ((char *) t)[2],
+          ((char *) t)[5]
+     );
+     ElSwap
+     (
+          ((char *) t)[3],
+          ((char *) t)[4]
+     );
+}
+
 void byte_inv_tab(void * t,INT byte_by_el,INT nb_el)
 {
    if (byte_by_el == 1)

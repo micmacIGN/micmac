@@ -988,11 +988,11 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
 
     if ( !process_pastis_tool_string( mDetectingTool, mDetectingArguments ) ){
         cerr << "Pastis: ERROR: specified string for the detecting tool is invalid (format is : tool[:arguments] )" << endl;
-        exit( EXIT_FAILURE );
+        ElEXIT( EXIT_FAILURE ,"Pastis:syntax error");
     }
     if ( !process_pastis_tool_string( mMatchingTool, mMatchingArguments ) ){
         cerr << "Pastis: ERROR: specified string for the matching tool is invalid (format is : tool[:arguments] )" << endl;
-        exit( EXIT_FAILURE );
+        ElEXIT( EXIT_FAILURE,"Pastis: match error" );
     }
 
     if (mExpTxt) mExpBin = 0;

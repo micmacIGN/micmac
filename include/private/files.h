@@ -40,6 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_PRIVATE_FILES_H
 #define _ELISE_PRIVATE_FILES_H
 
+#ifndef S_ISREG
+	inline int S_ISREG(int v) { return v&_S_IFREG;}
+#endif
+
+#ifndef S_ISDIR
+	inline int S_ISDIR(int v){ return v&_S_IFDIR; }
+#endif
+
 namespace NS_ParamChantierPhotogram {
   class cXmlExivEntry;
   class cXmlDataBase;
@@ -168,6 +176,8 @@ class  ELISE_fp
 	 static void RmFile(const std::string &);
 	 static void MvFile(const std::string & aFile,const std::string & aDest);
 	 static void PurgeDir(const std::string &);
+	 static void PurgeDirGen(const std::string &,bool Recurs);
+	 static void PurgeDirRecursif(const std::string &);
       
          ~ELISE_fp();
          ELISE_fp(eModeBinTxt ModeBin=eTxtOnPremierLigne);

@@ -217,7 +217,7 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
           std::cout << "Allowed Key Word : \n";
           std::cout << "   " << aTextMatch  << " for texture adeuate for matching\n";
           std::cout << "   " << aCalibGray  << " for gray calibration\n";
-          exit(1);
+          ElEXIT(1,"cAppliGenMire::cAppliGenMire");
     }
 
     if (! EAMIsInit(&mFileOut)) mFileOut = aDefFile;

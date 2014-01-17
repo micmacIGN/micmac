@@ -158,20 +158,6 @@ static void DebugFileOpen(INT delta,const std::string & aName)
 	// cout << "-- Number Of File Opened = " << aEliseCptFileOpen << "\n";
 }
 
-
-
-#ifndef S_ISREG
-int S_ISREG(int v) { return v&_S_IFREG;}
-#endif
-
-#ifndef S_ISDIR
-int S_ISDIR(int v)
-{
-	return v&_S_IFDIR;
-}
-#endif
-
-
 bool ELISE_fp::MkDirSvp(const std::string & aName )
 {
 #if (ELISE_unix)
@@ -275,7 +261,6 @@ void ELISE_fp::AssertIsDirectory(const std::string &  aName )
 	}
 }
 
-
 void ELISE_fp::RmFile(const std::string & aFile)
 {
 #if ELISE_windows
@@ -304,7 +289,7 @@ void ELISE_fp::MvFile(const std::string & aName1,const std::string &  aDest)
      VoidSystem(aNameCom.c_str());
 }
 
-void  ELISE_fp::PurgeDir(const std::string & aDir)
+void  ELISE_fp::PurgeDirGen(const std::string & aDir,bool Recurs)
 {
 	std::string aDirC = aDir;
 	MakeFileDirCompl(aDirC);
@@ -315,8 +300,21 @@ void  ELISE_fp::PurgeDir(const std::string & aDir)
     // MODIF MPD LES "" ne permettent pas
 	std::string aCom = std::string(SYS_RM)+ " " + aDirC+"*";
 #endif
+        if (Recurs)
+           aCom = aCom + " .* -r";
 	VoidSystem(aCom.c_str());
 }
+
+void  ELISE_fp::PurgeDirRecursif(const std::string & aDir)
+{
+    ELISE_fp::PurgeDirGen(aDir,true);
+}
+
+void  ELISE_fp::PurgeDir(const std::string & aDir)
+{
+    ELISE_fp::PurgeDirGen(aDir,false);
+}
+
 
 void ELISE_fp::InterneMkDirRec(const  std::string  & aName )
 {
@@ -358,7 +356,7 @@ void ELISE_fp::MkDirRec(const std::string &  aName )
 bool ELISE_fp::copy_file( const std::string i_src, const std::string i_dst, bool i_overwrite )
 {
 	#if (ELISE_windows)
-		return (bool)CopyFile( i_src.c_str(), i_dst.c_str(), i_overwrite?0:1 /*fail if exits*/ );
+		return (bool)CopyFile( i_src.c_str(), i_dst.c_str(), i_overwrite?0:1 /*fail if Exits*/ );
 	#else
 		if ( !i_overwrite && exist_file(i_dst) ) return false;
 
@@ -367,11 +365,12 @@ bool ELISE_fp::copy_file( const std::string i_src, const std::string i_dst, bool
 
 		if ( !src || !dst ) return false;
 
-		char buffer[1024];
+        const unsigned int buffer_size = 1000000;
+        vector<char> buffer(buffer_size);
 		while ( !src.eof() )
 		{
-			src.read( buffer, 1024 );
-			dst.write( buffer, src.gcount() );
+            src.read( buffer.data(), buffer_size );
+            dst.write( buffer.data(), src.gcount() );
 		}
 		return true;
 		#if (ELISE_POSIX)
@@ -434,7 +433,7 @@ bool ELISE_fp::lastModificationDate(const std::string &i_filename, cElDate &o_da
 	if ( stat( i_filename.c_str(), &sb )==-1) return false;
     struct tm *t = localtime( &sb.st_mtime );
     
-    o_date = cElDate( t->tm_mday, t->tm_mon, t->tm_year+1900, cElHour( t->tm_hour, t->tm_min, t->tm_sec ) );
+    o_date = cElDate( t->tm_mday, t->tm_mon+1, t->tm_year+1900, cElHour( t->tm_hour, t->tm_min, t->tm_sec ) );
     return true;
 }
 #endif

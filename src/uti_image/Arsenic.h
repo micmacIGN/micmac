@@ -45,7 +45,7 @@ class PtsHom
 	~PtsHom(){}
     vector<double> Gr1,Gr2,Dist1,Dist2;
 	Pt2di SZ;
-	int size(){	return this->Gr1.size();}
+    int size(){	return Gr1.size();}
 private:
   
 };
@@ -59,7 +59,7 @@ class cl_PtsRadio
 	vector<Pt2dr> Pts;
 	vector<int> OtherIm;
 	Pt2di SZ;
-	int size(){return this->Pts.size();}
+    int size(){return Pts.size();}
 
 };
 
@@ -71,9 +71,9 @@ class cl_MatPtsHom
 		vector<cl_PtsRadio> aMat;
 		int nbTotalPts(){
 			int sum=0;
-			for(int i=0;i<this->aMat.size();i++)
+            for(int i=0;i<int(aMat.size());i++)
 			{
-				sum += this->aMat[i].size();
+                sum += aMat[i].size();
 			}
 			return sum;
 

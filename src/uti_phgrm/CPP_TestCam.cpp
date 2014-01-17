@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 void TestDirect(ElCamera * aCam,Pt3dr aPG)
 {
     {
+         std::cout.precision(10);
+
          std::cout << " ---PGround  = " << aPG << "\n";
          Pt3dr aPC = aCam->R3toL3(aPG);
          std::cout << " -0-CamCoord = " << aPC << "\n";

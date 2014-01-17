@@ -86,11 +86,16 @@ class cMMOnePair
       Box2di           mBoxIm;
       bool             mPurge;
       std::string      mBascMTD;
+      bool             mRIE;
       std::string      mBascDEST;
       bool             mDoHom;
       int              mDegCorrEpip;
       eTypeQuality     mQualOr;
       std::string      mStrQualOr;
+      bool             mDoPly;
+      int              mScalePly;
+      bool             mDoOnlyMF;
+      bool             mDebugCreatE;
 
 };
 
@@ -107,7 +112,8 @@ class cAppliMMOnePair : public cMMOnePair,
          void SymetriseMasqReentrant();
          void UseReentrant(bool First,int aStep,bool Last);
          void GenerateMTDEpip(bool MasterIs1);
-         void Bascule(bool MasterIs1);
+         void BasculeGround(bool MasterIs1);
+         void BasculeEpip(bool MasterIs1);
 
          cImaMM * mIm1;
          cImaMM * mIm2;
@@ -134,10 +140,15 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDoMR         (true),
     mSigmaP       (1.5),
     mPurge        (true),
+    mRIE          (false),
     mBascDEST     ("Basculed-"),
     mDoHom        (false),
     mDegCorrEpip  (4),
-    mQualOr       (eQual_High)
+    mQualOr       (eQual_High),
+    mDoPly        (false),
+    mScalePly     (4),
+    mDoOnlyMF     (false),
+    mDebugCreatE  (false)
 {
   ElInitArgMain
   (
@@ -157,11 +168,20 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mPurge,"Purge",true,"Purge directory, tuning, def=true")
                     << EAM(mMM1PInParal,"InParal",true,"Do it in paral, def=true")
                     << EAM(mBascMTD,"BascMTD",true,"Metadata of file to bascule (Def No Basc)")
+                    << EAM(mRIE,"RIE",true,",Inverse re-sampling from epipolar")
                     << EAM(mBascDEST,"BascMTD",true,"Res of Bascule (Def Basculed-)")
                     << EAM(mDoHom,"DoHom",true,"Do Hom in epolar (Def= false)")
                     << EAM(mDegCorrEpip,"DegCE",true,"Degree of epipolar correction when Qual Orient is not high (def=4)")
                     << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
+                    << EAM(mDoPly,"DoPly",true,"Generate Ply")
+                    << EAM(mScalePly,"ScalePly",true,"Dowsize of generated Ply (Def=4)")
+                    << EAM(mDoOnlyMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
+                    << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)")
   );
+
+  if (mNameIm1Init > mNameIm2Init)
+     ElSwap(mNameIm1Init,mNameIm2Init);
+
   if (EAMIsInit(&mStrQualOr))
      mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
 
@@ -188,6 +208,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                                + " " + mNameOriInit
                                + " Match=true "
                         ;
+      if (mZoomF!=1)
+         aCom = aCom + " ZoomF=4 ";
       System(aCom);
   }
 
@@ -246,7 +268,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
 
 cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
    cMMOnePair(argc,argv),
-   cAppliWithSetImage(2,&(mArgcAWS[0]),0)
+   cAppliWithSetImage(2,&(mArgcAWS[0]),0),
+   mIm1 (0),
+   mIm2 (0)
 {
     if (! EAMIsInit(&mZoom0))
     {
@@ -264,12 +288,34 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     // mStepEnd = round_ni(log2(mZoom0/double(mZoomF))) + 3;
     mStepEnd = mVZoom.size()-1;
 
-    // std::cout << "STEP END = " << mStepEnd << " " << round_ni(log2(mZoom0/double(mZoomF))) + 3 << " :: " << mVZoom << "\n"; exit(0);
+    // std::cout << "STEP END = " << mStepEnd << " " << round_ni(log2(mZoom0/double(mZoomF))) + 3 << " :: " << mVZoom << "\n"; StdEXIT(0);
 
-    ELISE_ASSERT(mImages.size()==2,"Expect exaclty 2 images in cAppliMMOnePair");
-    mIm1 = mImages[0];
-    mIm2 = mImages[1];
+    int aK=0;
+    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+    {
+        if (aK==0) 
+           mIm1 =  (*anITS).attr().mIma;
+        if (aK==1) 
+           mIm2 =  (*anITS).attr().mIma;
+        aK++;
+    }
+    ELISE_ASSERT(aK==2,"Expect exaclty 2 images in cAppliMMOnePair");
+    // mIm1 = mImages[0];
+    // mIm2 = mImages[1];
 
+
+   std::string aComPly =    MMBinFile(MM3DStr)
+                          + " Nuage2Ply "
+                          + mDir+LocDirMec2Im(mNameIm1,mNameIm2) + "NuageImProf_Chantier-Ori_Etape_Last.xml "
+                          + " Attr=" + mNameIm1
+                          + " RatioAttrCarte=" + ToString(mZoomF)
+                          + " Scale=" + ToString(mScalePly)
+                          + " Out=" +  LocDirMec2Im(mNameIm1,mNameIm2) +"PLY-" + mNameIm1 + "-"+ mNameIm1+".ply";
+                        ;
+
+   if (mDebugCreatE)  
+      return;
+// std::cout << aComPly << "\n"; getchar();
 
 
     if (false)
@@ -280,38 +326,75 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     {
         for (int aStep=1 ; aStep<=mStepEnd ; aStep++)
         {
-           MatchTwoWay(aStep,aStep+1);
+           if (! mDoOnlyMF)
+           {
+              MatchTwoWay(aStep,aStep+1);
+           }
            int aDeZoom = mVZoom[aStep];
 
-           if (mDoMR && ((aDeZoom!= mZoomF) || (aStep==mStepEnd)) && (aDeZoom<=8))
+           if (     mDoMR 
+                 && ((aDeZoom!= mZoomF) || (aStep==mStepEnd)) 
+                 && (aDeZoom<=8)
+                 && ((!mDoOnlyMF) || (aStep==mStepEnd))
+              )
            {
               DoMasqReentrant(true,aStep,aStep==mStepEnd);
               DoMasqReentrant(false,aStep,aStep==mStepEnd);
 
               SauvMasqReentrant(true,aStep,aStep==mStepEnd);
               SauvMasqReentrant(false,aStep,aStep==mStepEnd);
-
+/*
+   BUGUEE et a priori inutile ...  BUGUEE CAR CREE DES TROU et pas appelle sauf en resol finale (ou ca cree des trous ...).
               if (mByEpip)
                  SymetriseMasqReentrant();
+*/
+           }
+
+           if ((aStep==1) && mByEpip)  // Mis ici pour Nuage2Ply
+           {
+              GenerateMTDEpip(true);
+              GenerateMTDEpip(false);
            }
         }
+
+        if (mDoPly)
+        {
+                System(aComPly);
+        }
+
     }
 
-    if (mByEpip)
+    if (mRIE)
     {
-       GenerateMTDEpip(true);
-       GenerateMTDEpip(false);
+       BasculeEpip(true);
+       BasculeEpip(false);
     }
 
 
     if (EAMIsInit(&mBascMTD))
     {
-          Bascule(true);
-          Bascule(false);
+       BasculeGround(true);
+       BasculeGround(false);
     }
 }
 
-void cAppliMMOnePair::Bascule(bool MasterIs1)
+void cAppliMMOnePair::BasculeEpip(bool MasterIs1)
+{
+    std::string aNamInitA =  (MasterIs1 ? mNameIm1Init : mNameIm2Init);
+    std::string aNamInitB =  (MasterIs1 ? mNameIm2Init : mNameIm1Init);
+
+    std::string aCom =   MMBinFile(MM3DStr) + " TestLib RIE "
+                                            + aBlk + aNamInitA
+                                            + aBlk + aNamInitB
+                                            + aBlk + mNameOriInit
+                                            + aBlk + " Dir=" + mDir
+                       ;
+//  mm3d TestLib RIE MVxxxx_MAP_6937.NEF MVxxxx_MAP_6938.NEF Basc
+
+    System(aCom);
+}
+
+void cAppliMMOnePair::BasculeGround(bool MasterIs1)
 {
     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
@@ -438,7 +521,7 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + aNameInitA + aBlk
                           + aNameInitB + aBlk
                           + mNameOriInit + aBlk
-                          + " DoM=true"
+                          + " DoM=true"  // Pas utilise dans coher epip, et peu creer bug ...
                           + " ByE="      + ToString(mByEpip)
                           + " NumPx="    + ToString(aStep)
                           + " NumMasq="  + ToString(aLast ? (aStep-1) : aStep)
@@ -448,6 +531,12 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " Prefix="   + aPref
                           + " InParal="  + ToString(mMM1PInParal)
                       ;
+
+     if (aLast) 
+     {
+        aCom = aCom + " ExpFin=true " ;
+        aCom = aCom + " RedM=1.0 ";
+     }
 
      System(aCom);
 }
@@ -464,6 +553,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                                ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
                                ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
      aNameCor =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameCor;
+
 
      Tiff_Im aFMCor(aNameCor.c_str());
      std::string aNameNew = aPref + "_Masq1_Glob.tif";
@@ -489,6 +579,11 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
            std::string aName = mDir + aPref + "_Glob.tif";
            std::string aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
            ELISE_fp::MvFile(aName,aDest);
+
+           aName = mDir + aPref + "_ImDistor_Glob.tif";
+           aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Distorsion.tif";
+           ELISE_fp::MvFile(aName,aDest);
+
            ELISE_fp::RmFile(mDir + aPref + "*.tif");
 // LocDirMec2Im(aNamA,aNamB) 
      }
@@ -540,8 +635,16 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
               ;
      }
 
+/*
+     bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly)  && (MasterIs1);
+     if (AddPly)
+     {
+          aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";
+     }
+*/
      if (mExe)
         System(aCom);
+
 }
 
 /*****************************************************************/
@@ -802,7 +905,7 @@ int MMSymMasqAR_main(int argc,char ** argv)
   }
   // Im2D_REAL4 aImPX1(aSz1In);
 
-  return 1;
+  return 0;
 }
 
 

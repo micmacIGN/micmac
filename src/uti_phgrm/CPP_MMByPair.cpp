@@ -40,6 +40,37 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+
+class cPatOfName
+{
+    public :
+       cPatOfName();
+       std::string Pattern() const;
+       void AddName(const std::string &);
+    private :
+        std::string mPat;
+        int mNb;
+};
+
+
+cPatOfName::cPatOfName() :
+    mPat ("\"(") ,
+    mNb (0)
+{
+}
+std::string cPatOfName::Pattern() const
+{
+   return mPat + ")\"";
+}
+
+void cPatOfName::AddName(const std::string & aName)
+{
+   if (mNb) mPat += "|";
+   mPat += aName;
+   mNb++;
+}
+
+
 class cAppliClipChantier : public cAppliWithSetImage
 {
     public :
@@ -47,7 +78,7 @@ class cAppliClipChantier : public cAppliWithSetImage
 
         std::string  mNameMasterIm;
         Box2di       mBox;
-        cImaMM *  mMasterIm;
+        tSomAWSI *   mMasterIm;
 };
 
 
@@ -57,10 +88,20 @@ class cAppliMMByPair : public cAppliWithSetImage
       cAppliMMByPair(int argc,char ** argv);
       int Exe();
     private :
+      void Inspect();
+      bool InspectMTD(tArcAWSI & anArc,const std::string & aName );
+      bool InspectMTD(tArcAWSI & anArc);
+      bool InspectMTD_REC(tArcAWSI & anArc);
+
+
+      void DoMDTGround();
+      void DoMDTStatute();
       void DoMDT();
+
       void DoCorrelAndBasculeStd();
-      void DoCorrelAndBasculeEpip();
-      std::string MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 );
+      void DoCorrelEpip();
+      void DoReechantEpipInv();
+      std::string MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool & Done,bool & Begun);
       void DoFusion();
 
       std::string mDo;
@@ -68,7 +109,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       int mZoomF;
       bool mParalMMIndiv;
       bool mDelaunay;
-      bool mMMImSec;
+      bool mAddMMImSec;
       int mDiffInStrip;
       bool mStripIsFirt;
       std::string  mPairByStrip;
@@ -80,15 +121,22 @@ class cAppliMMByPair : public cAppliWithSetImage
       std::string  mStrType;
       bool         mModeHelp;
       bool         mByMM1P;
+      // bool         mByEpi;
       Box2di       mBoxOfImage;
       std::string  mImageOfBox;
-      eTypeQuality mQualOr;
       std::string  mStrQualOr;
+      eTypeQuality mQualOr;
+      bool         mDoPlyMM1P;
+      int          mScalePlyMM1P;
+      bool         mDoOMF;
+      bool         mRIEInParal;  // Pour debuguer en l'inhibant,
+      int          mTimes;
+      bool         mDebugCreatE;
 };
 
 /*****************************************************************/
 /*                                                               */
-/*                            cImaMM                             */
+/*                            ::                                 */
 /*                                                               */
 /*****************************************************************/
 
@@ -135,6 +183,65 @@ void Paral_Tiff_Dev
     cEl_GPAO::DoComInParal(aLCom);
 }
 
+std::string PatternOfVois(tSomAWSI & aSom ,bool IncludeThis)
+{
+   cPatOfName aPON;
+   if (IncludeThis) aPON.AddName(aSom.attr().mIma->mNameIm);
+
+   cSubGrAWSI aSubGrAll;
+   for (tItAAWSI itA=aSom.begin(aSubGrAll) ; itA.go_on() ; itA++)
+       aPON.AddName((*itA).s2().attr().mIma->mNameIm);
+
+/*
+cImaMM*>::const_iterator itIM=mVois.begin() ; itIM!=mVois.end() ; itIM++)
+    ;
+   for (std::list<cImaMM*>::const_iterator itIM=mVois.begin() ; itIM!=mVois.end() ; itIM++)
+       aPON.AddName((*itIM)->mNameIm);
+*/
+
+   return aPON.Pattern();
+}
+
+/*****************************************************************/
+/*                                                               */
+/*          cAttrSomAWSI , cAttrArcAWSI                          */
+/*                                                               */
+/*****************************************************************/
+
+cAttrSomAWSI::cAttrSomAWSI() :
+  mIma (0)
+{
+}
+cAttrSomAWSI::cAttrSomAWSI(cImaMM* anIma) :
+  mIma (anIma)
+{
+}
+cAttrArcAWSI::cAttrArcAWSI() :
+  mCpleE (0)
+{
+}
+cAttrArcAWSI::cAttrArcAWSI(cCpleEpip * aCpleE) :
+  mCpleE (aCpleE)
+{
+}
+
+
+std::string NameImage(tArcAWSI & anArc,bool Im1,bool ByEpi)
+{
+    tSomAWSI & aS = Im1 ? anArc.s1() : anArc.s2();
+    std::string aRes = aS.attr().mIma->mNameIm;
+    if (ByEpi)
+    {
+        cCpleEpip * aCpleE = anArc.attr().mCpleE;
+        ELISE_ASSERT(aCpleE!=0,"Could not get Epi in NameImage");
+        aRes = aCpleE->LocNameImEpi(aRes);
+    }
+    return aRes;
+}
+/*
+*/
+
+
 
 /*****************************************************************/
 /*                                                               */
@@ -164,6 +271,9 @@ Tiff_Im  &   cImaMM::Tiff()
     return *mPtrTiff;
 }
 
+
+
+
 /*****************************************************************/
 /*                                                               */
 /*                      cAppliWithSetImage                       */
@@ -181,7 +291,8 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mSym       (true),
    mShow      (false),
    mPb        (""),
-   mAverNbPix (0.0)
+   mAverNbPix (0.0),
+   mByEpi     (false)
 {
    if (argc<2)
    {
@@ -218,9 +329,15 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    for (int aKV=0 ; aKV<int(mSetIm->size()) ; aKV++)
    {
        const std::string & aName = (*mSetIm)[aKV];
+       cImaMM * aNewIma = new cImaMM(aName,*this);
+       tSomAWSI & aSom = mGrIm.new_som(cAttrSomAWSI(aNewIma));
+       mVSoms.push_back(&aSom);
+       mDicIm[aName] = & aSom;
+/*
        mImages.push_back(new cImaMM(aName,*this));
        mDicIm[aName] = mImages.back();
-       Pt2di  aSz =  mImages.back()->Tiff().sz();
+*/
+       Pt2di  aSz =  aNewIma->Tiff().sz();
        mAverNbPix += double(aSz.x) * double(aSz.y);  
    }
    mAverNbPix /= mSetIm->size();
@@ -235,6 +352,17 @@ int  cAppliWithSetImage::DeZoomOfSize(double aSz) const
     return 1 << aL2;
 }
 
+void cAppliWithSetImage::FilterImageIsolated()
+{
+   std::vector<cImaMM *> aRes;
+   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+   {
+       if ((*anITS).nb_succ(mSubGrAll) ==0)
+       {
+           (*anITS).remove();
+       }
+   }
+}
 
 
 const std::string & cAppliWithSetImage::Dir() const
@@ -278,9 +406,11 @@ void  cAppliWithSetImage::MakeStripStruct(const std::string & aPairByStrip,bool 
   std::string aExpStrip = StripIsFirst ? "$1" : "$2";
   std::string aExpNumInStrip = StripIsFirst ? "$2" : "$1";
 
-  for (int aKI=0;  aKI<int(mImages.size()) ; aKI++)
+  // for (int aKI=0;  aKI<int(mImages.size()) ; aKI++)
+  for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
   {
-      cImaMM & anI = *(mImages[aKI]);
+      // cImaMM & anI = *(mImages[aKI]);
+      cImaMM & anI = *((*anITS).attr().mIma);
       
       std::string aBande = MatchAndReplace(anAutom,anI.mNameIm,aExpStrip);
       std::string aNumInBande = MatchAndReplace(anAutom,anI.mNameIm,aExpNumInStrip);
@@ -293,19 +423,19 @@ void  cAppliWithSetImage::MakeStripStruct(const std::string & aPairByStrip,bool 
   }
 }
 
-Pt2dr PtOfcImaMM   (const cImaMM & aCam) {return aCam.mC2;}
-Pt2dr PtOfcImaMMPtr(const cImaMM * aCam) {return PtOfcImaMM(*aCam);}
+// Pt2dr PtOfcImaMM   (const cImaMM & aCam) {return aCam.mC2;}
+// Pt2dr PtOfcImaMMPtr(const cImaMM * aCam) {return PtOfcImaMM(*aCam);}
 
 void cAppliWithSetImage::AddDelaunayCple()
 {
   Delaunay_Mediatrice
   (
-      &(mImages[0]),
-      &(mImages[0])+mImages.size(),
-       PtOfcImaMMPtr,
+      &(mVSoms[0]),
+      &(mVSoms[0])+mVSoms.size(),
+       PtOfSomAWSIPtr,
        *this,
        1e10,
-       (cImaMM **) 0
+       (tSomAWSI **) 0
   );
 
 }
@@ -313,18 +443,21 @@ void cAppliWithSetImage::AddDelaunayCple()
 void cAppliWithSetImage::AddCoupleMMImSec()
 {
       std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
-                         + aBlank + mFullName 
+                         + aBlank + QUOTE(mFullName)
                          + aBlank + mOri;
       System(aCom);
       for (int aKI=0 ; aKI<int(mSetIm->size()) ; aKI++)
       {
           const std::string & aName1 = (*mSetIm)[aKI];
           cImSecOfMaster aISOM = StdGetISOM(mICNM,aName1,mOri);
-          const std::list<std::string > *  aLIm = GetBestImSec(aISOM);
-          for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
+          const std::list<std::string > *  aLIm = GetBestImSec(aISOM,-1,-1,10000,true);
+          if (aLIm)
           {
-              const std::string & aName2 = *itN;
-              AddPair(ImOfName(aName1),ImOfName(aName2));
+             for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
+             {
+                 const std::string & aName2 = *itN;
+                 AddPair(ImOfName(aName1),ImOfName(aName2));
+             }
           }
       }
 
@@ -332,12 +465,12 @@ void cAppliWithSetImage::AddCoupleMMImSec()
 
 void cAppliWithSetImage::ComputeStripPair(int aDif)
 {
-    for (int aK1=0 ; aK1<int(mImages.size()) ; aK1++)
+    for (tItSAWSI itS1=mGrIm.begin(mSubGrAll); itS1.go_on() ; itS1++)
     {
-        cImaMM & anI1 = *(mImages[aK1]);
-        for (int aK2=0 ; aK2<int(mImages.size()) ; aK2++)
+        cImaMM & anI1 = *((*itS1).attr().mIma);
+        for (tItSAWSI itS2=mGrIm.begin(mSubGrAll); itS2.go_on() ; itS2++)
         {
-            cImaMM & anI2 = *(mImages[aK2]);
+            cImaMM & anI2 = *((*itS2).attr().mIma);
             if (anI1.mBande==anI2.mBande)
             {
                int aN1 = anI1.mNumInBande;
@@ -358,7 +491,7 @@ void cAppliWithSetImage::ComputeStripPair(int aDif)
                     if (OK)
                     {
  /// std::cout << "MMByP " << anI1.mNameIm << " " << anI2.mNameIm << "\n";
-                        AddPair(&anI1,&anI2);
+                        AddPair(&(*itS1),&(*itS2));
                     }
                }
             }
@@ -367,21 +500,43 @@ void cAppliWithSetImage::ComputeStripPair(int aDif)
 }
 
 
-void cAppliWithSetImage::operator()(cImaMM* anI1,cImaMM* anI2,bool)   // Delaunay call back
+void cAppliWithSetImage::operator()(tSomAWSI* anI1,tSomAWSI* anI2,bool)   // Delaunay call back
 {
      AddPair(anI1,anI2);
 }
 
-void cAppliWithSetImage::AddPair(cImaMM * anI1,cImaMM * anI2)
+void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
 {
-    if (anI1>anI2) 
-       ElSwap(anI1,anI2);
-    AddPairASym(anI1,anI2);
-    if (mSym)
-       AddPairASym(anI2,anI1);
+    if (mGrIm.arc_s1s2(*aS1,*aS2))
+       return;
+    if (aS1->attr().mIma->mNameIm>aS2->attr().mIma->mNameIm) 
+       ElSwap(aS1,aS2);
+
+    cImaMM * anI1 = aS1->attr().mIma;
+    cImaMM * anI2 = aS2->attr().mIma;
+
+    cCpleEpip * aCpleE = 0;
+    if (mByEpi) // (mByMM1P)
+    {
+
+       aCpleE = StdCpleEpip(mDir,mOri,anI1->mNameIm,anI2->mNameIm);
+       if (! aCpleE->Ok()) return;
+       if (aCpleE->RatioCam() <0.1) return;
+
+       Pt2dr aRatio =  aCpleE->RatioExp();
+       double aSeuil = 1.8;
+       // std::cout << "RRR " << anI1->mNameIm << " " << anI2->mNameIm << " " << aCple.RatioExp() << "\n";
+       if ((aRatio.x>aSeuil) || (aRatio.y>aSeuil))  
+           return;
+
+    }
+
+    mGrIm.add_arc(*aS1,*aS2,cAttrArcAWSI(aCpleE));
+
 }
 
-void cAppliWithSetImage::AddPairASym(cImaMM * anI1,cImaMM * anI2)
+/*
+void cAppliWithSetImage::AddPairASym(cImaMM * anI1,cImaMM * anI2,cCpleEpip * aCpleE)
 {
     tPairIm aPair(anI1,anI2);
 
@@ -390,9 +545,12 @@ void cAppliWithSetImage::AddPairASym(cImaMM * anI1,cImaMM * anI2)
     
     mPairs.insert(aPair);
 
+    anI1->mVois.push_back(new cAttrVoisImaMM(anI2,aCpleE));
+
     if (mShow)
        std::cout << "Add Pair " << anI1->mNameIm << " " << anI2->mNameIm << "\n";
 }
+*/
 
 void cAppliWithSetImage::DoPyram()
 {
@@ -402,9 +560,9 @@ void cAppliWithSetImage::DoPyram()
     System(aCom);
 }
 
-cImaMM * cAppliWithSetImage::ImOfName(const std::string & aName)
+tSomAWSI * cAppliWithSetImage::ImOfName(const std::string & aName)
 {
-    cImaMM * aRes = mDicIm[aName];
+    tSomAWSI * aRes = mDicIm[aName];
     if (aRes==0)
     {
        std::cout << "For name = " << aName << "\n";
@@ -443,7 +601,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
    mMasterIm  =  ImOfName(mNameMasterIm);
 
-   double aZ = mMasterIm->mCam->GetAltiSol();
+   double aZ = mMasterIm->attr().mIma->mCam->GetAltiSol();
 
    Pt2di aCornIm[4];
    mBox.Corners(aCornIm);
@@ -452,12 +610,13 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
    for (int aK=0 ; aK < 4 ; aK++)
    {
-       mVIm.push_back(mMasterIm->mCam->ImEtZ2Terrain(Pt2dr(aCornIm[aK]),aZ));
+       mVIm.push_back(mMasterIm->attr().mIma->mCam->ImEtZ2Terrain(Pt2dr(aCornIm[aK]),aZ));
    }
 
-   for (int aKIm = 0 ; aKIm <int(mImages.size()) ; aKIm++)
+   // for (int aKIm = 0 ; aKIm <int(mImages.size()) ; aKIm++)
+   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
-       cImaMM & anI = *(mImages[aKIm]);
+       cImaMM & anI = *((*anITS).attr().mIma);
        CamStenope * aCS = anI.mCam;
        // Pt2dr aP1(0,0);
        // Pt2dr aP0 = Pt2dr(aCS->Sz());
@@ -548,8 +707,8 @@ int ClipIm_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()  << EAM(aNameIn)
-                    << EAM(P0)
-                    << EAM(Sz)  ,
+                    << EAMC(P0,"P0")
+                    << EAMC(Sz,"SZ")  ,
         LArgMain()  << EAM(aNameOut,"Out",true)
     );
 
@@ -609,19 +768,25 @@ int ClipIm_main(int argc,char ** argv)
 
 cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     cAppliWithSetImage (argc-2,argv+2,FlagDev16BGray),
-    mDo           ("PMCF"),
+    mDo           ("PMCFR"),
     mZoom0        (64),
     mZoomF        (1),
     mParalMMIndiv (false),
     mDelaunay     (false),
-    mMMImSec      (false),
+    mAddMMImSec   (false),
     mDiffInStrip  (1),
     mStripIsFirt  (true),
     mDirBasc      ("MTD-Nuage"),
     mIntIncert    (1.25),
     mSkipCorDone  (false),
     mByMM1P       (true),
-    mQualOr       (eQual_Low)
+    mStrQualOr    ("Low"),
+    mDoPlyMM1P    (true),
+    mScalePlyMM1P (3),
+    mDoOMF        (false),
+    mRIEInParal   (false),
+    mTimes        (1),
+    mDebugCreatE  (false)
 {
   if (argc>=2)
   {
@@ -630,6 +795,21 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      StdReadEnum(mModeHelp,mType,mStrType,eNbTypeMMByP);
   }
 
+
+  if (mType==eGround)
+  {
+     mStrQualOr = "High";
+  }
+  else if (mType==eStatute)
+  {
+     mStrQualOr = "Low";
+     mAddMMImSec = true;
+  }
+  else if (mType==eTestIGN)
+  {
+     mStrQualOr = "High";
+     mDelaunay = true;
+  }
 
 
   ElInitArgMain
@@ -641,7 +821,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
                     << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to macth, Def=False")
-                    << EAM(mMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statute")
+                    << EAM(mAddMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statute")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip , first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
                     << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
@@ -650,19 +830,26 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mIntIncert,"Inc",true,"Uncertaincy interval (def  = 1.25) ")
                     << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degre from TetaStrip")
                     << EAM(mSkipCorDone,"SMD",true,"Skip Matching When Already Done (Def=false)")
-                    << EAM(mDo,"Do",true,"Step to Do in [Pyram,MetaData,Correl,Fusion], Def \"PMCF\" (i.e. All Step)")
+                    << EAM(mDo,"Do",true,"Step to Do in [Pyram,MetaData,Correl,Reech,Fusion,inspect], Def \"PMCF\" (i.e. All Step)")
                     << EAM(mByMM1P,"ByMM1P",true,"Do match using new MM1P , def = true")
                     << EAM(mImageOfBox,"ImOfBox",true,"Image to define box for MTD (test purpose to limit size of result)")
                     << EAM(mBoxOfImage,"BoxOfIm",true,"Associated to ImOfBox, def = full")
                     << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")
                     << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
+                    << EAM(mDoPlyMM1P,"DoPlyMM1P",true,"Do ply after MM1P, def=false")
+                    << EAM(mScalePlyMM1P,"ScalePlyMM1P",true,"Down Scale of ply after MM1P =3")
+                    << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)")
+                    << EAM(mTimes,"TimesExe",true,"Internal use (debug Reech Inv Epip)")
+                    << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip")
+                    << EAM(mDoOMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
   );
-  if (EAMIsInit(&mStrQualOr))
-     mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
-  if (! EAMIsInit(&mMMImSec))
-     mMMImSec = (mType==eStatute);
+  mByEpi = mByMM1P;
+
+  mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
+
+
   if (mModeHelp) 
-      exit(0);
+      StdEXIT(0);
   if (! EAMIsInit(&mZoom0))
      mZoom0 =  DeZoomOfSize(7e4);
   VerifAWSI();
@@ -674,22 +861,26 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   }
   if (mDelaunay)
      AddDelaunayCple();
-  if (mMMImSec)
+  if (mAddMMImSec)
      AddCoupleMMImSec();
+
+
+  FilterImageIsolated();
 
   mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 }
 
-void cAppliMMByPair::DoCorrelAndBasculeEpip()
+
+void cAppliMMByPair::DoCorrelEpip()
 {
    std::list<std::string> aLCom;
-   for ( tSetPairIm::const_iterator itP= mPairs.begin(); itP!=mPairs.end() ; itP++)
+   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
-        cImaMM & anI1 = *(itP->first);
-        cImaMM & anI2 = *(itP->second);
-        if (anI1.mNameIm < anI2.mNameIm)
+        for (tItAAWSI itA=(*anITS).begin(mSubGrAll) ; itA.go_on() ; itA++)
         {
-             std::string aCom =  MatchEpipOnePair(anI1,anI2);
+             // cImaMM & anI2 = *(itP->second);
+             bool ToDo,Done,Begun;
+             std::string aCom =  MatchEpipOnePair(*itA,ToDo,Done,Begun);
              if (aCom != "")
                 aLCom.push_back(aCom);
         }
@@ -704,9 +895,103 @@ void cAppliMMByPair::DoCorrelAndBasculeEpip()
    }
 }
 
-std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
+void cAppliMMByPair::DoReechantEpipInv()
 {
-     bool mByEpi = true;
+   std::list<std::string> aLCom;
+   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+   {
+        for (tItAAWSI itA=(*anITS).begin(mSubGrAll) ; itA.go_on() ; itA++)
+        {
+             std::string aCom =   MMBinFile(MM3DStr) + " TestLib RIE "
+                                + aBlank + (*itA).s1().attr().mIma->mNameIm
+                                + aBlank + (*itA).s2().attr().mIma->mNameIm
+                                + aBlank + mOri
+                                + aBlank + " Dir=" + mDir;
+              aLCom.push_back(aCom);
+
+        }
+   }
+   cEl_GPAO::DoComInParal(aLCom);
+}
+
+
+bool cAppliMMByPair::InspectMTD(tArcAWSI & anArc,const std::string & aName )
+{
+    std::string  aNameFile =  mDir + "MTD-Image-"
+                               + anArc.s1().attr().mIma->mNameIm + "/"
+                               + aName + "-" + anArc.s2().attr().mIma->mNameIm + ".tif";
+
+    return  ELISE_fp::exist_file(aNameFile);
+}
+
+bool cAppliMMByPair::InspectMTD(tArcAWSI & anArc)
+{
+
+   return    InspectMTD(anArc,"Depth")
+          && InspectMTD(anArc,"Dist")
+          && InspectMTD(anArc,"Mask");
+}
+
+bool cAppliMMByPair::InspectMTD_REC(tArcAWSI & anArc)
+{
+     
+     if ((mType != eStatute) || (!mRIEInParal))
+        return true;
+
+     return InspectMTD(anArc) &&  InspectMTD(anArc.arc_rec());
+}
+
+
+
+void cAppliMMByPair::Inspect()
+{
+   int aNbTot = 0;
+   int aNbFinishMatch = 0;
+   int aNbBegun = 0;
+   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+   {
+        for (tItAAWSI itA=(*anITS).begin(mSubGrAll) ; itA.go_on() ; itA++)
+        {
+            bool ToDo,Done,Begun;
+            MatchEpipOnePair(*itA,ToDo,Done,Begun);
+            if (ToDo)
+            {
+               aNbTot ++;
+                
+               if (Begun)
+               {
+                  bool DoneMTD = InspectMTD_REC(*itA);
+                  aNbBegun ++; 
+                  if ((!Done) || (!DoneMTD))
+                  {
+                     std::cout << "Pair unfinished " << (*itA).s1().attr().mIma->mNameIm
+                               << "  " << (*itA).s2().attr().mIma->mNameIm
+                               << " MTD=[" << InspectMTD(*itA) << "::" <<  InspectMTD((*itA).arc_rec()) << "]"
+                               << "\n";
+                  }
+
+               }
+               if (Done)
+               {
+                  aNbFinishMatch ++; 
+               }
+            }
+        }
+   }
+
+   std::cout << "Nb Pair Tot " << aNbTot << " Done " << aNbFinishMatch  << " Begun " << aNbBegun << "\n";
+   getchar();
+}
+
+std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool & Done,bool & Begun)
+{
+     ToDo = false;
+     cImaMM & anI1 = *(anArc.s1().attr().mIma);
+     cImaMM & anI2 = *(anArc.s2().attr().mIma);
+     if (anI1.mNameIm >= anI2.mNameIm) 
+        return "";
+     ToDo = true;
+
      std::string aMatchCom =     MMBinFile(MM3DStr)
                          +  " MM1P"
                          +  aBlank + anI1.mNameIm
@@ -715,12 +1000,23 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
                          +  " ZoomF=" + ToString(mZoomF)
                          +  " CreateE=" + ToString(mByEpi)
                          +  " InParal=" + ToString(mParalMMIndiv)
+                         +  " QualOr=" +  mStrQualOr
+                         +  " DCE=" +  ToString(mDebugCreatE)
                       ;
-     if (EAMIsInit(&mStrQualOr))
-       aMatchCom += " QualOr=" + aMatchCom;
 
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
+
+     if (  ((mType == eStatute) || (mType==eTestIGN)) && mRIEInParal)
+     {
+       aMatchCom = aMatchCom + " RIE=true ";
+     }
+
+      if (mDoPlyMM1P)
+         aMatchCom = aMatchCom + " DoPly=true " + " ScalePly="  + ToString(mScalePlyMM1P) + " " ;
+
+     if (mDoOMF)
+        aMatchCom = aMatchCom + " DoOMF=true";
 
      std::string aNameIm1 = anI1.mNameIm;
      std::string aNameIm2 = anI2.mNameIm;
@@ -737,12 +1033,15 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
      std::vector<std::string> aBascCom;
      std::vector<std::string> aVTarget;
      bool AllDoneMatch = true;
+     Begun = true;
 
      for (int aK= 0 ; aK< 2 ; aK++)
      {
          std::string aDirMatch = mDir + LocDirMec2Im((aK==0) ? aNameIm1:aNameIm2,(aK==0) ? aNameIm2:aNameIm1);
-         std::string aNuageIn =  aDirMatch          + std::string("NuageImProf_Chantier-Ori_Etape_Last.xml");
+         std::string aNuageIn =  aDirMatch          + std::string("Score-AR.tif");
          AllDoneMatch  = AllDoneMatch && ELISE_fp::exist_file(aNuageIn);
+         std::string aFileInit =  aDirMatch          + std::string("Correl_LeChantier_Num_0.tif");
+         Begun  = Begun ||  ELISE_fp::exist_file(aFileInit);
          
 
 
@@ -756,6 +1055,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
          AllDoneMatch = AllDoneMatch && ELISE_fp::exist_file(aNuageIn);
 */
      }
+     Done = AllDoneMatch;
 
      // std::cout << aMatchCom << "\n";
      if ((!AllDoneMatch) || (! mSkipCorDone))
@@ -769,30 +1069,33 @@ std::string cAppliMMByPair::MatchEpipOnePair(cImaMM & anI1,cImaMM & anI2 )
 
 void cAppliMMByPair::DoCorrelAndBasculeStd()
 {
-   for ( tSetPairIm::const_iterator itP= mPairs.begin(); itP!=mPairs.end() ; itP++)
+   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
-        cImaMM & anI1 = *(itP->first);
-        cImaMM & anI2 = *(itP->second);
+        for (tItAAWSI itA=(*anITS).begin(mSubGrAll) ; itA.go_on() ; itA++)
+        {
+             cImaMM & anI1 = *((*itA).s1().attr().mIma);
+             cImaMM & anI2 = *((*itA).s2().attr().mIma);
+             // cImaMM & anI2 = *(itP->second);
 
    // ====   Correlation =========================
 
-       bool DoneCor = false;
-       if (mSkipCorDone)
-       {
-           std::string aFile = mDir + "MEC2Im-" + anI1.mNameIm + "-" + anI2.mNameIm + "/MM_Avancement_LeChantier.xml";
+             bool DoneCor = false;
+             if (mSkipCorDone)
+             {
+                 std::string aFile = mDir + "MEC2Im-" + anI1.mNameIm + "-" + anI2.mNameIm + "/MM_Avancement_LeChantier.xml";
 
-           if (ELISE_fp::exist_file(aFile))
-           {
-                 cMM_EtatAvancement anEAv = StdGetFromMM(aFile,MM_EtatAvancement);
-                 DoneCor = anEAv.AllDone();
-           }
+                 if (ELISE_fp::exist_file(aFile))
+                 {
+                       cMM_EtatAvancement anEAv = StdGetFromMM(aFile,MM_EtatAvancement);
+                       DoneCor = anEAv.AllDone();
+                 }
 
            // std::cout << "DOCCC " << aFile << " " << Done << "\n";
-       }
+             }
 
-       if (! DoneCor)
-       {
-           std::string aComCor =    MMBinFile("MICMAC")
+             if (! DoneCor)
+             {
+                 std::string aComCor =    MMBinFile("MICMAC")
                                  +  XML_MM_File("MM-Param2Im.xml")
                                  +  std::string(" WorkDir=") + mDir          + aBlank
                                  +  std::string(" +Ori=") + mOri + aBlank
@@ -802,43 +1105,44 @@ void cAppliMMByPair::DoCorrelAndBasculeStd()
                                  +  std::string(" +ZoomF=")  + ToString(mZoomF)  + aBlank
                                ;
 
-           if (EAMIsInit(&mIntIncert))
-              aComCor = aComCor + " +MulZMax=" +ToString(mIntIncert);
+                 if (EAMIsInit(&mIntIncert))
+                    aComCor = aComCor + " +MulZMax=" +ToString(mIntIncert);
 
-           if (mShow)
-              std::cout << aComCor << "\n";
-           System(aComCor);
-       }
+                 if (mShow)
+                    std::cout << aComCor << "\n";
+                 System(aComCor);
+             }
 
    // ====   Bascule =========================
 
-       std::string aPreFileBasc =   mDir + mDirBasc +  "/Basculed-"+ anI1.mNameIm + "-" + anI2.mNameIm ;
-       bool DoneBasc = false;
+             std::string aPreFileBasc =   mDir + mDirBasc +  "/Basculed-"+ anI1.mNameIm + "-" + anI2.mNameIm ;
+             bool DoneBasc = false;
 
-       if (mSkipCorDone)
-       {
-            std::string aFileBasc = aPreFileBasc + ".xml";
-            if (ELISE_fp::exist_file(aFileBasc))
-            {
-                DoneBasc = true;
-            }
-       }
+             if (mSkipCorDone)
+             {
+                  std::string aFileBasc = aPreFileBasc + ".xml";
+                  if (ELISE_fp::exist_file(aFileBasc))
+                  {
+                      DoneBasc = true;
+                  }
+             }
 
-       if (! DoneBasc)
-       {
+             if (! DoneBasc)
+             {
 
-            std::string aComBasc =    MMBinFile(MM3DStr) + " NuageBascule "
+                  std::string aComBasc =    MMBinFile(MM3DStr) + " NuageBascule "
                                     + mDir+ "MEC2Im-" + anI1.mNameIm + "-" +  anI2.mNameIm + "/NuageImProf_LeChantier_Etape_" +ToString(mNbStep)+".xml "
                                     + mDir + mDirBasc + "/NuageImProf_LeChantier_Etape_1.xml "
                                     + aPreFileBasc + " "
                                  ;
                              //  + mDir + mDirBasc +  "/Basculed-"+ anI1.mNameIm + "-" + anI2.mNameIm + " "
                              
-            if (mShow)
-               std::cout  << aComBasc << "\n";
-           System(aComBasc);
-       }
+                  if (mShow)
+                     std::cout  << aComBasc << "\n";
+                 System(aComBasc);
+             }
 
+        }
    }
 }
 
@@ -865,15 +1169,37 @@ void cAppliMMByPair::DoBascule()
 void cAppliMMByPair::DoFusion()
 {
     std::string aCom =    MMBinFile(MM3DStr) + " MergeDepthMap "
-                       +   XML_MM_File("Fusion-MMByP.xml") + aBlank
+                       +   XML_MM_File("Fusion-MMByP-Ground.xml") + aBlank
                        +   "  WorkDirPFM=" + mDir + mDirBasc + "/ ";
     if (mShow)
        std::cout  << aCom << "\n";
     System(aCom);
 }
 
-
 void cAppliMMByPair::DoMDT()
+{
+  if (  (mType==eStatute) || (mType==eTestIGN))  DoMDTStatute();
+  if (mType==eGround)  DoMDTGround();
+}
+
+void cAppliMMByPair::DoMDTStatute()
+{
+   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+   {
+        cImaMM & anIm = *((*anITS).attr().mIma);
+        std::string aCom =     MMBinFile("MICMAC")
+                            +  XML_MM_File("MM-GenMTDFusionImage.xml")
+                            +  std::string(" WorkDir=") + mDir          + aBlank
+                            +  std::string(" +Ori=") + mOri + aBlank
+                            +  std::string(" +Zoom=")  + ToString(mZoomF)  + aBlank
+                            +  " +Im1=" +  anIm.mNameIm + aBlank
+                            +  " +PattVois=" +  PatternOfVois(*anITS,true)  + aBlank
+                       ;
+         System(aCom);
+   }
+}
+
+void cAppliMMByPair::DoMDTGround()
 {
    std::string aCom =     MMBinFile("MICMAC")
                        +  XML_MM_File("MM-GenMTDNuage.xml")
@@ -893,7 +1219,7 @@ void cAppliMMByPair::DoMDT()
         }
         else
         {
-           cImaMM * anIma = ImOfName(mImageOfBox);
+           cImaMM * anIma = ImOfName(mImageOfBox)->attr().mIma;
            aBox = Box2di(Pt2di(0,0),anIma->Tiff().sz());
         }
         aCom =   aCom
@@ -927,31 +1253,56 @@ void cAppliMMByPair::DoMDT()
 
 int cAppliMMByPair::Exe()
 {
+   for (int aT=0 ; aT<mTimes ; aT++)
+   {
+       std::string aName = mDir+ "cAppliMMByPair_"+ToString(aT);
+       FILE * aFP = FopenNN(aName,"w","Indicateur cAppliMMByPair::Exe");
+       fclose (aFP);
+
+       if (BoolFind(mDo,'i'))
+       {
+          Inspect();
+       }
+ 
   
-   if (BoolFind(mDo,'P') && (!mByMM1P))
-   {
-      DoPyram();
-   }
-   if (BoolFind(mDo,'M') && (mType == eGround))
-   {
-      DoMDT();
-   }
-   if (BoolFind(mDo,'C'))
-   {
-      if (mByMM1P)
-      {
-         DoCorrelAndBasculeEpip();
-      }
-      else
-      {
-         DoCorrelAndBasculeStd();
-      }
+       // eQual_Low =>  Pts Hom par match, eQual_Aver => Pts Hom Std
+       if (BoolFind(mDo,'P') && ((!mByMM1P) || (mQualOr= eQual_Low)))
+       {
+          DoPyram();
+       }
+       if (BoolFind(mDo,'M') )
+       {
+          DoMDT();
+       }
+       if (BoolFind(mDo,'C'))
+       {
+          if (mByMM1P)
+          {
+             DoCorrelEpip();
+          }
+          else
+          {
+             DoCorrelAndBasculeStd();
+          }
+       }
+    
+       if ( (!mDebugCreatE) && BoolFind(mDo,'R') && (!mRIEInParal) && mByMM1P )
+       {
+             DoReechantEpipInv();
+       }
+
+       if (mDebugCreatE)
+       {
+          ELISE_fp::RmFile(mDir+"LockEpi-*.txt");
+          ELISE_fp::RmFile(mDir+"Epi_Im*");
+          ELISE_fp::PurgeDirRecursif(mDir+"Homol-DenseM/");
+       }
    }
 /*
    if (BoolFind(mDo,'F'))
       DoFusion();
 */
-   return 1;
+   return 0;
 }
 
 
@@ -977,6 +1328,8 @@ int ChantierClip_main(int argc,char ** argv)
 
     return 1;
 }
+#if (0)
+#endif
 
 
 

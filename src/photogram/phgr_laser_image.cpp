@@ -420,7 +420,7 @@ void GenCodeLaserImage(INT aNb)
       cLIParam_Image  * aP2 =  aSet.NewLIParamImage(aI,1.0,aCam);
 
       aSet.NewLIEqVueLaserIm(aNb,*aP1,*aP2);
-      exit(-1);
+      ElEXIT(-1);
 }
 */
 

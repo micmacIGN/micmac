@@ -190,14 +190,14 @@ void check_pastis_tool( string &io_tool, const string &i_toolType )
 	string extractedArguments;
 	if ( !process_pastis_tool_string( io_tool, extractedArguments ) ){
 		cerr << "Tapioca: ERROR: specified string \"" << io_tool << "\" for \"" << i_toolType << "\" tool is invalid (format is : tool[:arguments] )" << endl;
-		exit( EXIT_FAILURE );
+		ElEXIT( EXIT_FAILURE ,"check_pastis_tool");
 	}
 	else
 	{
 		const ExternalToolItem &item = g_externalToolHandler.get( io_tool );
 		if ( !item.isCallable() ){
 			cerr << "Tapioca: ERROR: specified tool \"" << io_tool << "\" is needed by \"" << i_toolType << "\" but " << item.errorMessage() << endl;
-			exit( EXIT_FAILURE );
+		        ElEXIT( EXIT_FAILURE ,"check_pastis_tool");
 		}
 		
 		if ( extractedArguments.length()!=0 ) io_tool.append( string(":") + extractedArguments ); 
@@ -449,7 +449,7 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
     if ( !ELISE_fp::MkDirSvp( aDir+"Pastis" ) )
 	{
 		cerr << "ERROR: creation of directory [" << aDir+"Pastis" << "] failed" << endl;
-		exit( EXIT_FAILURE );
+		ElEXIT( EXIT_FAILURE,std::string("Creating dir ") + aDir+"Pastis" );
 	}
     
     cEl_GPAO  aGPAO;

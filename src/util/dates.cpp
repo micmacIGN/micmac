@@ -181,6 +181,63 @@ template <>  std::string ToString(const cElHour & aH)
 
 }
 
+// read/write in raw format
+// __TODO_RAW_DOUBLE
+void cElHour::read_raw( istream &io_istream, bool i_inverseByteOrder )
+{
+   INT4 ints[2];
+   io_istream.read( (char*)ints, 2*4 );
+   io_istream.read( (char*)&mS, sizeof(double) );
+  
+   if ( i_inverseByteOrder )
+   {
+      byte_inv_4( ints );
+      byte_inv_4( ints+1 );
+      byte_inv_8( &mS );
+   }
+  
+   mH = (int)ints[0];
+   mM = (int)ints[1];
+}
+
+// __TODO_RAW_DOUBLE
+void cElHour::write_raw( ostream &io_ostream, bool i_inverseByteOrder ) const
+{
+   INT4 ints[2] = { (INT4)H(), (INT4)M() };
+   double sec = S();
+   
+   if ( i_inverseByteOrder )
+   {
+      byte_inv_4( ints );
+      byte_inv_4( ints+1 );
+      byte_inv_8( &sec );
+   }
+   
+   io_ostream.write( (char*)ints, 2*4 );
+   io_ostream.write( (char*)&sec, sizeof(double) );
+}
+
+void cElHour::getCurrentHour_local( cElHour &o_localHour )
+{
+   time_t t;
+   struct tm *pstm;
+   time( &t );
+   pstm = localtime( &t );
+   o_localHour.mH = pstm->tm_hour;
+   o_localHour.mM = pstm->tm_min;
+   o_localHour.mS = (double)pstm->tm_sec;
+}
+
+void cElHour::getCurrentHour_UTC( cElHour &o_utcHour )
+{
+   time_t t;
+   struct tm *pstm;
+   time( &t );
+   pstm = gmtime( &t );
+   o_utcHour.mH = pstm->tm_hour;
+   o_utcHour.mM = pstm->tm_min;
+   o_utcHour.mS = (double)pstm->tm_sec;
+}
 
 /**************************************************************/
 /*                                                            */
@@ -339,6 +396,65 @@ double  cElDate::DifInSec(const cElDate& aD2) const
 		+  (mH.InSec() - aD2.mH.InSec());
 }
 
+// read/write in raw format
+// __TODO_RAW_DOUBLE
+void cElDate::read_raw( istream &io_istream, bool i_inverseByteOrder )
+{
+   INT4 ints[3];
+   io_istream.read( (char*)ints, 3*4 );
+  
+   if ( i_inverseByteOrder )
+   {
+      byte_inv_4( ints );
+      byte_inv_4( ints+1 );
+      byte_inv_4( ints+2 );
+   }
+  
+   mY = (int)ints[0];
+   mM = (int)ints[1];
+   mD = (int)ints[2];
+   mH.read_raw( io_istream, i_inverseByteOrder );
+}
+
+// __TODO_RAW_DOUBLE
+void cElDate::write_raw( ostream &io_ostream, bool i_inverseByteOrder ) const
+{
+   INT4 ints[3] = { (INT4)Y(), (INT4)M(), (INT4)D() };
+   
+   if ( i_inverseByteOrder )
+   {
+      byte_inv_4( ints );
+      byte_inv_4( ints+1 );
+      byte_inv_4( ints+2 );
+   }
+   
+   io_ostream.write( (char*)ints, 3*4 );
+   mH.write_raw( io_ostream, i_inverseByteOrder );
+}
+
+void cElDate::getCurrentDate_local( cElDate &o_localHour )
+{
+   time_t t;
+   struct tm *pstm;
+   time( &t );
+   pstm = gmtime( &t );
+   o_localHour.mY = pstm->tm_year+1900;
+   o_localHour.mM = pstm->tm_mon+1;
+   o_localHour.mD = pstm->tm_mday;
+   cElHour::getCurrentHour_local(o_localHour.mH);
+}
+
+void cElDate::getCurrentDate_UTC( cElDate &o_utcHour )
+{
+   time_t t;
+   struct tm *pstm;
+   time( &t );
+   pstm = gmtime( &t );
+   o_utcHour.mY = pstm->tm_year+1900;
+   o_utcHour.mM = pstm->tm_mon+1;
+   o_utcHour.mD = pstm->tm_mday;
+   cElHour::getCurrentHour_UTC(o_utcHour.mH);
+}
 
 /************************************************************/
 /*                                                          */

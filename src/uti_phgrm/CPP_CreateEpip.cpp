@@ -143,6 +143,10 @@ int CreateEpip_main(int argc,char ** argv)
      aCplE.ImEpip(aTif2,aNameOr2,false,InParal,DoIm,aCarHom,aDegre);
      std::cout << "TimeEpi-2 " << aChrono.uval() << "\n";
 
+     aCplE.SetNameLock("End");
+     aCplE.LockMess("End cCpleEpip::ImEpip");
+
+
      return EXIT_SUCCESS;
 }
 

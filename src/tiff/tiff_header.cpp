@@ -2126,7 +2126,8 @@ std::string NameFileStd
                 int aNbChanSpec,
                 bool RequireBits16,
                 bool ExigNoCompr,
-                bool Create
+                bool Create,
+                bool ExigB8
             )
 {
    if (IsPostfixed(aFullNameOri))
@@ -2142,11 +2143,13 @@ std::string NameFileStd
           return aFullNameOri;
    }
 
+   std::string Post8B= "";
 
    Tiff_Im *aTif = 0;
    bool isTiff = Tiff_Im::IsTiff(aFullNameOri.c_str(),true);
    int aNbChanIn = -1;
    bool Bits16 = RequireBits16 && (!IsPostfixedJPG(aFullNameOri));
+   bool Conv16to8=false;
 
    if (isTiff)
    {
@@ -2164,7 +2167,12 @@ std::string NameFileStd
        {
             Bits16 = false;
        }
-       if (((aTif->mode_compr() == Tiff_Im::No_Compr)|| (!ExigNoCompr)) && (aNbChanIn==aNbChanSpec))
+       if ((ExigB8) && (aTif->bitpp() > 8))
+       {
+                 Post8B= "_8B";
+                 Conv16to8 = true;
+       }
+       else if (((aTif->mode_compr() == Tiff_Im::No_Compr)|| (!ExigNoCompr)) && (aNbChanIn==aNbChanSpec))
        {
            delete aTif;
            return aFullNameOri;
@@ -2178,8 +2186,10 @@ std::string NameFileStd
        }
    }
 
+
    // std::string aNewName =  aDir+aDirAdd+StdPrefixGen(aNameOri) + ".tif";
-   std::string aPost ="_Ch" + ToString(aNbChanSpec) + (Bits16 ? "_16B" : "") ;
+   
+   std::string aPost ="_Ch" + ToString(aNbChanSpec) + (Bits16 ? "_16B" :  Post8B) ;
    std::string aNewName =  NameAdapt(aFullNameOri,aPost,false);
 
 
@@ -2268,7 +2278,7 @@ std::string NameFileStd
                             (
                                 aNewName.c_str(),
                                 aTif->sz(),
-                                aTif->type_el(),
+                                Conv16to8 ?  GenIm::u_int1 : aTif->type_el(),
                                 Tiff_Im::No_Compr,
                                 aPhOut,
                                 ArgOpTiffMDP(aFullNameOri)

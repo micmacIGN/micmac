@@ -160,8 +160,9 @@ int Campari_main(int argc,char ** argv)
     {
         ELISE_ASSERT(EmGPS.size()==2,"Mandatory part of EmGPS requires 2 arguments");
         double aGpsU = RequireFromString<double>(EmGPS[1],"GCP-Ground uncertainty");
-        aCom = aCom +  " +BDDC=" + EmGPS[0];
-                    +  " +SigmGPS=" + ToString(aGpsU);
+        aCom = aCom +  " +BDDC=" + EmGPS[0]
+                    +  " +SigmGPS=" + ToString(aGpsU)
+                    +  " +WithCenter=true";
     }
 
     if (EAMIsInit(&aSigmaTieP)) aCom = aCom + " +SigmaTieP=" + ToString(aSigmaTieP);

@@ -32,7 +32,6 @@ SData2Correl::SData2Correl():
     }
     _hVolumeProj.SetName("_hVolumeProj");
 
-    _MaxAlloc = make_uint2(0,0);
 }
 
 SData2Correl::~SData2Correl()
@@ -107,7 +106,7 @@ void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A22B5);
 #endif
     // Images vers Textures Gpu
-    _dt_LayeredImages.CData3D::Realloc(dimImage,nbLayer);
+    _dt_LayeredImages.CData3D::ReallocIfDim(dimImage,nbLayer);
     _dt_LayeredImages.copyHostToDevice(dataImage);
     _dt_LayeredImages.bindTexture(_texImages);
 #ifdef  NVTOOLS
@@ -120,7 +119,7 @@ void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
 	#ifdef  NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2B51);
 	#endif
-    _dt_GlobalMask.CData2D::Realloc(dimMask);
+    _dt_GlobalMask.CData2D::ReallocIfDim(dimMask);
     _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
 	#ifdef  NVTOOLS
@@ -134,14 +133,7 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF292CB0);
 	#endif
 
-    // A remplacer par ReallocIf dans le layeredProjection....
-    if(oI(_MaxAlloc,param.dimSTer))
-    {
-        _MaxAlloc = param.dimSTer;
-        _dt_LayeredProjection[s].Realloc(param.dimSTer,param.nbImages * param.ZCInter);
-    }
-    else
-        _dt_LayeredProjection[s].SetDimension(param.dimSTer,param.nbImages * param.ZCInter);
+    _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.invPC.nbImages * param.ZCInter);
 
     // Copier les projections du host --> device
     _dt_LayeredProjection[s].copyHostToDevice(_hVolumeProj.pData());
@@ -169,9 +161,9 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0000);
 	#endif
     for (int i = 0; i < SIZERING; ++i)
-        _hVolumeCost[i].ReallocIf(param.dimTer,zInter);
+        _hVolumeCost[i].ReallocIf(param.HdPc.dimTer,zInter);
 
-    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.nbImages);
+    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.invPC.nbImages);
 
 	#ifdef  NVTOOLS
     nvtxRangePop();
@@ -180,9 +172,9 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
 
 void SData2Correl::ReallocHostData(uint zInter, pCorGpu param, uint idBuff)
 {
-    _hVolumeCost[idBuff].ReallocIf(param.dimTer,zInter);
+    _hVolumeCost[idBuff].ReallocIf(param.HdPc.dimTer,zInter);
 
-    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.nbImages);
+    _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.invPC.nbImages);
 }
 
 void SData2Correl::ReallocDeviceData(pCorGpu &param)
@@ -206,7 +198,7 @@ void    SData2Correl::DeviceMemset(pCorGpu &param, uint s)
 	#ifdef NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2BB5);
 	#endif
-    _d_volumeCost[s].Memset(param.IntDefault);
+    _d_volumeCost[s].Memset(param.invPC.IntDefault);
 
     // A vERIFIER que le memset est inutile
     //_d_volumeCach[s].Memset(param.IntDefault);
@@ -238,11 +230,11 @@ float   *SData2Correl::DeviVolumeCost(uint s){
 void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
 {
 
-    _d_volumeCost[nStream].ReallocIf(param.dimTer,     param.ZCInter);
+    _d_volumeCost[nStream].ReallocIf(param.HdPc.dimTer,     param.ZCInter);
 
-    _d_volumeCach[nStream].ReallocIf(param.dimCach,    param.nbImages * param.ZCInter);
+    _d_volumeCach[nStream].ReallocIf(param.HdPc.dimCach,    param.invPC.nbImages * param.ZCInter);
 
-    _d_volumeNIOk[nStream].ReallocIf(param.dimTer,     param.ZCInter);
+    _d_volumeNIOk[nStream].ReallocIf(param.HdPc.dimTer,     param.ZCInter);
 }
 
 void SData2Correl::MemsetHostVolumeProj(uint iDef)

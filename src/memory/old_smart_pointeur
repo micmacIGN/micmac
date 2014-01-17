@@ -51,8 +51,8 @@ void  Fatale_Erreur(char * mes)
 {
    cout << "FATALE ERROR in SMART POINTERS MANIPULATION : \n";
    cout << "[" << mes << "]\n";
-   cout << "I exit program \n";
-   exit(0);
+   cout << "I e-xit program \n";
+   StdEXIT(0);
 }
 
 

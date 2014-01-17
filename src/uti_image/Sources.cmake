@@ -17,6 +17,7 @@ list( APPEND uti_image_Src_Files
 	${UTI_IMAGE_DIR}/CPP_Arsenic.cpp
     ${UTI_IMAGE_DIR}/CPP_Undist.cpp
     ${UTI_IMAGE_DIR}/CPP_CoherEpi.cpp
+    ${UTI_IMAGE_DIR}/QualDepthMap.cpp
     ${UTI_IMAGE_DIR}/CPP_CmpIm.cpp
     ${UTI_IMAGE_DIR}/CPP_EstimFlatField.cpp
     ${UTI_IMAGE_DIR}/CPP_Dequant.cpp

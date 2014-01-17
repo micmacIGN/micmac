@@ -72,7 +72,7 @@ void Memory_Counter::verif(Memory_Counter m2)
      {
          cout << " FATAL ASSUMPUTION IN MEMORY CHEKSUM \n";
          show(m2);
-         exit(1);
+         ElEXIT(1,"Memory_Counter::verif");
      }
 }
 

@@ -692,7 +692,7 @@ void TestScroller::FlipImage()
     INT aCurFlag = mFlagIm;
     for (INT k=0 ; k<100 ; k++)
     {
-       sleep(0.02);
+       // sleep(0.02); // sleep prend un entier en paramètre, 0.02=0
        SetFlagIm(1+(k%2));
     }
 

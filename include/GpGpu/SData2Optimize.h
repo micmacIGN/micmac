@@ -67,7 +67,7 @@ struct p_ReadLine
         }
     }
 
-    __device__ inline void reverse(short2 *buffindex)
+    __device__ inline void reverse(short2 *buffindex,ushort sizeBuff)
     {
         seg.id        = seg.lenght - 1;
         prev_Dz       = buffindex[seg.id];
@@ -75,7 +75,7 @@ struct p_ReadLine
         seg.lenght    = WARPSIZE;
         line.id       = 0;
         format();
-        ID_Bf_Icost   = NAPPEMAX - ID_Bf_Icost + count(prev_Dz);
+        ID_Bf_Icost   = sizeBuff - ID_Bf_Icost + count(prev_Dz);
     }
 
     template<bool sens> __device__ inline ushort stid()
@@ -130,7 +130,7 @@ struct Data2Optimiz
 
     uint         _nbLines;
     bool         _idBuffer;
-
+    ushort       _m_DzMax;
 };
 
 TEMPLATE_D2OPTI
@@ -141,7 +141,8 @@ Data2Optimiz<U,NBUFFER>::~Data2Optimiz()
 
 TEMPLATE_D2OPTI
 Data2Optimiz<U,NBUFFER>::Data2Optimiz():
-    _idBuffer(false)
+    _idBuffer(false),
+    _m_DzMax(0)
 {
     for(uint i = 0;i < NBUFFER;i++)
     {

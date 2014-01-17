@@ -142,7 +142,7 @@ extern int TheIntFuckingReturnValue;
 #define MALLOC(p, b, s)    {if ((b) > 0) { \
                             p= malloc(b); if (!(p)) { \
                             fprintf(stderr, "gpc malloc failure: %s\n", s); \
-		            exit(0);}} else p= NULL;}
+		            StdEXIT(0);}} else p= NULL;}
 
 #define GPC_Free(p)            {if (p) {free(p); (p)= NULL;}}
 
