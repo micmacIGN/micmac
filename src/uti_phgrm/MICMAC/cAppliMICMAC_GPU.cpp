@@ -1650,7 +1650,12 @@ void cAppliMICMAC::DoGPU_Correl
             }
         }
 
+
+
         IMmGg.freezeCompute();
+
+//        IMmGg.Data().DeallocDeviceData();
+//        IMmGg.Data().DeallocHostData();
 
 #else
         ELISE_ASSERT(1,"Sorry, this is not the cuda version");
