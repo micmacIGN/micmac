@@ -37,7 +37,7 @@ class MainWindow : public QMainWindow, public GLWidgetSet
     Q_OBJECT
 
 public:
-    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, int mode = MASK3D, QWidget *parent = 0 );
+    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, int mode = MASK3D, QString pointName = "", QWidget *parent = 0 );
     ~MainWindow();
 
     void setPostFix(QString str);
@@ -151,5 +151,6 @@ private:
     QGridLayout*            _layout;
 
     bool                    _bModePt;
+    QString                 _ptName;
 };
 #endif // MAINWINDOW_H
