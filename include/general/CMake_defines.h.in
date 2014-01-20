@@ -1,0 +1,3 @@
+#ifndef QT_VERSION
+#define QT_VERSION @qt_version@
+#endif
