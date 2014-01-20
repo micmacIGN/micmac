@@ -1,13 +1,13 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, bool modePt, QWidget *parent) :
+MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, modePt),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > 1 ),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
         _layout(new QGridLayout),
-        _bModePt(modePt)
+        _bModePt(mode > 1 )
 {
     _ui->setupUi(this);
 
@@ -29,7 +29,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, bool modePt, QWidg
 
     resize(_szFen.x(), _szFen.y());
 
-    setMode2D(mode2D);
+    setMode2D(mode != MASK3D);
 
     int cpt=0;
     for (int aK = 0; aK < aNbFen.x;++aK)
@@ -40,7 +40,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, bool modePt, QWidg
     connectActions();
     _ui->OpenglLayout->setLayout(_layout);
 
-    createMenus();
+    createRecentFileMenu();
 }
 
 MainWindow::~MainWindow()
@@ -84,7 +84,7 @@ void MainWindow::connectActions()
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 }
 
-void MainWindow::createMenus()
+void MainWindow::createRecentFileMenu()
 {
     _RFMenu = new QMenu(tr("&Recent files"), this);
 
@@ -328,6 +328,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
     text += "Ctrl+R: \t"+tr("reset") +"\n";
     text += "Ctrl+I: \t"+tr("invert selection") +"\n";
     text += "Ctrl+Z: \t"+tr("undo last selection") +"\n";
+    text += "Ctrl+Shift+Z: \t"+tr("redo last selection") +"\n";
 
     QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
     msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
