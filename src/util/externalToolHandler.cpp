@@ -214,7 +214,6 @@ string printResult( const string &i_tool )
 
 int CheckDependencies_main(int argc,char ** argv)
 {
-	cout << "Qt version : " << QT_VERSION << endl;
     cout << "mercurial revision : " << __HG_REV__ << endl;
     cout << endl;
     cout << "byte order   : " << ( MSBF_PROCESSOR()?"big-endian":"little-endian" ) << endl;
@@ -224,6 +223,12 @@ int CheckDependencies_main(int argc,char ** argv)
 	#ifdef USE_OPEN_MP
 		cout << "OpenMP is enabled" << endl;
 	#endif
+
+    #if (ELISE_QT_VERSION!=0)
+        cout << "Qt version : " << ELISE_QT_VERSION << endl;
+    #endif
+    cout << endl;
+
 	cout << printResult( "make" ) << endl;
 	cout << printResult( "exiftool" ) << endl;
 	cout << printResult( "exiv2" ) << endl;

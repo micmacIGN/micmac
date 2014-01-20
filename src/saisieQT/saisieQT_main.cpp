@@ -12,7 +12,7 @@ int helpMessage(const QApplication &app, QString text)
 #endif
 }
 
-#if ( ( defined WIN32 ) && ( QT_VERSION==5 ) )
+#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION==5 ) )
 class Win32CommandLineConverter
 {
 private:
@@ -51,7 +51,7 @@ public:
 #endif
 
 
-#if ( ( defined WIN32 ) && ( QT_VERSION == 5 ) )
+#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION == 5 ) )
 	int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
 #else
 int main(int argc, char *argv[])
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 {
     QApplication::setStyle("fusion");
 
-#if ( ( defined WIN32 ) && ( QT_VERSION==5 ) )
+#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION==5 ) )
     Win32CommandLineConverter cmd_line;
 	int argc = cmd_line.argc();
 	char **argv = cmd_line.argv();

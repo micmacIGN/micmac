@@ -356,7 +356,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 
     m_lastClickZoom = event->pos();
 
-#if QT_VERSION==5
+#if ELISE_QT_VERSION==5
     setZoom(_params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
 #else
     setZoom(_params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
@@ -436,7 +436,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     {
         _parentSet->setCurrentWidgetIdx(_widgetId);
 
-#if QT_VERSION >= 5
+#if ELISE_QT_VERSION >= 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
 #else
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
@@ -499,7 +499,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (hasDataLoaded() && m_GLData->Clouds.size())
     {
-#if QT_VERSION >= 5
+#if ELISE_QT_VERSION >= 5
         QPointF pos = event->localPos();
 #else
         QPointF pos = event->posF();
