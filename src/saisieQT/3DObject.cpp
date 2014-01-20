@@ -669,9 +669,7 @@ void cPolygon::removeNearestOrClose(QPointF pos)
 
 void cPolygon::setNearestPointState(const QPointF &pos, int state)
 {
-    _bIsClosed = true;
     findNearestPoint(pos, 400000.f);
-    _bIsClosed = false;
 
     if (_idx >=0 && _idx <_points.size())
     {
@@ -685,6 +683,9 @@ void cPolygon::setNearestPointState(const QPointF &pos, int state)
         else
             _points[_idx].highlight();
     }
+
+    _idx = -1;
+    _bSelectedPoint = false;
 }
 
 void cPolygon::add(const QPointF &pt, bool selected)
@@ -706,7 +707,7 @@ void cPolygon::clear()
     _points.clear();
     _idx = -1;
     _bSelectedPoint = false;
-    _bIsClosed = false;
+    if(_bShowLines)_bIsClosed = false;
     if(_helper!=NULL) helper()->clear();
 }
 
@@ -818,8 +819,8 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
             add(pos);
         else if ((nbVertex > 1) && !_bShowLines)              // replace last point by the current one
             _points[nbVertex-1] = cPoint(_painter, pos, "", _color);
-        else if  ((nbVertex > 1) && _bShowLines);
-            add(pos);
+       /* else if  ((nbVertex > 1) && _bShowLines);
+            add(pos);*/
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en court d'operation
     {
@@ -872,6 +873,8 @@ void cPolygon::showNames(bool show)
 void cPolygon::showLines(bool show)
 {
     _bShowLines = show;
+
+    if(!show) _bIsClosed = true;
 
     _color = show ? Qt::red : Qt::green;
 }

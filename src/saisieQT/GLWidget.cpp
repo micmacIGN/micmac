@@ -91,10 +91,10 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
         resetView(showMessage, doZoom);
 
-        if (!aData->m_polygon.bShowLines())
-        {
-            m_GLData->m_polygon.setClosed(true); //ne pas mettre dans le constructeur car mis a false dans resetView
-        }
+//        if (!aData->m_polygon.bShowLines())
+//        {
+//            m_GLData->m_polygon.setClosed(true); //ne pas mettre dans le constructeur car mis a false dans resetView
+//        }
     }
 }
 
@@ -436,7 +436,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     {
         _parentSet->setCurrentWidgetIdx(_widgetId);
 
-#if QT_VERSION == 5
+#if QT_VERSION >= 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
 #else
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
@@ -499,7 +499,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (hasDataLoaded() && m_GLData->Clouds.size())
     {
-#if QT_VERSION == 5
+#if QT_VERSION >= 5
         QPointF pos = event->localPos();
 #else
         QPointF pos = event->posF();
