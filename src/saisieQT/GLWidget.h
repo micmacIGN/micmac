@@ -27,6 +27,8 @@
 #include <QMenu>
 #include <QSignalMapper>
 #include <QIcon>
+#include <QInputDialog>
+#include <QDialogButtonBox>
 
 #include "Data.h"
 #include "Engine.h"
@@ -114,6 +116,12 @@ public slots:
     void onWheelEvent(float wheelDelta_deg);
 
     void setPointState(int state);
+
+    void highlight();
+
+    void rename();
+
+    void showNames();
 
 signals:
 
