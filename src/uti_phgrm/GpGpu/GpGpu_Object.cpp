@@ -72,6 +72,11 @@ uint2 struct2D::GetMaxDimension()
     return _m_maxdimension;
 }
 
+void struct2D::SetMaxDimension(uint2 dim)
+{
+    _m_maxdimension = dim;
+}
+
 void struct2D::RefreshMaxSize()
 {
     uint size = GetSize();
