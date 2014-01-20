@@ -307,7 +307,7 @@ TPL_T bool CData3D<T>::ReallocIf(uint dim1D)
 
 TPL_T inline bool CData3D<T>::ReallocIfDim(uint2 dim,uint l)
 {
-    if(oI(struct2DLayered::GetMaxDimension(),dim))// || (l > struct2DLayered::GetNbLayer()))
+    if( oI(struct2DLayered::GetMaxDimension(),dim) || l > struct2DLayered::GetNbLayer())
         return CData3D<T>::Realloc(dim,l);    
     else
         CData3D<T>::SetDimension(dim,l);
