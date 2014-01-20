@@ -220,11 +220,11 @@ int CheckDependencies_main(int argc,char ** argv)
     cout << "address size : " << sizeof(int*)*8 << " bits" << endl;
     cout << endl;
 
-	#ifdef USE_OPEN_MP
-		cout << "OpenMP is enabled" << endl;
-	#endif
+     #ifdef USE_OPEN_MP
+	 cout << "OpenMP is enabled" << endl;
+     #endif
 
-    #if (ELISE_QT_VERSION!=0)
+    #ifdef SAISIE_QT
         cout << "Qt version : " << ELISE_QT_VERSION << endl;
     #endif
     cout << endl;
