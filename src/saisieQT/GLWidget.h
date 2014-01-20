@@ -126,13 +126,16 @@ protected:
     void paintGL();
 
     //! inherited from QWidget
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void keyPressEvent(QKeyEvent *event);
+    void mouseDoubleClickEvent  (QMouseEvent *event);
+    void mousePressEvent        (QMouseEvent *event);
+    void mouseReleaseEvent      (QMouseEvent *event);
+    void mouseMoveEvent         (QMouseEvent *event);
+
+    void keyPressEvent  (QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+
     void wheelEvent(QWheelEvent* event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
+
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 

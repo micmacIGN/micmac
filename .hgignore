@@ -118,3 +118,4 @@ include/general/HG_defines.h
 include/XML_MicMac/TmpCam.xml
 MM-Error-*.txt
 *.autosave
+include/general/CMake_defines.h

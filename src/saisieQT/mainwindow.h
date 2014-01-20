@@ -24,12 +24,20 @@ class MainWindow;
 const QColor colorBG0(65,65,60);
 const QColor colorBG1(120,115,115);
 
+//! Interface mode
+enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
+                MASK3D,         /**< Point cloud mask **/
+                POINT2D_INIT,	/**< Points in Image (SaisiePointInit) **/
+                POINT2D_PREDICT /**< Points in Image (SaisiePointPredic) **/
+};
+
+
 class MainWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, bool mode2D = false, bool modePt = false, QWidget *parent = 0 );
+    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, int mode = MASK3D, QWidget *parent = 0 );
     ~MainWindow();
 
     void setPostFix(QString str);
@@ -111,7 +119,7 @@ protected:
     void connectActions();  
 
 private:
-    void                    createMenus();
+    void                    createRecentFileMenu();
 
     void                    setCurrentFile(const QString &fileName);
     void                    updateRecentFileActions();
