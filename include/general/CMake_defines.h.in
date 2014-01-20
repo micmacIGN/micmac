@@ -1,0 +1,3 @@
+#ifndef ELISE_QT_VERSION
+#define ELISE_QT_VERSION @qt_version@
+#endif
