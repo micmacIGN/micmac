@@ -1,10 +1,48 @@
-
 #include "GpGpu/GpGpu_InterOptimisation.h"
 #include "GpGpu/SData2Optimize.h"
 
 extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O);
 
-int main()
+
+int Main_UnitTest_Realloc()
+{
+    printf("Main_UnitTest_Realloc - START\n");
+
+    ImageLayeredCuda<float2>    _dVolume;
+    CuHostData3D<float2>        _hVolume;
+
+    uint2   dim___01 = make_uint2(50,50);
+    uint    layer_01 = 5;
+
+
+    printf("Main_UnitTest_Realloc - STEP 1\n");
+
+    _hVolume.ReallocIf(dim___01,layer_01);
+    _dVolume.ReallocIfDim(dim___01,layer_01);
+
+    _hVolume.Fill(make_float2(2.f,3.f));
+
+    _dVolume.copyHostToDevice(_hVolume.pData());
+
+    printf("Main_UnitTest_Realloc - STEP 2\n");
+
+    _hVolume.Dealloc();
+    _dVolume.Dealloc();
+
+    _hVolume.ReallocIf(dim___01,layer_01);
+    _dVolume.ReallocIfDim(dim___01,layer_01);
+
+    //_hVolume.Fill(make_float2(2.f,3.f));
+
+    _dVolume.copyHostToDevice(_hVolume.pData());
+
+
+    printf("Main_UnitTest_Realloc - END\n");
+
+    return 0;
+}
+
+int Main_Test_Optimisation()
 {
     // Creation du contexte GPGPU
     cudaDeviceProp deviceProp;
@@ -96,7 +134,7 @@ int main()
         }
     }
 
-    h2O.SetNbLine(nbLines);    
+    h2O.SetNbLine(nbLines);
     d2O.SetNbLine(h2O._nbLines);
 
     h2O.ReallocOutputIf(h2O._s_InitCostVol.GetSize());
@@ -161,3 +199,9 @@ int main()
     return 0;
 }
 
+int main()
+{
+
+    return Main_UnitTest_Realloc();
+
+}
