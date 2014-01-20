@@ -63,7 +63,8 @@ int Main_UnitTest_Realloc()
     _dVolume.CopyDevicetoHost(_hVolume);
 
     // =======================================================================
-    printf("Main_UnitTest_Realloc - STEP 4\n");
+    printf("*************************************************************************\n");
+    printf("Main_UnitTest_Realloc - ****************************************   STEP 4\n");
 
     uint2   dim___02 = make_uint2(80,100);
 
@@ -80,19 +81,19 @@ int Main_UnitTest_Realloc()
     _dVolume.CopyDevicetoHost(_hVolume);
 
     // =======================================================================
-//    printf("Main_UnitTest_Realloc - STEP 5\n");
+    printf("Main_UnitTest_Realloc - STEP 5\n");
 
-//    _hVolume.ReallocIf(dim___02*2,layer_01+4);
-//    _iVolume.ReallocIfDim(dim___02*2,layer_01+4);
-//    _dVolume.ReallocIf(dim___02*2,layer_01+4);
+    _hVolume.ReallocIf(dim___02*2,layer_01+4);
+    _iVolume.ReallocIfDim(dim___02*2,layer_01+4);
+    _dVolume.ReallocIf(dim___02*2,layer_01+4);
 
-//    printf("Main_UnitTest_Realloc - STEP 5 : FILL\n");
-//    _hVolume.Fill(make_float2(2.f,3.f));
+    printf("Main_UnitTest_Realloc - STEP 5 : FILL\n");
+    _hVolume.Fill(make_float2(2.f,3.f));
 
-//    printf("Main_UnitTest_Realloc - STEP 5 : COPY\n");
-//    _iVolume.copyHostToDevice(_hVolume.pData());
-//    _dVolume.CopyHostToDevice(_hVolume.pData());
-//    _dVolume.CopyDevicetoHost(_hVolume);
+    printf("Main_UnitTest_Realloc - STEP 5 : COPY\n");
+    _iVolume.copyHostToDevice(_hVolume.pData());
+    _dVolume.CopyHostToDevice(_hVolume.pData());
+    _dVolume.CopyDevicetoHost(_hVolume);
 
     printf("Main_UnitTest_Realloc - END\n");
 
