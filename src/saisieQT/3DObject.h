@@ -117,11 +117,11 @@ class cPoint : public cObjectGL, public QPointF
            QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            QColor color = Qt::red,
+           bool showName   = false,
            QColor selectionColor = Qt::blue,
            float diameter = 3.f,
            int  state = NS_SaisiePts::eEPI_NonValue,
            bool isSelected = false,
-           bool showName   = false,
            bool highlight  = false);
 
         void draw();
@@ -253,6 +253,7 @@ class cPolygon : public cObjectGL
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
 
         void    setNearestPointState(const  QPointF &pos, int state);
+        void    highlightNearestPoint(const  QPointF &pos);
 
         void    setpointSize(float size) { _pointSize = size; }
 
@@ -299,7 +300,14 @@ class cPolygon : public cObjectGL
 
         void    setPainter(QPainter * painter);
 
-        void    showNames(bool show = true);
+        // Points name
+        void    showNames();
+        bool    bShowNames() { return _bShowNames; }
+
+        void    setDefaultName(QString name){ _defPtName = name; }
+        QString getDefaultName() { return _defPtName; }
+
+        void    rename(QPointF pos, QString name);
 
         void    showLines(bool show = true);
         bool    bShowLines() { return _bShowLines; }
@@ -331,8 +339,12 @@ class cPolygon : public cObjectGL
         //!states if segments should be displayed
         bool                _bShowLines;
 
+        //!states if names should be displayed
+        bool                _bShowNames;
+
         int                 _style;
         QVector<qreal>      _dashes;
+        QString             _defPtName;
 };
 
 class cPolygonHelper : public cPolygon
@@ -550,7 +562,7 @@ public:
 
     cGLData();
 
-    cGLData(QMaskedImage &qMaskedImage, bool modePt = false);
+    cGLData(QMaskedImage &qMaskedImage, bool modePt = false, QString ptName = "" );
 
     cGLData(cData *data);
 

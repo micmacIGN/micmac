@@ -465,11 +465,11 @@ void cCam::draw()
 
 
 cPoint::cPoint(QPainter * painter, QPointF pos, QString name,
-               QColor color, QColor selectionColor,
+               QColor color,
+               bool showName, QColor selectionColor,
                float diameter,
                int state,
                bool isSelected,
-               bool showName,
                bool highlight):
     QPointF(pos),
     _name(name),
@@ -558,6 +558,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor p
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
+    _bShowNames(true),
     _style(style)
 {
     setColor(pointColor);
@@ -679,25 +680,38 @@ void cPolygon::setNearestPointState(const QPointF &pos, int state)
         {
             //TODO: cWinIm l.661
             _points.remove(_idx);
-        }
-        else
-            _points[_idx].highlight();
+        } 
     }
 
     _idx = -1;
     _bSelectedPoint = false;
 }
 
+void cPolygon::highlightNearestPoint(const QPointF &pos)
+{
+    findNearestPoint(pos, 400000.f);
+
+    if (_idx >=0 && _idx <_points.size())
+    {
+        _points[_idx].highlight();
+    }
+}
+
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    _points.push_back(cPoint(_painter, pt, "", _color));
+    _points.push_back(cPoint(_painter, pt, _defPtName, _color, _bShowNames));
+
+    bool isNumber = false;
+    double value = _defPtName.toDouble(&isNumber);
+    if (isNumber) _defPtName.setNum((uint)value+1);
+
     _points.back().setSelected(selected);
 }
 
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = cPoint(_painter, pt, "", _color);
+        _points[size()-1] = cPoint(_painter, pt, "", _color, _bShowNames);
 
     add(pt);
 }
@@ -818,7 +832,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
             add(pos);
         else if ((nbVertex > 1) && !_bShowLines)              // replace last point by the current one
-            _points[nbVertex-1] = cPoint(_painter, pos, "", _color);
+            _points[nbVertex-1] = cPoint(_painter, pos, "", _color, _bShowNames);
        /* else if  ((nbVertex > 1) && _bShowLines);
             add(pos);*/
     }
@@ -864,10 +878,20 @@ void cPolygon::setPainter(QPainter *painter)
         _helper->setPainter(_painter);
 }
 
-void cPolygon::showNames(bool show)
+void cPolygon::showNames()
 {
+    _bShowNames = !_bShowNames;
+
     for (int aK=0; aK < _points.size(); ++aK)
-        _points[aK].showName(show);
+        _points[aK].showName(_bShowNames);
+}
+
+void cPolygon::rename(QPointF pos, QString name)
+{
+    findNearestPoint(pos, 400000.f);
+
+    if (_idx >=0 && _idx < _points.size())
+        _points[_idx].setName(name);
 }
 
 void cPolygon::showLines(bool show)
@@ -1194,7 +1218,7 @@ cGLData::cGLData():
     initOptions();
 }
 
-cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt):
+cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     glMaskedImage(qMaskedImage),
     pQMask(qMaskedImage._m_mask),
     pBall(NULL),
@@ -1206,6 +1230,7 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt):
     initOptions();
 
     m_polygon.showLines(!modePt);
+    m_polygon.setDefaultName(ptName);
 }
 
 cGLData::cGLData(cData *data):

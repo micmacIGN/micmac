@@ -1,13 +1,14 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QWidget *parent) :
+MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > 1 ),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > 1),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
         _layout(new QGridLayout),
-        _bModePt(mode > 1 )
+        _bModePt(mode > 1),
+        _ptName(pointName)
 {
     _ui->setupUi(this);
 
@@ -196,7 +197,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             _Engine->setFilenamesOut();
         }
 
-        _Engine->allocAndSetGLData(_bModePt);
+        _Engine->allocAndSetGLData(_bModePt, _ptName);
         for (uint aK = 0; aK < NbWidgets();++aK)
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
 

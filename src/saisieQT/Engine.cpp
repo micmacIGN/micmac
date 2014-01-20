@@ -410,12 +410,12 @@ void cEngine::unloadAll()
     _vGLData.clear();
 }
 
-void cEngine::allocAndSetGLData(bool modePt)
+void cEngine::allocAndSetGLData(bool modePt, QString ptName)
 {
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), modePt));
+        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), modePt, ptName));
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data));
