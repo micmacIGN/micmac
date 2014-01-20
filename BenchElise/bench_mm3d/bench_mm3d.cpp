@@ -311,27 +311,18 @@ int pack_from_script_func( int argc, char **argv )
       cerr << "ERROR: script file [" << scriptname.str_unix() << "] cannot be loaded" << endl;
       return EXIT_FAILURE;
    }
-   list<cElCommand>::iterator itCmd = commands.begin();
-   while ( itCmd!=commands.end() )
-   {
-      string cmd = itCmd->str();
-      if ( itCmd->replace( dictionary ) )
-      {
-	 cout << "command [" << cmd << "]" << endl;
-	 cout << "becomes [" << itCmd->str() << "]" << endl;
-      }
-      itCmd++;
-   }
    
    // create initial state
    TracePack pack( packname, anchor );
    pack.addState();
    
-   itCmd = commands.begin();
+   list<cElCommand>::iterator itCmd = commands.begin();
    unsigned int iCmd = 0;
    while ( itCmd!=commands.end() )
    {
-      cout << "command " << iCmd << " : " << itCmd->str() << endl;
+      cout << "command " << iCmd << " : [" << itCmd->str() << ']' << endl;
+      string originalCommand = itCmd->str();
+      itCmd->replace( dictionary );
       if ( !itCmd->system() )
       {
 	 cerr << "ERROR: command " << iCmd << " = " << endl;
@@ -339,13 +330,11 @@ int pack_from_script_func( int argc, char **argv )
 	 cerr << "failed." << endl;
 	 return EXIT_FAILURE;
       }
-      pack.addState();
+      pack.addState( originalCommand );
       itCmd++; iCmd++;
    }
    pack.save();
-   
-   //if ( !anchor.re
-   
+      
    return EXIT_SUCCESS;
 }
 

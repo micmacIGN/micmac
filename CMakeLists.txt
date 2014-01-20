@@ -50,7 +50,7 @@ OPTION(BUILD_BENCH "compile low-level test bench" OFF )
 OPTION(WITH_QT5 "compile Auto Qt interfaces" OFF )
 
 # construire les interfaces de saisie basees sur Qt5
-OPTION(WITH_SAISIEQT "build graphic interface for masks" OFF)
+OPTION(WITH_SAISIEQT "build graphic interface for masks" ON)
 
 if ( TRACE_SYSTEM )
 	add_definitions(-D__TRACE_SYSTEM__)
@@ -130,13 +130,14 @@ else()
    message( "OpenGL or GLU not available, Qt graphical tools disabled" )
 endif()
 
-if ( NOT ${qt_version} EQUAL 0 )
-   #set( WITH_SAISIEQT true )
-   message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
-endif()
-
-if (${WITH_SAISIEQT})
-   add_definitions(-DSAISIE_QT)
+if ( ${WITH_SAISIEQT} )
+   if ( NOT ${qt_version} EQUAL 0 )
+      message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
+      add_definitions(-DSAISIE_QT)
+   else()
+      message( STATUS "unable to find QT : QT graphical tools disabled" )
+      set( WITH_SAISIEQT false )
+   endif()
 endif()
 
 # CUDA
