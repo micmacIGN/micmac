@@ -757,13 +757,13 @@ bool write_file( istream &io_fIn, ostream &io_fOut, unsigned int i_length )
 	 #endif
 	 return false;
       }
-      remaining -= (unsigned int)nbRead;
       io_fOut.write( buffer.data(), nbRead );
+      remaining -= (unsigned int)nbRead;
    }
    
    #ifdef __DEBUG_TRACE_PACK
       if ( remaining!=0 )
-	 cerr << "DEBUG_ERROR: write_file: " << remaining << " bytes needs to be read but end-of-file is reached" << endl;
+	 cerr << "DEBUG_ERROR: write_file: " << remaining << " bytes need to be read but end-of-file is reached" << endl;
    #endif
    
    return remaining==0;

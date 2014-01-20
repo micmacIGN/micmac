@@ -2422,7 +2422,11 @@ void CLASS sony_decrypt (unsigned *data, int len, int start, int key)
       pad[p] = htonl(pad[p]);
   }
   while (len--)
-    *data++ ^= pad[p++ & 127] = pad[(p+1) & 127] ^ pad[(p+65) & 127];
+  {
+     //*data++ ^= pad[p++ & 127] = pad[(p+1) & 127] ^ pad[(p+65) & 127];
+    *data++ ^= pad[p&127] = pad[(p+1) & 127] ^ pad[(p+65) & 127];
+    p++;
+  }
 }
 
 void CLASS sony_load_raw()
