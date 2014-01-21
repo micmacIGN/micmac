@@ -170,6 +170,7 @@ private:
     MatrixManager   _matrixManager;
     cMessages2DGL   _messageManager;
     HistoryManager  _historyManager;
+
     ContextMenu     _contextMenu;
 
     int             _widgetId;
@@ -180,7 +181,6 @@ private:
     QColor      _BGColor1;
 
     QPainter*   _painter;
-
 };
 
 #endif  /* _GLWIDGET_H */

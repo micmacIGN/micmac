@@ -90,7 +90,6 @@ void HistoryManager::save()
         }
         else
             std::cerr << "saveSelectInfos: null matrix";
-
     }
 
     doc.appendChild(SI);

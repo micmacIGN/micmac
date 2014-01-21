@@ -703,9 +703,9 @@ QString cPolygon::getNearestPointName(const QPointF &pos)
 
     if (_idx >=0 && _idx <_points.size())
     {
-        return _points[_idx].getName();
+        return _points[_idx].name();
     }
-    else return "";
+    else return _defPtName;
 }
 
 void cPolygon::add(const QPointF &pt, bool selected)

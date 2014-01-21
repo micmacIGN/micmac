@@ -57,10 +57,7 @@ void ContextMenu::rename()
     QInputDialog* inputDialog = new QInputDialog();
     inputDialog->setOptions(QInputDialog::NoButtons);
 
-    QString name = _polygon->getNearestPointName(_lastPosImage);
-    if (name == "") name = _polygon->getDefaultName();
-
-    QString text =  inputDialog->getText(NULL ,"Rename", "Point name:", QLineEdit::Normal, name);
+    QString text = inputDialog->getText(NULL, tr("Rename"), tr("Point name:"), QLineEdit::Normal, _polygon->getNearestPointName(_lastPosImage));
 
     if (!text.isEmpty())
 
