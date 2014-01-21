@@ -23,19 +23,15 @@
 #include <QTime>
 #include <QPainter>
 
-//contextMenuEvent
-#include <QMenu>
-#include <QSignalMapper>
-#include <QIcon>
-#include <QInputDialog>
-#include <QDialogButtonBox>
-
 #include "Data.h"
 #include "Engine.h"
 #include "3DTools.h"
 #include "3DObject.h"
-#include "MatrixManager.h"
 #include "GLWidgetSet.h"
+
+#include "MatrixManager.h"
+#include "HistoryManager.h"
+#include "ContextMenu.h"
 
 class GLWidgetSet;
 
@@ -109,19 +105,9 @@ public:
 
     void refreshPositionMessage(QPointF pos);
 
-    void createContexMenuActions();
-
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
-
-    void setPointState(int state);
-
-    void highlight();
-
-    void rename();
-
-    void showNames();
 
 signals:
 
@@ -184,6 +170,7 @@ private:
     MatrixManager   _matrixManager;
     cMessages2DGL   _messageManager;
     HistoryManager  _historyManager;
+    ContextMenu     _contextMenu;
 
     int             _widgetId;
 
@@ -194,20 +181,6 @@ private:
 
     QPainter*   _painter;
 
-    QSignalMapper*          _signalMapper;
-
-    QAction     *_showNames;
-    QAction     *_rename;
-
-    QAction     *_AllW;
-    QAction     *_ThisP;
-    QAction     *_ThisW;
-
-    QAction     *_validate;
-    QAction     *_dubious;
-    QAction     *_refuted;
-    QAction     *_noSaisie;
-    QAction     *_highLight;
 };
 
 #endif  /* _GLWIDGET_H */
