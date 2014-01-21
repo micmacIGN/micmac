@@ -2,6 +2,7 @@
 
 /// \brief Constructeur GpGpuInterfaceCorrel
 GpGpuInterfaceCorrel::GpGpuInterfaceCorrel():
+    CSimpleJobCpuGpu(true),
      NoMasked(false),
      copyInvParam(false)
 
@@ -51,7 +52,7 @@ uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 void GpGpuInterfaceCorrel::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
 {
 
-    if(!copyInvParam)
+    if(!copyInvParam || _param[0].invPC.nbImages != (uint)nbLayer || _param[1].invPC.nbImages != (uint)nbLayer)
     {
         copyInvParam = true;
         _param[0].invPC.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
