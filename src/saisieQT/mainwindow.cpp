@@ -169,10 +169,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             delete timer_test;                     
 
             future.waitForFinished();            
-            // FIN DE CHARGEMENT ET PROGRESS BAR
-
-            _Engine->setFilename();
-            _Engine->setFilenamesOut();
+            // FIN DE CHARGEMENT ET PROGRESS BAR            
         }
         else if (fi.suffix() == "xml")
         {
@@ -193,13 +190,18 @@ void MainWindow::addFiles(const QStringList& filenames)
             setMode2D(true);
             closeAll();            
 
-            _Engine->loadImages(filenames);
-            _Engine->setFilenamesOut();
+            _Engine->loadImages(filenames);            
         }
+
+        _Engine->setSelectionFilenames();
+        _Engine->setFilenamesOut();
 
         _Engine->allocAndSetGLData(_bModePt, _ptName);
         for (uint aK = 0; aK < NbWidgets();++aK)
+        {
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
+            getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+        }
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
     }
@@ -497,7 +499,7 @@ void MainWindow::on_actionSave_as_triggered()
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    _Engine->saveSelectInfos(CurrentWidget()->getHistoryManager()->getSelectInfos());
+    CurrentWidget()->getHistoryManager()->save();
 }
 
 void MainWindow::closeAll()

@@ -831,10 +831,8 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     {
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
             add(pos);
-        else if ((nbVertex > 1) && !_bShowLines)              // replace last point by the current one
+        else if ((nbVertex > 1) && _bShowLines)              // replace last point by the current one
             _points[nbVertex-1] = cPoint(_painter, pos, _defPtName, _bShowNames, _color );
-       /* else if  ((nbVertex > 1) && _bShowLines);
-            add(pos);*/
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en court d'operation
     {

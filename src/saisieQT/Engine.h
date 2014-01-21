@@ -5,8 +5,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDir>
-#include <QDomDocument>
-#include <QTextStream>
 
 #include "Cloud.h"
 #include "Data.h"
@@ -61,7 +59,7 @@ public:
 
     CamStenope* loadCamera(QString aNameFile);
 
-    GlCloud*      loadCloud(string i_ply_file , int *incre = NULL);
+    GlCloud*    loadCloud(string i_ply_file , int *incre = NULL);
 
     void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
@@ -71,18 +69,18 @@ public:
     void        setFilenamesIn(QStringList const &strl){_FilenamesIn = strl;}
     void        setFilenamesOut();
     void        setFilenameOut(QString str);
-    void        setSelectionFilename();
+    void        setSelectionFilenames();
 
     QStringList& getFilenamesIn() {return _FilenamesIn;}
     QStringList getFilenamesOut() {return _FilenamesOut;}
-    QString     getSelectionFilename() {return _SelectionOut;}
+    QStringList& getSelectionFilenames() {return _SelectionOut;}
 
     void        setPostFix(QString str);
 
 private:
     QStringList _FilenamesIn;
     QStringList _FilenamesOut; //binary masks
-    QString     _SelectionOut; //selection infos
+    QStringList _SelectionOut; //selection infos
     QString     _postFix;
 
     //! Working directory
@@ -102,7 +100,8 @@ public:
     void    setDir(QDir aDir){_Loader->setDir(aDir);}
 
     //! Set working directory
-    void    setFilename(){_Loader->setSelectionFilename();}
+    void    setSelectionFilenames(){_Loader->setSelectionFilenames();}
+    QStringList& getSelectionFilenames(){ return _Loader->getSelectionFilenames(); }
 
     //! Set input filenames
     void    setFilenamesIn(QStringList const &strl){_Loader->setFilenamesIn(strl);}
@@ -142,8 +141,6 @@ public:
     void    doMaskImage(ushort idCur);
 
     void    saveMask(ushort idCur);
-
-    void    saveSelectInfos(QVector <selectInfos> const &Infos);
 
     cData*  getData()  {return _Data;}
 

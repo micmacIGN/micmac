@@ -451,7 +451,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom));
 
-            else                                                        // REFRESH HELPER POLYGON
+            else                                          // REFRESH HELPER POLYGON
 
                 polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
         }
