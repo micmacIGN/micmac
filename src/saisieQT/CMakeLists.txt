@@ -15,9 +15,12 @@ set(saisie_SRCS saisieQT_main.cpp
 		Engine.cpp
 		3DObject.cpp
 		GLWidgetSet.cpp
-		MatrixManager.cpp)
+		MatrixManager.cpp
+		HistoryManager.cpp
+		ContextMenu.cpp)
 		
 set( saisie_HEADERS_nomoc
+   HistoryManager.h
    MatrixManager.h
    Cloud.h
    saisieQT_main.h
@@ -30,7 +33,8 @@ set( saisie_HEADERS_nomoc
    
 set( saisie_HEADERS_tomoc
    GLWidget.h
-   mainwindow.h )
+   mainwindow.h
+   ContextMenu.h )
 
 if ( NOT ${qt_version} EQUAL 0 )
    if ( ${qt_version} EQUAL 5 )
