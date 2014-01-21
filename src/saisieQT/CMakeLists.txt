@@ -20,7 +20,6 @@ set(saisie_SRCS saisieQT_main.cpp
 		ContextMenu.cpp)
 		
 set( saisie_HEADERS_nomoc
-   ContextMenu.h
    HistoryManager.h
    MatrixManager.h
    Cloud.h
@@ -34,7 +33,8 @@ set( saisie_HEADERS_nomoc
    
 set( saisie_HEADERS_tomoc
    GLWidget.h
-   mainwindow.h )
+   mainwindow.h
+   ContextMenu.h )
 
 if ( NOT ${qt_version} EQUAL 0 )
    if ( ${qt_version} EQUAL 5 )

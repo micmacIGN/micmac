@@ -23,7 +23,7 @@ template <class TF, class Obj> void BenchQdt<TF,Obj>::voisins(Pt2dr p0,REAL ray,
      qdt.RVoisins(S0,p0,ray);
 }
 
-template <class TF, class Obj> void BenchQdt<TF,Obj>::KPPVois(Pt2dr p0, list<Obj>& S0 ,int aNb, double aDistInit, double aFact=2.0, int aNbMax=10) {
+template <class TF, class Obj> void BenchQdt<TF,Obj>::KPPVois(Pt2dr p0, list<Obj>& S0 ,int aNb, double aDistInit, double aFact, int aNbMax) {
      S0=qdt.KPPVois(p0,aNb,aDistInit,aFact,aNbMax);
 }
 
