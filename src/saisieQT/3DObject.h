@@ -107,6 +107,7 @@ class cPoint : public cObjectGL, public QPointF
         void draw();
 
         void setName(QString name){ _name = name; }
+        QString getName() { return _name; }
         void setState(int state){ _state = state; }
         void showName(bool show){ _bShowName = show; }
 
@@ -232,8 +233,9 @@ class cPolygon : public cObjectGL
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
 
-        void    setNearestPointState(const  QPointF &pos, int state);
-        void    highlightNearestPoint(const  QPointF &pos);
+        void    setNearestPointState(const QPointF &pos, int state);
+        void    highlightNearestPoint(const QPointF &pos);
+        QString getNearestPointName(const QPointF &pos);
 
         void    setpointSize(float size) { _pointSize = size; }
 
