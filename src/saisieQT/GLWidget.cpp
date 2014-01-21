@@ -35,7 +35,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
     tformGL.setSamples(16);
     setFormat(tformGL);
 
-    createContexMenuActions();
+    _contextMenu.createContexMenuActions();
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -89,6 +89,8 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
+
+        _contextMenu.setPolygon( &m_GLData->m_polygon);
 
         resetView(showMessage, doZoom);
     }
@@ -619,98 +621,31 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
     update();
 }
 
-void GLWidget::createContexMenuActions()
-{
-    QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
-
-    _rename    = new QAction(tr("Rename"), this);
-    _showNames = new QAction(tr("Show names") , this);
-
-    _highLight = new QAction(QIcon(IconFolder + "HL.ico"),              tr("Highlight"), this);
-
-    _AllW      = new QAction(tr("AllW") , this);
-    _ThisW     = new QAction(tr("ThisW"), this);
-    _ThisP     = new QAction(tr("ThisP"), this);
-
-    _validate  = new QAction(QIcon(IconFolder + "smile.ico"),           tr("Validate"), this);
-    _dubious   = new QAction(QIcon(IconFolder + "interrogation.ico"),   tr("Dubious") , this);
-    _refuted   = new QAction(QIcon(IconFolder + "refuted.ico"),         tr("Refuted") , this);
-    _noSaisie  = new QAction(QIcon(IconFolder + "vide.ico"),            tr("Not captured"), this);
-
-    connect(_rename,		    SIGNAL(triggered()),   this, SLOT(rename()));
-    connect(_showNames,		    SIGNAL(triggered()),   this, SLOT(showNames()));
-
-    connect(_highLight,		    SIGNAL(triggered()),   this, SLOT(highlight()));
-
-    _signalMapper = new QSignalMapper (this);
-
-    /*connect(_AllW,      	    SIGNAL(triggered()),   _signalMapper, SLOT(AllW()));
-    connect(_ThisW,             SIGNAL(triggered()),   _signalMapper, SLOT(ThisW()));
-    connect(_ThisP,             SIGNAL(triggered()),   _signalMapper, SLOT(ThisP()));*/ 
-
-    connect(_validate,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
-    connect(_dubious,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
-    connect(_refuted,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
-    connect(_noSaisie,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
-
-    _signalMapper->setMapping (_validate,  NS_SaisiePts::eEPI_Valide);
-    _signalMapper->setMapping (_dubious,   NS_SaisiePts::eEPI_Douteux);
-    _signalMapper->setMapping (_refuted,   NS_SaisiePts::eEPI_Refute);
-    _signalMapper->setMapping (_noSaisie,  NS_SaisiePts::eEPI_NonSaisi);
-
-    connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(setPointState(int)));
-}
-
 void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 {
     QMenu menu(this);
 
     if ((event->modifiers() & Qt::ShiftModifier))
     {
-        menu.addAction(_rename);
-        menu.addAction(_showNames);
+        menu.addAction(_contextMenu._rename);
+        menu.addAction(_contextMenu._showNames);
     }
     else if ((event->modifiers() & Qt::ControlModifier))
     {
-        menu.addAction(_AllW);
-        menu.addAction(_ThisW);
-        menu.addAction(_ThisP);
+        menu.addAction(_contextMenu._AllW);
+        menu.addAction(_contextMenu._ThisW);
+        menu.addAction(_contextMenu._ThisP);
     }
     else
     {
-        menu.addAction(_validate);
-        menu.addAction(_dubious);
-        menu.addAction(_refuted);
-        menu.addAction(_noSaisie);
-        menu.addAction(_highLight);
+        menu.addAction(_contextMenu._validate);
+        menu.addAction(_contextMenu._dubious);
+        menu.addAction(_contextMenu._refuted);
+        menu.addAction(_contextMenu._noSaisie);
+        menu.addAction(_contextMenu._highLight);
     }
 
+    _contextMenu.setPos(m_lastPosImage);
+
     menu.exec(event->globalPos());
-}
-
-void GLWidget::setPointState(int state)
-{
-    polygon().setNearestPointState(m_lastPosImage, state);
-}
-
-void GLWidget::highlight()
-{
-    polygon().highlightNearestPoint(m_lastPosImage);
-}
-
-void GLWidget::rename()
-{
-    QInputDialog* inputDialog = new QInputDialog();
-    inputDialog->setOptions(QInputDialog::NoButtons);
-
-    QString text =  inputDialog->getText(NULL ,"Rename", "Point name:", QLineEdit::Normal, polygon().getDefaultName());
-
-    if (!text.isEmpty())
-
-         polygon().rename(m_lastPosImage, text);
-}
-
-void GLWidget::showNames()
-{
-    polygon().showNames();
 }
