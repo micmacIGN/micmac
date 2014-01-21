@@ -15,9 +15,13 @@ set(saisie_SRCS saisieQT_main.cpp
 		Engine.cpp
 		3DObject.cpp
 		GLWidgetSet.cpp
-		MatrixManager.cpp)
+		MatrixManager.cpp
+		HistoryManager.cpp
+		ContextMenu.cpp)
 		
 set( saisie_HEADERS_nomoc
+   ContextMenu.h
+   HistoryManager.h
    MatrixManager.h
    Cloud.h
    saisieQT_main.h

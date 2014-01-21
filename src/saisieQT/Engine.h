@@ -12,6 +12,8 @@
 #include "Data.h"
 #include "general/bitm.h"
 
+#include "HistoryManager.h"
+
 class ViewportParameters
 {
 public:
