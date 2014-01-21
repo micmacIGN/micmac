@@ -697,6 +697,17 @@ void cPolygon::highlightNearestPoint(const QPointF &pos)
     }
 }
 
+QString cPolygon::getNearestPointName(const QPointF &pos)
+{
+    findNearestPoint(pos, 400000.f);
+
+    if (_idx >=0 && _idx <_points.size())
+    {
+        return _points[_idx].getName();
+    }
+    else return "";
+}
+
 void cPolygon::add(const QPointF &pt, bool selected)
 {
     _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, _color));
@@ -831,7 +842,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     {
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
             add(pos);
-        else if ((nbVertex > 1) && _bShowLines)              // replace last point by the current one
+        else if (nbVertex > 1)               // replace last point by the current one
             _points[nbVertex-1] = cPoint(_painter, pos, _defPtName, _bShowNames, _color );
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en court d'operation
@@ -1019,7 +1030,6 @@ void cPolygonHelper::setPoints(QPointF p1,QPointF p2,QPointF p3)
 
 //********************************************************************************
 
-
 //invalid GL list index
 const GLuint GL_INVALID_LIST_ID = (~0);
 
@@ -1128,7 +1138,6 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-
     w = (w>>1)+1;
     h = (h>>1)+1;
 
@@ -1176,8 +1185,7 @@ void cMaskedImageGL::draw()
     {
         _m_mask->draw();
         glBlendFunc(GL_ONE,GL_ONE);
-        int c =256;
-        _m_mask->draw(QColor((float)c/2.0f,c/2,c/2));
+        _m_mask->draw(QColor(128,128,128));
         glBlendFunc(GL_DST_COLOR,GL_ZERO);
         glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
