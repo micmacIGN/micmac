@@ -464,9 +464,9 @@ void cCam::draw()
 }
 
 
-cPoint::cPoint(QPainter * painter, QPointF pos, QString name,
-               QColor color,
-               bool showName, QColor selectionColor,
+cPoint::cPoint(QPainter * painter, QPointF pos,
+               QString name, bool showName,
+               QColor color, QColor selectionColor,
                float diameter,
                int state,
                bool isSelected,
@@ -527,7 +527,6 @@ void cPoint::draw()
 
          if ((_bShowName) && (_name != ""))
          {
-
              QFontMetrics metrics = QFontMetrics(_font);
              int border = (float) qMax(4, metrics.leading());
 
@@ -579,6 +578,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
+    _bShowNames(true),
     _style(style)
 {
     if (!withHelper) _helper = NULL;
@@ -673,14 +673,14 @@ void cPolygon::setNearestPointState(const QPointF &pos, int state)
     findNearestPoint(pos, 400000.f);
 
     if (_idx >=0 && _idx <_points.size())
-    {
-        if (state > 0)
-            _points[_idx].setState(state);
-        else if (state == NS_SaisiePts::eEPI_NonValue)
+    {          
+        if (state == NS_SaisiePts::eEPI_NonValue)
         {
             //TODO: cWinIm l.661
             _points.remove(_idx);
         } 
+        else
+            _points[_idx].setState(state);
     }
 
     _idx = -1;
@@ -699,7 +699,7 @@ void cPolygon::highlightNearestPoint(const QPointF &pos)
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    _points.push_back(cPoint(_painter, pt, _defPtName, _color, _bShowNames));
+    _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, _color));
 
     bool isNumber = false;
     double value = _defPtName.toDouble(&isNumber);
@@ -711,7 +711,7 @@ void cPolygon::add(const QPointF &pt, bool selected)
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = cPoint(_painter, pt, "", _color, _bShowNames);
+        _points[size()-1] = cPoint(_painter, pt, _defPtName, _bShowNames, _color);
 
     add(pt);
 }
@@ -832,7 +832,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
             add(pos);
         else if ((nbVertex > 1) && !_bShowLines)              // replace last point by the current one
-            _points[nbVertex-1] = cPoint(_painter, pos, "", _color, _bShowNames);
+            _points[nbVertex-1] = cPoint(_painter, pos, _defPtName, _bShowNames, _color );
        /* else if  ((nbVertex > 1) && _bShowLines);
             add(pos);*/
     }
