@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/MM/Icons">
+    <file>images/icon_16.png</file>
+    <file>images/icon_32.png</file>
+    <file>images/icon_64.png</file>
+  </qresource>
+</RCC>
