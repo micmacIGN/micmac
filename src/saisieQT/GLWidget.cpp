@@ -4,7 +4,7 @@
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
-GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
+GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_GLData(NULL)
@@ -29,11 +29,12 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     setOption(cGLData::OpShow_Mess);
 
-    _painter = new QPainter();
-
-    QGLFormat tformGL(QGL::SampleBuffers);
-    tformGL.setSamples(16);
-    setFormat(tformGL);
+	#if ELISE_QT_VERSION==5 
+        _painter = new QPainter();
+		QGLFormat tformGL(QGL::SampleBuffers);
+		tformGL.setSamples(16);
+		setFormat(tformGL);
+	#endif
 
     _contextMenu.createContexMenuActions();
 }
@@ -98,6 +99,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
 void GLWidget::paintGL()
 {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
@@ -111,7 +113,7 @@ void GLWidget::paintGL()
         {
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
-            m_GLData->glMaskedImage.draw();            
+            m_GLData->glMaskedImage.draw();
         }
         else
         {
@@ -128,8 +130,8 @@ void GLWidget::paintGL()
     }
 
     _messageManager.draw();
-
-    Overlay();
+	
+	Overlay();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -258,15 +260,21 @@ void GLWidget::dropEvent(QDropEvent *event)
 
 void GLWidget::Overlay()
 {
-    if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
+	if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
-        _painter->begin(this);
-
+		#if ELISE_QT_VERSION==5
+			_painter->begin(this);
+		#else
+			QPainter painter(this);
+			_painter = &painter;
+			m_GLData->setPainter(_painter);
+		#endif
+				
         if (m_bDisplayMode2D)
         {
             _painter->scale(_params.m_zoom,-_params.m_zoom);
             _painter->translate(_matrixManager.translateImgToWin(_params.m_zoom));
-        }
+		}
 
         polygon().draw();
 
@@ -434,7 +442,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     {
         _parentSet->setCurrentWidgetIdx(_widgetId);
 
-#if ELISE_QT_VERSION >= 5
+#if ELISE_QT_VERSION == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
 #else
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
@@ -497,7 +505,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (hasDataLoaded() && m_GLData->Clouds.size())
     {
-#if ELISE_QT_VERSION >= 5
+#if ELISE_QT_VERSION == 5
         QPointF pos = event->localPos();
 #else
         QPointF pos = event->posF();

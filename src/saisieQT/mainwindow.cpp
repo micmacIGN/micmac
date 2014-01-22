@@ -20,8 +20,6 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
     style = style.arg(colorBG1.red()).arg(colorBG1.green()).arg(colorBG1.blue());
 
 #ifdef ELISE_Darwin
-    _ui->OpenglLayout->setStyleSheet(style);
-
     _ui->actionAdd->setShortcut(QKeySequence(Qt::Key_Space));
     _ui->actionRemove->setShortcut(QKeySequence(Qt::Key_S));
 #endif
@@ -156,7 +154,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         _Engine->setDir(Dir);
 
 #ifdef _DEBUG
-        printf("adding files %s", filenames[0].toStdString().c_str());
+        printf("adding files %s\n", filenames[0].toStdString().c_str());
 #endif
 
         if (fi.suffix() == "ply")
@@ -206,6 +204,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         _Engine->setFilenamesOut();
 
         _Engine->allocAndSetGLData(_bModePt, _ptName);
+
         for (uint aK = 0; aK < NbWidgets();++aK)
         {
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
