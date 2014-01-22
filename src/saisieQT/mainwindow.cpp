@@ -19,14 +19,12 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
     style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
     style = style.arg(colorBG1.red()).arg(colorBG1.green()).arg(colorBG1.blue());
 
-#ifdef ELISE_Darwin
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::Key_Space));
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::Key_S));
+#ifdef ELISE_Darwin    
+    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
+    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
 #endif
 
     _ui->OpenglLayout->setStyleSheet(style);
-
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::Key_Space));
 
     _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
 
