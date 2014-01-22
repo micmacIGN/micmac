@@ -31,9 +31,11 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     _painter = new QPainter();
 
-    QGLFormat tformGL(QGL::SampleBuffers);
-    tformGL.setSamples(16);
-    setFormat(tformGL);
+	#if ELISE_QT_VERSION==5 
+		QGLFormat tformGL(QGL::SampleBuffers);
+		tformGL.setSamples(16);
+		setFormat(tformGL);
+	#endif
 
     _contextMenu.createContexMenuActions();
 }
@@ -111,7 +113,7 @@ void GLWidget::paintGL()
         {
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
-            m_GLData->glMaskedImage.draw();            
+            m_GLData->glMaskedImage.draw();
         }
         else
         {
@@ -129,7 +131,7 @@ void GLWidget::paintGL()
 
     _messageManager.draw();
 
-    Overlay();
+	Overlay();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -258,7 +260,7 @@ void GLWidget::dropEvent(QDropEvent *event)
 
 void GLWidget::Overlay()
 {
-    if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
+	if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
         _painter->begin(this);
 
@@ -266,7 +268,7 @@ void GLWidget::Overlay()
         {
             _painter->scale(_params.m_zoom,-_params.m_zoom);
             _painter->translate(_matrixManager.translateImgToWin(_params.m_zoom));
-        }
+		}
 
         polygon().draw();
 
@@ -434,7 +436,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     {
         _parentSet->setCurrentWidgetIdx(_widgetId);
 
-#if ELISE_QT_VERSION >= 5
+#if ELISE_QT_VERSION == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
 #else
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
@@ -497,7 +499,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (hasDataLoaded() && m_GLData->Clouds.size())
     {
-#if ELISE_QT_VERSION >= 5
+#if ELISE_QT_VERSION == 5
         QPointF pos = event->localPos();
 #else
         QPointF pos = event->posF();
