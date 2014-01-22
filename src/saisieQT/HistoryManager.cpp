@@ -99,6 +99,6 @@ void HistoryManager::save()
     outFile.close();
 
 #ifdef _DEBUG
-        printf ( "File saved in: %s\n", _Loader->getSelectionFilename().toStdString().c_str());
+        printf ( "File saved in: %s\n", _filename.toStdString().c_str());
 #endif
 }
