@@ -4,7 +4,7 @@
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
-GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
+GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_GLData(NULL)
@@ -29,9 +29,8 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     setOption(cGLData::OpShow_Mess);
 
-    _painter = new QPainter();
-
 	#if ELISE_QT_VERSION==5 
+		_painter = new QPainter(this);	
 		QGLFormat tformGL(QGL::SampleBuffers);
 		tformGL.setSamples(16);
 		setFormat(tformGL);
@@ -100,6 +99,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
 void GLWidget::paintGL()
 {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
@@ -130,7 +130,7 @@ void GLWidget::paintGL()
     }
 
     _messageManager.draw();
-
+	
 	Overlay();
 }
 
@@ -262,8 +262,14 @@ void GLWidget::Overlay()
 {
 	if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
-        _painter->begin(this);
-
+		#if ELISE_QT_VERSION==5
+			_painter->begin(this);
+		#else
+			QPainter painter(this);
+			_painter = &painter;
+			m_GLData->setPainter(_painter);
+		#endif
+				
         if (m_bDisplayMode2D)
         {
             _painter->scale(_params.m_zoom,-_params.m_zoom);
