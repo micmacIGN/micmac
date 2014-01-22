@@ -30,7 +30,7 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
     setOption(cGLData::OpShow_Mess);
 
 	#if ELISE_QT_VERSION==5 
-		_painter = new QPainter(this);	
+        _painter = new QPainter();
 		QGLFormat tformGL(QGL::SampleBuffers);
 		tformGL.setSamples(16);
 		setFormat(tformGL);
