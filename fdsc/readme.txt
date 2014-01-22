@@ -43,6 +43,7 @@ Dependencies
   python-gdal
   python-matplotlib
   python-qt4
+  python-scipy
 
 Usage
   Command:
