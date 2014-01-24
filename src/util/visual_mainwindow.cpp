@@ -1,3 +1,5 @@
+#if(ELISE_QT5)
+
 #include "general/visual_mainwindow.h"
 #include "general/mes_boutons.h"
 #include "StdAfx.h"
@@ -209,5 +211,7 @@ void visual_MainWindow::set_argv_recup(std::string argv)
 {
     argv_recup = argv;
 }
+
+#endif //ELISE_QT5
 
 

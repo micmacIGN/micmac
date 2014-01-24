@@ -1,6 +1,8 @@
 #ifndef mes_boutons_H
 #define mes_boutons_H
 
+#if(ELISE_QT5)
+
 #include <QPushButton>
 
 class mon_bouton_parcours: public QPushButton
@@ -20,5 +22,7 @@ class mon_bouton_parcours: public QPushButton
     signals:
         void mon_click(int);
 };
+
+#endif //ELISE_QT5
 
 #endif /* MonPushButton_H */

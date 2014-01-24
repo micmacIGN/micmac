@@ -4,6 +4,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#if(ELISE_QT5)
+
 #include <QMainWindow>
 
 #include <QGridLayout>
@@ -63,5 +65,7 @@ public slots:
     void press_parcours(int);
 
 };
+
+#endif //ELISE_QT5
 
 #endif // MAINWINDOW_H
