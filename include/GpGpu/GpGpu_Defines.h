@@ -40,6 +40,8 @@ typedef unsigned char pixel;
 #define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
 #define CUDA_DUMP_INT_ALL(varname) printf("%s = %d\n", #varname, varname);
 #define DUMP_UINT(varname) printf("%s = %u\n", #varname, varname);
+#define DUMP_UINT2(varname) printf("%s = [%u,%u]\n", #varname, varname.x,varname.y);
+#define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
 #define DUMP_LINE printf("-----------------------------------\n");
 
 

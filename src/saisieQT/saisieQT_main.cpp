@@ -12,10 +12,9 @@ int helpMessage(const QApplication &app, QString text)
 #endif
 }
 
-#ifdef _WIN32
-class Win32CommandLineConverter;
-
-class Win32CommandLineConverter {
+#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION==5 ) )
+class Win32CommandLineConverter
+{
 private:
 	std::unique_ptr<char*[]> argv_;
 	std::vector<std::unique_ptr<char[]>> storage_;
@@ -52,23 +51,20 @@ public:
 #endif
 
 
-#ifdef WIN32
-int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
+#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION == 5 ) )
+	int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
 #else
 int main(int argc, char *argv[])
 #endif
 {
     QApplication::setStyle("fusion");
 
-#ifdef WIN32
+#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION==5 ) )
     Win32CommandLineConverter cmd_line;
-
-    int _argc = cmd_line.argc();
-
-    QApplication app(_argc, cmd_line.argv());
-#else
-    QApplication app(argc, argv);
+	int argc = cmd_line.argc();
+	char **argv = cmd_line.argv();
 #endif
+    QApplication app(argc, argv);
 
     app.setOrganizationName("IGN");
     app.setApplicationName("QT graphical tools");
@@ -112,4 +108,5 @@ int main(int argc, char *argv[])
     }
     else
         helpMessage(app, cmds);
+	return EXIT_SUCCESS;
 }

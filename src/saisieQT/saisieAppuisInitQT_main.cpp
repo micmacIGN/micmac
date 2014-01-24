@@ -21,7 +21,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray);
 
-    MainWindow w(aSzW, aNbFen);
+    MainWindow w(aSzW, aNbFen, POINT2D_INIT, QString(aNamePt.c_str()));
 
     w.show();
 

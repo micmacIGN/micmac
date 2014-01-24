@@ -893,6 +893,10 @@ template class DataGenImBits<1>;
 template class DataGenImBits<2>;
 template class DataGenImBits<4>;
 
+template class DataIm2D_Bits<1>;
+template class DataIm2D_Bits<2>;
+template class DataIm2D_Bits<4>;
+
 #if (0)
 // template <> int cTestTPL<int>::theTab[4] ={0,1,2,3};
 template <> Tabul_Bits<1,true> Tabul_Bits<1,true>::The_Only_One;

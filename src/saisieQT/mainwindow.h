@@ -24,12 +24,20 @@ class MainWindow;
 const QColor colorBG0(65,65,60);
 const QColor colorBG1(120,115,115);
 
+//! Interface mode
+enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
+                MASK3D,         /**< Point cloud mask **/
+                POINT2D_INIT,	/**< Points in Image (SaisiePointInit) **/
+                POINT2D_PREDICT /**< Points in Image (SaisiePointPredic) **/
+};
+
+
 class MainWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, bool mode2D = false, QWidget *parent = 0 );
+    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, int mode = MASK3D, QString pointName = "", QWidget *parent = 0 );
     ~MainWindow();
 
     void setPostFix(QString str);
@@ -90,8 +98,8 @@ protected slots:
     void on_actionSelectAll_triggered();
     void on_actionReset_triggered();
     void on_actionRemove_triggered();
-    void on_actionUndo_triggered();
-    void on_actionRedo_triggered();
+    void on_actionUndo_triggered(){ undo(); }
+    void on_actionRedo_triggered(){ undo(false); }
 
     //File Menu
     void on_actionLoad_plys_triggered();
@@ -111,11 +119,13 @@ protected:
     void connectActions();  
 
 private:
-    void                    createMenus();
+    void                    createRecentFileMenu();
 
     void                    setCurrentFile(const QString &fileName);
     void                    updateRecentFileActions();
     QString                 strippedName(const QString &fullFileName);
+
+    void                    undo(bool undo = true);
 
     int *                   _incre;
 
@@ -139,5 +149,8 @@ private:
 
     QSignalMapper*          _signalMapper;
     QGridLayout*            _layout;
+
+    bool                    _bModePt;
+    QString                 _ptName;
 };
 #endif // MAINWINDOW_H

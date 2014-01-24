@@ -21,6 +21,7 @@ cp -R CodeExterne $OUT_MICMAC_DIR
 cp -R data $OUT_MICMAC_DIR
 cp -R include $OUT_MICMAC_DIR
 cp -R src $OUT_MICMAC_DIR
+cp -R fdsc $OUT_MICMAC_DIR
 cp CMakeLists.txt $OUT_MICMAC_DIR
 cp Makefile-XML2CPP $OUT_MICMAC_DIR
 cp precompiled_headers.cmake $OUT_MICMAC_DIR

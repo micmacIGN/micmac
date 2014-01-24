@@ -175,6 +175,14 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
         }
    }
 
+   bool HasFaiscPur = (aNbOK >= 2);
+   Pt3dr aPFP(0,0,0);
+   if (HasFaiscPur)
+   {
+       aPFP = PInter();
+   }
+
+
    // A verifier, mais probable que la methode de subsistution degenere
    // si il n'y a que deux  points (Lambda non inversible)
    //En fait, sans doute pas degeneree car attache au point !
@@ -240,12 +248,16 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
        std::cout  << "--NamePt " ;
        if (mHasGround)
           std::cout <<  mName 
-                    << " Ec Fx-Ter " << mPt-aRes.mPTer 
+                    << " Ec Estim-Ter " << mPt-aRes.mPTer 
                     << "           Dist =" << euclid(mPt-aRes.mPTer)  
                     << " ground units\n";
        else
            std::cout << "\n" ;
         std::cout << "Inc = "  << mInc << "PdsIm = " <<  mPdsIm  << "\n";
+
+       if (HasFaiscPur)
+          std::cout << "    Ecart Estim-Faisceaux " << euclid(aPFP-aRes.mPTer) << "\n";
+      
    }
 
    FILE * aFpRT = mAppli.FpRT() ;
@@ -253,7 +265,6 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
    {
       fprintf(aFpRT,"*%s %f %f %f %f %f %f\n",mName.c_str(),mPt.x,mPt.y,mPt.z,aRes.mPTer.x,aRes.mPTer.y,aRes.mPTer.z);
    }
-
 
    cPonderateur aPdrtIm(anObs.PondIm(),(double)(mCams.size()));
 
@@ -290,10 +301,12 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 	       // std::cout << "   " << mCams[aK]->Name() << " Er " << anEr ;
                if (anObs.DetShow3D().Val())
                {
-                   std::cout <<  mName 
-                             << " Ec-Im-Fscx " << mCams[aK]->CurCam()->R3toF2(aRes.mPTer)-  mNupl->PK(aK)
-                             << " Ec-Im-Ter " << mCams[aK]->CurCam()->R3toF2(mPt)- mNupl->PK(aK)
-                             << " Ec-Fscx-Ter " <<  mPt-aRes.mPTer ;
+
+
+                   std::cout <<  mCams[aK]->Name() << " Ec-Im-Ter " << mCams[aK]->CurCam()->R3toF2(mPt)- mNupl->PK(aK);
+                   if (HasFaiscPur) 
+                       std::cout << " Ec-Im-Faisceau " << mCams[aK]->CurCam()->R3toF2(aPFP)- mNupl->PK(aK);
+
                    std::cout << "\n";
 /*
                    std::cout << " Proj-F " << mCams[aK]->CurCam()->R3toF2(aRes.mPTer)

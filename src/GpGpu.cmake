@@ -28,15 +28,15 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
           endif()
  endif()
 
- set(TestExeGpGpuOpt TestGpGpuOpt)
- cuda_add_executable(${TestExeGpGpuOpt} ${uti_Test_Opt_GpGpu_Src_Files})
+ set(GpGpu_UnitTesting GpGpuUnitTesting)
+ cuda_add_executable(${GpGpu_UnitTesting} ${uti_Test_Opt_GpGpu_Src_Files})
 
- target_link_libraries(${TestExeGpGpuOpt}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+ target_link_libraries(${GpGpu_UnitTesting}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
 
  if (NOT WIN32)
-        target_link_libraries(${TestExeGpGpuOpt}  rt pthread )
+        target_link_libraries(${GpGpu_UnitTesting}  rt pthread )
  endif()
- INSTALL(TARGETS ${TestExeGpGpuOpt} RUNTIME DESTINATION ${Install_Dir})
+ INSTALL(TARGETS ${GpGpu_UnitTesting} RUNTIME DESTINATION ${Install_Dir})
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/)
 

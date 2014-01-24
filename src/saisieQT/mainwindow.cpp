@@ -1,12 +1,14 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
+MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > 1),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
-        _layout(new QGridLayout)
+        _layout(new QGridLayout),
+        _bModePt(mode > 1),
+        _ptName(pointName)
 {
     _ui->setupUi(this);
 
@@ -16,6 +18,11 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 
     style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
     style = style.arg(colorBG1.red()).arg(colorBG1.green()).arg(colorBG1.blue());
+
+#ifdef ELISE_Darwin    
+    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
+    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
+#endif
 
     _ui->OpenglLayout->setStyleSheet(style);
 
@@ -28,7 +35,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
 
     resize(_szFen.x(), _szFen.y());
 
-    setMode2D(mode2D);
+    setMode2D(mode != MASK3D);
 
     int cpt=0;
     for (int aK = 0; aK < aNbFen.x;++aK)
@@ -39,7 +46,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, bool mode2D, QWidget *parent) :
     connectActions();
     _ui->OpenglLayout->setLayout(_layout);
 
-    createMenus();
+    createRecentFileMenu();
 }
 
 MainWindow::~MainWindow()
@@ -83,7 +90,7 @@ void MainWindow::connectActions()
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 }
 
-void MainWindow::createMenus()
+void MainWindow::createRecentFileMenu()
 {
     _RFMenu = new QMenu(tr("&Recent files"), this);
 
@@ -145,7 +152,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         _Engine->setDir(Dir);
 
 #ifdef _DEBUG
-        printf("adding files %s", filenames[0].toStdString().c_str());
+        printf("adding files %s\n", filenames[0].toStdString().c_str());
 #endif
 
         if (fi.suffix() == "ply")
@@ -167,10 +174,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             delete timer_test;                     
 
             future.waitForFinished();            
-            // FIN DE CHARGEMENT ET PROGRESS BAR
-
-            _Engine->setFilename();
-            _Engine->setFilenamesOut();
+            // FIN DE CHARGEMENT ET PROGRESS BAR            
         }
         else if (fi.suffix() == "xml")
         {
@@ -191,13 +195,19 @@ void MainWindow::addFiles(const QStringList& filenames)
             setMode2D(true);
             closeAll();            
 
-            _Engine->loadImages(filenames);
-            _Engine->setFilenamesOut();
+            _Engine->loadImages(filenames);            
         }
 
-        _Engine->allocAndSetGLData();
+        _Engine->setSelectionFilenames();
+        _Engine->setFilenamesOut();
+
+        _Engine->allocAndSetGLData(_bModePt, _ptName);
+
         for (uint aK = 0; aK < NbWidgets();++aK)
+        {
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
+            getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+        }
 
         for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
     }
@@ -327,6 +337,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
     text += "Ctrl+R: \t"+tr("reset") +"\n";
     text += "Ctrl+I: \t"+tr("invert selection") +"\n";
     text += "Ctrl+Z: \t"+tr("undo last selection") +"\n";
+    text += "Ctrl+Shift+Z: \t"+tr("redo last selection") +"\n";
 
     QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
     msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
@@ -385,31 +396,6 @@ void MainWindow::on_actionReset_triggered()
 void MainWindow::on_actionRemove_triggered()
 {
     CurrentWidget()->Select(SUB);
-}
-
-void MainWindow::on_actionUndo_triggered()
-{   
-    QVector <selectInfos> vInfos = CurrentWidget()->getSelectInfos();
-
-    if (vInfos.size())
-    {
-        if (_bMode2D)
-        {
-            int idx = CurrentWidgetIdx();
-
-            _Engine->reloadImage(idx);
-
-            CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
-        }
-
-        vInfos.pop_back();
-        CurrentWidget()->applyInfos(vInfos);
-    }
-}
-
-void MainWindow::on_actionRedo_triggered()
-{
-
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
@@ -519,7 +505,7 @@ void MainWindow::on_actionSave_as_triggered()
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    _Engine->saveSelectInfos(CurrentWidget()->getSelectInfos());
+    CurrentWidget()->getHistoryManager()->save();
 }
 
 void MainWindow::closeAll()
@@ -533,13 +519,20 @@ void MainWindow::closeAll()
 void MainWindow::openRecentFile()
 {
     // A TESTER en multi images
-    QAction *action = qobject_cast<QAction *>(sender());
+
+#if WINVER == 0x0601 
+	QAction *action = dynamic_cast<QAction *>(sender());
+#else 
+	QAction *action = qobject_cast<QAction *>(sender());
+#endif
+
     if (action)
     {
         _Engine->setFilenamesIn(QStringList(action->data().toString()));
 
         addFiles(_Engine->getFilenamesIn());
     }
+	
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
@@ -557,13 +550,18 @@ void MainWindow::setCurrentFile(const QString &fileName)
         files.removeLast();
 
     settings.setValue("recentFileList", files);
-
+	
     foreach (QWidget *widget, QApplication::topLevelWidgets())
-    {
-        MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
+    {        
+		#if WINVER == 0x0601 
+			MainWindow *mainWin = dynamic_cast<MainWindow *>(widget);
+		#else
+			MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
+		#endif
         if (mainWin)
             mainWin->updateRecentFileActions();
     }
+	
 }
 
 void MainWindow::updateRecentFileActions()
@@ -627,4 +625,22 @@ void MainWindow::on_action2D_3D_mode_triggered()
 void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
+}
+
+void MainWindow::undo(bool undo)
+{
+    if (CurrentWidget()->getHistoryManager()->size())
+    {
+        if (_bMode2D)
+        {
+            int idx = CurrentWidgetIdx();
+
+            _Engine->reloadImage(idx);
+
+            CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+        }
+
+        undo ? CurrentWidget()->getHistoryManager()->undo() : CurrentWidget()->getHistoryManager()->redo();
+        CurrentWidget()->applyInfos();
+    }
 }

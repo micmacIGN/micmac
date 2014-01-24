@@ -97,6 +97,8 @@ protected:
 
     uint2       GetMaxDimension();
 
+    void        SetMaxDimension(uint2 dim = make_uint2(0,0));
+
 private:
 
     uint2		_dimension;

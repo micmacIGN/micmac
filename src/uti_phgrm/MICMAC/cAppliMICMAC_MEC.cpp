@@ -833,6 +833,9 @@ void cAppliMICMAC::DoOneBloc
 
 #if CUDA_ENABLED
         //IMmGg.Data().DeallocDeviceData();
+        IMmGg.Data().DeallocDeviceData();
+        IMmGg.Data().DeallocHostData();
+
 #endif
     }
 

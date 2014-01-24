@@ -11,7 +11,14 @@
 #include <QGLShaderProgram>
 #include <QPainter>
 
-#include "GL/glu.h"
+#ifdef ELISE_Darwin
+	#include "OpenGL/glu.h"	
+#else
+	#ifdef _WIN32
+		#include "windows.h"
+	#endif
+	#include "GL/glu.h"
+#endif
 
 #define QMaskedImage cMaskedImage<QImage>
 
@@ -26,6 +33,14 @@ enum LINE_STYLE
     LINE_NOSTIPPLE,
     LINE_STIPPLE
 };
+
+//! Selection mode
+enum SELECTION_MODE { SUB,
+                      ADD,
+                      INVERT,
+                      ALL,
+                      NONE
+                    };
 
 class cObject
 {
@@ -84,30 +99,37 @@ class cPoint : public cObjectGL, public QPointF
     cPoint(QPainter * painter = NULL,
            QPointF pos = QPointF(0.f,0.f),
            QString name = "",
-           QColor color = Qt::red,
+           bool showName   = false,
+           QColor color = Qt::red,        
            QColor selectionColor = Qt::blue,
-           float diameter = 3.f,
+           float diameter = 4.f,
+           int  state = NS_SaisiePts::eEPI_NonValue,
            bool isSelected = false,
-           bool showName = false
-           );
+           bool highlight  = false);
 
         void draw();
 
-        void setName(QString name){_name = name;}
-        void showName(bool show){_bShowName = show;}
+        void setName(QString name){ _name = name; }
+        QString name() { return _name; }
+        void setState(int state){ _state = state; }
+        void showName(bool show){ _bShowName = show; }
+
+        void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
 
 private:
-        float   _diameter;
-        bool    _bShowName;
-        QString _name;
+       QString _name;
+       float   _diameter;
+       int     _state;
+       bool    _bShowName;
+       bool    _highlight;
 
-        QColor  _selectionColor;
+       QColor  _selectionColor;
 
-        //! Default font
-        QFont   _font;
+       //! Default font
+       QFont   _font;
 
-        QPainter *_painter;
-        QGLWidget *_widget;
+       QPainter *_painter;
+       QGLWidget *_widget;
 };
 
 class cCircle : public cObjectGL
@@ -202,6 +224,7 @@ class cPolygon : public cObjectGL
     public:
 
         cPolygon(QPainter* painter = NULL, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+        cPolygon(QVector <QPointF> points, bool isClosed);
 
         void    draw();
 
@@ -209,21 +232,25 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        void    findNearestPoint(const QPointF &pos);
+        void    findNearestPoint(const QPointF &pos, float sqr_radius = _sqr_radius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
 
+        void    setNearestPointState(const QPointF &pos, int state);
+        void    highlightNearestPoint(const QPointF &pos);
+        QString getNearestPointName(const QPointF &pos);
+
         void    setpointSize(float size) { _pointSize = size; }
 
-        void    add(cPoint const &pt){_points.push_back(pt);}
-        void    add(QPointF const &pt, bool selected=false){ _points.push_back(cPoint(_painter, pt)); _points.back().setSelected(selected); }
+        void    add(cPoint const &pt){ _points.push_back(pt); }
+        void    add(QPointF const &pt, bool selected=false);
         void    addPoint(QPointF const &pt);
 
         void    clear();
-        void    clearPoints() {_points.clear();}
+        void    clearPoints() { _points.clear(); }
 
-        void    setClosed(bool aBool){ _bPolyIsClosed = aBool; }
-        bool    isClosed(){ return _bPolyIsClosed; }
+        void    setClosed(bool closed) { _bIsClosed = closed; }
+        bool    isClosed(){ return _bIsClosed; }
 
         int     size(){ return _points.size(); }
 
@@ -258,14 +285,21 @@ class cPolygon : public cObjectGL
 
         void    setPainter(QPainter * painter);
 
-        void    showNames(bool show = true);
+        // Points name
+        void    showNames();
+        bool    bShowNames() { return _bShowNames; }
 
-        void    showPolygon(bool showPolygon = true){_bShowPolygon = showPolygon;}
+        void    setDefaultName(QString name){ _defPtName = name; }
+        QString getDefaultName() { return _defPtName; }
+
+        void    rename(QPointF pos, QString name);
+
+        void    showLines(bool show = true);
+        bool    bShowLines() { return _bShowLines; }
 
         void    translate(QPointF Tr);
 
         void    flipY(float height);
-
 
     protected:
         cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -279,26 +313,30 @@ class cPolygon : public cObjectGL
 
     private:
         float               _pointSize;
-        float               _sqr_radius;
+        static float        _sqr_radius;
 
         //!states if polygon is closed
-        bool                _bPolyIsClosed;
+        bool                _bIsClosed;
 
         //!states if point with index _idx is selected
         bool                _bSelectedPoint;
 
         //!states if segments should be displayed
-        bool                _bShowPolygon;
+        bool                _bShowLines;
+
+        //!states if names should be displayed
+        bool                _bShowNames;
 
         int                 _style;
         QVector<qreal>      _dashes;
+        QString             _defPtName;
 };
 
 class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter,QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
         void   build(const QPointF &pos, bool insertMode);
 
@@ -343,6 +381,9 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
+        void    drawStripedQuad();
+
+        void    drawQuad(GLfloat ox,GLfloat oy,GLfloat w,GLfloat h);
 private:
 
         QGLShaderProgram _program;
@@ -509,7 +550,7 @@ public:
 
     cGLData();
 
-    cGLData(QMaskedImage &qMaskedImage);
+    cGLData(QMaskedImage &qMaskedImage, bool modePt = false, QString ptName = "" );
 
     cGLData(cData *data);
 
@@ -530,7 +571,9 @@ public:
 
     QImage*     getMask(){return pQMask;}
 
-    void        setPolygon(cPolygon const &aPoly){m_polygon = aPoly;}
+    void        setPolygon(cPolygon const &aPoly){ m_polygon = aPoly; }
+
+    void        clearPolygon(){ m_polygon.clear(); }
 
     bool        isNewMask()
     {
@@ -581,8 +624,9 @@ public:
 
     void        setOption(QFlags<Option> option,bool show);
 
-    bool stateOption(QFlags<Option> option){return _options & option; }
+    bool        stateOption(QFlags<Option> option){ return _options & option; }
 
+    bool        mode() { return _modePt; }
 private:
 
     void        initOptions()
@@ -592,6 +636,8 @@ private:
 
     float       _diam;
     Pt3dr       _center;
+
+    bool        _modePt;
 
 };
 

@@ -92,6 +92,16 @@ set(qt_version 0)
 find_package(OpenGL)
 if ( OPENGL_FOUND AND OPENGL_GLU_FOUND )
    message( STATUS "-----> OpenGL found" )
+   
+    if ( MSVC )
+		include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
+		# ajoute /lib a tous les répertoires contenant un SDK
+		foreach( sdk_dir ${WINDOWSSDK_DIRS} )
+			list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
+		endforeach()		
+		set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
+		message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
+    endif()
 
    find_package(Qt5Widgets QUIET)
    find_package(Qt5Core QUIET)
@@ -120,6 +130,16 @@ else()
    message( "OpenGL or GLU not available, Qt graphical tools disabled" )
 endif()
 
+if ( ${WITH_SAISIEQT} )
+   if ( NOT ${qt_version} EQUAL 0 )
+      message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
+      add_definitions(-DSAISIE_QT)
+   else()
+      message( STATUS "unable to find QT : QT graphical tools disabled" )
+      set( WITH_SAISIEQT false )
+   endif()
+endif()
+
 # CUDA
 if (${CUDA_ENABLED})
 
@@ -143,10 +163,6 @@ endif()
 
 if (${WITH_ETALONPOLY})
 	add_definitions(-DETA_POLYGON)
-endif()
-
-if (${WITH_SAISIEQT})
-	add_definitions(-DSAISIE_QT)
 endif()
 
 # MERCURIAL
@@ -177,6 +193,11 @@ else()
 	   )
 	endif()
 endif()
+
+CONFIGURE_FILE (
+	"include/general/CMake_defines.h.in"
+	"${CMAKE_SOURCE_DIR}/include/general/CMake_defines.h"
+)
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
