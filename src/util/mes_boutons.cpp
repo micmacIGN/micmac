@@ -1,3 +1,5 @@
+#if(ELISE_QT5)
+
 #include "general/mes_boutons.h"
 
 #include <iostream>
@@ -21,3 +23,5 @@ void mon_bouton_parcours::onClick()
     std::cout<<"coucou bouton "<<id_unique<<std::endl;
     emit mon_click(id_unique);
 }
+
+ #endif // ELISE_QT5
