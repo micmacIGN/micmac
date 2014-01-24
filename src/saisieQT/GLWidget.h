@@ -10,7 +10,11 @@
 #include <QGLContext>
 #include <QDebug>
 
-#include "GL/glu.h"
+#ifdef ELISE_Darwin
+	#include "OpenGL/glu.h"
+#else
+	#include "GL/glu.h"
+#endif
 
 #include <QUrl>
 #include <QtGui/QMouseEvent>
@@ -18,14 +22,16 @@
 #include <QMimeData>
 #include <QTime>
 #include <QPainter>
-//#include <QMenu> //pour contextMenuEvent
 
 #include "Data.h"
 #include "Engine.h"
 #include "3DTools.h"
 #include "3DObject.h"
-#include "MatrixManager.h"
 #include "GLWidgetSet.h"
+
+#include "MatrixManager.h"
+#include "HistoryManager.h"
+#include "ContextMenu.h"
 
 class GLWidgetSet;
 
@@ -69,17 +75,7 @@ public:
     //! Apply selection to data
     void Select(int mode, bool saveInfos = true);
 
-    //! Delete current polyline
-    void clearPolyline()
-    {
-        if (hasDataLoaded())
-            m_GLData->m_polygon.clear();
-    }
-
-    //! Get the selection infos stack
-    QVector <selectInfos> getSelectInfos(){return _infos;}
-
-    void applyInfos(QVector <selectInfos> &infos);
+    void applyInfos();
 
     //! Avoid all past actions
     void reset();
@@ -87,10 +83,11 @@ public:
     //! Reset view
     void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true);
 
-    ViewportParameters* getParams(){return &_params;}
+    ViewportParameters* getParams()         { return &_params; }
+    HistoryManager*     getHistoryManager() { return &_historyManager; }
 
-    void setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
-    cGLData* getGLData(){return m_GLData;}
+    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
+    cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
     {
@@ -98,15 +95,16 @@ public:
         _BGColor1 = col1;
     }
 
-    float imWidth(){  return m_GLData->glMaskedImage._m_image->width(); }
+    float imWidth() { return m_GLData->glMaskedImage._m_image->width(); }
     float imHeight(){ return m_GLData->glMaskedImage._m_image->height();}
 
-    GLint vpWidth(){  return _matrixManager.vpWidth(); }
-    GLint vpHeight(){  return _matrixManager.vpHeight(); }
+    GLint vpWidth() { return _matrixManager.vpWidth(); }
+    GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
-    void refreshMessagePosition(QPointF pos);
+    void refreshPositionMessage(QPointF pos);
+
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
@@ -122,17 +120,20 @@ protected:
     void paintGL();
 
     //! inherited from QWidget
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void keyPressEvent(QKeyEvent *event);
+    void mouseDoubleClickEvent  (QMouseEvent *event);
+    void mousePressEvent        (QMouseEvent *event);
+    void mouseReleaseEvent      (QMouseEvent *event);
+    void mouseMoveEvent         (QMouseEvent *event);
+
+    void keyPressEvent  (QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+
     void wheelEvent(QWheelEvent* event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
+
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);
 
-    //void contextMenuEvent(QContextMenuEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event);
 
     void Overlay();
 
@@ -158,9 +159,6 @@ private:
     //! Window parameters (zoom, etc.)
     ViewportParameters _params;
 
-    //! selection infos stack
-    QVector <selectInfos> _infos;
-
     void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
@@ -169,17 +167,20 @@ private:
 
     QTime       _time;
 
-    MatrixManager _matrixManager;
-    cMessages2DGL _messageManager;
+    MatrixManager   _matrixManager;
+    cMessages2DGL   _messageManager;
+    HistoryManager  _historyManager;
 
-    int         _widgetId;
+    ContextMenu     _contextMenu;
 
-    GLWidgetSet* _parentSet;
+    int             _widgetId;
+
+    GLWidgetSet*    _parentSet;
 
     QColor      _BGColor0;
     QColor      _BGColor1;
 
-    QPainter*    _painter;
+    QPainter*   _painter;
 };
 
 #endif  /* _GLWIDGET_H */

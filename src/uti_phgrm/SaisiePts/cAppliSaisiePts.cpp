@@ -48,54 +48,49 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
      mDC      (aP2.mDC),
      mRefInvis (mParam.RefInvis().Val()),
      mShowDet  (mParam.ShowDet().Val()),
-     mWZ       (0),
-     mWEnter       (0),
      mSzRech   (100,100),
      mImRechVisu   (mSzRech.x,mSzRech.y),
      mImRechAlgo   (mSzRech.x,mSzRech.y),
+     mWZ           (0),
+     mWEnter       (0),
      mSzWZ         (mParam.SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(mParam.SzTotIm().Val())*0.6)))
 {
 
     Tiff_Im::SetDefTileFile(100000);
 
-     InitImages();
-     InitInPuts();
-     InitWindows();
+    InitImages();
+    InitInPuts();
+    InitWindows();
 }
 
 bool  cAppli_SaisiePts::HasWZ() const
 {
     return mWZ!=0;
 }
+
 Video_Win & cAppli_SaisiePts::WZ()
 {
     return *mWZ;
 }
 
 
-const Pt2di &  cAppli_SaisiePts::SzRech() const {return mSzRech;}
-Pt2di &        cAppli_SaisiePts::DecRech()      {return mDecRech;}
-Im2D_INT4      cAppli_SaisiePts::ImRechVisu() const {return mImRechVisu;}
-Im2D_INT4      cAppli_SaisiePts::ImRechAlgo() const {return mImRechAlgo;}
-const Pt2di &  cAppli_SaisiePts::SzWZ() const   {return mSzWZ;}
-cFenOuiNon *   cAppli_SaisiePts::ZFON() {return mZFON;}
+const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech; }
+Pt2di &        cAppli_SaisiePts::DecRech()          { return mDecRech; }
+Im2D_INT4      cAppli_SaisiePts::ImRechVisu() const { return mImRechVisu; }
+Im2D_INT4      cAppli_SaisiePts::ImRechAlgo() const { return mImRechAlgo; }
+const Pt2di &  cAppli_SaisiePts::SzWZ() const       { return mSzWZ; }
+cFenOuiNon *   cAppli_SaisiePts::ZFON()             { return mZFON; }
 
 
-bool cAppli_SaisiePts::RefInvis() const
-{
-   return mRefInvis;
-}
+bool           cAppli_SaisiePts::RefInvis() const   { return mRefInvis; }
 
-bool & cAppli_SaisiePts::ShowDet() 
-{
-   return mShowDet;
-}
+bool &         cAppli_SaisiePts::ShowDet()          { return mShowDet; }
 
-const cParamSaisiePts & cAppli_SaisiePts::Param() const { return mParam; }
-const std::string & cAppli_SaisiePts::DC() const { return mDC; }
-cSetOfSaisiePointeIm  & cAppli_SaisiePts::SOSPI() {return mSOSPI;}
+const cParamSaisiePts & cAppli_SaisiePts::Param()   const { return mParam; }
+const std::string &     cAppli_SaisiePts::DC()      const { return mDC; }
+cSetOfSaisiePointeIm  & cAppli_SaisiePts::SOSPI()         { return mSOSPI; }
 
-cInterfChantierNameManipulateur * cAppli_SaisiePts::ICNM() const {return mICNM;}
+cInterfChantierNameManipulateur * cAppli_SaisiePts::ICNM() const { return mICNM; }
 
 
 
@@ -882,7 +877,7 @@ bool cAppli_SaisiePts::HasOrientation() const
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -898,17 +893,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

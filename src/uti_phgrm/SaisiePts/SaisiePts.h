@@ -292,89 +292,94 @@ class cAppli_SaisiePts
 {
     public :
 
-       cAppli_SaisiePts( cResultSubstAndStdGetFile<cParamSaisiePts> aParam);
-       const cParamSaisiePts & Param() const;
-       const std::string & DC() const;
-       void BoucleInput();
-       cInterfChantierNameManipulateur * ICNM() const;
+    cAppli_SaisiePts( cResultSubstAndStdGetFile<cParamSaisiePts> aParam);
+    const cParamSaisiePts &             Param() const;
+    const std::string &                 DC() const;
+    cInterfChantierNameManipulateur *   ICNM() const;
+
+    void ErreurFatale(const std::string &);
+
+    cImage *                ImageOfNameSVP(const std::string & aName);
+    cSP_PointGlob *         PGlobOfNameSVP(const std::string & aName);
+    cSetOfSaisiePointeIm  & SOSPI();
+    bool                    HasOrientation() const;
+
+    void Undo();
+    void Redo();
+    void Sauv();
+    void Exit();
+
+    void AddUndo(cOneSaisie,cImage *);
+
+    void ChangeImages
+    (
+        cSP_PointGlob * PointPrio,
+        const std::vector<cWinIm *>  &  W2Ch
+    );
 
 
-       void ErreurFatale(const std::string &);
+    double  StatePriority(eEtatPointeImage aState);
+    bool    Visible(cSP_PointeImage &);
 
 
-       cImage *  ImageOfNameSVP(const std::string & aName);
-       cSP_PointGlob * PGlobOfNameSVP(const std::string & aName);
-       cSetOfSaisiePointeIm  & SOSPI();
-       bool HasOrientation() const;
+    const Pt2di &       SzRech() const;
+    Pt2di &             DecRech();
+    Im2D_INT4           ImRechVisu() const;
+    Im2D_INT4           ImRechAlgo() const;
 
-       void Undo();
-       void Redo();
-       void Sauv();
-       void Exit();
+    std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
-       void SetInvisRef(bool aVal);
-       bool RefInvis() const;
+    // 0 si existe deja
+    cSP_PointGlob *  AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
+    void AddPGInAllImage(cSP_PointGlob * aSPG);
 
-       void AddUndo(cOneSaisie,cImage *);
+    void HighLightSom(cSP_PointGlob *);
+    void KillSom(cSP_PointGlob *); //UTILISE L'INTERFACE ReaffAllW();
 
-       void ChangeImages
-            (
-                 cSP_PointGlob * PointPrio,
-                 const std::vector<cWinIm *>  &  W2Ch
-            );
+    bool & ShowDet();
 
-        const std::vector<cWinIm *> &  WinIms();
+    cCaseNamePoint * GetIndexNamePt(); //UTILISE L'INTERFACE
 
-        double StatePriority(eEtatPointeImage aState);
-        bool Visible(cSP_PointeImage &);
+    void ChangeFreeNameP(const std::string &,bool SetFree);
 
-        Video_Win & WZ();
-        bool        HasWZ() const;
+    void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-         const Pt2di &       SzRech() const;
-         Pt2di &             DecRech();
-         Im2D_INT4           ImRechVisu() const;
-         Im2D_INT4           ImRechAlgo() const;
-         const Pt2di &       SzWZ() const;
+    void ChangeName(std::string  anOldName,std::string  aNewName);
 
-         cFenOuiNon *    ZFON();
+    //INTERFACE - partie publique
 
-         cFenMenu *     MenuNamePoint();
+    void                BoucleInput();
 
+    Video_Win &         WZ();
+    bool                HasWZ() const;
 
-         void ShowZ(const Pt2dr & aPGlob);
+    const Pt2di &       SzWZ() const;
 
-         std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
+    void                SetInvisRef(bool aVal);
+    bool                RefInvis() const;
 
-         // 0 si existe deja
-         cSP_PointGlob *  AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
-         void AddPGInAllImage(cSP_PointGlob * aSPG);
-         void ReaffAllW();
+    const std::vector<cWinIm *> &  WinIms();
 
-         void HighLightSom(cSP_PointGlob *);
-         void KillSom(cSP_PointGlob *);
+    cFenOuiNon *        ZFON();
 
-         bool & ShowDet();
+    cFenMenu *          MenuNamePoint();
 
-         cCaseNamePoint * GetIndexNamePt();
+    void                ShowZ(const Pt2dr & aPGlob);
 
-         void ChangeFreeNameP(const std::string &,bool SetFree);
+    void                ReaffAllW();
 
-         void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
-
-         void ChangeName(std::string  anOldName,std::string  aNewName);
+    //FIN INTERFACE - partie publique
 
     private :
 
          void RenameIdPt(std::string &);
-         int GetCptMax() const;
+         int  GetCptMax() const;
 
-         void UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush);
-
+         void UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush); //UTILISE L'INTERFACE ReaffAllW();
 
 
          void InitImages();
-         void InitWindows();
+
          void InitInPuts();
          void AddOnePGInImage(cSP_PointGlob * aSPG,cImage & anI);
 
@@ -382,33 +387,20 @@ class cAppli_SaisiePts
          void InitPG();
          void IniPointeIm();
 
-
-         void TestClikWIm(Clik aCl);
-
-         cWinIm * WImOfW(Video_Win);
-
-
-
          cParamSaisiePts &                 mParam;
          cInterfChantierNameManipulateur * mICNM;
          std::string                       mDC;
          std::vector<cImage *>             mImages;
          std::map<std::string,cImage *>    mMapIms;
-         std::vector<cWinIm *>             mWins;
 
          cSetPointGlob                         mSPG;
          std::vector<cSP_PointGlob *>          mPG;
          std::map<std::string,cSP_PointGlob *> mMapPG;
 
 
-
-         Video_Display *                   mDisp;
-
          cSetOfSaisiePointeIm              mSOSPI;
 
          int                               mNbIm;
-         Pt2di                             mNb2W;
-         int                               mNbW;
 
          std::string                       mNameSauvPtIm;
          std::string                       mDupNameSauvPtIm;
@@ -418,20 +410,40 @@ class cAppli_SaisiePts
          bool                              mRefInvis;
          bool                              mShowDet;
 
-         std::vector<cUndoRedo> mStackUndo;
-         std::vector<cUndoRedo> mStackRedo;
-         Video_Win *                       mWZ;
-         cFenOuiNon *                      mZFON;
-         cFenMenu *                        mMenuNamePoint;
-         Video_Win *                       mWEnter;
+         std::vector<cUndoRedo>             mStackUndo;
+         std::vector<cUndoRedo>             mStackRedo;
 
          Pt2di                             mSzRech;
          Pt2di                             mDecRech;
          Im2D_INT4                         mImRechVisu;
          Im2D_INT4                         mImRechAlgo;
-         Pt2di                             mSzWZ;
+
          std::vector<cCaseNamePoint>       mVNameCase;
          std::map<std::string,cCaseNamePoint *>  mMapNC;
+
+         // INTERFACE - partie privee
+
+         void           InitWindows();
+
+         void           TestClikWIm(Clik aCl);
+
+         cWinIm *       WImOfW(Video_Win);
+
+         std::vector<cWinIm *>             mWins;
+
+         Video_Display *                   mDisp;
+
+         Video_Win *                       mWZ;
+         cFenOuiNon *                      mZFON;
+         cFenMenu *                        mMenuNamePoint;
+         Video_Win *                       mWEnter;
+
+         Pt2di                             mNb2W;
+         int                               mNbW;
+
+         Pt2di                             mSzWZ;
+
+         // FIN INTERFACE
           
 };
 
@@ -446,7 +458,7 @@ class cAppli_SaisiePts
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -462,17 +474,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

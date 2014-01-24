@@ -678,16 +678,18 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
 #if CUDA_ENABLED
 
-        if (!IMmGg.TexturesAreLoaded())//		Mise en calque des images
-        {          
-            IMmGg.SetTexturesAreLoaded(true);
+        if (mCorrelAdHoc->TypeCAH().GPU_CorrelBasik().IsInit())
+        {
+            if (!IMmGg.TexturesAreLoaded())//		Mise en calque des images
+            {
+                IMmGg.SetTexturesAreLoaded(true);
 
-            pixel *maskGlobal = new pixel[size(IMmGg.DimTerrainGlob())];
+                pixel *maskGlobal = new pixel[size(IMmGg.DimTerrainGlob())];
 
-            OMP_NT1
-            for (uint anY = 0 ; anY <  IMmGg.DimTerrainGlob().y ; anY++)
-                OMP_NT2
-                for (uint anX = 0 ; anX < IMmGg.DimTerrainGlob().x ; anX++)
+                OMP_NT1
+                        for (uint anY = 0 ; anY <  IMmGg.DimTerrainGlob().y ; anY++)
+                        OMP_NT2
+                        for (uint anX = 0 ; anX < IMmGg.DimTerrainGlob().x ; anX++)
                 {
                     uint idMask		= IMmGg.DimTerrainGlob().x * anY + anX ;
                     if(IsInTer(anX,anY))
@@ -699,155 +701,156 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                         maskGlobal[idMask] = 0 ;
                 }
 
-            if(IMmGg.NoMasked)
-                IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
+                if(IMmGg.NoMasked)
+                    IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
 
-            delete[] maskGlobal;
+                delete[] maskGlobal;
 
-            if(IMmGg.NoMasked)
-            {
-                float*	fdataImg1D	= NULL;
-                uint2	dimImgMax	= make_uint2(0,0);
-
-                for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+                if(IMmGg.NoMasked)
                 {
-                    cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-                    dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
+                    float*	fdataImg1D	= NULL;
+                    uint2	dimImgMax	= make_uint2(0,0);
+
+                    for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+                    {
+                        cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+                        dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
+                    }
+
+                    // Pour chaque image
+                    for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
+                    {
+                        // Obtention de l'image courante
+                        cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+
+                        // Obtention des donnees images
+                        float **aDataIm	= aGLI.DataIm0();
+                        float*	data	= aGLI.LinDIm0();
+                        uint2 dimImg	= toUi2(aGLI.getSizeImage());
+
+                        if(fdataImg1D == NULL)
+                            fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
+
+                        // Copie du tableau 2d des valeurs de l'image Ameliorer encore la copy de texture, copier les images une à  une dans le device!!!!
+                        if (aEq(dimImgMax,dimImg))
+                            memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
+                        else
+                            GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
+
+                    }
+
+                    if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
+                        IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
+
+                    if (fdataImg1D != NULL) delete[] fdataImg1D;
+
+                    IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+
                 }
-
-                // Pour chaque image
-                for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
-                {
-                    // Obtention de l'image courante
-                    cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
-
-                    // Obtention des donnees images
-                    float **aDataIm	= aGLI.DataIm0();
-                    float*	data	= aGLI.LinDIm0();
-                    uint2 dimImg	= toUi2(aGLI.getSizeImage());
-
-                    if(fdataImg1D == NULL)
-                        fdataImg1D	= new float[ size(dimImgMax) * mNbIm ];
-
-                    // Copie du tableau 2d des valeurs de l'image Ameliorer encore la copy de texture, copier les images une à  une dans le device!!!!
-                    if (aEq(dimImgMax,dimImg))
-                        memcpy(  fdataImg1D + size(dimImgMax)* aKIm , data,  size(dimImg) * sizeof(float));
-                    else
-                        GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
-
-                }
-
-                if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
-                    IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
-
-                if (fdataImg1D != NULL) delete[] fdataImg1D;
-
-                IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
             }
 
-        }
 
+            IMmGg.MaskVolumeBlock().clear();
 
-        IMmGg.MaskVolumeBlock().clear();
-
-        if(IMmGg.NoMasked)
-        {
-            std::vector<Rect> vCellules;
-            //OMP_NT1
-            for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+            if(IMmGg.NoMasked)
             {
-                //OMP_NT2
-                for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+                std::vector<Rect> vCellules;
+                //OMP_NT1
+                for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
                 {
-
-                    int2 mZ = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
-
-                    if (IsInTer(anX,anY))
+                    //OMP_NT2
+                    for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
                     {
-                        ushort dZ = abs((int)count(mZ));
 
-                        if(mZMaxGlob == -1e7)
-                            vCellules.resize(dZ,MAXIRECT);
-                        else
+                        int2 mZ = make_int2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+
+                        if (IsInTer(anX,anY))
                         {
-                            if (mZ.x < mZMinGlob)
+                            ushort dZ = abs((int)count(mZ));
+
+                            if(mZMaxGlob == -1e7)
+                                vCellules.resize(dZ,MAXIRECT);
+                            else
                             {
-                                vCellules.insert(vCellules.begin(), abs(mZ.x - mZMinGlob),MAXIRECT);
-                                if(mZ.y < mZMinGlob)
-                                    dZ = abs(mZ.x - mZMinGlob);
-                            }
-                            if (mZ.y > mZMaxGlob)
-                            {
-                                vCellules.insert(vCellules.end(),   abs(mZ.y - mZMaxGlob),MAXIRECT);
-                                if(mZ.x > mZMaxGlob)
+                                if (mZ.x < mZMinGlob)
                                 {
-                                    mZ.x = mZMaxGlob;
-                                    dZ = abs(mZ.y - mZMaxGlob);
+                                    vCellules.insert(vCellules.begin(), abs(mZ.x - mZMinGlob),MAXIRECT);
+                                    if(mZ.y < mZMinGlob)
+                                        dZ = abs(mZ.x - mZMinGlob);
+                                }
+                                if (mZ.y > mZMaxGlob)
+                                {
+                                    vCellules.insert(vCellules.end(),   abs(mZ.y - mZMaxGlob),MAXIRECT);
+                                    if(mZ.x > mZMaxGlob)
+                                    {
+                                        mZ.x = mZMaxGlob;
+                                        dZ = abs(mZ.y - mZMaxGlob);
+                                    }
                                 }
                             }
+
+                            ElSetMin(mZMinGlob,mZ.x);
+                            ElSetMax(mZMaxGlob,mZ.y);
+
+                            for (int i = 0; i < dZ; ++i)
+                            {
+                                Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
+
+                                box.SetMaxMin(anX,anY);
+
+                            }
                         }
+                    }
+                }
 
-                        ElSetMin(mZMinGlob,mZ.x);
-                        ElSetMax(mZMaxGlob,mZ.y);
+                if(mZMinGlob == 1e7)
+                {
+                    mZMinGlob = 0;
+                    mZMaxGlob = 0;
+                }
 
-                        for (int i = 0; i < dZ; ++i)
-                        {
-                            Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
+                uint Dz = abs(mZMaxGlob-mZMinGlob);
 
-                            box.SetMaxMin(anX,anY);
+                if(vCellules.size() > 0)
+                {
+                    uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
+                    uint reste        = Dz - (((uint)vCellules.size()) / INTERZ) * INTERZ  ;
 
-                        }
+                    IMmGg.MaskVolumeBlock().resize(cellZmaskVol);
+
+                    if(reste != 0)
+                    {
+                        cellules &celLast = IMmGg.MaskVolumeBlock().back();
+                        celLast.Dz = reste;
+                    }
+
+                    for (uint i = 0; i < vCellules.size(); ++i)
+                    {
+                        uint      sI    = i/INTERZ;
+                        cellules &cel   = IMmGg.MaskVolumeBlock()[sI];
+                        Rect     &Rec   = vCellules[i];
+
+                        cel.Zone.SetMaxMinInc(Rec);
+
                     }
                 }
             }
 
-            if(mZMinGlob == 1e7)
-            {
-                mZMinGlob = 0;
-                mZMaxGlob = 0;
-            }
-
-            uint Dz = abs(mZMaxGlob-mZMinGlob);
-
-            if(vCellules.size() > 0)
-            {
-                uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
-                uint reste        = Dz - (((uint)vCellules.size()) / INTERZ) * INTERZ  ;
-
-                IMmGg.MaskVolumeBlock().resize(cellZmaskVol);
-
-                if(reste != 0)
-                {
-                    cellules &celLast = IMmGg.MaskVolumeBlock().back();
-                    celLast.Dz = reste;
-                }
-
-                for (uint i = 0; i < vCellules.size(); ++i)
-                {
-                    uint      sI    = i/INTERZ;
-                    cellules &cel   = IMmGg.MaskVolumeBlock()[sI];
-                    Rect     &Rec   = vCellules[i];
-
-                    cel.Zone.SetMaxMinInc(Rec);
-
-                }
-            }
         }
-
-#else
-
-        for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-        {
-            for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-            {
-                ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
-                ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
-
-            }
-        }
-
+        else
 #endif
+            for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+            {
+                for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+                {
+                    ElSetMin(mZMinGlob,mTabZMin[anY][anX]);
+                    ElSetMax(mZMaxGlob,mTabZMax[anY][anX]);
+
+                }
+            }
+
+
         mGpuSzD = 0;
         if (mCurEtape->UseGeomDerivable())
         {
@@ -1626,11 +1629,14 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         else
-        {
+        {            
             while( anZComputed < mZMaxGlob )
             {
-
                 cellules Mask = IMmGg.MaskVolumeBlock()[abs(anZComputed-mZMinGlob)/INTERZ];
+
+                IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
+
+                IMmGg.ReallocHostData(Mask.Dz,idPreBuf);
 
                 // calcul des projections
                 Tabul_Projection( anZComputed,Mask.Dz,0);
@@ -1644,7 +1650,12 @@ void cAppliMICMAC::DoGPU_Correl
             }
         }
 
+
+
         IMmGg.freezeCompute();
+
+//        IMmGg.Data().DeallocDeviceData();
+//        IMmGg.Data().DeallocHostData();
 
 #else
         ELISE_ASSERT(1,"Sorry, this is not the cuda version");

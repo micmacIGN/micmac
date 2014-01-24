@@ -95,6 +95,7 @@ int Campari_main(int argc,char ** argv)
 
    std::vector<std::string> GCP;
    std::vector<std::string> EmGPS;
+   bool DetailAppuis = false;
 
     ElInitArgMain
     (
@@ -112,6 +113,7 @@ int Campari_main(int argc,char ** argv)
                     << EAM(PPFree,"PPFree",true,"Principal Point Free, Def = false")
                     << EAM(AffineFree,"AffineFree",true,"Affine Parameter, Def = false")
                     << EAM(AllFree,"AllFree",true,"Affine Parameter, Def = false")
+                    << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)")
     );
 
 
@@ -139,6 +141,8 @@ int Campari_main(int argc,char ** argv)
     if (AffineFree) aCom += " +AffineFree=true ";
     if (AllFree) aCom    += " +AllFree=true ";
 
+
+   if (EAMIsInit(&DetailAppuis)) aCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
 
     if (EAMIsInit(&GCP))
     {

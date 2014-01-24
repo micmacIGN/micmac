@@ -30,9 +30,16 @@ void cLoader::setPostFix(QString str)
     _postFix = str;
 }
 
-void cLoader::setSelectionFilename()
+void cLoader::setSelectionFilenames()
 {
-    _SelectionOut = _Dir.absolutePath() + QDir::separator() + "SelectionInfos.xml";
+    _SelectionOut.clear();
+
+    for (int aK=0;aK < _FilenamesIn.size();++aK)
+    {
+        QFileInfo fi(_FilenamesIn[aK]);
+
+        _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfos.xml");
+    }
 }
 
 GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
@@ -318,91 +325,6 @@ void cEngine::saveMask(ushort idCur)
         do3DMasks();
 }
 
-void cEngine::saveSelectInfos(const QVector<selectInfos> &Infos)
-{
-    QDomDocument doc;
-
-    QFile outFile(_Loader->getSelectionFilename());
-    if (!outFile.open(QIODevice::WriteOnly)) return;
-
-    QDomElement SI = doc.createElement("SelectionInfos");
-
-    QDomText t;
-    for (int i = 0; i < Infos.size(); ++i)
-    {
-        QDomElement SII            = doc.createElement("Item");
-        QDomElement mvMatrixElem   = doc.createElement("ModelViewMatrix");
-        QDomElement ProjMatrixElem = doc.createElement("ProjMatrix");
-        QDomElement glViewportElem = doc.createElement("glViewport");
-        QDomElement Mode           = doc.createElement("Mode");
-
-        const selectInfos &SInfo = Infos[i];
-
-        if ((SInfo.mvmatrix != NULL) && (SInfo.projmatrix != NULL) && (SInfo.glViewport != NULL))
-        {
-            QString text1, text2;
-
-            text1 = QString::number(SInfo.mvmatrix[0], 'f');
-            text2 = QString::number(SInfo.projmatrix[0], 'f');
-
-            for (int aK=0; aK < 16;++aK)
-            {
-                text1 += " " + QString::number(SInfo.mvmatrix[aK], 'f');
-                text2 += " " + QString::number(SInfo.projmatrix[aK], 'f');
-            }
-
-            t = doc.createTextNode(text1);
-            mvMatrixElem.appendChild(t);
-
-            t = doc.createTextNode(text2);
-            ProjMatrixElem.appendChild(t);
-
-            text1 = QString::number(SInfo.glViewport[0]) ;
-            for (int aK=1; aK < 4;++aK)
-                text1 += " " + QString::number(SInfo.glViewport[aK]);
-
-            t = doc.createTextNode(text1);
-            glViewportElem.appendChild(t);
-
-            SII.appendChild(mvMatrixElem);
-            SII.appendChild(ProjMatrixElem);
-            SII.appendChild(glViewportElem);
-
-            QVector <QPointF> pts = SInfo.poly;
-
-            for (int aK=0; aK < pts.size(); ++aK)
-            {
-                QDomElement Point    = doc.createElement("Pt");
-                QString str = QString::number(pts[aK].x(), 'f',1) + " "  + QString::number(pts[aK].y(), 'f',1);
-
-                t = doc.createTextNode( str );
-                Point.appendChild(t);
-                SII.appendChild(Point);
-            }
-
-            t = doc.createTextNode(QString::number(SInfo.selection_mode));
-            Mode.appendChild(t);
-
-            SII.appendChild(Mode);
-
-            SI.appendChild(SII);
-        }
-        else
-            cerr << "saveSelectInfos: null matrix";
-
-    }
-
-    doc.appendChild(SI);
-
-    QTextStream content(&outFile);
-    content << doc.toString();
-    outFile.close();
-
-#ifdef _DEBUG
-        printf ( "File saved in: %s\n", _Loader->getSelectionFilename().toStdString().c_str());
-#endif
-}
-
 void cEngine::unloadAll()
 {
     _Data->clearAll();
@@ -410,12 +332,12 @@ void cEngine::unloadAll()
     _vGLData.clear();
 }
 
-void cEngine::allocAndSetGLData()
+void cEngine::allocAndSetGLData(bool modePt, QString ptName)
 {
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK)));
+        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), modePt, ptName));
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data));
@@ -423,12 +345,13 @@ void cEngine::allocAndSetGLData()
 
 void cEngine::reallocAndSetGLData(int aK)
 {
+    bool modePt = _vGLData[aK]->mode();
     delete _vGLData[aK];
 
     if (_Data->is3D())
         _vGLData[aK] = new cGLData(_Data);
     else
-        _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK));
+        _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK), modePt);
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)

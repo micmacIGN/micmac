@@ -1,7 +1,10 @@
 #ifndef HASH_INCLUDED
 	#define HASH_INCLUDED
 
-	#if (ELISE_windows)&&(!ELISE_MinGW)
+    #if (defined ELISE_Darwin) && (defined __clang__) && (__clang_major__==5)
+        #include <unordered_map>
+        #define hash_map std::unordered_map
+	#elif (ELISE_windows)&&(!ELISE_MinGW)
 		#include <hash_map>
 		using stdext::hash_map;
 	#else // !WIN32

@@ -4,7 +4,7 @@
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
-GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(NULL,shared)
+GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_GLData(NULL)
@@ -29,11 +29,14 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
 
     setOption(cGLData::OpShow_Mess);
 
-    _painter = new QPainter();
+	#if ELISE_QT_VERSION==5 
+        _painter = new QPainter();
+		QGLFormat tformGL(QGL::SampleBuffers);
+		tformGL.setSamples(16);
+		setFormat(tformGL);
+	#endif
 
-    QGLFormat tformGL(QGL::SampleBuffers);
-    tformGL.setSamples(16);
-    setFormat(tformGL);
+    _contextMenu.createContexMenuActions();
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -49,6 +52,7 @@ void GLWidget::resizeGL(int width, int height)
 //-------------------------------------------------------------------------
 // Computes the frames rate
 //-------------------------------------------------------------------------
+
 void GLWidget::computeFPS(MessageToDisplay &dynMess)
 {
     float       fps;
@@ -79,17 +83,23 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
 
 void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 {
-    m_GLData = aData;
-    m_GLData->setPainter(_painter);
+    if (aData != NULL)
+    {
+        m_GLData = aData;
+        m_GLData->setPainter(_painter);
 
-    m_bDisplayMode2D = !m_GLData->isImgEmpty();
-    m_bFirstAction   =  m_GLData->isNewMask();
+        m_bDisplayMode2D = !m_GLData->isImgEmpty();
+        m_bFirstAction   =  m_GLData->isNewMask();
 
-    resetView(showMessage, doZoom);
+        _contextMenu.setPolygon( &m_GLData->m_polygon);
+
+        resetView(showMessage, doZoom);
+    }
 }
 
 void GLWidget::paintGL()
 {
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
@@ -103,7 +113,7 @@ void GLWidget::paintGL()
         {
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
-            m_GLData->glMaskedImage.draw();            
+            m_GLData->glMaskedImage.draw();
         }
         else
         {
@@ -120,8 +130,8 @@ void GLWidget::paintGL()
     }
 
     _messageManager.draw();
-
-    Overlay();
+	
+	Overlay();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -133,58 +143,61 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
     }
     else
     {
-        switch(event->key())
+        if (hasDataLoaded())
         {
-        case Qt::Key_Escape:
-            clearPolyline();
-            break;
-        case Qt::Key_1:
-            zoomFactor(100);
-            break;
-        case Qt::Key_2:
-            zoomFactor(200);
-            break;
-        case Qt::Key_4:
-            zoomFactor(400);
-            break;
-        case Qt::Key_9:
-            zoomFit();
-            break;
-        case Qt::Key_G:
-            m_GLData->glMaskedImage._m_image->incGamma(0.2f);
-            break;
-        case Qt::Key_H:
-            m_GLData->glMaskedImage._m_image->incGamma(-0.2f);
-            break;
-        case Qt::Key_J:
-            m_GLData->glMaskedImage._m_image->setGamma(1.0f);
-            break;
-        case Qt::Key_Plus:
-            if (m_bDisplayMode2D)
+            switch(event->key())
             {
-                m_lastClickZoom = m_lastPosWindow;
-                setZoom(_params.m_zoom*1.5f);
+            case Qt::Key_Escape:
+                m_GLData->clearPolygon();
+                break;
+            case Qt::Key_1:
+                zoomFactor(100);
+                break;
+            case Qt::Key_2:
+                zoomFactor(200);
+                break;
+            case Qt::Key_4:
+                zoomFactor(400);
+                break;
+            case Qt::Key_9:
+                zoomFit();
+                break;
+            case Qt::Key_G:
+                m_GLData->glMaskedImage._m_image->incGamma(0.2f);
+                break;
+            case Qt::Key_H:
+                m_GLData->glMaskedImage._m_image->incGamma(-0.2f);
+                break;
+            case Qt::Key_J:
+                m_GLData->glMaskedImage._m_image->setGamma(1.0f);
+                break;
+            case Qt::Key_Plus:
+                if (m_bDisplayMode2D)
+                {
+                    m_lastClickZoom = m_lastPosWindow;
+                    setZoom(_params.m_zoom*1.5f);
+                }
+                else
+                    _params.ptSizeUp(true);
+                break;
+            case Qt::Key_Minus:
+                if (m_bDisplayMode2D)
+                {
+                    m_lastClickZoom = m_lastPosWindow;
+                    setZoom(_params.m_zoom/1.5f);
+                }
+                else
+                    _params.ptSizeUp(false);
+                break;
+            case Qt::Key_W:
+                    setCursor(Qt::SizeAllCursor);
+                    polygon().helper()->clear();
+                    polygon().setSelected(true);
+                break;
+            default:
+                event->ignore();
+                break;
             }
-            else
-                _params.ptSizeUp(true);
-            break;
-        case Qt::Key_Minus:
-            if (m_bDisplayMode2D)
-            {
-                m_lastClickZoom = m_lastPosWindow;
-                setZoom(_params.m_zoom/1.5f);
-            }
-            else
-                _params.ptSizeUp(false);
-            break;
-        case Qt::Key_W:
-                setCursor(Qt::SizeAllCursor);
-                polygon().helper()->clear();
-                polygon().setSelected(true);
-            break;
-        default:
-            event->ignore();
-            break;
         }
     }
 
@@ -245,46 +258,23 @@ void GLWidget::dropEvent(QDropEvent *event)
     event->ignore();
 }
 
-/*void GLWidget::contextMenuEvent(QContextMenuEvent * event)
-{
-    QMenu menu(this);
-
-    if ((event->modifiers() & Qt::ShiftModifier))
-    {
-        menu.addAction("Undo");
-        menu.addAction("Redo");
-        menu.addAction("Refute");
-        menu.addAction("Show names");
-    }
-    else if ((event->modifiers() & Qt::ControlModifier))
-    {
-        menu.addAction("AllW");
-        menu.addAction("ThisW");
-        menu.addAction("ThisP");
-    }
-    else
-    {
-        menu.addAction("Validate");
-        menu.addAction("Dubious");
-        menu.addAction("Refuted");
-        menu.addAction("Highlight");
-        menu.addAction("Refuted");
-    }
-
-    menu.exec(event->globalPos());
-}*/
-
 void GLWidget::Overlay()
 {
-    if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
+	if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
-        _painter->begin(this);
-
+		#if ELISE_QT_VERSION==5
+			_painter->begin(this);
+		#else
+			QPainter painter(this);
+			_painter = &painter;
+			m_GLData->setPainter(_painter);
+		#endif
+				
         if (m_bDisplayMode2D)
         {
             _painter->scale(_params.m_zoom,-_params.m_zoom);
             _painter->translate(_matrixManager.translateImgToWin(_params.m_zoom));
-        }
+		}
 
         polygon().draw();
 
@@ -372,7 +362,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 
     m_lastClickZoom = event->pos();
 
-#if QT_VER==5
+#if ELISE_QT_VERSION==5
     setZoom(_params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
 #else
     setZoom(_params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
@@ -396,25 +386,32 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                     polygon().addPoint(m_lastPosImage);
 
-                else if (event->modifiers() & Qt::ShiftModifier) // INSERT POINT
+                else if ((event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
                     polygon().insertPoint();
 
                 else if (polygon().idx() != -1) // SELECT POINT
 
                     polygon().setPointSelected();
+
+                else if (!polygon().bShowLines())
+
+                    polygon().add(m_lastPosImage);
             }
         }
         else if (event->button() == Qt::RightButton)
+        {
+            if (polygon().bShowLines())
+            {
+                if (event->modifiers() & Qt::ControlModifier)
 
-            if (event->modifiers() & Qt::ControlModifier)
+                    polygon().removeLastPoint();
 
-                polygon().removeLastPoint();
+                else
 
-            else
-
-                polygon().removeNearestOrClose(m_lastPosImage);
-
+                    polygon().removeNearestOrClose(m_lastPosImage);
+            }            
+        }
         else if (event->button() == Qt::MiddleButton)
 
             m_lastClickZoom = m_lastPosWindow;
@@ -423,7 +420,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ( event->button() == Qt::LeftButton && hasDataLoaded() )
+    if ( event->button() == Qt::LeftButton && hasDataLoaded() && polygon().bShowLines())
     {
         polygon().finalMovePoint(); //ne pas factoriser
 
@@ -433,7 +430,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void GLWidget::refreshMessagePosition(QPointF pos)
+void GLWidget::refreshPositionMessage(QPointF pos)
 {
     if (_messageManager.DrawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
         _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
@@ -445,7 +442,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     {
         _parentSet->setCurrentWidgetIdx(_widgetId);
 
-#if QT_VER == 5
+#if ELISE_QT_VERSION == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
 #else
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
@@ -453,7 +450,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (m_bDisplayMode2D)
 
-            refreshMessagePosition(m_lastMoveImage = pos);
+            refreshPositionMessage(m_lastMoveImage = pos);
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
@@ -462,7 +459,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom));
 
-            else                                                        // REFRESH HELPER POLYGON
+            else                                          // REFRESH HELPER POLYGON
 
                 polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
         }
@@ -508,7 +505,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (hasDataLoaded() && m_GLData->Clouds.size())
     {
-#if QT_VER == 5
+#if ELISE_QT_VERSION == 5
         QPointF pos = event->localPos();
 #else
         QPointF pos = event->posF();
@@ -541,37 +538,42 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (mode == ADD || mode == SUB) m_bFirstAction = false;
 
-        if (saveInfos) // TODO --> manager SelectHistory
+        if (saveInfos)
         {
             selectInfos info(polygon().getVector(),mode);
 
             _matrixManager.exportMatrices(info);
 
-            _infos.push_back(info);
+            _historyManager.push_back(info);
         }
 
-        clearPolyline();
+        m_GLData->clearPolygon();
 
         update();
     }
 }
 
-void GLWidget::applyInfos(QVector <selectInfos> &vInfos) // TODO --> manager SelectHistory
-{   
+void GLWidget::applyInfos()
+{
     if (hasDataLoaded())
     {
-        for (int aK = 0; aK < vInfos.size() ; aK++)
+        int actionIdx = _historyManager.getActionIdx();
+
+        QVector <selectInfos> vInfos = _historyManager.getSelectInfos();
+
+        if (actionIdx < 0 || actionIdx > vInfos.size()) return;
+
+        for (int aK = 0; aK < actionIdx ; aK++)
         {
-            cPolygon Polygon;
-            Polygon.setClosed(true);
-            Polygon.setVector(vInfos[aK].poly);
-            m_GLData->setPolygon(Polygon);
+            selectInfos &infos = vInfos[aK];
+
+            m_GLData->setPolygon(cPolygon(infos.poly, true));
 
             if (!m_bDisplayMode2D)
 
-                _matrixManager.importMatrices(vInfos[aK]);
+                _matrixManager.importMatrices(infos);
 
-            Select(vInfos[aK].selection_mode, false);
+            Select(infos.selection_mode, false);
         }
     }
 }
@@ -588,6 +590,7 @@ void GLWidget::setOption(QFlags<cGLData::Option> option,bool show)
 void GLWidget::reset()
 {
     _params.reset();
+    _historyManager.reset();
 
     m_bFirstAction = true;
 
@@ -601,7 +604,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
     if (resetMatrix)
         _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
 
-    clearPolyline();
+    if (hasDataLoaded()) m_GLData->clearPolygon();
 
     setOption(cGLData::OpShow_Mess,showMessage);
 
@@ -619,9 +622,38 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
         }
     }
 //    else
-//        refreshMessagePosition(m_lastPosImage); //TODO: debugger
+//        refreshPositionMessage(m_lastPosImage); //TODO: debugger
 
     if (zoomfit) zoomFit();
 
     update();
+}
+
+void GLWidget::contextMenuEvent(QContextMenuEvent * event)
+{
+    QMenu menu(this);
+
+    if ((event->modifiers() & Qt::ShiftModifier))
+    {
+        menu.addAction(_contextMenu._rename);
+        menu.addAction(_contextMenu._showNames);
+    }
+    else if ((event->modifiers() & Qt::ControlModifier))
+    {
+        menu.addAction(_contextMenu._AllW);
+        menu.addAction(_contextMenu._ThisW);
+        menu.addAction(_contextMenu._ThisP);
+    }
+    else
+    {
+        menu.addAction(_contextMenu._validate);
+        menu.addAction(_contextMenu._dubious);
+        menu.addAction(_contextMenu._refuted);
+        menu.addAction(_contextMenu._noSaisie);
+        menu.addAction(_contextMenu._highLight);
+    }
+
+    _contextMenu.setPos(m_lastPosImage);
+
+    menu.exec(event->globalPos());
 }

@@ -307,8 +307,8 @@ TPL_T bool CData3D<T>::ReallocIf(uint dim1D)
 
 TPL_T inline bool CData3D<T>::ReallocIfDim(uint2 dim,uint l)
 {
-    if(oI(struct2DLayered::GetMaxDimension(),dim))
-        return CData3D<T>::Realloc(dim,l);
+    if( oI(struct2DLayered::GetMaxDimension(),dim) || l > struct2DLayered::GetNbLayer())
+        return CData3D<T>::Realloc(dim,l);    
     else
         CData3D<T>::SetDimension(dim,l);
 
@@ -319,10 +319,22 @@ TPL_T inline bool CData3D<T>::ReallocIfDim(uint2 dim,uint l)
 TPL_T inline bool CData3D<T>::ReallocIf(uint2 dim, uint l)
 {
     //if( size(dim) * l * sizeof(T) > CData3D<T>::GetSizeofMalloc())
-    if( size(dim) * l > struct2DLayered::GetMaxSize())
+
+//    printf("REALLOC IF ========================================= BEGIN\n");
+//    DUMP_UINT2(dim)
+//    DUMP_UINT(l)
+//    DUMP_UINT(struct2DLayered::GetMaxSize())
+//    OutputInfo();
+    if( size(dim) * l > struct2DLayered::GetMaxSize())//|| l > struct2DLayered::GetNbLayer())
+    {
+        //printf("realloc\n");
         return CData3D<T>::Realloc(dim,l);
+    }
     else
+    {
+        //printf("SetDimension\n");
         CData3D<T>::SetDimension(dim,l);
+    }
 
     return true;
 }
@@ -464,6 +476,9 @@ TPL_T bool CuHostData3D<T>::abDealloc()
     else
         free(CData3D<T>::pData());
 
+    struct2D::SetMaxSize(0);
+    struct2D::SetMaxDimension();
+
     return error;
 }
 
@@ -523,7 +538,14 @@ public:
 
 protected:
 
-    bool        abDealloc(){return DecoratorDeviceData<T>::dabDealloc();}
+    bool        abDealloc(){
+
+        struct2D::SetMaxSize(0);
+        struct2D::SetMaxDimension();
+
+        return DecoratorDeviceData<T>::dabDealloc();
+
+    }
 
     bool        abMalloc(){return DecoratorDeviceData<T>::dabMalloc();}
 
@@ -550,7 +572,13 @@ public:
 
 protected:
 
-    bool        abDealloc(){return DecoratorDeviceData<T>::dabDealloc();}
+    bool        abDealloc(){
+
+        struct2D::SetMaxSize(0);
+        struct2D::SetMaxDimension();
+        return DecoratorDeviceData<T>::dabDealloc();
+
+    }
 
     bool        abMalloc(){return DecoratorDeviceData<T>::dabMalloc();}
 
@@ -619,7 +647,12 @@ public:
 
 protected:
 
-    bool    abDealloc(){ return DecoratorImageCuda::abDealloc();}
+    bool    abDealloc(){
+
+        struct2D::SetMaxSize(0);
+        struct2D::SetMaxDimension();
+
+        return DecoratorImageCuda::abDealloc();}
 
     bool    abMalloc();
 
@@ -675,7 +708,13 @@ public:
 
 protected:
 
-    bool    abDealloc(){ return DecoratorImageCuda::abDealloc();}
+    bool    abDealloc(){
+
+        struct2D::SetMaxSize(0);
+        struct2D::SetMaxDimension();
+
+        return DecoratorImageCuda::abDealloc();
+    }
 
     bool    abMalloc();
 
