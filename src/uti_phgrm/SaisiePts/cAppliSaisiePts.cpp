@@ -47,6 +47,7 @@ cX11_Interface::cX11_Interface(cParamSaisiePts &param, cAppli_SaisiePts &appli) 
     mSzWZ         (param.SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(param.SzTotIm().Val())*0.6))),
     mRefInvis     (param.RefInvis().Val())
 {
+    mParam = &param;
     mAppli = &appli;
 
     InitWindows();
@@ -64,7 +65,7 @@ cX11_Interface::~cX11_Interface()
 
 void cX11_Interface::InitWindows()
 {
-    cSectionWindows & aSW = mAppli->param().SectionWindows();
+    cSectionWindows & aSW = mParam->SectionWindows();
     mNb2W = aSW.NbFenIm().Val();
 
     mNbW = mNb2W.x * mNb2W.y;
@@ -132,12 +133,12 @@ void cX11_Interface::InitWindows()
 
     mVNameCase.push_back(cCaseNamePoint("Cancel",eCaseCancel));
 
-    if (mAppli->param().EnterName().Val())
+    if (mParam->EnterName().Val())
     {
         mVNameCase.push_back(cCaseNamePoint("Enter New",eCaseSaisie));
     }
 
-    std::string aNameAuto = mAppli->param().NameAuto().Val();
+    std::string aNameAuto = mParam->NameAuto().Val();
     if (aNameAuto != "NONE")
     {
         mVNameCase.push_back
@@ -148,8 +149,8 @@ void cX11_Interface::InitWindows()
 
     for
             (
-             std::list<std::string>::const_iterator itN = mAppli->param().FixedName().begin();
-             itN !=mAppli->param().FixedName().end();
+             std::list<std::string>::const_iterator itN = mParam->FixedName().begin();
+             itN !=mParam->FixedName().end();
              itN++
              )
     {
@@ -171,7 +172,7 @@ void cX11_Interface::InitWindows()
 
     mMenuNamePoint = new cFenMenu(*mWZ,Pt2di(120,20),Pt2di(1,mVNameCase.size()));
 
-    if (mAppli->param().EnterName().Val())
+    if (mParam->EnterName().Val())
     {
         mWEnter =  new Video_Win(mMenuNamePoint->W(),Video_Win::eDroiteH,Pt2di(150,20));
         mWEnter->move_translate(Pt2di(0,20));
@@ -467,7 +468,7 @@ void cAppli_SaisiePts::IniPointeIm()
         {
             FirstNoIm = false;
             std::cout << "There is an image in Pointe with NO corresponding loaded image \n";
-            std::cout << " Firts one is " << itS->NameIm() << "\n";
+            std::cout << " First one is " << itS->NameIm() << "\n";
         }
 
         if (anIm)
@@ -489,7 +490,7 @@ void cAppli_SaisiePts::IniPointeIm()
                     {
                         FirstNoPG = false;
                         std::cout << "There is a 2D point in image with no global homologue \n";
-                        std::cout << " Firts one is " <<  itOS->NamePt() << " in " << itS->NameIm() << "\n";
+                        std::cout << " First one is " <<  itOS->NamePt() << " in " << itS->NameIm() << "\n";
                     }
                     if (aPG)
                     {
