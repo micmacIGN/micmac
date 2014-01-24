@@ -112,44 +112,45 @@ Pt2dr cWinIm::RecherchePoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPoint
 
 void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
 {
-     Pt2dr aPGlob = RecherchePoint(mScr->to_user(aPW),aType,aSz,0);
+    Pt2dr aPGlob = RecherchePoint(mScr->to_user(aPW),aType,aSz,0);
 
-     if (aPGlob==PtsEchec)
-     {
-         return;
-     }
+    if (aPGlob==PtsEchec)
+    {
+        return;
+    }
 
-     mAppli.ShowZ(aPGlob);
+    //mAppli.Interface()->ShowZoom(aPGlob);
 
-     cCaseNamePoint * aCNP = mAppli.GetIndexNamePt();
+    cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePt();
 
-     bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
-     mAppli.ShowZ(aPGlob);
+    bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
+    mAppli.Interface()->ShowZoom(aPGlob);
 
-     if (Ok)
-     {
-         mCurIm->CreatePGFromPointeMono(aPGlob,aType,aSz,aCNP);
-     }
-     else
-     {
-        mAppli.MenuNamePoint()->W().lower();
-     }
+    if (Ok)
+    {
+        mCurIm->CreatePGFromPointeMono(aPGlob,aType,aSz,aCNP);
+    }
+    else
+    {
+        mAppli.Interface()->MenuNamePoint()->W().lower();
+    }
 }
 
-void cAppli_SaisiePts::ShowZ(const Pt2dr & aPGlob)
+void cX11_Interface::ShowZoom(const Pt2dr & aPGlob)
 {
      double aZoom = 10.0;
 
-     Pt2dr aPIm = aPGlob- Pt2dr(DecRech());
+     Pt2dr aPIm = aPGlob- Pt2dr(mAppli->DecRech());
      Pt2dr aPMil = Pt2dr(SzWZ())/(2.0*aZoom);
 
      Video_Win aWC = WZ().chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
      ELISE_COPY
      (
                 aWC.all_pts(),
-                ImRechVisu().in(0),
+                mAppli->ImRechVisu().in(0),
                 aWC.ogray()
      );
+
      aWC.draw_circle_abs(aPIm,4.0,Line_St(aWC.pdisc()(P8COL::blue),3.0));
 }
 
@@ -157,7 +158,7 @@ void cAppli_SaisiePts::ShowZ(const Pt2dr & aPGlob)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -173,17 +174,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
