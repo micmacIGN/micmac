@@ -252,7 +252,6 @@ int cAppli_SaisiePts::GetCptMax() const
 
 
 
-//std::pair<int,std::string> cAppli_SaisiePts::IdNewPts(cCaseNamePoint * aCNP)
 std::pair<int,std::string> cX11_Interface::IdNewPts(cCaseNamePoint * aCNP)
 {
    int aCptMax = mAppli->GetCptMax() + 1;

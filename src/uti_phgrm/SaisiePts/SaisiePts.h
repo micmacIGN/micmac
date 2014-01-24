@@ -309,6 +309,7 @@ class cVirtualInterface
 protected:
 
     cAppli_SaisiePts*   mAppli;
+    cParamSaisiePts*    mParam;
 
 private:
 
