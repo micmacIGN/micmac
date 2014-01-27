@@ -582,7 +582,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
             cSP_PointeImage* aPIm = GetNearest(aClk._pt,200);
             if (aPIm)
             {
-                mAppli.Interface()->KillSom(aPIm->Gl());
+                mAppli.Interface()->DeletePoint(aPIm->Gl());
             }
         }
         else if (aCase==mCaseRenamePt)

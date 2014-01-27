@@ -41,10 +41,26 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
+void cVirtualInterface::InitNbWindows()
+{
+    const cSectionWindows & aSW = mParam->SectionWindows();
+    mNb2W = aSW.NbFenIm().Val();
+
+    mNbW = mNb2W.x * mNb2W.y;
+
+    if (mAppli->nbImages() < mNbW)
+    {
+        mNbW = mAppli->nbImages();
+        mNb2W.x = round_up(sqrt(mNbW-0.01));
+        mNb2W.y = round_up((double(mNbW)-0.01)/mNb2W.x);
+    }
+}
+
+//***********************************************************************************************************************
+
 cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
     mWZ           (0),
     mWEnter       (0),
-    //mSzWZ         (appli.Param().SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(appli.Param().SzTotIm().Val())*0.6))),
     mRefInvis     (appli.Param().RefInvis().Val())
 {
     mParam = &appli.Param();
@@ -64,20 +80,10 @@ cX11_Interface::~cX11_Interface()
 }
 
 void cX11_Interface::InitWindows()
-{
-    const cSectionWindows & aSW = mParam->SectionWindows();
-    mNb2W = aSW.NbFenIm().Val();
+{ 
+    InitNbWindows();
 
-    mNbW = mNb2W.x * mNb2W.y;
-
-    if (mAppli->nbImages() < mNbW)
-    {
-        mNbW = mAppli->nbImages();
-        mNb2W.x = round_up(sqrt(mNbW-0.01));
-        mNb2W.y = round_up((double(mNbW)-0.01)/mNb2W.x);
-    }
-
-    Pt2di aSzF =  aSW.SzTotIm().Val().dcbyc(mNb2W);;
+    Pt2di aSzF =  mParam->SectionWindows().SzTotIm().Val().dcbyc(mNb2W);;
 
     int aCpt=0;
     Video_Win * aLastW = 0;
@@ -129,7 +135,6 @@ void cX11_Interface::InitWindows()
     }
 
     Pt2di zoomWindowSize = mParam->SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(mParam->SzTotIm().Val())*0.6));
-    //mWZ =  new Video_Win(*aWY0XMax,Video_Win::eDroiteH,mSzWZ);
     mWZ =  new Video_Win(*aWY0XMax,Video_Win::eDroiteH, zoomWindowSize);
     mZFON = new cFenOuiNon(*mWZ,Pt2di(200,20));
 
@@ -221,15 +226,17 @@ cCaseNamePoint *  cX11_Interface::GetIndexNamePt()
     return aRes;
 }
 
-void cX11_Interface::KillSom(cSP_PointGlob * aSG)
+void cX11_Interface::DeletePoint(cSP_PointGlob * aSG)
 {
-    if (! mZFON->Get("Kill " + aSG->PG()->Name() + "?")) return;
-    aSG->SetKilled();
+    if (! mZFON->Get("Kill " + aSG->PG()->Name() + "?")) return;  //PARTIE X11
+    aSG->SetKilled();                                             //PARTIE A GARDER VIRTUELLE
 
     ChangeFreeNameP(aSG->PG()->Name(),true);
 
     RedrawAllWindows();
 }
+
+//************************************************************************************************************************************************
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2) :
     mParam      (*aP2.mObj),

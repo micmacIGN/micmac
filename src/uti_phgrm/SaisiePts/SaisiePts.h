@@ -301,14 +301,22 @@ class cVirtualInterface
 
     virtual void        Save()=0;
 
+
 protected:
 
     cAppli_SaisiePts*         mAppli;
     const cParamSaisiePts*    mParam;
 
+    void                      InitNbWindows();
+
+    Pt2di                     mNb2W;
+    int                       mNbW;
+
 private:
 
     virtual void        InitWindows()=0;
+
+
 
 };
 
@@ -327,7 +335,7 @@ public :
 
     void            BoucleInput();
 
-    void            SetInvisRef(bool aVal);                     // a verifier: sert à rendre les points refutés invisibles ou visibles ?
+    void            SetInvisRef(bool aVal);         // sert à rendre les points réfutés invisibles ou visibles
     bool            RefInvis() const    { return mRefInvis; }
 
     void            drawZoom(const Pt2dr & aPGlob); //fenetre zoom //peut-être à mettre en virtuel ?
@@ -344,7 +352,7 @@ public :
 
     void            ChangeFreeNameP(const std::string &, bool SetFree);
 
-    void            KillSom(cSP_PointGlob *);   
+    void            DeletePoint(cSP_PointGlob *); // a passer en virtuelle  ?
 
 private:
 
@@ -363,9 +371,6 @@ private:
     cFenOuiNon *          mZFON;
     cFenMenu *            mMenuNamePoint;
     Video_Win *           mWEnter;
-
-    Pt2di                 mNb2W;
-    int                   mNbW;
 
     bool                  mRefInvis;
 };
