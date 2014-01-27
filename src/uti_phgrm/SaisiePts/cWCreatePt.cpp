@@ -121,8 +121,8 @@ void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
     cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePt();
 
     bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
-    //TODO: verifier si c'est utile : ShowZoom est appelé 2 lignes au dessus (copier-coller ?)
-    //mAppli.Interface()->ShowZoom(aPGlob);
+    //TODO: verifier si c'est utile : drawZoom est appelé 2 lignes au dessus (copier-coller ?)
+    //mAppli.Interface()->drawZoom(aPGlob);
 
     if (Ok)
     {
