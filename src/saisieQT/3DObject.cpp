@@ -1058,18 +1058,39 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad()
 {
+    drawQuad(_originX, _originY,_glw, _glh);
+}
+
+void cImageGL::drawQuad(GLfloat ox, GLfloat oy, GLfloat w, GLfloat h)
+{
     glBegin(GL_QUADS);
     {
         glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(_originX, _originY);
+        glVertex2f(ox, oy);
         glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(_originX+_glw, _originY);
+        glVertex2f(ox+w, oy);
         glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(_originX+_glw, _originY+_glh);
+        glVertex2f(ox+w, oy+h);
         glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(_originX, _originY+_glh);
+        glVertex2f(ox,oy+h);
     }
     glEnd();
+}
+
+void cImageGL::drawStripedQuad()
+{
+    int NBr = 200;
+    for (int id = 0; id < NBr; ++id) {
+        // Alternate stripe colors
+        if (id % 2 == 0) {
+            glColor3f(0.32, 0.32, 0.32);
+        } else {
+            glColor3f(0.40, 0.35, 0.35);
+        }
+        // The last seven stripes are shorter
+        drawQuad(_originX, _originY + id*(_glh/NBr),_glw, (_glh/NBr));
+    }
+
 }
 
 void cImageGL::draw()
@@ -1186,6 +1207,7 @@ void cMaskedImageGL::draw()
         _m_mask->draw();
         glBlendFunc(GL_ONE,GL_ONE);
         _m_mask->draw(QColor(128,128,128));
+        //_m_image->drawStripedQuad();
         glBlendFunc(GL_DST_COLOR,GL_ZERO);
         glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
@@ -1195,6 +1217,7 @@ void cMaskedImageGL::draw()
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
+
 }
 
 //********************************************************************************
