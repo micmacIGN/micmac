@@ -381,6 +381,9 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
+        void    drawStripedQuad();
+
+        void    drawQuad(GLfloat ox,GLfloat oy,GLfloat w,GLfloat h);
 private:
 
         QGLShaderProgram _program;

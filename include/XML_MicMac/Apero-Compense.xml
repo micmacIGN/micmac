@@ -47,6 +47,7 @@
 
 
            <eSymb>  NotCPI=! ${CPI} </eSymb>
+           <eSymb>  DetailAppuis=0 </eSymb>
 
        </DicoLoc>
 
@@ -261,7 +262,7 @@
                                       </PondIm>
 
                                       <PtsShowDet>  .* </PtsShowDet>
-                                      <DetShow3D >   0 </DetShow3D>
+                                      <DetShow3D >   ${DetailAppuis} </DetShow3D>
                                       <ShowMax> true </ShowMax>
                                       <ShowSom>  true</ShowSom>
                                 </ObsAppuisFlottant>

@@ -33,6 +33,8 @@ set(Util_Src_Files
 	${UTIL_DIR}/TD_Sol.cpp
 	${UTIL_DIR}/cElCommand.cpp
 	#${UTIL_DIR}/win_regex.c
+        ${UTIL_DIR}/visual_mainwindow.cpp
+        ${UTIL_DIR}/mes_boutons.cpp
 )
 
 SOURCE_GROUP(Util FILES ${Util_Src_Files})
