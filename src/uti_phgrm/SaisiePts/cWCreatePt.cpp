@@ -52,7 +52,7 @@ using namespace NS_SaisiePts;
 
 const Pt2dr cWinIm::PtsEchec (-100000,-10000);
 
-Pt2dr cWinIm::RecherchePoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
+Pt2dr cWinIm::FindPoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
 {
      Tiff_Im aTF = mCurIm->Tif();
      Pt2di aSzT = aTF.sz();
@@ -112,19 +112,16 @@ Pt2dr cWinIm::RecherchePoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPoint
 
 void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
 {
-    Pt2dr aPGlob = RecherchePoint(mScr->to_user(aPW),aType,aSz,0);
+    Pt2dr aPGlob = FindPoint(mScr->to_user(aPW),aType,aSz,0);
 
-    if (aPGlob==PtsEchec)
-    {
-        return;
-    }
+    if (aPGlob==PtsEchec) return;
 
-    mAppli.Interface()->ShowZoom(aPGlob);
+    mAppli.Interface()->drawZoom(aPGlob);
 
     cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePt();
 
     bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
-    //TODO: verifier si c'est utile : ShowZoom est appelé 2 lignes au dessus (cpier-coller ?)
+    //TODO: verifier si c'est utile : ShowZoom est appelé 2 lignes au dessus (copier-coller ?)
     //mAppli.Interface()->ShowZoom(aPGlob);
 
     if (Ok)
@@ -137,14 +134,14 @@ void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
     }
 }
 
-void cX11_Interface::ShowZoom(const Pt2dr & aPGlob)
+void cX11_Interface::drawZoom(const Pt2dr & aPGlob)
 {
      double aZoom = 10.0;
 
      Pt2dr aPIm = aPGlob- Pt2dr(mAppli->DecRech());
-     Pt2dr aPMil = Pt2dr(SzWZ())/(2.0*aZoom);
+     Pt2dr aPMil = Pt2dr(mWZ->sz())/(2.0*aZoom);
 
-     Video_Win aWC = WZ().chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
+     Video_Win aWC = mWZ->chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
      ELISE_COPY
      (
                 aWC.all_pts(),

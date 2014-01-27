@@ -51,43 +51,38 @@ cWinIm * cX11_Interface::WinImOfW(Video_Win aW)
     return 0;
 }
 
-void cX11_Interface::TestClick(Clik aCl)
-{
-    cWinIm * aWIm = WinImOfW(aCl._w);
-    if (!aWIm)
-        return;
-
-    if (aCl._b==1)
-    {
-        aWIm->SetPt(aCl);
-        Save();
-    }
-
-    if ((aCl._b==4) || (aCl._b==5))
-    {
-        double aFactZ = 1.2;
-        aWIm->SetZoom(aCl._pt,(aCl._b==5) ? aFactZ: (1/aFactZ));
-        aWIm->ShowVect();
-    }
-
-    if (aCl._b==2)
-    {
-        aWIm->GrabScrTr(aCl);
-    }
-
-    if (aCl._b==3)
-    {
-        aWIm->MenuPopUp(aCl);
-    }
-}
-
 void cX11_Interface::BoucleInput()
 {
     while(1)
     {
         Clik   aCl = mDisp->clik_press();
 
-        TestClick(aCl);
+        cWinIm * aWIm = WinImOfW(aCl._w);
+        if (!aWIm)
+            return;
+
+        if (aCl._b==1)
+        {
+            aWIm->SetPt(aCl);
+            Save();
+        }
+
+        if ((aCl._b==4) || (aCl._b==5))
+        {
+            double aFactZ = 1.2;
+            aWIm->SetZoom(aCl._pt,(aCl._b==5) ? aFactZ: (1/aFactZ));
+            aWIm->ShowVect();
+        }
+
+        if (aCl._b==2)
+        {
+            aWIm->GrabScrTr(aCl);
+        }
+
+        if (aCl._b==3)
+        {
+            aWIm->MenuPopUp(aCl);
+        }
     }
 }
 
@@ -98,7 +93,7 @@ void cX11_Interface::SetInvisRef(bool aVal)
     for (uint aKW=0 ; aKW < mWins.size(); aKW++)
     {
         mWins[aKW]->BCaseVR()->SetVal(aVal);
-        mWins[aKW]->Reaff();
+        mWins[aKW]->Redraw();
         mWins[aKW]->ShowVect();
     }
 }
@@ -106,12 +101,12 @@ void cX11_Interface::SetInvisRef(bool aVal)
 void cX11_Interface::RedrawAllWindows()
 {
     for (uint aK=0 ; aK< mWins.size() ; aK++)
-        mWins[aK]->Reaff();
+        mWins[aK]->Redraw();
 }
 
 //**************************************************************************************************************
 
-void cAppli_SaisiePts::UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush)
+void cAppli_SaisiePts::UndoRedo(std::vector<cUndoRedo>  & ToExe, std::vector<cUndoRedo>  & ToPush)
 {
    if ( ToExe.empty())
       return;
@@ -136,7 +131,7 @@ void cAppli_SaisiePts::Undo()
 
 void cAppli_SaisiePts::Redo()
 {
-    UndoRedo(mStackRedo,mStackUndo);
+    UndoRedo(mStackRedo, mStackUndo);
 }
 
 void cAppli_SaisiePts::AddUndo(cOneSaisie aS,cImage * aI)
