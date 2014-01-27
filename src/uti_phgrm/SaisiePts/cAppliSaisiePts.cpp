@@ -41,13 +41,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
-cX11_Interface::cX11_Interface(cParamSaisiePts &param, cAppli_SaisiePts &appli) :
+cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
     mWZ           (0),
     mWEnter       (0),
-    mSzWZ         (param.SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(param.SzTotIm().Val())*0.6))),
-    mRefInvis     (param.RefInvis().Val())
+    //mSzWZ         (appli.Param().SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(appli.Param().SzTotIm().Val())*0.6))),
+    mRefInvis     (appli.Param().RefInvis().Val())
 {
-    mParam = &param;
+    mParam = &appli.Param();
     mAppli = &appli;
 
     InitWindows();
@@ -65,7 +65,7 @@ cX11_Interface::~cX11_Interface()
 
 void cX11_Interface::InitWindows()
 {
-    cSectionWindows & aSW = mParam->SectionWindows();
+    const cSectionWindows & aSW = mParam->SectionWindows();
     mNb2W = aSW.NbFenIm().Val();
 
     mNbW = mNb2W.x * mNb2W.y;
@@ -128,23 +128,22 @@ void cX11_Interface::InitWindows()
         }
     }
 
-    mWZ =  new Video_Win(*aWY0XMax,Video_Win::eDroiteH,mSzWZ);
+    Pt2di zoomWindowSize = mParam->SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(mParam->SzTotIm().Val())*0.6));
+    //mWZ =  new Video_Win(*aWY0XMax,Video_Win::eDroiteH,mSzWZ);
+    mWZ =  new Video_Win(*aWY0XMax,Video_Win::eDroiteH, zoomWindowSize);
     mZFON = new cFenOuiNon(*mWZ,Pt2di(200,20));
 
-    mVNameCase.push_back(cCaseNamePoint("Cancel",eCaseCancel));
+    mVNameCase.push_back( cCaseNamePoint("Cancel",eCaseCancel) );
 
     if (mParam->EnterName().Val())
     {
-        mVNameCase.push_back(cCaseNamePoint("Enter New",eCaseSaisie));
+        mVNameCase.push_back( cCaseNamePoint("Enter New",eCaseSaisie) );
     }
 
     std::string aNameAuto = mParam->NameAuto().Val();
     if (aNameAuto != "NONE")
     {
-        mVNameCase.push_back
-                (
-                    cCaseNamePoint(aNameAuto+ToString(mAppli->GetCptMax()+1),eCaseAutoNum)
-                    );
+        mVNameCase.push_back( cCaseNamePoint(aNameAuto+ToString(mAppli->GetCptMax()+1),eCaseAutoNum) );
     }
 
     for
@@ -246,7 +245,7 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     InitImages();
     InitInPuts();
 
-    mInterface = new cX11_Interface(mParam, *this);
+    mInterface = new cX11_Interface(*this);
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }

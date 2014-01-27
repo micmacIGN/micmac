@@ -180,7 +180,7 @@ public :
     void    SetPt(Clik aClk);
     void    SetZoom(Pt2dr aP,double aFactZ);
 
-    void    Reaff();
+    void    Redraw();
 
     void    MenuPopUp(Clik aClk);
 
@@ -200,10 +200,10 @@ public :
 private :
 
     void    CreatePoint(const Pt2dr& aP,eTypePts,double aSz);
-    Pt2dr   RecherchePoint(const Pt2dr &aPIm,eTypePts,double aSz,cPointGlob *);
+    Pt2dr   FindPoint(const Pt2dr &aPIm,eTypePts,double aSz,cPointGlob *);
 
     void    GUR_query_pointer(Clik,bool);
-    void    ReafGrabSetPosPt();
+    void    RedrawGrabSetPosPt();
 
 
 
@@ -297,25 +297,18 @@ class cVirtualInterface
     cVirtualInterface(){}
     ~cVirtualInterface(){}
 
-    virtual void        SetInvisRef(bool aVal)=0;
-    virtual bool        RefInvis() const =0;
-
-    virtual void        ShowZoom(const Pt2dr & aPGlob)=0;
-
     virtual void        RedrawAllWindows()=0;
 
     virtual void        Save()=0;
 
 protected:
 
-    cAppli_SaisiePts*   mAppli;
-    cParamSaisiePts*    mParam;
+    cAppli_SaisiePts*         mAppli;
+    const cParamSaisiePts*    mParam;
 
 private:
 
     virtual void        InitWindows()=0;
-
-    virtual void        TestClick(Clik aCl)=0;
 
 };
 
@@ -323,13 +316,10 @@ class cX11_Interface : cVirtualInterface
 {
 public :
 
-    cX11_Interface(NS_SaisiePts::cParamSaisiePts &param, cAppli_SaisiePts &appli);
+    cX11_Interface(cAppli_SaisiePts &appli);
     ~cX11_Interface();
 
-    void            SetInvisRef(bool aVal);
-    bool            RefInvis() const   { return mRefInvis; }
 
-    void            ShowZoom(const Pt2dr & aPGlob);
 
     void            RedrawAllWindows();
 
@@ -337,12 +327,12 @@ public :
 
     void            BoucleInput();
 
-    Video_Win &     WZ()                    { return *mWZ;  }
-    bool            HasWZ() const           { return mWZ!=0;}
-    const Pt2di &   SzWZ() const            { return mSzWZ; }
+    void            SetInvisRef(bool aVal);                     // a verifier: sert à rendre les points refutés invisibles ou visibles ?
+    bool            RefInvis() const    { return mRefInvis; }
+
+    void            drawZoom(const Pt2dr & aPGlob); //fenetre zoom //peut-être à mettre en virtuel ?
 
     const std::vector<cWinIm *> &  WinIms() { return mWins; }
-    cFenOuiNon *    ZFON()                  { return mZFON; }
 
     cFenMenu *      MenuNamePoint()         { return mMenuNamePoint; }
 
@@ -359,8 +349,6 @@ public :
 private:
 
     void            InitWindows();
-
-    void            TestClick(Clik aCl);
 
     cWinIm *        WinImOfW(Video_Win);
 
@@ -379,10 +367,24 @@ private:
     Pt2di                 mNb2W;
     int                   mNbW;
 
-    Pt2di                 mSzWZ;
-
     bool                  mRefInvis;
 };
+
+/*class cQT_Interface  : cVirtualInterface
+{
+public :
+
+    cQT_Interface(cAppli_SaisiePts &appli);
+    ~cQT_Interface();
+
+    void            RedrawAllWindows();
+
+    void            Save();
+
+private:
+
+    void            InitWindows();
+};*/
 
 class cAppli_SaisiePts
 {
@@ -438,7 +440,6 @@ class cAppli_SaisiePts
     void ChangeName(std::string  anOldName,std::string  aNewName); //UTILISE L'INTERFACE appelle ReaffAllW();
 
     cX11_Interface* Interface() { return mInterface; }
-    cParamSaisiePts & param()   { return mParam; }
 
     int             nbImages()  { return mNbIm; }
 

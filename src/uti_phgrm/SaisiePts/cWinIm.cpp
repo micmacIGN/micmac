@@ -385,7 +385,7 @@ void  cWinIm::GUR_query_pointer(Clik aClk,bool)
     {
         mOldPt = mNewPt;
         mNewPt = aClk._pt;
-        ReafGrabSetPosPt();
+        RedrawGrabSetPosPt();
     }
 }
 
@@ -396,7 +396,7 @@ void cWinIm::GrabScrTr(Clik aClk)
     mP0Grab = mLastPGrab;
     mW.grab(*this);
 
-    Reaff();
+    Redraw();
 }
 
 void cWinIm::SetTitle()
@@ -405,7 +405,7 @@ void cWinIm::SetTitle()
     mWT.fixed_string(Pt2dr(10,12),mCurIm->Name().c_str(),mWT.pdisc()(P8COL::black),true);
 }
 
-void cWinIm::Reaff()
+void cWinIm::Redraw()
 {
     mScr->LoadAndVisuIm(mModeRelication);
     ShowVect();
@@ -413,7 +413,7 @@ void cWinIm::Reaff()
 }
 
 
-void cWinIm::ReafGrabSetPosPt()
+void cWinIm::RedrawGrabSetPosPt()
 {
     Pt2dr aPBox(5,5);
     ShowPoint(Pt2dr(mNewPt),mStatePtCur,0,0);
@@ -450,7 +450,7 @@ void  cWinIm::SetPt(Clik aClk)
     {
         ShowInfoPt(aPIm,true);
         mW.disp().clik_release();
-        Reaff();
+        Redraw();
         return;
     }
 
@@ -467,23 +467,23 @@ void  cWinIm::SetPt(Clik aClk)
     mOldPt = mScr->to_win(aPIm->Saisie()->PtIm());
     mStatePtCur = aPIm->Saisie()->Etat();
     mNewPt = aClk._pt;
-    ReafGrabSetPosPt();
+    RedrawGrabSetPosPt();
     mW.grab(*this);
 
     if (!mCurIm->PtInImage(mScr->to_user(Pt2dr(mNewPt))))
     {
-        Reaff();
+        Redraw();
         return;
     }
 
     if (! aClk.controled())
     {
-        Pt2dr aP = RecherchePoint(mScr->to_user(mNewPt),aPG->Type(),aPG->SzRech().ValWithDef(3.0),aPG);
+        Pt2dr aP = FindPoint(mScr->to_user(mNewPt),aPG->Type(),aPG->SzRech().ValWithDef(3.0),aPG);
         if (aP==cWinIm::PtsEchec)
             return;
         aP = mScr->to_win(aP);
         if (euclid(aP,mNewPt)>1e-3)
-            mAppli.Interface()->ShowZoom(mScr->to_user(aP));
+            mAppli.Interface()->drawZoom(mScr->to_user(aP));
         mNewPt = aP;
     }
 
@@ -491,7 +491,7 @@ void  cWinIm::SetPt(Clik aClk)
 
     mAppli.AddUndo(*(aPIm->Saisie()),mCurIm);
     aPIm->Saisie()->PtIm() = mScr->to_user(Pt2dr(mNewPt));
-    Reaff();
+    Redraw();
     aPIm->Gl()->ReCalculPoints();
     /*
    if (aPIm)
@@ -556,7 +556,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
 
     if (mPopUpCur==mPopUp1Shift)
     {
-        Reaff();
+        Redraw();
         if (aCase== mCaseNewPt)
         {
             CreatePoint(aClk._pt,eNSM_Pts,-1);
@@ -624,7 +624,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
         {
             mAppli.ShowDet() = mBCaseShowDet->Val();
         }
-        Reaff();
+        Redraw();
     }
 
     if (mPopUpCur==mPopUpBase)
@@ -660,7 +660,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
                 aPIm->Gl()->ReCalculPoints();
             }
         }
-        Reaff();
+        Redraw();
     }
 
     if (mPopUpCur==mPopUpCtrl)
