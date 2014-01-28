@@ -744,7 +744,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-                    IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+                    IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, /*SAMPLETERR*/1, INTDEFAULT);
 
                 }
 
@@ -1482,8 +1482,8 @@ void cAppliMICMAC::DoGPU_Correl
 #endif
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).invPC.IntDefault);
 
-        Rect    zone        = IMmGg.Param(idBuf).RDTer();
-        uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;
+        Rect    zone        = IMmGg.Param(idBuf).RDTer();           // Zone Terrain dilaté
+        uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;    // Sample
         float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
         uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
         uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
@@ -1521,12 +1521,20 @@ void cAppliMICMAC::DoGPU_Correl
 
                             if (aGLI.IsOk( aPIm.x, aPIm.y ))
                                 pTproj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
-
+//                            else if ( aSE(an,0) && anZ == 0 && aKIm == 0)
+//                            {
+//                                DUMP_FLOAT2(make_float2((float)aPIm.x,(float)aPIm.y))
+//                                DUMP_INT2(make_int2(aGLI.getSizeImage().x,aGLI.getSizeImage().y))
+//                                DUMP_INT2(an)
+//                                DUMP_LINE
+//                            }
                         }
                     }
                 }
             }
         }
+
+
 #ifdef  NVTOOLS
         nvtxRangePop();
 #endif

@@ -519,13 +519,20 @@ void MainWindow::closeAll()
 void MainWindow::openRecentFile()
 {
     // A TESTER en multi images
-    QAction *action = qobject_cast<QAction *>(sender());
+
+#if WINVER == 0x0601 
+	QAction *action = dynamic_cast<QAction *>(sender());
+#else 
+	QAction *action = qobject_cast<QAction *>(sender());
+#endif
+
     if (action)
     {
         _Engine->setFilenamesIn(QStringList(action->data().toString()));
 
         addFiles(_Engine->getFilenamesIn());
     }
+	
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
@@ -543,13 +550,18 @@ void MainWindow::setCurrentFile(const QString &fileName)
         files.removeLast();
 
     settings.setValue("recentFileList", files);
-
+	
     foreach (QWidget *widget, QApplication::topLevelWidgets())
-    {
-        MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
+    {        
+		#if WINVER == 0x0601 
+			MainWindow *mainWin = dynamic_cast<MainWindow *>(widget);
+		#else
+			MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
+		#endif
         if (mainWin)
             mainWin->updateRecentFileActions();
     }
+	
 }
 
 void MainWindow::updateRecentFileActions()
