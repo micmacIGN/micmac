@@ -41,7 +41,6 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   if (oI(ptProj,0)) // retirer le 9 decembre 2013 à verifier
   {
-      cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = 0;
       return;
   }
   else
@@ -101,13 +100,11 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   const uint pitchCachY = ptTer.y * invPc.dimVig.y ;
 
-  const int idN		= pitZ * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
+  const int idN     = pitZ * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
 
   const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + piCa;
 
-  //float* cache = cachVig + blockIdx.z * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
-
-  float* cache = cachVig + iCa * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
+  float* cache      = cachVig + iCa * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
 
 #pragma unroll
   for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
@@ -117,7 +114,6 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 #pragma unroll
       for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
         cVig[ pt.x ] = (cImg[pt.x] -aSV)*aSVV;
-
     }
 }
 
@@ -183,11 +179,11 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
   //if(aEq(t,thTer * cH.dimVig))
   //nbIm[thTer.y][thTer.x] = (ushort)dev_NbImgOk[iTer];/
 
-  const ushort nImg = (ushort)dev_NbImgOk[iTer];
+  const ushort nImgOK = (ushort)dev_NbImgOk[iTer];
 
   //__syncthreads();
 
-  if ( nImg  < 2) return;
+  if ( nImgOK  < 2) return;
 
   const uint pitLayerCache  = blockIdx.z * HdPc.sizeCachAll + to1D( ptCach, HdPc.dimCach );	// Taille du cache vignette pour une image
   //const uint pit  = blockIdx.z * cH.nbImages;
@@ -195,7 +191,7 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
   float* caVi = cacheVign + pitLayerCache;
 
  #pragma unroll
-  for(uint i = 0;i< nImg * HdPc.sizeCach ;i+=HdPc.sizeCach)
+  for(uint i = 0;i< nImgOK * HdPc.sizeCach ;i+=HdPc.sizeCach)
   //for(uint l = pit ;l< pit + cH.nbImages;l++)
     {
       const float val  = caVi[i];
@@ -212,14 +208,14 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
 
   __syncthreads();
 
-  atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImg));
+  atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK));
 
   if (!aEq(t - thTer*invPc.dimVig,0)) return;
 
   __syncthreads();
 
   // Normalisation pour le ramener a un equivalent de 1-Correl
-  const float cost = fdividef( resu[thTer.y][thTer.x], (float)( nImg -1.0f) * (invPc.sizeVig));
+  const float cost =  fdividef( resu[thTer.y][thTer.x], (float)( nImgOK -1.0f) * (invPc.sizeVig));
 
   dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 
