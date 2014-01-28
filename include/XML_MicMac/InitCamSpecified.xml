@@ -1,0 +1,9 @@
+     <PoseCameraInc>
+                   <PatternName>   ${SetImInit}   </PatternName>
+                   <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                   <PosValueInit>
+                       <PosId> ### </PosId>
+                   </PosValueInit>
+     </PoseCameraInc>
+
+
