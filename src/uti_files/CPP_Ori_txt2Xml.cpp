@@ -755,7 +755,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mProf,"Prof",true,"Average Prof of images")
                       << EAM(mOffsetXY,"OffsetXY",true,"Offset to substract from X,Y (To avoid possible round off error)")
 
-                      << EAM(mGenOrFromC,"CalOFC",true,"When specified compute initial orientation from centers (in Ori_CalOFC)")
+                      << EAM(mGenOrFromC,"CalOFC",true,"When specified compute initial orientation from centers (in Ori-GenFromC) Ori-${CalOFC}, must contains internal calibrations")
     );
 
     mComputeOrFromC = EAMIsInit(&mGenOrFromC);

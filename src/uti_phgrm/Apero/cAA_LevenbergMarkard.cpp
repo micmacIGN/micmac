@@ -76,7 +76,7 @@ void cAppliApero::AddRappelOnAngle(const cRappelOnAngles & aRAO,double aMult,cSt
     }
 }
 
-void cAppliApero::AddRappelOnCentre(const cRappelOnCentres & aRAC,double aMult,cStatObs & aSO)
+void cAppliApero::AddRappelOnCentre(const cRappelOnCentres & aRAC,double aMultInit,cStatObs & aSO)
 {
     const cParamForceRappel & aPFR = aRAC.ParamF();
      // std::cout << "---------LVM::INC---- " << aPFR.Incertitude() / aMult << "\n";
@@ -93,6 +93,17 @@ void cAppliApero::AddRappelOnCentre(const cRappelOnCentres & aRAC,double aMult,c
             if (aVI.size()==1) anI = Pt3dr(aVI[0],aVI[0],aVI[0]);
             if (aVI.size()==2) anI = Pt3dr(aVI[0],aVI[0],aVI[1]);
             if (aVI.size()==3) anI = Pt3dr(aVI[0],aVI[1],aVI[2]);
+
+            double  aMult = aMultInit;
+            double aProf;
+            bool OkProf;
+            aProf = aPC.GetProfDyn(OkProf);
+            if (OkProf)
+            {
+               aMult *= (10 / aProf);
+            }
+
+
             aPC.RF().AddRappelOnCentre(aPFR.OnCur().ValWithDef(true),anI/aMult,aSO.AddEq());
         }
     }
