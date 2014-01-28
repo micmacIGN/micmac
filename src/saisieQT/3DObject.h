@@ -112,6 +112,7 @@ class cPoint : public cObjectGL, public QPointF
         void setName(QString name){ _name = name; }
         QString name() { return _name; }
         void setState(int state){ _state = state; }
+        int  state() { return _state; }
         void showName(bool show){ _bShowName = show; }
 
         void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
@@ -297,6 +298,9 @@ class cPolygon : public cObjectGL
         void    showLines(bool show = true);
         bool    bShowLines() { return _bShowLines; }
 
+        void    showRefuted();
+        bool    bShowRefuted() { return _bShowRefuted; }
+
         void    translate(QPointF Tr);
 
         void    flipY(float height);
@@ -326,6 +330,9 @@ class cPolygon : public cObjectGL
 
         //!states if names should be displayed
         bool                _bShowNames;
+
+        //!states if refuted points should be displayed
+        bool                _bShowRefuted;
 
         int                 _style;
         QVector<qreal>      _dashes;

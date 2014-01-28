@@ -194,7 +194,7 @@ int Tapas_main(int argc,char ** argv)
     ElInitArgMain
     (
 	argc,argv,
-    LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+        LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
                     << EAMC(aFullDir,"Full Directory (Dir+Pattern)"),
 	LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format(def=false)")	
                     << EAM(AeroOut,"Out",true)	
@@ -240,6 +240,7 @@ int Tapas_main(int argc,char ** argv)
     double CentreLVM = IsForCalib ? 0.1 : 1.0;
     double RayFEInit = IsForCalib ? 0.85 : 0.95;
      
+// std::cout << "IFCCCCC " << IsForCalib << " " << CentreLVM << " " << RayFEInit << "\n"; getchar();
 
     InitVerifModele(aModele,aICNM);
 

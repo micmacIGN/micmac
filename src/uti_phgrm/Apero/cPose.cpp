@@ -151,7 +151,9 @@ cPoseCam::cPoseCam
     mOrIntM2C     (ElAffin2D::Id()),
     mOrIntC2M     (ElAffin2D::Id()),
     mNbPosOfInit  (-1),
-    mFidExist     (false)
+    mFidExist     (false),
+    mLastEstimProfIsInit (false),
+    mLasEstimtProf       (-1)
 {
     mPrec = this;
     mNext = this;
@@ -433,6 +435,11 @@ void cPoseCam::SetRattach(const std::string & aNameRat)
 
 void    cPoseCam::InitAvantCompens()
 {
+    if (PMoyIsInit())
+    {
+       mLasEstimtProf =   ProfMoyHarmonik();
+       mLastEstimProfIsInit = true;
+    }
     mPMoy = Pt3dr(0,0,0);
     mMoyInvProf =0;
     mSomPM = 0;
@@ -459,17 +466,30 @@ void    cPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
     }
     double aProf = aCS->ProfondeurDeChamps(aP);
 
-/*
-if (aProf<0)
-{
-    std::cout << " PROF " << aProf << " " << aBSurH << "\n";
-}
-*/
     
     mPMoy = mPMoy + aP * aPds;
     mMoyInvProf  += (1/aProf) * aPds;
     mSomPM  += aPds ;
  
+}
+
+double cPoseCam::GetProfDyn(bool & Ok) const
+{
+    Ok = true;
+
+    if (PMoyIsInit())
+    {
+        return ProfMoyHarmonik();
+    }
+    if (mLastEstimProfIsInit)
+       return mLasEstimtProf;
+
+    if (mProfondeur != PROF_UNDEF())
+       return mProfondeur;
+
+
+    Ok = false;
+    return 0;
 }
 
 bool     cPoseCam::PMoyIsInit() const
@@ -594,7 +614,7 @@ void  cPoseCam::TenteInitAltiProf
 	   double aProf
       )
 {
-   if ((aProf != PROF_UNDEF()) && (aPrio>mPrioSetAlPr))
+   if ((aProf != PROF_UNDEF()) && (aPrio > mPrioSetAlPr))
    {
          mProfondeur = aProf;
          mAltiSol = anAlti;
@@ -692,6 +712,7 @@ void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
     const CamStenope *  aCS = CurCam() ;
     mAltiSol = aP.z;
     mProfondeur = aCS->ProfondeurDeChamps(aP);
+    mLasEstimtProf = mProfondeur;
 }
 
 
@@ -1291,6 +1312,7 @@ else
     }
     TenteInitAltiProf(2,anAltiSol,aProfPose);
     mRotIsInit = true;
+
 
 /*
     {

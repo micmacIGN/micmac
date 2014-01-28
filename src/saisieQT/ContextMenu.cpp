@@ -5,7 +5,8 @@ void ContextMenu::createContexMenuActions()
     QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
 
     _rename    = new QAction(tr("Rename"), this);
-    _showNames = new QAction(tr("Show names") , this);
+    _showNames = new QAction(tr("Show names"), this);
+    _showRefuted = new QAction(tr("Show refuted points"), this);
 
     _highLight = new QAction(QIcon(IconFolder + "HL.ico"),              tr("Highlight"), this);
 
@@ -20,6 +21,7 @@ void ContextMenu::createContexMenuActions()
 
     connect(_rename,		    SIGNAL(triggered()),   this, SLOT(rename()));
     connect(_showNames,		    SIGNAL(triggered()),   this, SLOT(showNames()));
+    connect(_showRefuted,		SIGNAL(triggered()),   this, SLOT(showRefuted()));
 
     connect(_highLight,		    SIGNAL(triggered()),   this, SLOT(highlight()));
 
@@ -67,4 +69,9 @@ void ContextMenu::rename()
 void ContextMenu::showNames()
 {
     _polygon->showNames();
+}
+
+void ContextMenu::showRefuted()
+{
+    _polygon->showRefuted();
 }

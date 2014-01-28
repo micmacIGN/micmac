@@ -23,8 +23,8 @@
 
 
            <Symb>  Ext=dat </Symb>
-           <Symb>  TetaLVM=0.01 </Symb>
-           <Symb>  CentreLVM=0.1 </Symb>
+
+
            <Symb>  CalibIn=${AeroIn} </Symb>
            <Symb>  NbLiais=100 </Symb>
 
@@ -47,7 +47,11 @@
 
 
            <eSymb>  NotCPI=! ${CPI} </eSymb>
+           <eSymb>  DetailAppuis=0 </eSymb>
 
+           <Symb>  Viscos=1 </Symb>
+           <eSymb>  TetaLVM=/   0.1 ${Viscos} </eSymb>
+           <eSymb>  CentreLVM=/ 1.0  ${Viscos}</eSymb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -261,7 +265,7 @@
                                       </PondIm>
 
                                       <PtsShowDet>  .* </PtsShowDet>
-                                      <DetShow3D >   0 </DetShow3D>
+                                      <DetShow3D >   ${DetailAppuis} </DetShow3D>
                                       <ShowMax> true </ShowMax>
                                       <ShowSom>  true</ShowSom>
                                 </ObsAppuisFlottant>
