@@ -96,6 +96,7 @@ int Campari_main(int argc,char ** argv)
    std::vector<std::string> GCP;
    std::vector<std::string> EmGPS;
    bool DetailAppuis = false;
+   double Viscos = 1.0;
 
     ElInitArgMain
     (
@@ -114,6 +115,7 @@ int Campari_main(int argc,char ** argv)
                     << EAM(AffineFree,"AffineFree",true,"Affine Parameter, Def = false")
                     << EAM(AllFree,"AllFree",true,"Affine Parameter, Def = false")
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)")
+                    << EAM(Viscos,"Visc",true,"Viscosity in LevenBerg-Markad like resolution (Def=1.0)")
     );
 
 
@@ -141,6 +143,8 @@ int Campari_main(int argc,char ** argv)
     if (AffineFree) aCom += " +AffineFree=true ";
     if (AllFree) aCom    += " +AllFree=true ";
 
+
+   if (EAMIsInit(&Viscos)) aCom  +=  " +Viscos=" + ToString(Viscos) + " ";
 
    if (EAMIsInit(&DetailAppuis)) aCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
 
