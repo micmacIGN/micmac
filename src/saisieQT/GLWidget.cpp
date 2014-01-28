@@ -637,6 +637,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
     {
         menu.addAction(_contextMenu._rename);
         menu.addAction(_contextMenu._showNames);
+        menu.addAction(_contextMenu._showRefuted);
     }
     else if ((event->modifiers() & Qt::ControlModifier))
     {

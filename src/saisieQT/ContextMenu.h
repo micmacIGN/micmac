@@ -27,6 +27,7 @@ public:
     cPolygon    *_polygon;
 
     QAction     *_showNames;
+    QAction     *_showRefuted;
     QAction     *_rename;
 
     QAction     *_AllW;
@@ -48,6 +49,8 @@ public slots:
     void rename();
 
     void showNames();
+
+    void showRefuted();
 
 private :
 
