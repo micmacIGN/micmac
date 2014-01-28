@@ -3,6 +3,47 @@
 //#include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
 namespace NS_ParamChantierPhotogram{
+eNewTypeMalt  Str2eNewTypeMalt(const std::string & aName)
+{
+   if (aName=="eTMalt_Ortho")
+      return eTMalt_Ortho;
+   else if (aName=="eTMalt_UrbanMNE")
+      return eTMalt_UrbanMNE;
+   else if (aName=="eTMalt_GeomImage")
+      return eTMalt_GeomImage;
+   else if (aName=="eTMalt_NbVals")
+      return eTMalt_NbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eNewTypeMalt\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eNewTypeMalt) 0;
+}
+void xml_init(eNewTypeMalt & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eNewTypeMalt(aTree->Contenu());
+}
+std::string  eToString(const eNewTypeMalt & anObj)
+{
+   if (anObj==eTMalt_Ortho)
+      return  "eTMalt_Ortho";
+   if (anObj==eTMalt_UrbanMNE)
+      return  "eTMalt_UrbanMNE";
+   if (anObj==eTMalt_GeomImage)
+      return  "eTMalt_GeomImage";
+   if (anObj==eTMalt_NbVals)
+      return  "eTMalt_NbVals";
+ std::cout << "Enum = eNewTypeMalt\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eNewTypeMalt & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 eTypeTapas  Str2eTypeTapas(const std::string & aName)
 {
    if (aName=="eTT_RadialBasic")

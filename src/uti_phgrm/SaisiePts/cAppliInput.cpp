@@ -42,74 +42,76 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
-cWinIm * cX11_Interface::WinImOfW(Video_Win aW)
+cWinIm * cAppli_SaisiePts::WImOfW(Video_Win aW)
 {
     for (int aK=0 ; aK<mNbW; aK++)
         if (mWins[aK]->W() == aW)
            return mWins[aK];
 
-    return 0;
+   return 0;
 }
 
-void cX11_Interface::TestClick(Clik aCl)
+void cAppli_SaisiePts::TestClikWIm(Clik aCl)
 {
-    cWinIm * aWIm = WinImOfW(aCl._w);
-    if (!aWIm)
-        return;
+  cWinIm * aWIm = WImOfW(aCl._w);
+  if (!aWIm) 
+     return;
 
-    if (aCl._b==1)
-    {
-        aWIm->SetPt(aCl);
-        Save();
-    }
+  if (aCl._b==1)
+  {
+      aWIm->SetPt(aCl);
+      Sauv();
+  }
 
-    if ((aCl._b==4) || (aCl._b==5))
-    {
-        double aFactZ = 1.2;
-        aWIm->SetZoom(aCl._pt,(aCl._b==5) ? aFactZ: (1/aFactZ));
-        aWIm->ShowVect();
-    }
+  if ((aCl._b==4) || (aCl._b==5))
+  {
+      double aFactZ = 1.2;
+      aWIm->SetZoom(aCl._pt,(aCl._b==5) ? aFactZ: (1/aFactZ));
+      aWIm->ShowVect();
+  }
 
-    if (aCl._b==2)
-    {
-        aWIm->GrabScrTr(aCl);
-    }
 
-    if (aCl._b==3)
-    {
-        aWIm->MenuPopUp(aCl);
-    }
+
+
+  if (aCl._b==2)
+  {
+      aWIm->GrabScrTr(aCl);
+  }
+
+  if (aCl._b==3)
+  {
+      aWIm->MenuPopUp(aCl);
+  }
 }
 
-void cX11_Interface::BoucleInput()
+void cAppli_SaisiePts::BoucleInput()
 {
-    while(1)
-    {
-        Clik   aCl = mDisp->clik_press();
+   while(1)
+   {
+       Clik   aCl = mDisp->clik_press();
 
-        TestClick(aCl);
-    }
+       TestClikWIm(aCl);
+   }
 }
 
-void cX11_Interface::SetInvisRef(bool aVal)
-{
-    mRefInvis = aVal;
 
-    for (uint aKW=0 ; aKW < mWins.size(); aKW++)
-    {
-        mWins[aKW]->BCaseVR()->SetVal(aVal);
-        mWins[aKW]->Reaff();
-        mWins[aKW]->ShowVect();
-    }
+void  cAppli_SaisiePts::SetInvisRef(bool aVal)
+{
+   mRefInvis = aVal;
+   for (int aKW=0 ; aKW<int(mWins.size()) ; aKW++)
+   {
+         mWins[aKW]->BCaseVR()->SetVal(aVal);
+         mWins[aKW]->Reaff();
+         mWins[aKW]->ShowVect();
+   }
 }
 
-void cX11_Interface::RedrawAllWindows()
+
+void cAppli_SaisiePts::ReaffAllW()
 {
-    for (uint aK=0 ; aK< mWins.size() ; aK++)
+    for (int aK=0 ; aK<int(mWins.size()) ; aK++)
         mWins[aK]->Reaff();
 }
-
-//**************************************************************************************************************
 
 void cAppli_SaisiePts::UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush)
 {
@@ -120,85 +122,95 @@ void cAppli_SaisiePts::UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUn
 
    const cOneSaisie & aS = anUR.S();
    cSP_PointeImage * aPIm  = anUR.I()->PointeOfNameGlobSVP(aS.NamePt());
-   ELISE_ASSERT(aPIm!=0,"Incoherence in ExeUndoRedo");
+   ELISE_ASSERT(aPIm!=0,"Incoh in ExeUndoRedo");
 
    ToPush.push_back(cUndoRedo(*(aPIm->Saisie()),aPIm->Image()));
    *(aPIm->Saisie()) = aS;
    ToExe.pop_back();
+   ReaffAllW();
 
-   mInterface->RedrawAllWindows();
 }
 
 void cAppli_SaisiePts::Undo()
 {
     UndoRedo(mStackUndo, mStackRedo);
 }
-
 void cAppli_SaisiePts::Redo()
 {
     UndoRedo(mStackRedo,mStackUndo);
 }
 
+
+
 void cAppli_SaisiePts::AddUndo(cOneSaisie aS,cImage * aI)
 {
-    mStackUndo.push_back(cUndoRedo(aS,aI));
-    mStackRedo.clear();
+
+   mStackUndo.push_back(cUndoRedo(aS,aI));
+   mStackRedo.clear();
 }
+
+
+const std::vector<cWinIm *> &  cAppli_SaisiePts::WinIms()
+{
+   return mWins;
+}
+
 
 bool cAppli_SaisiePts::Visible(cSP_PointeImage & aPIm)
 {
-    return   (aPIm.Saisie()->Etat() != eEPI_Refute) || mInterface->RefInvis();
+    return   (aPIm.Saisie()->Etat() != eEPI_Refute)
+           || mRefInvis;
 }
 
 
 void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
 {
-    for (uint aKP=0 ; aKP< mPG.size() ; aKP++)
-    {
+   for (int aKP=0 ; aKP<int(mPG.size()) ; aKP++)
+   {
         if (mPG[aKP] == aPG)
-            aPG->HighLighted() = ! aPG->HighLighted();
+          aPG->HighLighted() = ! aPG->HighLighted();
         else
-            mPG[aKP]->HighLighted() = false;
-    }
+          mPG[aKP]->HighLighted() = false;
+   }
 }
 
 void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
 {
-    for (uint aKP=0 ; aKP< mPG.size() ; aKP++)
+    for (int aKP=0 ; aKP<int(mPG.size()) ; aKP++)
     {
-        if (mPG[aKP]->PG()->Name() == aNewName)
-        {
-            std::cout << "Name " << aNewName << " already exists\n";
-            return;
-        }
+         if (mPG[aKP]->PG()->Name() == aNewName)
+         {
+              std::cout << "Name " << aNewName << " already exist \n";
+              return;
+         }
     }
 
-    for (uint aKP=0 ; aKP< mPG.size() ; aKP++)
+    for (int aKP=0 ; aKP<int(mPG.size()) ; aKP++)
     {
-        if (mPG[aKP]->PG()->Name() == anOldName)
-        {
-            mPG[aKP]->Rename(aNewName);
-        }
+         if (mPG[aKP]->PG()->Name() == anOldName)
+         {
+             mPG[aKP]->Rename(aNewName);
+         }
     }
 
-    for (int aKC=0 ; aKC< mInterface->GetNumCasePoint(); aKC++)
-    {
-        cCaseNamePoint & aCN = mInterface->GetCaseNamePoint(aKC);
 
-        if (aCN.mTCP==eCaseStd)
-        {
-            if (aCN.mName == anOldName)
-            {
-                aCN.mFree = true;
-            }
-            if (aCN.mName == aNewName)
-            {
-                aCN.mFree = false;
-            }
-        }
+    for (int aKC=0 ; aKC<int(mVNameCase.size()); aKC++)
+    {
+         cCaseNamePoint & aCN = mVNameCase[aKC];
+         if (aCN.mTCP==eCaseStd)
+         {
+              if (aCN.mName == anOldName) 
+              {
+                  aCN.mFree = true;
+              }
+              if (aCN.mName == aNewName)
+              {
+                   aCN.mFree = false;
+              }
+         }
     }
 
-    mInterface->RedrawAllWindows();
+    ReaffAllW();
 }
 
 
@@ -220,7 +232,7 @@ cImage *              cUndoRedo::I() const {return mI;}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant à la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -236,17 +248,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

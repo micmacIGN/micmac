@@ -6,7 +6,7 @@ cObject::cObject() :
     _color(QColor(255,255,255)),
     _scale(1.f),
     _alpha(0.6f),
-    _bVisible(false),
+    _bVisible(true),
     _bSelected(false)
 {}
 
@@ -486,7 +486,7 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
 
 void cPoint::draw()
 {
-     if (_painter != NULL)
+     if ((_painter != NULL) && isVisible())
      {
          QPen penline(isSelected() ? _selectionColor : _color);
          penline.setCosmetic(true);
@@ -558,6 +558,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor p
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
+    _bShowRefuted(true),
     _style(style)
 {
     setColor(pointColor);
@@ -579,6 +580,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
+    _bShowRefuted(true),
     _style(style)
 {
     if (!withHelper) _helper = NULL;
@@ -956,6 +958,17 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
     }
 
     return inside;
+}
+
+void cPolygon::showRefuted()
+{
+    _bShowRefuted = !_bShowRefuted;
+
+    for (int aK=0; aK < _points.size(); ++aK)
+    {
+        if (_points[aK].state() == NS_SaisiePts::eEPI_Refute)
+            _points[aK].setVisible(_bShowRefuted);
+    }
 }
 
 //********************************************************************************
