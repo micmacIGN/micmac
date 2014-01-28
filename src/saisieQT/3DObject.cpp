@@ -6,7 +6,7 @@ cObject::cObject() :
     _color(QColor(255,255,255)),
     _scale(1.f),
     _alpha(0.6f),
-    _bVisible(false),
+    _bVisible(true),
     _bSelected(false)
 {}
 
@@ -486,7 +486,7 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
 
 void cPoint::draw()
 {
-     if (_painter != NULL)
+     if ((_painter != NULL) && isVisible())
      {
          QPen penline(isSelected() ? _selectionColor : _color);
          penline.setCosmetic(true);
@@ -558,6 +558,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor p
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
+    _bShowRefuted(true),
     _style(style)
 {
     setColor(pointColor);
@@ -579,6 +580,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
+    _bShowRefuted(true),
     _style(style)
 {
     if (!withHelper) _helper = NULL;
@@ -958,6 +960,17 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
     return inside;
 }
 
+void cPolygon::showRefuted()
+{
+    _bShowRefuted = !_bShowRefuted;
+
+    for (int aK=0; aK < _points.size(); ++aK)
+    {
+        if (_points[aK].state() == NS_SaisiePts::eEPI_Refute)
+            _points[aK].setVisible(_bShowRefuted);
+    }
+}
+
 //********************************************************************************
 
 cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor, QColor pointColor):
@@ -1058,39 +1071,18 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad()
 {
-    drawQuad(_originX, _originY,_glw, _glh);
-}
-
-void cImageGL::drawQuad(GLfloat ox, GLfloat oy, GLfloat w, GLfloat h)
-{
     glBegin(GL_QUADS);
     {
         glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(ox, oy);
+        glVertex2f(_originX, _originY);
         glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(ox+w, oy);
+        glVertex2f(_originX+_glw, _originY);
         glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(ox+w, oy+h);
+        glVertex2f(_originX+_glw, _originY+_glh);
         glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(ox,oy+h);
+        glVertex2f(_originX, _originY+_glh);
     }
     glEnd();
-}
-
-void cImageGL::drawStripedQuad()
-{
-    int NBr = 200;
-    for (int id = 0; id < NBr; ++id) {
-        // Alternate stripe colors
-        if (id % 2 == 0) {
-            glColor3f(0.32, 0.32, 0.32);
-        } else {
-            glColor3f(0.40, 0.35, 0.35);
-        }
-        // The last seven stripes are shorter
-        drawQuad(_originX, _originY + id*(_glh/NBr),_glw, (_glh/NBr));
-    }
-
 }
 
 void cImageGL::draw()
@@ -1207,7 +1199,6 @@ void cMaskedImageGL::draw()
         _m_mask->draw();
         glBlendFunc(GL_ONE,GL_ONE);
         _m_mask->draw(QColor(128,128,128));
-        //_m_image->drawStripedQuad();
         glBlendFunc(GL_DST_COLOR,GL_ZERO);
         glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
@@ -1217,7 +1208,6 @@ void cMaskedImageGL::draw()
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
-
 }
 
 //********************************************************************************

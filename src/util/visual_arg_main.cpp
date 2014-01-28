@@ -42,8 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
     #ifdef Int
         #undef Int
     #endif
-
+    #include <QApplication>
     #include <QString>
+    #include "general/visual_mainwindow.h"
 #endif
 
 void ShowEnum(const cMMSpecArg & anArg)
@@ -57,6 +58,25 @@ void ShowEnum(const cMMSpecArg & anArg)
     )
           std::cout << "     " << *itS << "\n";
 
+}
+
+std::list<std::string> listPossibleValues(const cMMSpecArg & anArg)
+{
+    std::list<std::string> list_enum;
+    const std::list<std::string> & aLEnum = anArg.EnumeratedValues();
+    for
+    (
+          std::list<std::string>::const_iterator itS = aLEnum.begin();
+          itS != aLEnum.end();
+          itS++
+    )
+    {
+        //std::cout << "     " << *itS << "\n";
+        list_enum.push_back(*itS);
+        //i++;
+
+    }
+    return list_enum;
 }
 
 
@@ -79,7 +99,6 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
             std::cout <<  aVAO[aK].NameArg()  << " ; "  << aVAO[aK].NameType();
             std::string aCom = aVAO[aK].Comment();
             if (aCom != "") std::cout << " ; " << aCom ;
-
             std::cout  << "\n";
             ShowEnum(aVAO[aK]);
         }
@@ -112,7 +131,7 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
 
 void MMRunVisualMode
      (
-         int ,char ** , // A priori inutile, mais peut-être cela evoluera-t-il ?
+        int argc,char ** argv, // A priori inutile, mais peut-être cela evoluera-t-il ?
          std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory
          std::vector<cMMSpecArg> & aVAO   // Vector Arg Optional
      )
@@ -126,28 +145,129 @@ void MMRunVisualMode
     #endif //ELISE_QT5
     cout << str << endl;
 
+
+    #if(ELISE_QT5)
+
+
+        QApplication interf(argc, argv);
+        visual_MainWindow w;
+
+        //list of all arguments
+
+        std::cout<<"---------- All arguments ----------"<<std::endl;
+
+
+//        for(int i=0;i<argc;i++)
+//        {
+//            std::cout<<argv[i]<<std::endl;
+//            //std::cout<<argv[3]<<std::endl;
+//        }
+
+        for (int aK=0 ; aK<int(aVAM.size()) ; aK++)//aVAM = all visual arg mandatory ?
+        {
+            std::string arg_eff="";
+            for (int i=0;i<argc;i++)
+            {
+                arg_eff += std::string(argv[i]);
+            }
+            w.set_argv_recup(arg_eff);
+
+            //std::cout << "Mandatory arg " << aK << " ; Type is " << aVAM[aK].NameType();
+            std::string aCom = aVAM[aK].Comment();
+            w.create_comment(aCom,aK);
+            if (aCom != "")
+            {
+                //std::cout << "   Comment=" << aCom << "\n";
+            }
+            else
+            {
+                //std::cout<<"\n";
+            }
+
+            //Si le type est une string
+            if (aVAM[aK].NameType() =="string")
+            {
+                //On récupère les valeurs énumérées dans une liste
+                std::list<std::string> liste_valeur_enum = listPossibleValues(aVAM[aK]);
+
+                //S'il y a effectivement une énumération
+                //On rempli une combobox
+                if (!liste_valeur_enum.empty())
+                {
+                    //QComboBox* Combo=0;
+                    w.create_combo(aK,liste_valeur_enum);
+
+                }
+                //Si c'est une chaine de caractères normale
+                else
+                {
+                    //Si c'est une directory
+                    if (aCom.find("Dir")!=std::string::npos)
+                    {
+                        w.create_select_images(aK);
+
+                    }
+                    else
+                    {
+                        std::cout<<"coucou"<<std::endl;
+                        w.create_select_orientation(aK);
+
+                    }
+                }
+            }
+            //Si le type est int
+            if (aVAM[aK].NameType() =="INT"||aVAM[aK].NameType() =="int")
+            {
+                w.create_champ_int(aK);
+
+            }
+
+        }
+
+//        for (int aK=0 ; aK<int(aVAO.size()) ; aK++)//aVAO = all visual arg optional ?
+//        {
+//            std::cout <<  "Optional arg type is " <<aVAO[aK].NameArg()  << " ; "  << aVAO[aK].NameType();
+//            std::string aCom = aVAO[aK].Comment();
+//            if (aCom != "") std::cout << " ; " << aCom ;
+//            std::cout  << "\n";
+
+//            bool apat = aVAO[aK].IsExistFile();
+//            std::cout<<apat<<std::endl;
+//            ShowEnum(aVAO[aK]);
+//        }
+        std::cout<<"---------- End all arguments ----------"<<std::endl;
+
+
+
+        w.show();
+        interf.exec();
+
+    #endif //ELISE_QT5
+
+
+
      // On lit tous les arguments obligatoires
-     for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
-     {
-         // On imprime un peu d'info
-         std::cout << "Enter Mandatory Arg " << aK << " ; Type is " << aVAM[aK].NameType() << "\n";
-         std::string aCom = aVAM[aK].Comment();
-         if (aCom != "") std::cout << "Comment=" << aCom << "\n";
-         ShowEnum(aVAM[aK]);
+//     for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
+//     {
+//         // On imprime un peu d'info
+//         std::cout << "Enter Mandatory Arg " << aK << " ; Type is " << aVAM[aK].NameType() << "\n";
+//         std::string aCom = aVAM[aK].Comment();
+//         if (aCom != "") std::cout << "Comment=" << aCom << "\n";
+//         ShowEnum(aVAM[aK]);
 
-         // on lit une chaine de caractere
-         std::string aVal;
-         std::cin >> aVal;
-         // on initialise la variable a partir de la chaine
-         aVAM[aK].Init(aVal);
-     }
+//         // on lit une chaine de caractere
+//         std::string aVal;
+//         std::cin >> aVal;
+//         // on initialise la variable a partir de la chaine
+//         aVAM[aK].Init(aVal);
+//     }
 
-     // On lit autant d'arguments optionnels que l'utilisateur souhaite en passer
-     bool FirstCall = true;
-     while (ContinuerReadOneArg(aVAO,FirstCall)) 
-     {
-         FirstCall=false;
-     }
+//     // On lit autant d'arguments optionnels que l'utilisateur souhaite en passer
+//     bool FirstCall = true;
+//     while (ContinuerReadOneArg(aVAO,FirstCall))
+//     {
+//         FirstCall=false;
+//     }
 }
 
 
