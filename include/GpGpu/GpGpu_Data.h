@@ -100,13 +100,13 @@ TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
     if (err != cudaSuccess)
     {
         std::cout << "--------------------------------------------------------------------------------------\n";
-        std::cout << "Erreur Cuda         : " <<  fonctionName  << "() | Object " + CGObject::Id() << "\n";
-        GpGpuTools::OutputInfoGpuMemory();
+        std::cout << "Erreur Cuda         : " <<  fonctionName  << "() | Object " + CGObject::Id() << "\n";        
         OutputInfo();
         std::cout << "Pointeur de donnees : " << CData<T>::pData()  << "\n";
         std::cout << "Memoire allouee     : " << _memoryOc / pow(2.0,20) << " Mo | " << _memoryOc / pow(2.0,10) << " ko | " << _memoryOc  << " octets \n";
         std::cout << "Taille des donnees  : " << CData<T>::GetSizeofMalloc()  / pow(2.0,20) << " Mo | " << CData<T>::GetSizeofMalloc()  / pow(2.0,10) << " ko | " << CData<T>::GetSizeofMalloc() << " octets \n";
         checkCudaErrors( err );
+        GpGpuTools::OutputInfoGpuMemory();
         std::cout << "--------------------------------------------------------------------------------------\n";
         exit(1);
         return false;
