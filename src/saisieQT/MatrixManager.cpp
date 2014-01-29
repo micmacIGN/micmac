@@ -59,12 +59,11 @@ void MatrixManager::orthoProjection()
     mglOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
 }
 
-void MatrixManager::scaleAndTranslate(float x, float y, float zoom)
+void MatrixManager::translate(float x, float y)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glPushMatrix();
-    glScalef(zoom, zoom, 1.f);
     glTranslatef(x,y,0.f);
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
     glPopMatrix();
