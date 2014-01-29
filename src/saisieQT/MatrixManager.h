@@ -35,7 +35,7 @@ public:
 
     void        orthoProjection();
 
-    void        scaleAndTranslate(float x, float y, float zoom);
+    void        translate(float x, float y);
 
     GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
 

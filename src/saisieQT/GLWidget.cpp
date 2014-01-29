@@ -323,7 +323,7 @@ void GLWidget::centerViewportOnImagePosition(int px, int py)
 
     m_lastClickZoom = QPoint(vpCenterX, vpCenterY);
 
-    _matrixManager.scaleAndTranslate(-tx, -ty, 1.f);
+    _matrixManager.translate(-tx, -ty);
 
     update();
 }
@@ -349,7 +349,7 @@ void GLWidget::zoomFit()
     {
         if(m_bDisplayMode2D)
         {
-            //centerViewportOnImagePosition(imWidth()*.5f, imHeight()*.5f);
+            centerViewportOnImagePosition(imWidth()*.5f, imHeight()*.5f);
 
             float rw = (float) imWidth()  / vpWidth();
             float rh = (float) imHeight() / vpHeight();
@@ -358,11 +358,6 @@ void GLWidget::zoomFit()
                 setZoom(1.f/rw); //orientation landscape
             else
                 setZoom(1.f/rh); //orientation portrait
-
-            _matrixManager.scaleAndTranslate(-rw, -rh, _params.m_zoom);
-
-            m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
-
         }
 
         else
@@ -655,9 +650,10 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix)
 //    else
 //        refreshPositionMessage(m_lastPosImage); //TODO: debugger
 
-    if (zoomfit) zoomFit();
-
-    update();
+    if (zoomfit)
+        zoomFit(); //update already done in zoomFit
+    else
+        update();
 }
 
 void GLWidget::contextMenuEvent(QContextMenuEvent * event)
