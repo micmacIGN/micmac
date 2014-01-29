@@ -99,7 +99,6 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
 
 void GLWidget::paintGL()
 {
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
@@ -111,6 +110,15 @@ void GLWidget::paintGL()
     {
         if (m_bDisplayMode2D)
         {
+            //TODO: virer dependance taille viewport / image Quad [1,1] puis scale dans glImage drawQuad()
+
+            float rw = (float) imWidth()  / vpWidth();
+            float rh = (float) imHeight() / vpHeight();
+
+            m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
+
+            //END TODO
+
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
             m_GLData->glMaskedImage.draw();
@@ -125,13 +133,13 @@ void GLWidget::paintGL()
 
         glPopMatrix();
 
-        if (_messageManager.DrawMessages() && !m_bDisplayMode2D)
+        if (_messageManager.drawMessages() && !m_bDisplayMode2D)
             computeFPS(_messageManager.LastMessage());
     }
 
     _messageManager.draw();
 	
-	Overlay();
+    if (_widgetId >= 0) overlay();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -258,7 +266,7 @@ void GLWidget::dropEvent(QDropEvent *event)
     event->ignore();
 }
 
-void GLWidget::Overlay()
+void GLWidget::overlay()
 {
 	if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
@@ -303,6 +311,23 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     setZoom(_params.m_zoom*zoomFactor);
 }
 
+// px, py : image coordinates in [0, width] [0, height]
+
+void GLWidget::centerViewportOnImagePosition(int px, int py)
+{
+    float vpCenterX = vpWidth()*.5f;
+    float vpCenterY = vpHeight()*.5f;
+
+    float tx = (float) px / vpCenterX;
+    float ty = (float) py / vpCenterY;
+
+    m_lastClickZoom = QPoint(vpCenterX, vpCenterY);
+
+    _matrixManager.scaleAndTranslate(-tx, -ty, 1.f);
+
+    update();
+}
+
 void GLWidget::setZoom(float value)
 {
     if (value < GL_MIN_ZOOM)
@@ -312,7 +337,7 @@ void GLWidget::setZoom(float value)
 
     _params.m_zoom = value;
 
-    if(m_bDisplayMode2D && _messageManager.DrawMessages())
+    if(m_bDisplayMode2D && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
 
     update();
@@ -324,6 +349,8 @@ void GLWidget::zoomFit()
     {
         if(m_bDisplayMode2D)
         {
+            //centerViewportOnImagePosition(imWidth()*.5f, imHeight()*.5f);
+
             float rw = (float) imWidth()  / vpWidth();
             float rh = (float) imHeight() / vpHeight();
 
@@ -335,7 +362,9 @@ void GLWidget::zoomFit()
             _matrixManager.scaleAndTranslate(-rw, -rh, _params.m_zoom);
 
             m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
+
         }
+
         else
             setZoom(m_GLData->getBBoxMaxSize());
     }
@@ -432,7 +461,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void GLWidget::refreshPositionMessage(QPointF pos)
 {
-    if (_messageManager.DrawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
+    if (_messageManager.drawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
         _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
 }
 
@@ -440,7 +469,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
     {
-        _parentSet->setCurrentWidgetIdx(_widgetId);
+
 
 #if ELISE_QT_VERSION == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
@@ -476,8 +505,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     r.x = dPWin.y() / vpWidth();
                     r.y = dPWin.x() / vpHeight();
                 }
-                else if ( event->buttons() == Qt::MiddleButton ){
-
+                else if ( event->buttons() == Qt::MiddleButton )
+                {
                     if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
 
                         _params.changeZoom(dPWin.y());
@@ -491,8 +520,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
 
-                _matrixManager.rotate(r.x, r.y, r.z, 50.0f *_params.m_speed);
+                _matrixManager.rotate(r.x, r.y, r.z, 50.f *_params.m_speed);
             }
+
+            emit newImagePosition((int) m_lastMoveImage.x(), (int) m_lastMoveImage.y());
         }
 
         m_lastPosWindow = event->pos();
@@ -578,11 +609,11 @@ void GLWidget::applyInfos()
     }
 }
 
-void GLWidget::setOption(QFlags<cGLData::Option> option,bool show)
+void GLWidget::setOption(QFlags<cGLData::Option> option, bool show)
 {
     if (hasDataLoaded()) m_GLData->setOption(option,show);
 
-    if( option & cGLData::OpShow_Mess)_messageManager.constructMessagesList(show,m_interactionMode,m_bDisplayMode2D,hasDataLoaded());
+    if( option & cGLData::OpShow_Mess) _messageManager.constructMessagesList(show, m_interactionMode, m_bDisplayMode2D, hasDataLoaded());
 
     update();
 }
@@ -599,10 +630,10 @@ void GLWidget::reset()
     resetView();
 }
 
-void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
+void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix)
 {
     if (resetMatrix)
-        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
+        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() : Pt3dr(0.f,0.f,0.f) );
 
     if (hasDataLoaded()) m_GLData->clearPolygon();
 
@@ -657,4 +688,28 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
     _contextMenu.setPos(m_lastPosImage);
 
     menu.exec(event->globalPos());
+}
+
+void GLWidget::enterEvent(QEvent *event)
+{
+    if (_widgetId >= 0) _parentSet->setCurrentWidgetIdx(_widgetId);
+
+    GLWidget* zoomWidget = _parentSet->zoomWidget();
+
+    if (zoomWidget != NULL)
+    {
+        zoomWidget->reset();
+
+        zoomWidget->m_GLData = m_GLData;
+
+        zoomWidget->m_bDisplayMode2D = true;
+
+        zoomWidget->_matrixManager.resetAllMatrix( Pt3dr(0.f,0.f,0.f) );
+
+        zoomWidget->_messageManager.showMessages(false);
+
+        zoomWidget->setZoom(3.f);
+
+        connect(this, SIGNAL(newImagePosition(int, int)), zoomWidget, SLOT(centerViewportOnImagePosition(int,int)));
+    }
 }

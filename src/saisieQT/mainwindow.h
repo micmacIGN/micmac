@@ -149,6 +149,7 @@ private:
 
     QSignalMapper*          _signalMapper;
     QGridLayout*            _layout;
+    QGridLayout*            _zoomLayout;
 
     bool                    _bModePt;
     QString                 _ptName;

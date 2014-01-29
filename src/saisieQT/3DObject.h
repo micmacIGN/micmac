@@ -517,9 +517,11 @@ public:
         h=hh;
     }
 
-    bool DrawMessages(){return _bDrawMessages && size();}
+    bool drawMessages(){ return _bDrawMessages && size(); }
 
-    int size(){return m_messagesToDisplay.size();}
+    void showMessages(bool show) { _bDrawMessages = show; }
+
+    int size(){ return m_messagesToDisplay.size(); }
 
 private:
 

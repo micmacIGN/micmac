@@ -1513,7 +1513,7 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
 
 void cMessages2DGL::draw(){
 
-    if (DrawMessages())
+    if (drawMessages())
     {
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
         ll_curHeight = lr_curHeight = lc_curHeight = h - m_font.pointSize()*m_messagesToDisplay.size();
@@ -1584,8 +1584,8 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
         {
             if(m_bDisplayMode2D)
             {
-                displayNewMessage(QString("PIXEL POSITION"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                displayNewMessage(QString("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString(" "),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString(" "),LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
             else
             {

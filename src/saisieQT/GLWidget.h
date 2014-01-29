@@ -35,8 +35,6 @@
 
 class GLWidgetSet;
 
-
-
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -109,10 +107,14 @@ public slots:
 
     void onWheelEvent(float wheelDelta_deg);
 
+    void centerViewportOnImagePosition(int px, int py);
+
 signals:
 
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
+
+    void newImagePosition(int px, int py);
 
 protected:
     //! inherited from QGLWidget
@@ -128,14 +130,16 @@ protected:
     void keyPressEvent  (QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
 
-    void wheelEvent(QWheelEvent* event);
+    void wheelEvent(QWheelEvent *event);
 
-    void dragEnterEvent(QDragEnterEvent* event);
-    void dropEvent(QDropEvent* event);
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
 
     void contextMenuEvent(QContextMenuEvent *event);
 
-    void Overlay();
+    void enterEvent(QEvent *event);
+
+    void overlay();
 
     //! Current interaction mode (with mouse)
     int m_interactionMode;
