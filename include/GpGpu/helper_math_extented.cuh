@@ -373,6 +373,11 @@ inline __host__ __device__ bool aI(int2 a, int2 b)
 	return ((a.x < b.x) && (a.y < b.y));
 }
 
+inline __host__ __device__ bool aIE(int2 a, int2 b)
+{
+    return ((a.x <= b.x) && (a.y <= b.y));
+}
+
 inline __host__ __device__ bool oI(uint3 a, uint2 b)
 {
 	return ((a.x < b.x) || (a.y < b.y));

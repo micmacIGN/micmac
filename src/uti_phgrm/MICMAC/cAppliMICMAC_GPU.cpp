@@ -1482,8 +1482,8 @@ void cAppliMICMAC::DoGPU_Correl
 #endif
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).invPC.IntDefault);
 
-        Rect    zone        = IMmGg.Param(idBuf).RDTer();
-        uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;
+        Rect    zone        = IMmGg.Param(idBuf).RDTer();           // Zone Terrain dilaté
+        uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;    // Sample
         float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
         uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
         uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
@@ -1527,6 +1527,8 @@ void cAppliMICMAC::DoGPU_Correl
                 }
             }
         }
+
+
 #ifdef  NVTOOLS
         nvtxRangePop();
 #endif
