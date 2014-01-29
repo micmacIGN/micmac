@@ -7,7 +7,7 @@ typedef unsigned char pixel;
 #define WARPSIZE    32
 #define SIZERING    2
 #define INTDEFAULT	-64
-#define SAMPLETERR	4
+#define SAMPLETERR	1
 #define INTERZ		8
 #define NEAREST		0
 #define LINEARINTER	1
@@ -42,6 +42,7 @@ typedef unsigned char pixel;
 #define DUMP_UINT(varname) printf("%s = %u\n", #varname, varname);
 #define DUMP_UINT2(varname) printf("%s = [%u,%u]\n", #varname, varname.x,varname.y);
 #define DUMP_INT2(varname) printf("%s = [%d,%d]\n", #varname, varname.x,varname.y);
+#define DUMP_INT(varname) printf("%s = %d\n", #varname, varname);
 #define DUMP_FLOAT2(varname) printf("%s = [%f,%f]\n", #varname, varname.x,varname.y);
 #define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
 #define DUMP_LINE printf("-----------------------------------\n");
