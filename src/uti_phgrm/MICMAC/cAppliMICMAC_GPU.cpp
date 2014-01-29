@@ -744,7 +744,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-                    IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, /*SAMPLETERR*/1, INTDEFAULT);
+                    IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
                 }
 
@@ -1521,13 +1521,7 @@ void cAppliMICMAC::DoGPU_Correl
 
                             if (aGLI.IsOk( aPIm.x, aPIm.y ))
                                 pTproj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
-//                            else if ( aSE(an,0) && anZ == 0 && aKIm == 0)
-//                            {
-//                                DUMP_FLOAT2(make_float2((float)aPIm.x,(float)aPIm.y))
-//                                DUMP_INT2(make_int2(aGLI.getSizeImage().x,aGLI.getSizeImage().y))
-//                                DUMP_INT2(an)
-//                                DUMP_LINE
-//                            }
+
                         }
                     }
                 }
