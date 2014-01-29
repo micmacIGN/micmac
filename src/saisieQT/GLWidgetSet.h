@@ -13,17 +13,20 @@ public:
     ~GLWidgetSet();
 
     void setCurrentWidgetIdx(uint aK);
-    uint CurrentWidgetIdx(){return _currentWidget;}
+    uint currentWidgetIdx(){return _currentWidget;}
 
     GLWidget* getWidget(uint aK){return _Widgets[aK];}
 
-    GLWidget* CurrentWidget(){return _Widgets[_currentWidget];}
+    GLWidget* currentWidget(){return _Widgets[_currentWidget];}
 
-    uint NbWidgets() const {return (uint) _Widgets.size();}
+    uint nbWidgets() const {return (uint) _Widgets.size();}
+
+    GLWidget* zoomWidget(){return _zoomWidget;}
 
 private:
 
     QVector <GLWidget*>  _Widgets;
+    GLWidget*           _zoomWidget;
     uint                 _currentWidget;
 };
 

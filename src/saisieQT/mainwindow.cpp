@@ -7,6 +7,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
         _layout(new QGridLayout),
+        _zoomLayout(new QGridLayout),
         _bModePt(mode > 1),
         _ptName(pointName)
 {
@@ -33,14 +34,33 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
     _nbFen = QPoint(aNbFen.x,aNbFen.y);
     _szFen = QPoint(aSzW.x,aSzW.y);
 
-    resize(_szFen.x(), _szFen.y());
-
     setMode2D(mode != MASK3D);
 
     int cpt=0;
     for (int aK = 0; aK < aNbFen.x;++aK)
         for (int bK = 0; bK < aNbFen.y;++bK, cpt++)
             _layout->addWidget(getWidget(cpt), bK, aK);
+
+    if (mode>1) //zoom Window
+    {
+        _zoomLayout->addWidget(zoomWidget());
+
+        zoomWidget()->setOption(cGLData::OpShow_Mess,false);
+
+        _ui->zoomLayout->setLayout(_zoomLayout);
+
+        resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
+    }
+    else
+    {
+        resize(_szFen.x(), _szFen.y());
+
+        _ui->verticalLayout->removeWidget(_ui->zoomLayout);
+        _ui->verticalLayout->removeItem(_ui->verticalSpacer);
+
+        delete _ui->zoomLayout;
+        delete _ui->verticalSpacer;
+    }
 
     _signalMapper = new QSignalMapper (this);
     connectActions();
@@ -55,12 +75,13 @@ MainWindow::~MainWindow()
     delete _Engine;
     delete _RFMenu;
     delete _layout;
+    delete _zoomLayout;
     delete _signalMapper;
 }
 
 void MainWindow::connectActions()
 {
-    for (uint aK = 0; aK < NbWidgets();++aK)
+    for (uint aK = 0; aK < nbWidgets();++aK)
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
 
     //File menu
@@ -203,13 +224,13 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->allocAndSetGLData(_bModePt, _ptName);
 
-        for (uint aK = 0; aK < NbWidgets();++aK)
+        for (uint aK = 0; aK < nbWidgets();++aK)
         {
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
-            getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+            if (aK < (uint) filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
         }
 
-        for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
+        for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
     }
 }
 
@@ -222,11 +243,11 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        CurrentWidget()->setOption(cGLData::OpShow_Ball,state);
+        currentWidget()->setOption(cGLData::OpShow_Ball,state);
 
         if (state && _ui->actionShow_axis->isChecked())
         {
-            CurrentWidget()->setOption(cGLData::OpShow_BBox,!state);
+            currentWidget()->setOption(cGLData::OpShow_BBox,!state);
             _ui->actionShow_axis->setChecked(!state);
         }
     }
@@ -235,18 +256,18 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
     if(!_bMode2D)
-        CurrentWidget()->setOption(cGLData::OpShow_BBox,state);
+        currentWidget()->setOption(cGLData::OpShow_BBox,state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
 {
     if (!_bMode2D)
     {
-        CurrentWidget()->setOption(cGLData::OpShow_Axis,state);
+        currentWidget()->setOption(cGLData::OpShow_Axis,state);
 
         if (state && _ui->actionShow_ball->isChecked())
         {
-            CurrentWidget()->setOption(cGLData::OpShow_Ball,!state);
+            currentWidget()->setOption(cGLData::OpShow_Ball,!state);
             _ui->actionShow_ball->setChecked(!state);
         }
     }
@@ -255,18 +276,18 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 void MainWindow::on_actionShow_cams_toggled(bool state)
 {
     if (!_bMode2D)
-        CurrentWidget()->setOption(cGLData::OpShow_Cams,state);
+        currentWidget()->setOption(cGLData::OpShow_Cams,state);
 }
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    CurrentWidget()->setOption(cGLData::OpShow_Mess,state);
+    currentWidget()->setOption(cGLData::OpShow_Mess,state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
     if (!_bMode2D)
-        CurrentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
+        currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 }
 
 void MainWindow::on_actionHelpShortcuts_triggered()
@@ -361,22 +382,22 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionAdd_triggered()
 {
-    CurrentWidget()->Select(ADD);
+    currentWidget()->Select(ADD);
 }
 
 void MainWindow::on_actionSelect_none_triggered()
 {
-    CurrentWidget()->Select(NONE);
+    currentWidget()->Select(NONE);
 }
 
 void MainWindow::on_actionInvertSelected_triggered()
 {
-    CurrentWidget()->Select(INVERT);
+    currentWidget()->Select(INVERT);
 }
 
 void MainWindow::on_actionSelectAll_triggered()
 {
-    CurrentWidget()->Select(ALL);
+    currentWidget()->Select(ALL);
 }
 
 void MainWindow::on_actionReset_triggered()
@@ -389,74 +410,74 @@ void MainWindow::on_actionReset_triggered()
     }
     else
     {
-        CurrentWidget()->Select(ALL);
+        currentWidget()->Select(ALL);
     }
 }
 
 void MainWindow::on_actionRemove_triggered()
 {
-    CurrentWidget()->Select(SUB);
+    currentWidget()->Select(SUB);
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget()->setView(TOP_VIEW);
+        currentWidget()->setView(TOP_VIEW);
 }
 
 void MainWindow::on_actionSetViewBottom_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget()->setView(BOTTOM_VIEW);
+        currentWidget()->setView(BOTTOM_VIEW);
 }
 
 void MainWindow::on_actionSetViewFront_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget()->setView(FRONT_VIEW);
+        currentWidget()->setView(FRONT_VIEW);
 }
 
 void MainWindow::on_actionSetViewBack_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget()->setView(BACK_VIEW);
+        currentWidget()->setView(BACK_VIEW);
 }
 
 void MainWindow::on_actionSetViewLeft_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget()->setView(LEFT_VIEW);
+        currentWidget()->setView(LEFT_VIEW);
 }
 
 void MainWindow::on_actionSetViewRight_triggered()
 {
     if (!_bMode2D)
-        CurrentWidget()->setView(RIGHT_VIEW);
+        currentWidget()->setView(RIGHT_VIEW);
 }
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    CurrentWidget()->resetView(true,true,true);
+    currentWidget()->resetView(true,true,true);
 }
 
 void MainWindow::on_actionZoom_Plus_triggered()
 {
-    CurrentWidget()->setZoom(CurrentWidget()->getZoom()*1.5f);
+    currentWidget()->setZoom(currentWidget()->getZoom()*1.5f);
 }
 
 void MainWindow::on_actionZoom_Moins_triggered()
 {
-    CurrentWidget()->setZoom(CurrentWidget()->getZoom()/1.5f);
+    currentWidget()->setZoom(currentWidget()->getZoom()/1.5f);
 }
 
 void MainWindow::on_actionZoom_fit_triggered()
 {
-    CurrentWidget()->zoomFit();
+    currentWidget()->zoomFit();
 }
 
 void MainWindow::zoomFactor(int aFactor)
 {
-    CurrentWidget()->zoomFactor(aFactor);
+    currentWidget()->zoomFactor(aFactor);
 }
 
 void MainWindow::on_actionLoad_plys_triggered()
@@ -488,7 +509,7 @@ void MainWindow::on_actionLoad_image_triggered()
 
 void MainWindow::on_actionSave_masks_triggered()
 {
-    _Engine->saveMask(CurrentWidgetIdx());
+    _Engine->saveMask(currentWidgetIdx());
 }
 
 void MainWindow::on_actionSave_as_triggered()
@@ -499,20 +520,20 @@ void MainWindow::on_actionSave_as_triggered()
     {
         _Engine->setFilenameOut(fname);
 
-        _Engine->saveMask(CurrentWidgetIdx());
+        _Engine->saveMask(currentWidgetIdx());
     }
 }
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    CurrentWidget()->getHistoryManager()->save();
+    currentWidget()->getHistoryManager()->save();
 }
 
 void MainWindow::closeAll()
 {
     _Engine->unloadAll();
 
-    for (uint aK=0; aK < NbWidgets(); ++aK)
+    for (uint aK=0; aK < nbWidgets(); ++aK)
         getWidget(aK)->reset();
 }
 
@@ -629,18 +650,18 @@ void  MainWindow::setGamma(float aGamma)
 
 void MainWindow::undo(bool undo)
 {
-    if (CurrentWidget()->getHistoryManager()->size())
+    if (currentWidget()->getHistoryManager()->size())
     {
         if (_bMode2D)
         {
-            int idx = CurrentWidgetIdx();
+            int idx = currentWidgetIdx();
 
             _Engine->reloadImage(idx);
 
-            CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+            currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
         }
 
-        undo ? CurrentWidget()->getHistoryManager()->undo() : CurrentWidget()->getHistoryManager()->redo();
-        CurrentWidget()->applyInfos();
+        undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
+        currentWidget()->applyInfos();
     }
 }

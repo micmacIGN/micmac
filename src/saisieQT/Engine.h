@@ -71,9 +71,9 @@ public:
     void        setFilenameOut(QString str);
     void        setSelectionFilenames();
 
-    QStringList& getFilenamesIn() {return _FilenamesIn;}
-    QStringList getFilenamesOut() {return _FilenamesOut;}
-    QStringList& getSelectionFilenames() {return _SelectionOut;}
+    QStringList& getFilenamesIn()        { return _FilenamesIn; }
+    QStringList  getFilenamesOut()       { return _FilenamesOut; }
+    QStringList& getSelectionFilenames() { return _SelectionOut; }
 
     void        setPostFix(QString str);
 
