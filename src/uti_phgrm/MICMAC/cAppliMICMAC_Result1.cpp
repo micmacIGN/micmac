@@ -920,7 +920,10 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
              std::string aNameTFW = StdPrefix(aName) + ".tfw";
              std::ofstream aFtfw(aNameTFW.c_str());
              if (aFOM.mGXml.mPrec >=0)
-                aFtfw.precision(aFOM.mGXml.mPrec);
+                 aFtfw.precision(aFOM.mGXml.mPrec);
+             else
+                 aFtfw.precision(12);// modification jean christophe michelin je met une precision standard
+
               aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
               aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
               aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";

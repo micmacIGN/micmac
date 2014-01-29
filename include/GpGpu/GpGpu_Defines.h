@@ -7,7 +7,7 @@ typedef unsigned char pixel;
 #define WARPSIZE    32
 #define SIZERING    2
 #define INTDEFAULT	-64
-#define SAMPLETERR	1
+#define SAMPLETERR	4
 #define INTERZ		8
 #define NEAREST		0
 #define LINEARINTER	1
