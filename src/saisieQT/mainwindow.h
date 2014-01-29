@@ -58,7 +58,7 @@ public slots:
 
     void progression();
 
-    void setMode2D(bool mBool);
+    void setMode(int mode);
 
     cEngine* getEngine(){return _Engine;}
 
@@ -76,7 +76,6 @@ protected slots:
     void on_actionShow_messages_toggled(bool);
     void on_actionToggleMode_toggled(bool);
 
-    void on_action2D_3D_mode_triggered();
     void on_actionReset_view_triggered();
 
     void on_actionSetViewTop_triggered();
