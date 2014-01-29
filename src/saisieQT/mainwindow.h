@@ -58,7 +58,7 @@ public slots:
 
     void progression();
 
-    void setMode(int mode);
+    void setMode();
 
     cEngine* getEngine(){return _Engine;}
 
@@ -141,7 +141,7 @@ private:
 
     QMenu*                  _RFMenu; //recent files menu
 
-    bool                    _bMode2D;
+    int                     _mode;
 
     QPoint                  _nbFen;
     QPoint                  _szFen;
@@ -150,7 +150,6 @@ private:
     QGridLayout*            _layout;
     QGridLayout*            _zoomLayout;
 
-    bool                    _bModePt;
     QString                 _ptName;
 };
 #endif // MAINWINDOW_H
