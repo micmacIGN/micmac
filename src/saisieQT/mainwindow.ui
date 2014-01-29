@@ -228,7 +228,6 @@ QStatusBar
     <addaction name="actionShow_cams"/>
     <addaction name="actionShow_messages"/>
     <addaction name="actionReset_view"/>
-    <addaction name="action2D_3D_mode"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -700,14 +699,6 @@ QStatusBar
    </property>
    <property name="shortcut">
     <string>Ctrl+4</string>
-   </property>
-  </action>
-  <action name="action2D_3D_mode">
-   <property name="text">
-    <string>2D/3D mode </string>
-   </property>
-   <property name="shortcut">
-    <string>F8</string>
    </property>
   </action>
   <action name="actionReset_view">

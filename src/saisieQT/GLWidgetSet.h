@@ -12,22 +12,22 @@ public:
     GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt);
     ~GLWidgetSet();
 
-    void setCurrentWidgetIdx(uint aK);
-    uint currentWidgetIdx(){return _currentWidget;}
+    void setCurrentWidgetIdx(int aK);
+    int  currentWidgetIdx(){return _currentWidget;}
 
-    GLWidget* getWidget(uint aK){return _Widgets[aK];}
+    GLWidget* getWidget(uint aK){return _widgets[aK];}
 
-    GLWidget* currentWidget(){return _Widgets[_currentWidget];}
+    GLWidget* currentWidget(){return _widgets[_currentWidget];}
 
-    uint nbWidgets() const {return (uint) _Widgets.size();}
+    int nbWidgets() const {return _widgets.size();}
 
     GLWidget* zoomWidget(){return _zoomWidget;}
 
 private:
 
-    QVector <GLWidget*>  _Widgets;
+    QVector <GLWidget*> _widgets;
     GLWidget*           _zoomWidget;
-    uint                 _currentWidget;
+    int                 _currentWidget;
 };
 
 #endif // GLWIDGETGRID_H

@@ -34,33 +34,12 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
     _nbFen = QPoint(aNbFen.x,aNbFen.y);
     _szFen = QPoint(aSzW.x,aSzW.y);
 
-    setMode2D(mode != MASK3D);
+    setMode(mode);
 
     int cpt=0;
     for (int aK = 0; aK < aNbFen.x;++aK)
         for (int bK = 0; bK < aNbFen.y;++bK, cpt++)
             _layout->addWidget(getWidget(cpt), bK, aK);
-
-    if (mode>1) //zoom Window
-    {
-        _zoomLayout->addWidget(zoomWidget());
-
-        zoomWidget()->setOption(cGLData::OpShow_Mess,false);
-
-        _ui->zoomLayout->setLayout(_zoomLayout);
-
-        resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
-    }
-    else
-    {
-        resize(_szFen.x(), _szFen.y());
-
-        _ui->verticalLayout->removeWidget(_ui->zoomLayout);
-        _ui->verticalLayout->removeItem(_ui->verticalSpacer);
-
-        delete _ui->zoomLayout;
-        delete _ui->verticalSpacer;
-    }
 
     _signalMapper = new QSignalMapper (this);
     connectActions();
@@ -81,7 +60,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActions()
 {
-    for (uint aK = 0; aK < nbWidgets();++aK)
+    for (int aK = 0; aK < nbWidgets();++aK)
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
 
     //File menu
@@ -163,7 +142,6 @@ void MainWindow::addFiles(const QStringList& filenames)
         _Engine->setFilenamesIn(filenames);
 
         if (_bMode2D == true) closeAll();
-        setMode2D(false);
 
         QFileInfo fi(filenames[0]);
 
@@ -212,9 +190,8 @@ void MainWindow::addFiles(const QStringList& filenames)
             _ui->actionShow_cams->setChecked(true);
         }
         else // LOAD IMAGE
-        {
-            setMode2D(true);
-            closeAll();            
+        {         
+            closeAll();
 
             _Engine->loadImages(filenames);            
         }
@@ -224,10 +201,10 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->allocAndSetGLData(_bModePt, _ptName);
 
-        for (uint aK = 0; aK < nbWidgets();++aK)
+        for (int aK = 0; aK < nbWidgets();++aK)
         {
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
-            if (aK < (uint) filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+            if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
         }
 
         for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
@@ -533,8 +510,10 @@ void MainWindow::closeAll()
 {
     _Engine->unloadAll();
 
-    for (uint aK=0; aK < nbWidgets(); ++aK)
+    for (int aK=0; aK < nbWidgets(); ++aK)
         getWidget(aK)->reset();
+
+    zoomWidget()->reset();
 }
 
 void MainWindow::openRecentFile()
@@ -609,38 +588,70 @@ QString MainWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
-void MainWindow::setMode2D(bool mBool)
+void MainWindow::setMode(int mode)
 {
-    _bMode2D = mBool;
+     _bMode2D = mode != MASK3D;
 
-    _ui->actionLoad_plys->setVisible(!mBool);
-    _ui->actionLoad_camera->setVisible(!mBool);
-    _ui->actionShow_cams->setVisible(!mBool);
-    _ui->actionShow_axis->setVisible(!mBool);
-    _ui->actionShow_ball->setVisible(!mBool);
-    _ui->actionShow_bbox->setVisible(!mBool);
-    _ui->actionSave_selection->setVisible(!mBool);
-    _ui->actionToggleMode->setVisible(!mBool);
+    _ui->actionLoad_plys->setVisible(!_bMode2D);
+    _ui->actionLoad_camera->setVisible(!_bMode2D);
+    _ui->actionShow_cams->setVisible(!_bMode2D);
+    _ui->actionShow_axis->setVisible(!_bMode2D);
+    _ui->actionShow_ball->setVisible(!_bMode2D);
+    _ui->actionShow_bbox->setVisible(!_bMode2D);
+    _ui->actionSave_selection->setVisible(!_bMode2D);
+    _ui->actionToggleMode->setVisible(!_bMode2D);
 
-    _ui->menuStandard_views->menuAction()->setVisible(!mBool);
+    _ui->menuStandard_views->menuAction()->setVisible(!_bMode2D);
 
     //pour activer/desactiver les raccourcis clavier
 
-    _ui->actionLoad_plys->setEnabled(!mBool);
-    _ui->actionLoad_camera->setEnabled(!mBool);
-    _ui->actionShow_cams->setEnabled(!mBool);
-    _ui->actionShow_axis->setEnabled(!mBool);
-    _ui->actionShow_ball->setEnabled(!mBool);
-    _ui->actionShow_bbox->setEnabled(!mBool);
-    _ui->actionSave_selection->setEnabled(!mBool);
-    _ui->actionToggleMode->setEnabled(!mBool);
-}
+    _ui->actionLoad_plys->setEnabled(!_bMode2D);
+    _ui->actionLoad_camera->setEnabled(!_bMode2D);
+    _ui->actionShow_cams->setEnabled(!_bMode2D);
+    _ui->actionShow_axis->setEnabled(!_bMode2D);
+    _ui->actionShow_ball->setEnabled(!_bMode2D);
+    _ui->actionShow_bbox->setEnabled(!_bMode2D);
+    _ui->actionSave_selection->setEnabled(!_bMode2D);
+    _ui->actionToggleMode->setEnabled(!_bMode2D);
 
-void MainWindow::on_action2D_3D_mode_triggered()
-{
-    setMode2D(!_bMode2D);
+    if (mode>1)
+    {
+        //zoom Window
+        _zoomLayout->addWidget(zoomWidget());
 
-    closeAll();
+        zoomWidget()->setOption(cGLData::OpShow_Mess,false);
+
+        _ui->zoomLayout->setLayout(_zoomLayout);
+
+        resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
+
+        //disable some actions
+        _ui->actionAdd->setEnabled(false);
+        _ui->actionSelect_none->setEnabled(false);
+        _ui->actionInvertSelected->setEnabled(false);
+        _ui->actionSelectAll->setEnabled(false);
+        _ui->actionReset->setEnabled(false);
+        _ui->actionRemove->setEnabled(false);
+
+        _ui->actionAdd->setVisible(false);
+        _ui->actionSelect_none->setVisible(false);
+        _ui->actionInvertSelected->setVisible(false);
+        _ui->actionSelectAll->setVisible(false);
+        _ui->actionReset->setVisible(false);
+        _ui->actionRemove->setVisible(false);
+
+        _ui->menuSelection->setTitle(tr("H&istory"));
+    }
+    else
+    {
+        resize(_szFen.x(), _szFen.y());
+
+        _ui->verticalLayout->removeWidget(_ui->zoomLayout);
+        _ui->verticalLayout->removeItem(_ui->verticalSpacer);
+
+        delete _ui->zoomLayout;
+        delete _ui->verticalSpacer;
+    }
 }
 
 void  MainWindow::setGamma(float aGamma)
