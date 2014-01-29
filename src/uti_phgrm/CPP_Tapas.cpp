@@ -240,6 +240,7 @@ int Tapas_main(int argc,char ** argv)
     double CentreLVM = IsForCalib ? 0.1 : 1.0;
     double RayFEInit = IsForCalib ? 0.85 : 0.95;
      
+// std::cout << "IFCCCCC " << IsForCalib << " " << CentreLVM << " " << RayFEInit << "\n"; getchar();
 
     InitVerifModele(aModele,aICNM);
 

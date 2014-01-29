@@ -365,6 +365,8 @@ class cPoseCam
 	  const std::string & Name() const;
 	  double  AltiSol() const;
 	  double  Profondeur() const;
+          double  GetProfDyn(bool & Ok) const;
+
 
 	  void    InitAvantCompens();
 	  void    AddPMoy(const Pt3dr & aP,double aBSurH);
@@ -549,6 +551,8 @@ class cPoseCam
           bool                         mFidExist;
 
           std::vector<Pt3dr>           mPtsVu;
+          bool                         mLastEstimProfIsInit;
+          double                       mLasEstimtProf;
 };
 
 
