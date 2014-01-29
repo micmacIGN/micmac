@@ -6,9 +6,9 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
         GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > 1),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
+        _mode(mode),
         _layout(new QGridLayout),
         _zoomLayout(new QGridLayout),
-        _bModePt(mode > 1),
         _ptName(pointName)
 {
     _ui->setupUi(this);
@@ -34,7 +34,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
     _nbFen = QPoint(aNbFen.x,aNbFen.y);
     _szFen = QPoint(aSzW.x,aSzW.y);
 
-    setMode(mode);
+    setMode();
 
     int cpt=0;
     for (int aK = 0; aK < aNbFen.x;++aK)
@@ -141,7 +141,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->setFilenamesIn(filenames);
 
-        if (_bMode2D == true) closeAll();
+        if (_mode != MASK3D) closeAll();
 
         QFileInfo fi(filenames[0]);
 
@@ -191,15 +191,13 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
         else // LOAD IMAGE
         {         
-            closeAll();
-
             _Engine->loadImages(filenames);            
         }
 
         _Engine->setSelectionFilenames();
         _Engine->setFilenamesOut();
 
-        _Engine->allocAndSetGLData(_bModePt, _ptName);
+        _Engine->allocAndSetGLData(_mode > 1, _ptName);
 
         for (int aK = 0; aK < nbWidgets();++aK)
         {
@@ -218,7 +216,7 @@ void MainWindow::on_actionFullScreen_toggled(bool state)
 
 void MainWindow::on_actionShow_ball_toggled(bool state)
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         currentWidget()->setOption(cGLData::OpShow_Ball,state);
 
@@ -232,13 +230,13 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 
 void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
-    if(!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_BBox,state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         currentWidget()->setOption(cGLData::OpShow_Axis,state);
 
@@ -252,7 +250,7 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 
 void MainWindow::on_actionShow_cams_toggled(bool state)
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_Cams,state);
 }
 
@@ -263,27 +261,27 @@ void MainWindow::on_actionShow_messages_toggled(bool state)
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 }
 
 void MainWindow::on_actionHelpShortcuts_triggered()
 {
     QString text = tr("File menu:") +"\n\n";
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
         text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
     }
     text += "Ctrl+O: \t"+tr("open image file")+"\n";
-    if (!_bMode2D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
+    if (_mode == MASK3D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
     text += "Ctrl+S: \t"+tr("save mask file")+"\n";
     text += "Ctrl+Maj+S: \t"+tr("save mask file as")+"\n";
     text += "Ctrl+X: \t"+tr("close files")+"\n";
     text += "Ctrl+Q: \t"+tr("quit") +"\n\n";
     text += tr("View menu:") +"\n\n";
     text += "F2: \t"+tr("full screen") +"\n";
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         text += "F3: \t"+tr("show axis") +"\n";
         text += "F4: \t"+tr("show ball") +"\n";
@@ -293,7 +291,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
     text += "F7: \t"+tr("show messages") +"\n";
     text += "F8: \t"+tr("2D mode / 3D mode") +"\n";
 
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
     else
     {
@@ -310,14 +308,14 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 
 
     text += tr("Selection menu:") +"\n\n";
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
     }
     text += tr("Left click : \tadd a vertex to polyline") +"\n";
     text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
     text += tr("Echap: \tdelete polyline") +"\n";
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         text += tr("Space bar: \tadd points inside polyline") +"\n";
         text += tr("Del: \tremove points inside polyline") +"\n";
@@ -379,7 +377,7 @@ void MainWindow::on_actionSelectAll_triggered()
 
 void MainWindow::on_actionReset_triggered()
 {
-    if (_bMode2D)
+    if (_mode != MASK3D)
     {
         closeAll();
 
@@ -398,37 +396,37 @@ void MainWindow::on_actionRemove_triggered()
 
 void MainWindow::on_actionSetViewTop_triggered()
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setView(TOP_VIEW);
 }
 
 void MainWindow::on_actionSetViewBottom_triggered()
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setView(BOTTOM_VIEW);
 }
 
 void MainWindow::on_actionSetViewFront_triggered()
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setView(FRONT_VIEW);
 }
 
 void MainWindow::on_actionSetViewBack_triggered()
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setView(BACK_VIEW);
 }
 
 void MainWindow::on_actionSetViewLeft_triggered()
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setView(LEFT_VIEW);
 }
 
 void MainWindow::on_actionSetViewRight_triggered()
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         currentWidget()->setView(RIGHT_VIEW);
 }
 
@@ -588,42 +586,40 @@ QString MainWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
-void MainWindow::setMode(int mode)
+void MainWindow::setMode()
 {
-     _bMode2D = mode != MASK3D;
+    bool isMode3D = _mode == MASK3D;
 
-    _ui->actionLoad_plys->setVisible(!_bMode2D);
-    _ui->actionLoad_camera->setVisible(!_bMode2D);
-    _ui->actionShow_cams->setVisible(!_bMode2D);
-    _ui->actionShow_axis->setVisible(!_bMode2D);
-    _ui->actionShow_ball->setVisible(!_bMode2D);
-    _ui->actionShow_bbox->setVisible(!_bMode2D);
-    _ui->actionSave_selection->setVisible(!_bMode2D);
-    _ui->actionToggleMode->setVisible(!_bMode2D);
+    _ui->actionLoad_plys->setVisible(isMode3D);
+    _ui->actionLoad_camera->setVisible(isMode3D);
+    _ui->actionShow_cams->setVisible(isMode3D);
+    _ui->actionShow_axis->setVisible(isMode3D);
+    _ui->actionShow_ball->setVisible(isMode3D);
+    _ui->actionShow_bbox->setVisible(isMode3D);
+    _ui->actionSave_selection->setVisible(isMode3D);
+    _ui->actionToggleMode->setVisible(isMode3D);
 
-    _ui->menuStandard_views->menuAction()->setVisible(!_bMode2D);
+    _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
 
     //pour activer/desactiver les raccourcis clavier
 
-    _ui->actionLoad_plys->setEnabled(!_bMode2D);
-    _ui->actionLoad_camera->setEnabled(!_bMode2D);
-    _ui->actionShow_cams->setEnabled(!_bMode2D);
-    _ui->actionShow_axis->setEnabled(!_bMode2D);
-    _ui->actionShow_ball->setEnabled(!_bMode2D);
-    _ui->actionShow_bbox->setEnabled(!_bMode2D);
-    _ui->actionSave_selection->setEnabled(!_bMode2D);
-    _ui->actionToggleMode->setEnabled(!_bMode2D);
+    _ui->actionLoad_plys->setEnabled(isMode3D);
+    _ui->actionLoad_camera->setEnabled(isMode3D);
+    _ui->actionShow_cams->setEnabled(isMode3D);
+    _ui->actionShow_axis->setEnabled(isMode3D);
+    _ui->actionShow_ball->setEnabled(isMode3D);
+    _ui->actionShow_bbox->setEnabled(isMode3D);
+    _ui->actionSave_selection->setEnabled(isMode3D);
+    _ui->actionToggleMode->setEnabled(isMode3D);
 
-    if (mode>1)
+    if (_mode>1)
     {
+        resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
+
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
 
-        zoomWidget()->setOption(cGLData::OpShow_Mess,false);
-
         _ui->zoomLayout->setLayout(_zoomLayout);
-
-        resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
 
         //disable some actions
         _ui->actionAdd->setEnabled(false);
@@ -663,7 +659,7 @@ void MainWindow::undo(bool undo)
 {
     if (currentWidget()->getHistoryManager()->size())
     {
-        if (_bMode2D)
+        if (_mode != MASK3D)
         {
             int idx = currentWidgetIdx();
 
