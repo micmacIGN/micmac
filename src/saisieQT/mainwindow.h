@@ -21,8 +21,8 @@ namespace Ui {
 class MainWindow;
 }
 
-const QColor colorBG0(65,65,60);
-const QColor colorBG1(120,115,115);
+const QColor colorBG0("#323232");
+const QColor colorBG1(80,80,80);
 
 //! Interface mode
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
