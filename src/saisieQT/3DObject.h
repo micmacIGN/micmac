@@ -246,7 +246,7 @@ class cPolygon : public cObjectGL
         void    setpointSize(float size) { _pointSize = size; }
 
         void    add(cPoint const &pt){ _points.push_back(pt); }
-        void    addQPoint(QPointF const &pt, bool selected=false);
+        void    add(QPointF const &pt, bool selected=false);
         void    addPoint(QPointF const &pt);
 
         void    clear();

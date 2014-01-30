@@ -673,9 +673,8 @@ void cPolygon::removeNearestOrClose(QPointF pos)
 void cPolygon::removeSelectedPoint()
 {
     if ((_idx >=0)&&(_idx<size()))
-    {
+
         removePoint(_idx);
-    }
 }
 
 void cPolygon::setNearestPointState(const QPointF &pos, int state)
@@ -723,7 +722,7 @@ QString cPolygon::getSelectedPointName()
     else return _defPtName;
 }
 
-void cPolygon::addQPoint(const QPointF &pt, bool selected)
+void cPolygon::add(const QPointF &pt, bool selected)
 {
     _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, _color));
 
@@ -739,7 +738,7 @@ void cPolygon::addPoint(const QPointF &pt)
     if (size() >= 1)
         _points[size()-1] = cPoint(_painter, pt, _defPtName, _bShowNames, _color);
 
-    addQPoint(pt);
+    add(pt);
 }
 
 void cPolygon::clear()
@@ -857,7 +856,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     {
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
 
-            addQPoint(pos);
+            add(pos);
 
         else if (nbVertex > 1)               // replace last point by the current one
 
