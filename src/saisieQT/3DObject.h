@@ -380,6 +380,8 @@ class cImageGL : public cObjectGL
         int     width()  {return _size.width();}
         int     height() {return _size.height();}
 
+        bool    isPtInside(QPointF const &pt);
+
         void    setGamma(float gamma){_gamma = (gamma >= 0) ? gamma : 0;}
 
         float   getGamma(){ return _gamma;}

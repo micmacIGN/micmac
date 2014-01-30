@@ -64,9 +64,10 @@ public:
     void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
     void        setDir(QDir aDir){_Dir = aDir;}
+    void        setDir(QStringList const &list);
     QDir        getDir(){return _Dir;}
 
-    void        setFilenamesIn(QStringList const &strl){_FilenamesIn = strl;}
+    void        setFilenamesInAndDir(QStringList const &strl);
     void        setFilenamesOut();
     void        setFilenameOut(QString str);
     void        setSelectionFilenames();
@@ -97,14 +98,11 @@ public:
     ~cEngine();
 
     //! Set working directory
-    void    setDir(QDir aDir){_Loader->setDir(aDir);}
-
-    //! Set working directory
     void    setSelectionFilenames(){_Loader->setSelectionFilenames();}
     QStringList& getSelectionFilenames(){ return _Loader->getSelectionFilenames(); }
 
     //! Set input filenames
-    void    setFilenamesIn(QStringList const &strl){_Loader->setFilenamesIn(strl);}
+    void    setFilenamesInAndDir(QStringList const &strl){_Loader->setFilenamesInAndDir(strl);}
 
     QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
 
@@ -133,6 +131,8 @@ public:
     void    reloadImage(int aK);
 
     void    unloadAll();
+
+    void    unload(int aK);
 
     //! Compute mask binary images: projection of visible points into loaded cameras
     void    do3DMasks();
