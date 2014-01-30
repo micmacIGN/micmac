@@ -236,6 +236,7 @@ class cPolygon : public cObjectGL
         void    findNearestPoint(const QPointF &pos, float sqr_radius = _sqr_radius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
+        void    removeSelectedPoint();
 
         void    setNearestPointState(const QPointF &pos, int state);
         void    highlightNearestPoint(const QPointF &pos);
@@ -245,7 +246,7 @@ class cPolygon : public cObjectGL
         void    setpointSize(float size) { _pointSize = size; }
 
         void    add(cPoint const &pt){ _points.push_back(pt); }
-        void    addQPoint(QPointF const &pt, bool selected=false);
+        void    add(QPointF const &pt, bool selected=false);
         void    addPoint(QPointF const &pt);
 
         void    clear();

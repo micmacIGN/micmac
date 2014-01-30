@@ -322,7 +322,7 @@ void GLWidget::centerViewportOnImagePosition(int px, int py)
     float tx = (float) px / vpCenterX;
     float ty = (float) py / vpCenterY;
 
-    m_lastClickZoom = QPoint(vpCenterX, vpCenterY);
+    m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
 
     _matrixManager.translate(-tx, -ty);
 
@@ -338,7 +338,7 @@ void GLWidget::setZoom(float value)
 
     _params.m_zoom = value;
 
-    if(m_bDisplayMode2D && _messageManager.drawMessages())
+    if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
 
     update();
@@ -421,7 +421,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 else if (!polygon().bShowLines() && isPtInsideIm(m_lastPosImage))
 
-                    polygon().addQPoint(m_lastPosImage);
+                    polygon().add(m_lastPosImage);
             }
         }
         else if (event->button() == Qt::RightButton)
@@ -482,11 +482,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
 
-            if(polygon().isSelected())                    // MOVE POLYGON
+            if (polygon().isSelected())                    // MOVE POLYGON
 
                 polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom));
 
-            else                                          // REFRESH HELPER POLYGON
+            else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
 
                 polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
         }
