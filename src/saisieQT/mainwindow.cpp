@@ -447,7 +447,7 @@ void MainWindow::on_actionSetViewRight_triggered()
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    currentWidget()->resetView(true,true,true);
+    currentWidget()->resetView(true,true,true,true);
 }
 
 void MainWindow::on_actionZoom_Plus_triggered()
@@ -677,7 +677,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
     if (zoomWidget())
     {
-        zoomWidget()->setGLData(glW->getGLData(),false,true,false);
+        zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
         zoomWidget()->setZoom(3.f);
         zoomWidget()->setOption(cGLData::OpShow_Mess,false);
         connect((GLWidget*)cuWid, SIGNAL(newImagePosition(int, int)), zoomWidget(), SLOT(centerViewportOnImagePosition(int,int)));

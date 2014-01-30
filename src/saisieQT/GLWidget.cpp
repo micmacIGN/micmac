@@ -80,7 +80,7 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
     }
 }
 
-void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool setPainter)
+void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool setPainter, bool resetPoly)
 {
     if (aData != NULL)
     {
@@ -94,7 +94,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
 
         _contextMenu.setPolygon( &m_GLData->m_polygon);
 
-        resetView(showMessage, doZoom);
+         resetView(showMessage, doZoom, true, resetPoly);
     }
 }
 
@@ -629,12 +629,12 @@ void GLWidget::reset()
     resetView();
 }
 
-void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix)
+void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix,bool resetPoly)
 {
     if (resetMatrix)
         _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() : Pt3dr(0.f,0.f,0.f) );
 
-    if (hasDataLoaded()) m_GLData->clearPolygon();
+    if (hasDataLoaded() && resetPoly) m_GLData->clearPolygon();
 
     setOption(cGLData::OpShow_Mess,showMessage);
 
