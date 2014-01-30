@@ -658,9 +658,9 @@ void cPolygon::close()
 
 void cPolygon::removeNearestOrClose(QPointF pos)
 {
-    if ((_idx >=0)&&(_idx<size())&&_bIsClosed)
+    if (_bIsClosed)
     {
-        removePoint(_idx);   // remove nearest point
+        removeSelectedPoint();
 
         findNearestPoint(pos);
 
@@ -668,6 +668,14 @@ void cPolygon::removeNearestOrClose(QPointF pos)
     }
     else // close polygon
         close();
+}
+
+void cPolygon::removeSelectedPoint()
+{
+    if ((_idx >=0)&&(_idx<size()))
+    {
+        removePoint(_idx);
+    }
 }
 
 void cPolygon::setNearestPointState(const QPointF &pos, int state)
@@ -1034,12 +1042,17 @@ void cPolygonHelper::build(cPoint const &pos, bool insertMode)
     }
     else //moveMode
     {
-        int idx = _polygon->idx();
+        if (sz > 1)
+        {
+            int idx = _polygon->idx();
 
-        if ((idx > 0) && (idx <= sz-1))
-            setPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
-        else if (idx  == 0)
-            setPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
+            if ((idx > 0) && (idx <= sz-1))
+                setPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
+            else if (idx  == 0)
+                setPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
+        }
+        else
+            setPoints(pos, pos, pos);
     }
 }
 

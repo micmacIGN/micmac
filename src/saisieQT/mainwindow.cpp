@@ -406,7 +406,10 @@ void MainWindow::on_actionReset_triggered()
 
 void MainWindow::on_actionRemove_triggered()
 {
-    currentWidget()->Select(SUB);
+    if (_mode > MASK3D)
+        currentWidget()->polygon().removeSelectedPoint();
+    else
+        currentWidget()->Select(SUB);
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
@@ -648,7 +651,8 @@ void MainWindow::setMode()
         hideAction(_ui->actionInvertSelected, false);
         hideAction(_ui->actionSelectAll, false);
         hideAction(_ui->actionReset, false);
-        hideAction(_ui->actionRemove, false);
+
+        hideAction(_ui->actionRemove, true);
 
         _ui->menuSelection->setTitle(tr("H&istory"));
     }
