@@ -96,6 +96,8 @@ public:
     float imWidth() { return m_GLData->glMaskedImage._m_image->width(); }
     float imHeight(){ return m_GLData->glMaskedImage._m_image->height();}
 
+    bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glMaskedImage._m_image->isPtInside(pt); }
+
     GLint vpWidth() { return _matrixManager.vpWidth(); }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 

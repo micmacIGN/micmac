@@ -415,7 +415,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                     polygon().setPointSelected();
 
-                else if (!polygon().bShowLines())
+                else if (!polygon().bShowLines() && isPtInsideIm(m_lastPosImage))
 
                     polygon().add(m_lastPosImage);
             }
@@ -453,8 +453,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void GLWidget::refreshPositionMessage(QPointF pos)
 {
-    if (_messageManager.drawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
+    if (_messageManager.drawMessages() && isPtInsideIm(pos))
         _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
+    else
+        _messageManager.GetPenultimateMessage()->message = " ";
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)

@@ -143,6 +143,24 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
 }
 
+void cLoader::setFilenamesInAndDir(const QStringList &strl)
+{
+    _FilenamesIn = strl;
+
+    setDir(strl);
+}
+
+void cLoader::setDir(const QStringList &list)
+{
+    QFileInfo fi(list[0]);
+
+    //set default working directory as first file subfolder
+    QDir Dir = fi.dir();
+    Dir.cdUp();
+
+    _Dir = Dir;
+}
+
 // File structure is assumed to be a typical Micmac workspace structure:
 // .ply files are in /MEC folder and orientations files in /Ori- folder
 // /MEC and /Ori- are in the main working directory (m_Dir)
@@ -330,6 +348,15 @@ void cEngine::unloadAll()
     _Data->clearAll();
     qDeleteAll(_vGLData);
     _vGLData.clear();
+}
+
+void cEngine::unload(int aK)
+{
+    _Data->clear(aK);
+
+    delete _vGLData[aK];
+    _vGLData[aK] = NULL;
+
 }
 
 void cEngine::allocAndSetGLData(bool modePt, QString ptName)
