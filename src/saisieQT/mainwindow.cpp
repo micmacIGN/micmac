@@ -669,6 +669,10 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     {
         zoomWidget()->setGLData(glW->getGLData(),false,true,false);
 
+        zoomWidget()->setDisplayMode(true);
+
+        zoomWidget()->getMessageManager()->showMessages(false);
+
         zoomWidget()->setZoom(3.f);
 
         connect((GLWidget*)cuWid, SIGNAL(newImagePosition(int, int)), zoomWidget(), SLOT(centerViewportOnImagePosition(int,int)));
