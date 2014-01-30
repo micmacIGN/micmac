@@ -1620,7 +1620,6 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
         else
             displayNewMessage(QString("Drag & drop files"));
     }
-
 }
 
 std::list<MessageToDisplay>::iterator cMessages2DGL::GetLastMessage()
