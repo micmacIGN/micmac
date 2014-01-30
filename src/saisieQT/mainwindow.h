@@ -22,7 +22,8 @@ class MainWindow;
 }
 
 const QColor colorBG0("#323232");
-const QColor colorBG1(80,80,80);
+const QColor colorBG1("#808080");
+const QColor colorBorder("#606060");
 
 //! Interface mode
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/

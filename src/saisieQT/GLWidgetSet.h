@@ -3,6 +3,7 @@
 
 #include "GLWidget.h"
 #include <QVector>
+#include <QStyle>
 
 class GLWidget;
 

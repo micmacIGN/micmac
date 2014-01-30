@@ -105,6 +105,8 @@ public:
 
     void refreshPositionMessage(QPointF pos);
 
+    bool imageLoaded();
+
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);

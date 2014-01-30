@@ -90,7 +90,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
             m_GLData->setPainter(_painter);
 
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
-        m_bFirstAction   =  m_GLData->isNewMask();
+        m_bFirstAction   =  m_GLData->isNewMask();        
 
         _contextMenu.setPolygon( &m_GLData->m_polygon);
 
@@ -98,12 +98,17 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
     }
 }
 
+bool GLWidget::imageLoaded()
+{
+    return hasDataLoaded() &&  m_bDisplayMode2D;
+}
+
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
-    cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, _BGColor1);
+    cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, imageLoaded() ? _BGColor0 : _BGColor1);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 

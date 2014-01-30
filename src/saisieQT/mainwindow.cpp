@@ -13,20 +13,27 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
 {
     _ui->setupUi(this);
 
-    QString style = "border: 2px solid #707070;"
+    QString style = "border: 1px solid #707070;"
             "border-radius: 0px;"
-            "padding: 2px;"
+            "padding: 0px;"
+            "margin: 0px;"
             "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
 
-    style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
-    style = style.arg(colorBG1.red()).arg(colorBG1.green()).arg(colorBG1.blue());
+    _layout->setContentsMargins(4,4,4,4);
+    _layout->setHorizontalSpacing(4);
+    _layout->setVerticalSpacing(4);
 
-#ifdef ELISE_Darwin    
+    style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
+    style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
+
+#ifdef ELISE_Darwin
     _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
     _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
 #endif
 
     _ui->OpenglLayout->setStyleSheet(style);
+
+    _ui->OpenglLayout->setContentsMargins(0,0,0,0);
 
     _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
 
