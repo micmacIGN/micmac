@@ -3,7 +3,7 @@
 
 MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > 1),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > MASK3D),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
         _mode(mode),
@@ -197,7 +197,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         _Engine->setSelectionFilenames();
         _Engine->setFilenamesOut();
 
-        _Engine->allocAndSetGLData(_mode > 1, _ptName);
+        _Engine->allocAndSetGLData(_mode > MASK3D, _ptName);
 
         for (int aK = 0; aK < nbWidgets();++aK)
         {
@@ -511,7 +511,8 @@ void MainWindow::closeAll()
     for (int aK=0; aK < nbWidgets(); ++aK)
         getWidget(aK)->reset();
 
-    zoomWidget()->reset();
+    if (zoomWidget() != NULL)
+        zoomWidget()->reset();
 }
 
 void MainWindow::openRecentFile()
@@ -530,7 +531,6 @@ void MainWindow::openRecentFile()
 
         addFiles(_Engine->getFilenamesIn());
     }
-	
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
@@ -586,33 +586,28 @@ QString MainWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
+void hideAction(QAction* action, bool show)
+{
+    action->setVisible(show);
+    action->setEnabled(show);
+}
+
 void MainWindow::setMode()
 {
     bool isMode3D = _mode == MASK3D;
 
-    _ui->actionLoad_plys->setVisible(isMode3D);
-    _ui->actionLoad_camera->setVisible(isMode3D);
-    _ui->actionShow_cams->setVisible(isMode3D);
-    _ui->actionShow_axis->setVisible(isMode3D);
-    _ui->actionShow_ball->setVisible(isMode3D);
-    _ui->actionShow_bbox->setVisible(isMode3D);
-    _ui->actionSave_selection->setVisible(isMode3D);
-    _ui->actionToggleMode->setVisible(isMode3D);
+    hideAction(_ui->actionLoad_plys,  isMode3D);
+    hideAction(_ui->actionLoad_camera,isMode3D);
+    hideAction(_ui->actionShow_cams,  isMode3D);
+    hideAction(_ui->actionShow_axis,  isMode3D);
+    hideAction(_ui->actionShow_ball,  isMode3D);
+    hideAction(_ui->actionShow_bbox,  isMode3D);
+    hideAction(_ui->actionShow_cams,  isMode3D);
+    hideAction(_ui->actionToggleMode, isMode3D);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
 
-    //pour activer/desactiver les raccourcis clavier
-
-    _ui->actionLoad_plys->setEnabled(isMode3D);
-    _ui->actionLoad_camera->setEnabled(isMode3D);
-    _ui->actionShow_cams->setEnabled(isMode3D);
-    _ui->actionShow_axis->setEnabled(isMode3D);
-    _ui->actionShow_ball->setEnabled(isMode3D);
-    _ui->actionShow_bbox->setEnabled(isMode3D);
-    _ui->actionSave_selection->setEnabled(isMode3D);
-    _ui->actionToggleMode->setEnabled(isMode3D);
-
-    if (_mode>1)
+    if (_mode > MASK3D)
     {
         resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
 
@@ -622,19 +617,12 @@ void MainWindow::setMode()
         _ui->zoomLayout->setLayout(_zoomLayout);
 
         //disable some actions
-        _ui->actionAdd->setEnabled(false);
-        _ui->actionSelect_none->setEnabled(false);
-        _ui->actionInvertSelected->setEnabled(false);
-        _ui->actionSelectAll->setEnabled(false);
-        _ui->actionReset->setEnabled(false);
-        _ui->actionRemove->setEnabled(false);
-
-        _ui->actionAdd->setVisible(false);
-        _ui->actionSelect_none->setVisible(false);
-        _ui->actionInvertSelected->setVisible(false);
-        _ui->actionSelectAll->setVisible(false);
-        _ui->actionReset->setVisible(false);
-        _ui->actionRemove->setVisible(false);
+        hideAction(_ui->actionAdd, false);
+        hideAction(_ui->actionSelect_none, false);
+        hideAction(_ui->actionInvertSelected, false);
+        hideAction(_ui->actionSelectAll, false);
+        hideAction(_ui->actionReset, false);
+        hideAction(_ui->actionRemove, false);
 
         _ui->menuSelection->setTitle(tr("H&istory"));
     }
