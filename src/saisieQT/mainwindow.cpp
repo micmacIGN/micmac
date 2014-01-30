@@ -524,7 +524,8 @@ void MainWindow::closeAll()
 
 void MainWindow::closeCurrentWidget()
 {
-     _Engine->unloadAll();
+    _Engine->unloadAll();
+    //_Engine->unload(currentWidgetIdx());
 
     currentWidget()->reset();
 }
