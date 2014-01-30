@@ -57,8 +57,22 @@ void cData::clearAll()
 
 void cData::clear(int aK)
 {
-    if (_Clouds.size())         _Clouds[aK] = NULL;
-    if (_Cameras.size())        _Cameras[aK] = NULL;
+    if (_Clouds.size())
+    {
+        if(_Clouds[aK])
+        {
+            delete _Clouds[aK];
+            _Clouds[aK] = NULL;
+        }
+    }
+    if (_Cameras.size())
+    {
+        if(_Cameras[aK])
+        {
+            delete _Cameras[aK];
+            _Cameras[aK] = NULL;
+        }
+    }
     if (_MaskedImages.size())   _MaskedImages[aK].deallocImages();
 }
 
