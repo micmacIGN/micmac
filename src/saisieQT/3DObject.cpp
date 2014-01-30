@@ -703,6 +703,11 @@ QString cPolygon::getNearestPointName(const QPointF &pos)
 {
     findNearestPoint(pos, 400000.f);
 
+    return getSelectedPointName();
+}
+
+QString cPolygon::getSelectedPointName()
+{
     if (_idx >=0 && _idx <_points.size())
     {
         return _points[_idx].name();
@@ -712,7 +717,6 @@ QString cPolygon::getNearestPointName(const QPointF &pos)
 
 void cPolygon::addQPoint(const QPointF &pt, bool selected)
 {
-    //cout << "adding point " << _defPtName.toStdString().c_str() << endl;
     _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, _color));
 
     bool isNumber = false;
@@ -855,7 +859,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     {
         if ((insertMode || isPointSelected())) // insert polygon point
 
-            _helper->build(cPoint(_painter, pos, _defPtName, _bShowNames, _color ), insertMode);
+            _helper->build(cPoint(_painter, pos, getSelectedPointName(), _bShowNames, _color ), insertMode);
 
         else                                 // select nearest polygon point
 
