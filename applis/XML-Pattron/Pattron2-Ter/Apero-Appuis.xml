@@ -1,0 +1,228 @@
+<ParamApero
+     Subst="@$#1"
+>
+       <SectionBDD_Observation >
+             <BDD_PtsAppuis>
+                 <Id>    Id_Appuis_FromGA </Id>
+                 <KeySet> Key-Set-Appuis-FromGA   </KeySet>
+                 <KeyAssoc>Key-Assoc-Im2AppuisOnGA</KeyAssoc>
+             </BDD_PtsAppuis>
+             <BDD_Orient>
+                 <Id>    Id_Orient_Init </Id>
+                 <KeySet> Key-Set-All-OrInit   </KeySet>
+                 <KeyAssoc> Key-Assoc-Im2OrInit </KeyAssoc>
+             </BDD_Orient>
+
+
+            <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin   </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> Id_Calib_LF </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   ${CalibGeomLF} </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> Id_Calib_GA </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   ${CalibGeomGA} </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+
+              <PoseCameraInc>
+	           <PatternName>   ${PatternAllImTifGA} </PatternName>
+	           <CalcNameCalib>  Id_Calib_GA </CalcNameCalib>
+	           <PosValueInit>
+                          <PosFromBDOrient>  Id_Orient_Init </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+              <PoseCameraInc>
+	           <PatternName>   ${PatternAllImTifLF} </PatternName>
+	           <CalcNameCalib>  Id_Calib_LF </CalcNameCalib>
+	           <PosValueInit>
+                          <PosFromBDAppuis>  
+			       <Id>   Id_Appuis_FromGA  </Id>
+			       <NbTestRansac>  100 </NbTestRansac>
+			  </PosFromBDAppuis>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+			      <PatternNameApply> .* </PatternNameApply>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR1      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR2      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR3      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                  <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                  <Show> eNSM_Paquet     </Show>
+                                  <NbMax>   100    </NbMax>
+                                  <ModePonderation>  eL1Secured </ModePonderation>
+                                  <SigmaPond> 4.0 </SigmaPond>
+                                  <EcartMax> 15.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+
+                           <ObsAppuis>
+                              <NameRef> Id_Appuis_FromGA </NameRef>
+                              <Pond>
+                                   <EcartMesureIndiv>  4.0 </EcartMesureIndiv>
+                                   <Show> eNSM_Paquet     </Show> 
+                                   <NbMax>   100    </NbMax>
+                                   <ModePonderation>  eL1Secured </ModePonderation>
+                                   <SigmaPond> 10.0 </SigmaPond>
+                                   <EcartMax> 25.0 </EcartMax>
+                               </Pond>
+                           </ObsAppuis>
+		    </SectionObservations>
+
+
+
+	      </EtapeCompensation>
+	      <EtapeCompensation>
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_Lies  </Val>
+                              <PatternNameApply> Id_Calib_LF  </PatternNameApply>
+		          </ContraintesCamerasInc>
+		          <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_11  </Val>
+                              <PatternNameApply> Id_Calib_GA  </PatternNameApply>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <Messages>   -----------------------FOCALE------------------ </Messages>
+                       <Messages>   -----------------------FOCALE------------------ </Messages>
+                       <Messages>   -----------------------FOCALE------------------ </Messages>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1  </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+<!--
+-->
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                  <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                  <Show> eNSM_Paquet     </Show>
+                                  <NbMax>   100    </NbMax>
+                                  <ModePonderation>  eL1Secured </ModePonderation>
+                                  <SigmaPond> 2.0 </SigmaPond>
+                                  <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+
+                           <ObsAppuis>
+                              <NameRef> Id_Appuis_FromGA </NameRef>
+                              <Pond>
+                                   <EcartMesureIndiv>  80.0 </EcartMesureIndiv>
+                                   <Show> eNSM_Paquet     </Show> 
+                                   <NbMax>   100    </NbMax>
+                                   <ModePonderation>  eL1Secured </ModePonderation>
+                                   <SigmaPond> 10.0 </SigmaPond>
+                                   <EcartMax> 25.0 </EcartMax>
+                               </Pond>
+                           </ObsAppuis>
+		    </SectionObservations>
+
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc>  Key-Assoc-Im2OrFinale  </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+
+	</SectionCompensation>
+
+</ParamApero>
+
