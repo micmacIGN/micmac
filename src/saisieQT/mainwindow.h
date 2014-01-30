@@ -54,6 +54,8 @@ public slots:
 
     void closeAll();
 
+    void closeCurrentWidget();
+
     void openRecentFile();
 
     void progression();
