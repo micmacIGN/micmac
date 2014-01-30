@@ -118,7 +118,6 @@ void GLWidget::paintGL()
         {
             //TODO: virer dependance taille viewport / image Quad [1,1] puis scale dans glImage drawQuad()
             m_GLData->setDimensionImage(vpWidth(),vpHeight());
-
             //END TODO
 
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
@@ -422,7 +421,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 else if (!polygon().bShowLines() && isPtInsideIm(m_lastPosImage))
 
-                    polygon().add(m_lastPosImage);
+                    polygon().addQPoint(m_lastPosImage);
             }
         }
         else if (event->button() == Qt::RightButton)
@@ -446,7 +445,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ( event->button() == Qt::LeftButton && hasDataLoaded() && polygon().bShowLines())
+    if ( event->button() == Qt::LeftButton && hasDataLoaded())
     {
         polygon().finalMovePoint(); //ne pas factoriser
 

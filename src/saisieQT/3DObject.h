@@ -244,7 +244,7 @@ class cPolygon : public cObjectGL
         void    setpointSize(float size) { _pointSize = size; }
 
         void    add(cPoint const &pt){ _points.push_back(pt); }
-        void    add(QPointF const &pt, bool selected=false);
+        void    addQPoint(QPointF const &pt, bool selected=false);
         void    addPoint(QPointF const &pt);
 
         void    clear();
@@ -345,9 +345,9 @@ class cPolygonHelper : public cPolygon
 
         cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
-        void   build(const QPointF &pos, bool insertMode);
+        void   build(const cPoint &pos, bool insertMode);
 
-        void   setPoints(QPointF p1, QPointF p2, QPointF p3);
+        void   setPoints(cPoint p1, cPoint p2, cPoint p3);
 
     private:
 
