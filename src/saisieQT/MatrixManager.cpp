@@ -127,16 +127,6 @@ QPointF MatrixManager::ImageToWindow(QPointF const &imPt, float zoom)
             - 1.f - imPt.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
 }
 
-cPolygon MatrixManager::PolygonImageToWindow(cPolygon polygon, float zoom)
-{
-    cPolygon poly = polygon;
-    poly.clearPoints();
-    for (int aK = 0;aK < polygon.size(); ++aK)
-        poly.add(ImageToWindow(polygon[aK],zoom),polygon[aK].isSelected());
-
-    return poly;
-}
-
 void MatrixManager::mglOrtho( GLdouble left, GLdouble right,
                GLdouble bottom, GLdouble top,
                GLdouble near_val, GLdouble far_val )

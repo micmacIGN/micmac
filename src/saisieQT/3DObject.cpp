@@ -710,8 +710,9 @@ QString cPolygon::getNearestPointName(const QPointF &pos)
     else return _defPtName;
 }
 
-void cPolygon::add(const QPointF &pt, bool selected)
+void cPolygon::addQPoint(const QPointF &pt, bool selected)
 {
+    //cout << "adding point " << _defPtName.toStdString().c_str() << endl;
     _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, _color));
 
     bool isNumber = false;
@@ -726,7 +727,7 @@ void cPolygon::addPoint(const QPointF &pt)
     if (size() >= 1)
         _points[size()-1] = cPoint(_painter, pt, _defPtName, _bShowNames, _color);
 
-    add(pt);
+    addQPoint(pt);
 }
 
 void cPolygon::clear()
@@ -843,15 +844,18 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     if(!_bIsClosed)
     {
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
-            add(pos);
+
+            addQPoint(pos);
+
         else if (nbVertex > 1)               // replace last point by the current one
+
             _points[nbVertex-1] = cPoint(_painter, pos, _defPtName, _bShowNames, _color );
     }
-    else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en court d'operation
+    else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
-        if (_bShowLines && (insertMode || isPointSelected())) // insert polygon point
+        if ((insertMode || isPointSelected())) // insert polygon point
 
-            _helper->build(pos, insertMode);
+            _helper->build(cPoint(_painter, pos, _defPtName, _bShowNames, _color ), insertMode);
 
         else                                 // select nearest polygon point
 
@@ -908,6 +912,8 @@ void cPolygon::rename(QPointF pos, QString name)
 void cPolygon::showLines(bool show)
 {
     _bShowLines = show;
+
+    if (_helper != NULL) _helper->showLines(show);
 
     if(!show) _bIsClosed = true;
 
@@ -1000,7 +1006,7 @@ float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
     return sqrt(dx*dx + dy*dy);
 }
 
-void cPolygonHelper::build(QPointF const &pos, bool insertMode)
+void cPolygonHelper::build(cPoint const &pos, bool insertMode)
 {
     int sz = _polygon->size();
 
@@ -1033,7 +1039,7 @@ void cPolygonHelper::build(QPointF const &pos, bool insertMode)
     }
 }
 
-void cPolygonHelper::setPoints(QPointF p1,QPointF p2,QPointF p3)
+void cPolygonHelper::setPoints(cPoint p1, cPoint p2, cPoint p3)
 {
     clear();
     add(p1);
