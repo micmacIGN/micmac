@@ -13,8 +13,9 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
 {
     _ui->setupUi(this);
 
-    QString style = "border: 2px solid gray;"
-            "border-radius: 1px;"
+    QString style = "border: 2px solid #707070;"
+            "border-radius: 0px;"
+            "padding: 2px;"
             "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
 
     style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
