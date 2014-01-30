@@ -83,6 +83,7 @@ public:
 
     ViewportParameters* getParams()         { return &_params; }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
+    cMessages2DGL*      getMessageManager() { return &_messageManager; }
 
     void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true, bool setPainter = true);
     cGLData*    getGLData(){ return m_GLData; }
@@ -104,6 +105,8 @@ public:
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
     void refreshPositionMessage(QPointF pos);
+
+    void setDisplayMode(bool is2D) { m_bDisplayMode2D = is2D; }
 
 public slots:
 
@@ -161,6 +164,8 @@ protected:
 
     QPointF     m_lastPosImage;
     QPoint      m_lastPosWindow;
+
+    bool        imageLoaded();
 
 private:
 

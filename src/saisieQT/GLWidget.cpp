@@ -108,7 +108,7 @@ void GLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
-    cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, imageLoaded() ? _BGColor0 : _BGColor1);
+    cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, !hasDataLoaded() || imageLoaded() ? _BGColor0 : _BGColor1);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
