@@ -143,58 +143,62 @@ void MainWindow::addFiles(const QStringList& filenames)
             }
         }
 
-        _Engine->setFilenamesIn(filenames);
-
-        if (_mode != MASK3D) closeAll();
-
-        QFileInfo fi(filenames[0]);
-
-        //set default working directory as first file subfolder
-        QDir Dir = fi.dir();
-        Dir.cdUp();
-        _Engine->setDir(Dir);
+        _Engine->setFilenamesInAndDir(filenames);
 
 #ifdef _DEBUG
         printf("adding files %s\n", filenames[0].toStdString().c_str());
 #endif
 
-        if (fi.suffix() == "ply")
+        if (_mode == MASK3D)
         {
-            // TODO ENCAPSULER LA PROGRESS BAR
-            QTimer *timer_test = new QTimer(this);
-            _incre = new int(0);
-            connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            timer_test->start(10);
-            QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre);
+            QFileInfo fi(filenames[0]);
 
-            _FutureWatcher.setFuture(future);
-            _ProgressDialog->setWindowModality(Qt::WindowModal);
-            _ProgressDialog->exec();
+            if (currentWidget()->hasDataLoaded() && !currentWidget()->getGLData()->is3D()) closeCurrentWidget();
 
-            timer_test->stop();
-            disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            delete _incre;
-            delete timer_test;                     
+            if (fi.suffix() == "ply")
+            {
+                // TODO ENCAPSULER LA PROGRESS BAR
+                QTimer *timer_test = new QTimer(this);
+                _incre = new int(0);
+                connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+                timer_test->start(10);
+                QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre);
 
-            future.waitForFinished();            
-            // FIN DE CHARGEMENT ET PROGRESS BAR            
-        }
-        else if (fi.suffix() == "xml")
-        {
-            // TODO ENCAPSULER LA PROGRESS BAR
-            QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
+                _FutureWatcher.setFuture(future);
+                _ProgressDialog->setWindowModality(Qt::WindowModal);
+                _ProgressDialog->exec();
 
-            _FutureWatcher.setFuture(future);
-            _ProgressDialog->setWindowModality(Qt::WindowModal);
-            _ProgressDialog->exec();
+                timer_test->stop();
+                disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+                delete _incre;
+                delete timer_test;
 
-            future.waitForFinished();
-            // FIN DE CHARGEMENT ET PROGRESS BAR
+                future.waitForFinished();
+                // FIN DE CHARGEMENT ET PROGRESS BAR
+            }
+            else if (fi.suffix() == "xml")
+            {
+                // TODO ENCAPSULER LA PROGRESS BAR
+                QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
 
-            _ui->actionShow_cams->setChecked(true);
+                _FutureWatcher.setFuture(future);
+                _ProgressDialog->setWindowModality(Qt::WindowModal);
+                _ProgressDialog->exec();
+
+                future.waitForFinished();
+                // FIN DE CHARGEMENT ET PROGRESS BAR
+
+                _ui->actionShow_cams->setChecked(true);
+            }
+            else // LOAD IMAGE
+            {
+                closeAll();
+                _Engine->loadImages(filenames);
+            }
         }
         else // LOAD IMAGE
-        {         
+        {
+             if (_mode == MASK2D) closeAll();
             _Engine->loadImages(filenames);            
         }
 
@@ -519,6 +523,14 @@ void MainWindow::closeAll()
         zoomWidget()->reset();
 }
 
+void MainWindow::closeCurrentWidget()
+{
+    _Engine->unloadAll();
+    //_Engine->unload(currentWidgetIdx());
+
+    currentWidget()->reset();
+}
+
 void MainWindow::openRecentFile()
 {
     // A TESTER en multi images
@@ -531,7 +543,7 @@ void MainWindow::openRecentFile()
 
     if (action)
     {
-        _Engine->setFilenamesIn(QStringList(action->data().toString()));
+        _Engine->setFilenamesInAndDir(QStringList(action->data().toString()));
 
         addFiles(_Engine->getFilenamesIn());
     }

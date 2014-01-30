@@ -24,6 +24,8 @@ class cData
 
         void clearAll();
 
+        void clear(int aK);
+
         bool isDataLoaded(){return getNbClouds()||getNbCameras() ||getNbImages();}
         bool is3D(){return getNbClouds()||getNbCameras();}
 
