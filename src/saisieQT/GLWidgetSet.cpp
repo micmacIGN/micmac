@@ -23,6 +23,7 @@ GLWidgetSet::GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt) :
         _zoomWidget = new GLWidget(-1, (const QGLWidget*)_widgets[0]);
         _zoomWidget->setBackgroundColors(color1,color1);
         _zoomWidget->setContextMenuPolicy( Qt::NoContextMenu );
+        _zoomWidget->setOption(cGLData::OpShow_Mess,false);
     }
 }
 
