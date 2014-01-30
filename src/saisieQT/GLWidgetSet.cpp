@@ -7,10 +7,10 @@ GLWidgetSet::GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt) :
     if (aNb==0)
         return;
 
-    _widgets[0] = new GLWidget(0, this, NULL);
+    _widgets[0] = new GLWidget(0, NULL);
 
     for (uint aK=1 ; aK < aNb; ++aK)
-        _widgets[aK] = new GLWidget( aK, this, (const QGLWidget*)_widgets[0]);
+        _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
 
     for (uint aK=0 ; aK < aNb; ++aK)
     {
@@ -20,7 +20,7 @@ GLWidgetSet::GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt) :
 
     if (modePt)
     {
-        _zoomWidget = new GLWidget(-1, this, (const QGLWidget*)_widgets[0]);
+        _zoomWidget = new GLWidget(-1, (const QGLWidget*)_widgets[0]);
         _zoomWidget->setBackgroundColors(color1,color1);
         _zoomWidget->setContextMenuPolicy( Qt::NoContextMenu );
     }

@@ -4,7 +4,7 @@
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
-GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
+GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_GLData(NULL)
@@ -15,7 +15,6 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _currentTime(0)
   , _messageManager(this)
   , _widgetId(idx)
-  , _parentSet(theSet)
 {
     _matrixManager.resetAllMatrix();
 

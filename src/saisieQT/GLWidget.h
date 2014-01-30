@@ -42,7 +42,7 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared);
+    GLWidget(int idx, const QGLWidget *shared);
 
     //! Destructor
     ~GLWidget(){}
@@ -180,8 +180,6 @@ private:
     ContextMenu     _contextMenu;
 
     int             _widgetId;
-
-    GLWidgetSet*    _parentSet;
 
     QColor      _BGColor0;
     QColor      _BGColor1;
