@@ -1123,6 +1123,11 @@ void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
     _glw = glw;
 }
 
+bool cImageGL::isPtInside(const QPointF &pt)
+{
+    return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
+}
+
 void cImageGL::PrepareTexture(QImage * pImg)
 {
     glGenTextures(1, getTexture() );
