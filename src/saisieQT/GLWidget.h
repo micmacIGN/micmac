@@ -79,13 +79,13 @@ public:
     void reset();
 
     //! Reset view
-    void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true);
+    void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true, bool resetPoly = true);
 
     ViewportParameters* getParams()         { return &_params; }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
 
-    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true, bool setPainter = true);
+    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true, bool setPainter = true, bool resetPoly = true);
     cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
