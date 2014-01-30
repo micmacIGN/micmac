@@ -354,7 +354,7 @@ void cEngine::unload(int aK)
 {
     _Data->clear(aK);
 
-    delete _vGLData[aK];
+    //delete _vGLData[aK];
     _vGLData[aK] = NULL;
 
 }
