@@ -429,8 +429,16 @@ public:
 
     void deallocImages()
     {
-        if(_m_image != NULL) delete _m_image;
-        if(_m_mask != NULL) delete _m_mask;
+        if(_m_image != NULL)
+        {
+            _m_image = NULL;
+            delete _m_image;
+        }
+        if(_m_mask != NULL)
+        {
+            _m_mask = NULL;
+            delete _m_mask;
+        }
     }
 
     T           *_m_image;

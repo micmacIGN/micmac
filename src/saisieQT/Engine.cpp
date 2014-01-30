@@ -351,12 +351,13 @@ void cEngine::unloadAll()
 }
 
 void cEngine::unload(int aK)
-{
+{    
+    if(_vGLData[aK])
+    {
+        delete _vGLData[aK];
+        _vGLData[aK] = NULL;
+    }
     _Data->clear(aK);
-
-    //delete _vGLData[aK];
-    _vGLData[aK] = NULL;
-
 }
 
 void cEngine::allocAndSetGLData(bool modePt, QString ptName)
