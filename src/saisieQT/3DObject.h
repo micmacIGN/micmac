@@ -595,6 +595,8 @@ public:
 
     QVector < GlCloud* > Clouds;
 
+    void        setDimensionImage(int vW,int vH);
+
     //info coming from cData
     float       getBBoxMaxSize(){return _diam;}
     void        setBBoxMaxSize(float aS){_diam = aS;}

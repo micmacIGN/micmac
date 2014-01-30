@@ -1314,6 +1314,14 @@ void cGLData::draw()
     disableOptionLine();
 }
 
+void cGLData::setDimensionImage(int vW, int vH)
+{
+    float rw = (float) glMaskedImage._m_image->width()  / vW;
+    float rh = (float) glMaskedImage._m_image->height() / vH;
+
+    glMaskedImage.setDimensions(2.f*rh,2.f*rw);
+}
+
 void cGLData::setGlobalCenter(Pt3d<double> aCenter)
 {
     setBBoxCenter(aCenter);

@@ -13,11 +13,19 @@ public:
     ~GLWidgetSet();
 
     void setCurrentWidgetIdx(int aK);
-    int  currentWidgetIdx(){return _currentWidget;}
+    int  currentWidgetIdx()
+    {
+        return _widgets.indexOf(_pcurrentWidget);
+    }
+
+    void setCurrentWidget(GLWidget* currentWidget)
+    {
+        _pcurrentWidget = currentWidget;
+    }
 
     GLWidget* getWidget(uint aK){return _widgets[aK];}
 
-    GLWidget* currentWidget(){return _widgets[_currentWidget];}
+    GLWidget* currentWidget(){return _pcurrentWidget;}
 
     int nbWidgets() const {return _widgets.size();}
 
@@ -27,7 +35,7 @@ private:
 
     QVector <GLWidget*> _widgets;
     GLWidget*           _zoomWidget;
-    int                 _currentWidget;
+    GLWidget*           _pcurrentWidget;
 };
 
 #endif // GLWIDGETGRID_H

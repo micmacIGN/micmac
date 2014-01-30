@@ -84,7 +84,7 @@ public:
     ViewportParameters* getParams()         { return &_params; }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
 
-    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
+    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true, bool setPainter = true);
     cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
@@ -115,6 +115,8 @@ signals:
     void filesDropped(const QStringList& filenames);
 
     void newImagePosition(int px, int py);
+
+    void overWidget(void* widget);
 
 protected:
     //! inherited from QGLWidget

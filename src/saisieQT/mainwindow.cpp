@@ -61,7 +61,10 @@ MainWindow::~MainWindow()
 void MainWindow::connectActions()
 {
     for (int aK = 0; aK < nbWidgets();++aK)
+    {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
+    }
 
     //File menu
     connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
@@ -641,6 +644,22 @@ void MainWindow::setMode()
 void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
+}
+
+void MainWindow::changeCurrentWidget(void *cuWid)
+{
+    GLWidget* glW = (GLWidget*)cuWid;
+
+    setCurrentWidget(glW);
+
+    if (zoomWidget())
+    {
+        zoomWidget()->setGLData(glW->getGLData(),false,true,false);
+
+        zoomWidget()->setZoom(3.f);
+
+        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(int, int)), zoomWidget(), SLOT(centerViewportOnImagePosition(int,int)));
+    }
 }
 
 void MainWindow::undo(bool undo)

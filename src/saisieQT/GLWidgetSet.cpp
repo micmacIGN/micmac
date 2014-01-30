@@ -2,8 +2,7 @@
 
 GLWidgetSet::GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt) :
     _widgets(aNb),
-    _zoomWidget(NULL),
-    _currentWidget(0)
+    _zoomWidget(NULL)
 {
     if (aNb==0)
         return;
@@ -31,14 +30,4 @@ GLWidgetSet::~GLWidgetSet()
 {
     for (int aK=0; aK < nbWidgets();++aK) delete _widgets[aK];
     delete _zoomWidget;
-}
-
-void GLWidgetSet::setCurrentWidgetIdx(int aK)
-{
-    if (aK < nbWidgets())
-    {
-        _currentWidget = aK;
-    }
-    else
-        cerr << "Warning: setCurrentWidget " << aK << " out of range" << endl;
 }

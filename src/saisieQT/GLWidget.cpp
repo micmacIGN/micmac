@@ -81,12 +81,14 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
     }
 }
 
-void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
+void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool setPainter)
 {
     if (aData != NULL)
     {
         m_GLData = aData;
-        m_GLData->setPainter(_painter);
+
+        if(setPainter)
+            m_GLData->setPainter(_painter);
 
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
@@ -111,11 +113,7 @@ void GLWidget::paintGL()
         if (m_bDisplayMode2D)
         {
             //TODO: virer dependance taille viewport / image Quad [1,1] puis scale dans glImage drawQuad()
-
-            float rw = (float) imWidth()  / vpWidth();
-            float rh = (float) imHeight() / vpHeight();
-
-            m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
+            m_GLData->setDimensionImage(vpWidth(),vpHeight());
 
             //END TODO
 
@@ -687,25 +685,6 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 }
 
 void GLWidget::enterEvent(QEvent *event)
-{
-    if (_widgetId >= 0) _parentSet->setCurrentWidgetIdx(_widgetId);
-
-    GLWidget* zoomWidget = _parentSet->zoomWidget();
-
-    if (zoomWidget != NULL)
-    {
-        zoomWidget->reset();
-
-        zoomWidget->m_GLData = m_GLData;
-
-        zoomWidget->m_bDisplayMode2D = true;
-
-        zoomWidget->_matrixManager.resetAllMatrix( Pt3dr(0.f,0.f,0.f) );
-
-        zoomWidget->_messageManager.showMessages(false);
-
-        zoomWidget->setZoom(3.f);
-
-        connect(this, SIGNAL(newImagePosition(int, int)), zoomWidget, SLOT(centerViewportOnImagePosition(int,int)));
-    }
+{    
+    emit overWidget(this);
 }
