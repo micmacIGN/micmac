@@ -338,7 +338,7 @@ void GLWidget::setZoom(float value)
 
     _params.m_zoom = value;
 
-    if(m_bDisplayMode2D && _messageManager.drawMessages())
+    if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
 
     update();
@@ -421,7 +421,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 else if (!polygon().bShowLines() && isPtInsideIm(m_lastPosImage))
 
-                    polygon().addQPoint(m_lastPosImage);
+                    polygon().add(m_lastPosImage);
             }
         }
         else if (event->button() == Qt::RightButton)
