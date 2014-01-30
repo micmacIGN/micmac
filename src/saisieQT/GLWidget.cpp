@@ -352,8 +352,8 @@ void GLWidget::zoomFit()
         {
             centerViewportOnImagePosition(imWidth()*.5f, imHeight()*.5f);
 
-            float rw = (float) imWidth()  / vpWidth();
-            float rh = (float) imHeight() / vpHeight();
+            float rw = (float) (1.05f*imWidth()) / vpWidth();
+            float rh = (float) (1.05f*imHeight())/ vpHeight();
 
             if(rw>rh)
                 setZoom(1.f/rw); //orientation landscape

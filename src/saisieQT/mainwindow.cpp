@@ -19,9 +19,12 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
             "margin: 0px;"
             "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
 
-    _layout->setContentsMargins(4,4,4,4);
-    _layout->setHorizontalSpacing(4);
-    _layout->setVerticalSpacing(4);
+
+    uint sy = 2;
+
+    _layout->setContentsMargins(sy,sy,sy,sy);
+    _layout->setHorizontalSpacing(sy);
+    _layout->setVerticalSpacing(sy);
 
     style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
     style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
