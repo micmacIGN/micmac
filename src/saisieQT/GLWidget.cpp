@@ -322,7 +322,7 @@ void GLWidget::centerViewportOnImagePosition(int px, int py)
     float tx = (float) px / vpCenterX;
     float ty = (float) py / vpCenterY;
 
-    m_lastClickZoom = QPoint(vpCenterX, vpCenterY);
+    m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
 
     _matrixManager.translate(-tx, -ty);
 
@@ -482,11 +482,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
 
-            if(polygon().isSelected())                    // MOVE POLYGON
+            if (polygon().isSelected())                    // MOVE POLYGON
 
                 polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom));
 
-            else                                          // REFRESH HELPER POLYGON
+            else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
 
                 polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
         }
