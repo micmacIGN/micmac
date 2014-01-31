@@ -307,13 +307,12 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text += "F6: \t"+tr("show cameras") +"\n";
     }
     text += "F7: \t"+tr("show messages") +"\n";
-    text += "F8: \t"+tr("2D mode / 3D mode") +"\n";
 
     if (_mode == MASK3D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
     else
     {
-        text += tr("Key +/-: \tincrease/decrease zoom") + "\n";
+        text += tr("Key +/-: \tzoom +/-") + "\n";
         text += "9: \t"+tr("zoom fit") + "\n";
         text+= "4: \tzoom 400%\n";
         text+= "2: \tzoom 200%\n";
@@ -324,34 +323,61 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 
     text += "Shift+R: \t"+tr("reset view") +"\n\n";
 
+    if (_mode <= MASK3D)
+    {
+        text += tr("Selection menu:") +"\n\n";
+        if (_mode == MASK3D)
+        {
+            text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
+        }
+        text += tr("Left click : \tadd a vertex to polyline") +"\n";
+        text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
+        text += tr("Echap: \tdelete polyline") +"\n";
 
-    text += tr("Selection menu:") +"\n\n";
-    if (_mode == MASK3D)
-    {
-        text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
-    }
-    text += tr("Left click : \tadd a vertex to polyline") +"\n";
-    text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
-    text += tr("Echap: \tdelete polyline") +"\n";
-    if (_mode == MASK3D)
-    {
-        text += tr("Space bar: \tadd points inside polyline") +"\n";
-        text += tr("Del: \tremove points inside polyline") +"\n";
+#ifdef ELISE_Darwin
+        if (_mode == MASK3D)
+        {
+            text += tr("Ctrl+Y: \tadd points inside polyline") +"\n";
+            text += tr("Ctrl+U: \tremove points inside polyline") +"\n";
+        }
+        else
+        {
+            text += tr("Ctrl+Y: \tadd pixels inside polyline") +"\n";
+            text += tr("Ctrl+U: \tremove pixels inside polyline") +"\n";
+        }
+#else
+        if (_mode == MASK3D)
+        {
+            text += tr("Space bar: \tadd points inside polyline") +"\n";
+            text += tr("Del: \tremove points inside polyline") +"\n";
+        }
+        else
+        {
+            text += tr("Space bar: \tadd pixels inside polyline") +"\n";
+            text += tr("Del: \tremove pixels inside polyline") +"\n";
+        }
+#endif
+
+        text += tr("Shift+drag: \tinsert vertex in polyline") +"\n";
+        text += tr("Ctrl+right click: remove last vertex") +"\n";
+        text += tr("Drag & drop: move selected polyline vertex") +"\n";
+        text += "Ctrl+A: \t"+tr("select all") +"\n";
+        text += "Ctrl+D: \t"+tr("select none") +"\n";
+        text += "Ctrl+R: \t"+tr("reset") +"\n";
+        text += "Ctrl+I: \t"+tr("invert selection") +"\n";
     }
     else
     {
-        text += tr("Space bar: \tadd pixels inside polyline") +"\n";
-        text += tr("Del: \tremove pixels inside polyline") +"\n";
+        text += tr("Click: \tadd point")+"\n";
+        text += tr("Right click: \tchange selected point state")+"\n";
+        text += tr("Drag & drop: \tmove selected point") +"\n";
+        text += tr("Shift+right click: \tshow name menu")+"\n";
+        text += tr("Ctrl+right click: \tshow window menu")+"\n\n";
+
+        text += tr("History menu:") +"\n\n";
     }
-    text += tr("Shift+click: \tinsert vertex in polyline") +"\n";
-    text += tr("Ctrl+right click: remove last vertex") +"\n";
-    text += tr("Drag & drop: move polyline vertex") +"\n";
-    text += "Ctrl+A: \t"+tr("select all") +"\n";
-    text += "Ctrl+D: \t"+tr("select none") +"\n";
-    text += "Ctrl+R: \t"+tr("reset") +"\n";
-    text += "Ctrl+I: \t"+tr("invert selection") +"\n";
-    text += "Ctrl+Z: \t"+tr("undo last selection") +"\n";
-    text += "Ctrl+Shift+Z: \t"+tr("redo last selection") +"\n";
+    text += "Ctrl+Z: \t"+tr("undo last action") +"\n";
+    text += "Ctrl+Shift+Z: "+tr("redo last action") +"\n";
 
     QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
     msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
