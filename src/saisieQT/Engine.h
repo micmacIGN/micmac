@@ -67,10 +67,8 @@ public:
     void        setDir(QStringList const &list);
     QDir        getDir(){return _Dir;}
 
-    void        setFilenamesInAndDir(QStringList const &strl);
-    void        setFilenamesOut();
+    void        setFilenamesAndDir(QStringList const &strl);
     void        setFilenameOut(QString str);
-    void        setSelectionFilenames();
 
     QStringList& getFilenamesIn()        { return _FilenamesIn; }
     QStringList  getFilenamesOut()       { return _FilenamesOut; }
@@ -97,17 +95,10 @@ public:
     cEngine();
     ~cEngine();
 
-    //! Set working directory
-    void    setSelectionFilenames(){_Loader->setSelectionFilenames();}
-    QStringList& getSelectionFilenames(){ return _Loader->getSelectionFilenames(); }
-
     //! Set input filenames
-    void    setFilenamesInAndDir(QStringList const &strl){_Loader->setFilenamesInAndDir(strl);}
+    void    setFilenamesAndDir(QStringList const &strl){ _Loader->setFilenamesAndDir(strl); }
 
     QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
-
-    //! Set output filenames
-    void    setFilenamesOut(){_Loader->setFilenamesOut();}
 
     //! Set output filename
     void    setFilenameOut(QString filename){_Loader->setFilenameOut(filename);}

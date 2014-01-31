@@ -6,40 +6,10 @@ cLoader::cLoader()
    _postFix("_Masq")
 {}
 
-void cLoader::setFilenamesOut()
-{
-    _FilenamesOut.clear();
-
-    for (int aK=0;aK < _FilenamesIn.size();++aK)
-    {
-        QFileInfo fi(_FilenamesIn[aK]);
-
-        _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
-    }
-}
-
-void cLoader::setFilenameOut(QString str)
-{
-    _FilenamesOut.clear();
-
-    _FilenamesOut.push_back(str);
-}
 
 void cLoader::setPostFix(QString str)
 {
     _postFix = str;
-}
-
-void cLoader::setSelectionFilenames()
-{
-    _SelectionOut.clear();
-
-    for (int aK=0;aK < _FilenamesIn.size();++aK)
-    {
-        QFileInfo fi(_FilenamesIn[aK]);
-
-        _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfos.xml");
-    }
 }
 
 GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
@@ -143,11 +113,36 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
 }
 
-void cLoader::setFilenamesInAndDir(const QStringList &strl)
+void cLoader::setFilenamesAndDir(const QStringList &strl)
 {
     _FilenamesIn = strl;
 
     setDir(strl);
+
+    _FilenamesOut.clear();
+
+    for (int aK=0;aK < _FilenamesIn.size();++aK)
+    {
+        QFileInfo fi(_FilenamesIn[aK]);
+
+        _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
+    }
+
+    _SelectionOut.clear();
+
+    for (int aK=0;aK < _FilenamesIn.size();++aK)
+    {
+        QFileInfo fi(_FilenamesIn[aK]);
+
+        _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfos.xml");
+    }
+}
+
+void cLoader::setFilenameOut(QString str)
+{
+    _FilenamesOut.clear();
+
+    _FilenamesOut.push_back(str);
 }
 
 void cLoader::setDir(const QStringList &list)
@@ -202,6 +197,8 @@ cEngine::~cEngine()
 
 }
 
+
+
 void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
@@ -228,8 +225,6 @@ void cEngine::loadImages(QStringList filenames)
     {
         loadImage(filenames[i]);
     }
-
-    _Loader->setFilenamesOut();
 }
 
 void  cEngine::loadImage(int aK)
