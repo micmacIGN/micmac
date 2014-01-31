@@ -19,7 +19,6 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
             "margin: 0px;"
             "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
 
-
     uint sy = 2;
 
     _layout->setContentsMargins(sy,sy,sy,sy);
@@ -29,14 +28,13 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
     style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
     style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
 
+    _ui->OpenglLayout->setStyleSheet(style);
+    _ui->OpenglLayout->setContentsMargins(0,0,0,0);
+
 #ifdef ELISE_Darwin
     _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
     _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
 #endif
-
-    _ui->OpenglLayout->setStyleSheet(style);
-
-    _ui->OpenglLayout->setContentsMargins(0,0,0,0);
 
     _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
 
@@ -667,10 +665,19 @@ void MainWindow::setMode()
     {
         resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
 
+
+        QString style = "border: 2px solid #707070;"
+                "border-radius: 0px;"
+                "padding: 0px;"
+                "margin: 0px;";
+
+        _ui->zoomLayout->setStyleSheet(style);
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
+        _zoomLayout->setContentsMargins(2,2,2,2);
 
         _ui->zoomLayout->setLayout(_zoomLayout);
+        _ui->zoomLayout->setContentsMargins(0,0,0,0);
 
         //disable some actions
         hideAction(_ui->actionAdd, false);
