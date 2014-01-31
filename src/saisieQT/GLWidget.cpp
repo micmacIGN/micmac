@@ -488,7 +488,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
             else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
 
-                polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
+                polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier), _params.m_zoom);
         }
         if (m_interactionMode == TRANSFORM_CAMERA)
         {
@@ -509,7 +509,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                         _params.changeZoom(dPWin.y());
 
-                    else if( vpWidth() || vpHeight())                   // TRANSLATION VIEW
+                    else if( vpWidth() && vpHeight())                   // TRANSLATION VIEW
                     {
                         QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin .x(),-dPWin .y()) * m_GLData->getBBoxMaxSize();
                         _matrixManager.translate(dp.x()/vpWidth(),dp.y()/vpHeight(),0.0,_params.m_speed);

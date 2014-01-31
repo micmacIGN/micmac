@@ -546,7 +546,7 @@ void cPoint::draw()
 
 //********************************************************************************
 
-float cPolygon::_sqr_radius = 2500.f;
+float cPolygon::_radius = 10.f;
 
 cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this, lineWidth, painter)),
@@ -818,14 +818,14 @@ void cPolygon::resetSelectedPoint()
     _idx = -1;
 }
 
-void cPolygon::findNearestPoint(QPointF const &pos, float sqr_radius)
+void cPolygon::findNearestPoint(QPointF const &pos, float radius)
 {
     if (_bIsClosed)
     {
         resetSelectedPoint();
 
         float dist, dist2, x, y, dx, dy;
-        dist2 = sqr_radius;
+        dist2 = radius*radius;
         x = pos.x();
         y = pos.y();
 
@@ -848,7 +848,7 @@ void cPolygon::findNearestPoint(QPointF const &pos, float sqr_radius)
      }
 }
 
-void cPolygon::refreshHelper(QPointF pos, bool insertMode)
+void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
 {
     int nbVertex = size();
 
@@ -870,7 +870,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
 
         else                                 // select nearest polygon point
 
-            findNearestPoint(pos);
+            findNearestPoint(pos, _radius / zoom);
     } 
 }
 

@@ -233,7 +233,7 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        void    findNearestPoint(const QPointF &pos, float sqr_radius = _sqr_radius);
+        void    findNearestPoint(const QPointF &pos, float radius = _radius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
@@ -280,7 +280,7 @@ class cPolygon : public cObjectGL
 
         cPolygonHelper* helper() { return _helper; }
 
-        void    refreshHelper(QPointF pos, bool insertMode);
+        void    refreshHelper(QPointF pos, bool insertMode, float zoom);
 
         void    finalMovePoint();
 
@@ -319,7 +319,7 @@ class cPolygon : public cObjectGL
 
     private:
         float               _pointSize;
-        static float        _sqr_radius;
+        static float        _radius;
 
         //!states if polygon is closed
         bool                _bIsClosed;
