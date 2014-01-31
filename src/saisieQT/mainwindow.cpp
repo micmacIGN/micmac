@@ -136,65 +136,51 @@ void MainWindow::progression()
         _ProgressDialog->setValue(*_incre);
 }
 
+void MainWindow::runProgressDialog(QFuture<void> future)
+{
+    _FutureWatcher.setFuture(future);
+    _ProgressDialog->setWindowModality(Qt::WindowModal);
+    _ProgressDialog->exec();
+
+    future.waitForFinished();
+}
+
 void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
     {
         for (int i=0; i< filenames.size();++i)
         {
-            QFile Fout(filenames[i]);
-
-            if(!Fout.exists())
+            if(!QFile(filenames[i]).exists())
             {
-                QMessageBox::critical(this, "Error", "File or option does not exist");
+                QMessageBox::critical(this, "Error", "File does not exist (or bad argument)");
                 return;
             }
         }
 
-        _Engine->setFilenamesInAndDir(filenames);
-
-#ifdef _DEBUG
-        printf("adding files %s\n", filenames[0].toStdString().c_str());
-#endif
+        _Engine->setFilenamesAndDir(filenames);
 
         QFileInfo fi(filenames[0]);
 
-        if (currentWidget()->hasDataLoaded() && !currentWidget()->getGLData()->is3D()) closeCurrentWidget();
-
         if (fi.suffix() == "ply")
         {
-            // TODO ENCAPSULER LA PROGRESS BAR
             QTimer *timer_test = new QTimer(this);
             _incre = new int(0);
             connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
             timer_test->start(10);
-            QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre);
 
-            _FutureWatcher.setFuture(future);
-            _ProgressDialog->setWindowModality(Qt::WindowModal);
-            _ProgressDialog->exec();
+            runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre));
 
             timer_test->stop();
             disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
             delete _incre;
             delete timer_test;
 
-            future.waitForFinished();
-            // FIN DE CHARGEMENT ET PROGRESS BAR
-
             _mode = MASK3D;
         }
         else if (fi.suffix() == "xml")
         {
-            // TODO ENCAPSULER LA PROGRESS BAR
-            QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
-
-            _FutureWatcher.setFuture(future);
-            _ProgressDialog->setWindowModality(Qt::WindowModal);
-            _ProgressDialog->exec();
-
-            future.waitForFinished();
-            // FIN DE CHARGEMENT ET PROGRESS BAR
+            runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames));
 
             _ui->actionShow_cams->setChecked(true);
 
@@ -207,9 +193,6 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _Engine->loadImages(filenames);
         }
-
-        _Engine->setSelectionFilenames();
-        _Engine->setFilenamesOut();
 
         _Engine->allocAndSetGLData(_mode > MASK3D, _ptName);
 
@@ -581,7 +564,7 @@ void MainWindow::openRecentFile()
 
     if (action)
     {
-        _Engine->setFilenamesInAndDir(QStringList(action->data().toString()));
+        _Engine->setFilenamesAndDir(QStringList(action->data().toString()));
 
         addFiles(_Engine->getFilenamesIn());
     }

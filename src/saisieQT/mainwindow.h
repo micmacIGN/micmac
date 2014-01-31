@@ -46,6 +46,8 @@ public:
     void setNbFen(QPoint nb);
     void setSzFen(QPoint sz);
 
+    void runProgressDialog(QFuture<void> future);
+
 public slots:
 
     //! Try to load a list of files
