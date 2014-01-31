@@ -160,9 +160,9 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->setFilenamesAndDir(filenames);
 
-        QFileInfo fi(filenames[0]);
+        QString suffix = QFileInfo(filenames[0]).suffix();
 
-        if (fi.suffix() == "ply")
+        if (suffix == "ply")
         {
             QTimer *timer_test = new QTimer(this);
             _incre = new int(0);
@@ -178,7 +178,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
             _mode = MASK3D;
         }
-        else if (fi.suffix() == "xml")
+        else if (suffix == "xml")
         {
             runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames));
 

@@ -411,7 +411,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                     polygon().addPoint(m_lastPosImage);
 
-                else if ((event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
+                else if (polygon().isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
                     polygon().insertPoint();
 
@@ -419,14 +419,14 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                     polygon().setPointSelected();
 
-                else if (!polygon().bShowLines() && isPtInsideIm(m_lastPosImage))
+                else if (!polygon().isLinear() && isPtInsideIm(m_lastPosImage))
 
                     polygon().add(m_lastPosImage);
             }
         }
         else if (event->button() == Qt::RightButton)
         {
-            if (polygon().bShowLines())
+            if (polygon().isLinear())
             {
                 if (event->modifiers() & Qt::ControlModifier)
 
