@@ -1,0 +1,45 @@
+
+<ExportAPERO>
+    <Symb>   A=ABCD </Symb>
+    <Symb>   T=tttt </Symb>
+    <Symb>   VIF=0 </Symb>
+    <Symb>   VSw=E </Symb>
+
+
+    <CalibrationInternConique>
+        <#SWITCH VTEST="${VSw}">
+              <A1  CASE="A"> </A1>
+              <A2  CASE="A"> </A2>
+              <B   CASE="B"> </B>
+              <C   CASE="DEFAULT"> C0 </C>
+              <C   CASE="DEFAULT"> C1 </C>
+              <C   CASE="DEFAULT"> C2 </C>
+        </#SWITCH>
+
+        <#IF VTEST="${VIF}" GOTO="2">
+             <A> 0  </A>
+             <A> 1  </A>
+             <A> 2  </A>
+             <A> 3  </A>
+        </#IF>
+        <#WHEN VTEST="true">
+              <W1> </W1>
+              <#IF VTEST="true">
+                 <IF0> </IF0>
+                 <IF1> </IF1>
+              </#IF>
+        </#WHEN>
+         
+
+        <XXX/  A="1" B="2">
+        <KnownConv ${T}="${A}" > eConvApero_DistM2C</KnownConv>
+        <#PP> 704  469 </#PP>
+        <F> 1956 </F>
+        <SzIm> 1409 938 </SzIm>
+        <CalibDistortion>
+            <ModRad>
+                <CDist> 704  469  </CDist>
+            </ModRad>
+        </CalibDistortion>
+    </CalibrationInternConique>
+</ExportAPERO>
