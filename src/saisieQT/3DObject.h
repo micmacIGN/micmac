@@ -298,7 +298,7 @@ class cPolygon : public cObjectGL
         void    rename(QPointF pos, QString name);
 
         void    showLines(bool show = true);
-        bool    bShowLines() { return _bShowLines; }
+        bool    isLinear() { return _bShowLines; }
 
         void    showRefuted();
         bool    bShowRefuted() { return _bShowRefuted; }
