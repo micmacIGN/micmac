@@ -17,7 +17,8 @@ set(saisie_SRCS saisieQT_main.cpp
 		GLWidgetSet.cpp
 		MatrixManager.cpp
 		HistoryManager.cpp
-		ContextMenu.cpp)
+		ContextMenu.cpp
+		Settings.cpp)
 		
 set( saisie_HEADERS_nomoc
    HistoryManager.h
@@ -29,7 +30,8 @@ set( saisie_HEADERS_nomoc
    #SaisieGlsl.glsl
    Engine.h
    GLWidgetSet.h
-   3DObject.h )
+   3DObject.h
+   Settings.h)
    
 set( saisie_HEADERS_tomoc
    GLWidget.h
@@ -53,7 +55,7 @@ if ( NOT ${qt_version} EQUAL 0 )
 
       QT5_ADD_RESOURCES( Saisie_RC_SRCS ${Saisie_RCS} )
 
-      qt5_wrap_ui(saisie_ui mainwindow.ui)
+      qt5_wrap_ui(saisie_ui mainwindow.ui Settings.ui)
 
       add_definitions(-DTWEAK)
       if ( WIN32 )

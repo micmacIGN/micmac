@@ -1,11 +1,16 @@
 #include "GLWidgetSet.h"
 
-GLWidgetSet::GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt) :
-    _widgets(aNb),
+GLWidgetSet::GLWidgetSet() :
+    _widgets(0),
     _zoomWidget(NULL)
+{}
+
+void GLWidgetSet::init(uint aNb, QColor color1, QColor color2, bool modePt)
 {
     if (aNb==0)
         return;
+
+    _widgets.resize(aNb);
 
     _widgets[0] = new GLWidget(0, NULL);
 

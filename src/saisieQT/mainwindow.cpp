@@ -1,17 +1,18 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > MASK3D),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
-        _mode(mode),
         _layout(new QGridLayout),
-        _zoomLayout(new QGridLayout),
-        _ptName(pointName)
+        _zoomLayout(new QGridLayout)
 {
     _ui->setupUi(this);
+
+    readSettings();
+
+    init(_nbFen.x()*_nbFen.y(), colorBG0, colorBG1, _mode > MASK3D);
 
     QString style = "border: 1px solid #707070;"
             "border-radius: 0px;"
@@ -40,14 +41,11 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
-    _nbFen = QPoint(aNbFen.x,aNbFen.y);
-    _szFen = QPoint(aSzW.x,aSzW.y);
-
     setMode();
 
     int cpt=0;
-    for (int aK = 0; aK < aNbFen.x;++aK)
-        for (int bK = 0; bK < aNbFen.y;++bK, cpt++)
+    for (int aK = 0; aK < _nbFen.x();++aK)
+        for (int bK = 0; bK < _nbFen.y();++bK, cpt++)
             _layout->addWidget(getWidget(cpt), bK, aK);
 
     _signalMapper = new QSignalMapper (this);
@@ -120,16 +118,6 @@ void MainWindow::setPostFix(QString str)
    _Engine->setPostFix("_" + str);
 }
 
-void MainWindow::setNbFen(QPoint nb)
-{
-   _nbFen = nb;
-}
-
-void MainWindow::setSzFen(QPoint sz)
-{
-   _szFen = sz;
-}
-
 void MainWindow::progression()
 {
     if(_incre)
@@ -144,6 +132,45 @@ void MainWindow::runProgressDialog(QFuture<void> future)
 
     future.waitForFinished();
 }
+
+void MainWindow::readSettings()
+{
+     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+     settings.beginGroup("MainWindow");
+     QSize szFen = settings.value("size", QSize(800, 600)).toSize();
+     _mode  = settings.value("mode", 0).toInt();
+     _nbFen = settings.value("NbFen", QPoint(1, 1)).toPoint();
+
+     if (_mode > MASK3D)
+         resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
+     else
+         resize(szFen);
+
+     move(settings.value("pos", QPoint(200, 200)).toPoint());
+     settings.endGroup();
+
+     settings.beginGroup("Misc");
+     _ptName = settings.value("defPtName", "").toString();
+     settings.endGroup();
+}
+
+void MainWindow::writeSettings()
+ {
+     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+     settings.beginGroup("MainWindow");
+     settings.setValue("size", size());
+     settings.setValue("pos", pos());
+     settings.setValue("NbFen", _nbFen);
+     settings.setValue("mode",  _mode);
+     settings.endGroup();
+
+     settings.beginGroup("Misc");
+     settings.setValue("defPtName", _ptName);
+     settings.endGroup();
+
+ }
 
 void MainWindow::addFiles(const QStringList& filenames)
 {
@@ -530,6 +557,21 @@ void MainWindow::on_actionSave_selection_triggered()
     currentWidget()->getHistoryManager()->save();
 }
 
+void MainWindow::on_actionSettings_triggered()
+{
+    cSettingsDlg uiSettings(this);
+    connect(&uiSettings, SIGNAL(hasChanged()), this, SLOT(redraw()));
+
+    uiSettings.exec();
+    #if defined(Q_OS_SYMBIAN)
+        uiSettings.showMaximized();
+    #else
+        uiSettings.show();
+    #endif
+
+    disconnect(&uiSettings, 0, 0, 0);
+}
+
 void MainWindow::closeAll()
 {
     _Engine->unloadAll();
@@ -646,9 +688,6 @@ void MainWindow::setMode()
 
     if (_mode > MASK3D)
     {
-        resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
-
-
         QString style = "border: 2px solid #707070;"
                 "border-radius: 0px;"
                 "padding: 0px;"
@@ -675,8 +714,6 @@ void MainWindow::setMode()
     }
     else
     {
-        resize(_szFen.x(), _szFen.y());
-
         _ui->verticalLayout->removeWidget(_ui->zoomLayout);
         _ui->verticalLayout->removeItem(_ui->verticalSpacer);
 
@@ -688,6 +725,17 @@ void MainWindow::setMode()
 void  MainWindow::setGamma(float aGamma)
 {
     _Engine->setGamma(aGamma);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    writeSettings();
+    event->accept();
+}
+
+void MainWindow::redraw()
+{
+
 }
 
 void MainWindow::changeCurrentWidget(void *cuWid)

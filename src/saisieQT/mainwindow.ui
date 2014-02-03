@@ -619,6 +619,9 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <addaction name="actionLoad_plys"/>
     <addaction name="actionLoad_camera"/>
     <addaction name="actionLoad_image"/>
+    <addaction name="separator"/>
+    <addaction name="actionSettings"/>
+    <addaction name="separator"/>
     <addaction name="actionSave_selection"/>
     <addaction name="actionSave_masks"/>
     <addaction name="actionSave_as"/>
@@ -1166,6 +1169,14 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
    </property>
   </action>
  </widget>

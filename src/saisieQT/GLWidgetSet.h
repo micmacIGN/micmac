@@ -10,8 +10,10 @@ class GLWidget;
 class GLWidgetSet
 {
 public:
-    GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt);
+    GLWidgetSet();
     ~GLWidgetSet();
+
+    void init(uint aNb, QColor color1, QColor color2, bool modePt);
 
     void setCurrentWidgetIdx(int aK);
     int  currentWidgetIdx()
