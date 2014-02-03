@@ -5,6 +5,9 @@ using namespace std;
 int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 {
     app.setApplicationName("SaisieAppuisInitQT");
+    app.setOrganizationName("IGN");
+
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
     if ((argc>0)&&(string(argv[0]).find("SaisieQT")!= string::npos))
     {
@@ -12,7 +15,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
         argc--;
     }
 
-    Pt2di aSzW(800,600);
+    Pt2di aSzW(-1,-1);
     Pt2di aNbFen(-1,-1);
 
     string aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add;
@@ -42,7 +45,22 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
          aNbFen.y = round_up((double(aNbW)-0.01)/aNbFen.x);
     }
 
-    MainWindow w(aSzW, aNbFen, POINT2D_INIT, QString(aNamePt.c_str()));
+    bool init = settings.contains("MainWindow/size");
+
+    settings.beginGroup("MainWindow");
+    if (aSzW.x > 0)
+        settings.setValue("size", QSize(aSzW.x, aSzW.y));
+    else if (init)
+        settings.setValue("size", QSize(800, 600));
+    settings.setValue("NbFen", QPoint(aNbFen.x, aNbFen.y));
+    settings.setValue("mode", POINT2D_INIT);
+    settings.endGroup();
+
+    settings.beginGroup("Misc");
+    settings.setValue("defPtName", QString(aNamePt.c_str()));
+    settings.endGroup();
+
+    MainWindow w;
 
     w.show();
 

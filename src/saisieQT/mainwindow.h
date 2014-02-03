@@ -16,6 +16,7 @@
 
 #include "Engine.h"
 #include "GLWidgetSet.h"
+#include "Settings.h"
 
 namespace Ui {
 class MainWindow;
@@ -38,15 +39,15 @@ class MainWindow : public QMainWindow, public GLWidgetSet
     Q_OBJECT
 
 public:
-    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, int mode = MASK3D, QString pointName = "", QWidget *parent = 0 );
+    explicit MainWindow( QWidget *parent = 0 );
     ~MainWindow();
 
     void setPostFix(QString str);
 
-    void setNbFen(QPoint nb);
-    void setSzFen(QPoint sz);
-
     void runProgressDialog(QFuture<void> future);
+
+    void readSettings();
+    void writeSettings();
 
 public slots:
 
@@ -68,6 +69,10 @@ public slots:
     cEngine* getEngine(){return _Engine;}
 
 	void setGamma(float aGamma);
+
+    void closeEvent(QCloseEvent *event);
+
+    void redraw();
 
 protected slots:
 
@@ -114,6 +119,7 @@ protected slots:
     void on_actionSave_masks_triggered();
     void on_actionSave_as_triggered();
     void on_actionSave_selection_triggered();
+    void on_actionSettings_triggered();
 
     //Help Menu
     void on_actionHelpShortcuts_triggered();
@@ -151,7 +157,6 @@ private:
     int                     _mode;
 
     QPoint                  _nbFen;
-    QPoint                  _szFen;
 
     QSignalMapper*          _signalMapper;
     QGridLayout*            _layout;

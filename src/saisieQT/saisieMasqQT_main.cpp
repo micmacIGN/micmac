@@ -3,11 +3,9 @@
 int saisieMasqQT_main(QApplication &app)
 {
     app.setApplicationName("SaisieMasqQT");
+    app.setOrganizationName("IGN");
 
-    Pt2di NbFen(1,1);
-    Pt2di SzWin(800,600);
-
-    MainWindow w(SzWin, NbFen);
+    MainWindow w;
 
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
