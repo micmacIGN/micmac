@@ -34,7 +34,7 @@ public:
 private:
 
     //appli mode (MASK2D, MASK3D, SAISIEPT_INIT, SAISIEPT_PREDIC)
-    int         _mode;
+    int         _myMode;
 
     //main window parameters
     QPoint      _position;

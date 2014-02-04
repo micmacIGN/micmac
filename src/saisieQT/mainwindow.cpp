@@ -1,13 +1,14 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
         _layout(new QGridLayout),
         _zoomLayout(new QGridLayout),
-        _params(new cParameters)
+        _params(new cParameters),
+        _mode(mode)
 {
     _ui->setupUi(this);
 

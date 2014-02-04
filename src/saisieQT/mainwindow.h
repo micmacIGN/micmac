@@ -38,7 +38,7 @@ class MainWindow : public QMainWindow, public GLWidgetSet
     Q_OBJECT
 
 public:
-    explicit MainWindow( QWidget *parent = 0 );
+    explicit MainWindow( int mode = MASK3D, QWidget *parent = 0 );
     ~MainWindow();
 
     void setPostFix(QString str);
