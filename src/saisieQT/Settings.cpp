@@ -65,9 +65,13 @@ void cSettingsDlg::refresh()
 
 cParameters& cParameters::operator =(const cParameters &params)
 {
-    _mode           = params._mode;
+    //_mode           = params._mode;
+    _szFen          = params._szFen;
     _nbFen          = params._nbFen;
     _openFullScreen = params._openFullScreen;
+    _position       = params._position;
+
+    _zoomWindow     = params._zoomWindow;
     _ptName         = params._ptName;
 
     return *this;
@@ -76,6 +80,10 @@ cParameters& cParameters::operator =(const cParameters &params)
 void cParameters::read()
 {
      QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+#ifdef _DEBUG
+    cout << "settings location: " << settings.fileName().toStdString().c_str() << endl;
+#endif
 
      settings.beginGroup("MainWindow");
      setSzFen(settings.value("size", QSize(800, 600)).toSize());
@@ -86,7 +94,7 @@ void cParameters::read()
 
      settings.beginGroup("Misc");
      setDefPtName(settings.value("defPtName", "").toString());
-     setZoomWindowValue(settings.value("zoom", 3.f).toFloat());
+     //setZoomWindowValue(settings.value("zoom", 3.f).toFloat());
      settings.endGroup();
 }
 
@@ -102,7 +110,7 @@ void cParameters::write()
      settings.endGroup();
 
      settings.beginGroup("Misc");
-     settings.setValue("zoom", getZoomWindowValue());
+     //settings.setValue("zoom", getZoomWindowValue());
      settings.setValue("defPtName", getDefPtName());
      settings.endGroup();
 }

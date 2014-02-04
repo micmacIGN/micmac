@@ -9,10 +9,6 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
-#ifdef _DEBUG
-    cout << "settings location: " << settings.fileName().toStdString().c_str() << endl;
-#endif
-
     if ((argc>0)&&(string(argv[0]).find("SaisieQT")!= string::npos))
     {
         argv++;
@@ -57,14 +53,13 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     else if (init)
         settings.setValue("size", QSize(800, 600));
     settings.setValue("NbFen", QPoint(aNbFen.x, aNbFen.y));
-    settings.setValue("mode", POINT2D_INIT);
     settings.endGroup();
 
     settings.beginGroup("Misc");
     settings.setValue("defPtName", QString(aNamePt.c_str()));
     settings.endGroup();
 
-    MainWindow w;
+    MainWindow w(POINT2D_INIT);
 
     w.show();
 
