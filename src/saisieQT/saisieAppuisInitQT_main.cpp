@@ -9,13 +9,17 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
+#ifdef _DEBUG
+    cout << "settings location: " << settings.fileName().toStdString().c_str() << endl;
+#endif
+
     if ((argc>0)&&(string(argv[0]).find("SaisieQT")!= string::npos))
     {
         argv++;
         argc--;
     }
 
-    Pt2di aSzW(-1,-1);
+    Pt2di aSzWin(-1,-1);
     Pt2di aNbFen(-1,-1);
 
     string aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add;
@@ -23,7 +27,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     aPrefix2Add = "";
     bool aForceGray = false;
 
-    SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray);
+    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray);
 
     list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);
     QStringList filenames;
@@ -48,8 +52,8 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     bool init = settings.contains("MainWindow/size");
 
     settings.beginGroup("MainWindow");
-    if (aSzW.x > 0)
-        settings.setValue("size", QSize(aSzW.x, aSzW.y));
+    if (aSzWin.x > 0)
+        settings.setValue("size", QSize(aSzWin.x, aSzWin.y));
     else if (init)
         settings.setValue("size", QSize(800, 600));
     settings.setValue("NbFen", QPoint(aNbFen.x, aNbFen.y));

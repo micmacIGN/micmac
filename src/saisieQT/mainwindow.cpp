@@ -6,13 +6,14 @@ MainWindow::MainWindow(QWidget *parent) :
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
         _layout(new QGridLayout),
-        _zoomLayout(new QGridLayout)
+        _zoomLayout(new QGridLayout),
+        _params(new cParameters)
 {
     _ui->setupUi(this);
 
-    readSettings();
+    _params->read();
 
-    init(_nbFen.x()*_nbFen.y(), colorBG0, colorBG1, _mode > MASK3D);
+    init(_params->getNbFen().x()*_params->getNbFen().y(), colorBG0, colorBG1, _mode > MASK3D);
 
     QString style = "border: 1px solid #707070;"
             "border-radius: 0px;"
@@ -44,8 +45,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setMode();
 
     int cpt=0;
-    for (int aK = 0; aK < _nbFen.x();++aK)
-        for (int bK = 0; bK < _nbFen.y();++bK, cpt++)
+    for (int aK = 0; aK < _params->getNbFen().x();++aK)
+        for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
             _layout->addWidget(getWidget(cpt), bK, aK);
 
     _signalMapper = new QSignalMapper (this);
@@ -53,6 +54,17 @@ MainWindow::MainWindow(QWidget *parent) :
     _ui->OpenglLayout->setLayout(_layout);
 
     createRecentFileMenu();
+
+    move(_params->getPosition());
+
+    QSize szFen = _params->getSzFen();
+
+    if (_params->getFullScreen())
+        showFullScreen();
+    else if (_mode > MASK3D)
+        resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
+    else
+        resize(szFen);
 }
 
 MainWindow::~MainWindow()
@@ -104,8 +116,7 @@ void MainWindow::createRecentFileMenu()
 {
     _RFMenu = new QMenu(tr("&Recent files"), this);
 
-    _ui->menuFile->insertMenu(_ui->actionSave_selection, _RFMenu);
-    _ui->menuFile->insertSeparator(_ui->actionSave_selection);
+    _ui->menuFile->insertMenu(_ui->actionSettings, _RFMenu);
 
     for (int i = 0; i < MaxRecentFiles; ++i)
         _RFMenu->addAction(_recentFileActs[i]);
@@ -133,44 +144,7 @@ void MainWindow::runProgressDialog(QFuture<void> future)
     future.waitForFinished();
 }
 
-void MainWindow::readSettings()
-{
-     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
-     settings.beginGroup("MainWindow");
-     QSize szFen = settings.value("size", QSize(800, 600)).toSize();
-     _mode  = settings.value("mode", 0).toInt();
-     _nbFen = settings.value("NbFen", QPoint(1, 1)).toPoint();
-
-     if (_mode > MASK3D)
-         resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
-     else
-         resize(szFen);
-
-     move(settings.value("pos", QPoint(200, 200)).toPoint());
-     settings.endGroup();
-
-     settings.beginGroup("Misc");
-     _ptName = settings.value("defPtName", "").toString();
-     settings.endGroup();
-}
-
-void MainWindow::writeSettings()
- {
-     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-
-     settings.beginGroup("MainWindow");
-     settings.setValue("size", size());
-     settings.setValue("pos", pos());
-     settings.setValue("NbFen", _nbFen);
-     settings.setValue("mode",  _mode);
-     settings.endGroup();
-
-     settings.beginGroup("Misc");
-     settings.setValue("defPtName", _ptName);
-     settings.endGroup();
-
- }
 
 void MainWindow::addFiles(const QStringList& filenames)
 {
@@ -221,7 +195,7 @@ void MainWindow::addFiles(const QStringList& filenames)
             _Engine->loadImages(filenames);
         }
 
-        _Engine->allocAndSetGLData(_mode > MASK3D, _ptName);
+        _Engine->allocAndSetGLData(_mode > MASK3D, _params->getDefPtName());
 
         for (int aK = 0; aK < nbWidgets();++aK)
         {
@@ -559,15 +533,15 @@ void MainWindow::on_actionSave_selection_triggered()
 
 void MainWindow::on_actionSettings_triggered()
 {
-    cSettingsDlg uiSettings(this);
+    cSettingsDlg uiSettings(this, *_params);
     connect(&uiSettings, SIGNAL(hasChanged()), this, SLOT(redraw()));
 
     uiSettings.exec();
-    #if defined(Q_OS_SYMBIAN)
+    /*#if defined(Q_OS_SYMBIAN)
         uiSettings.showMaximized();
     #else
         uiSettings.show();
-    #endif
+    #endif*/
 
     disconnect(&uiSettings, 0, 0, 0);
 }
@@ -729,7 +703,7 @@ void  MainWindow::setGamma(float aGamma)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    writeSettings();
+    _params->write();
     event->accept();
 }
 
