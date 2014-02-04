@@ -621,7 +621,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
       <string>open in full screen</string>
      </property>
      <property name="checked">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
     <widget class="QWidget" name="horizontalLayoutWidget_2">

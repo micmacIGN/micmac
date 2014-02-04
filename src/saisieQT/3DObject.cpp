@@ -1546,6 +1546,11 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
 
 //********************************************************************************
 
+/*cMessages2DGL::~cMessages2DGL()
+{
+    glwid = NULL;
+}*/
+
 void cMessages2DGL::draw(){
 
     if (drawMessages())

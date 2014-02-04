@@ -33,7 +33,6 @@ enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
                 POINT2D_PREDICT /**< Points in Image (SaisiePointPredic) **/
 };
 
-
 class MainWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
@@ -154,14 +153,12 @@ private:
 
     QMenu*                  _RFMenu; //recent files menu
 
-    int                     _mode;
-
-    QPoint                  _nbFen;
-
     QSignalMapper*          _signalMapper;
     QGridLayout*            _layout;
     QGridLayout*            _zoomLayout;
 
-    QString                 _ptName;
+    cParameters*            _params;
+
+    int                     _mode;
 };
 #endif // MAINWINDOW_H
