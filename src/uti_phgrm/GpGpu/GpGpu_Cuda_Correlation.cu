@@ -17,6 +17,49 @@ extern "C" void CopyParamInvTodevice( pCorGpu param )
   checkCudaErrors(cudaMemcpyToSymbol(invPc, &param.invPC, sizeof(invParamCorrel)));
 }
 
+template<int TexSel> __global__ void projectionImage( HDParamCorrel HdPc, float* projImages)
+{
+    //extern __shared__ float cacheImg[];
+
+    const uint2 ptHTer = make_uint2(blockIdx) * BLOCKDIM + make_uint2(threadIdx);
+
+    if (oSE(ptHTer,HdPc.dimDTer)) return;
+
+    const ushort IdLayer = blockDim.z * blockIdx.z + threadIdx.z;
+
+    const float2 ptProj  = GetProjection<TexSel>(ptHTer,invPc.sampProj, IdLayer);
+
+    float* localImages = projImages + IdLayer * size(HdPc.dimDTer);
+
+    localImages[to1D(ptHTer,HdPc.dimDTer)] = ptProj.x < 0 ? 0.f : GetImageValue(ptProj,threadIdx.z)/ 255.f;
+}
+
+extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<float>  &DeviImagesProj)
+{
+
+    dim3	threads( BLOCKDIM, BLOCKDIM, param.invPC.nbImages);
+    uint2	thd2D		= make_uint2(threads);
+    uint2	block2D		= iDivUp(param.HdPc.dimDTer,thd2D);
+    dim3	blocks(block2D.x , block2D.y, param.ZCInter);
+
+    DeviImagesProj.ReallocIfDim(param.HdPc.dimDTer,param.ZCInter*param.invPC.nbImages);
+
+//    CuHostData3D<float>  hostImagesProj;
+
+//    hostImagesProj.ReallocIfDim(param.HdPc.dimDTer,param.ZCInter*param.invPC.nbImages);
+
+//    projectionImage<0><<<blocks, threads, param.invPC.nbImages * BLOCKDIM * BLOCKDIM * sizeof(float), 0>>>(param.HdPc,DeviImagesProj.pData());
+
+    projectionImage<0><<<blocks, threads>>>(param.HdPc,DeviImagesProj.pData());
+
+//    DeviImagesProj.CopyDevicetoHost(hostImagesProj);
+
+//    hostImagesProj.OutputValues();
+
+//    GpGpuTools::Array1DtoImageFile(hostImagesProj.pData(),"toto.ppm",hostImagesProj.GetDimension());
+//    hostImagesProj.Dealloc();
+
+}
 
 /// \fn template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 /// \brief Kernel fonction GpGpu Cuda
@@ -64,6 +107,8 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer, 0))
     return;
 
+
+  // INCORRECT !!!
   if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
 
   const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
@@ -127,9 +172,13 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
     uint2	block2D		= iDivUp(param.HdPc.dimDTer,nbActThrd);
     dim3	blocks(block2D.x , block2D.y, param.invPC.nbImages * param.ZCInter);
 
+//    CuDeviceData3D<float>       DeviImagesProj;
+
+//    LaunchKernelprojectionImage(param,DeviImagesProj);
+
   switch (s)
     {
-    case 0:
+    case 0:      
       correlationKernel<0><<<blocks, threads, BLOCKDIM * BLOCKDIM * sizeof(float), stream>>>( data2cor.DeviVolumeNOK(0), data2cor.DeviVolumeCache(0), nbActThrd,param.HdPc);
       getLastCudaError("Basic Correlation kernel failed stream 0");
       break;

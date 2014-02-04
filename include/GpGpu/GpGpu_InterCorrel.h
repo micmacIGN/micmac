@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __GPGPU_INTERCORREL_H__
+#define __GPGPU_INTERCORREL_H__
 
 #ifdef _WIN32
     #ifdef INT
@@ -23,7 +24,7 @@ extern "C" void	LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu 
 extern "C" void	LaunchKernelMultiCorrelation(cudaStream_t stream, pCorGpu &param, SData2Correl &dataCorrel);
 
 extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim);
-
+extern "C" void	LaunchKernelprojectionImage(pCorGpu &param,CuDeviceData3D<float>  &DeviImagesProj);
 
 /// \class GpGpuInterfaceCorrel
 /// \brief Class qui lie micmac avec les outils de calculs GpGpu
@@ -97,3 +98,5 @@ private:
 };
 
 #endif
+
+#endif // __GPGPU_INTERCORREL_H__

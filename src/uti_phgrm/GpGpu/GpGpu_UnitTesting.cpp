@@ -1,8 +1,7 @@
-#include "GpGpu/GpGpu_InterOptimisation.h"
-#include "GpGpu/SData2Optimize.h"
+#include "GpGpu/GpGpu.h"
 
-extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O);
 
+//extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O);
 
 int Main_UnitTest_Realloc()
 {
@@ -257,9 +256,36 @@ int Main_Test_Optimisation()
     return 0;
 }
 
+int Main_UnitTest_ProjectionImage()
+{
+    pCorGpu param;
+
+    param.invPC.SetParamInva(make_uint2(5,5),make_uint2(2,2),make_uint2(2,2),1.f,SAMPLETERR,1,4);
+    param.SetDimension(Rect(0,0,48,48),8);
+
+    CuDeviceData3D<float>       DeviImagesProj;
+
+    LaunchKernelprojectionImage(param,DeviImagesProj);
+
+//    param.SetDimension(Rect(0,0,48,40),8);
+
+//    LaunchKernelprojectionImage(param,DeviImagesProj);
+
+//    param.SetDimension(Rect(0,0,48,80),8);
+
+//    LaunchKernelprojectionImage(param,DeviImagesProj);
+
+//    param.SetDimension(Rect(0,0,48,80),4);
+
+//    LaunchKernelprojectionImage(param,DeviImagesProj);
+
+
+    return 0;
+}
+
 int main()
 {
 
-    return Main_UnitTest_Realloc();
+    return Main_UnitTest_ProjectionImage();
 
 }
