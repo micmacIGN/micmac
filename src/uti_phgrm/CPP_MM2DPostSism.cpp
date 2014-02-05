@@ -79,6 +79,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
     int    aSzW=4;
     double aRegul=0.3;
     bool useDequant=true;
+    double aIncCalc=2.0;
 
 
     ElInitArgMain
@@ -93,6 +94,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                     << EAM(aSzW,"SzW",true,"Size of window (Def =4, mean 9x9)")
                     << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
                     << EAM(useDequant,"Dequant",true,"Dequantify (Def=true)")
+                    << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0")
     );
 	
 #if (ELISE_windows)
@@ -111,6 +113,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                         + " +Im2=" + aIm2
                         + " +SzW=" + ToString(aSzW)
                         + " +RegulBase=" + ToString(aRegul)
+                        + " +Inc=" + ToString(aIncCalc)
                         ;
 
 

@@ -236,10 +236,12 @@ class cPolygon : public cObjectGL
         void    findNearestPoint(const QPointF &pos, float sqr_radius = _sqr_radius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
+        void    removeSelectedPoint();
 
         void    setNearestPointState(const QPointF &pos, int state);
         void    highlightNearestPoint(const QPointF &pos);
         QString getNearestPointName(const QPointF &pos);
+        QString getSelectedPointName();
 
         void    setpointSize(float size) { _pointSize = size; }
 
@@ -345,9 +347,9 @@ class cPolygonHelper : public cPolygon
 
         cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
-        void   build(const QPointF &pos, bool insertMode);
+        void   build(const cPoint &pos, bool insertMode);
 
-        void   setPoints(QPointF p1, QPointF p2, QPointF p3);
+        void   setPoints(cPoint p1, cPoint p2, cPoint p3);
 
     private:
 
@@ -379,6 +381,8 @@ class cImageGL : public cObjectGL
         //height and width of original data
         int     width()  {return _size.width();}
         int     height() {return _size.height();}
+
+        bool    isPtInside(QPointF const &pt);
 
         void    setGamma(float gamma){_gamma = (gamma >= 0) ? gamma : 0;}
 
@@ -427,8 +431,16 @@ public:
 
     void deallocImages()
     {
-        if(_m_image != NULL) delete _m_image;
-        if(_m_mask != NULL) delete _m_mask;
+        if(_m_image != NULL)
+        {
+            _m_image = NULL;
+            delete _m_image;
+        }
+        if(_m_mask != NULL)
+        {
+            _m_mask = NULL;
+            delete _m_mask;
+        }
     }
 
     T           *_m_image;
@@ -517,9 +529,11 @@ public:
         h=hh;
     }
 
-    bool DrawMessages(){return _bDrawMessages && size();}
+    bool drawMessages(){ return _bDrawMessages && size(); }
 
-    int size(){return m_messagesToDisplay.size();}
+    void showMessages(bool show) { _bDrawMessages = show; }
+
+    int size(){ return m_messagesToDisplay.size(); }
 
 private:
 
@@ -592,6 +606,8 @@ public:
     cBBox       *pBbox;
 
     QVector < GlCloud* > Clouds;
+
+    void        setDimensionImage(int vW,int vH);
 
     //info coming from cData
     float       getBBoxMaxSize(){return _diam;}

@@ -3,28 +3,38 @@
 
 MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QWidget *parent) :
         QMainWindow(parent),
-        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > 1),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > MASK3D),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
+        _mode(mode),
         _layout(new QGridLayout),
-        _bModePt(mode > 1),
+        _zoomLayout(new QGridLayout),
         _ptName(pointName)
 {
     _ui->setupUi(this);
 
-    QString style = "border: 2px solid gray;"
-            "border-radius: 1px;"
+    QString style = "border: 1px solid #707070;"
+            "border-radius: 0px;"
+            "padding: 0px;"
+            "margin: 0px;"
             "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
 
-    style = style.arg(colorBG0.red()).arg(colorBG0.green()).arg(colorBG0.blue());
-    style = style.arg(colorBG1.red()).arg(colorBG1.green()).arg(colorBG1.blue());
+    uint sy = 2;
 
-#ifdef ELISE_Darwin    
+    _layout->setContentsMargins(sy,sy,sy,sy);
+    _layout->setHorizontalSpacing(sy);
+    _layout->setVerticalSpacing(sy);
+
+    style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
+    style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
+
+    _ui->OpenglLayout->setStyleSheet(style);
+    _ui->OpenglLayout->setContentsMargins(0,0,0,0);
+
+#ifdef ELISE_Darwin
     _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
     _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
 #endif
-
-    _ui->OpenglLayout->setStyleSheet(style);
 
     _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
 
@@ -33,9 +43,7 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
     _nbFen = QPoint(aNbFen.x,aNbFen.y);
     _szFen = QPoint(aSzW.x,aSzW.y);
 
-    resize(_szFen.x(), _szFen.y());
-
-    setMode2D(mode != MASK3D);
+    setMode();
 
     int cpt=0;
     for (int aK = 0; aK < aNbFen.x;++aK)
@@ -55,13 +63,17 @@ MainWindow::~MainWindow()
     delete _Engine;
     delete _RFMenu;
     delete _layout;
+    delete _zoomLayout;
     delete _signalMapper;
 }
 
 void MainWindow::connectActions()
 {
-    for (uint aK = 0; aK < NbWidgets();++aK)
+    for (int aK = 0; aK < nbWidgets();++aK)
+    {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
+    }
 
     //File menu
     connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
@@ -139,77 +151,77 @@ void MainWindow::addFiles(const QStringList& filenames)
             }
         }
 
-        _Engine->setFilenamesIn(filenames);
-
-        if (_bMode2D == true) closeAll();
-        setMode2D(false);
-
-        QFileInfo fi(filenames[0]);
-
-        //set default working directory as first file subfolder
-        QDir Dir = fi.dir();
-        Dir.cdUp();
-        _Engine->setDir(Dir);
+        _Engine->setFilenamesInAndDir(filenames);
 
 #ifdef _DEBUG
         printf("adding files %s\n", filenames[0].toStdString().c_str());
 #endif
 
-        if (fi.suffix() == "ply")
+        if (_mode == MASK3D)
         {
-            // TODO ENCAPSULER LA PROGRESS BAR
-            QTimer *timer_test = new QTimer(this);
-            _incre = new int(0);
-            connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            timer_test->start(10);
-            QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre);
+            QFileInfo fi(filenames[0]);
 
-            _FutureWatcher.setFuture(future);
-            _ProgressDialog->setWindowModality(Qt::WindowModal);
-            _ProgressDialog->exec();
+            if (currentWidget()->hasDataLoaded() && !currentWidget()->getGLData()->is3D()) closeCurrentWidget();
 
-            timer_test->stop();
-            disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            delete _incre;
-            delete timer_test;                     
+            if (fi.suffix() == "ply")
+            {
+                // TODO ENCAPSULER LA PROGRESS BAR
+                QTimer *timer_test = new QTimer(this);
+                _incre = new int(0);
+                connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+                timer_test->start(10);
+                QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre);
 
-            future.waitForFinished();            
-            // FIN DE CHARGEMENT ET PROGRESS BAR            
-        }
-        else if (fi.suffix() == "xml")
-        {
-            // TODO ENCAPSULER LA PROGRESS BAR
-            QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
+                _FutureWatcher.setFuture(future);
+                _ProgressDialog->setWindowModality(Qt::WindowModal);
+                _ProgressDialog->exec();
 
-            _FutureWatcher.setFuture(future);
-            _ProgressDialog->setWindowModality(Qt::WindowModal);
-            _ProgressDialog->exec();
+                timer_test->stop();
+                disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+                delete _incre;
+                delete timer_test;
 
-            future.waitForFinished();
-            // FIN DE CHARGEMENT ET PROGRESS BAR
+                future.waitForFinished();
+                // FIN DE CHARGEMENT ET PROGRESS BAR
+            }
+            else if (fi.suffix() == "xml")
+            {
+                // TODO ENCAPSULER LA PROGRESS BAR
+                QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
 
-            _ui->actionShow_cams->setChecked(true);
+                _FutureWatcher.setFuture(future);
+                _ProgressDialog->setWindowModality(Qt::WindowModal);
+                _ProgressDialog->exec();
+
+                future.waitForFinished();
+                // FIN DE CHARGEMENT ET PROGRESS BAR
+
+                _ui->actionShow_cams->setChecked(true);
+            }
+            else // LOAD IMAGE
+            {
+                closeAll();
+                _Engine->loadImages(filenames);
+            }
         }
         else // LOAD IMAGE
         {
-            setMode2D(true);
-            closeAll();            
-
+             if (_mode == MASK2D) closeAll();
             _Engine->loadImages(filenames);            
         }
 
         _Engine->setSelectionFilenames();
         _Engine->setFilenamesOut();
 
-        _Engine->allocAndSetGLData(_bModePt, _ptName);
+        _Engine->allocAndSetGLData(_mode > MASK3D, _ptName);
 
-        for (uint aK = 0; aK < NbWidgets();++aK)
+        for (int aK = 0; aK < nbWidgets();++aK)
         {
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
-            getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+            if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
         }
 
-        for (int aK=0; aK< filenames.size();++aK) setCurrentFile(filenames[aK]);
+        for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
     }
 }
 
@@ -220,13 +232,13 @@ void MainWindow::on_actionFullScreen_toggled(bool state)
 
 void MainWindow::on_actionShow_ball_toggled(bool state)
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
-        CurrentWidget()->setOption(cGLData::OpShow_Ball,state);
+        currentWidget()->setOption(cGLData::OpShow_Ball,state);
 
         if (state && _ui->actionShow_axis->isChecked())
         {
-            CurrentWidget()->setOption(cGLData::OpShow_BBox,!state);
+            currentWidget()->setOption(cGLData::OpShow_BBox,!state);
             _ui->actionShow_axis->setChecked(!state);
         }
     }
@@ -234,19 +246,19 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
 
 void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
-    if(!_bMode2D)
-        CurrentWidget()->setOption(cGLData::OpShow_BBox,state);
+    if (_mode == MASK3D)
+        currentWidget()->setOption(cGLData::OpShow_BBox,state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
 {
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
-        CurrentWidget()->setOption(cGLData::OpShow_Axis,state);
+        currentWidget()->setOption(cGLData::OpShow_Axis,state);
 
         if (state && _ui->actionShow_ball->isChecked())
         {
-            CurrentWidget()->setOption(cGLData::OpShow_Ball,!state);
+            currentWidget()->setOption(cGLData::OpShow_Ball,!state);
             _ui->actionShow_ball->setChecked(!state);
         }
     }
@@ -254,38 +266,38 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
 
 void MainWindow::on_actionShow_cams_toggled(bool state)
 {
-    if (!_bMode2D)
-        CurrentWidget()->setOption(cGLData::OpShow_Cams,state);
+    if (_mode == MASK3D)
+        currentWidget()->setOption(cGLData::OpShow_Cams,state);
 }
 
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
-    CurrentWidget()->setOption(cGLData::OpShow_Mess,state);
+    currentWidget()->setOption(cGLData::OpShow_Mess,state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
 {
-    if (!_bMode2D)
-        CurrentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
+    if (_mode == MASK3D)
+        currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 }
 
 void MainWindow::on_actionHelpShortcuts_triggered()
 {
     QString text = tr("File menu:") +"\n\n";
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
         text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
     }
     text += "Ctrl+O: \t"+tr("open image file")+"\n";
-    if (!_bMode2D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
+    if (_mode == MASK3D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
     text += "Ctrl+S: \t"+tr("save mask file")+"\n";
     text += "Ctrl+Maj+S: \t"+tr("save mask file as")+"\n";
     text += "Ctrl+X: \t"+tr("close files")+"\n";
     text += "Ctrl+Q: \t"+tr("quit") +"\n\n";
     text += tr("View menu:") +"\n\n";
     text += "F2: \t"+tr("full screen") +"\n";
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         text += "F3: \t"+tr("show axis") +"\n";
         text += "F4: \t"+tr("show ball") +"\n";
@@ -295,7 +307,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
     text += "F7: \t"+tr("show messages") +"\n";
     text += "F8: \t"+tr("2D mode / 3D mode") +"\n";
 
-    if (!_bMode2D)
+    if (_mode == MASK3D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
     else
     {
@@ -312,14 +324,14 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 
 
     text += tr("Selection menu:") +"\n\n";
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
     }
     text += tr("Left click : \tadd a vertex to polyline") +"\n";
     text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
     text += tr("Echap: \tdelete polyline") +"\n";
-    if (!_bMode2D)
+    if (_mode == MASK3D)
     {
         text += tr("Space bar: \tadd points inside polyline") +"\n";
         text += tr("Del: \tremove points inside polyline") +"\n";
@@ -361,27 +373,27 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionAdd_triggered()
 {
-    CurrentWidget()->Select(ADD);
+    currentWidget()->Select(ADD);
 }
 
 void MainWindow::on_actionSelect_none_triggered()
 {
-    CurrentWidget()->Select(NONE);
+    currentWidget()->Select(NONE);
 }
 
 void MainWindow::on_actionInvertSelected_triggered()
 {
-    CurrentWidget()->Select(INVERT);
+    currentWidget()->Select(INVERT);
 }
 
 void MainWindow::on_actionSelectAll_triggered()
 {
-    CurrentWidget()->Select(ALL);
+    currentWidget()->Select(ALL);
 }
 
 void MainWindow::on_actionReset_triggered()
 {
-    if (_bMode2D)
+    if (_mode != MASK3D)
     {
         closeAll();
 
@@ -389,74 +401,77 @@ void MainWindow::on_actionReset_triggered()
     }
     else
     {
-        CurrentWidget()->Select(ALL);
+        currentWidget()->Select(ALL);
     }
 }
 
 void MainWindow::on_actionRemove_triggered()
 {
-    CurrentWidget()->Select(SUB);
+    if (_mode > MASK3D)
+        currentWidget()->polygon().removeSelectedPoint();
+    else
+        currentWidget()->Select(SUB);
 }
 
 void MainWindow::on_actionSetViewTop_triggered()
 {
-    if (!_bMode2D)
-        CurrentWidget()->setView(TOP_VIEW);
+    if (_mode == MASK3D)
+        currentWidget()->setView(TOP_VIEW);
 }
 
 void MainWindow::on_actionSetViewBottom_triggered()
 {
-    if (!_bMode2D)
-        CurrentWidget()->setView(BOTTOM_VIEW);
+    if (_mode == MASK3D)
+        currentWidget()->setView(BOTTOM_VIEW);
 }
 
 void MainWindow::on_actionSetViewFront_triggered()
 {
-    if (!_bMode2D)
-        CurrentWidget()->setView(FRONT_VIEW);
+    if (_mode == MASK3D)
+        currentWidget()->setView(FRONT_VIEW);
 }
 
 void MainWindow::on_actionSetViewBack_triggered()
 {
-    if (!_bMode2D)
-        CurrentWidget()->setView(BACK_VIEW);
+    if (_mode == MASK3D)
+        currentWidget()->setView(BACK_VIEW);
 }
 
 void MainWindow::on_actionSetViewLeft_triggered()
 {
-    if (!_bMode2D)
-        CurrentWidget()->setView(LEFT_VIEW);
+    if (_mode == MASK3D)
+        currentWidget()->setView(LEFT_VIEW);
 }
 
 void MainWindow::on_actionSetViewRight_triggered()
 {
-    if (!_bMode2D)
-        CurrentWidget()->setView(RIGHT_VIEW);
+    if (_mode == MASK3D)
+        currentWidget()->setView(RIGHT_VIEW);
 }
 
 void MainWindow::on_actionReset_view_triggered()
 {
-    CurrentWidget()->resetView(true,true,true);
+    currentWidget()->resetView(true,true,true,true);
 }
 
 void MainWindow::on_actionZoom_Plus_triggered()
 {
-    CurrentWidget()->setZoom(CurrentWidget()->getZoom()*1.5f);
+    currentWidget()->setZoom(currentWidget()->getZoom()*1.5f);
 }
 
 void MainWindow::on_actionZoom_Moins_triggered()
 {
-    CurrentWidget()->setZoom(CurrentWidget()->getZoom()/1.5f);
+    currentWidget()->setZoom(currentWidget()->getZoom()/1.5f);
 }
 
 void MainWindow::on_actionZoom_fit_triggered()
 {
-    CurrentWidget()->zoomFit();
+    currentWidget()->zoomFit();
 }
 
 void MainWindow::zoomFactor(int aFactor)
 {
-    CurrentWidget()->zoomFactor(aFactor);
+    currentWidget()->zoomFactor(aFactor);
 }
 
 void MainWindow::on_actionLoad_plys_triggered()
@@ -488,7 +503,7 @@ void MainWindow::on_actionLoad_image_triggered()
 
 void MainWindow::on_actionSave_masks_triggered()
 {
-    _Engine->saveMask(CurrentWidgetIdx());
+    _Engine->saveMask(currentWidgetIdx());
 }
 
 void MainWindow::on_actionSave_as_triggered()
@@ -499,21 +514,35 @@ void MainWindow::on_actionSave_as_triggered()
     {
         _Engine->setFilenameOut(fname);
 
-        _Engine->saveMask(CurrentWidgetIdx());
+        _Engine->saveMask(currentWidgetIdx());
     }
 }
 
 void MainWindow::on_actionSave_selection_triggered()
 {
-    CurrentWidget()->getHistoryManager()->save();
+    currentWidget()->getHistoryManager()->save();
 }
 
 void MainWindow::closeAll()
 {
     _Engine->unloadAll();
 
-    for (uint aK=0; aK < NbWidgets(); ++aK)
+    for (int aK=0; aK < nbWidgets(); ++aK)
         getWidget(aK)->reset();
+
+    if (zoomWidget() != NULL)
+    {
+        zoomWidget()->reset();
+        zoomWidget()->setOption(cGLData::OpShow_Mess,false);
+    }
+}
+
+void MainWindow::closeCurrentWidget()
+{
+    _Engine->unloadAll();
+    //_Engine->unload(currentWidgetIdx());
+
+    currentWidget()->reset();
 }
 
 void MainWindow::openRecentFile()
@@ -528,11 +557,10 @@ void MainWindow::openRecentFile()
 
     if (action)
     {
-        _Engine->setFilenamesIn(QStringList(action->data().toString()));
+        _Engine->setFilenamesInAndDir(QStringList(action->data().toString()));
 
         addFiles(_Engine->getFilenamesIn());
     }
-	
 }
 
 void MainWindow::setCurrentFile(const QString &fileName)
@@ -588,38 +616,66 @@ QString MainWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
-void MainWindow::setMode2D(bool mBool)
+void hideAction(QAction* action, bool show)
 {
-    _bMode2D = mBool;
-
-    _ui->actionLoad_plys->setVisible(!mBool);
-    _ui->actionLoad_camera->setVisible(!mBool);
-    _ui->actionShow_cams->setVisible(!mBool);
-    _ui->actionShow_axis->setVisible(!mBool);
-    _ui->actionShow_ball->setVisible(!mBool);
-    _ui->actionShow_bbox->setVisible(!mBool);
-    _ui->actionSave_selection->setVisible(!mBool);
-    _ui->actionToggleMode->setVisible(!mBool);
-
-    _ui->menuStandard_views->menuAction()->setVisible(!mBool);
-
-    //pour activer/desactiver les raccourcis clavier
-
-    _ui->actionLoad_plys->setEnabled(!mBool);
-    _ui->actionLoad_camera->setEnabled(!mBool);
-    _ui->actionShow_cams->setEnabled(!mBool);
-    _ui->actionShow_axis->setEnabled(!mBool);
-    _ui->actionShow_ball->setEnabled(!mBool);
-    _ui->actionShow_bbox->setEnabled(!mBool);
-    _ui->actionSave_selection->setEnabled(!mBool);
-    _ui->actionToggleMode->setEnabled(!mBool);
+    action->setVisible(show);
+    action->setEnabled(show);
 }
 
-void MainWindow::on_action2D_3D_mode_triggered()
+void MainWindow::setMode()
 {
-    setMode2D(!_bMode2D);
+    bool isMode3D = _mode == MASK3D;
 
-    closeAll();
+    hideAction(_ui->actionLoad_plys,  isMode3D);
+    hideAction(_ui->actionLoad_camera,isMode3D);
+    hideAction(_ui->actionShow_cams,  isMode3D);
+    hideAction(_ui->actionShow_axis,  isMode3D);
+    hideAction(_ui->actionShow_ball,  isMode3D);
+    hideAction(_ui->actionShow_bbox,  isMode3D);
+    hideAction(_ui->actionShow_cams,  isMode3D);
+    hideAction(_ui->actionToggleMode, isMode3D);
+
+    _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
+
+    if (_mode > MASK3D)
+    {
+        resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
+
+
+        QString style = "border: 2px solid #707070;"
+                "border-radius: 0px;"
+                "padding: 0px;"
+                "margin: 0px;";
+
+        _ui->zoomLayout->setStyleSheet(style);
+        //zoom Window
+        _zoomLayout->addWidget(zoomWidget());
+        _zoomLayout->setContentsMargins(2,2,2,2);
+
+        _ui->zoomLayout->setLayout(_zoomLayout);
+        _ui->zoomLayout->setContentsMargins(0,0,0,0);
+
+        //disable some actions
+        hideAction(_ui->actionAdd, false);
+        hideAction(_ui->actionSelect_none, false);
+        hideAction(_ui->actionInvertSelected, false);
+        hideAction(_ui->actionSelectAll, false);
+        hideAction(_ui->actionReset, false);
+
+        hideAction(_ui->actionRemove, true);
+
+        _ui->menuSelection->setTitle(tr("H&istory"));
+    }
+    else
+    {
+        resize(_szFen.x(), _szFen.y());
+
+        _ui->verticalLayout->removeWidget(_ui->zoomLayout);
+        _ui->verticalLayout->removeItem(_ui->verticalSpacer);
+
+        delete _ui->zoomLayout;
+        delete _ui->verticalSpacer;
+    }
 }
 
 void  MainWindow::setGamma(float aGamma)
@@ -627,20 +683,35 @@ void  MainWindow::setGamma(float aGamma)
     _Engine->setGamma(aGamma);
 }
 
+void MainWindow::changeCurrentWidget(void *cuWid)
+{
+    GLWidget* glW = (GLWidget*)cuWid;
+
+    setCurrentWidget(glW);
+
+    if (zoomWidget())
+    {
+        zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
+        zoomWidget()->setZoom(3.f);
+        zoomWidget()->setOption(cGLData::OpShow_Mess,false);
+        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(int, int)), zoomWidget(), SLOT(centerViewportOnImagePosition(int,int)));
+    }
+}
+
 void MainWindow::undo(bool undo)
 {
-    if (CurrentWidget()->getHistoryManager()->size())
+    if (currentWidget()->getHistoryManager()->size())
     {
-        if (_bMode2D)
+        if (_mode != MASK3D)
         {
-            int idx = CurrentWidgetIdx();
+            int idx = currentWidgetIdx();
 
             _Engine->reloadImage(idx);
 
-            CurrentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+            currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
         }
 
-        undo ? CurrentWidget()->getHistoryManager()->undo() : CurrentWidget()->getHistoryManager()->redo();
-        CurrentWidget()->applyInfos();
+        undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
+        currentWidget()->applyInfos();
     }
 }
