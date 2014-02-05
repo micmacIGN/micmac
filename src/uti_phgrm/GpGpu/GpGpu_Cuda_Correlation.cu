@@ -31,7 +31,7 @@ template<int TexSel> __global__ void projectionImage( HDParamCorrel HdPc, float*
 
     float* localImages = projImages + IdLayer * size(HdPc.dimDTer);
 
-    localImages[to1D(ptHTer,HdPc.dimDTer)] = ptProj.x < 0 ? 0.f : GetImageValue(ptProj,threadIdx.z)/ 255.f;
+    localImages[to1D(ptHTer,HdPc.dimDTer)] = ptProj.x < 0 ? -1.f : GetImageValue(ptProj,threadIdx.z);
 }
 
 extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<float>  &DeviImagesProj)
@@ -185,102 +185,118 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
     }
 }
 
-template<int TexSel> __global__ void correlationKernelZ( uint *dev_NbImgOk, float* cachVig, float* imagesProj,HDParamCorrel HdPc)
+
+template<int TexSel> __global__ void correlationKernelZ( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd,float* imagesProj,HDParamCorrel HdPc)
 {
 
-  extern __shared__ float cacheImg[];
+    extern __shared__ float cacheImg[];
 
-  // Coordonnées du terrain global avec bordure // __umul24!!!! A voir
+    // Coordonnées du terrain global avec bordure // __umul24!!!! A voir
 
-  const uint2  ptTer = make_uint2(blockIdx) * BLOCKDIM + make_uint2(threadIdx);
+    const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
 
-  const uint2 ptHTer= ptTer + invPc.rayVig;
+    // Si le processus est hors du terrain, nous sortons du kernel
 
-  const ushort2 tH  = make_ushort2(threadIdx) + invPc.rayVig;
+    if (oSE(ptHTer,HdPc.dimDTer)) return;
 
-  if (oSE(ptTer,HdPc.dimTer)) return;
+    uint pitZ,piCa;
 
-  const ushort IdLayer = blockDim.z * blockIdx.z + threadIdx.z;
+    pitZ  = blockIdx.z / invPc.nbImages;
 
-  float* localImages = imagesProj + IdLayer * size(HdPc.dimDTer);
+    piCa  = pitZ * invPc.nbImages;
 
-  const ushort HBLOCKDIM = BLOCKDIM + invPc.rayVig.x;
+    const float v = cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = imagesProj[ blockIdx.z * size(HdPc.dimDTer) + to1D(ptHTer,HdPc.dimDTer) ];
 
-  float* localCache  = cacheImg + threadIdx.z * HBLOCKDIM * HBLOCKDIM;
+    if(v < 0)
+        return;
 
-  localCache[tH.y * HBLOCKDIM + tH.x ] = localImages[to1D(ptHTer,HdPc.dimDTer)];
+    __syncthreads();
 
-  __syncthreads();
+    const int2 ptTer = make_int2(ptHTer) - make_int2(invPc.rayVig);
 
-  if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
+    // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 
-  const short2 c0	= make_short2(threadIdx);
-  const short2 c1	= make_short2(tH + invPc.rayVig);
+    // Simplifier!!!
+    if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer, 0))
+      return;
 
-  // Intialisation des valeurs de calcul
-  float aSV = 0.0f, aSVV = 0.0f;
-  short2 pt;
 
-  #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
-  for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
-  {
-        //const int pic = pt.y*BLOCKDIM;
-        float* cImg    = localCache +  pt.y*HBLOCKDIM;
-      #pragma unroll
-      for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
-      {
-          const float val = cImg[pt.x];	// Valeur de l'image
-          //        if (val ==  cH.floatDefault) return;
-          aSV  += val;          // Somme des valeurs de l'image cte
-          aSVV += (val*val);	// Somme des carrés des vals image cte
-      }
-  }
+    // INCORRECT !!!
+    if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
 
-  aSV   = fdividef(aSV,(float)invPc.sizeVig );
+    const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
+    const short2 c1	= make_short2(threadIdx) + invPc.rayVig;
 
-  aSVV  = fdividef(aSVV,(float)invPc.sizeVig );
+    // Intialisation des valeurs de calcul
+    float aSV = 0.0f, aSVV = 0.0f;
+    short2 pt;
 
-  aSVV -=	(aSV * aSV);
-
-  if ( aSVV <= invPc.mAhEpsilon) return;
-
-  aSVV =	rsqrtf(aSVV); // racine carre inverse
-
-  const uint pitchCachY = ptTer.y * invPc.dimVig.y ;
-
-  const int idN     = blockIdx.z * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
-
-  const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + blockIdx.z * invPc.nbImages;
-
-  float* cache      = cachVig + iCa * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
-
-#pragma unroll
-  for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
+    #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
+    for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
     {
-      float* cImg = localCache + pt.y * HBLOCKDIM;
-      float* cVig = cache      + pt.y * HdPc.dimCach.x ;
-#pragma unroll
-      for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
-        cVig[ pt.x ] = (cImg[pt.x] -aSV)*aSVV;
+          //const int pic = pt.y*BLOCKDIM;
+          float* cImg    = cacheImg +  pt.y*BLOCKDIM;
+        #pragma unroll
+        for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
+        {
+            const float val = cImg[pt.x];	// Valeur de l'image
+            //        if (val ==  cH.floatDefault) return;
+            aSV  += val;          // Somme des valeurs de l'image cte
+            aSVV += (val*val);	// Somme des carrés des vals image cte
+        }
     }
+
+    aSV   = fdividef(aSV,(float)invPc.sizeVig );
+
+    aSVV  = fdividef(aSVV,(float)invPc.sizeVig );
+
+    aSVV -=	(aSV * aSV);
+
+    if ( aSVV <= invPc.mAhEpsilon) return;
+
+    aSVV =	rsqrtf(aSVV); // racine carre inverse
+
+    const uint pitchCachY = ptTer.y * invPc.dimVig.y ;
+
+    const int idN     = pitZ * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
+
+    const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + piCa;
+
+    float* cache      = cachVig + iCa * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
+
+  #pragma unroll
+    for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
+      {
+        float* cImg = cacheImg + pt.y * BLOCKDIM;
+        float* cVig = cache    + pt.y * HdPc.dimCach.x ;
+  #pragma unroll
+        for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
+          cVig[ pt.x ] = (cImg[pt.x] -aSV)*aSVV;
+      }
 }
 
 /// \brief Fonction qui lance les kernels de correlation
 extern "C" void	 LaunchKernelCorrelationZ(const int s,pCorGpu &param,SData2Correl &data2cor)
 {
 
-    dim3	threads(BLOCKDIM, BLOCKDIM, param.invPC.nbImages);
+    dim3	threads( BLOCKDIM, BLOCKDIM, 1);
     uint2	thd2D		= make_uint2(threads);
-    uint2	block2D		= iDivUp(param.HdPc.dimTer,thd2D);
-    dim3	blocks(block2D.x , block2D.y, param.ZCInter);
+    uint2	nbActThrd	= thd2D - 2 * param.invPC.rayVig;
+    uint2	block2D		= iDivUp(param.HdPc.dimDTer,nbActThrd);
+    dim3	blocks(block2D.x , block2D.y, param.invPC.nbImages * param.ZCInter);
 
     CuDeviceData3D<float>       DeviImagesProj;
 
-    const ushort HBLOCKDIM = BLOCKDIM + param.invPC.rayVig.x;
+    //const ushort HBLOCKDIM = BLOCKDIM + param.invPC.rayVig.x;
 
     LaunchKernelprojectionImage(param,DeviImagesProj);
 
-    correlationKernelZ<0><<<blocks, threads, param.invPC.nbImages * HBLOCKDIM * HBLOCKDIM * sizeof(float), 0>>>( data2cor.DeviVolumeNOK(0), data2cor.DeviVolumeCache(0), DeviImagesProj.pData() ,param.HdPc);
+    correlationKernelZ<0><<<blocks, threads, BLOCKDIM * BLOCKDIM * sizeof(float), 0>>>(
+                                                                                           data2cor.DeviVolumeNOK(0),
+                                                                                           data2cor.DeviVolumeCache(0),
+                                                                                           nbActThrd,
+                                                                                           DeviImagesProj.pData(),
+                                                                                           param.HdPc);
     getLastCudaError("Basic Correlation kernel failed stream 0");
 
 }
