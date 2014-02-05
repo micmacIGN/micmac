@@ -744,7 +744,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-                    IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+                    IMmGg.SetParameter(mNbIm, make_ushort2(toUi2(mCurSzV0)), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
                 }
 
