@@ -22,6 +22,31 @@ inline __host__ __device__ int2 inc( int2 &a)
     return a;
 }
 
+inline __host__ __device__ uint2 make_uint2(ushort2 a)
+{
+    return make_uint2(uint(a.x), uint(a.y));
+}
+
+inline __host__ __device__ int2 make_int2(ushort2 a)
+{
+    return make_int2((int)a.x,(int)a.y);
+}
+
+inline __host__ __device__ ushort2 make_ushort2(uint3 a)
+{
+    return make_ushort2((ushort)a.x,(ushort)a.y);
+}
+
+inline __host__ __device__ ushort2 make_ushort2(uint2 a)
+{
+    return make_ushort2((ushort)a.x,(ushort)a.y);
+}
+
+inline __host__ __device__ short2 make_short2(ushort2 a)
+{
+    return make_short2((short)a.x,(short)a.y);
+}
+
 /// \struct Rect
 /// \brief Cette structure represente un rectangle definie par deux points
 struct Rect
@@ -172,6 +197,11 @@ SUPPRESS_NOT_USED_WARN static int2 iDivUp(int2 a, uint b)
 	return make_int2(iDivUp(a.x,b),iDivUp(a.y,b));
 }
 
+inline __device__ __host__ ushort size(ushort2 v)
+{
+    return v.x * v.y;
+}
+
 inline __device__ __host__ uint size(uint2 v)
 {
 	return v.x * v.y;
@@ -202,6 +232,16 @@ inline __host__ __device__ uint2 operator/(uint2 a, int b)
 	return make_uint2(a.x / b, a.y / b);
 }
 
+inline __host__ __device__ int2 operator*(int a, ushort2 b)
+{
+    return a * make_int2(b);
+}
+
+inline __host__ __device__ ushort2 operator*(ushort2 a, int b )
+{
+    return make_ushort2(a.x * b, a.y * b);
+}
+
 inline __host__ __device__ int2 operator/(int2 a, uint b)
 {
 	return make_int2(a.x / b, a.y / b);
@@ -210,6 +250,11 @@ inline __host__ __device__ int2 operator/(int2 a, uint b)
 inline __host__ __device__ int2 operator/(int2 a, uint2 b)
 {
 	return make_int2(a.x / ((int)(b.x)), a.y / ((int)(b.y)));
+}
+
+inline __host__ __device__ uint2 operator/(uint2 a, ushort2 b)
+{
+    return make_uint2(a.x / ((uint)(b.x)), a.y / ((uint)(b.y)));
 }
 
 inline __host__ __device__ float2 operator/(float2 a, uint2 b)
@@ -222,9 +267,24 @@ inline __host__ __device__ uint2 operator*(int2 a, uint2 b)
 	return make_uint2(a.x * b.x, a.y * b.y);
 }
 
+inline __host__ __device__ uint2 operator*(uint2 a, ushort2 b)
+{
+    return make_uint2(a.x * b.x, a.y * b.y);
+}
+
 inline __host__ __device__ int2 operator+(int2 a, uint2 b)
 {
 	return make_int2(a.x + b.x, a.y + b.y);
+}
+
+inline __host__ __device__ uint2 operator+(uint2 a, ushort2 b)
+{
+    return make_uint2(a.x + b.x, a.y + b.y);
+}
+
+inline __host__ __device__ ushort2 operator+(ushort2 a, int b)
+{
+    return make_ushort2(a.x + b, a.y + b);
 }
 
 inline __host__ __device__ uint2 make_uint2(dim3 a)
@@ -247,14 +307,25 @@ inline __host__ __device__ int2 operator-(const uint3 a, uint2 b)
 	return make_int2(a.x - b.x, a.y - b.y);
 }
 
+inline __host__ __device__ short2 operator-(const short2 a, ushort2 b)
+{
+    return make_short2(a.x - b.x, a.y - b.y);
+}
+
+
 inline __host__ __device__ int2 operator-(const int2 a, uint2 b)
 {
-	return make_int2(a.x - b.x, a.y - b.y);
+    return make_int2(a.x - b.x, a.y - b.y);
 }
 
 inline __host__ __device__ short2 operator-(short2 a, uint2 b)
 {
 	return make_short2(a.x - b.x, a.y - b.y);
+}
+
+inline __host__ __device__ uint2 operator-(uint2 a, int2 b)
+{
+    return make_uint2(a.x - b.x, a.y - b.y);
 }
 
 
@@ -266,6 +337,16 @@ inline __host__ __device__ short2 operator+(short2 a, uint2 b)
 inline __host__ __device__ int2 operator+(const uint3 a, uint2 b)
 {
 	return make_int2(a.x + b.x, a.y + b.y);
+}
+
+inline __host__ __device__ short2 operator+(const short2 a, ushort2 b)
+{
+    return make_short2(a.x + b.x, a.y + b.y);
+}
+
+inline __host__ __device__ ushort2 operator+(const ushort2 a, ushort2 b)
+{
+    return make_ushort2(a.x + b.x, a.y + b.y);
 }
 
 
@@ -381,6 +462,11 @@ inline __host__ __device__ bool aIE(int2 a, int2 b)
 inline __host__ __device__ bool oI(uint3 a, uint2 b)
 {
 	return ((a.x < b.x) || (a.y < b.y));
+}
+
+inline __host__ __device__ bool oI(uint3 a, ushort2 b)
+{
+    return ((a.x < b.x) || (a.y < b.y));
 }
 
 //      2D to 1D                                      ------

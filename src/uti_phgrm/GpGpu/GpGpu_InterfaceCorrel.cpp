@@ -49,7 +49,7 @@ uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 }
 
 /// \brief Initialisation des parametres constants
-void GpGpuInterfaceCorrel::SetParameter(int nbLayer , uint2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
+void GpGpuInterfaceCorrel::SetParameter(int nbLayer , ushort2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
 {
 
     if(!copyInvParam || _param[0].invPC.nbImages != (uint)nbLayer || _param[1].invPC.nbImages != (uint)nbLayer)

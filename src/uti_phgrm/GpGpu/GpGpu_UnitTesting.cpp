@@ -260,7 +260,7 @@ int Main_UnitTest_ProjectionImage()
 {
     pCorGpu param;
 
-    param.invPC.SetParamInva(make_uint2(5,5),make_uint2(2,2),make_uint2(2,2),1.f,SAMPLETERR,1,4);
+    param.invPC.SetParamInva(make_ushort2(5,5),make_ushort2(2,2),make_uint2(2,2),1.f,SAMPLETERR,1,4);
     param.SetDimension(Rect(0,0,48,48),8);
 
     CuDeviceData3D<float>       DeviImagesProj;
