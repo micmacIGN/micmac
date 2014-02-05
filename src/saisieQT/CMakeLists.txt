@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.1)
 project(saisieQT)
 
 IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )

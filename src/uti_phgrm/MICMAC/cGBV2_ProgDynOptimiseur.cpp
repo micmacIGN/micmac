@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define     MAT_TO_STREAM true
 #define     STREAM_TO_MAT false
-
+#define     CLAMPDZ
 
 namespace NS_ParamMICMAC
 {
@@ -529,8 +529,19 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
         for (uint aK= 0 ; aK < lLine; aK++)
         {
             Pt2di ptTer = (Pt2di)(*aVPt)[aK];
+
+#ifndef CLAMPDZ
             ushort dZ   = costInit1D.DZ(ptTer);
             index[aK]   = costInit1D.PtZ(ptTer);
+#else
+            ushort dZ   = min(costInit1D.DZ(ptTer),NAPPEMAX);
+
+            if(dZ == NAPPEMAX )
+                index[aK]   = make_short2(costInit1D.PtZ(ptTer).x,costInit1D.PtZ(ptTer).x + NAPPEMAX);
+            else
+                index[aK]   = costInit1D.PtZ(ptTer);
+#endif
+
             uint idStrm = d2Opt._param[idBuf][idLine].x + pitStrm;
 
             ushort* desrCostInit = d2Opt._s_InitCostVol.pData()+idStrm;
@@ -565,7 +576,11 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
         {
 
             Pt2di ptTer = (Pt2di)(*aVPt)[aK];
+            #ifndef CLAMPDZ
             ushort dZ   = costInit1D.DZ(ptTer);
+            #else
+            ushort dZ   =  min(costInit1D.DZ(ptTer),NAPPEMAX);
+            #endif
             uint idStrm = d2Opt._param[idBuf][idLine].x + pitStrm;
             uint *forCo = d2Opt._s_ForceCostVol[idBuf].pData() + idStrm;
             uint *finCo = costFinal1D.pData() + costInit1D.Pit(ptTer);
@@ -620,7 +635,11 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                 sizeStreamLine = 0;
 
                 for (uint aK = 0 ; aK < lenghtLine; aK++)
-                    sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
+                    #ifndef CLAMPDZ
+                        sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
+                    #else
+                        sizeStreamLine += min(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]),NAPPEMAX);
+                    #endif
 
                 pitIdStream += iDivUp32(lenghtLine) << 5;
                 pitStream   += iDivUp32(sizeStreamLine) << 5;

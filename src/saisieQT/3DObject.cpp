@@ -658,9 +658,9 @@ void cPolygon::close()
 
 void cPolygon::removeNearestOrClose(QPointF pos)
 {
-    if ((_idx >=0)&&(_idx<size())&&_bIsClosed)
+    if (_bIsClosed)
     {
-        removePoint(_idx);   // remove nearest point
+        removeSelectedPoint();
 
         findNearestPoint(pos);
 
@@ -668,6 +668,13 @@ void cPolygon::removeNearestOrClose(QPointF pos)
     }
     else // close polygon
         close();
+}
+
+void cPolygon::removeSelectedPoint()
+{
+    if ((_idx >=0)&&(_idx<size()))
+
+        removePoint(_idx);
 }
 
 void cPolygon::setNearestPointState(const QPointF &pos, int state)
@@ -703,6 +710,11 @@ QString cPolygon::getNearestPointName(const QPointF &pos)
 {
     findNearestPoint(pos, 400000.f);
 
+    return getSelectedPointName();
+}
+
+QString cPolygon::getSelectedPointName()
+{
     if (_idx >=0 && _idx <_points.size())
     {
         return _points[_idx].name();
@@ -843,15 +855,18 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode)
     if(!_bIsClosed)
     {
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
+
             add(pos);
+
         else if (nbVertex > 1)               // replace last point by the current one
+
             _points[nbVertex-1] = cPoint(_painter, pos, _defPtName, _bShowNames, _color );
     }
-    else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en court d'operation
+    else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
-        if (_bShowLines && (insertMode || isPointSelected())) // insert polygon point
+        if ((insertMode || isPointSelected())) // insert polygon point
 
-            _helper->build(pos, insertMode);
+            _helper->build(cPoint(_painter, pos, getSelectedPointName(), _bShowNames, _color ), insertMode);
 
         else                                 // select nearest polygon point
 
@@ -908,6 +923,8 @@ void cPolygon::rename(QPointF pos, QString name)
 void cPolygon::showLines(bool show)
 {
     _bShowLines = show;
+
+    if (_helper != NULL) _helper->showLines(show);
 
     if(!show) _bIsClosed = true;
 
@@ -1000,7 +1017,7 @@ float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
     return sqrt(dx*dx + dy*dy);
 }
 
-void cPolygonHelper::build(QPointF const &pos, bool insertMode)
+void cPolygonHelper::build(cPoint const &pos, bool insertMode)
 {
     int sz = _polygon->size();
 
@@ -1024,16 +1041,21 @@ void cPolygonHelper::build(QPointF const &pos, bool insertMode)
     }
     else //moveMode
     {
-        int idx = _polygon->idx();
+        if (sz > 1)
+        {
+            int idx = _polygon->idx();
 
-        if ((idx > 0) && (idx <= sz-1))
-            setPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
-        else if (idx  == 0)
-            setPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
+            if ((idx > 0) && (idx <= sz-1))
+                setPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
+            else if (idx  == 0)
+                setPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
+        }
+        else
+            setPoints(pos, pos, pos);
     }
 }
 
-void cPolygonHelper::setPoints(QPointF p1,QPointF p2,QPointF p3)
+void cPolygonHelper::setPoints(cPoint p1, cPoint p2, cPoint p3)
 {
     clear();
     add(p1);
@@ -1121,6 +1143,11 @@ void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
 {
     _glh = glh;
     _glw = glw;
+}
+
+bool cImageGL::isPtInside(const QPointF &pt)
+{
+    return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
 }
 
 void cImageGL::PrepareTexture(QImage * pImg)
@@ -1312,6 +1339,14 @@ void cGLData::draw()
     for (int i=0; i< Cams.size();i++) Cams[i]->draw();
 
     disableOptionLine();
+}
+
+void cGLData::setDimensionImage(int vW, int vH)
+{
+    float rw = (float) glMaskedImage._m_image->width()  / vW;
+    float rh = (float) glMaskedImage._m_image->height() / vH;
+
+    glMaskedImage.setDimensions(2.f*rh,2.f*rw);
 }
 
 void cGLData::setGlobalCenter(Pt3d<double> aCenter)
@@ -1513,7 +1548,7 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
 
 void cMessages2DGL::draw(){
 
-    if (DrawMessages())
+    if (drawMessages())
     {
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
         ll_curHeight = lr_curHeight = lc_curHeight = h - m_font.pointSize()*m_messagesToDisplay.size();
@@ -1584,8 +1619,8 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
         {
             if(m_bDisplayMode2D)
             {
-                displayNewMessage(QString("PIXEL POSITION"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                displayNewMessage(QString("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString(" "),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString(" "),LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
             else
             {
@@ -1607,7 +1642,6 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
         else
             displayNewMessage(QString("Drag & drop files"));
     }
-
 }
 
 std::list<MessageToDisplay>::iterator cMessages2DGL::GetLastMessage()

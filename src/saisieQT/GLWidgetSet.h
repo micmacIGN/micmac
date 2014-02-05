@@ -3,6 +3,7 @@
 
 #include "GLWidget.h"
 #include <QVector>
+#include <QStyle>
 
 class GLWidget;
 
@@ -12,19 +13,30 @@ public:
     GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt);
     ~GLWidgetSet();
 
-    void setCurrentWidgetIdx(uint aK);
-    uint CurrentWidgetIdx(){return _currentWidget;}
+    void setCurrentWidgetIdx(int aK);
+    int  currentWidgetIdx()
+    {
+        return _widgets.indexOf(_pcurrentWidget);
+    }
 
-    GLWidget* getWidget(uint aK){return _Widgets[aK];}
+    void setCurrentWidget(GLWidget* currentWidget)
+    {
+        _pcurrentWidget = currentWidget;
+    }
 
-    GLWidget* CurrentWidget(){return _Widgets[_currentWidget];}
+    GLWidget* getWidget(uint aK){return _widgets[aK];}
 
-    uint NbWidgets() const {return (uint) _Widgets.size();}
+    GLWidget* currentWidget(){return _pcurrentWidget;}
+
+    int nbWidgets() const {return _widgets.size();}
+
+    GLWidget* zoomWidget(){return _zoomWidget;}
 
 private:
 
-    QVector <GLWidget*>  _Widgets;
-    uint                 _currentWidget;
+    QVector <GLWidget*> _widgets;
+    GLWidget*           _zoomWidget;
+    GLWidget*           _pcurrentWidget;
 };
 
 #endif // GLWIDGETGRID_H

@@ -55,6 +55,27 @@ void cData::clearAll()
     clearImages();
 }
 
+void cData::clear(int aK)
+{
+    if (_Clouds.size())
+    {
+        if(_Clouds[aK])
+        {
+            delete _Clouds[aK];
+            _Clouds[aK] = NULL;
+        }
+    }
+    if (_Cameras.size())
+    {
+        if(_Cameras[aK])
+        {
+            delete _Cameras[aK];
+            _Cameras[aK] = NULL;
+        }
+    }
+    if (_MaskedImages.size())   _MaskedImages[aK].deallocImages();
+}
+
 void cData::reset()
 {
     _min.x = _min.y = _min.z =  FLT_MAX;

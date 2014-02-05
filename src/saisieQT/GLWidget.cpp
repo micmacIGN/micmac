@@ -4,7 +4,7 @@
 const float GL_MAX_ZOOM = 50.f;
 const float GL_MIN_ZOOM = 0.01f;
 
-GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
+GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
   , m_GLData(NULL)
@@ -15,7 +15,6 @@ GLWidget::GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared) : QGLW
   , _currentTime(0)
   , _messageManager(this)
   , _widgetId(idx)
-  , _parentSet(theSet)
 {
     _matrixManager.resetAllMatrix();
 
@@ -81,29 +80,35 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
     }
 }
 
-void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom)
+void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool setPainter, bool resetPoly)
 {
     if (aData != NULL)
     {
         m_GLData = aData;
-        m_GLData->setPainter(_painter);
+
+        if(setPainter)
+            m_GLData->setPainter(_painter);
 
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
-        m_bFirstAction   =  m_GLData->isNewMask();
+        m_bFirstAction   =  m_GLData->isNewMask();        
 
         _contextMenu.setPolygon( &m_GLData->m_polygon);
 
-        resetView(showMessage, doZoom);
+         resetView(showMessage, doZoom, true, resetPoly);
     }
+}
+
+bool GLWidget::imageLoaded()
+{
+    return hasDataLoaded() &&  m_bDisplayMode2D;
 }
 
 void GLWidget::paintGL()
 {
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
-    cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, _BGColor1);
+    cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, !hasDataLoaded() || imageLoaded() ? _BGColor0 : _BGColor1);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -111,6 +116,10 @@ void GLWidget::paintGL()
     {
         if (m_bDisplayMode2D)
         {
+            //TODO: virer dependance taille viewport / image Quad [1,1] puis scale dans glImage drawQuad()
+            m_GLData->setDimensionImage(vpWidth(),vpHeight());
+            //END TODO
+
             _matrixManager.doProjection(m_lastClickZoom, _params.m_zoom);
 
             m_GLData->glMaskedImage.draw();
@@ -125,13 +134,13 @@ void GLWidget::paintGL()
 
         glPopMatrix();
 
-        if (_messageManager.DrawMessages() && !m_bDisplayMode2D)
+        if (_messageManager.drawMessages() && !m_bDisplayMode2D)
             computeFPS(_messageManager.LastMessage());
     }
 
     _messageManager.draw();
 	
-	Overlay();
+    if (_widgetId >= 0) overlay();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -258,7 +267,7 @@ void GLWidget::dropEvent(QDropEvent *event)
     event->ignore();
 }
 
-void GLWidget::Overlay()
+void GLWidget::overlay()
 {
 	if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
@@ -303,6 +312,23 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
     setZoom(_params.m_zoom*zoomFactor);
 }
 
+// px, py : image coordinates in [0, width] [0, height]
+
+void GLWidget::centerViewportOnImagePosition(int px, int py)
+{
+    float vpCenterX = vpWidth()*.5f;
+    float vpCenterY = vpHeight()*.5f;
+
+    float tx = (float) px / vpCenterX;
+    float ty = (float) py / vpCenterY;
+
+    m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
+
+    _matrixManager.translate(-tx, -ty);
+
+    update();
+}
+
 void GLWidget::setZoom(float value)
 {
     if (value < GL_MIN_ZOOM)
@@ -312,7 +338,7 @@ void GLWidget::setZoom(float value)
 
     _params.m_zoom = value;
 
-    if(m_bDisplayMode2D && _messageManager.DrawMessages())
+    if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_params.m_zoom*100,'f',1) + "%";
 
     update();
@@ -324,18 +350,17 @@ void GLWidget::zoomFit()
     {
         if(m_bDisplayMode2D)
         {
-            float rw = (float) imWidth()  / vpWidth();
-            float rh = (float) imHeight() / vpHeight();
+            centerViewportOnImagePosition(imWidth()*.5f, imHeight()*.5f);
+
+            float rw = (float) (1.05f*imWidth()) / vpWidth();
+            float rh = (float) (1.05f*imHeight())/ vpHeight();
 
             if(rw>rh)
                 setZoom(1.f/rw); //orientation landscape
             else
                 setZoom(1.f/rh); //orientation portrait
-
-            _matrixManager.scaleAndTranslate(-rw, -rh, _params.m_zoom);
-
-            m_GLData->glMaskedImage.setDimensions(2.f*rh,2.f*rw);
         }
+
         else
             setZoom(m_GLData->getBBoxMaxSize());
     }
@@ -394,7 +419,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                     polygon().setPointSelected();
 
-                else if (!polygon().bShowLines())
+                else if (!polygon().bShowLines() && isPtInsideIm(m_lastPosImage))
 
                     polygon().add(m_lastPosImage);
             }
@@ -420,7 +445,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ( event->button() == Qt::LeftButton && hasDataLoaded() && polygon().bShowLines())
+    if ( event->button() == Qt::LeftButton && hasDataLoaded())
     {
         polygon().finalMovePoint(); //ne pas factoriser
 
@@ -432,15 +457,17 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void GLWidget::refreshPositionMessage(QPointF pos)
 {
-    if (_messageManager.DrawMessages() && (pos.x()>=0.f)&&(pos.y()>=0.f)&&(pos.x()<imWidth())&&(pos.y()<imHeight()))
+    if (_messageManager.drawMessages() && isPtInsideIm(pos))
         _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
+    else
+        _messageManager.GetPenultimateMessage()->message = " ";
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
     {
-        _parentSet->setCurrentWidgetIdx(_widgetId);
+
 
 #if ELISE_QT_VERSION == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _params.m_zoom) : event->localPos();
@@ -455,11 +482,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
 
-            if(polygon().isSelected())                    // MOVE POLYGON
+            if (polygon().isSelected())                    // MOVE POLYGON
 
                 polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _params.m_zoom));
 
-            else                                          // REFRESH HELPER POLYGON
+            else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
 
                 polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier));
         }
@@ -476,8 +503,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     r.x = dPWin.y() / vpWidth();
                     r.y = dPWin.x() / vpHeight();
                 }
-                else if ( event->buttons() == Qt::MiddleButton ){
-
+                else if ( event->buttons() == Qt::MiddleButton )
+                {
                     if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
 
                         _params.changeZoom(dPWin.y());
@@ -491,8 +518,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
 
-                _matrixManager.rotate(r.x, r.y, r.z, 50.0f *_params.m_speed);
+                _matrixManager.rotate(r.x, r.y, r.z, 50.f *_params.m_speed);
             }
+
+            emit newImagePosition((int) m_lastMoveImage.x(), (int) m_lastMoveImage.y());
         }
 
         m_lastPosWindow = event->pos();
@@ -578,11 +607,11 @@ void GLWidget::applyInfos()
     }
 }
 
-void GLWidget::setOption(QFlags<cGLData::Option> option,bool show)
+void GLWidget::setOption(QFlags<cGLData::Option> option, bool show)
 {
     if (hasDataLoaded()) m_GLData->setOption(option,show);
 
-    if( option & cGLData::OpShow_Mess)_messageManager.constructMessagesList(show,m_interactionMode,m_bDisplayMode2D,hasDataLoaded());
+    if( option & cGLData::OpShow_Mess) _messageManager.constructMessagesList(show, m_interactionMode, m_bDisplayMode2D, hasDataLoaded());
 
     update();
 }
@@ -599,12 +628,12 @@ void GLWidget::reset()
     resetView();
 }
 
-void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
+void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix,bool resetPoly)
 {
     if (resetMatrix)
-        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() :  Pt3dr(0.f,0.f,0.f) );
+        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() : Pt3dr(0.f,0.f,0.f) );
 
-    if (hasDataLoaded()) m_GLData->clearPolygon();
+    if (hasDataLoaded() && resetPoly) m_GLData->clearPolygon();
 
     setOption(cGLData::OpShow_Mess,showMessage);
 
@@ -624,9 +653,10 @@ void GLWidget::resetView(bool zoomfit, bool showMessage,bool resetMatrix)
 //    else
 //        refreshPositionMessage(m_lastPosImage); //TODO: debugger
 
-    if (zoomfit) zoomFit();
-
-    update();
+    if (zoomfit)
+        zoomFit(); //update already done in zoomFit
+    else
+        update();
 }
 
 void GLWidget::contextMenuEvent(QContextMenuEvent * event)
@@ -657,4 +687,9 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
     _contextMenu.setPos(m_lastPosImage);
 
     menu.exec(event->globalPos());
+}
+
+void GLWidget::enterEvent(QEvent *event)
+{    
+    emit overWidget(this);
 }

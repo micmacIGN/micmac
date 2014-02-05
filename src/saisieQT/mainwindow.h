@@ -21,8 +21,9 @@ namespace Ui {
 class MainWindow;
 }
 
-const QColor colorBG0(65,65,60);
-const QColor colorBG1(120,115,115);
+const QColor colorBG0("#323232");
+const QColor colorBG1("#808080");
+const QColor colorBorder("#606060");
 
 //! Interface mode
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
@@ -54,17 +55,21 @@ public slots:
 
     void closeAll();
 
+    void closeCurrentWidget();
+
     void openRecentFile();
 
     void progression();
 
-    void setMode2D(bool mBool);
+    void setMode();
 
     cEngine* getEngine(){return _Engine;}
 
 	void setGamma(float aGamma);
 
 protected slots:
+
+    void changeCurrentWidget(void* cuWid);
 
     //View Menu
     void on_actionShow_axis_toggled(bool);
@@ -76,7 +81,6 @@ protected slots:
     void on_actionShow_messages_toggled(bool);
     void on_actionToggleMode_toggled(bool);
 
-    void on_action2D_3D_mode_triggered();
     void on_actionReset_view_triggered();
 
     void on_actionSetViewTop_triggered();
@@ -142,15 +146,15 @@ private:
 
     QMenu*                  _RFMenu; //recent files menu
 
-    bool                    _bMode2D;
+    int                     _mode;
 
     QPoint                  _nbFen;
     QPoint                  _szFen;
 
     QSignalMapper*          _signalMapper;
     QGridLayout*            _layout;
+    QGridLayout*            _zoomLayout;
 
-    bool                    _bModePt;
     QString                 _ptName;
 };
 #endif // MAINWINDOW_H
