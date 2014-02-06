@@ -1,20 +1,17 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(int mode, QWidget *parent) :
+MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QWidget *parent) :
         QMainWindow(parent),
+        GLWidgetSet(aNbFen.x*aNbFen.y,colorBG0,colorBG1, mode > MASK3D),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
+        _mode(mode),
         _layout(new QGridLayout),
         _zoomLayout(new QGridLayout),
-        _params(new cParameters),
-        _mode(mode)
+        _ptName(pointName)
 {
     _ui->setupUi(this);
-
-    _params->read();
-
-    init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
 
     QString style = "border: 1px solid #707070;"
             "border-radius: 0px;"
@@ -43,11 +40,14 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
 
+    _nbFen = QPoint(aNbFen.x,aNbFen.y);
+    _szFen = QPoint(aSzW.x,aSzW.y);
+
     setMode();
 
     int cpt=0;
-    for (int aK = 0; aK < _params->getNbFen().x();++aK)
-        for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
+    for (int aK = 0; aK < aNbFen.x;++aK)
+        for (int bK = 0; bK < aNbFen.y;++bK, cpt++)
             _layout->addWidget(getWidget(cpt), bK, aK);
 
     _signalMapper = new QSignalMapper (this);
@@ -56,20 +56,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     createRecentFileMenu();
 
-    move(_params->getPosition());
-
-    QSize szFen = _params->getSzFen();
-
-    if (_params->getFullScreen())
-    {
-        showFullScreen();
-        _params->setSzFen(size());
-        _ui->actionFullScreen->setChecked(true);
-    }
-    else if (_mode > MASK3D)
-        resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
-    else
-        resize(szFen);
+    SetPositionImage(-1,-1);
 }
 
 MainWindow::~MainWindow()
@@ -80,7 +67,6 @@ MainWindow::~MainWindow()
     delete _layout;
     delete _zoomLayout;
     delete _signalMapper;
-    delete _params;
 }
 
 void MainWindow::connectActions()
@@ -98,7 +84,8 @@ void MainWindow::connectActions()
     {
         _recentFileActs[i] = new QAction(this);
         _recentFileActs[i]->setVisible(false);
-        connect(_recentFileActs[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
+        connect(_recentFileActs[i], SIGNAL(triggered()),
+                this, SLOT(openRecentFile()));
     }
 
     //Zoom menu
@@ -115,13 +102,15 @@ void MainWindow::connectActions()
     _signalMapper->setMapping (_ui->action1_4_25, 25);
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
+
 }
 
 void MainWindow::createRecentFileMenu()
 {
     _RFMenu = new QMenu(tr("&Recent files"), this);
 
-    _ui->menuFile->insertMenu(_ui->actionSettings, _RFMenu);
+    _ui->menuFile->insertMenu(_ui->actionSave_selection, _RFMenu);
+    _ui->menuFile->insertSeparator(_ui->actionSave_selection);
 
     for (int i = 0; i < MaxRecentFiles; ++i)
         _RFMenu->addAction(_recentFileActs[i]);
@@ -134,19 +123,20 @@ void MainWindow::setPostFix(QString str)
    _Engine->setPostFix("_" + str);
 }
 
+void MainWindow::setNbFen(QPoint nb)
+{
+   _nbFen = nb;
+}
+
+void MainWindow::setSzFen(QPoint sz)
+{
+   _szFen = sz;
+}
+
 void MainWindow::progression()
 {
     if(_incre)
         _ProgressDialog->setValue(*_incre);
-}
-
-void MainWindow::runProgressDialog(QFuture<void> future)
-{
-    _FutureWatcher.setFuture(future);
-    _ProgressDialog->setWindowModality(Qt::WindowModal);
-    _ProgressDialog->exec();
-
-    future.waitForFinished();
 }
 
 void MainWindow::addFiles(const QStringList& filenames)
@@ -155,50 +145,78 @@ void MainWindow::addFiles(const QStringList& filenames)
     {
         for (int i=0; i< filenames.size();++i)
         {
-            if(!QFile(filenames[i]).exists())
+            QFile Fout(filenames[i]);
+
+            if(!Fout.exists())
             {
-                QMessageBox::critical(this, "Error", "File does not exist (or bad argument)");
+                QMessageBox::critical(this, "Error", "File or option does not exist");
                 return;
             }
         }
 
-        _Engine->setFilenamesAndDir(filenames);
+        _Engine->setFilenamesInAndDir(filenames);
 
-        QString suffix = QFileInfo(filenames[0]).suffix();
+#ifdef _DEBUG
+        printf("adding files %s\n", filenames[0].toStdString().c_str());
+#endif
 
-        if (suffix == "ply")
+        if (_mode == MASK3D)
         {
-            QTimer *timer_test = new QTimer(this);
-            _incre = new int(0);
-            connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            timer_test->start(10);
+            QFileInfo fi(filenames[0]);
 
-            runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre));
+            if (currentWidget()->hasDataLoaded() && !currentWidget()->getGLData()->is3D()) closeCurrentWidget();
 
-            timer_test->stop();
-            disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            delete _incre;
-            delete timer_test;
+            if (fi.suffix() == "ply")
+            {
+                // TODO ENCAPSULER LA PROGRESS BAR
+                QTimer *timer_test = new QTimer(this);
+                _incre = new int(0);
+                connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+                timer_test->start(10);
+                QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre);
 
-            _mode = MASK3D;
-        }
-        else if (suffix == "xml")
-        {
-            runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames));
+                _FutureWatcher.setFuture(future);
+                _ProgressDialog->setWindowModality(Qt::WindowModal);
+                _ProgressDialog->exec();
 
-            _ui->actionShow_cams->setChecked(true);
+                timer_test->stop();
+                disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+                delete _incre;
+                delete timer_test;
 
-            _mode = MASK3D;
+                future.waitForFinished();
+                // FIN DE CHARGEMENT ET PROGRESS BAR
+            }
+            else if (fi.suffix() == "xml")
+            {
+                // TODO ENCAPSULER LA PROGRESS BAR
+                QFuture<void> future = QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames);
+
+                _FutureWatcher.setFuture(future);
+                _ProgressDialog->setWindowModality(Qt::WindowModal);
+                _ProgressDialog->exec();
+
+                future.waitForFinished();
+                // FIN DE CHARGEMENT ET PROGRESS BAR
+
+                _ui->actionShow_cams->setChecked(true);
+            }
+            else // LOAD IMAGE
+            {
+                closeAll();
+                _Engine->loadImages(filenames);
+            }
         }
         else // LOAD IMAGE
         {
-            if (_mode <= MASK3D) closeAll();
-            if (filenames.size() == 1) _mode = MASK2D;
-
-            _Engine->loadImages(filenames);
+             if (_mode == MASK2D) closeAll();
+            _Engine->loadImages(filenames);            
         }
 
-        _Engine->allocAndSetGLData(_mode > MASK3D, _params->getDefPtName());
+        _Engine->setSelectionFilenames();
+        _Engine->setFilenamesOut();
+
+        _Engine->allocAndSetGLData(_mode > MASK3D, _ptName);
 
         for (int aK = 0; aK < nbWidgets();++aK)
         {
@@ -290,12 +308,13 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text += "F6: \t"+tr("show cameras") +"\n";
     }
     text += "F7: \t"+tr("show messages") +"\n";
+    text += "F8: \t"+tr("2D mode / 3D mode") +"\n";
 
     if (_mode == MASK3D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
     else
     {
-        text += tr("Key +/-: \tzoom +/-") + "\n";
+        text += tr("Key +/-: \tincrease/decrease zoom") + "\n";
         text += "9: \t"+tr("zoom fit") + "\n";
         text+= "4: \tzoom 400%\n";
         text+= "2: \tzoom 200%\n";
@@ -306,61 +325,34 @@ void MainWindow::on_actionHelpShortcuts_triggered()
 
     text += "Shift+R: \t"+tr("reset view") +"\n\n";
 
-    if (_mode <= MASK3D)
+
+    text += tr("Selection menu:") +"\n\n";
+    if (_mode == MASK3D)
     {
-        text += tr("Selection menu:") +"\n\n";
-        if (_mode == MASK3D)
-        {
-            text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
-        }
-        text += tr("Left click : \tadd a vertex to polyline") +"\n";
-        text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
-        text += tr("Echap: \tdelete polyline") +"\n";
-
-#ifdef ELISE_Darwin
-        if (_mode == MASK3D)
-        {
-            text += tr("Ctrl+Y: \tadd points inside polyline") +"\n";
-            text += tr("Ctrl+U: \tremove points inside polyline") +"\n";
-        }
-        else
-        {
-            text += tr("Ctrl+Y: \tadd pixels inside polyline") +"\n";
-            text += tr("Ctrl+U: \tremove pixels inside polyline") +"\n";
-        }
-#else
-        if (_mode == MASK3D)
-        {
-            text += tr("Space bar: \tadd points inside polyline") +"\n";
-            text += tr("Del: \tremove points inside polyline") +"\n";
-        }
-        else
-        {
-            text += tr("Space bar: \tadd pixels inside polyline") +"\n";
-            text += tr("Del: \tremove pixels inside polyline") +"\n";
-        }
-#endif
-
-        text += tr("Shift+drag: \tinsert vertex in polyline") +"\n";
-        text += tr("Ctrl+right click: remove last vertex") +"\n";
-        text += tr("Drag & drop: move selected polyline vertex") +"\n";
-        text += "Ctrl+A: \t"+tr("select all") +"\n";
-        text += "Ctrl+D: \t"+tr("select none") +"\n";
-        text += "Ctrl+R: \t"+tr("reset") +"\n";
-        text += "Ctrl+I: \t"+tr("invert selection") +"\n";
+        text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
+    }
+    text += tr("Left click : \tadd a vertex to polyline") +"\n";
+    text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
+    text += tr("Echap: \tdelete polyline") +"\n";
+    if (_mode == MASK3D)
+    {
+        text += tr("Space bar: \tadd points inside polyline") +"\n";
+        text += tr("Del: \tremove points inside polyline") +"\n";
     }
     else
     {
-        text += tr("Click: \tadd point")+"\n";
-        text += tr("Right click: \tchange selected point state")+"\n";
-        text += tr("Drag & drop: \tmove selected point") +"\n";
-        text += tr("Shift+right click: \tshow name menu")+"\n";
-        text += tr("Ctrl+right click: \tshow window menu")+"\n\n";
-
-        text += tr("History menu:") +"\n\n";
+        text += tr("Space bar: \tadd pixels inside polyline") +"\n";
+        text += tr("Del: \tremove pixels inside polyline") +"\n";
     }
-    text += "Ctrl+Z: \t"+tr("undo last action") +"\n";
-    text += "Ctrl+Shift+Z: "+tr("redo last action") +"\n";
+    text += tr("Shift+click: \tinsert vertex in polyline") +"\n";
+    text += tr("Ctrl+right click: remove last vertex") +"\n";
+    text += tr("Drag & drop: move polyline vertex") +"\n";
+    text += "Ctrl+A: \t"+tr("select all") +"\n";
+    text += "Ctrl+D: \t"+tr("select none") +"\n";
+    text += "Ctrl+R: \t"+tr("reset") +"\n";
+    text += "Ctrl+I: \t"+tr("invert selection") +"\n";
+    text += "Ctrl+Z: \t"+tr("undo last selection") +"\n";
+    text += "Ctrl+Shift+Z: \t"+tr("redo last selection") +"\n";
 
     QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
     msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
@@ -534,21 +526,6 @@ void MainWindow::on_actionSave_selection_triggered()
     currentWidget()->getHistoryManager()->save();
 }
 
-void MainWindow::on_actionSettings_triggered()
-{
-    cSettingsDlg uiSettings(this, _params);
-    connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
-
-    uiSettings.exec();
-    /*#if defined(Q_OS_SYMBIAN)
-        uiSettings.showMaximized();
-    #else
-        uiSettings.show();
-    #endif*/
-
-    disconnect(&uiSettings, 0, 0, 0);
-}
-
 void MainWindow::closeAll()
 {
     _Engine->unloadAll();
@@ -583,7 +560,7 @@ void MainWindow::openRecentFile()
 
     if (action)
     {
-        _Engine->setFilenamesAndDir(QStringList(action->data().toString()));
+        _Engine->setFilenamesInAndDir(QStringList(action->data().toString()));
 
         addFiles(_Engine->getFilenamesIn());
     }
@@ -665,6 +642,9 @@ void MainWindow::setMode()
 
     if (_mode > MASK3D)
     {
+        resize(_szFen.x() + _ui->zoomLayout->width(), _szFen.y());
+
+
         QString style = "border: 2px solid #707070;"
                 "border-radius: 0px;"
                 "padding: 0px;"
@@ -691,6 +671,8 @@ void MainWindow::setMode()
     }
     else
     {
+        resize(_szFen.x(), _szFen.y());
+
         _ui->verticalLayout->removeWidget(_ui->zoomLayout);
         _ui->verticalLayout->removeItem(_ui->verticalSpacer);
 
@@ -704,60 +686,14 @@ void  MainWindow::setGamma(float aGamma)
     _Engine->setGamma(aGamma);
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::SetPositionImage(int x, int y)
 {
-    _params->write();
 
-    event->accept();
-}
-
-void MainWindow::redraw(bool nbWidgetsChanged)
-{
-    if (size() != _params->getSzFen()) resize(_params->getSzFen());
-
-    if (nbWidgetsChanged)
-    {
-        delete _layout;
-        _layout = new QGridLayout;
-
-        int newWidgetNb = _params->getNbFen().x()*_params->getNbFen().y();
-        int col =  _layout->columnCount();
-        int row =  _layout->rowCount();
-
-        cout << "old layout col nb : " << col << endl;
-        cout << "old layout row nb : " << row << endl;
-
-        cout << "new layout col nb : " <<  _params->getNbFen().x() << endl;
-        cout << "new layout row nb : " <<  _params->getNbFen().y() << endl;
-
-        if (col < _params->getNbFen().x() || row < _params->getNbFen().y())
-        {
-            widgetSetResize(newWidgetNb);
-
-            int cpt = 0;
-            for (; cpt < nbWidgets();++cpt)
-                _layout->removeWidget(getWidget(cpt));
-
-            cpt = 0;
-            for (int aK =0; aK < _params->getNbFen().x();++aK)
-                for (int bK =0; bK < _params->getNbFen().y();++bK)
-                {
-                    _layout->addWidget(getWidget(cpt), bK, aK);
-
-                    if (cpt < _Engine->getData()->getNbImages())
-                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages);
-
-                    cpt++;
-                }
-            _ui->OpenglLayout->setLayout(_layout);
-        }
-        else
-        {
-
-        }
-
-    }
-
+    QString tet("Position image : "+QString::number(x) + ", " + QString::number(y)+" px");
+    if(x<0 || y<0)
+        _ui->label->setText(QString(""));
+    else
+        _ui->label->setText(tet);
 }
 
 void MainWindow::changeCurrentWidget(void *cuWid)
@@ -766,12 +702,14 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
     setCurrentWidget(glW);
 
+    connect((GLWidget*)cuWid, SIGNAL(newImagePosition(int, int)), this, SLOT(SetPositionImage(int,int)));
+
     if (zoomWidget())
     {
         zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
         zoomWidget()->setZoom(3.f);
         zoomWidget()->setOption(cGLData::OpShow_Mess,false);
-        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
+        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(int, int)), zoomWidget(), SLOT(centerViewportOnImagePosition(int,int)));
     }
 }
 

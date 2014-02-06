@@ -73,6 +73,8 @@ public slots:
 
 protected slots:
 
+
+    void SetPositionImage(int x,int y);
     void changeCurrentWidget(void* cuWid);
 
     //View Menu

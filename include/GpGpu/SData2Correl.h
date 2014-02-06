@@ -41,11 +41,15 @@ struct SData2Correl
 
     float2* HostVolumeProj();
 
+    Rect    *HostRect();
+
     uint*   DeviVolumeNOK(uint s);
 
     float*  DeviVolumeCache(uint s);
 
     float*  DeviVolumeCost(uint s);
+
+    Rect*   DeviRect();
 
     void    copyHostToDevice(pCorGpu param, uint s = 0);
 
@@ -73,6 +77,9 @@ private:
 
     CuHostData3D<float>         _hVolumeCost[2];
     CuHostData3D<float2>        _hVolumeProj;
+
+    CuHostData3D<Rect>          _hRect;
+    CuDeviceData3D<Rect>        _dRect;
 
     CuDeviceData3D<float>       _d_volumeCost[NSTREAM];	// volume des couts
     CuDeviceData3D<float>       _d_volumeCach[NSTREAM];	// volume des calculs intermédiaires
