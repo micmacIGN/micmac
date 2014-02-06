@@ -13,7 +13,7 @@ public:
     GLWidgetSet();
     ~GLWidgetSet();
 
-    void init(uint aNb, QColor color1, QColor color2, bool modePt);
+    void init(uint aNb, bool modePt);
 
     void setCurrentWidgetIdx(int aK);
     int  currentWidgetIdx()
@@ -33,6 +33,8 @@ public:
     int nbWidgets() const {return _widgets.size();}
 
     GLWidget* zoomWidget(){return _zoomWidget;}
+
+    void widgetSetResize(int);
 
 private:
 

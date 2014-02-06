@@ -574,6 +574,9 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
       </item>
       <item>
        <widget class="QSpinBox" name="NBF_x_spinBox">
+        <property name="maximum">
+         <number>5</number>
+        </property>
         <property name="value">
          <number>2</number>
         </property>
@@ -588,6 +591,9 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
       </item>
       <item>
        <widget class="QSpinBox" name="NBF_y_spinBox">
+        <property name="maximum">
+         <number>4</number>
+        </property>
         <property name="value">
          <number>2</number>
         </property>
@@ -642,7 +648,14 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="WindowWidth_spinBox"/>
+       <widget class="QSpinBox" name="WindowWidth_spinBox">
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+        <property name="singleStep">
+         <number>10</number>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QLabel" name="label_2">
@@ -652,7 +665,14 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="WindowHeight_spinBox"/>
+       <widget class="QSpinBox" name="WindowHeight_spinBox">
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+        <property name="singleStep">
+         <number>10</number>
+        </property>
+       </widget>
       </item>
       <item>
        <spacer name="horizontalSpacer_2">
@@ -1110,26 +1130,6 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     </widget>
    </widget>
   </widget>
-  <action name="actionAccept">
-   <property name="text">
-    <string>Accept</string>
-   </property>
-  </action>
-  <action name="actionReset">
-   <property name="text">
-    <string>Reset</string>
-   </property>
-  </action>
-  <action name="actionApply">
-   <property name="text">
-    <string>Apply</string>
-   </property>
-  </action>
-  <action name="actionCancel">
-   <property name="text">
-    <string>Cancel</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

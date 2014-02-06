@@ -112,14 +112,14 @@ public slots:
 
     void onWheelEvent(float wheelDelta_deg);
 
-    void centerViewportOnImagePosition(int px, int py);
+    void centerViewportOnImagePosition(QPointF pt);
 
 signals:
 
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
 
-    void newImagePosition(int px, int py);
+    void newImagePosition(QPointF pt);
 
     void overWidget(void* widget);
 

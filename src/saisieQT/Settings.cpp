@@ -1,17 +1,21 @@
 #include "Settings.h"
 
-cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters &params) : QDialog(parent), Ui::settingsDialog()
+cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), Ui::settingsDialog()
 {
     setupUi(this);
 
     setWindowFlags(Qt::Tool/*Qt::Dialog | Qt::WindowStaysOnTopHint*/);
 
-    _oldParameters = _parameters = &params;
+    _parameters = params;
+    _oldParameters = *params;
 
     refresh();
 
     setUpdatesEnabled(true);
 }
+
+cSettingsDlg::~cSettingsDlg()
+{}
 
 void cSettingsDlg::setParameters(cParameters &params)
 {
@@ -26,26 +30,52 @@ void cSettingsDlg::on_FullscreenCheckBox_clicked()
     _parameters->setFullScreen(FullscreenCheckBox->isChecked());
 }
 
-void  cSettingsDlg::on_actionAccept_triggered()
+void cSettingsDlg::on_NBF_x_spinBox_valueChanged(int value)
 {
+    int y = _parameters->getNbFen().y();
+    _parameters->setNbFen(QPoint(value, y));
+}
+
+void cSettingsDlg::on_NBF_y_spinBox_valueChanged(int value)
+{
+    int x = _parameters->getNbFen().x();
+    _parameters->setNbFen(QPoint(x, value));
+}
+
+void cSettingsDlg::on_WindowWidth_spinBox_valueChanged(int value)
+{
+    int y = _parameters->getSzFen().height();
+    _parameters->setSzFen(QSize(value, y));
+}
+
+void cSettingsDlg::on_WindowHeight_spinBox_valueChanged(int value)
+{
+    int x = _parameters->getSzFen().width();
+    _parameters->setSzFen(QSize(x, value));
+}
+
+void  cSettingsDlg::on_okButton_clicked()
+{
+    on_applyButton_clicked();
+
+    _parameters->write();
+
     accept();
 }
 
-void cSettingsDlg::on_actionCancel_triggered()
+void cSettingsDlg::on_cancelButton_clicked()
 {
-    emit hasChanged();
+    emit hasChanged(false);
 
     reject();
 }
 
-void cSettingsDlg::on_actionApply_triggered()
+void cSettingsDlg::on_applyButton_clicked()
 {
-    setParameters(*_parameters);
-
-    emit hasChanged();
+    emit hasChanged(_parameters->getNbFen() != _oldParameters.getNbFen());
 }
 
-void cSettingsDlg::on_actionReset_triggered()
+void cSettingsDlg::on_resetButton_clicked()
 {
     _parameters->read();
 
@@ -61,15 +91,25 @@ void cSettingsDlg::refresh()
 
     WindowWidth_spinBox->setValue(_parameters->getSzFen().width());
     WindowHeight_spinBox->setValue(_parameters->getSzFen().height());
+
+    update();
 }
+
+cParameters::cParameters():
+    _openFullScreen(false),
+    _position(QPoint(100,100)),
+    _nbFen(QPoint(1,1)),
+    _szFen(QSize(800,600)),
+    _zoomWindow(3.f),
+    _ptName(QString("100"))
+{}
 
 cParameters& cParameters::operator =(const cParameters &params)
 {
-    //_mode           = params._mode;
-    _szFen          = params._szFen;
-    _nbFen          = params._nbFen;
     _openFullScreen = params._openFullScreen;
     _position       = params._position;
+    _nbFen          = params._nbFen;
+    _szFen          = params._szFen;
 
     _zoomWindow     = params._zoomWindow;
     _ptName         = params._ptName;
@@ -86,14 +126,14 @@ void cParameters::read()
 #endif
 
      settings.beginGroup("MainWindow");
-     setSzFen(settings.value("size", QSize(800, 600)).toSize());
      setNbFen(settings.value("NbFen", QPoint(1, 1)).toPoint());
      setFullScreen(settings.value("openInFullScreen", false).toBool());
      setPosition(settings.value("pos", QPoint(200, 200)).toPoint());
+     setSzFen(settings.value("size", QSize(800, 600)).toSize());   
      settings.endGroup();
 
      settings.beginGroup("Misc");
-     setDefPtName(settings.value("defPtName", "").toString());
+     setDefPtName(settings.value("defPtName", QString("100")).toString());
      //setZoomWindowValue(settings.value("zoom", 3.f).toFloat());
      settings.endGroup();
 }
@@ -110,7 +150,7 @@ void cParameters::write()
      settings.endGroup();
 
      settings.beginGroup("Misc");
-     //settings.setValue("zoom", getZoomWindowValue());
      settings.setValue("defPtName", getDefPtName());
+     //settings.setValue("zoom", getZoomWindowValue());
      settings.endGroup();
 }

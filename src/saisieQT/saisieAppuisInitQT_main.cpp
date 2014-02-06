@@ -50,7 +50,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     settings.beginGroup("MainWindow");
     if (aSzWin.x > 0)
         settings.setValue("size", QSize(aSzWin.x, aSzWin.y));
-    else if (init)
+    else if (!init)
         settings.setValue("size", QSize(800, 600));
     settings.setValue("NbFen", QPoint(aNbFen.x, aNbFen.y));
     settings.endGroup();

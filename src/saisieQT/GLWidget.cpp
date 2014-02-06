@@ -314,17 +314,14 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
 
 // px, py : image coordinates in [0, width] [0, height]
 
-void GLWidget::centerViewportOnImagePosition(int px, int py)
+void GLWidget::centerViewportOnImagePosition(QPointF pt)
 {
     float vpCenterX = vpWidth()*.5f;
     float vpCenterY = vpHeight()*.5f;
 
-    float tx = (float) px / vpCenterX;
-    float ty = (float) py / vpCenterY;
-
     m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
 
-    _matrixManager.translate(-tx, -ty);
+    _matrixManager.translate(-pt.x() / vpCenterX, -pt.y() / vpCenterY);
 
     update();
 }
@@ -350,10 +347,11 @@ void GLWidget::zoomFit()
     {
         if(m_bDisplayMode2D)
         {
-            centerViewportOnImagePosition(imWidth()*.5f, imHeight()*.5f);
+            QPointF imCenter(imWidth()*.5f, imHeight()*.5f);
+            centerViewportOnImagePosition(imCenter);
 
-            float rw = (float) (1.05f*imWidth()) / vpWidth();
-            float rh = (float) (1.05f*imHeight())/ vpHeight();
+            float rw = (float) (1.05f*imWidth())  / vpWidth();
+            float rh = (float) (1.05f*imHeight()) / vpHeight();
 
             if(rw>rh)
                 setZoom(1.f/rw); //orientation landscape
@@ -521,7 +519,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 _matrixManager.rotate(r.x, r.y, r.z, 50.f *_params.m_speed);
             }
 
-            emit newImagePosition((int) m_lastMoveImage.x(), (int) m_lastMoveImage.y());
+            emit newImagePosition( m_lastMoveImage );
         }
 
         m_lastPosWindow = event->pos();
