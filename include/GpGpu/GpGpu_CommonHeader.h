@@ -16,6 +16,8 @@
 #include <helper_functions.h>
 #include "helper_math_extented.cuh"
 
+#include <typeinfo>
+
 #ifdef _WIN32
     #include <Lmcons.h>
 #else

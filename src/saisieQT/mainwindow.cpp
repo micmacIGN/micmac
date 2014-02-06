@@ -70,6 +70,8 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
         resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
     else
         resize(szFen);
+
+    setPositionImage(QPointF(-1.f,-1.f));
 }
 
 MainWindow::~MainWindow()
@@ -755,9 +757,17 @@ void MainWindow::redraw(bool nbWidgetsChanged)
         {
 
         }
-
     }
+}
 
+void MainWindow::setPositionImage(QPointF pt)
+{
+    QString text(tr("Image position: ")+QString::number(pt.x()) + ", " + QString::number(pt.y())+" px");
+
+    if(pt.x()<0.f || pt.y()<0.f)
+        _ui->label->setText(QString(""));
+    else
+        _ui->label->setText(text);
 }
 
 void MainWindow::changeCurrentWidget(void *cuWid)
@@ -765,6 +775,8 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     GLWidget* glW = (GLWidget*)cuWid;
 
     setCurrentWidget(glW);
+
+    connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setPositionImage(QPointF)));
 
     if (zoomWidget())
     {
