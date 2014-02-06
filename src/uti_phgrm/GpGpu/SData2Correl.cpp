@@ -61,12 +61,18 @@ float2 *SData2Correl::HostVolumeProj()
     return _hVolumeProj.pData();
 }
 
+Rect *SData2Correl::HostRect()
+{
+    return _hRect.pData();
+}
+
 void SData2Correl::DeallocHostData()
 {
     for (int i = 0; i < SIZERING; ++i)
             _hVolumeCost[i].Dealloc();
 
     _hVolumeProj.Dealloc();
+    _hRect.Dealloc();
 }
 
 void SData2Correl::DeallocDeviceData()
@@ -84,6 +90,8 @@ void SData2Correl::DeallocDeviceData()
 
     _dt_GlobalMask.Dealloc();
     _dt_LayeredImages.Dealloc();
+
+    _dRect.Dealloc();
 
 }
 
@@ -135,6 +143,13 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
 
     _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.invPC.nbImages * param.ZCInter);
 
+
+    // Gestion des bords d'images
+    _dRect.ReallocIfDim(make_uint2(1,1),param.invPC.nbImages * param.ZCInter);
+    _dRect.CopyHostToDevice(_hRect.pData());
+    //
+
+
     // Copier les projections du host --> device
     _dt_LayeredProjection[s].copyHostToDevice(_hVolumeProj.pData());
 
@@ -164,6 +179,7 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
         _hVolumeCost[i].ReallocIf(param.HdPc.dimTer,zInter);
 
     _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.invPC.nbImages);
+    _hRect.ReallocIfDim(make_uint2(1,1),zInter*param.invPC.nbImages);
 
 	#ifdef  NVTOOLS
     nvtxRangePop();
@@ -175,6 +191,7 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param, uint idBuff)
     _hVolumeCost[idBuff].ReallocIf(param.HdPc.dimTer,zInter);
 
     _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.invPC.nbImages);
+    _hRect.ReallocIfDim(make_uint2(1,1),zInter*param.invPC.nbImages);
 }
 
 void SData2Correl::ReallocDeviceData(pCorGpu &param)
@@ -225,6 +242,11 @@ float   *SData2Correl::DeviVolumeCost(uint s){
 
     return _d_volumeCost[s].pData();
 
+}
+
+Rect *SData2Correl::DeviRect()
+{
+    return _dRect.pData();
 }
 
 void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
