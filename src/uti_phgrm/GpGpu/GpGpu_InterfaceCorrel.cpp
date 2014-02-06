@@ -155,8 +155,8 @@ void GpGpuInterfaceCorrel::SetTexturesAreLoaded(bool load)
 
 void GpGpuInterfaceCorrel::CorrelationGpGpu(ushort idBuf,const int s )
 {
-    //LaunchKernelCorrelation(s, *(GetStream(s)),_param[idBuf], _data2Cor);
-    LaunchKernelCorrelationZ(s,_param[idBuf],_data2Cor);
+    LaunchKernelCorrelation(s, *(GetStream(s)),_param[idBuf], _data2Cor);
+    //LaunchKernelCorrelationZ(s,_param[idBuf],_data2Cor);
 }
 
 void GpGpuInterfaceCorrel::MultiCorrelationGpGpu(ushort idBuf, const int s)
