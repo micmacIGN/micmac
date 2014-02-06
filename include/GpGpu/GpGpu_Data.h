@@ -252,8 +252,6 @@ public:
 
     bool			Realloc(uint size){return Realloc(make_uint2(size,1),1);}
 
-    bool			Realloc(uint3 dim){return Realloc(make_uint2(dim.x,dim.y),dim.z);}
-
     bool			ReallocIf(uint dim1D);
 
     bool			ReallocIf(uint2 dim, uint l = 1);
@@ -734,8 +732,7 @@ private:
 TPL_T ImageLayeredCuda<T>::ImageLayeredCuda():
     DecoratorImageCuda(this)
 {
-
-    CData3D::SetType(__CLASS_NAME__);
+    CData3D::SetType("ImageLayeredCuda");
 
     CData3D::ClassTemplate(CData3D::ClassTemplate() + " " + CData3D::StringClass<T>(_ClassData));
 }

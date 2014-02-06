@@ -333,9 +333,6 @@ class cGenerateMail
      private :
 
         void ParseFile(const std::string &aName,bool aTest);
-        bool OkAdr(const std::string &) const;
-        bool OkDestAdr(const std::string &) const;
-        
 
         std::string mDir;
         cInterfChantierNameManipulateur * mICNM;
@@ -343,27 +340,9 @@ class cGenerateMail
 
         std::map <std::string,cOneEntryMail *> mDicE;
         std::vector<cOneEntryMail *>           mVE;
-        std::vector<std::string>               mDests;
         int mNbByF;
         std::string                            mOnlyFile;
 };
-
-bool cGenerateMail::OkAdr(const std::string & anAdr) const
-{
-   return OkDestAdr(anAdr);
-}
-
-bool cGenerateMail::OkDestAdr(const std::string & anAdr) const
-{
-   if (mDests.empty()) 
-      return true;
-  
-   if (! IsPostfixed(anAdr)) return false;
-
-// std::cout << "ppppppppp " << StdPostfix(anAdr) << "\n";
-
-  return BoolFind(mDests,StdPostfix(anAdr));
-}
 
 
 void cGenerateMail::ParseFile(const std::string &aName,bool aTest)
@@ -415,10 +394,7 @@ void cGenerateMail::ParseFile(const std::string &aName,bool aTest)
                   if (! mDicE[anEntr.mId])  
                   {
                       mDicE[anEntr.mId] = new cOneEntryMail(anEntr);
-                      if (
-                            (anEntr.mOk)
-                            && (aBlackL ||OkAdr(anEntr.mId) )
-                         )
+                      if (anEntr.mOk)
                       {
                          mVE.push_back(mDicE[anEntr.mId]);
                       }
@@ -472,7 +448,6 @@ cGenerateMail::cGenerateMail(int argc,char ** argv) :
         LArgMain() ,
         LArgMain() << EAM(mNbByF,"NbByF",true)
                    << EAM(mOnlyFile,"SingleFile",true,"If specified, all but this one will considered as black-list files")
-                   << EAM(mDests,"Dests",true,"Selected dest (for ex [fr] if only french)")
     );	
 
 

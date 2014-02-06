@@ -1305,7 +1305,6 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
 		<!-- Soustrait l'identdite (X,Y), au resultat; a du sens en GeomIm1 pour
 		avoir + de "dynamique"-->
 		<SubsXY  Nb="?" Type="bool" Def="false"> </SubsXY>
-		<Polar  Nb="?" Type="bool" Def="false"> </Polar>
 <!--
 	        <ImagePattern  Nb="1" Type="std::string"> </ImagePattern>
 		<NameX   Nb="?" Type="std::string" Def="X"> </NameX>

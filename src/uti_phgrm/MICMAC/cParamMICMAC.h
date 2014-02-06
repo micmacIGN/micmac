@@ -2467,14 +2467,10 @@ class cGenerateProjectionInImages
 
         cTplValGesInit< bool > & SubsXY();
         const cTplValGesInit< bool > & SubsXY()const ;
-
-        cTplValGesInit< bool > & Polar();
-        const cTplValGesInit< bool > & Polar()const ;
     private:
         std::list< int > mNumsImageDontApply;
         std::string mFCND_CalcProj;
         cTplValGesInit< bool > mSubsXY;
-        cTplValGesInit< bool > mPolar;
 };
 cElXMLTree * ToXMLTree(const cGenerateProjectionInImages &);
 

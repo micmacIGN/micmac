@@ -17,19 +17,19 @@ struct invParamCorrel
     uint        sampProj;
 
     /// \brief  Taille de la vignette en pixel
-    ushort      sizeVig;
+    uint        sizeVig;
 
     /// \brief  Rayon de la vignette
-    ushort2     rayVig;
+    uint2       rayVig;
 
     /// \brief  Dimension de la vignette
-    ushort2     dimVig;
+    uint2       dimVig;
 
     /// \brief  Epsilon
     float       mAhEpsilon;
 
     /// \brief  Initialise les param?tres invariants pendant le calcul
-    void SetParamInva(ushort2 dV,ushort2 dRV, uint2 dI, float tmAhEpsilon, uint samplingZ, int uvINTDef, uint nLayer)
+    void SetParamInva(uint2 dV,uint2 dRV, uint2 dI, float tmAhEpsilon, uint samplingZ, int uvINTDef, uint nLayer)
     {
         float uvDef;
         memset(&uvDef,uvINTDef,sizeof(float));
@@ -107,17 +107,17 @@ struct pCorGpu
 
         HdPc.rTer		= Ter;
 
-        rDTer           = Rect(Ter.pt0 - make_uint2(invPC.rayVig),Ter.pt1 + make_uint2(invPC.rayVig));
+        rDTer		= Rect(Ter.pt0 - invPC.rayVig,Ter.pt1 + invPC.rayVig);
 
         HdPc.dimTer		= HdPc.rTer.dimension();
 
-        HdPc.dimDTer    = rDTer.dimension();
+        HdPc.dimDTer     = rDTer.dimension();
 
-        dimSTer         = iDivUp(HdPc.dimDTer,invPC.sampProj)+1;	// Dimension du bloque terrain sous echantilloné
+        dimSTer     = iDivUp(HdPc.dimDTer,invPC.sampProj)+1;	// Dimension du bloque terrain sous echantilloné
 
-        HdPc.dimCach    = HdPc.dimTer * make_uint2(invPC.dimVig);
+        HdPc.dimCach     = HdPc.dimTer * invPC.dimVig;
 
-        HdPc.sizeTer    = size(HdPc.dimTer);
+        HdPc.sizeTer     = size(HdPc.dimTer);
 
         HdPc.sizeCach	= size(HdPc.dimCach);
 
@@ -137,8 +137,8 @@ struct pCorGpu
         std::cout << "Dim Reel Terrain      : " << GpGpuTools::toStr(HdPc.dimTer) << "\n";
         std::cout << "Dim calcul Terrain    : " << GpGpuTools::toStr(HdPc.dimDTer) << "\n";
         std::cout << "Dim calcul Ter Samp   : " << GpGpuTools::toStr(dimSTer) << "\n";
-        std::cout << "Dim vignette          : " << GpGpuTools::toStr(make_uint2(invPC.dimVig)) << "\n";
-        std::cout << "Rayon vignette        : " << GpGpuTools::toStr(make_uint2(invPC.rayVig)) << "\n";
+        std::cout << "Dim vignette          : " << GpGpuTools::toStr(invPC.dimVig) << "\n";
+        std::cout << "Rayon vignette        : " << GpGpuTools::toStr(invPC.rayVig) << "\n";
         std::cout << "Dim Cache             : " << GpGpuTools::toStr(HdPc.dimCach) << "\n";
         std::cout << "Taille vignette       : " << invPC.sizeVig << "\n";
         std::cout << "Taille Reel Terrain   : " << HdPc.sizeTer << "\n";
