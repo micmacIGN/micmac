@@ -189,7 +189,9 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
 template<int TexSel> __global__ void correlationKernelZ( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd,float* imagesProj,HDParamCorrel HdPc)
 {
 
-    extern __shared__ float cacheImg[];
+    extern __shared__ float cacheImgLayered[];
+
+    float* cacheImg = cacheImgLayered + threadIdx.z * BLOCKDIM * BLOCKDIM;
 
     // Coordonnées du terrain global avec bordure // __umul24!!!! A voir
 
@@ -199,13 +201,9 @@ template<int TexSel> __global__ void correlationKernelZ( uint *dev_NbImgOk, floa
 
     if (oSE(ptHTer,HdPc.dimDTer)) return;
 
-    uint pitZ,piCa;
+    const ushort pitImages = blockIdx.z * invPc.nbImages;
 
-    pitZ  = blockIdx.z / invPc.nbImages;
-
-    piCa  = pitZ * invPc.nbImages;
-
-    const float v = cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = imagesProj[ blockIdx.z * size(HdPc.dimDTer) + to1D(ptHTer,HdPc.dimDTer) ];
+    const float v = cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = imagesProj[ ( pitImages + threadIdx.z) * size(HdPc.dimDTer) + to1D(ptHTer,HdPc.dimDTer) ];
 
     if(v < 0)
         return;
@@ -258,11 +256,9 @@ template<int TexSel> __global__ void correlationKernelZ( uint *dev_NbImgOk, floa
 
     const uint pitchCachY = ptTer.y * invPc.dimVig.y ;
 
-    const int idN     = pitZ * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
+    const int idN     = blockIdx.z * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
 
-    const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + piCa;
-
-    float* cache      = cachVig + iCa * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
+    float* cache      = cachVig + (atomicAdd( &dev_NbImgOk[idN], 1U) + pitImages) * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
 
   #pragma unroll
     for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
@@ -279,11 +275,11 @@ template<int TexSel> __global__ void correlationKernelZ( uint *dev_NbImgOk, floa
 extern "C" void	 LaunchKernelCorrelationZ(const int s,pCorGpu &param,SData2Correl &data2cor)
 {
 
-    dim3	threads( BLOCKDIM, BLOCKDIM, 1);
+    dim3	threads( BLOCKDIM, BLOCKDIM, param.invPC.nbImages);
     uint2	thd2D		= make_uint2(threads);
     uint2	nbActThrd	= thd2D - 2 * param.invPC.rayVig;
     uint2	block2D		= iDivUp(param.HdPc.dimDTer,nbActThrd);
-    dim3	blocks(block2D.x , block2D.y, param.invPC.nbImages * param.ZCInter);
+    dim3	blocks(block2D.x , block2D.y, param.ZCInter);
 
     CuDeviceData3D<float>       DeviImagesProj;
 
@@ -291,7 +287,7 @@ extern "C" void	 LaunchKernelCorrelationZ(const int s,pCorGpu &param,SData2Corre
 
     LaunchKernelprojectionImage(param,DeviImagesProj);
 
-    correlationKernelZ<0><<<blocks, threads, BLOCKDIM * BLOCKDIM * sizeof(float), 0>>>(
+    correlationKernelZ<0><<<blocks, threads, param.invPC.nbImages * BLOCKDIM * BLOCKDIM * sizeof(float), 0>>>(
                                                                                            data2cor.DeviVolumeNOK(0),
                                                                                            data2cor.DeviVolumeCache(0),
                                                                                            nbActThrd,
