@@ -30,13 +30,13 @@ set( saisie_HEADERS_nomoc
    #SaisieGlsl.glsl
    Engine.h
    GLWidgetSet.h
-   3DObject.h
-   Settings.h)
+   3DObject.h)
    
 set( saisie_HEADERS_tomoc
    GLWidget.h
    mainwindow.h
-   ContextMenu.h )
+   ContextMenu.h
+   Settings.h)
 
 if ( NOT ${qt_version} EQUAL 0 )
    if ( ${qt_version} EQUAL 5 )
