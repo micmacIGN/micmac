@@ -55,6 +55,8 @@ MainWindow::MainWindow(Pt2di aSzW, Pt2di aNbFen, int mode, QString pointName, QW
     _ui->OpenglLayout->setLayout(_layout);
 
     createRecentFileMenu();
+
+    SetPositionImage(-1,-1);
 }
 
 MainWindow::~MainWindow()
@@ -100,6 +102,7 @@ void MainWindow::connectActions()
     _signalMapper->setMapping (_ui->action1_4_25, 25);
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
+
 }
 
 void MainWindow::createRecentFileMenu()
@@ -683,11 +686,23 @@ void  MainWindow::setGamma(float aGamma)
     _Engine->setGamma(aGamma);
 }
 
+void MainWindow::SetPositionImage(int x, int y)
+{
+
+    QString tet("Position image : "+QString::number(x) + ", " + QString::number(y)+" px");
+    if(x<0 || y<0)
+        _ui->label->setText(QString(""));
+    else
+        _ui->label->setText(tet);
+}
+
 void MainWindow::changeCurrentWidget(void *cuWid)
 {
     GLWidget* glW = (GLWidget*)cuWid;
 
     setCurrentWidget(glW);
+
+    connect((GLWidget*)cuWid, SIGNAL(newImagePosition(int, int)), this, SLOT(SetPositionImage(int,int)));
 
     if (zoomWidget())
     {
