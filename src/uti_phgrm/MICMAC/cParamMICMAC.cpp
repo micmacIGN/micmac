@@ -7068,6 +7068,17 @@ const cTplValGesInit< bool > & cGenerateProjectionInImages::SubsXY()const
    return mSubsXY;
 }
 
+
+cTplValGesInit< bool > & cGenerateProjectionInImages::Polar()
+{
+   return mPolar;
+}
+
+const cTplValGesInit< bool > & cGenerateProjectionInImages::Polar()const 
+{
+   return mPolar;
+}
+
 cElXMLTree * ToXMLTree(const cGenerateProjectionInImages & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -7081,6 +7092,8 @@ cElXMLTree * ToXMLTree(const cGenerateProjectionInImages & anObj)
    aRes->AddFils(::ToXMLTree(std::string("FCND_CalcProj"),anObj.FCND_CalcProj())->ReTagThis("FCND_CalcProj"));
    if (anObj.SubsXY().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SubsXY"),anObj.SubsXY().Val())->ReTagThis("SubsXY"));
+   if (anObj.Polar().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Polar"),anObj.Polar().Val())->ReTagThis("Polar"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -7096,6 +7109,8 @@ void xml_init(cGenerateProjectionInImages & anObj,cElXMLTree * aTree)
    xml_init(anObj.FCND_CalcProj(),aTree->Get("FCND_CalcProj",1)); //tototo 
 
    xml_init(anObj.SubsXY(),aTree->Get("SubsXY",1),bool(false)); //tototo 
+
+   xml_init(anObj.Polar(),aTree->Get("Polar",1),bool(false)); //tototo 
 }
 
 
