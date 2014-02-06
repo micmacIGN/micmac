@@ -109,6 +109,14 @@ struct Rect
         return !(*this == other);
     }
 
+    Rect erode(int a)
+    {
+        pt0 = pt0 + a;
+        pt1 = pt1 - a;
+
+        return *this;
+    }
+
     void SetMaxMin(int x, int y)
     {
 
