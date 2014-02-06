@@ -22,8 +22,6 @@ namespace Ui {
 class MainWindow;
 }
 
-const QColor colorBG0("#323232");
-const QColor colorBG1("#808080");
 const QColor colorBorder("#606060");
 
 //! Interface mode
@@ -71,7 +69,7 @@ public slots:
 
     void closeEvent(QCloseEvent *event);
 
-    void redraw();
+    void redraw(bool nbWidgetsChanged=false);
 
 protected slots:
 

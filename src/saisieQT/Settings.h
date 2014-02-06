@@ -5,25 +5,27 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <iostream>
 
 class cParameters
 {
 public:
-    cParameters(){}
+    cParameters();
+    ~cParameters(){}
 
-    void setNbFen(QPoint aNbFen)        { _nbFen = aNbFen;  }
+    void setNbFen(QPoint const &aNbFen) { _nbFen = aNbFen;  }
     void setSzFen(QSize aSzFen)         { _szFen = aSzFen;  }
     void setFullScreen(bool fullscreen) { _openFullScreen = fullscreen; }
     void setZoomWindowValue(float aZoom){ _zoomWindow = aZoom; }
     void setDefPtName(QString name)     { _ptName = name;   }
     void setPosition(QPoint pos)        { _position = pos;  }
 
-    QPoint  getNbFen()      { return _nbFen;    }
-    QSize   getSzFen()      { return _szFen;    }
-    bool    getFullScreen() { return _openFullScreen;  }
-    float   getZoomWindowValue() { return _zoomWindow; }
-    QString getDefPtName()  { return _ptName;   }
-    QPoint  getPosition()   { return _position; }
+    QPoint  getNbFen()                  { return _nbFen;    }
+    QSize   getSzFen()                  { return _szFen;    }
+    bool    getFullScreen()             { return _openFullScreen;  }
+    float   getZoomWindowValue()        { return _zoomWindow; }
+    QString getDefPtName()              { return _ptName;   }
+    QPoint  getPosition()               { return _position; }
 
     //! Copy operator
     cParameters& operator =(const cParameters& params);
@@ -32,20 +34,16 @@ public:
     void    write();
 
 private:
-
-    //appli mode (MASK2D, MASK3D, SAISIEPT_INIT, SAISIEPT_PREDIC)
-    int         _myMode;
-
     //main window parameters
+    bool        _openFullScreen;
     QPoint      _position;
     QPoint      _nbFen;
     QSize       _szFen;
-    bool        _openFullScreen;
+
 
     //other parameters
     float       _zoomWindow;
     QString     _ptName;
-
 };
 
 //! Dialog to setup display settings
@@ -56,22 +54,29 @@ class cSettingsDlg : public QDialog, public Ui::settingsDialog
 public:
 
     //! Default constructor
-    cSettingsDlg(QWidget* parent, cParameters &params);
+    cSettingsDlg(QWidget* parent, cParameters *params);
+    ~cSettingsDlg();
 
     void setParameters(cParameters &params);
 
 signals:
-    void hasChanged();
+    void hasChanged(bool closeWidgets);
 
 protected slots:
 
     void on_FullscreenCheckBox_clicked();
 
-    void on_actionAccept_triggered();
-    void on_actionCancel_triggered();
+    void on_okButton_clicked();
+    void on_applyButton_clicked();
+    void on_resetButton_clicked();
+    void on_cancelButton_clicked();
 
-    void on_actionApply_triggered();
-    void on_actionReset_triggered();
+    void on_NBF_x_spinBox_valueChanged(int);
+    void on_NBF_y_spinBox_valueChanged(int);
+
+    void on_WindowWidth_spinBox_valueChanged(int);
+    void on_WindowHeight_spinBox_valueChanged(int);
+
 
 protected:
 
@@ -81,8 +86,8 @@ protected:
     //! settings
     cParameters *_parameters;
 
-    //! settings
-    cParameters *_oldParameters;
+    //! settings copy
+    cParameters  _oldParameters;
 };
 
 

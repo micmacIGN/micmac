@@ -507,8 +507,6 @@ public:
         glwid(glw)
     {}
 
-    //~cMessages2DGL();
-
     void draw();
 
     int renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont = 10);

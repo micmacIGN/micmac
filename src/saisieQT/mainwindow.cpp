@@ -14,7 +14,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     _params->read();
 
-    init(_params->getNbFen().x()*_params->getNbFen().y(), colorBG0, colorBG1, _mode > MASK3D);
+    init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
 
     QString style = "border: 1px solid #707070;"
             "border-radius: 0px;"
@@ -61,7 +61,11 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     QSize szFen = _params->getSzFen();
 
     if (_params->getFullScreen())
+    {
         showFullScreen();
+        _params->setSzFen(size());
+        _ui->actionFullScreen->setChecked(true);
+    }
     else if (_mode > MASK3D)
         resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
     else
@@ -76,6 +80,7 @@ MainWindow::~MainWindow()
     delete _layout;
     delete _zoomLayout;
     delete _signalMapper;
+    delete _params;
 }
 
 void MainWindow::connectActions()
@@ -93,8 +98,7 @@ void MainWindow::connectActions()
     {
         _recentFileActs[i] = new QAction(this);
         _recentFileActs[i]->setVisible(false);
-        connect(_recentFileActs[i], SIGNAL(triggered()),
-                this, SLOT(openRecentFile()));
+        connect(_recentFileActs[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
     }
 
     //Zoom menu
@@ -144,8 +148,6 @@ void MainWindow::runProgressDialog(QFuture<void> future)
 
     future.waitForFinished();
 }
-
-
 
 void MainWindow::addFiles(const QStringList& filenames)
 {
@@ -534,8 +536,8 @@ void MainWindow::on_actionSave_selection_triggered()
 
 void MainWindow::on_actionSettings_triggered()
 {
-    cSettingsDlg uiSettings(this, *_params);
-    connect(&uiSettings, SIGNAL(hasChanged()), this, SLOT(redraw()));
+    cSettingsDlg uiSettings(this, _params);
+    connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
 
     uiSettings.exec();
     /*#if defined(Q_OS_SYMBIAN)
@@ -705,11 +707,56 @@ void  MainWindow::setGamma(float aGamma)
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     _params->write();
+
     event->accept();
 }
 
-void MainWindow::redraw()
+void MainWindow::redraw(bool nbWidgetsChanged)
 {
+    if (size() != _params->getSzFen()) resize(_params->getSzFen());
+
+    if (nbWidgetsChanged)
+    {
+        delete _layout;
+        _layout = new QGridLayout;
+
+        int newWidgetNb = _params->getNbFen().x()*_params->getNbFen().y();
+        int col =  _layout->columnCount();
+        int row =  _layout->rowCount();
+
+        cout << "old layout col nb : " << col << endl;
+        cout << "old layout row nb : " << row << endl;
+
+        cout << "new layout col nb : " <<  _params->getNbFen().x() << endl;
+        cout << "new layout row nb : " <<  _params->getNbFen().y() << endl;
+
+        if (col < _params->getNbFen().x() || row < _params->getNbFen().y())
+        {
+            widgetSetResize(newWidgetNb);
+
+            int cpt = 0;
+            for (; cpt < nbWidgets();++cpt)
+                _layout->removeWidget(getWidget(cpt));
+
+            cpt = 0;
+            for (int aK =0; aK < _params->getNbFen().x();++aK)
+                for (int bK =0; bK < _params->getNbFen().y();++bK)
+                {
+                    _layout->addWidget(getWidget(cpt), bK, aK);
+
+                    if (cpt < _Engine->getData()->getNbImages())
+                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages);
+
+                    cpt++;
+                }
+            _ui->OpenglLayout->setLayout(_layout);
+        }
+        else
+        {
+
+        }
+
+    }
 
 }
 
@@ -724,7 +771,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
         zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
         zoomWidget()->setZoom(3.f);
         zoomWidget()->setOption(cGLData::OpShow_Mess,false);
-        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(int, int)), zoomWidget(), SLOT(centerViewportOnImagePosition(int,int)));
+        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
     }
 }
 

@@ -5,7 +5,13 @@ GLWidgetSet::GLWidgetSet() :
     _zoomWidget(NULL)
 {}
 
-void GLWidgetSet::init(uint aNb, QColor color1, QColor color2, bool modePt)
+const QColor colorBG0("#323232");
+const QColor colorBG1("#808080");
+
+const QString style("margin: 0px;"
+                "padding: 0px;");
+
+void GLWidgetSet::init(uint aNb, bool modePt)
 {
     if (aNb==0)
         return;
@@ -17,12 +23,9 @@ void GLWidgetSet::init(uint aNb, QColor color1, QColor color2, bool modePt)
     for (uint aK=1 ; aK < aNb; ++aK)
         _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
 
-    QString style = "margin: 0px;"
-                    "padding: 0px;";
-
     for (uint aK=0 ; aK < aNb; ++aK)
     {
-        _widgets[aK]->setBackgroundColors(color1,color2);
+        _widgets[aK]->setBackgroundColors(colorBG0,colorBG1);
         _widgets[aK]->setStyleSheet(style);
         if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
     }
@@ -30,10 +33,26 @@ void GLWidgetSet::init(uint aNb, QColor color1, QColor color2, bool modePt)
     if (modePt)
     {
         _zoomWidget = new GLWidget(-1, (const QGLWidget*)_widgets[0]);
-        _zoomWidget->setBackgroundColors(color1,color1);
+        _zoomWidget->setBackgroundColors(colorBG1,colorBG1);
         _zoomWidget->setContextMenuPolicy( Qt::NoContextMenu );
         _zoomWidget->setOption(cGLData::OpShow_Mess,false);
         _zoomWidget->setZoom(3.f);
+    }
+}
+
+void GLWidgetSet::widgetSetResize(int aSz)
+{
+    int sz = _widgets.size();
+
+    _widgets.resize(aSz);
+
+    for (int aK=sz ; aK < aSz; ++aK)
+    {
+        _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
+
+        _widgets[aK]->setBackgroundColors(colorBG0,colorBG1);
+        _widgets[aK]->setStyleSheet(style);
+        //TODO: if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
     }
 }
 
