@@ -744,7 +744,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-                    IMmGg.SetParameter(mNbIm, make_ushort2(toUi2(mCurSzV0)), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+                    IMmGg.SetParameter(mNbIm, toUi2(mCurSzV0), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
 
                 }
 
@@ -1485,7 +1485,6 @@ void cAppliMICMAC::DoGPU_Correl
         Rect    zone        = IMmGg.Param(idBuf).RDTer();           // Zone Terrain dilaté
         uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;    // Sample
         float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
-        Rect    *pTabRect   = IMmGg.Data().HostRect();
         uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
         uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
         uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
@@ -1500,14 +1499,10 @@ void cAppliMICMAC::DoGPU_Correl
             OMP_NT2
             for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
             {
-                Rect*   pRect   = pTabRect +  rZ  + aKIm;
-                float2* pTproj  = pTabProj + (rZ  + aKIm )* sizSTabProj;
-
+                float2* pTproj = pTabProj + (rZ  +   aKIm )* sizSTabProj;
                 cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
                 const cGeomImage*	aGeom	= aGLI.Geom();
                 int2 an;
-
-                Rect re(MAXIRECT);
 
                 for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain
                 {
@@ -1516,7 +1511,6 @@ void cAppliMICMAC::DoGPU_Correl
                         if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
                         {
 
-                            int2 t  = (an - zone.pt0);
                             int2 r	= (an - zone.pt0)/sample;
                             int iD	=  to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
@@ -1526,18 +1520,11 @@ void cAppliMICMAC::DoGPU_Correl
                             Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image
 
                             if (aGLI.IsOk( aPIm.x, aPIm.y ))
-                            {
-                                re.SetMaxMin(t.x,t.y);
                                 pTproj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
-                            }
+
                         }
                     }
                 }
-
-                //re.pt1 = re.pt1 - 1;
-
-                *pRect = re/*.erode(-1)*/;
-
             }
         }
 

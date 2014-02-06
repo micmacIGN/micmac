@@ -17,58 +17,12 @@ extern "C" void CopyParamInvTodevice( pCorGpu param )
   checkCudaErrors(cudaMemcpyToSymbol(invPc, &param.invPC, sizeof(invParamCorrel)));
 }
 
-template<int TexSel> __global__ void projectionImage( HDParamCorrel HdPc, float* projImages, Rect* pRect)
-{
-    //extern __shared__ float cacheImg[];
-
-    const uint2 ptHTer = make_uint2(blockIdx) * BLOCKDIM + make_uint2(threadIdx);
-
-    if (oSE(ptHTer,HdPc.dimDTer)) return;
-
-    const ushort IdLayer = blockDim.z * blockIdx.z + threadIdx.z;
-
-    const float2 ptProj  = GetProjection<TexSel>(ptHTer,invPc.sampProj, IdLayer);
-
-    const Rect  zoneImage = pRect[IdLayer];
-
-    float* localImages = projImages + IdLayer * size(HdPc.dimDTer);
-
-    localImages[to1D(ptHTer,HdPc.dimDTer)] = (oI(ptProj,0)|| oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))) ? 2048.f : GetImageValue(ptProj,threadIdx.z);
-
-}
-
-extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<float>  &DeviImagesProj, Rect* pRect)
-{
-
-    dim3	threads( BLOCKDIM, BLOCKDIM, param.invPC.nbImages);
-    uint2	thd2D		= make_uint2(threads);
-    uint2	block2D		= iDivUp(param.HdPc.dimDTer,thd2D);
-    dim3	blocks(block2D.x , block2D.y, param.ZCInter);
-
-    DeviImagesProj.ReallocIfDim(param.HdPc.dimDTer,param.ZCInter*param.invPC.nbImages);
-
-    CuHostData3D<float>  hostImagesProj;
-
-    hostImagesProj.ReallocIfDim(param.HdPc.dimDTer,param.ZCInter*param.invPC.nbImages);
-
-    projectionImage<0><<<blocks, threads>>>(param.HdPc,DeviImagesProj.pData(),pRect);
-
-    DeviImagesProj.CopyDevicetoHost(hostImagesProj);
-
-//    hostImagesProj.OutputValues();
-
-    for (int i = 0; i < param.invPC.nbImages; ++i)
-        GpGpuTools::Array1DtoImageFile(hostImagesProj.pData() + i * size(hostImagesProj.GetDimension()),GpGpuTools::conca("IMAGES.pgm",i),hostImagesProj.GetDimension(),1.f/2048.f);
-
-    hostImagesProj.Dealloc();
-
-}
 
 /// \fn template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd)
 /// \brief Kernel fonction GpGpu Cuda
 /// Calcul les vignettes de correlation pour toutes les images
 ///
-template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, Rect* pRect, uint2 nbActThrd,HDParamCorrel HdPc)
+template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd,HDParamCorrel HdPc)
 {
 
   extern __shared__ float cacheImg[];
@@ -79,19 +33,16 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   // Si le processus est hors du terrain, nous sortons du kernel
 
-  if (oSE(ptHTer,HdPc.dimDTer)  ) return;
+  if (oSE(ptHTer,HdPc.dimDTer)) return;
 
-
-  const float2 ptProj   = GetProjection<TexSel>(ptHTer,invPc.sampProj,blockIdx.z);
-// DEBUT AJOUT 2014
-  const Rect  zoneImage = pRect[blockIdx.z];
+  const float2 ptProj = GetProjection<TexSel>(ptHTer,invPc.sampProj,blockIdx.z);
 
   uint pitZ,modZ,piCa;
 
-  if (oI(ptProj,0) || oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))) // retirer le 9 decembre 2013 à verifier
+  if (oI(ptProj,0)) // retirer le 9 decembre 2013 à verifier
   {
       return;
-  }// FIN AJOUT 2014
+  }
   else
   {
       pitZ  = blockIdx.z / invPc.nbImages;
@@ -110,16 +61,9 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 
   // Simplifier!!!
-  if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer,0))
+  if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer, 0))
     return;
 
-
-  // DEBUT AJOUT 2014
-  if ( oSE( ptHTer + 2 , make_uint2(zoneImage.pt1)) || oI(ptHTer -  2 ,make_uint2(zoneImage.pt0)))
-      return;
-  // FIN AJOUT 2014
-
-  // INCORRECT !!!
   if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
 
   const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
@@ -138,7 +82,6 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
       for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
           const float val = cImg[pt.x];	// Valeur de l'image
-
           //        if (val ==  cH.floatDefault) return;
           aSV  += val;          // Somme des valeurs de l'image cte
           aSVV += (val*val);	// Somme des carrés des vals image cte
@@ -184,134 +127,18 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
     uint2	block2D		= iDivUp(param.HdPc.dimDTer,nbActThrd);
     dim3	blocks(block2D.x , block2D.y, param.invPC.nbImages * param.ZCInter);
 
-//    CuDeviceData3D<float>       DeviImagesProj;
-
-//    LaunchKernelprojectionImage(param,DeviImagesProj,data2cor.DeviRect());
-
-    switch (s)
+  switch (s)
     {
     case 0:
-        correlationKernel<0><<<blocks, threads, BLOCKDIM * BLOCKDIM * sizeof(float), stream>>>( data2cor.DeviVolumeNOK(0), data2cor.DeviVolumeCache(0),data2cor.DeviRect(), nbActThrd,param.HdPc);
-        getLastCudaError("Basic Correlation kernel failed stream 0");
-        break;
+      correlationKernel<0><<<blocks, threads, BLOCKDIM * BLOCKDIM * sizeof(float), stream>>>( data2cor.DeviVolumeNOK(0), data2cor.DeviVolumeCache(0), nbActThrd,param.HdPc);
+      getLastCudaError("Basic Correlation kernel failed stream 0");
+      break;
     case 1:
-        correlationKernel<1><<<blocks, threads, BLOCKDIM * BLOCKDIM* sizeof(float), stream>>>( data2cor.DeviVolumeNOK(1), data2cor.DeviVolumeCache(1),data2cor.DeviRect(), nbActThrd,param.HdPc);
-        getLastCudaError("Basic Correlation kernel failed stream 1");
-        break;
+      correlationKernel<1><<<blocks, threads, BLOCKDIM * BLOCKDIM* sizeof(float), stream>>>( data2cor.DeviVolumeNOK(1), data2cor.DeviVolumeCache(1), nbActThrd,param.HdPc);
+      getLastCudaError("Basic Correlation kernel failed stream 1");
+      break;
     }
 }
-
-template<int TexSel> __global__ void correlationKernelZ( uint *dev_NbImgOk, float* cachVig, uint2 nbActThrd,float* imagesProj,HDParamCorrel HdPc)
-{
-
-    extern __shared__ float cacheImgLayered[];
-
-    float* cacheImg = cacheImgLayered + threadIdx.z * BLOCKDIM * BLOCKDIM;
-
-    // Coordonnées du terrain global avec bordure // __umul24!!!! A voir
-
-    const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
-
-    // Si le processus est hors du terrain, nous sortons du kernel
-
-    if (oSE(ptHTer,HdPc.dimDTer)) return;
-
-    const ushort pitImages = blockIdx.z * invPc.nbImages;
-
-    const float v = cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = imagesProj[ ( pitImages + threadIdx.z) * size(HdPc.dimDTer) + to1D(ptHTer,HdPc.dimDTer) ];
-
-    if(v < 0)
-        return;
-
-    __syncthreads();
-
-    const int2 ptTer = make_int2(ptHTer) - make_int2(invPc.rayVig);
-
-    // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
-
-    // Simplifier!!!
-    if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer, 0))
-      return;
-
-
-    // INCORRECT !!!
-    if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
-
-    const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
-    const short2 c1	= make_short2(threadIdx) + invPc.rayVig;
-
-    // Intialisation des valeurs de calcul
-    float aSV = 0.0f, aSVV = 0.0f;
-    short2 pt;
-
-    #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
-    for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
-    {
-          //const int pic = pt.y*BLOCKDIM;
-          float* cImg    = cacheImg +  pt.y*BLOCKDIM;
-        #pragma unroll
-        for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
-        {
-            const float val = cImg[pt.x];	// Valeur de l'image
-            //        if (val ==  cH.floatDefault) return;
-            aSV  += val;          // Somme des valeurs de l'image cte
-            aSVV += (val*val);	// Somme des carrés des vals image cte
-        }
-    }
-
-    aSV   = fdividef(aSV,(float)invPc.sizeVig );
-
-    aSVV  = fdividef(aSVV,(float)invPc.sizeVig );
-
-    aSVV -=	(aSV * aSV);
-
-    if ( aSVV <= invPc.mAhEpsilon) return;
-
-    aSVV =	rsqrtf(aSVV); // racine carre inverse
-
-    const uint pitchCachY = ptTer.y * invPc.dimVig.y ;
-
-    const int idN     = blockIdx.z * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
-
-    float* cache      = cachVig + (atomicAdd( &dev_NbImgOk[idN], 1U) + pitImages) * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
-
-  #pragma unroll
-    for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
-      {
-        float* cImg = cacheImg + pt.y * BLOCKDIM;
-        float* cVig = cache    + pt.y * HdPc.dimCach.x ;
-  #pragma unroll
-        for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
-          cVig[ pt.x ] = (cImg[pt.x] -aSV)*aSVV;
-      }
-}
-
-/// \brief Fonction qui lance les kernels de correlation
-extern "C" void	 LaunchKernelCorrelationZ(const int s,pCorGpu &param,SData2Correl &data2cor)
-{
-
-    dim3	threads( BLOCKDIM, BLOCKDIM, param.invPC.nbImages);
-    uint2	thd2D		= make_uint2(threads);
-    uint2	nbActThrd	= thd2D - 2 * param.invPC.rayVig;
-    uint2	block2D		= iDivUp(param.HdPc.dimDTer,nbActThrd);
-    dim3	blocks(block2D.x , block2D.y, param.ZCInter);
-
-    CuDeviceData3D<float>       DeviImagesProj;
-
-    //const ushort HBLOCKDIM = BLOCKDIM + param.invPC.rayVig.x;
-
-    LaunchKernelprojectionImage(param,DeviImagesProj,data2cor.DeviRect());
-
-    correlationKernelZ<0><<<blocks, threads, param.invPC.nbImages * BLOCKDIM * BLOCKDIM * sizeof(float), 0>>>(
-                                                                                           data2cor.DeviVolumeNOK(0),
-                                                                                           data2cor.DeviVolumeCache(0),
-                                                                                           nbActThrd,
-                                                                                           DeviImagesProj.pData(),
-                                                                                           param.HdPc);
-    getLastCudaError("Basic Correlation kernel failed stream 0");
-
-}
-
 
 /// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens n utilisant pas des fonctions atomiques
 __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr,HDParamCorrel HdPc)

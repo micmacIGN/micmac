@@ -1,11 +1,6 @@
-Ligne vides dans GCPConvert .....
-Triangle trop plat dans OriConvert Solution Initiale....
-WPK en export 
-
 BUGS :
 
 bool accepte yes !!!
-
 
 Saisie :
   2- Image Globale de Saisie 

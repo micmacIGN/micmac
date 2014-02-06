@@ -1561,7 +1561,6 @@ void cEtapeMecComp::SauvProjImage
 
    Pt2di aP;
    bool aSubXY = aGPI.SubsXY().Val();
-   bool aPolar = aGPI.Polar().Val();
    for (aP.x =0 ; aP.x<aSz.x ; aP.x++)
    {
        for (aP.y =0 ; aP.y<aSz.y ; aP.y++)
@@ -1570,10 +1569,6 @@ void cEtapeMecComp::SauvProjImage
            if (aSubXY)
            {
               aPIm = aPIm -mGeomTer.RDiscToR2(Pt2dr(aP));
-           }
-           if (aPolar)
-           {
-              aPIm = Pt2dr::polar(aPIm,0.0);
            }
 
            aTX.oset(aP,aPIm.x);
