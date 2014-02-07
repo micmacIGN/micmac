@@ -64,6 +64,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     {
         showFullScreen();
         _params->setSzFen(size());
+        _params->write();
         _ui->actionFullScreen->setChecked(true);
     }
     else if (_mode > MASK3D)
@@ -71,7 +72,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     else
         resize(szFen);
 
-    setPositionImage(QPointF(-1.f,-1.f));
+    setImagePosition(QPointF(-1.f,-1.f));
 }
 
 MainWindow::~MainWindow()
@@ -215,6 +216,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 void MainWindow::on_actionFullScreen_toggled(bool state)
 {   
     _params->setFullScreen(state);
+
     return state ? showFullScreen() : showNormal();
 }
 
@@ -709,6 +711,9 @@ void  MainWindow::setGamma(float aGamma)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    if (zoomWidget())
+        _params->setZoomWindowValue(zoomWidget()->getZoom());
+
     _params->write();
 
     event->accept();
@@ -716,7 +721,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::redraw(bool nbWidgetsChanged)
 {
-    if (size() != _params->getSzFen()) resize(_params->getSzFen());
+    if (size() != _params->getSzFen())
+    {
+        if (_mode > MASK3D)
+                resize(_params->getSzFen().width() + _ui->zoomLayout->width(), _params->getSzFen().height());
+        else
+            resize(_params->getSzFen());
+    }
 
     if (nbWidgetsChanged)
     {
@@ -727,11 +738,11 @@ void MainWindow::redraw(bool nbWidgetsChanged)
         int col =  _layout->columnCount();
         int row =  _layout->rowCount();
 
-        cout << "old layout col nb : " << col << endl;
+       /* cout << "old layout col nb : " << col << endl;
         cout << "old layout row nb : " << row << endl;
 
         cout << "new layout col nb : " <<  _params->getNbFen().x() << endl;
-        cout << "new layout row nb : " <<  _params->getNbFen().y() << endl;
+        cout << "new layout row nb : " <<  _params->getNbFen().y() << endl;*/
 
         if (col < _params->getNbFen().x() || row < _params->getNbFen().y())
         {
@@ -761,9 +772,9 @@ void MainWindow::redraw(bool nbWidgetsChanged)
     }
 }
 
-void MainWindow::setPositionImage(QPointF pt)
+void MainWindow::setImagePosition(QPointF pt)
 {
-    QString text(tr("Image position: ")+QString::number(pt.x()) + ", " + QString::number(pt.y())+" px");
+    QString text(tr("Image position: ")+QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
 
     if(pt.x()<0.f || pt.y()<0.f)
         _ui->label->setText(QString(""));
@@ -777,12 +788,12 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
     setCurrentWidget(glW);
 
-    connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setPositionImage(QPointF)));
+    connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
     if (zoomWidget())
     {
         zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
-        zoomWidget()->setZoom(3.f);
+        zoomWidget()->setZoom(_params->getZoomWindowValue());
         zoomWidget()->setOption(cGLData::OpShow_Mess,false);
         connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
     }
