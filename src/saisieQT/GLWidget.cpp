@@ -173,12 +173,15 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                 break;
             case Qt::Key_G:
                 m_GLData->glMaskedImage._m_image->incGamma(0.2f);
+                emit gammaChanged(m_GLData->glMaskedImage._m_image->getGamma());
                 break;
             case Qt::Key_H:
                 m_GLData->glMaskedImage._m_image->incGamma(-0.2f);
+                emit gammaChanged(m_GLData->glMaskedImage._m_image->getGamma());
                 break;
             case Qt::Key_J:
-                m_GLData->glMaskedImage._m_image->setGamma(1.0f);
+                m_GLData->glMaskedImage._m_image->setGamma(1.f);
+                emit gammaChanged(1.f);
                 break;
             case Qt::Key_Plus:
                 if (m_bDisplayMode2D)

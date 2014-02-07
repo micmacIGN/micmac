@@ -47,6 +47,7 @@ public:
     void readSettings();
     void writeSettings();
 
+    void applyParams();
 public slots:
 
     //! Try to load a list of files
@@ -66,8 +67,6 @@ public slots:
 
     cEngine* getEngine(){return _Engine;}
 
-	void setGamma(float aGamma);
-
     void closeEvent(QCloseEvent *event);
 
     void redraw(bool nbWidgetsChanged=false);
@@ -76,6 +75,7 @@ protected slots:
 
     void setImagePosition(QPointF pt);
     void setZoom(float);
+    void setGamma(float);
     void changeCurrentWidget(void* cuWid);
 
     //View Menu
