@@ -328,7 +328,7 @@ QDockWidget::close-button:pressed, QDockWidget::float-button:pressed
     padding: 1px -1px -1px 1px;
 }
 
-QWidget::separator
+QMainWindow::separator
 {
     background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #161616, stop: 0.5 #151515, stop: 0.6 #212121, stop:1 #343434);
     color: white;
@@ -337,7 +337,7 @@ QWidget::separator
     spacing: 3px; /* spacing between items in the tool bar */
 }
 
-QWidget::separator:hover
+QMainWindow::separator:hover
 {
 
     background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #d7801a, stop:0.5 #b56c17 stop:1 #ffa02f);
@@ -350,7 +350,7 @@ QWidget::separator:hover
 QToolBar::handle
 {
      spacing: 3px; /* spacing between items in the tool bar */
-     background: url(:/images/handle.png);
+     background: url(:/MM/Icons/images/handle.png);
 }
 
 QMenu::separator
@@ -470,7 +470,7 @@ QRadioButton::indicator:hover, QCheckBox::indicator:hover
 
 QCheckBox::indicator:checked
 {
-    image:url(:/images/checkbox.png);
+    image:url(:/MM/Icons/images/checkbox.png);
 }
 
 QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
