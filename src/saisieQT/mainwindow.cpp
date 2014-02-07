@@ -58,26 +58,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     createRecentFileMenu();
 
-    move(_params->getPosition());
-
-    QSize szFen = _params->getSzFen();
-
-    if (_params->getFullScreen())
-    {
-        showFullScreen();
-
-        QRect screen = QApplication::desktop()->screenGeometry ( -1 );
-
-        _params->setSzFen(screen.size());
-        _params->setPosition(QPoint(0,0));
-        _params->write();
-
-        _ui->actionFullScreen->setChecked(true);
-    }
-    else if (_mode > MASK3D)
-        resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
-    else
-        resize(szFen);
+    applyParams();
 
     setImagePosition(QPointF(-1.f,-1.f));
 }
@@ -785,23 +766,21 @@ void MainWindow::redraw(bool nbWidgetsChanged)
 
 void MainWindow::setImagePosition(QPointF pt)
 {
+    QString text(tr("Image position: "));
+
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
         GLWidget* glW = currentWidget();
         if (glW->hasDataLoaded() && !glW->getGLData()->is3D())
         {
             if (glW->isPtInsideIm(pt))
-            {
-                QString text(tr("Image position: ")+QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
-
-                _ui->label->setText(text);
-            }
+                _ui->label->setText(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
             else
-                _ui->label->setText(QString(""));
+                _ui->label->setText(text);
         }
     }
     else
-        _ui->label->setText(QString(""));
+        _ui->label->setText(text);
 }
 
 void MainWindow::setZoom(float val)
@@ -817,6 +796,8 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
     connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
+    connect((GLWidget*)cuWid, SIGNAL(gammaChanged(float)), this, SLOT(setGamma(float)));
+
     if (zoomWidget())
     {
         zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
@@ -824,7 +805,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
         zoomWidget()->setOption(cGLData::OpShow_Mess,false);
         connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
 
-        connect((GLWidget*)zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+        connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
     }
 }
 
@@ -844,4 +825,28 @@ void MainWindow::undo(bool undo)
         undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
         currentWidget()->applyInfos();
     }
+}
+
+void MainWindow::applyParams()
+{
+    move(_params->getPosition());
+
+    QSize szFen = _params->getSzFen();
+
+    if (_params->getFullScreen())
+    {
+        showFullScreen();
+
+        QRect screen = QApplication::desktop()->screenGeometry ( -1 );
+
+        _params->setSzFen(screen.size());
+        _params->setPosition(QPoint(0,0));
+        _params->write();
+
+        _ui->actionFullScreen->setChecked(true);
+    }
+    else if (_mode > MASK3D)
+        resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
+    else
+        resize(szFen);
 }

@@ -124,6 +124,7 @@ signals:
     void overWidget(void* widget);
 
     void zoomChanged(float zoom);
+    void gammaChanged(float gamma);
 
 protected:
     //! inherited from QGLWidget
