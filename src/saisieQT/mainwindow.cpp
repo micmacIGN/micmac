@@ -214,6 +214,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
 void MainWindow::on_actionFullScreen_toggled(bool state)
 {   
+    _params->setFullScreen(state);
     return state ? showFullScreen() : showNormal();
 }
 

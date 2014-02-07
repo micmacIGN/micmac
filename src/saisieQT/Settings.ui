@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>343</width>
+    <width>364</width>
     <height>407</height>
    </rect>
   </property>
@@ -536,70 +536,36 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <rect>
      <x>20</x>
      <y>10</y>
-     <width>311</width>
+     <width>331</width>
      <height>361</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="pageUIsettings">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>311</width>
-      <height>245</height>
+      <width>331</width>
+      <height>274</height>
      </rect>
     </property>
     <attribute name="label">
      <string>Layout settings</string>
     </attribute>
-    <widget class="QWidget" name="horizontalLayoutWidget">
+    <widget class="QWidget" name="gridLayoutWidget_2">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>0</y>
        <width>311</width>
-       <height>31</height>
+       <height>80</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="windowGridLayout">
-      <item>
-       <widget class="QLabel" name="NbF_label">
-        <property name="text">
-         <string>Window grid:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="NBF_x_spinBox">
-        <property name="maximum">
-         <number>5</number>
-        </property>
-        <property name="value">
-         <number>2</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>x</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="NBF_y_spinBox">
-        <property name="maximum">
-         <number>4</number>
-        </property>
-        <property name="value">
-         <number>2</number>
-        </property>
-       </widget>
-      </item>
-      <item>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="4">
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -612,42 +578,48 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
         </property>
        </spacer>
       </item>
-     </layout>
-    </widget>
-    <widget class="QCheckBox" name="FullscreenCheckBox">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>40</y>
-       <width>131</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>open in full screen</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QWidget" name="horizontalLayoutWidget_2">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>60</y>
-       <width>311</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="windowSizeLayout">
-      <item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="NBF_x_spinBox">
+        <property name="maximum">
+         <number>5</number>
+        </property>
+        <property name="value">
+         <number>2</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>x</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QSpinBox" name="NBF_y_spinBox">
+        <property name="maximum">
+         <number>4</number>
+        </property>
+        <property name="value">
+         <number>2</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="NbF_label">
+        <property name="text">
+         <string>Window grid:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
        <widget class="QLabel" name="windowSize_label">
         <property name="text">
          <string>Window size:</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="1">
        <widget class="QSpinBox" name="WindowWidth_spinBox">
         <property name="maximum">
          <number>5000</number>
@@ -657,14 +629,14 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="2">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>x</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="3">
        <widget class="QSpinBox" name="WindowHeight_spinBox">
         <property name="maximum">
          <number>5000</number>
@@ -674,19 +646,6 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
         </property>
        </widget>
       </item>
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
      </layout>
     </widget>
    </widget>
@@ -695,34 +654,64 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>100</width>
-      <height>30</height>
+      <width>331</width>
+      <height>274</height>
      </rect>
     </property>
     <attribute name="label">
      <string>Drawing settings</string>
     </attribute>
-    <widget class="QWidget" name="horizontalLayoutWidget_7">
+    <widget class="QWidget" name="gridLayoutWidget">
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>0</y>
+       <y>10</y>
        <width>311</width>
-       <height>31</height>
+       <height>116</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="LineThicknessLayout">
-      <item>
-       <widget class="QLabel" name="LineThickness_label">
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="1" column="0">
+       <widget class="QLabel" name="LineThickness_label_2">
         <property name="lineWidth">
          <number>1</number>
         </property>
         <property name="text">
-         <string>Line thickness:</string>
+         <string>Point diameter:</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="PointDiameter_doubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <double>2.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="PointSize_label">
+        <property name="lineWidth">
+         <number>1</number>
+        </property>
+        <property name="text">
+         <string>Point size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QDoubleSpinBox" name="GammaDoubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <double>1.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
        <widget class="QDoubleSpinBox" name="LineThickness_doubleSpinBox">
         <property name="decimals">
          <number>1</number>
@@ -732,7 +721,37 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="LineThickness_label">
+        <property name="lineWidth">
+         <number>1</number>
+        </property>
+        <property name="text">
+         <string>Line thickness:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDoubleSpinBox" name="PointSize_doubleSpinBox">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <double>2.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="Gamma_label">
+        <property name="lineWidth">
+         <number>1</number>
+        </property>
+        <property name="text">
+         <string>Gamma:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
        <spacer name="horizontalSpacer_6">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -747,328 +766,37 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="horizontalLayoutWidget_8">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>40</y>
-       <width>311</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="PointDiametereLayout">
-      <item>
-       <widget class="QLabel" name="LineThickness_label_2">
-        <property name="lineWidth">
-         <number>1</number>
-        </property>
-        <property name="text">
-         <string>Point diameter:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QDoubleSpinBox" name="PointDiameter_doubleSpinBox">
-        <property name="decimals">
-         <number>1</number>
-        </property>
-        <property name="value">
-         <double>2.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_7">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="horizontalLayoutWidget_9">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>80</y>
-       <width>311</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="PointSizeLayout">
-      <item>
-       <widget class="QLabel" name="PointSize_label">
-        <property name="lineWidth">
-         <number>1</number>
-        </property>
-        <property name="text">
-         <string>Point size:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QDoubleSpinBox" name="PointSize_doubleSpinBox">
-        <property name="decimals">
-         <number>1</number>
-        </property>
-        <property name="value">
-         <double>2.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_8">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="horizontalLayoutWidget_10">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>120</y>
-       <width>311</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="GammaLayout">
-      <item>
-       <widget class="QLabel" name="Gamma_label">
-        <property name="lineWidth">
-         <number>1</number>
-        </property>
-        <property name="text">
-         <string>Gamma:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QDoubleSpinBox" name="GammaDoubleSpinBox">
-        <property name="decimals">
-         <number>1</number>
-        </property>
-        <property name="value">
-         <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_9">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="pageHideShow">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>100</width>
-      <height>30</height>
-     </rect>
-    </property>
-    <attribute name="label">
-     <string>Hide/show</string>
-    </attribute>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>301</width>
-       <height>80</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>GL objects</string>
-     </property>
-     <widget class="QCheckBox" name="checkBox">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>151</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>show bounding box</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>151</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>show axis</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_3">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>60</y>
-        <width>151</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>show 3D ball</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>80</y>
-       <width>301</width>
-       <height>111</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Miscellaneous objects</string>
-     </property>
-     <widget class="QWidget" name="verticalLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>9</x>
-        <y>20</y>
-        <width>291</width>
-        <height>80</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QCheckBox" name="Message_checkBox">
-         <property name="text">
-          <string>show messages</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="Names_checkBox">
-         <property name="text">
-          <string>show point names</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="Refuted_checkBox">
-         <property name="text">
-          <string>show refuted points</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
    </widget>
    <widget class="QWidget" name="pageMiscSettings">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>100</width>
-      <height>30</height>
+      <width>331</width>
+      <height>274</height>
      </rect>
     </property>
     <attribute name="label">
      <string>Other display settings</string>
     </attribute>
-    <widget class="QWidget" name="horizontalLayoutWidget_3">
+    <widget class="QWidget" name="gridLayoutWidget_3">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>0</y>
-       <width>281</width>
-       <height>41</height>
+       <x>0</x>
+       <y>10</y>
+       <width>325</width>
+       <height>91</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
        <widget class="QLabel" name="zoomLabel">
         <property name="text">
          <string>Zoom factor in zoom window:   x</string>
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QSpinBox" name="spinBox">
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>20</number>
-        </property>
-        <property name="value">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="horizontalLayoutWidget_4">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>281</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QLabel" name="Radiuslabel">
-        <property name="text">
-         <string>Point selection radius:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
+      <item row="1" column="1">
        <widget class="QSpinBox" name="RadiusSpinBox">
         <property name="minimum">
          <number>1</number>
@@ -1084,14 +812,14 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="2">
        <widget class="QLabel" name="label_pix">
         <property name="text">
          <string>pixels</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="3">
        <spacer name="horizontalSpacer_4">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -1104,26 +832,34 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
         </property>
        </spacer>
       </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="horizontalLayoutWidget_5">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>100</y>
-       <width>281</width>
-       <height>49</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
-      <item>
-       <widget class="QLabel" name="label_prefix">
-        <property name="text">
-         <string>Prefix for automatic point creation: </string>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="zoomWin_spinBox">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>20</number>
+        </property>
+        <property name="value">
+         <number>3</number>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="Radiuslabel">
+        <property name="text">
+         <string>Selection radius:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_prefix">
+        <property name="text">
+         <string>First point name: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
        <widget class="QTextEdit" name="PrefixTextEdit"/>
       </item>
      </layout>
