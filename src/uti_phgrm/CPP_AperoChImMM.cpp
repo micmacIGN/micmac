@@ -72,6 +72,8 @@ int AperoChImMM_main(int argc,char ** argv)
 	}
 
     SplitDirAndFile(aDir,aPat,aFullDir);
+   StdCorrecNameOrient(AeroIn,aDir);
+
     if (! EAMIsInit(&Out))
        Out = AeroIn;
 

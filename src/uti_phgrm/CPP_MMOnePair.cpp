@@ -196,6 +196,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
      mByEpip = false;
   mDirP =DirOfFile(mNameIm1Init);
 
+  if (! mNoOri)
+      StdCorrecNameOrient(mNameOriInit,mDirP); ;
+
   if (!EAMIsInit(&mCMS)) 
      mCMS = mByEpip;
 

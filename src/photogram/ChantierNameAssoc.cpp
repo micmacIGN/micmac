@@ -3644,13 +3644,14 @@ aKeyOrFile         :
 	cCapture3D * & cResulMSO::Capt3d()      {return mCapt3d;}
 
 
-	bool  cInterfChantierNameManipulateur::TestStdOrient
-		(
+bool  cInterfChantierNameManipulateur::TestStdOrient
+	(
 		const std::string & aManquant,
 		const std::string & aPrefix,
-		std::string & anOri
-		)
-	{
+		std::string & anOri,
+                bool  AddNKS
+	)
+{
 		// std::cout << "ttTEST " << anOri << "\n";
 		if (anOri.find(aPrefix) != 0)
 			return false;
@@ -3665,15 +3666,39 @@ aKeyOrFile         :
 
 
 		anOri = anOri.substr(aPrefix.size(),std::string::npos);
-		anOri =  "NKS-Assoc-Im2Orient@-" + anOri;
+                if (AddNKS) 
+		    anOri =  "NKS-Assoc-Im2Orient@-" + anOri;
 
 
 		return true;
 
-	}
+}
 
-	cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,bool AccepNone,std::string * aNameIm)
-	{
+void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri) 
+{
+    int aL = strlen(aNameOri.c_str());
+    if (aL && (aNameOri[aL-1]==ELISE_CAR_DIR))
+    {
+        aNameOri = aNameOri.substr(0,aL-1);
+    }
+
+    if  (TestStdOrient("Ori-","",aNameOri,false))
+        return;
+
+    if  (TestStdOrient("","Ori-",aNameOri,false))
+        return;
+
+    if  (TestStdOrient("Ori","-",aNameOri,true))
+        return;
+
+     std::cout << "############## For Value " << aNameOri << " ############ \n";
+     ELISE_ASSERT(false,"Key is not a valid existing directory");
+}
+
+
+
+cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,bool AccepNone,std::string * aNameIm)
+{
 		cResulMSO  aResult;
 		if (AccepNone && (anOri=="NONE"))
 			return aResult;
@@ -3725,9 +3750,9 @@ aKeyOrFile         :
 
 
 		if (
-			TestStdOrient("Ori-","",anOri)
-			|| TestStdOrient("","Ori-",anOri)
-			|| TestStdOrient("Ori","-",anOri)
+			TestStdOrient("Ori-","",anOri,true)
+			|| TestStdOrient("","Ori-",anOri,true)
+			|| TestStdOrient("Ori","-",anOri,true)
 			)
 		{
 			aResult.IsKeyOri() = true;
@@ -3742,7 +3767,7 @@ aKeyOrFile         :
 			);
 
 		return aResult;
-	}
+}
 
 std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std::string & aStr)
 {
@@ -3786,8 +3811,62 @@ std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std
 
 
 
+void StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir)
+{
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    return anICNM->CorrecNameOrient(aNameOri);
+}
 
 
+bool  TestStdMasq
+	(
+		const std::string & aManquant,
+		const std::string & aDir,
+		const std::string & aPat,
+		std::string & aMasq
+	)
+{
+
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+     
+    std::list<std::string> aL = anICNM->StdGetListOfFile(aPat,1);
+
+    for (std::list<std::string>::const_iterator itS=aL.begin(); itS!=aL.end() ; itS++)
+    {
+        std::string aName =  aDir + StdPrefix(*itS) + aManquant + aMasq + ".tif";
+        if ( ELISE_fp::exist_file(aName))
+        {
+           aMasq = aManquant+aMasq;
+           return true;
+        }
+    }
+
+
+    return false;
+}
+
+
+void   CorrecNameMasq
+	(
+		const std::string & aDir,
+		const std::string & aPat,
+		std::string & aMasq
+	)
+{
+   if (TestStdMasq("",aDir,aPat,aMasq)) return;
+   if (TestStdMasq("_",aDir,aPat,aMasq)) return;
+   if (TestStdMasq("_Masq",aDir,aPat,aMasq)) return;
+
+   std::cout << "############## For Value " << aMasq << " ############ \n";
+   ELISE_ASSERT(false,"Key is not a valid masq extension");
+}
+
+
+/*
+TestStdMasq("",aDir,aPat,aMasq);
+TestStdMasq("Masq",aDir,aPat,aMasq);
+TestStdMasq("_Masq",aDir,aPat,aMasq);
+*/
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

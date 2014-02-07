@@ -60,6 +60,8 @@ int MMAllAuto_main(int argc,char ** argv)
 	replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
     SplitDirAndFile(aDir,aPat,aFullDir);
+    StdCorrecNameOrient(AeroIn,aDir);
+
     cInterfChantierNameManipulateur * aICNM =  cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
     // Genere les pryramides pour que le paral ne s'ecrase pas les 1 les autres

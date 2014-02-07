@@ -100,6 +100,13 @@ int SBGlobBascule_main(int argc,char ** argv)
 		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
+    if (EAMIsInit(&PostPlan))
+    {
+        CorrecNameMasq(aDir,aPat,PostPlan);
+    }
+
+    StdCorrecNameOrient(AeroIn,aDir);
+
     
 	MMD_InitArgcArgv(argc,argv);
 
