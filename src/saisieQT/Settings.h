@@ -20,7 +20,8 @@ public:
     void setSzFen(QSize aSzFen)         { _szFen = aSzFen;       }
 
     void setZoomWindowValue(int aZoom)  { _zoomWindow = aZoom;   }
-    void setDefPtName(QString name)     { _ptName = name;        }
+    void setDefPtName(QString name)     { _ptName  = name;       }
+    void setPostFix(QString name)       { _postFix = name;       }
 
     void setLineThickness(float val)    { _linethickness = val;  }
     void setPointDiameter(float val)    { _pointDiameter = val;  }
@@ -37,6 +38,7 @@ public:
 
     float   getZoomWindowValue()        { return _zoomWindow;    }
     QString getDefPtName()              { return _ptName;        }
+    QString getPostFix()                { return _postFix;       }
 
     float getLineThickness()            { return _linethickness; }
     float getPointDiameter()            { return _pointDiameter; }
@@ -65,8 +67,9 @@ private:
     float       _gamma;
 
     //other parameters
-    int         _zoomWindow;
+    float       _zoomWindow;
     QString     _ptName;
+    QString     _postFix;
     int         _radius;
 };
 

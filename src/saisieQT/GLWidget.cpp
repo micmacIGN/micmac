@@ -317,7 +317,7 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
 
 void GLWidget::centerViewportOnImagePosition(QPointF pt)
 {
-    float vpCenterX = vpWidth()*.5f;
+    float vpCenterX = vpWidth() *.5f;
     float vpCenterY = vpHeight()*.5f;
 
     m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
@@ -338,6 +338,8 @@ void GLWidget::setZoom(float value)
 
     if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_vp_Params.m_zoom*100,'f',1) + "%";
+
+    emit zoomChanged(value);
 
     update();
 }
@@ -454,19 +456,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void GLWidget::refreshPositionMessage(QPointF pos)
-{
-    if (_messageManager.drawMessages() && isPtInsideIm(pos))
-        _messageManager.GetPenultimateMessage()->message = QString::number(pos.x(),'f',1) + ", " + QString::number(imHeight()-pos.y(),'f',1) + " px";
-    else
-        _messageManager.GetPenultimateMessage()->message = " ";
-}
-
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
     {
-
 
 #if ELISE_QT_VERSION == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _vp_Params.m_zoom) : event->localPos();
@@ -476,7 +469,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (m_bDisplayMode2D)
 
-            //refreshPositionMessage(m_lastMoveImage = pos);
             m_lastMoveImage = pos;
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
@@ -650,8 +642,6 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix,bool r
             setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams,false);
         }
     }
-//    else
-//        refreshPositionMessage(m_lastPosImage); //TODO: debugger
 
     if (zoomfit)
         zoomFit(); //update already done in zoomFit

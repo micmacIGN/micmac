@@ -184,8 +184,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():    
     _Loader(new cLoader),
-    _Data(new cData),
-    _Gamma(1.f)
+    _Data(new cData)
 {}
 
 cEngine::~cEngine()
@@ -234,7 +233,7 @@ void  cEngine::loadImage(int aK)
 
 void  cEngine::loadImage(QString imgName)
 {
-    QMaskedImage maskedImg(_Gamma);
+    QMaskedImage maskedImg(_params->getGamma());
 
     _Loader->loadImage(imgName, maskedImg);
 
@@ -245,7 +244,7 @@ void cEngine::reloadImage(int aK)
 {
     QString imgName = getFilenamesIn()[aK];
 
-    QMaskedImage maskedImg(_Gamma);
+    QMaskedImage maskedImg(_params->getGamma());
 
     _Loader->loadImage(imgName, maskedImg);
 

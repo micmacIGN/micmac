@@ -123,6 +123,8 @@ signals:
 
     void overWidget(void* widget);
 
+    void zoomChanged(float zoom);
+
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);

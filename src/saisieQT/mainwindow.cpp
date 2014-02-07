@@ -14,6 +14,8 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     _params->read();
 
+    _Engine->setParams(_params);
+
     init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
 
     QString style = "border: 1px solid #707070;"
@@ -139,7 +141,9 @@ void MainWindow::createRecentFileMenu()
 
 void MainWindow::setPostFix(QString str)
 {
-   _Engine->setPostFix("_" + str);
+   _params->setPostFix(str);
+
+   _Engine->setPostFix();
 }
 
 void MainWindow::progression()
@@ -713,7 +717,7 @@ void MainWindow::setMode()
 
 void  MainWindow::setGamma(float aGamma)
 {
-    _Engine->setGamma(aGamma);
+    _params->setGamma(aGamma);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -781,12 +785,28 @@ void MainWindow::redraw(bool nbWidgetsChanged)
 
 void MainWindow::setImagePosition(QPointF pt)
 {
-    QString text(tr("Image position: ")+QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
+    if (pt.x() >= 0.f && pt.y() >= 0.f)
+    {
+        GLWidget* glW = currentWidget();
+        if (glW->hasDataLoaded() && !glW->getGLData()->is3D())
+        {
+            if (glW->isPtInsideIm(pt))
+            {
+                QString text(tr("Image position: ")+QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
 
-    if(pt.x()<0.f || pt.y()<0.f)
-        _ui->label->setText(QString(""));
+                _ui->label->setText(text);
+            }
+            else
+                _ui->label->setText(QString(""));
+        }
+    }
     else
-        _ui->label->setText(text);
+        _ui->label->setText(QString(""));
+}
+
+void MainWindow::setZoom(float val)
+{
+    _params->setZoomWindowValue(val);
 }
 
 void MainWindow::changeCurrentWidget(void *cuWid)
@@ -803,6 +823,8 @@ void MainWindow::changeCurrentWidget(void *cuWid)
         zoomWidget()->setZoom(_params->getZoomWindowValue());
         zoomWidget()->setOption(cGLData::OpShow_Mess,false);
         connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
+
+        connect((GLWidget*)zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
     }
 }
 

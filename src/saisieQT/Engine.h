@@ -11,6 +11,7 @@
 #include "general/bitm.h"
 
 #include "HistoryManager.h"
+#include "Settings.h"
 
 class ViewportParameters
 {
@@ -95,6 +96,9 @@ public:
     cEngine();
     ~cEngine();
 
+    //! Set appli params
+    void    setParams(cParameters *params){ _params = params; }
+
     //! Set input filenames
     void    setFilenamesAndDir(QStringList const &strl){ _Loader->setFilenamesAndDir(strl); }
 
@@ -104,7 +108,7 @@ public:
     void    setFilenameOut(QString filename){_Loader->setFilenameOut(filename);}
 
     //! Set postfix
-    void    setPostFix(QString filename){_Loader->setPostFix(filename);}
+    void    setPostFix(){_Loader->setPostFix(_params->getPostFix());}
 
     //! Load point cloud .ply files
     void    loadClouds(QStringList, int *incre = NULL);
@@ -143,10 +147,6 @@ public:
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
-    void     setGamma(float aGamma) {_Gamma = aGamma;}
-
-    float    getGamma() { return _Gamma;}
-
 private:
 
     cLoader*            _Loader;
@@ -154,7 +154,7 @@ private:
 
     QVector <cGLData*>  _vGLData;
 
-    float               _Gamma;
+    cParameters*        _params;
 };
 
 

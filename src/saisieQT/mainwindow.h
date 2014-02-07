@@ -75,6 +75,7 @@ public slots:
 protected slots:
 
     void setImagePosition(QPointF pt);
+    void setZoom(float);
     void changeCurrentWidget(void* cuWid);
 
     //View Menu

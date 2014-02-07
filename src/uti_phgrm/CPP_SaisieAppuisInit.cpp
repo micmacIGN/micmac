@@ -58,9 +58,9 @@ void SaisieAppuisInit(int argc, char ** argv,
     ElInitArgMain
     (
           argc,argv,
-          LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)")
+          LArgMain()  << EAMC(aFullName,"Full name (Dir+Pattern)")
                       << EAMC(anOri,"Orientation ; NONE if not used")
-                      << EAMC(aNamePt,"Name point")
+                      << EAMC(aNamePt,"Point name")
                       << EAMC(anOut,"Output"),
           LArgMain()  << EAM(aSzW,"SzW",true,"Sz of window")
                       << EAM(aNbFen,"NbF",true,"Nb of sub window (Def depends of number of images with max of 2x2)")
