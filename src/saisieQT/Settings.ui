@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>settingsDialog</class>
  <widget class="QDialog" name="settingsDialog">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -34,8 +37,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>255</width>
-        <height>80</height>
+        <width>346</width>
+        <height>271</height>
        </rect>
       </property>
       <property name="layoutDirection">
@@ -150,8 +153,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>191</width>
-        <height>140</height>
+        <width>346</width>
+        <height>271</height>
        </rect>
       </property>
       <attribute name="label">
