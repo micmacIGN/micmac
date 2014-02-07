@@ -227,6 +227,14 @@ int Tapas_main(int argc,char ** argv)
 	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
 
+
+    if (AeroIn!= NoInit)
+       StdCorrecNameOrient(AeroIn,aDir);
+
+    if (CalibIn!= NoInit)
+       StdCorrecNameOrient(CalibIn,aDir);
+
+
     cTplValGesInit<std::string> aTplN;
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::StdAlloc(0,0,aDir,aTplN);
 

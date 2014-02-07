@@ -177,6 +177,10 @@ template <class eType> std::list<std::string> ListOfVal(eType aValMax,const std:
     }
     return aRes;
 }
+void StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir);
+void   CorrecNameMasq(const std::string & aDir,const std::string & aPat,std::string & aMasq);
+
+
 
 #endif   // _ELISE_XML_GEN_MMBY_P_
 

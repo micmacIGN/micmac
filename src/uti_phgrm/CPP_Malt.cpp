@@ -310,6 +310,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   SplitDirAndFile(mDir,mIms,mFullName);
 
 
+
+
   if (mUseImSec)
   {
      ELISE_ASSERT((mType==eGeomImage),"Illegal combinaison with UseImSec");
@@ -328,6 +330,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 
   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+  mICNM->CorrecNameOrient(mOri); 
   mSetIm = mICNM->Get(mIms);
   mNbIm = mSetIm->size();
   ELISE_ASSERT((mNbIm>=2)|mUseImSec,"Not Enough image in Pattern");
