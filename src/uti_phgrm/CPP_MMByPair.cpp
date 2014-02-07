@@ -324,6 +324,8 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    }
 
    mOri = argv[1];
+   mICNM->CorrecNameOrient(mOri);
+
    mKeyOri =  "NKS-Assoc-Im2Orient@-" + mOri;
 
    for (int aKV=0 ; aKV<int(mSetIm->size()) ; aKV++)
@@ -596,6 +598,9 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                     << EAM(aMinSz,"MinSz","Min sz to select cliped def = 500")
    );
 
+   StdCorrecNameOrient(mOri,DirOfFile(mFullName));
+ 
+
    if (!EAMIsInit(&aOriOut)) 
       aOriOut = mOri;
 
@@ -642,6 +647,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                 std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
            
                 std::string aNewIm = aPrefClip + anI.mNameIm;
+                aNewIm = StdPrefix(aNewIm) + ".tif";
                 cOrientationConique  aCO = aCS->StdExportCalibGlob();
 
                 std::string aNameOut =  mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" + aOriOut,aNewIm,true);
@@ -713,7 +719,8 @@ int ClipIm_main(int argc,char ** argv)
     );
 
 
-    Tiff_Im tiff = Tiff_Im::BasicConvStd(aNameIn.c_str());
+    // Tiff_Im tiff = Tiff_Im::BasicConvStd(aNameIn.c_str());
+    Tiff_Im tiff = Tiff_Im::UnivConvStd(aNameIn.c_str());
 
 
     if (aNameOut == "")
@@ -843,6 +850,10 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip")
                     << EAM(mDoOMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
   );
+
+  StdCorrecNameOrient(mOri,DirOfFile(mFullName));
+
+
   mByEpi = mByMM1P;
 
   mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);

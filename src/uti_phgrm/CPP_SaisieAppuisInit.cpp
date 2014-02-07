@@ -72,6 +72,8 @@ void SaisieAppuisInit(int argc, char ** argv,
     SplitDirAndFile(aDir,aName,aFullName);
 
     cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    if (anOri!="NONE")
+       aCINM->CorrecNameOrient(anOri);
     const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
 
     //std::cout << "Nb Image =" << aSet->size() << "\n";

@@ -351,9 +351,12 @@ class cInterfChantierNameManipulateur
 
 
           static cInterfChantierNameManipulateur * Glob();
+
+          void CorrecNameOrient(std::string & aNameOri) ;
+
           
      private :
-          bool  TestStdOrient (const std::string & Manquant, const std::string & Prf, std::string & anOri);
+          bool  TestStdOrient (const std::string & Manquant, const std::string & Prf, std::string & anOri,bool AddNKS);
 
           
           double BiggestDim(const cContenuAPrioriImage &,const std::string & aNameIm);

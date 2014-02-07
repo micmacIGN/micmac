@@ -77,8 +77,17 @@ int RepLocBascule_main(int argc,char ** argv)
 		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
+ 
+    if (EAMIsInit(&PostPlan))
+    {
+        CorrecNameMasq(aDir,aPat,PostPlan);
+    }
+
+
+    StdCorrecNameOrient(AeroIn,aDir); 
+
     
-	MMD_InitArgcArgv(argc,argv);
+    MMD_InitArgcArgv(argc,argv);
     std::string aCom =   MM3dBinFile( "Apero" )
                        + MMDir() + std::string("include/XML_MicMac/Apero-RLoc-Bascule.xml ")
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
