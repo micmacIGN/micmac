@@ -71,11 +71,13 @@ public slots:
 
     void redraw(bool nbWidgetsChanged=false);
 
+    void setGamma(float);
+
 protected slots:
 
     void setImagePosition(QPointF pt);
     void setZoom(float);
-    void setGamma(float);
+
     void changeCurrentWidget(void* cuWid);
 
     //View Menu
