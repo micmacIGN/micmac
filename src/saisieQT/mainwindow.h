@@ -17,6 +17,7 @@
 #include "Engine.h"
 #include "GLWidgetSet.h"
 #include "Settings.h"
+#include "qdesktopwidget.h"
 
 namespace Ui {
 class MainWindow;

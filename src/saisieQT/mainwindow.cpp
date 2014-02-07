@@ -63,8 +63,13 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     if (_params->getFullScreen())
     {
         showFullScreen();
-        _params->setSzFen(size());
+
+        QRect screen = QApplication::desktop()->screenGeometry ( -1 );
+
+        _params->setSzFen(screen.size());
+        _params->setPosition(QPoint(0,0));
         _params->write();
+
         _ui->actionFullScreen->setChecked(true);
     }
     else if (_mode > MASK3D)
@@ -544,7 +549,9 @@ void MainWindow::on_actionSettings_triggered()
     cSettingsDlg uiSettings(this, _params);
     connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
 
+    uiSettings.setFixedSize(uiSettings.size());
     uiSettings.exec();
+
     /*#if defined(Q_OS_SYMBIAN)
         uiSettings.showMaximized();
     #else
@@ -724,7 +731,7 @@ void MainWindow::redraw(bool nbWidgetsChanged)
     if (size() != _params->getSzFen())
     {
         if (_mode > MASK3D)
-                resize(_params->getSzFen().width() + _ui->zoomLayout->width(), _params->getSzFen().height());
+            resize(_params->getSzFen().width() + _ui->zoomLayout->width(), _params->getSzFen().height());
         else
             resize(_params->getSzFen());
     }
