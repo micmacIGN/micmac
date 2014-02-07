@@ -20,8 +20,6 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 
     _time.start();
 
-    setFocusPolicy(Qt::StrongFocus);
-
     setAcceptDrops(true);           //drag & drop handling
 
     setMouseTracking(true);
@@ -315,8 +313,6 @@ void GLWidget::onWheelEvent(float wheelDelta_deg)
 
     setZoom(_vp_Params.m_zoom*zoomFactor);
 }
-
-// px, py : image coordinates in [0, width] [0, height]
 
 void GLWidget::centerViewportOnImagePosition(QPointF pt)
 {
@@ -658,23 +654,23 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
     if ((event->modifiers() & Qt::ShiftModifier))
     {
-        menu.addAction(_contextMenu._rename);
-        menu.addAction(_contextMenu._showNames);
+        menu.addAction(_contextMenu._rename     );
+        menu.addAction(_contextMenu._showNames  );
         menu.addAction(_contextMenu._showRefuted);
     }
     else if ((event->modifiers() & Qt::ControlModifier))
     {
-        menu.addAction(_contextMenu._AllW);
-        menu.addAction(_contextMenu._ThisW);
-        menu.addAction(_contextMenu._ThisP);
+        menu.addAction(_contextMenu._AllW   );
+        menu.addAction(_contextMenu._ThisW  );
+        menu.addAction(_contextMenu._ThisP  );
     }
     else
     {
-        menu.addAction(_contextMenu._validate);
-        menu.addAction(_contextMenu._dubious);
-        menu.addAction(_contextMenu._refuted);
-        menu.addAction(_contextMenu._noSaisie);
-        menu.addAction(_contextMenu._highLight);
+        menu.addAction(_contextMenu._validate   );
+        menu.addAction(_contextMenu._dubious    );
+        menu.addAction(_contextMenu._refuted    );
+        menu.addAction(_contextMenu._noSaisie   );
+        menu.addAction(_contextMenu._highLight  );
     }
 
     _contextMenu.setPos(m_lastPosImage);
@@ -683,6 +679,9 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 }
 
 void GLWidget::enterEvent(QEvent *event)
-{    
+{
+    setFocus(Qt::ActiveWindowFocusReason);
+    setFocusPolicy(Qt::StrongFocus);
+
     emit overWidget(this);
 }
