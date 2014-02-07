@@ -549,7 +549,7 @@ void MainWindow::on_actionSettings_triggered()
     cSettingsDlg uiSettings(this, _params);
     connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
 
-    uiSettings.setFixedSize(uiSettings.size());
+    //uiSettings.setFixedSize(uiSettings.size());
     uiSettings.exec();
 
     /*#if defined(Q_OS_SYMBIAN)

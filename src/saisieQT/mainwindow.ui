@@ -380,6 +380,18 @@ QProgressBar::chunk
     /*margin: 0.5px;*/
 }
 
+QToolBox::tab {
+     background:  #c67009;
+     border-radius: 2px;
+     color: darkgray;
+ }
+
+ QToolBox::tab:selected { /* italicize selected tabs */
+	 background: #ffaa00;
+     font: italic;
+     color: white;
+ }
+
 QTabBar::tab {
     color: #b1b1b1;
     border: 1px solid #444;
