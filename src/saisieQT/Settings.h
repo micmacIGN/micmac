@@ -13,19 +13,37 @@ public:
     cParameters();
     ~cParameters(){}
 
-    void setNbFen(QPoint const &aNbFen) { _nbFen = aNbFen;  }
-    void setSzFen(QSize aSzFen)         { _szFen = aSzFen;  }
+    //sets
     void setFullScreen(bool fullscreen) { _openFullScreen = fullscreen; }
-    void setZoomWindowValue(float aZoom){ _zoomWindow = aZoom; }
-    void setDefPtName(QString name)     { _ptName = name;   }
-    void setPosition(QPoint pos)        { _position = pos;  }
+    void setPosition(QPoint pos)        { _position = pos;       }
+    void setNbFen(QPoint const &aNbFen) { _nbFen = aNbFen;       }
+    void setSzFen(QSize aSzFen)         { _szFen = aSzFen;       }
 
-    QPoint  getNbFen()                  { return _nbFen;    }
-    QSize   getSzFen()                  { return _szFen;    }
-    bool    getFullScreen()             { return _openFullScreen;  }
-    float   getZoomWindowValue()        { return _zoomWindow; }
-    QString getDefPtName()              { return _ptName;   }
-    QPoint  getPosition()               { return _position; }
+    void setZoomWindowValue(int aZoom)  { _zoomWindow = aZoom;   }
+    void setDefPtName(QString name)     { _ptName = name;        }
+
+    void setLineThickness(float val)    { _linethickness = val;  }
+    void setPointDiameter(float val)    { _pointDiameter = val;  }
+    void setPointSize(float val)        { _pointSize = val;      }
+    void setGamma(float val)            { _gamma = val;          }
+
+    void setSelectionRadius(int val)    { _radius = val;         }
+
+    //get
+    bool    getFullScreen()             { return _openFullScreen;}
+    QPoint  getPosition()               { return _position;      }
+    QPoint  getNbFen()                  { return _nbFen;         }
+    QSize   getSzFen()                  { return _szFen;         }
+
+    float   getZoomWindowValue()        { return _zoomWindow;    }
+    QString getDefPtName()              { return _ptName;        }
+
+    float getLineThickness()            { return _linethickness; }
+    float getPointDiameter()            { return _pointDiameter; }
+    float getPointSize()                { return _pointSize;     }
+    float getGamma()                    { return _gamma;         }
+
+    int   getSelectionRadius()          { return _radius;        }
 
     //! Copy operator
     cParameters& operator =(const cParameters& params);
@@ -40,10 +58,16 @@ private:
     QPoint      _nbFen;
     QSize       _szFen;
 
+    //drawing settings
+    float       _linethickness;
+    float       _pointDiameter;
+    float       _pointSize;
+    float       _gamma;
 
     //other parameters
-    float       _zoomWindow;
+    int         _zoomWindow;
     QString     _ptName;
+    int         _radius;
 };
 
 //! Dialog to setup display settings
@@ -64,8 +88,6 @@ signals:
 
 protected slots:
 
-    void on_FullscreenCheckBox_clicked();
-
     void on_okButton_clicked();
     void on_applyButton_clicked();
     void on_resetButton_clicked();
@@ -77,6 +99,13 @@ protected slots:
     void on_WindowWidth_spinBox_valueChanged(int);
     void on_WindowHeight_spinBox_valueChanged(int);
 
+    void on_LineThickness_doubleSpinBox_valueChanged(double);
+    void on_PointDiameter_doubleSpinBox_valueChanged(double);
+    void on_PointSize_doubleSpinBox_valueChanged(double);
+    void on_GammaDoubleSpinBox_valueChanged(double);
+
+    void on_zoomWin_spinBox_valueChanged(int);
+    void on_RadiusSpinBox_valueChanged(int);
 
 protected:
 
