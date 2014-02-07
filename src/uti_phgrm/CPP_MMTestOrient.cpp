@@ -102,6 +102,8 @@ int MMTestOrient_main(int argc,char ** argv)
                     << EAM(ShowCom,"ShowCom",true,"Show MicMac command (tuning purpose)")
     );
 
+    StdCorrecNameOrient(AeroIn,aDir);
+
 
     if (!EAMIsInit(&mModePB))
       mModePB = EAMIsInit(&mModeOri);

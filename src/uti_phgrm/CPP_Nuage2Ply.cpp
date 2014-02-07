@@ -133,8 +133,9 @@ int Nuage2Ply_main(int argc,char ** argv)
     }
 
     cElWarning::ShowWarns(DirOfFile(aNameNuage)  + "WarnNuage2Ply.txt");
+    BanniereMM3D();
 	
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 
