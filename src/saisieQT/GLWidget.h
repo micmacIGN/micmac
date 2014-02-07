@@ -81,7 +81,7 @@ public:
     //! Reset view
     void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true, bool resetPoly = true);
 
-    ViewportParameters* getParams()         { return &_params; }
+    ViewportParameters* getParams()         { return &_vp_Params; }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
 
@@ -170,7 +170,7 @@ protected:
 private:
 
     //! Window parameters (zoom, etc.)
-    ViewportParameters _params;
+    ViewportParameters _vp_Params;
 
     void        computeFPS(MessageToDisplay &dynMess);
 

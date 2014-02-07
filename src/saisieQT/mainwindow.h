@@ -73,7 +73,7 @@ public slots:
 
 protected slots:
 
-    void setPositionImage(QPointF pt);
+    void setImagePosition(QPointF pt);
     void changeCurrentWidget(void* cuWid);
 
     //View Menu
