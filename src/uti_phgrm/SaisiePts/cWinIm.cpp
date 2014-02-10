@@ -483,7 +483,7 @@ void  cWinIm::SetPt(Clik aClk)
             return;
         aP = mScr->to_win(aP);
         if (euclid(aP,mNewPt)>1e-3)
-            mAppli.Interface()->drawZoom(mScr->to_user(aP));
+            mAppli.Interface()->DrawZoom(mScr->to_user(aP));
         mNewPt = aP;
     }
 
@@ -590,7 +590,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
             cSP_PointeImage* aPIm = GetNearest(aClk._pt,200);
             if (aPIm)
             {
-                cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePt();
+                cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePoint();
                 if (aCNP && (aCNP->mTCP != eCaseCancel) && (aCNP->mFree))
                 {
                     std::string aNewName = mAppli.Interface()->IdNewPts(aCNP).second;

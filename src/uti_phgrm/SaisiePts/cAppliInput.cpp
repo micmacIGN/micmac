@@ -98,6 +98,48 @@ void cX11_Interface::SetInvisRef(bool aVal)
     }
 }
 
+void cQT_Interface::SetInvisRef(bool aVal)
+{
+    mRefInvis = aVal;
+
+    //TODO:
+    /* for (uint aKW=0 ; aKW < mWins.size(); aKW++)
+    {
+        mWins[aKW]->BCaseVR()->SetVal(aVal);
+        mWins[aKW]->Redraw();
+        mWins[aKW]->ShowVect();
+    }*/
+}
+
+cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
+{
+
+
+   /* Video_Win aW = mMenuNamePoint->W();
+    aW.raise();
+
+    for (int aK=0 ; aK<int(mVNameCase.size()) ; aK++)
+    {
+        int aGr = (aK%2) ? 255 : 200 ;
+        Pt2di aPCase(0,aK);
+        mMenuNamePoint->ColorieCase(aPCase,aW.prgb()(aGr,aGr,aGr),1);
+        cCaseNamePoint & aCNP = mVNameCase[aK];
+        mMenuNamePoint->StringCase(aPCase,aCNP.mFree ?  aCNP.mName : "***" ,true);
+    }
+
+    Clik aClk = aW.clik_in();
+    //aW.lower();
+
+    Pt2di aKse = mMenuNamePoint->Pt2Case(Pt2di(aClk._pt));
+    cCaseNamePoint * aRes =  &(mVNameCase[aKse.y]);
+
+    if (! aRes->mFree) return 0;
+
+    return aRes;*/
+
+    return 0;
+}
+
 void cX11_Interface::RedrawAllWindows()
 {
     for (uint aK=0 ; aK< mWins.size() ; aK++)
@@ -157,7 +199,7 @@ void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
     }
 }
 
-void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
+void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
 {
     for (uint aKP=0 ; aKP< mPG.size() ; aKP++)
     {
@@ -176,6 +218,8 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
         }
     }
 
+    //TODO:
+    /*
     for (int aKC=0 ; aKC< mInterface->GetNumCasePoint(); aKC++)
     {
         cCaseNamePoint & aCN = mInterface->GetCaseNamePoint(aKC);
@@ -191,7 +235,7 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
                 aCN.mFree = false;
             }
         }
-    }
+    }*/
 
     mInterface->RedrawAllWindows();
 }

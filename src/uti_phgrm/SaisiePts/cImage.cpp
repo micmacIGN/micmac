@@ -267,7 +267,7 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
     std::pair<int,std::string> anId = mAppli.Interface()->IdNewPts(aCNP);
     if (anId.second=="NONE")
        return;
-    mAppli.Interface()->ChangeFreeNameP(anId.second,false);
+    mAppli.Interface()->ChangeFreeNamePoint(anId.second,false);
 
     aPG.Type() = aType;
     aPG.Name() = anId.second;

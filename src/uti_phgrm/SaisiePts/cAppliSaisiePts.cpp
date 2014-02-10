@@ -58,15 +58,35 @@ void cVirtualInterface::InitNbWindows()
 
 //***********************************************************************************************************************
 
-cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
-    mWZ           (0),
-    mWEnter       (0),
-    mRefInvis     (appli.Param().RefInvis().Val())
+/*cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli)
 {
     mParam = &appli.Param();
     mAppli = &appli;
 
-    InitWindows();
+    mRefInvis = appli.Param().RefInvis().Val();
+
+    Init();
+}
+
+void cQT_Interface::Init()
+{
+    InitNbWindows();
+
+
+}*/
+
+//***********************************************************************************************************************
+
+cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
+    mWZ           (0),
+    mWEnter       (0)
+{
+    mParam = &appli.Param();
+    mAppli = &appli;
+
+    mRefInvis = appli.Param().RefInvis().Val();
+
+    Init();
 }
 
 cX11_Interface::~cX11_Interface()
@@ -79,7 +99,7 @@ cX11_Interface::~cX11_Interface()
     delete mWEnter;
 }
 
-void cX11_Interface::InitWindows()
+void cX11_Interface::Init()
 { 
     InitNbWindows();
 
@@ -171,7 +191,7 @@ void cX11_Interface::InitWindows()
 
     for (uint aK=0 ; aK< mAppli->PG().size() ; aK++)
     {
-        ChangeFreeNameP(mAppli->PG()[aK]->PG()->Name(),false);
+        ChangeFreeNamePoint(mAppli->PG()[aK]->PG()->Name(),false);
     }
 
     mMenuNamePoint = new cFenMenu(*mWZ,Pt2di(120,20),Pt2di(1,mVNameCase.size()));
@@ -190,7 +210,7 @@ void cX11_Interface::InitWindows()
 
 
 
-void cX11_Interface::ChangeFreeNameP(const std::string & aName, bool SetFree)
+void cX11_Interface::ChangeFreeNamePoint(const std::string & aName, bool SetFree)
 {
     std::map<std::string,cCaseNamePoint *>::iterator it = mMapNC.find(aName);
     if (it== mMapNC.end())
@@ -201,7 +221,7 @@ void cX11_Interface::ChangeFreeNameP(const std::string & aName, bool SetFree)
     }
 }
 
-cCaseNamePoint *  cX11_Interface::GetIndexNamePt()
+cCaseNamePoint *  cX11_Interface::GetIndexNamePoint()
 {
     Video_Win aW = mMenuNamePoint->W();
     aW.raise();
@@ -231,7 +251,7 @@ void cX11_Interface::DeletePoint(cSP_PointGlob * aSG)
     if (! mZFON->Get("Kill " + aSG->PG()->Name() + "?")) return;  //PARTIE X11
     aSG->SetKilled();                                             //PARTIE A GARDER VIRTUELLE
 
-    ChangeFreeNameP(aSG->PG()->Name(),true);
+    ChangeFreeNamePoint(aSG->PG()->Name(),true);
 
     RedrawAllWindows();
 }
@@ -252,7 +272,12 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     InitImages();
     InitInPuts();
 
+/*#ifdef SAISIE_QT
+    mInterface = new  cQT_Interface(*this);
+#else*/
     mInterface = new cX11_Interface(*this);
+//#endif
+
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }

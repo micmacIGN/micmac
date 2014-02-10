@@ -116,25 +116,21 @@ void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
 
     if (aPGlob==PtsEchec) return;
 
-    mAppli.Interface()->drawZoom(aPGlob);
+    mAppli.Interface()->DrawZoom(aPGlob);
 
-    cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePt();
+   //TODO:
+    cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePoint();
 
-    bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
-    //TODO: verifier si c'est utile : drawZoom est appelé 2 lignes au dessus (copier-coller ?)
-    //mAppli.Interface()->drawZoom(aPGlob);
+    if (aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel))
 
-    if (Ok)
-    {
         mCurIm->CreatePGFromPointeMono(aPGlob,aType,aSz,aCNP);
-    }
+
     else
-    {
+
         mAppli.Interface()->MenuNamePoint()->W().lower();
-    }
 }
 
-void cX11_Interface::drawZoom(const Pt2dr & aPGlob)
+void cX11_Interface::DrawZoom(const Pt2dr & aPGlob)
 {
      double aZoom = 10.0;
 
