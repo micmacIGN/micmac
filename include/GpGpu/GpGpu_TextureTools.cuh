@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GPGPU_TEXTURETOOLS_CUH
+#define GPGPU_TEXTURETOOLS_CUH
 
 // w0, w1, w2, and w3 are the four cubic B-spline basis functions
 __host__ __device__
@@ -63,6 +64,12 @@ inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaRead
 	return tex2DLayered(t, pt.x + 0.5f, pt.y + 0.5f,layer) ;
 }
 
+template<class T>
+inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, uint2 pt, short layer)
+{
+        return tex2DLayeredPt(t, make_float2(pt),layer) ;
+}
+
 /*
 template<class T>
 inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, uint2 pt, uint2 dim, short layer)
@@ -97,3 +104,5 @@ __device__ R tex2DFastBicubic(const texture<T, cudaTextureType2DLayered, cudaRea
 		g1x * tex2DLayered(texref, (px + h1x+ 0.5f)/dim.x, (py + h1y+ 0.5f)/dim.y,layer));
 	return r;
 };
+
+#endif //GPGPU_TEXTURETOOLS_CUH

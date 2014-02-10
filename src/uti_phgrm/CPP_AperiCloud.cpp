@@ -92,6 +92,9 @@ int AperiCloud_main(int argc,char ** argv)
 	#endif
 	SplitDirAndFile(aDir,aPat,aFullDir);
 
+         StdCorrecNameOrient(AeroIn,aDir);
+
+
     //std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR  "Apero ")
     //                   + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
     std::string aCom =   MM3dBinFile_quotes("Apero")

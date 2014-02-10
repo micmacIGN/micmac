@@ -3,11 +3,9 @@
 int saisieMasqQT_main(QApplication &app)
 {
     app.setApplicationName("SaisieMasqQT");
+    app.setOrganizationName("IGN");
 
-    Pt2di NbFen(1,1);
-    Pt2di SzWin(800,600);
-
-    MainWindow w(SzWin, NbFen);
+    MainWindow w;
 
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
@@ -39,56 +37,49 @@ int saisieMasqQT_main(QApplication &app)
 
                 return helpMessage(app, help);
             }
-            if (str == "mode2D")
+
+            if (str.contains("Post="))
             {
-                w.setMode2D(true);
+                w.setPostFix(str.mid(str.indexOf("Post=")+5, str.size()));
 
                 removeArg = true;
             }
-            else
+
+            if (str.contains("SzW="))
             {
-                if (str.contains("Post="))
-                {
-                    w.setPostFix(str.mid(str.indexOf("Post=")+5, str.size()));
+                QString arg = str.mid(str.indexOf("SzW=")+4, str.size());
+                int szW = arg.toInt();
 
-                    removeArg = true;
-                }
+                int szH = szW * w.height() / w.width();
 
-                if (str.contains("SzW="))
-                {
-                    QString arg = str.mid(str.indexOf("SzW=")+4, str.size());
-                    int szW = arg.toInt();
+                w.resize( szW, szH );
 
-                    int szH = szW * w.height() / w.width();
-
-                    w.resize( szW, szH );
-
-                    removeArg = true;
-                }
-
-                if (str.contains("Name="))
-                {
-                    QString arg = str.mid(str.indexOf("Name=")+5, str.size());
-
-                    w.getEngine()->setFilenameOut(arg);
-
-                    removeArg = true;
-                }
-
-                if (str.contains("Gama="))
-                {
-                    QString arg = str.mid(str.indexOf("Gama=")+5, str.size());
-
-                    float aGamma = arg.toFloat();
-
-                    w.setGamma(aGamma);
-
-                    removeArg = true;
-                }
-
-                if (str.contains(app.applicationName()))
-                    removeArg=true;
+                removeArg = true;
             }
+
+            if (str.contains("Name="))
+            {
+                QString arg = str.mid(str.indexOf("Name=")+5, str.size());
+
+                w.getEngine()->setFilenameOut(arg);
+
+                removeArg = true;
+            }
+
+            if (str.contains("Gama="))
+            {
+                QString arg = str.mid(str.indexOf("Gama=")+5, str.size());
+
+                float aGamma = arg.toFloat();
+
+                w.setGamma(aGamma);
+
+                removeArg = true;
+            }
+
+            if (str.contains(app.applicationName()))
+                removeArg=true;
+
 
             if (removeArg)
             {

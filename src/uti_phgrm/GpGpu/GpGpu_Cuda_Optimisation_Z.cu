@@ -351,7 +351,9 @@ void ReadLine_V02(
                 ConeZ.y = min(NAPPEMAX - pitPrZ,ConeZ.y );
 
                 for (short i = ConeZ.x; i <= ConeZ.y; ++i)
-                    fCostMin = min(fCostMin, costInit + prevFCost[i]);
+//a finaliser
+//                    fCostMin = min(fCostMin, costInit + prevFCost[i]);
+                    fCostMin = min(fCostMin, costInit + prevFCost[i] + abs((int)i)*1000);
 
                 const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
                 bool inside = tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < NAPPEMAX && tZ < NAPPEMAX;

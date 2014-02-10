@@ -98,7 +98,6 @@ int CreateEpip_main(int argc,char ** argv)
     if (aName1 > aName2) ElSwap(aName1,aName2);
 
     int aNbChan = Gray ? 1 : - 1;
-    std::string   aKey =  + "NKS-Assoc-Im2Orient@-" + anOri;
 
     cTplValGesInit<std::string>  aTplFCND;
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::StdAlloc
@@ -107,7 +106,10 @@ int CreateEpip_main(int argc,char ** argv)
                                                    aDir,
                                                    aTplFCND
                                                );
+     anICNM->CorrecNameOrient(anOri);
 
+
+    std::string   aKey =  + "NKS-Assoc-Im2Orient@-" + anOri;
 
      std::string aNameOr1 = anICNM->Assoc1To1(aKey,aName1,true);
      std::string aNameOr2 = anICNM->Assoc1To1(aKey,aName2,true);

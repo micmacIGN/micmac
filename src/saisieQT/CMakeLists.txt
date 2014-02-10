@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.1)
 project(saisieQT)
 
 IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
@@ -17,7 +17,8 @@ set(saisie_SRCS saisieQT_main.cpp
 		GLWidgetSet.cpp
 		MatrixManager.cpp
 		HistoryManager.cpp
-		ContextMenu.cpp)
+		ContextMenu.cpp
+		Settings.cpp)
 		
 set( saisie_HEADERS_nomoc
    HistoryManager.h
@@ -29,12 +30,13 @@ set( saisie_HEADERS_nomoc
    #SaisieGlsl.glsl
    Engine.h
    GLWidgetSet.h
-   3DObject.h )
+   3DObject.h)
    
 set( saisie_HEADERS_tomoc
    GLWidget.h
    mainwindow.h
-   ContextMenu.h )
+   ContextMenu.h
+   Settings.h)
 
 if ( NOT ${qt_version} EQUAL 0 )
    if ( ${qt_version} EQUAL 5 )
@@ -53,7 +55,7 @@ if ( NOT ${qt_version} EQUAL 0 )
 
       QT5_ADD_RESOURCES( Saisie_RC_SRCS ${Saisie_RCS} )
 
-      qt5_wrap_ui(saisie_ui mainwindow.ui)
+      qt5_wrap_ui(saisie_ui mainwindow.ui Settings.ui)
 
       add_definitions(-DTWEAK)
       if ( WIN32 )
