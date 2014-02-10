@@ -289,6 +289,12 @@ void GLWidget::overlay()
 
         polygon().draw();
 
+        QPen pen(QColor(hasFocus() ? "#ffa02f" : "#707070"));
+        _painter->setPen(pen);
+
+        _painter->resetTransform();
+        _painter->drawRect(this->rect());
+
         _painter->end();
     }
 }

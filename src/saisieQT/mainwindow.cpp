@@ -18,23 +18,12 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
 
-    QString style = "border: 1px solid #707070;"
-            "border-radius: 0px;"
-            "padding: 0px;"
-            "margin: 0px;"
-            "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
-
-    uint sy = 2;
+    uint sy = 0;
 
     _layout->setContentsMargins(sy,sy,sy,sy);
     _layout->setHorizontalSpacing(sy);
     _layout->setVerticalSpacing(sy);
-
-    style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
-    style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
-
-    _ui->OpenglLayout->setStyleSheet(style);
-    _ui->OpenglLayout->setContentsMargins(0,0,0,0);
+    _ui->OpenglLayout->setLayout(_layout);
 
 #ifdef ELISE_Darwin
     _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
@@ -54,7 +43,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     _signalMapper = new QSignalMapper (this);
     connectActions();
-    _ui->OpenglLayout->setLayout(_layout);
+
 
     createRecentFileMenu();
 
@@ -662,12 +651,6 @@ void MainWindow::setMode()
 
     if (_mode > MASK3D)
     {
-        QString style = "border: 2px solid #707070;"
-                "border-radius: 0px;"
-                "padding: 0px;"
-                "margin: 0px;";
-
-        _ui->zoomLayout->setStyleSheet(style);
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
         _zoomLayout->setContentsMargins(2,2,2,2);

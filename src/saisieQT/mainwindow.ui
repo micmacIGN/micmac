@@ -47,6 +47,11 @@ QWidget:item:selected
     background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
 }
 
+QFrame[frameShape=&quot;1&quot;]
+{
+	border: 1px solid #707070;
+}
+
 QMenuBar::item
 {
     background: transparent;
@@ -524,7 +529,13 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
       <property name="styleSheet">
        <string notr="true"/>
       </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
       <property name="lineWidth">
+       <number>1</number>
+      </property>
+      <property name="midLineWidth">
        <number>0</number>
       </property>
      </widget>
@@ -552,7 +563,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
          </size>
         </property>
         <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
+         <enum>QFrame::Box</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Plain</enum>
