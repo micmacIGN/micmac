@@ -47,10 +47,8 @@ Header-MicMac-eLiSe-25/06/2007*/
     #endif
     #include <QString>
     #define Int int
-//    #ifdef Int
-//        #undef Int
-//    #endif
 
+    #include "../../saisieQT/mainwindow.h"
 #endif
 
 using namespace NS_ParamChantierPhotogram;
@@ -416,7 +414,7 @@ private:
 
     void                Init();
 
-    //QT_MainWindow*     _qtMainWindows;
+    MainWindow*         _qtMainWindows;
 };
 
 class cAppli_SaisiePts

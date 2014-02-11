@@ -80,7 +80,7 @@ if ( NOT ${qt_version} EQUAL 0 )
 				     elise
 				     ${X11_LIBRARIES} )
    elseif ( ${qt_version} EQUAL 4 )
-      QT4_WRAP_UI(saisie_ui mainwindow.ui)
+      QT4_WRAP_UI(saisie_ui mainwindow.ui Settings.ui)
       QT4_WRAP_CPP(saisie_HEADERS_tomoc_MOC ${saisie_HEADERS_tomoc})
       INCLUDE(${QT_USE_FILE})
       include_directories( ${PROJECT_BINARY_DIR} )
