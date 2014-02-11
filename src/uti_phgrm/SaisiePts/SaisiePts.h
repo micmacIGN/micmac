@@ -41,6 +41,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SAISIEPTS_ALL_H_
 #define _ELISE_SAISIEPTS_ALL_H_
 
+#if(ELISE_QT5)
+    #ifdef Int
+        #undef Int
+    #endif
+    #include <QString>
+    #define Int int
+//    #ifdef Int
+//        #undef Int
+//    #endif
+
+#endif
+
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 
@@ -63,6 +75,8 @@ typedef enum
    eModePopUp,
    eModeSaisiePts
 } eModeWinIm;
+
+
 
 class cSP_PointeImage
 {
