@@ -1,6 +1,20 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+void MainWindow::labelShowMode()
+{
+    if(_mode <= 1)
+    {
+        _ui->label_PositionImage_1->hide();
+        _ui->label_PositionImage_2->show();
+    }
+    else
+    {
+        _ui->label_PositionImage_1->show();
+        _ui->label_PositionImage_2->hide();
+    }
+}
+
 MainWindow::MainWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::MainWindow),
@@ -44,6 +58,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     _signalMapper = new QSignalMapper (this);
     connectActions();
 
+    labelShowMode();
 
     createRecentFileMenu();
 
@@ -242,6 +257,13 @@ void MainWindow::on_actionShow_cams_toggled(bool state)
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
     currentWidget()->setOption(cGLData::OpShow_Mess,state);
+    if(state)
+        labelShowMode();
+    else
+    {
+        _ui->label_PositionImage_1->hide();
+        _ui->label_PositionImage_2->hide();
+    }
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
@@ -749,21 +771,17 @@ void MainWindow::redraw(bool nbWidgetsChanged)
 
 void MainWindow::setImagePosition(QPointF pt)
 {
-    QString text(tr("Image position: "));
+    QString text(tr("Image position : "));
 
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
         GLWidget* glW = currentWidget();
-        if (glW->hasDataLoaded() && !glW->getGLData()->is3D())
-        {
-            if (glW->isPtInsideIm(pt))
-                _ui->label->setText(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
-            else
-                _ui->label->setText(text);
-        }
+        if (glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
+            text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
     }
-    else
-        _ui->label->setText(text);
+
+    _ui->label_PositionImage_1->setText(text);
+    _ui->label_PositionImage_2->setText(text);
 }
 
 void MainWindow::setZoom(float val)

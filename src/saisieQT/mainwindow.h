@@ -48,6 +48,7 @@ public:
     void writeSettings();
 
     void applyParams();
+    void labelShowMode();
 public slots:
 
     //! Try to load a list of files
