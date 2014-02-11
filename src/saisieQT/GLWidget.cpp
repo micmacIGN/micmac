@@ -504,7 +504,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 {
                     if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
 
-                        _vp_Params.changeZoom(dPWin.y());
+                        setZoom(_vp_Params.changeZoom(dPWin.y()));
 
                     else if( vpWidth() && vpHeight())                   // TRANSLATION VIEW
                     {
