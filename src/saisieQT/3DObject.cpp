@@ -1091,18 +1091,24 @@ cImageGL::~cImageGL()
     }
 }
 
-void cImageGL::drawQuad()
+void cImageGL::drawQuad(QColor color)
+{       
+    drawQuad(_originX, _originY, _glh, _glw,color);
+}
+
+void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color)
 {
+    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
     glBegin(GL_QUADS);
     {
         glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(_originX, _originY);
+        glVertex2f(originX, originY);
         glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(_originX+_glw, _originY);
+        glVertex2f(originX+glw, originY);
         glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(_originX+_glw, _originY+_glh);
+        glVertex2f(originX+glw, originY+glh);
         glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(_originX, _originY+_glh);
+        glVertex2f(originX, originY+glh);
     }
     glEnd();
 }
@@ -1119,7 +1125,7 @@ void cImageGL::draw()
         _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
     }
 
-    drawQuad();
+    drawQuad(Qt::white);
 
     if(_gamma !=1.0f) _program.release();
 
@@ -1128,9 +1134,8 @@ void cImageGL::draw()
 }
 
 void cImageGL::draw(QColor color)
-{
-    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
-    drawQuad();
+{    
+    drawQuad(color);
 }
 
 void cImageGL::setPosition(GLfloat originX, GLfloat originY)

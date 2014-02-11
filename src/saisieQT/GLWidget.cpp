@@ -130,6 +130,12 @@ void GLWidget::paintGL()
             m_GLData->draw();        
         }
 
+        //QPointF r = _matrixManager.WindowToImage(QPointF(0,_matrixManager.vpHeight()-10),_vp_Params.m_zoom);
+
+        //cImageGL::drawQuad(r.x(),r.y(),10,10);
+
+        //cImageGL::drawQuad(10,5,10,10);
+
         glPopMatrix();
 
         if (_messageManager.drawMessages() && !m_bDisplayMode2D)
