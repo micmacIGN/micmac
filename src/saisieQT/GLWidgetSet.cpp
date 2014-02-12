@@ -16,6 +16,7 @@ void GLWidgetSet::init(uint aNb, bool modePt)
     _widgets.resize(aNb);
 
     _widgets[0] = new GLWidget(0, NULL);
+    _pcurrentWidget = _widgets[0];
 
     for (uint aK=1 ; aK < aNb; ++aK)
         _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
