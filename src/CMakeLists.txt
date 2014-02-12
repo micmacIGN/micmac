@@ -183,3 +183,7 @@ if (WITH_SAISIEQT)
     ADD_SUBDIRECTORY(saisieQT)
 endif()
 
+if (WITH_MM3dSat)
+    ADD_SUBDIRECTORY(mm3dSat)
+endif()
+
