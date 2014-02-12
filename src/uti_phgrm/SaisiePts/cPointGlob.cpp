@@ -252,7 +252,6 @@ int cAppli_SaisiePts::GetCptMax() const
 
 
 
-//std::pair<int,std::string> cAppli_SaisiePts::IdNewPts(cCaseNamePoint * aCNP)
 std::pair<int,std::string> cX11_Interface::IdNewPts(cCaseNamePoint * aCNP)
 {
    int aCptMax = mAppli->GetCptMax() + 1;
@@ -260,7 +259,7 @@ std::pair<int,std::string> cX11_Interface::IdNewPts(cCaseNamePoint * aCNP)
    std::string aName = aCNP->mName;
    if (aCNP->mTCP == eCaseAutoNum)
    {
-      std::string nameAuto = mAppli->param().NameAuto().Val();
+      std::string nameAuto = mParam->NameAuto().Val();
       aName = nameAuto + ToString(aCptMax);
       aCNP->mName = nameAuto + ToString(aCptMax+1);
    }
