@@ -1,22 +1,25 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-void MainWindow::labelShowMode()
-{
-    if(_mode == 0)
-    {
-        _ui->label_PositionImage_1->hide();
-        _ui->label_PositionImage_2->show();
-    }
-    else if (_mode == 1)
+void MainWindow::labelShowMode(bool state)
+{   
+    if ((!state) || (_mode == 1))
     {
         _ui->label_PositionImage_1->hide();
         _ui->label_PositionImage_2->hide();
     }
     else
     {
-        _ui->label_PositionImage_1->show();
-        _ui->label_PositionImage_2->hide();
+        if(_mode == 0)
+        {
+            _ui->label_PositionImage_1->hide();
+            _ui->label_PositionImage_2->show();
+        }
+        else if(_mode > 1)
+        {
+            _ui->label_PositionImage_1->show();
+            _ui->label_PositionImage_2->hide();
+        }
     }
 }
 
@@ -63,7 +66,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     _signalMapper = new QSignalMapper (this);
     connectActions();
 
-    labelShowMode();
+    labelShowMode(true);
 
     createRecentFileMenu();
 
@@ -263,13 +266,15 @@ void MainWindow::on_actionShow_cams_toggled(bool state)
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
     currentWidget()->setOption(cGLData::OpShow_Mess,state);
-    if(state)
+    /*if(state)
         labelShowMode();
     else
     {
         _ui->label_PositionImage_1->hide();
         _ui->label_PositionImage_2->hide();
-    }
+    }*/
+
+    labelShowMode(state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
@@ -770,7 +775,7 @@ void MainWindow::redraw(bool nbWidgetsChanged)
         }
         else
         {
-
+            //TODO
         }
     }
 }
@@ -802,18 +807,20 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     setCurrentWidget(glW);
 
     if (_mode != MASK3D)
+    {
         connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
-    connect((GLWidget*)cuWid, SIGNAL(gammaChanged(float)), this, SLOT(setGamma(float)));
+        connect((GLWidget*)cuWid, SIGNAL(gammaChanged(float)), this, SLOT(setGamma(float)));
 
-    if (zoomWidget())
-    {
-        zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
-        zoomWidget()->setZoom(_params->getZoomWindowValue());
-        zoomWidget()->setOption(cGLData::OpShow_Mess,false);
-        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
+        if (zoomWidget())
+        {
+            zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
+            zoomWidget()->setZoom(_params->getZoomWindowValue());
+            zoomWidget()->setOption(cGLData::OpShow_Mess,false);
+            connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
 
-        connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+            connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+        }
     }
 }
 
