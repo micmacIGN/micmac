@@ -219,7 +219,7 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
     }
 
     //TODO:
-    /*
+
     for (int aKC=0 ; aKC< mInterface->GetNumCasePoint(); aKC++)
     {
         cCaseNamePoint & aCN = mInterface->GetCaseNamePoint(aKC);
@@ -235,7 +235,7 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
                 aCN.mFree = false;
             }
         }
-    }*/
+    }
 
     mInterface->RedrawAllWindows();
 }

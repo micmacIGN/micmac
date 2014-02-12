@@ -321,6 +321,16 @@ class cVirtualInterface
 
     virtual void        DeletePoint(cSP_PointGlob *)=0;
 
+
+    virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
+
+    int              GetNumCasePoint()          { return mVNameCase.size(); }
+    cCaseNamePoint & GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
+
+     virtual  cFenMenu *      MenuNamePoint()=0;
+
+     virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
+
 protected:
 
     void                      InitNbWindows();
@@ -332,6 +342,8 @@ protected:
     int                       mNbW;         //total window nb (col x raw)
 
     bool                      mRefInvis;
+
+    std::vector <cCaseNamePoint>        mVNameCase;
 
 private:
 
@@ -358,8 +370,7 @@ public :
     cFenMenu *      MenuNamePoint()         { return mMenuNamePoint; }
 
     cCaseNamePoint * GetIndexNamePoint();
-    int              GetNumCasePoint()          { return mVNameCase.size(); }
-    cCaseNamePoint & GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
+
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
@@ -386,7 +397,7 @@ private:
     cFenMenu *            mMenuNamePoint;
     Video_Win *           mWEnter;
 
-    std::vector <cCaseNamePoint>        mVNameCase;
+
 };
 
 class cQT_Interface  : public cVirtualInterface
@@ -410,7 +421,11 @@ public :
 
     cCaseNamePoint *    GetIndexNamePoint();
 
+
+
+
 private:
+
 
     void                Init();
 
@@ -470,8 +485,8 @@ class cAppli_SaisiePts
 
     void ChangeName(std::string  anOldName,std::string  aNewName); //UTILISE L'INTERFACE appelle ReaffAllW();
 
-    //cVirtualInterface* Interface() { return mInterface; }
-    cX11_Interface* Interface() { return mInterface; }
+    cVirtualInterface* Interface() { return mInterface; }
+    //cX11_Interface* Interface() { return mInterface; }
 
     int             nbImages()  { return mNbIm; }
 
@@ -499,8 +514,8 @@ class cAppli_SaisiePts
          void IniPointeIm();
 
          cParamSaisiePts &                     mParam;
-         //cVirtualInterface*                    mInterface;
-         cX11_Interface*                       mInterface;
+         cVirtualInterface*                    mInterface;
+         //cX11_Interface*                       mInterface;
 
          cInterfChantierNameManipulateur *     mICNM;
          std::string                           mDC;
