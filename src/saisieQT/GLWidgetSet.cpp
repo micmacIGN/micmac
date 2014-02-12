@@ -1,35 +1,59 @@
 #include "GLWidgetSet.h"
 
-GLWidgetSet::GLWidgetSet(uint aNb, QColor color1, QColor color2, bool modePt) :
-    _Widgets(aNb),
-    _currentWidget(0)
+GLWidgetSet::GLWidgetSet() :
+    _widgets(0),
+    _zoomWidget(NULL)
+{}
+
+const QColor colorBG0("#323232");
+const QColor colorBG1("#808080");
+
+void GLWidgetSet::init(uint aNb, bool modePt)
 {
-    if (aNb ==0)
+    if (aNb==0)
         return;
 
-    _Widgets[0] = new GLWidget(0, this, NULL);
+    _widgets.resize(aNb);
+
+    _widgets[0] = new GLWidget(0, NULL);
 
     for (uint aK=1 ; aK < aNb; ++aK)
-        _Widgets[aK] = new GLWidget( aK, this, (const QGLWidget*)_Widgets[0]);
+        _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
 
     for (uint aK=0 ; aK < aNb; ++aK)
     {
-        _Widgets[aK]->setBackgroundColors(color1,color2);
-        if (!modePt) _Widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
+        _widgets[aK]->setBackgroundColors(colorBG0,colorBG1);
+        if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
+    }
+
+    if (modePt)
+    {
+        _zoomWidget = new GLWidget(-1, (const QGLWidget*)_widgets[0]);
+        _zoomWidget->setBackgroundColors(colorBG1,colorBG1);
+        _zoomWidget->setContextMenuPolicy( Qt::NoContextMenu );
+        _zoomWidget->setOption(cGLData::OpShow_Mess,false);
+        _zoomWidget->setZoom(3.f);
+    }
+}
+
+void GLWidgetSet::widgetSetResize(int aSz)
+{
+    int sz = _widgets.size();
+
+    _widgets.resize(aSz);
+
+    for (int aK=sz ; aK < aSz; ++aK)
+    {
+        _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
+
+        _widgets[aK]->setBackgroundColors(colorBG0,colorBG1);
+        //_widgets[aK]->setStyleSheet(style);
+        //TODO: if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
     }
 }
 
 GLWidgetSet::~GLWidgetSet()
 {
-    for (uint aK=0; aK < NbWidgets();++aK) delete _Widgets[aK];
-}
-
-void GLWidgetSet::setCurrentWidgetIdx(uint aK)
-{
-    if (aK < NbWidgets())
-    {
-        _currentWidget = aK;
-    }
-    else
-        cerr << "Warning: setCurrentWidget " << aK << " out of range" << endl;
+    for (int aK=0; aK < nbWidgets();++aK) delete _widgets[aK];
+    delete _zoomWidget;
 }

@@ -136,11 +136,31 @@ set(Elise_Src_Files
 
 set(libElise elise)
 
+if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
+    add_definitions(-DELISE_QT5=1)
+
+    # Find includes in corresponding build directories
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+    # Instruct CMake to run moc automatically when needed.
+    set(CMAKE_AUTOMOC ON)
+
+    find_package(Qt5Core REQUIRED)
+    if( Qt5Core_FOUND )
+        include_directories( ${Qt5_INCLUDES})
+    endif()
+
+endif()
+
 # CONSTRUCTION : Lib ELISE
 if(${CUDA_ENABLED})
     INCLUDE (GpGpu.cmake)
 else()
     add_library( elise ${Elise_Src_Files} ${IncFiles} )
+    
+	if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
+        qt5_use_modules(elise Widgets Core Gui Xml)
+    endif()
+    
     INSTALL(TARGETS elise ARCHIVE DESTINATION ${Install_Dir_lib} )
 endif()
 
@@ -163,18 +183,3 @@ if (WITH_SAISIEQT)
     ADD_SUBDIRECTORY(saisieQT)
 endif()
 
-if (WITH_QT5)  
-    add_definitions(-DELISE_QT5=1)
-
-    # Find includes in corresponding build directories
-    set(CMAKE_INCLUDE_CURRENT_DIR ON)
-    # Instruct CMake to run moc automatically when needed.
-    set(CMAKE_AUTOMOC ON)
-
-    find_package(Qt5Core REQUIRED)
-    if( Qt5Core_FOUND )
-        include_directories( ${Qt5_INCLUDES})
-        qt5_use_modules(elise Widgets Core Gui Xml)
-    endif()
-
-endif()

@@ -1,15 +1,17 @@
+
+Triangle trop plat dans OriConvert Solution Initiale....
+Bug Origine dans Bascule
+
+WPK en export 
+
 BUGS :
 
 bool accepte yes !!!
 
+
 Saisie :
   2- Image Globale de Saisie 
   6- Bug Serge : OK ??!!! Mais de toute facon alerter dqp si pas de plan ....
-  
-  DONE-4- Renommer les points
-  DONE 3- Im Coul
-  DONE=1- Fichier XML en nom de point
-  DONE ? 0000 - Campari : PB Residu terrain !! EN fait, du a multipl *Inc 
 
   Si Masque TA existe et incompatible : genere bug
 

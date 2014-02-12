@@ -17,6 +17,7 @@
          <Symb> UseMasq=false </Symb>
          <Symb> UseTeta=false </Symb>
          <Symb> RegulBase=0.3 </Symb>
+         <Symb> UseDequant=false </Symb>
 
           <Symb>  SzW=4 </Symb>
 
@@ -207,7 +208,17 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <Px1Pas>        0.05  </Px1Pas>
            <Px2Pas>        0.05  </Px2Pas>
         </EtapeMEC>
+        
+        <#WHEN VTEST=${UseDequant}>
+          <EtapeMEC> 
+            <DeZoom >  1  </DeZoom> 
+            <Px1Pas>   1.0     </Px1Pas>
+            <Px2Pas>   1.0     </Px2Pas>
+            <AlgoRegul> eAlgoDequant </AlgoRegul>
+          </EtapeMEC>
+        </#WHEN>
     </Section_MEC>
+    
 
     <Section_Results >
         <GeomMNT> eGeomPxBiDim </GeomMNT>

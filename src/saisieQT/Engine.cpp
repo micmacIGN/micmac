@@ -6,40 +6,10 @@ cLoader::cLoader()
    _postFix("_Masq")
 {}
 
-void cLoader::setFilenamesOut()
-{
-    _FilenamesOut.clear();
-
-    for (int aK=0;aK < _FilenamesIn.size();++aK)
-    {
-        QFileInfo fi(_FilenamesIn[aK]);
-
-        _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
-    }
-}
-
-void cLoader::setFilenameOut(QString str)
-{
-    _FilenamesOut.clear();
-
-    _FilenamesOut.push_back(str);
-}
 
 void cLoader::setPostFix(QString str)
 {
     _postFix = str;
-}
-
-void cLoader::setSelectionFilenames()
-{
-    _SelectionOut.clear();
-
-    for (int aK=0;aK < _FilenamesIn.size();++aK)
-    {
-        QFileInfo fi(_FilenamesIn[aK]);
-
-        _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfos.xml");
-    }
 }
 
 GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
@@ -143,6 +113,49 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
 }
 
+void cLoader::setFilenamesAndDir(const QStringList &strl)
+{
+    _FilenamesIn = strl;
+
+    setDir(strl);
+
+    _FilenamesOut.clear();
+
+    for (int aK=0;aK < _FilenamesIn.size();++aK)
+    {
+        QFileInfo fi(_FilenamesIn[aK]);
+
+        _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
+    }
+
+    _SelectionOut.clear();
+
+    for (int aK=0;aK < _FilenamesIn.size();++aK)
+    {
+        QFileInfo fi(_FilenamesIn[aK]);
+
+        _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfos.xml");
+    }
+}
+
+void cLoader::setFilenameOut(QString str)
+{
+    _FilenamesOut.clear();
+
+    _FilenamesOut.push_back(str);
+}
+
+void cLoader::setDir(const QStringList &list)
+{
+    QFileInfo fi(list[0]);
+
+    //set default working directory as first file subfolder
+    QDir Dir = fi.dir();
+    Dir.cdUp();
+
+    _Dir = Dir;
+}
+
 // File structure is assumed to be a typical Micmac workspace structure:
 // .ply files are in /MEC folder and orientations files in /Ori- folder
 // /MEC and /Ori- are in the main working directory (m_Dir)
@@ -171,8 +184,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():    
     _Loader(new cLoader),
-    _Data(new cData),
-    _Gamma(1.f)
+    _Data(new cData)
 {}
 
 cEngine::~cEngine()
@@ -183,6 +195,8 @@ cEngine::~cEngine()
     delete _Data;
 
 }
+
+
 
 void cEngine::loadClouds(QStringList filenames, int* incre)
 {
@@ -210,8 +224,6 @@ void cEngine::loadImages(QStringList filenames)
     {
         loadImage(filenames[i]);
     }
-
-    _Loader->setFilenamesOut();
 }
 
 void  cEngine::loadImage(int aK)
@@ -221,7 +233,7 @@ void  cEngine::loadImage(int aK)
 
 void  cEngine::loadImage(QString imgName)
 {
-    QMaskedImage maskedImg(_Gamma);
+    QMaskedImage maskedImg(_params->getGamma());
 
     _Loader->loadImage(imgName, maskedImg);
 
@@ -232,7 +244,7 @@ void cEngine::reloadImage(int aK)
 {
     QString imgName = getFilenamesIn()[aK];
 
-    QMaskedImage maskedImg(_Gamma);
+    QMaskedImage maskedImg(_params->getGamma());
 
     _Loader->loadImage(imgName, maskedImg);
 
@@ -330,6 +342,16 @@ void cEngine::unloadAll()
     _Data->clearAll();
     qDeleteAll(_vGLData);
     _vGLData.clear();
+}
+
+void cEngine::unload(int aK)
+{    
+    if(_vGLData[aK])
+    {
+        delete _vGLData[aK];
+        _vGLData[aK] = NULL;
+    }
+    _Data->clear(aK);
 }
 
 void cEngine::allocAndSetGLData(bool modePt, QString ptName)

@@ -76,6 +76,9 @@ int SaisieBasc_main(int argc,char ** argv)
 
   std::string aDir,aName;
   SplitDirAndFile(aDir,aName,aFullName);
+  if (anOri != "NONE")
+     StdCorrecNameOrient(anOri,aDir);
+
 
 
   cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);

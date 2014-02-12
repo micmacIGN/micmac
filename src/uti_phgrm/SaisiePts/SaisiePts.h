@@ -99,6 +99,7 @@ class cSP_PointGlob
 
          bool IsPtAutom() const;
          void Rename(const std::string & aNewName);
+
      private:
           cSP_PointGlob(const cSP_PointGlob &) ; // N.I.
 
@@ -144,6 +145,7 @@ class cImage
      private :
 
            cAppli_SaisiePts &                        mAppli;
+
            std::string                               mName;
            mutable Tiff_Im *                         mTif;
            cCapture3D *                              mCapt3d;
@@ -164,93 +166,95 @@ typedef cImage * tImPtr;
 
 class cWinIm : public Grab_Untill_Realeased
 {
-     public :
-           cWinIm(cAppli_SaisiePts&,Video_Win aW,Video_Win aWTitle,cImage & aIm0);
-           Video_Win W();
-           void GrabScrTr(Clik);
-           void ShowVect();
+public :
+    cWinIm(cAppli_SaisiePts&, Video_Win aW, Video_Win aWTitle, cImage & aIm0);
+    Video_Win W();
+    void    GrabScrTr(Clik);
+    void    ShowVect();
 
-           bool  WVisible(const Pt2dr & aP);
-           bool  WVisible(const Pt2dr & aP,eEtatPointeImage aState);
-           bool  WVisible(cSP_PointeImage & aPIm);
+    bool    WVisible(const Pt2dr & aP);
+    bool    WVisible(const Pt2dr & aP, eEtatPointeImage aState);
+    bool    WVisible(cSP_PointeImage & aPIm);
 
-           cSP_PointeImage * GetNearest(const Pt2dr & aPW,double aDSeuil);
-           void  SetPt(Clik aClk);
-           void  SetZoom(Pt2dr aP,double aFactZ);
+    cSP_PointeImage * GetNearest(const Pt2dr & aPW,double aDSeuil);
+    void    SetPt(Clik aClk);
+    void    SetZoom(Pt2dr aP,double aFactZ);
 
-           void Reaff();
-           
-           void  MenuPopUp(Clik aClk);
+    void    Reaff();
 
-            void SetNewImage(cImage *);
-            BoolCaseGPUMT *      BCaseVR();
-            void SetTitle();
-            void ShowPoint(const Pt2dr aP,eEtatPointeImage aState,cSP_PointGlob * PInfoHL,cSP_PointeImage *);
-            void ShowInfoPt(cSP_PointeImage *,bool Compl);
+    void    MenuPopUp(Clik aClk);
 
-            void SetNoImage();
+    void    SetNewImage(cImage *);
+    BoolCaseGPUMT *      BCaseVR();
+    void    SetTitle();
+    void    ShowPoint(const Pt2dr aP,eEtatPointeImage aState,cSP_PointGlob * PInfoHL,cSP_PointeImage *);
+    void    ShowInfoPt(cSP_PointeImage *,bool Compl);
 
-
-            void SetImage(cImage *);
-            static const Pt2dr  PtsEchec;
-            Box2dr BoxImageVisible() const;
-     private :
-
-            void CreatePoint(const Pt2dr& aP,eTypePts,double aSz);
-            Pt2dr RecherchePoint(const Pt2dr &aPIm,eTypePts,double aSz,cPointGlob *);
-
-            void GUR_query_pointer(Clik,bool);
-            void ReafGrabSetPosPt();
+    void    SetNoImage();
 
 
+    void    SetImage(cImage *);
+    static const Pt2dr  PtsEchec;
+    Box2dr  BoxImageVisible() const;
 
-            cAppli_SaisiePts& mAppli;
-            Video_Win   mW;
-            Video_Win   mWT;
-            eModeWinIm  mMode;
-            Pt2dr       mOldPt;
-            Pt2dr       mNewPt;
-            eEtatPointeImage mStatePtCur;
+private :
 
-            VideoWin_Visu_ElImScr mVWV;
-            ElImScroller *        mScr;
-            cImage *              mCurIm;
-            Pt2dr                 mLastPGrab;
-            Pt2dr                 mP0Grab;
-            bool                  mModeRelication;
-            Pt2di                 mSzW;
+    void    CreatePoint(const Pt2dr& aP,eTypePts,double aSz);
+    Pt2dr   RecherchePoint(const Pt2dr &aPIm,eTypePts,double aSz,cPointGlob *);
 
-            Pt2di                   mSzCase;
-            GridPopUpMenuTransp*    mPopUpBase;
-            GridPopUpMenuTransp*    mPopUpShift;
-            GridPopUpMenuTransp*    mPopUpCtrl;
-            GridPopUpMenuTransp*    mPopUp1Shift;
-            GridPopUpMenuTransp*    mPopUpCur;
+    void    GUR_query_pointer(Clik,bool);
+    void    ReafGrabSetPosPt();
 
 
-            CaseGPUMT *             mCaseExit;
-            CaseGPUMT *             mCaseVide;
-            CaseGPUMT *             mCaseTDM;
-            CaseGPUMT *             mCaseInterrog;
-            CaseGPUMT *             mCaseSmile;
-            BoolCaseGPUMT *         mBCaseVisiRefut;
-            BoolCaseGPUMT *         mBCaseShowDet;
-            CaseGPUMT *             mCaseHighLight;
 
-            CaseGPUMT *             mCaseUndo;
-            CaseGPUMT *             mCaseRedo;
+    cAppli_SaisiePts & mAppli;
 
-            CaseGPUMT *             mCaseAllW;
-            CaseGPUMT *             mCaseThisW;
-            CaseGPUMT *             mCaseThisPt;
+    Video_Win               mW;
+    Video_Win               mWT;
+    eModeWinIm              mMode;
+    Pt2dr                   mOldPt;
+    Pt2dr                   mNewPt;
+    eEtatPointeImage        mStatePtCur;
 
-            CaseGPUMT *             mCaseNewPt;
-            CaseGPUMT *             mCaseKillPt;
-            CaseGPUMT *             mCaseRenamePt;
-            CaseGPUMT *             mCaseMin3;
-            CaseGPUMT *             mCaseMin5;
-            CaseGPUMT *             mCaseMax3;
-            CaseGPUMT *             mCaseMax5;
+    VideoWin_Visu_ElImScr   mVWV;
+    ElImScroller *          mScr;
+    cImage *                mCurIm;
+    Pt2dr                   mLastPGrab;
+    Pt2dr                   mP0Grab;
+    bool                    mModeRelication;
+    Pt2di                   mSzW;
+
+    Pt2di                   mSzCase;
+    GridPopUpMenuTransp*    mPopUpBase;
+    GridPopUpMenuTransp*    mPopUpShift;
+    GridPopUpMenuTransp*    mPopUpCtrl;
+    GridPopUpMenuTransp*    mPopUp1Shift;
+    GridPopUpMenuTransp*    mPopUpCur;
+
+
+    CaseGPUMT *             mCaseExit;
+    CaseGPUMT *             mCaseVide;
+    CaseGPUMT *             mCaseTDM;
+    CaseGPUMT *             mCaseInterrog;
+    CaseGPUMT *             mCaseSmile;
+    BoolCaseGPUMT *         mBCaseVisiRefut;
+    BoolCaseGPUMT *         mBCaseShowDet;
+    CaseGPUMT *             mCaseHighLight;
+
+    CaseGPUMT *             mCaseUndo;
+    CaseGPUMT *             mCaseRedo;
+
+    CaseGPUMT *             mCaseAllW;
+    CaseGPUMT *             mCaseThisW;
+    CaseGPUMT *             mCaseThisPt;
+
+    CaseGPUMT *             mCaseNewPt;
+    CaseGPUMT *             mCaseKillPt;
+    CaseGPUMT *             mCaseRenamePt;
+    CaseGPUMT *             mCaseMin3;
+    CaseGPUMT *             mCaseMin5;
+    CaseGPUMT *             mCaseMax3;
+    CaseGPUMT *             mCaseMax5;
 
 
 };
@@ -286,7 +290,98 @@ class cCaseNamePoint
       //  bool        mVraiCase;
 };
 
+class cVirtualInterface
+{
+    public:
 
+    cVirtualInterface(){}
+    ~cVirtualInterface(){}
+
+    virtual void        SetInvisRef(bool aVal)=0;
+    virtual bool        RefInvis() const =0;
+
+    virtual void        ShowZoom(const Pt2dr & aPGlob)=0;
+
+    virtual void        RedrawAllWindows()=0;
+
+    virtual void        Save()=0;
+
+protected:
+
+    cAppli_SaisiePts*   mAppli;
+
+private:
+
+    virtual void        InitWindows()=0;
+
+    virtual void        TestClick(Clik aCl)=0;
+
+};
+
+class cX11_Interface : cVirtualInterface
+{
+public :
+
+    cX11_Interface(NS_SaisiePts::cParamSaisiePts &param, cAppli_SaisiePts &appli);
+    ~cX11_Interface();
+
+    void            SetInvisRef(bool aVal);
+    bool            RefInvis() const   { return mRefInvis; }
+
+    void            ShowZoom(const Pt2dr & aPGlob);
+
+    void            RedrawAllWindows();
+
+    void            Save();
+
+    void            BoucleInput();
+
+    Video_Win &     WZ()                    { return *mWZ;  }
+    bool            HasWZ() const           { return mWZ!=0;}
+    const Pt2di &   SzWZ() const            { return mSzWZ; }
+
+    const std::vector<cWinIm *> &  WinIms() { return mWins; }
+    cFenOuiNon *    ZFON()                  { return mZFON; }
+
+    cFenMenu *      MenuNamePoint()         { return mMenuNamePoint; }
+
+    cCaseNamePoint * GetIndexNamePt();
+    int              GetNumCasePoint()          { return mVNameCase.size(); }
+    cCaseNamePoint & GetCaseNamePoint(int aK)   { return mVNameCase[aK]; }
+
+    std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
+
+    void            ChangeFreeNameP(const std::string &, bool SetFree);
+
+    void            KillSom(cSP_PointGlob *);   
+
+private:
+
+    void            InitWindows();
+
+    void            TestClick(Clik aCl);
+
+    cWinIm *        WinImOfW(Video_Win);
+
+    std::vector <cCaseNamePoint>        mVNameCase;
+    std::map<std::string,cCaseNamePoint *>  mMapNC;
+
+    std::vector<cWinIm *> mWins;
+
+    Video_Display *       mDisp;
+
+    Video_Win *           mWZ;
+    cFenOuiNon *          mZFON;
+    cFenMenu *            mMenuNamePoint;
+    Video_Win *           mWEnter;
+
+    Pt2di                 mNb2W;
+    int                   mNbW;
+
+    Pt2di                 mSzWZ;
+
+    bool                  mRefInvis;
+};
 
 class cAppli_SaisiePts
 {
@@ -294,7 +389,7 @@ class cAppli_SaisiePts
 
     cAppli_SaisiePts( cResultSubstAndStdGetFile<cParamSaisiePts> aParam);
     const cParamSaisiePts &             Param() const;
-    const std::string &                 DC() const;
+    const std::string &                 DC() const;     // directory chantier
     cInterfChantierNameManipulateur *   ICNM() const;
 
     void ErreurFatale(const std::string &);
@@ -327,53 +422,35 @@ class cAppli_SaisiePts
     Im2D_INT4           ImRechVisu() const;
     Im2D_INT4           ImRechAlgo() const;
 
-    std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
+
 
     // 0 si existe deja
-    cSP_PointGlob *  AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
-    void AddPGInAllImage(cSP_PointGlob * aSPG);
+    cSP_PointGlob *     AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
+    void                AddPGInAllImage(cSP_PointGlob * aSPG);
 
     void HighLightSom(cSP_PointGlob *);
-    void KillSom(cSP_PointGlob *); //UTILISE L'INTERFACE ReaffAllW();
 
     bool & ShowDet();
 
-    cCaseNamePoint * GetIndexNamePt(); //UTILISE L'INTERFACE
-
-    void ChangeFreeNameP(const std::string &,bool SetFree);
-
     void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-    void ChangeName(std::string  anOldName,std::string  aNewName);
+    void ChangeName(std::string  anOldName,std::string  aNewName); //UTILISE L'INTERFACE appelle ReaffAllW();
 
-    //INTERFACE - partie publique
+    cX11_Interface* Interface() { return mInterface; }
+    cParamSaisiePts & param()   { return mParam; }
 
-    void                BoucleInput();
+    int             nbImages()  { return mNbIm; }
 
-    Video_Win &         WZ();
-    bool                HasWZ() const;
+    int             GetCptMax() const;
 
-    const Pt2di &       SzWZ() const;
+    cImage*         images(int aK) { return mImages[aK]; }
 
-    void                SetInvisRef(bool aVal);
-    bool                RefInvis() const;
-
-    const std::vector<cWinIm *> &  WinIms();
-
-    cFenOuiNon *        ZFON();
-
-    cFenMenu *          MenuNamePoint();
-
-    void                ShowZ(const Pt2dr & aPGlob);
-
-    void                ReaffAllW();
-
-    //FIN INTERFACE - partie publique
+    std::vector<cSP_PointGlob *> PG() { return mPG; }
 
     private :
 
          void RenameIdPt(std::string &);
-         int  GetCptMax() const;
+
 
          void UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush); //UTILISE L'INTERFACE ReaffAllW();
 
@@ -388,6 +465,8 @@ class cAppli_SaisiePts
          void IniPointeIm();
 
          cParamSaisiePts &                 mParam;
+         cX11_Interface*                   mInterface;
+
          cInterfChantierNameManipulateur * mICNM;
          std::string                       mDC;
          std::vector<cImage *>             mImages;
@@ -407,43 +486,16 @@ class cAppli_SaisiePts
 
          std::string                       mNameSauvPG;
          std::string                       mDupNameSauvPG;
-         bool                              mRefInvis;
+
          bool                              mShowDet;
 
-         std::vector<cUndoRedo>             mStackUndo;
-         std::vector<cUndoRedo>             mStackRedo;
+         std::vector<cUndoRedo>            mStackUndo;
+         std::vector<cUndoRedo>            mStackRedo;
 
          Pt2di                             mSzRech;
          Pt2di                             mDecRech;
          Im2D_INT4                         mImRechVisu;
          Im2D_INT4                         mImRechAlgo;
-
-         std::vector<cCaseNamePoint>       mVNameCase;
-         std::map<std::string,cCaseNamePoint *>  mMapNC;
-
-         // INTERFACE - partie privee
-
-         void           InitWindows();
-
-         void           TestClikWIm(Clik aCl);
-
-         cWinIm *       WImOfW(Video_Win);
-
-         std::vector<cWinIm *>             mWins;
-
-         Video_Display *                   mDisp;
-
-         Video_Win *                       mWZ;
-         cFenOuiNon *                      mZFON;
-         cFenMenu *                        mMenuNamePoint;
-         Video_Win *                       mWEnter;
-
-         Pt2di                             mNb2W;
-         int                               mNbW;
-
-         Pt2di                             mSzWZ;
-
-         // FIN INTERFACE
           
 };
 

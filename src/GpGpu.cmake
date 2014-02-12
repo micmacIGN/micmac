@@ -31,7 +31,7 @@ set(GENCODE_SM20 -gencode=arch=compute_20,code=sm_20 -lineinfo)
  set(GpGpu_UnitTesting GpGpuUnitTesting)
  cuda_add_executable(${GpGpu_UnitTesting} ${uti_Test_Opt_GpGpu_Src_Files})
 
- target_link_libraries(${GpGpu_UnitTesting}  ${Boost_LIBRARIES} ${Boost_THREADAPI} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+ target_link_libraries(${GpGpu_UnitTesting}  ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt})
 
  if (NOT WIN32)
         target_link_libraries(${GpGpu_UnitTesting}  rt pthread )

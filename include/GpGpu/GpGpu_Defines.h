@@ -41,6 +41,9 @@ typedef unsigned char pixel;
 #define CUDA_DUMP_INT_ALL(varname) printf("%s = %d\n", #varname, varname);
 #define DUMP_UINT(varname) printf("%s = %u\n", #varname, varname);
 #define DUMP_UINT2(varname) printf("%s = [%u,%u]\n", #varname, varname.x,varname.y);
+#define DUMP_INT2(varname) printf("%s = [%d,%d]\n", #varname, varname.x,varname.y);
+#define DUMP_INT(varname) printf("%s = %d\n", #varname, varname);
+#define DUMP_FLOAT2(varname) printf("%s = [%f,%f]\n", #varname, varname.x,varname.y);
 #define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
 #define DUMP_LINE printf("-----------------------------------\n");
 
@@ -62,5 +65,18 @@ typedef unsigned char pixel;
 #endif
 
 enum Plans {XY,XZ,YZ,YX,ZX,ZY};
+
+inline std::string className(const std::string& prettyFunction)
+{
+    size_t colons = prettyFunction.find("::");
+    if (colons == std::string::npos)
+        return "::";
+    size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
+    size_t end = colons - begin;
+
+    return prettyFunction.substr(begin,end);
+}
+
+#define __CLASS_NAME__ className(__PRETTY_FUNCTION__)
 
 #endif //GPGPU_DEFINES_H

@@ -19,6 +19,13 @@
 namespace NS_ParamChantierPhotogram{
 </Verbatim>
 
+   <enum Name="eNewTypeMalt">
+       <eTMalt_Ortho>     </eTMalt_Ortho>
+       <eTMalt_UrbanMNE>  </eTMalt_UrbanMNE>
+       <eTMalt_GeomImage> </eTMalt_GeomImage>
+       <eTMalt_NbVals>    </eTMalt_NbVals>
+   </enum>
+
    <enum Name="eTypeTapas">
            <eTT_RadialBasic> </eTT_RadialBasic>
            <eTT_RadialExtended> </eTT_RadialExtended>

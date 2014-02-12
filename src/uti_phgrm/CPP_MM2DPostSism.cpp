@@ -78,6 +78,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
     double aTeta;
     int    aSzW=4;
     double aRegul=0.3;
+    bool useDequant=true;
+    double aIncCalc=2.0;
 
 
     ElInitArgMain
@@ -91,6 +93,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
                     << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)")
                     << EAM(aSzW,"SzW",true,"Size of window (Def =4, mean 9x9)")
                     << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
+                    << EAM(useDequant,"Dequant",true,"Dequantify (Def=true)")
+                    << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0")
     );
 	
 #if (ELISE_windows)
@@ -109,6 +113,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                         + " +Im2=" + aIm2
                         + " +SzW=" + ToString(aSzW)
                         + " +RegulBase=" + ToString(aRegul)
+                        + " +Inc=" + ToString(aIncCalc)
                         ;
 
 
@@ -122,6 +127,11 @@ int MM2DPostSism_Main(int argc,char ** argv)
     if (EAMIsInit(&aTeta))
     {
         aCom = aCom + " +UseTeta=true +Teta=" + ToString(aTeta);
+    }
+    
+    if (useDequant)
+    {
+        aCom = aCom + " +UseDequant=true";
     }
 
 

@@ -6,6 +6,20 @@
 namespace NS_ParamChantierPhotogram{
 typedef enum
 {
+  eTMalt_Ortho,
+  eTMalt_UrbanMNE,
+  eTMalt_GeomImage,
+  eTMalt_NbVals
+} eNewTypeMalt;
+void xml_init(eNewTypeMalt & aVal,cElXMLTree * aTree);
+std::string  eToString(const eNewTypeMalt & aVal);
+
+eNewTypeMalt  Str2eNewTypeMalt(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eNewTypeMalt & anObj);
+
+typedef enum
+{
   eTT_RadialBasic,
   eTT_RadialExtended,
   eTT_Fraser,
