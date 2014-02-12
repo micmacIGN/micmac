@@ -3,19 +3,21 @@
 
 #include <string>
 #include <list>
+#include <vector>
 #include <map>
 #include <iostream>
+#include <cstring>
+#include "../include/general/sys_dep.h"
+#include "../include/private/util.h"
+#include "sys/stat.h"
 
-class cElPath;
+class ctPath;
 
 #define __DEBUG_C_EL_COMMAND
 
-//-------------------------------------------
-// related functions
-//-------------------------------------------
-
-cElPath getCurrentDirectory();
-
+#define RED_ERROR "\033[1;31mERROR: \033[0m"
+#define RED_DEBUG_ERROR "\033[1;31mDEBUG_ERROR: \033[0m"
+#define RED_WARNING "\033[0;31mWARNING: \033[0m"
 
 //-------------------------------------------
 // cElCommandToken
@@ -42,7 +44,7 @@ public:
    #endif
 
    cElCommandToken();
-   virtual ~cElCommandToken();
+   virtual ~cElCommandToken() = 0;
    
    virtual CmdTokenType type() const = 0;
    virtual std::string str() const = 0;
@@ -54,6 +56,13 @@ public:
    template <class T> const T & specialize() const;
    bool operator ==( const cElCommandToken &i_b ) const;
    inline bool operator !=( const cElCommandToken &i_b ) const;
+   
+   inline void trace( std::ostream &io_ostream=std::cerr ) const;
+   
+   // read/write in raw binary format
+   static cElCommandToken * from_raw_data( char *&io_rawData, bool i_reverseByteOrder );
+   void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
+   inline unsigned int raw_size() const;
 };
 
 
@@ -64,12 +73,13 @@ public:
 // nothing is known about this token, it is just a string
 class ctRawString : public cElCommandToken
 {
-public:
+protected:
    std::string m_value;
    
+public:
    inline ctRawString( const std::string &i_value );
    virtual CmdTokenType type() const { return CTT_RawString; }
-   virtual std::string str() const { return m_value; }
+   std::string str() const { return m_value; }
 };
 
 
@@ -81,41 +91,48 @@ class cElCommand
 {
 private:
    std::list<cElCommandToken*> m_tokens;
-   
-   cElCommandToken & add_a_copy( const cElCommandToken &i_token );
-   
+      
 public:
    inline cElCommand();
    inline cElCommand( const std::string &i_str );
    inline cElCommand( const cElCommand &i_b );
    inline ~cElCommand();
    cElCommand & operator =( const cElCommand &i_b );
-   void clear();   
-
+   void clear();
+   inline unsigned int nbTokens() const;
+   
    void set_raw( const std::string &i_str );
    void add_raw( const std::string &i_str );
+   cElCommandToken & add( const cElCommandToken &i_token );
 
    bool operator ==( const cElCommand &i_b ) const;
    inline bool operator !=( const cElCommand &i_b ) const;
    
-   bool write( std::ostream &io_ostream, bool i_inverseByteOrder ) const;
-   bool read( std::istream &io_istream, bool i_inverseByteOrder );
+   // read/write in raw binary format
+   void from_raw_data( char *&i_rawData, bool i_reverseByteOrder );
+   void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
+   unsigned int raw_size() const;
    
-   bool replace( const std::map<std::string,std::string> &i_dictionary );
-   
+   bool replace( const std::map<std::string,std::string> &i_dictionary );   
    bool system() const;
    
    std::string str() const;
    std::string str_make(); // a string that can be used in a Makefile
    std::string str_system(); // a string that can be used in a call to system
+   
+   // __DEL
+   void write( std::ostream &io_ostream, bool i_inverseByteOrder ) const;
+   void read( std::istream &io_istream, bool i_inverseByteOrder );
 };
 
 
 //-------------------------------------------
-// cElPath
+// ctPath
 //-------------------------------------------
 
-class cElPath
+class cElFilename;
+
+class ctPath : public cElCommandToken
 {
 private:
    class Token : public std::string
@@ -126,39 +143,56 @@ private:
    };
    
    std::list<Token> m_tokens;
+   std::string m_normalizedName;
 
 public:
-   
    static const char        sm_unix_separator;
    static const char        sm_windows_separator;
    static const std::string sm_all_separators;
 
-   cElPath( const std::string &i_path=std::string() );
-   cElPath( const cElPath &i_path1, const cElPath &i_path2 );
+   ctPath( const std::string &i_path=std::string() );
+   ctPath( const ctPath &i_path1, const ctPath &i_path2 );
+   ctPath( const cElFilename &i_filename );
 
+   // cElCommandToken methods
+   inline CmdTokenType type() const;
+   inline std::string str() const;
+   
    void append( const Token &i_token );
-   void append( const cElPath &i_token );
+   void append( const ctPath &i_token );
 
    bool isInvalid() const;
    void trace( std::ostream &io_stream=std::cout ) const;
 
-   inline bool isAbsolute() const;
-   inline bool isEmpty() const; // an empty path is the current directory
+   inline bool isAbsolute() const; // an absolute path begins with a root token
+   inline bool isNull() const; // returns if the name is empty, an empty path is the current directory
+   bool isWorkingDirectory() const;
 
-   int compare( const cElPath &i_b ) const;
-   inline bool operator < ( const cElPath &i_b ) const;
-   inline bool operator > ( const cElPath &i_b ) const;
-   inline bool operator ==( const cElPath &i_b ) const;
-   inline bool operator !=( const cElPath &i_b ) const;
+   int compare( const ctPath &i_b ) const;
+   inline bool operator < ( const ctPath &i_b ) const;
+   inline bool operator > ( const ctPath &i_b ) const;
+   inline bool operator ==( const ctPath &i_b ) const;
+   inline bool operator !=( const ctPath &i_b ) const;
    
-          std::string str( char i_separator ) const;
-   inline std::string str_unix() const;
-   inline std::string str_windows() const;
+   std::string str( char i_separator ) const;
    
-   void toAbsolute( const cElPath &i_relativeTo=getCurrentDirectory() );
+   void toAbsolute( const ctPath &i_relativeTo );
    bool exists() const;
    bool create() const;
+   bool remove_empty() const;
    bool remove() const;
+   // return true if directory exists and containts nothing
+   bool isEmpty() const; 
+   
+   // returns if *this contains or is i_path
+   // relative paths are considered relative to i_relativeTo
+   bool contains( const ctPath &i_path ) const;
+   bool contains( const cElFilename &i_filename ) const;
+   
+   unsigned int count_upward_references() const; // count number of '..'
+   
+   bool getContent( std::list<cElFilename> &o_files ) const;
+   bool getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_directories, bool i_isRecursive ) const;
 };
 
 
@@ -169,11 +203,11 @@ public:
 class cElFilename
 {
 public:
-   cElPath     m_path;
+   ctPath      m_path;
    std::string m_basename;
    
-   inline cElFilename( const cElPath &i_path, const std::string i_basename );
-   inline cElFilename( const cElPath &i_path, const cElFilename &i_filename );
+   inline cElFilename( const ctPath &i_path, const std::string i_basename );
+   inline cElFilename( const ctPath &i_path, const cElFilename &i_filename );
    cElFilename( const std::string i_fullname=std::string() ); // i_fullname = path+basename
    
    bool isInvalid() const;
@@ -191,7 +225,12 @@ public:
    inline std::string str_windows() const;
    
    bool exists() const;
+   bool isDirectory() const;
+   bool create() const;
    bool remove() const;
+   inline bool setRights( mode_t o_rights ) const;
+   inline bool getRights( mode_t &o_rights ) const;
+   unsigned int getSize() const;
 };
 
 
@@ -203,9 +242,45 @@ public:
 class cElRegEx : public cElFilename
 {
 public:   
-   inline cElRegEx( const cElPath &i_path, const std::string i_regex );
+   inline cElRegEx( const ctPath &i_path, const std::string i_regex );
    inline cElRegEx( const std::string i_fullregex=std::string() ); // i_fullname = path+regex
 };
+
+
+//-------------------------------------------
+// related functions
+//-------------------------------------------
+
+ctPath getWorkingDirectory();
+bool setWorkingDirectory( const ctPath &i_path );
+
+inline std::string read_string( std::istream &io_istream, std::vector<char> &io_buffer, bool i_reverseByteOrder );
+inline void write_string( const std::string &str, std::ostream &io_ostream, bool i_reverseByteOrder );
+
+// take a list of filename
+void specialize_filenames( const std::list<cElFilename> &i_filenames, std::list<cElFilename> &o_filenames, std::list<ctPath> &o_path );
+
+std::string CmdTokenType_to_string( CmdTokenType i_type );
+
+bool isCommandTokenType( int i_v );
+
+std::string generate_random_string( unsigned int i_strLength );
+std::string generate_random_string( unsigned int i_minLength, unsigned int i_maxLength );
+
+// string<->raw
+inline unsigned int string_raw_size( const std::string &i_str );
+void string_to_raw_data( const std::string &i_str, bool i_reverseByteOrder, char *&o_rawData );
+void string_from_raw_data( char *&io_rawData, bool i_reverseByteOrder, std::string &o_str );
+
+// int4<->raw
+inline void int4_to_raw_data( const INT4 &i_v, bool i_reverseByteOrder, char *&o_rawData );
+inline void int4_from_raw_data( char *&io_rawData, bool i_reverseByteOrder, INT4 &o_v );
+
+// uint4<->raw
+inline void uint4_to_raw_data( const U_INT4 &i_v, bool i_reverseByteOrder, char *&o_rawData );
+inline void uint4_from_raw_data( char *&io_rawData, bool i_reverseByteOrder, U_INT4 &o_v );
+
+std::string file_rights_to_string( mode_t i_rights );
 
 
 //----------------------------------------------------------------------

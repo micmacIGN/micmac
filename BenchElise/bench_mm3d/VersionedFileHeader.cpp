@@ -9,7 +9,7 @@ using namespace std;
 versioned_file_header_t g_versioned_headers_list[] = 
 {
    { 3440636730, 989008845, 1, "Digeo : points of interest" },
-   { 1950933035, 736118900, 1, "TracePack" },
+   { 1950933035, 736118900, 2, "TracePack" },  // __TO_V1
    { 0, 0, 0, "unknown" } // designate the end of the list
 };
 
