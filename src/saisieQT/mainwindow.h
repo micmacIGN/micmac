@@ -48,7 +48,7 @@ public:
     void writeSettings();
 
     void applyParams();
-    void labelShowMode();
+    void labelShowMode(bool);
 
 public slots:
 
