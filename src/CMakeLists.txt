@@ -160,7 +160,10 @@ if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
     endif()
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
 endif()
+
 
 # CONSTRUCTION : Lib ELISE
 if(${CUDA_ENABLED})
