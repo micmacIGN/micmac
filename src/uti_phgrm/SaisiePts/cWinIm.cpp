@@ -667,7 +667,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
     {
         if (aCase==mCaseAllW)
         {
-            mAppli.ChangeImages(0,mAppli.Interface()->WinIms());
+            mAppli.ChangeImages(0,((cX11_Interface*)mAppli.Interface())->WinIms());
         }
         if (aCase==mCaseThisW)
         {
@@ -680,7 +680,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
             cSP_PointeImage * aPIm = GetNearest(aClk._pt,200);
             if (aPIm)
             {
-                mAppli.ChangeImages(aPIm->Gl(),mAppli.Interface()->WinIms());
+                mAppli.ChangeImages(aPIm->Gl(),((cX11_Interface*)mAppli.Interface())->WinIms());
             }
         }
     }

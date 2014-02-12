@@ -239,7 +239,8 @@ bool cImage::PtInImage(const Pt2dr aP)
           && (aP.y<SzIm().y);
 }
 
-
+// CREATE point ground From Pointe Mono
+//
 void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCaseNamePoint * aCNP)
 {
 
