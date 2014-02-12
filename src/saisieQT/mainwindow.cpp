@@ -3,10 +3,15 @@
 
 void MainWindow::labelShowMode()
 {
-    if(_mode <= 1)
+    if(_mode == 0)
     {
         _ui->label_PositionImage_1->hide();
         _ui->label_PositionImage_2->show();
+    }
+    else if (_mode == 1)
+    {
+        _ui->label_PositionImage_1->hide();
+        _ui->label_PositionImage_2->hide();
     }
     else
     {
@@ -64,7 +69,8 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     applyParams();
 
-    setImagePosition(QPointF(-1.f,-1.f));
+    if (_mode != MASK3D)
+        setImagePosition(QPointF(-1.f,-1.f));
 }
 
 MainWindow::~MainWindow()
@@ -795,7 +801,8 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
     setCurrentWidget(glW);
 
-    connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
+    if (_mode != MASK3D)
+        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
     connect((GLWidget*)cuWid, SIGNAL(gammaChanged(float)), this, SLOT(setGamma(float)));
 

@@ -49,6 +49,7 @@ public:
 
     void applyParams();
     void labelShowMode();
+
 public slots:
 
     //! Try to load a list of files
