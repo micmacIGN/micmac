@@ -32,10 +32,12 @@ public:
 
     void    ptSizeUp(bool up);
 
-    void    changeZoom(float DChange)
+    float   changeZoom(float DChange)
     {
         if      (DChange > 0) m_zoom *= pow(2.f,  DChange *.05f);
         else if (DChange < 0) m_zoom /= pow(2.f, -DChange *.05f);
+
+        return  m_zoom;
     }
 
     //! Current zoom

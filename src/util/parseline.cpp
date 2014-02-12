@@ -81,7 +81,7 @@ bool LineIsBlank(const char * aLine)
 {
     while (*aLine)
     {
-        if (! isblank(*aLine)) return false;
+        if (!ElIsBlank(*aLine)) return false;
         aLine ++;
     }
     return true;

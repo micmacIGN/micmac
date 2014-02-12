@@ -1091,18 +1091,24 @@ cImageGL::~cImageGL()
     }
 }
 
-void cImageGL::drawQuad()
+void cImageGL::drawQuad(QColor color)
+{       
+    drawQuad(_originX, _originY, _glh, _glw,color);
+}
+
+void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color)
 {
+    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
     glBegin(GL_QUADS);
     {
         glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(_originX, _originY);
+        glVertex2f(originX, originY);
         glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(_originX+_glw, _originY);
+        glVertex2f(originX+glw, originY);
         glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(_originX+_glw, _originY+_glh);
+        glVertex2f(originX+glw, originY+glh);
         glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(_originX, _originY+_glh);
+        glVertex2f(originX, originY+glh);
     }
     glEnd();
 }
@@ -1119,7 +1125,7 @@ void cImageGL::draw()
         _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
     }
 
-    drawQuad();
+    drawQuad(Qt::white);
 
     if(_gamma !=1.0f) _program.release();
 
@@ -1128,9 +1134,8 @@ void cImageGL::draw()
 }
 
 void cImageGL::draw(QColor color)
-{
-    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
-    drawQuad();
+{    
+    drawQuad(color);
 }
 
 void cImageGL::setPosition(GLfloat originX, GLfloat originY)
@@ -1556,8 +1561,8 @@ void cMessages2DGL::draw(){
     if (drawMessages())
     {
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
-        ll_curHeight = lr_curHeight = lc_curHeight = h - m_font.pointSize()*m_messagesToDisplay.size();
-        int uc_curHeight = 10;            //upper center
+        ll_curHeight = lr_curHeight = lc_curHeight = h - (m_font.pointSize())*(m_messagesToDisplay.size()-1) ;
+        int uc_curHeight = m_font.pointSize();            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
@@ -1566,7 +1571,7 @@ void cMessages2DGL::draw(){
             switch(it->position)
             {
             case LOWER_LEFT_MESSAGE:
-                ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
+                ll_curHeight -= renderTextLine(*it, m_font.pointSize(), ll_curHeight,m_font.pointSize());
                 break;
             case LOWER_RIGHT_MESSAGE:
                 lr_curHeight -= renderTextLine(*it, w - 120, lr_curHeight);
@@ -1589,7 +1594,7 @@ int cMessages2DGL::renderTextLine(MessageToDisplay messageTD, int x, int y, int 
 {
     glwid->qglColor(messageTD.color);
 
-    m_font.setPointSize(sizeFont);
+    //m_font.setPointSize(sizeFont);
 
     glwid->renderText(x, y, messageTD.message,m_font);
 
@@ -1625,7 +1630,7 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
             if(m_bDisplayMode2D)
             {
                 displayNewMessage(QString(" "),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                displayNewMessage(QString(" "),LOWER_LEFT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString(" "),LOWER_LEFT_MESSAGE, QColor("#ffa02f"));
             }
             else
             {

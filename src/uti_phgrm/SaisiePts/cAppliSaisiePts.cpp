@@ -180,7 +180,7 @@ void cX11_Interface::Init()
     {
         // const std::string aName = itN->c_str();
         std::vector<std::string> aNew = mAppli->ICNM()->StdGetVecStr(*itN);
-        for (uint aK=0 ; aK< aNew.size(); aK++)
+        for (int aK=0 ; aK< (int)aNew.size(); aK++)
             mVNameCase.push_back(cCaseNamePoint(aNew[aK],eCaseStd));
     }
 
@@ -189,7 +189,7 @@ void cX11_Interface::Init()
         mMapNC[mVNameCase[aK].mName] = & mVNameCase[aK];
     }
 
-    for (uint aK=0 ; aK< mAppli->PG().size() ; aK++)
+    for (int aK=0 ; aK< (int)mAppli->PG().size() ; aK++)
     {
         ChangeFreeNamePoint(mAppli->PG()[aK]->PG()->Name(),false);
     }
