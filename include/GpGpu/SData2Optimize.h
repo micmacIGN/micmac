@@ -239,9 +239,9 @@ void Data2Optimiz<U,NBUFFER>::CopyHostToDevice(Data2Optimiz<CuHostData3D, 2> &d2
 }
 
 TEMPLATE_D2OPTI
-void Data2Optimiz<U,NBUFFER>::CopyDevicetoHost(Data2Optimiz<CuHostData3D, 2> &d2o, uint idbuf)
+void Data2Optimiz<U,NBUFFER>::CopyDevicetoHost(Data2Optimiz<CuHostData3D, 2> &h2o, uint idbuf)
 {
-    _s_ForceCostVol[0].CopyDevicetoHost(d2o._s_ForceCostVol[idbuf]);
+    _s_ForceCostVol[0].CopyDevicetoHost(h2o._s_ForceCostVol[idbuf]);
 }
 
 #endif //__DATA2OPTIMIZ_H__

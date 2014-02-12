@@ -6,7 +6,7 @@ cObject::cObject() :
     _color(QColor(255,255,255)),
     _scale(1.f),
     _alpha(0.6f),
-    _bVisible(false),
+    _bVisible(true),
     _bSelected(false)
 {}
 
@@ -486,7 +486,7 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
 
 void cPoint::draw()
 {
-     if (_painter != NULL)
+     if ((_painter != NULL) && isVisible())
      {
          QPen penline(isSelected() ? _selectionColor : _color);
          penline.setCosmetic(true);
@@ -546,7 +546,7 @@ void cPoint::draw()
 
 //********************************************************************************
 
-float cPolygon::_sqr_radius = 2500.f;
+float cPolygon::_radius = 10.f;
 
 cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this, lineWidth, painter)),
@@ -558,6 +558,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor p
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
+    _bShowRefuted(true),
     _style(style)
 {
     setColor(pointColor);
@@ -579,6 +580,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
+    _bShowRefuted(true),
     _style(style)
 {
     if (!withHelper) _helper = NULL;
@@ -656,9 +658,9 @@ void cPolygon::close()
 
 void cPolygon::removeNearestOrClose(QPointF pos)
 {
-    if ((_idx >=0)&&(_idx<size())&&_bIsClosed)
+    if (_bIsClosed)
     {
-        removePoint(_idx);   // remove nearest point
+        removeSelectedPoint();
 
         findNearestPoint(pos);
 
@@ -666,6 +668,13 @@ void cPolygon::removeNearestOrClose(QPointF pos)
     }
     else // close polygon
         close();
+}
+
+void cPolygon::removeSelectedPoint()
+{
+    if ((_idx >=0)&&(_idx<size()))
+
+        removePoint(_idx);
 }
 
 void cPolygon::setNearestPointState(const QPointF &pos, int state)
@@ -701,6 +710,11 @@ QString cPolygon::getNearestPointName(const QPointF &pos)
 {
     findNearestPoint(pos, 400000.f);
 
+    return getSelectedPointName();
+}
+
+QString cPolygon::getSelectedPointName()
+{
     if (_idx >=0 && _idx <_points.size())
     {
         return _points[_idx].name();
@@ -804,14 +818,14 @@ void cPolygon::resetSelectedPoint()
     _idx = -1;
 }
 
-void cPolygon::findNearestPoint(QPointF const &pos, float sqr_radius)
+void cPolygon::findNearestPoint(QPointF const &pos, float radius)
 {
     if (_bIsClosed)
     {
         resetSelectedPoint();
 
         float dist, dist2, x, y, dx, dy;
-        dist2 = sqr_radius;
+        dist2 = radius*radius;
         x = pos.x();
         y = pos.y();
 
@@ -834,26 +848,29 @@ void cPolygon::findNearestPoint(QPointF const &pos, float sqr_radius)
      }
 }
 
-void cPolygon::refreshHelper(QPointF pos, bool insertMode)
+void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
 {
     int nbVertex = size();
 
     if(!_bIsClosed)
     {
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
+
             add(pos);
+
         else if (nbVertex > 1)               // replace last point by the current one
+
             _points[nbVertex-1] = cPoint(_painter, pos, _defPtName, _bShowNames, _color );
     }
-    else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en court d'operation
+    else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
-        if (_bShowLines && (insertMode || isPointSelected())) // insert polygon point
+        if ((insertMode || isPointSelected())) // insert polygon point
 
-            _helper->build(pos, insertMode);
+            _helper->build(cPoint(_painter, pos, getSelectedPointName(), _bShowNames, _color ), insertMode);
 
         else                                 // select nearest polygon point
 
-            findNearestPoint(pos);
+            findNearestPoint(pos, _radius / zoom);
     } 
 }
 
@@ -907,6 +924,8 @@ void cPolygon::showLines(bool show)
 {
     _bShowLines = show;
 
+    if (_helper != NULL) _helper->showLines(show);
+
     if(!show) _bIsClosed = true;
 
     _color = show ? Qt::red : Qt::green;
@@ -958,6 +977,17 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
     return inside;
 }
 
+void cPolygon::showRefuted()
+{
+    _bShowRefuted = !_bShowRefuted;
+
+    for (int aK=0; aK < _points.size(); ++aK)
+    {
+        if (_points[aK].state() == NS_SaisiePts::eEPI_Refute)
+            _points[aK].setVisible(_bShowRefuted);
+    }
+}
+
 //********************************************************************************
 
 cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor, QColor pointColor):
@@ -987,7 +1017,7 @@ float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
     return sqrt(dx*dx + dy*dy);
 }
 
-void cPolygonHelper::build(QPointF const &pos, bool insertMode)
+void cPolygonHelper::build(cPoint const &pos, bool insertMode)
 {
     int sz = _polygon->size();
 
@@ -1011,16 +1041,21 @@ void cPolygonHelper::build(QPointF const &pos, bool insertMode)
     }
     else //moveMode
     {
-        int idx = _polygon->idx();
+        if (sz > 1)
+        {
+            int idx = _polygon->idx();
 
-        if ((idx > 0) && (idx <= sz-1))
-            setPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
-        else if (idx  == 0)
-            setPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
+            if ((idx > 0) && (idx <= sz-1))
+                setPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);
+            else if (idx  == 0)
+                setPoints((*_polygon)[sz-1],pos,(*_polygon)[1]);
+        }
+        else
+            setPoints(pos, pos, pos);
     }
 }
 
-void cPolygonHelper::setPoints(QPointF p1,QPointF p2,QPointF p3)
+void cPolygonHelper::setPoints(cPoint p1, cPoint p2, cPoint p3)
 {
     clear();
     add(p1);
@@ -1056,18 +1091,24 @@ cImageGL::~cImageGL()
     }
 }
 
-void cImageGL::drawQuad()
+void cImageGL::drawQuad(QColor color)
+{       
+    drawQuad(_originX, _originY, _glh, _glw,color);
+}
+
+void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color)
 {
+    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
     glBegin(GL_QUADS);
     {
         glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(_originX, _originY);
+        glVertex2f(originX, originY);
         glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(_originX+_glw, _originY);
+        glVertex2f(originX+glw, originY);
         glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(_originX+_glw, _originY+_glh);
+        glVertex2f(originX+glw, originY+glh);
         glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(_originX, _originY+_glh);
+        glVertex2f(originX, originY+glh);
     }
     glEnd();
 }
@@ -1084,7 +1125,7 @@ void cImageGL::draw()
         _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
     }
 
-    drawQuad();
+    drawQuad(Qt::white);
 
     if(_gamma !=1.0f) _program.release();
 
@@ -1093,9 +1134,8 @@ void cImageGL::draw()
 }
 
 void cImageGL::draw(QColor color)
-{
-    glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
-    drawQuad();
+{    
+    drawQuad(color);
 }
 
 void cImageGL::setPosition(GLfloat originX, GLfloat originY)
@@ -1108,6 +1148,11 @@ void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
 {
     _glh = glh;
     _glw = glw;
+}
+
+bool cImageGL::isPtInside(const QPointF &pt)
+{
+    return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
 }
 
 void cImageGL::PrepareTexture(QImage * pImg)
@@ -1299,6 +1344,14 @@ void cGLData::draw()
     for (int i=0; i< Cams.size();i++) Cams[i]->draw();
 
     disableOptionLine();
+}
+
+void cGLData::setDimensionImage(int vW, int vH)
+{
+    float rw = (float) glMaskedImage._m_image->width()  / vW;
+    float rh = (float) glMaskedImage._m_image->height() / vH;
+
+    glMaskedImage.setDimensions(2.f*rh,2.f*rw);
 }
 
 void cGLData::setGlobalCenter(Pt3d<double> aCenter)
@@ -1498,13 +1551,18 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
 
 //********************************************************************************
 
+/*cMessages2DGL::~cMessages2DGL()
+{
+    glwid = NULL;
+}*/
+
 void cMessages2DGL::draw(){
 
-    if (DrawMessages())
+    if (drawMessages())
     {
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
-        ll_curHeight = lr_curHeight = lc_curHeight = h - m_font.pointSize()*m_messagesToDisplay.size();
-        int uc_curHeight = 10;            //upper center
+        ll_curHeight = lr_curHeight = lc_curHeight = h - (m_font.pointSize())*(m_messagesToDisplay.size()-1) ;
+        int uc_curHeight = m_font.pointSize();            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();
         while (it != m_messagesToDisplay.end())
@@ -1513,7 +1571,7 @@ void cMessages2DGL::draw(){
             switch(it->position)
             {
             case LOWER_LEFT_MESSAGE:
-                ll_curHeight -= renderTextLine(*it, 10, ll_curHeight);
+                ll_curHeight -= renderTextLine(*it, m_font.pointSize(), ll_curHeight,m_font.pointSize());
                 break;
             case LOWER_RIGHT_MESSAGE:
                 lr_curHeight -= renderTextLine(*it, w - 120, lr_curHeight);
@@ -1536,7 +1594,7 @@ int cMessages2DGL::renderTextLine(MessageToDisplay messageTD, int x, int y, int 
 {
     glwid->qglColor(messageTD.color);
 
-    m_font.setPointSize(sizeFont);
+    //m_font.setPointSize(sizeFont);
 
     glwid->renderText(x, y, messageTD.message,m_font);
 
@@ -1571,8 +1629,8 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
         {
             if(m_bDisplayMode2D)
             {
-                displayNewMessage(QString("PIXEL POSITION"),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                displayNewMessage(QString("ZOOM"),LOWER_LEFT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString(" "),LOWER_RIGHT_MESSAGE, Qt::lightGray);
+                displayNewMessage(QString(" "),LOWER_LEFT_MESSAGE, QColor("#ffa02f"));
             }
             else
             {
@@ -1594,7 +1652,6 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
         else
             displayNewMessage(QString("Drag & drop files"));
     }
-
 }
 
 std::list<MessageToDisplay>::iterator cMessages2DGL::GetLastMessage()

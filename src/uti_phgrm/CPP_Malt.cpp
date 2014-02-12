@@ -203,7 +203,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(aMode,"Mode of correlation (must be in allowed enumerated values)")
+        LArgMain()  << EAMC(aMode,"Mode of correlation (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
                     << EAMC(mFullName,"Full Name (Dir+Pattern)")
                     << EAMC(mOri,"Orientation"),
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for using result of AperoChImSecMM")
@@ -310,6 +310,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   SplitDirAndFile(mDir,mIms,mFullName);
 
 
+
+
   if (mUseImSec)
   {
      ELISE_ASSERT((mType==eGeomImage),"Illegal combinaison with UseImSec");
@@ -328,6 +330,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 
   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+  mICNM->CorrecNameOrient(mOri); 
   mSetIm = mICNM->Get(mIms);
   mNbIm = mSetIm->size();
   ELISE_ASSERT((mNbIm>=2)|mUseImSec,"Not Enough image in Pattern");

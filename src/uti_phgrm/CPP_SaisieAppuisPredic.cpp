@@ -79,6 +79,7 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
 
 
   cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+  aCINM->CorrecNameOrient(anOri);
   const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
 
   std::cout << "Nb Image =" << aSet->size() << "\n";

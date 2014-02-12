@@ -11,6 +11,7 @@
 #include "general/bitm.h"
 
 #include "HistoryManager.h"
+#include "Settings.h"
 
 class ViewportParameters
 {
@@ -31,10 +32,12 @@ public:
 
     void    ptSizeUp(bool up);
 
-    void    changeZoom(float DChange)
+    float   changeZoom(float DChange)
     {
         if      (DChange > 0) m_zoom *= pow(2.f,  DChange *.05f);
         else if (DChange < 0) m_zoom /= pow(2.f, -DChange *.05f);
+
+        return  m_zoom;
     }
 
     //! Current zoom
@@ -64,16 +67,15 @@ public:
     void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
     void        setDir(QDir aDir){_Dir = aDir;}
+    void        setDir(QStringList const &list);
     QDir        getDir(){return _Dir;}
 
-    void        setFilenamesIn(QStringList const &strl){_FilenamesIn = strl;}
-    void        setFilenamesOut();
+    void        setFilenamesAndDir(QStringList const &strl);
     void        setFilenameOut(QString str);
-    void        setSelectionFilenames();
 
-    QStringList& getFilenamesIn() {return _FilenamesIn;}
-    QStringList getFilenamesOut() {return _FilenamesOut;}
-    QStringList& getSelectionFilenames() {return _SelectionOut;}
+    QStringList& getFilenamesIn()        { return _FilenamesIn; }
+    QStringList  getFilenamesOut()       { return _FilenamesOut; }
+    QStringList& getSelectionFilenames() { return _SelectionOut; }
 
     void        setPostFix(QString str);
 
@@ -96,26 +98,19 @@ public:
     cEngine();
     ~cEngine();
 
-    //! Set working directory
-    void    setDir(QDir aDir){_Loader->setDir(aDir);}
-
-    //! Set working directory
-    void    setSelectionFilenames(){_Loader->setSelectionFilenames();}
-    QStringList& getSelectionFilenames(){ return _Loader->getSelectionFilenames(); }
+    //! Set appli params
+    void    setParams(cParameters *params){ _params = params; }
 
     //! Set input filenames
-    void    setFilenamesIn(QStringList const &strl){_Loader->setFilenamesIn(strl);}
+    void    setFilenamesAndDir(QStringList const &strl){ _Loader->setFilenamesAndDir(strl); }
 
     QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
-
-    //! Set output filenames
-    void    setFilenamesOut(){_Loader->setFilenamesOut();}
 
     //! Set output filename
     void    setFilenameOut(QString filename){_Loader->setFilenameOut(filename);}
 
     //! Set postfix
-    void    setPostFix(QString filename){_Loader->setPostFix(filename);}
+    void    setPostFix(){_Loader->setPostFix(_params->getPostFix());}
 
     //! Load point cloud .ply files
     void    loadClouds(QStringList, int *incre = NULL);
@@ -133,6 +128,8 @@ public:
     void    reloadImage(int aK);
 
     void    unloadAll();
+
+    void    unload(int aK);
 
     //! Compute mask binary images: projection of visible points into loaded cameras
     void    do3DMasks();
@@ -152,10 +149,6 @@ public:
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
-    void     setGamma(float aGamma) {_Gamma = aGamma;}
-
-    float    getGamma() { return _Gamma;}
-
 private:
 
     cLoader*            _Loader;
@@ -163,7 +156,7 @@ private:
 
     QVector <cGLData*>  _vGLData;
 
-    float               _Gamma;
+    cParameters*        _params;
 };
 
 

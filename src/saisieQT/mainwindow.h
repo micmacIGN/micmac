@@ -16,13 +16,14 @@
 
 #include "Engine.h"
 #include "GLWidgetSet.h"
+#include "Settings.h"
+#include "qdesktopwidget.h"
 
 namespace Ui {
 class MainWindow;
 }
 
-const QColor colorBG0(65,65,60);
-const QColor colorBG1(120,115,115);
+const QColor colorBorder("#606060");
 
 //! Interface mode
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
@@ -31,20 +32,23 @@ enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
                 POINT2D_PREDICT /**< Points in Image (SaisiePointPredic) **/
 };
 
-
 class MainWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow( Pt2di aSzW, Pt2di aNbFen, int mode = MASK3D, QString pointName = "", QWidget *parent = 0 );
+    explicit MainWindow( int mode = MASK3D, QWidget *parent = 0 );
     ~MainWindow();
 
     void setPostFix(QString str);
 
-    void setNbFen(QPoint nb);
-    void setSzFen(QPoint sz);
+    void runProgressDialog(QFuture<void> future);
 
+    void readSettings();
+    void writeSettings();
+
+    void applyParams();
+    void labelShowMode();
 public slots:
 
     //! Try to load a list of files
@@ -54,17 +58,28 @@ public slots:
 
     void closeAll();
 
+    void closeCurrentWidget();
+
     void openRecentFile();
 
     void progression();
 
-    void setMode2D(bool mBool);
+    void setMode();
 
     cEngine* getEngine(){return _Engine;}
 
-	void setGamma(float aGamma);
+    void closeEvent(QCloseEvent *event);
+
+    void redraw(bool nbWidgetsChanged=false);
+
+    void setGamma(float);
 
 protected slots:
+
+    void setImagePosition(QPointF pt);
+    void setZoom(float);
+
+    void changeCurrentWidget(void* cuWid);
 
     //View Menu
     void on_actionShow_axis_toggled(bool);
@@ -76,7 +91,6 @@ protected slots:
     void on_actionShow_messages_toggled(bool);
     void on_actionToggleMode_toggled(bool);
 
-    void on_action2D_3D_mode_triggered();
     void on_actionReset_view_triggered();
 
     void on_actionSetViewTop_triggered();
@@ -108,6 +122,7 @@ protected slots:
     void on_actionSave_masks_triggered();
     void on_actionSave_as_triggered();
     void on_actionSave_selection_triggered();
+    void on_actionSettings_triggered();
 
     //Help Menu
     void on_actionHelpShortcuts_triggered();
@@ -142,15 +157,12 @@ private:
 
     QMenu*                  _RFMenu; //recent files menu
 
-    bool                    _bMode2D;
-
-    QPoint                  _nbFen;
-    QPoint                  _szFen;
-
     QSignalMapper*          _signalMapper;
     QGridLayout*            _layout;
+    QGridLayout*            _zoomLayout;
 
-    bool                    _bModePt;
-    QString                 _ptName;
+    cParameters*            _params;
+
+    int                     _mode;
 };
 #endif // MAINWINDOW_H

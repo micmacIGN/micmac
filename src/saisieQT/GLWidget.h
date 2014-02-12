@@ -35,8 +35,6 @@
 
 class GLWidgetSet;
 
-
-
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -44,7 +42,7 @@ class GLWidget : public QGLWidget
 public:
 
     //! Default constructor
-    GLWidget(int idx, GLWidgetSet *theSet, const QGLWidget *shared);
+    GLWidget(int idx, const QGLWidget *shared);
 
     //! Destructor
     ~GLWidget(){}
@@ -81,12 +79,13 @@ public:
     void reset();
 
     //! Reset view
-    void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true);
+    void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true, bool resetPoly = true);
 
-    ViewportParameters* getParams()         { return &_params; }
+    ViewportParameters* getParams()         { return &_vp_Params; }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
+    cMessages2DGL*      getMessageManager() { return &_messageManager; }
 
-    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true);
+    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true, bool setPainter = true, bool resetPoly = true);
     cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
@@ -98,6 +97,8 @@ public:
     float imWidth() { return m_GLData->glMaskedImage._m_image->width(); }
     float imHeight(){ return m_GLData->glMaskedImage._m_image->height();}
 
+    bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glMaskedImage._m_image->isPtInside(pt); }
+
     GLint vpWidth() { return _matrixManager.vpWidth(); }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
@@ -105,14 +106,25 @@ public:
 
     void refreshPositionMessage(QPointF pos);
 
+    void setDisplayMode(bool is2D) { m_bDisplayMode2D = is2D; }
+
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
+
+    void centerViewportOnImagePosition(QPointF pt);
 
 signals:
 
     //! Signal emitted when files are dropped on the window
     void filesDropped(const QStringList& filenames);
+
+    void newImagePosition(QPointF pt);
+
+    void overWidget(void* widget);
+
+    void zoomChanged(float zoom);
+    void gammaChanged(float gamma);
 
 protected:
     //! inherited from QGLWidget
@@ -128,14 +140,16 @@ protected:
     void keyPressEvent  (QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
 
-    void wheelEvent(QWheelEvent* event);
+    void wheelEvent(QWheelEvent *event);
 
-    void dragEnterEvent(QDragEnterEvent* event);
-    void dropEvent(QDropEvent* event);
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
 
     void contextMenuEvent(QContextMenuEvent *event);
 
-    void Overlay();
+    void enterEvent(QEvent *event);
+
+    void overlay();
 
     //! Current interaction mode (with mouse)
     int m_interactionMode;
@@ -154,10 +168,12 @@ protected:
     QPointF     m_lastPosImage;
     QPoint      m_lastPosWindow;
 
+    bool        imageLoaded();
+
 private:
 
     //! Window parameters (zoom, etc.)
-    ViewportParameters _params;
+    ViewportParameters _vp_Params;
 
     void        computeFPS(MessageToDisplay &dynMess);
 
@@ -174,8 +190,6 @@ private:
     ContextMenu     _contextMenu;
 
     int             _widgetId;
-
-    GLWidgetSet*    _parentSet;
 
     QColor      _BGColor0;
     QColor      _BGColor1;

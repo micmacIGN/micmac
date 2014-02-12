@@ -100,13 +100,13 @@ TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
     if (err != cudaSuccess)
     {
         std::cout << "--------------------------------------------------------------------------------------\n";
-        std::cout << "Erreur Cuda         : " <<  fonctionName  << "() | Object " + CGObject::Id() << "\n";
-        GpGpuTools::OutputInfoGpuMemory();
+        std::cout << "Erreur Cuda         : " <<  fonctionName  << "() | Object " + CGObject::Id() << "\n";        
         OutputInfo();
         std::cout << "Pointeur de donnees : " << CData<T>::pData()  << "\n";
         std::cout << "Memoire allouee     : " << _memoryOc / pow(2.0,20) << " Mo | " << _memoryOc / pow(2.0,10) << " ko | " << _memoryOc  << " octets \n";
         std::cout << "Taille des donnees  : " << CData<T>::GetSizeofMalloc()  / pow(2.0,20) << " Mo | " << CData<T>::GetSizeofMalloc()  / pow(2.0,10) << " ko | " << CData<T>::GetSizeofMalloc() << " octets \n";
         checkCudaErrors( err );
+        GpGpuTools::OutputInfoGpuMemory();
         std::cout << "--------------------------------------------------------------------------------------\n";
         exit(1);
         return false;
@@ -251,6 +251,8 @@ public:
     bool			Realloc(uint2 dim, uint l);
 
     bool			Realloc(uint size){return Realloc(make_uint2(size,1),1);}
+
+    bool			Realloc(uint3 dim){return Realloc(make_uint2(dim.x,dim.y),dim.z);}
 
     bool			ReallocIf(uint dim1D);
 
@@ -732,7 +734,8 @@ private:
 TPL_T ImageLayeredCuda<T>::ImageLayeredCuda():
     DecoratorImageCuda(this)
 {
-    CData3D::SetType("ImageLayeredCuda");
+
+    CData3D::SetType(__CLASS_NAME__);
 
     CData3D::ClassTemplate(CData3D::ClassTemplate() + " " + CData3D::StringClass<T>(_ClassData));
 }

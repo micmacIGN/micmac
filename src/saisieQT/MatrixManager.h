@@ -1,7 +1,6 @@
 #ifndef __MATRIXMANAGER__
 #define __MATRIXMANAGER__
 
-#include "3DObject.h"
 #include "Engine.h"
 
 //! View orientation
@@ -35,7 +34,7 @@ public:
 
     void        orthoProjection();
 
-    void        scaleAndTranslate(float x, float y, float zoom);
+    void        translate(float x, float y);
 
     GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
 
@@ -63,8 +62,6 @@ public:
 
     //! Project a point from image to window
     QPointF     ImageToWindow(const QPointF &imPt, float zoom);
-
-    cPolygon    PolygonImageToWindow(cPolygon polygon, float zoom);
 
     static void mglOrtho( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val );
 

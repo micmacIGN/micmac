@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2081]) = {
+const char * (theNameVar_ParamMICMAC[2082]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1307,6 +1307,7 @@ const char * (theNameVar_ParamMICMAC[2081]) = {
 "		<!-- Soustrait l'identdite (X,Y), au resultat; a du sens en GeomIm1 pour\n",
 "		avoir + de \"dynamique\"-->\n",
 "		<SubsXY  Nb=\"?\" Type=\"bool\" Def=\"false\"> </SubsXY>\n",
+"		<Polar  Nb=\"?\" Type=\"bool\" Def=\"false\"> </Polar>\n",
 "<!--\n",
 "	        <ImagePattern  Nb=\"1\" Type=\"std::string\"> </ImagePattern>\n",
 "		<NameX   Nb=\"?\" Type=\"std::string\" Def=\"X\"> </NameX>\n",

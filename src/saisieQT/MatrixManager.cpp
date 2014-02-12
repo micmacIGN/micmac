@@ -59,12 +59,11 @@ void MatrixManager::orthoProjection()
     mglOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
 }
 
-void MatrixManager::scaleAndTranslate(float x, float y, float zoom)
+void MatrixManager::translate(float x, float y)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glPushMatrix();
-    glScalef(zoom, zoom, 1.f);
     glTranslatef(x,y,0.f);
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
     glPopMatrix();
@@ -126,16 +125,6 @@ QPointF MatrixManager::ImageToWindow(QPointF const &imPt, float zoom)
 {
     return QPointF (imPt.x()*zoom + .5f*_glViewport[2]*(1.f + _projMatrix[12]),
             - 1.f - imPt.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
-}
-
-cPolygon MatrixManager::PolygonImageToWindow(cPolygon polygon, float zoom)
-{
-    cPolygon poly = polygon;
-    poly.clearPoints();
-    for (int aK = 0;aK < polygon.size(); ++aK)
-        poly.add(ImageToWindow(polygon[aK],zoom),polygon[aK].isSelected());
-
-    return poly;
 }
 
 void MatrixManager::mglOrtho( GLdouble left, GLdouble right,

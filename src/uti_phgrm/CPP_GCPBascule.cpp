@@ -75,6 +75,8 @@ int GCPBascule_main(int argc,char ** argv)
 		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 	#endif
     SplitDirAndFile(aDir,aPat,aFullDir);
+    StdCorrecNameOrient(AeroIn,aDir);
+
 		
 	MMD_InitArgcArgv(argc,argv);
 	

@@ -817,6 +817,30 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
          mNuage.Image_Profondeur().Val().ResolutionAlti() = aSomResolAlti;
          mNuage.Image_Profondeur().Val().OrigineAlti() = aSomOriAlti;
+        
+        // Creation du TFW
+        {
+            std::string aNameTFW = StdPrefix(mNameTif) + ".tfw";
+            std::ofstream aFtfw(aNameTFW.c_str());
+            aFtfw.precision(10);
+            
+            ElAffin2D aAfM2C = Xml2EL(mNuage.Orientation().OrIntImaM2C());
+            
+            
+            double resolutionX = 1./aAfM2C.I10().x;
+            double resolutionY = 1./aAfM2C.I01().y;
+            double origineX = -aAfM2C.I00().x * resolutionX;
+            double origineY = -aAfM2C.I00().y * resolutionY;
+            aFtfw << resolutionX << "\n" << 0 << "\n";
+            aFtfw << 0 << "\n" << resolutionY << "\n";
+            aFtfw << origineX << "\n" << origineY << "\n";
+            
+            //aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
+            //aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
+            //aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
+            aFtfw.close();
+        }
+        
     }
 
    mZIsInv = false;

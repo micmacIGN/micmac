@@ -74,6 +74,9 @@ int CentreBascule_main(int argc,char ** argv)
 		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
     SplitDirAndFile(aDir,aPat,aFullDir);
+    StdCorrecNameOrient(AeroIn,aDir);
+    StdCorrecNameOrient(BDC,aDir);
+
 		
 	
     std::string aCom =   MMDir() + std::string("bin/Apero ")

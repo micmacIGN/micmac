@@ -3644,13 +3644,14 @@ aKeyOrFile         :
 	cCapture3D * & cResulMSO::Capt3d()      {return mCapt3d;}
 
 
-	bool  cInterfChantierNameManipulateur::TestStdOrient
-		(
+bool  cInterfChantierNameManipulateur::TestStdOrient
+	(
 		const std::string & aManquant,
 		const std::string & aPrefix,
-		std::string & anOri
-		)
-	{
+		std::string & anOri,
+                bool  AddNKS
+	)
+{
 		// std::cout << "ttTEST " << anOri << "\n";
 		if (anOri.find(aPrefix) != 0)
 			return false;
@@ -3665,15 +3666,39 @@ aKeyOrFile         :
 
 
 		anOri = anOri.substr(aPrefix.size(),std::string::npos);
-		anOri =  "NKS-Assoc-Im2Orient@-" + anOri;
+                if (AddNKS) 
+		    anOri =  "NKS-Assoc-Im2Orient@-" + anOri;
 
 
 		return true;
 
-	}
+}
 
-	cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,bool AccepNone,std::string * aNameIm)
-	{
+void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri) 
+{
+    int aL = strlen(aNameOri.c_str());
+    if (aL && (aNameOri[aL-1]==ELISE_CAR_DIR))
+    {
+        aNameOri = aNameOri.substr(0,aL-1);
+    }
+
+    if  (TestStdOrient("Ori-","",aNameOri,false))
+        return;
+
+    if  (TestStdOrient("","Ori-",aNameOri,false))
+        return;
+
+    if  (TestStdOrient("Ori","-",aNameOri,true))
+        return;
+
+     std::cout << "############## For Value " << aNameOri << " ############ \n";
+     ELISE_ASSERT(false,"Ori name is not a valid existing directory");
+}
+
+
+
+cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,bool AccepNone,std::string * aNameIm)
+{
 		cResulMSO  aResult;
 		if (AccepNone && (anOri=="NONE"))
 			return aResult;
@@ -3725,9 +3750,9 @@ aKeyOrFile         :
 
 
 		if (
-			TestStdOrient("Ori-","",anOri)
-			|| TestStdOrient("","Ori-",anOri)
-			|| TestStdOrient("Ori","-",anOri)
+			TestStdOrient("Ori-","",anOri,true)
+			|| TestStdOrient("","Ori-",anOri,true)
+			|| TestStdOrient("Ori","-",anOri,true)
 			)
 		{
 			aResult.IsKeyOri() = true;
@@ -3742,7 +3767,7 @@ aKeyOrFile         :
 			);
 
 		return aResult;
-	}
+}
 
 std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std::string & aStr)
 {
@@ -3786,12 +3811,66 @@ std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std
 
 
 
+void StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir)
+{
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    return anICNM->CorrecNameOrient(aNameOri);
+}
 
 
+bool  TestStdMasq
+	(
+		const std::string & aManquant,
+		const std::string & aDir,
+		const std::string & aPat,
+		std::string & aMasq
+	)
+{
+
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+     
+    std::list<std::string> aL = anICNM->StdGetListOfFile(aPat,1);
+
+    for (std::list<std::string>::const_iterator itS=aL.begin(); itS!=aL.end() ; itS++)
+    {
+        std::string aName =  aDir + StdPrefix(*itS) + aManquant + aMasq + ".tif";
+        if ( ELISE_fp::exist_file(aName))
+        {
+           aMasq = aManquant+aMasq;
+           return true;
+        }
+    }
+
+
+    return false;
+}
+
+
+void   CorrecNameMasq
+	(
+		const std::string & aDir,
+		const std::string & aPat,
+		std::string & aMasq
+	)
+{
+   if (TestStdMasq("",aDir,aPat,aMasq)) return;
+   if (TestStdMasq("_",aDir,aPat,aMasq)) return;
+   if (TestStdMasq("_Masq",aDir,aPat,aMasq)) return;
+
+   std::cout << "############## For Value " << aMasq << " ############ \n";
+   ELISE_ASSERT(false,"Key is not a valid masq extension");
+}
+
+
+/*
+TestStdMasq("",aDir,aPat,aMasq);
+TestStdMasq("Masq",aDir,aPat,aMasq);
+TestStdMasq("_Masq",aDir,aPat,aMasq);
+*/
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -3807,17 +3886,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
