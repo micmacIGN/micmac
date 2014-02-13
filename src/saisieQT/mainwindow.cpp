@@ -208,7 +208,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         for (int aK = 0; aK < nbWidgets();++aK)
         {
-            getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
+            getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
             if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
         }
 
