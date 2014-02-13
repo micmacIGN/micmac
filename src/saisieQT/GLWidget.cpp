@@ -92,7 +92,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
 
         _contextMenu.setPolygon( &m_GLData->m_polygon);
 
-         resetView(showMessage, doZoom, true, resetPoly);
+         resetView(doZoom, showMessage, true, resetPoly);
     }
 }
 
