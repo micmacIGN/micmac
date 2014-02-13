@@ -118,7 +118,6 @@ void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
 
     mAppli.Interface()->DrawZoom(aPGlob);
 
-   //TODO:
     cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePoint();
 
     if (aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel))
@@ -127,7 +126,7 @@ void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
 
     else
 
-        mAppli.Interface()->MenuNamePoint()->W().lower();
+        ((cX11_Interface*)mAppli.Interface())->MenuNamePoint()->W().lower();
 }
 
 void cX11_Interface::DrawZoom(const Pt2dr & aPGlob)

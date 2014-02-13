@@ -258,7 +258,7 @@ void cX11_Interface::DeletePoint(cSP_PointGlob * aSG)
 
 //************************************************************************************************************************************************
 
-cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2) :
+cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
     mParam      (*aP2.mObj),
     mICNM       (aP2.mICNM),
     mDC         (aP2.mDC),
@@ -272,12 +272,8 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     InitImages();
     InitInPuts();
 
-/*#ifdef SAISIE_QT
-    mInterface = new  cQT_Interface(*this);
-#else*/
-    mInterface = new cX11_Interface(*this);
-//#endif
-
+    if(instanceInterface)
+        mInterface = new cX11_Interface(*this);
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }
