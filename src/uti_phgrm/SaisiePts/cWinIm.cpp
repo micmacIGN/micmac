@@ -597,7 +597,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
                     mAppli.ChangeName(aPIm->Gl()->PG()->Name(),aNewName);
                 }
 
-                mAppli.Interface()->MenuNamePoint()->W().lower();
+                ((cX11_Interface*)mAppli.Interface())->MenuNamePoint()->W().lower();
             }
         }
     }

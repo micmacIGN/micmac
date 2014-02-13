@@ -19,6 +19,10 @@
 #include "Settings.h"
 #include "qdesktopwidget.h"
 
+#include "../uti_phgrm/SaisiePts/cParamSaisiePts.h"
+
+using namespace NS_SaisiePts;
+
 namespace Ui {
 class MainWindow;
 }
@@ -37,6 +41,7 @@ class MainWindow : public QMainWindow, public GLWidgetSet
     Q_OBJECT
 
 public:
+
     explicit MainWindow( int mode = MASK3D, QWidget *parent = 0 );
     ~MainWindow();
 
@@ -45,10 +50,17 @@ public:
     void runProgressDialog(QFuture<void> future);
 
     void readSettings();
+
     void writeSettings();
 
     void applyParams();
+
     void labelShowMode();
+
+    cAppli_SaisiePts *getAppliMetier() const;
+
+    void setAppliMetier(cAppli_SaisiePts *value);
+
 public slots:
 
     //! Try to load a list of files
@@ -134,6 +146,9 @@ protected:
     void connectActions();  
 
 private:
+
+    cAppli_SaisiePts*       AppliMetier;
+
     void                    createRecentFileMenu();
 
     void                    setCurrentFile(const QString &fileName);

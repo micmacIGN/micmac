@@ -111,13 +111,23 @@ void MainWindow::connectActions()
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 }
+cAppli_SaisiePts *MainWindow::getAppliMetier() const
+{
+    return AppliMetier;
+}
+
+void MainWindow::setAppliMetier(cAppli_SaisiePts *value)
+{
+    AppliMetier = value;
+}
+
 
 void MainWindow::createRecentFileMenu()
 {
     _RFMenu = new QMenu(tr("&Recent files"), this);
-
+    
     _ui->menuFile->insertMenu(_ui->actionSettings, _RFMenu);
-
+    
     for (int i = 0; i < MaxRecentFiles; ++i)
         _RFMenu->addAction(_recentFileActs[i]);
 

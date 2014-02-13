@@ -41,16 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SAISIEPTS_ALL_H_
 #define _ELISE_SAISIEPTS_ALL_H_
 
-#if(ELISE_QT5)
-    #ifdef Int
-        #undef Int
-    #endif
-    #include <QString>
-    #define Int int
-
-    //#include "../../saisieQT/mainwindow.h"
-#endif
-
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 
@@ -327,7 +317,7 @@ class cVirtualInterface
     int              GetNumCasePoint()          { return mVNameCase.size(); }
     cCaseNamePoint & GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
 
-     virtual  cFenMenu *      MenuNamePoint()=0;
+//     virtual  cFenMenu *      MenuNamePoint()=0;
 
      virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
 
@@ -400,43 +390,13 @@ private:
 
 };
 
-class cQT_Interface  : public cVirtualInterface
-{
-public :
 
-    cQT_Interface(cAppli_SaisiePts &appli);
-    ~cQT_Interface();
-
-    void                RedrawAllWindows();
-
-    void                Save();
-
-    void                SetInvisRef(bool aVal);
-
-    void                DrawZoom(const Pt2dr & aPGlob); //fenetre zoom
-
-    void                ChangeFreeNamePoint(const std::string &, bool SetFree);
-
-    void                DeletePoint(cSP_PointGlob *);
-
-    cCaseNamePoint *    GetIndexNamePoint();
-
-
-
-
-private:
-
-
-    void                Init();
-
-    //MainWindow*         _qtMainWindows;
-};
 
 class cAppli_SaisiePts
 {
     public :
 
-    cAppli_SaisiePts( cResultSubstAndStdGetFile<cParamSaisiePts> aParam);
+    cAppli_SaisiePts( cResultSubstAndStdGetFile<cParamSaisiePts> aParam, bool instanceInterface = true);
     const cParamSaisiePts &             Param() const;
     const std::string &                 DC()    const;     // directory chantier
     cInterfChantierNameManipulateur *   ICNM()  const;
@@ -486,7 +446,8 @@ class cAppli_SaisiePts
     void ChangeName(std::string  anOldName,std::string  aNewName); //UTILISE L'INTERFACE appelle ReaffAllW();
 
     cVirtualInterface* Interface() { return mInterface; }
-    //cX11_Interface* Interface() { return mInterface; }
+
+    void SetInterface(cVirtualInterface* interface) { mInterface = interface;}
 
     int             nbImages()  { return mNbIm; }
 
