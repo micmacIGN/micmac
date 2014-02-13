@@ -41,6 +41,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
+//void cVirtualInterface::pushBackNamePoint(cCaseNamePoint NP)
+//{
+//    mVNameCase.push_back(NP);
+//}
+
 void cVirtualInterface::InitNbWindows()
 {
     const cSectionWindows & aSW = mParam->SectionWindows();
@@ -55,27 +60,6 @@ void cVirtualInterface::InitNbWindows()
         mNb2W.y = round_up((double(mNbW)-0.01)/mNb2W.x);
     }
 }
-
-//***********************************************************************************************************************
-
-/*cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli)
-{
-    mParam = &appli.Param();
-    mAppli = &appli;
-
-    mRefInvis = appli.Param().RefInvis().Val();
-
-    Init();
-}
-
-void cQT_Interface::Init()
-{
-    InitNbWindows();
-
-
-}*/
-
-//***********************************************************************************************************************
 
 cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
     mWZ           (0),
@@ -597,7 +581,6 @@ void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
             anI.AddAPointe(&anOS,aSPG,false);
         }
     }
-
 }
 
 void cAppli_SaisiePts::GlobChangStatePointe
