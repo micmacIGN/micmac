@@ -149,5 +149,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     w.addFiles(filenames);
 
+    w.RefreshPts();
+
     return app.exec();
 }

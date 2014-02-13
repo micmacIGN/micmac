@@ -61,6 +61,7 @@ public:
 
     void setAppliMetier(cAppli_SaisiePts *value);
 
+    void RefreshPts();
 public slots:
 
     //! Try to load a list of files
