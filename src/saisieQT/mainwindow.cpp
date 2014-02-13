@@ -74,6 +74,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     if (_mode != MASK3D)
         setImagePosition(QPointF(-1.f,-1.f));
+
 }
 
 MainWindow::~MainWindow()
@@ -836,14 +837,8 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     }
 }
 
-void MainWindow::addPoint(QPointF point)
+void MainWindow::RefreshPts()
 {
-    Pt2dr aPGlob(point.x(),point.y());
-
-    cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
-
-    getAppliMetier()->images(0)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
-
     for (int var = 0; var < getAppliMetier()->nbImages(); ++var) {
 
         if(var<nbWidgets())
@@ -865,6 +860,17 @@ void MainWindow::addPoint(QPointF point)
             getWidget(var)->update();
         }
     }
+}
+
+void MainWindow::addPoint(QPointF point)
+{
+    Pt2dr aPGlob(point.x(),point.y());
+
+    cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
+
+    getAppliMetier()->images(0)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
+
+    RefreshPts();
 }
 
 void MainWindow::undo(bool undo)
