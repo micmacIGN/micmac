@@ -128,7 +128,7 @@ void cSettingsDlg::refresh()
 }
 
 cParameters::cParameters():
-    _openFullScreen(false),
+    _fullScreen(false),
     _position(QPoint(100,100)),
     _nbFen(QPoint(1,1)),
     _szFen(QSize(800,600)),
@@ -144,7 +144,7 @@ cParameters::cParameters():
 
 cParameters& cParameters::operator =(const cParameters &params)
 {
-    _openFullScreen = params._openFullScreen;
+    _fullScreen     = params._fullScreen;
     _position       = params._position;
     _nbFen          = params._nbFen;
     _szFen          = params._szFen;
