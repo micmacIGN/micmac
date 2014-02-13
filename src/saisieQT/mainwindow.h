@@ -93,6 +93,9 @@ protected slots:
 
     void changeCurrentWidget(void* cuWid);
 
+
+    void addPoint(QPointF point);
+
     //View Menu
     void on_actionShow_axis_toggled(bool);
     void on_actionShow_ball_toggled(bool);

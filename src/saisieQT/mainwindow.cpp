@@ -93,6 +93,8 @@ void MainWindow::connectActions()
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
+
+        connect(getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
     }
 
     //File menu
@@ -830,6 +832,37 @@ void MainWindow::changeCurrentWidget(void *cuWid)
             connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
 
             connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+        }
+    }
+}
+
+void MainWindow::addPoint(QPointF point)
+{
+    Pt2dr aPGlob(point.x(),point.y());
+
+    cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
+
+    getAppliMetier()->images(0)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
+
+    for (int var = 0; var < getAppliMetier()->nbImages(); ++var) {
+
+        if(var<nbWidgets())
+        {
+            const std::vector<cSP_PointeImage *> &  aVP = getAppliMetier()->images(var)->VP();
+            getWidget(var)->getGLData()->clearPolygon();
+
+            for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            {
+                //if (WVisible(*(aVP[aK])))
+                {
+                    const cOneSaisie  & aSom = *(aVP[aK]->Saisie());
+                    Pt2dr aP = aSom.PtIm();
+                    //aP = mScr->to_win(aP);
+                    //eEtatPointeImage aState = aSom.Etat();
+                    getWidget(var)->addGlPoint(QPointF(aP.x,aP.y),QString(aSom.NamePt().c_str()));
+                }
+            }
+            getWidget(var)->update();
         }
     }
 }

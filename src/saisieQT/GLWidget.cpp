@@ -96,6 +96,12 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
     }
 }
 
+void GLWidget::addGlPoint(QPointF pt, QString name)
+{
+    cPoint point(_painter,pt,name,true);
+    getGLData()->m_polygon.add(point);
+}
+
 bool GLWidget::imageLoaded()
 {
     return hasDataLoaded() &&  m_bDisplayMode2D;
@@ -432,8 +438,11 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                     polygon().setPointSelected();
 
                 else if (!polygon().isLinear() && isPtInsideIm(m_lastPosImage))
-
+                {
                     polygon().add(m_lastPosImage);
+
+                    addPoint(m_lastPosImage);
+                }
             }
         }
         else if (event->button() == Qt::RightButton)

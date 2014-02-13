@@ -108,6 +108,8 @@ public:
 
     void setDisplayMode(bool is2D) { m_bDisplayMode2D = is2D; }
 
+    void addGlPoint(QPointF pt, QString name);
+
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
@@ -124,7 +126,10 @@ signals:
     void overWidget(void* widget);
 
     void zoomChanged(float zoom);
+
     void gammaChanged(float gamma);
+
+    void addPoint(QPointF point);
 
 protected:
     //! inherited from QGLWidget
