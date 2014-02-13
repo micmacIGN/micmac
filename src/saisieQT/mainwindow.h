@@ -55,7 +55,7 @@ public:
 
     void applyParams();
 
-    void labelShowMode();
+    void labelShowMode(bool state);
 
     cAppli_SaisiePts *getAppliMetier() const;
 
