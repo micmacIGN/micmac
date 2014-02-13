@@ -340,10 +340,13 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt)
 
 void GLWidget::setZoom(float value)
 {
-    if (value < GL_MIN_ZOOM)
-        value = GL_MIN_ZOOM;
-    else if (value > GL_MAX_ZOOM)
-        value = GL_MAX_ZOOM;
+    if (imageLoaded())
+    {
+        if (value < GL_MIN_ZOOM)
+            value = GL_MIN_ZOOM;
+        else if (value > GL_MAX_ZOOM)
+            value = GL_MAX_ZOOM;
+    }
 
     _vp_Params.m_zoom = value;
 
