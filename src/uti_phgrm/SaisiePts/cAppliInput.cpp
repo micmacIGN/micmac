@@ -95,7 +95,7 @@ void cX11_Interface::SetInvisRef(bool aVal)
 {
     mRefInvis = aVal;
 
-    for (uint aKW=0 ; aKW < mWins.size(); aKW++)
+    for (int aKW=0 ; aKW < int(mWins.size()); aKW++)
     {
         mWins[aKW]->BCaseVR()->SetVal(aVal);
         mWins[aKW]->Reaff();
@@ -153,7 +153,7 @@ bool cAppli_SaisiePts::Visible(cSP_PointeImage & aPIm)
 
 void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
 {
-    for (uint aKP=0 ; aKP< mPG.size() ; aKP++)
+    for (int aKP=0 ; aKP< int(mPG.size()) ; aKP++)
     {
         if (mPG[aKP] == aPG)
             aPG->HighLighted() = ! aPG->HighLighted();
@@ -164,7 +164,7 @@ void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
 
 void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
 {
-    for (uint aKP=0 ; aKP< mPG.size() ; aKP++)
+    for (int aKP=0 ; aKP< int(mPG.size()) ; aKP++)
     {
         if (mPG[aKP]->PG()->Name() == aNewName)
         {
@@ -173,7 +173,7 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
         }
     }
 
-    for (uint aKP=0 ; aKP< mPG.size() ; aKP++)
+    for (int aKP=0 ; aKP< int(mPG.size()) ; aKP++)
     {
         if (mPG[aKP]->PG()->Name() == anOldName)
         {

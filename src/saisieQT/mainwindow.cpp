@@ -1,6 +1,28 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+void MainWindow::labelShowMode(bool state)
+{   
+    if ((!state) || (_mode == 1))
+    {
+        _ui->label_PositionImage_1->hide();
+        _ui->label_PositionImage_2->hide();
+    }
+    else
+    {
+        if(_mode == 0)
+        {
+            _ui->label_PositionImage_1->hide();
+            _ui->label_PositionImage_2->show();
+        }
+        else if(_mode > 1)
+        {
+            _ui->label_PositionImage_1->show();
+            _ui->label_PositionImage_2->hide();
+        }
+    }
+}
+
 MainWindow::MainWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::MainWindow),
@@ -18,23 +40,12 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
 
-    QString style = "border: 1px solid #707070;"
-            "border-radius: 0px;"
-            "padding: 0px;"
-            "margin: 0px;"
-            "background: qlineargradient(x1:0, y1:0, x2:0, y2:1,stop:0 rgb(%1,%2,%3), stop:1 rgb(%4,%5,%6));";
-
-    uint sy = 2;
+    uint sy = 0;
 
     _layout->setContentsMargins(sy,sy,sy,sy);
     _layout->setHorizontalSpacing(sy);
     _layout->setVerticalSpacing(sy);
-
-    style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
-    style = style.arg(colorBorder.red()).arg(colorBorder.green()).arg(colorBorder.blue());
-
-    _ui->OpenglLayout->setStyleSheet(style);
-    _ui->OpenglLayout->setContentsMargins(0,0,0,0);
+    _ui->OpenglLayout->setLayout(_layout);
 
 #ifdef ELISE_Darwin
     _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
@@ -54,13 +65,15 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     _signalMapper = new QSignalMapper (this);
     connectActions();
-    _ui->OpenglLayout->setLayout(_layout);
+
+    labelShowMode(true);
 
     createRecentFileMenu();
 
     applyParams();
 
-    setImagePosition(QPointF(-1.f,-1.f));
+    if (_mode != MASK3D)
+        setImagePosition(QPointF(-1.f,-1.f));
 }
 
 MainWindow::~MainWindow()
@@ -195,7 +208,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         for (int aK = 0; aK < nbWidgets();++aK)
         {
-            getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages);
+            getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
             if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
         }
 
@@ -253,6 +266,15 @@ void MainWindow::on_actionShow_cams_toggled(bool state)
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
     currentWidget()->setOption(cGLData::OpShow_Mess,state);
+    /*if(state)
+        labelShowMode();
+    else
+    {
+        _ui->label_PositionImage_1->hide();
+        _ui->label_PositionImage_2->hide();
+    }*/
+
+    labelShowMode(state);
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
@@ -662,12 +684,6 @@ void MainWindow::setMode()
 
     if (_mode > MASK3D)
     {
-        QString style = "border: 2px solid #707070;"
-                "border-radius: 0px;"
-                "padding: 0px;"
-                "margin: 0px;";
-
-        _ui->zoomLayout->setStyleSheet(style);
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
         _zoomLayout->setContentsMargins(2,2,2,2);
@@ -759,28 +775,24 @@ void MainWindow::redraw(bool nbWidgetsChanged)
         }
         else
         {
-
+            //TODO
         }
     }
 }
 
 void MainWindow::setImagePosition(QPointF pt)
 {
-    QString text(tr("Image position: "));
+    QString text(tr("Image position : "));
 
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
         GLWidget* glW = currentWidget();
-        if (glW->hasDataLoaded() && !glW->getGLData()->is3D())
-        {
-            if (glW->isPtInsideIm(pt))
-                _ui->label->setText(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
-            else
-                _ui->label->setText(text);
-        }
+        if (glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
+            text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
     }
-    else
-        _ui->label->setText(text);
+
+    _ui->label_PositionImage_1->setText(text);
+    _ui->label_PositionImage_2->setText(text);
 }
 
 void MainWindow::setZoom(float val)
@@ -794,18 +806,21 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
     setCurrentWidget(glW);
 
-    connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
-
-    connect((GLWidget*)cuWid, SIGNAL(gammaChanged(float)), this, SLOT(setGamma(float)));
-
-    if (zoomWidget())
+    if (_mode != MASK3D)
     {
-        zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
-        zoomWidget()->setZoom(_params->getZoomWindowValue());
-        zoomWidget()->setOption(cGLData::OpShow_Mess,false);
-        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
+        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
-        connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+        connect((GLWidget*)cuWid, SIGNAL(gammaChanged(float)), this, SLOT(setGamma(float)));
+
+        if (zoomWidget())
+        {
+            zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
+            zoomWidget()->setZoom(_params->getZoomWindowValue());
+            zoomWidget()->setOption(cGLData::OpShow_Mess,false);
+            connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
+
+            connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+        }
     }
 }
 

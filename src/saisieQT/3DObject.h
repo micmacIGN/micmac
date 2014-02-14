@@ -365,7 +365,9 @@ class cImageGL : public cObjectGL
 
         void    draw(QColor color);
 
-        void    drawQuad();
+        void    drawQuad(QColor color);
+
+        static  void    drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color = Qt::white);
 
         void    draw();
 
