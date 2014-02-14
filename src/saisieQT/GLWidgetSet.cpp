@@ -8,9 +8,6 @@ GLWidgetSet::GLWidgetSet() :
 const QColor colorBG0("#323232");
 const QColor colorBG1("#808080");
 
-const QString style("margin: 0px;"
-                "padding: 0px;");
-
 void GLWidgetSet::init(uint aNb, bool modePt)
 {
     if (aNb==0)
@@ -19,6 +16,7 @@ void GLWidgetSet::init(uint aNb, bool modePt)
     _widgets.resize(aNb);
 
     _widgets[0] = new GLWidget(0, NULL);
+    _pcurrentWidget = _widgets[0];
 
     for (uint aK=1 ; aK < aNb; ++aK)
         _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
@@ -26,7 +24,6 @@ void GLWidgetSet::init(uint aNb, bool modePt)
     for (uint aK=0 ; aK < aNb; ++aK)
     {
         _widgets[aK]->setBackgroundColors(colorBG0,colorBG1);
-        _widgets[aK]->setStyleSheet(style);
         if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
     }
 
@@ -51,7 +48,7 @@ void GLWidgetSet::widgetSetResize(int aSz)
         _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
 
         _widgets[aK]->setBackgroundColors(colorBG0,colorBG1);
-        _widgets[aK]->setStyleSheet(style);
+        //_widgets[aK]->setStyleSheet(style);
         //TODO: if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
     }
 }

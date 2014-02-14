@@ -14,7 +14,7 @@ public:
     ~cParameters(){}
 
     //sets
-    void setFullScreen(bool fullscreen) { _openFullScreen = fullscreen; }
+    void setFullScreen(bool aBool)      { _fullScreen = aBool;   }
     void setPosition(QPoint pos)        { _position = pos;       }
     void setNbFen(QPoint const &aNbFen) { _nbFen = aNbFen;       }
     void setSzFen(QSize aSzFen)         { _szFen = aSzFen;       }
@@ -31,7 +31,7 @@ public:
     void setSelectionRadius(int val)    { _radius = val;         }
 
     //get
-    bool    getFullScreen()             { return _openFullScreen;}
+    bool    getFullScreen()             { return _fullScreen;    }
     QPoint  getPosition()               { return _position;      }
     QPoint  getNbFen()                  { return _nbFen;         }
     QSize   getSzFen()                  { return _szFen;         }
@@ -55,7 +55,7 @@ public:
 
 private:
     //main window parameters
-    bool        _openFullScreen;
+    bool        _fullScreen;
     QPoint      _position;
     QPoint      _nbFen;
     QSize       _szFen;

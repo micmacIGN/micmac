@@ -92,7 +92,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
 
         _contextMenu.setPolygon( &m_GLData->m_polygon);
 
-         resetView(showMessage, doZoom, true, resetPoly);
+         resetView(doZoom, showMessage, true, resetPoly);
     }
 }
 
@@ -129,6 +129,12 @@ void GLWidget::paintGL()
 
             m_GLData->draw();        
         }
+
+        //QPointF r = _matrixManager.WindowToImage(QPointF(0,_matrixManager.vpHeight()-10),_vp_Params.m_zoom);
+
+        //cImageGL::drawQuad(r.x(),r.y(),10,10);
+
+        //cImageGL::drawQuad(10,5,10,10);
 
         glPopMatrix();
 
@@ -289,6 +295,12 @@ void GLWidget::overlay()
 
         polygon().draw();
 
+        QPen pen(QColor(hasFocus() ? "#ffa02f" : "#707070"));
+        _painter->setPen(pen);
+
+        _painter->resetTransform();
+        _painter->drawRect(this->rect());
+
         _painter->end();
     }
 }
@@ -328,10 +340,13 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt)
 
 void GLWidget::setZoom(float value)
 {
-    if (value < GL_MIN_ZOOM)
-        value = GL_MIN_ZOOM;
-    else if (value > GL_MAX_ZOOM)
-        value = GL_MAX_ZOOM;
+    if (imageLoaded())
+    {
+        if (value < GL_MIN_ZOOM)
+            value = GL_MIN_ZOOM;
+        else if (value > GL_MAX_ZOOM)
+            value = GL_MAX_ZOOM;
+    }
 
     _vp_Params.m_zoom = value;
 
@@ -390,7 +405,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 #if ELISE_QT_VERSION==5
     setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
 #else
-    setZoom(_params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
+    setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
 #endif
 }
 
@@ -463,7 +478,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 #if ELISE_QT_VERSION == 5
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _vp_Params.m_zoom) : event->localPos();
 #else
-        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _params.m_zoom) : event->posF();
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _vp_Params.m_zoom) : event->posF();
 #endif
 
         if (m_bDisplayMode2D)
@@ -498,7 +513,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 {
                     if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
 
-                        _vp_Params.changeZoom(dPWin.y());
+                        setZoom(_vp_Params.changeZoom(dPWin.y()));
 
                     else if( vpWidth() && vpHeight())                   // TRANSLATION VIEW
                     {
