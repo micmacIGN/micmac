@@ -749,12 +749,6 @@ void MainWindow::redraw(bool nbWidgetsChanged)
         int col =  _layout->columnCount();
         int row =  _layout->rowCount();
 
-       /* cout << "old layout col nb : " << col << endl;
-        cout << "old layout row nb : " << row << endl;
-
-        cout << "new layout col nb : " <<  _params->getNbFen().x() << endl;
-        cout << "new layout row nb : " <<  _params->getNbFen().y() << endl;*/
-
         if (col < _params->getNbFen().x() || row < _params->getNbFen().y())
         {
             widgetSetResize(newWidgetNb);
@@ -820,9 +814,8 @@ void MainWindow::changeCurrentWidget(void *cuWid)
             zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
             zoomWidget()->setZoom(_params->getZoomWindowValue());
             zoomWidget()->setOption(cGLData::OpShow_Mess,false);
-            connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
 
-            connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+            connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
         }
     }
 }
@@ -859,6 +852,7 @@ void MainWindow::applyParams()
 
         _params->setSzFen(screen.size());
         _params->setPosition(QPoint(0,0));
+
         _params->write();
 
         _ui->actionFullScreen->setChecked(true);

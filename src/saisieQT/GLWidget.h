@@ -108,6 +108,7 @@ public:
 
     void setDisplayMode(bool is2D) { m_bDisplayMode2D = is2D; }
 
+    void setCursorShape(QPointF pos);
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
@@ -123,7 +124,6 @@ signals:
 
     void overWidget(void* widget);
 
-    void zoomChanged(float zoom);
     void gammaChanged(float gamma);
 
 protected:
