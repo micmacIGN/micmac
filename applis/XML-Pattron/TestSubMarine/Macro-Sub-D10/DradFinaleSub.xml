@@ -1,0 +1,56 @@
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>1501.55565069583304 1151.46441775163839</PP>
+          <F>4369.28232064779331</F>
+          <SzIm>4000 3000</SzIm>
+          <CalibDistortion>
+               <ModUnif>
+                    <TypeModele>eModelePolyDeg5</TypeModele>
+                    <Params>-0.00295305883253880802</Params>
+                    <Params>-0.000936508664877560302</Params>
+                    <Params>-0.0225590261555993314</Params>
+                    <Params>0.0109123234145935711</Params>
+                    <Params>0.0770208271323122445</Params>
+                    <Params>0.0472719877821269202</Params>
+                    <Params>-0.193341214623400814</Params>
+                    <Params>-0.0398934540599445997</Params>
+                    <Params>-0.154363365136728797</Params>
+                    <Params>-0.0612198650465052702</Params>
+                    <Params>-0.0308968148467550496</Params>
+                    <Params>-0.139048011035690533</Params>
+                    <Params>-0.00447103018203689855</Params>
+                    <Params>0.000274079400378913118</Params>
+                    <Params>0.13094485747377374</Params>
+                    <Params>0.0323560784803269275</Params>
+                    <Params>0.0559049328099816972</Params>
+                    <Params>0.10615320158001465</Params>
+                    <Params>0.0199778666971478329</Params>
+                    <Params>0.0125226099891297786</Params>
+                    <Params>0.0901943967858061385</Params>
+                    <Params>0.0329121828816881651</Params>
+                    <Params>-0.0283469814166067494</Params>
+                    <Params>-0.0740038285978404514</Params>
+                    <Params>-0.0433673926041111268</Params>
+                    <Params>-0.00759619117088634367</Params>
+                    <Params>-0.0222524293248558235</Params>
+                    <Params>-0.000996506158905142601</Params>
+                    <Params>-0.0579839857723977725</Params>
+                    <Params>0.0110786446165806393</Params>
+                    <Params>-0.000669006661055798627</Params>
+                    <Params>-0.0345402648422604569</Params>
+                    <Params>0.00116856206716790139</Params>
+                    <Params>-0.0276550243252476798</Params>
+                    <Params>0.0514483808755492045</Params>
+                    <Params>0.0312399662701361262</Params>
+                    <Etats>4000</Etats>
+               </ModUnif>
+          </CalibDistortion>
+          <CorrectionRefractionAPosteriori>
+               <FileEstimCam>/media/MYPASSPORT/SubMarine/TestCalibCanonD10/Macro-Sub/DradAir.xml</FileEstimCam>
+               <NameTag>CalibrationInternConique</NameTag>
+               <CoeffRefrac>1.33000000000000007</CoeffRefrac>
+               <IntegreDist>true</IntegreDist>
+          </CorrectionRefractionAPosteriori>
+     </CalibrationInternConique>
+</ExportAPERO>

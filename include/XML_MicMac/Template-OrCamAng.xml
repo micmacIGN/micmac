@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <OrientationConique>
+          <OrIntImaM2C>
+               <I00>0 0</I00>
+               <V10>1 0</V10>
+               <V01>0 1</V01>
+          </OrIntImaM2C>
+          <TypeProj>eProjStenope</TypeProj>
+          <Externe>
+               <Time>-1.00000000000000002e+30</Time>
+               <KnownConv>eConvApero_DistM2C</KnownConv>
+               <Centre>       0 0 0         </Centre>
+               <ParamRotation>
+                    <CodageAngulaire>     0 0 0 </CodageAngulaire>
+               </ParamRotation>
+          </Externe>
+          <ConvOri>
+               <KnownConv> eConvApero_DistM2C </KnownConv>
+<!--
+               <KnownConv> eConvInconnue </KnownConv>
+-->
+          </ConvOri>
+     </OrientationConique>
+</ExportAPERO>
+
+
