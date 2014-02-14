@@ -105,7 +105,7 @@ void cX11_Interface::SetInvisRef(bool aVal)
 
 void cX11_Interface::RedrawAllWindows()
 {
-    for (uint aK=0 ; aK< mWins.size() ; aK++)
+    for (int aK=0 ; aK< int(mWins.size()) ; aK++)
         mWins[aK]->Reaff();
 }
 
