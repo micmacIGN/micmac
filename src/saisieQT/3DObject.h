@@ -578,8 +578,6 @@ public:
 
     void        draw();
 
-    bool        is3D(){return Clouds.size() || Cams.size();}
-
     cMaskedImageGL glMaskedImage;
 
     QImage      *pQMask;
@@ -587,20 +585,18 @@ public:
     //! Point list for polygonal selection
     cPolygon    m_polygon;
 
-    bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
+    bool        is3D()                                  { return Clouds.size() || Cams.size();   }
 
-    QImage*     getMask(){return pQMask;}
+    bool        isImgEmpty()                            { return glMaskedImage._m_image == NULL; }
 
-    void        setPolygon(cPolygon const &aPoly){ m_polygon = aPoly; }
+    QImage*     getMask()                               { return pQMask;     }
 
-    void        clearPolygon(){ m_polygon.clear(); }
+    void        setPolygon(cPolygon const &aPoly)       { m_polygon = aPoly; }
 
-    bool        isNewMask()
-    {
-        return !isImgEmpty() ? glMaskedImage._m_newMask : true;
-    }
+    void        clearPolygon()                          { m_polygon.clear(); }
 
-    //3D
+    bool        isNewMask()                             { return !isImgEmpty() ? glMaskedImage._m_newMask : true; }
+
     QVector < cCam* > Cams;
 
     cBall       *pBall;
@@ -627,6 +623,7 @@ public:
     void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        setPainter(QPainter *);
+
     enum Option {
       OpNO          = 0x00,
       OpShow_Ball   = 0x01,
@@ -649,6 +646,7 @@ public:
     bool        stateOption(QFlags<Option> option){ return _options & option; }
 
     bool        mode() { return _modePt; }
+
 private:
 
     void        initOptions()
