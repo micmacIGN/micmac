@@ -29,7 +29,7 @@ const QColor colorBorder("#606060");
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
                 MASK3D,         /**< Point cloud mask **/
                 POINT2D_INIT,	/**< Points in Image (SaisiePointInit) **/
-                POINT2D_PREDICT /**< Points in Image (SaisiePointPredic) **/
+                POINT2D_PREDIC  /**< Points in Image (SaisiePointPredic) **/
 };
 
 class MainWindow : public QMainWindow, public GLWidgetSet

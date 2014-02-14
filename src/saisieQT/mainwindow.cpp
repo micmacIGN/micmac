@@ -684,6 +684,9 @@ void MainWindow::setMode()
 
     if (_mode > MASK3D)
     {
+        if (_mode == POINT2D_INIT) setWindowTitle("Micmac - SaisieAppuisInit QT");
+        else if (_mode == POINT2D_PREDIC) setWindowTitle("Micmac - SaisieAppuisPredic QT");
+
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
         _zoomLayout->setContentsMargins(2,2,2,2);
