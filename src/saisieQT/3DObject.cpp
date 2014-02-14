@@ -1264,7 +1264,6 @@ void cObjectGL::disableOptionLine()
 
 cGLData::cGLData():
     _diam(1.f)
-
 {
     initOptions();
 }
