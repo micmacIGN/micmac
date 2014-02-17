@@ -834,15 +834,15 @@ void MainWindow::refreshPts()
                         const cOneSaisie  & aSom = *(aVP[aK]->Saisie());
                         Pt2dr aP = aSom.PtIm();
                         //aP = mScr->to_win(aP);
-                        //eEtatPointeImage aState = aSom.Etat();
-                        getWidget(i)->addGlPoint(QPointF(aP.x,data->glMaskedImage._m_image->height()- aP.y),QString(aSom.NamePt().c_str()));
+                        eEtatPointeImage aState = aSom.Etat();
+
+                        getWidget(i)->addGlPoint(QPointF(aP.x,data->glMaskedImage._m_image->height()- aP.y),QString(aSom.NamePt().c_str()), aState );
                     }
                 }
 
                 getWidget(i)->update();
             }
         }
-
     }
 }
 
