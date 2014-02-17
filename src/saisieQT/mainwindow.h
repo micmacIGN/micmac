@@ -102,6 +102,8 @@ protected slots:
 
     void addPoint(QPointF point);
 
+    void movePoint(int idPt);
+
     //View Menu
     void on_actionShow_axis_toggled(bool);
     void on_actionShow_ball_toggled(bool);

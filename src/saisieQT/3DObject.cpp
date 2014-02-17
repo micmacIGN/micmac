@@ -878,8 +878,10 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
     } 
 }
 
-void cPolygon::finalMovePoint()
+int cPolygon::finalMovePoint()
 {
+    int idx = _idx;
+
     if ((_idx>=0) && _helper->size())   // after point move
     {
         _points[_idx] = (*_helper)[1];
@@ -889,6 +891,8 @@ void cPolygon::finalMovePoint()
 
         resetSelectedPoint();
     }
+
+    return idx;
 }
 
 void cPolygon::removeLastPoint()

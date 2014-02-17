@@ -460,11 +460,13 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton && hasDataLoaded())
     {
-        polygon().finalMovePoint(); //ne pas factoriser
+        int idMovePoint = polygon().finalMovePoint(); //ne pas factoriser
 
         polygon().findNearestPoint(m_lastPosImage);
 
         update();
+
+        emit movePoint(idMovePoint);
     }
 }
 

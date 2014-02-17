@@ -285,7 +285,7 @@ class cPolygon : public cObjectGL
 
         void    refreshHelper(QPointF pos, bool insertMode, float zoom);
 
-        void    finalMovePoint();
+        int     finalMovePoint();
 
         void    removeLastPoint();
 
