@@ -162,6 +162,16 @@ cParameters& cParameters::operator =(const cParameters &params)
     return *this;
 }
 
+float zoomClip(float val)
+{
+    float zoom = val;
+
+    if (zoom < GL_MIN_ZOOM) zoom = GL_MAX_ZOOM;
+    else if (zoom > GL_MAX_ZOOM) zoom = GL_MAX_ZOOM;
+
+    return zoom;
+}
+
 void cParameters::read()
 {
      QSettings settings(QApplication::organizationName(), QApplication::applicationName());
@@ -186,8 +196,8 @@ void cParameters::read()
 
      settings.beginGroup("Misc");
      setDefPtName(      settings.value("defPtName", QString("100")).toString());
-     setPostFix(        settings.value("postFix",   QString("_mask")).toString());
-     setZoomWindowValue(settings.value("zoom", 3.f              ).toFloat());
+     setPostFix(        settings.value("postFix",   QString("_mask")).toString());   
+     setZoomWindowValue(zoomClip(settings.value("zoom", 3.0).toFloat()));
      setSelectionRadius(settings.value("radius",50              ).toInt());
      settings.endGroup();
 }
@@ -197,23 +207,24 @@ void cParameters::write()
      QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
      settings.beginGroup("MainWindow");
-     settings.setValue("size",              getSzFen()      );
-     settings.setValue("pos",               getPosition()   );
-     settings.setValue("NbFen",             getNbFen()      );
-     settings.setValue("openInFullScreen",  getFullScreen() );
+     settings.setValue("size",              _szFen      );
+     settings.setValue("pos",               _position   );
+     settings.setValue("NbFen",             _nbFen      );
+     settings.setValue("openInFullScreen",  _fullScreen );
      settings.endGroup();
 
      settings.beginGroup("Drawing settings");
-     settings.setValue("linethickness", QString::number(getLineThickness(),'f',1)  );
-     settings.setValue("pointdiameter", QString::number(getPointDiameter(),'f',1)  );
-     settings.setValue("pointsize",     QString::number(getPointSize()    ,'f',1)  );
-     settings.setValue("gamma",         QString::number(getGamma()        ,'f',1)  );
+     settings.setValue("linethickness", QString::number(_linethickness,'f',1)  );
+     settings.setValue("pointdiameter", QString::number(_pointDiameter,'f',1)  );
+     settings.setValue("pointsize",     QString::number(_pointSize    ,'f',1)  );
+     settings.setValue("gamma",         QString::number(_gamma        ,'f',1)  );
      settings.endGroup();
 
      settings.beginGroup("Misc");
-     settings.setValue("defPtName", getDefPtName()          );
-     settings.setValue("postFix",   getPostFix()            );
-     settings.setValue("radius",    getSelectionRadius()    );
-     settings.setValue("zoom",      QString::number(getZoomWindowValue(),'f',2)    );
+     settings.setValue("defPtName", _ptName    );
+     settings.setValue("postFix",   _postFix   );
+     settings.setValue("radius",    _radius    );
+
+     settings.setValue("zoom",      QString::number(zoomClip(_zoomWindow),'f',2)    );
      settings.endGroup();
 }

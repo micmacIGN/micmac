@@ -48,7 +48,7 @@ public:
     ~GLWidget(){}
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){ return (m_GLData != NULL);}
+    bool hasDataLoaded(){ return (m_GLData != NULL); }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -104,9 +104,9 @@ public:
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
-    void refreshPositionMessage(QPointF pos);
+    void setCursorShape(QPointF pos);
 
-    void setDisplayMode(bool is2D) { m_bDisplayMode2D = is2D; }
+    void drawCenter();
 
     void addGlPoint(QPointF pt, QString name);
 
@@ -124,8 +124,6 @@ signals:
     void newImagePosition(QPointF pt);
 
     void overWidget(void* widget);
-
-    void zoomChanged(float zoom);
 
     void gammaChanged(float gamma);
 

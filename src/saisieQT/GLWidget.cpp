@@ -1,9 +1,5 @@
 #include "GLWidget.h"
 
-//Min and max zoom ratio (relative)
-const float GL_MAX_ZOOM = 50.f;
-const float GL_MIN_ZOOM = 0.01f;
-
 GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
@@ -92,7 +88,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
 
         _contextMenu.setPolygon( &m_GLData->m_polygon);
 
-         resetView(showMessage, doZoom, true, resetPoly);
+        resetView(doZoom, showMessage, true, resetPoly);
     }
 }
 
@@ -151,6 +147,7 @@ void GLWidget::paintGL()
     _messageManager.draw();
 	
     if (_widgetId >= 0) overlay();
+    else        drawCenter();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -282,7 +279,7 @@ void GLWidget::dropEvent(QDropEvent *event)
 
 void GLWidget::overlay()
 {
-	if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
+    if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
 		#if ELISE_QT_VERSION==5
 			_painter->begin(this);
@@ -346,17 +343,12 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt)
 
 void GLWidget::setZoom(float value)
 {
-    if (value < GL_MIN_ZOOM)
-        value = GL_MIN_ZOOM;
-    else if (value > GL_MAX_ZOOM)
-        value = GL_MAX_ZOOM;
+    if (imageLoaded())  zoomClip( value );
 
     _vp_Params.m_zoom = value;
 
     if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_vp_Params.m_zoom*100,'f',1) + "%";
-
-    emit zoomChanged(value);
 
     update();
 }
@@ -476,6 +468,36 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void GLWidget::setCursorShape(QPointF pos)
+{
+    QCursor c = cursor();
+
+    if ( imageLoaded() && !polygon().isLinear() && isPtInsideIm(pos) )
+
+        c.setShape(Qt::CrossCursor);
+
+    else
+
+        c.setShape(Qt::ArrowCursor);
+
+    setCursor(c);
+}
+
+void GLWidget::drawCenter()
+{
+    QPoint center(vpWidth()*.5f,vpHeight()*.5f);
+
+    QPainter p;
+    p.begin(this);
+
+    QPen pen(QColor(255,0,0));
+    pen.setCosmetic(true);
+    p.setPen(pen);
+
+    p.drawEllipse(center,5,5);
+    p.end();
+}
+
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
@@ -486,6 +508,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 #else
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _vp_Params.m_zoom) : event->posF();
 #endif
+
+        setCursorShape(pos);
 
         if (m_bDisplayMode2D)
 
@@ -640,7 +664,7 @@ void GLWidget::reset()
     resetView();
 }
 
-void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix,bool resetPoly)
+void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool resetPoly)
 {
     if (resetMatrix)
         _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() : Pt3dr(0.f,0.f,0.f) );

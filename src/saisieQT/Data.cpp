@@ -85,8 +85,8 @@ void cData::reset()
 int cData::getCloudsSize()
 {
     int sizeClouds = 0;
-    for (int aK=0; aK < getNbClouds();++aK)
-        sizeClouds += getCloud(aK)->size();
+    for (int aK=0; aK < _Clouds.size();++aK)
+        sizeClouds += _Clouds[aK]->size();
 
     return sizeClouds;
 }
@@ -94,7 +94,7 @@ int cData::getCloudsSize()
 //compute bounding box
 void cData::computeBBox()
 {  
-    for (uint bK=0; bK < _Clouds.size();++bK)
+    for (int bK=0; bK < _Clouds.size();++bK)
     {
         GlCloud * aCloud = _Clouds[bK];
 
@@ -111,7 +111,7 @@ void cData::computeBBox()
         }
     }
 
-    for (uint  cK=0; cK < _Cameras.size();++cK)
+    for (int  cK=0; cK < _Cameras.size();++cK)
     {
         CamStenope * aCam= _Cameras[cK];
 

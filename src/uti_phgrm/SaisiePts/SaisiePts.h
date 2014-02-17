@@ -347,6 +347,8 @@ public :
     cX11_Interface(cAppli_SaisiePts &appli);
     ~cX11_Interface();
 
+    void            TestClick(Clik aCl);
+
     void            RedrawAllWindows();
 
     void            Save();
