@@ -106,6 +106,8 @@ public:
 
     void setCursorShape(QPointF pos);
 
+    void drawCenter();
+
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
