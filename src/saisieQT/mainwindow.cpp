@@ -53,6 +53,8 @@ void MainWindow::connectActions()
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
 
         connect(getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
+
+        connect(getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
     }
 
     //File menu
@@ -876,6 +878,35 @@ void MainWindow::addPoint(QPointF point)
         getAppliMetier()->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
 
     refreshPts();
+}
+
+void MainWindow::movePoint(int idPt)
+{
+    if(idPt >= 0 )
+    {
+        cGLData * data = currentWidget()->getGLData();
+
+        QString nameImage = data->glMaskedImage.cObjectGL::name();
+
+        int t = cImageIdxFromName(nameImage);
+
+        cSP_PointeImage * aPIm = getAppliMetier()->images(t)->PointeOfNameGlobSVP(currentWidget()->getGLData()->m_polygon[idPt].name().toStdString());
+
+        if(aPIm)
+        {
+            cImage* mCurIm = getAppliMetier()->images(t);
+            getAppliMetier()->AddUndo(*(aPIm->Saisie()),mCurIm);
+
+            Pt2dr newPt(data->m_polygon[idPt].x(),data->glMaskedImage._m_image->height() - data->m_polygon[idPt].y());
+            aPIm->Saisie()->PtIm() = newPt;
+            //Redraw();
+            aPIm->Gl()->ReCalculPoints();
+
+            refreshPts();
+
+            getAppliMetier()->Sauv();
+        }
+    }
 }
 
 void MainWindow::undo(bool undo)
