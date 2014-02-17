@@ -807,7 +807,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     }
 }
 
-void MainWindow::RefreshPts()
+void MainWindow::refreshPts()
 {
     for (int i = 0; i < nbWidgets(); ++i) {
 
@@ -815,7 +815,7 @@ void MainWindow::RefreshPts()
         {
             QString nameImage = getWidget(i)->getGLData()->glMaskedImage.cObjectGL::name();
 
-            int t = getIdCImgFromName(nameImage);
+            int t = cImageIdxFromName(nameImage);
 
             if(t!=-1)
             {
@@ -845,7 +845,7 @@ void MainWindow::RefreshPts()
     }
 }
 
-int MainWindow::getIdCImgFromName(QString nameImage)
+int MainWindow::cImageIdxFromName(QString nameImage)
 {
     int t = -1;
 
@@ -867,14 +867,14 @@ void MainWindow::addPoint(QPointF point)
 
     QString nameImage = currentWidget()->getGLData()->glMaskedImage.cObjectGL::name();
 
-    int t = getIdCImgFromName(nameImage);
+    int t = cImageIdxFromName(nameImage);
 
     //printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
 
     if(t != -1)
         getAppliMetier()->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
 
-    RefreshPts();
+    refreshPts();
 }
 
 void MainWindow::undo(bool undo)
