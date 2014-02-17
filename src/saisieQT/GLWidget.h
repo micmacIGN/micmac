@@ -108,6 +108,8 @@ public:
 
     void drawCenter();
 
+    void addGlPoint(QPointF pt, QString name);
+
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);
@@ -124,6 +126,8 @@ signals:
     void overWidget(void* widget);
 
     void gammaChanged(float gamma);
+
+    void addPoint(QPointF point);
 
 protected:
     //! inherited from QGLWidget
