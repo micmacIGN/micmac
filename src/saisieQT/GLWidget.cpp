@@ -141,6 +141,7 @@ void GLWidget::paintGL()
     _messageManager.draw();
 	
     if (_widgetId >= 0) overlay();
+    else        drawCenter();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -471,6 +472,21 @@ void GLWidget::setCursorShape(QPointF pos)
         c.setShape(Qt::ArrowCursor);
 
     setCursor(c);
+}
+
+void GLWidget::drawCenter()
+{
+    QPoint center(vpWidth()*.5f,vpHeight()*.5f);
+
+    QPainter p;
+    p.begin(this);
+
+    QPen pen(QColor(255,0,0));
+    pen.setCosmetic(true);
+    p.setPen(pen);
+
+    p.drawEllipse(center,5,5);
+    p.end();
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
