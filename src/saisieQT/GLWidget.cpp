@@ -92,9 +92,10 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
     }
 }
 
-void GLWidget::addGlPoint(QPointF pt, QString name)
+void GLWidget::addGlPoint(QPointF pt, QString name, int  state)
 {
     cPoint point(_painter,pt,name,true);
+    point.setState(state);
     getGLData()->m_polygon.add(point);
 }
 

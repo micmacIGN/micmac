@@ -108,7 +108,7 @@ public:
 
     void drawCenter();
 
-    void addGlPoint(QPointF pt, QString name);
+    void addGlPoint(QPointF pt, QString name, int state);
 
 public slots:
 
