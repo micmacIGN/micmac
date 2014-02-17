@@ -129,6 +129,8 @@ signals:
 
     void addPoint(QPointF point);
 
+    void movePoint(int idPt);
+
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);
