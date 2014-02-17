@@ -80,17 +80,10 @@ def create_perp(longueur,ptA,ptB,ptP):
   pt_fin=(ptP[0]-longueur*u[0],ptP[1]-longueur*u[1])
   return pt_deb,pt_fin
 
-#create a perpendicular every "pas_droit" et the perpendiculars are trimmed every "pas_perp"
-#a perpendicular = (x,y) array
-#tab_toutes_perp[0] #all the points of the 1st perp
-#tab_toutes_perp[0][0] #1st point of the 1st perp
-#tab_toutes_perp[0][0][0] #x of the 1st point of the 1st perp
+#create a perpendicular every "pas_droit" and the perpendiculars are trimmed every "pas_perp"
 def create_all_perp(tab_pts,pas_droit,longueur_profil,pas_perp):
   tab_pts_intermed=calc_pts_intermed_tab(tab_pts,pas_droit)
-  #dessine_polylig(tab_pts_intermed,0.5) # draw polyline
-
-  #all the perpendiculars (1 per intermidiary point of the polyline)
-  tab_toutes_perp=[0]*(len(tab_pts_intermed))
+  tab_toutes_perp=[0]*(len(tab_pts_intermed)) #all the perpendiculars (1 per intermediary point of the polyline)
 
   i=0
   #1st perp
