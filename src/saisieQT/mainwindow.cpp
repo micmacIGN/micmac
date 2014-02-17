@@ -809,11 +809,13 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
 void MainWindow::refreshPts()
 {
-    for (int i = 0; i < nbWidgets(); ++i) {
-
+    for (int i = 0; i < nbWidgets(); ++i)
+    {
         if(getWidget(i)->hasDataLoaded())
         {
-            QString nameImage = getWidget(i)->getGLData()->glMaskedImage.cObjectGL::name();
+            cGLData * data = getWidget(i)->getGLData();
+
+            QString nameImage = data->glMaskedImage.cObjectGL::name();
 
             int t = cImageIdxFromName(nameImage);
 
@@ -821,10 +823,9 @@ void MainWindow::refreshPts()
             {
                 const std::vector<cSP_PointeImage *> &  aVP = getAppliMetier()->images(t)->VP();
 
-                printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
+               // printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
 
-
-                getWidget(i)->getGLData()->clearPolygon();
+                data->clearPolygon();
 
                 for (int aK=0 ; aK<int(aVP.size()) ; aK++)
                 {
@@ -834,14 +835,13 @@ void MainWindow::refreshPts()
                         Pt2dr aP = aSom.PtIm();
                         //aP = mScr->to_win(aP);
                         //eEtatPointeImage aState = aSom.Etat();
-                        getWidget(i)->addGlPoint(QPointF(aP.x,getWidget(i)->getGLData()->glMaskedImage._m_image->height()- aP.y),QString(aSom.NamePt().c_str()));
+                        getWidget(i)->addGlPoint(QPointF(aP.x,data->glMaskedImage._m_image->height()- aP.y),QString(aSom.NamePt().c_str()));
                     }
                 }
 
                 getWidget(i)->update();
             }
         }
-
     }
 }
 
