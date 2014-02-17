@@ -470,15 +470,15 @@ void cCam::draw()
 
 cPoint::cPoint(QPainter * painter, QPointF pos,
                QString name, bool showName,
-               QColor color, QColor selectionColor,
-               float diameter,
                int state,
                bool isSelected,
+               QColor color, QColor selectionColor,
+               float diameter,
                bool highlight):
     QPointF(pos),
     _diameter(diameter),
-    _state(state),
     _bShowName(showName),
+    _state(state),
     _highlight(highlight),
     _selectionColor(selectionColor),
     _painter(painter)
@@ -500,30 +500,33 @@ void cPoint::draw()
 
          _painter->setWorldMatrixEnabled(false);
 
-         switch(_state)
+         if (!isSelected())
          {
-         case   NS_SaisiePts::eEPI_NonSaisi :
-             _painter->setPen(Qt::yellow);
-             break;
+             switch(_state)
+             {
+             case   NS_SaisiePts::eEPI_NonSaisi :
+                 _painter->setPen(Qt::yellow);
+                 break;
 
-         case   NS_SaisiePts::eEPI_Refute :
-             _painter->setPen(Qt::red);
-             break;
+             case   NS_SaisiePts::eEPI_Refute :
+                 _painter->setPen(Qt::red);
+                 break;
 
-         case   NS_SaisiePts::eEPI_Douteux :
-             _painter->setPen(QColor(255, 127, 0, 255) );
-             break;
+             case   NS_SaisiePts::eEPI_Douteux :
+                 _painter->setPen(QColor(255, 127, 0, 255) );
+                 break;
 
-         case NS_SaisiePts::eEPI_Valide :
-             _painter->setPen(Qt::green);
-             break;
+             case NS_SaisiePts::eEPI_Valide :
+                 _painter->setPen(Qt::green);
+                 break;
 
-         case  NS_SaisiePts::eEPI_Disparu :
-             //TODO
-             break;
+             case  NS_SaisiePts::eEPI_Disparu :
+                 //TODO
+                 break;
 
-         case NS_SaisiePts::eEPI_NonValue :
-             break;
+             case NS_SaisiePts::eEPI_NonValue :
+                 break;
+             }
          }
 
          _painter->drawEllipse(pt, _diameter, _diameter);
@@ -728,19 +731,17 @@ QString cPolygon::getSelectedPointName()
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, _color));
+    _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, NS_SaisiePts::eEPI_NonValue, selected, _color));
 
     bool isNumber = false;
     double value = _defPtName.toDouble(&isNumber);
     if (isNumber) _defPtName.setNum((uint)value+1);
-
-    _points.back().setSelected(selected);
 }
 
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = cPoint(_painter, pt, _defPtName, _bShowNames, _color);
+        _points[size()-1] = cPoint(_painter, pt, _defPtName, _bShowNames, NS_SaisiePts::eEPI_NonValue, false, _color);
 
     add(pt);
 }
@@ -863,15 +864,19 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
             add(pos);
 
         else if (nbVertex > 1)               // replace last point by the current one
-
-            _points[nbVertex-1] = cPoint(_painter, pos, _defPtName, _bShowNames, _color );
+        {
+            _points[nbVertex-1].setX( pos.x() );
+            _points[nbVertex-1].setY( pos.y() );
+        }
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
         if ((insertMode || isPointSelected())) // insert polygon point
+        {
+            cPoint pt(_painter, pos, getSelectedPointName(), _bShowNames, _points[_idx].state(), isPointSelected(), _color);
 
-            _helper->build(cPoint(_painter, pos, getSelectedPointName(), _bShowNames, _color ), insertMode);
-
+            _helper->build(pt, insertMode);
+        }
         else                                 // select nearest polygon point
 
             findNearestPoint(pos, _radius / zoom);
@@ -882,8 +887,11 @@ void cPolygon::finalMovePoint()
 {
     if ((_idx>=0) && _helper->size())   // after point move
     {
+        int state = _points[_idx].state();
+
         _points[_idx] = (*_helper)[1];
         _points[_idx].setColor(_color); // reset color to polygon color
+        _points[_idx].setState(state);
 
         _helper->clear();
 

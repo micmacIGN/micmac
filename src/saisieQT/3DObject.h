@@ -104,11 +104,11 @@ class cPoint : public cObjectGL, public QPointF
            QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            bool showName   = false,
+           int  state = NS_SaisiePts::eEPI_NonValue,
+           bool isSelected = false,
            QColor color = Qt::red,        
            QColor selectionColor = Qt::blue,
            float diameter = 4.f,
-           int  state = NS_SaisiePts::eEPI_NonValue,
-           bool isSelected = false,
            bool highlight  = false);
 
         void draw();
@@ -122,8 +122,8 @@ class cPoint : public cObjectGL, public QPointF
 private:
 
        float   _diameter;
-       int     _state;
        bool    _bShowName;
+       int     _state;
        bool    _highlight;
 
        QColor  _selectionColor;
