@@ -127,14 +127,3 @@ class ConstructLine:
       print 'Save points to file'
       self.saveTrace()
       close()
-
-if __name__ == '__main__':
-  fig=figure()
-  ax = fig.add_subplot(111)
-  filename_im="Px1_Num2_DeZoom1_LeChantier_mult0_05_sousEchPas16.tif"
-  filename_out="trace_kunlunD_2.txt"
-  linebuilder = ConstructLine(fig, ax, filename_im, filename_out)
-  #~ linebuilder.importIm()
-  #~ linebuilder.recoverLine(filename_out)
-  #~ fig.canvas.set_window_title('yoyo')
-  show()
