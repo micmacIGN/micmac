@@ -821,8 +821,7 @@ void MainWindow::refreshPts()
             {
                 const std::vector<cSP_PointeImage *> &  aVP = getAppliMetier()->images(t)->VP();
 
-                printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
-
+                //printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
 
                 getWidget(i)->getGLData()->clearPolygon();
 
