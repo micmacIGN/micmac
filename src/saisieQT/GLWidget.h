@@ -81,7 +81,7 @@ public:
     //! Reset view
     void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true, bool resetPoly = true);
 
-    ViewportParameters* getParams()         { return &_vp_Params; }
+    ViewportParameters* getParams()         { return &_vp_Params;      }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
 
@@ -94,12 +94,12 @@ public:
         _BGColor1 = col1;
     }
 
-    float imWidth() { return m_GLData->glMaskedImage._m_image->width(); }
-    float imHeight(){ return m_GLData->glMaskedImage._m_image->height();}
+    float imWidth() { return m_GLData->glMaskedImage._m_image->width();  }
+    float imHeight(){ return m_GLData->glMaskedImage._m_image->height(); }
 
     bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glMaskedImage._m_image->isPtInside(pt); }
 
-    GLint vpWidth() { return _matrixManager.vpWidth(); }
+    GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}

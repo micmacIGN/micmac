@@ -22,9 +22,12 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
     maskedImg._m_image = new QImage( aNameFile );
 
+
     QFileInfo fi(aNameFile);
 
     QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
+
+    maskedImg.setName(fi.fileName());
 
     setFilenameOut(mask_filename);
 

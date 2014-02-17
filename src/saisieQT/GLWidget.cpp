@@ -485,16 +485,17 @@ void GLWidget::setCursorShape(QPointF pos)
 
 void GLWidget::drawCenter()
 {
-    QPoint center(vpWidth()*.5f,vpHeight()*.5f);
+    QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
 
     QPainter p;
     p.begin(this);
 
-    QPen pen(QColor(255,0,0));
+    QPen pen(QColor(0,0,0));
     pen.setCosmetic(true);
     p.setPen(pen);
 
     p.drawEllipse(center,5,5);
+    p.drawEllipse(center,1,1);
     p.end();
 }
 

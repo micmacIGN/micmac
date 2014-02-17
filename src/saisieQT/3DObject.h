@@ -49,12 +49,14 @@ class cObject
         cObject(Pt3dr pt, QColor col);
         virtual ~cObject();
 
+        QString name()          { return _name;     }
         Pt3dr   getPosition()   { return _position; }
         QColor  getColor()      { return _color;    }
         float   getScale()      { return _scale;    }
         bool    isVisible()     { return _bVisible; }
         bool    isSelected()    { return _bSelected;}
 
+        void    setName(QString name)          { _name = name;     }
         void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
         void    setColor(QColor const &aCol)   { _color = aCol;    }
         void    setScale(float aScale)         { _scale = aScale;  }
@@ -64,6 +66,8 @@ class cObject
         cObject & operator = (const cObject &);
 
     protected:
+
+        QString _name;
 
         Pt3dr   _position;
         QColor  _color;
@@ -109,8 +113,6 @@ class cPoint : public cObjectGL, public QPointF
 
         void draw();
 
-        void setName(QString name){ _name = name; }
-        QString name() { return _name; }
         void setState(int state){ _state = state; }
         int  state() { return _state; }
         void showName(bool show){ _bShowName = show; }
@@ -118,7 +120,7 @@ class cPoint : public cObjectGL, public QPointF
         void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
 
 private:
-       QString _name;
+
        float   _diameter;
        int     _state;
        bool    _bShowName;
@@ -198,6 +200,7 @@ class cBBox : public cObjectGL
         void    draw();
 
         void set(Pt3d<double> min, Pt3d<double> max);
+
     private:
         Pt3dr   _min;
         Pt3dr   _max;
@@ -416,7 +419,7 @@ private:
 };
 
 template<class T>
-class cMaskedImage
+class cMaskedImage : public cObject
 {
 
 public:
@@ -453,7 +456,7 @@ public:
 
 };
 
-class cMaskedImageGL : public cMaskedImage<cImageGL>, public cObjectGL
+class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 {
 
 public:

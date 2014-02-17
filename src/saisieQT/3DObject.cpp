@@ -2,6 +2,7 @@
 #include "SaisieGlsl.glsl"
 
 cObject::cObject() :
+    _name(""),
     _position(Pt3dr(0.f,0.f,0.f)),
     _color(QColor(255,255,255)),
     _scale(1.f),
@@ -11,6 +12,7 @@ cObject::cObject() :
 {}
 
 cObject::cObject(Pt3dr pos, QColor col) :
+    _name(""),
     _scale(1.f),
     _alpha(0.6f),
     _bVisible(true),
@@ -26,6 +28,8 @@ cObject& cObject::operator =(const cObject& aB)
 {
     if (this != &aB)
     {
+        _name      = aB._name;
+
         _position  = aB._position;
         _color     = aB._color;
         _scale     = aB._scale;
@@ -472,7 +476,6 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
                bool isSelected,
                bool highlight):
     QPointF(pos),
-    _name(name),
     _diameter(diameter),
     _state(state),
     _bShowName(showName),
@@ -480,6 +483,7 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
     _selectionColor(selectionColor),
     _painter(painter)
 {
+    setName(name);
     setColor(color);
     setSelected(isSelected);
 }
@@ -1215,6 +1219,7 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
     _m_newMask  = qMaskedImage._m_newMask;
     _m_mask->PrepareTexture(qMaskedImage._m_mask);
     _m_image->PrepareTexture(qMaskedImage._m_image);
+    cObjectGL::setName(qMaskedImage.name());
 }
 
 void cMaskedImageGL::draw()
