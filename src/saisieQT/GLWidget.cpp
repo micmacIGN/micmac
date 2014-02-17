@@ -524,8 +524,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom));
 
             else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
+            {
+                bool insertMode = polygon().isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
 
-                polygon().refreshHelper(pos,(event->modifiers() & Qt::ShiftModifier), _vp_Params.m_zoom);
+                polygon().refreshHelper(pos, insertMode, _vp_Params.m_zoom);
+            }
         }
         if (m_interactionMode == TRANSFORM_CAMERA)
         {
