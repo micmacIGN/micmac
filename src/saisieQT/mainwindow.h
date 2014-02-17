@@ -61,7 +61,12 @@ public:
 
     void setAppliMetier(cAppli_SaisiePts *value);
 
-    void RefreshPts();
+    void refreshPts();
+
+    void setLayout(uint sy);
+
+    int  cImageIdxFromName(QString nameImage);
+
 public slots:
 
     //! Try to load a list of files

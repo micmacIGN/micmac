@@ -18,33 +18,9 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
 
-    uint sy = 0;
-
-    _layout->setContentsMargins(sy,sy,sy,sy);
-    _layout->setHorizontalSpacing(sy);
-    _layout->setVerticalSpacing(sy);
-    _ui->OpenglLayout->setLayout(_layout);
-
-#ifdef ELISE_Darwin
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
-#endif
-
-    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
-
-    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
-
     setUI();
 
-    int cpt=0;
-    for (int aK = 0; aK < _params->getNbFen().x();++aK)
-        for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
-            _layout->addWidget(getWidget(cpt), bK, aK);
-
-    _signalMapper = new QSignalMapper (this);
     connectActions();
-
-    labelShowMode(true);
 
     createRecentFileMenu();
 
@@ -67,6 +43,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActions()
 {
+    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
+
+    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
+
     for (int aK = 0; aK < nbWidgets();++aK)
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
@@ -86,6 +66,8 @@ void MainWindow::connectActions()
     }
 
     //Zoom menu
+    _signalMapper = new QSignalMapper (this);
+
     connect(_ui->action4_1_400,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action2_1_200,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action1_1_100,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
@@ -100,6 +82,7 @@ void MainWindow::connectActions()
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 }
+
 cAppli_SaisiePts *MainWindow::getAppliMetier() const
 {
     return AppliMetier;
@@ -109,7 +92,6 @@ void MainWindow::setAppliMetier(cAppli_SaisiePts *value)
 {
     AppliMetier = value;
 }
-
 
 void MainWindow::createRecentFileMenu()
 {
@@ -650,8 +632,28 @@ void hideAction(QAction* action, bool show)
     action->setEnabled(show);
 }
 
+void MainWindow::setLayout(uint sy)
+{
+    _layout->setContentsMargins(sy,sy,sy,sy);
+    _layout->setHorizontalSpacing(sy);
+    _layout->setVerticalSpacing(sy);
+    _ui->OpenglLayout->setLayout(_layout);
+
+    int cpt=0;
+    for (int aK = 0; aK < _params->getNbFen().x();++aK)
+        for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
+            _layout->addWidget(getWidget(cpt), bK, aK);
+}
+
 void MainWindow::setUI()
 {
+    setLayout(0);
+
+#ifdef ELISE_Darwin
+    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
+    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
+#endif
+
     labelShowMode(true);
 
     bool isMode3D = _mode == MASK3D;
@@ -807,36 +809,70 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
 void MainWindow::RefreshPts()
 {
-    for (int var = 0; var < getAppliMetier()->nbImages(); ++var) {
+    for (int i = 0; i < nbWidgets(); ++i) {
 
-        if(var<nbWidgets())
+        if(getWidget(i)->hasDataLoaded())
         {
-            const std::vector<cSP_PointeImage *> &  aVP = getAppliMetier()->images(var)->VP();
-            getWidget(var)->getGLData()->clearPolygon();
+            QString nameImage = getWidget(i)->getGLData()->glMaskedImage.cObjectGL::name();
 
-            for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            int t = getIdCImgFromName(nameImage);
+
+            if(t!=-1)
             {
-                //if (WVisible(*(aVP[aK])))
+                const std::vector<cSP_PointeImage *> &  aVP = getAppliMetier()->images(t)->VP();
+
+                printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
+
+
+                getWidget(i)->getGLData()->clearPolygon();
+
+                for (int aK=0 ; aK<int(aVP.size()) ; aK++)
                 {
-                    const cOneSaisie  & aSom = *(aVP[aK]->Saisie());
-                    Pt2dr aP = aSom.PtIm();
-                    //aP = mScr->to_win(aP);
-                    //eEtatPointeImage aState = aSom.Etat();
-                    getWidget(var)->addGlPoint(QPointF(aP.x,aP.y),QString(aSom.NamePt().c_str()));
+                    //if (WVisible(*(aVP[aK])))
+                    {
+                        const cOneSaisie  & aSom = *(aVP[aK]->Saisie());
+                        Pt2dr aP = aSom.PtIm();
+                        //aP = mScr->to_win(aP);
+                        //eEtatPointeImage aState = aSom.Etat();
+                        getWidget(i)->addGlPoint(QPointF(aP.x,getWidget(i)->getGLData()->glMaskedImage._m_image->height()- aP.y),QString(aSom.NamePt().c_str()));
+                    }
                 }
+
+                getWidget(i)->update();
             }
-            getWidget(var)->update();
         }
+
     }
+}
+
+int MainWindow::getIdCImgFromName(QString nameImage)
+{
+    int t = -1;
+
+    for (int i = 0; i < getAppliMetier()->nbImages(); ++i)
+    {
+       QString nameCImage(getAppliMetier()->images(i)->Name().c_str());
+       if(nameCImage == nameImage)
+           t = i;
+    }
+
+    return t;
 }
 
 void MainWindow::addPoint(QPointF point)
 {
-    Pt2dr aPGlob(point.x(),point.y());
+    Pt2dr aPGlob(point.x(),currentWidget()->getGLData()->glMaskedImage._m_image->height() - point.y());
 
     cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
 
-    getAppliMetier()->images(0)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
+    QString nameImage = currentWidget()->getGLData()->glMaskedImage.cObjectGL::name();
+
+    int t = getIdCImgFromName(nameImage);
+
+    //printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
+
+    if(t != -1)
+        getAppliMetier()->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
 
     RefreshPts();
 }
