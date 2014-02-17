@@ -842,6 +842,7 @@ void MainWindow::refreshPts()
                 getWidget(i)->update();
             }
         }
+
     }
 }
 
