@@ -32,8 +32,8 @@ const QColor colorBorder("#606060");
 //! Interface mode
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
                 MASK3D,         /**< Point cloud mask **/
-                POINT2D_INIT,	/**< Points in Image (SaisiePointInit) **/
-                POINT2D_PREDICT /**< Points in Image (SaisiePointPredic) **/
+                POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) **/
+                POINT2D_PREDIC  /**< Points in Image (SaisieAppuisPredic) **/
 };
 
 class MainWindow : public QMainWindow, public GLWidgetSet
@@ -77,7 +77,7 @@ public slots:
 
     void progression();
 
-    void setMode();
+    void setUI();
 
     cEngine* getEngine(){return _Engine;}
 

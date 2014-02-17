@@ -1230,7 +1230,7 @@ void cMaskedImageGL::draw()
     {
         _m_mask->draw();
         glBlendFunc(GL_ONE,GL_ONE);
-        _m_mask->draw(QColor(128,128,128));
+        _m_mask->draw(QColor(128,255,128));
         glBlendFunc(GL_DST_COLOR,GL_ZERO);
         glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
@@ -1264,7 +1264,6 @@ void cObjectGL::disableOptionLine()
 
 cGLData::cGLData():
     _diam(1.f)
-
 {
     initOptions();
 }
