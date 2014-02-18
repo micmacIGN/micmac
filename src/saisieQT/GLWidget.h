@@ -110,6 +110,8 @@ public:
 
     void addGlPoint(QPointF pt, QString name, int state);
 
+    ContextMenu *contextMenu();
+
 public slots:
 
     void onWheelEvent(float wheelDelta_deg);

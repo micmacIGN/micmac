@@ -684,8 +684,10 @@ void cPolygon::removeSelectedPoint()
         removePoint(_idx);
 }
 
-void cPolygon::setNearestPointState(const QPointF &pos, int state)
+int cPolygon::setNearestPointState(const QPointF &pos, int state)
 {
+    int idx = _idx;
+
     findNearestPoint(pos, 400000.f);
 
     if (_idx >=0 && _idx <_points.size())
@@ -704,6 +706,8 @@ void cPolygon::setNearestPointState(const QPointF &pos, int state)
 
     _idx = -1;
     _bSelectedPoint = false;
+
+    return idx;
 }
 
 void cPolygon::highlightNearestPoint(const QPointF &pos)

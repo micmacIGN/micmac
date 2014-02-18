@@ -11,10 +11,11 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     for (int aK = 0; aK < m_QTMainWindow->nbWidgets();++aK)
     {
-
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
 
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
+
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
     }
 
 }
@@ -120,7 +121,7 @@ void cQT_Interface::addPoint(QPointF point)
     if(t != -1)
         mAppli->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
 
-    refreshPts();
+    rebuildGlPoints();
 }
 
 
@@ -136,10 +137,9 @@ void cQT_Interface::movePoint(int idPt)
 {
     if(idPt >= 0 )
     {
-
         int t = cImageIdxCurrent();
 
-        cSP_PointeImage * aPIm = mAppli->images(t)->PointeOfNameGlobSVP(nameSelectPt(idPt));
+        cSP_PointeImage* aPIm = currentPointeImage(idPt);
 
         if(aPIm)
         {
@@ -150,7 +150,49 @@ void cQT_Interface::movePoint(int idPt)
             //Redraw();
             aPIm->Gl()->ReCalculPoints();
 
-            refreshPts();
+            rebuildGlPoints();
+
+            mAppli->Sauv();
+        }
+    }
+}
+
+cSP_PointeImage * cQT_Interface::currentPointeImage(int idx)
+{
+    int t = cImageIdxCurrent();
+
+    cSP_PointeImage * aPIm = mAppli->images(t)->PointeOfNameGlobSVP(nameSelectPt(idx));
+
+    return aPIm;
+}
+
+cImage * cQT_Interface::currentCImage()
+{
+    int t = cImageIdxCurrent();
+    cImage* mCurIm = mAppli->images(t);
+
+    return mCurIm;
+}
+
+void cQT_Interface::changeState(int state, int idPt)
+{
+
+    //int idPt = m_QTMainWindow->currentWidget()->getGLData()->m_polygon.idx();
+
+    eEtatPointeImage aState = (eEtatPointeImage)state;
+
+
+    if (aState!=eEPI_NonValue && idPt != -1)
+    {
+        cSP_PointeImage* aPIm = currentPointeImage(idPt);
+
+        if (aPIm)
+        {
+            mAppli->AddUndo(*(aPIm->Saisie()),currentCImage());
+            aPIm->Saisie()->Etat() = aState;
+            aPIm->Gl()->ReCalculPoints();
+
+            rebuildGlPoints();
 
             mAppli->Sauv();
         }
@@ -205,7 +247,7 @@ void cQT_Interface::addGlPoint(const cOneSaisie& aSom,  int i)
     m_QTMainWindow->getWidget(i)->addGlPoint(transformation(aP,i),QString(aSom.NamePt().c_str()), aState );
 }
 
-void cQT_Interface::refreshPts()
+void cQT_Interface::rebuildGlPoints()
 {
     for (int i = 0; i < m_QTMainWindow->nbWidgets(); ++i)
     {

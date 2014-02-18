@@ -41,15 +41,22 @@ public :
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
-    cAppli_SaisiePts*         AppliMetier(){return  mAppli;}
+    cAppli_SaisiePts*   AppliMetier(){return  mAppli;}
 
-    void                refreshPts();
+    void                rebuildGlPoints();
 
-    int cImageIdxCurrent();
-    std::string nameSelectPt(int idPt);
-    int cImageIdxFromGL(cGLData* data);
-    void addGlPoint(const cOneSaisie& aSom, int i);
-    cGLData * getGlData(int idImage);
+    int                 cImageIdxCurrent();
+
+    std::string         nameSelectPt(int idPt);
+
+    int                 cImageIdxFromGL(cGLData* data);
+
+    void                addGlPoint(const cOneSaisie& aSom, int i);
+
+    cGLData *           getGlData(int idImage);
+
+    cSP_PointeImage * currentPointeImage(int idx);
+    cImage * currentCImage();
 private:
 
     void                Init(){}
@@ -58,14 +65,19 @@ private:
 
     int                 cImageIdxFromName(QString nameImage);
 
-    int cImageIdx(int idGl);
-    Pt2dr transformation(QPointF pt, int idImage = -1);
-    QPointF transformation(Pt2dr pt, int idImage = -1);
+    int                 cImageIdx(int idGl);
+
+    Pt2dr               transformation(QPointF pt, int idImage = -1);
+
+    QPointF             transformation(Pt2dr pt, int idImage = -1);
+
 private slots:
 
     void                addPoint(QPointF point);
 
     void                movePoint(int idPt);
+
+    void                changeState(int state, int idPt);
 };
 
 #endif // QT_INTERFACE_ELISE_H
