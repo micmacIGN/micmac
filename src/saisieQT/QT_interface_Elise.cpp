@@ -18,6 +18,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
     }
 
+    //m_QTMainWindow->;
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -157,22 +158,7 @@ void cQT_Interface::movePoint(int idPt)
     }
 }
 
-cSP_PointeImage * cQT_Interface::currentPointeImage(int idx)
-{
-    int t = cImageIdxCurrent();
 
-    cSP_PointeImage * aPIm = mAppli->images(t)->PointeOfNameGlobSVP(nameSelectPt(idx));
-
-    return aPIm;
-}
-
-cImage * cQT_Interface::currentCImage()
-{
-    int t = cImageIdxCurrent();
-    cImage* mCurIm = mAppli->images(t);
-
-    return mCurIm;
-}
 
 void cQT_Interface::changeState(int state, int idPt)
 {
@@ -197,6 +183,23 @@ void cQT_Interface::changeState(int state, int idPt)
             mAppli->Sauv();
         }
     }
+}
+
+cSP_PointeImage * cQT_Interface::currentPointeImage(int idPoint)
+{
+    int t = cImageIdxCurrent();
+
+    cSP_PointeImage * aPIm = mAppli->images(t)->PointeOfNameGlobSVP(nameSelectPt(idPoint));
+
+    return aPIm;
+}
+
+cImage * cQT_Interface::currentCImage()
+{
+    int t = cImageIdxCurrent();
+    cImage* mCurIm = mAppli->images(t);
+
+    return mCurIm;
 }
 
 int cQT_Interface::cImageIdxCurrent()
@@ -272,4 +275,13 @@ void cQT_Interface::rebuildGlPoints()
             }
         }
     }
+    std::vector< cSP_PointGlob * > pGV = mAppli->PG();
+
+    for (int i = 0; i < (int)pGV.size(); ++i)
+    {
+
+        cSP_PointGlob * pg = pGV[i];
+        cout << pg->PG()->P3D().Val() << "\n";
+    }
+
 }
