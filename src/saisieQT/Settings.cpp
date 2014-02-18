@@ -177,7 +177,7 @@ void cParameters::read()
      QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
 #ifdef _DEBUG
-    cout << "settings location: " << settings.fileName().toStdString().c_str() << endl;
+    std::cout << "settings location: " << settings.fileName().toStdString().c_str() << std::endl;
 #endif
 
      settings.beginGroup("MainWindow");
