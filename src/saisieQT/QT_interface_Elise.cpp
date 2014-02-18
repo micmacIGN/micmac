@@ -1,7 +1,8 @@
 #include "QT_interface_Elise.h"
 
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
-    m_QTMainWindow(QTMainWindow)
+    m_QTMainWindow(QTMainWindow),
+    _data(NULL)
 {
     mParam = &appli.Param();
     mAppli = &appli;
@@ -18,7 +19,6 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
     }
 
-    //m_QTMainWindow->;
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -277,11 +277,44 @@ void cQT_Interface::rebuildGlPoints()
     }
     std::vector< cSP_PointGlob * > pGV = mAppli->PG();
 
-    for (int i = 0; i < (int)pGV.size(); ++i)
+    if(pGV.size())
     {
+        m_QTMainWindow->threeDWidget()->reset();
 
-        cSP_PointGlob * pg = pGV[i];
-        cout << pg->PG()->P3D().Val() << "\n";
+        if(_data)
+        {
+            _data->cleanCameras();
+            delete _data;
+        }
+
+        _data = new cData;
+
+        GlCloud *cloud = new GlCloud();
+
+        for (int i = 0; i < (int)pGV.size(); ++i)
+        {
+
+            cSP_PointGlob * pg = pGV[i];
+
+            GlVertex vertex(pg->PG()->P3D().Val(),Qt::green);
+
+            cloud->addVertex(vertex);
+
+        }
+
+        _data->addCloud(cloud);
+
+        for (int i = 0; i < mAppli->nbImages(); ++i)
+        {
+            ElCamera * aCamera = mAppli->images(i)->CaptCam();
+            _data->addCamera(aCamera->CS());
+        }
+
+        _data->computeBBox();
+
+        m_QTMainWindow->threeDWidget()->setGLData(new cGLData(_data),true,true,false);
+        m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
+        m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess| cGLData::OpShow_BBox,false);
     }
 
 }

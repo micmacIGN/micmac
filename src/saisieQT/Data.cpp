@@ -82,6 +82,11 @@ void cData::reset()
     _max.x = _max.y = _max.z = -FLT_MAX;
 }
 
+void cData::cleanCameras()
+{
+    _Cameras.clear();
+}
+
 int cData::getCloudsSize()
 {
     int sizeClouds = 0;

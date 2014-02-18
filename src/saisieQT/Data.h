@@ -52,6 +52,8 @@ class cData
 
         void    reset();
 
+        void    cleanCameras();
+
    private:
 
         QVector <CamStenope *> _Cameras;

@@ -73,6 +73,8 @@ private:
 
     cImage *            currentCImage();
 
+    cData               *_data;
+
 private slots:
 
     void                addPoint(QPointF point);
@@ -80,6 +82,8 @@ private slots:
     void                movePoint(int idPt);
 
     void                changeState(int state, int idPt);
+
+
 };
 
 #endif // QT_INTERFACE_ELISE_H
