@@ -19,7 +19,7 @@ class ContextMenu : public QWidget
 public:
     ContextMenu(){}
 
-    void createContexMenuActions();
+    void createContextMenuActions();
 
     void setPolygon(cPolygon * poly){ _polygon = poly; }
     void setPos(QPointF pt) { _lastPosImage = pt; }
@@ -39,6 +39,10 @@ public:
     QAction     *_refuted;
     QAction     *_noSaisie;
     QAction     *_highLight;
+
+signals:
+
+    void changeState(int state,int idPt);
 
 public slots:
 

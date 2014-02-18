@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1005</width>
+    <height>718</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -590,6 +590,22 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
        </widget>
       </item>
       <item>
+       <widget class="QFrame" name="frame3D">
+        <property name="minimumSize">
+         <size>
+          <width>300</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -614,7 +630,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1005</width>
      <height>20</height>
     </rect>
    </property>

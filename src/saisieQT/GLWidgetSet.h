@@ -36,10 +36,14 @@ public:
 
     void widgetSetResize(int);
 
+    GLWidget * threeDWidget() const;
+
+
 private:
 
     QVector <GLWidget*> _widgets;
     GLWidget*           _zoomWidget;
+    GLWidget*           _3DWidget;
     GLWidget*           _pcurrentWidget;
 };
 

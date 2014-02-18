@@ -97,40 +97,15 @@ def stackPerp(filename_Px, filename_poids,im_resolution, puiss_poids, longueur_p
 
     fig=figure()
     profil_absc,profil_ordo=stack_calcMethod(data_Px,data_poids,largeur_moy,tab_toutes_perp,num_profil_central,pas_perp,interpol_bilin,puiss_poids)
-    #~ print "* profile abscissa: *", profil_absc
-    #~ print "** profile ordinate: **", profil_ordo
-    #~ print " len(abscissa): ", len(profil_absc)
-    #~ print " len(ordinate): ", len(profil_ordo)
-    #~ plot(profil_absc,profil_ordo,label=label_fig, color=color_fig)
-
     tab_ecart=calc_ecartMoy_profil(data_Px,data_poids,largeur_moy,tab_toutes_perp,num_profil_central,interpol_bilin,profil_ordo,puiss_poids)
-    #~ print '** tab_ecart : ** ', tab_ecart
-
-
-    #~ legend(loc="best")#, bbox_to_anchor=(0.,0.), borderaxespad=0.)
-    #~ xlabel(xlabel_fig)
-    #~ ylabel(ylabel_fig)
-    #~ title(title_fig)
-    #~ grid(True)
 
     compteur_profilMoy+=1
-    #print compteur_profilMoy
-    #~ print "stack number: ", compteur_profilMoy, "coord of first and last points on the perpendicular : ",tab_toutes_perp[num_profil_central][0], tab_toutes_perp[num_profil_central][-1]
-    #~ print "stack number: ", compteur_profilMoy, "coord of central point on the perpendicular: ", tab_toutes_perp[num_profil_central][int(longueur_profil+1)]
 
-    #~ fig.canvas.draw()
     ax = fig.add_subplot(111)
     constr_cg=ConstructCG(filename_Px,filename_poids,im_resolution, puiss_poids, longueur_profil, largeur_moy, ecart_profils, stack_calcMethod,fig,ax,profil_absc,profil_ordo,tab_ecart,label_fig,color_fig, xlabel_fig, ylabel_fig,title_fig, racine_nom_fig, compteur_profilMoy, num_profil_central, col_cen_num_profil_central,lig_cen_num_profil_central, filename_polyline, filename_info_out, showErrBar)
 
-    #~ if racine_nom_fig!="":
-      #~ nom_fig=racine_nom_fig+'_cenProf'+str(num_profil_central)+'_col'+str(int(round(col_cen_num_profil_central)))+'_lig'+str(int(round(lig_cen_num_profil_central))) #cenProf: number of the central profile, (col,lig) - coordinates of the central point on the central profile of the stack
-      #~ print nom_fig
-      #~ savefig(nom_fig)
-
     if showFig:
       show()
-
-  #~ print "Nb of stacks: ", compteur_profilMoy
 
 #function for retrieving the coordinates of the fault (polyline) from a file
 def TraceFromFile(filepath_trace):
@@ -175,29 +150,9 @@ def drawCG(filepath_infoOffsets, nom_fig):
       continue
 
     if (line[0:18]=="#image resolution:"):
-      #~ print "resolution value from file *",(line[18:]).strip(),"*"
       resol=float((line[18:]).strip())
       continue
 
-
-
-  #offsets in px
-# fig=plt.figure()
-# #~ ax = fig.add_subplot(212)
-# ax = fig.add_subplot(111)
-# if len(nrProf_offsets)>0:
-#   (list_x,list_y)=zip(*nrProf_offsets)
-#   #~ ax.set_xlim(0,xlim1[1])
-#   ax.plot(list_x,list_y,color='blue', marker='o')
-# #~ legend(loc="best")#, bbox_to_anchor=(0.,0.), borderaxespad=0.)
-# xlabel('profile')
-# ylabel('offset(px)')
-# title('Slipe-curve')
-# #~ plt.show()
-# savefig(nom_fig)
-
-  #~ print 'resol:', resol
-  #offsets in m
   fig=plt.figure()
   ax = fig.add_subplot(111)
   if len(nrProf_offsets)>0:

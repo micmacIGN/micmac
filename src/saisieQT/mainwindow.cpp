@@ -18,33 +18,9 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
 
-    uint sy = 0;
-
-    _layout->setContentsMargins(sy,sy,sy,sy);
-    _layout->setHorizontalSpacing(sy);
-    _layout->setVerticalSpacing(sy);
-    _ui->OpenglLayout->setLayout(_layout);
-
-#ifdef ELISE_Darwin
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
-#endif
-
-    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
-
-    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
-
     setUI();
 
-    int cpt=0;
-    for (int aK = 0; aK < _params->getNbFen().x();++aK)
-        for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
-            _layout->addWidget(getWidget(cpt), bK, aK);
-
-    _signalMapper = new QSignalMapper (this);
     connectActions();
-
-    labelShowMode(true);
 
     createRecentFileMenu();
 
@@ -67,10 +43,18 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActions()
 {
+    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
+
+    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
+
     for (int aK = 0; aK < nbWidgets();++aK)
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
+
+        //connect(getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
+
+        //connect(getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
     }
 
     //File menu
@@ -84,6 +68,8 @@ void MainWindow::connectActions()
     }
 
     //Zoom menu
+    _signalMapper = new QSignalMapper (this);
+
     connect(_ui->action4_1_400,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action2_1_200,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action1_1_100,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
@@ -638,8 +624,28 @@ void hideAction(QAction* action, bool show)
     action->setEnabled(show);
 }
 
+void MainWindow::setLayout(uint sy)
+{
+    _layout->setContentsMargins(sy,sy,sy,sy);
+    _layout->setHorizontalSpacing(sy);
+    _layout->setVerticalSpacing(sy);
+    _ui->OpenglLayout->setLayout(_layout);
+
+    int cpt=0;
+    for (int aK = 0; aK < _params->getNbFen().x();++aK)
+        for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
+            _layout->addWidget(getWidget(cpt), bK, aK);
+}
+
 void MainWindow::setUI()
 {
+    setLayout(0);
+
+#ifdef ELISE_Darwin
+    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
+    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
+#endif
+
     labelShowMode(true);
 
     bool isMode3D = _mode == MASK3D;
@@ -663,9 +669,15 @@ void MainWindow::setUI()
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
         _zoomLayout->setContentsMargins(2,2,2,2);
-
         _ui->zoomLayout->setLayout(_zoomLayout);
         _ui->zoomLayout->setContentsMargins(0,0,0,0);
+
+         QGridLayout*            _tdLayout = new QGridLayout;
+
+         _tdLayout->addWidget(threeDWidget());
+         _tdLayout->setContentsMargins(2,2,2,2);
+        _ui->frame3D->setLayout(_tdLayout);
+        _ui->frame3D->setContentsMargins(0,0,0,0);
 
         //disable some actions
         hideAction(_ui->actionAdd, false);
@@ -814,9 +826,9 @@ void MainWindow::undo(bool undo)
 void MainWindow::applyParams()
 {
     move(_params->getPosition());
-
+    
     QSize szFen = _params->getSzFen();
-
+    
     if (_params->getFullScreen())
     {
         showFullScreen();

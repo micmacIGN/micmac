@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SAISIEPTS_ALL_H_
 #define _ELISE_SAISIEPTS_ALL_H_
 
-
 using namespace NS_ParamChantierPhotogram;
 using namespace NS_SuperposeImage;
 
@@ -64,6 +63,8 @@ typedef enum
    eModePopUp,
    eModeSaisiePts
 } eModeWinIm;
+
+
 
 class cSP_PointeImage
 {
@@ -180,7 +181,7 @@ public :
     void    SetPt(Clik aClk);
     void    SetZoom(Pt2dr aP,double aFactZ);
 
-    void    Reaff();
+    void    Redraw();
 
     void    MenuPopUp(Clik aClk);
 
@@ -200,10 +201,10 @@ public :
 private :
 
     void    CreatePoint(const Pt2dr& aP,eTypePts,double aSz);
-    Pt2dr   RecherchePoint(const Pt2dr &aPIm,eTypePts,double aSz,cPointGlob *);
+    Pt2dr   FindPoint(const Pt2dr &aPIm,eTypePts,double aSz,cPointGlob *);
 
     void    GUR_query_pointer(Clik,bool);
-    void    ReafGrabSetPosPt();
+    void    RedrawGrabSetPosPt();
 
 
 
@@ -297,38 +298,58 @@ class cVirtualInterface
     cVirtualInterface(){}
     ~cVirtualInterface(){}
 
-    virtual void        SetInvisRef(bool aVal)=0;
-    virtual bool        RefInvis() const =0;
-
-    virtual void        ShowZoom(const Pt2dr & aPGlob)=0;
-
     virtual void        RedrawAllWindows()=0;
 
     virtual void        Save()=0;
 
+    virtual void        DrawZoom(const Pt2dr & aPGlob)=0; //fenetre zoom
+
+    virtual void        SetInvisRef(bool aVal)=0;         // sert à rendre les points réfutés invisibles ou visibles
+    bool                RefInvis() const    { return mRefInvis; }
+
+    virtual void        ChangeFreeNamePoint(const std::string &, bool SetFree)=0;
+
+    virtual void        DeletePoint(cSP_PointGlob *)=0;
+
+
+    virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
+
+    int              GetNumCasePoint()          { return mVNameCase.size(); }
+    cCaseNamePoint & GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
+
+//     virtual  cFenMenu *      MenuNamePoint()=0;
+
+     virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
+
 protected:
 
-    cAppli_SaisiePts*   mAppli;
+    void                      InitNbWindows();
+
+    cAppli_SaisiePts*         mAppli;
+    const cParamSaisiePts*    mParam;
+
+    Pt2di                     mNb2W;        //nombre de fenetres (col, raw)
+    int                       mNbW;         //total window nb (col x raw)
+
+    bool                      mRefInvis;
+
+    std::vector <cCaseNamePoint>        mVNameCase;
 
 private:
 
-    virtual void        InitWindows()=0;
-
-    virtual void        TestClick(Clik aCl)=0;
-
+    virtual void              Init()=0;
 };
 
-class cX11_Interface : cVirtualInterface
+#if ELISE_windows == 0
+
+class cX11_Interface : public cVirtualInterface
 {
 public :
 
-    cX11_Interface(NS_SaisiePts::cParamSaisiePts &param, cAppli_SaisiePts &appli);
+    cX11_Interface(cAppli_SaisiePts &appli);
     ~cX11_Interface();
 
-    void            SetInvisRef(bool aVal);
-    bool            RefInvis() const   { return mRefInvis; }
-
-    void            ShowZoom(const Pt2dr & aPGlob);
+    void            TestClick(Clik aCl);
 
     void            RedrawAllWindows();
 
@@ -336,34 +357,29 @@ public :
 
     void            BoucleInput();
 
-    Video_Win &     WZ()                    { return *mWZ;  }
-    bool            HasWZ() const           { return mWZ!=0;}
-    const Pt2di &   SzWZ() const            { return mSzWZ; }
+    void            DrawZoom(const Pt2dr & aPGlob); //fenetre zoom
 
     const std::vector<cWinIm *> &  WinIms() { return mWins; }
-    cFenOuiNon *    ZFON()                  { return mZFON; }
 
     cFenMenu *      MenuNamePoint()         { return mMenuNamePoint; }
 
-    cCaseNamePoint * GetIndexNamePt();
-    int              GetNumCasePoint()          { return mVNameCase.size(); }
-    cCaseNamePoint & GetCaseNamePoint(int aK)   { return mVNameCase[aK]; }
+    cCaseNamePoint * GetIndexNamePoint();
+
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
-    void            ChangeFreeNameP(const std::string &, bool SetFree);
+    void            ChangeFreeNamePoint(const std::string &, bool SetFree);
 
-    void            KillSom(cSP_PointGlob *);   
+    void            DeletePoint(cSP_PointGlob *);
+
+    void            SetInvisRef(bool aVal);         // sert à rendre les points réfutés visibles ou non
 
 private:
 
-    void            InitWindows();
-
-    void            TestClick(Clik aCl);
+    void            Init();
 
     cWinIm *        WinImOfW(Video_Win);
 
-    std::vector <cCaseNamePoint>        mVNameCase;
     std::map<std::string,cCaseNamePoint *>  mMapNC;
 
     std::vector<cWinIm *> mWins;
@@ -375,22 +391,19 @@ private:
     cFenMenu *            mMenuNamePoint;
     Video_Win *           mWEnter;
 
-    Pt2di                 mNb2W;
-    int                   mNbW;
 
-    Pt2di                 mSzWZ;
-
-    bool                  mRefInvis;
 };
+#endif 
+
 
 class cAppli_SaisiePts
 {
     public :
 
-    cAppli_SaisiePts( cResultSubstAndStdGetFile<cParamSaisiePts> aParam);
+    cAppli_SaisiePts( cResultSubstAndStdGetFile<cParamSaisiePts> aParam, bool instanceInterface = true);
     const cParamSaisiePts &             Param() const;
-    const std::string &                 DC() const;     // directory chantier
-    cInterfChantierNameManipulateur *   ICNM() const;
+    const std::string &                 DC()    const;     // directory chantier
+    cInterfChantierNameManipulateur *   ICNM()  const;
 
     void ErreurFatale(const std::string &);
 
@@ -436,8 +449,9 @@ class cAppli_SaisiePts
 
     void ChangeName(std::string  anOldName,std::string  aNewName); //UTILISE L'INTERFACE appelle ReaffAllW();
 
-    cX11_Interface* Interface() { return mInterface; }
-    cParamSaisiePts & param()   { return mParam; }
+    cVirtualInterface * Interface() { return mInterface; }
+
+    void SetInterface( cVirtualInterface * interf ) { mInterface = interf ;}
 
     int             nbImages()  { return mNbIm; }
 
@@ -445,7 +459,7 @@ class cAppli_SaisiePts
 
     cImage*         images(int aK) { return mImages[aK]; }
 
-    std::vector<cSP_PointGlob *> PG() { return mPG; }
+    std::vector< cSP_PointGlob * > PG() { return mPG; }
 
     private :
 
@@ -464,13 +478,14 @@ class cAppli_SaisiePts
          void InitPG();
          void IniPointeIm();
 
-         cParamSaisiePts &                 mParam;
-         cX11_Interface*                   mInterface;
+         cParamSaisiePts &                     mParam;
+         cVirtualInterface*                    mInterface;
+         //cX11_Interface*                       mInterface;
 
-         cInterfChantierNameManipulateur * mICNM;
-         std::string                       mDC;
-         std::vector<cImage *>             mImages;
-         std::map<std::string,cImage *>    mMapIms;
+         cInterfChantierNameManipulateur *     mICNM;
+         std::string                           mDC;
+         std::vector<cImage *>                 mImages;
+         std::map<std::string,cImage *>        mMapIms;
 
          cSetPointGlob                         mSPG;
          std::vector<cSP_PointGlob *>          mPG;
@@ -501,7 +516,7 @@ class cAppli_SaisiePts
 
 
 
-};
+}
 
 #endif //  _ELISE_SAISIEPTS_ALL_H_
 
