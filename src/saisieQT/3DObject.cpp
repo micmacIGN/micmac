@@ -696,7 +696,10 @@ void cPolygon::setNearestPointState(const QPointF &pos, int state)
             _points.remove(_idx);
         } 
         else
+        {
             _points[_idx].setState(state);
+            _points[_idx].setSelected(false);
+        }
     }
 
     _idx = -1;

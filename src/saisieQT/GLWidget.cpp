@@ -29,7 +29,7 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 		setFormat(tformGL);
 	#endif
 
-    _contextMenu.createContexMenuActions();
+    _contextMenu.createContextMenuActions();
 }
 
 void GLWidget::resizeGL(int width, int height)

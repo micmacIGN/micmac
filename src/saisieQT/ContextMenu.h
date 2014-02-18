@@ -19,7 +19,7 @@ class ContextMenu : public QWidget
 public:
     ContextMenu(){}
 
-    void createContexMenuActions();
+    void createContextMenuActions();
 
     void setPolygon(cPolygon * poly){ _polygon = poly; }
     void setPos(QPointF pt) { _lastPosImage = pt; }

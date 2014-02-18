@@ -1,11 +1,11 @@
 #include "ContextMenu.h"
 
-void ContextMenu::createContexMenuActions()
+void ContextMenu::createContextMenuActions()
 {
     QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
 
-    _rename    = new QAction(tr("Rename"), this);
-    _showNames = new QAction(tr("Show names"), this);
+    _rename      = new QAction(tr("Rename"), this);
+    _showNames   = new QAction(tr("Show names"), this);
     _showRefuted = new QAction(tr("Show refuted points"), this);
 
     _highLight = new QAction(QIcon(IconFolder + "HL.ico"),              tr("Highlight"), this);
