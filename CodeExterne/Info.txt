@@ -1,0 +1,8 @@
+Depot de qq codes externe, que je ne compte pas (forcement) integre
+mais dont je compte m'inspirer. :
+
+   - Siftpp (pour sepcif complete de sift )
+   - flann (a intergrer peut etre)
+
+
+
