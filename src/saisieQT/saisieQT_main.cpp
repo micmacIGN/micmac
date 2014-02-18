@@ -57,6 +57,7 @@ public:
 int main(int argc, char *argv[])
 #endif
 {
+
     QApplication::setStyle("fusion");
 
 #if ( ( defined WIN32 ) && ( ELISE_QT_VERSION==5 ) )
@@ -65,6 +66,10 @@ int main(int argc, char *argv[])
 	char **argv = cmd_line.argv();
 #endif
     QApplication app(argc, argv);
+
+    // QT Modifie le comportement de sscanf !!!!! problematique quand on parse les fichiers XML
+    setlocale(LC_NUMERIC,"C");
+
 
     app.setOrganizationName("IGN");
     app.setApplicationName("QT graphical tools");

@@ -52,7 +52,9 @@ using namespace NS_SaisiePts;
 
 const Pt2dr cWinIm::PtsEchec (-100000,-10000);
 
-Pt2dr cWinIm::RecherchePoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
+#if ELISE_windows == 0
+
+Pt2dr cWinIm::FindPoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
 {
      Tiff_Im aTF = mCurIm->Tif();
      Pt2di aSzT = aTF.sz();
@@ -112,39 +114,31 @@ Pt2dr cWinIm::RecherchePoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPoint
 
 void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
 {
-    Pt2dr aPGlob = RecherchePoint(mScr->to_user(aPW),aType,aSz,0);
+    Pt2dr aPGlob = FindPoint(mScr->to_user(aPW),aType,aSz,0);
 
-    if (aPGlob==PtsEchec)
-    {
-        return;
-    }
+    if (aPGlob==PtsEchec) return;
 
-    mAppli.Interface()->ShowZoom(aPGlob);
+    mAppli.Interface()->DrawZoom(aPGlob);
 
-    cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePt();
+    cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePoint();
 
-    bool Ok = aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel);
-    //TODO: verifier si c'est utile : ShowZoom est appelé 2 lignes au dessus (cpier-coller ?)
-    //mAppli.Interface()->ShowZoom(aPGlob);
+    if (aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel))
 
-    if (Ok)
-    {
         mCurIm->CreatePGFromPointeMono(aPGlob,aType,aSz,aCNP);
-    }
+
     else
-    {
-        mAppli.Interface()->MenuNamePoint()->W().lower();
-    }
+
+        ((cX11_Interface*)mAppli.Interface())->MenuNamePoint()->W().lower();
 }
 
-void cX11_Interface::ShowZoom(const Pt2dr & aPGlob)
+void cX11_Interface::DrawZoom(const Pt2dr & aPGlob)
 {
      double aZoom = 10.0;
 
      Pt2dr aPIm = aPGlob- Pt2dr(mAppli->DecRech());
-     Pt2dr aPMil = Pt2dr(SzWZ())/(2.0*aZoom);
+     Pt2dr aPMil = Pt2dr(mWZ->sz())/(2.0*aZoom);
 
-     Video_Win aWC = WZ().chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
+     Video_Win aWC = mWZ->chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
      ELISE_COPY
      (
                 aWC.all_pts(),
@@ -155,7 +149,7 @@ void cX11_Interface::ShowZoom(const Pt2dr & aPGlob)
      aWC.draw_circle_abs(aPIm,4.0,Line_St(aWC.pdisc()(P8COL::blue),3.0));
 }
 
-
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

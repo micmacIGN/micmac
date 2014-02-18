@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
+#if ELISE_windows == 0
+
 cWinIm * cX11_Interface::WinImOfW(Video_Win aW)
 {
     for (int aK=0 ; aK<mNbW; aK++)
@@ -98,16 +100,18 @@ void cX11_Interface::SetInvisRef(bool aVal)
     for (int aKW=0 ; aKW < int(mWins.size()); aKW++)
     {
         mWins[aKW]->BCaseVR()->SetVal(aVal);
-        mWins[aKW]->Reaff();
+        mWins[aKW]->Redraw();
         mWins[aKW]->ShowVect();
     }
 }
 
 void cX11_Interface::RedrawAllWindows()
 {
-    for (uint aK=0 ; aK< mWins.size() ; aK++)
-        mWins[aK]->Reaff();
+    for (int aK=0 ; aK< int(mWins.size()) ; aK++)
+        mWins[aK]->Redraw();
 }
+
+#endif
 
 //**************************************************************************************************************
 

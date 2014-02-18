@@ -85,7 +85,7 @@ int SaisiePts_main(int argc,char ** argv)
                                           );
 
    cAppli_SaisiePts   anAppli (aP2);
-   anAppli.Interface()->BoucleInput();
+   ((cX11_Interface*)anAppli.Interface())->BoucleInput();
 
    SaisiePts_Banniere();
    return 0;
