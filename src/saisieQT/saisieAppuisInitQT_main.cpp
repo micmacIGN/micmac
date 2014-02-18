@@ -141,15 +141,16 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
             "FileChantierNameDescripteur" );
 
     cAppli_SaisiePts   anAppli (aP2,false);
-    anAppli.SetInterface(new cQT_Interface(anAppli,&w));
 
-    w.setAppliMetier(&anAppli);
+    cQT_Interface* interface = new cQT_Interface(anAppli,&w);
+
+    anAppli.SetInterface(interface);
 
     w.show();
 
     w.addFiles(filenames);
 
-    w.refreshPts();
+    interface->refreshPts();
 
     return app.exec();
 }

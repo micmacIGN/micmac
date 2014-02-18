@@ -52,9 +52,9 @@ void MainWindow::connectActions()
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
 
-        connect(getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
+        //connect(getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
 
-        connect(getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
+        //connect(getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
     }
 
     //File menu
@@ -83,16 +83,6 @@ void MainWindow::connectActions()
     _signalMapper->setMapping (_ui->action1_4_25, 25);
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
-}
-
-cAppli_SaisiePts *MainWindow::getAppliMetier() const
-{
-    return AppliMetier;
-}
-
-void MainWindow::setAppliMetier(cAppli_SaisiePts *value)
-{
-    AppliMetier = value;
 }
 
 void MainWindow::createRecentFileMenu()
@@ -805,106 +795,6 @@ void MainWindow::changeCurrentWidget(void *cuWid)
             zoomWidget()->setOption(cGLData::OpShow_Mess,false);
 
             connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
-        }
-    }
-}
-
-void MainWindow::refreshPts()
-{
-    for (int i = 0; i < nbWidgets(); ++i)
-    {
-        if(getWidget(i)->hasDataLoaded())
-        {
-            cGLData * data = getWidget(i)->getGLData();
-
-            QString nameImage = data->glMaskedImage.cObjectGL::name();
-
-            int t = cImageIdxFromName(nameImage);
-
-            if(t!=-1)
-            {
-                const std::vector<cSP_PointeImage *> &  aVP = getAppliMetier()->images(t)->VP();
-
-               // printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
-
-                data->clearPolygon();
-
-                for (int aK=0 ; aK<int(aVP.size()) ; aK++)
-                {
-                    //if (WVisible(*(aVP[aK])))
-                    {
-                        const cOneSaisie  & aSom = *(aVP[aK]->Saisie());
-                        Pt2dr aP = aSom.PtIm();
-                        //aP = mScr->to_win(aP);
-                        eEtatPointeImage aState = aSom.Etat();
-
-                        getWidget(i)->addGlPoint(QPointF(aP.x,data->glMaskedImage._m_image->height()- aP.y),QString(aSom.NamePt().c_str()), aState );
-                    }
-                }
-
-                getWidget(i)->update();
-            }
-        }
-    }
-}
-
-int MainWindow::cImageIdxFromName(QString nameImage)
-{
-    int t = -1;
-
-    for (int i = 0; i < getAppliMetier()->nbImages(); ++i)
-    {
-       QString nameCImage(getAppliMetier()->images(i)->Name().c_str());
-       if(nameCImage == nameImage)
-           t = i;
-    }
-
-    return t;
-}
-
-void MainWindow::addPoint(QPointF point)
-{
-    Pt2dr aPGlob(point.x(),currentWidget()->getGLData()->glMaskedImage._m_image->height() - point.y());
-
-    cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
-
-    QString nameImage = currentWidget()->getGLData()->glMaskedImage.cObjectGL::name();
-
-    int t = cImageIdxFromName(nameImage);
-
-    //printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
-
-    if(t != -1)
-        getAppliMetier()->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
-
-    refreshPts();
-}
-
-void MainWindow::movePoint(int idPt)
-{
-    if(idPt >= 0 )
-    {
-        cGLData * data = currentWidget()->getGLData();
-
-        QString nameImage = data->glMaskedImage.cObjectGL::name();
-
-        int t = cImageIdxFromName(nameImage);
-
-        cSP_PointeImage * aPIm = getAppliMetier()->images(t)->PointeOfNameGlobSVP(currentWidget()->getGLData()->m_polygon[idPt].name().toStdString());
-
-        if(aPIm)
-        {
-            cImage* mCurIm = getAppliMetier()->images(t);
-            getAppliMetier()->AddUndo(*(aPIm->Saisie()),mCurIm);
-
-            Pt2dr newPt(data->m_polygon[idPt].x(),data->glMaskedImage._m_image->height() - data->m_polygon[idPt].y());
-            aPIm->Saisie()->PtIm() = newPt;
-            //Redraw();
-            aPIm->Gl()->ReCalculPoints();
-
-            refreshPts();
-
-            getAppliMetier()->Sauv();
         }
     }
 }
