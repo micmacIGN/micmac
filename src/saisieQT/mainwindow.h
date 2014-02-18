@@ -19,7 +19,13 @@
 #include "Settings.h"
 #include "qdesktopwidget.h"
 
+#include   "QT_interface_Elise.h"
+
+using namespace NS_SaisiePts;
+class cQT_Interface ;
+
 namespace Ui {
+
 class MainWindow;
 }
 
@@ -37,6 +43,7 @@ class MainWindow : public QMainWindow, public GLWidgetSet
     Q_OBJECT
 
 public:
+
     explicit MainWindow( int mode = MASK3D, QWidget *parent = 0 );
     ~MainWindow();
 
@@ -45,10 +52,16 @@ public:
     void runProgressDialog(QFuture<void> future);
 
     void readSettings();
+
     void writeSettings();
 
     void applyParams();
-    void labelShowMode(bool);
+
+    void labelShowMode(bool state);
+
+    void refreshPts();
+
+    void setLayout(uint sy);
 
 public slots:
 
@@ -135,6 +148,7 @@ protected:
     void connectActions();  
 
 private:
+
     void                    createRecentFileMenu();
 
     void                    setCurrentFile(const QString &fileName);

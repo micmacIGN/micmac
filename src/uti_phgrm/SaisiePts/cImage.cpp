@@ -85,11 +85,12 @@ Pt2dr cImage::PointArbitraire()  const
    Pt2dr aSz = Pt2dr(SzIm());
    Box2dr aBox(aSz*0.25,aSz*0.75);
 
+#if ELISE_windows == 0
    if (mWAff)
    {
        aBox = mWAff->BoxImageVisible();
    }
-
+#endif
 
    return aBox.RandomlyGenereInside();
 }
@@ -239,7 +240,8 @@ bool cImage::PtInImage(const Pt2dr aP)
           && (aP.y<SzIm().y);
 }
 
-
+// CREATE point ground From Pointe Mono
+//
 void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCaseNamePoint * aCNP)
 {
 
@@ -267,7 +269,7 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
     std::pair<int,std::string> anId = mAppli.Interface()->IdNewPts(aCNP);
     if (anId.second=="NONE")
        return;
-    mAppli.Interface()->ChangeFreeNameP(anId.second,false);
+    mAppli.Interface()->ChangeFreeNamePoint(anId.second,false);
 
     aPG.Type() = aType;
     aPG.Name() = anId.second;

@@ -287,10 +287,3 @@ class ConstructCG:
       print 'Save offsets to file'
       self.saveInfosOffset(offset_value)
       close()
-
-
-
-#~ if __name__ == '__main__':
-  #fig=figure()
-  #ax = fig.add_subplot(111)
-
