@@ -41,22 +41,8 @@ public :
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
-    cAppli_SaisiePts*   AppliMetier(){return  mAppli;}
-
     void                rebuildGlPoints();
 
-    int                 cImageIdxCurrent();
-
-    std::string         nameSelectPt(int idPt);
-
-    int                 cImageIdxFromGL(cGLData* data);
-
-    void                addGlPoint(const cOneSaisie& aSom, int i);
-
-    cGLData *           getGlData(int idImage);
-
-    cSP_PointeImage * currentPointeImage(int idx);
-    cImage * currentCImage();
 private:
 
     void                Init(){}
@@ -70,6 +56,22 @@ private:
     Pt2dr               transformation(QPointF pt, int idImage = -1);
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
+
+    cAppli_SaisiePts*   AppliMetier(){return  mAppli;}
+
+    int                 cImageIdxCurrent();
+
+    std::string         nameSelectPt(int idPt);
+
+    int                 cImageIdxFromGL(cGLData* data);
+
+    void                addGlPoint(const cOneSaisie& aSom, int i);
+
+    cGLData *           getGlData(int idImage);
+
+    cSP_PointeImage *   currentPointeImage(int idPoint);
+
+    cImage *            currentCImage();
 
 private slots:
 

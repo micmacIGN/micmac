@@ -23,7 +23,9 @@
 
 using namespace NS_SaisiePts;
 class cQT_Interface ;
+
 namespace Ui {
+
 class MainWindow;
 }
 

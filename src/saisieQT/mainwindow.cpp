@@ -669,9 +669,16 @@ void MainWindow::setUI()
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
         _zoomLayout->setContentsMargins(2,2,2,2);
-
         _ui->zoomLayout->setLayout(_zoomLayout);
         _ui->zoomLayout->setContentsMargins(0,0,0,0);
+
+
+         QGridLayout*            _tdLayout = new QGridLayout;
+
+         _tdLayout->addWidget(threeDWidget());
+         _tdLayout->setContentsMargins(2,2,2,2);
+        _ui->frame3D->setLayout(_tdLayout);
+        _ui->frame3D->setContentsMargins(0,0,0,0);
 
         //disable some actions
         hideAction(_ui->actionAdd, false);
@@ -820,9 +827,9 @@ void MainWindow::undo(bool undo)
 void MainWindow::applyParams()
 {
     move(_params->getPosition());
-
+    
     QSize szFen = _params->getSzFen();
-
+    
     if (_params->getFullScreen())
     {
         showFullScreen();
