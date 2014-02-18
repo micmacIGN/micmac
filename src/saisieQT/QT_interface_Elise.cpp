@@ -8,6 +8,15 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     mRefInvis = appli.Param().RefInvis().Val();
 
+
+    for (int aK = 0; aK < m_QTMainWindow->nbWidgets();++aK)
+    {
+
+        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
+
+        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
+    }
+
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -80,4 +89,145 @@ std::pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
    //std::pair aRes(
    return std::pair<int,std::string>(aCptMax,aName);
 
+}
+
+int cQT_Interface::cImageIdxFromName(QString nameImage)
+{
+    int t = -1;
+
+    for (int i = 0; i < mAppli->nbImages(); ++i)
+    {
+       QString nameCImage(mAppli->images(i)->Name().c_str());
+       if(nameCImage == nameImage)
+           t = i;
+    }
+
+    return t;
+}
+
+void cQT_Interface::addPoint(QPointF point)
+{
+    Pt2dr aPGlob(point.x(),m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage._m_image->height() - point.y());
+
+    cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
+
+    QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage.cObjectGL::name();
+
+    int t = cImageIdxFromName(nameImage);
+
+    //printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
+
+    if(t != -1)
+        mAppli->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
+
+    refreshPts();
+}
+
+
+
+string cQT_Interface::nameSelectPt(int idPt)
+{
+    std::string name =m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt].name().toStdString();
+
+    return name;
+}
+
+void cQT_Interface::movePoint(int idPt)
+{
+    if(idPt >= 0 )
+    {
+
+        int t = cImageIdxCurrent();
+
+        cSP_PointeImage * aPIm = mAppli->images(t)->PointeOfNameGlobSVP(nameSelectPt(idPt));
+
+        if(aPIm)
+        {
+            cImage* mCurIm = mAppli->images(t);
+            mAppli->AddUndo(*(aPIm->Saisie()),mCurIm);
+
+            aPIm->Saisie()->PtIm() = transformation(m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt]);
+            //Redraw();
+            aPIm->Gl()->ReCalculPoints();
+
+            refreshPts();
+
+            mAppli->Sauv();
+        }
+    }
+}
+
+int cQT_Interface::cImageIdxCurrent()
+{
+    return cImageIdxFromGL(m_QTMainWindow->currentWidget()->getGLData());
+}
+
+int cQT_Interface::cImageIdxFromGL(cGLData* data)
+{
+    QString nameImage = data->glMaskedImage.cObjectGL::name();
+
+    int t = cImageIdxFromName(nameImage);
+
+    return t;
+}
+
+int cQT_Interface::cImageIdx(int idGl)
+{
+    return cImageIdxFromGL(m_QTMainWindow->getWidget(idGl)->getGLData());
+}
+
+cGLData * cQT_Interface::getGlData(int idImage)
+{
+    cGLData * data = (idImage == -1) ? m_QTMainWindow->currentWidget()->getGLData() : m_QTMainWindow->getWidget(idImage)->getGLData();
+
+    return data;
+}
+
+Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
+{
+    Pt2dr newPt(pt.x(),getGlData(idImage)->glMaskedImage._m_image->height() - pt.y());
+    return newPt;
+}
+
+QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
+{
+    QPointF newPt(pt.x,getGlData(idImage)->glMaskedImage._m_image->height() - pt.y);
+    return newPt;
+}
+
+void cQT_Interface::addGlPoint(const cOneSaisie& aSom,  int i)
+{
+
+    Pt2dr aP = aSom.PtIm();
+
+    eEtatPointeImage aState = aSom.Etat();
+
+    m_QTMainWindow->getWidget(i)->addGlPoint(transformation(aP,i),QString(aSom.NamePt().c_str()), aState );
+}
+
+void cQT_Interface::refreshPts()
+{
+    for (int i = 0; i < m_QTMainWindow->nbWidgets(); ++i)
+    {
+        if(m_QTMainWindow->getWidget(i)->hasDataLoaded())
+        {
+            int t = cImageIdx(i);
+
+            if(t!=-1)
+            {
+                const std::vector<cSP_PointeImage *> &  aVP = mAppli->images(t)->VP();
+
+                m_QTMainWindow->getWidget(i)->getGLData()->clearPolygon();
+
+                for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+                    //if (WVisible(*(aVP[aK])))
+                    {
+                        const cOneSaisie  & aSom = *(aVP[aK]->Saisie());
+                        addGlPoint(aSom, i);
+                    }
+
+                m_QTMainWindow->getWidget(i)->update();
+            }
+        }
+    }
 }
