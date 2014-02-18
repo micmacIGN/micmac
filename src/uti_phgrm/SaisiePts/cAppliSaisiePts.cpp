@@ -61,6 +61,7 @@ void cVirtualInterface::InitNbWindows()
     }
 }
 
+#if ELISE_windows == 0
 cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
     mWZ           (0),
     mWEnter       (0)
@@ -239,7 +240,7 @@ void cX11_Interface::DeletePoint(cSP_PointGlob * aSG)
 
     RedrawAllWindows();
 }
-
+#endif
 //************************************************************************************************************************************************
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
@@ -256,8 +257,10 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     InitImages();
     InitInPuts();
 
+#if ELISE_windows == 0
     if(instanceInterface)
         mInterface = new cX11_Interface(*this);
+#endif
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }
@@ -663,10 +666,13 @@ cSetOfSaisiePointeIm PurgeSOSPI(const cSetOfSaisiePointeIm & aSOSPI)
     return aRes;
 }
 
+#if ELISE_windows == 0
+
 void cX11_Interface::Save()
 {
     mAppli->Sauv();
 }
+#endif
 
 void cAppli_SaisiePts::Sauv()
 {
@@ -842,11 +848,12 @@ void cAppli_SaisiePts::ChangeImages
     cCmpIm aCmpIm;
     std::sort(mImages.begin(),mImages.end(),aCmpIm);
 
+	#if ELISE_windows == 0
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)
     {
         aW2Ch[aKW]->SetNoImage();
     }
-
+	#endif
     int aKW =0 ;
     int aKI =0;
 
@@ -857,7 +864,9 @@ void cAppli_SaisiePts::ChangeImages
         cImage * anIm = mImages[aKI];
         if (!anIm->WAff())
         {
+#if ELISE_windows == 0
             aW2Ch[aKW]->SetNewImage(anIm);
+#endif
             aKW++;
         }
         aKI++;

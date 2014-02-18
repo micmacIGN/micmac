@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 using namespace NS_SaisiePts;
-
+#if ELISE_windows == 0
 
 /*************************************************/
 /*                                               */
@@ -686,6 +686,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
     }
 }
 
+#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

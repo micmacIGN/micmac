@@ -85,11 +85,12 @@ Pt2dr cImage::PointArbitraire()  const
    Pt2dr aSz = Pt2dr(SzIm());
    Box2dr aBox(aSz*0.25,aSz*0.75);
 
+#if ELISE_windows == 0
    if (mWAff)
    {
        aBox = mWAff->BoxImageVisible();
    }
-
+#endif
 
    return aBox.RandomlyGenereInside();
 }

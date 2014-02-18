@@ -340,6 +340,8 @@ private:
     virtual void              Init()=0;
 };
 
+#if ELISE_windows == 0
+
 class cX11_Interface : public cVirtualInterface
 {
 public :
@@ -391,7 +393,7 @@ private:
 
 
 };
-
+#endif 
 
 
 class cAppli_SaisiePts
@@ -447,9 +449,9 @@ class cAppli_SaisiePts
 
     void ChangeName(std::string  anOldName,std::string  aNewName); //UTILISE L'INTERFACE appelle ReaffAllW();
 
-    cVirtualInterface* Interface() { return mInterface; }
+    cVirtualInterface * Interface() { return mInterface; }
 
-    void SetInterface(cVirtualInterface* interface) { mInterface = interface;}
+    void SetInterface( cVirtualInterface * interf ) { mInterface = interf ;}
 
     int             nbImages()  { return mNbIm; }
 
@@ -457,7 +459,7 @@ class cAppli_SaisiePts
 
     cImage*         images(int aK) { return mImages[aK]; }
 
-    std::vector<cSP_PointGlob *> PG() { return mPG; }
+    std::vector< cSP_PointGlob * > PG() { return mPG; }
 
     private :
 
