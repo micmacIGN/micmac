@@ -19,10 +19,11 @@
 #include "Settings.h"
 #include "qdesktopwidget.h"
 
-#include "../uti_phgrm/SaisiePts/cParamSaisiePts.h"
+//#include "../uti_phgrm/SaisiePts/cParamSaisiePts.h"
+#include   "QT_interface_Elise.h"
 
 using namespace NS_SaisiePts;
-
+class cQT_Interface ;
 namespace Ui {
 class MainWindow;
 }
@@ -57,15 +58,9 @@ public:
 
     void labelShowMode(bool state);
 
-    cAppli_SaisiePts *getAppliMetier() const;
-
-    void setAppliMetier(cAppli_SaisiePts *value);
-
     void refreshPts();
 
     void setLayout(uint sy);
-
-    int  cImageIdxFromName(QString nameImage);
 
 public slots:
 
@@ -98,11 +93,6 @@ protected slots:
     void setZoom(float);
 
     void changeCurrentWidget(void* cuWid);
-
-
-    void addPoint(QPointF point);
-
-    void movePoint(int idPt);
 
     //View Menu
     void on_actionShow_axis_toggled(bool);
@@ -157,8 +147,6 @@ protected:
     void connectActions();  
 
 private:
-
-    cAppli_SaisiePts*       AppliMetier;
 
     void                    createRecentFileMenu();
 
