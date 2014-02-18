@@ -40,6 +40,10 @@ public:
     QAction     *_noSaisie;
     QAction     *_highLight;
 
+signals:
+
+    void changeState(int state,int idPt);
+
 public slots:
 
     void setPointState(int state);
