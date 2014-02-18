@@ -49,12 +49,14 @@ class cObject
         cObject(Pt3dr pt, QColor col);
         virtual ~cObject();
 
+        QString name()          { return _name;     }
         Pt3dr   getPosition()   { return _position; }
         QColor  getColor()      { return _color;    }
         float   getScale()      { return _scale;    }
         bool    isVisible()     { return _bVisible; }
         bool    isSelected()    { return _bSelected;}
 
+        void    setName(QString name)          { _name = name;     }
         void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
         void    setColor(QColor const &aCol)   { _color = aCol;    }
         void    setScale(float aScale)         { _scale = aScale;  }
@@ -64,6 +66,8 @@ class cObject
         cObject & operator = (const cObject &);
 
     protected:
+
+        QString _name;
 
         Pt3dr   _position;
         QColor  _color;
@@ -100,17 +104,15 @@ class cPoint : public cObjectGL, public QPointF
            QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            bool showName   = false,
+           int  state = NS_SaisiePts::eEPI_NonValue,
+           bool isSelected = false,
            QColor color = Qt::red,        
            QColor selectionColor = Qt::blue,
            float diameter = 4.f,
-           int  state = NS_SaisiePts::eEPI_NonValue,
-           bool isSelected = false,
            bool highlight  = false);
 
         void draw();
 
-        void setName(QString name){ _name = name; }
-        QString name() { return _name; }
         void setState(int state){ _state = state; }
         int  state() { return _state; }
         void showName(bool show){ _bShowName = show; }
@@ -118,10 +120,10 @@ class cPoint : public cObjectGL, public QPointF
         void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
 
 private:
-       QString _name;
+
        float   _diameter;
-       int     _state;
        bool    _bShowName;
+       int     _state;
        bool    _highlight;
 
        QColor  _selectionColor;
@@ -198,6 +200,7 @@ class cBBox : public cObjectGL
         void    draw();
 
         void set(Pt3d<double> min, Pt3d<double> max);
+
     private:
         Pt3dr   _min;
         Pt3dr   _max;
@@ -238,7 +241,7 @@ class cPolygon : public cObjectGL
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
 
-        void    setNearestPointState(const QPointF &pos, int state);
+        int     setNearestPointState(const QPointF &pos, int state);
         void    highlightNearestPoint(const QPointF &pos);
         QString getNearestPointName(const QPointF &pos);
         QString getSelectedPointName();
@@ -282,7 +285,7 @@ class cPolygon : public cObjectGL
 
         void    refreshHelper(QPointF pos, bool insertMode, float zoom);
 
-        void    finalMovePoint();
+        int     finalMovePoint();
 
         void    removeLastPoint();
 
@@ -416,7 +419,7 @@ private:
 };
 
 template<class T>
-class cMaskedImage
+class cMaskedImage : public cObject
 {
 
 public:
@@ -453,7 +456,7 @@ public:
 
 };
 
-class cMaskedImageGL : public cMaskedImage<cImageGL>, public cObjectGL
+class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 {
 
 public:
@@ -578,8 +581,6 @@ public:
 
     void        draw();
 
-    bool        is3D(){return Clouds.size() || Cams.size();}
-
     cMaskedImageGL glMaskedImage;
 
     QImage      *pQMask;
@@ -587,20 +588,18 @@ public:
     //! Point list for polygonal selection
     cPolygon    m_polygon;
 
-    bool        isImgEmpty(){return glMaskedImage._m_image == NULL;}
+    bool        is3D()                                  { return Clouds.size() || Cams.size();   }
 
-    QImage*     getMask(){return pQMask;}
+    bool        isImgEmpty()                            { return glMaskedImage._m_image == NULL; }
 
-    void        setPolygon(cPolygon const &aPoly){ m_polygon = aPoly; }
+    QImage*     getMask()                               { return pQMask;     }
 
-    void        clearPolygon(){ m_polygon.clear(); }
+    void        setPolygon(cPolygon const &aPoly)       { m_polygon = aPoly; }
 
-    bool        isNewMask()
-    {
-        return !isImgEmpty() ? glMaskedImage._m_newMask : true;
-    }
+    void        clearPolygon()                          { m_polygon.clear(); }
 
-    //3D
+    bool        isNewMask()                             { return !isImgEmpty() ? glMaskedImage._m_newMask : true; }
+
     QVector < cCam* > Cams;
 
     cBall       *pBall;
@@ -627,6 +626,7 @@ public:
     void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        setPainter(QPainter *);
+
     enum Option {
       OpNO          = 0x00,
       OpShow_Ball   = 0x01,
@@ -649,6 +649,7 @@ public:
     bool        stateOption(QFlags<Option> option){ return _options & option; }
 
     bool        mode() { return _modePt; }
+
 private:
 
     void        initOptions()

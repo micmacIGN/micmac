@@ -48,7 +48,7 @@ public:
     ~GLWidget(){}
 
     //! States if data (cloud, camera or image) is loaded
-    bool hasDataLoaded(){ return (m_GLData != NULL);}
+    bool hasDataLoaded(){ return (m_GLData != NULL); }
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
@@ -81,7 +81,7 @@ public:
     //! Reset view
     void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true, bool resetPoly = true);
 
-    ViewportParameters* getParams()         { return &_vp_Params; }
+    ViewportParameters* getParams()         { return &_vp_Params;      }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
 
@@ -94,19 +94,23 @@ public:
         _BGColor1 = col1;
     }
 
-    float imWidth() { return m_GLData->glMaskedImage._m_image->width(); }
-    float imHeight(){ return m_GLData->glMaskedImage._m_image->height();}
+    float imWidth() { return m_GLData->glMaskedImage._m_image->width();  }
+    float imHeight(){ return m_GLData->glMaskedImage._m_image->height(); }
 
     bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glMaskedImage._m_image->isPtInside(pt); }
 
-    GLint vpWidth() { return _matrixManager.vpWidth(); }
+    GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
     cPolygon & polygon(){ return m_GLData->m_polygon;}
 
-    void refreshPositionMessage(QPointF pos);
+    void setCursorShape(QPointF pos);
 
-    void setDisplayMode(bool is2D) { m_bDisplayMode2D = is2D; }
+    void drawCenter();
+
+    void addGlPoint(QPointF pt, QString name, int state);
+
+    ContextMenu *contextMenu();
 
 public slots:
 
@@ -123,8 +127,11 @@ signals:
 
     void overWidget(void* widget);
 
-    void zoomChanged(float zoom);
     void gammaChanged(float gamma);
+
+    void addPoint(QPointF point);
+
+    void movePoint(int idPt);
 
 protected:
     //! inherited from QGLWidget

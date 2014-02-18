@@ -19,7 +19,13 @@
 #include "Settings.h"
 #include "qdesktopwidget.h"
 
+#include   "QT_interface_Elise.h"
+
+using namespace NS_SaisiePts;
+class cQT_Interface ;
+
 namespace Ui {
+
 class MainWindow;
 }
 
@@ -28,8 +34,8 @@ const QColor colorBorder("#606060");
 //! Interface mode
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
                 MASK3D,         /**< Point cloud mask **/
-                POINT2D_INIT,	/**< Points in Image (SaisiePointInit) **/
-                POINT2D_PREDICT /**< Points in Image (SaisiePointPredic) **/
+                POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) **/
+                POINT2D_PREDIC  /**< Points in Image (SaisieAppuisPredic) **/
 };
 
 class MainWindow : public QMainWindow, public GLWidgetSet
@@ -37,6 +43,7 @@ class MainWindow : public QMainWindow, public GLWidgetSet
     Q_OBJECT
 
 public:
+
     explicit MainWindow( int mode = MASK3D, QWidget *parent = 0 );
     ~MainWindow();
 
@@ -45,10 +52,16 @@ public:
     void runProgressDialog(QFuture<void> future);
 
     void readSettings();
+
     void writeSettings();
 
     void applyParams();
-    void labelShowMode(bool);
+
+    void labelShowMode(bool state);
+
+    void refreshPts();
+
+    void setLayout(uint sy);
 
 public slots:
 
@@ -65,7 +78,7 @@ public slots:
 
     void progression();
 
-    void setMode();
+    void setUI();
 
     cEngine* getEngine(){return _Engine;}
 
@@ -135,6 +148,7 @@ protected:
     void connectActions();  
 
 private:
+
     void                    createRecentFileMenu();
 
     void                    setCurrentFile(const QString &fileName);

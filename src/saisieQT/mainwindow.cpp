@@ -1,28 +1,6 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-void MainWindow::labelShowMode(bool state)
-{   
-    if ((!state) || (_mode == 1))
-    {
-        _ui->label_PositionImage_1->hide();
-        _ui->label_PositionImage_2->hide();
-    }
-    else
-    {
-        if(_mode == 0)
-        {
-            _ui->label_PositionImage_1->hide();
-            _ui->label_PositionImage_2->show();
-        }
-        else if(_mode > 1)
-        {
-            _ui->label_PositionImage_1->show();
-            _ui->label_PositionImage_2->hide();
-        }
-    }
-}
-
 MainWindow::MainWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::MainWindow),
@@ -40,33 +18,9 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
 
-    uint sy = 0;
+    setUI();
 
-    _layout->setContentsMargins(sy,sy,sy,sy);
-    _layout->setHorizontalSpacing(sy);
-    _layout->setVerticalSpacing(sy);
-    _ui->OpenglLayout->setLayout(_layout);
-
-#ifdef ELISE_Darwin
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
-#endif
-
-    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
-
-    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
-
-    setMode();
-
-    int cpt=0;
-    for (int aK = 0; aK < _params->getNbFen().x();++aK)
-        for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
-            _layout->addWidget(getWidget(cpt), bK, aK);
-
-    _signalMapper = new QSignalMapper (this);
     connectActions();
-
-    labelShowMode(true);
 
     createRecentFileMenu();
 
@@ -89,10 +43,18 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActions()
 {
+    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
+
+    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
+
     for (int aK = 0; aK < nbWidgets();++aK)
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
+
+        //connect(getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
+
+        //connect(getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
     }
 
     //File menu
@@ -106,6 +68,8 @@ void MainWindow::connectActions()
     }
 
     //Zoom menu
+    _signalMapper = new QSignalMapper (this);
+
     connect(_ui->action4_1_400,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action2_1_200,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_ui->action1_1_100,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
@@ -266,13 +230,6 @@ void MainWindow::on_actionShow_cams_toggled(bool state)
 void MainWindow::on_actionShow_messages_toggled(bool state)
 {
     currentWidget()->setOption(cGLData::OpShow_Mess,state);
-    /*if(state)
-        labelShowMode();
-    else
-    {
-        _ui->label_PositionImage_1->hide();
-        _ui->label_PositionImage_2->hide();
-    }*/
 
     labelShowMode(state);
 }
@@ -436,7 +393,7 @@ void MainWindow::on_actionReset_triggered()
 void MainWindow::on_actionRemove_triggered()
 {
     if (_mode > MASK3D)
-        currentWidget()->polygon().removeSelectedPoint();
+        currentWidget()->polygon().removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
     else
         currentWidget()->Select(SUB);
 }
@@ -667,8 +624,30 @@ void hideAction(QAction* action, bool show)
     action->setEnabled(show);
 }
 
-void MainWindow::setMode()
+void MainWindow::setLayout(uint sy)
 {
+    _layout->setContentsMargins(sy,sy,sy,sy);
+    _layout->setHorizontalSpacing(sy);
+    _layout->setVerticalSpacing(sy);
+    _ui->OpenglLayout->setLayout(_layout);
+
+    int cpt=0;
+    for (int aK = 0; aK < _params->getNbFen().x();++aK)
+        for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
+            _layout->addWidget(getWidget(cpt), bK, aK);
+}
+
+void MainWindow::setUI()
+{
+    setLayout(0);
+
+#ifdef ELISE_Darwin
+    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
+    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
+#endif
+
+    labelShowMode(true);
+
     bool isMode3D = _mode == MASK3D;
 
     hideAction(_ui->actionLoad_plys,  isMode3D);
@@ -684,12 +663,21 @@ void MainWindow::setMode()
 
     if (_mode > MASK3D)
     {
+        if (_mode == POINT2D_INIT)          setWindowTitle("Micmac - SaisieAppuisInit QT");
+        else if (_mode == POINT2D_PREDIC)   setWindowTitle("Micmac - SaisieAppuisPredic QT");
+
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
         _zoomLayout->setContentsMargins(2,2,2,2);
-
         _ui->zoomLayout->setLayout(_zoomLayout);
         _ui->zoomLayout->setContentsMargins(0,0,0,0);
+
+         QGridLayout*            _tdLayout = new QGridLayout;
+
+         _tdLayout->addWidget(threeDWidget());
+         _tdLayout->setContentsMargins(2,2,2,2);
+        _ui->frame3D->setLayout(_tdLayout);
+        _ui->frame3D->setContentsMargins(0,0,0,0);
 
         //disable some actions
         hideAction(_ui->actionAdd, false);
@@ -745,12 +733,6 @@ void MainWindow::redraw(bool nbWidgetsChanged)
         int newWidgetNb = _params->getNbFen().x()*_params->getNbFen().y();
         int col =  _layout->columnCount();
         int row =  _layout->rowCount();
-
-       /* cout << "old layout col nb : " << col << endl;
-        cout << "old layout row nb : " << row << endl;
-
-        cout << "new layout col nb : " <<  _params->getNbFen().x() << endl;
-        cout << "new layout row nb : " <<  _params->getNbFen().y() << endl;*/
 
         if (col < _params->getNbFen().x() || row < _params->getNbFen().y())
         {
@@ -817,9 +799,8 @@ void MainWindow::changeCurrentWidget(void *cuWid)
             zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
             zoomWidget()->setZoom(_params->getZoomWindowValue());
             zoomWidget()->setOption(cGLData::OpShow_Mess,false);
-            connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
 
-            connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+            connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
         }
     }
 }
@@ -845,9 +826,9 @@ void MainWindow::undo(bool undo)
 void MainWindow::applyParams()
 {
     move(_params->getPosition());
-
+    
     QSize szFen = _params->getSzFen();
-
+    
     if (_params->getFullScreen())
     {
         showFullScreen();
@@ -856,6 +837,7 @@ void MainWindow::applyParams()
 
         _params->setSzFen(screen.size());
         _params->setPosition(QPoint(0,0));
+
         _params->write();
 
         _ui->actionFullScreen->setChecked(true);
@@ -864,4 +846,26 @@ void MainWindow::applyParams()
         resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
     else
         resize(szFen);
+}
+
+void MainWindow::labelShowMode(bool state)
+{
+    if ((!state) || (_mode == MASK3D))
+    {
+        _ui->label_PositionImage_1->hide();
+        _ui->label_PositionImage_2->hide();
+    }
+    else
+    {
+        if(_mode == MASK2D)
+        {
+            _ui->label_PositionImage_1->hide();
+            _ui->label_PositionImage_2->show();
+        }
+        else if(_mode > MASK3D)
+        {
+            _ui->label_PositionImage_1->show();
+            _ui->label_PositionImage_2->hide();
+        }
+    }
 }

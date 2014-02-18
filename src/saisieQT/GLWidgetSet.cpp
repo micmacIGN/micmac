@@ -29,11 +29,18 @@ void GLWidgetSet::init(uint aNb, bool modePt)
 
     if (modePt)
     {
-        _zoomWidget = new GLWidget(-1, (const QGLWidget*)_widgets[0]);
+        _zoomWidget = new GLWidget(-1, (const QGLWidget*)_widgets[0]);        
         _zoomWidget->setBackgroundColors(colorBG1,colorBG1);
         _zoomWidget->setContextMenuPolicy( Qt::NoContextMenu );
-        _zoomWidget->setOption(cGLData::OpShow_Mess,false);
+        _zoomWidget->setOption(cGLData::OpShow_Mess,false);        
         _zoomWidget->setZoom(3.f);
+
+
+        _3DWidget   = new GLWidget(10, (const QGLWidget*)_widgets[0]);
+        _3DWidget->setBackgroundColors(colorBG0,colorBG0);
+        _3DWidget->setOption(cGLData::OpShow_Mess,false);
+
+        //GlCloud* cloud = new GlCloud();
     }
 }
 
@@ -51,6 +58,10 @@ void GLWidgetSet::widgetSetResize(int aSz)
         //_widgets[aK]->setStyleSheet(style);
         //TODO: if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
     }
+}
+GLWidget *GLWidgetSet::threeDWidget() const
+{
+    return _3DWidget;
 }
 
 GLWidgetSet::~GLWidgetSet()

@@ -39,7 +39,7 @@ function(enable_precompiled_headers_msvc PRECOMPILED_HEADER SOURCE_VARIABLE_NAME
 endfunction(enable_precompiled_headers_msvc)
 
 
-function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME)
+function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME EXTRA_CXX_FLAGS)
 	if(WITH_HEADER_PRECOMP)
 #ne marche pas avec Clang
 #		if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -65,7 +65,7 @@ function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME)
 			SET(_output "${_outdir}/.c++")
 
 			STRING(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" _flags_var_name)
-			SET(_compiler_FLAGS ${${_flags_var_name}})
+                        SET(_compiler_FLAGS ${${_flags_var_name}} ${EXTRA_CXX_FLAGS})
 
 			GET_DIRECTORY_PROPERTY(_directory_flags INCLUDE_DIRECTORIES)
 			FOREACH(item ${_directory_flags})
@@ -79,7 +79,7 @@ function(enable_precompiled_headers_GCC PRECOMPILED_HEADER TARGET_NAME)
 			#MESSAGE("${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} ${OPTION_HP} -o ${_output} ${_source}")
 			ADD_CUSTOM_COMMAND(
 				OUTPUT ${_output}				
-				COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
+                                COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
 				DEPENDS ${_source} IMPLICIT_DEPENDS CXX ${_source})
 				ADD_CUSTOM_TARGET(${TARGET_NAME}_${EXT_HP} DEPENDS ${_output})
 

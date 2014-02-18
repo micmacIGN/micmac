@@ -41,15 +41,37 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
-cX11_Interface::cX11_Interface(cParamSaisiePts &param, cAppli_SaisiePts &appli) :
-    mWZ           (0),
-    mWEnter       (0),
-    mSzWZ         (param.SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(param.SzTotIm().Val())*0.6))),
-    mRefInvis     (param.RefInvis().Val())
+//void cVirtualInterface::pushBackNamePoint(cCaseNamePoint NP)
+//{
+//    mVNameCase.push_back(NP);
+//}
+
+void cVirtualInterface::InitNbWindows()
 {
+    const cSectionWindows & aSW = mParam->SectionWindows();
+    mNb2W = aSW.NbFenIm().Val();
+
+    mNbW = mNb2W.x * mNb2W.y;
+
+    if (mAppli->nbImages() < mNbW)
+    {
+        mNbW = mAppli->nbImages();
+        mNb2W.x = round_up(sqrt(mNbW-0.01));
+        mNb2W.y = round_up((double(mNbW)-0.01)/mNb2W.x);
+    }
+}
+
+#if ELISE_windows == 0
+cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
+    mWZ           (0),
+    mWEnter       (0)
+{
+    mParam = &appli.Param();
     mAppli = &appli;
 
-    InitWindows();
+    mRefInvis = appli.Param().RefInvis().Val();
+
+    Init();
 }
 
 cX11_Interface::~cX11_Interface()
@@ -62,21 +84,11 @@ cX11_Interface::~cX11_Interface()
     delete mWEnter;
 }
 
-void cX11_Interface::InitWindows()
-{
-    cSectionWindows & aSW = mAppli->param().SectionWindows();
-    mNb2W = aSW.NbFenIm().Val();
+void cX11_Interface::Init()
+{ 
+    InitNbWindows();
 
-    mNbW = mNb2W.x * mNb2W.y;
-
-    if (mAppli->nbImages() < mNbW)
-    {
-        mNbW = mAppli->nbImages();
-        mNb2W.x = round_up(sqrt(mNbW-0.01));
-        mNb2W.y = round_up((double(mNbW)-0.01)/mNb2W.x);
-    }
-
-    Pt2di aSzF =  aSW.SzTotIm().Val().dcbyc(mNb2W);;
+    Pt2di aSzF =  mParam->SectionWindows().SzTotIm().Val().dcbyc(mNb2W);;
 
     int aCpt=0;
     Video_Win * aLastW = 0;
@@ -127,35 +139,33 @@ void cX11_Interface::InitWindows()
         }
     }
 
-    mWZ =  new Video_Win(*aWY0XMax,Video_Win::eDroiteH,mSzWZ);
+    Pt2di zoomWindowSize = mParam->SectionWindows().SzWZ().ValWithDef(round_ni(Pt2dr(mParam->SzTotIm().Val())*0.6));
+    mWZ =  new Video_Win(*aWY0XMax,Video_Win::eDroiteH, zoomWindowSize);
     mZFON = new cFenOuiNon(*mWZ,Pt2di(200,20));
 
-    mVNameCase.push_back(cCaseNamePoint("Cancel",eCaseCancel));
+    mVNameCase.push_back( cCaseNamePoint("Cancel",eCaseCancel) );
 
-    if (mAppli->param().EnterName().Val())
+    if (mParam->EnterName().Val())
     {
-        mVNameCase.push_back(cCaseNamePoint("Enter New",eCaseSaisie));
+        mVNameCase.push_back( cCaseNamePoint("Enter New",eCaseSaisie) );
     }
 
-    std::string aNameAuto = mAppli->param().NameAuto().Val();
+    std::string aNameAuto = mParam->NameAuto().Val();
     if (aNameAuto != "NONE")
     {
-        mVNameCase.push_back
-                (
-                    cCaseNamePoint(aNameAuto+ToString(mAppli->GetCptMax()+1),eCaseAutoNum)
-                    );
+        mVNameCase.push_back( cCaseNamePoint(aNameAuto+ToString(mAppli->GetCptMax()+1),eCaseAutoNum) );
     }
 
     for
             (
-             std::list<std::string>::const_iterator itN = mAppli->param().FixedName().begin();
-             itN !=mAppli->param().FixedName().end();
+             std::list<std::string>::const_iterator itN = mParam->FixedName().begin();
+             itN !=mParam->FixedName().end();
              itN++
              )
     {
         // const std::string aName = itN->c_str();
         std::vector<std::string> aNew = mAppli->ICNM()->StdGetVecStr(*itN);
-        for (int aK=0 ; aK< int(aNew.size()); aK++)
+        for (int aK=0 ; aK< (int)aNew.size(); aK++)
             mVNameCase.push_back(cCaseNamePoint(aNew[aK],eCaseStd));
     }
 
@@ -164,14 +174,14 @@ void cX11_Interface::InitWindows()
         mMapNC[mVNameCase[aK].mName] = & mVNameCase[aK];
     }
 
-    for (int aK=0 ; aK< int(mAppli->PG().size()) ; aK++)
+    for (int aK=0 ; aK< (int)mAppli->PG().size() ; aK++)
     {
-        ChangeFreeNameP(mAppli->PG()[aK]->PG()->Name(),false);
+        ChangeFreeNamePoint(mAppli->PG()[aK]->PG()->Name(),false);
     }
 
     mMenuNamePoint = new cFenMenu(*mWZ,Pt2di(120,20),Pt2di(1,mVNameCase.size()));
 
-    if (mAppli->param().EnterName().Val())
+    if (mParam->EnterName().Val())
     {
         mWEnter =  new Video_Win(mMenuNamePoint->W(),Video_Win::eDroiteH,Pt2di(150,20));
         mWEnter->move_translate(Pt2di(0,20));
@@ -185,7 +195,7 @@ void cX11_Interface::InitWindows()
 
 
 
-void cX11_Interface::ChangeFreeNameP(const std::string & aName, bool SetFree)
+void cX11_Interface::ChangeFreeNamePoint(const std::string & aName, bool SetFree)
 {
     std::map<std::string,cCaseNamePoint *>::iterator it = mMapNC.find(aName);
     if (it== mMapNC.end())
@@ -196,7 +206,7 @@ void cX11_Interface::ChangeFreeNameP(const std::string & aName, bool SetFree)
     }
 }
 
-cCaseNamePoint *  cX11_Interface::GetIndexNamePt()
+cCaseNamePoint *  cX11_Interface::GetIndexNamePoint()
 {
     Video_Win aW = mMenuNamePoint->W();
     aW.raise();
@@ -221,17 +231,19 @@ cCaseNamePoint *  cX11_Interface::GetIndexNamePt()
     return aRes;
 }
 
-void cX11_Interface::KillSom(cSP_PointGlob * aSG)
+void cX11_Interface::DeletePoint(cSP_PointGlob * aSG)
 {
-    if (! mZFON->Get("Kill " + aSG->PG()->Name() + "?")) return;
-    aSG->SetKilled();
+    if (! mZFON->Get("Kill " + aSG->PG()->Name() + "?")) return;  //PARTIE X11
+    aSG->SetKilled();                                             //PARTIE A GARDER VIRTUELLE
 
-    ChangeFreeNameP(aSG->PG()->Name(),true);
+    ChangeFreeNamePoint(aSG->PG()->Name(),true);
 
     RedrawAllWindows();
 }
+#endif
+//************************************************************************************************************************************************
 
-cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2) :
+cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
     mParam      (*aP2.mObj),
     mICNM       (aP2.mICNM),
     mDC         (aP2.mDC),
@@ -245,7 +257,10 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     InitImages();
     InitInPuts();
 
-    mInterface = new cX11_Interface(mParam, *this);
+#if ELISE_windows == 0
+    if(instanceInterface)
+        mInterface = new cX11_Interface(*this);
+#endif
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }
@@ -467,7 +482,7 @@ void cAppli_SaisiePts::IniPointeIm()
         {
             FirstNoIm = false;
             std::cout << "There is an image in Pointe with NO corresponding loaded image \n";
-            std::cout << " Firts one is " << itS->NameIm() << "\n";
+            std::cout << " First one is " << itS->NameIm() << "\n";
         }
 
         if (anIm)
@@ -489,7 +504,7 @@ void cAppli_SaisiePts::IniPointeIm()
                     {
                         FirstNoPG = false;
                         std::cout << "There is a 2D point in image with no global homologue \n";
-                        std::cout << " Firts one is " <<  itOS->NamePt() << " in " << itS->NameIm() << "\n";
+                        std::cout << " First one is " <<  itOS->NamePt() << " in " << itS->NameIm() << "\n";
                     }
                     if (aPG)
                     {
@@ -569,7 +584,6 @@ void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
             anI.AddAPointe(&anOS,aSPG,false);
         }
     }
-
 }
 
 void cAppli_SaisiePts::GlobChangStatePointe
@@ -652,10 +666,13 @@ cSetOfSaisiePointeIm PurgeSOSPI(const cSetOfSaisiePointeIm & aSOSPI)
     return aRes;
 }
 
+#if ELISE_windows == 0
+
 void cX11_Interface::Save()
 {
     mAppli->Sauv();
 }
+#endif
 
 void cAppli_SaisiePts::Sauv()
 {
@@ -831,11 +848,12 @@ void cAppli_SaisiePts::ChangeImages
     cCmpIm aCmpIm;
     std::sort(mImages.begin(),mImages.end(),aCmpIm);
 
+	#if ELISE_windows == 0
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)
     {
         aW2Ch[aKW]->SetNoImage();
     }
-
+	#endif
     int aKW =0 ;
     int aKI =0;
 
@@ -846,7 +864,9 @@ void cAppli_SaisiePts::ChangeImages
         cImage * anIm = mImages[aKI];
         if (!anIm->WAff())
         {
+#if ELISE_windows == 0
             aW2Ch[aKW]->SetNewImage(anIm);
+#endif
             aKW++;
         }
         aKI++;

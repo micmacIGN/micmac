@@ -196,7 +196,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
     }
 
     #ifdef _DEBUG
-        printf("verification - nombre de points dans le nuage: %d\n", (int) ptList.size() );
+        printf("check - point number in cloud: %d\n", (int) ptList.size() );
     #endif
 
     ply_close (thePlyFile);

@@ -18,7 +18,8 @@ set(saisie_SRCS saisieQT_main.cpp
 		MatrixManager.cpp
 		HistoryManager.cpp
 		ContextMenu.cpp
-		Settings.cpp)
+                Settings.cpp
+                QT_interface_Elise.cpp)
 		
 set( saisie_HEADERS_nomoc
    HistoryManager.h
