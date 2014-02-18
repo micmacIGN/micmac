@@ -52,6 +52,8 @@ using namespace NS_SaisiePts;
 
 const Pt2dr cWinIm::PtsEchec (-100000,-10000);
 
+#if ELISE_windows == 0
+
 Pt2dr cWinIm::FindPoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
 {
      Tiff_Im aTF = mCurIm->Tif();
@@ -147,7 +149,7 @@ void cX11_Interface::DrawZoom(const Pt2dr & aPGlob)
      aWC.draw_circle_abs(aPIm,4.0,Line_St(aWC.pdisc()(P8COL::blue),3.0));
 }
 
-
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -142,15 +142,15 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     cAppli_SaisiePts   anAppli (aP2,false);
 
-    cQT_Interface* interface = new cQT_Interface(anAppli,&w);
+    cQT_Interface* interf = new cQT_Interface(anAppli,&w);
 
-    anAppli.SetInterface(interface);
+    anAppli.SetInterface(interf);
 
     w.show();
 
     w.addFiles(filenames);
 
-    interface->rebuildGlPoints();
+    interf->rebuildGlPoints();
 
     return app.exec();
 }

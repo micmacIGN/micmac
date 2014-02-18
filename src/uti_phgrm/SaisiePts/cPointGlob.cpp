@@ -250,7 +250,7 @@ int cAppli_SaisiePts::GetCptMax() const
     return aCptMax;
 }
 
-
+#if ELISE_windows == 0
 
 std::pair<int,std::string> cX11_Interface::IdNewPts(cCaseNamePoint * aCNP)
 {
@@ -282,7 +282,7 @@ std::pair<int,std::string> cX11_Interface::IdNewPts(cCaseNamePoint * aCNP)
   
 }
 
-
+#endif
 
 void cSP_PointGlob::Rename(const std::string & aNewName)
 {

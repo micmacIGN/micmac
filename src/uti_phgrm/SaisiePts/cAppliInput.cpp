@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
+#if ELISE_windows == 0
+
 cWinIm * cX11_Interface::WinImOfW(Video_Win aW)
 {
     for (int aK=0 ; aK<mNbW; aK++)
@@ -108,6 +110,8 @@ void cX11_Interface::RedrawAllWindows()
     for (int aK=0 ; aK< int(mWins.size()) ; aK++)
         mWins[aK]->Redraw();
 }
+
+#endif
 
 //**************************************************************************************************************
 
