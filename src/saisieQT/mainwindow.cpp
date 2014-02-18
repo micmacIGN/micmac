@@ -672,7 +672,6 @@ void MainWindow::setUI()
         _ui->zoomLayout->setLayout(_zoomLayout);
         _ui->zoomLayout->setContentsMargins(0,0,0,0);
 
-
          QGridLayout*            _tdLayout = new QGridLayout;
 
          _tdLayout->addWidget(threeDWidget());
