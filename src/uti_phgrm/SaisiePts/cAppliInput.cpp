@@ -42,79 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
-#if ELISE_windows == 0
-
-cWinIm * cX11_Interface::WinImOfW(Video_Win aW)
-{
-    for (int aK=0 ; aK<mNbW; aK++)
-        if (mWins[aK]->W() == aW)
-           return mWins[aK];
-
-    return 0;
-}
-
-void cX11_Interface::TestClick(Clik aCl)
-{
-    cWinIm * aWIm = WinImOfW(aCl._w);
-    if (!aWIm)
-        return;
-
-    if (aCl._b==1)
-    {
-        aWIm->SetPt(aCl);
-        Save();
-    }
-
-    if ((aCl._b==4) || (aCl._b==5))
-    {
-        double aFactZ = 1.2;
-        aWIm->SetZoom(aCl._pt,(aCl._b==5) ? aFactZ: (1/aFactZ));
-        aWIm->ShowVect();
-    }
-
-    if (aCl._b==2)
-    {
-        aWIm->GrabScrTr(aCl);
-    }
-
-    if (aCl._b==3)
-    {
-        aWIm->MenuPopUp(aCl);
-    }
-}
-
-void cX11_Interface::BoucleInput()
-{
-    while(1)
-    {
-        Clik   aCl = mDisp->clik_press();
-
-        TestClick(aCl);
-    }
-}
-
-void cX11_Interface::SetInvisRef(bool aVal)
-{
-    mRefInvis = aVal;
-
-    for (int aKW=0 ; aKW < int(mWins.size()); aKW++)
-    {
-        mWins[aKW]->BCaseVR()->SetVal(aVal);
-        mWins[aKW]->Redraw();
-        mWins[aKW]->ShowVect();
-    }
-}
-
-void cX11_Interface::RedrawAllWindows()
-{
-    for (int aK=0 ; aK< int(mWins.size()) ; aK++)
-        mWins[aK]->Redraw();
-}
-
-#endif
-
-//**************************************************************************************************************
-
 void cAppli_SaisiePts::UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush)
 {
    if ( ToExe.empty())
@@ -153,7 +80,6 @@ bool cAppli_SaisiePts::Visible(cSP_PointeImage & aPIm)
 {
     return   (aPIm.Saisie()->Etat() != eEPI_Refute) || mInterface->RefInvis();
 }
-
 
 void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
 {

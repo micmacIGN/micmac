@@ -250,40 +250,6 @@ int cAppli_SaisiePts::GetCptMax() const
     return aCptMax;
 }
 
-#if ELISE_windows == 0
-
-std::pair<int,std::string> cX11_Interface::IdNewPts(cCaseNamePoint * aCNP)
-{
-   int aCptMax = mAppli->GetCptMax() + 1;
-
-   std::string aName = aCNP->mName;
-   if (aCNP->mTCP == eCaseAutoNum)
-   {
-      std::string nameAuto = mParam->NameAuto().Val();
-      aName = nameAuto + ToString(aCptMax);
-      aCNP->mName = nameAuto + ToString(aCptMax+1);
-   }
-
-   if (aCNP->mTCP == eCaseSaisie)
-   {
-         mWEnter->raise();
-         ELISE_COPY(mWEnter->all_pts(),P8COL::yellow,mWEnter->odisc());
-
-         // std::cin >> aName ;
-         aName = mWEnter->GetString(Pt2dr(5,15),mWEnter->pdisc()(P8COL::black),mWEnter->pdisc()(P8COL::yellow));
-         mWEnter->lower();
-   }
-
-   mMenuNamePoint->W().lower();
-
-   // std::cout << "cAppli_SaisiePts::IdNewPts " << aCptMax << " " << aName << "\n";
-   //std::pair aRes(
-   return std::pair<int,std::string>(aCptMax,aName);
-  
-}
-
-#endif
-
 void cSP_PointGlob::Rename(const std::string & aNewName)
 {
      PG()->Name()  = aNewName;

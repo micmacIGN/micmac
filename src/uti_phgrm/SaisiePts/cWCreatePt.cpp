@@ -131,24 +131,6 @@ void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
         ((cX11_Interface*)mAppli.Interface())->MenuNamePoint()->W().lower();
 }
 
-void cX11_Interface::DrawZoom(const Pt2dr & aPGlob)
-{
-     double aZoom = 10.0;
-
-     Pt2dr aPIm = aPGlob- Pt2dr(mAppli->DecRech());
-     Pt2dr aPMil = Pt2dr(mWZ->sz())/(2.0*aZoom);
-
-     Video_Win aWC = mWZ->chc(aPIm-aPMil,Pt2dr(aZoom,aZoom));
-     ELISE_COPY
-     (
-                aWC.all_pts(),
-                mAppli->ImRechVisu().in(0),
-                aWC.ogray()
-     );
-
-     aWC.draw_circle_abs(aPIm,4.0,Line_St(aWC.pdisc()(P8COL::blue),3.0));
-}
-
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
