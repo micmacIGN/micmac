@@ -1,0 +1,38 @@
+Mise en Correspondance Automatique des images,
+Theorie, Algorithmes, Applications.
+
+
+Chapitre Introductif :
+
+   Exemple complet, sur image en geometrie epipolaire,
+   calcul de correlation, optimisation par prog dyn.
+
+   Problematiques :
+      - ressemblance 
+      - regularite
+      - geometrie
+      
+
+Geometrie :
+
+Calcul de ressemblances:
+
+    Invariance Homotetie/Translastion (radiom) de la correlation.
+    Algorithmes rapides : Fourrier, Fourrier avec Masques,
+        algo independant de la taille des vignettes
+    
+
+Regularisation, Attache aux modeles :
+
+   - heuristiques (Dauphin, Thom ....)
+   - prog dyn
+   - cox roy
+   
+Interpolation
+
+Strategie Multi-echelles :
+
+Parallelisation (?)
+
+
+
