@@ -73,6 +73,7 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
             dynMess.message = "fps: " + QString::number(fps,'f',1);
     }
 }
+
 ContextMenu* GLWidget::contextMenu()
 {
     return &_contextMenu;

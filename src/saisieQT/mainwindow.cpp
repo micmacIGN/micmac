@@ -693,9 +693,11 @@ void MainWindow::setUI()
     else
     {
         _ui->verticalLayout->removeWidget(_ui->zoomLayout);
+        _ui->verticalLayout->removeWidget(_ui->frame3D);
         _ui->verticalLayout->removeItem(_ui->verticalSpacer);
 
         delete _ui->zoomLayout;
+        delete _ui->frame3D;
         delete _ui->verticalSpacer;
     }
 }
