@@ -402,6 +402,10 @@ void cCam::draw()
 {
     if (_bVisible)
     {
+
+        GLfloat oldPointSize;
+        glGetFloatv(GL_POINT_SIZE,&oldPointSize);
+
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
 
@@ -464,6 +468,7 @@ void cCam::draw()
         glCallList(list);
 
         glPopMatrix();
+        glPointSize(oldPointSize);
     }
 }
 

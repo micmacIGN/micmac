@@ -533,9 +533,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
             else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
             {
+                int id = polygon().idx();
+
                 bool insertMode = polygon().isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
 
                 polygon().refreshHelper(pos, insertMode, _vp_Params.m_zoom);
+
+                if(id != polygon().idx())
+                    selectPoint(polygon().idx());
             }
         }
         if (m_interactionMode == TRANSFORM_CAMERA)

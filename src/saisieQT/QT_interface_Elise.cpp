@@ -15,6 +15,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
 
+        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
+
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
     }
 
@@ -163,14 +165,17 @@ void cQT_Interface::movePoint(int idPt)
             //Redraw();
             aPIm->Gl()->ReCalculPoints();
 
-            rebuildGlPoints();
+            rebuildGlPoints(aPIm);
 
             mAppli->Sauv();
         }
     }
 }
 
-
+void cQT_Interface::selectPoint(int idPt)
+{
+    rebuild3DGlPoints(idPt >= 0 ? currentPointeImage(idPt) : NULL);
+}
 
 void cQT_Interface::changeState(int state, int idPt)
 {
@@ -190,7 +195,7 @@ void cQT_Interface::changeState(int state, int idPt)
             aPIm->Saisie()->Etat() = aState;
             aPIm->Gl()->ReCalculPoints();
 
-            rebuildGlPoints();
+            rebuildGlPoints(aPIm);
 
             mAppli->Sauv();
         }
@@ -261,7 +266,35 @@ void cQT_Interface::addGlPoint(const cOneSaisie& aSom,  int i)
     m_QTMainWindow->getWidget(i)->addGlPoint(transformation(aP,i),QString(aSom.NamePt().c_str()), aState );
 }
 
-void cQT_Interface::rebuildGlPoints()
+void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
+{
+    std::vector< cSP_PointGlob * > pGV = mAppli->PG();
+
+    if(pGV.size())
+    {
+        bool first = _data->getNbClouds() == 0;
+        m_QTMainWindow->threeDWidget()->getGLData()->Clouds.clear();
+        _data->clearClouds();
+
+        GlCloud *cloud = new GlCloud();
+
+        for (int i = 0; i < (int)pGV.size(); ++i)
+        {
+            cPointGlob * pg = pGV[i]->PG();
+            cloud->addVertex(GlVertex(pg->P3D().Val(),aPIm && pg == aPIm->Gl()->PG() ? Qt::red : Qt::green));
+        }
+
+        _data->addCloud(cloud);
+
+        _data->computeBBox();
+        m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
+        m_QTMainWindow->threeDWidget()->resetView(first,false,first,true);
+        m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
+        m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+    }
+}
+
+void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
 {
     for (int i = 0; i < m_QTMainWindow->nbWidgets(); ++i)
     {
@@ -286,26 +319,6 @@ void cQT_Interface::rebuildGlPoints()
             }
         }
     }
-    std::vector< cSP_PointGlob * > pGV = mAppli->PG();    
 
-    if(pGV.size())
-    {
-
-        m_QTMainWindow->threeDWidget()->getGLData()->Clouds.clear();
-        _data->clearClouds();
-
-        GlCloud *cloud = new GlCloud();
-
-        for (int i = 0; i < (int)pGV.size(); ++i)
-            cloud->addVertex(GlVertex(pGV[i]->PG()->P3D().Val(),Qt::green));
-
-        _data->addCloud(cloud);
-
-        _data->computeBBox();
-        m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
-        m_QTMainWindow->threeDWidget()->resetView(true,false,true,true);
-        m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
-        m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
-    }
-
+    rebuild3DGlPoints(aPIm);
 }
