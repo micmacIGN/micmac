@@ -1351,12 +1351,23 @@ void cGLData::setData(cData *data)
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
 }
+bool cGLData::incFirstCloud() const
+{
+    return _incFirstCloud;
+}
+
+void cGLData::setIncFirstCloud(bool incFirstCloud)
+{
+    _incFirstCloud = incFirstCloud;
+}
+
 
 cGLData::cGLData(cData *data):
     pBall(new cBall),
     pAxis(new cAxis),
     pBbox(new cBBox),
-    _diam(1.f)
+    _diam(1.f),
+    _incFirstCloud(false)
 {
     initOptions();
 
@@ -1383,7 +1394,17 @@ void cGLData::draw()
     enableOptionLine();
 
     for (int i=0; i<Clouds.size();i++)
-        Clouds[i]->draw();
+    {
+        GLfloat oldPointSize;
+        glGetFloatv(GL_POINT_SIZE,&oldPointSize);
+
+        if(_incFirstCloud && i == 0)
+            glPointSize(oldPointSize*3.f);
+
+         Clouds[i]->draw();
+
+         glPointSize(oldPointSize);
+    }
 
     pBall->draw();
     pAxis->draw();

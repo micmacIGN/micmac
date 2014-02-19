@@ -11,6 +11,8 @@
 //using namespace NS_ParamChantierPhotogram;
 //using namespace NS_SuperposeImage;
 
+#include <QMessageBox>
+
 using namespace NS_SaisiePts;
 
 class MainWindow;
@@ -82,11 +84,11 @@ private slots:
 
     void                movePoint(int idPt);
 
-     void               selectPoint(int idPt);
+    void                selectPoint(int idPt);
 
     void                changeState(int state, int idPt);
 
-
+    void                filesDropped(const QStringList& filenames);
 };
 
 #endif // QT_INTERFACE_ELISE_H
