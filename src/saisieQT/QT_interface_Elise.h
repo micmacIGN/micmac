@@ -66,7 +66,7 @@ private:
 
     int                 cImageIdxFromGL(cGLData* data);
 
-    void                addGlPoint(const cOneSaisie& aSom, int i);
+    void                addGlPoint(cSP_PointeImage *aPIm, int i);
 
     cGLData *           getGlData(int idImage);
 

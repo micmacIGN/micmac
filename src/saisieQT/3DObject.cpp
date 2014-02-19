@@ -486,7 +486,8 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
     _state(state),
     _highlight(highlight),
     _selectionColor(selectionColor),
-    _painter(painter)
+    _painter(painter),
+    _bEpipolar(false)
 {
     setName(name);
     setColor(color);
@@ -535,7 +536,20 @@ void cPoint::draw()
          }
 
          _painter->drawEllipse(pt, _diameter, _diameter);
-         if (_highlight) _painter->drawEllipse(pt, _diameter + 5, _diameter + 5);
+
+         if (_highlight)
+         {
+             if (_bEpipolar)
+             {
+                 QPointF epip1 = _painter->transform().map(_epipolar1);
+                 QPointF epip2 = _painter->transform().map(_epipolar2);
+
+                _painter->drawLine(epip1, epip2);
+             }
+             else
+
+                _painter->drawEllipse(pt, _diameter + 5, _diameter + 5);
+         }
 
          if ((_bShowName) && (_name != ""))
          {
@@ -554,6 +568,13 @@ void cPoint::draw()
 
          _painter->setWorldMatrixEnabled(true);
      }
+}
+
+void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
+{
+    _epipolar1 = pt1;
+    _epipolar2 = pt2;
+    _bEpipolar = true;
 }
 
 //********************************************************************************

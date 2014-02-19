@@ -257,13 +257,33 @@ QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
     return newPt;
 }
 
-void cQT_Interface::addGlPoint(const cOneSaisie& aSom,  int i)
+void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int i)
 {
-    Pt2dr aP = aSom.PtIm();
+    cOneSaisie *aSom = aPIm->Saisie();
+    cSP_PointGlob* aPG = aPIm->Gl();
 
-    eEtatPointeImage aState = aSom.Etat();
+    eEtatPointeImage aState = aSom->Etat();
 
-    m_QTMainWindow->getWidget(i)->addGlPoint(transformation(aP,i),QString(aSom.NamePt().c_str()), aState );
+    Pt2dr aP = aSom->PtIm();
+
+    QPointF aPt1(0.,0.);
+    QPointF aPt2(0.,0.);
+
+    if (aPG && aPG->HighLighted())
+    {
+        cCapture3D * aCap3D = aPIm->Image()->Capt3d();
+
+        if (aCap3D && aPG->PG()->PS1().IsInit() && ((aState==eEPI_NonSaisi) || (aState==eEPI_Refute)))
+        {
+            Pt2dr aP1 = aCap3D->Ter2Capteur(aPG->PG()->PS1().Val());
+            Pt2dr aP2 = aCap3D->Ter2Capteur(aPG->PG()->PS2().Val());
+
+            aPt1 = transformation(aP1,i);
+            aPt2 = transformation(aP2,i);
+        }
+    }
+
+    m_QTMainWindow->getWidget(i)->addGlPoint(transformation(aP,i),QString(aSom->NamePt().c_str()), aState, aPt1, aPt2 );
 }
 
 void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
@@ -311,8 +331,7 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
                 for (int aK=0 ; aK<int(aVP.size()) ; aK++)
                     //if (WVisible(*(aVP[aK])))
                     {
-                        const cOneSaisie  & aSom = *(aVP[aK]->Saisie());
-                        addGlPoint(aSom, i);
+                        addGlPoint(aVP[aK], i);
                     }
 
                 m_QTMainWindow->getWidget(i)->update();

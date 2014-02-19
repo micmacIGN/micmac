@@ -42,7 +42,7 @@ public:
 
 signals:
 
-    void changeState(int state,int idPt);
+    void changeState(int state, int idPt);
 
 public slots:
 

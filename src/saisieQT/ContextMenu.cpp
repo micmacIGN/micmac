@@ -48,7 +48,7 @@ void ContextMenu::setPointState(int state)
 {
     int idx = _polygon->setNearestPointState(_lastPosImage, state);
 
-    emit    changeState(state,idx);
+    emit    changeState(state, idx);
 }
 
 void ContextMenu::highlight()

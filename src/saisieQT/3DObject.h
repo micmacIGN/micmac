@@ -119,6 +119,8 @@ class cPoint : public cObjectGL, public QPointF
 
         void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
 
+        void setEpipolar(QPointF pt1, QPointF pt2);
+
 private:
 
        float   _diameter;
@@ -133,6 +135,10 @@ private:
 
        QPainter *_painter;
        QGLWidget *_widget;
+
+       bool     _bEpipolar;
+       QPointF  _epipolar1;
+       QPointF  _epipolar2;
 };
 
 class cCircle : public cObjectGL
