@@ -38,6 +38,7 @@ void GLWidgetSet::init(uint aNb, bool modePt)
         _3DWidget   = new GLWidget(10, (const QGLWidget*)_widgets[0]);
         _3DWidget->setBackgroundColors(colorBG0,colorBG1);
         _3DWidget->setOption(cGLData::OpShow_Mess,false);
+        _3DWidget->setContextMenuPolicy( Qt::NoContextMenu );
     }
 }
 
