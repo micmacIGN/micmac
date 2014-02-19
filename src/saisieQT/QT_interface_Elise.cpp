@@ -9,7 +9,6 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     mRefInvis = appli.Param().RefInvis().Val();
 
-
     for (int aK = 0; aK < m_QTMainWindow->nbWidgets();++aK)
     {
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
@@ -18,7 +17,6 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
     }
-
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)

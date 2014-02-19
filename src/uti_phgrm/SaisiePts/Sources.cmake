@@ -7,6 +7,7 @@ set(uti_phgrm_SaisiePts_Src_Files
     ${UTI_PHGRM_SAISIEPTS_DIR}/cParamSaisiePts.cpp
     ${UTI_PHGRM_SAISIEPTS_DIR}/cPointGlob.cpp
     ${UTI_PHGRM_SAISIEPTS_DIR}/cWinIm.cpp
+    ${UTI_PHGRM_SAISIEPTS_DIR}/cX11Interface.cpp
 )
 
 #SOURCE_GROUP(uti_phgrm.Apero FILES ${uti_phgrm_Apero_Src_Files})
