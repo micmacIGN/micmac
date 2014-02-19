@@ -18,6 +18,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
+
+        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this,SLOT(filesDropped(QStringList)));
     }
 
     _data = new cData;
@@ -31,6 +33,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     _data->computeBBox();
 
     m_QTMainWindow->threeDWidget()->setGLData(new cGLData(_data));
+
+    m_QTMainWindow->threeDWidget()->getGLData()->setIncFirstCloud(true);
     m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
     m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
 }
@@ -202,6 +206,35 @@ void cQT_Interface::changeState(int state, int idPt)
     }
 }
 
+void cQT_Interface::filesDropped(const QStringList &filenames)
+{
+    if (filenames.size())
+    {
+        for (int i=0; i< filenames.size();++i)
+        {
+            if(!QFile(filenames[i]).exists())
+            {
+                QMessageBox::critical(m_QTMainWindow, "Error", "File does not exist (or bad argument)");
+                return;
+            }
+        }
+
+        QString suffix = QFileInfo(filenames[0]).suffix();
+
+        if (suffix == "ply")
+        {
+            m_QTMainWindow->loadPly(filenames);
+            _data->addCloud(m_QTMainWindow->getEngine()->getData()->getCloud(0));
+            m_QTMainWindow->threeDWidget()->getGLData()->Clouds.clear();
+            _data->computeBBox();
+            m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
+            m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
+            m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
+            m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+        }
+    }
+}
+
 cSP_PointeImage * cQT_Interface::currentPointeImage(int idPoint)
 {
     int t = cImageIdxCurrent();
@@ -293,8 +326,11 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
     if(pGV.size())
     {
         bool first = _data->getNbClouds() == 0;
+
         m_QTMainWindow->threeDWidget()->getGLData()->Clouds.clear();
-        _data->clearClouds();
+
+        if(!first)
+            delete _data->getCloud(0);
 
         GlCloud *cloud = new GlCloud();
 
@@ -304,7 +340,10 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
             cloud->addVertex(GlVertex(pg->P3D().Val(),aPIm && pg == aPIm->Gl()->PG() ? Qt::red : Qt::green));
         }
 
-        _data->addCloud(cloud);
+        if(first)
+            _data->addCloud(cloud);
+        else
+            _data->replaceCloud(cloud);
 
         _data->computeBBox();
         m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);

@@ -632,7 +632,7 @@ public:
 
     void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
 
-    void        setPainter(QPainter *);
+    void        setPainter(QPainter *);        
 
     enum Option {
       OpNO          = 0x00,
@@ -657,7 +657,12 @@ public:
 
     bool        mode() { return _modePt; }
 
-    void setData(cData *data);
+    void        setData(cData *data);
+
+    bool        incFirstCloud() const;
+
+    void        setIncFirstCloud(bool incFirstCloud);
+
 private:
 
     void        initOptions()
@@ -666,9 +671,12 @@ private:
     }
 
     float       _diam;
+
     Pt3dr       _center;
 
     bool        _modePt;
+
+    bool        _incFirstCloud;
 
 };
 

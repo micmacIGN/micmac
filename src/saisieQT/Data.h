@@ -16,6 +16,8 @@ class cData
         void addCamera(CamStenope *);
         void addCloud(GlCloud *);
 
+        void replaceCloud(GlCloud * cloud, int id = 0);
+
         void pushBackMaskedImage(QMaskedImage maskedImage);
 
         void clearCameras();

@@ -119,6 +119,21 @@ void MainWindow::runProgressDialog(QFuture<void> future)
     future.waitForFinished();
 }
 
+void MainWindow::loadPly(const QStringList& filenames)
+{
+    QTimer *timer_test = new QTimer(this);
+    _incre = new int(0);
+    connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+    timer_test->start(10);
+
+    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre));
+
+    timer_test->stop();
+    disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+    delete _incre;
+    delete timer_test;
+}
+
 void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
@@ -138,17 +153,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         if (suffix == "ply")
         {
-            QTimer *timer_test = new QTimer(this);
-            _incre = new int(0);
-            connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            timer_test->start(10);
-
-            runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre));
-
-            timer_test->stop();
-            disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-            delete _incre;
-            delete timer_test;
+            loadPly(filenames);
 
             _mode = MASK3D;
         }
