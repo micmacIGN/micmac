@@ -63,6 +63,7 @@ public:
 
     void setLayout(uint sy);
 
+    void loadPly(const QStringList& filenames);
 public slots:
 
     //! Try to load a list of files

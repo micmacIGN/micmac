@@ -15,6 +15,12 @@ void cData::addCloud(GlCloud * aCloud)
     _Clouds.push_back(aCloud);
 }
 
+void cData::replaceCloud(GlCloud *cloud, int id)
+{
+    if(id < _Clouds.size())
+        _Clouds[id] = cloud;
+}
+
 void cData::addCamera(CamStenope * aCam)
 {
     _Cameras.push_back(aCam);
