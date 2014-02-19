@@ -1307,11 +1307,8 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     m_polygon.setDefaultName(ptName);
 }
 
-cGLData::cGLData(cData *data):
-    _diam(1.f)
+void cGLData::setData(cData *data)
 {
-    initOptions();
-
     for (int aK = 0; aK < data->getNbClouds();++aK)
     {
         GlCloud *pCloud = data->getCloud(aK);
@@ -1322,9 +1319,13 @@ cGLData::cGLData(cData *data):
     Pt3dr center = data->getBBoxCenter();
     float scale = data->getBBoxMaxSize() / 1.5f;
 
-    pBall = new cBall(center, scale);
-    pAxis = new cAxis(center, scale);
-    pBbox = new cBBox(center, scale, data->getMin(), data->getMax());
+    pBall->setPosition(center);
+    pBall->setScale(scale);
+    pAxis->setPosition(center);
+    pAxis->setScale(scale);
+    pBbox->setPosition(center);
+    pBbox->setScale(scale);
+    pBbox->set(data->getMin(), data->getMax());
 
     for (int i=0; i< data->getNbCameras(); i++)
     {
@@ -1335,6 +1336,17 @@ cGLData::cGLData(cData *data):
 
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
+}
+
+cGLData::cGLData(cData *data):
+    pBall(new cBall),
+    pAxis(new cAxis),
+    pBbox(new cBBox),
+    _diam(1.f)
+{
+    initOptions();
+
+    setData(data);
 }
 
 cGLData::~cGLData()

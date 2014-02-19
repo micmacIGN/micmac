@@ -187,7 +187,7 @@ class cBall : public cObjectGL
 class cAxis : public cObjectGL
 {
     public:
-        cAxis(Pt3dr pt, float scale = 1.f, float lineWidth = 1.f);
+        cAxis(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, float lineWidth = 1.f);
 
         void    draw();
 };
@@ -195,7 +195,7 @@ class cAxis : public cObjectGL
 class cBBox : public cObjectGL
 {
     public:
-        cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max, float lineWidth = 1.f);
+        cBBox(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, Pt3dr min= Pt3dr(0.f,0.f,0.f), Pt3dr max= Pt3dr(1.f,1.f,1.f), float lineWidth = 1.f);
 
         void    draw();
 
@@ -650,6 +650,7 @@ public:
 
     bool        mode() { return _modePt; }
 
+    void setData(cData *data);
 private:
 
     void        initOptions()
