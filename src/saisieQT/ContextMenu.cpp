@@ -70,7 +70,7 @@ void ContextMenu::rename()
 
 void ContextMenu::showNames()
 {
-    _polygon->showNames();
+    _polygon->showNames(!_polygon->bShowNames());
 }
 
 void ContextMenu::showRefuted()

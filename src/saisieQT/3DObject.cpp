@@ -941,9 +941,9 @@ void cPolygon::setPainter(QPainter *painter)
         _helper->setPainter(_painter);
 }
 
-void cPolygon::showNames()
+void cPolygon::showNames(bool show)
 {
-    _bShowNames = !_bShowNames;
+    _bShowNames = show;
 
     for (int aK=0; aK < _points.size(); ++aK)
         _points[aK].showName(_bShowNames);
@@ -1318,7 +1318,9 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     initOptions();
 
     m_polygon.showLines(!modePt);
-    m_polygon.setDefaultName(ptName);
+    m_polygon.showNames(modePt);
+
+    m_polygon.setDefaultName(ptName);  
 }
 
 void cGLData::setData(cData *data)

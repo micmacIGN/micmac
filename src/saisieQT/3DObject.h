@@ -293,7 +293,7 @@ class cPolygon : public cObjectGL
         void    setPainter(QPainter * painter);
 
         // Points name
-        void    showNames();
+        void    showNames(bool show);
         bool    bShowNames() { return _bShowNames; }
 
         void    setDefaultName(QString name){ _defPtName = name; }

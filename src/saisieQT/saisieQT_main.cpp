@@ -113,5 +113,6 @@ int main(int argc, char *argv[])
     }
     else
         helpMessage(app, cmds);
+
 	return EXIT_SUCCESS;
 }
