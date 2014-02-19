@@ -133,6 +133,8 @@ signals:
 
     void movePoint(int idPt);
 
+    void selectPoint(int idPt);
+
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);

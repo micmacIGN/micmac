@@ -41,8 +41,9 @@ public :
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
-    void                rebuildGlPoints();
+    void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 
+    void rebuild3DGlPoints(cSP_PointeImage* aPIm);
 private:
 
     void                Init(){}
@@ -80,6 +81,8 @@ private slots:
     void                addPoint(QPointF point);
 
     void                movePoint(int idPt);
+
+     void               selectPoint(int idPt);
 
     void                changeState(int state, int idPt);
 
