@@ -240,7 +240,6 @@ QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
 
 void cQT_Interface::addGlPoint(const cOneSaisie& aSom,  int i)
 {
-
     Pt2dr aP = aSom.PtIm();
 
     eEtatPointeImage aState = aSom.Etat();
