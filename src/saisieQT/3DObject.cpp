@@ -741,6 +741,15 @@ QString cPolygon::getSelectedPointName()
     else return _defPtName;
 }
 
+int cPolygon::getSelectedPointState()
+{
+    if (_idx >=0 && _idx <_points.size())
+    {
+        return _points[_idx].state();
+    }
+    else return NS_SaisiePts::eEPI_NonValue;
+}
+
 void cPolygon::add(const QPointF &pt, bool selected)
 {
     _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, NS_SaisiePts::eEPI_NonValue, selected, _color));
@@ -885,7 +894,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
     {
         if ((insertMode || isPointSelected())) // insert polygon point
         {
-            cPoint pt(_painter, pos, getSelectedPointName(), _bShowNames, _points[_idx].state(), isPointSelected(), _color);
+            cPoint pt(_painter, pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color);
 
             _helper->build(pt, insertMode);
         }

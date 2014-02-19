@@ -245,6 +245,7 @@ class cPolygon : public cObjectGL
         void    highlightNearestPoint(const QPointF &pos);
         QString getNearestPointName(const QPointF &pos);
         QString getSelectedPointName();
+        int     getSelectedPointState();
 
         void    setpointSize(float size) { _pointSize = size; }
 
