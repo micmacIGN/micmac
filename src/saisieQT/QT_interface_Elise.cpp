@@ -188,20 +188,26 @@ void cQT_Interface::changeState(int state, int idPt)
 
     eEtatPointeImage aState = (eEtatPointeImage)state;
 
-
     if (aState!=eEPI_NonValue && idPt != -1)
     {
         cSP_PointeImage* aPIm = currentPointeImage(idPt);
 
         if (aPIm)
         {
-            mAppli->AddUndo(*(aPIm->Saisie()),currentCImage());
-            aPIm->Saisie()->Etat() = aState;
-            aPIm->Gl()->ReCalculPoints();
+            if(aState == NS_SaisiePts::eEPI_Highlight)
+            {
+                aPIm->Gl()->HighLighted() = true;
+
+            }
+            else
+            {
+                mAppli->AddUndo(*(aPIm->Saisie()),currentCImage());
+                aPIm->Saisie()->Etat() = aState;
+                aPIm->Gl()->ReCalculPoints();
+                mAppli->Sauv();
+            }
 
             rebuildGlPoints(aPIm);
-
-            mAppli->Sauv();
         }
     }
 }
@@ -304,6 +310,7 @@ void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int i)
 
     if (aPG && aPG->HighLighted())
     {
+
         cCapture3D * aCap3D = aPIm->Image()->Capt3d();
 
         if (aCap3D && aPG->PG()->PS1().IsInit() && ((aState==eEPI_NonSaisi) || (aState==eEPI_Refute)))
@@ -316,7 +323,7 @@ void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int i)
         }
     }
 
-    m_QTMainWindow->getWidget(i)->addGlPoint(transformation(aP,i),QString(aSom->NamePt().c_str()), aState, aPt1, aPt2 );
+    m_QTMainWindow->getWidget(i)->addGlPoint(transformation(aP,i),QString(aSom->NamePt().c_str()), aState, aPt1, aPt2, aPG->HighLighted());
 }
 
 void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)

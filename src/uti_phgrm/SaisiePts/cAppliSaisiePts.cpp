@@ -644,6 +644,8 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
         
     case eEPI_NonValue :
         break;
+    case eEPI_Highlight :
+        break;
     }
 
     ELISE_ASSERT(false,"Unhandled Priority");

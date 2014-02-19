@@ -576,6 +576,16 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
     _epipolar2 = pt2;
     _bEpipolar = true;
 }
+bool cPoint::highlight() const
+{
+    return _highlight;
+}
+
+void cPoint::setHighlight(bool highlight)
+{
+    _highlight = highlight;
+}
+
 
 //********************************************************************************
 
@@ -736,14 +746,16 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
     return idx;
 }
 
-void cPolygon::highlightNearestPoint(const QPointF &pos)
+int cPolygon::highlightNearestPoint(const QPointF &pos)
 {
     findNearestPoint(pos, 400000.f);
 
     if (_idx >=0 && _idx <_points.size())
     {
-        _points[_idx].highlight();
+        _points[_idx].switchHighlight();
     }
+
+    return _idx;
 }
 
 QString cPolygon::getNearestPointName(const QPointF &pos)

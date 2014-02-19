@@ -97,9 +97,11 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
     }
 }
 
-void GLWidget::addGlPoint(QPointF pt, QString name, int  state, QPointF pt1, QPointF pt2)
+void GLWidget::addGlPoint(QPointF pt, QString name, int  state, QPointF pt1, QPointF pt2, bool hightlight)
 {
     cPoint point(_painter,pt,name,true,state);
+
+    point.setHighlight(hightlight);
 
     if (pt1 != QPointF(0.f,0.f))
         point.setEpipolar(pt1, pt2);
