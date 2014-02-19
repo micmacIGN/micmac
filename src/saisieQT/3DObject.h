@@ -109,7 +109,7 @@ class cPoint : public cObjectGL, public QPointF
            QColor color = Qt::red,        
            QColor selectionColor = Qt::blue,
            float diameter = 4.f,
-           bool highlight  = false);
+           bool switchHighlight  = false);
 
         void draw();
 
@@ -117,14 +117,17 @@ class cPoint : public cObjectGL, public QPointF
         int  state() { return _state; }
         void showName(bool show){ _bShowName = show; }
 
-        void highlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
+        void switchHighlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
 
         void setEpipolar(QPointF pt1, QPointF pt2);
 
+        bool highlight() const;
+        void setHighlight(bool highlight);
+
 private:
 
-       float   _diameter;
-       bool    _bShowName;
+        float   _diameter;
+        bool    _bShowName;
        int     _state;
        bool    _highlight;
 
@@ -248,7 +251,7 @@ class cPolygon : public cObjectGL
         void    removeSelectedPoint();
 
         int     setNearestPointState(const QPointF &pos, int state);
-        void    highlightNearestPoint(const QPointF &pos);
+        int     highlightNearestPoint(const QPointF &pos);
         QString getNearestPointName(const QPointF &pos);
         QString getSelectedPointName();
         int     getSelectedPointState();

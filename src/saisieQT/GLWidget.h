@@ -108,7 +108,7 @@ public:
 
     void drawCenter();
 
-    void addGlPoint(QPointF pt, QString name, int state, QPointF pt1, QPointF pt2);
+    void addGlPoint(QPointF pt, QString name, int state, QPointF pt1, QPointF pt2, bool hightlight);
 
     ContextMenu *contextMenu();
 

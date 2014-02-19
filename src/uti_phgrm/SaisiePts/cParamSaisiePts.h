@@ -28,7 +28,8 @@ typedef enum
   eEPI_Douteux,
   eEPI_Valide,
   eEPI_NonValue,
-  eEPI_Disparu
+  eEPI_Disparu,
+  eEPI_Highlight
 } eEtatPointeImage;
 void xml_init(eEtatPointeImage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eEtatPointeImage & aVal);

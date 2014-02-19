@@ -53,7 +53,9 @@ void ContextMenu::setPointState(int state)
 
 void ContextMenu::highlight()
 {
-    _polygon->highlightNearestPoint(_lastPosImage);
+    int idx = _polygon->highlightNearestPoint(_lastPosImage);
+
+    emit changeState(NS_SaisiePts::eEPI_Highlight, idx);
 }
 
 void ContextMenu::rename()
