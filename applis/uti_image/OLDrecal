@@ -1,0 +1,549 @@
+#include "general/all.h"
+#include "private/all.h"
+#include "im_tpl/correl_imget.h"
+#include <algorithm>
+
+
+template <class Type> class OptimTranslationCorrelation : public Optim2DParam
+{
+      public :
+
+
+
+           OptimTranslationCorrelation
+           (
+                  REAL    aStepLim,
+                  REAL    aStepInit,
+                  INT     aSzVoisInit,
+                  Im2D<Type,INT> aF1,
+                  Im2D<Type,INT> aF2,
+                  REAL aSzVignette,
+                  REAL aStepIm
+            );
+            void SetP0Im1(Pt2dr  aP0Im1);
+
+            REAL mSc;
+         
+      private :
+
+           REAL ScoreFonc(REAL,REAL);
+           REAL ScoreOptim(REAL,REAL);
+           REAL Op2DParam_ComputeScore(REAL,REAL);
+
+           Im2D<Type,INT> mIm1;
+           Im2D<Type,INT> mIm2;
+
+           Pt2dr   mP0Im1;
+           REAL    mSzVignette;
+           REAL    mStepIm;
+
+           TImageFixedCorrelateurSubPix<Type> mQuickCorrel;
+};
+
+
+template <class Type> void OptimTranslationCorrelation<Type>::SetP0Im1(Pt2dr  aP0Im1)
+{
+   mP0Im1 = aP0Im1;
+}
+
+template <class Type> OptimTranslationCorrelation<Type>::OptimTranslationCorrelation
+(
+    REAL     aStepLim,
+    REAL     aStepInit,
+    INT      aSzVoisInit,
+    Im2D<Type,INT> aIm1,
+    Im2D<Type,INT> aIm2,
+    REAL     aSzVignette,
+    REAL     aStepIm
+)  :
+    Optim2DParam(aStepLim,-1.0,1e-6,true),
+    mIm1 (aIm1),
+    mIm2 (aIm2),
+    mSzVignette (aSzVignette),
+    mStepIm     (aStepIm),
+    mQuickCorrel (aIm1,aIm2,aSzVignette,aStepIm)
+{
+   set(aStepInit,aSzVoisInit);
+}
+
+
+REAL Epsilon = 1e-7;
+
+template <class Type> REAL OptimTranslationCorrelation<Type>::ScoreFonc(REAL aDx,REAL aDy)
+{
+     INT  aSzV = round_up(mSzVignette / mStepIm);
+
+     Symb_FNum fx1  ( (FX*mStepIm) + mP0Im1.x);
+     Symb_FNum fy1  ( (FY*mStepIm) + mP0Im1.y);
+
+     Symb_FNum fx2 ( fx1 + aDx);
+     Symb_FNum fy2 ( fy1 + aDy);
+
+     Symb_FNum iM1 (mIm1.in(0)[Virgule(fx1,fy1)]);
+     Symb_FNum iM2 (mIm2.in(0)[Virgule(fx2,fy2)]);
+
+     REAL s,s1,s2,s11,s12,s22;
+     ELISE_COPY
+     (
+           rectangle(Pt2di(-aSzV,-aSzV),Pt2di(aSzV+1,aSzV+1)),
+           Virgule(Virgule(1.0,iM1,iM2),Virgule(Square(iM1),iM1*iM2,Square(iM2))),
+           Virgule
+           (
+               sigma(s)  , sigma(s1) , sigma(s2),
+               sigma(s11), sigma(s12), sigma(s22)
+           )
+     );
+
+     s1 /= s;
+     s2 /= s;
+
+     s11 /= s;
+     s12 /= s;
+     s22 /= s;
+
+     s11 -= s1*s1;
+     s12 -= s1*s2;
+     s22 -= s2*s2;
+
+     mSc =  s12 / sqrt(ElMax(Epsilon,s11*s22));
+     return mSc;
+}
+
+template <class Type> REAL OptimTranslationCorrelation<Type>::Op2DParam_ComputeScore(REAL aDx,REAL aDy)
+{
+    return  mQuickCorrel.rcorrel(mP0Im1,mP0Im1+Pt2dr(aDx,aDy));
+}
+
+
+class Deplac
+{
+
+     public :
+
+          Deplac(Pt2dr aP,Pt2dr aDep) : mPt (aP), mDep (aDep) {}
+
+          Pt2dr mPt;
+          Pt2dr mDep;
+};
+
+
+
+
+
+
+
+Polynome2dReal  L1FitPolynome(const std::vector<Deplac> aVDep,INT aDegre,REAL anAmpl, bool FitX)
+{
+    Polynome2dReal aPol(aDegre,anAmpl);
+    INT aNbMon = aPol.NbMonome();
+    ElMatrix<REAL> Flin(aNbMon+1,(INT)aVDep.size());
+
+    for (INT kDep =0 ; kDep<(INT)aVDep.size() ; kDep++)
+    {
+         for (INT kMon =0 ; kMon<aNbMon ; kMon++)
+         {
+               Flin(kMon,kDep) = aPol.KthMonome(kMon)(aVDep[kDep].mPt);
+         }
+         Flin(aNbMon,kDep) =  - (FitX ?  aVDep[kDep].mDep.x : aVDep[kDep].mDep.y);
+    }
+
+    Optim_L1FormLin aOL1(Flin);
+    ElMatrix<REAL> aSol = aOL1.Solve();
+
+
+    for (INT kMon =0 ; kMon<aNbMon ; kMon++)
+    {
+        aPol.SetCoeff(kMon,aSol(0,kMon));
+    }
+
+    return aPol;
+}
+
+
+class ResultRecal
+{
+     public :
+         ResultRecal (Fonc_Num aFX,Fonc_Num aFY) : mFX (aFX), mFY (aFY) {}
+
+         Fonc_Num mFX;
+         Fonc_Num mFY;
+         
+     private :
+};
+
+
+
+
+template <class Type> ResultRecal FRecal2Im
+                                  (
+                                       INT aDegre,
+                                       Im2D<Type,INT> anIm1, 
+                                       Im2D<Type,INT> anIm2,
+                                       Pt2di aSZ,Video_Win * aW
+                                  ) 
+{
+      std::vector<Deplac> aVDep;
+
+      REAL Exag = 100.0;
+
+      if (aW)
+       ELISE_COPY(rectangle(Pt2di(0,0),aSZ),anIm1.in(0),aW->ogray());
+
+      INT Step = 60;
+
+
+
+       OptimTranslationCorrelation<Type>  anOpt 
+       (
+           0.1,4.0,3,
+           anIm1,anIm2,
+           4.0, 0.5
+       );
+
+      for (INT x= 100; x < aSZ.x-100 ; x+= Step)
+      {
+         cout << "x = " << x << "\n";
+         for (INT y= 100; y < aSZ.y-100 ; y+= Step)
+         {
+              Pt2di aSzRech = Pt2di(Step,Step)/3;
+              Pt2di aP0(x,y);
+
+              Pt2di aP;
+              Fonc_Num aCourb = Abs(courb_tgt(anIm1.in(0)));
+              ELISE_COPY
+              (
+                  rectangle(aP0-aSzRech,aP0+aSzRech),
+                  aCourb,
+                  aP.WhichMax() 
+              );
+
+              anOpt.SetP0Im1(aP);
+              anOpt.optim();
+
+              Pt2dr aDec = anOpt.param();
+
+              aVDep.push_back(Deplac(aP,aDec));
+              
+ 
+               if (aW && (euclid(aDec) > 0.001))
+                  aW->draw_arrow
+                  (
+                      aP,
+                      aP + aDec * Exag,
+                      aW->pdisc()(P8COL::red),
+                      aW->pdisc()(P8COL::red),
+                      20.0,
+                      1.0
+                  );
+         }
+      }
+
+      REAL  anAmpl = dist4(aSZ) / 2.0;
+
+      Polynome2dReal aPolX =  L1FitPolynome(aVDep,aDegre,anAmpl,true);
+      Polynome2dReal aPolY =  L1FitPolynome(aVDep,aDegre,anAmpl,false);
+
+      for (INT k = 0; k < (INT)aVDep.size() ; k++)
+      {
+             Pt2dr aP = aVDep[k].mPt;
+             Pt2dr aDec (aPolX(aP),aPolY(aP));
+             if (aW && (euclid(aDec) > 0.001))
+                aW->draw_arrow
+                (
+                      aP,
+                      aP + aDec * Exag,
+                      aW->pdisc()(P8COL::green),
+                      aW->pdisc()(P8COL::green),
+                      4.0,
+                      1.0
+                 );
+      }
+
+
+     return ResultRecal(aPolX.FNum(),aPolY.FNum());
+
+}
+
+
+template <class Type> class Recal2Im
+{
+      public :
+           Recal2Im
+           (
+                 Im2D<Type,INT>     anIFixe,
+                 Im2D<Type,INT>     anI2Recal
+           );
+
+           Recal2Im
+           (
+                 Recal2Im<Type> & aMere,
+                 INT               aZoomRel
+           );
+
+
+           ElPackHomologue GetCpleHomologue
+                           (
+                                REAL aSzRech,
+                                OptimTranslationCorrelation<Type>  & anOpt,
+                                Video_Win  aW
+                           );
+
+
+      private :
+
+            INT                 mZoomAbs;
+            Recal2Im<Type> * mMere;
+            Im2D<Type,INT>      mIFixe;
+            Im2D<Type,INT>      mI2Recal;
+};
+
+
+
+template <class Type>  
+         Recal2Im<Type>::Recal2Im           
+         (
+             Im2D<Type,INT> anIFixe,
+             Im2D<Type,INT> anI2Recal
+         ) :
+         mZoomAbs (1),
+         mMere    ((Recal2Im<Type> *) NULL),
+         mIFixe   (anIFixe),
+         mI2Recal (anI2Recal)
+{
+}
+
+
+template <class Type>  
+         Recal2Im<Type>::Recal2Im           
+         (
+             Recal2Im<Type> & aMere,
+             INT                 aZoomRel
+         ) :
+         mZoomAbs (aMere.mZoomAbs * aZoomRel),
+         mMere    (&aMere),
+         mIFixe   (aMere.mIFixe.gray_im_red(aZoomRel)),
+         mI2Recal (aMere.mI2Recal.gray_im_red(aZoomRel))
+{
+}
+
+template <class Type> 
+          ElPackHomologue Recal2Im<Type>::GetCpleHomologue
+                          (
+                                REAL aSzRech,
+                                OptimTranslationCorrelation<Type>  & anOpt,
+                                Video_Win  aW
+                           )
+{
+    REAL Exag = 20;
+    REAL aZoom = aW.sz().RatioMin(mIFixe.sz());
+    aW =  aW.chc(Pt2dr(aZoom,aZoom),Pt2dr(0,0));
+   
+    ElPackHomologue aRes;
+
+    INT aNbRechX =  round_up(mIFixe.tx()/aSzRech);
+    INT aNbRechY =  round_up(mIFixe.ty()/aSzRech);
+
+    REAL SzRechX = mIFixe.tx()/aNbRechX;
+    REAL SzRechY = mIFixe.ty()/aNbRechY;
+
+    REAL aRatio = 0.8;
+
+    Pt2dr aSz (SzRechX * aRatio,SzRechY*aRatio);
+
+    for (INT iX = 0 ; iX < aNbRechX ; iX++)
+    {
+        for (INT iY = 0 ; iY < aNbRechY ; iY++)
+        { 
+            Pt2dr aPCentre((iX+0.5)*SzRechX,(iX+0.5)*SzRechY);
+
+            Pt2di aP0Rect = aPCentre -  aSz/2.0;
+            Pt2di aP1Rect = aPCentre +  aSz/2.0;
+
+
+              Pt2di aP;
+              Fonc_Num aCourb = Abs(courb_tgt(mIFixe.in(0)));
+              ELISE_COPY
+              (
+                  rectangle(aP0Rect,aP1Rect),
+                  aCourb,
+                  aP.WhichMax() 
+              );
+
+              anOpt.SetP0Im1(aP);
+              anOpt.optim();
+              Pt2dr aDec = anOpt.param();
+
+              aW.draw_arrow
+              (
+                      aP,
+                      aP + aDec * Exag *mZoomAbs,
+                      aW.pdisc()(P8COL::red),
+                      aW.pdisc()(P8COL::red),
+                      20.0,
+                      1.0
+              );
+        }
+    }
+
+    return aRes;
+}
+
+
+template class Recal2Im<U_INT1>;
+
+
+template <class Type> class PyrRecal2Im
+{
+        typedef Recal2Im<Type>  tRec;
+        typedef Im2D<Type,INT>  tIm;
+
+     public :
+           PyrRecal2Im<Type>(tIm aIFixe,tIm aI2Recal,INT aZoomMax,INT aRatio = 2);
+
+           void MakeRecalCamNum();
+
+     private :
+
+
+        tRec  mZ1Rec;
+        std::vector<tRec *>  mVrec;
+};
+
+
+
+template <class Type> 
+          PyrRecal2Im<Type>::PyrRecal2Im
+          (
+               tIm  aIFixe,
+               tIm  aI2Recal,
+               INT  aZoomMax,
+               INT  aRatio
+          ) :
+          mZ1Rec  (aIFixe,aI2Recal)
+{
+     mVrec.push_back(&mZ1Rec);
+
+     for (INT aZoom=aRatio ; aZoom<=aZoomMax ; aZoom*=aRatio)
+         mVrec.push_back(new tRec(*mVrec.back(),aRatio));
+}
+
+
+template <class Type> 
+         void PyrRecal2Im<Type>::MakeRecalCamNum()
+{
+}
+
+
+template class PyrRecal2Im<U_INT1>;
+
+
+
+int main (int argc,char ** argv)
+{
+    std::string aNameIn;
+    INT aDegre = 5;
+    INT CanalFixe = 2;
+    INT GenTest = 0;
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAM(aNameIn),
+          LArgMain()  << EAM(aDegre,"Degre",true)
+                      << EAM(CanalFixe,"CanalFixe",true)
+                      << EAM(GenTest,"GenTest",true)
+    );
+
+     Tiff_Im aTifIn(aNameIn.c_str());
+     Pt2di aSzW = aTifIn.sz();
+
+     //  aSzW  = Pt2di(1000,1000);
+
+     Im2D_U_INT1 aI1(aSzW.x,aSzW.y);
+     Im2D_U_INT1 aI2(aSzW.x,aSzW.y);
+     Im2D_U_INT1 aI3(aSzW.x,aSzW.y);
+
+     Video_Win aW = Video_Win::WStd(aSzW,0.15);
+
+     ELISE_COPY
+     (
+         aI1.all_pts(),
+         aTifIn.in().shift_coord(-CanalFixe),
+           Virgule(aI1.out(),aI2.out(),aI3.out())
+          | aW.orgb()
+     );
+
+
+
+cout << "Begin Recal \n";
+     Recal2Im<U_INT1> aRec12(aI1,aI2);
+cout << "End Recal \n";
+
+
+   
+     std::string aNameOut = StdPrefix(aNameIn) + std::string(GenTest ? "_test.tif"  : "_recal.tif");
+     Tiff_Im aTifOut
+             (
+                  aNameOut.c_str(),
+                  aSzW, 
+                  GenIm::u_int1,
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::RGB
+             );
+
+
+     ResultRecal aT12 = FRecal2Im (aDegre,aI1,aI2,aSzW,&aW);
+     ResultRecal aT13 = FRecal2Im (aDegre,aI1,aI3,aSzW,&aW);
+
+
+     if (GenTest)
+     {
+         REAL Fact=3.0;
+         ELISE_COPY
+         (
+             aI1.all_pts(),
+             Max
+             (
+                 0,
+                 Min
+                 (
+                    255,
+                    Virgule
+                    (
+                        aI2.in(0),
+                        aI2.ImGridReech(aT12.mFX*Fact+FX,aT12.mFY*Fact+FY,32,128),
+                        aI2.ImGridReech(aT13.mFX*Fact+FX,aT13.mFY*Fact+FY,32,128)
+                    )
+                  )
+              ),
+              aTifOut.out() | aW.orgb()
+         );
+     }
+     else
+     {
+         ELISE_COPY
+         (
+             aI1.all_pts(),
+             Virgule
+             (
+                 aI1.in(0),
+                 aI2.ImGridReech(aT12.mFX+FX,aT12.mFY+FY,32,128),
+                 aI3.ImGridReech(aT13.mFX+FX,aT13.mFY+FY,32,128)
+             ).shift_coord(CanalFixe),
+             aTifOut.out() | aW.orgb()
+         );
+     }
+
+
+    return 1;
+}
+
+
+
+
+
+
+
+
+
+
