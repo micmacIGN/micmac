@@ -9,6 +9,12 @@ void cQT_Interface::rebuildGlCamera()
     }
 }
 
+void cQT_Interface::option3DPreview()
+{
+    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
+    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+}
+
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL)
@@ -42,10 +48,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     _data->computeBBox();
 
     m_QTMainWindow->threeDWidget()->setGLData(new cGLData(_data));
-
     m_QTMainWindow->threeDWidget()->getGLData()->setIncFirstCloud(true);
-    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
-    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+    option3DPreview();
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -254,8 +258,7 @@ void cQT_Interface::filesDropped(const QStringList &filenames)
             _data->computeBBox();
             m_QTMainWindow->threeDWidget()->getGLData()->setData(_data,false);
             m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
-            m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
-            m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+            option3DPreview();
         }
     }
 }
@@ -355,8 +358,6 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
     {
         bool first = _data->getNbClouds() == 0;
 
-        m_QTMainWindow->threeDWidget()->getGLData()->Clouds.clear();
-
         if(!first)
             delete _data->getCloud(0);
 
@@ -382,12 +383,10 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
             _data->replaceCloud(cloud);
 
         _data->computeBBox();
-        //m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
 
         m_QTMainWindow->threeDWidget()->getGLData()->replaceCloud(_data->getCloud(0));
         m_QTMainWindow->threeDWidget()->resetView(first,false,first,true);
-        m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
-        m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+        option3DPreview();
     }
 }
 
