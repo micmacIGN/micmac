@@ -296,36 +296,26 @@ void TracePack::Registry::stateDirectory( const ctPath &i_path )
       }
    #endif
    
-   m_items.clear();
-   cElDate date = cElDate::NoDate;
-   U_INT8 fileLength;
-   mode_t rights;
-   list<string> files = RegexListFileMatch( path.str()+ctPath::sm_unix_separator, ".*", numeric_limits<INT>::max(), false );
-   list<string>::iterator itFile = files.begin();
-   while ( itFile!=files.end() )
-   {
-      cElFilename attachedFile( i_path, *itFile ), // attached filename is the filename in situ
-                  detachedFile( *itFile++ ); // detached filename is the filename without source path
-      const string attached_filename = attachedFile.str_unix();
-      ELISE_fp::lastModificationDate( attached_filename, date );
-      attachedFile.getRights( rights );
-      #ifdef __DEBUG_TRACE_PACK
-	 if ( !attachedFile.getRights( rights ) )
-	 {
-	    cerr << RED_DEBUG_ERROR << "TracePack::Registry::stateDirectory: cannot retrieve rights on file [" << attached_filename << ']' << endl;
-	    exit(EXIT_FAILURE);
-	 }
-      #endif
-      fileLength = attachedFile.getSize();
-      #ifdef __DEBUG_TRACE_PACK
-	 if ( fileLength<0 )
-	 {
-	    cerr << RED_DEBUG_ERROR << "TracePack::Registry::stateDirectory: cannot read length of file [" << attached_filename << "]" << endl;
-	    exit(EXIT_FAILURE);
-	 }
-      #endif
-      add( Item( detachedFile, TD_State, date, rights, fileLength ) );
-   }
+	m_items.clear();
+	cElDate date = cElDate::NoDate;
+	U_INT8 fileLength;
+	mode_t rights;
+	list<string> files = RegexListFileMatch( path.str()+ctPath::sm_unix_separator, ".*", numeric_limits<INT>::max(), false );
+	list<string>::iterator itFile = files.begin();
+	while ( itFile!=files.end() ){
+		cElFilename attachedFile( i_path, *itFile ), // attached filename is the filename in situ
+				  detachedFile( *itFile++ ); // detached filename is the filename without source path
+		const string attached_filename = attachedFile.str_unix();
+		ELISE_fp::lastModificationDate( attached_filename, date );
+		attachedFile.getRights( rights );
+		#ifdef __DEBUG_TRACE_PACK
+			if ( !attachedFile.getRights( rights ) ){
+				cerr << RED_DEBUG_ERROR << "TracePack::Registry::stateDirectory: cannot retrieve rights on file [" << attached_filename << ']' << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif      
+		add( Item( detachedFile, TD_State, date, rights, attachedFile.getSize() ) );
+	}
 }
 
 void TracePack::Registry::apply( const TracePack::Registry &i_actions )
