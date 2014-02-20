@@ -36,6 +36,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(showRefuted(bool)), this,SLOT(SetInvisRef(bool)));
+
         connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this,SLOT(filesDropped(QStringList)));
     }
 
@@ -57,10 +59,11 @@ void cQT_Interface::SetInvisRef(bool aVal)
     //TODO:
     /* for (int aKW=0 ; aKW < (int)mWins.size(); aKW++)
     {
-        mWins[aKW]->BCaseVR()->SetVal(aVal);
         mWins[aKW]->Redraw();
         mWins[aKW]->ShowVect();
     }*/
+
+
 }
 
 cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
@@ -402,7 +405,7 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
                 m_QTMainWindow->getWidget(i)->getGLData()->clearPolygon();
 
                 for (int aK=0 ; aK<int(aVP.size()) ; aK++)
-                    //if (WVisible(*(aVP[aK])))
+                    if (WVisible(*(aVP[aK])))
                     {
                         addGlPoint(aVP[aK], i);
                     }
@@ -413,4 +416,18 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
     }
 
     rebuild3DGlPoints(aPIm);
+}
+
+bool cQT_Interface::WVisible(eEtatPointeImage aState)
+{
+    return  ((aState!=eEPI_Refute) || !RefInvis())
+            && (aState!=eEPI_Disparu);
+}
+
+bool cQT_Interface::WVisible(cSP_PointeImage & aPIm)
+{
+    const cOneSaisie  & aSom = *(aPIm.Saisie());
+    eEtatPointeImage aState = aSom.Etat();
+
+    return    aPIm.Visible() && WVisible(aState);
 }

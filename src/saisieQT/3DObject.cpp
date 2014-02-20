@@ -589,15 +589,9 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
     _epipolar2 = pt2;
     _bEpipolar = true;
 }
-bool cPoint::highlight() const
-{
-    return _highlight;
-}
 
-void cPoint::setHighlight(bool highlight)
-{
-    _highlight = highlight;
-}
+
+
 
 
 //********************************************************************************
