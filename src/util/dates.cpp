@@ -184,7 +184,7 @@ template <>  std::string ToString(const cElHour & aH)
 unsigned int cElHour::raw_size(){ return 2*4+8; }
 
 // read/write in raw format
-void cElHour::from_raw_data( char *&io_rawData, bool i_reverseByteOrder )
+void cElHour::from_raw_data( const char *&io_rawData, bool i_reverseByteOrder )
 {
    INT4 *ints = (INT4 *)io_rawData;
    memcpy( &mS, io_rawData+8, 8 );
@@ -433,7 +433,7 @@ double  cElDate::DifInSec(const cElDate& aD2) const
 }
 
 // read/write in raw format
-void cElDate::from_raw_data( char *&io_rawData, bool i_reverseByteOrder )
+void cElDate::from_raw_data( const char *&io_rawData, bool i_reverseByteOrder )
 {
    INT4 *ints = (INT4 *)io_rawData;
   
@@ -493,7 +493,6 @@ void cElDate::getCurrentDate_UTC( cElDate &o_utcHour )
    cElHour::getCurrentHour_UTC(o_utcHour.mH);
 }
 
-// __DEL
 void cElDate::read_raw( istream &io_istream, bool i_inverseByteOrder )
 {
    INT4 ints[3];
@@ -512,7 +511,6 @@ void cElDate::read_raw( istream &io_istream, bool i_inverseByteOrder )
    mH.read_raw( io_istream, i_inverseByteOrder );
 }
 
-// __DEL
 void cElDate::write_raw( ostream &io_ostream, bool i_inverseByteOrder ) const
 {
    INT4 ints[3] = { (INT4)Y(), (INT4)M(), (INT4)D() };

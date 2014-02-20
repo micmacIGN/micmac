@@ -280,30 +280,30 @@ int pack_from_script_func( int argc, char **argv )
       cerr << "usage: packfile scriptfile source_directory [VAR1=value1 VAR2=value2 ...]" << endl;
       return EXIT_FAILURE;
    }
-    
+
    const cElFilename packname( (string)(argv[0]) );
    if ( packname.exists() )
    {
       cerr << RED_ERROR << "pack [" << packname.str_unix() << "] already exist" << endl;
       return EXIT_FAILURE;
    }
-     
+
    const cElFilename scriptname( (string)(argv[1]) );
    if ( !scriptname.exists() )
    {
       cerr << RED_ERROR << "script [" << scriptname.str_unix() << "] does not exist" << endl;
       return EXIT_FAILURE;
    }
-   
+
    ctPath anchor;
    anchor = ctPath( (string)(argv[2]) );
-   
+
    if ( anchor.contains( packname ) )
    {
       cerr << RED_ERROR << "pack file [" << packname.str_unix() << "] is inside source directory [" << anchor.str() << "]" << endl;
       return EXIT_FAILURE;
    }
-   
+
    if ( !anchor.exists() )
    {
       cerr << RED_ERROR << "reference directory [" << anchor.str() << "] does not exist" << endl;
@@ -311,7 +311,7 @@ int pack_from_script_func( int argc, char **argv )
    }
    dictionary["${SITE_PATH}"] = anchor.str();
    cout << "--- using directory [" << anchor.str() << "]" << endl;
-   
+
    cout << "--- dictionary" << endl;
    map<string,string>::iterator itDico = dictionary.begin();
    while ( itDico!=dictionary.end() )
@@ -320,18 +320,18 @@ int pack_from_script_func( int argc, char **argv )
       itDico++;
    }
    cout << endl;
-   
+
    list<cElCommand> commands;
    if ( !load_script( scriptname, commands ) )
    {
       cerr << RED_ERROR << "script file [" << scriptname.str_unix() << "] cannot be loaded" << endl;
       return EXIT_FAILURE;
    }
-   
+
    // create initial state
    TracePack pack( packname, anchor );
    pack.addState();
-   
+
    list<cElCommand>::iterator itCmd = commands.begin();
    unsigned int iCmd = 0;
    while ( itCmd!=commands.end() )
@@ -354,7 +354,7 @@ int pack_from_script_func( int argc, char **argv )
 	 pack2.load();
 	 if ( !pack.trace_compare(pack2) )
 	 {
-	    cerr << RED_DEBUG_ERROR << "load(write(pack))!=pack" << endl;
+	    cerr << RED_DEBUG_ERROR << "pack!=load(write(pack))" << endl;
 	    exit(EXIT_FAILURE);
 	 }
       #endif
@@ -535,8 +535,8 @@ void test_type_raw_conversion()
       
       // reading
       string str2;
-      it = buffer.data();
-      string_from_raw_data( it, false, str2 );
+      const char *it_const = (const char *)buffer.data();
+      string_from_raw_data( it_const, false, str2 );
       
       if ( str_ref!=str2 )
       {
@@ -557,8 +557,8 @@ void test_type_raw_conversion()
       
       // reading
       cElDate date2 = cElDate::NoDate;
-      it = buffer.data();
-      date2.from_raw_data( it, false );
+      const char *it_const = (const char *)buffer.data();
+      date2.from_raw_data( it_const, false );
       
       if ( date_ref!=date2 )
       {
@@ -579,8 +579,8 @@ void test_type_raw_conversion()
       cmd_ref.to_raw_data( false, it );
 	      
       // reading
-      it = buffer.data();
-      cElCommandToken *cmd2 = cElCommandToken::from_raw_data( it, false );
+      const char *it_const = (const char *)buffer.data();
+      cElCommandToken *cmd2 = cElCommandToken::from_raw_data( it_const, false );
       
       if ( *cmd2!=cmd_ref )
       {
@@ -606,8 +606,8 @@ void test_type_raw_conversion()
 
       // reading
       cElCommand cmd2;
-      it = buffer.data();
-      cmd2.from_raw_data( it, false );
+      const char *it_const = (const char *)buffer.data();
+      cmd2.from_raw_data( it_const, false );
       
       if ( cmd_ref!=cmd2 )
       {
@@ -618,12 +618,12 @@ void test_type_raw_conversion()
    }
 }
 
-bool create_random_file( const cElFilename &i_filename, unsigned int i_size )
+bool create_random_file( const cElFilename &i_filename, U_INT8 i_size )
 {
    srand( time(NULL) );
    
-   ofstream f( i_filename.str_unix().c_str(), ios::binary );
-   if ( !f )
+   ofstream fdst( i_filename.str_unix().c_str(), ios::binary );
+   if ( !fdst )
    {
       #ifdef __DEBUG_TRACE_PACK
 	 cerr << RED_DEBUG_ERROR << "create_random_file: unable to open file [" << i_filename.str_unix() << "] for writing" << endl;
@@ -632,18 +632,30 @@ bool create_random_file( const cElFilename &i_filename, unsigned int i_size )
       return false;
    }
       
-   unsigned int i = i_size;
-   while ( i-- ) f.put( (char)( rand()%256 ) );
-   f.close();
-   
-   if ( i_filename.getSize()!=i_size )
+   const U_INT8 buffer_size = 10e6;
+   U_INT8 remaining = i_size;
+   vector<char> buffer( buffer_size );
+   char *data = buffer.data();
+   while ( remaining )
    {
-      #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "create_random_file: size of [" << i_filename.str_unix() << "] = " << i_filename.getSize() << " expecting " << i_size << endl;
-	 exit(EXIT_FAILURE);
-      #endif
-      return false;
+      U_INT8 blockSize = std::min( remaining, buffer_size );      
+      // generate random block
+      char *itData = data;
+      U_INT8 i = blockSize;
+      while ( i-- ) (*itData++)=(char)( rand()%256 );
+      // write block
+      fdst.write( data, blockSize );
+      
+      remaining -= blockSize;
    }
+   fdst.close();
+   
+   #ifdef __DEBUG_TRACE_PACK
+      if ( i_size!=i_filename.getSize() ){
+	 cerr << RED_ERROR << "create_random_file: size of generated file [" << i_filename.str_unix() << "] = " << i_filename.getSize() << " != " << i_size << endl;
+	 exit(EXIT_FAILURE);
+      }
+   #endif
    
    return true;
 }
@@ -659,24 +671,40 @@ cElFilename getfilename( unsigned int i_i )
 class RandomEntry
 {
 public:
+   virtual ~RandomEntry(){}
    virtual bool isFileEntry(){ return false; }
    template <class T> T & spe(){ return *((T*)this); }
-   virtual void remove_file() const {}
-   virtual void remove_path() const {}
+   virtual bool createRandom() = 0;
+   virtual void trace( ostream &io_out ) const = 0;
 };
 
 class FileEntry : public RandomEntry
 {
 public:
    cElFilename m_filename;
-   unsigned int m_fileSize;
+   U_INT8 m_fileSize;
    
-   FileEntry( const cElFilename &i_filename, unsigned int i_size ):m_filename(i_filename),m_fileSize(i_size){}
+   FileEntry( const cElFilename &i_filename, U_INT8 i_size ):m_filename(i_filename),m_fileSize(i_size){}
+   
+   void trace( ostream &io_out ) const { io_out << "\t\tentries.push_back( new FileEntry( cElFilename( \"" << m_filename.str_unix() << "\" ), " << m_fileSize << " ) );" << endl; }
+
    bool isFileEntry(){ return true; }
+   
+   bool createRandom()
+   {
+      bool res = ( m_filename.m_path.create() && create_random_file( m_filename, m_fileSize ) );
+      if ( !res ){
+	 cout << RED_ERROR << "unable to create a random file of size " << m_fileSize << " named [" << m_filename.str_unix() << "]" << endl;
+	 return false;
+      }
+      return true;
+   }
+   
    void remove_file() const
    {
       if ( !m_filename.remove() ) cerr << RED_WARNING << "test_chunk_io: cannot remove file [" << m_filename.str_unix() << ']' << endl;
    }
+   
    void remove_path() const
    {
       if ( !m_filename.m_path.isWorkingDirectory() && !m_filename.m_path.remove_empty() )
@@ -684,176 +712,348 @@ public:
    }
 };
 
-class RawDataEntry : public RandomEntry
+class BufferEntry : public RandomEntry
 {
 public:
-   FileChunk::FileChunkType m_type;
-   vector<char> m_buffer;
+   unsigned char m_type;
+   vector<char>  m_buffer;
    
-   RawDataEntry( FileChunk::FileChunkType i_type, unsigned int i_size ):m_type(i_type),m_buffer(i_size){}
+   BufferEntry( unsigned char i_type, unsigned int i_size ):m_type(i_type),m_buffer(i_size){}
+   
+   void trace( ostream &io_out ) const { io_out << "\t\tentries.push_back( new BufferEntry( " << (int)m_type << ", " << m_buffer.size() << " ) );" << endl; }
+   
+   bool createRandom()
+   {
+      for ( unsigned int i=0; i<m_buffer.size(); i++ )
+	 m_buffer[i] = (char)( rand()%256 );
+      return true;
+   }
+   
    bool isFileEntry(){ return false; }
 };
 
-void check_file_and_data_chunks( const cElFilename &i_filename, const list<FileChunk> &o_chunks )
+bool check_items( const list<ChunkStream::Item*> &i_items, const list<RandomEntry*> &i_entries, const cElFilename i_temporaryFile )
 {
-   unsigned int dataSum = 0;
-   list<FileChunk>::const_iterator it = o_chunks.begin();
-   while ( it!=o_chunks.end() )
-      dataSum += ( it++ )->m_dataSize;
-   unsigned int actualSize = i_filename.getSize()+string_raw_size( i_filename.str_unix() );
-   if ( dataSum!=actualSize )
-      cerr << RED_DEBUG_ERROR << "check_file_and_data_chunks: chunks sum = " << dataSum << " != " << " actualSize = " << actualSize << endl;
+   if ( i_items.size()<i_entries.size() ){
+      cout << RED_ERROR << "test_chunk_io: nb ChunkStream items = " << i_items.size() << " < nb entries = " << i_entries.size() << endl;
+      return false;
+   }
+   else
+   {
+      // comparing read files and files on disk
+      list<ChunkStream::Item*>::const_reverse_iterator itItem = i_items.rbegin();
+      list<RandomEntry*>::const_reverse_iterator itEntry = i_entries.rbegin();
+      unsigned int iItem = 0;
+      while ( itEntry!=i_entries.rend() )
+      {
+	 if ( (**itItem).isFileItem()!=(**itEntry).isFileEntry() ){
+	    cout << RED_ERROR << "test_chunk_io: item " << iItem << " is of type " << ((**itItem).isFileItem()?"File":"Buffer") << " but entry if of type "
+		 << ((**itEntry).isFileEntry()?"File":"Buffer") << endl;
+	    return false;
+	 }
+	 else
+	 {
+	    if ( (**itItem).isFileItem() )
+	    {
+	       ChunkStream::FileItem &item = (**itItem).specialize<ChunkStream::FileItem>();
+	       FileEntry &entry = (**itEntry).spe<FileEntry>();
+	       if ( item.copyToFile( i_temporaryFile ) )
+	       {
+		  if ( is_equivalent( entry.m_filename, i_temporaryFile ) )
+		     cout << "\t\t--- [" << entry.m_filename.str_unix() << "] checked." << endl;
+		  else{
+		     cout << RED_ERROR << "test_chunk_io: file [" << item.m_storedFilename.str_unix() << "] is not equivalent to its original self" << endl;
+		     return false;
+		  }
+	       }
+	       else{
+		  cout << RED_ERROR << "test_chunk_io: cannot extract [" << item.m_storedFilename.str_unix() << "]" << endl;
+		  return false;
+	       }
+	    }
+	    else
+	    {
+	       ChunkStream::BufferItem &item = (**itItem).specialize<ChunkStream::BufferItem>();
+	       BufferEntry &entry = (**itEntry).spe<BufferEntry>();
+	       if ( item.m_type!=entry.m_type ){
+		  cout << RED_ERROR << "test_chunk_io: BufferItem of type " << (int)item.m_type << " but type " << entry.m_type << " is expected" << endl;
+		  return false;
+	       }
+	       else if ( item.m_buffer.size()!=entry.m_buffer.size() ){
+		  cout << RED_ERROR << "test_chunk_io: BufferItem of length " << (int)item.m_buffer.size() << " but a length of " << entry.m_buffer.size() << " is expected" << endl;
+		  return false;
+	       }
+	       else if ( memcmp( item.m_buffer.data(), entry.m_buffer.data(), entry.m_buffer.size() )!=0 ){
+		  cout << RED_ERROR << "test_chunk_io: BufferItem content is different from expected" << endl;
+		  return false;
+	       }
+	       else
+		  cout << "\t\t--- a BufferItem of type " << (int)item.m_type << " and length " << item.m_buffer.size() << " checked." << endl;
+	    }
+	 }
+	 itItem++; itEntry++; iItem++;
+      }
+   }
+   return true;
 }
 
-void test_chunk_io()
+void generate_random_entries( const unsigned int i_nbSets, const unsigned int i_nbItemsPerSet, const U_INT8 i_maxEntrySize, list<list<RandomEntry*> > &o_entries )
 {
-   //vector<ChunkStreamEntry> chunkStream;
-   //list<FileChunk> chunks;
+   cout << "---> generate random entries list" << endl;
+   o_entries.clear();   
+   for ( unsigned int iSet=0; iSet<i_nbSets; iSet++ ){
+      list<RandomEntry*> entries;
+      for ( unsigned int iEntry=0; iEntry<i_nbItemsPerSet; iEntry++ ){
+	 unsigned int size = ( rand()%i_maxEntrySize )+1;
+	 if ( ( rand()%2 )==0 )
+	    entries.push_back( new FileEntry( cElFilename( ( (rand()%2)==0?generate_random_string(5,10):string(".") )+"/"+generate_random_string(5,10) ), size ) );
+	 else
+	    entries.push_back( new BufferEntry( rand()%64, size ) );
+      }
+      o_entries.push_back(entries);
+   }
+   cout << "<--- done\n" << endl;
+
+   /*
+   cout << "---> load entries list" << endl;
+   {
+		list<RandomEntry*> entries;		
+		entries.push_back( new FileEntry( cElFilename( "tzJbjtjACE/vgalkqZ" ), 605 ) );
+		entries.push_back( new BufferEntry( 33, 240 ) );
+		entries.push_back( new FileEntry( cElFilename( "jfJcxt/tybHW" ), 462 ) );
+		entries.push_back( new FileEntry( cElFilename( "ZrXHT" ), 860 ) );
+		entries.push_back( new FileEntry( cElFilename( "ELBjUqplOl" ), 721 ) );
+		entries.push_back( new BufferEntry( 42, 957 ) );
+		entries.push_back( new BufferEntry( 48, 874 ) );
+		entries.push_back( new BufferEntry( 4, 115 ) );
+		entries.push_back( new BufferEntry( 16, 387 ) );
+		entries.push_back( new BufferEntry( 47, 992 ) );
+		o_entries.push_back(entries);
+	}
+	{
+		list<RandomEntry*> entries;
+		entries.push_back( new FileEntry( cElFilename( "TlngVIpdEX" ), 336 ) );
+		entries.push_back( new FileEntry( cElFilename( "waeSFv" ), 192 ) );
+		entries.push_back( new FileEntry( cElFilename( "an_empty_file0" ), 0 ) );
+		entries.push_back( new FileEntry( cElFilename( "XQxfSeBmg" ), 66 ) );
+		entries.push_back( new FileEntry( cElFilename( "GJCJL/mzWMaVXK" ), 207 ) );
+		entries.push_back( new BufferEntry( 0, 742 ) );
+		entries.push_back( new FileEntry( cElFilename( "tuZRLrtb" ), 802 ) );
+		entries.push_back( new BufferEntry( 21, 185 ) );
+		entries.push_back( new BufferEntry( 44, 719 ) );
+		entries.push_back( new BufferEntry( 17, 214 ) );
+		entries.push_back( new BufferEntry( 50, 989 ) );
+		entries.push_back( new FileEntry( cElFilename( "an_empty_file" ), 0 ) );
+		// a long name
+		//entries.push_back( new FileEntry( cElFilename( generate_random_string(i_maxEntrySize) ), 1024 ) );
+		o_entries.push_back(entries);
+	}
+   cout << "<--- done\n" << endl;
+   */
+}
+
+bool add_items( const list<list<RandomEntry*> > &i_entries, ChunkStream &io_stream, const cElFilename &i_temporaryFile )
+{
+   list<list<RandomEntry*> >::const_iterator itList = i_entries.begin();
+   size_t iSet = 0;
+   while ( itList!=i_entries.end() ){
+      cout << "---> set " << iSet++ << endl;
+      const list<RandomEntry*> &entries = *itList++;
       
+      if ( !io_stream.writeOpen() ){
+	 cout << RED_ERROR << "add_items: unable to open ChunkStream [" << io_stream.getFilename(0).str_unix() << "] for writing" << endl;
+	 return false;
+      }
+      
+      cout << "\t---> writing chunks" << endl;
+      list<RandomEntry*>::const_iterator itEntry = entries.begin();
+      while ( itEntry!=entries.end() )
+      {
+	 if ( (*itEntry)->isFileEntry() )
+	 {
+	    // generate a random file
+	    FileEntry &entry = (*itEntry)->spe<FileEntry>();
+	    if ( entry.createRandom() ) io_stream.write_file( entry.m_filename, entry.m_filename );
+	 }
+	 else // a buffer chunk
+	 {
+	    // generate a random buffer
+	    BufferEntry &entry = (*itEntry)->spe<BufferEntry>();
+	    if ( entry.createRandom() ) io_stream.write_buffer( entry.m_type, entry.m_buffer );
+	 }
+	 itEntry++;
+      }
+      cout << "\t<--- done" << endl;
+            
+      cout << "\t---> reading Items" << endl;
+      list<ChunkStream::Item*> items;
+      if ( !io_stream.read( 0, 0, items ) )
+	 cout << RED_ERROR << "add_items: error while reading chunkStream [" << io_stream.getFilename(0).str_unix() << "]" << endl;
+      cout << "\t<--- done" << endl;
+      
+      // compare write+read Items and initial Entries
+      cout << "\t---> checking read items" << endl;
+      if ( !check_items( items, entries, i_temporaryFile ) ){
+	 cout << RED_ERROR << "add_items: error checking write+read items in stream [" << io_stream.getFilename(0).str_unix() << "]" << endl;
+	 return false;
+      }
+      cout << "\t<--- done" << endl;
+
+      clear_item_list( items );
+      cout << "<--- done" << endl;
+   }
+   
+   return true;
+}
+
+void trace_all_entries( const cElFilename &i_filename, const list<list<RandomEntry*> > &i_all_entries )
+{
+   ofstream dst( i_filename.str_unix().c_str() );
+   if ( !dst ){
+      cout << RED_ERROR << "trace_all_entries: cannot open trace file [" << i_filename.str_unix() << endl; 
+      exit(EXIT_FAILURE);
+   }
+
+   list<list<RandomEntry*> >::const_iterator itList = i_all_entries.begin();
+   while ( itList!=i_all_entries.end() ){
+   
+      dst << "\t{" << endl;
+      dst << "\t\tlist<RandomEntry*> entries;" << endl;
+      
+      list<RandomEntry*>::const_iterator itEntry = itList->begin();
+      while ( itEntry!=itList->end() )
+	 (*itEntry++)->trace(dst);
+         
+      dst << "\t\to_entries.push_back(entries);" << endl;
+      dst << "\t}" << endl;
+      
+      itList++;
+   }
+}
+   
+void remove_all_entries( const list<list<RandomEntry*> > &i_all_entries )
+{
+   // remove all files
+   list<list<RandomEntry*> >::const_iterator itList = i_all_entries.begin();
+   while ( itList!=i_all_entries.end() ){
+      list<RandomEntry*>::const_iterator itEntry = itList->begin();
+      while ( itEntry!=itList->end() ){
+	 if ( (*itEntry)->isFileEntry() ) (*itEntry)->spe<FileEntry>().remove_file();
+	 itEntry++;
+      }
+      itList++;
+   }
+   
+   // remove all empty directories 
+   itList = i_all_entries.begin();
+   while ( itList!=i_all_entries.end() ){
+      list<RandomEntry*>::const_iterator itEntry = itList->begin();
+      while ( itEntry!=itList->end() ){
+	 if ( (*itEntry)->isFileEntry() ) (*itEntry)->spe<FileEntry>().remove_path();
+	 itEntry++;
+      }
+      itList++;
+   }
+   
+   // delete RandomEntries items 
+   itList = i_all_entries.begin();
+   while ( itList!=i_all_entries.end() ){
+      list<RandomEntry*>::const_iterator itEntry = itList->begin();
+      while ( itEntry!=itList->end() )
+	 delete (*itEntry++);
+      itList++;
+   }
+}
+
+void test_chunk_stream()
+{
    // create random items registry, ignored lists or file
    srand( time(NULL) );
+
+   cElFilename streamName("a_stream");
+   const U_INT8 maxChunkSize = 4e9;
+   ChunkStream chunkStream( streamName, maxChunkSize, false ); // false = reverseByteOrder
+
+   const unsigned int nbSets = 2;
+   const unsigned int nbEntriesPerSet = 10;
+   list<list<RandomEntry*> > all_entries;
+   generate_random_entries( nbSets, nbEntriesPerSet, 1<<20, all_entries );
+   cElFilename traceFile("trace");
+   trace_all_entries( traceFile, all_entries );
    
-   const unsigned int nbEntries = 10;
-   const U_INT4 maxChunkSize = 512;
-   unsigned int remain = maxChunkSize;
-   list<RandomEntry*> entries;
+   cElFilename temporaryFile( "comparisonTemporaryFile" ); // temporary file for file data comparison
+   if ( !add_items( all_entries, chunkStream, temporaryFile ) )
+      cerr << RED_ERROR << "test_chunk_stream: items couldn't be written then read correctly" << endl;
    
-   // random items
-   for ( unsigned int iEntry=0; iEntry<nbEntries; iEntry++ )
-   {
-      const unsigned int itemType = ( rand()%2 );
-      if ( itemType==0 ) // a file
-      {
-	 cElFilename filename( ( (rand()%2)==0?generate_random_string(5,10):string(".") )+"/"+generate_random_string(5,10) );
-	 unsigned int fileSize = rand()%600+1;
-	 cout << "entries.push_back( new FileEntry( cElFilename( \"" << filename.str_unix() << "\" ), " << fileSize << " ) );" << endl;
-	 entries.push_back( new FileEntry( filename, fileSize ) );
-      }
-      else // a buffer chunk
-      {
-	 unsigned int bufferSize = rand()%(maxChunkSize-FileChunk::headerSize)+1;
-	 FileChunk::FileChunkType type = ( (rand()%2)==0 ? FileChunk::FCT_Registry : FileChunk::FCT_Ignore );
-	 cout << "entries.push_back( new RawDataEntry( FileChunk::" << FileChunkType_to_string(type) << ", " << bufferSize << " ) );" << endl;
-	 entries.push_back( new RawDataEntry( type, bufferSize ) );
-      }
-   }
    cout << endl;
-   cout << "-----------------------> random list done" << endl;
-   
-   /*
-   entries.push_back( new FileEntry( cElFilename( "dvlMU/sZAXnRdGH" ), 499 ) );
-   entries.push_back( new RawDataEntry( FileChunk::FCT_Registry, 0 ) );
-   entries.push_back( new RawDataEntry( FileChunk::FCT_Ignore, 177 ) );
-   entries.push_back( new FileEntry( cElFilename( "eWswf" ), 536 ) );
-   entries.push_back( new FileEntry( cElFilename( "FtOzc/ZqHPvB" ), 142 ) );
-   entries.push_back( new FileEntry( cElFilename( "JpbINQmnS/BNZLrWUpW" ), 408 ) );
-   entries.push_back( new FileEntry( cElFilename( "COvgyi" ), 486 ) );
-   entries.push_back( new RawDataEntry( FileChunk::FCT_Registry, 14 ) );
-   entries.push_back( new RawDataEntry( FileChunk::FCT_Ignore, 479 ) );
-   entries.push_back( new RawDataEntry( FileChunk::FCT_Ignore, 489 ) );
-   cout << "-----------------------> saved list loaded" << endl;
-   */
-   
-   list<FileChunk> chunks;
-   list<RandomEntry*>::iterator itEntry = entries.begin();
-   while ( itEntry!=entries.end() )
-   {
-      if ( (*itEntry)->isFileEntry() )
-      {
-	 FileEntry &entry = (*itEntry)->spe<FileEntry>();
-	 if ( !entry.m_filename.m_path.create() || !create_random_file( entry.m_filename, entry.m_fileSize ) )
-	 {
-	    cout << RED_ERROR << "test_chunk_io: unable to create file [" << entry.m_filename.str_unix() << ']' << endl;
-	    exit(EXIT_FAILURE);
-	 }
-	 file_to_chunk_list( entry.m_filename.str_unix(), entry.m_fileSize, remain, maxChunkSize, chunks );
-      }
-      else // a buffer chunk
-      {
-	 RawDataEntry &entry = (*itEntry)->spe<RawDataEntry>();
-	 for ( unsigned int i=0; i<entry.m_buffer.size(); i++ )
-	    entry.m_buffer[i] = (char)( rand()%256 );
-	 chunks.push_back( FileChunk( entry.m_type, entry.m_buffer ) );
-	 unsigned int fullSize = chunks.back().fullSize();
-	 if ( remain>=fullSize )
-	    remain -= fullSize;
-	 else
-	    remain = maxChunkSize-fullSize;
-      }
-      itEntry++;
-   }
-   cout << "-----------------------> creation of chunks done" << endl;
-   
-   ChunkStream chunkStream( cElFilename( "a_stream" ), maxChunkSize, false ); // false = reverseByteOrder
-   cout << "--- writing chunks" << endl;
-   cout << "nb chunks = " << chunks.size() << endl;
-   chunkStream.writeChunks( chunks );
-   cout << "--- writing done\n" << endl;
-   
-   // read the chunkStream
-   cout << "--- reading chunks" << endl;
-   chunkStream.readChunks(chunks);
-   cout << "nb chunks = " << chunks.size() << endl;
-   cout << "--- reading done." << endl;
-   
-   // comparing read files and files on disk
-   cElFilename temporaryFile( "comparisonTemporaryFile" );
-   list<FileChunk>::const_iterator itc = chunks.begin();
-   itEntry = entries.begin();
-   while ( itc!=chunks.end() )
-   {
-      if ( itc->m_type==FileChunk::FCT_Data )
-      {
-	 cElFilename storedFilename = cElFilename( itc->m_filename );
-	 list<FileChunk> fileChunks;
-	 while ( itc->m_hasMore ) fileChunks.push_back( *itc++ );
-	 fileChunks.push_back( *itc );
-	 
-	 if ( chunk_list_to_file( temporaryFile, fileChunks ) )
-	 {
-	    if ( is_equivalent( storedFilename, temporaryFile ) )
-	       cout << "--- [" << storedFilename.str_unix() << "] checked." << endl;
-	    else
-	       cout << RED_ERROR << "test_chunk_io: file [" << storedFilename.str_unix() << "] extracted from ChunkStream [" << chunkStream.filename(0).str_unix()
-		    << "] is not equivalent to it original self" << endl;
-	 }
-	 else
-	    cout << RED_ERROR << "test_chunk_io: cannot extract file [" << storedFilename.str_unix() << "] from ChunkStream [" << chunkStream.filename(0).str_unix() << "]" << endl;
-      }
-      else
-      {
-	 if ( !(*itEntry)->isFileEntry() )
-	 {
-	    RawDataEntry &entry = (*itEntry)->spe<RawDataEntry>();
-	    const string chunkTypeStr = FileChunkType_to_string(itc->m_type);
-	    if ( itc->m_contentSize==entry.m_buffer.size() &&
-		 itc->m_type==entry.m_type &&
-		 memcmp( itc->m_rawData.data(), entry.m_buffer.data(), itc->m_contentSize )==0 )
-	       cout << "--- a " << chunkTypeStr << " of size " << itc->m_contentSize << " checked." << endl;
-	    else
-	       cout << RED_ERROR << "test_chunk_io: " << chunkTypeStr << " of size " << itc->m_contentSize << " != entry = "
-		    << FileChunkType_to_string(entry.m_type) << " of size " << entry.m_buffer.size() << endl;
-	 }
-	 else
-	    cout << RED_ERROR << "test_chunk_io: a RawDataEntry is expected" << endl;
-      }
-      itc++; itEntry++;
-   }
-   
-   // remove files
-   itEntry = entries.begin();
-   while ( itEntry!=entries.end() ) ( *itEntry++ )->remove_file();
-   itEntry = entries.begin();
-   while ( itEntry!=entries.end() ) ( *itEntry++ )->remove_path();
-   
+   cout << "---> cleaning" << endl;
    // remove temporary file for file comparison
    if ( temporaryFile.exists() ) temporaryFile.remove();
+   // remove entries trace file
+   if ( traceFile.exists() ) traceFile.remove();
+   // remove entry files and delete allocated objects
+   remove_all_entries( all_entries );
+   // clear stream
+   if ( !chunkStream.remove() ) cout << RED_ERROR << "test_chunk_stream: unable to remove chunkStream [" << chunkStream.getFilename(0).str_unix() << ']' << endl;
+   cout << "--- done" << endl;
+}
+
+char * __copy_string( const string &i_str )
+{
+   char *cstr = new char[i_str.length()+1];
+   strcpy( cstr, i_str.c_str() );
+   return cstr;
+}
+
+int test_trace_pack()
+{
+   test_type_raw_conversion();
+   test_chunk_stream();
    
-   // delete entries
-   itEntry = entries.begin();
-   while ( itEntry!=entries.end() ) delete *itEntry++;
+   int return_code = EXIT_FAILURE;
+   char **args = NULL;
+   ofstream f;
+   ctPath tempDirectory("test_trace_pack");
+   cElFilename packName("test.pack");
    
-   if ( !chunkStream.remove() ) cout << RED_ERROR << "test_chunk_io: unable to remove chunkStream [" << chunkStream.filename(0).str_unix() << ']' << endl;
+   if ( tempDirectory.exists() ){ cerr << RED_ERROR << "test_trace_pack: temporary directory [" << tempDirectory.str() << "] already exists" << endl; return EXIT_FAILURE; }
+   if ( !tempDirectory.create() ){ cerr << RED_ERROR << "test_trace_pack: cannot create temporary directory [" << tempDirectory.str() << "]" << endl; return EXIT_FAILURE; }
+   
+   // create a test script
+   cElFilename scriptName( "test.script" );
+   if ( scriptName.exists() ){ cerr << RED_ERROR << "test_trace_pack: test script [" << scriptName.str_unix() << "] already exists" << endl; goto test_trace_pack_clean; }
+   f.open( scriptName.str_unix().c_str() );
+   if ( !f ){ cerr << RED_ERROR << "test_trace_pack: test script file [" << scriptName.str_unix() << "] cannot be opened for writing" << endl; goto test_trace_pack_clean; }
+   f << "echo \"i am toto\" > toto" << endl;
+   f << "echo ls > tata && chmod +x tata" << endl;
+   f << "date > titi" << endl;
+   f << "rm titi" << endl;
+   f.close();
+   
+   // create arguments to call pack_from_script_func
+   
+   setWorkingDirectory( tempDirectory );
+   args = new char*[3];
+   args[0] = __copy_string( string("../")+packName.str_unix() );
+   args[1] = __copy_string( string("../")+scriptName.str_unix() );
+   args[2] = __copy_string( "./" );
+   
+   return_code = pack_from_script_func( 3, args );
+   setWorkingDirectory( ctPath("../") );
+   
+test_trace_pack_clean:
+   if ( scriptName.exists() ) scriptName.remove();
+   if ( tempDirectory.exists() ) tempDirectory.remove();
+   if ( args!=NULL ){      
+      delete [] args[0];
+      delete [] args[1];
+      delete [] args[2];
+      delete [] args;
+   }
+   ChunkStream stream( packName, 0, true );
+   stream.remove();
+   
+   return return_code;
 }
 
 bool test_prerequisites()
@@ -864,10 +1064,6 @@ bool test_prerequisites()
       if ( sizeof(REAL8)!=8 ) { cerr << "sizeof(REAL8)!=8" << endl; return false; }
       if ( FLT_MANT_DIG!=24 || DBL_MANT_DIG!=53 )
 	 cerr << "WARNING: single and/or double precision floating-point numbers do not conform to IEEE 754, you may experiment problems while sharing pack files with other systems" << endl;
-      
-      test_type_raw_conversion();
-      test_chunk_io();
-      
       cout << "test_prerequisites: ok." << endl;
    #endif
    return true;
@@ -875,8 +1071,10 @@ bool test_prerequisites()
 
 int main( int argc, char **argv )
 {
-   if ( !test_prequisites() ) return EXIT_FAILURE;
+   if ( !test_prerequisites() ) return EXIT_FAILURE;
    
+   return test_trace_pack();
+    
    if ( argc<2 ) return help_func(0,NULL);
 
    string command = normalizeCommand( argv[1] );

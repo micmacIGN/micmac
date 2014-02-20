@@ -3,6 +3,7 @@
 #include "StdAfx.h"
 
 #include "general/cElCommand.h"
+#include "ChunkStream.h"
 
 using namespace std;
 
@@ -12,329 +13,6 @@ using namespace std;
    const string __apply_illegal_state_message = "TracePack::Registry::apply: illegal state item";
    const string __apply_illegal_no_add_message = __apply_illegal_action_message+" (TD_Added expected)";
 #endif
-
-//--------------------------------------------
-// class FileChunk
-//--------------------------------------------
-   
-bool FileChunk::dataChunk_copy( std::istream &io_src, std::ostream &io_dst ) const
-{
-   write_file( io_src, io_dst, onDiskData() );
-   return true;
-}
-
-bool FileChunk::write_dataChunk( const cElFilename &i_inStreamFilename, std::istream &io_in, bool i_reverseByteOrder, std::ostream &io_out )
-{      
-   // write header
-   io_out.put( (char)m_type );
-   write_uint4( m_contentSize, i_reverseByteOrder, io_out );
-   
-   // write data chunk header
-   if ( m_isFirst )
-   {
-      io_out.put( 1 );
-      write_string( m_filename, io_out, i_reverseByteOrder );
-   }
-   else
-      io_out.put( 0 );
-   io_out.put( (char)(m_hasMore?1:0) );
-   
-   m_inStreamFilename = i_inStreamFilename;
-   m_inStreamOffset = io_out.tellp();
-   
-   // write file data for this chunk
-   return dataChunk_copy( io_in, io_out );
-}
-
-void FileChunk::write_chunk( bool i_reverseByteOrder, std::ostream &io_out ) const
-{
-   #ifdef __DEBUG_TRACE_PACK
-      if ( m_type==FCT_Data )
-      {
-	 cerr << RED_DEBUG_ERROR << "FileChunk::write: chunk is of type FCT_Data" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
-   // write header
-   io_out.put( (char)m_type );
-   write_uint4( m_contentSize, i_reverseByteOrder, io_out );
-   // write rawData for non-data chunks
-   io_out.write( m_rawData.data(), m_rawData.size() );
-}
-
-bool FileChunk::read( const cElFilename &i_filename, std::istream &io_in, bool i_reverseByteOrder )
-{
-   m_type = (FileChunkType)io_in.get();
-   read_uint4( io_in, i_reverseByteOrder, m_contentSize );
-   
-   switch ( m_type )
-   {
-   case FCT_Data:
-      return read_dataChunk( io_in, i_reverseByteOrder, i_filename );
-   case FCT_Ignore:
-   case FCT_Registry:
-      m_rawData.resize( m_contentSize );
-      return read_chunk( io_in );
-   default:
-      #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "FileChunk::read: unkown type (from int value " << (int)m_type << ")" << endl;
-	 exit(EXIT_FAILURE);
-      #endif
-      return false;
-   }
-}
-
-bool FileChunk::read_dataChunk( std::istream &io_in, bool i_reverseByteOrder, const cElFilename &i_filename )
-{
-   #ifdef __DEBUG_TRACE_PACK
-      if ( m_type!=FCT_Data )
-      {
-	 cerr << RED_DEBUG_ERROR << "FileChunk::read_dataChunk_header: chunk is not of type FCT_Data" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
-   
-   m_isFirst = ( io_in.get()==1 );
-      
-   if ( m_isFirst )
-   {
-      read_string( io_in, i_reverseByteOrder, m_filename );
-      m_filenameRawSize = string_raw_size( m_filename );
-      #ifdef __DEBUG_TRACE_PACK
-	 if ( m_contentSize<( dataHeaderSize+string_raw_size(m_filename) ) )
-	 {
-	    cerr << RED_DEBUG_ERROR << "FileChunk::read_dataChunk_header: negative m_dataSize, m_size = " << m_contentSize << " < dataHeaderSize+raw_size(m_filename) = "
-	         << dataHeaderSize+string_raw_size(m_filename) << endl;
-	    exit(EXIT_FAILURE);
-	 }
-      #endif
-   }
-   
-   m_dataSize = m_contentSize-dataHeaderSize;
-   m_hasMore = ( io_in.get()==1 );
-   
-   m_inStreamFilename = i_filename;
-   m_inStreamOffset = io_in.tellg();
-   
-   return true;
-}
-
-void FileChunk::trace( ostream &io_dst ) const
-{
-   io_dst << "fullSize = " << fullSize() << ' ' << FileChunkType_to_string(m_type) << " contentSize = " << m_contentSize << ' ';
-   if ( m_isFirst ) io_dst << m_filename << "(" << m_filenameRawSize << ") ";
-   if ( m_hasMore ) io_dst << "hasMore ";
-   if ( m_type==FCT_Data )
-      io_dst  << "dataSize = " << m_dataSize << endl;
-   else
-      io_dst  << "size(rawData) = " << m_rawData.size() << endl;
-}
-
-bool FileChunk::readAllChunks( const cElFilename &i_filename, streampos i_offset, bool i_reverseByteOrder, std::list<FileChunk> &o_chunks )
-{   
-   ifstream fsrc( i_filename.str_unix().c_str(), ios::binary );
-   
-   if ( !fsrc ) return false;
-   
-   fsrc.seekg( 0, ios::end );
-   streampos lastPost = fsrc.tellg();
-   fsrc.seekg( i_offset );
-
-   FileChunk chunk;
-   FileChunkType type;
-   while ( fsrc.tellg()<lastPost ) // seekg do not set eof() to true, we need another test
-   {      
-      if ( !chunk.read( i_filename, fsrc, i_reverseByteOrder ) ) return false;
-      fsrc.seekg( chunk.toSkip(), ios::cur );      
-      o_chunks.push_back( chunk );
-   }
-   return true;
-}
-
-bool FileChunk::readAllChunks( const std::list<cElFilename> &i_filenames, streampos i_offset, bool i_reverseByteOrder, std::list<FileChunk> &o_chunks )
-{
-   o_chunks.clear();
-   if ( i_filenames.size()==0 ) return true;
-   list<cElFilename>::const_iterator itFilename = i_filenames.begin();
-   if ( !readAllChunks( *itFilename++, i_offset, i_reverseByteOrder, o_chunks ) ) return false;
-   while ( itFilename!=i_filenames.end() )      
-      if ( !readAllChunks( *itFilename++, 0, i_reverseByteOrder, o_chunks ) ) return false;
-   return true;
-}
-
-bool FileChunk::outputData( std::ostream &io_dst ) const
-{
-   ifstream fsrc( m_inStreamFilename.str_unix().c_str(), ios::binary );
-   
-   if ( !fsrc )
-   {
-      #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "FileChunk::outputData: unable to open source file [" << m_inStreamFilename.str_unix() << ']' << endl;
-	 exit(EXIT_FAILURE);
-      #endif
-      return false;
-   }
-   
-   fsrc.seekg( m_inStreamOffset );
-   dataChunk_copy( fsrc, io_dst );
-   return true;
-}
-
-
-//--------------------------------------------
-// class ChunkStream
-//--------------------------------------------
-
-ChunkStream::ChunkStream( const cElFilename &i_filename, U_INT4 i_maxFileSize, bool i_reverseByteOrder ):
-   m_filename( i_filename ),
-   m_maxFileSize( i_maxFileSize ),
-   m_reverseByteOrder( i_reverseByteOrder ),
-   m_iFirstChunkFile(0),
-   m_offsetInFirstFile(0)
-{
-}
-
-cElFilename ChunkStream::filename( unsigned int i_iFile ) const
-{
-   if ( i_iFile==0 ) return m_filename;
-   stringstream ss;
-   ss << m_filename.m_basename << '.' << i_iFile;
-   return cElFilename( m_filename.m_path, ss.str() );
-}
-
-unsigned int ChunkStream::getNbFiles() const
-{
-   unsigned int i = m_iFirstChunkFile;
-   while ( cElFilename( filename(i) ).exists() ) i++;
-   return i;
-}
-
-bool ChunkStream::setOffset( U_INT4 i_iFirstChunkFile, streampos i_offset )
-{
-   if ( m_maxFileSize<=(U_INT4)i_offset )
-   {
-      #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "ChunkStream::setOffset: i_offset = " << (U_INT4)i_offset << " >= m_maxFileSize = " << m_maxFileSize << endl;
-	 exit(EXIT_FAILURE);
-      #endif
-      return false;
-   }
-   i_iFirstChunkFile = i_iFirstChunkFile;
-   m_offsetInFirstFile = i_offset;
-   return true;
-}
-   
-bool ChunkStream::readChunks( std::list<FileChunk> &o_chunks )
-{
-   // construct file list
-   const unsigned int iFileEnd = m_iFirstChunkFile+getNbFiles();
-   list<cElFilename> filenames;
-   for ( unsigned int i=m_iFirstChunkFile; i<iFileEnd; i++ )
-      filenames.push_back( filename(i) );
-   return FileChunk::readAllChunks( filenames, m_offsetInFirstFile, m_reverseByteOrder, o_chunks );
-}
-
-bool ChunkStream::open_new_or_append( unsigned int &io_iLastKnownFile, unsigned int i_minRemainingSize, cElFilename &o_filename, unsigned int &o_remainingSize, std::ofstream &io_fdst )
-{
-   o_filename = filename(io_iLastKnownFile);
-   unsigned int fileSize = o_filename.getSize();
-   
-   o_remainingSize = ( fileSize>=m_maxFileSize?0:m_maxFileSize-fileSize );
-   if ( o_remainingSize<i_minRemainingSize )
-   {
-      o_remainingSize = m_maxFileSize;
-      o_filename = filename(++io_iLastKnownFile); // use next file
-   }
-   
-   if ( !o_filename.exists() )
-      io_fdst.open( o_filename.str_unix().c_str(), ios::binary );
-   else
-   {
-      if ( io_iLastKnownFile==m_iFirstChunkFile && fileSize<(unsigned int)m_offsetInFirstFile )
-      {
-	 #ifdef __DEBUG_TRACE_PACK
-	    cerr << RED_DEBUG_ERROR << "ChunkStream::open_new_or_append: first stream file [" << o_filename.str_unix() << "] is supposed to have an offset of " 
-	         << (unsigned int)m_offsetInFirstFile << " but has a size of " << fileSize << endl;
-	    exit(EXIT_FAILURE);
-	 #endif
-	 return false;
-      }
-      io_fdst.open( o_filename.str_unix().c_str(), ios::binary|ios::app );
-   }
-   
-   #ifdef __DEBUG_TRACE_PACK
-      if ( !io_fdst )
-      {
-	 cerr << RED_DEBUG_ERROR << "ChunkStream::open_new_or_append: unable to open file [" << o_filename.str_unix() << ']' << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
-   
-   return (bool)io_fdst;
-}
-
-bool ChunkStream::writeChunks( std::list<FileChunk> &io_chunks )
-{
-   if ( io_chunks.size()==0 ) return true;
-   
-   unsigned int iLastFile = m_iFirstChunkFile+getNbFiles();
-   if ( iLastFile!=m_iFirstChunkFile ) iLastFile--;
-   
-   cElFilename file;
-   unsigned int remainingSize;
-   ofstream fdst;
-   list<FileChunk>::iterator itChunk = io_chunks.begin();
-   
-   if ( !open_new_or_append( iLastFile, itChunk->fullSize(), file, remainingSize, fdst ) ) return false;
-   
-   ifstream fsrc;
-   while ( itChunk!=io_chunks.end() )
-   {
-      FileChunk &chunk = *itChunk++;
-      const unsigned int fullSize = chunk.fullSize();
-      
-      if ( fullSize>m_maxFileSize )
-      {
-	 #ifdef __DEBUG_TRACE_PACK
-	    cerr << RED_DEBUG_ERROR << "ChunkStream::writeChunks: chunk full size = " << fullSize << " > m_maxFileSize = " << m_maxFileSize << endl;
-	    exit(EXIT_FAILURE);
-	 #endif
-	 return false;
-      }
-      
-      // open new file if need
-      if ( remainingSize<fullSize )
-      {
-	 fdst.close();
-	 file = filename( ++iLastFile );
-	 fdst.open( file.str_unix().c_str(), ios::binary );
-	 remainingSize = m_maxFileSize;
-      }
-      remainingSize -= fullSize;
-      
-      if ( chunk.m_type==FileChunk::FCT_Data )
-      {
-	 if ( chunk.m_isFirst ) fsrc.open( chunk.m_filename.c_str(), ios::binary );
-	 if ( !chunk.write_dataChunk( file, fsrc, m_reverseByteOrder, fdst ) ) return false;
-	 if ( !chunk.m_hasMore ) fsrc.close();
-      }
-      else
-	 chunk.write_chunk( m_reverseByteOrder, fdst );
-   }
-   return true;
-}
-
-bool ChunkStream::remove() const
-{
-   unsigned int iFile = 0;
-   cElFilename file = filename(iFile);
-   while ( file.exists() )
-   {
-      if ( !file.remove() ) return false;
-      file = filename(++iFile);
-   }
-   return true;
-}
 
 
 //--------------------------------------------
@@ -352,46 +30,12 @@ void TracePack::Registry::Item::dump( ostream &io_ostream, const string &i_prefi
    io_ostream << i_prefix << "type       : " << TD_Type_to_string(m_type) << endl;
    io_ostream << i_prefix << "rights     : " << file_rights_to_string(m_rights) << " (" << m_rights << ")" << endl;
    io_ostream << i_prefix << "date       : " << m_date << endl;
-   io_ostream << i_prefix << "dataOffset : " << m_dataOffset << endl;
-   io_ostream << i_prefix << "dataSize   : " << m_dataSize << endl;
+   io_ostream << i_prefix << "dataLength : " << m_dataLength << endl;
 }
 
-bool TracePack::Registry::Item::copyToDirectory( const cElFilename &i_packName, const ctPath &i_directory ) const
+bool TracePack::Registry::Item::copyToDirectory( const ctPath &i_directory ) const
 {
-   const cElFilename filename( i_directory, m_filename );
-   
-   if ( !filename.m_path.exists() && !filename.m_path.create() )
-   {
-      #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::copyToDirectory: cannot create directory [" << filename.m_path.str() << ']' << endl;
-	 exit(EXIT_FAILURE);
-      #endif
-      return false;
-   }
-   
-   ofstream fOut( filename.str_unix().c_str(), ios::binary );
-   ifstream fIn( i_packName.str_unix().c_str(), ios::binary );
-   
-   fIn.seekg( m_dataOffset );
-   
-   if ( !fOut || !fIn )
-   {
-      #ifdef __DEBUG_TRACE_PACK
-	 if ( !fIn )
-	 {
-	    cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::copyToDirectory: unable to open [" << i_packName.str_unix() << "] for reading at position " << m_dataOffset << endl;
-	    exit(EXIT_FAILURE);
-	 }
-	 if ( !fOut )
-	 {
-	    cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::copyToDirectory: unable to open [" << filename.str_unix() << "] for writing" << endl;
-	    exit(EXIT_FAILURE);
-	 }
-      #endif
-      return false;
-   }
-   
-   return write_file( fIn, fOut, m_dataSize );
+   return m_data.copyToFile( cElFilename( i_directory, m_filename ) );
 }
 
 bool TracePack::Registry::Item::trace_compare( const TracePack::Registry::Item &i_b ) const
@@ -402,10 +46,10 @@ bool TracePack::Registry::Item::trace_compare( const TracePack::Registry::Item &
       cout << "Items have different types : " << TD_Type_to_string(m_type) << " != " << TD_Type_to_string(i_b.m_type) << endl;
    else if ( m_date!=i_b.m_date )
       cout << "Items have different dates : " << m_date << " != " << i_b.m_date << endl;
-   else if ( m_dataOffset!=i_b.m_dataOffset )
-      cout << "Items have different data offsets : " << m_dataOffset << " != " << i_b.m_dataOffset << endl;
-   else if ( m_dataSize!=i_b.m_dataSize )
-      cout << "Items have different data sizes : " << m_dataSize << " != " << i_b.m_dataSize << endl;
+   else if ( m_dataLength!=i_b.m_dataLength )
+      cout << "Items have different data lenghtes : " << m_dataLength << " != " << i_b.m_dataLength << endl;
+   else if ( !(m_data==i_b.m_data) )
+      cout << "Items have different data" << endl;
    else
       return true;
    return false;
@@ -417,7 +61,7 @@ bool TracePack::Registry::Item::applyToDirectory( const cElFilename &i_packname,
    {
    case TD_Added:
    case TD_Modified:
-      if ( !copyToDirectory( i_packname, i_path ) ) return false;
+      if ( !copyToDirectory( i_path ) ) return false;
       return m_filename.setRights( m_rights );
    case TD_Removed:
       return cElFilename( i_path, m_filename ).remove();
@@ -432,13 +76,11 @@ bool TracePack::Registry::Item::applyToDirectory( const cElFilename &i_packname,
 }
 
 // input/output methods
-unsigned int TracePack::Registry::Item::raw_size() const
+U_INT8 TracePack::Registry::Item::raw_size() const
 {
-   unsigned int res = string_raw_size( m_filename.str_unix() )+4/*type*/;
-   if ( m_type==TD_Added ||
-        m_type==TD_Modified ||
-	m_type==TD_State )
-      res += cElDate::raw_size()+4/*rights*/+4/*file size*/;
+   U_INT8 res = string_raw_size( m_filename.str_unix() )+4/*type*/;
+   if ( hasData() )
+      res += cElDate::raw_size()+12; // 12 = 4(rights) + 8(data length)
    return res;
 }
 
@@ -452,45 +94,31 @@ void TracePack::Registry::Item::to_raw_data( bool i_reverseByteOrder, char *&o_r
    string_to_raw_data( m_filename.str_unix(), i_reverseByteOrder, o_rawData );
    
    // copy type
-   INT4 i = (INT4)m_type;
-   if ( i_reverseByteOrder ) byte_inv_4( &i );
-   memcpy( o_rawData, &i, 4 );
-   o_rawData += 4;
+   int4_to_raw_data( (INT4)m_type, i_reverseByteOrder, o_rawData );
    
-   if ( m_type==TracePack::Registry::TD_State ||
-	m_type==TracePack::Registry::TD_Added ||
-	m_type==TracePack::Registry::TD_Modified )
+   if ( hasData() )
    {
       // copy last modification date
       m_date.to_raw_data( i_reverseByteOrder, o_rawData );
-      
       // copy rights on file
-      U_INT4 ui = (U_INT4)m_rights;
-      if ( i_reverseByteOrder ) byte_inv_4( &ui );
-      memcpy( o_rawData, &i, 4 );
-      o_rawData += 4;
-      
+      uint4_to_raw_data( (U_INT4)m_rights, i_reverseByteOrder, o_rawData );
       // copy file's size
-      ui = (U_INT4)m_dataSize;
-      if ( i_reverseByteOrder ) byte_inv_4( &ui );
-      memcpy( o_rawData, &i, 4 );
-      o_rawData += 4;
+      uint8_to_raw_data( m_dataLength, i_reverseByteOrder, o_rawData );
    }
    
    #ifdef __DEBUG_TRACE_PACK
-      unsigned int nbCopied = o_rawData-rawData;
-      if ( nbCopied!=raw_size() )
+      if ( o_rawData<rawData || (U_INT8)(o_rawData-rawData)!=raw_size() )
       {
-	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::to_raw_data: " << nbCopied << " copied bytes, but raw_size() = " << raw_size() << endl;
+	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::to_raw_data: " << (U_INT8)(o_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
 	 exit(EXIT_FAILURE);
       }
    #endif
 }
 
-void TracePack::Registry::Item::from_raw_data( char *&io_rawData, bool i_reverseByteOrder )
+void TracePack::Registry::Item::from_raw_data( const char *&io_rawData, bool i_reverseByteOrder )
 {
    #ifdef __DEBUG_TRACE_PACK
-      char *rawData = io_rawData;
+      const char *rawData = io_rawData;
    #endif
       
    // copy filename
@@ -499,28 +127,26 @@ void TracePack::Registry::Item::from_raw_data( char *&io_rawData, bool i_reverse
    m_filename = cElFilename(s);
    
    // copy type
-   INT4 i;
-   memcpy( &i, io_rawData, 4 );
-   if ( i_reverseByteOrder ) byte_inv_4( &i );
-   io_rawData += 4;
-   m_type = (TD_Type)i;
+   INT4 i4;
+   int4_from_raw_data( io_rawData, i_reverseByteOrder, i4 );
+   m_type = (TD_Type)i4;
    
-   if ( hasData() )
-   {
+   if ( hasData() ){
       // copy last modification date
       m_date.from_raw_data( io_rawData, i_reverseByteOrder );
       
       // copy rights on file
-      U_INT4 ui;
-      memcpy( &ui, io_rawData, 4 );
-      if ( i_reverseByteOrder ) byte_inv_4( &ui );
-      io_rawData += 4;
+      U_INT4 ui4;
+      uint4_from_raw_data( io_rawData, i_reverseByteOrder, ui4 );
+      m_rights = (mode_t)ui4;
       
       // copy file size
-      memcpy( &ui, io_rawData, 4 );
-      if ( i_reverseByteOrder ) byte_inv_4( &ui );
-      m_dataSize = (unsigned int)ui;
-      io_rawData += 4;
+      uint8_from_raw_data( io_rawData, i_reverseByteOrder, m_dataLength );
+   }
+   else{
+      m_date = cElDate::NoDate;
+      m_rights = 0;
+      m_dataLength = 0;
    }
    
    #ifdef __DEBUG_TRACE_PACK
@@ -531,18 +157,6 @@ void TracePack::Registry::Item::from_raw_data( char *&io_rawData, bool i_reverse
 	 exit(EXIT_FAILURE);
       }
    #endif
-}
-
-bool TracePack::Registry::Item::computeData( unsigned int i_remainingDst )
-{
-   #ifdef __DEBUG_TRACE_PACK
-      if ( m_data.size()>0 )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::computeData: computing data a second time" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
-   return file_to_chunk_list( m_filename.str_unix(), m_dataSize, i_remainingDst, TracePack::maxPackFileSize, m_data );
 }
 
 
@@ -575,16 +189,16 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
       if ( compare==0 )
       {
 	 if ( itA->m_date!=itB->m_date )
-	    m_items.push_back( Item( itA->m_filename, TD_Modified, itB->m_date, itB->m_rights, itB->m_dataOffset, itB->m_dataSize ) );
+	    m_items.push_back( Item( itA->m_filename, TD_Modified, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
 	 itA++; itB++;
       }
       else
       {
 	 if ( compare<0 )
-	    m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate, 0/*rights*/, 0/*data offset*/, 0/*data length*/ ) );
+	    m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate, 0/*rights*/, 0/*data length*/ ) );
 	 else
 	 {
-	    m_items.push_back( Item( itB->m_filename, TD_Added, itB->m_date, itB->m_rights, itB->m_dataOffset, itB->m_dataSize ) );
+	    m_items.push_back( Item( itB->m_filename, TD_Added, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
 	    itB++;
 	 }
       }
@@ -598,7 +212,7 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
 	    exit(EXIT_FAILURE);
 	 }
       #endif
-      m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate, 0/*rights*/, 0/*data offset*/, 0/*data length*/ ) );
+      m_items.push_back( Item( (*itA++).m_filename, TD_Removed, cElDate::NoDate, 0/*rights*/, 0/*data length*/ ) );
    }
    while ( itB!=i_b.m_items.end() )
    {
@@ -609,7 +223,7 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
 	    exit(EXIT_FAILURE);
 	 }
       #endif
-      m_items.push_back( Item( itB->m_filename, TD_Added, itB->m_date, itB->m_rights, itB->m_dataOffset, itB->m_dataSize ) );
+      m_items.push_back( Item( itB->m_filename, TD_Added, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
       itB++;
    }
 }
@@ -645,97 +259,6 @@ void TracePack::Registry::compare_states( const TracePack::Registry &i_a, const 
       o_onlyInA.push_back( *itA++ );
    while ( itB!=i_b.m_items.end() )
       o_onlyInB.push_back( *itB++ );
-}
-
-bool TracePack::Registry::write_v1( ofstream &io_stream, const ctPath &i_anchor, bool )
-{   
-   U_INT4 ui = (U_INT4)m_items.size(),
-          dataSize;
-   INT4 i;
-   string s;
-   
-   m_command.write( io_stream, false/*__DEL*/ );
-   io_stream.write( (char*)(&ui), 4 );
-   list<Item>::iterator itItem = m_items.begin();
-   while ( itItem!=m_items.end() )
-   {
-      // write filename
-      s = itItem->m_filename.str_unix();
-      write_string( s, io_stream, false/*__DEL*/ );
-      // write type
-      i = (INT4)itItem->m_type;
-      io_stream.write( (char*)(&i), 4 );
-      if ( itItem->m_type==TracePack::Registry::TD_State ||
-           itItem->m_type==TracePack::Registry::TD_Added ||
-           itItem->m_type==TracePack::Registry::TD_Modified )
-      {
-	 // write last modification date
-	 itItem->m_date.write_raw( io_stream );
-	 // write rights on file
-	 ui = (U_INT4)itItem->m_rights;
-	 io_stream.write( (char*)(&ui), 4 );
-	 // writing file's data
-	 dataSize = (U_INT4)itItem->m_dataSize;
-	 io_stream.write( (char*)(&dataSize), 4 );
-	 itItem->m_dataOffset = io_stream.tellp();
-	 if ( !write_file( cElFilename( i_anchor, itItem->m_filename ), io_stream, dataSize ) )
-	 {
-	    #ifdef __DEBUG_TRACE_PACK
-	       cerr << RED_DEBUG_ERROR << "TracePack::Registry::write_v1: unable to copy data of file [" << itItem->m_filename.str_unix() << ']' << endl;
-	       exit(EXIT_FAILURE);
-	    #endif
-	    return false;
-	 }
-      }
-      itItem++;
-   }
-   m_hasBeenWritten = true;
-   return true;
-}
-
-void TracePack::Registry::read_v1( istream &io_stream, bool )
-{
-   m_items.clear();
-   U_INT4 nbFiles, dataSize;
-   streampos offset;
-   INT4 i;
-   vector<char> buffer;
-   cElFilename itemFilename;
-   cElDate d( cElDate::NoDate );
-   U_INT4 rights;
-   m_command.read( io_stream, false/*__DEL*/ );
-   io_stream.read( (char*)&nbFiles, 4 );
-   
-   while ( nbFiles-- )
-   {
-      // read filename
-      itemFilename = cElFilename( read_string( io_stream, buffer, false/*__DEL*/ ) );
-      // write type
-      io_stream.read( (char*)(&i), 4 );
-      // add item
-      if ( i==TracePack::Registry::TD_State ||
-           i==TracePack::Registry::TD_Added ||
-           i==TracePack::Registry::TD_Modified )
-      {
-	 // read last modification date
-	 d.read_raw( io_stream );
-	 // read rights on file
-	 io_stream.read( (char*)(&rights), 4 );
-	 // read file's raw data
-	 io_stream.read( (char*)(&dataSize), 4 );
-	 offset = io_stream.tellg();
-	 io_stream.seekg( dataSize, ios::cur );
-      }
-      else
-      {
-	 // TD_Remove
-	 offset = dataSize = 0;
-	 rights = 0;
-	 d = cElDate::NoDate;
-      }
-      m_items.push_back( Item( itemFilename, (TD_Type)i, d, (mode_t)rights, offset, dataSize ) );
-   }
-   m_hasBeenWritten = true;
 }
 
 void TracePack::Registry::reset_dates()
@@ -775,7 +298,7 @@ void TracePack::Registry::stateDirectory( const ctPath &i_path )
    
    m_items.clear();
    cElDate date = cElDate::NoDate;
-   int fileLength;
+   U_INT8 fileLength;
    mode_t rights;
    list<string> files = RegexListFileMatch( path.str()+ctPath::sm_unix_separator, ".*", numeric_limits<INT>::max(), false );
    list<string>::iterator itFile = files.begin();
@@ -793,7 +316,7 @@ void TracePack::Registry::stateDirectory( const ctPath &i_path )
 	    exit(EXIT_FAILURE);
 	 }
       #endif
-      fileLength = ELISE_fp::file_length( attached_filename );
+      fileLength = attachedFile.getSize();
       #ifdef __DEBUG_TRACE_PACK
 	 if ( fileLength<0 )
 	 {
@@ -801,7 +324,7 @@ void TracePack::Registry::stateDirectory( const ctPath &i_path )
 	    exit(EXIT_FAILURE);
 	 }
       #endif
-      add( Item( detachedFile, TD_State, date, rights, 0, (unsigned int)fileLength ) );
+      add( Item( detachedFile, TD_State, date, rights, fileLength ) );
    }
 }
 
@@ -836,8 +359,8 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 	 {
 	    itA->m_date       = itB->m_date;
 	    itA->m_rights     = itB->m_rights;
-	    itA->m_dataOffset = itB->m_dataOffset;
-	    itA->m_dataSize   = itB->m_dataSize;
+	    itA->m_dataLength = itB->m_dataLength;
+	    itA->m_data       = itB->m_data;
 	    itA++; itB++;
 	 }
 	 #ifdef __DEBUG_TRACE_PACK
@@ -863,7 +386,7 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 	       else
 	    #endif
 	       {
-		  m_items.insert( itA, Item( itB->m_filename, TD_State, itB->m_date, itB->m_rights, itB->m_dataOffset, itB->m_dataSize ) );
+		  m_items.insert( itA, Item( itB->m_filename, TD_State, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
 		  itB++;
 	       }
 	 }
@@ -880,7 +403,7 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 	 else
       #endif
 	 {
-	    m_items.push_back( Item( itB->m_filename, TD_State, itB->m_date, itB->m_rights, itB->m_dataOffset, itB->m_dataSize ) );
+	    m_items.push_back( Item( itB->m_filename, TD_State, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
 	    itB++;
 	 }
    }
@@ -957,9 +480,9 @@ bool TracePack::Registry::applyToDirectory( const cElFilename &i_filename, const
    return true;
 }
 
-unsigned int TracePack::Registry::raw_size() const
+U_INT8 TracePack::Registry::raw_size() const
 {
-   unsigned int res = 4; // size of nbItems
+   U_INT8 res = m_command.raw_size()+4; // 4 = size of nbRegistries
    list<Item>::const_iterator itItem = m_items.begin();
    while ( itItem!=m_items.end() )
       res += ( *itItem++ ).raw_size();
@@ -972,62 +495,53 @@ void TracePack::Registry::to_raw_data( bool i_reverseByteOrder, char *&o_rawData
    #ifdef __DEBUG_TRACE_PACK
       char *rawData = o_rawData;
    #endif
-      
+
    // copy command
    m_command.to_raw_data( i_reverseByteOrder, o_rawData );
    
    // copy number of items
-   uint4_to_raw_data( m_items.size(), i_reverseByteOrder, o_rawData );
-   
+   uint4_to_raw_data( (U_INT4)m_items.size(), i_reverseByteOrder, o_rawData );
+      
    list<Item>::const_iterator itItem = m_items.begin();
    while ( itItem!=m_items.end() )
       ( *itItem++ ).to_raw_data( i_reverseByteOrder, o_rawData );
    
    #ifdef __DEBUG_TRACE_PACK
-      unsigned int nbCopied = o_rawData-rawData;
-      if ( nbCopied!=raw_size() )
+      if ( rawData>o_rawData || (U_INT8)(o_rawData-rawData)!=raw_size() )
       {
-	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::: " << nbCopied << " copied bytes, but raw_size() = " << raw_size() << endl;
+	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::to_raw_data: " << (U_INT8)(o_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
 	 exit(EXIT_FAILURE);
       }
    #endif
 }
 
-void TracePack::Registry::from_raw_data( char *&io_rawData, bool i_reverseByteOrder )
+void TracePack::Registry::from_raw_data( const char *i_rawData, bool i_reverseByteOrder )
 {
    #ifdef __DEBUG_TRACE_PACK
-      char *rawData = io_rawData;
+      char const *rawData = i_rawData;
    #endif
       
    // copy commande
-   m_command.from_raw_data( io_rawData, i_reverseByteOrder );
+   m_command.from_raw_data( i_rawData, i_reverseByteOrder );
    
    // copy number of items
    U_INT4 nbItems;
-   uint4_from_raw_data( io_rawData, i_reverseByteOrder, nbItems );
+   uint4_from_raw_data( i_rawData, i_reverseByteOrder, nbItems );
    
    // copy items
    m_items.resize( nbItems );
    list<Item>::iterator itItem = m_items.begin();
    while ( itItem!=m_items.end() )
-      ( *itItem++ ).from_raw_data( io_rawData, i_reverseByteOrder );
+      ( *itItem++ ).from_raw_data( i_rawData, i_reverseByteOrder );
    
    #ifdef __DEBUG_TRACE_PACK
-      unsigned int nbCopied = io_rawData-rawData;
+      unsigned int nbCopied = i_rawData-rawData;
       if ( nbCopied!=raw_size() )
       {
 	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::from_raw_data_v1: " << nbCopied << " copied bytes, but raw_size() = " << raw_size() << endl;
 	 exit(EXIT_FAILURE);
       }
    #endif
-}
-
-void TracePack::Registry::getChunk( bool i_reverseByteOrder, FileChunk &o_chunk ) const
-{
-   o_chunk.m_type = FileChunk::FCT_Registry;
-   o_chunk.m_rawData.resize( o_chunk.m_contentSize=raw_size() );
-   char *itData = o_chunk.m_rawData.data();
-   to_raw_data( i_reverseByteOrder, itData );
 }
 
 #ifdef __DEBUG_TRACE_PACK
@@ -1048,6 +562,18 @@ void TracePack::Registry::getChunk( bool i_reverseByteOrder, FileChunk &o_chunk 
    }
 #endif
 
+bool TracePack::Registry::setItemData( const ChunkStream::FileItem &i_data )
+{
+   list<Item>::iterator itItem = m_items.begin();
+   while ( itItem!=m_items.end() && itItem->m_filename.compare( i_data.m_storedFilename )<0 ) itItem++;
+   if ( itItem==m_items.end() ) return false;
+   if ( itItem->m_filename==i_data.m_storedFilename && itItem->hasData() && itItem->m_dataLength==i_data.m_length ){
+      itItem->m_data = i_data;
+      return true;
+   }
+   return false;
+}
+
 
 //--------------------------------------------
 // class TracePack
@@ -1055,29 +581,70 @@ void TracePack::Registry::getChunk( bool i_reverseByteOrder, FileChunk &o_chunk 
    
 TracePack::TracePack( const cElFilename &i_filename, const ctPath &i_anchor ):
    m_filename( i_filename ),
-   m_lastFilename( i_filename ),
-   m_remainingSpace( maxPackFileSize ),
    m_anchor( i_anchor ),
    m_date( cElDate::NoDate ),
-   m_writeInUpdateMode( false ),
-   m_nbRegistriesOffset( 0 ),
    m_writeIgnoredItems( true )
 {
-   
    cElDate::getCurrentDate_UTC( m_date );
 }
 
-void TracePack::read_v1( istream &f, bool i_reverseByteOrder )
+bool TracePack::read_v1( U_INT8 i_offset, bool i_reverseByteOrder )
 {
-   U_INT4 nbRegistries;
-   m_date.read_raw( f );
-   m_nbRegistriesOffset = f.tellg();   
-   f.read( (char*)&nbRegistries, 4 );
-   if ( i_reverseByteOrder ) byte_inv_4( &nbRegistries );   
-   m_registries.resize( nbRegistries );
-   list<Registry>::iterator itReg = m_registries.begin();
-   while ( nbRegistries-- )
-      ( *itReg++ ).read_v1( f, false/*__DEL*/ );
+   // read Items from the stream
+   ChunkStream stream( m_filename, maxPackFileSize, i_reverseByteOrder );
+   list<ChunkStream::Item*> items;
+   stream.read( 0, i_offset, items );
+   
+   // convert raw data from Items to TracePack objects
+   list<ChunkStream::Item*>::const_iterator itItem = items.begin();
+   const ChunkStream::BufferItem *lastIgnoreItem = NULL;
+   Registry *lastRegistry = NULL;
+   while ( itItem!=items.end() ){
+      if ( (*itItem)->isFileItem() ){
+	 // process ChunkStream::FileItem by adding data to an item of the last found registry
+	 ChunkStream::FileItem &item = (*itItem)->specialize<ChunkStream::FileItem>();
+	 if ( lastRegistry==NULL ){
+	    #ifdef __DEBUG_TRACE_PACK
+	       cerr << RED_DEBUG_ERROR << "TracePack::read_v1: a file item is found priory to any registry item" << endl;
+	       exit(EXIT_FAILURE);
+	    #endif
+	    clear_item_list( items );
+	    return false;
+	 }
+	 if ( !lastRegistry->setItemData( item ) ){
+	    #ifdef __DEBUG_TRACE_PACK
+	       cerr << RED_DEBUG_ERROR << "TracePack::read_v1: a file item is found that is not in lastRegistry" << endl;
+	       exit(EXIT_FAILURE);
+	    #endif
+	    clear_item_list( items );
+	    return false;
+	 }
+      }
+      else{
+	 // process ChunkStream::BufferItems
+	 ChunkStream::BufferItem &item = (*itItem)->specialize<ChunkStream::BufferItem>();
+	 switch ( (StreamItemType)item.m_type ){
+	 case SIT_Registry:
+	    // add a new registry
+	    m_registries.push_back( Registry() );
+	    lastRegistry = &m_registries.back();
+	    lastRegistry->from_raw_data( item.m_buffer.data(), i_reverseByteOrder );
+	    lastRegistry->m_hasBeenWritten = true;
+	    break;
+	 case SIT_Ignore:
+	    // only last IgnoredItem is used (replacing all previous ones)
+	    lastIgnoreItem = &item;
+	    break;
+	 }
+      }
+      itItem++;
+   }
+   
+   // load last IgnoredItem if there's one
+   if ( lastIgnoreItem!=NULL ) ignored_lists_from_buffer( i_reverseByteOrder, lastIgnoreItem->m_buffer );
+   
+   clear_item_list( items );
+   return true;
 }
 
 bool TracePack::load()
@@ -1092,8 +659,9 @@ bool TracePack::load()
       return false;
    }
    VersionedFileHeader header( VFH_TracePack );
-
    bool res = header.read_known( VFH_TracePack, f );
+   U_INT8 chunkStreamOffset = (U_INT8)f.tellg();
+   f.close();
    
    #ifdef __DEBUG_TRACE_PACK
       if ( !res )
@@ -1105,8 +673,7 @@ bool TracePack::load()
    
    switch ( header.version() )
    {
-   case 1: read_v1( f, false/*__DEL*/ ); break;
-   case 2: res=read_v2( f, false/*__DEL*/ ); break;
+   case 1: res=read_v1( chunkStreamOffset, header.isMSBF() ); break;
    default: res=false;
    }
    
@@ -1118,255 +685,75 @@ bool TracePack::load()
       }
    #endif
    
-   m_writeInUpdateMode = res;
    return res;
 }
 
-bool TracePack::write_v1( ofstream &f, bool i_reverseByteOrder )
+bool TracePack::write_v1( bool i_reverseByteOrder )
 {
-   if ( !m_writeInUpdateMode )
-   {
-      // this is a new file
-      m_date.write_raw( f );
-      U_INT4 nbRegistries = (U_INT4)m_registries.size();
-      m_nbRegistriesOffset = f.tellp();
-      if ( i_reverseByteOrder ) byte_inv_4( &nbRegistries );
-      f.write( (char*)&nbRegistries, 4 );
-   }
-
-   // write ignored items lists
-   //if ( m_writeIgnoredItems ) write_ignored_items( f, i_reverseByteOrder );
-
-   list<Registry>::iterator itReg = m_registries.begin();
-   while ( itReg!=m_registries.end() )
-   {
-      if ( !itReg->m_hasBeenWritten && !itReg->write_v1( f, m_anchor, false/*__DEL*/ ) )
-	 return false;
-      itReg++;
-   }
+   ChunkStream stream( m_filename, maxPackFileSize, i_reverseByteOrder );
+   if ( !stream.writeOpen() ) return false;
+   vector<char> buffer;
    
-   if ( m_writeInUpdateMode )
-   {
-      f.close();
-      save_nbRegistries();
-   }
-   
-   return true;
-}
-
-string TracePack::packFilename( const U_INT4 &i_iFile ) const
-{ 
-   if ( i_iFile==0 ) return m_filename.str_unix();
-   stringstream ss;
-   ss << m_filename.str_unix() << "." << i_iFile;
-   return ss.str();
-}
-
-unsigned int TracePack::getNbPackFiles() const
-{
-   unsigned int i = 0;
-   while ( cElFilename( packFilename(i) ).exists() ) i++;
-   return i;
-}
-   
-bool TracePack::newPackFile()
-{
-   m_lastFilename = cElFilename( packFilename( ++m_iLastFile ) );
-   m_remainingSpace = maxPackFileSize;
-   if ( m_packOutputStream.is_open() )
-   {
-      m_packOutputStream.close();
-      m_packOutputStream.open( m_lastFilename.str_unix().c_str(), ios::binary );
-      
-      #ifdef __DEBUG_TRACE_PACK
-	 if ( !m_packOutputStream )
-	 {
-	    cerr << RED_DEBUG_ERROR << "TracePack::newPackFile: unable to create a new pack file of name [" << m_lastFilename.str_unix() << "]" << endl;
-	    exit(EXIT_FAILURE);
-	 }
-      #endif
-      
-      return (bool)m_packOutputStream;
-   }
-   return true;
-}
-
-bool TracePack::writeData( TracePack::Registry::Item &i_item, bool i_reverseByteOrder )
-{  
-   if ( !i_item.computeData( m_remainingSpace ) ) return false;
- 
-   // write all chunks from item's data list
-   ifstream srcFile( cElFilename( m_anchor, i_item.m_filename ).str_unix().c_str(), ios::binary );  
-   list<FileChunk> &chunks = i_item.m_data;
-   list<FileChunk>::iterator itChunk = chunks.begin();
-   while ( itChunk!=chunks.end() )
-   {
-      const unsigned int chunkFullSize = itChunk->fullSize();
-      if ( chunkFullSize>m_remainingSpace && !newPackFile() ) return false;
-      
-      itChunk->write_dataChunk( m_lastFilename, srcFile, i_reverseByteOrder, m_packOutputStream );
-      m_remainingSpace -= chunkFullSize;
-      
-      itChunk++;
-   }
-   return true;
-}
-
-bool TracePack::writeData( TracePack::Registry &i_registry, bool i_reverseByteOrder )
-{
-   list<Registry::Item>::iterator itItem = i_registry.m_items.begin();
-   while ( itItem!=i_registry.m_items.end() )
-   {
-      if ( itItem->hasData() && !writeData( *itItem, i_reverseByteOrder ) ) return false;
-      itItem++;
-   }
-   return true;
-}
-      
-bool TracePack::write_v2( bool i_reverseByteOrder )
-{
-   m_date.write_raw( m_packOutputStream, i_reverseByteOrder );
-   
-   FileChunk chunk;
-   list<TracePack::Registry>::iterator itReg = m_registries.begin();
-   while ( itReg!=m_registries.end() )
-   {
-      if ( !itReg->m_hasBeenWritten )
-      {
-	 // write the registry itself
-	 itReg->getChunk( i_reverseByteOrder, chunk );
-	 const unsigned int chunkFullSize = chunk.fullSize();
-	 if ( chunkFullSize>m_remainingSpace ) newPackFile();
+   list<Registry>::iterator itRegistry = m_registries.begin();
+   while ( itRegistry!=m_registries.end() ){
+      Registry &registry = *itRegistry++;
+      if ( !registry.m_hasBeenWritten ){	 
+	 // write the registry itself	 
+	 buffer.resize( registry.raw_size() );
+	 char *bufferData = buffer.data();
+	 registry.to_raw_data( i_reverseByteOrder, bufferData );
+	 stream.write_buffer( (unsigned char)SIT_Registry, buffer );
 	 
-	 if (chunkFullSize>m_remainingSpace)
-	 {
-	    #ifdef __DEBUG_TRACE_PACK
-	       cerr << RED_DEBUG_ERROR << "TracePack::write_v2: registry chunk too big (" << chunk.fullSize() << "), maxPackFileSize = " << maxPackFileSize << endl;
-	       exit(EXIT_FAILURE);
-	    #endif
-	    return false;
-	 }
-	 
-	 chunk.write_chunk( i_reverseByteOrder, m_packOutputStream );
-	 m_remainingSpace -= chunkFullSize;
-	 
-	 // write data of registry's Items
-	 if ( !writeData( *itReg, i_reverseByteOrder ) )
-	 {
-	    #ifdef __DEBUG_TRACE_PACK
-	       cerr << RED_DEBUG_ERROR << "TracePack::write_v2: unable to write registry's data" << endl;
-	       exit(EXIT_FAILURE);
-	    #endif
-	    return false;
-	 }
-	 
-	 itReg->m_hasBeenWritten = true;
-      }
-      itReg++;
-   }
-
-   // write ignored items lists
-   //if ( m_writeIgnoredItems ) write_ignored_items( f, i_reverseByteOrder );
-   
-   return true;
-}
-
-bool TracePack::read_v2( ifstream &f, bool i_reverseByteOrder )
-{
-   /*
-   const unsigned int nbFiles = getNbPackFiles();
-   
-   string currentFilename = m_filename.str_unix();
-   FileChunk chunk;
-   list<FileChunk> dataChunks;
-   for ( unsigned int iFile=0; iFile<nbFiles; iFile++ )
-   {
-      m_date.read_raw( fsrc, i_reverseByteOrder );
-      
-      while ( !fsrc.eof() )
-      {
-	 chunk.read(f, i_reverseByteOrder);
-	 
-	 if ( chunk.m_type==FCT_Data )
-	 {
-	    if ( chunk.m_hasMore )
-	    {
-	       
-	       if ( chunk.m_isFirst )
-	       {
-		  
+	 // write data of registry's items
+	 list<Registry::Item>::iterator itItem = registry.m_items.begin();
+	 while ( itItem!=registry.m_items.end() ){
+	    Registry::Item &item = *itItem++;
+	    if ( item.hasData() ){
+	       if ( !stream.write_file( cElFilename( m_anchor, item.m_filename ), item.m_filename, item.m_data ) ){
+		  #ifdef __DEBUG_TRACE_PACK
+		     cerr << RED_DEBUG_ERROR << "TracePack::write_v1: cannot write data of file [" << cElFilename( m_anchor, item.m_filename ).str_unix() << endl;
+		     exit(EXIT_FAILURE);
+		  #endif
+		  return false;
 	       }
 	    }
-	    else
-	    {
-	       
-	    }
 	 }
-      }
-      
-      // open next file if there's one
-      if ( iFile!=nbFiles-1 )
-      {
-	 currentFilename = m_filenamepackFilename( iFile+1 );
-	 f.close();
-	 f.open( currentFilename.c_str(), ios::binary );
+	 registry.m_hasBeenWritten = true;
       }
    }
-   */
-   return false;
-}
-
-
-void TracePack::save_nbRegistries() const
-{
-   #ifdef __DEBUG_TRACE_PACK
-      if ( !m_writeInUpdateMode || m_nbRegistriesOffset==0 )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::update_registry_number: TracePack is not in update mode" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
-   ofstream f( m_filename.str_unix().c_str(), ios::in|ios::out|ios::binary );
-   f.seekp( m_nbRegistriesOffset );
-   U_INT4 nbRegistries = (U_INT4)m_registries.size();
-   f.write( (char*)&nbRegistries, 4 );
+   
+   // write ignored items lists
+   if ( m_writeIgnoredItems ){
+      ignored_lists_to_buffer( i_reverseByteOrder, buffer );
+      stream.write_buffer( (unsigned char)SIT_Ignore, buffer );
+   }
+   
+   return true;
 }
 
 bool TracePack::save( unsigned int i_version, bool i_MSBF )
 {
    ofstream f;
    
+   ChunkStream stream( m_filename, maxPackFileSize, i_MSBF!=MSBF_PROCESSOR() );
+   if ( stream.getNbFiles()==0 ){
+      // the stream is empty, write header
+      ofstream f( stream.getFilename(0).str_unix().c_str(), ios::binary );
+      if ( !f ) return false;
+      VersionedFileHeader header( VFH_TracePack, i_version, i_MSBF );
+      header.write( f );
+   }
+
    bool res = false;
    switch ( i_version )
    {
-   case 1: // __TO_V1
-      if ( m_writeInUpdateMode )
-	 f.open( m_filename.str_unix().c_str(), ios::app|ios::binary );
-      else
-	 f.open( m_filename.str_unix().c_str(), ios::binary );
-   
-      if ( !m_writeInUpdateMode )
-      {
-	 VersionedFileHeader header( VFH_TracePack, 1, i_MSBF );
-	 header.write( f );
-      }
-      res = write_v1( f, false/*__DEL*/ );
-      break;
-   case 2:
-      if ( !m_filename.exists() )
-      {
-	 m_packOutputStream.open( packFilename(0).c_str(), ios::binary );
-	 if ( !f ) return false;
-	 VersionedFileHeader header( VFH_TracePack, 2, i_MSBF );
-	 header.write( f );
-      }
-      else
-	 m_packOutputStream.open( m_filename.str_unix().c_str(), ios::app|ios::binary );
-      res = write_v2( i_MSBF==MSBF_PROCESSOR() );
+   case 1:
+      res = write_v1( i_MSBF!=MSBF_PROCESSOR() );
       break;
    default: res=false;
    }
-   m_writeInUpdateMode = res; // __TO_V1
+   
+   m_writeIgnoredItems = false;
    
    return res;
 }
@@ -1403,6 +790,7 @@ void TracePack::addState( const cElCommand &i_command )
    {
       Registry reg0;
       reg0.stateDirectory( m_anchor );
+      cout << "directory has been written = " << (reg0.m_hasBeenWritten?"true":"false") << endl;
       m_registries.push_back( reg0 );
       return;
    }
@@ -1455,21 +843,15 @@ bool TracePack::copyItemOnDisk( unsigned int i_iState, const cElFilename &i_item
       #endif
       return false;
    }
-   return pItem->copyToDirectory( m_filename, m_anchor );
+   return pItem->copyToDirectory( m_anchor );
 }
 
 bool TracePack::trace_compare( const TracePack &i_b ) const
 {	 
    if ( m_filename!=i_b.m_filename )
       cout << "packs have different filenames : " << m_filename.str_unix() << " != " << i_b.m_filename.str_unix() << endl;
-   //else if ( m_anchor!=i_b.m_anchor )
-   //   cout << "packs have different anchors : " << m_anchor.str_unix() << " != " << i_b.m_anchor.str_unix() << endl;
    else if ( m_date!=i_b.m_date )
       cout << "packs have different dates : " << m_date << " != " << i_b.m_date << endl;
-   //else if ( m_writeInUpdateMode!=i_b.m_writeInUpdateMode )
-   //   cout << "packs have different writing modes : " << (m_writeInUpdateMode?"create":"update") << " != " << (i_b.m_writeInUpdateMode?"create":"update") << endl;
-   else if ( m_nbRegistriesOffset!=i_b.m_nbRegistriesOffset )
-      cout << "packs have different offset for the number of registries : " << m_nbRegistriesOffset << " != " << i_b.m_nbRegistriesOffset << endl;
    else
    {
       unsigned int nbRegistries = (unsigned int)m_registries.size();      
@@ -1670,75 +1052,81 @@ void TracePack::compareWithItemsOnDisk( unsigned int i_iRegistry, const ctPath &
       itItem++;
    }
 }
+
+std::string TracePack::StreamItemType_to_string( StreamItemType i_type )
+{
+   switch ( i_type )
+   {
+   case TracePack::SIT_Registry: return string("SIT_Registry");
+   case TracePack::SIT_Ignore: return string("SIT_Ignore");
+   default: return string("unknown");
+   }
+}
+
+void TracePack::ignored_lists_to_buffer( bool i_reverseByteOrder, vector<char> &o_buffer ) const
+{
+   // compute total size for buffer allocation
+   unsigned int totalSize = 8; // size(nbPath) + size(nbFiles)
+   list<ctPath>::const_iterator itPath = m_ignoredDirectories.begin();
+   while ( itPath!=m_ignoredDirectories.end() ) totalSize+=string_raw_size( (*itPath++).str() );
+   list<cElFilename>::const_iterator itFilename = m_ignoredFiles.begin();
+   while ( itFilename!=m_ignoredFiles.end() ) totalSize+=string_raw_size( (*itFilename++).str_unix() );
+   
+   // fill the buffer
+   o_buffer.resize( totalSize );
+   char *itData = o_buffer.data();
+      // copy path list's size and values
+   uint4_to_raw_data( (U_INT4)m_ignoredDirectories.size(), i_reverseByteOrder, itData );
+   itPath = m_ignoredDirectories.begin();
+   while ( itPath!=m_ignoredDirectories.end() ) string_to_raw_data( (*itPath++).str(), i_reverseByteOrder, itData );
+      // copy file list's size and values
+   uint4_to_raw_data( (U_INT4)m_ignoredFiles.size(), i_reverseByteOrder, itData );
+   itFilename = m_ignoredFiles.begin();
+   while ( itFilename!=m_ignoredFiles.end() ) totalSize+=string_raw_size( (*itFilename++).str_unix() );
+   
+   #ifdef __DEBUG_TRACE_PACK
+      if ( ( itData-o_buffer.data() )!=totalSize ){
+	 cerr << RED_DEBUG_ERROR << "TracePack::ignored_lists_to_buffer: " << itData-o_buffer.data() << " bytes have been used but buffer size is " << o_buffer.size() << endl;
+	 exit(EXIT_FAILURE);
+      }
+   #endif
+}
+
+void TracePack::ignored_lists_from_buffer( bool i_reverseByteOrder, const vector<char> &i_buffer )
+{
+   const char *itData = i_buffer.data();
+   string str;
+   m_ignoredDirectories.clear();
+   m_ignoredFiles.clear();
+   
+   // extract directories from buffer and add them to ignored list
+   U_INT4 nbPaths;
+   uint4_from_raw_data( itData, i_reverseByteOrder, nbPaths );
+   while ( nbPaths-- ){
+      string_from_raw_data( itData, i_reverseByteOrder, str );
+      add_ignored( ctPath( str ) );
+   }
+   
+   // extract files from buffer and add them to ignored list
+   U_INT4 nbFiles;
+   uint4_from_raw_data( itData, i_reverseByteOrder, nbFiles );
+   while ( nbFiles-- ){
+      string_from_raw_data( itData, i_reverseByteOrder, str );
+      add_ignored( cElFilename( str ) );
+   }
+   
+   #ifdef __DEBUG_TRACE_PACK
+      if ( i_buffer.data()>itData || (size_t)(itData-i_buffer.data())!=i_buffer.size() ){
+	 cerr << RED_DEBUG_ERROR << "TracePack::ignored_lists_from_buffer: " << itData-i_buffer.data() << " bytes have been used but buffer size is " << i_buffer.size() << endl;
+	 exit(EXIT_FAILURE);
+      }
+   #endif
+}
    
 
 //--------------------------------------------
 // related functions
 //--------------------------------------------
-
-bool write_file( const cElFilename &i_filenameIn, ostream &io_fOut, unsigned int i_expectedSize )
-{
-   ifstream fIn( i_filenameIn.str_unix().c_str(), ios::binary );
-   
-   if ( !fIn )
-   {
-      #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "write_file: unable to open [" << i_filenameIn.str_unix() << "] for reading" << endl;
-	 exit(EXIT_FAILURE);
-      #endif
-      return false;
-   }
-   
-   return write_file( fIn, io_fOut, i_expectedSize );
-}
-
-bool write_file( istream &io_fIn, ostream &io_fOut, unsigned int i_length )
-{
-   #ifdef __DEBUG_TRACE_PACK
-      if ( !io_fIn )
-      {
-	 cerr << RED_DEBUG_ERROR << "write_file: io_fIn is not ready for reading" << endl;
-	 exit(EXIT_FAILURE);
-      }
-      if ( !io_fOut )
-      {
-	 cerr << RED_DEBUG_ERROR << "write_file: io_fOut is not ready for writing" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
-   
-   const unsigned int buffer_size = 1000000;
-   unsigned int remaining = i_length;
-   vector<char> buffer( buffer_size );
-   while ( !io_fIn.eof() && remaining )
-   {
-      if ( buffer_size>remaining )
-	 io_fIn.read( buffer.data(), remaining );
-      else
-	 io_fIn.read( buffer.data(), buffer_size );
-      streamsize nbRead = io_fIn.gcount();
-      if ( nbRead<0 )
-      {	 
-	 #ifdef __DEBUG_TRACE_PACK
-	    cerr << RED_DEBUG_ERROR << "write_file: unable to read in input stream" << endl;
-	    exit(EXIT_FAILURE);
-	 #endif
-	 return false;
-      }
-      io_fOut.write( buffer.data(), nbRead );
-      remaining -= (unsigned int)nbRead;
-   }
-   
-   #ifdef __DEBUG_TRACE_PACK
-      if ( remaining!=0 )
-      {
-	 cerr << RED_DEBUG_ERROR << "write_file: " << remaining << " bytes need to be read but end-of-file is reached" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
-   
-   return remaining==0;
-}
 
 string TD_Type_to_string( TracePack::Registry::TD_Type i_type )
 {
@@ -1822,68 +1210,18 @@ bool contains( const std::list<ctPath> &i_pathList, const ctPath &i_path )
    return ( itPath!=i_pathList.end() && ( (*itPath)==i_path ) );
 }
 
-bool file_to_chunk_list( const string &i_filename, unsigned int i_fileSize, U_INT4 &i_firstMax, U_INT4 i_newMax, std::list<FileChunk> &o_chunks )
+bool write_file( const cElFilename &i_filenameIn, ostream &io_fOut, unsigned int i_expectedSize )
 {
-   const U_INT4 fullHeaderSize = FileChunk::headerSize+FileChunk::dataHeaderSize;
-   const U_INT4 filenameRawSize = string_raw_size( i_filename );
-   i_fileSize += filenameRawSize; // filename is considered data
+   ifstream fIn( i_filenameIn.str_unix().c_str(), ios::binary );
    
-   if ( i_newMax<fullHeaderSize+filenameRawSize )
+   if ( !fIn )
    {
       #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "file_to_chunk_list: i_newMax = " << i_newMax << " too low, first chunk's min size = " << fullHeaderSize+filenameRawSize << endl;
+	 cerr << RED_DEBUG_ERROR << "write_file: unable to open [" << i_filenameIn.str_unix() << "] for reading" << endl;
+	 exit(EXIT_FAILURE);
       #endif
       return false;
    }
    
-   // first chunk
-   U_INT4 dataSize;
-   if ( fullHeaderSize+filenameRawSize<=i_firstMax )
-      dataSize = std::min( i_firstMax-fullHeaderSize, i_fileSize );
-   else
-      dataSize = std::min( i_newMax-fullHeaderSize, i_fileSize );
-   o_chunks.push_back( FileChunk( i_filename, dataSize<i_fileSize/*hasMore*/, dataSize ) );
-   i_fileSize -= dataSize;
-   
-   if ( i_fileSize==0 )
-   {
-      unsigned int fullSize = o_chunks.back().fullSize();
-      i_firstMax = ( fullSize<i_firstMax?i_firstMax-fullSize:i_newMax-fullSize );
-      return true;
-   }
-   
-   dataSize = i_newMax-fullHeaderSize;
-   unsigned int nbChunks = i_fileSize/dataSize;
-   if ( nbChunks!=0 )
-   {
-      FileChunk chunk( true/*hasMore*/, dataSize );
-      while ( nbChunks-- ) o_chunks.push_back( chunk );
-   }
-   dataSize = i_fileSize%dataSize;
-   if ( dataSize!=0 ) o_chunks.push_back( FileChunk( false/*hasMore*/, dataSize ) );
-   i_firstMax = i_newMax-o_chunks.back().fullSize();
-   o_chunks.back().m_hasMore = false;
-   
-   return true;
-}
-
-bool chunk_list_to_file( const cElFilename &i_outputFilename, const std::list<FileChunk> &o_chunks )
-{
-   ofstream fdst( i_outputFilename.str_unix().c_str(), ios::binary );
-   if ( !fdst ) return false;
-   std::list<FileChunk>::const_iterator itChunk = o_chunks.begin();
-   while ( itChunk!=o_chunks.end() )
-      if ( !( *itChunk++ ).outputData( fdst ) ) return false;
-   return true;
-}
-
-string FileChunkType_to_string( FileChunk::FileChunkType i_type )
-{
-   switch ( i_type )
-   {
-   case FileChunk::FCT_Registry: return string("FCT_Registry");
-   case FileChunk::FCT_Ignore: return string("FCT_Ignore");
-   case FileChunk::FCT_Data: return string("FCT_Data");
-   default: return string("unknown");
-   }
+   return stream_copy( fIn, io_fOut, i_expectedSize );
 }
