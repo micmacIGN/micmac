@@ -41,7 +41,10 @@ public :
 
     void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 
-    void rebuild3DGlPoints(cSP_PointeImage* aPIm);
+    void                rebuild3DGlPoints(cSP_PointeImage* aPIm);
+
+    void                rebuildGlCamera();
+
 private:
 
     void                Init(){}
@@ -88,6 +91,8 @@ private slots:
     void                selectPoint(int idPt);
 
     void                changeState(int state, int idPt);
+
+    void                changeCurPose(void *widgetGL);
 
     void                filesDropped(const QStringList& filenames);
 

@@ -1,5 +1,14 @@
 #include "QT_interface_Elise.h"
 
+void cQT_Interface::rebuildGlCamera()
+{
+    for (int i = 0; i < mAppli->nbImages(); ++i)
+    {
+        ElCamera * aCamera = mAppli->images(i)->CaptCam();
+        _data->addCamera(aCamera->CS());
+    }
+}
+
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL)
@@ -17,6 +26,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
 
+        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurPose(void*)));
+
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(showRefuted(bool)), this,SLOT(SetInvisRef(bool)));
@@ -26,11 +37,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     _data = new cData;
 
-    for (int i = 0; i < mAppli->nbImages(); ++i)
-    {
-        ElCamera * aCamera = mAppli->images(i)->CaptCam();
-        _data->addCamera(aCamera->CS());
-    }
+    rebuildGlCamera();
 
     _data->computeBBox();
 
@@ -63,7 +70,7 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
     aW.raise();
 
     for (int aK=0 ; aK<int(mVNameCase.size()) ; aK++)
-    {447
+    {
         int aGr = (aK%2) ? 255 : 200 ;
         Pt2di aPCase(0,aK);
         mMenuNamePoint->ColorieCase(aPCase,aW.prgb()(aGr,aGr,aGr),1);
@@ -106,7 +113,7 @@ std::pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
          //mWEnter->lower();
    }
 
-   //mMe4444nuNamePoint->W().lower();
+   //mMenuNamePoint->W().lower();
 
    // std::cout << "cAppli_SaisiePts::IdNewPts " << aCptMax << " " << aName << "\n";
    //std::pair aRes(
@@ -137,8 +144,6 @@ void cQT_Interface::addPoint(QPointF point)
     QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage.cObjectGL::name();
 
     int t = cImageIdxFromName(nameImage);
-
-    //printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
 
     if(t != -1)
         mAppli->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
@@ -187,8 +192,6 @@ void cQT_Interface::selectPoint(int idPt)
 void cQT_Interface::changeState(int state, int idPt)
 {
 
-    //int idPt = m_QTMainWindow->currentWidget()->getGLData()->m_polygon.idx();
-
     eEtatPointeImage aState = (eEtatPointeImage)state;
 
     if (aState!=eEPI_NonValue && idPt != -1)
@@ -198,10 +201,9 @@ void cQT_Interface::changeState(int state, int idPt)
         if (aPIm)
         {
             if(aState == NS_SaisiePts::eEPI_Highlight)
-            {
+
                 aPIm->Gl()->HighLighted() = true;
 
-            }
             else
             {
                 mAppli->AddUndo(*(aPIm->Saisie()),currentCImage());
@@ -213,6 +215,20 @@ void cQT_Interface::changeState(int state, int idPt)
             rebuildGlPoints(aPIm);
         }
     }
+}
+
+void cQT_Interface::changeCurPose(void *widgetGL)
+{
+    QString nameImage = ((GLWidget*)widgetGL)->getGLData()->glMaskedImage.cObjectGL::name();
+
+    int t = cImageIdxFromName(nameImage);
+
+    for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->Cams.size(); ++c )
+        m_QTMainWindow->threeDWidget()->getGLData()->Cams[c]->setSelected(false);
+
+    m_QTMainWindow->threeDWidget()->getGLData()->Cams[t]->setSelected(true);
+
+    m_QTMainWindow->threeDWidget()->update();
 }
 
 void cQT_Interface::filesDropped(const QStringList &filenames)
@@ -236,7 +252,7 @@ void cQT_Interface::filesDropped(const QStringList &filenames)
             _data->addCloud(m_QTMainWindow->getEngine()->getData()->getCloud(0));
             m_QTMainWindow->threeDWidget()->getGLData()->Clouds.clear();
             _data->computeBBox();
-            m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
+            m_QTMainWindow->threeDWidget()->getGLData()->setData(_data,false);
             m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
             m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
             m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
@@ -333,6 +349,8 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
 {
     std::vector< cSP_PointGlob * > pGV = mAppli->PG();
 
+    cPointGlob * selectPtGlob = aPIm ? aPIm->Gl()->PG() : NULL;
+
     if(pGV.size())
     {
         bool first = _data->getNbClouds() == 0;
@@ -347,7 +365,15 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
         for (int i = 0; i < (int)pGV.size(); ++i)
         {
             cPointGlob * pg = pGV[i]->PG();
-            cloud->addVertex(GlVertex(pg->P3D().Val(),aPIm && pg == aPIm->Gl()->PG() ? Qt::red : Qt::green));
+
+            QColor colorPt = Qt::green;
+
+            if (pg == selectPtGlob)
+                colorPt = Qt::blue;
+            else if (pGV[i]->HighLighted())
+                colorPt = Qt::red;
+
+            cloud->addVertex(GlVertex(pg->P3D().Val(), colorPt));
         }
 
         if(first)
@@ -356,7 +382,9 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
             _data->replaceCloud(cloud);
 
         _data->computeBBox();
-        m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
+        //m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
+
+        m_QTMainWindow->threeDWidget()->getGLData()->replaceCloud(_data->getCloud(0));
         m_QTMainWindow->threeDWidget()->resetView(first,false,first,true);
         m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
         m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
