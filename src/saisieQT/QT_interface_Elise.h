@@ -45,6 +45,7 @@ public :
 
     void                rebuildGlCamera();
 
+    void option3DPreview();
 private:
 
     void                Init(){}
