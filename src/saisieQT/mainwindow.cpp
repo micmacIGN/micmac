@@ -28,6 +28,9 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
 
     if (_mode != MASK3D)
         setImagePosition(QPointF(-1.f,-1.f));
+
+    if (_mode > MASK3D)
+        setImageName("");
 }
 
 MainWindow::~MainWindow()
