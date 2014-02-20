@@ -415,6 +415,7 @@ void cCam::draw()
         glPushAttrib(GL_LINE_BIT|GL_DEPTH_BUFFER_BIT);
 
         glLineWidth(_lineWidth);
+
         glPointSize(_pointSize);
 
         Pt2di sz = _Cam->Sz();
@@ -429,7 +430,14 @@ void cCam::draw()
 
         glBegin(GL_LINES);
         //perspective cone
-        glColor3f(1.f,1.f,1.f);
+        if(!isSelected())
+            glColor3f(1.f,1.f,1.f);
+        else
+        {
+            QColor color = Qt::yellow;
+            glColor3f(color.redF(),color.greenF(),color.blueF());
+        }
+
         glVertex3d(C.x, C.y, C.z);
         glVertex3d(P1.x, P1.y, P1.z);
 
@@ -443,7 +451,12 @@ void cCam::draw()
         glVertex3d(P4.x, P4.y, P4.z);
 
         //Image
-        glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+        if(!isSelected())
+            glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+        else
+        {
+            glColor3f(0.f,0.f,1.f);
+        }
         glVertex3d(P1.x, P1.y, P1.z);
         glVertex3d(P2.x, P2.y, P2.z);
 
@@ -1356,7 +1369,7 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     m_polygon.setDefaultName(ptName);  
 }
 
-void cGLData::setData(cData *data)
+void cGLData::setData(cData *data, bool setCam)
 {
     for (int aK = 0; aK < data->getNbClouds();++aK)
     {
@@ -1376,12 +1389,13 @@ void cGLData::setData(cData *data)
     pBbox->setScale(scale);
     pBbox->set(data->getMin(), data->getMax());
 
-    for (int i=0; i< data->getNbCameras(); i++)
-    {
-        cCam *pCam = new cCam(data->getCamera(i), scale);
+    if(setCam)
+        for (int i=0; i< data->getNbCameras(); i++)
+        {
+            cCam *pCam = new cCam(data->getCamera(i), scale);
 
-        Cams.push_back(pCam);
-    }
+            Cams.push_back(pCam);
+        }
 
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
@@ -1608,6 +1622,16 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
 
         a_cloud->setBufferGl(true);
     }
+}
+
+void cGLData::replaceCloud(GlCloud *cloud, int id)
+{
+    if(id<Clouds.size())
+        Clouds[id] = cloud;
+    else
+        Clouds.insert(Clouds.begin(),cloud);
+
+    cloud->setBufferGl();
 }
 
 void cGLData::setPainter(QPainter * painter)

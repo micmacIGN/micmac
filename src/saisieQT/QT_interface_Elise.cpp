@@ -1,5 +1,14 @@
 #include "QT_interface_Elise.h"
 
+void cQT_Interface::rebuildGlCamera()
+{
+    for (int i = 0; i < mAppli->nbImages(); ++i)
+    {
+        ElCamera * aCamera = mAppli->images(i)->CaptCam();
+        _data->addCamera(aCamera->CS());
+    }
+}
+
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL)
@@ -17,6 +26,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
 
+        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurPose(void*)));
+
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
         connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this,SLOT(filesDropped(QStringList)));
@@ -24,11 +35,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     _data = new cData;
 
-    for (int i = 0; i < mAppli->nbImages(); ++i)
-    {
-        ElCamera * aCamera = mAppli->images(i)->CaptCam();
-        _data->addCamera(aCamera->CS());
-    }
+    rebuildGlCamera();
 
     _data->computeBBox();
 
@@ -207,6 +214,20 @@ void cQT_Interface::changeState(int state, int idPt)
     }
 }
 
+void cQT_Interface::changeCurPose(void *widgetGL)
+{
+    QString nameImage = ((GLWidget*)widgetGL)->getGLData()->glMaskedImage.cObjectGL::name();
+
+    int t = cImageIdxFromName(nameImage);
+
+    for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->Cams.size(); ++c )
+        m_QTMainWindow->threeDWidget()->getGLData()->Cams[c]->setSelected(false);
+
+    m_QTMainWindow->threeDWidget()->getGLData()->Cams[t]->setSelected(true);
+
+    m_QTMainWindow->threeDWidget()->update();
+}
+
 void cQT_Interface::filesDropped(const QStringList &filenames)
 {
     if (filenames.size())
@@ -228,7 +249,7 @@ void cQT_Interface::filesDropped(const QStringList &filenames)
             _data->addCloud(m_QTMainWindow->getEngine()->getData()->getCloud(0));
             m_QTMainWindow->threeDWidget()->getGLData()->Clouds.clear();
             _data->computeBBox();
-            m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
+            m_QTMainWindow->threeDWidget()->getGLData()->setData(_data,false);
             m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
             m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
             m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
@@ -358,7 +379,9 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
             _data->replaceCloud(cloud);
 
         _data->computeBBox();
-        m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
+        //m_QTMainWindow->threeDWidget()->getGLData()->setData(_data);
+
+        m_QTMainWindow->threeDWidget()->getGLData()->replaceCloud(_data->getCloud(0));
         m_QTMainWindow->threeDWidget()->resetView(first,false,first,true);
         m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
         m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);

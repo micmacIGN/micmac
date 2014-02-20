@@ -635,6 +635,8 @@ public:
 
     void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
 
+    void        replaceCloud(GlCloud* cloud, int id = 0);
+
     void        setPainter(QPainter *);        
 
     enum Option {
@@ -660,7 +662,7 @@ public:
 
     bool        mode() { return _modePt; }
 
-    void        setData(cData *data);
+    void        setData(cData *data, bool setCam = true);
 
     bool        incFirstCloud() const;
 
