@@ -743,6 +743,10 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
     _contextMenu.setPos(m_lastPosImage);
 
     menu.exec(event->globalPos());
+
+    polygon().resetSelectedPoint();
+
+    emit selectPoint(-1);
 }
 
 void GLWidget::enterEvent(QEvent *event)
