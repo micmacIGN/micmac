@@ -1,0 +1,21 @@
+                       <BasculeOrientation >
+                               <AfterCompens> false</AfterCompens>
+                               <PatternNameEstim>  ${PatternPlan}  </PatternNameEstim>
+                               <ModeBascule>
+                                   <BasculeLiaisonOnPlan >
+                                       <EstimPl>
+                                           <KeyCalculMasq>  NKS-Assoc-AddPostChExt@${PostMasq}@tif </KeyCalculMasq>
+                                           <IdBdl >Id_Pastis_Hom </IdBdl>
+                                           <Pond>
+                                              <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                              <Show> eNSM_Paquet     </Show>
+                                              <NbMax>   100    </NbMax>
+                                              <ModePonderation>  eL1Secured </ModePonderation>
+                                              <SigmaPond> 2.0 </SigmaPond>
+                                              <EcartMax> 5.0 </EcartMax>
+                                            </Pond>
+                                            <LimBSurH> ${LimBsH} </LimBSurH>
+                                       </EstimPl>
+                                   </BasculeLiaisonOnPlan>
+                               </ModeBascule>
+                       </BasculeOrientation>
