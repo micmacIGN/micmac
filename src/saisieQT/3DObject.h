@@ -113,35 +113,34 @@ class cPoint : public cObjectGL, public QPointF
 
         void draw();
 
-        void setState(int state){ _state = state; }
-        int  state() { return _state; }
-        void showName(bool show){ _bShowName = show; }
+        void setState(int state)    { _state = state;    }
+        int  state() const          { return _state;     }
+        void showName(bool show)    { _bShowName = show; }
 
-        void switchHighlight() { _highlight = !_highlight; }  //TODO: cWinIm l.649
+        bool highlight() const      { return _highlight; }
+        void setHighlight(bool hl)  { _highlight = hl;   }
+        void switchHighlight()      { _highlight = !_highlight; }
 
         void setEpipolar(QPointF pt1, QPointF pt2);
-
-        bool highlight() const;
-        void setHighlight(bool highlight);
 
 private:
 
         float   _diameter;
         bool    _bShowName;
-       int     _state;
-       bool    _highlight;
+        int     _state;
+        bool    _highlight;
 
-       QColor  _selectionColor;
+        QColor  _selectionColor;
 
-       //! Default font
-       QFont   _font;
+        //! Default font
+        QFont   _font;
 
-       QPainter *_painter;
-       QGLWidget *_widget;
+        QPainter *_painter;
+        QGLWidget *_widget;
 
-       bool     _bEpipolar;
-       QPointF  _epipolar1;
-       QPointF  _epipolar2;
+        bool     _bEpipolar;
+        QPointF  _epipolar1;
+        QPointF  _epipolar2;
 };
 
 class cCircle : public cObjectGL

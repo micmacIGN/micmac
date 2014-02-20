@@ -29,8 +29,6 @@ public :
 
     void                Save(){}
 
-    void                SetInvisRef(bool aVal);
-
     void                DrawZoom(const Pt2dr & aPGlob){} //fenetre zoom
 
     void                ChangeFreeNamePoint(const std::string &, bool SetFree){}
@@ -76,6 +74,11 @@ private:
 
     cData               *_data;
 
+    bool                WVisible(eEtatPointeImage aState);
+
+    bool                WVisible(cSP_PointeImage &aPIm);
+
+
 private slots:
 
     void                addPoint(QPointF point);
@@ -87,6 +90,8 @@ private slots:
     void                changeState(int state, int idPt);
 
     void                filesDropped(const QStringList& filenames);
+
+    void                SetInvisRef(bool aVal);
 };
 
 #endif // QT_INTERFACE_ELISE_H
