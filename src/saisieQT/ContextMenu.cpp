@@ -76,6 +76,8 @@ void ContextMenu::showNames()
 }
 
 void ContextMenu::showRefuted()
-{
+{   
     _polygon->showRefuted();
+
+    emit showRefuted(_polygon->bShowRefuted());
 }

@@ -44,6 +44,8 @@ signals:
 
     void changeState(int state, int idPt);
 
+    void showRefuted(bool show);
+
 public slots:
 
     void setPointState(int state);
