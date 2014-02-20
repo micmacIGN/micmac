@@ -135,8 +135,6 @@ void cQT_Interface::addPoint(QPointF point)
 
     int t = cImageIdxFromName(nameImage);
 
-    //printf("name : %s : \n", getAppliMetier()->images(t)->Name().c_str());
-
     if(t != -1)
         mAppli->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
 
@@ -184,8 +182,6 @@ void cQT_Interface::selectPoint(int idPt)
 void cQT_Interface::changeState(int state, int idPt)
 {
 
-    //int idPt = m_QTMainWindow->currentWidget()->getGLData()->m_polygon.idx();
-
     eEtatPointeImage aState = (eEtatPointeImage)state;
 
     if (aState!=eEPI_NonValue && idPt != -1)
@@ -195,10 +191,9 @@ void cQT_Interface::changeState(int state, int idPt)
         if (aPIm)
         {
             if(aState == NS_SaisiePts::eEPI_Highlight)
-            {
+
                 aPIm->Gl()->HighLighted() = true;
 
-            }
             else
             {
                 mAppli->AddUndo(*(aPIm->Saisie()),currentCImage());
@@ -330,6 +325,8 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
 {
     std::vector< cSP_PointGlob * > pGV = mAppli->PG();
 
+    cPointGlob * selectPtGlob = aPIm ? aPIm->Gl()->PG() : NULL;
+
     if(pGV.size())
     {
         bool first = _data->getNbClouds() == 0;
@@ -344,7 +341,15 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
         for (int i = 0; i < (int)pGV.size(); ++i)
         {
             cPointGlob * pg = pGV[i]->PG();
-            cloud->addVertex(GlVertex(pg->P3D().Val(),aPIm && pg == aPIm->Gl()->PG() ? Qt::red : Qt::green));
+
+            QColor colorPt = Qt::green;
+
+            if (pg == selectPtGlob)
+                colorPt = Qt::blue;
+            else if (pGV[i]->HighLighted())
+                colorPt = Qt::red;
+
+            cloud->addVertex(GlVertex(pg->P3D().Val(), colorPt));
         }
 
         if(first)
