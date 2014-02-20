@@ -780,8 +780,13 @@ void MainWindow::setImagePosition(QPointF pt)
             text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
     }
 
-    _ui->label_PositionImage_1->setText(text);
-    _ui->label_PositionImage_2->setText(text);
+    _ui->label_ImagePosition_1->setText(text);
+    _ui->label_ImagePosition_2->setText(text);
+}
+
+void MainWindow::setImageName(QString name)
+{
+    _ui->label_ImageName->setText(QString(tr("Image name : ") + name));
 }
 
 void MainWindow::setZoom(float val)
@@ -809,6 +814,12 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
             connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
         }
+    }
+
+    if (_mode > MASK3D)
+    {
+        if ( glW->hasDataLoaded() && !glW->getGLData()->isImgEmpty() )
+            setImageName(glW->getGLData()->glMaskedImage.cObjectGL::name());
     }
 }
 
@@ -859,20 +870,23 @@ void MainWindow::labelShowMode(bool state)
 {
     if ((!state) || (_mode == MASK3D))
     {
-        _ui->label_PositionImage_1->hide();
-        _ui->label_PositionImage_2->hide();
+        _ui->label_ImagePosition_1->hide();
+        _ui->label_ImagePosition_2->hide();
+        _ui->label_ImageName->hide();
     }
     else
     {
         if(_mode == MASK2D)
         {
-            _ui->label_PositionImage_1->hide();
-            _ui->label_PositionImage_2->show();
+            _ui->label_ImagePosition_1->hide();
+            _ui->label_ImagePosition_2->show();
+            _ui->label_ImageName->hide();
         }
         else if(_mode > MASK3D)
         {
-            _ui->label_PositionImage_1->show();
-            _ui->label_PositionImage_2->hide();
+            _ui->label_ImagePosition_1->show();
+            _ui->label_ImagePosition_2->hide();
+            _ui->label_ImageName->show();
         }
     }
 }

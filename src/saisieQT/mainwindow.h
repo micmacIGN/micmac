@@ -94,6 +94,8 @@ protected slots:
     void setImagePosition(QPointF pt);
     void setZoom(float);
 
+    void setImageName(QString name);
+
     void changeCurrentWidget(void* cuWid);
 
     //View Menu

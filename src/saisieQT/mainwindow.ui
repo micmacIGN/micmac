@@ -544,7 +544,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_PositionImage_2">
+       <widget class="QLabel" name="label_ImagePosition_2">
         <property name="text">
          <string>TextLabel</string>
         </property>
@@ -583,7 +583,14 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_PositionImage_1">
+       <widget class="QLabel" name="label_ImageName">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_ImagePosition_1">
         <property name="text">
          <string>TextLabel</string>
         </property>

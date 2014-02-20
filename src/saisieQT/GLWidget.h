@@ -161,7 +161,7 @@ protected:
     void overlay();
 
     //! Current interaction mode (with mouse)
-    int m_interactionMode;
+    int  m_interactionMode;
 
     bool m_bFirstAction;
 
