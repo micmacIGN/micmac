@@ -128,7 +128,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
         output[i] = new char[strlen(input.at(i).toStdString().c_str())+1];
         memcpy(output[i], input.at(i).toStdString().c_str(), strlen(input.at(i).toStdString().c_str())+1);
     }
-    output[input.size()] = ((char)NULL);
+    output[input.size()] = ((char*)NULL);
 
 
     cResultSubstAndStdGetFile<cParamSaisiePts> aP2(
