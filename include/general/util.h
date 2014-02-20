@@ -1352,7 +1352,7 @@ class cElHour
       bool operator!=( const cElHour &i_b ) const;
       
      // read/write in raw binary format
-     void from_raw_data( char *&io_rawData, bool i_reverseByteOrder );
+     void from_raw_data( const char *&io_rawData, bool i_reverseByteOrder );
      void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
      static unsigned int raw_size();
 
@@ -1398,11 +1398,10 @@ class cElDate
 	bool operator!=( const cElDate &i_b ) const;
       
 	// read/write in raw binary format
-	void from_raw_data( char *&io_rawData, bool i_reverseByteOrder );
+	void from_raw_data( const char *&io_rawData, bool i_reverseByteOrder );
 	void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
 	static unsigned int raw_size();
 	
-	// __DEL
 	void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
 	void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
 	

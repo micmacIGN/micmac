@@ -123,7 +123,7 @@ void cElCommandToken::to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) c
    string_to_raw_data( str(), i_reverseByteOrder, o_rawData );
 }
 
-cElCommandToken * cElCommandToken::from_raw_data( char *&io_rawData, bool i_reverseByteOrder )
+cElCommandToken * cElCommandToken::from_raw_data( char const *&io_rawData, bool i_reverseByteOrder )
 {   
    // copy type
    INT4 i4;
@@ -214,10 +214,10 @@ string cElCommand::str() const
 }
    
 // read/write in raw binary format
-void cElCommand::from_raw_data( char *&io_rawData, bool i_reverseByteOrder )
+void cElCommand::from_raw_data( char const *&io_rawData, bool i_reverseByteOrder )
 {
-   #ifdef __DEBUG_TRACE_PACK
-      char *rawData = o_rawData;
+   #ifdef __DEBUG_C_EL_COMMAND
+      const char *rawData = io_rawData;
    #endif
    
    clear();
@@ -230,11 +230,10 @@ void cElCommand::from_raw_data( char *&io_rawData, bool i_reverseByteOrder )
    while ( nbTokens-- )
       m_tokens.push_back( cElCommandToken::from_raw_data( io_rawData, i_reverseByteOrder ) );
       
-   #ifdef __DEBUG_TRACE_PACK
-      unsigned int nbCopied = o_rawData-rawData;
-      if ( nbCopied!=raw_size() )
+   #ifdef __DEBUG_C_EL_COMMAND
+      if ( rawData>io_rawData || (U_INT8)(io_rawData-rawData)!=raw_size() )
       {
-	 cerr << RED_DEBUG_ERROR << "cElCommand::from_raw_data: " << nbCopied << " copied bytes, but raw_size() = " << raw_size() << endl;
+	 cerr << RED_DEBUG_ERROR << "cElCommand::from_raw_data: " << (U_INT8)(io_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
 	 exit(EXIT_FAILURE);
       }
    #endif
@@ -242,7 +241,7 @@ void cElCommand::from_raw_data( char *&io_rawData, bool i_reverseByteOrder )
 
 void cElCommand::to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const
 {   
-   #ifdef __DEBUG_TRACE_PACK
+   #ifdef __DEBUG_C_EL_COMMAND
       char *rawData = o_rawData;
    #endif
    
@@ -254,19 +253,18 @@ void cElCommand::to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const
    while ( itToken!=m_tokens.end() )
       ( *itToken++ )->to_raw_data( i_reverseByteOrder, o_rawData );
    
-   #ifdef __DEBUG_TRACE_PACK
-      unsigned int nbCopied = o_rawData-rawData;
-      if ( nbCopied!=raw_size() )
+   #ifdef __DEBUG_C_EL_COMMAND
+      if ( rawData>o_rawData || (U_INT8)(o_rawData-rawData)!=raw_size() )
       {
-	 cerr << RED_DEBUG_ERROR << "cElCommand::to_raw_data: " << nbCopied << " copied bytes, but raw_size() = " << raw_size() << endl;
+	 cerr << RED_DEBUG_ERROR << "cElCommand::to_raw_data: " << (U_INT8)(o_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
 	 exit(EXIT_FAILURE);
       }
    #endif
 }
 
-unsigned int cElCommand::raw_size() const
+U_INT8 cElCommand::raw_size() const
 {
-   unsigned int totalSize = 0;
+   U_INT8 totalSize = 4; // size of nb token
    std::list<cElCommandToken*>::const_iterator itToken = m_tokens.begin();
    while ( itToken!=m_tokens.end() )
       totalSize += ( *itToken++ )->raw_size();
@@ -411,13 +409,23 @@ bool cElCommand::replace( const map<string,string> &i_dictionary )
 	 case CTT_PathRegEx: cerr << "cElCommand::replace: type CTT_PathRegEx not implemented" << endl; break;
 	 case CTT_Prefix: cerr << "cElCommand::replace: type CTT_Prefix not implemented" << endl; break;
 	 }
-	 
 	 commandHasBeenModified = true;
       }
       
       itToken++;
    }
    return commandHasBeenModified;
+}
+
+void cElCommand::trace( std::ostream &io_ostream ) const
+{
+   io_ostream << "nbTokens = " << m_tokens.size() << endl;
+   list<cElCommandToken*>::const_iterator itToken = m_tokens.begin();
+   while ( itToken!=m_tokens.end() ){
+      io_ostream << '\t';
+      ( *itToken++ )->trace(io_ostream);
+   }
+   io_ostream << endl;
 }
 
 
@@ -767,12 +775,12 @@ bool cElFilename::create() const
    return exists();
 }
 
-unsigned int cElFilename::getSize() const
+U_INT8 cElFilename::getSize() const
 {
    ifstream f( str_unix().c_str(), ios::binary );
    if (!f) return 0;
    f.seekg (0, f.end);
-   return (unsigned int)f.tellg();
+   return (U_INT8)f.tellg();
 }
 
 
@@ -849,7 +857,7 @@ std::string generate_random_string( unsigned int i_minLength, unsigned int i_max
    return generate_random_string( i_minLength+( rand()%(diff+1) ) );
 }
 
-void string_from_raw_data( char *&io_rawData, bool i_reverseByteOrder, std::string &o_str )
+void string_from_raw_data( char const *&io_rawData, bool i_reverseByteOrder, std::string &o_str )
 {
    // copy length and resize output string
    U_INT4 length;
