@@ -1715,11 +1715,16 @@ void cMessages2DGL::draw(){
 
 int cMessages2DGL::renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont)
 {
+
+
+    m_font.setPointSize(sizeFont);
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
     glwid->qglColor(messageTD.color);
-
-    //m_font.setPointSize(sizeFont);
-
     glwid->renderText(x, y, messageTD.message,m_font);
+    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_LIGHTING);
 
     return (QFontMetrics(m_font).boundingRect(messageTD.message).height()*5)/4;
 }
