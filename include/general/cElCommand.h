@@ -11,14 +11,23 @@
 #include "../include/private/util.h"
 #include "sys/stat.h"
 
+#ifdef _MSC_VER
+	#define mode_t U_INT4
+#endif
+
 class ctPath;
 
-// __DEL
 #define __DEBUG_C_EL_COMMAND
 
-#define RED_ERROR "\033[1;31mERROR: \033[0m"
-#define RED_DEBUG_ERROR "\033[1;31mDEBUG_ERROR: \033[0m"
-#define RED_WARNING "\033[0;31mWARNING: \033[0m"
+#if (ELISE_POSIX)
+	#define RED_ERROR "\033[1;31mERROR: \033[0m"
+	#define RED_DEBUG_ERROR "\033[1;31mDEBUG_ERROR: \033[0m"
+	#define RED_WARNING "\033[0;31mWARNING: \033[0m"
+#else
+	#define RED_ERROR "ERROR: "
+	#define RED_DEBUG_ERROR "DEBUG_ERROR: "
+	#define RED_WARNING "WARNING: "
+#endif
 
 //-------------------------------------------
 // cElCommandToken
@@ -188,9 +197,9 @@ public:
    bool isEmpty() const; 
    
    // returns if *this contains or is i_path
-   // relative paths are considered relative to i_relativeTo
-   bool contains( const ctPath &i_path ) const;
-   bool contains( const cElFilename &i_filename ) const;
+   // relative paths are considered relative to working directory
+   bool isAncestorOf( const ctPath &i_path ) const;
+   bool isAncestorOf( const cElFilename &i_filename ) const;
    
    unsigned int count_upward_references() const; // count number of '..'
    

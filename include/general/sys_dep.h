@@ -271,7 +271,7 @@ const  TY_OPERATING_SYST   ELISE_OS        =  ELISE_WNT;
 #define U_INT4 unsigned  int
 #define INT4   int
 #define U_INT8 unsigned long long int
-#define INT8   long long int
+#define _INT8   long long int // INT8 is already defined by windows.h and means "char"
 #define U_INT2 unsigned short
 #define INT2   signed short
 #define U_INT1 unsigned char

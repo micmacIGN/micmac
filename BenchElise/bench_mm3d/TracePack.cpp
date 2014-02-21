@@ -582,9 +582,13 @@ bool TracePack::read_v1( U_INT8 i_offset, bool i_reverseByteOrder )
 {
    // read Items from the stream
    ChunkStream stream( m_filename, maxPackFileSize, i_reverseByteOrder );
+
    list<ChunkStream::Item*> items;
-   stream.read( 0, i_offset, items );
-   
+   if ( !stream.read( 0, i_offset, items ) ){
+	   cerr << RED_DEBUG_ERROR << "TracePack::read_v1: cannot read list of Item from pack [" << m_filename.str_unix() << ']' << endl;
+	   exit(EXIT_FAILURE);
+   }
+
    // convert raw data from Items to TracePack objects
    list<ChunkStream::Item*>::const_iterator itItem = items.begin();
    const ChunkStream::BufferItem *lastIgnoreItem = NULL;
@@ -640,39 +644,38 @@ bool TracePack::read_v1( U_INT8 i_offset, bool i_reverseByteOrder )
 bool TracePack::load()
 {
    ifstream f( m_filename.str_unix().c_str(), ios::binary );
-   if ( !f )
-   {
-      #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "TracePack::load: unable to open [" << m_filename.str_unix() << "] for reading" << endl;
-	 exit(EXIT_FAILURE);
-      #endif
-      return false;
+   if ( !f ){
+		#ifdef __DEBUG_TRACE_PACK
+			cerr << RED_DEBUG_ERROR << "TracePack::load: unable to open [" << m_filename.str_unix() << "] for reading" << endl;
+			exit(EXIT_FAILURE);
+		#endif
+		return false;
    }
-   VersionedFileHeader header( VFH_TracePack );
-   bool res = header.read_known( VFH_TracePack, f );
-   U_INT8 chunkStreamOffset = (U_INT8)f.tellg();
-   f.close();
+
+	VersionedFileHeader header( VFH_TracePack );
+	if ( !header.read_known( VFH_TracePack, f ) ){
+		#ifdef __DEBUG_TRACE_PACK
+			cerr << RED_DEBUG_ERROR << "TracePack::load: cannot read versioned file header" << endl;
+			exit(EXIT_FAILURE);
+		#endif
+	}
+	bool reverseByteOrder = ( header.isMSBF()!=MSBF_PROCESSOR() );
+	// read date
+	m_date.read_raw( f, reverseByteOrder );
+	U_INT8 chunkStreamOffset = (U_INT8)f.tellg();
+	f.close();
+   
+	bool res = false;
+   switch ( header.version() ){
+   case 1: res=read_v1( chunkStreamOffset, reverseByteOrder ); break;
+   }
    
    #ifdef __DEBUG_TRACE_PACK
-      if ( !res )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::load: unable to read versioned file header of type VFH_TracePack from file [" << m_filename.str_unix() << ']' << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
-   
-   switch ( header.version() )
-   {
-   case 1: res=read_v1( chunkStreamOffset, header.isMSBF() ); break;
-   default: res=false;
-   }
-   
-   #ifdef __DEBUG_TRACE_PACK
-      if ( !res )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::load: unable to read versioned file of type VFH_TracePack (v" << header.version() << ' ' << (header.isMSBF()?"big-endian":"little-endian") << ") from file [" << m_filename.str_unix() << ']' << endl;
-	 exit(EXIT_FAILURE);
-      }
+		if ( !res ){
+			cerr << RED_DEBUG_ERROR << "TracePack::load: unable to read versioned file of type VFH_TracePack (v" << header.version() << ' ' 
+			     << (header.isMSBF()?"big-endian":"little-endian") << ") from file [" << m_filename.str_unix() << ']' << endl;
+			exit(EXIT_FAILURE);
+		}
    #endif
    
    return res;
@@ -718,6 +721,8 @@ bool TracePack::write_v1( bool i_reverseByteOrder )
       stream.write_buffer( (unsigned char)SIT_Ignore, buffer );
    }
    
+   stream.close();
+
    return true;
 }
 
@@ -725,20 +730,23 @@ bool TracePack::save( unsigned int i_version, bool i_MSBF )
 {
    ofstream f;
    
-   ChunkStream stream( m_filename, maxPackFileSize, i_MSBF!=MSBF_PROCESSOR() );
+   bool reverseByteOrder = (i_MSBF!=MSBF_PROCESSOR());
+   ChunkStream stream( m_filename, maxPackFileSize, reverseByteOrder );
    if ( stream.getNbFiles()==0 ){
       // the stream is empty, write header
       ofstream f( stream.getFilename(0).str_unix().c_str(), ios::binary );
       if ( !f ) return false;
       VersionedFileHeader header( VFH_TracePack, i_version, i_MSBF );
       header.write( f );
+	  // write pack date
+	  m_date.write_raw( f, reverseByteOrder );
    }
 
    bool res = false;
    switch ( i_version )
    {
    case 1:
-      res = write_v1( i_MSBF!=MSBF_PROCESSOR() );
+      res = write_v1(reverseByteOrder);
       break;
    default: res=false;
    }
@@ -768,19 +776,16 @@ void TracePack::getState( unsigned int i_iState, TracePack::Registry &o_state ) 
 
 void TracePack::addState( const cElCommand &i_command )
 {
-   #ifdef __DEBUG_TRACE_PACK
-      if ( !m_anchor.exists() )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::addState: directory [" << m_anchor.str() << "] does not exist" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
+	#ifdef __DEBUG_TRACE_PACK
+	if ( !m_anchor.exists() ){
+		cerr << RED_DEBUG_ERROR << "TracePack::addState: directory [" << m_anchor.str() << "] does not exist" << endl;
+		exit(EXIT_FAILURE);
+	}
+	#endif
    
-   if ( nbStates()==0 )
-   {
+   if ( nbStates()==0 ){
       Registry reg0;
       reg0.stateDirectory( m_anchor );
-      cout << "directory has been written = " << (reg0.m_hasBeenWritten?"true":"false") << endl;
       m_registries.push_back( reg0 );
       return;
    }
@@ -964,7 +969,7 @@ void TracePack::addIgnored( list<ctPath> &io_directoriesToIgnore )
    list<ctPath>::iterator itIgnoredDirectory = m_ignoredDirectories.begin();
    while ( itIgnoredDirectory!=m_ignoredDirectories.end() )
    {
-      if ( contains( io_directoriesToIgnore, *itIgnoredDirectory ) )
+      if ( oneIsAncestorOf( io_directoriesToIgnore, *itIgnoredDirectory ) )
 	 itIgnoredDirectory = m_ignoredDirectories.erase( itIgnoredDirectory );
       else
 	 itIgnoredDirectory++;
@@ -1003,7 +1008,7 @@ void TracePack::addIgnored( list<cElFilename> &io_filesToIgnore )
 // a directory is ignore if it is in the m_ignoredDirectories list or if it is contained by an ignored directory
 bool TracePack::isIgnored( const ctPath &i_directory ) const
 {
-   return contains( m_ignoredDirectories, i_directory );
+   return oneIsAncestorOf( m_ignoredDirectories, i_directory );
 }
 
 // a filename is ignore if it is in the m_ignoredFiles list or if it is contained by an ignored directory
@@ -1018,7 +1023,7 @@ bool TracePack::isIgnored( const cElFilename &i_file ) const
    list<ctPath>::const_iterator itDirectory = m_ignoredDirectories.begin();
    while ( itDirectory!=m_ignoredDirectories.end() && (*itDirectory)<i_file.m_path )
    {
-      if ( itDirectory->contains( i_file ) ) return true;
+      if ( itDirectory->isAncestorOf( i_file ) ) return true;
       itDirectory++;
    }
    return ( itDirectory!=m_ignoredDirectories.end() && (*itDirectory)==i_file.m_path );
@@ -1172,29 +1177,53 @@ bool load_script( const cElFilename &i_filename, std::list<cElCommand> &o_comman
    return true;
 }
 
-bool is_equivalent( const cElFilename &i_a, const cElFilename &i_b )
+bool file_raw_equals( const cElFilename &i_a, const cElFilename &i_b )
 {
-   #if (ELISE_POSIX)
-      cElCommand cmd;
-      cmd.add( ctRawString("cmp") );
-      cmd.add( ctRawString( "-s" ) );
-      cmd.add( ctRawString( i_a.str_unix() ) );
-      cmd.add( ctRawString( i_b.str_unix() ) );
-      return cmd.system();
-   #else
-      // __TODO
-      not implemented
-   #endif
+	U_INT8 size = i_a.getSize();
+	if ( i_b.getSize()!=size ) return false;
+	ifstream fa( i_a.str_unix().c_str(), ios::binary ),
+	         fb( i_b.str_unix().c_str(), ios::binary );
+	if ( !fa || !fb ) return false;
+	const U_INT8 buffer_size = 1e6;
+	vector<char> bufferA(buffer_size),
+	             bufferB(buffer_size);
+	char *dataA = bufferA.data(),
+	     *dataB = bufferB.data();
+	while ( size!=0 ){
+		U_INT8 blockSize = std::min( size, buffer_size );
+		fa.read( dataA, blockSize );
+		fb.read( dataB, blockSize );
+		if ( memcmp( dataA, dataB, blockSize ) ) return false;
+		size -= blockSize;
+	}
+	return true;
 }
 
-// returns if an element of i_pathList contains i_path
-bool contains( const std::list<ctPath> &i_pathList, const ctPath &i_path )
+bool is_equivalent( const cElFilename &i_a, const cElFilename &i_b )
+{
+	#if (ELISE_POSIX)
+		cElCommand cmd;
+		cmd.add( ctRawString("cmp") );
+		cmd.add( ctRawString( "-s" ) );
+		cmd.add( ctRawString( i_a.str_unix() ) );
+		cmd.add( ctRawString( i_b.str_unix() ) );
+		return cmd.system();
+	#elif _MSC_VER
+		return file_raw_equals( i_a, i_b );
+	#else
+	// __TODO
+	not implemented
+	#endif
+}
+
+// returns if an element of i_pathList is an ancestor of i_path
+bool oneIsAncestorOf( const std::list<ctPath> &i_pathList, const ctPath &i_path )
 {
    // directories that may contain i_directory are lesser than it
    list<ctPath>::const_iterator itPath = i_pathList.begin();
    while ( itPath!=i_pathList.end() && ( (*itPath)<i_path ) )
    {
-      if ( itPath->contains( i_path ) ) return true;
+      if ( itPath->isAncestorOf( i_path ) ) return true;
       itPath++;
    }
    return ( itPath!=i_pathList.end() && ( (*itPath)==i_path ) );

@@ -319,7 +319,7 @@ bool ChunkStream::write_file( const cElFilename &i_srcFilename, const cElFilenam
 	
 	// write filename in separate chunks
 	string toStoredFilename = i_toStoreFilename.str_unix();
-	vector<char> buffer( string_raw_size(toStoredFilename) );
+	vector<char> buffer( (size_t)string_raw_size(toStoredFilename) );
 	char *itBuffer = buffer.data();
 	string_to_raw_data( toStoredFilename, m_reverseByteOrder, itBuffer );
 	write_buffer( chunkType|dataFilenameHeaderFlag, buffer );
@@ -393,6 +393,13 @@ bool ChunkStream::read_header( unsigned char &o_type, bool &o_hasMore, U_INT8 &o
 	o_hasMore = (m_inputStream.get()==1);
 	read_uint8( m_inputStream, m_reverseByteOrder, o_chunkSize );
 	
+	#ifdef __DEBUG_CHUNK_STREAM
+		if ( o_chunkSize>1e8 ){
+			cerr << RED_DEBUG_ERROR << "ChunkStream::read_header: chunkSize seems a bit high = " << o_chunkSize << endl;
+			exit(EXIT_FAILURE);
+		}
+	#endif
+
 	#ifdef __DEBUG_CHUNK_STREAM_OUTPUT_HEADERS
 		cout << "--- read_header file=[" << getFilename(m_currentFileIndex).str_unix() << "] offset=" << (U_INT8)m_inputStream.tellg()-chunkHeaderSize << " type=" << (int)o_type << " hasMore="
 			  << (o_hasMore?"true":"false") << " chunkSize=" << o_chunkSize << endl;
@@ -420,11 +427,12 @@ bool ChunkStream::read_buffer( unsigned char i_itemType, vector<char> &o_buffer 
 			#endif
 			return false;
 		}
+
 		buffers.push_back( vector<char>() );
 		vector<char> &buffer = buffers.back();
-		buffer.resize( chunkSize );
+		buffer.resize( (size_t)chunkSize );
 		m_inputStream.read( buffer.data(), chunkSize );
-		
+
 		#ifdef __DEBUG_CHUNK_STREAM
 			if ( m_inputStream.gcount()<0 || (U_INT8)m_inputStream.gcount()!=chunkSize ){
 				cerr << RED_DEBUG_ERROR << "ChunkStream::read_buffer: tried to read " << chunkSize << " byte but " << m_inputStream.gcount() << " were read correctly" << endl;
@@ -441,7 +449,7 @@ bool ChunkStream::read_buffer( unsigned char i_itemType, vector<char> &o_buffer 
 	} while ( hasMore );
 	
 	// create a single buffer with all chunks
-	o_buffer.resize( totalSize );
+	o_buffer.resize( (size_t)totalSize );
 	list<vector<char> >::const_iterator itBuffer = buffers.begin();
 	char *itItemData = o_buffer.data();
 	while ( itBuffer!=buffers.end() ){
@@ -454,23 +462,23 @@ bool ChunkStream::read_buffer( unsigned char i_itemType, vector<char> &o_buffer 
 }
 
 ChunkStream::Item * ChunkStream::read()
-{	
+{
 	if ( !prepare_next_read() )	return NULL;
 	unsigned char itemType = m_inputStream.peek();
 	if ( (itemType&dataHeaderFlag)==0 ){
 		// current item is a BufferItem
-		BufferItem *pItem = new BufferItem( itemType );			
-		read_buffer( itemType, pItem->m_buffer );
+		BufferItem *pItem = new BufferItem( itemType );
+		if ( !read_buffer( itemType, pItem->m_buffer ) ) return NULL;
 		return pItem;
 	}
 	else{
 		// read stored filename
 		vector<char> buffer;
-		read_buffer( itemType, buffer );
+		if ( !read_buffer( itemType, buffer ) ) return NULL;
 		#ifdef __DEBUG_CHUNK_STREAM
 			if ( (itemType&dataFilenameHeaderFlag)==0 ){
 				cerr << RED_DEBUG_ERROR << "ChunkStream::read: next chunk is data-file chunk whereas a filename-file chunk is expected" << endl;
-				exit(-1);
+				exit(EXIT_FAILURE);
 			}
 		#endif
 		const char *itRaw = (const char *)buffer.data();
