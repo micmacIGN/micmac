@@ -4,6 +4,8 @@
 #include "VersionedFileHeader.h"
 //#include "StdAfx.h"
 
+#include <ctime>
+
 using namespace std;
 
 versioned_file_header_t g_versioned_headers_list[] = 

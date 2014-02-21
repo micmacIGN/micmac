@@ -1352,8 +1352,12 @@ class cElHour
       bool operator!=( const cElHour &i_b ) const;
       
      // read/write in raw binary format
-     void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
-     void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
+     void from_raw_data( const char *&io_rawData, bool i_reverseByteOrder );
+     void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
+     static unsigned int raw_size();
+
+     void read_raw( istream &io_istream, bool i_inverseByteOrder );
+     void write_raw( ostream &io_ostream, bool i_inverseByteOrder ) const;
      
      static void getCurrentHour_local( cElHour &o_localHour );
      static void getCurrentHour_UTC( cElHour &o_utcHour );
@@ -1367,7 +1371,7 @@ class cElHour
 class cElDate
 {
     public :
-       static  const cElDate NoDate;
+       static const cElDate NoDate;
        bool IsNoDate() const;
        cElDate
        (
@@ -1390,10 +1394,14 @@ class cElDate
 	int    DifInDay(const cElDate&) const;
 	double DifInSec(const cElDate&) const;
 
-		bool operator==( const cElDate &i_b ) const;
-		bool operator!=( const cElDate &i_b ) const;
+	bool operator==( const cElDate &i_b ) const;
+	bool operator!=( const cElDate &i_b ) const;
       
 	// read/write in raw binary format
+	void from_raw_data( const char *&io_rawData, bool i_reverseByteOrder );
+	void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
+	static unsigned int raw_size();
+	
 	void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
 	void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
 	
