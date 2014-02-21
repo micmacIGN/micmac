@@ -137,7 +137,7 @@ bool typeFromMagicNumber( uint32_t i_magic, VFH_Type &o_type, bool &o_isMSBF )
 // generate a new random number than is not equal to itself in reversed byte order and that is not already used
 void generate_new_magic_number( uint32_t &o_direct, uint32_t &o_reverse )
 {
-   srand( time(NULL) );
+   srand( (unsigned int)time(NULL) );
    uint32_t magic, magic_inverse;
    unsigned char *m = (unsigned char*)&magic;
    versioned_file_header_t *itHeader;

@@ -6,7 +6,7 @@
 
 VersionedFileHeader::VersionedFileHeader(){}
 
-bool VersionedFileHeader::isMSBF() const { return m_isMSBF; }
+bool VersionedFileHeader::isMSBF() const { return (m_isMSBF==1); }
 
 uint32_t VersionedFileHeader::version() const { return m_version; }
 
