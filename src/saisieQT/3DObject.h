@@ -522,6 +522,7 @@ public:
 
     cMessages2DGL(QGLWidget *glw):
         _bDrawMessages(true),
+        m_font(QFont("Arial", 10, QFont::Normal, false)),
         glwid(glw)
     {}
 
