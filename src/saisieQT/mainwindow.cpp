@@ -694,8 +694,17 @@ void MainWindow::setUI()
     hideAction(_ui->actionToggleMode, isMode3D);
 
     bool isModeMask = _mode <= MASK3D;
-    hideAction(_ui->actionShow_names, isModeMask);
-    hideAction(_ui->actionShow_refuted, isModeMask);
+    hideAction(_ui->actionShow_names, !isModeMask);
+    hideAction(_ui->actionShow_refuted, !isModeMask);
+
+    //disable some actions
+    hideAction(_ui->actionAdd, isModeMask);
+    hideAction(_ui->actionSelect_none, isModeMask);
+    hideAction(_ui->actionInvertSelected, isModeMask);
+    hideAction(_ui->actionSelectAll, isModeMask);
+    hideAction(_ui->actionReset, isModeMask);
+
+    hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
 
@@ -716,15 +725,6 @@ void MainWindow::setUI()
          _tdLayout->setContentsMargins(2,2,2,2);
         _ui->frame3D->setLayout(_tdLayout);
         _ui->frame3D->setContentsMargins(0,0,0,0);
-
-        //disable some actions
-        hideAction(_ui->actionAdd, false);
-        hideAction(_ui->actionSelect_none, false);
-        hideAction(_ui->actionInvertSelected, false);
-        hideAction(_ui->actionSelectAll, false);
-        hideAction(_ui->actionReset, false);
-
-        hideAction(_ui->actionRemove, true);
 
         _ui->menuSelection->setTitle(tr("H&istory"));
     }
