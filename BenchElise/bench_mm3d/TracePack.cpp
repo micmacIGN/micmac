@@ -298,7 +298,6 @@ void TracePack::Registry::stateDirectory( const ctPath &i_path )
    
 	m_items.clear();
 	cElDate date = cElDate::NoDate;
-	U_INT8 fileLength;
 	mode_t rights;
 	list<string> files = RegexListFileMatch( path.str()+ctPath::sm_unix_separator, ".*", numeric_limits<INT>::max(), false );
 	list<string>::iterator itFile = files.begin();
