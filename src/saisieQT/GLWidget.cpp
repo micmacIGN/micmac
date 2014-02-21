@@ -174,6 +174,10 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         {
             switch(event->key())
             {
+            case Qt::Key_Delete:
+                m_GLData->m_polygon.removeSelectedPoint();
+                emit removePoint(NS_SaisiePts::eEPI_Deleted, m_GLData->m_polygon.idx());
+                break;
             case Qt::Key_Escape:
                 m_GLData->clearPolygon();
                 break;
@@ -719,34 +723,37 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 {
     QMenu menu(this);
 
-    if ((event->modifiers() & Qt::ShiftModifier))
+    if (hasDataLoaded())
     {
-        menu.addAction(_contextMenu._rename     );
-        menu.addAction(_contextMenu._showNames  );
-        menu.addAction(_contextMenu._showRefuted);
+        if (polygon().findNearestPoint(m_lastPosImage, polygon().radius()/getZoom()))
+        {
+            menu.addAction(_contextMenu._validate   );
+            menu.addAction(_contextMenu._dubious    );
+            menu.addAction(_contextMenu._refuted    );
+            menu.addAction(_contextMenu._noSaisie   );
+            menu.addAction(_contextMenu._highLight  );
+            menu.addSeparator();
+            menu.addAction(_contextMenu._rename     );
+        }
+        else
+        {
+            //menu.setWindowTitle(tr("Switch"));
+
+            //menu.setWindowFlags(Qt::Tool | Qt::WindowTitleHint | Qt::WindowStaysOnTopHint);
+
+            menu.addAction( _contextMenu._AllW  );
+            menu.addAction( _contextMenu._ThisW );
+            menu.addAction( _contextMenu._ThisP );
+        }
+
+        _contextMenu.setPos(m_lastPosImage);
+
+        menu.exec(event->globalPos());
+
+        polygon().resetSelectedPoint();
+
+        emit selectPoint(-1);
     }
-    else if ((event->modifiers() & Qt::ControlModifier))
-    {
-        menu.addAction(_contextMenu._AllW   );
-        menu.addAction(_contextMenu._ThisW  );
-        menu.addAction(_contextMenu._ThisP  );
-    }
-    else
-    {
-        menu.addAction(_contextMenu._validate   );
-        menu.addAction(_contextMenu._dubious    );
-        menu.addAction(_contextMenu._refuted    );
-        menu.addAction(_contextMenu._noSaisie   );
-        menu.addAction(_contextMenu._highLight  );
-    }
-
-    _contextMenu.setPos(m_lastPosImage);
-
-    menu.exec(event->globalPos());
-
-    polygon().resetSelectedPoint();
-
-    emit selectPoint(-1);
 }
 
 void GLWidget::enterEvent(QEvent *event)

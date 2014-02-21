@@ -4,24 +4,20 @@ void ContextMenu::createContextMenuActions()
 {
     QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
 
-    _rename      = new QAction(tr("Rename"), this);
-    _showNames   = new QAction(tr("Show names"), this);
-    _showRefuted = new QAction(tr("Show refuted points"), this);
-
     _highLight = new QAction(QIcon(IconFolder + "HL.ico"),              tr("Highlight"), this);
 
-    _AllW      = new QAction(tr("AllW") , this);
-    _ThisW     = new QAction(tr("ThisW"), this);
-    _ThisP     = new QAction(tr("ThisP"), this);
+    _AllW      = new QAction(tr("All Windows") , this);
+    _ThisW     = new QAction(tr("This Window"), this);
+    _ThisP     = new QAction(tr("This Point"), this);
 
     _validate  = new QAction(QIcon(IconFolder + "smile.ico"),           tr("Validate"), this);
     _dubious   = new QAction(QIcon(IconFolder + "interrogation.ico"),   tr("Dubious") , this);
     _refuted   = new QAction(QIcon(IconFolder + "refuted.ico"),         tr("Refuted") , this);
     _noSaisie  = new QAction(QIcon(IconFolder + "vide.ico"),            tr("Not captured"), this);
 
+    _rename    = new QAction(tr("Rename"), this);
+
     connect(_rename,		    SIGNAL(triggered()),   this, SLOT(rename()));
-    connect(_showNames,		    SIGNAL(triggered()),   this, SLOT(showNames()));
-    connect(_showRefuted,		SIGNAL(triggered()),   this, SLOT(showRefuted()));
 
     connect(_highLight,		    SIGNAL(triggered()),   this, SLOT(highlight()));
 
@@ -36,10 +32,10 @@ void ContextMenu::createContextMenuActions()
     connect(_refuted,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
     connect(_noSaisie,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
 
-    _signalMapper->setMapping (_validate,  NS_SaisiePts::eEPI_Valide);
-    _signalMapper->setMapping (_dubious,   NS_SaisiePts::eEPI_Douteux);
-    _signalMapper->setMapping (_refuted,   NS_SaisiePts::eEPI_Refute);
-    _signalMapper->setMapping (_noSaisie,  NS_SaisiePts::eEPI_NonSaisi);
+    _signalMapper->setMapping (_validate,  eEPI_Valide);
+    _signalMapper->setMapping (_dubious,   eEPI_Douteux);
+    _signalMapper->setMapping (_refuted,   eEPI_Refute);
+    _signalMapper->setMapping (_noSaisie,  eEPI_NonSaisi);
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(setPointState(int)));
 }
@@ -68,16 +64,4 @@ void ContextMenu::rename()
     if (!text.isEmpty())
 
          _polygon->rename(_lastPosImage, text);
-}
-
-void ContextMenu::showNames()
-{
-    _polygon->showNames(!_polygon->bShowNames());
-}
-
-void ContextMenu::showRefuted()
-{   
-    _polygon->showRefuted();
-
-    emit showRefuted(_polygon->bShowRefuted());
 }

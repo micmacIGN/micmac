@@ -211,12 +211,11 @@ cCaseNamePoint *  cX11_Interface::GetIndexNamePoint()
     return aRes;
 }
 
-void cX11_Interface::DeletePoint(cSP_PointGlob * aSG)
+void cX11_Interface::_DeletePoint(cSP_PointGlob * aSG)
 {
-    if (! mZFON->Get("Kill " + aSG->PG()->Name() + "?")) return;  //PARTIE X11
-    aSG->SetKilled();                                             //PARTIE A GARDER VIRTUELLE
+    if (! mZFON->Get("Kill " + aSG->PG()->Name() + "?")) return;
 
-    ChangeFreeNamePoint(aSG->PG()->Name(),true);
+    DeletePoint(aSG);
 
     RedrawAllWindows();
 }

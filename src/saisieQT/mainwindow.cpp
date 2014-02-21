@@ -27,7 +27,10 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     applyParams();
 
     if (_mode != MASK3D)
+    {
         setImagePosition(QPointF(-1.f,-1.f));
+        setImageName("");
+    }
 }
 
 MainWindow::~MainWindow()
@@ -237,6 +240,32 @@ void MainWindow::on_actionShow_messages_toggled(bool state)
     currentWidget()->setOption(cGLData::OpShow_Mess,state);
 
     labelShowMode(state);
+}
+
+void MainWindow::on_actionShow_names_toggled(bool show)
+{
+    for (int aK = 0; aK < nbWidgets();++aK)
+    {
+        if (getWidget(aK)->hasDataLoaded())
+        {
+            getWidget(aK)->getGLData()->m_polygon.showNames(show);
+            getWidget(aK)->update();
+        }
+    }
+}
+
+void MainWindow::on_actionShow_refuted_toggled(bool show)
+{
+    for (int aK = 0; aK < nbWidgets();++aK)
+    {
+        if (getWidget(aK)->hasDataLoaded())
+        {
+            getWidget(aK)->getGLData()->m_polygon.showRefuted(show);
+            getWidget(aK)->update();
+        }
+    }
+
+    emit showRefuted( show );
 }
 
 void MainWindow::on_actionToggleMode_toggled(bool mode)
@@ -663,6 +692,10 @@ void MainWindow::setUI()
     hideAction(_ui->actionShow_bbox,  isMode3D);
     hideAction(_ui->actionShow_cams,  isMode3D);
     hideAction(_ui->actionToggleMode, isMode3D);
+
+    bool isModeMask = _mode <= MASK3D;
+    hideAction(_ui->actionShow_names, isModeMask);
+    hideAction(_ui->actionShow_refuted, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
 

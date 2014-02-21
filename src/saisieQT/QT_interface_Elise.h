@@ -33,8 +33,6 @@ public :
 
     void                ChangeFreeNamePoint(const std::string &, bool SetFree){}
 
-    void                DeletePoint(cSP_PointGlob *){}
-
     cCaseNamePoint *    GetIndexNamePoint();
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
@@ -46,6 +44,7 @@ public :
     void                rebuildGlCamera();
 
     void option3DPreview();
+    void rebuild2DGlPoints();
 private:
 
     void                Init(){}
