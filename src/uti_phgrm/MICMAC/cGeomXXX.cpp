@@ -370,6 +370,8 @@ void cGeomDiscFPx::PostInit()
          }
 
          double aResol = (*itFI)->Geom().GetResolMoyenne_Euclid();
+
+
          mResol  += aResol;
          aNbResolGot++;
          double aRatio[theDimPxMax];
@@ -388,6 +390,7 @@ void cGeomDiscFPx::PostInit()
          }
       }
   }
+
 
 
   if (mAp->RatioAltiPlani().IsInit())
