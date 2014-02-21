@@ -298,7 +298,7 @@ int pack_from_script_func( int argc, char **argv )
    ctPath anchor;
    anchor = ctPath( (string)(argv[2]) );
 
-   if ( anchor.contains( packname ) )
+   if ( anchor.isAncestorOf( packname ) )
    {
       cerr << RED_ERROR << "pack file [" << packname.str_unix() << "] is inside source directory [" << anchor.str() << "]" << endl;
       return EXIT_FAILURE;
@@ -331,35 +331,33 @@ int pack_from_script_func( int argc, char **argv )
    // create initial state
    TracePack pack( packname, anchor );
    pack.addState();
+	pack.save();
 
    list<cElCommand>::iterator itCmd = commands.begin();
    unsigned int iCmd = 0;
-   while ( itCmd!=commands.end() )
-   {
-      cout << "command " << iCmd << " : [" << itCmd->str() << ']' << endl;
-      cElCommand originalCommand = *itCmd;
-      itCmd->replace( dictionary );
-      if ( !itCmd->system() )
-      {
-	 cerr << RED_ERROR << "command " << iCmd << " = " << endl;
-	 cerr << "[" << itCmd->str() << "]" << endl;
-	 cerr << "failed." << endl;
-	 return EXIT_FAILURE;
-      }
-      pack.addState( originalCommand );
-      pack.save();
+   while ( itCmd!=commands.end() ){
+		cout << "command " << iCmd << " : [" << itCmd->str() << ']' << endl;
+		cElCommand originalCommand = *itCmd;
+		itCmd->replace( dictionary );
+		if ( !itCmd->system() ){
+			cerr << RED_ERROR << "command " << iCmd << " = " << endl;
+			cerr << "[" << itCmd->str() << "]" << endl;
+			cerr << "failed." << endl;
+			return EXIT_FAILURE;
+		}
+		pack.addState( originalCommand );
+		pack.save();
       
-      #ifdef __DEBUG_TRACE_PACK      
-	 TracePack pack2( packname, anchor );
-	 pack2.load();
-	 if ( !pack.trace_compare(pack2) )
-	 {
-	    cerr << RED_DEBUG_ERROR << "pack!=load(write(pack))" << endl;
-	    exit(EXIT_FAILURE);
-	 }
-      #endif
-      
-      itCmd++; iCmd++;
+		#ifdef __DEBUG_TRACE_PACK      
+			TracePack pack2( packname, anchor );
+			pack2.load();
+			if ( !pack.trace_compare(pack2) ){
+				cerr << RED_DEBUG_ERROR << "pack!=load(write(pack))" << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif
+
+		itCmd++; iCmd++;
    }
       
    return EXIT_SUCCESS;
@@ -1026,7 +1024,11 @@ int test_trace_pack()
    if ( !f ){ cerr << RED_ERROR << "test_trace_pack: test script file [" << scriptName.str_unix() << "] cannot be opened for writing" << endl; goto test_trace_pack_clean; }
    f << "echo \"i am toto\" > toto" << endl;
    f << "echo ls > tata && chmod +x tata" << endl;
-   f << "date > titi" << endl;
+	#if ELISE_windows
+		f << "date /T > titi && time /T >> titi" << endl;
+	#else
+		f << "date > titi" << endl;
+	#endif
    f << "rm titi" << endl;
    f.close();
    

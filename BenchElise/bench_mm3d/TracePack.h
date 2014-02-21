@@ -1,7 +1,6 @@
 #ifndef __TRACE_PACK__
 #define __TRACE_PACK__
 
-// __DEL
 #define __DEBUG_TRACE_PACK
 
 #include "StdAfx.h"
@@ -167,7 +166,7 @@ ostream & operator <<( ostream &s, const cElHour &h );
 ostream & operator <<( ostream &s, const cElDate &d );
 
 // returns if an element of i_pathList contains i_path
-bool contains( const std::list<ctPath> &i_pathList, const ctPath &i_path );
+bool oneIsAncestorOf( const std::list<ctPath> &i_pathList, const ctPath &i_path );
 
 // uint8<->raw
 inline void uint8_to_raw_data( const U_INT8 &i_v, bool i_reverseByteOrder, char *&o_rawData );

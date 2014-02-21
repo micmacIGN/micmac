@@ -102,14 +102,24 @@ bool cElFilename::operator ==( const cElFilename &i_b ) const { return compare( 
 
 bool cElFilename::operator !=( const cElFilename &i_b ) const { return compare( i_b )!=0; }
 
-bool cElFilename::setRights( mode_t o_rights ) const { return chmod( str_unix().c_str(), o_rights )==0; }
+bool cElFilename::setRights( mode_t o_rights ) const {
+	#if (ELISE_POSIX)
+		return chmod( str_unix().c_str(), o_rights )==0;
+	#else
+		return true; // __TODO : windows read-only files
+	#endif
+}
 
 bool cElFilename::getRights( mode_t &o_rights ) const
-{ 
-      struct stat s;
-      if ( stat( str_unix().c_str(), &s )!=0 ) return false;
-      o_rights = s.st_mode;
-      return true;
+{
+	#if (ELISE_POSIX)
+		struct stat s;
+		if ( stat( str_unix().c_str(), &s )!=0 ) return false;
+		o_rights = s.st_mode;
+		return true;
+	#else
+		return true; // __TODO : windows read-only files
+	#endif
 }
 
 

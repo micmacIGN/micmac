@@ -484,9 +484,6 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
 
 bool launchMake( const string &i_makefile, const string &i_rule, unsigned int i_nbJobs, const string &i_options, bool i_stopCurrentProgramOnFail )
 {
-	// __DEL
-	//i_nbJobs = 1;
-
 	#ifdef __TRACE_SYSTEM__
 		static int iMakefile = 0;
 		stringstream ss;

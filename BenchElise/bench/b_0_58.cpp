@@ -62,40 +62,39 @@ void bench_path()
    bench_error( p0!=p1, "p0!=p1" );
    bench_error( p1!=p2, "p1!=p2" );
    cout << "ok\n" << endl;
-   
+
    cout << "--- test cElFilename creation/deletion" << endl;
-   cElFilename filename( "balo" );
+   cElFilename filename( "balo_file" );
    bench_error( filename.exists(), filename.str_unix()+" already exists" );
-   if ( !filename.exists() ) filename.create();
-   bench_error( !filename.exists(), string("unable to create ")+filename.str_unix() );
-   filename.remove();
-   bench_error( filename.exists(), string("unable to remove ")+filename.str_unix() );
+   bench_error( !filename.create(), string("cannot create file [")+filename.str_unix()+"]" );
+   bench_error( !filename.remove(), string("cannot remove file [")+filename.str_unix()+"]" );
    cout << "ok\n" << endl;
    
    cout << "--- test ctPath creation/deletion" << endl;
-   ctPath sampleDir( "balo" );
-   if ( !sampleDir.exists() ) sampleDir.create();
-   bench_error( !sampleDir.exists(), string("unable to create ")+sampleDir.str() );
-   sampleDir.remove_empty();
-   bench_error( sampleDir.exists(), string("unable to remove ")+sampleDir.str() );
+   ctPath sampleDir( "balo_path" );
+   bench_error( !sampleDir.create(), string("cannot create directory [")+sampleDir.str()+"]" );
+   bench_error( !sampleDir.remove_empty(), string("cannot remove directory [")+sampleDir.str()+"]" );
    cout << "ok\n" << endl;
    
-   cout << "\t--- creating/deleting a basic tree" << endl;
-   bench_error( !ctPath("toto").create() ||
-                !ctPath("toto/a").create() ||
-                !ctPath("toto/b").create() ||
-                !ctPath("toto/c").create() ||
-	        !cElFilename("toto/a/aa").create() ||
-	        !cElFilename("toto/a/aabbb").create() ||
-	        !cElFilename("toto/a/aabbbbxxx").create() ||
-	        !cElFilename("toto/c/cc").create() ||
-	        !cElFilename("toto/c/ccddd").create() ||
-	        !cElFilename("toto/c/balo").create(),
-      "unable to create a basic tree" );
-   bench_error ( !ctPath("toto").contains( ctPath("toto/a/") ), "directory \"toto\" does not contain \"toto/a\", which is odd" );
-   bench_error ( !ctPath("toto").contains( cElFilename("toto/c/balo") ), "directory \"toto\" does not contain \"toto/c/balo\", which is odd" );
-   bench_error ( ctPath("toto").contains( cElFilename("../toto") ), "directory \"toto\" contains \"../titi\", which is odd" );
-   bench_error( !ctPath("toto").remove(), "failed to delete a basic tree" );
+	cout << "--- creating/deleting a basic tree" << endl;
+	ctPath treeName("toto");
+	bench_error( treeName.exists(), string("tree [")+treeName.str()+"] already exists" );
+	bench_error( !ctPath("toto").create() ||
+	             !ctPath("toto/a").create() ||
+	             !ctPath("toto/b").create() ||
+	             !ctPath("toto/c").create() ||
+	             !cElFilename("toto/a/aa").create() ||
+	             !cElFilename("toto/a/aabbb").create() ||
+	             !cElFilename("toto/a/aabbbbxxx").create() ||
+	             !cElFilename("toto/c/cc").create() ||
+	             !cElFilename("toto/c/ccddd").create() ||
+	             !cElFilename("toto/c/balo").create(),
+		"unable to create a basic tree" );
+	bench_error ( !ctPath("toto").isAncestorOf( ctPath("toto/a/") ), "directory \"toto\" is not an ancestor of \"toto/a\", which is odd" );
+	bench_error ( !ctPath("toto").isAncestorOf( cElFilename("toto/c/balo") ), "directory \"toto\" is not an ancestor of \"toto/c/balo\", which is odd" );
+	bench_error ( ctPath("toto").isAncestorOf( cElFilename("../toto") ), "directory \"toto\" is an ancestor of \"../titi\", which is odd" );
+	bench_error( !ctPath("toto").remove(), "failed to delete a basic tree" );
+	cout << "ok" << endl;
 }
 
 void bench_command()

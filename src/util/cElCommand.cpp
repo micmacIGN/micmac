@@ -50,8 +50,8 @@ ctPath getWorkingDirectory()
 bool setWorkingDirectory( const ctPath &i_path )
 {
    #if (ELISE_windows)
-      // __TODO
-      not implemented
+      string path = i_path.str(ctPath::sm_windows_separator);
+      return ( SetCurrentDirectory( path.c_str() )==0 );
    #elif (ELISE_POSIX)
       return ( chdir( i_path.str().c_str() )==0 );
    #endif
@@ -476,20 +476,18 @@ ctPath::ctPath( const cElFilename &i_filename )
 
 void ctPath::append( const Token &i_token )
 {
-   if ( i_token=="." ) return;
-   if ( m_tokens.size()>0 && i_token==".." && (*m_tokens.rbegin())!=".." )
-   {
-      #ifdef __DEBUG_C_EL_COMMAND
-	 if ( m_tokens.size()==1 && m_tokens.begin()->isRoot() )
-	 {
-	    cerr << "ERROR: ctPath::append(Token): path is higher than root" << endl;
-	    exit(EXIT_FAILURE);
-	 }
-      #endif
-      m_tokens.pop_back(); return;
-   }
-   m_tokens.push_back( i_token );
-   m_normalizedName = str(sm_unix_separator);
+	if ( i_token=="." ) return;
+	if ( m_tokens.size()>0 && i_token==".." && (*m_tokens.rbegin())!=".." ){
+		#ifdef __DEBUG_C_EL_COMMAND
+			if ( m_tokens.size()==1 && m_tokens.begin()->isRoot() ){
+				cerr << "ERROR: ctPath::append(Token): path is higher than root" << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif
+		m_tokens.pop_back(); return;
+	}
+	m_tokens.push_back( i_token );
+	m_normalizedName = str(sm_unix_separator);
 }
 
 void ctPath::append( const ctPath &i_path )
@@ -557,38 +555,71 @@ void ctPath::toAbsolute( const ctPath &i_relativeTo )
 
 bool ctPath::isInvalid() const { return false; }
 
-bool ctPath::exists() const { return ELISE_fp::IsDirectory( str() ); }
+bool ctPath::exists() const
+{
+	#ifdef _MSC_VER
+		string s = str();
+		s.resize( s.length()-1 );
+		return ELISE_fp::IsDirectory(s); // windows' stat function does not accept trailing '\' or '/'
+	#endif
+	return ELISE_fp::IsDirectory( str() );
+}
 
 bool ctPath::create() const
 {
-   if ( m_tokens.size()==0 ||
-        ( m_tokens.size()==1 && m_tokens.front().isRoot() ) )
-      return true;
-   ELISE_fp::MkDirRec( str() );
-   return exists();
+	if ( m_tokens.size()==0 || ( m_tokens.size()==1 && m_tokens.front().isRoot() ) ) return true;
+	#ifdef _MSC_VER
+		string path = str(sm_windows_separator);
+		#ifdef __DEBUG_C_EL_COMMAND
+			if ( path.length()>248 ){
+				cerr << RED_DEBUG_ERROR << "ctPath::create: paths are limited to 248 characters for creation" << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif
+		CreateDirectory( path.c_str(), NULL );
+	#else
+		ELISE_fp::MkDirRec( str() );
+	#endif
+	return exists();
 }
 
 bool ctPath::getContent( list<cElFilename> &o_files ) const
 {
-   o_files.clear();
-   #if ELISE_POSIX
-      string normalizedName = m_normalizedName;
+	o_files.clear();
+	#if ELISE_POSIX
+		string normalizedName = m_normalizedName;
             
-      DIR *d;
-      struct dirent *dir;
-      d = opendir( normalizedName.c_str() );
+		DIR *d;
+		struct dirent *dir;
+		d = opendir( normalizedName.c_str() );
       
-      if ( d==NULL ) return false;
+		if ( d==NULL ) return false;
       
-      while ( ( dir=readdir(d) )!=NULL )
-      {
-	 if ( strcmp( dir->d_name, "." )!=0 && strcmp( dir->d_name, ".." ) )
-	    o_files.push_back( cElFilename( *this, string( dir->d_name ) ) );
-      }
+		while ( ( dir=readdir(d) )!=NULL ){
+			if ( strcmp( dir->d_name, "." )!=0 && strcmp( dir->d_name, ".." ) )
+			o_files.push_back( cElFilename( *this, string( dir->d_name ) ) );
+		}
 
-      closedir(d);
-      return true;
-   #endif
+		closedir(d);
+		return true;
+	#elif _MSC_VER
+		WIN32_FIND_DATA ffd;
+		HANDLE hFind = FindFirstFile( (str(sm_windows_separator)+"*").c_str(), &ffd );
+		string filename;
+
+		if ( hFind==INVALID_HANDLE_VALUE ) return false;
+
+		// while we keep finding new files
+		do{
+			// do not add parent directory nor current directory symbols
+			if ( ( strcmp(ffd.cFileName, ".")!=0 ) && ( strcmp(ffd.cFileName, "..")!=0 ) ) o_files.push_back( cElFilename(*this,string( ffd.cFileName )) );
+		} while ( FindNextFile( hFind, &ffd )!=0 );
+
+		FindClose(hFind);
+		return true;
+	#else
+		not implemented
+	#endif
 }
 
 bool ctPath::getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_directories, bool i_isRecursive ) const
@@ -596,7 +627,7 @@ bool ctPath::getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_d
    std::list<cElFilename> unspecialized_filenames;
    if ( !getContent( unspecialized_filenames ) ) return false;
    specialize_filenames( unspecialized_filenames, o_files, o_directories );
-      
+
    if ( i_isRecursive )
    {
       list<ctPath>::iterator itPath = o_directories.begin();
@@ -609,13 +640,20 @@ bool ctPath::getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_d
 
 bool ctPath::remove_empty() const
 {
-   #if ELISE_POSIX
-      if ( rmdir( str().c_str() )!=0 ) return false;
-   #else
-      // __TODO
-      not implemented
-   #endif
-   return !exists();
+	#if ELISE_POSIX
+		if ( rmdir( str().c_str() )!=0 ) return false;
+	#else
+		string path = str(sm_windows_separator);
+		#ifdef __DEBUG_C_EL_COMMAND
+			if ( path.length()>MAX_PATH ){
+				cerr << RED_DEBUG_ERROR << "ctPath::remove_empty: paths are limited to " << MAX_PATH << " characters" << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif
+		RemoveDirectory( path.c_str() );
+	#endif
+
+	return !exists();
 }
 
 bool ctPath::remove() const
@@ -624,37 +662,39 @@ bool ctPath::remove() const
    
    list<cElFilename> contentFiles;
    list<ctPath> contentPaths;
-   getContent( contentFiles, contentPaths, true/*recursive*/ );
-   
-   // remove all files
-   list<cElFilename>::const_iterator itFile = contentFiles.begin();
-   while ( itFile!=contentFiles.end() )
-   {
-      if ( !itFile->remove() )
-      {
-	 #ifdef __DEBUG_C_EL_COMMAND
-	    cerr << "ERROR: ctPath::remove(): unable to remove file [" << itFile->str_unix() << endl;
-	    exit(-1);
-	 #endif
-	 return false;
-      }
-      itFile++;
+   if ( !getContent( contentFiles, contentPaths, true/*recursive*/ ) ){
+		#ifdef __DEBUG_C_EL_COMMAND
+			cerr << RED_DEBUG_ERROR << "ctPath::remove(): cannot get content of directory [" << str() <<']' << endl;
+			exit(EXIT_FAILURE);
+		#endif
+	   return false;
    }
+
+	// remove all files
+	list<cElFilename>::const_iterator itFile = contentFiles.begin();
+	while ( itFile!=contentFiles.end() ){
+		if ( !itFile->remove() ){
+			#ifdef __DEBUG_C_EL_COMMAND
+				cerr << RED_DEBUG_ERROR << "ctPath::remove(): cannot remove file [" << itFile->str_unix() <<']' << endl;
+				exit(EXIT_FAILURE);
+			#endif
+			return false;
+		}
+		itFile++;
+	}
       
-   // remove all empty directories
-   list<ctPath>::const_iterator itPath = contentPaths.begin();
-   while ( itPath!=contentPaths.end() )
-   {
-      if ( !itPath->remove() )
-      {
-	 #ifdef __DEBUG_C_EL_COMMAND
-	    cerr << "ERROR: ctPath::remove(): unable to remove file [" << itPath->str() << endl;
-	    exit(-1);
-	 #endif
-	 return false;
-      }
-      itPath++;
-   }
+	// remove all empty directories
+	list<ctPath>::const_iterator itPath = contentPaths.begin();
+	while ( itPath!=contentPaths.end() ){
+		if ( !itPath->remove() ){
+			#ifdef __DEBUG_C_EL_COMMAND
+				cerr << RED_DEBUG_ERROR << "ctPath::remove(): cannot remove directory [" << itPath->str() <<']' << endl;
+				exit(EXIT_FAILURE);
+			#endif
+			return false;
+		}
+		itPath++;
+	}
    
    return remove_empty();
 }
@@ -674,32 +714,23 @@ unsigned int ctPath::count_upward_references() const
 }
    
 // returns if path contains i_path or is i_path
-bool ctPath::contains( const ctPath &i_path ) const
+bool ctPath::isAncestorOf( const ctPath &i_path ) const
 {
-   unsigned int nbUpward = std::max( count_upward_references(), i_path.count_upward_references() );
-   ctPath fakeAbsolutePath("/");
-   const ctPath::Token fakeToken("a");
-   while ( nbUpward-- )
-      fakeAbsolutePath.append( fakeToken );
-
    ctPath absoluteParent = *this,
           absoluteChild = i_path;
-   absoluteParent.toAbsolute( fakeAbsolutePath );
-   absoluteChild.toAbsolute( fakeAbsolutePath );
+   const ctPath workingDirectory = getWorkingDirectory();
+   absoluteParent.toAbsolute( workingDirectory );
+   absoluteChild.toAbsolute( workingDirectory );
       
    list<Token>::const_iterator itParent = absoluteParent.m_tokens.begin(),
                                itChild = absoluteChild.m_tokens.begin();
-   while ( itParent!=absoluteParent.m_tokens.end() &&
-           itChild!=absoluteChild.m_tokens.end() &&
-	   *itChild==*itParent )
-   {
-      itParent++;
-      itChild++;
+   while ( itParent!=absoluteParent.m_tokens.end() && itChild!=absoluteChild.m_tokens.end() && *itChild==*itParent ){
+      itParent++; itChild++;
    }
    return itParent==absoluteParent.m_tokens.end();
 }
 
-bool ctPath::contains( const cElFilename &i_filename ) const { return contains( i_filename.m_path ); }
+bool ctPath::isAncestorOf( const cElFilename &i_filename ) const { return isAncestorOf( i_filename.m_path ); }
    
 bool ctPath::isEmpty() const
 {
@@ -751,17 +782,16 @@ int cElFilename::compare( const cElFilename &i_b ) const
 
 bool cElFilename::exists() const { return ELISE_fp::exist_file( str_unix() ); }
 
-bool cElFilename::isDirectory() const { return ELISE_fp::IsDirectory( str_unix() ); }
+bool cElFilename::isDirectory() const { return ctPath( *this ).exists(); }
 
 bool cElFilename::remove() const
 {
    ELISE_fp::RmFile( str_unix() );
    
    #ifdef __DEBUG_C_EL_COMMAND
-      if ( exists() )
-      {
-	 cerr << RED_ERROR << "cElFilename::remove: unable to remove file [" << str_unix() << endl;
-	 exit(EXIT_FAILURE);
+      if ( exists() ){
+		 cerr << RED_DEBUG_ERROR << "cElFilename::remove: cannot remove file [" << str_unix() << ']' << endl;
+		 exit(EXIT_FAILURE);
       }
    #endif
    
@@ -791,30 +821,26 @@ U_INT8 cElFilename::getSize() const
 // take a list of filenames and split it into a list of existing filenames and existing directories
 void specialize_filenames( const list<cElFilename> &i_filenames, list<cElFilename> &o_filenames, list<ctPath> &o_paths )
 {
-   list<cElFilename>::const_iterator itFilename = i_filenames.begin();
-   while ( itFilename!=i_filenames.end() )
-   {
-      #ifdef __DEBUG_C_EL_COMMAND
-	 if ( itFilename->exists() && itFilename->isDirectory() )
-	 {
-	    cerr << "ERROR: specialize_filenames: filename " << itFilename->str_unix() << " is both an existing file and an existing directory " << endl;
-	    exit(-1);
-	 }
-      #endif
+	list<cElFilename>::const_iterator itFilename = i_filenames.begin();
+	while ( itFilename!=i_filenames.end() )
+	{
+		#ifdef __DEBUG_C_EL_COMMAND
+			if ( itFilename->exists() && itFilename->isDirectory() ){
+				cerr << RED_DEBUG_ERROR << "specialize_filenames: filename [" << itFilename->str_unix() << "] is both an existing file and an existing directory " << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif
       
-      if ( itFilename->exists() )
-	 o_filenames.push_back( *itFilename );
-      else if ( itFilename->isDirectory() )
-	 o_paths.push_back( ctPath(*itFilename) );
-      #ifdef __DEBUG_C_EL_COMMAND
-      else
-      {
-	 cerr << "ERROR: specialize_filenames: filename " << itFilename->str_unix() << " is neither an existing file nor an existing directory " << endl;
-	 exit(-1);
-      }
-      #endif
-      itFilename++;
-   }
+		if ( itFilename->exists() )	o_filenames.push_back( *itFilename );
+		else if ( itFilename->isDirectory() ) o_paths.push_back( ctPath(*itFilename) );
+		#ifdef __DEBUG_C_EL_COMMAND
+			else{
+				cerr << "ERROR: specialize_filenames: filename [" << itFilename->str_unix() << "] is neither an existing file nor an existing directory " << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif
+		itFilename++;
+	}
 }
 
 string CmdTokenType_to_string( CmdTokenType i_type )
@@ -890,19 +916,21 @@ bool isCommandTokenType( int i_v )
 
 std::string file_rights_to_string( mode_t i_rights )
 {
-   string res("___/___/___");
-   // rigths for owner
-   res[0] = ( (i_rights|S_IRUSR)==0 )?'-':'r';
-   res[1] = ( (i_rights|S_IWUSR)==0 )?'-':'w';
-   res[2] = ( (i_rights|S_IXUSR)==0 )?'-':'x';
-   // rights for group
-   res[4] = ( (i_rights|S_IRGRP)==0 )?'-':'r';
-   res[5] = ( (i_rights|S_IWGRP)==0 )?'-':'w';
-   res[6] = ( (i_rights|S_IXGRP)==0 )?'-':'x';
-   // rights for others
-   res[8]  = ( (i_rights|S_IROTH)==0 )?'-':'r';
-   res[9]  = ( (i_rights|S_IWOTH)==0 )?'-':'w';
-   res[10] = ( (i_rights|S_IXOTH)==0 )?'-':'x';
-   return res;
+	string res("___/___/___");
+	#if ELISE_POSIX
+	   // rigths for owner
+	   res[0] = ( (i_rights|S_IRUSR)==0 )?'-':'r';
+	   res[1] = ( (i_rights|S_IWUSR)==0 )?'-':'w';
+	   res[2] = ( (i_rights|S_IXUSR)==0 )?'-':'x';
+	   // rights for group
+	   res[4] = ( (i_rights|S_IRGRP)==0 )?'-':'r';
+	   res[5] = ( (i_rights|S_IWGRP)==0 )?'-':'w';
+	   res[6] = ( (i_rights|S_IXGRP)==0 )?'-':'x';
+	   // rights for others
+	   res[8]  = ( (i_rights|S_IROTH)==0 )?'-':'r';
+	   res[9]  = ( (i_rights|S_IWOTH)==0 )?'-':'w';
+	   res[10] = ( (i_rights|S_IXOTH)==0 )?'-':'x';
+	#endif
+	return res;
 }
 
