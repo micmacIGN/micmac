@@ -1590,6 +1590,10 @@ class ElCamera : public cCapture3D
 
        // Les tailles representent des capteurs avant Clip et Reech
 	  const  Pt2di & Sz() const;
+          Pt2dr  SzPixel() const;
+          Pt2dr  SzPixelBasik() const;
+          void  SetSzPixel(const Pt2dr &) ;
+
 	  void  SetSz(const Pt2di &aSz,bool AcceptInitMult=false);
           bool SzIsInit() const;
 
@@ -1703,6 +1707,7 @@ class ElCamera : public cCapture3D
          virtual       ElProj32 &        Proj()       = 0;
          virtual const ElProj32       &  Proj() const = 0;
 	 Pt2di    mSz;
+         Pt2dr    mSzPixel;
 
 
 

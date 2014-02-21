@@ -1506,7 +1506,7 @@ class cGeomImage_Terrain_Ori : public cGeomImage
 */
               // std::cout << "aaaaaaaaaNNaa " << aCa << "\n";
           }
-/// std::cout << "XXXXXXXXXXXX " << mOri->ResolutionPDVVerticale() << "\n";
+ // std::cout << "XXXXXXXXXXXX " << mOri->ResolutionPDVVerticale() << "\n"; getchar();
           return ElAbs(mOri->ResolutionPDVVerticale());
        }
        void  RemplitOri(cFileOriMnt & aFOM) const
@@ -2520,6 +2520,7 @@ if (1)
 	  double aCDNE = mGITO.CoeffDilNonE();
           // OO aRatio[0] = aCDNE* (mOri.resolution_angulaire() / euclid(aC1-aC2));
           aRatio[0] = aCDNE* (mOri->ResolutionAngulaire() / euclid(aC1-aC2));
+
 
          // std::cout << "GRRAP " << mOri->ResolutionAngulaire() << " " << euclid(aC1-aC2) << " " << mOri->Focale() << "\n";
 

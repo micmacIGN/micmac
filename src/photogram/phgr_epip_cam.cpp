@@ -332,7 +332,7 @@ CamStenopeIdeale  cCpleEpip::CamOut(const CamStenope & aCamIn,Pt2dr aPP,Pt2di aS
 
 Box2dr  cCpleEpip::BoxCam(const CamStenope & aCamIn,const CamStenope & aCamOut,bool Show) const
 {
-    return GlobBoxCam(Box2dr(Pt2dr(0,0),Pt2dr(aCamIn.Sz())),aCamIn,aCamOut);
+    return GlobBoxCam(Box2dr(Pt2dr(0,0),Pt2dr(aCamIn.SzPixel())),aCamIn,aCamOut);
 /*
     Box2dr aBoxIn (Pt2dr(0,0),Pt2dr(aCamIn.Sz()));
     std::vector<Pt2dr> aVPtsIn;
@@ -422,14 +422,20 @@ cCpleEpip::cCpleEpip
              ),
    mPrefLeft (aPrefLeft),
    mPrefRight (aPrefRight),
-   mSzIn     (Sup(mCInit1.Sz(),mCInit2.Sz())),
-   mFoc      (sqrt(aC1.Focale()*aC2.Focale())/mScale),
+   mSzIn     (Sup(mCInit1.SzPixel(),mCInit2.SzPixel())),
+   // mSzIn     (Sup(mCInit1.Sz(),mCInit2.Sz())),
+   // mFoc      (sqrt(aC1.Focale()*aC2.Focale())/mScale),
+   mFoc      (   (1/sqrt(aC1.ResolutionAngulaire()*aC2.ResolutionAngulaire()))/mScale),
+   // mFoc      ( 6000),
    mMatM2C   (OrientationEpipolaire(mCInit1.Orient(),mCInit2.Orient())),
    mMatC2M   (mMatM2C.transpose()),
    mCamOut1  (CamOut(mCInit1,Pt2dr(0,0),mSzIn)),
    mCamOut2  (CamOut(mCInit2,Pt2dr(0,0),mSzIn)),
    mOk       (false)
 {
+
+   std::cout << "SZZZIIIN " << mSzIn << mCInit1.SzPixel() << mCInit2.SzPixel() << "\n";
+
    SetNameLock("Init") ;
       // double aProf = (mCamOut1.GetRoughProfondeur()+mCamOut2.GetRoughProfondeur()) / 2.0;
 

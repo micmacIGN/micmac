@@ -3994,6 +3994,10 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
     */
 
     mCam->SetSz(aCIC.SzIm());
+    if (aCIC.PixelSzIm().IsInit())
+    {
+         mCam->SetSzPixel(aCIC.PixelSzIm().Val());
+    }
 // std::cout << "RRRRRRRRRuuuuu   " << aCIC.RayonUtile().IsInit() << "\n";
     if (aCIC.RayonUtile().IsInit())
     {

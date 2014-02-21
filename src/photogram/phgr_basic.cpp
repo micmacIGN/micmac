@@ -1434,6 +1434,7 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     mCRAP      (0),
     _orient (Pt3dr(0,0,0),0,0,0),
     mSz        (-1,-1),
+    mSzPixel   (-1,-1),
     mDIsDirect (! isDistC2M),
     mTypeProj  (aTP),
     // mAltisSolIsDef (false),
@@ -2787,6 +2788,9 @@ cCalibrationInternConique  ElCamera::ExportCalibInterne2XmlStruct(Pt2di aSzIm) c
     // aParam.PP() = PP();
     // aParam.F()  = Focale();
     aParam.SzIm() = aSzIm;
+    if (mSzPixel.x >0)
+      aParam.PixelSzIm().SetVal(mSzPixel);
+
 
     aParam.OrIntGlob().SetNoInit();
     if (! mIntrOrImaC2M.IsId())
@@ -3002,9 +3006,15 @@ double CamStenope::ResolutionAngulaire() const
 */
 
 
+
    // Ci dessus ne marche pas avec point hors image
-   Pt2dr aMil = Pt2dr(Sz()) /2.0;
+// std::cout << "Szzz " << Sz() << "\n"; getchar();
+   // Pt2dr aMil = Pt2dr(Sz()) /2.0;
+
+   // Pt2dr aMil = DComplM2C(Pt2dr(Sz()) /2.0);
+   Pt2dr aMil = SzPixel()/2.0;
    Pt2dr aMil2 = aMil + Pt2dr(aEps,0);
+// aMil = DComplM2C(aMil);
 
    // std::cout << "Dif MIL = " << aMil -aMil2 << "\n";
    // std::cout << "Dif Ray = " << F2toDirRayonR3(aMil) -F2toDirRayonR3(aMil2) << "\n";
@@ -3012,10 +3022,20 @@ double CamStenope::ResolutionAngulaire() const
 
    // Pt3dr aQ0 = ImEtProf2Terrain(aMil,1.0);    NE MARCHE PAS AVEC GRDE COORDONNEES SUR LES CENTRES
    // Pt3dr aQ1 = ImEtProf2Terrain(aMil2,1.0);
-     Pt3dr aQ0 = F2toDirRayonL3(aMil);
-      Pt3dr aQ1 = F2toDirRayonL3(aMil2);
+
+
+   Pt3dr aQ0 = F2toDirRayonL3(aMil);
+   Pt3dr aQ1 = F2toDirRayonL3(aMil2);
 
    double aDQ = euclid(aQ0-aQ1) / aEps;
+
+
+/*
+   std::cout << mGlobOrImaC2M(aMil)  <<  mGlobOrImaC2M(aMil2) << "\n";
+   std::cout << DComplC2M(aMil)  <<  DComplC2M(aMil2) << "\n";
+   std::cout << DistInverse(aMil)  <<  DistInverse(aMil2) << "\n";
+   std::cout << " dddDQ " <<  aMil << " " << aDQ  << aQ0 << aQ1 << "\n"; getchar();
+*/
 
 /*
 std::cout << "HHHHh   " <<  aDQ  << " " << 1/Focale() << "\n";
@@ -3051,6 +3071,24 @@ REAL CamStenope::Focale() const
 Pt2dr CamStenope::PP() const
 {
    return _PrSten.PP();
+}
+
+void ElCamera::SetSzPixel(const Pt2dr & aSzP)
+{
+   mSzPixel = aSzP;
+}
+
+Pt2dr  ElCamera::SzPixelBasik() const
+{
+   return mSzPixel;
+}
+
+Pt2dr  ElCamera::SzPixel() const
+{
+   if (mSzPixel.x>0)
+      return mSzPixel;
+
+   return DComplM2C(Pt2dr(Sz()) /2.0) * 2;
 }
 
 double ElCamera::ProfondeurDeChamps(const Pt3dr & aP) const
@@ -3208,7 +3246,10 @@ Ori3D_Std *  CamStenope::NN_CastOliLib()
 }
 double CamStenope::ResolutionPDVVerticale()
 {
-  return (PseudoOpticalCenter().z -GetAltiSol()) / Focale();
+//    std::cout <<  "fffFOCALE " << Focale() <<  " " << 1/ ResolutionAngulaire()  << "\n";
+// getchar();
+  // return (PseudoOpticalCenter().z -GetAltiSol()) / Focale();
+  return (PseudoOpticalCenter().z -GetAltiSol()) * ResolutionAngulaire() ;
 }
 
 
@@ -4292,6 +4333,7 @@ cCamStenopeGrid * cCamStenopeGrid::Alloc
 
   cCamStenopeGrid * aRes =  new cCamStenopeGrid(aCS.Focale(),aCS.PP(),aDist,aCS.Sz(),aCS.ParamAF());
 
+  aRes->mSzPixel =  aCS.SzPixelBasik();
 
   // HERE 
 

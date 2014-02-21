@@ -448,6 +448,7 @@ void cAppliWithSetImage::AddCoupleMMImSec()
                          + aBlank + QUOTE(mFullName)
                          + aBlank + mOri;
       System(aCom);
+
       for (int aKI=0 ; aKI<int(mSetIm->size()) ; aKI++)
       {
           const std::string & aName1 = (*mSetIm)[aKI];
@@ -514,6 +515,8 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
     if (aS1->attr().mIma->mNameIm>aS2->attr().mIma->mNameIm) 
        ElSwap(aS1,aS2);
 
+
+
     cImaMM * anI1 = aS1->attr().mIma;
     cImaMM * anI2 = aS2->attr().mIma;
 
@@ -522,6 +525,7 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
     {
 
        aCpleE = StdCpleEpip(mDir,mOri,anI1->mNameIm,anI2->mNameIm);
+
        if (! aCpleE->Ok()) return;
        if (aCpleE->RatioCam() <0.1) return;
 
@@ -635,7 +639,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
            aP1.SetSup(aPIm);
        }
        Box2di aBoxIm(aP0,aP1);
-       Box2di aBoxCam(Pt2di(0,0),aCS->Sz());
+       Box2di aBoxCam(Pt2di(0,0),Pt2di(aCS->SzPixel()));
 
        if (! InterVide(aBoxIm,aBoxCam))
        {
@@ -655,9 +659,11 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                 cCalibrationInterneRadiale * aMR =aCIO->CalibDistortion().back().ModRad().PtrVal();
                 if (1)
                 {
-                                ElAffin2D aM2C0 = Xml2EL(aCO.OrIntImaM2C());
-                                ElAffin2D  aM2CCliped = ElAffin2D::trans(-Pt2dr(aDec))   * aM2C0;
-                                aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
+                      ElAffin2D aM2C0 = Xml2EL(aCO.OrIntImaM2C());
+                      ElAffin2D  aM2CCliped = ElAffin2D::trans(-Pt2dr(aDec))   * aM2C0;
+                      aCO.OrIntImaM2C().SetVal(El2Xml(aM2CCliped));
+                      // Sinon ca ne marche pas pour le match
+                      aCO.Interne().Val().PixelSzIm().SetVal(Pt2dr(aSZ));
                 // aCO.Interne().Val().SzIm() = aSZ;
                 }
                 else
