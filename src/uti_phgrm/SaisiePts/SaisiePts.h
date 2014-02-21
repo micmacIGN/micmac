@@ -309,7 +309,7 @@ class cVirtualInterface
 
     virtual void        ChangeFreeNamePoint(const std::string &, bool SetFree)=0;
 
-    virtual void        DeletePoint(cSP_PointGlob *)=0;
+    void                DeletePoint(cSP_PointGlob *aSG);
 
 
     virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
@@ -370,7 +370,7 @@ public :
 
     void            ChangeFreeNamePoint(const std::string &, bool SetFree);
 
-    void            DeletePoint(cSP_PointGlob *);
+    void            _DeletePoint(cSP_PointGlob *);
 
     void            SetInvisRef(bool aVal);         // sert à rendre les points réfutés visibles ou non
 

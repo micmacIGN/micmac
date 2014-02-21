@@ -26,10 +26,6 @@ public:
 
     cPolygon    *_polygon;
 
-    QAction     *_showNames;
-    QAction     *_showRefuted;
-    QAction     *_rename;
-
     QAction     *_AllW;
     QAction     *_ThisP;
     QAction     *_ThisW;
@@ -39,12 +35,11 @@ public:
     QAction     *_refuted;
     QAction     *_noSaisie;
     QAction     *_highLight;
+    QAction     *_rename;
 
 signals:
 
     void changeState(int state, int idPt);
-
-    void showRefuted(bool show);
 
 public slots:
 
@@ -53,10 +48,6 @@ public slots:
     void highlight();
 
     void rename();
-
-    void showNames();
-
-    void showRefuted();
 
 private :
 

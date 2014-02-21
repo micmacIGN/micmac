@@ -102,7 +102,7 @@ public:
     GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
-    cPolygon & polygon(){ return m_GLData->m_polygon;}
+    cPolygon & polygon(){ return m_GLData->m_polygon; }
 
     void setCursorShape(QPointF pos);
 
@@ -134,6 +134,8 @@ signals:
     void movePoint(int idPt);
 
     void selectPoint(int idPt);
+
+    void removePoint(int state, int idPt);
 
 protected:
     //! inherited from QGLWidget

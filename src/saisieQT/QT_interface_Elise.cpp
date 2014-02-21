@@ -32,11 +32,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
 
+        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(removePoint(int, int)), this,SLOT(changeState(int,int)));
+
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurPose(void*)));
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(showRefuted(bool)), this,SLOT(SetInvisRef(bool)));
+        connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this,SLOT(SetInvisRef(bool)));
 
         connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this,SLOT(filesDropped(QStringList)));
     }
@@ -168,14 +170,14 @@ void cQT_Interface::movePoint(int idPt)
 {
     if(idPt >= 0 )
     {
-        int t = cImageIdxCurrent();
-
         cSP_PointeImage* aPIm = currentPointeImage(idPt);
 
         if(aPIm)
         {
+            int t = cImageIdxCurrent();
+
             cImage* mCurIm = mAppli->images(t);
-            mAppli->AddUndo(*(aPIm->Saisie()),mCurIm);
+            mAppli->AddUndo(*(aPIm->Saisie()), mCurIm);
 
             aPIm->Saisie()->PtIm() = transformation(m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt]);
             //Redraw();
@@ -195,7 +197,6 @@ void cQT_Interface::selectPoint(int idPt)
 
 void cQT_Interface::changeState(int state, int idPt)
 {
-
     eEtatPointeImage aState = (eEtatPointeImage)state;
 
     if (aState!=eEPI_NonValue && idPt != -1)
@@ -207,6 +208,10 @@ void cQT_Interface::changeState(int state, int idPt)
             if(aState == NS_SaisiePts::eEPI_Highlight)
 
                 aPIm->Gl()->HighLighted() = true;
+
+            else if (aState == NS_SaisiePts::eEPI_Deleted)
+
+                 DeletePoint( aPIm->Gl() );
 
             else
             {
@@ -390,7 +395,7 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
     }
 }
 
-void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
+void cQT_Interface::rebuild2DGlPoints()
 {
     for (int i = 0; i < m_QTMainWindow->nbWidgets(); ++i)
     {
@@ -414,6 +419,11 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
             }
         }
     }
+}
+
+void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
+{
+    rebuild2DGlPoints();
 
     rebuild3DGlPoints(aPIm);
 }
