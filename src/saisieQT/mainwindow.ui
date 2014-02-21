@@ -729,6 +729,8 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <addaction name="actionShow_bbox"/>
     <addaction name="actionShow_cams"/>
     <addaction name="actionShow_messages"/>
+    <addaction name="actionShow_names"/>
+    <addaction name="actionShow_refuted"/>
     <addaction name="actionReset_view"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -1241,6 +1243,34 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="actionShow_names">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show names</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionShow_refuted">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show refuted</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+R</string>
    </property>
   </action>
  </widget>

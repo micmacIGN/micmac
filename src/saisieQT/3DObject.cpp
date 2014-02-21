@@ -523,27 +523,25 @@ void cPoint::draw()
          {
              switch(_state)
              {
-             case   NS_SaisiePts::eEPI_NonSaisi :
+             case eEPI_NonSaisi :
                  _painter->setPen(Qt::yellow);
                  break;
 
-             case   NS_SaisiePts::eEPI_Refute :
+             case eEPI_Refute :
                  _painter->setPen(Qt::red);
                  break;
 
-             case   NS_SaisiePts::eEPI_Douteux :
+             case eEPI_Douteux :
                  _painter->setPen(QColor(255, 127, 0, 255) );
                  break;
 
-             case NS_SaisiePts::eEPI_Valide :
+             case eEPI_Valide :
                  _painter->setPen(Qt::green);
                  break;
 
-             case  NS_SaisiePts::eEPI_Disparu :
-                 //TODO
-                 break;
-
-             case NS_SaisiePts::eEPI_NonValue :
+             case eEPI_Disparu  :
+             case eEPI_NonValue :
+             case eEPI_Deleted  :
                  break;
              }
          }
@@ -735,7 +733,7 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
 
     if (_idx >=0 && _idx <_points.size())
     {          
-        if (state == NS_SaisiePts::eEPI_NonValue)
+        if (state == eEPI_NonValue)
         {
             //TODO: cWinIm l.661
             _points.remove(_idx);
@@ -787,12 +785,12 @@ int cPolygon::getSelectedPointState()
     {
         return _points[_idx].state();
     }
-    else return NS_SaisiePts::eEPI_NonValue;
+    else return eEPI_NonValue;
 }
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, NS_SaisiePts::eEPI_NonValue, selected, _color));
+    _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color));
 
     bool isNumber = false;
     double value = _defPtName.toDouble(&isNumber);
@@ -802,7 +800,7 @@ void cPolygon::add(const QPointF &pt, bool selected)
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = cPoint(_painter, pt, _defPtName, _bShowNames, NS_SaisiePts::eEPI_NonValue, false, _color);
+        _points[size()-1] = cPoint(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color);
 
     add(pt);
 }
@@ -869,10 +867,15 @@ void cPolygon::setVector(const QVector<QPointF> &aPts)
 
 void cPolygon::setPointSelected()
 {
-    _bSelectedPoint = true;
-
     if (_idx >=0 && _idx < _points.size())
+    {
         _points[_idx].setSelected(true);
+        _bSelectedPoint = true;
+    }
+    else
+    {
+        _bSelectedPoint = false;
+    }
 }
 
 void cPolygon::resetSelectedPoint()
@@ -884,7 +887,7 @@ void cPolygon::resetSelectedPoint()
     _idx = -1;
 }
 
-void cPolygon::findNearestPoint(QPointF const &pos, float radius)
+bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
 {
     if (_bIsClosed)
     {
@@ -910,8 +913,14 @@ void cPolygon::findNearestPoint(QPointF const &pos, float radius)
         }
 
         if (_idx >=0 && _idx <_points.size())
+        {
             _points[_idx].setSelected(true);
-     }
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
@@ -1054,13 +1063,13 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
     return inside;
 }
 
-void cPolygon::showRefuted()
+void cPolygon::showRefuted(bool show)
 {
-    _bShowRefuted = !_bShowRefuted;
+    _bShowRefuted = show;
 
     for (int aK=0; aK < _points.size(); ++aK)
     {
-        if (_points[aK].state() == NS_SaisiePts::eEPI_Refute)
+        if (_points[aK].state() == eEPI_Refute)
             _points[aK].setVisible(_bShowRefuted);
     }
 }

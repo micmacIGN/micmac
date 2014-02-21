@@ -64,6 +64,7 @@ public:
     void setLayout(uint sy);
 
     void loadPly(const QStringList& filenames);
+
 public slots:
 
     //! Try to load a list of files
@@ -89,6 +90,10 @@ public slots:
 
     void setGamma(float);
 
+signals:
+
+    void showRefuted(bool);
+
 protected slots:
 
     void setImagePosition(QPointF pt);
@@ -106,6 +111,8 @@ protected slots:
 
     void on_actionFullScreen_toggled(bool);
     void on_actionShow_messages_toggled(bool);
+    void on_actionShow_names_toggled(bool);
+    void on_actionShow_refuted_toggled(bool);
     void on_actionToggleMode_toggled(bool);
 
     void on_actionReset_view_triggered();

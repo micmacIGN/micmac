@@ -42,6 +42,8 @@ enum SELECTION_MODE { SUB,
                       NONE
                     };
 
+using namespace NS_SaisiePts;
+
 class cObject
 {
     public:
@@ -104,7 +106,7 @@ class cPoint : public cObjectGL, public QPointF
            QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            bool showName   = false,
-           int  state = NS_SaisiePts::eEPI_NonValue,
+           int  state = eEPI_NonValue,
            bool isSelected = false,
            QColor color = Qt::red,        
            QColor selectionColor = Qt::blue,
@@ -244,7 +246,7 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        void    findNearestPoint(const QPointF &pos, float radius = _radius);
+        bool    findNearestPoint(const QPointF &pos, float radius = _radius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
@@ -312,12 +314,14 @@ class cPolygon : public cObjectGL
         void    showLines(bool show = true);
         bool    isLinear() { return _bShowLines; }
 
-        void    showRefuted();
+        void    showRefuted(bool show);
         bool    bShowRefuted() { return _bShowRefuted; }
 
         void    translate(QPointF Tr);
 
         void    flipY(float height);
+
+        float   radius() { return _radius; }
 
     protected:
         cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);

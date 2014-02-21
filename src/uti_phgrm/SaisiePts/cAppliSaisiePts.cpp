@@ -46,6 +46,13 @@ using namespace NS_SaisiePts;
 //    mVNameCase.push_back(NP);
 //}
 
+void cVirtualInterface::DeletePoint(cSP_PointGlob * aSG)
+{
+    aSG->SetKilled();
+
+    ChangeFreeNamePoint(aSG->PG()->Name(), true);
+}
+
 void cVirtualInterface::InitNbWindows()
 {
     const cSectionWindows & aSW = mParam->SectionWindows();
@@ -643,8 +650,8 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
         break;
         
     case eEPI_NonValue :
-        break;
     case eEPI_Highlight :
+    case eEPI_Deleted :
         break;
     }
 
