@@ -330,7 +330,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 
   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-  mICNM->CorrecNameOrient(mOri); 
+  if (! mModePB)
+  {
+     mICNM->CorrecNameOrient(mOri); 
+  }
   mSetIm = mICNM->Get(mIms);
   mNbIm = mSetIm->size();
   ELISE_ASSERT((mNbIm>=2)|mUseImSec,"Not Enough image in Pattern");
