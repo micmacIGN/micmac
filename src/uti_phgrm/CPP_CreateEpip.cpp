@@ -114,14 +114,21 @@ int CreateEpip_main(int argc,char ** argv)
      std::string aNameOr1 = anICNM->Assoc1To1(aKey,aName1,true);
      std::string aNameOr2 = anICNM->Assoc1To1(aKey,aName2,true);
 
+     std::cout << "RREEEEEEEEEEEEEEead cam \n";
      CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameOr1,anICNM);
+     std::cout << "EPISZPPPpp " << aCam1->SzPixel() << "\n";
+
      CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameOr2,anICNM);
 
      Tiff_Im aTif1 = Tiff_Im::StdConvGen(aDir+aName1,aNbChan,Cons16B);
      Tiff_Im aTif2 = Tiff_Im::StdConvGen(aDir+aName2,aNbChan,Cons16B);
 
-     aCam1->SetSz(aTif1.sz(),true);
-     aCam2->SetSz(aTif2.sz(),true);
+
+
+      // aCam1->SetSz(aTif1.sz(),true);
+      // aCam2->SetSz(aTif2.sz(),true);
+
+// for (int aK=0; aK<13 ; aK++) std::cout << "SSSssssssssssssssssssiize !!!!\n"; getchar();
 
   //  Test commit
 

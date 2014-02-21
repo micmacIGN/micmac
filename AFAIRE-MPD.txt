@@ -1,3 +1,10 @@
+BUG non deterministe ??? dans Tapas signale DIAS
+
+tfw dans les orthos, y compris indiv
+txt ds campari.
+Image les plus récentes dans SaisiAppui
+
+PannelImage : nom (numero de photos)
 
 Triangle trop plat dans OriConvert Solution Initiale....
 Bug Origine dans Bascule
@@ -166,4 +173,5 @@ EGYPTE :
 -1- Recalibration de tous les objectifs
 -2- Détermination des heures de "rasances" pour les principaux points de vue
 -3- Fixer les conventions de nomage  (Plan, masq ...), et de renommage des images (par la focale entre autre);
+
 
