@@ -46,15 +46,6 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 void cQT_Interface::SetInvisRef(bool aVal)
 {
     mRefInvis = aVal;
-
-    //TODO:
-    /* for (int aKW=0 ; aKW < (int)mWins.size(); aKW++)
-    {
-        mWins[aKW]->Redraw();
-        mWins[aKW]->ShowVect();
-    }*/
-
-
 }
 
 std::pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
@@ -106,6 +97,7 @@ void cQT_Interface::addPoint(QPointF point)
     Pt2dr aPGlob(point.x(), m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage._m_image->height() - point.y());
 
     cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
+    //TODO : aCNP *= GetIndexNamePoint();
 
     QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage.cObjectGL::name();
 
