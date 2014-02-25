@@ -7,7 +7,6 @@
 
 #include "general/cElCommand.h"
 
-// __DEL
 #define __DEBUG_CHUNK_STREAM
 //#define __DEBUG_CHUNK_STREAM_OUTPUT_HEADERS
 
@@ -97,6 +96,8 @@ public:
    // writeOpen must be called before any writing attempt
    bool writeOpen();
    void close();
+   inline void setReverseByteOrder( bool i_isReverse );
+   inline bool getReverseByteOrder() const;
    
    // insert file to the end of the stream
    // o_fileItem is set to the written item as if it was just read
@@ -118,24 +119,13 @@ public:
    // delete all files associated to the stream
    bool remove();
    
-   U_INT8 maxFileSize() const;
+   inline U_INT8 maxFileSize() const;
    
    // get the name of the stream file of index i_fileIndex
    cElFilename getFilename( U_INT4 i_fileIndex ) const;
    
    // get the number of files currently composing the stream
    U_INT4 getNbFiles() const;
-
-   // old methods
-   /*
-   ChunkStream( const cElFilename &i_filename, U_INT4 i_maxFileSize, bool i_reverseByteOrder );
-   cElFilename filename( unsigned int i_iFile ) const;
-   unsigned int getNbFiles() const;
-   bool setOffset( U_INT4 i_iFirstChunkFile, streampos i_offset );
-   bool readChunks( std::list<FileChunk> &o_chunks );
-   bool writeChunks( std::list<FileChunk> &io_chunks );
-   bool remove() const;
-   */
 };
 
 inline void write_uint4( U_INT4 i_ui4, bool i_reverseByteOrder, std::ostream &io_fOut );

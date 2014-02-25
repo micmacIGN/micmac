@@ -31,10 +31,9 @@ bool ChunkStream::FileItem::copyToFile( const cElFilename &i_dstFilename ) const
 {
 	ofstream dst( i_dstFilename.str_unix().c_str(), ios::binary );
 
-	if ( !dst )
-	{
+	if ( !dst ){
 		#ifdef __DEBUG_CHUNK_STREAM
-			cerr << RED_DEBUG_ERROR << "ChunkStream::FileItem::copyToFile: unable to open destination file [" << i_dstFilename.str_unix() << "]" << endl;
+			cerr << RED_DEBUG_ERROR << "ChunkStream::FileItem::copyToFile: cannot open destination file [" << i_dstFilename.str_unix() << "]" << endl;
 		#endif
 		return false;
 	}
@@ -45,13 +44,11 @@ bool ChunkStream::FileItem::copyToFile( const cElFilename &i_dstFilename ) const
 	while ( itChunk!=m_chunks.end() )
 	{
 		// set Chunk's file as input
-		if ( currentSrcFile!=itChunk->m_filename )
-		{
+		if ( currentSrcFile!=itChunk->m_filename ){
 			if ( src.is_open() ) src.close();
 			currentSrcFile = itChunk->m_filename;
 			src.open( currentSrcFile.str_unix().c_str(), ios::binary );
-			if ( !src )
-			{
+			if ( !src ){
 				#ifdef __DEBUG_CHUNK_STREAM
 					cerr << RED_DEBUG_ERROR << "ChunkStream::FileItem::copyToFile: unable to open source file [" << currentSrcFile.str_unix() << "]" << endl;
 				#endif
@@ -535,8 +532,6 @@ bool ChunkStream::read( U_INT4 i_iStartIndex, U_INT8 i_startOffset, std::list<It
 	return true;
 }
 
-U_INT8 ChunkStream::maxFileSize() const { return m_maxFileSize; }
-
 
 //--------------------------------------------
 // related functions
@@ -545,13 +540,11 @@ U_INT8 ChunkStream::maxFileSize() const { return m_maxFileSize; }
 bool stream_copy( istream &io_src, ostream &io_dst, U_INT8 i_length )
 {
    #ifdef __DEBUG_CHUNK_STREAM
-      if ( !io_src )
-      {
+      if ( !io_src ){
 			cerr << RED_DEBUG_ERROR << "stream_copy: io_src is not ready for reading" << endl;
 			exit(EXIT_FAILURE);
       }
-      if ( !io_dst )
-      {
+      if ( !io_dst ){
 			cerr << RED_DEBUG_ERROR << "stream_copy: io_dst is not ready for writing" << endl;
 			exit(EXIT_FAILURE);
       }
@@ -560,15 +553,13 @@ bool stream_copy( istream &io_src, ostream &io_dst, U_INT8 i_length )
    const unsigned int buffer_size = 1000000;
    U_INT8 remaining = i_length;
    vector<char> buffer( buffer_size );
-   while ( !io_src.eof() && remaining )
-   {
+   while ( !io_src.eof() && remaining ){
       if ( buffer_size>remaining )
 			io_src.read( buffer.data(), remaining );
       else
 			io_src.read( buffer.data(), buffer_size );
       streamsize nbRead = io_src.gcount();
-      if ( nbRead<0 )
-      {	 
+      if ( nbRead<0 ){	 
 			#ifdef __DEBUG_CHUNK_STREAM
 				cerr << RED_DEBUG_ERROR << "write_file: unable to read in input stream" << endl;
 				exit(EXIT_FAILURE);
@@ -580,8 +571,7 @@ bool stream_copy( istream &io_src, ostream &io_dst, U_INT8 i_length )
    }
    
    #ifdef __DEBUG_CHUNK_STREAM
-      if ( remaining!=0 )
-      {
+      if ( remaining!=0 ){
 			cerr << RED_DEBUG_ERROR << "write_file: " << remaining << " bytes need to be read but end-of-file is reached" << endl;
 			exit(EXIT_FAILURE);
       }
