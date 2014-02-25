@@ -94,7 +94,6 @@ void cVirtualInterface::InitVNameCase()
         std::vector<std::string> aNew = mAppli->ICNM()->StdGetVecStr(*itN);
         for (int aK=0 ; aK< (int)aNew.size(); aK++)
         {
-            cout << "new point : " << aNew[aK] << endl;
             mVNameCase.push_back(cCaseNamePoint(aNew[aK],eCaseStd));
         }
     }
@@ -103,8 +102,6 @@ void cVirtualInterface::InitVNameCase()
     {
         mMapNC[mVNameCase[aK].mName] = & mVNameCase[aK];
     }
-
-    cout << "mAppli->PG().size() : " << mAppli->PG().size() << endl;
 
     for (int aK=0 ; aK< (int)mAppli->PG().size() ; aK++)
     {
