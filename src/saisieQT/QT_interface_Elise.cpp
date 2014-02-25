@@ -1,20 +1,5 @@
 #include "QT_interface_Elise.h"
 
-void cQT_Interface::rebuildGlCamera()
-{
-    for (int i = 0; i < mAppli->nbImages(); ++i)
-    {
-        ElCamera * aCamera = mAppli->images(i)->CaptCam();
-        _data->addCamera(aCamera->CS());
-    }
-}
-
-void cQT_Interface::option3DPreview()
-{
-    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
-    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
-}
-
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL)
@@ -38,6 +23,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this,SLOT(changeName(QString, QString)));
+
         connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this,SLOT(SetInvisRef(bool)));
 
         connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this,SLOT(filesDropped(QStringList)));
@@ -52,6 +39,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow->threeDWidget()->setGLData(new cGLData(_data));
     m_QTMainWindow->threeDWidget()->getGLData()->setIncFirstCloud(true);
     option3DPreview();
+
+    Init();
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -66,35 +55,6 @@ void cQT_Interface::SetInvisRef(bool aVal)
     }*/
 
 
-}
-
-cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
-{
-
-
-   /* Video_Win aW = mMenuNamePoint->W();
-    aW.raise();
-
-    for (int aK=0 ; aK<int(mVNameCase.size()) ; aK++)
-    {
-        int aGr = (aK%2) ? 255 : 200 ;
-        Pt2di aPCase(0,aK);
-        mMenuNamePoint->ColorieCase(aPCase,aW.prgb()(aGr,aGr,aGr),1);
-        cCaseNamePoint & aCNP = mVNameCase[aK];
-        mMenuNamePoint->StringCase(aPCase,aCNP.mFree ?  aCNP.mName : "***" ,true);
-    }
-
-    Clik aClk = aW.clik_in();
-    //aW.lower();
-
-    Pt2di aKse = mMenuNamePoint->Pt2Case(Pt2di(aClk._pt));
-    cCaseNamePoint * aRes =  &(mVNameCase[aKse.y]);
-
-    if (! aRes->mFree) return 0;
-
-    return aRes;*/
-
-    return 0;
 }
 
 std::pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
@@ -143,7 +103,7 @@ int cQT_Interface::cImageIdxFromName(QString nameImage)
 
 void cQT_Interface::addPoint(QPointF point)
 {
-    Pt2dr aPGlob(point.x(),m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage._m_image->height() - point.y());
+    Pt2dr aPGlob(point.x(), m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage._m_image->height() - point.y());
 
     cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
 
@@ -157,11 +117,9 @@ void cQT_Interface::addPoint(QPointF point)
     rebuildGlPoints();
 }
 
-
-
 string cQT_Interface::nameSelectPt(int idPt)
 {
-    std::string name =m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt].name().toStdString();
+    std::string name = m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt].name().toStdString();
 
     return name;
 }
@@ -211,7 +169,7 @@ void cQT_Interface::changeState(int state, int idPt)
 
             else if (aState == NS_SaisiePts::eEPI_Deleted)
 
-                 DeletePoint( aPIm->Gl() );
+                DeletePoint( aPIm->Gl() );
 
             else
             {
@@ -223,6 +181,44 @@ void cQT_Interface::changeState(int state, int idPt)
 
             rebuildGlPoints(aPIm);
         }
+    }
+}
+
+void cQT_Interface::changeName(QString aOldName, QString aNewName)
+{
+    int t = cImageIdxCurrent();
+    string oldName = aOldName.toStdString();
+    string newName = aNewName.toStdString();
+
+    cSP_PointeImage * aPIm = mAppli->images(t)->PointeOfNameGlobSVP(oldName);
+
+    if (aPIm)
+    {
+        cCaseNamePoint aCNP(newName, eCaseStd);
+
+        for (int aK=0 ; aK< int(mVNameCase.size()) ; aK++)
+        {
+            cCaseNamePoint & Case = mVNameCase[aK];
+
+            if (Case.mName == newName)
+                aCNP = Case;
+        }
+
+        if (aCNP.mFree)
+        {
+            for (int aKP=0 ; aKP< int(mAppli->PG().size()) ; aKP++)
+            {
+                if (mAppli->PG()[aKP]->PG()->Name() == newName)
+                {
+                    QMessageBox::critical(m_QTMainWindow, "Error", "Point already exists");
+                    return;
+                }
+            }
+
+            mAppli->ChangeName(oldName, newName);
+        }
+
+        rebuildGlPoints(aPIm);
     }
 }
 
@@ -421,6 +417,13 @@ void cQT_Interface::rebuild2DGlPoints()
     }
 }
 
+void cQT_Interface::Init()
+{
+    InitNbWindows();
+
+    InitVNameCase();
+}
+
 void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
 {
     rebuild2DGlPoints();
@@ -440,4 +443,37 @@ bool cQT_Interface::WVisible(cSP_PointeImage & aPIm)
     eEtatPointeImage aState = aSom.Etat();
 
     return    aPIm.Visible() && WVisible(aState);
+}
+
+void cQT_Interface::rebuildGlCamera()
+{
+    for (int i = 0; i < mAppli->nbImages(); ++i)
+    {
+        ElCamera * aCamera = mAppli->images(i)->CaptCam();
+        _data->addCamera(aCamera->CS());
+    }
+}
+
+void cQT_Interface::option3DPreview()
+{
+    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
+    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+}
+
+
+cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
+{
+   /* for (int aK=0 ; aK<int(mVNameCase.size()) ; aK++)
+    {
+        cCaseNamePoint & aCNP = mVNameCase[aK];
+        mMenuNamePoint->StringCase(aPCase,aCNP.mFree ? aCNP.mName : "***" ,true);
+    }
+
+
+    Pt2di aKse = mMenuNamePoint->Pt2Case(Pt2di(aClk._pt));
+    cCaseNamePoint * aRes =  &(mVNameCase[aKse.y]);
+
+    if (! aRes->mFree)*/ return 0;
+
+    //return aRes;
 }

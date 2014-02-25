@@ -39,15 +39,17 @@ public :
 
     void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 
+    void                rebuild2DGlPoints();
+
     void                rebuild3DGlPoints(cSP_PointeImage* aPIm);
 
     void                rebuildGlCamera();
 
-    void option3DPreview();
-    void rebuild2DGlPoints();
+    void                option3DPreview();
+
 private:
 
-    void                Init(){}
+    void                Init();
 
     MainWindow*         m_QTMainWindow;
 
@@ -81,7 +83,6 @@ private:
 
     bool                WVisible(cSP_PointeImage &aPIm);
 
-
 private slots:
 
     void                addPoint(QPointF point);
@@ -91,6 +92,8 @@ private slots:
     void                selectPoint(int idPt);
 
     void                changeState(int state, int idPt);
+
+    void                changeName(QString aOldName, QString aNewName);
 
     void                changeCurPose(void *widgetGL);
 

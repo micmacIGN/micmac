@@ -88,7 +88,7 @@ void cSP_PointGlob::SetKilled()
        it++
     )
     {
-       it->second->Saisie()->Etat() =  aState;
+       it->second->Saisie()->Etat() = aState;
     }
     // Ce qui precede n'est pas suffisant car il se peut qu'il existe
     // des pointes non modifies car existant dans des images non chargees
@@ -252,7 +252,7 @@ int cAppli_SaisiePts::GetCptMax() const
 
 void cSP_PointGlob::Rename(const std::string & aNewName)
 {
-     PG()->Name()  = aNewName;
+     PG()->Name() = aNewName;
      for
      (
           std::map<std::string,cSP_PointeImage *>::iterator itM=mPointes.begin();
@@ -260,7 +260,7 @@ void cSP_PointGlob::Rename(const std::string & aNewName)
           itM++
      )
      {
-          itM->second->Saisie()->NamePt()  = aNewName;
+          itM->second->Saisie()->NamePt() = aNewName;
      }
 }
 

@@ -132,34 +132,7 @@ void cX11_Interface::Init()
         mVNameCase.push_back( cCaseNamePoint("Enter New",eCaseSaisie) );
     }
 
-    std::string aNameAuto = mParam->NameAuto().Val();
-    if (aNameAuto != "NONE")
-    {
-        mVNameCase.push_back( cCaseNamePoint(aNameAuto+ToString(mAppli->GetCptMax()+1),eCaseAutoNum) );
-    }
-
-    for
-            (
-             std::list<std::string>::const_iterator itN = mParam->FixedName().begin();
-             itN !=mParam->FixedName().end();
-             itN++
-             )
-    {
-        // const std::string aName = itN->c_str();
-        std::vector<std::string> aNew = mAppli->ICNM()->StdGetVecStr(*itN);
-        for (int aK=0 ; aK< (int)aNew.size(); aK++)
-            mVNameCase.push_back(cCaseNamePoint(aNew[aK],eCaseStd));
-    }
-
-    for (int aK=0 ; aK<int(mVNameCase.size()); aK++)
-    {
-        mMapNC[mVNameCase[aK].mName] = & mVNameCase[aK];
-    }
-
-    for (int aK=0 ; aK< (int)mAppli->PG().size() ; aK++)
-    {
-        ChangeFreeNamePoint(mAppli->PG()[aK]->PG()->Name(),false);
-    }
+    InitVNameCase();
 
     mMenuNamePoint = new cFenMenu(*mWZ,Pt2di(120,20),Pt2di(1,mVNameCase.size()));
 
@@ -175,17 +148,6 @@ void cX11_Interface::Init()
     ELISE_COPY(mWZ->all_pts(),P8COL::green,mWZ->odisc());
 }
 
-void cX11_Interface::ChangeFreeNamePoint(const std::string & aName, bool SetFree)
-{
-    std::map<std::string,cCaseNamePoint *>::iterator it = mMapNC.find(aName);
-    if (it== mMapNC.end())
-        return;
-    if (it->second->mTCP== eCaseStd)
-    {
-        it->second->mFree = SetFree;
-    }
-}
-
 cCaseNamePoint *  cX11_Interface::GetIndexNamePoint()
 {
     Video_Win aW = mMenuNamePoint->W();
@@ -197,7 +159,8 @@ cCaseNamePoint *  cX11_Interface::GetIndexNamePoint()
         Pt2di aPCase(0,aK);
         mMenuNamePoint->ColorieCase(aPCase,aW.prgb()(aGr,aGr,aGr),1);
         cCaseNamePoint & aCNP = mVNameCase[aK];
-        mMenuNamePoint->StringCase(aPCase,aCNP.mFree ?  aCNP.mName : "***" ,true);
+
+        mMenuNamePoint->StringCase(aPCase,aCNP.mFree ? aCNP.mName : "***" ,true);
     }
 
     Clik aClk = aW.clik_in();

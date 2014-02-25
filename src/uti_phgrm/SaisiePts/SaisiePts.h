@@ -98,8 +98,8 @@ class cSP_PointGlob
           bool & HighLighted();
           void SetKilled();
 
-         bool IsPtAutom() const;
-         void Rename(const std::string & aNewName);
+          bool IsPtAutom() const;
+          void Rename(const std::string & aNewName);
 
      private:
           cSP_PointGlob(const cSP_PointGlob &) ; // N.I.
@@ -307,7 +307,7 @@ class cVirtualInterface
     virtual void        SetInvisRef(bool aVal)=0;         // sert à rendre les points réfutés invisibles ou visibles
     bool                RefInvis() const    { return mRefInvis; }
 
-    virtual void        ChangeFreeNamePoint(const std::string &, bool SetFree)=0;
+    void                ChangeFreeNamePoint(const std::string &, bool SetFree);
 
     void                DeletePoint(cSP_PointGlob *aSG);
 
@@ -325,15 +325,19 @@ protected:
 
     void                      InitNbWindows();
 
+    void                      InitVNameCase();
+
     cAppli_SaisiePts*         mAppli;
     const cParamSaisiePts*    mParam;
 
-    Pt2di                     mNb2W;        //nombre de fenetres (col, raw)
+    Pt2di                     mNb2W;        //window nb (col, raw)
     int                       mNbW;         //total window nb (col x raw)
 
     bool                      mRefInvis;
 
     std::vector <cCaseNamePoint>        mVNameCase;
+
+    std::map<std::string,cCaseNamePoint *>  mMapNC;
 
 private:
 
@@ -380,8 +384,6 @@ private:
 
     cWinIm *        WinImOfW(Video_Win);
 
-    std::map<std::string,cCaseNamePoint *>  mMapNC;
-
     std::vector<cWinIm *> mWins;
 
     Video_Display *       mDisp;
@@ -390,7 +392,6 @@ private:
     cFenOuiNon *          mZFON;
     cFenMenu *            mMenuNamePoint;
     Video_Win *           mWEnter;
-
 
 };
 #endif 
@@ -447,7 +448,7 @@ class cAppli_SaisiePts
 
     void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-    void ChangeName(std::string  anOldName,std::string  aNewName); //UTILISE L'INTERFACE appelle ReaffAllW();
+    void ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
 
