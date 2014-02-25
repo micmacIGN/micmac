@@ -111,7 +111,7 @@ class cPoint : public cObjectGL, public QPointF
            QColor color = Qt::red,        
            QColor selectionColor = Qt::blue,
            float diameter = 4.f,
-           bool switchHighlight  = false);
+           bool  highlight  = false);
 
         void draw();
 

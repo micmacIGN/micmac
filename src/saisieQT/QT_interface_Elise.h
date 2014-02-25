@@ -25,12 +25,6 @@ public :
     cQT_Interface(cAppli_SaisiePts &appli,MainWindow* QTMainWindow);
     ~cQT_Interface(){}
 
-    void                RedrawAllWindows(){}
-
-    void                Save(){}
-
-    void                DrawZoom(const Pt2dr & aPGlob){} //fenetre zoom
-
     void                ChangeFreeNamePoint(const std::string &, bool SetFree){}
 
     cCaseNamePoint *    GetIndexNamePoint();
