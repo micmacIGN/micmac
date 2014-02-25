@@ -75,7 +75,8 @@ class cSP_PointeImage
         cImage * Image();
         cSP_PointGlob * Gl();
         bool  & Visible() ;
-     private :
+        bool BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2);
+private :
          cSP_PointeImage(const cSP_PointeImage &); // N.I.
 
 
@@ -300,10 +301,6 @@ class cVirtualInterface
 
     virtual void        RedrawAllWindows()=0;
 
-    virtual void        Save()=0;
-
-    virtual void        DrawZoom(const Pt2dr & aPGlob)=0; //fenetre zoom
-
     virtual void        SetInvisRef(bool aVal)=0;         // sert à rendre les points réfutés invisibles ou visibles
     bool                RefInvis() const    { return mRefInvis; }
 
@@ -311,11 +308,13 @@ class cVirtualInterface
 
     void                DeletePoint(cSP_PointGlob *aSG);
 
+    void                Save();
+
 
     virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
 
-    int              GetNumCasePoint()          { return mVNameCase.size(); }
-    cCaseNamePoint & GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
+    int                 GetNumCasePoint()          { return mVNameCase.size(); }
+    cCaseNamePoint &    GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
 
 //     virtual  cFenMenu *      MenuNamePoint()=0;
 
@@ -356,8 +355,6 @@ public :
     void            TestClick(Clik aCl);
 
     void            RedrawAllWindows();
-
-    void            Save();
 
     void            BoucleInput();
 

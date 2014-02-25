@@ -333,14 +333,13 @@ void cWinIm::ShowPoint(const Pt2dr aP,eEtatPointeImage aState,cSP_PointGlob * aP
 
     if (aPG && aPG->HighLighted())
     {
-        cCapture3D * aCap3D = mCurIm->Capt3d();
-        if (aCap3D && aPG->PG()->PS1().IsInit() && ((aState==eEPI_NonSaisi) || (aState==eEPI_Refute)))
-        {
-            Pt2dr aP1 = aCap3D->Ter2Capteur(aPG->PG()->PS1().Val());
-            Pt2dr aP2 = aCap3D->Ter2Capteur(aPG->PG()->PS2().Val());
+        Pt2dr aP1, aP2;
 
+        if (aPIm->BuildEpipolarLine(aP1, aP2))
+        {
             aP1 = mScr->to_win(aP1);
             aP2 = mScr->to_win(aP2);
+
             mW.draw_seg(aP1,aP2,aLst);
         }
         else
@@ -483,7 +482,7 @@ void  cWinIm::SetPt(Clik aClk)
             return;
         aP = mScr->to_win(aP);
         if (euclid(aP,mNewPt)>1e-3)
-            mAppli.Interface()->DrawZoom(mScr->to_user(aP));
+            ((cX11_Interface*) mAppli.Interface())->DrawZoom(mScr->to_user(aP));
         mNewPt = aP;
     }
 

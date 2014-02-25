@@ -33,6 +33,8 @@
 #include "HistoryManager.h"
 #include "ContextMenu.h"
 
+#include "../uti_phgrm/SaisiePts/cParamSaisiePts.h"
+
 class GLWidgetSet;
 
 class GLWidget : public QGLWidget
@@ -108,7 +110,7 @@ public:
 
     void drawCenter();
 
-    void addGlPoint(QPointF pt, QString name, int state, QPointF pt1, QPointF pt2, bool hightlight);
+    void addGlPoint(QPointF pt, cOneSaisie *aSom, QPointF pt1, QPointF pt2, bool highlight);
 
     ContextMenu *contextMenu();
 

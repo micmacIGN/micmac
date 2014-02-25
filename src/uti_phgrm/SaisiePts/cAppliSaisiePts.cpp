@@ -120,6 +120,11 @@ void cVirtualInterface::ChangeFreeNamePoint(const std::string & aName, bool SetF
     }
 }
 
+void cVirtualInterface::Save()
+{
+    mAppli->Sauv();
+}
+
 //********************************************************************************
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
@@ -533,14 +538,6 @@ cSetOfSaisiePointeIm PurgeSOSPI(const cSetOfSaisiePointeIm & aSOSPI)
     }
     return aRes;
 }
-
-#if ELISE_windows == 0
-
-void cX11_Interface::Save()
-{
-    mAppli->Sauv();
-}
-#endif
 
 void cAppli_SaisiePts::Sauv()
 {
