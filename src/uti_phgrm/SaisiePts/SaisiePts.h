@@ -199,6 +199,8 @@ public :
     static const Pt2dr  PtsEchec;
     Box2dr  BoxImageVisible() const;
 
+    cImage* Image() { return mCurIm; }
+
 private :
 
     void    CreatePoint(const Pt2dr& aP,eTypePts,double aSz);
@@ -310,7 +312,6 @@ class cVirtualInterface
 
     void                Save();
 
-
     virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
 
     int                 GetNumCasePoint()          { return mVNameCase.size(); }
@@ -321,6 +322,14 @@ class cVirtualInterface
     virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
 
     bool                Visible(eEtatPointeImage aState);
+
+    void                ChangeState(cSP_PointeImage* aPIm, eEtatPointeImage aState);
+
+    void                UpdatePoints(cSP_PointeImage* aPIm, Pt2dr pt);
+
+    virtual void        AddUndo(cOneSaisie *)=0;
+
+    virtual void        Redraw()=0;
 
 protected:
 
@@ -358,6 +367,8 @@ public :
 
     void            RedrawAllWindows();
 
+    void            Redraw();
+
     void            BoucleInput();
 
     void            DrawZoom(const Pt2dr & aPGlob); //fenetre zoom
@@ -366,7 +377,7 @@ public :
 
     cFenMenu *      MenuNamePoint()         { return mMenuNamePoint; }
 
-    cCaseNamePoint * GetIndexNamePoint();
+    cCaseNamePoint* GetIndexNamePoint();
 
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
@@ -377,11 +388,15 @@ public :
 
     void            SetInvisRef(bool aVal);         // sert à rendre les points réfutés visibles ou non
 
+    void            AddUndo(cOneSaisie * aSom);
+
 private:
 
     void            Init();
 
     cWinIm *        WinImOfW(Video_Win);
+
+    cWinIm *        mCurWinIm;
 
     std::vector<cWinIm *> mWins;
 
@@ -480,7 +495,6 @@ class cAppli_SaisiePts
 
          cParamSaisiePts &                     mParam;
          cVirtualInterface*                    mInterface;
-         //cX11_Interface*                       mInterface;
 
          cInterfChantierNameManipulateur *     mICNM;
          std::string                           mDC;

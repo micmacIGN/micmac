@@ -43,6 +43,7 @@ public :
 
     void                option3DPreview();
 
+    void                AddUndo(cOneSaisie * aSom);
 private:
 
     void                Init();

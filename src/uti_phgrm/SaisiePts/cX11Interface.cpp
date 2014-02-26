@@ -45,6 +45,7 @@ using namespace NS_SaisiePts;
 #if ELISE_windows == 0
 
 cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
+    mCurWinIm     (0),
     mWZ           (0),
     mWEnter       (0)
 {
@@ -60,6 +61,7 @@ cX11_Interface::~cX11_Interface()
 {
     delete mDisp;
 
+    delete mCurWinIm;
     delete mWZ;
     delete mZFON;
     delete mMenuNamePoint;
@@ -244,6 +246,8 @@ void cX11_Interface::TestClick(Clik aCl)
     cWinIm * aWIm = WinImOfW(aCl._w);
     if (!aWIm)
         return;
+    else
+        mCurWinIm = aWIm;
 
     if (aCl._b==1)
     {
@@ -291,10 +295,20 @@ void cX11_Interface::SetInvisRef(bool aVal)
     }
 }
 
+void cX11_Interface::AddUndo(cOneSaisie * aSom)
+{
+    mAppli->AddUndo(*aSom, mCurWinIm->Image());
+}
+
 void cX11_Interface::RedrawAllWindows()
 {
     for (int aK=0 ; aK< int(mWins.size()) ; aK++)
         mWins[aK]->Redraw();
+}
+
+void cX11_Interface::Redraw()
+{
+    mCurWinIm->Redraw();
 }
 
 #endif

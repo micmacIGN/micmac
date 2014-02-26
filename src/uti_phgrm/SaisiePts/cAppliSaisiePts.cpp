@@ -131,6 +131,25 @@ bool cVirtualInterface::Visible(eEtatPointeImage aState)
             && (aState!=eEPI_Disparu);
 }
 
+void cVirtualInterface::ChangeState(cSP_PointeImage *aPIm, eEtatPointeImage aState)
+{
+    aPIm->Saisie()->Etat() = aState;
+
+    AddUndo(aPIm->Saisie());
+
+    aPIm->Gl()->ReCalculPoints();
+}
+
+void cVirtualInterface::UpdatePoints(cSP_PointeImage *aPIm, Pt2dr pt)
+{
+    aPIm->Saisie()->PtIm() = pt;
+    Redraw();
+
+    AddUndo(aPIm->Saisie());
+
+    aPIm->Gl()->ReCalculPoints();
+}
+
 //********************************************************************************
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
