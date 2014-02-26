@@ -27,6 +27,8 @@ public :
 
     void                ChangeFreeNamePoint(const std::string &, bool SetFree){}
 
+    void                RedrawAllWindows(){}
+
     cCaseNamePoint *    GetIndexNamePoint();
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
@@ -47,21 +49,25 @@ private:
 
     MainWindow*         m_QTMainWindow;
 
-    int                 cImageIdxFromName(QString nameImage);
-
-    int                 cImageIdx(int idGl);
+    cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
 
     Pt2dr               transformation(QPointF pt, int idImage = -1);
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
 
-    cAppli_SaisiePts*   AppliMetier(){return  mAppli;}
+    int                 cImageIdxFromName(QString nameImage);
 
-    int                 cImageIdxCurrent();
+    int                 cImageIdx(int idGl);
 
-    std::string         nameSelectPt(int idPt);
+    int                 currentcImageIdx();
 
     int                 cImageIdxFromGL(cGLData* data);
+
+    cImage *            currentcImage();
+
+    cPoint              selectedPt(int idPt);
+
+    std::string         selectedPtName(int idPt);
 
     void                addGlPoint(cSP_PointeImage *aPIm, int i);
 
@@ -69,11 +75,7 @@ private:
 
     cSP_PointeImage *   currentPointeImage(int idPoint);
 
-    cImage *            currentCImage();
-
     cData               *_data;
-
-    bool                WVisible(eEtatPointeImage aState);
 
     bool                WVisible(cSP_PointeImage &aPIm);
 
