@@ -121,17 +121,15 @@ string cQT_Interface::selectedPtName(int idPt)
 
 void cQT_Interface::movePoint(int idPt)
 {
-    if(idPt >= 0 )
+    if( idPt >= 0 )
     {
         cSP_PointeImage* aPIm = currentPointeImage(idPt);
 
         if(aPIm)
         {
-            mAppli->AddUndo(*(aPIm->Saisie()), currentcImage());
+            Pt2dr pt = transformation(selectedPt(idPt));
 
-            aPIm->Saisie()->PtIm() = transformation(selectedPt(idPt));
-            //Redraw();
-            aPIm->Gl()->ReCalculPoints();
+            UpdatePoints(aPIm, pt);
 
             rebuildGlPoints(aPIm);
         }
@@ -162,11 +160,8 @@ void cQT_Interface::changeState(int state, int idPt)
                 DeletePoint( aPIm->Gl() );
 
             else
-            {
-                mAppli->AddUndo(*(aPIm->Saisie()),currentcImage());
-                aPIm->Saisie()->Etat() = aState;
-                aPIm->Gl()->ReCalculPoints();                
-            }
+
+                ChangeState(aPIm, aState);
 
             rebuildGlPoints(aPIm);
         }
@@ -424,6 +419,11 @@ void cQT_Interface::option3DPreview()
 {
     m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
     m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+}
+
+void cQT_Interface::AddUndo(cOneSaisie *aSom)
+{
+    mAppli->AddUndo(*aSom, currentcImage());
 }
 
 
