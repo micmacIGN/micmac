@@ -255,6 +255,9 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ReducHom",ReducHom_main," Do some stuff"));
        aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation"));
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
+       aRes.push_back(cMMCom("HomolFilterMasq",HomFilterMasq_main," Tool for filter homologous points according to masq"));
+
+
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
        aRes.push_back(cMMCom("StatIm",StatIm_main," Tool for basic stat on an image"));
        aRes.push_back(cMMCom("ConvertIm",ConvertIm_main," Tool for convertion inside tiff-format"));

@@ -75,7 +75,8 @@ class cSP_PointeImage
         cImage * Image();
         cSP_PointGlob * Gl();
         bool  & Visible() ;
-     private :
+        bool BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2);
+private :
          cSP_PointeImage(const cSP_PointeImage &); // N.I.
 
 
@@ -98,8 +99,8 @@ class cSP_PointGlob
           bool & HighLighted();
           void SetKilled();
 
-         bool IsPtAutom() const;
-         void Rename(const std::string & aNewName);
+          bool IsPtAutom() const;
+          void Rename(const std::string & aNewName);
 
      private:
           cSP_PointGlob(const cSP_PointGlob &) ; // N.I.
@@ -300,40 +301,44 @@ class cVirtualInterface
 
     virtual void        RedrawAllWindows()=0;
 
-    virtual void        Save()=0;
-
-    virtual void        DrawZoom(const Pt2dr & aPGlob)=0; //fenetre zoom
-
     virtual void        SetInvisRef(bool aVal)=0;         // sert à rendre les points réfutés invisibles ou visibles
     bool                RefInvis() const    { return mRefInvis; }
 
-    virtual void        ChangeFreeNamePoint(const std::string &, bool SetFree)=0;
+    void                ChangeFreeNamePoint(const std::string &, bool SetFree);
 
     void                DeletePoint(cSP_PointGlob *aSG);
+
+    void                Save();
 
 
     virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
 
-    int              GetNumCasePoint()          { return mVNameCase.size(); }
-    cCaseNamePoint & GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
+    int                 GetNumCasePoint()          { return mVNameCase.size(); }
+    cCaseNamePoint &    GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
 
 //     virtual  cFenMenu *      MenuNamePoint()=0;
 
-     virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
+    virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
+
+    bool                Visible(eEtatPointeImage aState);
 
 protected:
 
     void                      InitNbWindows();
 
+    void                      InitVNameCase();
+
     cAppli_SaisiePts*         mAppli;
     const cParamSaisiePts*    mParam;
 
-    Pt2di                     mNb2W;        //nombre de fenetres (col, raw)
+    Pt2di                     mNb2W;        //window nb (col, raw)
     int                       mNbW;         //total window nb (col x raw)
 
     bool                      mRefInvis;
 
     std::vector <cCaseNamePoint>        mVNameCase;
+
+    std::map<std::string,cCaseNamePoint *>  mMapNC;
 
 private:
 
@@ -352,8 +357,6 @@ public :
     void            TestClick(Clik aCl);
 
     void            RedrawAllWindows();
-
-    void            Save();
 
     void            BoucleInput();
 
@@ -380,8 +383,6 @@ private:
 
     cWinIm *        WinImOfW(Video_Win);
 
-    std::map<std::string,cCaseNamePoint *>  mMapNC;
-
     std::vector<cWinIm *> mWins;
 
     Video_Display *       mDisp;
@@ -390,7 +391,6 @@ private:
     cFenOuiNon *          mZFON;
     cFenMenu *            mMenuNamePoint;
     Video_Win *           mWEnter;
-
 
 };
 #endif 
@@ -447,7 +447,7 @@ class cAppli_SaisiePts
 
     void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-    void ChangeName(std::string  anOldName,std::string  aNewName); //UTILISE L'INTERFACE appelle ReaffAllW();
+    void ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
 

@@ -5217,6 +5217,17 @@ const Pt2di & cCalibrationInternConique::SzIm()const
 }
 
 
+cTplValGesInit< Pt2dr > & cCalibrationInternConique::PixelSzIm()
+{
+   return mPixelSzIm;
+}
+
+const cTplValGesInit< Pt2dr > & cCalibrationInternConique::PixelSzIm()const 
+{
+   return mPixelSzIm;
+}
+
+
 cTplValGesInit< double > & cCalibrationInternConique::RayonUtile()
 {
    return mRayonUtile;
@@ -5396,6 +5407,8 @@ cElXMLTree * ToXMLTree(const cCalibrationInternConique & anObj)
    aRes->AddFils(::ToXMLTree(std::string("PP"),anObj.PP())->ReTagThis("PP"));
    aRes->AddFils(::ToXMLTree(std::string("F"),anObj.F())->ReTagThis("F"));
    aRes->AddFils(::ToXMLTree(std::string("SzIm"),anObj.SzIm())->ReTagThis("SzIm"));
+   if (anObj.PixelSzIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PixelSzIm"),anObj.PixelSzIm().Val())->ReTagThis("PixelSzIm"));
    if (anObj.RayonUtile().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("RayonUtile"),anObj.RayonUtile().Val())->ReTagThis("RayonUtile"));
   for
@@ -5437,6 +5450,8 @@ void xml_init(cCalibrationInternConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.F(),aTree->Get("F",1)); //tototo 
 
    xml_init(anObj.SzIm(),aTree->Get("SzIm",1)); //tototo 
+
+   xml_init(anObj.PixelSzIm(),aTree->Get("PixelSzIm",1)); //tototo 
 
    xml_init(anObj.RayonUtile(),aTree->Get("RayonUtile",1)); //tototo 
 

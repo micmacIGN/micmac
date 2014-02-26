@@ -2099,6 +2099,9 @@ class cCalibrationInternConique
         Pt2di & SzIm();
         const Pt2di & SzIm()const ;
 
+        cTplValGesInit< Pt2dr > & PixelSzIm();
+        const cTplValGesInit< Pt2dr > & PixelSzIm()const ;
+
         cTplValGesInit< double > & RayonUtile();
         const cTplValGesInit< double > & RayonUtile()const ;
 
@@ -2149,6 +2152,7 @@ class cCalibrationInternConique
         Pt2dr mPP;
         double mF;
         Pt2di mSzIm;
+        cTplValGesInit< Pt2dr > mPixelSzIm;
         cTplValGesInit< double > mRayonUtile;
         std::vector< bool > mComplIsC2M;
         cTplValGesInit< bool > mScannedAnalogik;

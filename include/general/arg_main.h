@@ -562,6 +562,7 @@ int Prep4masq_main(int argc,char ** argv);
 int ReducHom_main(int argc,char ** argv);
 int RepLocBascule_main(int argc,char ** argv);
 int SBGlobBascule_main(int argc,char ** argv);
+int HomFilterMasq_main(int argc,char ** argv);
 int Tapas_main(int argc,char ** argv);
 int Tapioca_main(int argc,char ** argv);
 int Tarama_main(int argc,char ** argv);
