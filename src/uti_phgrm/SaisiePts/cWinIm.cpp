@@ -273,13 +273,10 @@ bool  cWinIm::WVisible(const Pt2dr & aP)
     return (aP.x>0) && (aP.y>0) && (aP.x<mSzW.x) && (aP.y<mSzW.y);
 }
 
-bool  cWinIm::WVisible(const Pt2dr & aP,eEtatPointeImage aState)
+bool  cWinIm::WVisible(const Pt2dr & aP, eEtatPointeImage aState)
 {
-    return     WVisible(aP)
-            && ((aState!=eEPI_Refute) || (!mAppli.Interface()->RefInvis()))
-            && (aState!=eEPI_Disparu);
+    return WVisible(aP) && mAppli.Interface()->Visible(aState);
 }
-
 
 bool  cWinIm::WVisible(cSP_PointeImage & aPIm)
 {
@@ -287,7 +284,7 @@ bool  cWinIm::WVisible(cSP_PointeImage & aPIm)
     eEtatPointeImage aState = aSom.Etat();
     Pt2dr aP = aSom.PtIm();
     aP = mScr->to_win(aP);
-    return    aPIm.Visible() && WVisible(aP,aState);
+    return    aPIm.Visible() && WVisible(aP, aState);
 }
 
 Box2dr  cWinIm::BoxImageVisible() const

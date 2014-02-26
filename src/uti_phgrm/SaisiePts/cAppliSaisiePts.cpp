@@ -125,6 +125,12 @@ void cVirtualInterface::Save()
     mAppli->Sauv();
 }
 
+bool cVirtualInterface::Visible(eEtatPointeImage aState)
+{
+    return  ((aState!=eEPI_Refute) || !RefInvis())
+            && (aState!=eEPI_Disparu);
+}
+
 //********************************************************************************
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :

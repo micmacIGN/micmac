@@ -624,6 +624,8 @@ public:
 
     void        setDimensionImage(int vW,int vH);
 
+    QString     imageName() { return glMaskedImage.cObjectGL::name(); }
+
     //info coming from cData
     float       getBBoxMaxSize(){return _diam;}
     void        setBBoxMaxSize(float aS){_diam = aS;}

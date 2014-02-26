@@ -94,12 +94,12 @@ int cQT_Interface::cImageIdxFromName(QString nameImage)
 
 void cQT_Interface::addPoint(QPointF point)
 {
-    Pt2dr aPGlob(point.x(), m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage._m_image->height() - point.y());
+    Pt2dr aPGlob(transformation(point));
 
     cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
     //TODO : aCNP *= GetIndexNamePoint();
 
-    QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->glMaskedImage.cObjectGL::name();
+    QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->imageName();
 
     int t = cImageIdxFromName(nameImage);
 
@@ -109,11 +109,14 @@ void cQT_Interface::addPoint(QPointF point)
     rebuildGlPoints();
 }
 
-string cQT_Interface::nameSelectPt(int idPt)
+cPoint cQT_Interface::selectedPt(int idPt)
 {
-    std::string name = m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt].name().toStdString();
+    return m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt];
+}
 
-    return name;
+string cQT_Interface::selectedPtName(int idPt)
+{
+    return selectedPt(idPt).name().toStdString();
 }
 
 void cQT_Interface::movePoint(int idPt)
@@ -124,12 +127,9 @@ void cQT_Interface::movePoint(int idPt)
 
         if(aPIm)
         {
-            int t = cImageIdxCurrent();
+            mAppli->AddUndo(*(aPIm->Saisie()), currentcImage());
 
-            cImage* mCurIm = mAppli->images(t);
-            mAppli->AddUndo(*(aPIm->Saisie()), mCurIm);
-
-            aPIm->Saisie()->PtIm() = transformation(m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt]);
+            aPIm->Saisie()->PtIm() = transformation(selectedPt(idPt));
             //Redraw();
             aPIm->Gl()->ReCalculPoints();
 
@@ -163,10 +163,9 @@ void cQT_Interface::changeState(int state, int idPt)
 
             else
             {
-                mAppli->AddUndo(*(aPIm->Saisie()),currentCImage());
+                mAppli->AddUndo(*(aPIm->Saisie()),currentcImage());
                 aPIm->Saisie()->Etat() = aState;
-                aPIm->Gl()->ReCalculPoints();
-                mAppli->Sauv();
+                aPIm->Gl()->ReCalculPoints();                
             }
 
             rebuildGlPoints(aPIm);
@@ -176,11 +175,10 @@ void cQT_Interface::changeState(int state, int idPt)
 
 void cQT_Interface::changeName(QString aOldName, QString aNewName)
 {
-    int t = cImageIdxCurrent();
     string oldName = aOldName.toStdString();
     string newName = aNewName.toStdString();
 
-    cSP_PointeImage * aPIm = mAppli->images(t)->PointeOfNameGlobSVP(oldName);
+    cSP_PointeImage * aPIm = currentcImage()->PointeOfNameGlobSVP(oldName);
 
     if (aPIm)
     {
@@ -214,7 +212,7 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
 
 void cQT_Interface::changeCurPose(void *widgetGL)
 {
-    QString nameImage = ((GLWidget*)widgetGL)->getGLData()->glMaskedImage.cObjectGL::name();
+    QString nameImage = ((GLWidget*)widgetGL)->getGLData()->imageName();
 
     int t = cImageIdxFromName(nameImage);
 
@@ -256,33 +254,24 @@ void cQT_Interface::filesDropped(const QStringList &filenames)
 
 cSP_PointeImage * cQT_Interface::currentPointeImage(int idPoint)
 {
-    int t = cImageIdxCurrent();
-
-    cSP_PointeImage * aPIm = mAppli->images(t)->PointeOfNameGlobSVP(nameSelectPt(idPoint));
-
-    return aPIm;
+    return currentcImage()->PointeOfNameGlobSVP(selectedPtName(idPoint));
 }
 
-cImage * cQT_Interface::currentCImage()
+cImage * cQT_Interface::currentcImage()
 {
-    int t = cImageIdxCurrent();
-    cImage* mCurIm = mAppli->images(t);
+    int t = currentcImageIdx();
 
-    return mCurIm;
+    return mAppli->images(t);
 }
 
-int cQT_Interface::cImageIdxCurrent()
+int cQT_Interface::currentcImageIdx()
 {
     return cImageIdxFromGL(m_QTMainWindow->currentWidget()->getGLData());
 }
 
 int cQT_Interface::cImageIdxFromGL(cGLData* data)
 {
-    QString nameImage = data->glMaskedImage.cObjectGL::name();
-
-    int t = cImageIdxFromName(nameImage);
-
-    return t;
+    return cImageIdxFromName(data->imageName());
 }
 
 int cQT_Interface::cImageIdx(int idGl)
@@ -414,18 +403,12 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
     Save();
 }
 
-bool cQT_Interface::WVisible(eEtatPointeImage aState)
-{
-    return  ((aState!=eEPI_Refute) || !RefInvis())
-            && (aState!=eEPI_Disparu);
-}
-
 bool cQT_Interface::WVisible(cSP_PointeImage & aPIm)
 {
     const cOneSaisie  & aSom = *(aPIm.Saisie());
     eEtatPointeImage aState = aSom.Etat();
 
-    return    aPIm.Visible() && WVisible(aState);
+    return aPIm.Visible() && Visible(aState);
 }
 
 void cQT_Interface::rebuildGlCamera()
