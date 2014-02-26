@@ -1587,6 +1587,13 @@ void cEtapeMecComp::SauvProjImage
       Im2D_REAL4 aRes = (aK==0) ? aImX : aImY;
       std::string aNameRes = mAppli.FullDirResult() + (aK==0 ? aNames.first : aNames.second);
       bool isNew;
+
+      if (aBoxOut._p0 != Pt2di(0,0))
+      {
+           sleep(2);
+      }
+
+
       Tiff_Im aTF = Tiff_Im::CreateIfNeeded
                     (
                        isNew,
