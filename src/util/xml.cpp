@@ -2238,6 +2238,9 @@ std::string  GetValLC
 
 void cElXMLTree::ModifLC(char * anArg,cElXMLTree * aSpecif)
 {
+        if (anArg[0] == cInterfChantierNameManipulateur::theCharSymbOptGlob ) return;
+// std::cout << "cElXMLTree::ModifLC " << anArg << "\n";
+
 	if (anArg[0] == cInterfChantierNameManipulateur::theCharModifDico)
 		return;
 	// std::cout << "ARG="<<  anArg<< "\n";

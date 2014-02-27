@@ -39,6 +39,54 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
+
+
+class cMemRes
+{
+   public :
+        cMemRes()
+        {
+            mVAll.reserve(1000000);
+        }
+
+        void Init(int aSzMax,int aValInit)
+        {
+           double aMemTot = 0;
+           for (int aExpSz=1 ; aExpSz<=aSzMax ; aExpSz++)
+           {
+               // int aNbAll = pow(1+aSzMax-aExpSz,4);
+               int aNbAll = pow(1.6,aSzMax-aExpSz);
+               int aSz = 1 << aExpSz;
+               aMemTot += aSz * aNbAll;
+               // std::cout << "Mem " << aMemTot << "\n";
+
+               for (int aNb=0 ; aNb<aNbAll ; aNb++)
+               {
+                  char * aMem = (char *) malloc(aSz);
+                  memset(aMem,aValInit,aSz);
+                  mVAll.push_back(aMem);
+               }
+           }
+        }
+        void Free()
+        {
+           while (! mVAll.empty())
+           {
+              free(mVAll.back());
+              mVAll.pop_back();
+           }
+       }
+   private:
+        std::vector<char *> mVAll;
+};
+
+
+
+
+
+
+
+
 /*
 Parametre de Tapas :
   
@@ -190,6 +238,7 @@ int Tapas_main(int argc,char ** argv)
 
     std::string  aRapTxt;
     std::string  aPoseFigee="";
+    bool MajickTest = false;
 
     ElInitArgMain
     (
@@ -211,6 +260,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(ImInit,"ImInit",true)	
                     << EAM(MOI,"MOI",true)	
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ")	
+                    << EAM(MajickTest,"Majick",true,"Test repetability (to track some bug) by generating hash-key file")	
                     << EAM(LibAff,"LibAff",true)	
                     << EAM(LibDec,"LibDec",true)	
                     << EAM(aRapTxt,"RapTxt",true)	
@@ -259,9 +309,11 @@ int Tapas_main(int argc,char ** argv)
 
 
 
+   std::string aNameFileApero = MajickTest  ? "Apero-Debug-Glob.xml" : "Apero-Glob.xml" ;
+
 
    std::string aCom =     MM3dBinFile_quotes( "Apero" )
-                       + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+"Apero-Glob.xml" ) + " "
+                       + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+ aNameFileApero ) + " "
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                        + std::string(" ") + QUOTE(std::string("+PatternAllIm=") + aPat) + std::string(" ")
                        //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")
@@ -348,8 +400,40 @@ int Tapas_main(int argc,char ** argv)
       aCom  = aCom + " +PoseFigee=" + QUOTE(aPoseFigee);
    }
 
-   std::cout << "Com = " << aCom << "\n";
-   int aRes = ::System(aCom.c_str());
+   // std::cout << "Com = " << aCom << "\n";
+   int aRes = 0;
+   if (MajickTest)
+   {
+        std::string aNameFile = MMDir() + "DbgAp" + GetUnikId() + ".txt";
+
+        // cMemRes aMR1;
+        // cMemRes aMR2;
+
+         aCom = aCom + " +FileDebug=" +  aNameFile;
+
+
+        for (int aTest=0 ; aTest < 1000000 ; aTest++)
+        {
+           
+           // int aValInit = (aTest % 17);
+           // int aSzMax = 29;
+           // aMR1.Init(aSzMax,aValInit);
+           // aMR2.Init(aSzMax,aValInit);
+
+           // aMR2.Free();
+           aRes = ::System(aCom.c_str(),true,true);
+           // aMR1.Free();
+
+
+
+           sleep(1); // Pour faciliter l'arret
+        }
+
+   }
+   else
+   {
+       aRes = ::System(aCom.c_str(),false,true);
+   }
 
 
    Tapas_Banniere();
