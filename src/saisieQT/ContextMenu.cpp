@@ -27,7 +27,7 @@ void ContextMenu::createContextMenuActions()
     connect(_ThisW,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
     connect(_ThisP,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
 
-    _switchSignalMapper->setMapping (_AllW,  eAllWindow);
+    _switchSignalMapper->setMapping (_AllW,  eAllWindows);
     _switchSignalMapper->setMapping (_ThisW, eThisWindow);
     _switchSignalMapper->setMapping (_ThisP, eThisPoint);
 
@@ -61,7 +61,7 @@ void ContextMenu::changeImages(int mode)
 
     switch(mode)
     {
-    case eAllWindow:
+    case eAllWindows:
         break;
     case eThisWindow:
         idx = -2;
