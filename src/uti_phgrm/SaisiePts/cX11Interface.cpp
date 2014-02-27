@@ -300,6 +300,11 @@ void cX11_Interface::AddUndo(cOneSaisie * aSom)
     mAppli->AddUndo(*aSom, mCurWinIm->Image());
 }
 
+bool cX11_Interface::isDisplayed(cImage *anIm)
+{
+    return anIm->WAff() != NULL;
+}
+
 void cX11_Interface::RedrawAllWindows()
 {
     for (int aK=0 ; aK< int(mWins.size()) ; aK++)

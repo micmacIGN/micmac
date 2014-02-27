@@ -81,9 +81,10 @@ private:
 
     cSP_PointeImage *   currentPointeImage(int idPoint);
 
+    bool                WVisible(cSP_PointeImage &aPIm);
+
     cData               *_data;
 
-    bool                WVisible(cSP_PointeImage &aPIm);
 
 private slots:
 

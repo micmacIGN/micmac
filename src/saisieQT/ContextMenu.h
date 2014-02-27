@@ -14,7 +14,7 @@
 
 typedef enum
 {
-  eAllWindow,
+  eAllWindows,
   eThisWindow,
   eThisPoint
 } eSwitchImage;
