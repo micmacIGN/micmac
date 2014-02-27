@@ -486,7 +486,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
 extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
 {
-    uint deltaMax = 3;
+    uint deltaMax = d2O.penteMax();
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O.NBlines(),1,1);
     //ushort sizeBuff = NAPPEMAX;//d2O._m_DzMax ;
