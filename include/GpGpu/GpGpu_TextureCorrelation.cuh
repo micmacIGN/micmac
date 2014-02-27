@@ -1,6 +1,8 @@
 #ifndef CUDAREFTEXTURE
 #define CUDAREFTEXTURE
 
+#include "GpGpu_Defines.h"
+
 // ATTENTION : erreur de compilation avec l'option cudaReadModeNormalizedFloat et l'utilisation de la fonction tex2DLayered
 texture< pixel,	cudaTextureType2D >			TexS_MaskTer;
 texture< float,	cudaTextureType2DLayered >	TexL_Images;
@@ -16,6 +18,7 @@ texture< pixel,	cudaTextureType2D >         TexS_MaskGlobal;
 
 extern "C" textureReference& getMaskGlobal(){return TexS_MaskGlobal;}
 
+#define INTERPOLA BICUBIC
 
 template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();
 
@@ -35,7 +38,7 @@ inline __device__ float GetImageValue(float2 ptProj, uint mZ)
 #elif	INTERPOLA == LINEARINTER
 	return tex2DLayeredPt( TexL_Images, ptProj, mZ);
 #elif	INTERPOLA == BICUBIC
-	return tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, dimImg,mZ);
+    return tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, mZ);
 #endif
 }
 

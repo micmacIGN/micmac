@@ -88,7 +88,7 @@ void cSP_PointGlob::SetKilled()
        it++
     )
     {
-       it->second->Saisie()->Etat() =  aState;
+       it->second->Saisie()->Etat() = aState;
     }
     // Ce qui precede n'est pas suffisant car il se peut qu'il existe
     // des pointes non modifies car existant dans des images non chargees
@@ -126,7 +126,7 @@ void cSP_PointGlob::ReCalculPoints()
 
     Pt3dr aP0 = mPG->P3D().ValWithDef(Pt3dr(1234.67,1.56e69,-6.87e24));
 
-   mPG->Mes3DExportable().SetVal(false);
+    mPG->Mes3DExportable().SetVal(false);
 
 
     std::vector<cSP_PointeImage *> aVOK;
@@ -137,19 +137,19 @@ void cSP_PointGlob::ReCalculPoints()
        it++
     )
     {
-         cSP_PointeImage * aPIm = it->second;
-         eEtatPointeImage aState = aPIm->Saisie()-> Etat();
-         cImage &          anIm = *(aPIm->Image());
-         if (
-                  (anIm.Capt3d()!=0)
-               && (
-                       (aState==eEPI_Valide)
+        cSP_PointeImage * aPIm = it->second;
+        eEtatPointeImage  aState = aPIm->Saisie()->Etat();
+        cImage &          anIm = *(aPIm->Image());
+        if (
+                (anIm.Capt3d()!=0)
+                && (
+                    (aState==eEPI_Valide)
                     || (aState==eEPI_Douteux)
-                   )
-            )
-          {
+                    )
+                )
+        {
             aVOK.push_back(aPIm);
-          }
+        }
     }
 
     if (aVOK.size() == 0) 
@@ -252,7 +252,7 @@ int cAppli_SaisiePts::GetCptMax() const
 
 void cSP_PointGlob::Rename(const std::string & aNewName)
 {
-     PG()->Name()  = aNewName;
+     PG()->Name() = aNewName;
      for
      (
           std::map<std::string,cSP_PointeImage *>::iterator itM=mPointes.begin();
@@ -260,7 +260,7 @@ void cSP_PointGlob::Rename(const std::string & aNewName)
           itM++
      )
      {
-          itM->second->Saisie()->NamePt()  = aNewName;
+          itM->second->Saisie()->NamePt() = aNewName;
      }
 }
 

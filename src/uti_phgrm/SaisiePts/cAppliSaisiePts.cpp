@@ -41,10 +41,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 using namespace NS_SaisiePts;
 
-//void cVirtualInterface::pushBackNamePoint(cCaseNamePoint NP)
-//{
-//    mVNameCase.push_back(NP);
-//}
+//********************************************************************************
+
+cCaseNamePoint::cCaseNamePoint(const std::string & aName, eTypeCasePt aTCP) :
+    mName      (aName),
+    mTCP       (aTCP),
+    mFree      (true)
+{
+}
+
+//********************************************************************************
 
 void cVirtualInterface::DeletePoint(cSP_PointGlob * aSG)
 {
@@ -67,6 +73,84 @@ void cVirtualInterface::InitNbWindows()
         mNb2W.y = round_up((double(mNbW)-0.01)/mNb2W.x);
     }
 }
+
+void cVirtualInterface::InitVNameCase()
+{
+    std::string aNameAuto = mParam->NameAuto().Val();
+
+    if (aNameAuto != "NONE")
+    {
+        mVNameCase.push_back( cCaseNamePoint(aNameAuto+ToString(mAppli->GetCptMax()+1),eCaseAutoNum) );
+    }
+
+    for
+            (
+             std::list<std::string>::const_iterator itN = mParam->FixedName().begin();
+             itN !=mParam->FixedName().end();
+             itN++
+             )
+    {
+        // const std::string aName = itN->c_str();
+        std::vector<std::string> aNew = mAppli->ICNM()->StdGetVecStr(*itN);
+        for (int aK=0 ; aK< (int)aNew.size(); aK++)
+        {
+            mVNameCase.push_back(cCaseNamePoint(aNew[aK],eCaseStd));
+        }
+    }
+
+    for (int aK=0 ; aK<int(mVNameCase.size()); aK++)
+    {
+        mMapNC[mVNameCase[aK].mName] = & mVNameCase[aK];
+    }
+
+    for (int aK=0 ; aK< (int)mAppli->PG().size() ; aK++)
+    {
+        ChangeFreeNamePoint(mAppli->PG()[aK]->PG()->Name(),false);
+    }
+}
+
+void cVirtualInterface::ChangeFreeNamePoint(const std::string & aName, bool SetFree)
+{
+    std::map<std::string,cCaseNamePoint *>::iterator it = mMapNC.find(aName);
+    if (it == mMapNC.end())
+        return;
+    if (it->second->mTCP == eCaseStd)
+    {
+        it->second->mFree = SetFree;
+    }
+}
+
+void cVirtualInterface::Save()
+{
+    mAppli->Sauv();
+}
+
+bool cVirtualInterface::Visible(eEtatPointeImage aState)
+{
+    return  ((aState!=eEPI_Refute) || !RefInvis())
+            && (aState!=eEPI_Disparu);
+}
+
+void cVirtualInterface::ChangeState(cSP_PointeImage *aPIm, eEtatPointeImage aState)
+{
+    aPIm->Saisie()->Etat() = aState;
+
+    AddUndo(aPIm->Saisie());
+
+    aPIm->Gl()->ReCalculPoints();
+}
+
+void cVirtualInterface::UpdatePoints(cSP_PointeImage *aPIm, Pt2dr pt)
+{
+    aPIm->Saisie()->PtIm() = pt;
+    Redraw();
+
+    AddUndo(aPIm->Saisie());
+
+    aPIm->Gl()->ReCalculPoints();
+}
+
+//********************************************************************************
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
     mParam      (*aP2.mObj),
@@ -134,17 +218,6 @@ cSP_PointGlob *  cAppli_SaisiePts::PGlobOfNameSVP(const std::string & aName)
     std::map<std::string,cSP_PointGlob *>::iterator iT = mMapPG.find(aName);
     if (iT == mMapPG.end()) return 0;
     return iT->second;
-}
-
-
-
-
-
-cCaseNamePoint::cCaseNamePoint(const std::string & aName, eTypeCasePt aTCP) :
-    mName      (aName),
-    mTCP       (aTCP),
-    mFree      (true)
-{
 }
 
 void cAppli_SaisiePts:: ErreurFatale(const std::string & aName)
@@ -491,14 +564,6 @@ cSetOfSaisiePointeIm PurgeSOSPI(const cSetOfSaisiePointeIm & aSOSPI)
     return aRes;
 }
 
-#if ELISE_windows == 0
-
-void cX11_Interface::Save()
-{
-    mAppli->Sauv();
-}
-#endif
-
 void cAppli_SaisiePts::Sauv()
 {
     cSetOfSaisiePointeIm aSOSPI = PurgeSOSPI(mSOSPI);
@@ -606,25 +671,6 @@ void cAppli_SaisiePts::Exit()
     exit(-1);
 }
 
-
-class cCmpIm
-{
-public :
-
-    bool operator ()(const tImPtr & aI1,const tImPtr & aI2)
-    {
-        if (aI2->WAff() && (! aI1->WAff()))
-            return true;
-        if (aI1->WAff() && (! aI2->WAff()))
-            return false;
-
-        if (aI1->Prio() > aI2->Prio()) return true;
-        if (aI1->Prio() < aI2->Prio()) return false;
-
-        return aI1->Name() < aI2->Name();
-    }
-};
-
 double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
 {
     switch(aState)
@@ -659,20 +705,24 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
     return 0;
 }
 
+void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio)
+{
+    for (int aKI=0 ; aKI<int(mImages.size()); aKI++)
+    {
+        cImage & anIm = *(mImages[aKI]);
+        anIm.SetPrio(anIm.CalcPriority(PointPrio));
+    }
+}
+
 void cAppli_SaisiePts::ChangeImages
 (
         cSP_PointGlob * PointPrio,
         const std::vector<cWinIm *>  &  aW2Ch
         )
 {
-    for (int aKI=0 ; aKI<int(mImages.size()); aKI++)
-    {
-        cImage & anIm = *(mImages[aKI]);
-        anIm.SetPrio(anIm.CalcPriority(PointPrio));
+    SetImagesPriority(PointPrio);
 
-    }
-
-    cCmpIm aCmpIm;
+    cCmpIm aCmpIm(mInterface);
     std::sort(mImages.begin(),mImages.end(),aCmpIm);
 
 	#if ELISE_windows == 0
@@ -681,7 +731,7 @@ void cAppli_SaisiePts::ChangeImages
         aW2Ch[aKW]->SetNoImage();
     }
 	#endif
-    int aKW =0 ;
+    int aKW =0;
     int aKI =0;
 
     while (aKW <int(aW2Ch.size()) )
@@ -689,7 +739,8 @@ void cAppli_SaisiePts::ChangeImages
         ELISE_ASSERT(aKI<int(mImages.size()),"Incoherence in cAppli_SaisiePts::ChangeImages");
 
         cImage * anIm = mImages[aKI];
-        if (!anIm->WAff())
+
+        if (!mInterface->isDisplayed(anIm))
         {
 #if ELISE_windows == 0
             aW2Ch[aKW]->SetNewImage(anIm);
