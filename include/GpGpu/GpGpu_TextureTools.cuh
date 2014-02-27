@@ -103,6 +103,31 @@ __device__ R tex2DFastBicubic(const texture<T, cudaTextureType2DLayered, cudaRea
 		g1(fy) * (g0x * tex2DLayered(texref, (px + h0x+ 0.5f)/dim.x, (py + h1y+ 0.5f)/dim.y,layer)   +
 		g1x * tex2DLayered(texref, (px + h1x+ 0.5f)/dim.x, (py + h1y+ 0.5f)/dim.y,layer));
 	return r;
-};
+}
+
+template<class T, class R>  // texture data type, return type
+__device__ R tex2DFastBicubic(const texture<T, cudaTextureType2DLayered, cudaReadModeElementType> texref, float x, float y, int layer)
+{
+    x -= 0.5f;
+    y -= 0.5f;
+    float px = floor(x);
+    float py = floor(y);
+    float fx = x - px;
+    float fy = y - py;
+
+    // note: we could store these functions in a lookup table texture, but maths is cheap
+    float g0x = g0(fx);
+    float g1x = g1(fx);
+    float h0x = h0(fx);
+    float h1x = h1(fx);
+    float h0y = h0(fy);
+    float h1y = h1(fy);
+
+    R r = g0(fy) * (g0x * tex2DLayered(texref, (px + h0x + 0.5f), (py + h0y + 0.5f),layer)   +
+        g1x * tex2DLayered(texref, (px + h1x + 0.5f), (py + h0y + 0.5f),layer)) +
+        g1(fy) * (g0x * tex2DLayered(texref, (px + h0x+ 0.5f), (py + h1y+ 0.5f),layer)   +
+        g1x * tex2DLayered(texref, (px + h1x+ 0.5f), (py + h1y+ 0.5f),layer));
+    return r;
+}
 
 #endif //GPGPU_TEXTURETOOLS_CUH
