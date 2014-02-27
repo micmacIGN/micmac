@@ -606,7 +606,9 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 {
     const std::vector<Pt2di> * aVPt;
 
-    IGpuOpt.Prepare(mSz.x,mSz.y,aNbDir);
+    ushort aPenteMax = (ushort)mEtape.EtapeMEC().ModulationProgDyn().Val().Px1PenteMax().Val();
+
+    IGpuOpt.Prepare(mSz.x,mSz.y,aPenteMax,aNbDir);
 
     int     aKDir       = 0;
     int     aKPreDir    = 0;

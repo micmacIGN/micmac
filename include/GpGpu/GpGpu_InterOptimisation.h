@@ -157,7 +157,7 @@ public:
     ///
     //void            Prepare(uint x,uint y);
 
-    void            Prepare(uint x,uint y, ushort NBDir);
+    void            Prepare(uint x,uint y,ushort penteMax, ushort NBDir);
 
     ///
     /// \brief freezeCompute
