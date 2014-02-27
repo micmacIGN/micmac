@@ -47,6 +47,111 @@ using namespace NS_ParamChantierPhotogram;
 
 #define SzBuf 2000
 
+class cFileDebug
+{
+    public :
+        ~cFileDebug()
+        {
+            Close(0);
+        }
+        void Close(int aVal)
+        {
+           if (mFile) 
+           {
+              fprintf(mFile," RES=%d\n",aVal);
+              fprintf(mFile,"End}\n");
+              fclose(mFile);
+           }
+           mFile = 0;
+        }
+        void Open(const std::string & aName)
+        {
+            // ELISE_ASSERT(mFile==0,"Multiple Open in File Debug");
+            if (mFile==0)
+            {
+                mFile = fopen(aName.c_str(),"a+");
+                fprintf(mFile,"{Begin\n");
+            }
+        }
+        FILE * File() {return mFile;}
+
+        static cFileDebug  TheOne;
+
+    private :
+       cFileDebug() :
+           mFile (0)
+       {
+       }
+
+       FILE * mFile;
+};
+cFileDebug  cFileDebug::TheOne;
+FILE * TheFileDebug()
+{
+   return cFileDebug::TheOne.File();
+}
+void OpenFileDebug(const std::string & aName)
+{
+   cFileDebug::TheOne.Open(aName);
+}
+
+
+
+
+
+
+
+
+
+
+std::string TheStringMemoArgOptGlob = "";
+
+void AnalyseContextCom(int argc,char ** argv)
+{
+   static bool First = true;
+   if (!First) return;
+   First = false;
+
+   for (int aK=0 ; aK<argc ; aK++)
+   {
+       if (argv[aK][0] == cInterfChantierNameManipulateur::theCharSymbOptGlob)
+       {
+           bool ForAction = false;
+           std::string ArgK = argv[aK]+1;
+           if (ArgK =="ExitOnBrkp")
+           {
+               TheExitOnBrkp = true;
+               ForAction = true;
+           }
+           else if (ArgK=="ExitOnNan")
+           {
+               TheExitOnNan = true;
+               ForAction = true;
+           }
+           else if (ArgK=="MajickFile")
+           {
+               TheMajickFile=true;
+               ForAction = true;
+           }
+           else if (ArgK=="EnBoucle")
+           {
+               TheNbIterProcess=100000000;
+               ForAction = true;
+           }
+
+
+           if (ForAction)
+           {
+               TheStringMemoArgOptGlob += " " + std::string(argv[aK]);
+           }
+           else
+           {
+                for (int aK=0 ; aK< 5 ; aK++)
+                    std::cout << "   Warning, unknown arg with @ \n";
+           }
+       }
+   }
+}
 
 static char buf[SzBuf];
 
@@ -84,6 +189,7 @@ int mm_getpid()
 
 void MemoArg(int argc,char** argv)   
 {
+        AnalyseContextCom(argc,argv);
 	static bool First  = false;
 	if (! First) return;
 
@@ -278,7 +384,7 @@ bool  LArgMain::OneInitIfMatchEq
 		if ((*it)->InitIfMatchEq(s,Gram))
 			return true;
 
-	if (anAcceptUnknown || s[0]=='+' )
+	if (anAcceptUnknown || s[0]=='+'  ||  s[0]==cInterfChantierNameManipulateur::theCharSymbOptGlob)
 		return false;
 
 
@@ -447,6 +553,8 @@ const char * GenElArgMain::name() const
 	return _name.c_str();
 }
 
+
+
 std::vector<char *>  	ElInitArgMain
 	(
 	     int argc,char ** argv,
@@ -478,6 +586,7 @@ std::vector<char *>  	ElInitArgMain
 
 	bool Help = false;
 
+        AnalyseContextCom(argc,argv);
  //std::cout << "ARGCCCC " << argc << " " <<  LGlob.Size() << endl;
 	if ((argc==0) && ( LGlob.Size() !=0)) Help = true;
 	for (int aK=0 ; aK<argc ; aK++)
@@ -718,8 +827,15 @@ std::string StrFromArgMain(const std::string & aStr)
 /*                                                     */
 /*******************************************************/
 
-int System(const std::string & aCom,bool aSVP)
+int System(const std::string & aComOri,bool aSVP,bool AddOptGlob)
 {
+         std::string aCom = aComOri;
+        // Pour que les args de contextes soient automatiquement passes aux process fils
+        if (AddOptGlob)
+        {
+           aCom += TheStringMemoArgOptGlob ;
+        }
+
 	std::cout << "Sys:"<< aCom << "\n";
 	#if (ELISE_windows)
 		int aRes;
@@ -758,6 +874,8 @@ int System(const std::string & aCom,bool aSVP)
 
 void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 {
+   cFileDebug::TheOne.Close(aCode);
+
    if (aCode==0) 
       StdEXIT(0);
 

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1489]) = {
+const char * (theNameVar_ParamApero[1492]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -300,6 +300,9 @@ const char * (theNameVar_ParamApero[1489]) = {
 "                         RefFile=\"ParamChantierPhotogram.xml\"\n",
 "	> \n",
 "	</DicoLoc>\n",
+"\n",
+"\n",
+"         <FileDebug Nb=\"?\" Type=\"std::string\"> </FileDebug>\n",
 "\n",
 "        <ShowSection  Nb=\"?\"> \n",
 "            <ShowMes Nb=\"?\" Type=\"bool\" Def=\"true\"> </ShowMes>\n",

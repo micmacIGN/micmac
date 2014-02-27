@@ -388,6 +388,7 @@ static std::string CurrentProgramFullName;
 static std::string CurrentProgramSubcommand = "unknown";
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
+        AnalyseContextCom(argc,argv);
 	if ((aNbMin >=0) && (argc < aNbMin))
 	{
 		if (argc>0)
@@ -1864,6 +1865,7 @@ std::string XML_MM_File(const std::string & aFile)
 	}
 
 	const char cInterfChantierNameManipulateur::theCharModifDico = '+';
+	const char cInterfChantierNameManipulateur::theCharSymbOptGlob = '@';  // Surtout pas '-', interfere avec ELDcraw !!
 
 	const cInterfChantierNameManipulateur::tSet *  cStdChantierMultiManipulateur::Get(const tKey & aKey)
 	{

@@ -211,6 +211,7 @@ class cInterfChantierNameManipulateur
         void SetMapCmp(const std::list<cCmdMappeur> &, int argc,char ** argv);
 
         static const char theCharModifDico; // A priori +
+        static const char theCharSymbOptGlob; // A priori @
 
         cInterfChantierNameManipulateur(int argc,char ** argv,const std::string & aDir);
         virtual ~cInterfChantierNameManipulateur();

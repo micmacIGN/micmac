@@ -315,6 +315,9 @@ class cCompileAOI
 class cPoseCam
 {
      public :
+
+         void AddMajick(cMajickChek &) const;
+
          bool IsId(const ElAffin2D & anAff) const;
          const ElAffin2D &  OrIntM2C() const;
          const ElAffin2D &  OrIntC2M() const;
@@ -365,7 +368,7 @@ class cPoseCam
 	  const std::string & Name() const;
 	  double  AltiSol() const;
 	  double  Profondeur() const;
-          double  GetProfDyn(bool & Ok) const;
+          double  GetProfDyn(int & Ok) const;
 
 
 	  void    InitAvantCompens();
@@ -1789,6 +1792,12 @@ class cAppliApero : public NROptF1vND
     public :
 
 
+        bool NumIterDebug() const;
+        int   CptIterCompens() const {return mCptIterCompens;}
+        FILE * FileDebug();
+        std::string MagickStr();
+        void   MessageDebug(const std::string &);
+        void AddMajick(double aVal);
   
         FILE *  FpRT();  // File Rapport Txt
         cMesureAppuiFlottant1Im StdGetOneMAF(const std::string & aName);
@@ -1961,6 +1970,11 @@ class cAppliApero : public NROptF1vND
 
        void CheckInit(const cLiaisonsInit * ,cPoseCam *);
     private :
+
+       // Active uniquement si  mFileDebug != 0
+       void AddAllMajick(int aLine,const std::string & aFile,const std::string & aMes);
+       void PosesAddMajick();
+       void MajAddCoeffMatrix();  
 
        void ClearAllCamPtsVu();
 
@@ -2334,12 +2348,16 @@ class cAppliApero : public NROptF1vND
 
          
         FILE *                                 mFpRT;  // File Rapport Txt
+        FILE *                                 mFileDebug;  // File Rapport Txt
+        cMajickChek                            mMajChck;
+        int                                    mCptIterCompens;
 };
 
 
 
 };
 
+#define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
