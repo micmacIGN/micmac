@@ -159,7 +159,7 @@ void cQT_Interface::changeState(int state, int idPt)
         {
             if(aState == NS_SaisiePts::eEPI_Highlight)
 
-                aPIm->Gl()->HighLighted() = true;
+                aPIm->Gl()->HighLighted() = !aPIm->Gl()->HighLighted();
 
             else if (aState == NS_SaisiePts::eEPI_Deleted)
 
