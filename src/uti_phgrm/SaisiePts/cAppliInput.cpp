@@ -92,6 +92,11 @@ void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
     }
 }
 
+void cAppli_SaisiePts::SetInterface( cVirtualInterface * interf )
+{
+    mInterface = interf;
+}
+
 void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
 {
     //TODO: PARTIE METIER

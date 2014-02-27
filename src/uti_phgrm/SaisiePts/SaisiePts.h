@@ -165,7 +165,6 @@ class cImage
 
 typedef cImage * tImPtr;
 
-
 class cWinIm : public Grab_Untill_Realeased
 {
 public :
@@ -331,6 +330,8 @@ class cVirtualInterface
 
     virtual void        Redraw()=0;
 
+    virtual bool        isDisplayed(cImage* )=0;
+
 protected:
 
     void                      InitNbWindows();
@@ -352,6 +353,29 @@ protected:
 private:
 
     virtual void              Init()=0;
+};
+
+class cCmpIm
+{
+public :
+
+    cCmpIm(cVirtualInterface* aInterface):
+        mIntf(aInterface){}
+
+    bool operator ()(const tImPtr & aI1,const tImPtr & aI2)
+    {
+        if (mIntf->isDisplayed(aI2) && (! mIntf->isDisplayed(aI1)))
+            return true;
+        if (mIntf->isDisplayed(aI1) && (! mIntf->isDisplayed(aI2)))
+            return false;
+
+        if (aI1->Prio() > aI2->Prio()) return true;
+        if (aI1->Prio() < aI2->Prio()) return false;
+
+        return aI1->Name() < aI2->Name();
+    }
+
+    cVirtualInterface*  mIntf;
 };
 
 #if ELISE_windows == 0
@@ -389,6 +413,8 @@ public :
     void            SetInvisRef(bool aVal);         // sert à rendre les points réfutés visibles ou non
 
     void            AddUndo(cOneSaisie * aSom);
+
+    bool            isDisplayed(cImage *);
 
 private:
 
@@ -456,30 +482,37 @@ class cAppli_SaisiePts
     cSP_PointGlob *     AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
     void                AddPGInAllImage(cSP_PointGlob * aSPG);
 
-    void HighLightSom(cSP_PointGlob *);
+    void                HighLightSom(cSP_PointGlob *);
 
-    bool & ShowDet();
+    bool &              ShowDet();
 
-    void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
+    void                GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-    void ChangeName(std::string  anOldName,std::string  aNewName);
+    void                ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
 
-    void SetInterface( cVirtualInterface * interf ) { mInterface = interf ;}
+    void                SetInterface( cVirtualInterface * interf );
 
-    int             nbImages()  { return mNbIm; }
+    int                 GetCptMax() const;
 
-    int             GetCptMax() const;
+    int                 nbImages()  { return mNbIm; }
 
-    cImage*         images(int aK) { return mImages[aK]; }
+    cImage*             image(int aK) { return mImages[aK]; }
+
+    std::vector< cImage * > images() { return mImages; }
+
+    void                SetImages(std::vector <cImage *> aImgs) { mImages = aImgs; }
 
     std::vector< cSP_PointGlob * > PG() { return mPG; }
+
+
+
+    void                SetImagesPriority(cSP_PointGlob * PointPrio);
 
     private :
 
          void RenameIdPt(std::string &);
-
 
          void UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush); //UTILISE L'INTERFACE ReaffAllW();
 

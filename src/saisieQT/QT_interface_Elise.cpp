@@ -25,6 +25,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this,SLOT(changeName(QString, QString)));
 
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int)), this,SLOT(changeImages(int)));
+
         connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this,SLOT(SetInvisRef(bool)));
 
         connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this,SLOT(filesDropped(QStringList)));
@@ -84,7 +86,7 @@ int cQT_Interface::cImageIdxFromName(QString nameImage)
 
     for (int i = 0; i < mAppli->nbImages(); ++i)
     {
-       QString nameCImage(mAppli->images(i)->Name().c_str());
+       QString nameCImage(mAppli->image(i)->Name().c_str());
        if(nameCImage == nameImage)
            t = i;
     }
@@ -94,19 +96,23 @@ int cQT_Interface::cImageIdxFromName(QString nameImage)
 
 void cQT_Interface::addPoint(QPointF point)
 {
-    Pt2dr aPGlob(transformation(point));
+    if (m_QTMainWindow->currentWidget()->hasDataLoaded())
+    {
+        Pt2dr aPGlob(transformation(point));
 
-    cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
-    //TODO : aCNP *= GetIndexNamePoint();
+        cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
+        //TODO : aCNP *= GetIndexNamePoint();
 
-    QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->imageName();
 
-    int t = cImageIdxFromName(nameImage);
+        QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->imageName();
 
-    if(t != -1)
-        mAppli->images(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
+        int t = cImageIdxFromName(nameImage);
 
-    rebuildGlPoints();
+        if(t != -1)
+            mAppli->image(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
+
+        rebuildGlPoints();
+    }
 }
 
 cPoint cQT_Interface::selectedPt(int idPt)
@@ -205,18 +211,104 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
     }
 }
 
+bool cQT_Interface::isDisplayed(cImage* aImage)
+{
+    QString aName = QString(aImage->Name().c_str());
+
+    bool res = false;
+    for (int aK = 0; aK < m_QTMainWindow->nbWidgets();++aK)
+    {
+        if (m_QTMainWindow->getWidget(aK)->hasDataLoaded())
+        {
+            QString name = m_QTMainWindow->getWidget(aK)->getGLData()->imageName();
+            if (name == aName) res = true;
+        }
+    }
+    return res;
+}
+
+
+
+void cQT_Interface::changeImages(int idPt)
+{
+    int aKW =0;
+    int aKI =0;
+
+    cSP_PointGlob* PointPrio = 0;
+
+    if (idPt >=0)
+    {
+        cSP_PointeImage* aPIm = currentPointeImage(idPt);
+        PointPrio= aPIm->Gl();
+    }
+
+    mAppli->SetImagesPriority(PointPrio);
+
+    std::vector<cImage *> images = mAppli->images();
+
+#ifdef _DEBUG
+    std::cout << "vecteur image avant sort"<< std::endl;
+    for (int aK =0; aK < (int) images.size(); ++aK)
+        std::cout << "image " << aK << " "<< images[aK]->Name() << std::endl;
+#endif
+
+    cCmpIm aCmpImQT(this);
+    std::sort(images.begin(),images.end(),aCmpImQT);
+
+#ifdef _DEBUG
+    std::cout << "vecteur image apres sort"<< std::endl;
+    for (int aK =0; aK < (int) images.size(); ++aK)
+        std::cout << "image " << aK << " "<< images[aK]->Name() << std::endl;
+#endif
+
+    int max = (idPt == -2) ? 1 : m_QTMainWindow->nbWidgets();
+
+    while (aKW < max)
+    {
+        ELISE_ASSERT(aKI<int(images.size()),"Incoherence in cQT_Interface::changeImages");
+
+        cImage * anIm = images[aKI];
+
+        if (!isDisplayed(anIm))
+        {
+            int idx = cImageIdxFromName(QString(anIm->Name().c_str()));
+
+            cGLData* data = m_QTMainWindow->getEngine()->getGLData(idx);
+
+            if (data)
+            {
+                if (idPt == -2)
+                    m_QTMainWindow->currentWidget()->setGLData(data,true); //TODO: _ui Message isChecked
+                else
+                    m_QTMainWindow->getWidget(aKW)->setGLData(data,true); //TODO: _ui Message isChecked
+            }
+
+            aKW++;
+        }
+        aKI++;
+    }
+
+    if (idPt != -2) mAppli->SetImages(images);
+    //TODO: setImages dans le cas ThisWindow
+
+    rebuild2DGlPoints();
+}
+
 void cQT_Interface::changeCurPose(void *widgetGL)
 {
-    QString nameImage = ((GLWidget*)widgetGL)->getGLData()->imageName();
+    if (((GLWidget*)widgetGL)->hasDataLoaded())
+    {
+        QString nameImage = ((GLWidget*)widgetGL)->getGLData()->imageName();
 
-    int t = cImageIdxFromName(nameImage);
+        int t = cImageIdxFromName(nameImage);
 
-    for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->Cams.size(); ++c )
-        m_QTMainWindow->threeDWidget()->getGLData()->Cams[c]->setSelected(false);
+        for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->Cams.size(); ++c )
+            m_QTMainWindow->threeDWidget()->getGLData()->Cams[c]->setSelected(false);
 
-    m_QTMainWindow->threeDWidget()->getGLData()->Cams[t]->setSelected(true);
+        m_QTMainWindow->threeDWidget()->getGLData()->Cams[t]->setSelected(true);
 
-    m_QTMainWindow->threeDWidget()->update();
+        m_QTMainWindow->threeDWidget()->update();
+    }
 }
 
 void cQT_Interface::filesDropped(const QStringList &filenames)
@@ -256,7 +348,7 @@ cImage * cQT_Interface::currentcImage()
 {
     int t = currentcImageIdx();
 
-    return mAppli->images(t);
+    return mAppli->image(t);
 }
 
 int cQT_Interface::currentcImageIdx()
@@ -283,14 +375,12 @@ cGLData * cQT_Interface::getGlData(int idImage)
 
 Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
 {
-    Pt2dr newPt(pt.x(),getGlData(idImage)->glMaskedImage._m_image->height() - pt.y());
-    return newPt;
+    return Pt2dr(pt.x(),getGlData(idImage)->glMaskedImage._m_image->height() - pt.y());
 }
 
 QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
 {
-    QPointF newPt(pt.x,getGlData(idImage)->glMaskedImage._m_image->height() - pt.y);
-    return newPt;
+    return QPointF(pt.x,getGlData(idImage)->glMaskedImage._m_image->height() - pt.y);
 }
 
 void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int i)
@@ -366,7 +456,7 @@ void cQT_Interface::rebuild2DGlPoints()
 
             if(t!=-1)
             {
-                const std::vector<cSP_PointeImage *> &  aVP = mAppli->images(t)->VP();
+                const std::vector<cSP_PointeImage *> &  aVP = mAppli->image(t)->VP();
 
                 m_QTMainWindow->getWidget(i)->getGLData()->clearPolygon();
 
@@ -410,7 +500,7 @@ void cQT_Interface::rebuildGlCamera()
 {
     for (int i = 0; i < mAppli->nbImages(); ++i)
     {
-        ElCamera * aCamera = mAppli->images(i)->CaptCam();
+        ElCamera * aCamera = mAppli->image(i)->CaptCam();
         _data->addCamera(aCamera->CS());
     }
 }
@@ -425,7 +515,6 @@ void cQT_Interface::AddUndo(cOneSaisie *aSom)
 {
     mAppli->AddUndo(*aSom, currentcImage());
 }
-
 
 cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 {

@@ -671,25 +671,6 @@ void cAppli_SaisiePts::Exit()
     exit(-1);
 }
 
-
-class cCmpIm
-{
-public :
-
-    bool operator ()(const tImPtr & aI1,const tImPtr & aI2)
-    {
-        if (aI2->WAff() && (! aI1->WAff()))
-            return true;
-        if (aI1->WAff() && (! aI2->WAff()))
-            return false;
-
-        if (aI1->Prio() > aI2->Prio()) return true;
-        if (aI1->Prio() < aI2->Prio()) return false;
-
-        return aI1->Name() < aI2->Name();
-    }
-};
-
 double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
 {
     switch(aState)
@@ -724,20 +705,24 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
     return 0;
 }
 
+void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio)
+{
+    for (int aKI=0 ; aKI<int(mImages.size()); aKI++)
+    {
+        cImage & anIm = *(mImages[aKI]);
+        anIm.SetPrio(anIm.CalcPriority(PointPrio));
+    }
+}
+
 void cAppli_SaisiePts::ChangeImages
 (
         cSP_PointGlob * PointPrio,
         const std::vector<cWinIm *>  &  aW2Ch
         )
 {
-    for (int aKI=0 ; aKI<int(mImages.size()); aKI++)
-    {
-        cImage & anIm = *(mImages[aKI]);
-        anIm.SetPrio(anIm.CalcPriority(PointPrio));
+    SetImagesPriority(PointPrio);
 
-    }
-
-    cCmpIm aCmpIm;
+    cCmpIm aCmpIm(mInterface);
     std::sort(mImages.begin(),mImages.end(),aCmpIm);
 
 	#if ELISE_windows == 0
@@ -746,7 +731,7 @@ void cAppli_SaisiePts::ChangeImages
         aW2Ch[aKW]->SetNoImage();
     }
 	#endif
-    int aKW =0 ;
+    int aKW =0;
     int aKI =0;
 
     while (aKW <int(aW2Ch.size()) )
@@ -754,7 +739,8 @@ void cAppli_SaisiePts::ChangeImages
         ELISE_ASSERT(aKI<int(mImages.size()),"Incoherence in cAppli_SaisiePts::ChangeImages");
 
         cImage * anIm = mImages[aKI];
-        if (!anIm->WAff())
+
+        if (!mInterface->isDisplayed(anIm))
         {
 #if ELISE_windows == 0
             aW2Ch[aKW]->SetNewImage(anIm);
