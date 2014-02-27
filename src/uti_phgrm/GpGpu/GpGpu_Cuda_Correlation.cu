@@ -217,13 +217,14 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
 
 
 /// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens n utilisant pas des fonctions atomiques
-__global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* dev_NbImgOk, uint2 nbActThr,HDParamCorrel HdPc)
+
+template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* dev_NbImgOk, /*uint2 nbActThr,*/HDParamCorrel HdPc)
 {
 
-  __shared__ float aSV [ SBLOCKDIM ][ SBLOCKDIM ];          // Somme des valeurs
-  __shared__ float aSVV[ SBLOCKDIM  ][ SBLOCKDIM ];         // Somme des carrés des valeurs
-  __shared__ float resu[ SBLOCKDIM/2 ][ SBLOCKDIM/2 ];		// resultat
-  //__shared__ ushort nbIm[ SBLOCKDIM/2][ SBLOCKDIM/2 ];		// nombre d'images correcte
+  __shared__ float aSV [ SIZE3VIGN ][ SIZE3VIGN ];          // Somme des valeurs
+  __shared__ float aSVV[ SIZE3VIGN  ][ SIZE3VIGN ];         // Somme des carrés des valeurs
+  __shared__ float resu[ SIZE3VIGN/2 ][ SIZE3VIGN/2 ];		// resultat
+  //__shared__ ushort nbIm[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// nombre d'images correcte
 
   // coordonnées des threads
   const uint2 t = make_uint2(threadIdx);
@@ -237,10 +238,10 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
   //nbIm[t.y/2][t.x/2]	= 0;
 
   // TODO : 2014 LE NOMBRE DE TREAD ACTIF peut etre nettement ameliorer par un template
-  if ( oSE( t, nbActThr))	return; // si le thread est inactif, il sort
+  //if ( oSE( t, nbActThr))	return; // si le thread est inactif, il sort
 
   // Coordonnées 2D du cache vignette
-  const uint2 ptCach = make_uint2(blockIdx) * nbActThr + t;
+  const uint2 ptCach = make_uint2(blockIdx) * SIZE3VIGN + t;
 
   // Si le thread est en dehors du cache // TODO 2014 à verifier ----
   if ( oSE(ptCach, HdPc.dimCach))	return;
@@ -301,18 +302,25 @@ __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* de
 
 }
 
+template<ushort SIZE3VIGN > void LaunchKernelMultiCor(cudaStream_t stream, pCorGpu &param, SData2Correl &dataCorrel)
+{
+    //-------------	calcul de dimension du kernel de multi-correlation NON ATOMIC ------------
+    //uint2	nbActThr	= SIZE3VIGN - make_uint2( SIZE3VIGN % param.invPC.dimVig.x, SIZE3VIGN % param.invPC.dimVig.y);
+    dim3	threads(SIZE3VIGN, SIZE3VIGN, 1);
+    uint2	block2D	= iDivUp(param.HdPc.dimCach,SIZE3VIGN);
+    dim3	blocks(block2D.x,block2D.y,param.ZCInter);
+
+    multiCorrelationKernel<SIZE3VIGN><<<blocks, threads, 0, stream>>>(dataCorrel.DeviVolumeCost(0), dataCorrel.DeviVolumeCache(0), dataCorrel.DeviVolumeNOK(0),param.HdPc);
+    getLastCudaError("Multi-Correlation NON ATOMIC kernel failed");
+}
+
 /// \brief Fonction qui lance les kernels de multi-Correlation n'utilisant pas des fonctions atomiques
 extern "C" void LaunchKernelMultiCorrelation(cudaStream_t stream, pCorGpu &param, SData2Correl &dataCorrel)
 {
-
-    //-------------	calcul de dimension du kernel de multi-correlation NON ATOMIC ------------
-    uint2	nbActThr	= SBLOCKDIM - make_uint2( SBLOCKDIM % param.invPC.dimVig.x, SBLOCKDIM % param.invPC.dimVig.y);
-    dim3	threads(SBLOCKDIM, SBLOCKDIM, 1);
-    uint2	block2D	= iDivUp(param.HdPc.dimCach,nbActThr);
-    dim3	blocks(block2D.x,block2D.y,param.ZCInter);
-
-    multiCorrelationKernel<<<blocks, threads, 0, stream>>>(dataCorrel.DeviVolumeCost(0), dataCorrel.DeviVolumeCache(0), dataCorrel.DeviVolumeNOK(0), nbActThr,param.HdPc);
-    getLastCudaError("Multi-Correlation NON ATOMIC kernel failed");
+    if(param.invPC.rayVig.x == 1 || param.invPC.rayVig.x == 2 )
+        LaunchKernelMultiCor<SBLOCKDIM>(stream, param, dataCorrel);
+    else if(param.invPC.rayVig.x == 3 )
+        LaunchKernelMultiCor<7*2>(stream, param, dataCorrel);
 
 }
 
