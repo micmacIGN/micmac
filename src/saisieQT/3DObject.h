@@ -253,6 +253,7 @@ class cPolygon : public cObjectGL
 
         int     setNearestPointState(const QPointF &pos, int state);
         int     highlightNearestPoint(const QPointF &pos);
+        int     getNearestPointIndex(const QPointF &pos);
         QString getNearestPointName(const QPointF &pos);
         QString getSelectedPointName();
         int     getSelectedPointState();

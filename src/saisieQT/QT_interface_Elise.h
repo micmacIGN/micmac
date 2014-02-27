@@ -44,6 +44,11 @@ public :
     void                option3DPreview();
 
     void                AddUndo(cOneSaisie * aSom);
+
+    bool                isDisplayed(cImage *aImage);
+
+    void                Redraw(){}
+
 private:
 
     void                Init();
@@ -91,6 +96,8 @@ private slots:
     void                changeState(int state, int idPt);
 
     void                changeName(QString aOldName, QString aNewName);
+
+    void                changeImages(int idPt);
 
     void                changeCurPose(void *widgetGL);
 

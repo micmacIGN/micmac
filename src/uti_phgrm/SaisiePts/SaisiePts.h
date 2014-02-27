@@ -466,15 +466,17 @@ class cAppli_SaisiePts
 
     cVirtualInterface * Interface() { return mInterface; }
 
-    void SetInterface( cVirtualInterface * interf ) { mInterface = interf ;}
+    void SetInterface( cVirtualInterface * interf );
 
     int             nbImages()  { return mNbIm; }
 
     int             GetCptMax() const;
 
-    cImage*         images(int aK) { return mImages[aK]; }
+    cImage*         image(int aK) { return mImages[aK]; }
 
     std::vector< cSP_PointGlob * > PG() { return mPG; }
+
+    std::vector<cImage *>                 mImages;
 
     private :
 
@@ -498,7 +500,7 @@ class cAppli_SaisiePts
 
          cInterfChantierNameManipulateur *     mICNM;
          std::string                           mDC;
-         std::vector<cImage *>                 mImages;
+
          std::map<std::string,cImage *>        mMapIms;
 
          cSetPointGlob                         mSPG;

@@ -113,7 +113,7 @@ void cX11_Interface::Init()
                 ELISE_COPY(aWTitle->all_pts(),P8COL::yellow,aWTitle->odisc());
                 ELISE_COPY(aRes->all_pts(),P8COL::blue,aRes->odisc());
                 aLastW = aWTitle;
-                mWins.push_back(new cWinIm(*mAppli,*aRes,*aWTitle,*mAppli->images(aCpt)));
+                mWins.push_back(new cWinIm(*mAppli,*aRes,*aWTitle,*mAppli->image(aCpt)));
                 if ((aKY==0) && (aKX==(mNb2W.x -1)))
                 {
                     aWY0XMax = aWTitle;

@@ -21,23 +21,31 @@ void ContextMenu::createContextMenuActions()
 
     connect(_highLight,		    SIGNAL(triggered()),   this, SLOT(highlight()));
 
-    _signalMapper = new QSignalMapper (this);
+    _switchSignalMapper = new QSignalMapper (this);
 
-    /*connect(_AllW,      	    SIGNAL(triggered()),   _signalMapper, SLOT(AllW()));
-    connect(_ThisW,             SIGNAL(triggered()),   _signalMapper, SLOT(ThisW()));
-    connect(_ThisP,             SIGNAL(triggered()),   _signalMapper, SLOT(ThisP()));*/
+    connect(_AllW,      	    SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
+    connect(_ThisW,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
+    connect(_ThisP,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
 
-    connect(_validate,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
-    connect(_dubious,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
-    connect(_refuted,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
-    connect(_noSaisie,		    SIGNAL(triggered()),   _signalMapper, SLOT(map()));
+    _switchSignalMapper->setMapping (_AllW,  eAllWindow);
+    _switchSignalMapper->setMapping (_ThisW, eThisWindow);
+    _switchSignalMapper->setMapping (_ThisP, eThisPoint);
 
-    _signalMapper->setMapping (_validate,  eEPI_Valide);
-    _signalMapper->setMapping (_dubious,   eEPI_Douteux);
-    _signalMapper->setMapping (_refuted,   eEPI_Refute);
-    _signalMapper->setMapping (_noSaisie,  eEPI_NonSaisi);
+    connect (_switchSignalMapper, SIGNAL(mapped(int)), this, SLOT(changeImages(int)));
 
-    connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(setPointState(int)));
+    _stateSignalMapper = new QSignalMapper (this);
+
+    connect(_validate,		    SIGNAL(triggered()),   _stateSignalMapper, SLOT(map()));
+    connect(_dubious,		    SIGNAL(triggered()),   _stateSignalMapper, SLOT(map()));
+    connect(_refuted,		    SIGNAL(triggered()),   _stateSignalMapper, SLOT(map()));
+    connect(_noSaisie,		    SIGNAL(triggered()),   _stateSignalMapper, SLOT(map()));
+
+    _stateSignalMapper->setMapping (_validate,  eEPI_Valide);
+    _stateSignalMapper->setMapping (_dubious,   eEPI_Douteux);
+    _stateSignalMapper->setMapping (_refuted,   eEPI_Refute);
+    _stateSignalMapper->setMapping (_noSaisie,  eEPI_NonSaisi);
+
+    connect (_stateSignalMapper, SIGNAL(mapped(int)), this, SLOT(setPointState(int)));
 }
 
 void ContextMenu::setPointState(int state)
@@ -45,6 +53,25 @@ void ContextMenu::setPointState(int state)
     int idx = _polygon->setNearestPointState(_lastPosImage, state);
 
     emit changeState(state, idx);
+}
+
+void ContextMenu::changeImages(int mode)
+{
+    int idx = -4;
+
+    switch(mode)
+    {
+    case eAllWindow:
+        break;
+    case eThisWindow:
+        idx = -2;
+        break;
+    case eThisPoint:
+        idx = _polygon->getNearestPointIndex(_lastPosImage);
+        break;
+    }
+
+    emit changeImagesSignal(idx);
 }
 
 void ContextMenu::highlight()

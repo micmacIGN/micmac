@@ -734,7 +734,6 @@ void cAppli_SaisiePts::ChangeImages
     {
         cImage & anIm = *(mImages[aKI]);
         anIm.SetPrio(anIm.CalcPriority(PointPrio));
-
     }
 
     cCmpIm aCmpIm;
@@ -746,7 +745,7 @@ void cAppli_SaisiePts::ChangeImages
         aW2Ch[aKW]->SetNoImage();
     }
 	#endif
-    int aKW =0 ;
+    int aKW =0;
     int aKI =0;
 
     while (aKW <int(aW2Ch.size()) )
