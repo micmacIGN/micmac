@@ -69,6 +69,8 @@ private:
 
     cGLData *           getGlData(int idImage);
 
+    cGLData *           getGlData(cImage* image);
+
     cSP_PointeImage *   currentPointeImage(int idPoint);
 
     bool                WVisible(cSP_PointeImage &aPIm);

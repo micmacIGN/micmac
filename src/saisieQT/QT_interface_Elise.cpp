@@ -231,8 +231,8 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
 
 void cQT_Interface::changeImages(int idPt)
 {
-    int aKW =0;
-    int aKI =0;
+    int aKW =0; // id widget
+    int aKI =0; // id images
 
     cSP_PointGlob* PointPrio = 0;
 
@@ -263,17 +263,22 @@ void cQT_Interface::changeImages(int idPt)
 
     int max = (idPt == -2) ? 1 : m_QTMainWindow->nbWidgets();
 
+    if (idPt != -2)
+        for (int i = 0; i < max; ++i)
+            m_QTMainWindow->getWidget(i)->reset();
+
     while (aKW < max)
     {
-        ELISE_ASSERT(aKI<int(images.size()),"Incoherence in cQT_Interface::changeImages");
+
+        ELISE_ASSERT(aKI<int(images.size()),"Incoherence in cQT_Interface::changeImages");        
 
         cImage * anIm = images[aKI];
 
         if (!isDisplayed(anIm))
         {
-            int idx = cImageIdxFromName(QString(anIm->Name().c_str()));
+            //int idx = cImageIdxFromName(QString(anIm->Name().c_str()));
 
-            cGLData* data = m_QTMainWindow->getEngine()->getGLData(idx);
+            cGLData* data = getGlData(anIm);//m_QTMainWindow->getEngine()->getGLData(idx);
 
             if (data)
             {
@@ -282,10 +287,13 @@ void cQT_Interface::changeImages(int idPt)
                 else
                     m_QTMainWindow->getWidget(aKW)->setGLData(data,true); //TODO: _ui Message isChecked
             }
-
             aKW++;
         }
+
+
         aKI++;
+
+        printf("images size = %d, max = %d, aKW = %d, aKI = %d, nb GLdata = %d\n",(int)images.size(),max,aKW,aKI,m_QTMainWindow->getEngine()->nbGLData());
     }
 
     if (idPt != -2) mAppli->SetImages(images);
@@ -366,11 +374,26 @@ int cQT_Interface::cImageIdx(int idGl)
     return cImageIdxFromGL(m_QTMainWindow->getWidget(idGl)->getGLData());
 }
 
-cGLData * cQT_Interface::getGlData(int idImage)
+cGLData * cQT_Interface::getGlData(int idWidget)
 {
-    cGLData * data = (idImage == -1) ? m_QTMainWindow->currentWidget()->getGLData() : m_QTMainWindow->getWidget(idImage)->getGLData();
+    cGLData * data = (idWidget == -1) ? m_QTMainWindow->currentWidget()->getGLData() : m_QTMainWindow->getWidget(idWidget)->getGLData();
 
     return data;
+}
+
+cGLData *cQT_Interface::getGlData(cImage *image)
+{
+
+    if(!image) return NULL;
+
+    for (int iGd = 0; iGd < m_QTMainWindow->getEngine()->nbGLData(); ++iGd)
+    {
+        QString nameImage = QString(image->Name().c_str());
+            if(nameImage == m_QTMainWindow->getEngine()->getGLData(iGd)->imageName())
+                return m_QTMainWindow->getEngine()->getGLData(iGd);
+    }
+
+    return NULL;
 }
 
 Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
