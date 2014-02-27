@@ -20,7 +20,7 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
 {
     _D_data2Opt.SetNbLine(_H_data2Opt.NBlines());
 
-    _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize());
+    _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize());
 
     _D_data2Opt.ReallocIf(_H_data2Opt);
 
@@ -72,9 +72,9 @@ void InterfOptimizGpGpu::threadCompute()
         {          
             SetCompute(false);
 
-            _D_data2Opt.SetNbLine(_H_data2Opt._nbLines);
+            _D_data2Opt.SetNbLine(_H_data2Opt.nbLines());
 
-            _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize(),GetIdBuf());
+            _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize(),GetIdBuf());
 
             _D_data2Opt.ReallocIf(_H_data2Opt);
 

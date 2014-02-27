@@ -1593,7 +1593,8 @@ void cEtapeMecComp::SauvProjImage
 
 		#if (ELISE_windows)&&(!ELISE_MinGW)
 			Sleep(2000);
-		#else sleep(2);
+        #else
+          sleep(2);
 		#endif
       }
 
