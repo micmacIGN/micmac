@@ -88,6 +88,8 @@ struct p_ReadLine
 template<template<class T> class U, uint NBUFFER = 1 >
 struct Data2Optimiz
 {
+public:
+
     Data2Optimiz();
 
     ~Data2Optimiz();
@@ -123,6 +125,22 @@ struct Data2Optimiz
     uint*       pForceCostVol(){return _s_ForceCostVol[0].pData();}
     uint3*      pParam(){       return _param[0].pData();}
 
+    ushort      penteMax() const;
+    void        setPenteMax(const ushort &penteMax);
+
+    uint        nbLines() const;
+    void        setNbLines(const uint &nbLines);
+
+    U<ushort>   s_InitCostVol() const;
+
+    U<uint3>    param(ushort i) const;
+
+    U<short2>   s_Index() const;
+
+    U<uint>     &s_ForceCostVol(ushort i);
+
+private:
+
     U<uint3>     _param[NBUFFER];
     U<ushort>    _s_InitCostVol;
     U<uint>      _s_ForceCostVol[NBUFFER];
@@ -130,7 +148,7 @@ struct Data2Optimiz
 
     uint         _nbLines;
     bool         _idBuffer;
-    ushort       _m_DzMax;
+    ushort       _penteMax;
 };
 
 TEMPLATE_D2OPTI
@@ -142,7 +160,7 @@ Data2Optimiz<U,NBUFFER>::~Data2Optimiz()
 TEMPLATE_D2OPTI
 Data2Optimiz<U,NBUFFER>::Data2Optimiz():
     _idBuffer(false),
-    _m_DzMax(0)
+    _penteMax(0)
 {
     for(uint i = 0;i < NBUFFER;i++)
     {
@@ -209,7 +227,7 @@ void Data2Optimiz<U,NBUFFER>::ReallocOutputIf(uint pStr, uint idbuf)
 TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::ReallocIf(Data2Optimiz<CuHostData3D,2> &d2o)
 {
-    ReallocIf(d2o._s_InitCostVol.GetSize(),d2o._s_Index.GetSize());
+    ReallocIf(d2o.s_InitCostVol().GetSize(),d2o.s_Index().GetSize());
 }
 
 TEMPLATE_D2OPTI
@@ -233,16 +251,64 @@ void Data2Optimiz<U,NBUFFER>::SetNbLine(uint nbl)
 TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::CopyHostToDevice(Data2Optimiz<CuHostData3D, 2> &d2o, uint idbuf)
 {
-    _s_InitCostVol.CopyHostToDevice(    d2o._s_InitCostVol .pData());
-    _s_Index.CopyHostToDevice(          d2o._s_Index       .pData());    
-    _param[0].CopyHostToDevice(         d2o._param[idbuf]  .pData());
+    _s_InitCostVol.CopyHostToDevice(    d2o.s_InitCostVol().pData());
+    _s_Index.CopyHostToDevice(          d2o.s_Index()      .pData());
+    _param[0].CopyHostToDevice(         d2o.param(idbuf)   .pData());
 }
 
 TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::CopyDevicetoHost(Data2Optimiz<CuHostData3D, 2> &h2o, uint idbuf)
 {
-    _s_ForceCostVol[0].CopyDevicetoHost(h2o._s_ForceCostVol[idbuf]);
+    _s_ForceCostVol[0].CopyDevicetoHost(h2o.s_ForceCostVol(idbuf));
 }
+
+TEMPLATE_D2OPTI
+ushort Data2Optimiz<U,NBUFFER>::Data2Optimiz::penteMax() const
+{
+    return _penteMax;
+}
+
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::Data2Optimiz::setPenteMax(const ushort &penteMax)
+{
+    _penteMax = penteMax;
+}
+
+TEMPLATE_D2OPTI
+uint Data2Optimiz<U,NBUFFER>::nbLines() const
+{
+    return _nbLines;
+}
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::setNbLines(const uint &nbLines)
+{
+    _nbLines = nbLines;
+}
+
+TEMPLATE_D2OPTI
+U<ushort> Data2Optimiz<U,NBUFFER>::s_InitCostVol() const
+{
+    return _s_InitCostVol;
+}
+
+TEMPLATE_D2OPTI
+U<uint3> Data2Optimiz<U,NBUFFER>::param(ushort i) const
+{
+    return _param[i];
+}
+
+TEMPLATE_D2OPTI
+U<short2> Data2Optimiz<U,NBUFFER>::s_Index() const
+{
+    return _s_Index;
+}
+
+TEMPLATE_D2OPTI
+U<uint> &Data2Optimiz<U,NBUFFER>::s_ForceCostVol(ushort i)
+{
+    return _s_ForceCostVol[i];
+}
+
 
 #endif //__DATA2OPTIMIZ_H__
 

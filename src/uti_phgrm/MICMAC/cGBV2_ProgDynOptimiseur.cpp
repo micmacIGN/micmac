@@ -524,7 +524,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
     {
         uint    pitStrm = 0;
         uint    lLine   = aVPt->size();
-        short2* index   = d2Opt._s_Index.pData() + d2Opt._param[idBuf][idLine].y;
+        short2* index   = d2Opt.s_Index().pData() + d2Opt.param(idBuf)[idLine].y;
 
         for (uint aK= 0 ; aK < lLine; aK++)
         {
@@ -542,9 +542,9 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
                 index[aK]   = costInit1D.PtZ(ptTer);
 #endif
 
-            uint idStrm = d2Opt._param[idBuf][idLine].x + pitStrm;
+            uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
 
-            ushort* desrCostInit = d2Opt._s_InitCostVol.pData()+idStrm;
+            ushort* desrCostInit = d2Opt.s_InitCostVol().pData()+idStrm;
 
             memcpy(desrCostInit,costInit1D[ptTer],dZ * sizeof(ushort));
 
@@ -581,8 +581,8 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
             #else
             ushort dZ   =  min(costInit1D.DZ(ptTer),NAPPEMAX);
             #endif
-            uint idStrm = d2Opt._param[idBuf][idLine].x + pitStrm;
-            uint *forCo = d2Opt._s_ForceCostVol[idBuf].pData() + idStrm;
+            uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
+            uint *forCo = d2Opt.s_ForceCostVol(idBuf).pData() + idStrm;
             uint *finCo = costFinal1D.pData() + costInit1D.Pit(ptTer);
 
             for ( int aPx = 0 ; aPx < dZ ; aPx++)
