@@ -25,13 +25,9 @@ public :
     cQT_Interface(cAppli_SaisiePts &appli,MainWindow* QTMainWindow);
     ~cQT_Interface(){}
 
-    void                RedrawAllWindows(){}
-
-    void                Save(){}
-
-    void                DrawZoom(const Pt2dr & aPGlob){} //fenetre zoom
-
     void                ChangeFreeNamePoint(const std::string &, bool SetFree){}
+
+    void                RedrawAllWindows(){}
 
     cCaseNamePoint *    GetIndexNamePoint();
 
@@ -39,33 +35,40 @@ public :
 
     void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 
+    void                rebuild2DGlPoints();
+
     void                rebuild3DGlPoints(cSP_PointeImage* aPIm);
 
     void                rebuildGlCamera();
 
-    void option3DPreview();
-    void rebuild2DGlPoints();
+    void                option3DPreview();
+
+    void                AddUndo(cOneSaisie * aSom);
 private:
 
-    void                Init(){}
+    void                Init();
 
     MainWindow*         m_QTMainWindow;
 
-    int                 cImageIdxFromName(QString nameImage);
-
-    int                 cImageIdx(int idGl);
+    cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
 
     Pt2dr               transformation(QPointF pt, int idImage = -1);
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
 
-    cAppli_SaisiePts*   AppliMetier(){return  mAppli;}
+    int                 cImageIdxFromName(QString nameImage);
 
-    int                 cImageIdxCurrent();
+    int                 cImageIdx(int idGl);
 
-    std::string         nameSelectPt(int idPt);
+    int                 currentcImageIdx();
 
     int                 cImageIdxFromGL(cGLData* data);
+
+    cImage *            currentcImage();
+
+    cPoint              selectedPt(int idPt);
+
+    std::string         selectedPtName(int idPt);
 
     void                addGlPoint(cSP_PointeImage *aPIm, int i);
 
@@ -73,14 +76,9 @@ private:
 
     cSP_PointeImage *   currentPointeImage(int idPoint);
 
-    cImage *            currentCImage();
-
     cData               *_data;
 
-    bool                WVisible(eEtatPointeImage aState);
-
     bool                WVisible(cSP_PointeImage &aPIm);
-
 
 private slots:
 
@@ -91,6 +89,8 @@ private slots:
     void                selectPoint(int idPt);
 
     void                changeState(int state, int idPt);
+
+    void                changeName(QString aOldName, QString aNewName);
 
     void                changeCurPose(void *widgetGL);
 

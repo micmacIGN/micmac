@@ -44,7 +44,7 @@ void ContextMenu::setPointState(int state)
 {
     int idx = _polygon->setNearestPointState(_lastPosImage, state);
 
-    emit    changeState(state, idx);
+    emit changeState(state, idx);
 }
 
 void ContextMenu::highlight()
@@ -59,9 +59,11 @@ void ContextMenu::rename()
     QInputDialog* inputDialog = new QInputDialog();
     inputDialog->setOptions(QInputDialog::NoButtons);
 
-    QString text = inputDialog->getText(NULL, tr("Rename"), tr("Point name:"), QLineEdit::Normal, _polygon->getNearestPointName(_lastPosImage));
+    QString oldName = _polygon->getNearestPointName(_lastPosImage);
 
-    if (!text.isEmpty())
+    QString newName = inputDialog->getText(NULL, tr("Rename"), tr("Point name:"), QLineEdit::Normal, oldName);
 
-         _polygon->rename(_lastPosImage, text);
+    if (!newName.isEmpty())
+
+        emit changeName(oldName, newName);
 }
