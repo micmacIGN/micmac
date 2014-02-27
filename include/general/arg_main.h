@@ -75,6 +75,11 @@ std::string MakeStrFromArgcARgv(int  argc,char** argv);
 void MemoArg(int,char**);
 void ShowArgs();
 
+extern std::string TheStringMemoArgOptGlob;
+
+
+// Remet dans la commande les option commancant par "-"
+void AddMinuToArgs(std::string & aCom,int  argc,char** argv);
 
 class ElGramArgMain  // classe contenant la "grammaire" rudimenataire
 {
