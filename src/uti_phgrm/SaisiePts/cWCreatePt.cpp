@@ -118,7 +118,7 @@ void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
 
     if (aPGlob==PtsEchec) return;
 
-    mAppli.Interface()->DrawZoom(aPGlob);
+    ((cX11_Interface*) mAppli.Interface())->DrawZoom(aPGlob);
 
     cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePoint();
 

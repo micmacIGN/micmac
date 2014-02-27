@@ -41,6 +41,8 @@ signals:
 
     void changeState(int state, int idPt);
 
+    void changeName(QString oldName, QString newName);
+
 public slots:
 
     void setPointState(int state);
