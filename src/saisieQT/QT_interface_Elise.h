@@ -1,8 +1,7 @@
 #ifndef QT_INTERFACE_ELISE_H
 #define QT_INTERFACE_ELISE_H
 
-#include    "StdAfx.h"
-#include    "../uti_phgrm/SaisiePts/SaisiePts.h"
+//#include    "StdAfx.h"
 #ifdef Int
     #undef Int
 #endif
