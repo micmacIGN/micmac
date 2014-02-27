@@ -266,19 +266,18 @@ void cQT_Interface::changeImages(int idPt)
     if (idPt != -2)
         for (int i = 0; i < max; ++i)
             m_QTMainWindow->getWidget(i)->reset();
+    else
+        m_QTMainWindow->currentWidget()->reset();
 
     while (aKW < max)
     {
-
         ELISE_ASSERT(aKI<int(images.size()),"Incoherence in cQT_Interface::changeImages");        
 
         cImage * anIm = images[aKI];
 
         if (!isDisplayed(anIm))
         {
-            //int idx = cImageIdxFromName(QString(anIm->Name().c_str()));
-
-            cGLData* data = getGlData(anIm);//m_QTMainWindow->getEngine()->getGLData(idx);
+            cGLData* data = getGlData(anIm);
 
             if (data)
             {
@@ -290,10 +289,9 @@ void cQT_Interface::changeImages(int idPt)
             aKW++;
         }
 
-
         aKI++;
 
-        printf("images size = %d, max = %d, aKW = %d, aKI = %d, nb GLdata = %d\n",(int)images.size(),max,aKW,aKI,m_QTMainWindow->getEngine()->nbGLData());
+//        printf("images size = %d, max = %d, aKW = %d, aKI = %d, nb GLdata = %d\n",(int)images.size(),max,aKW,aKI,m_QTMainWindow->getEngine()->nbGLData());
     }
 
     if (idPt != -2) mAppli->SetImages(images);
