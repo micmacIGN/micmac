@@ -1,16 +1,7 @@
 #ifndef QT_INTERFACE_ELISE_H
 #define QT_INTERFACE_ELISE_H
 
-//#include    "StdAfx.h"
-#ifdef Int
-    #undef Int
-#endif
 #include    "mainwindow.h"
-
-//using namespace NS_ParamChantierPhotogram;
-//using namespace NS_SuperposeImage;
-
-using namespace NS_SaisiePts;
 
 class MainWindow;
 
