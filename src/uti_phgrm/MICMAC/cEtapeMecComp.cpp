@@ -1590,7 +1590,12 @@ void cEtapeMecComp::SauvProjImage
 
       if (aBoxOut._p0 != Pt2di(0,0))
       {
-           sleep(2);
+
+		#if (ELISE_windows)&&(!ELISE_MinGW)
+			Sleep(2000);
+        #else
+          sleep(2);
+		#endif
       }
 
 

@@ -97,14 +97,15 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
     }
 }
 
-void GLWidget::addGlPoint(QPointF pt, QString name, int  state, QPointF pt1, QPointF pt2, bool hightlight)
+void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
 {
-    cPoint point(_painter,pt,name,true,state);
+    QString name(aSom->NamePt().c_str());
 
-    point.setHighlight(hightlight);
+    cPoint point(_painter,pt,name,true,aSom->Etat());
 
-    if (pt1 != QPointF(0.f,0.f))
-        point.setEpipolar(pt1, pt2);
+    point.setHighlight(highlight);
+
+    if (pt1 != QPointF(0.f,0.f)) point.setEpipolar(pt1, pt2);
 
     getGLData()->m_polygon.add(point);
 }

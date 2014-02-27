@@ -548,8 +548,8 @@ void cPoint::draw()
 
          _painter->drawEllipse(pt, _diameter, _diameter);
 
-         if (_highlight)
-         {
+         if (_highlight && ((_state == eEPI_Valide) || (_state == eEPI_NonSaisi)))
+         {           
              if (_bEpipolar)
              {
                  QPointF epip1 = _painter->transform().map(_epipolar1);
@@ -759,6 +759,13 @@ int cPolygon::highlightNearestPoint(const QPointF &pos)
     {
         _points[_idx].switchHighlight();
     }
+
+    return _idx;
+}
+
+int cPolygon::getNearestPointIndex(const QPointF &pos)
+{
+    findNearestPoint(pos, 400000.f);
 
     return _idx;
 }

@@ -92,8 +92,14 @@ void cAppli_SaisiePts::HighLightSom(cSP_PointGlob * aPG)
     }
 }
 
-void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
+void cAppli_SaisiePts::SetInterface( cVirtualInterface * interf )
 {
+    mInterface = interf;
+}
+
+void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
+{
+    //TODO: PARTIE METIER
     for (int aKP=0 ; aKP< int(mPG.size()) ; aKP++)
     {
         if (mPG[aKP]->PG()->Name() == aNewName)
@@ -103,6 +109,7 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
         }
     }
 
+    //PARTIE VIRTUELLE
     for (int aKP=0 ; aKP< int(mPG.size()) ; aKP++)
     {
         if (mPG[aKP]->PG()->Name() == anOldName)
@@ -128,6 +135,7 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName,std::string  aNewName)
         }
     }
 
+    //PARTIE METIER
     mInterface->RedrawAllWindows();
 }
 
