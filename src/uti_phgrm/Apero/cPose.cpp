@@ -125,6 +125,7 @@ cPoseCam::cPoseCam
     mAltiSol     (ALTISOL_UNDEF()),
     mProfondeur  (PROF_UNDEF()),
     mTime        (TIME_UNDEF()),
+    mSomPM       (0),
     mPrioSetAlPr (-1),
     mRotIsInit   (false),
     mLastCP      (0),
@@ -473,22 +474,29 @@ void    cPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
  
 }
 
-double cPoseCam::GetProfDyn(bool & Ok) const
+double cPoseCam::GetProfDyn(int & Ok) const
 {
     Ok = true;
 
     if (PMoyIsInit())
     {
+        Ok =1 ;
         return ProfMoyHarmonik();
     }
     if (mLastEstimProfIsInit)
+    {
+       Ok =2 ;
        return mLasEstimtProf;
+    }
 
     if (mProfondeur != PROF_UNDEF())
+    {
+       Ok = 3 ;
        return mProfondeur;
+    }
 
 
-    Ok = false;
+    Ok = 0;
     return 0;
 }
 
@@ -701,6 +709,7 @@ void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
     else
     {
         const CamStenope *  aCS = CurCam() ;
+        ELISE_ASSERT( (mProfondeur != PROF_UNDEF()),"No Profondeur in cPoseCam::SetBascRig");
 
         aP =  aCS->ImEtProf2Terrain(aCS->Sz()/2.0,mProfondeur);
         aP =  aSBR(aP);
@@ -2144,6 +2153,10 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
 
 */
 
+void cPoseCam::AddMajick(cMajickChek & aMC) const
+{
+    aMC.Add(CurRot());
+}
 
 
 };

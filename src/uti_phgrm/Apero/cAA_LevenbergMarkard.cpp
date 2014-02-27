@@ -91,12 +91,16 @@ void cAppliApero::AddRappelOnCentre(const cRappelOnCentres & aRAC,double aMultIn
             ELISE_ASSERT(aVI.size()<=3,"Bas size Incertitude in cAppliApero::AddRappelOnCentre");
             Pt3dr anI;
             if (aVI.size()==1) anI = Pt3dr(aVI[0],aVI[0],aVI[0]);
-            if (aVI.size()==2) anI = Pt3dr(aVI[0],aVI[0],aVI[1]);
-            if (aVI.size()==3) anI = Pt3dr(aVI[0],aVI[1],aVI[2]);
+            else if (aVI.size()==2) anI = Pt3dr(aVI[0],aVI[0],aVI[1]);
+            else if (aVI.size()==3) anI = Pt3dr(aVI[0],aVI[1],aVI[2]);
+            else
+            {
+                ELISE_ASSERT(false,"Size in cAppliApero::AddRappelOnCentre");
+            }
 
             double  aMult = aMultInit;
             double aProf;
-            bool OkProf;
+            int OkProf;
             aProf = aPC.GetProfDyn(OkProf);
             if (OkProf)
             {
@@ -118,6 +122,8 @@ void cAppliApero::AddOneLevenbergMarkard
 {
    if (! aSLM) return;
    if (aMult<=0 ) return;
+
+
    for 
    (
         std::list<cRappelOnAngles>::const_iterator itR=aSLM->RappelOnAngles().begin();
@@ -128,6 +134,8 @@ void cAppliApero::AddOneLevenbergMarkard
          AddRappelOnAngle(*itR,aMult,aSO);
    }
 
+
+
    for 
    (
         std::list<cRappelOnCentres>::const_iterator itR=aSLM->RappelOnCentres().begin();
@@ -137,7 +145,6 @@ void cAppliApero::AddOneLevenbergMarkard
    {
          AddRappelOnCentre(*itR,aMult,aSO);
    }
-
 }
 void cAppliApero::AddLevenbergMarkard(cStatObs & aSO)
 {
