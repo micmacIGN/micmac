@@ -238,7 +238,7 @@ int Tapas_main(int argc,char ** argv)
 
     std::string  aRapTxt;
     std::string  aPoseFigee="";
-    bool MajickTest = false;
+    bool Debug = false;
 
     ElInitArgMain
     (
@@ -260,7 +260,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(ImInit,"ImInit",true)	
                     << EAM(MOI,"MOI",true)	
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ")	
-                    << EAM(MajickTest,"Majick",true,"Test repetability (to track some bug) by generating hash-key file")	
+                    << EAM(Debug,"Debug",true,"Partial file for debug")
                     << EAM(LibAff,"LibAff",true)	
                     << EAM(LibDec,"LibDec",true)	
                     << EAM(aRapTxt,"RapTxt",true)	
@@ -309,7 +309,7 @@ int Tapas_main(int argc,char ** argv)
 
 
 
-   std::string aNameFileApero = MajickTest  ? "Apero-Debug-Glob.xml" : "Apero-Glob.xml" ;
+   std::string aNameFileApero = Debug  ? "Apero-Debug-Glob.xml" : "Apero-Glob.xml" ;
 
 
    std::string aCom =     MM3dBinFile_quotes( "Apero" )
@@ -402,6 +402,8 @@ int Tapas_main(int argc,char ** argv)
 
    // std::cout << "Com = " << aCom << "\n";
    int aRes = 0;
+   aRes = ::System(aCom.c_str(),false,true,true);
+/*
    if (MajickTest)
    {
         std::string aNameFile = MMDir() + "DbgAp" + GetUnikId() + ".txt";
@@ -432,8 +434,9 @@ int Tapas_main(int argc,char ** argv)
    }
    else
    {
-       aRes = ::System(aCom.c_str(),false,true);
+       aRes = ::System(aCom.c_str(),false,true,true);
    }
+*/
 
 
    Tapas_Banniere();

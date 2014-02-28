@@ -106,6 +106,9 @@ void OpenFileDebug(const std::string & aName)
 
 std::string TheStringMemoArgOptGlob = "";
 
+static const int TheNbKeyACM=4;
+const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle"};
+
 void AnalyseContextCom(int argc,char ** argv)
 {
    static bool First = true;
@@ -118,22 +121,22 @@ void AnalyseContextCom(int argc,char ** argv)
        {
            bool ForAction = false;
            std::string ArgK = argv[aK]+1;
-           if (ArgK =="ExitOnBrkp")
+           if (ArgK ==TheKeyACM[0])
            {
                TheExitOnBrkp = true;
                ForAction = true;
            }
-           else if (ArgK=="ExitOnNan")
+           else if (ArgK==TheKeyACM[1])
            {
                TheExitOnNan = true;
                ForAction = true;
            }
-           else if (ArgK=="MajickFile")
+           else if (ArgK==TheKeyACM[2])
            {
                TheMajickFile=true;
                ForAction = true;
            }
-           else if (ArgK=="EnBoucle")
+           else if (ArgK==TheKeyACM[3])
            {
                TheNbIterProcess=100000000;
                ForAction = true;
@@ -146,8 +149,9 @@ void AnalyseContextCom(int argc,char ** argv)
            }
            else
            {
-                for (int aK=0 ; aK< 5 ; aK++)
-                    std::cout << "   Warning, unknown arg with @ \n";
+                std::cout << "   Warning, unknown special arg  " << argv[aK] << "\n";
+                for (int aK=0 ; aK< TheNbKeyACM ; aK++)
+                    std::cout << "   Opt[" << aK << "]= "<<  cInterfChantierNameManipulateur::theCharSymbOptGlob << TheKeyACM[aK] << "\n";
            }
        }
    }
@@ -827,24 +831,33 @@ std::string StrFromArgMain(const std::string & aStr)
 /*                                                     */
 /*******************************************************/
 
-int System(const std::string & aComOri,bool aSVP,bool AddOptGlob)
+int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIterProcess)
 {
-         std::string aCom = aComOri;
-        // Pour que les args de contextes soient automatiquement passes aux process fils
-        if (AddOptGlob)
-        {
-           aCom += TheStringMemoArgOptGlob ;
-        }
+    std::string aCom = aComOri;
+    int aNbIter = UseTheNbIterProcess  ? TheNbIterProcess  : 1;
+    if (aNbIter > 1) aSVP = true;
 
-	std::cout << "Sys:"<< aCom << "\n";
+
+    // Pour que les args de contextes soient automatiquement passes aux process fils
+    if (AddOptGlob)
+    {
+       aCom += TheStringMemoArgOptGlob ;
+    }
+
+    // std::cout << "Sys:"<< aCom << "\n";
+
+    int aRes = 0;
+    for (int aKIter = 0 ;  aKIter < aNbIter ; aKIter++)
+    {
+        if (aKIter>0) sleep(1); // Pour pouvoir plus facilement arreter par ^C
+
 	#if (ELISE_windows)
-		int aRes;
 		if ( aCom.size()!=0 && aCom[0]=='\"' )
 			aRes = system_call( ( string("\"")+aCom+"\"" ).c_str() );
 		else
 			aRes = system_call( aCom.c_str() );
 	#else
-		int aRes = system_call(aCom.c_str());
+		aRes = system_call(aCom.c_str());
 	#endif
 	if ((aRes != 0) && (!aSVP))
 	{
@@ -868,8 +881,9 @@ int System(const std::string & aComOri,bool aSVP,bool AddOptGlob)
             std::cout << aCom << "\n";
             ElEXIT(-1,(std::string("System-call :") + aCom));
 	}
+     }
 
-	return aRes;
+     return aRes;
 }
 
 void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)

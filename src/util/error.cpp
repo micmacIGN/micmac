@@ -44,7 +44,7 @@ char * TheCharPtrFuckingReturnValue=0;
 
 bool TheExitOnBrkp  = false;
 bool TheExitOnNan   = false;
-bool TheMajickFile  = true;
+bool TheMajickFile  = false;
 int  TheNbIterProcess = 1;
 
 

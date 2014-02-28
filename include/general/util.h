@@ -1186,7 +1186,8 @@ void RequireBin
          const std::string & BinRequired,
 	 const std::string & LeMake = "Makefile"  // Si
      );
-int System(const std::string & aCom,bool aSVP=false,bool AddOptGlob=false);
+
+int System(const std::string & aCom,bool aSVP=false,bool AddOptGlob=false,bool UseTheNbIterProcess=false);
 
 void  EliseVerifAndParseArgcArgv(int argc,char ** argv);
 
