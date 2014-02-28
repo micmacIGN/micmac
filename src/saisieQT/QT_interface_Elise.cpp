@@ -231,10 +231,11 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
 
 void cQT_Interface::changeImages(int idPt)
 {
-    int aKW =0; // id widget
-    int aKI =0; // id images
+    int aKW = 0; // id widget
 
     cSP_PointGlob* PointPrio = 0;
+
+    bool thisWin = (idPt == -2);
 
     if (idPt >=0)
     {
@@ -246,55 +247,27 @@ void cQT_Interface::changeImages(int idPt)
 
     std::vector<cImage *> images = mAppli->images();
 
-#ifdef _DEBUG
-    std::cout << "vecteur image avant sort"<< std::endl;
-    for (int aK =0; aK < (int) images.size(); ++aK)
-        std::cout << "image " << aK << " "<< images[aK]->Name() << std::endl;
-#endif
+    cCmpIm aCmpIm(this);
+    std::sort(images.begin(),images.end(),aCmpIm);
 
-    cCmpIm aCmpImQT(this);
-    std::sort(images.begin(),images.end(),aCmpImQT);
-
-#ifdef _DEBUG
-    std::cout << "vecteur image apres sort"<< std::endl;
-    for (int aK =0; aK < (int) images.size(); ++aK)
-        std::cout << "image " << aK << " "<< images[aK]->Name() << std::endl;
-#endif
-
-    int max = (idPt == -2) ? 1 : m_QTMainWindow->nbWidgets();
-
-    if (idPt != -2)
-        for (int i = 0; i < max; ++i)
-            m_QTMainWindow->getWidget(i)->reset();
-    else
-        m_QTMainWindow->currentWidget()->reset();
+    int max = thisWin ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
 
     while (aKW < max)
-    {
-        ELISE_ASSERT(aKI<int(images.size()),"Incoherence in cQT_Interface::changeImages");        
-
-        cImage * anIm = images[aKI];
+    {               
+        cImage * anIm = images[aKW];
 
         if (!isDisplayed(anIm))
         {
             cGLData* data = getGlData(anIm);
 
             if (data)
-            {
-                if (idPt == -2)
-                    m_QTMainWindow->currentWidget()->setGLData(data,true); //TODO: _ui Message isChecked
-                else
-                    m_QTMainWindow->getWidget(aKW)->setGLData(data,true); //TODO: _ui Message isChecked
-            }
-            aKW++;
+                m_QTMainWindow->getWidget(thisWin ? CURRENT_IDW : aKW)->setGLData(data,true);
+
         }
-
-        aKI++;
-
-//        printf("images size = %d, max = %d, aKW = %d, aKI = %d, nb GLdata = %d\n",(int)images.size(),max,aKW,aKI,m_QTMainWindow->getEngine()->nbGLData());
+        aKW++;
     }
 
-    if (idPt != -2) mAppli->SetImages(images);
+    mAppli->SetImages(images);
     //TODO: setImages dans le cas ThisWindow
 
     rebuild2DGlPoints();
