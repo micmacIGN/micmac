@@ -414,7 +414,7 @@ public :
 
     void            AddUndo(cOneSaisie * aSom);
 
-    bool            isDisplayed(cImage *);
+    bool            isDisplayed(cImage *anIm);
 
 private:
 

@@ -149,6 +149,8 @@ public:
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
 
+    int     nbGLData(){return (int)_vGLData.size();}
+
 private:
 
     cLoader*            _Loader;
