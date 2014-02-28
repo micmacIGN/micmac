@@ -849,7 +849,7 @@ int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIt
     int aRes = 0;
     for (int aKIter = 0 ;  aKIter < aNbIter ; aKIter++)
     {
-        if (aKIter>0) sleep(1); // Pour pouvoir plus facilement arreter par ^C
+        if (aKIter>0) SleepProcess(1); // Pour pouvoir plus facilement arreter par ^C
 
 	#if (ELISE_windows)
 		if ( aCom.size()!=0 && aCom[0]=='\"' )
