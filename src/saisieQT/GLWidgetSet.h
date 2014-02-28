@@ -7,6 +7,8 @@
 
 class GLWidget;
 
+#define CURRENT_IDW -1
+
 class GLWidgetSet
 {
 public:
@@ -26,7 +28,7 @@ public:
         _pcurrentWidget = currentWidget;
     }
 
-    GLWidget* getWidget(uint aK){return _widgets[aK];}
+    GLWidget* getWidget(int aK = CURRENT_IDW){return aK==CURRENT_IDW ? currentWidget() :_widgets[aK];}
 
     GLWidget* currentWidget(){return _pcurrentWidget;}
 
