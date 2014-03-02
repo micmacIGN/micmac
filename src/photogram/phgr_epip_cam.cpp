@@ -434,8 +434,6 @@ cCpleEpip::cCpleEpip
    mOk       (false)
 {
 
-   std::cout << "SZZZIIIN " << mSzIn << mCInit1.SzPixel() << mCInit2.SzPixel() << "\n";
-
    SetNameLock("Init") ;
       // double aProf = (mCamOut1.GetRoughProfondeur()+mCamOut2.GetRoughProfondeur()) / 2.0;
 
