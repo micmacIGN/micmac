@@ -33,8 +33,6 @@
 #include "HistoryManager.h"
 #include "ContextMenu.h"
 
-#include "../uti_phgrm/SaisiePts/cParamSaisiePts.h"
-
 class GLWidgetSet;
 
 class GLWidget : public QGLWidget

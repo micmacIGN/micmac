@@ -43,6 +43,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     option3DPreview();
 
     Init();
+
+    m_QTMainWindow->getModel()->setAppli(mAppli);
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -158,11 +160,8 @@ void cQT_Interface::changeState(int state, int idPt)
         if (aPIm)
         {
             if(aState == NS_SaisiePts::eEPI_Highlight)
-            {
+
                 aPIm->Gl()->HighLighted() = !aPIm->Gl()->HighLighted();
-                if(aPIm->Gl()->HighLighted())
-                    m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
-            }
 
             else if (aState == NS_SaisiePts::eEPI_Deleted)
 
@@ -234,11 +233,10 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
 
 void cQT_Interface::changeImages(int idPt)
 {
-    int aKW = 0; // id widget
+    int aKW =0; // id widget
+    int aKI =0; // id images
 
     cSP_PointGlob* PointPrio = 0;
-
-    bool thisWin = (idPt == -2);
 
     if (idPt >=0)
     {
@@ -250,27 +248,55 @@ void cQT_Interface::changeImages(int idPt)
 
     std::vector<cImage *> images = mAppli->images();
 
-    cCmpIm aCmpIm(this);
-    std::sort(images.begin(),images.end(),aCmpIm);
+#ifdef _DEBUG
+    std::cout << "vecteur image avant sort"<< std::endl;
+    for (int aK =0; aK < (int) images.size(); ++aK)
+        std::cout << "image " << aK << " "<< images[aK]->Name() << std::endl;
+#endif
 
-    int max = thisWin ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
+    cCmpIm aCmpImQT(this);
+    std::sort(images.begin(),images.end(),aCmpImQT);
+
+#ifdef _DEBUG
+    std::cout << "vecteur image apres sort"<< std::endl;
+    for (int aK =0; aK < (int) images.size(); ++aK)
+        std::cout << "image " << aK << " "<< images[aK]->Name() << std::endl;
+#endif
+
+    int max = (idPt == -2) ? 1 : m_QTMainWindow->nbWidgets();
+
+    if (idPt != -2)
+        for (int i = 0; i < max; ++i)
+            m_QTMainWindow->getWidget(i)->reset();
+    else
+        m_QTMainWindow->currentWidget()->reset();
 
     while (aKW < max)
-    {               
-        cImage * anIm = images[aKW];
+    {
+        ELISE_ASSERT(aKI<int(images.size()),"Incoherence in cQT_Interface::changeImages");        
+
+        cImage * anIm = images[aKI];
 
         if (!isDisplayed(anIm))
         {
             cGLData* data = getGlData(anIm);
 
             if (data)
-                m_QTMainWindow->getWidget(thisWin ? CURRENT_IDW : aKW)->setGLData(data,true);
-
+            {
+                if (idPt == -2)
+                    m_QTMainWindow->currentWidget()->setGLData(data); //TODO: _ui Message isChecked
+                else
+                    m_QTMainWindow->getWidget(aKW)->setGLData(data); //TODO: _ui Message isChecked
+            }
+            aKW++;
         }
-        aKW++;
+
+        aKI++;
+
+//        printf("images size = %d, max = %d, aKW = %d, aKI = %d, nb GLdata = %d\n",(int)images.size(),max,aKW,aKI,m_QTMainWindow->getEngine()->nbGLData());
     }
 
-    mAppli->SetImages(images);
+    if (idPt != -2) mAppli->SetImages(images);
     //TODO: setImages dans le cas ThisWindow
 
     rebuild2DGlPoints();
@@ -425,7 +451,6 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
             if (pg == selectPtGlob)
                 colorPt = Qt::blue;
             else if (pGV[i]->HighLighted())
-
                 colorPt = Qt::red;
 
             cloud->addVertex(GlVertex(pg->P3D().Val(), colorPt));

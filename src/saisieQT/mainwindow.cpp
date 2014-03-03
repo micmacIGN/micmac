@@ -42,6 +42,7 @@ MainWindow::~MainWindow()
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
+    delete _model;
 }
 
 void MainWindow::connectActions()
@@ -136,6 +137,14 @@ void MainWindow::loadPly(const QStringList& filenames)
     delete _incre;
     delete timer_test;
 }
+
+/*void MainWindow::updateTreeview()
+{
+    for (int aK=0; aK< getModel()->columnCount();++aK)
+        _ui->treeView->resizeColumnToContents(aK);
+
+    _ui->treeView->collapseAll();
+}*/
 
 void MainWindow::addFiles(const QStringList& filenames)
 {
@@ -727,18 +736,53 @@ void MainWindow::setUI()
         _ui->frame3D->setContentsMargins(0,0,0,0);
 
         _ui->menuSelection->setTitle(tr("H&istory"));
+
+        cout << "creating pointListModel "<<endl;
+
+        _model = new TreeModel(this);
+
+        _ui->treeView->setModel(_model);
+
+        _ui->treeView->expandAll();
     }
     else
     {
         _ui->verticalLayout->removeWidget(_ui->zoomLayout);
         _ui->verticalLayout->removeWidget(_ui->frame3D);
         _ui->verticalLayout->removeItem(_ui->verticalSpacer);
+        _ui->verticalLayout->removeWidget(_ui->treeView);
 
         delete _ui->zoomLayout;
         delete _ui->frame3D;
         delete _ui->verticalSpacer;
+        delete _ui->treeView;
     }
 }
+
+/*void MainWindow::buildTreeView()
+{
+    //tree view
+
+
+
+    cPoint pt(NULL);
+    pt.setName("2000");
+    QList<QStandardItem *> preparedRow = prepareRow(pt,QString(""));
+    QStandardItem *item = _model->invisibleRootItem();
+    // adding a row to the invisible root item produces a root element
+    item->appendRow(preparedRow);
+
+    cPoint pt1(NULL, QPoint(10.4,5.9),"2000");
+    QList<QStandardItem *> secondRow = prepareRow(pt1, QString("image0"));
+    // adding a row to an item starts a subtree
+    preparedRow.first()->appendRow(secondRow);
+
+    cPoint pt2(NULL, QPoint(7.4,7.9),"2000");
+    secondRow = prepareRow(pt2, "image1");
+    // adding a row to an item starts a subtree
+    preparedRow.first()->appendRow(secondRow);
+
+}*/
 
 void  MainWindow::setGamma(float aGamma)
 {

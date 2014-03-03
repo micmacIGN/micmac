@@ -19,7 +19,8 @@ set(saisie_SRCS saisieQT_main.cpp
 		HistoryManager.cpp
 		ContextMenu.cpp
                 Settings.cpp
-                QT_interface_Elise.cpp)
+                QT_interface_Elise.cpp
+                Tree.cpp)
 		
 set( saisie_HEADERS_nomoc
    HistoryManager.h
@@ -38,7 +39,8 @@ set( saisie_HEADERS_tomoc
    mainwindow.h
    ContextMenu.h
    Settings.h
-   QT_interface_Elise.h)
+   QT_interface_Elise.h
+   Tree.h)
 
 if ( NOT ${qt_version} EQUAL 0 )
    if ( ${qt_version} EQUAL 5 )
