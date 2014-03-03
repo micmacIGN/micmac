@@ -43,6 +43,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     option3DPreview();
 
     Init();
+
+    m_QTMainWindow->getModel()->setAppli(mAppli);
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -282,9 +284,9 @@ void cQT_Interface::changeImages(int idPt)
             if (data)
             {
                 if (idPt == -2)
-                    m_QTMainWindow->currentWidget()->setGLData(data,true); //TODO: _ui Message isChecked
+                    m_QTMainWindow->currentWidget()->setGLData(data); //TODO: _ui Message isChecked
                 else
-                    m_QTMainWindow->getWidget(aKW)->setGLData(data,true); //TODO: _ui Message isChecked
+                    m_QTMainWindow->getWidget(aKW)->setGLData(data); //TODO: _ui Message isChecked
             }
             aKW++;
         }
