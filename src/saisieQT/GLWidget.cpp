@@ -110,6 +110,13 @@ void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2
     getGLData()->m_polygon.add(point);
 }
 
+void GLWidget::setTranslation(Pt3d<double> trans)
+{
+    _matrixManager.m_translationMatrix[0] = -trans.x;
+    _matrixManager.m_translationMatrix[1] = -trans.y;
+    _matrixManager.m_translationMatrix[2] = -trans.z;
+}
+
 bool GLWidget::imageLoaded()
 {
     return hasDataLoaded() &&  m_bDisplayMode2D;
@@ -138,8 +145,10 @@ void GLWidget::paintGL()
         }
         else
         {
-            _matrixManager.zoom(_vp_Params.m_zoom,2.f*m_GLData->getBBoxMaxSize());
-            _matrixManager.applyTransfo();
+            _matrixManager.setCenterScene(getGLData()->getBBoxCenter() );
+            _matrixManager.setDistance(_vp_Params.m_zoom );
+            _matrixManager.zoom(_vp_Params.m_zoom,_vp_Params.m_zoom + getGLData()->getBBoxMaxSize());
+            _matrixManager.arcBall();
 
             m_GLData->draw();        
         }
@@ -337,14 +346,6 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
        _matrixManager.setView(orientation,m_GLData->getBBoxCenter());
 }
 
-void GLWidget::onWheelEvent(float wheelDelta_deg)
-{
-    //convert degrees in zoom 'power'
-    float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
-
-    setZoom(_vp_Params.m_zoom*zoomFactor);
-}
-
 void GLWidget::centerViewportOnImagePosition(QPointF pt)
 {
     float vpCenterX = vpWidth() *.5f;
@@ -414,9 +415,9 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     m_lastClickZoom = event->pos();
 
 #if ELISE_QT_VERSION==5
-    setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
+    setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 70.0f ));
 #else
-    setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
+    setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 70.0f ));
 #endif
 }
 
@@ -581,7 +582,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
 
-                _matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
+                //_matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
+                _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
             }
 
             emit newImagePosition( m_lastMoveImage );

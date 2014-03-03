@@ -248,7 +248,7 @@ GlCloud::GlCloud(vector<GlVertex> const & vVertex)
 
 void GlCloud::draw()
 {
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -266,7 +266,7 @@ void GlCloud::draw()
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
 
-    glDisable(GL_DEPTH_TEST);
+   // glDisable(GL_DEPTH_TEST);
 }
 
 void GlCloud::setBufferGl(bool onlyColor)
