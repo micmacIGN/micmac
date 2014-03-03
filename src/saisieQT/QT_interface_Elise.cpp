@@ -158,8 +158,11 @@ void cQT_Interface::changeState(int state, int idPt)
         if (aPIm)
         {
             if(aState == NS_SaisiePts::eEPI_Highlight)
-
+            {
                 aPIm->Gl()->HighLighted() = !aPIm->Gl()->HighLighted();
+                if(aPIm->Gl()->HighLighted())
+                    m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
+            }
 
             else if (aState == NS_SaisiePts::eEPI_Deleted)
 
@@ -422,6 +425,7 @@ void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
             if (pg == selectPtGlob)
                 colorPt = Qt::blue;
             else if (pGV[i]->HighLighted())
+
                 colorPt = Qt::red;
 
             cloud->addVertex(GlVertex(pg->P3D().Val(), colorPt));
