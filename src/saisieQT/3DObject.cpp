@@ -1335,7 +1335,8 @@ void cMaskedImageGL::draw()
 
 void cObjectGL::enableOptionLine()
 {
-    glDisable(GL_DEPTH_TEST);
+   // glDisable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
     glEnable (GL_LINE_SMOOTH);
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1346,7 +1347,7 @@ void cObjectGL::disableOptionLine()
 {
     glDisable(GL_BLEND);
     glDisable(GL_LINE_SMOOTH);
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
 }
 
 //********************************************************************************
@@ -1363,6 +1364,7 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     pBall(NULL),
     pAxis(NULL),
     pBbox(NULL),
+    pGrid(NULL),
     _center(Pt3dr(0.f,0.f,0.f)),
     _modePt(modePt)
 {
@@ -1394,6 +1396,9 @@ void cGLData::setData(cData *data, bool setCam)
     pBbox->setScale(scale);
     pBbox->set(data->getMin(), data->getMax());
 
+    pGrid->setPosition(center);
+    pGrid->setScale(scale*2.f);
+
     if(setCam)
         for (int i=0; i< data->getNbCameras(); i++)
         {
@@ -1420,6 +1425,7 @@ cGLData::cGLData(cData *data):
     pBall(new cBall),
     pAxis(new cAxis),
     pBbox(new cBBox),
+    pGrid(new cGrid),
     _diam(1.f),
     _incFirstCloud(false)
 {
@@ -1438,6 +1444,7 @@ cGLData::~cGLData()
     if(pBall != NULL) delete pBall;
     if(pAxis != NULL) delete pAxis;
     if(pBbox != NULL) delete pBbox;
+    if(pGrid != NULL) delete pGrid;
 
     //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
     Clouds.clear();
@@ -1463,6 +1470,7 @@ void cGLData::draw()
     pBall->draw();
     pAxis->draw();
     pBbox->draw();
+    pGrid->draw();
 
     //cameras
     for (int i=0; i< Cams.size();i++) Cams[i]->draw();
@@ -1484,6 +1492,7 @@ void cGLData::setGlobalCenter(Pt3d<double> aCenter)
     pBall->setPosition(aCenter);
     pAxis->setPosition(aCenter);
     pBbox->setPosition(aCenter);
+    pGrid->setPosition(aCenter);
 
     for (int aK=0; aK < Clouds.size();++aK)
        Clouds[aK]->setPosition(aCenter);
@@ -1811,3 +1820,32 @@ MessageToDisplay &cMessages2DGL::LastMessage()
 }
 
 
+cGrid::cGrid(Pt3d<double> pt, float scale, int nb)
+{
+
+}
+
+void cGrid::draw()
+{
+    int nbGrid = 10;
+
+    float scale = getScale() / nbGrid;
+
+    Pt3dr pt;
+
+    pt.x = getPosition().x - ((float)nbGrid * 0.5f) * scale;
+    pt.y = getPosition().y ;
+    pt.z = getPosition().z - ((float)nbGrid * 0.5f) * scale;
+
+    glBegin(GL_LINES);
+    glColor3f(.25,.25,.25);
+    for(int i=0;i<=nbGrid;i++) {
+        //if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
+        glVertex3f((float)i * scale + pt.x,pt.y,0+pt.z);
+        glVertex3f((float)i * scale + pt.x,pt.y,(float)nbGrid * scale+ pt.z);
+        //if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
+        glVertex3f( pt.x,pt.y,(float)i * scale + pt.z);
+        glVertex3f((float)nbGrid* scale+pt.x,pt.y,(float)i * scale + pt.z);
+    };
+    glEnd();
+}

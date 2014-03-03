@@ -112,11 +112,11 @@ public:
 
     void addGlPoint(QPointF pt, cOneSaisie *aSom, QPointF pt1, QPointF pt2, bool highlight);
 
+    void setTranslation(Pt3dr trans);
+
     ContextMenu *contextMenu();
 
 public slots:
-
-    void onWheelEvent(float wheelDelta_deg);
 
     void centerViewportOnImagePosition(QPointF pt);
 
