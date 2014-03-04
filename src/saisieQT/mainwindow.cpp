@@ -10,7 +10,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
         _params(new cParameters),
         _mode(mode)
 {
-    _ui->setupUi(this);
+    _ui->setupUi(this);   
 
     _params->read();
 
@@ -30,7 +30,8 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     {
         setImagePosition(QPointF(-1.f,-1.f));
         setImageName("");
-    }
+    }   
+
 }
 
 MainWindow::~MainWindow()
@@ -663,7 +664,7 @@ void MainWindow::setLayout(uint sy)
     _layout->setContentsMargins(sy,sy,sy,sy);
     _layout->setHorizontalSpacing(sy);
     _layout->setVerticalSpacing(sy);
-    _ui->OpenglLayout->setLayout(_layout);
+    _ui->QFrame_OpenglLayout->setLayout(_layout);
 
     int cpt=0;
     for (int aK = 0; aK < _params->getNbFen().x();++aK)
@@ -716,27 +717,26 @@ void MainWindow::setUI()
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
         _zoomLayout->setContentsMargins(2,2,2,2);
-        _ui->zoomLayout->setLayout(_zoomLayout);
-        _ui->zoomLayout->setContentsMargins(0,0,0,0);
+        _ui->QFrame_zoom->setLayout(_zoomLayout);
+        _ui->QFrame_zoom->setContentsMargins(0,0,0,0);
 
          QGridLayout*            _tdLayout = new QGridLayout;
 
          _tdLayout->addWidget(threeDWidget());
          _tdLayout->setContentsMargins(2,2,2,2);
-        _ui->frame3D->setLayout(_tdLayout);
-        _ui->frame3D->setContentsMargins(0,0,0,0);
-
+        _ui->frame_preview3D->setLayout(_tdLayout);
+        _ui->frame_preview3D->setContentsMargins(0,0,0,0);
         _ui->menuSelection->setTitle(tr("H&istory"));
+
+
     }
     else
     {
-        _ui->verticalLayout->removeWidget(_ui->zoomLayout);
-        _ui->verticalLayout->removeWidget(_ui->frame3D);
-        _ui->verticalLayout->removeItem(_ui->verticalSpacer);
+        _ui->QFrame_Tools->layout()->removeWidget(_ui->QFrame_zoom);
+        _ui->QFrame_Tools->layout()->removeWidget(_ui->frame_preview3D);
 
-        delete _ui->zoomLayout;
-        delete _ui->frame3D;
-        delete _ui->verticalSpacer;
+        delete _ui->QFrame_zoom;
+        delete _ui->frame_preview3D;
     }
 }
 
@@ -760,7 +760,7 @@ void MainWindow::redraw(bool nbWidgetsChanged)
     if (size() != _params->getSzFen())
     {
         if (_mode > MASK3D)
-            resize(_params->getSzFen().width() + _ui->zoomLayout->width(), _params->getSzFen().height());
+            resize(_params->getSzFen().width() + _ui->QFrame_zoom->width(), _params->getSzFen().height());
         else
             resize(_params->getSzFen());
     }
@@ -793,7 +793,7 @@ void MainWindow::redraw(bool nbWidgetsChanged)
 
                     cpt++;
                 }
-            _ui->OpenglLayout->setLayout(_layout);
+            _ui->QFrame_OpenglLayout->setLayout(_layout);
         }
         else
         {
@@ -894,7 +894,7 @@ void MainWindow::applyParams()
         _ui->actionFullScreen->setChecked(true);
     }
     else if (_mode > MASK3D)
-        resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
+        resize(szFen.width() + _ui->QFrame_zoom->width(), szFen.height());
     else
         resize(szFen);
 }
