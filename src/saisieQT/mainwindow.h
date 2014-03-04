@@ -19,10 +19,10 @@
 #include "Settings.h"
 #include "qdesktopwidget.h"
 
-#include   "QT_interface_Elise.h"
+#include "Tree.h"
 
 using namespace NS_SaisiePts;
-class cQT_Interface ;
+class cQT_Interface;
 
 namespace Ui {
 
@@ -64,6 +64,10 @@ public:
     void setLayout(uint sy);
 
     void loadPly(const QStringList& filenames);
+
+    TreeModel* getModel() { return _model; }
+
+    void updateTreeview();
 
 public slots:
 
@@ -189,5 +193,7 @@ private:
     cParameters*            _params;
 
     int                     _mode;
+
+    TreeModel*              _model;
 };
 #endif // MAINWINDOW_H

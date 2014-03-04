@@ -110,6 +110,13 @@ void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2
     getGLData()->m_polygon.add(point);
 }
 
+void GLWidget::setTranslation(Pt3d<double> trans)
+{
+    _matrixManager.m_translationMatrix[0] = -trans.x;
+    _matrixManager.m_translationMatrix[1] = -trans.y;
+    _matrixManager.m_translationMatrix[2] = -trans.z;
+}
+
 bool GLWidget::imageLoaded()
 {
     return hasDataLoaded() &&  m_bDisplayMode2D;
@@ -339,14 +346,6 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
        _matrixManager.setView(orientation,m_GLData->getBBoxCenter());
 }
 
-void GLWidget::onWheelEvent(float wheelDelta_deg)
-{
-    //convert degrees in zoom 'power'
-    float zoomFactor = pow(1.1f,wheelDelta_deg *.05f);
-
-    setZoom(_vp_Params.m_zoom*zoomFactor);
-}
-
 void GLWidget::centerViewportOnImagePosition(QPointF pt)
 {
     float vpCenterX = vpWidth() *.5f;
@@ -416,9 +415,9 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     m_lastClickZoom = event->pos();
 
 #if ELISE_QT_VERSION==5
-    setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 160.0f ));
+    setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 70.0f ));
 #else
-    setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 160.0f ));
+    setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 70.0f ));
 #endif
 }
 

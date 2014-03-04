@@ -102,6 +102,8 @@ class cSP_PointGlob
           bool IsPtAutom() const;
           void Rename(const std::string & aNewName);
 
+          std::map<std::string,cSP_PointeImage *> getPointes(){ return mPointes; }
+
      private:
           cSP_PointGlob(const cSP_PointGlob &) ; // N.I.
 
