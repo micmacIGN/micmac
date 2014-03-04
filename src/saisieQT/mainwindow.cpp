@@ -5,7 +5,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::MainWindow),
         _Engine(new cEngine),
-        _layout(new QGridLayout),
+        _layout_GLwidgets(new QGridLayout),
         _zoomLayout(new QGridLayout),
         _params(new cParameters),
         _mode(mode)
@@ -38,7 +38,7 @@ MainWindow::~MainWindow()
     delete _ui;
     delete _Engine;
     delete _RFMenu;
-    delete _layout;
+    delete _layout_GLwidgets;
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
@@ -155,7 +155,7 @@ void MainWindow::updateTreeview()
         if (colWidth < textWidth) colWidth = textWidth;
     }
 
-    _ui->treeView->setColumnWidth(0, colWidth + _ui->treeView->iconSize());
+    //_ui->treeView->setColumnWidth(0, colWidth + _ui->treeView->iconSize());
 }
 
 void MainWindow::addFiles(const QStringList& filenames)
@@ -681,15 +681,15 @@ void hideAction(QAction* action, bool show)
 
 void MainWindow::setLayout(uint sy)
 {
-    _layout->setContentsMargins(sy,sy,sy,sy);
-    _layout->setHorizontalSpacing(sy);
-    _layout->setVerticalSpacing(sy);
-    _ui->QFrame_OpenglLayout->setLayout(_layout);
+    _layout_GLwidgets->setContentsMargins(sy,sy,sy,sy);
+    _layout_GLwidgets->setHorizontalSpacing(sy);
+    _layout_GLwidgets->setVerticalSpacing(sy);
+    _ui->QFrame_OpenglLayout->setLayout(_layout_GLwidgets);
 
     int cpt=0;
     for (int aK = 0; aK < _params->getNbFen().x();++aK)
         for (int bK = 0; bK < _params->getNbFen().y();++bK, cpt++)
-            _layout->addWidget(getWidget(cpt), bK, aK);
+            _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
 }
 
 void MainWindow::setUI()
@@ -751,13 +751,14 @@ void MainWindow::setUI()
         _model = new TreeModel(this);
 
         _ui->treeView->setModel(_model);
-
         _ui->treeView->collapseAll();
+        _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
     {
         _ui->QFrame_Tools->layout()->removeWidget(_ui->QFrame_zoom);
         _ui->QFrame_Tools->layout()->removeWidget(_ui->frame_preview3D);
+        _ui->splitter_Tools->hide();
 
         delete _ui->QFrame_zoom;
         delete _ui->frame_preview3D;
@@ -791,12 +792,12 @@ void MainWindow::redraw(bool nbWidgetsChanged)
 
     if (nbWidgetsChanged)
     {
-        delete _layout;
-        _layout = new QGridLayout;
+        delete _layout_GLwidgets;
+        _layout_GLwidgets = new QGridLayout;
 
         int newWidgetNb = _params->getNbFen().x()*_params->getNbFen().y();
-        int col =  _layout->columnCount();
-        int row =  _layout->rowCount();
+        int col =  _layout_GLwidgets->columnCount();
+        int row =  _layout_GLwidgets->rowCount();
 
         if (col < _params->getNbFen().x() || row < _params->getNbFen().y())
         {
@@ -804,20 +805,20 @@ void MainWindow::redraw(bool nbWidgetsChanged)
 
             int cpt = 0;
             for (; cpt < nbWidgets();++cpt)
-                _layout->removeWidget(getWidget(cpt));
+                _layout_GLwidgets->removeWidget(getWidget(cpt));
 
             cpt = 0;
             for (int aK =0; aK < _params->getNbFen().x();++aK)
                 for (int bK =0; bK < _params->getNbFen().y();++bK)
                 {
-                    _layout->addWidget(getWidget(cpt), bK, aK);
+                    _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
 
                     if (cpt < _Engine->getData()->getNbImages())
                         getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages);
 
                     cpt++;
                 }
-            _ui->QFrame_OpenglLayout->setLayout(_layout);
+            _ui->QFrame_OpenglLayout->setLayout(_layout_GLwidgets);
         }
         else
         {
