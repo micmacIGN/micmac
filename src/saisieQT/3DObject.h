@@ -202,6 +202,14 @@ class cAxis : public cObjectGL
         void    draw();
 };
 
+class cGrid : public cObjectGL
+{
+    public:
+        cGrid(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, int nb = 1.f);
+
+        void    draw();
+};
+
 class cBBox : public cObjectGL
 {
     public:
@@ -620,6 +628,7 @@ public:
     cBall       *pBall;
     cAxis       *pAxis;
     cBBox       *pBbox;
+    cGrid       *pGrid;
 
     QVector < GlCloud* > Clouds;
 

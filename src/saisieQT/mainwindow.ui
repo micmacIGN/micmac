@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1005</width>
-    <height>718</height>
+    <height>762</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -609,6 +609,29 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
         </property>
         <property name="frameShadow">
          <enum>QFrame::Plain</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTreeView" name="treeView">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>300</width>
+          <height>0</height>
+         </size>
         </property>
        </widget>
       </item>

@@ -42,6 +42,7 @@ MainWindow::~MainWindow()
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
+    delete _model;
 }
 
 void MainWindow::connectActions()
@@ -135,6 +136,27 @@ void MainWindow::loadPly(const QStringList& filenames)
     disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
     delete _incre;
     delete timer_test;
+}
+
+void MainWindow::updateTreeview()
+{
+    _ui->treeView->resizeColumnToContents(1);
+    _ui->treeView->resizeColumnToContents(2);
+
+    QFontMetrics fm(font());
+    int colWidth = -1;
+    for (int aK=0; aK < getModel()->rowCount();++aK)
+    {
+        QModelIndex index = getModel()->index(aK, 0);
+
+        QString text = getModel()->data(index, Qt::DisplayRole).toString();
+
+        int textWidth = fm.width(text);
+
+        if (colWidth < textWidth) colWidth = textWidth;
+    }
+
+    _ui->treeView->setColumnWidth(0, colWidth + _ui->treeView->iconSize());
 }
 
 void MainWindow::addFiles(const QStringList& filenames)
@@ -727,18 +749,51 @@ void MainWindow::setUI()
         _ui->frame3D->setContentsMargins(0,0,0,0);
 
         _ui->menuSelection->setTitle(tr("H&istory"));
+
+        _model = new TreeModel(this);
+
+        _ui->treeView->setModel(_model);
+
+        _ui->treeView->collapseAll();
     }
     else
     {
         _ui->verticalLayout->removeWidget(_ui->zoomLayout);
         _ui->verticalLayout->removeWidget(_ui->frame3D);
         _ui->verticalLayout->removeItem(_ui->verticalSpacer);
+        _ui->verticalLayout->removeWidget(_ui->treeView);
 
         delete _ui->zoomLayout;
         delete _ui->frame3D;
         delete _ui->verticalSpacer;
+        delete _ui->treeView;
     }
 }
+
+/*void MainWindow::buildTreeView()
+{
+    //tree view
+
+
+
+    cPoint pt(NULL);
+    pt.setName("2000");
+    QList<QStandardItem *> preparedRow = prepareRow(pt,QString(""));
+    QStandardItem *item = _model->invisibleRootItem();
+    // adding a row to the invisible root item produces a root element
+    item->appendRow(preparedRow);
+
+    cPoint pt1(NULL, QPoint(10.4,5.9),"2000");
+    QList<QStandardItem *> secondRow = prepareRow(pt1, QString("image0"));
+    // adding a row to an item starts a subtree
+    preparedRow.first()->appendRow(secondRow);
+
+    cPoint pt2(NULL, QPoint(7.4,7.9),"2000");
+    secondRow = prepareRow(pt2, "image1");
+    // adding a row to an item starts a subtree
+    preparedRow.first()->appendRow(secondRow);
+
+}*/
 
 void  MainWindow::setGamma(float aGamma)
 {

@@ -98,6 +98,7 @@ public:
     Pt3d<double> centerScene() const;
     void setCenterScene(const Pt3d<double> &centerScene);
 
+    void MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);
 private:
     //! GL context aspect ratio (width/height)
     float       m_glRatio;
