@@ -44,7 +44,7 @@ char * TheCharPtrFuckingReturnValue=0;
 
 bool TheExitOnBrkp  = false;
 bool TheExitOnNan   = false;
-bool TheMajickFile  = true;
+bool TheMajickFile  = false;
 int  TheNbIterProcess = 1;
 
 
@@ -385,11 +385,14 @@ void cMajickChek::AddDouble(const REAL16& aV0)
        mGotNan = true;
        aV = 10.9076461;
    }
+#if (ELISE_windows)
+#else
    else if (isinf(aV))
    {
        mGotInf = true;
        aV = 90.0011111;
    }
+#endif
 
 
    Add1Double(mCheck1,aV+0.1234567);

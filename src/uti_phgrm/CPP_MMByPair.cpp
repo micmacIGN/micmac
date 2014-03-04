@@ -840,7 +840,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
                     << EAM(mSym,"Sym",true,"Symetrise all pair (Def=true)")
                     << EAM(mShow,"Show",true,"Show details (def = false))")
-                    << EAM(mIntIncert,"Inc",true,"Uncertaincy interval (def  = 1.25) ")
+                    << EAM(mIntIncert,"Inc",true,"Uncertaincy interval for matching ")
                     << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degre from TetaStrip")
                     << EAM(mSkipCorDone,"SMD",true,"Skip Matching When Already Done (Def=false)")
                     << EAM(mDo,"Do",true,"Step to Do in [Pyram,MetaData,Correl,Reech,Fusion,inspect], Def \"PMCF\" (i.e. All Step)")

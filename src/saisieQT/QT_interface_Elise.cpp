@@ -159,7 +159,7 @@ void cQT_Interface::changeState(int state, int idPt)
         {
             if(aState == NS_SaisiePts::eEPI_Highlight)
 
-                aPIm->Gl()->HighLighted() = true;
+                aPIm->Gl()->HighLighted() = !aPIm->Gl()->HighLighted();
 
             else if (aState == NS_SaisiePts::eEPI_Deleted)
 
@@ -231,10 +231,11 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
 
 void cQT_Interface::changeImages(int idPt)
 {
-    int aKW =0;
-    int aKI =0;
+    int aKW = 0; // id widget
 
     cSP_PointGlob* PointPrio = 0;
+
+    bool thisWin = (idPt == -2);
 
     if (idPt >=0)
     {
@@ -246,49 +247,27 @@ void cQT_Interface::changeImages(int idPt)
 
     std::vector<cImage *> images = mAppli->images();
 
-#ifdef _DEBUG
-    std::cout << "vecteur image avant sort"<< std::endl;
-    for (int aK =0; aK < (int) images.size(); ++aK)
-        std::cout << "image " << aK << " "<< images[aK]->Name() << std::endl;
-#endif
+    cCmpIm aCmpIm(this);
+    std::sort(images.begin(),images.end(),aCmpIm);
 
-    cCmpIm aCmpImQT(this);
-    std::sort(images.begin(),images.end(),aCmpImQT);
-
-#ifdef _DEBUG
-    std::cout << "vecteur image apres sort"<< std::endl;
-    for (int aK =0; aK < (int) images.size(); ++aK)
-        std::cout << "image " << aK << " "<< images[aK]->Name() << std::endl;
-#endif
-
-    int max = (idPt == -2) ? 1 : m_QTMainWindow->nbWidgets();
+    int max = thisWin ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
 
     while (aKW < max)
-    {
-        ELISE_ASSERT(aKI<int(images.size()),"Incoherence in cQT_Interface::changeImages");
-
-        cImage * anIm = images[aKI];
+    {               
+        cImage * anIm = images[aKW];
 
         if (!isDisplayed(anIm))
         {
-            int idx = cImageIdxFromName(QString(anIm->Name().c_str()));
-
-            cGLData* data = m_QTMainWindow->getEngine()->getGLData(idx);
+            cGLData* data = getGlData(anIm);
 
             if (data)
-            {
-                if (idPt == -2)
-                    m_QTMainWindow->currentWidget()->setGLData(data,true); //TODO: _ui Message isChecked
-                else
-                    m_QTMainWindow->getWidget(aKW)->setGLData(data,true); //TODO: _ui Message isChecked
-            }
+                m_QTMainWindow->getWidget(thisWin ? CURRENT_IDW : aKW)->setGLData(data,true);
 
-            aKW++;
         }
-        aKI++;
+        aKW++;
     }
 
-    if (idPt != -2) mAppli->SetImages(images);
+    mAppli->SetImages(images);
     //TODO: setImages dans le cas ThisWindow
 
     rebuild2DGlPoints();
@@ -366,11 +345,26 @@ int cQT_Interface::cImageIdx(int idGl)
     return cImageIdxFromGL(m_QTMainWindow->getWidget(idGl)->getGLData());
 }
 
-cGLData * cQT_Interface::getGlData(int idImage)
+cGLData * cQT_Interface::getGlData(int idWidget)
 {
-    cGLData * data = (idImage == -1) ? m_QTMainWindow->currentWidget()->getGLData() : m_QTMainWindow->getWidget(idImage)->getGLData();
+    cGLData * data = (idWidget == -1) ? m_QTMainWindow->currentWidget()->getGLData() : m_QTMainWindow->getWidget(idWidget)->getGLData();
 
     return data;
+}
+
+cGLData *cQT_Interface::getGlData(cImage *image)
+{
+
+    if(!image) return NULL;
+
+    for (int iGd = 0; iGd < m_QTMainWindow->getEngine()->nbGLData(); ++iGd)
+    {
+        QString nameImage = QString(image->Name().c_str());
+            if(nameImage == m_QTMainWindow->getEngine()->getGLData(iGd)->imageName())
+                return m_QTMainWindow->getEngine()->getGLData(iGd);
+    }
+
+    return NULL;
 }
 
 Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)

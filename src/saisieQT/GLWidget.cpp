@@ -138,8 +138,10 @@ void GLWidget::paintGL()
         }
         else
         {
-            _matrixManager.zoom(_vp_Params.m_zoom,2.f*m_GLData->getBBoxMaxSize());
-            _matrixManager.applyTransfo();
+            _matrixManager.setCenterScene(getGLData()->getBBoxCenter() );
+            _matrixManager.setDistance(_vp_Params.m_zoom );
+            _matrixManager.zoom(_vp_Params.m_zoom,_vp_Params.m_zoom + getGLData()->getBBoxMaxSize());
+            _matrixManager.arcBall();
 
             m_GLData->draw();        
         }
@@ -581,7 +583,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
 
-                _matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
+                //_matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
+                _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
             }
 
             emit newImagePosition( m_lastMoveImage );
