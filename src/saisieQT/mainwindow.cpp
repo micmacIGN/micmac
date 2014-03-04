@@ -156,7 +156,8 @@ void MainWindow::updateTreeview()
         if (colWidth < textWidth) colWidth = textWidth;
     }
 
-    _ui->treeView->setColumnWidth(0, colWidth + _ui->treeView->iconSize());
+    if (colWidth > 0)
+        _ui->treeView->setColumnWidth(0, colWidth + _ui->treeView->iconSize().width());
 }
 
 void MainWindow::addFiles(const QStringList& filenames)
@@ -978,3 +979,33 @@ void MainWindow::labelShowMode(bool state)
         }
     }
 }
+
+void MainWindow::selectPoint(string ptName)
+{
+    QItemSelectionModel *selectionModel = _ui->treeView->selectionModel();
+
+    QString name(ptName.c_str());
+
+    QModelIndex index;
+    for(int i = 0; i < _model->rowCount(); ++i)
+    {
+        QModelIndex idx = _model->index(i, 0, QModelIndex());
+
+        if(idx.isValid())
+        {
+            if (name == idx.data(Qt::DisplayRole).toString())
+            {
+                index = idx;
+            }
+        }
+    }
+
+    QItemSelection selection(index, index);
+    selectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+}
+
+void MainWindow::updateTreeView(cAppli_SaisiePts* appli)
+{
+    _model->setAppli(appli);
+}
+

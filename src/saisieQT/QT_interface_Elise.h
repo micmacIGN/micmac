@@ -23,8 +23,6 @@ public :
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
-    void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
-
     void                rebuild2DGlPoints();
 
     void                rebuild3DGlPoints(cSP_PointeImage* aPIm);
@@ -77,6 +75,15 @@ private:
 
     cData               *_data;
 
+signals:
+
+    void                selectPoint(std::string ptName);
+
+    void                updateTreeView(cAppli_SaisiePts *);
+
+public slots:
+
+    void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 
 private slots:
 

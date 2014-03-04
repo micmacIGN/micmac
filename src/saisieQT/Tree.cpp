@@ -3,7 +3,7 @@
 TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent)
 {
     parentItem = parent;
-    itemData = data;
+    itemData = data;   
 }
 
 TreeItem::~TreeItem()
@@ -106,12 +106,14 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    if (role != Qt::DisplayRole)
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        TreeItem *item = static_cast<TreeItem*>(index.internalPointer());
+
+        return item->data(index.column());
+    }
+    else
         return QVariant();
-
-    TreeItem *item = static_cast<TreeItem*>(index.internalPointer());
-
-    return item->data(index.column());
 }
 
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
@@ -119,7 +121,7 @@ Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return 0;
 
-    return QAbstractItemModel::flags(index);
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
 }
 
 QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
@@ -130,6 +132,25 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
 
     return QVariant();
 }
+
+bool TreeModel::setData(const QModelIndex &index,
+                        const QVariant &value, int role)
+ {
+     if (index.isValid() && role == Qt::EditRole)
+     {
+         if (index.row() == 0) //point name
+         {
+             std::string oldName = index.data(Qt::DisplayRole).toString().toStdString();
+
+             _appli->ChangeName(oldName,value.toString().toStdString());
+
+             emit dataChanged();
+
+             return true;
+         }
+     }
+     return false;
+ }
 
 QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent)
             const
@@ -181,6 +202,7 @@ int TreeModel::rowCount(const QModelIndex &parent) const
 
 void TreeModel::setupModelData(TreeItem *parent)
 {
+   // cout << "setting model data" << endl;
     QList<TreeItem*> parents;
     parents << parent;
 
@@ -231,5 +253,4 @@ void TreeModel::setupModelData(TreeItem *parent)
         }
     }
 }
-
 

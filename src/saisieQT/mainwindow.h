@@ -21,11 +21,7 @@
 
 #include "Tree.h"
 
-using namespace NS_SaisiePts;
-class cQT_Interface;
-
 namespace Ui {
-
 class MainWindow;
 }
 
@@ -93,6 +89,10 @@ public slots:
     void redraw(bool nbWidgetsChanged=false);
 
     void setGamma(float);
+
+    void selectPoint(std::string ptName);
+
+    void updateTreeView(cAppli_SaisiePts *appli);
 
 signals:
 
