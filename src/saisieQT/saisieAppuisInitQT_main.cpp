@@ -150,6 +150,8 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     w.addFiles(filenames);
 
+    w.updateTreeview();
+
     interf->rebuildGlPoints();
 
     return app.exec();

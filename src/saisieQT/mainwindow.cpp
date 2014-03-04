@@ -138,13 +138,26 @@ void MainWindow::loadPly(const QStringList& filenames)
     delete timer_test;
 }
 
-/*void MainWindow::updateTreeview()
+void MainWindow::updateTreeview()
 {
-    for (int aK=0; aK< getModel()->columnCount();++aK)
-        _ui->treeView->resizeColumnToContents(aK);
+    _ui->treeView->resizeColumnToContents(1);
+    _ui->treeView->resizeColumnToContents(2);
 
-    _ui->treeView->collapseAll();
-}*/
+    QFontMetrics fm(font());
+    int colWidth = -1;
+    for (int aK=0; aK < getModel()->rowCount();++aK)
+    {
+        QModelIndex index = getModel()->index(aK, 0);
+
+        QString text = getModel()->data(index, Qt::DisplayRole).toString();
+
+        int textWidth = fm.width(text);
+
+        if (colWidth < textWidth) colWidth = textWidth;
+    }
+
+    _ui->treeView->setColumnWidth(0, colWidth + _ui->treeView->iconSize());
+}
 
 void MainWindow::addFiles(const QStringList& filenames)
 {
@@ -737,13 +750,11 @@ void MainWindow::setUI()
 
         _ui->menuSelection->setTitle(tr("H&istory"));
 
-        cout << "creating pointListModel "<<endl;
-
         _model = new TreeModel(this);
 
         _ui->treeView->setModel(_model);
 
-        _ui->treeView->expandAll();
+        _ui->treeView->collapseAll();
     }
     else
     {
