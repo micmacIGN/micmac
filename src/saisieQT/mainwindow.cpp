@@ -42,7 +42,6 @@ MainWindow::~MainWindow()
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
-    delete _model;
 }
 
 void MainWindow::connectActions()
@@ -685,7 +684,7 @@ void MainWindow::setLayout(uint sy)
     _layout->setContentsMargins(sy,sy,sy,sy);
     _layout->setHorizontalSpacing(sy);
     _layout->setVerticalSpacing(sy);
-    _ui->OpenglLayout->setLayout(_layout);
+    _ui->QFrame_OpenglLayout->setLayout(_layout);
 
     int cpt=0;
     for (int aK = 0; aK < _params->getNbFen().x();++aK)
@@ -738,16 +737,15 @@ void MainWindow::setUI()
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
         _zoomLayout->setContentsMargins(2,2,2,2);
-        _ui->zoomLayout->setLayout(_zoomLayout);
-        _ui->zoomLayout->setContentsMargins(0,0,0,0);
+        _ui->QFrame_zoom->setLayout(_zoomLayout);
+        _ui->QFrame_zoom->setContentsMargins(0,0,0,0);
 
          QGridLayout*            _tdLayout = new QGridLayout;
 
          _tdLayout->addWidget(threeDWidget());
          _tdLayout->setContentsMargins(2,2,2,2);
-        _ui->frame3D->setLayout(_tdLayout);
-        _ui->frame3D->setContentsMargins(0,0,0,0);
-
+        _ui->frame_preview3D->setLayout(_tdLayout);
+        _ui->frame_preview3D->setContentsMargins(0,0,0,0);
         _ui->menuSelection->setTitle(tr("H&istory"));
 
         _model = new TreeModel(this);
@@ -758,42 +756,13 @@ void MainWindow::setUI()
     }
     else
     {
-        _ui->verticalLayout->removeWidget(_ui->zoomLayout);
-        _ui->verticalLayout->removeWidget(_ui->frame3D);
-        _ui->verticalLayout->removeItem(_ui->verticalSpacer);
-        _ui->verticalLayout->removeWidget(_ui->treeView);
+        _ui->QFrame_Tools->layout()->removeWidget(_ui->QFrame_zoom);
+        _ui->QFrame_Tools->layout()->removeWidget(_ui->frame_preview3D);
 
-        delete _ui->zoomLayout;
-        delete _ui->frame3D;
-        delete _ui->verticalSpacer;
-        delete _ui->treeView;
+        delete _ui->QFrame_zoom;
+        delete _ui->frame_preview3D;
     }
 }
-
-/*void MainWindow::buildTreeView()
-{
-    //tree view
-
-
-
-    cPoint pt(NULL);
-    pt.setName("2000");
-    QList<QStandardItem *> preparedRow = prepareRow(pt,QString(""));
-    QStandardItem *item = _model->invisibleRootItem();
-    // adding a row to the invisible root item produces a root element
-    item->appendRow(preparedRow);
-
-    cPoint pt1(NULL, QPoint(10.4,5.9),"2000");
-    QList<QStandardItem *> secondRow = prepareRow(pt1, QString("image0"));
-    // adding a row to an item starts a subtree
-    preparedRow.first()->appendRow(secondRow);
-
-    cPoint pt2(NULL, QPoint(7.4,7.9),"2000");
-    secondRow = prepareRow(pt2, "image1");
-    // adding a row to an item starts a subtree
-    preparedRow.first()->appendRow(secondRow);
-
-}*/
 
 void  MainWindow::setGamma(float aGamma)
 {
@@ -815,7 +784,7 @@ void MainWindow::redraw(bool nbWidgetsChanged)
     if (size() != _params->getSzFen())
     {
         if (_mode > MASK3D)
-            resize(_params->getSzFen().width() + _ui->zoomLayout->width(), _params->getSzFen().height());
+            resize(_params->getSzFen().width() + _ui->QFrame_zoom->width(), _params->getSzFen().height());
         else
             resize(_params->getSzFen());
     }
@@ -848,7 +817,7 @@ void MainWindow::redraw(bool nbWidgetsChanged)
 
                     cpt++;
                 }
-            _ui->OpenglLayout->setLayout(_layout);
+            _ui->QFrame_OpenglLayout->setLayout(_layout);
         }
         else
         {
@@ -949,7 +918,7 @@ void MainWindow::applyParams()
         _ui->actionFullScreen->setChecked(true);
     }
     else if (_mode > MASK3D)
-        resize(szFen.width() + _ui->zoomLayout->width(), szFen.height());
+        resize(szFen.width() + _ui->QFrame_zoom->width(), szFen.height());
     else
         resize(szFen);
 }
