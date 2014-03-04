@@ -201,7 +201,8 @@ void TreeModel::setupModelData(TreeItem *parent)
 
         columnData << namePt << "" << "" << coord3d;
 
-        parents.last()->appendChild(new TreeItem(columnData, parent));
+        TreeItem * item = new TreeItem(columnData, parent);
+        parents.last()->appendChild(item);
 
         //Pointes image
 
@@ -226,7 +227,7 @@ void TreeModel::setupModelData(TreeItem *parent)
 
              columnData2 << "" << nameImg << state << coord2d;
 
-             parents.last()->appendChild(new TreeItem(columnData2, parents.last()));
+             item->appendChild(new TreeItem(columnData2, item));
         }
     }
 }
