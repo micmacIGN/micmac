@@ -187,7 +187,7 @@ private:
     QMenu*                  _RFMenu; //recent files menu
 
     QSignalMapper*          _signalMapper;
-    QGridLayout*            _layout;
+    QGridLayout*            _layout_GLwidgets;
     QGridLayout*            _zoomLayout;
 
     cParameters*            _params;
