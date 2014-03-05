@@ -44,7 +44,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     Init();
 
-    m_QTMainWindow->getModel()->setAppli(mAppli);
+    connect(this, SIGNAL(selectPoint(std::string)), m_QTMainWindow, SLOT(selectPoint(std::string)));
+
+    connect(this, SIGNAL(updateTreeView(cAppli_SaisiePts*)), m_QTMainWindow, SLOT(updateTreeView(cAppli_SaisiePts*)));
+
+    connect(m_QTMainWindow->getModel(), SIGNAL(dataChanged()), this, SLOT(rebuildGlPoints()));
+
+    emit updateTreeView(mAppli);
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -147,6 +153,9 @@ void cQT_Interface::movePoint(int idPt)
 void cQT_Interface::selectPoint(int idPt)
 {
     rebuild3DGlPoints(idPt >= 0 ? currentPointeImage(idPt) : NULL);
+
+    if (idPt >=0)
+        emit selectPoint(selectedPtName(idPt));
 }
 
 void cQT_Interface::changeState(int state, int idPt)
@@ -507,6 +516,8 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
     rebuild2DGlPoints();
 
     rebuild3DGlPoints(aPIm);
+
+    //emit updateTreeView(mAppli);  //entraine un push_back dans le treeModel //TODO: clean treeModel
 
     Save();
 }

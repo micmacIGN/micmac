@@ -756,12 +756,15 @@ void MainWindow::setUI()
     }
     else
     {
-        _ui->QFrame_Tools->layout()->removeWidget(_ui->QFrame_zoom);
-        _ui->QFrame_Tools->layout()->removeWidget(_ui->frame_preview3D);
-        _ui->splitter_Tools->hide();
+        _ui->verticalLayout->removeWidget(_ui->zoomLayout);
+        _ui->verticalLayout->removeWidget(_ui->frame3D);
+        _ui->verticalLayout->removeItem(_ui->verticalSpacer);
+        _ui->verticalLayout->removeWidget(_ui->treeView);
 
-        delete _ui->QFrame_zoom;
-        delete _ui->frame_preview3D;
+        delete _ui->zoomLayout;
+        delete _ui->frame3D;
+        delete _ui->verticalSpacer;
+        delete _ui->treeView;
     }
 }
 
