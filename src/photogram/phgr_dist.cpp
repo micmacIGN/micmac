@@ -310,18 +310,6 @@ void ElDistortion22_Gen::DiffByDiffFinies
      Pt2dr dx(Eps.x,0);
      Pt2dr dy(0,Eps.y);
 
-/*
-static int aCpt=0 ; aCpt++;
-bool aBug = (aCpt==146282);
-
-if (aBug)
-{
-   std::cout << "----EPS " << this << " " << Eps << " " << mScN << "\n";
-
-   std::cout << "DerX " << (Direct(aP+dx)-Direct(aP-dx))/(2.0*Eps.x) <<  "\n";
-   getchar();
-}
-*/
      SetCol(aMat,0,(Direct(aP+dx)-Direct(aP-dx))/(2.0*Eps.x));
      SetCol(aMat,1,(Direct(aP+dy)-Direct(aP-dy))/(2.0*Eps.y));
 }

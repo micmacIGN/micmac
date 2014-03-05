@@ -1956,6 +1956,7 @@ Pt2dr ElCamera::DistDirecte(Pt2dr aP) const
 
 Pt2dr ElCamera::DistInverse(Pt2dr aP) const
 {
+/*
    static int aCpt=0; aCpt++;
    // std::cout << "aCPpppt " <<  aCpt << "\n";
    bool Bug =    (aCpt==149927) || ((aCpt>=159927) && (aCpt<=159930));  //  Avec 1500
@@ -1966,6 +1967,7 @@ Pt2dr ElCamera::DistInverse(Pt2dr aP) const
        MakeFileXML(aCO,"Debug-"+ToString(aCpt) + ".xml");
        std::cout << "EXPPPoort ElCamera::DistInverse\n";
    }
+*/
 
    aP = DComplC2M(aP);
    aP= mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
