@@ -36,6 +36,11 @@ QVariant TreeItem::data(int column) const
     return itemData.value(column);
 }
 
+void TreeItem::setData(const QVariant &value, int role)
+{
+    itemData[0] = value;
+}
+
 TreeItem *TreeItem::parent()
 {
     return parentItem;
@@ -138,13 +143,17 @@ bool TreeModel::setData(const QModelIndex &index,
  {
      if (index.isValid() && role == Qt::EditRole)
      {
-         if (index.row() == 0) //point name
+         if (index.column() == 0) //point name
          {
              std::string oldName = index.data(Qt::DisplayRole).toString().toStdString();
 
              _appli->ChangeName(oldName,value.toString().toStdString());
 
-             emit dataChanged();
+             TreeItem *Item = static_cast<TreeItem*>(index.internalPointer());
+
+             Item->setData(value, Qt::DisplayRole);
+
+             emit dataChanged(index, index);
 
              return true;
          }
@@ -202,7 +211,6 @@ int TreeModel::rowCount(const QModelIndex &parent) const
 
 void TreeModel::setupModelData(TreeItem *parent)
 {
-   // cout << "setting model data" << endl;
     QList<TreeItem*> parents;
     parents << parent;
 

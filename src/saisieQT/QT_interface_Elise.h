@@ -79,7 +79,8 @@ signals:
 
     void                selectPoint(std::string ptName);
 
-    void                updateTreeView(cAppli_SaisiePts *);
+
+    void                dataChanged();
 
 public slots:
 

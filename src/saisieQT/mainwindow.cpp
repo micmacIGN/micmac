@@ -137,27 +137,6 @@ void MainWindow::loadPly(const QStringList& filenames)
     delete timer_test;
 }
 
-void MainWindow::updateTreeview()
-{
-    _ui->treeView->resizeColumnToContents(1);
-    _ui->treeView->resizeColumnToContents(2);
-
-    QFontMetrics fm(font());
-    int colWidth = -1;
-    for (int aK=0; aK < getModel()->rowCount();++aK)
-    {
-        QModelIndex index = getModel()->index(aK, 0);
-
-        QString text = getModel()->data(index, Qt::DisplayRole).toString();
-
-        int textWidth = fm.width(text);
-
-        if (colWidth < textWidth) colWidth = textWidth;
-    }
-
-    //_ui->treeView->setColumnWidth(0, colWidth + _ui->treeView->iconSize());
-}
-
 void MainWindow::addFiles(const QStringList& filenames)
 {
     if (filenames.size())
@@ -756,15 +735,11 @@ void MainWindow::setUI()
     }
     else
     {
-        _ui->verticalLayout->removeWidget(_ui->zoomLayout);
-        _ui->verticalLayout->removeWidget(_ui->frame3D);
-        _ui->verticalLayout->removeItem(_ui->verticalSpacer);
-        _ui->verticalLayout->removeWidget(_ui->treeView);
+        _ui->QFrame_Tools->layout()->removeWidget(_ui->QFrame_zoom);
+        _ui->QFrame_Tools->layout()->removeWidget(_ui->frame_preview3D);
 
-        delete _ui->zoomLayout;
-        delete _ui->frame3D;
-        delete _ui->verticalSpacer;
-        delete _ui->treeView;
+        delete _ui->QFrame_zoom;
+        delete _ui->frame_preview3D;
     }
 }
 
@@ -950,4 +925,50 @@ void MainWindow::labelShowMode(bool state)
             _ui->label_ImageName->show();
         }
     }
+}
+
+void MainWindow::selectPoint(string ptName)
+{
+    QItemSelectionModel *selectionModel = _ui->treeView->selectionModel();
+
+    QString name(ptName.c_str());
+
+    QModelIndex index;
+    for(int i = 0; i < _model->rowCount(); ++i)
+    {
+        QModelIndex idx = _model->index(i, 0, QModelIndex());
+
+        if(idx.isValid())
+        {
+            if (name == idx.data(Qt::DisplayRole).toString())
+            {
+                index = idx;
+            }
+        }
+    }
+
+    QItemSelection selection(index, index);
+    selectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+}
+
+void MainWindow::updateTreeView()
+{
+    //resize colums
+    _ui->treeView->resizeColumnToContents(1);
+    _ui->treeView->resizeColumnToContents(2);
+
+    QFontMetrics fm(font());
+    int colWidth = -1;
+    for (int aK=0; aK < getModel()->rowCount();++aK)
+    {
+        QModelIndex index = getModel()->index(aK, 0);
+
+        QString text = getModel()->data(index, Qt::DisplayRole).toString();
+
+        int textWidth = fm.width(text);
+
+        if (colWidth < textWidth) colWidth = textWidth;
+    }
+
+    _ui->treeView->setColumnWidth(0, colWidth + 32); //TODO: find expand sign indicator size
 }
