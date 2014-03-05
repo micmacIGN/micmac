@@ -1517,7 +1517,7 @@ void cAppliMICMAC::DoGPU_Correl
                         {
 
                             int2 t  = (an - zone.pt0);
-                            int2 r	= (an - zone.pt0)/sample;
+                            int2 r	= (an - zone.pt0)/sample; // TODO Simplifier calcul
                             int iD	=  to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
 
@@ -1534,9 +1534,20 @@ void cAppliMICMAC::DoGPU_Correl
                     }
                 }
 
-                //re.pt1 = re.pt1 - 1;
+                // TODO IL RESTE des BUG SUR MNE INDRE avec SzBlocAH = 48
+                if(re.pt0.y > (int)sample)
+                    re.pt0.y += sample;
 
-                *pRect = re/*.erode(-1)*/;
+                if(re.pt0.x > (int)sample)
+                    re.pt0.x += sample;
+
+                if(re.pt1.y + (int)sample < anB.y - zone.pt0.y )
+                    re.pt1.y -= sample;
+
+                if(re.pt1.x + (int)sample < anB.x - zone.pt0.x )
+                    re.pt1.x -= sample;
+
+                *pRect = re;
 
             }
         }

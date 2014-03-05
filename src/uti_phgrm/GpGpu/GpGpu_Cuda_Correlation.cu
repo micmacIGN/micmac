@@ -124,8 +124,9 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer,0))
     return;
 
-  // DEBUT AJOUT 2014
-  if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptHTer -  invPc.rayVig.x ,make_uint2(zoneImage.pt0)))
+  // DEBUT AJOUT 2014 // TODO le rayon vignette peut précalculer // TODO Atte
+  if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptTer,zoneImage.pt0))
+  //if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptHTer - invPc.rayVig.x ,make_uint2(zoneImage.pt0)))
       return;
   // FIN AJOUT 2014
 
