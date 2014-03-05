@@ -21,11 +21,7 @@
 
 #include "Tree.h"
 
-using namespace NS_SaisiePts;
-class cQT_Interface;
-
 namespace Ui {
-
 class MainWindow;
 }
 
@@ -67,8 +63,6 @@ public:
 
     TreeModel* getModel() { return _model; }
 
-    void updateTreeview();
-
 public slots:
 
     //! Try to load a list of files
@@ -93,6 +87,10 @@ public slots:
     void redraw(bool nbWidgetsChanged=false);
 
     void setGamma(float);
+
+    void selectPoint(std::string ptName);
+
+    void updateTreeView();
 
 signals:
 
@@ -187,7 +185,7 @@ private:
     QMenu*                  _RFMenu; //recent files menu
 
     QSignalMapper*          _signalMapper;
-    QGridLayout*            _layout;
+    QGridLayout*            _layout_GLwidgets;
     QGridLayout*            _zoomLayout;
 
     cParameters*            _params;

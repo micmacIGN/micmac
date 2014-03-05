@@ -44,6 +44,12 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     Init();
 
+    connect(this, SIGNAL(selectPoint(std::string)), m_QTMainWindow, SLOT(selectPoint(std::string)));
+
+    connect(this, SIGNAL(dataChanged()), m_QTMainWindow, SLOT(updateTreeView()));
+
+    connect(m_QTMainWindow->getModel(), SIGNAL(dataChanged(QModelIndex const &, QModelIndex const &)), this, SLOT(rebuildGlPoints()));
+
     m_QTMainWindow->getModel()->setAppli(mAppli);
 }
 
@@ -147,6 +153,9 @@ void cQT_Interface::movePoint(int idPt)
 void cQT_Interface::selectPoint(int idPt)
 {
     rebuild3DGlPoints(idPt >= 0 ? currentPointeImage(idPt) : NULL);
+
+    if (idPt >=0)
+        emit selectPoint(selectedPtName(idPt));
 }
 
 void cQT_Interface::changeState(int state, int idPt)
