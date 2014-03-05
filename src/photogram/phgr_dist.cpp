@@ -212,9 +212,10 @@ REPERE-222222
 */
 
     Pt2dr aP00 = anEstim0;
+
 static int aCpt=0 ; aCpt++;
-std::cout << "CPT " << aCpt << "\n";
 /*
+std::cout << "CPT " << aCpt << "\n";
  bool BugGravillon = (aCpt==146282);
  if (BugGravillon)
  {

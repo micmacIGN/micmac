@@ -2125,10 +2125,13 @@ Pt2dr ElCamera::NormM2C(Pt2dr aP) const
 }
 
 
-Pt2dr  ElCamera::DComplM2C(Pt2dr aP ) const
+Pt2dr  ElCamera::DComplM2C(Pt2dr aP,bool UseTrScN ) const
 {
-    aP.x = aP.x * mScN + mTrN.x;
-    aP.y = aP.y * mScN + mTrN.y;
+    if (UseTrScN)
+    {
+       aP.x = aP.x * mScN + mTrN.x;
+       aP.y = aP.y * mScN + mTrN.y;
+    }
 
     for (int aK=int(mDistCompl.size())-1 ; aK>=0 ; aK--)
     {
@@ -3098,7 +3101,7 @@ Pt2dr  ElCamera::SzPixel() const
    if (mSzPixel.x>0)
       return mSzPixel;
 
-   return DComplM2C(Pt2dr(Sz()) /2.0) * 2;
+   return DComplM2C(Pt2dr(Sz()) /2.0,false) * 2;
 }
 
 double ElCamera::ProfondeurDeChamps(const Pt3dr & aP) const
