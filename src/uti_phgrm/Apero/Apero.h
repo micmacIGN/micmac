@@ -1792,6 +1792,7 @@ class cAppliApero : public NROptF1vND
     public :
 
 
+        int  NumSauvAuto() const {return  mNumSauvAuto;}
         bool NumIterDebug() const;
         int   CptIterCompens() const {return mCptIterCompens;}
         FILE * FileDebug();
