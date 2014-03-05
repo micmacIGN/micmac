@@ -125,7 +125,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
     return;
 
   // DEBUT AJOUT 2014
-  if ( oSE( ptHTer + 2 , make_uint2(zoneImage.pt1)) || oI(ptHTer -  2 ,make_uint2(zoneImage.pt0)))
+  if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptHTer -  invPc.rayVig.x ,make_uint2(zoneImage.pt0)))
       return;
   // FIN AJOUT 2014
 
