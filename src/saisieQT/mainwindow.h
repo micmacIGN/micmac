@@ -63,8 +63,6 @@ public:
 
     TreeModel* getModel() { return _model; }
 
-    void updateTreeview();
-
 public slots:
 
     //! Try to load a list of files
@@ -92,7 +90,7 @@ public slots:
 
     void selectPoint(std::string ptName);
 
-    void updateTreeView(cAppli_SaisiePts *appli);
+    void updateTreeView();
 
 signals:
 

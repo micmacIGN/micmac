@@ -7,7 +7,7 @@
 
 using namespace NS_SaisiePts;
 
-class TreeItem
+class TreeItem : public QStandardItem
 {
 public:
     explicit TreeItem(const QList<QVariant> &data, TreeItem *parent = 0);
@@ -19,6 +19,8 @@ public:
     int childCount() const;
     int columnCount() const;
     QVariant data(int column) const;
+    void setData(const QVariant &value, int role = Qt::UserRole + 1);
+
     int row() const;
     TreeItem *parent();
 
@@ -47,9 +49,6 @@ public:
     int     columnCount (const QModelIndex &parent = QModelIndex()) const;
 
     void    setAppli(cAppli_SaisiePts* appli);
-
-signals:
-    void dataChanged();
 
 private:
     void    setupModelData(TreeItem *parent);
