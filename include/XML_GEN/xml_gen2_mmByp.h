@@ -126,6 +126,7 @@ class cAppliWithSetImage
 
       static const int  FlagDev8BGray   = 1;
       static const int  FlagDev16BGray  = 2;
+      static const int  FlagNoOri  = 3;
 
       tSomAWSI * ImOfName(const std::string & aName);
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);

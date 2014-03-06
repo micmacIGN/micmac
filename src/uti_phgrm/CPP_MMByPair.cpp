@@ -294,7 +294,8 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mAverNbPix (0.0),
    mByEpi     (false)
 {
-   if (argc<2)
+   bool WithOri  = ((aFlag & FlagNoOri)==0);
+   if (argc< (WithOri ? 2 : 1 ) )
    {
       mPb = "Not Enough Arg in cAppliWithSetImage";
       return;
@@ -323,9 +324,16 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
        ELISE_ASSERT(false,"Empty pattern");
    }
 
-   mOri = argv[1];
-   mICNM->CorrecNameOrient(mOri);
+   if (WithOri)
+   {
+       mOri = argv[1];
+       mICNM->CorrecNameOrient(mOri);
 
+   }
+   else
+   {
+       mOri = "NONE";
+   }
    mKeyOri =  "NKS-Assoc-Im2Orient@-" + mOri;
 
    for (int aKV=0 ; aKV<int(mSetIm->size()) ; aKV++)
@@ -382,7 +390,8 @@ CamStenope * cAppliWithSetImage::CamOfName(const std::string & aNameIm)
    {
       cOrientationConique anOC = StdGetFromPCP(Basic_XML_MM_File("Template-OrCamAngWithInterne.xml"),OrientationConique);
      
-      Tiff_Im aTF = Tiff_Im::StdConv(mDir+aNameIm);
+      // Tiff_Im aTF = Tiff_Im::StdConvGen(mDir+aNameIm,,);
+      Tiff_Im aTF = Tiff_Im::UnivConvStd(mDir+aNameIm);
 
       Pt2dr  aSz = Pt2dr(aTF.sz());
       anOC.Interne().Val().F() = euclid(aSz);
