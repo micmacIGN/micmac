@@ -124,14 +124,15 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer,0))
     return;
 
-  // DEBUT AJOUT 2014 // TODO le rayon vignette peut précalculer // TODO Atte
+  // DEBUT AJOUT 2014 // TODO A SIMPLIFIER
   if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptTer,zoneImage.pt0))
   //if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptHTer - invPc.rayVig.x ,make_uint2(zoneImage.pt0)))
       return;
   // FIN AJOUT 2014
 
   // INCORRECT !!! TODO
-  if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
+  // COM 6 mars 2014
+  // if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
 
   const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
   const short2 c1	= make_short2(threadIdx) + invPc.rayVig;
@@ -250,7 +251,8 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(float *dTCost
   const uint2	ptTer	= ptCach / invPc.dimVig; // Coordonnées 2D du terrain
 
   // TODO 2014 à verifier notamment quand il n'y a pas de cache!!!
-  if(!tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y)) return;
+  // COM 6 mars 2014
+  // if(!tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y)) return;
 
   const uint	iTer	= blockIdx.z * HdPc.sizeTer + to1D(ptTer, HdPc.dimTer);     // Coordonnées 1D dans le terrain avec prise en compte des differents Z
 
