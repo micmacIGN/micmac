@@ -120,6 +120,8 @@ void cQT_Interface::addPoint(QPointF point)
             mAppli->image(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
 
         rebuildGlPoints();
+
+        emit dataChanged();
     }
 }
 
@@ -146,6 +148,8 @@ void cQT_Interface::movePoint(int idPt)
             UpdatePoints(aPIm, pt);
 
             rebuildGlPoints(aPIm);
+
+            emit dataChanged();
         }
     }
 }
@@ -181,6 +185,8 @@ void cQT_Interface::changeState(int state, int idPt)
                 ChangeState(aPIm, aState);
 
             rebuildGlPoints(aPIm);
+
+            emit dataChanged();
         }
     }
 }
@@ -219,6 +225,8 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
         }
 
         rebuildGlPoints(aPIm);
+
+        emit dataChanged();
     }
 }
 
@@ -237,8 +245,6 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
     }
     return res;
 }
-
-
 
 void cQT_Interface::changeImages(int idPt)
 {
@@ -392,7 +398,6 @@ cGLData * cQT_Interface::getGlData(int idWidget)
 
 cGLData *cQT_Interface::getGlData(cImage *image)
 {
-
     if(!image) return NULL;
 
     for (int iGd = 0; iGd < m_QTMainWindow->getEngine()->nbGLData(); ++iGd)
