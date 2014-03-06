@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 class tFileOffset;
 
 extern const  std::string  TheFileMMDIR;  // MicMacInstalDir
+void AnalyseContextCom(int argc,char ** argv);
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbArgMin=-1);
 int NbProcSys();
 
@@ -1185,7 +1186,8 @@ void RequireBin
          const std::string & BinRequired,
 	 const std::string & LeMake = "Makefile"  // Si
      );
-int System(const std::string & aCom,bool aSVP=false);
+
+int System(const std::string & aCom,bool aSVP=false,bool AddOptGlob=false,bool UseTheNbIterProcess=false);
 
 void  EliseVerifAndParseArgcArgv(int argc,char ** argv);
 

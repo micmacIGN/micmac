@@ -1590,7 +1590,7 @@ void cEtapeMecComp::SauvProjImage
 
       if (aBoxOut._p0 != Pt2di(0,0))
       {
-           sleep(2);
+          SleepProcess(2);
       }
 
 

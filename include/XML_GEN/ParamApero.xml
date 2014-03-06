@@ -299,6 +299,9 @@ namespace NS_ParamApero{
 	> 
 	</DicoLoc>
 
+
+         <FileDebug Nb="?" Type="std::string"> </FileDebug>
+
         <ShowSection  Nb="?"> 
             <ShowMes Nb="?" Type="bool" Def="true"> </ShowMes>
             <LogFile  Nb="?" Type="std::string"> </LogFile>

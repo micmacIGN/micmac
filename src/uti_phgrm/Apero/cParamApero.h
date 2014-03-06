@@ -4856,6 +4856,9 @@ class cParamApero
         cTplValGesInit< cChantierDescripteur > & DicoLoc();
         const cTplValGesInit< cChantierDescripteur > & DicoLoc()const ;
 
+        cTplValGesInit< std::string > & FileDebug();
+        const cTplValGesInit< std::string > & FileDebug()const ;
+
         cTplValGesInit< bool > & ShowMes();
         const cTplValGesInit< bool > & ShowMes()const ;
 
@@ -5070,6 +5073,7 @@ class cParamApero
         const cSectionCompensation & SectionCompensation()const ;
     private:
         cTplValGesInit< cChantierDescripteur > mDicoLoc;
+        cTplValGesInit< std::string > mFileDebug;
         cTplValGesInit< cShowSection > mShowSection;
         cTplValGesInit< bool > mCalledByItself;
         cTplValGesInit< cCmdMappeur > mSectionMapApero;

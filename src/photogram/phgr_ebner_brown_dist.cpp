@@ -834,6 +834,9 @@ const Pt2dr  & cDist_Param_Unif_Gen::SzIm() const
 
 void  cDist_Param_Unif_Gen::Diff(ElMatrix<REAL> & aMat,Pt2dr aP) const
 {
+   // static int aCpt=0; aCpt++;
+   // bool aBug = (aCpt==146282);
+   
    DiffByDiffFinies(aMat,aP,euclid(mSzIm)/400.0);
 }
 

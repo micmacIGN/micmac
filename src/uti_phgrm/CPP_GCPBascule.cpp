@@ -99,7 +99,7 @@ int GCPBascule_main(int argc,char ** argv)
 
 
    std::cout << "Com = " << aCom << "\n";
-   int aRes = System(aCom.c_str());
+   int aRes = System(aCom.c_str(),false,true,true);
 
    
    return aRes;

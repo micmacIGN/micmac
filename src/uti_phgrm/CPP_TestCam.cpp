@@ -38,6 +38,44 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+
+void TestOneCorner(ElCamera * aCam,const Pt2dr&  aP, const Pt2dr&  aG)
+{
+     Pt2dr aQ0 = aCam->DistDirecte(aP);
+     Pt2dr aQ1 = aCam->DistDirecte(aP+aG);
+
+     std::cout <<  " Grad " << (aQ1-aQ0 -aG) / euclid(aG) << " For " << aP << "\n";
+}
+
+
+void TestOneCorner(ElCamera * aCam,const Pt2dr&  aP)
+{
+    TestOneCorner(aCam,aP,Pt2dr(1,0));
+    TestOneCorner(aCam,aP,Pt2dr(0,1));
+    std::cout << "=======================================\n";
+}
+
+void TestOneCorner(ElCamera * aCam)
+{
+    Pt2dr aSz = Pt2dr(aCam->Sz());
+
+    TestOneCorner(aCam,Pt2dr(0,0));
+    TestOneCorner(aCam,Pt2dr(aSz.x,0));
+    TestOneCorner(aCam,Pt2dr(0,aSz.y));
+    TestOneCorner(aCam,Pt2dr(aSz.x,aSz.y));
+    TestOneCorner(aCam,Pt2dr(aSz.x/2.0,aSz.y/2.0));
+
+    TestOneCorner(aCam,Pt2dr(1072,712));
+}
+
+
+void TestDistInv(ElCamera * aCam,const Pt2dr & aP)
+{
+    std::cout << "Test Dis Inv , aP " << aP << "\n";
+    std::cout << "Res =  " << aCam->DistInverse(aP) << "\n";
+
+}
+
 void TestDirect(ElCamera * aCam,Pt3dr aPG)
 {
     {
@@ -72,6 +110,8 @@ int TestCam_main(int argc,char ** argv)
     std::string aNameDir;
     std::string aNameTag = "OrientationConique";
     bool ExtP = false;
+    bool TOC = false;
+    Pt2dr TDINV;
 
     double X,Y,Z;
     bool aModeGrid = false;
@@ -89,6 +129,8 @@ int TestCam_main(int argc,char ** argv)
                     << EAM(aModeGrid,"Grid",true,"Test Grid Mode")	
                     << EAM(Out,"Out",true,"To Regenerate an orientation file")	
                     << EAM(ExtP,"ExtP",true,"Detail on external parameter")	
+                    << EAM(TOC,"TOC",true,"Test corners")	
+                    << EAM(TDINV,"TDINV",true,"Test Dist Inv")	
     );
 
     SplitDirAndFile(aNameDir,aNameCam,aFullName);
@@ -117,6 +159,12 @@ int TestCam_main(int argc,char ** argv)
        std::cout <<  "  K : " << aCS->L3toR3(Pt3dr(0,0,1)) - aCS->L3toR3(Pt3dr(0,0,0))<< "\n";
        std::cout << "\n";
    }
+
+    if (TOC) 
+       TestOneCorner(aCam);
+
+    if (EAMIsInit(&TDINV))
+       TestDistInv(aCam,TDINV);
    
 
 

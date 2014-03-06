@@ -1956,6 +1956,18 @@ Pt2dr ElCamera::DistDirecte(Pt2dr aP) const
 
 Pt2dr ElCamera::DistInverse(Pt2dr aP) const
 {
+/*
+   static int aCpt=0; aCpt++;
+   // std::cout << "aCPpppt " <<  aCpt << "\n";
+   bool Bug =    (aCpt==149927) || ((aCpt>=159927) && (aCpt<=159930));  //  Avec 1500
+   // bool Bug = (aCpt==242400) || ((aCpt>=252400) && (aCpt<=252403));  //  Avec -1
+   if (Bug) 
+   {
+       NS_ParamChantierPhotogram::cOrientationConique  aCO = StdExportCalibGlob();
+       MakeFileXML(aCO,"Debug-"+ToString(aCpt) + ".xml");
+       std::cout << "EXPPPoort ElCamera::DistInverse\n";
+   }
+*/
 
    aP = DComplC2M(aP);
    aP= mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
@@ -2115,10 +2127,13 @@ Pt2dr ElCamera::NormM2C(Pt2dr aP) const
 }
 
 
-Pt2dr  ElCamera::DComplM2C(Pt2dr aP ) const
+Pt2dr  ElCamera::DComplM2C(Pt2dr aP,bool UseTrScN ) const
 {
-    aP.x = aP.x * mScN + mTrN.x;
-    aP.y = aP.y * mScN + mTrN.y;
+    if (UseTrScN)
+    {
+       aP.x = aP.x * mScN + mTrN.x;
+       aP.y = aP.y * mScN + mTrN.y;
+    }
 
     for (int aK=int(mDistCompl.size())-1 ; aK>=0 ; aK--)
     {
@@ -3088,7 +3103,7 @@ Pt2dr  ElCamera::SzPixel() const
    if (mSzPixel.x>0)
       return mSzPixel;
 
-   return DComplM2C(Pt2dr(Sz()) /2.0) * 2;
+   return DComplM2C(Pt2dr(Sz()) /2.0,false) * 2;
 }
 
 double ElCamera::ProfondeurDeChamps(const Pt3dr & aP) const

@@ -19,13 +19,9 @@
 #include "Settings.h"
 #include "qdesktopwidget.h"
 
-#include   "QT_interface_Elise.h"
-
-using namespace NS_SaisiePts;
-class cQT_Interface ;
+#include "Tree.h"
 
 namespace Ui {
-
 class MainWindow;
 }
 
@@ -65,6 +61,8 @@ public:
 
     void loadPly(const QStringList& filenames);
 
+    TreeModel* getModel() { return _model; }
+
 public slots:
 
     //! Try to load a list of files
@@ -89,6 +87,10 @@ public slots:
     void redraw(bool nbWidgetsChanged=false);
 
     void setGamma(float);
+
+    void selectPoint(std::string ptName);
+
+    void updateTreeView();
 
 signals:
 
@@ -183,11 +185,13 @@ private:
     QMenu*                  _RFMenu; //recent files menu
 
     QSignalMapper*          _signalMapper;
-    QGridLayout*            _layout;
+    QGridLayout*            _layout_GLwidgets;
     QGridLayout*            _zoomLayout;
 
     cParameters*            _params;
 
     int                     _mode;
+
+    TreeModel*              _model;
 };
 #endif // MAINWINDOW_H

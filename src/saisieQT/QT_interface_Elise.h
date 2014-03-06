@@ -1,17 +1,7 @@
 #ifndef QT_INTERFACE_ELISE_H
 #define QT_INTERFACE_ELISE_H
 
-#include    "StdAfx.h"
-#include    "../uti_phgrm/SaisiePts/SaisiePts.h"
-#ifdef Int
-    #undef Int
-#endif
 #include    "mainwindow.h"
-
-//using namespace NS_ParamChantierPhotogram;
-//using namespace NS_SuperposeImage;
-
-using namespace NS_SaisiePts;
 
 class MainWindow;
 
@@ -33,8 +23,6 @@ public :
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
-    void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
-
     void                rebuild2DGlPoints();
 
     void                rebuild3DGlPoints(cSP_PointeImage* aPIm);
@@ -42,6 +30,12 @@ public :
     void                rebuildGlCamera();
 
     void                option3DPreview();
+
+    void                AddUndo(cOneSaisie * aSom);
+
+    bool                isDisplayed(cImage *aImage);
+
+    void                Redraw(){}
 
 private:
 
@@ -73,11 +67,24 @@ private:
 
     cGLData *           getGlData(int idImage);
 
+    cGLData *           getGlData(cImage* image);
+
     cSP_PointeImage *   currentPointeImage(int idPoint);
+
+    bool                WVisible(cSP_PointeImage &aPIm);
 
     cData               *_data;
 
-    bool                WVisible(cSP_PointeImage &aPIm);
+signals:
+
+    void                selectPoint(std::string ptName);
+
+
+    void                dataChanged();
+
+public slots:
+
+    void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 
 private slots:
 
@@ -90,6 +97,8 @@ private slots:
     void                changeState(int state, int idPt);
 
     void                changeName(QString aOldName, QString aNewName);
+
+    void                changeImages(int idPt);
 
     void                changeCurPose(void *widgetGL);
 

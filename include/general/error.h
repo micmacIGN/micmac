@@ -50,6 +50,32 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #pragma once
 
+REAL16 PartieFrac(const REAL16 &);
+// Class faite pour tester la repetitivite (determinise) de l'execution d'un programme
+class cMajickChek
+{
+    public :
+        cMajickChek();
+        void AddDouble(const REAL16&);
+
+        void Add(const Pt3dr &);
+        void Add(const ElRotation3D &);
+        void Add(cGenSysSurResol &);
+        void Add(cSetEqFormelles &);
+
+
+        std::string MajId();
+    private :
+        char sMajAscii[1+2*sizeof(REAL16)];
+
+        void Add1Double(REAL16 & Target,const REAL16 &);
+
+        REAL16 mCheck1;
+        REAL16 mCheckInv;
+        REAL16 mCheck2;
+        bool   mGotNan;
+        bool   mGotInf;
+};
 
 
 class ElEM   // Elise Erreur Message
@@ -157,7 +183,15 @@ class ElEM   // Elise Erreur Message
 };
 
 extern bool TheExitOnBrkp;
+extern bool TheExitOnNan;
+extern bool TheMajickFile;
+extern int  TheNbIterProcess;
+
 extern int  GetCharOnBrkp();
+
+
+FILE * TheFileDebug(); // Ouvert globalement en A+
+void OpenFileDebug(const std::string &); // Erreur si ouverture multiple
 
 class Elise_Pile_Mess_N
 {

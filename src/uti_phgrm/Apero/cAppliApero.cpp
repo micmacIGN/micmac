@@ -87,8 +87,27 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mCurSLMIter        (0),
    mMulSLMIter        (1.0),
    mNumSauvAuto       (0),
-   mFpRT              (0)
+   mFpRT              (0),
+   mFileDebug         (0),
+   mMajChck           (),
+   mCptIterCompens    (0)
 {
+
+     std::string aNameFileDebug;
+     if (mParam.FileDebug().IsInit())
+     {
+          aNameFileDebug = mParam.FileDebug().Val();
+     }
+     else if (TheMajickFile)
+     {
+         aNameFileDebug=  MMDir() + "DbgTrackApero.txt";
+     }
+
+     if (aNameFileDebug != "")
+     {
+        ::OpenFileDebug(aNameFileDebug);
+        mFileDebug = TheFileDebug();
+     }
      // ::DebugPbCondFaisceau = mParam.DebugPbCondFaisceau().Val(); => Apero.cpp
      // ::aSeuilMaxCondSubstFaiseau =  mParam.SeuilMaxCondSubstFaiseau().Val();
 
@@ -147,6 +166,12 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
     }
     InitLVM(mCurSLMGlob,mParam.SLMGlob(),mMulSLMGlob,mParam.MultSLMGlob());
 }
+
+
+
+
+
+
 
 FILE *  cAppliApero::FpRT() 
 {
@@ -787,7 +812,72 @@ const std::vector<cPoseCam*> & cAppliApero::VecAllPose()
    return mVecPose;
 }
 
+///   FILE DEBUG
 
+FILE * cAppliApero::FileDebug()
+{
+   return mFileDebug;
+}
+void   cAppliApero::MessageDebug(const std::string & aMes)
+{
+   if (mFileDebug)
+   {
+        static int aCpt=0;
+        std::string aMj = MagickStr();
+        fprintf(mFileDebug,"%3d [%s] : %s\n",aCpt,aMj.c_str(),aMes.c_str());
+        aCpt++;
+   }
+}
+
+///   MAJICK
+
+void cAppliApero::PosesAddMajick()
+{
+  if (mFileDebug)
+  {
+      for (int aKP=0 ; aKP<int(mVecPose.size()); aKP++)
+         mVecPose[aKP]->AddMajick(mMajChck);
+  }
+}
+
+void  cAppliApero::AddAllMajick(int aLine,const std::string & aFile,const std::string & aMes)
+{
+    if (mFileDebug)
+    {
+       PosesAddMajick();
+       MessageDebug
+       (
+           aMes + " at line " + ToString(aLine) + " of " +aFile
+       );
+    }
+}
+
+void cAppliApero::AddMajick(double aVal)
+{
+    if (mFileDebug)
+    {
+       mMajChck.AddDouble(aVal);
+    }
+}
+std::string cAppliApero::MagickStr()
+{
+   return  mMajChck.MajId();
+}
+
+
+void  cAppliApero::MajAddCoeffMatrix()
+{
+    if (mFileDebug)
+    {
+       mMajChck.Add(mSetEq);
+    }
+}
+
+bool cAppliApero::NumIterDebug() const
+{
+   return true;
+   // return mCptIterCompens==0;
+}
 
 
 };

@@ -20,7 +20,7 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
 {
     _D_data2Opt.SetNbLine(_H_data2Opt.NBlines());
 
-    _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize());
+    _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize());
 
     _D_data2Opt.ReallocIf(_H_data2Opt);
 
@@ -37,7 +37,7 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
 
 }
 
-void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort NBDir)
+void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir)
 {
     uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
 
@@ -46,7 +46,8 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort NBDir)
     SetProgress(NBDir);
 
     _H_data2Opt.ReallocParam(size);
-    _D_data2Opt.ReallocParam(size);
+    _D_data2Opt.ReallocParam(size);    
+    _D_data2Opt.setPenteMax(penteMax);
 
 //    _D_data2Opt._m_DzMax = iDivUp32(_poInitCost._maxDz) << 5;
 
@@ -57,7 +58,6 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort NBDir)
     //DUMP_UINT((uint)_D_data2Opt._m_DzMax)
 
  //   _D_data2Opt._m_DzMax = NAPPEMAX;
-
 
     _preFinalCost1D.Fill(0);
 
@@ -72,9 +72,9 @@ void InterfOptimizGpGpu::threadCompute()
         {          
             SetCompute(false);
 
-            _D_data2Opt.SetNbLine(_H_data2Opt._nbLines);
+            _D_data2Opt.SetNbLine(_H_data2Opt.nbLines());
 
-            _H_data2Opt.ReallocOutputIf(_H_data2Opt._s_InitCostVol.GetSize(),GetIdBuf());
+            _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize(),GetIdBuf());
 
             _D_data2Opt.ReallocIf(_H_data2Opt);
 

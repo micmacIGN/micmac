@@ -1616,7 +1616,7 @@ class ElCamera : public cCapture3D
 	           const std::vector<ElDistortion22_Gen *> &
 	       );
 	  Pt2dr DComplC2M(Pt2dr  ) const;
-	  Pt2dr DComplM2C(Pt2dr  ) const;
+	  Pt2dr DComplM2C(Pt2dr,bool UseTrScN = true  ) const;
           Pt2dr NormC2M(Pt2dr aP) const;
           Pt2dr NormM2C(Pt2dr aP) const;
 

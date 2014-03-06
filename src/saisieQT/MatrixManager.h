@@ -51,6 +51,8 @@ public:
     void        rotate(GLdouble* matrix, float rX, float rY, float rZ, float factor);
     void        rotate(float rX, float rY, float rZ, float factor);
 
+    void        rotateArcBall(float rX, float rY, float rZ, float factor);
+
     void        importMatrices(selectInfos &infos);
     void        exportMatrices(selectInfos &infos);
 
@@ -89,13 +91,26 @@ public:
     GLdouble    m_translationMatrix[3];
 
     void        translate(float tX, float tY, float tZ, float factor);
+    GLdouble distance() const;
+    void setDistance(const GLdouble &distance);
+
+    void arcBall();
+    Pt3d<double> centerScene() const;
+    void setCenterScene(const Pt3d<double> &centerScene);
+
+    void MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);
 private:
     //! GL context aspect ratio (width/height)
     float       m_glRatio;
 
     GLdouble    *_mvMatrix;
     GLdouble    *_projMatrix;
-    GLint       *_glViewport;    
+    GLint       *_glViewport;
+    GLdouble    _rX;
+    GLdouble    _rY;
+    GLdouble    _distance;
+    Pt3d<double> _centerScene;
+
 };
 
 #endif
