@@ -730,7 +730,7 @@ void MainWindow::setUI()
         _model = new TreeModel(this);
 
         _ui->treeView->setModel(_model);
-        _ui->treeView->collapseAll();
+
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
@@ -953,22 +953,16 @@ void MainWindow::selectPoint(string ptName)
 
 void MainWindow::updateTreeView()
 {
-    //resize colums
-    _ui->treeView->resizeColumnToContents(1);
-    _ui->treeView->resizeColumnToContents(2);
+    _model->updateData();
 
     QFontMetrics fm(font());
-    int colWidth = -1;
-    for (int aK=0; aK < getModel()->rowCount();++aK)
+
+    int colWidth = _model->getColumnSize(0, fm);
+    _ui->treeView->setColumnWidth(0, colWidth + 26); //TODO: find expand sign indicator size
+
+    for (int aK=1; aK< _model->columnCount(); ++aK)
     {
-        QModelIndex index = getModel()->index(aK, 0);
-
-        QString text = getModel()->data(index, Qt::DisplayRole).toString();
-
-        int textWidth = fm.width(text);
-
-        if (colWidth < textWidth) colWidth = textWidth;
+        colWidth = _model->getColumnSize(aK, fm);
+        _ui->treeView->setColumnWidth(0, colWidth);
     }
-
-    _ui->treeView->setColumnWidth(0, colWidth + 32); //TODO: find expand sign indicator size
 }
