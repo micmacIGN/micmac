@@ -38,7 +38,7 @@ QVariant TreeItem::data(int column) const
 
 void TreeItem::setData(const QVariant &value, int role)
 {
-    itemData[0] = value;
+    itemData << value;
 }
 
 TreeItem *TreeItem::parent()
@@ -79,7 +79,7 @@ void TreeModel::setAppli(cAppli_SaisiePts *appli)
 {
     _appli = appli;
 
-    setupModelData(rootItem);
+    setupModelData();
 }
 
 QString StateToQString(eEtatPointeImage state)
@@ -209,29 +209,69 @@ int TreeModel::rowCount(const QModelIndex &parent) const
     return parentItem->childCount();
 }
 
-void TreeModel::setupModelData(TreeItem *parent)
+QList <QVariant> TreeModel::buildRow(cSP_PointGlob* aPG)
+{
+    QList<QVariant> columnData;
+
+    QString namePt  = QString(aPG->PG()->Name().c_str());
+    QString coord3d = QString::number(aPG->PG()->P3D().Val().x, 'f' ,1) + " " +
+                      QString::number(aPG->PG()->P3D().Val().y, 'f' ,1) + " " +
+                      QString::number(aPG->PG()->P3D().Val().z, 'f' ,1);
+
+    columnData << namePt << "" << "" << coord3d;
+
+    return columnData;
+}
+
+QList <QVariant> TreeModel::buildChildRow(std::pair < std::string , cSP_PointeImage*> data)
+{
+    QList<QVariant> columnData;
+
+    std::string     aName = data.first;
+    cSP_PointeImage* aPIm = data.second;
+
+    cOneSaisie* aSom = aPIm->Saisie();
+
+    QString nameImg = QString(aName.c_str());
+
+    QString state   = StateToQString(aSom->Etat());
+    QString coord2d = QString::number(aSom->PtIm().x, 'f' ,1) + " " +
+                      QString::number(aSom->PtIm().y, 'f' ,1);
+
+    columnData << "" << nameImg << state << coord2d;
+
+    return columnData;
+}
+
+int TreeModel::getColumnSize(int column, QFontMetrics fm)
+{
+    int colWidth = -1;
+    for (int aK=0; aK < rowCount();++aK)
+    {
+        QModelIndex id = index(aK, column);
+
+        QString text = data(id, Qt::DisplayRole).toString();
+
+        int textWidth = fm.width(text);
+
+        if (colWidth < textWidth) colWidth = textWidth;
+    }
+
+    return colWidth;
+}
+
+void TreeModel::setupModelData()
 {
     QList<TreeItem*> parents;
-    parents << parent;
+    parents << rootItem;
 
     std::vector<cSP_PointGlob *> vPts = _appli->PG();
 
     for (int bK=0; bK < (int) vPts.size(); ++bK)
     {
-        QList<QVariant> columnData;
-
         cSP_PointGlob* aPG = vPts[bK];
 
-        // Point global
-
-        QString namePt  = QString(aPG->PG()->Name().c_str());
-        QString coord3d = QString::number(aPG->PG()->P3D().Val().x, 'f' ,1) + " " +
-                          QString::number(aPG->PG()->P3D().Val().y, 'f' ,1) + " " +
-                          QString::number(aPG->PG()->P3D().Val().z, 'f' ,1);
-
-        columnData << namePt << "" << "" << coord3d;
-
-        TreeItem * item = new TreeItem(columnData, parent);
+        TreeItem * item = new TreeItem(buildRow(aPG), rootItem);
         parents.last()->appendChild(item);
 
         //Pointes image
@@ -241,23 +281,35 @@ void TreeModel::setupModelData(TreeItem *parent)
         std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
 
         for(; it != map.end(); ++it)
+        {  
+            item->appendChild(new TreeItem(buildChildRow(*it), item));
+        }
+    }
+}
+
+void TreeModel::updateData()
+{
+    std::vector<cSP_PointGlob *> vPts = _appli->PG();
+
+    for (int aK=0; aK < (int) vPts.size(); ++aK)
+    {
+        cSP_PointGlob* aPG = vPts[aK];
+
+        QModelIndex idx = index(aK, 0);
+        TreeItem * item = static_cast<TreeItem*>(idx.internalPointer());
+
+        item->setData(buildRow(aPG));
+
+        //Pointes image
+
+        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+        int bK = 0;
+        for(; it != map.end(); ++it, ++bK)
         {
-             QList<QVariant> columnData2;
-
-             std::string     aName = it->first;
-             cSP_PointeImage* aPIm = it->second;
-
-             cOneSaisie* aSom = aPIm->Saisie();
-
-             QString nameImg = QString(aName.c_str());
-
-             QString state   = StateToQString(aSom->Etat());
-             QString coord2d = QString::number(aSom->PtIm().x, 'f' ,1) + " " +
-                                   QString::number(aSom->PtIm().y, 'f' ,1);
-
-             columnData2 << "" << nameImg << state << coord2d;
-
-             item->appendChild(new TreeItem(columnData2, item));
+             item->child(bK)->setData(buildChildRow(*it));
         }
     }
 }
