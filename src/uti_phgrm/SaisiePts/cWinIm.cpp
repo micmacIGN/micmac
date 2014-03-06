@@ -483,12 +483,10 @@ void  cWinIm::SetPt(Clik aClk)
         mNewPt = aP;
     }
 
+    Pt2dr pt = mScr->to_user(Pt2dr(mNewPt));
 
+    mAppli.Interface()->UpdatePoints(aPIm, pt);
 
-    mAppli.AddUndo(*(aPIm->Saisie()),mCurIm);
-    aPIm->Saisie()->PtIm() = mScr->to_user(Pt2dr(mNewPt));
-    Redraw();
-    aPIm->Gl()->ReCalculPoints();
     /*
    if (aPIm)
    {
@@ -651,9 +649,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
             cSP_PointeImage * aPIm = GetNearest(aClk._pt,200);
             if (aPIm)
             {
-                mAppli.AddUndo(*(aPIm->Saisie()),mCurIm);
-                aPIm->Saisie()->Etat() = aState;
-                aPIm->Gl()->ReCalculPoints();
+                mAppli.Interface()->ChangeState( aPIm, aState);
             }
         }
         Redraw();

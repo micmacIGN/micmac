@@ -879,7 +879,7 @@ double cPackObsLiaison::AddObs
    double aSEr=0;
 
 // SPECIAL DEBUG CHOLESKY
-   cElRegex aRegDebug("062",10);
+   cElRegex aRegDebug("XXhjkjYtiuoiu062",10);
 
    if (mIsMult)
    {
@@ -909,6 +909,7 @@ double cPackObsLiaison::AddObs
                     aSEr +=  anOLM->BasicAddObsLM (aPond,aSO,aRAZ);
                  }
              }
+
          }
       }
    }
@@ -930,14 +931,28 @@ double cPackObsLiaison::AddObs
            }
        }
    }
+
    aSEr /= aS1;
 
    if (aS1 && (int(aPond.Show().Val()) >= int(eNSM_Iter)))
    {
+       double aSqrtEr = sqrt(aSEr);
        mAppli.COUT() << "| | " << " RESIDU LIAISON MOYENS = "  
-                 << sqrt(aSEr) << " pour " << mId << "\n";
+                 <<  aSqrtEr << " pour " << mId << "\n";
 
+
+
+
+       if (TheExitOnNan)
+       {
+           if (isnan(aSqrtEr))
+           {
+              ElEXIT(1,"Nan value in residual");
+           }
+       }
    }
+
+
 
    return aSEr;
 }

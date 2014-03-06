@@ -61,15 +61,54 @@ void cAppliApero::AddObservations
 
 
 
+   {
+      // MajAddCoeffMatrix();
+      // if (NumIterDebug())  MessageDebug("Avant LVM");
 
-   AddLevenbergMarkard(aSO);
-   AddObservationsAppuisFlottants(anSO.ObsAppuisFlottant(),IsLastIter,aSO);
-   AddObservationsCentres(anSO.ObsCentrePDV(),IsLastIter,aSO);
-   AddObservationsAppuis(anSO.ObsAppuis(),IsLastIter,aSO);
-   AddObservationsLiaisons(anSO.ObsLiaisons(),IsLastIter,aSO);
+      AddLevenbergMarkard(aSO);
 
-   AddObservationsRigidGrp(anSO.ObsRigidGrpImage(),IsLastIter,aSO);
+      // if (NumIterDebug())  MessageDebug("Apres LVM");
+   }
 
+
+
+   {
+       //  MajAddCoeffMatrix();
+       //  if (NumIterDebug())  MessageDebug("Avant ApF");
+
+       AddObservationsAppuisFlottants(anSO.ObsAppuisFlottant(),IsLastIter,aSO);
+   }
+
+   {
+       //  MajAddCoeffMatrix();
+       //  if (NumIterDebug())  MessageDebug("Avant Centre");
+
+       AddObservationsCentres(anSO.ObsCentrePDV(),IsLastIter,aSO);
+   }
+
+   {
+       //  MajAddCoeffMatrix();
+       //  if (NumIterDebug())  MessageDebug("Avant Appuis");
+
+       AddObservationsAppuis(anSO.ObsAppuis(),IsLastIter,aSO);
+   }
+
+   {
+       //  MajAddCoeffMatrix();
+       //  if (NumIterDebug())  MessageDebug("Avant Tie-P");
+
+       AddObservationsLiaisons(anSO.ObsLiaisons(),IsLastIter,aSO);
+   }
+
+   {
+       //  MajAddCoeffMatrix();
+       //  if (NumIterDebug())  MessageDebug("Avant RigGrp");
+
+       AddObservationsRigidGrp(anSO.ObsRigidGrpImage(),IsLastIter,aSO);
+   }
+
+   MajAddCoeffMatrix();
+   if (NumIterDebug())  MessageDebug("Fin iter Obs");
 
    if (mFpRT)
    {
@@ -281,6 +320,7 @@ class cCmpNbNNPose
 
 void cAppliApero::OneIterationCompensation(const cIterationsCompensation & anIter,const cEtapeCompensation & anEC,bool IsLast)
 {
+
     mCurEC = & anEC;
     mIsLastIter = IsLast;
     for (tDiPo::iterator itD=mDicoPose.begin() ; itD!=mDicoPose.end(); itD++)
@@ -370,6 +410,7 @@ void cAppliApero::OneIterationCompensation(const cIterationsCompensation & anIte
        EstimateOIBC(*itE);
     }
 
+    mCptIterCompens ++;
 }
 
 
@@ -933,6 +974,11 @@ void cAppliApero::DoCompensation()
    const tLEC & aLEC =mParam.EtapeCompensation();
    for ( tLEC::const_iterator itEC=aLEC.begin(); itEC != aLEC.end() ;itEC++)
       DoOneEtapeCompensation(*itEC);
+
+   
+   MajAddCoeffMatrix();
+   PosesAddMajick();
+   MessageDebug("Global End");
 }
 
 };

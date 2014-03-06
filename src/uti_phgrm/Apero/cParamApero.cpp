@@ -14640,6 +14640,17 @@ const cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()const
 }
 
 
+cTplValGesInit< std::string > & cParamApero::FileDebug()
+{
+   return mFileDebug;
+}
+
+const cTplValGesInit< std::string > & cParamApero::FileDebug()const 
+{
+   return mFileDebug;
+}
+
+
 cTplValGesInit< bool > & cParamApero::ShowMes()
 {
    return ShowSection().Val().ShowMes();
@@ -15426,6 +15437,8 @@ cElXMLTree * ToXMLTree(const cParamApero & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamApero",eXMLBranche);
    if (anObj.DicoLoc().IsInit())
       aRes->AddFils(ToXMLTree(anObj.DicoLoc().Val())->ReTagThis("DicoLoc"));
+   if (anObj.FileDebug().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileDebug"),anObj.FileDebug().Val())->ReTagThis("FileDebug"));
    if (anObj.ShowSection().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ShowSection().Val())->ReTagThis("ShowSection"));
    if (anObj.CalledByItself().IsInit())
@@ -15448,6 +15461,8 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
 
    xml_init(anObj.DicoLoc(),aTree->Get("DicoLoc",1)); //tototo 
+
+   xml_init(anObj.FileDebug(),aTree->Get("FileDebug",1)); //tototo 
 
    xml_init(anObj.ShowSection(),aTree->Get("ShowSection",1)); //tototo 
 

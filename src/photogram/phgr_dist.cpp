@@ -212,8 +212,16 @@ REPERE-222222
 */
 
     Pt2dr aP00 = anEstim0;
+
 static int aCpt=0 ; aCpt++;
-// bool BugNanFE = (aCpt==65508);
+/*
+std::cout << "CPT " << aCpt << "\n";
+ bool BugGravillon = (aCpt==146282);
+ if (BugGravillon)
+ {
+     std::cout << "ENTRE : Estim0 " << anEstim0 << "\n";
+ }
+*/
 
      int aNbRee = 0;
      ElMatrix<REAL> aDiff = Diff(anEstim0);
@@ -233,13 +241,6 @@ static int aCpt=0 ; aCpt++;
                ErrorInvert();
          }
          Pt2dr DisEst    = Direct(anEstim0);
-if (BugNanFE)
-{
- std::cout <<  aPt << "\n";
- std::cout << "ECART " << euclid(DisEst,aPt) << " REE " << Reestim << "\n";
- std::cout << euclid(DisEst,aPt) << aPt << anEstim0 << "\n"; 
- getchar();
-}
          if (
                    (euclid(DisEst,aPt)<Epsilon)
                 || (NbStep > mNbIterMaxInvDiff)
@@ -250,7 +251,7 @@ if (BugNanFE)
                std::cout << "Slow convergence Values in inversion\n";
                std::cout <<  "Nb Step = " << NbStep << " Cur " << anEstim0 
                          << "  RESIDU " << euclid(DisEst,aPt)
-                         << " Dist " << DisEst << " Cible " << aPt << "\n";
+                         << " Dist " << DisEst << " Cible " << aPt  << " ESTIM0 " << aP00 << "\n";
               
                ErrorInvert();
             }
@@ -306,15 +307,10 @@ void ElDistortion22_Gen::DiffByDiffFinies
      (ElMatrix<REAL> & aMat,Pt2dr aP,Pt2dr Eps) const
 {
      Eps = Eps/mScN;
-
-// std::cout << aCpt << "\n";
-if (BugFE)
-{
-   std::cout << "----EPS " << this << " " << Eps << " " << mScN << "\n";
-}
      Pt2dr dx(Eps.x,0);
-     SetCol(aMat,0,(Direct(aP+dx)-Direct(aP-dx))/(2.0*Eps.x));
      Pt2dr dy(0,Eps.y);
+
+     SetCol(aMat,0,(Direct(aP+dx)-Direct(aP-dx))/(2.0*Eps.x));
      SetCol(aMat,1,(Direct(aP+dy)-Direct(aP-dy))/(2.0*Eps.y));
 }
 void ElDistortion22_Gen::DiffByDiffFinies

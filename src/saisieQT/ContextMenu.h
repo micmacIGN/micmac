@@ -12,6 +12,13 @@
 
 #include "3DObject.h"
 
+typedef enum
+{
+  eAllWindows,
+  eThisWindow,
+  eThisPoint
+} eSwitchImage;
+
 class ContextMenu : public QWidget
 {
     Q_OBJECT
@@ -43,9 +50,13 @@ signals:
 
     void changeName(QString oldName, QString newName);
 
+    void changeImagesSignal(int idPt);
+
 public slots:
 
     void setPointState(int state);
+
+    void changeImages(int mode);
 
     void highlight();
 
@@ -55,7 +66,8 @@ private :
 
     QPointF                 _lastPosImage; //copy of QGLWidget's m_lastPosImage
 
-    QSignalMapper*          _signalMapper;
+    QSignalMapper*          _stateSignalMapper;
+    QSignalMapper*          _switchSignalMapper;
 };
 
 #endif

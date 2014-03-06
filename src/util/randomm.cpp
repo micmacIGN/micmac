@@ -103,6 +103,9 @@ void cElRanGen::cResetNRrand()
 
 void cElRanGen::InitOfTime(int aNb) //  aNb=1000
 {
+// std::cout << "cElRanGen::InitOfTime::AAAAAAlllll\n"; getchar();
+
+
    double aT = ElTimeOfDay();
    aT = aT -round_down(aT);
    aNb  = round_ni(aT * aNb);
@@ -152,6 +155,17 @@ float cElRanGen::ran3 (int * idum)
 	mj=ma[inext]-ma[inextp];
 	if (mj < MZ) mj += MBIG;
 	ma[inext]=mj;
+
+if (0)
+{
+static int aCpt=0; aCpt++;
+static  int aMajic =0;
+aMajic  = (aMajic+mj) % 1287;
+if (0==(aCpt%100))
+{
+std::cout << "RRRand " << aCpt << " => " << mj << " " << aMajic << "\n"; // getchar();
+}
+}
 	return (float)(mj*FAC);
 }
 

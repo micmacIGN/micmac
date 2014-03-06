@@ -954,6 +954,18 @@ double cObsLiaisonMultiple::AddObsLM
        )
 {
 
+/*
+  static int aCpt = 0 ; aCpt ++;
+  bool aBug = false;
+  if ( mAppli.NumSauvAuto()==6)
+  {
+      aBug = ((aCpt%4) == 0);
+  }
+  if (aBug) return 0;
+*/
+  
+
+
   FILE * aFpRT = mAppli.FpRT() ;
 
   for (int aKP=0 ;  aKP<int(mVPoses.size()) ; aKP++)
@@ -1350,6 +1362,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
          delete aGSD;
        }
    }
+
 
    return aSEr2;
 }

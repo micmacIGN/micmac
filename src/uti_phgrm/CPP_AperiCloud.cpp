@@ -71,10 +71,6 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=False)")
     );
 
-	if (Out=="")
-	{
-		Out="AperiCloud_" + AeroIn + ".ply";
-	}
 
     if (RGB >=0) 
     {
@@ -92,7 +88,11 @@ int AperiCloud_main(int argc,char ** argv)
 	#endif
 	SplitDirAndFile(aDir,aPat,aFullDir);
 
-         StdCorrecNameOrient(AeroIn,aDir);
+        StdCorrecNameOrient(AeroIn,aDir);
+    if (Out=="")
+    {
+       Out="AperiCloud_" + AeroIn + ".ply";
+    }
 
 
     //std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR  "Apero ")

@@ -102,6 +102,8 @@ class cSP_PointGlob
           bool IsPtAutom() const;
           void Rename(const std::string & aNewName);
 
+          std::map<std::string,cSP_PointeImage *> getPointes(){ return mPointes; }
+
      private:
           cSP_PointGlob(const cSP_PointGlob &) ; // N.I.
 
@@ -165,7 +167,6 @@ class cImage
 
 typedef cImage * tImPtr;
 
-
 class cWinIm : public Grab_Untill_Realeased
 {
 public :
@@ -198,6 +199,8 @@ public :
     void    SetImage(cImage *);
     static const Pt2dr  PtsEchec;
     Box2dr  BoxImageVisible() const;
+
+    cImage* Image() { return mCurIm; }
 
 private :
 
@@ -310,7 +313,6 @@ class cVirtualInterface
 
     void                Save();
 
-
     virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
 
     int                 GetNumCasePoint()          { return mVNameCase.size(); }
@@ -321,6 +323,16 @@ class cVirtualInterface
     virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
 
     bool                Visible(eEtatPointeImage aState);
+
+    void                ChangeState(cSP_PointeImage* aPIm, eEtatPointeImage aState);
+
+    void                UpdatePoints(cSP_PointeImage* aPIm, Pt2dr pt);
+
+    virtual void        AddUndo(cOneSaisie *)=0;
+
+    virtual void        Redraw()=0;
+
+    virtual bool        isDisplayed(cImage* )=0;
 
 protected:
 
@@ -345,6 +357,29 @@ private:
     virtual void              Init()=0;
 };
 
+class cCmpIm
+{
+public :
+
+    cCmpIm(cVirtualInterface* aInterface):
+        mIntf(aInterface){}
+
+    bool operator ()(const tImPtr & aI1,const tImPtr & aI2)
+    {
+        if (mIntf->isDisplayed(aI2) && (! mIntf->isDisplayed(aI1)))
+            return true;
+        if (mIntf->isDisplayed(aI1) && (! mIntf->isDisplayed(aI2)))
+            return false;
+
+        if (aI1->Prio() > aI2->Prio()) return true;
+        if (aI1->Prio() < aI2->Prio()) return false;
+
+        return aI1->Name() < aI2->Name();
+    }
+
+    cVirtualInterface*  mIntf;
+};
+
 #if ELISE_windows == 0
 
 class cX11_Interface : public cVirtualInterface
@@ -358,6 +393,8 @@ public :
 
     void            RedrawAllWindows();
 
+    void            Redraw();
+
     void            BoucleInput();
 
     void            DrawZoom(const Pt2dr & aPGlob); //fenetre zoom
@@ -366,7 +403,7 @@ public :
 
     cFenMenu *      MenuNamePoint()         { return mMenuNamePoint; }
 
-    cCaseNamePoint * GetIndexNamePoint();
+    cCaseNamePoint* GetIndexNamePoint();
 
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
@@ -377,11 +414,17 @@ public :
 
     void            SetInvisRef(bool aVal);         // sert à rendre les points réfutés visibles ou non
 
+    void            AddUndo(cOneSaisie * aSom);
+
+    bool            isDisplayed(cImage *anIm);
+
 private:
 
     void            Init();
 
     cWinIm *        WinImOfW(Video_Win);
+
+    cWinIm *        mCurWinIm;
 
     std::vector<cWinIm *> mWins;
 
@@ -441,30 +484,37 @@ class cAppli_SaisiePts
     cSP_PointGlob *     AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
     void                AddPGInAllImage(cSP_PointGlob * aSPG);
 
-    void HighLightSom(cSP_PointGlob *);
+    void                HighLightSom(cSP_PointGlob *);
 
-    bool & ShowDet();
+    bool &              ShowDet();
 
-    void GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
+    void                GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-    void ChangeName(std::string  anOldName,std::string  aNewName);
+    void                ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
 
-    void SetInterface( cVirtualInterface * interf ) { mInterface = interf ;}
+    void                SetInterface( cVirtualInterface * interf );
 
-    int             nbImages()  { return mNbIm; }
+    int                 GetCptMax() const;
 
-    int             GetCptMax() const;
+    int                 nbImages()  { return mNbIm; }
 
-    cImage*         images(int aK) { return mImages[aK]; }
+    cImage*             image(int aK) { return mImages[aK]; }
+
+    std::vector< cImage * > images() { return mImages; }
+
+    void                SetImages(std::vector <cImage *> aImgs) { mImages = aImgs; }
 
     std::vector< cSP_PointGlob * > PG() { return mPG; }
+
+
+
+    void                SetImagesPriority(cSP_PointGlob * PointPrio);
 
     private :
 
          void RenameIdPt(std::string &);
-
 
          void UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush); //UTILISE L'INTERFACE ReaffAllW();
 
@@ -480,7 +530,6 @@ class cAppli_SaisiePts
 
          cParamSaisiePts &                     mParam;
          cVirtualInterface*                    mInterface;
-         //cX11_Interface*                       mInterface;
 
          cInterfChantierNameManipulateur *     mICNM;
          std::string                           mDC;

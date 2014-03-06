@@ -42,7 +42,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 int TheIntFuckingReturnValue=1234567;
 char * TheCharPtrFuckingReturnValue=0;
 
-bool TheExitOnBrkp = false;
+bool TheExitOnBrkp  = false;
+bool TheExitOnNan   = false;
+bool TheMajickFile  = false;
+int  TheNbIterProcess = 1;
+
+
+
 
 int GetCharOnBrkp()
 {
@@ -346,6 +352,128 @@ void cElWarning::ShowWarns(const std::string & aFile)
 }
 
 
+/**************************************************/
+/*                                                */
+/*             cMajickChek                        */
+/*                                                */
+/**************************************************/
+
+REAL16 PartieFrac(const REAL16 &aV)
+{
+   return aV-floor(aV);
+}
+
+cMajickChek::cMajickChek() :
+   mCheck1(0),
+   mCheckInv(0),
+   mCheck2(0),
+   mGotNan (false),
+   mGotInf (false)
+{
+}
+
+void cMajickChek::AddDouble(const REAL16& aV0)
+{
+
+// std::cout << " PF " << PartieFrac(0.3) <<  " " <<  PartieFrac(1.3)  << " " << PartieFrac(-0.7) << "\n";
+
+
+   REAL16 aV = aV0;
+
+   if (isnan(aV))
+   {
+       mGotNan = true;
+       aV = 10.9076461;
+   }
+#if (ELISE_windows)
+#else
+   else if (isinf(aV))
+   {
+       mGotInf = true;
+       aV = 90.0011111;
+   }
+#endif
+
+
+   Add1Double(mCheck1,aV+0.1234567);
+   Add1Double(mCheck2,aV*aV*1.10987654);
+   if (aV)
+   {
+       Add1Double(mCheckInv,1/aV);
+   }
+}
+
+void cMajickChek::Add1Double(REAL16 & Target,const REAL16 & aV)
+{
+   REAL16 aF = PartieFrac(aV);
+   Target = PartieFrac(Target + aF + Target*aF); // Target*aV : pour rendre non commut
+}
+
+char  hexa(int  aV)
+{
+  if (aV< 10) return '0' + aV;
+  if (aV< 16) return 'A' + (aV-10);
+  ELISE_ASSERT(false,"Not hexa");
+  return 16;
+}
+
+std::string cMajickChek::MajId()
+{
+   REAL16 aV = mCheck1 - mCheckInv + mCheck2;
+   unsigned char * aTabC = (unsigned char *) &aV;
+   int aNbOct = 10;  // 6 sont inutilise ? 
+   for (int aK=0 ; aK<aNbOct ; aK++)
+   {
+        unsigned  char aC = aTabC[aK];
+        sMajAscii[2*aK]   = hexa(aC/16);
+        sMajAscii[2*aK+1] = hexa(aC%16);
+   }
+   sMajAscii[2*aNbOct] = 0;
+  
+   std::string aRes =  std::string(sMajAscii) + (mGotNan ? "-NAN" : (mGotInf ? "-INF" :"--OK"));
+
+   aRes = aRes + "::" + ToString(double(mCheck1)) +  "::" + ToString(double(mCheckInv)) + "::" + ToString(double(mCheck2));
+
+   return aRes;
+}
+
+
+void  cMajickChek::Add(const Pt3dr & aP)
+{
+   AddDouble(aP.x);
+   AddDouble(aP.y);
+   AddDouble(aP.z);
+}
+
+void  cMajickChek::Add(const ElRotation3D & aR)
+{
+    Add(aR.tr());
+    AddDouble(aR.teta01());
+    AddDouble(aR.teta02());
+    AddDouble(aR.teta12());
+}
+
+void  cMajickChek::Add(cGenSysSurResol & aSys)
+{
+    int aNbV = aSys.NbVar();
+    for (int aKx=0 ; aKx<aNbV ; aKx++)
+    {
+        AddDouble(aSys.GetElemLin(aKx));
+        for (int aKy=0 ; aKy<aNbV ; aKy++)
+        {
+            AddDouble(aSys.GetElemQuad(aKx,aKy));
+        }
+    }
+}
+void  cMajickChek::Add(cSetEqFormelles & aSetEq)
+{
+    Add(*(aSetEq.Sys()));
+}
+
+
+
+/*
+*/
 
 // mWarns.push_back(this);
 

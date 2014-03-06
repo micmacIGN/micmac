@@ -113,10 +113,10 @@ void AdaptDist2PPaEqPPs(NS_ParamChantierPhotogram::cCalibDistortion & aCD)
             while (aVParam.size() < 5)
                   aVParam.push_back(0);
 
-            aVParam.push_back(aCIPS.P1().Val());
-            aVParam.push_back(aCIPS.P2().Val());
-            aVParam.push_back(aCIPS.b1().Val());
-            aVParam.push_back(aCIPS.b2().Val());
+            aVParam.push_back(aCIPS.P1().ValWithDef(0));
+            aVParam.push_back(aCIPS.P2().ValWithDef(0));
+            aVParam.push_back(aCIPS.b1().ValWithDef(0));
+            aVParam.push_back(aCIPS.b2().ValWithDef(0));
 
             aCD.ModPhgrStd().SetNoInit();
             aCD.ModUnif().SetVal(aCIU);
@@ -3994,6 +3994,7 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
     */
 
     mCam->SetSz(aCIC.SzIm());
+
     if (aCIC.PixelSzIm().IsInit())
     {
          mCam->SetSzPixel(aCIC.PixelSzIm().Val());

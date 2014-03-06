@@ -165,7 +165,7 @@ int Main_Test_Optimisation()
     }
 
     h2O.ReallocInputIf(pit_Strm_ICost + NAPPEMAX,pit_Strm_DZ + WARPSIZE);
-    h2O._s_InitCostVol.Fill(0);
+    h2O.s_InitCostVol().Fill(0);
 
     // index
 
@@ -179,38 +179,38 @@ int Main_Test_Optimisation()
             short2 lDZ      = make_short2(-tabZ[make_uint3(idLine,aK,0)],tabZ[make_uint3(idLine,aK,1)]);
             ushort lDepth   = count(lDZ);
 
-            h2O._s_Index[h2O._param[0][idLine].y + aK ] = lDZ;
+            //h2O._s_Index(h2O.param(0)[idLine].y + aK) = lDZ;
 
-            uint idStrm = h2O._param[0][idLine].x + pitStrm - lDZ.x;
+//            uint idStrm = h2O.param(0)[idLine].x + pitStrm - lDZ.x;
 
-            for ( int aPx = lDZ.x ; aPx < lDZ.y; aPx++)
-                //h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
-                h2O._s_InitCostVol[idStrm + aPx]  = 1;
+//            for ( int aPx = lDZ.x ; aPx < lDZ.y; aPx++)
+//                //h2O._s_InitCostVol[idStrm + aPx]  = 10000 * (idLine + 1) + (aK+1) * 1000 + aPx - lDZ.x + 1;
+//                h2O.s_InitCostVol(idStrm + aPx)  = 1;
 
             pitStrm += lDepth;
         }
     }
 
     h2O.SetNbLine(nbLines);
-    d2O.SetNbLine(h2O._nbLines);
+    d2O.SetNbLine(h2O.nbLines());
 
-    h2O.ReallocOutputIf(h2O._s_InitCostVol.GetSize());
+    h2O.ReallocOutputIf(h2O.s_InitCostVol().GetSize());
 
-    h2O._s_ForceCostVol[0].Fill(0);
+    h2O.s_ForceCostVol(0).Fill(0);
 
     d2O.ReallocIf(h2O);
 
     //      Transfert des données vers le device                            ---------------		-
     d2O.CopyHostToDevice(h2O);
-    d2O._s_ForceCostVol[0].CopyHostToDevice(h2O._s_ForceCostVol[0].pData());
+    d2O.s_ForceCostVol(0).CopyHostToDevice(h2O.s_ForceCostVol(0).pData());
 
-    h2O._s_InitCostVol.OutputValues();
+    h2O.s_InitCostVol().OutputValues();
 
     OptimisationOneDirectionZ_V02(d2O);
 
     d2O.CopyDevicetoHost(h2O);
 
-    h2O._s_ForceCostVol[0].OutputValues();
+    h2O.s_ForceCostVol(0).OutputValues();
 
 /*
     //
