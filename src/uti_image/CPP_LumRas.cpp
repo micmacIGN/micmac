@@ -39,6 +39,39 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+template  <class Type,class TypeImIn>
+          void    FiltrageCardCC(bool V4,Type & aTIm,int aValSelec,int aValAff,int aSeuilCard)
+{
+   Pt2di aSz = aTIm.sz();
+
+   Im2D_Bits<1> aMasq1(aSz.x,aSz.y,1);
+   TIm2DBits<1> aTMasq1(aMasq1);
+   ELISE_COPY(aMasq1.border(1),0,aMasq1.out());
+
+   Im2D_Bits<1> aMasq2(aSz.x,aSz.y,1);
+   TIm2DBits<1> aTMasq2(aMasq2);
+   ELISE_COPY(aMasq2.border(1),0,aMasq2.out());
+
+   Pt2di aP;
+   cCC_NoActionOnNewPt aNoAct;
+   for(aP.x=0 ; aP.x<aSz.x ; aP.x++)
+   {
+      for(aP.y=0 ; aP.y<aSz.y ; aP.y++)
+      {
+          if ((aTIm.get(aP)==aValSelec) && (aTMasq1.get(aP)==1))
+          {
+               int aNb = OneZC(aP,V4,aTMasq1,1,0,aTIm,aValSelec,aNoAct);
+
+               if (aNb<aSeuilCard)
+               {
+                    OneZC(aP,V4,aTIm,aValSelec,aValAff,aTMasq2,1,aNoAct);
+               }
+          }
+      }
+   }
+}
+
+
 class cImage_LumRas;
 class cAppli_LumRas;
 
@@ -112,11 +145,23 @@ Fonc_Num  cImage_LumRas::MoyGlobImage(Fonc_Num aF)
    return aVS[0] / aVS[1];
 }
 
+/*
 Fonc_Num  cImage_LumRas::MoyByCC(Fonc_Num aF)
 {
    Im2D_Bits<1> aIM = mAppli.mImMasq;
+   Pt2di aSz  = aIM.Sz();
+
+   Im2D_Bits<1> aIMarq(aSz.x,aSz.y,1);
+   ELISE_COPY(
+
+   Pt2di aP0;
+   for (aP0.x =0 ; aP0.x < aSz.x; aP0.x++)
+   {
+       for (aP0.y =0 ; aP0.y < aSz.y; aP0.y++)
+       {
+       }
+   }
 }
-/*
 */
 
 
