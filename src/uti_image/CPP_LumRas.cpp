@@ -1,0 +1,326 @@
+/*Header-MicMac-eLiSe-25/06/2007
+
+    MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
+    eLiSe  : ELements of an Image Software Environnement
+
+    www.micmac.ign.fr
+
+   
+    Copyright : Institut Geographique National
+    Author : Marc Pierrot Deseilligny
+    Contributors : Gregoire Maillet, Didier Boldo.
+
+[1] M. Pierrot-Deseilligny, N. Paparoditis.
+    "A multiresolution and optimization-based image matching approach:
+    An application to surface reconstruction from SPOT5-HRS stereo imagery."
+    In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
+    (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
+
+[2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
+    d'images, adapte au contexte geograhique" to appears in 
+    Bulletin d'information de l'Institut Geographique National, 2007.
+
+Francais :
+
+   MicMac est un logiciel de mise en correspondance d'image adapte 
+   au contexte de recherche en information geographique. Il s'appuie sur
+   la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
+   licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
+
+
+English :
+
+    MicMac is an open source software specialized in image matching
+    for research in geographic information. MicMac is built on the
+    eLiSe image library. MicMac is governed by the  "Cecill-B licence".
+    See below and http://www.cecill.info.
+
+Header-MicMac-eLiSe-25/06/2007*/
+#include "StdAfx.h"
+
+
+class cImage_LumRas;
+class cAppli_LumRas;
+
+class cImage_LumRas
+{
+    public :
+       friend class cAppli_LumRas;
+       cImage_LumRas(const std::string& aName,cAppli_LumRas & anAppli);
+
+       std::string      mNameFull;
+       std::string      mDir;
+       std::string      mName;
+       cAppli_LumRas &  mAppli;
+       Tiff_Im          mTiffIm;
+
+       Fonc_Num         FMoy(int aKIter,int aSzW,Fonc_Num);
+       Fonc_Num         FLoc(int aKIter,int aSzW,Fonc_Num);
+       Fonc_Num         MoyGlobImage(Fonc_Num aF);
+       Fonc_Num         MoyByCC(Fonc_Num aF);
+       Im2D_REAL4       mImShade;
+};
+
+class cAppli_LumRas : cAppliWithSetImage
+{
+    public :
+       friend class cImage_LumRas;
+       cAppli_LumRas(int argc,char ** argv);
+    private :
+       std::string mNameImBase;
+       //Tiff_Im *   mTifBaseGr;
+       Tiff_Im *   mTifBaseCoul;
+       std::string mPatImRas;
+       std::string mPostMasq;
+       std::vector<cImage_LumRas *> mVIm;
+       std::string                  mKeyHom;
+       Im2D_U_INT2                  mImGr;
+       Pt2di                        mSz;
+       Im2D_Bits<1>                 mImMasq;
+
+};
+
+/**********************************************************************/
+/*                                                                    */
+/*                  cImage_LumRas                                     */
+/*                                                                    */
+/**********************************************************************/
+
+
+Fonc_Num   cImage_LumRas::FMoy(int aNbIter,int aSzW,Fonc_Num aF)
+{
+   Fonc_Num aRes = aF;
+   for (int aK=0 ; aK<aNbIter; aK++)
+      aRes = rect_som(aF,aSzW) / ElSquare(1.0+2*aSzW);
+
+   return aRes;
+}
+
+Fonc_Num  cImage_LumRas::MoyGlobImage(Fonc_Num aF)
+{
+   Im2D_Bits<1> aIM = mAppli.mImMasq;
+   Fonc_Num aFMasq = aIM.in(0);
+   double aVS[2];
+
+   ELISE_COPY
+   (
+        aIM.all_pts(),
+        Virgule(aF*aFMasq,aFMasq),
+        sigma(aVS,2)
+   );
+
+   return aVS[0] / aVS[1];
+}
+
+Fonc_Num  cImage_LumRas::MoyByCC(Fonc_Num aF)
+{
+   Im2D_Bits<1> aIM = mAppli.mImMasq;
+}
+/*
+*/
+
+
+Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
+{
+   Fonc_Num aFMasq = mAppli.mImMasq.in(0);
+   
+
+
+   Fonc_Num aFMoy =  FMoy(aNbIter,aSzW,aF*aFMasq) / Max(1e-2,FMoy(aNbIter,aSzW,aFMasq)) ;
+   if (1) 
+      aFMoy = MoyGlobImage(aF);
+
+   return  (aF / Max(1e-2,aFMoy)) * aFMasq;
+}
+
+cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppli) :
+   mNameFull   (aNameFull),
+   mAppli      (anAppli),
+   mTiffIm     (Tiff_Im::StdConvGen(aNameFull,1,true)),
+   mImShade    (1,1)
+{
+   SplitDirAndFile(mDir,mName,mNameFull);
+
+   Im2D_U_INT2 anIm = Im2D_U_INT2::FromFileStd(mNameFull);
+   if (mAppli.mKeyHom !="")
+   {
+       Pt2di aSzIn = anIm.sz();
+       std::string aNameH = mAppli.mICNM->Assoc1To2(mAppli.mKeyHom,mName,NameWithoutDir(mAppli.mNameImBase),true);
+       std::cout << "SZ IM " << aSzIn << " " << mNameFull << " " << aNameH << "\n";
+
+       ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);
+       cElHomographie aHom = cElHomographie::RansacInitH(aPack,1000,1000);
+       aHom = aHom.Inverse();
+
+       Pt2di aSz = mAppli.mSz;
+       Im2D_U_INT2 anImReech(aSz.x,aSz.y); 
+       TIm2D<U_INT2,INT> aTR(anImReech);
+       TIm2D<U_INT2,INT> aT0(anIm);
+       Pt2di aP;
+
+       for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+       {
+           for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+           {
+                aTR.oset(aP,aT0.getr(aHom.Direct(Pt2dr(aP)),0));
+           }
+       }
+
+
+       anIm = anImReech;
+   }
+
+   mImShade.Resize(mAppli.mImGr.sz());
+
+   std::string aNameOut = mDir+ "LumRas_"+StdPrefix(mName) + ".tif";
+   Tiff_Im TifTest
+           (
+                 aNameOut.c_str(),
+                 anIm.sz(),
+                 GenIm::u_int1,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
+           );
+
+    Fonc_Num aFRas  =  FLoc(6,50,anIm.in(0));
+    Fonc_Num aFStd  =  FLoc(6,50,mAppli.mImGr.in(0));
+// Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
+
+   ELISE_COPY(mImShade.all_pts(),(aFRas-aFStd),mImShade.out());
+
+   ELISE_COPY
+   (
+      TifTest.all_pts(),
+      Max(0,Min(255,128 * (1 + 3*mImShade.in()))),
+      TifTest.out()
+   );
+
+}
+
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                  cAppli_LumRas                                     */
+/*                                                                    */
+/**********************************************************************/
+
+cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
+   cAppliWithSetImage(argc-2,argv +2,FlagNoOri|FlagDev16BGray),
+   // mTifBaseGr   (0),
+   mTifBaseCoul (0),
+   mImGr        (1,1),
+   mImMasq      (1,1)
+   
+{
+     std::vector<double> aPdsI;
+     ElInitArgMain
+     (
+           argc,argv,
+           LArgMain() << EAM(mNameImBase)
+                      << EAM(mPatImRas) ,
+           LArgMain() << EAM(mPostMasq,"Masq",true,"Mask for computation")
+                      << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]")
+    );
+
+
+    for (int aK=aPdsI.size() ; aK<3 ; aK++)
+        aPdsI.push_back(1);
+    // mTifBaseGr =   new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,1,true));
+    mTifBaseCoul = new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,3,true));
+
+    mSz =  mTifBaseCoul->sz();
+    mImGr.Resize(mSz);
+    Symb_FNum aFCoul(mTifBaseCoul->in());
+    Fonc_Num aFGr =  (aPdsI[0]*aFCoul.v0()+aPdsI[1]*aFCoul.v1()+aPdsI[2]*aFCoul.v2())/(aPdsI[0]+aPdsI[1]+aPdsI[2]);
+
+    ELISE_COPY(mImGr.all_pts(),aFGr,mImGr.out());
+
+
+    mImMasq = Im2D_Bits<1>(mSz.x,mSz.y,1);
+    if (EAMIsInit(&mPostMasq))
+    {
+        CorrecNameMasq(mDir,NameWithoutDir(mNameImBase),mPostMasq);
+        std::string aNameMasq = StdPrefix(mNameImBase)+mPostMasq+".tif";
+        Tiff_Im aTM(aNameMasq.c_str());
+        ELISE_COPY(mImMasq.all_pts(),aTM.in(0),mImMasq.out());
+    }
+    ELISE_COPY(mImMasq.border(1),0,mImMasq.out());
+
+    mKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
+    // mKeyHom = "";
+
+    Fonc_Num aGlobSh;
+    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+    {
+        std::string aName = mVSoms[aK]->attr().mIma->mNameIm;
+        mVIm.push_back(new cImage_LumRas(mDir+aName,*this));
+        Fonc_Num aFShade = mVIm.back()->mImShade.in();
+        aGlobSh = (aK==0) ? aFShade : Virgule(aGlobSh,aFShade);
+    }
+
+   std::string aNameOut = mDir+ "LumRas_"+StdPrefix(mNameImBase) + ".tif";
+   Tiff_Im TifTest
+           (
+                 aNameOut.c_str(),
+                 mSz,
+                 GenIm::u_int1,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::RGB
+           );
+
+    
+   ELISE_COPY
+   (
+         TifTest.all_pts(),
+         // Max(0,Min(255,128 * (1 + 5*aGlobSh))),
+         Max(0,Min(255,aFCoul+ 200*aGlobSh)),
+         TifTest.out()
+   );
+}
+
+
+int LumRas_main(int argc,char ** argv)
+{
+     cAppli_LumRas anALR(argc,argv);
+
+	 
+     return EXIT_SUCCESS;
+}
+
+
+
+
+
+/*Footer-MicMac-eLiSe-25/06/2007
+
+Ce logiciel est un programme informatique servant à la mise en
+correspondances d'images pour la reconstruction du relief.
+
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+respectant les principes de diffusion des logiciels libres. Vous pouvez
+utiliser, modifier et/ou redistribuer ce programme sous les conditions
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+sur le site "http://www.cecill.info".
+
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
+
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+manipuler et qui le réserve donc à des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+termes.
+Footer-MicMac-eLiSe-25/06/2007*/
