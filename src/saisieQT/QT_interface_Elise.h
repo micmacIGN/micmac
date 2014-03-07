@@ -79,6 +79,7 @@ signals:
 
     void                selectPoint(std::string ptName);
 
+    void                pointAdded();
 
     void                dataChanged();
 
