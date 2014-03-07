@@ -29,11 +29,19 @@ bool ChunkStream::FileItem::isFileItem() const { return true; }
 
 bool ChunkStream::FileItem::copyToFile( const cElFilename &i_dstFilename ) const
 {
+	if ( !i_dstFilename.m_path.exists() && !i_dstFilename.m_path.create() ){
+		#ifdef __DEBUG_CHUNK_STREAM
+			cerr << RED_DEBUG_ERROR << "ChunkStream::FileItem::copyToFile: create directory [" << i_dstFilename.m_path.str() << "]" << endl;
+			exit(EXIT_FAILURE);
+		#endif
+	}
+	
 	ofstream dst( i_dstFilename.str_unix().c_str(), ios::binary );
 
 	if ( !dst ){
 		#ifdef __DEBUG_CHUNK_STREAM
 			cerr << RED_DEBUG_ERROR << "ChunkStream::FileItem::copyToFile: cannot open destination file [" << i_dstFilename.str_unix() << "]" << endl;
+			exit(EXIT_FAILURE);
 		#endif
 		return false;
 	}

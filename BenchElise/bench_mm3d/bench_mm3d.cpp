@@ -47,49 +47,46 @@ int help_func( int argc, char **argv )
 
 int snapshot_func( int argc, char **argv )
 {
-   if ( argc!=2 )
-   {
-      cout << "not enough args" << endl;
-      return EXIT_FAILURE;
-   }
-   const ctPath anchor( (string)(argv[1]) );
-   const cElFilename packname( (string)(argv[0]) );
-   TracePack pack( packname, anchor );
-   
-   if ( packname.exists() )
-   {
-      if ( !pack.load() )
-      {
-	 cerr << "[" << packname.str_unix() << "] exists but cannot be read as a TracePack file" << endl;
-	 return EXIT_FAILURE;
-      }
-      else
-	 cout << "[" << packname.str_unix() << "] loaded, the pack will be updated" << endl;
-   }
-   else
-      cout << "[" << packname.str_unix() << "] does not exist, a new pack has been created at date " << pack.date() << endl;
-   
-   cout << "snaping [" << anchor.str() << "] to [" << packname.str_unix() << "]" << endl;
-   pack.addState();
+	if ( argc!=2 ){
+		cout << "not enough args" << endl;
+		return EXIT_FAILURE;
+	}
+	const ctPath anchor( (string)(argv[1]) );
+	const cElFilename packname( (string)(argv[0]) );
+	TracePack pack( packname, anchor );
 
-   const unsigned int nbStates = pack.nbStates();
-   cerr << nbStates << " state" << (nbStates>1?'s':'\0') << endl;
+	if ( packname.exists() ){
+		if ( !pack.load() ){
+			cerr << "[" << packname.str_unix() << "] exists but cannot be read as a TracePack file" << endl;
+			return EXIT_FAILURE;
+		}
+		else
+			cout << "[" << packname.str_unix() << "] loaded, the pack will be updated" << endl;
+	}
+	else
+		cout << "[" << packname.str_unix() << "] does not exist, a new pack has been created at date " << pack.date() << endl;
+   
+	cout << "snaping [" << anchor.str() << "] to [" << packname.str_unix() << "]" << endl;
+	pack.addState();
 
-   
-   if ( !pack.save() )
-   {
-      cerr << RED_ERROR << "unable to save to [" << packname.str_unix() << "]" << endl;
-      return EXIT_FAILURE;
-   }
-   
-   #ifdef __DEBUG_TRACE_PACK
-      TracePack pack2( packname, anchor );  
-      pack2.load();
-      if ( !pack.trace_compare( pack2 ) )
-	 cerr << RED_DEBUG_ERROR << "pack [" << packname.str_unix() << "] is not equal to its write+read copy" << endl;
-   #endif
-   
-   return EXIT_SUCCESS;
+	const unsigned int nbStates = pack.nbStates();
+	cerr << nbStates << " state" << (nbStates>1?'s':'\0') << endl;
+
+	if ( !pack.save() ){
+		cerr << RED_ERROR << "unable to save to [" << packname.str_unix() << "]" << endl;
+		return EXIT_FAILURE;
+	}
+
+	#ifdef __DEBUG_TRACE_PACK
+		TracePack pack2( packname, anchor );  
+		pack2.load();
+		if ( !pack.trace_compare( pack2 ) ){
+			cerr << RED_DEBUG_ERROR << "pack [" << packname.str_unix() << "] is not equal to its write+read copy" << endl;
+			exit(EXIT_FAILURE);
+		}
+	#endif
+
+	return EXIT_SUCCESS;
 }
 
 bool get_list_registry_number( const string &i_argument, unsigned int &o_iRegistry, bool &o_listState )
@@ -106,56 +103,49 @@ bool get_list_registry_number( const string &i_argument, unsigned int &o_iRegist
 
 int list_func( int argc, char **argv )
 {
-   if ( argc==0 ){ cerr << "not enough args" << endl; return EXIT_FAILURE; }
-   const cElFilename filename( (string)(argv[0]) );
-   
-   TracePack pack( filename, ctPath() );
-   if ( !pack.load() )
-   {
-      cerr << RED_ERROR << "unable to load [" << filename.str_unix() << "]" << endl;
-      return EXIT_FAILURE;
-   }
-   
-   if ( argc>0 )
-   {
-      const unsigned int nbStates = pack.nbStates();
-      cout << "pack [" << filename.str_unix() << ']' << endl;
-      cout << "\t- creation date " << pack.date() << " (UTC)"<< endl;
-      cout << "\t- " << nbStates << (nbStates>1?" registries":" registry") << endl;
-      cout << "commands" << endl;
-      vector<cElCommand> commands;
-      pack.getAllCommands( commands );
-      for ( unsigned int iCmd=0; iCmd<nbStates; iCmd++ )
-	 cout << "\t[" << commands[iCmd].str() << "]" << endl;
-   }
-   if ( argc==2 )
-   {
-      bool listState;
-      unsigned int iRegistry;
-      if ( !get_list_registry_number( argv[1], iRegistry, listState ) )
-      {
-	 cerr << RED_ERROR << "third argument should be sXXX if you want to list a state or rXXX if you want to list a raw registry" << endl;
-	 return EXIT_FAILURE;
-      }
+	if ( argc==0 ){ cerr << "not enough args" << endl; return EXIT_FAILURE; }
+	const cElFilename filename( (string)(argv[0]) );
 
-      if ( iRegistry>=pack.nbStates() )
-      {
-	 cerr << RED_ERROR << "index " << iRegistry << " out of range (the pack has " << pack.nbStates() << " states)" << endl;
-	 return EXIT_FAILURE;
-      }
-      if ( listState )
-      {
-	 TracePack::Registry reg;
-	 pack.getState( (unsigned int)iRegistry, reg );
-	 cout << "state " << iRegistry << endl;
-	 reg.dump( cout, "\t" );
-      }
-      else
-      {
-	 cout << "raw registry " << iRegistry << endl;
-	 pack.getRegistry(iRegistry).dump( cout, "\t" );
-      }
-   }
+	TracePack pack( filename, ctPath() );
+	if ( !pack.load() ){
+		cerr << RED_ERROR << "unable to load [" << filename.str_unix() << "]" << endl;
+		return EXIT_FAILURE;
+	}
+   
+	if ( argc>0 ){
+		const unsigned int nbStates = pack.nbStates();
+		cout << "pack [" << filename.str_unix() << ']' << endl;
+		cout << "\t- creation date " << pack.date() << " (UTC)"<< endl;
+		cout << "\t- " << nbStates << (nbStates>1?" registries":" registry") << endl;
+		cout << "commands" << endl;
+		vector<cElCommand> commands;
+		pack.getAllCommands( commands );
+		for ( unsigned int iCmd=0; iCmd<nbStates; iCmd++ )
+			cout << '\t' << iCmd << " [" << commands[iCmd].str() << "]" << endl;
+	}
+	if ( argc==2 ){
+		bool listState;
+		unsigned int iRegistry;
+		if ( !get_list_registry_number( argv[1], iRegistry, listState ) ){
+			cerr << RED_ERROR << "third argument should be sXXX if you want to list a state or rXXX if you want to list a raw registry" << endl;
+			return EXIT_FAILURE;
+		}
+
+		if ( iRegistry>=pack.nbStates() ){
+			cerr << RED_ERROR << "index " << iRegistry << " out of range (the pack has " << pack.nbStates() << " states)" << endl;
+			return EXIT_FAILURE;
+		}
+		if ( listState ){
+			TracePack::Registry reg;
+			pack.getState( (unsigned int)iRegistry, reg );
+			cout << "state " << iRegistry << endl;
+			reg.dump( cout, "\t" );
+		}
+		else{
+			cout << "raw registry " << iRegistry << endl;
+			pack.getRegistry(iRegistry).dump( cout, "\t" );
+		}
+	}
 
    return EXIT_SUCCESS;
 }
@@ -341,7 +331,7 @@ int pack_from_script_func( int argc, char **argv )
    while ( itCmd!=commands.end() ){
 		cout << "command " << iCmd << " : [" << itCmd->str() << ']' << endl;
 		cElCommand originalCommand = *itCmd;
-		itCmd->replace( dictionary );
+		if ( itCmd->replace( dictionary ) ) cout << "command " << iCmd << " : [" << itCmd->str() << ']' << endl;
 		if ( !itCmd->system() ){
 			cerr << RED_ERROR << "command " << iCmd << " = " << endl;
 			cerr << "[" << itCmd->str() << "]" << endl;
@@ -405,89 +395,89 @@ void print_items_differences( unsigned int i_iStep, const list<TracePack::Regist
 
 int replay_func( int argc, char **argv )
 {   
-   map<string,string> dictionary;
-   generate_dictionary( argc, argv, dictionary );
+	map<string,string> dictionary;
+	generate_dictionary( argc, argv, dictionary );
+
+	if ( argc<3 ){
+		cerr << "usage: packname destination_directory temporary_directory [VAR1=value1 VAR2=value2 ...]" << endl;
+		return EXIT_FAILURE;
+	}
+
+	const cElFilename packname( (string)(argv[0]) );
+	if ( !packname.exists() ){
+		cerr << RED_ERROR << "pack [" << packname.str_unix() << "] does not exist" << endl;
+		return EXIT_FAILURE;
+	}
+	cout << "--- pack name = [" << packname.str_unix() << ']' << endl;
+
+	ctPath run_directory( (string)(argv[1]) );
+	bool runRemoveEmpty;
+	if ( !is_empty_or_create( run_directory, runRemoveEmpty ) ) return EXIT_FAILURE;
+	//setWorkingDirectory( run_directory );
+	cout << "--- monitored directory = [" << run_directory.str() << ']' << endl;
+
+	// create a temporary directory for file content comparison
+	ctPath ref_directory( (string)(argv[2]) );
+	bool refRemoveEmpty;
+	if ( !is_empty_or_create( ref_directory, refRemoveEmpty ) ) return EXIT_FAILURE;
+	cout << "--- temporary directory = [" << ref_directory.str() << ']' << endl;
+
+	dictionary["${SITE_PATH}"] = run_directory.str();
+
+	TracePack ref_pack( packname, run_directory ), // anchor is set to run directory for initial state extraction, it is later set to ref directory
+	          run_pack( cElFilename("run_pack.pack"), run_directory );
    
-   if ( argc<3 ){
-      cerr << "usage: packname destination_directory temporary_directory [VAR1=value1 VAR2=value2 ...]" << endl;
-      return EXIT_FAILURE;
-   }
-    
-   const cElFilename packname( (string)(argv[0]) );
-   if ( !packname.exists() ){
-      cerr << RED_ERROR << "pack [" << packname.str_unix() << "] does not exist" << endl;
-      return EXIT_FAILURE;
-   }
-   cout << "--- pack name = [" << packname.str_unix() << ']' << endl;
-   
-   ctPath run_directory( (string)(argv[1]) );
-   bool runRemoveEmpty;
-   if ( !is_empty_or_create( run_directory, runRemoveEmpty ) ) return EXIT_FAILURE;
-   //setWorkingDirectory( run_directory );
-   cout << "--- monitored directory = [" << run_directory.str() << ']' << endl;
-   
-   // create a temporary directory for file content comparison
-   ctPath ref_directory( (string)(argv[2]) );
-   bool refRemoveEmpty;
-   if ( !is_empty_or_create( ref_directory, refRemoveEmpty ) ) return EXIT_FAILURE;
-   cout << "--- temporary directory = [" << ref_directory.str() << ']' << endl;
-   
-   dictionary["${SITE_PATH}"] = run_directory.str();
-   
-   TracePack ref_pack( packname, run_directory ), // anchor is set to run directory for initial state extraction, it is later set to ref directory
-             run_pack( cElFilename("run_pack.pack"), run_directory );
-   
-   if ( !ref_pack.load() ) cerr << RED_ERROR << "cannot load pack [" << packname.str_unix() << "]" << endl;
-   unsigned int nbStates = ref_pack.nbStates();
-   if ( nbStates==0 ){
-      cerr << RED_WARNING << "pack [" << packname.str_unix() << "] is empty" << endl;
-      return EXIT_SUCCESS;
-   }
-   // run pack ignore the same files as reference pack
-   list<cElFilename> files = ref_pack.getIgnoredFiles();
-   run_pack.addIgnored( files );
-   list<ctPath> paths = ref_pack.getIgnoredDirectories();
-   run_pack.addIgnored( paths );
-   
-   vector<cElCommand> commands;
-   ref_pack.getAllCommands( commands );
-   
-   // set anchor to pack's initial state
-   cout << "--- setting [" << run_directory.str() << "] to initial state" << endl;
-   ref_pack.setState(0);
-   ref_pack.setAnchor( ref_directory ); // ref directory is where file are extracted for comparison
-   run_pack.addState();
-   TracePack::Registry refReg = ref_pack.getRegistry(0),
+	if ( !ref_pack.load() ) cerr << RED_ERROR << "cannot load pack [" << packname.str_unix() << "]" << endl;
+	unsigned int nbStates = ref_pack.nbStates();
+	if ( nbStates==0 ){
+		cerr << RED_WARNING << "pack [" << packname.str_unix() << "] is empty" << endl;
+		return EXIT_SUCCESS;
+	}
+	// run pack ignore the same files as reference pack
+	list<cElFilename> files = ref_pack.getIgnoredFiles();
+	run_pack.addIgnored( files );
+	list<ctPath> paths = ref_pack.getIgnoredDirectories();
+	run_pack.addIgnored( paths );
+
+	vector<cElCommand> commands;
+	ref_pack.getAllCommands( commands );
+
+	// set anchor to pack's initial state
+	cout << "--- setting [" << run_directory.str() << "] to initial state" << endl;
+	ref_pack.setState(0);
+	ref_pack.setAnchor( ref_directory ); // ref directory is where file are extracted for comparison
+	run_pack.addState();
+	TracePack::Registry refReg = ref_pack.getRegistry(0),
 	                    runReg = run_pack.getRegistry(0);
-   
-   list<TracePack::Registry::Item> onlyInRef, onlyInRun, inBoth, differentFromDisk;
-   if ( !TracePack::Registry::compare_states( refReg, runReg, onlyInRef, onlyInRun, inBoth ) ){
+
+	list<TracePack::Registry::Item> onlyInRef, onlyInRun, inBoth, differentFromDisk;
+	if ( !TracePack::Registry::compare_states( refReg, runReg, onlyInRef, onlyInRun, inBoth ) ){
 		print_items_differences( 0, onlyInRef, onlyInRun );
 		return EXIT_FAILURE;
 	}
-   
-   for ( unsigned int iState=1; iState<nbStates; iState++ ){
-      cout << "--- processing registry " << iState << endl;
-      cout << "\toriginal command = [" << commands[iState].str() << "]" << endl;
-      commands[iState].replace( dictionary );
-      cout << "\tcommand = [" << commands[iState].str() << "]" << endl;
-      if ( commands[iState].nbTokens()==0 ) cerr << RED_WARNING << "the command of this registry is empty" << endl;
-      if ( !commands[iState].system() ){
+
+	for ( unsigned int iState=1; iState<nbStates; iState++ ){
+		cout << "--- processing registry " << iState << endl;
+		cout << "\toriginal command = [" << commands[iState].str() << "]" << endl;
+		commands[iState].replace( dictionary );
+		cout << "\tcommand = [" << commands[iState].str() << "]" << endl;
+		if ( commands[iState].nbTokens()==0 ) cerr << RED_WARNING << "the command of this registry is empty" << endl;
+		if ( !commands[iState].system() ){
 			cout << RED_ERROR << "command failed" << endl;
 			return EXIT_FAILURE;
 		}
-      run_pack.addState();
-      
-      refReg = ref_pack.getRegistry( iState );
-      runReg = run_pack.getRegistry( iState );
+		run_pack.addState();
+
+		refReg = ref_pack.getRegistry( iState );
+		runReg = run_pack.getRegistry( iState );
 		list<TracePack::Registry::Item> onlyInRef, onlyInRun, inBoth, differentFromDisk;
 		if ( !TracePack::Registry::compare_states( refReg, runReg, onlyInRef, onlyInRun, inBoth ) ){
 			print_items_differences( iState, onlyInRef, onlyInRun );
 			return EXIT_FAILURE;
 		}
-      
-      ref_pack.compareWithItemsOnDisk( iState, run_directory, inBoth, differentFromDisk );
-      if ( differentFromDisk.size()!=0 ){
+
+		ref_pack.compareWithItemsOnDisk( iState, run_directory, inBoth, differentFromDisk );
+		if ( differentFromDisk.size()!=0 ){
 			cout << "\033[1;31m---> differences occured at step " << iState << "\033[0m" << endl;
 			cout << "files with data different from pack" << endl;
 			list<TracePack::Registry::Item>::const_iterator itItem = differentFromDisk.begin();
@@ -496,10 +486,10 @@ int replay_func( int argc, char **argv )
 				itItem++;
 			}
 			return EXIT_FAILURE;
-      }
-      
-      cout << endl;
-   }
+		}
+
+		cout << endl;
+	}
 
 	if ( runRemoveEmpty )
 		run_directory.remove();
