@@ -11,7 +11,7 @@ using namespace NS_SaisiePts;
 class TreeItem : public QStandardItem
 {
 public:
-    explicit TreeItem(const QList<QVariant> &data, TreeItem *parent = 0);
+    explicit TreeItem(const QVector<QVariant> &data, TreeItem *parent = 0);
     ~TreeItem();
 
     void appendChild(TreeItem *child);
@@ -19,17 +19,24 @@ public:
     TreeItem *child(int row);
     int childCount() const;
     int columnCount() const;
+    int childNumber() const;
     QVariant data(int column) const;
-    void setData(const QVariant &value, int role = Qt::UserRole + 1);
+    bool setData(int column, const QVariant &value);
 
-    void setData(const QList<QVariant> &data) { itemData = data; }
+    void setData(const QVector<QVariant> &data) { itemData = data; }
 
     int row() const;
     TreeItem *parent();
 
+    QList<TreeItem*> getChildItems() { return childItems; }
+
+    bool insertChildren(int position, int count, int columns);
+    bool removeChildren(int position, int count);
+
+
 private:
     QList<TreeItem*> childItems;
-    QList<QVariant> itemData;
+    QVector<QVariant> itemData;
     TreeItem *parentItem;
 };
 
@@ -48,6 +55,9 @@ public:
     QModelIndex     index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     QModelIndex     parent(const QModelIndex &index) const;
 
+    bool            insertRows(int position, int rows, const QModelIndex &parent = QModelIndex());
+    bool            removeRows(int position, int rows, const QModelIndex &parent = QModelIndex());
+
     int             rowCount    (const QModelIndex &parent = QModelIndex()) const;
     int             columnCount (const QModelIndex &parent = QModelIndex()) const;
 
@@ -57,14 +67,20 @@ public:
 
     void            updateData();
 
-    QList<QVariant> buildRow(cSP_PointGlob *aPG);
+    QVector<QVariant> buildRow(cSP_PointGlob *aPG);
 
-    QList<QVariant> buildChildRow(std::pair<std::string, cSP_PointeImage *> data);
+    QVector<QVariant> buildChildRow(std::pair<std::string, cSP_PointeImage *> data);
 
     int             getColumnSize(int column, QFontMetrics fm);
 
+public slots:
+
+    void            addPoint();
+
 private:
-    TreeItem *rootItem;
+    TreeItem*       getItem(const QModelIndex &index) const;
+
+    TreeItem*       rootItem;
 
     cAppli_SaisiePts* _appli;
 };
