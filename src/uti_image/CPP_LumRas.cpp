@@ -56,6 +56,8 @@ class cImage_LumRas
 
        Fonc_Num         FMoy(int aKIter,int aSzW,Fonc_Num);
        Fonc_Num         FLoc(int aKIter,int aSzW,Fonc_Num);
+       Fonc_Num         MoyGlobImage(Fonc_Num aF);
+       Fonc_Num         MoyByCC(Fonc_Num aF);
        Im2D_REAL4       mImShade;
 };
 
@@ -94,11 +96,39 @@ Fonc_Num   cImage_LumRas::FMoy(int aNbIter,int aSzW,Fonc_Num aF)
    return aRes;
 }
 
+Fonc_Num  cImage_LumRas::MoyGlobImage(Fonc_Num aF)
+{
+   Im2D_Bits<1> aIM = mAppli.mImMasq;
+   Fonc_Num aFMasq = aIM.in(0);
+   double aVS[2];
+
+   ELISE_COPY
+   (
+        aIM.all_pts(),
+        Virgule(aF*aFMasq,aFMasq),
+        sigma(aVS,2)
+   );
+
+   return aVS[0] / aVS[1];
+}
+
+Fonc_Num  cImage_LumRas::MoyByCC(Fonc_Num aF)
+{
+   Im2D_Bits<1> aIM = mAppli.mImMasq;
+}
+/*
+*/
+
 
 Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
 {
    Fonc_Num aFMasq = mAppli.mImMasq.in(0);
+   
+
+
    Fonc_Num aFMoy =  FMoy(aNbIter,aSzW,aF*aFMasq) / Max(1e-2,FMoy(aNbIter,aSzW,aFMasq)) ;
+   if (1) 
+      aFMoy = MoyGlobImage(aF);
 
    return  (aF / Max(1e-2,aFMoy)) * aFMasq;
 }
@@ -183,23 +213,26 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
    mImMasq      (1,1)
    
 {
+     std::vector<double> aPdsI;
      ElInitArgMain
      (
            argc,argv,
            LArgMain() << EAM(mNameImBase)
                       << EAM(mPatImRas) ,
            LArgMain() << EAM(mPostMasq,"Masq",true,"Mask for computation")
+                      << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]")
     );
 
 
+    for (int aK=aPdsI.size() ; aK<3 ; aK++)
+        aPdsI.push_back(1);
     // mTifBaseGr =   new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,1,true));
     mTifBaseCoul = new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,3,true));
 
     mSz =  mTifBaseCoul->sz();
     mImGr.Resize(mSz);
-    double aPds[3] = {1,1,1};
     Symb_FNum aFCoul(mTifBaseCoul->in());
-    Fonc_Num aFGr =  (aPds[0]*aFCoul.v0()+aPds[1]*aFCoul.v1()+aPds[2]*aFCoul.v2())/(aPds[0]+aPds[1]+aPds[2]);
+    Fonc_Num aFGr =  (aPdsI[0]*aFCoul.v0()+aPdsI[1]*aFCoul.v1()+aPdsI[2]*aFCoul.v2())/(aPdsI[0]+aPdsI[1]+aPdsI[2]);
 
     ELISE_COPY(mImGr.all_pts(),aFGr,mImGr.out());
 
@@ -212,6 +245,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
         Tiff_Im aTM(aNameMasq.c_str());
         ELISE_COPY(mImMasq.all_pts(),aTM.in(0),mImMasq.out());
     }
+    ELISE_COPY(mImMasq.border(1),0,mImMasq.out());
 
     mKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
     // mKeyHom = "";
