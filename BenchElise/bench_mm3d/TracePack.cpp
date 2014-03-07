@@ -549,14 +549,14 @@ bool TracePack::Registry::setItemData( const ChunkStream::FileItem &i_data )
 //--------------------------------------------
 // class TracePack
 //--------------------------------------------
-   
+
 TracePack::TracePack( const cElFilename &i_filename, const ctPath &i_anchor, U_INT8 i_maxFileSize ):
    m_filename( i_filename ),
    m_anchor( i_anchor ),
    m_date( cElDate::NoDate ),
-   m_ignoredItemsChanged( false ),
    m_versionNumber( g_versioned_headers_list[VFH_TracePack].last_handled_version ),
-   m_stream( i_filename, i_maxFileSize, false )
+   m_stream( i_filename, i_maxFileSize, false ),
+   m_ignoredItemsChanged( false )
 {
    cElDate::getCurrentDate_UTC( m_date );
 }
@@ -765,22 +765,27 @@ void TracePack::addState( const cElCommand &i_command )
 	}
 	#endif
    
-   if ( nbStates()==0 ){
-      Registry reg0;
-      reg0.stateDirectory( m_anchor );
-      remove_ignored_items( reg0 );
-      m_registries.push_back( reg0 );
-      return;
-   }
-   
-   Registry directoryState, lastState, diff;
-   directoryState.stateDirectory( m_anchor );
-   remove_ignored_items( directoryState );
-      
-   getState( nbStates()-1, lastState );
-   diff.difference( lastState, directoryState );
-   diff.m_command = i_command;
-   m_registries.push_back( diff );
+	if ( nbStates()==0 ){
+		Registry reg0;
+		reg0.stateDirectory( m_anchor );
+		remove_ignored_items( reg0 );
+		m_registries.push_back( reg0 );
+		return;
+	}
+
+	Registry directoryState, lastState, diff;
+	directoryState.stateDirectory( m_anchor );
+
+	// __DEL
+	directoryState.dump();
+	
+	remove_ignored_items( directoryState );
+
+	getState( nbStates()-1, lastState );
+	diff.difference( lastState, directoryState );
+	diff.m_command = i_command;
+
+	m_registries.push_back( diff );
 }
 
 void TracePack::dump( ostream &io_ostream, const string &i_prefix ) const

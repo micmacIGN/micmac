@@ -658,6 +658,8 @@ bool ctPath::removeEmpty() const
 	return !exists();
 }
 
+static bool __ctPath_sup( const ctPath &i_a, const ctPath &i_b ){ return i_a>i_b; }
+
 bool ctPath::removeContent() const
 {   
    list<cElFilename> contentFiles;
@@ -682,11 +684,12 @@ bool ctPath::removeContent() const
 		}
 		itFile++;
 	}
-      
+
 	// remove all empty directories
+	contentPaths.sort( __ctPath_sup ); // sort in reverse order so that subdirectories come before their parents
 	list<ctPath>::const_iterator itPath = contentPaths.begin();
 	while ( itPath!=contentPaths.end() ){
-		if ( !itPath->remove() ){
+		if ( !itPath->removeEmpty() ){
 			#ifdef __DEBUG_C_EL_COMMAND
 				cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove directory [" << itPath->str() <<']' << endl;
 				exit(EXIT_FAILURE);
