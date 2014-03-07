@@ -48,6 +48,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     connect(this, SIGNAL(dataChanged()), m_QTMainWindow, SLOT(updateTreeView()));
 
+    connect(this, SIGNAL(pointAdded()), m_QTMainWindow->getModel(), SLOT(addPoint()));
+
     connect(m_QTMainWindow->getModel(), SIGNAL(dataChanged(QModelIndex const &, QModelIndex const &)), this, SLOT(rebuildGlPoints()));
 
     m_QTMainWindow->getModel()->setAppli(mAppli);
@@ -111,7 +113,6 @@ void cQT_Interface::addPoint(QPointF point)
         cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
         //TODO : aCNP *= GetIndexNamePoint();
 
-
         QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->imageName();
 
         int t = cImageIdxFromName(nameImage);
@@ -121,7 +122,7 @@ void cQT_Interface::addPoint(QPointF point)
 
         rebuildGlPoints();
 
-        emit dataChanged();
+        emit pointAdded();
     }
 }
 
