@@ -1,6 +1,6 @@
 #include "Tree.h"
 
-TreeItem::TreeItem(const QList<QVariant> &data, TreeItem *parent)
+TreeItem::TreeItem(const QVector<QVariant> &data, TreeItem *parent)
 {
     parentItem = parent;
     itemData = data;   
@@ -31,14 +31,26 @@ int TreeItem::columnCount() const
     return itemData.count();
 }
 
+int TreeItem::childNumber() const
+{
+    if (parentItem)
+        return parentItem->childItems.indexOf(const_cast<TreeItem*>(this));
+
+    return 0;
+}
+
 QVariant TreeItem::data(int column) const
 {
     return itemData.value(column);
 }
 
-void TreeItem::setData(const QVariant &value, int role)
+bool TreeItem::setData(int column, const QVariant &value)
 {
-    itemData << value;
+    if (column < 0 || column >= itemData.size())
+           return false;
+
+    itemData[column] = value;
+    return true;
 }
 
 TreeItem *TreeItem::parent()
@@ -54,10 +66,36 @@ int TreeItem::row() const
     return 0;
 }
 
+bool TreeItem::insertChildren(int position, int count, int columns)
+{
+    if (position < 0 || position > childItems.size())
+        return false;
+
+    for (int row = 0; row < count; ++row)
+    {
+        QVector<QVariant> data(columns);
+        TreeItem *item = new TreeItem(data, this);
+        childItems.insert(position, item);
+    }
+
+    return true;
+}
+
+bool TreeItem::removeChildren(int position, int count)
+{
+    if (position < 0 || position + count > childItems.size())
+        return false;
+
+    for (int row = 0; row < count; ++row)
+        delete childItems.takeAt(position);
+
+    return true;
+}
+
 TreeModel::TreeModel(QObject *parent):
     QAbstractItemModel(parent)
 {
-    QList<QVariant> rootData;
+    QVector<QVariant> rootData;
     rootData << "Point" << "Image" << "State" << "Coordinates";
     rootItem = new TreeItem(rootData);
 }
@@ -67,12 +105,20 @@ TreeModel::~TreeModel()
     delete rootItem;
 }
 
-int TreeModel::columnCount(const QModelIndex &parent) const
+TreeItem *TreeModel::getItem(const QModelIndex &index) const
 {
-    if (parent.isValid())
-        return static_cast<TreeItem*>(parent.internalPointer())->columnCount();
-    else
-        return rootItem->columnCount();
+    if (index.isValid())
+    {
+        TreeItem *item = static_cast<TreeItem*>(index.internalPointer());
+        if (item)
+            return item;
+    }
+    return rootItem;
+}
+
+int TreeModel::columnCount(const QModelIndex &/*parent*/) const
+{
+    return rootItem->columnCount();
 }
 
 void TreeModel::setAppli(cAppli_SaisiePts *appli)
@@ -151,9 +197,8 @@ bool TreeModel::setData(const QModelIndex &index,
 
              TreeItem *Item = static_cast<TreeItem*>(index.internalPointer());
 
-             Item->setData(value, Qt::DisplayRole);
-
-             emit dataChanged(index, index);
+             if (Item->setData(0, value))
+                 emit dataChanged(index, index);
 
              return true;
          }
@@ -161,18 +206,12 @@ bool TreeModel::setData(const QModelIndex &index,
      return false;
  }
 
-QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent)
-            const
+QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!hasIndex(row, column, parent))
+    if (parent.isValid() && parent.column() != 0)
         return QModelIndex();
 
-    TreeItem *parentItem;
-
-    if (!parent.isValid())
-        parentItem = rootItem;
-    else
-        parentItem = static_cast<TreeItem*>(parent.internalPointer());
+    TreeItem *parentItem = getItem(parent);
 
     TreeItem *childItem = parentItem->child(row);
     if (childItem)
@@ -186,32 +225,50 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-    TreeItem *childItem = static_cast<TreeItem*>(index.internalPointer());
+    TreeItem *childItem = getItem(index);
     TreeItem *parentItem = childItem->parent();
 
     if (parentItem == rootItem)
         return QModelIndex();
 
-    return createIndex(parentItem->row(), 0, parentItem);
+    return createIndex(parentItem->childNumber(), 0, parentItem);
 }
 
 int TreeModel::rowCount(const QModelIndex &parent) const
 {
-    TreeItem *parentItem;
-    if (parent.column() > 0)
-        return 0;
-
-    if (!parent.isValid())
-        parentItem = rootItem;
-    else
-        parentItem = static_cast<TreeItem*>(parent.internalPointer());
+    TreeItem *parentItem = getItem(parent);
 
     return parentItem->childCount();
 }
 
-QList <QVariant> TreeModel::buildRow(cSP_PointGlob* aPG)
+bool TreeModel::insertRows(int position, int rows, const QModelIndex &parent)
 {
-    QList<QVariant> columnData;
+    TreeItem *parentItem = getItem(parent);
+    bool success;
+
+    beginInsertRows(parent, position, position + rows - 1);
+    success = parentItem->insertChildren(position, rows, rootItem->columnCount());
+    endInsertRows();
+
+    return success;
+}
+
+bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
+{
+    TreeItem *parentItem = getItem(parent);
+    bool success = true;
+
+    beginRemoveRows(parent, position, position + rows - 1);
+    success = parentItem->removeChildren(position, rows);
+    endRemoveRows();
+
+    return success;
+}
+
+
+QVector <QVariant> TreeModel::buildRow(cSP_PointGlob* aPG)
+{
+    QVector<QVariant> columnData;
 
     QString namePt  = QString(aPG->PG()->Name().c_str());
     QString coord3d = QString::number(aPG->PG()->P3D().Val().x, 'f' ,1) + " " +
@@ -223,9 +280,9 @@ QList <QVariant> TreeModel::buildRow(cSP_PointGlob* aPG)
     return columnData;
 }
 
-QList <QVariant> TreeModel::buildChildRow(std::pair < std::string , cSP_PointeImage*> data)
+QVector <QVariant> TreeModel::buildChildRow(std::pair < std::string , cSP_PointeImage*> data)
 {
-    QList<QVariant> columnData;
+    QVector <QVariant> columnData;
 
     std::string     aName = data.first;
     cSP_PointeImage* aPIm = data.second;
@@ -258,6 +315,37 @@ int TreeModel::getColumnSize(int column, QFontMetrics fm)
     }
 
     return colWidth;
+}
+
+void TreeModel::addPoint()
+{
+    std::vector<cSP_PointGlob *> vPts = _appli->PG();
+    int pos= vPts.size()-1;
+
+    QModelIndex idx = index(pos-1, 0);
+
+    if (!insertRow(idx.row()+1, idx.parent()))
+        return;
+
+    QModelIndex newIdx = index(pos, 0);
+
+    TreeItem * item = static_cast<TreeItem*>(newIdx.internalPointer());
+
+    if (item)
+    {
+        cSP_PointGlob* aPG = vPts[pos];
+
+        item->setData(buildRow(aPG));
+
+        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+        for(; it != map.end(); ++it)
+        {
+            item->appendChild(new TreeItem(buildChildRow(*it), item));
+        }
+    }
 }
 
 void TreeModel::setupModelData()
@@ -298,18 +386,21 @@ void TreeModel::updateData()
         QModelIndex idx = index(aK, 0);
         TreeItem * item = static_cast<TreeItem*>(idx.internalPointer());
 
-        item->setData(buildRow(aPG));
-
-        //Pointes image
-
-        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
-
-        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-        int bK = 0;
-        for(; it != map.end(); ++it, ++bK)
+        if (item)
         {
-             item->child(bK)->setData(buildChildRow(*it));
+            item->setData(buildRow(aPG));
+
+            //Pointes image
+
+            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+            int bK = 0;
+            for(; it != map.end(); ++it, ++bK)
+            {
+                item->child(bK)->setData(buildChildRow(*it));
+            }
         }
     }
 }
