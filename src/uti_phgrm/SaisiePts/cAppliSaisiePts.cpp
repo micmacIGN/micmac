@@ -154,6 +154,7 @@ void cVirtualInterface::UpdatePoints(cSP_PointeImage *aPIm, Pt2dr pt)
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
     mParam      (*aP2.mObj),
+    mInterface  (0),
     mICNM       (aP2.mICNM),
     mDC         (aP2.mDC),
     mShowDet    (mParam.ShowDet().Val()),
