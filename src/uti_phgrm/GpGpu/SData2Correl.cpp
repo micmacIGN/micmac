@@ -264,6 +264,11 @@ Rect *SData2Correl::DeviRect()
     return _dRect.pData();
 }
 
+ushort2 *SData2Correl::DeviClassEqui()
+{
+    return _dClassEqui.pData();
+}
+
 void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
 {
 
@@ -271,7 +276,7 @@ void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
 
     _d_volumeCach[nStream].ReallocIf(param.HdPc.dimCach,    param.invPC.nbImages * param.ZCInter);
 
-    _d_volumeNIOk[nStream].ReallocIf(param.HdPc.dimTer,     param.ZCInter);
+    _d_volumeNIOk[nStream].ReallocIf(param.HdPc.dimTer,     param.ZCInter * param.invPC.nbClass);
 }
 
 void SData2Correl::MemsetHostVolumeProj(uint iDef)
