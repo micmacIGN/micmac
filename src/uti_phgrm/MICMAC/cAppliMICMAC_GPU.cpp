@@ -723,15 +723,16 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                         cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 
                         hClassEqui[aKIm].x = aGLI.PDV()->NumEquiv();
-                        hClassEqui[aKIm].y = pitImage;
+
 
                         if(aKIm && hClassEqui[aKIm-1].x != hClassEqui[aKIm].x)
                         {
-                            pitImage = aKIm + 1;
+                            pitImage = aKIm;
                             nbCLass++;
                         }
+                        hClassEqui[aKIm].y = pitImage;
 
-                        //printf("Image : %d, Classe : %d, NB classe %d, pit : %d\n",aKIm,hClassEqui[aKIm].x,nbCLass,hClassEqui[aKIm].y);
+                       printf("Image : %d, Classe : %d, NB classe %d, pit : %d\n",aKIm,hClassEqui[aKIm].x,nbCLass,hClassEqui[aKIm].y);
                         dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
                     }
 

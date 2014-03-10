@@ -73,6 +73,8 @@ public:
 
     void    ReallocHostClassEqui(uint nbImages);
 
+    ushort2 *DeviClassEqui();
+
 private:
 
     void    ReallocDeviceData(int nStream, pCorGpu param);
