@@ -37,7 +37,6 @@ template<int TexSel> __global__ void projectionImage( HDParamCorrel HdPc, float*
 
 }
 
-
 extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<float>  &DeviImagesProj, Rect* pRect)
 {
 
@@ -98,8 +97,9 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   uint pitZ,modZ,piCa;
 
-  if (oI(ptProj,0) || oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))) // retirer le 9 decembre 2013 à verifier
-  {      
+  if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.pt1.x || ptProj.y >= (float)zoneImage.pt1.y /*oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))*/) // retirer le 9 decembre 2013 à verifier
+  {
+      cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = -1.f;
       return;
   }// FIN AJOUT 2014
   else
@@ -121,12 +121,17 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 
   // Simplifier!!!
+  // Sortir si threard inactif et si en dehors du terrain
   if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer,0))
     return;
 
-  // DEBUT AJOUT 2014 // TODO A SIMPLIFIER
-  if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptTer,zoneImage.pt0))
+  // DEBUT AJOUT 2014 // TODO A SIMPLIFIER --> peut etre simplifier avec la zone terrain!
+  // Sortir si endehors de
+ // if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptTer,zoneImage.pt0))
   //if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptHTer - invPc.rayVig.x ,make_uint2(zoneImage.pt0)))
+      //return;
+
+  if ( oI( ptProj - invPc.rayVig.x-1, 0) | ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x || ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y)
       return;
   // FIN AJOUT 2014
 
@@ -141,15 +146,18 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   float aSV = 0.0f, aSVV = 0.0f;
   short2 pt;
 
-  #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
+  //#pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
   for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
   {
         //const int pic = pt.y*BLOCKDIM;
         float* cImg    = cacheImg +  pt.y*BLOCKDIM;
-      #pragma unroll
+      //#pragma unroll
       for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
           const float val = cImg[pt.x];	// Valeur de l'image
+
+//          if (val < 0)
+//              return;
 
           //if (val ==  invPc.floatDefault) return;
           aSV  += val;          // Somme des valeurs de l'image cte
@@ -169,7 +177,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   const uint pitchCachY = ptTer.y * invPc.dimVig.y ;
 
-  const int idN     = pitZ * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
+  const int  idN    = pitZ * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
 
   const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + piCa;
 
@@ -199,9 +207,7 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
     dim3	blocks(block2D.x , block2D.y, param.invPC.nbImages * param.ZCInter);
 
 //    CuDeviceData3D<float>       DeviImagesProj;
-
 //    LaunchKernelprojectionImage(param,DeviImagesProj,data2cor.DeviRect());
-
 //    DeviImagesProj.Dealloc();
 
     switch (s)
