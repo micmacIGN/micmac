@@ -242,7 +242,6 @@ bool cImage::PtInImage(const Pt2dr aP)
 //
 void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCaseNamePoint * aCNP)
 {
-    cout << "in CreatePGFromPointeMono" << endl;
 
     //bool PIsInit = false;
     Pt3dr aPt(0,0,0);
@@ -301,12 +300,9 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
 
     aSPG->ReCalculPoints();
 
-    mAppli.Interface()->RedrawAllWindows();
+    mAppli.RedrawAllWindows();
     mAppli.Save();
 
-
-
-    cout << "out CreatePGFromPointeMono" << endl;
 }
 
 

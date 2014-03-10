@@ -104,7 +104,7 @@ class cSP_PointGlob
 
           std::map<std::string,cSP_PointeImage *> getPointes(){ return mPointes; }
 
-private:
+     private:
           cSP_PointGlob(const cSP_PointGlob &) ; // N.I.
 
           cAppli_SaisiePts & mAppli;
@@ -493,6 +493,7 @@ class cAppli_SaisiePts
     void                ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
+    void 				RedrawAllWindows () { if (mInterface) mInterface->RedrawAllWindows();}
 
     void                SetInterface( cVirtualInterface * interf );
 
