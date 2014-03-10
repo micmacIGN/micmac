@@ -571,7 +571,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
         {
             CreatePoint(aClk._pt,eNSM_MaxLoc,5);
         }
-        else if (aCase==mCaseKillPt)
+        else if (aCase== mCaseKillPt)
         {
             cSP_PointeImage* aPIm = GetNearest(aClk._pt,200);
             if (aPIm)
@@ -579,7 +579,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
                 ((cX11_Interface*)mAppli.Interface())->_DeletePoint(aPIm->Gl());
             }
         }
-        else if (aCase==mCaseRenamePt)
+        else if (aCase== mCaseRenamePt)
         {
             cSP_PointeImage* aPIm = GetNearest(aClk._pt,200);
             if (aPIm)
@@ -640,8 +640,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
                 mAppli.HighLightSom(aPIm-> Gl());
             }
 
-            //  mAppli.Interface()->RedrawAllWindows();
-            mAppli.SafeRedrawAllWindow();
+            mAppli.RedrawAllWindows();
             return;
         }
 

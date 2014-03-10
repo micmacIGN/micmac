@@ -15,6 +15,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     {
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
 
+        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(deletePoint(QPointF)), this,SLOT(deletePoint(QPointF)));
+
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
 
         connect(m_QTMainWindow->getWidget(aK),	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
@@ -46,7 +48,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     Init();
 
-    connect(this, SIGNAL(selectPoint(std::string)), m_QTMainWindow, SLOT(selectPoint(std::string)));
+    connect(this, SIGNAL(selectPoint(string)), m_QTMainWindow, SLOT(selectPoint(string)));
 
     connect(this, SIGNAL(dataChanged()), m_QTMainWindow, SLOT(updateTreeView()));
 
@@ -64,28 +66,17 @@ void cQT_Interface::SetInvisRef(bool aVal)
     mRefInvis = aVal;
 }
 
-std::pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
+pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
 {
    int aCptMax = mAppli->GetCptMax() + 1;
 
-   std::string aName = aCNP->mName;
+   string aName = aCNP->mName;
    if (aCNP->mTCP == eCaseAutoNum)
    {
-       cout << "AUTO" << endl;
-      std::string nameAuto = mParam->NameAuto().Val();
-      aName = nameAuto + ToString(aCptMax);
-      aCNP->mName = nameAuto + ToString(aCptMax+1);
+       aName = nameFromAutoNum(aCNP, aCptMax);
    }
 
-   if (aCNP->mTCP == eCaseSaisie)
-   {
-       aName = aCNP->mName;
-   }
-
-   // std::cout << "cAppli_SaisiePts::IdNewPts " << aCptMax << " " << aName << "\n";
-   //std::pair aRes(
-   return std::pair<int,std::string>(aCptMax,aName);
-
+   return pair<int,string>(aCptMax,aName);
 }
 
 int cQT_Interface::cImageIdxFromName(QString nameImage)
@@ -170,13 +161,13 @@ void cQT_Interface::changeState(int state, int idPt)
 
         if (aPIm)
         {
-            if(aState == NS_SaisiePts::eEPI_Highlight)
+            if(aState == eEPI_Highlight)
             {
                 aPIm->Gl()->HighLighted() = !aPIm->Gl()->HighLighted();
                 if(aPIm->Gl()->HighLighted())
                     m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
             }
-            else if (aState == NS_SaisiePts::eEPI_Deleted)
+            else if (aState == eEPI_Deleted)
 
                 DeletePoint( aPIm->Gl() );
 
@@ -262,10 +253,10 @@ void cQT_Interface::changeImages(int idPt)
 
     mAppli->SetImagesPriority(PointPrio);
 
-    std::vector<cImage *> images = mAppli->images();
+    vector<cImage *> images = mAppli->images();
 
     cCmpIm aCmpIm(this);
-    std::sort(images.begin(),images.end(),aCmpIm);
+    sort(images.begin(),images.end(),aCmpIm);
 
     int max = thisWin ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
 
@@ -415,7 +406,7 @@ void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int i)
 
 void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
 {
-    std::vector< cSP_PointGlob * > pGV = mAppli->PG();
+    vector< cSP_PointGlob * > pGV = mAppli->PG();
 
     cPointGlob * selectPtGlob = aPIm ? aPIm->Gl()->PG() : NULL;
 
@@ -465,7 +456,7 @@ void cQT_Interface::rebuild2DGlPoints()
 
             if(t!=-1)
             {
-                const std::vector<cSP_PointeImage *> &  aVP = mAppli->image(t)->VP();
+                const vector<cSP_PointeImage *> &  aVP = mAppli->image(t)->VP();
 
                 m_QTMainWindow->getWidget(i)->getGLData()->clearPolygon();
 
@@ -499,18 +490,15 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
 
 void cQT_Interface::ChangeFreeName(QItemSelection selected)
 {
-    cout << "in cHangeFreeName" << endl;
     QModelIndexList sel = selected.indexes();
 
     if (sel.size() != m_QTMainWindow->getModel()->columnCount()) return;
     else
     {
-        std::string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
+        string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
 
         delete _cNamePt;
         _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie clavier à la X11
-
-        cout << "cNamePt " << aName << endl;
     }
 }
 
