@@ -7,6 +7,9 @@ struct invParamCorrel
     /// \brief  Nombre d'images
     uint        nbImages;
 
+    ///
+    ushort      nbClass;
+
     /// \brief  Valeur entiere incorrect
     int         IntDefault;
 
@@ -29,7 +32,7 @@ struct invParamCorrel
     float       mAhEpsilon;
 
     /// \brief  Initialise les param?tres invariants pendant le calcul
-    void SetParamInva(ushort2 dV,ushort2 dRV, uint2 dI, float tmAhEpsilon, uint samplingZ, int uvINTDef, uint nLayer)
+    void SetParamInva(ushort2 dV,ushort2 dRV, uint2 dI, float tmAhEpsilon, uint samplingZ, int uvINTDef, uint nLayer,ushort nClass)
     {
         float uvDef;
         memset(&uvDef,uvINTDef,sizeof(float));
@@ -49,6 +52,8 @@ struct invParamCorrel
         IntDefault		= uvINTDef;
 
         mAhEpsilon		= tmAhEpsilon;
+
+        nbClass         = nClass;
 
     }
 };
