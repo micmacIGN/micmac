@@ -4,6 +4,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL)
 {
+    _cNamePt = new cCaseNamePoint ("CHANGE",eCaseAutoNum);
+
     mParam = &appli.Param();
     mAppli = &appli;
 
@@ -48,9 +50,11 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     connect(this, SIGNAL(dataChanged()), m_QTMainWindow, SLOT(updateTreeView()));
 
-    connect(this, SIGNAL(pointAdded()), m_QTMainWindow->getModel(), SLOT(addPoint()));
+    connect(this, SIGNAL(pointAdded(cSP_PointeImage *)), m_QTMainWindow->getModel(), SLOT(addPoint(cSP_PointeImage *)));
 
     connect(m_QTMainWindow->getModel(), SIGNAL(dataChanged(QModelIndex const &, QModelIndex const &)), this, SLOT(rebuildGlPoints()));
+
+    connect(m_QTMainWindow->getSelectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(ChangeFreeName(QItemSelection)));
 
     m_QTMainWindow->getModel()->setAppli(mAppli);
 }
@@ -67,6 +71,7 @@ std::pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
    std::string aName = aCNP->mName;
    if (aCNP->mTCP == eCaseAutoNum)
    {
+       cout << "AUTO" << endl;
       std::string nameAuto = mParam->NameAuto().Val();
       aName = nameAuto + ToString(aCptMax);
       aCNP->mName = nameAuto + ToString(aCptMax+1);
@@ -74,15 +79,8 @@ std::pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
 
    if (aCNP->mTCP == eCaseSaisie)
    {
-         //mWEnter->raise();
-         //ELISE_COPY(mWEnter->all_pts(),P8COL::yellow,mWEnter->odisc());
-
-         // std::cin >> aName ;
-         //aName = mWEnter->GetString(Pt2dr(5,15),mWEnter->pdisc()(P8COL::black),mWEnter->pdisc()(P8COL::yellow));
-         //mWEnter->lower();
+       aName = aCNP->mName;
    }
-
-   //mMenuNamePoint->W().lower();
 
    // std::cout << "cAppli_SaisiePts::IdNewPts " << aCptMax << " " << aName << "\n";
    //std::pair aRes(
@@ -110,19 +108,18 @@ void cQT_Interface::addPoint(QPointF point)
     {
         Pt2dr aPGlob(transformation(point));
 
-        cCaseNamePoint aCNP("CHANGE",eCaseAutoNum);
-        //TODO : aCNP *= GetIndexNamePoint();
-
         QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->imageName();
 
         int t = cImageIdxFromName(nameImage);
 
         if(t != -1)
-            mAppli->image(t)->CreatePGFromPointeMono(aPGlob,eNSM_Pts,-1,&aCNP);
+        {
+            mAppli->image(t)->CreatePGFromPointeMono(aPGlob, eNSM_Pts, -1, GetIndexNamePoint());
 
-        rebuildGlPoints();
+            rebuildGlPoints();
 
-        emit pointAdded();
+            emit pointAdded();
+        }
     }
 }
 
@@ -213,8 +210,8 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
                 aCNP = Case;
         }
 
-        if (aCNP.mFree)
-        {
+        //if (aCNP.mFree)
+        //{
             for (int aKP=0 ; aKP< int(mAppli->PG().size()) ; aKP++)
             {
                 if (mAppli->PG()[aKP]->PG()->Name() == newName)
@@ -225,7 +222,7 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
             }
 
             mAppli->ChangeName(oldName, newName);
-        }
+        //}
 
         rebuildGlPoints(aPIm);
 
@@ -288,7 +285,6 @@ void cQT_Interface::changeImages(int idPt)
     }
 
     mAppli->SetImages(images);
-    //TODO: setImages dans le cas ThisWindow
 
     rebuild2DGlPoints();
 }
@@ -501,6 +497,23 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
     Save();
 }
 
+void cQT_Interface::ChangeFreeName(QItemSelection selected)
+{
+    cout << "in cHangeFreeName" << endl;
+    QModelIndexList sel = selected.indexes();
+
+    if (sel.size() != m_QTMainWindow->getModel()->columnCount()) return;
+    else
+    {
+        std::string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
+
+        delete _cNamePt;
+        _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie clavier à la X11
+
+        cout << "cNamePt " << aName << endl;
+    }
+}
+
 bool cQT_Interface::WVisible(cSP_PointeImage & aPIm)
 {
     const cOneSaisie  & aSom = *(aPIm.Saisie());
@@ -531,17 +544,5 @@ void cQT_Interface::AddUndo(cOneSaisie *aSom)
 
 cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 {
-   /* for (int aK=0 ; aK<int(mVNameCase.size()) ; aK++)
-    {
-        cCaseNamePoint & aCNP = mVNameCase[aK];
-        mMenuNamePoint->StringCase(aPCase,aCNP.mFree ? aCNP.mName : "***" ,true);
-    }
-
-
-    Pt2di aKse = mMenuNamePoint->Pt2Case(Pt2di(aClk._pt));
-    cCaseNamePoint * aRes =  &(mVNameCase[aKse.y]);
-
-    if (! aRes->mFree)*/ return 0;
-
-    //return aRes;
+    return _cNamePt;
 }

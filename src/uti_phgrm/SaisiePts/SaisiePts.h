@@ -104,7 +104,7 @@ class cSP_PointGlob
 
           std::map<std::string,cSP_PointeImage *> getPointes(){ return mPointes; }
 
-     private:
+private:
           cSP_PointGlob(const cSP_PointGlob &) ; // N.I.
 
           cAppli_SaisiePts & mAppli;
@@ -457,7 +457,7 @@ class cAppli_SaisiePts
 
     void Undo();
     void Redo();
-    void Sauv();
+    void Save();
     void Exit();
 
     void AddUndo(cOneSaisie,cImage *);
@@ -481,8 +481,8 @@ class cAppli_SaisiePts
 
 
     // 0 si existe deja
-    cSP_PointGlob *     AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
-    void                AddPGInAllImage(cSP_PointGlob * aSPG);
+    cSP_PointGlob *     AddPointGlob(cPointGlob aPG, bool OkRessuscite=false, bool Init=false, bool ReturnAlways=false);
+    void                AddPGInAllImages(cSP_PointGlob * aSPG);
 
     void                HighLightSom(cSP_PointGlob *);
 

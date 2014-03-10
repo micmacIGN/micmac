@@ -161,7 +161,7 @@ void cSP_PointGlob::ReCalculPoints()
         cImage &          anIm = *(aPointeIm.Image());
         cCapture3D *      aCap3d =  anIm.Capt3d();
         ELISE_ASSERT(aCap3d!=0,"Internal problem in cSP_PointGlob::ReCalculPoints");
-        Pt2dr             aPIm= aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
+        Pt2dr             aPIm = aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
         ELISE_ASSERT(aCap3d->CaptHasData(aPIm),"Internal pb, no data in sensor for required point");
 
 
@@ -199,7 +199,7 @@ void cSP_PointGlob::ReCalculPoints()
             cImage &          anIm = *(aPointeIm.Image());
             cCapture3D *      aCap3d =  anIm.Capt3d();
             ELISE_ASSERT(aCap3d!=0,"Internal problem in cSP_PointGlob::ReCalculPoints");
-            Pt2dr             aPIm= aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
+            Pt2dr             aPIm = aCap3d->ImRef2Capteur(aPointeIm.Saisie()->PtIm());
             aVSeg.push_back(aCap3d->Capteur2RayTer(aPIm));
             if (aCap3d->HasPreciseCapteur2Terrain())
             {
@@ -229,7 +229,7 @@ void cSP_PointGlob::ReCalculPoints()
         if (euclid(aPt-aP0)< 1e-9) return;
     }
 
-    mAppli.AddPGInAllImage(this);
+    mAppli.AddPGInAllImages(this);
 
     mAppli.Interface()->RedrawAllWindows();
 }

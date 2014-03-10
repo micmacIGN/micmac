@@ -15,8 +15,6 @@ public :
     cQT_Interface(cAppli_SaisiePts &appli,MainWindow* QTMainWindow);
     ~cQT_Interface(){}
 
-    void                ChangeFreeNamePoint(const std::string &, bool SetFree){}
-
     void                RedrawAllWindows(){}
 
     cCaseNamePoint *    GetIndexNamePoint();
@@ -75,17 +73,21 @@ private:
 
     cData               *_data;
 
+    cCaseNamePoint      *_cNamePt;
+
 signals:
 
     void                selectPoint(std::string ptName);
 
-    void                pointAdded();
+    void                pointAdded(cSP_PointeImage * aPIm = NULL);
 
     void                dataChanged();
 
 public slots:
 
     void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
+
+    void                ChangeFreeName(QItemSelection);
 
 private slots:
 

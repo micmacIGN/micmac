@@ -42,6 +42,8 @@ MainWindow::~MainWindow()
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
+    delete _model;
+    delete _selectionModel;
 }
 
 void MainWindow::connectActions()
@@ -87,8 +89,8 @@ void MainWindow::connectActions()
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 
-    if (_mode > MASK3D)
-        connect (_ui->treeView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(setNextPointName()));
+  //  if (_mode > MASK3D)
+        //connect (_ui->treeView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(setNextPointName()));
 }
 
 void MainWindow::createRecentFileMenu()
@@ -734,6 +736,8 @@ void MainWindow::setUI()
 
         _ui->treeView->setModel(_model);
         _ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
+
+        _selectionModel = _ui->treeView->selectionModel();
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
@@ -956,11 +960,7 @@ void MainWindow::selectPoint(string ptName)
 
 void MainWindow::updateTreeView()
 {   
-
-
     _model->updateData();
-
-
 
     QFontMetrics fm(font());
 
@@ -971,21 +971,5 @@ void MainWindow::updateTreeView()
     {
         colWidth = _model->getColumnSize(aK, fm);
         _ui->treeView->setColumnWidth(0, colWidth);
-    }
-}
-
-void MainWindow::setNextPointName()
-{
-    QModelIndexList sel = _ui->treeView->selectionModel()->selectedIndexes();
-
-    if (sel.size() != _model->columnCount()) return;
-    else
-    {
-        //cout << "name : " << sel[0].data(Qt::DisplayRole).toString().toStdString().c_str() << endl;
-
-        for (int aK=0; aK < nbWidgets(); ++aK)
-        {
-           // getWidget(aK)->polygon().setDefaultName(sel[0].data(Qt::DisplayRole).toString());
-        }
     }
 }

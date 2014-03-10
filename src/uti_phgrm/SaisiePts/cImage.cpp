@@ -160,8 +160,6 @@ cElNuage3DMaille * cImage::CaptNuage()
     return mCaptNuage;
 }
 
-
-
 void cImage::SetSPIM(cSaisiePointeIm * aSPIM)
 {
     ELISE_ASSERT(mSPIm==0,"Multiple cImage::SetSPIM");
@@ -175,14 +173,14 @@ const std::vector<cSP_PointeImage *> &  cImage::VP()
 
 cSP_PointeImage * cImage::PointeOfNameGlobSVP(const std::string & aNameGlob)
 {
-   std::map<std::string,cSP_PointeImage *>::iterator anIt = mPointes.find(aNameGlob);
-   if  (anIt == mPointes.end()) return 0;
-   return anIt->second;
+    std::map<std::string,cSP_PointeImage *>::iterator anIt = mPointes.find(aNameGlob);
+    if  (anIt == mPointes.end()) return 0;
+    return anIt->second;
 }
 
 void cImage::AddAPointe(cOneSaisie * anOS,cSP_PointGlob * aPG,bool FromFile)
 {
-    if (PointeOfNameGlobSVP(aPG->PG()->Name())) 
+   if (PointeOfNameGlobSVP(aPG->PG()->Name()))
        return;
   
    if (mSPIm==0)
@@ -244,6 +242,7 @@ bool cImage::PtInImage(const Pt2dr aP)
 //
 void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCaseNamePoint * aCNP)
 {
+    cout << "in CreatePGFromPointeMono" << endl;
 
     //bool PIsInit = false;
     Pt3dr aPt(0,0,0);
@@ -262,10 +261,8 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
        }
     }
 
-
             //PIsInit = true;
     cPointGlob aPG;
-    //std::pair<int,std::string> anId = mAppli.IdNewPts(aCNP);
     std::pair<int,std::string> anId = mAppli.Interface()->IdNewPts(aCNP);
     if (anId.second=="NONE")
        return;
@@ -278,21 +275,23 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
     aPG.SzRech().SetVal(aSz);  // OKK 
 
     if (PInit)
-       aPG.P3D().SetVal(aPt);
+        aPG.P3D().SetVal(aPt);
     else
         aPG.P3D().SetNoInit();
 
     cSP_PointGlob * aSPG = mAppli.AddPointGlob(aPG,true);
 
-    if (aSPG==0)
-    {
+    cout << "before if aSPG==0" << endl;
+    if (aSPG==0) //already exists
+    {      
+       //ELISE_ASSERT(aSPG!=0,"Incoherence (1) in cImage::CreatePGFromPointeMono");
        return;
-       // ELISE_ASSERT(aSPG!=0,"Incoherence (1) in cImage::CreatePGFromPointeMono");
     }
+
+    cout << "after if aSPG==0" << endl;
     aSPG->SuprDisp();
 
-
-    mAppli.AddPGInAllImage(aSPG);
+    mAppli.AddPGInAllImages(aSPG);
 
     cSP_PointeImage * aPIm = PointeOfNameGlobSVP(aSPG->PG()->Name());
     ELISE_ASSERT(aPIm!=0,"Incoherence (2) in cImage::CreatePGFromPointeMono");
@@ -302,10 +301,12 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
 
     aSPG->ReCalculPoints();
 
-
-    //mAppli.ReaffAllW();
     mAppli.Interface()->RedrawAllWindows();
-    mAppli.Sauv();
+    mAppli.Save();
+
+
+
+    cout << "out CreatePGFromPointeMono" << endl;
 }
 
 

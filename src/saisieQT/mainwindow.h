@@ -63,6 +63,8 @@ public:
 
     TreeModel* getModel() { return _model; }
 
+    QItemSelectionModel * getSelectionModel() { return _selectionModel; }
+
 public slots:
 
     //! Try to load a list of files
@@ -104,8 +106,6 @@ protected slots:
     void setImageName(QString name);
 
     void changeCurrentWidget(void* cuWid);
-
-    void setNextPointName();
 
     //View Menu
     void on_actionShow_axis_toggled(bool);
@@ -195,5 +195,6 @@ private:
     int                     _mode;
 
     TreeModel*              _model;
+    QItemSelectionModel *   _selectionModel;
 };
 #endif // MAINWINDOW_H

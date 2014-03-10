@@ -317,33 +317,89 @@ int TreeModel::getColumnSize(int column, QFontMetrics fm)
     return colWidth;
 }
 
-void TreeModel::addPoint()
+void TreeModel::addPoint(cSP_PointeImage * aPIm)
 {
-    std::vector<cSP_PointGlob *> vPts = _appli->PG();
-    int pos= vPts.size()-1;
+    cout << "in addPoint" << endl;
 
-    QModelIndex idx = index(pos-1, 0);
+    int pos= _appli->PG().size()-1;
+    cSP_PointGlob* aPG;
 
-    if (!insertRow(idx.row()+1, idx.parent()))
-        return;
-
-    QModelIndex newIdx = index(pos, 0);
-
-    TreeItem * item = static_cast<TreeItem*>(newIdx.internalPointer());
-
-    if (item)
+    if (aPIm)
     {
-        cSP_PointGlob* aPG = vPts[pos];
+        aPG = aPIm->Gl();
+    }
+    else
+    {
+        aPG = _appli->PG().back();
+    }
 
-        item->setData(buildRow(aPG));
+    //check if point already exists
+    string name = aPG->PG()->Name();
+    cout << "PG point name :" << name << endl;
+    QModelIndex id;
+    for (int aK=0; aK < rowCount();++aK)
+    {
+        QString text = data(index(aK, 0), Qt::DisplayRole).toString();
 
-        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+        cout << "raw point name :" << text.toStdString() << endl;
 
-        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-        for(; it != map.end(); ++it)
+        if (text.toStdString() == name)
         {
-            item->appendChild(new TreeItem(buildChildRow(*it), item));
+            id = index(aK, 0);
+            pos = aK;
+            cout << "found" << endl;
+        }
+    }
+
+    if ( !id.isValid() )
+    {
+        cout << "not valid id" << endl;
+        //add point
+        QModelIndex idx = index(pos-1, 0);
+
+        if (!insertRow(idx.row()+1, idx.parent()))
+            return;
+
+        QModelIndex newIdx = index(pos, 0);
+
+        TreeItem * item = static_cast<TreeItem*>(newIdx.internalPointer());
+
+        if (item)
+        {
+            item->setData(buildRow(aPG));
+
+            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+            for(; it != map.end(); ++it)
+            {
+                item->appendChild(new TreeItem(buildChildRow(*it), item));
+            }
+        }
+    }
+    else
+    {
+        cout << "valid id" << endl;
+        //insert infos
+
+        TreeItem * item = static_cast<TreeItem*>(id.internalPointer());
+
+        if (item)
+        {
+            item->setData(buildRow(aPG));
+
+            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+            cout << "map size : " << map.size() <<endl;
+            for(; it != map.end(); ++it)
+            {
+                item->appendChild(new TreeItem(buildChildRow(*it), item));
+            }
+
+            cout << "insertion finie"  << endl;
         }
     }
 }
@@ -375,6 +431,28 @@ void TreeModel::setupModelData()
     }
 }
 
+void TreeModel::setPointGlob(QModelIndex idx, cSP_PointGlob* aPG)
+{
+    TreeItem * item = static_cast<TreeItem*>(idx.internalPointer());
+
+    if (item)
+    {
+        item->setData(buildRow(aPG));
+
+        //Pointes image
+
+        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+        int bK = 0;
+        for(; it != map.end(); ++it, ++bK)
+        {
+            item->child(bK)->setData(buildChildRow(*it));
+        }
+    }
+}
+
 void TreeModel::updateData()
 {
     std::vector<cSP_PointGlob *> vPts = _appli->PG();
@@ -384,24 +462,8 @@ void TreeModel::updateData()
         cSP_PointGlob* aPG = vPts[aK];
 
         QModelIndex idx = index(aK, 0);
-        TreeItem * item = static_cast<TreeItem*>(idx.internalPointer());
 
-        if (item)
-        {
-            item->setData(buildRow(aPG));
-
-            //Pointes image
-
-            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
-
-            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-            int bK = 0;
-            for(; it != map.end(); ++it, ++bK)
-            {
-                item->child(bK)->setData(buildChildRow(*it));
-            }
-        }
+        setPointGlob(idx, aPG);
     }
 }
 

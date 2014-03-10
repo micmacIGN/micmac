@@ -122,7 +122,7 @@ void cVirtualInterface::ChangeFreeNamePoint(const std::string & aName, bool SetF
 
 void cVirtualInterface::Save()
 {
-    mAppli->Sauv();
+    mAppli->Save();
 }
 
 bool cVirtualInterface::Visible(eEtatPointeImage aState)
@@ -243,7 +243,7 @@ void  cAppli_SaisiePts::RenameIdPt(std::string & anId)
     //  std::cout << "RenameIdPt [" << aPref << "] == [" << anId << "] " << aCmp << "\n";
 }
 
-cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessucite,bool Init,bool ReturnAlway)
+cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessuscite,bool Init,bool ReturnAlways)
 {
 
     if (Init)
@@ -261,7 +261,7 @@ cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessucite,b
     }
     /*
 */
-    if (iT->second->PG()->Disparu().ValWithDef(false) && OkRessucite)
+    if (iT->second->PG()->Disparu().ValWithDef(false) && OkRessuscite)
     {
         if (! iT->second->PG()->FromDico().ValWithDef(false))
         {
@@ -271,7 +271,7 @@ cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessucite,b
         iT->second->PG()->Disparu().SetNoInit();
         return iT->second;
     }
-    if (ReturnAlway) return  iT->second;
+    if (ReturnAlways) return  iT->second;
     return 0;
 }
 
@@ -416,11 +416,11 @@ void cAppli_SaisiePts::IniPointeIm()
 
     for (std::vector<cSP_PointGlob*>::iterator itP=mPG.begin(); itP!=mPG.end() ; itP++)
     {
-        AddPGInAllImage(*itP);
+        AddPGInAllImages(*itP);
     }
 }
 
-void cAppli_SaisiePts::AddPGInAllImage(cSP_PointGlob  * aSPG)
+void cAppli_SaisiePts::AddPGInAllImages(cSP_PointGlob  * aSPG)
 {
     if (mParam.KeyAssocOri().IsInit())
     {
@@ -528,7 +528,7 @@ void cAppli_SaisiePts::InitInPuts()
         mPG[aKP]->ReCalculPoints();
     }
     //std::cout << "SPTS::EEEEEE\n"; getchar();
-    Sauv();
+    Save();
     //std::cout << "SPTS::FFFFF\n"; getchar();
 }
 
@@ -564,7 +564,7 @@ cSetOfSaisiePointeIm PurgeSOSPI(const cSetOfSaisiePointeIm & aSOSPI)
     return aRes;
 }
 
-void cAppli_SaisiePts::Sauv()
+void cAppli_SaisiePts::Save()
 {
     cSetOfSaisiePointeIm aSOSPI = PurgeSOSPI(mSOSPI);
     MakeFileXML(aSOSPI,mDupNameSauvPtIm);
@@ -667,7 +667,7 @@ void cAppli_SaisiePts::Sauv()
 
 void cAppli_SaisiePts::Exit()
 {
-    Sauv();
+    Save();
     exit(-1);
 }
 
