@@ -320,7 +320,8 @@ class cVirtualInterface
 
 //     virtual  cFenMenu *      MenuNamePoint()=0;
 
-    virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
+    virtual pair<int,string> IdNewPts(cCaseNamePoint * aCNP)=0;
+    string              nameFromAutoNum(cCaseNamePoint *aCNP, int aCptMax);
 
     bool                Visible(eEtatPointeImage aState);
 

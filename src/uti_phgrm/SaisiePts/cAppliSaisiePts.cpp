@@ -131,6 +131,13 @@ void cVirtualInterface::Save()
     mAppli->Save();
 }
 
+string cVirtualInterface::nameFromAutoNum(cCaseNamePoint *aCNP, int aCptMax)
+{
+    string nameAuto = mParam->NameAuto().Val();
+    aCNP->mName = nameAuto + ToString(aCptMax+1);
+    return nameAuto + ToString(aCptMax);
+}
+
 bool cVirtualInterface::Visible(eEtatPointeImage aState)
 {
     return  ((aState!=eEPI_Refute) || !RefInvis())

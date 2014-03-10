@@ -131,6 +131,8 @@ signals:
 
     void addPoint(QPointF point);
 
+    void deletePoint(QPointF point);
+
     void movePoint(int idPt);
 
     void selectPoint(int idPt);
