@@ -39,33 +39,67 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-template  <class Type,class TypeImIn>
-          void    FiltrageCardCC(bool V4,Type & aTIm,int aValSelec,int aValAff,int aSeuilCard)
+
+template <class Type> class cSomValCC
+{
+    public :
+      cSomValCC(Type & aIm) : 
+         mIm(aIm) ,
+         mSom (0)
+      {
+      }
+      void  OnNewPt(const Pt2di &aPt) { mSom += mIm.get(aPt);}
+
+      Type & mIm;
+      double mSom;
+};
+
+template <class Type> class cMarqImCC
+{
+    public :
+      cMarqImCC(Type & aIm,int aVal) : 
+         mIm(aIm) ,
+         mVal (aVal)
+      {
+      }
+      void  OnNewPt(const Pt2di &aPt) {  mIm.oset(aPt,mVal);}
+
+
+      Type & mIm;
+      double    mVal;
+};
+
+
+
+
+//   aImIn peut etre egale a ImOut
+//
+
+template  <class TypeEtiq,class TypeImIn,class TypeImOut>
+          void    MoyByCC(bool V4,TypeEtiq  aTIm,int aValExclu,TypeImIn  aImIn,TypeImOut  aImOut)
 {
    Pt2di aSz = aTIm.sz();
 
-   Im2D_Bits<1> aMasq1(aSz.x,aSz.y,1);
+   Im2D_Bits<1> aMasq1 = ImMarqueurCC(aSz);
    TIm2DBits<1> aTMasq1(aMasq1);
-   ELISE_COPY(aMasq1.border(1),0,aMasq1.out());
 
    Im2D_Bits<1> aMasq2(aSz.x,aSz.y,1);
    TIm2DBits<1> aTMasq2(aMasq2);
    ELISE_COPY(aMasq2.border(1),0,aMasq2.out());
 
    Pt2di aP;
-   cCC_NoActionOnNewPt aNoAct;
    for(aP.x=0 ; aP.x<aSz.x ; aP.x++)
    {
       for(aP.y=0 ; aP.y<aSz.y ; aP.y++)
       {
-          if ((aTIm.get(aP)==aValSelec) && (aTMasq1.get(aP)==1))
+          int aValIm = aTIm.get(aP);
+          if ((aValIm!=aValExclu) && (aTMasq1.get(aP)==1))
           {
-               int aNb = OneZC(aP,V4,aTMasq1,1,0,aTIm,aValSelec,aNoAct);
-
-               if (aNb<aSeuilCard)
-               {
-                    OneZC(aP,V4,aTIm,aValSelec,aValAff,aTMasq2,1,aNoAct);
-               }
+               cSomValCC<TypeImIn> aCumSom(aImIn);
+               int aNb = OneZC(aP,V4,aTMasq1,1,0,aTIm,aValIm,aCumSom);
+               
+               cMarqImCC<TypeImOut> aMarqIm(aImOut,aCumSom.mSom/aNb);
+               OneZC(aP,V4,aTMasq2,1,0,aTIm,aValIm,aMarqIm);
           }
       }
    }
@@ -88,9 +122,9 @@ class cImage_LumRas
        Tiff_Im          mTiffIm;
 
        Fonc_Num         FMoy(int aKIter,int aSzW,Fonc_Num);
-       Fonc_Num         FLoc(int aKIter,int aSzW,Fonc_Num);
+       Fonc_Num         FLoc(int aKIter,int aSzW,Im2D_U_INT2);
        Fonc_Num         MoyGlobImage(Fonc_Num aF);
-       Fonc_Num         MoyByCC(Fonc_Num aF);
+       // Fonc_Num         MoyByCC(Fonc_Num aF);
        Im2D_REAL4       mImShade;
 };
 
@@ -165,15 +199,26 @@ Fonc_Num  cImage_LumRas::MoyByCC(Fonc_Num aF)
 */
 
 
-Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
+Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Im2D_U_INT2 anIm)
 {
    Fonc_Num aFMasq = mAppli.mImMasq.in(0);
+   Fonc_Num aF = anIm.in(0);
    
 
+   Fonc_Num aFMoy =  0;
 
-   Fonc_Num aFMoy =  FMoy(aNbIter,aSzW,aF*aFMasq) / Max(1e-2,FMoy(aNbIter,aSzW,aFMasq)) ;
-   if (1) 
+   if (0) 
+      aFMoy =  FMoy(aNbIter,aSzW,aF*aFMasq) / Max(1e-2,FMoy(aNbIter,aSzW,aFMasq)) ;
+   else if (0) 
       aFMoy = MoyGlobImage(aF);
+   else if (1)
+   {
+        Pt2di aSz = anIm.sz();
+        Im2D_REAL4 aIMoy (aSz.x,aSz.y);
+        ::MoyByCC(true, TIm2DBits<1>(mAppli.mImMasq),0,TIm2D<U_INT2,INT>(anIm),TIm2D<REAL4,REAL8>(aIMoy));
+        aFMoy = aIMoy.in();
+        //Tiff_Im::Create8BFromFonc("Test.tif",aSz,aFMoy); std::cout << "CCCCCCCCCC\n"; getchar();
+   }
 
    return  (aF / Max(1e-2,aFMoy)) * aFMasq;
 }
@@ -227,8 +272,8 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
                  Tiff_Im::BlackIsZero
            );
 
-    Fonc_Num aFRas  =  FLoc(6,50,anIm.in(0));
-    Fonc_Num aFStd  =  FLoc(6,50,mAppli.mImGr.in(0));
+    Fonc_Num aFRas  =  FLoc(6,50,anIm);
+    Fonc_Num aFStd  =  FLoc(6,50,mAppli.mImGr);
 // Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
 
    ELISE_COPY(mImShade.all_pts(),(aFRas-aFStd),mImShade.out());
@@ -236,7 +281,7 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
    ELISE_COPY
    (
       TifTest.all_pts(),
-      Max(0,Min(255,128 * (1 + 3*mImShade.in()))),
+      Max(0,Min(255,128 * (1 + 2*mImShade.in()))),
       TifTest.out()
    );
 
@@ -319,7 +364,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
    (
          TifTest.all_pts(),
          // Max(0,Min(255,128 * (1 + 5*aGlobSh))),
-         Max(0,Min(255,aFCoul+ 200*aGlobSh)),
+         Max(0,Min(255,aFCoul+ 20*aGlobSh)),
          TifTest.out()
    );
 }

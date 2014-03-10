@@ -493,6 +493,7 @@ class cAppli_SaisiePts
     void                ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
+    void SafeRedrawAllWindow () { if (mInterface) mInterface->RedrawAllWindows();}
 
     void                SetInterface( cVirtualInterface * interf );
 

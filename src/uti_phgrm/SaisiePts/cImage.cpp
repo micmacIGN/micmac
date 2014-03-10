@@ -304,7 +304,8 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
 
 
     //mAppli.ReaffAllW();
-    mAppli.Interface()->RedrawAllWindows();
+    // mAppli.Interface()->RedrawAllWindows();
+    mAppli.SafeRedrawAllWindow();
     mAppli.Sauv();
 }
 

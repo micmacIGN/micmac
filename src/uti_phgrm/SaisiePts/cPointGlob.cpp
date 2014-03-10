@@ -231,7 +231,7 @@ void cSP_PointGlob::ReCalculPoints()
 
     mAppli.AddPGInAllImage(this);
 
-    mAppli.Interface()->RedrawAllWindows();
+    mAppli.SafeRedrawAllWindow();
 }
 
 

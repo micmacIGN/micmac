@@ -57,7 +57,8 @@ void cAppli_SaisiePts::UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUn
    *(aPIm->Saisie()) = aS;
    ToExe.pop_back();
 
-   mInterface->RedrawAllWindows();
+   // mInterface->RedrawAllWindows();
+   SafeRedrawAllWindow();
 }
 
 void cAppli_SaisiePts::Undo()
@@ -136,7 +137,8 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
     }
 
     //PARTIE METIER
-    mInterface->RedrawAllWindows();
+    SafeRedrawAllWindow();
+    // mInterface->RedrawAllWindows();
 }
 
 

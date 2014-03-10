@@ -42,6 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_ALGO_CC
 #define _ELISE_IM_ALGO_CC
 
+Im2D_Bits<1> ImMarqueurCC(Pt2di aSz);
+
+
 // Mais en aValAff les composante connexe de coul=aValSelec de taille < aSeuilCard
 
 template <class T1,class T2,class Action> int OneZC
@@ -106,13 +109,11 @@ template  <class Type>
 {
    Pt2di aSz = aTIm.sz();
 
-   Im2D_Bits<1> aMasq1(aSz.x,aSz.y,1);
+   Im2D_Bits<1> aMasq1 = ImMarqueurCC(aSz);
    TIm2DBits<1> aTMasq1(aMasq1);
-   ELISE_COPY(aMasq1.border(1),0,aMasq1.out());
 
-   Im2D_Bits<1> aMasq2(aSz.x,aSz.y,1);
+   Im2D_Bits<1> aMasq2 = ImMarqueurCC(aSz);
    TIm2DBits<1> aTMasq2(aMasq2);
-   ELISE_COPY(aMasq2.border(1),0,aMasq2.out());
 
    Pt2di aP;
    cCC_NoActionOnNewPt aNoAct;
