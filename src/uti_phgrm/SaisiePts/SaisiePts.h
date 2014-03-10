@@ -334,6 +334,8 @@ class cVirtualInterface
 
     virtual bool        isDisplayed(cImage* )=0;
 
+    static void         ComputeNbFen(Pt2di &pt, int aNbW);
+
 protected:
 
     void                      InitNbWindows();

@@ -59,6 +59,12 @@ void cVirtualInterface::DeletePoint(cSP_PointGlob * aSG)
     ChangeFreeNamePoint(aSG->PG()->Name(), true);
 }
 
+void cVirtualInterface::ComputeNbFen(Pt2di &pt, int aNbW)
+{
+    pt.x = round_up(sqrt(aNbW-0.01));
+    pt.y = round_up((double(aNbW)-0.01)/pt.x);
+}
+
 void cVirtualInterface::InitNbWindows()
 {
     const cSectionWindows & aSW = mParam->SectionWindows();
@@ -69,8 +75,8 @@ void cVirtualInterface::InitNbWindows()
     if (mAppli->nbImages() < mNbW)
     {
         mNbW = mAppli->nbImages();
-        mNb2W.x = round_up(sqrt(mNbW-0.01));
-        mNb2W.y = round_up((double(mNbW)-0.01)/mNb2W.x);
+
+        ComputeNbFen(mNb2W, mNbW);
     }
 }
 
