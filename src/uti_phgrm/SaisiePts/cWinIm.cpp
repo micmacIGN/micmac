@@ -640,7 +640,8 @@ void  cWinIm::MenuPopUp(Clik aClk)
                 mAppli.HighLightSom(aPIm-> Gl());
             }
 
-            mAppli.Interface()->RedrawAllWindows();
+            //  mAppli.Interface()->RedrawAllWindows();
+            mAppli.SafeRedrawAllWindow();
             return;
         }
 

@@ -313,7 +313,7 @@ bool cPriseDeVue::LoadImageMM
     bool isEmpty = mGeom->ClipIsEmpty();
     if (isEmpty)
     {
-       ELISE_ASSERT(!mIsMaitre,"PriseDeVue::Maitre&&Empty !! ");
+       //ELISE_ASSERT(!mIsMaitre,"PriseDeVue::Maitre&&Empty !! ");
        return false;
     }
     else

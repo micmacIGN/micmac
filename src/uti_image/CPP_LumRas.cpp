@@ -39,6 +39,73 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+
+template <class Type> class cSomValCC
+{
+    public :
+      cSomValCC(Type & aIm) : 
+         mIm(aIm) ,
+         mSom (0)
+      {
+      }
+      void  OnNewPt(const Pt2di &aPt) { mSom += mIm.get(aPt);}
+
+      Type & mIm;
+      double mSom;
+};
+
+template <class Type> class cMarqImCC
+{
+    public :
+      cMarqImCC(Type & aIm,int aVal) : 
+         mIm(aIm) ,
+         mVal (aVal)
+      {
+      }
+      void  OnNewPt(const Pt2di &aPt) {  mIm.oset(aPt,mVal);}
+
+
+      Type & mIm;
+      double    mVal;
+};
+
+
+
+
+//   aImIn peut etre egale a ImOut
+//
+
+template  <class TypeEtiq,class TypeImIn,class TypeImOut>
+          void    MoyByCC(bool V4,TypeEtiq  aTIm,int aValExclu,TypeImIn  aImIn,TypeImOut  aImOut)
+{
+   Pt2di aSz = aTIm.sz();
+
+   Im2D_Bits<1> aMasq1 = ImMarqueurCC(aSz);
+   TIm2DBits<1> aTMasq1(aMasq1);
+
+   Im2D_Bits<1> aMasq2(aSz.x,aSz.y,1);
+   TIm2DBits<1> aTMasq2(aMasq2);
+   ELISE_COPY(aMasq2.border(1),0,aMasq2.out());
+
+   Pt2di aP;
+   for(aP.x=0 ; aP.x<aSz.x ; aP.x++)
+   {
+      for(aP.y=0 ; aP.y<aSz.y ; aP.y++)
+      {
+          int aValIm = aTIm.get(aP);
+          if ((aValIm!=aValExclu) && (aTMasq1.get(aP)==1))
+          {
+               cSomValCC<TypeImIn> aCumSom(aImIn);
+               int aNb = OneZC(aP,V4,aTMasq1,1,0,aTIm,aValIm,aCumSom);
+               
+               cMarqImCC<TypeImOut> aMarqIm(aImOut,aCumSom.mSom/aNb);
+               OneZC(aP,V4,aTMasq2,1,0,aTIm,aValIm,aMarqIm);
+          }
+      }
+   }
+}
+
+
 class cImage_LumRas;
 class cAppli_LumRas;
 
@@ -55,7 +122,9 @@ class cImage_LumRas
        Tiff_Im          mTiffIm;
 
        Fonc_Num         FMoy(int aKIter,int aSzW,Fonc_Num);
-       Fonc_Num         FLoc(int aKIter,int aSzW,Fonc_Num);
+       Fonc_Num         FLoc(int aKIter,int aSzW,Im2D_U_INT2);
+       Fonc_Num         MoyGlobImage(Fonc_Num aF);
+       // Fonc_Num         MoyByCC(Fonc_Num aF);
        Im2D_REAL4       mImShade;
 };
 
@@ -94,11 +163,62 @@ Fonc_Num   cImage_LumRas::FMoy(int aNbIter,int aSzW,Fonc_Num aF)
    return aRes;
 }
 
+Fonc_Num  cImage_LumRas::MoyGlobImage(Fonc_Num aF)
+{
+   Im2D_Bits<1> aIM = mAppli.mImMasq;
+   Fonc_Num aFMasq = aIM.in(0);
+   double aVS[2];
 
-Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
+   ELISE_COPY
+   (
+        aIM.all_pts(),
+        Virgule(aF*aFMasq,aFMasq),
+        sigma(aVS,2)
+   );
+
+   return aVS[0] / aVS[1];
+}
+
+/*
+Fonc_Num  cImage_LumRas::MoyByCC(Fonc_Num aF)
+{
+   Im2D_Bits<1> aIM = mAppli.mImMasq;
+   Pt2di aSz  = aIM.Sz();
+
+   Im2D_Bits<1> aIMarq(aSz.x,aSz.y,1);
+   ELISE_COPY(
+
+   Pt2di aP0;
+   for (aP0.x =0 ; aP0.x < aSz.x; aP0.x++)
+   {
+       for (aP0.y =0 ; aP0.y < aSz.y; aP0.y++)
+       {
+       }
+   }
+}
+*/
+
+
+Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Im2D_U_INT2 anIm)
 {
    Fonc_Num aFMasq = mAppli.mImMasq.in(0);
-   Fonc_Num aFMoy =  FMoy(aNbIter,aSzW,aF*aFMasq) / Max(1e-2,FMoy(aNbIter,aSzW,aFMasq)) ;
+   Fonc_Num aF = anIm.in(0);
+   
+
+   Fonc_Num aFMoy =  0;
+
+   if (0) 
+      aFMoy =  FMoy(aNbIter,aSzW,aF*aFMasq) / Max(1e-2,FMoy(aNbIter,aSzW,aFMasq)) ;
+   else if (0) 
+      aFMoy = MoyGlobImage(aF);
+   else if (1)
+   {
+        Pt2di aSz = anIm.sz();
+        Im2D_REAL4 aIMoy (aSz.x,aSz.y);
+        ::MoyByCC(true, TIm2DBits<1>(mAppli.mImMasq),0,TIm2D<U_INT2,INT>(anIm),TIm2D<REAL4,REAL8>(aIMoy));
+        aFMoy = aIMoy.in();
+        //Tiff_Im::Create8BFromFonc("Test.tif",aSz,aFMoy); std::cout << "CCCCCCCCCC\n"; getchar();
+   }
 
    return  (aF / Max(1e-2,aFMoy)) * aFMasq;
 }
@@ -152,8 +272,8 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
                  Tiff_Im::BlackIsZero
            );
 
-    Fonc_Num aFRas  =  FLoc(6,50,anIm.in(0));
-    Fonc_Num aFStd  =  FLoc(6,50,mAppli.mImGr.in(0));
+    Fonc_Num aFRas  =  FLoc(6,50,anIm);
+    Fonc_Num aFStd  =  FLoc(6,50,mAppli.mImGr);
 // Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
 
    ELISE_COPY(mImShade.all_pts(),(aFRas-aFStd),mImShade.out());
@@ -161,7 +281,7 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
    ELISE_COPY
    (
       TifTest.all_pts(),
-      Max(0,Min(255,128 * (1 + 3*mImShade.in()))),
+      Max(0,Min(255,128 * (1 + 2*mImShade.in()))),
       TifTest.out()
    );
 
@@ -183,23 +303,26 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
    mImMasq      (1,1)
    
 {
+     std::vector<double> aPdsI;
      ElInitArgMain
      (
            argc,argv,
            LArgMain() << EAM(mNameImBase)
                       << EAM(mPatImRas) ,
            LArgMain() << EAM(mPostMasq,"Masq",true,"Mask for computation")
+                      << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]")
     );
 
 
+    for (int aK=aPdsI.size() ; aK<3 ; aK++)
+        aPdsI.push_back(1);
     // mTifBaseGr =   new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,1,true));
     mTifBaseCoul = new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,3,true));
 
     mSz =  mTifBaseCoul->sz();
     mImGr.Resize(mSz);
-    double aPds[3] = {1,1,1};
     Symb_FNum aFCoul(mTifBaseCoul->in());
-    Fonc_Num aFGr =  (aPds[0]*aFCoul.v0()+aPds[1]*aFCoul.v1()+aPds[2]*aFCoul.v2())/(aPds[0]+aPds[1]+aPds[2]);
+    Fonc_Num aFGr =  (aPdsI[0]*aFCoul.v0()+aPdsI[1]*aFCoul.v1()+aPdsI[2]*aFCoul.v2())/(aPdsI[0]+aPdsI[1]+aPdsI[2]);
 
     ELISE_COPY(mImGr.all_pts(),aFGr,mImGr.out());
 
@@ -212,6 +335,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
         Tiff_Im aTM(aNameMasq.c_str());
         ELISE_COPY(mImMasq.all_pts(),aTM.in(0),mImMasq.out());
     }
+    ELISE_COPY(mImMasq.border(1),0,mImMasq.out());
 
     mKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
     // mKeyHom = "";
@@ -240,7 +364,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
    (
          TifTest.all_pts(),
          // Max(0,Min(255,128 * (1 + 5*aGlobSh))),
-         Max(0,Min(255,aFCoul+ 200*aGlobSh)),
+         Max(0,Min(255,aFCoul+ 20*aGlobSh)),
          TifTest.out()
    );
 }
