@@ -199,11 +199,11 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
 {
 
 
-    ELISE_ASSERT
-    (
-        aPDV->NumEquiv()==0,
-    "Ne gere pas les classe d'equiv image en GPU"
-    );
+//    ELISE_ASSERT
+//    (
+//        aPDV->NumEquiv()==0,
+//    "Ne gere pas les classe d'equiv image en GPU"
+//    );
 
     if (! Top)
        return;
@@ -711,9 +711,27 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                     float*	fdataImg1D	= NULL;
                     uint2	dimImgMax	= make_uint2(0,0);
 
+                    ushort  nbCLass     = 1;
+                    ushort  pitImage    = 0;
+
+                    IMmGg.Data().ReallocHostClassEqui(mNbIm);
+
+                    ushort2* hClassEqui = IMmGg.Data().HostClassEqui();
+
                     for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                     {
                         cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+
+                        hClassEqui[aKIm].x = aGLI.PDV()->NumEquiv();
+                        hClassEqui[aKIm].y = pitImage;
+
+                        if(aKIm && hClassEqui[aKIm-1].x != hClassEqui[aKIm].x)
+                        {
+                            pitImage = aKIm + 1;
+                            nbCLass++;
+                        }
+
+                        //printf("Image : %d, Classe : %d, NB classe %d, pit : %d\n",aKIm,hClassEqui[aKIm].x,nbCLass,hClassEqui[aKIm].y);
                         dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
                     }
 
@@ -744,7 +762,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-                    IMmGg.SetParameter(mNbIm, make_ushort2(toUi2(mCurSzV0)), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+                    IMmGg.SetParameter(mNbIm, make_ushort2(toUi2(mCurSzV0)), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT,nbCLass);
 
                 }
 
