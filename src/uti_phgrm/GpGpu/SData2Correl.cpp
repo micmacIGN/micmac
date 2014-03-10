@@ -66,6 +66,11 @@ Rect *SData2Correl::HostRect()
     return _hRect.pData();
 }
 
+ushort2 *SData2Correl::HostClassEqui()
+{
+    return _hClassEqui.pData();
+}
+
 void SData2Correl::DeallocHostData()
 {
     for (int i = 0; i < SIZERING; ++i)
@@ -73,6 +78,7 @@ void SData2Correl::DeallocHostData()
 
     _hVolumeProj.Dealloc();
     _hRect.Dealloc();
+    _hClassEqui.Dealloc();
 }
 
 void SData2Correl::DeallocDeviceData()
@@ -148,6 +154,9 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
     _dRect.ReallocIfDim(make_uint2(1,1),param.invPC.nbImages * param.ZCInter);
     _dRect.CopyHostToDevice(_hRect.pData());
     //
+    // Gestion des classes d'equivalences
+    _dClassEqui.ReallocIfDim(make_uint2(1,1),param.invPC.nbImages);
+    _dClassEqui.CopyHostToDevice(_hClassEqui.pData());
 
 
     // Copier les projections du host --> device
@@ -168,6 +177,11 @@ void SData2Correl::CopyDevicetoHost(uint idBuf, uint s)
 void SData2Correl::UnBindTextureProj(uint s)
 {
     checkCudaErrors( cudaUnbindTexture(&(GetTeXProjection(s))));
+}
+
+void SData2Correl::ReallocHostClassEqui(uint nbImages)
+{
+    _hClassEqui.ReallocIfDim(make_uint2(1,1),nbImages);
 }
 
 void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
@@ -192,6 +206,7 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param, uint idBuff)
 
     _hVolumeProj.ReallocIf(param.dimSTer,zInter*param.invPC.nbImages);
     _hRect.ReallocIfDim(make_uint2(1,1),zInter*param.invPC.nbImages);
+
 }
 
 void SData2Correl::ReallocDeviceData(pCorGpu &param)
