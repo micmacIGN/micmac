@@ -194,7 +194,7 @@ void MainWindow::addFiles(const QStringList& filenames)
 }
 
 void MainWindow::on_actionFullScreen_toggled(bool state)
-{   
+{
     _params->setFullScreen(state);
 
     return state ? showFullScreen() : showNormal();
@@ -590,10 +590,10 @@ void MainWindow::openRecentFile()
 {
     // A TESTER en multi images
 
-#if WINVER == 0x0601 
-	QAction *action = dynamic_cast<QAction *>(sender());
-#else 
-	QAction *action = qobject_cast<QAction *>(sender());
+#if WINVER == 0x0601
+    QAction *action = dynamic_cast<QAction *>(sender());
+#else
+    QAction *action = qobject_cast<QAction *>(sender());
 #endif
 
     if (action)
@@ -619,18 +619,18 @@ void MainWindow::setCurrentFile(const QString &fileName)
         files.removeLast();
 
     settings.setValue("recentFileList", files);
-	
+
     foreach (QWidget *widget, QApplication::topLevelWidgets())
-    {        
-		#if WINVER == 0x0601 
-			MainWindow *mainWin = dynamic_cast<MainWindow *>(widget);
-		#else
-			MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
-		#endif
+    {
+        #if WINVER == 0x0601
+            MainWindow *mainWin = dynamic_cast<MainWindow *>(widget);
+        #else
+            MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
+        #endif
         if (mainWin)
             mainWin->updateRecentFileActions();
     }
-	
+
 }
 
 void MainWindow::updateRecentFileActions()
@@ -744,9 +744,12 @@ void MainWindow::setUI()
     {
         _ui->QFrame_Tools->layout()->removeWidget(_ui->QFrame_zoom);
         _ui->QFrame_Tools->layout()->removeWidget(_ui->frame_preview3D);
+        _ui->QFrame_Tools->layout()->removeWidget(_ui->treeView);
+        _ui->splitter_Tools->hide();
 
         delete _ui->QFrame_zoom;
         delete _ui->frame_preview3D;
+        delete _ui->treeView;
     }
 }
 
@@ -887,9 +890,9 @@ void MainWindow::undo(bool undo)
 void MainWindow::applyParams()
 {
     move(_params->getPosition());
-    
+
     QSize szFen = _params->getSzFen();
-    
+
     if (_params->getFullScreen())
     {
         showFullScreen();
@@ -959,7 +962,7 @@ void MainWindow::selectPoint(string ptName)
 }
 
 void MainWindow::updateTreeView()
-{   
+{
     _model->updateData();
 
     QFontMetrics fm(font());
