@@ -112,8 +112,6 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
       cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,modZ);
 
-      printf("[%d] ",blockIdx.z);
-
   }
 
   __syncthreads();
@@ -178,15 +176,13 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   const ushort iCla = ClassEqui[modZ].x;
 
-  const ushort pCla = ClassEqui[iCla].y;
+  const ushort pCla = ClassEqui[iCla].y; 
 
   const int  idN    = (pitZ * invPc.nbClass + iCla ) * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
 
   const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + piCa + pCla;
 
-  //printf("[%u] %d ",modZ,pCla);
-
-  float* cache      = cachVig + iCa * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
+  float* cache      = cachVig + (iCa * HdPc.sizeCach) + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
 
 #pragma unroll
   for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
@@ -239,7 +235,7 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
   __shared__ float resu[ SIZE3VIGN/2 ][ SIZE3VIGN/2 ];		// resultat
 
   //__shared__ float iResu[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// resultat
-  __shared__ ushort nbIm[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// nombre d'images correcte
+  __shared__ uint nbIm[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// nombre d'images correcte
 
   // coordonnées des threads // TODO uint2 to ushort2
   const uint2 t  = make_uint2(threadIdx);
@@ -267,7 +263,7 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
   //if (!aEq(t - thTer*invPc.dimVig,0))
   //{
       resu[mt.y][mt.x]	= 0.0f;
-      nbIm[mt.y][mt.x]  = 0.0f;
+      nbIm[mt.y][mt.x]  = 0U;
   //}
 
   for (ushort iCla = 0; iCla < invPc.nbClass; ++iCla)
@@ -279,18 +275,25 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
 
       //__syncthreads();
 
-      if ( nImgOK  < 2 )
+      if ( nImgOK  >= 2 )
       {
+          //if(iCla==0 )
+          //printf("[%d,%d]",iCla,nImgOK);
+
           //iResu[mt.y][mt.x]   = 0.0f;
           aSV [t.y][t.x]    = 0.0f;
           aSVV[t.y][t.x]    = 0.0f;
 
-          const uint pitLayerCache  = blockIdx.z  * HdPc.sizeCachAll + to1D( ptCach, HdPc.dimCach );	// Taille du cache vignette pour une image
+           __syncthreads();
+
+          const uint pitCla         = ((uint)classEqui[iCla].y) * HdPc.sizeCach;
+
+          const uint pitLayerCache  = blockIdx.z  * HdPc.sizeCachAll + pitCla + to1D( ptCach, HdPc.dimCach );	// Taille du cache vignette pour une image
 
           float* caVi = cacheVign + pitLayerCache;
 
-#pragma unroll
-          for(uint i =  classEqui[iCla].y * HdPc.sizeCach ;i< nImgOK * HdPc.sizeCach ;i+=HdPc.sizeCach)
+ #pragma unroll
+          for(uint i =  0 ;i< nImgOK * HdPc.sizeCach ;i+=HdPc.sizeCach)
           {
               const float val  = caVi[i];
               aSV[t.y][t.x]   += val;
@@ -299,26 +302,31 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
 
           __syncthreads();
 
-          atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK));
+          atomicAdd(&(resu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)) * ((float)nImgOK - 1) );
 
           __syncthreads();
 
           if (!aEq(t - thTer*invPc.dimVig,0))
           {
               //resu[thTer.y][thTer.x] += iResu[thTer.y][thTer.x];
-              nbIm[thTer.y][thTer.x] += nImgOK - 1;
+             // nbIm[thTer.y][thTer.x] =nbIm[thTer.y][thTer.x] + nImgOK - 1;
+               nbIm[thTer.y][thTer.x] += nImgOK - 1;
           }
       }
   }
 
-  if( nbIm[thTer.y][thTer.x] == 0 || !aEq(t - thTer*invPc.dimVig,0)) return;
+  __syncthreads();
+
+  if( (nbIm[thTer.y][thTer.x] == 0) || (!aEq(t - thTer*invPc.dimVig,0))) return;
 
   //__syncthreads();
 
   // Normalisation pour le ramener a un equivalent de 1-Correl
   //const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nImgOK -1.0f) * (invPc.sizeVig));
 
-  const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nbIm[thTer.y][thTer.x])* (invPc.sizeVig));
+  //const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nbIm[thTer.y][thTer.x])* (invPc.sizeVig));
+
+  const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nbIm[thTer.y][thTer.x])* (invPc.sizeVig));;
 
   dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
 
