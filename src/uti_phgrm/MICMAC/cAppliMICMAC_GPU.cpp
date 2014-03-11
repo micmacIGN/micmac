@@ -728,12 +728,12 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                         if(aKIm && hClassEqui[aKIm-1].x != hClassEqui[aKIm].x)
                         {
                             pitImage = aKIm;
-                            hClassEqui[hClassEqui[aKIm].x].y = pitImage;
                             nbCLass++;
                         }
 
+                        hClassEqui[hClassEqui[aKIm].x].y = pitImage;
 
-//                        printf("Image : %d, Classe : %d, NB classe %d, pit : %d\n",aKIm,hClassEqui[aKIm].x,nbCLass,hClassEqui[hClassEqui[aKIm].x].y);
+                        //printf("Image : %d, Classe : %d, NB classe %d, pit : %d\n",aKIm,hClassEqui[aKIm].x,nbCLass,hClassEqui[hClassEqui[aKIm].x].y);
                         dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
                     }
 
