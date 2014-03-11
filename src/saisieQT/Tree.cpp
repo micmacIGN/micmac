@@ -3,7 +3,7 @@
 TreeItem::TreeItem(const QVector<QVariant> &data, TreeItem *parent)
 {
     parentItem = parent;
-    itemData = data;   
+    itemData = data;
 }
 
 TreeItem::~TreeItem()
@@ -319,8 +319,6 @@ int TreeModel::getColumnSize(int column, QFontMetrics fm)
 
 void TreeModel::addPoint(cSP_PointeImage * aPIm)
 {
-    cout << "in addPoint" << endl;
-
     int pos= _appli->PG().size()-1;
     cSP_PointGlob* aPG;
 
@@ -335,26 +333,24 @@ void TreeModel::addPoint(cSP_PointeImage * aPIm)
 
     //check if point already exists
     string name = aPG->PG()->Name();
-    cout << "PG point name :" << name << endl;
+
     QModelIndex id;
-    for (int aK=0; aK < rowCount();++aK)
+    for (int aK=0; aK < rowCount(rootItem->index());++aK)
     {
         QString text = data(index(aK, 0), Qt::DisplayRole).toString();
-
-        cout << "raw point name :" << text.toStdString() << endl;
 
         if (text.toStdString() == name)
         {
             id = index(aK, 0);
             pos = aK;
-            cout << "found" << endl;
         }
     }
 
-    if ( !id.isValid() )
+    if ( !id.isValid() ) //add point
     {
-        cout << "not valid id" << endl;
-        //add point
+        pos = rowCount(rootItem->index());
+
+
         QModelIndex idx = index(pos-1, 0);
 
         if (!insertRow(idx.row()+1, idx.parent()))
@@ -378,11 +374,8 @@ void TreeModel::addPoint(cSP_PointeImage * aPIm)
             }
         }
     }
-    else
+    else //insert infos
     {
-        cout << "valid id" << endl;
-        //insert infos
-
         TreeItem * item = static_cast<TreeItem*>(id.internalPointer());
 
         if (item)
@@ -393,13 +386,10 @@ void TreeModel::addPoint(cSP_PointeImage * aPIm)
 
             std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
 
-            cout << "map size : " << map.size() <<endl;
             for(; it != map.end(); ++it)
             {
                 item->appendChild(new TreeItem(buildChildRow(*it), item));
             }
-
-            cout << "insertion finie"  << endl;
         }
     }
 }
@@ -425,7 +415,7 @@ void TreeModel::setupModelData()
         std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
 
         for(; it != map.end(); ++it)
-        {  
+        {
             item->appendChild(new TreeItem(buildChildRow(*it), item));
         }
     }
@@ -457,13 +447,60 @@ void TreeModel::updateData()
 {
     std::vector<cSP_PointGlob *> vPts = _appli->PG();
 
+    std::vector <std::string> ptNames;
+
     for (int aK=0; aK < (int) vPts.size(); ++aK)
     {
         cSP_PointGlob* aPG = vPts[aK];
 
-        QModelIndex idx = index(aK, 0);
+        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
 
-        setPointGlob(idx, aPG);
+        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+        int nbDisparus = 0;
+        for(; it != map.end(); ++it)
+        {
+            cSP_PointeImage* aPIm = it->second;
+
+            if (aPIm->Saisie()->Etat() == eEPI_Disparu)
+                ++nbDisparus;
+        }
+
+        if (nbDisparus == (int) map.size())
+        {
+            ptNames.push_back(aPG->PG()->Name());
+        }
+        else
+        {
+            for (int bK=0; bK < rowCount(rootItem->index());++bK) //TODO: factoriser
+            {
+                QString text = data(index(bK, 0), Qt::DisplayRole).toString();
+
+                if (text.toStdString() == aPG->PG()->Name())
+                {
+                    setPointGlob(index(bK, 0), aPG);
+                }
+            }
+        }
+    }
+
+    QVector <QModelIndex> vIdx;
+    for (int aK =0; aK< (int) ptNames.size(); ++aK)
+    {
+        for (int bK=0; bK < rowCount(rootItem->index());++bK)
+        {
+            QString text = data(index(bK, 0), Qt::DisplayRole).toString();
+
+            if (text.toStdString() == ptNames[aK])
+            {
+                vIdx.insert(0, index(bK, 0));
+            }
+        }
+    }
+
+    for (int aK=0; aK < vIdx.size(); ++aK)
+    {
+        removeRow(vIdx[aK].row(), vIdx[aK].parent());
     }
 }
 

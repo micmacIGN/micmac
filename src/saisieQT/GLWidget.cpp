@@ -100,7 +100,6 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
 void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
 {
     QString name(aSom->NamePt().c_str());
-
     cPoint point(_painter,pt,name,true,aSom->Etat());
 
     point.setHighlight(highlight);
@@ -186,10 +185,10 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             {
             case Qt::Key_Delete:
                 emit removePoint(NS_SaisiePts::eEPI_Deleted, m_GLData->m_polygon.idx());
-                m_GLData->m_polygon.removeSelectedPoint();
+                polygon().removeSelectedPoint();
                 break;
             case Qt::Key_Escape:
-                m_GLData->clearPolygon();
+                if (polygon().isLinear()) m_GLData->clearPolygon();
                 break;
             case Qt::Key_1:
                 zoomFactor(100);
@@ -448,8 +447,6 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 else if (!polygon().isLinear() && isPtInsideIm(m_lastPosImage))
                 {
-                    polygon().add(m_lastPosImage);
-
                     addPoint(m_lastPosImage);
                 }
             }

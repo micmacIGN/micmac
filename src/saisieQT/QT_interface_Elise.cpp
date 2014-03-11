@@ -66,15 +66,15 @@ void cQT_Interface::SetInvisRef(bool aVal)
 
 pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
 {
-   int aCptMax = mAppli->GetCptMax() + 1;
+    int aCptMax = mAppli->GetCptMax() + 1;
 
-   string aName = aCNP->mName;
-   if (aCNP->mTCP == eCaseAutoNum)
-   {
-       aName = nameFromAutoNum(aCNP, aCptMax);
-   }
+    string aName = aCNP->mName;
+    if (aCNP->mTCP == eCaseAutoNum)
+    {
+        aName = nameFromAutoNum(aCNP, aCptMax);
+    }
 
-   return pair<int,string>(aCptMax,aName);
+    return pair<int,string>(aCptMax,aName);
 }
 
 int cQT_Interface::cImageIdxFromName(QString nameImage)
