@@ -65,6 +65,9 @@ public:
 
     QItemSelectionModel * getSelectionModel() { return _selectionModel; }
 
+    void setUI();
+    void updateUI();
+
 public slots:
 
     //! Try to load a list of files
@@ -79,8 +82,6 @@ public slots:
     void openRecentFile();
 
     void progression();
-
-    void setUI();
 
     cEngine* getEngine(){return _Engine;}
 
@@ -112,6 +113,7 @@ protected slots:
     void on_actionShow_ball_toggled(bool);
     void on_actionShow_cams_toggled(bool);
     void on_actionShow_bbox_toggled(bool);
+    void on_actionShow_grid_toggled(bool);
 
     void on_actionFullScreen_toggled(bool);
     void on_actionShow_messages_toggled(bool);
@@ -159,7 +161,7 @@ protected slots:
 protected:
 
     //! Connects all QT actions to slots
-    void connectActions();  
+    void connectActions();
 
 private:
 

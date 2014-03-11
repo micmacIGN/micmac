@@ -12,12 +12,12 @@
 #include <QPainter>
 
 #ifdef ELISE_Darwin
-	#include "OpenGL/glu.h"	
+    #include "OpenGL/glu.h"
 #else
-	#ifdef _WIN32
-		#include "windows.h"
-	#endif
-	#include "GL/glu.h"
+    #ifdef _WIN32
+        #include "windows.h"
+    #endif
+    #include "GL/glu.h"
 #endif
 
 #define QMaskedImage cMaskedImage<QImage>
@@ -108,7 +108,7 @@ class cPoint : public cObjectGL, public QPointF
            bool showName   = false,
            int  state = eEPI_NonValue,
            bool isSelected = false,
-           QColor color = Qt::red,        
+           QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
            float diameter = 4.f,
            bool  highlight  = false);
@@ -340,7 +340,7 @@ class cPolygon : public cObjectGL
         QColor              _lineColor;
         int                 _idx;
 
-        QPainter *          _painter;        
+        QPainter *          _painter;
 
     private:
         float               _pointSize;
@@ -378,7 +378,7 @@ class cPolygonHelper : public cPolygon
 
     private:
 
-        cPolygon* _polygon;     
+        cPolygon* _polygon;
 };
 
 
@@ -653,7 +653,7 @@ public:
 
     void        replaceCloud(GlCloud* cloud, int id = 0);
 
-    void        setPainter(QPainter *);        
+    void        setPainter(QPainter *);
 
     enum Option {
       OpNO          = 0x00,
@@ -661,8 +661,9 @@ public:
       OpShow_Axis   = 0x02,
       OpShow_BBox   = 0x04,
       OpShow_Mess   = 0x08,
-      OpShow_Cams   = 0x10
-    //  OpShow_Ball      = 0x20
+      OpShow_Cams   = 0x10,
+      OpShow_Grid   = 0x20
+    //  OpShow_next      = 0x40
       // ...
     };
 
@@ -670,7 +671,7 @@ public:
 
     options     _options;
 
-    void        GprintBits(size_t const size, void const * const ptr);    
+    void        GprintBits(size_t const size, void const * const ptr);
 
     void        setOption(QFlags<Option> option,bool show);
 

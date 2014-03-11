@@ -519,7 +519,7 @@ void cQT_Interface::rebuildGlCamera()
 
 void cQT_Interface::option3DPreview()
 {
-    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams);
+    m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Grid | cGLData::OpShow_Cams);
     m_QTMainWindow->threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
 }
 

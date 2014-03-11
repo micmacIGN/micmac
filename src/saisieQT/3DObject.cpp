@@ -549,7 +549,7 @@ void cPoint::draw()
          _painter->drawEllipse(pt, _diameter, _diameter);
 
          if (_highlight && ((_state == eEPI_Valide) || (_state == eEPI_NonSaisi)))
-         {           
+         {
              if (_bEpipolar)
              {
                  QPointF epip1 = _painter->transform().map(_epipolar1);
@@ -732,12 +732,12 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
     findNearestPoint(pos, 400000.f);
 
     if (_idx >=0 && _idx <_points.size())
-    {          
+    {
         if (state == eEPI_NonValue)
         {
             //TODO: cWinIm l.661
             _points.remove(_idx);
-        } 
+        }
         else
         {
             _points[_idx].setState(state);
@@ -952,7 +952,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
         else                                 // select nearest polygon point
 
             findNearestPoint(pos, _radius / zoom);
-    } 
+    }
 }
 
 int cPolygon::finalMovePoint()
@@ -1180,7 +1180,7 @@ cImageGL::~cImageGL()
 }
 
 void cImageGL::drawQuad(QColor color)
-{       
+{
     drawQuad(_originX, _originY, _glh, _glw,color);
 }
 
@@ -1222,7 +1222,7 @@ void cImageGL::draw()
 }
 
 void cImageGL::draw(QColor color)
-{    
+{
     drawQuad(color);
 }
 
@@ -1373,7 +1373,7 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     m_polygon.showLines(!modePt);
     m_polygon.showNames(modePt);
 
-    m_polygon.setDefaultName(ptName);  
+    m_polygon.setDefaultName(ptName);
 }
 
 void cGLData::setData(cData *data, bool setCam)
@@ -1686,6 +1686,7 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
         pBall->setVisible(stateOption(OpShow_Ball));
         pAxis->setVisible(stateOption(OpShow_Axis));
         pBbox->setVisible(stateOption(OpShow_BBox));
+        pGrid->setVisible(stateOption(OpShow_Grid));
 
         for (int i=0; i < Cams.size();i++)
             Cams[i]->setVisible(stateOption(OpShow_Cams));
@@ -1827,25 +1828,28 @@ cGrid::cGrid(Pt3d<double> pt, float scale, int nb)
 
 void cGrid::draw()
 {
-    int nbGrid = 10;
+    if (_bVisible)
+    {
+        int nbGrid = 10;
 
-    float scale = getScale() / nbGrid;
+        float scale = getScale() / nbGrid;
 
-    Pt3dr pt;
+        Pt3dr pt;
 
-    pt.x = getPosition().x - ((float)nbGrid * 0.5f) * scale;
-    pt.y = getPosition().y ;
-    pt.z = getPosition().z - ((float)nbGrid * 0.5f) * scale;
+        pt.x = getPosition().x - ((float)nbGrid * 0.5f) * scale;
+        pt.y = getPosition().y ;
+        pt.z = getPosition().z - ((float)nbGrid * 0.5f) * scale;
 
-    glBegin(GL_LINES);
-    glColor3f(.25,.25,.25);
-    for(int i=0;i<=nbGrid;i++) {
-        //if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
-        glVertex3f((float)i * scale + pt.x,pt.y,0+pt.z);
-        glVertex3f((float)i * scale + pt.x,pt.y,(float)nbGrid * scale+ pt.z);
-        //if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
-        glVertex3f( pt.x,pt.y,(float)i * scale + pt.z);
-        glVertex3f((float)nbGrid* scale+pt.x,pt.y,(float)i * scale + pt.z);
-    };
-    glEnd();
+        glBegin(GL_LINES);
+        glColor3f(.25,.25,.25);
+        for(int i=0;i<=nbGrid;i++) {
+            //if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
+            glVertex3f((float)i * scale + pt.x,pt.y,0+pt.z);
+            glVertex3f((float)i * scale + pt.x,pt.y,(float)nbGrid * scale+ pt.z);
+            //if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
+            glVertex3f( pt.x,pt.y,(float)i * scale + pt.z);
+            glVertex3f((float)nbGrid* scale+pt.x,pt.y,(float)i * scale + pt.z);
+        };
+        glEnd();
+    }
 }

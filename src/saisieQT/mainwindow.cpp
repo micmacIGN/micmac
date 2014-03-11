@@ -48,18 +48,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActions()
 {
-    _ProgressDialog = new QProgressDialog("Loading files","Stop",0,100,this);
+    _ProgressDialog = new QProgressDialog("Loading files", "Stop",0,100,this, Qt::ToolTip);
 
-    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog,SLOT(cancel()));
+    connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog, SLOT(cancel()));
 
     for (int aK = 0; aK < nbWidgets();++aK)
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
-
-        //connect(getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
-
-        //connect(getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
     }
 
     //File menu
@@ -88,9 +84,6 @@ void MainWindow::connectActions()
     _signalMapper->setMapping (_ui->action1_4_25, 25);
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
-
-  //  if (_mode > MASK3D)
-        //connect (_ui->treeView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(setNextPointName()));
 }
 
 void MainWindow::createRecentFileMenu()
@@ -122,6 +115,9 @@ void MainWindow::runProgressDialog(QFuture<void> future)
 {
     _FutureWatcher.setFuture(future);
     _ProgressDialog->setWindowModality(Qt::WindowModal);
+    int ax = pos().x() + (size().width()  - _ProgressDialog->size().width())/2;
+    int ay = pos().y() + (size().height() - _ProgressDialog->size().height())/2;
+    _ProgressDialog->move(ax, ay);
     _ProgressDialog->exec();
 
     future.waitForFinished();
@@ -190,6 +186,8 @@ void MainWindow::addFiles(const QStringList& filenames)
         }
 
         for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
+
+        updateUI();
     }
 }
 
@@ -218,6 +216,12 @@ void MainWindow::on_actionShow_bbox_toggled(bool state)
 {
     if (_mode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_BBox,state);
+}
+
+void MainWindow::on_actionShow_grid_toggled(bool state)
+{
+    if (_mode == MASK3D)
+        currentWidget()->setOption(cGLData::OpShow_Grid,state);
 }
 
 void MainWindow::on_actionShow_axis_toggled(bool state)
@@ -300,9 +304,15 @@ void MainWindow::on_actionHelpShortcuts_triggered()
         text += "F3: \t"+tr("show axis") +"\n";
         text += "F4: \t"+tr("show ball") +"\n";
         text += "F5: \t"+tr("show bounding box") +"\n";
-        text += "F6: \t"+tr("show cameras") +"\n";
+        text += "F6: \t"+tr("show grid") +"\n";
+        text += "F7: \t"+tr("show cameras") +"\n";
     }
-    text += "F7: \t"+tr("show messages") +"\n";
+    text += "F8: \t"+tr("show messages") +"\n";
+    if (_mode > MASK3D)
+    {
+         text += "Ctrl+N: \t"+tr("show names") +"\n";
+         text += "Ctrl+R: \t"+tr("show refuted") +"\n";
+    }
 
     if (_mode == MASK3D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
@@ -500,17 +510,17 @@ void MainWindow::zoomFactor(int aFactor)
 
 void MainWindow::on_actionLoad_plys_triggered()
 {
-    addFiles(QFileDialog::getOpenFileNames(NULL, tr("Open Cloud Files"),QString(), tr("Files (*.ply)")));
+    addFiles(QFileDialog::getOpenFileNames(this, tr("Open Cloud Files"),QString(), tr("Files (*.ply)")));
 }
 
 void MainWindow::on_actionLoad_camera_triggered()
 {
-    addFiles(QFileDialog::getOpenFileNames(NULL, tr("Open Camera Files"),QString(), tr("Files (*.xml)")));
+    addFiles(QFileDialog::getOpenFileNames(this, tr("Open Camera Files"),QString(), tr("Files (*.xml)")));
 }
 
 void MainWindow::on_actionLoad_image_triggered()
 {
-    QString img_filename = QFileDialog::getOpenFileName(NULL, tr("Open Image File"),QString(), tr("File (*.*)"));
+    QString img_filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
 
     if (!img_filename.isEmpty())
     {
@@ -676,15 +686,8 @@ void MainWindow::setLayout(uint sy)
             _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
 }
 
-void MainWindow::setUI()
+void MainWindow::updateUI()
 {
-    setLayout(0);
-
-#ifdef ELISE_Darwin
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
-#endif
-
     labelShowMode(true);
 
     bool isMode3D = _mode == MASK3D;
@@ -695,6 +698,7 @@ void MainWindow::setUI()
     hideAction(_ui->actionShow_axis,  isMode3D);
     hideAction(_ui->actionShow_ball,  isMode3D);
     hideAction(_ui->actionShow_bbox,  isMode3D);
+    hideAction(_ui->actionShow_grid,  isMode3D);
     hideAction(_ui->actionShow_cams,  isMode3D);
     hideAction(_ui->actionToggleMode, isMode3D);
 
@@ -712,6 +716,18 @@ void MainWindow::setUI()
     hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
+}
+
+void MainWindow::setUI()
+{
+    setLayout(0);
+
+#ifdef ELISE_Darwin
+    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
+    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
+#endif
+
+    updateUI();
 
     if (_mode > MASK3D)
     {
@@ -742,14 +758,7 @@ void MainWindow::setUI()
     }
     else
     {
-        _ui->QFrame_Tools->layout()->removeWidget(_ui->QFrame_zoom);
-        _ui->QFrame_Tools->layout()->removeWidget(_ui->frame_preview3D);
-        _ui->QFrame_Tools->layout()->removeWidget(_ui->treeView);
         _ui->splitter_Tools->hide();
-
-        delete _ui->QFrame_zoom;
-        delete _ui->frame_preview3D;
-        delete _ui->treeView;
     }
 }
 
