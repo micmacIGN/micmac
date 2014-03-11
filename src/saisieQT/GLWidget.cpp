@@ -22,12 +22,12 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 
     setOption(cGLData::OpShow_Mess);
 
-	#if ELISE_QT_VERSION==5 
+    #if ELISE_QT_VERSION==5
         _painter = new QPainter();
-		QGLFormat tformGL(QGL::SampleBuffers);
-		tformGL.setSamples(16);
-		setFormat(tformGL);
-	#endif
+        QGLFormat tformGL(QGL::SampleBuffers);
+        tformGL.setSamples(16);
+        setFormat(tformGL);
+    #endif
 
     _contextMenu.createContextMenuActions();
 }
@@ -89,7 +89,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
             m_GLData->setPainter(_painter);
 
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
-        m_bFirstAction   =  m_GLData->isNewMask();        
+        m_bFirstAction   =  m_GLData->isNewMask();
 
         _contextMenu.setPolygon( &m_GLData->m_polygon);
 
@@ -150,7 +150,7 @@ void GLWidget::paintGL()
             _matrixManager.zoom(_vp_Params.m_zoom,_vp_Params.m_zoom + getGLData()->getBBoxMaxSize());
             _matrixManager.arcBall();
 
-            m_GLData->draw();        
+            m_GLData->draw();
         }
 
         //QPointF r = _matrixManager.WindowToImage(QPointF(0,_matrixManager.vpHeight()-10),_vp_Params.m_zoom);
@@ -166,7 +166,7 @@ void GLWidget::paintGL()
     }
 
     _messageManager.draw();
-	
+
     if (_widgetId >= 0) overlay();
     else        drawCenter();
 }
@@ -185,8 +185,8 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                m_GLData->m_polygon.removeSelectedPoint();
                 emit removePoint(NS_SaisiePts::eEPI_Deleted, m_GLData->m_polygon.idx());
+                m_GLData->m_polygon.removeSelectedPoint();
                 break;
             case Qt::Key_Escape:
                 m_GLData->clearPolygon();
@@ -306,20 +306,20 @@ void GLWidget::overlay()
 {
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
-		#if ELISE_QT_VERSION==5
-			_painter->begin(this);
-		#else
-			QPainter painter(this);
-			_painter = &painter;
-			m_GLData->setPainter(_painter);
-		#endif
-				
+        #if ELISE_QT_VERSION==5
+            _painter->begin(this);
+        #else
+            QPainter painter(this);
+            _painter = &painter;
+            m_GLData->setPainter(_painter);
+        #endif
+
         if (m_bDisplayMode2D)
         {
             float zoom = _vp_Params.m_zoom;
             _painter->scale(zoom,-zoom);
             _painter->translate(_matrixManager.translateImgToWin(zoom));
-		}
+        }
 
         polygon().draw();
 
@@ -342,7 +342,7 @@ void GLWidget::setInteractionMode(int mode, bool showmessage)
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
-    if (hasDataLoaded())    
+    if (hasDataLoaded())
        _matrixManager.setView(orientation,m_GLData->getBBoxCenter());
 }
 
@@ -465,7 +465,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                 else
 
                     polygon().removeNearestOrClose(m_lastPosImage);
-            }            
+            }
         }
         else if (event->button() == Qt::MiddleButton)
 
