@@ -752,6 +752,7 @@ void MainWindow::setUI()
 
         _ui->treeView->setModel(_model);
         _ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
+        _ui->treeView->installEventFilter( this );
 
         _selectionModel = _ui->treeView->selectionModel();
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
@@ -760,6 +761,23 @@ void MainWindow::setUI()
     {
         _ui->splitter_Tools->hide();
     }
+}
+
+bool MainWindow::eventFilter( QObject* object, QEvent* event )
+{
+    if( object == _ui->treeView && event->type() == QEvent::KeyRelease )
+    {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+
+        if (keyEvent->key() == Qt::Key_Delete)
+        {
+            QString pointName = getSelectionModel()->currentIndex().data(Qt::DisplayRole).toString();
+
+            emit removePoint(pointName); // we send point name, because point has not necessarily a widget index (point non saisi)
+        }
+    }
+
+    return false;
 }
 
 void  MainWindow::setGamma(float aGamma)

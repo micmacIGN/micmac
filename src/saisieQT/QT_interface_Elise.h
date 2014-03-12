@@ -99,6 +99,8 @@ private slots:
 
     void                changeState(int state, int idPt);
 
+    void                removePoint(QString aName);
+
     void                changeName(QString aOldName, QString aNewName);
 
     void                changeImages(int idPt);

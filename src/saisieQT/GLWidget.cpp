@@ -184,7 +184,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                emit removePoint(NS_SaisiePts::eEPI_Deleted, m_GLData->m_polygon.idx());
+                emit removePoint(eEPI_Deleted, m_GLData->m_polygon.idx());
                 polygon().removeSelectedPoint();
                 break;
             case Qt::Key_Escape:
