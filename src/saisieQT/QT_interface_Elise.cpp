@@ -4,7 +4,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL)
 {
-    _cNamePt = new cCaseNamePoint ("CHANGE",eCaseAutoNum);
+    _cNamePt = new cCaseNamePoint ("CHANGE", eCaseAutoNum);
 
     mParam = &appli.Param();
     mAppli = &appli;
@@ -509,10 +509,17 @@ void cQT_Interface::ChangeFreeName(QItemSelection selected)
     if (sel.size() != m_QTMainWindow->getModel()->columnCount()) return;
     else
     {
+        delete _cNamePt;
+
         string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
 
-        delete _cNamePt;
-        _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie clavier à la X11
+        cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
+        if (!aPt)
+        {
+            _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
+        }
+        else
+            _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
     }
 }
 
