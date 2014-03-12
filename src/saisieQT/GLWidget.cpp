@@ -357,6 +357,15 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt)
     update();
 }
 
+void GLWidget::gammaChanged(double val)
+{
+    if (hasDataLoaded())
+    {
+        m_GLData->glMaskedImage._m_image->setGamma(val);
+        update();
+    }
+}
+
 void GLWidget::setZoom(float value)
 {
     if (imageLoaded())  zoomClip( value );

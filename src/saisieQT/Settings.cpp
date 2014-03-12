@@ -67,6 +67,8 @@ void cSettingsDlg::on_PointSize_doubleSpinBox_valueChanged(double val)
 void cSettingsDlg::on_GammaDoubleSpinBox_valueChanged(double val)
 {
     _parameters->setGamma(val);
+
+    emit gammaChanged(val);
 }
 
 void cSettingsDlg::on_zoomWin_spinBox_valueChanged(int val)
@@ -196,7 +198,7 @@ void cParameters::read()
 
      settings.beginGroup("Misc");
      setDefPtName(      settings.value("defPtName", QString("100")).toString());
-     setPostFix(        settings.value("postFix",   QString("_mask")).toString());   
+     setPostFix(        settings.value("postFix",   QString("_mask")).toString());
      setZoomWindowValue(zoomClip(settings.value("zoom", 3.0).toFloat()));
      setSelectionRadius(settings.value("radius",50              ).toInt());
      settings.endGroup();
