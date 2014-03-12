@@ -11,9 +11,9 @@
 #include <QDebug>
 
 #ifdef ELISE_Darwin
-	#include "OpenGL/glu.h"
+    #include "OpenGL/glu.h"
 #else
-	#include "GL/glu.h"
+    #include "GL/glu.h"
 #endif
 
 #include <QUrl>
@@ -52,9 +52,6 @@ public:
 
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
-
-    //! Sets current zoom
-    void setZoom(float value);
 
     //! Get current zoom
     float getZoom(){return getParams()->m_zoom;}
@@ -114,9 +111,19 @@ public:
 
     ContextMenu *contextMenu();
 
+    void setParams(cParameters *aParams);
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt);
+
+    void lineThicknessChanged(float);
+    void gammaChanged(float);
+    void pointDiameterChanged(float);
+    void selectionRadiusChanged(int);
+
+    //! Sets current zoom
+    void setZoom(float val);
 
 signals:
 
@@ -127,7 +134,8 @@ signals:
 
     void overWidget(void* widget);
 
-    void gammaChanged(float gamma);
+    void gammaChangedSgnl(float gamma);
+    void zoomChanged(float val);
 
     void addPoint(QPointF point);
 
@@ -190,7 +198,7 @@ private:
 
     int         _frameCount;
     int         _previousTime;
-    int         _currentTime;    
+    int         _currentTime;
 
     QTime       _time;
 

@@ -100,9 +100,9 @@ void MainWindow::createRecentFileMenu()
 
 void MainWindow::setPostFix(QString str)
 {
-   _params->setPostFix(str);
+    _params->setPostFix(str);
 
-   _Engine->setPostFix();
+    _Engine->setPostFix();
 }
 
 void MainWindow::progression()
@@ -182,6 +182,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         for (int aK = 0; aK < nbWidgets();++aK)
         {
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
+            getWidget(aK)->setParams(_params);
             if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
         }
 
@@ -405,6 +406,16 @@ void MainWindow::on_actionAbout_triggered()
     msgbox.exec();
 }
 
+void MainWindow::resizeEvent(QResizeEvent *)
+{
+    _params->setSzFen(size());
+}
+
+void MainWindow::moveEvent(QMoveEvent *)
+{
+    _params->setPosition(pos());
+}
+
 void MainWindow::on_actionAdd_triggered()
 {
     currentWidget()->Select(ADD);
@@ -561,6 +572,20 @@ void MainWindow::on_actionSettings_triggered()
 {
     cSettingsDlg uiSettings(this, _params);
     connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
+
+    for (int aK = 0; aK < nbWidgets();++aK)
+    {
+        connect(&uiSettings, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
+        connect(&uiSettings, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
+        connect(&uiSettings, SIGNAL(gammaChanged(float)), getWidget(aK), SLOT(gammaChanged(float)));
+        connect(&uiSettings, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
+    }
+
+    if (zoomWidget() != NULL)
+    {
+        connect(&uiSettings, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
+        //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
+    }
 
     //uiSettings.setFixedSize(uiSettings.size());
     uiSettings.exec();
@@ -877,7 +902,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     {
         connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
-        connect((GLWidget*)cuWid, SIGNAL(gammaChanged(float)), this, SLOT(setGamma(float)));
+        connect((GLWidget*)cuWid, SIGNAL(gammaChangedSgnl(float)), this, SLOT(setGamma(float)));
 
         if (zoomWidget())
         {
