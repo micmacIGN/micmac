@@ -162,6 +162,8 @@ protected slots:
     void on_actionHelpShortcuts_triggered();
     void on_actionAbout_triggered();
 
+    void resizeEvent(QResizeEvent *);
+
 protected:
 
     //! Connects all QT actions to slots
