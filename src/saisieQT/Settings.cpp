@@ -52,33 +52,36 @@ void cSettingsDlg::on_WindowHeight_spinBox_valueChanged(int value)
 void cSettingsDlg::on_LineThickness_doubleSpinBox_valueChanged(double val)
 {
     _parameters->setLineThickness(val);
+
+    emit lineThicknessChanged(val);
 }
 
 void cSettingsDlg::on_PointDiameter_doubleSpinBox_valueChanged(double val)
 {
     _parameters->setPointDiameter(val);
-}
 
-void cSettingsDlg::on_PointSize_doubleSpinBox_valueChanged(double val)
-{
-    _parameters->setPointSize(val);
+    emit pointDiameterChanged(val);
 }
 
 void cSettingsDlg::on_GammaDoubleSpinBox_valueChanged(double val)
 {
     _parameters->setGamma(val);
 
-    emit gammaChanged(val);
+    emit gammaChanged((float)val);
 }
 
 void cSettingsDlg::on_zoomWin_spinBox_valueChanged(int val)
 {
     _parameters->setZoomWindowValue(val);
+
+    emit zoomWindowChanged((float)val);
 }
 
 void cSettingsDlg::on_RadiusSpinBox_valueChanged(int val)
 {
     _parameters->setSelectionRadius(val);
+
+    emit selectionRadiusChanged(val);
 }
 
 void  cSettingsDlg::on_okButton_clicked()
@@ -119,7 +122,6 @@ void cSettingsDlg::refresh()
 
     LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
     PointDiameter_doubleSpinBox->setValue(_parameters->getPointDiameter());
-    PointSize_doubleSpinBox->setValue(_parameters->getPointSize());
     GammaDoubleSpinBox->setValue(_parameters->getGamma());
 
     zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
@@ -134,9 +136,8 @@ cParameters::cParameters():
     _position(QPoint(100,100)),
     _nbFen(QPoint(1,1)),
     _szFen(QSize(800,600)),
-    _linethickness(2.f),
+    _lineThickness(2.f),
     _pointDiameter(2.f),
-    _pointSize(5.f),
     _gamma(1.f),
     _zoomWindow(3.f),
     _ptName(QString("100")),
@@ -151,9 +152,8 @@ cParameters& cParameters::operator =(const cParameters &params)
     _nbFen          = params._nbFen;
     _szFen          = params._szFen;
 
-    _linethickness  = params._linethickness;
+    _lineThickness  = params._lineThickness;
     _pointDiameter  = params._pointDiameter;
-    _pointSize      = params._pointSize;
     _gamma          = params._gamma;
 
     _zoomWindow     = params._zoomWindow;
@@ -192,7 +192,6 @@ void cParameters::read()
      settings.beginGroup("Drawing settings");
      setLineThickness(  settings.value("linethickness", 2.f     ).toFloat());
      setPointDiameter(  settings.value("pointdiameter",2.f      ).toFloat());
-     setPointSize(      settings.value("pointsize",2.f          ).toFloat());
      setGamma(          settings.value("gamma",1.f              ).toFloat());
      settings.endGroup();
 
@@ -216,9 +215,8 @@ void cParameters::write()
      settings.endGroup();
 
      settings.beginGroup("Drawing settings");
-     settings.setValue("linethickness", QString::number(_linethickness,'f',1)  );
+     settings.setValue("linethickness", QString::number(_lineThickness,'f',1)  );
      settings.setValue("pointdiameter", QString::number(_pointDiameter,'f',1)  );
-     settings.setValue("pointsize",     QString::number(_pointSize    ,'f',1)  );
      settings.setValue("gamma",         QString::number(_gamma        ,'f',1)  );
      settings.endGroup();
 
