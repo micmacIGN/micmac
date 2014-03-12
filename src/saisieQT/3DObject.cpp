@@ -594,14 +594,14 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
 
 //********************************************************************************
 
-float cPolygon::_radius = 10.f;
+float cPolygon::_selectionRadius = 10.f;
 
 cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this, lineWidth, painter)),
     _lineColor(lineColor),
     _idx(-1),
     _painter(painter),
-    _pointSize(6.f),
+    _pointDiameter(6.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
@@ -623,7 +623,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _lineColor(lineColor),
     _idx(-1),
     _painter(painter),
-    _pointSize(6.f),
+    _pointDiameter(6.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
@@ -679,7 +679,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
     if (this != &aP)
     {
         _lineWidth        = aP._lineWidth;
-        _pointSize        = aP._pointSize;
+        _pointDiameter        = aP._pointDiameter;
         _bIsClosed        = aP._bIsClosed;
         _idx              = aP._idx;
 
@@ -793,6 +793,12 @@ int cPolygon::getSelectedPointState()
         return _points[_idx].state();
     }
     else return eEPI_NonValue;
+}
+
+void cPolygon::add(cPoint &pt)
+{
+    pt.setDiameter(_pointDiameter);
+    _points.push_back(pt);
 }
 
 void cPolygon::add(const QPointF &pt, bool selected)
@@ -951,7 +957,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
         }
         else                                 // select nearest polygon point
 
-            findNearestPoint(pos, _radius / zoom);
+            findNearestPoint(pos, _selectionRadius / zoom);
     }
 }
 
@@ -1029,6 +1035,13 @@ void cPolygon::flipY(float height)
 {
     for (int aK=0; aK < size(); ++aK)
         _points[aK].setY(height - _points[aK].y());
+}
+
+void cPolygon::setParams(cParameters *aParams)
+{
+    setRadius(aParams->getSelectionRadius());
+    setPointSize(aParams->getPointDiameter());
+    setLineWidth(aParams->getLineThickness());
 }
 
 bool cPolygon::isPointInsidePoly(const QPointF& P)

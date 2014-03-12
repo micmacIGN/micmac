@@ -53,9 +53,6 @@ public:
     //! Sets camera to a predefined view (top, bottom, etc.)
     void setView(VIEW_ORIENTATION orientation);
 
-    //! Sets current zoom
-    void setZoom(float value);
-
     //! Get current zoom
     float getZoom(){return getParams()->m_zoom;}
 
@@ -114,11 +111,19 @@ public:
 
     ContextMenu *contextMenu();
 
+    void setParams(cParameters *aParams);
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt);
 
-    void gammaChanged(double val);
+    void lineThicknessChanged(float);
+    void gammaChanged(float);
+    void pointDiameterChanged(float);
+    void selectionRadiusChanged(int);
+
+    //! Sets current zoom
+    void setZoom(float val);
 
 signals:
 
@@ -129,7 +134,8 @@ signals:
 
     void overWidget(void* widget);
 
-    void gammaChanged(float gamma);
+    void gammaChangedSgnl(float gamma);
+    void zoomChanged(float val);
 
     void addPoint(QPointF point);
 

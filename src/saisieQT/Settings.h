@@ -29,9 +29,8 @@ public:
     void setDefPtName(QString name)     { _ptName  = name;       }
     void setPostFix(QString name)       { _postFix = name;       }
 
-    void setLineThickness(float val)    { _linethickness = val;  }
+    void setLineThickness(float val)    { _lineThickness = val;  }
     void setPointDiameter(float val)    { _pointDiameter = val;  }
-    void setPointSize(float val)        { _pointSize = val;      }
     void setGamma(float val)            { _gamma = val;          }
 
     void setSelectionRadius(int val)    { _radius = val;         }
@@ -46,9 +45,8 @@ public:
     QString getDefPtName()              { return _ptName;        }
     QString getPostFix()                { return _postFix;       }
 
-    float getLineThickness()            { return _linethickness; }
+    float getLineThickness()            { return _lineThickness; }
     float getPointDiameter()            { return _pointDiameter; }
-    float getPointSize()                { return _pointSize;     }
     float getGamma()                    { return _gamma;         }
 
     int   getSelectionRadius()          { return _radius;        }
@@ -67,9 +65,8 @@ private:
     QSize       _szFen;
 
     //drawing settings
-    float       _linethickness;
+    float       _lineThickness;
     float       _pointDiameter;
-    float       _pointSize;
     float       _gamma;
 
     //other parameters
@@ -94,7 +91,12 @@ public:
 
 signals:
     void hasChanged(bool closeWidgets);
-    void gammaChanged(double);
+
+    void lineThicknessChanged(float);
+    void pointDiameterChanged(float);
+    void gammaChanged(float);
+    void zoomWindowChanged(float);
+    void selectionRadiusChanged(int);
 
 protected slots:
 
@@ -111,7 +113,6 @@ protected slots:
 
     void on_LineThickness_doubleSpinBox_valueChanged(double);
     void on_PointDiameter_doubleSpinBox_valueChanged(double);
-    void on_PointSize_doubleSpinBox_valueChanged(double);
     void on_GammaDoubleSpinBox_valueChanged(double);
 
     void on_zoomWin_spinBox_valueChanged(int);

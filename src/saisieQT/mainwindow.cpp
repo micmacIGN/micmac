@@ -182,6 +182,7 @@ void MainWindow::addFiles(const QStringList& filenames)
         for (int aK = 0; aK < nbWidgets();++aK)
         {
             getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
+            getWidget(aK)->setParams(_params);
             if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
         }
 
@@ -410,6 +411,11 @@ void MainWindow::resizeEvent(QResizeEvent *)
     _params->setSzFen(size());
 }
 
+void MainWindow::moveEvent(QMoveEvent *)
+{
+    _params->setPosition(pos());
+}
+
 void MainWindow::on_actionAdd_triggered()
 {
     currentWidget()->Select(ADD);
@@ -569,7 +575,16 @@ void MainWindow::on_actionSettings_triggered()
 
     for (int aK = 0; aK < nbWidgets();++aK)
     {
-        connect(&uiSettings, SIGNAL(gammaChanged(double)), getWidget(aK), SLOT(gammaChanged(double)));
+        connect(&uiSettings, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
+        connect(&uiSettings, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
+        connect(&uiSettings, SIGNAL(gammaChanged(float)), getWidget(aK), SLOT(gammaChanged(float)));
+        connect(&uiSettings, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
+    }
+
+    if (zoomWidget() != NULL)
+    {
+        connect(&uiSettings, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
+        //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
     }
 
     //uiSettings.setFixedSize(uiSettings.size());
@@ -887,7 +902,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     {
         connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
-        connect((GLWidget*)cuWid, SIGNAL(gammaChanged(float)), this, SLOT(setGamma(float)));
+        connect((GLWidget*)cuWid, SIGNAL(gammaChangedSgnl(float)), this, SLOT(setGamma(float)));
 
         if (zoomWidget())
         {
