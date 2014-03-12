@@ -567,6 +567,11 @@ void MainWindow::on_actionSettings_triggered()
     cSettingsDlg uiSettings(this, _params);
     connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
 
+    for (int aK = 0; aK < nbWidgets();++aK)
+    {
+        connect(&uiSettings, SIGNAL(gammaChanged(double)), getWidget(aK), SLOT(gammaChanged(double)));
+    }
+
     //uiSettings.setFixedSize(uiSettings.size());
     uiSettings.exec();
 

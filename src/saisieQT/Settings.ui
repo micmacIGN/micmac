@@ -27,7 +27,7 @@
    <item>
     <widget class="QToolBox" name="toolBox">
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <property name="tabSpacing">
       <number>6</number>
@@ -37,8 +37,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>346</width>
-        <height>271</height>
+        <width>255</width>
+        <height>80</height>
        </rect>
       </property>
       <property name="layoutDirection">
@@ -197,6 +197,12 @@
           <widget class="QDoubleSpinBox" name="GammaDoubleSpinBox">
            <property name="decimals">
             <number>1</number>
+           </property>
+           <property name="minimum">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
            </property>
            <property name="value">
             <double>1.000000000000000</double>

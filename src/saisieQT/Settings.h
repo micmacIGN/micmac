@@ -94,6 +94,7 @@ public:
 
 signals:
     void hasChanged(bool closeWidgets);
+    void gammaChanged(double);
 
 protected slots:
 

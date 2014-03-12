@@ -11,9 +11,9 @@
 #include <QDebug>
 
 #ifdef ELISE_Darwin
-	#include "OpenGL/glu.h"
+    #include "OpenGL/glu.h"
 #else
-	#include "GL/glu.h"
+    #include "GL/glu.h"
 #endif
 
 #include <QUrl>
@@ -118,6 +118,8 @@ public slots:
 
     void centerViewportOnImagePosition(QPointF pt);
 
+    void gammaChanged(double val);
+
 signals:
 
     //! Signal emitted when files are dropped on the window
@@ -190,7 +192,7 @@ private:
 
     int         _frameCount;
     int         _previousTime;
-    int         _currentTime;    
+    int         _currentTime;
 
     QTime       _time;
 
