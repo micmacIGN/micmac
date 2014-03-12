@@ -447,7 +447,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 else if (!polygon().isLinear() && isPtInsideIm(m_lastPosImage))
                 {
-                    addPoint(m_lastPosImage);
+                    emit addPoint(m_lastPosImage);
                 }
             }
         }

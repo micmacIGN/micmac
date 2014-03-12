@@ -100,9 +100,9 @@ void MainWindow::createRecentFileMenu()
 
 void MainWindow::setPostFix(QString str)
 {
-   _params->setPostFix(str);
+    _params->setPostFix(str);
 
-   _Engine->setPostFix();
+    _Engine->setPostFix();
 }
 
 void MainWindow::progression()
