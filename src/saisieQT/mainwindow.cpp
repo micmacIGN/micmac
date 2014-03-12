@@ -405,6 +405,11 @@ void MainWindow::on_actionAbout_triggered()
     msgbox.exec();
 }
 
+void MainWindow::resizeEvent(QResizeEvent *)
+{
+    _params->setSzFen(size());
+}
+
 void MainWindow::on_actionAdd_triggered()
 {
     currentWidget()->Select(ADD);
