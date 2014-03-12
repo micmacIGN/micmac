@@ -25,13 +25,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this,SLOT(changeName(QString, QString)));
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int)), this,SLOT(changeImages(int)));
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int)), this, SLOT(changeImages(int)));
 
-        connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this,SLOT(SetInvisRef(bool)));
+        connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
 
-        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this,SLOT(filesDropped(QStringList)));
+        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this, SLOT(filesDropped(QStringList)));
     }
 
     _data = new cData;
@@ -55,6 +55,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     connect(m_QTMainWindow->getModel(), SIGNAL(dataChanged(QModelIndex const &, QModelIndex const &)), this, SLOT(rebuildGlPoints()));
 
     connect(m_QTMainWindow->getSelectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(ChangeFreeName(QItemSelection)));
+
+    connect(m_QTMainWindow,	SIGNAL(removePoint(QString)), this, SLOT(removePoint(QString)));
 
     m_QTMainWindow->getModel()->setAppli(mAppli);
 }
@@ -177,6 +179,20 @@ void cQT_Interface::changeState(int state, int idPt)
 
             emit dataChanged();
         }
+    }
+}
+
+void cQT_Interface::removePoint(QString aName)
+{
+    cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName.toStdString());
+
+    if (aPt)
+    {
+        DeletePoint( aPt );
+
+        rebuildGlPoints();
+
+        emit dataChanged();
     }
 }
 
