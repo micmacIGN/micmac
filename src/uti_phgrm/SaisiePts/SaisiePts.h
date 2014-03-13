@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -138,7 +138,7 @@ class cImage
 
         void SetWAff(cWinIm *);
         cWinIm * WAff() const;
-        
+
         double CalcPriority(cSP_PointGlob * aPP) const;
         double Prio() const;
         void   SetPrio(double aPrio);
@@ -315,7 +315,7 @@ class cVirtualInterface
 
     virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
 
-    int                 GetNumCasePoint()          { return mVNameCase.size(); }
+    int                 GetNumCaseNamePoint()      { return mVNameCase.size(); }
     cCaseNamePoint &    GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
 
 //     virtual  cFenMenu *      MenuNamePoint()=0;
@@ -439,7 +439,7 @@ private:
     Video_Win *           mWEnter;
 
 };
-#endif 
+#endif
 
 
 class cAppli_SaisiePts
@@ -447,7 +447,7 @@ class cAppli_SaisiePts
     public :
 
     cAppli_SaisiePts( cResultSubstAndStdGetFile<cParamSaisiePts> aParam, bool instanceInterface = true);
-    const cParamSaisiePts &             Param() const;
+    cParamSaisiePts &                   Param() const;
     const std::string &                 DC()    const;     // directory chantier
     cInterfChantierNameManipulateur *   ICNM()  const;
 
@@ -530,7 +530,7 @@ class cAppli_SaisiePts
 
 
          void InitPG();
-         void IniPointeIm();
+         void InitPointeIm();
 
          cParamSaisiePts &                     mParam;
          cVirtualInterface*                    mInterface;
@@ -564,7 +564,7 @@ class cAppli_SaisiePts
          Pt2di                             mDecRech;
          Im2D_INT4                         mImRechVisu;
          Im2D_INT4                         mImRechAlgo;
-          
+
 };
 
 
@@ -584,7 +584,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -595,16 +595,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
