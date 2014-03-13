@@ -184,7 +184,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                emit removePoint(NS_SaisiePts::eEPI_Deleted, m_GLData->m_polygon.idx());
+                emit removePoint(eEPI_Deleted, m_GLData->m_polygon.idx());
                 polygon().removeSelectedPoint();
                 break;
             case Qt::Key_Escape:
@@ -204,15 +204,15 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                 break;
             case Qt::Key_G:
                 m_GLData->glMaskedImage._m_image->incGamma(0.2f);
-                emit gammaChanged(m_GLData->glMaskedImage._m_image->getGamma());
+                emit gammaChangedSgnl(m_GLData->glMaskedImage._m_image->getGamma());
                 break;
             case Qt::Key_H:
                 m_GLData->glMaskedImage._m_image->incGamma(-0.2f);
-                emit gammaChanged(m_GLData->glMaskedImage._m_image->getGamma());
+                emit gammaChangedSgnl(m_GLData->glMaskedImage._m_image->getGamma());
                 break;
             case Qt::Key_J:
                 m_GLData->glMaskedImage._m_image->setGamma(1.f);
-                emit gammaChanged(1.f);
+                emit gammaChangedSgnl(1.f);
                 break;
             case Qt::Key_Plus:
                 if (m_bDisplayMode2D)
@@ -357,14 +357,61 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt)
     update();
 }
 
-void GLWidget::setZoom(float value)
+void GLWidget::lineThicknessChanged(float val)
 {
-    if (imageLoaded())  zoomClip( value );
+    if (hasDataLoaded())
+    {
+        polygon().setLineWidth(val);
 
-    _vp_Params.m_zoom = value;
+        update();
+    }
+}
+
+void GLWidget::gammaChanged(float val)
+{
+    if (hasDataLoaded())
+    {
+        m_GLData->glMaskedImage._m_image->setGamma(val);
+        update();
+    }
+}
+
+void GLWidget::pointDiameterChanged(float val)
+{
+    if (hasDataLoaded())
+    {
+        for (int aK =0; aK < polygon().size();++aK)
+            polygon()[aK].setDiameter(val);
+
+        polygon().setPointSize(val);
+
+        update();
+    }
+}
+
+void GLWidget::selectionRadiusChanged(int val)
+{
+    if (hasDataLoaded())
+    {
+        polygon().setRadius(val);
+    }
+}
+
+void GLWidget::setParams(cParameters* aParams)
+{
+    polygon().setParams(aParams);
+}
+
+void GLWidget::setZoom(float val)
+{
+    if (imageLoaded())  zoomClip( val );
+
+    _vp_Params.m_zoom = val;
 
     if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_vp_Params.m_zoom*100,'f',1) + "%";
+
+    emit zoomChanged(val);
 
     update();
 }
@@ -447,7 +494,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 else if (!polygon().isLinear() && isPtInsideIm(m_lastPosImage))
                 {
-                    addPoint(m_lastPosImage);
+                    emit addPoint(m_lastPosImage);
                 }
             }
         }
@@ -727,7 +774,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
     if (hasDataLoaded())
     {
-        if (polygon().findNearestPoint(m_lastPosImage, polygon().radius()/getZoom()))
+        if (polygon().findNearestPoint(m_lastPosImage, polygon().getRadius()/getZoom()))
         {
             menu.addAction(_contextMenu._validate   );
             menu.addAction(_contextMenu._dubious    );

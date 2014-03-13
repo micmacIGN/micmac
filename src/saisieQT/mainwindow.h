@@ -68,6 +68,8 @@ public:
     void setUI();
     void updateUI();
 
+    bool eventFilter(QObject *object, QEvent *event);
+
 public slots:
 
     //! Try to load a list of files
@@ -98,6 +100,8 @@ public slots:
 signals:
 
     void showRefuted(bool);
+
+    void removePoint(QString pointName); //signal used when Treeview is edited
 
 protected slots:
 
@@ -157,6 +161,9 @@ protected slots:
     //Help Menu
     void on_actionHelpShortcuts_triggered();
     void on_actionAbout_triggered();
+
+    void resizeEvent(QResizeEvent *);
+    void moveEvent(QMoveEvent *);
 
 protected:
 
