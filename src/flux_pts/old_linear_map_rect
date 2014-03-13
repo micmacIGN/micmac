@@ -1,0 +1,193 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#include <std/typeinfo.h>
+#include "general/all.h"
+#include "private/all.h"
+
+#include <iostream.h>
+
+
+#if(0)
+/*
+    When we wish to map the border of a rectangle defined
+   by [p0.p1[, let :
+        - p be a point already in the frontier;
+        - d be the direction of freeman that leads from p to its 
+          predcessor;
+   Then this function return the next points and updtates d.
+*/
+
+Pt2di  next_pts_border_rect 
+       ( Pt2di     p,
+         INT &     dir_4f,
+         Pt2di     p0,
+         Pt2di     p1,
+         bool      trigo
+       )
+{
+   p = p + TAB_4_NEIGH[dir_4f];
+   for (int i = 0;  ! p.in_box(p0,p1) ; i++)
+   {
+       p = p - TAB_4_NEIGH[dir_4f];
+       dir_4f = (dir_4f+(trigo?1:3))%4;
+       p = p + TAB_4_NEIGH[dir_4f];
+
+       ASSERT_INTERNAL((i<4),"incoherence in next_pts_trigo");
+   }
+
+   return p;
+}
+
+
+/*
+     When we wish to cover the plan by a series of line (that
+     form a strict partition of it), this function returns
+     an identificator so that : the values of two points
+     is equal iff they belong to the same digital line.
+*/
+
+INT num_line_map_rect(Pt2di u,Pt2di p)
+{
+    return Elise_div((u^p),dist8(u));
+}
+
+
+/***************************************************************************/
+/*                                                                         */
+/*        Rectangles in N dimension                                        */
+/*                                                                         */
+/***************************************************************************/
+
+class Linear_Map_Rect_Comp : public Std_Flux_Of_Points<INT>
+{
+
+     public  :
+        Linear_Map_Rect_Comp
+        (
+            Pt2di  u,
+            Pt2di  p0,
+            Pt2di  p1
+        );
+
+     private :
+        virtual const Pack_Of_Pts * next(); 
+
+        INT    _nb;  // number of point of corner still to map
+        Pt2di  _p0;  // limit of rectangle
+        Pt2di  _p1;  // limit of rectangle
+        Pt2di  _u;   // the direction of the line
+
+        Pt2di   _u1;  // first freeman approx of  _u
+        Pt2di   _u2;  // second freeman approx of _u
+        Pt2di   _p_cur;
+        INT     _dir_cur;
+        INT     _last_num;
+        bool    _trigo;
+        bool    _first;
+        
+};
+
+
+const Pack_Of_Pts * Linear_Map_Rect_Comp::next()
+{
+    for (;;)
+    {
+         if(!(_nb --))
+           return 0;
+
+         _last_num =  num_line_map_rect(_u,_p_cur);
+         _p_cur = next_pts_border_rect(_p_cur,_dir_cur,_p0,_p1,_trigo);
+
+         if (_first || (_last_num != num_line_map_rect(_u,_p_cur)))
+         {
+              _first = false;
+              INT * x = _pack->_pts[0];
+              INT * y = _pack->_pts[1];
+
+              Pt2di p = _p_cur;
+              INT nb = 0;
+
+              while(p.in_box(p0,p1))
+              {
+                   x[nb]   = p.x;
+                   y[nb++] = p.y;
+
+                   if (_last_num == num_line_map_rect(_u,))
+              }
+         }
+    }
+}
+
+/*
+    Illustration of notation with, for example, u = Pt2di(5,2) :
+
+       _u1 = (1,0)
+       _u2 = (1,1)
+
+     x
+     |
+     |
+     |
+     |
+     o--------------------
+
+        o  = corner;
+        x = _p_cur (init)
+
+*/
+
+Linear_Map_Rect_Comp::Linear_Map_Rect_Comp
+(
+         Pt2di  u,
+         Pt2di  p0,
+         Pt2di  p1
+) :
+  Std_Flux_Of_Points<INT> (2,dist8(p0-p1)) ,
+  _nb          (dist4(p0-p1)-1),
+  _p0          (Min(p0,p1)),
+  _p1          (Max(p0,p1)),
+  _u           (u)
+{
+    _u1 = best_4_approx(_u);
+    _u2 = second_freeman_approx(_u,true,_u1);
+
+    Pt2di p1_minus1 = _p1 -Pt2di(1,1);
+    Pt2di corner = (_p0+p1_minus1+mul_cbyc(_u2,_p0-p1_minus1)) / 2;
+
+    _p_cur = corner + mul_cbyc(_u2-_u1,p1_minus1-p0);
+    _dir_cur = num_4_freeman(-_u1);
+    _p_cur = _p_cur+_u1;
+    
+    _trigo = (_u1^_u2) > 0;
+
+    _first = true;
+}
+#endif
+
+
+
