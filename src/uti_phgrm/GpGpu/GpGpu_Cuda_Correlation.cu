@@ -60,9 +60,9 @@ extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<floa
 
     //    hostImagesProj.OutputValues();
 
-    for (int z = 0; z < param.ZCInter; ++z)
+    for (int z = 0; z < (int)param.ZCInter; ++z)
     {
-        for (int i = 0; i < param.invPC.nbImages; ++i)
+        for (int i = 0; i < (int)param.invPC.nbImages; ++i)
         {
             std::string nameFile = std::string(GpGpuTools::conca("IMAGES_0",(i+1) * 10 + z)) + std::string(".pgm");
             GpGpuTools::Array1DtoImageFile(hostImagesProj.pData() + (i  + z *  param.invPC.nbImages)* size(hostImagesProj.GetDimension()),nameFile.c_str(),hostImagesProj.GetDimension());

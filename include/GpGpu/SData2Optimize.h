@@ -263,13 +263,13 @@ void Data2Optimiz<U,NBUFFER>::CopyDevicetoHost(Data2Optimiz<CuHostData3D, 2> &h2
 }
 
 TEMPLATE_D2OPTI
-ushort Data2Optimiz<U,NBUFFER>::Data2Optimiz::penteMax() const
+ushort Data2Optimiz<U,NBUFFER>::penteMax() const
 {
     return _penteMax;
 }
 
 TEMPLATE_D2OPTI
-void Data2Optimiz<U,NBUFFER>::Data2Optimiz::setPenteMax(const ushort &penteMax)
+void Data2Optimiz<U,NBUFFER>::setPenteMax(const ushort &penteMax)
 {
     _penteMax = penteMax;
 }

@@ -573,11 +573,13 @@ void MainWindow::on_actionSettings_triggered()
     cSettingsDlg uiSettings(this, _params);
     connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
 
+    connect(&uiSettings, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
+
     for (int aK = 0; aK < nbWidgets();++aK)
     {
         connect(&uiSettings, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
         connect(&uiSettings, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
-        connect(&uiSettings, SIGNAL(gammaChanged(float)), getWidget(aK), SLOT(gammaChanged(float)));
+        connect(&uiSettings, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
         connect(&uiSettings, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
     }
 
@@ -867,6 +869,11 @@ void MainWindow::redraw(bool nbWidgetsChanged)
     }
 }
 
+void MainWindow::setAutoName(QString val)
+{
+    emit setName(val);
+}
+
 void MainWindow::setImagePosition(QPointF pt)
 {
     QString text(tr("Image position : "));
@@ -1013,6 +1020,11 @@ void MainWindow::selectPoint(string ptName)
     selectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
 }
 
+void MainWindow::setTreeView()
+{
+    _model->setupModelData();
+}
+
 void MainWindow::updateTreeView()
 {
     _model->updateData();
@@ -1025,6 +1037,6 @@ void MainWindow::updateTreeView()
     for (int aK=1; aK< _model->columnCount(); ++aK)
     {
         colWidth = _model->getColumnSize(aK, fm);
-        _ui->treeView->setColumnWidth(0, colWidth);
+        _ui->treeView->setColumnWidth(aK, colWidth);
     }
 }
