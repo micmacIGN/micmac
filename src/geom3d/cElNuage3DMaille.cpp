@@ -1315,8 +1315,8 @@ void cElNuage3DMaille::AddAttrFromFile
     if (aDyn !=1)
     {
         aF = aF * aDyn;
-        aF = Tronque(aTEl,aF);
     }
+    aF = Tronque(aTEl,aF);
 
     ELISE_COPY(aTF.all_pts(),aF,anOutGlog);
 }
