@@ -58,7 +58,9 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     string aFullName, aDir, aName, aNamePt, aNameOut;   //mandatory arguments
     string aNameOri, aNameAuto, aPrefix2Add;            //named args
-    aNameAuto   = "NONE";
+    settings.beginGroup("Misc");
+    aNameAuto   = settings.value("defPtName", QString("100")).toString().toStdString();
+    settings.endGroup();
     aPrefix2Add = "";
     bool aForceGray  = false;
 
@@ -145,6 +147,8 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     cQT_Interface* interf = new cQT_Interface(anAppli,&w);
 
     anAppli.SetInterface(interf);
+
+    w.setTreeView();
 
     w.show();
 
