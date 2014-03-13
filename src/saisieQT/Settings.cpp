@@ -95,7 +95,9 @@ void  cSettingsDlg::on_okButton_clicked()
 
 void cSettingsDlg::on_cancelButton_clicked()
 {
-    emit hasChanged(false);
+    _parameters->read();
+
+    refresh();
 
     reject();
 }
@@ -107,7 +109,7 @@ void cSettingsDlg::on_applyButton_clicked()
 
 void cSettingsDlg::on_resetButton_clicked()
 {
-    _parameters->read();
+    _oldParameters.read();
 
     refresh();
 }
