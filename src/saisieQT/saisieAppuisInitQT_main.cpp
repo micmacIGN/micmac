@@ -56,10 +56,13 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     Pt2di aSzWin(800,800);
     Pt2di aNbFen(-1,-1);
 
-    string aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add;
-    aNameAuto = "NONE";
+    string aFullName, aDir, aName, aNamePt, aNameOut;   //mandatory arguments
+    string aNameOri, aNameAuto, aPrefix2Add;            //named args
+    settings.beginGroup("Misc");
+    aNameAuto   = settings.value("defPtName", QString("100")).toString().toStdString();
+    settings.endGroup();
     aPrefix2Add = "";
-    bool aForceGray = false;
+    bool aForceGray  = false;
 
     SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray);
 
@@ -93,7 +96,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     settings.endGroup();
 
     settings.beginGroup("Misc");
-    settings.setValue("defPtName", QString(aNamePt.c_str()));
+    settings.setValue("defPtName", QString(aNameAuto.c_str()));
     settings.endGroup();
 
     MainWindow w(POINT2D_INIT);
@@ -145,13 +148,15 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     anAppli.SetInterface(interf);
 
+    w.setTreeView();
+
     w.show();
 
     w.addFiles(filenames);
 
     w.updateTreeView();
 
-    interf->rebuildGlPoints();   
+    interf->rebuildGlPoints();
 
     return app.exec();
 }
