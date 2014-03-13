@@ -38,7 +38,7 @@ public:
   ~GpGpuInterfaceCorrel();
 
   /// \brief    Initialise les parametres de correlation
-  void          SetParameter(int nbLayer , ushort2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef);
+  void          SetParameter(int nbLayer , ushort2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef, ushort nClass);
 
   /// \brief    Calcul de la correlation en Gpu
   void          BasicCorrelation(uint ZInter);

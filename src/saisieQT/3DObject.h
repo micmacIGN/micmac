@@ -12,13 +12,15 @@
 #include <QPainter>
 
 #ifdef ELISE_Darwin
-	#include "OpenGL/glu.h"	
+    #include "OpenGL/glu.h"
 #else
-	#ifdef _WIN32
-		#include "windows.h"
-	#endif
-	#include "GL/glu.h"
+    #ifdef _WIN32
+        #include "windows.h"
+    #endif
+    #include "GL/glu.h"
 #endif
+
+#include "Settings.h"
 
 #define QMaskedImage cMaskedImage<QImage>
 
@@ -108,7 +110,7 @@ class cPoint : public cObjectGL, public QPointF
            bool showName   = false,
            int  state = eEPI_NonValue,
            bool isSelected = false,
-           QColor color = Qt::red,        
+           QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
            float diameter = 4.f,
            bool  highlight  = false);
@@ -116,6 +118,7 @@ class cPoint : public cObjectGL, public QPointF
         void draw();
 
         void setState(int state)    { _state = state;    }
+        void setDiameter(float val) { _diameter = val;   }
         int  state() const          { return _state;     }
         void showName(bool show)    { _bShowName = show; }
 
@@ -254,7 +257,7 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        bool    findNearestPoint(const QPointF &pos, float radius = _radius);
+        bool    findNearestPoint(const QPointF &pos, float getRadius = _selectionRadius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
@@ -266,9 +269,9 @@ class cPolygon : public cObjectGL
         QString getSelectedPointName();
         int     getSelectedPointState();
 
-        void    setpointSize(float size) { _pointSize = size; }
+        void    setPointSize(float size) { _pointDiameter = size; }
 
-        void    add(cPoint const &pt){ _points.push_back(pt); }
+        void    add(cPoint &pt);
         void    add(QPointF const &pt, bool selected=false);
         void    addPoint(QPointF const &pt);
 
@@ -315,8 +318,8 @@ class cPolygon : public cObjectGL
         void    showNames(bool show);
         bool    bShowNames() { return _bShowNames; }
 
-        void    setDefaultName(QString name){ _defPtName = name; }
-        QString getDefaultName() { return _defPtName; }
+        void    setDefaultName(QString name)    { _defPtName = name; }
+        QString getDefaultName()                { return _defPtName; }
 
         void    rename(QPointF pos, QString name);
 
@@ -330,7 +333,10 @@ class cPolygon : public cObjectGL
 
         void    flipY(float height);
 
-        float   radius() { return _radius; }
+        float   getRadius()             { return _selectionRadius; }
+        void    setRadius(float val)    { _selectionRadius = val;  }
+
+        void    setParams(cParameters* aParams);
 
     protected:
         cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -340,11 +346,11 @@ class cPolygon : public cObjectGL
         QColor              _lineColor;
         int                 _idx;
 
-        QPainter *          _painter;        
+        QPainter *          _painter;
 
     private:
-        float               _pointSize;
-        static float        _radius;
+        float               _pointDiameter;
+        static float        _selectionRadius;
 
         //!states if polygon is closed
         bool                _bIsClosed;
@@ -378,7 +384,7 @@ class cPolygonHelper : public cPolygon
 
     private:
 
-        cPolygon* _polygon;     
+        cPolygon* _polygon;
 };
 
 
@@ -653,7 +659,7 @@ public:
 
     void        replaceCloud(GlCloud* cloud, int id = 0);
 
-    void        setPainter(QPainter *);        
+    void        setPainter(QPainter *);
 
     enum Option {
       OpNO          = 0x00,
@@ -661,8 +667,9 @@ public:
       OpShow_Axis   = 0x02,
       OpShow_BBox   = 0x04,
       OpShow_Mess   = 0x08,
-      OpShow_Cams   = 0x10
-    //  OpShow_Ball      = 0x20
+      OpShow_Cams   = 0x10,
+      OpShow_Grid   = 0x20
+    //  OpShow_next      = 0x40
       // ...
     };
 
@@ -670,7 +677,7 @@ public:
 
     options     _options;
 
-    void        GprintBits(size_t const size, void const * const ptr);    
+    void        GprintBits(size_t const size, void const * const ptr);
 
     void        setOption(QFlags<Option> option,bool show);
 

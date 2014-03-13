@@ -320,7 +320,8 @@ class cVirtualInterface
 
 //     virtual  cFenMenu *      MenuNamePoint()=0;
 
-    virtual std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP)=0;
+    virtual pair<int,string> IdNewPts(cCaseNamePoint * aCNP)=0;
+    string              nameFromAutoNum(cCaseNamePoint *aCNP, int aCptMax);
 
     bool                Visible(eEtatPointeImage aState);
 
@@ -333,6 +334,8 @@ class cVirtualInterface
     virtual void        Redraw()=0;
 
     virtual bool        isDisplayed(cImage* )=0;
+
+    static void         ComputeNbFen(Pt2di &pt, int aNbW);
 
 protected:
 
@@ -457,7 +460,7 @@ class cAppli_SaisiePts
 
     void Undo();
     void Redo();
-    void Sauv();
+    void Save();
     void Exit();
 
     void AddUndo(cOneSaisie,cImage *);
@@ -481,8 +484,8 @@ class cAppli_SaisiePts
 
 
     // 0 si existe deja
-    cSP_PointGlob *     AddPointGlob(cPointGlob aPG,bool OkRessucite=false,bool Init=false,bool ReturnAlways=false);
-    void                AddPGInAllImage(cSP_PointGlob * aSPG);
+    cSP_PointGlob *     AddPointGlob(cPointGlob aPG, bool OkRessuscite=false, bool Init=false, bool ReturnAlways=false);
+    void                AddPGInAllImages(cSP_PointGlob * aSPG);
 
     void                HighLightSom(cSP_PointGlob *);
 
@@ -493,7 +496,7 @@ class cAppli_SaisiePts
     void                ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
-    void SafeRedrawAllWindow () { if (mInterface) mInterface->RedrawAllWindows();}
+    void 				RedrawAllWindows () { if (mInterface) mInterface->RedrawAllWindows();}
 
     void                SetInterface( cVirtualInterface * interf );
 

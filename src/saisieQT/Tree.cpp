@@ -3,7 +3,7 @@
 TreeItem::TreeItem(const QVector<QVariant> &data, TreeItem *parent)
 {
     parentItem = parent;
-    itemData = data;   
+    itemData = data;
 }
 
 TreeItem::~TreeItem()
@@ -172,7 +172,7 @@ Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return 0;
 
-    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
 QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
@@ -317,33 +317,79 @@ int TreeModel::getColumnSize(int column, QFontMetrics fm)
     return colWidth;
 }
 
-void TreeModel::addPoint()
+void TreeModel::addPoint(cSP_PointeImage * aPIm)
 {
-    std::vector<cSP_PointGlob *> vPts = _appli->PG();
-    int pos= vPts.size()-1;
+    int pos= _appli->PG().size()-1;
+    cSP_PointGlob* aPG;
 
-    QModelIndex idx = index(pos-1, 0);
-
-    if (!insertRow(idx.row()+1, idx.parent()))
-        return;
-
-    QModelIndex newIdx = index(pos, 0);
-
-    TreeItem * item = static_cast<TreeItem*>(newIdx.internalPointer());
-
-    if (item)
+    if (aPIm)
     {
-        cSP_PointGlob* aPG = vPts[pos];
+        aPG = aPIm->Gl();
+    }
+    else
+    {
+        aPG = _appli->PG().back();
+    }
 
-        item->setData(buildRow(aPG));
+    //check if point already exists
+    string name = aPG->PG()->Name();
 
-        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+    QModelIndex id;
+    for (int aK=0; aK < rowCount(rootItem->index());++aK)
+    {
+        QString text = data(index(aK, 0), Qt::DisplayRole).toString();
 
-        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-        for(; it != map.end(); ++it)
+        if (text.toStdString() == name)
         {
-            item->appendChild(new TreeItem(buildChildRow(*it), item));
+            id = index(aK, 0);
+            pos = aK;
+        }
+    }
+
+    if ( !id.isValid() ) //add point
+    {
+        pos = rowCount(rootItem->index());
+
+
+        QModelIndex idx = index(pos-1, 0);
+
+        if (!insertRow(idx.row()+1, idx.parent()))
+            return;
+
+        QModelIndex newIdx = index(pos, 0);
+
+        TreeItem * item = static_cast<TreeItem*>(newIdx.internalPointer());
+
+        if (item)
+        {
+            item->setData(buildRow(aPG));
+
+            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+            for(; it != map.end(); ++it)
+            {
+                item->appendChild(new TreeItem(buildChildRow(*it), item));
+            }
+        }
+    }
+    else //insert infos
+    {
+        TreeItem * item = static_cast<TreeItem*>(id.internalPointer());
+
+        if (item)
+        {
+            item->setData(buildRow(aPG));
+
+            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+            for(; it != map.end(); ++it)
+            {
+                item->appendChild(new TreeItem(buildChildRow(*it), item));
+            }
         }
     }
 }
@@ -369,8 +415,30 @@ void TreeModel::setupModelData()
         std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
 
         for(; it != map.end(); ++it)
-        {  
+        {
             item->appendChild(new TreeItem(buildChildRow(*it), item));
+        }
+    }
+}
+
+void TreeModel::setPointGlob(QModelIndex idx, cSP_PointGlob* aPG)
+{
+    TreeItem * item = static_cast<TreeItem*>(idx.internalPointer());
+
+    if (item)
+    {
+        item->setData(buildRow(aPG));
+
+        //Pointes image
+
+        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
+
+        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+        int bK = 0;
+        for(; it != map.end(); ++it, ++bK)
+        {
+            item->child(bK)->setData(buildChildRow(*it));
         }
     }
 }
@@ -379,29 +447,60 @@ void TreeModel::updateData()
 {
     std::vector<cSP_PointGlob *> vPts = _appli->PG();
 
+    std::vector <std::string> ptNames;
+
     for (int aK=0; aK < (int) vPts.size(); ++aK)
     {
         cSP_PointGlob* aPG = vPts[aK];
 
-        QModelIndex idx = index(aK, 0);
-        TreeItem * item = static_cast<TreeItem*>(idx.internalPointer());
+        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
 
-        if (item)
+        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
+
+        int nbDisparus = 0;
+        for(; it != map.end(); ++it)
         {
-            item->setData(buildRow(aPG));
+            cSP_PointeImage* aPIm = it->second;
 
-            //Pointes image
+            if (aPIm->Saisie()->Etat() == eEPI_Disparu)
+                ++nbDisparus;
+        }
 
-            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
-
-            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-            int bK = 0;
-            for(; it != map.end(); ++it, ++bK)
+        if (nbDisparus == (int) map.size())
+        {
+            ptNames.push_back(aPG->PG()->Name());
+        }
+        else
+        {
+            for (int bK=0; bK < rowCount(rootItem->index());++bK) //TODO: factoriser
             {
-                item->child(bK)->setData(buildChildRow(*it));
+                QString text = data(index(bK, 0), Qt::DisplayRole).toString();
+
+                if (text.toStdString() == aPG->PG()->Name())
+                {
+                    setPointGlob(index(bK, 0), aPG);
+                }
             }
         }
+    }
+
+    QVector <QModelIndex> vIdx;
+    for (int aK =0; aK< (int) ptNames.size(); ++aK)
+    {
+        for (int bK=0; bK < rowCount(rootItem->index());++bK)
+        {
+            QString text = data(index(bK, 0), Qt::DisplayRole).toString();
+
+            if (text.toStdString() == ptNames[aK])
+            {
+                vIdx.insert(0, index(bK, 0));
+            }
+        }
+    }
+
+    for (int aK=0; aK < vIdx.size(); ++aK)
+    {
+        removeRow(vIdx[aK].row(), vIdx[aK].parent());
     }
 }
 
