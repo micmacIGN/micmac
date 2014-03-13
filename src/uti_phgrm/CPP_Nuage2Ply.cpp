@@ -41,6 +41,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define DEF_OFSET -12349876
 
 
+int Ratio(double aV1,double aV2)
+{
+   
+   double aRes = aV1 / aV2;
+   int aIRes = round_ni(aRes);
+   if (ElAbs(aRes-aIRes) > 1e-2)
+      return -1;
+
+   return aIRes;
+}
+
 int Nuage2Ply_main(int argc,char ** argv)
 {
     std::string aNameNuage,aNameOut,anAttr1;
@@ -110,6 +121,26 @@ int Nuage2Ply_main(int argc,char ** argv)
     {
        anAttr1 = NameFileStd(anAttr1,3,false,true,true,true);
        // std::cout << "ATTR1 " << anAttr1 << "\n";
+
+       if (! EAMIsInit(&aRatio))
+       {
+            Pt2dr aSzNuage = Pt2dr(aNuage->SzUnique());
+            Pt2dr aSzImage = Pt2dr(Tiff_Im(anAttr1.c_str()).sz());
+
+            int aRx = Ratio(aSzImage.x,aSzNuage.x);
+            int aRy = Ratio(aSzImage.y,aSzNuage.y);
+            if ((aRx==aRy) && (aRx>0))
+            {
+               aRatio = aRx;
+            }
+            else
+            {
+               aRatio = 1;
+               std::cout << "WARnnnnnnnnnnnn\n";
+               std::cout << "Cannot get def value of RatioAttrCarte, set it to 1\n";
+            }
+            //std::cout << "RR " << aRx <<  " " << aRy << " SZss " << aSzNuage << aSzImage << "\n"; getchar();
+       }
        aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
     }
 

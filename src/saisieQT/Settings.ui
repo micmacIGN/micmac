@@ -27,7 +27,7 @@
    <item>
     <widget class="QToolBox" name="toolBox">
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <property name="tabSpacing">
       <number>6</number>
@@ -173,43 +173,13 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="PointDiameter_doubleSpinBox">
-           <property name="decimals">
-            <number>1</number>
-           </property>
-           <property name="value">
-            <double>2.000000000000000</double>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="PointSize_label">
+          <widget class="QLabel" name="Gamma_label">
            <property name="lineWidth">
             <number>1</number>
            </property>
            <property name="text">
-            <string>Point size:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="GammaDoubleSpinBox">
-           <property name="decimals">
-            <number>1</number>
-           </property>
-           <property name="value">
-            <double>1.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QDoubleSpinBox" name="LineThickness_doubleSpinBox">
-           <property name="decimals">
-            <number>1</number>
-           </property>
-           <property name="value">
-            <double>2.000000000000000</double>
+            <string>Gamma:</string>
            </property>
           </widget>
          </item>
@@ -224,22 +194,37 @@
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="PointSize_doubleSpinBox">
+          <widget class="QDoubleSpinBox" name="GammaDoubleSpinBox">
            <property name="decimals">
             <number>1</number>
            </property>
+           <property name="minimum">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
            <property name="value">
-            <double>2.000000000000000</double>
+            <double>1.000000000000000</double>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="Gamma_label">
-           <property name="lineWidth">
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="LineThickness_doubleSpinBox">
+           <property name="decimals">
             <number>1</number>
            </property>
-           <property name="text">
-            <string>Gamma:</string>
+           <property name="minimum">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>5.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>2.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -255,6 +240,19 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="PointDiameter_doubleSpinBox">
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="singleStep">
+            <double>0.500000000000000</double>
+           </property>
+           <property name="value">
+            <double>2.000000000000000</double>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

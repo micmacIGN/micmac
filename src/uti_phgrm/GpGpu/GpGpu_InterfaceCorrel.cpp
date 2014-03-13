@@ -49,14 +49,14 @@ uint GpGpuInterfaceCorrel::InitCorrelJob(int Zmin, int Zmax)
 }
 
 /// \brief Initialisation des parametres constants
-void GpGpuInterfaceCorrel::SetParameter(int nbLayer , ushort2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef )
+void GpGpuInterfaceCorrel::SetParameter(int nbLayer , ushort2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef, ushort nClass )
 {
 
     if(!copyInvParam || _param[0].invPC.nbImages != (uint)nbLayer || _param[1].invPC.nbImages != (uint)nbLayer)
     {
         copyInvParam = true;
-        _param[0].invPC.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
-        _param[1].invPC.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer);
+        _param[0].invPC.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer,nClass);
+        _param[1].invPC.SetParamInva( dRVig * 2 + 1,dRVig, dimImg, mAhEpsilon, samplingZ, uvINTDef, nbLayer,nClass);
         CopyParamInvTodevice(_param[0]);
     }
 }
@@ -119,6 +119,8 @@ void GpGpuInterfaceCorrel::threadCompute()
 
             SetDataToCopy(interZ);
         }
+        else
+            boost::this_thread::sleep(boost::posix_time::microsec(1));
     }
 }
 

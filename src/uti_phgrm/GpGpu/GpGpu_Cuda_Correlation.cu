@@ -37,7 +37,6 @@ template<int TexSel> __global__ void projectionImage( HDParamCorrel HdPc, float*
 
 }
 
-
 extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<float>  &DeviImagesProj, Rect* pRect)
 {
 
@@ -79,7 +78,7 @@ extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<floa
 /// \brief Kernel fonction GpGpu Cuda
 /// Calcul les vignettes de correlation pour toutes les images
 ///
-template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float* cachVig, Rect* pRect, uint2 nbActThrd,HDParamCorrel HdPc)
+template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushort2 *ClassEqui,float* cachVig, Rect* pRect, uint2 nbActThrd,HDParamCorrel HdPc)
 {
 
   extern __shared__ float cacheImg[];
@@ -98,8 +97,9 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   uint pitZ,modZ,piCa;
 
-  if (oI(ptProj,0) || oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))) // retirer le 9 decembre 2013 à verifier
-  {      
+  if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.pt1.x || ptProj.y >= (float)zoneImage.pt1.y /*oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))*/) // retirer le 9 decembre 2013 à verifier
+  {
+      cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = -1.f;
       return;
   }// FIN AJOUT 2014
   else
@@ -121,16 +121,22 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
   // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 
   // Simplifier!!!
+  // Sortir si threard inactif et si en dehors du terrain
   if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer,0))
     return;
 
-  // DEBUT AJOUT 2014 // TODO le rayon vignette peut précalculer // TODO Atte
-  if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptTer,zoneImage.pt0))
+  // DEBUT AJOUT 2014 // TODO A SIMPLIFIER --> peut etre simplifier avec la zone terrain!
+  // Sortir si endehors de
+ // if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptTer,zoneImage.pt0))
   //if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptHTer - invPc.rayVig.x ,make_uint2(zoneImage.pt0)))
+      //return;
+
+  if ( oI( ptProj - invPc.rayVig.x-1, 0) | ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x || ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y)
       return;
   // FIN AJOUT 2014
 
   // INCORRECT !!! TODO
+  // COM 6 mars 2014
   if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
 
   const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
@@ -168,11 +174,15 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, float
 
   const uint pitchCachY = ptTer.y * invPc.dimVig.y ;
 
-  const int idN     = pitZ * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
+  const ushort iCla = ClassEqui[modZ].x;
 
-  const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + piCa;
+  const ushort pCla = ClassEqui[iCla].y; 
 
-  float* cache      = cachVig + iCa * HdPc.sizeCach + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
+  const int  idN    = (pitZ * invPc.nbClass + iCla ) * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
+
+  const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + piCa + pCla;
+
+  float* cache      = cachVig + (iCa * HdPc.sizeCach) + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
 
 #pragma unroll
   for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
@@ -198,19 +208,17 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
     dim3	blocks(block2D.x , block2D.y, param.invPC.nbImages * param.ZCInter);
 
 //    CuDeviceData3D<float>       DeviImagesProj;
-
 //    LaunchKernelprojectionImage(param,DeviImagesProj,data2cor.DeviRect());
-
 //    DeviImagesProj.Dealloc();
 
     switch (s)
     {
     case 0:
-        correlationKernel<0><<<blocks, threads, BLOCKDIM * BLOCKDIM * sizeof(float), stream>>>( data2cor.DeviVolumeNOK(0), data2cor.DeviVolumeCache(0),data2cor.DeviRect(), nbActThrd,param.HdPc);
+        correlationKernel<0><<<blocks, threads, BLOCKDIM * BLOCKDIM * sizeof(float), stream>>>( data2cor.DeviVolumeNOK(0),data2cor.DeviClassEqui(), data2cor.DeviVolumeCache(0),data2cor.DeviRect(), nbActThrd,param.HdPc);
         getLastCudaError("Basic Correlation kernel failed stream 0");
         break;
     case 1:
-        correlationKernel<1><<<blocks, threads, BLOCKDIM * BLOCKDIM* sizeof(float), stream>>>( data2cor.DeviVolumeNOK(1), data2cor.DeviVolumeCache(1),data2cor.DeviRect(), nbActThrd,param.HdPc);
+        correlationKernel<1><<<blocks, threads, BLOCKDIM * BLOCKDIM* sizeof(float), stream>>>( data2cor.DeviVolumeNOK(1),data2cor.DeviClassEqui(), data2cor.DeviVolumeCache(1),data2cor.DeviRect(), nbActThrd,param.HdPc);
         getLastCudaError("Basic Correlation kernel failed stream 1");
         break;
     }
@@ -219,24 +227,19 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
 
 /// \brief Kernel Calcul "rapide"  de la multi-correlation en utilisant la formule de Huygens n utilisant pas des fonctions atomiques
 
-template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(float *dTCost, float* cacheVign, uint* dev_NbImgOk, /*uint2 nbActThr,*/HDParamCorrel HdPc)
+template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* classEqui,float *dTCost, float* cacheVign, uint* dev_NbImgOk, /*uint2 nbActThr,*/HDParamCorrel HdPc)
 {
 
-  __shared__ float aSV [ SIZE3VIGN ][ SIZE3VIGN ];          // Somme des valeurs
-  __shared__ float aSVV[ SIZE3VIGN  ][ SIZE3VIGN ];         // Somme des carrés des valeurs
+  __shared__ float aSV [ SIZE3VIGN   ][ SIZE3VIGN ];          // Somme des valeurs
+  __shared__ float aSVV[ SIZE3VIGN   ][ SIZE3VIGN ];         // Somme des carrés des valeurs
   __shared__ float resu[ SIZE3VIGN/2 ][ SIZE3VIGN/2 ];		// resultat
-  //__shared__ ushort nbIm[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// nombre d'images correcte
 
-  // coordonnées des threads
-  const uint2 t = make_uint2(threadIdx);
+  __shared__ float cResu[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// resultat
+  __shared__ uint nbIm[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// nombre d'images correcte
 
-  aSV [t.y][t.x]        = 0.0f;
-
-  aSVV[t.y][t.x]        = 0.0f;
-
-  resu[t.y/2][t.x/2]	= 0.0f;
-
-  //nbIm[t.y/2][t.x/2]	= 0;
+  // coordonnées des threads // TODO uint2 to ushort2
+  const uint2 t  = make_uint2(threadIdx);
+  //const uint2 mt = make_uint2(t.x/2,t.y/2);
 
   // TODO : 2014 LE NOMBRE DE TREAD ACTIF peut etre nettement ameliorer par un template
   //if ( oSE( t, nbActThr))	return; // si le thread est inactif, il sort
@@ -249,57 +252,91 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(float *dTCost
 
   const uint2	ptTer	= ptCach / invPc.dimVig; // Coordonnées 2D du terrain
 
-  // TODO 2014 à verifier notamment quand il n'y a pas de cache!!!
-  if(!tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y)) return;
+  // if(!tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y)) return;// COM 6 mars 2014// TODO 2014 à verifier notamment quand il n'y a pas de cache!!!
 
-  const uint	iTer	= blockIdx.z * HdPc.sizeTer + to1D(ptTer, HdPc.dimTer);     // Coordonnées 1D dans le terrain avec prise en compte des differents Z
+  const uint    ter     = to1D(ptTer, HdPc.dimTer);            // Coordonnées 1D du terrain
 
-  const uint2   thTer	= t / invPc.dimVig;                                        // Coordonnées 2D du terrain dans le repere des threads
+  const uint	iTer	= blockIdx.z * HdPc.sizeTer + ter;     // Coordonnées 1D du terrain avec prise en compte des differents Z
 
-  //if(aEq(t,thTer * cH.dimVig))
-  //nbIm[thTer.y][thTer.x] = (ushort)dev_NbImgOk[iTer];/
+  const uint2   thTer	= t / invPc.dimVig;                    // Coordonnées 2D du terrain dans le repere des threads
 
-  const ushort nImgOK = (ushort)dev_NbImgOk[iTer];
+  const bool mainThread = aEq(t - thTer*invPc.dimVig,0);
+
+  //if (!aEq(t - thTer*invPc.dimVig,0))
+  //{
+      resu[thTer.y][thTer.x]    = 0.0f;
+      nbIm[thTer.y][thTer.x]    = 0;
+  //}
+
+  __syncthreads();
+
+  for (ushort iCla = 0; iCla < invPc.nbClass; ++iCla)
+  {
+
+      const uint icTer    = (blockIdx.z* invPc.nbClass + iCla ) * HdPc.sizeTer + ter;
+
+      const ushort nImgOK = (ushort)dev_NbImgOk[icTer];
+
+      aSV [t.y][t.x]    = 0.0f;
+      aSVV[t.y][t.x]    = 0.0f;
+      cResu[thTer.y][thTer.x]	= 0.0f;
+
+      //__syncthreads();
+
+      if ( nImgOK > 1)
+      {
+
+          const uint pitCla         = ((uint)classEqui[iCla].y) * HdPc.sizeCach;
+
+          const uint pitLayerCache  = blockIdx.z  * HdPc.sizeCachAll + pitCla + to1D( ptCach, HdPc.dimCach );	// Taille du cache vignette pour une image
+
+          float* caVi = cacheVign + pitLayerCache;
+
+ #pragma unroll
+          for(uint i =  0 ;i< nImgOK * HdPc.sizeCach ;i+=HdPc.sizeCach)
+          {
+              const float val  = caVi[i];
+              aSV[t.y][t.x]   += val;
+              aSVV[t.y][t.x]  += val * val;
+          }
+
+          //__syncthreads();
+
+          //atomicAdd(&(resu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)) * (nImgOK - 1));
+
+          atomicAdd(&(cResu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)));
+
+          __syncthreads();
+
+          if (mainThread)
+          {
+              const uint n = nImgOK - 1;
+
+              float ccost =  fdividef( cResu[thTer.y][thTer.x], ((float)n)* (invPc.sizeVig));
+
+              ccost = 1.0f - max (-1.0, min(1.0f,1.0f - ccost));
+
+              resu[thTer.y][thTer.x] += ccost * nImgOK;
+              nbIm[thTer.y][thTer.x] += nImgOK;
+          }
+      }
+  }
+
+  __syncthreads();
+  if( (nbIm[thTer.y][thTer.x] == 0) || (!mainThread) ) return;
 
   //__syncthreads();
 
-  if ( nImgOK  < 2 ) return;
-
-  const uint pitLayerCache  = blockIdx.z * HdPc.sizeCachAll + to1D( ptCach, HdPc.dimCach );	// Taille du cache vignette pour une image
-  //const uint pit  = blockIdx.z * cH.nbImages;
-
-  float* caVi = cacheVign + pitLayerCache;
-
- #pragma unroll
-  for(uint i = 0;i< nImgOK * HdPc.sizeCach ;i+=HdPc.sizeCach)
-  //for(uint l = pit ;l< pit + cH.nbImages;l++)
-    {
-      const float val  = caVi[i];
-
-      //const float val  = tex2DLayered( TexL_Cache,ptCach.x , ptCach.y,l);
-
-      //if(val!= cH.floatDefault) A verifier si pas d'influence
-        //{
-          // Coordonnées 1D du cache vignette
-
-          aSV[t.y][t.x]   += val;
-          aSVV[t.y][t.x]  += val * val;
-        //}
-
-    }
-
-  __syncthreads();
-
-  atomicAdd(&(resu[thTer.y][thTer.x]),aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK));
-
-  if (!aEq(t - thTer*invPc.dimVig,0)) return;
-
-  __syncthreads();
-
   // Normalisation pour le ramener a un equivalent de 1-Correl
-  const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nImgOK -1.0f) * (invPc.sizeVig));
+  //const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nImgOK -1.0f) * (invPc.sizeVig));
 
-  dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
+  //const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nbIm[thTer.y][thTer.x])* (invPc.sizeVig));
+
+  //const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nbIm[thTer.y][thTer.x] -1)* (invPc.sizeVig));
+
+  //dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
+
+  dTCost[iTer] = fdividef(resu[thTer.y][thTer.x],(float)nbIm[thTer.y][thTer.x]);
 
 }
 
@@ -311,7 +348,7 @@ template<ushort SIZE3VIGN > void LaunchKernelMultiCor(cudaStream_t stream, pCorG
     uint2	block2D	= iDivUp(param.HdPc.dimCach,SIZE3VIGN);
     dim3	blocks(block2D.x,block2D.y,param.ZCInter);
 
-    multiCorrelationKernel<SIZE3VIGN><<<blocks, threads, 0, stream>>>(dataCorrel.DeviVolumeCost(0), dataCorrel.DeviVolumeCache(0), dataCorrel.DeviVolumeNOK(0),param.HdPc);
+    multiCorrelationKernel<SIZE3VIGN><<<blocks, threads, 0, stream>>>(dataCorrel.DeviClassEqui(),dataCorrel.DeviVolumeCost(0), dataCorrel.DeviVolumeCache(0), dataCorrel.DeviVolumeNOK(0),param.HdPc);
     getLastCudaError("Multi-Correlation NON ATOMIC kernel failed");
 }
 

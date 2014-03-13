@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -67,7 +67,7 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli) :
 
 Pt2di  cImage::SzIm() const
 {
-   if (mSzIm.x <=0) 
+   if (mSzIm.x <=0)
       mSzIm = Tif().sz();
 
   return mSzIm;
@@ -81,7 +81,7 @@ bool cImage::InImage(const Pt2dr & aP)
 
 Pt2dr cImage::PointArbitraire()  const
 {
-   
+
    Pt2dr aSz = Pt2dr(SzIm());
    Box2dr aBox(aSz*0.25,aSz*0.75);
 
@@ -117,11 +117,11 @@ Tiff_Im &  cImage::Tif() const
 
 void cImage::InitCameraAndNuage()
 {
-   if (mInitCamNDone) 
+   if (mInitCamNDone)
       return;
    mInitCamNDone = true;
 
-   if (! mAppli.HasOrientation()) 
+   if (! mAppli.HasOrientation())
       return;
 
    std::string aKey = mAppli.Param().KeyAssocOri().Val();
@@ -160,8 +160,6 @@ cElNuage3DMaille * cImage::CaptNuage()
     return mCaptNuage;
 }
 
-
-
 void cImage::SetSPIM(cSaisiePointeIm * aSPIM)
 {
     ELISE_ASSERT(mSPIm==0,"Multiple cImage::SetSPIM");
@@ -175,16 +173,16 @@ const std::vector<cSP_PointeImage *> &  cImage::VP()
 
 cSP_PointeImage * cImage::PointeOfNameGlobSVP(const std::string & aNameGlob)
 {
-   std::map<std::string,cSP_PointeImage *>::iterator anIt = mPointes.find(aNameGlob);
-   if  (anIt == mPointes.end()) return 0;
-   return anIt->second;
+    std::map<std::string,cSP_PointeImage *>::iterator anIt = mPointes.find(aNameGlob);
+    if  (anIt == mPointes.end()) return 0;
+    return anIt->second;
 }
 
 void cImage::AddAPointe(cOneSaisie * anOS,cSP_PointGlob * aPG,bool FromFile)
 {
-    if (PointeOfNameGlobSVP(aPG->PG()->Name())) 
+   if (PointeOfNameGlobSVP(aPG->PG()->Name()))
        return;
-  
+
    if (mSPIm==0)
    {
       mAppli.SOSPI().SaisiePointeIm().push_back(cSaisiePointeIm());
@@ -250,7 +248,7 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
     bool PInit = false;
     // Pt3dr aP1(0,0,0);
     // Pt3dr aP2(0,0,0);
-    
+
     cCapture3D *  aCapt3d = Capt3d();
     if (aCapt3d)
     {
@@ -262,10 +260,8 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
        }
     }
 
-
             //PIsInit = true;
     cPointGlob aPG;
-    //std::pair<int,std::string> anId = mAppli.IdNewPts(aCNP);
     std::pair<int,std::string> anId = mAppli.Interface()->IdNewPts(aCNP);
     if (anId.second=="NONE")
        return;
@@ -275,24 +271,24 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
     aPG.Name() = anId.second;
     aPG.NumAuto().SetVal(anId.first);
     aPG.ContenuPt().SetNoInit();  // OK
-    aPG.SzRech().SetVal(aSz);  // OKK 
+    aPG.SzRech().SetVal(aSz);  // OKK
 
     if (PInit)
-       aPG.P3D().SetVal(aPt);
+        aPG.P3D().SetVal(aPt);
     else
         aPG.P3D().SetNoInit();
 
     cSP_PointGlob * aSPG = mAppli.AddPointGlob(aPG,true);
 
-    if (aSPG==0)
+    if (aSPG==0) //already exists
     {
+       //ELISE_ASSERT(aSPG!=0,"Incoherence (1) in cImage::CreatePGFromPointeMono");
        return;
-       // ELISE_ASSERT(aSPG!=0,"Incoherence (1) in cImage::CreatePGFromPointeMono");
     }
+
     aSPG->SuprDisp();
 
-
-    mAppli.AddPGInAllImage(aSPG);
+    mAppli.AddPGInAllImages(aSPG);
 
     cSP_PointeImage * aPIm = PointeOfNameGlobSVP(aSPG->PG()->Name());
     ELISE_ASSERT(aPIm!=0,"Incoherence (2) in cImage::CreatePGFromPointeMono");
@@ -302,10 +298,9 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
 
     aSPG->ReCalculPoints();
 
+    mAppli.RedrawAllWindows();
+    mAppli.Save();
 
-    //mAppli.ReaffAllW();
-    mAppli.Interface()->RedrawAllWindows();
-    mAppli.Sauv();
 }
 
 
@@ -317,7 +312,7 @@ Fonc_Num  cImage::FilterImage(Fonc_Num aFonc,eTypePts aType,cPointGlob * aPG)
 {
     InitCameraAndNuage();
 
-    if (! mCapt3d) 
+    if (! mCapt3d)
        return aFonc;
     double aResol = (aPG && aPG->P3D().IsInit()) ? mCapt3d->ResolSolOfPt(aPG->P3D().Val()) : mCapt3d->ResolSolGlob() ;
 
@@ -350,7 +345,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -361,16 +356,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
