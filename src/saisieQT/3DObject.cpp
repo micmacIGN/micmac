@@ -549,7 +549,7 @@ void cPoint::draw()
          _painter->drawEllipse(pt, _diameter, _diameter);
 
          if (_highlight && ((_state == eEPI_Valide) || (_state == eEPI_NonSaisi)))
-         {           
+         {
              if (_bEpipolar)
              {
                  QPointF epip1 = _painter->transform().map(_epipolar1);
@@ -594,14 +594,14 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
 
 //********************************************************************************
 
-float cPolygon::_radius = 10.f;
+float cPolygon::_selectionRadius = 10.f;
 
 cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
     _helper(new cPolygonHelper(this, lineWidth, painter)),
     _lineColor(lineColor),
     _idx(-1),
     _painter(painter),
-    _pointSize(6.f),
+    _pointDiameter(6.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
@@ -623,7 +623,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _lineColor(lineColor),
     _idx(-1),
     _painter(painter),
-    _pointSize(6.f),
+    _pointDiameter(6.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
@@ -679,7 +679,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
     if (this != &aP)
     {
         _lineWidth        = aP._lineWidth;
-        _pointSize        = aP._pointSize;
+        _pointDiameter        = aP._pointDiameter;
         _bIsClosed        = aP._bIsClosed;
         _idx              = aP._idx;
 
@@ -732,12 +732,12 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
     findNearestPoint(pos, 400000.f);
 
     if (_idx >=0 && _idx <_points.size())
-    {          
+    {
         if (state == eEPI_NonValue)
         {
             //TODO: cWinIm l.661
             _points.remove(_idx);
-        } 
+        }
         else
         {
             _points[_idx].setState(state);
@@ -793,6 +793,12 @@ int cPolygon::getSelectedPointState()
         return _points[_idx].state();
     }
     else return eEPI_NonValue;
+}
+
+void cPolygon::add(cPoint &pt)
+{
+    pt.setDiameter(_pointDiameter);
+    _points.push_back(pt);
 }
 
 void cPolygon::add(const QPointF &pt, bool selected)
@@ -951,8 +957,8 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
         }
         else                                 // select nearest polygon point
 
-            findNearestPoint(pos, _radius / zoom);
-    } 
+            findNearestPoint(pos, _selectionRadius / zoom);
+    }
 }
 
 int cPolygon::finalMovePoint()
@@ -1029,6 +1035,13 @@ void cPolygon::flipY(float height)
 {
     for (int aK=0; aK < size(); ++aK)
         _points[aK].setY(height - _points[aK].y());
+}
+
+void cPolygon::setParams(cParameters *aParams)
+{
+    setRadius(aParams->getSelectionRadius());
+    setPointSize(aParams->getPointDiameter());
+    setLineWidth(aParams->getLineThickness());
 }
 
 bool cPolygon::isPointInsidePoly(const QPointF& P)
@@ -1180,7 +1193,7 @@ cImageGL::~cImageGL()
 }
 
 void cImageGL::drawQuad(QColor color)
-{       
+{
     drawQuad(_originX, _originY, _glh, _glw,color);
 }
 
@@ -1222,7 +1235,7 @@ void cImageGL::draw()
 }
 
 void cImageGL::draw(QColor color)
-{    
+{
     drawQuad(color);
 }
 
@@ -1373,7 +1386,7 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     m_polygon.showLines(!modePt);
     m_polygon.showNames(modePt);
 
-    m_polygon.setDefaultName(ptName);  
+    m_polygon.setDefaultName(ptName);
 }
 
 void cGLData::setData(cData *data, bool setCam)
@@ -1686,6 +1699,7 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
         pBall->setVisible(stateOption(OpShow_Ball));
         pAxis->setVisible(stateOption(OpShow_Axis));
         pBbox->setVisible(stateOption(OpShow_BBox));
+        pGrid->setVisible(stateOption(OpShow_Grid));
 
         for (int i=0; i < Cams.size();i++)
             Cams[i]->setVisible(stateOption(OpShow_Cams));
@@ -1827,25 +1841,28 @@ cGrid::cGrid(Pt3d<double> pt, float scale, int nb)
 
 void cGrid::draw()
 {
-    int nbGrid = 10;
+    if (_bVisible)
+    {
+        int nbGrid = 10;
 
-    float scale = getScale() / nbGrid;
+        float scale = getScale() / nbGrid;
 
-    Pt3dr pt;
+        Pt3dr pt;
 
-    pt.x = getPosition().x - ((float)nbGrid * 0.5f) * scale;
-    pt.y = getPosition().y ;
-    pt.z = getPosition().z - ((float)nbGrid * 0.5f) * scale;
+        pt.x = getPosition().x - ((float)nbGrid * 0.5f) * scale;
+        pt.y = getPosition().y ;
+        pt.z = getPosition().z - ((float)nbGrid * 0.5f) * scale;
 
-    glBegin(GL_LINES);
-    glColor3f(.25,.25,.25);
-    for(int i=0;i<=nbGrid;i++) {
-        //if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
-        glVertex3f((float)i * scale + pt.x,pt.y,0+pt.z);
-        glVertex3f((float)i * scale + pt.x,pt.y,(float)nbGrid * scale+ pt.z);
-        //if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
-        glVertex3f( pt.x,pt.y,(float)i * scale + pt.z);
-        glVertex3f((float)nbGrid* scale+pt.x,pt.y,(float)i * scale + pt.z);
-    };
-    glEnd();
+        glBegin(GL_LINES);
+        glColor3f(.25,.25,.25);
+        for(int i=0;i<=nbGrid;i++) {
+            //if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
+            glVertex3f((float)i * scale + pt.x,pt.y,0+pt.z);
+            glVertex3f((float)i * scale + pt.x,pt.y,(float)nbGrid * scale+ pt.z);
+            //if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
+            glVertex3f( pt.x,pt.y,(float)i * scale + pt.z);
+            glVertex3f((float)nbGrid* scale+pt.x,pt.y,(float)i * scale + pt.z);
+        };
+        glEnd();
+    }
 }

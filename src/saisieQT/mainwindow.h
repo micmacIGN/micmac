@@ -63,6 +63,13 @@ public:
 
     TreeModel* getModel() { return _model; }
 
+    QItemSelectionModel * getSelectionModel() { return _selectionModel; }
+
+    void setUI();
+    void updateUI();
+
+    bool eventFilter(QObject *object, QEvent *event);
+
 public slots:
 
     //! Try to load a list of files
@@ -77,8 +84,6 @@ public slots:
     void openRecentFile();
 
     void progression();
-
-    void setUI();
 
     cEngine* getEngine(){return _Engine;}
 
@@ -96,6 +101,8 @@ signals:
 
     void showRefuted(bool);
 
+    void removePoint(QString pointName); //signal used when Treeview is edited
+
 protected slots:
 
     void setImagePosition(QPointF pt);
@@ -105,13 +112,12 @@ protected slots:
 
     void changeCurrentWidget(void* cuWid);
 
-    void setNextPointName();
-
     //View Menu
     void on_actionShow_axis_toggled(bool);
     void on_actionShow_ball_toggled(bool);
     void on_actionShow_cams_toggled(bool);
     void on_actionShow_bbox_toggled(bool);
+    void on_actionShow_grid_toggled(bool);
 
     void on_actionFullScreen_toggled(bool);
     void on_actionShow_messages_toggled(bool);
@@ -156,10 +162,13 @@ protected slots:
     void on_actionHelpShortcuts_triggered();
     void on_actionAbout_triggered();
 
+    void resizeEvent(QResizeEvent *);
+    void moveEvent(QMoveEvent *);
+
 protected:
 
     //! Connects all QT actions to slots
-    void connectActions();  
+    void connectActions();
 
 private:
 
@@ -195,5 +204,6 @@ private:
     int                     _mode;
 
     TreeModel*              _model;
+    QItemSelectionModel *   _selectionModel;
 };
 #endif // MAINWINDOW_H

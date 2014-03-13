@@ -73,9 +73,11 @@ public:
 
     int             getColumnSize(int column, QFontMetrics fm);
 
+    void            setPointGlob(QModelIndex idx, cSP_PointGlob* aPG);
+
 public slots:
 
-    void            addPoint();
+    void            addPoint(cSP_PointeImage *aPIm);
 
 private:
     TreeItem*       getItem(const QModelIndex &index) const;

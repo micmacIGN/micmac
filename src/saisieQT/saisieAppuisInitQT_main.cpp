@@ -74,13 +74,12 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     )
         filenames.push_back( QString((aDir + *itS).c_str()));
 
-    // dans InitWindows de SaisiePts A FACTORISER (methode virtuelle de Virtual_Interface...)
     int aNbW = aNbFen.x * aNbFen.y;
     if (filenames.size() < aNbW)
     {
          aNbW = filenames.size();
-         aNbFen.x = round_up(sqrt(aNbW-0.01));
-         aNbFen.y = round_up((double(aNbW)-0.01)/aNbFen.x);
+
+         cVirtualInterface::ComputeNbFen(aNbFen, aNbW);
     }
 
     bool init = settings.contains("MainWindow/size");
