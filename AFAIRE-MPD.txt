@@ -1,3 +1,18 @@
+Bug Reaff Chang Im Saisie , le corriger par force reaaf a DeZoom avant change im
+Reaff : cliquer sur les points pour zoomer dezoomer en auto
+Recherche auto : faire les cible en coins (UAV/Turin) :
+                  
+
+
+MMUserEnvironment
+
+   - Nb Process
+
+Autom RatioAttrCarte
+
+SEL : tourner sans source
+
+
 BUG non deterministe ??? dans Tapas signale DIAS
 
 tfw dans les orthos, y compris indiv
