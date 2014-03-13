@@ -1037,6 +1037,6 @@ void MainWindow::updateTreeView()
     for (int aK=1; aK< _model->columnCount(); ++aK)
     {
         colWidth = _model->getColumnSize(aK, fm);
-        _ui->treeView->setColumnWidth(0, colWidth);
+        _ui->treeView->setColumnWidth(aK, colWidth);
     }
 }
