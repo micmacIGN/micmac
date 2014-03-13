@@ -648,15 +648,15 @@ void cPolygon::draw()
         {
             QPen penline(isSelected() ? QColor(0,140,180) : _lineColor);
             penline.setCosmetic(true);
-            penline.setWidthF(0.75f);
+            penline.setWidthF(_lineWidth);
             if(_style == LINE_STIPPLE)
             {
-                penline.setWidthF(1.f);
+                penline.setWidthF(_lineWidth);
                 penline.setStyle(Qt::CustomDashLine);
                 penline.setDashPattern(_dashes);
             }
 
-            _painter->setPen( penline);
+            _painter->setPen(penline);
 
             if(_bIsClosed)
                 _painter->drawPolygon(getVector().data(),size());
@@ -803,17 +803,19 @@ void cPolygon::add(cPoint &pt)
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    _points.push_back(cPoint(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color));
-
-    bool isNumber = false;
-    double value = _defPtName.toDouble(&isNumber);
-    if (isNumber) _defPtName.setNum((uint)value+1);
+    cPoint cPt(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color);
+    cPt.setDiameter(_pointDiameter);
+    _points.push_back(cPt);
 }
 
 void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
-        _points[size()-1] = cPoint(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color);
+    {
+        cPoint cPt(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color);
+        cPt.setDiameter(_pointDiameter);
+        _points[size()-1] = cPoint(cPt);
+    }
 
     add(pt);
 }

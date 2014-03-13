@@ -90,7 +90,7 @@ class cObjectGL : public cObject
 
         virtual void draw()=0;
 
-        void    setLineWidth(float width){_lineWidth = width;}
+        void    setLineWidth(float width) { _lineWidth = width; }
 
     protected:
 
@@ -116,6 +116,8 @@ class cPoint : public cObjectGL, public QPointF
            bool  highlight  = false);
 
         void draw();
+
+        QColor getSelectionColor() { return _selectionColor; }
 
         void setState(int state)    { _state = state;    }
         void setDiameter(float val) { _diameter = val;   }
