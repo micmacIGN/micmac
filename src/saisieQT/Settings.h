@@ -97,6 +97,7 @@ signals:
     void gammaChanged(float);
     void zoomWindowChanged(float);
     void selectionRadiusChanged(int);
+    void prefixTextEdit(QString);
 
 protected slots:
 
@@ -105,18 +106,21 @@ protected slots:
     void on_resetButton_clicked();
     void on_cancelButton_clicked();
 
+    //layout settings
     void on_NBF_x_spinBox_valueChanged(int);
     void on_NBF_y_spinBox_valueChanged(int);
-
     void on_WindowWidth_spinBox_valueChanged(int);
     void on_WindowHeight_spinBox_valueChanged(int);
 
+    //drawing settings
     void on_LineThickness_doubleSpinBox_valueChanged(double);
     void on_PointDiameter_doubleSpinBox_valueChanged(double);
     void on_GammaDoubleSpinBox_valueChanged(double);
 
+    //other display settings
     void on_zoomWin_spinBox_valueChanged(int);
     void on_RadiusSpinBox_valueChanged(int);
+    void on_PrefixTextEdit_textChanged(QString);
 
 protected:
 
