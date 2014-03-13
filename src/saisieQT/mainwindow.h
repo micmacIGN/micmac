@@ -91,10 +91,13 @@ public slots:
 
     void redraw(bool nbWidgetsChanged=false);
 
+    void setAutoName(QString);
+
     void setGamma(float);
 
     void selectPoint(std::string ptName);
 
+    void setTreeView();
     void updateTreeView();
 
 signals:
@@ -102,6 +105,8 @@ signals:
     void showRefuted(bool);
 
     void removePoint(QString pointName); //signal used when Treeview is edited
+
+    void setName(QString); //signal coming from cSettingsDlg throw MainWindow
 
 protected slots:
 

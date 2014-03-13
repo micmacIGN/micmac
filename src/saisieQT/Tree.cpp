@@ -124,8 +124,6 @@ int TreeModel::columnCount(const QModelIndex &/*parent*/) const
 void TreeModel::setAppli(cAppli_SaisiePts *appli)
 {
     _appli = appli;
-
-    setupModelData();
 }
 
 QString StateToQString(eEtatPointeImage state)
@@ -400,7 +398,6 @@ void TreeModel::setupModelData()
     parents << rootItem;
 
     std::vector<cSP_PointGlob *> vPts = _appli->PG();
-
     for (int bK=0; bK < (int) vPts.size(); ++bK)
     {
         cSP_PointGlob* aPG = vPts[bK];
@@ -418,6 +415,16 @@ void TreeModel::setupModelData()
         {
             item->appendChild(new TreeItem(buildChildRow(*it), item));
         }
+    }
+
+    for (int aK=0; aK < _appli->Interface()->GetNumCaseNamePoint(); ++aK)
+    {
+        QVector<QVariant> columnData;
+
+        columnData << QString(_appli->Interface()->GetCaseNamePoint(aK).mName.c_str()) << "" << "" << "";
+
+        TreeItem * item = new TreeItem(columnData, rootItem);
+        parents.last()->appendChild(item);
     }
 }
 

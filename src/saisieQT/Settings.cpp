@@ -84,6 +84,13 @@ void cSettingsDlg::on_RadiusSpinBox_valueChanged(int val)
     emit selectionRadiusChanged(val);
 }
 
+void cSettingsDlg::on_PrefixTextEdit_textChanged(QString val)
+{
+    _parameters->setDefPtName(val);
+
+    emit prefixTextEdit(val);
+}
+
 void  cSettingsDlg::on_okButton_clicked()
 {
     on_applyButton_clicked();
@@ -226,7 +233,6 @@ void cParameters::write()
      settings.setValue("defPtName", _ptName    );
      settings.setValue("postFix",   _postFix   );
      settings.setValue("radius",    _radius    );
-
      settings.setValue("zoom",      QString::number(zoomClip(_zoomWindow),'f',2)    );
      settings.endGroup();
 }

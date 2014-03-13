@@ -555,11 +555,13 @@ void cPoint::draw()
                  QPointF epip1 = _painter->transform().map(_epipolar1);
                  QPointF epip2 = _painter->transform().map(_epipolar2);
 
-                _painter->drawLine(epip1, epip2);
+                 _painter->drawLine(epip1, epip2);
              }
              else
-
-                _painter->drawEllipse(pt, _diameter + 5, _diameter + 5);
+             {
+                 double r = 2.f*_diameter +1.f;
+                 _painter->drawEllipse(pt, r, r);
+             }
          }
 
          if ((_bShowName) && (_name != ""))
