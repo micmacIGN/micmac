@@ -18,7 +18,7 @@ texture< pixel,	cudaTextureType2D >         TexS_MaskGlobal;
 
 extern "C" textureReference& getMaskGlobal(){return TexS_MaskGlobal;}
 
-#define INTERPOLA BICUBIC
+#define INTERPOLA LINEARINTER
 
 template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();
 
