@@ -264,7 +264,7 @@ void ChunkStream::write_header( unsigned char i_type, bool i_hasMore, U_INT8 i_c
 {
 	#ifdef __DEBUG_CHUNK_STREAM_OUTPUT_HEADERS
 		cout << "--- write_header file=[" << getFilename(m_currentFileIndex).str_unix() << "] offset=" << m_outputStream.tellp() << " type=" << (int)i_type << " hasMore="
-			  << (i_hasMore?"true":"false") << " chunkSize=" << i_chunkSize << endl;
+			  << (i_hasMore?"true":"false") << " chunkSize=" << i_chunkSize << " remaining=" << m_remaining << endl;
 	#endif
 	
 	#ifdef __CHUNK_STREAM

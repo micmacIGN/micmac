@@ -8,7 +8,7 @@
 #include "general/cElCommand.h"
 
 #define __DEBUG_CHUNK_STREAM
-//#define __DEBUG_CHUNK_STREAM_OUTPUT_HEADERS
+#define __DEBUG_CHUNK_STREAM_OUTPUT_HEADERS
 
 class ChunkStream
 {
