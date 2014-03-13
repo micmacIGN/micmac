@@ -104,7 +104,7 @@ cTplValGesInit< std::string > & cContenuPt::None()
     return mNone;
 }
 
-const cTplValGesInit< std::string > & cContenuPt::None()const 
+const cTplValGesInit< std::string > & cContenuPt::None()const
 {
     return mNone;
 }
@@ -134,7 +134,7 @@ eTypePts & cPointGlob::Type()
     return mType;
 }
 
-const eTypePts & cPointGlob::Type()const 
+const eTypePts & cPointGlob::Type()const
 {
     return mType;
 }
@@ -145,7 +145,7 @@ std::string & cPointGlob::Name()
     return mName;
 }
 
-const std::string & cPointGlob::Name()const 
+const std::string & cPointGlob::Name()const
 {
     return mName;
 }
@@ -156,7 +156,7 @@ cTplValGesInit< Pt3dr > & cPointGlob::P3D()
     return mP3D;
 }
 
-const cTplValGesInit< Pt3dr > & cPointGlob::P3D()const 
+const cTplValGesInit< Pt3dr > & cPointGlob::P3D()const
 {
     return mP3D;
 }
@@ -167,7 +167,7 @@ cTplValGesInit< bool > & cPointGlob::Mes3DExportable()
     return mMes3DExportable;
 }
 
-const cTplValGesInit< bool > & cPointGlob::Mes3DExportable()const 
+const cTplValGesInit< bool > & cPointGlob::Mes3DExportable()const
 {
     return mMes3DExportable;
 }
@@ -178,7 +178,7 @@ cTplValGesInit< Pt3dr > & cPointGlob::Incert()
     return mIncert;
 }
 
-const cTplValGesInit< Pt3dr > & cPointGlob::Incert()const 
+const cTplValGesInit< Pt3dr > & cPointGlob::Incert()const
 {
     return mIncert;
 }
@@ -189,7 +189,7 @@ cTplValGesInit< double > & cPointGlob::LargeurFlou()
     return mLargeurFlou;
 }
 
-const cTplValGesInit< double > & cPointGlob::LargeurFlou()const 
+const cTplValGesInit< double > & cPointGlob::LargeurFlou()const
 {
     return mLargeurFlou;
 }
@@ -200,7 +200,7 @@ cTplValGesInit< std::string > & cPointGlob::None()
     return ContenuPt().Val().None();
 }
 
-const cTplValGesInit< std::string > & cPointGlob::None()const 
+const cTplValGesInit< std::string > & cPointGlob::None()const
 {
     return ContenuPt().Val().None();
 }
@@ -211,7 +211,7 @@ cTplValGesInit< cContenuPt > & cPointGlob::ContenuPt()
     return mContenuPt;
 }
 
-const cTplValGesInit< cContenuPt > & cPointGlob::ContenuPt()const 
+const cTplValGesInit< cContenuPt > & cPointGlob::ContenuPt()const
 {
     return mContenuPt;
 }
@@ -222,7 +222,7 @@ cTplValGesInit< int > & cPointGlob::NumAuto()
     return mNumAuto;
 }
 
-const cTplValGesInit< int > & cPointGlob::NumAuto()const 
+const cTplValGesInit< int > & cPointGlob::NumAuto()const
 {
     return mNumAuto;
 }
@@ -233,7 +233,7 @@ cTplValGesInit< Pt3dr > & cPointGlob::PS1()
     return mPS1;
 }
 
-const cTplValGesInit< Pt3dr > & cPointGlob::PS1()const 
+const cTplValGesInit< Pt3dr > & cPointGlob::PS1()const
 {
     return mPS1;
 }
@@ -244,7 +244,7 @@ cTplValGesInit< Pt3dr > & cPointGlob::PS2()
     return mPS2;
 }
 
-const cTplValGesInit< Pt3dr > & cPointGlob::PS2()const 
+const cTplValGesInit< Pt3dr > & cPointGlob::PS2()const
 {
     return mPS2;
 }
@@ -255,7 +255,7 @@ cTplValGesInit< double > & cPointGlob::SzRech()
     return mSzRech;
 }
 
-const cTplValGesInit< double > & cPointGlob::SzRech()const 
+const cTplValGesInit< double > & cPointGlob::SzRech()const
 {
     return mSzRech;
 }
@@ -266,7 +266,7 @@ cTplValGesInit< bool > & cPointGlob::Disparu()
     return mDisparu;
 }
 
-const cTplValGesInit< bool > & cPointGlob::Disparu()const 
+const cTplValGesInit< bool > & cPointGlob::Disparu()const
 {
     return mDisparu;
 }
@@ -277,7 +277,7 @@ cTplValGesInit< bool > & cPointGlob::FromDico()
     return mFromDico;
 }
 
-const cTplValGesInit< bool > & cPointGlob::FromDico()const 
+const cTplValGesInit< bool > & cPointGlob::FromDico()const
 {
     return mFromDico;
 }
@@ -353,7 +353,7 @@ std::list< cPointGlob > & cSetPointGlob::PointGlob()
     return mPointGlob;
 }
 
-const std::list< cPointGlob > & cSetPointGlob::PointGlob()const 
+const std::list< cPointGlob > & cSetPointGlob::PointGlob()const
 {
     return mPointGlob;
 }
@@ -387,7 +387,7 @@ eEtatPointeImage & cOneSaisie::Etat()
     return mEtat;
 }
 
-const eEtatPointeImage & cOneSaisie::Etat()const 
+const eEtatPointeImage & cOneSaisie::Etat()const
 {
     return mEtat;
 }
@@ -398,7 +398,7 @@ std::string & cOneSaisie::NamePt()
     return mNamePt;
 }
 
-const std::string & cOneSaisie::NamePt()const 
+const std::string & cOneSaisie::NamePt()const
 {
     return mNamePt;
 }
@@ -409,7 +409,7 @@ Pt2dr & cOneSaisie::PtIm()
     return mPtIm;
 }
 
-const Pt2dr & cOneSaisie::PtIm()const 
+const Pt2dr & cOneSaisie::PtIm()const
 {
     return mPtIm;
 }
@@ -444,7 +444,7 @@ std::string & cSaisiePointeIm::NameIm()
     return mNameIm;
 }
 
-const std::string & cSaisiePointeIm::NameIm()const 
+const std::string & cSaisiePointeIm::NameIm()const
 {
     return mNameIm;
 }
@@ -455,7 +455,7 @@ std::list< cOneSaisie > & cSaisiePointeIm::OneSaisie()
     return mOneSaisie;
 }
 
-const std::list< cOneSaisie > & cSaisiePointeIm::OneSaisie()const 
+const std::list< cOneSaisie > & cSaisiePointeIm::OneSaisie()const
 {
     return mOneSaisie;
 }
@@ -492,7 +492,7 @@ std::list< cSaisiePointeIm > & cSetOfSaisiePointeIm::SaisiePointeIm()
     return mSaisiePointeIm;
 }
 
-const std::list< cSaisiePointeIm > & cSetOfSaisiePointeIm::SaisiePointeIm()const 
+const std::list< cSaisiePointeIm > & cSetOfSaisiePointeIm::SaisiePointeIm()const
 {
     return mSaisiePointeIm;
 }
@@ -526,7 +526,7 @@ cTplValGesInit< Pt2di > & cSectionWindows::SzTotIm()
     return mSzTotIm;
 }
 
-const cTplValGesInit< Pt2di > & cSectionWindows::SzTotIm()const 
+const cTplValGesInit< Pt2di > & cSectionWindows::SzTotIm()const
 {
     return mSzTotIm;
 }
@@ -537,7 +537,7 @@ cTplValGesInit< Pt2di > & cSectionWindows::NbFenIm()
     return mNbFenIm;
 }
 
-const cTplValGesInit< Pt2di > & cSectionWindows::NbFenIm()const 
+const cTplValGesInit< Pt2di > & cSectionWindows::NbFenIm()const
 {
     return mNbFenIm;
 }
@@ -548,7 +548,7 @@ cTplValGesInit< Pt2di > & cSectionWindows::SzWZ()
     return mSzWZ;
 }
 
-const cTplValGesInit< Pt2di > & cSectionWindows::SzWZ()const 
+const cTplValGesInit< Pt2di > & cSectionWindows::SzWZ()const
 {
     return mSzWZ;
 }
@@ -559,7 +559,7 @@ cTplValGesInit< bool > & cSectionWindows::ShowDet()
     return mShowDet;
 }
 
-const cTplValGesInit< bool > & cSectionWindows::ShowDet()const 
+const cTplValGesInit< bool > & cSectionWindows::ShowDet()const
 {
     return mShowDet;
 }
@@ -570,7 +570,7 @@ cTplValGesInit< bool > & cSectionWindows::RefInvis()
     return mRefInvis;
 }
 
-const cTplValGesInit< bool > & cSectionWindows::RefInvis()const 
+const cTplValGesInit< bool > & cSectionWindows::RefInvis()const
 {
     return mRefInvis;
 }
@@ -616,7 +616,7 @@ eTypePts & cImportFromDico::TypePt()
     return mTypePt;
 }
 
-const eTypePts & cImportFromDico::TypePt()const 
+const eTypePts & cImportFromDico::TypePt()const
 {
     return mTypePt;
 }
@@ -627,7 +627,7 @@ std::string & cImportFromDico::File()
     return mFile;
 }
 
-const std::string & cImportFromDico::File()const 
+const std::string & cImportFromDico::File()const
 {
     return mFile;
 }
@@ -638,7 +638,7 @@ cTplValGesInit< double > & cImportFromDico::LargeurFlou()
     return mLargeurFlou;
 }
 
-const cTplValGesInit< double > & cImportFromDico::LargeurFlou()const 
+const cTplValGesInit< double > & cImportFromDico::LargeurFlou()const
 {
     return mLargeurFlou;
 }
@@ -674,7 +674,7 @@ cTplValGesInit< std::string > & cSectionInOut::Prefix2Add2IdPt()
     return mPrefix2Add2IdPt;
 }
 
-const cTplValGesInit< std::string > & cSectionInOut::Prefix2Add2IdPt()const 
+const cTplValGesInit< std::string > & cSectionInOut::Prefix2Add2IdPt()const
 {
     return mPrefix2Add2IdPt;
 }
@@ -685,7 +685,7 @@ std::list< cImportFromDico > & cSectionInOut::ImportFromDico()
     return mImportFromDico;
 }
 
-const std::list< cImportFromDico > & cSectionInOut::ImportFromDico()const 
+const std::list< cImportFromDico > & cSectionInOut::ImportFromDico()const
 {
     return mImportFromDico;
 }
@@ -696,7 +696,7 @@ cTplValGesInit< bool > & cSectionInOut::FlouGlobEcras()
     return mFlouGlobEcras;
 }
 
-const cTplValGesInit< bool > & cSectionInOut::FlouGlobEcras()const 
+const cTplValGesInit< bool > & cSectionInOut::FlouGlobEcras()const
 {
     return mFlouGlobEcras;
 }
@@ -707,7 +707,7 @@ cTplValGesInit< bool > & cSectionInOut::TypeGlobEcras()
     return mTypeGlobEcras;
 }
 
-const cTplValGesInit< bool > & cSectionInOut::TypeGlobEcras()const 
+const cTplValGesInit< bool > & cSectionInOut::TypeGlobEcras()const
 {
     return mTypeGlobEcras;
 }
@@ -718,7 +718,7 @@ cTplValGesInit< std::string > & cSectionInOut::NamePointesImage()
     return mNamePointesImage;
 }
 
-const cTplValGesInit< std::string > & cSectionInOut::NamePointesImage()const 
+const cTplValGesInit< std::string > & cSectionInOut::NamePointesImage()const
 {
     return mNamePointesImage;
 }
@@ -729,7 +729,7 @@ cTplValGesInit< std::string > & cSectionInOut::NamePointsGlobal()
     return mNamePointsGlobal;
 }
 
-const cTplValGesInit< std::string > & cSectionInOut::NamePointsGlobal()const 
+const cTplValGesInit< std::string > & cSectionInOut::NamePointsGlobal()const
 {
     return mNamePointsGlobal;
 }
@@ -740,7 +740,7 @@ cTplValGesInit< std::string > & cSectionInOut::ExportPointeImage()
     return mExportPointeImage;
 }
 
-const cTplValGesInit< std::string > & cSectionInOut::ExportPointeImage()const 
+const cTplValGesInit< std::string > & cSectionInOut::ExportPointeImage()const
 {
     return mExportPointeImage;
 }
@@ -751,7 +751,7 @@ std::list< std::string > & cSectionInOut::FixedName()
     return mFixedName;
 }
 
-const std::list< std::string > & cSectionInOut::FixedName()const 
+const std::list< std::string > & cSectionInOut::FixedName()const
 {
     return mFixedName;
 }
@@ -762,7 +762,7 @@ cTplValGesInit< std::string > & cSectionInOut::NameAuto()
     return mNameAuto;
 }
 
-const cTplValGesInit< std::string > & cSectionInOut::NameAuto()const 
+const cTplValGesInit< std::string > & cSectionInOut::NameAuto()const
 {
     return mNameAuto;
 }
@@ -773,7 +773,7 @@ cTplValGesInit< bool > & cSectionInOut::EnterName()
     return mEnterName;
 }
 
-const cTplValGesInit< bool > & cSectionInOut::EnterName()const 
+const cTplValGesInit< bool > & cSectionInOut::EnterName()const
 {
     return mEnterName;
 }
@@ -847,7 +847,7 @@ std::string & cSectionImages::SetOfImages()
     return mSetOfImages;
 }
 
-const std::string & cSectionImages::SetOfImages()const 
+const std::string & cSectionImages::SetOfImages()const
 {
     return mSetOfImages;
 }
@@ -858,7 +858,7 @@ cTplValGesInit< bool > & cSectionImages::ForceGray()
     return mForceGray;
 }
 
-const cTplValGesInit< bool > & cSectionImages::ForceGray()const 
+const cTplValGesInit< bool > & cSectionImages::ForceGray()const
 {
     return mForceGray;
 }
@@ -869,7 +869,7 @@ cTplValGesInit< std::string > & cSectionImages::KeyAssocOri()
     return mKeyAssocOri;
 }
 
-const cTplValGesInit< std::string > & cSectionImages::KeyAssocOri()const 
+const cTplValGesInit< std::string > & cSectionImages::KeyAssocOri()const
 {
     return mKeyAssocOri;
 }
@@ -906,7 +906,7 @@ cTplValGesInit< double > & cProfEstimator::ZMoyen()
     return mZMoyen;
 }
 
-const cTplValGesInit< double > & cProfEstimator::ZMoyen()const 
+const cTplValGesInit< double > & cProfEstimator::ZMoyen()const
 {
     return mZMoyen;
 }
@@ -917,7 +917,7 @@ cTplValGesInit< std::string > & cProfEstimator::ZMoyenInIma()
     return mZMoyenInIma;
 }
 
-const cTplValGesInit< std::string > & cProfEstimator::ZMoyenInIma()const 
+const cTplValGesInit< std::string > & cProfEstimator::ZMoyenInIma()const
 {
     return mZMoyenInIma;
 }
@@ -951,7 +951,7 @@ cTplValGesInit< double > & cSectionTerrain::IntervPercProf()
     return mIntervPercProf;
 }
 
-const cTplValGesInit< double > & cSectionTerrain::IntervPercProf()const 
+const cTplValGesInit< double > & cSectionTerrain::IntervPercProf()const
 {
     return mIntervPercProf;
 }
@@ -962,7 +962,7 @@ cTplValGesInit< double > & cSectionTerrain::ZMoyen()
     return ProfEstimator().Val().ZMoyen();
 }
 
-const cTplValGesInit< double > & cSectionTerrain::ZMoyen()const 
+const cTplValGesInit< double > & cSectionTerrain::ZMoyen()const
 {
     return ProfEstimator().Val().ZMoyen();
 }
@@ -973,7 +973,7 @@ cTplValGesInit< std::string > & cSectionTerrain::ZMoyenInIma()
     return ProfEstimator().Val().ZMoyenInIma();
 }
 
-const cTplValGesInit< std::string > & cSectionTerrain::ZMoyenInIma()const 
+const cTplValGesInit< std::string > & cSectionTerrain::ZMoyenInIma()const
 {
     return ProfEstimator().Val().ZMoyenInIma();
 }
@@ -984,7 +984,7 @@ cTplValGesInit< cProfEstimator > & cSectionTerrain::ProfEstimator()
     return mProfEstimator;
 }
 
-const cTplValGesInit< cProfEstimator > & cSectionTerrain::ProfEstimator()const 
+const cTplValGesInit< cProfEstimator > & cSectionTerrain::ProfEstimator()const
 {
     return mProfEstimator;
 }
@@ -1018,7 +1018,7 @@ cTplValGesInit< cChantierDescripteur > & cParamSaisiePts::DicoLoc()
     return mDicoLoc;
 }
 
-const cTplValGesInit< cChantierDescripteur > & cParamSaisiePts::DicoLoc()const 
+const cTplValGesInit< cChantierDescripteur > & cParamSaisiePts::DicoLoc()const
 {
     return mDicoLoc;
 }
@@ -1029,7 +1029,7 @@ cTplValGesInit< Pt2di > & cParamSaisiePts::SzTotIm()
     return SectionWindows().SzTotIm();
 }
 
-const cTplValGesInit< Pt2di > & cParamSaisiePts::SzTotIm()const 
+const cTplValGesInit< Pt2di > & cParamSaisiePts::SzTotIm()const
 {
     return SectionWindows().SzTotIm();
 }
@@ -1040,7 +1040,7 @@ cTplValGesInit< Pt2di > & cParamSaisiePts::NbFenIm()
     return SectionWindows().NbFenIm();
 }
 
-const cTplValGesInit< Pt2di > & cParamSaisiePts::NbFenIm()const 
+const cTplValGesInit< Pt2di > & cParamSaisiePts::NbFenIm()const
 {
     return SectionWindows().NbFenIm();
 }
@@ -1051,7 +1051,7 @@ cTplValGesInit< Pt2di > & cParamSaisiePts::SzWZ()
     return SectionWindows().SzWZ();
 }
 
-const cTplValGesInit< Pt2di > & cParamSaisiePts::SzWZ()const 
+const cTplValGesInit< Pt2di > & cParamSaisiePts::SzWZ()const
 {
     return SectionWindows().SzWZ();
 }
@@ -1062,7 +1062,7 @@ cTplValGesInit< bool > & cParamSaisiePts::ShowDet()
     return SectionWindows().ShowDet();
 }
 
-const cTplValGesInit< bool > & cParamSaisiePts::ShowDet()const 
+const cTplValGesInit< bool > & cParamSaisiePts::ShowDet()const
 {
     return SectionWindows().ShowDet();
 }
@@ -1073,7 +1073,7 @@ cTplValGesInit< bool > & cParamSaisiePts::RefInvis()
     return SectionWindows().RefInvis();
 }
 
-const cTplValGesInit< bool > & cParamSaisiePts::RefInvis()const 
+const cTplValGesInit< bool > & cParamSaisiePts::RefInvis()const
 {
     return SectionWindows().RefInvis();
 }
@@ -1084,7 +1084,7 @@ cSectionWindows & cParamSaisiePts::SectionWindows()
     return mSectionWindows;
 }
 
-const cSectionWindows & cParamSaisiePts::SectionWindows()const 
+const cSectionWindows & cParamSaisiePts::SectionWindows()const
 {
     return mSectionWindows;
 }
@@ -1095,7 +1095,7 @@ cTplValGesInit< std::string > & cParamSaisiePts::Prefix2Add2IdPt()
     return SectionInOut().Prefix2Add2IdPt();
 }
 
-const cTplValGesInit< std::string > & cParamSaisiePts::Prefix2Add2IdPt()const 
+const cTplValGesInit< std::string > & cParamSaisiePts::Prefix2Add2IdPt()const
 {
     return SectionInOut().Prefix2Add2IdPt();
 }
@@ -1106,7 +1106,7 @@ std::list< cImportFromDico > & cParamSaisiePts::ImportFromDico()
     return SectionInOut().ImportFromDico();
 }
 
-const std::list< cImportFromDico > & cParamSaisiePts::ImportFromDico()const 
+const std::list< cImportFromDico > & cParamSaisiePts::ImportFromDico()const
 {
     return SectionInOut().ImportFromDico();
 }
@@ -1117,7 +1117,7 @@ cTplValGesInit< bool > & cParamSaisiePts::FlouGlobEcras()
     return SectionInOut().FlouGlobEcras();
 }
 
-const cTplValGesInit< bool > & cParamSaisiePts::FlouGlobEcras()const 
+const cTplValGesInit< bool > & cParamSaisiePts::FlouGlobEcras()const
 {
     return SectionInOut().FlouGlobEcras();
 }
@@ -1128,7 +1128,7 @@ cTplValGesInit< bool > & cParamSaisiePts::TypeGlobEcras()
     return SectionInOut().TypeGlobEcras();
 }
 
-const cTplValGesInit< bool > & cParamSaisiePts::TypeGlobEcras()const 
+const cTplValGesInit< bool > & cParamSaisiePts::TypeGlobEcras()const
 {
     return SectionInOut().TypeGlobEcras();
 }
@@ -1139,7 +1139,7 @@ cTplValGesInit< std::string > & cParamSaisiePts::NamePointesImage()
     return SectionInOut().NamePointesImage();
 }
 
-const cTplValGesInit< std::string > & cParamSaisiePts::NamePointesImage()const 
+const cTplValGesInit< std::string > & cParamSaisiePts::NamePointesImage()const
 {
     return SectionInOut().NamePointesImage();
 }
@@ -1150,7 +1150,7 @@ cTplValGesInit< std::string > & cParamSaisiePts::NamePointsGlobal()
     return SectionInOut().NamePointsGlobal();
 }
 
-const cTplValGesInit< std::string > & cParamSaisiePts::NamePointsGlobal()const 
+const cTplValGesInit< std::string > & cParamSaisiePts::NamePointsGlobal()const
 {
     return SectionInOut().NamePointsGlobal();
 }
@@ -1161,7 +1161,7 @@ cTplValGesInit< std::string > & cParamSaisiePts::ExportPointeImage()
     return SectionInOut().ExportPointeImage();
 }
 
-const cTplValGesInit< std::string > & cParamSaisiePts::ExportPointeImage()const 
+const cTplValGesInit< std::string > & cParamSaisiePts::ExportPointeImage()const
 {
     return SectionInOut().ExportPointeImage();
 }
@@ -1172,7 +1172,7 @@ std::list< std::string > & cParamSaisiePts::FixedName()
     return SectionInOut().FixedName();
 }
 
-const std::list< std::string > & cParamSaisiePts::FixedName()const 
+const std::list< std::string > & cParamSaisiePts::FixedName()const
 {
     return SectionInOut().FixedName();
 }
@@ -1183,7 +1183,7 @@ cTplValGesInit< std::string > & cParamSaisiePts::NameAuto()
     return SectionInOut().NameAuto();
 }
 
-const cTplValGesInit< std::string > & cParamSaisiePts::NameAuto()const 
+const cTplValGesInit< std::string > & cParamSaisiePts::NameAuto()const
 {
     return SectionInOut().NameAuto();
 }
@@ -1194,7 +1194,7 @@ cTplValGesInit< bool > & cParamSaisiePts::EnterName()
     return SectionInOut().EnterName();
 }
 
-const cTplValGesInit< bool > & cParamSaisiePts::EnterName()const 
+const cTplValGesInit< bool > & cParamSaisiePts::EnterName()const
 {
     return SectionInOut().EnterName();
 }
@@ -1205,7 +1205,7 @@ cSectionInOut & cParamSaisiePts::SectionInOut()
     return mSectionInOut;
 }
 
-const cSectionInOut & cParamSaisiePts::SectionInOut()const 
+const cSectionInOut & cParamSaisiePts::SectionInOut()const
 {
     return mSectionInOut;
 }
@@ -1216,7 +1216,7 @@ std::string & cParamSaisiePts::SetOfImages()
     return SectionImages().SetOfImages();
 }
 
-const std::string & cParamSaisiePts::SetOfImages()const 
+const std::string & cParamSaisiePts::SetOfImages()const
 {
     return SectionImages().SetOfImages();
 }
@@ -1227,7 +1227,7 @@ cTplValGesInit< bool > & cParamSaisiePts::ForceGray()
     return SectionImages().ForceGray();
 }
 
-const cTplValGesInit< bool > & cParamSaisiePts::ForceGray()const 
+const cTplValGesInit< bool > & cParamSaisiePts::ForceGray()const
 {
     return SectionImages().ForceGray();
 }
@@ -1238,7 +1238,7 @@ cTplValGesInit< std::string > & cParamSaisiePts::KeyAssocOri()
     return SectionImages().KeyAssocOri();
 }
 
-const cTplValGesInit< std::string > & cParamSaisiePts::KeyAssocOri()const 
+const cTplValGesInit< std::string > & cParamSaisiePts::KeyAssocOri()const
 {
     return SectionImages().KeyAssocOri();
 }
@@ -1249,7 +1249,7 @@ cSectionImages & cParamSaisiePts::SectionImages()
     return mSectionImages;
 }
 
-const cSectionImages & cParamSaisiePts::SectionImages()const 
+const cSectionImages & cParamSaisiePts::SectionImages()const
 {
     return mSectionImages;
 }
@@ -1260,7 +1260,7 @@ cTplValGesInit< double > & cParamSaisiePts::IntervPercProf()
     return SectionTerrain().IntervPercProf();
 }
 
-const cTplValGesInit< double > & cParamSaisiePts::IntervPercProf()const 
+const cTplValGesInit< double > & cParamSaisiePts::IntervPercProf()const
 {
     return SectionTerrain().IntervPercProf();
 }
@@ -1271,7 +1271,7 @@ cTplValGesInit< double > & cParamSaisiePts::ZMoyen()
     return SectionTerrain().ProfEstimator().Val().ZMoyen();
 }
 
-const cTplValGesInit< double > & cParamSaisiePts::ZMoyen()const 
+const cTplValGesInit< double > & cParamSaisiePts::ZMoyen()const
 {
     return SectionTerrain().ProfEstimator().Val().ZMoyen();
 }
@@ -1282,7 +1282,7 @@ cTplValGesInit< std::string > & cParamSaisiePts::ZMoyenInIma()
     return SectionTerrain().ProfEstimator().Val().ZMoyenInIma();
 }
 
-const cTplValGesInit< std::string > & cParamSaisiePts::ZMoyenInIma()const 
+const cTplValGesInit< std::string > & cParamSaisiePts::ZMoyenInIma()const
 {
     return SectionTerrain().ProfEstimator().Val().ZMoyenInIma();
 }
@@ -1293,7 +1293,7 @@ cTplValGesInit< cProfEstimator > & cParamSaisiePts::ProfEstimator()
     return SectionTerrain().ProfEstimator();
 }
 
-const cTplValGesInit< cProfEstimator > & cParamSaisiePts::ProfEstimator()const 
+const cTplValGesInit< cProfEstimator > & cParamSaisiePts::ProfEstimator()const
 {
     return SectionTerrain().ProfEstimator();
 }
@@ -1304,7 +1304,7 @@ cSectionTerrain & cParamSaisiePts::SectionTerrain()
     return mSectionTerrain;
 }
 
-const cSectionTerrain & cParamSaisiePts::SectionTerrain()const 
+const cSectionTerrain & cParamSaisiePts::SectionTerrain()const
 {
     return mSectionTerrain;
 }
@@ -1315,7 +1315,7 @@ std::string & cParamSaisiePts::DirectoryChantier()
     return mDirectoryChantier;
 }
 
-const std::string & cParamSaisiePts::DirectoryChantier()const 
+const std::string & cParamSaisiePts::DirectoryChantier()const
 {
     return mDirectoryChantier;
 }
