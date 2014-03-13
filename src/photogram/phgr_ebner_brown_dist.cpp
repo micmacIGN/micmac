@@ -1048,6 +1048,23 @@ cParamIntrinsequeFormel * cCamera_Param_Unif_Gen::AllocParamInc(bool isDistC2M,c
 /*                                                                   */
 /*********************************************************************/
 
+#ifdef __DEBUG_EL_CAMERA
+	template <class TDistR,class TDistF,const int NbVar,const int NbState>
+	cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::cCamera_Param_Unif( const cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> &i_b ):
+		cCamera_Param_Unif_Gen( i_b ),
+		mDist(i_b.mDist)
+	{
+		ELISE_ASSERT( false, "cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::cCamera_Param_Unif( const <TDistR,TDistF,NbVar,NbState> & )");
+	}
+
+	template <class TDistR,class TDistF,const int NbVar,const int NbState>
+	cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> & cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::operator =( const cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> &i_b )
+	{
+		ELISE_ASSERT( false, "cDist_Param_Unif<TDistR,TDistF,NbVar,NbState>::operator =( const <TDistR,TDistF,NbVar,NbState> & )");
+		return *this;
+	}
+#endif
+
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
 cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::cCamera_Param_Unif
 (
@@ -1305,14 +1322,41 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 	      );
    // aRes.SetDistInverse();
    aRes.HeritComplAndSz(*CamInit());
-
+	
    return aRes;
+}
+
+template <class TDistR,class TDistF,const int NbVar,const int NbState>
+ cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> *
+      cPIF_Unif<TDistR,TDistF,NbVar,NbState>::newCurPIFUnif()
+{
+	double * adrV0 = &mDistCur.KVar(0);
+	std::vector<double> aVV(adrV0,adrV0+NbVar);
+
+	double * adrS0 = &mDistCur.KState(0);
+	std::vector<double> aVS(adrS0,adrS0+NbState);
+
+	cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> *pRes = new
+		cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> 
+		(
+			DistIsC2M(),
+			CurFocale(),
+			CurPP(),
+			mDistInit.SzIm(),
+			CurAFoc(),
+			&aVV,
+			&aVS
+		);
+	pRes->HeritComplAndSz(*CamInit());
+
+	return pRes;
 }
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
  void cPIF_Unif<TDistR,TDistF,NbVar,NbState>::NV_UpdateCurPIF()
 {
-    mCurPIF =   new cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> (CurPIFUnif());
+	//mCurPIF =   new cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> (CurPIFUnif());
+	mCurPIF = newCurPIFUnif();
 }
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
@@ -1330,7 +1374,8 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
  CamStenope * cPIF_Unif<TDistR,TDistF,NbVar,NbState>::DupCurPIF()
 {
-    return   new cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> (CurPIFUnif());
+    //return   new cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> (CurPIFUnif());
+    return newCurPIFUnif();
 }
 
 
