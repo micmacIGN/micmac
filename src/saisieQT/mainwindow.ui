@@ -895,6 +895,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <addaction name="actionShow_axis"/>
     <addaction name="actionShow_ball"/>
     <addaction name="actionShow_bbox"/>
+    <addaction name="actionShow_grid"/>
     <addaction name="actionShow_cams"/>
     <addaction name="actionShow_messages"/>
     <addaction name="actionShow_names"/>
@@ -1133,7 +1134,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <string>Show messages</string>
    </property>
    <property name="shortcut">
-    <string>F7</string>
+    <string>F8</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
@@ -1150,7 +1151,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <string>Show cams</string>
    </property>
    <property name="shortcut">
-    <string>F6</string>
+    <string>F7</string>
    </property>
   </action>
   <action name="actionAdd">
@@ -1206,7 +1207,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
   </action>
   <action name="actionReset">
    <property name="text">
-    <string>Reset</string>
+    <string>Reset selection</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -1378,7 +1379,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
   </action>
   <action name="actionReset_view">
    <property name="text">
-    <string>Reset</string>
+    <string>Reset view</string>
    </property>
    <property name="shortcut">
     <string>Shift+R</string>
@@ -1438,7 +1439,21 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <string>Show refuted</string>
    </property>
    <property name="shortcut">
-    <string>Shift+R</string>
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionShow_grid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show grid</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
    </property>
   </action>
  </widget>

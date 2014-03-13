@@ -199,11 +199,11 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
 {
 
 
-    ELISE_ASSERT
-    (
-        aPDV->NumEquiv()==0,
-    "Ne gere pas les classe d'equiv image en GPU"
-    );
+//    ELISE_ASSERT
+//    (
+//        aPDV->NumEquiv()==0,
+//    "Ne gere pas les classe d'equiv image en GPU"
+//    );
 
     if (! Top)
        return;
@@ -711,9 +711,29 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                     float*	fdataImg1D	= NULL;
                     uint2	dimImgMax	= make_uint2(0,0);
 
+                    ushort  nbCLass     = 1;
+                    ushort  pitImage    = 0;
+
+                    IMmGg.Data().ReallocHostClassEqui(mNbIm);
+
+                    ushort2* hClassEqui = IMmGg.Data().HostClassEqui();
+
                     for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                     {
                         cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
+
+                        hClassEqui[aKIm].x = aGLI.PDV()->NumEquiv();
+
+
+                        if(aKIm && hClassEqui[aKIm-1].x != hClassEqui[aKIm].x)
+                        {
+                            pitImage = aKIm;
+                            nbCLass++;
+                        }
+
+                        hClassEqui[hClassEqui[aKIm].x].y = pitImage;
+
+                        //printf("Image : %d, Classe : %d, NB classe %d, pit : %d\n",aKIm,hClassEqui[aKIm].x,nbCLass,hClassEqui[hClassEqui[aKIm].x].y);
                         dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
                     }
 
@@ -744,7 +764,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     if (fdataImg1D != NULL) delete[] fdataImg1D;
 
-                    IMmGg.SetParameter(mNbIm, make_ushort2(toUi2(mCurSzV0)), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT);
+                    IMmGg.SetParameter(mNbIm, make_ushort2(toUi2(mCurSzV0)), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT,nbCLass);
 
                 }
 
@@ -1489,8 +1509,8 @@ void cAppliMICMAC::DoGPU_Correl
         uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
         uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
         uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
-        int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
-        int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
+//        int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
+//        int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
         int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
         OMP_NT1
@@ -1505,47 +1525,40 @@ void cAppliMICMAC::DoGPU_Correl
 
                 cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
                 const cGeomImage*	aGeom	= aGLI.Geom();
-                int2 an;
+                //int2 an = make_int2(0);
 
+                int2 an = zone.pt0;
                 Rect re(MAXIRECT);
 
+                const double aZReel	= DequantZ(anZ);			// Dequantification  de X, Y et Z
                 for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain
                 {
                     for (an.x = zone.pt0.x; an.x < anB.x ; an.x += sample)
                     {
-                        if ( aSE(an,0) && aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
+                       // if ( /*aSE(an,0) && */aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
                         {
 
-                            int2 t  = (an - zone.pt0);
+ //                           int2 t  = (an - zone.pt0);
                             int2 r	= (an - zone.pt0)/sample; // TODO Simplifier calcul
                             int iD	=  to1D(r,dimSTabProj);
 // 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
 
-                            const double aZReel	= DequantZ(anZ);			// Dequantification  de X, Y et Z
                             Pt2dr aPTer	= DequantPlani(an.x,an.y);
                             Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image
 
-                            if (aGLI.IsOk( aPIm.x, aPIm.y ))
+
+                           // if (aGLI.IsOk( aPIm.x, aPIm.y ))
                             {
-                                re.SetMaxMin(t.x,t.y);
+
                                 pTproj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
                             }
                         }
                     }
                 }
 
-                // TODO IL RESTE des BUG SUR MNE INDRE avec SzBlocAH = 48
-                if(re.pt0.y > (int)sample)
-                    re.pt0.y += sample;
 
-                if(re.pt0.x > (int)sample)
-                    re.pt0.x += sample;
-
-                if(re.pt1.y + (int)sample < anB.y - zone.pt0.y )
-                    re.pt1.y -= sample;
-
-                if(re.pt1.x + (int)sample < anB.x - zone.pt0.x )
-                    re.pt1.x -= sample;
+                re.pt1.x = aGLI.getSizeImage().x - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
+                re.pt1.y = aGLI.getSizeImage().y - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
 
                 *pRect = re;
 

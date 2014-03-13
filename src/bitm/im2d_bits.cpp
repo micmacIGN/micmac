@@ -42,6 +42,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+Im2D_Bits<1> ImMarqueurCC(Pt2di aSz)
+{
+   Im2D_Bits<1> aMasq(aSz.x,aSz.y,1);
+   ELISE_COPY(aMasq.border(1),0,aMasq.out());
+   return aMasq;
+}
+
 
 
 template <const INT nbb,const bool msbf>  INT

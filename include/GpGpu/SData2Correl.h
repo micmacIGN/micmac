@@ -27,6 +27,8 @@ struct cellules
 ///
 struct SData2Correl
 {
+
+public:
     SData2Correl();
 
     ~SData2Correl();
@@ -67,6 +69,12 @@ struct SData2Correl
 
     void    ReallocDeviceData(pCorGpu &param);   
 
+    ushort2 *HostClassEqui();
+
+    void    ReallocHostClassEqui(uint nbImages);
+
+    ushort2 *DeviClassEqui();
+
 private:
 
     void    ReallocDeviceData(int nStream, pCorGpu param);
@@ -80,6 +88,9 @@ private:
 
     CuHostData3D<Rect>          _hRect;
     CuDeviceData3D<Rect>        _dRect;
+
+    CuHostData3D<ushort2>       _hClassEqui;
+    CuDeviceData3D<ushort2>     _dClassEqui;
 
     CuDeviceData3D<float>       _d_volumeCost[NSTREAM];	// volume des couts
     CuDeviceData3D<float>       _d_volumeCach[NSTREAM];	// volume des calculs intermédiaires

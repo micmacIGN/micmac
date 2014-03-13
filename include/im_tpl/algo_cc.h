@@ -42,13 +42,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_IM_ALGO_CC
 #define _ELISE_IM_ALGO_CC
 
+Im2D_Bits<1> ImMarqueurCC(Pt2di aSz);
+
+
 // Mais en aValAff les composante connexe de coul=aValSelec de taille < aSeuilCard
 
-template <class T1,class T2> int OneZC
+template <class T1,class T2,class Action> int OneZC
                                  (
                                       const Pt2di & aPGerm, bool V4,
                                       T1 & aIm1,int aV1Sel,int aV1Aff,
-                                      T2 & aIm2,int aV2Sel
+                                      T2 & aIm2,int aV2Sel,
+                                      Action & aOnNewPt
                                  )
 {
    Pt2di * aTabV = V4 ? TAB_4_NEIGH : TAB_8_NEIGH ;
@@ -82,6 +86,7 @@ template <class T1,class T2> int OneZC
                  {
                     aIm1.oset(aPV,aV1Aff);
                     aVNext->push_back(aPV);
+                    aOnNewPt.OnNewPt(aPV);
                  }
            }
        }
@@ -93,32 +98,36 @@ template <class T1,class T2> int OneZC
    return aNbTot;
 }
 
+class cCC_NoActionOnNewPt
+{
+    public :
+       void  OnNewPt(const Pt2di &) {}
+};
 
 template  <class Type>
           void    FiltrageCardCC(bool V4,Type & aTIm,int aValSelec,int aValAff,int aSeuilCard)
 {
    Pt2di aSz = aTIm.sz();
 
-   Im2D_Bits<1> aMasq1(aSz.x,aSz.y,1);
+   Im2D_Bits<1> aMasq1 = ImMarqueurCC(aSz);
    TIm2DBits<1> aTMasq1(aMasq1);
-   ELISE_COPY(aMasq1.border(1),0,aMasq1.out());
 
-   Im2D_Bits<1> aMasq2(aSz.x,aSz.y,1);
+   Im2D_Bits<1> aMasq2 = ImMarqueurCC(aSz);
    TIm2DBits<1> aTMasq2(aMasq2);
-   ELISE_COPY(aMasq2.border(1),0,aMasq2.out());
 
    Pt2di aP;
+   cCC_NoActionOnNewPt aNoAct;
    for(aP.x=0 ; aP.x<aSz.x ; aP.x++)
    {
       for(aP.y=0 ; aP.y<aSz.y ; aP.y++)
       {
           if ((aTIm.get(aP)==aValSelec) && (aTMasq1.get(aP)==1))
           {
-               int aNb = OneZC(aP,V4,aTMasq1,1,0,aTIm,aValSelec);
+               int aNb = OneZC(aP,V4,aTMasq1,1,0,aTIm,aValSelec,aNoAct);
 
                if (aNb<aSeuilCard)
                {
-                    OneZC(aP,V4,aTIm,aValSelec,aValAff,aTMasq2,1);
+                    OneZC(aP,V4,aTIm,aValSelec,aValAff,aTMasq2,1,aNoAct);
                }
           }
       }
