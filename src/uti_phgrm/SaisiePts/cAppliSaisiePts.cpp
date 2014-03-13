@@ -194,7 +194,7 @@ Im2D_INT4      cAppli_SaisiePts::ImRechAlgo() const { return mImRechAlgo; }
 
 bool &         cAppli_SaisiePts::ShowDet()          { return mShowDet;    }
 
-const cParamSaisiePts & cAppli_SaisiePts::Param()  const { return mParam; }
+cParamSaisiePts & cAppli_SaisiePts::Param()        const { return mParam; }
 const std::string     & cAppli_SaisiePts::DC()     const { return mDC;    }
 cSetOfSaisiePointeIm  & cAppli_SaisiePts::SOSPI()        { return mSOSPI; }
 
@@ -366,7 +366,7 @@ void cAppli_SaisiePts::InitPG()
     }
 }
 
-void cAppli_SaisiePts::IniPointeIm()
+void cAppli_SaisiePts::InitPointeIm()
 {
     mNameSauvPtIm = mDC + mParam.NamePointesImage().Val();
     mDupNameSauvPtIm = mNameSauvPtIm + ".dup";
@@ -533,7 +533,7 @@ void cAppli_SaisiePts::InitInPuts()
     //std::cout << "SPTS::CCCCC\n"; getchar();
     InitPG();
     //std::cout << "SPTS::DDDDDD\n"; getchar();
-    IniPointeIm();
+    InitPointeIm();
 
     // std::cout << "NB POINT GLOG " << mPG.size() << "\n";
     // Si on a change d'orientation, les points 3D ne sont plus valables ....
@@ -708,7 +708,7 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
     case  eEPI_Disparu :
         return 0;
         break;
-        
+
     case eEPI_NonValue :
     case eEPI_Highlight :
     case eEPI_Deleted :
@@ -739,12 +739,12 @@ void cAppli_SaisiePts::ChangeImages
     cCmpIm aCmpIm(mInterface);
     std::sort(mImages.begin(),mImages.end(),aCmpIm);
 
-	#if ELISE_windows == 0
+    #if ELISE_windows == 0
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)
     {
         aW2Ch[aKW]->SetNoImage();
     }
-	#endif
+    #endif
     int aKW =0;
     int aKI =0;
 
@@ -786,7 +786,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -797,16 +797,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
