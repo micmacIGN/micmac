@@ -37,8 +37,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>255</width>
-        <height>80</height>
+        <width>346</width>
+        <height>271</height>
        </rect>
       </property>
       <property name="layoutDirection">
@@ -214,6 +214,15 @@
            <property name="decimals">
             <number>1</number>
            </property>
+           <property name="minimum">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>5.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
            <property name="value">
             <double>2.000000000000000</double>
            </property>
@@ -236,6 +245,9 @@
           <widget class="QDoubleSpinBox" name="PointDiameter_doubleSpinBox">
            <property name="decimals">
             <number>1</number>
+           </property>
+           <property name="singleStep">
+            <double>0.500000000000000</double>
            </property>
            <property name="value">
             <double>2.000000000000000</double>
@@ -264,8 +276,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>294</width>
-        <height>103</height>
+        <width>346</width>
+        <height>271</height>
        </rect>
       </property>
       <attribute name="label">
