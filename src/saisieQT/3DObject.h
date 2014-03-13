@@ -20,6 +20,8 @@
     #include "GL/glu.h"
 #endif
 
+#include "Settings.h"
+
 #define QMaskedImage cMaskedImage<QImage>
 
 //! Interaction mode (only in 3D)
@@ -88,7 +90,7 @@ class cObjectGL : public cObject
 
         virtual void draw()=0;
 
-        void    setLineWidth(float width){_lineWidth = width;}
+        void    setLineWidth(float width) { _lineWidth = width; }
 
     protected:
 
@@ -115,7 +117,10 @@ class cPoint : public cObjectGL, public QPointF
 
         void draw();
 
+        QColor getSelectionColor() { return _selectionColor; }
+
         void setState(int state)    { _state = state;    }
+        void setDiameter(float val) { _diameter = val;   }
         int  state() const          { return _state;     }
         void showName(bool show)    { _bShowName = show; }
 
@@ -254,7 +259,7 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        bool    findNearestPoint(const QPointF &pos, float radius = _radius);
+        bool    findNearestPoint(const QPointF &pos, float getRadius = _selectionRadius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
@@ -266,9 +271,9 @@ class cPolygon : public cObjectGL
         QString getSelectedPointName();
         int     getSelectedPointState();
 
-        void    setpointSize(float size) { _pointSize = size; }
+        void    setPointSize(float size) { _pointDiameter = size; }
 
-        void    add(cPoint const &pt){ _points.push_back(pt); }
+        void    add(cPoint &pt);
         void    add(QPointF const &pt, bool selected=false);
         void    addPoint(QPointF const &pt);
 
@@ -315,8 +320,8 @@ class cPolygon : public cObjectGL
         void    showNames(bool show);
         bool    bShowNames() { return _bShowNames; }
 
-        void    setDefaultName(QString name){ _defPtName = name; }
-        QString getDefaultName() { return _defPtName; }
+        void    setDefaultName(QString name)    { _defPtName = name; }
+        QString getDefaultName()                { return _defPtName; }
 
         void    rename(QPointF pos, QString name);
 
@@ -330,7 +335,10 @@ class cPolygon : public cObjectGL
 
         void    flipY(float height);
 
-        float   radius() { return _radius; }
+        float   getRadius()             { return _selectionRadius; }
+        void    setRadius(float val)    { _selectionRadius = val;  }
+
+        void    setParams(cParameters* aParams);
 
     protected:
         cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -343,8 +351,8 @@ class cPolygon : public cObjectGL
         QPainter *          _painter;
 
     private:
-        float               _pointSize;
-        static float        _radius;
+        float               _pointDiameter;
+        static float        _selectionRadius;
 
         //!states if polygon is closed
         bool                _bIsClosed;

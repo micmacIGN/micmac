@@ -4,7 +4,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL)
 {
-    _cNamePt = new cCaseNamePoint ("CHANGE",eCaseAutoNum);
+    _cNamePt = new cCaseNamePoint ("CHANGE", eCaseAutoNum);
 
     mParam = &appli.Param();
     mAppli = &appli;
@@ -25,13 +25,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this,SLOT(changeName(QString, QString)));
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int)), this,SLOT(changeImages(int)));
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int)), this, SLOT(changeImages(int)));
 
-        connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this,SLOT(SetInvisRef(bool)));
+        connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
 
-        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this,SLOT(filesDropped(QStringList)));
+        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this, SLOT(filesDropped(QStringList)));
     }
 
     _data = new cData;
@@ -55,6 +55,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     connect(m_QTMainWindow->getModel(), SIGNAL(dataChanged(QModelIndex const &, QModelIndex const &)), this, SLOT(rebuildGlPoints()));
 
     connect(m_QTMainWindow->getSelectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(ChangeFreeName(QItemSelection)));
+
+    connect(m_QTMainWindow,	SIGNAL(removePoint(QString)), this, SLOT(removePoint(QString)));
 
     m_QTMainWindow->getModel()->setAppli(mAppli);
 }
@@ -177,6 +179,20 @@ void cQT_Interface::changeState(int state, int idPt)
 
             emit dataChanged();
         }
+    }
+}
+
+void cQT_Interface::removePoint(QString aName)
+{
+    cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName.toStdString());
+
+    if (aPt)
+    {
+        DeletePoint( aPt );
+
+        rebuildGlPoints();
+
+        emit dataChanged();
     }
 }
 
@@ -493,10 +509,17 @@ void cQT_Interface::ChangeFreeName(QItemSelection selected)
     if (sel.size() != m_QTMainWindow->getModel()->columnCount()) return;
     else
     {
+        delete _cNamePt;
+
         string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
 
-        delete _cNamePt;
-        _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie clavier à la X11
+        cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
+        if (!aPt)
+        {
+            _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
+        }
+        else
+            _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
     }
 }
 

@@ -137,7 +137,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   // INCORRECT !!! TODO
   // COM 6 mars 2014
-  // if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
+  if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
 
   const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
   const short2 c1	= make_short2(threadIdx) + invPc.rayVig;
@@ -234,12 +234,12 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
   __shared__ float aSVV[ SIZE3VIGN   ][ SIZE3VIGN ];         // Somme des carrés des valeurs
   __shared__ float resu[ SIZE3VIGN/2 ][ SIZE3VIGN/2 ];		// resultat
 
-  //__shared__ float iResu[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// resultat
+  __shared__ float cResu[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// resultat
   __shared__ uint nbIm[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// nombre d'images correcte
 
   // coordonnées des threads // TODO uint2 to ushort2
   const uint2 t  = make_uint2(threadIdx);
-  const uint2 mt = make_uint2(t.x/2,t.y/2);
+  //const uint2 mt = make_uint2(t.x/2,t.y/2);
 
   // TODO : 2014 LE NOMBRE DE TREAD ACTIF peut etre nettement ameliorer par un template
   //if ( oSE( t, nbActThr))	return; // si le thread est inactif, il sort
@@ -260,11 +260,15 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
 
   const uint2   thTer	= t / invPc.dimVig;                    // Coordonnées 2D du terrain dans le repere des threads
 
+  const bool mainThread = aEq(t - thTer*invPc.dimVig,0);
+
   //if (!aEq(t - thTer*invPc.dimVig,0))
   //{
-      resu[mt.y][mt.x]	= 0.0f;
-      nbIm[mt.y][mt.x]  = 0U;
+      resu[thTer.y][thTer.x]    = 0.0f;
+      nbIm[thTer.y][thTer.x]    = 0;
   //}
+
+  __syncthreads();
 
   for (ushort iCla = 0; iCla < invPc.nbClass; ++iCla)
   {
@@ -273,18 +277,14 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
 
       const ushort nImgOK = (ushort)dev_NbImgOk[icTer];
 
+      aSV [t.y][t.x]    = 0.0f;
+      aSVV[t.y][t.x]    = 0.0f;
+      cResu[thTer.y][thTer.x]	= 0.0f;
+
       //__syncthreads();
 
-      if ( nImgOK  >= 2 )
+      if ( nImgOK > 1)
       {
-          //if(iCla==0 )
-          //printf("[%d,%d]",iCla,nImgOK);
-
-          //iResu[mt.y][mt.x]   = 0.0f;
-          aSV [t.y][t.x]    = 0.0f;
-          aSVV[t.y][t.x]    = 0.0f;
-
-           __syncthreads();
 
           const uint pitCla         = ((uint)classEqui[iCla].y) * HdPc.sizeCach;
 
@@ -300,24 +300,30 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
               aSVV[t.y][t.x]  += val * val;
           }
 
+          //__syncthreads();
+
+          //atomicAdd(&(resu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)) * (nImgOK - 1));
+
+          atomicAdd(&(cResu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)));
+
           __syncthreads();
 
-          atomicAdd(&(resu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)) * ((float)nImgOK - 1) );
-
-          __syncthreads();
-
-          if (!aEq(t - thTer*invPc.dimVig,0))
+          if (mainThread)
           {
-              //resu[thTer.y][thTer.x] += iResu[thTer.y][thTer.x];
-             // nbIm[thTer.y][thTer.x] =nbIm[thTer.y][thTer.x] + nImgOK - 1;
-               nbIm[thTer.y][thTer.x] += nImgOK - 1;
+              const uint n = nImgOK - 1;
+
+              float ccost =  fdividef( cResu[thTer.y][thTer.x], ((float)n)* (invPc.sizeVig));
+
+              ccost = 1.0f - max (-1.0, min(1.0f,1.0f - ccost));
+
+              resu[thTer.y][thTer.x] += ccost * nImgOK;
+              nbIm[thTer.y][thTer.x] += nImgOK;
           }
       }
   }
 
   __syncthreads();
-
-  if( (nbIm[thTer.y][thTer.x] == 0) || (!aEq(t - thTer*invPc.dimVig,0))) return;
+  if( (nbIm[thTer.y][thTer.x] == 0) || (!mainThread) ) return;
 
   //__syncthreads();
 
@@ -326,9 +332,11 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
 
   //const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nbIm[thTer.y][thTer.x])* (invPc.sizeVig));
 
-  const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nbIm[thTer.y][thTer.x])* (invPc.sizeVig));;
+  //const float cost =  fdividef( resu[thTer.y][thTer.x], ((float)nbIm[thTer.y][thTer.x] -1)* (invPc.sizeVig));
 
-  dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
+  //dTCost[iTer] = 1.0f - max (-1.0, min(1.0f,1.0f - cost));
+
+  dTCost[iTer] = fdividef(resu[thTer.y][thTer.x],(float)nbIm[thTer.y][thTer.x]);
 
 }
 
