@@ -109,7 +109,7 @@ void cSettingsDlg::on_applyButton_clicked()
 
 void cSettingsDlg::on_resetButton_clicked()
 {
-    _oldParameters.read();
+    _parameters->read();
 
     refresh();
 }
