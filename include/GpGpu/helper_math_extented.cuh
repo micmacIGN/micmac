@@ -11,7 +11,7 @@
 #endif
 
 #define NEGARECT Rect(-1,-1,-1,-1)
-#define MAXIRECT Rect(1e7,1e7,-1e7,-1e7)
+#define MAXIRECT Rect((int)1e7,(int)1e7,(int)-1e7,(int)-1e7)
 
 
 inline __host__ __device__ int2 inc( int2 &a)
