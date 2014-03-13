@@ -604,7 +604,7 @@ bool ctPath::getContent( list<cElFilename> &o_files ) const
 		return true;
 	#elif _MSC_VER
 		WIN32_FIND_DATA ffd;
-		HANDLE hFind = FindFirstFile( (str(sm_windows_separator)+"*").c_str(), &ffd );
+		HANDLE hFind = FindFirstFile( (str(windows_separator)+"*").c_str(), &ffd );
 		string filename;
 
 		if ( hFind==INVALID_HANDLE_VALUE ) return false;
@@ -645,7 +645,7 @@ bool ctPath::removeEmpty() const
 	#if ELISE_POSIX
 		if ( rmdir( str().c_str() )!=0 ) return false;
 	#else
-		string path = str(sm_windows_separator);
+		string path = str(windows_separator);
 		#ifdef __DEBUG_C_EL_COMMAND
 			if ( path.length()>MAX_PATH ){
 				cerr << RED_DEBUG_ERROR << "ctPath::remove_empty: paths are limited to " << MAX_PATH << " characters" << endl;
