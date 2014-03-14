@@ -61,9 +61,12 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli) :
    mSzIm  (-1,-1),
    mWAff  (0),
    mPrio  (0),
-   mInitCamNDone (false)
+   mInitCamNDone (false),
+   mCptAff       (0)
 {
 }
+
+int & cImage::CptAff() {return mCptAff;}
 
 Pt2di  cImage::SzIm() const
 {
@@ -202,7 +205,7 @@ void cImage::AddAPointe(cOneSaisie * anOS,cSP_PointGlob * aPG,bool FromFile)
 }
 
 
-double  cImage::CalcPriority(cSP_PointGlob * aPP) const
+double  cImage::CalcPriority(cSP_PointGlob * aPP,bool UseCpt) const
 {
    double aRes = 0;
    for (int aKS=0; aKS<int(mVP.size()) ; aKS++)
@@ -214,6 +217,11 @@ double  cImage::CalcPriority(cSP_PointGlob * aPP) const
           )
           aPrio = (1+aPrio) * 1e4;
        aRes += aPrio;
+   }
+
+   if (UseCpt)
+   {
+       aRes = aRes - mCptAff * 1e8;
    }
 
    return aRes;

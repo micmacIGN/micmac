@@ -725,22 +725,23 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
     return 0;
 }
 
-void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio)
+void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCpt)
 {
     for (int aKI=0 ; aKI<int(mImages.size()); aKI++)
     {
         cImage & anIm = *(mImages[aKI]);
-        anIm.SetPrio(anIm.CalcPriority(PointPrio));
+        anIm.SetPrio(anIm.CalcPriority(PointPrio,aUseCpt));
     }
 }
 
 void cAppli_SaisiePts::ChangeImages
 (
         cSP_PointGlob * PointPrio,
-        const std::vector<cWinIm *>  &  aW2Ch
+        const std::vector<cWinIm *>  &  aW2Ch,
+        bool   aUseCpt
         )
 {
-    SetImagesPriority(PointPrio);
+    SetImagesPriority(PointPrio,aUseCpt);
 
     cCmpIm aCmpIm(mInterface);
     std::sort(mImages.begin(),mImages.end(),aCmpIm);
