@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef  _PHGR_DIST_UNIF_H_
 #define  _PHGR_DIST_UNIF_H_
 
+//#define __DEBUG_EL_CAMERA
+
 /*
    Ce fichier contient une (tentative de ?) implantation unifiee 
    des calibration internes qui fasse le lien entre : la distortion
@@ -188,7 +190,6 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 
 
            bool IsFE()  const;
-
            cCamera_Param_Unif
 	   (
 	            bool isDistC2M,
@@ -220,6 +221,12 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
             ElDistortion22_Gen   *  DistPreCond() const ;
      private  :
             tDist   *mDist;
+
+#ifdef __DEBUG_EL_CAMERA
+	public:
+		cCamera_Param_Unif( const cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> &i_b );
+		cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> & operator =( const cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> &i_b );
+#endif
 };
 
 
@@ -259,6 +266,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 	  virtual CamStenope * CurPIF(); ;
 	  virtual CamStenope * DupCurPIF(); ;
 	  tCam   CurPIFUnif();
+	  tCam * newCurPIFUnif();
 	  void    UpdateCurPIF();
 	  void    NV_UpdateCurPIF();
 

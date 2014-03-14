@@ -55,20 +55,21 @@ bool TracePack::Registry::Item::trace_compare( const TracePack::Registry::Item &
    return false;
 }
 
-bool TracePack::Registry::Item::applyToDirectory( const cElFilename &i_packname, const ctPath &i_path ) const
+bool TracePack::Registry::Item::applyToDirectory( const ctPath &i_path ) const
 {
-   switch ( m_type )
-   {
+   switch ( m_type ){
    case TD_Added:
    case TD_Modified:
       if ( !copyToDirectory( i_path ) ) return false;
-      return m_filename.setRights( m_rights );
+      if ( !cElFilename( i_path, m_filename ).setRights( m_rights ) ) return false;
+      return true;
+      //return m_filename.setRights( m_rights );
    case TD_Removed:
       return cElFilename( i_path, m_filename ).remove();
    case TD_State:
       #ifdef __DEBUG_TRACE_PACK
-	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::applyToDirectory: cannot apply state item [" << m_filename.str_unix() << ']';
-	 exit(EXIT_FAILURE);
+			cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::applyToDirectory: cannot apply state item [" << m_filename.str_unix() << ']';
+			exit(EXIT_FAILURE);
       #endif
       break;
    }
@@ -138,7 +139,11 @@ void TracePack::Registry::Item::from_raw_data( const char *&io_rawData, bool i_r
       // copy rights on file
       U_INT4 ui4;
       uint4_from_raw_data( io_rawData, i_reverseByteOrder, ui4 );
-      m_rights = (mode_t)ui4;
+      #if ELISE_windows
+			m_rights = cElFilename::unhandledRights;
+      #else
+			m_rights = (mode_t)ui4;
+      #endif
       
       // copy file size
       uint8_from_raw_data( io_rawData, i_reverseByteOrder, m_dataLength );
@@ -151,10 +156,9 @@ void TracePack::Registry::Item::from_raw_data( const char *&io_rawData, bool i_r
    
    #ifdef __DEBUG_TRACE_PACK
       unsigned int nbCopied = io_rawData-rawData;
-      if ( nbCopied!=raw_size() )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::to_raw_data: " << nbCopied << " copied bytes, but raw_size() = " << raw_size() << endl;
-	 exit(EXIT_FAILURE);
+      if ( nbCopied!=raw_size() ){
+			cerr << RED_DEBUG_ERROR << "TracePack::Registry::Item::to_raw_data: " << nbCopied << " copied bytes, but raw_size() = " << raw_size() << endl;
+			exit(EXIT_FAILURE);
       }
    #endif
 }
@@ -228,7 +232,7 @@ void TracePack::Registry::difference( const Registry &i_a, const Registry &i_b )
    }
 }
 
-void TracePack::Registry::compare_states( const TracePack::Registry &i_a, const TracePack::Registry &i_b,
+bool TracePack::Registry::compare_states( const TracePack::Registry &i_a, const TracePack::Registry &i_b,
                                           list<Registry::Item> &o_onlyInA, list<Registry::Item> &o_onlyInB, list<Registry::Item> &o_inBoth )
 {  
    o_onlyInA.clear();
@@ -236,29 +240,28 @@ void TracePack::Registry::compare_states( const TracePack::Registry &i_a, const 
    o_inBoth.clear();
    list<TracePack::Registry::Item>::const_iterator itA = i_a.m_items.begin(),
                                                    itB = i_b.m_items.begin();
-   while ( itA!=i_a.m_items.end() && itB!=i_b.m_items.end() )
-   {
+   while ( itA!=i_a.m_items.end() && itB!=i_b.m_items.end() ){
       int compare = itA->m_filename.compare( itB->m_filename );
-      if ( compare==0 )
-      {
-	 if ( itA->m_type==itB->m_type )
-	    o_inBoth.push_back( *itA );
-	 else
-	 {
-	    o_onlyInA.push_back( *itA );
-	    o_onlyInB.push_back( *itB );
-	 }
-	 itA++; itB++;
+      if ( compare==0 ){
+			if ( itA->m_type==itB->m_type )
+				o_inBoth.push_back( *itA );
+			else{
+				o_onlyInA.push_back( *itA );
+				o_onlyInB.push_back( *itB );
+			}
+			itA++; itB++;
       }
       else if ( compare<0 )
-	 o_onlyInA.push_back( *itA++ );
+			o_onlyInA.push_back( *itA++ );
       else if ( compare>0 )
-	 o_onlyInB.push_back( *itB++ );
+			o_onlyInB.push_back( *itB++ );
    }
    while ( itA!=i_a.m_items.end() )
       o_onlyInA.push_back( *itA++ );
    while ( itB!=i_b.m_items.end() )
       o_onlyInB.push_back( *itB++ );
+
+   return ( o_onlyInA.size()==0 && o_onlyInB.size()==0 );
 }
 
 void TracePack::Registry::reset_dates()
@@ -299,20 +302,14 @@ void TracePack::Registry::stateDirectory( const ctPath &i_path )
 	m_items.clear();
 	cElDate date = cElDate::NoDate;
 	mode_t rights;
-	list<string> files = RegexListFileMatch( path.str()+ctPath::sm_unix_separator, ".*", numeric_limits<INT>::max(), false );
+	list<string> files = RegexListFileMatch( path.str()+ctPath::unix_separator, ".*", numeric_limits<INT>::max(), false );
 	list<string>::iterator itFile = files.begin();
 	while ( itFile!=files.end() ){
 		cElFilename attachedFile( i_path, *itFile ), // attached filename is the filename in situ
-				  detachedFile( *itFile++ ); // detached filename is the filename without source path
+		            detachedFile( *itFile++ ); // detached filename is the filename relative to m_anchor
 		const string attached_filename = attachedFile.str_unix();
 		ELISE_fp::lastModificationDate( attached_filename, date );
 		attachedFile.getRights( rights );
-		#ifdef __DEBUG_TRACE_PACK
-			if ( !attachedFile.getRights( rights ) ){
-				cerr << RED_DEBUG_ERROR << "TracePack::Registry::stateDirectory: cannot retrieve rights on file [" << attached_filename << ']' << endl;
-				exit(EXIT_FAILURE);
-			}
-		#endif      
 		add( Item( detachedFile, TD_State, date, rights, attachedFile.getSize() ) );
 	}
 }
@@ -321,80 +318,67 @@ void TracePack::Registry::apply( const TracePack::Registry &i_actions )
 {
    list<TracePack::Registry::Item>::iterator itA = m_items.begin();
    list<TracePack::Registry::Item>::const_iterator itB = i_actions.m_items.begin();
-   while ( itA!=m_items.end() && itB!=i_actions.m_items.end() )
-   {      
+   while ( itA!=m_items.end() && itB!=i_actions.m_items.end() ){
       #ifdef __DEBUG_TRACE_PACK
-	 if ( itA->m_type!=TD_State )
-	 {
-	    cerr << RED_DEBUG_ERROR << __apply_illegal_action_message << endl;
-	    exit(EXIT_FAILURE);
-	 }
-	 if ( itB->m_type==TD_State )
-	 {
-	    cerr << RED_DEBUG_ERROR << __apply_illegal_state_message << endl;
-	    exit(EXIT_FAILURE);
-	 }
+			if ( itA->m_type!=TD_State ){
+				cerr << RED_DEBUG_ERROR << __apply_illegal_action_message << endl;
+				exit(EXIT_FAILURE);
+			}
+			if ( itB->m_type==TD_State ){
+				cerr << RED_DEBUG_ERROR << __apply_illegal_state_message << endl;
+				exit(EXIT_FAILURE);
+			}
       #endif
       
       int compare = itA->m_filename.compare( itB->m_filename );
-      if ( compare==0 )
-      {	 
-	 if ( itB->m_type==TD_Removed )
-	 {
-	    itA = m_items.erase( itA );
-	    itB++;
-	 }
-	 else if ( itB->m_type==TD_Modified )
-	 {
-	    itA->m_date       = itB->m_date;
-	    itA->m_rights     = itB->m_rights;
-	    itA->m_dataLength = itB->m_dataLength;
-	    itA->m_data       = itB->m_data;
-	    itA++; itB++;
-	 }
-	 #ifdef __DEBUG_TRACE_PACK
-	    else
-	    {
-	       cerr << RED_DEBUG_ERROR << "TracePack::Registry::apply: illegal action item of type TD_Added" << endl;
-	       exit(EXIT_FAILURE);
-	    }
-	 #endif
+      if ( compare==0 ){
+			if ( itB->m_type==TD_Removed ){
+				itA = m_items.erase( itA );
+				itB++;
+			}
+			else if ( itB->m_type==TD_Modified ){
+				itA->m_date       = itB->m_date;
+				itA->m_rights     = itB->m_rights;
+				itA->m_dataLength = itB->m_dataLength;
+				itA->m_data       = itB->m_data;
+				itA++; itB++;
+			}
+			#ifdef __DEBUG_TRACE_PACK
+				else{
+					cerr << RED_DEBUG_ERROR << "TracePack::Registry::apply: illegal action item of type TD_Added" << endl;
+					exit(EXIT_FAILURE);
+				}
+			#endif
       }
-      else
-      {
-	 if ( compare<0 )
-	    itA++;
-	 else
-	 {
-	    #ifdef __DEBUG_TRACE_PACK
-	       if ( itB->m_type!=TD_Added )
-	       {
-		  cerr << RED_DEBUG_ERROR << __apply_illegal_no_add_message << endl;
-		  exit(EXIT_FAILURE);
-	       }
-	       else
-	    #endif
-	       {
-		  m_items.insert( itA, Item( itB->m_filename, TD_State, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
-		  itB++;
-	       }
-	 }
+      else{
+			if ( compare<0 ) itA++;
+			else{
+				#ifdef __DEBUG_TRACE_PACK
+					if ( itB->m_type!=TD_Added ){
+						cerr << RED_DEBUG_ERROR << __apply_illegal_no_add_message << endl;
+						exit(EXIT_FAILURE);
+					}
+					else
+				#endif
+				{
+					m_items.insert( itA, Item( itB->m_filename, TD_State, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
+					itB++;
+				}
+			}
       }
    }
-   while ( itB!=i_actions.m_items.end() )
-   {
-      #ifdef __DEBUG_TRACE_PACK
-	 if ( itB->m_type!=TD_Added )
-	 {
-	    cerr << RED_DEBUG_ERROR << __apply_illegal_no_add_message << endl;
-	    exit(EXIT_FAILURE);
-	 }
-	 else
-      #endif
-	 {
-	    m_items.push_back( Item( itB->m_filename, TD_State, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
-	    itB++;
-	 }
+   while ( itB!=i_actions.m_items.end() ){
+		#ifdef __DEBUG_TRACE_PACK
+		if ( itB->m_type!=TD_Added ){
+			cerr << RED_DEBUG_ERROR << __apply_illegal_no_add_message << endl;
+			exit(EXIT_FAILURE);
+		}
+		else
+		#endif
+		{
+			m_items.push_back( Item( itB->m_filename, TD_State, itB->m_date, itB->m_rights, itB->m_dataLength, itB->m_data ) );
+			itB++;
+		}
    }
 }
 
@@ -450,19 +434,17 @@ bool TracePack::Registry::trace_compare( const TracePack::Registry &i_b ) const
    return true;
 }
 	 
-bool TracePack::Registry::applyToDirectory( const cElFilename &i_filename, const ctPath &i_path ) const
+bool TracePack::Registry::applyToDirectory( const ctPath &i_path ) const
 {
    list<TracePack::Registry::Item>::const_iterator itItem = m_items.begin();
-   while ( itItem!=m_items.end() )
-   {
-      if ( !( itItem->applyToDirectory( i_filename, i_path ) ) )
-      {
-	 #ifdef __DEBUG_TRACE_PACK
-	    cerr << RED_DEBUG_ERROR << "TracePack::Registry::applyToDirectory: unable to apply item of type " 
-	         << TD_Type_to_string(itItem->m_type) << " for file [" << itItem->m_filename.str_unix() << "]" << endl;
-	    exit(EXIT_FAILURE);
-	 #endif
-	 return false;
+   while ( itItem!=m_items.end() ){
+      if ( !( itItem->applyToDirectory( i_path ) ) ){
+			#ifdef __DEBUG_TRACE_PACK
+				cerr << RED_DEBUG_ERROR << "TracePack::Registry::applyToDirectory: cannot to apply item [" << itItem->m_filename.str_unix() << "] of type " 
+				     << TD_Type_to_string(itItem->m_type) << " to directory [" << i_path.str() << "]" << endl;
+				exit(EXIT_FAILURE);
+			#endif
+			return false;
       }
       itItem++;
    }
@@ -567,23 +549,22 @@ bool TracePack::Registry::setItemData( const ChunkStream::FileItem &i_data )
 //--------------------------------------------
 // class TracePack
 //--------------------------------------------
-   
-TracePack::TracePack( const cElFilename &i_filename, const ctPath &i_anchor ):
+
+TracePack::TracePack( const cElFilename &i_filename, const ctPath &i_anchor, U_INT8 i_maxFileSize ):
    m_filename( i_filename ),
    m_anchor( i_anchor ),
    m_date( cElDate::NoDate ),
-   m_writeIgnoredItems( true )
+   m_versionNumber( g_versioned_headers_list[VFH_TracePack].last_handled_version ),
+   m_stream( i_filename, i_maxFileSize, false ),
+   m_ignoredItemsChanged( false )
 {
    cElDate::getCurrentDate_UTC( m_date );
 }
 
 bool TracePack::read_v1( U_INT8 i_offset, bool i_reverseByteOrder )
 {
-   // read Items from the stream
-   ChunkStream stream( m_filename, maxPackFileSize, i_reverseByteOrder );
-
    list<ChunkStream::Item*> items;
-   if ( !stream.read( 0, i_offset, items ) ){
+   if ( !m_stream.read( 0, i_offset, items ) ){
 	   cerr << RED_DEBUG_ERROR << "TracePack::read_v1: cannot read list of Item from pack [" << m_filename.str_unix() << ']' << endl;
 	   exit(EXIT_FAILURE);
    }
@@ -593,44 +574,44 @@ bool TracePack::read_v1( U_INT8 i_offset, bool i_reverseByteOrder )
    const ChunkStream::BufferItem *lastIgnoreItem = NULL;
    Registry *lastRegistry = NULL;
    while ( itItem!=items.end() ){
-      if ( (*itItem)->isFileItem() ){
-	 // process ChunkStream::FileItem by adding data to an item of the last found registry
-	 ChunkStream::FileItem &item = (*itItem)->specialize<ChunkStream::FileItem>();
-	 if ( lastRegistry==NULL ){
-	    #ifdef __DEBUG_TRACE_PACK
-	       cerr << RED_DEBUG_ERROR << "TracePack::read_v1: a file item is found priory to any registry item" << endl;
-	       exit(EXIT_FAILURE);
-	    #endif
-	    clear_item_list( items );
-	    return false;
-	 }
-	 if ( !lastRegistry->setItemData( item ) ){
-	    #ifdef __DEBUG_TRACE_PACK
-	       cerr << RED_DEBUG_ERROR << "TracePack::read_v1: a file item is found that is not in lastRegistry" << endl;
-	       exit(EXIT_FAILURE);
-	    #endif
-	    clear_item_list( items );
-	    return false;
-	 }
-      }
-      else{
-	 // process ChunkStream::BufferItems
-	 ChunkStream::BufferItem &item = (*itItem)->specialize<ChunkStream::BufferItem>();
-	 switch ( (StreamItemType)item.m_type ){
-	 case SIT_Registry:
-	    // add a new registry
-	    m_registries.push_back( Registry() );
-	    lastRegistry = &m_registries.back();
-	    lastRegistry->from_raw_data( item.m_buffer.data(), i_reverseByteOrder );
-	    lastRegistry->m_hasBeenWritten = true;
-	    break;
-	 case SIT_Ignore:
-	    // only last IgnoredItem is used (replacing all previous ones)
-	    lastIgnoreItem = &item;
-	    break;
-	 }
-      }
-      itItem++;
+		if ( (*itItem)->isFileItem() ){
+			// process ChunkStream::FileItem by adding data to an item of the last found registry
+			ChunkStream::FileItem &item = (*itItem)->specialize<ChunkStream::FileItem>();
+			if ( lastRegistry==NULL ){
+				#ifdef __DEBUG_TRACE_PACK
+					cerr << RED_DEBUG_ERROR << "TracePack::read_v1: a file item is found priory to any registry item" << endl;
+					exit(EXIT_FAILURE);
+				#endif
+				clear_item_list( items );
+				return false;
+			}
+			if ( !lastRegistry->setItemData( item ) ){
+				#ifdef __DEBUG_TRACE_PACK
+					cerr << RED_DEBUG_ERROR << "TracePack::read_v1: a file item is found that is not in lastRegistry" << endl;
+					exit(EXIT_FAILURE);
+				#endif
+				clear_item_list( items );
+				return false;
+			}
+		}
+		else{
+			// process ChunkStream::BufferItems
+			ChunkStream::BufferItem &item = (*itItem)->specialize<ChunkStream::BufferItem>();
+			switch ( (StreamItemType)item.m_type ){
+			case SIT_Registry:
+				// add a new registry
+				m_registries.push_back( Registry() );
+				lastRegistry = &m_registries.back();
+				lastRegistry->from_raw_data( item.m_buffer.data(), i_reverseByteOrder );
+				lastRegistry->m_hasBeenWritten = true;
+				break;
+			case SIT_Ignore:
+				// only last IgnoredItem is used (replacing all previous ones)
+				lastIgnoreItem = &item;
+				break;
+			}
+		}
+		itItem++;
    }
    
    // load last IgnoredItem if there's one
@@ -658,7 +639,9 @@ bool TracePack::load()
 			exit(EXIT_FAILURE);
 		#endif
 	}
-	bool reverseByteOrder = ( header.isMSBF()!=MSBF_PROCESSOR() );
+	bool reverseByteOrder = header.isMSBF()!=MSBF_PROCESSOR();
+	m_stream.setReverseByteOrder( reverseByteOrder );
+	m_versionNumber = header.version();
 	// read date
 	m_date.read_raw( f, reverseByteOrder );
 	U_INT8 chunkStreamOffset = (U_INT8)f.tellg();
@@ -668,6 +651,10 @@ bool TracePack::load()
    switch ( header.version() ){
    case 1: res=read_v1( chunkStreamOffset, reverseByteOrder ); break;
    }
+
+   // remove ignored items
+   list<Registry>::iterator itReg = m_registries.begin();
+   while ( itReg!=m_registries.end() ) remove_ignored_items( *itReg++ );
    
    #ifdef __DEBUG_TRACE_PACK
 		if ( !res ){
@@ -682,67 +669,63 @@ bool TracePack::load()
 
 bool TracePack::write_v1( bool i_reverseByteOrder )
 {
-   ChunkStream stream( m_filename, maxPackFileSize, i_reverseByteOrder );
-   if ( !stream.writeOpen() ) return false;
+   if ( !m_stream.writeOpen() ) return false;
    vector<char> buffer;
    
    list<Registry>::iterator itRegistry = m_registries.begin();
    while ( itRegistry!=m_registries.end() ){
       Registry &registry = *itRegistry++;
-      if ( !registry.m_hasBeenWritten ){	 
-	 // write the registry itself	 
-	 buffer.resize( registry.raw_size() );
-	 char *bufferData = buffer.data();
-	 registry.to_raw_data( i_reverseByteOrder, bufferData );
-	 stream.write_buffer( (unsigned char)SIT_Registry, buffer );
-	 
-	 // write data of registry's items
-	 list<Registry::Item>::iterator itItem = registry.m_items.begin();
-	 while ( itItem!=registry.m_items.end() ){
-	    Registry::Item &item = *itItem++;
-	    if ( item.hasData() ){
-	       if ( !stream.write_file( cElFilename( m_anchor, item.m_filename ), item.m_filename, item.m_data ) ){
-		  #ifdef __DEBUG_TRACE_PACK
-		     cerr << RED_DEBUG_ERROR << "TracePack::write_v1: cannot write data of file [" << cElFilename( m_anchor, item.m_filename ).str_unix() << endl;
-		     exit(EXIT_FAILURE);
-		  #endif
-		  return false;
-	       }
-	    }
-	 }
-	 registry.m_hasBeenWritten = true;
+      if ( !registry.m_hasBeenWritten ){
+			// write the registry itself	 
+			buffer.resize( registry.raw_size() );
+			char *bufferData = buffer.data();
+			registry.to_raw_data( i_reverseByteOrder, bufferData );
+			m_stream.write_buffer( (unsigned char)SIT_Registry, buffer );
+
+			// write data of registry's items
+			list<Registry::Item>::iterator itItem = registry.m_items.begin();
+			while ( itItem!=registry.m_items.end() ){
+				Registry::Item &item = *itItem++;
+				if ( item.hasData() ){
+					if ( !m_stream.write_file( cElFilename( m_anchor, item.m_filename ), item.m_filename, item.m_data ) ){
+						#ifdef __DEBUG_TRACE_PACK
+							cerr << RED_DEBUG_ERROR << "TracePack::write_v1: cannot write data of file [" << cElFilename( m_anchor, item.m_filename ).str_unix() << endl;
+							exit(EXIT_FAILURE);
+						#endif
+						return false;
+					}
+				}
+			}
+			registry.m_hasBeenWritten = true;
       }
    }
    
    // write ignored items lists
-   if ( m_writeIgnoredItems ){
-      ignored_lists_to_buffer( i_reverseByteOrder, buffer );
-      stream.write_buffer( (unsigned char)SIT_Ignore, buffer );
+   if ( m_ignoredItemsChanged ){
+		ignored_lists_to_buffer( i_reverseByteOrder, buffer );
+		m_stream.write_buffer( (unsigned char)SIT_Ignore, buffer );
    }
    
-   stream.close();
+   m_stream.close();
 
    return true;
 }
 
-bool TracePack::save( unsigned int i_version, bool i_MSBF )
+bool TracePack::save()
 {
-   ofstream f;
-   
-   bool reverseByteOrder = (i_MSBF!=MSBF_PROCESSOR());
-   ChunkStream stream( m_filename, maxPackFileSize, reverseByteOrder );
-   if ( stream.getNbFiles()==0 ){
-      // the stream is empty, write header
-      ofstream f( stream.getFilename(0).str_unix().c_str(), ios::binary );
-      if ( !f ) return false;
-      VersionedFileHeader header( VFH_TracePack, i_version, i_MSBF );
-      header.write( f );
-	  // write pack date
-	  m_date.write_raw( f, reverseByteOrder );
+   bool reverseByteOrder = m_stream.getReverseByteOrder();
+   if ( m_stream.getNbFiles()==0 ){
+		// the stream is empty, write header
+		ofstream f( m_stream.getFilename(0).str_unix().c_str(), ios::binary );
+		if ( !f ) return false;
+		VersionedFileHeader header( VFH_TracePack, m_versionNumber, reverseByteOrder?!MSBF_PROCESSOR():MSBF_PROCESSOR() );
+		header.write( f );
+		// write pack date
+		m_date.write_raw( f, reverseByteOrder );
    }
 
    bool res = false;
-   switch ( i_version )
+   switch ( m_versionNumber )
    {
    case 1:
       res = write_v1(reverseByteOrder);
@@ -750,7 +733,7 @@ bool TracePack::save( unsigned int i_version, bool i_MSBF )
    default: res=false;
    }
    
-   m_writeIgnoredItems = false;
+   m_ignoredItemsChanged = false;
    
    return res;
 }
@@ -782,20 +765,27 @@ void TracePack::addState( const cElCommand &i_command )
 	}
 	#endif
    
-   if ( nbStates()==0 ){
-      Registry reg0;
-      reg0.stateDirectory( m_anchor );
-      m_registries.push_back( reg0 );
-      return;
-   }
-   
-   Registry directoryState, lastState, diff;
-   directoryState.stateDirectory( m_anchor );
-      
-   getState( nbStates()-1, lastState );
-   diff.difference( lastState, directoryState );
-   diff.m_command = i_command;
-   m_registries.push_back( diff );
+	if ( nbStates()==0 ){
+		Registry reg0;
+		reg0.stateDirectory( m_anchor );
+		remove_ignored_items( reg0 );
+		m_registries.push_back( reg0 );
+		return;
+	}
+
+	Registry directoryState, lastState, diff;
+	directoryState.stateDirectory( m_anchor );
+
+	// __DEL
+	directoryState.dump();
+	
+	remove_ignored_items( directoryState );
+
+	getState( nbStates()-1, lastState );
+	diff.difference( lastState, directoryState );
+	diff.m_command = i_command;
+
+	m_registries.push_back( diff );
 }
 
 void TracePack::dump( ostream &io_ostream, const string &i_prefix ) const
@@ -875,23 +865,22 @@ void TracePack::setState( unsigned int i_iState )
    #ifdef __DEBUG_TRACE_PACK
       const unsigned int nbRegistries = nbStates();
       if ( i_iState>=nbRegistries )
-	 cerr << "TracePack::setState: state index " << i_iState << " out of range (" << nbRegistries << " registries" 
+			cerr << "TracePack::setState: state index " << i_iState << " out of range (" << nbRegistries << " registries" 
 	      << (nbRegistries>1?'s':'\0') << " in pack [" << m_filename.str_unix() << "])" << endl;
    #endif
    #ifdef __DEBUG_TRACE_PACK
-      if ( !ELISE_fp::IsDirectory( m_anchor.str() ) )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::setState: destination directory [" << m_anchor.str() << "] does not exist" << endl;
-	 exit(EXIT_FAILURE);
+      if ( !ELISE_fp::IsDirectory( m_anchor.str() ) ){
+			cerr << RED_DEBUG_ERROR << "TracePack::setState: destination directory [" << m_anchor.str() << "] does not exist" << endl;
+			exit(EXIT_FAILURE);
       }
    #endif
    
    Registry refReg, dirReg, dir_to_ref;
    getState( i_iState, refReg );
    dirReg.stateDirectory( m_anchor );
+   remove_ignored_items( dirReg );
    dir_to_ref.difference( dirReg, refReg );
-   dir_to_ref.dump();
-   dir_to_ref.applyToDirectory( m_filename, m_anchor );
+   dir_to_ref.applyToDirectory( m_anchor );
 }
 
 void TracePack::getAllCommands( std::vector<cElCommand> &o_commands ) const
@@ -904,24 +893,22 @@ void TracePack::getAllCommands( std::vector<cElCommand> &o_commands ) const
    
 void TracePack::add_ignored( const ctPath &i_directory )
 {
-   #ifdef __DEBUG_TRACE_PACK
-      if ( i_directory.isAbsolute() || i_directory.count_upward_references()!=0 )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::add_ignored(ctPath): trying to add [" << i_directory.str() << "] which is invalid (absolute or outside anchor)" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
+	#ifdef __DEBUG_TRACE_PACK
+	if ( i_directory.isAbsolute() || i_directory.count_upward_references()!=0 ){
+		cerr << RED_DEBUG_ERROR << "TracePack::add_ignored(ctPath): trying to add [" << i_directory.str() << "] which is invalid (absolute or outside anchor)" << endl;
+		exit(EXIT_FAILURE);
+	}
+	#endif
    
    list<ctPath>::iterator itDirectory = m_ignoredDirectories.begin();
    while ( itDirectory!=m_ignoredDirectories.end() && (*itDirectory)<i_directory ) itDirectory++;
    
-   #ifdef __DEBUG_TRACE_PACK
-      if ( (*itDirectory)==i_directory )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::add_ignored(ctPath): trying to add [" << i_directory.str() << "] which is already in m_ignoredDirectories" << endl;
-	 exit(EXIT_FAILURE);
-      }
-   #endif
+	#ifdef __DEBUG_TRACE_PACK
+	if ( (*itDirectory)==i_directory ){
+		cerr << RED_DEBUG_ERROR << "TracePack::add_ignored(ctPath): trying to add [" << i_directory.str() << "] which is already in m_ignoredDirectories" << endl;
+		exit(EXIT_FAILURE);
+	}
+	#endif
    
    m_ignoredDirectories.insert( itDirectory, i_directory );
 }
@@ -929,10 +916,9 @@ void TracePack::add_ignored( const ctPath &i_directory )
 void TracePack::add_ignored( const cElFilename &i_filename )
 {
    #ifdef __DEBUG_TRACE_PACK
-      if ( i_filename.m_path.isAbsolute() || i_filename.m_path.count_upward_references()!=0 )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::add_ignored(cElFilename): trying to add [" << i_filename.str_unix() << "] which is invalid (file's path is absolute or outside anchor)" << endl;
-	 exit(EXIT_FAILURE);
+      if ( i_filename.m_path.isAbsolute() || i_filename.m_path.count_upward_references()!=0 ){
+			cerr << RED_DEBUG_ERROR << "TracePack::add_ignored(cElFilename): trying to add [" << i_filename.str_unix() << "] which is invalid (file's path is absolute or outside anchor)" << endl;
+			exit(EXIT_FAILURE);
       }
    #endif
 
@@ -940,10 +926,9 @@ void TracePack::add_ignored( const cElFilename &i_filename )
    while ( itFilename!=m_ignoredFiles.end() && (*itFilename)<i_filename ) itFilename++;
    
    #ifdef __DEBUG_TRACE_PACK
-      if ( (*itFilename)==i_filename )
-      {
-	 cerr << RED_DEBUG_ERROR << "TracePack::add_ignored(cElFilename): trying to add [" << i_filename.str_unix() << "] which is already in m_ignoredFiles" << endl;
-	 exit(EXIT_FAILURE);
+      if ( (*itFilename)==i_filename ){
+			cerr << RED_DEBUG_ERROR << "TracePack::add_ignored(cElFilename): trying to add [" << i_filename.str_unix() << "] which is already in m_ignoredFiles" << endl;
+			exit(EXIT_FAILURE);
       }
    #endif
    
@@ -952,26 +937,24 @@ void TracePack::add_ignored( const cElFilename &i_filename )
    
 // add directories to ignored directories list if they enlarge the ignored items set
 // io_ignoredDirectories is left with directories actually added to the list
-void TracePack::addIgnored( list<ctPath> &io_directoriesToIgnore )
+bool TracePack::addIgnored( list<ctPath> &io_directoriesToIgnore )
 {   
    // remove already ignored directories from io_ignoredDirectories
    list<ctPath>::iterator itDirectoryToIgnore = io_directoriesToIgnore.begin();
-   while ( itDirectoryToIgnore!=io_directoriesToIgnore.end() )
-   {
+   while ( itDirectoryToIgnore!=io_directoriesToIgnore.end() ){
       if ( isIgnored( *itDirectoryToIgnore ) )
-	 itDirectoryToIgnore = io_directoriesToIgnore.erase( itDirectoryToIgnore );
+			itDirectoryToIgnore = io_directoriesToIgnore.erase( itDirectoryToIgnore );
       else
-	 itDirectoryToIgnore++;
+			itDirectoryToIgnore++;
    }
    
    // remove ignored directories contained by elements of io_directoriesToIgnore
    list<ctPath>::iterator itIgnoredDirectory = m_ignoredDirectories.begin();
-   while ( itIgnoredDirectory!=m_ignoredDirectories.end() )
-   {
+   while ( itIgnoredDirectory!=m_ignoredDirectories.end() ){
       if ( oneIsAncestorOf( io_directoriesToIgnore, *itIgnoredDirectory ) )
-	 itIgnoredDirectory = m_ignoredDirectories.erase( itIgnoredDirectory );
+			itIgnoredDirectory = m_ignoredDirectories.erase( itIgnoredDirectory );
       else
-	 itIgnoredDirectory++;
+			itIgnoredDirectory++;
    }
    
    // add all remaining elements of io_directoriesToIgnore to m_ignoredDirectories
@@ -979,21 +962,20 @@ void TracePack::addIgnored( list<ctPath> &io_directoriesToIgnore )
    while ( itDirectoryToIgnore!=io_directoriesToIgnore.end() )
       add_ignored( *itDirectoryToIgnore );
       
-   m_writeIgnoredItems = ( io_directoriesToIgnore.size()!=0 );
+   return ( m_ignoredItemsChanged=( io_directoriesToIgnore.size()!=0 ) );
 }
 
 // add files to ignored files list if they enlarge the ignored items set
 // io_ignoredFiles is left with files actually added to the list
-void TracePack::addIgnored( list<cElFilename> &io_filesToIgnore )
+bool TracePack::addIgnored( list<cElFilename> &io_filesToIgnore )
 {
    // remove already ignored files from io_filesToIgnore
    list<cElFilename>::iterator itFileToIgnore = io_filesToIgnore.begin();
-   while ( itFileToIgnore!=io_filesToIgnore.end() )
-   {
+   while ( itFileToIgnore!=io_filesToIgnore.end() ){
       if ( isIgnored( *itFileToIgnore ) )
-	 itFileToIgnore = io_filesToIgnore.erase( itFileToIgnore );
+			itFileToIgnore = io_filesToIgnore.erase( itFileToIgnore );
       else
-	 itFileToIgnore++;
+			itFileToIgnore++;
    }
    
    // add remaining files to ignored files list
@@ -1001,7 +983,7 @@ void TracePack::addIgnored( list<cElFilename> &io_filesToIgnore )
    while ( itFileToIgnore!=io_filesToIgnore.end() )
       add_ignored( *itFileToIgnore++ );
    
-   m_writeIgnoredItems = ( io_filesToIgnore.size()!=0 );
+   return ( m_ignoredItemsChanged=( io_filesToIgnore.size()!=0 ) );
 }
 
 // a directory is ignore if it is in the m_ignoredDirectories list or if it is contained by an ignored directory
@@ -1020,8 +1002,7 @@ bool TracePack::isIgnored( const cElFilename &i_file ) const
    
    // check if i_file is contained by an ignored directory
    list<ctPath>::const_iterator itDirectory = m_ignoredDirectories.begin();
-   while ( itDirectory!=m_ignoredDirectories.end() && (*itDirectory)<i_file.m_path )
-   {
+   while ( itDirectory!=m_ignoredDirectories.end() && (*itDirectory)<i_file.m_path ){
       if ( itDirectory->isAncestorOf( i_file ) ) return true;
       itDirectory++;
    }
@@ -1035,13 +1016,10 @@ void TracePack::compareWithItemsOnDisk( unsigned int i_iRegistry, const ctPath &
    while ( itItem!=i_itemToCompare.end() )
    {
       if ( itItem->m_type==TracePack::Registry::TD_Added ||
-           itItem->m_type==TracePack::Registry::TD_Modified )
-      {
-	 copyItemOnDisk( i_iRegistry, itItem->m_filename );
-	 cElFilename fileFromPack( m_anchor, itItem->m_filename ),
-	             fileOnDisk( i_onDiskPath, itItem->m_filename );
-	 if ( !is_equivalent( fileFromPack, fileOnDisk ) )
-	    o_differentFromDisk.push_back( *itItem );
+           itItem->m_type==TracePack::Registry::TD_Modified ){
+			copyItemOnDisk( i_iRegistry, itItem->m_filename );
+			cElFilename fileFromPack( m_anchor, itItem->m_filename ), fileOnDisk( i_onDiskPath, itItem->m_filename );
+			if ( !is_equivalent( fileFromPack, fileOnDisk ) ) o_differentFromDisk.push_back( *itItem );
       }
       itItem++;
    }
@@ -1076,10 +1054,10 @@ void TracePack::ignored_lists_to_buffer( bool i_reverseByteOrder, vector<char> &
       // copy file list's size and values
    uint4_to_raw_data( (U_INT4)m_ignoredFiles.size(), i_reverseByteOrder, itData );
    itFilename = m_ignoredFiles.begin();
-   while ( itFilename!=m_ignoredFiles.end() ) totalSize+=string_raw_size( (*itFilename++).str_unix() );
+   while ( itFilename!=m_ignoredFiles.end() ) string_to_raw_data( (*itFilename++).str_unix(), i_reverseByteOrder, itData );
    
    #ifdef __DEBUG_TRACE_PACK
-      if ( ( itData-o_buffer.data() )!=totalSize ){
+      if ( o_buffer.data()>itData || (unsigned int)(itData-o_buffer.data())!=totalSize ){
 	 cerr << RED_DEBUG_ERROR << "TracePack::ignored_lists_to_buffer: " << itData-o_buffer.data() << " bytes have been used but buffer size is " << o_buffer.size() << endl;
 	 exit(EXIT_FAILURE);
       }
@@ -1111,12 +1089,33 @@ void TracePack::ignored_lists_from_buffer( bool i_reverseByteOrder, const vector
    
    #ifdef __DEBUG_TRACE_PACK
       if ( i_buffer.data()>itData || (size_t)(itData-i_buffer.data())!=i_buffer.size() ){
-	 cerr << RED_DEBUG_ERROR << "TracePack::ignored_lists_from_buffer: " << itData-i_buffer.data() << " bytes have been used but buffer size is " << i_buffer.size() << endl;
-	 exit(EXIT_FAILURE);
+			cerr << RED_DEBUG_ERROR << "TracePack::ignored_lists_from_buffer: " << itData-i_buffer.data() << " bytes have been used but buffer size is " << i_buffer.size() << endl;
+			exit(EXIT_FAILURE);
       }
    #endif
 }
-   
+
+bool TracePack::setSavingFormat( unsigned int i_version, bool i_isMSBF )
+{
+	if ( m_stream.getNbFiles()==0 ){
+		m_versionNumber = i_version;
+		m_stream.setReverseByteOrder( i_isMSBF!=MSBF_PROCESSOR() );
+		return true;
+	}
+	else return false;
+}
+
+void TracePack::remove_ignored_items( Registry &io_registry )
+{
+	list<Registry::Item>::iterator itItem = io_registry.m_items.begin();
+	while ( itItem!=io_registry.m_items.end() ){
+		if ( isIgnored( itItem->m_filename ) )
+			itItem = io_registry.m_items.erase(itItem);
+		else
+			itItem++;
+	}
+}
+
 
 //--------------------------------------------
 // related functions

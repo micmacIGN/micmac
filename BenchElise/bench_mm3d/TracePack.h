@@ -14,44 +14,43 @@ public:
    class Registry
    {
    public:
-      typedef enum
-      {
-	 TD_Added,
-	 TD_Removed,
-	 TD_Modified,
-	 TD_State
-      } TD_Type;
+		typedef enum{
+			TD_Added,
+			TD_Removed,
+			TD_Modified,
+			TD_State
+		} TD_Type;
 
       class Item
       {
       public:
-	 cElFilename           m_filename;
-	 TD_Type               m_type;
-	 cElDate               m_date;
-	 mode_t                m_rights;
-	 U_INT8                m_dataLength;
-	 ChunkStream::FileItem m_data;
+			cElFilename           m_filename;
+			TD_Type               m_type;
+			cElDate               m_date;
+			mode_t                m_rights;
+			U_INT8                m_dataLength;
+			ChunkStream::FileItem m_data;
 	 
-	 inline Item();
-	 inline Item( const cElFilename &i_filename,
-	              TD_Type i_type,
-	              const cElDate &i_date,
-		      mode_t i_rights,
-	              U_INT8 i_dataLength,
-		      const ChunkStream::FileItem &i_data=ChunkStream::FileItem() );
-	 void reset_date();
-	 void apply( TracePack::Registry &o_actions );
-	 void dump( std::ostream &io_ostream=std::cout, const std::string &i_prefix=string() ) const;
-	 bool copyToDirectory( const ctPath &i_directory ) const;
-	 bool trace_compare( const Item &i_b ) const;
-	 bool applyToDirectory( const cElFilename &i_packname, const ctPath &i_path ) const;
-	 
-	 inline bool hasData() const;
-	 
-	 // Item<->raw data convertion
-	 U_INT8 raw_size() const;
-	 void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
-	 void from_raw_data( const char *&o_rawData, bool i_reverseByteOrder );
+			inline Item();
+			inline Item( const cElFilename &i_filename,
+						  TD_Type i_type,
+						  const cElDate &i_date,
+					mode_t i_rights,
+						  U_INT8 i_dataLength,
+					const ChunkStream::FileItem &i_data=ChunkStream::FileItem() );
+			void reset_date();
+			void apply( TracePack::Registry &o_actions );
+			void dump( std::ostream &io_ostream=std::cout, const std::string &i_prefix=string() ) const;
+			bool copyToDirectory( const ctPath &i_directory ) const;
+			bool trace_compare( const Item &i_b ) const;
+			bool applyToDirectory( const ctPath &i_path ) const;
+
+			inline bool hasData() const;
+
+			// Item<->raw data convertion
+			U_INT8 raw_size() const;
+			void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
+			void from_raw_data( const char *&o_rawData, bool i_reverseByteOrder );
       };
       
       list<Item> m_items;
@@ -68,7 +67,7 @@ public:
       void reset_dates();
       Item & add( const Item &i_item );
       void stateDirectory( const ctPath &i_path );
-      bool applyToDirectory( const cElFilename &i_packname, const ctPath &i_path ) const;
+      bool applyToDirectory( const ctPath &i_path ) const;
       void apply( const TracePack::Registry &i_actions );
       inline size_t size() const;
       void dump( std::ostream &io_ostream=std::cout, const std::string &i_prefix=string() ) const;
@@ -79,12 +78,12 @@ public:
       // return false if no item could be found with specified filename, if lengthes do not match of if item type does not accept data
       bool setItemData( const ChunkStream::FileItem &i_data );
 
-      static void compare_states( const TracePack::Registry &i_a, const TracePack::Registry &i_b,
+      static bool compare_states( const TracePack::Registry &i_a, const TracePack::Registry &i_b,
                                   list<Registry::Item> &o_onlyInA, list<Registry::Item> &o_onlyInB, list<Registry::Item> &o_inBoth );
 
-      #ifdef __DEBUG_TRACE_PACK
-	 void check_sorted() const;
-      #endif
+		#ifdef __DEBUG_TRACE_PACK
+			void check_sorted() const;
+		#endif
    };
    
 private:
@@ -103,13 +102,14 @@ private:
    // ignored files/directories are considered relatively to m_anchor
    std::list<ctPath>      m_ignoredDirectories;
    std::list<cElFilename> m_ignoredFiles;
-   // stream associated to m_lastFilename, open only during saving process
-   std::ofstream m_packOutputStream;
-   // stream associated to m_lastFilename, open only during saving process
-   std::ifstream m_packInputStream;
+
+   // read/write object
+   unsigned int m_versionNumber;
+   bool         m_isMSBF;
+   ChunkStream  m_stream;
       
    // writing synchronization
-   bool     m_writeIgnoredItems;
+   bool     m_ignoredItemsChanged;
    
    bool writeData( Registry &i_registry, bool i_reverseByteOrder );
    bool writeData( Registry::Item &i_item, bool i_reverseByteOrder );
@@ -123,8 +123,10 @@ private:
    bool read_v1( U_INT8 i_offset, bool i_reverseByteOrder );
    bool write_v1( bool i_reverseByteOrder );
 
+	void remove_ignored_items( Registry &io_registry );
+
 public:
-   TracePack( const cElFilename &i_packname, const ctPath &i_anchor );
+   TracePack( const cElFilename &i_packname, const ctPath &i_anchor, U_INT8 i_maxFileSize=maxPackFileSize );
    
    inline const cElDate & date() const;
    const Registry & getRegistry( unsigned int i_iRegistry ) const;
@@ -138,7 +140,7 @@ public:
    void getAllCommands( std::vector<cElCommand> &o_commands ) const;
    
    bool load();
-   bool save(unsigned int i_version=g_versioned_headers_list[VFH_TracePack].last_handled_version, bool i_MSBF=MSBF_PROCESSOR() );
+   bool save();
    bool copyItemOnDisk( unsigned int i_iState, const cElFilename &i_itemName );
    void compareWithItemsOnDisk( unsigned int i_iRegistry, const ctPath &i_onDiskPath, const std::list<Registry::Item> &i_itemToCompare, std::list<Registry::Item> &o_differentFromDisk );
    
@@ -148,8 +150,14 @@ public:
    bool isIgnored( const ctPath &i_directory ) const;
    bool isIgnored( const cElFilename &i_file ) const;
    
-   void addIgnored( std::list<ctPath> &io_ignoredDirectories );
-   void addIgnored( std::list<cElFilename> &io_ignoredFiles );
+   bool addIgnored( std::list<ctPath> &io_ignoredDirectories );
+   bool addIgnored( std::list<cElFilename> &io_ignoredFiles );
+
+	// saving format can be set successfully only if the stream is empty
+   bool setSavingFormat( unsigned int i_version, bool i_isMSBF );
+   inline const list<cElFilename> & getIgnoredFiles() const;
+   inline const list<ctPath> & getIgnoredDirectories() const;
+   inline void setAnchor( const ctPath &i_path );
 };
 
 bool load_script( const cElFilename &i_filename, std::list<cElCommand> &o_commands );
