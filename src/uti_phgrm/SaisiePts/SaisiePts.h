@@ -139,12 +139,13 @@ class cImage
         void SetWAff(cWinIm *);
         cWinIm * WAff() const;
 
-        double CalcPriority(cSP_PointGlob * aPP) const;
+        double CalcPriority(cSP_PointGlob * aPP,bool UseCpt) const;
         double Prio() const;
         void   SetPrio(double aPrio);
         bool PtInImage(const Pt2dr aPt);
 
         void CreatePGFromPointeMono(Pt2dr ,eTypePts,double aSz,cCaseNamePoint *);
+        int & CptAff() ;
 
      private :
 
@@ -163,6 +164,7 @@ class cImage
            cWinIm *                                  mWAff;
            double                                    mPrio;
            bool                                      mInitCamNDone;
+           int                                       mCptAff;
 };
 
 typedef cImage * tImPtr;
@@ -253,6 +255,7 @@ private :
     CaseGPUMT *             mCaseRedo;
 
     CaseGPUMT *             mCaseAllW;
+    CaseGPUMT *             mCaseRollW;
     CaseGPUMT *             mCaseThisW;
     CaseGPUMT *             mCaseThisPt;
 
@@ -471,7 +474,8 @@ class cAppli_SaisiePts
     void ChangeImages
     (
         cSP_PointGlob * PointPrio,
-        const std::vector<cWinIm *>  &  W2Ch
+        const std::vector<cWinIm *>  &  W2Ch,
+        bool aUseCpt
     );
 
 
@@ -517,7 +521,7 @@ class cAppli_SaisiePts
 
 
 
-    void                SetImagesPriority(cSP_PointGlob * PointPrio);
+    void                SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCpt);
 
     private :
 

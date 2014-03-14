@@ -93,7 +93,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
     mSzCase         (MMIcone("Exit").sz()),
     mPopUpBase      ( new GridPopUpMenuTransp(mW,mSzCase,Pt2di(2,3),Pt2di(1,1))),
     mPopUpShift     ( new GridPopUpMenuTransp(mW,mSzCase,Pt2di(2,3),Pt2di(1,1))),
-    mPopUpCtrl      ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(1,3),Pt2di(1,1))),
+    mPopUpCtrl      ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(1,4),Pt2di(1,1))),
     mPopUp1Shift    ( new GridPopUpMenuTransp(mW,Pt2di(50,33),Pt2di(4,3),Pt2di(1,1))),
     mPopUpCur       (0),
 
@@ -171,15 +171,21 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
                          MMIcone("AllW").in(1) *255
                          )
                      ),
+    mCaseRollW      (new CaseGPUMT
+                     (
+                         *mPopUpCtrl,"titi",Pt2di(0,1),
+                         MMIcone("RollW").in(1) *255
+                         )
+                     ),
     mCaseThisW       (new CaseGPUMT
                       (
-                          *mPopUpCtrl,"titi",Pt2di(0,1),
+                          *mPopUpCtrl,"titi",Pt2di(0,2),
                           MMIcone("ThisW").in(1) *255
                           )
                       ),
     mCaseThisPt      (new CaseGPUMT
                       (
-                          *mPopUpCtrl,"titi",Pt2di(0,2),
+                          *mPopUpCtrl,"titi",Pt2di(0,3),
                           MMIcone("ThisPt").in(1) *255
                           )
                       ),
@@ -264,6 +270,9 @@ void  cWinIm::SetImage(cImage *aIm)
 
 void  cWinIm::SetNewImage(cImage * aIm)
 {
+   static int aCpt=0; 
+    aCpt++;
+    aIm->CptAff() = aCpt;
     // std::cout << "OLD " << mCurIm->Name() << " NEW " << aIm->Name() << "\n";
     mScr->ReInitTifFile(aIm->Tif());
     SetImage(aIm);
@@ -510,7 +519,7 @@ void  cWinIm::AffNextPtAct(Clik aClk)
 
     Pt2dr aP = aPI->Saisie()->PtIm();
 
-    double aZoom = 5;
+    double aZoom = 20;
     mScr->set(aP -mSzW/(aZoom*2.0),aZoom);
     ShowVect();
 }
@@ -551,11 +560,10 @@ cSP_PointeImage *  cWinIm::GetNearest(const Pt2dr & aPW,double aDSeuil,bool Only
                      aDist = 1e10;
                   break;
             }
-std::cout << "DIST = " << aDist << "\n";
         }
         if ( Ok  && ( aDist < aDMin))
         {
-            aDMin  = euclid(aPU,aP);
+            aDMin  = aDist;
             aRes = aVP[aK];
         }
     }
@@ -701,22 +709,26 @@ void  cWinIm::MenuPopUp(Clik aClk)
 
     if (mPopUpCur==mPopUpCtrl)
     {
+        if (aCase==mCaseRollW)
+        {
+            mAppli.ChangeImages(0,((cX11_Interface*)mAppli.Interface())->WinIms(),true);
+        }
         if (aCase==mCaseAllW)
         {
-            mAppli.ChangeImages(0,((cX11_Interface*)mAppli.Interface())->WinIms());
+            mAppli.ChangeImages(0,((cX11_Interface*)mAppli.Interface())->WinIms(),false);
         }
         if (aCase==mCaseThisW)
         {
             std::vector<cWinIm *> aVWI;
             aVWI.push_back(this);
-            mAppli.ChangeImages(0,aVWI);
+            mAppli.ChangeImages(0,aVWI,false);
         }
         if (aCase==mCaseThisPt)
         {
             cSP_PointeImage * aPIm = GetNearest(aClk._pt,200);
             if (aPIm)
             {
-                mAppli.ChangeImages(aPIm->Gl(),((cX11_Interface*)mAppli.Interface())->WinIms());
+                mAppli.ChangeImages(aPIm->Gl(),((cX11_Interface*)mAppli.Interface())->WinIms(),false);
             }
         }
     }
