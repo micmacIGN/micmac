@@ -54,7 +54,7 @@ cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
 
     mRefInvis = appli.Param().RefInvis().Val();
 
-    Init();
+    //  Init();
 }
 
 cX11_Interface::~cX11_Interface()

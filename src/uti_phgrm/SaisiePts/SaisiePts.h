@@ -339,6 +339,7 @@ class cVirtualInterface
     virtual bool        isDisplayed(cImage* )=0;
 
     static void         ComputeNbFen(Pt2di &pt, int aNbW);
+    virtual void              Init()=0;
 
 protected:
 
@@ -360,7 +361,6 @@ protected:
 
 private:
 
-    virtual void              Init()=0;
 };
 
 class cCmpIm

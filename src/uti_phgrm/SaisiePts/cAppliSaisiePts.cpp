@@ -140,6 +140,11 @@ string cVirtualInterface::nameFromAutoNum(cCaseNamePoint *aCNP, int aCptMax)
 
 bool cVirtualInterface::Visible(eEtatPointeImage aState)
 {
+/*
+std::cout << "AAAAAAAAAAAAA\n";
+std::cout << "BBBBBBBBBBBB " << RefInvis() << "\n";
+std::cout << "CCCCCCCCCC\n";
+*/
     return  ((aState!=eEPI_Refute) || !RefInvis())
             && (aState!=eEPI_Disparu);
 }
@@ -184,6 +189,7 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     if(instanceInterface)
         mInterface = new cX11_Interface(*this);
 #endif
+    mInterface->Init();
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }
