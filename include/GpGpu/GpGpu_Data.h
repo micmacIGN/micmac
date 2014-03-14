@@ -735,7 +735,9 @@ TPL_T ImageLayeredCuda<T>::ImageLayeredCuda():
     DecoratorImageCuda(this)
 {
 
+#ifndef _WIN32
     CData3D::SetType(__CLASS_NAME__);
+#endif
 
     CData3D::ClassTemplate(CData3D::ClassTemplate() + " " + CData3D::StringClass<T>(_ClassData));
 }

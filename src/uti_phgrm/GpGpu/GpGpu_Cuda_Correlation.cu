@@ -60,9 +60,9 @@ extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<floa
 
     //    hostImagesProj.OutputValues();
 
-    for (int z = 0; z < param.ZCInter; ++z)
+    for (int z = 0; z < (int)param.ZCInter; ++z)
     {
-        for (int i = 0; i < param.invPC.nbImages; ++i)
+        for (int i = 0; i < (int)param.invPC.nbImages; ++i)
         {
             std::string nameFile = std::string(GpGpuTools::conca("IMAGES_0",(i+1) * 10 + z)) + std::string(".pgm");
             GpGpuTools::Array1DtoImageFile(hostImagesProj.pData() + (i  + z *  param.invPC.nbImages)* size(hostImagesProj.GetDimension()),nameFile.c_str(),hostImagesProj.GetDimension());
@@ -137,7 +137,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   // INCORRECT !!! TODO
   // COM 6 mars 2014
-  // if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
+  if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
 
   const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
   const short2 c1	= make_short2(threadIdx) + invPc.rayVig;

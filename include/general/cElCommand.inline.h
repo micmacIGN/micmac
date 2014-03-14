@@ -75,6 +75,8 @@ bool ctPath::operator ==( const ctPath &i_b ) const { return compare( i_b )==0; 
 
 bool ctPath::operator !=( const ctPath &i_b ) const { return compare( i_b )!=0; }
 
+bool ctPath::remove() const{ return ( removeContent() && removeEmpty() ); }
+
 
 //-------------------------------------------
 // cElFilename
@@ -90,9 +92,9 @@ std::string cElFilename::str( char i_separator ) const
    return m_path.str( i_separator )+m_basename;
 }
 
-std::string cElFilename::str_unix() const { return str(ctPath::sm_unix_separator); }
+std::string cElFilename::str_unix() const { return str(ctPath::unix_separator); }
 
-std::string cElFilename::str_windows() const { return str(ctPath::sm_windows_separator); }
+std::string cElFilename::str_windows() const { return str(ctPath::windows_separator); }
 
 bool cElFilename::operator <( const cElFilename &i_b ) const { return compare( i_b )<0; }
 
@@ -103,23 +105,40 @@ bool cElFilename::operator ==( const cElFilename &i_b ) const { return compare( 
 bool cElFilename::operator !=( const cElFilename &i_b ) const { return compare( i_b )!=0; }
 
 bool cElFilename::setRights( mode_t o_rights ) const {
+	bool res;
 	#if (ELISE_POSIX)
-		return chmod( str_unix().c_str(), o_rights )==0;
+		res = (chmod( str_unix().c_str(), o_rights )==0);
 	#else
-		return true; // __TODO : windows read-only files
+		res = true; // __TODO : windows read-only files
 	#endif
+	#ifdef __DEBUG_C_EL_COMMAND
+		if ( !res ){
+			std::cerr << RED_DEBUG_ERROR << "cannot set rights on [" << str_unix() << ']' << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	#endif
+	return res;
 }
 
 bool cElFilename::getRights( mode_t &o_rights ) const
 {
+	bool res;
 	#if (ELISE_POSIX)
 		struct stat s;
-		if ( stat( str_unix().c_str(), &s )!=0 ) return false;
+		res = ( stat( str_unix().c_str(), &s )==0 );
 		o_rights = s.st_mode;
-		return true;
+		o_rights &= posixMask; // restrain rights to documented posix bits (the twelve less significant bits)
 	#else
-		return true; // __TODO : windows read-only files
+		o_rights = unhandledRights;
+		res = true; // __TODO : windows read-only files
 	#endif
+	#ifdef __DEBUG_C_EL_COMMAND
+		if ( !res ){
+			std::cerr << RED_DEBUG_ERROR << "cannot get rights on [" << str_unix() << ']' << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	#endif
+	return res;
 }
 
 

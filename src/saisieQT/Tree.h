@@ -71,13 +71,21 @@ public:
 
     QVector<QVariant> buildChildRow(std::pair<std::string, cSP_PointeImage *> data);
 
-    int             getColumnSize(int column, QFontMetrics fm);
-
     void            setPointGlob(QModelIndex idx, cSP_PointGlob* aPG);
+
+    void            emitDataChanged();
 
 public slots:
 
     void            addPoint(cSP_PointeImage *aPIm);
+
+    void            adaptColumns(const QModelIndex &, const QModelIndex&);
+
+    void            adaptChildrenColumns(const QModelIndex &);
+
+signals:
+
+    void            resizeColumn(int);
 
 private:
     TreeItem*       getItem(const QModelIndex &index) const;

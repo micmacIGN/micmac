@@ -124,8 +124,6 @@ int TreeModel::columnCount(const QModelIndex &/*parent*/) const
 void TreeModel::setAppli(cAppli_SaisiePts *appli)
 {
     _appli = appli;
-
-    setupModelData();
 }
 
 QString StateToQString(eEtatPointeImage state)
@@ -265,7 +263,6 @@ bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
     return success;
 }
 
-
 QVector <QVariant> TreeModel::buildRow(cSP_PointGlob* aPG)
 {
     QVector<QVariant> columnData;
@@ -298,23 +295,6 @@ QVector <QVariant> TreeModel::buildChildRow(std::pair < std::string , cSP_Pointe
     columnData << "" << nameImg << state << coord2d;
 
     return columnData;
-}
-
-int TreeModel::getColumnSize(int column, QFontMetrics fm)
-{
-    int colWidth = -1;
-    for (int aK=0; aK < rowCount();++aK)
-    {
-        QModelIndex id = index(aK, column);
-
-        QString text = data(id, Qt::DisplayRole).toString();
-
-        int textWidth = fm.width(text);
-
-        if (colWidth < textWidth) colWidth = textWidth;
-    }
-
-    return colWidth;
 }
 
 void TreeModel::addPoint(cSP_PointeImage * aPIm)
@@ -394,13 +374,32 @@ void TreeModel::addPoint(cSP_PointeImage * aPIm)
     }
 }
 
+void TreeModel::adaptColumns(const QModelIndex & topLeft, const QModelIndex &bottomRight)
+{
+    for (int aK = topLeft.column(); aK < bottomRight.column(); ++aK)
+        emit resizeColumn(aK);
+}
+
+void TreeModel::adaptChildrenColumns(const QModelIndex &index)
+{
+    //TODO: find column to resize
+
+    /*TreeItem *Item = static_cast<TreeItem*>(index.internalPointer());
+    for (int aK=0; aK < Item->childCount();++aK)
+    {
+        TreeItem * child = Item->child();
+    }*/
+
+    emit resizeColumn(1);
+    emit resizeColumn(2);
+}
+
 void TreeModel::setupModelData()
 {
     QList<TreeItem*> parents;
     parents << rootItem;
 
     std::vector<cSP_PointGlob *> vPts = _appli->PG();
-
     for (int bK=0; bK < (int) vPts.size(); ++bK)
     {
         cSP_PointGlob* aPG = vPts[bK];
@@ -419,6 +418,31 @@ void TreeModel::setupModelData()
             item->appendChild(new TreeItem(buildChildRow(*it), item));
         }
     }
+
+    for (int aK=0; aK < _appli->Interface()->GetNumCaseNamePoint(); ++aK)
+    {
+        std::string ptName = _appli->Interface()->GetCaseNamePoint(aK).mName;
+
+        bool found = false;
+        for (int bK=0; bK < (int) vPts.size(); ++bK)
+        {
+             cSP_PointGlob* aPG = vPts[bK];
+
+             if (aPG->PG()->Name() == ptName)
+                 found = true;
+        }
+
+        if (!found)
+        {
+            QVector<QVariant> columnData;
+            columnData << QString(ptName.c_str()) << "" << "" << "";
+
+            TreeItem * item = new TreeItem(columnData, rootItem);
+            parents.last()->appendChild(item);
+        }
+    }
+
+    emitDataChanged();
 }
 
 void TreeModel::setPointGlob(QModelIndex idx, cSP_PointGlob* aPG)
@@ -441,6 +465,14 @@ void TreeModel::setPointGlob(QModelIndex idx, cSP_PointGlob* aPG)
             item->child(bK)->setData(buildChildRow(*it));
         }
     }
+}
+
+void TreeModel::emitDataChanged()
+{
+    QModelIndex topLeft = index(0,0);
+    QModelIndex bottomRight = index(rowCount()-1, columnCount()-1);
+
+    emit dataChanged(topLeft, bottomRight);
 }
 
 void TreeModel::updateData()
@@ -472,7 +504,7 @@ void TreeModel::updateData()
         }
         else
         {
-            for (int bK=0; bK < rowCount(rootItem->index());++bK) //TODO: factoriser
+            for (int bK=0; bK < rowCount();++bK) //TODO: factoriser
             {
                 QString text = data(index(bK, 0), Qt::DisplayRole).toString();
 
@@ -487,7 +519,7 @@ void TreeModel::updateData()
     QVector <QModelIndex> vIdx;
     for (int aK =0; aK< (int) ptNames.size(); ++aK)
     {
-        for (int bK=0; bK < rowCount(rootItem->index());++bK)
+        for (int bK=0; bK < rowCount();++bK)
         {
             QString text = data(index(bK, 0), Qt::DisplayRole).toString();
 
@@ -500,7 +532,10 @@ void TreeModel::updateData()
 
     for (int aK=0; aK < vIdx.size(); ++aK)
     {
+        //TODO: retirer seulement les mesures et pas le point => possibilité de le ressaisir
         removeRow(vIdx[aK].row(), vIdx[aK].parent());
     }
+
+    emitDataChanged();
 }
 
