@@ -31,6 +31,12 @@ bool ChunkStream::prepare_next_read(){ return ( m_remaining>chunkHeaderSize || o
 
 bool ChunkStream::prepare_next_write(){ return ( m_remaining>chunkHeaderSize || open_next_output_file() ); }
 
+U_INT8 ChunkStream::maxFileSize() const { return m_maxFileSize; }
+
+void ChunkStream::setReverseByteOrder( bool i_isReverse ){ m_reverseByteOrder=i_isReverse; }
+
+bool ChunkStream::getReverseByteOrder() const{ return m_reverseByteOrder; }
+
 
 //--------------------------------------------
 // related functions

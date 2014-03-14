@@ -7,6 +7,7 @@
 #include <map>
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 #include "../include/general/sys_dep.h"
 #include "../include/private/util.h"
 #include "sys/stat.h"
@@ -158,9 +159,9 @@ private:
    std::string m_normalizedName;
 
 public:
-   static const char        sm_unix_separator;
-   static const char        sm_windows_separator;
-   static const std::string sm_all_separators;
+   static const char        unix_separator;
+   static const char        windows_separator;
+   static const std::string all_separators;
 
    ctPath( const std::string &i_path=std::string() );
    ctPath( const ctPath &i_path1, const ctPath &i_path2 );
@@ -191,8 +192,9 @@ public:
    void toAbsolute( const ctPath &i_relativeTo );
    bool exists() const;
    bool create() const;
-   bool remove_empty() const;
-   bool remove() const;
+   bool removeEmpty() const;
+   bool removeContent() const;
+   inline bool remove() const;
    // return true if directory exists and containts nothing
    bool isEmpty() const; 
    
@@ -215,6 +217,9 @@ public:
 class cElFilename
 {
 public:
+   static const mode_t unhandledRights;
+   static const mode_t posixMask;
+   
    ctPath      m_path;
    std::string m_basename;
    

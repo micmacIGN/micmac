@@ -58,6 +58,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     connect(m_QTMainWindow,	SIGNAL(removePoint(QString)), this, SLOT(removePoint(QString)));
 
+    connect(m_QTMainWindow,	SIGNAL(setName(QString)), this, SLOT(setAutoName(QString)));
+
     m_QTMainWindow->getModel()->setAppli(mAppli);
 }
 
@@ -110,6 +112,8 @@ void cQT_Interface::addPoint(QPointF point)
             rebuildGlPoints();
 
             emit pointAdded();
+
+            emit dataChanged();
         }
     }
 }
@@ -194,6 +198,11 @@ void cQT_Interface::removePoint(QString aName)
 
         emit dataChanged();
     }
+}
+
+void cQT_Interface::setAutoName(QString name)
+{
+    mAppli->Param().NameAuto().SetVal( name.toStdString().c_str() );
 }
 
 void cQT_Interface::changeName(QString aOldName, QString aNewName)

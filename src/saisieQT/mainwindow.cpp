@@ -42,8 +42,12 @@ MainWindow::~MainWindow()
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
-    delete _model;
-    delete _selectionModel;
+
+    if (_mode > MASK3D)
+    {
+        delete _model;
+        delete _selectionModel;
+    }
 }
 
 void MainWindow::connectActions()
@@ -84,6 +88,17 @@ void MainWindow::connectActions()
     _signalMapper->setMapping (_ui->action1_4_25, 25);
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
+
+    if (_mode > MASK3D)
+    {
+        connect(_model, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex& ) ),
+                _model, SLOT(adaptColumns(const QModelIndex &, const QModelIndex&) ));
+
+        connect(_model, SIGNAL(resizeColumn(int)), _ui->treeView, SLOT(resizeColumnToContents(int)) );
+
+        connect(_ui->treeView, SIGNAL(expanded(QModelIndex)), _model, SLOT(adaptChildrenColumns(const QModelIndex &)));
+        connect(_ui->treeView, SIGNAL(collapsed(QModelIndex)), _model, SLOT(adaptChildrenColumns(const QModelIndex &)));
+    }
 }
 
 void MainWindow::createRecentFileMenu()
@@ -573,11 +588,13 @@ void MainWindow::on_actionSettings_triggered()
     cSettingsDlg uiSettings(this, _params);
     connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
 
+    connect(&uiSettings, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
+
     for (int aK = 0; aK < nbWidgets();++aK)
     {
         connect(&uiSettings, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
         connect(&uiSettings, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
-        connect(&uiSettings, SIGNAL(gammaChanged(float)), getWidget(aK), SLOT(gammaChanged(float)));
+        connect(&uiSettings, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
         connect(&uiSettings, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
     }
 
@@ -778,6 +795,7 @@ void MainWindow::setUI()
         _ui->treeView->setModel(_model);
         _ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
         _ui->treeView->installEventFilter( this );
+        _ui->treeView->setAnimated(true);
 
         _selectionModel = _ui->treeView->selectionModel();
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
@@ -865,6 +883,11 @@ void MainWindow::redraw(bool nbWidgetsChanged)
             //TODO
         }
     }
+}
+
+void MainWindow::setAutoName(QString val)
+{
+    emit setName(val);
 }
 
 void MainWindow::setImagePosition(QPointF pt)
@@ -1013,18 +1036,13 @@ void MainWindow::selectPoint(string ptName)
     selectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
 }
 
+void MainWindow::setTreeView()
+{
+    _model->setupModelData();
+}
+
 void MainWindow::updateTreeView()
 {
     _model->updateData();
-
-    QFontMetrics fm(font());
-
-    int colWidth = _model->getColumnSize(0, fm);
-    _ui->treeView->setColumnWidth(0, colWidth + 26); //TODO: find expand sign indicator size
-
-    for (int aK=1; aK< _model->columnCount(); ++aK)
-    {
-        colWidth = _model->getColumnSize(aK, fm);
-        _ui->treeView->setColumnWidth(0, colWidth);
-    }
+    _ui->treeView->update();
 }

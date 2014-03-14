@@ -56,8 +56,7 @@ bool typeFromMagicNumber( uint32_t i_magic, VFH_Type &o_type, bool &o_isMSBF );
 
 VFH_Type versionedFileType( const std::string &i_filename );
 
-// generate a new random number than is not equal to itself in reverse byte order,
-// and that is not already used
+// generate a new random number than is not equal to itself in reverse byte order and that is not already used
 void generate_new_magic_number( uint32_t &o_direct, uint32_t &o_reverse );
 
 #include "VersionedFileHeader.inline.h"

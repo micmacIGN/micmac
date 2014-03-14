@@ -26,10 +26,12 @@
 
 using namespace std;
 
-const char   ctPath::sm_unix_separator    = '/';
-const char   ctPath::sm_windows_separator = '\\';
-const string ctPath::sm_all_separators    = "/\\";
-   
+const char   ctPath::unix_separator    = '/';
+const char   ctPath::windows_separator = '\\';
+const string ctPath::all_separators    = "/\\";
+const mode_t cElFilename::unhandledRights = (mode_t)std::numeric_limits<U_INT4>::max();
+const mode_t cElFilename::posixMask = (mode_t)( (1<<13)-1 );
+
 #ifdef __DEBUG_C_EL_COMMAND
    unsigned int cElCommandToken::__nb_created = 0;
    unsigned int cElCommandToken::__nb_distroyed = 0;
@@ -50,7 +52,7 @@ ctPath getWorkingDirectory()
 bool setWorkingDirectory( const ctPath &i_path )
 {
    #if (ELISE_windows)
-      string path = i_path.str(ctPath::sm_windows_separator);
+      string path = i_path.str(ctPath::windows_separator);
       return ( SetCurrentDirectory( path.c_str() )==0 );
    #elif (ELISE_POSIX)
       return ( chdir( i_path.str().c_str() )==0 );
@@ -437,7 +439,7 @@ ctPath::ctPath( const ctPath &i_path1, const ctPath &i_path2 )
 {
    *this = i_path1;
    append( i_path2 );
-   m_normalizedName = str( sm_unix_separator );
+   m_normalizedName = str( unix_separator );
 }
 
 ctPath::ctPath( const string &i_path )
@@ -451,7 +453,7 @@ ctPath::ctPath( const string &i_path )
       size_t iPath = path.size();
       while ( iPath-- )
       {
-	 if ( *itPath==sm_unix_separator || *itPath==sm_windows_separator ) *itPath='\0';
+	 if ( *itPath==unix_separator || *itPath==windows_separator ) *itPath='\0';
 	 itPath++;
       }
       // append all strings in the token list
@@ -464,14 +466,14 @@ ctPath::ctPath( const string &i_path )
 	 itPath += tokenString.length()+1;
       }
    }
-   m_normalizedName = str(sm_unix_separator);
+   m_normalizedName = str(unix_separator);
 }
 
 ctPath::ctPath( const cElFilename &i_filename )
 {
    *this = i_filename.m_path;
    append( ctPath::Token( i_filename.m_basename ) );
-   m_normalizedName = str(sm_unix_separator);
+   m_normalizedName = str(unix_separator);
 }
 
 void ctPath::append( const Token &i_token )
@@ -479,32 +481,30 @@ void ctPath::append( const Token &i_token )
 	if ( i_token=="." ) return;
 	if ( m_tokens.size()>0 && i_token==".." && (*m_tokens.rbegin())!=".." ){
 		#ifdef __DEBUG_C_EL_COMMAND
-			if ( m_tokens.size()==1 && m_tokens.begin()->isRoot() ){
-				cerr << "ERROR: ctPath::append(Token): path is higher than root" << endl;
-				exit(EXIT_FAILURE);
-			}
+		if ( m_tokens.size()==1 && m_tokens.begin()->isRoot() ){
+			cerr << "ERROR: ctPath::append(Token): path is higher than root" << endl;
+			exit(EXIT_FAILURE);
+		}
 		#endif
 		m_tokens.pop_back(); return;
 	}
 	m_tokens.push_back( i_token );
-	m_normalizedName = str(sm_unix_separator);
+	m_normalizedName = str(unix_separator);
 }
 
 void ctPath::append( const ctPath &i_path )
 {
-   if ( i_path.isAbsolute() )
-   {
-      #ifdef __DEBUG_C_EL_COMMAND
-	 cerr << "ERROR: ctPath::append : appening absolute path [" << i_path.str() << "] to a directory [" << str() << "]" << endl;
-      #endif
-      return;
-   }
-   list<ctPath::Token>::const_iterator itToken = i_path.m_tokens.begin();
-   while ( itToken!=i_path.m_tokens.end() )
-      append( *itToken++ );
-   m_normalizedName = str(sm_unix_separator);
+	if ( i_path.isAbsolute() ){
+		#ifdef __DEBUG_C_EL_COMMAND
+			cerr << "ERROR: ctPath::append : appening absolute path [" << i_path.str() << "] to a directory [" << str() << "]" << endl;
+		#endif
+		return;
+	}
+	list<ctPath::Token>::const_iterator itToken = i_path.m_tokens.begin();
+	while ( itToken!=i_path.m_tokens.end() ) append( *itToken++ );
+	m_normalizedName = str(unix_separator);
 }
-   
+
 void ctPath::trace( ostream &io_stream ) const
 {
    io_stream << m_tokens.size() << ' ';
@@ -550,7 +550,7 @@ void ctPath::toAbsolute( const ctPath &i_relativeTo )
    while ( itToken!=m_tokens.end() )
       res.append( *itToken++ );
    *this = res;
-   m_normalizedName = str(sm_unix_separator);
+   m_normalizedName = str(unix_separator);
 }
 
 bool ctPath::isInvalid() const { return false; }
@@ -569,7 +569,7 @@ bool ctPath::create() const
 {
 	if ( m_tokens.size()==0 || ( m_tokens.size()==1 && m_tokens.front().isRoot() ) ) return true;
 	#ifdef _MSC_VER
-		string path = str(sm_windows_separator);
+		string path = str(windows_separator);
 		#ifdef __DEBUG_C_EL_COMMAND
 			if ( path.length()>248 ){
 				cerr << RED_DEBUG_ERROR << "ctPath::create: paths are limited to 248 characters for creation" << endl;
@@ -604,7 +604,7 @@ bool ctPath::getContent( list<cElFilename> &o_files ) const
 		return true;
 	#elif _MSC_VER
 		WIN32_FIND_DATA ffd;
-		HANDLE hFind = FindFirstFile( (str(sm_windows_separator)+"*").c_str(), &ffd );
+		HANDLE hFind = FindFirstFile( (str(windows_separator)+"*").c_str(), &ffd );
 		string filename;
 
 		if ( hFind==INVALID_HANDLE_VALUE ) return false;
@@ -638,12 +638,14 @@ bool ctPath::getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_d
    return true;
 }
 
-bool ctPath::remove_empty() const
+bool ctPath::removeEmpty() const
 {
+   if ( isWorkingDirectory() ) return false; // cannot remove working directory
+   
 	#if ELISE_POSIX
 		if ( rmdir( str().c_str() )!=0 ) return false;
 	#else
-		string path = str(sm_windows_separator);
+		string path = str(windows_separator);
 		#ifdef __DEBUG_C_EL_COMMAND
 			if ( path.length()>MAX_PATH ){
 				cerr << RED_DEBUG_ERROR << "ctPath::remove_empty: paths are limited to " << MAX_PATH << " characters" << endl;
@@ -656,15 +658,15 @@ bool ctPath::remove_empty() const
 	return !exists();
 }
 
-bool ctPath::remove() const
-{
-   if ( isWorkingDirectory() ) return false; // cannot remove working directory
-   
+static bool __ctPath_sup( const ctPath &i_a, const ctPath &i_b ){ return i_a>i_b; }
+
+bool ctPath::removeContent() const
+{   
    list<cElFilename> contentFiles;
    list<ctPath> contentPaths;
    if ( !getContent( contentFiles, contentPaths, true/*recursive*/ ) ){
 		#ifdef __DEBUG_C_EL_COMMAND
-			cerr << RED_DEBUG_ERROR << "ctPath::remove(): cannot get content of directory [" << str() <<']' << endl;
+			cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot get content of directory [" << str() <<']' << endl;
 			exit(EXIT_FAILURE);
 		#endif
 	   return false;
@@ -675,20 +677,21 @@ bool ctPath::remove() const
 	while ( itFile!=contentFiles.end() ){
 		if ( !itFile->remove() ){
 			#ifdef __DEBUG_C_EL_COMMAND
-				cerr << RED_DEBUG_ERROR << "ctPath::remove(): cannot remove file [" << itFile->str_unix() <<']' << endl;
+				cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove file [" << itFile->str_unix() <<']' << endl;
 				exit(EXIT_FAILURE);
 			#endif
 			return false;
 		}
 		itFile++;
 	}
-      
+
 	// remove all empty directories
+	contentPaths.sort( __ctPath_sup ); // sort in reverse order so that subdirectories come before their parents
 	list<ctPath>::const_iterator itPath = contentPaths.begin();
 	while ( itPath!=contentPaths.end() ){
-		if ( !itPath->remove() ){
+		if ( !itPath->removeEmpty() ){
 			#ifdef __DEBUG_C_EL_COMMAND
-				cerr << RED_DEBUG_ERROR << "ctPath::remove(): cannot remove directory [" << itPath->str() <<']' << endl;
+				cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove directory [" << itPath->str() <<']' << endl;
 				exit(EXIT_FAILURE);
 			#endif
 			return false;
@@ -696,7 +699,7 @@ bool ctPath::remove() const
 		itPath++;
 	}
    
-   return remove_empty();
+   return true;
 }
 
 // count number of '..'
@@ -754,7 +757,7 @@ bool ctPath::isWorkingDirectory() const
 cElFilename::cElFilename( const std::string i_fullname )
 {
    if ( i_fullname.length()==0 ) return; // this is an invalid cElFilename
-   size_t pos = i_fullname.string::find_last_of( ctPath::sm_all_separators );
+   size_t pos = i_fullname.string::find_last_of( ctPath::all_separators );
    if ( pos==string::npos )
    {
       m_basename = i_fullname;
@@ -919,17 +922,17 @@ std::string file_rights_to_string( mode_t i_rights )
 	string res("___/___/___");
 	#if ELISE_POSIX
 	   // rigths for owner
-	   res[0] = ( (i_rights|S_IRUSR)==0 )?'-':'r';
-	   res[1] = ( (i_rights|S_IWUSR)==0 )?'-':'w';
-	   res[2] = ( (i_rights|S_IXUSR)==0 )?'-':'x';
+	   res[0] = ( (i_rights&S_IRUSR)==0 )?'-':'r';
+	   res[1] = ( (i_rights&S_IWUSR)==0 )?'-':'w';
+	   res[2] = ( (i_rights&S_IXUSR)==0 )?'-':'x';
 	   // rights for group
-	   res[4] = ( (i_rights|S_IRGRP)==0 )?'-':'r';
-	   res[5] = ( (i_rights|S_IWGRP)==0 )?'-':'w';
-	   res[6] = ( (i_rights|S_IXGRP)==0 )?'-':'x';
+	   res[4] = ( (i_rights&S_IRGRP)==0 )?'-':'r';
+	   res[5] = ( (i_rights&S_IWGRP)==0 )?'-':'w';
+	   res[6] = ( (i_rights&S_IXGRP)==0 )?'-':'x';
 	   // rights for others
-	   res[8]  = ( (i_rights|S_IROTH)==0 )?'-':'r';
-	   res[9]  = ( (i_rights|S_IWOTH)==0 )?'-':'w';
-	   res[10] = ( (i_rights|S_IXOTH)==0 )?'-':'x';
+	   res[8]  = ( (i_rights&S_IROTH)==0 )?'-':'r';
+	   res[9]  = ( (i_rights&S_IWOTH)==0 )?'-':'w';
+	   res[10] = ( (i_rights&S_IXOTH)==0 )?'-':'x';
 	#endif
 	return res;
 }
