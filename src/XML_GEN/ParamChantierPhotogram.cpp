@@ -13689,6 +13689,17 @@ const cTplValGesInit< std::string > & cMMUserEnvironment::UserName()const
    return mUserName;
 }
 
+
+cTplValGesInit< int > & cMMUserEnvironment::NbMaxProc()
+{
+   return mNbMaxProc;
+}
+
+const cTplValGesInit< int > & cMMUserEnvironment::NbMaxProc()const 
+{
+   return mNbMaxProc;
+}
+
 cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
 {
   XMLPushContext(anObj.mGXml);
@@ -13699,6 +13710,8 @@ cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
       aRes->AddFils(::ToXMLTree(std::string("TiePMatch"),anObj.TiePMatch().Val())->ReTagThis("TiePMatch"));
    if (anObj.UserName().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("UserName"),anObj.UserName().Val())->ReTagThis("UserName"));
+   if (anObj.NbMaxProc().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbMaxProc"),anObj.NbMaxProc().Val())->ReTagThis("NbMaxProc"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -13714,6 +13727,8 @@ void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree)
    xml_init(anObj.TiePMatch(),aTree->Get("TiePMatch",1)); //tototo 
 
    xml_init(anObj.UserName(),aTree->Get("UserName",1),std::string("Anonymous")); //tototo 
+
+   xml_init(anObj.NbMaxProc(),aTree->Get("NbMaxProc",1),int(10000000)); //tototo 
 }
 
 

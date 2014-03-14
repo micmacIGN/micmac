@@ -1,16 +1,9 @@
-Bug Reaff Chang Im Saisie , le corriger par force reaaf a DeZoom avant change im
-Reaff : cliquer sur les points pour zoomer dezoomer en auto
 Recherche auto : faire les cible en coins (UAV/Turin) :
                   
 
 
-MMUserEnvironment
 
-   - Nb Process
 
-Autom RatioAttrCarte
-
-SEL : tourner sans source
 
 
 BUG non deterministe ??? dans Tapas signale DIAS
@@ -191,4 +184,10 @@ EGYPTE :
 -2- Détermination des heures de "rasances" pour les principaux points de vue
 -3- Fixer les conventions de nomage  (Plan, masq ...), et de renommage des images (par la focale entre autre);
 
+       DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE
 
+include/XML_MicMac:qBug Reaff Chang Im Saisie , le corriger par force reaaf a DeZoom avant change im
+Reaff : cliquer sur les points pour zoomer dezoomer en auto
+Autom RatioAttrCarte
+SEL : tourner sans source
+MMUserEnvironment - Nb Process

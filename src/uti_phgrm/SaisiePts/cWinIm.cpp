@@ -233,11 +233,17 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
     SetImage(&aIm0);
 }
 
+void cWinIm::SetFullImage()
+{
+     mScr->set_max();
+     ShowVect();
+}
 
 void  cWinIm::SetNoImage()
 {
     if (mCurIm)
     {
+        mScr->set_max();  // Modif MPD TENTATIVE CORRECTION BUG REAFF
         mCurIm->SetWAff(0);
     }
     mCurIm = 0;
@@ -496,20 +502,57 @@ void  cWinIm::SetPt(Clik aClk)
 */
 }
 
-cSP_PointeImage *  cWinIm::GetNearest(const Pt2dr & aPW,double aDSeuil)
+void  cWinIm::AffNextPtAct(Clik aClk)
+{
+    cSP_PointeImage * aPI = GetNearest(aClk._pt,1e9,true);
+
+    if (! aPI) return;
+
+    Pt2dr aP = aPI->Saisie()->PtIm();
+
+    double aZoom = 5;
+    mScr->set(aP -mSzW/(aZoom*2.0),aZoom);
+    ShowVect();
+}
+
+
+cSP_PointeImage *  cWinIm::GetNearest(const Pt2dr & aPW,double aDSeuil,bool OnlyActif)
 {
     aDSeuil = aDSeuil /mScr->sc();
     Pt2dr aPU =  mScr->to_user(aPW);
     const std::vector<cSP_PointeImage *> &  aVP = mCurIm->VP();
 
     cSP_PointeImage * aRes = 0;
-    double aDMin = aDSeuil;
+    double aDMin = OnlyActif ? aDSeuil : 1e8;
     for (int aK=0; aK<int(aVP.size()) ; aK++)
     {
         cOneSaisie * aS = aVP[aK]->Saisie();
         const Pt2dr &  aP = aS->PtIm();
         // eEtatPointeImage aState = aS->Etat();
-        if (WVisible(* aVP[aK])  && (euclid(aPU,aP) < aDMin))
+        bool Ok = WVisible(* aVP[aK]) ;
+        double aDist = euclid(aPU,aP);
+        if (OnlyActif)
+        {
+            Ok = true;
+            switch (aS->Etat())
+            {
+                  case eEPI_NonSaisi :
+                  break;
+
+                  case eEPI_Douteux :
+                     aDist += 1e5;
+                  break;
+
+                  case eEPI_Refute :
+                     aDist += 2e5;
+                  break;
+               
+                  default :
+                     aDist = 1e10;
+                  break;
+            }
+        }
+        if ( Ok  && ( aDist < aDMin))
         {
             aDMin  = euclid(aPU,aP);
             aRes = aVP[aK];

@@ -5167,10 +5167,14 @@ class cMMUserEnvironment
 
         cTplValGesInit< std::string > & UserName();
         const cTplValGesInit< std::string > & UserName()const ;
+
+        cTplValGesInit< int > & NbMaxProc();
+        const cTplValGesInit< int > & NbMaxProc()const ;
     private:
         cTplValGesInit< std::string > mTiePDetect;
         cTplValGesInit< std::string > mTiePMatch;
         cTplValGesInit< std::string > mUserName;
+        cTplValGesInit< int > mNbMaxProc;
 };
 cElXMLTree * ToXMLTree(const cMMUserEnvironment &);
 

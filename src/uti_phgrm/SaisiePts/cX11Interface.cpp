@@ -262,6 +262,18 @@ void cX11_Interface::TestClick(Clik aCl)
 
     if (aCl._b==2)
     {
+        if (aCl.controled() )
+        {
+            // std::cout << "Zzzz2222 " << aCl.controled() << "\n";
+           if (aCl.shifted())
+           {
+              mCurWinIm->SetFullImage();
+           }
+           else
+           {
+              mCurWinIm->AffNextPtAct(aCl);
+           }
+        }
         aWIm->GrabScrTr(aCl);
     }
 

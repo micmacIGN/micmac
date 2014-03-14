@@ -275,6 +275,7 @@ void DebugDrag()
 
 int MPDtest_main (int argc,char** argv)
 {
+   std::cout << "NBPROC " << NbProcSys() << "\n";
    DebugDrag();
 
 

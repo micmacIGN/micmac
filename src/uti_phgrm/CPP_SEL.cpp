@@ -90,7 +90,8 @@ int SEL_main(int argc,char ** argv)
     );
 
     std::string aCom =   MM3dBinFile("MICMACSaisieLiaisons")
-                       + MMDir()+std::string("applis/XML-Pattron/Pattron-MicMacLiaison.xml ")
+                       // + MMDir()+std::string("applis/XML-Pattron/Pattron-MicMacLiaison.xml ")
+                       + MMDir()+std::string("include/XML_MicMac/Pattron-MicMacLiaison.xml ")
                        + " WorkDir=" + aDir
                        + " %Im1=" + aN1
                        + " %Im2=" + aN2

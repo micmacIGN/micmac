@@ -259,7 +259,7 @@ void cAppliMICMAC::MakeRedrLocAnamSA()
          ELISE_COPY
          (
                aImZIn.all_pts(),
-               trans(aFilePx.in(),Pt2di(aX0_In,0)),
+               trans(aFilePx.in_proj(),Pt2di(aX0_In,0)),
                aImZIn.out()
          );
          ELISE_COPY

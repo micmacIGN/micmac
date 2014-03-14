@@ -179,7 +179,7 @@ public :
     bool    WVisible(const Pt2dr & aP, eEtatPointeImage aState);
     bool    WVisible(cSP_PointeImage & aPIm);
 
-    cSP_PointeImage * GetNearest(const Pt2dr & aPW,double aDSeuil);
+    cSP_PointeImage * GetNearest(const Pt2dr & aPW,double aDSeuil,bool OnlyActif=false);
     void    SetPt(Clik aClk);
     void    SetZoom(Pt2dr aP,double aFactZ);
 
@@ -201,6 +201,9 @@ public :
     Box2dr  BoxImageVisible() const;
 
     cImage* Image() { return mCurIm; }
+    void SetFullImage() ;
+    void AffNextPtAct(Clik aClk);
+
 
 private :
 

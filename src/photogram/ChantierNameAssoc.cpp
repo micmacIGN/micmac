@@ -458,7 +458,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 
 
 
-int NbProcSys()
+int CalcNbProcSys()
 {
 #if ELISE_windows
 	SYSTEM_INFO sysinfo; 
@@ -469,6 +469,14 @@ int NbProcSys()
 	return sysconf (_SC_NPROCESSORS_CONF);
 #endif
 }
+
+int NbProcSys()
+{
+    static int aRes = ElMin(CalcNbProcSys(),MMUserEnv().NbMaxProc().Val());
+
+    return aRes;
+}
+
 
 namespace NS_ParamChantierPhotogram{
 

@@ -1468,6 +1468,7 @@ namespace NS_ParamChantierPhotogram{
          <TiePDetect Nb="?" Type="std::string">  </TiePDetect>  <!-- Ou mm3d:Digeo mm3d:Sift -->
          <TiePMatch  Nb="?" Type="std::string">  </TiePMatch> <!-- Ou  mm3d:Ann -->
          <UserName  Nb="?" Type="std::string" Def="Anonymous">  </UserName> <!-- Ou  mm3d:Ann -->
+         <NbMaxProc  Nb="?" Type="int" Def="10000000">  </NbMaxProc> <!-- Ou  mm3d:Ann -->
     </MMUserEnvironment>
 
 <SelectionInfos Nb="1" Class="true" ToReference="true">
