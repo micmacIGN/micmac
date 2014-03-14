@@ -67,13 +67,18 @@ void bench_path()
    cElFilename filename( "balo_file" );
    bench_error( filename.exists(), filename.str_unix()+" already exists" );
    bench_error( !filename.create(), string("cannot create file [")+filename.str_unix()+"]" );
+   #if (!ELISE_windows)
+		mode_t wantedRights = 0755, rights;
+		bench_error( !filename.setRights( wantedRights ), string("cannot set rights on [")+filename.str_unix()+"]" );
+		bench_error( !filename.getRights( rights ), string("cannot get rights on [")+filename.str_unix()+"]" );
+		bench_error( wantedRights!=rights, string("a error occured while setting or getting rights on [")+filename.str_unix()+"]" );
+	#endif
    bench_error( !filename.remove(), string("cannot remove file [")+filename.str_unix()+"]" );
-   cout << "ok\n" << endl;
    
    cout << "--- test ctPath creation/deletion" << endl;
    ctPath sampleDir( "balo_path" );
    bench_error( !sampleDir.create(), string("cannot create directory [")+sampleDir.str()+"]" );
-   bench_error( !sampleDir.remove_empty(), string("cannot remove directory [")+sampleDir.str()+"]" );
+   bench_error( !sampleDir.removeEmpty(), string("cannot remove directory [")+sampleDir.str()+"]" );
    cout << "ok\n" << endl;
    
 	cout << "--- creating/deleting a basic tree" << endl;
@@ -89,7 +94,7 @@ void bench_path()
 	             !cElFilename("toto/c/cc").create() ||
 	             !cElFilename("toto/c/ccddd").create() ||
 	             !cElFilename("toto/c/balo").create(),
-		"unable to create a basic tree" );
+	             "unable to create a basic tree" );
 	bench_error ( !ctPath("toto").isAncestorOf( ctPath("toto/a/") ), "directory \"toto\" is not an ancestor of \"toto/a\", which is odd" );
 	bench_error ( !ctPath("toto").isAncestorOf( cElFilename("toto/c/balo") ), "directory \"toto\" is not an ancestor of \"toto/c/balo\", which is odd" );
 	bench_error ( ctPath("toto").isAncestorOf( cElFilename("../toto") ), "directory \"toto\" is an ancestor of \"../titi\", which is odd" );

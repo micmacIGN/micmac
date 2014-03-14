@@ -48,6 +48,12 @@ U_INT4 TracePack::getNbPackFiles() const { return ChunkStream( m_filename, maxPa
 
 cElFilename TracePack::packFilename( const U_INT4 &i_iFile ) const { return ChunkStream( m_filename, maxPackFileSize, true ).getFilename(i_iFile); }
 
+const list<cElFilename> & TracePack::getIgnoredFiles() const { return m_ignoredFiles; }
+
+const list<ctPath> & TracePack::getIgnoredDirectories() const { return m_ignoredDirectories; }
+
+void TracePack::setAnchor( const ctPath &i_path ) { m_anchor=i_path; }
+
 
 //--------------------------------------------
 // related functions
