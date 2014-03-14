@@ -551,6 +551,7 @@ cSP_PointeImage *  cWinIm::GetNearest(const Pt2dr & aPW,double aDSeuil,bool Only
                      aDist = 1e10;
                   break;
             }
+std::cout << "DIST = " << aDist << "\n";
         }
         if ( Ok  && ( aDist < aDMin))
         {
