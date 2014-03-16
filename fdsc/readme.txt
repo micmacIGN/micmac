@@ -1,7 +1,7 @@
-FDSC v0.9
+FDSC v0.95
 Fault Displacement Slip-Curve
 
-Copyright (C) (2013) Ana-Maria Rosu, IPGP-IGN project financed by CNES
+Copyright (C) (2013-2014) Ana-Maria Rosu, IPGP-IGN project financed by CNES
 am.rosu@laposte.net
 
 This software is a computer program whose purpose is to outline the
@@ -59,10 +59,10 @@ Usage
     to change a point's position: left-click on it and another left-click on the new position of the point
     the offset is computed between the 3rd and the 2nd point
     to save the offset: right-click
-    all the offset values are saved into the filename_out indicated at the beginning of the process
+    all the offset values are saved into a file, as well as other information regarding the stacking parameters
 
   Slip-curve tool:
-    plotting the offsets along the fault
+    plotting the offsets along the fault following column, line, parallel or perpendicular directions
       abscissa: distance along the fault
       ordinate: offset values
 
