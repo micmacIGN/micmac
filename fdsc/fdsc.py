@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################
-#FDiSC v0.9                                                              #
+#FDiSC v0.95                                                              #
 #Fault DIsplacement Slip-Curve                                           #
 #                                                                        #
-#Copyright (C) (2013) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
+#Copyright (C) (2013-2014) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
 #am.rosu@laposte.net                                                     #
 #                                                                        #
 #This software is governed by the CeCILL-B license under French law and  #
@@ -81,9 +81,24 @@ class MainWindow(QtGui.QMainWindow):
     self.button_ok.setEnabled(False)
 
     #stack section
-    self.label_imageInStack = QtGui.QLabel("Parallax image file:")
-    self.button_imageInStack = QtGui.QPushButton("...")
-    self.edit_filename_imageInStack = QtGui.QLineEdit()
+    self.label_Px1imageInStack = QtGui.QLabel("Px1 Parallax image file:")
+    self.label_Px1imageInStack.setToolTip("Parallax image in the epipolar direction")
+    self.button_Px1imageInStack = QtGui.QPushButton("...")
+    self.edit_filename_Px1imageInStack = QtGui.QLineEdit()
+    self.label_Px2imageInStack = QtGui.QLabel("Px2 Parallax image file:")
+    self.label_Px2imageInStack.setToolTip("Parallax image in the transverse direction")
+    self.button_Px2imageInStack = QtGui.QPushButton("...")
+    self.edit_filename_Px2imageInStack = QtGui.QLineEdit()
+        #---------
+    self.label_dirDispStack = QtGui.QLabel("Offsets output direction:")
+    #~ self.radio_dirDispCLStack = QtGui.QRadioButton("Column/Line")
+    #~ self.radio_dirDispCLStack.setChecked(True)
+    #~ self.radio_dirDispPPStack = QtGui.QRadioButton("Parallel/Perpendicular")
+    self.cbox_dirDispColStack = QtGui.QCheckBox("Column")
+    #~ self.cbox_dirDispColStack.setChecked(True)
+    self.cbox_dirDispLineStack = QtGui.QCheckBox("Line")
+    self.cbox_dirDispParalStack = QtGui.QCheckBox("Parallel")
+    self.cbox_dirDispPerpStack = QtGui.QCheckBox("Perpendicular")
         #--------
     self.label_imageWeightStack = QtGui.QLabel("Weight image file:")
     self.button_imageWeightStack = QtGui.QPushButton("...")
@@ -98,7 +113,6 @@ class MainWindow(QtGui.QMainWindow):
     self.radio_medianStack.setEnabled(True)
     self.radio_meanStack=QtGui.QRadioButton("Mean")
     self.radio_meanStack.setEnabled(True)
-    #self.radio_meanStack.setChecked(True)
     self.radio_WmedianStack=QtGui.QRadioButton("Weighted median")
     self.radio_WmedianStack.setEnabled(True)
     self.radio_WmedianStack.setChecked(True)
@@ -181,53 +195,61 @@ class MainWindow(QtGui.QMainWindow):
     layout_poly.addWidget(self.button_ok,3,4)
 
     ## stack layout
-    layout_stack.addWidget(self.label_imageInStack,6,0,1,1)
-    layout_stack.addWidget(self.edit_filename_imageInStack,6,1,1,4)
-    layout_stack.addWidget(self.button_imageInStack,6,5,1,1)
+    layout_stack.addWidget(self.label_Px1imageInStack,6,0,1,1)
+    layout_stack.addWidget(self.edit_filename_Px1imageInStack,6,1,1,4)
+    layout_stack.addWidget(self.button_Px1imageInStack,6,5,1,1)
+    layout_stack.addWidget(self.label_Px2imageInStack,7,0,1,1)
+    layout_stack.addWidget(self.edit_filename_Px2imageInStack,7,1,1,4)
+    layout_stack.addWidget(self.button_Px2imageInStack,7,5,1,1)
         #--------
-    layout_stack.addWidget(self.label_traceFileStack,7,0,1,1)
-    layout_stack.addWidget(self.edit_traceFileStack,7,1,1,4)
-    layout_stack.addWidget(self.button_traceFileStack,7,5,1,1)
+    layout_stack.addWidget(self.label_traceFileStack,8,0,1,1)
+    layout_stack.addWidget(self.edit_traceFileStack,8,1,1,4)
+    layout_stack.addWidget(self.button_traceFileStack,8,5,1,1)
         #--------
-    layout_stack.addWidget(self.label_methodStack,8,0,1,1)
-    layout_stack.addWidget(self.radio_medianStack,8,1,1,1)
-    layout_stack.addWidget(self.radio_WmedianStack,8,2,1,1)
-    layout_stack.addWidget(self.radio_meanStack,8,3,1,1)
-    layout_stack.addWidget(self.radio_WmeanStack,8,4,1,1)
+    layout_stack.addWidget(self.label_methodStack,9,0,1,1)
+    layout_stack.addWidget(self.radio_medianStack,9,1,1,1)
+    layout_stack.addWidget(self.radio_WmedianStack,9,2,1,1)
+    layout_stack.addWidget(self.radio_meanStack,9,3,1,1)
+    layout_stack.addWidget(self.radio_WmeanStack,9,4,1,1)
         #--------
-    layout_stack.addWidget(self.label_imageWeightStack,9,0,1,1)
-    layout_stack.addWidget(self.edit_filename_imageWeightStack,9,1,1,4)
-    layout_stack.addWidget(self.button_imageWeightStack,9,5,1,1)
-    layout_stack.addWidget(self.label_expOfWeightStack,10,0,1,1)
-    layout_stack.addWidget(self.spin_expOfWeightStack,10,1,1,1)
+    layout_stack.addWidget(self.label_imageWeightStack,10,0,1,1)
+    layout_stack.addWidget(self.edit_filename_imageWeightStack,10,1,1,4)
+    layout_stack.addWidget(self.button_imageWeightStack,10,5,1,1)
+    layout_stack.addWidget(self.label_expOfWeightStack,11,0,1,1)
+    layout_stack.addWidget(self.spin_expOfWeightStack,11,1,1,1)
         #--------
-    layout_stack.addWidget(self.label_lengthStack,11,0,1,1)
-    layout_stack.addWidget(self.spin_lengthStack,11,1,1,1)
-    layout_stack.addWidget(self.label_widthStack,11,3,1,1)
-    layout_stack.addWidget(self.spin_widthStack,11,4,1,1)
-    layout_stack.addWidget(self.label_distStack,12,0,1,1)
-    layout_stack.addWidget(self.spin_distStack,12,1,1,1)
-    layout_stack.addWidget(self.label_resolStack,13,0,1,1)
-    layout_stack.addWidget(self.spin_resolStack,13,1,1,1)
-    layout_stack.addWidget(self.label_offsetsOutStack,14,0,1,1)
-    layout_stack.addWidget(self.edit_offsetsOutStack,14,1,1,4)
-    layout_stack.addWidget(self.button_offsetsOutStack,14,5,1,1)
+    layout_stack.addWidget(self.label_lengthStack,12,0,1,1)
+    layout_stack.addWidget(self.spin_lengthStack,12,1,1,1)
+    layout_stack.addWidget(self.label_widthStack,12,3,1,1)
+    layout_stack.addWidget(self.spin_widthStack,12,4,1,1)
+    layout_stack.addWidget(self.label_distStack,13,0,1,1)
+    layout_stack.addWidget(self.spin_distStack,13,1,1,1)
+    layout_stack.addWidget(self.label_dirDispStack,14,0,1,1)
+    layout_stack.addWidget(self.cbox_dirDispColStack,14,1,1,1)
+    layout_stack.addWidget(self.cbox_dirDispLineStack,14,2,1,1)
+    layout_stack.addWidget(self.cbox_dirDispParalStack,14,3,1,1)
+    layout_stack.addWidget(self.cbox_dirDispPerpStack,14,4,1,1)
+    layout_stack.addWidget(self.label_resolStack,15,0,1,1)
+    layout_stack.addWidget(self.spin_resolStack,15,1,1,1)
+    layout_stack.addWidget(self.label_offsetsOutStack,16,0,1,1)
+    layout_stack.addWidget(self.edit_offsetsOutStack,16,1,1,4)
+    layout_stack.addWidget(self.button_offsetsOutStack,16,5,1,1)
         #--------
-    layout_stack.addWidget(self.check_ValidErrbars,15,4,1,1)
-    layout_stack.addWidget(self.check_ValidView,16,4,1,1)
-    layout_stack.addWidget(self.check_saveStack,17,4,1,1)
-    layout_stack.addWidget(self.button_okStack,18,4)
+    layout_stack.addWidget(self.check_ValidErrbars,17,4,1,1)
+    layout_stack.addWidget(self.check_ValidView,18,4,1,1)
+    layout_stack.addWidget(self.check_saveStack,19,4,1,1)
+    layout_stack.addWidget(self.button_okStack,20,4)
 
     ## slip-curve layout
-    layout_cg.addWidget(self.label_offsetsInCg,18,0,1,1)
-    layout_cg.addWidget(self.edit_offsetsInCg,18,1,1,4)
-    layout_cg.addWidget(self.button_offsetsInCg,18,5,1,1)
+    layout_cg.addWidget(self.label_offsetsInCg,21,0,1,1)
+    layout_cg.addWidget(self.edit_offsetsInCg,21,1,1,4)
+    layout_cg.addWidget(self.button_offsetsInCg,21,5,1,1)
         #--------
-    layout_cg.addWidget(self.label_fileOutCg,19,0,1,1)
-    layout_cg.addWidget(self.edit_fileOutCg,19,1,1,4)
-    layout_cg.addWidget(self.button_fileOutCg,19,5,1,1)
+    layout_cg.addWidget(self.label_fileOutCg,22,0,1,1)
+    layout_cg.addWidget(self.edit_fileOutCg,22,1,1,4)
+    layout_cg.addWidget(self.button_fileOutCg,22,5,1,1)
         #--------
-    layout_cg.addWidget(self.button_okCg,20,4)
+    layout_cg.addWidget(self.button_okCg,23,4)
 
     #Connect signal
     self.connect(self.button_imageIn, QtCore.SIGNAL("clicked()"), self.ask_imageIn_file)
@@ -236,17 +258,21 @@ class MainWindow(QtGui.QMainWindow):
     self.connect(self.edit_filename_traceOut, QtCore.SIGNAL("textChanged(QString)"),self.active_buttonOk)
     self.connect(self.button_ok, QtCore.SIGNAL("clicked()"), self.click_ok)
       #-------
-    self.connect(self.button_imageInStack,QtCore.SIGNAL("clicked()"), self.ask_imageInStack_file)
+    self.connect(self.button_Px1imageInStack,QtCore.SIGNAL("clicked()"), self.ask_Px1imageInStack_file)
+    self.connect(self.button_Px2imageInStack,QtCore.SIGNAL("clicked()"), self.ask_Px2imageInStack_file)
     self.connect(self.button_imageWeightStack,QtCore.SIGNAL("clicked()"), self.ask_imageWeightStack_file)
     self.connect(self.button_traceFileStack,QtCore.SIGNAL("clicked()"), self.ask_traceFileStack_file)
     self.connect(self.button_offsetsOutStack,QtCore.SIGNAL("clicked()"), self.ask_offsetsOutStack_file)
-    self.connect(self.edit_filename_imageInStack, QtCore.SIGNAL("textChanged(QString)"),self.active_buttonOkStack)
-    self.connect(self.edit_filename_imageInStack, QtCore.SIGNAL("textChanged(QString)"),self.active_buttonOkStack)
+    self.connect(self.edit_filename_Px1imageInStack, QtCore.SIGNAL("textChanged(QString)"),self.active_buttonOkStack)
+    self.connect(self.edit_filename_Px2imageInStack, QtCore.SIGNAL("textChanged(QString)"),self.active_buttonOkStack)
     self.connect(self.edit_filename_imageWeightStack, QtCore.SIGNAL("textChanged(QString)"),self.active_buttonOkStack)
     self.connect(self.edit_traceFileStack, QtCore.SIGNAL("textChanged(QString)"),self.active_buttonOkStack)
     self.connect(self.edit_offsetsOutStack, QtCore.SIGNAL("textChanged(QString)"),self.active_buttonOkStack)
+    self.connect(self.cbox_dirDispColStack, QtCore.SIGNAL("clicked()"),self.select_typeOutputStack)
+    self.connect(self.cbox_dirDispLineStack, QtCore.SIGNAL("clicked()"),self.select_typeOutputStack)
+    self.connect(self.cbox_dirDispParalStack, QtCore.SIGNAL("clicked()"),self.select_typeOutputStack)
+    self.connect(self.cbox_dirDispPerpStack, QtCore.SIGNAL("clicked()"),self.select_typeOutputStack)
     self.connect(self.button_okStack, QtCore.SIGNAL("clicked()"), self.click_okStack)
-
     self.connect(self.radio_medianStack,QtCore.SIGNAL("clicked()"), self.update_Weight_input)
     self.connect(self.radio_meanStack,QtCore.SIGNAL("clicked()"), self.update_Weight_input)
     self.connect(self.radio_WmedianStack,QtCore.SIGNAL("clicked()"), self.update_Weight_input)
@@ -262,13 +288,14 @@ class MainWindow(QtGui.QMainWindow):
     #data
     self.filename_imageIn=""
     self.filename_traceOut=""
-    self.filename_imageInStack=""
+    self.filename_Px1imageInStack=""
+    self.filename_Px2imageInStack=""
     self.filename_imageWeightStack=""
     self.filename_traceFaultStack=""
     self.filename_offsetsOutStack=""
     self.filename_offsetsInCg=""
     self.filename_Cg=""
-
+    self.type_output=[]
     #self.update_Weight_input()
 
   def initUI(self):
@@ -313,37 +340,87 @@ class MainWindow(QtGui.QMainWindow):
     self.edit_traceFileStack.setText(self.filename_traceOut)
 
   #-------------
-  def ask_imageInStack_file(self):
-    self.filename_imageInStack=QtGui.QFileDialog.getOpenFileName(self,"Stacks: Select Image Filename",".","Images (*.tif *.tiff *.png *.jpg);;All files (*)")
-    if (self.filename_imageInStack!=""):
-      self.edit_filename_imageInStack.setText(self.filename_imageInStack)
+  def dimIm(self, filepath_im):
+    ds = gdal.Open(str(filepath_im), gdal.GA_ReadOnly)
+    nb_col=ds.RasterXSize #number of columns of image
+    nb_lig=ds.RasterYSize #number of lines of image
+    nb_b=ds.RasterCount #number of bands of image
+    #~ print 'Image: ',filepath_im, '   ','nb_col: ',nb_col,' nb_lines: ',nb_lig,' nb_b:',nb_b
+    return nb_col, nb_lig, nb_b
+
+  def ask_Px1imageInStack_file(self):
+    self.filename_Px1imageInStack=QtGui.QFileDialog.getOpenFileName(self,"Stacks: Select Px1 Image Filename",".","Images (*.tif *.tiff *.png *.jpg);;All files (*)")
+    if (self.filename_Px1imageInStack!=""):
+      self.edit_filename_Px1imageInStack.setText(self.filename_Px1imageInStack)
+      print "Px1 image: ", self.filename_Px1imageInStack
+
+  def ask_Px2imageInStack_file(self):
+    self.filename_Px2imageInStack=QtGui.QFileDialog.getOpenFileName(self,"Stacks: Select Px2 Image Filename",".","Images (*.tif *.tiff *.png *.jpg);;All files (*)")
+    if (self.filename_Px2imageInStack!=""):
+      self.edit_filename_Px2imageInStack.setText(self.filename_Px2imageInStack)
+      print "Px2 image: ", self.filename_Px2imageInStack
+
+  def verif_Pximages(self):
+    self.filename_Px1imageInStack=str(self.edit_filename_Px1imageInStack.text())
+    self.filename_Px2imageInStack=str(self.edit_filename_Px2imageInStack.text())
+    if (self.filename_Px1imageInStack!=""):
+      if (self.filename_Px2imageInStack!=""):
+        finfo1=QtCore.QFileInfo(self.filename_Px1imageInStack)
+        finfo2=QtCore.QFileInfo(self.filename_Px2imageInStack)
+        if (finfo1.fileName()!=finfo2.fileName()):
+          nb_col_im1, nb_lig_im1, nb_b_im1 = self.dimIm(self.filename_Px1imageInStack)
+          nb_col_im2, nb_lig_im2, nb_b_im2 = self.dimIm(self.filename_Px2imageInStack)
+          if (nb_col_im1!=nb_col_im2 or nb_lig_im1!=nb_lig_im2 or nb_b_im1!=nb_b_im2):
+            QtGui.QMessageBox.warning(self, 'Error detected',"Different dimensions for the two parallax images!", QtGui.QMessageBox.Ok)
+        else:
+          QtGui.QMessageBox.warning(self, 'Warning',"Same parallax image given twice?!", QtGui.QMessageBox.Ok)
+    else:
+        QtGui.QMessageBox.warning(self, 'Warning',"Two parallax images are expected!", QtGui.QMessageBox.Ok)
+
 
   def ask_imageWeightStack_file(self):
     self.filename_imageWeightStack=QtGui.QFileDialog.getOpenFileName(self,"Stacks: Select Weights Image Filename",".","Images (*.tif *.tiff *.png *.jpg);;All files (*)")
     if (self.filename_imageWeightStack!=""):
       self.edit_filename_imageWeightStack.setText(self.filename_imageWeightStack)
+      print "Weights images: ", self.filename_imageWeightStack
+
 
   def ask_traceFileStack_file(self):
     self.filename_traceFaultStack=QtGui.QFileDialog.getOpenFileName(self,"Stacks: Select Trace Fault Filename","trace.txt","Text files (*.txt);;All files (*)")
     if (self.filename_traceFaultStack!=""):
       self.edit_traceFileStack.setText(self.filename_traceFaultStack)
+      print "Trace fault file: ", self.filename_traceFaultStack
 
   def ask_offsetsOutStack_file(self):
     self.filename_offsetsOutStack=QtGui.QFileDialog.getSaveFileName(self,"Stacks: Select Offsets Output Filename","offsets.txt","Text files (*.txt);;All files (*)")
     if (self.filename_offsetsOutStack!=""):
       self.edit_offsetsOutStack.setText(self.filename_offsetsOutStack)
+      print "Offsets filename: ", self.filename_offsetsOutStack
 
+  def select_typeOutputStack(self):
+    self.type_output=[]
+    if self.cbox_dirDispColStack.isChecked():
+      self.type_output.append(1)
+    if self.cbox_dirDispLineStack.isChecked():
+      self.type_output.append(2)
+    if self.cbox_dirDispParalStack.isChecked():
+      self.type_output.append(3)
+    if self.cbox_dirDispPerpStack.isChecked():
+      self.type_output.append(4)
+    #~ print "type_output: ", self.type_output, "  len: ", len(self.type_output)
+    self.active_buttonOkStack()
 
   def active_buttonOkStack(self):
-    self.filename_imageInStack=str(self.edit_filename_imageInStack.text())
+    self.filename_Px1imageInStack=str(self.edit_filename_Px1imageInStack.text())
+    self.filename_Px2imageInStack=str(self.edit_filename_Px2imageInStack.text())
     self.filename_imageWeightStack=str(self.edit_filename_imageWeightStack.text())
     self.filename_traceFaultStack=str(self.edit_traceFileStack.text())
     self.filename_offsetsOutStack=str(self.edit_offsetsOutStack.text())
-    self.compare_fileSize()
-    if (len(self.filename_imageInStack)>0) and (len(self.filename_traceFaultStack)>0) and (len(self.filename_offsetsOutStack)>0):
+    if (len(self.filename_Px1imageInStack)>0) and (len(self.filename_Px2imageInStack)>0) and (len(self.filename_traceFaultStack)>0) and (len(self.filename_offsetsOutStack)>0) and (len(self.type_output)>0):
       self.button_okStack.setEnabled(True)
     else:
       self.button_okStack.setEnabled(False)
+    self.verif_Pximages()
 
 
   def click_okStack(self):
@@ -353,42 +430,33 @@ class MainWindow(QtGui.QMainWindow):
       startName_stack=""
       if self.check_ValidErrbars.isChecked():
         showErr=True
+        #~ print "show error bars!"
       if self.check_ValidView.isChecked():
         showStack=True
-      if self.check_saveStack.isChecked():
-        name_abs=os.path.abspath(self.filename_offsetsOutStack)
-        separator="." #on cree un objet String (pour pouvoir appeler la methode join() de string)
-        name_tmp=os.path.split(name_abs)[1].split(separator)
-        startName_stack=separator.join(name_tmp[0:-1])
-        startName_stack=os.path.join(os.path.split(name_abs)[0],startName_stack)
-
-      if self.radio_WmedianStack.isChecked():
-        ##activate the fields for weights' file and exponent of weights
-        stackPerp(self.filename_imageInStack, self.filename_imageWeightStack, self.spin_resolStack.value(), self.spin_expOfWeightStack.value(), self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_mediane_pond,self.filename_traceFaultStack,self.filename_offsetsOutStack,'', 'r', 'distance along profile (px)', 'offset (px)','Weighted Median Stack Profile',startName_stack,showErr,showStack)
-      elif self.radio_WmeanStack.isChecked():
-        ##activate the fields for weights' file and exponent of weights
-        stackPerp(self.filename_imageInStack, self.filename_imageWeightStack, self.spin_resolStack.value(), self.spin_expOfWeightStack.value(), self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_coef_correl,self.filename_traceFaultStack,self.filename_offsetsOutStack,'', 'r', 'distance along profile (px)', 'offset (px)','Weighted Mean Stack Profile',startName_stack,showErr,showStack)
-      elif self.radio_medianStack.isChecked():
-        stackPerp(self.filename_imageInStack, "",  self.spin_resolStack.value(), 1, self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_mediane_pond,self.filename_traceFaultStack,self.filename_offsetsOutStack,'', 'r', 'distance along profile (px)', 'offset (px)','Median Stack Profile',startName_stack,showErr,showStack)
-      elif self.radio_meanStack.isChecked():
-        stackPerp(self.filename_imageInStack, "", self.spin_resolStack.value(), 1, self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_coef_correl,self.filename_traceFaultStack,self.filename_offsetsOutStack,'', 'r', 'distance along profile (px)', 'offset (px)','Mean Stack Profile',startName_stack,showErr,showStack)
-      self.groupBox_stack.setChecked(False)
-      self.groupBox_cg.setChecked(True)
-      self.edit_offsetsInCg.setText(self.filename_offsetsOutStack)
+        #~ print "show stacks for validation!"
+      for typeDir in self.type_output:
+        typeDir_name=("","dirCol","dirLine","dirParal","dirPerp")[typeDir]
+        tmp_abs=os.path.abspath(self.filename_offsetsOutStack)
+        tmp=os.path.split(tmp_abs)[1].split('.')
+        fname_offsetsOutStack='.'.join(tmp[0:-1])+"_"+typeDir_name+'.'+tmp[-1]
+        #~ print "### type dir: ", typeDir, " offsets filename: ", fname_offsetsOutStack
+        if self.check_saveStack.isChecked():
+          startName_stack='.'.join(tmp[0:-1])+"_"+typeDir_name
+        if self.radio_WmedianStack.isChecked():
+          ##activate the fields for weights' file and exponent of weights
+          stackPerp(self.filename_Px1imageInStack,self.filename_Px2imageInStack, self.filename_imageWeightStack, self.spin_resolStack.value(), self.spin_expOfWeightStack.value(), self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_mediane_pond, self.filename_traceFaultStack,fname_offsetsOutStack,typeDir,'', 'r', 'distance along profile (px)', 'offset (m)','Weighted Median Stack Profile',startName_stack,showErr,showStack)
+        elif self.radio_WmeanStack.isChecked():
+          ##activate the fields for weights' file and exponent of weights
+          stackPerp(self.filename_Px1imageInStack, self.filename_Px2imageInStack, self.filename_imageWeightStack, self.spin_resolStack.value(), self.spin_expOfWeightStack.value(), self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_coef_correl,self.filename_traceFaultStack,fname_offsetsOutStack,typeDir,'', 'r', 'distance along profile (px)', 'offset (m)','Weighted Mean Stack Profile',startName_stack,showErr,showStack)
+        elif self.radio_medianStack.isChecked():
+          stackPerp(self.filename_Px1imageInStack, self.filename_Px2imageInStack, "",  self.spin_resolStack.value(), 1, self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_mediane_pond,self.filename_traceFaultStack,fname_offsetsOutStack,typeDir,'', 'r', 'distance along profile (px)', 'offset (m)','Median Stack Profile',startName_stack,showErr,showStack)
+        elif self.radio_meanStack.isChecked():
+          stackPerp(self.filenames_Px1imageInStack, self.filename_Px2imageInStack, "", self.spin_resolStack.value(), 1, self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_coef_correl,self.filename_traceFaultStack,fname_offsetsOutStack,typeDir,'', 'r', 'distance along profile (px)', 'offset (m)','Mean Stack Profile',startName_stack,showErr,showStack)
+        self.groupBox_stack.setChecked(False)
+        self.groupBox_cg.setChecked(True)
+        #~ self.edit_offsetsInCg.setText(self.filename_offsetsOutStack)
     else:
       QtGui.QMessageBox.warning(self, 'Error detected',"The length and the width of stack must be odd numbers!", QtGui.QMessageBox.Ok)
-
-
-  def compare_fileSize(self):
-    if (len(self.filename_imageInStack)>0) and (len(self.filename_imageWeightStack)>0):
-      ds_Px=gdal.Open(self.filename_imageInStack, gdal.GA_ReadOnly)
-      nb_col_Px=ds_Px.RasterXSize
-      nb_lig_Px=ds_Px.RasterYSize
-      ds_w=gdal.Open(self.filename_imageWeightStack, gdal.GA_ReadOnly)
-      nb_col_w=ds_w.RasterXSize
-      nb_lig_w=ds_w.RasterYSize
-      if (nb_col_Px!=nb_col_w) or (nb_lig_Px!=nb_lig_w):
-        QtGui.QMessageBox.warning(self, 'Error detected',"Different file size for parallax and weight files!!!", QtGui.QMessageBox.Ok)
 
 
   def update_Weight_input(self):
@@ -398,25 +466,33 @@ class MainWindow(QtGui.QMainWindow):
 
   #---------------
   def ask_offsetsInCg_file(self):
+    self.edit_offsetsInCg.clear()
+    self.edit_fileOutCg.clear()
     self.filename_offsetsInCg=QtGui.QFileDialog.getOpenFileName(self,"Select Offsets Info File",".","Text files (*.txt);;All files (*)")
     if (self.filename_offsetsInCg!=""):
       self.edit_offsetsInCg.setText(self.filename_offsetsInCg)
 
+
   def ask_Cg_file(self):
-    self.filename_Cg=QtGui.QFileDialog.getSaveFileName(self,"Select name of file for slip-curve","slip_curve.png","Images (*.png *.tif *.tiff  *.jpg);;All files (*)")
+    self.edit_fileOutCg.clear()
+    self.filename_offsetsInCg=str(self.edit_offsetsInCg.text())
+    tmp_abs=os.path.abspath(self.filename_offsetsInCg)
+    tmp=os.path.split(tmp_abs)[1].split('.')
+    fname="slip_curve_"+".".join(tmp[0:-1])+".png"
+    self.filename_Cg=QtGui.QFileDialog.getSaveFileName(self,"Select name of file for slip-curve",fname,"Images (*.png *.tif *.tiff  *.jpg);;All files (*)")
     if (self.filename_Cg!=""):
       self.edit_fileOutCg.setText(self.filename_Cg)
 
   def active_buttonOkCg(self):
     self.filename_offsetsInCg=str(self.edit_offsetsInCg.text())
     self.filename_Cg=str(self.edit_fileOutCg.text())
-    #~ print self.filename_offsetsInCg,self.filename_Cg
     if (len(self.filename_offsetsInCg)>0) and (len(self.filename_Cg)>0):
       self.button_okCg.setEnabled(True)
     else:
       self.button_okCg.setEnabled(False)
 
   def click_okCg(self):
+    print "OffsetsInCg file: ", self.filename_offsetsInCg
     drawCG(self.filename_offsetsInCg, self.filename_Cg)
     self.groupBox_cg.setChecked(False)
 

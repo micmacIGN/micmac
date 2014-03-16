@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################
-#FDSC v0.9                                                              #
+#FDSC v0.95                                                              #
 #Fault Displacement Slip-Curve                                           #
 #                                                                        #
-#Copyright (C) (2013) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
+#Copyright (C) (2013-2014) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
 #am.rosu@laposte.net                                                     #
 #                                                                        #
 #This software is governed by the CeCILL-B license under French law and  #
@@ -66,7 +66,7 @@ class ConstructLine:
         continue
 
     print self.coords
-    self.drawAllSeg(0.5,'blue')
+    self.drawAllSeg(0.7,'red')
 
   def drawAllSeg(self, alpha_s, color_s):
     print "drawAllSeg"
@@ -85,7 +85,7 @@ class ConstructLine:
   def saveTrace(self):
     with open(self.filepath_out, 'w') as file:
       file.write("#image {}\n".format(self.filepath_im))
-      file.write("\n")
+      #~ file.write("\n")
       file.write("#begin polyline X Y\n")
       for (x,y) in self.coords:
         file.write("{} {}\n".format(x,y))
@@ -99,7 +99,7 @@ class ConstructLine:
     if (self.filepath_im != ""):
       self.importIm()
     self.cid = self.ax.figure.canvas.mpl_connect('button_press_event', self)
-    self.drawAllSeg(0.5,'blue')
+    self.drawAllSeg(0.7,'red')
 
   def __call__(self, event):
     print 'click', event
@@ -108,7 +108,7 @@ class ConstructLine:
     if event.button==1: #draw line segment
       self.coords.append((event.xdata, event.ydata))
       print self.coords
-      self.drawLastSeg(0.5,'blue')
+      self.drawLastSeg(0.7,'red')
 
     print 'button=', event.button
 

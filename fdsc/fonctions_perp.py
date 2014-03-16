@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################
-#FDSC v0.9                                                              #
+#FDSC v0.95                                                              #
 #Fault Displacement Slip-Curve                                           #
 #                                                                        #
-#Copyright (C) (2013) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
+#Copyright (C) (2013-2014) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
 #am.rosu@laposte.net                                                     #
 #                                                                        #
 #This software is governed by the CeCILL-B license under French law and  #
@@ -74,8 +74,8 @@ def calc_pts_intermed_tab(tab_pts,dist):
 def create_perp(longueur,ptA,ptB,ptP):
   vectAB=(ptB[0]-ptA[0],ptB[1]-ptA[1])
   normeAB=sqrt(vectAB[0]**2+vectAB[1]**2)
-  v=(vectAB[0]/normeAB,vectAB[1]/normeAB) #vecteur unitaire de (AB)
-  u=(v[1],-v[0]) #vect unitaire perp
+  v=(vectAB[0]/normeAB,vectAB[1]/normeAB) #unit vector of (AB)
+  u=(v[1],-v[0]) #perp unit vector
   pt_deb=(ptP[0]+longueur*u[0],ptP[1]+longueur*u[1])
   pt_fin=(ptP[0]-longueur*u[0],ptP[1]-longueur*u[1])
   return pt_deb,pt_fin
@@ -116,7 +116,6 @@ def interpol_bilin(data,col,lig):
   lig_apres=int(lig)+1
   col_avant=int(col)
   col_apres=int(col)+1
-
   #start by interpolating in columns
   dist_a_col_avant=col-col_avant
   dist_a_col_apres=1-dist_a_col_avant
@@ -124,14 +123,11 @@ def interpol_bilin(data,col,lig):
   val_interp_lig_avant=data[lig_avant][col_avant]*dist_a_col_apres+data[lig_avant][col_apres]*dist_a_col_avant
   #interpolation on "after" line
   val_interp_lig_apres=data[lig_apres][col_avant]*dist_a_col_apres+data[lig_apres][col_apres]*dist_a_col_avant
-
   #interpolation in lines
   dist_a_lig_avant=lig-lig_avant
   dist_a_lig_apres=1-dist_a_lig_avant
-
   #interpolated value
   val_interp_finale=val_interp_lig_avant*dist_a_lig_apres+val_interp_lig_apres*dist_a_lig_avant
-
   return val_interp_finale
 
 
@@ -151,40 +147,72 @@ def dessine_profil_interpol(data,tab_toutes_perp,num_profil,pas_perp,interpol):
 
 
 #compute stack of perpendicular profiles using the weighted mean method (mean on 2*larg_moy+1 profiles; weights=correlation coefficients)
-def calc_profil_coef_correl(data,coef_correl,larg_moy,tab_toutes_perp,num_profil,pas_perp,interpol, puiss_poids):
+#vect_perp,vect_paral : unit vectors of the fault
+#type_output : 1=px1, 2=px2, 3=parallel, 4=perp
+def calc_profil_coef_correl(data_px1, data_px2,coef_correl,larg_moy,tab_toutes_perp,num_profil,pas_perp,interpol, puiss_poids, vect_perp,vect_paral, type_output):
   ordonnees_profil=[0]*(len(tab_toutes_perp[num_profil])) #ordinate: parallax values
   abscisses_profil=[0]*(len(tab_toutes_perp[num_profil])) #abscissa: distance along profile
+  tab_ecarts=[0]*(len(tab_toutes_perp[num_profil])) #sigma in ordinate
   for i in range(len(tab_toutes_perp[num_profil])): #for every point of the central profile
     #computing the mean value using the "before" and "after" profiles
+    valeurs=[] #all the parallax on j
+    poids=[] #all the weights on j
     diviseur=0
     abscisses_profil[i]=i*pas_perp #abscissa of the i point
     for j in range(num_profil-larg_moy, num_profil+larg_moy+1):#for every profile we search for the i point
       (col,lig)=tab_toutes_perp[j][i]
-      if not isnan(interpol(data,col,lig)) :
-        ordonnees_profil[i]+=interpol(data,col,lig)*interpol(coef_correl,col,lig)**int(puiss_poids)
-        diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
+      if type_output==1:
+        if not isnan(interpol(data_px1,col,lig)) :
+          valeurs.append(interpol(data_px1,col,lig))
+          poids.append(interpol(coef_correl,col,lig))
+          ordonnees_profil[i]+=valeurs[-1]*poids[-1]**int(puiss_poids)
+          diviseur+=poids[-1]**int(puiss_poids)
+      if type_output==2:
+        if not isnan(interpol(data_px2,col,lig)) :
+          valeurs.append(interpol(data_px2,col,lig))
+          poids.append(interpol(coef_correl,col,lig))
+          ordonnees_profil[i]+=valeurs[-1]*poids[-1]**int(puiss_poids)
+          diviseur+=poids[-1]**int(puiss_poids)
+      if type_output==3:
+        if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))) :
+          val_px1=interpol(data_px1,col,lig)
+          val_px2=interpol(data_px2,col,lig)
+          total=(val_px1, val_px2) #vector of total parallax
+          px_projection_paral=val_px1*vect_paral[0]+val_px2*vect_paral[1]
+          px_paral=(px_projection_paral*vect_paral[0],px_projection_paral*vect_paral[1]) #parallel part
+          px_paral_norm=sqrt(px_paral[0]**2+px_paral[1]**2)
+          valeurs.append(px_paral_norm)
+          poids.append(interpol(coef_correl,col,lig))
+          ordonnees_profil[i]+=valeurs[-1]*poids[-1]**int(puiss_poids)
+          diviseur+=poids[-1]**int(puiss_poids)
+      if type_output==4:
+        if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))) :
+          val_px1=interpol(data_px1,col,lig)
+          val_px2=interpol(data_px2,col,lig)
+          total=(val_px1, val_px2) #vector of total parallax
+          px_projection_perp=val_px1*vect_perp[0]+val_px2*vect_perp[1]
+          px_perp=(px_projection_perp*vect_perp[0],px_projection_perp*vect_perp[1]) #perp part
+          px_perp_norm=sqrt(px_perp[0]**2+px_perp[1]**2)
+          valeurs.append(px_perp_norm)
+          poids.append(interpol(coef_correl,col,lig))
+          ordonnees_profil[i]+=valeurs[-1]*poids[-1]**int(puiss_poids)
+          diviseur+=poids[-1]**int(puiss_poids)
     ordonnees_profil[i]/=diviseur
-  return abscisses_profil,ordonnees_profil
+    #sigma computation: generalized function for absolute deviation (average of abs of value-mean)
+    tmp_val_sigma=0
+    div_sigma=0
+    for j in range(len(valeurs)):
+      tmp_val_sigma+=abs(val[j]-ordonnees_profil[i])*poids[j]**int(puiss_poids)
+      div_sigma+=poids[j]**int(puiss_poids)
+    tab_ecarts[i]=tmp_val_sigma/div_sigma
 
-
-#compute sigmas of a stack of perpendicular profiles when using weighted mean (mean on 2*larg_moy+1 profiles; weights=correlation coefficients)
-def calc_sigma_profil_coef_correl(data,coef_correl,larg_moy,tab_toutes_perp,num_profil,interpol,moyenne_profil_perp, puiss_poids) :
-  tab_sigma_profil=[0]*(len(tab_toutes_perp[num_profil]))
-  for i in range(len(tab_toutes_perp[num_profil])): #for every point of the central profile
-    diviseur=0
-    for j in range(num_profil-larg_moy, num_profil+larg_moy+1): #for every profile we search for the i point
-      (col,lig)=tab_toutes_perp[j][i]
-      tab_sigma_profil[i]+=((interpol(data,col,lig)-moyenne_profil_perp[i])**2)*interpol(coef_correl,col,lig)**int(puiss_poids)
-      diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
-    tab_sigma_profil[i]/=diviseur
-    tab_sigma_profil[i]=sqrt(tab_sigma_profil[i])
-  return tab_sigma_profil
+  return abscisses_profil,ordonnees_profil,tab_ecarts
 
 
 #compute weighted median value
-def calc_mediane_pond(val,poids):
+def calc_mediane_pond(val,poids,puiss_poids):
   if len(val)!=len(poids):
-    print 'Erreur calc mediane pond !'
+    print 'Error in weighted median computation!'
     return None
   valp=[] #creating a list (valp) gathering the values (val) and their corresponding weights (poids)
   for i in range(len(val)):
@@ -206,97 +234,108 @@ def calc_mediane_pond(val,poids):
     else:
       mediane_pond=valp[i-1][0]
       break
-  return mediane_pond
+  #sigma computation: generalized function for absolute deviation (average of abs of value-median)
+  tmp_val_sigma=0
+  div_sigma=0
+  for i in range(len(val)):
+    tmp_val_sigma+=abs(val[i]-mediane_pond)*poids[i]**int(puiss_poids)
+    div_sigma+=poids[i]**int(puiss_poids)
+  sigma=tmp_val_sigma/div_sigma
+  return mediane_pond, sigma
 
 
 #compute stack of perpendicular profiles when using the weighted median method (median on 2*larg_moy+1 profiles; weights=correlation coefficients)
-def calc_profil_mediane_pond(data,coef_correl,larg_moy,tab_toutes_perp,num_profil,pas_perp,interpol, puiss_poids):
+#vect_perp,vect_paral : unit vectors of the fault
+#type_output : 1=px1, 2=px2, 3=parallel, 4=perp
+def calc_profil_mediane_pond(data_px1, data_px2, coef_correl,larg_moy,tab_toutes_perp,num_profil,pas_perp,interpol, puiss_poids, vect_perp,vect_paral, type_output):
   ordonnees_profil=[0]*(len(tab_toutes_perp[num_profil])) #ordinate: parallax values
   abscisses_profil=[0]*(len(tab_toutes_perp[num_profil])) #abscissa: distance along profile
+  tab_ecarts=[0]*(len(tab_toutes_perp[num_profil])) #sigma in ordinate
   for i in range(len(tab_toutes_perp[num_profil])): #for every point of the central profile
-    valeurs_px=[] #all the px on j
-    poids_px=[] #all the weights on j
+    valeurs=[] #all the parallax on j
+    poids=[] #all the weights on j
     abscisses_profil[i]=i*pas_perp #abscissa of the i point
     for j in range(num_profil-larg_moy, num_profil+larg_moy+1): #for every profile we search for the i point
       (col,lig)=tab_toutes_perp[j][i]
-      if not isnan(interpol(data,col,lig)) :
-        valeurs_px.append(interpol(data,col,lig))
-        poids_px.append(interpol(coef_correl,col,lig)**int(puiss_poids) )
-    ordonnees_profil[i]=calc_mediane_pond(valeurs_px,poids_px)
-  return abscisses_profil,ordonnees_profil
-
-
-#compute sigmas of a stack of perpendicular profiles when using weighted median
-def calc_ecartMoy_profil_mediane_pond(data,coef_correl,larg_moy,tab_toutes_perp,num_profil,interpol,med_profil_perp, puiss_poids) :
-  tab_ecartMoy_profil=[0]*(len(tab_toutes_perp[num_profil]))
-  for i in range(len(tab_toutes_perp[num_profil])): #for every point of the central profile
-    diviseur=0
-    for j in range(num_profil-larg_moy, num_profil+larg_moy+1): #for every profile we search for the i point
-      (col,lig)=tab_toutes_perp[j][i]
-      tab_ecartMoy_profil[i]+=abs(interpol(data,col,lig)-med_profil_perp[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
-      diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
-    tab_ecartMoy_profil[i]/=diviseur
-  return tab_ecartMoy_profil
+      if type_output==1:
+        if not isnan(interpol(data_px1,col,lig)) :
+          valeurs.append(interpol(data_px1,col,lig))
+          poids.append(interpol(coef_correl,col,lig)**int(puiss_poids))
+      if type_output==2:
+        if not isnan(interpol(data_px2,col,lig)):
+          valeurs.append(interpol(data_px2,col,lig))
+          poids.append(interpol(coef_correl,col,lig)**int(puiss_poids))
+      if type_output==3:
+        if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))):
+          poids.append(interpol(coef_correl,col,lig)**int(puiss_poids))
+          valeurs_px1=interpol(data_px1,col,lig)
+          valeurs_px2=interpol(data_px2,col,lig)
+          total=(valeurs_px1, valeurs_px2) #vector of total parallax
+          px_projection_paral=valeurs_px1*vect_paral[0]+valeurs_px2*vect_paral[1]
+          #~ print "px_proj_paral: ", px_projection_paral
+          px_paral=(px_projection_paral*vect_paral[0],px_projection_paral*vect_paral[1]) #parallel part
+          #~ print "px_paral: ", px_paral
+          px_paral_norm=sqrt(px_paral[0]**2+px_paral[1]**2)
+          #~ print "px_paral norm: ", px_paral_norm
+          valeurs.append(px_paral_norm)
+      if type_output==4:
+        if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))):
+          poids.append(interpol(coef_correl,col,lig)**int(puiss_poids))
+          valeurs_px1=interpol(data_px1,col,lig)
+          valeurs_px2=interpol(data_px2,col,lig)
+          total=(valeurs_px1, valeurs_px2) #vector of total parallax
+          #~ print "valeurs: ",valeurs_px1," ",valeurs_px2, " ",total
+          #~ print "vect_perp: ",vect_perp
+          px_projection_perp=valeurs_px1*vect_perp[0]+valeurs_px2*vect_perp[1]
+          #~ print "px_proj_perp: ", px_projection_perp
+          px_perp=(px_projection_perp*vect_perp[0],px_projection_perp*vect_perp[1]) #perp part
+          #~ print "px_perp: ", px_perp
+          px_perp_norm=sqrt(px_perp[0]**2+px_perp[1]**2)
+          #~ print "px_perp norm: ", px_perp_norm
+          valeurs.append(px_perp_norm)
+    ordonnees_profil[i],tab_ecarts[i]=calc_mediane_pond(valeurs,poids,puiss_poids)
+  return abscisses_profil,ordonnees_profil,tab_ecarts
 
 
 #generalized function for absolute deviation (measurement of the central tendency: weighted median or weighted mean)
-def calc_ecartMoy_profil(data,coef_correl,larg_moy,tab_toutes_perp,num_profil,interpol,mes_tendanceCentrale, puiss_poids):
+#vect_perp,vect_paral : unit vectors of the fault
+#type_output : 1=px1, 2=px2, 3=parallel, 4=perp
+def calc_ecartMoy_profil(data_px1, data_px2,coef_correl,larg_moy,tab_toutes_perp,num_profil,interpol,mes_tendanceCentrale, puiss_poids, vect_perp,vect_paral, type_output):
   tab_ecartMoy_profil=[0]*(len(tab_toutes_perp[num_profil]))
   for i in range(len(tab_toutes_perp[num_profil])): #for every point of the central profile
     diviseur=0
     for j in range(num_profil-larg_moy, num_profil+larg_moy+1): #for every profile we search for the i point
       (col,lig)=tab_toutes_perp[j][i]
-      tab_ecartMoy_profil[i]+=abs(interpol(data,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
+      if type_output==1:
+        if not isnan(interpol(data_px1,col,lig)) :
+          tab_ecartMoy_profil[i]+=abs(interpol(data_px1,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
+          #~ diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
+      if type_output==2:
+        if not isnan(interpol(data_px2,col,lig)):
+          tab_ecartMoy_profil[i]+=abs(interpol(data_px2,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
+          #~ diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
+      if type_output==3:
+        if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))):
+          val_px1=interpol(data_px1,col,lig)
+          val_px2=interpol(data_px2,col,lig)
+          total=(val_px1, val_px2) #vector of total parallax
+          px_projection_paral=val_px1*vect_paral[0]+val_px2*vect_paral[1]
+          px_paral=(px_projection_paral*vect_paral[0],px_projection_paral*vect_paral[1]) #parallel part
+          px_paral_norm=sqrt(px_paral[0]**2+px_paral[1]**2)
+          tab_ecartMoy_profil[i]+=abs(interpol(px_paral_norm,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
+          #~ diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
+      if type_output==4:
+        if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))):
+          val_px1=interpol(data_px1,col,lig)
+          val_px2=interpol(data_px2,col,lig)
+          total=(val_px1, val_px2) #vector of total parallax
+          px_projection_perp=val_px1*vect_perp[0]+val_px2*vect_perp[1]
+          px_perp=(px_projection_perp*vect_perp[0],px_projection_perp*vect_perp[1]) #perp part
+          px_perp_norm=sqrt(px_perp[0]**2+px_perp[1]**2)
+          tab_ecartMoy_profil[i]+=abs(interpol(px_perp_norm,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
+          #~ diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
       diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
     tab_ecartMoy_profil[i]/=diviseur
   return tab_ecartMoy_profil
 
-
-#compute a single perpendicular profile
-def calc_profil_perp(data,tab_toutes_perp,num_profil,pas_perp,interpol,larg_moy=0):
-  ordonnees_profil=[0]*(len(tab_toutes_perp[num_profil])) #ordinate: parallax values (=hauteur dans le profil)
-  abscisses_profil=[0]*(len(tab_toutes_perp[num_profil])) #abscissa: distance along profile
-  for i in range(len(tab_toutes_perp[num_profil])): #for every point of the central profile
-    abscisses_profil[i]=i*pas_perp #abscissa of the i point
-    for j in range(num_profil-larg_moy, num_profil+larg_moy+1): #for every profile we search for the i point
-      (col,lig)=tab_toutes_perp[j][i]
-      if not isnan(interpol(data,col,lig)):
-        ordonnees_profil[i]+=interpol(data,col,lig)
-  return abscisses_profil,ordonnees_profil
-
-
-#compute stack of perpendicular profiles using the weighted mean method (mean on 2*larg_moy+1 profiles; weights=correlation coefficients)
-#for the abscissa, we take into account the results resolution (resol_im*sousEch_res, where resol_im: initial resolution of the images and sousEch_res: results' resampling factor)
-def calc_profil_coef_correl_m(data,coef_correl,larg_moy,tab_toutes_perp,num_profil,pas_perp,interpol, puiss_poids, resol_im, sousEch_res):
-  ordonnees_profil=[0]*(len(tab_toutes_perp[num_profil])) #ordinate: parallax values
-  abscisses_profil=[0]*(len(tab_toutes_perp[num_profil])) #abscissa: distance along profile
-  for i in range(len(tab_toutes_perp[num_profil])): #for every point of the central profile
-    #computing the mean value using the "before" and "after" profiles
-    diviseur=0
-    abscisses_profil[i]=(i-len(tab_toutes_perp[num_profil])/2)*pas_perp*resol_im*sousEch_res #abscissa of the i point
-    for j in range(num_profil-larg_moy, num_profil+larg_moy+1): #for every profile we search for the i point
-      (col,lig)=tab_toutes_perp[j][i]
-      if not isnan(interpol(data,col,lig)) :
-        ordonnees_profil[i]+=interpol(data,col,lig)*interpol(coef_correl,col,lig)**int(puiss_poids)
-        diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
-    ordonnees_profil[i]/=diviseur
-  return abscisses_profil,ordonnees_profil
-
-
-#compute stack of perpendicular profiles using the weighted median method (median on 2*larg_moy+1 profiles; weights=correlation coefficients)
-#for the abscissa, we take into account the results resolution (resol_im*sousEch_res, where resol_im: initial resolution of the images and sousEch_res: results' resampling factor)
-def calc_profil_mediane_pond_m(data,coef_correl,larg_moy,tab_toutes_perp,num_profil,pas_perp,interpol, puiss_poids, resol_im, sousEch_res):
-  ordonnees_profil=[0]*(len(tab_toutes_perp[num_profil])) #ordinate: parallax values
-  abscisses_profil=[0]*(len(tab_toutes_perp[num_profil])) #abscissa: distance along profile
-  for i in range(len(tab_toutes_perp[num_profil])): #for every point of the central profile
-    valeurs_px=[] #parallax values on j
-    poids_px=[] #weights values on j
-    abscisses_profil[i]=(i-len(tab_toutes_perp[num_profil])/2)*pas_perp*resol_im*sousEch_res #abscissa of the i point
-    for j in range(num_profil-larg_moy, num_profil+larg_moy+1): #for every profile we search for the i point
-      (col,lig)=tab_toutes_perp[j][i]
-      if not isnan(interpol(data,col,lig)) :
-        valeurs_px.append(interpol(data,col,lig))
-        poids_px.append( interpol(coef_correl,col,lig)**int(puiss_poids) )
-    ordonnees_profil[i]=calc_mediane_pond(valeurs_px,poids_px)
-  return abscisses_profil,ordonnees_profil
 
