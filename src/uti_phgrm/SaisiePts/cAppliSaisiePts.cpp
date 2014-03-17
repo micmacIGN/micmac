@@ -140,11 +140,6 @@ string cVirtualInterface::nameFromAutoNum(cCaseNamePoint *aCNP, int aCptMax)
 
 bool cVirtualInterface::Visible(eEtatPointeImage aState)
 {
-/*
-std::cout << "AAAAAAAAAAAAA\n";
-std::cout << "BBBBBBBBBBBB " << RefInvis() << "\n";
-std::cout << "CCCCCCCCCC\n";
-*/
     return  ((aState!=eEPI_Refute) || !RefInvis())
             && (aState!=eEPI_Disparu);
 }

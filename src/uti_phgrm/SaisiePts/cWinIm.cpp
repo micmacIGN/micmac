@@ -80,7 +80,7 @@ ElImScroller * SCR(Visu_ElImScr &aVisu,const std::string & aName,bool ForceGray)
 }
 
 
-cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm0) : 
+cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm0) :
     Grab_Untill_Realeased(),
     mAppli  (anAppli),
     mW (aW),
@@ -270,9 +270,10 @@ void  cWinIm::SetImage(cImage *aIm)
 
 void  cWinIm::SetNewImage(cImage * aIm)
 {
-   static int aCpt=0; 
+    static int aCpt=0;
     aCpt++;
     aIm->CptAff() = aCpt;
+
     // std::cout << "OLD " << mCurIm->Name() << " NEW " << aIm->Name() << "\n";
     mScr->ReInitTifFile(aIm->Tif());
     SetImage(aIm);
@@ -555,7 +556,7 @@ cSP_PointeImage *  cWinIm::GetNearest(const Pt2dr & aPW,double aDSeuil,bool Only
                   case eEPI_Refute :
                      aDist += 2e5;
                   break;
-               
+
                   default :
                      aDist = 1e10;
                   break;
@@ -745,7 +746,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -756,16 +757,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
