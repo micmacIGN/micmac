@@ -115,9 +115,11 @@ public:
 
     Qt::ItemFlags   flags(const QModelIndex &index) const;
 
+    bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
+
 signals:
 
-    void pGChanged();
+    void            pGChanged();
 
 private:
 

@@ -552,19 +552,28 @@ int ModelPointGlobal::rowCount(const QModelIndex & /*parent*/) const
 
 int ModelPointGlobal::columnCount(const QModelIndex & /*parent*/) const
 {
-    return 1;
+    return 2;
 }
 
 QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 {
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-
         std::vector< cSP_PointGlob * > vPG = mAppli->PG();
         cSP_PointGlob * pg = vPG[index.row()];
-
-        return QString("%1")
-                .arg(pg->PG()->Name().c_str());
+        switch (index.column())
+        {
+        case 0:
+            return QString("%1").arg(pg->PG()->Name().c_str());
+        case 1:
+        {
+            Pt3dr *p3d = pg->PG()->P3D().PtrVal();
+            return QString("%1\t %2\t %3")
+                    .arg(QString::number(p3d->x, 'f' ,1))
+                    .arg(QString::number(p3d->y, 'f' ,1))
+                    .arg(QString::number(p3d->z, 'f' ,1));
+        }
+        }
     }
     return QVariant();
 }
@@ -577,7 +586,9 @@ QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, 
             switch (section)
             {
             case 0:
-                return QString("Nom Point");
+                return QString("Point");
+            case 1:
+                return QString("Coordinates");
             }
         }
     }
@@ -586,13 +597,18 @@ QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, 
 
 bool ModelPointGlobal::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    QString qnewName  = value.toString();
+
+    if(qnewName == QString(""))
+        return false;
+
     if (role == Qt::EditRole)
     {
         std::vector< cSP_PointGlob * > vPG = mAppli->PG();
         cSP_PointGlob * pg = vPG[index.row()];
 
         string oldName = pg->PG()->Name();
-        string newName = value.toString().toStdString();
+        string newName = qnewName.toStdString();
 
         mAppli->ChangeName(oldName, newName);
 
@@ -603,5 +619,23 @@ bool ModelPointGlobal::setData(const QModelIndex &index, const QVariant &value, 
 
 Qt::ItemFlags ModelPointGlobal::flags(const QModelIndex &index) const
 {
-    return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
+
+    switch (index.column())
+    {
+    case 0:
+        return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+    case 1:
+        return QAbstractTableModel::flags(index);
+    }
+
+    return QAbstractTableModel::flags(index);
+}
+
+bool ModelPointGlobal::insertRows(int row, int count, const QModelIndex &parent)
+{
+    beginInsertRows(QModelIndex(), row, row+count-1);
+
+
+    endInsertRows();
+    return true;
 }

@@ -35,6 +35,7 @@ public :
 
     void                Redraw(){}
 
+    int                 idPointGlobal(cSP_PointGlob* PG);
 private:
 
     void                Init();

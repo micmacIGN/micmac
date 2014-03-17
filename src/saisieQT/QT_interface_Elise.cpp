@@ -66,9 +66,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     m_QTMainWindow->tableView()->setModel(new ModelPointGlobal(0,mAppli));
 
+    m_QTMainWindow->tableView()->resizeColumnsToContents();
+
     m_QTMainWindow->tableView()->resizeRowsToContents();
 
     connect(m_QTMainWindow->tableView()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
+    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView(), SLOT(update()));
+
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -103,6 +107,17 @@ int cQT_Interface::cImageIdxFromName(QString nameImage)
     return t;
 }
 
+int cQT_Interface::idPointGlobal(cSP_PointGlob* PG)
+{
+
+    int id = -1;
+    for (int i = 0; i < (int)mAppli->PG().size(); ++i)
+        if(mAppli->PG()[i] == PG)
+            id = i;
+
+    return id;
+}
+
 void cQT_Interface::addPoint(QPointF point)
 {
     if (m_QTMainWindow->currentWidget()->hasDataLoaded())
@@ -115,13 +130,22 @@ void cQT_Interface::addPoint(QPointF point)
 
         if(t != -1)
         {
-            mAppli->image(t)->CreatePGFromPointeMono(aPGlob, eNSM_Pts, -1, GetIndexNamePoint());
+            cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, eNSM_Pts, -1, GetIndexNamePoint());
 
             rebuildGlPoints();
 
             emit pointAdded();
 
             emit dataChanged();
+
+            if(PG)
+            {
+                int id = idPointGlobal(PG);
+
+                m_QTMainWindow->tableView()->model()->insertRows(id,1);
+                m_QTMainWindow->tableView()->resizeColumnsToContents();
+                m_QTMainWindow->tableView()->resizeRowsToContents();
+            }
         }
     }
 }
@@ -197,9 +221,12 @@ void cQT_Interface::changeState(int state, int idPt)
                     m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
             }
             else if (aState == eEPI_Deleted)
+            {
 
                 DeletePoint( aPIm->Gl() );
-
+                int idPG = idPointGlobal(aPIm->Gl());
+                m_QTMainWindow->tableView()->hideRow(idPG);
+            }
             else
 
                 ChangeState(aPIm, aState);
@@ -222,6 +249,11 @@ void cQT_Interface::removePoint(QString aName)
         rebuildGlPoints();
 
         emit dataChanged();
+
+        int idPG = idPointGlobal(aPt);
+
+        m_QTMainWindow->tableView()->hideRow(idPG);
+
     }
 }
 

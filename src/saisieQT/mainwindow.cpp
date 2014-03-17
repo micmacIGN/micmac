@@ -803,6 +803,8 @@ void MainWindow::setUI()
         _ui->treeView->installEventFilter( this );
         _ui->treeView->setAnimated(true);
 
+        tableView()->installEventFilter(this);
+
         _selectionModel = _ui->treeView->selectionModel();
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
@@ -814,13 +816,17 @@ void MainWindow::setUI()
 
 bool MainWindow::eventFilter( QObject* object, QEvent* event )
 {
-    if( object == _ui->treeView && event->type() == QEvent::KeyRelease )
+    if( (object == _ui->treeView || object == tableView()) && event->type() == QEvent::KeyRelease )
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
 
         if (keyEvent->key() == Qt::Key_Delete)
         {
-            QString pointName = getSelectionModel()->currentIndex().data(Qt::DisplayRole).toString();
+            QAbstractItemView* table = (QAbstractItemView*)object;
+
+            QString pointName = table->selectionModel()->currentIndex().data(Qt::DisplayRole).toString();
+
+            //tableView()->selectionModel()->currentIndex().data(Qt::DisplayRole).toString();
 
             emit removePoint(pointName); // we send point name, because point has not necessarily a widget index (point non saisi)
         }
