@@ -93,7 +93,7 @@ int saisieMasqQT_main(QApplication &app)
     w.show();
 
     if (cmdline_args.size() > 0)
-        w.addFiles(cmdline_args);
+        w.addFiles(cmdline_args, true);
 
     return app.exec();
 }

@@ -31,7 +31,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
 
-        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this, SLOT(filesDropped(QStringList)));
+        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList, bool)), this, SLOT(filesDropped(QStringList, bool)));
     }
 
     _data = new cData;
@@ -45,6 +45,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     option3DPreview();
 
     Init();
+
+    connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));
 
     connect(this, SIGNAL(selectPoint(std::string)), m_QTMainWindow, SLOT(selectPoint(std::string)));
 
@@ -292,7 +294,12 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
             cGLData* data = getGlData(anIm);
 
             if (data)
-                m_QTMainWindow->getWidget(thisWin ? CURRENT_IDW : aKW)->setGLData(data,true);
+            {
+                GLWidget * glW = m_QTMainWindow->getWidget(thisWin ? CURRENT_IDW : aKW);
+                glW->setGLData(data, data->stateOption(cGLData::OpShow_Mess));
+                glW->setParams(m_QTMainWindow->getParams());
+                glW->getHistoryManager()->setFilename(m_QTMainWindow->getEngine()->getFilenamesIn()[aKW]);
+            }
 
         }
         aKW++;
@@ -300,7 +307,7 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
 
     mAppli->SetImages(images);
 
-    rebuild2DGlPoints();
+    rebuildGlPoints();
 }
 
 void cQT_Interface::changeCurPose(void *widgetGL)
@@ -320,7 +327,7 @@ void cQT_Interface::changeCurPose(void *widgetGL)
     }
 }
 
-void cQT_Interface::filesDropped(const QStringList &filenames)
+void cQT_Interface::filesDropped(const QStringList &filenames, bool setGLData)
 {
     if (filenames.size())
     {

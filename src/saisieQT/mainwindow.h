@@ -73,7 +73,7 @@ public:
 public slots:
 
     //! Try to load a list of files
-    void addFiles(const QStringList& filenames);
+    void addFiles(const QStringList& filenames, bool setGLData = true);
 
     void zoomFactor(int aFactor);
 
@@ -97,6 +97,8 @@ public slots:
 
     void selectPoint(std::string ptName);
 
+    cParameters* getParams() { return _params; }
+
     void setTreeView();
     void updateTreeView();
 
@@ -107,6 +109,8 @@ signals:
     void removePoint(QString pointName); //signal used when Treeview is edited
 
     void setName(QString); //signal coming from cSettingsDlg throw MainWindow
+
+    void imagesAdded(int, bool);
 
 protected slots:
 
