@@ -152,9 +152,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     w.show();
 
-    w.addFiles(filenames);
-
-    interf->rebuildGlPoints();
+    w.addFiles(filenames, false);
 
     return app.exec();
 }

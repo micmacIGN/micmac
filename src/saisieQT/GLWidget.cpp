@@ -291,7 +291,7 @@ void GLWidget::dropEvent(QDropEvent *event)
         }
 
         if (!fileNames.empty())
-            emit filesDropped(fileNames);
+            emit filesDropped(fileNames, true);
 
         setFocus();
 
@@ -791,6 +791,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
             //menu.setWindowFlags(Qt::Tool | Qt::WindowTitleHint | Qt::WindowStaysOnTopHint);
 
             menu.addAction( _contextMenu._AllW  );
+            menu.addAction( _contextMenu._RollW  );
             menu.addAction( _contextMenu._ThisW );
             menu.addAction( _contextMenu._ThisP );
         }
