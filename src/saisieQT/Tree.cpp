@@ -143,7 +143,6 @@ QString StateToQString(eEtatPointeImage state)
     case eEPI_Disparu:
         return "Disparu";
     case eEPI_Highlight:  //only for QT interface
-    case eEPI_Deleted:    //only for QT interface
         return "";
     }
 

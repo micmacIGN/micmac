@@ -220,9 +220,8 @@ void cQT_Interface::changeState(int state, int idPt)
                 if(aPIm->Gl()->HighLighted())
                     m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
             }
-            else if (aState == eEPI_Deleted)
+            else if (aState == eEPI_Disparu)
             {
-
                 DeletePoint( aPIm->Gl() );
                 int idPG = idPointGlobal(aPIm->Gl());
                 m_QTMainWindow->tableView()->hideRow(idPG);
