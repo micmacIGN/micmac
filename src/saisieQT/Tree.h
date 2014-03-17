@@ -125,6 +125,8 @@ private:
 
     cAppli_SaisiePts* mAppli;
 
+    int             CountPG_CaseName();
+
 };
 
 #endif // TREE_H

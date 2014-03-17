@@ -639,3 +639,8 @@ bool ModelPointGlobal::insertRows(int row, int count, const QModelIndex &parent)
     endInsertRows();
     return true;
 }
+
+int ModelPointGlobal::CountPG_CaseName()
+{
+    return  mAppli->PG().size();// + mAppli->DC();
+}
