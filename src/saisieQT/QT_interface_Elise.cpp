@@ -27,7 +27,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
         connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int)), this, SLOT(changeImages(int)));
+        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int, bool)), this, SLOT(changeImages(int, bool)));
 
         connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
 
@@ -260,7 +260,7 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
     return res;
 }
 
-void cQT_Interface::changeImages(int idPt)
+void cQT_Interface::changeImages(int idPt, bool aUseCpt)
 {
     int aKW = 0; // id widget
 
@@ -274,7 +274,7 @@ void cQT_Interface::changeImages(int idPt)
         PointPrio= aPIm->Gl();
     }
 
-    mAppli->SetImagesPriority(PointPrio);
+    mAppli->SetImagesPriority(PointPrio, aUseCpt);
 
     vector<cImage *> images = mAppli->images();
 

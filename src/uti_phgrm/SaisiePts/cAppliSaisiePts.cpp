@@ -187,9 +187,12 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
 
 #if ELISE_windows == 0
     if(instanceInterface)
+    {
         mInterface = new cX11_Interface(*this);
+        mInterface->Init();
+    }
 #endif
-    mInterface->Init();
+
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }
