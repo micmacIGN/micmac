@@ -16,7 +16,8 @@ typedef enum
 {
   eAllWindows,
   eThisWindow,
-  eThisPoint
+  eThisPoint,
+  eRollWindow
 } eSwitchImage;
 
 class ContextMenu : public QWidget
@@ -36,6 +37,7 @@ public:
     QAction     *_AllW;
     QAction     *_ThisP;
     QAction     *_ThisW;
+    QAction     *_RollW;
 
     QAction     *_validate;
     QAction     *_dubious;
@@ -50,7 +52,7 @@ signals:
 
     void changeName(QString oldName, QString newName);
 
-    void changeImagesSignal(int idPt);
+    void changeImagesSignal(int idPt, bool aUseCpt);
 
 public slots:
 

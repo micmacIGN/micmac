@@ -105,7 +105,7 @@ private slots:
 
     void                changeName(QString aOldName, QString aNewName);
 
-    void                changeImages(int idPt);
+    void                changeImages(int idPt, bool aUseCpt);
 
     void                changeCurPose(void *widgetGL);
 
