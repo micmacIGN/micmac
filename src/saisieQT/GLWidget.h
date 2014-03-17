@@ -128,7 +128,7 @@ public slots:
 signals:
 
     //! Signal emitted when files are dropped on the window
-    void filesDropped(const QStringList& filenames);
+    void filesDropped(const QStringList& filenames, bool setGLData);
 
     void newImagePosition(QPointF pt);
 

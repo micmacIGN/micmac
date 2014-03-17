@@ -15,9 +15,9 @@
 typedef enum
 {
   eAllWindows,
+  eRollWindows,
   eThisWindow,
-  eThisPoint,
-  eRollWindow
+  eThisPoint
 } eSwitchImage;
 
 class ContextMenu : public QWidget
@@ -35,9 +35,9 @@ public:
     cPolygon    *_polygon;
 
     QAction     *_AllW;
+    QAction     *_RollW;
     QAction     *_ThisP;
     QAction     *_ThisW;
-    QAction     *_RollW;
 
     QAction     *_validate;
     QAction     *_dubious;
