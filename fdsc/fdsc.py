@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################
-#FDiSC v0.95                                                              #
-#Fault DIsplacement Slip-Curve                                           #
+#FDSC v0.95                                                              #
+#Fault Displacement Slip-Curve                                           #
 #                                                                        #
 #Copyright (C) (2013-2014) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
 #am.rosu@laposte.net                                                     #
