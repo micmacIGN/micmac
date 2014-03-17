@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1005</width>
-    <height>718</height>
+    <width>1163</width>
+    <height>745</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -770,6 +770,9 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
          <item>
           <widget class="QTreeView" name="treeView"/>
          </item>
+         <item>
+          <widget class="QTableView" name="tableView"/>
+         </item>
         </layout>
        </widget>
        <widget class="QFrame" name="frame_preview3D">
@@ -805,7 +808,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1005</width>
+     <width>1163</width>
      <height>20</height>
     </rect>
    </property>
