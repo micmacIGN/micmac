@@ -31,8 +31,6 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
         setImagePosition(QPointF(-1.f,-1.f));
         setImageName("");
     }
-
-
 }
 
 MainWindow::~MainWindow()
@@ -60,7 +58,7 @@ void MainWindow::connectActions()
 
     for (int aK = 0; aK < nbWidgets();++aK)
     {
-        connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&, bool)), this,	SLOT(addFiles(const QStringList&, bool)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
     }
 
@@ -155,7 +153,7 @@ void MainWindow::loadPly(const QStringList& filenames)
     delete timer_test;
 }
 
-void MainWindow::addFiles(const QStringList& filenames)
+void MainWindow::addFiles(const QStringList& filenames, bool setGLData)
 {
     if (filenames.size())
     {
@@ -196,12 +194,18 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->allocAndSetGLData(_mode > MASK3D, _params->getDefPtName());
 
-        for (int aK = 0; aK < nbWidgets();++aK)
+        if (setGLData)
         {
-            getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
-            getWidget(aK)->setParams(_params);
-            if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+            for (int aK = 0; aK < nbWidgets();++aK)
+            {
+                getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
+                getWidget(aK)->setParams(_params);
+
+                if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+            }
         }
+        else
+            emit imagesAdded(-4, false);
 
         for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
 

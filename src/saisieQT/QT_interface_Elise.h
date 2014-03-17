@@ -89,6 +89,8 @@ public slots:
 
     void                ChangeFreeName(QItemSelection);
 
+    void                changeImages(int idPt, bool aUseCpt);
+
 private slots:
 
     void                addPoint(QPointF point);
@@ -105,11 +107,9 @@ private slots:
 
     void                changeName(QString aOldName, QString aNewName);
 
-    void                changeImages(int idPt, bool aUseCpt);
-
     void                changeCurPose(void *widgetGL);
 
-    void                filesDropped(const QStringList& filenames);
+    void                filesDropped(const QStringList& filenames, bool setGLData);
 
     void                SetInvisRef(bool aVal);
 };
