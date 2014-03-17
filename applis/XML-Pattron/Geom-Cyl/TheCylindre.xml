@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<XmlModeleSurfaceComplexe>
+     <XmlOneSurfaceAnalytique>
+          <XmlDescriptionAnalytique>
+               <Cyl>
+                    <P0>2.13511021227962772 0.00859715060104901396 -20.8317540044315272</P0>
+                    <P1>1.22547681700424316 -0.0114144330333578216 -21.2466836643983932</P1>
+                    <POnCyl>-0.398983930815889565 0.836376375192190546 -15.3162854637384847</POnCyl>
+               </Cyl>
+          </XmlDescriptionAnalytique>
+          <Id>TheCylindre</Id>
+     </XmlOneSurfaceAnalytique>
+</XmlModeleSurfaceComplexe>

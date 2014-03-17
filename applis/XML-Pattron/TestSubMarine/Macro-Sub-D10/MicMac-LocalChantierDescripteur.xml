@@ -1,0 +1,111 @@
+<!--
+    Pattron pour le calcul de MNT a partir d'un ensemble de vue convergentes simples.
+ 
+    N Images , toutes convergentes vers la meme zones, angle suffisant pour que l'on puisse
+    faire une mise en place directe.
+-->
+
+<Global>
+   <ChantierDescripteur
+        Subst="@$#1"
+        NameDecl="@$#1"
+
+        PrefixImages="img_"
+        PostfixImages=""
+
+
+        TheCalibInit="DradInitSub.xml"
+
+
+        NumeroMaitresse="0094"
+        PatternNumero="[0-9]{4}"
+        SzSift="1000"
+
+
+
+        ImMaitresse="${PrefixImages}${NumeroMaitresse}${PostfixImages}.tif"
+        PatternAllIm="${PrefixImages}${PatternNumero}${PostfixImages}.tif"
+   >
+
+<!--   BATCH  -->
+
+        <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                 <ExeRequired>
+                    <Exe> bin/Pastis </Exe>
+                    <Make> Makefile </Make>
+                 </ExeRequired>
+                 <ExeRequired>
+                    <Exe> bin/Apero </Exe>
+                    <Make> AperiMake </Make>
+                 </ExeRequired>
+                 <ExeRequired>
+                    <Exe> bin/MICMAC </Exe>
+                    <Make> MakeMICMAC </Make>
+                 </ExeRequired>
+
+              </Requirement>
+
+              <Line> bin/Pastis  ${ThisDir}  AllCpleImages ${SzSift} MkF=MkToto </Line>
+              <Line> make all -f MkToto -j2  </Line>
+              <Line> bin/Apero ${ThisDir}Apero1-Pastis.xml </Line>
+              <Line> bin/MICMAC ${ThisDir}param-GeoIm.xml </Line>
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ${PatternAllIm}  </PatternAccepteur>
+          </Sets>
+          <Key> AllImages </Key>
+    </KeyedSetsOfNames>
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${PatternAllIm}  </PatternTransform>
+                       <CalcName> ${TheCalibInit} </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  AllImages   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > AllCpleImages </Key>
+    </KeyedSetsORels>
+
+  </ChantierDescripteur>
+</Global>
