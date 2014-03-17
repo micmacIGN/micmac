@@ -289,6 +289,10 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
     {
         cImage * anIm = images[aKW];
 
+        static int aCpt=0;
+        aCpt++;
+        anIm->CptAff() = aCpt;
+
         if (!isDisplayed(anIm))
         {
             cGLData* data = getGlData(anIm);
@@ -300,7 +304,6 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
                 glW->setParams(m_QTMainWindow->getParams());
                 glW->getHistoryManager()->setFilename(m_QTMainWindow->getEngine()->getFilenamesIn()[aKW]);
             }
-
         }
         aKW++;
     }
