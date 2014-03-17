@@ -383,6 +383,10 @@ bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 }
 #endif
 
+#if ELISE_Darwin
+    #include <mach-o/dyld.h>
+#endif
+
 static std::string ArgvMMDir;
 static std::string CurrentProgramFullName;
 static std::string CurrentProgramSubcommand = "unknown";
@@ -414,25 +418,40 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 		ArgvMMDir.resize( ArgvMMDir.length()-1 );
         SplitDirAndFile(ArgvMMDir,sFile,ArgvMMDir);
 #else
-		std::string aFulArg0;
+        std::string aFullArg0;
 		// try to get executable full path using /proc filesystem
-		// not compatible with all unix
-		char buf[1024];
-		ssize_t len;
-		if ( ( len= readlink( "/proc/self/exe", buf, sizeof(buf)-1 ) ) != -1 )
-		{
-			buf[len] = '\0'; // make sure the string is null terminated, some implementation of readlink may not do it
-			aFulArg0 = buf;
-		}
+        // not compatible with all unix
+        #if ELISE_Darwin
+        //TODO use ctPath
+            uint32_t size = 0;
+            char *buf = NULL;
+            if ( _NSGetExecutablePath(buf, &size)==-1 ){
+                buf = new char[size];
+                _NSGetExecutablePath( buf, &size);
+                aFullArg0.assign(buf,size);
+                if ( strlen(argv[0])>2 && argv[0][0]=='.' && argv[0][1]=='/' )
+                    aFullArg0 = aFullArg0.erase( aFullArg0.find("./"), 2 );
+                delete [] buf;
+            }
+        #else
+            char buf[1024];
+            ssize_t len;
+            if ( ( len= readlink( "/proc/self/exe", buf, sizeof(buf)-1 ) ) != -1 )
+            {
+                buf[len] = '\0'; // make sure the string is null terminated, some implementation of readlink may not do it
+                aFullArg0 = buf;
+            }
+        #endif
 		else
 		{
 			// if the /proc filesystem is not available, try using the "which" command
-			bool whichSucceed = ElGetStrSys( "which "+ std::string( argv[0] ), aFulArg0 );
-			
+            bool whichSucceed = ElGetStrSys( "which "+ std::string( argv[0] ), aFullArg0 );
+            cout << "which " << whichSucceed << std::endl;
+
             // modif Greg: il y a un probleme sous MacOS, on perd le 'd' de mm3d
             // remove the which's ending '\n'
-			if (aFulArg0[aFulArg0.size()-1] == '\n')
-                aFulArg0.resize( aFulArg0.size()-1 );
+            if (aFullArg0[aFullArg0.size()-1] == '\n')
+                aFullArg0.resize( aFullArg0.size()-1 );
 						
 			// if which failed then we're doomed
 			ELISE_ASSERT( whichSucceed, "MMD_InitArgcArgv : unable to retrieve binaries directory" );
@@ -440,15 +459,15 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 
 		std::string aPatProg = "([0-9]|[a-z]|[A-Z]|_)+"; 
 		cElRegex  anAutomProg(aPatProg,10);
-		if (anAutomProg.Match(aFulArg0))
+        if (anAutomProg.Match(aFullArg0))
              ArgvMMDir = std::string("..")+ELISE_CAR_DIR;
 		else
 		{
             cElRegex  anAutomProg(std::string("(.*)bin")+ELISE_CAR_DIR+aPatProg,10);
-			ArgvMMDir = MatchAndReplace(anAutomProg,aFulArg0,"$1");
-			if (ArgvMMDir=="") ArgvMMDir=std::string(".")+ELISE_CAR_DIR;
+            ArgvMMDir = MatchAndReplace(anAutomProg,aFullArg0,"$1");
+            if (ArgvMMDir=="") ArgvMMDir=std::string(".")+ELISE_CAR_DIR;
 		}
-		CurrentProgramFullName = aFulArg0;
+        CurrentProgramFullName = aFullArg0;
 #endif
         
 		if ( argc>1 ) CurrentProgramSubcommand = StrToLower( argv[1] );
