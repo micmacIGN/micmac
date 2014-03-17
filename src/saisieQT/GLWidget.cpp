@@ -291,7 +291,7 @@ void GLWidget::dropEvent(QDropEvent *event)
         }
 
         if (!fileNames.empty())
-            emit filesDropped(fileNames);
+            emit filesDropped(fileNames, true);
 
         setFocus();
 
