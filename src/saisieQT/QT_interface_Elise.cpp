@@ -61,6 +61,12 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     connect(m_QTMainWindow,	SIGNAL(setName(QString)), this, SLOT(setAutoName(QString)));
 
     m_QTMainWindow->getModel()->setAppli(mAppli);
+
+    m_QTMainWindow->tableView()->setModel(new ModelPointGlobal(0,mAppli));
+
+    m_QTMainWindow->tableView()->resizeRowsToContents();
+
+    connect(m_QTMainWindow->tableView()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
 }
 
 void cQT_Interface::SetInvisRef(bool aVal)
@@ -152,7 +158,24 @@ void cQT_Interface::selectPoint(int idPt)
     rebuild3DGlPoints(idPt >= 0 ? currentPointeImage(idPt) : NULL);
 
     if (idPt >=0)
-        emit selectPoint(selectedPtName(idPt));
+    {
+        int idPG = -1;
+        std::string namePoint = selectedPtName(idPt);
+
+        for (int iPg = 0; iPg < (int)mAppli->PG().size(); ++iPg)
+        {
+
+            std::vector< cSP_PointGlob * >  vPG = mAppli->PG();
+            cSP_PointGlob *                 pg  = vPG[iPg];
+            QString namepg(pg->PG()->Name().c_str());
+
+            if(namepg == QString(namePoint.c_str()))
+                idPG = iPg;
+        }
+
+        m_QTMainWindow->tableView()->selectRow(idPG);
+        emit selectPoint(namePoint);
+    }
 }
 
 void cQT_Interface::changeState(int state, int idPt)

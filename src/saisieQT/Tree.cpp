@@ -539,3 +539,69 @@ void TreeModel::updateData()
     emitDataChanged();
 }
 
+ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli)
+    :QAbstractTableModel(parent),
+      mAppli(appli)
+{
+}
+
+int ModelPointGlobal::rowCount(const QModelIndex & /*parent*/) const
+{
+    return mAppli->PG().size();
+}
+
+int ModelPointGlobal::columnCount(const QModelIndex & /*parent*/) const
+{
+    return 1;
+}
+
+QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::DisplayRole)
+    {
+
+        std::vector< cSP_PointGlob * > vPG = mAppli->PG();
+        cSP_PointGlob * pg = vPG[index.row()];
+
+        return QString("%1")
+                .arg(pg->PG()->Name().c_str());
+    }
+    return QVariant();
+}
+
+QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole)
+    {
+        if (orientation == Qt::Horizontal) {
+            switch (section)
+            {
+            case 0:
+                return QString("Nom Point");
+            }
+        }
+    }
+    return QVariant();
+}
+
+bool ModelPointGlobal::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (role == Qt::EditRole)
+    {
+        std::vector< cSP_PointGlob * > vPG = mAppli->PG();
+        cSP_PointGlob * pg = vPG[index.row()];
+
+        string oldName = pg->PG()->Name();
+        string newName = value.toString().toStdString();
+
+        mAppli->ChangeName(oldName, newName);
+
+        emit pGChanged();
+    }
+    return true;
+}
+
+Qt::ItemFlags ModelPointGlobal::flags(const QModelIndex &index) const
+{
+    return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
+}

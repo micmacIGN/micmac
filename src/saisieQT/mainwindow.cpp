@@ -31,6 +31,8 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
         setImagePosition(QPointF(-1.f,-1.f));
         setImageName("");
     }
+
+
 }
 
 MainWindow::~MainWindow()
@@ -822,6 +824,8 @@ bool MainWindow::eventFilter( QObject* object, QEvent* event )
 
     return false;
 }
+
+QTableView *MainWindow::tableView(){return _ui->tableView;}
 
 void  MainWindow::setGamma(float aGamma)
 {

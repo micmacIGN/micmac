@@ -13,6 +13,8 @@
 #include <QTimer>
 #include <QSignalMapper>
 #include <QGridLayout>
+#include <QTableView>
+#include <QTreeView>
 
 #include "Engine.h"
 #include "GLWidgetSet.h"
@@ -69,6 +71,8 @@ public:
     void updateUI();
 
     bool eventFilter(QObject *object, QEvent *event);
+
+    QTableView *tableView();
 
 public slots:
 
