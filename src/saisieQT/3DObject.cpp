@@ -541,7 +541,6 @@ void cPoint::draw()
 
              case eEPI_Disparu  :
              case eEPI_NonValue :
-             case eEPI_Deleted  :
                  break;
              }
          }
