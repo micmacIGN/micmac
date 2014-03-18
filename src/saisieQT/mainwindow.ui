@@ -768,9 +768,6 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
           </widget>
          </item>
          <item>
-          <widget class="QTreeView" name="treeView"/>
-         </item>
-         <item>
           <widget class="QTableView" name="tableView"/>
          </item>
         </layout>

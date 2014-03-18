@@ -90,8 +90,6 @@ public slots:
 
     void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 
-    void                ChangeFreeName(QItemSelection);
-
     void                changeImages(int idPt, bool aUseCpt);
 
 private slots:
