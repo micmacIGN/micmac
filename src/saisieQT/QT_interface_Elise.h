@@ -36,6 +36,8 @@ public :
     void                Redraw(){}
 
     int                 idPointGlobal(cSP_PointGlob* PG);
+
+    void resizeTable();
 private:
 
     void                Init();
@@ -80,15 +82,11 @@ signals:
 
     void                selectPoint(std::string ptName);
 
-    void                pointAdded(cSP_PointeImage * aPIm = NULL);
-
     void                dataChanged();
 
 public slots:
 
     void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
-
-    void                ChangeFreeName(QItemSelection);
 
     void                changeImages(int idPt, bool aUseCpt);
 

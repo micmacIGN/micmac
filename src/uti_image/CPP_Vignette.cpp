@@ -314,6 +314,7 @@ void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aD
 				aIm.in(),
 				aTOut.out()
 			);
+
 }
 
 vector<double> Vignette_Solve(PtsHom aPtsHomol)

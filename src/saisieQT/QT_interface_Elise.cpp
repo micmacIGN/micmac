@@ -46,32 +46,22 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     Init();
 
-    connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));
-
-    connect(this, SIGNAL(selectPoint(std::string)), m_QTMainWindow, SLOT(selectPoint(std::string)));
-
-    connect(this, SIGNAL(dataChanged()), m_QTMainWindow, SLOT(updateTreeView()));
-
-    connect(this, SIGNAL(pointAdded(cSP_PointeImage *)), m_QTMainWindow->getModel(), SLOT(addPoint(cSP_PointeImage *)));
-
-    connect(m_QTMainWindow->getModel(), SIGNAL(dataChanged(QModelIndex const &, QModelIndex const &)), this, SLOT(rebuildGlPoints()));
-
-    connect(m_QTMainWindow->getSelectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(ChangeFreeName(QItemSelection)));
+    connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));   
 
     connect(m_QTMainWindow,	SIGNAL(removePoint(QString)), this, SLOT(removePoint(QString)));
 
     connect(m_QTMainWindow,	SIGNAL(setName(QString)), this, SLOT(setAutoName(QString)));
 
-    m_QTMainWindow->getModel()->setAppli(mAppli);
+    mAppli->SetInterface(this);
 
-    m_QTMainWindow->tableView()->setModel(new ModelPointGlobal(0,mAppli));
+    m_QTMainWindow->tableView_PG()->setModel(new ModelPointGlobal(0,mAppli));
+    m_QTMainWindow->tableView_Images()->setModel(new ModelCImage(0,mAppli));
 
-    m_QTMainWindow->tableView()->resizeColumnsToContents();
+    resizeTable();
 
-    m_QTMainWindow->tableView()->resizeRowsToContents();
-
-    connect(m_QTMainWindow->tableView()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
-    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView(), SLOT(update()));
+    connect(m_QTMainWindow->tableView_PG()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
+    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_PG(), SLOT(update()));
+    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_Images(), SLOT(update()));
 
 }
 
@@ -118,6 +108,28 @@ int cQT_Interface::idPointGlobal(cSP_PointGlob* PG)
     return id;
 }
 
+void cQT_Interface::resizeTable()
+{
+    ModelPointGlobal* model = (ModelPointGlobal*)m_QTMainWindow->tableView_PG()->model();
+
+    for (int row = mAppli->PG().size(); row <  model->rowCount(); ++row)
+    {
+        if(model->caseIsSaisie(row))
+
+            m_QTMainWindow->tableView_PG()->hideRow(row);
+
+    }
+
+    m_QTMainWindow->tableView_PG()->hideRow(mAppli->PG().size());
+
+    m_QTMainWindow->tableView_PG()->resizeColumnsToContents();
+    m_QTMainWindow->tableView_PG()->resizeRowsToContents();
+
+    m_QTMainWindow->tableView_Images()->resizeColumnsToContents();
+    m_QTMainWindow->tableView_Images()->resizeRowsToContents();
+
+}
+
 void cQT_Interface::addPoint(QPointF point)
 {
     if (m_QTMainWindow->currentWidget()->hasDataLoaded())
@@ -134,17 +146,14 @@ void cQT_Interface::addPoint(QPointF point)
 
             rebuildGlPoints();
 
-            emit pointAdded();
-
             emit dataChanged();
 
             if(PG)
             {
                 int id = idPointGlobal(PG);
 
-                m_QTMainWindow->tableView()->model()->insertRows(id,1);
-                m_QTMainWindow->tableView()->resizeColumnsToContents();
-                m_QTMainWindow->tableView()->resizeRowsToContents();
+                m_QTMainWindow->tableView_PG()->model()->insertRows(id,1);
+                resizeTable();
             }
         }
     }
@@ -199,7 +208,13 @@ void cQT_Interface::selectPoint(int idPt)
                 idPG = iPg;
         }
 
-        m_QTMainWindow->tableView()->selectRow(idPG);
+        m_QTMainWindow->tableView_PG()->selectRow(idPG);
+        ((ModelCImage*)m_QTMainWindow->tableView_Images()->model())->setIdGlobSelect(idPG);
+        m_QTMainWindow->tableView_Images()->update();
+        m_QTMainWindow->tableView_Images()->resizeColumnsToContents();
+        m_QTMainWindow->tableView_Images()->resizeRowsToContents();
+        m_QTMainWindow->tableView_Images()->horizontalHeader()->setStretchLastSection(true);
+
         emit selectPoint(namePoint);
     }
 }
@@ -224,7 +239,7 @@ void cQT_Interface::changeState(int state, int idPt)
             {
                 DeletePoint( aPIm->Gl() );
                 int idPG = idPointGlobal(aPIm->Gl());
-                m_QTMainWindow->tableView()->hideRow(idPG);
+                m_QTMainWindow->tableView_PG()->hideRow(idPG);
             }
             else
 
@@ -251,7 +266,7 @@ void cQT_Interface::removePoint(QString aName)
 
         int idPG = idPointGlobal(aPt);
 
-        m_QTMainWindow->tableView()->hideRow(idPG);
+        m_QTMainWindow->tableView_PG()->hideRow(idPG);
 
     }
 }
@@ -575,27 +590,6 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
     Save();
 }
 
-void cQT_Interface::ChangeFreeName(QItemSelection selected)
-{
-    QModelIndexList sel = selected.indexes();
-
-    if (sel.size() != m_QTMainWindow->getModel()->columnCount()) return;
-    else
-    {
-        delete _cNamePt;
-
-        string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
-
-        cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
-        if (!aPt)
-        {
-            _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
-        }
-        else
-            _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
-    }
-}
-
 bool cQT_Interface::WVisible(cSP_PointeImage & aPIm)
 {
     const cOneSaisie  & aSom = *(aPIm.Saisie());
@@ -626,5 +620,26 @@ void cQT_Interface::AddUndo(cOneSaisie *aSom)
 
 cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 {
+
+    QItemSelectionModel *selModel = m_QTMainWindow->tableView_PG()->selectionModel();
+
+    if (selModel->currentIndex().column() != 0)
+        return _cNamePt;
+    else
+    {
+        if(_cNamePt)
+            delete _cNamePt;
+
+        string aName = selModel->currentIndex().data(Qt::DisplayRole).toString().toStdString();
+
+        cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
+        if (!aPt)
+        {
+            _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
+        }
+        else
+            _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
+    }
+
     return _cNamePt;
 }

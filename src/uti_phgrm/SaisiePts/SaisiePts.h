@@ -461,6 +461,7 @@ class cAppli_SaisiePts
 
     cImage *                ImageOfNameSVP(const std::string & aName);
     cSP_PointGlob *         PGlobOfNameSVP(const std::string & aName);
+    cSP_PointGlob *         PGlob(int id);
     cSetOfSaisiePointeIm  & SOSPI();
     bool                    HasOrientation() const;
 
