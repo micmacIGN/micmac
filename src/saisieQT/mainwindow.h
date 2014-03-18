@@ -63,16 +63,14 @@ public:
 
     void loadPly(const QStringList& filenames);
 
-    TreeModel* getModel() { return _model; }
-
-    QItemSelectionModel * getSelectionModel() { return _selectionModel; }
-
     void setUI();
     void updateUI();
 
     bool eventFilter(QObject *object, QEvent *event);
 
-    QTableView *tableView();
+    QTableView *tableView_PG();
+
+    QTableView *tableView_Images();
 
 public slots:
 
@@ -99,12 +97,7 @@ public slots:
 
     void setGamma(float);
 
-    void selectPoint(std::string ptName);
-
     cParameters* getParams() { return _params; }
-
-    void setTreeView();
-    void updateTreeView();
 
 signals:
 
@@ -216,7 +209,5 @@ private:
 
     int                     _mode;
 
-    TreeModel*              _model;
-    QItemSelectionModel *   _selectionModel;
 };
 #endif // MAINWINDOW_H
