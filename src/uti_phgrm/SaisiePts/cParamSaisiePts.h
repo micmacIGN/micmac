@@ -29,8 +29,7 @@ typedef enum
   eEPI_Valide,
   eEPI_NonValue,
   eEPI_Disparu,
-  eEPI_Highlight, //only for QT interface
-  eEPI_Deleted    //only for QT interface
+  eEPI_Highlight //only for QT interface
 } eEtatPointeImage;
 void xml_init(eEtatPointeImage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eEtatPointeImage & aVal);
