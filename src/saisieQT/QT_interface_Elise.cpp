@@ -139,8 +139,6 @@ void cQT_Interface::addPoint(QPointF point)
 
             rebuildGlPoints();
 
-            emit pointAdded();
-
             emit dataChanged();
 
             if(PG)
