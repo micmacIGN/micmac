@@ -39,24 +39,24 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 #if(ELISE_QT5)
-    #ifdef Int
-        #undef Int
-    #endif
-    #include <QApplication>
-    #include <QString>
-    #include "general/visual_mainwindow.h"
+#ifdef Int
+#undef Int
+#endif
+#include <QApplication>
+#include <QString>
+#include "general/visual_mainwindow.h"
 #endif
 
 void ShowEnum(const cMMSpecArg & anArg)
 {
     const std::list<std::string>  & aLEnum = anArg.EnumeratedValues();
     for
-    (
-          std::list<std::string>::const_iterator itS = aLEnum.begin();
-          itS != aLEnum.end();
-          itS++
-    )
-          std::cout << "     " << *itS << "\n";
+            (
+             std::list<std::string>::const_iterator itS = aLEnum.begin();
+             itS != aLEnum.end();
+             itS++
+             )
+        std::cout << "     " << *itS << "\n";
 
 }
 
@@ -65,11 +65,11 @@ std::list<std::string> listPossibleValues(const cMMSpecArg & anArg)
     std::list<std::string> list_enum;
     const std::list<std::string> & aLEnum = anArg.EnumeratedValues();
     for
-    (
-          std::list<std::string>::const_iterator itS = aLEnum.begin();
-          itS != aLEnum.end();
-          itS++
-    )
+            (
+             std::list<std::string>::const_iterator itS = aLEnum.begin();
+             itS != aLEnum.end();
+             itS++
+             )
     {
         //std::cout << "     " << *itS << "\n";
         list_enum.push_back(*itS);
@@ -81,9 +81,9 @@ std::list<std::string> listPossibleValues(const cMMSpecArg & anArg)
 
 
 // ====================================================================
-// 
+//
 //      Lecture d'un argument optionnel; utilise par MMRunVisualMode
-//      retourne false si on specifie la fin de lecture; 
+//      retourne false si on specifie la fin de lecture;
 //
 //=====================================================================
 
@@ -91,9 +91,9 @@ std::list<std::string> listPossibleValues(const cMMSpecArg & anArg)
 
 bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
 {
-     // la premiere fois on imprime toute l'info sur tous les arguments
-     if (Prems)
-     {
+    // la premiere fois on imprime toute l'info sur tous les arguments
+    if (Prems)
+    {
         for (int aK=0 ; aK<int(aVAO.size()) ; aK++)
         {
             std::cout <<  aVAO[aK].NameArg()  << " ; "  << aVAO[aK].NameType();
@@ -102,27 +102,27 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
             std::cout  << "\n";
             ShowEnum(aVAO[aK]);
         }
-     }
+    }
 
-     // Lecture du nom et de la valeur
-     std::cout << "Enter Name + Val of optional arg, NONE if finish\n";
-     std::string aName,aVal;
+    // Lecture du nom et de la valeur
+    std::cout << "Enter Name + Val of optional arg, NONE if finish\n";
+    std::string aName,aVal;
 
-     std::cin >> aName >> aVal;
+    std::cin >> aName >> aVal;
 
 
-     // Si on veut signifier la fin il faut taper NONE  xxx
-     if (aName=="NONE") return false;
+    // Si on veut signifier la fin il faut taper NONE  xxx
+    if (aName=="NONE") return false;
 
-     // Si on trouve le bon nom, on initialise et on retourne true
-     for (int aK=0 ; aK<int(aVAO.size()) ; aK++)
-     {
-          if (aVAO[aK].NameArg() ==aName)
-          {
-              aVAO[aK].Init(aVal);
-              return true;
-          }
-     }
+    // Si on trouve le bon nom, on initialise et on retourne true
+    for (int aK=0 ; aK<int(aVAO.size()) ; aK++)
+    {
+        if (aVAO[aK].NameArg() ==aName)
+        {
+            aVAO[aK].Init(aVal);
+            return true;
+        }
+    }
 
     // Sinon un message d'insulte (light) et on continue
     std::cout << "Name is not valid !!! (got " << aName << ")\n";
@@ -130,150 +130,151 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
 }
 
 void MMRunVisualMode
-     (
-        int argc,char ** argv, // A priori inutile, mais peut-être cela evoluera-t-il ?
-         std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory
-         std::vector<cMMSpecArg> & aVAO   // Vector Arg Optional
-     )
+(
+        int argc,char ** argv, // A priori inutile, mais peut-etre cela evoluera-t-il ?
+        std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory
+        std::vector<cMMSpecArg> & aVAO   // Vector Arg Optional
+        )
 {
+#ifdef _DEBUG
     string str;
-    #if(ELISE_QT5)
-        QString qstr = "i'm a qstring";
-        str = qstr.toStdString();
-    #else
-        str = "i'm a std::string";
-    #endif //ELISE_QT5
+#if(ELISE_QT5)
+    QString qstr = "i'm a qstring";
+    str = qstr.toStdString();
+#else
+    str = "i'm a std::string";
+#endif //ELISE_QT5
     cout << str << endl;
+#endif
+
+#if(ELISE_QT5)
 
 
-    #if(ELISE_QT5)
+    QApplication interf(argc, argv);
+    visual_MainWindow w;
+
+    //list of all arguments
+
+    std::cout<<"---------- All arguments ----------"<<std::endl;
 
 
-        QApplication interf(argc, argv);
-        visual_MainWindow w;
+    //        for(int i=0;i<argc;i++)
+    //        {
+    //            std::cout<<argv[i]<<std::endl;
+    //            //std::cout<<argv[3]<<std::endl;
+    //        }
 
-        //list of all arguments
-
-        std::cout<<"---------- All arguments ----------"<<std::endl;
-
-
-//        for(int i=0;i<argc;i++)
-//        {
-//            std::cout<<argv[i]<<std::endl;
-//            //std::cout<<argv[3]<<std::endl;
-//        }
-
-        for (int aK=0 ; aK<int(aVAM.size()) ; aK++)//aVAM = all visual arg mandatory ?
+    for (int aK=0 ; aK<int(aVAM.size()) ; aK++)//aVAM = all visual arg mandatory ?
+    {
+        std::string arg_eff="";
+        for (int i=0;i<argc;i++)
         {
-            std::string arg_eff="";
-            for (int i=0;i<argc;i++)
-            {
-                arg_eff += std::string(argv[i]);
-            }
-            w.set_argv_recup(arg_eff);
+            arg_eff += std::string(argv[i]);
+        }
+        w.set_argv_recup(arg_eff);
 
-            //std::cout << "Mandatory arg " << aK << " ; Type is " << aVAM[aK].NameType();
-            std::string aCom = aVAM[aK].Comment();
-            w.create_comment(aCom,aK);
-            if (aCom != "")
+        //std::cout << "Mandatory arg " << aK << " ; Type is " << aVAM[aK].NameType();
+        std::string aCom = aVAM[aK].Comment();
+        w.create_comment(aCom,aK);
+        if (aCom != "")
+        {
+            //std::cout << "   Comment=" << aCom << "\n";
+        }
+        else
+        {
+            //std::cout<<"\n";
+        }
+
+        //Si le type est une string
+        if (aVAM[aK].NameType() =="string")
+        {
+            //On récupère les valeurs énumérées dans une liste
+            std::list<std::string> liste_valeur_enum = listPossibleValues(aVAM[aK]);
+
+            //S'il y a effectivement une énumération
+            //On rempli une combobox
+            if (!liste_valeur_enum.empty())
             {
-                //std::cout << "   Comment=" << aCom << "\n";
+                //QComboBox* Combo=0;
+                w.create_combo(aK,liste_valeur_enum);
+
             }
+            //Si c'est une chaine de caractères normale
             else
             {
-                //std::cout<<"\n";
-            }
-
-            //Si le type est une string
-            if (aVAM[aK].NameType() =="string")
-            {
-                //On récupère les valeurs énumérées dans une liste
-                std::list<std::string> liste_valeur_enum = listPossibleValues(aVAM[aK]);
-
-                //S'il y a effectivement une énumération
-                //On rempli une combobox
-                if (!liste_valeur_enum.empty())
+                //Si c'est une directory
+                if (aCom.find("Dir")!=std::string::npos)
                 {
-                    //QComboBox* Combo=0;
-                    w.create_combo(aK,liste_valeur_enum);
+                    w.create_select_images(aK);
 
                 }
-                //Si c'est une chaine de caractères normale
                 else
                 {
-                    //Si c'est une directory
-                    if (aCom.find("Dir")!=std::string::npos)
-                    {
-                        w.create_select_images(aK);
+                    std::cout<<"coucou"<<std::endl;
+                    w.create_select_orientation(aK);
 
-                    }
-                    else
-                    {
-                        std::cout<<"coucou"<<std::endl;
-                        w.create_select_orientation(aK);
-
-                    }
                 }
             }
-            //Si le type est int
-            if (aVAM[aK].NameType() =="INT"||aVAM[aK].NameType() =="int")
-            {
-                w.create_champ_int(aK);
-
-            }
+        }
+        //Si le type est int
+        if (aVAM[aK].NameType() =="INT"||aVAM[aK].NameType() =="int")
+        {
+            w.create_champ_int(aK);
 
         }
 
-//        for (int aK=0 ; aK<int(aVAO.size()) ; aK++)//aVAO = all visual arg optional ?
-//        {
-//            std::cout <<  "Optional arg type is " <<aVAO[aK].NameArg()  << " ; "  << aVAO[aK].NameType();
-//            std::string aCom = aVAO[aK].Comment();
-//            if (aCom != "") std::cout << " ; " << aCom ;
-//            std::cout  << "\n";
+    }
 
-//            bool apat = aVAO[aK].IsExistFile();
-//            std::cout<<apat<<std::endl;
-//            ShowEnum(aVAO[aK]);
-//        }
-        std::cout<<"---------- End all arguments ----------"<<std::endl;
+    //        for (int aK=0 ; aK<int(aVAO.size()) ; aK++)//aVAO = all visual arg optional ?
+    //        {
+    //            std::cout <<  "Optional arg type is " <<aVAO[aK].NameArg()  << " ; "  << aVAO[aK].NameType();
+    //            std::string aCom = aVAO[aK].Comment();
+    //            if (aCom != "") std::cout << " ; " << aCom ;
+    //            std::cout  << "\n";
 
-
-
-        w.show();
-        interf.exec();
-
-    #endif //ELISE_QT5
+    //            bool apat = aVAO[aK].IsExistFile();
+    //            std::cout<<apat<<std::endl;
+    //            ShowEnum(aVAO[aK]);
+    //        }
+    std::cout<<"---------- End all arguments ----------"<<std::endl;
 
 
 
-     // On lit tous les arguments obligatoires
-//     for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
-//     {
-//         // On imprime un peu d'info
-//         std::cout << "Enter Mandatory Arg " << aK << " ; Type is " << aVAM[aK].NameType() << "\n";
-//         std::string aCom = aVAM[aK].Comment();
-//         if (aCom != "") std::cout << "Comment=" << aCom << "\n";
-//         ShowEnum(aVAM[aK]);
+    w.show();
+    interf.exec();
 
-//         // on lit une chaine de caractere
-//         std::string aVal;
-//         std::cin >> aVal;
-//         // on initialise la variable a partir de la chaine
-//         aVAM[aK].Init(aVal);
-//     }
+#endif //ELISE_QT5
 
-//     // On lit autant d'arguments optionnels que l'utilisateur souhaite en passer
-//     bool FirstCall = true;
-//     while (ContinuerReadOneArg(aVAO,FirstCall))
-//     {
-//         FirstCall=false;
-//     }
+
+
+    // On lit tous les arguments obligatoires
+    //     for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
+    //     {
+    //         // On imprime un peu d'info
+    //         std::cout << "Enter Mandatory Arg " << aK << " ; Type is " << aVAM[aK].NameType() << "\n";
+    //         std::string aCom = aVAM[aK].Comment();
+    //         if (aCom != "") std::cout << "Comment=" << aCom << "\n";
+    //         ShowEnum(aVAM[aK]);
+
+    //         // on lit une chaine de caractere
+    //         std::string aVal;
+    //         std::cin >> aVal;
+    //         // on initialise la variable a partir de la chaine
+    //         aVAM[aK].Init(aVal);
+    //     }
+
+    //     // On lit autant d'arguments optionnels que l'utilisateur souhaite en passer
+    //     bool FirstCall = true;
+    //     while (ContinuerReadOneArg(aVAO,FirstCall))
+    //     {
+    //         FirstCall=false;
+    //     }
 }
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -289,17 +290,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
