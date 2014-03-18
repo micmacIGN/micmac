@@ -46,25 +46,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     Init();
 
-    connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));
-
-    connect(this, SIGNAL(selectPoint(std::string)), m_QTMainWindow, SLOT(selectPoint(std::string)));
-
-    connect(this, SIGNAL(dataChanged()), m_QTMainWindow, SLOT(updateTreeView()));
-
-    connect(this, SIGNAL(pointAdded(cSP_PointeImage *)), m_QTMainWindow->getModel(), SLOT(addPoint(cSP_PointeImage *)));
-
-    connect(m_QTMainWindow->getModel(), SIGNAL(dataChanged(QModelIndex const &, QModelIndex const &)), this, SLOT(rebuildGlPoints()));
-
-    connect(m_QTMainWindow->getSelectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(ChangeFreeName(QItemSelection)));
+    connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));   
 
     connect(m_QTMainWindow,	SIGNAL(removePoint(QString)), this, SLOT(removePoint(QString)));
 
     connect(m_QTMainWindow,	SIGNAL(setName(QString)), this, SLOT(setAutoName(QString)));
 
     mAppli->SetInterface(this);
-
-    m_QTMainWindow->getModel()->setAppli(mAppli);
 
     m_QTMainWindow->tableView()->setModel(new ModelPointGlobal(0,mAppli));
 
@@ -591,28 +579,6 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
     Save();
 }
 
-void cQT_Interface::ChangeFreeName(QItemSelection selected)
-{
-    QModelIndexList sel = selected.indexes();
-
-    if (sel.size() != m_QTMainWindow->getModel()->columnCount()) return;
-    else
-    {
-        if(_cNamePt)
-            delete _cNamePt;
-
-        string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
-
-        cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
-        if (!aPt)
-        {
-            _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
-        }
-        else
-            _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
-    }
-}
-
 bool cQT_Interface::WVisible(cSP_PointeImage & aPIm)
 {
     const cOneSaisie  & aSom = *(aPIm.Saisie());
@@ -643,7 +609,6 @@ void cQT_Interface::AddUndo(cOneSaisie *aSom)
 
 cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 {
-    //QModelIndexList *sel = m_QTMainWindow->tableView()->selectionModel();
 
     QItemSelectionModel *selModel = m_QTMainWindow->tableView()->selectionModel();
 
@@ -653,8 +618,6 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
     {
         if(_cNamePt)
             delete _cNamePt;
-
-        //string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
 
         string aName = selModel->currentIndex().data(Qt::DisplayRole).toString().toStdString();
 

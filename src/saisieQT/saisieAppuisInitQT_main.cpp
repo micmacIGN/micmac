@@ -146,8 +146,6 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     new cQT_Interface(anAppli,&w);
 
-    w.setTreeView();
-
     w.show();
 
     w.addFiles(filenames, false);
