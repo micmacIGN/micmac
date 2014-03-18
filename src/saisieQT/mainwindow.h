@@ -68,7 +68,9 @@ public:
 
     bool eventFilter(QObject *object, QEvent *event);
 
-    QTableView *tableView();
+    QTableView *tableView_PG();
+
+    QTableView *tableView_Images();
 
 public slots:
 

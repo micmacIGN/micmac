@@ -148,3 +148,143 @@ bool ModelPointGlobal::caseIsSaisie(int idRow)
 
     return false;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ModelCImage::ModelCImage(QObject *parent, cAppli_SaisiePts *appli)
+    :QAbstractTableModel(parent),
+      mAppli(appli),
+      idGlobSelect(-1)
+{
+}
+
+int ModelCImage::rowCount(const QModelIndex & /*parent*/) const
+{
+    return mAppli->images().size();
+}
+
+int ModelCImage::columnCount(const QModelIndex & /*parent*/) const
+{
+    return 3;
+}
+
+QVariant ModelCImage::data(const QModelIndex &index, int role) const
+{
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        if(index.row() < (int)mAppli->images().size())
+        {
+            cImage* iImage = mAppli->image(index.row());
+
+            switch (index.column())
+            {
+            case 0:
+                return QString("%1").arg(iImage->Name().c_str());
+            case 1:
+            {
+                if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
+                    return QString("");
+
+                cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
+
+                cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
+
+                eEtatPointeImage state = pI->Saisie()->Etat();
+
+                switch (state)
+                {
+                case eEPI_NonSaisi:
+                    return QString("%1").arg("non saisie");
+                case eEPI_Refute:
+                    return QString("%1").arg("refute");
+                case eEPI_Douteux:
+                    return QString("%1").arg("douteux");
+                case eEPI_Valide:
+                    return QString("%1").arg("valide");
+                case eEPI_NonValue:
+                    return QString("%1").arg("non V");
+                case eEPI_Disparu:
+                    return QString("");
+                case eEPI_Highlight:
+                    return QString("%1").arg("highlight");
+                }
+            }
+            case 2:
+            {
+                if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
+                    return QString("");
+
+                cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
+
+                cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
+
+                if(pI->Saisie()->Etat() == eEPI_Disparu)
+                    return QString("");
+
+                return QString("%1\t %2")
+                        .arg(QString::number(pI->Saisie()->PtIm().x, 'f' ,1))
+                        .arg(QString::number(pI->Saisie()->PtIm().y, 'f' ,1));
+            }
+            }
+        }
+    }
+
+    return QVariant();
+}
+
+QVariant ModelCImage::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole)
+    {
+        if (orientation == Qt::Horizontal) {
+            switch (section)
+            {
+            case 0:
+                return QString("Image");
+            case 1:
+                return QString("State");
+            case 2:
+                return QString("Coordinates");
+            }
+        }
+    }
+    return QVariant();
+}
+
+bool ModelCImage::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    return false;
+}
+
+Qt::ItemFlags ModelCImage::flags(const QModelIndex &index) const
+{
+
+    switch (index.column())
+    {
+    case 0:
+        return QAbstractTableModel::flags(index) /*| Qt::ItemIsEditable*/;
+    case 1:
+        return QAbstractTableModel::flags(index);
+    }
+
+    return QAbstractTableModel::flags(index);
+}
+
+bool ModelCImage::insertRows(int row, int count, const QModelIndex &parent)
+{
+    beginInsertRows(QModelIndex(), row, row+count-1);
+    endInsertRows();
+    return true;
+}
+int ModelCImage::getIdGlobSelect() const
+{
+    return idGlobSelect;
+}
+
+void ModelCImage::setIdGlobSelect(int value)
+{
+    idGlobSelect = value;
+}
+

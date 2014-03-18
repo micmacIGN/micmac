@@ -780,7 +780,7 @@ void MainWindow::setUI()
         _ui->frame_preview3D->setContentsMargins(0,0,0,0);
         _ui->menuSelection->setTitle(tr("H&istory"));
 
-        tableView()->installEventFilter(this);
+        tableView_PG()->installEventFilter(this);
 
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
@@ -792,7 +792,7 @@ void MainWindow::setUI()
 
 bool MainWindow::eventFilter( QObject* object, QEvent* event )
 {
-    if( ( object == tableView()) && event->type() == QEvent::KeyRelease )
+    if( ( object == tableView_PG()) && event->type() == QEvent::KeyRelease )
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
 
@@ -809,8 +809,9 @@ bool MainWindow::eventFilter( QObject* object, QEvent* event )
     return false;
 }
 
-QTableView *MainWindow::tableView(){return _ui->tableView;}
+QTableView *MainWindow::tableView_PG(){return _ui->tableView_PG;}
 
+QTableView *MainWindow::tableView_Images(){return _ui->tableView_Images;}
 void  MainWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);
@@ -896,6 +897,18 @@ void MainWindow::setImagePosition(QPointF pt)
 void MainWindow::setImageName(QString name)
 {
     _ui->label_ImageName->setText(QString(tr("Image name : ") + name));
+    QAbstractItemModel *model = tableView_Images()->model();
+
+    if(model)
+
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
+        if(model->index(i,0).data().toString() == name)
+        {
+            tableView_Images()->selectRow(i);
+            return;
+        }
+    }
 }
 
 void MainWindow::setZoom(float val)

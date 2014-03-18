@@ -779,7 +779,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
           </widget>
          </item>
          <item>
-          <widget class="QTableView" name="tableView">
+          <widget class="QTableView" name="tableView_PG">
            <property name="frameShape">
             <enum>QFrame::Box</enum>
            </property>
@@ -791,6 +791,22 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
            </property>
            <property name="gridStyle">
             <enum>Qt::SolidLine</enum>
+           </property>
+           <attribute name="horizontalHeaderStretchLastSection">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QTableView" name="tableView_Images">
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
            </property>
            <attribute name="horizontalHeaderStretchLastSection">
             <bool>true</bool>
