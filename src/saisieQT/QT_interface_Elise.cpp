@@ -62,13 +62,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     connect(m_QTMainWindow,	SIGNAL(setName(QString)), this, SLOT(setAutoName(QString)));
 
+    mAppli->SetInterface(this);
+
     m_QTMainWindow->getModel()->setAppli(mAppli);
 
     m_QTMainWindow->tableView()->setModel(new ModelPointGlobal(0,mAppli));
 
-    m_QTMainWindow->tableView()->resizeColumnsToContents();
-
-    m_QTMainWindow->tableView()->resizeRowsToContents();
+    resizeTable();
 
     connect(m_QTMainWindow->tableView()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
     connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView(), SLOT(update()));
@@ -118,6 +118,23 @@ int cQT_Interface::idPointGlobal(cSP_PointGlob* PG)
     return id;
 }
 
+void cQT_Interface::resizeTable()
+{
+    ModelPointGlobal* model = (ModelPointGlobal*)m_QTMainWindow->tableView()->model();
+
+    for (int row = mAppli->PG().size(); row <  model->rowCount(); ++row)
+    {
+        if(model->caseIsSaisie(row))
+
+            m_QTMainWindow->tableView()->hideRow(row);
+
+    }
+    m_QTMainWindow->tableView()->hideRow(mAppli->PG().size());
+
+    m_QTMainWindow->tableView()->resizeColumnsToContents();
+    m_QTMainWindow->tableView()->resizeRowsToContents();
+}
+
 void cQT_Interface::addPoint(QPointF point)
 {
     if (m_QTMainWindow->currentWidget()->hasDataLoaded())
@@ -143,8 +160,7 @@ void cQT_Interface::addPoint(QPointF point)
                 int id = idPointGlobal(PG);
 
                 m_QTMainWindow->tableView()->model()->insertRows(id,1);
-                m_QTMainWindow->tableView()->resizeColumnsToContents();
-                m_QTMainWindow->tableView()->resizeRowsToContents();
+                resizeTable();
             }
         }
     }
@@ -222,7 +238,6 @@ void cQT_Interface::changeState(int state, int idPt)
             }
             else if (aState == eEPI_Deleted)
             {
-
                 DeletePoint( aPIm->Gl() );
                 int idPG = idPointGlobal(aPIm->Gl());
                 m_QTMainWindow->tableView()->hideRow(idPG);
@@ -583,7 +598,8 @@ void cQT_Interface::ChangeFreeName(QItemSelection selected)
     if (sel.size() != m_QTMainWindow->getModel()->columnCount()) return;
     else
     {
-        delete _cNamePt;
+        if(_cNamePt)
+            delete _cNamePt;
 
         string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
 
@@ -627,5 +643,29 @@ void cQT_Interface::AddUndo(cOneSaisie *aSom)
 
 cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 {
+    //QModelIndexList *sel = m_QTMainWindow->tableView()->selectionModel();
+
+    QItemSelectionModel *selModel = m_QTMainWindow->tableView()->selectionModel();
+
+    if (selModel->currentIndex().column() != 0)
+        return _cNamePt;
+    else
+    {
+        if(_cNamePt)
+            delete _cNamePt;
+
+        //string aName = sel[0].data(Qt::DisplayRole).toString().toStdString();
+
+        string aName = selModel->currentIndex().data(Qt::DisplayRole).toString().toStdString();
+
+        cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
+        if (!aPt)
+        {
+            _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
+        }
+        else
+            _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
+    }
+
     return _cNamePt;
 }

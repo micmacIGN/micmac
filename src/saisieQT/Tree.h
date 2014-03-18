@@ -117,15 +117,23 @@ public:
 
     bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
 
+    bool            caseIsSaisie(int idRow);
+
 signals:
 
     void            pGChanged();
 
+protected:
+
+    int             CountPG_CaseName() const;
+
+    int             CountPG() const;
+
+    int             CountCaseNamePoint() const;
+
 private:
 
     cAppli_SaisiePts* mAppli;
-
-    int             CountPG_CaseName();
 
 };
 

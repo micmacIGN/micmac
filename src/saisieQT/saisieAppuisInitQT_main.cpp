@@ -99,8 +99,6 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     settings.setValue("defPtName", QString(aNameAuto.c_str()));
     settings.endGroup();
 
-    MainWindow w(POINT2D_INIT);
-
     QStringList input;
     input   << QString(MMDir().c_str()) + QString("bin/SaisiePts")
             << QString(MMDir().c_str()) + QString("include/XML_MicMac/SaisieInitiale.xml")
@@ -144,9 +142,9 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     cAppli_SaisiePts   anAppli (aP2,false);
 
-    cQT_Interface* interf = new cQT_Interface(anAppli,&w);
+    MainWindow w(POINT2D_INIT);
 
-    anAppli.SetInterface(interf);
+    new cQT_Interface(anAppli,&w);
 
     w.setTreeView();
 

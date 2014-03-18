@@ -805,7 +805,9 @@ void MainWindow::setUI()
 
         tableView()->installEventFilter(this);
 
-        _selectionModel = _ui->treeView->selectionModel();
+        //_selectionModel = _ui->treeView->selectionModel();
+
+        //_selectionModel = tableView()->selectionModel();
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else

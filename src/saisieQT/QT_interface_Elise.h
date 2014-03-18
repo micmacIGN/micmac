@@ -36,6 +36,8 @@ public :
     void                Redraw(){}
 
     int                 idPointGlobal(cSP_PointGlob* PG);
+
+    void resizeTable();
 private:
 
     void                Init();

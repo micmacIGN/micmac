@@ -238,6 +238,12 @@ cSP_PointGlob *  cAppli_SaisiePts::PGlobOfNameSVP(const std::string & aName)
     return iT->second;
 }
 
+cSP_PointGlob *cAppli_SaisiePts::PGlob(int id)
+{
+    if (id < 0 || id > (int)mPG.size()) return NULL;
+    return mPG[id];
+}
+
 void cAppli_SaisiePts:: ErreurFatale(const std::string & aName)
 {
     std::cout << "Erreur, sortie de programme, resultats sauvegardes dans dup";
