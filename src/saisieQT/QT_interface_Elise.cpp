@@ -54,12 +54,14 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     mAppli->SetInterface(this);
 
-    m_QTMainWindow->tableView()->setModel(new ModelPointGlobal(0,mAppli));
+    m_QTMainWindow->tableView_PG()->setModel(new ModelPointGlobal(0,mAppli));
+    m_QTMainWindow->tableView_Images()->setModel(new ModelCImage(0,mAppli));
 
     resizeTable();
 
-    connect(m_QTMainWindow->tableView()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
-    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView(), SLOT(update()));
+    connect(m_QTMainWindow->tableView_PG()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
+    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_PG(), SLOT(update()));
+    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_Images(), SLOT(update()));
 
 }
 
@@ -108,19 +110,24 @@ int cQT_Interface::idPointGlobal(cSP_PointGlob* PG)
 
 void cQT_Interface::resizeTable()
 {
-    ModelPointGlobal* model = (ModelPointGlobal*)m_QTMainWindow->tableView()->model();
+    ModelPointGlobal* model = (ModelPointGlobal*)m_QTMainWindow->tableView_PG()->model();
 
     for (int row = mAppli->PG().size(); row <  model->rowCount(); ++row)
     {
         if(model->caseIsSaisie(row))
 
-            m_QTMainWindow->tableView()->hideRow(row);
+            m_QTMainWindow->tableView_PG()->hideRow(row);
 
     }
-    m_QTMainWindow->tableView()->hideRow(mAppli->PG().size());
 
-    m_QTMainWindow->tableView()->resizeColumnsToContents();
-    m_QTMainWindow->tableView()->resizeRowsToContents();
+    m_QTMainWindow->tableView_PG()->hideRow(mAppli->PG().size());
+
+    m_QTMainWindow->tableView_PG()->resizeColumnsToContents();
+    m_QTMainWindow->tableView_PG()->resizeRowsToContents();
+
+    m_QTMainWindow->tableView_Images()->resizeColumnsToContents();
+    m_QTMainWindow->tableView_Images()->resizeRowsToContents();
+
 }
 
 void cQT_Interface::addPoint(QPointF point)
@@ -145,7 +152,7 @@ void cQT_Interface::addPoint(QPointF point)
             {
                 int id = idPointGlobal(PG);
 
-                m_QTMainWindow->tableView()->model()->insertRows(id,1);
+                m_QTMainWindow->tableView_PG()->model()->insertRows(id,1);
                 resizeTable();
             }
         }
@@ -201,7 +208,13 @@ void cQT_Interface::selectPoint(int idPt)
                 idPG = iPg;
         }
 
-        m_QTMainWindow->tableView()->selectRow(idPG);
+        m_QTMainWindow->tableView_PG()->selectRow(idPG);
+        ((ModelCImage*)m_QTMainWindow->tableView_Images()->model())->setIdGlobSelect(idPG);
+        m_QTMainWindow->tableView_Images()->update();
+        m_QTMainWindow->tableView_Images()->resizeColumnsToContents();
+        m_QTMainWindow->tableView_Images()->resizeRowsToContents();
+        m_QTMainWindow->tableView_Images()->horizontalHeader()->setStretchLastSection(true);
+
         emit selectPoint(namePoint);
     }
 }
@@ -226,7 +239,7 @@ void cQT_Interface::changeState(int state, int idPt)
             {
                 DeletePoint( aPIm->Gl() );
                 int idPG = idPointGlobal(aPIm->Gl());
-                m_QTMainWindow->tableView()->hideRow(idPG);
+                m_QTMainWindow->tableView_PG()->hideRow(idPG);
             }
             else
 
@@ -253,7 +266,7 @@ void cQT_Interface::removePoint(QString aName)
 
         int idPG = idPointGlobal(aPt);
 
-        m_QTMainWindow->tableView()->hideRow(idPG);
+        m_QTMainWindow->tableView_PG()->hideRow(idPG);
 
     }
 }
@@ -608,7 +621,7 @@ void cQT_Interface::AddUndo(cOneSaisie *aSom)
 cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 {
 
-    QItemSelectionModel *selModel = m_QTMainWindow->tableView()->selectionModel();
+    QItemSelectionModel *selModel = m_QTMainWindow->tableView_PG()->selectionModel();
 
     if (selModel->currentIndex().column() != 0)
         return _cNamePt;
