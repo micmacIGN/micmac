@@ -82,8 +82,6 @@ signals:
 
     void                selectPoint(std::string ptName);
 
-    void                pointAdded(cSP_PointeImage * aPIm = NULL);
-
     void                dataChanged();
 
 public slots:
