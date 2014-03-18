@@ -53,6 +53,17 @@ QTreeView:item:hover
     color: #000000;
 }
 
+QTableView
+{
+	gridline-color: gray 
+}
+
+QTableView:item:hover
+{
+    background-color: #ffa02f;
+    color: #000000;
+}
+
 QFrame[frameShape=&quot;1&quot;]
 {
 	border: 1px solid #707070;
@@ -307,10 +318,10 @@ QPlainTextEdit
 
 QHeaderView::section
 {
-    background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #616161, stop: 0.5 #505050, stop: 0.6 #434343, stop:1 #656565);
+    background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:0 #616161, /*stop: 0.5 #505050, stop: 0.6 #434343, */stop:1 #656565);
     color: white;
     padding-left: 4px;
-    border: 1px solid #6c6c6c;
+    border: 1px solid gray;
 }
 
 QCheckBox:disabled
@@ -768,7 +779,26 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
           </widget>
          </item>
          <item>
-          <widget class="QTableView" name="tableView"/>
+          <widget class="QTableView" name="tableView">
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustIgnored</enum>
+           </property>
+           <property name="gridStyle">
+            <enum>Qt::SolidLine</enum>
+           </property>
+           <attribute name="horizontalHeaderStretchLastSection">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
+          </widget>
          </item>
         </layout>
        </widget>
