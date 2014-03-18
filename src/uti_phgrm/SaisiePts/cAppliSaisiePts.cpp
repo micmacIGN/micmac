@@ -721,7 +721,6 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
 
     case eEPI_NonValue :
     case eEPI_Highlight :
-    case eEPI_Deleted :
         break;
     }
 
