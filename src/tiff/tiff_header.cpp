@@ -2307,7 +2307,8 @@ std::string NameFileStd
                            + std::string(" " + aNameCoul + aNameReech + "=1 ")
                            + (DoReech ?  std::string(" Cal=" + aNameCal + " ") : "")
                            + " NameOut=" + aNewName
-                           + " UseFF="  + (  (Bits16||(aNbChanSpec==3)) ? "0" : "1")  // Flat Field en Gray-8Bits
+                           // MPD : je ne comprend plus pourquoi il faut anihiler le flat field dans ces conditions
+                           // + " UseFF="  + (  (Bits16||(aNbChanSpec==3)) ? "0" : "1")  // Flat Field en Gray-8Bits
                          ;
 
        if (! Bits16)
