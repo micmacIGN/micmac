@@ -3,6 +3,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/cTD_SetAppuis.cpp
 	${TDPPMD_DIR}/TD_Exemple.cpp
 	${TDPPMD_DIR}/cTD_Im.cpp
+	${TDPPMD_DIR}/ExoMM_CorrelMulImage.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
