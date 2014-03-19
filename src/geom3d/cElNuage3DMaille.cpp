@@ -803,7 +803,7 @@ void cElNuage3DMaille::PlyPutFile
 }
 
 
-void cElNuage3DMaille::NuageXZGCOL(const std::string & aName)
+void cElNuage3DMaille::NuageXZGCOL(const std::string & aName,bool B64)
 {
    AssertNoEmptyData();
    std::string aNameXYZ = aName+"_XYZ.tif";
@@ -811,11 +811,11 @@ void cElNuage3DMaille::NuageXZGCOL(const std::string & aName)
    L_Arg_Opt_Tiff aL;
    aL = aL+Arg_Tiff(Tiff_Im::ANoStrip());
 
-   Tiff_Im aXYZ(aNameXYZ.c_str(),mSzData,GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::RGB,aL);
+   Tiff_Im aXYZ(aNameXYZ.c_str(),mSzData, B64 ? GenIm::real8 : GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::RGB,aL);
     
-   Im2D_REAL4 aImX(mSzData.x,mSzData.y,0.0);
-   Im2D_REAL4 aImY(mSzData.x,mSzData.y,0.0);
-   Im2D_REAL4 aImZ(mSzData.x,mSzData.y,0.0);
+   Im2D_REAL8 aImX(mSzData.x,mSzData.y,0.0);
+   Im2D_REAL8 aImY(mSzData.x,mSzData.y,0.0);
+   Im2D_REAL8 aImZ(mSzData.x,mSzData.y,0.0);
 
    Pt2di anI;
    for (anI.x=0 ; anI.x<mSzData.x ; anI.x++)

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2082]) = {
+const char * (theNameVar_ParamMICMAC[2083]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -2024,6 +2024,7 @@ const char * (theNameVar_ParamMICMAC[2082]) = {
 "          <SL_PackHom0 Nb=\"?\" Type=\"std::string\" Def=\"\"> </SL_PackHom0>\n",
 "	  <SL_RedrOnCur Nb=\"?\" Type=\"bool\" Def=\"false\">   </SL_RedrOnCur>\n",
 "	  <SL_NewRedrCur   Nb=\"?\" Type=\"bool\" Def=\"false\">   </SL_NewRedrCur>\n",
+"	  <SL_L2Estim   Nb=\"?\" Type=\"bool\" Def=\"true\">   </SL_L2Estim>\n",
 "\n",
 "\n",
 "          <SL_FILTER Nb=\"?\" Type=\"std::vector<std::string>\"> </SL_FILTER>\n",

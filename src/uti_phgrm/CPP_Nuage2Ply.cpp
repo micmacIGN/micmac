@@ -160,7 +160,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     }
     if (DoXYZ)
     {
-        aRes->NuageXZGCOL(StdPrefix(aNameNuage));
+        aRes->NuageXZGCOL(StdPrefix(aNameNuage),DoublePrec);
     }
 
     cElWarning::ShowWarns(DirOfFile(aNameNuage)  + "WarnNuage2Ply.txt");
