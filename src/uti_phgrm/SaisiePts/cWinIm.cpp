@@ -491,7 +491,7 @@ void  cWinIm::SetPt(Clik aClk)
     if (! aClk.controled())
     {
         Pt2dr aP = FindPoint(mScr->to_user(mNewPt),aPG->Type(),aPG->SzRech().ValWithDef(3.0),aPG);
-        if (aP==cWinIm::PtsEchec)
+        if (aP==mAppli.Interface()->PtEchec)
             return;
         aP = mScr->to_win(aP);
         if (euclid(aP,mNewPt)>1e-3)
