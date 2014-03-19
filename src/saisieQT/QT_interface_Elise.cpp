@@ -265,8 +265,31 @@ void cQT_Interface::changeState(int state, int idPt)
                 m_QTMainWindow->tableView_PG()->hideRow(idPG);
             }
             else
-
+            {
                 ChangeState(aPIm, aState);
+
+                float zoom = m_QTMainWindow->currentWidget()->getZoom();
+
+                cPointGlob* pg = aPIm->Gl()->PG();
+
+                for (int i = 0; i < m_QTMainWindow->nbWidgets(); ++i)
+                {
+                    cImage* image = mAppli->image(cImageIdx(i));
+                    cSP_PointeImage* ptI = image->PointeOfNameGlobSVP(pg->Name());
+
+                    if(ptI && ptI!=aPIm && ptI->Visible())
+                    {
+                        cOneSaisie* sPt = ptI->Saisie();
+                        if(sPt)
+                        {
+                            QPointF pt(sPt->PtIm().x,image->SzIm().y - sPt->PtIm().y);
+                            m_QTMainWindow->getWidget(i)->setZoom(zoom);
+                            m_QTMainWindow->getWidget(i)->centerViewportOnImagePosition(pt);
+
+                        }
+                    }
+                }
+            }
 
             rebuildGlPoints(aPIm);
 
