@@ -36,7 +36,7 @@ const mode_t cElFilename::posixMask = (mode_t)( (1<<13)-1 );
    unsigned int cElCommandToken::__nb_created = 0;
    unsigned int cElCommandToken::__nb_distroyed = 0;
 #endif
-   
+
 ctPath getWorkingDirectory()
 {
    #if (ELISE_windows)
@@ -120,39 +120,39 @@ cElCommandToken * cElCommandToken::allocate( CmdTokenType i_type, const std::str
 void cElCommandToken::to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const
 {
    // copy type
-   int4_to_raw_data( (INT4)type(), i_reverseByteOrder, o_rawData );   
+   int4_to_raw_data( (INT4)type(), i_reverseByteOrder, o_rawData );
    // copy value
    string_to_raw_data( str(), i_reverseByteOrder, o_rawData );
 }
 
 cElCommandToken * cElCommandToken::from_raw_data( char const *&io_rawData, bool i_reverseByteOrder )
-{   
+{
    // copy type
    INT4 i4;
    int4_from_raw_data( io_rawData, i_reverseByteOrder, i4 );
-      
+
    #ifdef __DEBUG_C_EL_COMMAND
       if ( !isCommandTokenType(i4) )
       {
-	 cerr << RED_DEBUG_ERROR << "cElCommandToken::from_raw_data: invalid token type" << endl;
-	 exit(-1);
+     cerr << RED_DEBUG_ERROR << "cElCommandToken::from_raw_data: invalid token type" << endl;
+     exit(-1);
       }
    #endif
-   
+
    // copy string value of the token
    string value;
    string_from_raw_data( io_rawData, i_reverseByteOrder, value );
-      
+
    cElCommandToken *res = allocate( (CmdTokenType)i4, value );
-   
+
    #ifdef __DEBUG_C_EL_COMMAND
       if ( res==NULL )
       {
-	 cerr << RED_DEBUG_ERROR << "cElCommand::from_raw_data: allocate( " << CmdTokenType_to_string((CmdTokenType)i4) << ", [" << value << "] ) returned NULL" << endl;
-	 exit(-1);
+     cerr << RED_DEBUG_ERROR << "cElCommand::from_raw_data: allocate( " << CmdTokenType_to_string((CmdTokenType)i4) << ", [" << value << "] ) returned NULL" << endl;
+     exit(-1);
       }
    #endif
-      
+
    return res;
 }
 
@@ -181,15 +181,15 @@ cElCommand & cElCommand::operator =( const cElCommand &i_b )
 cElCommandToken & cElCommand::add( const cElCommandToken &i_token )
 {
    cElCommandToken *res = cElCommandToken::copy( i_token );
-   
+
    #ifdef __DEBUG_C_EL_COMMAND
       if ( res==NULL )
       {
-	 cerr <<  "cElCommand::add: cElCommandToken::copy returned NULL" << endl;
-	 ElEXIT(EXIT_FAILURE,"");
+     cerr <<  "cElCommand::add: cElCommandToken::copy returned NULL" << endl;
+     ElEXIT(EXIT_FAILURE,"");
       }
    #endif
-   
+
    m_tokens.push_back( res );
    return *res;
 }
@@ -214,39 +214,39 @@ string cElCommand::str() const
    while ( itToken!=m_tokens.end() ) res.append( separator+(*itToken++)->str() );
    return res;
 }
-   
+
 // read/write in raw binary format
 void cElCommand::from_raw_data( char const *&io_rawData, bool i_reverseByteOrder )
 {
    #ifdef __DEBUG_C_EL_COMMAND
       const char *rawData = io_rawData;
    #endif
-   
+
    clear();
-   
+
    // write number of tokens
    U_INT4 nbTokens;
    uint4_from_raw_data( io_rawData, i_reverseByteOrder, nbTokens );
-   
+
    // write tokens
    while ( nbTokens-- )
       m_tokens.push_back( cElCommandToken::from_raw_data( io_rawData, i_reverseByteOrder ) );
-      
+
    #ifdef __DEBUG_C_EL_COMMAND
       if ( rawData>io_rawData || (U_INT8)(io_rawData-rawData)!=raw_size() )
       {
-	 cerr << RED_DEBUG_ERROR << "cElCommand::from_raw_data: " << (U_INT8)(io_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
-	 exit(EXIT_FAILURE);
+     cerr << RED_DEBUG_ERROR << "cElCommand::from_raw_data: " << (U_INT8)(io_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
+     exit(EXIT_FAILURE);
       }
    #endif
 }
 
 void cElCommand::to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const
-{   
+{
    #ifdef __DEBUG_C_EL_COMMAND
       char *rawData = o_rawData;
    #endif
-   
+
    // copy number of tokens
    uint4_to_raw_data( (U_INT4)m_tokens.size(), i_reverseByteOrder, o_rawData );
 
@@ -254,12 +254,12 @@ void cElCommand::to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const
    list<cElCommandToken*>::const_iterator itToken = m_tokens.begin();
    while ( itToken!=m_tokens.end() )
       ( *itToken++ )->to_raw_data( i_reverseByteOrder, o_rawData );
-   
+
    #ifdef __DEBUG_C_EL_COMMAND
       if ( rawData>o_rawData || (U_INT8)(o_rawData-rawData)!=raw_size() )
       {
-	 cerr << RED_DEBUG_ERROR << "cElCommand::to_raw_data: " << (U_INT8)(o_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
-	 exit(EXIT_FAILURE);
+     cerr << RED_DEBUG_ERROR << "cElCommand::to_raw_data: " << (U_INT8)(o_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
+     exit(EXIT_FAILURE);
       }
    #endif
 }
@@ -279,7 +279,7 @@ void cElCommand::write( ostream &io_ostream, bool i_inverseByteOrder ) const
    U_INT4 nbTokens = m_tokens.size();
    if ( i_inverseByteOrder ) byte_inv_4( &nbTokens );
    io_ostream.write( (char*)&nbTokens, 4 );
-   
+
    // write tokens
    string str;
    INT4 typeToWrite;
@@ -290,10 +290,10 @@ void cElCommand::write( ostream &io_ostream, bool i_inverseByteOrder ) const
       typeToWrite = (INT4)(*itToken)->type();
       if ( i_inverseByteOrder ) byte_inv_4( &typeToWrite );
       io_ostream.write( (char*)(&typeToWrite), 4 );
-      
+
       // write token's string value
       write_string( ( *itToken )->str(), io_ostream, i_inverseByteOrder );
-      
+
       itToken++;
    }
 }
@@ -304,23 +304,23 @@ void cElCommand::read( istream &io_istream, bool i_inverseByteOrder )
    INT4 readType;
    vector<char> buffer;
    string str;
-   
+
    clear();
-   
+
    // read number of tokens
    io_istream.read( (char*)&nbTokens, 4 );
    if ( i_inverseByteOrder ) byte_inv_4( &nbTokens );
-   
+
    // read tokens
    while ( nbTokens-- )
    {
       // read token's type
       io_istream.read( (char*)(&readType), 4 );
       if ( i_inverseByteOrder ) byte_inv_4( &readType );
-      
+
       // read token's string value
       str = read_string( io_istream, buffer, i_inverseByteOrder );
-      
+
       // create a new token
       m_tokens.push_back( cElCommandToken::allocate( (CmdTokenType)readType, str ) );
    }
@@ -335,20 +335,20 @@ void cElCommand::set_raw( const std::string &i_str )
 void cElCommand::add_raw( const std::string &i_str )
 {
    clear();
-   
+
    if ( i_str.length()==0 ) return;
-   
+
    char *itToken = strtok( strdup( i_str.c_str() ), " " );
    ctRawString *newToken;
    while ( itToken!=NULL )
    {
       newToken = new ctRawString( string(itToken) );
       #ifdef __DEBUG_C_EL_COMMAND
-	 if ( newToken==NULL )
-	 {
-	    cerr << "ERROR: cElCommand::cElCommand(string): new ctRawString returned NULL" << endl;
-	    ElEXIT(EXIT_FAILURE,(std::string("cElCommand::add_raw with i_str=")+i_str));
-	 }
+     if ( newToken==NULL )
+     {
+        cerr << "ERROR: cElCommand::cElCommand(string): new ctRawString returned NULL" << endl;
+        ElEXIT(EXIT_FAILURE,(std::string("cElCommand::add_raw with i_str=")+i_str));
+     }
       #endif
       m_tokens.push_back( newToken );
       itToken = strtok( NULL, " " );
@@ -361,9 +361,9 @@ bool cElCommand::system() const
    int res;
    #if (ELISE_windows)
       if ( command.size()!=0 && command[0]=='\"' )
-	 res = system_call( ( string("\"")+command+"\"" ).c_str() );
+     res = system_call( ( string("\"")+command+"\"" ).c_str() );
       else
-	 res = system_call( command.c_str() );
+     res = system_call( command.c_str() );
    #elif (ELISE_POSIX)
       res = system_call( command.c_str() );
    #else
@@ -379,41 +379,41 @@ bool cElCommand::replace( const map<string,string> &i_dictionary )
    while ( itToken!=m_tokens.end() )
    {
       string str = (*itToken)->str();
-      	 
+
       // replace expression from dictionary
       size_t pos;
       bool tokenHasBeenModified = false;
       map<string,string>::const_iterator itDico = i_dictionary.begin();
       while ( itDico!=i_dictionary.end() )
       {
-	 pos=str.find( itDico->first );
-	 if ( pos!=string::npos && pos!=0 && pos!=str.length()-1 )
-	 {
-	    str.insert( pos, itDico->second );
-	    str.erase( pos+itDico->second.length(), itDico->first.length() );
-	    tokenHasBeenModified = true;
-	 }
-	 itDico++;
+     pos=str.find( itDico->first );
+     if ( pos!=string::npos && pos!=0 && pos!=str.length()-1 )
+     {
+        str.insert( pos, itDico->second );
+        str.erase( pos+itDico->second.length(), itDico->first.length() );
+        tokenHasBeenModified = true;
+     }
+     itDico++;
       }
-      
+
       if ( tokenHasBeenModified )
-      {	 
-	 // recreate a token of the same type with the new string
-	 const CmdTokenType type = (*itToken)->type();
-	 delete *itToken;
-	 switch ( type )
-	 {
-	 case CTT_RawString: *itToken=new ctRawString( str ); break;
-	 case CTT_Path: cerr << "cElCommand::replace: type CTT_Path not implemented" << endl; break;
-	 case CTT_Basename: cerr << "cElCommand::replace: type CTT_Basename not implemented" << endl; break;
-	 case CTT_RegEx: cerr << "cElCommand::replace: type CTT_RegEx not implemented" << endl; break;
-	 case CTT_Filename: cerr << "cElCommand::replace: type CTT_Filename not implemented" << endl; break;
-	 case CTT_PathRegEx: cerr << "cElCommand::replace: type CTT_PathRegEx not implemented" << endl; break;
-	 case CTT_Prefix: cerr << "cElCommand::replace: type CTT_Prefix not implemented" << endl; break;
-	 }
-	 commandHasBeenModified = true;
+      {
+     // recreate a token of the same type with the new string
+     const CmdTokenType type = (*itToken)->type();
+     delete *itToken;
+     switch ( type )
+     {
+     case CTT_RawString: *itToken=new ctRawString( str ); break;
+     case CTT_Path: cerr << "cElCommand::replace: type CTT_Path not implemented" << endl; break;
+     case CTT_Basename: cerr << "cElCommand::replace: type CTT_Basename not implemented" << endl; break;
+     case CTT_RegEx: cerr << "cElCommand::replace: type CTT_RegEx not implemented" << endl; break;
+     case CTT_Filename: cerr << "cElCommand::replace: type CTT_Filename not implemented" << endl; break;
+     case CTT_PathRegEx: cerr << "cElCommand::replace: type CTT_PathRegEx not implemented" << endl; break;
+     case CTT_Prefix: cerr << "cElCommand::replace: type CTT_Prefix not implemented" << endl; break;
+     }
+     commandHasBeenModified = true;
       }
-      
+
       itToken++;
    }
    return commandHasBeenModified;
@@ -453,17 +453,17 @@ ctPath::ctPath( const string &i_path )
       size_t iPath = path.size();
       while ( iPath-- )
       {
-	 if ( *itPath==unix_separator || *itPath==windows_separator ) *itPath='\0';
-	 itPath++;
+     if ( *itPath==unix_separator || *itPath==windows_separator ) *itPath='\0';
+     itPath++;
       }
       // append all strings in the token list
       itPath  = &path[0];
       const char * const pathEnd = itPath+pathLength;
       while ( itPath<pathEnd )
       {
-	 string tokenString(itPath);
-	 append( ctPath::Token( tokenString ) );
-	 itPath += tokenString.length()+1;
+     string tokenString(itPath);
+     append( ctPath::Token( tokenString ) );
+     itPath += tokenString.length()+1;
       }
    }
    m_normalizedName = str(unix_separator);
@@ -478,41 +478,41 @@ ctPath::ctPath( const cElFilename &i_filename )
 
 void ctPath::append( const Token &i_token )
 {
-	if ( i_token=="." ) return;
-	if ( m_tokens.size()>0 && i_token==".." && (*m_tokens.rbegin())!=".." ){
-		#ifdef __DEBUG_C_EL_COMMAND
-		if ( m_tokens.size()==1 && m_tokens.begin()->isRoot() ){
-			cerr << "ERROR: ctPath::append(Token): path is higher than root" << endl;
-			exit(EXIT_FAILURE);
-		}
-		#endif
-		m_tokens.pop_back(); return;
-	}
-	m_tokens.push_back( i_token );
-	m_normalizedName = str(unix_separator);
+    if ( i_token=="." ) return;
+    if ( m_tokens.size()>0 && i_token==".." && (*m_tokens.rbegin())!=".." ){
+        #ifdef __DEBUG_C_EL_COMMAND
+        if ( m_tokens.size()==1 && m_tokens.begin()->isRoot() ){
+            cerr << "ERROR: ctPath::append(Token): path is higher than root" << endl;
+            exit(EXIT_FAILURE);
+        }
+        #endif
+        m_tokens.pop_back(); return;
+    }
+    m_tokens.push_back( i_token );
+    m_normalizedName = str(unix_separator);
 }
 
 void ctPath::append( const ctPath &i_path )
 {
-	if ( i_path.isAbsolute() ){
-		#ifdef __DEBUG_C_EL_COMMAND
-			cerr << "ERROR: ctPath::append : appening absolute path [" << i_path.str() << "] to a directory [" << str() << "]" << endl;
-		#endif
-		return;
-	}
-	list<ctPath::Token>::const_iterator itToken = i_path.m_tokens.begin();
-	while ( itToken!=i_path.m_tokens.end() ) append( *itToken++ );
-	m_normalizedName = str(unix_separator);
+    if ( i_path.isAbsolute() ){
+        #ifdef __DEBUG_C_EL_COMMAND
+            cerr << "ERROR: ctPath::append : appening absolute path [" << i_path.str() << "] to a directory [" << str() << "]" << endl;
+        #endif
+        return;
+    }
+    list<ctPath::Token>::const_iterator itToken = i_path.m_tokens.begin();
+    while ( itToken!=i_path.m_tokens.end() ) append( *itToken++ );
+    m_normalizedName = str(unix_separator);
 }
 
 void ctPath::trace( ostream &io_stream ) const
 {
    io_stream << m_tokens.size() << ' ';
-   
+
    list<ctPath::Token>::const_iterator itToken = m_tokens.begin();
    while ( itToken!=m_tokens.end() )
       io_stream << "[" << (*itToken++) << "]";
-   
+
    io_stream << ' ' << (isAbsolute()?"absolute":"relative") << endl;
 }
 
@@ -530,9 +530,9 @@ string ctPath::str( char i_separator ) const
 int ctPath::compare( const ctPath &i_b ) const
 {
    list<ctPath::Token>::const_iterator itA = m_tokens.begin(),
-				       itB = i_b.m_tokens.begin();
+                       itB = i_b.m_tokens.begin();
    while ( itA!=m_tokens.end() &&
-	   itB!=i_b.m_tokens.end() )
+       itB!=i_b.m_tokens.end() )
    {
       int compare = ( *itA++ ).compare( *itB++ );
       if ( compare!=0 ) return compare;
@@ -557,69 +557,69 @@ bool ctPath::isInvalid() const { return false; }
 
 bool ctPath::exists() const
 {
-	#ifdef _MSC_VER
-		string s = str();
-		s.resize( s.length()-1 );
-		return ELISE_fp::IsDirectory(s); // windows' stat function does not accept trailing '\' or '/'
-	#endif
-	return ELISE_fp::IsDirectory( str() );
+    #ifdef _MSC_VER
+        string s = str();
+        s.resize( s.length()-1 );
+        return ELISE_fp::IsDirectory(s); // windows' stat function does not accept trailing '\' or '/'
+    #endif
+    return ELISE_fp::IsDirectory( str() );
 }
 
 bool ctPath::create() const
 {
-	if ( m_tokens.size()==0 || ( m_tokens.size()==1 && m_tokens.front().isRoot() ) ) return true;
-	#ifdef _MSC_VER
-		string path = str(windows_separator);
-		#ifdef __DEBUG_C_EL_COMMAND
-			if ( path.length()>248 ){
-				cerr << RED_DEBUG_ERROR << "ctPath::create: paths are limited to 248 characters for creation" << endl;
-				exit(EXIT_FAILURE);
-			}
-		#endif
-		CreateDirectory( path.c_str(), NULL );
-	#else
-		ELISE_fp::MkDirRec( str() );
-	#endif
-	return exists();
+    if ( m_tokens.size()==0 || ( m_tokens.size()==1 && m_tokens.front().isRoot() ) ) return true;
+    #ifdef _MSC_VER
+        string path = str(windows_separator);
+        #ifdef __DEBUG_C_EL_COMMAND
+            if ( path.length()>248 ){
+                cerr << RED_DEBUG_ERROR << "ctPath::create: paths are limited to 248 characters for creation" << endl;
+                exit(EXIT_FAILURE);
+            }
+        #endif
+        CreateDirectory( path.c_str(), NULL );
+    #else
+        ELISE_fp::MkDirRec( str() );
+    #endif
+    return exists();
 }
 
 bool ctPath::getContent( list<cElFilename> &o_files ) const
 {
-	o_files.clear();
-	#if ELISE_POSIX
-		string normalizedName = m_normalizedName;
-            
-		DIR *d;
-		struct dirent *dir;
-		d = opendir( normalizedName.c_str() );
-      
-		if ( d==NULL ) return false;
-      
-		while ( ( dir=readdir(d) )!=NULL ){
-			if ( strcmp( dir->d_name, "." )!=0 && strcmp( dir->d_name, ".." ) )
-			o_files.push_back( cElFilename( *this, string( dir->d_name ) ) );
-		}
+    o_files.clear();
+    #if ELISE_POSIX
+        string normalizedName = m_normalizedName;
 
-		closedir(d);
-		return true;
-	#elif _MSC_VER
-		WIN32_FIND_DATA ffd;
-		HANDLE hFind = FindFirstFile( (str(windows_separator)+"*").c_str(), &ffd );
-		string filename;
+        DIR *d;
+        struct dirent *dir;
+        d = opendir( normalizedName.c_str() );
 
-		if ( hFind==INVALID_HANDLE_VALUE ) return false;
+        if ( d==NULL ) return false;
 
-		// while we keep finding new files
-		do{
-			// do not add parent directory nor current directory symbols
-			if ( ( strcmp(ffd.cFileName, ".")!=0 ) && ( strcmp(ffd.cFileName, "..")!=0 ) ) o_files.push_back( cElFilename(*this,string( ffd.cFileName )) );
-		} while ( FindNextFile( hFind, &ffd )!=0 );
+        while ( ( dir=readdir(d) )!=NULL ){
+            if ( strcmp( dir->d_name, "." )!=0 && strcmp( dir->d_name, ".." ) )
+            o_files.push_back( cElFilename( *this, string( dir->d_name ) ) );
+        }
 
-		FindClose(hFind);
-		return true;
-	#else
-		not implemented
-	#endif
+        closedir(d);
+        return true;
+    #elif _MSC_VER
+        WIN32_FIND_DATA ffd;
+        HANDLE hFind = FindFirstFile( (str(windows_separator)+"*").c_str(), &ffd );
+        string filename;
+
+        if ( hFind==INVALID_HANDLE_VALUE ) return false;
+
+        // while we keep finding new files
+        do{
+            // do not add parent directory nor current directory symbols
+            if ( ( strcmp(ffd.cFileName, ".")!=0 ) && ( strcmp(ffd.cFileName, "..")!=0 ) ) o_files.push_back( cElFilename(*this,string( ffd.cFileName )) );
+        } while ( FindNextFile( hFind, &ffd )!=0 );
+
+        FindClose(hFind);
+        return true;
+    #else
+        not implemented
+    #endif
 }
 
 bool ctPath::getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_directories, bool i_isRecursive ) const
@@ -632,73 +632,73 @@ bool ctPath::getContent( std::list<cElFilename> &o_files, std::list<ctPath> &o_d
    {
       list<ctPath>::iterator itPath = o_directories.begin();
       while ( itPath!=o_directories.end() )
-	 ( *itPath++ ).getContent( o_files, o_directories, false );
+     ( *itPath++ ).getContent( o_files, o_directories, false );
    }
-   
+
    return true;
 }
 
 bool ctPath::removeEmpty() const
 {
    if ( isWorkingDirectory() ) return false; // cannot remove working directory
-   
-	#if ELISE_POSIX
-		if ( rmdir( str().c_str() )!=0 ) return false;
-	#else
-		string path = str(windows_separator);
-		#ifdef __DEBUG_C_EL_COMMAND
-			if ( path.length()>MAX_PATH ){
-				cerr << RED_DEBUG_ERROR << "ctPath::remove_empty: paths are limited to " << MAX_PATH << " characters" << endl;
-				exit(EXIT_FAILURE);
-			}
-		#endif
-		RemoveDirectory( path.c_str() );
-	#endif
 
-	return !exists();
+    #if ELISE_POSIX
+        if ( rmdir( str().c_str() )!=0 ) return false;
+    #else
+        string path = str(windows_separator);
+        #ifdef __DEBUG_C_EL_COMMAND
+            if ( path.length()>MAX_PATH ){
+                cerr << RED_DEBUG_ERROR << "ctPath::remove_empty: paths are limited to " << MAX_PATH << " characters" << endl;
+                exit(EXIT_FAILURE);
+            }
+        #endif
+        RemoveDirectory( path.c_str() );
+    #endif
+
+    return !exists();
 }
 
 static bool __ctPath_sup( const ctPath &i_a, const ctPath &i_b ){ return i_a>i_b; }
 
 bool ctPath::removeContent() const
-{   
+{
    list<cElFilename> contentFiles;
    list<ctPath> contentPaths;
    if ( !getContent( contentFiles, contentPaths, true/*recursive*/ ) ){
-		#ifdef __DEBUG_C_EL_COMMAND
-			cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot get content of directory [" << str() <<']' << endl;
-			exit(EXIT_FAILURE);
-		#endif
-	   return false;
+        #ifdef __DEBUG_C_EL_COMMAND
+            cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot get content of directory [" << str() <<']' << endl;
+            exit(EXIT_FAILURE);
+        #endif
+       return false;
    }
 
-	// remove all files
-	list<cElFilename>::const_iterator itFile = contentFiles.begin();
-	while ( itFile!=contentFiles.end() ){
-		if ( !itFile->remove() ){
-			#ifdef __DEBUG_C_EL_COMMAND
-				cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove file [" << itFile->str_unix() <<']' << endl;
-				exit(EXIT_FAILURE);
-			#endif
-			return false;
-		}
-		itFile++;
-	}
+    // remove all files
+    list<cElFilename>::const_iterator itFile = contentFiles.begin();
+    while ( itFile!=contentFiles.end() ){
+        if ( !itFile->remove() ){
+            #ifdef __DEBUG_C_EL_COMMAND
+                cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove file [" << itFile->str_unix() <<']' << endl;
+                exit(EXIT_FAILURE);
+            #endif
+            return false;
+        }
+        itFile++;
+    }
 
-	// remove all empty directories
-	contentPaths.sort( __ctPath_sup ); // sort in reverse order so that subdirectories come before their parents
-	list<ctPath>::const_iterator itPath = contentPaths.begin();
-	while ( itPath!=contentPaths.end() ){
-		if ( !itPath->removeEmpty() ){
-			#ifdef __DEBUG_C_EL_COMMAND
-				cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove directory [" << itPath->str() <<']' << endl;
-				exit(EXIT_FAILURE);
-			#endif
-			return false;
-		}
-		itPath++;
-	}
-   
+    // remove all empty directories
+    contentPaths.sort( __ctPath_sup ); // sort in reverse order so that subdirectories come before their parents
+    list<ctPath>::const_iterator itPath = contentPaths.begin();
+    while ( itPath!=contentPaths.end() ){
+        if ( !itPath->removeEmpty() ){
+            #ifdef __DEBUG_C_EL_COMMAND
+                cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove directory [" << itPath->str() <<']' << endl;
+                exit(EXIT_FAILURE);
+            #endif
+            return false;
+        }
+        itPath++;
+    }
+
    return true;
 }
 
@@ -715,7 +715,7 @@ unsigned int ctPath::count_upward_references() const
    }
    return count;
 }
-   
+
 // returns if path contains i_path or is i_path
 bool ctPath::isAncestorOf( const ctPath &i_path ) const
 {
@@ -724,7 +724,7 @@ bool ctPath::isAncestorOf( const ctPath &i_path ) const
    const ctPath workingDirectory = getWorkingDirectory();
    absoluteParent.toAbsolute( workingDirectory );
    absoluteChild.toAbsolute( workingDirectory );
-      
+
    list<Token>::const_iterator itParent = absoluteParent.m_tokens.begin(),
                                itChild = absoluteChild.m_tokens.begin();
    while ( itParent!=absoluteParent.m_tokens.end() && itChild!=absoluteChild.m_tokens.end() && *itChild==*itParent ){
@@ -734,7 +734,7 @@ bool ctPath::isAncestorOf( const ctPath &i_path ) const
 }
 
 bool ctPath::isAncestorOf( const cElFilename &i_filename ) const { return isAncestorOf( i_filename.m_path ); }
-   
+
 bool ctPath::isEmpty() const
 {
    list<cElFilename> content;
@@ -790,14 +790,14 @@ bool cElFilename::isDirectory() const { return ctPath( *this ).exists(); }
 bool cElFilename::remove() const
 {
    ELISE_fp::RmFile( str_unix() );
-   
+
    #ifdef __DEBUG_C_EL_COMMAND
       if ( exists() ){
-		 cerr << RED_DEBUG_ERROR << "cElFilename::remove: cannot remove file [" << str_unix() << ']' << endl;
-		 exit(EXIT_FAILURE);
+         cerr << RED_DEBUG_ERROR << "cElFilename::remove: cannot remove file [" << str_unix() << ']' << endl;
+         exit(EXIT_FAILURE);
       }
    #endif
-   
+
    return !exists();
 }
 
@@ -824,26 +824,26 @@ U_INT8 cElFilename::getSize() const
 // take a list of filenames and split it into a list of existing filenames and existing directories
 void specialize_filenames( const list<cElFilename> &i_filenames, list<cElFilename> &o_filenames, list<ctPath> &o_paths )
 {
-	list<cElFilename>::const_iterator itFilename = i_filenames.begin();
-	while ( itFilename!=i_filenames.end() )
-	{
-		#ifdef __DEBUG_C_EL_COMMAND
-			if ( itFilename->exists() && itFilename->isDirectory() ){
-				cerr << RED_DEBUG_ERROR << "specialize_filenames: filename [" << itFilename->str_unix() << "] is both an existing file and an existing directory " << endl;
-				exit(EXIT_FAILURE);
-			}
-		#endif
-      
-		if ( itFilename->exists() )	o_filenames.push_back( *itFilename );
-		else if ( itFilename->isDirectory() ) o_paths.push_back( ctPath(*itFilename) );
-		#ifdef __DEBUG_C_EL_COMMAND
-			else{
-				cerr << "ERROR: specialize_filenames: filename [" << itFilename->str_unix() << "] is neither an existing file nor an existing directory " << endl;
-				exit(EXIT_FAILURE);
-			}
-		#endif
-		itFilename++;
-	}
+    list<cElFilename>::const_iterator itFilename = i_filenames.begin();
+    while ( itFilename!=i_filenames.end() )
+    {
+        #ifdef __DEBUG_C_EL_COMMAND
+            if ( itFilename->exists() && itFilename->isDirectory() ){
+                cerr << RED_DEBUG_ERROR << "specialize_filenames: filename [" << itFilename->str_unix() << "] is both an existing file and an existing directory " << endl;
+                exit(EXIT_FAILURE);
+            }
+        #endif
+
+        if ( itFilename->exists() )	o_filenames.push_back( *itFilename );
+        else if ( itFilename->isDirectory() ) o_paths.push_back( ctPath(*itFilename) );
+        #ifdef __DEBUG_C_EL_COMMAND
+            else{
+                cerr << "ERROR: specialize_filenames: filename [" << itFilename->str_unix() << "] is neither an existing file nor an existing directory " << endl;
+                exit(EXIT_FAILURE);
+            }
+        #endif
+        itFilename++;
+    }
 }
 
 string CmdTokenType_to_string( CmdTokenType i_type )
@@ -871,9 +871,9 @@ string generate_random_string( unsigned int i_strLength )
    {
       c = (char)(rand()%26);
       if ( (rand()%2)==0 )
-	 c += 65;
+     c += 65;
       else
-	 c += 97;
+     c += 97;
       randomName[i] = c;
    }
    return randomName;
@@ -900,7 +900,7 @@ void string_to_raw_data( const std::string &i_str, bool i_reverseByteOrder, char
 {
    // copy length
    const size_t length = i_str.length();
-   uint4_to_raw_data( (U_INT4)length, i_reverseByteOrder, o_rawData );   
+   uint4_to_raw_data( (U_INT4)length, i_reverseByteOrder, o_rawData );
    // copy characters
    memcpy( o_rawData, i_str.c_str(), length );
    o_rawData += length;
@@ -909,7 +909,7 @@ void string_to_raw_data( const std::string &i_str, bool i_reverseByteOrder, char
 bool isCommandTokenType( int i_v )
 {
    return ( i_v==(int)CTT_RawString ||
-	    i_v==(int)CTT_Path ||
+        i_v==(int)CTT_Path ||
             i_v==(int)CTT_Basename ||
             i_v==(int)CTT_RegEx ||
             i_v==(int)CTT_Filename ||
@@ -919,21 +919,21 @@ bool isCommandTokenType( int i_v )
 
 std::string file_rights_to_string( mode_t i_rights )
 {
-	string res("___/___/___");
-	#if ELISE_POSIX
-	   // rigths for owner
-	   res[0] = ( (i_rights&S_IRUSR)==0 )?'-':'r';
-	   res[1] = ( (i_rights&S_IWUSR)==0 )?'-':'w';
-	   res[2] = ( (i_rights&S_IXUSR)==0 )?'-':'x';
-	   // rights for group
-	   res[4] = ( (i_rights&S_IRGRP)==0 )?'-':'r';
-	   res[5] = ( (i_rights&S_IWGRP)==0 )?'-':'w';
-	   res[6] = ( (i_rights&S_IXGRP)==0 )?'-':'x';
-	   // rights for others
-	   res[8]  = ( (i_rights&S_IROTH)==0 )?'-':'r';
-	   res[9]  = ( (i_rights&S_IWOTH)==0 )?'-':'w';
-	   res[10] = ( (i_rights&S_IXOTH)==0 )?'-':'x';
-	#endif
-	return res;
+    string res("___/___/___");
+    #if ELISE_POSIX
+       // rigths for owner
+       res[0] = ( (i_rights&S_IRUSR)==0 )?'-':'r';
+       res[1] = ( (i_rights&S_IWUSR)==0 )?'-':'w';
+       res[2] = ( (i_rights&S_IXUSR)==0 )?'-':'x';
+       // rights for group
+       res[4] = ( (i_rights&S_IRGRP)==0 )?'-':'r';
+       res[5] = ( (i_rights&S_IWGRP)==0 )?'-':'w';
+       res[6] = ( (i_rights&S_IXGRP)==0 )?'-':'x';
+       // rights for others
+       res[8]  = ( (i_rights&S_IROTH)==0 )?'-':'r';
+       res[9]  = ( (i_rights&S_IWOTH)==0 )?'-':'w';
+       res[10] = ( (i_rights&S_IXOTH)==0 )?'-':'x';
+    #endif
+    return res;
 }
 
