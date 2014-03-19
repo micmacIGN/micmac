@@ -391,6 +391,7 @@ class MainWindow(QtGui.QMainWindow):
       self.edit_traceFileStack.setText(self.filename_traceFaultStack)
       print "Trace fault file: ", self.filename_traceFaultStack
 
+
   def ask_offsetsOutStack_file(self):
     self.filename_offsetsOutStack=QtGui.QFileDialog.getSaveFileName(self,"Stacks: Select Offsets Output Filename","offsets.txt","Text files (*.txt);;All files (*)")
     if (self.filename_offsetsOutStack!=""):
@@ -437,11 +438,13 @@ class MainWindow(QtGui.QMainWindow):
       for typeDir in self.type_output:
         typeDir_name=("","dirCol","dirLine","dirParal","dirPerp")[typeDir]
         tmp_abs=os.path.abspath(self.filename_offsetsOutStack)
+        #~ print "Offsets abspath: ", tmp_abs
         tmp=os.path.split(tmp_abs)[1].split('.')
-        fname_offsetsOutStack='.'.join(tmp[0:-1])+"_"+typeDir_name+'.'+tmp[-1]
+        fname_offsetsOutStack=os.path.split(tmp_abs)[0]+'/'+'.'.join(tmp[0:-1])+"_"+typeDir_name+'.'+tmp[-1]
         #~ print "### type dir: ", typeDir, " offsets filename: ", fname_offsetsOutStack
         if self.check_saveStack.isChecked():
-          startName_stack='.'.join(tmp[0:-1])+"_"+typeDir_name
+          startName_stack=os.path.split(tmp_abs)[0]+'/'+'.'.join(tmp[0:-1])+"_"+typeDir_name
+          #~ print "startName_stack: ", startName_stack
         if self.radio_WmedianStack.isChecked():
           ##activate the fields for weights' file and exponent of weights
           stackPerp(self.filename_Px1imageInStack,self.filename_Px2imageInStack, self.filename_imageWeightStack, self.spin_resolStack.value(), self.spin_expOfWeightStack.value(), self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_mediane_pond, self.filename_traceFaultStack,fname_offsetsOutStack,typeDir,'', 'r', 'distance along profile (px)', 'offset (m)','Weighted Median Stack Profile',startName_stack,showErr,showStack)
@@ -456,7 +459,7 @@ class MainWindow(QtGui.QMainWindow):
         self.groupBox_cg.setChecked(True)
         #~ self.edit_offsetsInCg.setText(self.filename_offsetsOutStack)
     else:
-      QtGui.QMessageBox.warning(self, 'Error detected',"The length and the width of stack must be odd numbers!", QtGui.QMessageBox.Ok)
+      QtGui.QMessageBox.warning(self, 'Error detected',"Length and width of stack must be odd numbers!", QtGui.QMessageBox.Ok)
 
 
   def update_Weight_input(self):

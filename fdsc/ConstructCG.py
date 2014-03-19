@@ -77,14 +77,16 @@ class ConstructCG:
     self.index_ptModif=-1 #number of the selected point (-1 if none)
     #point initialization using least squares
     X1,X2=self.leastSq()
-    #~ print "X1, X2 ", X1,X2 
+    #~ print "X1, X2 ", X1,X2
     #line 1 equation: y=X1[0][0]*x+X1[1][0]
     #line 2 equation: y=X2[0][0]*x+X2[1][0]
     self.pt[0][0]=self.profil_absc[0]+0.5 #x 1st point
     self.pt[0][1]=X1[0][0]*self.pt[0][0]+X1[1][0] #y 1st point
-    self.pt[1][0]=(self.profil_absc[-1]+self.profil_absc[0])/2 #x 2nd point
+    #~ self.pt[1][0]=(self.profil_absc[-1]+self.profil_absc[0])/2 #x 2nd point
+    self.pt[1][0]=(self.profil_absc[-1]+self.profil_absc[0])*0.5 #x 2nd point
     self.pt[1][1]=X1[0][0]*self.pt[1][0]+X1[1][0] #y 2nd point
-    self.pt[2][0]=(self.profil_absc[-1]+self.profil_absc[0])/2 #x 3rd point
+    #~ self.pt[2][0]=(self.profil_absc[-1]+self.profil_absc[0])/2 #x 3rd point
+    self.pt[2][0]=(self.profil_absc[-1]+self.profil_absc[0])*0.5 #x 3rd point
     self.pt[2][1]=X2[0][0]*self.pt[2][0]+X2[1][0] #y 3rd point
     self.pt[3][0]=self.profil_absc[-1]-0.5 #x 4th point
     self.pt[3][1]=X2[0][0]*self.pt[3][0]+X2[1][0] #y 4th point
@@ -106,6 +108,12 @@ class ConstructCG:
     self.ax.plot((self.pt[2][0],self.pt[3][0]), (self.pt[2][1],self.pt[3][1]), marker='o', color=color_s, alpha=alpha_s)#, picker=1)
     self.ax.figure.canvas.draw()
 
+  def drawCenLine(self):
+    #~ self.ax.vlines(self.length_stack*0.5, min(self.profil_ordo), max(self.profil_ordo), color='b', linestyles='dashed')
+    #~ self.ax.vlines(int(self.length_stack*0.5), min(self.profil_ordo), max(self.profil_ordo), color='b', linestyles='dashed')
+    self.ax.axvline(int(self.length_stack*0.5), color='b', ls='--')
+    self.ax.figure.canvas.draw()
+
   def redraw(self, color_redraw):
     self.fig.clf()
     self.ax = self.fig.add_subplot(111)
@@ -119,13 +127,14 @@ class ConstructCG:
     else:
       self.ax.plot(self.profil_absc,self.profil_ordo,label=self.label_fig, color=self.color_fig)
     self.drawLines(1.0,color_redraw)
+    self.drawCenLine()
     print "redraw",self.showText
     if self.nameRoot_fig!="":
       #self.showText="stack " + " - " + self.stack_calcMethod_name+" method"
       #self.ax.set_title(self.showText)
       nameFig=self.nameRoot_fig+'_cenProf'+str(self.num_CenProfile)+'_col'+str(int(round(self.colCen_stack)))+'_lig'+str(int(round(self.ligCen_stack)))
         #cenProf: number of the central profile, (col,lig) - coordinates of the central point on the central profile of the stack
-      print nameFig
+      print "Figure: ", nameFig
       savefig(nameFig)
 
   def redraw_pt(self, pt_x, pt_y):
@@ -164,7 +173,7 @@ class ConstructCG:
     #~ print 'Offset value (px):', offset_val
     print "Offsets direction: ", self.type_dirStack_name
     print 'Offset value (m):', offset_val
-    #~ print 'Save offsets to file:',self.filepath_out 
+    #~ print 'Save offsets to file:',self.filepath_out
     if os.path.exists(self.filepath_out):
       with open(self.filepath_out, 'a') as file:
         #~ file.write("  {}    {}    {}  {}  {}\n".format(self.num_stack, self.num_CenProfile, self.colCen_stack,self.ligCen_stack, offset_val))
@@ -213,7 +222,7 @@ class ConstructCG:
       X1=[[0],[self.profil_ordo[0]]]
       X2=[[0],[self.profil_ordo[-1]]]
       return array(X1),array(X2)
-      
+
     val_absc1=self.profil_absc[:len(self.profil_absc)/2-buff]
     #~ print "val_absc1,len(self.profil_absc),buff,self.profil_absc: ",val_absc1,len(self.profil_absc),buff,self.profil_absc
     A=[]
@@ -249,7 +258,7 @@ class ConstructCG:
     #~ print "B2: ", B
     #~ print "Am.T*P*Am:", Am.T*P*Am
     #~ print "Am.T*P*B.T:", Am.T*P*B.T
-    
+
     X2=linalg.solve(Am.T*P*Am,Am.T*P*B.T)
     v2=B.T-Am*X2
     #~ sig2=sqrt((v2.T*P*v2)/(len(val_absc2)-len(X2)))
