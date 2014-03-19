@@ -326,7 +326,9 @@ void GLWidget::overlay()
         _painter->setPen(pen);
 
         _painter->resetTransform();
-        _painter->drawRect(this->rect());
+        QRect rect = this->rect();
+        rect.setTopLeft(rect.topLeft()+QPoint(1,1));
+        _painter->drawRect(rect);
 
         _painter->end();
     }
