@@ -97,7 +97,7 @@ public:
         {
             QString str = cmdline_args[i];
 #ifdef _DEBUG
-            cout << "\ncommande : " << str.toStdString().c_str()<<endl;
+            cout << "\ncommand: " << str.toStdString().c_str()<<endl;
 #endif
 
             if (!str.contains("SaisieQT"))
@@ -110,9 +110,11 @@ public:
                 {
                     QString text = QObject::tr("This is not a valid command!!!") + "\n\n" + cmds;
                     helpMessage(app, text);
+
+                    return EXIT_FAILURE;
                 }
 
-                return -1;
+                return EXIT_SUCCESS;
             }
         }
     }
