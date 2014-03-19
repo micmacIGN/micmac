@@ -218,7 +218,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
    Im2D_REAL4 aFlF(1,1);
       	char foc[5],dia[4];
 		sprintf(foc, "%04d", int(round_ni(aMDP.FocMm(true))));
-		sprintf(dia, "%03d", int(10*round_ni(aMDP.Diaph(true))));
+		sprintf(dia, "%03d", int(round_ni(10*aMDP.Diaph(true))));
 		std::string aNameFF="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
    //std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm())) + "Diaph" + ToString(round_ni(10*aMDP.Diaph(true))) + "-FlatField.tif";
    // Pas de FF en coul pour l'insntnt
