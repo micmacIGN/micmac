@@ -146,19 +146,32 @@ void cQT_Interface::addPoint(QPointF point)
 
         if(t != -1)
         {
-            cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, eNSM_Pts, -1, GetIndexNamePoint());
-
-            rebuildGlPoints();
-
-            emit dataChanged();
-
-            if(PG)
+            cCaseNamePoint* casename = GetIndexNamePoint();
+            cSP_PointGlob * Pg1 = mAppli->PGlobOfNameSVP(casename->mName);
+            if(!Pg1)
             {
-                int id = idPointGlobal(PG);
 
-                m_QTMainWindow->tableView_PG()->model()->insertRows(id,1);
-                resizeTable();
+                cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, eNSM_Pts, -1, casename);
+
+                rebuildGlPoints();
+                emit dataChanged();
+
+                if(PG)
+                {
+                    int id = idPointGlobal(PG);
+
+                    m_QTMainWindow->tableView_PG()->model()->insertRows(id,1);
+                    resizeTable();
+                }
             }
+//            else
+//            {
+//                cSP_PointeImage* aPIm = currentcImage()->PointeOfNameGlobSVP(casename->mName);
+//                Pt2dr pt = transformation(point);
+//                UpdatePoints(aPIm, pt);
+//                ChangeState(aPIm, eEPI_Valide);
+//            }
+
         }
     }
 }
@@ -394,13 +407,16 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
 
 void cQT_Interface::selectPG(QModelIndex modelIndex)
 {
-    cSP_PointGlob* pg  = mAppli->PG()[modelIndex.row()];
+    if(modelIndex.row() < (int)mAppli->PG().size())
+    {
+        cSP_PointGlob* pg  = mAppli->PG()[modelIndex.row()];
 
-    rebuild3DGlPoints(pg->PG());
+        rebuild3DGlPoints(pg->PG());
 
-    table_Images_ChangePg(modelIndex.row());
+        table_Images_ChangePg(modelIndex.row());
 
-    m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
+        m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
+    }
 }
 
 void cQT_Interface::changeCurPose(void *widgetGL)
