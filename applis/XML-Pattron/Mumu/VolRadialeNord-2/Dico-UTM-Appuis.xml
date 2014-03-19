@@ -1,0 +1,360 @@
+<?xml version="1.0" ?>
+<Global>
+     <DicoAppuisFlottant>
+          <OneAppuisDAF>
+               <Pt>722942.824998945347 7587393.2259980794 -4.99999538179440606</Pt>
+               <NamePt>6C</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>717440.176997930044 7590126.94999541622 -6.90399542149577883</Pt>
+               <NamePt>AJ01</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>717496.139998332248 7590022.54599638656 -7.0519954183404252</Pt>
+               <NamePt>AJ02</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>718545.770999169559 7590081.90399736259 -5.98099542010629648</Pt>
+               <NamePt>AJ03</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>718850.214999845601 7589826.00399929471 -5.37999541457020314</Pt>
+               <NamePt>AJ04</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>719478.278000352671 7589653.05900060106 -6.11699541416112424</Pt>
+               <NamePt>AJ05</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>720305.549000557628 7589360.12000151165 -6.4769954084491701</Pt>
+               <NamePt>AJ06</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721968.466999343014 7587898.06899932399 -6.47899538640706396</Pt>
+               <NamePt>AJ07</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>723773.565998980543 7586766.35699793417 -7.11899537190640785</Pt>
+               <NamePt>AJ08</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724332.195998955518 7586623.64399790857 -6.97299536978357537</Pt>
+               <NamePt>AJ09</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725600.070998932002 7586479.8559981361 -7.16499536878609433</Pt>
+               <NamePt>AJ10</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726043.779998963582 7586491.48699830845 -6.88899536888118291</Pt>
+               <NamePt>AJ11</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726605.596999080502 7586536.12799870223 -6.65299536865200025</Pt>
+               <NamePt>AJ12</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>727573.144999294193 7586188.11000025552 -6.45499536313229783</Pt>
+               <NamePt>AJ13</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724743.105999296415 7580801.40999897756 -4.97899528447840112</Pt>
+               <NamePt>AJ14</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724923.908999217907 7580620.63199874945 -3.87199528253154313</Pt>
+               <NamePt>AJ15</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724474.159999142867 7580360.69099823199 -6.5899952788012115</Pt>
+               <NamePt>AJ16</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722401.396999126067 7587761.44799872022 -4.99999538645101893</Pt>
+               <NamePt>ALPHA</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722676.902999028796 7587485.5389983533 -4.99999538272572863</Pt>
+               <NamePt>BRAVO</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722959.186998943449 7587378.8239980666 -4.99999538086308348</Pt>
+               <NamePt>CHARLIE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722966.262998934835 7587397.91399805248 -4.99999538272572863</Pt>
+               <NamePt>DELTA</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>717933.043998664012 7590075.84399655648 10.9320045804308847</Pt>
+               <NamePt>DENISE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>723408.282998849987 7587202.61199772824 -4.99999537993176091</Pt>
+               <NamePt>ECHO</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724427.11599874997 7586950.43899735156 -4.99999537341250289</Pt>
+               <NamePt>FOXTROT</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>720589.2510005394 7589304.48500154912 -2.9029954090595993</Pt>
+               <NamePt>FRANCOISE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721766.165999510442 7588186.96999979112 -2.69799539314249159</Pt>
+               <NamePt>GISELE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725212.322998752235 7586871.61899734288 -4.99999537434382546</Pt>
+               <NamePt>GOLF</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725431.648998767952 7586877.85699736606 -4.99999537434382546</Pt>
+               <NamePt>HOTEL</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726062.617998901289 7586891.62799765635 -4.99999537341250289</Pt>
+               <NamePt>INDIA</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724850.751998943277 7586547.41499794368 -2.17999536972740771</Pt>
+               <NamePt>JEANNE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726748.759999203961 7586870.1549984701 -4.99999537341250289</Pt>
+               <NamePt>JULIET</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726864.619999168441 7586493.93799906503 -2.67499536909122071</Pt>
+               <NamePt>KATHIE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>720723.83600066381 7589454.20100157708 -4.99999541066540587</Pt>
+               <NamePt>KILO</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>720722.543000661768 7589454.95100157708 -5.06599540971137685</Pt>
+               <NamePt>KILO_GPS</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721531.255999880843 7588702.73000060488 -4.9999953985582124</Pt>
+               <NamePt>MIKE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721903.65799949842 7588332.39899976552 -4.9999953948329221</Pt>
+               <NamePt>NOVEMBER</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722146.434999288758 7588073.29999922216 -4.99999539017630923</Pt>
+               <NamePt>OSCAR</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>718260.913999326178 7589885.90299827605 -2.11499541647117439</Pt>
+               <NamePt>QBB</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>719384.3170001572 7589924.08399953786 -6.30599541735557523</Pt>
+               <NamePt>RM1</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>719917.635000557639 7589733.57400079258 -6.16499541507585036</Pt>
+               <NamePt>RM2</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>720546.983000654378 7589475.6870015217 -5.99799541063202923</Pt>
+               <NamePt>RM3</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721995.722999358666 7588075.25899941195 -6.92099539153230126</Pt>
+               <NamePt>RM4</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>723184.774998916546 7587207.60299792327 -6.73899537731472265</Pt>
+               <NamePt>RM5</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>723872.101998825092 7586988.39899758622 -6.32399537450862681</Pt>
+               <NamePt>RM6</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726404.740999023663 7586759.35999817029 -5.82299537328424321</Pt>
+               <NamePt>RM7</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>723963.544999142643 7580298.65499811713 -3.48599527769738415</Pt>
+               <NamePt>SIMONE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726555.595999080339 7586690.08999843895 -3.03199537036528</Pt>
+               <NamePt>TOPO02</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>726231.724998973659 7586704.19499809202 -2.99199537348340527</Pt>
+               <NamePt>TOPO03</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725876.616998887155 7586719.64199781697 -2.98099537271116333</Pt>
+               <NamePt>TOPO04</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725561.708998841001 7586733.34799765795 -2.91999537257697739</Pt>
+               <NamePt>TOPO05</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725316.65399881918 7586744.01399758272 -2.9369953724158222</Pt>
+               <NamePt>TOPO06</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>725086.966998811113 7586754.01699754782 -2.90799537164969024</Pt>
+               <NamePt>TOPO07</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724586.737998832366 7586775.8019975787 -2.89599537258516193</Pt>
+               <NamePt>TOPO08</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724253.561998871271 7586790.2929976685 -2.88899537243230498</Pt>
+               <NamePt>TOPO09</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>723531.249998942832 7586952.389997866 -2.84899537555054394</Pt>
+               <NamePt>TOPO10</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>723134.398998954333 7587178.81599799544 -2.75899537744419376</Pt>
+               <NamePt>TOPO12</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722820.584999030922 7587282.5059982473 -3.0679953796660584</Pt>
+               <NamePt>TOPO13</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722392.756999136065 7587654.37299870141 -2.99899538481201944</Pt>
+               <NamePt>TOPO14</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722216.080999213271 7587801.7079989668 -4.36599538791119812</Pt>
+               <NamePt>TOPO15</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721899.925999412546 7588079.3049995359 -4.31999539010018907</Pt>
+               <NamePt>TOPO16</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721703.448999592103 7588328.4579999987 -4.3869953958202359</Pt>
+               <NamePt>TOPO17</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721611.415999700781 7588464.56900024693 -4.00899539688180084</Pt>
+               <NamePt>TOPO18</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721377.314999926952 7588685.23000072781 -3.5059954000041671</Pt>
+               <NamePt>TOPO19</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>721229.411000067485 7588811.2250009859 -3.52899540170369619</Pt>
+               <NamePt>TOPO20</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>720896.991000330658 7589049.90200139396 -2.96299540531356342</Pt>
+               <NamePt>TOPO21</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>720729.926000465173 7589207.0370015204 -2.73699540756456372</Pt>
+               <NamePt>TOPO22</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>722604.747999068582 7587464.59299843758 -4.09499538319278145</Pt>
+               <NamePt>TOPO25</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>724255.962999122101 7580229.41399806086 -4.65799527574142758</Pt>
+               <NamePt>TOPOSUD1</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>723928.910999100306 7580017.90699790139 -4.33499527414539898</Pt>
+               <NamePt>TOPOSUD2</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>727710.223999278503 7586071.34900042973 10.1390046382908849</Pt>
+               <NamePt>TOUR_DP</NamePt>
+               <Incertitude>0.0100000000000000002 0.0100000000000000002 0.0500000000000000028</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>717420.303000619751 7580788.05100079067 -2.6859952832505769</Pt>
+               <NamePt>VIVIANNE</NamePt>
+               <Incertitude>0.00100000000000000002 0.00100000000000000002 0.00100000000000000002</Incertitude>
+          </OneAppuisDAF>
+     </DicoAppuisFlottant>
+</Global>
