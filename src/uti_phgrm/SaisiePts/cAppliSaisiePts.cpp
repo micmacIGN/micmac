@@ -140,11 +140,6 @@ string cVirtualInterface::nameFromAutoNum(cCaseNamePoint *aCNP, int aCptMax)
 
 bool cVirtualInterface::Visible(eEtatPointeImage aState)
 {
-/*
-std::cout << "AAAAAAAAAAAAA\n";
-std::cout << "BBBBBBBBBBBB " << RefInvis() << "\n";
-std::cout << "CCCCCCCCCC\n";
-*/
     return  ((aState!=eEPI_Refute) || !RefInvis())
             && (aState!=eEPI_Disparu);
 }
@@ -187,9 +182,12 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
 
 #if ELISE_windows == 0
     if(instanceInterface)
+    {
         mInterface = new cX11_Interface(*this);
+        mInterface->Init();
+    }
 #endif
-    mInterface->Init();
+
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }
@@ -238,6 +236,12 @@ cSP_PointGlob *  cAppli_SaisiePts::PGlobOfNameSVP(const std::string & aName)
     std::map<std::string,cSP_PointGlob *>::iterator iT = mMapPG.find(aName);
     if (iT == mMapPG.end()) return 0;
     return iT->second;
+}
+
+cSP_PointGlob *cAppli_SaisiePts::PGlob(int id)
+{
+    if (id < 0 || id > (int)mPG.size()) return NULL;
+    return mPG[id];
 }
 
 void cAppli_SaisiePts:: ErreurFatale(const std::string & aName)
@@ -717,7 +721,6 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
 
     case eEPI_NonValue :
     case eEPI_Highlight :
-    case eEPI_Deleted :
         break;
     }
 

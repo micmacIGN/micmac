@@ -1,98 +1,85 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include <QStandardItemModel>
-#include <QFontMetrics>
+#include <QAbstractTableModel>
 
 #include "StdAfx.h"
 
 using namespace NS_SaisiePts;
 
-class TreeItem : public QStandardItem
-{
-public:
-    explicit TreeItem(const QVector<QVariant> &data, TreeItem *parent = 0);
-    ~TreeItem();
 
-    void appendChild(TreeItem *child);
-
-    TreeItem *child(int row);
-    int childCount() const;
-    int columnCount() const;
-    int childNumber() const;
-    QVariant data(int column) const;
-    bool setData(int column, const QVariant &value);
-
-    void setData(const QVector<QVariant> &data) { itemData = data; }
-
-    int row() const;
-    TreeItem *parent();
-
-    QList<TreeItem*> getChildItems() { return childItems; }
-
-    bool insertChildren(int position, int count, int columns);
-    bool removeChildren(int position, int count);
-
-
-private:
-    QList<TreeItem*> childItems;
-    QVector<QVariant> itemData;
-    TreeItem *parentItem;
-};
-
-class TreeModel : public QAbstractItemModel
+class ModelPointGlobal : public QAbstractTableModel
 {
     Q_OBJECT
-
 public:
-    explicit TreeModel(QObject *parent = 0);
-    ~TreeModel();
 
-    QVariant        data(const QModelIndex &index, int role) const;
-    bool            setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    ModelPointGlobal(QObject *parent, cAppli_SaisiePts* appli);
+
+    int             rowCount(const QModelIndex &parent = QModelIndex()) const ;
+
+    int             columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+    QVariant        data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+    QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
+
+    bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+
     Qt::ItemFlags   flags(const QModelIndex &index) const;
-    QVariant        headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-    QModelIndex     index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
-    QModelIndex     parent(const QModelIndex &index) const;
 
-    bool            insertRows(int position, int rows, const QModelIndex &parent = QModelIndex());
-    bool            removeRows(int position, int rows, const QModelIndex &parent = QModelIndex());
+    bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
 
-    int             rowCount    (const QModelIndex &parent = QModelIndex()) const;
-    int             columnCount (const QModelIndex &parent = QModelIndex()) const;
-
-    void            setAppli(cAppli_SaisiePts* appli);
-
-    void            setupModelData();
-
-    void            updateData();
-
-    QVector<QVariant> buildRow(cSP_PointGlob *aPG);
-
-    QVector<QVariant> buildChildRow(std::pair<std::string, cSP_PointeImage *> data);
-
-    void            setPointGlob(QModelIndex idx, cSP_PointGlob* aPG);
-
-    void            emitDataChanged();
-
-public slots:
-
-    void            addPoint(cSP_PointeImage *aPIm);
-
-    void            adaptColumns(const QModelIndex &, const QModelIndex&);
-
-    void            adaptChildrenColumns(const QModelIndex &);
+    bool            caseIsSaisie(int idRow);
 
 signals:
 
-    void            resizeColumn(int);
+    void            pGChanged();
+
+protected:
+
+    int             CountPG_CaseName() const;
+
+    int             CountPG() const;
+
+    int             CountCaseNamePoint() const;
 
 private:
-    TreeItem*       getItem(const QModelIndex &index) const;
 
-    TreeItem*       rootItem;
+    cAppli_SaisiePts* mAppli;
 
-    cAppli_SaisiePts* _appli;
+};
+
+class ModelCImage : public QAbstractTableModel
+{
+    Q_OBJECT
+public:
+
+    ModelCImage(QObject *parent, cAppli_SaisiePts* appli);
+
+    int             rowCount(const QModelIndex &parent = QModelIndex()) const ;
+
+    int             columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+    QVariant        data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+    QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
+
+    bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+
+    Qt::ItemFlags   flags(const QModelIndex &index) const;
+
+    bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
+
+    int             getIdGlobSelect() const;
+
+    void            setIdGlobSelect(int value);
+
+private:
+
+    cAppli_SaisiePts* mAppli;
+
+    int             idGlobSelect;
+
 };
 
 #endif // TREE_H

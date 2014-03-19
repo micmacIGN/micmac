@@ -248,7 +248,7 @@ bool cImage::PtInImage(const Pt2dr aP)
 
 // CREATE point ground From Pointe Mono
 //
-void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCaseNamePoint * aCNP)
+cSP_PointGlob * cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCaseNamePoint * aCNP)
 {
 
     //bool PIsInit = false;
@@ -272,7 +272,7 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
     cPointGlob aPG;
     std::pair<int,std::string> anId = mAppli.Interface()->IdNewPts(aCNP);
     if (anId.second=="NONE")
-       return;
+       return NULL;
     mAppli.Interface()->ChangeFreeNamePoint(anId.second,false);
 
     aPG.Type() = aType;
@@ -291,7 +291,7 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
     if (aSPG==0) //already exists
     {
        //ELISE_ASSERT(aSPG!=0,"Incoherence (1) in cImage::CreatePGFromPointeMono");
-       return;
+       return NULL;
     }
 
     aSPG->SuprDisp();
@@ -308,6 +308,8 @@ void cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,double aSz,cCase
 
     mAppli.RedrawAllWindows();
     mAppli.Save();
+
+    return aSPG;
 
 }
 

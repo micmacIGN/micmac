@@ -174,23 +174,29 @@ void  cNChannel::Split(const cArgMpDCRaw & anArg,const std::string & aPost,Tiff_
 
 #define BUGNEF true
 
+// "/home/mpd/MMM/culture3d/bin/mm3d" MpDcraw "./IMGP7501.JPG"  Add16B8B=0  ConsCol=0  ExtensionAbs=None  16B=0  CB=1  NameOut=./Tmp-MM-Dir/IMGP7501.JPG_Ch3.tif UseFF=0 Gamma=1.0 EpsLog=1.0
+
 
 Fonc_Num  cArgMpDCRaw::FlatField(const cMetaDataPhoto & aMDP,const std::string & aNameFile)
 {
    double aZoomFF = 10.0;
    		char foc[5],dia[4];
 		sprintf(foc, "%04d", int(round_ni(aMDP.FocMm(true))));
-		sprintf(dia, "%03d", int(10*round_ni(aMDP.Diaph(true))));
+                // MPD : il y a du y avoir une regression car tel quel cela ne peut pas marcher
+		// sprintf(dia, "%03d", int(10*round_ni(aMDP.Diaph(true))));
+		sprintf(dia, "%03d", int(round_ni(10*aMDP.Diaph(true))));
 		std::string aNameFF="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
    //std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm(true))) + "Diaph" + ToString(10*round_ni(aMDP.Diaph(true))) + "-FlatField.tif";
   
 // std::cout <<  "TESTT FFFFFFF\n";
    if ((!ELISE_fp::exist_file(aNameFF)) || (! UseFF()))
    {
-// std::cout <<  "  NOFFFFFFf \n";
+// Foc0018Diaph060-FlatField.tif
+// Foc0018Diaph063-FlatField.tif
+// std::cout <<  "  NOFFFFFFf " << aNameFF  << " " << ELISE_fp::exist_file(aNameFF) << " " << UseFF() << "\n";
       return 1;
    }
-// std::cout <<  "  Wittttttttttttthh     FFFFFFf \n";
+// std::cout <<  "  Wittttttttttttthh     FFFFFFf " << aNameFF << " \n";
 
 
    Im2D_REAL4 aFlF=Im2D_REAL4::FromFileStd(aNameFF);
@@ -212,7 +218,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
    Im2D_REAL4 aFlF(1,1);
       	char foc[5],dia[4];
 		sprintf(foc, "%04d", int(round_ni(aMDP.FocMm(true))));
-		sprintf(dia, "%03d", int(10*round_ni(aMDP.Diaph(true))));
+		sprintf(dia, "%03d", int(round_ni(10*aMDP.Diaph(true))));
 		std::string aNameFF="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
    //std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm())) + "Diaph" + ToString(round_ni(10*aMDP.Diaph(true))) + "-FlatField.tif";
    // Pas de FF en coul pour l'insntnt

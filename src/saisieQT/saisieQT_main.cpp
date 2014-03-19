@@ -16,60 +16,58 @@ int helpMessage(const QApplication &app, QString text)
 class Win32CommandLineConverter
 {
 private:
-	std::unique_ptr<char*[]> argv_;
-	std::vector<std::unique_ptr<char[]>> storage_;
+    std::unique_ptr<char*[]> argv_;
+    std::vector<std::unique_ptr<char[]>> storage_;
 public:
-	Win32CommandLineConverter()
-	{
-		LPWSTR cmd_line = GetCommandLineW();
-		int argc;
-		LPWSTR* w_argv = CommandLineToArgvW(cmd_line, &argc);
-		argv_ = std::unique_ptr<char*[]>(new char*[argc]);
-		storage_.reserve(argc);
-		for(int i=0; i<argc; ++i) {
-			storage_.push_back(ConvertWArg(w_argv[i]));
-			argv_[i] = storage_.back().get();
-		}
-		LocalFree(w_argv);
-	}
-	int argc() const
-	{
-		return static_cast<int>(storage_.size());
-	}
-	char** argv() const
-	{
-		return argv_.get();
-	}
-	static std::unique_ptr<char[]> ConvertWArg(LPWSTR w_arg)
-	{
-		int size = WideCharToMultiByte(CP_UTF8, 0, w_arg, -1, nullptr, 0, nullptr, nullptr);
-		std::unique_ptr<char[]> ret(new char[size]);
-		WideCharToMultiByte(CP_UTF8, 0, w_arg, -1, ret.get(), size, nullptr, nullptr);
-		return ret;
-	}
+    Win32CommandLineConverter()
+    {
+        LPWSTR cmd_line = GetCommandLineW();
+        int argc;
+        LPWSTR* w_argv = CommandLineToArgvW(cmd_line, &argc);
+        argv_ = std::unique_ptr<char*[]>(new char*[argc]);
+        storage_.reserve(argc);
+        for(int i=0; i<argc; ++i) {
+            storage_.push_back(ConvertWArg(w_argv[i]));
+            argv_[i] = storage_.back().get();
+        }
+        LocalFree(w_argv);
+    }
+    int argc() const
+    {
+        return static_cast<int>(storage_.size());
+    }
+    char** argv() const
+    {
+        return argv_.get();
+    }
+    static std::unique_ptr<char[]> ConvertWArg(LPWSTR w_arg)
+    {
+        int size = WideCharToMultiByte(CP_UTF8, 0, w_arg, -1, nullptr, 0, nullptr, nullptr);
+        std::unique_ptr<char[]> ret(new char[size]);
+        WideCharToMultiByte(CP_UTF8, 0, w_arg, -1, ret.get(), size, nullptr, nullptr);
+        return ret;
+    }
 };
 #endif
 
 
 #if ( ( defined WIN32 ) && ( ELISE_QT_VERSION == 5 ) )
-	int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
-#else
-int main(int argc, char *argv[])
-#endif
-{
-
-    QApplication::setStyle("fusion");
-
-#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION==5 ) )
+    int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
+    {
     Win32CommandLineConverter cmd_line;
-	int argc = cmd_line.argc();
-	char **argv = cmd_line.argv();
+    int argc = cmd_line.argc();
+    char **argv = cmd_line.argv();
+#else
+    int main(int argc, char *argv[])
+    {
 #endif
+
     QApplication app(argc, argv);
+
+    app.setStyle("fusion");
 
     // QT Modifie le comportement de sscanf !!!!! problematique quand on parse les fichiers XML
     setlocale(LC_NUMERIC,"C");
-
 
     app.setOrganizationName("IGN");
     app.setApplicationName("QT graphical tools");
@@ -114,5 +112,5 @@ int main(int argc, char *argv[])
     else
         helpMessage(app, cmds);
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

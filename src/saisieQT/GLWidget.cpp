@@ -184,7 +184,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                emit removePoint(eEPI_Deleted, m_GLData->m_polygon.idx());
+                emit removePoint(eEPI_Disparu, m_GLData->m_polygon.idx());
                 polygon().removeSelectedPoint();
                 break;
             case Qt::Key_Escape:
@@ -291,7 +291,7 @@ void GLWidget::dropEvent(QDropEvent *event)
         }
 
         if (!fileNames.empty())
-            emit filesDropped(fileNames);
+            emit filesDropped(fileNames, true);
 
         setFocus();
 
@@ -493,9 +493,9 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                     polygon().setPointSelected();
 
                 else if (!polygon().isLinear() && isPtInsideIm(m_lastPosImage))
-                {
+
                     emit addPoint(m_lastPosImage);
-                }
+
             }
         }
         else if (event->button() == Qt::RightButton)
@@ -791,6 +791,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
             //menu.setWindowFlags(Qt::Tool | Qt::WindowTitleHint | Qt::WindowStaysOnTopHint);
 
             menu.addAction( _contextMenu._AllW  );
+            menu.addAction( _contextMenu._RollW  );
             menu.addAction( _contextMenu._ThisW );
             menu.addAction( _contextMenu._ThisP );
         }

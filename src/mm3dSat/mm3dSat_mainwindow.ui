@@ -41,6 +41,9 @@
          </property>
         </widget>
        </item>
+       <item row="1" column="1">
+        <widget class="QTextEdit" name="textEdit"/>
+       </item>
       </layout>
      </widget>
     </item>
@@ -471,7 +474,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>834</width>
-     <height>27</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

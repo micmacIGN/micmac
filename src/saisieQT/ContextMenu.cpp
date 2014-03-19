@@ -2,36 +2,43 @@
 
 void ContextMenu::createContextMenuActions()
 {
-    QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
+    // Windows
 
-    _highLight = new QAction(QIcon(IconFolder + "HL.ico"),              tr("Highlight"), this);
-
-    _AllW      = new QAction(tr("All Windows") , this);
+    _AllW      = new QAction(tr("All Windows"), this);
+    _RollW     = new QAction(tr("Roll Windows"), this);
     _ThisW     = new QAction(tr("This Window"), this);
-    _ThisP     = new QAction(tr("This Point"), this);
+    _ThisP     = new QAction(tr("This Point"),  this);
+
+    _switchSignalMapper = new QSignalMapper (this);
+
+    connect(_AllW,      	    SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
+    connect(_RollW,      	    SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
+    connect(_ThisW,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
+    connect(_ThisP,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
+
+    _switchSignalMapper->setMapping (_AllW,  eAllWindows);
+    _switchSignalMapper->setMapping (_RollW, eRollWindows);
+    _switchSignalMapper->setMapping (_ThisW, eThisWindow);
+    _switchSignalMapper->setMapping (_ThisP, eThisPoint);
+
+    connect (_switchSignalMapper, SIGNAL(mapped(int)), this, SLOT(changeImages(int)));
+
+    // Point (state, HL, name)
+
+    QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
 
     _validate  = new QAction(QIcon(IconFolder + "smile.ico"),           tr("Validate"), this);
     _dubious   = new QAction(QIcon(IconFolder + "interrogation.ico"),   tr("Dubious") , this);
     _refuted   = new QAction(QIcon(IconFolder + "refuted.ico"),         tr("Refuted") , this);
     _noSaisie  = new QAction(QIcon(IconFolder + "vide.ico"),            tr("Not captured"), this);
 
+    _highLight = new QAction(QIcon(IconFolder + "HL.ico"),              tr("Highlight"), this);
+
     _rename    = new QAction(tr("Rename"), this);
 
     connect(_rename,		    SIGNAL(triggered()),   this, SLOT(rename()));
 
     connect(_highLight,		    SIGNAL(triggered()),   this, SLOT(highlight()));
-
-    _switchSignalMapper = new QSignalMapper (this);
-
-    connect(_AllW,      	    SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
-    connect(_ThisW,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
-    connect(_ThisP,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
-
-    _switchSignalMapper->setMapping (_AllW,  eAllWindows);
-    _switchSignalMapper->setMapping (_ThisW, eThisWindow);
-    _switchSignalMapper->setMapping (_ThisP, eThisPoint);
-
-    connect (_switchSignalMapper, SIGNAL(mapped(int)), this, SLOT(changeImages(int)));
 
     _stateSignalMapper = new QSignalMapper (this);
 
@@ -58,6 +65,7 @@ void ContextMenu::setPointState(int state)
 void ContextMenu::changeImages(int mode)
 {
     int idx = -4;
+    bool aUseCpt = false;
 
     switch(mode)
     {
@@ -69,9 +77,13 @@ void ContextMenu::changeImages(int mode)
     case eThisPoint:
         idx = _polygon->getNearestPointIndex(_lastPosImage);
         break;
+    case eRollWindows:
+        //idx =
+        aUseCpt= true;
+        break;
     }
 
-    emit changeImagesSignal(idx);
+    emit changeImagesSignal(idx, aUseCpt);
 }
 
 void ContextMenu::highlight()

@@ -15,6 +15,7 @@
 typedef enum
 {
   eAllWindows,
+  eRollWindows,
   eThisWindow,
   eThisPoint
 } eSwitchImage;
@@ -34,6 +35,7 @@ public:
     cPolygon    *_polygon;
 
     QAction     *_AllW;
+    QAction     *_RollW;
     QAction     *_ThisP;
     QAction     *_ThisW;
 
@@ -50,7 +52,7 @@ signals:
 
     void changeName(QString oldName, QString newName);
 
-    void changeImagesSignal(int idPt);
+    void changeImagesSignal(int idPt, bool aUseCpt);
 
 public slots:
 

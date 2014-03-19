@@ -314,6 +314,7 @@ void Write_Vignette(string aDir, string aNameOut,vector<double> aParam,string aD
 				aIm.in(),
 				aTOut.out()
 			);
+
 }
 
 vector<double> Vignette_Solve(PtsHom aPtsHomol)
@@ -455,7 +456,8 @@ std::cout << "RANSAC score is : "<<aScoreMax<<endl;
 	return aParam;
 }
 
-vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::string> aSetIm){
+vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::string> aSetIm)
+{
 
 	vector<GrpVodka> aVectGrpVodka;
 
@@ -504,6 +506,14 @@ vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::
 				}
 		}
 	}
+
+        for (int aK=0 ; aK<int(aVectGrpVodka.size()) ; aK++)
+        {
+            const GrpVodka & aGrp = aVectGrpVodka[aK];
+            std::cout << "GrpVodka, Nb=" << aGrp.aListIm.size() << " Dia=" << aGrp.diaph << " Foc=" <<  aGrp.foc << "\n";
+        }
+
+
 return aVectGrpVodka;
 }
 
@@ -541,19 +551,30 @@ int  Vignette_main(int argc,char ** argv)
 
 		cout<<"Number of different sets of images with the same Diaph-Focal combination : "<<aVectGrpVodka.size()<<endl<<endl;
 
-		for(int i=0;i<(int)aVectGrpVodka.size();i++){
-			if(!aVectGrpVodka[i].isComputed){
+		for(int i=0;i<(int)aVectGrpVodka.size();i++)
+                {
+                   GrpVodka & aGrp = aVectGrpVodka[i];
+                   if (aGrp.aListIm.size() > 1)  // Modif MPD, core dump (legitime ...) avec grp a 1 image
+                   {
+			if(!aGrp.isComputed)
+                        {
 				CalibFolder=aDirOut;
-				std::cout << "--- Computing the parameters of the vignette effect for the set of "<<aVectGrpVodka[i].size()<<" images with Diaph="<<aVectGrpVodka[i].diaph<<" and Foc="<<aVectGrpVodka[i].foc<<endl<<endl;
+				std::cout << "--- Computing the parameters of the vignette effect for the set of "
+                                          <<aVectGrpVodka[i].size()
+                                          <<" images with Diaph="<<aVectGrpVodka[i].diaph
+                                          <<" and Foc="<<aVectGrpVodka[i].foc<<endl<<endl;
 
 				//Avec Points homol
 				PtsHom aPtsHomol=ReadPtsHom(aDir, aVectGrpVodka[i], Extension);
 				//aPtsHomol contient des vecteurs D1,D2,G1,G2,SZ;
 				vector<double> aParam = Vignette_Solve(aPtsHomol);
 
-		   if (aParam.size()==0){
-			   cout<<"Couldn't compute vignette parameters"<<endl;
-		   }else{ 
+		                if (aParam.size()==0)
+                                {
+			                cout<<"Couldn't compute vignette parameters"<<endl;
+		                }
+                                else
+                                { 
 			   
 			   //Creating a flatfield tif file
 				   //Creating the numerical format for the output files names
@@ -568,13 +589,18 @@ int  Vignette_main(int argc,char ** argv)
 			   //Set the couple of diaph foc to "computed"
 			   aVectGrpVodka[i].isComputed=true;
 				}
-			}else{CalibFolder=InCal;}
-			if (DoCor && aVectGrpVodka[i].isComputed==1){
-			//Correction des images avec les params calculés
-			cout<<"Correcting the images"<<endl;
-			Vignette_correct(aDir, aVectGrpVodka[i], aDirOut, CalibFolder);
-	   
 			}
+                        else
+                        {
+                            CalibFolder=InCal;
+                        }
+			if (DoCor && aVectGrpVodka[i].isComputed==1)
+                        {
+			    //Correction des images avec les params calculés
+			    cout<<"Correcting the images"<<endl;
+			    Vignette_correct(aDir, aVectGrpVodka[i], aDirOut, CalibFolder);
+			}
+                   }
 		}
    Vodka_Banniere();
    return 0;

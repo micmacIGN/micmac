@@ -42,12 +42,6 @@ MainWindow::~MainWindow()
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
-
-    if (_mode > MASK3D)
-    {
-        delete _model;
-        delete _selectionModel;
-    }
 }
 
 void MainWindow::connectActions()
@@ -58,7 +52,7 @@ void MainWindow::connectActions()
 
     for (int aK = 0; aK < nbWidgets();++aK)
     {
-        connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&)), this,	SLOT(addFiles(const QStringList&)));
+        connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&, bool)), this,	SLOT(addFiles(const QStringList&, bool)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
     }
 
@@ -89,16 +83,6 @@ void MainWindow::connectActions()
 
     connect (_signalMapper, SIGNAL(mapped(int)), this, SLOT(zoomFactor(int)));
 
-    if (_mode > MASK3D)
-    {
-        connect(_model, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex& ) ),
-                _model, SLOT(adaptColumns(const QModelIndex &, const QModelIndex&) ));
-
-        connect(_model, SIGNAL(resizeColumn(int)), _ui->treeView, SLOT(resizeColumnToContents(int)) );
-
-        connect(_ui->treeView, SIGNAL(expanded(QModelIndex)), _model, SLOT(adaptChildrenColumns(const QModelIndex &)));
-        connect(_ui->treeView, SIGNAL(collapsed(QModelIndex)), _model, SLOT(adaptChildrenColumns(const QModelIndex &)));
-    }
 }
 
 void MainWindow::createRecentFileMenu()
@@ -153,7 +137,7 @@ void MainWindow::loadPly(const QStringList& filenames)
     delete timer_test;
 }
 
-void MainWindow::addFiles(const QStringList& filenames)
+void MainWindow::addFiles(const QStringList& filenames, bool setGLData)
 {
     if (filenames.size())
     {
@@ -194,12 +178,18 @@ void MainWindow::addFiles(const QStringList& filenames)
 
         _Engine->allocAndSetGLData(_mode > MASK3D, _params->getDefPtName());
 
-        for (int aK = 0; aK < nbWidgets();++aK)
+        if (setGLData)
         {
-            getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
-            getWidget(aK)->setParams(_params);
-            if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+            for (int aK = 0; aK < nbWidgets();++aK)
+            {
+                getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
+                getWidget(aK)->setParams(_params);
+
+                if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+            }
         }
+        else
+            emit imagesAdded(-4, false);
 
         for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
 
@@ -790,14 +780,8 @@ void MainWindow::setUI()
         _ui->frame_preview3D->setContentsMargins(0,0,0,0);
         _ui->menuSelection->setTitle(tr("H&istory"));
 
-        _model = new TreeModel(this);
+        tableView_PG()->installEventFilter(this);
 
-        _ui->treeView->setModel(_model);
-        _ui->treeView->setSelectionMode(QAbstractItemView::SingleSelection);
-        _ui->treeView->installEventFilter( this );
-        _ui->treeView->setAnimated(true);
-
-        _selectionModel = _ui->treeView->selectionModel();
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
@@ -808,13 +792,15 @@ void MainWindow::setUI()
 
 bool MainWindow::eventFilter( QObject* object, QEvent* event )
 {
-    if( object == _ui->treeView && event->type() == QEvent::KeyRelease )
+    if( ( object == tableView_PG()) && event->type() == QEvent::KeyRelease )
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
 
         if (keyEvent->key() == Qt::Key_Delete)
         {
-            QString pointName = getSelectionModel()->currentIndex().data(Qt::DisplayRole).toString();
+            QAbstractItemView* table = (QAbstractItemView*)object;
+
+            QString pointName = table->selectionModel()->currentIndex().data(Qt::DisplayRole).toString();
 
             emit removePoint(pointName); // we send point name, because point has not necessarily a widget index (point non saisi)
         }
@@ -823,6 +809,9 @@ bool MainWindow::eventFilter( QObject* object, QEvent* event )
     return false;
 }
 
+QTableView *MainWindow::tableView_PG(){return _ui->tableView_PG;}
+
+QTableView *MainWindow::tableView_Images(){return _ui->tableView_Images;}
 void  MainWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);
@@ -908,6 +897,18 @@ void MainWindow::setImagePosition(QPointF pt)
 void MainWindow::setImageName(QString name)
 {
     _ui->label_ImageName->setText(QString(tr("Image name : ") + name));
+    QAbstractItemModel *model = tableView_Images()->model();
+
+    if(model)
+
+    for (int i = 0; i < model->rowCount(); ++i)
+    {
+        if(model->index(i,0).data().toString() == name)
+        {
+            tableView_Images()->selectRow(i);
+            return;
+        }
+    }
 }
 
 void MainWindow::setZoom(float val)
@@ -1010,39 +1011,4 @@ void MainWindow::labelShowMode(bool state)
             _ui->label_ImageName->show();
         }
     }
-}
-
-void MainWindow::selectPoint(string ptName)
-{
-    QItemSelectionModel* selectionModel = _ui->treeView->selectionModel();
-
-    QString name(ptName.c_str());
-
-    QModelIndex index;
-    for(int i = 0; i < _model->rowCount(); ++i)
-    {
-        QModelIndex idx = _model->index(i, 0, QModelIndex());
-
-        if(idx.isValid())
-        {
-            if (name == idx.data(Qt::DisplayRole).toString())
-            {
-                index = idx;
-            }
-        }
-    }
-
-    QItemSelection selection(index, index);
-    selectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
-}
-
-void MainWindow::setTreeView()
-{
-    _model->setupModelData();
-}
-
-void MainWindow::updateTreeView()
-{
-    _model->updateData();
-    _ui->treeView->update();
 }

@@ -1,6 +1,3 @@
-
-
-
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -14,9 +11,13 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QFileDialog>
+#include <QDesktopWidget>
+#include <QApplication>
 
+using namespace std;
 
-enum Type_input
+enum eInputType
 {
     lineedit,
     combobox,
@@ -26,43 +27,46 @@ enum Type_input
 class visual_MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
     visual_MainWindow(QWidget *parent = 0);
     ~visual_MainWindow();
-    void ajoute_ligne_combo(QString);
+    void add_combo_line(QString);
     void create_combo(int, std::list<std::string>);
     void create_select_images(int);
     void create_select_orientation(int);
     void create_comment(std::string, int);
-    void create_bouton_parcourir(int);
+    void create_selectFile_button(int);
     void create_champ_int(int);
     void set_argv_recup(std::string);
 
 protected:
 
+    void resizeEvent(QResizeEvent *);
+
     int id_unique;
     std::string argv_recup;
 
-    QWidget *gridLayoutWidget;//il faut forcement passer par un QWidget pour le mettre en "CentralWidget" de la MainWindow
-    QGridLayout *gridLayout;
+    QWidget *       gridLayoutWidget;//il faut forcement passer par un QWidget pour le mettre en "CentralWidget" de la MainWindow
+    QGridLayout *   gridLayout;
     QLabel *label;
     QComboBox *Combo;
     QComboBox *Combo2;
-    QLineEdit *Sel_Fichiers;
-    QPushButton *Parcourir;
+    QLineEdit *selectFile_LineEdit;
+    QPushButton *selectFile_Button;
     QSpinBox *Spin;
-    std::vector <QComboBox*> vecteur_val_enumerees;
-    std::vector <QLineEdit*> vecteur_Fichiers_images;
-    std::vector <QLabel*> vecteur_Commentaires;
-    QPushButton *Valider;
+
+    vector <QComboBox*> vEnumValues;    //valeur enumerees
+    vector <QLineEdit*> vImageFiles;    //fichiers image
+    vector <QLabel*> vCommentaries;     //commentaires
+    QPushButton *runCommandButton;
     QString commande;
-    std::vector<Type_input> types_inputs;
-    std::vector<QWidget*> inputs;
+    vector <eInputType> inputTypes;
+    vector <QWidget*> inputs;
 
 public slots:
-    void press_valider();
-    void press_parcours(int);
+    void onRunCommandPressed();
+    void onSelectFilePressed(int);
 
 };
 

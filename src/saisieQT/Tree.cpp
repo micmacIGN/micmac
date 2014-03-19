@@ -1,541 +1,299 @@
 #include "Tree.h"
 
-TreeItem::TreeItem(const QVector<QVariant> &data, TreeItem *parent)
+ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli)
+    :QAbstractTableModel(parent),
+      mAppli(appli)
 {
-    parentItem = parent;
-    itemData = data;
 }
 
-TreeItem::~TreeItem()
+int ModelPointGlobal::rowCount(const QModelIndex & /*parent*/) const
 {
-    qDeleteAll(childItems);
+    return CountPG_CaseName();
 }
 
-void TreeItem::appendChild(TreeItem *item)
+int ModelPointGlobal::columnCount(const QModelIndex & /*parent*/) const
 {
-    childItems.append(item);
+    return 2;
 }
 
-TreeItem *TreeItem::child(int row)
+QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 {
-    return childItems.value(row);
-}
-
-int TreeItem::childCount() const
-{
-    return childItems.count();
-}
-
-int TreeItem::columnCount() const
-{
-    return itemData.count();
-}
-
-int TreeItem::childNumber() const
-{
-    if (parentItem)
-        return parentItem->childItems.indexOf(const_cast<TreeItem*>(this));
-
-    return 0;
-}
-
-QVariant TreeItem::data(int column) const
-{
-    return itemData.value(column);
-}
-
-bool TreeItem::setData(int column, const QVariant &value)
-{
-    if (column < 0 || column >= itemData.size())
-           return false;
-
-    itemData[column] = value;
-    return true;
-}
-
-TreeItem *TreeItem::parent()
-{
-    return parentItem;
-}
-
-int TreeItem::row() const
-{
-    if (parentItem)
-        return parentItem->childItems.indexOf(const_cast<TreeItem*>(this));
-
-    return 0;
-}
-
-bool TreeItem::insertChildren(int position, int count, int columns)
-{
-    if (position < 0 || position > childItems.size())
-        return false;
-
-    for (int row = 0; row < count; ++row)
-    {
-        QVector<QVariant> data(columns);
-        TreeItem *item = new TreeItem(data, this);
-        childItems.insert(position, item);
-    }
-
-    return true;
-}
-
-bool TreeItem::removeChildren(int position, int count)
-{
-    if (position < 0 || position + count > childItems.size())
-        return false;
-
-    for (int row = 0; row < count; ++row)
-        delete childItems.takeAt(position);
-
-    return true;
-}
-
-TreeModel::TreeModel(QObject *parent):
-    QAbstractItemModel(parent)
-{
-    QVector<QVariant> rootData;
-    rootData << "Point" << "Image" << "State" << "Coordinates";
-    rootItem = new TreeItem(rootData);
-}
-
-TreeModel::~TreeModel()
-{
-    delete rootItem;
-}
-
-TreeItem *TreeModel::getItem(const QModelIndex &index) const
-{
-    if (index.isValid())
-    {
-        TreeItem *item = static_cast<TreeItem*>(index.internalPointer());
-        if (item)
-            return item;
-    }
-    return rootItem;
-}
-
-int TreeModel::columnCount(const QModelIndex &/*parent*/) const
-{
-    return rootItem->columnCount();
-}
-
-void TreeModel::setAppli(cAppli_SaisiePts *appli)
-{
-    _appli = appli;
-}
-
-QString StateToQString(eEtatPointeImage state)
-{
-    switch (state)
-    {
-    case eEPI_NonSaisi:
-        return "Non Saisi";
-    case eEPI_Refute:
-        return "Refute";
-    case eEPI_Douteux:
-        return "Douteux";
-    case eEPI_Valide:
-        return "Valide";
-    case eEPI_NonValue:
-        return "NonValue";
-    case eEPI_Disparu:
-        return "Disparu";
-    case eEPI_Highlight:  //only for QT interface
-    case eEPI_Deleted:    //only for QT interface
-        return "";
-    }
-
-    return "";
-}
-
-QVariant TreeModel::data(const QModelIndex &index, int role) const
-{
-    if (!index.isValid())
-        return QVariant();
-
     if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        TreeItem *item = static_cast<TreeItem*>(index.internalPointer());
-
-        return item->data(index.column());
-    }
-    else
-        return QVariant();
-}
-
-Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return 0;
-
-    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled;
-}
-
-QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
-                               int role) const
-{
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
-        return rootItem->data(section);
-
-    return QVariant();
-}
-
-bool TreeModel::setData(const QModelIndex &index,
-                        const QVariant &value, int role)
- {
-     if (index.isValid() && role == Qt::EditRole)
-     {
-         if (index.column() == 0) //point name
-         {
-             std::string oldName = index.data(Qt::DisplayRole).toString().toStdString();
-
-             _appli->ChangeName(oldName,value.toString().toStdString());
-
-             TreeItem *Item = static_cast<TreeItem*>(index.internalPointer());
-
-             if (Item->setData(0, value))
-                 emit dataChanged(index, index);
-
-             return true;
-         }
-     }
-     return false;
- }
-
-QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) const
-{
-    if (parent.isValid() && parent.column() != 0)
-        return QModelIndex();
-
-    TreeItem *parentItem = getItem(parent);
-
-    TreeItem *childItem = parentItem->child(row);
-    if (childItem)
-        return createIndex(row, column, childItem);
-    else
-        return QModelIndex();
-}
-
-QModelIndex TreeModel::parent(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return QModelIndex();
-
-    TreeItem *childItem = getItem(index);
-    TreeItem *parentItem = childItem->parent();
-
-    if (parentItem == rootItem)
-        return QModelIndex();
-
-    return createIndex(parentItem->childNumber(), 0, parentItem);
-}
-
-int TreeModel::rowCount(const QModelIndex &parent) const
-{
-    TreeItem *parentItem = getItem(parent);
-
-    return parentItem->childCount();
-}
-
-bool TreeModel::insertRows(int position, int rows, const QModelIndex &parent)
-{
-    TreeItem *parentItem = getItem(parent);
-    bool success;
-
-    beginInsertRows(parent, position, position + rows - 1);
-    success = parentItem->insertChildren(position, rows, rootItem->columnCount());
-    endInsertRows();
-
-    return success;
-}
-
-bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
-{
-    TreeItem *parentItem = getItem(parent);
-    bool success = true;
-
-    beginRemoveRows(parent, position, position + rows - 1);
-    success = parentItem->removeChildren(position, rows);
-    endRemoveRows();
-
-    return success;
-}
-
-QVector <QVariant> TreeModel::buildRow(cSP_PointGlob* aPG)
-{
-    QVector<QVariant> columnData;
-
-    QString namePt  = QString(aPG->PG()->Name().c_str());
-    QString coord3d = QString::number(aPG->PG()->P3D().Val().x, 'f' ,1) + " " +
-                      QString::number(aPG->PG()->P3D().Val().y, 'f' ,1) + " " +
-                      QString::number(aPG->PG()->P3D().Val().z, 'f' ,1);
-
-    columnData << namePt << "" << "" << coord3d;
-
-    return columnData;
-}
-
-QVector <QVariant> TreeModel::buildChildRow(std::pair < std::string , cSP_PointeImage*> data)
-{
-    QVector <QVariant> columnData;
-
-    std::string     aName = data.first;
-    cSP_PointeImage* aPIm = data.second;
-
-    cOneSaisie* aSom = aPIm->Saisie();
-
-    QString nameImg = QString(aName.c_str());
-
-    QString state   = StateToQString(aSom->Etat());
-    QString coord2d = QString::number(aSom->PtIm().x, 'f' ,1) + " " +
-                      QString::number(aSom->PtIm().y, 'f' ,1);
-
-    columnData << "" << nameImg << state << coord2d;
-
-    return columnData;
-}
-
-void TreeModel::addPoint(cSP_PointeImage * aPIm)
-{
-    int pos= _appli->PG().size()-1;
-    cSP_PointGlob* aPG;
-
-    if (aPIm)
-    {
-        aPG = aPIm->Gl();
-    }
-    else
-    {
-        aPG = _appli->PG().back();
-    }
-
-    //check if point already exists
-    string name = aPG->PG()->Name();
-
-    QModelIndex id;
-    for (int aK=0; aK < rowCount(rootItem->index());++aK)
-    {
-        QString text = data(index(aK, 0), Qt::DisplayRole).toString();
-
-        if (text.toStdString() == name)
+        if(index.row() < CountPG())
         {
-            id = index(aK, 0);
-            pos = aK;
-        }
-    }
-
-    if ( !id.isValid() ) //add point
-    {
-        pos = rowCount(rootItem->index());
-
-
-        QModelIndex idx = index(pos-1, 0);
-
-        if (!insertRow(idx.row()+1, idx.parent()))
-            return;
-
-        QModelIndex newIdx = index(pos, 0);
-
-        TreeItem * item = static_cast<TreeItem*>(newIdx.internalPointer());
-
-        if (item)
-        {
-            item->setData(buildRow(aPG));
-
-            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
-
-            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-            for(; it != map.end(); ++it)
+            std::vector< cSP_PointGlob * > vPG = mAppli->PG();
+            cSP_PointGlob * pg = vPG[index.row()];
+            switch (index.column())
             {
-                item->appendChild(new TreeItem(buildChildRow(*it), item));
+            case 0:
+                return QString("%1").arg(pg->PG()->Name().c_str());
+            case 1:
+            {
+                Pt3dr *p3d = pg->PG()->P3D().PtrVal();
+                return QString("%1\t %2\t %3")
+                        .arg(QString::number(p3d->x, 'f' ,2))
+                        .arg(QString::number(p3d->y, 'f' ,2))
+                        .arg(QString::number(p3d->z, 'f' ,2));
+            }
             }
         }
-    }
-    else //insert infos
-    {
-        TreeItem * item = static_cast<TreeItem*>(id.internalPointer());
-
-        if (item)
+        else if (index.row() < CountPG_CaseName())
         {
-            item->setData(buildRow(aPG));
-
-            std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
-
-            std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-            for(; it != map.end(); ++it)
+            int id = index.row() - CountPG();
+            if(id >= 0 && id < CountCaseNamePoint())
             {
-                item->appendChild(new TreeItem(buildChildRow(*it), item));
-            }
-        }
-    }
-}
-
-void TreeModel::adaptColumns(const QModelIndex & topLeft, const QModelIndex &bottomRight)
-{
-    for (int aK = topLeft.column(); aK < bottomRight.column(); ++aK)
-        emit resizeColumn(aK);
-}
-
-void TreeModel::adaptChildrenColumns(const QModelIndex &index)
-{
-    //TODO: find column to resize
-
-    /*TreeItem *Item = static_cast<TreeItem*>(index.internalPointer());
-    for (int aK=0; aK < Item->childCount();++aK)
-    {
-        TreeItem * child = Item->child();
-    }*/
-
-    emit resizeColumn(1);
-    emit resizeColumn(2);
-}
-
-void TreeModel::setupModelData()
-{
-    QList<TreeItem*> parents;
-    parents << rootItem;
-
-    std::vector<cSP_PointGlob *> vPts = _appli->PG();
-    for (int bK=0; bK < (int) vPts.size(); ++bK)
-    {
-        cSP_PointGlob* aPG = vPts[bK];
-
-        TreeItem * item = new TreeItem(buildRow(aPG), rootItem);
-        parents.last()->appendChild(item);
-
-        //Pointes image
-
-        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
-
-        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-        for(; it != map.end(); ++it)
-        {
-            item->appendChild(new TreeItem(buildChildRow(*it), item));
-        }
-    }
-
-    for (int aK=0; aK < _appli->Interface()->GetNumCaseNamePoint(); ++aK)
-    {
-        std::string ptName = _appli->Interface()->GetCaseNamePoint(aK).mName;
-
-        bool found = false;
-        for (int bK=0; bK < (int) vPts.size(); ++bK)
-        {
-             cSP_PointGlob* aPG = vPts[bK];
-
-             if (aPG->PG()->Name() == ptName)
-                 found = true;
-        }
-
-        if (!found)
-        {
-            QVector<QVariant> columnData;
-            columnData << QString(ptName.c_str()) << "" << "" << "";
-
-            TreeItem * item = new TreeItem(columnData, rootItem);
-            parents.last()->appendChild(item);
-        }
-    }
-
-    emitDataChanged();
-}
-
-void TreeModel::setPointGlob(QModelIndex idx, cSP_PointGlob* aPG)
-{
-    TreeItem * item = static_cast<TreeItem*>(idx.internalPointer());
-
-    if (item)
-    {
-        item->setData(buildRow(aPG));
-
-        //Pointes image
-
-        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
-
-        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-        int bK = 0;
-        for(; it != map.end(); ++it, ++bK)
-        {
-            item->child(bK)->setData(buildChildRow(*it));
-        }
-    }
-}
-
-void TreeModel::emitDataChanged()
-{
-    QModelIndex topLeft = index(0,0);
-    QModelIndex bottomRight = index(rowCount()-1, columnCount()-1);
-
-    emit dataChanged(topLeft, bottomRight);
-}
-
-void TreeModel::updateData()
-{
-    std::vector<cSP_PointGlob *> vPts = _appli->PG();
-
-    std::vector <std::string> ptNames;
-
-    for (int aK=0; aK < (int) vPts.size(); ++aK)
-    {
-        cSP_PointGlob* aPG = vPts[aK];
-
-        std::map<std::string,cSP_PointeImage *> map = aPG->getPointes();
-
-        std::map<std::string,cSP_PointeImage *>::const_iterator it = map.begin();
-
-        int nbDisparus = 0;
-        for(; it != map.end(); ++it)
-        {
-            cSP_PointeImage* aPIm = it->second;
-
-            if (aPIm->Saisie()->Etat() == eEPI_Disparu)
-                ++nbDisparus;
-        }
-
-        if (nbDisparus == (int) map.size())
-        {
-            ptNames.push_back(aPG->PG()->Name());
-        }
-        else
-        {
-            for (int bK=0; bK < rowCount();++bK) //TODO: factoriser
-            {
-                QString text = data(index(bK, 0), Qt::DisplayRole).toString();
-
-                if (text.toStdString() == aPG->PG()->Name())
+                cCaseNamePoint cnPt = mAppli->Interface()->GetCaseNamePoint(id);
+                switch (index.column())
                 {
-                    setPointGlob(index(bK, 0), aPG);
+                case 0:
+                    return QString("%1").arg(cnPt.mName.c_str());
+                case 1:
+                {
+                    return QString("Non saisi");
+                }
                 }
             }
         }
     }
 
-    QVector <QModelIndex> vIdx;
-    for (int aK =0; aK< (int) ptNames.size(); ++aK)
-    {
-        for (int bK=0; bK < rowCount();++bK)
-        {
-            QString text = data(index(bK, 0), Qt::DisplayRole).toString();
+    return QVariant();
+}
 
-            if (text.toStdString() == ptNames[aK])
+QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole)
+    {
+        if (orientation == Qt::Horizontal) {
+            switch (section)
             {
-                vIdx.insert(0, index(bK, 0));
+            case 0:
+                return QString("Point");
+            case 1:
+                return QString("Coordinates");
+            }
+        }
+    }
+    return QVariant();
+}
+
+bool ModelPointGlobal::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    QString qnewName  = value.toString();
+
+    if(qnewName == QString(""))
+        return false;
+
+    if (role == Qt::EditRole)
+    {
+
+        string oldName = mAppli->PGlob(index.row())->PG()->Name();
+        string newName = qnewName.toStdString();
+
+        mAppli->ChangeName(oldName, newName);
+
+        emit pGChanged();
+    }
+    return true;
+}
+
+Qt::ItemFlags ModelPointGlobal::flags(const QModelIndex &index) const
+{
+
+    switch (index.column())
+    {
+    case 0:
+        if(index.row() < CountPG())
+            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+    case 1:
+        return QAbstractTableModel::flags(index);
+    }
+
+    return QAbstractTableModel::flags(index);
+}
+
+bool ModelPointGlobal::insertRows(int row, int count, const QModelIndex &parent)
+{
+    beginInsertRows(QModelIndex(), row, row+count-1);
+    endInsertRows();
+    return true;
+}
+
+int ModelPointGlobal::CountPG_CaseName() const
+{
+    return  CountPG() + CountCaseNamePoint();
+}
+
+int ModelPointGlobal::CountPG() const
+{
+    return  mAppli->PG().size();
+}
+
+int ModelPointGlobal::CountCaseNamePoint() const
+{
+    return  mAppli->Interface()->GetNumCaseNamePoint();
+}
+
+bool ModelPointGlobal::caseIsSaisie(int idRow)
+{
+    int idCase = idRow - CountPG();
+
+    QString nameCase(mAppli->Interface()->GetCaseNamePoint(idCase).mName.c_str());
+
+    for (int i = 0; i < CountPG(); ++i)
+    {
+       if(nameCase == QString(mAppli->PGlob(i)->PG()->Name().c_str()))
+           return true;
+    }
+
+    return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ModelCImage::ModelCImage(QObject *parent, cAppli_SaisiePts *appli)
+    :QAbstractTableModel(parent),
+      mAppli(appli),
+      idGlobSelect(-1)
+{
+}
+
+int ModelCImage::rowCount(const QModelIndex & /*parent*/) const
+{
+    return mAppli->images().size();
+}
+
+int ModelCImage::columnCount(const QModelIndex & /*parent*/) const
+{
+    return 3;
+}
+
+QVariant ModelCImage::data(const QModelIndex &index, int role) const
+{
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        if(index.row() < (int)mAppli->images().size())
+        {
+            cImage* iImage = mAppli->image(index.row());
+
+            switch (index.column())
+            {
+            case 0:
+                return QString("%1").arg(iImage->Name().c_str());
+            case 1:
+            {
+                if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
+                    return QString("");
+
+                cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
+
+                cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
+
+                if(pI)
+                {
+                    cOneSaisie* cOS = pI->Saisie();
+                    if(cOS)
+                    {
+                        eEtatPointeImage state = cOS->Etat();
+
+                        switch (state)
+                        {
+                        case eEPI_NonSaisi:
+                            return QString("%1").arg("non saisie");
+                        case eEPI_Refute:
+                            return QString("%1").arg("refute");
+                        case eEPI_Douteux:
+                            return QString("%1").arg("douteux");
+                        case eEPI_Valide:
+                            return QString("%1").arg("valide");
+                        case eEPI_NonValue:
+                            return QString("%1").arg("non V");
+                        case eEPI_Disparu:
+                            return QString("");
+                        case eEPI_Highlight:
+                            return QString("%1").arg("highlight");
+                        }
+                    }
+                }
+
+                return QString("");
+            }
+            case 2:
+            {
+                if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
+                    return QString("");
+
+                cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
+
+                cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
+
+                if(pI->Saisie()->Etat() == eEPI_Disparu)
+                    return QString("");
+
+                return QString("%1\t %2")
+                        .arg(QString::number(pI->Saisie()->PtIm().x, 'f' ,1))
+                        .arg(QString::number(pI->Saisie()->PtIm().y, 'f' ,1));
+            }
             }
         }
     }
 
-    for (int aK=0; aK < vIdx.size(); ++aK)
+    return QVariant();
+}
+
+QVariant ModelCImage::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole)
     {
-        //TODO: retirer seulement les mesures et pas le point => possibilité de le ressaisir
-        removeRow(vIdx[aK].row(), vIdx[aK].parent());
+        if (orientation == Qt::Horizontal) {
+            switch (section)
+            {
+            case 0:
+                return QString("Image");
+            case 1:
+                return QString("State");
+            case 2:
+                return QString("Coordinates");
+            }
+        }
+    }
+    return QVariant();
+}
+
+bool ModelCImage::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    return false;
+}
+
+Qt::ItemFlags ModelCImage::flags(const QModelIndex &index) const
+{
+
+    switch (index.column())
+    {
+    case 0:
+        return QAbstractTableModel::flags(index) /*| Qt::ItemIsEditable*/;
+    case 1:
+        return QAbstractTableModel::flags(index);
     }
 
-    emitDataChanged();
+    return QAbstractTableModel::flags(index);
+}
+
+bool ModelCImage::insertRows(int row, int count, const QModelIndex &parent)
+{
+    beginInsertRows(QModelIndex(), row, row+count-1);
+    endInsertRows();
+    return true;
+}
+int ModelCImage::getIdGlobSelect() const
+{
+    return idGlobSelect;
+}
+
+void ModelCImage::setIdGlobSelect(int value)
+{
+    idGlobSelect = value;
 }
 

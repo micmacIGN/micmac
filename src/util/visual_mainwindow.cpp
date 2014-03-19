@@ -1,19 +1,15 @@
 #if(ELISE_QT5)
 
 #include "general/visual_mainwindow.h"
-#include "general/mes_boutons.h"
-#include "StdAfx.h"
-#include <iostream>
-#include <QFileDialog>
+#include "general/visual_buttons.h"
 
+#include "StdAfx.h"
 
 visual_MainWindow::visual_MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
-    resize(400, 300);
-
     gridLayoutWidget = new QWidget(this);
-    this->setCentralWidget(gridLayoutWidget);
+    setCentralWidget(gridLayoutWidget);
 
     gridLayout = new QGridLayout(gridLayoutWidget);
     gridLayoutWidget->setLayout(gridLayout);
@@ -21,7 +17,6 @@ visual_MainWindow::visual_MainWindow(QWidget *parent) :
     //label = new QLabel(gridLayoutWidget);
     //gridLayout->addWidget(label, 0, 0, 1, 1);
     //label->setText("Saisie de la commande Tapas...");
-
 
     //gridLayout->setRowStretch(0, 1);
     //gridLayout->setRowStretch(4, 1);
@@ -47,10 +42,9 @@ visual_MainWindow::visual_MainWindow(QWidget *parent) :
 //    connect(Parcourir,SIGNAL(clicked()),this,SLOT(press_parcours()));
 
 
-    Valider = new QPushButton(gridLayoutWidget);
-    Valider->setText("Valider");
-    gridLayout->addWidget(Valider,5,1,1,1);
-    connect(Valider,SIGNAL(clicked()),this,SLOT(press_valider()));
+    runCommandButton = new QPushButton("Run command", gridLayoutWidget);
+    gridLayout->addWidget(runCommandButton,5,1,1,1);
+    connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
 }
 
 
@@ -60,20 +54,20 @@ visual_MainWindow::~visual_MainWindow()
     delete gridLayout;
     delete label;
     delete Combo;
-    delete Sel_Fichiers;
-    delete Parcourir;
-    delete Valider;
+    delete selectFile_LineEdit;
+    delete selectFile_Button;
+    delete runCommandButton;
 }
 
-void visual_MainWindow::press_valider()
+void visual_MainWindow::onRunCommandPressed()
 {
-    std::cout<<"-----------------"<<std::endl;
+    cout<<"-----------------"<<endl;
     QString commande="mm3d "+QString(argv_recup.c_str())+" ";
     for (unsigned int i=0;i<inputs.size();i++)
     {
-        std::cout<<types_inputs[i]<<" "<<inputs[i]<<std::endl;
+        cout<<inputTypes[i]<<" "<<inputs[i]<<endl;
 
-        switch(types_inputs[i])
+        switch(inputTypes[i])
         {
             case lineedit:
             {
@@ -87,7 +81,7 @@ void visual_MainWindow::press_valider()
             }
             case integer:
             {
-            commande += QString("%1").arg( ((QSpinBox*)inputs[i])->value());
+                commande += QString("%1").arg( ((QSpinBox*)inputs[i])->value());
                 break;
             }
 
@@ -96,120 +90,114 @@ void visual_MainWindow::press_valider()
 
     }
 
-    std::cout<<commande.toStdString()<<std::endl;
+    cout<<commande.toStdString()<<endl;
 
-    std::cout<<"-----------------"<<std::endl;
-
-
+    cout<<"-----------------"<<endl;
 }
 
-void visual_MainWindow::press_parcours(int aK)
+void visual_MainWindow::onSelectFilePressed(int aK)
 {
     QString full_pattern=0;
     QStringList files = QFileDialog::getOpenFileNames(
                             gridLayoutWidget,
-                            "Sélectionnez vos images",
+                            tr("Select images"),
                             "/home",
-                            "Images (*.png *.xpm *.jpg)");
-    std::string Dossier=files[0].toStdString();
-    int fin_directory = Dossier.find_last_of("/")+1;
-    std::string Dossier_parent = Dossier.substr(0,fin_directory);
-    //std::cout<<Dossier_parent<<std::endl;
+                            "Images (*.png *.xpm *.jpg *.tif)");
 
-    QString fichiers="("+QString(files[0].toStdString().substr(fin_directory,std::string::npos).c_str());
-    for (int i=1;i<files.length();i++){
-        fichiers+="|";
-        fichiers.append(QString(files[i].toStdString().substr(fin_directory,std::string::npos).c_str()));
+    string aDir, aNameFile;
+    SplitDirAndFile(aDir,aNameFile,files[0].toStdString());
+
+    QString fileList="("+QString(aNameFile.c_str());
+    for (int i=1;i<files.length();i++)
+    {
+        SplitDirAndFile(aDir,aNameFile,files[i].toStdString());
+
+        fileList.append("|" + QString(aNameFile.c_str()));
     }
-    fichiers+=")";
-    full_pattern = QString(Dossier_parent.c_str())+fichiers;
+    fileList+=")";
+    full_pattern = QString(aDir.c_str())+fileList;
 
-    vecteur_Fichiers_images[aK]->setText(full_pattern);
-    //std::cout<<full_pattern.toStdString()<<std::endl;
-    commande+=" "+full_pattern;
+    vImageFiles[aK]->setText(full_pattern);
+    //cout<<full_pattern.toStdString()<<endl;
+    commande += " " + full_pattern;
 }
 
-void visual_MainWindow::ajoute_ligne_combo(QString str)
+void visual_MainWindow::add_combo_line(QString str)
 {
-    QComboBox* combo = vecteur_val_enumerees.back();
+    QComboBox* combo = vEnumValues.back();
     combo->addItem(str);
 }
 
-void visual_MainWindow::create_combo(int aK, std::list<std::string> liste_valeur_enum )
+void visual_MainWindow::create_combo(int aK, list<string> liste_valeur_enum )
 {
-    QComboBox* nom_combo = new QComboBox(gridLayoutWidget);
-    vecteur_val_enumerees.push_back(nom_combo);
-    gridLayout->addWidget(nom_combo,aK,1,1,1);
-    types_inputs.push_back(combobox);
-    inputs.push_back(nom_combo);
+    QComboBox* aCombo = new QComboBox(gridLayoutWidget);
+    vEnumValues.push_back(aCombo);
+    gridLayout->addWidget(aCombo,aK,1,1,1);
+    inputTypes.push_back(combobox);
+    inputs.push_back(aCombo);
 
     for (
-         std::list<std::string>::const_iterator val_enum= liste_valeur_enum.begin();
-         val_enum != liste_valeur_enum.end();
-         val_enum++)
+         list<string>::const_iterator it= liste_valeur_enum.begin();
+         it != liste_valeur_enum.end();
+         it++)
     {
-        std::string nom_enum = *val_enum;
-        QString qnom=QString(nom_enum.c_str());
-        ajoute_ligne_combo(qnom);
+        add_combo_line(QString((*it).c_str()));
     }
 }
 
 void visual_MainWindow::create_select_images(int aK)
 {
-    QLineEdit* nom_sel_fichier = new QLineEdit(gridLayoutWidget);
-    vecteur_Fichiers_images.push_back(nom_sel_fichier);
-    gridLayout->addWidget(nom_sel_fichier,aK,1,1,1);
-    create_bouton_parcourir(aK);
-    types_inputs.push_back(lineedit);
-    inputs.push_back(nom_sel_fichier);
+    QLineEdit* aLineEdit = new QLineEdit(gridLayoutWidget);
+    vImageFiles.push_back(aLineEdit);
+    gridLayout->addWidget(aLineEdit,aK,1,1,1);
+    create_selectFile_button(aK);
+    inputTypes.push_back(lineedit);
+    inputs.push_back(aLineEdit);
 }
 
 void visual_MainWindow::create_select_orientation(int aK)
 {
-    QLineEdit* nom_sel_fichier = new QLineEdit(gridLayoutWidget);
-    vecteur_Fichiers_images.push_back(nom_sel_fichier);
-    gridLayout->addWidget(nom_sel_fichier,aK,1,1,1);
-    create_bouton_parcourir(aK);
-    types_inputs.push_back(lineedit);
-    inputs.push_back(nom_sel_fichier);
+    QLineEdit* aLineEdit = new QLineEdit(gridLayoutWidget);
+    vImageFiles.push_back(aLineEdit);
+    gridLayout->addWidget(aLineEdit,aK,1,1,1);
+    create_selectFile_button(aK);
+    inputTypes.push_back(lineedit);
+    inputs.push_back(aLineEdit);
 }
 
-
-
-
-
-void visual_MainWindow::create_comment(std::string str_com, int aK)
+void visual_MainWindow::create_comment(string str_com, int aK)
 {
     QLabel * com = new QLabel(gridLayoutWidget);
-    vecteur_Commentaires.push_back(com);
+    vCommentaries.push_back(com);
     gridLayout->addWidget(com,aK,0,1,1);
     com->setText(QString(str_com.c_str()));
 }
 
-void visual_MainWindow::create_bouton_parcourir(int aK)
+void visual_MainWindow::create_selectFile_button(int aK)
 {
-    Parcourir = new mon_bouton_parcours(gridLayoutWidget);
-    gridLayout->addWidget(Parcourir,aK,3,1,1);
-    Parcourir->setText("Parcourir");
-    connect(Parcourir,SIGNAL(mon_click(int)),this,SLOT(press_parcours(int)));
-
+    selectFile_Button = new imgListButton("Select images", gridLayoutWidget);
+    gridLayout->addWidget(selectFile_Button,aK,3,1,1);
+    connect(selectFile_Button,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
 }
 
 void visual_MainWindow::create_champ_int(int aK)
 {
-    QSpinBox *nom_champ = new QSpinBox(gridLayoutWidget);
-    //vecteur_Fichiers_images.push_back(nom_champ);
-    gridLayout->addWidget(nom_champ,aK,1,1,1);
-    types_inputs.push_back(integer);
-    inputs.push_back(nom_champ);
+    QSpinBox *aSpinBox = new QSpinBox(gridLayoutWidget);
+    //vImageFiles.push_back(aSpinBox);
+    gridLayout->addWidget(aSpinBox,aK,1,1,1);
+    inputTypes.push_back(integer);
+    inputs.push_back(aSpinBox);
 }
 
-
-
-
-void visual_MainWindow::set_argv_recup(std::string argv)
+void visual_MainWindow::set_argv_recup(string argv)
 {
     argv_recup = argv;
+}
+
+void visual_MainWindow::resizeEvent(QResizeEvent *)
+{
+    const QPoint global = qApp->desktop()->availableGeometry().center();
+    move(global.x() - width() / 2, global.y() - height() / 2);
 }
 
 #endif //ELISE_QT5

@@ -13,6 +13,8 @@
 #include <QTimer>
 #include <QSignalMapper>
 #include <QGridLayout>
+#include <QTableView>
+#include <QTreeView>
 
 #include "Engine.h"
 #include "GLWidgetSet.h"
@@ -61,19 +63,19 @@ public:
 
     void loadPly(const QStringList& filenames);
 
-    TreeModel* getModel() { return _model; }
-
-    QItemSelectionModel * getSelectionModel() { return _selectionModel; }
-
     void setUI();
     void updateUI();
 
     bool eventFilter(QObject *object, QEvent *event);
 
+    QTableView *tableView_PG();
+
+    QTableView *tableView_Images();
+
 public slots:
 
     //! Try to load a list of files
-    void addFiles(const QStringList& filenames);
+    void addFiles(const QStringList& filenames, bool setGLData = true);
 
     void zoomFactor(int aFactor);
 
@@ -95,10 +97,7 @@ public slots:
 
     void setGamma(float);
 
-    void selectPoint(std::string ptName);
-
-    void setTreeView();
-    void updateTreeView();
+    cParameters* getParams() { return _params; }
 
 signals:
 
@@ -107,6 +106,8 @@ signals:
     void removePoint(QString pointName); //signal used when Treeview is edited
 
     void setName(QString); //signal coming from cSettingsDlg throw MainWindow
+
+    void imagesAdded(int, bool);
 
 protected slots:
 
@@ -208,7 +209,5 @@ private:
 
     int                     _mode;
 
-    TreeModel*              _model;
-    QItemSelectionModel *   _selectionModel;
 };
 #endif // MAINWINDOW_H

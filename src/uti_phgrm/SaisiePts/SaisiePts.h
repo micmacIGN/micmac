@@ -144,7 +144,7 @@ class cImage
         void   SetPrio(double aPrio);
         bool PtInImage(const Pt2dr aPt);
 
-        void CreatePGFromPointeMono(Pt2dr ,eTypePts,double aSz,cCaseNamePoint *);
+        cSP_PointGlob * CreatePGFromPointeMono(Pt2dr ,eTypePts,double aSz,cCaseNamePoint *);
         int & CptAff() ;
 
      private :
@@ -461,6 +461,7 @@ class cAppli_SaisiePts
 
     cImage *                ImageOfNameSVP(const std::string & aName);
     cSP_PointGlob *         PGlobOfNameSVP(const std::string & aName);
+    cSP_PointGlob *         PGlob(int id);
     cSetOfSaisiePointeIm  & SOSPI();
     bool                    HasOrientation() const;
 
