@@ -2292,7 +2292,7 @@ std::string NameFileStd
        std::string aNameCal = StdNameBayerCalib(aFullNameOri);
 
          
-      bool DoReech = aNameCal!= "" ;
+      bool DoReech = (aNameCal!= "") ;
       std::string  aNameCoul = (aNbChanSpec==1) ? "G" : "C";
       std::string  aNameReech =  DoReech ? "R" : "B";
 
