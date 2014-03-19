@@ -377,6 +377,8 @@ extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
 extern int VisuCoupeEpip_main(int,char **);
 
+int ExoMCI_main(int argc, char** argv);
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -402,6 +404,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2 of example from DocElise  "));
    aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualization of epipolar pair (cut)  "));
    aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualization of epipolar pair (cut)  "));
+
+   aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercice for multi correlation in image geometry  "));
    return aRes;
 }
 
