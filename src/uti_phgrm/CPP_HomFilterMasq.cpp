@@ -96,6 +96,8 @@ int HomFilterMasq_main(int argc,char ** argv)
     std::string  aDir,aPat,aFullDir;
     bool ExpTxt=false;
     std::string PostPlan="_Masq";
+    std::string KeyCalcMasq;
+    std::string KeyEquivNoMasq;
     std::string MasqGlob;
     double  aResol=10;
     bool AcceptNoMask;
@@ -111,6 +113,8 @@ int HomFilterMasq_main(int argc,char ** argv)
 	LArgMain()  
                     << EAM(PostPlan,"PostPlan",true,"Post to plan, Def : toto ->toto_Masq.tif like with SaisieMasq")
                     << EAM(MasqGlob,"GlobalMasq",true,"Global Masq to add to all image")	
+                    << EAM(KeyCalcMasq,"KeyCalculMasq",true,"For tuning masq per image")	
+                    << EAM(KeyEquivNoMasq,"KeyEquivNoMasq",true,"When given if KENM(i1)==KENM(i2), don't masq")	
                     << EAM(aResol,"Resol",true,"Sub Resolution for masq storing, Def=10")
                     << EAM(AcceptNoMask,"ANM",true,"Accept no mask, def = true if MasqGlob and false else")
                     << EAM(ExpTxt,"ExpTxt",true,"Ascii fomat for in and out, def=false")
@@ -146,13 +150,18 @@ int HomFilterMasq_main(int argc,char ** argv)
     for (int aKN = 0 ; aKN<int(aVN->size()) ; aKN++)
     {
         std::string aNameIm = (*aVN)[aKN];
-        Tiff_Im aTF = Tiff_Im::BasicConvStd(aNameIm);
+        Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
         Pt2di aSzG = aTF.sz();
         Pt2di aSzR (round_ni(Pt2dr(aSzG)/aResol));
         Im2D_Bits<1> aImMasq(aSzR.x,aSzR.y,1);
           
 
         std::string aNameMasq = StdPrefix(aNameIm)+PostPlan + ".tif";
+        if (EAMIsInit(&KeyCalcMasq))
+        {
+            aNameMasq = anICNM->Assoc1To1(KeyCalcMasq,aNameIm,true);
+        }
+
         if (ELISE_fp::exist_file(aNameMasq))
         {
             Im2D_Bits<1> aImMasqLoc = GetMasqSubResol(aDir+aNameMasq,aResol);
@@ -203,6 +212,13 @@ int HomFilterMasq_main(int argc,char ** argv)
 
              if (ELISE_fp::exist_file(aNameIn))
              {
+                  bool UseMasq = true;
+                  if (EAMIsInit(&KeyEquivNoMasq))
+                  {
+                       UseMasq =  (anICNM->Assoc1To1(KeyEquivNoMasq,aNameIm1,true) != anICNM->Assoc1To1(KeyEquivNoMasq,aNameIm2,true) );
+                  }
+
+
                   TIm2DBits<1>  aMasq1 ( aVMasq[aKN1]);
                   TIm2DBits<1>  aMasq2 ( aVMasq[aKN2]);
 
@@ -215,7 +231,7 @@ int HomFilterMasq_main(int argc,char ** argv)
                       Pt2di aQ1 = round_ni(aP1/aResol);
                       Pt2di aQ2 = round_ni(aP2/aResol);
 
-                      if (aMasq1.get(aQ1,0) && aMasq2.get(aQ2,0))
+                      if ((aMasq1.get(aQ1,0) && aMasq2.get(aQ2,0)) || (! UseMasq))
                       {
                           ElCplePtsHomologues aCple(aP1,aP2);
                           aPackOut.Cple_Add(aCple);
@@ -223,7 +239,7 @@ int HomFilterMasq_main(int argc,char ** argv)
                   }
                   std::string aNameOut = aDir + anICNM->Assoc1To2(aKHOut,aNameIm1,aNameIm2,true);
                   aPackOut.StdPutInFile(aNameOut);
-                  std::cout << "IN " << aNameIn << " " << aNameOut << "\n";
+                  std::cout << "IN " << aNameIn << " " << aNameOut  << " UseM " << UseMasq << "\n";
              }
         }
     }

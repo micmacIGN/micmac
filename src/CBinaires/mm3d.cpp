@@ -165,6 +165,7 @@ class cMMCom
 
 int SampleLibElise_main(int argc,char ** argv);
 
+int ChamVec3D_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -258,7 +259,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ReducHom",ReducHom_main," Do some stuff"));
        aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation"));
        aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
-       aRes.push_back(cMMCom("HomolFilterMasq",HomFilterMasq_main," Tool for filter homologous points according to masq"));
+       aRes.push_back(cMMCom("HomolFilterMasq",HomFilterMasq_main," Tool for filter homologous points according to masq",cArgLogCom(2)));
 
 
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
@@ -329,6 +330,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 #endif
        aRes.push_back(cMMCom("TestLib",SampleLibElise_main," To call the program illustrating the library"));
+       aRes.push_back(cMMCom("FieldDep3d",ChamVec3D_main," To export results of matching as 3D deplacement"));
    }
    return aRes;
 }
