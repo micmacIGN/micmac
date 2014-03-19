@@ -780,14 +780,14 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
          </item>
          <item>
           <widget class="QTableView" name="tableView_PG">
+           <property name="mouseTracking">
+            <bool>false</bool>
+           </property>
            <property name="frameShape">
             <enum>QFrame::Box</enum>
            </property>
            <property name="frameShadow">
             <enum>QFrame::Plain</enum>
-           </property>
-           <property name="sizeAdjustPolicy">
-            <enum>QAbstractScrollArea::AdjustIgnored</enum>
            </property>
            <property name="gridStyle">
             <enum>Qt::SolidLine</enum>

@@ -191,25 +191,34 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
-                eEtatPointeImage state = pI->Saisie()->Etat();
-
-                switch (state)
+                if(pI)
                 {
-                case eEPI_NonSaisi:
-                    return QString("%1").arg("non saisie");
-                case eEPI_Refute:
-                    return QString("%1").arg("refute");
-                case eEPI_Douteux:
-                    return QString("%1").arg("douteux");
-                case eEPI_Valide:
-                    return QString("%1").arg("valide");
-                case eEPI_NonValue:
-                    return QString("%1").arg("non V");
-                case eEPI_Disparu:
-                    return QString("");
-                case eEPI_Highlight:
-                    return QString("%1").arg("highlight");
+                    cOneSaisie* cOS = pI->Saisie();
+                    if(cOS)
+                    {
+                        eEtatPointeImage state = cOS->Etat();
+
+                        switch (state)
+                        {
+                        case eEPI_NonSaisi:
+                            return QString("%1").arg("non saisie");
+                        case eEPI_Refute:
+                            return QString("%1").arg("refute");
+                        case eEPI_Douteux:
+                            return QString("%1").arg("douteux");
+                        case eEPI_Valide:
+                            return QString("%1").arg("valide");
+                        case eEPI_NonValue:
+                            return QString("%1").arg("non V");
+                        case eEPI_Disparu:
+                            return QString("");
+                        case eEPI_Highlight:
+                            return QString("%1").arg("highlight");
+                        }
+                    }
                 }
+
+                return QString("");
             }
             case 2:
             {
