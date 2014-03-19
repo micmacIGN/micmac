@@ -16970,6 +16970,17 @@ const cTplValGesInit< bool > & cSection_Vrac::SL_NewRedrCur()const
 }
 
 
+cTplValGesInit< bool > & cSection_Vrac::SL_L2Estim()
+{
+   return mSL_L2Estim;
+}
+
+const cTplValGesInit< bool > & cSection_Vrac::SL_L2Estim()const 
+{
+   return mSL_L2Estim;
+}
+
+
 cTplValGesInit< std::vector<std::string> > & cSection_Vrac::SL_FILTER()
 {
    return mSL_FILTER;
@@ -17209,6 +17220,8 @@ cElXMLTree * ToXMLTree(const cSection_Vrac & anObj)
       aRes->AddFils(::ToXMLTree(std::string("SL_RedrOnCur"),anObj.SL_RedrOnCur().Val())->ReTagThis("SL_RedrOnCur"));
    if (anObj.SL_NewRedrCur().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SL_NewRedrCur"),anObj.SL_NewRedrCur().Val())->ReTagThis("SL_NewRedrCur"));
+   if (anObj.SL_L2Estim().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SL_L2Estim"),anObj.SL_L2Estim().Val())->ReTagThis("SL_L2Estim"));
    if (anObj.SL_FILTER().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SL_FILTER"),anObj.SL_FILTER().Val())->ReTagThis("SL_FILTER"));
    if (anObj.SL_TJS_FILTER().IsInit())
@@ -17274,6 +17287,8 @@ void xml_init(cSection_Vrac & anObj,cElXMLTree * aTree)
    xml_init(anObj.SL_RedrOnCur(),aTree->Get("SL_RedrOnCur",1),bool(false)); //tototo 
 
    xml_init(anObj.SL_NewRedrCur(),aTree->Get("SL_NewRedrCur",1),bool(false)); //tototo 
+
+   xml_init(anObj.SL_L2Estim(),aTree->Get("SL_L2Estim",1),bool(true)); //tototo 
 
    xml_init(anObj.SL_FILTER(),aTree->Get("SL_FILTER",1)); //tototo 
 
@@ -20023,6 +20038,17 @@ cTplValGesInit< bool > & cParamMICMAC::SL_NewRedrCur()
 const cTplValGesInit< bool > & cParamMICMAC::SL_NewRedrCur()const 
 {
    return Section_Vrac().SL_NewRedrCur();
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::SL_L2Estim()
+{
+   return Section_Vrac().SL_L2Estim();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::SL_L2Estim()const 
+{
+   return Section_Vrac().SL_L2Estim();
 }
 
 

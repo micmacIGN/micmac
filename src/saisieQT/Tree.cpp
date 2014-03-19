@@ -49,9 +49,7 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
                 case 0:
                     return QString("%1").arg(cnPt.mName.c_str());
                 case 1:
-                {
-                    return QString("Non saisi");
-                }
+                    return QString(tr("Non saisi"));
                 }
             }
         }
@@ -64,13 +62,14 @@ QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, 
 {
     if (role == Qt::DisplayRole)
     {
-        if (orientation == Qt::Horizontal) {
+        if (orientation == Qt::Horizontal)
+        {
             switch (section)
             {
             case 0:
-                return QString("Point");
+                return QString(tr("Point"));
             case 1:
-                return QString("Coordinates");
+                return QString(tr("Coordinates"));
             }
         }
     }
@@ -86,7 +85,6 @@ bool ModelPointGlobal::setData(const QModelIndex &index, const QVariant &value, 
 
     if (role == Qt::EditRole)
     {
-
         string oldName = mAppli->PGlob(index.row())->PG()->Name();
         string newName = qnewName.toStdString();
 
@@ -191,25 +189,40 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
-                eEtatPointeImage state = pI->Saisie()->Etat();
 
-                switch (state)
+                if(pI)
                 {
-                case eEPI_NonSaisi:
-                    return QString("%1").arg("non saisie");
-                case eEPI_Refute:
-                    return QString("%1").arg("refute");
-                case eEPI_Douteux:
-                    return QString("%1").arg("douteux");
-                case eEPI_Valide:
-                    return QString("%1").arg("valide");
-                case eEPI_NonValue:
-                    return QString("%1").arg("non V");
-                case eEPI_Disparu:
-                    return QString("");
-                case eEPI_Highlight:
-                    return QString("%1").arg("highlight");
+                    cOneSaisie* cOS = pI->Saisie();
+                    if(cOS)
+                    {
+                        eEtatPointeImage state = cOS->Etat();
+
+                        switch (state)
+                        {
+                        case eEPI_NonSaisi:
+                        {
+                            if(pI->Visible())
+                                return QString(tr("a valide"));
+                            else
+                                return QString(tr("hors Image"));
+                        }
+                        case eEPI_Refute:
+                            return QString(tr("refute"));
+                        case eEPI_Douteux:
+                            return QString(tr("douteux"));
+                        case eEPI_Valide:
+                            return QString(tr("valide"));
+                        case eEPI_NonValue:
+                            return QString(tr("non V"));
+                        case eEPI_Disparu:
+                            return QString(tr("Disparu"));
+                        case eEPI_Highlight:
+                            return QString(tr("highlight"));
+                        }
+                    }
                 }
+
+                return QString("hors Image");
             }
             case 2:
             {
@@ -220,12 +233,22 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
-                if(pI->Saisie()->Etat() == eEPI_Disparu)
-                    return QString("");
+                if (pI)
+                {
+                    cOneSaisie* cOS = pI->Saisie();
 
-                return QString("%1\t %2")
-                        .arg(QString::number(pI->Saisie()->PtIm().x, 'f' ,1))
-                        .arg(QString::number(pI->Saisie()->PtIm().y, 'f' ,1));
+                    if(cOS)
+                    {
+                        if(cOS->Etat() == eEPI_Disparu)
+                            return QString("");
+
+                        return QString("%1\t %2")
+                                .arg(QString::number(cOS->PtIm().x, 'f' ,1))
+                                .arg(QString::number(cOS->PtIm().y, 'f' ,1));
+                    }
+                }
+
+                return QString("");
             }
             }
         }
@@ -242,11 +265,11 @@ QVariant ModelCImage::headerData(int section, Qt::Orientation orientation, int r
             switch (section)
             {
             case 0:
-                return QString("Image");
+                return QString(tr("Image"));
             case 1:
-                return QString("State");
+                return QString(tr("State"));
             case 2:
-                return QString("Coordinates");
+                return QString(tr("Coordinates"));
             }
         }
     }

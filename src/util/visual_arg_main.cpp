@@ -57,7 +57,6 @@ void ShowEnum(const cMMSpecArg & anArg)
              itS++
              )
         std::cout << "     " << *itS << "\n";
-
 }
 
 std::list<std::string> listPossibleValues(const cMMSpecArg & anArg)
@@ -136,21 +135,18 @@ void MMRunVisualMode
         std::vector<cMMSpecArg> & aVAO   // Vector Arg Optional
         )
 {
-#ifdef _DEBUG
-    string str;
-#if(ELISE_QT5)
-    QString qstr = "i'm a qstring";
-    str = qstr.toStdString();
-#else
-    str = "i'm a std::string";
-#endif //ELISE_QT5
-    cout << str << endl;
-#endif
 
 #if(ELISE_QT5)
 
+    QApplication app(argc, argv);
 
-    QApplication interf(argc, argv);
+    QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        app.setStyleSheet(file.readAll());
+        file.close();
+    }
+
     visual_MainWindow w;
 
     //list of all arguments
@@ -188,18 +184,18 @@ void MMRunVisualMode
         //Si le type est une string
         if (aVAM[aK].NameType() =="string")
         {
-            //On récupère les valeurs énumérées dans une liste
+            //On recupere les valeurs enumerees dans une liste
             std::list<std::string> liste_valeur_enum = listPossibleValues(aVAM[aK]);
 
-            //S'il y a effectivement une énumération
-            //On rempli une combobox
+            //S'il y a effectivement une enumeration
+            //On remplit une combobox
             if (!liste_valeur_enum.empty())
             {
                 //QComboBox* Combo=0;
                 w.create_combo(aK,liste_valeur_enum);
 
             }
-            //Si c'est une chaine de caractères normale
+            //Si c'est une chaine de caracteres normale
             else
             {
                 //Si c'est une directory
@@ -239,9 +235,8 @@ void MMRunVisualMode
     std::cout<<"---------- End all arguments ----------"<<std::endl;
 
 
-
     w.show();
-    interf.exec();
+    app.exec();
 
 #endif //ELISE_QT5
 

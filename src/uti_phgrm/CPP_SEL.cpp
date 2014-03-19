@@ -74,15 +74,17 @@ int SEL_main(int argc,char ** argv)
 
     int aRedr=0;
     std::string aFilter="";
+    bool aRedrL1 = false;
 
     std::string aKeyCompl="Cple2HomAp";
     ElInitArgMain
     (
            argc,argv,
-           LArgMain() << EAM(aDir) 
-                       << EAM(aN1) 
-                      << EAM(aN2) ,
+           LArgMain() << EAMC(aDir,"Directory") 
+                       << EAMC(aN1,"Name Im1") 
+                      << EAMC(aN2,"Name Im2") ,
            LArgMain() << EAM(aRedr,"R",true)
+                      << EAM(aRedrL1,"RL1",true,"Estimate Homographie using L1 mode")
                       << EAM(aFilter,"F",true)
                       << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT MMD")
                       << EAM(aKeyCompl,"KCpl",true)
@@ -101,6 +103,9 @@ int SEL_main(int argc,char ** argv)
 
     if (aRedr)
        aCom = aCom + " SL_NewRedrCur=true";
+
+    if (aRedrL1)
+       aCom = aCom + " SL_L2Estim=false";
 
    if (aFilter!="")
        aCom = aCom

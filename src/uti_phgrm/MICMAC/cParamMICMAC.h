@@ -5344,6 +5344,9 @@ class cSection_Vrac
         cTplValGesInit< bool > & SL_NewRedrCur();
         const cTplValGesInit< bool > & SL_NewRedrCur()const ;
 
+        cTplValGesInit< bool > & SL_L2Estim();
+        const cTplValGesInit< bool > & SL_L2Estim()const ;
+
         cTplValGesInit< std::vector<std::string> > & SL_FILTER();
         const cTplValGesInit< std::vector<std::string> > & SL_FILTER()const ;
 
@@ -5412,6 +5415,7 @@ class cSection_Vrac
         cTplValGesInit< std::string > mSL_PackHom0;
         cTplValGesInit< bool > mSL_RedrOnCur;
         cTplValGesInit< bool > mSL_NewRedrCur;
+        cTplValGesInit< bool > mSL_L2Estim;
         cTplValGesInit< std::vector<std::string> > mSL_FILTER;
         cTplValGesInit< bool > mSL_TJS_FILTER;
         cTplValGesInit< double > mSL_Step_Grid;
@@ -6182,6 +6186,9 @@ class cParamMICMAC
 
         cTplValGesInit< bool > & SL_NewRedrCur();
         const cTplValGesInit< bool > & SL_NewRedrCur()const ;
+
+        cTplValGesInit< bool > & SL_L2Estim();
+        const cTplValGesInit< bool > & SL_L2Estim()const ;
 
         cTplValGesInit< std::vector<std::string> > & SL_FILTER();
         const cTplValGesInit< std::vector<std::string> > & SL_FILTER()const ;

@@ -54,6 +54,7 @@ void MainWindow::connectActions()
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&, bool)), this,	SLOT(addFiles(const QStringList&, bool)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
+        connect(this, SIGNAL(selectPoint(QString)),getWidget(aK),SLOT(selectPoint(QString)));
     }
 
     //File menu
@@ -792,17 +793,29 @@ void MainWindow::setUI()
 
 bool MainWindow::eventFilter( QObject* object, QEvent* event )
 {
-    if( ( object == tableView_PG()) && event->type() == QEvent::KeyRelease )
+    if( ( object == tableView_PG()))
     {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        QAbstractItemView* table    = (QAbstractItemView*)object;
 
-        if (keyEvent->key() == Qt::Key_Delete)
+        QItemSelectionModel* sModel = table->selectionModel();
+
+        if(sModel)
         {
-            QAbstractItemView* table = (QAbstractItemView*)object;
+            QString pointName           = sModel->currentIndex().data(Qt::DisplayRole).toString();
 
-            QString pointName = table->selectionModel()->currentIndex().data(Qt::DisplayRole).toString();
+            if(event->type() == QEvent::KeyRelease )
+            {
+                QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
 
-            emit removePoint(pointName); // we send point name, because point has not necessarily a widget index (point non saisi)
+                if (keyEvent->key() == Qt::Key_Delete)
+
+                    emit removePoint(pointName); // we send point name, because point has not necessarily a widget index (point non saisi)
+
+                else if (keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down)
+                {
+                    emit selectPoint(pointName);
+                }
+            }
         }
     }
 

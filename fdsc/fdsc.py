@@ -451,7 +451,7 @@ class MainWindow(QtGui.QMainWindow):
         elif self.radio_medianStack.isChecked():
           stackPerp(self.filename_Px1imageInStack, self.filename_Px2imageInStack, "",  self.spin_resolStack.value(), 1, self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_mediane_pond,self.filename_traceFaultStack,fname_offsetsOutStack,typeDir,'', 'r', 'distance along profile (px)', 'offset (m)','Median Stack Profile',startName_stack,showErr,showStack)
         elif self.radio_meanStack.isChecked():
-          stackPerp(self.filenames_Px1imageInStack, self.filename_Px2imageInStack, "", self.spin_resolStack.value(), 1, self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_coef_correl,self.filename_traceFaultStack,fname_offsetsOutStack,typeDir,'', 'r', 'distance along profile (px)', 'offset (m)','Mean Stack Profile',startName_stack,showErr,showStack)
+          stackPerp(self.filename_Px1imageInStack, self.filename_Px2imageInStack, "", self.spin_resolStack.value(), 1, self.spin_lengthStack.value(), self.spin_widthStack.value(), self.spin_distStack.value(),calc_profil_coef_correl,self.filename_traceFaultStack,fname_offsetsOutStack,typeDir,'', 'r', 'distance along profile (px)', 'offset (m)','Mean Stack Profile',startName_stack,showErr,showStack)
         self.groupBox_stack.setChecked(False)
         self.groupBox_cg.setChecked(True)
         #~ self.edit_offsetsInCg.setText(self.filename_offsetsOutStack)

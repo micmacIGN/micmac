@@ -199,7 +199,7 @@ public :
 
 
     void    SetImage(cImage *);
-    static const Pt2dr  PtsEchec;
+
     Box2dr  BoxImageVisible() const;
 
     cImage* Image() { return mCurIm; }
@@ -324,8 +324,6 @@ class cVirtualInterface
     int                 GetNumCaseNamePoint()      { return mVNameCase.size(); }
     cCaseNamePoint &    GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
 
-//     virtual  cFenMenu *      MenuNamePoint()=0;
-
     virtual pair<int,string> IdNewPts(cCaseNamePoint * aCNP)=0;
     string              nameFromAutoNum(cCaseNamePoint *aCNP, int aCptMax);
 
@@ -342,7 +340,12 @@ class cVirtualInterface
     virtual bool        isDisplayed(cImage* )=0;
 
     static void         ComputeNbFen(Pt2di &pt, int aNbW);
-    virtual void              Init()=0;
+
+    virtual void        Init()=0;
+
+    static const Pt2dr  PtEchec;
+
+    Pt2dr               FindPoint(cImage *curIm, const Pt2dr &aPIm, eTypePts aType, double aSz, cPointGlob *aPG);
 
 protected:
 
