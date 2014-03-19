@@ -474,7 +474,7 @@ void cAppli_Ori_Txt2Xml_main::SauvOriFinal()
    for (int aK= 0 ; aK<mNbCam ; aK++)
    {
        cTxtCam & aCam = *(mVCam[aK]);
-       MakeFileXML(*(aCam.mOC),aCam.mNameOri);
+       MakeFileXML(*(aCam.mOC),mDir+aCam.mNameOri);
        if (EAMIsInit(&mReexpMatr))
        {
           cOrientationConique aOriEx = aCam.mCam->StdExportCalibGlob();
@@ -1001,7 +1001,7 @@ void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK)
         aCam.mOC->Externe().Profondeur().SetVal(mProf);
         aCam.mOC->Externe().AltiSol().SetValIfNotInit(aC.z-mProf);
     }
-    MakeFileXML(*(aCam.mOC),aCam.mNameOri);
+    MakeFileXML(*(aCam.mOC),mDir+aCam.mNameOri);
     aCam.mCam = CamOrientGenFromFile(aCam.mNameOri,mICNM);
 }
 /*
