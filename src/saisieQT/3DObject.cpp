@@ -565,17 +565,18 @@ void cPoint::draw()
 
          if ((_bShowName) && (_name != ""))
          {
-             QFontMetrics metrics = QFontMetrics(_font);
-             int border = (float) qMax(4, metrics.leading());
+             //QFontMetrics metrics = QFontMetrics(_font);
+             //int border = (float) qMax(2, metrics.leading());
+             int border = 1;
 
              QRect rect = QFontMetrics(_font).boundingRect(_name);
 
-             QRect rectg(pt.x()-border, pt.y()-border, rect.width()+border, rect.height()+border);
+             QRect rectg(pt.x()-border, pt.y()-border, rect.width()-border, rect.height()-border);
              rectg.translate(QPoint(10, -rectg.height()-5));
 
              _painter->setPen(isSelected() ? Qt::black : Qt::white);
              _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
-             _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
+             _painter->drawText(rectg, Qt::AlignCenter /*| Qt::TextWordWrap*/, _name);
          }
 
          _painter->setWorldMatrixEnabled(true);

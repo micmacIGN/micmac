@@ -34,6 +34,7 @@ QWidget
 {
     color: #b1b1b1;
     background-color: #323232;
+    font-size: 13px
 }
 
 QWidget:item:hover
@@ -852,7 +853,7 @@ QCheckBox::indicator:disabled, QRadioButton::indicator:disabled
      <x>0</x>
      <y>0</y>
      <width>1163</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="mouseTracking">
