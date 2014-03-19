@@ -72,6 +72,13 @@ public:
     app.setOrganizationName("IGN");
     app.setApplicationName("QT graphical tools");
 
+    QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        app.setStyleSheet(file.readAll());
+        file.close();
+    }
+
     // qt translations
     const QString locale = QLocale::system().name().section('_', 0, 0);
     QTranslator qtTranslator;
