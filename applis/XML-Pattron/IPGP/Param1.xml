@@ -1,0 +1,261 @@
+<!--
+
+Param avec rederessement
+Alternance des correlation dans une direction
+
+-->
+
+
+<ParamMICMAC>
+    <Section_Terrain>
+    <IntervParalaxe>
+            <!-- Incertitude en Paralaxe -->
+             <Px1IncCalc>   2.0  </Px1IncCalc>
+             <Px2IncCalc>   2.0  </Px2IncCalc>
+
+             <Px1Moy >  0.0     </Px1Moy>
+             <Px2Moy >  0.0   </Px2Moy>
+
+        </IntervParalaxe>
+
+         <Planimetrie>
+         </Planimetrie>
+    </Section_Terrain>
+<!--
+ *************************************************************
+     Parametres lies a la prise de vue, independamment de son exploitation
+par le correlateur
+-->
+    <Section_PriseDeVue>
+        <GeomImages> eGeomImage_Epip </GeomImages>
+        <Images>
+            <Im1>ortho_scene07_crop1.tif</Im1>
+            <Im2>ortho_scene03_crop1.tif</Im2>
+        </Images>
+    </Section_PriseDeVue>
+    <Section_MEC>
+        <ChantierFullImage1> true </ChantierFullImage1>
+<!--
+        <ProportionClipMEC> 3000   1500    4500 4000 </ProportionClipMEC>
+        <ClipMecIsProp> false </ClipMecIsProp>
+-->
+
+        <EtapeMEC>
+            <DeZoom > -1 </DeZoom> <!-- le seul fils obligatoire a toutes les etapes-->
+            <SzW> 16  </SzW> <!-- la taille de la fenetre de correlation -->
+
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+
+           <!-- <Gen8Bits_Px1>  true  </Gen8Bits_Px1>
+            <Gen8Bits_Px2>  true  </Gen8Bits_Px2>-->
+            <GenImagesCorrel> true </GenImagesCorrel> <!--false par defaut, sauf pour la derniere etape-->
+
+
+
+            <ModulationProgDyn Portee="Globale"> <!-- obligatoire si le mode algorithmique choisi est eAlgo2PrgDyn-->
+                <EtapeProgDyn>
+                    <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+                    <NbDir>      8     </NbDir>
+                </EtapeProgDyn>
+                    <Px1PenteMax > 0.001 </Px1PenteMax>
+                    <Px2PenteMax > 0.001 </Px2PenteMax>
+            </ModulationProgDyn>
+
+            <!--<ModeInterpolation> eInterpolMPD </ModeInterpolation> -->
+            <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+
+            <!--parametre de dilatation des nappes en profondeur;
+            les parametres de dilatation fixent l’intervalle qui doit
+            etre explore a partir de la prediction de l’étape précédente
+            param sensible pour le comportement de l'algorithmie car il conditionne les parties de
+    l       l'espace de la scene exploree ou non a la resolution suivante-->
+            <Px1DilatAlti>  2    </Px1DilatAlti>
+            <Px1DilatPlani> 2    </Px1DilatPlani>
+            <Px2DilatAlti>  2    </Px2DilatAlti>
+            <Px2DilatPlani> 2    </Px2DilatPlani>
+
+            <!--Ces valeurs correspondent aux termes de regularisation - permettent de ponderer
+            l'attache aux donnees par rapport à l'a priori de regularite (plus ils sont forts,
+            plus on impose un resultat regulier
+            Ici le champ recherche est considere tres regulier (fonction basse frequence, faible
+            amplitude) -->
+            <Px1Regul>  0.5    </Px1Regul>
+            <Px2Regul>  0.5   </Px2Regul>
+
+            <Px1Pas>        0.16  </Px1Pas>
+            <Px2Pas>        0.16  </Px2Pas>
+
+            <SsResolOptim> 3 </SsResolOptim>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+            <DeZoom > 16  </DeZoom>
+            <Px1Pas>        0.32  </Px1Pas>
+            <Px2Pas>        0.32  </Px2Pas>
+        </EtapeMEC>
+
+        <EtapeMEC>
+            <DeZoom > 16  </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+            <DeZoom > 8  </DeZoom>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 4 </DeZoom>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+
+           <SsResolOptim Portee="Globale"> 5 </SsResolOptim> <!--Portee="Globale" indique que ce param est valable pour toutes les étapes d'apres-->
+            <!--l'optimisation se fait sur des images dalles qui agrege la correlation sur des carres de 3x3 pixels
+            - il est utile pour gagner du temps et de la robustesse si on sait que le champs a calculer est tres regulier
+            - ce n'est pas obligatoire a le changer a chq DeZoom; ca peut etre utile d'avoir des regroupement de plus
+            en plus important quand les images sont de plus en plus resolues
+            -->
+
+           <Px2RedrPx  Portee="Globale">    true   </Px2RedrPx> <!-- Pre redressement en fonction des Px calc, Def = false-->
+           <Px2DeqRedr  Portee="Globale">   true   </Px2DeqRedr> <!-- Faut il dequantifier la px de redressement, defaut = true-->
+           <Px1RedrPx  Portee="Globale">    true   </Px1RedrPx>
+           <Px1DeqRedr  Portee="Globale">   true   </Px1DeqRedr> <!-- Def true-->
+           <RedrNbIterMed  Portee="Globale">2 </RedrNbIterMed> <!-- Def 2 -->
+           <RedrSzMed  Portee="Globale"> 2 </RedrSzMed>   <!-- Def 2 -->
+           <RedrNbIterMoy  Portee="Globale"> 3</RedrNbIterMoy><!-- Def 3 -->
+           <RedrSzMoy  Portee="Globale"> 3 </RedrSzMoy>  <!-- Def 8 -->
+
+
+            <!--  Filtrage a posteriori des parallaxes -->
+            <PostFiltragePx Portee="Globale">
+                  <OneFitragePx>
+                        <TypeFiltrage> eFiltrageMedian   </TypeFiltrage>
+                        <!--Filtre median: remplacer la val d'un pixel par
+                       la val mediane de l'ensemble des pixels de son voisinage -->
+                        <SzFiltrage>  0          </SzFiltrage>
+                        <SzFiltrNonAd   > 2 </SzFiltrNonAd>
+                        <PxApply >   eApplyPx12     </PxApply>
+                        <NbIteration > 2 </NbIteration>
+                  </OneFitragePx>
+            </PostFiltragePx>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 4 </DeZoom>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 2 </DeZoom>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 2 </DeZoom>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+            <Px1Pas Portee="Globale">        0.08  </Px1Pas>
+            <Px2Pas Portee="Globale">        0.08  </Px2Pas>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+            <Px1Pas Portee="Globale">        0.04  </Px1Pas>
+            <Px2Pas Portee="Globale">        0.04  </Px2Pas>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+            <Px1Pas Portee="Globale">        0.02  </Px1Pas>
+            <Px2Pas Portee="Globale">        0.02  </Px2Pas>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px2DilatAlti>  0    </Px2DilatAlti>
+           <Px2DilatPlani> 0    </Px2DilatPlani>
+            <Px1Pas Portee="Globale">        0.01  </Px1Pas>
+            <Px2Pas Portee="Globale">        0.01  </Px2Pas>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1DilatAlti>  0    </Px1DilatAlti>
+           <Px1DilatPlani> 0    </Px1DilatPlani>
+        </EtapeMEC>
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1DilatAlti>  1    </Px1DilatAlti>
+           <Px1DilatPlani> 10    </Px1DilatPlani>
+           <Px2DilatAlti>  1    </Px2DilatAlti>
+           <Px2DilatPlani> 10    </Px2DilatPlani>
+        </EtapeMEC>
+
+    </Section_MEC>
+
+    <Section_Results >
+        <GeomMNT> eGeomPxBiDim </GeomMNT>
+    </Section_Results>
+
+   <Section_WorkSpace >
+    <!--<NomChantier>SW16</NomChantier>-->
+    <WorkDir >  ThisDir </WorkDir>
+        <TmpMEC>  MEC_MPD_diachr/  </TmpMEC>
+        <TmpResult>  MEC_MPD_diachr/  </TmpResult>
+        <TmpPyr>    Pyram_MPD_diachr/  </TmpPyr>
+        <ByProcess>  ${MMNbProc} </ByProcess>
+
+        <NbCelluleMax> 8e7 </NbCelluleMax>
+
+        <SzRecouvrtDalles> 500 </SzRecouvrtDalles>
+        <SzDalleMin> 3000 </SzDalleMin>
+
+     </Section_WorkSpace>
+
+    <Section_Vrac> </Section_Vrac>
+
+
+
+</ParamMICMAC>
