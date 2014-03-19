@@ -94,7 +94,9 @@ public slots:
     void                selectPG(QModelIndex modelIndex);
 
 protected:
-    void rebuild3DGlPoints(cPointGlob *selectPtGlob);
+
+    void                rebuild3DGlPoints(cPointGlob *selectPtGlob);
+
 private slots:
 
     void                addPoint(QPointF point);
