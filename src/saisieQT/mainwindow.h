@@ -105,6 +105,8 @@ signals:
 
     void removePoint(QString pointName); //signal used when Treeview is edited
 
+    void selectPoint(QString pointName);
+
     void setName(QString); //signal coming from cSettingsDlg throw MainWindow
 
     void imagesAdded(int, bool);

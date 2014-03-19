@@ -38,6 +38,7 @@ public :
     int                 idPointGlobal(cSP_PointGlob* PG);
 
     void resizeTable();
+    void table_Images_ChangePg(int idPG);
 private:
 
     void                Init();
@@ -90,6 +91,10 @@ public slots:
 
     void                changeImages(int idPt, bool aUseCpt);
 
+    void                selectPG(QModelIndex modelIndex);
+
+protected:
+    void rebuild3DGlPoints(cPointGlob *selectPtGlob);
 private slots:
 
     void                addPoint(QPointF point);
