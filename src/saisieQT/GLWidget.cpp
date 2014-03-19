@@ -326,7 +326,9 @@ void GLWidget::overlay()
         _painter->setPen(pen);
 
         _painter->resetTransform();
-        _painter->drawRect(this->rect());
+        QRect rect = this->rect();
+        rect.setTopLeft(rect.topLeft()+QPoint(1,1));
+        _painter->drawRect(rect);
 
         _painter->end();
     }
@@ -413,6 +415,12 @@ void GLWidget::setZoom(float val)
 
     emit zoomChanged(val);
 
+    update();
+}
+
+void GLWidget::selectPoint(QString namePt)
+{
+    polygon().selectPoint(namePt);
     update();
 }
 
@@ -595,7 +603,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 polygon().refreshHelper(pos, insertMode, _vp_Params.m_zoom);
 
                 if(id != polygon().idx())
-                    selectPoint(polygon().idx());
+                    emit selectPoint(polygon().idx());
             }
         }
         if (m_interactionMode == TRANSFORM_CAMERA)
