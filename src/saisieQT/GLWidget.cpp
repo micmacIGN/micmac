@@ -418,6 +418,12 @@ void GLWidget::setZoom(float val)
     update();
 }
 
+void GLWidget::selectPoint(QString namePt)
+{
+    polygon().selectPoint(namePt);
+    update();
+}
+
 void GLWidget::zoomFit()
 {
     if (hasDataLoaded())
@@ -597,7 +603,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 polygon().refreshHelper(pos, insertMode, _vp_Params.m_zoom);
 
                 if(id != polygon().idx())
-                    selectPoint(polygon().idx());
+                    emit selectPoint(polygon().idx());
             }
         }
         if (m_interactionMode == TRANSFORM_CAMERA)

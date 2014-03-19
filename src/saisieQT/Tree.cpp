@@ -189,6 +189,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
+
                 if(pI)
                 {
                     cOneSaisie* cOS = pI->Saisie();
@@ -199,24 +200,29 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                         switch (state)
                         {
                         case eEPI_NonSaisi:
-                            return QString("%1").arg(tr("non saisi"));
+                        {
+                            if(pI->Visible())
+                                return QString(tr("a valide"));
+                            else
+                                return QString(tr("hors Image"));
+                        }
                         case eEPI_Refute:
-                            return QString("%1").arg(tr("refute"));
+                            return QString(tr("refute"));
                         case eEPI_Douteux:
-                            return QString("%1").arg(tr("douteux"));
+                            return QString(tr("douteux"));
                         case eEPI_Valide:
-                            return QString("%1").arg(tr("valide"));
+                            return QString(tr("valide"));
                         case eEPI_NonValue:
-                            return QString("%1").arg(tr("non V"));
+                            return QString(tr("non V"));
                         case eEPI_Disparu:
-                            return QString("");
+                            return QString(tr("Disparu"));
                         case eEPI_Highlight:
-                            return QString("%1").arg(tr("highlight"));
+                            return QString(tr("highlight"));
                         }
                     }
                 }
 
-                return QString("");
+                return QString("hors Image");
             }
             case 2:
             {

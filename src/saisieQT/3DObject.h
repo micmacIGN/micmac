@@ -306,6 +306,8 @@ class cPolygon : public cObjectGL
         bool    isPointSelected(){ return _bSelectedPoint; }
         void    resetSelectedPoint();
 
+        int     selectPoint(QString namePt);
+
         cPolygonHelper* helper() { return _helper; }
 
         void    refreshHelper(QPointF pos, bool insertMode, float zoom);
@@ -350,7 +352,8 @@ class cPolygon : public cObjectGL
 
         QPainter *          _painter;
 
-    private:
+        bool pointValid();
+private:
         float               _pointDiameter;
         static float        _selectionRadius;
 
