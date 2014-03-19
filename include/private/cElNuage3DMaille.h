@@ -414,7 +414,7 @@ class cElNuage3DMaille : public cCapture3D
         Fonc_Num   ReScaleAndClip(Fonc_Num aF,const Pt2dr & aP0,double aScale);
         const std::vector<cLayerNuage3DM *> &  Attrs() const;
 
-        void NuageXZGCOL(const std::string & aName);
+        void NuageXZGCOL(const std::string & aName,bool B64=false);
 
         bool  IndexInsideGeom(const tIndex2D & aP) const
         {

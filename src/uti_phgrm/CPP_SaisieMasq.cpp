@@ -196,10 +196,10 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
     ElInitArgMain
     (
            argc,argv,
-           LArgMain() << EAM(aFullName) ,
+           LArgMain() << EAMC(aFullName,"Name of input image") ,
            LArgMain() << EAM(mSzWP,"SzW",true)
                       << EAM(aPost,"Post",true)
-                      << EAM(aNameMasq,"Name",true)
+                      << EAM(aNameMasq,"Name",true,"Name of result, default toto->toto_Masq.tif")
                       << EAM(aGama,"Gama",true)
                       << EAM(mAttr,"Attr",true)
     );

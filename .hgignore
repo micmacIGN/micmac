@@ -11,6 +11,8 @@ build_mingw
 build-vc
 build_vc
 build_vc_kakadu/
+build*
+Build*
 .project
 ModelingProject1/ModelDefinition/ModelingProject1.uml
 ModelingProject1/ModelingProject1.modelproj

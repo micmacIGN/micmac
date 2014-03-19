@@ -202,7 +202,7 @@ def calc_profil_coef_correl(data_px1, data_px2,coef_correl,larg_moy,tab_toutes_p
     tmp_val_sigma=0
     div_sigma=0
     for j in range(len(valeurs)):
-      tmp_val_sigma+=abs(val[j]-ordonnees_profil[i])*poids[j]**int(puiss_poids)
+      tmp_val_sigma+=abs(valeurs[j]-ordonnees_profil[i])*poids[j]**int(puiss_poids)
       div_sigma+=poids[j]**int(puiss_poids)
     tab_ecarts[i]=tmp_val_sigma/div_sigma
 

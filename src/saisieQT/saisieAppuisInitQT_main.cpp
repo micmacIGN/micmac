@@ -59,7 +59,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     string aFullName, aDir, aName, aNamePt, aNameOut;   //mandatory arguments
     string aNameOri, aNameAuto, aPrefix2Add;            //named args
     settings.beginGroup("Misc");
-    aNameAuto   = settings.value("defPtName", QString("100")).toString().toStdString();
+    aNameAuto = settings.value("defPtName", QString("100")).toString().toStdString();
     settings.endGroup();
     aPrefix2Add = "";
     bool aForceGray  = false;

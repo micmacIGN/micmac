@@ -1146,7 +1146,8 @@ cElHomographie  ToImRedr
                     cAppliMICMAC   & anAppli,
                     ElPackHomologue  aPack,
                     std::string & aNameImBase,
-		    bool          ForceWhenExist
+		    bool          ForceWhenExist,
+                    bool          aL2
                 )
 {
 
@@ -1156,7 +1157,8 @@ cElHomographie  ToImRedr
 
 
 
-    cElHomographie  aHom(aPack,true);
+    cElHomographie  aHom(aPack,aL2);
+    // cElHomographie  aHom(aPack,false);
     // aHom = aHom.Inverse();
     Pt2di aSzOut = aSz;
     // ======
@@ -1208,6 +1210,7 @@ int  MICMACSaisieLiaisons_main(int argc,char** argv)
     bool aRedrCur = anAppli.SL_RedrOnCur().Val();
     bool aNewRC =  anAppli.SL_NewRedrCur().Val();
  
+    bool aL2 = anAppli.SL_L2Estim().Val();
 
     std::string aNameCompSauvXML =    anAppli.PDV1()->NamePackHom(anAppli.PDV2());
 
@@ -1258,7 +1261,7 @@ int  MICMACSaisieLiaisons_main(int argc,char** argv)
          ElPackHomologue aPackExtIm2 = ElPackHomologue::FromFile(anAppli.FullDirGeom()+aNameH);
 
 
-        Hom2 =  ToImRedr(aModifName2,Nameim2,anAppli,aPackExtIm2,NameImOri1,aNewRC);
+        Hom2 =  ToImRedr(aModifName2,Nameim2,anAppli,aPackExtIm2,NameImOri1,aNewRC,aL2);
     }
 cout << aNameIm2GeomInit << "     " << Nameim2 << "\n";
 

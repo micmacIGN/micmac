@@ -565,17 +565,18 @@ void cPoint::draw()
 
          if ((_bShowName) && (_name != ""))
          {
-             QFontMetrics metrics = QFontMetrics(_font);
-             int border = (float) qMax(4, metrics.leading());
+             //QFontMetrics metrics = QFontMetrics(_font);
+             //int border = (float) qMax(2, metrics.leading());
+             int border = 1;
 
              QRect rect = QFontMetrics(_font).boundingRect(_name);
 
-             QRect rectg(pt.x()-border, pt.y()-border, rect.width()+border, rect.height()+border);
+             QRect rectg(pt.x()-border, pt.y()-border, rect.width()-border, rect.height()-border);
              rectg.translate(QPoint(10, -rectg.height()-5));
 
              _painter->setPen(isSelected() ? Qt::black : Qt::white);
              _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
-             _painter->drawText(rectg, Qt::AlignCenter | Qt::TextWordWrap, _name);
+             _painter->drawText(rectg, Qt::AlignCenter /*| Qt::TextWordWrap*/, _name);
          }
 
          _painter->setWorldMatrixEnabled(true);
@@ -721,7 +722,7 @@ void cPolygon::removeNearestOrClose(QPointF pos)
 
 void cPolygon::removeSelectedPoint()
 {
-    if ((_idx >=0)&&(_idx<size()))
+    if (pointValid())
 
         removePoint(_idx);
 }
@@ -732,7 +733,7 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
 
     findNearestPoint(pos, 400000.f);
 
-    if (_idx >=0 && _idx <_points.size())
+    if (pointValid())
     {
         if (state == eEPI_NonValue)
         {
@@ -756,7 +757,7 @@ int cPolygon::highlightNearestPoint(const QPointF &pos)
 {
     findNearestPoint(pos, 400000.f);
 
-    if (_idx >=0 && _idx <_points.size())
+    if (pointValid())
     {
         _points[_idx].switchHighlight();
     }
@@ -780,7 +781,7 @@ QString cPolygon::getNearestPointName(const QPointF &pos)
 
 QString cPolygon::getSelectedPointName()
 {
-    if (_idx >=0 && _idx <_points.size())
+    if (pointValid())
     {
         return _points[_idx].name();
     }
@@ -789,7 +790,7 @@ QString cPolygon::getSelectedPointName()
 
 int cPolygon::getSelectedPointState()
 {
-    if (_idx >=0 && _idx <_points.size())
+    if (pointValid())
     {
         return _points[_idx].state();
     }
@@ -885,7 +886,7 @@ void cPolygon::setPointSelected()
 {
     _bSelectedPoint = true;
 
-    if (_idx >=0 && _idx < _points.size())
+    if (pointValid())
         _points[_idx].setSelected(true);
 }
 
@@ -893,9 +894,31 @@ void cPolygon::resetSelectedPoint()
 {
     _bSelectedPoint = false;
 
-    if (_idx >=0 && _idx < _points.size())
+    if (pointValid())
         _points[_idx].setSelected(false);
     _idx = -1;
+}
+
+bool cPolygon::pointValid()
+{
+    return ((_idx >=0) && (_idx < _points.size()));
+}
+
+int cPolygon::selectPoint(QString namePt)
+{
+    resetSelectedPoint();
+
+    for (int i = 0; i < _points.size(); ++i)
+    {
+        if(_points[i].name() == namePt)
+        {
+            _idx = i;
+            _points[i].setSelected(true);
+            return i;
+        }
+    }
+
+    return _idx;
 }
 
 bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
@@ -923,7 +946,7 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
             }
         }
 
-        if (_idx >=0 && _idx <_points.size())
+        if (pointValid())
         {
             _points[_idx].setSelected(true);
 
@@ -1013,7 +1036,7 @@ void cPolygon::rename(QPointF pos, QString name)
 {
     findNearestPoint(pos, 400000.f);
 
-    if (_idx >=0 && _idx < _points.size())
+    if (pointValid())
         _points[_idx].setName(name);
 }
 
