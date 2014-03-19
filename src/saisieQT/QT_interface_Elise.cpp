@@ -46,7 +46,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     Init();
 
-    connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));   
+    connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));
 
     connect(m_QTMainWindow,	SIGNAL(removePoint(QString)), this, SLOT(removePoint(QString)));
 
@@ -642,4 +642,9 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
     }
 
     return _cNamePt;
+}
+
+Pt2dr cQT_Interface::FindPoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
+{
+    return cVirtualInterface::FindPoint(currentcImage(), aPIm, aType, aSz, aPG);
 }

@@ -37,7 +37,10 @@ public :
 
     int                 idPointGlobal(cSP_PointGlob* PG);
 
-    void resizeTable();
+    void                resizeTable();
+
+    Pt2dr               FindPoint(const Pt2dr &aPIm, eTypePts aType, double aSz, cPointGlob *aPG);
+
 private:
 
     void                Init();
