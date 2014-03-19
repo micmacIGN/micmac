@@ -163,6 +163,63 @@ void cVirtualInterface::UpdatePoints(cSP_PointeImage *aPIm, Pt2dr pt)
     aPIm->Gl()->ReCalculPoints();
 }
 
+const Pt2dr cVirtualInterface::PtEchec (-100000,-10000);
+
+Pt2dr cVirtualInterface::FindPoint(cImage* curIm, const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
+{
+    Tiff_Im aTF = curIm->Tif();
+    Pt2di aSzT = aTF.sz();
+
+    int aRab = 5 + round_up(aSz);
+    if ((aPIm.x <aRab) || (aPIm.y <aRab) || (aPIm.x >aSzT.x-aRab)|| (aPIm.y >aSzT.y-aRab))
+        return PtEchec;
+
+
+    Pt2di aMil  = mAppli->SzRech() / 2;
+    Im2D_INT4 aImA = mAppli->ImRechAlgo();
+    mAppli->DecRech() = round_ni(aPIm) - aMil;
+    Pt2di aDec = mAppli->DecRech();
+    ELISE_COPY
+    (
+        aImA.all_pts(),
+        curIm->FilterImage(trans(aTF.in_proj(),aDec),aType,aPG),
+        aImA.out()
+    );
+    ELISE_COPY
+    (
+        aImA.all_pts(),
+        trans(aTF.in_proj(),aDec),
+        //  mCurIm->FilterImage(trans(aTF.in_proj(),aDec),aType),
+        mAppli->ImRechVisu().out()
+    );
+
+
+    if (aType==eNSM_Pts)
+    {
+       return aPIm;
+    }
+
+
+
+    Pt2dr aPosImInit = aPIm-Pt2dr(aDec);
+
+
+
+    bool aModeExtre = (aType == eNSM_MaxLoc) ||  (aType == eNSM_MinLoc) || (aType==eNSM_GeoCube);
+    bool aModeMax = (aType == eNSM_MaxLoc) ||  (aType==eNSM_GeoCube);
+
+
+    if (aModeExtre)
+    {
+         aPosImInit = Pt2dr(MaxLocEntier(aImA,round_ni(aPosImInit),aModeMax,2.1));
+         aPosImInit = MaxLocBicub(aImA,aPosImInit,aModeMax);
+
+         return aPosImInit + Pt2dr(aDec);
+    }
+
+    return aPIm;
+}
+
 //********************************************************************************
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
