@@ -72,6 +72,13 @@ public:
     app.setOrganizationName("IGN");
     app.setApplicationName("QT graphical tools");
 
+    QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        app.setStyleSheet(file.readAll());
+        file.close();
+    }
+
     // qt translations
     const QString locale = QLocale::system().name().section('_', 0, 0);
     QTranslator qtTranslator;
@@ -90,7 +97,7 @@ public:
         {
             QString str = cmdline_args[i];
 #ifdef _DEBUG
-            cout << "\ncommande : " << str.toStdString().c_str()<<endl;
+            cout << "\ncommand: " << str.toStdString().c_str()<<endl;
 #endif
 
             if (!str.contains("SaisieQT"))
@@ -103,9 +110,11 @@ public:
                 {
                     QString text = QObject::tr("This is not a valid command!!!") + "\n\n" + cmds;
                     helpMessage(app, text);
+
+                    return EXIT_FAILURE;
                 }
 
-                return -1;
+                return EXIT_SUCCESS;
             }
         }
     }

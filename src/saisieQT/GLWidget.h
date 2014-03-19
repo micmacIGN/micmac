@@ -125,6 +125,8 @@ public slots:
     //! Sets current zoom
     void setZoom(float val);
 
+    void selectPoint(QString namePt);
+
 signals:
 
     //! Signal emitted when files are dropped on the window

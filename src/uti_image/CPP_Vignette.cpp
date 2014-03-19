@@ -551,55 +551,60 @@ int  Vignette_main(int argc,char ** argv)
 
 		cout<<"Number of different sets of images with the same Diaph-Focal combination : "<<aVectGrpVodka.size()<<endl<<endl;
 
-		for(int i=0;i<(int)aVectGrpVodka.size();i++)
-                {
-                   GrpVodka & aGrp = aVectGrpVodka[i];
-                   if (aGrp.aListIm.size() > 1)  // Modif MPD, core dump (legitime ...) avec grp a 1 image
-                   {
-			if(!aGrp.isComputed)
-                        {
-				CalibFolder=aDirOut;
-				std::cout << "--- Computing the parameters of the vignette effect for the set of "
-                                          <<aVectGrpVodka[i].size()
-                                          <<" images with Diaph="<<aVectGrpVodka[i].diaph
-                                          <<" and Foc="<<aVectGrpVodka[i].foc<<endl<<endl;
+			for(int i=0;i<(int)aVectGrpVodka.size();i++)
+				{
+					GrpVodka & aGrp = aVectGrpVodka[i];
+					if (aGrp.aListIm.size() <= 1 && !aGrp.isComputed)  // Modif MPD, core dump (legitime ...) avec grp a 1 image et pas de vignette correspondante en InCal
+					{
+						//Warn if a group is too small for computing a value
+						std::cout<< endl << "WARNING : A vignette can't be computed with only one image from the group with Foc = "<< aGrp.foc << " and Diaph = " << aGrp.diaph << endl << endl;
+					}
+					else
+					{
+						if(!aGrp.isComputed)
+									{
+							CalibFolder=aDirOut;
+							std::cout << "--- Computing the parameters of the vignette effect for the set of "
+													  <<aVectGrpVodka[i].size()
+													  <<" images with Diaph="<<aVectGrpVodka[i].diaph
+													  <<" and Foc="<<aVectGrpVodka[i].foc<<endl<<endl;
 
-				//Avec Points homol
-				PtsHom aPtsHomol=ReadPtsHom(aDir, aVectGrpVodka[i], Extension);
-				//aPtsHomol contient des vecteurs D1,D2,G1,G2,SZ;
-				vector<double> aParam = Vignette_Solve(aPtsHomol);
+							//Avec Points homol
+							PtsHom aPtsHomol=ReadPtsHom(aDir, aVectGrpVodka[i], Extension);
+							//aPtsHomol contient des vecteurs D1,D2,G1,G2,SZ;
+							vector<double> aParam = Vignette_Solve(aPtsHomol);
 
-		                if (aParam.size()==0)
-                                {
-			                cout<<"Couldn't compute vignette parameters"<<endl;
-		                }
-                                else
-                                { 
+									if (aParam.size()==0)
+											{
+										cout<<"Couldn't compute vignette parameters"<<endl;
+									}
+											else
+											{ 
 			   
-			   //Creating a flatfield tif file
-				   //Creating the numerical format for the output files names
-						char foc[5],dia[4];
-						sprintf(foc, "%04d", int(aVectGrpVodka[i].foc));
-						sprintf(dia, "%03d", int(10*aVectGrpVodka[i].diaph));
+						   //Creating a flatfield tif file
+							   //Creating the numerical format for the output files names
+									char foc[5],dia[4];
+									sprintf(foc, "%04d", int(aVectGrpVodka[i].foc));
+									sprintf(dia, "%03d", int(10*aVectGrpVodka[i].diaph));
 						
-				   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
+							   string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
 
-				   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol.SZ);
+							   Write_Vignette(aDir, aNameOut, aParam, aDirOut, aPtsHomol.SZ);
 
-			   //Set the couple of diaph foc to "computed"
-			   aVectGrpVodka[i].isComputed=true;
-				}
-			}
-                        else
-                        {
-                            CalibFolder=InCal;
-                        }
-			if (DoCor && aVectGrpVodka[i].isComputed==1)
-                        {
-			    //Correction des images avec les params calculés
-			    cout<<"Correcting the images"<<endl;
-			    Vignette_correct(aDir, aVectGrpVodka[i], aDirOut, CalibFolder);
-			}
+						   //Set the couple of diaph foc to "computed"
+						   aVectGrpVodka[i].isComputed=true;
+							}
+						}
+									else
+									{
+										CalibFolder=InCal;
+									}
+						if (DoCor && aVectGrpVodka[i].isComputed==1)
+									{
+							//Correction des images avec les params calculés
+							cout<<"Correcting the images"<<endl;
+							Vignette_correct(aDir, aVectGrpVodka[i], aDirOut, CalibFolder);
+						}
                    }
 		}
    Vodka_Banniere();

@@ -196,7 +196,7 @@ Fonc_Num  cArgMpDCRaw::FlatField(const cMetaDataPhoto & aMDP,const std::string &
 // std::cout <<  "  NOFFFFFFf " << aNameFF  << " " << ELISE_fp::exist_file(aNameFF) << " " << UseFF() << "\n";
       return 1;
    }
-// std::cout <<  "  Wittttttttttttthh     FFFFFFf " << aNameFF << " \n";
+ std::cout <<  " -----Image corected with flatfield : " << aNameFF << " \n";
 
 
    Im2D_REAL4 aFlF=Im2D_REAL4::FromFileStd(aNameFF);
