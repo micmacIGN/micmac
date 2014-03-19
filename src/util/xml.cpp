@@ -2416,6 +2416,154 @@ bool GetOneModifLC
 	return false;
 }
 
+void cElXMLTree::dump_one( ostream &io_stream, string i_prefix, int i_depth ) const
+{
+	string prefix = i_prefix+string( i_depth, '\t' );
+	io_stream << prefix << "mValTag=[" << mValTag << "] nbChildren=" << mFils.size();
+	if ( mPere==NULL ) io_stream << " root";
+	list<cElXMLAttr>::const_iterator itAttr = mAttrs.begin();
+	while ( itAttr!=mAttrs.end() ){
+		io_stream << ' ' << itAttr->mSymb << '=' << itAttr->mVal;
+		itAttr++;
+	}
+	io_stream << " type=";
+	switch ( mKind ){
+	case eXMLTop: io_stream<<"eXMLTop"; break;
+	case eXMLBranche: io_stream<<"eXMLBranche"; break;
+	case eXMLFeuille: io_stream<<"eXMLFeuille"; break;
+	case eXMLClone: io_stream<<"eXMLClone"; break;
+	}
+	io_stream << endl;
+}
+
+void cElXMLTree::dump( ostream &io_stream, std::string i_prefix, int i_depth ) const
+{
+	dump_one( io_stream, i_prefix, i_depth );
+	list<cElXMLTree*>::const_iterator itChild = mFils.begin();
+	while ( itChild!=mFils.end() ) (**itChild++).dump( io_stream, i_prefix, i_depth+1 );
+}
+
+void cElXMLTree::breadthFirstFunction( Functor &i_functor )
+{
+	list<cElXMLTree *> nodeList;
+	cElXMLTree *node;
+
+	// first node is the current node
+	nodeList.push_back(this);
+	unsigned int nbNodes = 1;
+
+	while ( nbNodes!=0 ){
+		// get first node from the list and remove it
+		node = nodeList.front();
+		nodeList.pop_front();
+		nbNodes--;
+
+		// add node's children to the list
+		list<cElXMLTree *>::iterator itChild = node->mFils.begin();
+		while ( itChild!=node->mFils.end() ){
+			nodeList.push_back( *itChild++ );
+			nbNodes++;
+		}
+
+		// process node
+		i_functor( *node );
+	}
+}
+
+
+class GetAllAttributeValues_functor : public cElXMLTree::Functor
+{
+	public:
+		string m_tagName;
+		string m_attributeName;
+		list<string> &m_values;
+
+	GetAllAttributeValues_functor( const string &i_tagName, const string &i_attributeName, list<string> &o_values ):
+		m_tagName(i_tagName),
+		m_attributeName(i_attributeName),
+		m_values(o_values){}
+
+	void operator ()( cElXMLTree &i_node )
+	{
+		if ( i_node.ValTag()==m_tagName ){
+			bool hasAttribute;
+			string value = i_node.StdValAttr( m_attributeName, hasAttribute );
+			if ( hasAttribute ) m_values.push_back( value );
+		}
+	}
+};
+
+// get a list of all "Name" attributes from "enum" tags
+void cElXMLTree::getAllAttributeValues( const std::string &i_tagName, const std::string &i_attributeName, std::list<std::string> &o_enumNames )
+{
+	GetAllAttributeValues_functor f( i_tagName, i_attributeName, o_enumNames );
+	breadthFirstFunction( f );
+}
+
+class addAttribute_functor : public cElXMLTree::Functor
+{
+	public:
+		string               m_criterionName;
+		const list<string> & m_criterionValues;
+		cElXMLAttr           m_attributeToAdd;
+		int m_i;
+
+	addAttribute_functor( const string &i_criterionName, const list<string> &i_criterionValues, const cElXMLAttr &i_attributeToAdd ):
+		m_criterionName(i_criterionName),
+		m_criterionValues(i_criterionValues),
+		m_attributeToAdd(i_attributeToAdd),
+		m_i(0){}
+
+	void operator ()( cElXMLTree &i_node )
+	{
+		m_i++;
+		
+		bool hasAttribute;
+		string value;
+		value = i_node.StdValAttr( m_criterionName, hasAttribute );
+		if ( hasAttribute ){
+			list<string>::const_iterator itName = m_criterionValues.begin();
+			while ( itName!=m_criterionValues.end() ){
+				if ( *itName==value ){
+					// check attribute does not already exist with a different value
+					string oldValue;
+					if ( i_node.HasAttr(m_attributeToAdd.mSymb) && (oldValue=i_node.ValAttr(m_attributeToAdd.mSymb))!=m_attributeToAdd.mVal )
+						cerr << "\033[0;31mWARNING: \033[0m" << "attribute [" << m_attributeToAdd.mSymb << "] is set to [" << m_attributeToAdd.mVal
+						     << "] but was previously [" << oldValue << ']' << endl;
+					
+					i_node.SetAttr( m_attributeToAdd.mSymb, m_attributeToAdd.mVal );
+					i_node.dump();
+					return;
+				}
+				itName++;
+			}
+		}
+	}
+};
+
+void cElXMLTree::addAttribute( const std::string &i_criterionName, const std::list<std::string> &i_criterionValues, const cElXMLAttr &i_attributeToAdd )
+{
+	addAttribute_functor f( i_criterionName, i_criterionValues, i_attributeToAdd );
+	breadthFirstFunction( f );
+}
+
+// this function adds the attribut 'PL2XmlTree=""' to all tags with an enum Type
+void fix_enum_references( cElXMLTree &i_tree )
+{
+	list<string> xmlFiles = RegexListFileMatch( "include/XML_GEN/", ".*.xml", 1, true );
+	list<string> enumNames;
+	list<std::string>::const_iterator itFile = xmlFiles.begin();
+	while ( itFile!=xmlFiles.end() ){
+		cElXMLTree tree( *itFile++ );
+		tree.getAllAttributeValues( "enum", "Name", enumNames );
+	}
+
+	cElXMLAttr attributeToAdd;
+	attributeToAdd.mSymb = "PL2XmlTree";
+	i_tree.addAttribute( "Type", enumNames, attributeToAdd );
+}
+
+
 /***********************************************************/
 /*                                                         */
 /*                    cElXMLFileIn                         */

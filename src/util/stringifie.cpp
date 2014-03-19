@@ -133,6 +133,11 @@ void StdXMl2CppAndString(const std::string &aNameInput)
                (
                   std::string("include")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR
                  + aPref + std::string(".xml"));
+
+	#ifdef __XML2CPP_FIX_ENUM
+		fix_enum_references( aTreeSpec );
+	#endif
+    
     aTreeSpec.StdGenCppGlob
     (
          std::string("src")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR+ aPref + ".cpp",
