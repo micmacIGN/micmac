@@ -443,7 +443,12 @@ void cQT_Interface::selectPG(QModelIndex modelIndex)
 
         table_Images_ChangePg(modelIndex.row());
 
-        emit m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
+#if ELISE_QT_VERSION==5
+       emit m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
+#else
+       m_QTMainWindow->emitSelectPoint(QString(pg->PG()->Name().c_str()));
+#endif
+
     }
 }
 
