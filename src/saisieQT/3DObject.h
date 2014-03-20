@@ -1,7 +1,7 @@
 #ifndef __3DOBJECT__
 #define __3DOBJECT__
 
-#include "StdAfx.h"
+#include "Settings.h"
 
 #ifdef Int
     #undef Int
@@ -19,8 +19,6 @@
     #endif
     #include "GL/glu.h"
 #endif
-
-#include "Settings.h"
 
 #define QMaskedImage cMaskedImage<QImage>
 
