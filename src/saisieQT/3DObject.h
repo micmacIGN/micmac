@@ -1,7 +1,7 @@
 #ifndef __3DOBJECT__
 #define __3DOBJECT__
 
-#include "StdAfx.h"
+#include "Settings.h"
 
 #ifdef Int
     #undef Int
@@ -19,8 +19,6 @@
     #endif
     #include "GL/glu.h"
 #endif
-
-#include "Settings.h"
 
 #define QMaskedImage cMaskedImage<QImage>
 
@@ -621,9 +619,9 @@ public:
 
     QImage*     getMask()                               { return pQMask;     }
 
-    void        setPolygon(cPolygon const &aPoly)       { m_polygon = aPoly; }
+    void        setPolygon(cPolygon *aPoly)             { m_VPolygons[0] = aPoly; }
 
-    void        clearPolygon()                          { m_polygon.clear(); }
+    void        clearPolygon()                          { polygon()->clear(); }
 
     bool        isNewMask()                             { return !isImgEmpty() ? glMaskedImage._m_newMask : true; }
 
@@ -684,21 +682,23 @@ public:
 
     cMaskedImageGL &glImage();
 
-    cPolygon &   polygon();
+    cPolygon*   polygon(int id = 0);
 
     GlCloud *   getCloud(int iC);
 
-    int         countCloud();
+    int         cloudCount();
 
-    int         countCameras();
+    int         camerasCount();
 
-    void        cloudsClear(){ Clouds.clear();}
+    void        clearClouds(){ Clouds.clear();}
 
     cCam*       camera(int iC){return Cams[iC];}
 
 private:
 
-    QVector<cCam*>      Cams;
+    cMaskedImageGL      glMaskedImage;
+
+    QImage              *pQMask;
 
     cBall               *pBall;
 
@@ -708,25 +708,23 @@ private:
 
     cGrid               *pGrid;
 
+    Pt3dr               _center;
+
+    bool                _modePt;
+
     QVector<GlCloud*>   Clouds;
 
-    cMaskedImageGL      glMaskedImage;
+    QVector<cCam*>      Cams;
 
-    QImage              *pQMask;
 
     //! Point list for polygonal selection
-    cPolygon             m_polygon;
+    QVector<cPolygon*>  m_VPolygons;
 
-    void        initOptions()
-    {
-        _options = options(OpShow_Mess);
-    }
+    void        initOptions();
 
     float       _diam;
 
-    Pt3dr       _center;
 
-    bool        _modePt;
 
     bool        _incFirstCloud;
 

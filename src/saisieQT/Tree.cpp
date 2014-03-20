@@ -8,7 +8,7 @@ ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli)
 
 int ModelPointGlobal::rowCount(const QModelIndex & /*parent*/) const
 {
-    return CountPG_CaseName();
+    return AllCount();
 }
 
 int ModelPointGlobal::columnCount(const QModelIndex & /*parent*/) const
@@ -20,7 +20,7 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        if(index.row() < CountPG())
+        if(index.row() < PG_Count())
         {
             std::vector< cSP_PointGlob * > vPG = mAppli->PG();
             cSP_PointGlob * pg = vPG[index.row()];
@@ -38,10 +38,10 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
             }
             }
         }
-        else if (index.row() < CountPG_CaseName())
+        else if (index.row() < AllCount())
         {
-            int id = index.row() - CountPG();
-            if(id >= 0 && id < CountCaseNamePoint())
+            int id = index.row() - PG_Count();
+            if(id >= 0 && id < CaseNamePointCount())
             {
                 cCaseNamePoint cnPt = mAppli->Interface()->GetCaseNamePoint(id);
                 switch (index.column())
@@ -101,7 +101,7 @@ Qt::ItemFlags ModelPointGlobal::flags(const QModelIndex &index) const
     switch (index.column())
     {
     case 0:
-        if(index.row() < CountPG())
+        if(index.row() < PG_Count())
             return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
     case 1:
         return QAbstractTableModel::flags(index);
@@ -117,28 +117,28 @@ bool ModelPointGlobal::insertRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
-int ModelPointGlobal::CountPG_CaseName() const
+int ModelPointGlobal::AllCount() const
 {
-    return  CountPG() + CountCaseNamePoint();
+    return  PG_Count() + CaseNamePointCount();
 }
 
-int ModelPointGlobal::CountPG() const
+int ModelPointGlobal::PG_Count() const
 {
     return  mAppli->PG().size();
 }
 
-int ModelPointGlobal::CountCaseNamePoint() const
+int ModelPointGlobal::CaseNamePointCount() const
 {
     return  mAppli->Interface()->GetNumCaseNamePoint();
 }
 
 bool ModelPointGlobal::caseIsSaisie(int idRow)
 {
-    int idCase = idRow - CountPG();
+    int idCase = idRow - PG_Count();
 
     QString nameCase(mAppli->Interface()->GetCaseNamePoint(idCase).mName.c_str());
 
-    for (int i = 0; i < CountPG(); ++i)
+    for (int i = 0; i < PG_Count(); ++i)
     {
        if(nameCase == QString(mAppli->PGlob(i)->PG()->Name().c_str()))
            return true;

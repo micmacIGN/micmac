@@ -264,7 +264,7 @@ void MainWindow::on_actionShow_names_toggled(bool show)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            getWidget(aK)->getGLData()->polygon().showNames(show);
+            getWidget(aK)->getGLData()->polygon()->showNames(show);
             getWidget(aK)->update();
         }
     }
@@ -276,7 +276,7 @@ void MainWindow::on_actionShow_refuted_toggled(bool show)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            getWidget(aK)->getGLData()->polygon().showRefuted(show);
+            getWidget(aK)->getGLData()->polygon()->showRefuted(show);
             getWidget(aK)->update();
         }
     }
@@ -459,7 +459,7 @@ void MainWindow::on_actionReset_triggered()
 void MainWindow::on_actionRemove_triggered()
 {
     if (_mode > MASK3D)
-        currentWidget()->polygon().removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
+        currentWidget()->polygon()->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
     else
         currentWidget()->Select(SUB);
 }
@@ -577,7 +577,7 @@ void MainWindow::on_actionSave_selection_triggered()
 void MainWindow::on_actionSettings_triggered()
 {
     cSettingsDlg uiSettings(this, _params);
-    connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
+    connect(&uiSettings, SIGNAL(nbFenChanged(bool)), this, SLOT(redraw(bool)));
 
     connect(&uiSettings, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
 
@@ -594,6 +594,9 @@ void MainWindow::on_actionSettings_triggered()
         connect(&uiSettings, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
         //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
     }
+
+    const QPoint global = qApp->desktop()->availableGeometry().center();
+    uiSettings.move(global.x() - uiSettings.width() / 2, global.y() - uiSettings.height() / 2);
 
     //uiSettings.setFixedSize(uiSettings.size());
     uiSettings.exec();
@@ -825,6 +828,14 @@ bool MainWindow::eventFilter( QObject* object, QEvent* event )
 QTableView *MainWindow::tableView_PG(){return _ui->tableView_PG;}
 
 QTableView *MainWindow::tableView_Images(){return _ui->tableView_Images;}
+
+#if ELISE_QT_VERSION!=5
+void MainWindow::emitSelectPoint(QString pointName)
+{
+    emit selectPoint(pointName);
+}
+#endif
+
 void  MainWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);
@@ -899,8 +910,9 @@ void MainWindow::setImagePosition(QPointF pt)
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
         GLWidget* glW = currentWidget();
-        if (glW && glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
-            text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
+        if(glW )
+            if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
+                text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
     }
 
     _ui->label_ImagePosition_1->setText(text);
@@ -960,19 +972,26 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
 void MainWindow::undo(bool undo)
 {
-    if (currentWidget()->getHistoryManager()->size())
+    if (_mode <= MASK3D)
     {
-        if (_mode != MASK3D)
+        if (currentWidget()->getHistoryManager()->size())
         {
-            int idx = currentWidgetIdx();
+            if (_mode != MASK3D)
+            {
+                int idx = currentWidgetIdx();
 
-            _Engine->reloadImage(idx);
+                _Engine->reloadImage(idx);
 
-            currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+                currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+            }
+
+            undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
+            currentWidget()->applyInfos();
         }
-
-        undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
-        currentWidget()->applyInfos();
+    }
+    else
+    {
+        emit undoSgnl(undo);
     }
 }
 

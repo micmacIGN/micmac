@@ -99,7 +99,7 @@ public:
     GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
-    cPolygon & polygon(){ return m_GLData->polygon(); }
+    cPolygon* polygon(){ return m_GLData->polygon(); }
 
     void setCursorShape(QPointF pos);
 
