@@ -111,6 +111,8 @@ signals:
 
     void imagesAdded(int, bool);
 
+    void undo(bool);
+
 protected slots:
 
     void setImagePosition(QPointF pt);

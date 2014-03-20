@@ -34,6 +34,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
 
+    connect(m_QTMainWindow,	SIGNAL(undo(bool)), this, SLOT(undo(bool)));
+
     connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList, bool)), this, SLOT(filesDropped(QStringList, bool)));
 
     _data = new cData;
@@ -445,6 +447,17 @@ void cQT_Interface::selectPG(QModelIndex modelIndex)
 
         emit m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
     }
+}
+
+void cQT_Interface::undo(bool mBool)
+{
+    if (mBool)
+        mAppli->Undo();
+    else
+        mAppli->Redo();
+
+    rebuildGlPoints();
+    emit dataChanged();
 }
 
 void cQT_Interface::changeCurPose(void *widgetGL)

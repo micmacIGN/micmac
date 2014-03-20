@@ -96,6 +96,8 @@ public slots:
 
     void                selectPG(QModelIndex modelIndex);
 
+    void                undo(bool);
+
 protected:
     void                rebuild3DGlPoints(cPointGlob *selectPtGlob);
 
