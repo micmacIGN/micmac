@@ -102,25 +102,38 @@ class cPtHom
 {
     public :
          cPtHom();
-         void  Recycle();
-         // Renvoie un germe a partir d'un premier point de liaison
-         static cPtHom * NewGerm(cImagH * aI1,const Pt2dr & aP1,cImagH* aI2,const Pt2dr & aP2);
-         void IncrCptArc();
-         bool OkAddI2(cImagH * aI2,const Pt2dr & aP2);
 
+         //  Free the objet, and put it in the list of free objtc "mReserve" for future allocation
+         void  Recycle();
+
+         // static constructor, create an object from a single tie point
+         static cPtHom * NewGerm(cImagH * aI1,const Pt2dr & aP1,cImagH* aI2,const Pt2dr & aP2);
+
+         // Used for udate mCptArc, which apparently is only used for tuning in ShowAll
+         void IncrCptArc();
+         // Update the Pt Hom to take into account that in I2, it was observed at P2
+         // Detect an incoherence as soons as several mesures are done in I2
+         // Memorize all the measurment ddOnePtUnique
+         void AddMesureInImage(cImagH * aI2,const Pt2dr & aP2);
+
+         // Number of image where the PtHom is observed
          int NbIm() const;
 
-         bool OkAbsorb(cPtHom *);
+         // Merge this and H2, Recycle H2, memorize if the merge is coherent
+         bool OkAbsorb(cPtHom * H2);
 
          static void ShowAll();
     private :
 
+         // Allocate by searcchinh in mReserve or new
          static cPtHom * Alloc();
+
+
          cPtHom(const cPtHom &); // N.I.
          void  Clear();
 
          static std::list<cPtHom  *> mReserve;
-         static std::list<cPtHom  *> mAllExist;
+         static std::list<cPtHom  *> mAllExist;  // Used for tuning (Show All)
 
          std::map<cImagH*,std::vector<Pt2dr> >  mMesures;
          bool                     mCoherent;

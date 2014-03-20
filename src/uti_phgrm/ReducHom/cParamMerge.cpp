@@ -38,58 +38,83 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#include "ReducHom/ReducHom.h"
+#include "ReducHom.h"
 
 
-/*
-AFAIRE :
-   SUPPRIMER LES LIASON < (? 20)
-   SUPPRIMER LA PIRE LIASON PAR IMAGE 
-  SUPPRIMER LES 15% de PIRE
-*/
 
 
-int ReducHom_main(int argc,char ** argv)
+
+
+double  cParamMerge::Gain // <0, veut dire on valide pas le noeud
+               (
+                     tNodIm * aN1,tNodIm * aN2,
+                     const std::vector<cImagH*>&,
+                     const std::vector<cImagH*>&,
+                     const std::list<std::pair<cImagH*,cImagH*> >& aLPair,
+                     int aNewNum
+               )
 {
-   WarnTest();
-   MMD_InitArgcArgv(argc,argv);
-  // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
+    double aRes = 0.0;
+    for
+    (
+          std::list<std::pair<cImagH*,cImagH*> >::const_iterator itL=aLPair.begin();
+          itL!=aLPair.end();
+          itL++
+    )
+    {
+        cImagH* aIm1 =  itL->first;
+        cImagH* aIm2 =  itL->second;
+        cLink2Img *  aLnk12 = aIm1->GetLinkOfImage(aIm2);
 
-  //if (0) delete anAppli;
-    
-   ELISE_ASSERT(argc>=2,"Not enough arg");
+        aRes += aLnk12->NbPts();
+    }
+    int aDepth = 1 + ElMax(aN1->Depth(),aN2->Depth());
+    aRes = aRes / pow(2.0,aDepth);
 
-   cAppliReduc anAppli(argc,argv);
-   anAppli.DoAll();
-
-
-/*
-   cElXMLTree aTree(argv[1]);
-
-
-   cResultSubstAndStdGetFile<cParamSaisiePts> aP2 
-                                          (
-                                               argc-2,argv+2,
-                                              //0,0,
-		                              argv[1],
-			                      MMDir() + StdGetFileXMLSpec("ParamSaisiePts.xml"),
-			                      "ParamSaisiePts",
-			                      "ParamSaisiePts",
-                                              "DirectoryChantier",
-                                              "FileChantierNameDescripteur"
-                                          );
-
-   cAppli_SaisiePts   anAppli (aP2);
-   anAppli.BoucleInput();
-
-   SaisiePts_Banniere();
-getchar();
-*/
-   WarnTest();
-   return 0;
+    std::cout <<  aNewNum
+              << "  Candidate " << aN1->Num() << " " << aN2->Num() << " " << aRes
+               << " " << NameNode(aN1) << " " << NameNode(aN2) << " "
+              << "\n";
+    return aRes;
 }
 
+void cParamMerge::OnNewLeaf(tNodIm * aSingle)
+{
+   std::cout << "Creat Feuille " << aSingle->Val()->Name() << " " << aSingle->Num() << "\n";
+}
 
+void  cParamMerge::OnNewCandidate(tNodIm * aN1)
+{
+}
+
+void cParamMerge::OnNewMerge(tNodIm * aN1)
+{
+    std::cout << aN1->Num() << " MERGE " ;
+    for (int aK=0 ; aK<int(aN1->NbFils()) ; aK++)
+        std::cout << " " << aN1->FilsK(aK)->Num();
+    std::cout << "\n";
+}
+
+void cParamMerge::Vois(cImagH* anIm,std::vector<cImagH *> & aV)
+{
+    const tSetLinks & aLnks = anIm->Lnks();
+    for (tSetLinks::const_iterator  itL=aLnks.begin(); itL!=aLnks.end(); itL++)
+    {
+         aV.push_back(itL->second->Dest());
+    }
+}
+
+std::string NameNode(tNodIm * aN)
+{
+    cImagH * anI = aN->Val();
+    return anI ? anI->Name() : "XXX" ;
+}
+
+// -------
+
+template class cMergingNode<cImagH,cAttrLnkIm>;
+template class cAlgoMergingRec<cImagH,cAttrLnkIm,cParamMerge>;
+template class  ElHeap<cMergingNode<cImagH,cAttrLnkIm> *,cCmpMNode<cImagH,cAttrLnkIm> >;
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

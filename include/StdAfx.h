@@ -263,7 +263,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include "../src/uti_image/MpDcraw/MpDcraw.h"
 
-#include "../src/uti_phgrm/ReducHom/ReducHom.h"
+// #include "../src/uti_phgrm/ReducHom/ReducHom.h"
 
 #include "../src/uti_phgrm/Apero/cParamApero.h"
 #include "../src/uti_phgrm/Apero/Apero.h"
