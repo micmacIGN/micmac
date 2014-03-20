@@ -111,7 +111,7 @@ signals:
 
     void imagesAdded(int, bool);
 
-    void undo(bool);
+    void undoSgnl(bool);
 
 protected slots:
 
