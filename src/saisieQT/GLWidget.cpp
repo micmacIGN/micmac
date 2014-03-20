@@ -649,7 +649,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (hasDataLoaded() && m_GLData->countCloud())
+    if (hasDataLoaded() && m_GLData->cloudCount())
     {
 #if ELISE_QT_VERSION == 5
         QPointF pos = event->localPos();

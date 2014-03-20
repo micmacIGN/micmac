@@ -1398,7 +1398,7 @@ cGLData::cGLData():
 }
 
 cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
-    glMaskedImage(qMaskedImage),    
+    glMaskedImage(qMaskedImage),
     pQMask(qMaskedImage._m_mask),
     pBall(NULL),
     pAxis(NULL),
@@ -1474,12 +1474,12 @@ GlCloud* cGLData::getCloud(int iC)
     return Clouds[iC];
 }
 
-int cGLData::countCloud()
+int cGLData::cloudCount()
 {
     return Clouds.size();
 }
 
-int cGLData::countCameras()
+int cGLData::camerasCount()
 {
     return Cams.size();
 }
