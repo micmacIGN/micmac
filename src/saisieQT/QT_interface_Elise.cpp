@@ -13,26 +13,28 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     for (int aK = 0; aK < m_QTMainWindow->nbWidgets();++aK)
     {
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
+        GLWidget* widget = m_QTMainWindow->getWidget(aK);
 
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
+        connect(widget,	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
 
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
+        connect(widget,	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
 
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(removePoint(int, int)), this,SLOT(changeState(int,int)));
+        connect(widget,	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
 
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurPose(void*)));
+        connect(widget,	SIGNAL(removePoint(int, int)), this,SLOT(changeState(int,int)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
+        connect(widget,	SIGNAL(overWidget(void*)), this,SLOT(changeCurPose(void*)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
+        connect(widget->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int, bool)), this, SLOT(changeImages(int, bool)));
+        connect(widget->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
 
-        connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
+        connect(widget->contextMenu(),	SIGNAL(changeImagesSignal(int, bool)), this, SLOT(changeImages(int, bool)));
+     }
 
-        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList, bool)), this, SLOT(filesDropped(QStringList, bool)));
-    }
+    connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
+
+    connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList, bool)), this, SLOT(filesDropped(QStringList, bool)));
 
     _data = new cData;
 
@@ -453,7 +455,7 @@ void cQT_Interface::changeCurPose(void *widgetGL)
 
         int t = cImageIdxFromName(nameImage);
 
-        for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->countCameras(); ++c )
+        for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->camerasCount(); ++c )
             m_QTMainWindow->threeDWidget()->getGLData()->camera(c)->setSelected(false);
 
         m_QTMainWindow->threeDWidget()->getGLData()->camera(t)->setSelected(true);
@@ -481,7 +483,7 @@ void cQT_Interface::filesDropped(const QStringList &filenames, bool setGLData)
         {
             m_QTMainWindow->loadPly(filenames);
             _data->addCloud(m_QTMainWindow->getEngine()->getData()->getCloud(0));
-            m_QTMainWindow->threeDWidget()->getGLData()->cloudsClear();
+            m_QTMainWindow->threeDWidget()->getGLData()->clearClouds();
             _data->computeBBox();
             m_QTMainWindow->threeDWidget()->getGLData()->setData(_data,false);
             m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
