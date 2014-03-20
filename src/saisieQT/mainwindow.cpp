@@ -264,7 +264,7 @@ void MainWindow::on_actionShow_names_toggled(bool show)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            getWidget(aK)->getGLData()->m_polygon.showNames(show);
+            getWidget(aK)->getGLData()->polygon().showNames(show);
             getWidget(aK)->update();
         }
     }
@@ -276,7 +276,7 @@ void MainWindow::on_actionShow_refuted_toggled(bool show)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            getWidget(aK)->getGLData()->m_polygon.showRefuted(show);
+            getWidget(aK)->getGLData()->polygon().showRefuted(show);
             getWidget(aK)->update();
         }
     }
@@ -902,8 +902,9 @@ void MainWindow::setImagePosition(QPointF pt)
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
         GLWidget* glW = currentWidget();
-        if (glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
-            text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
+        if(glW )
+            if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
+                text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
     }
 
     _ui->label_ImagePosition_1->setText(text);
@@ -957,7 +958,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     if (_mode > MASK3D)
     {
         if ( glW->hasDataLoaded() && !glW->getGLData()->isImgEmpty() )
-            setImageName(glW->getGLData()->glMaskedImage.cObjectGL::name());
+            setImageName(glW->getGLData()->glImage().cObjectGL::name());
     }
 }
 

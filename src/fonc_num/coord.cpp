@@ -843,6 +843,19 @@ Fonc_Num  Identite(INT dim)
    return identite;
 }
 
+template <class Type> Fonc_Num TpleCsteNDim(const Type & aVal, int aDim)
+{
+   Fonc_Num aRes(aVal); 
+   for (INT d = 1; d<aDim ; d++)
+       aRes = Virgule(aRes,Fonc_Num(aVal));
+
+   return aRes;
+}
+
+Fonc_Num CsteNDim(double aVal,INT aDim) {return TpleCsteNDim<double>(aVal,aDim);}
+Fonc_Num CsteNDim(int    aVal,INT aDim) {return TpleCsteNDim<int>(aVal,aDim);}
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

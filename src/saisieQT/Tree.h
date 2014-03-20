@@ -2,6 +2,7 @@
 #define TREE_H
 
 #include <QAbstractTableModel>
+#include <QColor>
 
 #include "StdAfx.h"
 
