@@ -154,17 +154,17 @@ void cQT_Interface::addPoint(QPointF point)
         if(t != -1)
         {
             cCaseNamePoint * aCNP = GetIndexNamePoint();
-            cSP_PointGlob * Pg1 = mAppli->PGlobOfNameSVP(aCNP->mName);
-            if(!Pg1)
+            cSP_PointGlob * PG1 = mAppli->PGlobOfNameSVP(aCNP->mName);
+
+            if(!PG1)
             {
-
                 cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, aType, aSz, aCNP);
-
-                rebuildGlPoints();
-                emit dataChanged();
 
                 if(PG)
                 {
+                    rebuildGlPoints();
+                    emit dataChanged();
+
                     int id = idPointGlobal(PG);
 
                     m_QTMainWindow->tableView_PG()->model()->insertRows(id,1);
@@ -228,17 +228,15 @@ void cQT_Interface::selectPoint(int idPt)
     if (idPt >=0)
     {
         int idPG = -1;
-        std::string namePoint = selectedPtName(idPt);
+        string namePoint = selectedPtName(idPt);
 
-        for (int iPg = 0; iPg < (int)mAppli->PG().size(); ++iPg)
+        vector < cSP_PointGlob * > vPG = mAppli->PG();
+        for (int iPG = 0; iPG < (int)vPG.size(); ++iPG)
         {
+            cSP_PointGlob * aPG  = vPG[iPG];
 
-            std::vector< cSP_PointGlob * >  vPG = mAppli->PG();
-            cSP_PointGlob *                 pg  = vPG[iPg];
-            QString namepg(pg->PG()->Name().c_str());
-
-            if(namepg == QString(namePoint.c_str()))
-                idPG = iPg;
+            if(aPG->PG()->Name() == namePoint)
+                idPG = iPG;
         }
 
         m_QTMainWindow->tableView_PG()->selectRow(idPG);
@@ -449,9 +447,9 @@ void cQT_Interface::selectPG(QModelIndex modelIndex)
     }
 }
 
-void cQT_Interface::undo(bool mBool)
+void cQT_Interface::undo(bool aBool)
 {
-    if (mBool)
+    if (aBool)
         mAppli->Undo();
     else
         mAppli->Redo();
