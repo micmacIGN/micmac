@@ -1920,7 +1920,6 @@ class CamStenope : public ElCamera
 
          CamStenope(bool isDistC2M,REAL Focale,Pt2dr centre,const std::vector<double>  & AFocalParam);
          CamStenope(const CamStenope &,const ElRotation3D &);
-         CamStenope(const CamStenope &);
 
          // Par defaut true, mais peut redefini, par exemple pour
          // un fish-eye
@@ -2073,6 +2072,8 @@ class CamStenope : public ElCamera
          Pt3dr OrigineProf() const;
          bool  HasOrigineProf() const;
          bool  UseAFocal() const;
+      private :
+         CamStenope(const CamStenope &); // N.I.
 
       protected :
          ElProjStenope  _PrSten;
