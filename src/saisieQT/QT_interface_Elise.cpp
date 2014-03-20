@@ -178,7 +178,7 @@ void cQT_Interface::addPoint(QPointF point)
 
 cPoint cQT_Interface::selectedPt(int idPt)
 {
-    return m_QTMainWindow->currentWidget()->getGLData()->m_polygon[idPt];
+    return m_QTMainWindow->currentWidget()->getGLData()->polygon()[idPt];
 }
 
 string cQT_Interface::selectedPtName(int idPt)
@@ -450,10 +450,10 @@ void cQT_Interface::changeCurPose(void *widgetGL)
 
         int t = cImageIdxFromName(nameImage);
 
-        for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->Cams.size(); ++c )
-            m_QTMainWindow->threeDWidget()->getGLData()->Cams[c]->setSelected(false);
+        for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->countCameras(); ++c )
+            m_QTMainWindow->threeDWidget()->getGLData()->camera(c)->setSelected(false);
 
-        m_QTMainWindow->threeDWidget()->getGLData()->Cams[t]->setSelected(true);
+        m_QTMainWindow->threeDWidget()->getGLData()->camera(t)->setSelected(true);
 
         m_QTMainWindow->threeDWidget()->update();
     }
@@ -478,7 +478,7 @@ void cQT_Interface::filesDropped(const QStringList &filenames, bool setGLData)
         {
             m_QTMainWindow->loadPly(filenames);
             _data->addCloud(m_QTMainWindow->getEngine()->getData()->getCloud(0));
-            m_QTMainWindow->threeDWidget()->getGLData()->Clouds.clear();
+            m_QTMainWindow->threeDWidget()->getGLData()->cloudsClear();
             _data->computeBBox();
             m_QTMainWindow->threeDWidget()->getGLData()->setData(_data,false);
             m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
@@ -537,12 +537,12 @@ cGLData *cQT_Interface::getGlData(cImage *image)
 
 Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
 {
-    return Pt2dr(pt.x(),getGlData(idImage)->glMaskedImage._m_image->height() - pt.y());
+    return Pt2dr(pt.x(),getGlData(idImage)->glImage()._m_image->height() - pt.y());
 }
 
 QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
 {
-    return QPointF(pt.x,getGlData(idImage)->glMaskedImage._m_image->height() - pt.y);
+    return QPointF(pt.x,getGlData(idImage)->glImage()._m_image->height() - pt.y);
 }
 
 void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int i)

@@ -1459,6 +1459,30 @@ void cGLData::setIncFirstCloud(bool incFirstCloud)
     _incFirstCloud = incFirstCloud;
 }
 
+cMaskedImageGL &cGLData::glImage()
+{
+    return glMaskedImage;
+}
+
+cPolygon &cGLData::polygon()
+{
+    return m_polygon;
+}
+
+GlCloud* cGLData::getCloud(int iC)
+{
+    return Clouds[iC];
+}
+
+int cGLData::countCloud()
+{
+    return Clouds.size();
+}
+
+int cGLData::countCameras()
+{
+    return Cams.size();
+}
 
 cGLData::cGLData(cData *data):
     pBall(new cBall),
