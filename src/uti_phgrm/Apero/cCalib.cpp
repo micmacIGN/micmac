@@ -40,8 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 Pt2dr aDebugPIm(915.982,2820.98);
 Pt2dr aDebugPL3(-0.339882,0.170243);
-namespace NS_ParamApero
-{
 
 
 void VerifTolNonPos(double aTol,eTypeContrainteCalibCamera aVal)
@@ -1063,7 +1061,6 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
 
 
 
-};
 
 
 

@@ -55,7 +55,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 	(AscensionDroite,Declinaison) -> Repere Local (Azimut,Hauteur)
 */
 
-namespace ELISE_ORILIB {
 
 double 	ASJourJulien ( int /*Annee*/ , int /*Mois*/, int /*Quantieme*/ ) ;
 double 	ASTempsUniversel ( double /*JourJulienZeroHeure*/, 
@@ -81,7 +80,6 @@ void 	ASAlphaDeltaSoleil( double /*JourJulien*/,
 							double* /*DeclinaisonSoleilEnRadians*/) ;
 
 
-};
 
 #endif
 

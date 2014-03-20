@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <iterator>
 //#include <process.h>
 
-using namespace NS_ParamChantierPhotogram;
 
 #if ElMemberTpl
 

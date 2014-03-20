@@ -1,9 +1,7 @@
 #ifndef Define_NotCasa
 #define Define_NotCasa
 #include "StdAfx.h"
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
-namespace NS_Casa{
+// NOMORE ...
 class cNuageByImage
 {
     public:
@@ -194,5 +192,5 @@ cElXMLTree * ToXMLTree(const cParamCasa &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-};
+// };
 #endif // Define_NotCasa

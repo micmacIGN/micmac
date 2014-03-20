@@ -43,8 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define     STREAM_TO_MAT false
 #define     CLAMPDZ
 
-namespace NS_ParamMICMAC
-{
 
 Pt2di Px2Point(int * aPx) { return Pt2di(aPx[0],0); }
 bool IsPTest(const Pt2di & aP) {return aP == Pt2di(40,40);}
@@ -73,7 +71,7 @@ bool IsPTest(const Pt2di & aP) {return aP == Pt2di(40,40);}
 */
 
 /// brief Calcul le Z min et max.
-static inline void ComputeIntervaleDelta
+static inline void LocComputeIntervaleDelta
 (
         INT & aDzMin,
         INT & aDzMax,
@@ -219,7 +217,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneSens
         {
             int aDyMin,aDyMax;
             // Calcul du delta sur Y
-            ComputeIntervaleDelta
+            LocComputeIntervaleDelta
                     (
                         aDyMin,
                         aDyMax,
@@ -234,7 +232,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneSens
             {
                 int aDxMin,aDxMax;
                 // Calcul du delta sur X
-                ComputeIntervaleDelta
+                LocComputeIntervaleDelta
                         (
                             aDxMin,
                             aDxMax,
@@ -307,7 +305,7 @@ void cGBV2_ProgDynOptimiseur::BalayageOneSensGpu(const std::vector<Pt2di> &aVPt,
         {
             int aDxMin,aDxMax;
             // Calcul du delta sur X
-            ComputeIntervaleDelta(aDxMin,aDxMax,aP0.x, mMaxEc[0],aBox0._p0.x, aBox0._p1.x, aBox1._p0.x,aBox1._p1.x);
+            LocComputeIntervaleDelta(aDxMin,aDxMax,aP0.x, mMaxEc[0],aBox0._p0.x, aBox0._p1.x, aBox1._p0.x,aBox1._p1.x);
 
             // Cellule courante
             cGBV2_CelOptimProgDyn & aCel0 = aMat0[aP0];
@@ -806,7 +804,6 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::AllocAlgoTestGPU
 /**************************************************/
 
 
-}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

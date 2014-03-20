@@ -42,14 +42,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _MATRICES_
 #define _MATRICES_
 
-namespace ELISE_ORILIB {
 
 
 int MATSolve ( int /*dim*/, double* /*MM*/, double* /*YY*/, double* /*XX*/ ) ;
 
 
 
-};
 
 
 #endif

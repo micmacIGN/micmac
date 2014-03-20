@@ -112,7 +112,6 @@ void SaisieAppuisInit(int argc, char ** argv,
 
 #if (ELISE_X11)
 
-using namespace NS_ParamChantierPhotogram;
 
 int SaisieAppuisInit_main(int argc,char ** argv)
 {

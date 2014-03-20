@@ -54,9 +54,7 @@ class Ori3D_Gen : public PRC0
 
 };
 
-namespace ELISE_ORILIB {
 struct or_orientation;
-};
 
 extern double  ALTISOL_UNDEF(); 
 extern bool  ALTISOL_IS_DEF(double aZ);
@@ -86,7 +84,7 @@ class Ori3D_Std : public Ori3D_Gen
 
          static Box2dr TheNoBox;
          Ori3D_Std(const char *,bool inv_y = false,bool binarie = false,bool QuikGrid=false);
-         Ori3D_Std(ELISE_ORILIB::or_orientation    * _ori);
+         Ori3D_Std(or_orientation    * _ori);
 
          // Pour creer une orientation correspondand a une image homthetique facteur zoom
          // zoom = 0.5 pour une orientation correspondant a une image plus petite
@@ -152,7 +150,7 @@ class Ori3D_Std : public Ori3D_Gen
           std::vector<Pt2dr> EmpriseSol(double aZ) const;
           std::vector<Pt2dr> EmpriseSol() const;
 	   
-	   NS_ParamChantierPhotogram::cOrientationConique * OC() const;
+	   cOrientationConique * OC() const;
 
 	  Pt3dr  ImDirEtProf2Terrain(const Pt2dr & aPIm,const REAL & aProf,const Pt3dr & aNormPl) const;
 

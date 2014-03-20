@@ -40,8 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define BDDL_FIRST 0
 
-namespace NS_ParamApero
-{
 
 // Pt2dr BugIM(2591.0926,483.7226);
 // Pt3dr BugTER(921804.4349,3212619.4133,889.2173);
@@ -880,7 +878,6 @@ bool cAppliApero::NumIterDebug() const
 }
 
 
-};
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -2,7 +2,7 @@
 // #include "private/all.h"
 // #include "XML_GEN/SuperposImage.h"
 #include "StdAfx.h"
-namespace NS_SuperposeImage{
+//
 eTypeSurfaceAnalytique  Str2eTypeSurfaceAnalytique(const std::string & aName)
 {
    if (aName=="eTSA_CylindreRevolution")
@@ -12574,4 +12574,4 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-};
+// };

@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if (ELISE_X11)
 
-using namespace NS_ParamChantierPhotogram;
 
 
 

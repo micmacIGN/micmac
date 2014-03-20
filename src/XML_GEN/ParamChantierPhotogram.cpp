@@ -2,7 +2,7 @@
 //#include "general/all.h"
 //#include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
-namespace NS_ParamChantierPhotogram{
+// NO MORE
 eNewTypeMalt  Str2eNewTypeMalt(const std::string & aName)
 {
    if (aName=="eTMalt_Ortho")
@@ -13884,4 +13884,4 @@ void xml_init(cMTDCoher & anObj,cElXMLTree * aTree)
    xml_init(anObj.Dec2(),aTree->Get("Dec2",1)); //tototo 
 }
 
-};
+// };

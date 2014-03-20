@@ -48,10 +48,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 	inline int S_ISDIR(int v){ return v&_S_IFDIR; }
 #endif
 
-namespace NS_ParamChantierPhotogram {
   class cXmlExivEntry;
   class cXmlDataBase;
-};
 
 class cGlobXmlGen
 {
@@ -222,8 +220,8 @@ class  ELISE_fp
          void write(const ElCplePtsHomologues &);
          void write(const cNupletPtsHomologues &);
 
-         void write (const NS_ParamChantierPhotogram::cXmlExivEntry &);
-         void write (const NS_ParamChantierPhotogram::cXmlDataBase &);
+         void write (const cXmlExivEntry &);
+         void write (const cXmlDataBase &);
 
          void write(const Pt3df &);
          void write(const Pt3dr &);

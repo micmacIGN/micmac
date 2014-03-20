@@ -45,14 +45,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /*
    Il semble qu'il y ait une incompatibilite entre la definition
-  initiale dans le namespace NS_ParamMICMAC  pour la correlation
+  initiale dans le Namespace NS_ParamMICMAC  pour la correlation
   et d'autres besoins externes apparus ensuite. A discuter et clarifier.
 
      En attendant je restitue la version initiale qui permet de compile
     cStdTiffModuleImageLoader.cpp
 */
-namespace NS_ParamMICMAC
-{
 class cAppliMICMAC;
 template <class Type> 
 struct sLowLevelIm
@@ -108,7 +106,7 @@ typedef enum
      eUnsignedShort,
      eFloat,
      eOther
-} eTypeNumerique;
+} eIFImL_TypeNumerique;
 
 
 class cInterfModuleImageLoader
@@ -131,7 +129,7 @@ class cInterfModuleImageLoader
 
       virtual ~cInterfModuleImageLoader() {}
       // 1 
-      virtual eTypeNumerique PreferedTypeOfResol(int aDeZoom ) const = 0 ;
+      virtual eIFImL_TypeNumerique PreferedTypeOfResol(int aDeZoom ) const = 0 ;
       virtual tPInt Sz(int aDeZoom)  const= 0;
       virtual int NbCanaux () const = 0;
 
@@ -195,7 +193,6 @@ std::string cInterfModuleImageLoader::NameFileOfResol(int aDeZoom) const
 }
 #endif
 
-};
 
 
 

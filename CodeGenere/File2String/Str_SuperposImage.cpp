@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1158]) = {
+const char * (theNameVar_SuperposImage[1157]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -21,10 +21,9 @@ const char * (theNameVar_SuperposImage[1158]) = {
 "// #include \"general/all.h\"\n",
 "// #include \"private/all.h\"\n",
 "// #include \"XML_GEN/ParamChantierPhotogram.h\"\n",
-"using namespace NS_ParamChantierPhotogram;\n",
 "</Verbatim>\n",
 "<Verbatim File=\".h.cpp\">\n",
-"namespace NS_SuperposeImage{\n",
+"// \n",
 "</Verbatim>\n",
 "\n",
 "    <enum Name=\"eTypeSurfaceAnalytique\">\n",
@@ -1146,7 +1145,7 @@ const char * (theNameVar_SuperposImage[1158]) = {
 "\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
-"};\n",
+"// };\n",
 "</Verbatim>\n",
 "<Verbatim File=\".h\">\n",
 "#endif // Define_NotSupIm\n",

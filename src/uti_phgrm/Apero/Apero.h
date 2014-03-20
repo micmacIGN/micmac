@@ -37,12 +37,9 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-using namespace NS_ParamChantierPhotogram;
 
 extern bool ResidualStepByStep ;
 
-namespace NS_ParamApero
-{
 
 
 double  GuimbalAnalyse(const ElRotation3D & aR,bool show);
@@ -2356,7 +2353,6 @@ class cAppliApero : public NROptF1vND
 
 
 
-};
 
 #define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)
 

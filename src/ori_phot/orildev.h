@@ -46,7 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _NS_GRILLE 36
 
 
-namespace ELISE_ORILIB {
 
 
 typedef struct
@@ -90,7 +89,7 @@ typedef struct or_orientation
 	or_grille gt2p ;
 	or_grille gp2t ;
 
-	NS_ParamChantierPhotogram::cOrientationConique * mOC;
+	cOrientationConique * mOC;
 	// cDbleGrid                                      * mCorrDistM2C; // 
 	//  MODIF MPD, pour des camera commme les fishe eye, une grille standard ne
 	//  peut pas faire l'affaire. Pour l'instant on remplace simplement par
@@ -262,7 +261,6 @@ int orinit_distortions ( char* /*chambre*/,
 				int* /*NMarks*/,
 				void** /*phot*/ ) ;
 
-};
 
 	/*=================================================*/
 #endif

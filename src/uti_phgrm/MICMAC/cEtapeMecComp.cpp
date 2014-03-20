@@ -39,8 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 extern void  t(Im2DGen I,int,int);
-namespace NS_ParamMICMAC
-{
 
 
 static const std::string PrefAutoM = "AutoMask_";
@@ -1684,8 +1682,8 @@ void cEtapeMecComp::DoRemplitXMLNuage() const
    DoRemplitXML_MTD_Nuage();
    for
    (
-        std::list<cExportNuage>::const_iterator itEN=mEtape.ExportNuage().begin() ;
-        itEN !=  mEtape.ExportNuage().end() ;
+        std::list<cMMExportNuage>::const_iterator itEN=mEtape.MMExportNuage().begin() ;
+        itEN !=  mEtape.MMExportNuage().end() ;
         itEN++
    )
    {
@@ -1703,13 +1701,13 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXML_MTD_Nuage() const
    aMTD.DataInside().SetVal(false);
    aMTD.RatioPseudoConik().SetVal(1000);
    aMTD.KeyNameMTD() = "Key-Assoc-Nuage-ImProf";
-   cExportNuage anEN;
+   cMMExportNuage anEN;
    anEN.MTD_Nuage_Maille().SetVal(aMTD);
    return DoRemplitXMLNuage(anEN);
 }
 
 
-cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cExportNuage & anEN) const
+cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cMMExportNuage & anEN) const
 {
     cXML_ParamNuage3DMaille aNuage;
     bool aMTD = anEN.MTD_Nuage_Maille().IsInit();
@@ -1958,7 +1956,6 @@ void cEtapeMecComp::RemplitXMLNuage
     // aIP.Image() =;
 }
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

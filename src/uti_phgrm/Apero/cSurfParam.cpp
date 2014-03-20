@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 cSurfParam::cSurfParam
 (
@@ -121,7 +119,6 @@ cSurfInconnueFormelle *  cSurfParam::EqSurfInc()
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

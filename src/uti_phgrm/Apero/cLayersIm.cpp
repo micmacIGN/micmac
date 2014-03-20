@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 /****************************************************************************/
 /*                                                                          */
@@ -371,7 +369,6 @@ void cAppliApero::SplitHomFromImageLayer
     aLI->SplitHomFromImageLayer(aNHom,aSL,aNIm1,aNIm2);
 }
 
-};
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 int PROF_UNDEF() { return -1; }
 
 
@@ -2159,7 +2157,6 @@ void cPoseCam::AddMajick(cMajickChek & aMC) const
 }
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -184,8 +184,8 @@ void cElXMLTree::GenOneCppNameSpace
    aNameSpace = ValAttr("NameSpace",aNameSpace);
    if (aNameSpace != "")
    {
-      fprintf(aFileH,"namespace %s{\n\n",aNameSpace.c_str());
-      fprintf(aFileCpp,"namespace %s{\n\n",aNameSpace.c_str());
+      // fprintf(aFileH,"XXXXX nAmespace %s{\n\n",aNameSpace.c_str());
+      // fprintf(aFileCpp,"XXXXX nAmespace %s{\n\n",aNameSpace.c_str());
    }
    std::list<std::string> aLTypeLoc;
    for

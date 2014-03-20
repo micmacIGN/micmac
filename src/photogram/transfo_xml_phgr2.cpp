@@ -99,7 +99,6 @@ void UseRequirement(const std::string & aDir,const cTplValGesInit<cBatchRequirem
 
 }
 
-namespace NS_ParamChantierPhotogram{
 
 GenIm::type_el Xml2EL(const eTypeNumerique & aType)
 {
@@ -780,7 +779,6 @@ cImSecOfMaster StdGetISOM
 
 
 
-};
 
 cEl_GPAO * DoCmdExePar(const cCmdExePar & aCEP,int aNbProcess)
 {
@@ -917,8 +915,6 @@ void AddListKeySet
       AddKeySet(aRes,anICNM,*itS);
 }
 
-namespace NS_SuperposeImage
-{
 std::vector<std::string> GetStrFromGenStr
                          (
                               cInterfChantierNameManipulateur* anICNM,
@@ -960,7 +956,6 @@ std::vector<std::string> GetStrFromGenStrRel
 }
 
 
-};
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

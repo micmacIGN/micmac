@@ -5,8 +5,7 @@
 // #include "general/all.h"
 // #include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
-using namespace NS_ParamChantierPhotogram;
-namespace NS_SuperposeImage{
+//
 typedef enum
 {
   eTSA_CylindreRevolution
@@ -4483,5 +4482,5 @@ cElXMLTree * ToXMLTree(const cParamFusionMNT &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-};
+// };
 #endif // Define_NotSupIm

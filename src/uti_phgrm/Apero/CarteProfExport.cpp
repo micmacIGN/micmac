@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 void cAppliApero::ExportMesuresFromCarteProf
      (
@@ -217,7 +215,6 @@ void cAppliApero::ExportMesuresFromCarteProf(const cExportMesuresFromCarteProf &
 
 }
 
-};
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

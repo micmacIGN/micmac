@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 void cAppliApero::ExportVisuConfigPose(const cExportVisuConfigGrpPose & anEVCGP)
 {
@@ -780,7 +778,6 @@ void  cAppliApero::InitRapportDetaille(const cTxtRapDetaille & aTRD)
 
 
 
-};
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

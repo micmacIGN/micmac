@@ -43,8 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <sys/utsname.h>
 #endif
 
-namespace NS_ParamMICMAC
-{
 
 static Pt2di aSzTileMasq(1000000,1000000);
 
@@ -1164,7 +1162,6 @@ void cAppliMICMAC::TestPointsLiaisons
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

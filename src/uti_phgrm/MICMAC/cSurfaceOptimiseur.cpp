@@ -45,8 +45,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 // template class cMatrOfSMV<Pt2di>;
 
 
-namespace NS_ParamMICMAC
-{
 
 
 /*********************************************/
@@ -925,7 +923,6 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::AllocCoxRoy
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

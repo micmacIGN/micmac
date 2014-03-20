@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "MICMAC.h"
 #include "im_tpl/image.h"
 
-using namespace NS_ParamMICMAC;
 
 
 

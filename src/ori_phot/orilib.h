@@ -174,7 +174,6 @@ char*		= %VAL(%REF(character*x))	(C'est une facon de dire)
 *************************************************************************
 3.) ALLOC & FREE						*********/
 
-namespace ELISE_ORILIB {
 
 /*===============================*/
  int oralloc_orientation ( 	void**		/*phot*/ ) ;
@@ -728,7 +727,6 @@ Meme chose que le precedent, mais dans un format texte.
 
 
 
-};
 //#endif
 
 #endif

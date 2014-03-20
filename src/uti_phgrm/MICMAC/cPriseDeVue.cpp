@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-namespace NS_ParamMICMAC
-{
 
 static Pt2di aSzTileMasq(1000000,1000000);
 
@@ -896,7 +894,6 @@ Tiff_Im     cPriseDeVue::FileImMasqOfResol(int aDz) const
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

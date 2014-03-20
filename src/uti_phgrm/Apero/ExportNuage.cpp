@@ -46,8 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                         */
 /*******************************************/
 
-namespace NS_ParamApero
-{
 
 
 void PutPt(FILE * aFP,const Pt3dr & aP,bool aModeBin,bool aDouble)
@@ -412,7 +410,6 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
 
 
 
-};
 
 
 

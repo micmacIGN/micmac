@@ -47,8 +47,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*******************************************/
 
 
-namespace NS_ParamApero
-{
 
      //---------------------------------------------
      //     UTILITAIRES 
@@ -1436,7 +1434,6 @@ void  cAppliApero::BasculeBloc(const cBlocBascule & aBB)
 }
 
 
-};
 
 
 

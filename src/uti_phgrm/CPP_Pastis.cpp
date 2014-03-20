@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 extern const string PASTIS_MATCH_ARGUMENT_NAME = "Match";
 extern const string PASTIS_DETECT_ARGUMENT_NAME = "Detect";
 
-using namespace NS_ParamChantierPhotogram;
 
 #if ELISE_unix
 	const std::string TheStrSiftPP = "siftpp_tgi.LINUX";

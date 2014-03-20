@@ -2,9 +2,7 @@
 #ifndef Define_NotDigeo
 #define Define_NotDigeo
 #include "XML_GEN/all.h"
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
-//namespace NS_ParamDigeo{
+//
 typedef enum
 {
   eTtpSommet,
@@ -356,12 +354,12 @@ class cPyramideImage
 };
 cElXMLTree * ToXMLTree(const cPyramideImage &);
 
-class cSectionImages
+class cDigeoSectionImages
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cSectionImages & anObj,cElXMLTree * aTree);
+        friend void xml_init(cDigeoSectionImages & anObj,cElXMLTree * aTree);
 
 
         std::list< cImageDigeo > & ImageDigeo();
@@ -427,7 +425,7 @@ class cSectionImages
         std::list< cImageDigeo > mImageDigeo;
         cPyramideImage mPyramideImage;
 };
-cElXMLTree * ToXMLTree(const cSectionImages &);
+cElXMLTree * ToXMLTree(const cDigeoSectionImages &);
 
 /******************************************************/
 /******************************************************/
@@ -899,8 +897,8 @@ class cParamDigeo
         cPyramideImage & PyramideImage();
         const cPyramideImage & PyramideImage()const ;
 
-        cSectionImages & SectionImages();
-        const cSectionImages & SectionImages()const ;
+        cDigeoSectionImages & DigeoSectionImages();
+        const cDigeoSectionImages & DigeoSectionImages()const ;
 
         bool & ComputeCarac();
         const bool & ComputeCarac()const ;
@@ -1017,7 +1015,7 @@ class cParamDigeo
         const cSectionWorkSpace & SectionWorkSpace()const ;
     private:
         cTplValGesInit< cChantierDescripteur > mDicoLoc;
-        cSectionImages mSectionImages;
+        cDigeoSectionImages mDigeoSectionImages;
         cSectionCaracImages mSectionCaracImages;
         cTplValGesInit< cSectionTest > mSectionTest;
         cSectionWorkSpace mSectionWorkSpace;

@@ -13,12 +13,10 @@
 
 <Verbatim File=".h">
 // #include "XML_GEN/all.h"
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
 </Verbatim>
 
 <Verbatim File=".h.cpp">
-namespace NS_ParamApero{
+// NO MORE ... 
 </Verbatim>
 
 
@@ -1480,7 +1478,7 @@ normalises en echelle et/ou en translation -->
 
 
 <Verbatim File=".h.cpp">
-};
+// };
 </Verbatim>
 <Verbatim File=".h">
 #endif // Define_NotApero

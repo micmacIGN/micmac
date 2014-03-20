@@ -43,7 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-namespace NS_ParamChantierPhotogram{
 
 
 static const int  TheCurNumVersion= 0;
@@ -257,7 +256,6 @@ std::string  cInterfChantierNameManipulateur::DBNameTransfo
    return aRes;
 }
 
-};
 
 
 
