@@ -91,15 +91,15 @@ public:
         _BGColor1 = col1;
     }
 
-    float imWidth() { return m_GLData->glMaskedImage._m_image->width();  }
-    float imHeight(){ return m_GLData->glMaskedImage._m_image->height(); }
+    float imWidth() { return m_GLData->glImage()._m_image->width();  }
+    float imHeight(){ return m_GLData->glImage()._m_image->height(); }
 
-    bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glMaskedImage._m_image->isPtInside(pt); }
+    bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glImage()._m_image->isPtInside(pt); }
 
     GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
-    cPolygon & polygon(){ return m_GLData->m_polygon; }
+    cPolygon & polygon(){ return m_GLData->polygon(); }
 
     void setCursorShape(QPointF pos);
 
@@ -137,6 +137,7 @@ signals:
     void overWidget(void* widget);
 
     void gammaChangedSgnl(float gamma);
+
     void zoomChanged(float val);
 
     void addPoint(QPointF point);

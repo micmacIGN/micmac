@@ -91,7 +91,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
-        _contextMenu.setPolygon( &m_GLData->m_polygon);
+        _contextMenu.setPolygon( &m_GLData->polygon());
 
         resetView(doZoom, showMessage, true, resetPoly);
     }
@@ -106,7 +106,7 @@ void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2
 
     if (pt1 != QPointF(0.f,0.f)) point.setEpipolar(pt1, pt2);
 
-    getGLData()->m_polygon.add(point);
+    getGLData()->polygon().add(point);
 }
 
 void GLWidget::setTranslation(Pt3d<double> trans)
@@ -140,7 +140,7 @@ void GLWidget::paintGL()
 
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
 
-            m_GLData->glMaskedImage.draw();
+            m_GLData->glImage().draw();
         }
         else
         {
@@ -184,7 +184,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                emit removePoint(eEPI_Disparu, m_GLData->m_polygon.idx());
+                emit removePoint(eEPI_Disparu, m_GLData->polygon().idx());
                 polygon().removeSelectedPoint();
                 break;
             case Qt::Key_Escape:
@@ -203,15 +203,15 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                 zoomFit();
                 break;
             case Qt::Key_G:
-                m_GLData->glMaskedImage._m_image->incGamma(0.2f);
-                emit gammaChangedSgnl(m_GLData->glMaskedImage._m_image->getGamma());
+                m_GLData->glImage()._m_image->incGamma(0.2f);
+                emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
                 break;
             case Qt::Key_H:
-                m_GLData->glMaskedImage._m_image->incGamma(-0.2f);
-                emit gammaChangedSgnl(m_GLData->glMaskedImage._m_image->getGamma());
+                m_GLData->glImage()._m_image->incGamma(-0.2f);
+                emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
                 break;
             case Qt::Key_J:
-                m_GLData->glMaskedImage._m_image->setGamma(1.f);
+                m_GLData->glImage()._m_image->setGamma(1.f);
                 emit gammaChangedSgnl(1.f);
                 break;
             case Qt::Key_Plus:
@@ -373,7 +373,7 @@ void GLWidget::gammaChanged(float val)
 {
     if (hasDataLoaded())
     {
-        m_GLData->glMaskedImage._m_image->setGamma(val);
+        m_GLData->glImage()._m_image->setGamma(val);
         update();
     }
 }
@@ -649,7 +649,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (hasDataLoaded() && m_GLData->Clouds.size())
+    if (hasDataLoaded() && m_GLData->countCloud())
     {
 #if ELISE_QT_VERSION == 5
         QPointF pos = event->localPos();

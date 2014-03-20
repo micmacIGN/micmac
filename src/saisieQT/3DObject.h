@@ -615,13 +615,6 @@ public:
 
     void        draw();
 
-    cMaskedImageGL glMaskedImage;
-
-    QImage      *pQMask;
-
-    //! Point list for polygonal selection
-    cPolygon    m_polygon;
-
     bool        is3D()                                  { return Clouds.size() || Cams.size();   }
 
     bool        isImgEmpty()                            { return glMaskedImage._m_image == NULL; }
@@ -634,24 +627,17 @@ public:
 
     bool        isNewMask()                             { return !isImgEmpty() ? glMaskedImage._m_newMask : true; }
 
-    QVector < cCam* > Cams;
-
-    cBall       *pBall;
-    cAxis       *pAxis;
-    cBBox       *pBbox;
-    cGrid       *pGrid;
-
-    QVector < GlCloud* > Clouds;
-
     void        setDimensionImage(int vW,int vH);
 
     QString     imageName() { return glMaskedImage.cObjectGL::name(); }
 
     //info coming from cData
     float       getBBoxMaxSize(){return _diam;}
+
     void        setBBoxMaxSize(float aS){_diam = aS;}
 
     Pt3dr       getBBoxCenter(){return _center;}
+
     void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;} // TODO a verifier : pourquoi le centre cGLData est initialisé avec BBoxCenter
 
     void        setGlobalCenter(Pt3dr aCenter);
@@ -696,7 +682,45 @@ public:
 
     void        setIncFirstCloud(bool incFirstCloud);
 
+    cMaskedImageGL &glImage();
+
+    cPolygon &   polygon();
+
+    GlCloud *   getCloud(int iC);
+
+    int         countCloud();
+
+    int         countCameras();
+
+    void        cloudsClear(){ Clouds.clear();}
+
+    cCam*       camera(int iC){return Cams[iC];}
+
 private:
+
+    cMaskedImageGL      glMaskedImage;
+
+    QImage              *pQMask;
+
+    cBall               *pBall;
+
+    cAxis               *pAxis;
+
+    cBBox               *pBbox;
+
+    cGrid               *pGrid;
+
+    Pt3dr               _center;
+
+    bool                _modePt;
+
+    QVector<GlCloud*>   Clouds;
+
+    QVector<cCam*>      Cams;
+
+
+    //! Point list for polygonal selection
+    cPolygon             m_polygon;
 
     void        initOptions()
     {
@@ -705,9 +729,7 @@ private:
 
     float       _diam;
 
-    Pt3dr       _center;
 
-    bool        _modePt;
 
     bool        _incFirstCloud;
 

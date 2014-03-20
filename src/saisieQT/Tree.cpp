@@ -253,7 +253,59 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
             }
         }
     }
+    if (role == Qt::BackgroundColorRole)
+    {
+        if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
+            return QVariant(QColor("#5f5f5f"));
 
+
+        cImage* iImage = mAppli->image(index.row());
+
+        cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
+
+        cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
+
+        QColor Red          = QColor("#87384c");
+        QColor NonSaisie    = QColor("#6e653c");
+        QColor Douteux      = QColor("#a95b3b");
+        QColor Valide       = QColor("#3c7355");
+
+        if(pI)
+        {
+
+            cOneSaisie* cOS = pI->Saisie();
+            if(cOS)
+            {
+                eEtatPointeImage state = cOS->Etat();
+
+                switch (state)
+                {
+                case eEPI_NonSaisi:
+                {
+                    if(pI->Visible())
+                        return NonSaisie;
+                    else
+                        return Red;
+                }
+                case eEPI_Refute:
+                    return Red;
+                case eEPI_Douteux:
+                    return Douteux;
+                case eEPI_Valide:
+                    return Valide;
+                case eEPI_NonValue:
+                    return Red;
+                case eEPI_Disparu:
+                    return Red;
+                case eEPI_Highlight:
+                    return Red;
+                }
+            }
+        }
+
+        return Red;
+
+    }
     return QVariant();
 }
 

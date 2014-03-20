@@ -385,6 +385,8 @@ extern Fonc_Num Identite(INT dim);  // Identite = (FX,FY, .... ,kth_coord(dim-1)
 extern Fonc_Num  inside(const INT * p0,const INT * p1,INT dim);
 extern Fonc_Num  inside(Pt2di,Pt2di);
 
+extern Fonc_Num CsteNDim(double aVal,INT dim);  // 
+extern Fonc_Num CsteNDim(int    aVal,INT dim);  // 
      // random values
 
 Fonc_Num frandr(); 
