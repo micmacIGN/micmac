@@ -828,6 +828,14 @@ bool MainWindow::eventFilter( QObject* object, QEvent* event )
 QTableView *MainWindow::tableView_PG(){return _ui->tableView_PG;}
 
 QTableView *MainWindow::tableView_Images(){return _ui->tableView_Images;}
+
+#if ELISE_QT_VERSION!=5
+void MainWindow::emitSelectPoint(QString pointName)
+{
+    emit selectPoint(pointName);
+}
+#endif
+
 void  MainWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);
