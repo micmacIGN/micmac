@@ -138,7 +138,10 @@ void cQT_Interface::addPoint(QPointF point)
 {
     if (m_QTMainWindow->currentWidget()->hasDataLoaded())
     {
-        Pt2dr aPGlob(transformation(point));
+        eTypePts aType = m_QTMainWindow->getParams()->getPtCreationMode();
+        double aSz = m_QTMainWindow->getParams()->getPtCreationWindowSize();
+
+        Pt2dr aPGlob = FindPoint(transformation(point),aType,aSz,0);
 
         QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->imageName();
 
@@ -146,12 +149,12 @@ void cQT_Interface::addPoint(QPointF point)
 
         if(t != -1)
         {
-            cCaseNamePoint* casename = GetIndexNamePoint();
-            cSP_PointGlob * Pg1 = mAppli->PGlobOfNameSVP(casename->mName);
+            cCaseNamePoint * aCNP = GetIndexNamePoint();
+            cSP_PointGlob * Pg1 = mAppli->PGlobOfNameSVP(aCNP->mName);
             if(!Pg1)
             {
 
-                cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, eNSM_Pts, -1, casename);
+                cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, aType, aSz, aCNP);
 
                 rebuildGlPoints();
                 emit dataChanged();
@@ -608,7 +611,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
 }
 
 void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
-{    
+{
     rebuild3DGlPoints(aPIm ? aPIm->Gl()->PG() : NULL);
 }
 

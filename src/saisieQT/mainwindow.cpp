@@ -577,7 +577,7 @@ void MainWindow::on_actionSave_selection_triggered()
 void MainWindow::on_actionSettings_triggered()
 {
     cSettingsDlg uiSettings(this, _params);
-    connect(&uiSettings, SIGNAL(hasChanged(bool)), this, SLOT(redraw(bool)));
+    connect(&uiSettings, SIGNAL(nbFenChanged(bool)), this, SLOT(redraw(bool)));
 
     connect(&uiSettings, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
 
@@ -594,6 +594,9 @@ void MainWindow::on_actionSettings_triggered()
         connect(&uiSettings, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
         //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
     }
+
+    const QPoint global = qApp->desktop()->availableGeometry().center();
+    uiSettings.move(global.x() - uiSettings.width() / 2, global.y() - uiSettings.height() / 2);
 
     //uiSettings.setFixedSize(uiSettings.size());
     uiSettings.exec();
