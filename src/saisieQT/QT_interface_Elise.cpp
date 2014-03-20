@@ -178,7 +178,7 @@ void cQT_Interface::addPoint(QPointF point)
 
 cPoint cQT_Interface::selectedPt(int idPt)
 {
-    return m_QTMainWindow->currentWidget()->getGLData()->polygon()[idPt];
+    return (*m_QTMainWindow->currentWidget()->getGLData()->polygon())[idPt];
 }
 
 string cQT_Interface::selectedPtName(int idPt)

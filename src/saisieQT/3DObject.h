@@ -621,9 +621,9 @@ public:
 
     QImage*     getMask()                               { return pQMask;     }
 
-    void        setPolygon(cPolygon const &aPoly)       { m_polygon = aPoly; }
+    void        setPolygon(cPolygon *aPoly)             { m_VPolygons[0] = aPoly; }
 
-    void        clearPolygon()                          { m_polygon.clear(); }
+    void        clearPolygon()                          { polygon()->clear(); }
 
     bool        isNewMask()                             { return !isImgEmpty() ? glMaskedImage._m_newMask : true; }
 
@@ -684,7 +684,7 @@ public:
 
     cMaskedImageGL &glImage();
 
-    cPolygon &   polygon();
+    cPolygon*   polygon(int id = 0);
 
     GlCloud *   getCloud(int iC);
 
@@ -720,12 +720,9 @@ private:
 
 
     //! Point list for polygonal selection
-    cPolygon             m_polygon;
+    QVector<cPolygon*>  m_VPolygons;
 
-    void        initOptions()
-    {
-        _options = options(OpShow_Mess);
-    }
+    void        initOptions();
 
     float       _diam;
 

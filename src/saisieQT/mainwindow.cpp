@@ -264,7 +264,7 @@ void MainWindow::on_actionShow_names_toggled(bool show)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            getWidget(aK)->getGLData()->polygon().showNames(show);
+            getWidget(aK)->getGLData()->polygon()->showNames(show);
             getWidget(aK)->update();
         }
     }
@@ -276,7 +276,7 @@ void MainWindow::on_actionShow_refuted_toggled(bool show)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            getWidget(aK)->getGLData()->polygon().showRefuted(show);
+            getWidget(aK)->getGLData()->polygon()->showRefuted(show);
             getWidget(aK)->update();
         }
     }
@@ -459,7 +459,7 @@ void MainWindow::on_actionReset_triggered()
 void MainWindow::on_actionRemove_triggered()
 {
     if (_mode > MASK3D)
-        currentWidget()->polygon().removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
+        currentWidget()->polygon()->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
     else
         currentWidget()->Select(SUB);
 }

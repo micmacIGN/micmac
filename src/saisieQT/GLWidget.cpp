@@ -91,7 +91,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
-        _contextMenu.setPolygon( &m_GLData->polygon());
+        _contextMenu.setPolygon( m_GLData->polygon());
 
         resetView(doZoom, showMessage, true, resetPoly);
     }
@@ -106,7 +106,7 @@ void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2
 
     if (pt1 != QPointF(0.f,0.f)) point.setEpipolar(pt1, pt2);
 
-    getGLData()->polygon().add(point);
+    getGLData()->polygon()->add(point);
 }
 
 void GLWidget::setTranslation(Pt3d<double> trans)
@@ -184,11 +184,11 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                emit removePoint(eEPI_Disparu, m_GLData->polygon().idx());
-                polygon().removeSelectedPoint();
+                emit removePoint(eEPI_Disparu, m_GLData->polygon()->idx());
+                polygon()->removeSelectedPoint();
                 break;
             case Qt::Key_Escape:
-                if (polygon().isLinear()) m_GLData->clearPolygon();
+                if (polygon()->isLinear()) m_GLData->clearPolygon();
                 break;
             case Qt::Key_1:
                 zoomFactor(100);
@@ -234,8 +234,8 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                 break;
             case Qt::Key_W:
                     setCursor(Qt::SizeAllCursor);
-                    polygon().helper()->clear();
-                    polygon().setSelected(true);
+                    polygon()->helper()->clear();
+                    polygon()->setSelected(true);
                 break;
             default:
                 event->ignore();
@@ -253,10 +253,10 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
     {
         if (event->key() == Qt::Key_Shift )
         {
-            polygon().helper()->clear();
-            polygon().resetSelectedPoint();
+            polygon()->helper()->clear();
+            polygon()->resetSelectedPoint();
         }
-        polygon().setSelected(false);
+        polygon()->setSelected(false);
         update();
     }
     setCursor(Qt::ArrowCursor);
@@ -320,7 +320,7 @@ void GLWidget::overlay()
             _painter->translate(_matrixManager.translateImgToWin(zoom));
         }
 
-        polygon().draw();
+        polygon()->draw();
 
         QPen pen(QColor(hasFocus() ? "#ffa02f" : "#707070"));
         _painter->setPen(pen);
@@ -363,7 +363,7 @@ void GLWidget::lineThicknessChanged(float val)
 {
     if (hasDataLoaded())
     {
-        polygon().setLineWidth(val);
+        polygon()->setLineWidth(val);
 
         update();
     }
@@ -382,10 +382,10 @@ void GLWidget::pointDiameterChanged(float val)
 {
     if (hasDataLoaded())
     {
-        for (int aK =0; aK < polygon().size();++aK)
-            polygon()[aK].setDiameter(val);
+        for (int aK =0; aK < polygon()->size();++aK)
+            (*polygon())[aK].setDiameter(val);
 
-        polygon().setPointSize(val);
+        polygon()->setPointSize(val);
 
         update();
     }
@@ -395,13 +395,13 @@ void GLWidget::selectionRadiusChanged(int val)
 {
     if (hasDataLoaded())
     {
-        polygon().setRadius(val);
+        polygon()->setRadius(val);
     }
 }
 
 void GLWidget::setParams(cParameters* aParams)
 {
-    polygon().setParams(aParams);
+    polygon()->setParams(aParams);
 }
 
 void GLWidget::setZoom(float val)
@@ -420,7 +420,7 @@ void GLWidget::setZoom(float val)
 
 void GLWidget::selectPoint(QString namePt)
 {
-    polygon().selectPoint(namePt);
+    polygon()->selectPoint(namePt);
     update();
 }
 
@@ -488,19 +488,19 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
             {
 
-                if(!polygon().isClosed())             // ADD POINT
+                if(!polygon()->isClosed())             // ADD POINT
 
-                    polygon().addPoint(m_lastPosImage);
+                    polygon()->addPoint(m_lastPosImage);
 
-                else if (polygon().isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
+                else if (polygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
-                    polygon().insertPoint();
+                    polygon()->insertPoint();
 
-                else if (polygon().idx() != -1) // SELECT POINT
+                else if (polygon()->idx() != -1) // SELECT POINT
 
-                    polygon().setPointSelected();
+                    polygon()->setPointSelected();
 
-                else if (!polygon().isLinear() && isPtInsideIm(m_lastPosImage))
+                else if (!polygon()->isLinear() && isPtInsideIm(m_lastPosImage))
 
                     emit addPoint(m_lastPosImage);
 
@@ -508,15 +508,15 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         }
         else if (event->button() == Qt::RightButton)
         {
-            if (polygon().isLinear())
+            if (polygon()->isLinear())
             {
                 if (event->modifiers() & Qt::ControlModifier)
 
-                    polygon().removeLastPoint();
+                    polygon()->removeLastPoint();
 
                 else
 
-                    polygon().removeNearestOrClose(m_lastPosImage);
+                    polygon()->removeNearestOrClose(m_lastPosImage);
             }
         }
         else if (event->button() == Qt::MiddleButton)
@@ -529,9 +529,9 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton && hasDataLoaded())
     {
-        int idMovePoint = polygon().finalMovePoint(); //ne pas factoriser
+        int idMovePoint = polygon()->finalMovePoint(); //ne pas factoriser
 
-        polygon().findNearestPoint(m_lastPosImage);
+        polygon()->findNearestPoint(m_lastPosImage);
 
         update();
 
@@ -543,7 +543,7 @@ void GLWidget::setCursorShape(QPointF pos)
 {
     QCursor c = cursor();
 
-    if ( imageLoaded() && !polygon().isLinear() && isPtInsideIm(pos) )
+    if ( imageLoaded() && !polygon()->isLinear() && isPtInsideIm(pos) )
 
         c.setShape(Qt::CrossCursor);
 
@@ -590,20 +590,20 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
 
-            if (polygon().isSelected())                    // MOVE POLYGON
+            if (polygon()->isSelected())                    // MOVE POLYGON
 
-                polygon().translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom));
+                polygon()->translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom));
 
             else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
             {
-                int id = polygon().idx();
+                int id = polygon()->idx();
 
-                bool insertMode = polygon().isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
+                bool insertMode = polygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
 
-                polygon().refreshHelper(pos, insertMode, _vp_Params.m_zoom);
+                polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
 
-                if(id != polygon().idx())
-                    emit selectPoint(polygon().idx());
+                if(id != polygon()->idx())
+                    emit selectPoint(polygon()->idx());
             }
         }
         if (m_interactionMode == TRANSFORM_CAMERA)
@@ -666,7 +666,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 {
     if (hasDataLoaded())
     {
-        cPolygon polyg = polygon();
+        cPolygon polyg = *polygon();
 
         if(mode == ADD || mode == SUB)
         {
@@ -686,7 +686,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (saveInfos)
         {
-            selectInfos info(polygon().getVector(),mode);
+            selectInfos info(polygon()->getVector(),mode);
 
             _matrixManager.exportMatrices(info);
 
@@ -713,7 +713,7 @@ void GLWidget::applyInfos()
         {
             selectInfos &infos = vInfos[aK];
 
-            m_GLData->setPolygon(cPolygon(infos.poly, true));
+            m_GLData->setPolygon(new cPolygon(infos.poly, true));
 
             if (!m_bDisplayMode2D)
 
@@ -782,7 +782,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
     if (hasDataLoaded())
     {
-        if (polygon().findNearestPoint(m_lastPosImage, polygon().getRadius()/getZoom()))
+        if (polygon()->findNearestPoint(m_lastPosImage, polygon()->getRadius()/getZoom()))
         {
             menu.addAction(_contextMenu._validate   );
             menu.addAction(_contextMenu._dubious    );
@@ -808,7 +808,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
         menu.exec(event->globalPos());
 
-        polygon().resetSelectedPoint();
+        polygon()->resetSelectedPoint();
 
         emit selectPoint(-1);
     }
