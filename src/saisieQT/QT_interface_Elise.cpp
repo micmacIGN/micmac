@@ -438,7 +438,7 @@ void cQT_Interface::selectPG(QModelIndex modelIndex)
 
         table_Images_ChangePg(modelIndex.row());
 
-        m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
+        emit m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
     }
 }
 

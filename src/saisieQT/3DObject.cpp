@@ -1398,7 +1398,7 @@ cGLData::cGLData():
 }
 
 cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
-    glMaskedImage(qMaskedImage),
+    glMaskedImage(qMaskedImage),    
     pQMask(qMaskedImage._m_mask),
     pBall(NULL),
     pAxis(NULL),

@@ -698,7 +698,9 @@ public:
 
 private:
 
-    QVector<cCam*>      Cams;
+    cMaskedImageGL      glMaskedImage;
+
+    QImage              *pQMask;
 
     cBall               *pBall;
 
@@ -708,11 +710,14 @@ private:
 
     cGrid               *pGrid;
 
+    Pt3dr               _center;
+
+    bool                _modePt;
+
     QVector<GlCloud*>   Clouds;
 
-    cMaskedImageGL      glMaskedImage;
+    QVector<cCam*>      Cams;
 
-    QImage              *pQMask;
 
     //! Point list for polygonal selection
     cPolygon             m_polygon;
@@ -724,9 +729,7 @@ private:
 
     float       _diam;
 
-    Pt3dr       _center;
 
-    bool        _modePt;
 
     bool        _incFirstCloud;
 
