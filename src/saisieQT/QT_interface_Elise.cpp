@@ -13,26 +13,30 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     for (int aK = 0; aK < m_QTMainWindow->nbWidgets();++aK)
     {
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
+        GLWidget* widget = m_QTMainWindow->getWidget(aK);
 
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
+        connect(widget,	SIGNAL(addPoint(QPointF)), this,SLOT(addPoint(QPointF)));
 
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
+        connect(widget,	SIGNAL(movePoint(int)), this,SLOT(movePoint(int)));
 
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(removePoint(int, int)), this,SLOT(changeState(int,int)));
+        connect(widget,	SIGNAL(selectPoint(int)), this,SLOT(selectPoint(int)));
 
-        connect(m_QTMainWindow->getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurPose(void*)));
+        connect(widget,	SIGNAL(removePoint(int, int)), this,SLOT(changeState(int,int)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
+        connect(widget,	SIGNAL(overWidget(void*)), this,SLOT(changeCurPose(void*)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
+        connect(widget->contextMenu(),	SIGNAL(changeState(int,int)), this,SLOT(changeState(int,int)));
 
-        connect(m_QTMainWindow->getWidget(aK)->contextMenu(),	SIGNAL(changeImagesSignal(int, bool)), this, SLOT(changeImages(int, bool)));
+        connect(widget->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
 
-        connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
+        connect(widget->contextMenu(),	SIGNAL(changeImagesSignal(int, bool)), this, SLOT(changeImages(int, bool)));
+     }
 
-        connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList, bool)), this, SLOT(filesDropped(QStringList, bool)));
-    }
+    connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
+
+    connect(m_QTMainWindow,	SIGNAL(undoSgnl(bool)), this, SLOT(undo(bool)));
+
+    connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList, bool)), this, SLOT(filesDropped(QStringList, bool)));
 
     _data = new cData;
 
@@ -138,7 +142,10 @@ void cQT_Interface::addPoint(QPointF point)
 {
     if (m_QTMainWindow->currentWidget()->hasDataLoaded())
     {
-        Pt2dr aPGlob(transformation(point));
+        eTypePts aType = m_QTMainWindow->getParams()->getPtCreationMode();
+        double aSz = m_QTMainWindow->getParams()->getPtCreationWindowSize();
+
+        Pt2dr aPGlob = FindPoint(transformation(point),aType,aSz,0);
 
         QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->imageName();
 
@@ -146,18 +153,18 @@ void cQT_Interface::addPoint(QPointF point)
 
         if(t != -1)
         {
-            cCaseNamePoint* casename = GetIndexNamePoint();
-            cSP_PointGlob * Pg1 = mAppli->PGlobOfNameSVP(casename->mName);
-            if(!Pg1)
+            cCaseNamePoint * aCNP = GetIndexNamePoint();
+            cSP_PointGlob * PG1 = mAppli->PGlobOfNameSVP(aCNP->mName);
+
+            if(!PG1)
             {
-
-                cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, eNSM_Pts, -1, casename);
-
-                rebuildGlPoints();
-                emit dataChanged();
+                cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, aType, aSz, aCNP);
 
                 if(PG)
                 {
+                    rebuildGlPoints();
+                    emit dataChanged();
+
                     int id = idPointGlobal(PG);
 
                     m_QTMainWindow->tableView_PG()->model()->insertRows(id,1);
@@ -178,7 +185,7 @@ void cQT_Interface::addPoint(QPointF point)
 
 cPoint cQT_Interface::selectedPt(int idPt)
 {
-    return m_QTMainWindow->currentWidget()->getGLData()->polygon()[idPt];
+    return (*m_QTMainWindow->currentWidget()->getGLData()->polygon())[idPt];
 }
 
 string cQT_Interface::selectedPtName(int idPt)
@@ -221,17 +228,15 @@ void cQT_Interface::selectPoint(int idPt)
     if (idPt >=0)
     {
         int idPG = -1;
-        std::string namePoint = selectedPtName(idPt);
+        string namePoint = selectedPtName(idPt);
 
-        for (int iPg = 0; iPg < (int)mAppli->PG().size(); ++iPg)
+        vector < cSP_PointGlob * > vPG = mAppli->PG();
+        for (int iPG = 0; iPG < (int)vPG.size(); ++iPG)
         {
+            cSP_PointGlob * aPG  = vPG[iPG];
 
-            std::vector< cSP_PointGlob * >  vPG = mAppli->PG();
-            cSP_PointGlob *                 pg  = vPG[iPg];
-            QString namepg(pg->PG()->Name().c_str());
-
-            if(namepg == QString(namePoint.c_str()))
-                idPG = iPg;
+            if(aPG->PG()->Name() == namePoint)
+                idPG = iPG;
         }
 
         m_QTMainWindow->tableView_PG()->selectRow(idPG);
@@ -438,8 +443,24 @@ void cQT_Interface::selectPG(QModelIndex modelIndex)
 
         table_Images_ChangePg(modelIndex.row());
 
-        m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
+#if ELISE_QT_VERSION==5
+       emit m_QTMainWindow->selectPoint(QString(pg->PG()->Name().c_str()));
+#else
+       m_QTMainWindow->emitSelectPoint(QString(pg->PG()->Name().c_str()));
+#endif
+
     }
+}
+
+void cQT_Interface::undo(bool aBool)
+{
+    if (aBool)
+        mAppli->Undo();
+    else
+        mAppli->Redo();
+
+    rebuildGlPoints();
+    emit dataChanged();
 }
 
 void cQT_Interface::changeCurPose(void *widgetGL)
@@ -450,7 +471,7 @@ void cQT_Interface::changeCurPose(void *widgetGL)
 
         int t = cImageIdxFromName(nameImage);
 
-        for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->countCameras(); ++c )
+        for (int c = 0; c  < m_QTMainWindow->threeDWidget()->getGLData()->camerasCount(); ++c )
             m_QTMainWindow->threeDWidget()->getGLData()->camera(c)->setSelected(false);
 
         m_QTMainWindow->threeDWidget()->getGLData()->camera(t)->setSelected(true);
@@ -478,7 +499,7 @@ void cQT_Interface::filesDropped(const QStringList &filenames, bool setGLData)
         {
             m_QTMainWindow->loadPly(filenames);
             _data->addCloud(m_QTMainWindow->getEngine()->getData()->getCloud(0));
-            m_QTMainWindow->threeDWidget()->getGLData()->cloudsClear();
+            m_QTMainWindow->threeDWidget()->getGLData()->clearClouds();
             _data->computeBBox();
             m_QTMainWindow->threeDWidget()->getGLData()->setData(_data,false);
             m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
@@ -608,7 +629,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
 }
 
 void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
-{    
+{
     rebuild3DGlPoints(aPIm ? aPIm->Gl()->PG() : NULL);
 }
 

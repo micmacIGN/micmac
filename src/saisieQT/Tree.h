@@ -38,11 +38,11 @@ signals:
 
 protected:
 
-    int             CountPG_CaseName() const;
+    int             AllCount() const;
 
-    int             CountPG() const;
+    int             PG_Count() const;
 
-    int             CountCaseNamePoint() const;
+    int             CaseNamePointCount() const;
 
 private:
 

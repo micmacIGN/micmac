@@ -1407,12 +1407,27 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     _center(Pt3dr(0.f,0.f,0.f)),
     _modePt(modePt)
 {
+
     initOptions();
 
-    m_polygon.showLines(!modePt);
-    m_polygon.showNames(modePt);
+    polygon()->showLines(!modePt);
+    polygon()->showNames(modePt);
 
-    m_polygon.setDefaultName(ptName);
+    polygon()->setDefaultName(ptName);
+}
+
+
+cGLData::cGLData(cData *data):
+    pBall(new cBall),
+    pAxis(new cAxis),
+    pBbox(new cBBox),
+    pGrid(new cGrid),
+    _diam(1.f),
+    _incFirstCloud(false)
+{
+    initOptions();
+
+    setData(data);
 }
 
 void cGLData::setData(cData *data, bool setCam)
@@ -1464,9 +1479,12 @@ cMaskedImageGL &cGLData::glImage()
     return glMaskedImage;
 }
 
-cPolygon &cGLData::polygon()
+cPolygon *cGLData::polygon(int id)
 {
-    return m_polygon;
+    if(id < (int)m_VPolygons.size())
+        return m_VPolygons[id];
+    else
+        return NULL;
 }
 
 GlCloud* cGLData::getCloud(int iC)
@@ -1474,27 +1492,20 @@ GlCloud* cGLData::getCloud(int iC)
     return Clouds[iC];
 }
 
-int cGLData::countCloud()
+int cGLData::cloudCount()
 {
     return Clouds.size();
 }
 
-int cGLData::countCameras()
+int cGLData::camerasCount()
 {
     return Cams.size();
 }
 
-cGLData::cGLData(cData *data):
-    pBall(new cBall),
-    pAxis(new cAxis),
-    pBbox(new cBBox),
-    pGrid(new cGrid),
-    _diam(1.f),
-    _incFirstCloud(false)
+void cGLData::initOptions()
 {
-    initOptions();
-
-    setData(data);
+    m_VPolygons.push_back(new cPolygon());
+    _options = options(OpShow_Mess);
 }
 
 cGLData::~cGLData()
@@ -1713,7 +1724,8 @@ void cGLData::replaceCloud(GlCloud *cloud, int id)
 
 void cGLData::setPainter(QPainter * painter)
 {
-    m_polygon.setPainter(painter);
+    if(polygon())
+        polygon()->setPainter(painter);
 }
 
 void cGLData::GprintBits(const size_t size, const void * const ptr)

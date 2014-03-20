@@ -72,6 +72,9 @@ public:
 
     QTableView *tableView_Images();
 
+#if ELISE_QT_VERSION!=5
+    void    emitSelectPoint(QString pointName);
+#endif
 public slots:
 
     //! Try to load a list of files
@@ -110,6 +113,8 @@ signals:
     void setName(QString); //signal coming from cSettingsDlg throw MainWindow
 
     void imagesAdded(int, bool);
+
+    void undoSgnl(bool);
 
 protected slots:
 
