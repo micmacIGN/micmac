@@ -114,9 +114,9 @@ int CreateEpip_main(int argc,char ** argv)
      std::string aNameOr1 = anICNM->Assoc1To1(aKey,aName1,true);
      std::string aNameOr2 = anICNM->Assoc1To1(aKey,aName2,true);
 
-     std::cout << "RREEEEEEEEEEEEEEead cam \n";
+     // std::cout << "RREEEEEEEEEEEEEEead cam \n";
      CamStenope * aCam1 = CamStenope::StdCamFromFile(true,aNameOr1,anICNM);
-     std::cout << "EPISZPPPpp " << aCam1->SzPixel() << "\n";
+     // std::cout << "EPISZPPPpp " << aCam1->SzPixel() << "\n";
 
      CamStenope * aCam2 = CamStenope::StdCamFromFile(true,aNameOr2,anICNM);
 
