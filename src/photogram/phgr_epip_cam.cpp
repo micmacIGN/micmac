@@ -772,6 +772,7 @@ void ReechEpipGen
 
 int CreateBlockEpip_main(int argc,char ** argv)
 {
+
    MMD_InitArgcArgv(argc,argv);
 
    std::string aNameTifIn,aNameTifOut,aNameCamIn,aNameCamOut;
@@ -780,6 +781,8 @@ int CreateBlockEpip_main(int argc,char ** argv)
    bool mSinCard=false;
    std::vector<double>  aVecPolCorrec;
    double               anAmplPol;
+
+
 
    ElInitArgMain
    (
@@ -966,6 +969,7 @@ cChangEpip::cChangEpip(const ElPackHomologue & aPck,double anAmpl,int aDegre) :
 
 void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,const char * CarNameHom,int aDegPolyCor)
 {
+
     LockMess("Begin cCpleEpip::ImEpip Im1="+ToString(Im1));
     std::string aPrefixHom;
     if (CarNameHom)
@@ -974,7 +978,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
        aPrefixHom = "";
 
 
-    bool ByP= true; /// std::cout << "Nnnnnnnnnnnnnnnnnnnnnoo process \n";
+    bool ByP= true; 
     std::string aNameImOut = mDir + LocNameImEpi(Im1);
 /*
     bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
@@ -988,12 +992,9 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
 
     std::string aNameOriOut =  mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",NameWithoutDir(aNameImOut),true);
-    // std::cout << "ORI = " << aNameOri << " " << aNameImOut << " " << NameWithoutDir(aNameImOut) << "\n";
-    // std::cout << "ORI = " << mDir << " " << mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",NameWithoutDir(aNameImOut),true) << "\n";
     cOrientationConique anOC = aCamOut.StdExportCalibGlob();
     MakeFileXML(anOC,mDir+aNameOriOut);
     // CamStenope * aCTEST = CamOrientGenFromFile(aNameOriOut,mICNM);
-    // std::cout << "TTTTT " << aCTEST->Focale() << "\n";
 
 
     Polynome2dReal  *  aPolyCor = 0;
@@ -1059,8 +1060,6 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
         }
             
 
-        // std::cout << "HomIn = " << aNameHom << "\n";
-        // getchar();
     }
 
 
@@ -1075,7 +1074,8 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
                   Tiff_Im::No_Compr,
                   aTIn.phot_interp()
             );
-    ELISE_COPY(aTOut.all_pts(),0,aTOut.out());
+    int aNbC = Tiff_Im::nb_chan_of_phot_interp(aTIn.phot_interp());
+    ELISE_COPY(aTOut.all_pts(),CsteNDim(0,aNbC),aTOut.out());
 
    std::string aNameMasq = AddPrePost(aNameImOut,"","_Masq");
    Tiff_Im  aTMasq
@@ -1107,7 +1107,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
                                   + " " +  aNameImOut
                                   + " " + mDir + aNameOriIn
                                   + " " + mDir + aNameOriOut
-                                  + " " + ToString(aBoxOut);
+                                  + " " + QUOTE(ToString(aBoxOut));
 
              if (aPolyCor)
              {
