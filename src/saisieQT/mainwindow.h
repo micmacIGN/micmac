@@ -72,6 +72,9 @@ public:
 
     QTableView *tableView_Images();
 
+#if ELISE_QT_VERSION!=5
+    void    emitSelectPoint(QString pointName);
+#endif
 public slots:
 
     //! Try to load a list of files
