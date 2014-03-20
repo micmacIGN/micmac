@@ -688,11 +688,11 @@ public:
 
     GlCloud *   getCloud(int iC);
 
-    int         countCloud();
+    int         cloudCount();
 
-    int         countCameras();
+    int         camerasCount();
 
-    void        cloudsClear(){ Clouds.clear();}
+    void        clearClouds(){ Clouds.clear();}
 
     cCam*       camera(int iC){return Cams[iC];}
 
