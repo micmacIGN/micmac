@@ -306,7 +306,6 @@ void cParameters::read()
 
      settings.beginGroup("Point creation");
      setPtCreationMode( static_cast<eTypePts> (settings.value("Mode", eNSM_Pts).toInt()));
-     cout << "sz : " <<  settings.value("WindowSize",3.f).toFloat() << endl;
      setPtCreationWindowSize( settings.value("WindowSize",3.f).toFloat());
      settings.endGroup();
 }
