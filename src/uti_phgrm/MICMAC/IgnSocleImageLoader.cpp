@@ -74,8 +74,6 @@ template <class Type,class TyBase> Im2D<Type,TyBase>::~Im2D()
 {
 }
 
-namespace NS_ParamMICMAC
-{	
 	
 	///
 	///
@@ -257,7 +255,6 @@ DefineMembreLoadN(float)
 DefineMembreLoadN(bool)
 	
 		
-};
 
 #endif
 

@@ -51,7 +51,6 @@ class cAppliGenMire
        std::string mFileOut;
 };
 
-using namespace NS_ParamChantierPhotogram;
 
 void  OneImage
       (

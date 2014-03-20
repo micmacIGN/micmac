@@ -41,8 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
    en dehors de la mise en correspondance.
 */
 
-namespace NS_ParamMICMAC
-{
 
        // Classe template permettant
        // de recuperer la deuxieme plus petite valeur
@@ -107,7 +105,6 @@ Pt2di SzDeZoom(const Pt2di & aP,int aDeZoom);
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

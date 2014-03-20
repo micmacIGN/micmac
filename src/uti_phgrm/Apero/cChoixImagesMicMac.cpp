@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 //  Lorsque l'on veut ponderer des observation ponctuelle dans le plan, 
 //  si elles tombe toute au meme endroit, chacune doit avoir un poid proportionnel
@@ -420,7 +418,6 @@ void cAppliApero::ExportImMM(const cChoixImMM & aCIM)
 
 
 
-};
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

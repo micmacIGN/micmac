@@ -48,14 +48,6 @@
 //#include "ign/matis/orientation/noboost.hpp"
 //#include "ign/matis/orientation/modeleprojection.hpp"
 /*
-namespace ign{
-namespace matis{
-namespace orienation {
-	
-	class ModeleProjection;
-};
-};
-};
 */
 class OrientationCon: public ModuleOrientation
 	{

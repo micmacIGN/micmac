@@ -47,13 +47,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 // par les allocateur static
 
 
-namespace NS_SuperposeImage{
    class cEtalRelOneChan;
    class cSpecifEROC;
    class cValuesEROC;
    class cColorCalib;
-};
-using namespace NS_SuperposeImage;
 
 class cER_MesureOneIm;
 class cER_MesureNIm;

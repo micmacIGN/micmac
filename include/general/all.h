@@ -203,10 +203,7 @@ template <class Type> const Type & AT(const std::vector<Type> & V,const INT & K)
 }
 #endif
 
-namespace NS_ParamChantierPhotogram
-{
    class cOrientationConique;
-};
 
   
 using namespace std;

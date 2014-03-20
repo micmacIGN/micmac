@@ -39,8 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-namespace NS_ParamMICMAC
-{
 
 /******************************************************/
 /*                                                    */
@@ -337,7 +335,6 @@ std::cout << aIntIn.V0() << " - " << aIntIn.V1() << "\n";
    );
 }
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

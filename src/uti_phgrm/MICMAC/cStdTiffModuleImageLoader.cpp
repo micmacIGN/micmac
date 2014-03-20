@@ -45,10 +45,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "IgnSocleImageLoader.h"
 #endif
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-namespace NS_ParamMICMAC
-{
 
-GenIm::type_el TypeIMIL2El(NS_ParamMICMAC::eTypeNumerique aType)
+GenIm::type_el TypeIMIL2El(eIFImL_TypeNumerique aType)
 {
     switch (aType)
     {
@@ -191,7 +189,7 @@ class cStdTiffModuleImageLoader : public cInterfModuleImageLoader
       StdDefinitMembreLoadCorrel(float,double);
 
       // 1
-      eTypeNumerique PreferedTypeOfResol(int aDeZoom )  const
+      eIFImL_TypeNumerique PreferedTypeOfResol(int aDeZoom )  const
       {
           switch(FileOfResol(aDeZoom).type_el())
           {
@@ -724,7 +722,6 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

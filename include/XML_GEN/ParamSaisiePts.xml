@@ -3,14 +3,12 @@
 <Verbatim File=".h">
 // #include "general/all.h"
 // #include "private/all.h"
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
 </Verbatim>
 <Verbatim File=".cpp">
 #include "StdAfx.h"
 </Verbatim>
 <Verbatim File=".h.cpp">
-namespace NS_SaisiePts{
+// 
 </Verbatim>
 
 <enum Name="eTypePts">
@@ -30,6 +28,8 @@ namespace NS_SaisiePts{
     <eEPI_Valide>           </eEPI_Valide>
     <eEPI_NonValue>         </eEPI_NonValue>  <!-- Usage interne codage -->
     <eEPI_Disparu>          </eEPI_Disparu>   <!-- Usage interne gestion des sommets morts  -->
+    <!-- Ne pas supprimer  , voir cAppli_SaisiePts::StatePriority -->
+    <eEPI_Highlight>        </eEPI_Highlight>   <!-- Usage interne gestion des sommets morts  -->
 </enum>
 
 
@@ -146,7 +146,7 @@ pas interfere avec format utilisateur basique, on separe -->
 
 
 <Verbatim File=".h.cpp">
-};
+// };
 </Verbatim>
 
 </GenCpp>

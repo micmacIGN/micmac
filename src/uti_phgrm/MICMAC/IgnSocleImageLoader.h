@@ -8,8 +8,6 @@
 #include "cInterfModuleImageLoader.h"
 
 
-namespace NS_ParamMICMAC
-{
 /**
  Classe d'interface de lecture d'image en JP2000 via la lib Kakadu
  Pour le moment uniquement des images 8 ou 16b
@@ -90,6 +88,5 @@ class IgnSocleImageLoader: public cInterfModuleImageLoader
 						 );
 		
 	};
-};
 #endif
 #endif

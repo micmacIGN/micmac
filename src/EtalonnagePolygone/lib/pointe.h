@@ -87,7 +87,7 @@ class cParamPointeInit
 
 	virtual const cPolygoneEtal::tContCible & CiblesInit() const;
 
-	virtual  NS_ParamChantierPhotogram::cPolygoneCalib * PC() const = 0;
+	virtual  cPolygoneCalib * PC() const = 0;
 
       protected :
          cParamPointeInit(CamStenope *);
@@ -179,7 +179,7 @@ class cWPointe  : private cWPointeData,
 	 void ShowVect();
 	 void Refresh();
          INT GetRadiom(Pt2di aP);
-         void ShowCible(NS_ParamChantierPhotogram::cCibleCalib & aCC,const Pt2dr & aP);
+         void ShowCible(cCibleCalib & aCC,const Pt2dr & aP);
       private :
          void OnEndTranslate(Clik){ShowVect();}
          void OnEndScale(Clik aCl)

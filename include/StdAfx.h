@@ -1,6 +1,16 @@
 #ifndef _ELISE_STDAFX_H
 #define _ELISE_STDAFX_H
 
+#define NS_ParamMICMAC
+#define NS_ParamApero
+#define NS_Casa
+#define NS_ParamDigeo
+#define NS_SaisiePts
+#define NS_SuperposeImage
+#define NS_ParamChantierPhotogram
+#define ELISE_ORILIB
+
+
 // #define NOMINMAX
 // #include "vld.h"
 
@@ -69,10 +79,7 @@ extern bool BugDG;
 
 //  =================
 
-namespace NS_ParamChantierPhotogram
-{
    class cOrientationConique;
-}
 
 using namespace std;
 

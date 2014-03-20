@@ -25,7 +25,7 @@
 -->
     </DicoLoc>
 
-        <SectionImages>
+        <DigeoSectionImages>
            <ImageDigeo>
               <!--
 
@@ -77,7 +77,7 @@
                   </PyramideGaussienne>
               </TypePyramide>
            </PyramideImage>
-        </SectionImages>
+        </DigeoSectionImages>
        
         <SectionCaracImages>
            <!-- Juste pour pouvoir eventuellement squeezer en amont tout le calcul

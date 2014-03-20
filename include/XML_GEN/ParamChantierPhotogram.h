@@ -3,7 +3,7 @@
 //#include "private/all.h"
 #ifndef Define_NotPCP
 #define Define_NotPCP
-namespace NS_ParamChantierPhotogram{
+// NO MORE
 typedef enum
 {
   eTMalt_Ortho,
@@ -5251,5 +5251,5 @@ cElXMLTree * ToXMLTree(const cMTDCoher &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-};
+// };
 #endif // Define_NotPCP

@@ -65,9 +65,7 @@ class Data_Ori3D_Gen : public RC_Object
 };
 
 
-namespace ELISE_ORILIB {
 struct or_orientation;
-};
 
 
 class Data_Ori3D_Std : public Data_Ori3D_Gen
@@ -135,11 +133,11 @@ class Data_Ori3D_Std : public Data_Ori3D_Gen
 
          void  correct(REAL *xp,REAL *yp,INT nb);
 
-	 Data_Ori3D_Std(ELISE_ORILIB::or_orientation    * _ori);
+	 Data_Ori3D_Std(or_orientation    * _ori);
 
          Data_Ori3D_Std (const char *,bool inv_y,bool binary,bool QuickGrid );
          Data_Ori3D_Std (Data_Ori3D_Std *,REAL zoom,Box2dr = Ori3D_Std::TheNoBox);
-         void init_commun( ELISE_ORILIB::or_orientation * = 0);
+         void init_commun( or_orientation * = 0);
 
          Pt2dr to_photo(Pt3dr p,bool DontUseDist=false);
          Pt3dr to_terrain
@@ -207,11 +205,11 @@ class Data_Ori3D_Std : public Data_Ori3D_Gen
 
           INT  ZoneLambert() const;
 
-         ELISE_ORILIB::or_orientation * Ori() const {return _ori;}
+         or_orientation * Ori() const {return _ori;}
          void  SetOrigineTgtLoc(const Pt2dr & aPt);
 
          Pt2di SzIm() const;
-	 NS_ParamChantierPhotogram::cOrientationConique * OC() const;
+	 cOrientationConique * OC() const;
 
 
       private :
@@ -219,7 +217,7 @@ class Data_Ori3D_Std : public Data_Ori3D_Gen
 
          inline void  correct(Pt2dr &); // enventually reverse
          void*                    _photo;
-         ELISE_ORILIB::or_orientation    * _ori;
+         or_orientation    * _ori;
          bool                    _inv_y;
 	 bool                     mOri2Del;
 

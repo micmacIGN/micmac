@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 // UNUSED
-namespace NS_ParamMICMAC{
+// Quelque chose
 eModeGeomMEC  Str2eModeGeomMEC(const std::string & aName)
 {
    if (aName=="eGeomMECIm1")
@@ -7538,119 +7538,119 @@ void xml_init(cPlyFile & anObj,cElXMLTree * aTree)
 }
 
 
-cTplValGesInit< bool > & cExportNuage::DataInside()
+cTplValGesInit< bool > & cMMExportNuage::DataInside()
 {
    return MTD_Nuage_Maille().Val().DataInside();
 }
 
-const cTplValGesInit< bool > & cExportNuage::DataInside()const 
+const cTplValGesInit< bool > & cMMExportNuage::DataInside()const 
 {
    return MTD_Nuage_Maille().Val().DataInside();
 }
 
 
-std::string & cExportNuage::KeyNameMTD()
+std::string & cMMExportNuage::KeyNameMTD()
 {
    return MTD_Nuage_Maille().Val().KeyNameMTD();
 }
 
-const std::string & cExportNuage::KeyNameMTD()const 
+const std::string & cMMExportNuage::KeyNameMTD()const 
 {
    return MTD_Nuage_Maille().Val().KeyNameMTD();
 }
 
 
-cTplValGesInit< double > & cExportNuage::RatioPseudoConik()
+cTplValGesInit< double > & cMMExportNuage::RatioPseudoConik()
 {
    return MTD_Nuage_Maille().Val().RatioPseudoConik();
 }
 
-const cTplValGesInit< double > & cExportNuage::RatioPseudoConik()const 
+const cTplValGesInit< double > & cMMExportNuage::RatioPseudoConik()const 
 {
    return MTD_Nuage_Maille().Val().RatioPseudoConik();
 }
 
 
-cTplValGesInit< cMTD_Nuage_Maille > & cExportNuage::MTD_Nuage_Maille()
+cTplValGesInit< cMTD_Nuage_Maille > & cMMExportNuage::MTD_Nuage_Maille()
 {
    return mMTD_Nuage_Maille;
 }
 
-const cTplValGesInit< cMTD_Nuage_Maille > & cExportNuage::MTD_Nuage_Maille()const 
+const cTplValGesInit< cMTD_Nuage_Maille > & cMMExportNuage::MTD_Nuage_Maille()const 
 {
    return mMTD_Nuage_Maille;
 }
 
 
-cTplValGesInit< std::string > & cExportNuage::KeyNamePly()
+cTplValGesInit< std::string > & cMMExportNuage::KeyNamePly()
 {
    return PlyFile().Val().KeyNamePly();
 }
 
-const cTplValGesInit< std::string > & cExportNuage::KeyNamePly()const 
+const cTplValGesInit< std::string > & cMMExportNuage::KeyNamePly()const 
 {
    return PlyFile().Val().KeyNamePly();
 }
 
 
-bool & cExportNuage::Binary()
+bool & cMMExportNuage::Binary()
 {
    return PlyFile().Val().Binary();
 }
 
-const bool & cExportNuage::Binary()const 
+const bool & cMMExportNuage::Binary()const 
 {
    return PlyFile().Val().Binary();
 }
 
 
-double & cExportNuage::Resolution()
+double & cMMExportNuage::Resolution()
 {
    return PlyFile().Val().Resolution();
 }
 
-const double & cExportNuage::Resolution()const 
+const double & cMMExportNuage::Resolution()const 
 {
    return PlyFile().Val().Resolution();
 }
 
 
-std::list< std::string > & cExportNuage::PlyCommentAdd()
+std::list< std::string > & cMMExportNuage::PlyCommentAdd()
 {
    return PlyFile().Val().PlyCommentAdd();
 }
 
-const std::list< std::string > & cExportNuage::PlyCommentAdd()const 
+const std::list< std::string > & cMMExportNuage::PlyCommentAdd()const 
 {
    return PlyFile().Val().PlyCommentAdd();
 }
 
 
-std::list< cCannauxExportPly > & cExportNuage::CannauxExportPly()
+std::list< cCannauxExportPly > & cMMExportNuage::CannauxExportPly()
 {
    return PlyFile().Val().CannauxExportPly();
 }
 
-const std::list< cCannauxExportPly > & cExportNuage::CannauxExportPly()const 
+const std::list< cCannauxExportPly > & cMMExportNuage::CannauxExportPly()const 
 {
    return PlyFile().Val().CannauxExportPly();
 }
 
 
-cTplValGesInit< cPlyFile > & cExportNuage::PlyFile()
+cTplValGesInit< cPlyFile > & cMMExportNuage::PlyFile()
 {
    return mPlyFile;
 }
 
-const cTplValGesInit< cPlyFile > & cExportNuage::PlyFile()const 
+const cTplValGesInit< cPlyFile > & cMMExportNuage::PlyFile()const 
 {
    return mPlyFile;
 }
 
-cElXMLTree * ToXMLTree(const cExportNuage & anObj)
+cElXMLTree * ToXMLTree(const cMMExportNuage & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ExportNuage",eXMLBranche);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MMExportNuage",eXMLBranche);
    if (anObj.MTD_Nuage_Maille().IsInit())
       aRes->AddFils(ToXMLTree(anObj.MTD_Nuage_Maille().Val())->ReTagThis("MTD_Nuage_Maille"));
    if (anObj.PlyFile().IsInit())
@@ -7660,7 +7660,7 @@ cElXMLTree * ToXMLTree(const cExportNuage & anObj)
   return aRes;
 }
 
-void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
+void xml_init(cMMExportNuage & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
@@ -11341,14 +11341,14 @@ const cTplValGesInit< cInterfaceVisualisation > & cEtapeMEC::InterfaceVisualisat
 }
 
 
-std::list< cExportNuage > & cEtapeMEC::ExportNuage()
+std::list< cMMExportNuage > & cEtapeMEC::MMExportNuage()
 {
-   return mExportNuage;
+   return mMMExportNuage;
 }
 
-const std::list< cExportNuage > & cEtapeMEC::ExportNuage()const 
+const std::list< cMMExportNuage > & cEtapeMEC::MMExportNuage()const 
 {
-   return mExportNuage;
+   return mMMExportNuage;
 }
 
 
@@ -12244,11 +12244,11 @@ cElXMLTree * ToXMLTree(const cEtapeMEC & anObj)
    if (anObj.InterfaceVisualisation().IsInit())
       aRes->AddFils(ToXMLTree(anObj.InterfaceVisualisation().Val())->ReTagThis("InterfaceVisualisation"));
   for
-  (       std::list< cExportNuage >::const_iterator it=anObj.ExportNuage().begin();
-      it !=anObj.ExportNuage().end();
+  (       std::list< cMMExportNuage >::const_iterator it=anObj.MMExportNuage().begin();
+      it !=anObj.MMExportNuage().end();
       it++
   ) 
-      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ExportNuage"));
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("MMExportNuage"));
    if (anObj.ModelesAnalytiques().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ModelesAnalytiques().Val())->ReTagThis("ModelesAnalytiques"));
   for
@@ -12453,7 +12453,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.InterfaceVisualisation(),aTree->Get("InterfaceVisualisation",1)); //tototo 
 
-   xml_init(anObj.ExportNuage(),aTree->GetAll("ExportNuage",false,1));
+   xml_init(anObj.MMExportNuage(),aTree->GetAll("MMExportNuage",false,1));
 
    xml_init(anObj.ModelesAnalytiques(),aTree->Get("ModelesAnalytiques",1)); //tototo 
 
@@ -13332,9 +13332,9 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
         if ((*itLTr)->HasFilsPorteeGlob("InterfaceVisualisation"))
           anObj.mGlobEtapeMEC.InterfaceVisualisation() = aVal.InterfaceVisualisation();
 
-        xml_init(aVal.ExportNuage(),(*itLTr)->GetAll("ExportNuage",false,1));
-        if ((*itLTr)->HasFilsPorteeGlob("ExportNuage"))
-          anObj.mGlobEtapeMEC.ExportNuage() = aVal.ExportNuage();
+        xml_init(aVal.MMExportNuage(),(*itLTr)->GetAll("MMExportNuage",false,1));
+        if ((*itLTr)->HasFilsPorteeGlob("MMExportNuage"))
+          anObj.mGlobEtapeMEC.MMExportNuage() = aVal.MMExportNuage();
 
         xml_init(aVal.ModelesAnalytiques(),(*itLTr)->Get("ModelesAnalytiques",1)); //tototo 
         if ((*itLTr)->HasFilsPorteeGlob("ModelesAnalytiques"))
@@ -16406,12 +16406,12 @@ const cTplValGesInit< eComprTiff > & cSection_WorkSpace::ComprMasque()const
 }
 
 
-cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > & cSection_WorkSpace::TypeMasque()
+cTplValGesInit< eTypeNumerique > & cSection_WorkSpace::TypeMasque()
 {
    return mTypeMasque;
 }
 
-const cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > & cSection_WorkSpace::TypeMasque()const 
+const cTplValGesInit< eTypeNumerique > & cSection_WorkSpace::TypeMasque()const 
 {
    return mTypeMasque;
 }
@@ -16598,7 +16598,7 @@ void xml_init(cSection_WorkSpace & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ComprMasque(),aTree->Get("ComprMasque",1),eComprTiff(eComprTiff_FAX4)); //tototo 
 
-   xml_init(anObj.TypeMasque(),aTree->Get("TypeMasque",1),NS_ParamChantierPhotogram::eTypeNumerique(eTN_Bits1MSBF)); //tototo 
+   xml_init(anObj.TypeMasque(),aTree->Get("TypeMasque",1),eTypeNumerique(eTN_Bits1MSBF)); //tototo 
 }
 
 
@@ -19887,12 +19887,12 @@ const cTplValGesInit< eComprTiff > & cParamMICMAC::ComprMasque()const
 }
 
 
-cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > & cParamMICMAC::TypeMasque()
+cTplValGesInit< eTypeNumerique > & cParamMICMAC::TypeMasque()
 {
    return Section_WorkSpace().TypeMasque();
 }
 
-const cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > & cParamMICMAC::TypeMasque()const 
+const cTplValGesInit< eTypeNumerique > & cParamMICMAC::TypeMasque()const 
 {
    return Section_WorkSpace().TypeMasque();
 }
@@ -20323,4 +20323,4 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-};
+// Quelque chose

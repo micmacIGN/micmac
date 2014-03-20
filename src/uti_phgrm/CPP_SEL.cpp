@@ -84,7 +84,7 @@ int SEL_main(int argc,char ** argv)
                        << EAMC(aN1,"Name Im1") 
                       << EAMC(aN2,"Name Im2") ,
            LArgMain() << EAM(aRedr,"R",true)
-                      << EAM(aRedrL1,"RL1",true,"Estimate Homographie using L1 mode")
+                      << EAM(aRedrL1,"RL1",true,"Estimate Homographie uSing L1 mode")
                       << EAM(aFilter,"F",true)
                       << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT MMD")
                       << EAM(aKeyCompl,"KCpl",true)

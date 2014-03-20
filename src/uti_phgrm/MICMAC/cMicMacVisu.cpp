@@ -39,8 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-namespace NS_ParamMICMAC
-{
 #if ELISE_X11
 
  //'class cMicMacWindowIm' does not have a copy constructor
@@ -632,7 +630,6 @@ void cAppliMICMAC::Visualisation(Box2di aBoxIn)
 }
 #endif // ELISE_X11
 
-};
 
 
 

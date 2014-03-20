@@ -170,7 +170,6 @@ void DebugOri(Ori3D_Std anOri)
    std::cout<< "P2T = " << ori->gp2t.ns  << " " << ori->gp2t.nl << "\n";
 }
 
-namespace ELISE_ORILIB {
 int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool QuickGrid );
 
 
@@ -3056,7 +3055,6 @@ return 1 ;
 
 
 
-using namespace NS_ParamChantierPhotogram;
 
 //
 //       Conventions d'Orientation
@@ -4356,10 +4354,7 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
 
    return 1 ;
 }
-};
-using namespace ELISE_ORILIB;
 
-namespace NS_ParamChantierPhotogram{
 
 bool ConvIsSensVideo(eConventionsOrientation aConv)
 {
@@ -4828,7 +4823,6 @@ ElMatrix<double>   Std_RAff_C2M
 
 
 
-};
 
 double TIME_UNDEF() {return -1e30;}
 

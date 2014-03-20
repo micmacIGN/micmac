@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-using namespace NS_SuperposeImage;
 
      /*****************************************/
      /*                                       */
@@ -63,10 +62,10 @@ class cSurfAnalIdent : public cInterfSurfaceAnalytique
         Pt3dr UVL2E(const Pt3dr & aP) const {return aP + mVec;}
         void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const {}
 
-        NS_SuperposeImage::cXmlDescriptionAnalytique Xml()  const
+        cXmlDescriptionAnalytique Xml()  const
         {
              ELISE_ASSERT(false,"cSurfAnalIdent::Xml");
-             NS_SuperposeImage::cXmlDescriptionAnalytique aNS;
+             cXmlDescriptionAnalytique aNS;
              return aNS;
         }
 
@@ -240,7 +239,7 @@ void cProjOrthoCylindrique::AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const
 {
 }
 
-NS_SuperposeImage::cXmlOrthoCyl cProjOrthoCylindrique::XmlOCyl() const
+cXmlOrthoCyl cProjOrthoCylindrique::XmlOCyl() const
 {
    cXmlOrthoCyl aRes;
    aRes.Repere() =  mL2A.El2Xml();
@@ -252,16 +251,18 @@ NS_SuperposeImage::cXmlOrthoCyl cProjOrthoCylindrique::XmlOCyl() const
 }
 
 
-NS_SuperposeImage::cXmlDescriptionAnalytique cProjOrthoCylindrique::Xml() const
+cXmlDescriptionAnalytique cProjOrthoCylindrique::Xml() const
 {
     cXmlDescriptionAnalytique aRes;
     aRes.OrthoCyl().SetVal(XmlOCyl());
     return aRes;
 }
 
+#define  NS_SuperposeImage 
+
 cProjOrthoCylindrique cProjOrthoCylindrique::FromXml
                       (
-                             const NS_SuperposeImage::cXmlOneSurfaceAnalytique&,
+                             const cXmlOneSurfaceAnalytique&,
                              const NS_SuperposeImage::cXmlOrthoCyl&  anOC
                       )
 {

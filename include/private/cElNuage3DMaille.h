@@ -47,10 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 // par les allocateur static
 
 
-namespace NS_SuperposeImage{
    class cXML_ParamNuage3DMaille;
-};
-using namespace NS_SuperposeImage;
 
 cXML_ParamNuage3DMaille CropAndSousEch
                         (

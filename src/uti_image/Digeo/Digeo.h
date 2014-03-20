@@ -67,7 +67,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
 
-using namespace NS_ParamChantierPhotogram;
 
 #define __DEBUG_DIGEO_STATS
 

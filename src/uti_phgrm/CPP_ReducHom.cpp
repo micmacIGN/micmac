@@ -46,7 +46,6 @@ AFAIRE :
   SUPPRIMER LES 15% de PIRE
 */
 
-using namespace NS_ReducHoms;
 
 int ReducHom_main(int argc,char ** argv)
 {

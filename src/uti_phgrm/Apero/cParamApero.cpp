@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 // UNUSED #include "cParamApero.h"
-namespace NS_ParamApero{
+// NO MORE ...
 eTypeContrainteCalibCamera  Str2eTypeContrainteCalibCamera(const std::string & aName)
 {
    if (aName=="eAllParamLibres")
@@ -15481,4 +15481,4 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-};
+// };

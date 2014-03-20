@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1492]) = {
+const char * (theNameVar_ParamApero[1490]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -15,12 +15,10 @@ const char * (theNameVar_ParamApero[1492]) = {
 "\n",
 "<Verbatim File=\".h\">\n",
 "// #include \"XML_GEN/all.h\"\n",
-"using namespace NS_ParamChantierPhotogram;\n",
-"using namespace NS_SuperposeImage;\n",
 "</Verbatim>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
-"namespace NS_ParamApero{\n",
+"// NO MORE ... \n",
 "</Verbatim>\n",
 "\n",
 "\n",
@@ -1482,7 +1480,7 @@ const char * (theNameVar_ParamApero[1492]) = {
 "\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
-"};\n",
+"// };\n",
 "</Verbatim>\n",
 "<Verbatim File=\".h\">\n",
 "#endif // Define_NotApero\n",

@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 cInterpolateurIm2D<U_INT2>* cOneVisuPMul::Interp() const { return mInterp; }
 const Pt3dr&  cOneVisuPMul::PTer00()   const { return mPTer00; }
@@ -497,7 +495,6 @@ void cAppliApero::DoShowPtsMult(const std::list<cVisuPtsMult> & aLVPM)
 #endif // (ELISE_NO_VIDEO)
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

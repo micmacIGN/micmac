@@ -46,7 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define FUSEAU ASkHeureLocaleVraie
 
-namespace ELISE_ORILIB {
 
 /*--------------------------------------------------------------------------------------*/
 void orvecteur_soleil_terre (  int *annee, int *jour, int *mois, int *heure, int *minute, 
@@ -92,7 +91,6 @@ soleil[1] = - cos ( Hauteur ) * cos ( AzNord ) ;
 soleil[0] = - cos ( Hauteur ) * sin ( AzNord ) ;
 }
 
-};
 
 
 

@@ -435,7 +435,7 @@ void getKeypointFilename( const string &i_basename, int i_resolution, string &o_
    o_keypointsName = aDir + anICNM->Assoc1To2( "eModeLeBrisPP-Pastis-PtInt", i_basename, ToString( i_resolution ), true) ;
 }
 
-// create a makefile to compute keypoints for all images using Pastis' filenames format
+// create a makefile to compute keypoints for all images Using Pastis' filenames format
 void DoDetectKeypoints( string i_detectingTool, int i_resolution )
 {
 	string detectingToolArguments;
@@ -721,7 +721,7 @@ int Graph_(int argc,char ** argv)
     if ( !EAMIsInit(&outputFile) )
     {
 		outputFile = aDir+outputFile;
-		cout << "no output filename specified using default: " << outputFile << endl;
+		cout << "no output filename specified Using default: " << outputFile << endl;
 	}
     
     // retrieve points of interest detecting program

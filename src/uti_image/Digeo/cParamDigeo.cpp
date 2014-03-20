@@ -1,5 +1,5 @@
 #include "cParamDigeo.h"
-//namespace NS_ParamDigeo{
+//
 eTypeTopolPt  Str2eTypeTopolPt(const std::string & aName)
 {
    if (aName=="eTtpSommet")
@@ -1041,229 +1041,229 @@ void xml_init(cPyramideImage & anObj,cElXMLTree * aTree)
 }
 
 
-std::list< cImageDigeo > & cSectionImages::ImageDigeo()
+std::list< cImageDigeo > & cDigeoSectionImages::ImageDigeo()
 {
    return mImageDigeo;
 }
 
-const std::list< cImageDigeo > & cSectionImages::ImageDigeo()const 
+const std::list< cImageDigeo > & cDigeoSectionImages::ImageDigeo()const 
 {
    return mImageDigeo;
 }
 
 
-std::list< cTypeNumeriqueOfNiv > & cSectionImages::TypeNumeriqueOfNiv()
+std::list< cTypeNumeriqueOfNiv > & cDigeoSectionImages::TypeNumeriqueOfNiv()
 {
    return PyramideImage().TypeNumeriqueOfNiv();
 }
 
-const std::list< cTypeNumeriqueOfNiv > & cSectionImages::TypeNumeriqueOfNiv()const 
+const std::list< cTypeNumeriqueOfNiv > & cDigeoSectionImages::TypeNumeriqueOfNiv()const 
 {
    return PyramideImage().TypeNumeriqueOfNiv();
 }
 
 
-cTplValGesInit< bool > & cSectionImages::MaximDyn()
+cTplValGesInit< bool > & cDigeoSectionImages::MaximDyn()
 {
    return PyramideImage().MaximDyn();
 }
 
-const cTplValGesInit< bool > & cSectionImages::MaximDyn()const 
+const cTplValGesInit< bool > & cDigeoSectionImages::MaximDyn()const 
 {
    return PyramideImage().MaximDyn();
 }
 
 
-cTplValGesInit< double > & cSectionImages::ValMaxForDyn()
+cTplValGesInit< double > & cDigeoSectionImages::ValMaxForDyn()
 {
    return PyramideImage().ValMaxForDyn();
 }
 
-const cTplValGesInit< double > & cSectionImages::ValMaxForDyn()const 
+const cTplValGesInit< double > & cDigeoSectionImages::ValMaxForDyn()const 
 {
    return PyramideImage().ValMaxForDyn();
 }
 
 
-cTplValGesInit< eReducDemiImage > & cSectionImages::ReducDemiImage()
+cTplValGesInit< eReducDemiImage > & cDigeoSectionImages::ReducDemiImage()
 {
    return PyramideImage().ReducDemiImage();
 }
 
-const cTplValGesInit< eReducDemiImage > & cSectionImages::ReducDemiImage()const 
+const cTplValGesInit< eReducDemiImage > & cDigeoSectionImages::ReducDemiImage()const 
 {
    return PyramideImage().ReducDemiImage();
 }
 
 
-cTplValGesInit< int > & cSectionImages::NivPyramBasique()
+cTplValGesInit< int > & cDigeoSectionImages::NivPyramBasique()
 {
    return PyramideImage().TypePyramide().NivPyramBasique();
 }
 
-const cTplValGesInit< int > & cSectionImages::NivPyramBasique()const 
+const cTplValGesInit< int > & cDigeoSectionImages::NivPyramBasique()const 
 {
    return PyramideImage().TypePyramide().NivPyramBasique();
 }
 
 
-cTplValGesInit< int > & cSectionImages::NbByOctave()
+cTplValGesInit< int > & cDigeoSectionImages::NbByOctave()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().NbByOctave();
 }
 
-const cTplValGesInit< int > & cSectionImages::NbByOctave()const 
+const cTplValGesInit< int > & cDigeoSectionImages::NbByOctave()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().NbByOctave();
 }
 
 
-cTplValGesInit< double > & cSectionImages::Sigma0()
+cTplValGesInit< double > & cDigeoSectionImages::Sigma0()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().Sigma0();
 }
 
-const cTplValGesInit< double > & cSectionImages::Sigma0()const 
+const cTplValGesInit< double > & cDigeoSectionImages::Sigma0()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().Sigma0();
 }
 
 
-cTplValGesInit< double > & cSectionImages::SigmaN()
+cTplValGesInit< double > & cDigeoSectionImages::SigmaN()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
 }
 
-const cTplValGesInit< double > & cSectionImages::SigmaN()const 
+const cTplValGesInit< double > & cDigeoSectionImages::SigmaN()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
 }
 
 
-cTplValGesInit< int > & cSectionImages::NbInLastOctave()
+cTplValGesInit< int > & cDigeoSectionImages::NbInLastOctave()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().NbInLastOctave();
 }
 
-const cTplValGesInit< int > & cSectionImages::NbInLastOctave()const 
+const cTplValGesInit< int > & cDigeoSectionImages::NbInLastOctave()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().NbInLastOctave();
 }
 
 
-cTplValGesInit< int > & cSectionImages::IndexFreqInFirstOctave()
+cTplValGesInit< int > & cDigeoSectionImages::IndexFreqInFirstOctave()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().IndexFreqInFirstOctave();
 }
 
-const cTplValGesInit< int > & cSectionImages::IndexFreqInFirstOctave()const 
+const cTplValGesInit< int > & cDigeoSectionImages::IndexFreqInFirstOctave()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().IndexFreqInFirstOctave();
 }
 
 
-int & cSectionImages::NivOctaveMax()
+int & cDigeoSectionImages::NivOctaveMax()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().NivOctaveMax();
 }
 
-const int & cSectionImages::NivOctaveMax()const 
+const int & cDigeoSectionImages::NivOctaveMax()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().NivOctaveMax();
 }
 
 
-cTplValGesInit< double > & cSectionImages::ConvolFirstImage()
+cTplValGesInit< double > & cDigeoSectionImages::ConvolFirstImage()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolFirstImage();
 }
 
-const cTplValGesInit< double > & cSectionImages::ConvolFirstImage()const 
+const cTplValGesInit< double > & cDigeoSectionImages::ConvolFirstImage()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolFirstImage();
 }
 
 
-cTplValGesInit< double > & cSectionImages::EpsilonGauss()
+cTplValGesInit< double > & cDigeoSectionImages::EpsilonGauss()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().EpsilonGauss();
 }
 
-const cTplValGesInit< double > & cSectionImages::EpsilonGauss()const 
+const cTplValGesInit< double > & cDigeoSectionImages::EpsilonGauss()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().EpsilonGauss();
 }
 
 
-cTplValGesInit< int > & cSectionImages::NbShift()
+cTplValGesInit< int > & cDigeoSectionImages::NbShift()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().NbShift();
 }
 
-const cTplValGesInit< int > & cSectionImages::NbShift()const 
+const cTplValGesInit< int > & cDigeoSectionImages::NbShift()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().NbShift();
 }
 
 
-cTplValGesInit< int > & cSectionImages::SurEchIntegralGauss()
+cTplValGesInit< int > & cDigeoSectionImages::SurEchIntegralGauss()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().SurEchIntegralGauss();
 }
 
-const cTplValGesInit< int > & cSectionImages::SurEchIntegralGauss()const 
+const cTplValGesInit< int > & cDigeoSectionImages::SurEchIntegralGauss()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().SurEchIntegralGauss();
 }
 
 
-cTplValGesInit< bool > & cSectionImages::ConvolIncrem()
+cTplValGesInit< bool > & cDigeoSectionImages::ConvolIncrem()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolIncrem();
 }
 
-const cTplValGesInit< bool > & cSectionImages::ConvolIncrem()const 
+const cTplValGesInit< bool > & cDigeoSectionImages::ConvolIncrem()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolIncrem();
 }
 
 
-cTplValGesInit< cPyramideGaussienne > & cSectionImages::PyramideGaussienne()
+cTplValGesInit< cPyramideGaussienne > & cDigeoSectionImages::PyramideGaussienne()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne();
 }
 
-const cTplValGesInit< cPyramideGaussienne > & cSectionImages::PyramideGaussienne()const 
+const cTplValGesInit< cPyramideGaussienne > & cDigeoSectionImages::PyramideGaussienne()const 
 {
    return PyramideImage().TypePyramide().PyramideGaussienne();
 }
 
 
-cTypePyramide & cSectionImages::TypePyramide()
+cTypePyramide & cDigeoSectionImages::TypePyramide()
 {
    return PyramideImage().TypePyramide();
 }
 
-const cTypePyramide & cSectionImages::TypePyramide()const 
+const cTypePyramide & cDigeoSectionImages::TypePyramide()const 
 {
    return PyramideImage().TypePyramide();
 }
 
 
-cPyramideImage & cSectionImages::PyramideImage()
+cPyramideImage & cDigeoSectionImages::PyramideImage()
 {
    return mPyramideImage;
 }
 
-const cPyramideImage & cSectionImages::PyramideImage()const 
+const cPyramideImage & cDigeoSectionImages::PyramideImage()const 
 {
    return mPyramideImage;
 }
 
-cElXMLTree * ToXMLTree(const cSectionImages & anObj)
+cElXMLTree * ToXMLTree(const cDigeoSectionImages & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionImages",eXMLBranche);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DigeoSectionImages",eXMLBranche);
   for
   (       std::list< cImageDigeo >::const_iterator it=anObj.ImageDigeo().begin();
       it !=anObj.ImageDigeo().end();
@@ -1276,7 +1276,7 @@ cElXMLTree * ToXMLTree(const cSectionImages & anObj)
   return aRes;
 }
 
-void xml_init(cSectionImages & anObj,cElXMLTree * aTree)
+void xml_init(cDigeoSectionImages & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
@@ -2377,232 +2377,232 @@ const cTplValGesInit< cChantierDescripteur > & cParamDigeo::DicoLoc()const
 
 std::list< cImageDigeo > & cParamDigeo::ImageDigeo()
 {
-   return SectionImages().ImageDigeo();
+   return DigeoSectionImages().ImageDigeo();
 }
 
 const std::list< cImageDigeo > & cParamDigeo::ImageDigeo()const 
 {
-   return SectionImages().ImageDigeo();
+   return DigeoSectionImages().ImageDigeo();
 }
 
 
 std::list< cTypeNumeriqueOfNiv > & cParamDigeo::TypeNumeriqueOfNiv()
 {
-   return SectionImages().PyramideImage().TypeNumeriqueOfNiv();
+   return DigeoSectionImages().PyramideImage().TypeNumeriqueOfNiv();
 }
 
 const std::list< cTypeNumeriqueOfNiv > & cParamDigeo::TypeNumeriqueOfNiv()const 
 {
-   return SectionImages().PyramideImage().TypeNumeriqueOfNiv();
+   return DigeoSectionImages().PyramideImage().TypeNumeriqueOfNiv();
 }
 
 
 cTplValGesInit< bool > & cParamDigeo::MaximDyn()
 {
-   return SectionImages().PyramideImage().MaximDyn();
+   return DigeoSectionImages().PyramideImage().MaximDyn();
 }
 
 const cTplValGesInit< bool > & cParamDigeo::MaximDyn()const 
 {
-   return SectionImages().PyramideImage().MaximDyn();
+   return DigeoSectionImages().PyramideImage().MaximDyn();
 }
 
 
 cTplValGesInit< double > & cParamDigeo::ValMaxForDyn()
 {
-   return SectionImages().PyramideImage().ValMaxForDyn();
+   return DigeoSectionImages().PyramideImage().ValMaxForDyn();
 }
 
 const cTplValGesInit< double > & cParamDigeo::ValMaxForDyn()const 
 {
-   return SectionImages().PyramideImage().ValMaxForDyn();
+   return DigeoSectionImages().PyramideImage().ValMaxForDyn();
 }
 
 
 cTplValGesInit< eReducDemiImage > & cParamDigeo::ReducDemiImage()
 {
-   return SectionImages().PyramideImage().ReducDemiImage();
+   return DigeoSectionImages().PyramideImage().ReducDemiImage();
 }
 
 const cTplValGesInit< eReducDemiImage > & cParamDigeo::ReducDemiImage()const 
 {
-   return SectionImages().PyramideImage().ReducDemiImage();
+   return DigeoSectionImages().PyramideImage().ReducDemiImage();
 }
 
 
 cTplValGesInit< int > & cParamDigeo::NivPyramBasique()
 {
-   return SectionImages().PyramideImage().TypePyramide().NivPyramBasique();
+   return DigeoSectionImages().PyramideImage().TypePyramide().NivPyramBasique();
 }
 
 const cTplValGesInit< int > & cParamDigeo::NivPyramBasique()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().NivPyramBasique();
+   return DigeoSectionImages().PyramideImage().TypePyramide().NivPyramBasique();
 }
 
 
 cTplValGesInit< int > & cParamDigeo::NbByOctave()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbByOctave();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbByOctave();
 }
 
 const cTplValGesInit< int > & cParamDigeo::NbByOctave()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbByOctave();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbByOctave();
 }
 
 
 cTplValGesInit< double > & cParamDigeo::Sigma0()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().Sigma0();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().Sigma0();
 }
 
 const cTplValGesInit< double > & cParamDigeo::Sigma0()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().Sigma0();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().Sigma0();
 }
 
 
 cTplValGesInit< double > & cParamDigeo::SigmaN()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
 }
 
 const cTplValGesInit< double > & cParamDigeo::SigmaN()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SigmaN();
 }
 
 
 cTplValGesInit< int > & cParamDigeo::NbInLastOctave()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbInLastOctave();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbInLastOctave();
 }
 
 const cTplValGesInit< int > & cParamDigeo::NbInLastOctave()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbInLastOctave();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbInLastOctave();
 }
 
 
 cTplValGesInit< int > & cParamDigeo::IndexFreqInFirstOctave()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().IndexFreqInFirstOctave();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().IndexFreqInFirstOctave();
 }
 
 const cTplValGesInit< int > & cParamDigeo::IndexFreqInFirstOctave()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().IndexFreqInFirstOctave();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().IndexFreqInFirstOctave();
 }
 
 
 int & cParamDigeo::NivOctaveMax()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NivOctaveMax();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NivOctaveMax();
 }
 
 const int & cParamDigeo::NivOctaveMax()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NivOctaveMax();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NivOctaveMax();
 }
 
 
 cTplValGesInit< double > & cParamDigeo::ConvolFirstImage()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolFirstImage();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolFirstImage();
 }
 
 const cTplValGesInit< double > & cParamDigeo::ConvolFirstImage()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolFirstImage();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolFirstImage();
 }
 
 
 cTplValGesInit< double > & cParamDigeo::EpsilonGauss()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().EpsilonGauss();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().EpsilonGauss();
 }
 
 const cTplValGesInit< double > & cParamDigeo::EpsilonGauss()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().EpsilonGauss();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().EpsilonGauss();
 }
 
 
 cTplValGesInit< int > & cParamDigeo::NbShift()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbShift();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbShift();
 }
 
 const cTplValGesInit< int > & cParamDigeo::NbShift()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbShift();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().NbShift();
 }
 
 
 cTplValGesInit< int > & cParamDigeo::SurEchIntegralGauss()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SurEchIntegralGauss();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SurEchIntegralGauss();
 }
 
 const cTplValGesInit< int > & cParamDigeo::SurEchIntegralGauss()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SurEchIntegralGauss();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SurEchIntegralGauss();
 }
 
 
 cTplValGesInit< bool > & cParamDigeo::ConvolIncrem()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolIncrem();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolIncrem();
 }
 
 const cTplValGesInit< bool > & cParamDigeo::ConvolIncrem()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolIncrem();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolIncrem();
 }
 
 
 cTplValGesInit< cPyramideGaussienne > & cParamDigeo::PyramideGaussienne()
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne();
 }
 
 const cTplValGesInit< cPyramideGaussienne > & cParamDigeo::PyramideGaussienne()const 
 {
-   return SectionImages().PyramideImage().TypePyramide().PyramideGaussienne();
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne();
 }
 
 
 cTypePyramide & cParamDigeo::TypePyramide()
 {
-   return SectionImages().PyramideImage().TypePyramide();
+   return DigeoSectionImages().PyramideImage().TypePyramide();
 }
 
 const cTypePyramide & cParamDigeo::TypePyramide()const 
 {
-   return SectionImages().PyramideImage().TypePyramide();
+   return DigeoSectionImages().PyramideImage().TypePyramide();
 }
 
 
 cPyramideImage & cParamDigeo::PyramideImage()
 {
-   return SectionImages().PyramideImage();
+   return DigeoSectionImages().PyramideImage();
 }
 
 const cPyramideImage & cParamDigeo::PyramideImage()const 
 {
-   return SectionImages().PyramideImage();
+   return DigeoSectionImages().PyramideImage();
 }
 
 
-cSectionImages & cParamDigeo::SectionImages()
+cDigeoSectionImages & cParamDigeo::DigeoSectionImages()
 {
-   return mSectionImages;
+   return mDigeoSectionImages;
 }
 
-const cSectionImages & cParamDigeo::SectionImages()const 
+const cDigeoSectionImages & cParamDigeo::DigeoSectionImages()const 
 {
-   return mSectionImages;
+   return mDigeoSectionImages;
 }
 
 
@@ -3029,7 +3029,7 @@ cElXMLTree * ToXMLTree(const cParamDigeo & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamDigeo",eXMLBranche);
    if (anObj.DicoLoc().IsInit())
       aRes->AddFils(ToXMLTree(anObj.DicoLoc().Val())->ReTagThis("DicoLoc"));
-   aRes->AddFils(ToXMLTree(anObj.SectionImages())->ReTagThis("SectionImages"));
+   aRes->AddFils(ToXMLTree(anObj.DigeoSectionImages())->ReTagThis("DigeoSectionImages"));
    aRes->AddFils(ToXMLTree(anObj.SectionCaracImages())->ReTagThis("SectionCaracImages"));
    if (anObj.SectionTest().IsInit())
       aRes->AddFils(ToXMLTree(anObj.SectionTest().Val())->ReTagThis("SectionTest"));
@@ -3046,7 +3046,7 @@ void xml_init(cParamDigeo & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.DicoLoc(),aTree->Get("DicoLoc",1)); //tototo 
 
-   xml_init(anObj.SectionImages(),aTree->Get("SectionImages",1)); //tototo 
+   xml_init(anObj.DigeoSectionImages(),aTree->Get("DigeoSectionImages",1)); //tototo 
 
    xml_init(anObj.SectionCaracImages(),aTree->Get("SectionCaracImages",1)); //tototo 
 

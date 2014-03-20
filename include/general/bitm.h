@@ -1226,10 +1226,7 @@ template <class Type> class TplElRotation3D
 
 typedef TplElRotation3D<REAL> ElRotation3D;
 
-namespace NS_ParamChantierPhotogram
-{
    class cRepereCartesien;
-};
 
 
 // Chgt de coord cartesien (et non euclidien, ca marche aussi si pas orthornormee)
@@ -1241,8 +1238,8 @@ class cChCoCart
         cChCoCart Inv() const;
         cChCoCart(const Pt3dr &aOri,const Pt3dr&,const Pt3dr&,const Pt3dr&);
 
-        static cChCoCart Xml2El(const NS_ParamChantierPhotogram::cRepereCartesien &);
-        NS_ParamChantierPhotogram::cRepereCartesien El2Xml() const;
+        static cChCoCart Xml2El(const cRepereCartesien &);
+        cRepereCartesien El2Xml() const;
      private :
         Pt3dr mOri;
         Pt3dr mOx;

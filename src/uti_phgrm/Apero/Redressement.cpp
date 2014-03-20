@@ -47,8 +47,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*******************************************/
 
 
-namespace NS_ParamApero
-{
 
 Fonc_Num GamCor(Fonc_Num aF,double aGamma)
 {
@@ -205,7 +203,6 @@ void cAppliApero::ExportRedressement(const cExportRedressement & anER)
 }
 
 
-};
 
 
 

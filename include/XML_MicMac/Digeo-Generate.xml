@@ -14,7 +14,7 @@
         <Symb> NivInFirstOct=0     </Symb>
     </DicoLoc>
 
-        <SectionImages>
+        <DigeoSectionImages>
            <ImageDigeo>
               <KeyOrPat>  ${Im1} </KeyOrPat>
               <BoxImR1>   2500 1500 3500 2500  </BoxImR1>
@@ -44,7 +44,7 @@
                   </PyramideGaussienne>
               </TypePyramide>
            </PyramideImage>
-        </SectionImages>
+        </DigeoSectionImages>
        
         <SectionCaracImages>
            <ComputeCarac> true </ComputeCarac>

@@ -117,8 +117,6 @@ void MMClearW()
 /*                                                                  */
 /********************************************************************/
 
-namespace NS_ParamMICMAC
-{
 
 
 const int TheMbMaxCel = 15;  // Pas tres fier de ca ...
@@ -795,7 +793,6 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

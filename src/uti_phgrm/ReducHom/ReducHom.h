@@ -66,8 +66,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 */
 
-using namespace NS_ParamChantierPhotogram;
-
 
 
 #define TEST 1
@@ -80,8 +78,6 @@ using namespace NS_ParamChantierPhotogram;
 
 void WarnTest();
 
-namespace NS_ReducHoms
-{
 class cPtHom;    // Point final multiple
 class cLink2Img; // "arc" du graphe de visibilite
 class cImagH;    // Une image
@@ -345,7 +341,6 @@ class cParamMerge
 };
 
 std::string NameNode(tNodIm * aN);
-};
 
 
 

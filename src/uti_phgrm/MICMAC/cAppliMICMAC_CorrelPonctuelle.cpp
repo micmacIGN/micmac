@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-namespace NS_ParamMICMAC
-{
 
 
 #define NbMaxIm 100
@@ -413,7 +411,6 @@ void cAppliMICMAC::DoCorrelCroisee2ImGeomI
     DoCorrel2ImGeomImGen(aBox,aCPC.RatioI1I2().Val(),aCPC.PdsPonctuel(),true);
 }
 
-};
 
 
 

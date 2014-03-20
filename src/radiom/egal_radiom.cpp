@@ -41,8 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "ext_stl/numeric.h"
 
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
 
 static bool Debug = true;
 

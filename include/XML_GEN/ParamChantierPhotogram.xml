@@ -16,7 +16,7 @@
 
 
 <Verbatim File=".h.cpp">
-namespace NS_ParamChantierPhotogram{
+// NO MORE 
 </Verbatim>
 
    <enum Name="eNewTypeMalt">
@@ -1488,7 +1488,7 @@ namespace NS_ParamChantierPhotogram{
 
   
 <Verbatim File=".h.cpp">
-};
+// };
 </Verbatim>
 <Verbatim File=".h">
 #endif // Define_NotPCP

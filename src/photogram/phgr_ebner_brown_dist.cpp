@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-using namespace NS_ParamChantierPhotogram;
 
 /*
 template <class TDistR,class TDistF,const int NbVar,const int NbState>

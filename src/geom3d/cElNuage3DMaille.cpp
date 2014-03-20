@@ -59,8 +59,6 @@ end_header
 
 #include "StdAfx.h"
 
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
 
 
 
