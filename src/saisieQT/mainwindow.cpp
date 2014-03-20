@@ -985,7 +985,7 @@ void MainWindow::undo(bool undo)
     }
     else
     {
-        emit undo(undo);
+        emit undoSgnl(undo);
     }
 }
 
