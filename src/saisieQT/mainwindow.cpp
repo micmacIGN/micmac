@@ -464,6 +464,7 @@ void MainWindow::on_actionRemove_triggered()
         currentWidget()->Select(SUB);
 }
 
+
 void MainWindow::on_actionSetViewTop_triggered()
 {
     if (_mode == MASK3D)
@@ -965,19 +966,26 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
 void MainWindow::undo(bool undo)
 {
-    if (currentWidget()->getHistoryManager()->size())
+    if (_mode <= MASK3D)
     {
-        if (_mode != MASK3D)
+        if (currentWidget()->getHistoryManager()->size())
         {
-            int idx = currentWidgetIdx();
+            if (_mode != MASK3D)
+            {
+                int idx = currentWidgetIdx();
 
-            _Engine->reloadImage(idx);
+                _Engine->reloadImage(idx);
 
-            currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+                currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+            }
+
+            undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
+            currentWidget()->applyInfos();
         }
-
-        undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
-        currentWidget()->applyInfos();
+    }
+    else
+    {
+        emit undo(undo);
     }
 }
 

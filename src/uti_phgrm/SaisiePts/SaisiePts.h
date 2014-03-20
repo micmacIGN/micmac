@@ -424,7 +424,7 @@ public :
 
     void            _DeletePoint(cSP_PointGlob *);
 
-    void            SetInvisRef(bool aVal);         // sert � rendre les points r�fut�s visibles ou non
+    void            SetInvisRef(bool aVal);         // sert a rendre les points refutes visibles ou non
 
     void            AddUndo(cOneSaisie * aSom);
 
