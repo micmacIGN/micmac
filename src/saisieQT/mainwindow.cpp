@@ -464,7 +464,6 @@ void MainWindow::on_actionRemove_triggered()
         currentWidget()->Select(SUB);
 }
 
-
 void MainWindow::on_actionSetViewTop_triggered()
 {
     if (_mode == MASK3D)
@@ -829,6 +828,13 @@ bool MainWindow::eventFilter( QObject* object, QEvent* event )
 QTableView *MainWindow::tableView_PG(){return _ui->tableView_PG;}
 
 QTableView *MainWindow::tableView_Images(){return _ui->tableView_Images;}
+
+#if ELISE_QT_VERSION!=5
+void MainWindow::emitSelectPoint(QString pointName)
+{
+    emit selectPoint(pointName);
+}
+#endif
 
 void  MainWindow::setGamma(float aGamma)
 {
