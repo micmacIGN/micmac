@@ -91,6 +91,47 @@ void cSettingsDlg::on_PrefixTextEdit_textChanged(QString val)
     emit prefixTextEdit(val);
 }
 
+void cSettingsDlg::enableMarginSpinBox(bool show)
+{
+    doubleSpinBoxSz->setEnabled(show);
+    label_Margin->setEnabled(show);
+    label_pixels->setEnabled(show);
+}
+
+void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
+{
+    if (checked)
+    {
+        _parameters->setPtCreationMode(eNSM_Pts);
+        _parameters->setPtCreationWindowSize(-1);
+
+        enableMarginSpinBox(false);
+    }
+}
+
+void cSettingsDlg::on_radioButtonMin_toggled(bool checked)
+{
+    if (checked)
+    {
+        _parameters->setPtCreationMode(eNSM_MinLoc);
+        enableMarginSpinBox(!radioButtonStd->isChecked());
+    }
+}
+
+void cSettingsDlg::on_radioButtonMax_toggled(bool checked)
+{
+    if (checked)
+    {
+        _parameters->setPtCreationMode(eNSM_MaxLoc);
+        enableMarginSpinBox(!radioButtonStd->isChecked());
+    }
+}
+
+void cSettingsDlg::on_doubleSpinBoxSz_valueChanged(double val)
+{
+    _parameters->setPtCreationWindowSize(val);
+}
+
 void  cSettingsDlg::on_okButton_clicked()
 {
     on_applyButton_clicked();
@@ -111,7 +152,8 @@ void cSettingsDlg::on_cancelButton_clicked()
 
 void cSettingsDlg::on_applyButton_clicked()
 {
-    emit hasChanged(_parameters->getNbFen() != _oldParameters.getNbFen());
+    //TODO: a corriger
+    emit nbFenChanged(_parameters->getNbFen() != _oldParameters.getNbFen());
 }
 
 void cSettingsDlg::on_resetButton_clicked()
@@ -137,6 +179,34 @@ void cSettingsDlg::refresh()
     PrefixTextEdit->setText(_parameters->getDefPtName());
     RadiusSpinBox->setValue(_parameters->getSelectionRadius());
 
+    switch (_parameters->getPtCreationMode())
+    {
+        case eNSM_Pts:
+        {
+            radioButtonStd->setChecked(true);
+            enableMarginSpinBox(false);
+            break;
+        }
+        case eNSM_MinLoc:
+        {
+            radioButtonMin->setChecked(true);
+            enableMarginSpinBox();
+            break;
+        }
+        case eNSM_MaxLoc:
+        {
+            radioButtonMax->setChecked(true);
+            enableMarginSpinBox();
+            break;
+        }
+        case eNSM_GeoCube:
+        case eNSM_Plaquette:
+        case eNSM_NonValue:
+            break;
+    }
+
+    doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
+
     update();
 }
 
@@ -151,7 +221,9 @@ cParameters::cParameters():
     _zoomWindow(3.f),
     _ptName(QString("100")),
     _postFix(QString("_mask")),
-    _radius(50)
+    _radius(50),
+    _eType(eNSM_Pts),
+    _sz(5.f)
 {}
 
 cParameters& cParameters::operator =(const cParameters &params)
@@ -170,7 +242,28 @@ cParameters& cParameters::operator =(const cParameters &params)
     _postFix        = params._postFix;
     _radius         = params._radius;
 
+    _eType          = params._eType;
+    _sz             = params._sz;
+
     return *this;
+}
+
+bool cParameters::operator!=(cParameters &p)
+{
+    if ((p._fullScreen != _fullScreen) ||
+            (p._position != _position) ||
+            (p._nbFen    != _nbFen)    ||
+            (p._szFen    != _szFen)    ||
+            (p._lineThickness  != _lineThickness) ||
+            (p._pointDiameter  != _pointDiameter) ||
+            (p._gamma          != _gamma) ||
+            (p._zoomWindow     != _zoomWindow) ||
+            (p._ptName         != _ptName)  ||
+            (p._postFix        != _postFix) ||
+            (p._radius         != _radius)  ||
+            (p._eType          != _eType)   ||
+            (p._sz             != _sz)) return true;
+    return  false;
 }
 
 float zoomClip(float val)
@@ -207,8 +300,14 @@ void cParameters::read()
      settings.beginGroup("Misc");
      setDefPtName(      settings.value("defPtName", QString("100")).toString());
      setPostFix(        settings.value("postFix",   QString("_mask")).toString());
-     setZoomWindowValue(zoomClip(settings.value("zoom", 3.0).toFloat()));
-     setSelectionRadius(settings.value("radius",50              ).toInt());
+     setZoomWindowValue(zoomClip( settings.value("zoom", 3.0).toFloat()));
+     setSelectionRadius( settings.value("radius",50).toInt());
+     settings.endGroup();
+
+     settings.beginGroup("Point creation");
+     setPtCreationMode( static_cast<eTypePts> (settings.value("Mode", eNSM_Pts).toInt()));
+     cout << "sz : " <<  settings.value("WindowSize",3.f).toFloat() << endl;
+     setPtCreationWindowSize( settings.value("WindowSize",3.f).toFloat());
      settings.endGroup();
 }
 
@@ -234,5 +333,10 @@ void cParameters::write()
      settings.setValue("postFix",   _postFix   );
      settings.setValue("radius",    _radius    );
      settings.setValue("zoom",      QString::number(zoomClip(_zoomWindow),'f',2)    );
+     settings.endGroup();
+
+     settings.beginGroup("Point creation");
+     settings.setValue("Mode", _eType   );
+     settings.setValue("WindowSize", _sz);
      settings.endGroup();
 }
