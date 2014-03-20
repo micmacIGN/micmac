@@ -275,6 +275,38 @@ void DebugDrag()
 
 int MPDtest_main (int argc,char** argv)
 {
+
+{
+   std::string aNameTifIn,aNameTifOut,aNameCamIn,aNameCamOut;
+   // Box2di aBoxOut;
+   std::string aBoxOut;
+   int toto;
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aNameTifIn,"Tiff In")
+                    << EAMC(aNameTifOut,"Tiff Out")
+                    << EAMC(aNameCamIn,"Camera In")
+                    << EAMC(aNameCamOut,"Camera Out")
+                    << EAMC(aBoxOut,"Box out"),
+        LArgMain()  << EAM(toto,"toto",true,"toto")
+   );
+
+/*
+   Box2di aB;
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aB,"Box"),
+        LArgMain()  << EAM(toto,"toto",true,"toto")
+   );
+*/
+
+   std::cout << "BBBBB  = " <<  aBoxOut << "\n";
+   exit(0);
+}
+
    std::cout << "NBPROC " << NbProcSys() << "\n";
    DebugDrag();
 
