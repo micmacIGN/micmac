@@ -128,6 +128,8 @@ class cPoint : public cObjectGL, public QPointF
 
         void setEpipolar(QPointF pt1, QPointF pt2);
 
+        void setPainter(QPainter *painter){_painter = painter;}
+
 private:
 
         float   _diameter;

@@ -49,6 +49,9 @@ OPTION(BUILD_BENCH "compile low-level test bench" OFF )
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT5 "compile Qt interfaces" OFF )
 
+# Interfaces de saisie des paramètres
+OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
+
 # construire les interfaces de saisie basees sur Qt5
 OPTION(WITH_SAISIEQT "build graphic interface for point or mask capture" ON)
 
@@ -106,12 +109,17 @@ if ( OPENGL_FOUND AND OPENGL_GLU_FOUND )
 		message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
     endif()
 
-   find_package(Qt5Widgets QUIET)
-   find_package(Qt5Core QUIET)
-   find_package(Qt5Gui QUIET)
-   find_package(Qt5Xml QUIET)
-   find_package(Qt5Concurrent QUIET)
-   find_package(Qt5OpenGL QUIET)
+    if(${WITH_QT4})
+        message("Force Qt 4")
+    else()
+       find_package(Qt5Widgets QUIET)
+       find_package(Qt5Core QUIET)
+       find_package(Qt5Gui QUIET)
+       find_package(Qt5Xml QUIET)
+       find_package(Qt5Concurrent QUIET)
+       find_package(Qt5OpenGL QUIET)
+    endif()
+
    if ( Qt5Widgets_FOUND AND
 	Qt5Core_FOUND AND
 	Qt5Gui_FOUND AND
