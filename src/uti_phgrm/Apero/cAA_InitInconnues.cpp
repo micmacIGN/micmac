@@ -42,8 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <iterator>
 #endif
 
-namespace NS_ParamApero
-{
 
 typedef std::list<cCalibrationCameraInc> tLC;
 typedef std::list<cPoseCameraInc> tLP;
@@ -519,7 +517,7 @@ void cAppliApero::InitClassEquiv()
    }
 }
 
-};
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

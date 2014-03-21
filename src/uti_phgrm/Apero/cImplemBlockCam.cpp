@@ -81,8 +81,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-namespace NS_ParamApero
-{
 
 class cIBC_ImsOneTime;
 class cIBC_OneCam;
@@ -614,10 +612,8 @@ void cAppliApero:: ExportBlockCam(const cExportBlockCamera & aEBC)
 }
 
 
-};
 
 
-using namespace NS_ParamApero;
 
 void GenCodeRigiditeBlock()
 {

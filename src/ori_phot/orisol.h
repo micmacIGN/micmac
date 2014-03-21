@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ORISOLEIL_
 #define _ORISOLEIL_
 
-namespace ELISE_ORILIB {
 
 
 void orvecteur_soleil_terre ( int*, int*, int*, int*, int*, 
@@ -50,7 +49,6 @@ void orvecteur_soleil_terre ( int*, int*, int*, int*, int*,
 			      				double[3] ) ;
 
 
-};
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007

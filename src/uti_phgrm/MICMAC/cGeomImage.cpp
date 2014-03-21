@@ -43,8 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cOrientationRTO.h"
 #include "cOrientationCon.h"
 
-namespace NS_ParamMICMAC
-{
 
 /*****************************************/
 /*                                       */
@@ -1236,8 +1234,6 @@ class cGeomImage_NoGeom : public cGeomImage
 {
 }
 
-void cGeomImage::InvCorrDistModeleCple(Pt2dr &,Pt2dr &) const
-{
 */
 
 
@@ -3010,7 +3006,6 @@ const std::list<cModifieurGeometrie>  &
 
 
 
-};
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

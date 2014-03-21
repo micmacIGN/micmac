@@ -43,9 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_ParamMICMAC;
-
 class cImaMM;
 class cAppliWithSetImage;
 class cAppliMMByPair;

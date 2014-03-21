@@ -56,7 +56,6 @@ void f()
 
 
 
-using namespace NS_ParamChantierPhotogram;
 
 #if (0)
 
@@ -271,6 +270,9 @@ void DebugDrag()
 
    std::cout << "MIN PX " << aMinPx << "\n";
 }
+
+// extern  void F2Test();
+// extern  void Ftest();
 
 
 int MPDtest_main (int argc,char** argv)

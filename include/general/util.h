@@ -1175,10 +1175,7 @@ void MkFMapCmdFileCoul8B
 
 //========================================================
 
-namespace NS_ParamChantierPhotogram{
 class cInterfChantierNameManipulateur;
-};
-using namespace NS_ParamChantierPhotogram;
 
 void RequireBin
      (
@@ -1559,14 +1556,14 @@ void BanniereGlobale();
 // protect spaces with backslashes (for use with 'make')
 string protect_spaces( const string &i_str );
 
-namespace NS_ParamChantierPhotogram{ int MMNbProc(); }
+int MMNbProc();
 
 // lanch the "make" program
 // do not include "-j x" flag in i_options, it is handle by i_nbJobs
 // i_nbJobs = 0 means "-j" (i.e. infinite jobs, which is not recommanded)
 // i_rule can be an empty string, if so, make will launch the makefile's default rule
 // returns make's return code
-bool launchMake( const std::string &i_makefile, const std::string &i_rule=std::string(), unsigned int i_nbJobs=NS_ParamChantierPhotogram::MMNbProc(), const std::string &i_options=std::string(), bool i_stopCurrentProgramOnFail=true );
+bool launchMake( const std::string &i_makefile, const std::string &i_rule=std::string(), unsigned int i_nbJobs=MMNbProc(), const std::string &i_options=std::string(), bool i_stopCurrentProgramOnFail=true );
 
 #endif /* ! _ELISE_UTIL_H */
 

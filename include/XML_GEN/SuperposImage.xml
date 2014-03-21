@@ -19,10 +19,9 @@
 // #include "general/all.h"
 // #include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
-using namespace NS_ParamChantierPhotogram;
 </Verbatim>
 <Verbatim File=".h.cpp">
-namespace NS_SuperposeImage{
+// 
 </Verbatim>
 
     <enum Name="eTypeSurfaceAnalytique">
@@ -1144,7 +1143,7 @@ namespace NS_SuperposeImage{
 
 
 <Verbatim File=".h.cpp">
-};
+// };
 </Verbatim>
 <Verbatim File=".h">
 #endif // Define_NotSupIm

@@ -43,7 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-using namespace NS_ParamChantierPhotogram;
 
 bool BugFE = false;
 bool BugAZL = false;
@@ -3458,6 +3457,7 @@ CamStenope::CamStenope(const CamStenope & cam,const ElRotation3D & ORIENT) :
     SetOrientation(ORIENT);
 }
 
+/*
 CamStenope::CamStenope(const CamStenope & cam) :
     ElCamera  (DistIsC2M(),eProjectionStenope),
     _PrSten   (cam._PrSten),
@@ -3465,7 +3465,9 @@ CamStenope::CamStenope(const CamStenope & cam) :
 {
     AddDistCompl(cam.DistComplIsDir(),cam.DistCompl());
     SetOrientation(cam._orient);
+    HeritComplAndSz(cam);
 }
+*/
 
 
 

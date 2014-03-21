@@ -53,7 +53,6 @@ void f()
 
 
 
-using namespace NS_ParamChantierPhotogram;
 
 
 

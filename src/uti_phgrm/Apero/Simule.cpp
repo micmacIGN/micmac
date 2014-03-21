@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 void cAppliApero::InitPointsTerrain
      (
@@ -200,7 +198,6 @@ void cAppliApero::ExportOneSimule(const cExportSimulation & anES)
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

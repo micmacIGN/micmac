@@ -54,8 +54,6 @@ const cGenerePartiesCachees & aGPC, double aZMin, double aZMax)
 
 
 
-namespace NS_ParamMICMAC
-{
 
 // static bool DEBUGPC = true;
 
@@ -1246,7 +1244,6 @@ void cAppliMICMAC::MakePartiesCachees()
 
 ///////////////////////////////////////////////////
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

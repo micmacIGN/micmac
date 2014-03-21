@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-namespace NS_ParamMICMAC
-{
 
 class cOnePxOptDiff
 {
@@ -134,7 +132,6 @@ void cAppliMICMAC::OptimisationContinue()
 }
 
 
-};
 
 
 

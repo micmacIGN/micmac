@@ -31,8 +31,6 @@
 #include <ign/image/BufferImage.h>
 #include <boost/filesystem.hpp>
 #endif
-namespace NS_ParamMICMAC
-{	
 	JP2ImageLoader::JP2ImageLoader(std::string const &nomfic):
 		m_Nomfic(nomfic)
 	{
@@ -545,7 +543,6 @@ namespace NS_ParamMICMAC
 		
 	}
 	
-};
 
 #endif
 

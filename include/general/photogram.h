@@ -123,10 +123,7 @@ class cCamStenopeGrid;
 
 class cMirePolygonEtal;
 
-namespace NS_SuperposeImage {
-};
 
-namespace NS_ParamChantierPhotogram {
 class cCalibrationInternConique;
 class cOrientationConique;
 class cVerifOrient;
@@ -137,7 +134,6 @@ class cGridDirecteEtInverse;
 class cParamForGrid;
 class cPreCondGrid;
 class cCorrectionRefractionAPosteriori;
-};
 
 class Appar23
 {
@@ -607,15 +603,15 @@ class ElProjStenope : public ElProj32 ,
 class ElDistortion22_Gen
 {
      public :
-        virtual NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const ElCamera *) const;
+        virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
         void SetName(const char * aName);
         virtual std::string Type() const;
         std::string Name() const;
 
-        static NS_ParamChantierPhotogram::cCalibDistortion  XmlDistNoVal();
-        virtual  NS_ParamChantierPhotogram::cPreCondGrid GetAsPreCond() const;
+        static cCalibDistortion  XmlDistNoVal();
+        virtual  cPreCondGrid GetAsPreCond() const;
         static ElDistortion22_Gen * AllocPreC
-                (const NS_ParamChantierPhotogram::cPreCondGrid&);
+                (const cPreCondGrid&);
 
 
         REAL D1(const ElDistortion22_Gen &,Pt2dr P0, Pt2dr P1,INT NbEch) const;
@@ -865,7 +861,7 @@ class ElDistortion22_Triviale : public ElDistortion22_Gen
         static ElDistortion22_Triviale  TheOne;
 	virtual ElDistortion22_Gen  * D22G_ChScale(REAL aS) const; // Def erreur fatale
 	virtual bool IsId() const;
-        virtual NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const ElCamera *) const;
+        virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
 
      private :
         virtual bool OwnInverse(Pt2dr &) const ;    //  return false
@@ -962,8 +958,8 @@ class ElDistRadiale_PolynImpair  : public ElDistRadiale // polynome en r de degr
 	  // distortion est bijective croissante
 	  REAL RMaxCroissant(REAL BorneInit);
 
-          virtual NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const ElCamera *) const;
-          NS_ParamChantierPhotogram::cCalibrationInterneRadiale ToXmlDradStruct() const;
+          virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
+          cCalibrationInterneRadiale ToXmlDradStruct() const;
 
      protected :
         bool  AcceptScaling() const;
@@ -1374,15 +1370,15 @@ class cCorrRefracAPost
      public :
          Pt2dr CorrM2C(const Pt2dr &) const;
          Pt2dr CorrC2M(const Pt2dr &) const;
-         cCorrRefracAPost(const NS_ParamChantierPhotogram::cCorrectionRefractionAPosteriori &);
+         cCorrRefracAPost(const cCorrectionRefractionAPosteriori &);
 
          // Le coefficient est le ratio du coeef de refrac du milieu d'entree sur le milieu de sortie
          Pt3dr CorrectRefrac(const Pt3dr &,double aCoef) const;
 
-          const NS_ParamChantierPhotogram::cCorrectionRefractionAPosteriori & ToXML() const;
+          const cCorrectionRefractionAPosteriori & ToXML() const;
      private :
 
-         NS_ParamChantierPhotogram::cCorrectionRefractionAPosteriori * mXML;
+         cCorrectionRefractionAPosteriori * mXML;
          ElCamera *  mCamEstim;
          double      mCoeffRefrac;
          bool       mIntegDist;
@@ -1444,13 +1440,13 @@ class ElCamera : public cCapture3D
          const double & GetTime() const;
          void   SetTime(const double &);
 	 // ProfIsZ si true, ZProf est l'altisol habituel, sinon c'est une profondeur de champ
-         NS_ParamChantierPhotogram::cOrientationConique ExportCalibGlob(Pt2di aSzIm,double AltiSol,double Prof,int AddVerif,bool ModMatr,const char * aNameAux,const Pt3di * aNbVeridDet=0) const;
+         cOrientationConique ExportCalibGlob(Pt2di aSzIm,double AltiSol,double Prof,int AddVerif,bool ModMatr,const char * aNameAux,const Pt3di * aNbVeridDet=0) const;
 
-         NS_ParamChantierPhotogram::cCalibrationInternConique ExportCalibInterne2XmlStruct(Pt2di aSzIm) const;
-         // NS_ParamChantierPhotogram::cCalibrationInternConique ExportCalibInterne2XmlStruct(Pt2di aSzIm) const;
-         NS_ParamChantierPhotogram::cVerifOrient MakeVerif( int aNbVerif,double aProf,const char *,const Pt3di  * aNbDeterm=0) const;
-         NS_ParamChantierPhotogram::cOrientationConique  StdExportCalibGlob(bool Matr) const;
-         NS_ParamChantierPhotogram::cOrientationConique  StdExportCalibGlob() const;
+         cCalibrationInternConique ExportCalibInterne2XmlStruct(Pt2di aSzIm) const;
+         // cCalibrationInternConique ExportCalibInterne2XmlStruct(Pt2di aSzIm) const;
+         cVerifOrient MakeVerif( int aNbVerif,double aProf,const char *,const Pt3di  * aNbDeterm=0) const;
+         cOrientationConique  StdExportCalibGlob(bool Matr) const;
+         cOrientationConique  StdExportCalibGlob() const;
 
 	  virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;
 	  virtual  Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;
@@ -1597,7 +1593,7 @@ class ElCamera : public cCapture3D
 	  void  SetSz(const Pt2di &aSz,bool AcceptInitMult=false);
           bool SzIsInit() const;
 
-         void SetParamGrid(const NS_ParamChantierPhotogram::cParamForGrid &);
+         void SetParamGrid(const cParamForGrid &);
               // AVANT REECH etc... , sz soit etre connu
 	  void  SetRayonUtile(double aRay,int aNbDisc);
 
@@ -1723,7 +1719,7 @@ class ElCamera : public cCapture3D
    public :
          virtual       ElDistortion22_Gen   &  Dist()        = 0;
    protected :
-         virtual void InstanceModifParam(NS_ParamChantierPhotogram::cCalibrationInternConique &) const  =0;
+         virtual void InstanceModifParam(cCalibrationInternConique &) const  =0;
          virtual const ElDistortion22_Gen   &  Dist() const  = 0;
 
          void AssertSolInit() const;
@@ -1790,7 +1786,7 @@ class cCameraOrtho : public ElCamera
          const ElDistortion22_Gen   &  Dist() const  ;
          ElProj32 &        Proj()       ;
          const ElProj32       &  Proj() const ;
-         void InstanceModifParam(NS_ParamChantierPhotogram::cCalibrationInternConique &) const ;
+         void InstanceModifParam(cCalibrationInternConique &) const ;
 	 Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
 	 Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
 
@@ -1808,7 +1804,7 @@ class cDistPrecondRadial : public ElDistortion22_Gen
 {
      public :
          cDistPrecondRadial(double aFocApriori,const Pt2dr & aCentre);
-         NS_ParamChantierPhotogram::cPreCondGrid GetAsPreCond() const;
+         cPreCondGrid GetAsPreCond() const;
          Pt2dr  DirectAndDer(Pt2dr aP,Pt2dr & aGradX,Pt2dr & aGradY) const;
 
      private :
@@ -1920,7 +1916,6 @@ class CamStenope : public ElCamera
 
          CamStenope(bool isDistC2M,REAL Focale,Pt2dr centre,const std::vector<double>  & AFocalParam);
          CamStenope(const CamStenope &,const ElRotation3D &);
-         CamStenope(const CamStenope &);
 
          // Par defaut true, mais peut redefini, par exemple pour
          // un fish-eye
@@ -2069,10 +2064,12 @@ class CamStenope : public ElCamera
 
 
 
-         void InstanceModifParam(NS_ParamChantierPhotogram::cCalibrationInternConique &)  const;
+         void InstanceModifParam(cCalibrationInternConique &)  const;
          Pt3dr OrigineProf() const;
          bool  HasOrigineProf() const;
          bool  UseAFocal() const;
+      private :
+         CamStenope(const CamStenope &); // N.I.
 
       protected :
          ElProjStenope  _PrSten;
@@ -2220,8 +2217,8 @@ class cDistModStdPhpgr : public ElDistRadiale_PolynImpair
                 const ElDistRadiale_PolynImpair & DRad() const;
 	        virtual ElDistRadiale_PolynImpair * DRADPol(bool strict = false);
 
-                virtual NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const ElCamera *) const;
-                NS_ParamChantierPhotogram::cCalibrationInternePghrStd ToXmlPhgrStdStruct() const;
+                virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
+                cCalibrationInternePghrStd ToXmlPhgrStdStruct() const;
        private  :
                  bool  AcceptScaling() const;
                  bool  AcceptTranslate() const;
@@ -2312,7 +2309,7 @@ class cDistCamStenopeGrid : public ElDistortion22_Gen
 
        static void Test(double aRayInv,const CamStenope &,Pt2dr aStepGr);
 
-       virtual NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const ElCamera *) const;
+       virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
 
        std::string Type() const;
      private :
@@ -2617,12 +2614,9 @@ class cMirePolygonEtal
 //  cette classe qui n'a pas vocation a generer de grand developpement
 
 
-namespace NS_ParamChantierPhotogram
-{
 class cCibleCalib;
 class cPolygoneCalib;
 class cComplParamEtalPoly;
-};
 
 class cCiblePolygoneEtal
 {
@@ -2644,12 +2638,12 @@ class cCiblePolygoneEtal
          cCiblePolygoneEtal
          (
              tInd,Pt3dr,const cMirePolygonEtal &,INT Qual,
-             NS_ParamChantierPhotogram::cCibleCalib *,
+             cCibleCalib *,
 	     int anOrder
          );
 	 cCiblePolygoneEtal();
 
-	 NS_ParamChantierPhotogram::cCibleCalib * CC() const;
+	 cCibleCalib * CC() const;
 	 int Order() const;
 
       private :
@@ -2657,7 +2651,7 @@ class cCiblePolygoneEtal
          Pt3dr                    mPos;
          const cMirePolygonEtal * mMire;
 	 tQualCible               mQual;
-	 NS_ParamChantierPhotogram::cCibleCalib *            mCC;
+	 cCibleCalib *            mCC;
          int                      mOrder;
 };
 
@@ -2677,15 +2671,15 @@ class cPolygoneEtal
 	   typedef std::list<const cCiblePolygoneEtal *>  tContCible;
 
 	   const  tContCible  & ListeCible() const;
-	   NS_ParamChantierPhotogram::cPolygoneCalib * PC() const;
-	   void SetPC(NS_ParamChantierPhotogram::cPolygoneCalib *);
+	   cPolygoneCalib * PC() const;
+	   void SetPC(cPolygoneCalib *);
        protected :
 	   void LocAddCible(const cCiblePolygoneEtal *);
 	   cPolygoneEtal();
 	   void PostProcess();
        private :
            tContCible mListeCible;
-	   NS_ParamChantierPhotogram::cPolygoneCalib * mPC;
+	   cPolygoneCalib * mPC;
 };
 
 
@@ -2805,7 +2799,7 @@ class cDbleGrid : public ElDistortion22_Gen
         cDbleGrid(cXMLMode,const std::string & aDir,const std::string & aXML);
 
 
-	cDbleGrid(const NS_ParamChantierPhotogram::cGridDirecteEtInverse &);
+	cDbleGrid(const cGridDirecteEtInverse &);
 
         void PutXMWithData
              (

@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-namespace ELISE_ORILIB {
 
 
 typedef struct tagGg {
@@ -211,7 +210,6 @@ int Nl ;
 }
 
 
-};
 
 
 

@@ -90,8 +90,6 @@ FAIT :
 #include "uti_MICMAC.h"
 template <class T> class cMatrOfSMV;
 
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
 
 void MicMacRequiresBinaireAux();
 
@@ -103,8 +101,6 @@ inline int AdaptCostPonct(int aVal)
 }
 
 
-namespace NS_ParamMICMAC
-{
 
 
 extern cDebugEscalier *  theDE;
@@ -120,7 +116,7 @@ typedef enum
 
 
 
-GenIm::type_el TypeIMIL2El(eTypeNumerique);
+GenIm::type_el TypeIMIL2El(eIFImL_TypeNumerique);
 
 template <class TypeEl,class TypeBase> 
 void LoadAllImCorrel
@@ -1531,7 +1527,7 @@ class cLoadedImage
       Im2D_Bits<1>       MasqImTer();
       const cAppliMICMAC & Appli();
  
-      eTypeNumerique TypeOfElem() const;
+      eIFImL_TypeNumerique TypeOfElem() const;
       Pt2di   QuickTer2Cor(const Pt2di & aP)  const
       {
              return aP+mDecalTer2Cor;
@@ -1587,7 +1583,7 @@ class cLoadedImage
           int                        aDZ,
           Fonc_Num                   aFMasq,
 	  bool                       IsFirstLoaded,
-	  const eTypeNumerique       aType
+	  const eIFImL_TypeNumerique       aType
       );
 
          void PostInit();
@@ -1621,7 +1617,8 @@ class cLoadedImage
          TIm2DBits<1>       mTMasqImTer;
          Pt2di              mDecalTer2Cor;
 
-         eTypeNumerique     mTypeEl;
+         eIFImL_TypeNumerique     mTypeEl;
+         // eTypeNumerique     mTypeEl;
 
          bool               mUsePC;
          Im2D_U_INT1        mImPC;
@@ -1861,7 +1858,6 @@ class cFilePx : public cArgOneEtapePx
 {
 	public :
                 void RemplitOri(cFileOriMnt &) const;
-                // void RemplitProfXMLNuage(cImage_Profondeur &,eModeExportNuage) const;
 		cFilePx
                 (
 		     const cArgOneEtapePx & anArg,
@@ -2024,7 +2020,7 @@ class cEtapeMecComp
           void RemplitOri(cFileOriMnt &) const;
           cXML_ParamNuage3DMaille DoRemplitXML_MTD_Nuage() const;
           void DoRemplitXMLNuage() const;
-          cXML_ParamNuage3DMaille DoRemplitXMLNuage(const cExportNuage &) const;
+          cXML_ParamNuage3DMaille DoRemplitXMLNuage(const cMMExportNuage &) const;
           void RemplitXMLNuage(const cTplValGesInit<cMTD_Nuage_Maille> &,cXML_ParamNuage3DMaille &,eModeExportNuage) const;
 
           const std::string &  NameXMLNuage() const;
@@ -3749,7 +3745,6 @@ template <class TypeEl,class tBase> cInterpolateurIm2D<TypeEl>  * InterpoleOfEta
 
 
 
-};
 
 #endif //  _ELISE_MICMAC_ALL_H_
 

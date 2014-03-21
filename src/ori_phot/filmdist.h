@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _FILMDISTORTION_
 #define _FILMDISTORTION_
 
-namespace ELISE_ORILIB {
 
 /* 	Identifiants utilises pour les marques de coin de fond de chambre dans le MEP Patrick 
 	Ordre = 	1	5	2
@@ -62,7 +61,6 @@ int FDWriteMRK( char*, double[16], double[16] ) ;
 void FDSupposedWidth ( double[16], double*, double* ) ;
 double FDRotCorrection ( double Marks[16] ) ;
 
-};
 
 #endif
 

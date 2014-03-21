@@ -41,8 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "general/all.h"
 #include "MICMAC.h"
 
-namespace NS_ParamMICMAC
-{
 
 
 // pour extraire le kieme bit d'un tableau de bits compactes 
@@ -381,7 +379,6 @@ void cAppliMICMAC::GPU_Correl
 
 
 
-};
 
 
 

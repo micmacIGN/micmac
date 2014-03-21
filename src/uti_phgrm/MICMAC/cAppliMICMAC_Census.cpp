@@ -41,8 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
 
-namespace NS_ParamMICMAC
-{
 
 class cQckInterpolEpip;
 class cCensusGr;
@@ -1706,7 +1704,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     delete aMom1;
 }
 
-}
 
 
 

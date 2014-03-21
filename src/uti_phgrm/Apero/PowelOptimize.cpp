@@ -40,8 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEBUG_POWEL 0
 
-namespace NS_ParamApero
-{
 
 class cLiaisORPO
 {
@@ -495,7 +493,6 @@ void cAppliApero::PowelOptimize
 }
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

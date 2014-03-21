@@ -41,8 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 template  class ElGraphe<NS_ParamApero::cPoseCam*,NS_ParamApero::cAttrArcPose>;
 template  class ElTabDyn<ElSom<NS_ParamApero::cPoseCam*, NS_ParamApero::cAttrArcPose> >;
 
-namespace NS_ParamApero
-{
 
 /*******************************************/
 /*                                         */
@@ -262,7 +260,6 @@ void  cAppliApero::ConstructMST
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

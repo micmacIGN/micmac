@@ -40,9 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-using namespace NS_SuperposeImage;
 
-namespace NS_ParamChantierPhotogram{
 
 
 /**************************************************************/
@@ -529,9 +527,7 @@ Pt3dr  FromMnt(const cFileOriMnt & aFOM,const Pt3dr & aP)
 
 
 
-};
 
-namespace NS_SuperposeImage {
 
 cGridDeform2D   ToXMLExp(const PtImGrid & aCstPIG)
 {
@@ -727,7 +723,6 @@ Fonc_Num SafeUseLut(Im1D_INT4 aLut,Fonc_Num aF,double aCoeff)
 
 
 
-};
 
 std::list<std::string> GetListFromSetSauvInFile
                         (

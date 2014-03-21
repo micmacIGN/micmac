@@ -38,8 +38,10 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include "ReducHom.h"
 
-using namespace NS_ReducHoms;
+
+
 
 
 /*************************************************/
@@ -251,7 +253,7 @@ const std::string & cImagH::Name() const
 
 void cImagH::AddOnePtToExistingH(cPtHom * aH1,const Pt2dr & aP1,cImagH * aI2,const Pt2dr & aP2)
 { 
-    aH1->OkAddI2(aI2,aP2);
+    aH1->AddMesureInImage(aI2,aP2);
     // aI2->mMapH[aP2] = aH1;
 }
 
@@ -282,12 +284,12 @@ void cImagH::AddOnePair(const Pt2dr & aP1,cImagH * aI2,const Pt2dr & aP2)
     }
     else if ((it1!= mMapH.end()) && (it2==  aI2->mMapH.end()))
     {
-       it1->second->OkAddI2(aI2,aP2);
+       it1->second->AddMesureInImage(aI2,aP2);
        // AddOnePtToExistingH(it1->second,aP1,aI2,aP2);
     }
     else if ((it1 == mMapH.end()) && (it2!=aI2->mMapH.end()))
     {
-       it2->second->OkAddI2(this,aP1);
+       it2->second->AddMesureInImage(this,aP1);
        // aI2->AddOnePtToExistingH(it2->second,aP2,this,aP1);
     }
     else if (it1->second==it2->second)

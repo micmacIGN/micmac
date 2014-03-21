@@ -39,7 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-using namespace NS_ParamChantierPhotogram;
 
 // bin/MyRename "/media/MYPASSPORT/Archi/ArcTriomphe/(F[0-9]{3}_IMG_[0-9]{4})_MpDcraw16B_GR.tif"   "\$1\$2_MpDcraw16B_GR.tif"  File2M="\$1(_.*)_MpDcraw8B_GR.tif"
 

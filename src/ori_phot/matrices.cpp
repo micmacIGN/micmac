@@ -46,7 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _abs( a ) ( (a) < 0 ? -(a) : (a) )
 #endif
 
-namespace ELISE_ORILIB {
 
 
 void MATOrdonneLignes ( double**, int, int ) ;
@@ -205,7 +204,6 @@ return status ;
 }
 /*----------------------------------------------------------------------------*/
 
-};
 
 
 

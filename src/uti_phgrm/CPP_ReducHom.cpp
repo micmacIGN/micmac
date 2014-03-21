@@ -38,6 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include "ReducHom/ReducHom.h"
+
 
 /*
 AFAIRE :
@@ -46,7 +48,6 @@ AFAIRE :
   SUPPRIMER LES 15% de PIRE
 */
 
-using namespace NS_ReducHoms;
 
 int ReducHom_main(int argc,char ** argv)
 {

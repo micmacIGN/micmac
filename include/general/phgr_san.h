@@ -45,13 +45,11 @@ class cCylindreRevolFormel;
 class cInterfSurfaceAnalytique ;
 
 
-namespace NS_SuperposeImage {
   class cXmlOrthoCyl;
   class cXmlCylindreRevolution;
   class cXmlDescriptionAnalytique;
   class cXmlModeleSurfaceComplexe;
   class cXmlOneSurfaceAnalytique;
-};
 
 
 // Decrit la facon dont une demi droite coupe une surface:
@@ -79,9 +77,9 @@ class cInterSurfSegDroite
 
          //============ GLOBAL =====================
 
-const NS_SuperposeImage::cXmlOneSurfaceAnalytique & SFromId
+const cXmlOneSurfaceAnalytique & SFromId
       (
-          const NS_SuperposeImage::cXmlModeleSurfaceComplexe & aModCompl,
+          const cXmlModeleSurfaceComplexe & aModCompl,
           const std::string & anId
       );
 
@@ -90,7 +88,7 @@ cInterfSurfaceAnalytique * SFromFile
                                 const std::string & aFile,
                                 const std::string & anId,  // Nom
                                 std::string  aTag="",  // Si defaut valeur xml
-                                NS_SuperposeImage::cXmlOneSurfaceAnalytique * aMemXML = 0
+                                cXmlOneSurfaceAnalytique * aMemXML = 0
                            );
 
 
@@ -109,7 +107,7 @@ class cInterfSurfaceAnalytique
 
          virtual Pt3dr E2UVL(const Pt3dr & aP) const = 0;
          virtual Pt3dr UVL2E(const Pt3dr & aP) const = 0;
-         virtual NS_SuperposeImage::cXmlDescriptionAnalytique Xml() const=0;
+         virtual cXmlDescriptionAnalytique Xml() const=0;
 
 
         virtual bool HasOrthoLoc() const = 0;
@@ -119,7 +117,7 @@ class cInterfSurfaceAnalytique
 
 
 
-         static cInterfSurfaceAnalytique * FromXml(const NS_SuperposeImage::cXmlOneSurfaceAnalytique &);
+         static cInterfSurfaceAnalytique * FromXml(const cXmlOneSurfaceAnalytique &);
 
 // Pour gerer d'eventuels pb de topologie, a la faculte de modifier la boite
          virtual void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const = 0;
@@ -219,16 +217,16 @@ class cCylindreRevolution : public cInterfSurfaceAnalytique
                           const Pt3dr & aPOnCyl
                     );
          static cCylindreRevolution FromXml(
-                                         const NS_SuperposeImage::cXmlOneSurfaceAnalytique&,
-                                         const NS_SuperposeImage::cXmlCylindreRevolution&
+                                         const cXmlOneSurfaceAnalytique&,
+                                         const cXmlCylindreRevolution&
                                     );
 
          bool HasOrthoLoc() const ;
          Pt3dr POnCylInit() const;
          Pt3dr E2UVL(const Pt3dr & aP) const;
          Pt3dr UVL2E(const Pt3dr & aP) const;
-         NS_SuperposeImage::cXmlDescriptionAnalytique Xml() const;
-         NS_SuperposeImage::cXmlCylindreRevolution XmlCyl() const;
+         cXmlDescriptionAnalytique Xml() const;
+         cXmlCylindreRevolution XmlCyl() const;
          std::vector<cInterSurfSegDroite>  InterDroite(const ElSeg3D &,double aZ0) const ;
          void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const ;
 
@@ -314,14 +312,14 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
 
          Pt3dr E2UVL(const Pt3dr & aP) const;
          Pt3dr UVL2E(const Pt3dr & aP) const;
-         NS_SuperposeImage::cXmlDescriptionAnalytique Xml() const;
-         NS_SuperposeImage::cXmlOrthoCyl XmlOCyl() const;
+         cXmlDescriptionAnalytique Xml() const;
+         cXmlOrthoCyl XmlOCyl() const;
          void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const ;
          std::vector<cInterSurfSegDroite>  InterDroite(const ElSeg3D &,double aZ0) const ;
 
          static cProjOrthoCylindrique FromXml(
-                                         const NS_SuperposeImage::cXmlOneSurfaceAnalytique&,
-                                         const NS_SuperposeImage::cXmlOrthoCyl&
+                                         const cXmlOneSurfaceAnalytique&,
+                                         const cXmlOrthoCyl&
                                     );
         bool OrthoLocIsXCste() const ;
         bool HasOrthoLoc() const ;
@@ -330,7 +328,7 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
 
 
 
-         // static cInterfSurfaceAnalytique * FromXml(const NS_SuperposeImage::cXmlOneSurfaceAnalytique &);
+         // static cInterfSurfaceAnalytique * FromXml(const cXmlOneSurfaceAnalytique &);
 
      private :
          inline Pt3dr Loc2Abs(const Pt3dr &) const;

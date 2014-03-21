@@ -941,7 +941,7 @@ cCameraFormelle::cCameraFormelle
 
 cCameraFormelle::~cCameraFormelle(){
 	// we should delete mEqAppuiTerNoGL and mEqAppuiTerGL but it makes apero crash
-	// something is probably using them after their natural lifetime
+	// something is probably Using them after their natural lifetime
 	//if ( mEqAppuiTerNoGL_II!=NULL ) delete mEqAppuiTerNoGL;
 	//if ( mEqAppuiTerGL_II!=NULL ) delete mEqAppuiTerNoGL;
 }

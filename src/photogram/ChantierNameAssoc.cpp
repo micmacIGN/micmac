@@ -419,7 +419,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
         SplitDirAndFile(ArgvMMDir,sFile,ArgvMMDir);
 #else
         std::string aFullArg0;
-        // try to get executable full path using /proc filesystem
+        // try to get executable full path Using /proc filesystem
         // not compatible with all unix
         #if ELISE_Darwin
         //TODO use ctPath
@@ -444,7 +444,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
         #endif
         else
         {
-            // if the /proc filesystem is not available, try using the "which" command
+            // if the /proc filesystem is not available, try Using the "which" command
             bool whichSucceed = ElGetStrSys( "which "+ std::string( argv[0] ), aFullArg0 );
 
             // modif Greg: il y a un probleme sous MacOS, on perd le 'd' de mm3d
@@ -497,7 +497,6 @@ int NbProcSys()
 }
 
 
-namespace NS_ParamChantierPhotogram{
 
 
 std::string Basic_XML_User_File(const std::string & aName)
@@ -3836,7 +3835,6 @@ std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std
       return aRes;
 }
 
-};
 
 
 

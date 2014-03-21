@@ -40,7 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "private/all.h"
 #include "MICMAC.h"
 
-using namespace NS_ParamMICMAC;
 
 int main(int argc,char ** argv)
 {

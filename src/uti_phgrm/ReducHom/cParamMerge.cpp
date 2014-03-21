@@ -36,75 +36,85 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/*
-   Contient des utilitaire qui ont a priori un interet
-   en dehors de la mise en correspondance.
-*/
+
+#include "StdAfx.h"
+#include "ReducHom.h"
 
 
-       // Classe template permettant
-       // de recuperer la deuxieme plus petite valeur
-       // d'une serie
 
-template <class Type> class cGetSec
+
+
+
+double  cParamMerge::Gain // <0, veut dire on valide pas le noeud
+               (
+                     tNodIm * aN1,tNodIm * aN2,
+                     const std::vector<cImagH*>&,
+                     const std::vector<cImagH*>&,
+                     const std::list<std::pair<cImagH*,cImagH*> >& aLPair,
+                     int aNewNum
+               )
 {
-	public :
-           cGetSec() :
-		mVal0 (),
-		mVal1 (),
-              mCpt (0) 
-           {
-           }
-	   void Add(const Type & aV)
-	   {
-               if (mCpt==0)
-	       {
-                   mVal0 =  aV;
-	       }
-	       else if (mCpt==1)
-	       {
-                   if (aV<mVal0)
-		   {
-                      mVal1 =  mVal0;
-                      mVal0 =  aV;
-		   }
-		   else
-		   {
-                      mVal1 =  aV;
-		   }
-	       }
-	       else
-	       {
-                    if (aV <mVal0)
-		    {
-                       mVal1 = mVal0;
-                       mVal0 = aV;
-		    }
-		    else if (aV<mVal1)
-		    {
-                        mVal1 = aV;
-		    }
-	       }
-	       mCpt++;
-	   }
+    double aRes = 0.0;
+    for
+    (
+          std::list<std::pair<cImagH*,cImagH*> >::const_iterator itL=aLPair.begin();
+          itL!=aLPair.end();
+          itL++
+    )
+    {
+        cImagH* aIm1 =  itL->first;
+        cImagH* aIm2 =  itL->second;
+        cLink2Img *  aLnk12 = aIm1->GetLinkOfImage(aIm2);
 
-	   const Type & Sec() const
-	   {
-                ELISE_ASSERT(mCpt>=2,"GetSec::Sec");
-		return mVal1;
-	   }
-	private :
-		Type mVal0;
-		Type mVal1;
-		int mCpt;
-};
+        aRes += aLnk12->NbPts();
+    }
+    int aDepth = 1 + ElMax(aN1->Depth(),aN2->Depth());
+    aRes = aRes / pow(2.0,aDepth);
 
-Fonc_Num ImFileForVisu(Im2D_REAL4 aFile,REAL aGamma);
+    std::cout <<  aNewNum
+              << "  Candidate " << aN1->Num() << " " << aN2->Num() << " " << aRes
+               << " " << NameNode(aN1) << " " << NameNode(aN2) << " "
+              << "\n";
+    return aRes;
+}
 
-Pt2di SzDeZoom(const Pt2di & aP,int aDeZoom);
+void cParamMerge::OnNewLeaf(tNodIm * aSingle)
+{
+   std::cout << "Creat Feuille " << aSingle->Val()->Name() << " " << aSingle->Num() << "\n";
+}
 
+void  cParamMerge::OnNewCandidate(tNodIm * aN1)
+{
+}
 
+void cParamMerge::OnNewMerge(tNodIm * aN1)
+{
+    std::cout << aN1->Num() << " MERGE " ;
+    for (int aK=0 ; aK<int(aN1->NbFils()) ; aK++)
+        std::cout << " " << aN1->FilsK(aK)->Num();
+    std::cout << "\n";
+}
 
+void cParamMerge::Vois(cImagH* anIm,std::vector<cImagH *> & aV)
+{
+    const tSetLinks & aLnks = anIm->Lnks();
+    for (tSetLinks::const_iterator  itL=aLnks.begin(); itL!=aLnks.end(); itL++)
+    {
+         aV.push_back(itL->second->Dest());
+    }
+}
+
+std::string NameNode(tNodIm * aN)
+{
+    cImagH * anI = aN->Val();
+    return anI ? anI->Name() : "XXX" ;
+}
+
+// -------
+
+template class cMergingNode<cImagH,cAttrLnkIm>;
+template class cAlgoMergingRec<cImagH,cAttrLnkIm,cParamMerge>;
+template class  ElHeap<cMergingNode<cImagH,cAttrLnkIm> *,cCmpMNode<cImagH,cAttrLnkIm> >;
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

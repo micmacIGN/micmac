@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-namespace NS_ParamMICMAC
-{
 
 double GenereRandom(const Pt2dr & aP,double aPow)
 {
@@ -569,7 +567,6 @@ void cAppliMICMAC::GenerateSimulations()
    delete mTifMnt;
    delete mTifText;
 }
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

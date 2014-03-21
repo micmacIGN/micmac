@@ -48,7 +48,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _inferieur(a,b) ( a <= b ? 1 : 0 )
 #define _superieur(a,b) ( a >= b ? 1 : 0 )
 
-namespace ELISE_ORILIB {
 
 typedef struct {
 	short dscw_maxstrlen ;
@@ -66,7 +65,6 @@ void memomv ( unsigned int size, void *source , void *but ) ;
 void byte2int2(unsigned int size, unsigned char *source , short *but);
 int getvalue ( char nom_param[], char chaine[], int dimchaine ) ;
 
-};
 
 
 

@@ -45,8 +45,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // Test commit
 
-namespace NS_ParamMICMAC
-{
 
 bool GlobDebugMM=false;
 Pt2di PBug(47,112);
@@ -2274,7 +2272,6 @@ void cAppliMICMAC::AnalyseOri(CamStenope * aCam ) const
 
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

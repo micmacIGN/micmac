@@ -39,8 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Apero.h"
 
-namespace NS_ParamApero
-{
 
 
 /******************************************************/
@@ -173,7 +171,6 @@ cImageAppuis * cAppliApero::GetImAppuisOfId(const std::string& anId)
   return aIA;
 }
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

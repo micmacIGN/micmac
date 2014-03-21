@@ -82,7 +82,6 @@ Script :
 
 #include "StdAfx.h"
 
-using namespace NS_ParamChantierPhotogram;
 
 
 typedef const std::string * tCStrPtr;

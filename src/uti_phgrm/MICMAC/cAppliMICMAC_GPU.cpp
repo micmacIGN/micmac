@@ -40,8 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-namespace NS_ParamMICMAC
-{
 
     template <class Type,class TBase>
     Type ** ImDec
@@ -1862,7 +1860,6 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
         }
 }
 
-}
 
 
 
