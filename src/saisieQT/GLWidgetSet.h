@@ -41,6 +41,10 @@ public:
     GLWidget * threeDWidget() const;
 
 
+    void option3DPreview();
+
+    void init3DPreview(cData *data);
+
 private:
 
     QVector <GLWidget*> _widgets;

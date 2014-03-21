@@ -64,6 +64,7 @@ public:
     void loadPly(const QStringList& filenames);
 
     void setUI();
+
     void updateUI();
 
     bool eventFilter(QObject *object, QEvent *event);
@@ -72,9 +73,15 @@ public:
 
     QTableView *tableView_Images();
 
+    void        resizeTables();
+
+    void        setModel(QAbstractItemModel *model_Pg,QAbstractItemModel *model_Images);
+
 #if ELISE_QT_VERSION!=5
     void    emitSelectPoint(QString pointName);
 #endif
+
+
 public slots:
 
     //! Try to load a list of files
