@@ -219,6 +219,16 @@ Pt2dr cVirtualInterface::FindPoint(cImage* curIm, const Pt2dr & aPIm,eTypePts aT
     return aPIm;
 }
 
+bool cVirtualInterface::PtImgIsVisible(cSP_PointeImage &aPIm)
+{
+
+    const cOneSaisie  & aSom = *(aPIm.Saisie());
+    eEtatPointeImage aState = aSom.Etat();
+
+    return aPIm.Visible() && Visible(aState);
+
+}
+
 //********************************************************************************
 
 cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP2, bool instanceInterface) :
