@@ -21,66 +21,81 @@ public :
 
     std::pair<int,std::string> IdNewPts(cCaseNamePoint * aCNP);
 
-    void                rebuild2DGlPoints();
-
-    void                rebuild3DGlPoints(cSP_PointeImage* aPIm);
-
-    void                rebuildGlCamera();
-
-    void                option3DPreview();
-
     void                AddUndo(cOneSaisie * aSom);
 
     bool                isDisplayed(cImage *aImage);
 
     void                Redraw(){}
 
-    int                 idPointGlobal(cSP_PointGlob* PG);
-
-    void                resizeTable();
-    void                table_Images_ChangePg(int idPG);
-
-    Pt2dr               FindPoint(const Pt2dr &aPIm, eTypePts aType, double aSz, cPointGlob *aPG);
-
 private:
 
-    void                Init();
 
-    MainWindow*         m_QTMainWindow;
+    //                  init Interface
+    void                Init();   
+
 
     cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
+
+    //                  Tools Tables
+
+    void                updateTables();
+
+    void                populateTableImages(int idPG);
+
+
+    //                  Tools cImage                        ///////////////////////////////////////////
+
+    int                 idCImage(QString nameImage);
+
+    int                 idCImage(int idGlWidget);
+
+    int                 idCImage(cGLData* data);
+
+    int                 idCurrentCImage();
+
+    cImage *            ptCurrentCImage();
+
+
+    //                  Tools Points                        ///////////////////////////////////////////
+
+    int                 idPointGlobal(cSP_PointGlob* PG);
+
+    Pt2dr               FindPointInImage(const Pt2dr &aPIm, eTypePts aType, double aSz, cPointGlob *aPG);
+
+    cSP_PointeImage *   currentPointeImage(int idPoint);
 
     Pt2dr               transformation(QPointF pt, int idImage = -1);
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
 
-    int                 cImageIdxFromName(QString nameImage);
-
-    int                 cImageIdx(int idGl);
-
-    int                 currentcImageIdx();
-
-    int                 cImageIdxFromGL(cGLData* data);
-
-    cImage *            currentcImage();
-
-    cPoint              selectedPt(int idPt);
-
-    std::string         selectedPtName(int idPt);
+    //                  OpenGL                              ///////////////////////////////////////////
 
     void                addGlPoint(cSP_PointeImage *aPIm, int i);
+
+    void                rebuild3DGlPoints(cPointGlob *selectPtGlob);
+
+    void                rebuild2DGlPoints();
+
+    void                rebuild3DGlPoints(cSP_PointeImage* aPIm);
+
+    void                rebuildGlCamera();
 
     cGLData *           getGlData(int idImage);
 
     cGLData *           getGlData(cImage* image);
 
-    cSP_PointeImage *   currentPointeImage(int idPoint);
+    cPoint              getGLPt_CurWin(int idPt);
 
-    bool                WVisible(cSP_PointeImage &aPIm);
+    std::string         getNameGLPt_CurWin(int idPt);
+
+    ////////////////////////////////////////////////////////////////////////////////////
+    //
+    cCaseNamePoint      *_cNamePt;
+
+    //                  Fenetre principale
+    MainWindow          *m_QTMainWindow;
 
     cData               *_data;
-
-    cCaseNamePoint      *_cNamePt;
 
 signals:
 
@@ -97,9 +112,6 @@ public slots:
     void                selectPG(QModelIndex modelIndex);
 
     void                undo(bool);
-
-protected:
-    void                rebuild3DGlPoints(cPointGlob *selectPtGlob);
 
 private slots:
 

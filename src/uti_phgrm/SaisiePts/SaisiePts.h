@@ -344,6 +344,8 @@ class cVirtualInterface
 
 protected:
 
+    bool                      PtImgIsVisible(cSP_PointeImage &aPIm);
+
     void                      InitNbWindows();
 
     void                      InitVNameCase();
@@ -359,6 +361,8 @@ protected:
     std::vector <cCaseNamePoint>        mVNameCase;
 
     std::map<std::string,cCaseNamePoint *>  mMapNC;
+
+
 
 private:
 

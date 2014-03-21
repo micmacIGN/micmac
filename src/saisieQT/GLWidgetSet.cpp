@@ -42,6 +42,19 @@ void GLWidgetSet::init(uint aNb, bool modePt)
     }
 }
 
+void GLWidgetSet::option3DPreview()
+{
+    threeDWidget()->setOption(cGLData::OpShow_Grid | cGLData::OpShow_Cams);
+    threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
+}
+
+void GLWidgetSet::init3DPreview(cData* data)
+{
+    threeDWidget()->setGLData(new cGLData(data));
+    threeDWidget()->getGLData()->setIncFirstCloud(true);
+    option3DPreview();
+}
+
 void GLWidgetSet::widgetSetResize(int aSz)
 {
     int sz = _widgets.size();
