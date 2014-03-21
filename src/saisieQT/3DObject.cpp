@@ -667,7 +667,12 @@ void cPolygon::draw()
         }
 
         for (int aK = 0;aK < _points.size(); ++aK)
+        {
+#if ELISE_QT_VERSION==4
+            _points[aK].setPainter(_painter);
+#endif
             _points[aK].draw();
+        }
 
         if(helper()!=NULL)
              helper()->draw();
