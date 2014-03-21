@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SAISIEPTS_ALL_H_
 #define _ELISE_SAISIEPTS_ALL_H_
 
+#include "cParamSaisiePts.h"
 
 class cSP_PointeImage;
 class cSP_PointGlob;
@@ -362,7 +363,11 @@ protected:
 
     std::map<std::string,cCaseNamePoint *>  mMapNC;
 
+    virtual eTypePts          PtCreationMode() = 0;
 
+    virtual double            PtCreationWindowSize() = 0;
+
+    cSP_PointGlob *           addPoint(Pt2dr pt,cImage* curImg);
 
 private:
 
@@ -428,6 +433,12 @@ public :
     void            AddUndo(cOneSaisie * aSom);
 
     bool            isDisplayed(cImage *anIm);
+
+protected:
+
+    virtual eTypePts          PtCreationMode(){return eNSM_Pts;}
+
+    virtual double            PtCreationWindowSize(){return 0;}
 
 private:
 

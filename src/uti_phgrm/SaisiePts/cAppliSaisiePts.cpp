@@ -114,6 +114,25 @@ void cVirtualInterface::InitVNameCase()
     }
 }
 
+cSP_PointGlob *cVirtualInterface::addPoint(Pt2dr pt, cImage *curImg)
+{
+    cSP_PointGlob * PG = NULL;
+
+    if(curImg)
+    {
+        eTypePts        aType   = PtCreationMode();
+        double          aSz     = PtCreationWindowSize();
+        Pt2dr           aPGlob  = FindPoint(curImg,pt,aType,aSz,0);
+        cCaseNamePoint* aCNP    = GetIndexNamePoint();
+        cSP_PointGlob*  PG1     = mAppli->PGlobOfNameSVP(aCNP->mName);
+
+        if(!PG1)
+            PG = curImg->CreatePGFromPointeMono(aPGlob, aType, aSz, aCNP);
+    }
+
+    return PG;
+}
+
 void cVirtualInterface::ChangeFreeNamePoint(const std::string & aName, bool SetFree)
 {
     std::map<std::string,cCaseNamePoint *>::iterator it = mMapNC.find(aName);

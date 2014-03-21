@@ -55,10 +55,20 @@ private:
 
     cImage *            ptCurrentCImage();
 
+    cImage *            ptCImage(int idCimg);
+
+    cImage *            ptCImage(QString nameImage);
+
 
     //                  Tools Points                        ///////////////////////////////////////////
 
+    void                removePointGlobal(cSP_PointGlob *aPt);
+
     int                 idPointGlobal(cSP_PointGlob* PG);
+
+    int                 idPointGlobal(int idSelectGlPoint);
+
+    QString             namePointGlobal(int idPtGlobal);
 
     Pt2dr               FindPointInImage(const Pt2dr &aPIm, eTypePts aType, double aSz, cPointGlob *aPG);
 
@@ -67,6 +77,10 @@ private:
     Pt2dr               transformation(QPointF pt, int idImage = -1);
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
+
+    virtual eTypePts    PtCreationMode();
+
+    virtual double      PtCreationWindowSize();
 
     //                  OpenGL                              ///////////////////////////////////////////
 
@@ -84,9 +98,9 @@ private:
 
     cGLData *           getGlData(cImage* image);
 
-    cPoint              getGLPt_CurWin(int idPt);
+    cPoint              getGLPt_CurWidget(int idPt);
 
-    std::string         getNameGLPt_CurWin(int idPt);
+    std::string         getNameGLPt_CurWidget(int idPt);
 
     ////////////////////////////////////////////////////////////////////////////////////
     //
@@ -99,9 +113,7 @@ private:
 
 signals:
 
-    void                selectPoint(std::string ptName);
-
-    void                dataChanged();
+    void                dataChanged(cSP_PointeImage *aPIm = NULL);
 
 public slots:
 

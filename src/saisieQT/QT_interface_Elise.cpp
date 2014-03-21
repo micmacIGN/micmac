@@ -62,7 +62,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     connect(m_QTMainWindow->tableView_PG()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
     connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_PG(), SLOT(update()));
-    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_Images(), SLOT(update()));    
+    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_Images(), SLOT(update()));
+    connect(this,SIGNAL(dataChanged(cSP_PointeImage*)), this, SLOT(rebuildGlPoints(cSP_PointeImage*)));
     connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPG(QModelIndex)));
 
 }
@@ -128,51 +129,30 @@ void cQT_Interface::updateTables()
 
 }
 
+eTypePts cQT_Interface::PtCreationMode()
+{
+    return m_QTMainWindow->getParams()->getPtCreationMode();
+}
+
+double cQT_Interface::PtCreationWindowSize()
+{
+    return m_QTMainWindow->getParams()->getPtCreationWindowSize();
+}
+
 void cQT_Interface::addPoint(QPointF point)
 {
     if (m_QTMainWindow->currentWidget()->hasDataLoaded())
     {
-        eTypePts aType = m_QTMainWindow->getParams()->getPtCreationMode();
-        double aSz = m_QTMainWindow->getParams()->getPtCreationWindowSize();
 
-        Pt2dr aPGlob = FindPointInImage(transformation(point),aType,aSz,0);
+        cSP_PointGlob * PG = cVirtualInterface::addPoint(transformation(point),ptCurrentCImage());
 
-        QString nameImage = m_QTMainWindow->currentWidget()->getGLData()->imageName();
-
-        int t = idCImage(nameImage);
-
-        if(t != -1)
+        if(PG)
         {
-            cCaseNamePoint * aCNP = GetIndexNamePoint();
-            cSP_PointGlob * PG1 = mAppli->PGlobOfNameSVP(aCNP->mName);
-
-            if(!PG1)
-            {
-                cSP_PointGlob * PG = mAppli->image(t)->CreatePGFromPointeMono(aPGlob, aType, aSz, aCNP);
-
-                if(PG)
-                {
-                    rebuildGlPoints();
-                    emit dataChanged();
-
-                    int id = idPointGlobal(PG);
-
-                    m_QTMainWindow->tableView_PG()->model()->insertRows(id,1);
-                    updateTables();
-                }
-            }
+            emit dataChanged();
+            m_QTMainWindow->tableView_PG()->model()->insertRows(idPointGlobal(PG),1);
+            updateTables();
         }
     }
-}
-
-cPoint cQT_Interface::getGLPt_CurWin(int idPt)
-{
-    return (*m_QTMainWindow->currentWidget()->getGLData()->polygon())[idPt];
-}
-
-string cQT_Interface::getNameGLPt_CurWin(int idPt)
-{
-    return getGLPt_CurWin(idPt).name().toStdString();
 }
 
 void cQT_Interface::movePoint(int idPt)
@@ -183,49 +163,56 @@ void cQT_Interface::movePoint(int idPt)
 
         if(aPIm)
         {
-            Pt2dr pt = transformation(getGLPt_CurWin(idPt));
 
-            UpdatePoints(aPIm, pt);
+            UpdatePoints(aPIm, transformation(getGLPt_CurWidget(idPt)));
 
-            rebuildGlPoints(aPIm);
-
-            emit dataChanged();
+            emit dataChanged(aPIm);
         }
     }
 }
 
-void cQT_Interface::populateTableImages(int idPG)
+int cQT_Interface::idPointGlobal(int idSelectGlPoint)
 {
-    ((ModelCImage*)m_QTMainWindow->tableView_Images()->model())->setIdGlobSelect(idPG);
 
-    m_QTMainWindow->tableView_Images()->update();
-    m_QTMainWindow->resizeTables();
-}
+    int idPG = -1;
 
-void cQT_Interface::selectPoint(int idPt)
-{
-    rebuild3DGlPoints(idPt >= 0 ? currentPointeImage(idPt) : NULL);
+    string namePoint = getNameGLPt_CurWidget(idSelectGlPoint);
 
-    if (idPt >=0)
+    vector < cSP_PointGlob * > vPG = mAppli->PG();
+    for (int iPG = 0; iPG < (int)vPG.size(); ++iPG)
     {
-        int idPG = -1;
-        string namePoint = getNameGLPt_CurWin(idPt);
+        cSP_PointGlob * aPG  = vPG[iPG];
 
-        vector < cSP_PointGlob * > vPG = mAppli->PG();
-        for (int iPG = 0; iPG < (int)vPG.size(); ++iPG)
-        {
-            cSP_PointGlob * aPG  = vPG[iPG];
-
-            if(aPG->PG()->Name() == namePoint)
-                idPG = iPG;
-        }
-
-        m_QTMainWindow->tableView_PG()->selectRow(idPG);
-
-        populateTableImages(idPG);
-
-        emit selectPoint(namePoint);
+        if(aPG->PG()->Name() == namePoint)
+            idPG = iPG;
     }
+
+    return idPG;
+}
+
+QString cQT_Interface::namePointGlobal(int idPtGlobal)
+{
+    vector < cSP_PointGlob * > vPG = mAppli->PG();
+    cSP_PointGlob * aPG  = vPG[idPtGlobal];
+
+    return QString(aPG->PG()->Name().c_str());
+}
+
+void cQT_Interface::removePointGlobal(cSP_PointGlob * aPt)
+{
+    if (aPt)
+    {
+        DeletePoint( aPt );
+
+        emit dataChanged();
+
+        m_QTMainWindow->tableView_PG()->hideRow(idPointGlobal(aPt));
+    }
+}
+
+void cQT_Interface::removePoint(QString aName)
+{
+    removePointGlobal(mAppli->PGlobOfNameSVP(aName.toStdString()));
 }
 
 void cQT_Interface::changeState(int state, int idPt)
@@ -245,11 +232,9 @@ void cQT_Interface::changeState(int state, int idPt)
                     m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
             }
             else if (aState == eEPI_Disparu)
-            {
-                DeletePoint( aPIm->Gl() );
-                int idPG = idPointGlobal(aPIm->Gl());
-                m_QTMainWindow->tableView_PG()->hideRow(idPG);
-            }
+
+                removePointGlobal(aPIm->Gl());
+
             else
             {
                 ChangeState(aPIm, aState);
@@ -277,30 +262,43 @@ void cQT_Interface::changeState(int state, int idPt)
                 }
             }
 
-            rebuildGlPoints(aPIm);
-
-            emit dataChanged();
+            emit dataChanged(aPIm);
         }
     }
 }
 
-void cQT_Interface::removePoint(QString aName)
+void cQT_Interface::selectPoint(int idPt)
 {
-    cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName.toStdString());
+    rebuild3DGlPoints(idPt >= 0 ? currentPointeImage(idPt) : NULL);
 
-    if (aPt)
+    if (idPt >=0)
     {
-        DeletePoint( aPt );
 
-        rebuildGlPoints();
+        int idPG = idPointGlobal(idPt);
 
-        emit dataChanged();
+        m_QTMainWindow->tableView_PG()->selectRow(idPG);
 
-        int idPG = idPointGlobal(aPt);
-
-        m_QTMainWindow->tableView_PG()->hideRow(idPG);
+        populateTableImages(idPG);
 
     }
+}
+
+cPoint cQT_Interface::getGLPt_CurWidget(int idPt)
+{
+    return (*m_QTMainWindow->currentWidget()->getGLData()->polygon())[idPt];
+}
+
+string cQT_Interface::getNameGLPt_CurWidget(int idPt)
+{
+    return getGLPt_CurWidget(idPt).name().toStdString();
+}
+
+void cQT_Interface::populateTableImages(int idPG)
+{
+    ((ModelCImage*)m_QTMainWindow->tableView_Images()->model())->setIdGlobSelect(idPG);
+
+    m_QTMainWindow->tableView_Images()->update();
+    m_QTMainWindow->resizeTables();
 }
 
 void cQT_Interface::setAutoName(QString name)
@@ -341,9 +339,7 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
             mAppli->ChangeName(oldName, newName);
         //}
 
-        rebuildGlPoints(aPIm);
-
-        emit dataChanged();
+        emit dataChanged(aPIm);
     }
 }
 
@@ -440,7 +436,6 @@ void cQT_Interface::undo(bool aBool)
     else
         mAppli->Redo();
 
-    rebuildGlPoints();
     emit dataChanged();
 }
 
@@ -491,14 +486,25 @@ void cQT_Interface::filesDropped(const QStringList &filenames, bool setGLData)
 
 cSP_PointeImage * cQT_Interface::currentPointeImage(int idPoint)
 {
-    return ptCurrentCImage()->PointeOfNameGlobSVP(getNameGLPt_CurWin(idPoint));
+    return ptCurrentCImage()->PointeOfNameGlobSVP(getNameGLPt_CurWidget(idPoint));
 }
 
 cImage * cQT_Interface::ptCurrentCImage()
 {
-    int t = idCurrentCImage();
+    return ptCImage(idCurrentCImage());
+}
 
-    return mAppli->image(t);
+cImage * cQT_Interface::ptCImage(int idCimg)
+{
+    if(idCimg < 0 || idCimg >= (int)mAppli->images().size())
+        return NULL;
+    else
+        return mAppli->image(idCimg);
+}
+
+cImage *cQT_Interface::ptCImage(QString nameImage)
+{
+    return ptCImage(idCImage(nameImage));
 }
 
 int cQT_Interface::idCurrentCImage()
@@ -665,7 +671,8 @@ void cQT_Interface::rebuildGlCamera()
     }
 }
 
-void cQT_Interface::AddUndo(cOneSaisie *aSom)
+void cQT_Interface::
+AddUndo(cOneSaisie *aSom)
 {
     mAppli->AddUndo(*aSom, ptCurrentCImage());
 }
