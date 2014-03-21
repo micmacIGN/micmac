@@ -320,7 +320,8 @@ void GLWidget::overlay()
             _painter->translate(_matrixManager.translateImgToWin(zoom));
         }
 
-        polygon()->draw();
+        for (int i = 0; i < m_GLData->polygonCount(); ++i)
+             polygon(i)->draw();
 
         QPen pen(QColor(hasFocus() ? "#ffa02f" : "#707070"));
         _painter->setPen(pen);

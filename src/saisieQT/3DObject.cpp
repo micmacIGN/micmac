@@ -1502,9 +1502,16 @@ int cGLData::camerasCount()
     return Cams.size();
 }
 
+int cGLData::polygonCount()
+{
+    return m_VPolygons.size();
+}
+
 void cGLData::initOptions()
 {
     m_VPolygons.push_back(new cPolygon());
+//    m_VPolygons.push_back(new cPolygon());
+//    m_VPolygons[1]->setPointSize(2.f);
     _options = options(OpShow_Mess);
 }
 
@@ -1724,8 +1731,8 @@ void cGLData::replaceCloud(GlCloud *cloud, int id)
 
 void cGLData::setPainter(QPainter * painter)
 {
-    if(polygon())
-        polygon()->setPainter(painter);
+    for (int i = 0; i < polygonCount(); ++i)
+        polygon(i)->setPainter(painter);
 }
 
 void cGLData::GprintBits(const size_t size, const void * const ptr)

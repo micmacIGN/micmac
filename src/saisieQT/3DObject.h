@@ -690,6 +690,8 @@ public:
 
     int         camerasCount();
 
+    int         polygonCount();
+
     void        clearClouds(){ Clouds.clear();}
 
     cCam*       camera(int iC){return Cams[iC];}
