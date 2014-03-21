@@ -569,18 +569,14 @@ std::vector<char *>  	ElInitArgMain
     )
 {
     std::vector<char *> aRes;
-        if (MMVisualMode)
-        {
-           std::vector<cMMSpecArg> aVAM = LGlob.ExportMMSpec();
-           std::vector<cMMSpecArg> aVAO = L1.ExportMMSpec();
-           MMRunVisualMode(argc,argv,aVAM,aVAO);
-           return aRes;
-/*
-           for (int aK=0 ; aK< 10 ; aK++)
-               std::cout << "MM VISUAL MODE ===============\n";
-*/
-        }
 
+    if (MMVisualMode)
+    {
+        std::vector<cMMSpecArg> aVAM = LGlob.ExportMMSpec();
+        std::vector<cMMSpecArg> aVAO = L1.ExportMMSpec();
+        MMRunVisualMode(argc,argv,aVAM,aVAO);
+        return aRes;
+    }
 
     aRes.push_back(argv[0]);
 
@@ -589,7 +585,7 @@ std::vector<char *>  	ElInitArgMain
 
     bool Help = false;
 
-        AnalyseContextCom(argc,argv);
+    AnalyseContextCom(argc,argv);
  //std::cout << "ARGCCCC " << argc << " " <<  LGlob.Size() << endl;
     if ((argc==0) && ( LGlob.Size() !=0)) Help = true;
     for (int aK=0 ; aK<argc ; aK++)

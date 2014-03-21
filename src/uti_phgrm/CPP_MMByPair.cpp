@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -172,7 +172,7 @@ void Paral_Tiff_Dev
     std::list<std::string> aLCom;
     for (std::vector<std::string>::const_iterator itS=aLFile.begin(); itS!=aLFile.end(); itS++)
     {
-         std::string aCom =    MMBinFile(MM3DStr) + " TifDev " + aDir+*itS 
+         std::string aCom =    MMBinFile(MM3DStr) + " TifDev " + aDir+*itS
                               + " NbChan=" + ToString(aNbChan)
                               + " 16B=" + ToString(Cons16B)
                             ;
@@ -348,7 +348,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
        mDicIm[aName] = mImages.back();
 */
        Pt2di  aSz =  aNewIma->Tiff().sz();
-       mAverNbPix += double(aSz.x) * double(aSz.y);  
+       mAverNbPix += double(aSz.x) * double(aSz.y);
    }
    mAverNbPix /= mSetIm->size();
 }
@@ -389,7 +389,7 @@ CamStenope * cAppliWithSetImage::CamOfName(const std::string & aNameIm)
    if (mOri=="NONE")
    {
       cOrientationConique anOC = StdGetFromPCP(Basic_XML_MM_File("Template-OrCamAngWithInterne.xml"),OrientationConique);
-     
+
       // Tiff_Im aTF = Tiff_Im::StdConvGen(mDir+aNameIm,,);
       Tiff_Im aTF = Tiff_Im::UnivConvStd(mDir+aNameIm);
 
@@ -422,7 +422,7 @@ void  cAppliWithSetImage::MakeStripStruct(const std::string & aPairByStrip,bool 
   {
       // cImaMM & anI = *(mImages[aKI]);
       cImaMM & anI = *((*anITS).attr().mIma);
-      
+
       std::string aBande = MatchAndReplace(anAutom,anI.mNameIm,aExpStrip);
       std::string aNumInBande = MatchAndReplace(anAutom,anI.mNameIm,aExpNumInStrip);
 
@@ -494,7 +494,7 @@ void cAppliWithSetImage::ComputeStripPair(int aDif)
                     {
                        Pt3dr aV3 = anI2.mCam->PseudoOpticalCenter() - anI1.mCam->PseudoOpticalCenter();
                        Pt2dr aV2(aV3.x,aV3.y);
-                       aV2 = vunit(aV2); 
+                       aV2 = vunit(aV2);
                        Pt2dr aDirS = Pt2dr::FromPolar(1,mTetaBande * (PI/180));
                        double aTeta = ElAbs(angle_de_droite(aV2,aDirS));
                        OK = (aTeta < (PI/4));
@@ -521,7 +521,7 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
 {
     if (mGrIm.arc_s1s2(*aS1,*aS2))
        return;
-    if (aS1->attr().mIma->mNameIm>aS2->attr().mIma->mNameIm) 
+    if (aS1->attr().mIma->mNameIm>aS2->attr().mIma->mNameIm)
        ElSwap(aS1,aS2);
 
 
@@ -541,7 +541,7 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
        Pt2dr aRatio =  aCpleE->RatioExp();
        double aSeuil = 1.8;
        // std::cout << "RRR " << anI1->mNameIm << " " << anI2->mNameIm << " " << aCple.RatioExp() << "\n";
-       if ((aRatio.x>aSeuil) || (aRatio.y>aSeuil))  
+       if ((aRatio.x>aSeuil) || (aRatio.y>aSeuil))
            return;
 
     }
@@ -557,7 +557,7 @@ void cAppliWithSetImage::AddPairASym(cImaMM * anI1,cImaMM * anI2,cCpleEpip * aCp
 
     if (mPairs.find(aPair) != mPairs.end())
        return;
-    
+
     mPairs.insert(aPair);
 
     anI1->mVois.push_back(new cAttrVoisImaMM(anI2,aCpleE));
@@ -612,9 +612,9 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
    );
 
    StdCorrecNameOrient(mOri,DirOfFile(mFullName));
- 
 
-   if (!EAMIsInit(&aOriOut)) 
+
+   if (!EAMIsInit(&aOriOut))
       aOriOut = mOri;
 
    mMasterIm  =  ImOfName(mNameMasterIm);
@@ -658,7 +658,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
            if ((aSZ.x>aMinSz) && (aSZ.y>aMinSz))
            {
                 std::cout << "Box " << anI.mNameIm << aDec << aSZ << "\n";
-           
+
                 std::string aNewIm = aPrefClip + anI.mNameIm;
                 aNewIm = StdPrefix(aNewIm) + ".tif";
                 cOrientationConique  aCO = aCS->StdExportCalibGlob();
@@ -694,7 +694,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                 MakeFileXML(aCO,aNameOut);
 
 
-                std::string aCom =      MMBinFile(MM3DStr) 
+                std::string aCom =      MMBinFile(MM3DStr)
                                      + " ClipIm "
                                      + mDir + anI.mNameIm + aBlank
                                      + ToString(aDec) + aBlank
@@ -705,9 +705,9 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                 System(aCom);
             }
        }
-       
+
    }
-   
+
 }
 
 /*****************************************************************/
@@ -837,9 +837,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(mStrType,"Type in enumerated values")
-                    << EAMC(mFullName,"Full Name (Dir+Pattern)")
-                    << EAMC(mOri,"Orientation"),
+        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None)
+                    << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
+                    << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
                     << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to macth, Def=False")
@@ -874,7 +874,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
 
 
-  if (mModeHelp) 
+  if (mModeHelp)
       StdEXIT(0);
   if (! EAMIsInit(&mZoom0))
      mZoom0 =  DeZoomOfSize(7e4);
@@ -960,7 +960,7 @@ bool cAppliMMByPair::InspectMTD(tArcAWSI & anArc)
 
 bool cAppliMMByPair::InspectMTD_REC(tArcAWSI & anArc)
 {
-     
+
      if ((mType != eStatute) || (!mRIEInParal))
         return true;
 
@@ -983,11 +983,11 @@ void cAppliMMByPair::Inspect()
             if (ToDo)
             {
                aNbTot ++;
-                
+
                if (Begun)
                {
                   bool DoneMTD = InspectMTD_REC(*itA);
-                  aNbBegun ++; 
+                  aNbBegun ++;
                   if ((!Done) || (!DoneMTD))
                   {
                      std::cout << "Pair unfinished " << (*itA).s1().attr().mIma->mNameIm
@@ -999,7 +999,7 @@ void cAppliMMByPair::Inspect()
                }
                if (Done)
                {
-                  aNbFinishMatch ++; 
+                  aNbFinishMatch ++;
                }
             }
         }
@@ -1014,7 +1014,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
      ToDo = false;
      cImaMM & anI1 = *(anArc.s1().attr().mIma);
      cImaMM & anI2 = *(anArc.s2().attr().mIma);
-     if (anI1.mNameIm >= anI2.mNameIm) 
+     if (anI1.mNameIm >= anI2.mNameIm)
         return "";
      ToDo = true;
 
@@ -1068,16 +1068,16 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
          AllDoneMatch  = AllDoneMatch && ELISE_fp::exist_file(aNuageIn);
          std::string aFileInit =  aDirMatch          + std::string("Correl_LeChantier_Num_0.tif");
          Begun  = Begun ||  ELISE_fp::exist_file(aFileInit);
-         
+
 
 
 /*
          std::string aNuageGeom =    mDir +  std::string("MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml");
-         std::string aNuageTarget =  mDir +  std::string("MTD-Nuage/Basculed-") 
-                                          + ((aK==0) ? anI1.mNameIm : anI2.mNameIm ) 
+         std::string aNuageTarget =  mDir +  std::string("MTD-Nuage/Basculed-")
+                                          + ((aK==0) ? anI1.mNameIm : anI2.mNameIm )
                                           + "-" + ((aK==0) ? anI2.mNameIm :anI1.mNameIm) + ".xml";
 
- 
+
          AllDoneMatch = AllDoneMatch && ELISE_fp::exist_file(aNuageIn);
 */
      }
@@ -1162,7 +1162,7 @@ void cAppliMMByPair::DoCorrelAndBasculeStd()
                                     + aPreFileBasc + " "
                                  ;
                              //  + mDir + mDirBasc +  "/Basculed-"+ anI1.mNameIm + "-" + anI2.mNameIm + " "
-                             
+
                   if (mShow)
                      std::cout  << aComBasc << "\n";
                  System(aComBasc);
@@ -1183,7 +1183,7 @@ void cAppliMMByPair::DoBascule()
                              + mDir+ "MEC2Im-" + anI1.mNameIm + "-" +  anI2.mNameIm + "/NuageImProf_LeChantier_Etape_" +ToString(mNbStep)+".xml "
                              + mDir + mDirBasc + "/NuageImProf_LeChantier_Etape_1.xml "
                              + mDir + mDirBasc +  "/Basculed-"+ anI1.mNameIm + "-" + anI2.mNameIm + " "
-                             
+
                             ;
         if (mShow)
            std::cout  << aCom << "\n";
@@ -1259,7 +1259,7 @@ void cAppliMMByPair::DoMDTGround()
    }
 
    System(aCom);
- 
+
    std::string aStrN = mDir+mDirBasc+"/NuageImProf_LeChantier_Etape_1.xml";
    cXML_ParamNuage3DMaille aNuage = StdGetFromSI(aStrN,XML_ParamNuage3DMaille);
    aNuage.PN3M_Nuage().Image_Profondeur().Val().OrigineAlti() = 0;
@@ -1289,8 +1289,8 @@ int cAppliMMByPair::Exe()
        {
           Inspect();
        }
- 
-  
+
+
        // eQual_Low =>  Pts Hom par match, eQual_Aver => Pts Hom Std
        if (BoolFind(mDo,'P') && ((!mByMM1P) || (mQualOr= eQual_Low)))
        {
@@ -1311,7 +1311,7 @@ int cAppliMMByPair::Exe()
              DoCorrelAndBasculeStd();
           }
        }
-    
+
        if ( (!mDebugCreatE) && BoolFind(mDo,'R') && (!mRIEInParal) && mByMM1P )
        {
              DoReechantEpipInv();
@@ -1361,13 +1361,13 @@ int ChantierClip_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1377,17 +1377,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

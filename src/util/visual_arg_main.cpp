@@ -147,93 +147,16 @@ void MMRunVisualMode
         file.close();
     }
 
-    visual_MainWindow w;
+    visual_MainWindow w(aVAM, aVAO);
 
-    //list of all arguments
-
-    std::cout<<"---------- All arguments ----------"<<std::endl;
-
-
-    //        for(int i=0;i<argc;i++)
-    //        {
-    //            std::cout<<argv[i]<<std::endl;
-    //            //std::cout<<argv[3]<<std::endl;
-    //        }
-
-    for (int aK=0 ; aK<int(aVAM.size()) ; aK++)//aVAM = all visual arg mandatory ?
+    std::string arg_eff="";
+    for (int i=0;i<argc;i++)
     {
-        std::string arg_eff="";
-        for (int i=0;i<argc;i++)
-        {
-            arg_eff += std::string(argv[i]);
-        }
-        w.set_argv_recup(arg_eff);
+        //std::cout<<argv[i]<<std::endl;
 
-        //std::cout << "Mandatory arg " << aK << " ; Type is " << aVAM[aK].NameType();
-        std::string aCom = aVAM[aK].Comment();
-        w.create_comment(aCom,aK);
-        if (aCom != "")
-        {
-            //std::cout << "   Comment=" << aCom << "\n";
-        }
-        else
-        {
-            //std::cout<<"\n";
-        }
-
-        //Si le type est une string
-        if (aVAM[aK].NameType() =="string")
-        {
-            //On recupere les valeurs enumerees dans une liste
-            std::list<std::string> liste_valeur_enum = listPossibleValues(aVAM[aK]);
-
-            //S'il y a effectivement une enumeration
-            //On remplit une combobox
-            if (!liste_valeur_enum.empty())
-            {
-                //QComboBox* Combo=0;
-                w.create_combo(aK,liste_valeur_enum);
-
-            }
-            //Si c'est une chaine de caracteres normale
-            else
-            {
-                //Si c'est une directory
-                if (aCom.find("Dir")!=std::string::npos)
-                {
-                    w.create_select_images(aK);
-
-                }
-                else
-                {
-                    std::cout<<"coucou"<<std::endl;
-                    w.create_select_orientation(aK);
-
-                }
-            }
-        }
-        //Si le type est int
-        if (aVAM[aK].NameType() =="INT"||aVAM[aK].NameType() =="int")
-        {
-            w.create_champ_int(aK);
-
-        }
-
+        arg_eff += std::string(argv[i]);
     }
-
-    //        for (int aK=0 ; aK<int(aVAO.size()) ; aK++)//aVAO = all visual arg optional ?
-    //        {
-    //            std::cout <<  "Optional arg type is " <<aVAO[aK].NameArg()  << " ; "  << aVAO[aK].NameType();
-    //            std::string aCom = aVAO[aK].Comment();
-    //            if (aCom != "") std::cout << " ; " << aCom ;
-    //            std::cout  << "\n";
-
-    //            bool apat = aVAO[aK].IsExistFile();
-    //            std::cout<<apat<<std::endl;
-    //            ShowEnum(aVAO[aK]);
-    //        }
-    std::cout<<"---------- End all arguments ----------"<<std::endl;
-
+    w.set_argv_recup(arg_eff);
 
     w.show();
     app.exec();

@@ -22,7 +22,7 @@ imgListButton::~imgListButton()
 
 void imgListButton::onClick()
 {
-    std::cout<<"coucou bouton "<<unique_id<<std::endl;
+    //std::cout<<"bouton unique_id: "<<unique_id<<std::endl;
     emit my_click(unique_id);
 }
 
