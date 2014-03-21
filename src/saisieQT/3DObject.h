@@ -42,8 +42,6 @@ enum SELECTION_MODE { SUB,
                       NONE
                     };
 
-using namespace NS_SaisiePts;
-
 class cObject
 {
     public:

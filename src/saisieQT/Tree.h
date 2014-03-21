@@ -6,9 +6,6 @@
 
 #include "StdAfx.h"
 
-using namespace NS_SaisiePts;
-
-
 class ModelPointGlobal : public QAbstractTableModel
 {
     Q_OBJECT
