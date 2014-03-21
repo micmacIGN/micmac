@@ -1721,18 +1721,8 @@ class cElXMLTree
           std::string & NCContenu() ;
 	  bool  IsVide() const;
 
-			void dump_one( std::ostream &io_stream=std::cout, std::string i_prefix="", int i_depth=0 ) const;
-			void dump( std::ostream &io_stream=std::cout, std::string i_prefix="", int i_depth=0 ) const;
-
 			// walk through the tree with a breadth-first strategy and execute i_functor on all nodes
 			void breadthFirstFunction( Functor &i_functor );
-
-			// get all existing values of attribute i_attributeName of tags i_tagName, and but them in values
-			// ex: getAllAttributeValues( "enum", "Name", enumNames ); // retrieve all values of attribute "Name" of tags of name "enum"
-			void getAllAttributeValues( const std::string &i_tagName, const std::string &i_attributeName, std::list<std::string> &o_enumNames );
-			// add the attribute i_attributeToAdd to nodes with an attribute of name i_criterionName
-			// if this attribute has a value equal to an element of i_criterionValues
-			void addAttribute( const std::string &i_criterionName, const std::list<std::string> &i_criterionValues, const cElXMLAttr &i_attributeToAdd );
 
 	private :
           void  VerifMatch (cElXMLTree* aTSpecif);
@@ -1807,9 +1797,6 @@ class cElXMLTree
            std::list<cElXMLAttr>     mAttrs;
            eElXMLKindTree            mKind;
 };
-
-// this function adds the attribut 'PL2XmlTree=""' to all tags with an enum Type
-void fix_enum_references( cElXMLTree &i_tree );
 
 void xml_init(bool           &,cElXMLTree * aTree);
 void xml_init(double         &,cElXMLTree * aTree);
