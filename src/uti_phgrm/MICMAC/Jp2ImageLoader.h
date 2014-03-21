@@ -21,7 +21,7 @@ class JP2ImageLoader: public cInterfModuleImageLoader
 		std::complex<int> 	m_SzIm;
 		bool                    m_S;
 		int                     m_BPS;
- 		eTypeNumerique          m_Type;               
+ 		eIFImL_TypeNumerique    m_Type;               
 		int                     m_Nbc;
 		
 		
@@ -33,7 +33,7 @@ class JP2ImageLoader: public cInterfModuleImageLoader
 		
 		JP2ImageLoader(std::string const &nomfic);
 		
-		virtual eTypeNumerique PreferedTypeOfResol(int aDeZoom)const
+		virtual eIFImL_TypeNumerique PreferedTypeOfResol(int aDeZoom)const
 		{
 			return m_Type;
 		}
