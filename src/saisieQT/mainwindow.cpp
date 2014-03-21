@@ -31,6 +31,8 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
         setImagePosition(QPointF(-1.f,-1.f));
         setImageName("");
     }
+
+    tableView_PG()->setMouseTracking(true);
 }
 
 MainWindow::~MainWindow()
@@ -829,6 +831,23 @@ QTableView *MainWindow::tableView_PG(){return _ui->tableView_PG;}
 
 QTableView *MainWindow::tableView_Images(){return _ui->tableView_Images;}
 
+void MainWindow::resizeTables()
+{
+    tableView_PG()->resizeColumnsToContents();
+    tableView_PG()->resizeRowsToContents();
+    tableView_PG()->horizontalHeader()->setStretchLastSection(true);
+
+    tableView_Images()->resizeColumnsToContents();
+    tableView_Images()->resizeRowsToContents();
+    tableView_Images()->horizontalHeader()->setStretchLastSection(true);
+}
+
+void MainWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images)
+{
+    tableView_PG()->setModel(model_Pg);
+    tableView_Images()->setModel(model_Images);
+}
+
 #if ELISE_QT_VERSION!=5
 void MainWindow::emitSelectPoint(QString pointName)
 {
@@ -1044,3 +1063,5 @@ void MainWindow::labelShowMode(bool state)
         }
     }
 }
+
+
