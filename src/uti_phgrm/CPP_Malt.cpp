@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -47,13 +47,13 @@ template <class Type> void VerifIn(const Type & aV,const Type * aTab,int aNb, co
      {
          if (aTab[aK] == aV)
          {
-	       return;
+           return;
          }
      }
      std::cout << "\n\nIn context " << aMes << "\n";
      std::cout << "With value  " << aV << "\n";
-     
-     std::cout << "Allowed  values are   : "  ; 
+
+     std::cout << "Allowed  values are   : "  ;
      for (int aK=0 ; aK< aNb ; aK++)
          std::cout <<  aTab[aK] << " " ;
 
@@ -61,7 +61,7 @@ template <class Type> void VerifIn(const Type & aV,const Type * aTab,int aNb, co
      ELISE_ASSERT(false,"Value is not in eligible set ");
 }
 
-class cAppliMalt 
+class cAppliMalt
 {
      public :
          cAppliMalt(int argc,char ** argv);
@@ -193,7 +193,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   InitDefValFromType();
 
   Box2dr aBoxClip,aBoxTerrain;
-  
+
   bool mModePB = false;
   std::string mModeOri;
 
@@ -203,8 +203,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   (
         argc,argv,
         LArgMain()  << EAMC(aMode,"Mode of correlation (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
-                    << EAMC(mFullName,"Full Name (Dir+Pattern)")
-                    << EAMC(mOri,"Orientation"),
+                    << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
+                    << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, avalaible in image geometry")
@@ -242,7 +242,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation , its proportion ([0,0,1,1] mean full box)")
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
-		    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
+            << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
@@ -278,7 +278,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   mUseRR = EAMIsInit(&mRoundResol);
 
 
-  if (!EAMIsInit(&mDoOrtho)) 
+  if (!EAMIsInit(&mDoOrtho))
   {
      mDoOrtho=mDoMEC;
   }
@@ -287,7 +287,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   mUseImSec = (mImMaster == std::string("AUTO"));
 
 
-  if (mEtapeInit!=1) 
+  if (mEtapeInit!=1)
      mPurge = false;
   MakeFileDirCompl(mDirMEC);
   if (mDirOrthoF=="")
@@ -295,16 +295,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   MakeFileDirCompl(mDirOrthoF);
 
 
-  if (mModeHelp) 
+  if (mModeHelp)
      StdEXIT(-1);
 
   {
       int TabZF[4] ={1,2,4,8};
       VerifIn(mZoomFinal,TabZF,4,"ZoomFinal");
   }
-    
+
   #if (ELISE_windows)
-	replace( mFullName.begin(), mFullName.end(), '\\', '/' );
+    replace( mFullName.begin(), mFullName.end(), '\\', '/' );
   #endif
   SplitDirAndFile(mDir,mIms,mFullName);
 
@@ -331,7 +331,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
   if (! mModePB)
   {
-     mICNM->CorrecNameOrient(mOri); 
+     mICNM->CorrecNameOrient(mOri);
   }
   mSetIm = mICNM->Get(mIms);
   mNbIm = mSetIm->size();
@@ -355,10 +355,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
      {
         const std::string & aNameIm = (*mSetIm)[aKIm];
         std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
-      
+
       //ToDo: Faire evoluer ce code pour pouvoir gerer d'autres type d'orientation (Grille et RTO).
       // utilisation d'une ElCamera (avec cCameraModuleOrientation pour le cas des ModuleOrientation)
-      
+
         CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
 
         if (aCS->AltisSolIsDef())
@@ -374,12 +374,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         for (int aKC=0 ; aKC< 4 ; aKC++)
            aP0.SetSup(aCS->OrGlbImaM2C(Pt2dr(aCorns[aKC])));
 
-     
+
         mSzGlob = mSzGlob + aP0;
      }
      mSzGlob = mSzGlob / double(mNbIm);
   }
-  
+
   bool ZMoyInit = EAMIsInit(&mZMoy) ;
   if (!ZMoyInit)
   {
@@ -413,15 +413,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   }
   else
   {
-       if (mNbIm > 1000) 
+       if (mNbIm > 1000)
           mZoomInit = 128;
-       else if (mNbIm > 100) 
+       else if (mNbIm > 100)
           mZoomInit = 64;
-       else if (mNbIm > 10 ) 
+       else if (mNbIm > 10 )
           mZoomInit = 32;
-       else 
+       else
           mZoomInit = 32;
-       
+
        double aWidth = ElMin(mSzGlob.x,mSzGlob.y);
        while (((aWidth/mZoomInit) < mLargMin) && (mZoomInit>16))
        {
@@ -465,12 +465,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + round_ni(log2(mZoomInit/ mZoomFinal))  // Si aucune dupl
               + 1   //  Dulication de pas a la premiere
               + (mAffineLast ? 1 : 0)  ;  // Raffinement de pas;
- 
+
   std::cout << 3+ log2(mZoomInit/ mZoomFinal)  << "\n";
   ShowParam();
 
 
-  mPurge = mPurge &&  mDoMEC; 
+  mPurge = mPurge &&  mDoMEC;
 
   std::string  anArgCommuns =   std::string(" WorkDir=") + mDir
                              +  std::string(" +ImPat=") + QUOTE(mIms)
@@ -482,7 +482,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                  ;
 
 
-  std::string aNameGeom = (mImMaster=="") ? 
+  std::string aNameGeom = (mImMaster=="") ?
                           "eGeomMNTEuclid" :
                           (mIsSperik? "eGeomMNTFaisceauPrChSpherik" : (mModePB ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
 
@@ -556,7 +556,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
      mCom =  mCom
            + std::string(" +ImageMaster=") + mImMaster
            + std::string(" +ImageMasterSsPost=") + StdPrefix(mImMaster)
-           + std::string(" +FileIm1=") + "MM-ImageMaster.xml" 
+           + std::string(" +FileIm1=") + "MM-ImageMaster.xml"
            + std::string(" +ZIncIsProp=") + "false"
            + std::string(" +FullIm1=") + "true"
            + std::string(" +PasInPixel=") + "false"
@@ -627,7 +627,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
   if (EAMIsInit(&aBoxClip))
   {
-      mCom  =    mCom + " +UseClip=true " 
+      mCom  =    mCom + " +UseClip=true "
               +  std::string(" +X0Clip=") + ToString(aBoxClip._p0.x)
               +  std::string(" +Y0Clip=") + ToString(aBoxClip._p0.y)
               +  std::string(" +X1Clip=") + ToString(aBoxClip._p1.x)
@@ -644,7 +644,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   }
 
 
-  if (mUseRR) 
+  if (mUseRR)
   {
      mCom = mCom + " +UseRR=true +RoundResol=" + ToString(mRoundResol);
   }
@@ -654,7 +654,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   {
        mCom = mCom + " +ModeAgrCor=eAggregMoyMedIm1Maitre";
   }
-  
+
   if (EAMIsInit(&mIncidMax))
      mCom   =  mCom + " +DoAnam=true +IncidMax=" + ToString(mIncidMax);
 
@@ -671,7 +671,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       if (mEquiv.size()>3)
          ELISE_ASSERT(false,"too many equiv class for Malt, use MicMac");
   }
-               
+
   std::cout << mCom << "\n";
   // cInZRegulterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
@@ -681,11 +681,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   {
        std::string aFileOAM  = "MM-Malt-OrthoAnamOnly.xml";
 
-	   mComOA =  MMDir() +"bin"+ELISE_CAR_DIR+"MICMAC "
-               + MMDir() +"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+aFileOAM // MM-Malt.xml 
+       mComOA =  MMDir() +"bin"+ELISE_CAR_DIR+"MICMAC "
+               + MMDir() +"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+aFileOAM // MM-Malt.xml
                + anArgCommuns;
 
-       mComOA =        mComOA 
+       mComOA =        mComOA
                     +  std::string(" +Repere=") + mRep
                     +  std::string(" +DirOrthoF=") +  "Ortho-UnAnam-" + mDirMEC
                  ;
@@ -786,7 +786,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -797,16 +797,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

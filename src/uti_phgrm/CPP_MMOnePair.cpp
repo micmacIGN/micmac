@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -48,7 +48,7 @@ std::string Name2PattWithoutDir(std::string & aDirRes,const std::vector<std::str
 
 static std::string aBlk =  " " ;
 
-class cMMOnePair 
+class cMMOnePair
 {
     public :
       cMMOnePair(int argc,char ** argv);
@@ -153,15 +153,15 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(mNameIm1Init,"Name Im1")
-                    << EAMC(mNameIm2Init,"Name Im2")
+        LArgMain()  << EAMC(mNameIm1Init,"Name Im1", eSAM_IsExistFile)
+                    << EAMC(mNameIm2Init,"Name Im2", eSAM_IsExistFile)
                     << EAMC(mNameOriInit,"Orientation (if NONE, work directly on epipolar)"),
         LArgMain()  << EAM(mExe,"Exe",true,"Execute Matching, def=true")
                     << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
                     << EAM(mByEpip,"CreateE",true," Create Epipolar (def = true when appliable)")
                     << EAM(mDoubleSens,"2Way",true,"Match in 2 Way (Def=true)")
-                    << EAM(mCMS,"CMS",true,"Multi Scale Coreel (Def=ByEpip)")
+                    << EAM(mCMS,"CMS",true,"Multi Scale Correl (Def=ByEpip)")
                     << EAM(mDoMR,"DoMR",true,"Do re-entering masq (def=true)")
                     << EAM(mSigmaP,"SigmaP",true,"Sigma Pixel for coherence (Def=1.5)")
                     << EAM(mBoxIm,"BoxIm",true,"Box of calc in Epip, tuning purpose, def=All image")
@@ -199,7 +199,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
   if (! mNoOri)
       StdCorrecNameOrient(mNameOriInit,mDirP); ;
 
-  if (!EAMIsInit(&mCMS)) 
+  if (!EAMIsInit(&mCMS))
      mCMS = mByEpip;
 
   if (mQualOr==eQual_Low)
@@ -228,15 +228,15 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
             || mForceCreateE
           )
        {
-             std::string aCom =        MMBinFile(MM3DStr) 
+             std::string aCom =        MMBinFile(MM3DStr)
                                + std::string(" CreateEpip ")
-                               + " " + mNameIm1Init 
-                               + " " + mNameIm2Init 
+                               + " " + mNameIm1Init
+                               + " " + mNameIm2Init
                                + " " + mNameOriInit
                                + " InParal=" + ToString(mMM1PInParal)
                               ;
 
-             if (mDegCorrEpip >=0) 
+             if (mDegCorrEpip >=0)
              {
                   aCom = aCom + " Degre=" + ToString(mDegCorrEpip) + " ";
                   aCom = aCom + " NameH=" +  ((mQualOr==eQual_Average)? " " : "-DenseM ");
@@ -296,9 +296,9 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     int aK=0;
     for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
     {
-        if (aK==0) 
+        if (aK==0)
            mIm1 =  (*anITS).attr().mIma;
-        if (aK==1) 
+        if (aK==1)
            mIm2 =  (*anITS).attr().mIma;
         aK++;
     }
@@ -316,7 +316,7 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
                           + " Out=" +  LocDirMec2Im(mNameIm1,mNameIm2) +"PLY-" + mNameIm1 + "-"+ mNameIm1+".ply";
                         ;
 
-   if (mDebugCreatE)  
+   if (mDebugCreatE)
       return;
 // std::cout << aComPly << "\n"; getchar();
 
@@ -335,8 +335,8 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
            }
            int aDeZoom = mVZoom[aStep];
 
-           if (     mDoMR 
-                 && ((aDeZoom!= mZoomF) || (aStep==mStepEnd)) 
+           if (     mDoMR
+                 && ((aDeZoom!= mZoomF) || (aStep==mStepEnd))
                  && (aDeZoom<=8)
                  && ((!mDoOnlyMF) || (aStep==mStepEnd))
               )
@@ -452,9 +452,9 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
                         + aBlk + aDir2 + aNPx
                         + aBlk + aDir2 + aNAM
                         + aBlk + "0"
-                        + aBlk + ToString(aSzY) 
+                        + aBlk + ToString(aSzY)
                         + aBlk + "0"
-                        + aBlk + ToString(aSzY) 
+                        + aBlk + ToString(aSzY)
                         + aBlk + ToString(!mCpleE->IsLeft(true))
                         + " InParal=" + ToString(mMM1PInParal) ;
 
@@ -474,7 +474,7 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
 
 void cAppliMMOnePair::GenerateMTDEpip(bool MasterIs1)
 {
-    
+
     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
     std::string aNameInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
@@ -535,7 +535,7 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " InParal="  + ToString(mMM1PInParal)
                       ;
 
-     if (aLast) 
+     if (aLast)
      {
         aCom = aCom + " ExpFin=true " ;
         aCom = aCom + " RedM=1.0 ";
@@ -588,7 +588,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
            ELISE_fp::MvFile(aName,aDest);
 
            ELISE_fp::RmFile(mDir + aPref + "*.tif");
-// LocDirMec2Im(aNamA,aNamB) 
+// LocDirMec2Im(aNamA,aNamB)
      }
 }
 
@@ -608,12 +608,12 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
      std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
      std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
 
-     std::string aCom =     MMBinFile(MM3DStr) 
+     std::string aCom =     MMBinFile(MM3DStr)
                           + std::string(" MICMAC ")
-                          +  XML_MM_File("MM-Epip.xml ") 
+                          +  XML_MM_File("MM-Epip.xml ")
                           + " WorkDir="  + mDir
-                          + " +Im1="     + aNamA   
-                          + " +Im2="     + aNamB 
+                          + " +Im1="     + aNamA
+                          + " +Im2="     + aNamB
                           + " +Zoom0="   + ToString(mZoom0)
                           + " +ZoomF="   + ToString(mZoomF)
                           + " FirstEtapeMEC=" + ToString(aStep0)
@@ -719,7 +719,7 @@ static Tiff_Im MakeMaskSauv(const std::string &aNameMasq)
 
 class cOneISMR
 {
-    public : 
+    public :
         cOneISMR
         (
             const std::string &  aNamePx,
@@ -801,7 +801,7 @@ void cOneISMR::DoOneSen(cOneISMR & anI2)
             Prev = Next;
         }
 */
-       
+
         int aX0   = mRightIm ? 0      : mSzX-1;
         int aXEnd = mRightIm ? mSzX-1 :     0;
         int aStep = mRightIm ? 1      :     -1;
@@ -831,7 +831,7 @@ void cOneISMR::DoOneSen(cOneISMR & anI2)
 
 int MMSymMasqAR_main(int argc,char ** argv)
 {
-  
+
   std::string aPx1,aPx2,aMasq1,aMasq2;
   int aY0In,aY1In,aY0Out,aY1Out;
   bool aFirsIsRight;
@@ -915,13 +915,13 @@ int MMSymMasqAR_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -931,17 +931,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

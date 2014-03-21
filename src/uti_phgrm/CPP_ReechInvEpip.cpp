@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*
 
 MTD-Image-MVxxxx_MAP_6937.NEF/NuageImProf_LeChantier_Etape_1.xml
-MEC2Im-Epi_Im2_Left_MVxxxx_MAP_6937_MVxxxx_MAP_6938.tif-Epi_Im1_Right_MVxxxx_MAP_6937_MVxxxx_MAP_6938.tif/NuageImProf_Chantier-Ori_Etape_Last.xml 
+MEC2Im-Epi_Im2_Left_MVxxxx_MAP_6937_MVxxxx_MAP_6938.tif-Epi_Im1_Right_MVxxxx_MAP_6937_MVxxxx_MAP_6938.tif/NuageImProf_Chantier-Ori_Etape_Last.xml
 
 
 mm3d TestLib RIE MVxxxx_MAP_6937.NEF MVxxxx_MAP_6938.NEF Basc
@@ -63,20 +63,20 @@ int ReechInvEpip_main(int argc,char ** argv)
     int  aSzDecoup = 2000;
     Box2di aBoxOut;
 
-    
+
 
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(aName1,"Name first image") 
-	            << EAMC(aName2,"Name second image") 
-	            << EAMC(anOri,"Name seconf orient") ,
-	LArgMain()  << EAM(aDir,"Dir",true,"directory, def = current")
+    argc,argv,
+    LArgMain()  << EAMC(aName1,"Name first image",  eSAM_IsExistFile)
+                << EAMC(aName2,"Name second image", eSAM_IsExistFile)
+                << EAMC(anOri,"Name second orient", eSAM_IsExistFile) ,
+    LArgMain()  << EAM(aDir,"Dir",true,"directory (Def=current)")
                     << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
-                    << EAM(CalleByP,"CalleByP",true,"Intenal Use")
-                    << EAM(aBoxOut,"BoxOut",true,"Intenal Use")
+                    << EAM(CalleByP,"CalleByP",true,"Internal Use")
+                    << EAM(aBoxOut,"BoxOut",true,"Internal Use")
                     << EAM(aSzDecoup,"SzDec",true,"Sz Decoup")
-    );	
+    );
 
     std::string aNameMin = (aName1 <= aName2) ? aName1 : aName2;
     std::string aNameMax = (aName1 >  aName2) ? aName1 : aName2;
@@ -189,7 +189,7 @@ int ReechInvEpip_main(int argc,char ** argv)
          );
          TIm2D<U_INT1,INT> aTDistIn(aImDist_In);
          TIm2D<U_INT1,INT> aTDistOut(aImDist_Out);
-         
+
          Im2D_U_INT1 aImAR_Out(aSzOut.x,aSzOut.y,0);
          Tiff_Im aTifARIn = Tiff_Im::BasicConvStd(aNameARIn);
          Im2D_U_INT1 aImAR_In(aSzIn.x,aSzIn.y,255);
@@ -287,13 +287,13 @@ int ReechInvEpip_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -303,17 +303,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

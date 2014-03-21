@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -64,7 +64,7 @@ class cArgLogCom
 
 const cArgLogCom  cArgLogCom::NoLog(-1);
 
-// MPD : suspecte un problème d'écrasement mutuel entre processus dans le logfile, inhibe temporairement pour 
+// MPD : suspecte un problème d'écrasement mutuel entre processus dans le logfile, inhibe temporairement pour
 // valider / invalider le diagnostic
 static bool DOLOG_MM3d = true;
 
@@ -124,7 +124,7 @@ void LogOut(int aRes,const std::string & aDir)
    std::string aMes;
    if (aRes==0)
       aMes = "[Ending correctly at]";
-   else 
+   else
       aMes =  std::string("[Failing with code ") + ToString(aRes) +   " at ]" ;
    LogTime(aFp,aMes);
    fclose(aFp);
@@ -137,7 +137,7 @@ void LogOut(int aRes,const std::string & aDir)
 class cMMCom
 {
    public :
-      cMMCom 
+      cMMCom
       (
              const std::string & aName,
              tCommande  aCommand,
@@ -153,7 +153,7 @@ class cMMCom
       }
 
 
-    
+
       std::string  mName;
       std::string  mLowName;
       tCommande    mCommand;
@@ -175,10 +175,10 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Ann",Ann_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualization of camera in ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
-	   aRes.push_back(cMMCom("Arsenic",Arsenic_main," IN DEV : Radiometric equalization from tie points"));
+       aRes.push_back(cMMCom("Arsenic",Arsenic_main," IN DEV : Radiometric equalization from tie points"));
        aRes.push_back(cMMCom("Digeo",Digeo_main," In development- Will compute tie points "));
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac",cArgLogCom(2)));
-	   aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main,"Convert Orientation from Apero-Micmac workflow to PMVS format"));
+       aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main,"Convert Orientation from Apero-Micmac workflow to PMVS format"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
@@ -193,7 +193,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
        aRes.push_back(cMMCom("TifDev",TiffDev_main," Develop raw-jpg-tif, in suitable tiff file"));
 
-	   aRes.push_back(cMMCom("Drunk", Drunk_main,"Images distortion removing tool"));
+       aRes.push_back(cMMCom("Drunk", Drunk_main,"Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
 
@@ -252,7 +252,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Pasta",Pasta_main," Do some stuff"));
        aRes.push_back(cMMCom("PastDevlop",PastDevlop_main," Do some stuff"));
        aRes.push_back(cMMCom("Pastis",Pastis_main," Tie points detection"));
-	   aRes.push_back(cMMCom("Poisson",Poisson_main," Mesh Poisson reconstruction by M. Khazdan"));
+       aRes.push_back(cMMCom("Poisson",Poisson_main," Mesh Poisson reconstruction by M. Khazdan"));
        aRes.push_back(cMMCom("Porto",Porto_main," Generates a global ortho-photo"));
        aRes.push_back(cMMCom("Prep4masq",Prep4masq_main," Generates files for making Masks (if SaisieMasq unavailable)"));
        aRes.push_back(cMMCom("Reduc2MM",Reduc2MM_main," Do some stuff"));
@@ -265,7 +265,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
        aRes.push_back(cMMCom("StatIm",StatIm_main," Tool for basic stat on an image"));
        aRes.push_back(cMMCom("ConvertIm",ConvertIm_main," Tool for convertion inside tiff-format"));
-       aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a pannel of images ")); 
+       aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a pannel of images "));
        aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Tool for scaling internal representation of point cloud"));
        aRes.push_back(cMMCom("Sift",Sift_main," Tool for extracting points of interest using Lowe's SIFT method"));
        aRes.push_back(cMMCom("SysCoordPolyn",SysCoordPolyn_main," Tool for creating a polynomial coordinate system from a set of known pair of coordinate"));
@@ -278,7 +278,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("TestKey",TestSet_main," Test Keys for Sets and Assoc"));
        aRes.push_back(cMMCom("TestMTD",TestMTD_main," Test meta data of image"));
-	   aRes.push_back(cMMCom("TestCmds",TestCmds_main," Test MM3D commands on micmac_data sets"));
+       aRes.push_back(cMMCom("TestCmds",TestCmds_main," Test MM3D commands on micmac_data sets"));
 
        aRes.push_back(cMMCom("tiff_info",tiff_info_main," Tool for giving information about a tiff file"));
        aRes.push_back(cMMCom("to8Bits",to8Bits_main," Tool for converting 16 or 32 bit image in a 8 bit image."));
@@ -312,19 +312,19 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SaisiePts",SaisiePts_main,"Tool to capture GCP (low level, not recommanded)"));
        aRes.push_back(cMMCom("SEL",SEL_main,"Tool to visualise tie points"));
        aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main,"low level version of SEL, not recommanded"));
-	   
+
 #ifdef ETA_POLYGON
 
-	   //Etalonnage polygone
-	   aRes.push_back(cMMCom("Compens",Compens_main," Do some stuff"));
-	   aRes.push_back(cMMCom("CatImSaisie",CatImSaisie_main," Do some stuff"));
-	   aRes.push_back(cMMCom("CalibFinale",CalibFinale_main," Do some stuff"));
-	   aRes.push_back(cMMCom("CalibInit",CalibInit_main," Do some stuff"));
-	   aRes.push_back(cMMCom("ConvertPolygone",ConvertPolygone_main," Do some stuff"));
-	   aRes.push_back(cMMCom("PointeInitPolyg",PointeInitPolyg_main," Do some stuff"));
-	   aRes.push_back(cMMCom("RechCibleDRad",RechCibleDRad_main," Do some stuff"));
-	   aRes.push_back(cMMCom("RechCibleInit",RechCibleInit_main," Do some stuff"));
-	   aRes.push_back(cMMCom("ScriptCalib",ScriptCalib_main," Do some stuff"));
+       //Etalonnage polygone
+       aRes.push_back(cMMCom("Compens",Compens_main," Do some stuff"));
+       aRes.push_back(cMMCom("CatImSaisie",CatImSaisie_main," Do some stuff"));
+       aRes.push_back(cMMCom("CalibFinale",CalibFinale_main," Do some stuff"));
+       aRes.push_back(cMMCom("CalibInit",CalibInit_main," Do some stuff"));
+       aRes.push_back(cMMCom("ConvertPolygone",ConvertPolygone_main," Do some stuff"));
+       aRes.push_back(cMMCom("PointeInitPolyg",PointeInitPolyg_main," Do some stuff"));
+       aRes.push_back(cMMCom("RechCibleDRad",RechCibleDRad_main," Do some stuff"));
+       aRes.push_back(cMMCom("RechCibleInit",RechCibleInit_main," Do some stuff"));
+       aRes.push_back(cMMCom("ScriptCalib",ScriptCalib_main," Do some stuff"));
 
 #endif
 
@@ -417,7 +417,7 @@ int SampleLibElise_main(int argc,char ** argv)
     // std::cout << "TEST ELISE LIB\n";
 
     GenMain(argc,argv,TestLibAvailableCommands());
-    
+
 
     return 0;
 }
@@ -445,13 +445,13 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    }
 
    // MPD : deplace sinon core dump qd argc==1
-    // Pour l'analyse de la ligne de commande, on ne peut pas desactiver le bloquage de l'exe via l'option ExitOnBrkp
-    // puisque le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
+   // Pour l'analyse de la ligne de commande, on ne peut pas desactiver le bloquage de l'exe via l'option ExitOnBrkp
+   // puisque le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
    TheExitOnBrkp=true;
    MMD_InitArgcArgv( argc, argv );
-    // On reactive le blocage par defaut
+   // On reactive le blocage par defaut
    TheExitOnBrkp=false;
-    
+
    std::string aCom = argv[1];
    std::string aLowCom = current_program_subcommand();
 
@@ -495,18 +495,18 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
    for (unsigned int aKS=0 ; aKS<mSugg.size() ; aKS++)
    {
-      if (! mSugg[aKS]->mRes.empty())
-      {
+       if (! mSugg[aKS]->mRes.empty())
+       {
            std::cout << "Suggest by " << mSugg[aKS]->mName << "\n";
            for (unsigned int aKC=0 ; aKC<mSugg[aKS]->mRes.size() ; aKC++)
            {
-                std::cout << "    " << mSugg[aKS]->mRes[aKC].mName << "\n";
+               std::cout << "    " << mSugg[aKS]->mRes[aKC].mName << "\n";
            }
            delete PatMach;
            delete PrefMach;
            delete SubMach;
            return -1;
-      }
+       }
    }
 
 
@@ -539,7 +539,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -550,16 +550,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
