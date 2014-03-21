@@ -5,7 +5,7 @@
 
 #include "StdAfx.h"
 
-visual_MainWindow::visual_MainWindow(QWidget *parent) :
+visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent) :
     QMainWindow(parent)
 {
     gridLayoutWidget = new QWidget(this);
@@ -14,37 +14,78 @@ visual_MainWindow::visual_MainWindow(QWidget *parent) :
     gridLayout = new QGridLayout(gridLayoutWidget);
     gridLayoutWidget->setLayout(gridLayout);
 
-    //label = new QLabel(gridLayoutWidget);
-    //gridLayout->addWidget(label, 0, 0, 1, 1);
-    //label->setText("Saisie de la commande Tapas...");
-
-    //gridLayout->setRowStretch(0, 1);
-    //gridLayout->setRowStretch(4, 1);
-
-    //vecteur_Commentaires.push_back(new QLabel(gridLayoutWidget));
-    //gridLayout->addWidget(vecteur_Commentaires.back(), 1, 0, 1, 1);
-    //vecteur_Commentaires.back()->setText("Modèle de Calibration");
-
-    //Combo = new QComboBox(gridLayoutWidget);
-    //vecteur_val_enumerees.push_back(Combo);
-    //gridLayout->addWidget(Combo, 2,0,1,1);
-
-//    vecteur_Commentaires.push_back(new QLabel(gridLayoutWidget));
-//    gridLayout->addWidget(vecteur_Commentaires.back(), 3, 0, 1, 1);
-//    vecteur_Commentaires.back()->setText("Chemin des images");
-
-//    Sel_Fichiers = new QLineEdit(gridLayoutWidget);
-//    gridLayout->addWidget(Sel_Fichiers,4,0,1,1);
-
-//    Parcourir = new QPushButton(gridLayoutWidget);
-//    gridLayout->addWidget(Parcourir,4,1,1,1);
-//    Parcourir->setText("Parcourir");
-//    connect(Parcourir,SIGNAL(clicked()),this,SLOT(press_parcours()));
-
-
     runCommandButton = new QPushButton("Run command", gridLayoutWidget);
     gridLayout->addWidget(runCommandButton,5,1,1,1);
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
+
+    //list of all arguments
+    // aVAM: Mandatory args
+    // aVAO: Optional args
+
+    //std::cout << "---------- All arguments ----------" << std::endl;
+
+    for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
+    {
+        cMMSpecArg aArg = aVAM[aK];
+        //cout << "Mandatory arg " << aK << " ; Type is " << aArg.NameType();
+        std::string aComment = aArg.Comment();
+        create_comment(aComment,aK);
+        /*if (aComment != "")
+        {
+            std::cout << "   Comment=" << aCom << "\n";
+        }
+        else
+        {
+            std::cout<<"\n";
+        }*/
+
+        //Si le type est une string
+        if (aArg.NameType() == "string")
+        {
+            //On recupere les valeurs enumerees dans une liste
+            std::list<std::string> liste_valeur_enum = listPossibleValues(aArg);
+
+            if (!liste_valeur_enum.empty())
+            {
+                create_combo(aK,liste_valeur_enum);
+            }
+            else //Si c'est une chaine de caracteres normale
+            {
+                if (aArg.IsPatFile())
+                {
+                    create_select_images(aK);
+                }
+                else if (aArg.IsExistDirOri())
+                {
+                    create_select_orientation(aK);
+                }
+                else if (aArg.IsExistFile())
+                {
+                    //TODO
+                }
+            }
+        }
+        //Si le type est int
+        if (aArg.NameType() =="INT"||aArg.NameType() =="int")
+        {
+            create_champ_int(aK);
+        }
+    }
+
+    for (int aK=0 ; aK<int(aVAO.size()) ; aK++)
+    {
+        //std::cout <<  "Optional arg type is " <<aVAO[aK].NameArg()  << " ; "  << aVAO[aK].NameType();
+
+        /*std::string aComment = aVAO[aK].Comment();
+        if (aComment != "") std::cout << "Commentaire ["<< aK << "] = " << aComment  << "\n";*/
+
+        bool apat = aVAO[aK].IsExistFile();
+        if (apat) std::cout<< "opt arg is a file: " << apat << std::endl;
+
+        //ShowEnum(aVAO[aK]);
+    }
+
+    //std::cout<<"---------- End all arguments ----------"<<std::endl;
 }
 
 
@@ -61,65 +102,70 @@ visual_MainWindow::~visual_MainWindow()
 
 void visual_MainWindow::onRunCommandPressed()
 {
-    cout<<"-----------------"<<endl;
-    QString commande="mm3d "+QString(argv_recup.c_str())+" ";
+    cout<<"-----------------" << endl;
+
+    string aCom = MM3dBinFile(argv_recup) +" ";
     for (unsigned int i=0;i<inputs.size();i++)
     {
-        cout<<inputTypes[i]<<" "<<inputs[i]<<endl;
+        //cout<<"inputTypes: " << inputTypes[i] <<" "<<inputs[i]<<endl;
 
         switch(inputTypes[i])
         {
-            case lineedit:
+            case eLineEdit:
             {
-                commande += ((QLineEdit*)inputs[i])->text();
+                aCom += ((QLineEdit*)inputs[i])->text().toStdString();
                 break;
             }
-            case combobox:
+            case eComboBox:
             {
-                commande += ((QComboBox*)inputs[i])->currentText();
+                aCom += ((QComboBox*)inputs[i])->currentText().toStdString();
                 break;
             }
-            case integer:
+            case eInteger:
             {
-                commande += QString("%1").arg( ((QSpinBox*)inputs[i])->value());
+                int val = ((QSpinBox*)inputs[i])->value();
+                stringstream ss;
+                ss << val;
+                aCom +=  ss.str();
                 break;
             }
-
         }
-        commande += " ";
 
+        aCom += " ";
     }
 
-    cout<<commande.toStdString()<<endl;
+    cout << aCom << endl;
 
-    cout<<"-----------------"<<endl;
+    int aRes = ::System(aCom);
+
+    cout << "----------------- " << aRes << endl;
 }
 
 void visual_MainWindow::onSelectFilePressed(int aK)
 {
-    QString full_pattern=0;
+    string full_pattern;
     QStringList files = QFileDialog::getOpenFileNames(
                             gridLayoutWidget,
                             tr("Select images"),
                             "/home",
-                            "Images (*.png *.xpm *.jpg *.tif)");
+                            tr("Images (*.png *.xpm *.jpg *.tif)"));
 
     string aDir, aNameFile;
     SplitDirAndFile(aDir,aNameFile,files[0].toStdString());
 
-    QString fileList="("+QString(aNameFile.c_str());
+    string fileList="("+ aNameFile;
     for (int i=1;i<files.length();i++)
     {
         SplitDirAndFile(aDir,aNameFile,files[i].toStdString());
 
-        fileList.append("|" + QString(aNameFile.c_str()));
+        fileList.append("|" + aNameFile);
     }
-    fileList+=")";
-    full_pattern = QString(aDir.c_str())+fileList;
 
-    vImageFiles[aK]->setText(full_pattern);
+    fileList+=")";
+    full_pattern = QUOTE(aDir+fileList);
+
+    vImageFiles[aK]->setText(QString(full_pattern.c_str()));
     //cout<<full_pattern.toStdString()<<endl;
-    commande += " " + full_pattern;
 }
 
 void visual_MainWindow::add_combo_line(QString str)
@@ -133,7 +179,7 @@ void visual_MainWindow::create_combo(int aK, list<string> liste_valeur_enum )
     QComboBox* aCombo = new QComboBox(gridLayoutWidget);
     vEnumValues.push_back(aCombo);
     gridLayout->addWidget(aCombo,aK,1,1,1);
-    inputTypes.push_back(combobox);
+    inputTypes.push_back(eComboBox);
     inputs.push_back(aCombo);
 
     for (
@@ -151,7 +197,7 @@ void visual_MainWindow::create_select_images(int aK)
     vImageFiles.push_back(aLineEdit);
     gridLayout->addWidget(aLineEdit,aK,1,1,1);
     create_selectFile_button(aK);
-    inputTypes.push_back(lineedit);
+    inputTypes.push_back(eLineEdit);
     inputs.push_back(aLineEdit);
 }
 
@@ -161,21 +207,21 @@ void visual_MainWindow::create_select_orientation(int aK)
     vImageFiles.push_back(aLineEdit);
     gridLayout->addWidget(aLineEdit,aK,1,1,1);
     create_selectFile_button(aK);
-    inputTypes.push_back(lineedit);
+    inputTypes.push_back(eLineEdit);
     inputs.push_back(aLineEdit);
 }
 
 void visual_MainWindow::create_comment(string str_com, int aK)
 {
     QLabel * com = new QLabel(gridLayoutWidget);
-    vCommentaries.push_back(com);
+    vComments.push_back(com);
     gridLayout->addWidget(com,aK,0,1,1);
     com->setText(QString(str_com.c_str()));
 }
 
 void visual_MainWindow::create_selectFile_button(int aK)
 {
-    selectFile_Button = new imgListButton("Select images", gridLayoutWidget);
+    selectFile_Button = new imgListButton(tr("Select images"), gridLayoutWidget);
     gridLayout->addWidget(selectFile_Button,aK,3,1,1);
     connect(selectFile_Button,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
 }
@@ -183,9 +229,8 @@ void visual_MainWindow::create_selectFile_button(int aK)
 void visual_MainWindow::create_champ_int(int aK)
 {
     QSpinBox *aSpinBox = new QSpinBox(gridLayoutWidget);
-    //vImageFiles.push_back(aSpinBox);
     gridLayout->addWidget(aSpinBox,aK,1,1,1);
-    inputTypes.push_back(integer);
+    inputTypes.push_back(eInteger);
     inputs.push_back(aSpinBox);
 }
 

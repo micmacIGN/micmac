@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -61,7 +61,7 @@ Bascule ".*.jpg" RadialExtended R3.xml MesureIm=OutAligned.xml Teta=180
 
 struct cImFMasq
 {
-     
+
 };
 
 
@@ -103,18 +103,18 @@ int HomFilterMasq_main(int argc,char ** argv)
     bool AcceptNoMask;
     std::string aPostIn= "";
     std::string aPostOut= "MasqFiltered";
-    
+
 
 
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)" ),
-	LArgMain()  
+    argc,argv,
+    LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile),
+    LArgMain()
                     << EAM(PostPlan,"PostPlan",true,"Post to plan, Def : toto ->toto_Masq.tif like with SaisieMasq")
-                    << EAM(MasqGlob,"GlobalMasq",true,"Global Masq to add to all image")	
-                    << EAM(KeyCalcMasq,"KeyCalculMasq",true,"For tuning masq per image")	
-                    << EAM(KeyEquivNoMasq,"KeyEquivNoMasq",true,"When given if KENM(i1)==KENM(i2), don't masq")	
+                    << EAM(MasqGlob,"GlobalMasq",true,"Global Masq to add to all image")
+                    << EAM(KeyCalcMasq,"KeyCalculMasq",true,"For tuning masq per image")
+                    << EAM(KeyEquivNoMasq,"KeyEquivNoMasq",true,"When given if KENM(i1)==KENM(i2), don't masq")
                     << EAM(aResol,"Resol",true,"Sub Resolution for masq storing, Def=10")
                     << EAM(AcceptNoMask,"ANM",true,"Accept no mask, def = true if MasqGlob and false else")
                     << EAM(ExpTxt,"ExpTxt",true,"Ascii fomat for in and out, def=false")
@@ -122,9 +122,9 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFiltered")
 
     );
-	
+
     #if (ELISE_windows)
-		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
      #endif
     SplitDirAndFile(aDir,aPat,aFullDir);
     if (EAMIsInit(&PostPlan))
@@ -154,7 +154,7 @@ int HomFilterMasq_main(int argc,char ** argv)
         Pt2di aSzG = aTF.sz();
         Pt2di aSzR (round_ni(Pt2dr(aSzG)/aResol));
         Im2D_Bits<1> aImMasq(aSzR.x,aSzR.y,1);
-          
+
 
         std::string aNameMasq = StdPrefix(aNameIm)+PostPlan + ".tif";
         if (EAMIsInit(&KeyCalcMasq))
@@ -169,7 +169,7 @@ int HomFilterMasq_main(int argc,char ** argv)
         }
         else
         {
-             if (!AcceptNoMask) 
+             if (!AcceptNoMask)
              {
                  std::cout << "For Im " << aNameIm << " file " << aNameMasq << " does not exist\n";
                  ELISE_ASSERT(false,"Masq not found");
@@ -178,7 +178,7 @@ int HomFilterMasq_main(int argc,char ** argv)
 
         if (EAMIsInit(&MasqGlob))
         {
-             
+
             ELISE_COPY(aImMasq.all_pts(),aImMasq.in() && aImMasqGlob.in(0),aImMasq.out());
         }
 
@@ -244,9 +244,9 @@ int HomFilterMasq_main(int argc,char ** argv)
         }
     }
     // std::vector<cImFMasq *> mVIm;
-    
 
-   
+
+
    return 0;
 }
 
@@ -256,13 +256,13 @@ int HomFilterMasq_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -272,17 +272,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

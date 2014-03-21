@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -89,7 +89,7 @@ class cMemRes
 
 /*
 Parametre de Tapas :
-  
+
    - calibration In : en base de donnees ou deja existantes.
 
 
@@ -124,11 +124,11 @@ const char * Modele[NbModele] = {
                                    "RadialExtended",  // 1
                                    "Fraser",          // 2
                                    "FishEyeEqui",     // 3
-                                   "AutoCal",         // 4 
+                                   "AutoCal",         // 4
                                    "Figee",           // 5
-                                   "HemiEqui",        // 6 
-                                   "RadialStd",       // 7 
-                                   "FraserBasic",     // 8 
+                                   "HemiEqui",        // 6
+                                   "RadialStd",       // 7
+                                   "FraserBasic",     // 8
                                    "FishEyeBasic",    // 9
                                    "FE_EquiSolBasic"  // 10
                                 };
@@ -152,7 +152,7 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     std::string  aModParam = aMod;
 
 
-    if (aMod==Modele[0]) 
+    if (aMod==Modele[0])
     {
        eModAutom = "eCalibAutomRadialBasic";
     }
@@ -170,7 +170,7 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         aModParam  = Modele[3];
         if (aMod==Modele[6])
         {
-            if (PropDiag<0) 
+            if (PropDiag<0)
                PropDiag = 0.52;
         }
     }
@@ -185,7 +185,7 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     {
         eModAutom = "eCalibAutomNone";
     }
-    else if (aMod==Modele[8]) 
+    else if (aMod==Modele[8])
     {
         eModAutom = "eCalibAutomPhgrStdBasic";
         aModParam= Modele[2];
@@ -201,7 +201,7 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 
 int Tapas_main(int argc,char ** argv)
 {
-	NoInit = "#@LL?~~XXXXXXXXXX";
+    NoInit = "#@LL?~~XXXXXXXXXX";
 
     MMD_InitArgcArgv(argc,argv);
 
@@ -242,39 +242,38 @@ int Tapas_main(int argc,char ** argv)
 
     ElInitArgMain
     (
-	argc,argv,
+    argc,argv,
         LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
-                    << EAMC(aFullDir,"Full Directory (Dir+Pattern)"),
-	LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format(def=false)")	
-                    << EAM(AeroOut,"Out",true)	
-                    << EAM(CalibIn,"InCal",true,"Directory of Input Internal Orientation (Calibration)")	
-                    << EAM(AeroIn,"InOri",true,"Directory of Input External Orientation")	
-                    << EAM(DoC,"DoC",true,"Do Compensation")	
-                    << EAM(IsForCalib,"ForCalib",true)	
-                    << EAM(Focales,"Focs",true)	
-                    << EAM(aVitesseInit,"VitesseInit",true)	
-                    << EAM(aPPDec,"PPRel",true)	
-                    << EAM(aDecentre,"Decentre",true)	
-                    << EAM(PropDiag,"PropDiag",true)	
-                    << EAM(SauvAutom,"SauvAutom",true)	
-                    << EAM(ImInit,"ImInit",true)	
-                    << EAM(MOI,"MOI",true)	
-                    << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ")	
+                    << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
+    LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format(def=false)")
+                    << EAM(AeroOut,"Out",true, "Directory of Output Orientation")
+                    << EAM(CalibIn,"InCal",true,"Directory of Input Internal Orientation (Calibration)")
+                    << EAM(AeroIn,"InOri",true,"Directory of Input External Orientation")
+                    << EAM(DoC,"DoC",true,"Do Compensation")
+                    << EAM(IsForCalib,"ForCalib",true)
+                    << EAM(Focales,"Focs",true)
+                    << EAM(aVitesseInit,"VitesseInit",true)
+                    << EAM(aPPDec,"PPRel",true)
+                    << EAM(aDecentre,"Decentre",true)
+                    << EAM(PropDiag,"PropDiag",true)
+                    << EAM(SauvAutom,"SauvAutom",true)
+                    << EAM(ImInit,"ImInit",true)
+                    << EAM(MOI,"MOI",true)
+                    << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ")
                     << EAM(Debug,"Debug",true,"Partial file for debug")
-                    << EAM(LibAff,"LibAff",true)	
-                    << EAM(LibDec,"LibDec",true)	
-                    << EAM(aRapTxt,"RapTxt",true)	
-                    << EAM(TolLPPCD,"LinkPPaPPs",true)	
-                    << EAM(aPoseFigee,"FrozenPoses",true,"List of poses frozen")	
+                    << EAM(LibAff,"LibAff",true)
+                    << EAM(LibDec,"LibDec",true)
+                    << EAM(aRapTxt,"RapTxt",true)
+                    << EAM(TolLPPCD,"LinkPPaPPs",true)
+                    << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses")
     );
 
-
     if ((AeroIn!= NoInit)  && (CalibIn==NoInit))
-		CalibIn = AeroIn;
+        CalibIn = AeroIn;
 
-	#if (ELISE_windows)
-		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-	#endif
+    #if (ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    #endif
     SplitDirAndFile(aDir,aPat,aFullDir);
 
 
@@ -291,13 +290,13 @@ int Tapas_main(int argc,char ** argv)
     if (FEAutom && (SeuilFEAutom<0))
        SeuilFEAutom = 16.5;
 
-    if (IsForCalib<0) 
+    if (IsForCalib<0)
         IsForCalib=(CalibIn==NoInit); // A Changer avec cle de calib
 
     double TetaLVM = IsForCalib ? 0.01 : 0.15;
     double CentreLVM = IsForCalib ? 0.1 : 1.0;
     double RayFEInit = IsForCalib ? 0.85 : 0.95;
-     
+
 // std::cout << "IFCCCCC " << IsForCalib << " " << CentreLVM << " " << RayFEInit << "\n"; getchar();
 
     InitVerifModele(aModele,aICNM);
@@ -319,7 +318,7 @@ int Tapas_main(int argc,char ** argv)
                        //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")
                        + std::string(" +AeroOut=-") + AeroOut
                        + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
-                       + std::string(" +ModeleCam=") + eModAutom 
+                       + std::string(" +ModeleCam=") + eModAutom
                        + std::string(" +FileLibereParam=") + FileLibere
                        + std::string(" DoCompensation=") + ToString(DoC)
                        + std::string(" +SeuilFE=") + ToString(SeuilFEAutom)
@@ -416,7 +415,7 @@ int Tapas_main(int argc,char ** argv)
 
         for (int aTest=0 ; aTest < 1000000 ; aTest++)
         {
-           
+
            // int aValInit = (aTest % 17);
            // int aSzMax = 29;
            // aMR1.Init(aSzMax,aValInit);
@@ -442,7 +441,7 @@ int Tapas_main(int argc,char ** argv)
    Tapas_Banniere();
    BanniereMM3D();
 
-   
+
    return aRes;
 }
 
@@ -452,13 +451,13 @@ int Tapas_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -468,17 +467,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

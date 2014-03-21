@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /*
 Parametre de Tapas :
-  
+
    - calibration In : en base de donnees ou deja existantes.
 
 
@@ -77,7 +77,7 @@ class cAppli_HomCorOri
 
          Pt2dr Im1ToIm2(const Pt2di aP);
          Pt2dr RRIm1ToIm2(const Pt2di aP);
-         
+
 
          std::string mDir;
          cInterfChantierNameManipulateur * mICNM;
@@ -93,7 +93,7 @@ class cAppli_HomCorOri
          double mDynVisu;
 
          cElNuage3DMaille * mNuage;
-         Pt2dr              mVPxT;;
+         Pt2dr              mVPxT;
          CamStenope       * mCS2;
          Im2D_REAL4        mImCorrel;
          Im2D_REAL4        mImProf;
@@ -193,11 +193,11 @@ double cAppli_HomCorOri::ScorePts(const Pt2di & aP)
              double aEPr = ElAbs(aProf-mTProf.get(aQ));
              double aEPax = ElAbs(aPax-mTPx.get(aQ)) * 10;
 
-             aRes += PdsErr(aEPr) * PdsErr(aEPax); 
+             aRes += PdsErr(aEPr) * PdsErr(aEPax);
         }
     }
-    
-   
+
+
     return aRes / ( 2*aLarge);
 }
 
@@ -314,7 +314,7 @@ void cAppli_HomCorOri::SauvPack()
 }
 
 
-void cAppli_HomCorOri::ComputeOrtho() 
+void cAppli_HomCorOri::ComputeOrtho()
 {
     ELISE_COPY(mIm2.all_pts(),-1,mIm2.out());
 
@@ -325,7 +325,7 @@ void cAppli_HomCorOri::ComputeOrtho()
     TIm2D<float,double> aTIm2Ori(mIm2Ori);
     TIm2D<float,double> aTImC(mImCorrel);
 
-    
+
 
 
     Pt2di aP;
@@ -356,7 +356,7 @@ void cAppli_HomCorOri::ComputeOrtho()
 
 
 /*
-    ELISE_COPY 
+    ELISE_COPY
     (
          mIm2.all_pts(),
          Min(255,Virgule(mIm2.in(),mIm1.in(),mIm1.in())/mDynVisu),
@@ -474,7 +474,7 @@ void cAppli_HomCorOri::DoMatch()
 
    aCom =   MMBinFile(MM3DStr)
           + std::string(" ScaleNuage ")
-          + mDirMatch + "NuageImProf_Geom-Im_Etape_"+ ToString(mNumFinal) + ".xml " 
+          + mDirMatch + "NuageImProf_Geom-Im_Etape_"+ ToString(mNumFinal) + ".xml "
           +  " Scaled "
           + ToString(mDownSize);
 
@@ -501,15 +501,15 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     mMatch     (false)
 {
     MMD_InitArgcArgv(argc,argv);
-    
+
 
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(mNameIm1,"First Image")
-                    << EAMC(mNameIm2,"Second Images")
-                    << EAMC(mOri,"Orientation"),
-	LArgMain()  << EAM(mMatch,"Match",true,"Do matching, def = true")	
+    argc,argv,
+    LArgMain()  << EAMC(mNameIm1,"First Image", eSAM_IsExistFile)
+                    << EAMC(mNameIm2,"Second Image", eSAM_IsExistFile)
+                    << EAMC(mOri,"Orientation", eSAM_IsExistFile),
+    LArgMain()  << EAM(mMatch,"Match",true,"Do matching, def = true")
                     << EAM(mZoomFinal,"ZoomF","Zoom Final")
     );
 
@@ -520,7 +520,7 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     {
         mNumFinal = 10;
     }
-    else 
+    else
     {
     }
     mNumCorrel = mNumFinal-1;
@@ -531,12 +531,12 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     mDirMatch = mDir + "CalibEPi" + mNameIm1 + "-" + mNameIm2 + "/";
 
-    mNameHom12 = 
-             mICNM->Dir() 
+    mNameHom12 =
+             mICNM->Dir()
            + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-DenseM@dat",mNameIm1,mNameIm2,true);
 
-    mNameHom21 = 
-             mICNM->Dir() 
+    mNameHom21 =
+             mICNM->Dir()
            + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@-DenseM@dat",mNameIm2,mNameIm1,true);
 }
 
@@ -554,7 +554,7 @@ int MMHomCorOri_main(int argc,char ** argv)
        anAppli.SauvPack();
 
        BanniereMM3D();
-   } 
+   }
 
    return 0;
 }
@@ -563,13 +563,13 @@ int MMHomCorOri_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -579,17 +579,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

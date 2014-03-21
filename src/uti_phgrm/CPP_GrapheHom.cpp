@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -67,7 +67,7 @@ class cSom
 class cGraphHom
 {
     public :
-        
+
         friend class cSom;
 
         cGraphHom(int argc,char ** argv);
@@ -79,7 +79,7 @@ class cGraphHom
         std::string mPat;
         std::string mKeyFile;
         cInterfChantierNameManipulateur * mICNM;
-        
+
         std::string mOut;
         std::string mTagC;
         std::string mTagOri;
@@ -105,7 +105,7 @@ bool cSom::HasInter(const cSom & aS2) const
          const cElPolygone &  aPol1= mCam->EmpriseSol();
          const cElPolygone &  aPol2= aS2.mCam->EmpriseSol();
          const cElPolygone &  aInter = aPol1 * aPol2;
-          
+
          if (aInter.Surf() <= 0) return false;
 
     }
@@ -127,13 +127,13 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
       mSym       (true)
 {
     int mVitAff = 10;
-      
+
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(mDir,"Directory")
-                    << EAMC(mPat,"Pat of images") 
-                    << EAMC(mKeyFile,"Key for orientation,"),
+    argc,argv,
+    LArgMain()  << EAMC(mDir,"Directory", eSAM_IsDir)
+                    << EAMC(mPat,"Pat of images", eSAM_IsPatFile)
+                    << EAMC(mKeyFile,"Key for orientation,", eSAM_None),
         LArgMain()  << EAM(mTagC,"TagC",true)
                     << EAM(mTagOri,"TagOri",true)
                     << EAM(mAltiSol,"AltiSol",true)
@@ -142,7 +142,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
                     << EAM(mTerr,"Terr",true)
                     << EAM(mSym,"Sym",true)
                     << EAM(mOut,"Out",true)
-        
+
     );
     ELISE_ASSERT(mRab>=0,"Rab <0");
 
@@ -163,7 +163,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
     double aSomDiam = 0;
     int aCpt = 0;
 
-    for 
+    for
     (
          std::list<std::string>::const_iterator itS=mLFile.begin();
          itS!=mLFile.end();
@@ -190,7 +190,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
                                      );
 
          ElCamera * aCam = 0;
-         if (aCO) 
+         if (aCO)
          {
             if (!mTerr)
             {
@@ -206,7 +206,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
 
             aCam = Cam_Gen_From_XML(*aCO,mICNM);
 
-            if (! mTerr) 
+            if (! mTerr)
             {
                 double aDiam = aCam->EmpriseSol().DiamSimple();
                 aNbDiam ++;
@@ -216,7 +216,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
 
 
          mVC.push_back(new cSom(*this,*itS,aCam,aC));
-         if ((aCpt %mVitAff) == (mVitAff-1)) 
+         if ((aCpt %mVitAff) == (mVitAff-1))
          {
             std::cout << "Load  : remain " << (mNbSom-aCpt) << " to do\n";
          }
@@ -246,7 +246,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
              // bool  HasI = mVC[aK1]->HasInter(*(mVC[aK2]));
              // std::cout << HasI  << " " << mVC[aK1]->mName << " " <<  mVC[aK2]->mName  << "\n";
         }
-        if ((aK1 %mVitAff) == (mVitAff-1)) 
+        if ((aK1 %mVitAff) == (mVitAff-1))
         {
             std::cout << "Graphe : remain " << (mNbSom-aK1) << " to do\n";
         }
@@ -275,13 +275,13 @@ int GrapheHom_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -291,17 +291,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

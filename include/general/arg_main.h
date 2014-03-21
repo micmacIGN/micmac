@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -36,29 +36,29 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/*eLiSe06/05/99  
- 
+/*eLiSe06/05/99
+
      Copyright (C) 1999 Marc PIERROT DESEILLIGNY
-	  
-	    eLiSe : Elements of a Linux Image Software Environment
-		 
-		This program is free software; you can redistribute it and/or modify
-		it under the terms of the GNU General Public License as published by
-		the Free Software Foundation; either version 2 of the License, or
-		(at your option) any later version.
-		 
-		This program is distributed in the hope that it will be useful,
-		but WITHOUT ANY WARRANTY; without even the implied warranty of
-		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		GNU General Public License for more details.
-		 
-		You should have received a copy of the GNU General Public License
-		along with this program; if not, write to the Free Software
-		Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-		 
-		  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS
-		  Internet: Marc.Pierrot-Deseilligny@ign.fr
-		     Phone: (33) 01 43 98 81 28              
+
+        eLiSe : Elements of a Linux Image Software Environment
+
+        This program is free software; you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation; either version 2 of the License, or
+        (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
+
+        You should have received a copy of the GNU General Public License
+        along with this program; if not, write to the Free Software
+        Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+          Author: Marc PIERROT DESEILLIGNY    IGN/MATIS
+          Internet: Marc.Pierrot-Deseilligny@ign.fr
+             Phone: (33) 01 43 98 81 28
 */
 
 #ifndef _ELISE_GENERAL_ARG_MAIN_H
@@ -66,7 +66,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if ElMemberTpl
 
-//#include <strstream>    
+//#include <strstream>
 
 class cMMSpecArg;
 
@@ -83,13 +83,13 @@ void AddMinuToArgs(std::string & aCom,int  argc,char** argv);
 
 class ElGramArgMain  // classe contenant la "grammaire" rudimenataire
 {
-	public :
-		ElGramArgMain(char,int,char,bool aAnyEqual); 
+    public :
+        ElGramArgMain(char,int,char,bool aAnyEqual);
 
 
-		const char  mCharEq;
-		const int   mCharBeginTab;
-		const char  mCharEndTab;
+        const char  mCharEq;
+        const int   mCharBeginTab;
+        const char  mCharEndTab;
                 bool  AnyEqual() const;
 
                 static  const ElGramArgMain  StdGram;
@@ -98,18 +98,18 @@ class ElGramArgMain  // classe contenant la "grammaire" rudimenataire
                 static  const ElGramArgMain  HDRGram;
         private :
                 bool        mAnyEqual;
-};                
+};
 
 
 
 template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & obj,const ElGramArgMain &)
 {
-	return is >> obj;
+    return is >> obj;
 }
 
 inline std::istream &  ElStdRead(std::istream &is,std::string &obj, const ElGramArgMain &)
 {
-	return is >> obj;
+    return is >> obj;
 }
 
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
@@ -128,31 +128,31 @@ template <class Type>  std::istream & operator >> (std::istream &is,ElSTDNS vect
 
 template <class Type>  inline std::istream & VElStdRead (std::istream &is,ElSTDNS vector<Type> & vec, const ElGramArgMain & Gram)
 {
-	vec.clear();
+    vec.clear();
 
-	if (Gram.mCharBeginTab != -1)
-	{
+    if (Gram.mCharBeginTab != -1)
+    {
        if (is.get() != Gram.mCharBeginTab)
-	      ELISE_ASSERT(false,"istream >> vector<Type>");
-	}
+          ELISE_ASSERT(false,"istream >> vector<Type>");
+    }
 
     int c;
-	while ((c = is.get()) !=   Gram.mCharEndTab)
-	{
-	    ELISE_ASSERT (c!=-1,"Unexpected End Of String in ElStdRead(vector<Type> &)");
-		if (c!=',')
-		   is.unget();        
-		Type v;
-		is >> v;
-		vec.push_back(v);
-	}
-	return is;
+    while ((c = is.get()) !=   Gram.mCharEndTab)
+    {
+        ELISE_ASSERT (c!=-1,"Unexpected End Of String in ElStdRead(vector<Type> &)");
+        if (c!=',')
+           is.unget();
+        Type v;
+        is >> v;
+        vec.push_back(v);
+    }
+    return is;
 }
 
 #define SPECIALIZE_ElStdRead(aTYPE)\
 template <> inline std::istream & ElStdRead (std::istream &is, ElSTDNS vector < aTYPE > & vec, const ElGramArgMain & G)\
 {\
-	return VElStdRead(is,vec,G);\
+    return VElStdRead(is,vec,G);\
 }
 
 SPECIALIZE_ElStdRead (INT)
@@ -161,7 +161,7 @@ SPECIALIZE_ElStdRead (REAL)
 SPECIALIZE_ElStdRead (Pt2dr)
 
 
-std::istream & VStrElStdRead 
+std::istream & VStrElStdRead
                       (
                               std::istream &is,
                               ElSTDNS vector<std::string> & vec,
@@ -169,10 +169,10 @@ std::istream & VStrElStdRead
                       );
 
 
-template <> inline std::istream & ElStdRead 
+template <> inline std::istream & ElStdRead
                                   (
-                                        std::istream &is, 
-                                        ElSTDNS vector <std::string > & vec, 
+                                        std::istream &is,
+                                        ElSTDNS vector <std::string > & vec,
                                         const ElGramArgMain & G
                                   )
 {
@@ -181,50 +181,53 @@ template <> inline std::istream & ElStdRead
 
 template <class Type> std::ostream & operator << (std::ostream &os,const ElSTDNS vector<Type> & v)
 {
-	os << "[";
-	for (INT k=0; k<(INT)v.size(); k++)
-	{
-		if (k!=0) os<< ",";
-		os << v[k];
-	}
-	os << "]";
-	return os;
+    os << "[";
+    for (INT k=0; k<(INT)v.size(); k++)
+    {
+        if (k!=0) os<< ",";
+        os << v[k];
+    }
+    os << "]";
+    return os;
 }
 
 
 typedef enum
 {
-      eSAM_None,
-      eSAM_IsPatFile,
-      eSAM_IsExistDirOri,
-      eSAM_IsExistFile
+    eSAM_None,
+    eSAM_IsDir,
+    eSAM_IsPatFile,
+    eSAM_IsExistDirOri,
+    eSAM_IsOutputDirOri,
+    eSAM_IsExistFile,
+    eSAM_IsOutputFile
 } eSpecArgMain;
 
 class GenElArgMain
 {
-	public :
-		virtual ~GenElArgMain()  {};
-	        GenElArgMain
+    public :
+        virtual ~GenElArgMain()  {};
+            GenElArgMain
                 (
                       const char * Name,
                       bool ISINIT,
                       eSpecArgMain aSpec,
                       const std::list<std::string> & aLEnumVal
                 ) ;
-		virtual GenElArgMain * dup() const = 0;
+        virtual GenElArgMain * dup() const = 0;
 
-		virtual void InitEAM(const ElSTDNS string &s,const ElGramArgMain &) const = 0;
-		bool InitIfMatchEq(const ElSTDNS string &s,const ElGramArgMain & Gram) const;
+        virtual void InitEAM(const ElSTDNS string &s,const ElGramArgMain &) const = 0;
+        bool InitIfMatchEq(const ElSTDNS string &s,const ElGramArgMain & Gram) const;
 
-		bool IsInit() const;
-		const char *name() const;
+        bool IsInit() const;
+        const char *name() const;
 
                 virtual void show(bool named) const =0;
 
           // Ensemble de patch pour rajouter des argument inutilise a la volee
-		bool IsActif() const;
+        bool IsActif() const;
 
-		static const char * ActifStr(bool);
+        static const char * ActifStr(bool);
 
                 virtual std::string NameType() const =0;
                 virtual std::string Comment() const =0;
@@ -234,8 +237,8 @@ class GenElArgMain
                 static const std::string  theChaineInactif;
                 static const std::string  theChaineActif;
 
-		ElSTDNS string	_name;
-		mutable bool	_is_init;
+        ElSTDNS string	_name;
+        mutable bool	_is_init;
                 eSpecArgMain    mSpec;
                 std::list<std::string>  mLEnum;
 };
@@ -252,20 +255,20 @@ std::list<std::string> ModifListe(const std::list<std::string> &,const char * aN
 
 template <class Type> class ElArgMain : public GenElArgMain
 {
-	public :
+    public :
                 std::string NameType() const {return  str_type(_adr);}
                 std::string Comment() const {return  mCom;}
 
-		void InitEAM(const ElSTDNS string &s,const ElGramArgMain & Gram) const
-		{
+        void InitEAM(const ElSTDNS string &s,const ElGramArgMain & Gram) const
+        {
                         AllAddrEAM.insert( (void *) _adr);
-			_is_init = true;
-			std::STD_INPUT_STRING_STREAM Is(s.c_str());
-			// Is >> *_adr;
-			::ElStdRead(Is,*_adr,Gram);
-		}
+            _is_init = true;
+            std::STD_INPUT_STRING_STREAM Is(s.c_str());
+            // Is >> *_adr;
+            ::ElStdRead(Is,*_adr,Gram);
+        }
 
-	     ElArgMain
+         ElArgMain
              (
                    Type & v,
                    const char * Name,
@@ -273,26 +276,26 @@ template <class Type> class ElArgMain : public GenElArgMain
                    const std::string & aCom = "",
                    eSpecArgMain        aSpec =  eSAM_None,
                    const std::list<std::string> & aLEnumVal = TheEmptyListEnum
-                   
+
              ) :
-			GenElArgMain(Name,isInit,aSpec,ModifListe(aLEnumVal,str_type((Type*)0))),
-			_adr   (&v),
+            GenElArgMain(Name,isInit,aSpec,ModifListe(aLEnumVal,str_type((Type*)0))),
+            _adr   (&v),
                         mCom   (aCom)
          {
          }
 
-		GenElArgMain * dup() const 
-		{
-			return new ElArgMain<Type> (*this);
-		}
+        GenElArgMain * dup() const
+        {
+            return new ElArgMain<Type> (*this);
+        }
                 void show(bool named) const
                 {
                     std::cout << "  * ";
                     if (named)
                        std::cout << "[Name=" << name() <<"] " ;
-                       
+
                     std::cout << str_type(_adr);
-                    if (mCom != "") 
+                    if (mCom != "")
                        std::cout << " :: {" << mCom  <<"}" ;
                     std::cout <<"\n";
                 }
@@ -300,9 +303,9 @@ template <class Type> class ElArgMain : public GenElArgMain
 
              static const ElSTDNS list<Type>  theEmptyLvalADM;
 
-	private :
+    private :
 
-		Type * 	    _adr;
+        Type * 	    _adr;
                 std::string  mCom;
 
 };
@@ -321,7 +324,7 @@ template <> inline void ElArgMain<std::string>::InitEAM(const ElSTDNS string &s,
 */
 
 
-template <class Type> ElArgMain<Type> 
+template <class Type> ElArgMain<Type>
                      EAM
                      (
                             Type & v,
@@ -332,9 +335,9 @@ template <class Type> ElArgMain<Type>
                             const std::list<std::string> & aLEnumVal = TheEmptyListEnum
                      )
 {
-		return ElArgMain<Type>(v,Name,isInit,aComment,aSpec,aLEnumVal);
+        return ElArgMain<Type>(v,Name,isInit,aComment,aSpec,aLEnumVal);
 }
-template <class Type> ElArgMain<Type> 
+template <class Type> ElArgMain<Type>
                      EAMC
                      (
                             Type & v,
@@ -344,29 +347,29 @@ template <class Type> ElArgMain<Type>
                      )
 {
                 AllAddrEAM.insert( (void *) &v);
-		return ElArgMain<Type>(v,"",false,aComment,aSpec,aLEnumVal);
+        return ElArgMain<Type>(v,"",false,aComment,aSpec,aLEnumVal);
 }
 
 
 
 class LArgMain
 {
-	public :
+    public :
 
                 std::vector<cMMSpecArg>  ExportMMSpec() const;
-		
-		template <class Type> LArgMain & operator << (const ElArgMain<Type> & v)
-		{
-		        if (v.IsActif())
-			   _larg.push_back(v.dup());
-			return * this;
-		}
-		~LArgMain();
+
+        template <class Type> LArgMain & operator << (const ElArgMain<Type> & v)
+        {
+                if (v.IsActif())
+               _larg.push_back(v.dup());
+            return * this;
+        }
+        ~LArgMain();
 
                 int Size() const;
 
 
-		INT  Init(int argc,char ** argv) const;
+        INT  Init(int argc,char ** argv) const;
                 void  InitIfMatchEq
                       (
                           std::vector<char *> *,  // Si !=0, empile les args non consommes
@@ -376,21 +379,21 @@ class LArgMain
 
         void show(bool named) const;
 
-		LArgMain();
-		void VerifInitialize() const;
+        LArgMain();
+        void VerifInitialize() const;
 
-		bool OneInitIfMatchEq
+        bool OneInitIfMatchEq
                      (
                           char *,
                           const ElGramArgMain & Gram,
                           bool  anAcceptUnknown
                      ) const;
-	private :
-		ElSTDNS list<GenElArgMain *> _larg;
+    private :
+        ElSTDNS list<GenElArgMain *> _larg;
                 // Apparemment certains compilos
                 // utilisent la copie en temporaire;
-		//      LArgMain(const LArgMain &); 
-		// void operator = (const LArgMain &);
+        //      LArgMain(const LArgMain &);
+        // void operator = (const LArgMain &);
 };
 
 
@@ -400,7 +403,7 @@ class LArgMain
 // Renvoie eventuellement la partie non consommee
 #define EIAM_VerifInit true
 #define EIAM_AccUnK false
-#define EIAM_NbArgGlobGlob -1 
+#define EIAM_NbArgGlobGlob -1
 
 // Var glob, rajoutee pour indiquer que MICMAC est en mode visuel
 // initialisee dasn GenMain, utilisee dans ElInitArgMain
@@ -414,21 +417,21 @@ void MMRunVisualMode
      );
 
 std::vector<char *>   	ElInitArgMain
-		(
-			int argc,char ** argv,
-			const LArgMain & ,
-			const LArgMain & ,
+        (
+            int argc,char ** argv,
+            const LArgMain & ,
+            const LArgMain & ,
                         bool  VerifInit=EIAM_VerifInit,
                         bool  AccUnK=EIAM_AccUnK,
-			int   aNbArgGlobGlob = EIAM_NbArgGlobGlob
-		);
+            int   aNbArgGlobGlob = EIAM_NbArgGlobGlob
+        );
 
 void  	ElInitArgMain
-		(
-			const std::string &,
-			const LArgMain & ,
-			const LArgMain & 
-		);
+        (
+            const std::string &,
+            const LArgMain & ,
+            const LArgMain &
+        );
 
 
 void SphInitArgs(const ElSTDNS string & NameFile,const LArgMain &);
@@ -610,18 +613,18 @@ int GrapheHom_main(int argc,char ** argv);
     int SEL_main(int argc,char ** argv);
     int MICMACSaisieLiaisons_main(int argc,char ** argv);
 
-	#ifdef ETA_POLYGON
-		// Etalonnage polygone
-		int Compens_main(int argc,char ** argv);
-		int CatImSaisie_main(int argc,char ** argv);
-		int CalibFinale_main(int argc,char ** argv);
-		int CalibInit_main(int argc,char ** argv);
-		int ConvertPolygone_main(int argc,char ** argv);
-		int PointeInitPolyg_main(int argc,char ** argv);
-		int RechCibleDRad_main(int argc,char ** argv);
-		int RechCibleInit_main(int argc,char ** argv);
-		int ScriptCalib_main(int argc,char ** argv);
-	#endif
+    #ifdef ETA_POLYGON
+        // Etalonnage polygone
+        int Compens_main(int argc,char ** argv);
+        int CatImSaisie_main(int argc,char ** argv);
+        int CalibFinale_main(int argc,char ** argv);
+        int CalibInit_main(int argc,char ** argv);
+        int ConvertPolygone_main(int argc,char ** argv);
+        int PointeInitPolyg_main(int argc,char ** argv);
+        int RechCibleDRad_main(int argc,char ** argv);
+        int RechCibleInit_main(int argc,char ** argv);
+        int ScriptCalib_main(int argc,char ** argv);
+    #endif
 
 #endif
 
@@ -641,13 +644,13 @@ int GrapheHom_main(int argc,char ** argv);
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -657,17 +660,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

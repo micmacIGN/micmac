@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -63,32 +63,32 @@ int Tawny_main(int argc,char ** argv)
     bool  DoL1Filter=true;
 
     double  aSatThresh = 1e9;
-	string aNameOut="Ortho-Eg-Test-Redr.tif";
+    string aNameOut="Ortho-Eg-Test-Redr.tif";
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()   << EAMC(aDir,"Directory where are the datas" ),
-	LArgMain()   << EAM(mDeq,"DEq",true,"Degre of equalization (Def=1)")
-	             << EAM(mDeqXY,"DEqXY",true,"Degre of equalization, if diff in X and Y")
-	             << EAM(mAddCste,"AddCste",true,"Add unknown constant for equalization (Def=false)")
-	             << EAM(mDegRap,"DegRap",true,"Degre of rappel to initial values, Def = 0")
-	             << EAM(mDegRapXY,"DegRapXY",true,"Degre of rappel to initial values, Def = 0")
-	             << EAM(mRapGlobPhys,"RGP",true,"Rappel glob on physycally equalized, Def = true")
-	             << EAM(mDynGlob,"DynG",true,"Global Dynamic (to correcyt saturation problems)")
-	             << EAM(mImPrio0,"ImPrio",true,"Pattern of image with high prio, def=.*")
-	             << EAM(mSzV,"SzV",true,"Sz of Window for equalisation (Def=1, means 3x3)")
-	             << EAM(mCorrThresh,"CorThr",true,"Threshold of correlation to validate homologous (Def 0.7)")
-	             << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
-	             << EAM(DoL1Filter,"L1F",true,"Do L1 Filter on couple, def=true (change when process is blocked)")
-                 << EAM(aSatThresh,"SatThresh",true,"Threshold detemining saturation value (pixel >SatThresh will be ignored)")
-				 << EAM(aNameOut,"Out",true,"Name of output file (in the folder)") 
+    argc,argv,
+    LArgMain()   << EAMC(aDir,"Directory where are the data", eSAM_IsDir),
+    LArgMain()   << EAM(mDeq,"DEq",true,"Degre of equalization (Def=1)")
+                 << EAM(mDeqXY,"DEqXY",true,"Degre of equalization, if diff in X and Y")
+                 << EAM(mAddCste,"AddCste",true,"Add unknown constant for equalization (Def=false)")
+                 << EAM(mDegRap,"DegRap",true,"Degre of rappel to initial values, Def = 0")
+                 << EAM(mDegRapXY,"DegRapXY",true,"Degre of rappel to initial values, Def = 0")
+                 << EAM(mRapGlobPhys,"RGP",true,"Rappel glob on physycally equalized, Def = true")
+                 << EAM(mDynGlob,"DynG",true,"Global Dynamic (to correct saturation problems)")
+                 << EAM(mImPrio0,"ImPrio",true,"Pattern of image with high prio, def=.*")
+                 << EAM(mSzV,"SzV",true,"Sz of Window for equalisation (Def=1, means 3x3)")
+                 << EAM(mCorrThresh,"CorThr",true,"Threshold of correlation to validate homologous (Def 0.7)")
+                 << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
+                 << EAM(DoL1Filter,"L1F",true,"Do L1 Filter on couple, def=true (change when process is blocked)")
+                 << EAM(aSatThresh,"SatThresh",true,"Threshold determining saturation value (pixel >SatThresh will be ignored)")
+                 << EAM(aNameOut,"Out",true,"Name of output file (in the folder)")
     );
 
-	#if (ELISE_windows)
-		replace( aDir.begin(), aDir.end(), '\\', '/' );
-	#endif
+    #if (ELISE_windows)
+        replace( aDir.begin(), aDir.end(), '\\', '/' );
+    #endif
 
-    if (! EAMIsInit(&mDeqXY)) 
+    if (! EAMIsInit(&mDeqXY))
        mDeqXY = Pt2di(mDeq,mDeq);
 
     if (! EAMIsInit(&mDegRapXY))
@@ -109,9 +109,9 @@ int Tawny_main(int argc,char ** argv)
                         + std::string(" +DegRapY=") + ToString(mDegRapXY.y)
                         + std::string(" +RapGlobPhys=") + ToString(mRapGlobPhys)
                         + std::string(" +DynGlob=") + ToString(mDynGlob)
-						+ std::string(" +NameOrtho=") + aNameOut
+                        + std::string(" +NameOrtho=") + aNameOut
                       ;
-	
+
     if (mImPrio0!="") aCom = aCom+ " +ImPrio="+QUOTE(mImPrio0);
     if (EAMIsInit(&mSzV)) aCom  = aCom + " +SzV=" + ToString(mSzV);
     if (EAMIsInit(&mNbPerIm)) aCom  = aCom + " +NbPerIm=" + ToString(mNbPerIm);
@@ -132,13 +132,13 @@ int Tawny_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -148,17 +148,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

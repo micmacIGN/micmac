@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -93,7 +93,7 @@ void AutoCorrel(const std::string & aName)
    {
       aF = Min(aF,Correl(anI.in(0),trans(anI.in(0),TAB_4_NEIGH[aK])*(aNb*2),aNb));
    }
-  
+
    Tiff_Im::Create8BFromFonc
    (
        StdPrefix(aName)+"_AutoCor.tif",
@@ -197,7 +197,7 @@ void Test_Arrondi_LG()
          Pt2dr aP0 = Pt2dr(10,10) + Pt2dr(NRrandom3(),NRrandom3()) *50.123456701765;
          double aV0 = aTIm.getr(aP0);
          double aV1 = Reechantillonnage::biline(anIm.data(),aSz.x,aSz.y,aP0);
-         
+
          std::cout << " TEST " << (aV0-aVTest) * 1e50 << " " << (aV1-aVTest) * 1e50  << " " << aP0 << "\n";
          getchar();
     }
@@ -230,7 +230,7 @@ void PbHom(const std::string & anOri)
     Pt2dr aProj1 = aCS1->R3toF2(aTer1);
 
     std::cout << "P & Proj Init1" << aP1 << aProj1 << " " << euclid(aP1-aProj1) << "\n";
-    
+
 
     Pt3dr aTer2  = aCS2->ImEtProf2Terrain(aP2,1.0);
     Pt2dr aProj2 = aCS2->R3toF2(aTer2);
@@ -245,7 +245,7 @@ void PbHom(const std::string & anOri)
     aProj2 = aCS2->R3toF2(aTerInter);
 
     std::cout << "Proj Inter " << aDist << " " << (aP1-aProj1) << " " << (aP2-aProj2) << "\n";
-    
+
 
 
     std::cout << "\n";
@@ -287,10 +287,10 @@ int MPDtest_main (int argc,char** argv)
    ElInitArgMain
    (
         argc,argv,
-        LArgMain()  << EAMC(aNameTifIn,"Tiff In")
-                    << EAMC(aNameTifOut,"Tiff Out")
-                    << EAMC(aNameCamIn,"Camera In")
-                    << EAMC(aNameCamOut,"Camera Out")
+        LArgMain()  << EAMC(aNameTifIn,"Tiff In", eSAM_IsExistFile)
+                    << EAMC(aNameTifOut,"Tiff Out", eSAM_IsOutputFile)
+                    << EAMC(aNameCamIn,"Camera In", eSAM_IsExistFile)
+                    << EAMC(aNameCamOut,"Camera Out", eSAM_IsOutputFile)
                     << EAMC(aBoxOut,"Box out"),
         LArgMain()  << EAM(toto,"toto",true,"toto")
    );
@@ -361,8 +361,8 @@ int MPDtest_main (int argc,char** argv)
 
    std::cout << "DIF = " << aDif << "\n";
 
-    
- 
+
+
    return 0;
 
     return EXIT_SUCCESS;
@@ -378,7 +378,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -389,16 +389,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
