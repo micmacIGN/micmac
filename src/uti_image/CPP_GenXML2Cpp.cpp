@@ -60,9 +60,6 @@ int GenXML2Cpp_main(int argc,char ** argv)
         ELISE_ASSERT(argc==4,"Nb Arg in GenXML2Cpp");
         XML_StdStringify(argv[1]);
         cElXMLTree aTreeSpec(argv[1]);
-			#ifdef __XML2CPP_FIX_ENUM
-				fix_enum_references( aTreeSpec );
-			#endif
         aTreeSpec.GenCppGlob(argv[3],"");
 
    }
@@ -70,9 +67,6 @@ int GenXML2Cpp_main(int argc,char ** argv)
    {
         ELISE_ASSERT(argc==4,"Nb Arg in GenXML2Cpp");
         cElXMLTree aTreeSpec(argv[1]);
-			#ifdef __XML2CPP_FIX_ENUM
-				fix_enum_references( aTreeSpec );
-			#endif
         aTreeSpec.GenCppGlob(argv[3],"");
 
    }
