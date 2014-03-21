@@ -40,7 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "algo_geom/delaunay_mediatrice.h"
 
 
-namespace NS_ParamChantierPhotogram{
 
 
 /*******************************************************/
@@ -416,7 +415,6 @@ bool cComputeFiltreRelSsEch::OkCple(const std::string & aN1,const std::string & 
 
 
 
-};
 
 
 

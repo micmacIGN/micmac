@@ -853,7 +853,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degre from TetaStrip")
                     << EAM(mSkipCorDone,"SMD",true,"Skip Matching When Already Done (Def=false)")
                     << EAM(mDo,"Do",true,"Step to Do in [Pyram,MetaData,Correl,Reech,Fusion,inspect], Def \"PMCF\" (i.e. All Step)")
-                    << EAM(mByMM1P,"ByMM1P",true,"Do match using new MM1P , def = true")
+                    << EAM(mByMM1P,"ByMM1P",true,"Do match uSing new MM1P , def = true")
                     << EAM(mImageOfBox,"ImOfBox",true,"Image to define box for MTD (test purpose to limit size of result)")
                     << EAM(mBoxOfImage,"BoxOfIm",true,"Associated to ImOfBox, def = full")
                     << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")

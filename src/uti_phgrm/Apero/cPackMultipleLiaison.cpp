@@ -40,8 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 template  class ElQT<NS_ParamApero::cOnePtsMult *,Pt2dr,NS_ParamApero::cFctrPtsOfPMul> ;
 
-namespace NS_ParamApero
-{
 
 #define VERIF_PackMUL 1
 
@@ -2073,7 +2071,6 @@ std::map<std::string,cObsLiaisonMultiple *> & cPackObsLiaison::DicoMul()
    return mDicoMul;
 }
 
-};
 
 
 

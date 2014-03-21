@@ -2,9 +2,7 @@
 #define Define_NotSaisiPts
 // #include "general/all.h"
 // #include "private/all.h"
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
-namespace NS_SaisiePts{
+//
 typedef enum
 {
   eNSM_GeoCube,
@@ -29,7 +27,7 @@ typedef enum
   eEPI_Valide,
   eEPI_NonValue,
   eEPI_Disparu,
-  eEPI_Highlight //only for QT interface
+  eEPI_Highlight
 } eEtatPointeImage;
 void xml_init(eEtatPointeImage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eEtatPointeImage & aVal);
@@ -491,5 +489,5 @@ cElXMLTree * ToXMLTree(const cParamSaisiePts &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-};
+// };
 #endif // Define_NotSaisiPts

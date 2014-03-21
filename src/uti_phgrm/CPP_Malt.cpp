@@ -39,7 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "XML_GEN/all_tpl.h"
 
-using namespace NS_ParamChantierPhotogram;
 
 
 template <class Type> void VerifIn(const Type & aV,const Type * aTab,int aNb, const std::string & aMes)
@@ -206,7 +205,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         LArgMain()  << EAMC(aMode,"Mode of correlation (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
                     << EAMC(mFullName,"Full Name (Dir+Pattern)")
                     << EAMC(mOri,"Orientation"),
-        LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for using result of AperoChImSecMM")
+        LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, avalaible in image geometry")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false")

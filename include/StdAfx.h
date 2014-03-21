@@ -1,6 +1,16 @@
 #ifndef _ELISE_STDAFX_H
 #define _ELISE_STDAFX_H
 
+#define NS_ParamMICMAC
+#define NS_ParamApero
+#define NS_Casa
+#define NS_ParamDigeo
+#define NS_SaisiePts
+#define NS_SuperposeImage
+#define NS_ParamChantierPhotogram
+#define ELISE_ORILIB
+
+
 // #define NOMINMAX
 // #include "vld.h"
 
@@ -69,10 +79,7 @@ extern bool BugDG;
 
 //  =================
 
-namespace NS_ParamChantierPhotogram
-{
    class cOrientationConique;
-}
 
 using namespace std;
 
@@ -256,7 +263,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 
 #include "../src/uti_image/MpDcraw/MpDcraw.h"
 
-#include "../src/uti_phgrm/ReducHom/ReducHom.h"
+// #include "../src/uti_phgrm/ReducHom/ReducHom.h"
 
 #include "../src/uti_phgrm/Apero/cParamApero.h"
 #include "../src/uti_phgrm/Apero/Apero.h"

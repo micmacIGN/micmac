@@ -13,12 +13,11 @@
 </Verbatim>
 
 <Verbatim File=".h">
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
+// NO MORE
 </Verbatim>
 
 <Verbatim File=".h.cpp">
-namespace NS_ParamMICMAC{
+// Quelque chose
 </Verbatim>
 
 
@@ -1360,7 +1359,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
 
              <!--  Export des meta donnees associees a la carte de profondeur pour en faire
                    un fichier XML utilisable en autonome, par defaut vaut non initialise -->
-             <ExportNuage Nb="*" UnionType="true"> 
+             <MMExportNuage Nb="*" UnionType="true"> 
                   <MTD_Nuage_Maille Nb="?">
                       <!-- Permettra d'embarquer les donnees image dans le fichier xml, pas implante pour l'instant -->
                       <DataInside Nb="?" Type="bool" Def="false"> </DataInside>
@@ -1379,7 +1378,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                            <FlagUse Nb="?" Type="int">  </FlagUse>
                       </CannauxExportPly>
                   </PlyFile>
-             </ExportNuage>
+             </MMExportNuage>
 
              
 
@@ -1986,7 +1985,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
         </PostProcess>
         
         <ComprMasque Nb="?" Type="eComprTiff" Def="eComprTiff_FAX4"> </ComprMasque>
-        <TypeMasque Nb="?" Type="NS_ParamChantierPhotogram::eTypeNumerique" Def="eTN_Bits1MSBF"> </TypeMasque>
+        <TypeMasque Nb="?" Type="eTypeNumerique" Def="eTN_Bits1MSBF"> </TypeMasque>
 
 
      </Section_WorkSpace>
@@ -2069,7 +2068,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
    </ParamMICMAC>
 
 <Verbatim File=".h.cpp">
-};
+// Quelque chose
 </Verbatim>
 
 <Verbatim File=".h">

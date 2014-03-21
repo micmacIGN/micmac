@@ -1,5 +1,5 @@
 #include "cParamCasa.h"
-namespace NS_Casa{
+// NOMORE ...
 
 cTplValGesInit< std::string > & cNuageByImage::NameMasqSup()
 {
@@ -499,4 +499,4 @@ void xml_init(cParamCasa & anObj,cElXMLTree * aTree)
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
 
-};
+// };

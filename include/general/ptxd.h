@@ -1227,14 +1227,12 @@ extern double GetFocalMmDefined(const std::string & aNameFile);
 extern bool CmpY(const Pt2di & aP1,const Pt2di & aP2);
 
 
-namespace NS_ParamChantierPhotogram {
 
 class cSystemeCoord;
 class cChangementCoordonnees;
 class cBasicSystemeCoord;
 class cXmlGeoRefFile;
 
-};
 
 class cSysCoordPolyn;
 template <class Type>  class ElMatrix;
@@ -1267,7 +1265,7 @@ class cSysCoord
 
          ElMatrix<double> JacobSys2This(const cSysCoord &,const Pt3dr &,const Pt3dr& Epsilon = Pt3dr(0.1,0.1,0.1)) const;
 
-         virtual NS_ParamChantierPhotogram::cSystemeCoord ToXML() const = 0;
+         virtual cSystemeCoord ToXML() const = 0;
 
           virtual Pt3dr OdgEnMetre() const = 0;  // Ordre dde grandeir en metre
                                                  //  tq. p.x est la valeur donnant en ordre de grandeur un dep de 1
@@ -1276,7 +1274,7 @@ class cSysCoord
           static cSysCoord * WGS84();
           static cSysCoord * WGS84Degre();
           static cSysCoord * RTL(const Pt3dr & Ori);
-          static cSysCoord * FromXML(const NS_ParamChantierPhotogram::cSystemeCoord &,const char * aDir);
+          static cSysCoord * FromXML(const cSystemeCoord &,const char * aDir);
 
           static cSysCoord * FromFile(const std::string & aNF,const std::string & aTag="SystemeCoord");
 
@@ -1316,7 +1314,7 @@ class cSysCoord
 
           static cSysCoord * FromXML
                              (
-                                   const NS_ParamChantierPhotogram::cBasicSystemeCoord * &,
+                                   const cBasicSystemeCoord * &,
                                    int  & aNbB,
                                    const char * aDir
                              );
@@ -1345,7 +1343,7 @@ class cChSysCo
 class cGeoRefRasterFile
 {
      public :
-        cGeoRefRasterFile(const NS_ParamChantierPhotogram::cXmlGeoRefFile &,const char * aDir);
+        cGeoRefRasterFile(const cXmlGeoRefFile &,const char * aDir);
         static cGeoRefRasterFile * FromFile(const std::string & aNF,const std::string & aTag="XmlGeoRefFile");
 
         Pt3dr File2Loc(const Pt3dr & ) const;

@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _LAMBGEO_
 #define _LAMBGEO_
 
-namespace ELISE_ORILIB {
 
 void Lamb_geo( double /*xx*/, double /*yy*/, int /*NLamb*/, 
 	      double* /*Longitude*/, double* /*Latitude*/) ;
@@ -50,7 +49,6 @@ void Geo_lamb( double /*Longitude*/, double /*Latitude*/, int /*NLamb*/,
 	      double* /*xx*/, double* /*yy*/ ) ;
 
 
-};
 	     
 #endif
 

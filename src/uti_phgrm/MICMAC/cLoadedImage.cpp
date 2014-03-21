@@ -48,8 +48,6 @@ double aSeuilGlobSupInf = 0.5;
 double aSeuilComSupRect  = 1-1e-5;
 double aSeuilGlobSupRect = 1-1e-5;
 
-namespace NS_ParamMICMAC
-{
 
 template <class TypeEl>
 class cTplLoadedImage : public cLoadedImage
@@ -148,11 +146,11 @@ class cTplLoadedImage : public cLoadedImage
           return mIm.in_proj();
       }  
 
-      static const eTypeNumerique theTypeEl;
+      static const eIFImL_TypeNumerique theTypeEl;
 
 };
 
-template<> const  eTypeNumerique cTplLoadedImage<REAL4>::theTypeEl=eFloat;
+template<> const  eIFImL_TypeNumerique cTplLoadedImage<REAL4>::theTypeEl=eFloat;
 
 template <class TypeEl>
 cTplLoadedImage<TypeEl>::~cTplLoadedImage()
@@ -1638,7 +1636,7 @@ cLoadedImage::cLoadedImage
     int                        aDZ,
     Fonc_Num                   aFMasq,
     bool                       IsFirstLoaded,
-    eTypeNumerique             aTypeNum
+    eIFImL_TypeNumerique             aTypeNum
 ) :
    mPDV             (aPDV),
    mGeomI           (aGeomI),
@@ -1977,7 +1975,7 @@ Pt2di cLoadedImage::DiscTerAppli2DiscTerCorr(const Pt2di  &aPt)
 Im2D_Bits<1> cLoadedImage::MasqImTer()     {return mMasqImTer;}
 const cAppliMICMAC & cLoadedImage::Appli() {return mAppli;}
 
-eTypeNumerique cLoadedImage::TypeOfElem() const {return mTypeEl;}
+eIFImL_TypeNumerique cLoadedImage::TypeOfElem() const {return mTypeEl;}
 
 const Pt2di & cLoadedImage::SzPtWMarge() const {return mSzPtWMarge;}
 const Pt2di & cLoadedImage::SzPtWFixe() const {return mSzPtWFixe;}
@@ -2023,7 +2021,6 @@ void cLoadedImage::DoMasqErod(const Box2di & aBox)
 }
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

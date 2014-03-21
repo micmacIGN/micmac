@@ -2,9 +2,7 @@
 #ifndef Define_NotApero
 #define Define_NotApero
 // #include "XML_GEN/all.h"
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
-namespace NS_ParamApero{
+// NO MORE ...
 typedef enum
 {
   eAllParamLibres,
@@ -5088,5 +5086,5 @@ cElXMLTree * ToXMLTree(const cParamApero &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-};
+// };
 #endif // Define_NotApero

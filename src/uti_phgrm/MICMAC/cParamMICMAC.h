@@ -1,9 +1,8 @@
 #include "StdAfx.h"
 #ifndef Define_NotMicMac
 #define Define_NotMicMac
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
-namespace NS_ParamMICMAC{
+// NO MORE
+// Quelque chose
 typedef enum
 {
   eGeomMECIm1,
@@ -2631,12 +2630,12 @@ class cPlyFile
 };
 cElXMLTree * ToXMLTree(const cPlyFile &);
 
-class cExportNuage
+class cMMExportNuage
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cExportNuage & anObj,cElXMLTree * aTree);
+        friend void xml_init(cMMExportNuage & anObj,cElXMLTree * aTree);
 
 
         cTplValGesInit< bool > & DataInside();
@@ -2672,7 +2671,7 @@ class cExportNuage
         cTplValGesInit< cMTD_Nuage_Maille > mMTD_Nuage_Maille;
         cTplValGesInit< cPlyFile > mPlyFile;
 };
-cElXMLTree * ToXMLTree(const cExportNuage &);
+cElXMLTree * ToXMLTree(const cMMExportNuage &);
 
 class cReCalclCorrelMultiEchelle
 {
@@ -3757,8 +3756,8 @@ class cEtapeMEC
         cTplValGesInit< cInterfaceVisualisation > & InterfaceVisualisation();
         const cTplValGesInit< cInterfaceVisualisation > & InterfaceVisualisation()const ;
 
-        std::list< cExportNuage > & ExportNuage();
-        const std::list< cExportNuage > & ExportNuage()const ;
+        std::list< cMMExportNuage > & MMExportNuage();
+        const std::list< cMMExportNuage > & MMExportNuage()const ;
 
         std::list< cOneModeleAnalytique > & OneModeleAnalytique();
         const std::list< cOneModeleAnalytique > & OneModeleAnalytique()const ;
@@ -4037,7 +4036,7 @@ class cEtapeMEC
         std::list< cGenereModeleRaster2Analytique > mExportAsModeleDist;
         cTplValGesInit< ePxApply > mOptDif_PxApply;
         cTplValGesInit< cInterfaceVisualisation > mInterfaceVisualisation;
-        std::list< cExportNuage > mExportNuage;
+        std::list< cMMExportNuage > mMMExportNuage;
         cTplValGesInit< cModelesAnalytiques > mModelesAnalytiques;
         std::list< cBasculeRes > mBasculeRes;
         cTplValGesInit< cGenerePartiesCachees > mGenerePartiesCachees;
@@ -5150,8 +5149,8 @@ class cSection_WorkSpace
         cTplValGesInit< eComprTiff > & ComprMasque();
         const cTplValGesInit< eComprTiff > & ComprMasque()const ;
 
-        cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > & TypeMasque();
-        const cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > & TypeMasque()const ;
+        cTplValGesInit< eTypeNumerique > & TypeMasque();
+        const cTplValGesInit< eTypeNumerique > & TypeMasque()const ;
     private:
         cTplValGesInit< std::string > mFileExportApero2MM;
         cTplValGesInit< bool > mUseProfInVertLoc;
@@ -5194,7 +5193,7 @@ class cSection_WorkSpace
         cTplValGesInit< cCmdMappeur > mMapMicMac;
         cTplValGesInit< cCmdExePar > mPostProcess;
         cTplValGesInit< eComprTiff > mComprMasque;
-        cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > mTypeMasque;
+        cTplValGesInit< eTypeNumerique > mTypeMasque;
 };
 cElXMLTree * ToXMLTree(const cSection_WorkSpace &);
 
@@ -6145,8 +6144,8 @@ class cParamMICMAC
         cTplValGesInit< eComprTiff > & ComprMasque();
         const cTplValGesInit< eComprTiff > & ComprMasque()const ;
 
-        cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > & TypeMasque();
-        const cTplValGesInit< NS_ParamChantierPhotogram::eTypeNumerique > & TypeMasque()const ;
+        cTplValGesInit< eTypeNumerique > & TypeMasque();
+        const cTplValGesInit< eTypeNumerique > & TypeMasque()const ;
 
         cSection_WorkSpace & Section_WorkSpace();
         const cSection_WorkSpace & Section_WorkSpace()const ;
@@ -6267,5 +6266,5 @@ cElXMLTree * ToXMLTree(const cParamMICMAC &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-};
+// Quelque chose
 #endif // Define_NotMicMac

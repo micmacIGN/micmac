@@ -44,8 +44,6 @@ Header-MicMac-eLiSe-25/06/2007*/
   choisir entre les differentes methodes de calcul de la correlation.
 */
 
-namespace NS_ParamMICMAC
-{
 
 /****************************************************/
 /*                                                  */
@@ -613,7 +611,6 @@ void cAppliMICMAC::ChoixCalcCorrByQT(Box2di aBoxTer)
 // cout << "CC " << aChrono.uval() << "\n";
 }
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

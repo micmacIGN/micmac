@@ -97,7 +97,6 @@ void  AddExtensionToSubdir(std::string & aName ,const std::string & aDirExt);
 void UseRequirement(const std::string &,const cTplValGesInit<cBatchRequirement> &);
 
 
-namespace NS_ParamChantierPhotogram{ 
 cMicMacConfiguration * MMC();
 std::string MMDir();
 std::string MMBin();
@@ -1274,11 +1273,7 @@ cImSecOfMaster StdGetISOM
                     const std::string & anOri
                );
 
-};
 
-
-namespace NS_SuperposeImage
-{
 
 
 
@@ -1340,7 +1335,6 @@ cStdMapName2Name * StdAllocMn2n
 std::vector<std::string> GetStrFromGenStr(cInterfChantierNameManipulateur*,const cParamGenereStr &);
 std::vector<std::string> GetStrFromGenStrRel(cInterfChantierNameManipulateur*,const cParamGenereStrVois &,const std::string &);
 
-};
 
 
 
@@ -1386,7 +1380,7 @@ ElRotation3D  GlobStd_RAff_C2M
 cConvExplicite GlobMakeExplicite(const cConvOri & aConv);
 
 
-void AdaptDist2PPaEqPPs(NS_ParamChantierPhotogram::cCalibDistortion & aCD);
+void AdaptDist2PPaEqPPs(cCalibDistortion & aCD);
 
 void MakeMetaData_XML_GeoI(const std::string & aNameImMasq);
 void MakeMetaData_XML_GeoI(const std::string & aNameImMasq,double aResol);

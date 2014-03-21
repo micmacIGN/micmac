@@ -41,11 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SAISIEPTS_ALL_H_
 #define _ELISE_SAISIEPTS_ALL_H_
 
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
-
-namespace NS_SaisiePts
-{
 
 class cSP_PointeImage;
 class cSP_PointGlob;
@@ -580,7 +575,6 @@ class cAppli_SaisiePts
 
 
 
-}
 
 #endif //  _ELISE_SAISIEPTS_ALL_H_
 

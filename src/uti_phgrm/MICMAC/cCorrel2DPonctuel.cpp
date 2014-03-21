@@ -40,8 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-namespace NS_ParamMICMAC
-{
 
 const double TheNormMinLSQ = 0.3;
 double       TheMult = 1.5;
@@ -616,7 +614,6 @@ void cAppliMICMAC::DoCorrelLeastQuare(const Box2di &  aBoxOut,const Box2di & aBo
 }
 
 
-};
 
 
 

@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-namespace NS_ParamMICMAC
-{
 
 static double Cor2Cost(eModeDynamiqueCorrel aDyn,double aCorrel,double aCorrelMin,double aGamaCorr) 
 { 
@@ -691,7 +689,6 @@ void cStatGlob::SetSomsMade(bool aSSM)
         mStatClass[aK]->SomsMade() = aSSM;
 }
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

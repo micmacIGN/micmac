@@ -39,8 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-namespace NS_ParamMICMAC
-{
 
 
 Pt2di SzDeZoom(const Pt2di & aP,int aDeZoom)
@@ -73,7 +71,6 @@ Fonc_Num ImFileForVisu(Im2D_REAL4 anIm,REAL aGamma)
 
 
 
-};
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

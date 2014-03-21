@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 std::vector<cRecorrel*> RC2VCR(cRecorrel & aRC)
 {
@@ -244,7 +242,6 @@ void cRecorrel::Udpate(const Pt2dr & aDec,double aCorrel)
 }
 
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

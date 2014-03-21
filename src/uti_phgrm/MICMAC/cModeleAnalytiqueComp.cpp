@@ -39,7 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 // #include "XML_GEN/all.h"
-// using namespace NS_ParamChantierPhotogram;
 
 /*
  
@@ -126,8 +125,6 @@ void cModeleAnalytiqueComp::SolveHomographie(const ElPackHomologue &  aPackHom)
 
 */
 
-namespace NS_ParamMICMAC
-{
 
 
 void  AssertAutomSelExportOriIsInit(const cOneModeleAnalytique & aM)
@@ -666,7 +663,7 @@ void cMA_AffineOrient::MakeImagePxRef()
     );
 }
 
-tParamAFocal aNoPAF;
+static tParamAFocal aNoPAF;
 
 cMA_AffineOrient::cMA_AffineOrient
 (
@@ -1552,7 +1549,6 @@ cElRegex_Ptr & cModeleAnalytiqueComp::AutomExport()
 }
 
 
-};
 
 
 

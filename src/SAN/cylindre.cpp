@@ -39,7 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-using namespace NS_SuperposeImage;
 
      /*****************************************/
      /*                                       */
@@ -562,7 +561,7 @@ cXmlDescriptionAnalytique cCylindreRevolution::Xml() const
 
 cCylindreRevolution cCylindreRevolution::FromXml
                     (
-                       const NS_SuperposeImage::cXmlOneSurfaceAnalytique& aSAN,
+                       const cXmlOneSurfaceAnalytique& aSAN,
                        const cXmlCylindreRevolution& aCyl
                     )
 {

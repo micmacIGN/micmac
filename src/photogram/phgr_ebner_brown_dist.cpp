@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-using namespace NS_ParamChantierPhotogram;
 
 /*
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
@@ -1048,6 +1047,7 @@ cParamIntrinsequeFormel * cCamera_Param_Unif_Gen::AllocParamInc(bool isDistC2M,c
 /*                                                                   */
 /*********************************************************************/
 
+/*
 #ifdef __DEBUG_EL_CAMERA
 	template <class TDistR,class TDistF,const int NbVar,const int NbState>
 	cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::cCamera_Param_Unif( const cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> &i_b ):
@@ -1064,6 +1064,7 @@ cParamIntrinsequeFormel * cCamera_Param_Unif_Gen::AllocParamInc(bool isDistC2M,c
 		return *this;
 	}
 #endif
+*/
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
 cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>::cCamera_Param_Unif
@@ -1300,6 +1301,7 @@ Pt2d<Fonc_Num>  cPIF_Unif<TDistR,TDistF,NbVar,NbState>::VDist(Pt2d<Fonc_Num> aP,
 }
 
 
+/*
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
  cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState>  
       cPIF_Unif<TDistR,TDistF,NbVar,NbState>::CurPIFUnif()
@@ -1325,6 +1327,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 	
    return aRes;
 }
+*/
 
 template <class TDistR,class TDistF,const int NbVar,const int NbState>
  cCamera_Param_Unif<TDistR,TDistF,NbVar,NbState> *

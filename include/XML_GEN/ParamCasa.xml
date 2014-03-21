@@ -3,14 +3,12 @@
 
 <Verbatim File=".h">
 #include "StdAfx.h"
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
 </Verbatim>
 <Verbatim File=".cpp">
 #include "cParamCasa.h"
 </Verbatim>
 <Verbatim File=".h.cpp">
-namespace NS_Casa{
+// NOMORE ... 
 </Verbatim>
 
    <ParamCasa  Nb="1" Class="true">
@@ -70,7 +68,7 @@ namespace NS_Casa{
 
 
 <Verbatim File=".h.cpp">
-};
+// };
 </Verbatim>
 
 </GenCpp>

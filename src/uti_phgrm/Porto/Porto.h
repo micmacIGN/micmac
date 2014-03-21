@@ -37,9 +37,6 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
-
 class cOneImOrhto;
 class cLoadedIm;
 class cAppli_Ortho;

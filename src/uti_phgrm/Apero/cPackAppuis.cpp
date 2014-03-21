@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-namespace NS_ParamApero
-{
 
 cMTActive::cMTActive(int aNbPer) :
    mNbPer(aNbPer)
@@ -1365,7 +1363,6 @@ void cCompFilterProj3D::AddPose(cPoseCam *aCam)
 }
 
 
-};
 
 
 

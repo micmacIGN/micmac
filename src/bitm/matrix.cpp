@@ -1061,7 +1061,6 @@ void SauvFile(const ElRotation3D & aRot,const std::string & aName)
     aFile.close();
 }
 
-using namespace NS_ParamChantierPhotogram;
 
 void XML_SauvFile(const ElRotation3D & aRC2M,const std::string & aName,const std::string & aNameEngl,bool aModeMatr)
 {

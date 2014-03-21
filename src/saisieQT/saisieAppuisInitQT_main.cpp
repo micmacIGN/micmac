@@ -4,7 +4,6 @@
 #include "private/files.h"
 
 using namespace std;
-using namespace NS_SaisiePts;
 
 //extern const char * theNameVar_ParamApero[];
 

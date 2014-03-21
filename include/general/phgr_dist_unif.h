@@ -121,7 +121,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 {
     public :
 
-        NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const ElCamera *) const;
+        cCalibDistortion ToXmlStruct(const ElCamera *) const;
         bool  AcceptScaling() const;
         bool  AcceptTranslate() const;
         void V_SetScalingTranslate(const double & F,const Pt2dr & aPP);
@@ -317,7 +317,7 @@ template <class TDistR,class TDistF,const int NbVar,const int NbState>
 class cGeneratorElemStd
 {
      public :
-        static NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,const ElCamera *) ;
+        static cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,const ElCamera *) ;
 };
 
 class cGeneratorElem
@@ -391,8 +391,8 @@ class cGeneratorState_FPP_ScaleTr
 class cGeneratorState_DRadScaleTr
 {
     public :
-       // static NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,ElCamera *) ;
-        static NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,const ElCamera *) ;
+       // static cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,ElCamera *) ;
+        static cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,const ElCamera *) ;
        static bool AcceptScalingTranslate();
        static void SetScalingTranslate(const double & F,const Pt2dr & aPP,double * State,double *Vars);
 };
@@ -400,7 +400,7 @@ class cGeneratorState_DRadScaleTr
 class cGeneratorState_FraserScaleTr 
 {
     public :
-       static NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,const ElCamera *) ;
+       static cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,const ElCamera *) ;
        static bool AcceptScalingTranslate();
        static void SetScalingTranslate(const double & F,const Pt2dr & aPP,double * State,double *Vars);
 };
@@ -573,7 +573,7 @@ template <class TPreC,const int NbRad,const int NbDec,const int NbPolyn,const in
      class cDistGen_FishEye_Generator  : public cGeneratorNoScaleTr
 {
      public :
-       static NS_ParamChantierPhotogram::cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,const ElCamera *) ;
+       static cCalibDistortion ToXmlStruct(const cDist_Param_Unif_Gen & aCam,const ElCamera *) ;
         static bool IsFE() ;
          static bool UseSz();
          static Fonc_Num  NormGradC2M(Pt2d<Fonc_Num> ,Fonc_Num *);

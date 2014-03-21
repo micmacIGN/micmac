@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-namespace NS_ParamMICMAC
-{
 
 class cBasculeMNT : public cZBuffer
 {
@@ -347,7 +345,6 @@ void cEtapeMecComp::AllBasculeMnt(Pt2di aP0,Pt2di aP1,float ** aDataF,INT2 ** aD
 
 ///////////////////////////////////////////////////
 
-};
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

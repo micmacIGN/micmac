@@ -38,8 +38,9 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include "ReducHom.h"
 
-using namespace NS_ReducHoms;
+
 
 /*************************************************/
 /*                                               */
@@ -130,7 +131,7 @@ void AddOnePtUnique(std::vector<Pt2dr> & aV,const Pt2dr & aP)
     aV.push_back(aP);
 }
 
-bool cPtHom::OkAddI2(cImagH * aI2,const Pt2dr & aP2)
+void cPtHom::AddMesureInImage(cImagH * aI2,const Pt2dr & aP2)
 {
     IncrCptArc();
     aI2->SetPHom(aP2,this);
@@ -139,17 +140,8 @@ bool cPtHom::OkAddI2(cImagH * aI2,const Pt2dr & aP2)
         mCoherent = false;
 
     AddOnePtUnique(aV,aP2);
-/*
-    if (0)
-    {
-         
-        std::cout << "INC IN PAIR " << aP2 << mMesures[aI2] <<  (mMesures[aI2]< aP2)  << ( aP2< mMesures[aI2])<<  "\n";
-        std::cout << "NB MESURES " <<  mMesures.size() << " Nb A " << mCptArc << "\n";
 
-        getchar();
-    }
-*/
-    return false;
+    // return false;
 }
 
 int cPtHom::NbIm() const
