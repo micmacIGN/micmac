@@ -163,6 +163,10 @@ class cLink2Img  // dans cImagH.cpp
 
          cElHomographie CalcSrceFromDest();
          const ElPackHomologue & Pack() const;
+
+        // Obtained by GetDistribRepresentative from util/pt2di.cpp
+        // simply by averaging points on a regular grid
+        // list of   Pt2dr+weight , represent the distribution of the points
          const std::vector<Pt3dr> & EchantP1() const;
 
         cEqHomogFormelle * &  EqHF();
@@ -176,10 +180,12 @@ class cLink2Img  // dans cImagH.cpp
         cImagH * mDest;
         std::string mNameH;
         double      mQual;
+        //
         cElHomographie mHom12;
         bool            mPckLoaded;
         ElPackHomologue mPack;
-        std::vector<Pt3dr> mEchantP1; // suite de Pt2dr+poids, representative de la distrib
+        
+        std::vector<Pt3dr> mEchantP1; 
         cEqHomogFormelle * mEqHF;
 };
 
