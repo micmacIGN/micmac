@@ -117,7 +117,7 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(KeyEquivNoMasq,"KeyEquivNoMasq",true,"When given if KENM(i1)==KENM(i2), don't masq")
                     << EAM(aResol,"Resol",true,"Sub Resolution for masq storing, Def=10")
                     << EAM(AcceptNoMask,"ANM",true,"Accept no mask, def = true if MasqGlob and false else")
-                    << EAM(ExpTxt,"ExpTxt",true,"Ascii fomat for in and out, def=false")
+                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                     << EAM(aPostIn,"PostIn",true,"Post for Input dir Hom, Def=")
                     << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFiltered")
 

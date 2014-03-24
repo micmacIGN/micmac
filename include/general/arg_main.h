@@ -195,6 +195,7 @@ template <class Type> std::ostream & operator << (std::ostream &os,const ElSTDNS
 typedef enum
 {
     eSAM_None,
+    eSAM_IsBool,
     eSAM_IsDir,
     eSAM_IsPatFile,
     eSAM_IsExistDirOri,

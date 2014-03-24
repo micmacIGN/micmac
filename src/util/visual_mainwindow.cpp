@@ -5,43 +5,15 @@
 
 #include "StdAfx.h"
 
-visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent) :
-    QMainWindow(parent),
-    mlastDir(QDir::homePath())
+void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QWidget *parent)
 {
-    gridLayoutWidget = new QWidget(this);
-    setCentralWidget(gridLayoutWidget);
-
-    gridLayout = new QGridLayout(gridLayoutWidget);
-    gridLayoutWidget->setLayout(gridLayout);
-
-    runCommandButton = new QPushButton("Run command", gridLayoutWidget);
-    gridLayout->addWidget(new QLabel(" "),5,1,1,1);
-    gridLayout->addWidget(runCommandButton,6,3,1,1);
-    connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
-
-    //list of all arguments
-    // aVAM: Mandatory args
-    // aVAO: Optional args
-
-    //std::cout << "---------- All arguments ----------" << std::endl;
-
-    for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
+    for (int aK=0 ; aK<int(aVA.size()) ; aK++)
     {
-        cMMSpecArg aArg = aVAM[aK];
-        //cout << "Mandatory arg " << aK << " ; Type is " << aArg.NameType();
-        std::string aComment = aArg.Comment();
-        create_comment(aComment,aK);
-        /*if (aComment != "")
-        {
-            std::cout << "   Comment=" << aCom << "\n";
-        }
-        else
-        {
-            std::cout<<"\n";
-        }*/
+        cMMSpecArg aArg = aVA[aK];
+        cout << "arg " << aK << " ; Type is " << aArg.NameType() <<"\n";
 
-        //Si le type est une string
+        create_comment(layout, parent, aArg.Comment(), aK);
+
         if (aArg.NameType() == "string")
         {
             //On recupere les valeurs enumerees dans une liste
@@ -49,40 +21,85 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
 
             if (!liste_valeur_enum.empty())
             {
-                create_combo(aK,liste_valeur_enum);
+                create_combo(layout, parent, aK,liste_valeur_enum);
             }
-            else //Si c'est une chaine de caracteres normale
+            else //chaine de caracteres normale
             {
-                create_select(aK, aArg);
+                create_select(layout, parent, aK, aArg);
             }
         }
-        //Si le type est int
-        if (aArg.NameType() =="INT"||aArg.NameType() =="int")
+        else if (aArg.NameType()=="INT")
         {
-            create_champ_int(aK);
+            create_champ_int(layout, parent, aK);
         }
+        else if (aArg.NameType()== "bool")
+        {
+            create_combo(layout, parent, aK, bList);
+        }
+
+        //ShowEnum(aVA[aK]);
     }
 
-    for (int aK=0 ; aK<int(aVAO.size()) ; aK++)
-    {
-        //std::cout <<  "Optional arg type is " <<aVAO[aK].NameArg()  << " ; "  << aVAO[aK].NameType();
+    QSpacerItem *spacer = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        /*std::string aComment = aVAO[aK].Comment();
-        if (aComment != "") std::cout << "Commentaire ["<< aK << "] = " << aComment  << "\n";*/
+    layout->addItem(spacer, aVA.size(), 1);
+}
 
-        bool apat = aVAO[aK].IsExistFile();
-        if (apat) std::cout<< "opt arg is a file: " << apat << std::endl;
+visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent) :
+    QMainWindow(parent),
+    mlastDir(QDir::homePath())
+{
+    bList.push_back("True");
+    bList.push_back("False");
 
-        //ShowEnum(aVAO[aK]);
-    }
+    mainWidget = new QWidget(this);
+    setCentralWidget(mainWidget);
 
-    //std::cout<<"---------- End all arguments ----------"<<std::endl;
+    QVBoxLayout *verticalLayout = new QVBoxLayout(mainWidget);
+
+    mainWidget->setLayout(verticalLayout);
+
+    QToolBox *toolBox = new QToolBox();
+
+    verticalLayout->addWidget(toolBox);
+
+    QWidget* pageMandatoryArgs = new QWidget();
+    pageMandatoryArgs->setGeometry(QRect(0, 0, 200, 150));
+    pageMandatoryArgs->setLayoutDirection(Qt::LeftToRight);
+
+    //Grid Layout
+    gridLayout = new QGridLayout(pageMandatoryArgs);
+
+    toolBox->addItem(pageMandatoryArgs, tr("Mandatory arguments"));
+
+    QWidget* pageOptionalArgs = new QWidget();
+    pageOptionalArgs->setGeometry(QRect(0, 0, 200, 150));
+    pageOptionalArgs->setLayoutDirection(Qt::LeftToRight);
+
+    toolBox->addItem(pageOptionalArgs, tr("Optional arguments"));
+
+
+
+    QGridLayout* gridLayout_2 = new QGridLayout(pageOptionalArgs);
+
+    // aVAM: Mandatory args
+    // aVAO: Optional args
+
+    buildUI(aVAM, gridLayout, pageMandatoryArgs);
+
+    buildUI(aVAO, gridLayout_2, pageOptionalArgs);
+
+    runCommandButton = new QPushButton("Run command", mainWidget);
+    verticalLayout->addWidget(new QLabel(" "));
+    verticalLayout->addWidget(runCommandButton);
+    connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
+
 }
 
 
 visual_MainWindow::~visual_MainWindow()
 {
-    delete gridLayoutWidget;
+    delete mainWidget;
     delete gridLayout;
     delete label;
     delete Combo;
@@ -136,7 +153,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 {
     string full_pattern;
     QStringList files = QFileDialog::getOpenFileNames(
-                            gridLayoutWidget,
+                            mainWidget,
                             tr("Select images"),
                             mlastDir,
                             tr("Images (*.png *.xpm *.jpg *.tif)"));
@@ -167,7 +184,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 
 void visual_MainWindow::onSelectFilePressed(int aK)
 {
-    QString filename = QFileDialog::getOpenFileName(gridLayoutWidget,
+    QString filename = QFileDialog::getOpenFileName(mainWidget,
                                                     tr("Select file"),
                                                     mlastDir);
 
@@ -186,7 +203,7 @@ void visual_MainWindow::onSelectFilePressed(int aK)
 void visual_MainWindow::onSelectDirPressed(int aK)
 {
     QString aDir = QFileDialog::getExistingDirectory(
-                            gridLayoutWidget,
+                            mainWidget,
                             tr("Select directory"),
                             mlastDir);
 
@@ -200,47 +217,39 @@ void visual_MainWindow::onSelectDirPressed(int aK)
     }
 }
 
-void visual_MainWindow::add_combo_line(QString str)
+void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int aK, list<string> liste_valeur_enum )
 {
-    QComboBox* combo = vEnumValues.back();
-    combo->addItem(str);
-}
-
-void visual_MainWindow::create_combo(int aK, list<string> liste_valeur_enum )
-{
-    QComboBox* aCombo = new QComboBox(gridLayoutWidget);
+    QComboBox* aCombo = new QComboBox(parent);
     vEnumValues.push_back(aCombo);
-    gridLayout->addWidget(aCombo,aK,1,1,1);
+    layout->addWidget(aCombo,aK,1,1,1);
     vInputTypes.push_back(eComboBox);
     vInputs.push_back(aCombo);
 
-    for (
-         list<string>::const_iterator it= liste_valeur_enum.begin();
+    for (list<string>::const_iterator it= liste_valeur_enum.begin();
          it != liste_valeur_enum.end();
          it++)
     {
-        add_combo_line(QString((*it).c_str()));
+        aCombo->addItem(QString((*it).c_str()));
     }
 }
 
-void visual_MainWindow::create_comment(string str_com, int aK)
+void visual_MainWindow::create_comment(QGridLayout* layout, QWidget* parent, string str_com, int ak)
 {
-    QLabel * com = new QLabel(gridLayoutWidget);
-    vComments.push_back(com);
-    gridLayout->addWidget(com,aK,0,1,1);
-    com->setText(QString(str_com.c_str()));
+    QLabel * com = new QLabel(QString(str_com.c_str()), parent);
+    //vComments.push_back(com);
+    layout->addWidget(com,ak,0,1,1);
 }
 
-void visual_MainWindow::create_select(int aK, cMMSpecArg eSAM)
+void visual_MainWindow::create_select(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg eSAM)
 {
-    QLineEdit* aLineEdit = new QLineEdit(gridLayoutWidget);
+    QLineEdit* aLineEdit = new QLineEdit(parent);
     vLineEdit.push_back(aLineEdit);
-    gridLayout->addWidget(aLineEdit,aK,1,1,1);
+    layout->addWidget(aLineEdit,aK,1,1,1);
 
     QString buttonName = "";
 
-    select_Button = new imgListButton(buttonName, gridLayoutWidget);
-    gridLayout->addWidget(select_Button,aK,3,1,1);
+    select_Button = new imgListButton(buttonName, parent);
+    layout->addWidget(select_Button,aK,3,1,1);
 
     if (eSAM.IsExistDirOri())
     {
@@ -262,10 +271,10 @@ void visual_MainWindow::create_select(int aK, cMMSpecArg eSAM)
     vInputs.push_back(aLineEdit);
 }
 
-void visual_MainWindow::create_champ_int(int aK)
+void visual_MainWindow::create_champ_int(QGridLayout* layout, QWidget* parent, int aK)
 {
-    QSpinBox *aSpinBox = new QSpinBox(gridLayoutWidget);
-    gridLayout->addWidget(aSpinBox,aK,1,1,1);
+    QSpinBox *aSpinBox = new QSpinBox(parent);
+    layout->addWidget(aSpinBox,aK,1,1,1);
     vInputTypes.push_back(eInteger);
     vInputs.push_back(aSpinBox);
 }
@@ -303,7 +312,7 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
     QRect screenSz = qApp->desktop()->availableGeometry();
 
     int maxLineEdit = getWidgetVectorWidth(vLineEdit);
-    int maxComment  = getWidgetVectorWidth(vComments);
+    //TODO: int maxComment  = getWidgetVectorWidth(vComments);
     int maxButton = 0;
 
     if (maxLineEdit <= 0) maxLineEdit = 100;
@@ -319,10 +328,10 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
         }
     }
 
-    int finalSize = maxLineEdit + maxComment + maxButton + 40;
-    if (finalSize > screenSz.width())  finalSize = screenSz.width() - 50;
+    //TODO: int finalSize = maxLineEdit + maxComment + maxButton + 40;
+    //if (finalSize > screenSz.width())  finalSize = screenSz.width() - 50;
 
-    resize(finalSize, height());
+    //resize(finalSize, height());
 
     //deplacement au centre de l'ecran
     const QPoint global = screenSz.center();
