@@ -133,6 +133,48 @@ cSP_PointGlob *cVirtualInterface::addPoint(Pt2dr pt, cImage *curImg)
     return PG;
 }
 
+int cVirtualInterface::idPointGlobal(std::string nameGP)
+{
+    int idPG = -1;
+
+    vector < cSP_PointGlob * > vPG = mAppli->PG();
+    for (int iPG = 0; iPG < (int)vPG.size(); ++iPG)
+    {
+        cSP_PointGlob * aPG  = vPG[iPG];
+
+        if(aPG->PG()->Name() == nameGP)
+            idPG = iPG;
+    }
+
+    return idPG;
+}
+
+const char *cVirtualInterface::cNamePointGlobal(int idPtGlobal)
+{
+    vector < cSP_PointGlob * > vPG = mAppli->PG();
+    cSP_PointGlob * aPG  = vPG[idPtGlobal];
+
+    return aPG->PG()->Name().c_str();
+}
+
+int cVirtualInterface::idPointGlobal(cSP_PointGlob *PG)
+{
+    int id = -1;
+    for (int i = 0; i < (int)mAppli->PG().size(); ++i)
+        if(mAppli->PG()[i] == PG)
+            id = i;
+
+    return id;
+}
+
+cImage *cVirtualInterface::ptCImage(int idCimg)
+{
+    if(idCimg < 0 || idCimg >= (int)mAppli->images().size())
+        return NULL;
+    else
+        return mAppli->image(idCimg);
+}
+
 void cVirtualInterface::ChangeFreeNamePoint(const std::string & aName, bool SetFree)
 {
     std::map<std::string,cCaseNamePoint *>::iterator it = mMapNC.find(aName);
