@@ -17,7 +17,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
 
     runCommandButton = new QPushButton("Run command", gridLayoutWidget);
     gridLayout->addWidget(new QLabel(" "),5,1,1,1);
-    gridLayout->addWidget(runCommandButton,6,1,1,1);
+    gridLayout->addWidget(runCommandButton,6,3,1,1);
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
 
     //list of all arguments
@@ -53,18 +53,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
             }
             else //Si c'est une chaine de caracteres normale
             {
-                if (aArg.IsPatFile())
-                {
-                    create_select_images(aK);
-                }
-                else if (aArg.IsExistDirOri())
-                {
-                    create_select_orientation(aK);
-                }
-                else if (aArg.IsExistFile())
-                {
-                    //TODO
-                }
+                create_select(aK, aArg);
             }
         }
         //Si le type est int
@@ -143,7 +132,7 @@ void visual_MainWindow::onRunCommandPressed()
     cout << "----------------- " << aRes << endl;
 }
 
-void visual_MainWindow::onSelectFilePressed(int aK)
+void visual_MainWindow::onSelectImgsPressed(int aK)
 {
     string full_pattern;
     QStringList files = QFileDialog::getOpenFileNames(
@@ -152,36 +141,46 @@ void visual_MainWindow::onSelectFilePressed(int aK)
                             mlastDir,
                             tr("Images (*.png *.xpm *.jpg *.tif)"));
 
-    string aDir, aNameFile;
-    SplitDirAndFile(aDir,aNameFile,files[0].toStdString());
-    mlastDir = QString(aDir.c_str());
-
-    string fileList="("+ aNameFile;
-    for (int i=1;i<files.length();i++)
+    if (files.size())
     {
-        SplitDirAndFile(aDir,aNameFile,files[i].toStdString());
+        string aDir, aNameFile;
+        SplitDirAndFile(aDir,aNameFile,files[0].toStdString());
+        mlastDir = QString(aDir.c_str());
 
-        fileList.append("|" + aNameFile);
+        string fileList="("+ aNameFile;
+        for (int i=1;i<files.length();i++)
+        {
+            SplitDirAndFile(aDir,aNameFile,files[i].toStdString());
+
+            fileList.append("|" + aNameFile);
+        }
+
+        fileList+=")";
+        full_pattern = QUOTE(aDir+fileList);
+
+        vLineEdit[aK]->setText(QString(full_pattern.c_str()));
+        //cout<<full_pattern.toStdString()<<endl;
+
+        adjustSize();
     }
+}
 
-    fileList+=")";
-    full_pattern = QUOTE(aDir+fileList);
+void visual_MainWindow::onSelectFilePressed(int aK)
+{
+    QString filename = QFileDialog::getOpenFileName(gridLayoutWidget,
+                                                    tr("Select file"),
+                                                    mlastDir);
 
-    vLineEdit[aK]->setText(QString(full_pattern.c_str()));
-    //cout<<full_pattern.toStdString()<<endl;
-
-   /* int maxW = 0;
-    for (int bK=0; bK < (int) vLineEdit.size();++bK)
+    if (filename != NULL)
     {
-        QString text = vLineEdit[bK]->text();
-        QFontMetrics fm = vLineEdit[bK]->fontMetrics();
-        int w = fm.boundingRect(text).width();
-        if (w > maxW) maxW = w;
+        string aDir, aNameFile;
+        SplitDirAndFile(aDir,aNameFile,filename.toStdString());
+        mlastDir = QString(aDir.c_str());
+
+        vLineEdit[aK]->setText(filename);
+
+        adjustSize();
     }
-    for (int bK=0; bK < (int) vLineEdit.size();++bK)
-    {
-        vLineEdit[bK]->resize(maxW, vLineEdit[bK]->height());
-    }*/
 }
 
 void visual_MainWindow::onSelectDirPressed(int aK)
@@ -191,9 +190,14 @@ void visual_MainWindow::onSelectDirPressed(int aK)
                             tr("Select directory"),
                             mlastDir);
 
-    mlastDir = aDir;
+    if (aDir != NULL)
+    {
+        mlastDir = aDir;
 
-    vLineEdit[aK]->setText(QDir(aDir).dirName());
+        vLineEdit[aK]->setText(QDir(aDir).dirName());
+
+        adjustSize();
+    }
 }
 
 void visual_MainWindow::add_combo_line(QString str)
@@ -219,26 +223,6 @@ void visual_MainWindow::create_combo(int aK, list<string> liste_valeur_enum )
     }
 }
 
-void visual_MainWindow::create_select_images(int aK)
-{
-    QLineEdit* aLineEdit = new QLineEdit(gridLayoutWidget);
-    vLineEdit.push_back(aLineEdit);
-    gridLayout->addWidget(aLineEdit,aK,1,1,1);
-    create_select_button(aK);
-    vInputTypes.push_back(eLineEdit);
-    vInputs.push_back(aLineEdit);
-}
-
-void visual_MainWindow::create_select_orientation(int aK)
-{
-    QLineEdit* aLineEdit = new QLineEdit(gridLayoutWidget);
-    vLineEdit.push_back(aLineEdit);
-    gridLayout->addWidget(aLineEdit,aK,1,1,1);
-    create_select_button(aK, true);
-    vInputTypes.push_back(eLineEdit);
-    vInputs.push_back(aLineEdit);
-}
-
 void visual_MainWindow::create_comment(string str_com, int aK)
 {
     QLabel * com = new QLabel(gridLayoutWidget);
@@ -247,20 +231,35 @@ void visual_MainWindow::create_comment(string str_com, int aK)
     com->setText(QString(str_com.c_str()));
 }
 
-void visual_MainWindow::create_select_button(int aK, bool isDir)
+void visual_MainWindow::create_select(int aK, cMMSpecArg eSAM)
 {
-    QString buttonName = isDir ? tr("Select directory") : tr("Select images");
+    QLineEdit* aLineEdit = new QLineEdit(gridLayoutWidget);
+    vLineEdit.push_back(aLineEdit);
+    gridLayout->addWidget(aLineEdit,aK,1,1,1);
+
+    QString buttonName = "";
 
     select_Button = new imgListButton(buttonName, gridLayoutWidget);
     gridLayout->addWidget(select_Button,aK,3,1,1);
 
-    if (isDir)
-
+    if (eSAM.IsExistDirOri())
+    {
+        select_Button->setText(tr("Select directory"));
         connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
-
-    else
-
+    }
+    else if (eSAM.IsPatFile())
+    {
+        select_Button->setText(tr("Select images"));
+        connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
+    }
+    else if (eSAM.IsExistFile())
+    {
+        select_Button->setText(tr("Select file"));
         connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
+    }
+
+    vInputTypes.push_back(eLineEdit);
+    vInputs.push_back(aLineEdit);
 }
 
 void visual_MainWindow::create_champ_int(int aK)
@@ -276,9 +275,57 @@ void visual_MainWindow::set_argv_recup(string argv)
     argv_recup = argv;
 }
 
+QSize getLayoutCellSize(QGridLayout *layout, int row, int column)
+{
+    QLayoutItem *item = layout->itemAtPosition(row, column);
+    if (item)
+        return (item->sizeHint());
+    return (QSize());
+}
+
+template <class T>
+int  getWidgetVectorWidth(vector < T* > vWid)
+{
+    int max = -1;
+
+    for (int aK=0; aK < (int)  vWid.size();++aK)
+    {
+        QString text =  vWid[aK]->text();
+        QFontMetrics fm =  vWid[aK]->fontMetrics();
+        int w = fm.boundingRect(text).width();
+        if (w > max) max = w;
+    }
+    return max;
+}
+
 void visual_MainWindow::resizeEvent(QResizeEvent *)
 {
-    const QPoint global = qApp->desktop()->availableGeometry().center();
+    QRect screenSz = qApp->desktop()->availableGeometry();
+
+    int maxLineEdit = getWidgetVectorWidth(vLineEdit);
+    int maxComment  = getWidgetVectorWidth(vComments);
+    int maxButton = 0;
+
+    if (maxLineEdit <= 0) maxLineEdit = 100;
+
+    //calcul de la taille de la colonne 3... (boutons)
+    for (int aK=0; aK < gridLayout->rowCount(); ++aK)
+    {
+        QSize cellSize = getLayoutCellSize(gridLayout, aK, 3);
+
+        if (cellSize.isValid())
+        {
+            if (cellSize.width() > maxButton) maxButton = cellSize.width();
+        }
+    }
+
+    int finalSize = maxLineEdit + maxComment + maxButton + 40;
+    if (finalSize > screenSz.width())  finalSize = screenSz.width() - 50;
+
+    resize(finalSize, height());
+
+    //deplacement au centre de l'ecran
+    const QPoint global = screenSz.center();
     move(global.x() - width() / 2, global.y() - height() / 2);
 }
 
