@@ -977,18 +977,7 @@ void MainWindow::setImagePosition(QPointF pt)
 void MainWindow::setImageName(QString name)
 {
     _ui->label_ImageName->setText(QString(tr("Image name : ") + name));
-    QAbstractItemModel *model = tableView_Images()->model();
 
-    if(model)
-
-    for (int i = 0; i < model->rowCount(); ++i)
-    {
-        if(model->index(i,0).data().toString() == name)
-        {
-            tableView_Images()->selectRow(i);
-            return;
-        }
-    }
 }
 
 void MainWindow::setZoom(float val)

@@ -53,9 +53,9 @@ private:
 
     int                 idCurrentCImage();
 
-    cImage *            ptCurrentCImage();
+    cImage *            currentCImage();
 
-    cImage *            ptCImage(QString nameImage);
+    cImage *            CImage(QString nameImage);
 
 
     //                  Tools Points                        ///////////////////////////////////////////
@@ -74,7 +74,7 @@ private:
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
 
-    cSP_PointeImage *   pPointImage(cPointGlob* pg, int i);
+    cSP_PointeImage *   pointeImage(cPointGlob* pg, int i);
 
     void                centerOnPtGlobal(int idWGL, cPointGlob *aPG);
 

@@ -78,7 +78,7 @@ void cQT_Interface::Init()
 
 void cQT_Interface::AddUndo(cOneSaisie *aSom)
 {
-    mAppli->AddUndo(*aSom, ptCurrentCImage());
+    mAppli->AddUndo(*aSom, currentCImage());
 }
 
 cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
@@ -97,9 +97,9 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 
         cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
         if (!aPt)
-        {
+
             _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
-        }
+
         else
             _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
     }
@@ -129,10 +129,10 @@ pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
     int aCptMax = mAppli->GetCptMax() + 1;
 
     string aName = aCNP->mName;
+
     if (aCNP->mTCP == eCaseAutoNum)
-    {
+
         aName = nameFromAutoNum(aCNP, aCptMax);
-    }
 
     return pair<int,string>(aCptMax,aName);
 }
@@ -152,7 +152,7 @@ void cQT_Interface::addPoint(QPointF point)
     if (m_QTMainWindow->currentWidget()->hasDataLoaded())
     {
 
-        cSP_PointGlob * PG = cVirtualInterface::addPoint(transformation(point),ptCurrentCImage());
+        cSP_PointGlob * PG = cVirtualInterface::addPoint(transformation(point),currentCImage());
 
         if(PG)
         {
@@ -188,7 +188,6 @@ void cQT_Interface::movePoint(int idPt)
 
         if(aPIm)
         {
-
             UpdatePoints(aPIm, transformation(getGLPt_CurWidget(idPt)));
 
             emit dataChanged(aPIm);
@@ -235,16 +234,19 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
     string oldName = aOldName.toStdString();
     string newName = aNewName.toStdString();
 
-    cSP_PointeImage * aPIm = ptCurrentCImage()->PointeOfNameGlobSVP(oldName);
+    cSP_PointeImage * aPIm = currentCImage()->PointeOfNameGlobSVP(oldName);
 
     if (aPIm)
-    {
-        if(mAppli->ChangeName(oldName, newName))
-            emit dataChanged(aPIm);
-        else
-            QMessageBox::critical(m_QTMainWindow, "Error", "Point already exists");
 
-    }
+        return;
+
+    else if(mAppli->ChangeName(oldName, newName))
+
+        emit dataChanged(aPIm);
+
+    else
+
+        QMessageBox::critical(m_QTMainWindow, "Error", "Point already exists");
 }
 
 void cQT_Interface::changeImages(int idPt, bool aUseCpt)
@@ -343,9 +345,11 @@ void cQT_Interface::undo(bool aBool)
 void cQT_Interface::changeCurPose(void *widgetGL)
 {
     if (((GLWidget*)widgetGL)->hasDataLoaded())
-
-        m_QTMainWindow->selectCameraIn3DP(idCImage(((GLWidget*)widgetGL)->getGLData()));
-
+    {
+        int idImg = idCImage(((GLWidget*)widgetGL)->getGLData());
+        m_QTMainWindow->selectCameraIn3DP(idImg);
+        m_QTMainWindow->tableView_Images()->setCurrentIndex(m_QTMainWindow->tableView_Images()->model()->index(idImg, 0));
+    }
 }
 
 void cQT_Interface::filesDropped(const QStringList &filenames)
@@ -363,12 +367,12 @@ int cQT_Interface::idCImage(QString nameImage)
     return -1;
 }
 
-cImage * cQT_Interface::ptCurrentCImage()
+cImage * cQT_Interface::currentCImage()
 {
     return cVirtualInterface::ptCImage(idCurrentCImage());
 }
 
-cImage *cQT_Interface::ptCImage(QString nameImage)
+cImage *cQT_Interface::CImage(QString nameImage)
 {
     return cVirtualInterface::ptCImage(idCImage(nameImage));
 }
@@ -390,7 +394,7 @@ int cQT_Interface::idCImage(int idGlWidget)
 
 cSP_PointeImage * cQT_Interface::PointeImageInCurrentWGL(int idPointGL)
 {
-    return ptCurrentCImage()->PointeOfNameGlobSVP(getNameGLPt_CurWidget(idPointGL));
+    return currentCImage()->PointeOfNameGlobSVP(getNameGLPt_CurWidget(idPointGL));
 }
 
 cSP_PointGlob *cQT_Interface::PointGlobInCurrentWGL(int idPointGL)
@@ -401,7 +405,7 @@ cSP_PointGlob *cQT_Interface::PointGlobInCurrentWGL(int idPointGL)
         return NULL;
 }
 
-cSP_PointeImage * cQT_Interface::pPointImage(cPointGlob* pg, int idWGL)
+cSP_PointeImage * cQT_Interface::pointeImage(cPointGlob* pg, int idWGL)
 {
     cImage* image = mAppli->image(idCImage(idWGL));
 
@@ -413,7 +417,7 @@ cSP_PointeImage * cQT_Interface::pPointImage(cPointGlob* pg, int idWGL)
 
 void cQT_Interface::centerOnPtGlobal(int idWGL, cPointGlob* aPG)
 {
-    cSP_PointeImage* ptI = pPointImage(aPG, idWGL);
+    cSP_PointeImage* ptI = pointeImage(aPG, idWGL);
 
     if(ptI && ptI->Visible() && ptI->Saisie())
 
@@ -569,10 +573,10 @@ void cQT_Interface::rebuild2DGlPoints()
                 m_QTMainWindow->getWidget(i)->getGLData()->clearPolygon();
 
                 for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+
                     if (PtImgIsVisible(*(aVP[aK])))
-                    {
+
                         addGlPoint(aVP[aK], i);
-                    }
 
                 m_QTMainWindow->getWidget(i)->update();
             }
