@@ -1060,8 +1060,8 @@ void cXifDecoder::GenerateTxtFile(const std::string & aFullName)
 
 	mFileTxt = aDir + GenerateNameUnique(aNSsDir,mStrTmp);
 	std::string aCom = mStrLangE + QUOTE(aFullName) + " > " + mFileTxt;
-	int aRes = system_call(aCom.c_str());
 
+	int aRes = System(aCom,true);
 
 
 	//GERALD
@@ -1142,6 +1142,7 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 	{
 		cXifDecoder & aXifDec = *(aV[aKX]);
 		aXifDec.GenerateTxtFile(aNameIm);
+
 		int aNbMatch;
 
 		if (! GotDate)
