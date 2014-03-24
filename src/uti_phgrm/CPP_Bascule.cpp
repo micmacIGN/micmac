@@ -97,8 +97,8 @@ int Bascule_main(int argc,char ** argv)
     (
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)" , eSAM_IsPatFile)
-                    << EAMC(AeroIn,"Orientaion in", eSAM_IsExistDirOri)
-                    << EAMC(AeroOut,"Out: orientation or local repair (if postfixed by \"xml\"", eSAM_IsExistFile),
+                    << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
+                    << EAMC(AeroOut,"Out: orientation or local repair (if postfixed by \"xml\")", eSAM_IsExistFile),
     LArgMain()
                     << EAM(ImPl,"ImPl",true)
                     << EAM(ExpTxt,"ExpTxt",true)
