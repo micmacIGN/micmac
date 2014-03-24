@@ -47,7 +47,7 @@ public:
     void create_champ_int(QGridLayout* layout, QWidget* parent, int);
     void set_argv_recup(string);
 
-    void buildUI(vector<cMMSpecArg>& aVAM, QGridLayout* layout, QWidget* parent);
+    void buildUI(vector<cMMSpecArg>& aVAM, QGridLayout* layout, QWidget* parent, bool isOpt=false);
 
 public slots:
 
@@ -55,6 +55,7 @@ public slots:
     void onSelectFilePressed(int);
     void onSelectImgsPressed(int);
     void onSelectDirPressed(int);
+    void _adjustSize(int);
 
 protected:
 
@@ -71,6 +72,7 @@ protected:
     QLineEdit*   select_LineEdit;
     QPushButton* select_Button;
     QSpinBox*    SpinBox;
+    QToolBox*    toolBox;
     QPushButton* runCommandButton;
 
     vector <QComboBox*> vEnumValues;    //enum values
