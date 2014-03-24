@@ -377,7 +377,7 @@ protected:
 
     int                         idPointGlobal(cSP_PointGlob* PG);
 
-    cImage *                    ptCImage(int idCimg);
+    cImage *                    CImage(int idCimg);
 
      vector<cImage *>           ComputeNewImagesPriority(cSP_PointGlob *pg, bool aUseCpt);
 

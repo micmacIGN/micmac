@@ -65,7 +65,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_PG(), SLOT(update()));
     connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_Images(), SLOT(update()));
     connect(this,SIGNAL(dataChanged(cSP_PointeImage*)), this, SLOT(rebuildGlPoints(cSP_PointeImage*)));
-    connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPG(QModelIndex)));
+    connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
 
 }
 
@@ -273,25 +273,38 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
     rebuildGlPoints();
 }
 
-void cQT_Interface::selectPoint(int idPt)
+void cQT_Interface::selectPointGlobal(int idPG)
 {
-    rebuild3DGlPoints(idPt >= 0 ? PointeImageInCurrentWGL(idPt) : NULL);
-
-    if (idPt >=0)
+    if(idPG < (int)mAppli->PG().size() && idPG > 0)
     {
-
-        int idPG = idPointGlobal(idPt);
-
         m_QTMainWindow->tableView_PG()->selectRow(idPG);
+
+        rebuild3DGlPoints(mAppli->PG()[idPG]->PG());
 
         populateTableImages(idPG);
 
+        m_QTMainWindow->SelectPointAllWGL(namePointGlobal(idPG));
     }
 }
 
-int cQT_Interface::idPointGlobal(int idSelectGlPoint)
+void cQT_Interface::selectPoint(int idPtCurGLW)
 {
-    return cVirtualInterface::idPointGlobal(getNameGLPt_CurWidget(idSelectGlPoint));
+    selectPointGlobal(idPointGlobal(idPtCurGLW));
+}
+
+void cQT_Interface::selectPointGlobal(QModelIndex modelIndex)
+{
+    selectPointGlobal(modelIndex.row());
+}
+
+int cQT_Interface::idPointGlobal(int idSelectGlPoint)
+{    
+    return idSelectGlPoint < 0 ? -1 : cVirtualInterface::idPointGlobal(getNameGLPt_CurWidget(idSelectGlPoint));
+}
+
+QString cQT_Interface::namePointGlobal(int idPtGlobal)
+{
+    return QString((((cSP_PointGlob * )(mAppli->PG()[idPtGlobal])))->PG()->Name().c_str());
 }
 
 cPoint cQT_Interface::getGLPt_CurWidget(int idPt)
@@ -315,21 +328,6 @@ void cQT_Interface::populateTableImages(int idPG)
 void cQT_Interface::setAutoName(QString name)
 {
     mAppli->Param().NameAuto().SetVal( name.toStdString().c_str() );
-}
-
-void cQT_Interface::selectPG(QModelIndex modelIndex)
-{
-    if(modelIndex.row() < (int)mAppli->PG().size())
-    {
-        cSP_PointGlob* pg  = mAppli->PG()[modelIndex.row()];
-
-        rebuild3DGlPoints(pg->PG());
-
-        populateTableImages(modelIndex.row());
-
-        m_QTMainWindow->SelectPointAllWGL(QString(pg->PG()->Name().c_str()));
-
-    }
 }
 
 void cQT_Interface::undo(bool aBool)
@@ -369,12 +367,12 @@ int cQT_Interface::idCImage(QString nameImage)
 
 cImage * cQT_Interface::currentCImage()
 {
-    return cVirtualInterface::ptCImage(idCurrentCImage());
+    return cVirtualInterface::CImage(idCurrentCImage());
 }
 
 cImage *cQT_Interface::CImage(QString nameImage)
 {
-    return cVirtualInterface::ptCImage(idCImage(nameImage));
+    return cVirtualInterface::CImage(idCImage(nameImage));
 }
 
 int cQT_Interface::idCurrentCImage()
@@ -521,12 +519,10 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
         {
             cPointGlob * pg = pGV[i]->PG();
 
-            QColor colorPt = Qt::green;
+            QColor colorPt = pGV[i]->HighLighted() ? Qt::red : Qt::green;
 
             if (pg == selectPtGlob)
                 colorPt = Qt::blue;
-            else if (pGV[i]->HighLighted())
-                colorPt = Qt::red;
 
             cloud->addVertex(GlVertex(pg->P3D().Val(), colorPt));
         }
