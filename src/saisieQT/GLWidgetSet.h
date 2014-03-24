@@ -8,6 +8,7 @@
 class GLWidget;
 
 #define CURRENT_IDW -1
+#define THISWIN     -2
 
 class GLWidgetSet
 {
@@ -44,6 +45,8 @@ public:
     void option3DPreview();
 
     void init3DPreview(cData *data);
+
+    void selectCameraIn3DP(int idCam);
 
 private:
 

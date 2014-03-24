@@ -115,7 +115,7 @@ public:
 
 public slots:
 
-    void centerViewportOnImagePosition(QPointF pt);
+    void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
 
     void lineThicknessChanged(float);
     void gammaChanged(float);
@@ -130,7 +130,7 @@ public slots:
 signals:
 
     //! Signal emitted when files are dropped on the window
-    void filesDropped(const QStringList& filenames, bool setGLData);
+    void filesDropped(const QStringList& filenames, bool setGLData = true);
 
     void newImagePosition(QPointF pt);
 
