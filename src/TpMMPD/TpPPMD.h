@@ -87,7 +87,12 @@ class cTD_Camera
             cTD_Camera NewCam(double aFoc , double aR3);
             
 
-        // Coeff dist  R3
+        // Manipulation géométrique 
+
+           Pt2dr Ter2Im(const Pt3dr & aPTer) const;
+           Pt3dr ImAndProf2Ter(const Pt2dr & aPTer,double aProf) const;
+           double ProfMoy() const;
+           double StepProfOnePixel(const cTD_Camera &) const;
           
      private :
         friend class cTD_Prof;

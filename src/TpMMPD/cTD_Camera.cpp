@@ -127,6 +127,39 @@ cTD_Camera cTD_Camera::NewCam(double aFoc , double aR3)
 }
 
 
+Pt2dr  cTD_Camera::Ter2Im(const Pt3dr & aPTer) const
+{
+   return mCS->R3toF2(aPTer);
+}
+
+Pt3dr cTD_Camera::ImAndProf2Ter(const Pt2dr & aPTer,double aProf) const
+{
+   return mCS->ImEtProf2Terrain(aPTer,aProf);
+}
+
+double  cTD_Camera::ProfMoy() const
+{
+   return mCS->GetProfondeur();
+}
+
+double cTD_Camera::StepProfOnePixel(const cTD_Camera & aCam2) const
+{
+    Pt3dr aC1 = mCS->VraiOpticalCenter();
+    Pt3dr aC2 = aCam2.mCS->VraiOpticalCenter();
+
+    double aBase = euclid(aC1-aC2);
+    double aProf = (ProfMoy() + aCam2.ProfMoy()) / 2.0;
+
+    double aF = (Focale() + aCam2.Focale()) / 2.0;
+
+
+    return ElSquare(aProf) / ( aF * aBase);
+
+
+}
+
+
+
 
 
 
