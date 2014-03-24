@@ -133,6 +133,59 @@ cSP_PointGlob *cVirtualInterface::addPoint(Pt2dr pt, cImage *curImg)
     return PG;
 }
 
+int cVirtualInterface::idPointGlobal(std::string nameGP)
+{
+    int idPG = -1;
+
+    vector < cSP_PointGlob * > vPG = mAppli->PG();
+    for (int iPG = 0; iPG < (int)vPG.size(); ++iPG)
+    {
+        cSP_PointGlob * aPG  = vPG[iPG];
+
+        if(aPG->PG()->Name() == nameGP)
+            idPG = iPG;
+    }
+
+    return idPG;
+}
+
+const char *cVirtualInterface::cNamePointGlobal(int idPtGlobal)
+{
+    vector < cSP_PointGlob * > vPG = mAppli->PG();
+    cSP_PointGlob * aPG  = vPG[idPtGlobal];
+
+    return aPG->PG()->Name().c_str();
+}
+
+int cVirtualInterface::idPointGlobal(cSP_PointGlob *PG)
+{
+    int id = -1;
+    for (int i = 0; i < (int)mAppli->PG().size(); ++i)
+        if(mAppli->PG()[i] == PG)
+            id = i;
+
+    return id;
+}
+
+cImage *cVirtualInterface::CImage(int idCimg)
+{
+    if(idCimg < 0 || idCimg >= (int)mAppli->images().size())
+        return NULL;
+    else
+        return mAppli->image(idCimg);
+}
+
+vector<cImage *> cVirtualInterface::ComputeNewImagesPriority(cSP_PointGlob *pg,bool aUseCpt)
+{
+    mAppli->SetImagesPriority(pg, aUseCpt);
+
+    vector<cImage *> images = mAppli->images();
+
+    mAppli->SortImages(images);
+
+    return images;
+}
+
 void cVirtualInterface::ChangeFreeNamePoint(const std::string & aName, bool SetFree)
 {
     std::map<std::string,cCaseNamePoint *>::iterator it = mMapNC.find(aName);
@@ -822,6 +875,12 @@ void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCp
     }
 }
 
+void cAppli_SaisiePts::SortImages(std::vector<cImage *> &images)
+{
+    cCmpIm aCmpIm(mInterface);
+    std::sort(images.begin(),images.end(),aCmpIm);
+}
+
 void cAppli_SaisiePts::ChangeImages
 (
         cSP_PointGlob * PointPrio,
@@ -831,8 +890,7 @@ void cAppli_SaisiePts::ChangeImages
 {
     SetImagesPriority(PointPrio,aUseCpt);
 
-    cCmpIm aCmpIm(mInterface);
-    std::sort(mImages.begin(),mImages.end(),aCmpIm);
+    SortImages(mImages);
 
     #if ELISE_windows == 0
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)

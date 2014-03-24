@@ -345,31 +345,41 @@ class cVirtualInterface
 
 protected:
 
-    bool                      PtImgIsVisible(cSP_PointeImage &aPIm);
+    bool                        PtImgIsVisible(cSP_PointeImage &aPIm);
 
-    void                      InitNbWindows();
+    void                        InitNbWindows();
 
-    void                      InitVNameCase();
+    void                        InitVNameCase();
 
-    cAppli_SaisiePts*         mAppli;
-    const cParamSaisiePts*    mParam;
+    cAppli_SaisiePts*           mAppli;
 
-    Pt2di                     mNb2W;        //window nb (col, raw)
-    int                       mNbW;         //total window nb (col x raw)
+    const cParamSaisiePts*      mParam;
 
-    bool                      mRefInvis;
+    Pt2di                       mNb2W;        //window nb (col, raw)
+
+    int                         mNbW;         //total window nb (col x raw)
+
+    bool                        mRefInvis;
 
     std::vector <cCaseNamePoint>        mVNameCase;
 
     std::map<std::string,cCaseNamePoint *>  mMapNC;
 
-    virtual eTypePts          PtCreationMode() = 0;
+    virtual eTypePts            PtCreationMode() = 0;
 
-    virtual double            PtCreationWindowSize() = 0;
+    virtual double              PtCreationWindowSize() = 0;
 
-    cSP_PointGlob *           addPoint(Pt2dr pt,cImage* curImg);
+    cSP_PointGlob *             addPoint(Pt2dr pt,cImage* curImg);
 
-private:
+    int                         idPointGlobal(std::string nameGP);
+
+    const char *                cNamePointGlobal(int idPtGlobal);
+
+    int                         idPointGlobal(cSP_PointGlob* PG);
+
+    cImage *                    CImage(int idCimg);
+
+     vector<cImage *>           ComputeNewImagesPriority(cSP_PointGlob *pg, bool aUseCpt);
 
 };
 
@@ -514,7 +524,7 @@ class cAppli_SaisiePts
 
     void                GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-    void                ChangeName(std::string  anOldName,std::string  aNewName);
+    bool                ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
     void 				RedrawAllWindows () { if (mInterface) mInterface->RedrawAllWindows();}
@@ -537,7 +547,8 @@ class cAppli_SaisiePts
 
     void                SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCpt);
 
-    private :
+    void                SortImages(std::vector<cImage *> &images);
+private :
 
          void RenameIdPt(std::string &);
 

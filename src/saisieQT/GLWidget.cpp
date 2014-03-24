@@ -348,7 +348,7 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
        _matrixManager.setView(orientation,m_GLData->getBBoxCenter());
 }
 
-void GLWidget::centerViewportOnImagePosition(QPointF pt)
+void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
 {
     float vpCenterX = vpWidth() *.5f;
     float vpCenterY = vpHeight()*.5f;
@@ -356,6 +356,9 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt)
     m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
 
     _matrixManager.translate(-pt.x() / vpCenterX, -pt.y() / vpCenterY);
+
+    if(zoom > 0.f)
+        setZoom(zoom);
 
     update();
 }

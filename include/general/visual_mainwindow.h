@@ -42,10 +42,8 @@ public:
 
     void add_combo_line(QString);
     void create_combo(int, list<string>);
-    void create_select_images(int);
-    void create_select_orientation(int);
     void create_comment(string, int);
-    void create_select_button(int, bool isDir = false);
+    void create_select(int, cMMSpecArg);
     void create_champ_int(int);
     void set_argv_recup(string);
 
@@ -79,6 +77,7 @@ public slots:
 
     void onRunCommandPressed();
     void onSelectFilePressed(int);
+    void onSelectImgsPressed(int);
     void onSelectDirPressed(int);
 };
 
