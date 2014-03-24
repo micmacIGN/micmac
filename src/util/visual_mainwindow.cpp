@@ -5,45 +5,8 @@
 
 #include "StdAfx.h"
 
-void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QWidget *parent)
-{
-    for (int aK=0 ; aK<int(aVA.size()) ; aK++)
-    {
-        cMMSpecArg aArg = aVA[aK];
-        cout << "arg " << aK << " ; Type is " << aArg.NameType() <<"\n";
-
-        create_comment(layout, parent, aArg.Comment(), aK);
-
-        if (aArg.NameType() == "string")
-        {
-            //On recupere les valeurs enumerees dans une liste
-            std::list<std::string> liste_valeur_enum = listPossibleValues(aArg);
-
-            if (!liste_valeur_enum.empty())
-            {
-                create_combo(layout, parent, aK,liste_valeur_enum);
-            }
-            else //chaine de caracteres normale
-            {
-                create_select(layout, parent, aK, aArg);
-            }
-        }
-        else if (aArg.NameType()=="INT")
-        {
-            create_champ_int(layout, parent, aK);
-        }
-        else if (aArg.NameType()== "bool")
-        {
-            create_combo(layout, parent, aK, bList);
-        }
-
-        //ShowEnum(aVA[aK]);
-    }
-
-    QSpacerItem *spacer = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-    layout->addItem(spacer, aVA.size(), 1);
-}
+// aVAM: Mandatory args
+// aVAO: Optional args
 
 visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent) :
     QMainWindow(parent),
@@ -59,12 +22,12 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
 
     mainWidget->setLayout(verticalLayout);
 
-    QToolBox *toolBox = new QToolBox();
+    toolBox = new QToolBox();
 
     verticalLayout->addWidget(toolBox);
 
     QWidget* pageMandatoryArgs = new QWidget();
-    pageMandatoryArgs->setGeometry(QRect(0, 0, 200, 150));
+    pageMandatoryArgs->setGeometry(QRect(0, 0, 300, 400));
     pageMandatoryArgs->setLayoutDirection(Qt::LeftToRight);
 
     //Grid Layout
@@ -73,29 +36,25 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
     toolBox->addItem(pageMandatoryArgs, tr("Mandatory arguments"));
 
     QWidget* pageOptionalArgs = new QWidget();
-    pageOptionalArgs->setGeometry(QRect(0, 0, 200, 150));
+    pageOptionalArgs->setGeometry(QRect(0, 0, 300, 400));
     pageOptionalArgs->setLayoutDirection(Qt::LeftToRight);
 
     toolBox->addItem(pageOptionalArgs, tr("Optional arguments"));
 
-
-
     QGridLayout* gridLayout_2 = new QGridLayout(pageOptionalArgs);
-
-    // aVAM: Mandatory args
-    // aVAO: Optional args
 
     buildUI(aVAM, gridLayout, pageMandatoryArgs);
 
-    buildUI(aVAO, gridLayout_2, pageOptionalArgs);
+    buildUI(aVAO, gridLayout_2, pageOptionalArgs, true);
 
-    runCommandButton = new QPushButton("Run command", mainWidget);
-    verticalLayout->addWidget(new QLabel(" "));
-    verticalLayout->addWidget(runCommandButton);
+    runCommandButton = new QPushButton(" Run command ", mainWidget);
+
+    verticalLayout->addWidget(runCommandButton, 1, Qt::AlignRight);
+
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
 
+    connect(toolBox, SIGNAL(currentChanged(int)), this, SLOT(_adjustSize(int)));
 }
-
 
 visual_MainWindow::~visual_MainWindow()
 {
@@ -106,6 +65,53 @@ visual_MainWindow::~visual_MainWindow()
     delete select_LineEdit;
     delete select_Button;
     delete runCommandButton;
+}
+
+void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QWidget *parent, bool isOpt)
+{
+    for (int aK=0 ; aK<int(aVA.size()) ; aK++)
+    {
+        cMMSpecArg aArg = aVA[aK];
+        //cout << "arg " << aK << " ; Type is " << aArg.NameType() <<"\n";
+
+        create_comment(layout, parent, aArg.Comment(), aK);
+
+        if (aArg.NameType() == "string")
+        {
+            //On recupere les valeurs enumerees dans une liste
+            std::list<std::string> liste_valeur_enum = listPossibleValues(aArg);
+
+            if (!liste_valeur_enum.empty())
+            {
+                create_combo(layout, parent, aK, liste_valeur_enum);
+            }
+            else //chaine de caracteres normale
+            {
+                create_select(layout, parent, aK, aArg);
+            }
+        }
+        else if (aArg.NameType()== "INT")
+        {
+            create_champ_int(layout, parent, aK);
+        }
+        else if (aArg.NameType()== "bool")
+        {
+            create_combo(layout, parent, aK, bList);
+        }
+
+        //ShowEnum(aVA[aK]);
+    }
+
+    QSpacerItem *spacerV = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    layout->addItem(spacerV, aVA.size(), 0);
+
+    if (isOpt)
+    {
+        QSpacerItem *spacerH = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        layout->addItem(spacerH, 0, layout->columnCount());
+    }
 }
 
 void visual_MainWindow::onRunCommandPressed()
@@ -217,6 +223,11 @@ void visual_MainWindow::onSelectDirPressed(int aK)
     }
 }
 
+void visual_MainWindow::_adjustSize(int)
+{
+    adjustSize();
+}
+
 void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int aK, list<string> liste_valeur_enum )
 {
     QComboBox* aCombo = new QComboBox(parent);
@@ -246,25 +257,26 @@ void visual_MainWindow::create_select(QGridLayout* layout, QWidget* parent, int 
     vLineEdit.push_back(aLineEdit);
     layout->addWidget(aLineEdit,aK,1,1,1);
 
-    QString buttonName = "";
+    if (!eSAM.IsOutputFile())
+    {
+        select_Button = new selectionButton(parent);
+        layout->addWidget(select_Button,aK,3,1,1);
 
-    select_Button = new imgListButton(buttonName, parent);
-    layout->addWidget(select_Button,aK,3,1,1);
-
-    if (eSAM.IsExistDirOri())
-    {
-        select_Button->setText(tr("Select directory"));
-        connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
-    }
-    else if (eSAM.IsPatFile())
-    {
-        select_Button->setText(tr("Select images"));
-        connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
-    }
-    else if (eSAM.IsExistFile())
-    {
-        select_Button->setText(tr("Select file"));
-        connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
+        if (eSAM.IsExistDirOri())
+        {
+            select_Button->setText(tr("Select directory"));
+            connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
+        }
+        else if (eSAM.IsPatFile())
+        {
+            select_Button->setText(tr("Select images"));
+            connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
+        }
+        else if (eSAM.IsExistFile())
+        {
+            select_Button->setText(tr("Select file"));
+            connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
+        }
     }
 
     vInputTypes.push_back(eLineEdit);
@@ -312,26 +324,28 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
     QRect screenSz = qApp->desktop()->availableGeometry();
 
     int maxLineEdit = getWidgetVectorWidth(vLineEdit);
-    //TODO: int maxComment  = getWidgetVectorWidth(vComments);
-    int maxButton = 0;
-
     if (maxLineEdit <= 0) maxLineEdit = 100;
 
-    //calcul de la taille de la colonne 3... (boutons)
+    int maxComment = 0;
+    int maxButton = 0;
+
+    //calcul de la taille des colonnes 1 et 3... (Commentaires et boutons)
     for (int aK=0; aK < gridLayout->rowCount(); ++aK)
     {
-        QSize cellSize = getLayoutCellSize(gridLayout, aK, 3);
+        QSize cellSize1 = getLayoutCellSize(gridLayout, aK, 1);
+        QSize cellSize3 = getLayoutCellSize(gridLayout, aK, 3);
 
-        if (cellSize.isValid())
-        {
-            if (cellSize.width() > maxButton) maxButton = cellSize.width();
-        }
+        if (cellSize1.isValid() && (cellSize1.width() > maxComment)) maxComment = cellSize1.width();
+        if (cellSize3.isValid() && (cellSize3.width() > maxButton))  maxButton  = cellSize3.width();
     }
 
-    //TODO: int finalSize = maxLineEdit + maxComment + maxButton + 40;
-    //if (finalSize > screenSz.width())  finalSize = screenSz.width() - 50;
+    int finalSize = maxLineEdit + maxComment + maxButton + 60;
+    if (finalSize > screenSz.width()) finalSize = screenSz.width() - 50;
 
-    //resize(finalSize, height());
+    if (toolBox->currentIndex() == 0)
+        resize(finalSize, 200);
+    else
+        resize(finalSize, 500);
 
     //deplacement au centre de l'ecran
     const QPoint global = screenSz.center();
