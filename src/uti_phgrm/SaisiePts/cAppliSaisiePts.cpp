@@ -167,7 +167,7 @@ int cVirtualInterface::idPointGlobal(cSP_PointGlob *PG)
     return id;
 }
 
-cImage *cVirtualInterface::ptCImage(int idCimg)
+cImage *cVirtualInterface::CImage(int idCimg)
 {
     if(idCimg < 0 || idCimg >= (int)mAppli->images().size())
         return NULL;

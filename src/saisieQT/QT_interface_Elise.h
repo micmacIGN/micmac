@@ -27,8 +27,6 @@ public :
 
     void                Redraw(){}
 
-    void                HighlightPoint(cSP_PointeImage* aPIm);
-
 private:
 
     //                  init Interface
@@ -74,9 +72,14 @@ private:
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
 
-    cSP_PointeImage *   pointeImage(cPointGlob* pg, int i);
+    cSP_PointeImage *   pointeImage(cPointGlob* pg, int idWGL);
 
     void                centerOnPtGlobal(int idWGL, cPointGlob *aPG);
+
+    void                HighlightPoint(cSP_PointeImage* aPIm);
+
+    void                selectPointGlobal(int idPG);
+
 
     virtual eTypePts    PtCreationMode();
 
@@ -123,7 +126,7 @@ public slots:
 
     void                changeImages(int idPt, bool aUseCpt);
 
-    void                selectPG(QModelIndex modelIndex);
+    void                selectPointGlobal(QModelIndex modelIndex);
 
     void                undo(bool);
 
@@ -133,7 +136,7 @@ private slots:
 
     void                movePoint(int idPt);
 
-    void                selectPoint(int idPt);
+    void                selectPoint(int idPtCurGLW);
 
     void                changeState(int state, int idPt);
 
