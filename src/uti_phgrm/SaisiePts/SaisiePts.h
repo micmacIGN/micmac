@@ -351,10 +351,12 @@ protected:
 
     void                        InitVNameCase();
 
-    cAppli_SaisiePts*            mAppli;
+    cAppli_SaisiePts*           mAppli;
+
     const cParamSaisiePts*      mParam;
 
-    Pt2di                        mNb2W;        //window nb (col, raw)
+    Pt2di                       mNb2W;        //window nb (col, raw)
+
     int                         mNbW;         //total window nb (col x raw)
 
     bool                        mRefInvis;
@@ -375,9 +377,10 @@ protected:
 
     int                         idPointGlobal(cSP_PointGlob* PG);
 
-    //cSP_PointeImage *           currentPointeImage(int idPoint);
-
     cImage *                    ptCImage(int idCimg);
+
+     vector<cImage *>           ComputeNewImagesPriority(cSP_PointGlob *pg, bool aUseCpt);
+
 };
 
 class cCmpIm
@@ -521,7 +524,7 @@ class cAppli_SaisiePts
 
     void                GlobChangStatePointe(const std::string & aName,const eEtatPointeImage aState);
 
-    void                ChangeName(std::string  anOldName,std::string  aNewName);
+    bool                ChangeName(std::string  anOldName,std::string  aNewName);
 
     cVirtualInterface * Interface() { return mInterface; }
     void 				RedrawAllWindows () { if (mInterface) mInterface->RedrawAllWindows();}
@@ -544,7 +547,8 @@ class cAppli_SaisiePts
 
     void                SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCpt);
 
-    private :
+    void                SortImages(std::vector<cImage *> &images);
+private :
 
          void RenameIdPt(std::string &);
 
