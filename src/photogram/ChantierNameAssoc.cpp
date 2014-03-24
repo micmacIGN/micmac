@@ -428,7 +428,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
             if ( _NSGetExecutablePath(buf, &size)==-1 ){
                 buf = new char[size];
                 _NSGetExecutablePath( buf, &size);
-                aFullArg0.assign(buf,size);
+                aFullArg0.assign(buf);
                 if ( strlen(argv[0])>2 && argv[0][0]=='.' && argv[0][1]=='/' )
                     aFullArg0 = aFullArg0.erase( aFullArg0.find("./"), 2 );
                 delete [] buf;
