@@ -55,22 +55,18 @@ private:
 
     cImage *            ptCurrentCImage();
 
-    cImage *            ptCImage(int idCimg);
+
 
     cImage *            ptCImage(QString nameImage);
 
 
     //                  Tools Points                        ///////////////////////////////////////////
 
-    void                removePointGlobal(cSP_PointGlob *aPt);
-
-    int                 idPointGlobal(cSP_PointGlob* PG);
+    void                removePointGlobal(cSP_PointGlob *pPg);
 
     int                 idPointGlobal(int idSelectGlPoint);
 
     QString             namePointGlobal(int idPtGlobal);
-
-    Pt2dr               FindPointInImage(const Pt2dr &aPIm, eTypePts aType, double aSz, cPointGlob *aPG);
 
     cSP_PointeImage *   currentPointeImage(int idPoint);
 
@@ -84,7 +80,7 @@ private:
 
     //                  OpenGL                              ///////////////////////////////////////////
 
-    void                addGlPoint(cSP_PointeImage *aPIm, int i);
+    void                addGlPoint(cSP_PointeImage *aPIm, int idImag);
 
     void                rebuild3DGlPoints(cPointGlob *selectPtGlob);
 
