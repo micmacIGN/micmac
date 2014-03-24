@@ -670,11 +670,12 @@ char * ELISE_fp::std_fgets()
 	bool aEOF;
 
 	bool OK = fgets(aBigBuf,aEOF); //bool OK = fgets(aBigBuf,aTBUF-1,aEOF,false); TEST_OVERFLOW
-	if (aEOF || (!OK))  return 0;
+	if ( ( aEOF && (aBigBuf.length()==0) ) || (!OK) )  return 0;
 	for (char * aC=&(aBigBuf[0]); *aC ; aC++) //for (char * aC=aBigBuf; *aC ; aC++) TEST_OVERFLOW
 	{
 		if (isspace(*aC)) *aC = ' ' ;
 	}
+
 	return &(aBigBuf[0]); //return aBigBuf; TEST_OVERFLOW
 }
 /* TEST_OVERFLOW
@@ -716,7 +717,7 @@ bool  ELISE_fp::fgets( std::string &s, bool & endof )
 		if ( i==int(s.length()) ) s.resize( s.length()+500 );
 		if ( ( c=='\n' ) || ( c==eof ) )
 		{
-			s[i] = 0;
+			s.resize(i);
 			endof = ( c==eof );
 			return true;
 		}
