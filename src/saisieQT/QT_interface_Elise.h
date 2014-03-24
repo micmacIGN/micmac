@@ -27,12 +27,12 @@ public :
 
     void                Redraw(){}
 
-private:
+    void                HighlightPoint(cSP_PointeImage* aPIm);
 
+private:
 
     //                  init Interface
     void                Init();   
-
 
     cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
 
@@ -55,8 +55,6 @@ private:
 
     cImage *            ptCurrentCImage();
 
-
-
     cImage *            ptCImage(QString nameImage);
 
 
@@ -68,11 +66,17 @@ private:
 
     QString             namePointGlobal(int idPtGlobal);
 
-    cSP_PointeImage *   currentPointeImage(int idPoint);
+    cSP_PointeImage *   PointeImageInCurrentWGL(int idPointGL);
+
+    cSP_PointGlob *     PointGlobInCurrentWGL(int idPointGL);
 
     Pt2dr               transformation(QPointF pt, int idImage = -1);
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
+
+    cSP_PointeImage *   pPointImage(cPointGlob* pg, int i);
+
+    void                centerOnPtGlobal(int idWGL, cPointGlob *aPG);
 
     virtual eTypePts    PtCreationMode();
 
@@ -107,6 +111,8 @@ private:
 
     cData               *_data;
 
+    int                 _aCpt;
+
 signals:
 
     void                dataChanged(cSP_PointeImage *aPIm = NULL);
@@ -139,7 +145,7 @@ private slots:
 
     void                changeCurPose(void *widgetGL);
 
-    void                filesDropped(const QStringList& filenames, bool setGLData);
+    void                filesDropped(const QStringList& filenames);
 
     void                SetInvisRef(bool aVal);
 };
