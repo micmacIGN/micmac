@@ -73,14 +73,15 @@ public:
 
     QTableView *tableView_Images();
 
-    void        resizeTables();
+    void    resizeTables();
 
-    void        setModel(QAbstractItemModel *model_Pg,QAbstractItemModel *model_Images);
+    void    setModel(QAbstractItemModel *model_Pg,QAbstractItemModel *model_Images);
 
-#if ELISE_QT_VERSION!=5
-    void    emitSelectPoint(QString pointName);
-#endif
+    void    SelectPointAllWGL(QString pointName);
 
+    void    SetDataToGLWidget(int idGLW, cGLData *glData);
+
+    void    loadPlyIn3DPrev(const QStringList &filenames,cData* dataCache);
 
 public slots:
 
