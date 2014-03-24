@@ -275,7 +275,7 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
 
 void cQT_Interface::selectPointGlobal(int idPG)
 {
-    if(idPG < (int)mAppli->PG().size() && idPG > 0)
+    if(idPG < (int)mAppli->PG().size() && idPG >= 0)
     {
         m_QTMainWindow->tableView_PG()->selectRow(idPG);
 
