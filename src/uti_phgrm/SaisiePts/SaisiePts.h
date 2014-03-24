@@ -345,32 +345,39 @@ class cVirtualInterface
 
 protected:
 
-    bool                      PtImgIsVisible(cSP_PointeImage &aPIm);
+    bool                        PtImgIsVisible(cSP_PointeImage &aPIm);
 
-    void                      InitNbWindows();
+    void                        InitNbWindows();
 
-    void                      InitVNameCase();
+    void                        InitVNameCase();
 
-    cAppli_SaisiePts*         mAppli;
-    const cParamSaisiePts*    mParam;
+    cAppli_SaisiePts*            mAppli;
+    const cParamSaisiePts*      mParam;
 
-    Pt2di                     mNb2W;        //window nb (col, raw)
-    int                       mNbW;         //total window nb (col x raw)
+    Pt2di                        mNb2W;        //window nb (col, raw)
+    int                         mNbW;         //total window nb (col x raw)
 
-    bool                      mRefInvis;
+    bool                        mRefInvis;
 
     std::vector <cCaseNamePoint>        mVNameCase;
 
     std::map<std::string,cCaseNamePoint *>  mMapNC;
 
-    virtual eTypePts          PtCreationMode() = 0;
+    virtual eTypePts            PtCreationMode() = 0;
 
-    virtual double            PtCreationWindowSize() = 0;
+    virtual double              PtCreationWindowSize() = 0;
 
-    cSP_PointGlob *           addPoint(Pt2dr pt,cImage* curImg);
+    cSP_PointGlob *             addPoint(Pt2dr pt,cImage* curImg);
 
-private:
+    int                         idPointGlobal(std::string nameGP);
 
+    const char *                cNamePointGlobal(int idPtGlobal);
+
+    int                         idPointGlobal(cSP_PointGlob* PG);
+
+    //cSP_PointeImage *           currentPointeImage(int idPoint);
+
+    cImage *                    ptCImage(int idCimg);
 };
 
 class cCmpIm
