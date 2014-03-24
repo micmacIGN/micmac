@@ -848,12 +848,48 @@ void MainWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *mode
     tableView_Images()->setModel(model_Images);
 }
 
-#if ELISE_QT_VERSION!=5
-void MainWindow::emitSelectPoint(QString pointName)
+void MainWindow::SelectPointAllWGL(QString pointName)
 {
     emit selectPoint(pointName);
 }
-#endif
+
+void MainWindow::SetDataToGLWidget(int idGLW, cGLData *glData)
+{
+    if (glData)
+    {
+        GLWidget * glW = getWidget(idGLW);
+        glW->setGLData(glData, glData->stateOption(cGLData::OpShow_Mess));
+        glW->setParams(getParams());
+    }
+}
+
+void MainWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCache)
+{
+    if (filenames.size())
+    {
+        for (int i=0; i< filenames.size();++i)
+        {
+            if(!QFile(filenames[i]).exists())
+            {
+                QMessageBox::critical(this, "Error", "File does not exist (or bad argument)");
+                return;
+            }
+        }
+
+        QString suffix = QFileInfo(filenames[0]).suffix();
+
+        if (suffix == "ply")
+        {
+            loadPly(filenames);
+            dataCache->addCloud(getEngine()->getData()->getCloud(0));
+            threeDWidget()->getGLData()->clearClouds();
+            dataCache->computeBBox();
+            threeDWidget()->getGLData()->setData(dataCache,false);
+            threeDWidget()->resetView(false,false,false,true);
+            option3DPreview();
+        }
+    }
+}
 
 void  MainWindow::setGamma(float aGamma)
 {

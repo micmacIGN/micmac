@@ -96,7 +96,7 @@ void cAppli_SaisiePts::SetInterface( cVirtualInterface * interf )
     mInterface = interf;
 }
 
-void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
+bool cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
 {
     //TODO: PARTIE METIER
     for (int aKP=0 ; aKP< int(mPG.size()) ; aKP++)
@@ -104,7 +104,7 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
         if (mPG[aKP]->PG()->Name() == aNewName)
         {
             std::cout << "Name " << aNewName << " already exists\n";
-            return;
+            return false;
         }
     }
 
@@ -135,6 +135,8 @@ void cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
     }
 
     RedrawAllWindows();
+
+    return true;
 }
 
 

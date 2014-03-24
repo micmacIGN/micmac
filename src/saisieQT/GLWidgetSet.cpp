@@ -55,6 +55,16 @@ void GLWidgetSet::init3DPreview(cData* data)
     option3DPreview();
 }
 
+void GLWidgetSet::selectCameraIn3DP(int idCam)
+{
+    for (int c = 0; c  < threeDWidget()->getGLData()->camerasCount(); ++c )
+        threeDWidget()->getGLData()->camera(c)->setSelected(false);
+
+    threeDWidget()->getGLData()->camera(idCam)->setSelected(true);
+
+    threeDWidget()->update();
+}
+
 void GLWidgetSet::widgetSetResize(int aSz)
 {
     int sz = _widgets.size();
