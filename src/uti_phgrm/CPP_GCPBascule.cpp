@@ -67,8 +67,8 @@ int GCPBascule_main(int argc,char ** argv)
                     << EAMC(DicoPts,"Ground Control Points File", eSAM_IsExistFile)
                     << EAMC(MesureIm,"Image Measurements File", eSAM_IsExistFile),
     LArgMain()
-                    <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2 (Def=false)")
-                    <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used")
+                    <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2 (Def=false)", eSAM_IsBool)
+                    <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
     );
 
     #if (ELISE_windows)

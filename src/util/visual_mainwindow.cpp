@@ -67,9 +67,34 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
         cMMSpecArg aArg = aVA[aK];
         cout << "arg " << aK << " ; Type is " << aArg.NameType() << " ; Name is " << aArg.NameArg() <<"\n";
 
-        create_comment(layout, parent, aK, aArg.Comment());
+        create_comment(layout, parent, aK, aArg);
 
-        if (aArg.NameType() == "string")
+        switch (aArg.Type())
+        {
+        case AMBT_Box2di:
+
+            break;
+        case AMBT_Box2dr:
+            break;
+        case AMBT_bool:
+            create_combo(layout, parent, aK, aArg);
+            break;
+        case AMBT_INT:
+        case AMBT_U_INT1:
+            create_spinBox(layout, parent, aK, aArg);
+            break;
+        case AMBT_REAL:
+            create_dSpinBox(layout, parent, aK, aArg);
+        break;
+        case AMBT_Pt2di:
+        break;
+        case AMBT_Pt2dr:
+        break;
+        case AMBT_Pt3dr:
+        break;
+        case AMBT_Pt3di:
+        break;
+        case AMBT_string:
         {
             if (!aArg.EnumeratedValues().empty()) //valeurs enumerees dans une liste
             {
@@ -79,14 +104,23 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
             {
                 create_select(layout, parent, aK, aArg);
             }
+            break;
         }
-        else if (aArg.NameType()== "INT")
-        {
-            create_champ_int(layout, parent, aK, aArg);
-        }
-        else if (aArg.IsBool())
-        {
-            create_combo(layout, parent, aK, aArg);
+        case AMBT_INT1:
+        case AMBT_char:
+        break;
+        case AMBT_vector_Pt2dr:
+        break;
+        case AMBT_vector_int:
+        break;
+        case AMBT_vector_double:
+        break;
+        case AMBT_vvector_int:
+        break;
+        case AMBT_vector_string:
+        break;
+        case AMBT_unknown:
+            break;
         }
 
         //ShowEnum(aVA[aK]);
@@ -99,14 +133,14 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
 
 void visual_MainWindow::onRunCommandPressed()
 {
-    cout << "-----------------" << endl;
+    bool runCom = true;
 
     string aCom = MM3dBinFile(argv_recup) +" ";
-    for (unsigned int i=0;i<vInputs.size();i++)
+    for (unsigned int aK=0;aK<vInputs.size();aK++)
     {
         string aAdd;
 
-        cInputs* aIn = vInputs[i];
+        cInputs* aIn = vInputs[aK];
 
         switch(aIn->Type())
         {
@@ -114,6 +148,11 @@ void visual_MainWindow::onRunCommandPressed()
             {
                 string aStr = ((QLineEdit*) aIn->Widget())->text().toStdString();
                 if (!aStr.empty()) aAdd += aStr;
+                else if (!aIn->Arg().IsOpt())
+                {
+                    QMessageBox::critical(this, tr("Error"), tr("Mandatory argument not filled!!!"));
+                    runCom = false;
+                }
                 break;
             }
             case eComboBox:
@@ -131,7 +170,15 @@ void visual_MainWindow::onRunCommandPressed()
                 int val = ((QSpinBox*) aIn->Widget())->value();
                 stringstream ss;
                 ss << val;
-                aAdd +=  ss.str();
+                aAdd += ss.str();
+                break;
+            }
+            case eDouble:
+            {
+                double val = ((QDoubleSpinBox*) aIn->Widget())->value();
+                stringstream ss;
+                ss << val;
+                aAdd += ss.str();
                 break;
             }
         }
@@ -143,11 +190,13 @@ void visual_MainWindow::onRunCommandPressed()
         }
     }
 
-    cout << "Com = " << aCom << endl;
+    if (runCom)
+    {
+        cout << "Com = " << aCom << endl;
+        int aRes = ::System(aCom);
 
-    int aRes = ::System(aCom);
-
-    cout << "----------------- " << aRes << endl;
+        cout << "----------------- " << aRes << endl;
+    }
 }
 
 void visual_MainWindow::onSelectImgsPressed(int aK)
@@ -220,69 +269,95 @@ void visual_MainWindow::_adjustSize(int)
 
 void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
-    std::list<std::string> liste_valeur_enum = listPossibleValues(aArg);
+    list<string> liste_valeur_enum = listPossibleValues(aArg);
 
     QComboBox* aCombo = new QComboBox(parent);
     vEnumValues.push_back(aCombo);
     layout->addWidget(aCombo,aK,1,1,1);
-    //vInputTypes.push_back(eComboBox);
-    // vInputs.push_back(new cInput(aCombo);
+
     vInputs.push_back(new cInputs(aArg, eComboBox, aCombo));
 
-    for (list<string>::const_iterator it= liste_valeur_enum.begin();
-         it != liste_valeur_enum.end();
-         it++)
+    list<string>::const_iterator it = liste_valeur_enum.begin();
+    for (; it != liste_valeur_enum.end(); it++)
     {
         aCombo->addItem(QString((*it).c_str()));
     }
+
+    if (aArg.IsBool())
+    {
+        bool aBool = aArg.DefaultValue<bool>();
+
+        if (aBool) aCombo->setCurrentIndex(0);
+        else       aCombo->setCurrentIndex(1);
+    }
+    else
+    {
+       //string aStr = aArg.DefaultValue<string>(); =>seg fault car pas de valeur par default (ex: vTapas)
+       /*  int idx = -1;
+        int cpt = 0;
+        list<string>::const_iterator it = liste_valeur_enum.begin();
+        for (; it != liste_valeur_enum.end(); it++, cpt++)
+        {
+            if (aStr == *it) idx = cpt;
+        }
+        if (idx >= 0) aCombo->setCurrentIndex(idx);*/
+    }
 }
 
-void visual_MainWindow::create_comment(QGridLayout* layout, QWidget* parent, int ak, string str_com)
+void visual_MainWindow::create_comment(QGridLayout* layout, QWidget* parent, int ak, cMMSpecArg aArg)
 {
-    QLabel * com = new QLabel(QString(str_com.c_str()), parent);
+    QLabel * com = new QLabel(QString(aArg.Comment().c_str()), parent);
     layout->addWidget(com,ak,0,1,1);
 }
 
-void visual_MainWindow::create_select(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aSAM)
+void visual_MainWindow::create_select(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     QLineEdit* aLineEdit = new QLineEdit(parent);
     vLineEdit.push_back(aLineEdit);
     layout->addWidget(aLineEdit,aK,1,1,1);
 
-    if (!aSAM.IsOutputFile() && !aSAM.IsOutputDirOri())
+    if (!aArg.IsOutputFile() && !aArg.IsOutputDirOri())
     {
         select_Button = new selectionButton(parent);
         layout->addWidget(select_Button,aK,3,1,1);
 
-        if (aSAM.IsExistDirOri())
+        if (aArg.IsExistDirOri())
         {
             select_Button->setText(tr("Select directory"));
             connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
         }
-        else if (aSAM.IsPatFile())
+        else if (aArg.IsPatFile())
         {
             select_Button->setText(tr("Select images"));
             connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
         }
-        else if (aSAM.IsExistFile())
+        else if (aArg.IsExistFile())
         {
             select_Button->setText(tr("Select file"));
             connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
         }
     }
 
-    //vInputTypes.push_back(eLineEdit);
-    //vInputs.push_back(aLineEdit);
-
-    vInputs.push_back(new cInputs(aSAM, eLineEdit, aLineEdit));
+    vInputs.push_back(new cInputs(aArg, eLineEdit, aLineEdit));
 }
 
-void visual_MainWindow::create_champ_int(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::create_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+{
+    QDoubleSpinBox *aSpinBox = new QDoubleSpinBox(parent);
+    layout->addWidget(aSpinBox,aK,1,1,1);
+
+    aSpinBox->setValue( aArg.DefaultValue<double>() );
+
+    vInputs.push_back(new cInputs(aArg, eDouble, aSpinBox));
+}
+
+void visual_MainWindow::create_spinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     QSpinBox *aSpinBox = new QSpinBox(parent);
     layout->addWidget(aSpinBox,aK,1,1,1);
-    //vInputTypes.push_back(eInteger);
-    //vInputs.push_back(aSpinBox);
+
+    aSpinBox->setValue( aArg.DefaultValue<int>() );
+
     vInputs.push_back(new cInputs(aArg, eInteger, aSpinBox));
 }
 

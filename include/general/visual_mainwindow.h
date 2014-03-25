@@ -23,6 +23,7 @@
 #include <QFileDialog>
 #include <QDesktopWidget>
 #include <QApplication>
+#include <QMessageBox>
 
 using namespace std;
 
@@ -30,7 +31,8 @@ enum eInputType
 {
     eLineEdit,
     eComboBox,
-    eInteger
+    eInteger,
+    eDouble
 };
 
 class cInputs
@@ -56,10 +58,11 @@ public:
     visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent = 0);
     ~visual_MainWindow();
 
-    void create_combo  (QGridLayout *layout, QWidget *parent, int, cMMSpecArg);
-    void create_comment(QGridLayout *layout, QWidget *parent, int, string );
-    void create_select (QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
-    void create_champ_int(QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
+    void create_combo   (QGridLayout *layout, QWidget *parent, int, cMMSpecArg);
+    void create_comment (QGridLayout *layout, QWidget *parent, int, cMMSpecArg);
+    void create_select  (QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
+    void create_spinBox (QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
+    void create_dSpinBox(QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
     void set_argv_recup(string);
 
     void buildUI(vector<cMMSpecArg>& aVA, QGridLayout* layout, QWidget* parent);

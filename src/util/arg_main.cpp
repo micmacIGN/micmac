@@ -316,7 +316,24 @@ DEFINE_theEmptyLvalADM(ElSTDNS vector<double>,"vector<double>");
 DEFINE_theEmptyLvalADM(ElSTDNS vector < ElSTDNS vector < int > >,"vector<vector<int> >");
 DEFINE_theEmptyLvalADM(ElSTDNS vector<std::string>,"vector<std::string>");
 
-
+template <> eArgMainBaseType ElArgMain<Box2di>::type() const { return AMBT_Box2di; }
+template <> eArgMainBaseType ElArgMain<Box2dr>::type() const { return AMBT_Box2dr; }
+template <> eArgMainBaseType ElArgMain<bool>::type()   const { return AMBT_bool;   }
+template <> eArgMainBaseType ElArgMain<INT>::type()    const { return AMBT_INT;    }
+template <> eArgMainBaseType ElArgMain<REAL>::type()   const { return AMBT_REAL;   }
+template <> eArgMainBaseType ElArgMain<Pt2di>::type()  const { return AMBT_Pt2di;  }
+template <> eArgMainBaseType ElArgMain<Pt2dr>::type()  const { return AMBT_Pt2dr;  }
+template <> eArgMainBaseType ElArgMain<Pt3dr>::type()  const { return AMBT_Pt3dr;  }
+template <> eArgMainBaseType ElArgMain<Pt3di>::type()  const { return AMBT_Pt3di;  }
+template <> eArgMainBaseType ElArgMain<string>::type() const { return AMBT_string; }
+template <> eArgMainBaseType ElArgMain<U_INT1>::type() const { return AMBT_U_INT1; }
+template <> eArgMainBaseType ElArgMain<INT1>::type()   const { return AMBT_INT1;   }
+template <> eArgMainBaseType ElArgMain<char>::type()   const { return AMBT_char;   }
+template <> eArgMainBaseType ElArgMain<vector<Pt2dr> >::type()        const { return AMBT_vector_Pt2dr;  }
+template <> eArgMainBaseType ElArgMain<vector<int> >::type()          const { return AMBT_vector_int;    }
+template <> eArgMainBaseType ElArgMain<vector<double> >::type()       const { return AMBT_vector_double; }
+template <> eArgMainBaseType ElArgMain<vector<vector<int> > >::type() const { return AMBT_vvector_int;   }
+template <> eArgMainBaseType ElArgMain<vector<std::string> >::type()  const { return AMBT_vector_string; }
 
 
 std::vector<cMMSpecArg>  LArgMain::ExportMMSpec() const

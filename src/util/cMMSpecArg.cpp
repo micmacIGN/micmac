@@ -100,6 +100,7 @@ const std::list<std::string>  & cMMSpecArg::EnumeratedValues() const
     return mEAM->ListEnum();
 }
 
+eArgMainBaseType cMMSpecArg::Type() const { return mEAM->type(); }
 
 
 
