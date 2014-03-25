@@ -1017,7 +1017,7 @@ void ELISE_fp::write(const void *ptr,tFileOffset size, tFileOffset nmemb)
 			ELISE_ASSERT
                         (
 				false,
-				"Error while file reading"
+				"Error while file reading (hard drive might be full)"
                         );
 		}
 	}

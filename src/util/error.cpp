@@ -132,7 +132,7 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
 {
     ShowArgs();
     ncout() << "--------------------------------------------------\n"
-         << "|   the following FATAL ERROR happened (sorry)    \n"
+         << "|   the following FATAL ERROR happened (sorry):   \n"
          << "|                                                 \n"
          << "|    " << mes  <<                                "\n"
          << "|                                                 \n";
