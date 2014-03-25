@@ -92,11 +92,10 @@ int Campari_main(int argc,char ** argv)
     double aSigmaTieP = 1;
     double aFactResElimTieP = 5;
 
-
-   std::vector<std::string> GCP;
-   std::vector<std::string> EmGPS;
-   bool DetailAppuis = false;
-   double Viscos = 1.0;
+    std::vector<std::string> GCP;
+    std::vector<std::string> EmGPS;
+    bool DetailAppuis = false;
+    double Viscos = 1.0;
 
     ElInitArgMain
     (
@@ -106,16 +105,16 @@ int Campari_main(int argc,char ** argv)
                     << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
     LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]")
                     << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc]")
-                    << EAM(aSigmaTieP,"SigmaTieP","Sigma use for TieP weighting (def = 1)")
+                    << EAM(aSigmaTieP,"SigmaTieP","Sigma use for TieP weighting (Def=1)")
                     << EAM(aFactResElimTieP,"FactElimTieP","Fact elimination of type (prop to SigmaTieP, Def=5)")
-                    << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time")
-                    << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input")
-                    << EAM(FocFree,"FocFree",true,"Foc Free, Def = false")
-                    << EAM(PPFree,"PPFree",true,"Principal Point Free, Def = false")
-                    << EAM(AffineFree,"AffineFree",true,"Affine Parameter, Def = false")
-                    << EAM(AllFree,"AllFree",true,"Affine Parameter, Def = false")
-                    << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)")
-                    << EAM(Viscos,"Visc",true,"Viscosity in Levenberg-Marquadt like resolution (Def=1.0)")
+                    << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
+                    << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input", eSAM_IsBool)
+                    << EAM(FocFree,"FocFree",true,"Foc Free (Def=false)", eSAM_IsBool)
+                    << EAM(PPFree,"PPFree",true,"Principal Point Free (Def=false)", eSAM_IsBool)
+                    << EAM(AffineFree,"AffineFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
+                    << EAM(AllFree,"AllFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
+                    << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
+                    << EAM(Viscos,"Visc",true,"Viscosity in Levenberg-Marquardt like resolution (Def=1.0)")
     );
 
 
