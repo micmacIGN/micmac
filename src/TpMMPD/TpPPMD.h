@@ -87,7 +87,12 @@ class cTD_Camera
             cTD_Camera NewCam(double aFoc , double aR3);
             
 
-        // Coeff dist  R3
+        // Manipulation géométrique 
+
+           Pt2dr Ter2Im(const Pt3dr & aPTer) const;
+           Pt3dr ImAndProf2Ter(const Pt2dr & aPTer,double aProf) const;
+           double ProfMoy() const;
+           double StepProfOnePixel(const cTD_Camera &) const;
           
      private :
         friend class cTD_Prof;
@@ -118,6 +123,11 @@ class cTD_Im
      public :
         cTD_Im (int anX,int anY);
         static cTD_Im  FromString(const std::string &);
+        cTD_Im  ImageMoy(int aSzW,int aNbIter);
+        cTD_Im  ImageReduite(double aFact);
+
+
+
         void Save(const std::string &);
 
         float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
@@ -128,6 +138,7 @@ class cTD_Im
 
      private :
         Im2D<float,double>   mIm;
+        Pt2di                mSz;
         TIm2D<float,double>  mTIm;
 };
 

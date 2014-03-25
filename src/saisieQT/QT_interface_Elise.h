@@ -29,10 +29,8 @@ public :
 
 private:
 
-
     //                  init Interface
     void                Init();   
-
 
     cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
 
@@ -53,11 +51,9 @@ private:
 
     int                 idCurrentCImage();
 
-    cImage *            ptCurrentCImage();
+    cImage *            currentCImage();
 
-
-
-    cImage *            ptCImage(QString nameImage);
+    cImage *            CImage(QString nameImage);
 
 
     //                  Tools Points                        ///////////////////////////////////////////
@@ -68,11 +64,22 @@ private:
 
     QString             namePointGlobal(int idPtGlobal);
 
-    cSP_PointeImage *   currentPointeImage(int idPoint);
+    cSP_PointeImage *   PointeImageInCurrentWGL(int idPointGL);
+
+    cSP_PointGlob *     PointGlobInCurrentWGL(int idPointGL);
 
     Pt2dr               transformation(QPointF pt, int idImage = -1);
 
     QPointF             transformation(Pt2dr pt, int idImage = -1);
+
+    cSP_PointeImage *   pointeImage(cPointGlob* pg, int idWGL);
+
+    void                centerOnPtGlobal(int idWGL, cPointGlob *aPG);
+
+    void                HighlightPoint(cSP_PointeImage* aPIm);
+
+    void                selectPointGlobal(int idPG);
+
 
     virtual eTypePts    PtCreationMode();
 
@@ -107,6 +114,8 @@ private:
 
     cData               *_data;
 
+    int                 _aCpt;
+
 signals:
 
     void                dataChanged(cSP_PointeImage *aPIm = NULL);
@@ -117,7 +126,7 @@ public slots:
 
     void                changeImages(int idPt, bool aUseCpt);
 
-    void                selectPG(QModelIndex modelIndex);
+    void                selectPointGlobal(QModelIndex modelIndex);
 
     void                undo(bool);
 
@@ -127,7 +136,7 @@ private slots:
 
     void                movePoint(int idPt);
 
-    void                selectPoint(int idPt);
+    void                selectPoint(int idPtCurGLW);
 
     void                changeState(int state, int idPt);
 
@@ -139,7 +148,7 @@ private slots:
 
     void                changeCurPose(void *widgetGL);
 
-    void                filesDropped(const QStringList& filenames, bool setGLData);
+    void                filesDropped(const QStringList& filenames);
 
     void                SetInvisRef(bool aVal);
 };

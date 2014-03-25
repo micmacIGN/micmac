@@ -167,12 +167,23 @@ int cVirtualInterface::idPointGlobal(cSP_PointGlob *PG)
     return id;
 }
 
-cImage *cVirtualInterface::ptCImage(int idCimg)
+cImage *cVirtualInterface::CImage(int idCimg)
 {
     if(idCimg < 0 || idCimg >= (int)mAppli->images().size())
         return NULL;
     else
         return mAppli->image(idCimg);
+}
+
+vector<cImage *> cVirtualInterface::ComputeNewImagesPriority(cSP_PointGlob *pg,bool aUseCpt)
+{
+    mAppli->SetImagesPriority(pg, aUseCpt);
+
+    vector<cImage *> images = mAppli->images();
+
+    mAppli->SortImages(images);
+
+    return images;
 }
 
 void cVirtualInterface::ChangeFreeNamePoint(const std::string & aName, bool SetFree)
@@ -864,6 +875,12 @@ void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCp
     }
 }
 
+void cAppli_SaisiePts::SortImages(std::vector<cImage *> &images)
+{
+    cCmpIm aCmpIm(mInterface);
+    std::sort(images.begin(),images.end(),aCmpIm);
+}
+
 void cAppli_SaisiePts::ChangeImages
 (
         cSP_PointGlob * PointPrio,
@@ -873,8 +890,7 @@ void cAppli_SaisiePts::ChangeImages
 {
     SetImagesPriority(PointPrio,aUseCpt);
 
-    cCmpIm aCmpIm(mInterface);
-    std::sort(mImages.begin(),mImages.end(),aCmpIm);
+    SortImages(mImages);
 
     #if ELISE_windows == 0
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)
