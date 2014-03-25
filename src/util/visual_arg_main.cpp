@@ -62,18 +62,21 @@ void ShowEnum(const cMMSpecArg & anArg)
 std::list<std::string> listPossibleValues(const cMMSpecArg & anArg)
 {
     std::list<std::string> list_enum;
-    const std::list<std::string> & aLEnum = anArg.EnumeratedValues();
-    for
-            (
-             std::list<std::string>::const_iterator itS = aLEnum.begin();
-             itS != aLEnum.end();
-             itS++
-             )
-    {
-        //std::cout << "     " << *itS << "\n";
-        list_enum.push_back(*itS);
-        //i++;
 
+    if (anArg.IsBool())
+    {
+        list_enum.push_back("True");
+        list_enum.push_back("False");
+    }
+    else
+    {
+        std::list<std::string>::const_iterator itS = anArg.EnumeratedValues().begin();
+        for (; itS != anArg.EnumeratedValues().end(); itS++ )
+        {
+            //std::cout << "     " << *itS << "\n";
+            list_enum.push_back(*itS);
+            //i++;
+        }
     }
     return list_enum;
 }

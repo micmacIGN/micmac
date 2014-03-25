@@ -70,6 +70,9 @@ class cMMSpecArg
         // S'agit-il d'un argument optionnel
         bool IsOpt() const;
 
+        // S'agit-il d'un booleen (ajout pour lever l'ambiguite integer 0/1)
+        bool IsBool() const;
+
         // S'agit-il d'un repertoire
         bool IsDir() const;
 

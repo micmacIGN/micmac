@@ -41,7 +41,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 bool cMMSpecArg::IsOpt() const
 {
-    return ! mEAM->IsInit();
+    return mEAM->IsInit();
+}
+bool cMMSpecArg::IsBool() const
+{
+    return mEAM->Spec() == eSAM_IsBool;
 }
 bool cMMSpecArg::IsDir() const
 {
