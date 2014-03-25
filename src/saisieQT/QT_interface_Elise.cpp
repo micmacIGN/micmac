@@ -273,6 +273,16 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
     rebuildGlPoints();
 }
 
+void cQT_Interface::changeCurPose(void *widgetGL)
+{
+    if (((GLWidget*)widgetGL)->hasDataLoaded())
+    {
+        int idImg = idCImage(((GLWidget*)widgetGL)->getGLData());
+        m_QTMainWindow->selectCameraIn3DP(idImg);
+        m_QTMainWindow->tableView_Images()->setCurrentIndex(m_QTMainWindow->tableView_Images()->model()->index(idImg, 0));
+    }
+}
+
 void cQT_Interface::selectPointGlobal(int idPG)
 {
     if(idPG < (int)mAppli->PG().size() && idPG >= 0)
@@ -338,16 +348,6 @@ void cQT_Interface::undo(bool aBool)
         mAppli->Redo();
 
     emit dataChanged();
-}
-
-void cQT_Interface::changeCurPose(void *widgetGL)
-{
-    if (((GLWidget*)widgetGL)->hasDataLoaded())
-    {
-        int idImg = idCImage(((GLWidget*)widgetGL)->getGLData());
-        m_QTMainWindow->selectCameraIn3DP(idImg);
-        m_QTMainWindow->tableView_Images()->setCurrentIndex(m_QTMainWindow->tableView_Images()->model()->index(idImg, 0));
-    }
 }
 
 void cQT_Interface::filesDropped(const QStringList &filenames)
@@ -524,7 +524,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
             if (pg == selectPtGlob)
                 colorPt = Qt::blue;
 
-            cloud->addVertex(GlVertex(pg->P3D().Val(), colorPt));
+            cloud->addVertex(GlVertex(Pt3dr(pg->P3D().Val()), colorPt));
         }
 
         if(first)
@@ -546,7 +546,7 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
 
     rebuild3DGlPoints(aPIm);
 
-    Save();
+    Save(); // TODO trop de sauvegarde ---> même en selection ou over
 }
 
 void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)

@@ -42,46 +42,64 @@ enum SELECTION_MODE { SUB,
                       NONE
                     };
 
+
+// TODO GERER les etats avec des flags
+enum object_state {
+    state_default,
+    state_overed,
+    state_selected,
+    state_highlighted,
+    state_invible,
+    state_disabled,
+    state_COUNT
+};
+
 class cObject
 {
     public:
         cObject();
-        cObject(Pt3dr pt, QColor col);
+        cObject(Pt3dr pt, QColor color_default);
         virtual ~cObject();
 
         QString name()          { return _name;     }
         Pt3dr   getPosition()   { return _position; }
-        QColor  getColor()      { return _color;    }
+        QColor  getColor();
         float   getScale()      { return _scale;    }
-        bool    isVisible()     { return _bVisible; }
-        bool    isSelected()    { return _bSelected;}
+        bool    isVisible()     { return (state() != state_invible); }
+        bool    isSelected()    { return (state() == state_selected);}
 
         void    setName(QString name)          { _name = name;     }
         void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
-        void    setColor(QColor const &aCol)   { _color = aCol;    }
+        void    setColor(QColor const &aCol,object_state state = state_default)   { _color[state] = aCol;    }
         void    setScale(float aScale)         { _scale = aScale;  }
-        void    setVisible(bool aVis)          { _bVisible = aVis; }
-        void    setSelected(bool aSel)         { _bSelected = aSel;}
+        void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
+        void    setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
 
         cObject & operator = (const cObject &);
 
-    protected:
+        object_state   state() const;
+        void    setState(object_state state);
+
+protected:
 
         QString _name;
 
         Pt3dr   _position;
-        QColor  _color;
+        QColor  _color[state_COUNT];
         float   _scale;
 
         float   _alpha;
-        bool    _bVisible;
-        bool    _bSelected;
+        object_state   _state;
 };
 
 class cObjectGL : public cObject
 {
     public:
         cObjectGL(){}
+
+        cObjectGL(Pt3dr pos, QColor color_default) :
+            cObject(pos, color_default){}
+
         virtual ~cObjectGL(){}
 
         virtual void draw()=0;
@@ -91,6 +109,8 @@ class cObjectGL : public cObject
     protected:
 
         float   _lineWidth;
+
+        void    setObjectColor();
 
         void    enableOptionLine();
 
@@ -104,7 +124,7 @@ class cPoint : public cObjectGL, public QPointF
            QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            bool showName   = false,
-           int  state = eEPI_NonValue,
+           int  statePoint = eEPI_NonValue,
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
@@ -113,11 +133,11 @@ class cPoint : public cObjectGL, public QPointF
 
         void draw();
 
-        QColor getSelectionColor() { return _selectionColor; }
+        //QColor getSelectionColor() { return _selectionColor; }
 
-        void setState(int state)    { _state = state;    }
+        void setStatePoint(int state){ _statePoint = state;    }
         void setDiameter(float val) { _diameter = val;   }
-        int  state() const          { return _state;     }
+        int  statePoint() const     { return _statePoint;     }
         void showName(bool show)    { _bShowName = show; }
 
         bool highlight() const      { return _highlight; }
@@ -132,10 +152,8 @@ private:
 
         float   _diameter;
         bool    _bShowName;
-        int     _state;
-        bool    _highlight;
-
-        QColor  _selectionColor;
+        int     _statePoint;
+        bool    _highlight;        
 
         //! Default font
         QFont   _font;
@@ -230,7 +248,7 @@ class cBBox : public cObjectGL
 class cCam : public cObjectGL
 {
     public:
-        cCam(CamStenope *pCam, float scale, bool isVisible = true, float lineWidth = 1.f);
+        cCam(CamStenope *pCam, float scale, object_state state = state_default, float lineWidth = 1.f);
 
         void    draw();
 

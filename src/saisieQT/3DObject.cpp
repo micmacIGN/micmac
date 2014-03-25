@@ -4,52 +4,70 @@
 cObject::cObject() :
     _name(""),
     _position(Pt3dr(0.f,0.f,0.f)),
-    _color(QColor(255,255,255)),
     _scale(1.f),
     _alpha(0.6f),
-    _bVisible(true),
-    _bSelected(false)
-{}
+    _state(state_default)
+{
+ for (int iC = 0; iC < state_COUNT; ++iC)
+    _color[iC] = QColor(255,255,255);
 
-cObject::cObject(Pt3dr pos, QColor col) :
+}
+
+cObject::cObject(Pt3dr pos, QColor color_default) :
     _name(""),
     _scale(1.f),
     _alpha(0.6f),
-    _bVisible(true),
-    _bSelected(false)
+    _state(state_default)
 {
     _position  = pos;
-    _color     = col;
+
+    for (int iC = 0; iC < state_COUNT; ++iC)
+        _color[iC] = color_default;
 }
 
 cObject::~cObject(){}
+
+QColor cObject::getColor(){
+
+    return _color[state()];
+
+}
 
 cObject& cObject::operator =(const cObject& aB)
 {
     if (this != &aB)
     {
         _name      = aB._name;
-
         _position  = aB._position;
-        _color     = aB._color;
-        _scale     = aB._scale;
+
+        for (int iC = 0; iC < state_COUNT; ++iC)
+            _color[iC]     = aB._color[iC];
 
         _alpha     = aB._alpha;
-        _bVisible  = aB._bVisible;
-        _bSelected = aB._bSelected;
+        _state     = aB.state();
     }
 
     return *this;
 }
+object_state cObject::state() const
+{
+    return _state;
+}
+
+void cObject::setState(object_state state)
+{
+    _state = state;
+}
+
 
 cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
     _dim(dim)
 {
     setPosition(pt);
-    setColor(col);
+    cObject::setColor(col);
     setScale(scale);
     setLineWidth(lineWidth);
-    setVisible(vis);
+    cObject::setVisible(vis);
 }
 
 //draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
@@ -97,7 +115,8 @@ void cCircle::draw()
 
     glLineWidth(_lineWidth);
 
-    glColor4f(_color.redF(),_color.greenF(),_color.blueF(),_alpha);
+    setObjectColor();
+
     glDrawUnitCircle(_dim, 0, 0, 1.f, 64);
 
     glPopAttrib();
@@ -116,10 +135,10 @@ cCross::cCross(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool v
     _dim(dim)
 {
     setPosition(pt);
-    setColor(col);
+    cObject::setColor(col);
     setScale(scale);
     setLineWidth(lineWidth);
-    setVisible(vis);
+    cObject::setVisible(vis);
 }
 
 void cCross::draw()
@@ -134,7 +153,7 @@ void cCross::draw()
 
     glLineWidth(_lineWidth);
 
-    glColor4f(_color.redF(),_color.greenF(),_color.blueF(),_alpha);
+    setObjectColor();
 
     float x1, x2, y1, y2, z1, z2;
     x1 = x2 = y1 = y2 = z1 = z2 = 0.f;
@@ -173,7 +192,7 @@ void cCross::draw()
 
 cBall::cBall(Pt3dr pt, float scale, bool isVis, float lineWidth)
 {
-    _bVisible = isVis;
+    cObject::setVisible(isVis);
 
     _cl0 = new cCircle(pt, QColor(255,0,0),   scale, lineWidth, isVis, 0);
     _cl1 = new cCircle(pt, QColor(0,255,0),   scale, lineWidth, isVis, 1);
@@ -197,7 +216,7 @@ cBall::~cBall()
 
 void cBall::draw()
 {
-    if (_bVisible)
+    if (isVisible())
     {
         _cl0->draw();
         _cl1->draw();
@@ -227,7 +246,8 @@ Pt3dr cBall::getPosition()
 
 void cBall::setVisible(bool aVis)
 {
-    _bVisible = aVis;
+    cObject::setVisible(aVis);
+    //_bVisible = aVis;
 
     _cl0->setVisible(aVis);
     _cl1->setVisible(aVis);
@@ -258,7 +278,7 @@ cAxis::cAxis(Pt3dr pt, float scale, float lineWidth)
 
 void cAxis::draw()
 {
-    if (_bVisible)
+    if (isVisible())
     {
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -302,7 +322,7 @@ cBBox::cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max, float lineWidth)
     _min = min;
     _max = max;
 
-    setColor(QColor("orange"));
+    cObject::setColor(QColor("orange"));
     setLineWidth(lineWidth);
 }
 
@@ -314,7 +334,7 @@ void cBBox::set(Pt3dr min, Pt3dr max)
 
 void cBBox::draw()
 {
-    if (_bVisible)
+    if (isVisible())
     {
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -326,7 +346,7 @@ void cBBox::draw()
 
         glLineWidth(_lineWidth);
 
-        glColor3f(_color.redF(),_color.greenF(),_color.blueF());
+        setObjectColor();
 
         Pt3dr P1(_min);
         Pt3dr P2(_min.x, _min.y, _max.z);
@@ -387,20 +407,21 @@ void cBBox::draw()
     }
 }
 
-cCam::cCam(CamStenope *pCam, float scale, bool isVisible, float lineWidth) :
+cCam::cCam(CamStenope *pCam, float scale,  object_state state, float lineWidth) :
     _pointSize(5.f),
     _Cam(pCam)
 {
     _scale = scale;
-    _bVisible = isVisible;
 
-    setColor(QColor("red"));
+    setState(state);
+    cObject::setColor(QColor("red"));
+    cObject::setColor(QColor(0.f,0.f,1.f),state_selected);
     setLineWidth(lineWidth);
 }
 
 void cCam::draw()
 {
-    if (_bVisible)
+    if (isVisible())
     {
 
         GLfloat oldPointSize;
@@ -451,12 +472,9 @@ void cCam::draw()
         glVertex3d(P4.x, P4.y, P4.z);
 
         //Image
-        if(!isSelected())
-            glColor3f(_color.redF(),_color.greenF(),_color.blueF());
-        else
-        {
-            glColor3f(0.f,0.f,1.f);
-        }
+
+        setObjectColor();
+
         glVertex3d(P1.x, P1.y, P1.z);
         glVertex3d(P2.x, P2.y, P2.z);
 
@@ -496,14 +514,14 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
     QPointF(pos),
     _diameter(diameter),
     _bShowName(showName),
-    _state(state),
+    _statePoint(state),
     _highlight(highlight),
-    _selectionColor(selectionColor),
     _painter(painter),
     _bEpipolar(false)
 {
     setName(name);
-    setColor(color);
+    cObject::setColor(color);
+    cObject::setColor(selectionColor,state_selected);
     setSelected(isSelected);
 }
 
@@ -511,7 +529,7 @@ void cPoint::draw()
 {
      if ((_painter != NULL) && isVisible())
      {
-         QPen penline(isSelected() ? _selectionColor : _color);
+         QPen penline(getColor());
          penline.setCosmetic(true);
          _painter->setPen(penline);
 
@@ -521,7 +539,7 @@ void cPoint::draw()
 
          if (!isSelected())
          {
-             switch(_state)
+             switch(_statePoint)
              {
              case eEPI_NonSaisi :
                  _painter->setPen(Qt::yellow);
@@ -547,7 +565,7 @@ void cPoint::draw()
 
          _painter->drawEllipse(pt, _diameter, _diameter);
 
-         if (_highlight && ((_state == eEPI_Valide) || (_state == eEPI_NonSaisi)))
+         if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
          {
              if (_bEpipolar)
              {
@@ -634,7 +652,7 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
     _style(style)
 {
     if (!withHelper) _helper = NULL;
-    setColor(pointColor);
+    cObject::setColor(pointColor);
     setLineWidth(lineWidth);
 
     _dashes << 3 << 4;
@@ -747,7 +765,7 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
         }
         else
         {
-            _points[_idx].setState(state);
+            _points[_idx].setStatePoint(state);
             _points[_idx].setSelected(false);
         }
     }
@@ -797,7 +815,7 @@ int cPolygon::getSelectedPointState()
 {
     if (pointValid())
     {
-        return _points[_idx].state();
+        return _points[_idx].statePoint();
     }
     else return eEPI_NonValue;
 }
@@ -810,7 +828,7 @@ void cPolygon::add(cPoint &pt)
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    cPoint cPt(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color);
+    cPoint cPt(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
     cPt.setDiameter(_pointDiameter);
     _points.push_back(cPt);
 }
@@ -819,7 +837,7 @@ void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
     {
-        cPoint cPt(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color);
+        cPoint cPt(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
         _points[size()-1] = cPoint(cPt);
     }
@@ -982,7 +1000,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
     {
         if ((insertMode || isPointSelected())) // insert polygon point
         {
-            cPoint pt(_painter, pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color);
+            cPoint pt(_painter, pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
 
             _helper->build(pt, insertMode);
         }
@@ -998,11 +1016,11 @@ int cPolygon::finalMovePoint()
 
     if ((_idx>=0) && _helper->size())   // after point move
     {
-        int state = _points[_idx].state();
+        int state = _points[_idx].statePoint();
 
         _points[_idx] = (*_helper)[1];
-        _points[_idx].setColor(_color); // reset color to polygon color
-        _points[_idx].setState(state);
+        _points[_idx].setColor(_color[state_default]); // reset color to polygon color
+        _points[_idx].setStatePoint(state);
 
         _helper->clear();
 
@@ -1053,7 +1071,7 @@ void cPolygon::showLines(bool show)
 
     if(!show) _bIsClosed = true;
 
-    _color = show ? Qt::red : Qt::green;
+    cObject::setColor(show ? Qt::red : Qt::green);
 }
 
 void cPolygon::translate(QPointF Tr)
@@ -1115,7 +1133,7 @@ void cPolygon::showRefuted(bool show)
 
     for (int aK=0; aK < _points.size(); ++aK)
     {
-        if (_points[aK].state() == eEPI_Refute)
+        if (_points[aK].statePoint() == eEPI_Refute)
             _points[aK].setVisible(_bShowRefuted);
     }
 }
@@ -1376,6 +1394,12 @@ void cMaskedImageGL::draw()
 }
 
 //********************************************************************************
+
+void cObjectGL::setObjectColor()
+{
+    QColor color = getColor();
+    glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
+}
 
 void cObjectGL::enableOptionLine()
 {
@@ -1915,7 +1939,7 @@ cGrid::cGrid(Pt3d<double> pt, float scale, int nb)
 
 void cGrid::draw()
 {
-    if (_bVisible)
+    if (isVisible())
     {
         int nbGrid = 10;
 
