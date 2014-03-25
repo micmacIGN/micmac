@@ -12,9 +12,6 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
     QMainWindow(parent),
     mlastDir(QDir::homePath())
 {
-    bList.push_back("True");
-    bList.push_back("False");
-
     mainWidget = new QWidget(this);
     setCentralWidget(mainWidget);
 
@@ -26,40 +23,25 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
 
     verticalLayout->addWidget(toolBox);
 
-    QWidget* pageMandatoryArgs = new QWidget();
-    pageMandatoryArgs->setGeometry(QRect(0, 0, 300, 400));
-    pageMandatoryArgs->setLayoutDirection(Qt::LeftToRight);
+    addGridLayout(aVAM, tr("Mandatory arguments"));
 
-    //Grid Layout
-    gridLayout = new QGridLayout(pageMandatoryArgs);
+    if (aVAO.size())
+    {
+        addGridLayout(aVAO, tr("Optional arguments"));
 
-    toolBox->addItem(pageMandatoryArgs, tr("Mandatory arguments"));
+        connect(toolBox, SIGNAL(currentChanged(int)), this, SLOT(_adjustSize(int)));
+    }
 
-    QWidget* pageOptionalArgs = new QWidget();
-    pageOptionalArgs->setGeometry(QRect(0, 0, 300, 400));
-    pageOptionalArgs->setLayoutDirection(Qt::LeftToRight);
-
-    toolBox->addItem(pageOptionalArgs, tr("Optional arguments"));
-
-    QGridLayout* gridLayout_2 = new QGridLayout(pageOptionalArgs);
-
-    buildUI(aVAM, gridLayout, pageMandatoryArgs);
-
-    buildUI(aVAO, gridLayout_2, pageOptionalArgs, true);
-
-    runCommandButton = new QPushButton(" Run command ", mainWidget);
+    runCommandButton = new QPushButton(tr(" Run command "), mainWidget);
 
     verticalLayout->addWidget(runCommandButton, 1, Qt::AlignRight);
 
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
-
-    connect(toolBox, SIGNAL(currentChanged(int)), this, SLOT(_adjustSize(int)));
 }
 
 visual_MainWindow::~visual_MainWindow()
 {
     delete mainWidget;
-    delete gridLayout;
     delete label;
     delete Combo;
     delete select_LineEdit;
@@ -67,23 +49,31 @@ visual_MainWindow::~visual_MainWindow()
     delete runCommandButton;
 }
 
-void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QWidget *parent, bool isOpt)
+void visual_MainWindow::addGridLayout(vector<cMMSpecArg>& aVA, QString pageName)
+{
+    QWidget* mPage = new QWidget();
+
+    toolBox->addItem(mPage, pageName);
+
+    QGridLayout* gridLayout = new QGridLayout(mPage);
+
+    buildUI(aVA, gridLayout, mPage);
+}
+
+void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QWidget *parent)
 {
     for (int aK=0 ; aK<int(aVA.size()) ; aK++)
     {
         cMMSpecArg aArg = aVA[aK];
-        //cout << "arg " << aK << " ; Type is " << aArg.NameType() <<"\n";
+        cout << "arg " << aK << " ; Type is " << aArg.NameType() << " ; Name is " << aArg.NameArg() <<"\n";
 
-        create_comment(layout, parent, aArg.Comment(), aK);
+        create_comment(layout, parent, aK, aArg.Comment());
 
         if (aArg.NameType() == "string")
         {
-            //On recupere les valeurs enumerees dans une liste
-            std::list<std::string> liste_valeur_enum = listPossibleValues(aArg);
-
-            if (!liste_valeur_enum.empty())
+            if (!aArg.EnumeratedValues().empty()) //valeurs enumerees dans une liste
             {
-                create_combo(layout, parent, aK, liste_valeur_enum);
+                create_combo(layout, parent, aK, aArg);
             }
             else //chaine de caracteres normale
             {
@@ -92,11 +82,11 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
         }
         else if (aArg.NameType()== "INT")
         {
-            create_champ_int(layout, parent, aK);
+            create_champ_int(layout, parent, aK, aArg);
         }
-        else if (aArg.NameType()== "bool")
+        else if (aArg.IsBool())
         {
-            create_combo(layout, parent, aK, bList);
+            create_combo(layout, parent, aK, aArg);
         }
 
         //ShowEnum(aVA[aK]);
@@ -105,50 +95,55 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
     QSpacerItem *spacerV = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     layout->addItem(spacerV, aVA.size(), 0);
-
-    if (isOpt)
-    {
-        QSpacerItem *spacerH = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        layout->addItem(spacerH, 0, layout->columnCount());
-    }
 }
 
 void visual_MainWindow::onRunCommandPressed()
 {
-    cout<<"-----------------" << endl;
+    cout << "-----------------" << endl;
 
     string aCom = MM3dBinFile(argv_recup) +" ";
     for (unsigned int i=0;i<vInputs.size();i++)
     {
-        //cout<<"inputTypes: " << inputTypes[i] <<" "<<inputs[i]<<endl;
+        string aAdd;
 
-        switch(vInputTypes[i])
+        cInputs* aIn = vInputs[i];
+
+        switch(aIn->Type())
         {
             case eLineEdit:
             {
-                aCom += ((QLineEdit*)vInputs[i])->text().toStdString();
+                string aStr = ((QLineEdit*) aIn->Widget())->text().toStdString();
+                if (!aStr.empty()) aAdd += aStr;
                 break;
             }
             case eComboBox:
             {
-                aCom += ((QComboBox*)vInputs[i])->currentText().toStdString();
+                QString aStr = ((QComboBox*) aIn->Widget())->currentText();
+
+                if (aStr == tr("True")) aStr = "1";
+                else if (aStr == tr("False")) aStr = "0";
+
+                aAdd += aStr.toStdString();
                 break;
             }
             case eInteger:
             {
-                int val = ((QSpinBox*)vInputs[i])->value();
+                int val = ((QSpinBox*) aIn->Widget())->value();
                 stringstream ss;
                 ss << val;
-                aCom +=  ss.str();
+                aAdd +=  ss.str();
                 break;
             }
         }
 
-        aCom += " ";
+        if (!aAdd.empty())
+        {
+            if (aIn->Arg().IsOpt()) aCom += aIn->Arg().NameArg()+ "=" + aAdd + " ";
+            else aCom += aAdd + " ";
+        }
     }
 
-    cout << aCom << endl;
+    cout << "Com = " << aCom << endl;
 
     int aRes = ::System(aCom);
 
@@ -190,9 +185,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 
 void visual_MainWindow::onSelectFilePressed(int aK)
 {
-    QString filename = QFileDialog::getOpenFileName(mainWidget,
-                                                    tr("Select file"),
-                                                    mlastDir);
+    QString filename = QFileDialog::getOpenFileName(mainWidget, tr("Select file"), mlastDir);
 
     if (filename != NULL)
     {
@@ -208,10 +201,7 @@ void visual_MainWindow::onSelectFilePressed(int aK)
 
 void visual_MainWindow::onSelectDirPressed(int aK)
 {
-    QString aDir = QFileDialog::getExistingDirectory(
-                            mainWidget,
-                            tr("Select directory"),
-                            mlastDir);
+    QString aDir = QFileDialog::getExistingDirectory( mainWidget, tr("Select directory"), mlastDir);
 
     if (aDir != NULL)
     {
@@ -228,13 +218,16 @@ void visual_MainWindow::_adjustSize(int)
     adjustSize();
 }
 
-void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int aK, list<string> liste_valeur_enum )
+void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
+    std::list<std::string> liste_valeur_enum = listPossibleValues(aArg);
+
     QComboBox* aCombo = new QComboBox(parent);
     vEnumValues.push_back(aCombo);
     layout->addWidget(aCombo,aK,1,1,1);
-    vInputTypes.push_back(eComboBox);
-    vInputs.push_back(aCombo);
+    //vInputTypes.push_back(eComboBox);
+    // vInputs.push_back(new cInput(aCombo);
+    vInputs.push_back(new cInputs(aArg, eComboBox, aCombo));
 
     for (list<string>::const_iterator it= liste_valeur_enum.begin();
          it != liste_valeur_enum.end();
@@ -244,51 +237,53 @@ void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int a
     }
 }
 
-void visual_MainWindow::create_comment(QGridLayout* layout, QWidget* parent, string str_com, int ak)
+void visual_MainWindow::create_comment(QGridLayout* layout, QWidget* parent, int ak, string str_com)
 {
     QLabel * com = new QLabel(QString(str_com.c_str()), parent);
-    //vComments.push_back(com);
     layout->addWidget(com,ak,0,1,1);
 }
 
-void visual_MainWindow::create_select(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg eSAM)
+void visual_MainWindow::create_select(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aSAM)
 {
     QLineEdit* aLineEdit = new QLineEdit(parent);
     vLineEdit.push_back(aLineEdit);
     layout->addWidget(aLineEdit,aK,1,1,1);
 
-    if (!eSAM.IsOutputFile())
+    if (!aSAM.IsOutputFile() && !aSAM.IsOutputDirOri())
     {
         select_Button = new selectionButton(parent);
         layout->addWidget(select_Button,aK,3,1,1);
 
-        if (eSAM.IsExistDirOri())
+        if (aSAM.IsExistDirOri())
         {
             select_Button->setText(tr("Select directory"));
             connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
         }
-        else if (eSAM.IsPatFile())
+        else if (aSAM.IsPatFile())
         {
             select_Button->setText(tr("Select images"));
             connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
         }
-        else if (eSAM.IsExistFile())
+        else if (aSAM.IsExistFile())
         {
             select_Button->setText(tr("Select file"));
             connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
         }
     }
 
-    vInputTypes.push_back(eLineEdit);
-    vInputs.push_back(aLineEdit);
+    //vInputTypes.push_back(eLineEdit);
+    //vInputs.push_back(aLineEdit);
+
+    vInputs.push_back(new cInputs(aSAM, eLineEdit, aLineEdit));
 }
 
-void visual_MainWindow::create_champ_int(QGridLayout* layout, QWidget* parent, int aK)
+void visual_MainWindow::create_champ_int(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     QSpinBox *aSpinBox = new QSpinBox(parent);
     layout->addWidget(aSpinBox,aK,1,1,1);
-    vInputTypes.push_back(eInteger);
-    vInputs.push_back(aSpinBox);
+    //vInputTypes.push_back(eInteger);
+    //vInputs.push_back(aSpinBox);
+    vInputs.push_back(new cInputs(aArg, eInteger, aSpinBox));
 }
 
 void visual_MainWindow::set_argv_recup(string argv)
@@ -296,63 +291,24 @@ void visual_MainWindow::set_argv_recup(string argv)
     argv_recup = argv;
 }
 
-QSize getLayoutCellSize(QGridLayout *layout, int row, int column)
-{
-    QLayoutItem *item = layout->itemAtPosition(row, column);
-    if (item)
-        return (item->sizeHint());
-    return (QSize());
-}
-
-template <class T>
-int  getWidgetVectorWidth(vector < T* > vWid)
-{
-    int max = -1;
-
-    for (int aK=0; aK < (int)  vWid.size();++aK)
-    {
-        QString text =  vWid[aK]->text();
-        QFontMetrics fm =  vWid[aK]->fontMetrics();
-        int w = fm.boundingRect(text).width();
-        if (w > max) max = w;
-    }
-    return max;
-}
-
 void visual_MainWindow::resizeEvent(QResizeEvent *)
 {
-    QRect screenSz = qApp->desktop()->availableGeometry();
-
-    int maxLineEdit = getWidgetVectorWidth(vLineEdit);
-    if (maxLineEdit <= 0) maxLineEdit = 100;
-
-    int maxComment = 0;
-    int maxButton = 0;
-
-    //calcul de la taille des colonnes 1 et 3... (Commentaires et boutons)
-    for (int aK=0; aK < gridLayout->rowCount(); ++aK)
-    {
-        QSize cellSize1 = getLayoutCellSize(gridLayout, aK, 1);
-        QSize cellSize3 = getLayoutCellSize(gridLayout, aK, 3);
-
-        if (cellSize1.isValid() && (cellSize1.width() > maxComment)) maxComment = cellSize1.width();
-        if (cellSize3.isValid() && (cellSize3.width() > maxButton))  maxButton  = cellSize3.width();
-    }
-
-    int finalSize = maxLineEdit + maxComment + maxButton + 60;
-    if (finalSize > screenSz.width()) finalSize = screenSz.width() - 50;
-
-    if (toolBox->currentIndex() == 0)
-        resize(finalSize, 200);
-    else
-        resize(finalSize, 500);
-
     //deplacement au centre de l'ecran
-    const QPoint global = screenSz.center();
+    const QPoint global = qApp->desktop()->availableGeometry().center();
     move(global.x() - width() / 2, global.y() - height() / 2);
 }
 
+cInputs::cInputs(cMMSpecArg aArg, int aType, QWidget *aWid):
+    mArg(aArg),
+    mType(aType),
+    mWidget(aWid)
+{
+
+}
 
 #endif //ELISE_QT5
+
+
+
 
 

@@ -33,6 +33,21 @@ enum eInputType
     eInteger
 };
 
+class cInputs
+{
+public:
+    cInputs(cMMSpecArg, int, QWidget*);
+
+    cMMSpecArg  Arg()       { return mArg;    }
+    int         Type()      { return mType;   }
+    QWidget*    Widget()    { return mWidget; }
+
+private:
+    cMMSpecArg  mArg;
+    int         mType;
+    QWidget*    mWidget;
+};
+
 class visual_MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -41,13 +56,15 @@ public:
     visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent = 0);
     ~visual_MainWindow();
 
-    void create_combo(QGridLayout *layout, QWidget *parent, int, list<string>);
-    void create_comment(QGridLayout *layout, QWidget *parent, string, int ak);
-    void create_select(QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
-    void create_champ_int(QGridLayout* layout, QWidget* parent, int);
+    void create_combo  (QGridLayout *layout, QWidget *parent, int, cMMSpecArg);
+    void create_comment(QGridLayout *layout, QWidget *parent, int, string );
+    void create_select (QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
+    void create_champ_int(QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
     void set_argv_recup(string);
 
-    void buildUI(vector<cMMSpecArg>& aVAM, QGridLayout* layout, QWidget* parent, bool isOpt=false);
+    void buildUI(vector<cMMSpecArg>& aVA, QGridLayout* layout, QWidget* parent);
+
+    void addGridLayout(vector<cMMSpecArg>& aVA, QString pageName);
 
 public slots:
 
@@ -61,11 +78,10 @@ protected:
 
     void resizeEvent(QResizeEvent *);
 
-    int id_unique;
-    string argv_recup;
+    int          id_unique;
+    string       argv_recup;
 
     QWidget*     mainWidget;
-    QGridLayout* gridLayout;
 
     QLabel*      label;
     QComboBox*   Combo;
@@ -77,14 +93,12 @@ protected:
 
     vector <QComboBox*> vEnumValues;    //enum values
     vector <QLineEdit*> vLineEdit;      //LineEdit: display what has been selected (images, files, directories)
-    //vector <QLabel*>    vComments;      //comments
 
-    vector <eInputType> vInputTypes;
-    vector <QWidget*>   vInputs;
+   // vector <eInputType> vInputTypes;
+   // vector <QWidget*>   vInputs;
+    vector <cInputs*>   vInputs;
 
-    QString        mlastDir;
-
-    list <string>  bList;
+    QString             mlastDir;
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);

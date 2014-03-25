@@ -100,7 +100,7 @@ int Bascule_main(int argc,char ** argv)
                     << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
                     << EAMC(AeroOut,"Out: orientation or local repair (if postfixed by \"xml\")", eSAM_IsExistFile),
     LArgMain()
-                    << EAM(ImPl,"ImPl",true, "toto")
+                    << EAM(ImPl,"ImPl",true)
                     << EAM(ExpTxt,"ExpTxt",true)
                     << EAM(PostPlan,"PostPlan",true)
                     << EAM(AllPlanExist,"AllPl",true)
