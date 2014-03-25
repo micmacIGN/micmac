@@ -37,6 +37,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     connect(m_QTMainWindow,	SIGNAL(undoSgnl(bool)), this, SLOT(undo(bool)));
 
+    connect(m_QTMainWindow,	SIGNAL(sCloseAll()), this, SLOT(close()));
+
     connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this, SLOT(filesDropped(QStringList)));
 
     _data = new cData;
@@ -124,6 +126,31 @@ void cQT_Interface::SetInvisRef(bool aVal)
     mRefInvis = aVal;
 }
 
+void cQT_Interface::close()
+{
+    if(mAppli)
+    {
+        mAppli->Save();
+
+        m_QTMainWindow->tableView_PG()->setModel(NULL);
+        m_QTMainWindow->tableView_Images()->setModel(NULL);
+
+        cGLData *glda = m_QTMainWindow->threeDWidget()->getGLData();
+        m_QTMainWindow->threeDWidget()->reset();
+
+        if(glda)
+            delete glda;
+
+        if(_data)
+            delete _data;
+
+        //cAppli_SaisiePts* appli = mAppli;
+        mAppli = NULL;
+
+        //delete appli;
+    }
+}
+
 pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
 {
     int aCptMax = mAppli->GetCptMax() + 1;
@@ -149,7 +176,7 @@ double cQT_Interface::PtCreationWindowSize()
 
 void cQT_Interface::addPoint(QPointF point)
 {
-    if (m_QTMainWindow->currentWidget()->hasDataLoaded())
+    if (m_QTMainWindow->currentWidget()->hasDataLoaded() && mAppli)
     {
 
         cSP_PointGlob * PG = cVirtualInterface::addPoint(transformation(point),currentCImage());
@@ -165,7 +192,7 @@ void cQT_Interface::addPoint(QPointF point)
 
 void cQT_Interface::removePointGlobal(cSP_PointGlob * pPg)
 {
-    if (pPg)
+    if (pPg && mAppli)
     {
         DeletePoint( pPg );
 
@@ -177,12 +204,13 @@ void cQT_Interface::removePointGlobal(cSP_PointGlob * pPg)
 
 void cQT_Interface::removePoint(QString aName)
 {
-    removePointGlobal(mAppli->PGlobOfNameSVP(aName.toStdString()));
+    if (mAppli)
+        removePointGlobal(mAppli->PGlobOfNameSVP(aName.toStdString()));
 }
 
 void cQT_Interface::movePoint(int idPt)
 {
-    if( idPt >= 0 )
+    if( idPt >= 0 && mAppli)
     {
         cSP_PointeImage* aPIm = PointeImageInCurrentWGL(idPt);
 
@@ -199,7 +227,7 @@ void cQT_Interface::changeState(int state, int idPt)
 {
     eEtatPointeImage aState = (eEtatPointeImage)state;
 
-    if (aState!=eEPI_NonValue && idPt != -1)
+    if (aState!=eEPI_NonValue && idPt != -1 && mAppli)
     {
         cSP_PointeImage* aPIm = PointeImageInCurrentWGL(idPt);
 
@@ -231,60 +259,83 @@ void cQT_Interface::changeState(int state, int idPt)
 
 void cQT_Interface::changeName(QString aOldName, QString aNewName)
 {
-    string oldName = aOldName.toStdString();
-    string newName = aNewName.toStdString();
+    if(mAppli)
+    {
+        string oldName = aOldName.toStdString();
+        string newName = aNewName.toStdString();
 
-    cSP_PointeImage * aPIm = currentCImage()->PointeOfNameGlobSVP(oldName);
+        cSP_PointeImage * aPIm = currentCImage()->PointeOfNameGlobSVP(oldName);
 
-    if (aPIm)
+        if (aPIm)
 
-        return;
+            return;
 
-    else if(mAppli->ChangeName(oldName, newName))
+        else if(mAppli->ChangeName(oldName, newName))
 
-        emit dataChanged(aPIm);
+            emit dataChanged(aPIm);
 
-    else
+        else
 
-        QMessageBox::critical(m_QTMainWindow, "Error", "Point already exists");
+            QMessageBox::critical(m_QTMainWindow, "Error", "Point already exists");
+    }
 }
 
 void cQT_Interface::changeImages(int idPt, bool aUseCpt)
 {
-    int aKW = 0;
+    if(mAppli)
+    {
+        int aKW = 0;
 
-    vector<cImage *> images = ComputeNewImagesPriority(PointGlobInCurrentWGL(idPt),aUseCpt);
+        vector<cImage *> images = ComputeNewImagesPriority(PointGlobInCurrentWGL(idPt),aUseCpt);
 
-    int max = (idPt == THISWIN) ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
+        int max = (idPt == THISWIN) ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
 
-    while (aKW < max)
-    {        
-        images[aKW]->CptAff() = _aCpt++;
+        while (aKW < max)
+        {
+            images[aKW]->CptAff() = _aCpt++;
 
-        if (!isDisplayed(images[aKW]))
+            if (!isDisplayed(images[aKW]))
 
-            m_QTMainWindow->SetDataToGLWidget(idPt == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
+                m_QTMainWindow->SetDataToGLWidget(idPt == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
 
-        aKW++;
+            aKW++;
+        }
+
+        mAppli->SetImages(images);
+
+        rebuildGlPoints();
     }
+}
 
-    mAppli->SetImages(images);
-
-    rebuildGlPoints();
+void cQT_Interface::changeCurPose(void *widgetGL)
+{
+    if (((GLWidget*)widgetGL)->hasDataLoaded() && mAppli)
+    {
+        int idImg = idCImage(((GLWidget*)widgetGL)->getGLData());
+        m_QTMainWindow->selectCameraIn3DP(idImg);
+        m_QTMainWindow->tableView_Images()->setCurrentIndex(m_QTMainWindow->tableView_Images()->model()->index(idImg, 0));
+    }
 }
 
 void cQT_Interface::selectPointGlobal(int idPG)
 {
-    if(idPG < (int)mAppli->PG().size() && idPG >= 0)
-    {
+    cPointGlob* pG = NULL;
+    QString     namePg("");
+
+    if( mAppli && idPG < (int)mAppli->PG().size() && idPG >= 0)
+    {        
         m_QTMainWindow->tableView_PG()->selectRow(idPG);
 
-        rebuild3DGlPoints(mAppli->PG()[idPG]->PG());
+        pG      = mAppli->PG()[idPG]->PG();
+
+        namePg  = namePointGlobal(idPG);
 
         populateTableImages(idPG);
 
-        m_QTMainWindow->SelectPointAllWGL(namePointGlobal(idPG));
     }
+
+    m_QTMainWindow->SelectPointAllWGL(namePg);
+    rebuild3DGlPoints(pG);
 }
 
 void cQT_Interface::selectPoint(int idPtCurGLW)
@@ -338,16 +389,6 @@ void cQT_Interface::undo(bool aBool)
         mAppli->Redo();
 
     emit dataChanged();
-}
-
-void cQT_Interface::changeCurPose(void *widgetGL)
-{
-    if (((GLWidget*)widgetGL)->hasDataLoaded())
-    {
-        int idImg = idCImage(((GLWidget*)widgetGL)->getGLData());
-        m_QTMainWindow->selectCameraIn3DP(idImg);
-        m_QTMainWindow->tableView_Images()->setCurrentIndex(m_QTMainWindow->tableView_Images()->model()->index(idImg, 0));
-    }
 }
 
 void cQT_Interface::filesDropped(const QStringList &filenames)
@@ -524,7 +565,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
             if (pg == selectPtGlob)
                 colorPt = Qt::blue;
 
-            cloud->addVertex(GlVertex(pg->P3D().Val(), colorPt));
+            cloud->addVertex(GlVertex(Pt3dr(pg->P3D().Val()), colorPt));
         }
 
         if(first)
@@ -546,7 +587,7 @@ void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
 
     rebuild3DGlPoints(aPIm);
 
-    Save();
+    Save(); // TODO trop de sauvegarde ---> même en selection ou over
 }
 
 void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)

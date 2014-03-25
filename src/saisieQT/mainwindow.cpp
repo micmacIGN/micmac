@@ -614,6 +614,8 @@ void MainWindow::on_actionSettings_triggered()
 
 void MainWindow::closeAll()
 {
+    emit sCloseAll();
+
     _Engine->unloadAll();
 
     for (int aK=0; aK < nbWidgets(); ++aK)
