@@ -319,16 +319,23 @@ void cQT_Interface::changeCurPose(void *widgetGL)
 
 void cQT_Interface::selectPointGlobal(int idPG)
 {
+    cPointGlob* pG = NULL;
+    QString     namePg("");
+
     if( mAppli && idPG < (int)mAppli->PG().size() && idPG >= 0)
-    {
+    {        
         m_QTMainWindow->tableView_PG()->selectRow(idPG);
 
-        rebuild3DGlPoints(mAppli->PG()[idPG]->PG());
+        pG      = mAppli->PG()[idPG]->PG();
+
+        namePg  = namePointGlobal(idPG);
 
         populateTableImages(idPG);
 
-        m_QTMainWindow->SelectPointAllWGL(namePointGlobal(idPG));
     }
+
+    m_QTMainWindow->SelectPointAllWGL(namePg);
+    rebuild3DGlPoints(pG);
 }
 
 void cQT_Interface::selectPoint(int idPtCurGLW)

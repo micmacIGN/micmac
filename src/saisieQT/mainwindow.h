@@ -77,7 +77,7 @@ public:
 
     void    setModel(QAbstractItemModel *model_Pg,QAbstractItemModel *model_Images);
 
-    void    SelectPointAllWGL(QString pointName);
+    void    SelectPointAllWGL(QString pointName = QString(""));
 
     void    SetDataToGLWidget(int idGLW, cGLData *glData);
 
