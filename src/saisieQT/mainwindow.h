@@ -124,6 +124,8 @@ signals:
 
     void undoSgnl(bool);
 
+    void sCloseAll();
+
 protected slots:
 
     void setImagePosition(QPointF pt);
