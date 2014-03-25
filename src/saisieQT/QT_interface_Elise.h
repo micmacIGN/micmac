@@ -151,6 +151,8 @@ private slots:
     void                filesDropped(const QStringList& filenames);
 
     void                SetInvisRef(bool aVal);
+
+    void                close();
 };
 
 #endif // QT_INTERFACE_ELISE_H

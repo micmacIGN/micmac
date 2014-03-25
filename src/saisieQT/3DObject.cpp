@@ -115,7 +115,7 @@ void cCircle::draw()
 
     glLineWidth(_lineWidth);
 
-    setObjectColor();
+    setGLColor();
 
     glDrawUnitCircle(_dim, 0, 0, 1.f, 64);
 
@@ -153,7 +153,7 @@ void cCross::draw()
 
     glLineWidth(_lineWidth);
 
-    setObjectColor();
+    setGLColor();
 
     float x1, x2, y1, y2, z1, z2;
     x1 = x2 = y1 = y2 = z1 = z2 = 0.f;
@@ -346,7 +346,7 @@ void cBBox::draw()
 
         glLineWidth(_lineWidth);
 
-        setObjectColor();
+        setGLColor();
 
         Pt3dr P1(_min);
         Pt3dr P2(_min.x, _min.y, _max.z);
@@ -473,7 +473,7 @@ void cCam::draw()
 
         //Image
 
-        setObjectColor();
+        setGLColor();
 
         glVertex3d(P1.x, P1.y, P1.z);
         glVertex3d(P2.x, P2.y, P2.z);
@@ -1395,7 +1395,7 @@ void cMaskedImageGL::draw()
 
 //********************************************************************************
 
-void cObjectGL::setObjectColor()
+void cObjectGL::setGLColor()
 {
     QColor color = getColor();
     glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);

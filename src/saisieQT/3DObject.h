@@ -110,7 +110,7 @@ class cObjectGL : public cObject
 
         float   _lineWidth;
 
-        void    setObjectColor();
+        void    setGLColor();
 
         void    enableOptionLine();
 
@@ -132,8 +132,6 @@ class cPoint : public cObjectGL, public QPointF
            bool  highlight  = false);
 
         void draw();
-
-        //QColor getSelectionColor() { return _selectionColor; }
 
         void setStatePoint(int state){ _statePoint = state;    }
         void setDiameter(float val) { _diameter = val;   }
@@ -743,8 +741,6 @@ private:
     void        initOptions();
 
     float       _diam;
-
-
 
     bool        _incFirstCloud;
 
