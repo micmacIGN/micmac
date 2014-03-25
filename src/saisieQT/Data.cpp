@@ -122,7 +122,7 @@ void cData::computeBBox()
         }
     }
 
-    for (int  cK=0; cK < _Cameras.size();++cK)
+    for (int  cK=0; cK < _Cameras.size();++cK) // TODO à factoriser
     {
         CamStenope * aCam= _Cameras[cK];
 

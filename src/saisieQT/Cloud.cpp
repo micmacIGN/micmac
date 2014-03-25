@@ -206,9 +206,9 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
     return new GlCloud(ptList);
 }
 
-void GlCloud::addVertex(const GlVertex &vert)
+void GlCloud::addVertex(const GlVertex &vertex)
 {
-    _vertices.push_back(vert);
+    _vertices.push_back(vertex);
 }
 
 int GlCloud::size()

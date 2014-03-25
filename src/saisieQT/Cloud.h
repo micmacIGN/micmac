@@ -15,7 +15,14 @@
 
 #include "3DObject.h"
 
-#define GlVertex cObject
+class GlVertex : public cObjectGL
+{
+public:
+    GlVertex(Pt3dr pos = Pt3dr(0.f,0.f,0.f), QColor color_default = Qt::white) :
+        cObjectGL(pos, color_default)
+    {}
+    void draw(){}
+};
 
 class GlCloud : public cObjectGL
 {
@@ -25,7 +32,7 @@ public:
 
     static GlCloud* loadPly(string,  int *incre = NULL);
 
-    void    addVertex( const GlVertex & );
+    void    addVertex( const GlVertex & vertex);
     GlVertex& getVertex( uint );
     int     size();
 
