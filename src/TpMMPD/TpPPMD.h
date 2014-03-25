@@ -123,6 +123,11 @@ class cTD_Im
      public :
         cTD_Im (int anX,int anY);
         static cTD_Im  FromString(const std::string &);
+        cTD_Im  ImageMoy(int aSzW,int aNbIter);
+        cTD_Im  ImageReduite(double aFact);
+
+
+
         void Save(const std::string &);
 
         float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
@@ -133,6 +138,7 @@ class cTD_Im
 
      private :
         Im2D<float,double>   mIm;
+        Pt2di                mSz;
         TIm2D<float,double>  mTIm;
 };
 

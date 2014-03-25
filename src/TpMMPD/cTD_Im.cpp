@@ -48,6 +48,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cTD_Im::cTD_Im(int anX,int anY) :
   mIm  (anX,anY,0.0),
+  mSz  (anX,anY),
   mTIm (mIm)
 {
 }
@@ -77,6 +78,42 @@ void cTD_Im::Save(const std::string & aName)
 
     ELISE_COPY(mIm.all_pts(),mIm.in(),aTF.out());
 }
+
+cTD_Im  cTD_Im::ImageMoy(int aSzW,int aNbIter)
+{
+   cTD_Im aRes(mSz.x,mSz.y);
+
+   Fonc_Num aF = mIm.in_proj();
+   int aNbVois = ElSquare(1+2*aSzW);
+   for (int aK=0 ; aK<aNbIter ; aK++)
+       aF = rect_som(aF,aSzW) / aNbVois;
+   ELISE_COPY(mIm.all_pts(),aF,aRes.mIm.out());
+
+   return aRes;
+}
+
+cTD_Im  cTD_Im::ImageReduite(double aFact)
+{
+   Pt2di aSzR = round_up(Pt2dr(mSz)/aFact);
+
+   cTD_Im aRes(aSzR.x,aSzR.y);
+
+
+    Fonc_Num aFIn = StdFoncChScale
+                 (
+                       mIm.in_proj(),
+                       Pt2dr(0,0),
+                       Pt2dr(aFact,aFact)
+                       // aDilXY
+                 );
+    ELISE_COPY(aRes.mIm.all_pts(),aFIn,aRes.mIm.out());
+
+
+
+   return aRes;
+
+}
+
 
 Pt2di cTD_Im::Sz() const 
 {
