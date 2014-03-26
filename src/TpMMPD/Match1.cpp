@@ -198,7 +198,7 @@ int  TD_Match2_main(int argc,char ** argv)
 		for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
 		{
 		   aIBestScore.SetVal(aP.x,aP.y,Beaucoup);
-		   aIBestPax.SetVal(aP.x,aP.y,sin(aP.x)*30*sin(aP.y));
+		   aIBestPax.SetVal(aP.x,aP.y,sin((float)aP.x)*30*sin((float)aP.y));
 		}
 	}
     
