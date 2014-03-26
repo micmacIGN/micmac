@@ -121,15 +121,15 @@ int TestCam_main(int argc,char ** argv)
     (
     argc,argv,
     LArgMain()  << EAMC(aFullName,"Name", eSAM_IsPatFile)
-                << EAMC(X,"x", eSAM_None)
-                << EAMC(Y,"y", eSAM_None)
-                << EAMC(Z,"z", eSAM_None),
+                << EAMC(X,"x")
+                << EAMC(Y,"y")
+                << EAMC(Z,"z"),
     LArgMain()
                     << EAM(aNameTag,"Tag",true,"Tag to get cam")
-                    << EAM(aModeGrid,"Grid",true,"Test Grid Mode")
-                    << EAM(Out,"Out",true,"To Regenerate an orientation file")
-                    << EAM(ExtP,"ExtP",true,"Detail on external parameter")
-                    << EAM(TOC,"TOC",true,"Test corners")
+                    << EAM(aModeGrid,"Grid",true,"Test Grid Mode", eSAM_IsBool)
+                    << EAM(Out,"Out",true,"To Regenerate an orientation file", eSAM_IsOutputFile)
+                    << EAM(ExtP,"ExtP",true,"Detail on external parameter", eSAM_IsBool)
+                    << EAM(TOC,"TOC",true,"Test corners", eSAM_IsBool)
                     << EAM(TDINV,"TDINV",true,"Test Dist Inv")
     );
 
