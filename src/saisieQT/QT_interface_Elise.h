@@ -27,10 +27,14 @@ public :
 
     void                Redraw(){}
 
+    cSP_PointGlob *     currentPGlobal() const;
+
+    cImage *            currentCImage();
+
 private:
 
     //                  init Interface
-    void                Init();   
+    void                Init();
 
     cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
 
@@ -50,8 +54,6 @@ private:
     int                 idCImage(cGLData* data);
 
     int                 idCurrentCImage();
-
-    cImage *            currentCImage();
 
     cImage *            CImage(QString nameImage);
 
@@ -115,6 +117,8 @@ private:
     cData               *_data;
 
     int                 _aCpt;
+
+    cSP_PointGlob*      _currentPGlobal;
 
 signals:
 

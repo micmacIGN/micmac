@@ -1,5 +1,7 @@
 #include "Tree.h"
 
+#define HORSIMAGE "hors Image"
+
 ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli)
     :QAbstractTableModel(parent),
       mAppli(appli)
@@ -153,6 +155,7 @@ bool ModelPointGlobal::caseIsSaisie(int idRow)
 ModelCImage::ModelCImage(QObject *parent, cAppli_SaisiePts *appli)
     :QAbstractTableModel(parent),
       mAppli(appli),
+      _interface((cQT_Interface*)appli->Interface()),
       idGlobSelect(-1)
 {
 }
@@ -185,7 +188,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                 if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
                     return QString("");
 
-                cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
+                cSP_PointGlob* pg   = mAppli->PGlob(idGlobSelect);
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
@@ -204,7 +207,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                             if(pI->Visible())
                                 return QString(tr("a valide"));
                             else
-                                return QString(tr("hors Image"));
+                                return QString(tr(HORSIMAGE));
                         }
                         case eEPI_Refute:
                             return QString(tr("refute"));
@@ -222,7 +225,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                     }
                 }
 
-                return QString("hors Image");
+                return QString(tr(HORSIMAGE));
             }
             case 2:
             {
@@ -260,6 +263,14 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
 
 
         cImage* iImage = mAppli->image(index.row());
+
+        if(index.column() == 0)
+        {
+            if(iImage == _interface->currentCImage() )
+                return QColor("#d65000");
+            else if (_interface->isDisplayed(iImage))
+                return QColor(Qt::darkGray);
+        }
 
         cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
 
@@ -363,3 +374,21 @@ void ModelCImage::setIdGlobSelect(int value)
     idGlobSelect = value;
 }
 
+bool ImagesSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+    //ModelCImage* model = (ModelCImage*)sourceModel();
+
+    //QModelIndex index0 = sourceModel()->index(sourceRow, 0, sourceParent);
+    QModelIndex index1 = sourceModel()->index(sourceRow, 1, sourceParent);
+    //QModelIndex index2 = sourceModel()->index(sourceRow, 2, sourceParent);
+
+    QRegExp regExp(HORSIMAGE);
+
+    return !sourceModel()->data(index1).toString().contains(regExp);
+
+}
+
+//bool ImagesSortFilterProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
+//{
+//    return true;
+//}

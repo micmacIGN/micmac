@@ -2,9 +2,11 @@
 #define TREE_H
 
 #include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
 #include <QColor>
 
-#include "StdAfx.h"
+#include "QT_interface_Elise.h"
+#include "../uti_phgrm/SaisiePts/SaisiePts.h"
 
 class ModelPointGlobal : public QAbstractTableModel
 {
@@ -47,6 +49,33 @@ private:
 
 };
 
+
+class ImagesSortFilterProxyModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+public:
+    ImagesSortFilterProxyModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+
+//    QDate filterMinimumDate() const { return minDate; }
+//    void setFilterMinimumDate(const QDate &date);
+
+//    QDate filterMaximumDate() const { return maxDate; }
+//    void setFilterMaximumDate(const QDate &date);
+
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+   // bool lessThan(const QModelIndex &left, const QModelIndex &right) const;
+
+private:
+//    bool dateInRange(const QDate &date) const;
+
+//    QDate minDate;
+//    QDate maxDate;
+};
+
+class cQT_Interface ;
+
 class ModelCImage : public QAbstractTableModel
 {
     Q_OBJECT
@@ -75,6 +104,8 @@ public:
 private:
 
     cAppli_SaisiePts* mAppli;
+
+    cQT_Interface*  _interface;
 
     int             idGlobSelect;
 

@@ -59,7 +59,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     mAppli->SetInterface(this);
 
-    m_QTMainWindow->setModel(new ModelPointGlobal(0,mAppli),new ModelCImage(0,mAppli));
+    //m_QTMainWindow->setModel(new ModelPointGlobal(0,mAppli),new ModelCImage(0,mAppli));
+
+    ImagesSortFilterProxyModel *proxyImageModel = new ImagesSortFilterProxyModel(this);
+
+    proxyImageModel->setSourceModel(new ModelCImage(0,mAppli));
+
+    m_QTMainWindow->setModel(new ModelPointGlobal(0,mAppli),proxyImageModel);
 
     updateTables();
 
@@ -313,7 +319,7 @@ void cQT_Interface::changeCurPose(void *widgetGL)
     {
         int idImg = idCImage(((GLWidget*)widgetGL)->getGLData());
         m_QTMainWindow->selectCameraIn3DP(idImg);
-        m_QTMainWindow->tableView_Images()->setCurrentIndex(m_QTMainWindow->tableView_Images()->model()->index(idImg, 0));
+        emit dataChanged(); // TODO un peu fort
     }
 }
 
@@ -367,10 +373,18 @@ string cQT_Interface::getNameGLPt_CurWidget(int idPt)
 {
     return getGLPt_CurWidget(idPt).name().toStdString();
 }
+cSP_PointGlob *cQT_Interface::currentPGlobal() const
+{
+    return _currentPGlobal;
+}
 
 void cQT_Interface::populateTableImages(int idPG)
 {
-    ((ModelCImage*)m_QTMainWindow->tableView_Images()->model())->setIdGlobSelect(idPG);
+    //((ModelCImage*)m_QTMainWindow->tableView_Images()->model())->setIdGlobSelect(idPG);
+    
+    ((ModelCImage*)(((QSortFilterProxyModel*)m_QTMainWindow->tableView_Images()->model())->sourceModel()))->setIdGlobSelect(idPG);
+
+    (((QSortFilterProxyModel*)m_QTMainWindow->tableView_Images()->model()))->invalidate();
 
     m_QTMainWindow->tableView_Images()->update();
     m_QTMainWindow->resizeTables();
