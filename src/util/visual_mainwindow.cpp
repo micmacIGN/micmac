@@ -42,10 +42,6 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
 visual_MainWindow::~visual_MainWindow()
 {
     delete mainWidget;
-    delete label;
-    delete Combo;
-    delete select_LineEdit;
-    delete select_Button;
     delete runCommandButton;
 }
 
@@ -67,8 +63,14 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
         cMMSpecArg aArg = aVA[aK];
         cout << "arg " << aK << " ; Type is " << aArg.NameType() << " ; Name is " << aArg.NameArg() <<"\n";
 
-        create_comment(layout, parent, aK, aArg);
+        add_comment(layout, parent, aK, aArg);
 
+        if (aArg.IsBool())
+        {
+            add_combo(layout, parent, aK, aArg);
+        }
+        else
+        {
         switch (aArg.Type())
         {
         case AMBT_Box2di:
@@ -77,32 +79,36 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
         case AMBT_Box2dr:
             break;
         case AMBT_bool:
-            create_combo(layout, parent, aK, aArg);
+            add_combo(layout, parent, aK, aArg);
             break;
         case AMBT_INT:
         case AMBT_U_INT1:
-            create_spinBox(layout, parent, aK, aArg);
+            add_spinBox(layout, parent, aK, aArg);
             break;
         case AMBT_REAL:
-            create_dSpinBox(layout, parent, aK, aArg);
+            add_dSpinBox(layout, parent, aK, aArg);
         break;
         case AMBT_Pt2di:
+            add_2SpinBox(layout, parent, aK, aArg);
         break;
         case AMBT_Pt2dr:
+            add_2dSpinBox(layout, parent, aK, aArg);
         break;
         case AMBT_Pt3dr:
+            add_3dSpinBox(layout, parent, aK, aArg);
         break;
         case AMBT_Pt3di:
+            add_3SpinBox(layout, parent, aK, aArg);
         break;
         case AMBT_string:
         {
             if (!aArg.EnumeratedValues().empty()) //valeurs enumerees dans une liste
             {
-                create_combo(layout, parent, aK, aArg);
+                add_combo(layout, parent, aK, aArg);
             }
             else //chaine de caracteres normale
             {
-                create_select(layout, parent, aK, aArg);
+                add_select(layout, parent, aK, aArg);
             }
             break;
         }
@@ -118,11 +124,12 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
         case AMBT_vvector_int:
         break;
         case AMBT_vector_string:
+            add_select(layout, parent, aK, aArg);
         break;
         case AMBT_unknown:
             break;
         }
-
+        }
         //ShowEnum(aVA[aK]);
     }
 
@@ -144,48 +151,98 @@ void visual_MainWindow::onRunCommandPressed()
 
         switch(aIn->Type())
         {
-            case eLineEdit:
+            case eIT_LineEdit:
             {
-                string aStr = ((QLineEdit*) aIn->Widget())->text().toStdString();
-                if (!aStr.empty()) aAdd += aStr;
-                else if (!aIn->Arg().IsOpt())
+                if (aIn->Widgets().size() == 1)
                 {
-                    QMessageBox::critical(this, tr("Error"), tr("Mandatory argument not filled!!!"));
-                    runCom = false;
+                    string aStr = ((QLineEdit*) aIn->Widgets()[0].second)->text().toStdString();
+                    if (!aStr.empty()) aAdd += aStr;
+                    else if (!aIn->IsOpt())
+                    {
+                        QMessageBox::critical(this, tr("Error"), tr("Mandatory argument not filled!!!"));
+                        runCom = false;
+                    }
                 }
                 break;
             }
-            case eComboBox:
+            case eIT_ComboBox:
             {
-                QString aStr = ((QComboBox*) aIn->Widget())->currentText();
+                if (aIn->Widgets().size() == 1)
+                {
+                    QString aStr = ((QComboBox*) aIn->Widgets()[0].second)->currentText(); //warning
 
-                if (aStr == tr("True")) aStr = "1";
-                else if (aStr == tr("False")) aStr = "0";
+                    if (aStr == tr("True")) aStr = "1";
+                    else if (aStr == tr("False")) aStr = "0";
 
-                aAdd += aStr.toStdString();
+                    aAdd += aStr.toStdString();
+                }
                 break;
             }
-            case eInteger:
+            case eIT_SpinBox:
             {
-                int val = ((QSpinBox*) aIn->Widget())->value();
-                stringstream ss;
-                ss << val;
-                aAdd += ss.str();
+                if (aIn->Widgets().size() == 1)
+                {
+                    int val = ((QSpinBox*) aIn->Widgets()[0].second)->value();
+                    stringstream ss;
+                    ss << val;
+                    aAdd += ss.str();
+                }
+                else
+                {
+                    int max = aIn->Widgets().size()-1;
+
+                    aAdd += "[";
+                    for (int aK=0; aK < max;++aK)
+                    {
+                        int val = ((QSpinBox*) aIn->Widgets()[aK].second)->value();
+                        stringstream ss;
+                        ss << val;
+                        aAdd += ss.str() + ";";
+                    }
+
+                    int val = ((QSpinBox*) aIn->Widgets()[max].second)->value();
+                    stringstream ss;
+                    ss << val;
+                    aAdd += ss.str();
+
+                    aAdd +="]";
+                }
                 break;
             }
-            case eDouble:
+            case eIT_DoubleSpinBox:
             {
-                double val = ((QDoubleSpinBox*) aIn->Widget())->value();
-                stringstream ss;
-                ss << val;
-                aAdd += ss.str();
-                break;
+                if (aIn->Widgets().size() == 1)
+                {
+                    double val = ((QDoubleSpinBox*) aIn->Widgets()[0].second)->value();
+                    stringstream ss;
+                    ss << val;
+                    aAdd += ss.str();
+                }
+                else
+                {
+                    int max = aIn->Widgets().size()-1;
+                    aAdd += "[";
+                    for (int aK=0; aK < max ;++aK)
+                    {
+                        double val = ((QDoubleSpinBox*) aIn->Widgets()[aK].second)->value();
+                        stringstream ss;
+                        ss << val;
+                        aAdd += ss.str() + ";";
+                    }
+
+                    double val = ((QDoubleSpinBox*) aIn->Widgets()[max].second)->value();
+                    stringstream ss;
+                    ss << val;
+                    aAdd += ss.str();
+
+                    aAdd +="]";
+                }
             }
         }
 
         if (!aAdd.empty())
         {
-            if (aIn->Arg().IsOpt()) aCom += aIn->Arg().NameArg()+ "=" + aAdd + " ";
+            if (aIn->IsOpt()) aCom += aIn->Arg().NameArg()+ "=" + aAdd + " ";
             else aCom += aAdd + " ";
         }
     }
@@ -267,15 +324,16 @@ void visual_MainWindow::_adjustSize(int)
     adjustSize();
 }
 
-void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     list<string> liste_valeur_enum = listPossibleValues(aArg);
 
     QComboBox* aCombo = new QComboBox(parent);
-    vEnumValues.push_back(aCombo);
-    layout->addWidget(aCombo,aK,1,1,1);
+    layout->addWidget(aCombo,aK,1);
 
-    vInputs.push_back(new cInputs(aArg, eComboBox, aCombo));
+    vector< pair < int, QWidget * > > vWidgets;
+    vWidgets.push_back(pair <int, QComboBox*> (eIT_ComboBox, aCombo));
+    vInputs.push_back(new cInputs(aArg, vWidgets));
 
     list<string>::const_iterator it = liste_valeur_enum.begin();
     for (; it != liste_valeur_enum.end(); it++)
@@ -285,13 +343,20 @@ void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int a
 
     if (aArg.IsBool())
     {
-        bool aBool = aArg.DefaultValue<bool>();
+        bool aBool = *(aArg.DefaultValue<bool>());
 
         if (aBool) aCombo->setCurrentIndex(0);
         else       aCombo->setCurrentIndex(1);
     }
     else
     {
+        if ( aArg.DefaultValue<string>() == NULL)
+        {
+            cout << "default value not set" << endl;
+            cout << "nombre d'items: " << aCombo->count()<< endl;
+            //aCombo->setCurrentIndex(0);
+        }
+
        //string aStr = aArg.DefaultValue<string>(); =>seg fault car pas de valeur par default (ex: vTapas)
        /*  int idx = -1;
         int cpt = 0;
@@ -304,61 +369,145 @@ void visual_MainWindow::create_combo(QGridLayout* layout, QWidget* parent, int a
     }
 }
 
-void visual_MainWindow::create_comment(QGridLayout* layout, QWidget* parent, int ak, cMMSpecArg aArg)
+void visual_MainWindow::add_comment(QGridLayout* layout, QWidget* parent, int ak, cMMSpecArg aArg)
 {
     QLabel * com = new QLabel(QString(aArg.Comment().c_str()), parent);
-    layout->addWidget(com,ak,0,1,1);
+    layout->addWidget(com,ak,0);
 }
 
-void visual_MainWindow::create_select(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     QLineEdit* aLineEdit = new QLineEdit(parent);
     vLineEdit.push_back(aLineEdit);
-    layout->addWidget(aLineEdit,aK,1,1,1);
+    layout->addWidget(aLineEdit,aK,1,1,2);
 
     if (!aArg.IsOutputFile() && !aArg.IsOutputDirOri())
     {
-        select_Button = new selectionButton(parent);
-        layout->addWidget(select_Button,aK,3,1,1);
-
         if (aArg.IsExistDirOri())
         {
-            select_Button->setText(tr("Select directory"));
-            connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
+            selectionButton* sButton = new selectionButton(tr("Select directory"), parent);
+            connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
+            layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsPatFile())
         {
-            select_Button->setText(tr("Select images"));
-            connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
+            selectionButton* sButton = new selectionButton(tr("Select images"), parent);
+            connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
+            layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsExistFile())
         {
-            select_Button->setText(tr("Select file"));
-            connect(select_Button,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
+            selectionButton* sButton = new selectionButton(tr("Select file"), parent);
+            connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
+            layout->addWidget(sButton,aK,3);
         }
     }
 
-    vInputs.push_back(new cInputs(aArg, eLineEdit, aLineEdit));
+    vector< pair < int, QWidget * > > vWidgets;
+    vWidgets.push_back(pair <int, QLineEdit*> (eIT_LineEdit, aLineEdit));
+    vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::create_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
     QDoubleSpinBox *aSpinBox = new QDoubleSpinBox(parent);
-    layout->addWidget(aSpinBox,aK,1,1,1);
+    layout->addWidget(aSpinBox,aK,1);
 
-    aSpinBox->setValue( aArg.DefaultValue<double>() );
+    aSpinBox->setValue( *(aArg.DefaultValue<double>()) );
 
-    vInputs.push_back(new cInputs(aArg, eDouble, aSpinBox));
+    vector< pair < int, QWidget * > > vWidgets;
+    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, aSpinBox));
+    vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::create_spinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_2dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+{
+    QDoubleSpinBox *xSpinBox = new QDoubleSpinBox(parent);
+    QDoubleSpinBox *ySpinBox = new QDoubleSpinBox(parent);
+
+    layout->addWidget(xSpinBox,aK,1);
+    layout->addWidget(ySpinBox,aK,2);
+
+    xSpinBox->setValue( (*(aArg.DefaultValue<Pt2dr>())).x );
+    ySpinBox->setValue( (*(aArg.DefaultValue<Pt2dr>())).y );
+
+    vector< pair < int, QWidget * > > vWidgets;
+    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, xSpinBox));
+    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, ySpinBox));
+
+    vInputs.push_back(new cInputs(aArg, vWidgets));
+}
+
+void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+{
+    QDoubleSpinBox *xSpinBox = new QDoubleSpinBox(parent);
+    QDoubleSpinBox *ySpinBox = new QDoubleSpinBox(parent);
+    QDoubleSpinBox *zSpinBox = new QDoubleSpinBox(parent);
+
+    layout->addWidget(xSpinBox,aK,1);
+    layout->addWidget(ySpinBox,aK,2);
+    layout->addWidget(zSpinBox,aK,3);
+
+    xSpinBox->setValue( (*(aArg.DefaultValue<Pt3dr>())).x );
+    ySpinBox->setValue( (*(aArg.DefaultValue<Pt3dr>())).y );
+    zSpinBox->setValue( (*(aArg.DefaultValue<Pt3dr>())).z );
+
+    vector< pair < int, QWidget * > > vWidgets;
+    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, xSpinBox));
+    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, ySpinBox));
+    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, zSpinBox));
+
+    vInputs.push_back(new cInputs(aArg, vWidgets));
+}
+
+void visual_MainWindow::add_spinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     QSpinBox *aSpinBox = new QSpinBox(parent);
-    layout->addWidget(aSpinBox,aK,1,1,1);
+    layout->addWidget(aSpinBox,aK,1);
 
-    aSpinBox->setValue( aArg.DefaultValue<int>() );
+    aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
 
-    vInputs.push_back(new cInputs(aArg, eInteger, aSpinBox));
+    vector< pair < int, QWidget * > > vWidgets;
+    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, aSpinBox));
+    vInputs.push_back(new cInputs(aArg, vWidgets));
+}
+
+void visual_MainWindow::add_2SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+{
+    QSpinBox *xSpinBox = new QSpinBox(parent);
+    QSpinBox *ySpinBox = new QSpinBox(parent);
+
+    layout->addWidget(xSpinBox,aK,1);
+    layout->addWidget(ySpinBox,aK,2);
+
+    xSpinBox->setValue( (*(aArg.DefaultValue<Pt2di>())).x );
+    ySpinBox->setValue( (*(aArg.DefaultValue<Pt2di>())).y );
+
+    vector< pair < int, QWidget * > > vWidgets;
+    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, xSpinBox));
+    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, ySpinBox));
+
+    vInputs.push_back(new cInputs(aArg, vWidgets));
+}
+
+void visual_MainWindow::add_3SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+{
+    QSpinBox *xSpinBox = new QSpinBox(parent);
+    QSpinBox *ySpinBox = new QSpinBox(parent);
+    QSpinBox *zSpinBox = new QSpinBox(parent);
+
+    layout->addWidget(xSpinBox,aK,1);
+    layout->addWidget(ySpinBox,aK,2);
+    layout->addWidget(zSpinBox,aK,3);
+
+    xSpinBox->setValue( (*(aArg.DefaultValue<Pt3di>())).x );
+    ySpinBox->setValue( (*(aArg.DefaultValue<Pt3di>())).y );
+    zSpinBox->setValue( (*(aArg.DefaultValue<Pt3di>())).z );
+
+    vector< pair < int, QWidget * > > vWidgets;
+    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, xSpinBox));
+    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, ySpinBox));
+    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, zSpinBox));
 }
 
 void visual_MainWindow::set_argv_recup(string argv)
@@ -373,15 +522,21 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
     move(global.x() - width() / 2, global.y() - height() / 2);
 }
 
-cInputs::cInputs(cMMSpecArg aArg, int aType, QWidget *aWid):
+cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):
     mArg(aArg),
-    mType(aType),
-    mWidget(aWid)
+    vWidgets(aWid)
 {
 
 }
 
+int cInputs::Type()
+{
+    if (vWidgets.size()) return vWidgets[0].first;  //todo: verifier que les arguments multiples sont tous du même type....
+    else return eIT_None;
+}
+
 #endif //ELISE_QT5
+
 
 
 

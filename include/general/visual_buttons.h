@@ -11,6 +11,7 @@ class selectionButton: public QPushButton
 
 public:
         selectionButton(QWidget *parent=0);
+        selectionButton(QString text, QWidget *parent=0);
         virtual ~selectionButton();
 
         QAction *Button;

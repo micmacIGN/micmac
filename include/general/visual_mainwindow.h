@@ -29,25 +29,26 @@ using namespace std;
 
 enum eInputType
 {
-    eLineEdit,
-    eComboBox,
-    eInteger,
-    eDouble
+    eIT_LineEdit,
+    eIT_ComboBox,
+    eIT_SpinBox,
+    eIT_DoubleSpinBox,
+    eIT_None
 };
 
 class cInputs
 {
 public:
-    cInputs(cMMSpecArg, int, QWidget*);
+    cInputs(cMMSpecArg, vector < pair < int, QWidget* > >);
 
+    bool        IsOpt()     { return mArg.IsOpt(); }
     cMMSpecArg  Arg()       { return mArg;    }
-    int         Type()      { return mType;   }
-    QWidget*    Widget()    { return mWidget; }
+    int         Type();
+    vector < pair < int, QWidget*> >    Widgets()    { return vWidgets; }
 
 private:
     cMMSpecArg  mArg;
-    int         mType;
-    QWidget*    mWidget;
+    vector < pair < int, QWidget* > >   vWidgets;
 };
 
 class visual_MainWindow : public QMainWindow
@@ -58,11 +59,16 @@ public:
     visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent = 0);
     ~visual_MainWindow();
 
-    void create_combo   (QGridLayout *layout, QWidget *parent, int, cMMSpecArg);
-    void create_comment (QGridLayout *layout, QWidget *parent, int, cMMSpecArg);
-    void create_select  (QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
-    void create_spinBox (QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
-    void create_dSpinBox(QGridLayout* layout, QWidget* parent, int, cMMSpecArg);
+    void add_combo     (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_comment   (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_select    (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_spinBox   (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_2SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_3SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_dSpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_2dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_3dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
+
     void set_argv_recup(string);
 
     void buildUI(vector<cMMSpecArg>& aVA, QGridLayout* layout, QWidget* parent);
@@ -86,19 +92,11 @@ protected:
 
     QWidget*     mainWidget;
 
-    QLabel*      label;
-    QComboBox*   Combo;
-    QLineEdit*   select_LineEdit;
-    QPushButton* select_Button;
-    QSpinBox*    SpinBox;
     QToolBox*    toolBox;
     QPushButton* runCommandButton;
 
-    vector <QComboBox*> vEnumValues;    //enum values
     vector <QLineEdit*> vLineEdit;      //LineEdit: display what has been selected (images, files, directories)
 
-   // vector <eInputType> vInputTypes;
-   // vector <QWidget*>   vInputs;
     vector <cInputs*>   vInputs;
 
     QString             mlastDir;
