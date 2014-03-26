@@ -75,7 +75,7 @@ public:
 
     void    resizeTables();
 
-    void    setModel(QAbstractItemModel *model_Pg,QAbstractItemModel *model_Images);
+    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
 
     void    SelectPointAllWGL(QString pointName = QString(""));
 

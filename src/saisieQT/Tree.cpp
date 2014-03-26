@@ -1,8 +1,11 @@
 #include "Tree.h"
 
-ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli)
-    :QAbstractTableModel(parent),
-      mAppli(appli)
+#define HORSIMAGE "hors Image"
+
+ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli):
+QAbstractTableModel(parent),
+mAppli(appli),
+_interface((cQT_Interface*)appli->Interface())
 {
 }
 
@@ -22,8 +25,8 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
     {
         if(index.row() < PG_Count())
         {
-            std::vector< cSP_PointGlob * > vPG = mAppli->PG();
-            cSP_PointGlob * pg = vPG[index.row()];
+
+            cSP_PointGlob * pg = mAppli->PGlob(index.row());
             switch (index.column())
             {
             case 0:
@@ -55,6 +58,17 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
         }
     }
 
+    if (role == Qt::BackgroundColorRole)
+    {
+        QColor selectPGlob  = QColor("#ffa02f");
+        if(mAppli->PGlob(index.row()) == _interface->currentPGlobal() && _interface->currentPGlobal())
+                return selectPGlob;
+    }
+
+    if (role == Qt::TextColorRole)
+        if(mAppli->PGlob(index.row()) == _interface->currentPGlobal() && _interface->currentPGlobal())
+                return QColor(Qt::white);
+
     return QVariant();
 }
 
@@ -73,6 +87,7 @@ QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, 
             }
         }
     }
+
     return QVariant();
 }
 
@@ -92,6 +107,7 @@ bool ModelPointGlobal::setData(const QModelIndex &index, const QVariant &value, 
 
         emit pGChanged();
     }
+
     return true;
 }
 
@@ -131,6 +147,10 @@ int ModelPointGlobal::CaseNamePointCount() const
 {
     return  mAppli->Interface()->GetNumCaseNamePoint();
 }
+cAppli_SaisiePts *ModelPointGlobal::getMAppli() const
+{
+    return mAppli;
+}
 
 bool ModelPointGlobal::caseIsSaisie(int idRow)
 {
@@ -153,6 +173,7 @@ bool ModelPointGlobal::caseIsSaisie(int idRow)
 ModelCImage::ModelCImage(QObject *parent, cAppli_SaisiePts *appli)
     :QAbstractTableModel(parent),
       mAppli(appli),
+      _interface((cQT_Interface*)appli->Interface()),
       idGlobSelect(-1)
 {
 }
@@ -185,7 +206,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                 if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
                     return QString("");
 
-                cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
+                cSP_PointGlob* pg   = mAppli->PGlob(idGlobSelect);
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
@@ -204,7 +225,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                             if(pI->Visible())
                                 return QString(tr("a valide"));
                             else
-                                return QString(tr("hors Image"));
+                                return QString(tr(HORSIMAGE));
                         }
                         case eEPI_Refute:
                             return QString(tr("refute"));
@@ -222,7 +243,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                     }
                 }
 
-                return QString("hors Image");
+                return QString(tr(HORSIMAGE));
             }
             case 2:
             {
@@ -255,20 +276,32 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
     }
     if (role == Qt::BackgroundColorRole)
     {
+
+        QColor Red          = QColor("#87384c");
+        QColor NonSaisie    = QColor("#93751e");
+        QColor Douteux      = QColor("#a95b3b");
+        QColor Valide       = QColor("#3c7355");
+        QColor imageVisible = QColor("#3a819c");
+        QColor selectPGlob  = QColor("#ffa02f");
+
         if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
             return QVariant(QColor("#5f5f5f"));
 
-
         cImage* iImage = mAppli->image(index.row());
+
+        if(index.column() == 0)
+        {
+            if(iImage == _interface->currentCImage() )
+                return selectPGlob;
+            else if (_interface->isDisplayed(iImage))
+                return imageVisible;
+        }
 
         cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
 
         cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
-        QColor Red          = QColor("#87384c");
-        QColor NonSaisie    = QColor("#6e653c");
-        QColor Douteux      = QColor("#a95b3b");
-        QColor Valide       = QColor("#3c7355");
+
 
         if(pI)
         {
@@ -306,6 +339,12 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
         return Red;
 
     }
+
+    if (role == Qt::TextColorRole && index.column() == 0)
+        if(!(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size()))
+            if(index.row() < (int)mAppli->images().size() && mAppli->image(index.row()) == _interface->currentCImage() )
+                return QColor(Qt::white);
+
     return QVariant();
 }
 
@@ -363,3 +402,49 @@ void ModelCImage::setIdGlobSelect(int value)
     idGlobSelect = value;
 }
 
+bool ImagesSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+
+    QModelIndex index1 = sourceModel()->index(sourceRow, 1, sourceParent);
+
+    QRegExp regExp(HORSIMAGE);
+
+    return !sourceModel()->data(index1).toString().contains(regExp);
+
+}
+
+bool PointGlobalSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+    if(mAppli())
+    {
+        if((int)mAppli()->PG().size() == sourceRow)
+            return false;
+
+        ModelPointGlobal*   model   = (ModelPointGlobal*)sourceModel();
+        QModelIndex         index1  = model->index(sourceRow, 0, sourceParent);
+        QString             namePG  = model->data(index1).toString();
+        cSP_PointGlob *     pg      = mAppli()->PGlobOfNameSVP(namePG.toStdString());
+
+        if(pg && sourceRow < (int)mAppli()->PG().size())
+        {
+            if(!pg->PG()->Disparu().IsInit())
+                return true;
+            else if(!pg->PG()->Disparu().Val())
+                return false;
+        }
+        else if(sourceRow > (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+            return true;
+    }
+
+    return false;
+}
+
+cAppli_SaisiePts *PointGlobalSortFilterProxyModel::mAppli() const
+{
+    return ((ModelPointGlobal*)(sourceModel()))->getMAppli();
+}
+
+cQT_Interface *PointGlobalSortFilterProxyModel::interface()
+{
+    return  (cQT_Interface *)mAppli()->Interface();
+}
