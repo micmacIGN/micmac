@@ -66,8 +66,8 @@ int CentreBascule_main(int argc,char ** argv)
                     << EAMC(BDC,"Localisation of Information on Centers", eSAM_IsExistDirOri)
                     << EAMC(AeroOut,"Orientation out", eSAM_IsOutputDirOri),
     LArgMain()
-                    <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2; (Def=false)")
-                    <<  EAM(CalcV,"CalcV",true,"Use speed to estimate time delay (Def=false)")
+                    <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2; (Def=false)", eSAM_IsBool)
+                    <<  EAM(CalcV,"CalcV",true,"Use speed to estimate time delay (Def=false)", eSAM_IsBool)
     );
 
 #if (ELISE_windows)

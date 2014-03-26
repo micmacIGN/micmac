@@ -61,14 +61,14 @@ int AperiCloud_main(int argc,char ** argv)
     LArgMain()  << EAMC(aFullDir,"Full name: Dir + images", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation directory", eSAM_IsExistDirOri),
     LArgMain()
-                    << EAM(ExpTxt,"ExpTxt",true,"Point in txt format ? (Def=false)")
-                    << EAM(Out,"Out",true,"Result, Def=AperiCloud.ply")
-                    << EAM(PlyBin,"Bin",true,"Ply in binary mode (Def=true)")
-                    << EAM(RGB,"RGB",true,"Use RGB image to texturate points (Def=true)")
-                    << EAM(aSeuilEc,"SeuilEc",true,"Max residual (Def =10)")
+                    << EAM(ExpTxt,"ExpTxt",true,"Point in txt format ? (Def=false)", eSAM_IsBool)
+                    << EAM(Out,"Out",true,"Result (Def=AperiCloud.ply)", eSAM_IsOutputFile)
+                    << EAM(PlyBin,"Bin",true,"Ply in binary mode (Def=true)", eSAM_IsBool)
+                    << EAM(RGB,"RGB",true,"Use RGB image to texturate points (Def=true)", eSAM_IsBool)
+                    << EAM(aSeuilEc,"SeuilEc",true,"Max residual (Def=10)")
                     << EAM(aLimBsH,"LimBsH",true,"Limit ratio base to high (Def=1e-2)")
-                    << EAM(WithPoints,"WithPoints",true,"Do we add point cloud? (Def=true) ")
-                    << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=false)")
+                    << EAM(WithPoints,"WithPoints",true,"Do we add point cloud? (Def=true) ",eSAM_IsBool)
+                    << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=false)",eSAM_IsBool)
     );
 
 
