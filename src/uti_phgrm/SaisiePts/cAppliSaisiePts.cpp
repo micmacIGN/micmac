@@ -378,7 +378,7 @@ cSP_PointGlob *  cAppli_SaisiePts::PGlobOfNameSVP(const std::string & aName)
 
 cSP_PointGlob *cAppli_SaisiePts::PGlob(int id)
 {
-    if (id < 0 || id > (int)mPG.size()) return NULL;
+    if (id < 0 || id >= (int)mPG.size()) return NULL;
     return mPG[id];
 }
 
