@@ -40,10 +40,7 @@ private:
 
     //                  Tools Tables
 
-    void                updateTables();
-
     void                populateTableImages(int idPG);
-
 
     //                  Tools cImage                        ///////////////////////////////////////////
 

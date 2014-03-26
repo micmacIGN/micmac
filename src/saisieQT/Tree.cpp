@@ -2,9 +2,10 @@
 
 #define HORSIMAGE "hors Image"
 
-ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli)
-    :QAbstractTableModel(parent),
-      mAppli(appli)
+ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli):
+QAbstractTableModel(parent),
+mAppli(appli),
+_interface((cQT_Interface*)appli->Interface())
 {
 }
 
@@ -24,8 +25,8 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
     {
         if(index.row() < PG_Count())
         {
-            std::vector< cSP_PointGlob * > vPG = mAppli->PG();
-            cSP_PointGlob * pg = vPG[index.row()];
+
+            cSP_PointGlob * pg = mAppli->PGlob(index.row());
             switch (index.column())
             {
             case 0:
@@ -57,6 +58,12 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
         }
     }
 
+    if (role == Qt::BackgroundColorRole)
+    {
+        if(mAppli->PGlob(index.row()) == _interface->currentPGlobal() && _interface->currentPGlobal())
+                return QColor("#d65000");
+    }
+
     return QVariant();
 }
 
@@ -75,6 +82,7 @@ QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, 
             }
         }
     }
+
     return QVariant();
 }
 
@@ -94,6 +102,7 @@ bool ModelPointGlobal::setData(const QModelIndex &index, const QVariant &value, 
 
         emit pGChanged();
     }
+
     return true;
 }
 
@@ -132,6 +141,10 @@ int ModelPointGlobal::PG_Count() const
 int ModelPointGlobal::CaseNamePointCount() const
 {
     return  mAppli->Interface()->GetNumCaseNamePoint();
+}
+cAppli_SaisiePts *ModelPointGlobal::getMAppli() const
+{
+    return mAppli;
 }
 
 bool ModelPointGlobal::caseIsSaisie(int idRow)
@@ -376,11 +389,8 @@ void ModelCImage::setIdGlobSelect(int value)
 
 bool ImagesSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
-    //ModelCImage* model = (ModelCImage*)sourceModel();
 
-    //QModelIndex index0 = sourceModel()->index(sourceRow, 0, sourceParent);
     QModelIndex index1 = sourceModel()->index(sourceRow, 1, sourceParent);
-    //QModelIndex index2 = sourceModel()->index(sourceRow, 2, sourceParent);
 
     QRegExp regExp(HORSIMAGE);
 
@@ -388,7 +398,38 @@ bool ImagesSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelInd
 
 }
 
-//bool ImagesSortFilterProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
-//{
-//    return true;
-//}
+bool PointGlobalSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+    if(mAppli())
+    {
+        if((int)mAppli()->PG().size() == sourceRow)
+            return false;
+
+        ModelPointGlobal*   model   = (ModelPointGlobal*)sourceModel();
+        QModelIndex         index1  = model->index(sourceRow, 0, sourceParent);
+        QString             namePG  = model->data(index1).toString();
+        cSP_PointGlob *     pg      = mAppli()->PGlobOfNameSVP(namePG.toStdString());
+
+        if(pg && sourceRow < (int)mAppli()->PG().size())
+        {
+            if(!pg->PG()->Disparu().IsInit())
+                return true;
+            else if(!pg->PG()->Disparu().Val())
+                return false;
+        }
+        else if(sourceRow > (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+            return true;
+    }
+
+    return false;
+}
+
+cAppli_SaisiePts *PointGlobalSortFilterProxyModel::mAppli() const
+{
+    return ((ModelPointGlobal*)(sourceModel()))->getMAppli();
+}
+
+cQT_Interface *PointGlobalSortFilterProxyModel::interface()
+{
+    return  (cQT_Interface *)mAppli()->Interface();
+}
