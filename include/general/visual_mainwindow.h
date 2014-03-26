@@ -75,6 +75,9 @@ public:
 
     void addGridLayout(vector<cMMSpecArg>& aVA, QString pageName);
 
+    void getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
+    void getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
+
 public slots:
 
     void onRunCommandPressed();
