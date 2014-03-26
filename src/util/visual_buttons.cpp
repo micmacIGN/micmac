@@ -14,6 +14,12 @@ selectionButton::selectionButton(QWidget *parent)
     connect(this,SIGNAL(clicked()),this,SLOT(onClick()));
 }
 
+selectionButton::selectionButton(QString text, QWidget *parent):
+    selectionButton(parent)
+{
+    setText(text);
+}
+
 selectionButton::~selectionButton()
 {
 

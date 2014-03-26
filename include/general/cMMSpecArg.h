@@ -112,7 +112,7 @@ class cMMSpecArg
         eArgMainBaseType Type() const;
 
         template <class T>
-        T DefaultValue() const;
+        T* DefaultValue() const;
 
 private :
         friend class LArgMain;
@@ -123,7 +123,7 @@ private :
 };
 
 template <class T>
-T cMMSpecArg::DefaultValue() const { return *( (ElArgMain<T>*)mEAM )->DefVal(); }
+T* cMMSpecArg::DefaultValue() const { return ( (ElArgMain<T>*)mEAM )->DefVal(); }
 
 #endif // _ELISE_GENERAL_MM_SPEC_ARG_H
 
