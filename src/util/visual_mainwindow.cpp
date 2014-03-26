@@ -42,6 +42,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
 visual_MainWindow::~visual_MainWindow()
 {
     delete mainWidget;
+    delete toolBox;
     delete runCommandButton;
 }
 
@@ -61,81 +62,96 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
     for (int aK=0 ; aK<int(aVA.size()) ; aK++)
     {
         cMMSpecArg aArg = aVA[aK];
-        cout << "arg " << aK << " ; Type is " << aArg.NameType() << " ; Name is " << aArg.NameArg() <<"\n";
+        //cout << "arg " << aK << " ; Type is " << aArg.NameType() << " ; Name is " << aArg.NameArg() <<"\n";
 
         add_comment(layout, parent, aK, aArg);
 
-        if (aArg.IsBool())
+        if (aArg.IsBool()) // because some boolean values are set with int
         {
             add_combo(layout, parent, aK, aArg);
         }
         else
         {
-        switch (aArg.Type())
-        {
-        case AMBT_Box2di:
-
-            break;
-        case AMBT_Box2dr:
-            break;
-        case AMBT_bool:
-            add_combo(layout, parent, aK, aArg);
-            break;
-        case AMBT_INT:
-        case AMBT_U_INT1:
-            add_spinBox(layout, parent, aK, aArg);
-            break;
-        case AMBT_REAL:
-            add_dSpinBox(layout, parent, aK, aArg);
-        break;
-        case AMBT_Pt2di:
-            add_2SpinBox(layout, parent, aK, aArg);
-        break;
-        case AMBT_Pt2dr:
-            add_2dSpinBox(layout, parent, aK, aArg);
-        break;
-        case AMBT_Pt3dr:
-            add_3dSpinBox(layout, parent, aK, aArg);
-        break;
-        case AMBT_Pt3di:
-            add_3SpinBox(layout, parent, aK, aArg);
-        break;
-        case AMBT_string:
-        {
-            if (!aArg.EnumeratedValues().empty()) //valeurs enumerees dans une liste
+            switch (aArg.Type())
             {
+            case AMBT_Box2di:
+                break;
+            case AMBT_Box2dr:
+                break;
+            case AMBT_bool:
                 add_combo(layout, parent, aK, aArg);
-            }
-            else //chaine de caracteres normale
+                break;
+            case AMBT_INT:
+            case AMBT_U_INT1:
+                add_spinBox(layout, parent, aK, aArg);
+                break;
+            case AMBT_REAL:
+                add_dSpinBox(layout, parent, aK, aArg);
+            break;
+            case AMBT_Pt2di:
+                add_2SpinBox(layout, parent, aK, aArg);
+            break;
+            case AMBT_Pt2dr:
+                add_2dSpinBox(layout, parent, aK, aArg);
+            break;
+            case AMBT_Pt3dr:
+                add_3dSpinBox(layout, parent, aK, aArg);
+            break;
+            case AMBT_Pt3di:
+                add_3SpinBox(layout, parent, aK, aArg);
+            break;
+            case AMBT_string:
             {
-                add_select(layout, parent, aK, aArg);
+                if (!aArg.EnumeratedValues().empty())
+                {
+                    add_combo(layout, parent, aK, aArg);
+                }
+                else
+                {
+                    add_select(layout, parent, aK, aArg);
+                }
+                break;
             }
+            case AMBT_INT1:
+            case AMBT_char:
             break;
-        }
-        case AMBT_INT1:
-        case AMBT_char:
-        break;
-        case AMBT_vector_Pt2dr:
-        break;
-        case AMBT_vector_int:
-        break;
-        case AMBT_vector_double:
-        break;
-        case AMBT_vvector_int:
-        break;
-        case AMBT_vector_string:
-            add_select(layout, parent, aK, aArg);
-        break;
-        case AMBT_unknown:
+            case AMBT_vector_Pt2dr:
             break;
-        }
+            case AMBT_vector_int:
+            break;
+            case AMBT_vector_double:
+            break;
+            case AMBT_vvector_int:
+            break;
+            case AMBT_vector_string:
+                add_select(layout, parent, aK, aArg);
+            break;
+            case AMBT_unknown:
+                break;
+            }
         }
         //ShowEnum(aVA[aK]);
     }
 
-    QSpacerItem *spacerV = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QSpacerItem *vSpacer = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    layout->addItem(spacerV, aVA.size(), 0);
+    layout->addItem(vSpacer, aVA.size(), 0);
+}
+
+void visual_MainWindow::getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
+{
+    int val = ((QSpinBox*) aIn->Widgets()[aK].second)->value();
+    stringstream ss;
+    ss << val;
+    aAdd += ss.str() + endingCar;
+}
+
+void visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
+{
+    double val = ((QDoubleSpinBox*) aIn->Widgets()[aK].second)->value();
+    stringstream ss;
+    ss << val;
+    aAdd += ss.str() + endingCar;
 }
 
 void visual_MainWindow::onRunCommandPressed()
@@ -157,11 +173,7 @@ void visual_MainWindow::onRunCommandPressed()
                 {
                     string aStr = ((QLineEdit*) aIn->Widgets()[0].second)->text().toStdString();
                     if (!aStr.empty()) aAdd += aStr;
-                    else if (!aIn->IsOpt())
-                    {
-                        QMessageBox::critical(this, tr("Error"), tr("Mandatory argument not filled!!!"));
-                        runCom = false;
-                    }
+                    else if (!aIn->IsOpt()) runCom = false;
                 }
                 break;
             }
@@ -171,8 +183,8 @@ void visual_MainWindow::onRunCommandPressed()
                 {
                     QString aStr = ((QComboBox*) aIn->Widgets()[0].second)->currentText(); //warning
 
-                    if (aStr == tr("True")) aStr = "1";
-                    else if (aStr == tr("False")) aStr = "0";
+                    if (aStr == "True") aStr = "1";
+                    else if (aStr == "False") aStr = "0";
 
                     aAdd += aStr.toStdString();
                 }
@@ -182,10 +194,7 @@ void visual_MainWindow::onRunCommandPressed()
             {
                 if (aIn->Widgets().size() == 1)
                 {
-                    int val = ((QSpinBox*) aIn->Widgets()[0].second)->value();
-                    stringstream ss;
-                    ss << val;
-                    aAdd += ss.str();
+                    getSpinBoxValue(aAdd, aIn, 0);
                 }
                 else
                 {
@@ -194,18 +203,10 @@ void visual_MainWindow::onRunCommandPressed()
                     aAdd += "[";
                     for (int aK=0; aK < max;++aK)
                     {
-                        int val = ((QSpinBox*) aIn->Widgets()[aK].second)->value();
-                        stringstream ss;
-                        ss << val;
-                        aAdd += ss.str() + ";";
+                        getSpinBoxValue(aAdd, aIn, aK, ";");
                     }
 
-                    int val = ((QSpinBox*) aIn->Widgets()[max].second)->value();
-                    stringstream ss;
-                    ss << val;
-                    aAdd += ss.str();
-
-                    aAdd +="]";
+                    getSpinBoxValue(aAdd, aIn, max, "]");
                 }
                 break;
             }
@@ -213,30 +214,21 @@ void visual_MainWindow::onRunCommandPressed()
             {
                 if (aIn->Widgets().size() == 1)
                 {
-                    double val = ((QDoubleSpinBox*) aIn->Widgets()[0].second)->value();
-                    stringstream ss;
-                    ss << val;
-                    aAdd += ss.str();
+                    getDoubleSpinBoxValue(aAdd, aIn, 0);
                 }
                 else
                 {
                     int max = aIn->Widgets().size()-1;
+
                     aAdd += "[";
                     for (int aK=0; aK < max ;++aK)
                     {
-                        double val = ((QDoubleSpinBox*) aIn->Widgets()[aK].second)->value();
-                        stringstream ss;
-                        ss << val;
-                        aAdd += ss.str() + ";";
+                        getDoubleSpinBoxValue(aAdd, aIn, aK, ";");
                     }
 
-                    double val = ((QDoubleSpinBox*) aIn->Widgets()[max].second)->value();
-                    stringstream ss;
-                    ss << val;
-                    aAdd += ss.str();
-
-                    aAdd +="]";
+                    getDoubleSpinBoxValue(aAdd, aIn, max, "]");
                 }
+                break;
             }
         }
 
@@ -253,6 +245,10 @@ void visual_MainWindow::onRunCommandPressed()
         int aRes = ::System(aCom);
 
         cout << "----------------- " << aRes << endl;
+    }
+    else
+    {
+        QMessageBox::critical(this, tr("Error"), tr("Mandatory argument not filled!!!"));
     }
 }
 
@@ -329,7 +325,7 @@ void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, 
     list<string> liste_valeur_enum = listPossibleValues(aArg);
 
     QComboBox* aCombo = new QComboBox(parent);
-    layout->addWidget(aCombo,aK,1);
+    layout->addWidget(aCombo,aK,1, 1, 2);
 
     vector< pair < int, QWidget * > > vWidgets;
     vWidgets.push_back(pair <int, QComboBox*> (eIT_ComboBox, aCombo));
@@ -341,31 +337,32 @@ void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, 
         aCombo->addItem(QString((*it).c_str()));
     }
 
-    if (aArg.IsBool())
+    if (aArg.Type() == AMBT_bool)
     {
         bool aBool = *(aArg.DefaultValue<bool>());
 
         if (aBool) aCombo->setCurrentIndex(0);
         else       aCombo->setCurrentIndex(1);
     }
-    else
+    else if (aArg.Type() == AMBT_string)
     {
-        if ( aArg.DefaultValue<string>() == NULL)
+        if ( aArg.DefaultValue<string>() != NULL)
         {
-            cout << "default value not set" << endl;
-            cout << "nombre d'items: " << aCombo->count()<< endl;
-            //aCombo->setCurrentIndex(0);
-        }
+            string aStr = *(aArg.DefaultValue<string>());
 
-       //string aStr = aArg.DefaultValue<string>(); =>seg fault car pas de valeur par default (ex: vTapas)
-       /*  int idx = -1;
-        int cpt = 0;
-        list<string>::const_iterator it = liste_valeur_enum.begin();
-        for (; it != liste_valeur_enum.end(); it++, cpt++)
-        {
-            if (aStr == *it) idx = cpt;
+            if ( aStr.empty() )  aCombo->setCurrentIndex(0);
+            else
+            {
+                int idx = -1;
+                int cpt = 0;
+                list<string>::const_iterator it = liste_valeur_enum.begin();
+                for (; it != liste_valeur_enum.end(); it++, cpt++)
+                {
+                    if (aStr == *it) idx = cpt;
+                }
+                if (idx >= 0) aCombo->setCurrentIndex(idx);
+            }
         }
-        if (idx >= 0) aCombo->setCurrentIndex(idx);*/
     }
 }
 
