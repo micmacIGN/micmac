@@ -60,9 +60,14 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 
     if (role == Qt::BackgroundColorRole)
     {
+        QColor selectPGlob  = QColor("#ffa02f");
         if(mAppli->PGlob(index.row()) == _interface->currentPGlobal() && _interface->currentPGlobal())
-                return QColor("#d65000");
+                return selectPGlob;
     }
+
+    if (role == Qt::TextColorRole)
+        if(mAppli->PGlob(index.row()) == _interface->currentPGlobal() && _interface->currentPGlobal())
+                return QColor(Qt::white);
 
     return QVariant();
 }
@@ -271,28 +276,32 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
     }
     if (role == Qt::BackgroundColorRole)
     {
+
+        QColor Red          = QColor("#87384c");
+        QColor NonSaisie    = QColor("#93751e");
+        QColor Douteux      = QColor("#a95b3b");
+        QColor Valide       = QColor("#3c7355");
+        QColor imageVisible = QColor("#3a819c");
+        QColor selectPGlob  = QColor("#ffa02f");
+
         if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
             return QVariant(QColor("#5f5f5f"));
-
 
         cImage* iImage = mAppli->image(index.row());
 
         if(index.column() == 0)
         {
             if(iImage == _interface->currentCImage() )
-                return QColor("#d65000");
+                return selectPGlob;
             else if (_interface->isDisplayed(iImage))
-                return QColor(Qt::darkGray);
+                return imageVisible;
         }
 
         cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
 
         cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
-        QColor Red          = QColor("#87384c");
-        QColor NonSaisie    = QColor("#6e653c");
-        QColor Douteux      = QColor("#a95b3b");
-        QColor Valide       = QColor("#3c7355");
+
 
         if(pI)
         {
@@ -330,6 +339,12 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
         return Red;
 
     }
+
+    if (role == Qt::TextColorRole && index.column() == 0)
+        if(!(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size()))
+            if(index.row() < (int)mAppli->images().size() && mAppli->image(index.row()) == _interface->currentCImage() )
+                return QColor(Qt::white);
+
     return QVariant();
 }
 
