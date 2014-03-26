@@ -322,12 +322,11 @@ void cQT_Interface::selectPointGlobal(int idPG)
     {
         _currentPGlobal = mAppli->PGlob(idPG);
 
-        ((QSortFilterProxyModel*)m_QTMainWindow->tableView_PG()->model())->invalidate();
-
         if(_currentPGlobal)
-            (((QSortFilterProxyModel*)m_QTMainWindow->tableView_Images()->model()))->invalidate();
-
-         m_QTMainWindow->resizeTables();
+        {
+            emit dataChanged();
+            m_QTMainWindow->resizeTables();
+        }
     }
 
     m_QTMainWindow->SelectPointAllWGL(!_currentPGlobal ? QString("") : namePointGlobal(idPG));
