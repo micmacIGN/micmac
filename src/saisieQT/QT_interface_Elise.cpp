@@ -59,22 +59,22 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     mAppli->SetInterface(this);
 
-    //m_QTMainWindow->setModel(new ModelPointGlobal(0,mAppli),new ModelCImage(0,mAppli));
-
     ImagesSortFilterProxyModel *proxyImageModel = new ImagesSortFilterProxyModel(this);
 
+    PointGlobalSortFilterProxyModel *proxyPointGlob = new PointGlobalSortFilterProxyModel(this);
+
+    proxyPointGlob->setSourceModel(new ModelPointGlobal(0,mAppli));
     proxyImageModel->setSourceModel(new ModelCImage(0,mAppli));
 
-    m_QTMainWindow->setModel(new ModelPointGlobal(0,mAppli),proxyImageModel);
+    m_QTMainWindow->setModel(proxyPointGlob,proxyImageModel);
 
-    updateTables();
+    m_QTMainWindow->resizeTables();
 
-    connect(m_QTMainWindow->tableView_PG()->model(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
-    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_PG(), SLOT(update()));
-    connect(this,SIGNAL(dataChanged()), m_QTMainWindow->tableView_Images(), SLOT(update()));
+    connect(((PointGlobalSortFilterProxyModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
     connect(this,SIGNAL(dataChanged(cSP_PointeImage*)), this, SLOT(rebuildGlPoints(cSP_PointeImage*)));
     connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
-
+    connect(this,SIGNAL(dataChanged()), proxyPointGlob, SLOT(invalidate()));
+    connect(this,SIGNAL(dataChanged()), proxyImageModel, SLOT(invalidate()));
 }
 
 void cQT_Interface::Init()
@@ -95,7 +95,9 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
     QItemSelectionModel *selModel = m_QTMainWindow->tableView_PG()->selectionModel();
 
     if (selModel->currentIndex().column() != 0)
+    {
         return _cNamePt;
+    }
     else
     {
         if(_cNamePt)
@@ -152,7 +154,6 @@ void cQT_Interface::close()
 
         //cAppli_SaisiePts* appli = mAppli;
         mAppli = NULL;
-
         //delete appli;
     }
 }
@@ -183,17 +184,11 @@ double cQT_Interface::PtCreationWindowSize()
 void cQT_Interface::addPoint(QPointF point)
 {
     if (m_QTMainWindow->currentWidget()->hasDataLoaded() && mAppli)
-    {
-
-        cSP_PointGlob * PG = cVirtualInterface::addPoint(transformation(point),currentCImage());
-
-        if(PG)
+        if(cVirtualInterface::addPoint(transformation(point),currentCImage()))
         {
-            emit dataChanged();
-            m_QTMainWindow->tableView_PG()->model()->insertRows(cVirtualInterface::idPointGlobal(PG),1);
-            updateTables();
+            emit dataChanged();            
+            m_QTMainWindow->resizeTables();
         }
-    }
 }
 
 void cQT_Interface::removePointGlobal(cSP_PointGlob * pPg)
@@ -201,10 +196,7 @@ void cQT_Interface::removePointGlobal(cSP_PointGlob * pPg)
     if (pPg && mAppli)
     {
         DeletePoint( pPg );
-
         emit dataChanged();
-
-        m_QTMainWindow->tableView_PG()->hideRow(cVirtualInterface::idPointGlobal(pPg));
     }
 }
 
@@ -325,33 +317,29 @@ void cQT_Interface::changeCurPose(void *widgetGL)
 
 void cQT_Interface::selectPointGlobal(int idPG)
 {
-    cPointGlob* pG = NULL;
-    QString     namePg("");
+    if( mAppli)
+    {
+        _currentPGlobal = mAppli->PGlob(idPG);
 
-    if( mAppli && idPG < (int)mAppli->PG().size() && idPG >= 0)
-    {        
-        m_QTMainWindow->tableView_PG()->selectRow(idPG);
+        ((QSortFilterProxyModel*)m_QTMainWindow->tableView_PG()->model())->invalidate();
 
-        pG      = mAppli->PG()[idPG]->PG();
-
-        namePg  = namePointGlobal(idPG);
-
-        populateTableImages(idPG);
-
+        if(_currentPGlobal) populateTableImages(idPG);
     }
 
-    m_QTMainWindow->SelectPointAllWGL(namePg);
-    rebuild3DGlPoints(pG);
+    m_QTMainWindow->SelectPointAllWGL(!_currentPGlobal ? QString("") : namePointGlobal(idPG));
+    rebuild3DGlPoints((cPointGlob*) (!_currentPGlobal ? NULL :_currentPGlobal->PG()));
 }
 
 void cQT_Interface::selectPoint(int idPtCurGLW)
 {
     selectPointGlobal(idPointGlobal(idPtCurGLW));
+
 }
 
 void cQT_Interface::selectPointGlobal(QModelIndex modelIndex)
 {
-    selectPointGlobal(modelIndex.row());
+
+    selectPointGlobal(cVirtualInterface::idPointGlobal(m_QTMainWindow->tableView_PG()->model()->data(modelIndex).toString().toStdString()));
 }
 
 int cQT_Interface::idPointGlobal(int idSelectGlPoint)
@@ -379,9 +367,7 @@ cSP_PointGlob *cQT_Interface::currentPGlobal() const
 }
 
 void cQT_Interface::populateTableImages(int idPG)
-{
-    //((ModelCImage*)m_QTMainWindow->tableView_Images()->model())->setIdGlobSelect(idPG);
-    
+{    
     ((ModelCImage*)(((QSortFilterProxyModel*)m_QTMainWindow->tableView_Images()->model())->sourceModel()))->setIdGlobSelect(idPG);
 
     (((QSortFilterProxyModel*)m_QTMainWindow->tableView_Images()->model()))->invalidate();
@@ -537,23 +523,6 @@ void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int idImag)
     }
 
     m_QTMainWindow->getWidget(idImag)->addGlPoint(transformation(aSom->PtIm(),idImag), aSom, aPt1, aPt2, aPG->HighLighted());
-}
-
-void cQT_Interface::updateTables()
-{
-    ModelPointGlobal* model = (ModelPointGlobal*)m_QTMainWindow->tableView_PG()->model();
-
-    for (int row = mAppli->PG().size(); row <  model->rowCount(); ++row)
-    {
-        if(model->caseIsSaisie(row))
-
-            m_QTMainWindow->tableView_PG()->hideRow(row);
-
-    }
-
-    m_QTMainWindow->tableView_PG()->hideRow(mAppli->PG().size());
-
-    m_QTMainWindow->resizeTables();
 }
 
 void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
