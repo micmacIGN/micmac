@@ -62,13 +62,13 @@ int GCPBascule_main(int argc,char ** argv)
     (
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
-                    << EAMC(AeroIn,"Orientaion in", eSAM_IsExistDirOri)
+                    << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
                     << EAMC(AeroOut,"Orientation out", eSAM_IsOutputDirOri)
-                    << EAMC(DicoPts,"File for Ground Control Points", eSAM_IsExistFile)
-                    << EAMC(MesureIm,"File for Image Measurements", eSAM_IsExistFile),
+                    << EAMC(DicoPts,"Ground Control Points File", eSAM_IsExistFile)
+                    << EAMC(MesureIm,"Image Measurements File", eSAM_IsExistFile),
     LArgMain()
-                    <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2; (Def=false)")
-                    <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used")
+                    <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2 (Def=false)", eSAM_IsBool)
+                    <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
     );
 
     #if (ELISE_windows)
@@ -90,19 +90,19 @@ int GCPBascule_main(int argc,char ** argv)
                        + std::string(" +SaisieIm=") +  MesureIm
                     ;
 
-     if (ModeL1)
-     {
+    if (ModeL1)
+    {
         aCom = aCom+ std::string(" +L2Basc=") + ToString(!ModeL1);
-     }
+    }
 
     if (CPI) aCom += " +CPI=true ";
 
 
-   std::cout << "Com = " << aCom << "\n";
-   int aRes = System(aCom.c_str(),false,true,true);
+    std::cout << "Com = " << aCom << "\n";
+    int aRes = System(aCom.c_str(),false,true,true);
 
 
-   return aRes;
+    return aRes;
 }
 
 

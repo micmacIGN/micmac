@@ -59,11 +59,11 @@ int MMInitialModel_main(int argc,char ** argv)
     LArgMain()  << EAMC(aFullDir,"Dir + Pattern", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation", eSAM_IsExistDirOri),
     LArgMain()
-                    << EAM(Visu,"Visu",true,"Interactif Visualization (tuning purpose, programm will stop at breakpoint)")
-                    << EAM(DoPly,"DoPly",true,"Generate ply ,for tuning purpose, (Def=false)")
-                    << EAM(aZoom,"Zoom",true,"Zoom of computed models, (def=8)")
-                    << EAM(aReducePly,"ReduceExp",true,"Down scaling of cloud , XML and ply, (def = 3)")
-                    << EAM(aDo2Z,"Do2Z",true,"Excute a first step at 2*Zoom (Def=true)")
+                    << EAM(Visu,"Visu",true,"Interactif Visualization (tuning purpose, program will stop at breakpoint)", eSAM_IsBool)
+                    << EAM(DoPly,"DoPly",true,"Generate ply ,for tuning purpose (Def=false)", eSAM_IsBool)
+                    << EAM(aZoom,"Zoom",true,"Zoom of computed models (Def=8)")
+                    << EAM(aReducePly,"ReduceExp",true,"Down scaling of cloud , XML and ply (Def=3)")
+                    << EAM(aDo2Z,"Do2Z",true,"Excute a first step at 2*Zoom (Def=true)", eSAM_IsBool)
     );
 
     #if (ELISE_windows)

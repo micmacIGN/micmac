@@ -81,7 +81,7 @@ extern std::string TheStringMemoArgOptGlob;
 // Remet dans la commande les option commancant par "-"
 void AddMinuToArgs(std::string & aCom,int  argc,char** argv);
 
-class ElGramArgMain  // classe contenant la "grammaire" rudimenataire
+class ElGramArgMain  // classe contenant la "grammaire" rudimentaire
 {
     public :
         ElGramArgMain(char,int,char,bool aAnyEqual);
@@ -195,6 +195,7 @@ template <class Type> std::ostream & operator << (std::ostream &os,const ElSTDNS
 typedef enum
 {
     eSAM_None,
+    eSAM_IsBool,
     eSAM_IsDir,
     eSAM_IsPatFile,
     eSAM_IsExistDirOri,
@@ -202,6 +203,29 @@ typedef enum
     eSAM_IsExistFile,
     eSAM_IsOutputFile
 } eSpecArgMain;
+
+typedef enum
+{
+    AMBT_Box2di,
+    AMBT_Box2dr,
+    AMBT_bool,
+    AMBT_INT,
+    AMBT_REAL,
+    AMBT_Pt2di,
+    AMBT_Pt2dr,
+    AMBT_Pt3dr,
+    AMBT_Pt3di,
+    AMBT_string,
+    AMBT_U_INT1,
+    AMBT_INT1,
+    AMBT_char,
+    AMBT_vector_Pt2dr,
+    AMBT_vector_int,
+    AMBT_vector_double,
+    AMBT_vvector_int,
+    AMBT_vector_string,
+    AMBT_unknown
+} eArgMainBaseType;
 
 class GenElArgMain
 {
@@ -222,17 +246,20 @@ class GenElArgMain
         bool IsInit() const;
         const char *name() const;
 
-                virtual void show(bool named) const =0;
+        virtual void show(bool named) const =0;
 
-          // Ensemble de patch pour rajouter des argument inutilise a la volee
+          // Ensemble de patch pour rajouter des arguments inutilises a la volee
         bool IsActif() const;
 
         static const char * ActifStr(bool);
 
-                virtual std::string NameType() const =0;
-                virtual std::string Comment() const =0;
-                eSpecArgMain Spec() const;
-                const std::list<std::string> &  ListEnum() const;
+        virtual std::string NameType() const =0;
+        virtual std::string Comment() const =0;
+        eSpecArgMain Spec() const;
+        const std::list<std::string> &  ListEnum() const;
+
+        virtual eArgMainBaseType type() const { return AMBT_unknown; }
+
     protected :
                 static const std::string  theChaineInactif;
                 static const std::string  theChaineActif;
@@ -258,6 +285,7 @@ template <class Type> class ElArgMain : public GenElArgMain
     public :
                 std::string NameType() const {return  str_type(_adr);}
                 std::string Comment() const {return  mCom;}
+                Type*       DefVal() const {return _adr;}
 
         void InitEAM(const ElSTDNS string &s,const ElGramArgMain & Gram) const
         {
@@ -302,6 +330,8 @@ template <class Type> class ElArgMain : public GenElArgMain
 
 
              static const ElSTDNS list<Type>  theEmptyLvalADM;
+
+             eArgMainBaseType type() const;
 
     private :
 
@@ -356,7 +386,7 @@ class LArgMain
 {
     public :
 
-                std::vector<cMMSpecArg>  ExportMMSpec() const;
+        std::vector<cMMSpecArg>  ExportMMSpec() const;
 
         template <class Type> LArgMain & operator << (const ElArgMain<Type> & v)
         {
@@ -366,8 +396,7 @@ class LArgMain
         }
         ~LArgMain();
 
-                int Size() const;
-
+        int Size() const;
 
         INT  Init(int argc,char ** argv) const;
                 void  InitIfMatchEq
