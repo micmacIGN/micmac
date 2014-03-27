@@ -469,13 +469,33 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+QDoubleSpinBox * visual_MainWindow::create_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, int bK, cMMSpecArg aArg)
 {
     QDoubleSpinBox *aSpinBox = new QDoubleSpinBox(parent);
-    layout->addWidget(aSpinBox,aK,1);
+    layout->addWidget(aSpinBox,aK, bK);
 
     aSpinBox->setRange(DoubleMin, DoubleMax);
     aSpinBox->setValue( *(aArg.DefaultValue<double>()) );
+
+    return aSpinBox;
+}
+
+QSpinBox * visual_MainWindow::create_SpinBox(QGridLayout *layout, QWidget *parent, int aK, int bK, cMMSpecArg aArg)
+{
+    QSpinBox *aSpinBox = new QSpinBox(parent);
+    layout->addWidget(aSpinBox,aK, bK);
+
+    //aSpinBox->setRange(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+    // a ne pas utiliser car ça crée des spinbox immenses...
+    aSpinBox->setRange(IntMin, IntMax);
+    aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
+
+    return aSpinBox;
+}
+
+void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+{
+    QDoubleSpinBox *aSpinBox = create_dSpinBox(layout, parent, aK, 1, aArg);
 
     vector< pair < int, QWidget * > > vWidgets;
     vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, aSpinBox));
@@ -484,14 +504,8 @@ void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int a
 
 void visual_MainWindow::add_2dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QDoubleSpinBox *xSpinBox = new QDoubleSpinBox(parent);
-    QDoubleSpinBox *ySpinBox = new QDoubleSpinBox(parent);
-
-    xSpinBox->setRange(DoubleMin, DoubleMax);
-    ySpinBox->setRange(DoubleMin, DoubleMax);
-
-    layout->addWidget(xSpinBox,aK,1);
-    layout->addWidget(ySpinBox,aK,2);
+    QDoubleSpinBox *xSpinBox = create_dSpinBox(layout, parent, aK, 1, aArg);
+    QDoubleSpinBox *ySpinBox = create_dSpinBox(layout, parent, aK, 2, aArg);
 
     xSpinBox->setValue( (*(aArg.DefaultValue<Pt2dr>())).x );
     ySpinBox->setValue( (*(aArg.DefaultValue<Pt2dr>())).y );
@@ -505,17 +519,9 @@ void visual_MainWindow::add_2dSpinBox(QGridLayout *layout, QWidget *parent, int 
 
 void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QDoubleSpinBox *xSpinBox = new QDoubleSpinBox(parent);
-    QDoubleSpinBox *ySpinBox = new QDoubleSpinBox(parent);
-    QDoubleSpinBox *zSpinBox = new QDoubleSpinBox(parent);
-
-    xSpinBox->setRange(DoubleMin, DoubleMax);
-    ySpinBox->setRange(DoubleMin, DoubleMax);
-    zSpinBox->setRange(DoubleMin, DoubleMax);
-
-    layout->addWidget(xSpinBox,aK,1);
-    layout->addWidget(ySpinBox,aK,2);
-    layout->addWidget(zSpinBox,aK,3);
+    QDoubleSpinBox *xSpinBox = create_dSpinBox(layout, parent, aK, 1, aArg);
+    QDoubleSpinBox *ySpinBox = create_dSpinBox(layout, parent, aK, 2, aArg);
+    QDoubleSpinBox *zSpinBox = create_dSpinBox(layout, parent, aK, 3, aArg);
 
     xSpinBox->setValue( (*(aArg.DefaultValue<Pt3dr>())).x );
     ySpinBox->setValue( (*(aArg.DefaultValue<Pt3dr>())).y );
@@ -534,7 +540,7 @@ void visual_MainWindow::add_spinBox(QGridLayout* layout, QWidget* parent, int aK
     QSpinBox *aSpinBox = new QSpinBox(parent);
     layout->addWidget(aSpinBox,aK,1);
 
-    //aSpinBox->setRange(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+
     aSpinBox->setRange(IntMin, IntMax);
 
     aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
