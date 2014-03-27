@@ -173,9 +173,9 @@ bool ModelPointGlobal::caseIsSaisie(int idRow)
 ModelCImage::ModelCImage(QObject *parent, cAppli_SaisiePts *appli)
     :QAbstractTableModel(parent),
       mAppli(appli),
-      _interface((cQT_Interface*)appli->Interface()),
-      idGlobSelect(-1)
+      _interface((cQT_Interface*)appli->Interface())
 {
+
 }
 
 int ModelCImage::rowCount(const QModelIndex & /*parent*/) const
@@ -203,10 +203,11 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                 return QString("%1").arg(iImage->Name().c_str());
             case 1:
             {
-                if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
-                    return QString("");
 
-                cSP_PointGlob* pg   = mAppli->PGlob(idGlobSelect);
+                cSP_PointGlob* pg   = _interface->currentPGlobal();
+
+                if(!pg)
+                    return QString("");                
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
@@ -247,10 +248,10 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
             }
             case 2:
             {
-                if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
-                    return QString("");
+                cSP_PointGlob* pg   = _interface->currentPGlobal();
 
-                cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
+                if(!pg)
+                    return QString("");
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
@@ -284,7 +285,9 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
         QColor imageVisible = QColor("#3a819c");
         QColor selectPGlob  = QColor("#ffa02f");
 
-        if(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size())
+        cSP_PointGlob* pg   = _interface->currentPGlobal();
+
+        if(!pg)
             return QVariant(QColor("#5f5f5f"));
 
         cImage* iImage = mAppli->image(index.row());
@@ -297,11 +300,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                 return imageVisible;
         }
 
-        cSP_PointGlob* pg = mAppli->PGlob(idGlobSelect);
-
         cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
-
-
 
         if(pI)
         {
@@ -340,8 +339,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
 
     }
 
-    if (role == Qt::TextColorRole && index.column() == 0)
-        if(!(idGlobSelect < 0 || idGlobSelect >= (int)mAppli->PG().size()))
+    if (role == Qt::TextColorRole && index.column() == 0 && _interface->currentPGlobal())
             if(index.row() < (int)mAppli->images().size() && mAppli->image(index.row()) == _interface->currentCImage() )
                 return QColor(Qt::white);
 
@@ -392,15 +390,7 @@ bool ModelCImage::insertRows(int row, int count, const QModelIndex &parent)
     endInsertRows();
     return true;
 }
-int ModelCImage::getIdGlobSelect() const
-{
-    return idGlobSelect;
-}
 
-void ModelCImage::setIdGlobSelect(int value)
-{
-    idGlobSelect = value;
-}
 
 bool ImagesSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {

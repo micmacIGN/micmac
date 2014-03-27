@@ -38,10 +38,6 @@ private:
 
     cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
 
-    //                  Tools Tables
-
-    void                populateTableImages(int idPG);
-
     //                  Tools cImage                        ///////////////////////////////////////////
 
     int                 idCImage(QString nameImage);

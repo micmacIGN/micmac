@@ -115,8 +115,6 @@ private:
 
     cQT_Interface*  _interface;
 
-    int             idGlobSelect;
-
 };
 
 #endif // TREE_H

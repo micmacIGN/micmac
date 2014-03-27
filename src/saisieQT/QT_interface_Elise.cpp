@@ -3,7 +3,8 @@
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL),
-    _aCpt(0)
+    _aCpt(0),
+    _currentPGlobal(NULL)
 {
     _cNamePt = new cCaseNamePoint ("CHANGE", eCaseAutoNum);
 
@@ -321,9 +322,11 @@ void cQT_Interface::selectPointGlobal(int idPG)
     {
         _currentPGlobal = mAppli->PGlob(idPG);
 
-        ((QSortFilterProxyModel*)m_QTMainWindow->tableView_PG()->model())->invalidate();
-
-        if(_currentPGlobal) populateTableImages(idPG);
+        if(_currentPGlobal)
+        {
+            emit dataChanged();
+            m_QTMainWindow->resizeTables();
+        }
     }
 
     m_QTMainWindow->SelectPointAllWGL(!_currentPGlobal ? QString("") : namePointGlobal(idPG));
@@ -364,16 +367,6 @@ string cQT_Interface::getNameGLPt_CurWidget(int idPt)
 cSP_PointGlob *cQT_Interface::currentPGlobal() const
 {
     return _currentPGlobal;
-}
-
-void cQT_Interface::populateTableImages(int idPG)
-{    
-    ((ModelCImage*)(((QSortFilterProxyModel*)m_QTMainWindow->tableView_Images()->model())->sourceModel()))->setIdGlobSelect(idPG);
-
-    (((QSortFilterProxyModel*)m_QTMainWindow->tableView_Images()->model()))->invalidate();
-
-    m_QTMainWindow->tableView_Images()->update();
-    m_QTMainWindow->resizeTables();
 }
 
 void cQT_Interface::setAutoName(QString name)
