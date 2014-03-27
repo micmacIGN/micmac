@@ -59,11 +59,6 @@ tPInt            aSz\
 			void* ptr = (void*)(charPtr + shift);\
 			if (verbose) std::cout<<"[Buff:]"<<nPixelSpace<<" "<<nLineSpace<<" "<<nBandSpace<<" | shift= "<<shift<<std::endl;\
 			img.read(aP0File.real()*aDeZoom, aP0File.imag()*aDeZoom, b, aSz.real()*aDeZoom, aSz.imag()*aDeZoom, 1, aDeZoom, ptr, typePixel, nPixelSpace,nLineSpace,nBandSpace);\
-			std::ostringstream oss;\
-			oss<<"/Temp/"<<boost::filesystem::path(m_Nomfic).stem().generic_string()<<"_testCrop"<<b<<".TIF";\
-			testBuf.save(oss.str());\
-			std::ostringstream oss2;\
-			oss2<<"/Temp/"<<boost::filesystem::path(m_Nomfic).stem().generic_string()<<"_testELISE"<<b<<".TIF";\
 		}\
 		if (verbose) std::cout<<"[IgnSocleImageLoader::LoadNCanaux] END"<<std::endl;\
 	}\
@@ -127,7 +122,7 @@ template <class Type,class TyBase> Im2D<Type,TyBase>::~Im2D()
 	///
 	///
 	///
-	eTypeNumerique IgnSocleImageLoader::PreferedTypeOfResol(int aDeZoom)const
+	eIFImL_TypeNumerique IgnSocleImageLoader::PreferedTypeOfResol(int aDeZoom)const
 	{
 		return m_Type;
 	}
