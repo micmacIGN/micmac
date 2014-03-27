@@ -114,6 +114,9 @@ class cMMSpecArg
         template <class T>
         T* DefaultValue() const;
 
+        template <class T>
+        bool IsDefaultValue(T val) const;
+
 private :
         friend class LArgMain;
         cMMSpecArg(GenElArgMain *,int aNum);
@@ -124,6 +127,9 @@ private :
 
 template <class T>
 T* cMMSpecArg::DefaultValue() const { return ( (ElArgMain<T>*)mEAM )->DefVal(); }
+
+template <class T>
+bool cMMSpecArg::IsDefaultValue(T val) const { return (IsOpt() && (val == *(DefaultValue<T>()))); }
 
 #endif // _ELISE_GENERAL_MM_SPEC_ARG_H
 
