@@ -1,0 +1,37 @@
+En entrees :
+
+   - les points 3D, au format Dico habituels
+
+   - les images
+
+   - les orientations  (optionnelles)
+
+
+    - une ortho globale 
+  
+   - les mesure images (vides au depart);
+
+
+   - un point  a un type , par exemple
+
+         - max ou min loc, eventuellement avec un facteur d'echelle
+
+         - coin
+
+         - texture : polygone + 
+
+         - geo-cube = pattern + 
+
+         - indefini => dans ce cas c'est juste un point;
+
+    - c'es
+
+    - il a une coordonnees 3D
+
+    - Un point sur une image a un etat :
+
+        -   visible
+        -   mort
+        -   saisi
+
+
