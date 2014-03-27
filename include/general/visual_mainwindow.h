@@ -79,6 +79,9 @@ public:
     bool getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
     bool getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
 
+    QDoubleSpinBox* create_dSpinBox(QGridLayout*, QWidget*, int, int, cMMSpecArg);
+    QSpinBox *create_SpinBox(QGridLayout*, QWidget*, int, int, cMMSpecArg);
+
 public slots:
 
     void onRunCommandPressed();
