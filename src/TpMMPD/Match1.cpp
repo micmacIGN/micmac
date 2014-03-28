@@ -185,7 +185,7 @@ class cTD_OneScale
 		   mIm  (anIm),
 		   mFullW (false),
 		   mPds   (aPds),
-		   mScale (aScale * std::sqrt(aNbIter)),
+		   mScale (aScale * std::sqrt((double)aNbIter)),
 		   mSzW  ((aSzW==DefSzW) ? round_ni(aSzW) : aSzW),
 		   mPdsByPix (mPds/( mFullW ? ElSquare(1+2*mSzW): 9)),
 		   mStepW    (mFullW ? 1 :mSzW )
@@ -584,7 +584,7 @@ int  TD_Match2_main(int argc,char ** argv)
 		for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
 		{
 		   aIBestScore.SetVal(aP.x,aP.y,Beaucoup);
-		   aIBestPax.SetVal(aP.x,aP.y,sin(aP.x)*30*sin(aP.y));
+		   aIBestPax.SetVal(aP.x,aP.y,sin((float)(aP.x))*30*sin((float)(aP.y)));
 		}
 	}
     
