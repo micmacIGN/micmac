@@ -19,10 +19,10 @@
                 <exclude>target/</exclude> <!-- Maven stuff -->
                 <exclude>pom.xml</exclude> <!-- Maven stuff -->
                 <exclude>src/main</exclude> <!-- Maven stuff -->
-				<exclude>BenchElise</exclude>
-				<exclude>Documentation</exclude>
-				<exclude>applis</exclude>
-				<exclude>interface/documentation</exclude>
+		<exclude>BenchElise/</exclude>
+		<exclude>Documentation/</exclude>
+		<exclude>applis/</exclude>
+		<exclude>interface/documentation/</exclude>
             </excludes>
             <outputDirectory>/micmac-${project.version}/</outputDirectory>
             <fileMode>0755</fileMode>
