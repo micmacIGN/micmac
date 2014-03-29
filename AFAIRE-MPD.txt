@@ -191,3 +191,11 @@ Reaff : cliquer sur les points pour zoomer dezoomer en auto
 Autom RatioAttrCarte
 SEL : tourner sans source
 MMUserEnvironment - Nb Process
+
+==========================================
+Formation :
+   italien francophone
+   paul lopez, thales ...
+
+
+
