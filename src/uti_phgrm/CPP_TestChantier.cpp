@@ -104,45 +104,97 @@ extern void TestCamCHC(ElCamera & aCam);
 */
 
 
-int TestCamInv_main(int argc,char ** argv)
+     // ========== FOV ===============
+
+double CamDemiFOV(CamStenope * aCam,const Pt2dr aP0)
 {
-    std::string aFullName;
-    std::string aNameCam;
-    std::string aNameDir;
-    std::string aNameTag = "OrientationConique";
-    bool ExtP = false;
-    bool TOC = false;
-    Pt2dr TDINV;
+   Pt3dr aDir0 = vunit(aCam->F2toDirRayonR3(Pt2dr(aCam->Sz())/2.0));
+   Pt3dr aDir1 = vunit(aCam->F2toDirRayonR3(aP0));
 
-    bool aModeGrid = false;
-    std::string Out;
+   double  aScal = scal(aDir0,aDir1);
 
-    ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aFullName,"Name", eSAM_IsPatFile),
-    LArgMain()
-                    << EAM(aNameTag,"Tag",true,"Tag to get cam")
-                    << EAM(aModeGrid,"Grid",true,"Test Grid Mode", eSAM_IsBool)
-                    << EAM(Out,"Out",true,"To Regenerate an orientation file", eSAM_IsOutputFile)
-                    << EAM(ExtP,"ExtP",true,"Detail on external parameter", eSAM_IsBool)
-                    << EAM(TOC,"TOC",true,"Test corners", eSAM_IsBool)
-                    << EAM(TDINV,"TDINV",true,"Test Dist Inv")
-    );
-
-    SplitDirAndFile(aNameDir,aNameCam,aFullName);
-
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-
-
-    ElCamera * aCam  = Gen_Cam_Gen_From_File(aModeGrid,aFullName,aNameTag,anICNM);
-
-    CamStenope * aCS = aCam->CS();
-
-
-    return EXIT_SUCCESS;
+   return acos(aScal);
 }
 
+double CamFOV(CamStenope * aCam,const Pt2dr aP0)
+{
+
+   return CamDemiFOV(aCam,aP0) +  CamDemiFOV(aCam,Pt2dr(aCam->Sz())-aP0);
+}
+
+double CamFOV(CamStenope * aCam)
+{
+    Pt2dr aSz = Pt2dr(aCam->Sz());
+    return ElMax(CamFOV(aCam,Pt2dr(0,0)),CamFOV(aCam,Pt2dr(aSz.x,0)));
+}
+
+
+
+     // ========== FOV ===============
+
+double CamOuvVert(CamStenope * aCam,const Pt2dr aP0)
+{
+   Pt3dr aDir0 = vunit(aCam->F2toDirRayonR3(aP0));
+   return aDir0.z;
+}
+
+double CamOuvVert(CamStenope * aCam)
+{
+    Box2dr aBox(Pt2dr(0,0),Pt2dr(aCam->Sz()));
+    Pt2dr aC[4];
+    aBox.Corners(aC);
+
+    double aMinZ =  -1;
+    for (int aK=0 ; aK<4 ; aK++)
+       ElSetMax(aMinZ,CamOuvVert(aCam,aC[aK]));
+
+
+
+   return acos(-aMinZ);
+
+}
+
+
+
+   //   =================================
+
+
+class cAppli_TestChantier : cAppliWithSetImage
+{
+    public :
+        cAppli_TestChantier (int argc,char ** argv);
+    private :
+};
+
+
+void Chantier_TestOneCam(const std::string & aName, CamStenope * aCam,cAppli_TestChantier *)
+{
+   double aFOV = CamFOV(aCam);
+   double aOuvV = CamOuvVert(aCam);
+
+
+   std::cout << " Cam=" << aName << " FOV=" << aFOV << " OuvV " << aOuvV << "\n";
+   // Pt2dr aP0 = 
+}
+
+
+
+cAppli_TestChantier::cAppli_TestChantier(int argc,char ** argv) :
+    cAppliWithSetImage(argc,argv,0)
+{
+    for (int aKS=0 ; aKS<int(mVSoms.size()) ; aKS++)
+    {
+       cImaMM & anI = *(mVSoms[aKS]->attr().mIma);
+       Chantier_TestOneCam(anI.mNameIm,anI.mCam,this);
+    }
+}
+
+
+int TestChantier_main(int argc,char ** argv)
+{
+    cAppli_TestChantier anAppli(argc-1,argv+1);
+    return EXIT_SUCCESS;
+}
 
 
 
