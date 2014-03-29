@@ -464,6 +464,8 @@ void cGeomImage::PostInit()
        //mAnamPMasq =  // StdGetObjFromFile<cParamMasqAnam>
       //return mAnamPMasq.BoxTer();
     }
+
+// std::cout << "CCCCCcccterrrrrr " << mContourTer.size() << "\n";
 // std::cout << mBoxTerPx0._p0 << " " << mBoxTerPx0._p1 << "\n";
 // std::cout << " F " << CanCal << " DDDDDDDDDDD "<< aPx0[0] << " " << aPx0[1] << "\n";
 // getchar();
@@ -871,8 +873,36 @@ bool  cGeomImage::IntersectEmprTer
    if (aContInter.empty())
       return false;
 
+
+   double aSomS = 0;
+   Pt2dr  aSomP(0,0);
+   // std::cout << "============================mmmLLmmmIo====================\n";
+   for (std::list<cElPolygone::tContour>::const_iterator itP=aContInter.begin(); itP!=aContInter.end();itP++)
+   {
+       double aS0 = surf_or_poly(*itP);
+       if (aSomS && aS0)
+       {
+           ELISE_ASSERT( (aSomS<0)==(aS0<0) , "Intersection d'emprises incoherente");
+       }
+
+       aSomS += aS0;
+       aSomP = aSomP +  barrycentre(*itP) * aS0;
+
+
+       // std::cout << "SSurff " << aS0 << "\n";
+   }
+
+   aPMoyEmpr =  aSomP / aSomS;
+   if (aSurf)
+   {
+      *aSurf = ElAbs(aSomS);
+   }
+
+
+/*
    if (aContInter.size()!=1)
    {
+       // std::cout << "For Cple = " << mName <<  " " << aGeo2.mName << "\n";
        ELISE_ASSERT(aContInter.size()==1,"Intersection d'emprises incoherente");
    }
    aPMoyEmpr = barrycentre(*(aContInter.begin()));
@@ -880,6 +910,7 @@ bool  cGeomImage::IntersectEmprTer
    {
       *aSurf = ElAbs(surf_or_poly(*(aContInter.begin())));
    }
+*/
    
 
    return true;
