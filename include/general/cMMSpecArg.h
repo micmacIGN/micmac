@@ -70,6 +70,9 @@ class cMMSpecArg
         // S'agit-il d'un argument optionnel
         bool IsOpt() const;
 
+        // S'agit-il d'un booleen (ajout pour lever l'ambiguite integer 0/1)
+        bool IsBool() const;
+
         // S'agit-il d'un repertoire
         bool IsDir() const;
 
@@ -106,6 +109,10 @@ class cMMSpecArg
         // Liste des valeurs possibles si enumerees, renvoie liste vide sinon
         const std::list<std::string>  & EnumeratedValues() const;
 
+        eArgMainBaseType Type() const;
+
+        template <class T>
+        T* DefaultValue() const;
 
 private :
         friend class LArgMain;
@@ -115,6 +122,8 @@ private :
         int            mNum;
 };
 
+template <class T>
+T* cMMSpecArg::DefaultValue() const { return ( (ElArgMain<T>*)mEAM )->DefVal(); }
 
 #endif // _ELISE_GENERAL_MM_SPEC_ARG_H
 

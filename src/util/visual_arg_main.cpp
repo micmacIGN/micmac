@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifdef Int
 #undef Int
 #endif
+#include <QtGui>
 #include <QApplication>
 #include <QString>
 #include "general/visual_mainwindow.h"
@@ -49,31 +50,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void ShowEnum(const cMMSpecArg & anArg)
 {
-    const std::list<std::string>  & aLEnum = anArg.EnumeratedValues();
-    for
-            (
-             std::list<std::string>::const_iterator itS = aLEnum.begin();
-             itS != aLEnum.end();
-             itS++
-             )
-        std::cout << "     " << *itS << "\n";
+    list<string>::const_iterator itS = anArg.EnumeratedValues().begin();
+    for (; itS != anArg.EnumeratedValues().end(); itS++ )
+        cout << "     " << *itS << "\n";
 }
 
-std::list<std::string> listPossibleValues(const cMMSpecArg & anArg)
+list<string> listPossibleValues(const cMMSpecArg & anArg)
 {
-    std::list<std::string> list_enum;
-    const std::list<std::string> & aLEnum = anArg.EnumeratedValues();
-    for
-            (
-             std::list<std::string>::const_iterator itS = aLEnum.begin();
-             itS != aLEnum.end();
-             itS++
-             )
-    {
-        //std::cout << "     " << *itS << "\n";
-        list_enum.push_back(*itS);
-        //i++;
+    list<string> list_enum;
 
+    if (anArg.IsBool())
+    {
+        list_enum.push_back("True");
+        list_enum.push_back("False");
+    }
+    else
+    {
+        list<string>::const_iterator itS = anArg.EnumeratedValues().begin();
+        for (; itS != anArg.EnumeratedValues().end(); itS++ )
+        {
+            list_enum.push_back(*itS);
+        }
     }
     return list_enum;
 }
@@ -87,7 +84,7 @@ std::list<std::string> listPossibleValues(const cMMSpecArg & anArg)
 //=====================================================================
 
 
-
+/*
 bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
 {
     // la premiere fois on imprime toute l'info sur tous les arguments
@@ -104,7 +101,7 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
     }
 
     // Lecture du nom et de la valeur
-    std::cout << "Enter Name + Val of optional arg, NONE if finish\n";
+    cout << "Enter Name + Val of optional arg, NONE if finish\n";
     std::string aName,aVal;
 
     std::cin >> aName >> aVal;
@@ -126,7 +123,7 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
     // Sinon un message d'insulte (light) et on continue
     std::cout << "Name is not valid !!! (got " << aName << ")\n";
     return true;
-}
+}*/
 
 void MMRunVisualMode
 (
@@ -147,14 +144,21 @@ void MMRunVisualMode
         file.close();
     }
 
+    // qt translations
+    const QString locale = QLocale::system().name().section('_', 0, 0);
+    QTranslator qtTranslator;
+    qtTranslator.load(app.applicationName() + "_" + locale);
+    app.installTranslator(&qtTranslator);
+    //TODO: traductions
+
     visual_MainWindow w(aVAM, aVAO);
 
-    std::string arg_eff="";
-    for (int i=0;i<argc;i++)
+    string arg_eff="";
+    for (int i=0;i<argc;i++) //argc = 1 en general
     {
-        //std::cout<<argv[i]<<std::endl;
+        //cout<<argv[i]<<endl;
 
-        arg_eff += std::string(argv[i]);
+        arg_eff += string(argv[i]);
     }
     w.set_argv_recup(arg_eff);
 

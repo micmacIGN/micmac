@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-
+/*
 void TestOneCorner(ElCamera * aCam,const Pt2dr&  aP, const Pt2dr&  aG)
 {
      Pt2dr aQ0 = aCam->DistDirecte(aP);
@@ -55,7 +55,7 @@ void TestOneCorner(ElCamera * aCam,const Pt2dr&  aP)
     std::cout << "=======================================\n";
 }
 
-void TestOneCorner(ElCamera * aCam)
+void CamInv_TestOneCorner(ElCamera * aCam)
 {
     Pt2dr aSz = Pt2dr(aCam->Sz());
 
@@ -101,92 +101,100 @@ void TestDirect(ElCamera * aCam,Pt3dr aPG)
 }
 
 extern void TestCamCHC(ElCamera & aCam);
-
-
-int TestCam_main(int argc,char ** argv)
-{
-    std::string aFullName;
-    std::string aNameCam;
-    std::string aNameDir;
-    std::string aNameTag = "OrientationConique";
-    bool ExtP = false;
-    bool TOC = false;
-    Pt2dr TDINV;
-
-    double X,Y,Z;
-    bool aModeGrid = false;
-    std::string Out;
-
-    ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aFullName,"Name", eSAM_IsPatFile)
-                << EAMC(X,"x")
-                << EAMC(Y,"y")
-                << EAMC(Z,"z"),
-    LArgMain()
-                    << EAM(aNameTag,"Tag",true,"Tag to get cam")
-                    << EAM(aModeGrid,"Grid",true,"Test Grid Mode", eSAM_IsBool)
-                    << EAM(Out,"Out",true,"To Regenerate an orientation file", eSAM_IsOutputFile)
-                    << EAM(ExtP,"ExtP",true,"Detail on external parameter", eSAM_IsBool)
-                    << EAM(TOC,"TOC",true,"Test corners", eSAM_IsBool)
-                    << EAM(TDINV,"TDINV",true,"Test Dist Inv")
-    );
-
-    SplitDirAndFile(aNameDir,aNameCam,aFullName);
-
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-/*
-    cTplValGesInit<std::string>  aTplFCND;
-    cInterfChantierNameManipulateur * anICNM =
-        cInterfChantierNameManipulateur::StdAlloc(0,0,aNameDir,aTplFCND);
 */
 
 
-   ElCamera * aCam  = Gen_Cam_Gen_From_File(aModeGrid,aFullName,aNameTag,anICNM);
+     // ========== FOV ===============
 
-   CamStenope * aCS = aCam->CS();
+double CamDemiFOV(CamStenope * aCam,const Pt2dr aP0)
+{
+   Pt3dr aDir0 = vunit(aCam->F2toDirRayonR3(Pt2dr(aCam->Sz())/2.0));
+   Pt3dr aDir1 = vunit(aCam->F2toDirRayonR3(aP0));
 
-   if (ExtP)
-   {
-       std::cout << "  ###########  EXTERNAL ##############\n";
-       if (aCS)
-       {
-           std::cout << "Center " << aCS->VraiOpticalCenter() << "\n";
-       }
-       std::cout <<  "  I : " << aCS->L3toR3(Pt3dr(1,0,0)) - aCS->L3toR3(Pt3dr(0,0,0)) << "\n";
-       std::cout <<  "  J : " << aCS->L3toR3(Pt3dr(0,1,0)) - aCS->L3toR3(Pt3dr(0,0,0))<< "\n";
-       std::cout <<  "  K : " << aCS->L3toR3(Pt3dr(0,0,1)) - aCS->L3toR3(Pt3dr(0,0,0))<< "\n";
-       std::cout << "\n";
-   }
+   double  aScal = scal(aDir0,aDir1);
 
-    if (TOC)
-       TestOneCorner(aCam);
-
-    if (EAMIsInit(&TDINV))
-       TestDistInv(aCam,TDINV);
-
-
-
-   if (aModeGrid)
-   {
-       std::cout << "Camera is grid " << aCam->IsGrid() << " " << aCam->Dist().Type() << "\n";
-   }
-
-
-   TestCamCHC(*aCam);
-
-   TestDirect(aCam,Pt3dr(X,Y,Z));
-
-   if (Out!="")
-   {
-         cOrientationConique aCO = aCam->StdExportCalibGlob();
-         MakeFileXML(aCO,Out);
-   }
-
-    return EXIT_SUCCESS;
+   return acos(aScal);
 }
 
+double CamFOV(CamStenope * aCam,const Pt2dr aP0)
+{
+
+   return CamDemiFOV(aCam,aP0) +  CamDemiFOV(aCam,Pt2dr(aCam->Sz())-aP0);
+}
+
+double CamFOV(CamStenope * aCam)
+{
+    Pt2dr aSz = Pt2dr(aCam->Sz());
+    return ElMax(CamFOV(aCam,Pt2dr(0,0)),CamFOV(aCam,Pt2dr(aSz.x,0)));
+}
+
+
+
+     // ========== FOV ===============
+
+double CamOuvVert(CamStenope * aCam,const Pt2dr aP0)
+{
+   Pt3dr aDir0 = vunit(aCam->F2toDirRayonR3(aP0));
+   return aDir0.z;
+}
+
+double CamOuvVert(CamStenope * aCam)
+{
+    Box2dr aBox(Pt2dr(0,0),Pt2dr(aCam->Sz()));
+    Pt2dr aC[4];
+    aBox.Corners(aC);
+
+    double aMinZ =  -1;
+    for (int aK=0 ; aK<4 ; aK++)
+       ElSetMax(aMinZ,CamOuvVert(aCam,aC[aK]));
+
+
+
+   return acos(-aMinZ);
+
+}
+
+
+
+   //   =================================
+
+
+class cAppli_TestChantier : cAppliWithSetImage
+{
+    public :
+        cAppli_TestChantier (int argc,char ** argv);
+    private :
+};
+
+
+void Chantier_TestOneCam(const std::string & aName, CamStenope * aCam,cAppli_TestChantier *)
+{
+   double aFOV = CamFOV(aCam);
+   double aOuvV = CamOuvVert(aCam);
+
+
+   std::cout << " Cam=" << aName << " FOV=" << aFOV << " OuvV " << aOuvV << "\n";
+   // Pt2dr aP0 = 
+}
+
+
+
+cAppli_TestChantier::cAppli_TestChantier(int argc,char ** argv) :
+    cAppliWithSetImage(argc,argv,0)
+{
+    for (int aKS=0 ; aKS<int(mVSoms.size()) ; aKS++)
+    {
+       cImaMM & anI = *(mVSoms[aKS]->attr().mIma);
+       Chantier_TestOneCam(anI.mNameIm,anI.mCam,this);
+    }
+}
+
+
+int TestChantier_main(int argc,char ** argv)
+{
+    cAppli_TestChantier anAppli(argc-1,argv+1);
+    return EXIT_SUCCESS;
+}
 
 
 

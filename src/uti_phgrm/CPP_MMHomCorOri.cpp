@@ -509,7 +509,7 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     LArgMain()  << EAMC(mNameIm1,"First Image", eSAM_IsExistFile)
                     << EAMC(mNameIm2,"Second Image", eSAM_IsExistFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistFile),
-    LArgMain()  << EAM(mMatch,"Match",true,"Do matching, def = true")
+                LArgMain()  << EAM(mMatch,"Match",true,"Do matching (Def = true)", eSAM_IsBool)
                     << EAM(mZoomFinal,"ZoomF","Zoom Final")
     );
 

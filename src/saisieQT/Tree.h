@@ -2,9 +2,29 @@
 #define TREE_H
 
 #include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
 #include <QColor>
 
-#include "StdAfx.h"
+#include "QT_interface_Elise.h"
+#include "../uti_phgrm/SaisiePts/SaisiePts.h"
+
+class cQT_Interface ;
+
+class PointGlobalSortFilterProxyModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+public:
+    PointGlobalSortFilterProxyModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+
+protected:
+
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+
+    cAppli_SaisiePts* mAppli() const;
+
+    cQT_Interface*   interface();
+};
 
 class ModelPointGlobal : public QAbstractTableModel
 {
@@ -29,6 +49,8 @@ public:
 
     bool            caseIsSaisie(int idRow);
 
+    cAppli_SaisiePts *getMAppli() const;
+
 signals:
 
     void            pGChanged();
@@ -44,6 +66,21 @@ protected:
 private:
 
     cAppli_SaisiePts* mAppli;
+
+    cQT_Interface*  _interface;
+
+};
+
+
+class ImagesSortFilterProxyModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+public:
+    ImagesSortFilterProxyModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
 
 };
 
@@ -76,7 +113,7 @@ private:
 
     cAppli_SaisiePts* mAppli;
 
-    int             idGlobSelect;
+    cQT_Interface*  _interface;
 
 };
 

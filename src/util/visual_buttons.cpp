@@ -5,22 +5,27 @@
 #include <iostream>
 
 
-int imgListButton::buttonNumber=0;
+int selectionButton::buttonNumber=0;
 
-imgListButton::imgListButton(const QString &text, QWidget *parent)
+selectionButton::selectionButton(QWidget *parent)
     : QPushButton(parent),
       unique_id(buttonNumber++)
 {
     connect(this,SIGNAL(clicked()),this,SLOT(onClick()));
+}
+
+selectionButton::selectionButton(QString text, QWidget *parent):
+    selectionButton(parent)
+{
     setText(text);
 }
 
-imgListButton::~imgListButton()
+selectionButton::~selectionButton()
 {
 
 }
 
-void imgListButton::onClick()
+void selectionButton::onClick()
 {
     //std::cout<<"bouton unique_id: "<<unique_id<<std::endl;
     emit my_click(unique_id);

@@ -5,13 +5,14 @@
 
 #include <QPushButton>
 
-class imgListButton: public QPushButton
+class selectionButton: public QPushButton
 {
     Q_OBJECT
 
 public:
-        imgListButton(const QString &text, QWidget *parent=0);
-        virtual ~imgListButton();
+        selectionButton(QWidget *parent=0);
+        selectionButton(QString text, QWidget *parent=0);
+        virtual ~selectionButton();
 
         QAction *Button;
 

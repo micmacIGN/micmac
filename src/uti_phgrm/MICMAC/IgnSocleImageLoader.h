@@ -20,7 +20,7 @@ class IgnSocleImageLoader: public cInterfModuleImageLoader
 		
 		std::complex<int>		m_SzIm;
 		bool                    m_S;
- 		eTypeNumerique          m_Type;               
+ 		eIFImL_TypeNumerique    m_Type;               
 		int                     m_Nbc;
 		
 		
@@ -29,7 +29,7 @@ class IgnSocleImageLoader: public cInterfModuleImageLoader
 		~IgnSocleImageLoader();		
 		IgnSocleImageLoader(std::string const &nomfic);
 		
-		virtual eTypeNumerique PreferedTypeOfResol(int aDeZoom)const;
+		virtual eIFImL_TypeNumerique PreferedTypeOfResol(int aDeZoom)const;
 		virtual std::complex<int> Sz(int aDeZoom)const;
 		virtual int NbCanaux()const;		
 		virtual void PreparePyram(int aDeZoom);

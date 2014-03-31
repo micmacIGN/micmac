@@ -133,14 +133,14 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
     argc,argv,
     LArgMain()  << EAMC(mDir,"Directory", eSAM_IsDir)
                     << EAMC(mPat,"Pat of images", eSAM_IsPatFile)
-                    << EAMC(mKeyFile,"Key for orientation,", eSAM_None),
+                    << EAMC(mKeyFile,"Key for orientation,", eSAM_IsExistFile),
         LArgMain()  << EAM(mTagC,"TagC",true)
                     << EAM(mTagOri,"TagOri",true)
                     << EAM(mAltiSol,"AltiSol",true)
                     << EAM(mDist,"Dist",true)
                     << EAM(mRab,"Rab",true)
-                    << EAM(mTerr,"Terr",true)
-                    << EAM(mSym,"Sym",true)
+                    << EAM(mTerr,"Terr",true, "todo", eSAM_IsBool)
+                    << EAM(mSym,"Sym",true, "todo", eSAM_IsBool)
                     << EAM(mOut,"Out",true)
 
     );

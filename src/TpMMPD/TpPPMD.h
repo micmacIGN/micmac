@@ -131,6 +131,9 @@ class cTD_Im
         void Save(const std::string &);
 
         float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
+        
+        float GetVal(const Pt2di & aP) const {return mTIm.get(aP);}
+
         bool Ok(int anX,int anY) const  {return mTIm.inside(Pt2di(anX,anY));}
         Pt2di Sz() const ;
 

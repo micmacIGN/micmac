@@ -105,14 +105,14 @@ int Bascule_main(int argc,char ** argv)
                     << EAM(PostPlan,"PostPlan",true)
                     << EAM(AllPlanExist,"AllPl",true)
                     << EAM(UserKeyPlan,"UserKeyPlan",true)
-                    << EAM(aP1Rep,"P1Rep",true)
-                    << EAM(aP2Rep,"P2Rep",true)
+                    << EAM(aP1Rep,"P1Rep",true,"P1Rep")
+                    << EAM(aP2Rep,"P2Rep",true,"P2Rep")
                     << EAM(aAxeRep,"AxeRep",true)
                     << EAM(aImRep,"ImRep",true)
-                    << EAM(aTetaRep,"Teta",true)
-                    << EAM(aFileMesureIm,"MesureIm",true)
-                    << EAM(OrthoCyl,"OrthoCyl",true,"Generate a locla repair of orthocyl mode")
-                    << EAM(DistFE,"DistFS",true,"Distance between to fixe scale, if not given no scaling")
+                    << EAM(aTetaRep,"Teta",true, "Angle (degree)")
+                    << EAM(aFileMesureIm,"MesureIm",true,"Image measure file", eSAM_IsExistFile)
+                    << EAM(OrthoCyl,"OrthoCyl",true,"Generate a local repair of orthocyl mode")
+                    << EAM(DistFE,"DistFS",true,"Distance between to fix scale, if not given no scaling")
                     << EAM(Normal,"Norm",true,"Target normal for the plane")
                     << EAM(SNormal,"SNorm",true,"\"Symbolic Normal\" (must be X, Y or Z)")
                     << EAM(aLimBsH,"LimBsH",true,"Limit ratio base to high (Def=1e-2)")
@@ -183,7 +183,7 @@ int Bascule_main(int argc,char ** argv)
         (
                  IsPostfixed(aFileMesureIm)
              &&( StdPostfix(aFileMesureIm)== "xml"),
-             "File Mesure Image has no xml extension"
+             "Image Measure File has no xml extension"
         );
         aImRep = aFileMesureIm;
 

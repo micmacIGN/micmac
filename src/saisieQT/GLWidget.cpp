@@ -35,7 +35,7 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
-
+	
     _matrixManager.setGLViewport(0,0,width, height);
     _messageManager.wh(width, height);
 
@@ -121,13 +121,13 @@ bool GLWidget::imageLoaded()
     return hasDataLoaded() &&  m_bDisplayMode2D;
 }
 
-void GLWidget::paintGL()
+void GLWidget::paintEvent(QPaintEvent *event)
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
     cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, !hasDataLoaded() || imageLoaded() ? _BGColor0 : _BGColor1);
-
+	
     glClear(GL_DEPTH_BUFFER_BIT);
 
     if (hasDataLoaded())
@@ -168,137 +168,6 @@ void GLWidget::paintGL()
 
     if (_widgetId >= 0) overlay();
     else        drawCenter();
-}
-
-void GLWidget::keyPressEvent(QKeyEvent* event)
-{
-    if(event->modifiers().testFlag(Qt::ControlModifier))
-    {
-        if(event->key() == Qt::Key_1)    zoomFactor(50);
-        else if(event->key() == Qt::Key_2)    zoomFactor(25);
-    }
-    else
-    {
-        if (hasDataLoaded())
-        {
-            switch(event->key())
-            {
-            case Qt::Key_Delete:
-                emit removePoint(eEPI_Disparu, m_GLData->polygon()->idx());
-                polygon()->removeSelectedPoint();
-                break;
-            case Qt::Key_Escape:
-                if (polygon()->isLinear()) m_GLData->clearPolygon();
-                break;
-            case Qt::Key_1:
-                zoomFactor(100);
-                break;
-            case Qt::Key_2:
-                zoomFactor(200);
-                break;
-            case Qt::Key_4:
-                zoomFactor(400);
-                break;
-            case Qt::Key_9:
-                zoomFit();
-                break;
-            case Qt::Key_G:
-                m_GLData->glImage()._m_image->incGamma(0.2f);
-                emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
-                break;
-            case Qt::Key_H:
-                m_GLData->glImage()._m_image->incGamma(-0.2f);
-                emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
-                break;
-            case Qt::Key_J:
-                m_GLData->glImage()._m_image->setGamma(1.f);
-                emit gammaChangedSgnl(1.f);
-                break;
-            case Qt::Key_Plus:
-                if (m_bDisplayMode2D)
-                {
-                    m_lastClickZoom = m_lastPosWindow;
-                    setZoom(_vp_Params.m_zoom*1.5f);
-                }
-                else
-                    _vp_Params.ptSizeUp(true);
-                break;
-            case Qt::Key_Minus:
-                if (m_bDisplayMode2D)
-                {
-                    m_lastClickZoom = m_lastPosWindow;
-                    setZoom(_vp_Params.m_zoom/1.5f);
-                }
-                else
-                    _vp_Params.ptSizeUp(false);
-                break;
-            case Qt::Key_W:
-                    setCursor(Qt::SizeAllCursor);
-                    polygon()->helper()->clear();
-                    polygon()->setSelected(true);
-                break;
-            default:
-                event->ignore();
-                break;
-            }
-        }
-    }
-
-    update();
-}
-
-void GLWidget::keyReleaseEvent(QKeyEvent* event)
-{
-    if(hasDataLoaded())
-    {
-        if (event->key() == Qt::Key_Shift )
-        {
-            polygon()->helper()->clear();
-            polygon()->resetSelectedPoint();
-        }
-        polygon()->setSelected(false);
-        update();
-    }
-    setCursor(Qt::ArrowCursor);
-}
-
-void GLWidget::dragEnterEvent(QDragEnterEvent *event)
-{
-    const QMimeData* mimeData = event->mimeData();
-
-    if (mimeData->hasFormat("text/uri-list"))
-        event->acceptProposedAction();
-}
-
-void GLWidget::dropEvent(QDropEvent *event)
-{
-    const QMimeData* mimeData = event->mimeData();
-
-    if (mimeData->hasFormat("text/uri-list")) // TODO peut etre deplacer factoriser la gestion de drop fichier!!!
-    {
-        QByteArray data = mimeData->data("text/uri-list");
-        QStringList fileNames = QUrl::fromPercentEncoding(data).split(QRegExp("\\n+"),QString::SkipEmptyParts);
-
-        for (int i=0;i<fileNames.size();++i)
-        {
-            fileNames[i] = fileNames[i].trimmed();
-
-#if defined(_WIN32) || defined(WIN32)
-            fileNames[i].remove("file:///");
-#else
-            fileNames[i].remove("file://");
-#endif
-        }
-
-        if (!fileNames.empty())
-            emit filesDropped(fileNames, true);
-
-        setFocus();
-
-        event->acceptProposedAction();
-    }
-
-    event->ignore();
 }
 
 void GLWidget::overlay()
@@ -462,86 +331,6 @@ void GLWidget::zoomFactor(int percent)
         setZoom(m_GLData->getBBoxMaxSize() / (float) percent * 100.f);
 }
 
-void GLWidget::wheelEvent(QWheelEvent* event)
-{
-    if ((m_interactionMode == SELECTION)&&(!m_bDisplayMode2D))
-    {
-        event->ignore();
-        return;
-    }
-
-    m_lastClickZoom = event->pos();
-
-#if ELISE_QT_VERSION==5
-    setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 70.0f ));
-#else
-    setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 70.0f ));
-#endif
-}
-
-void GLWidget::mousePressEvent(QMouseEvent *event)
-{
-    if(hasDataLoaded())
-    {
-        m_lastPosWindow = event->pos();
-
-        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
-
-        if (event->button() == Qt::LeftButton)
-        {
-            if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
-            {
-
-                if(!polygon()->isClosed())             // ADD POINT
-
-                    polygon()->addPoint(m_lastPosImage);
-
-                else if (polygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
-
-                    polygon()->insertPoint();
-
-                else if (polygon()->idx() != -1) // SELECT POINT
-
-                    polygon()->setPointSelected();
-
-                else if (!polygon()->isLinear() && isPtInsideIm(m_lastPosImage))
-
-                    emit addPoint(m_lastPosImage);
-
-            }
-        }
-        else if (event->button() == Qt::RightButton)
-        {
-            if (polygon()->isLinear())
-            {
-                if (event->modifiers() & Qt::ControlModifier)
-
-                    polygon()->removeLastPoint();
-
-                else
-
-                    polygon()->removeNearestOrClose(m_lastPosImage);
-            }
-        }
-        else if (event->button() == Qt::MiddleButton)
-
-            m_lastClickZoom = m_lastPosWindow;
-    }
-}
-
-void GLWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    if ( event->button() == Qt::LeftButton && hasDataLoaded())
-    {
-        int idMovePoint = polygon()->finalMovePoint(); //ne pas factoriser
-
-        polygon()->findNearestPoint(m_lastPosImage);
-
-        update();
-
-        emit movePoint(idMovePoint);
-    }
-}
 
 void GLWidget::setCursorShape(QPointF pos)
 {
@@ -574,97 +363,6 @@ void GLWidget::drawCenter()
     p.end();
 }
 
-void GLWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if (hasDataLoaded())
-    {
-
-#if ELISE_QT_VERSION == 5
-        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _vp_Params.m_zoom) : event->localPos();
-#else
-        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _vp_Params.m_zoom) : event->posF();
-#endif
-
-        setCursorShape(pos);
-
-        if (m_bDisplayMode2D)
-
-            m_lastMoveImage = pos;
-
-        if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
-        {
-
-            if (polygon()->isSelected())                    // MOVE POLYGON
-
-                polygon()->translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom));
-
-            else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
-            {
-                int id = polygon()->idx();
-
-                bool insertMode = polygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
-
-                polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
-
-                if(id != polygon()->idx())
-                    emit selectPoint(polygon()->idx());
-            }
-        }
-        if (m_interactionMode == TRANSFORM_CAMERA)
-        {
-            QPointF dPWin = QPointF(event->pos() - m_lastPosWindow);
-
-            if ( event->buttons())
-            {
-                Pt3dr r(0,0,0);
-
-                if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
-                {
-                    r.x = dPWin.y() / vpWidth();
-                    r.y = dPWin.x() / vpHeight();
-                }
-                else if ( event->buttons() == Qt::MiddleButton )
-                {
-                    if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
-
-                        setZoom(_vp_Params.changeZoom(dPWin.y()));
-
-                    else if( vpWidth() && vpHeight())                   // TRANSLATION VIEW
-                    {
-                        QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin .x(),-dPWin .y()) * m_GLData->getBBoxMaxSize();
-                        _matrixManager.translate(dp.x()/vpWidth(),dp.y()/vpHeight(),0.0,_vp_Params.m_speed);
-                    }
-                }
-                else if (event->buttons() == Qt::RightButton)           // ROTATION Z
-                    r.z = (float)dPWin.x() / vpWidth();
-
-                //_matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
-                _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
-            }
-
-            emit newImagePosition( m_lastMoveImage );
-        }
-
-        m_lastPosWindow = event->pos();
-
-        update();
-    }
-}
-
-void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
-{
-    if (hasDataLoaded() && m_GLData->cloudCount())
-    {
-#if ELISE_QT_VERSION == 5
-        QPointF pos = event->localPos();
-#else
-        QPointF pos = event->posF();
-#endif
-
-        if (m_GLData->position2DClouds(_matrixManager,pos))
-            update();
-    }
-}
 
 void GLWidget::Select(int mode, bool saveInfos)
 {
@@ -780,6 +478,181 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool 
         update();
 }
 
+
+void GLWidget::wheelEvent(QWheelEvent* event)
+{
+    if ((m_interactionMode == SELECTION)&&(!m_bDisplayMode2D))
+    {
+        event->ignore();
+        return;
+    }
+
+    m_lastClickZoom = event->pos();
+
+#if ELISE_QT_VERSION==5
+    setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 70.0f ));
+#else
+    setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 70.0f ));
+#endif
+}
+
+void GLWidget::mousePressEvent(QMouseEvent *event)
+{
+    if(hasDataLoaded())
+    {
+        m_lastPosWindow = event->pos();
+
+        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
+
+        if (event->button() == Qt::LeftButton)
+        {
+            if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
+            {
+
+                if(!polygon()->isClosed())             // ADD POINT
+
+                    polygon()->addPoint(m_lastPosImage);
+
+                else if (polygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
+
+                    polygon()->insertPoint();
+
+                else if (polygon()->idx() != -1) // SELECT POINT
+
+                    polygon()->setPointSelected();
+
+                else if (!polygon()->isLinear() && isPtInsideIm(m_lastPosImage))
+
+                    emit addPoint(m_lastPosImage);
+
+            }
+        }
+        else if (event->button() == Qt::RightButton)
+        {
+            if (polygon()->isLinear())
+            {
+                if (event->modifiers() & Qt::ControlModifier)
+
+                    polygon()->removeLastPoint();
+
+                else
+
+                    polygon()->removeNearestOrClose(m_lastPosImage);
+            }
+        }
+        else if (event->button() == Qt::MiddleButton)
+
+            m_lastClickZoom = m_lastPosWindow;
+    }
+}
+
+void GLWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    if ( event->button() == Qt::LeftButton && hasDataLoaded())
+    {
+        int idMovePoint = polygon()->finalMovePoint(); //ne pas factoriser
+
+        polygon()->findNearestPoint(m_lastPosImage);
+
+        update();
+
+        emit movePoint(idMovePoint);
+    }
+}
+
+void GLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (hasDataLoaded())
+    {
+
+#if ELISE_QT_VERSION == 5
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _vp_Params.m_zoom) : event->localPos();
+#else
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _vp_Params.m_zoom) : event->posF();
+#endif
+
+        setCursorShape(pos);
+
+        if (m_bDisplayMode2D)
+
+            m_lastMoveImage = pos;
+
+        if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
+        {
+
+            if (polygon()->isSelected())                    // MOVE POLYGON
+
+                polygon()->translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom));
+
+            else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
+            {
+                int id = polygon()->idx();
+
+                bool insertMode = polygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
+
+                polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
+
+                if(id != polygon()->idx())
+                    emit selectPoint(polygon()->idx());
+            }
+        }
+
+        if (m_interactionMode == TRANSFORM_CAMERA)
+        {
+            QPointF dPWin = QPointF(event->pos() - m_lastPosWindow);
+
+            if ( event->buttons())
+            {
+                Pt3dr r(0,0,0);
+
+                if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
+                {
+                    r.x = dPWin.y() / vpWidth();
+                    r.y = dPWin.x() / vpHeight();
+                }
+                else if ( event->buttons() == Qt::MiddleButton )
+                {
+                    if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
+
+                        setZoom(_vp_Params.changeZoom(dPWin.y()));
+
+                    else if( vpWidth() && vpHeight())                   // TRANSLATION VIEW
+                    {
+                        QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin .x(),-dPWin .y()) * m_GLData->getBBoxMaxSize();
+                        _matrixManager.translate(dp.x()/vpWidth(),dp.y()/vpHeight(),0.0,_vp_Params.m_speed);
+                    }
+                }
+                else if (event->buttons() == Qt::RightButton)           // ROTATION Z
+                    r.z = (float)dPWin.x() / vpWidth();
+
+                //_matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
+                _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
+            }
+
+            emit newImagePosition( m_lastMoveImage );
+        }
+
+        m_lastPosWindow = event->pos();
+
+        update();
+    }
+}
+
+void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (hasDataLoaded() && m_GLData->cloudCount())
+    {
+#if ELISE_QT_VERSION == 5
+        QPointF pos = event->localPos();
+#else
+        QPointF pos = event->posF();
+#endif
+
+        if (m_GLData->position2DClouds(_matrixManager,pos))
+            update();
+    }
+}
+
 void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 {
     QMenu menu(this);
@@ -795,6 +668,8 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
             menu.addAction(_contextMenu._highLight  );
             menu.addSeparator();
             menu.addAction(_contextMenu._rename     );
+            menu.addSeparator();
+            menu.addAction(_contextMenu._ThisP );
         }
         else
         {
@@ -824,4 +699,135 @@ void GLWidget::enterEvent(QEvent *event)
     setFocusPolicy(Qt::StrongFocus);
 
     emit overWidget(this);
+}
+
+void GLWidget::keyPressEvent(QKeyEvent* event)
+{
+    if(event->modifiers().testFlag(Qt::ControlModifier))
+    {
+        if(event->key() == Qt::Key_1)    zoomFactor(50);
+        else if(event->key() == Qt::Key_2)    zoomFactor(25);
+    }
+    else
+    {
+        if (hasDataLoaded())
+        {
+            switch(event->key())
+            {
+            case Qt::Key_Delete:
+                emit removePoint(eEPI_Disparu, m_GLData->polygon()->idx());
+                polygon()->removeSelectedPoint();
+                break;
+            case Qt::Key_Escape:
+                if (polygon()->isLinear()) m_GLData->clearPolygon();
+                break;
+            case Qt::Key_1:
+                zoomFactor(100);
+                break;
+            case Qt::Key_2:
+                zoomFactor(200);
+                break;
+            case Qt::Key_4:
+                zoomFactor(400);
+                break;
+            case Qt::Key_9:
+                zoomFit();
+                break;
+            case Qt::Key_G:
+                m_GLData->glImage()._m_image->incGamma(0.2f);
+                emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
+                break;
+            case Qt::Key_H:
+                m_GLData->glImage()._m_image->incGamma(-0.2f);
+                emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
+                break;
+            case Qt::Key_J:
+                m_GLData->glImage()._m_image->setGamma(1.f);
+                emit gammaChangedSgnl(1.f);
+                break;
+            case Qt::Key_Plus:
+                if (m_bDisplayMode2D)
+                {
+                    m_lastClickZoom = m_lastPosWindow;
+                    setZoom(_vp_Params.m_zoom*1.5f);
+                }
+                else
+                    _vp_Params.ptSizeUp(true);
+                break;
+            case Qt::Key_Minus:
+                if (m_bDisplayMode2D)
+                {
+                    m_lastClickZoom = m_lastPosWindow;
+                    setZoom(_vp_Params.m_zoom/1.5f);
+                }
+                else
+                    _vp_Params.ptSizeUp(false);
+                break;
+            case Qt::Key_W:
+                    setCursor(Qt::SizeAllCursor);
+                    polygon()->helper()->clear();
+                    polygon()->setSelected(true);
+                break;
+            default:
+                event->ignore();
+                break;
+            }
+        }
+    }
+
+    update();
+}
+
+void GLWidget::keyReleaseEvent(QKeyEvent* event)
+{
+    if(hasDataLoaded())
+    {
+        if (event->key() == Qt::Key_Shift )
+        {
+            polygon()->helper()->clear();
+            polygon()->resetSelectedPoint();
+        }
+        polygon()->setSelected(false);
+        update();
+    }
+    setCursor(Qt::ArrowCursor);
+}
+
+void GLWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    const QMimeData* mimeData = event->mimeData();
+
+    if (mimeData->hasFormat("text/uri-list"))
+        event->acceptProposedAction();
+}
+
+void GLWidget::dropEvent(QDropEvent *event)
+{
+    const QMimeData* mimeData = event->mimeData();
+
+    if (mimeData->hasFormat("text/uri-list")) // TODO peut etre deplacer factoriser la gestion de drop fichier!!!
+    {
+        QByteArray data = mimeData->data("text/uri-list");
+        QStringList fileNames = QUrl::fromPercentEncoding(data).split(QRegExp("\\n+"),QString::SkipEmptyParts);
+
+        for (int i=0;i<fileNames.size();++i)
+        {
+            fileNames[i] = fileNames[i].trimmed();
+
+#if defined(_WIN32) || defined(WIN32)
+            fileNames[i].remove("file:///");
+#else
+            fileNames[i].remove("file://");
+#endif
+        }
+
+        if (!fileNames.empty())
+            emit filesDropped(fileNames, true);
+
+        setFocus();
+
+        event->acceptProposedAction();
+    }
+
+    event->ignore();
 }

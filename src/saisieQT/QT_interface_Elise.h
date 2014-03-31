@@ -27,19 +27,16 @@ public :
 
     void                Redraw(){}
 
+    cSP_PointGlob *     currentPGlobal() const;
+
+    cImage *            currentCImage();
+
 private:
 
     //                  init Interface
-    void                Init();   
+    void                Init();
 
     cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
-
-    //                  Tools Tables
-
-    void                updateTables();
-
-    void                populateTableImages(int idPG);
-
 
     //                  Tools cImage                        ///////////////////////////////////////////
 
@@ -50,8 +47,6 @@ private:
     int                 idCImage(cGLData* data);
 
     int                 idCurrentCImage();
-
-    cImage *            currentCImage();
 
     cImage *            CImage(QString nameImage);
 
@@ -116,6 +111,8 @@ private:
 
     int                 _aCpt;
 
+    cSP_PointGlob*      _currentPGlobal;
+
 signals:
 
     void                dataChanged(cSP_PointeImage *aPIm = NULL);
@@ -151,6 +148,8 @@ private slots:
     void                filesDropped(const QStringList& filenames);
 
     void                SetInvisRef(bool aVal);
+
+    void                close();
 };
 
 #endif // QT_INTERFACE_ELISE_H

@@ -141,11 +141,45 @@ class cPtHom
 };
 
 
+/*
+    HOMOGRAPHY :
+
+     The objective of the homography computation is to compute for each image,
+   a homography from the image to a common ground. It is named :
+ 
+         *  mHi2t  (i2t = Image to Terrain, Terrain=ground in french)
+
+
+      This homography for each images has to be computed from the 
+   homograohy between pair of images :
+    
+      Let HA2T et HB2T  be the homgraphy from images A,B to Ground
+      Let  HA2B be the homgraphy from A to B (computed from Tie point, the mHom12 from
+      cLink2Img),
+  We have :
+
+           HA2T (P)  =  HB2T (HA2B(P))   or     HA2T = HB2T o  HA2B  (1)
+
+      Equation (1) has to be solved globally, there is N unknown and N (N-1)/2 equation.
+
+      However, it obviouly undertermined up to a global homography
+
+*/
+
+
 
   //======================================
   //           cLink2Img      
   //           cImagH      
   //======================================
+
+/*
+  Represent the link between two images :
+    - homologous point
+    - homographie (posssibly)
+    - distribution of point
+
+*/
 
 class cLink2Img  // dans cImagH.cpp
 {
