@@ -37,7 +37,6 @@
 -->
            </ImageDigeo>
            <PyramideImage>
-	      <!--
 		 <TypeNumeriqueOfNiv>
 			<Type> eTN_u_int2 </Type>
 			<Niv> -2  </Niv>
@@ -46,11 +45,12 @@
 			<Type> eTN_float </Type>
 			<Niv> ${NivFloatIm}  </Niv>
 		 </TypeNumeriqueOfNiv>
-	      -->
+	      <!--
 	      <TypeNumeriqueOfNiv>
 		  <Type> eTN_float </Type>
 		  <Niv> -2  </Niv>
 	      </TypeNumeriqueOfNiv>
+	      -->
 
 
               <MaximDyn > ${MaxDyn} </MaximDyn>
