@@ -43,8 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-
-
 /****************************************************************/
 /*                                                              */
 /*                 cElComposHomographie                         */
@@ -497,6 +495,48 @@ void AddPair(ElPackHomologue & aPack,const std::pair<Pt2dr,Pt2dr> &aPair)
    aPack.Cple_Add(ElCplePtsHomologues(aPair.first,aPair.second));
 }
 
+
+/*
+   "Robust" init of homography :
+
+       1-  Split the homologous point in 4 sector arround cdg (return if one is empty)
+
+       2-  fot aNbTestEstim try :
+              - generate a  homography with 4 points, one in each sector
+              - memorize the "best" solution as the one minimizing the average of distance (exclufing the
+               queue over aPerc)
+           Let HR be the result of this Ransac homography
+
+       3- Estimate the homography with an iterative weighted least square estimate,
+
+           - weight  =  1/ (1+4*(E/D)^2)   E=error, D = Dist estimate from 2
+
+      4- Estimate the quality by repetability
+
+*/
+
+
+template <class TVal> void SplitArrounKthValue(std::vector<TVal> & aV,int aKth)
+{
+   SplitArrounKthValue(VData(aV),aV.size(),aKth);
+}
+
+template <class TVal> TVal MoyKPPVal(std::vector<TVal> & aV,int aKth)
+{
+   SplitArrounKthValue(aV,aKth);
+   return Moy(VData(aV),aKth);
+}
+
+template <class TVal> TVal KthVal(std::vector<TVal> & aV,int aKth)
+{
+    return KthVal(VData(aV),aV.size(),aKth);
+}
+
+template <class TVal> TVal MedianeSup(std::vector<TVal> & aV)
+{
+    return KthVal(aV,aV.size()/2);
+}
+
 cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomologue & aPack,bool & Ok ,int aNbTestEstim, double aPerc,int aNbMaxPts)
 {
    cElHomographie aRes = cElHomographie::Id();
@@ -557,7 +597,7 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
       aNbTestEstim = (aNbTestEstim*aNbPtsTot) / aNbMaxPts;
 
    // int aKMIN = -1;
-   std::vector<double> aVD;
+   std::vector<double> aVD; // For tuning and show in if(0) ...
    while (aNbTestEstim)
    {
        int aK00 = NRrandom3(aV00.size());
@@ -589,6 +629,7 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
           aVDist.push_back(aDist);
        }
        
+/*
 	   #if __cplusplus <= 199711L
 			ELISE_ASSERT(aVDist.size()>0 ,"Empty vector: aVDist");	
 			SplitArrounKthValue(&aVDist.front(),aNbPts,aNbKth);	
@@ -597,6 +638,8 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
 			SplitArrounKthValue(aVDist.data(),aNbPts,aNbKth);
 			double aSom = Moy(aVDist.data(),aNbKth);
 	   #endif
+*/
+       double aSom = MoyKPPVal(aVDist,aNbKth);
        
        aVD.push_back(aSom);
 
@@ -632,6 +675,7 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
        ELISE_ASSERT(aNbPtsTot==aPack.size() ,"KKKKK ????");
        int aKTh = round_ni(aNbPtsTot * (aPerc/100.0));
 
+/*
 	   #if __cplusplus <= 199711L
 			ELISE_ASSERT(aVDist.size()>0 ,"Empty vector: aVDist");
 			SplitArrounKthValue(&aVDist.front(),aNbPtsTot,aKTh);
@@ -640,16 +684,21 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
 			SplitArrounKthValue(aVDist.data(),aNbPtsTot,aKTh);
 			aDMIn = Moy(aVDist.data(),aKTh);
 	   #endif
+*/
+       ELISE_ASSERT(int(aVDist.size())==aNbPtsTot,"Compat MoyKPPVal/SplitArrounKthValue");
+       aDMIn = MoyKPPVal(aVDist,aKTh);
 
        aRes = cElHomographie(aPckPds,true);
    }
 
    std::vector<double> aVEstim;
-   int aNbTestValid = 21;
+   int aNbTestValid = 71;
    for (int aKTest = 0 ; aKTest <aNbTestValid ; aKTest++)
    {
        ElPackHomologue aPckPdsA;
        ElPackHomologue aPckPdsB;
+       cRandNParmiQ  aSelec(aNbPtsTot/2,aNbPtsTot);
+
        for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
        {
            Pt2dr aP1 = itH->P1();
@@ -658,7 +707,8 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
            aVDist.push_back(aDist);
 
            double aPds = 1/ sqrt(1+ ElSquare(aDist/aDMIn));
-           if (NRrandom3() > 0.5) 
+           // if (NRrandom3() > 0.5) 
+           if (aSelec.GetNext())
                aPckPdsA.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
            else
                aPckPdsB.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
@@ -683,6 +733,7 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
        aVEstim.push_back(aSomDist);
    }
 
+/*
    #if __cplusplus <= 199711L
 		ELISE_ASSERT(aVEstim.size()>0 ,"Empty vector: aVEstim");	
 		SplitArrounKthValue(&aVEstim.front(),aNbTestValid,aNbTestValid/2);		 
@@ -690,7 +741,14 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
 		SplitArrounKthValue(aVEstim.data(),aNbTestValid,aNbTestValid/2);
    #endif
 
+   {
+       
+   }
+   std::cout << " CCCCCC " <<  KthVal(aVEstim,aNbTestValid/2) -  KthVal(aVEstim.data(),aNbTestValid,aNbTestValid/2) <<  " " << KthVal(aVEstim,aNbTestValid/2) - MedianeSup(aVEstim)    << "\n";
    *aQuality = aVEstim[aNbTestValid/2];
+*/
+
+   *aQuality  = MedianeSup(aVEstim);
 
 
    if (0)

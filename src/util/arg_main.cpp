@@ -114,6 +114,7 @@ void AnalyseContextCom(int argc,char ** argv)
    if (!First) return;
    First = false;
 
+
    for (int aK=0 ; aK<argc ; aK++)
    {
        if (argv[aK][0] == cInterfChantierNameManipulateur::theCharSymbOptGlob)
