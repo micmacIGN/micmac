@@ -43,6 +43,12 @@
 
 
          <eSymb> Regul=* ${RegulBase}  ? ${UseTeta} 3 1 </eSymb>
+         
+         
+         <Symb>  SsResolOpt=4 </Symb>
+         <eSymb> SsResolOptInterm1=* 4 ${SsResolOpt} </eSymb>
+         <eSymb> SsResolOptInterm2=* 2 ${SsResolOpt} </eSymb>
+         
     </DicoLoc>
 <!-- *************************************************************
 Parametres lies au terrain "physique", independamment de la prise de vue
@@ -164,7 +170,7 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
             <Px1Pas>        ${Pas}  </Px1Pas>
             <Px2Pas>        ${Pas}  </Px2Pas>
-            <SsResolOptim> 4 </SsResolOptim>
+            <SsResolOptim> ${SsResolOpt} </SsResolOptim>
 
         </EtapeMEC>
 
@@ -175,7 +181,7 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <Px2Pas>   0.8  </Px2Pas>
            <Px1Regul> 2.0    </Px1Regul>
            <Px2Regul> 2.0   </Px2Regul>
-           <SsResolOptim> 16 </SsResolOptim>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
         </EtapeMEC>
 
         <EtapeMEC>
@@ -184,7 +190,7 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <Px2Pas>   0.4  </Px2Pas>
            <Px1Regul> 2.0    </Px1Regul>
            <Px2Regul> 2.0   </Px2Regul>
-           <SsResolOptim> 8 </SsResolOptim>
+           <SsResolOptim> ${SsResolOptInterm2} </SsResolOptim>
         </EtapeMEC>
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
@@ -192,7 +198,7 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <Px2Pas>   0.2  </Px2Pas>
            <Px1Regul> 1.0    </Px1Regul>
            <Px2Regul> 1.0   </Px2Regul>
-           <SsResolOptim> 8 </SsResolOptim>
+           <SsResolOptim> ${SsResolOptInterm2} </SsResolOptim>
         </EtapeMEC>
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
@@ -200,7 +206,6 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <Px2Pas>   0.1  </Px2Pas>
            <Px1Regul> 1.0    </Px1Regul>
            <Px2Regul> 1.0   </Px2Regul>
-           <SsResolOptim> 8 </SsResolOptim>
         </EtapeMEC>
 
         <EtapeMEC>
