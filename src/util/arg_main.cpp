@@ -36,7 +36,7 @@ eLiSe image library. MicMac is governed by the  "Cecill-B licence".
 See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-/* Ceci est commentaire */
+
 #include "StdAfx.h"
 #include <iterator>
 //#include <process.h>
@@ -113,6 +113,7 @@ void AnalyseContextCom(int argc,char ** argv)
    static bool First = true;
    if (!First) return;
    First = false;
+
 
    for (int aK=0 ; aK<argc ; aK++)
    {

@@ -1,12 +1,16 @@
 #if(ELISE_QT5)
 
 #include "general/visual_mainwindow.h"
-#include "general/visual_buttons.h"
 
 #include "StdAfx.h"
 
 // aVAM: Mandatory args
 // aVAO: Optional args
+
+static int IntMin = -1000;
+static int IntMax =  1000;
+static double DoubleMin = -10000.;
+static double DoubleMax =  10000.;
 
 visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent) :
     QMainWindow(parent),
@@ -62,9 +66,9 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
     for (int aK=0 ; aK<int(aVA.size()) ; aK++)
     {
         cMMSpecArg aArg = aVA[aK];
-        //cout << "arg " << aK << " ; Type is " << aArg.NameType() << " ; Name is " << aArg.NameArg() <<"\n";
+        //cout << "arg " << aK << " ; Type is " << aArg.NameType() << " ; Name is " << aArg.NameArg() <<  endl;
 
-        add_comment(layout, parent, aK, aArg);
+        add_label(layout, parent, aK, aArg);
 
         if (aArg.IsBool()) // because some boolean values are set with int
         {
@@ -138,20 +142,40 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
     layout->addItem(vSpacer, aVA.size(), 0);
 }
 
-void visual_MainWindow::getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
+bool visual_MainWindow::getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
 {
     int val = ((QSpinBox*) aIn->Widgets()[aK].second)->value();
-    stringstream ss;
-    ss << val;
-    aAdd += ss.str() + endingCar;
+
+    if ( aIn->Arg().IsDefaultValue<int>(val) )
+    {
+        return true;
+    }
+    else
+    {
+        stringstream ss;
+        ss << val;
+        aAdd += ss.str() + endingCar;
+
+        return false;
+    }
 }
 
-void visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
+bool visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
 {
     double val = ((QDoubleSpinBox*) aIn->Widgets()[aK].second)->value();
-    stringstream ss;
-    ss << val;
-    aAdd += ss.str() + endingCar;
+
+    if ( aIn->Arg().IsDefaultValue<double>(val) )
+    {
+        return true;
+    }
+    else
+    {
+        stringstream ss;
+        ss << val;
+        aAdd += ss.str() + endingCar;
+
+        return false;
+    }
 }
 
 void visual_MainWindow::onRunCommandPressed()
@@ -159,6 +183,7 @@ void visual_MainWindow::onRunCommandPressed()
     bool runCom = true;
 
     string aCom = MM3dBinFile(argv_recup) +" ";
+
     for (unsigned int aK=0;aK<vInputs.size();aK++)
     {
         string aAdd;
@@ -183,10 +208,24 @@ void visual_MainWindow::onRunCommandPressed()
                 {
                     QString aStr = ((QComboBox*) aIn->Widgets()[0].second)->currentText(); //warning
 
-                    if (aStr == "True") aStr = "1";
-                    else if (aStr == "False") aStr = "0";
+                    if(aIn->Arg().IsBool() )
+                    {
+                        bool aB = false;
 
-                    aAdd += aStr.toStdString();
+                        if (aStr == "True")
+                        {
+                            aStr = "1";
+                            aB = true;
+                        }
+                        else
+                            aStr = "0";
+
+                        //check if value is different from default value
+                        if ( !aIn->Arg().IsDefaultValue<bool>(aB) )
+                            aAdd += aStr.toStdString();
+                    }
+                    else
+                        aAdd += aStr.toStdString();
                 }
                 break;
             }
@@ -198,15 +237,19 @@ void visual_MainWindow::onRunCommandPressed()
                 }
                 else
                 {
-                    int max = aIn->Widgets().size()-1;
+                    string toAdd = "[";
+                    int nbDefVal = 0;
 
-                    aAdd += "[";
+                    int max = aIn->NbWidgets()-1;
+
                     for (int aK=0; aK < max;++aK)
                     {
-                        getSpinBoxValue(aAdd, aIn, aK, ";");
+                        if ( getSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
                     }
 
-                    getSpinBoxValue(aAdd, aIn, max, "]");
+                    if ( getSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
+
+                    if (nbDefVal < aIn->NbWidgets()) aAdd += toAdd;
                 }
                 break;
             }
@@ -218,15 +261,19 @@ void visual_MainWindow::onRunCommandPressed()
                 }
                 else
                 {
-                    int max = aIn->Widgets().size()-1;
+                    string toAdd = "[";
+                    int nbDefVal = 0;
 
-                    aAdd += "[";
+                    int max = aIn->NbWidgets()-1;
+
                     for (int aK=0; aK < max ;++aK)
                     {
-                        getDoubleSpinBoxValue(aAdd, aIn, aK, ";");
+                        if ( getDoubleSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
                     }
 
-                    getDoubleSpinBoxValue(aAdd, aIn, max, "]");
+                    if ( getDoubleSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
+
+                    if (nbDefVal < aIn->NbWidgets()) aAdd += toAdd;
                 }
                 break;
             }
@@ -364,11 +411,27 @@ void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, 
             }
         }
     }
+    else if (aArg.Type() == AMBT_INT)
+    {
+        int val = *(aArg.DefaultValue<int>());
+
+        if (val==0) aCombo->setCurrentIndex(1);
+        if (val==1) aCombo->setCurrentIndex(0);
+        //cout << "other type...." << aArg.NameArg() <<" " << aArg.NameType() <<  " " << val << endl;
+    }
 }
 
-void visual_MainWindow::add_comment(QGridLayout* layout, QWidget* parent, int ak, cMMSpecArg aArg)
+void visual_MainWindow::add_label(QGridLayout* layout, QWidget* parent, int ak, cMMSpecArg aArg)
 {
-    QLabel * com = new QLabel(QString(aArg.Comment().c_str()), parent);
+    QString comment(aArg.Comment().c_str());
+    QLabel * com = new QLabel(comment, parent);
+
+    if (aArg.IsOpt())
+    {
+        com->setText(QString(aArg.NameArg().c_str()));
+        com->setToolTip(comment);
+    }
+
     layout->addWidget(com,ak,0);
 }
 
@@ -405,10 +468,31 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+QDoubleSpinBox * visual_MainWindow::create_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, int bK, cMMSpecArg aArg)
 {
     QDoubleSpinBox *aSpinBox = new QDoubleSpinBox(parent);
-    layout->addWidget(aSpinBox,aK,1);
+    layout->addWidget(aSpinBox,aK, bK);
+
+    aSpinBox->setRange(DoubleMin, DoubleMax);
+
+    return aSpinBox;
+}
+
+QSpinBox * visual_MainWindow::create_SpinBox(QGridLayout *layout, QWidget *parent, int aK, int bK, cMMSpecArg aArg)
+{
+    QSpinBox *aSpinBox = new QSpinBox(parent);
+    layout->addWidget(aSpinBox,aK, bK);
+
+    //aSpinBox->setRange(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+    // a ne pas utiliser car ça crée des spinbox immenses...
+    aSpinBox->setRange(IntMin, IntMax);
+
+    return aSpinBox;
+}
+
+void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+{
+    QDoubleSpinBox *aSpinBox = create_dSpinBox(layout, parent, aK, 1, aArg);
 
     aSpinBox->setValue( *(aArg.DefaultValue<double>()) );
 
@@ -419,11 +503,8 @@ void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int a
 
 void visual_MainWindow::add_2dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QDoubleSpinBox *xSpinBox = new QDoubleSpinBox(parent);
-    QDoubleSpinBox *ySpinBox = new QDoubleSpinBox(parent);
-
-    layout->addWidget(xSpinBox,aK,1);
-    layout->addWidget(ySpinBox,aK,2);
+    QDoubleSpinBox *xSpinBox = create_dSpinBox(layout, parent, aK, 1, aArg);
+    QDoubleSpinBox *ySpinBox = create_dSpinBox(layout, parent, aK, 2, aArg);
 
     xSpinBox->setValue( (*(aArg.DefaultValue<Pt2dr>())).x );
     ySpinBox->setValue( (*(aArg.DefaultValue<Pt2dr>())).y );
@@ -437,13 +518,9 @@ void visual_MainWindow::add_2dSpinBox(QGridLayout *layout, QWidget *parent, int 
 
 void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QDoubleSpinBox *xSpinBox = new QDoubleSpinBox(parent);
-    QDoubleSpinBox *ySpinBox = new QDoubleSpinBox(parent);
-    QDoubleSpinBox *zSpinBox = new QDoubleSpinBox(parent);
-
-    layout->addWidget(xSpinBox,aK,1);
-    layout->addWidget(ySpinBox,aK,2);
-    layout->addWidget(zSpinBox,aK,3);
+    QDoubleSpinBox *xSpinBox = create_dSpinBox(layout, parent, aK, 1, aArg);
+    QDoubleSpinBox *ySpinBox = create_dSpinBox(layout, parent, aK, 2, aArg);
+    QDoubleSpinBox *zSpinBox = create_dSpinBox(layout, parent, aK, 3, aArg);
 
     xSpinBox->setValue( (*(aArg.DefaultValue<Pt3dr>())).x );
     ySpinBox->setValue( (*(aArg.DefaultValue<Pt3dr>())).y );
@@ -459,8 +536,7 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
 
 void visual_MainWindow::add_spinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
-    QSpinBox *aSpinBox = new QSpinBox(parent);
-    layout->addWidget(aSpinBox,aK,1);
+    QSpinBox *aSpinBox = create_SpinBox(layout, parent, aK, 1, aArg);
 
     aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
 
@@ -471,11 +547,8 @@ void visual_MainWindow::add_spinBox(QGridLayout* layout, QWidget* parent, int aK
 
 void visual_MainWindow::add_2SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QSpinBox *xSpinBox = new QSpinBox(parent);
-    QSpinBox *ySpinBox = new QSpinBox(parent);
-
-    layout->addWidget(xSpinBox,aK,1);
-    layout->addWidget(ySpinBox,aK,2);
+    QSpinBox *xSpinBox = create_SpinBox(layout, parent, aK, 1, aArg);
+    QSpinBox *ySpinBox = create_SpinBox(layout, parent, aK, 2, aArg);
 
     xSpinBox->setValue( (*(aArg.DefaultValue<Pt2di>())).x );
     ySpinBox->setValue( (*(aArg.DefaultValue<Pt2di>())).y );
@@ -489,13 +562,9 @@ void visual_MainWindow::add_2SpinBox(QGridLayout *layout, QWidget *parent, int a
 
 void visual_MainWindow::add_3SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QSpinBox *xSpinBox = new QSpinBox(parent);
-    QSpinBox *ySpinBox = new QSpinBox(parent);
-    QSpinBox *zSpinBox = new QSpinBox(parent);
-
-    layout->addWidget(xSpinBox,aK,1);
-    layout->addWidget(ySpinBox,aK,2);
-    layout->addWidget(zSpinBox,aK,3);
+    QSpinBox *xSpinBox = create_SpinBox(layout, parent, aK, 1, aArg);
+    QSpinBox *ySpinBox = create_SpinBox(layout, parent, aK, 2, aArg);
+    QSpinBox *zSpinBox = create_SpinBox(layout, parent, aK, 3, aArg);
 
     xSpinBox->setValue( (*(aArg.DefaultValue<Pt3di>())).x );
     ySpinBox->setValue( (*(aArg.DefaultValue<Pt3di>())).y );
@@ -505,6 +574,8 @@ void visual_MainWindow::add_3SpinBox(QGridLayout *layout, QWidget *parent, int a
     vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, xSpinBox));
     vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, ySpinBox));
     vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, zSpinBox));
+
+    vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
 void visual_MainWindow::set_argv_recup(string argv)
