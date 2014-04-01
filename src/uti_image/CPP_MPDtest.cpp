@@ -58,11 +58,62 @@ void f()
 
 
 #if (0)
-
-
 #endif
 
 
+
+// To put in bench file
+
+void Bench_Rank()
+{
+    std::cout << "Begin Bench Rank \n";
+   
+    for (int aTime=0 ; aTime<10000; aTime++)
+    {
+        int aNb = round_ni(1 + ElSquare(10*NRrandom3()));
+        std::vector<double> aV;
+        for (int aK=0 ; aK<aNb ; aK++)
+           aV.push_back(NRrandC());
+
+        for (int aK=0 ; aK < aNb ; aK++)
+        {
+            for (int aK2=0 ; aK2 < 3 ; aK2++)
+                if (NRrandom3()<0.2)
+                   aV.push_back(aV[aK]);
+
+            for (int aK2=0 ; aK2 < int(aV.size()) ; aK2++)
+                if (NRrandom3()<0.02)
+                   aV[aK2] = aV[aK];
+         }
+
+        aNb = aV.size();
+
+        std::vector<double>  aV2 = aV;
+        std::vector<double>  aV3 = aV;
+
+         int aRnk = NRrandom3(aNb);
+
+         double aVK =KthVal(VData(aV),aNb,aRnk);
+
+         std::sort(aV2.begin(),aV2.end());
+         double aVK2 = aV2[aRnk];
+
+         // std::cout << "Bench Rank " << aVK-aVK2 << "\n";
+         ELISE_ASSERT(ElAbs(aVK-aVK2)<1e-10,"Bench rnk");
+
+/*
+   Ne marche pas : la valeur RrnK est n'importe ou
+
+         SplitArrounKthValue(VData(aV3),aNb,aRnk);
+         double aVK3 = aV3[aRnk];
+         std::cout << "Bench Rank " << aVK-aVK2 << " " << aVK-aVK3<< "\n";
+         ELISE_ASSERT(ElAbs(aVK-aVK2)<1e-10,"Bench rnk");
+         ELISE_ASSERT(ElAbs(aVK-aVK3)<1e-10,"Bench rnk");
+*/
+
+    }
+    std::cout << "OK BENCH RANK \n";
+}
 
 
 
@@ -78,6 +129,7 @@ Fonc_Num Correl(Fonc_Num aF1,Fonc_Num aF2,int aNb)
 
    return (Moy(aF1*aF2,aNb)  -aM1*aM2) / sqrt(Max(1e-5,aEnct1*aEnct2));
 }
+
 
 void AutoCorrel(const std::string & aName)
 {
@@ -278,6 +330,7 @@ void DebugDrag()
 int MPDtest_main (int argc,char** argv)
 {
 
+   Bench_Rank();
 {
    std::string aNameTifIn,aNameTifOut,aNameCamIn,aNameCamOut;
    // Box2di aBoxOut;
