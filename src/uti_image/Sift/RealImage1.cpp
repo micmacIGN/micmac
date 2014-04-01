@@ -694,12 +694,42 @@ void RealImage1::convolution_transpose_1d_3( const std::vector<PixReal> &i_kerne
     }
 }
 
+//#define __DEBUG_OUTPUT_KERNELS
+
+#ifdef __DEBUG_OUTPUT_KERNELS
+	extern string __kernel_output_filename;
+#endif
+
 void RealImage1::gaussianFilter( Real_ i_standardDeviation, RealImage1 &o_res )
 {
     static RealImage1 tmp_img;
     static vector<PixReal> kernel;
 
     createGaussianKernel_1d( i_standardDeviation, kernel );
+
+	#ifdef __DEBUG_OUTPUT_KERNELS
+		{
+			ofstream f( __kernel_output_filename.c_str(), ios::binary|ios::app );
+			// siftpp type
+			f.put(1);
+			// type name
+			string typeName = El_CTypeTraits<PixReal>::Name();
+			U_INT4 ui4 = (U_INT4)typeName.length();
+			f.write( (char*)&ui4, 4 );
+			f.write( typeName.c_str(), ui4 );
+			// sigma
+			REAL8 r8 = (REAL8)i_standardDeviation;
+			f.write( (char*)&r8, 8 );
+			// nb coefficients
+			ui4 = (U_INT4)kernel.size();
+			f.write( (char*)&ui4, 4 );
+			// REAL8 coefficients
+			for ( size_t i=0; i<kernel.size(); i++ ){
+				double d = (double)kernel[i];
+				f.write( (char*)(&d), 8 );
+			}
+		}
+	#endif
 
     tmp_img.resize( m_width, m_height );
     convolution_transpose_1d_3( kernel, tmp_img );
