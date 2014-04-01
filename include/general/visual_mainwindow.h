@@ -3,8 +3,6 @@
 
 #if(ELISE_QT5)
 
-
-
 #include "StdAfx.h"
 
 #ifdef Int
@@ -24,6 +22,8 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QMessageBox>
+
+#include "general/visual_buttons.h"
 
 using namespace std;
 
