@@ -434,7 +434,7 @@ cAppli_SaisiePts *PointGlobalSortFilterProxyModel::mAppli() const
     return ((ModelPointGlobal*)(sourceModel()))->getMAppli();
 }
 
-cQT_Interface *PointGlobalSortFilterProxyModel::interface()
+cQT_Interface *PointGlobalSortFilterProxyModel::getInterface()
 {
     return  (cQT_Interface *)mAppli()->Interface();
 }
