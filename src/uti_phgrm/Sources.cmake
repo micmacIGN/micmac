@@ -2,6 +2,8 @@ set(UTI_PHGRM_APERO_DIR ${UTI_PHGRM_DIR}/Apero)
 set(UTI_PHGRM_MICMAC_DIR ${UTI_PHGRM_DIR}/MICMAC)
 set(UTI_PHGRM_MAXFLOW_DIR ${UTI_PHGRM_DIR}/MaxFlow)
 set(UTI_PHGRM_REDUCHOM_DIR ${UTI_PHGRM_DIR}/ReducHom)
+set(UTI_PHGRM_RHH_DIR ${UTI_PHGRM_DIR}/RHH)
+
 set(UTI_PHGRM_PORTO_DIR ${UTI_PHGRM_DIR}/Porto)
 set(UTI_PHGRM_SAISIEPTS_DIR ${UTI_PHGRM_DIR}/SaisiePts)
 set(UTI_PHGRM_GPGPU_DIR ${UTI_PHGRM_DIR}/GpGpu)
@@ -14,6 +16,7 @@ INCLUDE (${UTI_PHGRM_APERO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MICMAC_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MAXFLOW_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_REDUCHOM_DIR}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_RHH_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_PORTO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
@@ -92,6 +95,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
+    ${UTI_PHGRM_DIR}/CPP_TestChantier.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieMasq.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieQT.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisPredic.cpp
@@ -125,5 +129,6 @@ list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MICMAC_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MaxFlow_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Porto_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_RHH_Src_Files})
 
 list( APPEND Elise_Src_Files ${uti_phgrm_Src_Files})

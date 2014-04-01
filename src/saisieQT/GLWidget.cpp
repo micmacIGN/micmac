@@ -35,7 +35,7 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
-
+	
     _matrixManager.setGLViewport(0,0,width, height);
     _messageManager.wh(width, height);
 
@@ -121,13 +121,13 @@ bool GLWidget::imageLoaded()
     return hasDataLoaded() &&  m_bDisplayMode2D;
 }
 
-void GLWidget::paintGL()
+void GLWidget::paintEvent(QPaintEvent *event)
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
     cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, !hasDataLoaded() || imageLoaded() ? _BGColor0 : _BGColor1);
-
+	
     glClear(GL_DEPTH_BUFFER_BIT);
 
     if (hasDataLoaded())

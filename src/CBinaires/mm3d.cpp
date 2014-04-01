@@ -276,6 +276,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image",cArgLogCom(2,"../")));
        // aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
+       aRes.push_back(cMMCom("TestChantier",TestChantier_main," Test global acquisition"));
+
        aRes.push_back(cMMCom("TestKey",TestSet_main," Test Keys for Sets and Assoc"));
        aRes.push_back(cMMCom("TestMTD",TestMTD_main," Test meta data of image"));
        aRes.push_back(cMMCom("TestCmds",TestCmds_main," Test MM3D commands on micmac_data sets"));
@@ -380,6 +382,8 @@ extern int  DocEx_Introd2_main(int,char **);
 extern int VisuCoupeEpip_main(int,char **);
 
 int ExoMCI_main(int argc, char** argv);
+int RHH_main(int argc,char **argv);
+
 
 
 
@@ -408,6 +412,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualization of epipolar pair (cut)  "));
 
    aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercice for multi correlation in image geometry  "));
+   aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
+
+
    return aRes;
 }
 
@@ -446,11 +453,16 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
    // MPD : deplace sinon core dump qd argc==1
    // Pour l'analyse de la ligne de commande, on ne peut pas desactiver le bloquage de l'exe via l'option ExitOnBrkp
-   // puisque le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
-   TheExitOnBrkp=true;
+   // puisqu le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
+   // bool aValInit_TheExitOnBrkp=TheExitOnBrkp;
+   // TheExitOnBrkp=true;
+std::cout << "AVANT MMD_InitArgcArgv " << TheExitOnBrkp << "\n";
    MMD_InitArgcArgv( argc, argv );
+std::cout << "APRES  MMD_InitArgcArgv " << TheExitOnBrkp << "\n";
+    // TheExitOnBrkp=true;
+
    // On reactive le blocage par defaut
-   TheExitOnBrkp=false;
+   // TheExitOnBrkp=aValInit_TheExitOnBrkp;
 
    std::string aCom = argv[1];
    std::string aLowCom = current_program_subcommand();

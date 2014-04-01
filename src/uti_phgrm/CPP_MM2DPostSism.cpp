@@ -80,6 +80,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
     double aRegul=0.3;
     bool useDequant=true;
     double aIncCalc=2.0;
+    int aSsResolOpt=4;
 
 
     ElInitArgMain
@@ -95,6 +96,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                     << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
                     << EAM(useDequant,"Dequant",true,"Dequantify (Def=true)")
                     << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0")
+                    << EAM(aSsResolOpt,"SsResolOpt",true,"Merging factor (Def=4)")
     );
 
 #if (ELISE_windows)
@@ -114,6 +116,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                         + " +SzW=" + ToString(aSzW)
                         + " +RegulBase=" + ToString(aRegul)
                         + " +Inc=" + ToString(aIncCalc)
+                        + " +SsResolOpt=" + ToString(aSsResolOpt)
                         ;
 
 

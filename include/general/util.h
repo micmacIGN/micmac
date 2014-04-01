@@ -1507,8 +1507,13 @@ template <class Type> class TypeSubst
 typedef TypeSubst<int>     IntSubst;
 typedef TypeSubst<double>  DoubleSubst;
 
+#if __cplusplus <= 199711L
 template <class T> T* VData(std::vector<T> & aV)  {return &(aV[0]);}
 template <class T> const T* VData(const std::vector<T> & aV)  {return &(aV[0]);}
+#else
+template <class T> T* VData(std::vector<T> & aV)  {return aV.data();}
+template <class T> const T* VData(const std::vector<T> & aV)  {return aV.data();}
+#endif
 
 void ComputeIntervaleDelta
               (
