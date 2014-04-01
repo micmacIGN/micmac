@@ -303,7 +303,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
    return aSom;
 }
 
-#define __DEBUG_OUTPUT_KERNELS
+//#define __DEBUG_OUTPUT_KERNELS
 
 #ifdef __DEBUG_OUTPUT_KERNELS
 	string __kernel_output_filename = "kernels.raw";

@@ -694,7 +694,7 @@ void RealImage1::convolution_transpose_1d_3( const std::vector<PixReal> &i_kerne
     }
 }
 
-#define __DEBUG_OUTPUT_KERNELS
+//#define __DEBUG_OUTPUT_KERNELS
 
 #ifdef __DEBUG_OUTPUT_KERNELS
 	extern string __kernel_output_filename;
