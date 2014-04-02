@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -48,6 +48,10 @@ NS_RHH_BEGIN
 /*                  cImagH                       */
 /*                                               */
 /*************************************************/
+
+
+/*  Read tie points if necessary, estimate the homography and the quality
+*/
 
 bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
 {
@@ -78,8 +82,8 @@ bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
 
 void cImagH::ComputeLnkHom()
 {
-    tSetLinks  aNewL;
-    for ( tSetLinks::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+    tMapName2Link  aNewL;
+    for ( tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
     {
         if (ComputeLnkHom(*(itL->second)))
            aNewL[itL->first] = itL->second ;
@@ -93,7 +97,7 @@ void cImagH::ComputeLnkHom()
     {
        mSomQual /= mSomNbPts;
        double aSeuilQual = mSomQual*mAppli.RatioQualMoy();
-       for (tSetLinks::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+       for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
        {
            bool Ok = itL->second->Qual() < aSeuilQual;
            if (Ok)
@@ -127,7 +131,7 @@ void cImagH::VoisinsNonMarques(const std::vector<cImagH*> & aIn,std::vector<cIma
    for (int aKS=0 ; aKS<int(aIn.size()) ; aKS++)
    {
        cImagH * aIK1 = aIn[aKS];
-       for (tSetLinks::iterator itL1 = aIK1->mLnks.begin(); itL1 != aIK1->mLnks.end(); itL1++)
+       for (tMapName2Link::iterator itL1 = aIK1->mLnks.begin(); itL1 != aIK1->mLnks.end(); itL1++)
        {
             cImagH * aImTest  = itL1->second->Dest();
             if ((! aImTest->Marqued(aFlagN)) && (! aImTest->Marqued(aFlagT)))
@@ -144,7 +148,7 @@ void cImagH::VoisinsNonMarques(const std::vector<cImagH*> & aIn,std::vector<cIma
 void cImagH::VoisinsMarques(std::vector<cLink2Img*> & aVois,int aFlagN)
 {
     aVois.clear();
-    for ( tSetLinks::iterator itL = mLnks.begin(); itL != mLnks.end(); itL ++)
+    for ( tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL ++)
     {
         cImagH * aI2  = itL->second->Dest();
         if (aI2->Marqued(aFlagN))
@@ -171,7 +175,7 @@ void  cAppliReduc::QuadrReestimFromVois(std::vector<cImagH*> & aVLocIm,int aFlag
          anI->HF()->ReinitHom(anI->Hi2t());
     }
          // anI->HF()->SetModeCtrl( cNameSpaceEqF::eHomFigee);
-    
+
 
     for (int aFois = 0 ; aFois<5 ; aFois++)
     {
@@ -187,11 +191,11 @@ void  cAppliReduc::QuadrReestimFromVois(std::vector<cImagH*> & aVLocIm,int aFlag
          for (int aK=0 ; aK<int(aVLocIm.size()) ; aK++)
          {
              cImagH * anI1 =  aVLocIm[aK];
-             const tSetLinks & aLL = anI1->Lnks();
-             for (tSetLinks::const_iterator itL = aLL.begin(); itL != aLL.end(); itL++)
+             const tMapName2Link & aLL = anI1->Lnks();
+             for (tMapName2Link::const_iterator itL = aLL.begin(); itL != aLL.end(); itL++)
              {
                  cImagH * anI2 = itL->second->Dest();
-                 if (anI2->Marqued(aFlag)) 
+                 if (anI2->Marqued(aFlag))
                  {
                      cElHomographie aH12 = itL->second->Hom12();
                      const std::vector<Pt3dr> &  anEchP1 = itL->second->EchantP1();
@@ -223,13 +227,13 @@ void  cAppliReduc::QuadrReestimFromVois(std::vector<cImagH*> & aVLocIm,int aFlag
 void cAppliReduc::TestMerge_CalcHcImage()
 {
     cParamMerge  aParam;
-    
+
     cAlgoMergingRec<cImagH,cAttrLnkIm,cParamMerge> anAlgo(mIms,aParam,0);
 
     const std::set<tNodIm *> & aRoot = anAlgo.Roots();
 
 
-    for 
+    for
     (
            std::set<tNodIm *>::const_iterator itN=aRoot.begin();
            itN!=aRoot.end();
@@ -254,33 +258,33 @@ NS_RHH_END
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant Ã  la mise en
+Ce logiciel est un programme informatique servant à la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est rÃ©gi par la licence CeCILL-B soumise au droit franÃ§ais et
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusÃ©e par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilitÃ© au code source et des droits de copie,
-de modification et de redistribution accordÃ©s par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitÃ©e.  Pour les mÃªmes raisons,
-seule une responsabilitÃ© restreinte pÃ¨se sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concÃ©dants successifs.
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
 
-A cet Ã©gard  l'attention de l'utilisateur est attirÃ©e sur les risques
-associÃ©s au chargement,  Ã  l'utilisation,  Ã  la modification et/ou au
-dÃ©veloppement et Ã  la reproduction du logiciel par l'utilisateur Ã©tant 
-donnÃ© sa spÃ©cificitÃ© de logiciel libre, qui peut le rendre complexe Ã  
-manipuler et qui le rÃ©serve donc Ã  des dÃ©veloppeurs et des professionnels
-avertis possÃ©dant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invitÃ©s Ã  charger  et  tester  l'adÃ©quation  du
-logiciel Ã  leurs besoins dans des conditions permettant d'assurer la
-sÃ©curitÃ© de leurs systÃ¨mes et ou de leurs donnÃ©es et, plus gÃ©nÃ©ralement, 
-Ã  l'utiliser et l'exploiter dans les mÃªmes conditions de sÃ©curitÃ©. 
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+manipuler et qui le réserve donc à des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accÃ©der Ã  cet en-tÃªte signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez acceptÃ© les
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
