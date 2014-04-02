@@ -35,7 +35,7 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 void GLWidget::resizeGL(int width, int height)
 {
     if (width==0 || height==0) return;
-	
+
     _matrixManager.setGLViewport(0,0,width, height);
     _messageManager.wh(width, height);
 
@@ -123,11 +123,19 @@ bool GLWidget::imageLoaded()
 
 void GLWidget::paintEvent(QPaintEvent *event)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    updateGL();
+
+    if (_widgetId >= 0) overlay();
+    else        drawCenter();
+}
+
+void GLWidget::paintGL()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //gradient color background
     cImageGL::drawGradientBackground(vpWidth(), vpHeight(), _BGColor0, !hasDataLoaded() || imageLoaded() ? _BGColor0 : _BGColor1);
-	
+
     glClear(GL_DEPTH_BUFFER_BIT);
 
     if (hasDataLoaded())
@@ -165,23 +173,20 @@ void GLWidget::paintEvent(QPaintEvent *event)
     }
 
     _messageManager.draw();
-
-    if (_widgetId >= 0) overlay();
-    else        drawCenter();
 }
 
 void GLWidget::overlay()
 {
+#if ELISE_QT_VERSION==5
+    _painter->begin(this);
+#else
+    QPainter painter(this);
+    _painter = &painter;
+    m_GLData->setPainter(_painter);
+#endif
+
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
-        #if ELISE_QT_VERSION==5
-            _painter->begin(this);
-        #else
-            QPainter painter(this);
-            _painter = &painter;
-            m_GLData->setPainter(_painter);
-        #endif
-
         if (m_bDisplayMode2D)
         {
             float zoom = _vp_Params.m_zoom;
@@ -197,11 +202,13 @@ void GLWidget::overlay()
 
         _painter->resetTransform();
         QRect rect = this->rect();
-        rect.setTopLeft(rect.topLeft()+QPoint(1,1));
+        QPoint shift(1,1);
+        rect.setTopLeft(rect.topLeft()+shift);
+        rect.setBottomRight(rect.bottomRight()-shift);
         _painter->drawRect(rect);
-
-        _painter->end();
     }
+
+    _painter->end();
 }
 
 void GLWidget::setInteractionMode(int mode, bool showmessage)
@@ -594,6 +601,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 if(id != polygon()->idx())
                     emit selectPoint(polygon()->idx());
+
+                //update();
             }
         }
 
@@ -634,7 +643,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         m_lastPosWindow = event->pos();
 
-        update();
+        //update();
     }
 }
 
@@ -649,7 +658,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 #endif
 
         if (m_GLData->position2DClouds(_matrixManager,pos))
-            update();
+           update();
     }
 }
 
@@ -678,7 +687,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
             //menu.setWindowFlags(Qt::Tool | Qt::WindowTitleHint | Qt::WindowStaysOnTopHint);
 
             menu.addAction( _contextMenu._AllW  );
-            menu.addAction( _contextMenu._RollW  );
+            menu.addAction( _contextMenu._RollW );
             menu.addAction( _contextMenu._ThisW );
             menu.addAction( _contextMenu._ThisP );
         }
@@ -775,7 +784,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
         }
     }
 
-    update();
+   update();
 }
 
 void GLWidget::keyReleaseEvent(QKeyEvent* event)
