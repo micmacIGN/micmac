@@ -39,8 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+
 #ifndef _ELISE_GENERAL_VECTO_H
 #define _ELISE_GENERAL_VECTO_H
+
+
 
 template <class T> class ElFifo;
 template <class T> class ElFilo;
