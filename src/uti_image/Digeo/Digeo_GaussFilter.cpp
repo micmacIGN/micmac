@@ -303,8 +303,50 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
    return aSom;
 }
 
+//#define __DEBUG_OUTPUT_KERNELS
+
+#ifdef __DEBUG_OUTPUT_KERNELS
+	string __kernel_output_filename = "kernels.raw";
+#endif
+
 template <class Type> Im1D<Type,Type> ImageGaussianKernel ( double aSigma, int aNbShift, double anEpsilon, int aSurEch )
 {
+	#ifdef __DEBUG_OUTPUT_KERNELS
+		{
+			ofstream f( __kernel_output_filename.c_str(), ios::binary|ios::app );
+			
+			Im1D_REAL8 aKerD = GaussianKernelFromResidu(aSigma,anEpsilon,aSurEch);
+			Im1D<Type,Type> aKerT = ToOwnKernel(aKerD,aNbShift,true,(Type *)0);
+
+			// digeo type
+			f.put(0);
+			// type name
+			string typeName = El_CTypeTraits<Type>::Name();
+			U_INT4 ui4 = (U_INT4)typeName.length();
+			f.write( (char*)&ui4, 4 );
+			f.write( typeName.c_str(), ui4 );
+			// sigma
+			REAL8 r8 = (REAL8)aSigma;
+			f.write( (char*)&r8, 8 );
+			// nb coefficients
+			ui4 = (U_INT4)aKerD.tx();
+			f.write( (char*)&ui4, 4 );
+			// REAL8 coefficients
+			f.write( (char*)aKerD.data(), aKerD.tx()*8 );
+			// nbShift
+			ui4 = (U_INT4)aNbShift;
+			f.write( (char*)&ui4, 4 );
+			// residue
+			r8 = (REAL8)anEpsilon;
+			f.write( (char*)&r8, 8 );
+			// surEch
+			ui4 = (U_INT4)aSurEch;
+			f.write( (char*)&ui4, 4 );
+			// Type coefficients
+			f.write( (char*)aKerT.data(), aKerT.tx()*sizeof(Type) );
+		}
+	#endif
+	
     Im1D_REAL8 aKerD = GaussianKernelFromResidu(aSigma,anEpsilon,aSurEch);
     return ToOwnKernel(aKerD,aNbShift,true,(Type *)0);
 }

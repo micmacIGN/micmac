@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -69,7 +69,7 @@ int mm_getpid();
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
 
 
-void test(); 
+void test();
 // constantly redefined to perform some test;
 
 extern double Delay_Brkp;
@@ -83,7 +83,7 @@ void SleepProcess(double);
 
 /*
 
-    This file contains miscellaneous utilitaries 
+    This file contains miscellaneous utilitaries
     (class and functions).
 
 */
@@ -229,7 +229,7 @@ inline REAL signed_frac(REAL r)
     return r;
 }
 
-// return the real division of a by b; eq 
+// return the real division of a by b; eq
 // complies with the mathematical property
 //     b*r <= a < b * (r+1)
 //   Unpredictable for b < 0.
@@ -384,7 +384,7 @@ template <class Type> void rotate_moins_data(Type *,INT i0,INT i1);
 
 // return INDEX_NOT_FOUND if all not null :
 
-template <class Type> int index_values_null(const Type * t,INT nb); 
+template <class Type> int index_values_null(const Type * t,INT nb);
 
 template <class Type> void tab_Abs (Type * out,const Type * in,INT nb);
 
@@ -428,7 +428,7 @@ template <class Type>
                    const Type * const *  coord,
                    INT nb,
                    INT dim,
-                   const Type *p0, 
+                   const Type *p0,
                    const Type *p1
               );
 
@@ -442,7 +442,7 @@ template <class Type> Type red_tab_som(const Type * t,INT nb,Type v_init);
 /*************************************************************/
 
 template <class Type> inline Type ElAbs   (Type v1) {return ( (v1>0) ? v1 : -v1 );}
-					  inline bool ElAbs   (bool v1) {return v1;}
+                      inline bool ElAbs   (bool v1) {return v1;}
 inline REAL ecart_frac(REAL r)
 {
     return ElAbs(signed_frac(r));
@@ -463,9 +463,9 @@ extern REAL VPow7(REAL V);
 
 template <class Type> inline Type ElMax3 (Type v1,Type v2,Type v3) {return ElMax(v1,ElMax(v2,v3));}
 template <class Type> inline Type ElMin3 (Type v1,Type v2,Type v3) {return ElMin(v1,ElMin(v2,v3));}
-template <class Type> inline Type ElMax4 (Type v1,Type v2,Type v3,Type v4)  
+template <class Type> inline Type ElMax4 (Type v1,Type v2,Type v3,Type v4)
                              {return ElMax(v1,ElMax3(v2,v3,v4));}
-template <class Type> inline Type ElMin4 (Type v1,Type v2,Type v3,Type v4)  
+template <class Type> inline Type ElMin4 (Type v1,Type v2,Type v3,Type v4)
                              {return ElMin(v1,ElMin3(v2,v3,v4));}
 
 template <class Type> inline void ElSwap (Type &v1,Type & v2)
@@ -476,10 +476,10 @@ template <class Type> inline void set_min_max (Type &v1,Type & v2) {  if (v1 > v
 template <class Type,class T2> inline void ElSetMax (Type & v1,T2 v2) {if (v1<v2) v1 = v2;}
 template <class Type,class T2> inline void ElSetMin (Type & v1,T2 v2) {if (v1>v2) v1 = v2;}
 
-template <class Type> inline void SetInRange 
+template <class Type> inline void SetInRange
                       (const Type & v0,Type & aV,const Type & v1)
 {
-     if (aV < v0) 
+     if (aV < v0)
         aV = v0;
      else if (aV> v1)
         aV = v1;
@@ -497,7 +497,7 @@ class cElRanGen
       REAL cNRrandC();
       cElRanGen();
       void InitOfTime(int aNb=1000);
-					        
+
    private :
       int inext,inextp;
       int MSEED;
@@ -576,14 +576,14 @@ class ElFlagAllocator
          void  flag_free(INT);
       private :
           ElTabFlag _flag;
-};                                    
+};
 
 void CmpByEnd(const char * aName1,const char * aName2,INT & aK1,INT &aK2);
 bool N2IsEndN1(const char * aName1,const char * aName2);
 
 
 // Pour avoir un nom utilisable dans les commandes meme s'il
-// contient des blancs 
+// contient des blancs
 std::string ToStrBlkCorr(const std::string &);
 
 
@@ -705,14 +705,14 @@ class cElStatErreur
 {
      public :
          cElStatErreur(INT NbValInit);
-	 void AddErreur(REAL);
-	 void Reset();
-	 REAL Erreur(REAL Pos) ; // Pos en 0.0 et 1.0,  Exemple :
-	                         // 0.0 = Vmin, 1.0=Vmax, 0.5 = Median etc..
+     void AddErreur(REAL);
+     void Reset();
+     REAL Erreur(REAL Pos) ; // Pos en 0.0 et 1.0,  Exemple :
+                             // 0.0 = Vmin, 1.0=Vmax, 0.5 = Median etc..
 
      private :
-	 std::vector<REAL> mErrs;
-	 bool              mOk;
+     std::vector<REAL> mErrs;
+     bool              mOk;
 };
 
 
@@ -724,14 +724,14 @@ class cInterv1D
         const Type & V0() const;
         const Type & V1() const;
         Type  Larg() const;
-	cInterv1D<Type>  Inter(const cInterv1D<Type> &) const;
-	cInterv1D<Type>  Dilate(const cInterv1D<Type> &) const;
+    cInterv1D<Type>  Inter(const cInterv1D<Type> &) const;
+    cInterv1D<Type>  Dilate(const cInterv1D<Type> &) const;
 
      private:
         Type mV0;
         Type mV1;
-	bool mEmpty;
-          
+    bool mEmpty;
+
 };
 
 class cDecoupageInterv1D
@@ -744,22 +744,22 @@ class cDecoupageInterv1D
            const cInterv1D<int>  & aSzBord,
            int                     anArrondi=1
         );
-	int NbInterv() const;
-	cInterv1D<int> KthIntervOut(int aK) const;
-	// Avec Bord par defaut
-	cInterv1D<int> KthIntervIn(int aK) const;
-	cInterv1D<int> KthIntervIn(int aK,const cInterv1D<int>  & aSzBord) const;
-	const cInterv1D<int> & IGlob() const;
-	const cInterv1D<int> & IBrd() const;
+    int NbInterv() const;
+    cInterv1D<int> KthIntervOut(int aK) const;
+    // Avec Bord par defaut
+    cInterv1D<int> KthIntervIn(int aK) const;
+    cInterv1D<int> KthIntervIn(int aK,const cInterv1D<int>  & aSzBord) const;
+    const cInterv1D<int> & IGlob() const;
+    const cInterv1D<int> & IBrd() const;
 
-	int LargMaxOut() const;
-	int LargMaxIn(const cInterv1D<int>  & aSzBord) const;
-	int LargMaxIn() const;
-          
-          
+    int LargMaxOut() const;
+    int LargMaxIn(const cInterv1D<int>  & aSzBord) const;
+    int LargMaxIn() const;
+
+
      private :
         int             KThBorneOut(int aK) const;
-          
+
         cInterv1D<int>  mIntervGlob;
         cInterv1D<int>  mSzBord;
         int             mSzMax;
@@ -767,28 +767,28 @@ class cDecoupageInterv1D
         int             mArrondi;
 };
 
-template <class Type> 
+template <class Type>
 class cTplValGesInit
 {
      public :
-          cTplValGesInit() : 
+          cTplValGesInit() :
                 // mVal(),  Bug Windows
-                mIsInit(false) 
+                mIsInit(false)
           {
           }
-          cTplValGesInit(const Type & aVal) : 
+          cTplValGesInit(const Type & aVal) :
                 mVal(aVal),
-                mIsInit(true) 
+                mIsInit(true)
           {
           }
 
 /*
 */
-	  void SetNoInit() {mIsInit=false;}
+      void SetNoInit() {mIsInit=false;}
           void SetVal(const Type & aVal) {mVal=aVal;mIsInit=true;}
-          void SetValIfNotInit(const Type & aVal) 
+          void SetValIfNotInit(const Type & aVal)
           {
-               if (!mIsInit) 
+               if (!mIsInit)
                   SetVal(aVal);
           }
           bool IsInit() const {return mIsInit;}
@@ -808,7 +808,7 @@ class cTplValGesInit
           }
 
 
-          Type & Val() 
+          Type & Val()
           {
               ELISE_ASSERT(mIsInit,"Unitialized Value in cValGesInit");
               return mVal;
@@ -824,7 +824,7 @@ class cTplValGesInit
           Type mVal;
           bool mIsInit;
 };
-          
+
 
 //typedef long long int tFileOffset;
 typedef int64_t tLowLevelFileOffset;
@@ -835,7 +835,7 @@ class tFileOffset
 {
     public :
 
-        
+
          const tLowLevelFileOffset & AbsLLO() const
          {
                tLowLevelFileOffset aLLO = mLLO.Val();
@@ -962,7 +962,7 @@ typedef tFileOffset tRelFileOffset;
 // typedef unsigned int tFileOffset;
 /*
 */
- 
+
 
 tFileOffset RelToAbs(tRelFileOffset anOff);
 
@@ -1047,7 +1047,7 @@ class cEquiv1D
           int SzMaxClasses() const;
      private:
           void Reset(int aV0,int aV1);
-          std::vector<int> mNumOfClasse; // Pour un entier, son numero de classe 
+          std::vector<int> mNumOfClasse; // Pour un entier, son numero de classe
           std::vector<int> mDebOfClasse; // Pour un numero de classe, sont entier de debut
 
           int mV0;
@@ -1073,35 +1073,35 @@ class cElTask
      public :
           void AddDep(cElTask &);
           void AddDep(const std::string &);  // Idem AddDep(cElTask &)
-          void AddBR(const std::string &);  // 
+          void AddBR(const std::string &);  //
           void  GenerateMakeFile(FILE *) const;
           // Genere le mkf, l'execute, le purge
      private :
           friend class cEl_GPAO;
         #ifdef __USE_EL_COMMAND__
-		  cElTask
+          cElTask
           (
                const std::string & aName,
                cEl_GPAO &,
                const cElCommand & aBuildingRule
           );
-		#else
-		  cElTask
+        #else
+          cElTask
           (
                const std::string & aName,
                cEl_GPAO &,
                const std::string & aBuildingRule
           );
-		#endif
+        #endif
          cEl_GPAO &  mGPAO;
 
          std::string mName;
         #ifdef __USE_EL_COMMAND__
-			std::list<cElCommand> mBR;  // BuildingRule
-		#else
-			std::list<std::string> mBR;  // BuildingRule
-		#endif
-         
+            std::list<cElCommand> mBR;  // BuildingRule
+        #else
+            std::list<std::string> mBR;  // BuildingRule
+        #endif
+
          std::vector<cElTask *>  mDeps;
 };
 
@@ -1117,30 +1117,30 @@ class cEl_GPAO
           cEl_GPAO();
 
         #ifdef __USE_EL_COMMAND__
-			cElTask   & NewTask
-				        (
-							const std::string &aName,
-							const cElCommand & aBuildingRule
-				        ) ;
+            cElTask   & NewTask
+                        (
+                            const std::string &aName,
+                            const cElCommand & aBuildingRule
+                        ) ;
 
-			cElTask   & GetOrCreate
-			            (
-							const std::string &aName,
-							const cElCommand & aBuildingRule
-			            );
-		#else
-			cElTask   & NewTask
-						(
-								const std::string &aName,
-								const std::string & aBuildingRule
-							) ;
+            cElTask   & GetOrCreate
+                        (
+                            const std::string &aName,
+                            const cElCommand & aBuildingRule
+                        );
+        #else
+            cElTask   & NewTask
+                        (
+                                const std::string &aName,
+                                const std::string & aBuildingRule
+                            ) ;
 
-			cElTask   & GetOrCreate
-						(
-								const std::string &aName,
-								const std::string & aBuildingRule
-							) ;
-		#endif
+            cElTask   & GetOrCreate
+                        (
+                                const std::string &aName,
+                                const std::string & aBuildingRule
+                            ) ;
+        #endif
 
 
          cElTask   &TaskOfName(const std::string &aName) ;
@@ -1168,7 +1168,7 @@ void MkFMapCmd
 void MkFMapCmdFileCoul8B
      (
           const std::string & aDir,
-          const std::vector<std::string > &aSet 
+          const std::vector<std::string > &aSet
      );
 
 
@@ -1181,8 +1181,11 @@ void RequireBin
      (
          const std::string & ThisBin,  // Le prog appelant pour evt
          const std::string & BinRequired,
-	 const std::string & LeMake = "Makefile"  // Si
+     const std::string & LeMake = "Makefile"  // Si
      );
+
+// For top call like Tapas, Malt , .. want to duplicate args in @
+int TopSystem(const std::string & aComOri);
 
 int System(const std::string & aCom,bool aSVP=false,bool AddOptGlob=false,bool UseTheNbIterProcess=false);
 
@@ -1222,42 +1225,42 @@ class cAppliBatch
     protected :
         virtual ~cAppliBatch();
         cAppliBatch
-	(
-	     int,
-	     char **,
-	     int aNbArgGlob,
-	     int aNbFile,
-	     const std::string & aPostFixWorkDir,
-	     const std::string & aKeyDOIDE="",
+    (
+         int,
+         char **,
+         int aNbArgGlob,
+         int aNbFile,
+         const std::string & aPostFixWorkDir,
+         const std::string & aKeyDOIDE="",
              bool  ForceByDico = false
         );
 
-	 void AddPatSauv(const std::string &);
+     void AddPatSauv(const std::string &);
          int ARGC();
-	 char ** ARGV();
-	 std::string ComCommune() const;
+     char ** ARGV();
+     std::string ComCommune() const;
          int System(const std::string &,bool aSVP=false);
          int System(const char* FileCible,const std::string &,bool aSVP=false);
-	 const std::string & CurF1() const;
-	 const std::string & CurF2() const;
-	 const std::string & CurF(int aK) const;
+     const std::string & CurF1() const;
+     const std::string & CurF2() const;
+     const std::string & CurF(int aK) const;
          const std::string  & DirChantier() const;
          const std::string  & DirTmp() const;
          const std::string  & DirSauv() const;
-	 cInterfChantierNameManipulateur * ICNM();
+     cInterfChantierNameManipulateur * ICNM();
 
-	 bool NivPurgeIsInit();
-	 void SetNivPurge(eNivPurge  );
-	 bool NivExeIsInit();
-	 void SetNivExe(eModeExecution);
+     bool NivPurgeIsInit();
+     void SetNivPurge(eNivPurge  );
+     bool NivExeIsInit();
+     void SetNivExe(eModeExecution);
          eModeExecution ModeExe() const;
          std::string ComForRelance();
-	std::string protectFilename( const std::string &i_filename ) const; // according to ByMKf()
+    std::string protectFilename( const std::string &i_filename ) const; // according to ByMKf()
 
     private :
-	void DoOne();
-	virtual void Exec() = 0;
-	void UseLFile(const std::list<std::string> &);
+    void DoOne();
+    virtual void Exec() = 0;
+    void UseLFile(const std::list<std::string> &);
 
 
 
@@ -1267,44 +1270,44 @@ class cAppliBatch
 
 
     // private :
-	std::vector<char *>  mArgsNC;  // 
+    std::vector<char *>  mArgsNC;  //
 
         void DoPurge();
 
-	cInterfChantierNameManipulateur * mICNM;
+    cInterfChantierNameManipulateur * mICNM;
 
         //std::string  mThisBin;
         std::string  mDirChantier;
 
-	std::string  mPostFixWorkDir;
-	int          mNbFile;
+    std::string  mPostFixWorkDir;
+    int          mNbFile;
         bool         mByNameFile;
-	std::string  mDirSauv;
-	std::string  mDirTmp;
+    std::string  mDirSauv;
+    std::string  mDirTmp;
 
         //bool         mFileByICNM;
-	std::string  mPatF1;
-	std::string  mPatF2;
-	std::string  mCurF1;
-	std::string  mCurF2;
-	std::vector<std::string> mVCurF;
+    std::string  mPatF1;
+    std::string  mPatF2;
+    std::string  mCurF1;
+    std::string  mCurF2;
+    std::vector<std::string> mVCurF;
 
-	std::string  mArgAdd;
-        
+    std::string  mArgAdd;
+
         eModeExecution  mModeExe;
-	bool            mExeIsInit;
-	eNivPurge       mNivPurge;
-	bool            mNivPurgeIsInit;
+    bool            mExeIsInit;
+    eNivPurge       mNivPurge;
+    bool            mNivPurgeIsInit;
         std::string     mFileBatch;
-	std::vector<std::string>  mPatSauv;
+    std::vector<std::string>  mPatSauv;
 
-	bool                      mFileByPat;
-	bool                      mByDico;
-	std::list<std::string>    mListFile1ByPat;
-	int  mReverse;
-	int                       mDOIDE;
-	std::string               mKeyDOIDE;
-	
+    bool                      mFileByPat;
+    bool                      mByDico;
+    std::list<std::string>    mListFile1ByPat;
+    int  mReverse;
+    int                       mDOIDE;
+    std::string               mKeyDOIDE;
+
         std::string               mMKf;
         bool                      mModeAddMkf;
         int                       mIsRelancedByThis;
@@ -1323,11 +1326,11 @@ class cCpleString
                     ) const;
         cCpleString(const std::string&,const std::string&);
         cCpleString();
-	const std::string &  N1() const;
-	const std::string &  N2() const;
+    const std::string &  N1() const;
+    const std::string &  N2() const;
 
-	bool operator < (const cCpleString &) const;
-	bool operator == (const cCpleString &) const;
+    bool operator < (const cCpleString &) const;
+    bool operator == (const cCpleString &) const;
      private :
         std::string mN1;
         std::string mN2;
@@ -1340,16 +1343,16 @@ class cElHour
       (
           int aNbHour,
           int aNbMin,
-	  double aNbSec
+      double aNbSec
       );
       double InSec() const; // Sec depuis minuits
       int    H() const;
       int    M() const;
       double S() const;
-      
+
       bool operator==( const cElHour &i_b ) const;
       bool operator!=( const cElHour &i_b ) const;
-      
+
      // read/write in raw binary format
      void from_raw_data( const char *&io_rawData, bool i_reverseByteOrder );
      void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
@@ -1357,7 +1360,7 @@ class cElHour
 
      void read_raw( istream &io_istream, bool i_inverseByteOrder );
      void write_raw( ostream &io_ostream, bool i_inverseByteOrder ) const;
-     
+
      static void getCurrentHour_local( cElHour &o_localHour );
      static void getCurrentHour_UTC( cElHour &o_utcHour );
 
@@ -1377,55 +1380,55 @@ class cElDate
          int aDay,
          int aMonth,
          int aYear,
-	 const cElHour &
+     const cElHour &
        );
 
         const cElHour &  H() const;
-	int Y() const;
-	int M() const;
-	int D() const;
+    int Y() const;
+    int M() const;
+    int D() const;
 
-	static cElDate FromString(const std::string &);
+    static cElDate FromString(const std::string &);
 
-	int NbDayFrom1erJ() const;
-	// Ne prend pas en compte les 13 jours "sautes " au 17e
-	int NbDayFromJC() const;
-	int    DifInDay(const cElDate&) const;
-	double DifInSec(const cElDate&) const;
+    int NbDayFrom1erJ() const;
+    // Ne prend pas en compte les 13 jours "sautes " au 17e
+    int NbDayFromJC() const;
+    int    DifInDay(const cElDate&) const;
+    double DifInSec(const cElDate&) const;
 
-	bool operator==( const cElDate &i_b ) const;
-	bool operator!=( const cElDate &i_b ) const;
-      
-	// read/write in raw binary format
-	void from_raw_data( const char *&io_rawData, bool i_reverseByteOrder );
-	void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
-	static unsigned int raw_size();
-	
-	void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
-	void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
-	
-	static void getCurrentDate_local( cElDate &o_localDate );
-	static void getCurrentDate_UTC( cElDate &o_utcDate );
-      
+    bool operator==( const cElDate &i_b ) const;
+    bool operator!=( const cElDate &i_b ) const;
+
+    // read/write in raw binary format
+    void from_raw_data( const char *&io_rawData, bool i_reverseByteOrder );
+    void to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const;
+    static unsigned int raw_size();
+
+    void read_raw( istream &io_istream, bool i_inverseByteOrder=false );
+    void write_raw( ostream &io_ostream, bool i_inverseByteOrder=false ) const;
+
+    static void getCurrentDate_local( cElDate &o_localDate );
+    static void getCurrentDate_UTC( cElDate &o_utcDate );
+
     private :
          int mD;
          int mM;
          int mY;
-	 cElHour mH;
+     cElHour mH;
 
-         // !! Les mois commencent a 1 
-	 static const int TheNonBisLengthMonth[12];
-	 static int TheNonBisLengthMonthCum[12];
-	 static int TheBisLengthMonthCum[12];
-	 static bool TheIsBis[3000];
-	 static int  TheNbDayFromJC[3000];
+         // !! Les mois commencent a 1
+     static const int TheNonBisLengthMonth[12];
+     static int TheNonBisLengthMonthCum[12];
+     static int TheBisLengthMonthCum[12];
+     static bool TheIsBis[3000];
+     static int  TheNbDayFromJC[3000];
 
-	 static bool mTabuliIsInit;
+     static bool mTabuliIsInit;
 
-	 static void InitTabul();
+     static void InitTabul();
 
 
-	 static bool PrivIsBissextile(int aY);
+     static bool PrivIsBissextile(int aY);
 };
 
 bool operator < (const cElDate & aD1, const cElDate & aD2);
@@ -1489,7 +1492,7 @@ extern bool TransFormArgKey
 
 template <class Type> class TypeSubst
 {
-    public : 
+    public :
           TypeSubst();
           TypeSubst(const Type& Val);
           void SetStr(cElXMLTree *);
@@ -1497,7 +1500,7 @@ template <class Type> class TypeSubst
           bool  Subst(bool AMMNoArg,  const std::vector<std::string> & aVParam);
           void TenteInit();
 
-    private : 
+    private :
           Type           mVal;
           bool           mIsInit;
           std::string    mStrInit;
@@ -1581,13 +1584,13 @@ bool launchMake( const std::string &i_makefile, const std::string &i_rule=std::s
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1597,17 +1600,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
