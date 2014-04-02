@@ -163,7 +163,7 @@ if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
     endif()
-elseif( ${qt_version} EQUAL 4 )
+#elseif( ${qt_version} EQUAL 4 )
     #add_definitions(-DELISE_QT5=1)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
@@ -186,7 +186,7 @@ else()
 endif()
 
 # OPTION BUILD : En tetes precompilees pour gcc
-#enable_precompiled_headers_GCC(StdAfx.h ${libElise} ${CMAKE_CXX_FLAGS})
+enable_precompiled_headers_GCC(StdAfx.h ${libElise} ${CMAKE_CXX_FLAGS})
 
 # DEFINITION
 add_definitions(-DNO_JPEG -DNO_LCMS)
