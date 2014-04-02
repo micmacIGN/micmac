@@ -151,7 +151,8 @@ signals:
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);
-	void paintEvent(QPaintEvent*);
+    void paintEvent(QPaintEvent*);
+    void paintGL();
 
     //! inherited from QWidget
     void mouseDoubleClickEvent  (QMouseEvent *event);

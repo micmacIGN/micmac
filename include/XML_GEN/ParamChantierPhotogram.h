@@ -31,6 +31,10 @@ typedef enum
   eTT_FraserBasic,
   eTT_FishEyeBasic,
   eTT_FE_EquiSolBasic,
+  eTT_RadGen7x2,
+  eTT_RadGen11x2,
+  eTT_RadGen15x2,
+  eTT_RadGen19x2,
   eTT_NbVals
 } eTypeTapas;
 void xml_init(eTypeTapas & aVal,cElXMLTree * aTree);

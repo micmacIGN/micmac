@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -66,14 +66,14 @@ cLink2Img::cLink2Img(cImagH * aSrce,cImagH * aDest,const std::string & aNameH) :
 
 void cLink2Img::LoadPack()
 {
-   if (mPckLoaded) 
+   if (mPckLoaded)
       return;
    mPckLoaded = true;
    mPack = ElPackHomologue::FromFile(mSrce->Appli().Dir()+mNameH);
    mNbPts =  mPack.size();
 
    std::vector<Pt2dr>  aVP2;
-   for 
+   for
    (
        ElPackHomologue::const_iterator itP=mPack.begin();
        itP != mPack.end();
@@ -108,10 +108,10 @@ const ElPackHomologue & cLink2Img::Pack() const
 //     This quality is estimated on the weighted set mEchantP1
 
 
-double cLink2Img::CoherenceH() 
+double cLink2Img::CoherenceH()
 {
     LoadPack();
-    
+
     cElHomographie aI2T_A = CalcSrceFromDest();
     cElHomographie aI2T_B = mSrce->Hi2t();
 
@@ -134,7 +134,7 @@ double cLink2Img::CoherenceH()
 
     return sqrt(aSomDist/aSomP);
 }
-   
+
 
 
 cImagH * cLink2Img::Srce() const
@@ -213,7 +213,7 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
 
 cLink2Img * cImagH::GetLinkOfImage(cImagH* anI2)
 {
-   tSetLinks::iterator anIt = mLnks.find(anI2);
+   tMapName2Link::iterator anIt = mLnks.find(anI2);
    if (anIt==mLnks.end())
       return 0;
    return anIt->second;
@@ -238,7 +238,7 @@ bool cImagH::Marqued(int aK) const
    return mMarques.kth(aK);
 }
 
-cElHomographie &   cImagH::Hi2t() 
+cElHomographie &   cImagH::Hi2t()
 {
    return mHi2t;
 }
@@ -258,7 +258,7 @@ const std::string & cImagH::Name() const
 }
 
 void cImagH::AddOnePtToExistingH(cPtHom * aH1,const Pt2dr & aP1,cImagH * aI2,const Pt2dr & aP2)
-{ 
+{
     aH1->AddMesureInImage(aI2,aP2);
     // aI2->mMapH[aP2] = aH1;
 }
@@ -269,7 +269,7 @@ void  cImagH::FusionneIn(cPtHom *aH1,const Pt2dr & aP1,cImagH *aI2,cPtHom *aH2,c
 
    aH1->OkAbsorb(aH2);
    // aI2->mMapH[aP2] = aH1;
-   // if 
+   // if
 }
 
 void  cImagH::SetPHom(const Pt2dr & aP,cPtHom * aH)
@@ -318,7 +318,7 @@ void  cImagH::ComputePtsLink(cLink2Img & aLnk)
     const ElPackHomologue & aPack = aLnk.Pack();
 
     // std::cout << "    LNK " << aLnk.NameH() << "  " << aPack.size() << "\n";
-    for 
+    for
     (
        ElPackHomologue::const_iterator itP=aPack.begin();
        itP != aPack.end();
@@ -337,7 +337,7 @@ void cImagH::ComputePts()
 
 
     //  D'abod on complete avec les arcs
-    for ( tSetLinks::iterator itL=mLnks.begin(); itL!=mLnks.end(); itL++)
+    for ( tMapName2Link::iterator itL=mLnks.begin(); itL!=mLnks.end(); itL++)
     {
         ComputePtsLink(*(itL->second));
     }
@@ -354,7 +354,7 @@ cAppliReduc &     cImagH::Appli()
    return mAppli;
 }
 
-const tSetLinks & cImagH::Lnks() const
+const tMapName2Link & cImagH::Lnks() const
 {
    return mLnks;
 }
@@ -363,33 +363,33 @@ NS_RHH_END
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant Ã  la mise en
+Ce logiciel est un programme informatique servant à la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est rÃ©gi par la licence CeCILL-B soumise au droit franÃ§ais et
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusÃ©e par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilitÃ© au code source et des droits de copie,
-de modification et de redistribution accordÃ©s par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitÃ©e.  Pour les mÃªmes raisons,
-seule une responsabilitÃ© restreinte pÃ¨se sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concÃ©dants successifs.
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
 
-A cet Ã©gard  l'attention de l'utilisateur est attirÃ©e sur les risques
-associÃ©s au chargement,  Ã  l'utilisation,  Ã  la modification et/ou au
-dÃ©veloppement et Ã  la reproduction du logiciel par l'utilisateur Ã©tant 
-donnÃ© sa spÃ©cificitÃ© de logiciel libre, qui peut le rendre complexe Ã  
-manipuler et qui le rÃ©serve donc Ã  des dÃ©veloppeurs et des professionnels
-avertis possÃ©dant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invitÃ©s Ã  charger  et  tester  l'adÃ©quation  du
-logiciel Ã  leurs besoins dans des conditions permettant d'assurer la
-sÃ©curitÃ© de leurs systÃ¨mes et ou de leurs donnÃ©es et, plus gÃ©nÃ©ralement, 
-Ã  l'utiliser et l'exploiter dans les mÃªmes conditions de sÃ©curitÃ©. 
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+manipuler et qui le réserve donc à des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accÃ©der Ã  cet en-tÃªte signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez acceptÃ© les
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
