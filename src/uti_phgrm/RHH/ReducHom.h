@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -43,9 +43,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define  NS_RHH_USE using namespace RHH;
 
 #else
-#define  NS_RHH_BEGIN 
-#define  NS_RHH_END 
-#define  NS_RHH_USE 
+#define  NS_RHH_BEGIN
+#define  NS_RHH_END
+#define  NS_RHH_USE
 #endif
 
 
@@ -68,13 +68,13 @@ NS_RHH_BEGIN
    C- Si I1(P1) et I2(P2) existent et c'est le meme point multiple,
       on incremente le compteur  d'arc du point multiple et c'est tout;
 
-   D- Si I1(P1) et I2(P2) existent sur des point multiples differents  M1 
+   D- Si I1(P1) et I2(P2) existent sur des point multiples differents  M1
       et M2:
 
        D-1 : Si    Image(M1 ) Inter Image(M2) = Vide alors
             on fusionne M1 et M2
 
-       D-2 : Sinon une incoherence est detectee, pour l'instant on ne 
+       D-2 : Sinon une incoherence est detectee, pour l'instant on ne
              fait rien, il sont tout les deux marques comme incoherent
 
 
@@ -99,10 +99,10 @@ class cPhIndexed;     // Pt Hom en cours de traitement
 class cIndexImag;    // Structure temporaire pour analyser les point d'une nouvelle image
 class cAppliReduc;    // Structure temporaire pour analyser les point d'une nouvelle image
 
-typedef std::map<cImagH *,cLink2Img *> tSetLinks;
+typedef std::map<cImagH *,cLink2Img *> tMapName2Link;
 
   //======================================
-  //           cPtHom      
+  //           cPtHom
   //======================================
 
 
@@ -160,13 +160,13 @@ class cPtHom
 
      The objective of the homography computation is to compute for each image,
    a homography from the image to a common ground. It is named :
- 
+
          *  mHi2t  (i2t = Image to Terrain, Terrain=ground in french)
 
 
-      This homography for each images has to be computed from the 
+      This homography for each images has to be computed from the
    homograohy between pair of images :
-    
+
       Let HA2T et HB2T  be the homgraphy from images A,B to Ground
       Let  HA2B be the homgraphy from A to B (computed from Tie point, the mHom12 from
       cLink2Img),
@@ -183,8 +183,8 @@ class cPtHom
 
 
   //======================================
-  //           cLink2Img      
-  //           cImagH      
+  //           cLink2Img
+  //           cImagH
   //======================================
 
 /*
@@ -220,7 +220,7 @@ class cLink2Img  // dans cImagH.cpp
         cEqHomogFormelle * &  EqHF();
     private :
        void LoadPack();
-        
+
         cLink2Img(const cLink2Img &) ; // N.I.
         int      mNbPts;
         int      mNbPtsAttr;
@@ -232,8 +232,8 @@ class cLink2Img  // dans cImagH.cpp
         cElHomographie mHom12;
         bool            mPckLoaded;
         ElPackHomologue mPack;
-        
-        std::vector<Pt3dr> mEchantP1; 
+
+        std::vector<Pt3dr> mEchantP1;
         cEqHomogFormelle * mEqHF;
 };
 
@@ -272,7 +272,7 @@ class cImagH
          cAppliReduc &    Appli();
          int & NumTmp();
          cHomogFormelle *  & HF();
-         const tSetLinks & Lnks() const;
+         const tMapName2Link & Lnks() const;
      private :
 
 
@@ -285,7 +285,7 @@ class cImagH
          void ComputePtsLink(cLink2Img & aLnk);
 
          std::map<Pt2dr,cPtHom *>   mMapH;  // Liste des Hom deja trouves via les prec
-         tSetLinks                  mLnks;
+         tMapName2Link                  mLnks;
          std::string                mName;
          cAppliReduc &              mAppli;
          int                        mNum;
@@ -302,7 +302,7 @@ class cImagH
 
 
   //======================================
-  //           cIndexImag      
+  //           cIndexImag
   //======================================
 
 
@@ -342,11 +342,12 @@ class cAppliReduc
 
          void  QuadrReestimFromVois(std::vector<cImagH*> & aVI,int aFlag);
 
-		 // the two version of TestMerge() found during the merge of binaries
+         // the two version of TestMerge() found during the merge of binaries
          void TestMerge_SimulMerge();
          void TestMerge_CalcHcImage();
 
          void ComputePts();
+         void ComputeHom();
      private :
 
          void CreateIndex();
@@ -370,7 +371,7 @@ class cAppliReduc
          const cInterfChantierNameManipulateur::tSet * mSetNameHom;
          std::string  mKeyHomol;
          std::string  mKeyH2I;
-         
+
 
          std::vector<cImagH *>  mIms;
          std::map<std::string,cImagH *>  mDicoIm;
@@ -420,33 +421,33 @@ NS_RHH_END
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant Ã  la mise en
+Ce logiciel est un programme informatique servant à la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est rÃ©gi par la licence CeCILL-B soumise au droit franÃ§ais et
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusÃ©e par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilitÃ© au code source et des droits de copie,
-de modification et de redistribution accordÃ©s par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitÃ©e.  Pour les mÃªmes raisons,
-seule une responsabilitÃ© restreinte pÃ¨se sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concÃ©dants successifs.
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
 
-A cet Ã©gard  l'attention de l'utilisateur est attirÃ©e sur les risques
-associÃ©s au chargement,  Ã  l'utilisation,  Ã  la modification et/ou au
-dÃ©veloppement et Ã  la reproduction du logiciel par l'utilisateur Ã©tant 
-donnÃ© sa spÃ©cificitÃ© de logiciel libre, qui peut le rendre complexe Ã  
-manipuler et qui le rÃ©serve donc Ã  des dÃ©veloppeurs et des professionnels
-avertis possÃ©dant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invitÃ©s Ã  charger  et  tester  l'adÃ©quation  du
-logiciel Ã  leurs besoins dans des conditions permettant d'assurer la
-sÃ©curitÃ© de leurs systÃ¨mes et ou de leurs donnÃ©es et, plus gÃ©nÃ©ralement, 
-Ã  l'utiliser et l'exploiter dans les mÃªmes conditions de sÃ©curitÃ©. 
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+manipuler et qui le réserve donc à des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accÃ©der Ã  cet en-tÃªte signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez acceptÃ© les
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
