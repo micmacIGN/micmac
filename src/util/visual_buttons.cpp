@@ -2,32 +2,18 @@
 
 #include "general/visual_buttons.h"
 
-#include <iostream>
-
-
 int selectionButton::buttonNumber=0;
 
-selectionButton::selectionButton(QWidget *parent)
+selectionButton::selectionButton(QString text, QWidget *parent)
     : QPushButton(parent),
       unique_id(buttonNumber++)
 {
-    connect(this,SIGNAL(clicked()),this,SLOT(onClick()));
-}
-
-selectionButton::selectionButton(QString text, QWidget *parent):
-    selectionButton(parent)
-{
     setText(text);
-}
-
-selectionButton::~selectionButton()
-{
-
+    connect(this,SIGNAL(clicked()),this,SLOT(onClick()));
 }
 
 void selectionButton::onClick()
 {
-    //std::cout<<"bouton unique_id: "<<unique_id<<std::endl;
     emit my_click(unique_id);
 }
 

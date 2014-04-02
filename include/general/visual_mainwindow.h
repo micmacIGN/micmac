@@ -3,8 +3,6 @@
 
 #if(ELISE_QT5)
 
-
-
 #include "StdAfx.h"
 
 #ifdef Int
@@ -24,6 +22,8 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QMessageBox>
+
+#include "general/visual_buttons.h"
 
 using namespace std;
 
@@ -45,6 +45,7 @@ public:
     cMMSpecArg  Arg()       { return mArg;    }
     int         Type();
     vector < pair < int, QWidget*> >    Widgets()    { return vWidgets; }
+    int         NbWidgets() { return vWidgets.size(); }
 
 private:
     cMMSpecArg  mArg;
@@ -59,8 +60,8 @@ public:
     visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent = 0);
     ~visual_MainWindow();
 
+    void add_label     (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_combo     (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_comment   (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_select    (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_spinBox   (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_2SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
@@ -75,8 +76,11 @@ public:
 
     void addGridLayout(vector<cMMSpecArg>& aVA, QString pageName);
 
-    void getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
-    void getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
+    bool getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
+    bool getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
+
+    QDoubleSpinBox* create_dSpinBox(QGridLayout*, QWidget*, int, int, cMMSpecArg);
+    QSpinBox *create_SpinBox(QGridLayout*, QWidget*, int, int, cMMSpecArg);
 
 public slots:
 

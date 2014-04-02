@@ -90,8 +90,8 @@ INCLUDE (${XINTER_DIR}/Sources.cmake)
 INCLUDE (${POISSON_DIR}/Sources.cmake)
 
 if(${WITH_ETALONPOLY})
-	INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)
-	set( LIB_ETAL_POLYG libEtalPolyg )
+        INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)
+        set( LIB_ETAL_POLYG libEtalPolyg )
 endif()
 
 # ORGANISATION des en-tetes ELISE et fichiers Xml
@@ -105,18 +105,18 @@ list(APPEND IncFiles ${QssFiles})
 
 # Construction de l'arborescence des fichiers INCLUDE
 foreach(source_file ${IncFiles})
-	get_filename_component(VarName ${source_file}  ABSOLUTE)
-	get_filename_component(NameFile ${source_file}  NAME)
+        get_filename_component(VarName ${source_file}  ABSOLUTE)
+        get_filename_component(NameFile ${source_file}  NAME)
 
-	string(REGEX REPLACE "/${NameFile}" "" includeTree ${VarName})
-	string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
-	string(REGEX REPLACE "/" "\\\\\\\\" includeTree ${includeTree})
-	source_group("${includeTree}" FILES ${source_file})
+        string(REGEX REPLACE "/${NameFile}" "" includeTree ${VarName})
+        string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
+        string(REGEX REPLACE "/" "\\\\\\\\" includeTree ${includeTree})
+        source_group("${includeTree}" FILES ${source_file})
 endforeach(source_file)
 
 if(${CUDA_ENABLED})
-	 file(GLOB_RECURSE IncFilesGpGpu ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
-	 list(REMOVE_ITEM IncFiles ${IncFilesGpGpu})
+         file(GLOB_RECURSE IncFilesGpGpu ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
+         list(REMOVE_ITEM IncFiles ${IncFilesGpGpu})
 endif()
 
 # OPTION BUILD : En tetes precompiles visual studio
@@ -125,16 +125,16 @@ enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
 
 # fichiers qui n'utilisent pas les en tetes precompilées
 set(Elise_Src_Files
-	${Elise_Src_Files}
-	${UTIL_DIR}/win_regex.c
-	${TIFF_DIR}/el_dcraw.c
-	${OPTIM_DIR}/opt_mat_creuse.cpp
-	${OPTIM_DIR}/opt_sysl2.cpp
-	${MULLGES_DIR}/mubasic.cpp
-	${MULLGES_DIR}/muflaguer.cpp
-	${MULLGES_DIR}/mufmueller.cpp
-	${MULLGES_DIR}/muvmblock.cpp
-	${ORIPHO_DIR}/cOriMntCarto.cpp
+        ${Elise_Src_Files}
+        ${UTIL_DIR}/win_regex.c
+        ${TIFF_DIR}/el_dcraw.c
+        ${OPTIM_DIR}/opt_mat_creuse.cpp
+        ${OPTIM_DIR}/opt_sysl2.cpp
+        ${MULLGES_DIR}/mubasic.cpp
+        ${MULLGES_DIR}/muflaguer.cpp
+        ${MULLGES_DIR}/mufmueller.cpp
+        ${MULLGES_DIR}/muvmblock.cpp
+        ${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
 set(libElise elise)
@@ -152,9 +152,9 @@ if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
 #        include_directories( ${Qt5_INCLUDES})
         include_directories(${Qt5Widgets_INCLUDE_DIRS})
         include_directories(${Qt5Core_INCLUDE_DIRS})
-		include_directories(${Qt5Concurrent_INCLUDE_DIRS})
-		include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-		include_directories(${Qt5Xml_INCLUDE_DIRS})
+                include_directories(${Qt5Concurrent_INCLUDE_DIRS})
+                include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+                include_directories(${Qt5Xml_INCLUDE_DIRS})
 
      # Use the compile definitions defined in the Qt 5 Widgets module
      add_definitions(${Qt5Widgets_DEFINITIONS})
@@ -163,6 +163,8 @@ if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
     endif()
+elseif( ${qt_version} EQUAL 4 )
+    #add_definitions(-DELISE_QT5=1)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
 endif()
@@ -173,13 +175,13 @@ if(${CUDA_ENABLED})
     INCLUDE (GpGpu.cmake)
 else()
     add_library( elise ${Elise_Src_Files} ${IncFiles} )
-    
+
     if(WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
         qt5_use_modules(elise Widgets Core Gui Xml)
     endif()
 
     #target_link_libraries(${Qt5Widgets_LIBRARIES})
-    
+
     INSTALL(TARGETS elise ARCHIVE DESTINATION ${Install_Dir_lib} )
 endif()
 

@@ -23,7 +23,7 @@ protected:
 
     cAppli_SaisiePts* mAppli() const;
 
-    cQT_Interface*   interface();
+    cQT_Interface*   getInterface();
 };
 
 class ModelPointGlobal : public QAbstractTableModel

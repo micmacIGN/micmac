@@ -80,7 +80,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     LArgMain()  << EAMC(aNameNuage,"Name of XML file", eSAM_IsExistFile),
     LArgMain()  << EAM(aSz,"Sz",true,"Sz (to crop)")
                     << EAM(aP0,"P0",true,"Origin (to crop)")
-                    << EAM(aNameOut,"Out",true,"Name of refult (default toto.xml => toto.ply)")
+                    << EAM(aNameOut,"Out",true,"Name of result (default toto.xml => toto.ply)")
                     << EAM(aSc,"Scale",true,"Do change the scale of result (def=1, 2 mean smaller)")
                     << EAM(anAttr1,"Attr",true,"Image to colour the point")
                     << EAM(aVCom,"Comments",true,"Commentary to add in the ply file (Def=None)" )
