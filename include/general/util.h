@@ -1185,8 +1185,13 @@ void RequireBin
      );
 
 int System(const std::string & aCom,bool aSVP=false,bool AddOptGlob=false,bool UseTheNbIterProcess=false);
+// For top call like Tapas, Malt , .. want to dulicate args in @
+int TopSystem(const std::string & aComOri);
 
 void  EliseVerifAndParseArgcArgv(int argc,char ** argv);
+
+
+
 
 
 class cAppliBatch

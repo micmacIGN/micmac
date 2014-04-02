@@ -401,7 +401,7 @@ int Tapas_main(int argc,char ** argv)
 
    // std::cout << "Com = " << aCom << "\n";
    int aRes = 0;
-   aRes = ::System(aCom.c_str(),false,true,true);
+   aRes = TopSystem(aCom);
 /*
    if (MajickTest)
    {

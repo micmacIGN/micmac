@@ -99,7 +99,7 @@ class cPhIndexed;     // Pt Hom en cours de traitement
 class cIndexImag;    // Structure temporaire pour analyser les point d'une nouvelle image
 class cAppliReduc;    // Structure temporaire pour analyser les point d'une nouvelle image
 
-typedef std::map<cImagH *,cLink2Img *> tSetLinks;
+typedef std::map<cImagH *,cLink2Img *> tMapName2Link;
 
   //======================================
   //           cPtHom      
@@ -272,7 +272,7 @@ class cImagH
          cAppliReduc &    Appli();
          int & NumTmp();
          cHomogFormelle *  & HF();
-         const tSetLinks & Lnks() const;
+         const tMapName2Link & Lnks() const;
      private :
 
 
@@ -285,7 +285,7 @@ class cImagH
          void ComputePtsLink(cLink2Img & aLnk);
 
          std::map<Pt2dr,cPtHom *>   mMapH;  // Liste des Hom deja trouves via les prec
-         tSetLinks                  mLnks;
+         tMapName2Link                  mLnks;
          std::string                mName;
          cAppliReduc &              mAppli;
          int                        mNum;
@@ -347,6 +347,7 @@ class cAppliReduc
          void TestMerge_CalcHcImage();
 
          void ComputePts();
+         void ComputeHom();
      private :
 
          void CreateIndex();

@@ -98,8 +98,8 @@ void cParamMerge::OnNewMerge(tNodIm * aN1)
 
 void cParamMerge::Vois(cImagH* anIm,std::vector<cImagH *> & aV)
 {
-    const tSetLinks & aLnks = anIm->Lnks();
-    for (tSetLinks::const_iterator  itL=aLnks.begin(); itL!=aLnks.end(); itL++)
+    const tMapName2Link & aLnks = anIm->Lnks();
+    for (tMapName2Link::const_iterator  itL=aLnks.begin(); itL!=aLnks.end(); itL++)
     {
          aV.push_back(itL->second->Dest());
     }

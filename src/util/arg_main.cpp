@@ -844,6 +844,12 @@ std::string StrFromArgMain(const std::string & aStr)
 /*                                                     */
 /*******************************************************/
 
+int TopSystem(const std::string & aCom)
+{
+   return::System(aCom,false,true,true);
+
+}
+
 int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIterProcess)
 {
     std::string aCom = aComOri;

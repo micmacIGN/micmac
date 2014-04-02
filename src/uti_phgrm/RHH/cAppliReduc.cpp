@@ -133,7 +133,7 @@ std::string cAppliReduc::KeyHIn(const std::string & aKeyGen) const
 
 
 
-void cAppliReduc::ComputePts()
+void cAppliReduc::ComputeHom()
 {
    // Read homologous point and compute homography per pair
     for (int aK=0 ; aK<int(mIms.size()) ; aK++)
@@ -152,8 +152,8 @@ void cAppliReduc::ComputePts()
     for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {
         cImagH * anI1 =  mIms[aK];
-        const tSetLinks & aLL = anI1->Lnks();
-        for (tSetLinks::const_iterator itL = aLL.begin(); itL != aLL.end(); itL++)
+        const tMapName2Link & aLL = anI1->Lnks();
+        for (tMapName2Link::const_iterator itL = aLL.begin(); itL != aLL.end(); itL++)
         {
             cImagH * anI2 = itL->second->Dest();
             itL->second->EqHF() = mSetEq.NewEqHomog(SpaceInit,*(anI1->HF()),*(anI2->HF()),0,false);
@@ -171,8 +171,8 @@ void cAppliReduc::ComputePts()
         cImagH * anI1 =  mIms[aK];
         cHomogFormelle *  aHF1 = anI1->HF();
 
-        const tSetLinks & aLL = anI1->Lnks();
-        for (tSetLinks::const_iterator itL = aLL.begin(); itL != aLL.end(); itL++)
+        const tMapName2Link & aLL = anI1->Lnks();
+        for (tMapName2Link::const_iterator itL = aLL.begin(); itL != aLL.end(); itL++)
         {
             cImagH * anI2 = itL->second->Dest();
             cHomogFormelle *  aHF2 = anI2->HF();
@@ -190,9 +190,15 @@ void cAppliReduc::ComputePts()
 
    mSetEq.SetClosed();
 
-    // Init Noyau
+    // Cree l'arbre  de fusion hierarchique
     TestMerge_CalcHcImage();
+}
 
+
+void cAppliReduc::ComputePts()
+{
+
+    // Create the multiple tie points structure
     for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {
          ClearIndex();
@@ -214,6 +220,7 @@ const std::string & cAppliReduc::Dir() const
 
 void cAppliReduc::DoAll()
 {
+    ComputeHom();
     ComputePts();
     cPtHom::ShowAll();
 }
@@ -253,7 +260,7 @@ int RHH_main(int argc,char **argv)
    std::cout << "RHH begin \n";
    cAppliReduc anAppli(argc,argv);
 
-   anAppli.ComputePts();
+   anAppli.ComputeHom();
 
    std::cout << "RHH end \n";
    return EXIT_SUCCESS;

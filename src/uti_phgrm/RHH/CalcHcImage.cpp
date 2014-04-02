@@ -49,6 +49,10 @@ NS_RHH_BEGIN
 /*                                               */
 /*************************************************/
 
+
+/*  Read tie points if necessary, estimate the homography and the quality
+*/
+
 bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
 {
    // const ElPackHomologue aPack=ElPackHomologue::FromFile(mAppli.Dir()+aLnk.NameH());
@@ -78,8 +82,8 @@ bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
 
 void cImagH::ComputeLnkHom()
 {
-    tSetLinks  aNewL;
-    for ( tSetLinks::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+    tMapName2Link  aNewL;
+    for ( tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
     {
         if (ComputeLnkHom(*(itL->second)))
            aNewL[itL->first] = itL->second ;
@@ -93,7 +97,7 @@ void cImagH::ComputeLnkHom()
     {
        mSomQual /= mSomNbPts;
        double aSeuilQual = mSomQual*mAppli.RatioQualMoy();
-       for (tSetLinks::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+       for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
        {
            bool Ok = itL->second->Qual() < aSeuilQual;
            if (Ok)
@@ -127,7 +131,7 @@ void cImagH::VoisinsNonMarques(const std::vector<cImagH*> & aIn,std::vector<cIma
    for (int aKS=0 ; aKS<int(aIn.size()) ; aKS++)
    {
        cImagH * aIK1 = aIn[aKS];
-       for (tSetLinks::iterator itL1 = aIK1->mLnks.begin(); itL1 != aIK1->mLnks.end(); itL1++)
+       for (tMapName2Link::iterator itL1 = aIK1->mLnks.begin(); itL1 != aIK1->mLnks.end(); itL1++)
        {
             cImagH * aImTest  = itL1->second->Dest();
             if ((! aImTest->Marqued(aFlagN)) && (! aImTest->Marqued(aFlagT)))
@@ -144,7 +148,7 @@ void cImagH::VoisinsNonMarques(const std::vector<cImagH*> & aIn,std::vector<cIma
 void cImagH::VoisinsMarques(std::vector<cLink2Img*> & aVois,int aFlagN)
 {
     aVois.clear();
-    for ( tSetLinks::iterator itL = mLnks.begin(); itL != mLnks.end(); itL ++)
+    for ( tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL ++)
     {
         cImagH * aI2  = itL->second->Dest();
         if (aI2->Marqued(aFlagN))
@@ -187,8 +191,8 @@ void  cAppliReduc::QuadrReestimFromVois(std::vector<cImagH*> & aVLocIm,int aFlag
          for (int aK=0 ; aK<int(aVLocIm.size()) ; aK++)
          {
              cImagH * anI1 =  aVLocIm[aK];
-             const tSetLinks & aLL = anI1->Lnks();
-             for (tSetLinks::const_iterator itL = aLL.begin(); itL != aLL.end(); itL++)
+             const tMapName2Link & aLL = anI1->Lnks();
+             for (tMapName2Link::const_iterator itL = aLL.begin(); itL != aLL.end(); itL++)
              {
                  cImagH * anI2 = itL->second->Dest();
                  if (anI2->Marqued(aFlag)) 

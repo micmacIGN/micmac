@@ -213,7 +213,7 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
 
 cLink2Img * cImagH::GetLinkOfImage(cImagH* anI2)
 {
-   tSetLinks::iterator anIt = mLnks.find(anI2);
+   tMapName2Link::iterator anIt = mLnks.find(anI2);
    if (anIt==mLnks.end())
       return 0;
    return anIt->second;
@@ -337,7 +337,7 @@ void cImagH::ComputePts()
 
 
     //  D'abod on complete avec les arcs
-    for ( tSetLinks::iterator itL=mLnks.begin(); itL!=mLnks.end(); itL++)
+    for ( tMapName2Link::iterator itL=mLnks.begin(); itL!=mLnks.end(); itL++)
     {
         ComputePtsLink(*(itL->second));
     }
@@ -354,7 +354,7 @@ cAppliReduc &     cImagH::Appli()
    return mAppli;
 }
 
-const tSetLinks & cImagH::Lnks() const
+const tMapName2Link & cImagH::Lnks() const
 {
    return mLnks;
 }
