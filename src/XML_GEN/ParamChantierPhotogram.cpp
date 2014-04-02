@@ -68,6 +68,14 @@ eTypeTapas  Str2eTypeTapas(const std::string & aName)
       return eTT_FishEyeBasic;
    else if (aName=="eTT_FE_EquiSolBasic")
       return eTT_FE_EquiSolBasic;
+   else if (aName=="eTT_RadGen7x2")
+      return eTT_RadGen7x2;
+   else if (aName=="eTT_RadGen11x2")
+      return eTT_RadGen11x2;
+   else if (aName=="eTT_RadGen15x2")
+      return eTT_RadGen15x2;
+   else if (aName=="eTT_RadGen19x2")
+      return eTT_RadGen19x2;
    else if (aName=="eTT_NbVals")
       return eTT_NbVals;
   else
@@ -105,6 +113,14 @@ std::string  eToString(const eTypeTapas & anObj)
       return  "eTT_FishEyeBasic";
    if (anObj==eTT_FE_EquiSolBasic)
       return  "eTT_FE_EquiSolBasic";
+   if (anObj==eTT_RadGen7x2)
+      return  "eTT_RadGen7x2";
+   if (anObj==eTT_RadGen11x2)
+      return  "eTT_RadGen11x2";
+   if (anObj==eTT_RadGen15x2)
+      return  "eTT_RadGen15x2";
+   if (anObj==eTT_RadGen19x2)
+      return  "eTT_RadGen19x2";
    if (anObj==eTT_NbVals)
       return  "eTT_NbVals";
  std::cout << "Enum = eTypeTapas\n";
