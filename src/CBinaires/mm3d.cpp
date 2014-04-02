@@ -456,9 +456,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    // puisqu le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
    // bool aValInit_TheExitOnBrkp=TheExitOnBrkp;
    // TheExitOnBrkp=true;
-std::cout << "AVANT MMD_InitArgcArgv " << TheExitOnBrkp << "\n";
    MMD_InitArgcArgv( argc, argv );
-std::cout << "APRES  MMD_InitArgcArgv " << TheExitOnBrkp << "\n";
     // TheExitOnBrkp=true;
 
    // On reactive le blocage par defaut
