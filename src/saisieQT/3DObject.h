@@ -748,5 +748,5 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(cGLData::options)
 //====================================================================================
-
+void glDrawUnitCircle(uchar dim, float cx, float cy, float r = 3.0, int steps = 8);
 #endif //__3DObject__

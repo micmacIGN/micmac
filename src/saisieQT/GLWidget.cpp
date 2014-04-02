@@ -125,8 +125,8 @@ void GLWidget::paintEvent(QPaintEvent *event)
 {
     updateGL();
 
-    if (_widgetId >= 0) overlay();
-    else        drawCenter();
+   /* if (_widgetId >= 0) overlay();*/
+   // if (_widgetId < 0)        drawCenter();
 }
 
 void GLWidget::paintGL()
@@ -149,6 +149,9 @@ void GLWidget::paintGL()
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
 
             m_GLData->glImage().draw();
+
+		   /* if (_widgetId < 0)        
+				drawCenter();*/
         }
         else
         {
@@ -182,11 +185,13 @@ void GLWidget::overlay()
 #else
     QPainter painter(this);
     _painter = &painter;
-    m_GLData->setPainter(_painter);
+    if (hasDataLoaded()) m_GLData->setPainter(_painter);
 #endif
 
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
+		
+
         if (m_bDisplayMode2D)
         {
             float zoom = _vp_Params.m_zoom;
@@ -356,7 +361,9 @@ void GLWidget::setCursorShape(QPointF pos)
 
 void GLWidget::drawCenter()
 {
-    QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
+	//TODO: glDrawUnitCircle(2, 0.5f, 0.5f, 5.f);
+
+    /*QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
 
     QPainter p;
     p.begin(this);
@@ -367,7 +374,7 @@ void GLWidget::drawCenter()
 
     p.drawEllipse(center,5,5);
     p.drawEllipse(center,1,1);
-    p.end();
+    p.end();*/
 }
 
 
@@ -643,7 +650,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         m_lastPosWindow = event->pos();
 
-        //update();
+        update();
     }
 }
 
