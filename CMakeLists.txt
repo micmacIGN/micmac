@@ -265,6 +265,7 @@ IF(${WITH_IGN_ORI} OR ${WITH_IGN_IMAGE})
 
 	#add_definitions( "-DBOOST_THREAD_USE_LIB" )
 	add_definitions( "-DBOOST_TYPEOF_COMPLIANT" )
+	add_definitions( "-DBoost_USE_STATIC_LIBS" )
 	SET(Boost_USE_MULTITHREADED ON)
 	SET(Boost_USE_STATIC_LIBS ON)
 	
