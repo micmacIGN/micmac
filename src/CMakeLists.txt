@@ -186,7 +186,7 @@ else()
 endif()
 
 # OPTION BUILD : En tetes precompilees pour gcc
-enable_precompiled_headers_GCC(StdAfx.h ${libElise} ${CMAKE_CXX_FLAGS})
+#enable_precompiled_headers_GCC(StdAfx.h ${libElise} ${CMAKE_CXX_FLAGS})
 
 # DEFINITION
 add_definitions(-DNO_JPEG -DNO_LCMS)

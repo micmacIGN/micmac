@@ -43,6 +43,8 @@
            <eTT_RadGen11x2> </eTT_RadGen11x2>
            <eTT_RadGen15x2> </eTT_RadGen15x2>
            <eTT_RadGen19x2> </eTT_RadGen19x2>
+<!--
+-->
 
            <eTT_NbVals> </eTT_NbVals>
    </enum>
