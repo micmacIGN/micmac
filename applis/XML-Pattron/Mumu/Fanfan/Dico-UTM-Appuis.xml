@@ -1,0 +1,115 @@
+<?xml version="1.0" ?>
+<Global>
+     <DicoAppuisFlottant>
+          <OneAppuisDAF>
+               <Pt>731204.565991628333 7543341.07536718901 0.720005298273576955</Pt>
+               <NamePt>EMPEREUR</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>731275.30596819683 7543564.54798136838 -8.99999470396573997</Pt>
+               <NamePt>EMPEREUR1</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>731368.579434046638 7543525.24350809027 -8.9999947030344174</Pt>
+               <NamePt>EMPEREUR2</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>731204.566590787377 7543341.06729736459 -8.99999470117177225</Pt>
+               <NamePt>EMPEREUR_CHECK</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>735655.520147613599 7540274.75583771896 -0.599994654705596986</Pt>
+               <NamePt>FREGATE</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>735560.09300316486 7540681.77927846741 -8.99999465833093382</Pt>
+               <NamePt>FREGATE1</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>735438.265662244521 7540662.59057064168 -8.99999465833093382</Pt>
+               <NamePt>FREGATE2</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>736347.482372992206 7539779.49891966395 -8.9999946443610952</Pt>
+               <NamePt>FREGATE3</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>730617.19053573464 7537800.53886292875 -8.99999460897083736</Pt>
+               <NamePt>HOTEL1</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>729681.739827712649 7539623.29084847495 -8.99999463970448232</Pt>
+               <NamePt>HOTEL2</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>729776.906920813723 7539756.14524294157 -8.99999464342977262</Pt>
+               <NamePt>HOTEL3</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>733704.217624719953 7542479.10848197248 2.42000531196811153</Pt>
+               <NamePt>KILO</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>732733.623985984479 7543530.37135662604 -8.99999470582838512</Pt>
+               <NamePt>KILO1</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>733521.274648144608 7542979.96557919774 -8.99999469651515938</Pt>
+               <NamePt>KILO2</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>733472.138942656573 7542931.26606979221 -8.99999469465251423</Pt>
+               <NamePt>KILO3</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>734572.688452920062 7541765.5333673805 -8.99999467509474016</Pt>
+               <NamePt>KILO4</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>732529.790796168265 7535481.97021701559 0.390005427841060737</Pt>
+               <NamePt>MARVI</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>728696.511775365914 7540743.09826322645 -0.729994659938256518</Pt>
+               <NamePt>PAVILLON</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>728686.414040531148 7541782.01970321778 -8.99999467602606273</Pt>
+               <NamePt>PINGOUIN1</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>729578.216802879004 7542597.68259168416 -8.99999468906457878</Pt>
+               <NamePt>PINGOUIN2</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>729674.854142085183 7542525.18220207468 -8.99999468720193363</Pt>
+               <NamePt>PINGOUIN3</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>730656.918794116238 7543266.56169522181 -8.99999470117177225</Pt>
+               <NamePt>PINGOUIN4</NamePt>
+               <Incertitude>0.200000000000000011 0.200000000000000011 0.5</Incertitude>
+          </OneAppuisDAF>
+     </DicoAppuisFlottant>
+</Global>
