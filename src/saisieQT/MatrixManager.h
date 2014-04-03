@@ -63,7 +63,7 @@ public:
     QPointF     WindowToImage(const QPointF &winPt, float zoom);
 
     //! Project a point from image to window
-    //QPointF     ImageToWindow(const QPointF &imPt, float zoom);
+    QPointF     ImageToWindow(const QPointF &imPt, float zoom);
 
     static void mglOrtho( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val );
 

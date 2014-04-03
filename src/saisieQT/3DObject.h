@@ -641,7 +641,7 @@ public:
 
     void        setDimensionImage(int iW,int iH);
 
-    void        setScale(int vW,int vH);
+    void        setScale(float vW, float vH);
 
     QString     imageName() { return _glMaskedImage.cObjectGL::name(); }
 
