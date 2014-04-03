@@ -71,7 +71,7 @@ cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool
 }
 
 //draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
-void glDrawUnitCircle(uchar dim, float cx, float cy, float r = 3.0, int steps = 8)
+void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 {
     float theta = 2.f * PI / float(steps);
     float c = cosf(theta); //precalculate the sine and cosine
