@@ -139,26 +139,22 @@ void GLWidget::paintGL()
     {
         if (m_bDisplayMode2D)
         {
-            m_GLData->setScale(vpWidth(),vpHeight());
+            m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f);
 
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
 
             m_GLData->glImage().draw();
 
-            //cout << "polygon size: " << m_GLData->polygonCount() << endl;
             for (int i = 0; i < m_GLData->polygonCount(); ++i)
             {
-                 //polygon(i)->draw();
+                 polygon(i)->draw();
+
                  cPolygon* polyg = polygon(i);
 
                  for (int aK=0; aK < polyg->size();++aK)
                  {
-                     float rx, ry;
-                     rx = 0.1f;
-                     ry = rx * vpWidth()/vpHeight();
-
-                     glDrawEllipse( 2.f*polyg->operator [](aK).x()/(float)vpWidth(),
-                                    2.f*polyg->operator [](aK).y()/(float)vpHeight(), rx, ry);
+                     QPointF wPt = _matrixManager.ImageToWindow( polyg->operator [](aK),_vp_Params.m_zoom);
+                     renderText ( wPt.x(), wPt.y(), polyg->operator [](aK).name() );
                  }
             }
 
@@ -413,7 +409,7 @@ void GLWidget::drawCenter()
                         (float) imHeight()/vpHeight(), 0.5f, 32);
 
     glDrawUnitCircle(2, (float) 2.f*imWidth()/vpWidth(),
-                        (float) 2.f*(imHeight() - imHeight())/vpHeight(), 0.5f, 32);/**/
+                        (float) 2.f*(imHeight() - imHeight())/vpHeight(), 0.5f, 32);*/
 
    /* QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
 

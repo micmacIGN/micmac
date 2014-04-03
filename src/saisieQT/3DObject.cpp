@@ -545,91 +545,83 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
 
 void cPoint::draw()
 {
-    /* setGLColor();
+    if (isVisible())
+    {
+        QColor color = getColor();
 
-     glDrawUnitCircle(2,  2.f*this->x()/(float)948,
-                          2.f*this->y()/(float)1664, 0.1f, 32);*/
+        if (!isSelected())
+        {
+            switch(_statePoint)
+            {
+            case eEPI_NonSaisi :
+                color = Qt::yellow;
+                break;
 
-  //   std::cout << "pt : " << this->x() << " " << this->y() << endl;
+            case eEPI_Refute :
+                color = Qt::red;
+                break;
+
+            case eEPI_Douteux :
+                color = QColor(255, 127, 0, 255);
+                break;
+
+            case eEPI_Valide :
+                color = Qt::green;
+                break;
+
+            case eEPI_Disparu  :
+            case eEPI_NonValue :
+                break;
+            }
+        }
+
+        glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
+
+        float rx, ry;
+        rx = _diameter *.05;
+        ry = rx * _scale.x/_scale.y;
+
+        glDrawEllipse( this->x()/(float)_scale.x,
+                       this->y()/(float)_scale.y, rx, ry);
+
+
+        if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
+        {
+            if (_bEpipolar)
+            {
+               /* QPointF epip1 = _painter->transform().map(_epipolar1);
+                QPointF epip2 = _painter->transform().map(_epipolar2);
+
+                _painter->drawLine(epip1, epip2);*/
+            }
+            else
+            {
+                rx = 2.f*rx;
+                ry = 2.f*ry;
+
+                glDrawEllipse( this->x()/(float)_scale.x,
+                               this->y()/(float)_scale.y, rx, ry);
+            }
+        }
+
+        if ((_bShowName) && (_name != ""))
+        {
+            //QFontMetrics metrics = QFontMetrics(_font);
+            //int border = (float) qMax(2, metrics.leading());
+            int border = 1;
+
+            QRect rect = QFontMetrics(_font).boundingRect(_name);
+
+            QRect rectg(this->x()-border, this->y()-border, rect.width()-border, rect.height()-border);
+            rectg.translate(QPoint(10, -rectg.height()-5));
 
 
 
-
-#if taratata
-
-     if ((_painter != NULL) && isVisible())
-     {
-         QPen penline(getColor());
-         penline.setCosmetic(true);
-         _painter->setPen(penline);
-
-         QPointF pt = _painter->transform().map((QPointF)*this);
-
-         _painter->setWorldMatrixEnabled(false);
-
-         if (!isSelected())
-         {
-             switch(_statePoint)
-             {
-             case eEPI_NonSaisi :
-                 _painter->setPen(Qt::yellow);
-                 break;
-
-             case eEPI_Refute :
-                 _painter->setPen(Qt::red);
-                 break;
-
-             case eEPI_Douteux :
-                 _painter->setPen(QColor(255, 127, 0, 255) );
-                 break;
-
-             case eEPI_Valide :
-                 _painter->setPen(Qt::green);
-                 break;
-
-             case eEPI_Disparu  :
-             case eEPI_NonValue :
-                 break;
-             }
-         }
-
-         _painter->drawEllipse(pt, _diameter, _diameter);
-
-         if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
-         {
-             if (_bEpipolar)
-             {
-                 QPointF epip1 = _painter->transform().map(_epipolar1);
-                 QPointF epip2 = _painter->transform().map(_epipolar2);
-
-                 _painter->drawLine(epip1, epip2);
-             }
-             else
-             {
-                 double r = 2.f*_diameter +1.f;
-                 _painter->drawEllipse(pt, r, r);
-             }
-         }
-
-         if ((_bShowName) && (_name != ""))
-         {
-             //QFontMetrics metrics = QFontMetrics(_font);
-             //int border = (float) qMax(2, metrics.leading());
-             int border = 1;
-
-             QRect rect = QFontMetrics(_font).boundingRect(_name);
-
-             QRect rectg(pt.x()-border, pt.y()-border, rect.width()-border, rect.height()-border);
-             rectg.translate(QPoint(10, -rectg.height()-5));
-
-             _painter->setPen(isSelected() ? Qt::black : Qt::white);
-             _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
-             _painter->drawText(rectg, Qt::AlignCenter /*| Qt::TextWordWrap*/, _name);
-         }
-
-         _painter->setWorldMatrixEnabled(true);
-     }
-#endif
+          /*  _painter->setPen(isSelected() ? Qt::black : Qt::white);
+            _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
+            _painter->drawText(rectg, Qt::AlignCenter, _name);*/
+        }
+    }
 }
 
 void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
@@ -691,9 +683,9 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
 
 void cPolygon::draw()
 {
-
-    for (int aK = 0;aK < _points.size(); ++aK)
+    for (int aK=0; aK < _points.size();++aK)
     {
+        _points[aK].setScale(_scale);
         _points[aK].draw();
     }
 
@@ -1280,7 +1272,7 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-    drawQuad(_originX, _originY, 2.f*width()/_scale.x, 2.f*height()/_scale.y, color);
+    drawQuad(_originX, _originY, width()/_scale.x, height()/_scale.y, color);
 }
 
 void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
@@ -1577,8 +1569,7 @@ int cGLData::polygonCount()
 void cGLData::initOptions()
 {
     _vPolygons.push_back(new cPolygon());
-//    m_VPolygons.push_back(new cPolygon());
-//    m_VPolygons[1]->setPointSize(2.f);
+//    _vPolygons[1]->setPointSize(2.f);
     _options = options(OpShow_Mess);
 }
 
@@ -1626,9 +1617,9 @@ void cGLData::draw()
     disableOptionLine();
 }
 
-void cGLData::setScale(int vW, int vH)
+void cGLData::setScale(float vW, float vH)
 {
-    Pt3dr scale((float)vW, (float) vH,0.f);
+    Pt3dr scale(vW, vH,0.f);
     _glMaskedImage.setScale(scale);
 
     for (int aK=0; aK < _vPolygons.size();++aK)

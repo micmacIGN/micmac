@@ -125,11 +125,11 @@ QPointF MatrixManager::WindowToImage(QPointF const &winPt, float zoom)
     return res;
 }
 
-/*QPointF MatrixManager::ImageToWindow(QPointF const &imPt, float zoom)
+QPointF MatrixManager::ImageToWindow(QPointF const &imPt, float zoom)
 {
     return QPointF (imPt.x()*zoom + .5f*_glViewport[2]*(1.f + _projMatrix[12]),
             - 1.f - imPt.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
-}*/
+}
 
 void MatrixManager::mglOrtho( GLdouble left, GLdouble right,
                GLdouble bottom, GLdouble top,
