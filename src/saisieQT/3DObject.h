@@ -64,14 +64,14 @@ class cObject
         QString name()          { return _name;     }
         Pt3dr   getPosition()   { return _position; }
         QColor  getColor();
-        float   getScale()      { return _scale;    }
+        Pt3dr   getScale()      { return _scale;    }
         bool    isVisible()     { return (state() != state_invible); }
         bool    isSelected()    { return (state() == state_selected);}
 
         void    setName(QString name)          { _name = name;     }
         void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
         void    setColor(QColor const &aCol,object_state state = state_default)   { _color[state] = aCol;    }
-        void    setScale(float aScale)         { _scale = aScale;  }
+        void    setScale(Pt3dr aScale)         { _scale = aScale; }
         void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
         void    setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
 
@@ -86,7 +86,7 @@ protected:
 
         Pt3dr   _position;
         QColor  _color[state_COUNT];
-        float   _scale;
+        Pt3dr   _scale;
 
         float   _alpha;
         object_state   _state;
@@ -151,7 +151,7 @@ private:
         float   _diameter;
         bool    _bShowName;
         int     _statePoint;
-        bool    _highlight;        
+        bool    _highlight;
 
         //! Default font
         QFont   _font;
@@ -174,7 +174,7 @@ class cCircle : public cObjectGL
 
     private:
 
-        int     _dim;
+        int     _dim; //plane in which circle is to be drawn (0=YZ, 1=XZ, 2=XY)
 };
 
 class cCross : public cObjectGL
@@ -198,7 +198,7 @@ class cBall : public cObjectGL
         void    setPosition(Pt3dr const &aPt);
         Pt3dr   getPosition();
         void    setVisible(bool aVis);
-        void    setScale(float aScale);
+        void    setScale(Pt3dr aScale);
 
         void    draw();
 
@@ -232,7 +232,7 @@ class cGrid : public cObjectGL
 class cBBox : public cObjectGL
 {
     public:
-        cBBox(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, Pt3dr min= Pt3dr(0.f,0.f,0.f), Pt3dr max= Pt3dr(1.f,1.f,1.f), float lineWidth = 1.f);
+        cBBox(Pt3dr pt = Pt3dr(0.f,0.f,0.f), Pt3dr min= Pt3dr(0.f,0.f,0.f), Pt3dr max= Pt3dr(1.f,1.f,1.f), float lineWidth = 1.f);
 
         void    draw();
 
@@ -417,12 +417,12 @@ class cImageGL : public cObjectGL
 
         void    drawQuad(QColor color);
 
-        static  void    drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color = Qt::white);
+        static  void    drawQuad(GLfloat originX, GLfloat originY, GLfloat glw, GLfloat glh, QColor color = Qt::white);
 
         void    draw();
 
-        void    setPosition(GLfloat originX, GLfloat originY);
-        void    setDimensions(GLfloat glh, GLfloat glw);
+        //void    setPosition(GLfloat originX, GLfloat originY);
+        //void    setDimensions(GLfloat glh, GLfloat glw);
 
         void    PrepareTexture(QImage *pImg);
 
@@ -454,8 +454,6 @@ private:
 
         GLfloat _originX;
         GLfloat _originY;
-        GLfloat _glh;
-        GLfloat _glw;
 
         QSize   _size;
 
@@ -512,10 +510,10 @@ public:
 
     cMaskedImageGL(QMaskedImage &qMaskedImage);
 
-    void setDimensions(float h, float w)
+    void setScale(Pt3dr aScale)
     {
-        _m_image->setDimensions(h,w);
-        _m_mask->setDimensions(h,w);
+        _m_image->setScale(aScale);
+        _m_mask->setScale(aScale);
     }
 
     void draw();
@@ -629,21 +627,23 @@ public:
 
     void        draw();
 
-    bool        is3D()                                  { return Clouds.size() || Cams.size();   }
+    bool        is3D()                                  { return _vClouds.size() || _vCams.size();   }
 
-    bool        isImgEmpty()                            { return glMaskedImage._m_image == NULL; }
+    bool        isImgEmpty()                            { return _glMaskedImage._m_image == NULL; }
 
-    QImage*     getMask()                               { return pQMask;     }
+    QImage*     getMask()                               { return _pQMask;     }
 
-    void        setPolygon(cPolygon *aPoly)             { m_VPolygons[0] = aPoly; }
+    void        setPolygon(cPolygon *aPoly)             { _vPolygons[0] = aPoly; }
 
     void        clearPolygon()                          { polygon()->clear(); }
 
-    bool        isNewMask()                             { return !isImgEmpty() ? glMaskedImage._m_newMask : true; }
+    bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
 
-    void        setDimensionImage(int vW,int vH);
+    void        setDimensionImage(int iW,int iH);
 
-    QString     imageName() { return glMaskedImage.cObjectGL::name(); }
+    void        setScale(int vW,int vH);
+
+    QString     imageName() { return _glMaskedImage.cObjectGL::name(); }
 
     //info coming from cData
     float       getBBoxMaxSize(){return _diam;}
@@ -700,7 +700,7 @@ public:
 
     cPolygon*   polygon(int id = 0);
 
-    GlCloud *   getCloud(int iC);
+    GlCloud*    getCloud(int iC);
 
     int         cloudCount();
 
@@ -708,35 +708,34 @@ public:
 
     int         polygonCount();
 
-    void        clearClouds(){ Clouds.clear();}
+    void        clearClouds(){ _vClouds.clear();}
 
-    cCam*       camera(int iC){return Cams[iC];}
+    cCam*       camera(int iC){return _vCams[iC];}
 
 private:
 
-    cMaskedImageGL      glMaskedImage;
+    cMaskedImageGL      _glMaskedImage;
 
-    QImage              *pQMask;
+    QImage*             _pQMask;
 
-    cBall               *pBall;
+    cBall*              _pBall;
 
-    cAxis               *pAxis;
+    cAxis*              _pAxis;
 
-    cBBox               *pBbox;
+    cBBox*              _pBbox;
 
-    cGrid               *pGrid;
+    cGrid*              _pGrid;
 
     Pt3dr               _center;
 
     bool                _modePt;
 
-    QVector<GlCloud*>   Clouds;
+    QVector<GlCloud*>   _vClouds;
 
-    QVector<cCam*>      Cams;
-
+    QVector<cCam*>      _vCams;
 
     //! Point list for polygonal selection
-    QVector<cPolygon*>  m_VPolygons;
+    QVector<cPolygon*>  _vPolygons;
 
     void        initOptions();
 
@@ -744,9 +743,12 @@ private:
 
     bool        _incFirstCloud;
 
+
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(cGLData::options)
 //====================================================================================
-void glDrawUnitCircle(uchar dim, float cx, float cy, float r = 3.0, int steps = 8);
+void glDrawUnitCircle(uchar dim, float cx = 0.f, float cy = 0.f, float r = 1.f, int steps = 128);
+void glDrawEllipse(float cx, float cy, float rx=3.f, float ry= 3.f, int steps = 32);
+
 #endif //__3DObject__

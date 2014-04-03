@@ -124,9 +124,6 @@ bool GLWidget::imageLoaded()
 void GLWidget::paintEvent(QPaintEvent *event)
 {
     updateGL();
-
-   /* if (_widgetId >= 0) overlay();*/
-   // if (_widgetId < 0)        drawCenter();
 }
 
 void GLWidget::paintGL()
@@ -142,16 +139,33 @@ void GLWidget::paintGL()
     {
         if (m_bDisplayMode2D)
         {
-            //TODO: virer dependance taille viewport / image Quad [1,1] puis scale dans glImage drawQuad()
-            m_GLData->setDimensionImage(vpWidth(),vpHeight());
-            //END TODO
+            m_GLData->setScale(vpWidth(),vpHeight());
 
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
 
             m_GLData->glImage().draw();
 
-		   /* if (_widgetId < 0)        
-				drawCenter();*/
+            //cout << "polygon size: " << m_GLData->polygonCount() << endl;
+            for (int i = 0; i < m_GLData->polygonCount(); ++i)
+            {
+                 //polygon(i)->draw();
+                 cPolygon* polyg = polygon(i);
+
+                 for (int aK=0; aK < polyg->size();++aK)
+                 {
+                     float rx, ry;
+                     rx = 0.1f;
+                     ry = rx * vpWidth()/vpHeight();
+
+                     glDrawEllipse( 2.f*polyg->operator [](aK).x()/(float)vpWidth(),
+                                    2.f*polyg->operator [](aK).y()/(float)vpHeight(), rx, ry);
+                 }
+            }
+
+            if (_widgetId < 0)
+                drawCenter();
+            else
+                overlay();
         }
         else
         {
@@ -180,7 +194,37 @@ void GLWidget::paintGL()
 
 void GLWidget::overlay()
 {
-#if ELISE_QT_VERSION==5
+    //TODO: cObject::cFrame ?
+    /*float z =0.;
+
+    QColor color(hasFocus() ? "#ffa02f" : "#707070");
+
+    QRect rect = this->rect();
+    QPoint shift(1,1);
+    rect.setTopLeft(rect.topLeft()+shift);
+    rect.setBottomRight(rect.bottomRight()-shift);
+
+    glColor3f(color.redF(),color.greenF(),color.blueF());
+
+    QPointF trf = _matrixManager.translateImgToWin(_vp_Params.m_zoom);
+    QPoint tr(trf.x()/vpWidth(), trf.y()/vpHeight());
+
+    cout << "translation: "<< tr.x() << " " << tr.y() << endl;
+
+    QPoint p0(rect.topLeft() -tr);
+    QPoint p1(rect.topRight()-tr);
+    QPoint p2(rect.bottomRight()-tr);
+    QPoint p3(rect.bottomLeft()-tr);
+
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(p0.x(),p0.y(),z);
+    glVertex3f(p1.x(),p1.y(),z);
+    glVertex3f(p2.x(),p2.y(),z);
+    glVertex3f(p3.x(),p3.y(),z);
+    glEnd();*/
+
+   // glTranslatef(tr.x(), tr.y(), 0.f);
+/*#if ELISE_QT_VERSION==5
     _painter->begin(this);
 #else
     QPainter painter(this);
@@ -190,7 +234,6 @@ void GLWidget::overlay()
 
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
-		
 
         if (m_bDisplayMode2D)
         {
@@ -213,7 +256,7 @@ void GLWidget::overlay()
         _painter->drawRect(rect);
     }
 
-    _painter->end();
+    _painter->end();*/
 }
 
 void GLWidget::setInteractionMode(int mode, bool showmessage)
@@ -361,9 +404,18 @@ void GLWidget::setCursorShape(QPointF pos)
 
 void GLWidget::drawCenter()
 {
-	//TODO: glDrawUnitCircle(2, 0.5f, 0.5f, 5.f);
+    //cout << "Img : " << imHeight() << " " << imWidth() << endl;
+    //cout << "VP  : " << vpHeight() << " " << vpWidth() << endl;
 
-    /*QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
+  /*  glDrawUnitCircle(2, 0.f, 2.f*(imHeight() - 0.f)/vpHeight(), 0.5f, 32);
+
+    glDrawUnitCircle(2, (float) imWidth()/vpWidth(),
+                        (float) imHeight()/vpHeight(), 0.5f, 32);
+
+    glDrawUnitCircle(2, (float) 2.f*imWidth()/vpWidth(),
+                        (float) 2.f*(imHeight() - imHeight())/vpHeight(), 0.5f, 32);/**/
+
+   /* QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
 
     QPainter p;
     p.begin(this);
@@ -524,9 +576,11 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             {
 
                 if(!polygon()->isClosed())             // ADD POINT
+                {
+                    cout << "m_lastPosImage: " << m_lastPosImage.x() << " " << m_lastPosImage.y() << endl;
 
                     polygon()->addPoint(m_lastPosImage);
-
+                }
                 else if (polygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
                     polygon()->insertPoint();

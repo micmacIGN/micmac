@@ -4,7 +4,7 @@
 cObject::cObject() :
     _name(""),
     _position(Pt3dr(0.f,0.f,0.f)),
-    _scale(1.f),
+    _scale(Pt3dr(1.f, 1.f,1.f)),
     _alpha(0.6f),
     _state(state_default)
 {
@@ -15,7 +15,7 @@ cObject::cObject() :
 
 cObject::cObject(Pt3dr pos, QColor color_default) :
     _name(""),
-    _scale(1.f),
+    _scale(Pt3dr(1.f, 1.f,1.f)),
     _alpha(0.6f),
     _state(state_default)
 {
@@ -44,7 +44,9 @@ cObject& cObject::operator =(const cObject& aB)
             _color[iC]     = aB._color[iC];
 
         _alpha     = aB._alpha;
-        _state     = aB.state();
+        _state     = aB._state;
+
+        _scale     = aB._scale;
     }
 
     return *this;
@@ -59,18 +61,17 @@ void cObject::setState(object_state state)
     _state = state;
 }
 
-
 cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
     _dim(dim)
 {
     setPosition(pt);
     cObject::setColor(col);
-    setScale(scale);
+    setScale(Pt3dr(scale,scale,scale));
     setLineWidth(lineWidth);
     cObject::setVisible(vis);
 }
 
-//draw a unit circle in a given plane (0=YZ, 1 = XZ, 2=XY)
+//draw a unit circle in a given plane (0=YZ, 1=XZ, 2=XY)
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 {
     float theta = 2.f * PI / float(steps);
@@ -103,6 +104,24 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
     glEnd();
 }
 
+//TODO: factoriser avec glDrawUnitCircle
+void glDrawEllipse(float cx, float cy, float rx, float ry, int steps)
+{
+    float theta = 2.f * PI / float(steps);
+
+    float x,y,z = 0.f;
+
+    glBegin(GL_LINE_LOOP);
+    for(float t = 0.f; t <= 2.f * PI; t+= theta)
+    {
+        x = cx + rx*sinf(t);
+        y = cy + ry*cosf(t);
+
+        glVertex3f(x,y,z);
+    }
+    glEnd();
+}
+
 void cCircle::draw()
 {
     glMatrixMode(GL_MODELVIEW);
@@ -117,14 +136,14 @@ void cCircle::draw()
 
     setGLColor();
 
-    glDrawUnitCircle(_dim, 0, 0, 1.f, 64);
+    glDrawUnitCircle(_dim);
 
     glPopAttrib();
 
     glEndList();
 
     glTranslatef(_position.x,_position.y,_position.z);
-    glScalef(_scale,_scale,_scale);
+    glScalef(_scale.x,_scale.y,_scale.z);
 
     glCallList(list);
 
@@ -136,7 +155,7 @@ cCross::cCross(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool v
 {
     setPosition(pt);
     cObject::setColor(col);
-    setScale(scale);
+    setScale(Pt3dr(scale, scale, scale));
     setLineWidth(lineWidth);
     cObject::setVisible(vis);
 }
@@ -183,7 +202,7 @@ void cCross::draw()
     glEndList();
 
     glTranslatef(_position.x,_position.y,_position.z);
-    glScalef(_scale,_scale,_scale);
+    glScalef(_scale.x,_scale.y,_scale.z);
 
     glCallList(list);
 
@@ -258,7 +277,7 @@ void cBall::setVisible(bool aVis)
     _cr2->setVisible(aVis);
 }
 
-void cBall::setScale(float aScale)
+void cBall::setScale(Pt3dr aScale)
 {
     _cl0->setScale(aScale);
     _cl1->setScale(aScale);
@@ -272,7 +291,7 @@ void cBall::setScale(float aScale)
 cAxis::cAxis(Pt3dr pt, float scale, float lineWidth)
 {
     _position = pt;
-    _scale    = scale;
+    _scale    = Pt3dr(scale, scale, scale);
     setLineWidth(lineWidth);
 }
 
@@ -307,7 +326,7 @@ void cAxis::draw()
         glEndList();
 
         glTranslatef(_position.x,_position.y,_position.z);
-        glScalef(_scale,_scale,_scale);
+        glScalef(_scale.x,_scale.y,_scale.z);
 
         glCallList(dihedron);
 
@@ -315,10 +334,9 @@ void cAxis::draw()
     }
 }
 
-cBBox::cBBox(Pt3dr pt, float scale, Pt3dr min, Pt3dr max, float lineWidth)
+cBBox::cBBox(Pt3dr pt, Pt3dr min, Pt3dr max, float lineWidth)
 {
     _position = pt;
-    _scale = scale;
     _min = min;
     _max = max;
 
@@ -411,7 +429,7 @@ cCam::cCam(CamStenope *pCam, float scale,  object_state state, float lineWidth) 
     _pointSize(5.f),
     _Cam(pCam)
 {
-    _scale = scale;
+    _scale = Pt3dr(scale, scale, scale);
 
     setState(state);
     cObject::setColor(QColor("red"));
@@ -441,7 +459,7 @@ void cCam::draw()
 
         Pt2di sz = _Cam->Sz();
 
-        double aZ = _scale*.05f;
+        double aZ = _scale.z*.05f;
 
         Pt3dr C  = _Cam->VraiOpticalCenter();
         Pt3dr P1 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,0.f),aZ);
@@ -527,6 +545,18 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
 
 void cPoint::draw()
 {
+    /* setGLColor();
+
+     glDrawUnitCircle(2,  2.f*this->x()/(float)948,
+                          2.f*this->y()/(float)1664, 0.1f, 32);*/
+
+  //   std::cout << "pt : " << this->x() << " " << this->y() << endl;
+
+
+
+
+#if taratata
+
      if ((_painter != NULL) && isVisible())
      {
          QPen penline(getColor());
@@ -599,6 +629,7 @@ void cPoint::draw()
 
          _painter->setWorldMatrixEnabled(true);
      }
+#endif
 }
 
 void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
@@ -660,7 +691,13 @@ cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor 
 
 void cPolygon::draw()
 {
-    if(_painter != NULL)
+
+    for (int aK = 0;aK < _points.size(); ++aK)
+    {
+        _points[aK].draw();
+    }
+
+    /*if(_painter != NULL)
     {
         _painter->setRenderHint(QPainter::Antialiasing,true);
 
@@ -696,7 +733,7 @@ void cPolygon::draw()
              helper()->draw();
 
          _painter->setRenderHint(QPainter::Antialiasing,false);
-    }
+    }*/
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -704,7 +741,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
     if (this != &aP)
     {
         _lineWidth        = aP._lineWidth;
-        _pointDiameter        = aP._pointDiameter;
+        _pointDiameter    = aP._pointDiameter;
         _bIsClosed        = aP._bIsClosed;
         _idx              = aP._idx;
 
@@ -1243,10 +1280,10 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-    drawQuad(_originX, _originY, _glh, _glw,color);
+    drawQuad(_originX, _originY, 2.f*width()/_scale.x, 2.f*height()/_scale.y, color);
 }
 
-void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glh, GLfloat glw, QColor color)
+void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
 {
     glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
     glBegin(GL_QUADS);
@@ -1288,17 +1325,17 @@ void cImageGL::draw(QColor color)
     drawQuad(color);
 }
 
-void cImageGL::setPosition(GLfloat originX, GLfloat originY)
+/*void cImageGL::setPosition(GLfloat originX, GLfloat originY)
 {
     _originX = originX;
     _originY = originY;
-}
+}*/
 
-void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
+/*void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
 {
     _glh = glh;
     _glw = glw;
-}
+}*/
 
 bool cImageGL::isPtInside(const QPointF &pt)
 {
@@ -1427,12 +1464,12 @@ cGLData::cGLData():
 }
 
 cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
-    glMaskedImage(qMaskedImage),
-    pQMask(qMaskedImage._m_mask),
-    pBall(NULL),
-    pAxis(NULL),
-    pBbox(NULL),
-    pGrid(NULL),
+    _glMaskedImage(qMaskedImage),
+    _pQMask(qMaskedImage._m_mask),
+    _pBall(NULL),
+    _pAxis(NULL),
+    _pBbox(NULL),
+    _pGrid(NULL),
     _center(Pt3dr(0.f,0.f,0.f)),
     _modePt(modePt)
 {
@@ -1447,10 +1484,10 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
 
 
 cGLData::cGLData(cData *data):
-    pBall(new cBall),
-    pAxis(new cAxis),
-    pBbox(new cBBox),
-    pGrid(new cGrid),
+    _pBall(new cBall),
+    _pAxis(new cAxis),
+    _pBbox(new cBBox),
+    _pGrid(new cGrid),
     _diam(1.f),
     _incFirstCloud(false)
 {
@@ -1464,30 +1501,31 @@ void cGLData::setData(cData *data, bool setCam)
     for (int aK = 0; aK < data->getNbClouds();++aK)
     {
         GlCloud *pCloud = data->getCloud(aK);
-        Clouds.push_back(pCloud);
+        _vClouds.push_back(pCloud);
         pCloud->setBufferGl();
     }
 
     Pt3dr center = data->getBBoxCenter();
-    float scale = data->getBBoxMaxSize() / 1.5f;
+    float sc = data->getBBoxMaxSize() / 1.5f;
+    Pt3dr scale(sc, sc, sc);
 
-    pBall->setPosition(center);
-    pBall->setScale(scale);
-    pAxis->setPosition(center);
-    pAxis->setScale(scale);
-    pBbox->setPosition(center);
-    pBbox->setScale(scale);
-    pBbox->set(data->getMin(), data->getMax());
+    _pBall->setPosition(center);
+    _pBall->setScale(scale);
+    _pAxis->setPosition(center);
+    _pAxis->setScale(scale);
+    _pBbox->setPosition(center);
+    _pBbox->setScale(scale);
+    _pBbox->set(data->getMin(), data->getMax());
 
-    pGrid->setPosition(center);
-    pGrid->setScale(scale*2.f);
+    _pGrid->setPosition(center);
+    _pGrid->setScale(scale*2.f);
 
     if(setCam)
         for (int i=0; i< data->getNbCameras(); i++)
         {
-            cCam *pCam = new cCam(data->getCamera(i), scale);
+            cCam *pCam = new cCam(data->getCamera(i), sc);
 
-            Cams.push_back(pCam);
+            _vCams.push_back(pCam);
         }
 
     setBBoxMaxSize(data->getBBoxMaxSize());
@@ -1505,40 +1543,40 @@ void cGLData::setIncFirstCloud(bool incFirstCloud)
 
 cMaskedImageGL &cGLData::glImage()
 {
-    return glMaskedImage;
+    return _glMaskedImage;
 }
 
 cPolygon *cGLData::polygon(int id)
 {
-    if(id < (int)m_VPolygons.size())
-        return m_VPolygons[id];
+    if(id < (int)_vPolygons.size())
+        return _vPolygons[id];
     else
         return NULL;
 }
 
 GlCloud* cGLData::getCloud(int iC)
 {
-    return Clouds[iC];
+    return _vClouds[iC];
 }
 
 int cGLData::cloudCount()
 {
-    return Clouds.size();
+    return _vClouds.size();
 }
 
 int cGLData::camerasCount()
 {
-    return Cams.size();
+    return _vCams.size();
 }
 
 int cGLData::polygonCount()
 {
-    return m_VPolygons.size();
+    return _vPolygons.size();
 }
 
 void cGLData::initOptions()
 {
-    m_VPolygons.push_back(new cPolygon());
+    _vPolygons.push_back(new cPolygon());
 //    m_VPolygons.push_back(new cPolygon());
 //    m_VPolygons[1]->setPointSize(2.f);
     _options = options(OpShow_Mess);
@@ -1546,25 +1584,25 @@ void cGLData::initOptions()
 
 cGLData::~cGLData()
 {
-    glMaskedImage.deallocImages();
+    _glMaskedImage.deallocImages();
 
-    qDeleteAll(Cams);
-    Cams.clear();
+    qDeleteAll(_vCams);
+    _vCams.clear();
 
-    if(pBall != NULL) delete pBall;
-    if(pAxis != NULL) delete pAxis;
-    if(pBbox != NULL) delete pBbox;
-    if(pGrid != NULL) delete pGrid;
+    if(_pBall != NULL) delete _pBall;
+    if(_pAxis != NULL) delete _pAxis;
+    if(_pBbox != NULL) delete _pBbox;
+    if(_pGrid != NULL) delete _pGrid;
 
     //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
-    Clouds.clear();
+    _vClouds.clear();
 }
 
 void cGLData::draw()
 {
     enableOptionLine();
 
-    for (int i=0; i<Clouds.size();i++)
+    for (int i=0; i<_vClouds.size();i++)
     {
         GLfloat oldPointSize;
         glGetFloatv(GL_POINT_SIZE,&oldPointSize);
@@ -1572,40 +1610,41 @@ void cGLData::draw()
         if(_incFirstCloud && i == 0)
             glPointSize(oldPointSize*3.f);
 
-         Clouds[i]->draw();
+         _vClouds[i]->draw();
 
          glPointSize(oldPointSize);
     }
 
-    pBall->draw();
-    pAxis->draw();
-    pBbox->draw();
-    pGrid->draw();
+    _pBall->draw();
+    _pAxis->draw();
+    _pBbox->draw();
+    _pGrid->draw();
 
     //cameras
-    for (int i=0; i< Cams.size();i++) Cams[i]->draw();
+    for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
 
     disableOptionLine();
 }
 
-void cGLData::setDimensionImage(int vW, int vH)
+void cGLData::setScale(int vW, int vH)
 {
-    float rw = (float) glMaskedImage._m_image->width()  / vW;
-    float rh = (float) glMaskedImage._m_image->height() / vH;
+    Pt3dr scale((float)vW, (float) vH,0.f);
+    _glMaskedImage.setScale(scale);
 
-    glMaskedImage.setDimensions(2.f*rh,2.f*rw);
+    for (int aK=0; aK < _vPolygons.size();++aK)
+        _vPolygons[aK]->setScale(scale);
 }
 
 void cGLData::setGlobalCenter(Pt3d<double> aCenter)
 {
     setBBoxCenter(aCenter);
-    pBall->setPosition(aCenter);
-    pAxis->setPosition(aCenter);
-    pBbox->setPosition(aCenter);
-    pGrid->setPosition(aCenter);
+    _pBall->setPosition(aCenter);
+    _pAxis->setPosition(aCenter);
+    _pBbox->setPosition(aCenter);
+    _pGrid->setPosition(aCenter);
 
-    for (int aK=0; aK < Clouds.size();++aK)
-       Clouds[aK]->setPosition(aCenter);
+    for (int aK=0; aK < _vClouds.size();++aK)
+       _vClouds[aK]->setPosition(aCenter);
 }
 
 bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
@@ -1618,14 +1657,14 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 
     pos.setY(mm.vpHeight() - pos.y());
 
-    for (int aK=0; aK < Clouds.size();++aK)
+    for (int aK=0; aK < _vClouds.size();++aK)
     {
         float sqrD;
         float dist = FLT_MAX;
         idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
         QPointF proj;
 
-        GlCloud *a_cloud = Clouds[aK];
+        GlCloud *a_cloud = _vClouds[aK];
 
         for (int bK=0; bK < a_cloud->size();++bK)
         {
@@ -1645,7 +1684,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
     if ((idx1>=0) && (idx2>=0))
     {
         //final center:
-        GlCloud *a_cloud = Clouds[idx1];
+        GlCloud *a_cloud = _vClouds[idx1];
         Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
         setGlobalCenter(Pt);
@@ -1693,7 +1732,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     if(mode == INVERT)
         getMask()->invertPixels(QImage::InvertRgb);
 
-    glMaskedImage._m_mask->ImageToTexture(getMask());
+    _glMaskedImage._m_mask->ImageToTexture(getMask());
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
@@ -1702,9 +1741,9 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
     QPointF P2D;
     bool pointInside;
 
-    for (int aK=0; aK < Clouds.size(); ++aK)
+    for (int aK=0; aK < _vClouds.size(); ++aK)
     {
-        GlCloud *a_cloud = Clouds[aK];
+        GlCloud *a_cloud = _vClouds[aK];
 
         for (uint bK=0; bK < (uint) a_cloud->size();++bK)
         {
@@ -1750,10 +1789,10 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
 
 void cGLData::replaceCloud(GlCloud *cloud, int id)
 {
-    if(id<Clouds.size())
-        Clouds[id] = cloud;
+    if(id<_vClouds.size())
+        _vClouds[id] = cloud;
     else
-        Clouds.insert(Clouds.begin(),cloud);
+        _vClouds.insert(_vClouds.begin(),cloud);
 
     cloud->setBufferGl();
 }
@@ -1794,13 +1833,13 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
 
     if(isImgEmpty())
     {
-        pBall->setVisible(stateOption(OpShow_Ball));
-        pAxis->setVisible(stateOption(OpShow_Axis));
-        pBbox->setVisible(stateOption(OpShow_BBox));
-        pGrid->setVisible(stateOption(OpShow_Grid));
+        _pBall->setVisible(stateOption(OpShow_Ball));
+        _pAxis->setVisible(stateOption(OpShow_Axis));
+        _pBbox->setVisible(stateOption(OpShow_BBox));
+        _pGrid->setVisible(stateOption(OpShow_Grid));
 
-        for (int i=0; i < Cams.size();i++)
-            Cams[i]->setVisible(stateOption(OpShow_Cams));
+        for (int i=0; i < _vCams.size();i++)
+            _vCams[i]->setVisible(stateOption(OpShow_Cams));
     }
 }
 
@@ -1941,25 +1980,33 @@ void cGrid::draw()
 {
     if (isVisible())
     {
-        int nbGrid = 10;
+        //TODO: adapter a la forme de la BBox
+        int nbGridX = 10;
+        int nbGridZ = 10;
 
-        float scale = getScale() / nbGrid;
+        float scaleX = getScale().x / nbGridX;
+        float scaleZ = getScale().z / nbGridZ;
 
         Pt3dr pt;
 
-        pt.x = getPosition().x - ((float)nbGrid * 0.5f) * scale;
+        pt.x = getPosition().x - ((float)nbGridX * 0.5f) * scaleX;
         pt.y = getPosition().y ;
-        pt.z = getPosition().z - ((float)nbGrid * 0.5f) * scale;
+        pt.z = getPosition().z - ((float)nbGridZ * 0.5f) * scaleZ;
 
         glBegin(GL_LINES);
         glColor3f(.25,.25,.25);
-        for(int i=0;i<=nbGrid;i++) {
+        for(int i=0;i<=nbGridX;i++)
+        {
             //if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
-            glVertex3f((float)i * scale + pt.x,pt.y,0+pt.z);
-            glVertex3f((float)i * scale + pt.x,pt.y,(float)nbGrid * scale+ pt.z);
+            glVertex3f((float)i * scaleX + pt.x,pt.y,pt.z);
+            glVertex3f((float)i * scaleX + pt.x,pt.y,(float)nbGridZ * scaleZ+ pt.z);
+        }
+
+        for(int i=0;i<=nbGridZ;i++)
+        {
             //if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
-            glVertex3f( pt.x,pt.y,(float)i * scale + pt.z);
-            glVertex3f((float)nbGrid* scale+pt.x,pt.y,(float)i * scale + pt.z);
+            glVertex3f( pt.x,pt.y,(float)i * scaleZ + pt.z);
+            glVertex3f((float)nbGridX* scaleX+pt.x,pt.y,(float)i * scaleZ + pt.z);
         };
         glEnd();
     }

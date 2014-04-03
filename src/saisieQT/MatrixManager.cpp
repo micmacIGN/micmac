@@ -58,10 +58,10 @@ void MatrixManager::doProjection(QPointF point, float zoom)
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
 }
 
-void MatrixManager::orthoProjection()
+/*void MatrixManager::orthoProjection()
 {
     mglOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
-}
+}*/
 
 void MatrixManager::translate(float x, float y)
 {
@@ -125,11 +125,11 @@ QPointF MatrixManager::WindowToImage(QPointF const &winPt, float zoom)
     return res;
 }
 
-QPointF MatrixManager::ImageToWindow(QPointF const &imPt, float zoom)
+/*QPointF MatrixManager::ImageToWindow(QPointF const &imPt, float zoom)
 {
     return QPointF (imPt.x()*zoom + .5f*_glViewport[2]*(1.f + _projMatrix[12]),
             - 1.f - imPt.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
-}
+}*/
 
 void MatrixManager::mglOrtho( GLdouble left, GLdouble right,
                GLdouble bottom, GLdouble top,
@@ -194,12 +194,12 @@ void MatrixManager::setModelViewMatrix()
 void MatrixManager::zoom(float zoom, float farr)
 {
     MatrixManager::mglOrtho(
-		(GLdouble)( -zoom*getGlRatio() ),
-		(GLdouble)( zoom*getGlRatio() ),
-		(GLdouble)( -zoom ),
-		(GLdouble)zoom,
-		(GLdouble)( -farr ),
-		(GLdouble)farr);
+        (GLdouble)( -zoom*getGlRatio() ),
+        (GLdouble)( zoom*getGlRatio() ),
+        (GLdouble)( -zoom ),
+        (GLdouble)zoom,
+        (GLdouble)( -farr ),
+        (GLdouble)farr);
 }
 
 void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerScene)
