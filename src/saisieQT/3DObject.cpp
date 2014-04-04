@@ -522,7 +522,7 @@ void cCam::draw()
 }
 
 
-cPoint::cPoint(QPainter * painter, QPointF pos,
+cPoint::cPoint(QPointF pos,
                QString name, bool showName,
                int state,
                bool isSelected,
@@ -534,7 +534,6 @@ cPoint::cPoint(QPainter * painter, QPointF pos,
     _bShowName(showName),
     _statePoint(state),
     _highlight(highlight),
-    _painter(painter),
     _bEpipolar(false)
 {
     setName(name);
@@ -603,24 +602,6 @@ void cPoint::draw()
                                this->y()/(float)_scale.y, rx, ry);
             }
         }
-
-        if ((_bShowName) && (_name != ""))
-        {
-            //QFontMetrics metrics = QFontMetrics(_font);
-            //int border = (float) qMax(2, metrics.leading());
-            int border = 1;
-
-            QRect rect = QFontMetrics(_font).boundingRect(_name);
-
-            QRect rectg(this->x()-border, this->y()-border, rect.width()-border, rect.height()-border);
-            rectg.translate(QPoint(10, -rectg.height()-5));
-
-
-
-          /*  _painter->setPen(isSelected() ? Qt::black : Qt::white);
-            _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
-            _painter->drawText(rectg, Qt::AlignCenter, _name);*/
-        }
     }
 }
 
@@ -639,11 +620,10 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
 
 float cPolygon::_selectionRadius = 10.f;
 
-cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(this, lineWidth, painter)),
+cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int style):
+    _helper(new cPolygonHelper(this, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
-    _painter(painter),
     _pointDiameter(6.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
@@ -662,10 +642,9 @@ cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
     setVector(points);
 }
 
-cPolygon::cPolygon(QPainter* painter,float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
+cPolygon::cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineColor(lineColor),
     _idx(-1),
-    _painter(painter),
     _pointDiameter(6.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
@@ -857,7 +836,7 @@ void cPolygon::add(cPoint &pt)
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    cPoint cPt(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
+    cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
     cPt.setDiameter(_pointDiameter);
     _points.push_back(cPt);
 }
@@ -866,7 +845,7 @@ void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
     {
-        cPoint cPt(_painter, pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
+        cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
         _points[size()-1] = cPoint(cPt);
     }
@@ -885,7 +864,7 @@ void cPolygon::clear()
 
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
-    _points.insert(i,cPoint(_painter, value));
+    _points.insert(i,cPoint(value));
     resetSelectedPoint();
 }
 
@@ -930,7 +909,7 @@ void cPolygon::setVector(const QVector<QPointF> &aPts)
     _points.clear();
     for(int aK=0; aK < aPts.size(); ++aK)
     {
-        _points.push_back(cPoint(_painter, aPts[aK]));
+        _points.push_back(cPoint(aPts[aK]));
     }
 }
 
@@ -1029,7 +1008,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
     {
         if ((insertMode || isPointSelected())) // insert polygon point
         {
-            cPoint pt(_painter, pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
+            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
 
             _helper->build(pt, insertMode);
         }
@@ -1066,14 +1045,6 @@ void cPolygon::removeLastPoint()
         removePoint(size()-1);
         _bIsClosed = false;
     }
-}
-
-void cPolygon::setPainter(QPainter *painter)
-{
-    _painter = painter;
-
-    if (_helper != NULL)
-        _helper->setPainter(_painter);
 }
 
 void cPolygon::showNames(bool show)
@@ -1169,8 +1140,8 @@ void cPolygon::showRefuted(bool show)
 
 //********************************************************************************
 
-cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor, QColor pointColor):
-    cPolygon(painter, lineWidth, lineColor, pointColor,false),
+cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QColor lineColor, QColor pointColor):
+    cPolygon(lineWidth, lineColor, pointColor,false),
     _polygon(polygon)
 {
 
@@ -1786,12 +1757,6 @@ void cGLData::replaceCloud(GlCloud *cloud, int id)
         _vClouds.insert(_vClouds.begin(),cloud);
 
     cloud->setBufferGl();
-}
-
-void cGLData::setPainter(QPainter * painter)
-{
-    for (int i = 0; i < polygonCount(); ++i)
-        polygon(i)->setPainter(painter);
 }
 
 void cGLData::GprintBits(const size_t size, const void * const ptr)

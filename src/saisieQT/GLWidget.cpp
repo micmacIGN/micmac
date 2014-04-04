@@ -85,9 +85,6 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
     {
         m_GLData = aData;
 
-        if(setPainter)
-            m_GLData->setPainter(_painter);
-
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
@@ -100,7 +97,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
 void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
 {
     QString name(aSom->NamePt().c_str());
-    cPoint point(_painter,pt,name,true,aSom->Etat());
+    cPoint point(pt,name,true,aSom->Etat());
 
     point.setHighlight(highlight);
 
@@ -153,8 +150,27 @@ void GLWidget::paintGL()
 
                  for (int aK=0; aK < polyg->size();++aK)
                  {
-                     QPointF wPt = _matrixManager.ImageToWindow( polyg->operator [](aK),_vp_Params.m_zoom);
-                     renderText ( wPt.x(), wPt.y(), polyg->operator [](aK).name() );
+                     cPoint pt = polyg->operator [](aK);
+
+                     if (pt.showName() && (pt.name() != ""))
+                     {
+                         QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
+
+                         //QFontMetrics metrics = QFontMetrics(_font);
+                         //int border = (float) qMax(2, metrics.leading());
+                        /* int border = 1;
+
+                         QRect rect = QFontMetrics(_font).boundingRect(pt.name());
+
+                         QRect rectg(this->x()-border, this->y()-border, rect.width()-border, rect.height()-border);
+                         rectg.translate(QPoint(10, -rectg.height()-5));*/
+
+                         /*  _painter->setPen(isSelected() ? Qt::black : Qt::white);
+                           _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
+                           _painter->drawText(rectg, Qt::AlignCenter, _name);*/
+
+                         renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
+                     }
                  }
             }
 
