@@ -120,8 +120,7 @@ class cObjectGL : public cObject
 class cPoint : public cObjectGL, public QPointF
 {
     public:
-    cPoint(QPainter * painter = NULL,
-           QPointF pos = QPointF(0.f,0.f),
+    cPoint(QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            bool showName   = false,
            int  statePoint = eEPI_NonValue,
@@ -133,18 +132,17 @@ class cPoint : public cObjectGL, public QPointF
 
         void draw();
 
-        void setStatePoint(int state){ _statePoint = state;    }
-        void setDiameter(float val) { _diameter = val;   }
-        int  statePoint() const     { return _statePoint;     }
-        void showName(bool show)    { _bShowName = show; }
+        void setStatePoint(int state){ _statePoint = state; }
+        void setDiameter(float val)  { _diameter = val;     }
+        int  statePoint() const      { return _statePoint;  }
+        void showName(bool show)     { _bShowName = show;   }
 
-        bool highlight() const      { return _highlight; }
-        void setHighlight(bool hl)  { _highlight = hl;   }
-        void switchHighlight()      { _highlight = !_highlight; }
+        bool highlight() const       { return _highlight; }
+        bool showName() const        { return _bShowName; }
+        void setHighlight(bool hl)   { _highlight = hl;   }
+        void switchHighlight()       { _highlight = !_highlight; }
 
         void setEpipolar(QPointF pt1, QPointF pt2);
-
-        void setPainter(QPainter *painter){_painter = painter;}
 
 private:
 
@@ -156,7 +154,6 @@ private:
         //! Default font
         QFont   _font;
 
-        QPainter *_painter;
         QGLWidget *_widget;
 
         bool     _bEpipolar;
@@ -264,7 +261,7 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(QPainter* painter = NULL, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+        cPolygon(float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
         cPolygon(QVector <QPointF> points, bool isClosed);
 
         void    draw();
@@ -330,8 +327,6 @@ class cPolygon : public cObjectGL
 
         void    removeLastPoint();
 
-        void    setPainter(QPainter * painter);
-
         // Points name
         void    showNames(bool show);
         bool    bShowNames() { return _bShowNames; }
@@ -357,14 +352,12 @@ class cPolygon : public cObjectGL
         void    setParams(cParameters* aParams);
 
     protected:
-        cPolygon(QPainter * painter, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
+        cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
         QVector <cPoint>    _points;
         cPolygonHelper*     _helper;
         QColor              _lineColor;
         int                 _idx;
-
-        QPainter *          _painter;
 
         bool pointValid();
 private:
@@ -395,7 +388,7 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(  cPolygon* polygon, float lineWidth, QPainter *painter, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(cPolygon* polygon, float lineWidth, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
         void   build(const cPoint &pos, bool insertMode);
 
@@ -663,8 +656,6 @@ public:
     void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        replaceCloud(GlCloud* cloud, int id = 0);
-
-    void        setPainter(QPainter *);
 
     enum Option {
       OpNO          = 0x00,

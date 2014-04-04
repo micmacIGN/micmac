@@ -6,7 +6,6 @@
 #include <QMessageBox>
 #include <QDir>
 
-#include "Cloud.h"
 #include "Data.h"
 #include "general/bitm.h"
 
@@ -50,7 +49,7 @@ public:
     float m_LineWidth;
 
     //! Rotation and translation speed
-	float m_speed;
+    float m_speed;
 };
 
 class cLoader
@@ -92,7 +91,7 @@ private:
 class cGLData;
 
 class cEngine
-{    
+{
 public:
 
     cEngine();
