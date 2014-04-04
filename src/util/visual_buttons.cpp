@@ -1,6 +1,6 @@
-#if(ELISE_QT5)
-
 #include "general/visual_buttons.h"
+
+#if(ELISE_QT_VERSION >= 4)
 
 int selectionButton::buttonNumber=0;
 
@@ -17,4 +17,4 @@ void selectionButton::onClick()
     emit my_click(unique_id);
 }
 
- #endif // ELISE_QT5
+ #endif // ELISE_QT_VERSION >= 4
