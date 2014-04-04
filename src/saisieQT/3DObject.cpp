@@ -577,36 +577,28 @@ void cPoint::draw()
         glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
 
         float rx, ry;
-        rx = _diameter *.05;
+        rx = _diameter *.02;
         ry = rx * _scale.x/_scale.y;
 
-        glDrawEllipse( this->x()/(float)_scale.x,
-                       this->y()/(float)_scale.y, rx, ry);
+        QPointF aPt = scaledPt();
 
+        glDrawEllipse( aPt.x(), aPt.y(), rx, ry);
 
         if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
         {
             if (_bEpipolar)
             {
-				glBegin(GL_LINES);
-					//glVertex2f(_epipolar1.x()/_scale.x,_epipolar1.y()/_scale.y);
-					//glVertex2f(_epipolar2.x()/_scale.x,_epipolar2.y()/_scale.y);
-				glVertex2f(_epipolar1.x(),_epipolar1.y());
-					glVertex2f(_epipolar2.x(),_epipolar2.y());
-				glEnd();
-               /* QPointF epip1 = _painter->transform().map(_epipolar1);
-                QPointF epip2 = _painter->transform().map(_epipolar2);
+                QPointF epi1 = scale(_epipolar1);
+                QPointF epi2 = scale(_epipolar2);
 
-                _painter->drawLine(epip1, epip2);*/
+                glBegin(GL_LINES);
+                    glVertex2f(epi1.x(),epi1.y());
+                    glVertex2f(epi2.x(),epi2.y());
+                glEnd();
             }
             else
-            {
-                rx = 2.f*rx;
-                ry = 2.f*ry;
 
-                glDrawEllipse( this->x()/_scale.x,
-                               this->y()/_scale.y, rx, ry);
-            }
+                glDrawEllipse( aPt.x(), aPt.y(), 2.f*rx, 2.f*ry);
         }
     }
 }
@@ -618,8 +610,15 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
     _bEpipolar = true;
 }
 
+QPointF cPoint::scaledPt()
+{
+    return scale(*this);
+}
 
-
+QPointF cPoint::scale(QPointF aP)
+{
+    return QPointF(aP.x()/_scale.x, aP.y()/_scale.y);
+}
 
 
 //********************************************************************************
@@ -673,6 +672,41 @@ void cPolygon::draw()
         _points[aK].setScale(_scale);
         _points[aK].draw();
     }
+
+    enableOptionLine();
+
+    if (_bShowLines)
+    {
+        QColor color(isSelected() ? QColor(0,140,180) : _lineColor);
+
+        glColor3f(color.redF(),color.greenF(),color.blueF());
+        glLineWidth(_lineWidth);
+
+        if(_style == LINE_STIPPLE)
+        {
+            glLineStipple(2, 0xAAAA);
+            glEnable(GL_LINE_STIPPLE);
+        }
+
+        //draw segments
+        glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+        for (int aK = 0;aK < _points.size(); ++aK)
+        {
+            QPointF aPt = _points[aK].scaledPt();
+            glVertex2f(aPt.x(), aPt.y());
+        }
+        glEnd();
+
+        if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
+
+        glColor3f(_color[state_default].redF(),_color[state_default].greenF(),_color[state_default].blueF());
+
+    }
+
+    if(helper()!=NULL)
+        helper()->draw();
+
+    disableOptionLine();
 
     /*if(_painter != NULL)
     {
@@ -1848,7 +1882,7 @@ void cMessages2DGL::draw(){
 
 int cMessages2DGL::renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont)
 {
-	m_font.setPointSize(sizeFont);
+    m_font.setPointSize(sizeFont);
 
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);

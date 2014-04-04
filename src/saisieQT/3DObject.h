@@ -144,6 +144,9 @@ class cPoint : public cObjectGL, public QPointF
 
         void setEpipolar(QPointF pt1, QPointF pt2);
 
+        QPointF scaledPt();
+        QPointF scale(QPointF);
+
 private:
 
         float   _diameter;
