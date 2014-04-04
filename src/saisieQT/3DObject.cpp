@@ -588,6 +588,12 @@ void cPoint::draw()
         {
             if (_bEpipolar)
             {
+				glBegin(GL_LINES);
+					//glVertex2f(_epipolar1.x()/_scale.x,_epipolar1.y()/_scale.y);
+					//glVertex2f(_epipolar2.x()/_scale.x,_epipolar2.y()/_scale.y);
+				glVertex2f(_epipolar1.x(),_epipolar1.y());
+					glVertex2f(_epipolar2.x(),_epipolar2.y());
+				glEnd();
                /* QPointF epip1 = _painter->transform().map(_epipolar1);
                 QPointF epip2 = _painter->transform().map(_epipolar2);
 
@@ -598,8 +604,8 @@ void cPoint::draw()
                 rx = 2.f*rx;
                 ry = 2.f*ry;
 
-                glDrawEllipse( this->x()/(float)_scale.x,
-                               this->y()/(float)_scale.y, rx, ry);
+                glDrawEllipse( this->x()/_scale.x,
+                               this->y()/_scale.y, rx, ry);
             }
         }
     }
@@ -1842,9 +1848,7 @@ void cMessages2DGL::draw(){
 
 int cMessages2DGL::renderTextLine(MessageToDisplay messageTD, int x, int y, int sizeFont)
 {
-
-
-    m_font.setPointSize(sizeFont);
+	m_font.setPointSize(sizeFont);
 
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);

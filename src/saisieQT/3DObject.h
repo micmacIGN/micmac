@@ -151,9 +151,6 @@ private:
         int     _statePoint;
         bool    _highlight;
 
-        //! Default font
-        QFont   _font;
-
         QGLWidget *_widget;
 
         bool     _bEpipolar;

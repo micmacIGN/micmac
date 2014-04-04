@@ -158,16 +158,19 @@ void GLWidget::paintGL()
 
                          //QFontMetrics metrics = QFontMetrics(_font);
                          //int border = (float) qMax(2, metrics.leading());
-                        /* int border = 1;
+                         int border = 1;
 
-                         QRect rect = QFontMetrics(_font).boundingRect(pt.name());
+                         QRect rect = QFontMetrics(QFont()).boundingRect(pt.name());
 
                          QRect rectg(this->x()-border, this->y()-border, rect.width()-border, rect.height()-border);
-                         rectg.translate(QPoint(10, -rectg.height()-5));*/
+                         rectg.translate(QPoint(10, -rectg.height()-5));
 
                          /*  _painter->setPen(isSelected() ? Qt::black : Qt::white);
                            _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
                            _painter->drawText(rectg, Qt::AlignCenter, _name);*/
+
+						 QColor color(pt.isSelected() ? Qt::black : Qt::white);
+						 glColor3f(color.redF(),color.greenF(),color.blueF());
 
                          renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
                      }
@@ -588,11 +591,9 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             {
 
                 if(!polygon()->isClosed())             // ADD POINT
-                {
-                    cout << "m_lastPosImage: " << m_lastPosImage.x() << " " << m_lastPosImage.y() << endl;
 
                     polygon()->addPoint(m_lastPosImage);
-                }
+
                 else if (polygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
                     polygon()->insertPoint();
@@ -674,8 +675,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 if(id != polygon()->idx())
                     emit selectPoint(polygon()->idx());
-
-                //update();
             }
         }
 
