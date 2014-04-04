@@ -1,9 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#if(ELISE_QT5)
-
 #include "StdAfx.h"
+
+#if(ELISE_QT_VERSION >= 4)
 
 #ifdef Int
     #undef Int
@@ -112,6 +112,6 @@ protected:
 list<string> listPossibleValues(const cMMSpecArg & anArg);
 void ShowEnum(const cMMSpecArg & anArg);
 
-#endif //ELISE_QT5
+#endif //ELISE_QT_VERSION >= 4
 
 #endif // MAINWINDOW_H

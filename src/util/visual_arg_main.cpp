@@ -38,14 +38,14 @@ See below and http://www.cecill.info.
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#if(ELISE_QT5)
-#ifdef Int
-#undef Int
-#endif
-#include <QtGui>
-#include <QApplication>
-#include <QString>
-#include "general/visual_mainwindow.h"
+#if(ELISE_QT_VERSION >= 4)
+    #ifdef Int
+        #undef Int
+    #endif
+    #include <QtGui>
+    #include <QApplication>
+    #include <QString>
+    #include "general/visual_mainwindow.h"
 #endif
 
 void ShowEnum(const cMMSpecArg & anArg)
@@ -133,8 +133,7 @@ void MMRunVisualMode
         )
 {
 
-#if(ELISE_QT5)
-
+#if(ELISE_QT_VERSION >= 4)
     QApplication app(argc, argv);
 
     QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
@@ -165,7 +164,7 @@ void MMRunVisualMode
     w.show();
     app.exec();
 
-#endif //ELISE_QT5
+#endif //ELISE_QT_VERSION >= 4
 
 
 
