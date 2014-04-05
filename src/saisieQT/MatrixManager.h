@@ -32,7 +32,7 @@ public:
 
     void        doProjection(QPointF point, float zoom);
 
-    void        orthoProjection();
+    //void        orthoProjection();
 
     void        translate(float x, float y);
 
@@ -91,14 +91,15 @@ public:
     GLdouble    m_translationMatrix[3];
 
     void        translate(float tX, float tY, float tZ, float factor);
-    GLdouble distance() const;
-    void setDistance(const GLdouble &distance);
+    GLdouble    distance() const;
+    void        setDistance(const GLdouble &distance);
 
-    void arcBall();
+    void        arcBall();
     Pt3d<double> centerScene() const;
-    void setCenterScene(const Pt3d<double> &centerScene);
+    void        setCenterScene(const Pt3d<double> &centerScene);
 
-    void MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);
+    void        MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);
+
 private:
     //! GL context aspect ratio (width/height)
     float       m_glRatio;

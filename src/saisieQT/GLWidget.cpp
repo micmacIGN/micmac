@@ -85,9 +85,6 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
     {
         m_GLData = aData;
 
-        if(setPainter)
-            m_GLData->setPainter(_painter);
-
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
@@ -100,7 +97,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
 void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
 {
     QString name(aSom->NamePt().c_str());
-    cPoint point(_painter,pt,name,true,aSom->Etat());
+    cPoint point(pt,name,true,aSom->Etat());
 
     point.setHighlight(highlight);
 
@@ -124,9 +121,6 @@ bool GLWidget::imageLoaded()
 void GLWidget::paintEvent(QPaintEvent *event)
 {
     updateGL();
-
-    if (_widgetId >= 0) overlay();
-    else        drawCenter();
 }
 
 void GLWidget::paintGL()
@@ -142,13 +136,51 @@ void GLWidget::paintGL()
     {
         if (m_bDisplayMode2D)
         {
-            //TODO: virer dependance taille viewport / image Quad [1,1] puis scale dans glImage drawQuad()
-            m_GLData->setDimensionImage(vpWidth(),vpHeight());
-            //END TODO
+            m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f);
 
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
 
             m_GLData->glImage().draw();
+
+            for (int i = 0; i < m_GLData->polygonCount(); ++i)
+            {
+                 polygon(i)->draw();
+
+                 cPolygon* polyg = polygon(i);
+
+                 for (int aK=0; aK < polyg->size();++aK)
+                 {
+                     cPoint pt = polyg->operator [](aK);
+
+                     if (pt.showName() && (pt.name() != ""))
+                     {
+                         QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
+
+                         //QFontMetrics metrics = QFontMetrics(_font);
+                         //int border = (float) qMax(2, metrics.leading());
+                         int border = 1;
+
+                         QRect rect = QFontMetrics(QFont()).boundingRect(pt.name());
+
+                         QRect rectg(this->x()-border, this->y()-border, rect.width()-border, rect.height()-border);
+                         rectg.translate(QPoint(10, -rectg.height()-5));
+
+                         /*  _painter->setPen(isSelected() ? Qt::black : Qt::white);
+                           _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
+                           _painter->drawText(rectg, Qt::AlignCenter, _name);*/
+
+						 QColor color(pt.isSelected() ? Qt::black : Qt::white);
+						 glColor3f(color.redF(),color.greenF(),color.blueF());
+
+                         renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
+                     }
+                 }
+            }
+
+            if (_widgetId < 0)
+                drawCenter();
+            else
+                overlay();
         }
         else
         {
@@ -177,16 +209,47 @@ void GLWidget::paintGL()
 
 void GLWidget::overlay()
 {
-#if ELISE_QT_VERSION==5
+    //TODO: cObject::cFrame ?
+    /*float z =0.;
+
+    QColor color(hasFocus() ? "#ffa02f" : "#707070");
+
+    QRect rect = this->rect();
+    QPoint shift(1,1);
+    rect.setTopLeft(rect.topLeft()+shift);
+    rect.setBottomRight(rect.bottomRight()-shift);
+
+    glColor3f(color.redF(),color.greenF(),color.blueF());
+
+    QPointF trf = _matrixManager.translateImgToWin(_vp_Params.m_zoom);
+    QPoint tr(trf.x()/vpWidth(), trf.y()/vpHeight());
+
+    cout << "translation: "<< tr.x() << " " << tr.y() << endl;
+
+    QPoint p0(rect.topLeft() -tr);
+    QPoint p1(rect.topRight()-tr);
+    QPoint p2(rect.bottomRight()-tr);
+    QPoint p3(rect.bottomLeft()-tr);
+
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(p0.x(),p0.y(),z);
+    glVertex3f(p1.x(),p1.y(),z);
+    glVertex3f(p2.x(),p2.y(),z);
+    glVertex3f(p3.x(),p3.y(),z);
+    glEnd();*/
+
+   // glTranslatef(tr.x(), tr.y(), 0.f);
+/*#if ELISE_QT_VERSION==5
     _painter->begin(this);
 #else
     QPainter painter(this);
     _painter = &painter;
-    m_GLData->setPainter(_painter);
+    if (hasDataLoaded()) m_GLData->setPainter(_painter);
 #endif
 
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
     {
+
         if (m_bDisplayMode2D)
         {
             float zoom = _vp_Params.m_zoom;
@@ -208,7 +271,7 @@ void GLWidget::overlay()
         _painter->drawRect(rect);
     }
 
-    _painter->end();
+    _painter->end();*/
 }
 
 void GLWidget::setInteractionMode(int mode, bool showmessage)
@@ -356,7 +419,18 @@ void GLWidget::setCursorShape(QPointF pos)
 
 void GLWidget::drawCenter()
 {
-    QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
+    //cout << "Img : " << imHeight() << " " << imWidth() << endl;
+    //cout << "VP  : " << vpHeight() << " " << vpWidth() << endl;
+
+  /*  glDrawUnitCircle(2, 0.f, 2.f*(imHeight() - 0.f)/vpHeight(), 0.5f, 32);
+
+    glDrawUnitCircle(2, (float) imWidth()/vpWidth(),
+                        (float) imHeight()/vpHeight(), 0.5f, 32);
+
+    glDrawUnitCircle(2, (float) 2.f*imWidth()/vpWidth(),
+                        (float) 2.f*(imHeight() - imHeight())/vpHeight(), 0.5f, 32);*/
+
+   /* QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
 
     QPainter p;
     p.begin(this);
@@ -367,7 +441,7 @@ void GLWidget::drawCenter()
 
     p.drawEllipse(center,5,5);
     p.drawEllipse(center,1,1);
-    p.end();
+    p.end();*/
 }
 
 
@@ -601,8 +675,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 if(id != polygon()->idx())
                     emit selectPoint(polygon()->idx());
-
-                //update();
             }
         }
 
@@ -643,7 +715,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         m_lastPosWindow = event->pos();
 
-        //update();
+        update();
     }
 }
 

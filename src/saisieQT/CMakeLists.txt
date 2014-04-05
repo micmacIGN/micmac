@@ -28,7 +28,6 @@ set( saisie_HEADERS_nomoc
    Cloud.h
    saisieQT_main.h
    Data.h
-   3DTools.h
    #SaisieGlsl.glsl
    Engine.h
    GLWidgetSet.h

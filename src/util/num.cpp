@@ -109,7 +109,7 @@ double cDecimal::Arrondi(double aV0) const
     long double aV = aV0;
     aV *= aD10;
     long int aLMant = Mul10() * (long int) mMant;
-    return (lround_ni(aV/aLMant) * aLMant) / (long double) aD10;
+    return (lround_ni(aV/aLMant)/(long double)aD10)*(long double)aLMant;
 }
 
 

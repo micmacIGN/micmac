@@ -1,7 +1,9 @@
 #ifndef VISUAL_BUTTONS_H
 #define VISUAL_BUTTONS_H
 
-#if(ELISE_QT5)
+#include "CMake_defines.h"
+
+#if(ELISE_QT_VERSION >= 4)
 
 #include <QPushButton>
 
@@ -25,6 +27,6 @@ signals:
         void my_click(int);
 };
 
-#endif //ELISE_QT5
+#endif //ELISE_QT_VERSION >= 4
 
 #endif /* VISUAL_BUTTONS_H */
