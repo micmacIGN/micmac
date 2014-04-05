@@ -243,7 +243,7 @@ GlCloud::GlCloud(vector<GlVertex> const & vVertex)
     }
 
     _position = Pt3dr(0.,0.,0.);
-    _scale = 1.f;
+    _scale = Pt3dr(1.f,1.f,1.f);
 }
 
 void GlCloud::draw()

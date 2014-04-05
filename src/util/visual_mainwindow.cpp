@@ -1,8 +1,6 @@
-#if(ELISE_QT5)
-
 #include "general/visual_mainwindow.h"
 
-#include "StdAfx.h"
+#if(ELISE_QT_VERSION >= 4)
 
 // aVAM: Mandatory args
 // aVAO: Optional args
@@ -603,7 +601,7 @@ int cInputs::Type()
     else return eIT_None;
 }
 
-#endif //ELISE_QT5
+#endif //ELISE_QT_VERSION >= 4
 
 
 

@@ -1,3 +1,14 @@
+if( ${qt_version} EQUAL 4 )
+
+    set(Uti_Headers_ToMoc
+        ../include/general/visual_mainwindow.h
+        ../include/general/visual_buttons.h
+    )
+
+    QT4_WRAP_CPP(Uti_HEADERS_MOCED ${Uti_Headers_ToMoc})
+    add_definitions(${QT_DEFINITIONS})
+endif()
+
 set(Util_Src_Files
         ${UTIL_DIR}/affin2d.cpp
         ${UTIL_DIR}/all.cpp
@@ -35,6 +46,7 @@ set(Util_Src_Files
         #${UTIL_DIR}/win_regex.c
         ${UTIL_DIR}/visual_mainwindow.cpp
         ${UTIL_DIR}/visual_buttons.cpp
+        ${Uti_HEADERS_MOCED}
 )
 
 SOURCE_GROUP(Util FILES ${Util_Src_Files})
@@ -43,3 +55,4 @@ set(Elise_Src_Files
         ${Elise_Src_Files}
         ${Util_Src_Files}
 )
+

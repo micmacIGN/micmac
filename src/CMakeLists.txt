@@ -139,9 +139,7 @@ set(Elise_Src_Files
 
 set(libElise elise)
 
-if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
-    add_definitions(-DELISE_QT5=1)
-
+if ( (${qt_version} EQUAL 5) OR WITH_QT5)
     # Find includes in corresponding build directories
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
     # Instruct CMake to run moc automatically when needed.
@@ -149,12 +147,13 @@ if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
 
     find_package(Qt5Core REQUIRED)
     if( Qt5Core_FOUND )
-#        include_directories( ${Qt5_INCLUDES})
+
         include_directories(${Qt5Widgets_INCLUDE_DIRS})
         include_directories(${Qt5Core_INCLUDE_DIRS})
-                include_directories(${Qt5Concurrent_INCLUDE_DIRS})
-                include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-                include_directories(${Qt5Xml_INCLUDE_DIRS})
+        include_directories(${Qt5Concurrent_INCLUDE_DIRS})
+        include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+        include_directories(${Qt5Xml_INCLUDE_DIRS})
+        include_directories(${Qt5Gui_INCLUDE_DIRS})
 
      # Use the compile definitions defined in the Qt 5 Widgets module
      add_definitions(${Qt5Widgets_DEFINITIONS})
@@ -163,10 +162,8 @@ if (WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
     endif()
-#elseif( ${qt_version} EQUAL 4 )
-    #add_definitions(-DELISE_QT5=1)
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
+elseif( ${qt_version} EQUAL 4 )
+      INCLUDE(${QT_USE_FILE})
 endif()
 
 
@@ -176,17 +173,15 @@ if(${CUDA_ENABLED})
 else()
     add_library( elise ${Elise_Src_Files} ${IncFiles} )
 
-    if(WITH_QT5 AND NOT ( ${qt_version} EQUAL 0 ) )
+    if( ${qt_version} EQUAL 5 )
         qt5_use_modules(elise Widgets Core Gui Xml)
     endif()
-
-    #target_link_libraries(${Qt5Widgets_LIBRARIES})
 
     INSTALL(TARGETS elise ARCHIVE DESTINATION ${Install_Dir_lib} )
 endif()
 
 # OPTION BUILD : En tetes precompilees pour gcc
-enable_precompiled_headers_GCC(StdAfx.h ${libElise} ${CMAKE_CXX_FLAGS})
+enable_precompiled_headers_GCC(StdAfx.h ${libElise} "${CMAKE_CXX_FLAGS}")
 
 
 # DEFINITION
