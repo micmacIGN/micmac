@@ -117,7 +117,7 @@ void Tapas_Banniere()
 }
 
 
-#define  NbModele 11
+#define  NbModele 15
 
 const char * Modele[NbModele] = {
                                    "RadialBasic",     // 0
@@ -130,11 +130,17 @@ const char * Modele[NbModele] = {
                                    "RadialStd",       // 7
                                    "FraserBasic",     // 8
                                    "FishEyeBasic",    // 9
-                                   "FE_EquiSolBasic"  // 10
+                                   "FE_EquiSolBasic",  // 10
+                                   "Four7x2",          // 11
+                                   "Four11x2",         // 12
+                                   "Four15x2",         // 13
+                                   "Four19x2"          // 14
                                 };
 
 
 std::string eModAutom;
+int aDegRadFour = -1;
+int aDegComplFour = -1;
 std::string FileLibere;
 double PropDiag = -1.0;
 
@@ -189,6 +195,15 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     {
         eModAutom = "eCalibAutomPhgrStdBasic";
         aModParam= Modele[2];
+    }
+    else if (     (aMod==Modele[11])
+              ||  (aMod==Modele[12])
+              ||  (aMod==Modele[13])
+              ||  (aMod==Modele[14])
+            )
+    {
+        eModAutom = "eCalibAutom" + aMod;
+        aModParam = "Four";
     }
     else
     {
