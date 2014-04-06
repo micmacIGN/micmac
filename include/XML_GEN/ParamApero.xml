@@ -102,7 +102,11 @@
 <!--  PPa=PPs for eCalibAutomRadialBasic and eCalibAutomPhgrStdBasic -->
     <eCalibAutomRadialBasic>          </eCalibAutomRadialBasic>
     <eCalibAutomPhgrStdBasic>         </eCalibAutomPhgrStdBasic>
-    <eCalibAutomNone>                </eCalibAutomNone>
+    <eCalibAutomFour7x2>                 </eCalibAutomFour7x2>
+    <eCalibAutomFour11x2>                 </eCalibAutomFour11x2>
+    <eCalibAutomFour15x2>                 </eCalibAutomFour15x2>
+    <eCalibAutomFour19x2>                 </eCalibAutomFour19x2>
+    <eCalibAutomNone>                 </eCalibAutomNone>
 </enum>
 
    

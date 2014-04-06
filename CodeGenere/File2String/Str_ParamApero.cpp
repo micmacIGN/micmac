@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1490]) = {
+const char * (theNameVar_ParamApero[1494]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -104,7 +104,11 @@ const char * (theNameVar_ParamApero[1490]) = {
 "<!--  PPa=PPs for eCalibAutomRadialBasic and eCalibAutomPhgrStdBasic -->\n",
 "    <eCalibAutomRadialBasic>          </eCalibAutomRadialBasic>\n",
 "    <eCalibAutomPhgrStdBasic>         </eCalibAutomPhgrStdBasic>\n",
-"    <eCalibAutomNone>                </eCalibAutomNone>\n",
+"    <eCalibAutomFour7x2>                 </eCalibAutomFour7x2>\n",
+"    <eCalibAutomFour11x2>                 </eCalibAutomFour11x2>\n",
+"    <eCalibAutomFour15x2>                 </eCalibAutomFour15x2>\n",
+"    <eCalibAutomFour19x2>                 </eCalibAutomFour19x2>\n",
+"    <eCalibAutomNone>                 </eCalibAutomNone>\n",
 "</enum>\n",
 "\n",
 "   \n",

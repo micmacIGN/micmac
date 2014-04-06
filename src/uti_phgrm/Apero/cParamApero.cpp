@@ -224,6 +224,14 @@ eTypeCalibAutom  Str2eTypeCalibAutom(const std::string & aName)
       return eCalibAutomRadialBasic;
    else if (aName=="eCalibAutomPhgrStdBasic")
       return eCalibAutomPhgrStdBasic;
+   else if (aName=="eCalibAutomFour7x2")
+      return eCalibAutomFour7x2;
+   else if (aName=="eCalibAutomFour11x2")
+      return eCalibAutomFour11x2;
+   else if (aName=="eCalibAutomFour15x2")
+      return eCalibAutomFour15x2;
+   else if (aName=="eCalibAutomFour19x2")
+      return eCalibAutomFour19x2;
    else if (aName=="eCalibAutomNone")
       return eCalibAutomNone;
   else
@@ -251,6 +259,14 @@ std::string  eToString(const eTypeCalibAutom & anObj)
       return  "eCalibAutomRadialBasic";
    if (anObj==eCalibAutomPhgrStdBasic)
       return  "eCalibAutomPhgrStdBasic";
+   if (anObj==eCalibAutomFour7x2)
+      return  "eCalibAutomFour7x2";
+   if (anObj==eCalibAutomFour11x2)
+      return  "eCalibAutomFour11x2";
+   if (anObj==eCalibAutomFour15x2)
+      return  "eCalibAutomFour15x2";
+   if (anObj==eCalibAutomFour19x2)
+      return  "eCalibAutomFour19x2";
    if (anObj==eCalibAutomNone)
       return  "eCalibAutomNone";
  std::cout << "Enum = eTypeCalibAutom\n";
