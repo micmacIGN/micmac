@@ -916,6 +916,7 @@ normalises en echelle et/ou en translation -->
       donc que les objets modifies
 -->
 		 <IterationsCompensation Nb="*" Container="std::vector">
+                     <DoIt Nb="?" Type="bool" Def="true"> </DoIt> <!-- Add to make easier the control with symbol -->
 		     <SLMIter  Nb="?" RefType="SectionLevenbergMarkard"> </SLMIter>
 		     <SLMEtape  Nb="?" RefType="SectionLevenbergMarkard"> </SLMEtape>
 		     <SLMGlob   Nb="?" RefType="SectionLevenbergMarkard"> </SLMGlob>

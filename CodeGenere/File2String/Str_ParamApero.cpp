@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1494]) = {
+const char * (theNameVar_ParamApero[1495]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -918,6 +918,7 @@ const char * (theNameVar_ParamApero[1494]) = {
 "      donc que les objets modifies\n",
 "-->\n",
 "		 <IterationsCompensation Nb=\"*\" Container=\"std::vector\">\n",
+"                     <DoIt Nb=\"?\" Type=\"bool\" Def=\"true\"> </DoIt> <!-- Add to make easier the control with symbol -->\n",
 "		     <SLMIter  Nb=\"?\" RefType=\"SectionLevenbergMarkard\"> </SLMIter>\n",
 "		     <SLMEtape  Nb=\"?\" RefType=\"SectionLevenbergMarkard\"> </SLMEtape>\n",
 "		     <SLMGlob   Nb=\"?\" RefType=\"SectionLevenbergMarkard\"> </SLMGlob>\n",

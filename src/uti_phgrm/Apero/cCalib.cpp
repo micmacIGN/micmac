@@ -850,6 +850,25 @@ cCalibrationInternConique   CalibInternAutom
         
        aDist.ModUnif().SetVal(aCIU);
    }
+   else if (
+                  (aType==eCalibAutomFour7x2)
+              ||  (aType==eCalibAutomFour11x2)
+              ||  (aType==eCalibAutomFour15x2)
+              ||  (aType==eCalibAutomFour19x2)
+           )
+   {
+       cCalibrationInterneUnif aCIU;
+       if  (aType==eCalibAutomFour7x2)
+           aCIU.TypeModele() = eModeleRadFour7x2;
+       else if  (aType==eCalibAutomFour11x2)
+           aCIU.TypeModele() = eModeleRadFour11x2;
+       else if  (aType==eCalibAutomFour15x2)
+           aCIU.TypeModele() = eModeleRadFour15x2;
+       else if  (aType==eCalibAutomFour19x2)
+           aCIU.TypeModele() = eModeleRadFour19x2;
+
+       aDist.ModUnif().SetVal(aCIU);
+   }
    else
    {
        ELISE_ASSERT(false,"Internal error unknown eTypeCalibAutom");
