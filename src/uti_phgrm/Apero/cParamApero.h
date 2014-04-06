@@ -3091,6 +3091,9 @@ class cIterationsCompensation
         friend void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & DoIt();
+        const cTplValGesInit< bool > & DoIt()const ;
+
         cTplValGesInit< cSectionLevenbergMarkard > & SLMIter();
         const cTplValGesInit< cSectionLevenbergMarkard > & SLMIter()const ;
 
@@ -3289,6 +3292,7 @@ class cIterationsCompensation
         cTplValGesInit< cTestInteractif > & TestInteractif();
         const cTplValGesInit< cTestInteractif > & TestInteractif()const ;
     private:
+        cTplValGesInit< bool > mDoIt;
         cTplValGesInit< cSectionLevenbergMarkard > mSLMIter;
         cTplValGesInit< cSectionLevenbergMarkard > mSLMEtape;
         cTplValGesInit< cSectionLevenbergMarkard > mSLMGlob;

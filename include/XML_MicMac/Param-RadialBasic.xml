@@ -1,17 +1,19 @@
 
                    <IterationsCompensation> </IterationsCompensation>
 
-                    <IterationsCompensation>
+                   <IterationsCompensation>
+                       <DoIt> ${DoDR1} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR1      </Val>
                           </ContraintesCamerasInc>
                        </SectionContraintes>
                        <Messages>  LIB  DR1 </Messages>
-                    </IterationsCompensation>
-                    <IterationsCompensation> </IterationsCompensation>
+                   </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt> ${DoDR2} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR2      </Val>

@@ -139,8 +139,8 @@ const char * Modele[NbModele] = {
 
 
 std::string eModAutom;
-int aDegRadFour = -1;
-int aDegComplFour = -1;
+int aDegRadMax = 100;
+int aDegGenMax = 100;
 std::string FileLibere;
 double PropDiag = -1.0;
 
@@ -156,6 +156,13 @@ void ShowAuthorizedModel()
 void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 {
     std::string  aModParam = aMod;
+
+
+    int aKModele = -1;
+
+    for (int aK=0 ; aK<NbModele ; aK++)
+       if (aMod==Modele[aK])
+         aKModele = aK;
 
 
     if (aMod==Modele[0])
@@ -204,6 +211,9 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     {
         eModAutom = "eCalibAutom" + aMod;
         aModParam = "Four";
+
+        aDegRadMax =  3 + (aKModele-11) * 2;
+        aDegGenMax = 2;
     }
     else
     {
@@ -255,12 +265,14 @@ int Tapas_main(int argc,char ** argv)
     std::string  aPoseFigee="";
     bool Debug = false;
 
+    int  aDRadMaxUser = -1;
+
     ElInitArgMain
     (
-    argc,argv,
+        argc,argv,
         LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
                     << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
-    LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format (Def=false)",eSAM_IsBool)
+        LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(AeroOut,"Out",true, "Directory of Output Orientation", eSAM_IsOutputDirOri)
                     << EAM(CalibIn,"InCal",true,"Directory of Input Internal Orientation (Calibration)",eSAM_IsExistFile)
                     << EAM(AeroIn,"InOri",true,"Directory of Input External Orientation",eSAM_IsExistFile)
@@ -276,6 +288,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(MOI,"MOI",true,"MOI", eSAM_IsBool)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ")
                     << EAM(Debug,"Debug",true,"Partial file for debug", eSAM_IsBool)
+                    << EAM(aDRadMaxUser,"DegRadMax",true,"Max degree of radial, defaut dependant of model")
                     << EAM(LibAff,"LibAff",true,"Do some stuff", eSAM_IsBool)
                     << EAM(LibDec,"LibDec",true,"Do some stuff", eSAM_IsBool)
                     << EAM(aRapTxt,"RapTxt",true)
@@ -326,6 +339,8 @@ int Tapas_main(int argc,char ** argv)
    std::string aNameFileApero = Debug  ? "Apero-Debug-Glob.xml" : "Apero-Glob.xml" ;
 
 
+
+
    std::string aCom =     MM3dBinFile_quotes( "Apero" )
                        + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+ aNameFileApero ) + " "
                        + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
@@ -348,7 +363,14 @@ int Tapas_main(int argc,char ** argv)
                        + std::string(" +ValDecPP=") + (LibDec ?"eLiberte_Dec1" : "eLiberte_Dec0")
                        + std::string(" +ValAffPP=") + (LibDec ?"eLiberteParamDeg_1" : "eLiberteParamDeg_0")
                        + std::string(" +ValAff=") + (LibAff ?"eLiberte_Phgr_Std_Aff" : "eFige_Phgr_Std_Aff")
+
                     ;
+
+    if (EAMIsInit(&aDRadMaxUser))
+       aDegRadMax = aDRadMaxUser;
+
+    if (aDegRadMax<100)
+       aCom = aCom +  std::string(" +DegRadMax=") + ToString(aDegRadMax) + std::string(" ");
 
 
     if (EAMIsInit(&LibAff) && (!LibAff))

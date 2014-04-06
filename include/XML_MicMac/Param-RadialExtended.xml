@@ -1,6 +1,8 @@
 
                    <IterationsCompensation> </IterationsCompensation>
                     <IterationsCompensation>
+                       <DoIt>  ${DoDR1} </DoIt>
+
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR1      </Val>
@@ -22,6 +24,7 @@
 
 
                     <IterationsCompensation>
+                       <DoIt>  ${DoDR2} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR2      </Val>
@@ -55,6 +58,7 @@
 
 
                     <IterationsCompensation>
+                       <DoIt>  ${DoDR3} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR3      </Val>
@@ -62,9 +66,10 @@
                        </SectionContraintes>
                        <Messages>  LIB  DR3 </Messages>
                     </IterationsCompensation>
-                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> <DoIt>  ${DoDR3} </DoIt> </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt>  ${DoDR4} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR4      </Val>
@@ -72,9 +77,10 @@
                        </SectionContraintes>
                        <Messages>  LIB  DR4 </Messages>
                     </IterationsCompensation>
-                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> <DoIt>  ${DoDR4} </DoIt> </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt>  ${DoDR5} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR5      </Val>
@@ -82,9 +88,9 @@
                        </SectionContraintes>
                        <Messages>  LIB  DR5 </Messages>
                     </IterationsCompensation>
-<!--
--->
-                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> <DoIt>  ${DoDR5} </DoIt> </IterationsCompensation>
+                    <IterationsCompensation> <DoIt>  ${DoDR5} </DoIt> </IterationsCompensation>
 
-                    <IterationsCompensation> </IterationsCompensation>
+
+
 

@@ -9059,6 +9059,17 @@ void xml_init(cTestInteractif & anObj,cElXMLTree * aTree)
 }
 
 
+cTplValGesInit< bool > & cIterationsCompensation::DoIt()
+{
+   return mDoIt;
+}
+
+const cTplValGesInit< bool > & cIterationsCompensation::DoIt()const 
+{
+   return mDoIt;
+}
+
+
 cTplValGesInit< cSectionLevenbergMarkard > & cIterationsCompensation::SLMIter()
 {
    return mSLMIter;
@@ -9788,6 +9799,8 @@ cElXMLTree * ToXMLTree(const cIterationsCompensation & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"IterationsCompensation",eXMLBranche);
+   if (anObj.DoIt().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DoIt"),anObj.DoIt().Val())->ReTagThis("DoIt"));
    if (anObj.SLMIter().IsInit())
       aRes->AddFils(ToXMLTree(anObj.SLMIter().Val())->ReTagThis("SLMIter"));
    if (anObj.SLMEtape().IsInit())
@@ -9863,6 +9876,8 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+
+   xml_init(anObj.DoIt(),aTree->Get("DoIt",1),bool(true)); //tototo 
 
    xml_init(anObj.SLMIter(),aTree->Get("SLMIter",1)); //tototo 
 

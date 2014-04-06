@@ -12,6 +12,8 @@
 
 
                     <IterationsCompensation>
+                       <DoIt> ${DoDR1} </DoIt>
+
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR1      </Val>
@@ -29,6 +31,7 @@
                    </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt> ${DoDR2} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR2      </Val>
@@ -58,6 +61,7 @@
 
 
                     <IterationsCompensation>
+                       <DoIt> ${DoDR3} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR3      </Val>
