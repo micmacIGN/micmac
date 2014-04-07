@@ -71,6 +71,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    // mQT        (PtOfPhi,Box2dr(Pt2dr(-100,-100),Pt2dr(30000,30000)),10,500)
 {
 
+    int aIntNivShow = eShowGlob;
     CreateIndex();
    // Lecture bas niveau des parametres
     ElInitArgMain
@@ -83,7 +84,12 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mMinNbPtH,"NbMinHom",true,"Nb Min Pts For Homography Computation def=20")
                     << EAM(mSeuilQual,"SeuilQual",true,"Quality Theshold for homography (Def=20.0)")
                     << EAM(mRatioQualMoy,"RatioQualMoy",true,"Ratio to validate / average qual (def=4.0)")
+                    << EAM(aIntNivShow,"Show",true,"Level of Show (0=None, Def= 1)")
     );
+
+    mNivShow = (eNivShow) aIntNivShow;
+    if (Show(eShowGlob))
+        std::cout << "RHH begin \n";
 
    SplitDirAndFile(mDir,mName,mFullName);
 
@@ -124,6 +130,11 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
         }
    }
 
+}
+
+bool cAppliReduc::Show(eNivShow aLevel) const
+{
+   return  mNivShow >= aLevel;
 }
 
 std::string cAppliReduc::KeyHIn(const std::string & aKeyGen) const
@@ -257,12 +268,14 @@ NS_RHH_USE
 
 int RHH_main(int argc,char **argv)
 {
-   std::cout << "RHH begin \n";
+
    cAppliReduc anAppli(argc,argv);
 
    anAppli.ComputeHom();
 
-   std::cout << "RHH end \n";
+   if (anAppli.Show(eShowGlob))
+      std::cout << "RHH end \n";
+
    return EXIT_SUCCESS;
 }
 
