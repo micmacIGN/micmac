@@ -39,7 +39,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "XML_GEN/all_tpl.h"
 
+#if(ELISE_QT_VERSION >= 4)
+    #ifdef Int
+        #undef Int
+    #endif
 
+    #include <QApplication>
+    #include <QMessageBox>
+#endif
 
 template <class Type> void VerifIn(const Type & aV,const Type * aTab,int aNb, const std::string & aMes)
 {
@@ -186,7 +193,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mGenCubeCorrel (false),
     mEZA           (true)
 {
-  ELISE_ASSERT(argc >= 2,"Not enough arg");
+#if(ELISE_QT_VERSION >= 4)
+    QApplication app(argc, argv);
+    QMessageBox::critical(NULL, "Error", "Not enough arg, possible values are:\nvMalt Ortho\nvMalt UrbanMNE\nvMalt GeomImage");
+#else
+    ELISE_ASSERT(argc >= 2,"Not enough arg");
+#endif
 
   ReadType(argv[1]);
 
@@ -198,11 +210,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   std::string mModeOri;
 
 
-  std::string aMode;
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(aMode,"Mode of correlation (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
+        LArgMain()  << EAMC(mStrType,"Mode of correlation (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
