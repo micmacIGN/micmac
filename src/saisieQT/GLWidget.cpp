@@ -344,6 +344,14 @@ void GLWidget::selectionRadiusChanged(int val)
     }
 }
 
+void GLWidget::shiftStepChanged(float val)
+{
+    if (hasDataLoaded())
+    {
+        polygon()->setShiftStep(val);
+    }
+}
+
 void GLWidget::setParams(cParameters* aParams)
 {
     polygon()->setParams(aParams);
@@ -600,7 +608,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                     polygon()->insertPoint();
 
-                else if (polygon()->idx() != -1) // SELECT POINT
+                else if (polygon()->getSelectedPointIndex() != -1) // SELECT POINT
 
                     polygon()->setPointSelected();
 
@@ -668,14 +676,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
             else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
             {
-                int id = polygon()->idx();
+                int id = polygon()->getSelectedPointIndex();
 
                 bool insertMode = polygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
 
                 polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
 
-                if(id != polygon()->idx())
-                    emit selectPoint(polygon()->idx());
+                if(id != polygon()->getSelectedPointIndex())
+                    emit selectPoint(polygon()->getSelectedPointIndex());
             }
         }
 
@@ -783,6 +791,39 @@ void GLWidget::enterEvent(QEvent *event)
     emit overWidget(this);
 }
 
+void GLWidget::movePointWithArrows(QKeyEvent* event)
+{
+    QPointF tr(0.f, 0.f);
+    float shift = polygon()->getShiftStep();
+
+    switch(event->key())
+    {
+    case Qt::Key_Up:
+        tr.setY(shift);
+        break;
+    case Qt::Key_Down:
+        tr.setY(-shift);
+        break;
+    case Qt::Key_Left:
+        tr.setX(-shift);
+        break;
+    case Qt::Key_Right:
+        tr.setX(shift);
+        break;
+    default:
+        break;
+    }
+
+    polygon()->translateSelectedPoint(tr);
+
+    int idx = polygon()->getSelectedPointIndex();
+
+    emit movePoint(idx);
+    polygon()->selectPoint(idx);
+
+    update();
+}
+
 void GLWidget::keyPressEvent(QKeyEvent* event)
 {
     if(event->modifiers().testFlag(Qt::ControlModifier))
@@ -797,7 +838,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                emit removePoint(eEPI_Disparu, m_GLData->polygon()->idx());
+                emit removePoint(eEPI_Disparu, m_GLData->polygon()->getSelectedPointIndex());
                 polygon()->removeSelectedPoint();
                 break;
             case Qt::Key_Escape:
@@ -849,6 +890,12 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                     setCursor(Qt::SizeAllCursor);
                     polygon()->helper()->clear();
                     polygon()->setSelected(true);
+                break;
+            case Qt::Key_Up:
+            case Qt::Key_Down:
+            case Qt::Key_Left:
+            case Qt::Key_Right:
+                movePointWithArrows(event);
                 break;
             default:
                 event->ignore();

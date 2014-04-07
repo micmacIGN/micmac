@@ -84,6 +84,13 @@ void cSettingsDlg::on_RadiusSpinBox_valueChanged(int val)
     emit selectionRadiusChanged(val);
 }
 
+void cSettingsDlg::on_shiftStep_doubleSpinBox_valueChanged(double val)
+{
+    _parameters->setShiftStep(val);
+
+    emit shiftStepChanged(val);
+}
+
 void cSettingsDlg::on_PrefixTextEdit_textChanged(QString val)
 {
     _parameters->setDefPtName(val);
@@ -241,6 +248,7 @@ cParameters& cParameters::operator =(const cParameters &params)
     _ptName         = params._ptName;
     _postFix        = params._postFix;
     _radius         = params._radius;
+    _shiftStep      = params._shiftStep;
 
     _eType          = params._eType;
     _sz             = params._sz;
@@ -261,6 +269,7 @@ bool cParameters::operator!=(cParameters &p)
             (p._ptName         != _ptName)  ||
             (p._postFix        != _postFix) ||
             (p._radius         != _radius)  ||
+            (p._shiftStep      != _shiftStep)  ||
             (p._eType          != _eType)   ||
             (p._sz             != _sz)) return true;
     return  false;
@@ -302,6 +311,7 @@ void cParameters::read()
      setPostFix(        settings.value("postFix",   QString("_mask")).toString());
      setZoomWindowValue(zoomClip( settings.value("zoom", 3.0).toFloat()));
      setSelectionRadius( settings.value("radius",50).toInt());
+     setShiftStep(settings.value("shiftStep", 0.5f).toFloat());
      settings.endGroup();
 
      settings.beginGroup("Point creation");
@@ -331,6 +341,7 @@ void cParameters::write()
      settings.setValue("defPtName", _ptName    );
      settings.setValue("postFix",   _postFix   );
      settings.setValue("radius",    _radius    );
+     settings.setValue("shiftStep", _shiftStep );
      settings.setValue("zoom",      QString::number(zoomClip(_zoomWindow),'f',2)    );
      settings.endGroup();
 

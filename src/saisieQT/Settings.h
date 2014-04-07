@@ -35,6 +35,7 @@ public:
     void setGamma(float val)            { _gamma = val;          }
 
     void setSelectionRadius(int val)    { _radius = val;         }
+    void setShiftStep(float val)        {_shiftStep = val;       }
 
     void setPtCreationMode(eTypePts mode){ _eType = mode;        }
     void setPtCreationWindowSize(double sz){ _sz = sz;           }
@@ -54,6 +55,7 @@ public:
     float getGamma()                    { return _gamma;         }
 
     int   getSelectionRadius()          { return _radius;        }
+    float getShiftStep()                { return _shiftStep;     }
 
     eTypePts getPtCreationMode()        { return _eType;         }
     double getPtCreationWindowSize()    { return _sz;            }
@@ -84,6 +86,7 @@ private:
     QString     _ptName;
     QString     _postFix;
     int         _radius;
+    float       _shiftStep;
 
     //! Point creation mode
     eTypePts    _eType;
@@ -114,6 +117,7 @@ signals:
     void zoomWindowChanged(float);
     void selectionRadiusChanged(int);
     void prefixTextEdit(QString);
+    void shiftStepChanged(float);
 
 protected slots:
 
@@ -136,6 +140,7 @@ protected slots:
     //!other display settings
     void on_zoomWin_spinBox_valueChanged(int);
     void on_RadiusSpinBox_valueChanged(int);
+    void on_shiftStep_doubleSpinBox_valueChanged(double);
     void on_PrefixTextEdit_textChanged(QString);
 
     //!point creation mode
