@@ -583,6 +583,7 @@ void cPoint::draw()
         QPointF aPt = scaledPt();
 
         glDrawEllipse( aPt.x(), aPt.y(), rx, ry);
+        glDrawEllipse( aPt.x(), aPt.y(), 0.001, 0.001);
 
         if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
         {
@@ -830,14 +831,12 @@ int cPolygon::getSelectedPointState()
 
 void cPolygon::add(cPoint &pt)
 {
-    cout << "setDiameter 1 " << _pointDiameter << endl;
     pt.setDiameter(_pointDiameter);
     _points.push_back(pt);
 }
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    cout << "setDiameter 2 " << _pointDiameter << endl;
     cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
     cPt.setDiameter(_pointDiameter);
     _points.push_back(cPt);
@@ -849,7 +848,6 @@ void cPolygon::addPoint(const QPointF &pt)
     {
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
 
-        cout << "setDiameter 3" << _pointDiameter << endl;
         cPt.setDiameter(_pointDiameter);
         _points[size()-1] = cPoint(cPt);
     }
@@ -954,6 +952,17 @@ int cPolygon::selectPoint(QString namePt)
     }
 
     return _idx;
+}
+
+void cPolygon::selectPoint(int idx)
+{
+    _idx = idx;
+
+    if (pointValid())
+    {
+        _points[idx].setSelected(true);
+        _bSelectedPoint = true;
+    }
 }
 
 bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
@@ -1084,6 +1093,12 @@ void cPolygon::translate(QPointF Tr)
         _points[aK] += Tr;
 }
 
+void cPolygon::translateSelectedPoint(QPointF Tr)
+{
+    if (pointValid())
+        _points[_idx] += Tr;
+}
+
 void cPolygon::flipY(float height)
 {
     for (int aK=0; aK < size(); ++aK)
@@ -1095,6 +1110,7 @@ void cPolygon::setParams(cParameters *aParams)
     setRadius(aParams->getSelectionRadius());
     setPointSize(aParams->getPointDiameter());
     setLineWidth(aParams->getLineThickness());
+    setShiftStep(aParams->getShiftStep());
 
     if (_helper != NULL)
     {
@@ -1203,7 +1219,7 @@ void cPolygonHelper::build(cPoint const &pos, bool insertMode)
     {
         if (sz > 1)
         {
-            int idx = _polygon->idx();
+            int idx = _polygon->getSelectedPointIndex();
 
             if ((idx > 0) && (idx <= sz-1))
                 setPoints((*_polygon)[(idx-1)%sz],pos,(*_polygon)[(idx+1)%sz]);

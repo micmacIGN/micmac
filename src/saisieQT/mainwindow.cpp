@@ -589,6 +589,7 @@ void MainWindow::on_actionSettings_triggered()
         connect(&uiSettings, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
         connect(&uiSettings, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
         connect(&uiSettings, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
+        connect(&uiSettings, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
     }
 
     if (zoomWidget() != NULL)
@@ -800,7 +801,7 @@ void MainWindow::setUI()
 
 bool MainWindow::eventFilter( QObject* object, QEvent* event )
 {
-    if( ( object == tableView_PG()))
+    if( object == tableView_PG() )
     {
         QAbstractItemView* table    = (QAbstractItemView*)object;
 
@@ -808,7 +809,7 @@ bool MainWindow::eventFilter( QObject* object, QEvent* event )
 
         if(sModel)
         {
-            QString pointName           = sModel->currentIndex().data(Qt::DisplayRole).toString();
+            QString pointName = sModel->currentIndex().data(Qt::DisplayRole).toString();
 
             if(event->type() == QEvent::KeyRelease )
             {
@@ -979,7 +980,6 @@ void MainWindow::setImagePosition(QPointF pt)
 void MainWindow::setImageName(QString name)
 {
     _ui->label_ImageName->setText(QString(tr("Image name : ") + name));
-
 }
 
 void MainWindow::setZoom(float val)
@@ -989,15 +989,15 @@ void MainWindow::setZoom(float val)
 
 void MainWindow::changeCurrentWidget(void *cuWid)
 {
-    GLWidget* glW = (GLWidget*)cuWid;
+    GLWidget* glW = (GLWidget*) cuWid;
 
     setCurrentWidget(glW);
 
     if (_mode != MASK3D)
     {
-        connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
+        connect(glW, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
-        connect((GLWidget*)cuWid, SIGNAL(gammaChangedSgnl(float)), this, SLOT(setGamma(float)));
+        connect(glW, SIGNAL(gammaChangedSgnl(float)), this, SLOT(setGamma(float)));
 
         if (zoomWidget())
         {
@@ -1005,7 +1005,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
             zoomWidget()->setZoom(_params->getZoomWindowValue());
             zoomWidget()->setOption(cGLData::OpShow_Mess,false);
 
-            connect((GLWidget*)cuWid, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
+            connect(glW, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
         }
     }
 

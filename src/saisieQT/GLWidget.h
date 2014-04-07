@@ -111,6 +111,8 @@ public:
 
     void setParams(cParameters *aParams);
 
+    void movePointWithArrows(QKeyEvent* event);
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
@@ -119,6 +121,7 @@ public slots:
     void gammaChanged(float);
     void pointDiameterChanged(float);
     void selectionRadiusChanged(int);
+    void shiftStepChanged(float);
 
     //! Sets current zoom
     void setZoom(float val);

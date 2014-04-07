@@ -128,7 +128,7 @@ class cPoint : public cObjectGL, public QPointF
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
            float diameter = 4.f,
-           bool  highlight = false);
+           bool  highlight  = false);
 
         void draw();
 
@@ -282,6 +282,15 @@ class cPolygon : public cObjectGL
         QString getSelectedPointName();
         int     getSelectedPointState();
 
+        int     getSelectedPointIndex(){ return _idx; }
+
+        void    setPointSelected();
+        bool    isPointSelected(){ return _bSelectedPoint; }
+        void    resetSelectedPoint();
+
+        int     selectPoint(QString namePt);
+        void    selectPoint(int idx);
+
         void    setPointSize(float size) { _pointDiameter = size; }
 
         void    add(cPoint &pt);
@@ -311,14 +320,6 @@ class cPolygon : public cObjectGL
         void    setVector(QVector <cPoint> const &aPts){ _points = aPts; }
         void    setVector(QVector <QPointF> const &aPts);
 
-        int     idx(){return _idx;}
-
-        void    setPointSelected();
-        bool    isPointSelected(){ return _bSelectedPoint; }
-        void    resetSelectedPoint();
-
-        int     selectPoint(QString namePt);
-
         cPolygonHelper* helper() { return _helper; }
 
         void    refreshHelper(QPointF pos, bool insertMode, float zoom);
@@ -343,6 +344,7 @@ class cPolygon : public cObjectGL
         bool    bShowRefuted() { return _bShowRefuted; }
 
         void    translate(QPointF Tr);
+        void    translateSelectedPoint(QPointF Tr);
 
         void    flipY(float height);
 
@@ -350,6 +352,9 @@ class cPolygon : public cObjectGL
         void    setRadius(float val)    { _selectionRadius = val;  }
 
         void    setParams(cParameters* aParams);
+
+        float   getShiftStep()          { return _shiftStep; }
+        void    setShiftStep(float val) { _shiftStep = val;  }
 
     protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -382,6 +387,8 @@ private:
         int                 _style;
         QVector<qreal>      _dashes;
         QString             _defPtName;
+
+        float               _shiftStep;
 };
 
 class cPolygonHelper : public cPolygon
