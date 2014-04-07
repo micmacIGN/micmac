@@ -110,17 +110,21 @@ void cImagH::ComputeLnkHom()
            }
            if (Ok)
            {
-              std::cout
-                     << "IMS " << mName << " " << itL->second->Dest()->Name()
+              if (mAppli.Show(eShowAll))
+              {
+                 std::cout
+                     << " - - IMS " << mName << " " << itL->second->Dest()->Name()
                      << " QUAL " << itL->second->Qual() << " NB " << itL->second->NbPts()
                      << (Ok ? " " : "  ******")
                      <<  "\n";
+              }
            }
        }
     }
     mLnks = aNewL;
 
-    std::cout << mName << " QMOY " << (mSomNbPts ? mSomQual : 1e10) << "\n\n";
+    if (mAppli.Show(eShowDetail))
+        std::cout << " - " << mName << " QMOY " << (mSomNbPts ? mSomQual : 1e10) << "\n";
 }
 
 
