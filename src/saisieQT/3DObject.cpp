@@ -577,7 +577,7 @@ void cPoint::draw()
         glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
 
         float rx, ry;
-        rx = _diameter *.02;
+        rx = _diameter * 0.01; //to do: corriger / zoom
         ry = rx * _scale.x/_scale.y;
 
         QPointF aPt = scaledPt();
@@ -700,51 +700,11 @@ void cPolygon::draw()
         if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
 
         glColor3f(_color[state_default].redF(),_color[state_default].greenF(),_color[state_default].blueF());
-
     }
 
-    if(helper()!=NULL)
-        helper()->draw();
+    if(helper() != NULL)  helper()->draw();
 
     disableOptionLine();
-
-    /*if(_painter != NULL)
-    {
-        _painter->setRenderHint(QPainter::Antialiasing,true);
-
-        if (_bShowLines)
-        {
-            QPen penline(isSelected() ? QColor(0,140,180) : _lineColor);
-            penline.setCosmetic(true);
-            penline.setWidthF(_lineWidth);
-            if(_style == LINE_STIPPLE)
-            {
-                penline.setWidthF(_lineWidth);
-                penline.setStyle(Qt::CustomDashLine);
-                penline.setDashPattern(_dashes);
-            }
-
-            _painter->setPen(penline);
-
-            if(_bIsClosed)
-                _painter->drawPolygon(getVector().data(),size());
-            else
-                _painter->drawPolyline(getVector().data(),size());
-        }
-
-        for (int aK = 0;aK < _points.size(); ++aK)
-        {
-#if ELISE_QT_VERSION==4
-            _points[aK].setPainter(_painter);
-#endif
-            _points[aK].draw();
-        }
-
-        if(helper()!=NULL)
-             helper()->draw();
-
-         _painter->setRenderHint(QPainter::Antialiasing,false);
-    }*/
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -870,12 +830,14 @@ int cPolygon::getSelectedPointState()
 
 void cPolygon::add(cPoint &pt)
 {
+    cout << "setDiameter 1 " << _pointDiameter << endl;
     pt.setDiameter(_pointDiameter);
     _points.push_back(pt);
 }
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
+    cout << "setDiameter 2 " << _pointDiameter << endl;
     cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
     cPt.setDiameter(_pointDiameter);
     _points.push_back(cPt);
@@ -886,6 +848,8 @@ void cPolygon::addPoint(const QPointF &pt)
     if (size() >= 1)
     {
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
+
+        cout << "setDiameter 3" << _pointDiameter << endl;
         cPt.setDiameter(_pointDiameter);
         _points[size()-1] = cPoint(cPt);
     }
@@ -1131,6 +1095,13 @@ void cPolygon::setParams(cParameters *aParams)
     setRadius(aParams->getSelectionRadius());
     setPointSize(aParams->getPointDiameter());
     setLineWidth(aParams->getLineThickness());
+
+    if (_helper != NULL)
+    {
+        _helper->setRadius(aParams->getSelectionRadius());
+        _helper->setPointSize(aParams->getPointDiameter());
+        _helper->setLineWidth(aParams->getLineThickness());
+    }
 }
 
 bool cPolygon::isPointInsidePoly(const QPointF& P)
@@ -1181,10 +1152,9 @@ void cPolygon::showRefuted(bool show)
 //********************************************************************************
 
 cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QColor lineColor, QColor pointColor):
-    cPolygon(lineWidth, lineColor, pointColor,false),
+    cPolygon(lineWidth, lineColor, pointColor, false),
     _polygon(polygon)
 {
-
 }
 
 float segmentDistToPoint(QPointF segA, QPointF segB, QPointF p)
@@ -1634,7 +1604,10 @@ void cGLData::setScale(float vW, float vH)
     _glMaskedImage.setScale(scale);
 
     for (int aK=0; aK < _vPolygons.size();++aK)
+    {
         _vPolygons[aK]->setScale(scale);
+        _vPolygons[aK]->helper()->setScale(scale);
+    }
 }
 
 void cGLData::setGlobalCenter(Pt3d<double> aCenter)

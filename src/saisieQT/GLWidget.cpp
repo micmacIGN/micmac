@@ -158,19 +158,19 @@ void GLWidget::paintGL()
 
                          //QFontMetrics metrics = QFontMetrics(_font);
                          //int border = (float) qMax(2, metrics.leading());
-                         int border = 1;
+                          /*int border = 1;
 
                          QRect rect = QFontMetrics(QFont()).boundingRect(pt.name());
 
                          QRect rectg(this->x()-border, this->y()-border, rect.width()-border, rect.height()-border);
                          rectg.translate(QPoint(10, -rectg.height()-5));
 
-                         /*  _painter->setPen(isSelected() ? Qt::black : Qt::white);
+                          _painter->setPen(isSelected() ? Qt::black : Qt::white);
                            _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
                            _painter->drawText(rectg, Qt::AlignCenter, _name);*/
 
-						 QColor color(pt.isSelected() ? Qt::black : Qt::white);
-						 glColor3f(color.redF(),color.greenF(),color.blueF());
+                         QColor color(pt.isSelected() ? Qt::blue : Qt::white);
+                         glColor3f(color.redF(),color.greenF(),color.blueF());
 
                          renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
                      }
@@ -326,7 +326,9 @@ void GLWidget::pointDiameterChanged(float val)
     if (hasDataLoaded())
     {
         for (int aK =0; aK < polygon()->size();++aK)
+        {
             (*polygon())[aK].setDiameter(val);
+        }
 
         polygon()->setPointSize(val);
 
@@ -660,7 +662,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
-
             if (polygon()->isSelected())                    // MOVE POLYGON
 
                 polygon()->translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom));

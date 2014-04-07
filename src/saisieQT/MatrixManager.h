@@ -85,7 +85,7 @@ public:
 
     float       getGlRatio(){return m_glRatio;}
 
-    void        setView(VIEW_ORIENTATION orientation, Pt3d<double> centerScene);
+    void        setView(VIEW_ORIENTATION orientation, Pt3dr centerScene);
 
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
@@ -95,8 +95,8 @@ public:
     void        setDistance(const GLdouble &distance);
 
     void        arcBall();
-    Pt3d<double> centerScene() const;
-    void        setCenterScene(const Pt3d<double> &centerScene);
+    Pt3dr       centerScene() const;
+    void        setCenterScene(const Pt3dr &centerScene);
 
     void        MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);
 
@@ -110,7 +110,7 @@ private:
     GLdouble    _rX;
     GLdouble    _rY;
     GLdouble    _distance;
-    Pt3d<double> _centerScene;
+    Pt3dr       _centerScene;
 
 };
 
