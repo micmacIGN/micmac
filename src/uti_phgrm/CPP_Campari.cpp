@@ -96,6 +96,7 @@ int Campari_main(int argc,char ** argv)
     std::vector<std::string> EmGPS;
     bool DetailAppuis = false;
     double Viscos = 1.0;
+    bool ExpTxt = false;
 
     ElInitArgMain
     (
@@ -115,6 +116,8 @@ int Campari_main(int argc,char ** argv)
                     << EAM(AllFree,"AllFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity in Levenberg-Marquardt like resolution (Def=1.0)")
+                    << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
+
     );
 
 

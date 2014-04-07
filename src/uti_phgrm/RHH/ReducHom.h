@@ -82,7 +82,7 @@ NS_RHH_BEGIN
 
 
 
-#define TEST 0
+#define TEST 1
 
 #if TEST
 #define NB_RANSAC_H 20
@@ -321,6 +321,13 @@ class cPhIndexed
 
 typedef Pt2dr (*tPtOfPhi)(const cPhIndexed &);
 
+typedef enum
+{
+   eShowNone,
+   eShowGlob,
+   eShowDetail,
+   eShowAll
+} eNivShow;
 
 class cAppliReduc
 {
@@ -332,6 +339,7 @@ class cAppliReduc
          const std::string & Dir() const;
          int    MinNbPtH() const;
          double SeuilQual () const;
+         bool Show(eNivShow aLev) const;
          double RatioQualMoy () const;
          int    KernConnec() const;
          int    KernSize() const;
@@ -378,6 +386,7 @@ class cAppliReduc
          ElQT<cPhIndexed,Pt2dr,tPtOfPhi>  * mQT;
 
         cSetEqFormelles                     mSetEq;
+        eNivShow                            mNivShow;
 
 };
 
