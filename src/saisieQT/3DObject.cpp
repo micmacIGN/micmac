@@ -583,7 +583,7 @@ void cPoint::draw()
         QPointF aPt = scaledPt();
 
         glDrawEllipse( aPt.x(), aPt.y(), rx, ry);
-        glDrawEllipse( aPt.x(), aPt.y(), 0.001, 0.001);
+        glDrawEllipse( aPt.x(), aPt.y(), 0.001, 0.001* _scale.x/_scale.y);
 
         if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
         {
