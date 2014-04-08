@@ -111,6 +111,8 @@ private:
 
     int                 _aCpt;
 
+    void                setCurrentPGlobal(cSP_PointGlob* pg){_currentPGlobal = pg;}
+
     cSP_PointGlob*      _currentPGlobal;
 
 signals:
