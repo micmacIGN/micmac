@@ -22,16 +22,16 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
 
     verticalLayout->addWidget(toolBox);
 
-    addGridLayout(aVAM, tr("Mandatory arguments"));
+    addGridLayout(aVAM, tr("&Mandatory arguments"));
 
     if (aVAO.size())
     {
-        addGridLayout(aVAO, tr("Optional arguments"));
+        addGridLayout(aVAO, tr("&Optional arguments"));
 
         connect(toolBox, SIGNAL(currentChanged(int)), this, SLOT(_adjustSize(int)));
     }
 
-    runCommandButton = new QPushButton(tr(" Run command "), this);
+    runCommandButton = new QPushButton(tr(" &Run command "), this);
 
     verticalLayout->addWidget(runCommandButton, 1, Qt::AlignRight);
 
@@ -101,13 +101,9 @@ void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QW
             case AMBT_string:
             {
                 if (!aArg.EnumeratedValues().empty())
-                {
                     add_combo(layout, parent, aK, aArg);
-                }
                 else
-                {
                     add_select(layout, parent, aK, aArg);
-                }
                 break;
             }
             case AMBT_INT1:
@@ -297,7 +293,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 {
     string full_pattern;
     QStringList files = QFileDialog::getOpenFileNames(
-                            this,//mainWidget,
+                            this,
                             tr("Select images"),
                             mlastDir,
                             tr("Images (*.png *.xpm *.jpg *.tif)"));
@@ -328,7 +324,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 
 void visual_MainWindow::onSelectFilePressed(int aK)
 {
-    QString filename = QFileDialog::getOpenFileName(this, /*mainWidget,*/ tr("Select file"), mlastDir);
+    QString filename = QFileDialog::getOpenFileName(this, tr("Select file"), mlastDir);
 
     if (filename != NULL)
     {
@@ -344,7 +340,7 @@ void visual_MainWindow::onSelectFilePressed(int aK)
 
 void visual_MainWindow::onSelectDirPressed(int aK)
 {
-    QString aDir = QFileDialog::getExistingDirectory( this,/*mainWidget,*/ tr("Select directory"), mlastDir);
+    QString aDir = QFileDialog::getExistingDirectory( this, tr("Select directory"), mlastDir);
 
     if (aDir != NULL)
     {
@@ -437,21 +433,21 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
 
     if (!aArg.IsOutputFile() && !aArg.IsOutputDirOri())
     {
-        if (aArg.IsExistDirOri())
+        if (aArg.IsExistDirOri() || aArg.IsDir())
         {
-            selectionButton* sButton = new selectionButton(tr("Select directory"), parent);
+            selectionButton* sButton = new selectionButton(tr("Select &directory"), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsPatFile())
         {
-            selectionButton* sButton = new selectionButton(tr("Select images"), parent);
+            selectionButton* sButton = new selectionButton(tr("Select &images"), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsExistFile())
         {
-            selectionButton* sButton = new selectionButton(tr("Select file"), parent);
+            selectionButton* sButton = new selectionButton(tr("Select &file"), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
             layout->addWidget(sButton,aK,3);
         }

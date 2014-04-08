@@ -75,8 +75,8 @@ int Tarama_main(int argc,char ** argv)
                     << EAMC(Aero,"Orientation", eSAM_IsExistDirOri),
     LArgMain()
                     << EAM(Zoom,"Zoom",true,"Resolution, (Def=8, must be pow of 2)")
-                    << EAM(Repere,"Repere",true,"local repair as created with RepLocBascule")
-                    << EAM(DirOut,"Out",true,"drectory for output (Deg=TA)")
+                    << EAM(Repere,"Repere",true,"Local coordinate system as created with RepLocBascule")
+                    << EAM(DirOut,"Out",true,"Directory for output (Deg=TA)")
                     << EAM(aZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(aKNadir,"KNadir",true,"KBest image od Nadir (when exist)")
     );

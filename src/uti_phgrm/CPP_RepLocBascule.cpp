@@ -63,9 +63,9 @@ int RepLocBascule_main(int argc,char ** argv)
     (
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile )
-                    << EAMC(AeroIn,"Input Orientation", eSAM_IsExistDirOri)
-                    << EAMC(FileMesures,"XML File of Images Measures", eSAM_IsExistFile)
-                    << EAMC(RepereOut,"Out Xml File to store the results", eSAM_IsOutputFile),
+                    << EAMC(AeroIn,"Input orientation", eSAM_IsExistDirOri)
+                    << EAMC(FileMesures,"Images measures xml file", eSAM_IsExistFile)
+                    << EAMC(RepereOut,"Output xml file", eSAM_IsOutputFile),
     LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true,"Are tie points in ascii mode ? (Def=false)")
                     << EAM(PostPlan,"PostPlan",true,"Postfix for plane name, (Def=_Masq)")

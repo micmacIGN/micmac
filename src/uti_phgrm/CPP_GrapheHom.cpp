@@ -131,9 +131,9 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
     ElInitArgMain
     (
     argc,argv,
-    LArgMain()  << EAMC(mDir,"Directory", eSAM_IsDir)
-                    << EAMC(mPat,"Pat of images", eSAM_IsPatFile)
-                    << EAMC(mKeyFile,"Key for orientation,", eSAM_IsExistFile),
+        LArgMain()  << EAMC(mDir,"Directory", eSAM_IsDir)
+                    << EAMC(mPat,"Images pattern", eSAM_IsPatFile)
+                    << EAMC(mKeyFile,"Key for orientation", eSAM_IsExistFile),
         LArgMain()  << EAM(mTagC,"TagC",true)
                     << EAM(mTagOri,"TagOri",true)
                     << EAM(mAltiSol,"AltiSol",true)
