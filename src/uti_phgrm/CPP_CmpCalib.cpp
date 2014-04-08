@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -47,15 +47,15 @@ class cCapteurCmpCal
     public :
         cCapteurCmpCal(const std::string & aName) :
              mName (aName)
-	{
-	}
+    {
+    }
 
-	static cCapteurCmpCal & StdAlloc(const std::string & aName);
+    static cCapteurCmpCal & StdAlloc(const std::string & aName);
 
         const std::string & Name() { return mName; }
         virtual Pt2dr P0()                               = 0;
         virtual Pt2dr P1()                               = 0;
-	virtual double  Focale()                         = 0;
+    virtual double  Focale()                         = 0;
         virtual Pt2dr ToPDirL3(const Pt2dr&  aP) const   = 0;
     private :
         std::string   mName;
@@ -77,7 +77,7 @@ class cGridCmpCal : public cCapteurCmpCal
         //  const std::string & Name() { return mName; }
         Pt2dr P0() {return mGr->GrDir().P0();}
         Pt2dr P1() {return mGr->GrDir().P1();}
-	double  Focale() {return mGr->Focale();}
+    double  Focale() {return mGr->Focale();}
         Pt2dr ToPDirL3(const Pt2dr&  aP) const {return mGr->Direct(aP);}
 
 
@@ -92,16 +92,16 @@ class cCamStenopeCmpCal : public cCapteurCmpCal
     public :
         cCamStenopeCmpCal(const std::string & aName)  :
              cCapteurCmpCal(aName),
-	     mCam (Std_Cal_From_File(aName))
+         mCam (Std_Cal_From_File(aName))
         {
-	    std::cout << aName << "\n";
+        std::cout << aName << "\n";
         }
 
 
         //  const std::string & Name() { return mName; }
         Pt2dr P0() {return Pt2dr(0,0);}
         Pt2dr P1() {return Pt2dr(mCam->Sz());}
-	double  Focale() {return  mCam->Focale();}
+    double  Focale() {return  mCam->Focale();}
         Pt2dr ToPDirL3(const Pt2dr&  aP) const {return mCam->F2toPtDirRayonL3(aP);}
 
 
@@ -251,7 +251,7 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
         std::string aName = StdPrefix(mGr1.Name()) + "_Ecarts.txt";
         aFP = ElFopen(aName.c_str(),"w");
     }
- 
+
     if (Last)
     {
        double aStep = 200;
@@ -261,7 +261,7 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
        {
            double aRM = ElMin(aR,mRay-10.0);
            double EC =  EcartFromRay(aRM);
-           std::cout << "Ray=" << aRM 
+           std::cout << "Ray=" << aRM
                      << " ; Ecart=" << EC << "\n";
            fprintf(aFP," %lf %lf\n",aRM,EC);
        }
@@ -282,7 +282,7 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
                       mP0.x * aPdsX+mP1.x * (1-aPdsX),
                       mP0.y * aPdsY+mP1.y * (1-aPdsY)
                  );
- 
+
            InitNormales (aPIm);
 
            mEqORV->AddObservation(mN1,mN2);
@@ -296,10 +296,10 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
                //  Pt2dr aP0 = (aPIm- mP0)  * mRatioW;
                 Pt2dr aP0 = (aPIm-mP0)  * mRatioW;
 
- 
+
                 mW->draw_circle_loc(aP0,2.0,mW->pdisc()(P8COL::green));
                 int aCoul = First ? P8COL::blue : P8COL::red;
-               
+
                 mW->draw_seg
                 (
                    aP0,
@@ -307,7 +307,7 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
                    mW->pdisc()(aCoul)
                 );
             }
-            if (aFP) 
+            if (aFP)
                fprintf(aFP,"%lf %lf %lf %lf %lf\n",aPIm.x,aPIm.y,U.x,U.y,euclid(U));
        }
 
@@ -332,16 +332,16 @@ int CmpCalib_main(int argc,char ** argv)
 
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAM(aName1) 
-	            << EAM(aName2) ,
-	LArgMain()  << EAM(aTeta01,"Teta01",true)
-	            << EAM(aTeta02,"Teta02",true)
-	            << EAM(aTeta12,"Teta12",true)
-                    << EAM(aL1,"L1",true)
-                    << EAM(aSzW,"SzW",true)
-                    << EAM(aDynV,"DynV",true)
-    );	
+    argc,argv,
+    LArgMain()  << EAMC(aName1, "First calibration file",  eSAM_IsExistFile)
+                << EAMC(aName2, "Second calibration file", eSAM_IsExistFile),
+    LArgMain()  << EAM(aTeta01,"Teta01",true)
+                << EAM(aTeta02,"Teta02",true)
+                << EAM(aTeta12,"Teta12",true)
+                << EAM(aL1,"L1",true)
+                << EAM(aSzW,"SzW",true)
+                << EAM(aDynV,"DynV",true)
+    );
 
     cAppliCmpCal aCmpC(aName1,aName2, (aL1!=0),aSzW,aDynV);
 
@@ -359,13 +359,13 @@ int CmpCalib_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -375,17 +375,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

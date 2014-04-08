@@ -120,7 +120,7 @@ int TestCam_main(int argc,char ** argv)
     ElInitArgMain
     (
     argc,argv,
-    LArgMain()  << EAMC(aFullName,"Name", eSAM_IsPatFile)
+    LArgMain()  << EAMC(aFullName,"File name", eSAM_IsPatFile)
                 << EAMC(X,"x")
                 << EAMC(Y,"y")
                 << EAMC(Z,"z"),

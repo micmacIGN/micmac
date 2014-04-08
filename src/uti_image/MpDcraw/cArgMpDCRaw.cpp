@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -48,7 +48,7 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
     cAppliBatch
     (
         argc,argv,
-	2,   // Trois argument obligatoires
+    2,   // Trois arguments obligatoires
         1,   // 1 Argument est un fichier
         "MpDCraw"
      ),
@@ -95,32 +95,32 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
                      << EAM(mGamma,"Gamma",true)
                      << EAM(mEpsLog,"EpsLog",true)
                      << EAM(mDyn,"Dyn",true)
-	             << EAM(mSplit,"Split",true)
-	             << EAM(mGB,"GB",true)
-	             << EAM(mCB,"CB",true)
-	             << EAM(mGR,"GR",true)
-	             << EAM(mCR,"CR",true)
-	             << EAM(mDiag,"Diag",true)
-	             << EAM(mConsCol,"ConsCol",true)
-	             << EAM(mClB,"ClB",true)
-	             << EAM(mNameCLB,"NameClB",true)
-		     << EAM(mMastCh,"Master",true)
-		     << EAM(mScaleMast,"Scale",true)
-		     << EAM(mCal,"Cal",true)
-		     << EAM(aInterp,"Interp",true)
-		     << EAM(mBicubParam,"BiCubParam",true)
-		     << EAM(mSzSinCard,"SzSinCard",true)
-		     << EAM(mWB,"WB",true)
-		     << EAM(mPG,"PG",true)
-		     << EAM(mNameOriIsPrefix,"Prefix",true)
-		     << EAM(mAdd16_8B,"Add16B8B",true)
-		     << EAM(mCamDist,"Dist",true)
-		     << EAM(mHomolRedr,"HomRedr",true)
-		     << EAM(mExpTimeRef,"ExpTimeRef",true)
-		     << EAM(mDiaphRef,"DiaphRef",true)
-		     << EAM(mIsoSpeedRef,"IsoSpeedRef",true)
-		     << EAM(mExtension,"Extension",true)
-		     << EAM(mExtensionAbs,"ExtensionAbs",true)
+                 << EAM(mSplit,"Split",true)
+                 << EAM(mGB,"GB",true)
+                 << EAM(mCB,"CB",true)
+                 << EAM(mGR,"GR",true)
+                 << EAM(mCR,"CR",true)
+                 << EAM(mDiag,"Diag",true)
+                 << EAM(mConsCol,"ConsCol",true)
+                 << EAM(mClB,"ClB",true)
+                 << EAM(mNameCLB,"NameClB",true)
+             << EAM(mMastCh,"Master",true)
+             << EAM(mScaleMast,"Scale",true)
+             << EAM(mCal,"Cal",true)
+             << EAM(aInterp,"Interp",true)
+             << EAM(mBicubParam,"BiCubParam",true)
+             << EAM(mSzSinCard,"SzSinCard",true)
+             << EAM(mWB,"WB",true)
+             << EAM(mPG,"PG",true)
+             << EAM(mNameOriIsPrefix,"Prefix",true)
+             << EAM(mAdd16_8B,"Add16B8B",true)
+             << EAM(mCamDist,"Dist",true)
+             << EAM(mHomolRedr,"HomRedr",true)
+             << EAM(mExpTimeRef,"ExpTimeRef",true)
+             << EAM(mDiaphRef,"DiaphRef",true)
+             << EAM(mIsoSpeedRef,"IsoSpeedRef",true)
+             << EAM(mExtension,"Extension",true)
+             << EAM(mExtensionAbs,"ExtensionAbs",true)
                      << EAM(mImRef,"ImRef",true)
                      << EAM(mOfs,"Offset",true)
                      << EAM(mDoSplit,"SplitStereo",true)
@@ -150,7 +150,7 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
      {
          mWBSpec = false;
          for (int aK=0 ; aK<3; aK++)
-	    mWB.push_back(1.0);
+        mWB.push_back(1.0);
      }
      else if (mWB.size()==3)
      {
@@ -165,7 +165,7 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
      {
          mPGSpec = false;
          for (int aK=0 ; aK<3; aK++)
-	    mPG.push_back(1.0 + (aK==1));
+        mPG.push_back(1.0 + (aK==1));
      }
      else if (mPG.size()==3)
      {
@@ -184,13 +184,13 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
      ELISE_ASSERT
      (
            (mClB.size()==0) ||  (mClB.size()==3) || (mClB.size()==4),
-	   "Bad size for combin linear"
+       "Bad size for combin linear"
      );
      if (mClB.size()==3)
      {
         mClB.push_back(mClB.back());
-	double aV =    mClB[1]  /2.0;
-	mClB[1] = mClB[2] = aV;
+    double aV =    mClB[1]  /2.0;
+    mClB[1] = mClB[2] = aV;
      }
      SetNivPurge(eNoPurge);
 
@@ -207,7 +207,7 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
      {
          mInterp = new cInterpolSinusCardinal<REAL4>(mSzSinCard);
      }
-     else 
+     else
      {
          ELISE_ASSERT(false,"Unknown Interpolateur");
      }
@@ -218,7 +218,7 @@ const std::vector<double> &  cArgMpDCRaw::ClB() const
    return mClB;
 }
 
-bool  cArgMpDCRaw::SwapRB(bool aDef) const 
+bool  cArgMpDCRaw::SwapRB(bool aDef) const
 {
   if (mSwapRB==-1) return aDef;
 
@@ -233,7 +233,7 @@ const std::string &  cArgMpDCRaw::NameCLB() const
 }
 
 bool cArgMpDCRaw::IsToSplit(const std::string & aName) const
-{ 
+{
    if (mSplit=="*")
       return true;
 
@@ -303,8 +303,8 @@ void  cArgMpDCRaw::DevJpg()
      bool EnGray = GrayBasic() || GrayReech();
      bool En8B = ! Cons16B();
 
-	 // double quotes are added to protect spaces in the path
-	 std::string  aCom =     std::string("\"")+g_externalToolHandler.get( "convert" ).callName()+ "\" "
+     // double quotes are added to protect spaces in the path
+     std::string  aCom =     std::string("\"")+g_externalToolHandler.get( "convert" ).callName()+ "\" "
                          +   aFullNJPG +  std::string(" ")
                          +   std::string(" -compress None ")
                          +   (mConsCol ? " " :   (std::string(" -colorspace ") + (EnGray ? "Gray " : "sRGB ")))
@@ -323,12 +323,12 @@ void  cArgMpDCRaw::DevJpg()
 /*
     std::string aRes = DirChantier() +StdPrefixGen( CurF1()) +  + ".tif";
 
-   if (mNameOutSpec!="") 
+   if (mNameOutSpec!="")
       aRes = mNameOutSpec;
 */
 
-    
-   
+
+
 
     Tiff_Im aFinal
             (
@@ -440,15 +440,15 @@ void cArgMpDCRaw::Exec()
 
          delete mBayerCalibGeom;
          mBayerCalibGeom = new cBayerCalibGeom
-	                       (
-			          StdGetObjFromFile<cBayerCalibGeom>
-				  (
+                           (
+                      StdGetObjFromFile<cBayerCalibGeom>
+                  (
                                       aCal,
-				      StdGetFileXMLSpec("SuperposImage.xml"),
-				      "BayerCalibGeom",
-				      "BayerCalibGeom"
-				  )
-			       );
+                      StdGetFileXMLSpec("SuperposImage.xml"),
+                      "BayerCalibGeom",
+                      "BayerCalibGeom"
+                  )
+                   );
    }
    cNChannel aNC = cNChannel::Std(*this,DirChantier()+CurF1());
 
@@ -543,13 +543,13 @@ const Pt2di & cArgMpDCRaw::SpliMargeExt() const {return mSplitMargeExt;}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -559,17 +559,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -85,14 +85,14 @@ int SBGlobBascule_main(int argc,char ** argv)
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile )
                     << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
-                    << EAMC(FileMesures,"XML File of Images Measures", eSAM_IsExistFile)
+                    << EAMC(FileMesures,"Images measures xml file", eSAM_IsExistFile)
                     << EAMC(AeroOut,"Out : orientation ", eSAM_IsOutputDirOri),
     LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true)
                     << EAM(PostPlan,"PostPlan",true)
-                    << EAM(DistFE,"DistFS",true,"Distance between  Ech1 and Ech2 to fixe scale (if not given no scaling)")
-                    << EAM(TargetRep,"Rep",true,"Target repere (Def = ki, ie normal is vertical)")
-                    << EAM(CPI,"CPI",true,"Calib Per Image (Def=false)")
+                    << EAM(DistFE,"DistFS",true,"Distance between Ech1 and Ech2 to fix scale (if not given no scaling)")
+                    << EAM(TargetRep,"Rep",true,"Target coordinate system (Def = ki, ie normal is vertical)")
+                    << EAM(CPI,"CPI",true,"Calibration Per Image (Def=false)")
 
     );
 

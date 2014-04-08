@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -70,7 +70,7 @@ Box2di BoxEnglobMasq(Tiff_Im aTF,bool * Ok=0)
 
     if (aXMin > aXMax)
     {
-         if (Ok) 
+         if (Ok)
             *Ok = false;
          else
          {
@@ -103,7 +103,7 @@ class cBlockBasc
         {
         }
         void Compute(const cXML_ParamNuage3DMaille &);
-     
+
         int         mK;
         std::string mName;
         bool        mOK;
@@ -121,7 +121,7 @@ void cBlockBasc::Compute(const cXML_ParamNuage3DMaille & aNGlob)
          mOK = false;
          return ;
     }
-    
+
     mNuage = NuageFromFile(mName + ".xml");
     std::string aNameMasq  = mName + "_Masq.tif";
     mBoxLoc = BoxEnglobMasq(aNameMasq,&mOK);
@@ -139,7 +139,7 @@ void cBlockBasc::Compute(const cXML_ParamNuage3DMaille & aNGlob)
 
 //  BOX GLOB [2154,849][4867,3228]
 
- 
+
 int  NuageBascule_main(int argc,char ** argv)
 {
 
@@ -161,11 +161,11 @@ int  NuageBascule_main(int argc,char ** argv)
 
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(aNameIn,"Name of input depth map")
+    argc,argv,
+    LArgMain()  << EAMC(aNameIn,"Name of input depth map", eSAM_IsExistFile)
                     << EAMC(aNameOut,"Name of output depth map")
                     << EAMC(aNameRes,"Name result"),
-	LArgMain()  
+    LArgMain()
                     << EAM(ByP,"ByP",true,"By process in parallel, Def = true (faster and avoid memory overflow)")
                     << EAM(AutoResize,"AutoResize",true,"Clip result to minimal size, Def = true")
                     << EAM(AutoClipIn,"AutoClipIn",true,"Clip result to minimal size")
@@ -202,16 +202,16 @@ int  NuageBascule_main(int argc,char ** argv)
          {
              std::string aSupl = "BoxBasc" +ToString(aKB) +  std::string("_");
              Box2di aBoxK = aDecoup.KthIntervIn(aKB);
-             std::string aCom =  aComBase 
+             std::string aCom =  aComBase
                                + std::string(" InternallCalledByP=true ")
-                               + std::string(" InternallSuplOut=") + aSupl 
+                               + std::string(" InternallSuplOut=") + aSupl
                                + std::string(" BoxIn=") + ToString(aBoxK)
 /*
-                               + std::string(" BoxIn=[") + ToString(aBoxK._p0.x) + std::string(",") 
-                                                        + ToString(aBoxK._p0.y) + std::string(",") 
-                                                        + ToString(aBoxK._p1.x) + std::string(",") 
-                                                        + ToString(aBoxK._p1.y) 
-                               + std::string("] ") 
+                               + std::string(" BoxIn=[") + ToString(aBoxK._p0.x) + std::string(",")
+                                                        + ToString(aBoxK._p0.y) + std::string(",")
+                                                        + ToString(aBoxK._p1.x) + std::string(",")
+                                                        + ToString(aBoxK._p1.y)
+                               + std::string("] ")
 */
                            ;
 
@@ -269,7 +269,7 @@ int  NuageBascule_main(int argc,char ** argv)
          aNewNuageOut.Image_Profondeur().Val().Image() = NameWithoutDir(aNameProf);
          aNewNuageOut.Image_Profondeur().Val().Masq() = NameWithoutDir(aNameMasq);
          aNewNuageOut.Image_Profondeur().Val().Correl().SetNoInit();
-         
+
 
          Tiff_Im aFileProf
                  (
@@ -305,18 +305,18 @@ int  NuageBascule_main(int argc,char ** argv)
                  ELISE_COPY(aFileCorrel->all_pts(),0,aFileCorrel->out());
                  aNewNuageOut.Image_Profondeur().Val().Correl().SetVal(NameWithoutDir(aNameCorrel));
          }
- 
+
          MakeFileXML(aNewNuageOut,aPrefRes+".xml");
-        
+
         // TFW
         {
             std::string aNameTFW = StdPrefix(aNameProf) + ".tfw";
             std::ofstream aFtfw(aNameTFW.c_str());
             aFtfw.precision(10);
-            
+
             ElAffin2D aAfM2C = Xml2EL(aNewNuageOut.Orientation().OrIntImaM2C());
 
-            
+
             double resolutionX = 1./aAfM2C.I10().x;
             double resolutionY = 1./aAfM2C.I01().y;
             double origineX = -aAfM2C.I00().x * resolutionX;
@@ -330,7 +330,7 @@ int  NuageBascule_main(int argc,char ** argv)
             //aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
             aFtfw.close();
         }
-        
+
          std::cout << "-Basc3- merge blocks T=" << aChrono.uval() << "\n";
          for (int aKB=0 ; aKB<aDecoup.NbInterv() ; aKB++)
          {
@@ -342,7 +342,7 @@ int  NuageBascule_main(int argc,char ** argv)
                   Im2D_REAL4   aProfLoc(aSz.x,aSz.y);
 
                   // On charge les solutions partielles
-                  std::string aNameMasqL = aBl.mName+"_Masq.tif"; 
+                  std::string aNameMasqL = aBl.mName+"_Masq.tif";
                   ELISE_COPY
                   (
                         aIMasqLoc.all_pts(),
@@ -350,14 +350,14 @@ int  NuageBascule_main(int argc,char ** argv)
                         aIMasqLoc.out()
                   );
 
-                  std::string aNameProfL = aBl.mName+"_Prof.tif"; 
+                  std::string aNameProfL = aBl.mName+"_Prof.tif";
                   ELISE_COPY
                   (
                          aProfLoc.all_pts(),
                          trans(Tiff_Im::StdConv(aNameProfL).in(),aBl.mBoxLoc._p0) ,
                          aProfLoc.out()
                   );
-              
+
 
                   // On charge les solutions globales
                   Pt2di aDec =  aBl.mBoxGlob._p0 - aP0;
@@ -400,7 +400,7 @@ int  NuageBascule_main(int argc,char ** argv)
                   if (aFileCorrel)
                   {
 
-                        std::string aNameCorrL = DirOfFile(aNameIn)+  NameWithoutDir(aBl.mName)+"_Correl.tif"; 
+                        std::string aNameCorrL = DirOfFile(aNameIn)+  NameWithoutDir(aBl.mName)+"_Correl.tif";
                         // std::cout << aBl.mBoxLoc._p0 << " " << aNameCorrL << "\n";
                         Im2D_U_INT1   aCorLoc(aSz.x,aSz.y);
                         ELISE_COPY(aCorLoc.all_pts(),trans(Tiff_Im::StdConv(aNameCorrL).in(0),aBl.mBoxLoc._p0) ,aCorLoc.out());
@@ -424,9 +424,9 @@ int  NuageBascule_main(int argc,char ** argv)
         {
            aNameRes = AddPrePost(aNameRes,aSuplOut,"");
         }
-           
 
-         if (! EAMIsInit(&AutoClipIn)) 
+
+         if (! EAMIsInit(&AutoClipIn))
             AutoClipIn = aNuageIn.Image_Profondeur().IsInit();
 
          Box2di * aBoxClipIn = 0;
@@ -443,7 +443,7 @@ int  NuageBascule_main(int argc,char ** argv)
         cArgBacule anArg(mSeuilEtir);
 
          cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxClipIn,anArg);
-         if (aN) 
+         if (aN)
          {
             // std::cout << "AAAAA " << aNameRes << "\n";
             aN->Save(aNameRes);
@@ -457,11 +457,11 @@ int  NuageBascule_main(int argc,char ** argv)
             aParam.Image_Profondeur().Val().Masq() = "XXX";
             aParam.Image_Profondeur().Val().Correl().SetVal("XXX");
             MakeFileXML(aParam,aNameRes+".xml");
-         }   
+         }
 
          // std::cout << "N=" << aN  << " => " << NameWithoutDir(aNameRes) << "\n";
 
-   
+
          delete aBoxClipIn;
     }
     return 0;
@@ -473,13 +473,13 @@ int  NuageBascule_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -489,17 +489,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

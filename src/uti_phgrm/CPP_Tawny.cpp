@@ -67,16 +67,16 @@ int Tawny_main(int argc,char ** argv)
     ElInitArgMain
     (
     argc,argv,
-    LArgMain()   << EAMC(aDir,"Directory where are the data", eSAM_IsDir),
-    LArgMain()   << EAM(mDeq,"DEq",true,"Degre of equalization (Def=1)")
-                 << EAM(mDeqXY,"DEqXY",true,"Degre of equalization, if diff in X and Y")
+    LArgMain()   << EAMC(aDir,"Data directory", eSAM_IsDir),
+    LArgMain()   << EAM(mDeq,"DEq",true,"Degree of equalization (Def=1)")
+                 << EAM(mDeqXY,"DEqXY",true,"Degree of equalization, if diff in X and Y")
                  << EAM(mAddCste,"AddCste",true,"Add unknown constant for equalization (Def=false)", eSAM_IsBool)
-                 << EAM(mDegRap,"DegRap",true,"Degre of rappel to initial values, Def = 0")
-                 << EAM(mDegRapXY,"DegRapXY",true,"Degre of rappel to initial values, Def = 0")
-                 << EAM(mRapGlobPhys,"RGP",true,"Rappel glob on physycally equalized, Def = true")
+                 << EAM(mDegRap,"DegRap",true,"Degree of rappel to initial values, Def = 0")
+                 << EAM(mDegRapXY,"DegRapXY",true,"Degree of rappel to initial values, Def = 0")
+                 << EAM(mRapGlobPhys,"RGP",true,"Rappel glob on physically equalized, Def = true")
                  << EAM(mDynGlob,"DynG",true,"Global Dynamic (to correct saturation problems)")
                  << EAM(mImPrio0,"ImPrio",true,"Pattern of image with high prio, def=.*", eSAM_IsPatFile)
-                 << EAM(mSzV,"SzV",true,"Sz of Window for equalisation (Def=1, means 3x3)")
+                 << EAM(mSzV,"SzV",true,"Sz of Window for equalization (Def=1, means 3x3)")
                  << EAM(mCorrThresh,"CorThr",true,"Threshold of correlation to validate homologous (Def 0.7)")
                  << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
                  << EAM(DoL1Filter,"L1F",true,"Do L1 Filter on couple, def=true (change when process is blocked)", eSAM_IsBool)
