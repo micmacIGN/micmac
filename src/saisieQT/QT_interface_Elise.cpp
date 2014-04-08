@@ -60,9 +60,9 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     mAppli->SetInterface(this);
 
-    ImagesSortFilterProxyModel *proxyImageModel = new ImagesSortFilterProxyModel(this);
+    ImagesSFModel *proxyImageModel = new ImagesSFModel(this);
 
-    PointGlobalSortFilterProxyModel *proxyPointGlob = new PointGlobalSortFilterProxyModel(this);
+    PointGlobalSFModel *proxyPointGlob = new PointGlobalSFModel(this);
 
     proxyPointGlob->setSourceModel(new ModelPointGlobal(0,mAppli));
     proxyImageModel->setSourceModel(new ModelCImage(0,mAppli));
@@ -71,7 +71,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     m_QTMainWindow->resizeTables();
 
-    connect(((PointGlobalSortFilterProxyModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
+    connect(((PointGlobalSFModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
     connect(this,SIGNAL(dataChanged(cSP_PointeImage*)), this, SLOT(rebuildGlPoints(cSP_PointeImage*)));
     connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
     connect(this,SIGNAL(dataChanged()), proxyPointGlob, SLOT(invalidate()));

@@ -10,12 +10,12 @@
 
 class cQT_Interface ;
 
-class PointGlobalSortFilterProxyModel : public QSortFilterProxyModel
+class PointGlobalSFModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
 public:
-    PointGlobalSortFilterProxyModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+    PointGlobalSFModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
 
 protected:
 
@@ -72,12 +72,12 @@ private:
 };
 
 
-class ImagesSortFilterProxyModel : public QSortFilterProxyModel
+class ImagesSFModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
 public:
-    ImagesSortFilterProxyModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+    ImagesSFModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
