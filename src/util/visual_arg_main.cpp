@@ -142,7 +142,7 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
     QString str("In visual mode, possible values are:\n");
 
     QString msg;
-    for (int aK=0; aK < vStr.size(); ++aK)
+    for (int aK=0; aK < (int)vStr.size(); ++aK)
         msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
 
     setStyleSheet(app);

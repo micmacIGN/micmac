@@ -392,18 +392,21 @@ bool ModelCImage::insertRows(int row, int count, const QModelIndex &parent)
 }
 
 
-bool ImagesSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+bool ImagesSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
 
     QModelIndex index1 = sourceModel()->index(sourceRow, 1, sourceParent);
 
-    QRegExp regExp(HORSIMAGE);
+    QString strColl_1 = sourceModel()->data(index1).toString();
 
-    return !sourceModel()->data(index1).toString().contains(regExp);
+    if( strColl_1 == "")
+        return false;
+    else
+        return !strColl_1.contains(QRegExp(HORSIMAGE));
 
 }
 
-bool PointGlobalSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+bool PointGlobalSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
     if(mAppli())
     {
@@ -429,12 +432,12 @@ bool PointGlobalSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QMod
     return false;
 }
 
-cAppli_SaisiePts *PointGlobalSortFilterProxyModel::mAppli() const
+cAppli_SaisiePts *PointGlobalSFModel::mAppli() const
 {
     return ((ModelPointGlobal*)(sourceModel()))->getMAppli();
 }
 
-cQT_Interface *PointGlobalSortFilterProxyModel::getInterface()
+cQT_Interface *PointGlobalSFModel::getInterface()
 {
     return  (cQT_Interface *)mAppli()->Interface();
 }
