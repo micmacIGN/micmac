@@ -173,8 +173,6 @@ protected:
 
     void enterEvent(QEvent *event);
 
-    void overlay();
-
     //! Current interaction mode (with mouse)
     int  m_interactionMode;
 

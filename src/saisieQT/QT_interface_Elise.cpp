@@ -320,17 +320,17 @@ void cQT_Interface::selectPointGlobal(int idPG)
 {
     if( mAppli)
     {
-        _currentPGlobal = mAppli->PGlob(idPG);
 
-        if(_currentPGlobal)
+        if(mAppli->PGlob(idPG))
         {
+            setCurrentPGlobal(mAppli->PGlob(idPG));
             emit dataChanged();
             m_QTMainWindow->resizeTables();
         }
-    }
 
-    m_QTMainWindow->SelectPointAllWGL(!_currentPGlobal ? QString("") : namePointGlobal(idPG));
-    rebuild3DGlPoints((cPointGlob*) (!_currentPGlobal ? NULL :_currentPGlobal->PG()));
+        m_QTMainWindow->SelectPointAllWGL(!mAppli->PGlob(idPG) ? QString("") : namePointGlobal(idPG));
+        rebuild3DGlPoints((cPointGlob*) (!mAppli->PGlob(idPG) ? NULL : mAppli->PGlob(idPG)->PG()));
+    }
 }
 
 void cQT_Interface::selectPoint(int idPtCurGLW)
