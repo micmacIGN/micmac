@@ -156,19 +156,6 @@ void GLWidget::paintGL()
                      {
                          QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
 
-                         //QFontMetrics metrics = QFontMetrics(_font);
-                         //int border = (float) qMax(2, metrics.leading());
-                          /*int border = 1;
-
-                         QRect rect = QFontMetrics(QFont()).boundingRect(pt.name());
-
-                         QRect rectg(this->x()-border, this->y()-border, rect.width()-border, rect.height()-border);
-                         rectg.translate(QPoint(10, -rectg.height()-5));
-
-                          _painter->setPen(isSelected() ? Qt::black : Qt::white);
-                           _painter->fillRect(rectg, isSelected() ? QColor(255, 255, 255, 127) : QColor(0, 0, 0, 127));
-                           _painter->drawText(rectg, Qt::AlignCenter, _name);*/
-
                          QColor color(pt.isSelected() ? Qt::blue : Qt::white);
                          glColor3f(color.redF(),color.greenF(),color.blueF());
 
@@ -179,8 +166,6 @@ void GLWidget::paintGL()
 
             if (_widgetId < 0)
                 drawCenter();
-            else
-                overlay();
         }
         else
         {
@@ -192,12 +177,6 @@ void GLWidget::paintGL()
             m_GLData->draw();
         }
 
-        //QPointF r = _matrixManager.WindowToImage(QPointF(0,_matrixManager.vpHeight()-10),_vp_Params.m_zoom);
-
-        //cImageGL::drawQuad(r.x(),r.y(),10,10);
-
-        //cImageGL::drawQuad(10,5,10,10);
-
         glPopMatrix();
 
         if (_messageManager.drawMessages() && !m_bDisplayMode2D)
@@ -205,73 +184,6 @@ void GLWidget::paintGL()
     }
 
     _messageManager.draw();
-}
-
-void GLWidget::overlay()
-{
-    //TODO: cObject::cFrame ?
-    /*float z =0.;
-
-    QColor color(hasFocus() ? "#ffa02f" : "#707070");
-
-    QRect rect = this->rect();
-    QPoint shift(1,1);
-    rect.setTopLeft(rect.topLeft()+shift);
-    rect.setBottomRight(rect.bottomRight()-shift);
-
-    glColor3f(color.redF(),color.greenF(),color.blueF());
-
-    QPointF trf = _matrixManager.translateImgToWin(_vp_Params.m_zoom);
-    QPoint tr(trf.x()/vpWidth(), trf.y()/vpHeight());
-
-    cout << "translation: "<< tr.x() << " " << tr.y() << endl;
-
-    QPoint p0(rect.topLeft() -tr);
-    QPoint p1(rect.topRight()-tr);
-    QPoint p2(rect.bottomRight()-tr);
-    QPoint p3(rect.bottomLeft()-tr);
-
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(p0.x(),p0.y(),z);
-    glVertex3f(p1.x(),p1.y(),z);
-    glVertex3f(p2.x(),p2.y(),z);
-    glVertex3f(p3.x(),p3.y(),z);
-    glEnd();*/
-
-   // glTranslatef(tr.x(), tr.y(), 0.f);
-/*#if ELISE_QT_VERSION==5
-    _painter->begin(this);
-#else
-    QPainter painter(this);
-    _painter = &painter;
-    if (hasDataLoaded()) m_GLData->setPainter(_painter);
-#endif
-
-    if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)))
-    {
-
-        if (m_bDisplayMode2D)
-        {
-            float zoom = _vp_Params.m_zoom;
-            _painter->scale(zoom,-zoom);
-            _painter->translate(_matrixManager.translateImgToWin(zoom));
-        }
-
-        for (int i = 0; i < m_GLData->polygonCount(); ++i)
-             polygon(i)->draw();
-
-        QPen pen(QColor(hasFocus() ? "#ffa02f" : "#707070"));
-        _painter->setPen(pen);
-
-        _painter->resetTransform();
-        QRect rect = this->rect();
-        QPoint shift(1,1);
-        rect.setTopLeft(rect.topLeft()+shift);
-        rect.setBottomRight(rect.bottomRight()-shift);
-        _painter->drawRect(rect);
-    }
-
-    _painter->end();*/
 }
 
 void GLWidget::setInteractionMode(int mode, bool showmessage)
@@ -371,12 +283,6 @@ void GLWidget::setZoom(float val)
     update();
 }
 
-void GLWidget::selectPoint(QString namePt)
-{
-    polygon()->selectPoint(namePt);
-    update();
-}
-
 void GLWidget::zoomFit()
 {
     if (hasDataLoaded())
@@ -398,6 +304,12 @@ void GLWidget::zoomFit()
         else
             setZoom(m_GLData->getBBoxMaxSize());
     }
+}
+
+void GLWidget::selectPoint(QString namePt)
+{
+    polygon()->selectPoint(namePt);
+    update();
 }
 
 void GLWidget::zoomFactor(int percent)
