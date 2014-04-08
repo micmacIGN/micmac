@@ -11,15 +11,12 @@ static double DoubleMin = -10000.;
 static double DoubleMax =  10000.;
 
 visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent) :
-    QMainWindow(parent),
+    QWidget(parent),
     mlastDir(QDir::homePath())
 {
-    mainWidget = new QWidget(this);
-    setCentralWidget(mainWidget);
+    QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 
-    QVBoxLayout *verticalLayout = new QVBoxLayout(mainWidget);
-
-    mainWidget->setLayout(verticalLayout);
+    setLayout(verticalLayout);
 
     toolBox = new QToolBox();
 
@@ -34,7 +31,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
         connect(toolBox, SIGNAL(currentChanged(int)), this, SLOT(_adjustSize(int)));
     }
 
-    runCommandButton = new QPushButton(tr(" Run command "), mainWidget);
+    runCommandButton = new QPushButton(tr(" Run command "), this);
 
     verticalLayout->addWidget(runCommandButton, 1, Qt::AlignRight);
 
@@ -43,7 +40,6 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecAr
 
 visual_MainWindow::~visual_MainWindow()
 {
-    delete mainWidget;
     delete toolBox;
     delete runCommandButton;
 }
@@ -301,7 +297,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 {
     string full_pattern;
     QStringList files = QFileDialog::getOpenFileNames(
-                            mainWidget,
+                            this,//mainWidget,
                             tr("Select images"),
                             mlastDir,
                             tr("Images (*.png *.xpm *.jpg *.tif)"));
@@ -332,7 +328,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 
 void visual_MainWindow::onSelectFilePressed(int aK)
 {
-    QString filename = QFileDialog::getOpenFileName(mainWidget, tr("Select file"), mlastDir);
+    QString filename = QFileDialog::getOpenFileName(this, /*mainWidget,*/ tr("Select file"), mlastDir);
 
     if (filename != NULL)
     {
@@ -348,7 +344,7 @@ void visual_MainWindow::onSelectFilePressed(int aK)
 
 void visual_MainWindow::onSelectDirPressed(int aK)
 {
-    QString aDir = QFileDialog::getExistingDirectory( mainWidget, tr("Select directory"), mlastDir);
+    QString aDir = QFileDialog::getExistingDirectory( this,/*mainWidget,*/ tr("Select directory"), mlastDir);
 
     if (aDir != NULL)
     {

@@ -52,7 +52,7 @@ private:
     vector < pair < int, QWidget* > >   vWidgets;
 };
 
-class visual_MainWindow : public QMainWindow
+class visual_MainWindow : public QWidget
 {
     Q_OBJECT
 
@@ -97,8 +97,6 @@ protected:
     int          id_unique;
     string       argv_recup;
 
-    QWidget*     mainWidget;
-
     QToolBox*    toolBox;
     QPushButton* runCommandButton;
 
@@ -111,6 +109,9 @@ protected:
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);
 void ShowEnum(const cMMSpecArg & anArg);
+void setStyleSheet(QApplication &app);
+void showErrorMsg(QApplication &app, std::vector <std::string> vStr);
+
 
 #endif //ELISE_QT_VERSION >= 4
 

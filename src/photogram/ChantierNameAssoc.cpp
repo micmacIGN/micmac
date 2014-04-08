@@ -392,7 +392,8 @@ static std::string CurrentProgramFullName;
 static std::string CurrentProgramSubcommand = "unknown";
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
-        AnalyseContextCom(argc,argv);
+    AnalyseContextCom(argc,argv);
+
     if ((aNbMin >=0) && (argc < aNbMin))
     {
         if (argc>0)
@@ -401,7 +402,6 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
             std::cout << "For unknown command \n";
         std::cout << "Got " << argc << " args for " << aNbMin << "required \n";
     }
-
 
     if ((ArgvMMDir=="") && (argc!=0))
     {
