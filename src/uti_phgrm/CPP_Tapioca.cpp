@@ -38,6 +38,16 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+#if(ELISE_QT_VERSION >= 4)
+#ifdef Int
+#undef Int
+#endif
+
+#include <QApplication>
+#include <QMessageBox>
+
+#include "general/visual_mainwindow.h"
+#endif
 
 // bin/Tapioca MulScale "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" 300 -1 ExpTxt=1
 // bin/Tapioca All  "../micmac_data/ExempleDoc/Boudha/IMG_[0-9]{4}.tif" -1  ExpTxt=1
@@ -83,21 +93,19 @@ void StdAdapt2Crochet(std::string & aStr)
 */
 void StdAdapt2Crochet(std::string & aStr)
 {
-
     if (TheType != Type[3])
     {
-         GlobStdAdapt2Crochet(aStr);
+        GlobStdAdapt2Crochet(aStr);
     }
 }
 
 
 std::string RelAllIm()
 {
+    if (aPat2=="")
+        return QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ");
 
-   if (aPat2=="")
-     return QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ");
-
-   return  QUOTE(std::string("NKS-Rel-AllCpleOf2Pat@")+ aPat +"@"+aPat2) + std::string(" ");
+    return  QUOTE(std::string("NKS-Rel-AllCpleOf2Pat@")+ aPat +"@"+aPat2) + std::string(" ");
 }
 
 
@@ -105,10 +113,10 @@ std::string RelAllIm()
 std::string NKS()
 {
     return
-             std::string(" NKS=NKS-Assoc-CplIm2Hom@")
-           + std::string(PostFix)
-           + std::string("@")
-           + std::string(ExpTxt? "txt" :  "dat") ;
+            std::string(" NKS=NKS-Assoc-CplIm2Hom@")
+            + std::string(PostFix)
+            + std::string("@")
+            + std::string(ExpTxt? "txt" :  "dat") ;
 }
 
 void DoMkT()
@@ -166,7 +174,7 @@ void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, str
     int    round_scaleFactor = round_ni( ( 1/scaleFactor )*round_ );
 
     o_grayscaleFilename = aDir + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
-                            + std::string("_Teta0_") + StdPrefixGen( i_baseName ) + ".tif";
+            + std::string("_Teta0_") + StdPrefixGen( i_baseName ) + ".tif";
 }
 
 void InitDetectingTool( std::string & detectingTool )
@@ -197,7 +205,7 @@ void check_pastis_tool( string &io_tool, const string &i_toolType )
         const ExternalToolItem &item = g_externalToolHandler.get( io_tool );
         if ( !item.isCallable() ){
             cerr << "Tapioca: ERROR: specified tool \"" << io_tool << "\" is needed by \"" << i_toolType << "\" but " << item.errorMessage() << endl;
-                ElEXIT( EXIT_FAILURE ,"check_pastis_tool");
+            ElEXIT( EXIT_FAILURE ,"check_pastis_tool");
         }
 
         if ( extractedArguments.length()!=0 ) io_tool.append( string(":") + extractedArguments );
@@ -226,20 +234,20 @@ int MultiEch(int argc,char ** argv)
     string detectingTool, matchingTool;
 
     ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
-                     <<EAMC(aSsRes,"Size of Low Resolution image", eSAM_None)
-                     <<EAMC(aFullRes,"Size of High Resolution Images", eSAM_None),
-    LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                    << EAM(ByP,"ByP",true)
-                    << EAM(PostFix,"PostFix",true)
-                    << EAM(aNbMinPt,"NbMinPt",true)
-                    << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
-                    << EAM(aPat2,"Pat2",true)
-                    << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                    << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
-    );
+            (
+                argc,argv,
+                LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
+                <<EAMC(aSsRes,"Size of Low Resolution image", eSAM_None)
+                <<EAMC(aFullRes,"Size of High Resolution Images", eSAM_None),
+                LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
+                << EAM(ByP,"ByP",true)
+                << EAM(PostFix,"PostFix",true)
+                << EAM(aNbMinPt,"NbMinPt",true)
+                << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
+                << EAM(aPat2,"Pat2",true)
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                );
 
 
 
@@ -256,32 +264,32 @@ int MultiEch(int argc,char ** argv)
 
     if (DoLowRes)
     {
-         std::string aSsR =
-                        BinPastis
-                     +  aDir + std::string(" ")
-                     +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
-                     +  ToString(aSsRes) + std::string(" ")
-                     +  std::string(" NKS=NKS-Assoc-CplIm2Hom@_SRes@dat")
-                     +  StrMkT()
-                     +  std::string("NbMinPtsExp=2 ")
-                     +  std::string("SsRes=1 ")
-                     +  std::string("ForceByDico=1 ")
-                     +  g_toolsOptions;
+        std::string aSsR =
+                BinPastis
+                +  aDir + std::string(" ")
+                +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
+                +  ToString(aSsRes) + std::string(" ")
+                +  std::string(" NKS=NKS-Assoc-CplIm2Hom@_SRes@dat")
+                +  StrMkT()
+                +  std::string("NbMinPtsExp=2 ")
+                +  std::string("SsRes=1 ")
+                +  std::string("ForceByDico=1 ")
+                +  g_toolsOptions;
 
-         System(aSsR,true);
-         DoMkT();
+        System(aSsR,true);
+        DoMkT();
     }
 
 
     std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ")
-                     + QUOTE(std::string("NKS-Rel-SsECh@")+ aPat+ std::string("@")+ToString(aNbMinPt)) + std::string(" ")
-                     +  ToString(aFullRes) + std::string(" ")
-                     +  StrMkT()
-                     +  std::string("NbMinPtsExp=2 ")
-                     +  std::string("ForceByDico=1 ")
-                     +  g_toolsOptions + ' '
-                     +  NKS();
+            +  aDir + std::string(" ")
+            + QUOTE(std::string("NKS-Rel-SsECh@")+ aPat+ std::string("@")+ToString(aNbMinPt)) + std::string(" ")
+            +  ToString(aFullRes) + std::string(" ")
+            +  StrMkT()
+            +  std::string("NbMinPtsExp=2 ")
+            +  std::string("ForceByDico=1 ")
+            +  g_toolsOptions + ' '
+            +  NKS();
 
     System(aSFR,true);
     DoMkT();
@@ -294,17 +302,17 @@ int All(int argc,char ** argv)
     string detectingTool, matchingTool;
 
     ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
-                     <<EAMC(aFullRes,"Size of image", eSAM_None),
-    LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                    << EAM(PostFix,"PostFix",true)
-                    << EAM(ByP,"ByP",true)
-                    << EAM(aPat2,"Pat2",true)
-                    << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                    << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
-    );
+            (
+                argc,argv,
+                LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
+                <<EAMC(aFullRes,"Size of image", eSAM_None),
+                LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
+                << EAM(PostFix,"PostFix",true)
+                << EAM(ByP,"ByP",true)
+                << EAM(aPat2,"Pat2",true)
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                );
 
     check_detect_and_match_tools( detectingTool, matchingTool );
 
@@ -312,14 +320,14 @@ int All(int argc,char ** argv)
     DoDevelopp(-1,aFullRes);
 
     std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ")
-                     +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
-                     +  ToString(aFullRes) + std::string(" ")
-                     +  StrMkT()
-                     +  std::string("NbMinPtsExp=2 ")
-                     +  std::string("ForceByDico=1 ")
-                     +  g_toolsOptions + ' '
-                     +  NKS();
+            +  aDir + std::string(" ")
+            +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
+            +  ToString(aFullRes) + std::string(" ")
+            +  StrMkT()
+            +  std::string("NbMinPtsExp=2 ")
+            +  std::string("ForceByDico=1 ")
+            +  g_toolsOptions + ' '
+            +  NKS();
 
 
     System(aSFR,true);
@@ -337,19 +345,19 @@ int Line(int argc,char ** argv)
     string detectingTool, matchingTool;
 
     ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
-                     <<EAMC(aFullRes,"Size of image",eSAM_None)
-                     <<EAMC(aNbAdj,"Number of adjacent images to look for", eSAM_None),
-    LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in text format")
-                    << EAM(PostFix,"PostFix",true,"Add post fix in directory")
-                    << EAM(ByP,"ByP",true,"By process")
-                    << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
-                    << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
-                    << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                    << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
-    );
+            (
+                argc,argv,
+                LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
+                <<EAMC(aFullRes,"Size of image",eSAM_None)
+                <<EAMC(aNbAdj,"Number of adjacent images to look for", eSAM_None),
+                LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in text format")
+                << EAM(PostFix,"PostFix",true,"Add post fix in directory")
+                << EAM(ByP,"ByP",true,"By process")
+                << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
+                << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                );
 
     check_detect_and_match_tools( detectingTool, matchingTool );
 
@@ -357,27 +365,27 @@ int Line(int argc,char ** argv)
     {
         std::cout << "Resol=" << aFullRes  << " NbAdjacence=" << aNbAdj << "\n";
         ELISE_ASSERT
-        (
-             false,
-             "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
-        );
+                (
+                    false,
+                    "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
+                    );
 
     }
 
 
     DoDevelopp(-1,aFullRes);
 
-   std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
+    std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
 
     std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ")
-                     +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
-                     +  ToString(aFullRes) + std::string(" ")
-                     +  StrMkT()
-                     +  std::string("NbMinPtsExp=2 ")
-                     +  std::string("ForceByDico=1 ")
-                     +  g_toolsOptions + ' '
-                     +  NKS();
+            +  aDir + std::string(" ")
+            +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
+            +  ToString(aFullRes) + std::string(" ")
+            +  StrMkT()
+            +  std::string("NbMinPtsExp=2 ")
+            +  std::string("ForceByDico=1 ")
+            +  g_toolsOptions + ' '
+            +  NKS();
 
     std::cout << aSFR << "\n";
     System(aSFR,true);
@@ -393,34 +401,34 @@ int File(int argc,char ** argv)
     string detectingTool, matchingTool;
 
     ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"XML-File of pair", eSAM_IsExistFile)
-                     <<EAMC(aFullRes,"Resolution",eSAM_None),
-    LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                    << EAM(PostFix,"PostFix",true)
-                    << EAM(ByP,"ByP",true)
-                    << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                    << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
-    );
+            (
+                argc,argv,
+                LArgMain()  << EAMC(aFullDir,"XML-File of pair", eSAM_IsExistFile)
+                <<EAMC(aFullRes,"Resolution",eSAM_None),
+                LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
+                << EAM(PostFix,"PostFix",true)
+                << EAM(ByP,"ByP",true)
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                );
 
     check_detect_and_match_tools( detectingTool, matchingTool );
 
     std::string aSFR =  BinPastis
-                     +  aDir + std::string(" ")
-                     +  QUOTE(std::string("NKS-Rel-ByFile@")+  aPat) + std::string(" ")
-                     +  ToString(aFullRes) + std::string(" ")
-                     +  StrMkT()
-                     +  std::string("NbMinPtsExp=2 ")
-                     +  std::string("ForceByDico=1 ")
-                     +  g_toolsOptions + ' '
-                     +  NKS();
+            +  aDir + std::string(" ")
+            +  QUOTE(std::string("NKS-Rel-ByFile@")+  aPat) + std::string(" ")
+            +  ToString(aFullRes) + std::string(" ")
+            +  StrMkT()
+            +  std::string("NbMinPtsExp=2 ")
+            +  std::string("ForceByDico=1 ")
+            +  g_toolsOptions + ' '
+            +  NKS();
 
 
     std::cout << aSFR << "\n";
     System(aSFR,true);
     DoMkT();
-/*
+    /*
 */
 
     return 0;
@@ -432,7 +440,7 @@ void getKeypointFilename( const string &i_basename, int i_resolution, string &o_
      o_keypointsName = aDir+"Pastis/LBPp"+i_basename+".dat";
      */
 
-   o_keypointsName = aDir + anICNM->Assoc1To2( "eModeLeBrisPP-Pastis-PtInt", i_basename, ToString( i_resolution ), true) ;
+    o_keypointsName = aDir + anICNM->Assoc1To2( "eModeLeBrisPP-Pastis-PtInt", i_basename, ToString( i_resolution ), true) ;
 }
 
 // create a makefile to compute keypoints for all images Using Pastis' filenames format
@@ -442,9 +450,9 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
     process_pastis_tool_string( i_detectingTool, detectingToolArguments );
 
     string pastisGrayscaleFilename,
-           keypointsFilename,
-           //grayscaleDirectory, grayscaleBasename,
-           command;
+            keypointsFilename,
+            //grayscaleDirectory, grayscaleBasename,
+            command;
 
     if ( !ELISE_fp::MkDirSvp( aDir+"Pastis" ) )
     {
@@ -454,7 +462,7 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
 
     cEl_GPAO  aGPAO;
     size_t nbFiles = aFileList.size(),
-           iImage = 0;
+            iImage = 0;
     aKeypointsFileArray.resize( nbFiles );
     for ( std::list<std::string>::const_iterator iT=aFileList.begin(); iT!=aFileList.end(); iT++, iImage++ ) // aFileList has been computed by DoDevelopp
     {
@@ -464,7 +472,7 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
         keypointsFilename = aKeypointsFileArray[iImage];
 
         command = g_externalToolHandler.get( i_detectingTool ).callName() + ' ' + detectingToolArguments + ' ' +
-                    pastisGrayscaleFilename + " -o " + keypointsFilename;
+                pastisGrayscaleFilename + " -o " + keypointsFilename;
 
         aGPAO.GetOrCreate( keypointsFilename, command );
         aGPAO.TaskOfName("all").AddDep( keypointsFilename );
@@ -515,7 +523,7 @@ void writeBinaryGraphToXML( const string &i_filename, const vector<vector<int> >
 size_t normalizeGraph( vector<vector<int> > &i_graph, int i_threshold  )
 {
     size_t n = i_graph.size(),
-           i, j;
+            i, j;
     size_t count = 0;
     for ( j=1; j<n; j++ )
         for ( i=0; i<j; i++ )
@@ -537,7 +545,7 @@ void setLabel( vector<vector<int> > &i_graph, vector<int> &i_labels, size_t i_in
     if ( i_labels[i_index]==-1 )
     {
         size_t n = i_graph.size(),
-               i;
+                i;
         i_labels[i_index] = i_label;
         for ( i=0; i<i_index; i++ )
             if ( i_graph[i_index][i]!=0 ) setLabel( i_graph, i_labels, i, i_label );
@@ -570,8 +578,8 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     vector<SiftPoint> 		   all_keypoints; 		// a big vector with all keypoints of all images
     vector<int> 	  		   all_image_indices;	// contains the index of the image from which the keypoint is from
     size_t iImage = 0,
-           nbTotalKeypoints = 0,
-           addedPoints;
+            nbTotalKeypoints = 0,
+            addedPoints;
 
     // read all keypoints files
     cout << "--------------------> read all keypoints files" << endl;
@@ -620,7 +628,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     all_image_indices.resize( nbTotalKeypoints );
     vector<vector<SiftPoint> >::const_iterator itSrc = keypoints_per_image.begin();
     const SiftPoint *pSrc;
-          SiftPoint *pDst = &( all_keypoints[0] );
+    SiftPoint *pDst = &( all_keypoints[0] );
     int *itIndex = &( all_image_indices[0] );
     for ( iImage=0; iImage<nbImages; iImage++, itSrc++ )
     {
@@ -647,8 +655,8 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     SiftPoint *query = &( all_keypoints[0] );
     const ANNidx *neighbours = search.getNeighboursIndices();
     size_t iImageQuery, iImageNeighbour,
-           nbBadNeighbours = 0,
-           iQuery;
+            nbBadNeighbours = 0,
+            iQuery;
     for ( iQuery=0; iQuery<nbTotalKeypoints; iQuery++ )
     {
         search.search( query->descriptor );
@@ -692,7 +700,7 @@ int Graph_(int argc,char ** argv)
     int maxDimensionResize = -1;
     int nbMaxPoints = 200;
     REAL minScaleThreshold = std::numeric_limits<REAL>::min(),
-         maxScaleThreshold = std::numeric_limits<REAL>::max();
+            maxScaleThreshold = std::numeric_limits<REAL>::max();
     int nbRequiredMatches = 1;
     string outputFile = "tapioca_connectivity_graph.xml"; // default XML filename for the graph
     string detectingTool, detectingToolArguments;
@@ -702,20 +710,20 @@ int Graph_(int argc,char ** argv)
     // aFullPat is the original directory+pattern string
 
     ElInitArgMain
-    (
-    argc,argv,
+            (
+                argc,argv,
 
-    LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)", eSAM_IsPatFile)
+                LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)", eSAM_IsPatFile)
                 << EAMC(maxDimensionResize,"processing size of image  (for the greater dimension)", eSAM_None),
 
-    LArgMain()  << EAM(nbThreads, "ByP", true, "By processe")
+                LArgMain()  << EAM(nbThreads, "ByP", true, "By processe")
                 << EAM(detectingTool, PASTIS_DETECT_ARGUMENT_NAME.c_str(), true, "executable used to detect keypoints")
                 << EAM(nbMaxPoints, "MaxPoint", true, "number of points used per image to construct the graph (default 200)")
                 << EAM(minScaleThreshold, "MinScale", true, "if specified, points with a lesser scale are ignored")
                 << EAM(maxScaleThreshold, "MaxScale", true, "if specified, points with a greater scale are ignored")
                 << EAM(nbRequiredMatches, "NbRequired", true, "number of matches to create a connexion between two images (default 1)")
                 << EAM(outputFile, "Out", true, "name of the produced XML file")
-    );
+                );
 
     // if no output filename is given, use the default one in "chantier" directory
     if ( !EAMIsInit(&outputFile) )
@@ -752,7 +760,7 @@ int Graph_(int argc,char ** argv)
 
     DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches );
 
-/*
+    /*
     check_detect_and_match_tools( detectingTool, matchingTool );
 
     if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
@@ -791,31 +799,46 @@ int Graph_(int argc,char ** argv)
 
 int Tapioca_main(int argc,char ** argv)
 {
-   MMD_InitArgcArgv(argc,argv);
+    MMD_InitArgcArgv(argc,argv);
 
-   int ARGC0 = argc;
+    int ARGC0 = argc;
 
-   //  APRES AVOIR SAUVEGARDER L'ARGUMENT DE TYPE ON LE SUPPRIME
+#if(ELISE_QT_VERSION >= 4)
+    if (argc != 2)
+    {
+        QApplication app(argc, argv);
+
+        std::vector <std::string> vStr;
+        vStr.assign(Type, Type + aNbType);
+
+        showErrorMsg(app, vStr);
+        return EXIT_FAILURE;
+    }
+#else
+    ELISE_ASSERT(argc >= 2,"Not enough arg");
+#endif
+
+    //  APRES AVOIR SAUVEGARDER L'ARGUMENT DE TYPE ON LE SUPPRIME
     if (argc>=2)
     {
-       TheType = argv[1];
-       argv[1] = argv[0];
-       argv++; argc--;
+        TheType = argv[1];
+        argv[1] = argv[0];
+        argv++; argc--;
     }
 
     if (argc>=2)
     {
-       aFullDir = argv[1];
-       #if(ELISE_windows)
-            replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-       #endif
-       SplitDirAndFile(aDir,aPat,aFullDir);
+        aFullDir = argv[1];
+#if(ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+#endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
     }
 
     aPatOri = aPat;
 
     StdAdapt2Crochet(aPat);
-/*
+    /*
     if ((aPat.find('@')!=(std::string::npos)) && (TheType != Type[3]))
     {
          aPat = "[["+aPat+"]]";
@@ -866,7 +889,7 @@ int Tapioca_main(int argc,char ** argv)
     bool Error = (ARGC0>=2 ) && (TheType!= std::string("-help"));
     if (Error)
     {
-       std::cout << "TAPIOCA: ERROR: unknown command : " << TheType << endl;
+        std::cout << "TAPIOCA: ERROR: unknown command : " << TheType << endl;
     }
     std::cout << "Allowed commands are : \n";
     for (int aK=0 ; aK<aNbType ; aK++)

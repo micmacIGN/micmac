@@ -46,6 +46,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
     #include <QApplication>
     #include <QMessageBox>
+
+    #include "general/visual_mainwindow.h"
 #endif
 
 template <class Type> void VerifIn(const Type & aV,const Type * aTab,int aNb, const std::string & aMes)
@@ -194,8 +196,13 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mEZA           (true)
 {
 #if(ELISE_QT_VERSION >= 4)
-    QApplication app(argc, argv);
-    QMessageBox::critical(NULL, "Error", "Not enough arg, possible values are:\nvMalt Ortho\nvMalt UrbanMNE\nvMalt GeomImage");
+    if (argc != 2)
+    {
+        QApplication app(argc, argv);
+
+        showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
+        return;
+    }
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
 #endif

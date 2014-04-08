@@ -83,6 +83,22 @@ template <class EnumType> void StdReadEnum
     }
 }
 
+template <class EnumType> std::vector <std::string> getStrFromEnum
+                      (
+                          const EnumType & aTypeMax
+                      )
+{
+    std::vector <std::string> aRes;
+
+    for (int aK=0 ; aK<int(aTypeMax) ; aK++)
+    {
+         EnumType aTK = EnumType(aK);
+         std::string aStrK = eToString(aTK);
+         aRes.push_back(aStrK.substr(1,std::string::npos));
+    }
+
+    return aRes;
+}
 
 
 

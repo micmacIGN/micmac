@@ -125,6 +125,32 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
     return true;
 }*/
 
+#if(ELISE_QT_VERSION >= 4)
+void setStyleSheet(QApplication &app)
+{
+    QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        app.setStyleSheet(file.readAll());
+        file.close();
+    }
+}
+
+//void showErrorMsg(QApplication &app, QString msg)
+void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
+{
+    QString str("In visual mode, possible values are:\n");
+
+    QString msg;
+    for (int aK=0; aK < vStr.size(); ++aK)
+        msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
+
+    setStyleSheet(app);
+    QMessageBox::critical(NULL, "Error", str + msg);
+}
+
+#endif
+
 void MMRunVisualMode
 (
         int argc,char ** argv, // A priori inutile, mais peut-etre cela evoluera-t-il ?
@@ -136,12 +162,7 @@ void MMRunVisualMode
 #if(ELISE_QT_VERSION >= 4)
     QApplication app(argc, argv);
 
-    QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
-    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        app.setStyleSheet(file.readAll());
-        file.close();
-    }
+    setStyleSheet(app);
 
     // qt translations
     const QString locale = QLocale::system().name().section('_', 0, 0);
