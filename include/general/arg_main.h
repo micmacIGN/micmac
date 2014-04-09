@@ -435,14 +435,15 @@ class LArgMain
 #define EIAM_NbArgGlobGlob -1
 
 // Var glob, rajoutee pour indiquer que MICMAC est en mode visuel
-// initialisee dasn GenMain, utilisee dans ElInitArgMain
+// initialisee dans GenMain, utilisee dans ElInitArgMain
 extern bool MMVisualMode;
 
 void MMRunVisualMode
      (
          int argc,char ** argv,
          std::vector<cMMSpecArg> & aVAM,
-         std::vector<cMMSpecArg> & aVAO
+         std::vector<cMMSpecArg> & aVAO,
+         std::string aFirstArg = ""
      );
 
 std::vector<char *>   	ElInitArgMain
@@ -450,8 +451,9 @@ std::vector<char *>   	ElInitArgMain
             int argc,char ** argv,
             const LArgMain & ,
             const LArgMain & ,
-                        bool  VerifInit=EIAM_VerifInit,
-                        bool  AccUnK=EIAM_AccUnK,
+            const std::string & aFirstArg = "",
+            bool  VerifInit=EIAM_VerifInit,
+            bool  AccUnK=EIAM_AccUnK,
             int   aNbArgGlobGlob = EIAM_NbArgGlobGlob
         );
 
@@ -459,7 +461,8 @@ void  	ElInitArgMain
         (
             const std::string &,
             const LArgMain & ,
-            const LArgMain &
+            const LArgMain & ,
+            const std::string & aArg = ""
         );
 
 

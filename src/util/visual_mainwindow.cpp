@@ -10,9 +10,10 @@ static int IntMax =  1000;
 static double DoubleMin = -10000.;
 static double DoubleMax =  10000.;
 
-visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent) :
+visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, string aFirstArg, QWidget *parent) :
     QWidget(parent),
-    mlastDir(QDir::homePath())
+    mlastDir(QDir::homePath()),
+    mFirstArg(aFirstArg)
 {
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 
@@ -174,7 +175,7 @@ void visual_MainWindow::onRunCommandPressed()
 {
     bool runCom = true;
 
-    string aCom = MM3dBinFile(argv_recup) +" ";
+    string aCom = MM3dBinFile(argv_recup) + " " + mFirstArg + " ";
 
     for (unsigned int aK=0;aK<vInputs.size();aK++)
     {
@@ -200,7 +201,7 @@ void visual_MainWindow::onRunCommandPressed()
                 {
                     QString aStr = ((QComboBox*) aIn->Widgets()[0].second)->currentText(); //warning
 
-                    if(aIn->Arg().IsBool() )
+                    if(aIn->Arg().IsBool() || (aIn->Arg().Type() == AMBT_bool))
                     {
                         bool aB = false;
 

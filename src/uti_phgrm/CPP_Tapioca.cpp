@@ -226,7 +226,7 @@ void check_detect_and_match_tools( string &detectingTool, string &matchingTool )
 }
 
 
-int MultiEch(int argc,char ** argv)
+int MultiEch(int argc,char ** argv, const std::string &aArg="")
 {
     int aSsRes;
     int aNbMinPt=2;
@@ -237,8 +237,8 @@ int MultiEch(int argc,char ** argv)
             (
                 argc,argv,
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
-                <<EAMC(aSsRes,"Size of Low Resolution image", eSAM_None)
-                <<EAMC(aFullRes,"Size of High Resolution Images", eSAM_None),
+                            << EAMC(aSsRes,"Size of Low Resolution Images")
+                            << EAMC(aFullRes,"Size of High Resolution Images"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
                 << EAM(ByP,"ByP",true)
                 << EAM(PostFix,"PostFix",true)
@@ -246,7 +246,8 @@ int MultiEch(int argc,char ** argv)
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                 << EAM(aPat2,"Pat2",true)
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true),
+                aArg
                 );
 
 
@@ -297,7 +298,7 @@ int MultiEch(int argc,char ** argv)
     return 0;
 }
 
-int All(int argc,char ** argv)
+int All(int argc,char ** argv, const std::string &aArg="")
 {
     string detectingTool, matchingTool;
 
@@ -305,13 +306,14 @@ int All(int argc,char ** argv)
             (
                 argc,argv,
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
-                <<EAMC(aFullRes,"Size of image", eSAM_None),
+                            << EAMC(aFullRes,"Size of image", eSAM_None),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
                 << EAM(PostFix,"PostFix",true)
                 << EAM(ByP,"ByP",true)
                 << EAM(aPat2,"Pat2",true)
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true),
+                aArg
                 );
 
     check_detect_and_match_tools( detectingTool, matchingTool );
@@ -337,7 +339,7 @@ int All(int argc,char ** argv)
     return 0;
 }
 
-int Line(int argc,char ** argv)
+int Line(int argc,char ** argv, const std::string &aArg="")
 {
     int  aNbAdj;
     bool  ForceAdj= false;
@@ -348,15 +350,16 @@ int Line(int argc,char ** argv)
             (
                 argc,argv,
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
-                <<EAMC(aFullRes,"Size of image",eSAM_None)
-                <<EAMC(aNbAdj,"Number of adjacent images to look for", eSAM_None),
+                            << EAMC(aFullRes,"Size of image",eSAM_None)
+                            << EAMC(aNbAdj,"Number of adjacent images to look for", eSAM_None),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in text format")
                 << EAM(PostFix,"PostFix",true,"Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true),
+                aArg
                 );
 
     check_detect_and_match_tools( detectingTool, matchingTool );
@@ -396,7 +399,7 @@ int Line(int argc,char ** argv)
 
 
 
-int File(int argc,char ** argv)
+int File(int argc,char ** argv, const std::string &aArg="")
 {
     string detectingTool, matchingTool;
 
@@ -404,12 +407,13 @@ int File(int argc,char ** argv)
             (
                 argc,argv,
                 LArgMain()  << EAMC(aFullDir,"XML-File of pair", eSAM_IsExistFile)
-                <<EAMC(aFullRes,"Resolution",eSAM_None),
+                            << EAMC(aFullRes,"Resolution",eSAM_None),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
                 << EAM(PostFix,"PostFix",true)
                 << EAM(ByP,"ByP",true)
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true),
+                aArg
                 );
 
     check_detect_and_match_tools( detectingTool, matchingTool );
@@ -799,12 +803,8 @@ int Graph_(int argc,char ** argv)
 
 int Tapioca_main(int argc,char ** argv)
 {
-    MMD_InitArgcArgv(argc,argv);
-
-    int ARGC0 = argc;
-
 #if(ELISE_QT_VERSION >= 4)
-    if (argc != 2)
+    if (argc < 2)
     {
         QApplication app(argc, argv);
 
@@ -818,6 +818,10 @@ int Tapioca_main(int argc,char ** argv)
     ELISE_ASSERT(argc >= 2,"Not enough arg");
 #endif
 
+    MMD_InitArgcArgv(argc,argv);
+
+    int ARGC0 = argc;
+
     //  APRES AVOIR SAUVEGARDER L'ARGUMENT DE TYPE ON LE SUPPRIME
     if (argc>=2)
     {
@@ -826,7 +830,7 @@ int Tapioca_main(int argc,char ** argv)
         argv++; argc--;
     }
 
-    if (argc>=2)
+    if (argc>=3)
     {
         aFullDir = argv[1];
 #if(ELISE_windows)
@@ -862,19 +866,19 @@ int Tapioca_main(int argc,char ** argv)
     }
     else if (TheType == Type[1])
     {
-        int aRes = All(argc,argv);
+        int aRes = All(argc,argv, TheType);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[2])
     {
-        int aRes = Line(argc,argv);
+        int aRes = Line(argc,argv, TheType);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[3])
     {
-        int aRes = File(argc,argv);
+        int aRes = File(argc,argv, TheType);
         BanniereMM3D();
         return aRes;
     }
