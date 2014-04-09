@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -54,9 +54,9 @@ class cAppliGenMire
 
 void  OneImage
       (
-	  const std::string & aName,
+      const std::string & aName,
           Pt2di aSz,
-	  Fonc_Num aFinit,
+      Fonc_Num aFinit,
           bool  DoCercle = true
       )
 {
@@ -74,18 +74,18 @@ void  OneImage
           for (int aKy =0 ; aKy<aNby ; aKy++)
           {
              // Pt2dr aP = Pt2dr(aRayon,aRayon);
-	     double aCx = aRayon + (aSz.x-2*aRayon) * (aKx/double(aNbx-1));
-	     double aCy = aRayon + (aSz.y-2*aRayon) * (aKy/double(aNby-1));
+         double aCx = aRayon + (aSz.x-2*aRayon) * (aKx/double(aNbx-1));
+         double aCy = aRayon + (aSz.y-2*aRayon) * (aKy/double(aNby-1));
 
-	     Fonc_Num aFC = (255/aRayon) * (aRayon -sqrt(Square(FX-aCx)+Square(FY-aCy)));
-	     if (aFinit.dimf_out() == 3)
-	        aFC = Virgule(aFC,aFC,aFC);
+         Fonc_Num aFC = (255/aRayon) * (aRayon -sqrt(Square(FX-aCx)+Square(FY-aCy)));
+         if (aFinit.dimf_out() == 3)
+            aFC = Virgule(aFC,aFC,aFC);
              ELISE_COPY
-	     (
-	         disc(Pt2dr(aCx,aCy),aRayon),
-	         Max(0,Min(255,aFC)),
-	         aTif.out()
-	     );
+         (
+             disc(Pt2dr(aCx,aCy),aRayon),
+             Max(0,Min(255,aFC)),
+             aTif.out()
+         );
           }
       }
    }
@@ -99,17 +99,21 @@ Fonc_Num Pyram(int aSz)
 cAppliGenMire::cAppliGenMire (int argc,char** argv) :
     mSz (1600,1000),
     mDoCircle (false)
-    
-{                 
+
+{
     std::string aTextMatch = "RGBTextApp";
     std::string aCalibGray = "GrayCalib";
+
+    std::list<std::string> ListOfVal;
+    ListOfVal.push_back(aTextMatch);
+    ListOfVal.push_back(aCalibGray);
 
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(mMode,"Mode (among allowed values)"),
+        LArgMain()  << EAMC(mMode,"Mode (among allowed values)", eSAM_None, ListOfVal),
         LArgMain()
-                    << EAM(mSz,"Sz",true,"Size of image, def =[1000,800]")
+                    << EAM(mSz,"Sz",true,"Image size, def =[1600,1000]")
                     << EAM(mFileOut,"Out","Result (Def depend of Mode)")
                     << EAM(mDoCircle,"DoC","Add Circle")
     );
@@ -127,11 +131,11 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
        (
             "../TMP/SinRanC.tif",
             mSz,
-	    Virgule
-	    (
-	        Min(255,255*unif_noise_1(1)),
-	        1+127*(1+sin(FX/5.0)),
-	        1+127*(1+sin(FY/5.0))
+        Virgule
+        (
+            Min(255,255*unif_noise_1(1)),
+            1+127*(1+sin(FX/5.0)),
+            1+127*(1+sin(FY/5.0))
             )
        );
     }
@@ -146,10 +150,10 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
     {
         aDefFile = "TexureAleatoire.tif";
         aFonc  = Virgule
-	            (
-	                255* (Pyram(5) *0.3 +  unif_noise_2(3)*0.4 +  unif_noise_4(8)*0.3),
-	                255* (((FX+FY)%2)* 0.2  + unif_noise_1(1)*0.6 +  unif_noise_4(3)*0.2),
-	                255* (Pyram(9)*0.2 +  unif_noise_2(2)*0.3 +  unif_noise_4(6)*0.5)
+                (
+                    255* (Pyram(5) *0.3 +  unif_noise_2(3)*0.4 +  unif_noise_4(8)*0.3),
+                    255* (((FX+FY)%2)* 0.2  + unif_noise_1(1)*0.6 +  unif_noise_4(3)*0.2),
+                    255* (Pyram(9)*0.2 +  unif_noise_2(2)*0.3 +  unif_noise_4(6)*0.5)
                     ) ;
          aDefDoCercle = false;
     }
@@ -162,11 +166,11 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
        (
             "../TMP/RanC.tif",
             mSz,
-	    Virgule
-	    (
-	        Min(255,255*unif_noise_4(&aP1,&aVR,1)) ,
-	        Min(255,255*unif_noise_4(&aP1,&aVV,1)) ,
-	        Min(255,255*unif_noise_4(&aP1,&aVB,1)) 
+        Virgule
+        (
+            Min(255,255*unif_noise_4(&aP1,&aVR,1)) ,
+            Min(255,255*unif_noise_4(&aP1,&aVV,1)) ,
+            Min(255,255*unif_noise_4(&aP1,&aVB,1))
             )
        );
     }
@@ -180,7 +184,7 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
        (
             "../TMP/Ran.tif",
             mSz,
-	    Min(255,255*unif_noise_4(aPds,aV,aNbV)) 
+        Min(255,255*unif_noise_4(aPds,aV,aNbV))
        );
     }
     else if (0)
@@ -188,27 +192,27 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
         OneImage
         (
             "../TMP/SinX_1.tif",
-	    mSz,
-	    1+127*(1+sin(FX/5.0))
+        mSz,
+        1+127*(1+sin(FX/5.0))
         );
 
         OneImage
         (
             "../TMP/SinXSinY_1.tif",
-	    mSz,
-	    1+63*(1+sin(FX/5.0))*(1+sin(FY/20.0))
+        mSz,
+        1+63*(1+sin(FX/5.0))*(1+sin(FY/20.0))
         );
 
         OneImage
         (
             "../TMP/SinXCol_1.tif",
-	    mSz,
-	    Virgule
-	    (
-	         1+127*(1+sin(FX/2.0)),
-	         1+127*(1+sin(FX/5.1)),
-	         1+127*(1+sin(FX/12.7))
-	    )
+        mSz,
+        Virgule
+        (
+             1+127*(1+sin(FX/2.0)),
+             1+127*(1+sin(FX/5.1)),
+             1+127*(1+sin(FX/12.7))
+        )
          );
     }
     else
@@ -228,13 +232,13 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
 
 
 int GenMire_main (int argc,char** argv)
-{                 
+{
    cAppliGenMire anAppli(argc,argv);
    return 0;
 }
 
 int GrayTexture_main (int argc,char** argv)
-{                 
+{
 
    Pt2di aSz;
    std::string aNameOut = "GrayText.tif";
@@ -283,7 +287,7 @@ int GrayTexture_main (int argc,char** argv)
         Pt2di aSzM = aTM.sz();
         Im2D_U_INT1 aImM(aSzM.x,aSzM.y);
         ELISE_COPY(aTM.all_pts(),aTM.in(),aImM.out());
- 
+
         Fonc_Num  fx = (FX*aSzM.x)/aSz.x;
         Fonc_Num  fy = (FY*aSzM.y)/aSz.y;
 
@@ -293,9 +297,9 @@ int GrayTexture_main (int argc,char** argv)
 
 
    Fonc_Num aFonc = Max(0,Min(255,(aSomF/aSomPds)));
- 
+
    Tiff_Im::Create8BFromFonc(aNameOut,aSz,aFonc);
-   
+
    return 0;
 }
 
@@ -305,13 +309,13 @@ int GrayTexture_main (int argc,char** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -321,17 +325,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

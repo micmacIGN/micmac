@@ -81,10 +81,10 @@ int SEL_main(int argc,char ** argv)
     (
            argc,argv,
            LArgMain() << EAMC(aDir,"Directory", eSAM_IsDir)
-                       << EAMC(aN1,"Name Im1", eSAM_IsExistFile)
-                      << EAMC(aN2,"Name Im2", eSAM_IsExistFile) ,
+                      << EAMC(aN1,"First image name", eSAM_IsExistFile)
+                      << EAMC(aN2,"Second image name", eSAM_IsExistFile) ,
            LArgMain() << EAM(aRedr,"R",true)
-                      << EAM(aRedrL1,"RL1",true,"Estimate Homographie uSing L1 mode")
+                      << EAM(aRedrL1,"RL1",true,"Estimate Homography using L1 mode")
                       << EAM(aFilter,"F",true)
                       << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT MMD")
                       << EAM(aKeyCompl,"KCpl",true)

@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -94,9 +94,9 @@ int to8Bits_main(int argc,char ** argv)
 
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAM(aNameIn) ,
-	LArgMain()  << EAM(EcMin,"EcMin",true)
+    argc,argv,
+                LArgMain()  << EAMC(aNameIn, "Image", eSAM_IsExistFile),
+    LArgMain()  << EAM(EcMin,"EcMin",true)
                     << EAM(aNameOut,"Out",true)
                     << EAM(Brd,"Brd",true)
                     << EAM(NbIter,"NbIter",true)
@@ -128,7 +128,7 @@ int to8Bits_main(int argc,char ** argv)
                     << EAM(BoucheMask,"BoucheMask",true)
                     << EAM(UseSigne,"UseSigne",true)
                     << EAM(ToXV,"2XV",true)
-    );	
+    );
     if ((ForceMax> -Big) || (ForceMin < Big))
         AdaptMinMax = true;
 
@@ -138,13 +138,13 @@ int to8Bits_main(int argc,char ** argv)
         aModeCompr = Tiff_Im::mode_compr(aNameCompr);
 
     if (! aCanTileFile)
-	aLArgTiff =  aLArgTiff+ Arg_Tiff(Tiff_Im::AFileTiling(Pt2di(-1,-1))); 
+    aLArgTiff =  aLArgTiff+ Arg_Tiff(Tiff_Im::AFileTiling(Pt2di(-1,-1)));
 
     if (aStrip ==0)
        aLArgTiff = aLArgTiff +  Arg_Tiff(Tiff_Im::ANoStrip());
     else if (aStrip >0)
        aLArgTiff = aLArgTiff +  Arg_Tiff(Tiff_Im::AStrip(aStrip));
-       
+
 
     GenIm::type_el aTypeOut = GenIm::u_int1;
     if (aNameType!="")
@@ -154,14 +154,14 @@ int to8Bits_main(int argc,char ** argv)
        Coul = Circ;
 
     Tiff_Im tiff = Tiff_Im::StdConvGen(aNameIn.c_str(),1,true,false);
- 
+
 
 
     GenIm::type_el aType = tiff.type_el();
 
 cout << "Types = "
-     << (INT) aType <<  " " 
-     << (INT) GenIm::int2 <<  " " 
+     << (INT) aType <<  " "
+     << (INT) GenIm::int2 <<  " "
      << (INT) GenIm::u_int2 << "\n";
 
     bool DefOffset= false;
@@ -189,9 +189,9 @@ cout << "Types = "
         std::string aPost = "_8Bits.tif";
         if (aNameType !="")
            aPost = aNameType +".tif";
-	if (IsPostfixed(aNameIn)) 
+    if (IsPostfixed(aNameIn))
             aNameOut = StdPrefix(aNameIn)+std::string(aPost);
-	else
+    else
             aNameOut = aNameIn+std::string(aPost);
     }
 
@@ -199,7 +199,7 @@ cout << "Types = "
     Elise_colour * Cols = aP1.create_tab_c();
     Cols[0] = Elise_colour::gray(GS1);
     Disc_Pal aP2 (Cols,256);
-    
+
 
 
     Pt2di aP0_Out  = round_ni(aP0Crop.mcbyc(Pt2dr(tiff.sz())));
@@ -218,9 +218,9 @@ cout << "Types = "
        aP1_Out = round_ni(aP1Crop);
    }
 
-    Tiff_Im TiffOut  = 
+    Tiff_Im TiffOut  =
                          Coul                ?
-                           Tiff_Im 
+                           Tiff_Im
                            (
                               aNameOut.c_str(),
                               (aP1_Out-aP0_Out),
@@ -229,7 +229,7 @@ cout << "Types = "
                               aP2, // Disc_Pal::PCirc(256)
                               aLArgTiff
                           )                    :
-                           Tiff_Im 
+                           Tiff_Im
                            (
                               aNameOut.c_str(),
                               (aP1_Out-aP0_Out),
@@ -287,7 +287,7 @@ cout << "Types = "
             }
         }
     }
-    
+
     if (aStep >0)
        fRes = aStep * round_ni(fRes/aStep);
 
@@ -303,30 +303,30 @@ cout << "Types = "
            GMin = ForceMin;
 
        cout << "MIN MAX = " << GMin << " " << GMax << "\n";
-       if (AdaptMinMax) 
+       if (AdaptMinMax)
            fRes = (tiff.in()-GMin) * ((Dyn*255.0)  / ElMax(GMax-GMin,1e-2));
-       else if (AdaptMin) 
+       else if (AdaptMin)
            fRes = Min((tiff.in()-GMin),255);
        else if (EqHisto)
        {
             aHist = Im1D_REAL8(2+round_ni((GMax-GMin)/aStepH),0.0);
             ELISE_COPY
-	    (
-	           tiff.all_pts().chc(round_ni((tiff.in()-GMin)/aStepH)),
-		   1,
-		   aHist.histo()
+        (
+               tiff.all_pts().chc(round_ni((tiff.in()-GMin)/aStepH)),
+           1,
+           aHist.histo()
            );
-	   double * aDH = aHist.data();
-	   int aNbH = aHist.tx();
+       double * aDH = aHist.data();
+       int aNbH = aHist.tx();
            for (int anX = 1; anX<aNbH ; anX++)
-	       aDH[anX] +=  aDH[anX-1];
-	    ELISE_COPY
-	    (
-	         aHist.all_pts(),
-		 aHist.in() * 255.0 / aDH[aNbH-1],
-		 aHist.out()
+           aDH[anX] +=  aDH[anX-1];
+        ELISE_COPY
+        (
+             aHist.all_pts(),
+         aHist.in() * 255.0 / aDH[aNbH-1],
+         aHist.out()
             );
-	    fRes = aHist.in()[round_ni((tiff.in()-GMin)/aStepH)];
+        fRes = aHist.in()[round_ni((tiff.in()-GMin)/aStepH)];
        }
 //        fRes = Max(0,Min(255,round_ni(fRes)));
     }
@@ -341,7 +341,7 @@ cout << "Types = "
        {
            INT  v_min,v_max;
            min_max_type_num(aTypeOut,v_min,v_max);
-	   cout << "MAX MIN " << v_min << " " << v_max << "\n";
+       cout << "MAX MIN " << v_min << " " << v_max << "\n";
            fRes = Min(v_max-1,Max(v_min,round_ni(fRes)));
        }
     }
@@ -360,7 +360,7 @@ cout << "Types = "
          fRes = fRes * tMasq.in(0) + fBM * (!tMasq.in(0));
     }
 
-    if (WS1) 
+    if (WS1)
     {
         fRes =  (FoncInit!=IS1)*fRes;
     }
@@ -384,11 +384,11 @@ cout << "Types = "
 
     ELISE_COPY
     (
-         TiffOut.all_pts(), 
+         TiffOut.all_pts(),
          trans(fRes,aP0_Out),
          TiffOut.out() | (aVisuAff ? Video_Win::WiewAv(tiff.sz()) : Output::onul())
     );
- 
+
 
 
    if (ToXV)
@@ -407,7 +407,7 @@ cout << "Types = "
                            + aDir+"Tmp-MM-Dir/"+StdPrefix(aNewName) + std::string(".gif ");
 
         system_call(aCom.c_str());
-		ELISE_fp::RmFile( aNameOut );
+        ELISE_fp::RmFile( aNameOut );
    }
 
 // convert -quality 100 Z_Num3_DeZoom8_LeChantier_8Bits.tif  Z_Num3_DeZoom8_LeChantier_8Bits.jpg
@@ -422,13 +422,13 @@ cout << "Types = "
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -438,17 +438,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
