@@ -180,8 +180,28 @@
 		<ShortName> GoPro HD Hero 2</ShortName>
 	</CameraEntry>
 	<CameraEntry>
-		<Name> GoPro HD3</Name>
-		<SzCaptMm> 4.69 6.24 </SzCaptMm>
+		<Name> GoPro HERO3 White Edition</Name>
+		<SzCaptMm> 6.10 8.13 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3 Silver Edition</Name>
+		<SzCaptMm> 5.64 7.53 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3 Black Edition</Name>
+		<SzCaptMm> 6.63 8.84 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3+ Silver Edition</Name>
+		<SzCaptMm> 5.64 7.53 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3+ Black Edition</Name>
+		<SzCaptMm> 6.63 8.84 </SzCaptMm>
 		<ShortName> GoPro HD Hero 3</ShortName>
 	</CameraEntry>
 	<CameraEntry>
