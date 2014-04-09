@@ -58,7 +58,7 @@ int AperiCloud_main(int argc,char ** argv)
     ElInitArgMain
     (
     argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full name: Dir + images", eSAM_IsPatFile)
+    LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation directory", eSAM_IsExistDirOri),
     LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true,"Point in txt format ? (Def=false)", eSAM_IsBool)
