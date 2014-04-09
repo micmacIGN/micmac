@@ -59,7 +59,7 @@ list<string> listPossibleValues(const cMMSpecArg & anArg)
 {
     list<string> list_enum;
 
-    if (anArg.IsBool())
+    if (anArg.IsBool() || anArg.Type() == AMBT_bool)
     {
         list_enum.push_back("True");
         list_enum.push_back("False");

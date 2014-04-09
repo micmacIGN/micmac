@@ -66,9 +66,11 @@ public:
     void add_spinBox   (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_2SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_3SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_4SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_dSpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_2dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_3dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_4dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
 
     void set_argv_recup(string);
 
@@ -79,8 +81,8 @@ public:
     bool getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
     bool getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
 
-    QDoubleSpinBox* create_dSpinBox(QGridLayout*, QWidget*, int, int, cMMSpecArg);
-    QSpinBox *create_SpinBox(QGridLayout*, QWidget*, int, int, cMMSpecArg);
+    QDoubleSpinBox* create_dSpinBox(QGridLayout*, QWidget*, int, int);
+    QSpinBox *create_SpinBox(QGridLayout*, QWidget*, int, int);
 
 public slots:
 
