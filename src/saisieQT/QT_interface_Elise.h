@@ -115,6 +115,12 @@ private:
 
     cSP_PointGlob*      _currentPGlobal;
 
+    QMenu               *_menuPGView;
+
+    QAction             *_thisPointAction;
+
+    QSignalMapper       *_signalMapperPG;
+
 signals:
 
     void                dataChanged(cSP_PointeImage *aPIm = NULL);
@@ -123,7 +129,7 @@ public slots:
 
     void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 
-    void                changeImages(int idPt, bool aUseCpt);
+    void                changeImages(int idPtGl, bool aUseCpt);
 
     void                selectPointGlobal(QModelIndex modelIndex);
 
@@ -152,6 +158,11 @@ private slots:
     void                SetInvisRef(bool aVal);
 
     void                close();
+
+    void                contextMenu_PGsTable(const QPoint &widgetXY);
+
+    void                changeImagesPG(int idPg, bool aUseCpt = false);
+
 };
 
 #endif // QT_INTERFACE_ELISE_H
