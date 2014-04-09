@@ -180,11 +180,12 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
        aPFP = PInter();
    }
 
+   int aNbContrainte = (mInc.x>0)  +  (mInc.y>0) +  (mInc.z>0) + 2 *aNbOK;
 
    // A verifier, mais probable que la methode de subsistution degenere
    // si il n'y a que deux  points (Lambda non inversible)
    //En fait, sans doute pas degeneree car attache au point !
-   if ((aNbOK==0) && ((mInc.x <=0)  || (mInc.y <=0) || (mInc.z <=0)))
+   if  ( (aNbContrainte<3) || ((aNbOK==0) && ((mInc.x <=0)  || (mInc.y <=0) || (mInc.z <=0))))
    {
       if (aShowDet)
       {
