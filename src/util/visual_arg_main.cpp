@@ -136,7 +136,6 @@ void setStyleSheet(QApplication &app)
     }
 }
 
-//void showErrorMsg(QApplication &app, QString msg)
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 {
     QString str("In visual mode, possible values are:\n");
@@ -155,7 +154,8 @@ void MMRunVisualMode
 (
         int argc,char ** argv, // A priori inutile, mais peut-etre cela evoluera-t-il ?
         std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory
-        std::vector<cMMSpecArg> & aVAO   // Vector Arg Optional
+        std::vector<cMMSpecArg> & aVAO,   // Vector Arg Optional
+        std::string aFirstArg
         )
 {
 
@@ -171,7 +171,7 @@ void MMRunVisualMode
     app.installTranslator(&qtTranslator);
     //TODO: traductions
 
-    visual_MainWindow w(aVAM, aVAO);
+    visual_MainWindow w(aVAM, aVAO, aFirstArg);
 
     string arg_eff="";
     for (int i=0;i<argc;i++) //argc = 1 en general

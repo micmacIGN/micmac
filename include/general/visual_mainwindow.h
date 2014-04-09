@@ -57,7 +57,7 @@ class visual_MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent = 0);
+    visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, std::string aFirstArg="", QWidget *parent = 0);
     ~visual_MainWindow();
 
     void add_label     (QGridLayout*, QWidget*, int, cMMSpecArg);
@@ -107,6 +107,8 @@ protected:
     vector <cInputs*>   vInputs;
 
     QString             mlastDir;
+
+    std::string         mFirstArg;    //truc&astuces: stores the first arg (for Tapioca and Malt..)
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);

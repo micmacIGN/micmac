@@ -581,6 +581,7 @@ std::vector<char *>  	ElInitArgMain
          int argc,char ** argv,
          const LArgMain & LGlob,
          const LArgMain & L1,
+         const std::string & aFirstArg,
          bool  VerifInit,
          bool  AccUnK,
          int   aNbArgGlobGlob
@@ -592,7 +593,7 @@ std::vector<char *>  	ElInitArgMain
     {
         std::vector<cMMSpecArg> aVAM = LGlob.ExportMMSpec();
         std::vector<cMMSpecArg> aVAO = L1.ExportMMSpec();
-        MMRunVisualMode(argc,argv,aVAM,aVAO);
+        MMRunVisualMode(argc,argv,aVAM,aVAO,aFirstArg);
         return aRes;
     }
 
@@ -645,7 +646,8 @@ void  	ElInitArgMain
     (
     const std::string & aNameI,
     const LArgMain & LGlob,
-    const LArgMain & L1
+    const LArgMain & L1,
+    const std::string & aFirstArg
     )
 {
     static std::vector<char *> VNames;
@@ -678,7 +680,7 @@ void  	ElInitArgMain
     if (! LastVide)
         VNames.push_back(pC);
 
-    ElInitArgMain((int) VNames.size(),&(VNames[0]),LGlob,L1);
+    ElInitArgMain((int) VNames.size(),&(VNames[0]),LGlob,L1, aFirstArg);
 }
 
 INT GenFileInitArgs
@@ -1347,6 +1349,7 @@ mICNM           (0),
         <<  EAM(mMKf,"MkF",true)
         <<  EAM(mModeAddMkf,"MkAdd",true)
         <<  EAM(mIsRelancedByThis,"IsRelancedByThis",true),
+        "",
         true,
         true,
         aNbArgGlob
