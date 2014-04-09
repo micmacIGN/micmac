@@ -60,9 +60,10 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     mAppli->SetInterface(this);
 
-    ImagesSFModel *proxyImageModel = new ImagesSFModel(this);
+    // Table View :: begin      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    PointGlobalSFModel *proxyPointGlob = new PointGlobalSFModel(this);
+    ImagesSFModel*      proxyImageModel = new ImagesSFModel(this);
+    PointGlobalSFModel* proxyPointGlob  = new PointGlobalSFModel(this);
 
     proxyPointGlob->setSourceModel(new ModelPointGlobal(0,mAppli));
     proxyImageModel->setSourceModel(new ModelCImage(0,mAppli));
@@ -71,11 +72,46 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     m_QTMainWindow->resizeTables();
 
-    connect(((PointGlobalSFModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
-    connect(this,SIGNAL(dataChanged(cSP_PointeImage*)), this, SLOT(rebuildGlPoints(cSP_PointeImage*)));
-    connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
+    m_QTMainWindow->tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    _menuPGView = new QMenu(m_QTMainWindow);
+
+    connect(m_QTMainWindow->tableView_PG(),SIGNAL(customContextMenuRequested(const QPoint &)),this,SLOT(contextMenu_PGsTable(const QPoint &)));
+
+    connect(((PointGlobalSFModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));    
+
     connect(this,SIGNAL(dataChanged()), proxyPointGlob, SLOT(invalidate()));
+
     connect(this,SIGNAL(dataChanged()), proxyImageModel, SLOT(invalidate()));
+
+
+    _thisPointAction = _menuPGView->addAction("Change Images for this point");
+    _menuPGView->addAction(_thisPointAction);
+    _signalMapperPG = new QSignalMapper(this);
+
+    connect(_signalMapperPG, SIGNAL(mapped(int)), this, SLOT(changeImagesPG(int)));
+    connect(_thisPointAction, SIGNAL(triggered()), _signalMapperPG, SLOT(map()));
+    // Table View :: End        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    connect(this,SIGNAL(dataChanged(cSP_PointeImage*)), this, SLOT(rebuildGlPoints(cSP_PointeImage*)));
+
+    connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
+}
+
+void cQT_Interface::contextMenu_PGsTable(const QPoint &widgetXY)
+{
+    Q_UNUSED(widgetXY);
+
+    QModelIndex index = m_QTMainWindow->tableView_PG()->currentIndex();
+    QAbstractItemModel* model = m_QTMainWindow->tableView_PG()->model();
+    QString pGName = model->data(model->index(index.row(), 0)).toString();
+
+    int id =  cVirtualInterface::idPointGlobal(pGName.toStdString());
+    _signalMapperPG->removeMappings(_thisPointAction);
+    _signalMapperPG->setMapping(_thisPointAction, id);
+    _thisPointAction->setText("Change images for " + pGName);
+
+    _menuPGView->exec(QCursor::pos());
 }
 
 void cQT_Interface::Init()
@@ -279,15 +315,15 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
     }
 }
 
-void cQT_Interface::changeImages(int idPt, bool aUseCpt)
+void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
 {
     if(mAppli)
     {
         int aKW = 0;
 
-        vector<cImage *> images = ComputeNewImagesPriority(PointGlobInCurrentWGL(idPt),aUseCpt);
+        vector<cImage *> images = ComputeNewImagesPriority(mAppli->PGlob(idPg),aUseCpt);
 
-        int max = (idPt == THISWIN) ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
+        int max = (idPg == THISWIN) ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
 
         while (aKW < max)
         {
@@ -295,7 +331,7 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
 
             if (!isDisplayed(images[aKW]))
 
-                m_QTMainWindow->SetDataToGLWidget(idPt == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
+                m_QTMainWindow->SetDataToGLWidget(idPg == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
 
             aKW++;
         }
@@ -304,6 +340,11 @@ void cQT_Interface::changeImages(int idPt, bool aUseCpt)
 
         rebuildGlPoints();
     }
+}
+
+void cQT_Interface::changeImages(int idPtGl, bool aUseCpt)
+{
+    changeImagesPG(idPointGlobal(idPtGl),aUseCpt);
 }
 
 void cQT_Interface::changeCurPose(void *widgetGL)
@@ -336,7 +377,6 @@ void cQT_Interface::selectPointGlobal(int idPG)
 void cQT_Interface::selectPoint(int idPtCurGLW)
 {
     selectPointGlobal(idPointGlobal(idPtCurGLW));
-
 }
 
 void cQT_Interface::selectPointGlobal(QModelIndex modelIndex)
@@ -347,7 +387,7 @@ void cQT_Interface::selectPointGlobal(QModelIndex modelIndex)
 
 int cQT_Interface::idPointGlobal(int idSelectGlPoint)
 {    
-    return idSelectGlPoint < 0 ? -1 : cVirtualInterface::idPointGlobal(getNameGLPt_CurWidget(idSelectGlPoint));
+    return idSelectGlPoint < 0 ? idSelectGlPoint : cVirtualInterface::idPointGlobal(getNameGLPt_CurWidget(idSelectGlPoint));
 }
 
 QString cQT_Interface::namePointGlobal(int idPtGlobal)
