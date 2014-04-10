@@ -1,0 +1,9 @@
+set(uti_phgrm_RHH_Src_Files
+    ${UTI_PHGRM_RHH_DIR}/CalcHcImage.cpp
+    ${UTI_PHGRM_RHH_DIR}/cAppliReduc.cpp
+    ${UTI_PHGRM_RHH_DIR}/cImagH.cpp
+    ${UTI_PHGRM_RHH_DIR}/cPtHom.cpp
+    ${UTI_PHGRM_RHH_DIR}/IndexAppli.cpp
+    ${UTI_PHGRM_RHH_DIR}/SimulMerge.cpp
+    ${UTI_PHGRM_RHH_DIR}/cParamMerge.cpp
+)
