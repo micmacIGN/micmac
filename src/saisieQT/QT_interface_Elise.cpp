@@ -72,11 +72,6 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     m_QTMainWindow->resizeTables();
 
-    m_QTMainWindow->tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    _menuPGView = new QMenu(m_QTMainWindow);
-
-    connect(m_QTMainWindow->tableView_PG(),SIGNAL(customContextMenuRequested(const QPoint &)),this,SLOT(contextMenu_PGsTable(const QPoint &)));
 
     connect(((PointGlobalSFModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));    
 
@@ -84,18 +79,53 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
 
     connect(this,SIGNAL(dataChanged()), proxyImageModel, SLOT(invalidate()));
 
+    // ----------
 
+    m_QTMainWindow->tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_QTMainWindow->tableView_Images()->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(m_QTMainWindow->tableView_PG(),SIGNAL(customContextMenuRequested(const QPoint &)),this,SLOT(contextMenu_PGsTable(const QPoint &)));
+    connect(m_QTMainWindow->tableView_Images(),SIGNAL(customContextMenuRequested(const QPoint &)),this,SLOT(contextMenu_ImagesTable(const QPoint &)));
+
+    _menuPGView = new QMenu(m_QTMainWindow);
     _thisPointAction = _menuPGView->addAction("Change Images for this point");
     _menuPGView->addAction(_thisPointAction);
     _signalMapperPG = new QSignalMapper(this);
 
     connect(_signalMapperPG, SIGNAL(mapped(int)), this, SLOT(changeImagesPG(int)));
     connect(_thisPointAction, SIGNAL(triggered()), _signalMapperPG, SLOT(map()));
+
+    _menuImagesView     = new QMenu(m_QTMainWindow);
+    _thisImagesAction   = _menuImagesView->addAction("Choose Images");
+
     // Table View :: End        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     connect(this,SIGNAL(dataChanged(cSP_PointeImage*)), this, SLOT(rebuildGlPoints(cSP_PointeImage*)));
 
     connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
+}
+
+void cQT_Interface::contextMenu_ImagesTable(const QPoint &widgetXY)
+{
+    Q_UNUSED(widgetXY);
+
+    QString stSelImages("Selected Images : ");
+    QAbstractItemModel* model = m_QTMainWindow->tableView_Images()->model();
+    QModelIndexList indexList = m_QTMainWindow->tableView_Images()->selectionModel()->selectedIndexes();
+    int row;
+    foreach (QModelIndex index, indexList)
+    {
+        if(!index.column())
+        {
+            row = index.row();
+            QString imageName = model->data(model->index(row, 0)).toString();
+
+            stSelImages += " " + imageName;
+        }
+    }
+
+    _thisImagesAction->setText(stSelImages);
+    _menuImagesView->exec(QCursor::pos());
 }
 
 void cQT_Interface::contextMenu_PGsTable(const QPoint &widgetXY)
