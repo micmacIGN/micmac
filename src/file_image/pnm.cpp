@@ -301,6 +301,14 @@ Elise_Tiled_File_Im_2D  Elise_Tiled_File_Im_2D ::sun_raster(const char * name)
 		   );
 }
 
+/*
+cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr)
+{
+  static std::map<std::string,cSpecifFormatRaw *> aMapRes;
+}
+*/
+
+
 Elise_Tiled_File_Im_2D 
     Elise_Tiled_File_Im_2D::XML(const std::string & aNameHdr)
 {
