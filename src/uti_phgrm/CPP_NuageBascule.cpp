@@ -171,12 +171,12 @@ int  NuageBascule_main(int argc,char ** argv)
                     << EAM(AutoClipIn,"AutoClipIn",true,"Clip result to minimal size")
                     << EAM(aBoxIn,"BoxIn",true,"Box input")
                     << EAM(aSzDecoup,"SzDecoup",true,"Size of split for parallel")
-                    << EAM(ICalledByP,"InternallCalledByP",true,"Internal purpose : dont use")
-                    << EAM(aSuplOut,"InternallSuplOut",true,"Internal purpose : dont use")
+                    << EAM(ICalledByP,"InternallCalledByP",true,"Internal purpose: dont use")
+                    << EAM(aSuplOut,"InternallSuplOut",true,"Internal purpose: dont use")
                     << EAM(mShowCom,"ShowCom",true,"Show command, def = false")
                     << EAM(mTileFile,"TileFile",true,"Tile for Big File, def= no tiling for file < 4 Giga Byte")
                     << EAM(mParal,"Paral",true,"Do in parallel, tuning purpose, def=true")
-                    << EAM(mSeuilEtir,"SeuilE",true,"Threshold for etiring (def = 5.0)")
+                    << EAM(mSeuilEtir,"SeuilE",true,"Threshold for stretching (def = 5.0)")
     );
     Tiff_Im::SetDefTileFile(mTileFile);
 
@@ -440,7 +440,7 @@ int  NuageBascule_main(int argc,char ** argv)
                std::cout << "BoxClipIn " << aBoxClipIn->_p0 << aBoxClipIn->_p1;
          }
 
-        cArgBacule anArg(mSeuilEtir);
+         cArgBacule anArg(mSeuilEtir);
 
          cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxClipIn,anArg);
          if (aN)

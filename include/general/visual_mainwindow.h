@@ -57,7 +57,7 @@ class visual_MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, QWidget *parent = 0);
+    visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, std::string aFirstArg="", QWidget *parent = 0);
     ~visual_MainWindow();
 
     void add_label     (QGridLayout*, QWidget*, int, cMMSpecArg);
@@ -66,9 +66,11 @@ public:
     void add_spinBox   (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_2SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_3SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_4SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_dSpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_2dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_3dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_4dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
 
     void set_argv_recup(string);
 
@@ -79,8 +81,8 @@ public:
     bool getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
     bool getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
 
-    QDoubleSpinBox* create_dSpinBox(QGridLayout*, QWidget*, int, int, cMMSpecArg);
-    QSpinBox *create_SpinBox(QGridLayout*, QWidget*, int, int, cMMSpecArg);
+    QDoubleSpinBox* create_dSpinBox(QGridLayout*, QWidget*, int, int);
+    QSpinBox *create_SpinBox(QGridLayout*, QWidget*, int, int);
 
 public slots:
 
@@ -105,6 +107,8 @@ protected:
     vector <cInputs*>   vInputs;
 
     QString             mlastDir;
+
+    std::string         mFirstArg;    //truc&astuces: stores the first arg (for Tapioca and Malt..)
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);
