@@ -138,6 +138,8 @@ void setStyleSheet(QApplication &app)
 
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 {
+   ELISE_ASSERT(false,"MPD : ca ne compile plus sur ma machine\n");
+/*
     QString str("In visual mode, possible values are:\n");
 
     QString msg;
@@ -146,6 +148,7 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 
     setStyleSheet(app);
     QMessageBox::critical(NULL, "Error", str + msg);
+*/
 }
 
 #endif

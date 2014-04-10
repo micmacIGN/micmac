@@ -304,8 +304,8 @@ Elise_Tiled_File_Im_2D  Elise_Tiled_File_Im_2D ::sun_raster(const char * name)
 Elise_Tiled_File_Im_2D 
     Elise_Tiled_File_Im_2D::XML(const std::string & aNameHdr)
 {
-   NS_ParamChantierPhotogram::cSpecifFormatRaw aSpec = 
-   StdGetObjFromFile<NS_ParamChantierPhotogram::cSpecifFormatRaw>
+   cSpecifFormatRaw aSpec = 
+   StdGetObjFromFile<cSpecifFormatRaw>
    (
        aNameHdr,
         StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
