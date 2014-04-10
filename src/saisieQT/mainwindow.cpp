@@ -32,6 +32,9 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
         setImageName("");
     }
 
+    tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
+    tableView_Images()->setContextMenuPolicy(Qt::CustomContextMenu);
+
     tableView_PG()->setMouseTracking(true);
 }
 

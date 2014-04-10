@@ -165,7 +165,9 @@ private slots:
 
     void                changeImagesPG(int idPg, bool aUseCpt = false);
 
-    void contextMenu_ImagesTable(const QPoint &widgetXY);
+    void                contextMenu_ImagesTable(const QPoint &widgetXY);
+
+    void                viewSelectImages();
 };
 
 #endif // QT_INTERFACE_ELISE_H
