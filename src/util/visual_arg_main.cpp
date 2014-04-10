@@ -138,13 +138,28 @@ void setStyleSheet(QApplication &app)
 
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 {
-   ELISE_ASSERT(false,"MPD : ca ne compile plus sur ma machine\n");
+     QString msg;
+     for (int aK=0; aK < (int)vStr.size(); ++aK)
+#if(ELISE_QT_VERSION >= 5) 
+         msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
+#else
+        msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
+#endif
+ 
+     setStyleSheet(app);
+     QMessageBox::critical(NULL, "Error", str + msg);
+
 /*
+   ELISE_ASSERT(false,"MPD : ca ne compile plus sur ma machine\n");
     QString str("In visual mode, possible values are:\n");
 
     QString msg;
     for (int aK=0; aK < (int)vStr.size(); ++aK)
+#if(ELISE_QT_VERSION >= 5) 
         msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
+#else
+        msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
+#endif
 
     setStyleSheet(app);
     QMessageBox::critical(NULL, "Error", str + msg);
@@ -219,7 +234,7 @@ void MMRunVisualMode
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -235,17 +250,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

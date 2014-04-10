@@ -2,6 +2,8 @@
 
 #define HORSIMAGE "hors Image"
 
+#define COLOR_OVER "#c89354"
+
 ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli):
 QAbstractTableModel(parent),
 mAppli(appli),
@@ -60,9 +62,27 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 
     if (role == Qt::BackgroundColorRole)
     {
-        QColor selectPGlob  = QColor("#ffa02f");
-        if(mAppli->PGlob(index.row()) == _interface->currentPGlobal() && _interface->currentPGlobal())
+        QColor selectPGlob  = QColor(COLOR_OVER);
+        if(mAppli->PGlob(index.row()) == _interface->currentPGlobal() && _interface->currentPGlobal() && index.column() == 0)
                 return selectPGlob;
+
+        cSP_PointGlob * pg = mAppli->PGlob(index.row());
+
+        QColor NonSaisie    = QColor("#93751e");
+
+        std::map<std::string,cSP_PointeImage *> ptIs = pg->getPointes();
+
+        for
+        (
+             std::map<std::string,cSP_PointeImage *>::iterator itM = ptIs.begin();
+             itM!= ptIs.end();
+             itM++
+        )
+        {
+             cSP_PointeImage * ptImag = itM->second;
+             if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible())
+                 return NonSaisie;
+        }
     }
 
     if (role == Qt::TextColorRole)
@@ -283,7 +303,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
         QColor Douteux      = QColor("#a95b3b");
         QColor Valide       = QColor("#3c7355");
         QColor imageVisible = QColor("#3a819c");
-        QColor selectPGlob  = QColor("#ffa02f");
+        QColor selectPGlob  = QColor(COLOR_OVER);
 
         cSP_PointGlob* pg   = _interface->currentPGlobal();
 
