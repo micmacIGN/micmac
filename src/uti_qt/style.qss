@@ -38,7 +38,7 @@ QTableView
 
 QTableView:item:hover
 {
-    background-color: #ffa02f;
+    background-color: #c89354;
     color: #000000;
 }
 
