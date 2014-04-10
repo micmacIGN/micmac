@@ -116,8 +116,10 @@ private:
     cSP_PointGlob*      _currentPGlobal;
 
     QMenu               *_menuPGView;
+    QMenu               *_menuImagesView;
 
     QAction             *_thisPointAction;
+    QAction             *_thisImagesAction;
 
     QSignalMapper       *_signalMapperPG;
 
@@ -163,6 +165,9 @@ private slots:
 
     void                changeImagesPG(int idPg, bool aUseCpt = false);
 
+    void                contextMenu_ImagesTable(const QPoint &widgetXY);
+
+    void                viewSelectImages();
 };
 
 #endif // QT_INTERFACE_ELISE_H
