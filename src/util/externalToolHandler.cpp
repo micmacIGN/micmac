@@ -164,11 +164,14 @@ ExternalToolItem & ExternalToolHandler::addTool( const std::string &i_tool )
 	if ( pos!=string::npos ){
 		if ( ELISE_fp::exist_file( i_tool ) ){
 			status = EXT_TOOL_FOUND_IN_LOC; // found in the specified location
+			fullName = i_tool;
 			if ( checkExecRights( fullName ) ) status=(ExtToolStatus)( status|EXT_TOOL_HAS_EXEC_RIGHTS );
 			return ( m_queriedTools[i_tool]=ExternalToolItem( status, i_tool, i_tool ) );
 		}
+		else
+			status = EXT_TOOL_UNDEF;
 	}
-
+	
 	// check EXTERNAL_TOOLS_SUBDIRECTORY directory
     testName = MMDir()+EXTERNAL_TOOLS_SUBDIRECTORY+ELISE_CAR_DIR+exeName;
 	if ( ELISE_fp::exist_file( testName ) ){
