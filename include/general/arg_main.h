@@ -109,7 +109,8 @@ template <class Type> inline std::istream &  ElStdRead (std::istream &is,Type & 
 
 inline std::istream &  ElStdRead(std::istream &is,std::string &obj, const ElGramArgMain &)
 {
-    return is >> obj;
+    //return is >> obj;
+    return getline(is,obj);
 }
 
 extern bool Str2Bool(bool & aRes,const std::string & aStr);
