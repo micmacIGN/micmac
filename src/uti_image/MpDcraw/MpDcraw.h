@@ -229,7 +229,7 @@ class cNChannel
 
 	std::string NameRes(const std::string & aName,const std::string & Pref="") const;
 
-	GenIm::type_el  TypeOut(bool Signed) const;
+	GenIm::type_el  TypeOut(bool Signed,cSpecifFormatRaw * aSFR) const;
 
 
 

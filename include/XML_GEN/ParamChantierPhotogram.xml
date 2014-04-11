@@ -307,12 +307,17 @@
    </SpecExtractFromFile>
 
    <SpecifFormatRaw Nb="1" Class="true">
-          <NameFile Nb="1" Type="std::string"> </NameFile>
+          <NameFile Nb="?" Type="std::string"> </NameFile>
           <Sz Nb="1" Type="Pt2di"> </Sz>
 	  <MSBF Nb="1" Type="bool"> </MSBF>
 	  <NbBitsParPixel Nb="1" Type="int"> </NbBitsParPixel>
 	  <IntegerType Nb="1" Type="bool"> </IntegerType>
 	  <SignedType  Nb="1" Type="bool"> </SignedType>
+
+          <Camera Nb="?" Type="std::string"> </Camera>
+          <BayPat Nb="?" Type="std::string"> </BayPat>
+          <Focalmm Nb="?" Type="double"> </Focalmm>
+          <FocalEqui35 Nb="?" Type="double"> </FocalEqui35>
    </SpecifFormatRaw>
 
    <enum Name="eTotoModeGeomMEC">

@@ -592,8 +592,8 @@ class cSpecifFormatRaw
         friend void xml_init(cSpecifFormatRaw & anObj,cElXMLTree * aTree);
 
 
-        std::string & NameFile();
-        const std::string & NameFile()const ;
+        cTplValGesInit< std::string > & NameFile();
+        const cTplValGesInit< std::string > & NameFile()const ;
 
         Pt2di & Sz();
         const Pt2di & Sz()const ;
@@ -609,13 +609,29 @@ class cSpecifFormatRaw
 
         bool & SignedType();
         const bool & SignedType()const ;
+
+        cTplValGesInit< std::string > & Camera();
+        const cTplValGesInit< std::string > & Camera()const ;
+
+        cTplValGesInit< std::string > & BayPat();
+        const cTplValGesInit< std::string > & BayPat()const ;
+
+        cTplValGesInit< double > & Focalmm();
+        const cTplValGesInit< double > & Focalmm()const ;
+
+        cTplValGesInit< double > & FocalEqui35();
+        const cTplValGesInit< double > & FocalEqui35()const ;
     private:
-        std::string mNameFile;
+        cTplValGesInit< std::string > mNameFile;
         Pt2di mSz;
         bool mMSBF;
         int mNbBitsParPixel;
         bool mIntegerType;
         bool mSignedType;
+        cTplValGesInit< std::string > mCamera;
+        cTplValGesInit< std::string > mBayPat;
+        cTplValGesInit< double > mFocalmm;
+        cTplValGesInit< double > mFocalEqui35;
 };
 cElXMLTree * ToXMLTree(const cSpecifFormatRaw &);
 

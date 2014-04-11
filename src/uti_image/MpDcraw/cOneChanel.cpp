@@ -113,7 +113,7 @@ void cOneChanel::SauvInit()
             (
 	        aName.c_str(),
 		mIm.sz(),
-                mNC->TypeOut(false),
+                mNC->TypeOut(false,0),
                 Tiff_Im::No_Compr,
 		Tiff_Im::BlackIsZero
 	    );
