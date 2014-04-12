@@ -310,9 +310,11 @@ cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr)
   if (anIt != aMapRes.end())  return anIt->second;
 
 
+
   std::string aDir,aNameSeul;
   SplitDirAndFile(aDir,aNameSeul,aNameHdr);
   static cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
 
   std::string aNameFile = aNameHdr;
   if (StdPostfix(aNameHdr)!="xml")
@@ -332,7 +334,7 @@ cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr)
                    "SpecifFormatRaw",
                    "SpecifFormatRaw"
              );
-      if (! aRes->NameFile().IsInit())
+      if (aRes && (! aRes->NameFile().IsInit()))
         aRes->NameFile().SetVal(aNameHdr);
       // aRes->
   }
