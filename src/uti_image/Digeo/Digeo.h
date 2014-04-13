@@ -68,7 +68,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "DigeoPoint.h"
 
 
-#define __DEBUG_DIGEO_STATS
+//#define __DEBUG_DIGEO_STATS
 
 //  cRotationFormelle::AddRappOnCentre
 
