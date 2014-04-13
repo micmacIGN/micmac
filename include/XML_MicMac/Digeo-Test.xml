@@ -152,7 +152,7 @@ insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est scie
            <!-- Pas de raison, hors mis au point/test, de changer cette val -->
            <ShowConvolSpec> false </ShowConvolSpec>
 
-	   <Verbose> true </Verbose>
+	   <Verbose> false </Verbose>
 
         </SectionWorkSpace>
 </ParamDigeo>
