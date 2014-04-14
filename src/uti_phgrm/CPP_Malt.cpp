@@ -235,8 +235,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     {
         QApplication app(argc, argv);
 
-        setStyleSheet(app);
-
         showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
         return;
     }
@@ -315,9 +313,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       ELISE_ASSERT(!mUseGpu , "NO CUDA VERSION");
 #endif
 
-  if(mUseGpu) // TEMPORAIRE
-      mSzW = 2;
-
+  if(mUseGpu && mSzW > 3) // TEMPORAIRE
+      mSzW = 3;
 
   std::string mFullModeOri;
   mModePB = EAMIsInit(&mModeOri);
