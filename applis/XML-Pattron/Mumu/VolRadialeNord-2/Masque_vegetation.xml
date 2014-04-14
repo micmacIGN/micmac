@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+
+    <XmlGeoRefFile>
+          <SysCo>   
+               <BSC>
+                       <ByFile> true           </ByFile>
+                       <TypeCoord>  eTC_Unknown </TypeCoord>
+                       <AuxStr>  SysCo-UTM-Muru.xml </AuxStr>
+               </BSC>
+         </SysCo>
+          <RefPlani>
+              <Origine>  716720.62 7590655.14        </Origine>
+              <Resolution>  0.6 -0.6      </Resolution>
+          </RefPlani>
+          <GestionAltimetrie>
+              <ZMoyen> 0.0 </ZMoyen>
+          </GestionAltimetrie>
+    </XmlGeoRefFile>
+
+
