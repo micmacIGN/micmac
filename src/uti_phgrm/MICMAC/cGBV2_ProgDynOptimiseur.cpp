@@ -532,10 +532,10 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
             ushort dZ   = costInit1D.DZ(ptTer);
             index[aK]   = costInit1D.PtZ(ptTer);
 #else
-            ushort dZ   = min(costInit1D.DZ(ptTer),NAPPEMAX);
+            ushort dZ   = min(costInit1D.DZ(ptTer),costInit1D._maxDz);
 
-            if(dZ == NAPPEMAX )
-                index[aK]   = make_short2(costInit1D.PtZ(ptTer).x,costInit1D.PtZ(ptTer).x + NAPPEMAX);
+            if(dZ == costInit1D._maxDz )
+                index[aK]   = make_short2(costInit1D.PtZ(ptTer).x,costInit1D.PtZ(ptTer).x + costInit1D._maxDz);
             else
                 index[aK]   = costInit1D.PtZ(ptTer);
 #endif
@@ -577,7 +577,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
             #ifndef CLAMPDZ
             ushort dZ   = costInit1D.DZ(ptTer);
             #else
-            ushort dZ   =  min(costInit1D.DZ(ptTer),NAPPEMAX);
+            ushort dZ   =  min(costInit1D.DZ(ptTer),costInit1D._maxDz);
             #endif
             uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
             uint *forCo = d2Opt.s_ForceCostVol(idBuf).pData() + idStrm;
@@ -620,7 +620,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             Pt2di aDirI = direction(aNbDir, aKPreDir);
 
-            uint nbLine = 0, sizeStreamLine, pitStream = NAPPEMAX, pitIdStream = WARPSIZE ;
+            uint nbLine = 0, sizeStreamLine, pitStream = IGpuOpt._poInitCost._maxDz, pitIdStream = WARPSIZE ;
 
             mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
@@ -635,11 +635,16 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                 sizeStreamLine = 0;
 
                 for (uint aK = 0 ; aK < lenghtLine; aK++)
-                    #ifndef CLAMPDZ
+                {
+//                    #ifndef CLAMPDZ
                         sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
-                    #else
-                        sizeStreamLine += min(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]),NAPPEMAX);
-                    #endif
+//                    #else
+//                        if(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]) > IGpuOpt._poInitCost._maxDz)
+//                                printf("AAAAAAAAAAAAAA : %d\n",IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]));
+
+//                        sizeStreamLine += min(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]),IGpuOpt._poInitCost._maxDz);
+//                    #endif
+                }
 
                 pitIdStream += iDivUp32(lenghtLine) << 5;
                 pitStream   += iDivUp32(sizeStreamLine) << 5;
@@ -651,7 +656,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             IGpuOpt.HData2Opt().SetNbLine(nbLine);
 
-            IGpuOpt.HData2Opt().ReallocInputIf(pitStream + NAPPEMAX,pitIdStream + WARPSIZE);
+            IGpuOpt.HData2Opt().ReallocInputIf(pitStream + IGpuOpt._poInitCost._maxDz,pitIdStream + WARPSIZE);
 
             copyCells_Mat2Stream(aDirI, IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,idPreCo);
 

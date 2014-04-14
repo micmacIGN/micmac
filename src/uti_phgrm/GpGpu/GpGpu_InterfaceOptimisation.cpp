@@ -68,9 +68,12 @@ void InterfOptimizGpGpu::threadCompute()
 {   
     while(true)
     {
-        if(GetCompute())
+        if(GetCompute() /*&& !_H_data2Opt.nbLines()*/)
         {          
             SetCompute(false);
+
+            while(!_H_data2Opt.nbLines())
+                boost::this_thread::sleep(boost::posix_time::microsec(1));
 
             _D_data2Opt.SetNbLine(_H_data2Opt.nbLines());
 
@@ -98,7 +101,7 @@ void InterfOptimizGpGpu::threadCompute()
             SetDataToCopy(true);
         }
         else
-            boost::this_thread::sleep(boost::posix_time::microsec(1));
+            boost::this_thread::sleep(boost::posix_time::microsec(5));
     }
 }
 
