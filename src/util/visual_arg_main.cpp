@@ -142,7 +142,7 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 
     QString msg;
     for (int aK=0; aK < (int)vStr.size(); ++aK)
-        msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
+        msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
 
     setStyleSheet(app);
     QMessageBox::critical(NULL, "Error", str + msg);
@@ -160,31 +160,34 @@ void MMRunVisualMode
 {
 
 #if(ELISE_QT_VERSION >= 4)
-    QApplication app(argc, argv);
-
-    setStyleSheet(app);
-
-    // qt translations
-    const QString locale = QLocale::system().name().section('_', 0, 0);
-    QTranslator qtTranslator;
-    qtTranslator.load(app.applicationName() + "_" + locale);
-    app.installTranslator(&qtTranslator);
-    //TODO: traductions
-
-    visual_MainWindow w(aVAM, aVAO, aFirstArg);
-
-    string arg_eff="";
-    for (int i=0;i<argc;i++) //argc = 1 en general
+    if (QApplication::instance() == NULL)
     {
-        //cout<<argv[i]<<endl;
+        //cout << "new app instance" << endl;
+        QApplication app(argc, argv);
 
-        arg_eff += string(argv[i]);
+        setStyleSheet(app);
+
+        // qt translations
+        const QString locale = QLocale::system().name().section('_', 0, 0);
+        QTranslator qtTranslator;
+        qtTranslator.load(app.applicationName() + "_" + locale);
+        app.installTranslator(&qtTranslator);
+        //TODO: traductions
+
+        visual_MainWindow w(aVAM, aVAO, aFirstArg);
+
+        string arg_eff="";
+        for (int i=0;i<argc;i++) //argc = 1 en general
+        {
+            //cout<<argv[i]<<endl;
+
+            arg_eff += string(argv[i]);
+        }
+        w.set_argv_recup(arg_eff);
+
+        w.show();
+        app.exec();
     }
-    w.set_argv_recup(arg_eff);
-
-    w.show();
-    app.exec();
-
 #endif //ELISE_QT_VERSION >= 4
 
 
