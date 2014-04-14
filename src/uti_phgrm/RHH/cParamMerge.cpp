@@ -44,6 +44,10 @@ NS_RHH_BEGIN
 
 
 
+cParamMerge::cParamMerge(cAppliReduc & anAppli) :
+    mAppli (anAppli)
+{
+}
 
 
 double  cParamMerge::Gain // <0, veut dire on valide pas le noeud
@@ -81,7 +85,8 @@ double  cParamMerge::Gain // <0, veut dire on valide pas le noeud
 
 void cParamMerge::OnNewLeaf(tNodIm * aSingle)
 {
-   std::cout << "Creat Feuille " << aSingle->Val()->Name() << " " << aSingle->Num() << "\n";
+   if (mAppli.Show(eShowDetail))
+      std::cout << "Creat Feuille " << aSingle->Val()->Name() << " " << aSingle->Num() << "\n";
 }
 
 void  cParamMerge::OnNewCandidate(tNodIm * aN1)
@@ -90,10 +95,13 @@ void  cParamMerge::OnNewCandidate(tNodIm * aN1)
 
 void cParamMerge::OnNewMerge(tNodIm * aN1)
 {
-    std::cout << aN1->Num() << " MERGE " ;
-    for (int aK=0 ; aK<int(aN1->NbFils()) ; aK++)
-        std::cout << " " << aN1->FilsK(aK)->Num();
-    std::cout << "\n";
+   if (mAppli.Show(eShowAll))
+   {
+       std::cout << aN1->Num() << " MERGE " ;
+       for (int aK=0 ; aK<int(aN1->NbFils()) ; aK++)
+           std::cout << " " << aN1->FilsK(aK)->Num();
+       std::cout << "\n";
+   }
 }
 
 void cParamMerge::Vois(cImagH* anIm,std::vector<cImagH *> & aV)

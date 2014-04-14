@@ -177,6 +177,7 @@ template <class eType> std::list<std::string> ListOfVal(eType aValMax,const std:
 }
 void StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir);
 void   CorrecNameMasq(const std::string & aDir,const std::string & aPat,std::string & aMasq);
+cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr);
 
 
 

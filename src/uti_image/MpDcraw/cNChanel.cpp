@@ -209,6 +209,10 @@ Fonc_Num  cArgMpDCRaw::FlatField(const cMetaDataPhoto & aMDP,const std::string &
 
 cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile)
 {
+   cSpecifFormatRaw * aSFR = GetSFRFromString(aNameFile);
+   if (aSFR && !(aSFR->BayPat().IsInit())) aSFR = 0;
+
+
    cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aNameFile);
    cCameraEntry * anEntry = CamOfName(aMDP.Cam(true));
    bool RBswap = anArg.SwapRB(false);
@@ -216,10 +220,10 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
 
    bool HasFlF=false;
    Im2D_REAL4 aFlF(1,1);
-      	char foc[5],dia[4];
-		sprintf(foc, "%04d", int(round_ni(aMDP.FocMm(true))));
-		sprintf(dia, "%03d", int(round_ni(10*aMDP.Diaph(true))));
-		std::string aNameFF="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
+   char foc[5],dia[4];
+   sprintf(foc, "%04d", int(round_ni(aMDP.FocMm(true))));
+   sprintf(dia, "%03d", int(round_ni(10*aMDP.Diaph(true))));
+   std::string aNameFF="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
    //std::string aNameFF = DirOfFile(aNameFile)+ "Foc"+ ToString(round_ni(aMDP.FocMm())) + "Diaph" + ToString(round_ni(10*aMDP.Diaph(true))) + "-FlatField.tif";
    // Pas de FF en coul pour l'insntnt
    if (ELISE_fp::exist_file(aNameFF) && anArg.UseFF() &&  (!  anArg.Cons16B()))
@@ -263,6 +267,8 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
                   // || HasFlF  MPD Avril 2013 : comprend pas, ce fait saturer les images !!
                 ;
 
+   if (aSFR) M16B = (aSFR->NbBitsParPixel()>=16);
+
     // cNChannel  aNC(anArg,aNameFile,anIm,4,TheNameC,&(aVP0[0]),Pt2di(2,2));
 
     std::string aNameTmp = StdPrefix(aNameFile)+ "XXX-hkjyur-toto.pgm";
@@ -281,10 +287,18 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
                            + std::string(M16B?" -4 ":"") 
                            + ToStrBlkCorr(aNameFile) + " > " + aNameTmp;
     */
-    std::string aNameCom = MM3dBinFile_quotes("ElDcraw")
+    if (aSFR)
+    {
+       aNameTmp = aNameFile;
+    }
+    else
+    {
+         std::string aNameCom = MM3dBinFile_quotes("ElDcraw")
                            + std::string("-c -t 0 ") + Options
                            + std::string(M16B?" -4 ":"")
                            + ToStrBlkCorr(aNameFile) + " > " + aNameTmp;
+          System(aNameCom.c_str());
+     }
      
 
      std::vector<Im2DGen *>  aV3;
@@ -293,35 +307,45 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
 
 
 			   
-     System(aNameCom.c_str());
 
-    if (TraitBasic)
+    if (aSFR)
     {
-       Tiff_Im aTifTmp = Tiff_Im::StdConv(aNameTmp);
-       aV3 = aTifTmp.ReadVecOfIm();
-       aSz = aV3[0]->sz();
+        Tiff_Im aTifTmp = Elise_Tiled_File_Im_2D::XML(aNameFile).to_tiff();
+        aSz = aTifTmp.sz();
+        anIm.Resize(aSz);
+        ELISE_COPY(anIm.all_pts(),aTifTmp.in(),anIm.out());
+        aV3.push_back(&anIm);
     }
     else
     {
-        anIm = Im2D_REAL4::FromFileBasic(aNameTmp);
-        aSz = anIm.sz();
-        aV3.push_back(&anIm);
-    }
+       if (TraitBasic)
+       {
+          Tiff_Im aTifTmp = Tiff_Im::StdConv(aNameTmp);
+          aV3 = aTifTmp.ReadVecOfIm();
+          aSz = aV3[0]->sz();
+       }
+       else
+       {
+           anIm = Im2D_REAL4::FromFileBasic(aNameTmp);
+           aSz = anIm.sz();
+           aV3.push_back(&anIm);
+       }
 
 
-    // DCraw genere les ppm en MSBF 
-    if ( M16B && (!MSBF_PROCESSOR()))
-    {
-        for (int aK=0 ; aK<int(aV3.size()) ; aK++)
+        // DCraw genere les ppm en MSBF 
+        if ( M16B && (!MSBF_PROCESSOR()))
         {
-           Im2DGen & anIm = *(aV3[aK]);
-           Fonc_Num f = Iconv(anIm.in());
-           ELISE_COPY
-	   (
-	       anIm.all_pts(),
-               256 * (f&255) + f/256,
-	       anIm.out()
-	   );
+            for (int aK=0 ; aK<int(aV3.size()) ; aK++)
+            {
+               Im2DGen & anIm = *(aV3[aK]);
+               Fonc_Num f = Iconv(anIm.in());
+               ELISE_COPY
+	       (
+	           anIm.all_pts(),
+                   256 * (f&255) + f/256,
+	           anIm.out()
+	       );
+            }
         }
     }
 
@@ -394,7 +418,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
                 (
                    aName.c_str(),
                    aSz,
-                   aNC.TypeOut(false),
+                   aNC.TypeOut(false,aSFR),
                    Tiff_Im::No_Compr,
                    Tiff_Im::BlackIsZero,
                    anArg.ArgMTD()
@@ -431,7 +455,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
          if ( anArg.Adapt8B())
             aF = aITMP.in() * (255.0/aVMax) ;
 
-	 aF = Tronque(aNC.TypeOut(false),aF);
+	 aF = Tronque(aNC.TypeOut(false,aSFR),aF);
          ELISE_COPY(aV3[0]->all_pts(),aF,aFile.out());
 
          aNC.Split(anArg,"GB",aFile);
@@ -443,19 +467,19 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
     {
         std::string aName =  aNC.NameRes("CB");
 
-    // std::cout << "BBBBB " << aName << "\n";
+     std::cout << "BBBBB " << aName << "\n";
         Tiff_Im aFile
                 (
                    aName.c_str(),
                    aSz,
-                   aNC.TypeOut(false),
+                   aNC.TypeOut(false,aSFR),
                    Tiff_Im::No_Compr,
                    Tiff_Im::RGB,
                    anArg.ArgMTD()
                 );
          Fonc_Num aMasqV =    aNC.ChannelFromName(NV1).MasqChannel()
 	                   +  aNC.ChannelFromName(NV2).MasqChannel();
-         GenIm::type_el aType = aNC.TypeOut(false);
+         GenIm::type_el aType = aNC.TypeOut(false,aSFR);
 
          Fonc_Num fR = TraitBasic ? aV3[0]->in_proj()  : anIm.in_proj();
          Fonc_Num fV = TraitBasic ? aV3[1]->in_proj()  : anIm.in_proj();
@@ -511,7 +535,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
                 (
                    aName.c_str(),
                    anIm.sz(),
-                   aNC.TypeOut(true),
+                   aNC.TypeOut(true,aSFR),
                    Tiff_Im::No_Compr,
                    Tiff_Im::BlackIsZero,
                    anArg.ArgMTD()
@@ -519,13 +543,14 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
          ELISE_COPY
 	 (
 	     anIm.all_pts(),
-	     Tronque(aNC.TypeOut(true),som_masq((anIm.in_proj()-aMoyOf)*aMasqV ,aPds)),
+	     Tronque(aNC.TypeOut(true,aSFR),som_masq((anIm.in_proj()-aMoyOf)*aMasqV ,aPds)),
 	     aFile.out()
 	 );
 
     }
 
-   ELISE_fp::RmFile(aNameTmp);
+    if (! aSFR)
+       ELISE_fp::RmFile(aNameTmp);
 
    if (anArg.BayerCalib()  && (! TraitBasic))
    {
@@ -571,7 +596,7 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
 	                    + aNC.ChannelFromName(NV2).ImReech().in_proj()
                        ) *0.5;
       Fonc_Num fB = aNC.ChannelFromName(NB).ImReech().in_proj();
-      GenIm::type_el aType = aNC.TypeOut(false);
+      GenIm::type_el aType = aNC.TypeOut(false,aSFR);
 
       if (RBswap)
          ElSwap(fR,fB);
@@ -724,12 +749,16 @@ const cArgMpDCRaw & cNChannel::Arg() const
     return mArg;
 }
 
-GenIm::type_el  cNChannel::TypeOut(bool Signed) const
+GenIm::type_el  cNChannel::TypeOut(bool Signed,cSpecifFormatRaw * aSFR) const
 {
-   if (Signed)
-       return Arg().Cons16B() ? GenIm::int2 : GenIm::int1;
+   bool B16 = Arg().Cons16B();
+   if (aSFR) B16 = aSFR->NbBitsParPixel() >=16;
 
-   return Arg().Cons16B() ? GenIm::u_int2 : GenIm::u_int1;
+
+   if (Signed)
+       return B16 ? GenIm::int2 : GenIm::int1;
+
+   return B16 ? GenIm::u_int2 : GenIm::u_int1;
 }
 
 
@@ -816,7 +845,7 @@ void cNChannel::MakeImageDiag(Im2D_REAL4 aFulI,const std::string & aN1,const std
    }
 
    std::string aName =  NameRes("Diag");
-   GenIm::type_el aType = TypeOut(false);
+   GenIm::type_el aType = TypeOut(false,0);
    Tiff_Im aFile
                 (
                    aName.c_str(),

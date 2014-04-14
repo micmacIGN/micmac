@@ -169,6 +169,16 @@
         <!--                                                   -->
         <!-- ***********************************************   -->
 
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4})  </PatternTransform>
+                <CalcName>  $1.xml  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-SpecifRaw </Key>
+    </KeyedNamesAssociations>
 
                <!--  ORIENTATIONS, HOMOLOGUES -->
 

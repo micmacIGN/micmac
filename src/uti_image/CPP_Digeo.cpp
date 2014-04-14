@@ -483,10 +483,8 @@ int Digeo_main( int argc, char **argv )
 
     list<DigeoPoint> total_list;
 
-    std::cout << "Nb Box to do " << anAD->NbInterv() << "\n";
     for (int aKBox = 0 ; aKBox<anAD->NbInterv() ; aKBox++)
     {
-        std::cout << "Doing box " << aKBox+1 << " on " << anAD->NbInterv() << "\n";
         anAD->LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
         const std::vector<cOctaveDigeo *> & aVOct = anImD.Octaves();
         
@@ -551,7 +549,6 @@ int Digeo_main( int argc, char **argv )
 			if (aR4_Oct !=0) 
 			orientate_and_describe_all<REAL4,REAL8>(aR4_Oct, total_list);
         }
-        std::cout << "Done box " << aKBox+1 << " on " << anAD->NbInterv() << "\n";
     }
 	cout << total_list.size() << " points" << endl;
 	if ( !write_digeo_points( outputName, total_list ) ){

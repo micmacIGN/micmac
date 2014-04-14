@@ -209,6 +209,7 @@ void check_pastis_tool( string &io_tool, const string &i_toolType )
         }
 
         if ( extractedArguments.length()!=0 ) io_tool.append( string(":") + extractedArguments );
+        if ( io_tool.find(' ')!=string::npos ) io_tool = string("\"")+io_tool+"\"";
         if ( g_toolsOptions.length()!=0 ) g_toolsOptions.append( string(" ") );
         g_toolsOptions.append( i_toolType+'='+io_tool );
     }

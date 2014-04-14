@@ -301,21 +301,71 @@ Elise_Tiled_File_Im_2D  Elise_Tiled_File_Im_2D ::sun_raster(const char * name)
 		   );
 }
 
+cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr)
+{
+  static std::map<std::string,cSpecifFormatRaw *> aMapRes;
+
+  std::map<std::string,cSpecifFormatRaw *>::iterator anIt = aMapRes.find(aNameHdr);
+
+  if (anIt != aMapRes.end())  return anIt->second;
+
+
+
+  std::string aDir,aNameSeul;
+  SplitDirAndFile(aDir,aNameSeul,aNameHdr);
+  static cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+
+  std::string aNameFile = aNameHdr;
+  if (StdPostfix(aNameHdr)!="xml")
+  {
+       aNameFile = aDir + anICNM->Assoc1To1("NKS-Assoc-SpecifRaw",aNameSeul,true);
+  }
+
+  cSpecifFormatRaw * aRes = 0;
+
+  if (ELISE_fp::exist_file(aNameFile))
+  {
+      aRes = OptionalGetObjFromFile_WithLC<cSpecifFormatRaw>
+             (
+                   0,0,
+                   aNameFile,
+                   StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                   "SpecifFormatRaw",
+                   "SpecifFormatRaw"
+             );
+      if (aRes && (! aRes->NameFile().IsInit()))
+        aRes->NameFile().SetVal(aNameHdr);
+      // aRes->
+  }
+
+
+
+  aMapRes[aNameFile] = aRes;
+  return aRes;
+}
+/*
+*/
+
+
 Elise_Tiled_File_Im_2D 
     Elise_Tiled_File_Im_2D::XML(const std::string & aNameHdr)
 {
-   NS_ParamChantierPhotogram::cSpecifFormatRaw aSpec = 
-   StdGetObjFromFile<NS_ParamChantierPhotogram::cSpecifFormatRaw>
+/*
+   cSpecifFormatRaw aSpec = 
+   StdGetObjFromFile<cSpecifFormatRaw>
    (
        aNameHdr,
         StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
        "SpecifFormatRaw",
        "SpecifFormatRaw"
    );
+*/
+   cSpecifFormatRaw & aSpec = *(GetSFRFromString(aNameHdr));
 
    return Elise_Tiled_File_Im_2D
           (
-	       aSpec.NameFile().c_str(),
+	       aSpec.NameFile().Val().c_str(),
 	       aSpec.Sz(),
 	       type_im
 	       (

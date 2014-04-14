@@ -104,7 +104,8 @@ int ConvertIm_main(int argc,char ** argv)
                     << EAM(aF2,"F2",true)
     );
 
-    Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameIn);
+    // Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameIn);
+    Tiff_Im aTifIn = Tiff_Im::UnivConvStd(aNameIn);
     INT aNbChIn = aTifIn.nb_chan();
 
     if (! EAMIsInit(&aTypeOut)) aTypeOut =aTifIn.type_el();
