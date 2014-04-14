@@ -10,7 +10,10 @@ static int IntMax =  1000;
 static double DoubleMin = -10000.;
 static double DoubleMax =  10000.;
 
-visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, string aFirstArg, QWidget *parent) :
+visual_MainWindow::visual_MainWindow(const vector<cMMSpecArg> & aVAM,
+                                     const vector<cMMSpecArg> & aVAO,
+                                     string aFirstArg,
+                                     QWidget *parent):
     QWidget(parent),
     mlastDir(QDir::homePath()),
     mFirstArg(aFirstArg)
@@ -45,7 +48,7 @@ visual_MainWindow::~visual_MainWindow()
     delete runCommandButton;
 }
 
-void visual_MainWindow::addGridLayout(vector<cMMSpecArg>& aVA, QString pageName)
+void visual_MainWindow::addGridLayout(const vector<cMMSpecArg> &aVA, QString pageName)
 {
     QWidget* mPage = new QWidget();
 
@@ -56,7 +59,7 @@ void visual_MainWindow::addGridLayout(vector<cMMSpecArg>& aVA, QString pageName)
     buildUI(aVA, gridLayout, mPage);
 }
 
-void visual_MainWindow::buildUI(vector<cMMSpecArg>& aVA, QGridLayout *layout, QWidget *parent)
+void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layout, QWidget *parent)
 {
     for (int aK=0 ; aK<int(aVA.size()) ; aK++)
     {
@@ -185,91 +188,91 @@ void visual_MainWindow::onRunCommandPressed()
 
         switch(aIn->Type())
         {
-            case eIT_LineEdit:
+        case eIT_LineEdit:
+        {
+            if (aIn->Widgets().size() == 1)
             {
-                if (aIn->Widgets().size() == 1)
-                {
-                    string aStr = ((QLineEdit*) aIn->Widgets()[0].second)->text().toStdString();
-                    if (!aStr.empty()) aAdd += aStr;
-                    else if (!aIn->IsOpt()) runCom = false;
-                }
-                break;
+                string aStr = ((QLineEdit*) aIn->Widgets()[0].second)->text().toStdString();
+                if (!aStr.empty()) aAdd += aStr;
+                else if (!aIn->IsOpt()) runCom = false;
             }
-            case eIT_ComboBox:
+            break;
+        }
+        case eIT_ComboBox:
+        {
+            if (aIn->Widgets().size() == 1)
             {
-                if (aIn->Widgets().size() == 1)
+                QString aStr = ((QComboBox*) aIn->Widgets()[0].second)->currentText(); //warning
+
+                if(aIn->Arg().IsBool() || (aIn->Arg().Type() == AMBT_bool))
                 {
-                    QString aStr = ((QComboBox*) aIn->Widgets()[0].second)->currentText(); //warning
+                    bool aB = false;
 
-                    if(aIn->Arg().IsBool() || (aIn->Arg().Type() == AMBT_bool))
+                    if (aStr == "True")
                     {
-                        bool aB = false;
-
-                        if (aStr == "True")
-                        {
-                            aStr = "1";
-                            aB = true;
-                        }
-                        else
-                            aStr = "0";
-
-                        //check if value is different from default value
-                        if ( !aIn->Arg().IsDefaultValue<bool>(aB) )
-                            aAdd += aStr.toStdString();
+                        aStr = "1";
+                        aB = true;
                     }
                     else
+                        aStr = "0";
+
+                    //check if value is different from default value
+                    if ( !aIn->Arg().IsDefaultValue<bool>(aB) )
                         aAdd += aStr.toStdString();
                 }
-                break;
-            }
-            case eIT_SpinBox:
-            {
-                if (aIn->Widgets().size() == 1)
-                {
-                    getSpinBoxValue(aAdd, aIn, 0);
-                }
                 else
-                {
-                    string toAdd = "[";
-                    int nbDefVal = 0;
-
-                    int max = aIn->NbWidgets()-1;
-
-                    for (int aK=0; aK < max;++aK)
-                    {
-                        if ( getSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
-                    }
-
-                    if ( getSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
-
-                    if (nbDefVal < aIn->NbWidgets()) aAdd += toAdd;
-                }
-                break;
+                    aAdd += aStr.toStdString();
             }
-            case eIT_DoubleSpinBox:
+            break;
+        }
+        case eIT_SpinBox:
+        {
+            if (aIn->Widgets().size() == 1)
             {
-                if (aIn->Widgets().size() == 1)
-                {
-                    getDoubleSpinBoxValue(aAdd, aIn, 0);
-                }
-                else
-                {
-                    string toAdd = "[";
-                    int nbDefVal = 0;
-
-                    int max = aIn->NbWidgets()-1;
-
-                    for (int aK=0; aK < max ;++aK)
-                    {
-                        if ( getDoubleSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
-                    }
-
-                    if ( getDoubleSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
-
-                    if (nbDefVal < aIn->NbWidgets()) aAdd += toAdd;
-                }
-                break;
+                getSpinBoxValue(aAdd, aIn, 0);
             }
+            else
+            {
+                string toAdd = "[";
+                int nbDefVal = 0;
+
+                int max = aIn->NbWidgets()-1;
+
+                for (int aK=0; aK < max;++aK)
+                {
+                    if ( getSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
+                }
+
+                if ( getSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
+
+                if (nbDefVal < aIn->NbWidgets()) aAdd += toAdd;
+            }
+            break;
+        }
+        case eIT_DoubleSpinBox:
+        {
+            if (aIn->Widgets().size() == 1)
+            {
+                getDoubleSpinBoxValue(aAdd, aIn, 0);
+            }
+            else
+            {
+                string toAdd = "[";
+                int nbDefVal = 0;
+
+                int max = aIn->NbWidgets()-1;
+
+                for (int aK=0; aK < max ;++aK)
+                {
+                    if ( getDoubleSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
+                }
+
+                if ( getDoubleSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
+
+                if (nbDefVal < aIn->NbWidgets()) aAdd += toAdd;
+            }
+            break;
+        }
         }
 
         if (!aAdd.empty())
@@ -639,9 +642,5 @@ int cInputs::Type()
 }
 
 #endif //ELISE_QT_VERSION >= 4
-
-
-
-
 
 

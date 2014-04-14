@@ -45,7 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
     #endif
 
     #include <QApplication>
-    #include <QMessageBox>
+    #include <QInputDialog>
 
     #include "general/visual_mainwindow.h"
 #endif
@@ -80,7 +80,6 @@ class cAppliMalt
          int Exe();
      private :
 
-          void ReadType(const std::string & aType);
           void InitDefValFromType();
           void ShowParam();
 
@@ -195,19 +194,58 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mGenCubeCorrel (false),
     mEZA           (true)
 {
+
 #if(ELISE_QT_VERSION >= 4)
-    if (argc != 2)
+        /*  LArgMain LAM;
+        LAM << EAMC(mStrType,"Correlation mode",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"));
+
+        std::vector <cMMSpecArg> aVA = LAM.ExportMMSpec();
+
+        cMMSpecArg aArg = aVA[0];
+
+        list<string> liste_valeur_enum = listPossibleValues(aArg);
+
+        QStringList items;
+        list<string>::iterator it=liste_valeur_enum.begin();
+        for (; it != liste_valeur_enum.end(); ++it)
+            items << QString((*it).c_str());
+
+        QApplication app(argc, argv);
+
+        setStyleSheet(app);
+
+        bool ok = false;
+        QInputDialog myDialog;
+        QString item = myDialog.getItem(NULL, app.applicationName(),
+                                             QString (aArg.Comment().c_str()), items, 0, false, &ok);
+
+        if (ok && !item.isEmpty())
+            mStrType = item.toStdString();
+        else
+            return;
+
+
+        //app.closeAllWindows();
+        //app.exec();
+
+        cout << "app dans Malt: " << QApplication::instance() << endl;
+
+*/
+    if (argc < 2)
     {
         QApplication app(argc, argv);
 
         showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
         return;
     }
+    else
+        mStrType = argv[1];
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
+    mStrType = argv[1];
 #endif
 
-  ReadType(argv[1]);
+  StdReadEnum(mModeHelp,mType,mStrType,eNbTypesMNE);
 
   InitDefValFromType();
 
@@ -216,11 +254,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   bool mModePB = false;
   std::string mModeOri;
 
-
+  cout << "ici" << endl;
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(mStrType,"Mode of correlation (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
+        LArgMain()
+            #if(ELISE_QT_VERSION == 0)
+                << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
+            #endif
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
@@ -772,11 +813,6 @@ void  cAppliMalt::ShowParam()
 
 
 
-void cAppliMalt::ReadType(const std::string & aType)
-{
-    mStrType = aType;
-    StdReadEnum(mModeHelp,mType,mStrType,eNbTypesMNE);
-}
 
 
 

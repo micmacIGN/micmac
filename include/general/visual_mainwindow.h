@@ -57,7 +57,11 @@ class visual_MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    visual_MainWindow(vector<cMMSpecArg> & aVAM, vector<cMMSpecArg> & aVAO, std::string aFirstArg="", QWidget *parent = 0);
+    visual_MainWindow(const vector<cMMSpecArg> & aVAM,
+                      const vector<cMMSpecArg> & aVAO,
+                      std::string aFirstArg = "",
+                      QWidget *parent = 0);
+
     ~visual_MainWindow();
 
     void add_label     (QGridLayout*, QWidget*, int, cMMSpecArg);
@@ -74,15 +78,17 @@ public:
 
     void set_argv_recup(string);
 
-    void buildUI(vector<cMMSpecArg>& aVA, QGridLayout* layout, QWidget* parent);
+    void buildUI(const vector<cMMSpecArg>& aVA, QGridLayout* layout, QWidget* parent);
 
-    void addGridLayout(vector<cMMSpecArg>& aVA, QString pageName);
+    void addGridLayout(const vector<cMMSpecArg>& aVA, QString pageName);
 
     bool getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
     bool getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
 
     QDoubleSpinBox* create_dSpinBox(QGridLayout*, QWidget*, int, int);
     QSpinBox *create_SpinBox(QGridLayout*, QWidget*, int, int);
+
+    std::string getFirstArg() { return mFirstArg; }
 
 public slots:
 
@@ -102,20 +108,19 @@ protected:
     QToolBox*    toolBox;
     QPushButton* runCommandButton;
 
-    vector <QLineEdit*> vLineEdit;      //LineEdit: display what has been selected (images, files, directories)
+    vector <QLineEdit*> vLineEdit;    //LineEdit: display what has been selected (images, files, directories)
 
     vector <cInputs*>   vInputs;
 
     QString             mlastDir;
 
-    std::string         mFirstArg;    //truc&astuces: stores the first arg (for Tapioca and Malt..)
+    std::string         mFirstArg;    //truc&astuces: stores the first arg (for Tapioca)
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);
 void ShowEnum(const cMMSpecArg & anArg);
 void setStyleSheet(QApplication &app);
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr);
-
 
 #endif //ELISE_QT_VERSION >= 4
 
