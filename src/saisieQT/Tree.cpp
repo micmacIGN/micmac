@@ -3,6 +3,7 @@
 #define HORSIMAGE "hors Image"
 
 #define COLOR_OVER "#c89354"
+#define NON_SAISIE "#ba5606"
 
 ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli):
 QAbstractTableModel(parent),
@@ -68,17 +69,22 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 
         cSP_PointGlob * pg = mAppli->PGlob(index.row());
 
-        if (pg != NULL)
+        if (pg != NULL && pg->getPointes().size())
         {
-            QColor NonSaisie = QColor("#93751e");
+            QColor NonSaisie(NON_SAISIE);
 
-            std::map<std::string,cSP_PointeImage *>::iterator itM = pg->getPointes().begin();
+            std::map<std::string,cSP_PointeImage *> ptIs = pg->getPointes();
 
-            for (  ; itM!= pg->getPointes().end(); itM++ )
+            for
+                    (
+                     std::map<std::string,cSP_PointeImage *>::iterator itM = ptIs.begin();
+                     itM!= ptIs.end();
+                     itM++
+                     )
             {
-                 cSP_PointeImage * ptImag = itM->second;
-                 if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible())
-                     return NonSaisie;
+                cSP_PointeImage * ptImag = itM->second;
+                if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible())
+                    return NonSaisie;
             }
         }
     }
@@ -298,7 +304,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
     {
 
         QColor Red          = QColor("#87384c");
-        QColor NonSaisie    = QColor("#93751e");
+        QColor NonSaisie    = QColor(NON_SAISIE);
         QColor Douteux      = QColor("#a95b3b");
         QColor Valide       = QColor("#3c7355");
         QColor imageVisible = QColor("#3a819c");
