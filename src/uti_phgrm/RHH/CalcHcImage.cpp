@@ -230,7 +230,7 @@ void  cAppliReduc::QuadrReestimFromVois(std::vector<cImagH*> & aVLocIm,int aFlag
 
 void cAppliReduc::TestMerge_CalcHcImage()
 {
-    cParamMerge  aParam;
+    cParamMerge  aParam (*this);
 
     cAlgoMergingRec<cImagH,cAttrLnkIm,cParamMerge> anAlgo(mIms,aParam,0);
 

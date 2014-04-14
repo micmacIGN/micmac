@@ -1102,6 +1102,24 @@ void  cXifDecoder::GetOneDouble(cElRegex * & anAutom,bool & aGot,double & aVal)
 
 cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 {
+
+        cSpecifFormatRaw * aSFR = GetSFRFromString(aNameIm);
+        if (aSFR)
+        {
+            return   cMetaDataPhoto
+                     (
+                           aNameIm,
+                           aSFR->Sz(),
+                           aSFR->Camera().ValWithDef(""),
+                           cElDate::NoDate,
+                           aSFR->Focalmm().ValWithDef(-1),
+                           aSFR->FocalEqui35().ValWithDef(-1),
+                           -1,-1,-1,
+                           aSFR->BayPat().ValWithDef("")
+                      );
+
+        }
+       
 	const std::vector<cXifDecoder *>  &  aV =  TheVect();
 
 	bool  GotDate = false;

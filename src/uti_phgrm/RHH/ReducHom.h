@@ -397,6 +397,8 @@ typedef cMergingNode<cImagH,cAttrLnkIm> tNodIm;
 class cParamMerge
 {
     public :
+        cParamMerge( cAppliReduc &);
+
        void Vois(cImagH* anIm,std::vector<cImagH *> &);
 
        double  Gain // <0, veut dire on valide pas le noeud
@@ -415,6 +417,9 @@ class cParamMerge
 
        void Show(cImagH * anI){std::cout << anI->Name();}
 
+
+   private :
+        cAppliReduc & mAppli;
 };
 
 std::string NameNode(tNodIm * aN);

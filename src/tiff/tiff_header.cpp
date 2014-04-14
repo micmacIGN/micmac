@@ -1664,6 +1664,8 @@ Tiff_Im  Tiff_Im::UnivConvStd(const ElSTDNS string & aName)
    return StdConvGen(aName,-1,true,false);
 }
 
+
+
 Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
 {
     if (IsPostfixed(Name))
@@ -1684,7 +1686,8 @@ Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
 
    }
 
-   if (IsPostfixed(Name) && (StdPostfix(Name)=="xml"))
+   cSpecifFormatRaw *   aSFR = GetSFRFromString(Name);
+   if (aSFR && (! aSFR->BayPat().IsInit()))
    {
         return Elise_Tiled_File_Im_2D::XML(Name).to_tiff();
    }
@@ -1706,6 +1709,7 @@ Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
    }
 
 
+
  // cout << Name.c_str() << "Is Thom File = " << IsThomFile(Name) << "\n";
 
    if (IsThomFile(Name))
@@ -1715,6 +1719,7 @@ Tiff_Im  Tiff_Im::BasicConvStd(const ElSTDNS string & Name)
       Tiff_Im aRes = Elise_Tiled_File_Im_2D::Thom(Name.c_str()).to_tiff();
       return aRes;
    }
+
 
 
     if (IsPostfixed(Name))
@@ -2085,6 +2090,8 @@ Fonc_Num Tiff_Im::in_bool(Fonc_Num aFonc)
        return 0;
 }
 
+
+
 Tiff_Im  Tiff_Im::StdConvGen(const ElSTDNS string & Name,int aNbChan,bool Bits16,bool ExigNoCompr)
 {
    return Tiff_Im::BasicConvStd(NameFileStd(Name,aNbChan,Bits16,ExigNoCompr));
@@ -2120,6 +2127,8 @@ void TestDate(const std::string & aF1,const std::string & aF2)
 
 
 
+
+
 std::string NameFileStd
             (
                 const std::string & aFullNameOri,
@@ -2130,6 +2139,9 @@ std::string NameFileStd
                 bool ExigB8
             )
 {
+   cSpecifFormatRaw *   aSFR = GetSFRFromString(aFullNameOri);
+   bool aRawTiff = aSFR && (!aSFR->BayPat().IsInit());
+
    if (IsPostfixed(aFullNameOri))
    {
         ElSTDNS string post = StdPostfix(aFullNameOri);
@@ -2151,9 +2163,11 @@ std::string NameFileStd
    bool Bits16 = RequireBits16 && (!IsPostfixedJPG(aFullNameOri));
    bool Conv16to8=false;
 
-   if (isTiff)
+   if (isTiff || aRawTiff )
    {
-       aTif = new Tiff_Im (aFullNameOri.c_str());
+       aTif =   aRawTiff                                                           ?
+                new Tiff_Im (Elise_Tiled_File_Im_2D::XML(aFullNameOri).to_tiff() ) :
+                new Tiff_Im (aFullNameOri.c_str())                                 ;
        if ((aTif->phot_interp()==Tiff_Im::RGBPalette) && (aNbChanSpec>=0))
        {
              std::cout << "WARRRRRNNNNNNNNNNN   Color Palette Tiff im may be wrongly interpreted\n";
