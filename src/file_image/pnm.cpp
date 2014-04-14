@@ -313,6 +313,7 @@ cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr)
 
   std::string aDir,aNameSeul;
   SplitDirAndFile(aDir,aNameSeul,aNameHdr);
+
   static cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
 

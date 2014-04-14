@@ -2140,6 +2140,8 @@ std::string NameFileStd
             )
 {
    cSpecifFormatRaw *   aSFR = GetSFRFromString(aFullNameOri);
+
+
    bool aRawTiff = aSFR && (!aSFR->BayPat().IsInit());
 
    if (IsPostfixed(aFullNameOri))
