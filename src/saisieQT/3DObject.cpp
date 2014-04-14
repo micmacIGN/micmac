@@ -718,6 +718,15 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _idx              = aP._idx;
 
         _points           = aP._points;
+
+        _bShowLines       = aP._bShowLines;
+        _bShowNames       = aP._bShowNames;
+        _bShowRefuted     = aP._bShowRefuted;
+
+        _style            = aP._style;
+        _defPtName        = aP._defPtName;
+
+        _shiftStep        = _shiftStep;
     }
 
     return *this;
@@ -967,7 +976,7 @@ void cPolygon::selectPoint(int idx)
 
 bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
 {
-    if (_bIsClosed)
+    if (_bIsClosed || _bShowLines)
     {
         resetSelectedPoint();
 
@@ -1019,7 +1028,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
-        if ((insertMode || isPointSelected())) // insert polygon point
+        if ( insertMode || isPointSelected()) // insert polygon point
         {
             cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
 
@@ -1093,10 +1102,15 @@ void cPolygon::translate(QPointF Tr)
         _points[aK] += Tr;
 }
 
-void cPolygon::translateSelectedPoint(QPointF Tr)
+cPoint cPolygon::translateSelectedPoint(QPointF Tr)
 {
     if (pointValid())
+    {
         _points[_idx] += Tr;
+        return _points[_idx];
+    }
+    else
+        return ErrPoint;
 }
 
 void cPolygon::flipY(float height)

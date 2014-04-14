@@ -328,7 +328,7 @@ void GLWidget::setCursorShape(QPointF pos)
 {
     QCursor c = cursor();
 
-    if ( imageLoaded() && !polygon()->isLinear() && isPtInsideIm(pos) )
+    if ( imageLoaded() && !polygon()->isLinear() && isPtInsideIm(pos) && (_widgetId >=0) )
 
         c.setShape(Qt::CrossCursor);
 
@@ -586,7 +586,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 polygon()->translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom));
 
-            else if ((m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION)) // REFRESH HELPER POLYGON
+            else if ( (m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION) )// REFRESH HELPER POLYGON
             {
                 int id = polygon()->getSelectedPointIndex();
 
@@ -708,6 +708,9 @@ void GLWidget::movePointWithArrows(QKeyEvent* event)
     QPointF tr(0.f, 0.f);
     float shift = polygon()->getShiftStep();
 
+    if (event->modifiers() & Qt::AltModifier)
+        shift *= 10.f;
+
     switch(event->key())
     {
     case Qt::Key_Up:
@@ -726,14 +729,15 @@ void GLWidget::movePointWithArrows(QKeyEvent* event)
         break;
     }
 
-    polygon()->translateSelectedPoint(tr);
+    cPoint pt = polygon()->translateSelectedPoint(tr);
 
     int idx = polygon()->getSelectedPointIndex();
 
     emit movePoint(idx);
-    polygon()->selectPoint(idx);
 
-    update();
+    polygon()->helper()->clear();
+
+    polygon()->findNearestPoint(pt, 400000.f);
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
@@ -829,6 +833,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
             polygon()->resetSelectedPoint();
         }
         polygon()->setSelected(false);
+
         update();
     }
     setCursor(Qt::ArrowCursor);
