@@ -54,6 +54,8 @@ enum object_state {
     state_COUNT
 };
 
+#define ErrPoint cPoint(QPointF(-400000.,-400000.));
+
 class cObject
 {
     public:
@@ -344,7 +346,7 @@ class cPolygon : public cObjectGL
         bool    bShowRefuted() { return _bShowRefuted; }
 
         void    translate(QPointF Tr);
-        void    translateSelectedPoint(QPointF Tr);
+        cPoint  translateSelectedPoint(QPointF Tr);
 
         void    flipY(float height);
 
@@ -356,6 +358,8 @@ class cPolygon : public cObjectGL
         float   getShiftStep()          { return _shiftStep; }
         void    setShiftStep(float val) { _shiftStep = val;  }
 
+        bool    pointValid();
+
     protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
@@ -364,7 +368,6 @@ class cPolygon : public cObjectGL
         QColor              _lineColor;
         int                 _idx;
 
-        bool pointValid();
 private:
         float               _pointDiameter;
         static float        _selectionRadius;
