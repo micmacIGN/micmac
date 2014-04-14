@@ -55,6 +55,10 @@ public:
     template <class T>
     static T*			MultArray(T* data, uint2 dimImage, float factor);
 
+
+    template <class T>
+    static T*			AddArray(T* data, uint2 dimImage, float factor);
+
     ///	\brief			Sortie console d'une donnees
     ///  \param         data : Donnees du tableau a afficher
     ///  \param         dim : dimension du tableau
@@ -116,6 +120,11 @@ public:
 	#ifdef  NVTOOLS
     static void			NvtxR_Push(const char* message, int32_t color);
 #endif
+    template <class T>
+    static T            getMaxArray(T *data, uint2 dim);
+
+    template <class T>
+    static T            getMinArray(T *data, uint2 dim);
 };
 
 template <class T>
@@ -297,6 +306,52 @@ T* GpGpuTools::MultArray( T* data, uint2 dim, float factor )
 
     return image;
 
+}
+
+template <class T>
+T* GpGpuTools::AddArray( T* data, uint2 dim, float factor )
+{
+    if (factor == 0) return NULL;
+
+    int sizeData = size(dim);
+
+    T* image = new T[sizeData];
+
+    for (int i = 0; i < sizeData ; i++)
+        image[i] = data[i] + (T)factor;
+
+    return image;
+
+}
+
+template <class T>
+T GpGpuTools::getMinArray( T* data, uint2 dim )
+{
+
+    int sizeData = size(dim);
+
+    T min = 0;
+
+    for (int i = 0; i < sizeData ; i++)
+        if(data[i] < min)
+            min = data[i];
+
+    return min;
+}
+
+template <class T>
+T GpGpuTools::getMaxArray( T* data, uint2 dim )
+{
+
+    int sizeData = size(dim);
+
+    T max = 0;
+
+    for (int i = 0; i < sizeData ; i++)
+        if(data[i] > max)
+            max = data[i];
+
+    return max;
 }
 
 template <class T>

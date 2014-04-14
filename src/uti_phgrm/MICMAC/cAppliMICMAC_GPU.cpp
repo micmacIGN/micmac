@@ -755,6 +755,32 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                         else
                             GpGpuTools::Memcpy2Dto1D(aDataIm ,fdataImg1D + size(dimImgMax) * aKIm, dimImgMax, dimImg );
 
+                        //------------------------------------------------------------------------
+                        /*
+
+                        std::string nameFile(GpGpuTools::conca("image_0",aKIm));
+
+                        nameFile+=".pgm";
+
+                        float* pImage = fdataImg1D + size(dimImgMax) * aKIm;
+
+                        float min = GpGpuTools::getMinArray(pImage,dimImgMax);
+
+                        float* dImage =  GpGpuTools::AddArray(pImage,dimImgMax,-min);
+
+                        GpGpuTools::Array1DtoImageFile(dImage,nameFile.c_str(),dimImgMax,1.f/(GpGpuTools::getMaxArray(dImage,dimImgMax)));
+                        //GpGpuTools::Array1DtoImageFile(dImage,nameFile.c_str(),dimImgMax,1.f/(65536.f));
+                        //GpGpuTools::Array1DtoImageFile(pImage,nameFile.c_str(),dimImgMax,1.f/(2048.f));
+
+                        if(!aKIm)
+                        {
+                            printf("max = %f;",GpGpuTools::getMaxArray(dImage,dimImgMax));
+                            printf("min = %f;",GpGpuTools::getMinArray(dImage,dimImgMax));
+                        }
+                        delete [] dImage;
+                        */
+                        //------------------------------------------------------------------------
+
                     }
 
                     if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
