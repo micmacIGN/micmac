@@ -78,8 +78,6 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool re
     {
         m_GLData = aData;
 
-        //m_GLData->setScale( vpWidth()*.5f, vpHeight()*.5f);
-
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
@@ -129,38 +127,13 @@ void GLWidget::paintGL()
 
     if (hasDataLoaded())
     {
+        m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f);
+
         if (m_bDisplayMode2D)
         {
-             m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f);
-
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
 
             m_GLData->glImage().draw();
-
-            for (int i = 0; i < m_GLData->polygonCount(); ++i)
-            {
-                 cPolygon* polyg = polygon(i);
-
-                 polyg->draw();
-
-                 for (int aK=0; aK < polyg->size();++aK)
-                 {
-                     cPoint pt = polyg->operator [](aK);
-
-                     if (pt.showName() && (pt.name() != ""))
-                     {
-                         QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
-
-                         QColor color(pt.isSelected() ? Qt::blue : Qt::white);
-                         glColor3f(color.redF(),color.greenF(),color.blueF());
-
-                         renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
-                     }
-                 }
-            }
-
-            if (_widgetId < 0)
-                drawCenter();
         }
         else
         {
@@ -172,7 +145,10 @@ void GLWidget::paintGL()
             m_GLData->draw();
         }
 
-        glPopMatrix();
+        overlay();
+
+        if (_widgetId < 0)
+            drawCenter();
 
         if (_messageManager.drawMessages() && !m_bDisplayMode2D)
             computeFPS(_messageManager.LastMessage());
@@ -318,7 +294,6 @@ void GLWidget::zoomFactor(int percent)
         setZoom(m_GLData->getBBoxMaxSize() / (float) percent * 100.f);
 }
 
-
 void GLWidget::setCursorShape(QPointF pos)
 {
     QCursor c = cursor();
@@ -336,31 +311,18 @@ void GLWidget::setCursorShape(QPointF pos)
 
 void GLWidget::drawCenter()
 {
-    //cout << "Img : " << imHeight() << " " << imWidth() << endl;
-    //cout << "VP  : " << vpHeight() << " " << vpWidth() << endl;
+    float radius = .06f;
+    float mini   = .01f;
 
-  /*  glDrawUnitCircle(2, 0.f, 2.f*(imHeight() - 0.f)/vpHeight(), 0.5f, 32);
-
-    glDrawUnitCircle(2, (float) imWidth()/vpWidth(),
-                        (float) imHeight()/vpHeight(), 0.5f, 32);
-
-    glDrawUnitCircle(2, (float) 2.f*imWidth()/vpWidth(),
-                        (float) 2.f*(imHeight() - imHeight())/vpHeight(), 0.5f, 32);*/
-
-   /* QPointF center(((float)vpWidth())*.5f,((float)vpHeight())*.5f);
-
-    QPainter p;
-    p.begin(this);
-
-    QPen pen(QColor(0,0,0));
-    pen.setCosmetic(true);
-    p.setPen(pen);
-
-    p.drawEllipse(center,5,5);
-    p.drawEllipse(center,1,1);
-    p.end();*/
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+        glLoadIdentity();
+        _matrixManager.zoom(1.f,1.f);
+        glColor3f(0.f,0.f,0.f);
+        glDrawEllipse( 0.f, 0.f, radius, radius);
+        glDrawEllipse( 0.f, 0.f, mini, mini);
+    glPopMatrix();
 }
-
 
 void GLWidget::Select(int mode, bool saveInfos)
 {
@@ -579,6 +541,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (polygon()->isSelected())                    // MOVE POLYGON
             {
+                //TODO: a verifier
                 QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
                 polygon()->translate(pos - translation);
             }
@@ -734,6 +697,37 @@ void GLWidget::movePointWithArrows(QKeyEvent* event)
     polygon()->helper()->clear();
 
     polygon()->findNearestPoint(pt, 400000.f);
+}
+
+void GLWidget::overlay()
+{
+    if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)) )
+    {
+        for (int i = 0; i < m_GLData->polygonCount(); ++i)
+        {
+            cPolygon* polyg = polygon(i);
+
+            polyg->draw();
+
+            if (polyg->bShowNames())
+            {
+                for (int aK=0; aK < polyg->size();++aK)
+                {
+                    cPoint pt = polyg->operator [](aK);
+
+                    if (pt.showName() && (pt.name() != ""))
+                    {
+                        QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
+
+                        QColor color(pt.isSelected() ? Qt::blue : Qt::white);
+                        glColor3f(color.redF(),color.greenF(),color.blueF());
+
+                        renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
+                    }
+                }
+            }
+        }
+    }
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event)

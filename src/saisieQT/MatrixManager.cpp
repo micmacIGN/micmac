@@ -38,11 +38,11 @@ void MatrixManager::doProjection(QPointF point, float zoom)
 
     if(_projMatrix[0] != zoom)
     {
-        GLint recal;
         GLdouble wx, wy, wz;
 
-        recal = _glViewport[3] - (GLint) point.y() - 1.f;
+        GLint recal = _glViewport[3] - (GLint) point.y() - 1;
 
+        //from viewport to world coordinates
         gluUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
                       _mvMatrix, _projMatrix, _glViewport, &wx, &wy, &wz);
 
@@ -56,6 +56,15 @@ void MatrixManager::doProjection(QPointF point, float zoom)
     m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
+}
+
+void MatrixManager::getProjection3D(QPointF &P2D, Pt3dr &P)
+{
+    GLint recal = _glViewport[3] - (GLint) P2D.y() - 1;
+
+    GLdouble xp,yp,zp;
+    gluUnProject((GLdouble) P2D.x(),(GLdouble) recal, 1.f,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+    P = Pt3dr(xp,yp,zp);
 }
 
 void MatrixManager::translate(float x, float y)
@@ -252,7 +261,6 @@ void MatrixManager::arcBall()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-
     Pt3d<double> camPos;
 
     Pt3d<double> target ;//=  _centerScene;
@@ -261,14 +269,14 @@ void MatrixManager::arcBall()
     target.y = -m_translationMatrix[1];
     target.z = -m_translationMatrix[2];
 
-    cout << "target: " << target << "\n";
+    //cout << "target: " << target << "\n";
 
     camPos.x = target.x +  _distance * -sinf(_rX) * cosf(_rY);
     camPos.y = target.y +  _distance * -sinf(_rY);
     camPos.z = target.z + -_distance * cosf(_rX) * cosf(_rY);
 
     // Set the camera position and lookat point
-    gluLookAt(camPos.x,camPos.y,camPos.z,   // Camera position
+    gluLookAt(camPos.x,camPos.y,camPos.z,      // Camera position
               target.x, target.y, target.z,    // Look at point
               0.0, 1.0, 0.0);
 
@@ -330,7 +338,6 @@ Pt3d<double> MatrixManager::centerScene() const
 
 void MatrixManager::setCenterScene(const Pt3d<double> &centerScene)
 {
-    cout << "center scene" <<  centerScene.x << " " << centerScene.y << " " << centerScene.z << endl;
     _centerScene = centerScene;
 }
 
@@ -359,8 +366,3 @@ void MatrixManager::setDistance(const GLdouble &distance)
 {
     _distance = distance;
 }
-
-/*QPointF MatrixManager::translateImgToWin(float zoom)
-{
-    return  QPointF(vpWidth()*(1.f +  getProjectionMatrix()[12]),-vpHeight()*(1.f - getProjectionMatrix()[13]))*.5f/zoom;
-}*/

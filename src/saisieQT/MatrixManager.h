@@ -24,8 +24,6 @@ public:
 
     GLdouble*   getProjectionMatrix(){return _projMatrix;}
 
-    //QPointF     translateImgToWin(float zoom);
-
     GLint*      getGLViewport(){return _glViewport;}
 
     void        setGLViewport(GLint x, GLint y,GLsizei width, GLsizei height);
@@ -97,6 +95,8 @@ public:
     void        setCenterScene(const Pt3dr &centerScene);
 
     void        MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);
+
+    void        getProjection3D(QPointF &P2D, Pt3d<double> &P);
 
 private:
     //! GL context aspect ratio (width/height)
