@@ -695,6 +695,8 @@ void cPolygon::draw()
         {
             QPointF aPt = _points[aK].scaledPt();
             glVertex2f(aPt.x(), aPt.y());
+
+            cout << "pt: " << aPt.x() << " " << aPt.y() << endl;
         }
         glEnd();
 
@@ -1476,7 +1478,6 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     _center(Pt3dr(0.f,0.f,0.f)),
     _modePt(modePt)
 {
-
     initOptions();
 
     polygon()->showLines(!modePt);
@@ -1486,17 +1487,21 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
 }
 
 
-cGLData::cGLData(cData *data):
+cGLData::cGLData(cData *data, bool modePt):
     _pBall(new cBall),
     _pAxis(new cAxis),
     _pBbox(new cBBox),
     _pGrid(new cGrid),
+    _modePt(modePt),
     _diam(1.f),
     _incFirstCloud(false)
 {
     initOptions();
 
     setData(data);
+
+    polygon()->showLines(!modePt);
+    polygon()->showNames(modePt);
 }
 
 void cGLData::setData(cData *data, bool setCam)
@@ -1624,6 +1629,11 @@ void cGLData::draw()
 
     //cameras
     for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
+
+    for (int i = 0; i < polygonCount(); ++i)
+    {
+        _vPolygons[i]->draw();
+    }
 
     disableOptionLine();
 }

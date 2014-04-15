@@ -22,12 +22,12 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 
     setOption(cGLData::OpShow_Mess);
 
-    #if ELISE_QT_VERSION==5
+ /*   #if ELISE_QT_VERSION==5
         _painter = new QPainter();
         QGLFormat tformGL(QGL::SampleBuffers);
         tformGL.setSamples(16);
         setFormat(tformGL);
-    #endif
+    #endif*/
 
     _contextMenu.createContextMenuActions();
 }
@@ -79,7 +79,7 @@ ContextMenu* GLWidget::contextMenu()
     return &_contextMenu;
 }
 
-void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool setPainter, bool resetPoly)
+void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool resetPoly)
 {
     if (aData != NULL)
     {
@@ -88,7 +88,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool se
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
-        _contextMenu.setPolygon( m_GLData->polygon());
+        _contextMenu.setPolygon( m_GLData->polygon() );
 
         resetView(doZoom, showMessage, true, resetPoly);
     }
@@ -144,9 +144,9 @@ void GLWidget::paintGL()
 
             for (int i = 0; i < m_GLData->polygonCount(); ++i)
             {
-                 polygon(i)->draw();
-
                  cPolygon* polyg = polygon(i);
+
+                 polyg->draw();
 
                  for (int aK=0; aK < polyg->size();++aK)
                  {

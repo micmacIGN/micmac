@@ -624,7 +624,7 @@ public:
 
     cGLData(QMaskedImage &qMaskedImage, bool modePt = false, QString ptName = "" );
 
-    cGLData(cData *data);
+    cGLData(cData *data, bool modePt = false);
 
     ~cGLData();
 
