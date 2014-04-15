@@ -521,7 +521,6 @@ void cCam::draw()
     }
 }
 
-
 cPoint::cPoint(QPointF pos,
                QString name, bool showName,
                int state,
@@ -690,7 +689,7 @@ void cPolygon::draw()
         }
 
         //draw segments
-        glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+        /*glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
         for (int aK = 0;aK < _points.size(); ++aK)
         {
             QPointF aPt = _points[aK].scaledPt();
@@ -698,7 +697,15 @@ void cPolygon::draw()
 
             cout << "pt: " << aPt.x() << " " << aPt.y() << endl;
         }
+        glEnd();*/
+        glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+                    glVertex2f(0.f, 0.f);
+                    glVertex2f(0.5f, 0.5f);
+                    glVertex2f(0.2f, 0.f);
+                    glVertex2f(0.f, 0.f);
         glEnd();
+
+        glTranslatef(-6.26152,2.52773,0.f);
 
         if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
 
@@ -1641,7 +1648,7 @@ void cGLData::draw()
 void cGLData::setScale(float vW, float vH)
 {
     Pt3dr scale(vW, vH,0.f);
-    _glMaskedImage.setScale(scale);
+    if ( !isImgEmpty() ) _glMaskedImage.setScale(scale);
 
     for (int aK=0; aK < _vPolygons.size();++aK)
     {
