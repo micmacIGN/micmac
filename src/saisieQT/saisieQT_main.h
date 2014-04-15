@@ -20,7 +20,7 @@ extern void SaisieAppuisInit(int argc, char ** argv,
 
 int helpMessage(QApplication const &app, QString text);
 
-int saisieMasqQT_main(QApplication &app);
+int saisieMasqQT_main(QApplication &app, int argc, char *argv[]);
 int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[]);
 
 #endif
