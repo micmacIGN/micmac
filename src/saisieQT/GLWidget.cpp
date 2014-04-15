@@ -22,13 +22,6 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 
     setOption(cGLData::OpShow_Mess);
 
- /*   #if ELISE_QT_VERSION==5
-        _painter = new QPainter();
-        QGLFormat tformGL(QGL::SampleBuffers);
-        tformGL.setSamples(16);
-        setFormat(tformGL);
-    #endif*/
-
     _contextMenu.createContextMenuActions();
 }
 
@@ -85,6 +78,8 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool re
     {
         m_GLData = aData;
 
+        //m_GLData->setScale( vpWidth()*.5f, vpHeight()*.5f);
+
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
@@ -136,7 +131,7 @@ void GLWidget::paintGL()
     {
         if (m_bDisplayMode2D)
         {
-            m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f);
+             m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f);
 
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
 
@@ -583,9 +578,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
             if (polygon()->isSelected())                    // MOVE POLYGON
-
-                polygon()->translate(pos - _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom));
-
+            {
+                QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
+                polygon()->translate(pos - translation);
+            }
             else if ( (m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION) )// REFRESH HELPER POLYGON
             {
                 int id = polygon()->getSelectedPointIndex();

@@ -24,15 +24,13 @@ public:
 
     GLdouble*   getProjectionMatrix(){return _projMatrix;}
 
-    QPointF     translateImgToWin(float zoom);
+    //QPointF     translateImgToWin(float zoom);
 
     GLint*      getGLViewport(){return _glViewport;}
 
     void        setGLViewport(GLint x, GLint y,GLsizei width, GLsizei height);
 
     void        doProjection(QPointF point, float zoom);
-
-    //void        orthoProjection();
 
     void        translate(float x, float y);
 

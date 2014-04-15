@@ -58,11 +58,6 @@ void MatrixManager::doProjection(QPointF point, float zoom)
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
 }
 
-/*void MatrixManager::orthoProjection()
-{
-    mglOrtho(0,_glViewport[2],_glViewport[3],0,-1,1);
-}*/
-
 void MatrixManager::translate(float x, float y)
 {
     glMatrixMode(GL_PROJECTION);
@@ -254,7 +249,6 @@ void MatrixManager::rotate(float rX, float rY, float rZ, float factor)
 
 void MatrixManager::arcBall()
 {
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -267,7 +261,7 @@ void MatrixManager::arcBall()
     target.y = -m_translationMatrix[1];
     target.z = -m_translationMatrix[2];
 
-    //cout << target << "\n";
+    cout << "target: " << target << "\n";
 
     camPos.x = target.x +  _distance * -sinf(_rX) * cosf(_rY);
     camPos.y = target.y +  _distance * -sinf(_rY);
@@ -285,7 +279,6 @@ void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
 {
     _rX -= rX * factor;
     _rY -= rY * factor;
-
 }
 
 void MatrixManager::MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4],float* vec)
@@ -328,7 +321,6 @@ void MatrixManager::MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4],floa
     vec[0] = inVec[0];
     vec[1] = inVec[1];
     vec[2] = inVec[2];
-
 }
 
 Pt3d<double> MatrixManager::centerScene() const
@@ -338,6 +330,7 @@ Pt3d<double> MatrixManager::centerScene() const
 
 void MatrixManager::setCenterScene(const Pt3d<double> &centerScene)
 {
+    cout << "center scene" <<  centerScene.x << " " << centerScene.y << " " << centerScene.z << endl;
     _centerScene = centerScene;
 }
 
@@ -355,8 +348,8 @@ void MatrixManager::translate(float tX, float tY, float tZ, float factor)
     m_translationMatrix[0] += translation[0];
     m_translationMatrix[1] += translation[1];
     m_translationMatrix[2] += translation[2];
-
 }
+
 GLdouble MatrixManager::distance() const
 {
     return _distance;
@@ -367,7 +360,7 @@ void MatrixManager::setDistance(const GLdouble &distance)
     _distance = distance;
 }
 
-QPointF MatrixManager::translateImgToWin(float zoom)
+/*QPointF MatrixManager::translateImgToWin(float zoom)
 {
     return  QPointF(vpWidth()*(1.f +  getProjectionMatrix()[12]),-vpHeight()*(1.f - getProjectionMatrix()[13]))*.5f/zoom;
-}
+}*/
