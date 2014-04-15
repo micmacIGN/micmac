@@ -18,7 +18,7 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 }
 
 void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
-{    
+{
 
     maskedImg._m_image = new QImage( aNameFile );
 
@@ -185,7 +185,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 //****************************************
 //   cEngine
 
-cEngine::cEngine():    
+cEngine::cEngine():
     _Loader(new cLoader),
     _Data(new cData)
 {}
@@ -314,19 +314,19 @@ void cEngine::doMaskImage(ushort idCur)
 
         pMask.save(aOut);
 
-		cFileOriMnt anOri;
+        cFileOriMnt anOri;
 
         anOri.NameFileMnt()		= aOut.toStdString();
         anOri.NombrePixels()	= Pt2di(pMask.width(),pMask.height());
-		anOri.OriginePlani()	= Pt2dr(0,0);
-		anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
-		anOri.OrigineAlti()		= 0.0;
-		anOri.ResolutionAlti()	= 1.0;
-		anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
+        anOri.OriginePlani()	= Pt2dr(0,0);
+        anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
+        anOri.OrigineAlti()		= 0.0;
+        anOri.ResolutionAlti()	= 1.0;
+        anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
 
         MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
-	}
-	else
+    }
+    else
     {
         QMessageBox::critical(NULL, "cEngine::doMaskImage","No alpha channel!!!");
     }
@@ -348,7 +348,7 @@ void cEngine::unloadAll()
 }
 
 void cEngine::unload(int aK)
-{    
+{
     if(_vGLData[aK])
     {
         delete _vGLData[aK];
@@ -361,11 +361,13 @@ void cEngine::allocAndSetGLData(bool modePt, QString ptName)
 {
     _vGLData.clear();
 
+    cout << "mode Pt: "<< modePt << endl;
+
     for (int aK = 0; aK < _Data->getNbImages();++aK)
         _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), modePt, ptName));
 
     if (_Data->is3D())
-        _vGLData.push_back(new cGLData(_Data));
+        _vGLData.push_back(new cGLData(_Data, modePt));
 }
 
 void cEngine::reallocAndSetGLData(int aK)
@@ -374,7 +376,7 @@ void cEngine::reallocAndSetGLData(int aK)
     delete _vGLData[aK];
 
     if (_Data->is3D())
-        _vGLData[aK] = new cGLData(_Data);
+        _vGLData[aK] = new cGLData(_Data, modePt);
     else
         _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK), modePt);
 }

@@ -1004,7 +1004,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
 
         if (zoomWidget())
         {
-            zoomWidget()->setGLData(glW->getGLData(),false,true,false,false);
+            zoomWidget()->setGLData(glW->getGLData(),false,true,false);
             zoomWidget()->setZoom(_params->getZoomWindowValue());
             zoomWidget()->setOption(cGLData::OpShow_Mess,false);
 
