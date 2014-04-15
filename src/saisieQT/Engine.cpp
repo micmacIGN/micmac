@@ -361,8 +361,6 @@ void cEngine::allocAndSetGLData(bool modePt, QString ptName)
 {
     _vGLData.clear();
 
-    cout << "mode Pt: "<< modePt << endl;
-
     for (int aK = 0; aK < _Data->getNbImages();++aK)
         _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), modePt, ptName));
 
@@ -394,15 +392,14 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 
 ViewportParameters::ViewportParameters()
     : m_zoom(1.f)
-    , m_PointSize(1)
-    , m_LineWidth(1.f)
+    , m_pointSize(1)
     , m_speed(2.f)
 {}
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
     : m_zoom(params.m_zoom)
-    , m_PointSize(params.m_PointSize)
-    , m_LineWidth(params.m_LineWidth)
+    , m_pointSize(params.m_pointSize)
+    , m_speed(params.m_speed)
 {}
 
 ViewportParameters::~ViewportParameters(){}
@@ -411,9 +408,9 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 {
     if (this != &par)
     {
-        m_zoom = par.m_zoom;
-        m_PointSize = par.m_PointSize;
-        m_LineWidth = par.m_LineWidth;
+        m_zoom      = par.m_zoom;
+        m_pointSize = par.m_pointSize;
+        m_speed     = par.m_speed;
     }
 
     return *this;
@@ -421,21 +418,22 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    m_zoom = m_LineWidth = 1.f;
-    m_PointSize = 1;
+    m_zoom = 1.f;
+    m_pointSize = 1;
+    m_speed = 2.f;
 }
 
 void ViewportParameters::ptSizeUp(bool up)
 {
     if (up)
-        m_PointSize++;
+        m_pointSize++;
     else
-        m_PointSize--;
+        m_pointSize--;
 
-    if (m_PointSize == 0)
-        m_PointSize = 1;
+    if (m_pointSize == 0)
+        m_pointSize = 1;
 
-    glPointSize((GLfloat) m_PointSize);
+    glPointSize((GLfloat) m_pointSize);
 }
 
 

@@ -689,23 +689,13 @@ void cPolygon::draw()
         }
 
         //draw segments
-        /*glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+        glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
         for (int aK = 0;aK < _points.size(); ++aK)
         {
             QPointF aPt = _points[aK].scaledPt();
             glVertex2f(aPt.x(), aPt.y());
-
-            cout << "pt: " << aPt.x() << " " << aPt.y() << endl;
         }
-        glEnd();*/
-        glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-                    glVertex2f(0.f, 0.f);
-                    glVertex2f(0.5f, 0.5f);
-                    glVertex2f(0.2f, 0.f);
-                    glVertex2f(0.f, 0.f);
         glEnd();
-
-        glTranslatef(-6.26152,2.52773,0.f);
 
         if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
 
@@ -1337,18 +1327,6 @@ void cImageGL::draw(QColor color)
     drawQuad(color);
 }
 
-/*void cImageGL::setPosition(GLfloat originX, GLfloat originY)
-{
-    _originX = originX;
-    _originY = originY;
-}*/
-
-/*void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
-{
-    _glh = glh;
-    _glw = glw;
-}*/
-
 bool cImageGL::isPtInside(const QPointF &pt)
 {
     return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
@@ -1592,7 +1570,6 @@ int cGLData::polygonCount()
 void cGLData::initOptions()
 {
     _vPolygons.push_back(new cPolygon());
-//    _vPolygons[1]->setPointSize(2.f);
     _options = options(OpShow_Mess);
 }
 
@@ -1636,11 +1613,6 @@ void cGLData::draw()
 
     //cameras
     for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
-
-    for (int i = 0; i < polygonCount(); ++i)
-    {
-        _vPolygons[i]->draw();
-    }
 
     disableOptionLine();
 }

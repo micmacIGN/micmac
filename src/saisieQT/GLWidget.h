@@ -113,6 +113,8 @@ public:
 
     void movePointWithArrows(QKeyEvent* event);
 
+    void overlay();
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
