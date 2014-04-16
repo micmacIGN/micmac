@@ -43,10 +43,7 @@ public:
     float m_zoom;
 
     //! Point size
-    int m_PointSize;
-
-    //! Line width
-    float m_LineWidth;
+    int m_pointSize;
 
     //! Rotation and translation speed
     float m_speed;

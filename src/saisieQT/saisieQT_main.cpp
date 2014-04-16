@@ -103,7 +103,7 @@ public:
             if (!str.contains("SaisieQT"))
             {
                 if (str.contains("SaisieMasqQT"))
-                    saisieMasqQT_main(app);
+                    saisieMasqQT_main(app, argc, argv);
                 else if (str.contains("SaisieAppuisInitQT"))
                     saisieAppuisInitQT_main(app, argc, argv);
                 else

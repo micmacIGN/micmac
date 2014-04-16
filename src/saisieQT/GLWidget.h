@@ -21,7 +21,7 @@
 #include <QSettings>
 #include <QMimeData>
 #include <QTime>
-#include <QPainter>
+//#include <QPainter>
 
 #include "Data.h"
 #include "Engine.h"
@@ -80,7 +80,7 @@ public:
     HistoryManager*     getHistoryManager() { return &_historyManager; }
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
 
-    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true, bool setPainter = true, bool resetPoly = true);
+    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true, bool resetPoly = true);
     cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
@@ -112,6 +112,8 @@ public:
     void setParams(cParameters *aParams);
 
     void movePointWithArrows(QKeyEvent* event);
+
+    void overlay();
 
 public slots:
 
@@ -216,7 +218,7 @@ private:
     QColor      _BGColor0;
     QColor      _BGColor1;
 
-    QPainter*   _painter;
+   // QPainter*   _painter;
 };
 
 #endif  /* _GLWIDGET_H */

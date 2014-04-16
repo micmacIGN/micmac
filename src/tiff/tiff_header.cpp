@@ -53,6 +53,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /***********************************************************************/
 /***********************************************************************/
 
+
 bool IsKnownTifPost(const std::string & aPost)
 {
     return      (aPost == "tif")
@@ -2140,6 +2141,8 @@ std::string NameFileStd
             )
 {
    cSpecifFormatRaw *   aSFR = GetSFRFromString(aFullNameOri);
+
+
    bool aRawTiff = aSFR && (!aSFR->BayPat().IsInit());
 
    if (IsPostfixed(aFullNameOri))

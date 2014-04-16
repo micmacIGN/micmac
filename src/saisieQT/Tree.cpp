@@ -3,6 +3,7 @@
 #define HORSIMAGE "hors Image"
 
 #define COLOR_OVER "#c89354"
+#define NON_SAISIE "#ba5606"
 
 ModelPointGlobal::ModelPointGlobal(QObject *parent, cAppli_SaisiePts *appli):
 QAbstractTableModel(parent),
@@ -68,20 +69,23 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 
         cSP_PointGlob * pg = mAppli->PGlob(index.row());
 
-        QColor NonSaisie    = QColor("#93751e");
-
-        std::map<std::string,cSP_PointeImage *> ptIs = pg->getPointes();
-
-        for
-        (
-             std::map<std::string,cSP_PointeImage *>::iterator itM = ptIs.begin();
-             itM!= ptIs.end();
-             itM++
-        )
+        if (pg != NULL && pg->getPointes().size())
         {
-             cSP_PointeImage * ptImag = itM->second;
-             if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible())
-                 return NonSaisie;
+            QColor NonSaisie(NON_SAISIE);
+
+            std::map<std::string,cSP_PointeImage *> ptIs = pg->getPointes();
+
+            for
+                    (
+                     std::map<std::string,cSP_PointeImage *>::iterator itM = ptIs.begin();
+                     itM!= ptIs.end();
+                     itM++
+                     )
+            {
+                cSP_PointeImage * ptImag = itM->second;
+                if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible())
+                    return NonSaisie;
+            }
         }
     }
 
@@ -167,6 +171,7 @@ int ModelPointGlobal::CaseNamePointCount() const
 {
     return  mAppli->Interface()->GetNumCaseNamePoint();
 }
+
 cAppli_SaisiePts *ModelPointGlobal::getMAppli() const
 {
     return mAppli;
@@ -227,7 +232,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                 cSP_PointGlob* pg   = _interface->currentPGlobal();
 
                 if(!pg)
-                    return QString("");                
+                    return QString("");
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
 
@@ -299,7 +304,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
     {
 
         QColor Red          = QColor("#87384c");
-        QColor NonSaisie    = QColor("#93751e");
+        QColor NonSaisie    = QColor(NON_SAISIE);
         QColor Douteux      = QColor("#a95b3b");
         QColor Valide       = QColor("#3c7355");
         QColor imageVisible = QColor("#3a819c");
@@ -455,9 +460,4 @@ bool PointGlobalSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sour
 cAppli_SaisiePts *PointGlobalSFModel::mAppli() const
 {
     return ((ModelPointGlobal*)(sourceModel()))->getMAppli();
-}
-
-cQT_Interface *PointGlobalSFModel::getInterface()
-{
-    return  (cQT_Interface *)mAppli()->Interface();
 }
