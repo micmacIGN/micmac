@@ -807,9 +807,12 @@ int Tapioca_main(int argc,char ** argv)
 {
  #if(ELISE_QT_VERSION >= 4)
 
-    if (argc < 2)
+    if ((MMVisualMode) && (argc < 2))
     {
         QApplication app(argc, argv);
+        #if(ELISE_QT_VERSION < 5)
+            app.setApplicationName("Tapioca");
+        #endif
 
         std::vector <std::string> vStr;
         vStr.assign(Type, Type + aNbType);
@@ -817,8 +820,6 @@ int Tapioca_main(int argc,char ** argv)
         showErrorMsg(app, vStr);
         return EXIT_FAILURE;
     }
-    else
-        TheType = argv[1];
 
 /*    if (firstPass)
     {
@@ -842,10 +843,10 @@ int Tapioca_main(int argc,char ** argv)
 
         //app.exit();
     }*/
-#else
+#endif
+
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     TheType = argv[1];
-#endif
 
     MMD_InitArgcArgv(argc,argv);
 

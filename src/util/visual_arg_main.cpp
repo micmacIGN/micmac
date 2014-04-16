@@ -142,7 +142,11 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 
     QString msg;
     for (int aK=0; aK < (int)vStr.size(); ++aK)
+#if(ELISE_QT_VERSION >= 5)
+         msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
+#else
         msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
+#endif
 
     setStyleSheet(app);
     QMessageBox::critical(NULL, "Error", str + msg);
