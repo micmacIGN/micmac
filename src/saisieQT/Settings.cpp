@@ -302,7 +302,7 @@ void cParameters::read()
 
      settings.beginGroup("Drawing settings");
      setLineThickness(  settings.value("linethickness", 2.f     ).toFloat());
-     setPointDiameter(  settings.value("pointdiameter",2.f      ).toFloat());
+     setPointDiameter(  settings.value("pointdiameter",0.8f      ).toFloat());
      setGamma(          settings.value("gamma",1.f              ).toFloat());
      settings.endGroup();
 

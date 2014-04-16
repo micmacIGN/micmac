@@ -527,12 +527,14 @@ cPoint::cPoint(QPointF pos,
                bool isSelected,
                QColor color, QColor selectionColor,
                float diameter,
-               bool highlight):
+               bool highlight,
+               bool drawCenter):
     QPointF(pos),
     _diameter(diameter),
     _bShowName(showName),
     _statePoint(state),
     _highlight(highlight),
+    _drawCenter(drawCenter),
     _bEpipolar(false)
 {
     setName(name);
@@ -582,7 +584,7 @@ void cPoint::draw()
         QPointF aPt = scaledPt();
 
         glDrawEllipse( aPt.x(), aPt.y(), rx, ry);
-        glDrawEllipse( aPt.x(), aPt.y(), 0.001, 0.001* _scale.x/_scale.y);
+        if (_drawCenter) glDrawEllipse( aPt.x(), aPt.y(), 0.001, 0.001* _scale.x/_scale.y);
 
         if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
         {
@@ -847,6 +849,7 @@ void cPolygon::add(const QPointF &pt, bool selected)
 {
     cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
     cPt.setDiameter(_pointDiameter);
+    cPt.drawCenter(!isLinear());
     _points.push_back(cPt);
 }
 
@@ -857,6 +860,7 @@ void cPolygon::addPoint(const QPointF &pt)
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
 
         cPt.setDiameter(_pointDiameter);
+        cPt.drawCenter(!isLinear());
         _points[size()-1] = cPoint(cPt);
     }
 

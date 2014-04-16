@@ -130,7 +130,8 @@ class cPoint : public cObjectGL, public QPointF
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
            float diameter = 4.f,
-           bool  highlight  = false);
+           bool  highlight  = false,
+           bool  drawCenter = true);
 
         void draw();
 
@@ -139,10 +140,11 @@ class cPoint : public cObjectGL, public QPointF
         int  statePoint() const      { return _statePoint;  }
         void showName(bool show)     { _bShowName = show;   }
 
-        bool highlight() const       { return _highlight; }
-        bool showName() const        { return _bShowName; }
-        void setHighlight(bool hl)   { _highlight = hl;   }
+        bool highlight() const       { return _highlight;   }
+        bool showName() const        { return _bShowName;   }
+        void setHighlight(bool hl)   { _highlight = hl;     }
         void switchHighlight()       { _highlight = !_highlight; }
+        void drawCenter(bool aBool)  { _drawCenter = aBool; }
 
         void setEpipolar(QPointF pt1, QPointF pt2);
 
@@ -155,6 +157,7 @@ private:
         bool    _bShowName;
         int     _statePoint;
         bool    _highlight;
+        bool    _drawCenter;
 
         QGLWidget *_widget;
 
@@ -750,6 +753,6 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(cGLData::options)
 //====================================================================================
 void glDrawUnitCircle(uchar dim, float cx = 0.f, float cy = 0.f, float r = 1.f, int steps = 128);
-void glDrawEllipse(float cx, float cy, float rx=3.f, float ry= 3.f, int steps = 32);
+void glDrawEllipse(float cx, float cy, float rx=3.f, float ry= 3.f, int steps = 64);
 
 #endif //__3DObject__
