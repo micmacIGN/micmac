@@ -22,7 +22,6 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 
     maskedImg._m_image = new QImage( aNameFile );
 
-
     QFileInfo fi(aNameFile);
 
     QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
@@ -306,13 +305,44 @@ void cEngine::do3DMasks()
 
 void cEngine::doMaskImage(ushort idCur)
 {
+    cout << "in do Mask " << idCur << endl;
+
     QImage pMask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
 
     if (!pMask.isNull())
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
-        pMask.save(aOut);
+        //TODO: save in binary
+
+        //pMask.save(aOut);
+
+        int w = pMask.width();
+        int h = pMask.height();
+
+        cout << "w, h" << w << " " << h << endl;
+
+        Im2D_Bits<1> imOut(w,h,0);
+
+        for (int x=0;x< w;++x)
+            for (int y=0; y<h;++y)
+                if (qGray(pMask.pixel(x, y)) == 255)
+                    imOut.set(x,y,1);
+
+                //if (pMask.getPixel(x,y) == 1)
+                  //  imOut.set(x,y,1);
+        cout << "end for " << aOut.toStdString() << endl;
+
+        Tiff_Im aTifM = Tiff_Im::StdConv(aOut.toStdString());
+
+        ELISE_COPY
+        (
+           imOut.all_pts(),
+           imOut.in(),
+           aTifM.out()
+        );
+
+        cout << "end" << endl;
 
         cFileOriMnt anOri;
 
@@ -328,7 +358,7 @@ void cEngine::doMaskImage(ushort idCur)
     }
     else
     {
-        QMessageBox::critical(NULL, "cEngine::doMaskImage","No alpha channel!!!");
+        QMessageBox::critical(NULL, "cEngine::doMaskImage","pMask is Null");
     }
 }
 
