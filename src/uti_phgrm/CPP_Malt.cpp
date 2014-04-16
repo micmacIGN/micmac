@@ -197,7 +197,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 {
 
 #if(ELISE_QT_VERSION >= 4)
-        /*  LArgMain LAM;
+    if (MMVisualMode)
+    {
+        LArgMain LAM;
         LAM << EAMC(mStrType,"Correlation mode",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"));
 
         std::vector <cMMSpecArg> aVA = LAM.ExportMMSpec();
@@ -225,29 +227,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         else
             return;
 
-
-        //app.closeAllWindows();
-        //app.exec();
-
-        cout << "app dans Malt: " << QApplication::instance() << endl;
-
-*/
-    if (MMVisualMode && (argc < 2))
-    {
-        QApplication app(argc, argv);
-
-        #if(ELISE_QT_VERSION < 5)
-            app.setApplicationName("Malt");
-        #endif
-
-        showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
-        return;
+        ReadType(mStrType);
     }
-#endif
-
+    else
+        ReadType(argv[1]);
+#else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
-
     ReadType(argv[1]);
+#endif
 
     InitDefValFromType();
 
@@ -260,14 +247,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   (
         argc,argv,
         LArgMain()
-            //#if(ELISE_QT_VERSION == 0)
-                << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
-            //#endif
+                    << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
+        LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
-                    << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, avalaible in image geometry")
+                    << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
                     << EAM(mZRegul,"Regul",true,"Regularization factor")
                     << EAM(mDirMEC,"DirMEC",true,"Subdirectory where the results will be stored")
@@ -277,11 +262,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mZoomInit,"ZoomI",true,"Initial Zoom, (Def depends on number of images)")
                     << EAM(mZPas,"ZPas",true,"Quantification step in equivalent pixel (def is 0.4)")
                     << EAM(mExe,"Exe",true,"Execute command (Def is true !!)", eSAM_IsBool)
-                    << EAM(mRep,"Repere",true,"Local system of coordinat")
+                    << EAM(mRep,"Repere",true,"Local system of coordinates")
                     << EAM(mNbMinIV,"NbVI",true,"Number of Visible Image required (Def = 3)")
                     << EAM(mOrthoF,"HrOr",true,"Compute High Resolution Ortho")
                     << EAM(mOrthoQ,"LrOr",true,"Compute Low Resolution Ortho")
-                    << EAM(mDirTA,"DirTA",true,"Directory  of TA (for mask)")
+                    << EAM(mDirTA,"DirTA",true,"Directory of TA (for mask)")
                     << EAM(mPurge,"Purge",true,"Purge the directory of Results before compute")
                     << EAM(mDoMEC,"DoMEC",true,"Do the Matching")
                     << EAM(mDoOrtho,"DoOrtho",true,"Do the Ortho (Def =mDoMEC)")
@@ -300,9 +285,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
-                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation , its proportion ([0,0,1,1] mean full box)")
+                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)")
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
-            << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
+                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")

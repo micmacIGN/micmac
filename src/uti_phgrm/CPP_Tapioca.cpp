@@ -80,7 +80,6 @@ std::string StrMkT() { return (ByP ? (" \"MkF=" + MkFT +"\" ") : "") ; }
 #define aNbType 5
 std::string  Type[aNbType] = {"MulScale","All","Line","File","Graph"};
 
-
 /*
 void StdAdapt2Crochet(std::string & aStr)
 {
@@ -806,22 +805,7 @@ int Graph_(int argc,char ** argv)
 int Tapioca_main(int argc,char ** argv)
 {
  #if(ELISE_QT_VERSION >= 4)
-
-    if ((MMVisualMode) && (argc < 2))
-    {
-        QApplication app(argc, argv);
-        #if(ELISE_QT_VERSION < 5)
-            app.setApplicationName("Tapioca");
-        #endif
-
-        std::vector <std::string> vStr;
-        vStr.assign(Type, Type + aNbType);
-
-        showErrorMsg(app, vStr);
-        return EXIT_FAILURE;
-    }
-
-/*    if (firstPass)
+    if (MMVisualMode)
     {
         QStringList items;
 
@@ -840,13 +824,13 @@ int Tapioca_main(int argc,char ** argv)
             TheType = item.toStdString();
         else
             return EXIT_FAILURE;
-
-        //app.exit();
-    }*/
-#endif
-
+    }
+    else
+        TheType = argv[1];
+#else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     TheType = argv[1];
+#endif
 
     MMD_InitArgcArgv(argc,argv);
 
