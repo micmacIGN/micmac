@@ -142,7 +142,11 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 
     QString msg;
     for (int aK=0; aK < (int)vStr.size(); ++aK)
+#if(ELISE_QT_VERSION >= 5)
+         msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
+#else
         msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
+#endif
 
     setStyleSheet(app);
     QMessageBox::critical(NULL, "Error", str + msg);
@@ -162,7 +166,6 @@ void MMRunVisualMode
 #if(ELISE_QT_VERSION >= 4)
     if (QApplication::instance() == NULL)
     {
-        //cout << "new app instance" << endl;
         QApplication app(argc, argv);
 
         setStyleSheet(app);
@@ -179,17 +182,30 @@ void MMRunVisualMode
         string arg_eff="";
         for (int i=0;i<argc;i++) //argc = 1 en general
         {
-            //cout<<argv[i]<<endl;
-
             arg_eff += string(argv[i]);
         }
         w.set_argv_recup(arg_eff);
 
         w.show();
+
         app.exec();
     }
-#endif //ELISE_QT_VERSION >= 4
+    else
+    {
+        visual_MainWindow w(aVAM, aVAO, aFirstArg);
 
+        string arg_eff="";
+        for (int i=0;i<argc;i++) //argc = 1 en general
+        {
+            arg_eff += string(argv[i]);
+        }
+        w.set_argv_recup(arg_eff);
+
+        w.show();
+
+        QApplication::exec();
+    }
+#endif //ELISE_QT_VERSION >= 4
 
 
     // On lit tous les arguments obligatoires

@@ -114,7 +114,7 @@ protected:
 
     QString             mlastDir;
 
-    std::string         mFirstArg;    //truc&astuces: stores the first arg (for Tapioca)
+    string              mFirstArg;    //truc&astuces: stores the first arg (for Tapioca)
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);

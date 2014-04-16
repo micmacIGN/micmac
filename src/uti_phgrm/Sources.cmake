@@ -25,8 +25,9 @@ INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 #define __CUDA_API_VERSION 0x5050
 if(${CUDA_ENABLED})
     set(OptionCuda 1)
-
-    if("${CUDA_VERSION}" MATCHES "5.5")
+    if("${CUDA_VERSION}" MATCHES "6.0")
+        set(__CUDA_API_VERSION 0x6000)
+    elseif("${CUDA_VERSION}" MATCHES "5.5")
         set(__CUDA_API_VERSION 0x5050)
     elseif("${CUDA_VERSION}" MATCHES "5.0")
         set(__CUDA_API_VERSION 0x5000)
