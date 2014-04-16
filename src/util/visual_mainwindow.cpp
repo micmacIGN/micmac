@@ -284,10 +284,10 @@ void visual_MainWindow::onRunCommandPressed()
 
     if (runCom)
     {
-        cout << "Com = " << aCom << endl;
-        int aRes = ::System(aCom);
+        //cout << "Com = " << aCom << endl;
+        ::System(aCom);
 
-        cout << "----------------- " << aRes << endl;
+        QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
     }
     else
     {
@@ -619,6 +619,8 @@ void visual_MainWindow::add_4SpinBox(QGridLayout *layout, QWidget *parent, int a
 void visual_MainWindow::set_argv_recup(string argv)
 {
     argv_recup = argv;
+
+    if (mFirstArg != "") setWindowTitle( QString((argv + " " + mFirstArg).c_str()) );
 }
 
 void visual_MainWindow::resizeEvent(QResizeEvent *)

@@ -111,6 +111,11 @@ void GpGpuInterfaceCorrel::threadCompute()
             uint interZ = GetCompute();
             SetCompute(0);
 
+
+            // TEMP : TENTATIVE DE DEBUGAGE THREAD
+            while(Param(GetIdBuf()).invPC.nbImages > 4096)
+                boost::this_thread::sleep(boost::posix_time::microsec(1));
+
             BasicCorrelation(interZ);
 
             while(GetDataToCopy());
@@ -120,7 +125,7 @@ void GpGpuInterfaceCorrel::threadCompute()
             SetDataToCopy(interZ);
         }
         else
-            boost::this_thread::sleep(boost::posix_time::microsec(1));
+            boost::this_thread::sleep(boost::posix_time::microsec(5));
     }
 }
 
