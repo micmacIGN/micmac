@@ -41,6 +41,9 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir)
 {
     uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
 
+    _H_data2Opt.setDzMax(_poInitCost._maxDz);
+    _D_data2Opt.setDzMax(_poInitCost._maxDz);
+
     ResetIdBuffer();
 
     SetProgress(NBDir);

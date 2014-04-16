@@ -111,6 +111,9 @@ void GpGpuInterfaceCorrel::threadCompute()
             uint interZ = GetCompute();
             SetCompute(0);
 
+            while(Param(GetIdBuf()).invPC.nbImages > 4096)
+                boost::this_thread::sleep(boost::posix_time::microsec(1));
+
             BasicCorrelation(interZ);
 
             while(GetDataToCopy());
