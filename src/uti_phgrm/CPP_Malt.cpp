@@ -80,6 +80,7 @@ class cAppliMalt
          int Exe();
      private :
 
+          void ReadType(const std::string & aType);
           void InitDefValFromType();
           void ShowParam();
 
@@ -231,37 +232,37 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         cout << "app dans Malt: " << QApplication::instance() << endl;
 
 */
-    if (argc < 2)
+    if (MMVisualMode)
     {
-        QApplication app(argc, argv);
+        if (argc < 2)
+        {
+            QApplication app(argc, argv);
 
-        showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
-        return;
+            showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
+            return;
+        }
     }
-    else
-        mStrType = argv[1];
-#else
-    ELISE_ASSERT(argc >= 2,"Not enough arg");
-    mStrType = argv[1];
 #endif
 
-  StdReadEnum(mModeHelp,mType,mStrType,eNbTypesMNE);
+    ELISE_ASSERT(argc >= 2,"Not enough arg");
 
-  InitDefValFromType();
+    ReadType(argv[1]);
 
-  Box2dr aBoxClip,aBoxTerrain;
+    InitDefValFromType();
 
-  bool mModePB = false;
-  std::string mModeOri;
+    Box2dr aBoxClip,aBoxTerrain;
 
-  cout << "ici" << endl;
+    bool mModePB = false;
+    std::string mModeOri;
+
+  std::string aMode;
   ElInitArgMain
   (
         argc,argv,
         LArgMain()
-            #if(ELISE_QT_VERSION == 0)
-                << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
-            #endif
+            //#if(ELISE_QT_VERSION == 0)
+                << EAMC(aMode,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
+            //#endif
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
@@ -756,6 +757,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 }
 
      // mDirOrthoF = "Ortho-" + mDirMEC;
+
+void cAppliMalt::ReadType(const std::string & aType)
+{
+    mStrType = aType;
+    StdReadEnum(mModeHelp,mType,mStrType,eNbTypesMNE);
+}
 
 void cAppliMalt::InitDefValFromType()
 {
