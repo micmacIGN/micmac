@@ -44,6 +44,7 @@ list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_Ann.cpp
     ${UTI_IMAGE_DIR}/CPP_StatImage.cpp
     ${UTI_IMAGE_DIR}/CPP_SplitMPOFormat.cpp
+    ${UTI_IMAGE_DIR}/CPP_SupMntIm.cpp
     ${UTI_IMAGE_DIR}/CPP_Digeo.cpp )
 
 SOURCE_GROUP(${SrcGrp_Uti_Image}\\outils FILES ${uti_image_Src_Files})
