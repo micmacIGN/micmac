@@ -167,7 +167,7 @@ Data2Optimiz<U,NBUFFER>::Data2Optimiz():
     _nbLines(0),
     _idBuffer(false),
     _penteMax(0),
-    _m_DzMax(256)
+    _m_DzMax(NAPPEMAX)
 {
     for(uint i = 0;i < NBUFFER;i++)
     {

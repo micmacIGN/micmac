@@ -74,7 +74,7 @@ void InterfOptimizGpGpu::threadCompute()
         if(GetCompute() /*&& !_H_data2Opt.nbLines()*/)
         {          
             SetCompute(false);
-
+            // TEMP : TENTATIVE DE DEBUGAGE THREAD
             while(!_H_data2Opt.nbLines())
                 boost::this_thread::sleep(boost::posix_time::microsec(1));
 
