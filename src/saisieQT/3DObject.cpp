@@ -521,7 +521,6 @@ void cCam::draw()
     }
 }
 
-
 cPoint::cPoint(QPointF pos,
                QString name, bool showName,
                int state,
@@ -718,6 +717,15 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _idx              = aP._idx;
 
         _points           = aP._points;
+
+        _bShowLines       = aP._bShowLines;
+        _bShowNames       = aP._bShowNames;
+        _bShowRefuted     = aP._bShowRefuted;
+
+        _style            = aP._style;
+        _defPtName        = aP._defPtName;
+
+        _shiftStep        = _shiftStep;
     }
 
     return *this;
@@ -967,7 +975,7 @@ void cPolygon::selectPoint(int idx)
 
 bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
 {
-    if (_bIsClosed)
+    if (_bIsClosed || _bShowLines)
     {
         resetSelectedPoint();
 
@@ -1019,7 +1027,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
-        if ((insertMode || isPointSelected())) // insert polygon point
+        if ( insertMode || isPointSelected()) // insert polygon point
         {
             cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
 
@@ -1093,10 +1101,15 @@ void cPolygon::translate(QPointF Tr)
         _points[aK] += Tr;
 }
 
-void cPolygon::translateSelectedPoint(QPointF Tr)
+cPoint cPolygon::translateSelectedPoint(QPointF Tr)
 {
     if (pointValid())
+    {
         _points[_idx] += Tr;
+        return _points[_idx];
+    }
+    else
+        return ErrPoint;
 }
 
 void cPolygon::flipY(float height)
@@ -1314,18 +1327,6 @@ void cImageGL::draw(QColor color)
     drawQuad(color);
 }
 
-/*void cImageGL::setPosition(GLfloat originX, GLfloat originY)
-{
-    _originX = originX;
-    _originY = originY;
-}*/
-
-/*void cImageGL::setDimensions(GLfloat glh, GLfloat glw)
-{
-    _glh = glh;
-    _glw = glw;
-}*/
-
 bool cImageGL::isPtInside(const QPointF &pt)
 {
     return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
@@ -1462,7 +1463,6 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     _center(Pt3dr(0.f,0.f,0.f)),
     _modePt(modePt)
 {
-
     initOptions();
 
     polygon()->showLines(!modePt);
@@ -1472,17 +1472,21 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
 }
 
 
-cGLData::cGLData(cData *data):
+cGLData::cGLData(cData *data, bool modePt):
     _pBall(new cBall),
     _pAxis(new cAxis),
     _pBbox(new cBBox),
     _pGrid(new cGrid),
+    _modePt(modePt),
     _diam(1.f),
     _incFirstCloud(false)
 {
     initOptions();
 
     setData(data);
+
+    polygon()->showLines(!modePt);
+    polygon()->showNames(modePt);
 }
 
 void cGLData::setData(cData *data, bool setCam)
@@ -1566,7 +1570,6 @@ int cGLData::polygonCount()
 void cGLData::initOptions()
 {
     _vPolygons.push_back(new cPolygon());
-//    _vPolygons[1]->setPointSize(2.f);
     _options = options(OpShow_Mess);
 }
 
@@ -1617,7 +1620,7 @@ void cGLData::draw()
 void cGLData::setScale(float vW, float vH)
 {
     Pt3dr scale(vW, vH,0.f);
-    _glMaskedImage.setScale(scale);
+    if ( !isImgEmpty() ) _glMaskedImage.setScale(scale);
 
     for (int aK=0; aK < _vPolygons.size();++aK)
     {

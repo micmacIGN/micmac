@@ -1,7 +1,9 @@
 #include "saisieQT_main.h"
 
-int saisieMasqQT_main(QApplication &app)
+int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 {
+    MMD_InitArgcArgv(argc,argv);
+
     app.setApplicationName("SaisieMasqQT");
     app.setOrganizationName("IGN");
 

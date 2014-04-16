@@ -22,8 +22,6 @@ protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
 
     cAppli_SaisiePts* mAppli() const;
-
-    cQT_Interface*   getInterface();
 };
 
 class ModelPointGlobal : public QAbstractTableModel

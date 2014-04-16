@@ -138,32 +138,18 @@ void setStyleSheet(QApplication &app)
 
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 {
-     QString str("In visual mode, possible values are:\n");
-
-     QString msg;
-     for (int aK=0; aK < (int)vStr.size(); ++aK)
-#if(ELISE_QT_VERSION >= 5) 
-         msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
-#else
-        msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
-#endif
- 
-     setStyleSheet(app);
-     QMessageBox::critical(NULL, "Error", str + msg);
-
-/*
+    QString str("In visual mode, possible values are:\n");
 
     QString msg;
     for (int aK=0; aK < (int)vStr.size(); ++aK)
-#if(ELISE_QT_VERSION >= 5) 
-        msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
+#if(ELISE_QT_VERSION >= 5)
+         msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
 #else
         msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
 #endif
 
     setStyleSheet(app);
     QMessageBox::critical(NULL, "Error", str + msg);
-*/
 }
 
 #endif
@@ -178,33 +164,48 @@ void MMRunVisualMode
 {
 
 #if(ELISE_QT_VERSION >= 4)
-    QApplication app(argc, argv);
-
-    setStyleSheet(app);
-
-    // qt translations
-    const QString locale = QLocale::system().name().section('_', 0, 0);
-    QTranslator qtTranslator;
-    qtTranslator.load(app.applicationName() + "_" + locale);
-    app.installTranslator(&qtTranslator);
-    //TODO: traductions
-
-    visual_MainWindow w(aVAM, aVAO, aFirstArg);
-
-    string arg_eff="";
-    for (int i=0;i<argc;i++) //argc = 1 en general
+    if (QApplication::instance() == NULL)
     {
-        //cout<<argv[i]<<endl;
+        QApplication app(argc, argv);
 
-        arg_eff += string(argv[i]);
+        setStyleSheet(app);
+
+        // qt translations
+        const QString locale = QLocale::system().name().section('_', 0, 0);
+        QTranslator qtTranslator;
+        qtTranslator.load(app.applicationName() + "_" + locale);
+        app.installTranslator(&qtTranslator);
+        //TODO: traductions
+
+        visual_MainWindow w(aVAM, aVAO, aFirstArg);
+
+        string arg_eff="";
+        for (int i=0;i<argc;i++) //argc = 1 en general
+        {
+            arg_eff += string(argv[i]);
+        }
+        w.set_argv_recup(arg_eff);
+
+        w.show();
+
+        app.exec();
     }
-    w.set_argv_recup(arg_eff);
+    else
+    {
+        visual_MainWindow w(aVAM, aVAO, aFirstArg);
 
-    w.show();
-    app.exec();
+        string arg_eff="";
+        for (int i=0;i<argc;i++) //argc = 1 en general
+        {
+            arg_eff += string(argv[i]);
+        }
+        w.set_argv_recup(arg_eff);
 
+        w.show();
+
+        QApplication::exec();
+    }
 #endif //ELISE_QT_VERSION >= 4
-
 
 
     // On lit tous les arguments obligatoires

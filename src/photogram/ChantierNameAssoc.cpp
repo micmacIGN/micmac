@@ -516,6 +516,7 @@ const cMMUserEnvironment & MMUserEnv()
     if (aRes ==0)
     {
         std::string aName = XML_User_Or_MicMac("MM-Environment.xml");
+
         cMMUserEnvironment aMME =  StdGetObjFromFile<cMMUserEnvironment>
                                    (
                                        aName,

@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #endif
 
 #include <QApplication>
-#include <QMessageBox>
+#include <QInputDialog>
 
 #include "general/visual_mainwindow.h"
 #endif
@@ -804,19 +804,32 @@ int Graph_(int argc,char ** argv)
 
 int Tapioca_main(int argc,char ** argv)
 {
-#if(ELISE_QT_VERSION >= 4)
-    if (argc < 2)
+ #if(ELISE_QT_VERSION >= 4)
+    if (MMVisualMode)
     {
+        QStringList items;
+
+        for (int aK=0; aK < aNbType; ++aK)
+            items << QString((Type[aK]).c_str());
+
         QApplication app(argc, argv);
 
-        std::vector <std::string> vStr;
-        vStr.assign(Type, Type + aNbType);
+        setStyleSheet(app);
 
-        showErrorMsg(app, vStr);
-        return EXIT_FAILURE;
+        bool ok = false;
+        QString item = QInputDialog::getItem(NULL, app.applicationName(),
+                                             QString ("Strategy"), items, 0, false, &ok);
+
+        if (ok && !item.isEmpty())
+            TheType = item.toStdString();
+        else
+            return EXIT_FAILURE;
     }
+    else
+        TheType = argv[1];
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
+    TheType = argv[1];
 #endif
 
     MMD_InitArgcArgv(argc,argv);
@@ -826,7 +839,6 @@ int Tapioca_main(int argc,char ** argv)
     //  APRES AVOIR SAUVEGARDER L'ARGUMENT DE TYPE ON LE SUPPRIME
     if (argc>=2)
     {
-        TheType = argv[1];
         argv[1] = argv[0];
         argv++; argc--;
     }
@@ -861,25 +873,25 @@ int Tapioca_main(int argc,char ** argv)
 
     if (TheType == Type[0])
     {
-        int aRes = MultiEch(argc,argv);
+        int aRes = MultiEch(argc,argv,TheType);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[1])
     {
-        int aRes = All(argc,argv, TheType);
+        int aRes = All(argc,argv,TheType);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[2])
     {
-        int aRes = Line(argc,argv, TheType);
+        int aRes = Line(argc,argv,TheType);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[3])
     {
-        int aRes = File(argc,argv, TheType);
+        int aRes = File(argc,argv,TheType);
         BanniereMM3D();
         return aRes;
     }

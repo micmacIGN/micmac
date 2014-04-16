@@ -18,7 +18,7 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 }
 
 void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
-{    
+{
 
     maskedImg._m_image = new QImage( aNameFile );
 
@@ -185,7 +185,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 //****************************************
 //   cEngine
 
-cEngine::cEngine():    
+cEngine::cEngine():
     _Loader(new cLoader),
     _Data(new cData)
 {}
@@ -314,19 +314,19 @@ void cEngine::doMaskImage(ushort idCur)
 
         pMask.save(aOut);
 
-		cFileOriMnt anOri;
+        cFileOriMnt anOri;
 
         anOri.NameFileMnt()		= aOut.toStdString();
         anOri.NombrePixels()	= Pt2di(pMask.width(),pMask.height());
-		anOri.OriginePlani()	= Pt2dr(0,0);
-		anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
-		anOri.OrigineAlti()		= 0.0;
-		anOri.ResolutionAlti()	= 1.0;
-		anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
+        anOri.OriginePlani()	= Pt2dr(0,0);
+        anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
+        anOri.OrigineAlti()		= 0.0;
+        anOri.ResolutionAlti()	= 1.0;
+        anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
 
         MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
-	}
-	else
+    }
+    else
     {
         QMessageBox::critical(NULL, "cEngine::doMaskImage","No alpha channel!!!");
     }
@@ -348,7 +348,7 @@ void cEngine::unloadAll()
 }
 
 void cEngine::unload(int aK)
-{    
+{
     if(_vGLData[aK])
     {
         delete _vGLData[aK];
@@ -365,7 +365,7 @@ void cEngine::allocAndSetGLData(bool modePt, QString ptName)
         _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), modePt, ptName));
 
     if (_Data->is3D())
-        _vGLData.push_back(new cGLData(_Data));
+        _vGLData.push_back(new cGLData(_Data, modePt));
 }
 
 void cEngine::reallocAndSetGLData(int aK)
@@ -374,7 +374,7 @@ void cEngine::reallocAndSetGLData(int aK)
     delete _vGLData[aK];
 
     if (_Data->is3D())
-        _vGLData[aK] = new cGLData(_Data);
+        _vGLData[aK] = new cGLData(_Data, modePt);
     else
         _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK), modePt);
 }
@@ -392,15 +392,14 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 
 ViewportParameters::ViewportParameters()
     : m_zoom(1.f)
-    , m_PointSize(1)
-    , m_LineWidth(1.f)
+    , m_pointSize(1)
     , m_speed(2.f)
 {}
 
 ViewportParameters::ViewportParameters(const ViewportParameters& params)
     : m_zoom(params.m_zoom)
-    , m_PointSize(params.m_PointSize)
-    , m_LineWidth(params.m_LineWidth)
+    , m_pointSize(params.m_pointSize)
+    , m_speed(params.m_speed)
 {}
 
 ViewportParameters::~ViewportParameters(){}
@@ -409,9 +408,9 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 {
     if (this != &par)
     {
-        m_zoom = par.m_zoom;
-        m_PointSize = par.m_PointSize;
-        m_LineWidth = par.m_LineWidth;
+        m_zoom      = par.m_zoom;
+        m_pointSize = par.m_pointSize;
+        m_speed     = par.m_speed;
     }
 
     return *this;
@@ -419,21 +418,22 @@ ViewportParameters& ViewportParameters::operator =(const ViewportParameters& par
 
 void ViewportParameters::reset()
 {
-    m_zoom = m_LineWidth = 1.f;
-    m_PointSize = 1;
+    m_zoom = 1.f;
+    m_pointSize = 1;
+    m_speed = 2.f;
 }
 
 void ViewportParameters::ptSizeUp(bool up)
 {
     if (up)
-        m_PointSize++;
+        m_pointSize++;
     else
-        m_PointSize--;
+        m_pointSize--;
 
-    if (m_PointSize == 0)
-        m_PointSize = 1;
+    if (m_pointSize == 0)
+        m_pointSize = 1;
 
-    glPointSize((GLfloat) m_PointSize);
+    glPointSize((GLfloat) m_pointSize);
 }
 
 

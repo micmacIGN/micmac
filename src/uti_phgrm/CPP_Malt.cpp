@@ -45,7 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
     #endif
 
     #include <QApplication>
-    #include <QMessageBox>
+    #include <QInputDialog>
 
     #include "general/visual_mainwindow.h"
 #endif
@@ -195,37 +195,64 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mGenCubeCorrel (false),
     mEZA           (true)
 {
+
 #if(ELISE_QT_VERSION >= 4)
-    if (argc != 2)
+    if (MMVisualMode)
     {
+        LArgMain LAM;
+        LAM << EAMC(mStrType,"Correlation mode",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"));
+
+        std::vector <cMMSpecArg> aVA = LAM.ExportMMSpec();
+
+        cMMSpecArg aArg = aVA[0];
+
+        list<string> liste_valeur_enum = listPossibleValues(aArg);
+
+        QStringList items;
+        list<string>::iterator it=liste_valeur_enum.begin();
+        for (; it != liste_valeur_enum.end(); ++it)
+            items << QString((*it).c_str());
+
         QApplication app(argc, argv);
 
-        showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
-        return;
+        setStyleSheet(app);
+
+        bool ok = false;
+        QInputDialog myDialog;
+        QString item = myDialog.getItem(NULL, app.applicationName(),
+                                             QString (aArg.Comment().c_str()), items, 0, false, &ok);
+
+        if (ok && !item.isEmpty())
+            mStrType = item.toStdString();
+        else
+            return;
+
+        ReadType(mStrType);
     }
+    else
+        ReadType(argv[1]);
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
+    ReadType(argv[1]);
 #endif
 
-  ReadType(argv[1]);
+    InitDefValFromType();
 
-  InitDefValFromType();
+    Box2dr aBoxClip,aBoxTerrain;
 
-  Box2dr aBoxClip,aBoxTerrain;
-
-  bool mModePB = false;
-  std::string mModeOri;
-
+    bool mModePB = false;
+    std::string mModeOri;
 
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(mStrType,"Mode of correlation (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
+        LArgMain()
+                    << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(mImMaster,"Master",true," Master image must  exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
+        LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
-                    << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, avalaible in image geometry")
+                    << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
                     << EAM(mZRegul,"Regul",true,"Regularization factor")
                     << EAM(mDirMEC,"DirMEC",true,"Subdirectory where the results will be stored")
@@ -235,11 +262,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mZoomInit,"ZoomI",true,"Initial Zoom, (Def depends on number of images)")
                     << EAM(mZPas,"ZPas",true,"Quantification step in equivalent pixel (def is 0.4)")
                     << EAM(mExe,"Exe",true,"Execute command (Def is true !!)", eSAM_IsBool)
-                    << EAM(mRep,"Repere",true,"Local system of coordinat")
+                    << EAM(mRep,"Repere",true,"Local system of coordinates")
                     << EAM(mNbMinIV,"NbVI",true,"Number of Visible Image required (Def = 3)")
                     << EAM(mOrthoF,"HrOr",true,"Compute High Resolution Ortho")
                     << EAM(mOrthoQ,"LrOr",true,"Compute Low Resolution Ortho")
-                    << EAM(mDirTA,"DirTA",true,"Directory  of TA (for mask)")
+                    << EAM(mDirTA,"DirTA",true,"Directory of TA (for mask)")
                     << EAM(mPurge,"Purge",true,"Purge the directory of Results before compute")
                     << EAM(mDoMEC,"DoMEC",true,"Do the Matching")
                     << EAM(mDoOrtho,"DoOrtho",true,"Do the Ortho (Def =mDoMEC)")
@@ -258,9 +285,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
-                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation , its proportion ([0,0,1,1] mean full box)")
+                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)")
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
-            << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
+                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
@@ -716,6 +743,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
      // mDirOrthoF = "Ortho-" + mDirMEC;
 
+void cAppliMalt::ReadType(const std::string & aType)
+{
+    mStrType = aType;
+    StdReadEnum(mModeHelp,mType,mStrType,eNbTypesMNE);
+}
+
 void cAppliMalt::InitDefValFromType()
 {
   switch (mType)
@@ -772,11 +805,6 @@ void  cAppliMalt::ShowParam()
 
 
 
-void cAppliMalt::ReadType(const std::string & aType)
-{
-    mStrType = aType;
-    StdReadEnum(mModeHelp,mType,mStrType,eNbTypesMNE);
-}
 
 
 
