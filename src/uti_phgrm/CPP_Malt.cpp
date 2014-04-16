@@ -232,15 +232,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         cout << "app dans Malt: " << QApplication::instance() << endl;
 
 */
-    if (MMVisualMode)
+    if (MMVisualMode && (argc < 2))
     {
-        if (argc < 2)
-        {
-            QApplication app(argc, argv);
+        QApplication app(argc, argv);
 
-            showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
-            return;
-        }
+        #if(ELISE_QT_VERSION < 5)
+            app.setApplicationName("Malt");
+        #endif
+
+        showErrorMsg(app, getStrFromEnum(eNbTypesMNE));
+        return;
     }
 #endif
 
@@ -255,13 +256,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     bool mModePB = false;
     std::string mModeOri;
 
-  std::string aMode;
   ElInitArgMain
   (
         argc,argv,
         LArgMain()
             //#if(ELISE_QT_VERSION == 0)
-                << EAMC(aMode,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
+                << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
             //#endif
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
