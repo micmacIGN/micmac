@@ -4,6 +4,7 @@
 
 struct invParamCorrel
 {
+
     /// \brief  Nombre d'images
     uint        nbImages;
 
@@ -30,6 +31,19 @@ struct invParamCorrel
 
     /// \brief  Epsilon
     float       mAhEpsilon;
+
+    void init()
+    {
+        nbImages = 0 ;
+        nbClass = 0 ;
+        IntDefault = 0 ;
+        floatDefault = 0 ;
+        sampProj = 0 ;
+        sizeVig = 0 ;
+        rayVig = make_ushort2(0,0) ;
+        dimVig = make_ushort2(0,0) ;
+        mAhEpsilon = 0;
+    }
 
     /// \brief  Initialise les param?tres invariants pendant le calcul
     void SetParamInva(ushort2 dV,ushort2 dRV, uint2 dI, float tmAhEpsilon, uint samplingZ, int uvINTDef, uint nLayer,ushort nClass)
@@ -60,6 +74,19 @@ struct invParamCorrel
 
 struct HDParamCorrel
 {
+
+    HDParamCorrel():
+        dimTer(make_uint2(0,0)),
+        dimDTer(make_uint2(0,0)),
+        dimCach(make_uint2(0,0)),
+        sizeTer(0),
+        sizeCach(0),
+        sizeCachAll(0),
+        rTer(0,0,0,0)
+    {
+
+    }
+
     /// \brief  Dimension du bloque terrain
     uint2       dimTer;
 
@@ -86,6 +113,14 @@ struct HDParamCorrel
 /// \param  La structure contenant tous les parametres necessaires a la correlation
 struct pCorGpu
 {    
+
+    pCorGpu():
+        ZCInter(0),
+        dimSTer(make_uint2(0,0)),
+        rDTer(0,0,0,0)
+    {
+        invPC.init();
+    }
 
     invParamCorrel invPC;
 
