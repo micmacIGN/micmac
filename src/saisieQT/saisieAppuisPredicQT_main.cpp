@@ -5,43 +5,9 @@
 
 using namespace std;
 
-//extern const char * theNameVar_ParamApero[];
-
-int SaisiePts_main2(int argc,char ** argv)
+int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 {
-   MMD_InitArgcArgv(argc,argv);
-  // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
-
-  //if (0) delete anAppli;
-
-   ELISE_ASSERT(argc>=2,"Not enough arg");
-
-   cElXMLTree aTree(argv[1]);
-
-
-   cResultSubstAndStdGetFile<cParamSaisiePts> aP2
-                                          (
-                                               argc-2,argv+2,
-                                              //0,0,
-                                      argv[1],
-                                   StdGetFileXMLSpec("ParamSaisiePts.xml"),
-                                  "ParamSaisiePts",
-                                  "ParamSaisiePts",
-                                              "DirectoryChantier",
-                                              "FileChantierNameDescripteur"
-                                          );
-
-   //cAppli_SaisiePts   anAppli (aP2);
-   //((cX11_Interface*)anAppli.Interface())->BoucleInput();
-
-   //SaisiePts_Banniere();
-   return 0;
-}
-
-
-int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
-{
-    app.setApplicationName("SaisieAppuisInitQT");
+    app.setApplicationName("SaisieAppuisPredicQT");
     app.setOrganizationName("IGN");
 
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
@@ -55,15 +21,14 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     Pt2di aSzWin(800,800);
     Pt2di aNbFen(-1,-1);
 
-    string aFullName, aDir, aName, aNamePt, aNameOut;   //mandatory arguments
-    string aNameOri, aNameAuto, aPrefix2Add;            //named args
-    settings.beginGroup("Misc");
-    aNameAuto = settings.value("defPtName", QString("100")).toString().toStdString();
-    settings.endGroup();
-    aPrefix2Add = "";
-    bool aForceGray = false;
+    string aFullName, aDir, aName, aNamePt;   //mandatory arguments
+    string aNameOri, aNameMesure;                       //named args
+    string aTypePts="Pts";
+    double aFlou=0.;
 
-    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray);
+    bool aForceGray  = false;
+
+    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameMesure, aTypePts, aFlou, aForceGray);
 
     list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);
     QStringList filenames;
@@ -92,34 +57,36 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     else if (!init)
     {
         settings.setValue("size", QSize(800, 800));
-         aSzWin.x = aSzWin.y = 800;
+        aSzWin.x = aSzWin.y = 800;
     }
     settings.setValue("NbFen", QPoint(aNbFen.x, aNbFen.y));
     settings.endGroup();
 
-    settings.beginGroup("Misc");
-    settings.setValue("defPtName", QString(aNameAuto.c_str()));
-    settings.endGroup();
-
     QStringList input;
     input   << QString(MMDir().c_str()) + QString("bin/SaisiePts")
-            << QString(MMDir().c_str()) + QString("include/XML_MicMac/SaisieInitiale.xml")
+            << QString(MMDir().c_str()) + QString("include/XML_MicMac/SaisieAppuisPredic.xml")
             << QString("DirectoryChantier=") + QString(aDir.c_str())
-            << QString("+Image=") +  QString(aName.c_str())
+            << QString("+Images=") +  QString(aName.c_str())
             << QString("+Ori=") + QString(aNameOri.c_str())
-            << QString("+NamePt=") + QString(aNamePt.c_str())
-            << QString("+NameAuto=") + QString(aNameAuto.c_str())
-            << QString("+Sauv=") + QString(aNameOut.c_str())
+            << QString("+LargeurFlou=") + QString::number(aFlou)
+            << QString("+Terrain=") + QString(aNamePt.c_str())
+            << QString("+Sauv=") + QString(aNameMesure.c_str())
             << QString("+SzWx=") + QString::number(aSzWin.x)
             << QString("+SzWy=") + QString::number(aSzWin.y)
             << QString("+NbFx=") + QString::number(aNbFen.x)
-            << QString("+NbFy=") + QString::number(aNbFen.y) ;
+            << QString("+NbFy=") + QString::number(aNbFen.y)
+            << QString("+TypePts=") + QString(aTypePts.c_str());
+
+
+    if (EAMIsInit(&aFlou))
+        input << QString("+FlouSpecified=") + QString::number(aFlou);
+
+    if (EAMIsInit(&aTypePts))
+        input << QString("+TypeGlobEcras=") + QString(aTypePts.c_str());
 
     if (EAMIsInit(&aForceGray))
-       input << QString("+ForceGray=") + QString(((string)(ToString(aForceGray))).c_str());
+        input << QString("+ForceGray=") + QString(aForceGray ? "1" : "0");
 
-    if (EAMIsInit(&aPrefix2Add))
-       input << QString("+Pref2Add=") + QString(aPrefix2Add.c_str());
 
 
     char **output;
@@ -144,7 +111,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     cAppli_SaisiePts   anAppli (aP2,false);
 
-    MainWindow w(POINT2D_INIT);
+    MainWindow w(POINT2D_PREDIC);
 
     new cQT_Interface(anAppli,&w);
 
@@ -154,3 +121,4 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     return app.exec();
 }
+

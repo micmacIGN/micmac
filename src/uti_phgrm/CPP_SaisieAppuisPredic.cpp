@@ -39,101 +39,114 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if (ELISE_X11||SAISIE_QT)
+
+void SaisieAppuisPredic(int argc, char ** argv,
+                      Pt2di &aSzW,
+                      Pt2di &aNbFen,
+                      std::string &aFullName,
+                      std::string &aDir,
+                      std::string &aName,
+                      std::string &aNamePt,
+                      std::string &anOri,
+                      std::string &aNameMesure,
+                      std::string &aTypePts,
+                      double &aFlou,
+                      bool &aForceGray)
+{
+    MMD_InitArgcArgv(argc,argv);
+
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
+                            << EAMC(anOri,"Orientation", eSAM_IsExistDirOri)
+                            << EAMC(aNamePt,"File for Ground Control Points", eSAM_IsExistFile)
+                            << EAMC(aNameMesure,"File for Image Measurements", eSAM_IsExistFile),
+                LArgMain()  << EAM(aSzW,"SzW",true,"Size of global window (Def 800 800)")
+                            << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
+                            << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
+                            << EAM(aTypePts,"Type",true,"in [MaxLoc,MinLoc,GeoCube]")
+                            << EAM(aForceGray,"ForceGray",true," Force gray image, def=true")
+
+                );
+
+    aTypePts = "eNSM_" + aTypePts;
+
+    SplitDirAndFile(aDir,aName,aFullName);
+
+
+    cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aCINM->CorrecNameOrient(anOri);
+    const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+    //std::cout << "Nb Image =" << aSet->size() << "\n";
+    ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+    if (aNbFen.x<0)
+    {
+        if (aSet->size() == 1)
+        {
+            aNbFen = Pt2di(1,2);
+        }
+        else if (aSet->size() == 2)
+        {
+            Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+            Pt2di aSzIm = aTF.sz();
+            aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+        }
+        else
+        {
+            aNbFen = Pt2di(2,2);
+        }
+    }
+
+    aCINM->MakeStdOrient(anOri,false);
+}
+#endif
+
 #if (ELISE_X11)
-
-
-
 int  SaisieAppuisPredic_main(int argc,char ** argv)
 {
-  MMD_InitArgcArgv(argc,argv);
-  Pt2di aSzW(800,800);
-  Pt2di aNbFen(-1,-1);
-  std::string aFullName,aNamePt,anOri,aNameMesure; //anOut
-  bool aForceGray = true;
+    Pt2di aSzW(800,800);
+    Pt2di aNbFen(-1,-1);
+    std::string aFullName,aNamePt,anOri,aNameMesure, aDir, aName;
+    bool aForceGray = true;
+
+    double aFlou=0.0;
+
+    std::string aTypePts="Pts";
+
+    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aNameMesure, aTypePts, aFlou, aForceGray);
+
+    std::string aCom =     MMDir() +"bin/SaisiePts "
+            +  MMDir() +"include/XML_MicMac/SaisieAppuisPredic.xml "
+            +  std::string(" DirectoryChantier=") + aDir
+            +  std::string(" +Images=") + QUOTE(aName)
+            +  std::string(" +Ori=") + anOri
+            +  std::string(" +LargeurFlou=") + ToString(aFlou)
+            +  std::string(" +Terrain=") + aNamePt
+            +  std::string(" +Sauv=") + aNameMesure
+            +  std::string(" +SzWx=") + ToString(aSzW.x)
+            +  std::string(" +SzWy=") + ToString(aSzW.y)
+            +  std::string(" +NbFx=") + ToString(aNbFen.x)
+            +  std::string(" +NbFy=") + ToString(aNbFen.y)
+            +  std::string(" +TypePts=") + aTypePts;
+
+    if (EAMIsInit(&aFlou))
+        aCom = aCom + std::string(" +FlouSpecified=true");
+    if (EAMIsInit(&aTypePts))
+        aCom = aCom + std::string(" +TypeGlobEcras=true");
+    if (EAMIsInit(&aForceGray))
+        aCom = aCom + " +ForceGray=" + ToString(aForceGray);
 
 
-  double aFlou=0.0;
+    std::cout << aCom << "\n";
 
-  std::string aTypePts="Pts";
-  ElInitArgMain
-  (
-        argc,argv,
-        LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
-                    << EAMC(anOri,"Orientation", eSAM_IsExistDirOri)
-                    << EAMC(aNamePt,"File for Ground Control Points", eSAM_IsExistFile)
-                    << EAMC(aNameMesure,"File for Image Measurements", eSAM_IsExistFile),
-        LArgMain()  << EAM(aSzW,"SzW",true,"Size of global window (Def 800 800)")
-                    << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
-                    << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
-                    << EAM(aTypePts,"Type",true,"in [MaxLoc,MinLoc,GeoCube]")
-                    << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
-
-  );
+    int aRes = system(aCom.c_str());
 
 
-  aTypePts = "eNSM_" + aTypePts;
-
-  std::string aDir,aName;
-  SplitDirAndFile(aDir,aName,aFullName);
-
-
-  cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-  aCINM->CorrecNameOrient(anOri);
-  const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
-
-  std::cout << "Nb Image =" << aSet->size() << "\n";
-  ELISE_ASSERT(aSet->size()!=0,"No image found");
-
-  if (aNbFen.x<0)
-  {
-     if (aSet->size() == 1)
-     {
-         aNbFen = Pt2di(1,2);
-     }
-     else if (aSet->size() == 2)
-     {
-         Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
-         Pt2di aSzIm = aTF.sz();
-         aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
-     }
-     else
-     {
-         aNbFen = Pt2di(2,2);
-     }
-  }
-
-  aCINM->MakeStdOrient(anOri,false);
-
-
-  std::string aCom =     MMDir() +"bin/SaisiePts "
-                      +  MMDir() +"include/XML_MicMac/SaisieAppuisPredic.xml "
-                      +  std::string(" DirectoryChantier=") + aDir
-                      +  std::string(" +Images=") + QUOTE(aName)
-                      +  std::string(" +Ori=") + anOri
-                      +  std::string(" +LargeurFlou=") + ToString(aFlou)
-                      +  std::string(" +Terrain=") + aNamePt
-                      +  std::string(" +Sauv=") + aNameMesure
-                      +  std::string(" +SzWx=") + ToString(aSzW.x)
-                      +  std::string(" +SzWy=") + ToString(aSzW.y)
-                      +  std::string(" +NbFx=") + ToString(aNbFen.x)
-                      +  std::string(" +NbFy=") + ToString(aNbFen.y)
-                      +  std::string(" +TypePts=") + aTypePts;
-                   ;
-
-  if (EAMIsInit(&aFlou))
-     aCom = aCom + std::string(" +FlouSpecified=true");
-  if (EAMIsInit(&aTypePts))
-     aCom = aCom + std::string(" +TypeGlobEcras=true");
-  if (EAMIsInit(&aForceGray))
-     aCom = aCom + " +ForceGray=" + ToString(aForceGray);
-
-
-  std::cout << aCom << "\n";
-
-  int aRes = system(aCom.c_str());
-
-
-  return aRes;
+    return aRes;
 }
 
 

@@ -8,6 +8,7 @@ endif()
 set(saisie_SRCS saisieQT_main.cpp
                 saisieMasqQT_main.cpp
                 saisieAppuisInitQT_main.cpp
+                saisieAppuisPredicQT_main.cpp
                 GLWidget.cpp
                 mainwindow.cpp
                 Cloud.cpp
