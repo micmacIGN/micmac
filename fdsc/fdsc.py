@@ -154,7 +154,9 @@ class MainWindow(QtGui.QMainWindow):
     self.label_resolStack.setToolTip("Resolution of the images used for correlation")
     self.spin_resolStack=QtGui.QDoubleSpinBox()
     self.spin_resolStack.setToolTip("Resolution of the images used for correlation")
-    self.spin_resolStack.setMinimum(1)
+    self.spin_resolStack.setMinimum(0.00000001)
+    self.spin_resolStack.setValue(1)
+    self.spin_resolStack.setSingleStep(0.01)
         #--------
     self.label_offsetsOutStack = QtGui.QLabel("Offsets file Out:")
     self.button_offsetsOutStack = QtGui.QPushButton("...")
