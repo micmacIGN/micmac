@@ -231,6 +231,8 @@ class cAppli_Ortho
          Im1D_U_INT1   InitRanLutLabel();
          void VisuLabel();
 
+         const std::vector<std::string> * GetImNotTiled(const std::vector<std::string> *);
+
 
 
 

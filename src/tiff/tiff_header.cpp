@@ -2126,6 +2126,12 @@ void TestDate(const std::string & aF1,const std::string & aF2)
 #endif
 }
 
+bool   Tiff_Im::IsNameInternalTile(const std::string & aNameTiled,cInterfChantierNameManipulateur * anICNM)
+{
+    std::string aNameNoTiled = anICNM->Assoc1To1("NKS-Assoc-Tile2File",aNameTiled,true);
+
+    return aNameNoTiled != "NONE";
+}
 
 
 

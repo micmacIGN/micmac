@@ -105,6 +105,19 @@ Box2di  cAppli_Ortho::BoxImageGlob()
    return Box2di(aP0,aP1);
 }
 
+const std::vector<std::string> * cAppli_Ortho::GetImNotTiled(const std::vector<std::string> * Input)
+{
+    std::vector<std::string> * aRes = new std::vector<std::string>;
+    for (int aK=0; aK<int(Input->size()) ; aK++)
+    {
+        const std::string & aName = (*Input)[aK];
+        if (! Tiff_Im::IsNameInternalTile(aName,mICNM))
+           aRes->push_back(aName);
+    }
+
+
+    return aRes;
+}
 
 
 cAppli_Ortho::cAppli_Ortho     
@@ -123,7 +136,7 @@ cAppli_Ortho::cAppli_Ortho
                          mCO.DicoLoc().PtrVal()
                     )
               ),
-    mVIm        (mICNM->Get(mCO.KeySetIm())),
+    mVIm        (GetImNotTiled(mICNM->Get(mCO.KeySetIm()))),
     mVMdpc      (VMDPC()),
     mMtDMNT     (GetMtdMNT()),
     mTF0        (0),

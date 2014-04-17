@@ -173,6 +173,26 @@
         <Calcs>
             <Arrite>  1 1 </Arrite>
             <Direct>
+                <PatternTransform> (.*)_Tile_[0-9]+_[0-9]+.tif  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+            </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)  </PatternTransform>
+                <CalcName>  NONE  </CalcName>
+            </Direct>
+        </Calcs>
+
+        <Key>   NKS-Assoc-Tile2File </Key>
+    </KeyedNamesAssociations>
+
+               <!--  ORIENTATIONS, HOMOLOGUES -->
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
                 <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4})  </PatternTransform>
                 <CalcName>  $1.xml  </CalcName>
             </Direct>
