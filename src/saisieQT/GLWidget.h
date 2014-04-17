@@ -115,6 +115,8 @@ public:
 
     void overlay();
 
+    bool isFirstAction() { return m_bFirstAction; }
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);

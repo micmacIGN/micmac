@@ -1696,8 +1696,8 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 {
     QPainter    p;
-    QBrush SBrush(Qt::white);
-    QBrush NSBrush(Qt::black);
+    QBrush SBrush(Qt::black);
+    QBrush NSBrush(Qt::white);
     QRect  rect = getMask()->rect();
 
     p.begin(getMask());
@@ -1707,7 +1707,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     if(mode == ADD)
     {
         if (m_bFirstAction)
-            p.fillRect(rect, Qt::black);
+            p.fillRect(rect, Qt::white);
 
         p.setBrush(SBrush);
         p.drawPolygon(polyg.getVector().data(),polyg.size());
@@ -1719,11 +1719,11 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     }
     else if(mode == ALL)
 
-        p.fillRect(rect, Qt::white);
+        p.fillRect(rect, Qt::black);
 
     else if(mode == NONE)
 
-        p.fillRect(rect, Qt::black);
+        p.fillRect(rect, Qt::white);
 
     p.end();
 

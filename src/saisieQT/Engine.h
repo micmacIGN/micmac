@@ -131,9 +131,9 @@ public:
     void    do3DMasks();
 
     //! Creates binary image from selection and saves
-    void    doMaskImage(ushort idCur);
+    void    doMaskImage(ushort idCur, bool isFirstAction);
 
-    void    saveMask(ushort idCur);
+    void    saveMask(ushort idCur, bool isFirstAction);
 
     cData*  getData()  {return _Data;}
 

@@ -559,7 +559,7 @@ void MainWindow::on_actionLoad_image_triggered()
 
 void MainWindow::on_actionSave_masks_triggered()
 {
-    _Engine->saveMask(currentWidgetIdx());
+    _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
 }
 
 void MainWindow::on_actionSave_as_triggered()
@@ -570,7 +570,7 @@ void MainWindow::on_actionSave_as_triggered()
     {
         _Engine->setFilenameOut(fname);
 
-        _Engine->saveMask(currentWidgetIdx());
+        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
     }
 }
 
