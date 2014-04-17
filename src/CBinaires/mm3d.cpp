@@ -302,7 +302,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 #ifdef SAISIE_QT
        aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main,"Interactive tool for initial capture of GCP"));
-      // aRes.push_back(cMMCom("SaisieAppuisPredicQT",SaisieAppuisPredicQT_main,"Interactive tool for assisted capture of GCP"));
+       aRes.push_back(cMMCom("SaisieAppuisPredicQT",SaisieAppuisPredicQT_main,"Interactive tool for assisted capture of GCP"));
       // aRes.push_back(cMMCom("SaisieBascQT",SaisieBascQT_main,"Interactive tool to cature information on the scene"));
        aRes.push_back(cMMCom("SaisieMasqQT",SaisieMasqQT_main,"Interactive tool to capture masq"));
 #endif
@@ -310,7 +310,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
        aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main,"Interactive tool for initial capture of GCP",cArgLogCom(2)));
-       aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main,"Interactive tool for assisted capture of GCP "));
+       aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main,"Interactive tool for assisted capture of GCP"));
        aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main,"Interactive tool to cature information on the scene"));
        aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main,"Interactive tool to capture masq"));
        aRes.push_back(cMMCom("SaisiePts",SaisiePts_main,"Tool to capture GCP (low level, not recommanded)"));

@@ -89,7 +89,8 @@ public:
 
     QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
                    QString("SaisieMasqQT\n") +
-                   QString("SaisieAppuisInitQT\n\n");
+                   QString("SaisieAppuisInitQT\n") +
+                   QString("SaisieAppuisPredicQT\n\n");
 
     if (cmdline_args.size() > 1)
     {
@@ -106,9 +107,11 @@ public:
                     saisieMasqQT_main(app, argc, argv);
                 else if (str.contains("SaisieAppuisInitQT"))
                     saisieAppuisInitQT_main(app, argc, argv);
+                else if (str.contains("SaisieAppuisPredicQT"))
+                    saisieAppuisPredicQT_main(app, argc, argv);
                 else
                 {
-                    QString text = QObject::tr("This is not a valid command!!!") + "\n\n" + cmds;
+                    QString text = str + QObject::tr(" is not a valid command!!!") + "\n\n" + cmds;
                     helpMessage(app, text);
 
                     return EXIT_FAILURE;
