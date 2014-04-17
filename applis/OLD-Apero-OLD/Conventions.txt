@@ -1,0 +1,60 @@
+
+
+Convention Mise en place relative :
+
+ // renvoie les rotation qui permet, etant donne
+ // un point en coordonnee camera1, d'avoir
+ // ses coordonnees en camera 2
+  (extrait de include/general/photogram.h)
+
+
+Convention de sauvegarde de PointPoly  => Etalonage Polygone
+
+   // C'est la rotation qui transforme les coordonnees monde en
+   // coordonnees camera :  aR.IRecAff(Pt3dr(0,0,0))  est un centre optique
+   Par contre en sauvegardant un XML OrientationExterneRigide, on a remis
+   les convention Orilib.
+
+Convention de phgr-formel :
+
+    C'est la rotation  qui transforme les coordoonnes camera
+    en monde ImAff(0,0,0) (ou tr) est le centre optique.
+
+
+Conventions ORILIB :
+
+    - Stocke centre Optique et coordoonees (dans le repere monde)
+    des axes lies a la camera, donc c'est encore la rotation
+    cam->monde
+
+Convention de ElCamera :
+   Orientation Monde to Cam
+   (CamStenope::CentreOptique() = _orient.IRecAff(Pt3dr(0,0,0)))
+
+   ===================================================
+
+Convention sur les reperes images.
+--------------------------------
+
+
+Les images sont stockees X vers la gauche, Y vers
+le bas. Donc un repere plan "indirect". Avec une image
+horizontale, pour completer en un repere direct,
+on mettra le Z vers le bas. Cas habituel des ori.
+
+   ===================================================
+
+Gestion des rayon dans les fish-eyes :
+
+     - [1] RayMaxUtile dans CalibrationCameraInc dans Apero,
+       donne uniquement le temps de la compensation pour selectioner
+       les mesures (pour l'insntant appui, a completer liaison)
+
+     - [2] RayonInv dans ExportAsNewGrid , utilise temporairement
+       pour calculer le domaine d'inversion d'une distorsion
+
+     - [3] RayonUtile dans CalibrationInternConique, memorise par
+       Apero et retransmis, utilise dans MicMac
+
+
+
