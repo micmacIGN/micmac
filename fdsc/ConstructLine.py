@@ -85,7 +85,6 @@ class ConstructLine:
   def saveTrace(self):
     with open(self.filepath_out, 'w') as file:
       file.write("#image {}\n".format(self.filepath_im))
-      #~ file.write("\n")
       file.write("#begin polyline X Y\n")
       for (x,y) in self.coords:
         file.write("{} {}\n".format(x,y))

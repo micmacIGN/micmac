@@ -96,6 +96,7 @@ class ConstructCG:
     self.ax.set_title(self.showText)
     self.ax.set_xlabel(self.xText)
     self.ax.set_ylabel(self.yText)
+
     self.redraw('k')
     if (not self.need_valid):
       self.saveInfosOffset()
@@ -132,10 +133,11 @@ class ConstructCG:
     if self.nameRoot_fig!="":
       #self.showText="stack " + " - " + self.stack_calcMethod_name+" method"
       #self.ax.set_title(self.showText)
-      nameFig=self.nameRoot_fig+'_cenProf'+str(self.num_CenProfile)+'_col'+str(int(round(self.colCen_stack)))+'_lig'+str(int(round(self.ligCen_stack)))
+      nameFig=self.nameRoot_fig+'_cenProf'+str(self.num_CenProfile)+'_col'+str(int(round(self.colCen_stack)))+'_lig'+str(int(round(self.ligCen_stack)))+'.svg'
         #cenProf: number of the central profile, (col,lig) - coordinates of the central point on the central profile of the stack
       print "Figure: ", nameFig
       savefig(nameFig)
+
 
   def redraw_pt(self, pt_x, pt_y):
     self.redraw('black')
@@ -145,7 +147,11 @@ class ConstructCG:
   def pointToBeModified(self, event):
     index_modif=-1
     for i in range(len(self.pt)):
-      if (abs(event.xdata-self.pt[i][0])<=0.8 and abs(event.ydata-self.pt[i][1])<=0.01) :
+      if self.resol<=1:
+        buff_y=0.05
+      else:
+        buff_y=0.01
+      if (abs(event.xdata-self.pt[i][0])<=0.8 and abs(event.ydata-self.pt[i][1])<=buff_y) :
         print 'in the zone of the point ',i
         self.showText='click to define the new position of the point'
         self.ax.set_xlabel(self.xText)
@@ -180,6 +186,7 @@ class ConstructCG:
         file.write("  {}    {}    {}  {}  {}\n".format(self.num_stack, self.num_CenProfile, self.colCen_stack,self.ligCen_stack, offset_val))
     else:
       with open(self.filepath_out, 'w') as file:
+        file.write("#fault trace file {}\n".format(self.filepath_poly))
         for line in open(self.filepath_poly,'r').readlines():
           file.write(line)
         file.write("\n")
