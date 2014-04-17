@@ -95,7 +95,9 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
                         if (aOut.get(x,y) == 1 )
                             maskedImg._m_mask->setPixel(x,y,1);
 
+                maskedImg._m_mask->invertPixels(QImage::InvertRgb);
                 *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
+
             }
             else
             {
@@ -103,7 +105,10 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
             }
         }
         else
+        {
+            maskedImg._m_mask->invertPixels(QImage::InvertRgb);
             *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
+        }
 
     }
     else
@@ -303,9 +308,10 @@ void cEngine::do3DMasks()
     }
 }
 
-void cEngine::doMaskImage(ushort idCur)
+void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 {
-    cout << "in do Mask " << idCur << endl;
+    if (!isFirstAction)
+        _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
 
     QImage pMask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
 
@@ -313,36 +319,7 @@ void cEngine::doMaskImage(ushort idCur)
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
-        //TODO: save in binary
-
-        //pMask.save(aOut);
-
-        int w = pMask.width();
-        int h = pMask.height();
-
-        cout << "w, h" << w << " " << h << endl;
-
-        Im2D_Bits<1> imOut(w,h,0);
-
-        for (int x=0;x< w;++x)
-            for (int y=0; y<h;++y)
-                if (qGray(pMask.pixel(x, y)) == 255)
-                    imOut.set(x,y,1);
-
-                //if (pMask.getPixel(x,y) == 1)
-                  //  imOut.set(x,y,1);
-        cout << "end for " << aOut.toStdString() << endl;
-
-        Tiff_Im aTifM = Tiff_Im::StdConv(aOut.toStdString());
-
-        ELISE_COPY
-        (
-           imOut.all_pts(),
-           imOut.in(),
-           aTifM.out()
-        );
-
-        cout << "end" << endl;
+        pMask.save(aOut);
 
         cFileOriMnt anOri;
 
@@ -362,10 +339,10 @@ void cEngine::doMaskImage(ushort idCur)
     }
 }
 
-void cEngine::saveMask(ushort idCur)
+void cEngine::saveMask(ushort idCur, bool isFirstAction)
 {
     if (getData()->getNbImages())
-        doMaskImage(idCur);
+        doMaskImage(idCur, isFirstAction);
     else
         do3DMasks();
 }
