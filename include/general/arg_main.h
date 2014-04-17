@@ -620,6 +620,12 @@ int Gri2Bin_main(int argc,char ** argv);
 int XYZ2Im_main(int argc,char ** argv);
 int Im2XYZ_main(int argc,char ** argv);
 
+int SupMntIm_main(int argc,char ** argv);
+int ChamVec3D_main(int argc,char ** argv);
+int SampleLibElise_main(int argc,char ** argv);
+
+
+
 int MMPyram_main(int argc,char ** argv);
 int ReechInvEpip_main(int argc,char ** argv);
 int CreateEpip_main(int argc,char ** argv);

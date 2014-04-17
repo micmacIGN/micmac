@@ -330,6 +330,15 @@ void DebugDrag()
 int MPDtest_main (int argc,char** argv)
 {
 
+   while (1)
+   {
+       cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+        std::cout << "ENTRE NAME \n";
+       std::string aName ;
+       cin >> aName;
+       std::cout << "IS TILE NAME " << Tiff_Im::IsNameInternalTile(aName,aICNM) << "\n";
+   }
+
    Bench_Rank();
 {
    std::string aNameTifIn,aNameTifOut,aNameCamIn,aNameCamOut;

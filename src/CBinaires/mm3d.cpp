@@ -163,11 +163,6 @@ class cMMCom
 
 
 
-int SampleLibElise_main(int argc,char ** argv);
-
-int ChamVec3D_main(int argc,char ** argv);
-
-int SupMntIm_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {

@@ -433,6 +433,9 @@ class Tiff_Im : public ElGenFileIm
          static void SetDefTileFile(int);
          static int DefTileFile() ;
 
+         // Ne regarde que le nom
+         static bool   IsNameInternalTile(const std::string &,cInterfChantierNameManipulateur *);
+
 
        private :
  
