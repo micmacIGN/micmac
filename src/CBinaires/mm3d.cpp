@@ -167,6 +167,8 @@ int SampleLibElise_main(int argc,char ** argv);
 
 int ChamVec3D_main(int argc,char ** argv);
 
+int SupMntIm_main(int argc,char ** argv);
+
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -333,6 +335,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 #endif
        aRes.push_back(cMMCom("TestLib",SampleLibElise_main," To call the program illustrating the library"));
        aRes.push_back(cMMCom("FieldDep3d",ChamVec3D_main," To export results of matching as 3D deplacement"));
+       aRes.push_back(cMMCom("SupMntIm",SupMntIm_main," Tool for superposition of Mnt Im & level curve"));
    }
    return aRes;
 }

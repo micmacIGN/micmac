@@ -139,6 +139,10 @@ public:
 
     U<uint>     &s_ForceCostVol(ushort i);
 
+    ushort      DzMax() const;
+
+    void        setDzMax(const ushort &m_DzMax);
+
 private:
 
     U<uint3>     _param[NBUFFER];
@@ -149,6 +153,7 @@ private:
     uint         _nbLines;
     bool         _idBuffer;
     ushort       _penteMax;
+    ushort       _m_DzMax;
 };
 
 TEMPLATE_D2OPTI
@@ -159,8 +164,10 @@ Data2Optimiz<U,NBUFFER>::~Data2Optimiz()
 
 TEMPLATE_D2OPTI
 Data2Optimiz<U,NBUFFER>::Data2Optimiz():
+    _nbLines(0),
     _idBuffer(false),
-    _penteMax(0)
+    _penteMax(0),
+    _m_DzMax(NAPPEMAX)
 {
     for(uint i = 0;i < NBUFFER;i++)
     {
@@ -308,6 +315,18 @@ U<uint> &Data2Optimiz<U,NBUFFER>::s_ForceCostVol(ushort i)
 {
     return _s_ForceCostVol[i];
 }
+
+TEMPLATE_D2OPTI
+ushort Data2Optimiz<U,NBUFFER>::DzMax() const
+{
+return _m_DzMax;
+}
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::setDzMax(const ushort &m_DzMax)
+{
+_m_DzMax = m_DzMax;
+}
+
 
 
 #endif //__DATA2OPTIMIZ_H__
