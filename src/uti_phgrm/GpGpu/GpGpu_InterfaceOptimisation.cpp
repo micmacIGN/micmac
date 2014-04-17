@@ -41,6 +41,9 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir)
 {
     uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
 
+    _H_data2Opt.setDzMax(_poInitCost._maxDz);
+    _D_data2Opt.setDzMax(_poInitCost._maxDz);
+
     ResetIdBuffer();
 
     SetProgress(NBDir);
@@ -68,9 +71,12 @@ void InterfOptimizGpGpu::threadCompute()
 {   
     while(true)
     {
-        if(GetCompute())
+        if(GetCompute() /*&& !_H_data2Opt.nbLines()*/)
         {          
             SetCompute(false);
+            // TEMP : TENTATIVE DE DEBUGAGE THREAD
+            while(!_H_data2Opt.nbLines())
+                boost::this_thread::sleep(boost::posix_time::microsec(1));
 
             _D_data2Opt.SetNbLine(_H_data2Opt.nbLines());
 
@@ -98,7 +104,7 @@ void InterfOptimizGpGpu::threadCompute()
             SetDataToCopy(true);
         }
         else
-            boost::this_thread::sleep(boost::posix_time::microsec(1));
+            boost::this_thread::sleep(boost::posix_time::microsec(5));
     }
 }
 
