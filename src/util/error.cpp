@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -88,7 +88,7 @@ void elise_internal_error(const char * mes,const char * file,int line)
     ncout() << "\n\n The following error :\n";
     ncout() << "    " << mes << "\n";
     ncout() << "occured at line " << line << " of file " << file  << "\n";
- 
+
     ncout()  << "please sent a bug report \n";
 
     Elise_Error_Exit();
@@ -113,7 +113,7 @@ void cEliseFatalErrorHandler::SetCurHandler(cEliseFatalErrorHandler * aH)
 }
 
 cEliseFatalErrorHandler * cEliseFatalErrorHandler::CurHandler()
-{ 
+{
     return CurHandler(0);
 }
 
@@ -128,28 +128,28 @@ cEliseFatalErrorHandler * cEliseFatalErrorHandler::CurHandler(cEliseFatalErrorHa
    return aRes;
 }
 
-
 void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,int line)
 {
     ShowArgs();
+
     ncout() << "--------------------------------------------------\n"
-         << "|   the following FATAL ERROR happened (sorry):   \n"
-         << "|                                                 \n"
-         << "|    " << mes  <<                                "\n"
-         << "|                                                 \n";
+            << "|   the following FATAL ERROR happened (sorry):   \n"
+            << "|                                                 \n"
+            << "|    " << mes  <<                                "\n"
+            << "|                                                 \n";
+
 
     message_copy_where_error();
 
-     ncout()    << "--------------------------------------------------------\n"
-             << "|       (Elise's)  LOCATION :                           \n"
-             << "|                                                       \n"
-             << "| Error  was detected \n"
-             << "|          at line : " << line  << "\n"
-             << "|          of file : " << file  << "\n"
-             << "--------------------------------------------------------\n";
+    ncout()    << "--------------------------------------------------------\n"
+               << "|       (Elise's)  LOCATION :                           \n"
+               << "|                                                       \n"
+               << "| Error  was detected \n"
+               << "|          at line : " << line  << "\n"
+               << "|          of file : " << file  << "\n"
+               << "--------------------------------------------------------\n";
 
-
-    ncout() << "Bye  (tape enter)\n";
+    ncout() << "Bye  (tape enter)" << endl;
 
     EliseBRKP();
     AddMessErrContext(std::string("mes=") +mes + std::string(" line=") +ToString(line) + std::string(" file=") + file);
@@ -175,34 +175,34 @@ void ElEM::mes_el() const
         case _int    : ncout() << _data.i     ; break;
         case _real   : ncout() << _data.r     ; break;
         case _string : ncout() << _data.s     ; break;
-        case _pt_pck :  _data.pack->show_kth(_data_2.i); 
+        case _pt_pck :  _data.pack->show_kth(_data_2.i);
                         break;
-        case _tab_int : 
-		{
+        case _tab_int :
+        {
               ncout() << "[";
 
               for (INT i  = 0 ; i <_data_2.i; i++)
               {
                   if (i) ncout() <<  " x ";
-                  ncout() << _data.Pi[i];   
+                  ncout() << _data.Pi[i];
               }
 
               ncout() << "]";
-		}
+        }
         break;
 
-        case _tab_real : 
-		{
+        case _tab_real :
+        {
               ncout() << "[";
 
               for (INT i  = 0 ; i <_data_2.i; i++)
               {
                   if (i) ncout() <<  " x ";
-                  ncout() << _data.Pr[i];   
+                  ncout() << _data.Pr[i];
               }
 
               ncout() << "]";
-		}
+        }
         break;
 
         case _pt2di :
@@ -230,7 +230,7 @@ void Elise_Pile_Mess_0::display(const char * kind_of)
          << "|   KIND OF ERR : " << kind_of <<                "\n"
          << "|   Sorry, the following FATAL ERROR happened     \n"
          << "|                                                 \n";
-    ncout() << "|    "; 
+    ncout() << "|    ";
     for (INT i=0 ; i<_nb ; i++)
     {
          _stack[i].mes_el();
@@ -349,7 +349,7 @@ void cElWarning::ShowWarns(const std::string & aFile)
    }
 
    ElFclose(aFP);
-   
+
 }
 
 
@@ -422,7 +422,7 @@ std::string cMajickChek::MajId()
 {
    REAL16 aV = mCheck1 - mCheckInv + mCheck2;
    unsigned char * aTabC = (unsigned char *) &aV;
-   int aNbOct = 10;  // 6 sont inutilise ? 
+   int aNbOct = 10;  // 6 sont inutilise ?
    for (int aK=0 ; aK<aNbOct ; aK++)
    {
         unsigned  char aC = aTabC[aK];
@@ -430,7 +430,7 @@ std::string cMajickChek::MajId()
         sMajAscii[2*aK+1] = hexa(aC%16);
    }
    sMajAscii[2*aNbOct] = 0;
-  
+
    std::string aRes =  std::string(sMajAscii) + (mGotNan ? "-NAN" : (mGotInf ? "-INF" :"--OK"));
 
    aRes = aRes + "::" + ToString(double(mCheck1)) +  "::" + ToString(double(mCheckInv)) + "::" + ToString(double(mCheck2));
@@ -483,13 +483,13 @@ void  cMajickChek::Add(cSetEqFormelles & aSetEq)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -499,17 +499,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
