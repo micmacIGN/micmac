@@ -5,6 +5,10 @@
 
 #if(ELISE_QT_VERSION >= 4)
 
+#ifdef Int
+	#undef Int
+#endif
+
 #include <QPushButton>
 
 class selectionButton: public QPushButton
