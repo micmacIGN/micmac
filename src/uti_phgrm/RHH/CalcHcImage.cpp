@@ -50,11 +50,25 @@ NS_RHH_BEGIN
 /*************************************************/
 
 
+
+
 /*  Read tie points if necessary, estimate the homography and the quality
 */
 
 bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
 {
+
+   if (! aLnk.OkHom()) 
+      return false;
+
+   int aNbPts = aLnk.NbPts();
+   mSomQual += ElMin(aLnk.QualHom(),mAppli.SeuilQual()) * aNbPts;
+   mSomNbPts += aNbPts;
+
+   return true;
+}
+
+/*
    // const ElPackHomologue aPack=ElPackHomologue::FromFile(mAppli.Dir()+aLnk.NameH());
    const ElPackHomologue & aPack=    aLnk.Pack() ; //   ElPackHomologue::FromFile(mAppli.Dir()+aLnk.NameH());
    int aNbPts = aPack.size();
@@ -78,7 +92,9 @@ bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
    mSomNbPts += aNbPts;
 
    return true;
-}
+*/
+/*
+*/
 
 void cImagH::ComputeLnkHom()
 {
@@ -99,7 +115,7 @@ void cImagH::ComputeLnkHom()
        double aSeuilQual = mSomQual*mAppli.RatioQualMoy();
        for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
        {
-           bool Ok = itL->second->Qual() < aSeuilQual;
+           bool Ok = itL->second->QualHom() < aSeuilQual;
            if (Ok)
            {
               aNewL[itL->first] = itL->second ;
@@ -114,7 +130,7 @@ void cImagH::ComputeLnkHom()
               {
                  std::cout
                      << " - - IMS " << mName << " " << itL->second->Dest()->Name()
-                     << " QUAL " << itL->second->Qual() << " NB " << itL->second->NbPts()
+                     << " QUAL " << itL->second->QualHom() << " NB " << itL->second->NbPts()
                      << (Ok ? " " : "  ******")
                      <<  "\n";
               }

@@ -220,6 +220,7 @@ class cLink2Img  // dans cImagH.cpp
         ElPackHomologue mPack;
         
         std::vector<Pt3dr> mEchantP1; 
+        Pt3dr              mCdg1;
         cEqHomogFormelle * mEqHF;
 };
 
