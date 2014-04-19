@@ -12574,4 +12574,147 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
+
+double & cXmlAffinR2ToR::CoeffX()
+{
+   return mCoeffX;
+}
+
+const double & cXmlAffinR2ToR::CoeffX()const 
+{
+   return mCoeffX;
+}
+
+
+double & cXmlAffinR2ToR::CoeffY()
+{
+   return mCoeffY;
+}
+
+const double & cXmlAffinR2ToR::CoeffY()const 
+{
+   return mCoeffY;
+}
+
+
+double & cXmlAffinR2ToR::Coeff1()
+{
+   return mCoeff1;
+}
+
+const double & cXmlAffinR2ToR::Coeff1()const 
+{
+   return mCoeff1;
+}
+
+cElXMLTree * ToXMLTree(const cXmlAffinR2ToR & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlAffinR2ToR",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("CoeffX"),anObj.CoeffX())->ReTagThis("CoeffX"));
+   aRes->AddFils(::ToXMLTree(std::string("CoeffY"),anObj.CoeffY())->ReTagThis("CoeffY"));
+   aRes->AddFils(::ToXMLTree(std::string("Coeff1"),anObj.Coeff1())->ReTagThis("Coeff1"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlAffinR2ToR & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.CoeffX(),aTree->Get("CoeffX",1)); //tototo 
+
+   xml_init(anObj.CoeffY(),aTree->Get("CoeffY",1)); //tototo 
+
+   xml_init(anObj.Coeff1(),aTree->Get("Coeff1",1)); //tototo 
+}
+
+
+cXmlAffinR2ToR & cXmlHomogr::X()
+{
+   return mX;
+}
+
+const cXmlAffinR2ToR & cXmlHomogr::X()const 
+{
+   return mX;
+}
+
+
+cXmlAffinR2ToR & cXmlHomogr::Y()
+{
+   return mY;
+}
+
+const cXmlAffinR2ToR & cXmlHomogr::Y()const 
+{
+   return mY;
+}
+
+
+cXmlAffinR2ToR & cXmlHomogr::Z()
+{
+   return mZ;
+}
+
+const cXmlAffinR2ToR & cXmlHomogr::Z()const 
+{
+   return mZ;
+}
+
+cElXMLTree * ToXMLTree(const cXmlHomogr & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlHomogr",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.X())->ReTagThis("X"));
+   aRes->AddFils(ToXMLTree(anObj.Y())->ReTagThis("Y"));
+   aRes->AddFils(ToXMLTree(anObj.Z())->ReTagThis("Z"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlHomogr & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.X(),aTree->Get("X",1)); //tototo 
+
+   xml_init(anObj.Y(),aTree->Get("Y",1)); //tototo 
+
+   xml_init(anObj.Z(),aTree->Get("Z",1)); //tototo 
+}
+
+
+cXmlHomogr & cXmlRHHResLnk::HomToIm()
+{
+   return mHomToIm;
+}
+
+const cXmlHomogr & cXmlRHHResLnk::HomToIm()const 
+{
+   return mHomToIm;
+}
+
+cElXMLTree * ToXMLTree(const cXmlRHHResLnk & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlRHHResLnk",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.HomToIm())->ReTagThis("HomToIm"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlRHHResLnk & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.HomToIm(),aTree->Get("HomToIm",1)); //tototo 
+}
+
 // };
