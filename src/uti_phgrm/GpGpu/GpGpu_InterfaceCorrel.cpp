@@ -109,12 +109,13 @@ void GpGpuInterfaceCorrel::threadCompute()
         if (GetCompute())
         {
             uint interZ = GetCompute();
-            SetCompute(0);
-
 
             // TEMP : TENTATIVE DE DEBUGAGE THREAD
-            while(Param(GetIdBuf()).invPC.nbImages > 4096)
+            //while(Param(GetIdBuf()).invPC.nbImages > 4096)
+            while(!Param(GetIdBuf()).HdPc.sizeCachAll)
                 boost::this_thread::sleep(boost::posix_time::microsec(1));
+
+            SetCompute(0);
 
             BasicCorrelation(interZ);
 
@@ -125,12 +126,14 @@ void GpGpuInterfaceCorrel::threadCompute()
             SetDataToCopy(interZ);
         }
         else
-            boost::this_thread::sleep(boost::posix_time::microsec(5));
+            boost::this_thread::sleep(boost::posix_time::microsec(1));
     }
 }
 
 void GpGpuInterfaceCorrel::freezeCompute()
 {
+    Param(0).HdPc.sizeCachAll = 0;
+    Param(1).HdPc.sizeCachAll = 0;
     SetDataToCopy(0);
     SetCompute(0);
     SetPreComp(false);

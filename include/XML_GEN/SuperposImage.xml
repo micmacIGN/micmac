@@ -1141,6 +1141,25 @@
 
   </ParamFusionMNT>
 
+  <!-- Pourra servir pour construire des affinite, homographie ... -->
+
+  <XmlAffinR2ToR  Nb="1" Class="true"  ToReference="true">
+         <CoeffX Nb="1" Type="double">   </CoeffX>
+         <CoeffY Nb="1" Type="double">   </CoeffY>
+         <Coeff1 Nb="1" Type="double">   </Coeff1>
+  </XmlAffinR2ToR>
+
+
+   <XmlHomogr  Nb="1" Class="true"  ToReference="true">
+        <X Nb="1" RefType="XmlAffinR2ToR">   </X>
+        <Y Nb="1" RefType="XmlAffinR2ToR">   </Y>
+        <Z Nb="1" RefType="XmlAffinR2ToR">   </Z>
+   </XmlHomogr>
+
+
+   <XmlRHHResLnk  Nb="1" Class="true"  ToReference="true">
+        <HomToIm Nb="1"  RefType="XmlHomogr"> </HomToIm>
+   </XmlRHHResLnk>
 
 <Verbatim File=".h.cpp">
 // };

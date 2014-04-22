@@ -204,36 +204,49 @@ class cLink2Img  // dans cImagH.cpp
          cImagH * Srce() const;
          cImagH * Dest() const;
          const std::string & NameH() const;
-         int   & NbPts();
-         int   & NbPtsAttr();
-         double &         Qual();
-         cElHomographie & Hom12();
-
          cElHomographie CalcSrceFromDest();
-         const ElPackHomologue & Pack() const;
 
-        // Obtained by GetDistribRepresentative from util/pt2di.cpp
-        // simply by averaging points on a regular grid
-        // list of   Pt2dr+weight , represent the distribution of the points
+         // int   & NbPtsAttr();  Je sais plus a quoi ce devait servir
+
+
+         // Dependant de homogra
+         const double &         QualHom() const;
+         const bool &           OkHom() const;
+         const cElHomographie & Hom12() const;
+
+         // Dependant de PackHom
+         const int   & NbPts() const;
+         const ElPackHomologue & Pack() const;
+             // Obtained by GetDistribRepresentative from util/pt2di.cpp
+             // simply by averaging points on a regular grid
+             // list of   Pt2dr+weight , represent the distribution of the points
          const std::vector<Pt3dr> & EchantP1() const;
 
         cEqHomogFormelle * &  EqHF();
     private :
        void LoadPack();
+       void LoadHomographie(bool ExigOk);
+       // 2 imposteurs
+       void LoadPack() const;
+       void LoadHomographie(bool ExigOk) const;
 
         cLink2Img(const cLink2Img &) ; // N.I.
         int      mNbPts;
         int      mNbPtsAttr;
         cImagH * mSrce;
         cImagH * mDest;
+        cAppliReduc &    mAppli;
         std::string mNameH;
-        double      mQual;
+        double      mQualHom;
         //
         cElHomographie mHom12;
         bool            mPckLoaded;
+        bool            mHomLoaded;
+        bool            mOkHom;
         ElPackHomologue mPack;
 
         std::vector<Pt3dr> mEchantP1;
+        Pt3dr              mCdg1;
         cEqHomogFormelle * mEqHF;
 };
 

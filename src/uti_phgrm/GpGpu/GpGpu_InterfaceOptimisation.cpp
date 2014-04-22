@@ -72,11 +72,13 @@ void InterfOptimizGpGpu::threadCompute()
     while(true)
     {
         if(GetCompute() /*&& !_H_data2Opt.nbLines()*/)
-        {          
-            SetCompute(false);
+        {
+
             // TEMP : TENTATIVE DE DEBUGAGE THREAD
             while(!_H_data2Opt.nbLines())
                 boost::this_thread::sleep(boost::posix_time::microsec(1));
+
+            SetCompute(false);
 
             _D_data2Opt.SetNbLine(_H_data2Opt.nbLines());
 
@@ -104,12 +106,18 @@ void InterfOptimizGpGpu::threadCompute()
             SetDataToCopy(true);
         }
         else
-            boost::this_thread::sleep(boost::posix_time::microsec(5));
+            boost::this_thread::sleep(boost::posix_time::microsec(1));
     }
 }
 
 void InterfOptimizGpGpu::freezeCompute()
 {
+    _H_data2Opt.setNbLines(0);
+    _D_data2Opt.setNbLines(0);
+
+//    _preFinalCost1D
+//    _poInitCost
+
     SetDataToCopy(false);
     SetCompute(false);
     SetPreComp(false);

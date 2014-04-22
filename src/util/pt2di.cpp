@@ -1195,6 +1195,7 @@ std::vector<std::vector<Pt2di> > StdPointOfCouronnes(int aDMax,bool AddD4First)
 
 template <class TypeCont,class TypeRes>  TypeRes  TplGetDistribRepre
                                      (
+                                                 Pt3dr & aCdg,
                                                  const TypeCont & aCont,
                                                  const Pt2di & aNb,
                                                  const TypeRes*
@@ -1243,26 +1244,40 @@ template <class TypeCont,class TypeRes>  TypeRes  TplGetDistribRepre
            aTp.add(anInd,1);
      }
 
+     Pt2dr aPtSom(0,0);
+     double aSom = 0;
      Pt2di anInd;
      for(anInd.x=0 ; anInd.x<aNb.x; anInd.x++)
      {
          for(anInd.y=0 ; anInd.y<aNb.y; anInd.y++)
          {
-              double aP = aTp.get(anInd);
-              if (aP>0)
+              double aPds = aTp.get(anInd);
+              if (aPds>0)
               {
-                 aRes.push_back(Pt3dr(aTx.get(anInd)/aP,aTy.get(anInd)/aP,aP));
+                 Pt2dr aPt (aTx.get(anInd),aTy.get(anInd));
+
+                 aRes.push_back(Pt3dr(aPt.x/aPds,aPt.y/aPds,aPds));
+                 aPtSom = aPtSom + aPt;
+                 aSom += aPds;
+                 // aRes.push_back(Pt3dr(aTx.get(anInd)/aP,aTy.get(anInd)/aP,aP));
               }
          }
      }
+
+     if (aSom>0)
+        aCdg = Pt3dr(aPtSom.x/aSom,aPtSom.y/aSom,aSom);
+     else
+        aCdg = Pt3dr(0,0,0);
+
 
      return aRes;
 }
 
 
-std::vector<Pt3dr> GetDistribRepresentative(const std::vector<Pt2dr> & aV,const Pt2di & aNb)
+std::vector<Pt3dr> GetDistribRepresentative(Pt3dr & aCdg,const std::vector<Pt2dr> & aV,const Pt2di & aNb)
 {
-    return TplGetDistribRepre(aV,aNb,(std::vector<Pt3dr> *)0);
+
+    return TplGetDistribRepre(aCdg,aV,aNb,(std::vector<Pt3dr> *)0);
 }
 
 

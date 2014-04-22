@@ -4482,5 +4482,75 @@ cElXMLTree * ToXMLTree(const cParamFusionMNT &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlAffinR2ToR
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlAffinR2ToR & anObj,cElXMLTree * aTree);
+
+
+        double & CoeffX();
+        const double & CoeffX()const ;
+
+        double & CoeffY();
+        const double & CoeffY()const ;
+
+        double & Coeff1();
+        const double & Coeff1()const ;
+    private:
+        double mCoeffX;
+        double mCoeffY;
+        double mCoeff1;
+};
+cElXMLTree * ToXMLTree(const cXmlAffinR2ToR &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlHomogr
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlHomogr & anObj,cElXMLTree * aTree);
+
+
+        cXmlAffinR2ToR & X();
+        const cXmlAffinR2ToR & X()const ;
+
+        cXmlAffinR2ToR & Y();
+        const cXmlAffinR2ToR & Y()const ;
+
+        cXmlAffinR2ToR & Z();
+        const cXmlAffinR2ToR & Z()const ;
+    private:
+        cXmlAffinR2ToR mX;
+        cXmlAffinR2ToR mY;
+        cXmlAffinR2ToR mZ;
+};
+cElXMLTree * ToXMLTree(const cXmlHomogr &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlRHHResLnk
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlRHHResLnk & anObj,cElXMLTree * aTree);
+
+
+        cXmlHomogr & HomToIm();
+        const cXmlHomogr & HomToIm()const ;
+    private:
+        cXmlHomogr mHomToIm;
+};
+cElXMLTree * ToXMLTree(const cXmlRHHResLnk &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

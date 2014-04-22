@@ -729,6 +729,7 @@ protected :
 private :
 };
 
+class cXmlAffinR2ToR;
 
 class cElComposHomographie
 {
@@ -741,6 +742,8 @@ class cElComposHomographie
 
 
          cElComposHomographie(REAL aX,REAL aY,REAL a1);
+         cElComposHomographie(const cXmlAffinR2ToR &);
+         cXmlAffinR2ToR ToXml() const;
 
 	 cElComposHomographie MulXY(REAL ) const;
 	 cElComposHomographie MulCste(REAL ) const;
@@ -768,6 +771,8 @@ class cElComposHomographie
           REAL m1;
 };
 
+class cXmlHomogr;
+
 class cElHomographie
 {
      public :
@@ -783,6 +788,8 @@ class cElHomographie
           // Size = 4 ou +, homographie reelle, ajuste par moindre L2  ou  L1
 
           cElHomographie(const ElPackHomologue &,bool aL2);
+          cElHomographie(const cXmlHomogr &);
+          cXmlHomogr ToXml() const;
 
           static cElHomographie RansacInitH(const ElPackHomologue & aPack,int aNbRansac,int aNbMaxPts);
 
