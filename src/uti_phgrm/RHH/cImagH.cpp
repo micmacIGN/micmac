@@ -40,48 +40,77 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "ReducHom.h"
 
-NS_RHH_BEGIN
 
 
 cXmlRHHResLnk  ComputeHomographie
                (
-                  const std::string & aName
+                  const std::string & aName,
+                  const std::string & aNameCal1,
+                  const std::string & aNameCal2
                )
 {
   cXmlRHHResLnk  aRes;
 
   ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
+  
+  CamStenope *  aCam1 = CamOrientGenFromFile(aNameCal1,0);
+  CamStenope *  aCam2 = CamOrientGenFromFile(aNameCal2,0);
+ 
+  for 
+  (
+      ElPackHomologue::iterator itH=aPack.begin();
+      itH !=  aPack.end();
+      itH++
+  )
+  {
+      itH->P1() =  aCam1->F2toPtDirRayonL3(itH->P1());
+      itH->P2() =  aCam2->F2toPtDirRayonL3(itH->P2());
+  }
 
-  double aQual;
-  bool   aOk;
-  cElHomographie   aHom = cElHomographie::RobustInit(&aQual,aPack,aOk,NB_RANSAC_H,90.0,1000);
 
-  if (aOk)
-     aRes.HomToIm() = aHom.ToXml();
+
+  cElHomographie   aHom = cElHomographie::RobustInit(&(aRes.Qual()),aPack,aRes.Ok(),NB_RANSAC_H,90.0,1000);
+
+  if (aRes.Ok())
+  {
+     aRes.Hom12() = aHom.ToXml();
+  }
+
 
 
   return aRes;
 }
 
-int Comput_HomMain(int argc,char ** argv)
+
+int RHHComputHom_main(int argc,char ** argv)
 {
 
-   std::string aNameHom,aNameCal;
+   std::string aNameHom,aNameRes;
+   std::string aNameCal1,aNameCal2;
    std::string toto;
+   
 
     ElInitArgMain
     (
          argc,argv,
          LArgMain()  << EAMC(aNameHom,"Hom points")
-                     << EAMC(aNameCal,"Calib "),
+                     << EAMC(aNameCal1,"Calib  1")
+                     << EAMC(aNameCal2,"Calib  2")
+                     << EAMC(aNameRes,"Name res "),
          LArgMain()  << EAM(toto,"toto",true)
    );
+
+
+   cXmlRHHResLnk aXmlLnk = ComputeHomographie(aNameHom,aNameCal1,aNameCal2);
+
+   MakeFileXML(aXmlLnk,aNameRes);
 
    return 1;
 }
 
 
 
+NS_RHH_BEGIN
 
 
 /*************************************************/
@@ -105,17 +134,61 @@ cLink2Img::cLink2Img(cImagH * aSrce,cImagH * aDest,const std::string & aNameH) :
 {
 }
 
+//  Gestion des noms 
+
+std::string cLink2Img::NameHomol() const
+{
+    return mSrce->Appli().Dir()+mNameH;
+}
+
+std::string cLink2Img::NameXmlHomogr() const
+{
+    std::string aDir,aNameH;
+    SplitDirAndFile(aDir,aNameH,NameHomol());
+
+    return aDir +  "Homogr-" + StdPrefix(aNameH) + ".xml";
+
+}
+
+std::string  cLink2Img::NameComHomogr() const
+{
+   return      MM3dBinFile("TestLib") 
+            +  std::string(" RHHComputHom ")
+            +  NameHomol() 
+            +  std::string(" ")
+            +  mSrce->NameCalib()
+            +  std::string(" ")
+            +  mDest->NameCalib()
+            +  std::string(" ")
+            +  NameXmlHomogr();
+}
+
+
+void cLink2Img::LoadXmlHom(const cXmlRHHResLnk & aXml)
+{
+     mHomLoaded = true;
+     mOkHom = aXml.Ok();
+     if (mOkHom)
+     {
+         mQualHom = aXml.Qual();
+         mHom12 =  cElHomographie(aXml.Hom12());
+     }
+}
+
+
+void cLink2Img:: LoadComHomogr()
+{
+    cXmlRHHResLnk aXmlLnk = StdGetFromSI(NameXmlHomogr(),XmlRHHResLnk);
+    LoadXmlHom(aXmlLnk);
+}
 
 void  cLink2Img::LoadHomographie(bool ExigOk)
 {
      LoadPack();
      if (!mHomLoaded) 
      {
-        mHomLoaded = true;
-        if (NbPts() >=  mAppli.MinNbPtH())
-        {
-            mHom12 = cElHomographie::RobustInit(&mQualHom,mPack,mOkHom,NB_RANSAC_H,90.0,1000);
-        }
+        cXmlRHHResLnk 	aXml = ComputeHomographie(NameHomol(),mSrce->NameCalib(),mDest->NameCalib());
+        LoadXmlHom(aXml);
      }
        
      if (ExigOk)
@@ -283,15 +356,19 @@ cEqHomogFormelle * &  cLink2Img::EqHF()
 
 
 cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
-   mName     (aName),
    mAppli    (anAppli),
+   mName     (aName),
+   mNameCalib (mAppli.NameCalib(mName)),
    mNum      (aNum),
    mNumTmp   (-1),
    mSomQual  (0),
    mSomNbPts (0),
    mHi2t     (cElHomographie::Id()),
-   mHTmp     (cElHomographie::Id())
+   mHTmp     (cElHomographie::Id()),
+   mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName))
 {
+
+   std::cout << "NCCC " << mNameCalib << "\n";
 }
 
    //============ FONCTION DE GRAPHE IMAGE =========================
@@ -340,6 +417,11 @@ cElHomographie &   cImagH::HTmp()
 const std::string & cImagH::Name() const
 {
   return mName;
+}
+
+const std::string & cImagH::NameCalib() const
+{
+  return mNameCalib;
 }
 
 void cImagH::AddOnePtToExistingH(cPtHom * aH1,const Pt2dr & aP1,cImagH * aI2,const Pt2dr & aP2)

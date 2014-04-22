@@ -1158,7 +1158,9 @@
 
 
    <XmlRHHResLnk  Nb="1" Class="true"  ToReference="true">
-        <HomToIm Nb="1"  RefType="XmlHomogr"> </HomToIm>
+        <Hom12 Nb="1"  RefType="XmlHomogr">  </Hom12>
+        <Ok Nb="1"  Type="bool">               </Ok>
+        <Qual Nb="1"  Type="double">           </Qual>
    </XmlRHHResLnk>
 
 <Verbatim File=".h.cpp">

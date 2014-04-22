@@ -12689,21 +12689,45 @@ void xml_init(cXmlHomogr & anObj,cElXMLTree * aTree)
 }
 
 
-cXmlHomogr & cXmlRHHResLnk::HomToIm()
+cXmlHomogr & cXmlRHHResLnk::Hom12()
 {
-   return mHomToIm;
+   return mHom12;
 }
 
-const cXmlHomogr & cXmlRHHResLnk::HomToIm()const 
+const cXmlHomogr & cXmlRHHResLnk::Hom12()const 
 {
-   return mHomToIm;
+   return mHom12;
+}
+
+
+bool & cXmlRHHResLnk::Ok()
+{
+   return mOk;
+}
+
+const bool & cXmlRHHResLnk::Ok()const 
+{
+   return mOk;
+}
+
+
+double & cXmlRHHResLnk::Qual()
+{
+   return mQual;
+}
+
+const double & cXmlRHHResLnk::Qual()const 
+{
+   return mQual;
 }
 
 cElXMLTree * ToXMLTree(const cXmlRHHResLnk & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlRHHResLnk",eXMLBranche);
-   aRes->AddFils(ToXMLTree(anObj.HomToIm())->ReTagThis("HomToIm"));
+   aRes->AddFils(ToXMLTree(anObj.Hom12())->ReTagThis("Hom12"));
+   aRes->AddFils(::ToXMLTree(std::string("Ok"),anObj.Ok())->ReTagThis("Ok"));
+   aRes->AddFils(::ToXMLTree(std::string("Qual"),anObj.Qual())->ReTagThis("Qual"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -12714,7 +12738,11 @@ void xml_init(cXmlRHHResLnk & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
-   xml_init(anObj.HomToIm(),aTree->Get("HomToIm",1)); //tototo 
+   xml_init(anObj.Hom12(),aTree->Get("Hom12",1)); //tototo 
+
+   xml_init(anObj.Ok(),aTree->Get("Ok",1)); //tototo 
+
+   xml_init(anObj.Qual(),aTree->Get("Qual",1)); //tototo 
 }
 
 // };
