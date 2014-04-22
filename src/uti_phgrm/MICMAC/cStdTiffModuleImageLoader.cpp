@@ -446,7 +446,7 @@ std::string     cStdTiffModuleImageLoader::CreateFileOfResol(int aDeZoom,bool Fo
    if (aGPAO && ForPrepare)
    {
        CreateFileOfResol(aDeZoom/2,ForPrepare);
-       std::string aCom =    protect_spaces(MMBin()) + "Reduc2MM "
+       std::string aCom =    MM3dBinFile_quotes( "Reduc2MM" )
                            + protect_spaces(aNameIn) + " "
                            + protect_spaces(aName) + " " 
                            + ToString(int(aType)) + " "

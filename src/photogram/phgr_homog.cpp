@@ -56,6 +56,24 @@ cElComposHomographie::cElComposHomographie(REAL aX,REAL aY,REAL a1) :
 {
 }
 
+cElComposHomographie::cElComposHomographie(const cXmlAffinR2ToR & anAff) :
+    mX (anAff.CoeffX()),
+    mY (anAff.CoeffY()),
+    m1 (anAff.Coeff1())
+{
+}
+
+cXmlAffinR2ToR cElComposHomographie::ToXml() const
+{
+   cXmlAffinR2ToR aRes;
+   aRes.CoeffX() = mX;
+   aRes.CoeffY() = mY;
+   aRes.Coeff1() = m1;
+
+   return aRes;
+}
+
+
 void cElComposHomographie::Show(const std::string & aMes)
 {
     std::cout << aMes << " " << mX << " " << mY << " " << m1 << "\n";
@@ -113,6 +131,8 @@ void cElComposHomographie::SetCoHom(REAL * aData) const
    aData[1] = mY;
    aData[2] = m1;
 }
+
+
 
 
 /****************************************************************/
@@ -268,6 +288,26 @@ cElHomographie::cElHomographie
    mHZ (aHZ)
 {
    Normalize();
+}
+
+
+cElHomographie::cElHomographie(const cXmlHomogr & aXmlHom ) :
+   mHX (aXmlHom.X()),
+   mHY (aXmlHom.Y()),
+   mHZ (aXmlHom.Z())
+{
+   Normalize();
+}
+
+
+cXmlHomogr cElHomographie::ToXml() const
+{
+   cXmlHomogr aRes;
+   aRes.X() = mHX.ToXml();
+   aRes.Y() = mHY.ToXml();
+   aRes.Z() = mHZ.ToXml();
+
+   return aRes;
 }
 
 cElHomographie::cElHomographie(const ElPackHomologue & aPack,bool aL2)

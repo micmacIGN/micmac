@@ -92,7 +92,7 @@ void cLink2Img::LoadPack()
    if (aVP2.size() > 2000)
       aSz = Pt2di(6,6);
 
-   mEchantP1 = GetDistribRepresentative(aVP2,aSz);
+   mEchantP1 = GetDistribRepresentative(mCdg1,aVP2,aSz);
 }
 
 const ElPackHomologue & cLink2Img::Pack() const

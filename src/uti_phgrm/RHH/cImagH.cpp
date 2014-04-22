@@ -43,6 +43,45 @@ Header-MicMac-eLiSe-25/06/2007*/
 NS_RHH_BEGIN
 
 
+cXmlRHHResLnk  ComputeHomographie
+               (
+                  const std::string & aName
+               )
+{
+  cXmlRHHResLnk  aRes;
+
+  ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
+
+  double aQual;
+  bool   aOk;
+  cElHomographie   aHom = cElHomographie::RobustInit(&aQual,aPack,aOk,NB_RANSAC_H,90.0,1000);
+
+  if (aOk)
+     aRes.HomToIm() = aHom.ToXml();
+
+
+  return aRes;
+}
+
+int Comput_HomMain(int argc,char ** argv)
+{
+
+   std::string aNameHom,aNameCal;
+   std::string toto;
+
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aNameHom,"Hom points")
+                     << EAMC(aNameCal,"Calib "),
+         LArgMain()  << EAM(toto,"toto",true)
+   );
+
+   return 1;
+}
+
+
+
 
 
 /*************************************************/
@@ -56,13 +95,39 @@ cLink2Img::cLink2Img(cImagH * aSrce,cImagH * aDest,const std::string & aNameH) :
    mNbPtsAttr  (0),
    mSrce       (aSrce),
    mDest       (aDest),
+   mAppli      (mSrce->Appli()),
    mNameH      (aNameH),
-   mQual       (0),
+   mQualHom    (0),
    mHom12      (cElHomographie::Id()),
-   mPckLoaded  (false)
+   mPckLoaded  (false),
+   mHomLoaded  (false),
+   mOkHom      (false)
 {
 }
 
+
+void  cLink2Img::LoadHomographie(bool ExigOk)
+{
+     LoadPack();
+     if (!mHomLoaded) 
+     {
+        mHomLoaded = true;
+        if (NbPts() >=  mAppli.MinNbPtH())
+        {
+            mHom12 = cElHomographie::RobustInit(&mQualHom,mPack,mOkHom,NB_RANSAC_H,90.0,1000);
+        }
+     }
+       
+     if (ExigOk)
+     {
+         ELISE_ASSERT(mOkHom,"Cannot get Hom12 : mOkHom=false");
+     }
+}
+
+void  cLink2Img::LoadHomographie(bool ExigOk) const
+{
+   const_cast<cLink2Img*>(this)->LoadHomographie(ExigOk);
+}
 
 void cLink2Img::LoadPack()
 {
@@ -93,12 +158,19 @@ void cLink2Img::LoadPack()
    if (aVP2.size() > 2000)
       aSz = Pt2di(6,6);
 
-   mEchantP1 = GetDistribRepresentative(aVP2,aSz);
+   mEchantP1 = GetDistribRepresentative(mCdg1,aVP2,aSz);
+
 }
+
+void  cLink2Img::LoadPack() const
+{
+   const_cast<cLink2Img*>(this)->LoadPack();
+}
+
 
 const ElPackHomologue & cLink2Img::Pack() const
 {
-   const_cast<cLink2Img*>(this)->LoadPack();
+   LoadPack();
    return mPack;
 }
 
@@ -152,34 +224,47 @@ const std::string &  cLink2Img::NameH() const
 }
 
 
-int   &  cLink2Img::NbPts()
+const int   &  cLink2Img::NbPts() const
 {
+    LoadPack();
     return mNbPts;
 }
 
+/*
 int   &  cLink2Img::NbPtsAttr()
 {
     return mNbPtsAttr;
 }
+*/
 
-double &          cLink2Img::Qual()
+const bool & cLink2Img::OkHom() const
 {
-   return mQual;
+   LoadHomographie(false);
+   return mOkHom;
 }
 
-cElHomographie &  cLink2Img::Hom12()
+
+const double & cLink2Img::QualHom() const
 {
+   LoadHomographie(true);
+   return mQualHom;
+}
+
+const cElHomographie &  cLink2Img::Hom12() const
+{
+    LoadHomographie(true);
     return mHom12;
 }
 
 cElHomographie cLink2Img::CalcSrceFromDest ()
 {
     // return mHom12 * mSrce->Ht2i(); A CHANGER
-    return mDest->Hi2t() * mHom12;
+    return mDest->Hi2t() * Hom12();
 }
 
 const std::vector<Pt3dr> & cLink2Img::EchantP1() const
 {
+    LoadPack();
     return mEchantP1;
 }
 

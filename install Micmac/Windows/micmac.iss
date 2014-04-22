@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "MicMac 64 bits"
-#define MyAppVersion "1.0 rev 1963"
+#define MyAppVersion "1.0 rev 3262"
 #define MyAppPublisher "I.G.N."
 #define MyAppURL "http://www.ign.fr/"
 #define MyAppExeName "bin\mm3d.exe"
@@ -59,7 +59,7 @@ Source: "..\..\include\XML_GEN\*"; DestDir: "{app}\include\XML_GEN"; Flags: igno
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\Saisie"; Filename: "{app}\bin\saisie.exe"
+Name: "{group}\Saisie"; Filename: "{app}\bin\SaisieQT.exe"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [CustomMessages]
