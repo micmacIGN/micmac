@@ -65,6 +65,8 @@ int Devlop_main(int argc,char ** argv)
                     << EAM(aSplit,"Split",true)
     );
 
+	if (!MMVisualMode)
+	{
     std::string aDir,aPatFile;
     SplitDirAndFile(aDir,aPatFile,aFullDir);
 
@@ -112,6 +114,9 @@ int Devlop_main(int argc,char ** argv)
      launchMake( "MkDevlop", "all" );
 
     return EXIT_SUCCESS;
+	}
+	else
+		return EXIT_FAILURE;
 }
 
 

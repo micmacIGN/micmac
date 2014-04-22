@@ -84,6 +84,8 @@ int Tawny_main(int argc,char ** argv)
                  << EAM(aNameOut,"Out",true,"Name of output file (in the folder)", eSAM_IsOutputFile)
     );
 
+	if (!MMVisualMode)
+	{
     #if (ELISE_windows)
         replace( aDir.begin(), aDir.end(), '\\', '/' );
     #endif
@@ -124,6 +126,8 @@ int Tawny_main(int argc,char ** argv)
 
     BanniereMM3D();
     return aRes;
+	}
+	else return EXIT_FAILURE;
 }
 
 

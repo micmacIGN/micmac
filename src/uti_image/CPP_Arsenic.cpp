@@ -486,7 +486,7 @@ int  Arsenic_main(int argc,char ** argv)
         ElInitArgMain
         (
             argc,argv,
-            LArgMain()  << EAMC(aFullPattern,"Images Pattern"),
+            LArgMain()  << EAMC(aFullPattern,"Images Pattern", eSAM_IsPatFile),
             LArgMain()  << EAM(aDirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
 						<< EAM(InVig,"InVig",true,"Input vignette folder (for example : Vignette/ )")
 						<< EAM(ResolModel,"ResolModel",true,"Resol of input model (Def=16)")
@@ -494,26 +494,30 @@ int  Arsenic_main(int argc,char ** argv)
 						<< EAM(nbIte,"NbIte",true,"Number of iteraration of the process (default=5)")
 						<< EAM(aThresh,"ThreshDisp",true,"Disparity threshold between the tie points (Def=1.4 for 40%)")
         );
-		std::string aDir,aPatIm;
-		SplitDirAndFile(aDir,aPatIm,aFullPattern);
 
-		cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-		const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
+		if (!MMVisualMode)
+		{
+			std::string aDir,aPatIm;
+			SplitDirAndFile(aDir,aPatIm,aFullPattern);
 
-		std::vector<std::string> aVectIm=*aSetIm;
-		int nbIm=aVectIm.size();
+			cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+			const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
+
+			std::vector<std::string> aVectIm=*aSetIm;
+			int nbIm=aVectIm.size();
 		
-		ELISE_ASSERT(nbIm>1,"Less than two images found with this pattern");
+			ELISE_ASSERT(nbIm>1,"Less than two images found with this pattern");
 
-		//Computing homologous points
-		cout<<"Computing homologous points"<<endl;
-		cl_MatPtsHom aMatPtsHomol=ReadPtsHom3D(aDir, aPatIm, InVig, ResolModel, TPA);
+			//Computing homologous points
+			cout<<"Computing homologous points"<<endl;
+			cl_MatPtsHom aMatPtsHomol=ReadPtsHom3D(aDir, aPatIm, InVig, ResolModel, TPA);
 		
-		//Computing and applying the equalization surface
-		cout<<"Computing and applying the equalization surface"<<endl;
-		Egal_field_correct_ite(aDir, & aVectIm, aMatPtsHomol, aDirOut, InVig, ResolModel, nbIm, nbIte, aThresh);
+			//Computing and applying the equalization surface
+			cout<<"Computing and applying the equalization surface"<<endl;
+			Egal_field_correct_ite(aDir, & aVectIm, aMatPtsHomol, aDirOut, InVig, ResolModel, nbIm, nbIte, aThresh);
 	
-		Arsenic_Banniere();
+			Arsenic_Banniere();
+		}
 
 		return 0;
 }

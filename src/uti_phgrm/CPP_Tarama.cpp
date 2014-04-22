@@ -81,7 +81,8 @@ int Tarama_main(int argc,char ** argv)
                     << EAM(aKNadir,"KNadir",true,"KBest image od Nadir (when exist)")
     );
 
-
+	if (!MMVisualMode)
+	{
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
     #endif
@@ -130,6 +131,9 @@ int Tarama_main(int argc,char ** argv)
 
 
    return aRes;
+   
+	}
+	else return EXIT_FAILURE;
 }
 
 

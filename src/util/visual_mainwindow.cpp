@@ -284,10 +284,13 @@ void visual_MainWindow::onRunCommandPressed()
 
     if (runCom)
     {
-        //cout << "Com = " << aCom << endl;
+        cout << "VisualMM - Com = " << aCom << endl;
+		hide();
+
         ::System(aCom);
 
         QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
+		QApplication::exit();
     }
     else
     {

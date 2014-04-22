@@ -178,6 +178,9 @@ int  NuageBascule_main(int argc,char ** argv)
                     << EAM(mParal,"Paral",true,"Do in parallel, tuning purpose, def=true")
                     << EAM(mSeuilEtir,"SeuilE",true,"Threshold for stretching (def = 5.0)")
     );
+
+	if (!MMVisualMode)
+	{
     Tiff_Im::SetDefTileFile(mTileFile);
 
 
@@ -465,6 +468,9 @@ int  NuageBascule_main(int argc,char ** argv)
          delete aBoxClipIn;
     }
     return 0;
+	
+	}
+	else return EXIT_FAILURE;
 }
 
 

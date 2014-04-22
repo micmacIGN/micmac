@@ -64,6 +64,8 @@ int Pasta_main(int argc,char ** argv)
                     << EAM(AeroOut,"Out",true)
     );
 
+	if (!MMVisualMode)
+	{
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
     #endif
@@ -77,6 +79,9 @@ int Pasta_main(int argc,char ** argv)
 
    std::cout << "Com = " << aCom << "\n";
    return system_call(aCom.c_str());
+   
+	}
+	else return EXIT_FAILURE;
 }
 
 
