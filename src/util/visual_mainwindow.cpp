@@ -284,7 +284,7 @@ void visual_MainWindow::onRunCommandPressed()
 
     if (runCom)
     {
-        //cout << "Com = " << aCom << endl;
+        cout << "Com = " << aCom << endl;
         ::System(aCom);
 
         QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
@@ -302,7 +302,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
                             this,
                             tr("Select images"),
                             mlastDir,
-                            tr("Images (*.png *.xpm *.jpg *.tif)"));
+                            tr("Images (*.png *.xpm *.jpg *.tif *.cr2);;All files(*.*)"));
 
     if (files.size())
     {
