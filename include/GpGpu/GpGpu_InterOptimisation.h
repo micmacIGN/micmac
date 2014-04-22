@@ -24,7 +24,7 @@ struct CuHostDaPo3D
     ushort                  _maxDz;
 
     CuHostDaPo3D():
-        _maxDz(NAPPEMAX) // ATTENTION : plus de Nappe Dynamique!! _maxDz = NAPPEMAX
+        _maxDz(NAPPEMAX) // ATTENTION : NAPPE Dynamique
     {}
 
     void                    ReallocPt(uint2 dim)
@@ -48,17 +48,19 @@ struct CuHostDaPo3D
         _pit.Dealloc();
     }
 
-    void                    PointIncre(uint2 pt,short2 ptZ)
+    void PointIncre(uint2 pt,short2 ptZ)
     {
         ushort dZ   = abs(count(ptZ));
         _ptZ[pt]    = ptZ;
         _dZ[pt]     = dZ;
 
-// ATTENTION : plus de Nappe Dynamique!! _maxDz = NAPPEMAX
-//        if(_maxDz < dZ)
-//        {
-//            _maxDz = iDivUp32(dZ) * WARPSIZE;
-//        }
+    // ATTENTION : Nappe Dynamique!! _maxDz
+    // NAPPEMAX
+        if(_maxDz < dZ)
+        {
+            _maxDz = iDivUp32(dZ) * WARPSIZE;
+            DUMP_INT(_maxDz)
+        }
         _pit[pt]    = _size;
         _size      += dZ;
     }
