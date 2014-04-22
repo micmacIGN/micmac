@@ -77,31 +77,35 @@ int ChgSysCo_main(int argc,char ** argv)
     LArgMain()  << EAM(ForceRot,"FR",true,"Force orientation matrix to be pure rotation (Def = false)", eSAM_IsBool)
     );
 
-    std::string aDir,aPat;
-#if (ELISE_windows)
-    replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-#endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
-    StdCorrecNameOrient(AeroIn,aDir);
+	if (!MMVisualMode)
+	{
+		std::string aDir,aPat;
+	#if (ELISE_windows)
+		replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+	#endif
+		SplitDirAndFile(aDir,aPat,aFullDir);
+		StdCorrecNameOrient(AeroIn,aDir);
 
-    std::cout << "DPPPP= " << aDir << " " << aPat << "\n";
-
-
-
-    std::string aCom =       MM3dBinFile( "Apero" )
-                          +  XML_MM_File("Apero-ChCo.xml")
-                          +  std::string(" DirectoryChantier=") + aDir + " "
-                          +  std::string(" +SetIm=") + aPat + " "
-                          +  std::string(" +AeroIn=-") + AeroIn + " "
-                          +  std::string(" +AeroOut=-") + AeroOut + " "
-                          +  std::string(" +ChC=") + aStrChSys + " "
-                          +  std::string(" +ChCFR=") + ToString(ForceRot)
-                       ;
+		std::cout << "DPPPP= " << aDir << " " << aPat << "\n";
 
 
-   std::cout << "COM = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
-   return aRes;
+
+		std::string aCom =       MM3dBinFile( "Apero" )
+							  +  XML_MM_File("Apero-ChCo.xml")
+							  +  std::string(" DirectoryChantier=") + aDir + " "
+							  +  std::string(" +SetIm=") + aPat + " "
+							  +  std::string(" +AeroIn=-") + AeroIn + " "
+							  +  std::string(" +AeroOut=-") + AeroOut + " "
+							  +  std::string(" +ChC=") + aStrChSys + " "
+							  +  std::string(" +ChCFR=") + ToString(ForceRot)
+						   ;
+
+
+	   std::cout << "COM = " << aCom << "\n";
+	   int aRes = system_call(aCom.c_str());
+	   return aRes;
+	}
+	else return EXIT_FAILURE;
 }
 
 

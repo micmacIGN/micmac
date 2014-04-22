@@ -1,5 +1,4 @@
 ﻿#include "saisieQT_main.h"
-#include <memory>
 
 int helpMessage(const QApplication &app, QString text)
 {

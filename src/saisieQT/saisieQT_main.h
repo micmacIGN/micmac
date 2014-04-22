@@ -4,6 +4,7 @@
 #include <QtGui>
 #include <QApplication>
 #include "mainwindow.h"
+#include <memory>
 
 extern void SaisieAppuisInit(int argc, char ** argv,
                              Pt2di &aSzW,
