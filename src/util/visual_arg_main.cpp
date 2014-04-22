@@ -166,6 +166,8 @@ void MMRunVisualMode
 #if(ELISE_QT_VERSION >= 4)
     if (QApplication::instance() == NULL)
     {
+        //cout << "Qt version " << ELISE_QT_VERSION << " " << "no instance" << endl;
+
         QApplication app(argc, argv);
 
         setStyleSheet(app);
@@ -189,21 +191,6 @@ void MMRunVisualMode
         w.show();
 
         app.exec();
-    }
-    else
-    {
-        visual_MainWindow w(aVAM, aVAO, aFirstArg);
-
-        string arg_eff="";
-        for (int i=0;i<argc;i++) //argc = 1 en general
-        {
-            arg_eff += string(argv[i]);
-        }
-        w.set_argv_recup(arg_eff);
-
-        w.show();
-
-        QApplication::exec();
     }
 #endif //ELISE_QT_VERSION >= 4
 
