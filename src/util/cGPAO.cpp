@@ -244,7 +244,7 @@ void MkFMapCmdFileCoul8B
         aDir,
         "Tmp-MM-Dir/",
         "_Ch3.tif",
-         MMBin() + "PastDevlop ",
+         MM3dBinFile_quotes("PastDevlop")+" ",
          " Coul8B=true",
          aSet
     );
