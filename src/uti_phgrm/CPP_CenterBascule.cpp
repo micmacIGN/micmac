@@ -70,6 +70,8 @@ int CentreBascule_main(int argc,char ** argv)
                     <<  EAM(CalcV,"CalcV",true,"Use speed to estimate time delay (Def=false)", eSAM_IsBool)
     );
 
+	if (!MMVisualMode)
+	{
 #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
@@ -104,6 +106,9 @@ int CentreBascule_main(int argc,char ** argv)
 
 
    return aRes;
+   
+	}
+	else return EXIT_FAILURE;
 }
 
 

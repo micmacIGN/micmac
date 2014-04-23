@@ -92,7 +92,7 @@ int GrShade_main(int argc,char ** argv)
      ElInitArgMain
      (
            argc,argv,
-           LArgMain() << EAM(aNameIn) ,
+           LArgMain() << EAMC(aNameIn, "File name", eSAM_IsExistFile) ,
            LArgMain() << EAM(aNameOut,"Out",true)
 	              << EAM(aNameCol,"FileCol",true)
                       << EAM(aVisu,"Visu",true)
@@ -124,6 +124,8 @@ int GrShade_main(int argc,char ** argv)
                       << EAM(anAzimut,"Azimut",true)
     );
 
+	if (!MMVisualMode)
+	{
 
     double aPdsDef = aVPdsFiltre.size() ? 0 : 1;
     for (int aK=aVPdsFiltre.size() ; aK<4 ; aK++)
@@ -464,6 +466,9 @@ std::cout << "BBBBbbb" << endl;
      }
 	 
 	 return EXIT_SUCCESS;
+	 
+	}
+	else return EXIT_FAILURE;
 }
 
 

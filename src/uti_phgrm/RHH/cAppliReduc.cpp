@@ -59,6 +59,7 @@ void WarnTest()
 }
 
 cAppliReduc::cAppliReduc(int argc,char ** argv) :
+   mHomByParal   (true),
    mImportTxt    (false),
    mExportTxt    (false),
    mExtHomol     (""),
@@ -77,7 +78,8 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(mFullName,"Full Directory (Dir+Pattern)"),
+        LArgMain()  << EAMC(mFullName,"Full Directory (Dir+Pattern)")
+                    << EAMC(mOri,"Orientation"),
         LArgMain()  << EAM(mImportTxt,"ImpTxt",true,"Import in text format(def=false)")
                     << EAM(mExportTxt,"ExpTxt",true,"Export in text format(def=false)")
                     << EAM(mExtHomol,"ExtH",true,"Extension for homol, like SrRes, def=\"\")")
@@ -85,7 +87,10 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mSeuilQual,"SeuilQual",true,"Quality Theshold for homography (Def=20.0)")
                     << EAM(mRatioQualMoy,"RatioQualMoy",true,"Ratio to validate / average qual (def=4.0)")
                     << EAM(aIntNivShow,"Show",true,"Level of Show (0=None, Def= 1)")
+                    << EAM(mHomByParal,"HbP",true,"Compute Homography in // (Def=true)")
     );
+
+    mKeyOri = "NKS-Assoc-FromFocMm@Ori-" + mOri +"/AutoCal@" + ".xml";
 
     mNivShow = (eNivShow) aIntNivShow;
     if (Show(eShowGlob))
@@ -132,6 +137,11 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
 
 }
 
+std::string cAppliReduc::NameCalib(const std::string & aNameIm) const
+{
+   return mDir+ mICNM->Assoc1To1(mKeyOri,aNameIm,true);
+}
+
 bool cAppliReduc::Show(eNivShow aLevel) const
 {
    return  mNivShow >= aLevel;
@@ -146,6 +156,18 @@ std::string cAppliReduc::KeyHIn(const std::string & aKeyGen) const
 
 void cAppliReduc::ComputeHom()
 {
+   if (mHomByParal)
+   {
+       std::list<std::string> aLCom;
+       for (int aK=0 ; aK<int(mIms.size()) ; aK++)
+           mIms[aK]->AddComCompHomogr(aLCom);
+
+       cEl_GPAO::DoComInParal(aLCom);
+
+       for (int aK=0 ; aK<int(mIms.size()) ; aK++)
+           mIms[aK]->LoadComHomogr();
+   }
+   
    // Read homologous point and compute homography per pair
     for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {

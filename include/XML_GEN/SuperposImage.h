@@ -4542,10 +4542,18 @@ class cXmlRHHResLnk
         friend void xml_init(cXmlRHHResLnk & anObj,cElXMLTree * aTree);
 
 
-        cXmlHomogr & HomToIm();
-        const cXmlHomogr & HomToIm()const ;
+        cXmlHomogr & Hom12();
+        const cXmlHomogr & Hom12()const ;
+
+        bool & Ok();
+        const bool & Ok()const ;
+
+        double & Qual();
+        const double & Qual()const ;
     private:
-        cXmlHomogr mHomToIm;
+        cXmlHomogr mHom12;
+        bool mOk;
+        double mQual;
 };
 cElXMLTree * ToXMLTree(const cXmlRHHResLnk &);
 

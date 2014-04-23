@@ -65,69 +65,72 @@ int CmpIm_main(int argc,char ** argv)
                        << EAM(aMulIm2,"Mul2",true,"Multiplier of file2 (Def 1.0)")
     );
 
-    Tiff_Im aFile1 = Tiff_Im::BasicConvStd(aName1);
-    Tiff_Im aFile2 = Tiff_Im::BasicConvStd(aName2);
+	if (!MMVisualMode)
+	{
+		Tiff_Im aFile1 = Tiff_Im::BasicConvStd(aName1);
+		Tiff_Im aFile2 = Tiff_Im::BasicConvStd(aName2);
 
-    Pt2di aSz = aFile1.sz();
-    if (aFile1.sz() != aFile2.sz())
-    {
-       std::cout << "Tailles Differentes " << aFile1.sz() << aFile2.sz() << "\n";
-       if (OkSzDif)
-           aSz = Inf( aFile1.sz(),aFile2.sz());
-       else
-          return -1;
-    }
+		Pt2di aSz = aFile1.sz();
+		if (aFile1.sz() != aFile2.sz())
+		{
+		   std::cout << "Tailles Differentes " << aFile1.sz() << aFile2.sz() << "\n";
+		   if (OkSzDif)
+			   aSz = Inf( aFile1.sz(),aFile2.sz());
+		   else
+			  return -1;
+		}
 
-    Symb_FNum aFDif(Rconv(Abs(aFile1.in()-aMulIm2*aFile2.in())));
+		Symb_FNum aFDif(Rconv(Abs(aFile1.in()-aMulIm2*aFile2.in())));
 
-    double aNbDif,aSomDif,aMaxDif,aSom1;
-    int  aPtDifMax[2];
+		double aNbDif,aSomDif,aMaxDif,aSom1;
+		int  aPtDifMax[2];
 
-    ELISE_COPY
-    (
-        //aFile1.all_pts(),
-        rectangle(aBrd,aSz-aBrd),
-        Virgule
-        (
-              Rconv(aFDif),
-              aFDif!=0,
-              1.0
-        ),
-        Virgule
-        (
-           sigma(aSomDif) | VMax(aMaxDif) |    WhichMax(aPtDifMax,2),
-           sigma(aNbDif),
-           sigma(aSom1)
-        )
-    );
+		ELISE_COPY
+		(
+			//aFile1.all_pts(),
+			rectangle(aBrd,aSz-aBrd),
+			Virgule
+			(
+				  Rconv(aFDif),
+				  aFDif!=0,
+				  1.0
+			),
+			Virgule
+			(
+			   sigma(aSomDif) | VMax(aMaxDif) |    WhichMax(aPtDifMax,2),
+			   sigma(aNbDif),
+			   sigma(aSom1)
+			)
+		);
 
-    if (aNbDif)
-    {
-       if (aFileDiff!="")
-       {
-            Tiff_Im::Create8BFromFonc
-            (
-               aFileDiff,
-               aSz,
-               Max(0,Min(255,128+round_ni(aDyn*(aFile1.in()-aMulIm2*aFile2.in()))))
-            );
-       }
+		if (aNbDif)
+		{
+		   if (aFileDiff!="")
+		   {
+				Tiff_Im::Create8BFromFonc
+				(
+				   aFileDiff,
+				   aSz,
+				   Max(0,Min(255,128+round_ni(aDyn*(aFile1.in()-aMulIm2*aFile2.in()))))
+				);
+		   }
 
 
-       std::cout << aName1 << " et " << aName2 << " sont differentes\n";
-       std::cout << "Nombre de pixels differents  = " << aNbDif << "\n";
-       std::cout << "Somme des differences        = " << aSomDif << "\n";
-       std::cout << "Moyenne des differences        = " << (aSomDif/aSom1 )<< "\n";
-       std::cout << "Difference maximale          = " << aMaxDif << " (position " << aPtDifMax[0] << " " << aPtDifMax[1] << ")\n";
+		   std::cout << aName1 << " et " << aName2 << " sont differentes\n";
+		   std::cout << "Nombre de pixels differents  = " << aNbDif << "\n";
+		   std::cout << "Somme des differences        = " << aSomDif << "\n";
+		   std::cout << "Moyenne des differences        = " << (aSomDif/aSom1 )<< "\n";
+		   std::cout << "Difference maximale          = " << aMaxDif << " (position " << aPtDifMax[0] << " " << aPtDifMax[1] << ")\n";
 
-       return 1;
-    }
-    else
-    {
-       std::cout << "FICHIERS IDENTIQUES SUR LEURS DOMAINES\n";
-       return 0;
-    }
-
+		   return 1;
+		}
+		else
+		{
+		   std::cout << "FICHIERS IDENTIQUES SUR LEURS DOMAINES\n";
+		   return 0;
+		}
+	}
+	else return 0;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -132,6 +132,8 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
                      << EAM(mTeta,"Teta","Angle done (Def=180)")
     );
 
+	if (!MMVisualMode)
+	{
     int aNbB = sizeofile(mFullNameVideo.c_str());
 
     if (! EAMIsInit(&mRate))
@@ -221,6 +223,7 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
 
 
     BanniereMM3D();
+	}
 }
 
 int VideoVisage_main(int argc,char ** argv)

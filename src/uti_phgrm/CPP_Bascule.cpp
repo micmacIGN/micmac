@@ -119,163 +119,167 @@ int Bascule_main(int argc,char ** argv)
 
     );
 
+	if (!MMVisualMode)
+	{
+		if (aTetaRep != aNoVal)
+		{
+		   aAxeRep = Pt2dr::FromPolar(1.0,aTetaRep * (PI/180.0));
+		}
 
-    if (aTetaRep != aNoVal)
-    {
-       aAxeRep = Pt2dr::FromPolar(1.0,aTetaRep * (PI/180.0));
-    }
+		#if (ELISE_windows)
+			replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+		#endif
+		SplitDirAndFile(aDir,aPat,aFullDir);
 
-    #if (ELISE_windows)
-        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-    #endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
+		bool ModeRepere = IsPostfixed(AeroOut) && (StdPostfix(AeroOut) == "xml");
 
-    bool ModeRepere = IsPostfixed(AeroOut) && (StdPostfix(AeroOut) == "xml");
+		std::string FileOriInPlan  = "EmptyXML.xml";
+		std::string FilePlan="Bascule-Plan.xml";
+		std::string FileExport = "Export-Orient-Std.xml";
 
-    std::string FileOriInPlan  = "EmptyXML.xml";
-    std::string FilePlan="Bascule-Plan.xml";
-    std::string FileExport = "Export-Orient-Std.xml";
+		std::string FileFixScale  = "EmptyXML.xml";
 
-    std::string FileFixScale  = "EmptyXML.xml";
+		std::string aPatternPlan;
 
-    std::string aPatternPlan;
+		std::string aPrefOut="-";
 
-    std::string aPrefOut="-";
-
-    std::string aStrRep;
-    if (! ImPl.empty())
-    {
-         aPatternPlan = ".*(";
-         aPatternPlan = aPatternPlan + ImPl[0];
-         for (int aK=1; aK<int(ImPl.size()) ; aK++)
-         {
-            aPatternPlan = aPatternPlan + "|" + ImPl[aK];
-         }
-         aPatternPlan =  aPatternPlan+").*";
-    }
-    else if (UserKeyPlan)
-    {
-         aPatternPlan  = "Loc-Key-SetImagePlan";  // Plan Utilisateur
-    }
-    else
-    {
-         aPatternPlan  =  "NKS-Set-OfExistingPlan@"+ aPat + "@"+  PostPlan ;  // Plan Utilisateur
-    }
-
-
-    ELISE_ASSERT
-    (
-            ((aP1Rep !=aNoPt) == (aP2Rep !=aNoPt))
-         && ((aP1Rep !=aNoPt) == (aImRep !=NoInit))
-       ,"Incoh (Pt) in rep cart"
-    );
-
-    bool OrientInPlan = false;
-
-    if (aP1Rep !=aNoPt)
-    {
-         OrientInPlan = true;
-    }
-
-    if (aFileMesureIm!="")
-    {
-        ELISE_ASSERT
-        (
-                 IsPostfixed(aFileMesureIm)
-             &&( StdPostfix(aFileMesureIm)== "xml"),
-             "Image Measure File has no xml extension"
-        );
-        aImRep = aFileMesureIm;
-
-       aStrRep = aStrRep + " +FileMesure="+aFileMesureIm;
-    }
-
-    if (OrthoCyl)
-    {
-         ELISE_ASSERT(ModeRepere,"Bad export file for OrthoCyl");
-    }
-
-    if (true)
-    {
-        aStrRep =       aStrRep
-                      +  " +X1RC=" + ToString(aP1Rep.x)
-                      +  " +Y1RC=" + ToString(aP1Rep.y)
-                      +  " +X2RC=" + ToString(aP2Rep.x)
-                      +  " +Y2RC=" + ToString(aP2Rep.y)
-                      +  " +XAxeRC=" + ToString(aAxeRep.x)
-                      +  " +YAxeRC=" + ToString(aAxeRep.y)
-                      +  " +ImP1P2="+aImRep
-                   ;
+		std::string aStrRep;
+		if (! ImPl.empty())
+		{
+			 aPatternPlan = ".*(";
+			 aPatternPlan = aPatternPlan + ImPl[0];
+			 for (int aK=1; aK<int(ImPl.size()) ; aK++)
+			 {
+				aPatternPlan = aPatternPlan + "|" + ImPl[aK];
+			 }
+			 aPatternPlan =  aPatternPlan+").*";
+		}
+		else if (UserKeyPlan)
+		{
+			 aPatternPlan  = "Loc-Key-SetImagePlan";  // Plan Utilisateur
+		}
+		else
+		{
+			 aPatternPlan  =  "NKS-Set-OfExistingPlan@"+ aPat + "@"+  PostPlan ;  // Plan Utilisateur
+		}
 
 
-// aFileMesureIm
-        if (ModeRepere)
-        {
-             FilePlan = "EmptyXML.xml";
-             FileExport  =   "Export-Repere-Cart.xml";
-             if (OrthoCyl)
-                FileOrthoCyl = "Export-OrthoCyl.xml" ;
-             aPrefOut= "";
-        }
-        else
-        {
-            if (OrientInPlan)
-            {
-                FileOriInPlan  = "Bascule-InternePlan.xml";
-            }
+		ELISE_ASSERT
+		(
+				((aP1Rep !=aNoPt) == (aP2Rep !=aNoPt))
+			 && ((aP1Rep !=aNoPt) == (aImRep !=NoInit))
+		   ,"Incoh (Pt) in rep cart"
+		);
 
-            if (aFileMesureIm!="")
-            {
-                FileOriInPlan  = "Bascule-InternePlan-ByFile.xml";
-            }
-        }
-    }
+		bool OrientInPlan = false;
 
-   std::string aStrFixS = "";
-   if (EAMIsInit(&DistFE))
-   {
-       FileFixScale = "Bascule-Fixe-Scale.xml";
-       aStrFixS =  " +DistFS=" + ToString(DistFE);
+		if (aP1Rep !=aNoPt)
+		{
+			 OrientInPlan = true;
+		}
+
+		if (aFileMesureIm!="")
+		{
+			ELISE_ASSERT
+			(
+					 IsPostfixed(aFileMesureIm)
+				 &&( StdPostfix(aFileMesureIm)== "xml"),
+				 "Image Measure File has no xml extension"
+			);
+			aImRep = aFileMesureIm;
+
+		   aStrRep = aStrRep + " +FileMesure="+aFileMesureIm;
+		}
+
+		if (OrthoCyl)
+		{
+			 ELISE_ASSERT(ModeRepere,"Bad export file for OrthoCyl");
+		}
+
+		if (true)
+		{
+			aStrRep =       aStrRep
+						  +  " +X1RC=" + ToString(aP1Rep.x)
+						  +  " +Y1RC=" + ToString(aP1Rep.y)
+						  +  " +X2RC=" + ToString(aP2Rep.x)
+						  +  " +Y2RC=" + ToString(aP2Rep.y)
+						  +  " +XAxeRC=" + ToString(aAxeRep.x)
+						  +  " +YAxeRC=" + ToString(aAxeRep.y)
+						  +  " +ImP1P2="+aImRep
+					   ;
+
+
+	// aFileMesureIm
+			if (ModeRepere)
+			{
+				 FilePlan = "EmptyXML.xml";
+				 FileExport  =   "Export-Repere-Cart.xml";
+				 if (OrthoCyl)
+					FileOrthoCyl = "Export-OrthoCyl.xml" ;
+				 aPrefOut= "";
+			}
+			else
+			{
+				if (OrientInPlan)
+				{
+					FileOriInPlan  = "Bascule-InternePlan.xml";
+				}
+
+				if (aFileMesureIm!="")
+				{
+					FileOriInPlan  = "Bascule-InternePlan-ByFile.xml";
+				}
+			}
+		}
+
+	   std::string aStrFixS = "";
+	   if (EAMIsInit(&DistFE))
+	   {
+		   FileFixScale = "Bascule-Fixe-Scale.xml";
+		   aStrFixS =  " +DistFS=" + ToString(DistFE);
+	   }
+
+	#ifdef ELISE_windows
+		std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR "Apero ")
+						   + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Bascule.xml ")
+	#else
+		std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR "Apero ")
+						   + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Bascule.xml ")
+	#endif
+						   + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
+						   + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
+						   + std::string(" +AeroOut=") + aPrefOut + AeroOut
+						   + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
+						   + std::string(" +AeroIn=-") + AeroIn
+						   + std::string(" +FileBasculePlan=") + FilePlan
+						   + std::string(" +FileOriInPlan=") + FileOriInPlan
+						   + std::string(" +FileFixScale=") + FileFixScale  + aStrFixS
+						   + std::string(" +FileExport=") + FileExport
+						   + std::string(" +FileOrthoCyl=") + FileOrthoCyl
+						   + std::string(" +PostMasq=") + PostPlan
+						   + aStrRep
+						;
+
+
+	   if (EAMIsInit(&aLimBsH))
+		   aCom = aCom + std::string(" +LimBsH=") + ToString(aLimBsH);
+
+
+	   if (aPatternPlan!="")
+	   {
+			aCom = aCom + std::string(" +PatternPlan=") + QUOTE(aPatternPlan);
+	   }
+
+
+
+	   std::cout << "Com = " << aCom << "\n";
+	   int aRes = system_call(aCom.c_str());
+
+
+	   return aRes;
    }
-
-#ifdef ELISE_windows
-    std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR "Apero ")
-                       + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Bascule.xml ")
-#else
-    std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR "Apero ")
-                       + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Bascule.xml ")
-#endif
-                       + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
-                       + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
-                       + std::string(" +AeroOut=") + aPrefOut + AeroOut
-                       + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
-                       + std::string(" +AeroIn=-") + AeroIn
-                       + std::string(" +FileBasculePlan=") + FilePlan
-                       + std::string(" +FileOriInPlan=") + FileOriInPlan
-                       + std::string(" +FileFixScale=") + FileFixScale  + aStrFixS
-                       + std::string(" +FileExport=") + FileExport
-                       + std::string(" +FileOrthoCyl=") + FileOrthoCyl
-                       + std::string(" +PostMasq=") + PostPlan
-                       + aStrRep
-                    ;
-
-
-   if (EAMIsInit(&aLimBsH))
-       aCom = aCom + std::string(" +LimBsH=") + ToString(aLimBsH);
-
-
-   if (aPatternPlan!="")
-   {
-        aCom = aCom + std::string(" +PatternPlan=") + QUOTE(aPatternPlan);
-   }
-
-
-
-   std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
-
-
-   return aRes;
+   else
+	   return EXIT_FAILURE;
 }
 
 

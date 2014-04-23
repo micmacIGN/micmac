@@ -104,6 +104,8 @@ int ConvertIm_main(int argc,char ** argv)
                     << EAM(aF2,"F2",true)
     );
 
+	if (!MMVisualMode)
+	{
     // Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameIn);
     Tiff_Im aTifIn = Tiff_Im::UnivConvStd(aNameIn);
     INT aNbChIn = aTifIn.nb_chan();
@@ -256,6 +258,8 @@ int ConvertIm_main(int argc,char ** argv)
     ELISE_COPY(rectangle(Pt2di(0,0),aSzROut),aFin,anOut);
 
     return EXIT_SUCCESS;
+	}
+	else return EXIT_FAILURE;
 }
 
 

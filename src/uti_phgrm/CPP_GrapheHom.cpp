@@ -144,6 +144,8 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
                     << EAM(mOut,"Out",true)
 
     );
+	if (!MMVisualMode)
+	{
     ELISE_ASSERT(mRab>=0,"Rab <0");
 
 
@@ -252,6 +254,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
         }
     }
     MakeFileXML(aRel,mDir+mOut);
+	}
 }
 
 

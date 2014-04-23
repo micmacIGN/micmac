@@ -403,36 +403,41 @@ int CalcSzWCor_main(int argc,char ** argv)
                     // << EAM(ForceFloat,"FF",true,"Force Float Tmp Image (tuning purpose)")  !! BUGUE EN INT2 ????
    );
 
-   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,true);
-   if (! EAMIsInit(&aSz))
+   if (!MMVisualMode)
    {
-      aSz = aTF.sz() -aP0;
-   }
+	   Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,true);
+	   if (! EAMIsInit(&aSz))
+	   {
+		  aSz = aTF.sz() -aP0;
+	   }
 
-   if (!EAMIsInit(&aNameOut))
-   {
-       std::string aDir,aName;
-       SplitDirAndFile(aDir,aName,aNameIm);
-       aNameOut = aDir + "ImSzW_" + aName + ".tif";
-   }
+	   if (!EAMIsInit(&aNameOut))
+	   {
+		   std::string aDir,aName;
+		   SplitDirAndFile(aDir,aName,aNameIm);
+		   aNameOut = aDir + "ImSzW_" + aName + ".tif";
+	   }
 
-   // cCalcSzWCorrel<U_INT2,INT> aCalc(trans(aTF.in_proj(),aP0),aSz,Pt2dr(900,900));
+	   // cCalcSzWCorrel<U_INT2,INT> aCalc(trans(aTF.in_proj(),aP0),aSz,Pt2dr(900,900));
 
-   if (
-           ((aTF.type_el()==GenIm::u_int1) || (aTF.type_el()==GenIm::u_int2))
-        && (! ForceFloat)
-      )
-   {
-      cCalcSzWCorrel<U_INT2,INT> aCalc(aNameOut,trans(aTF.in_proj(),aP0),aSz,aSzW);
+	   if (
+			   ((aTF.type_el()==GenIm::u_int1) || (aTF.type_el()==GenIm::u_int2))
+			&& (! ForceFloat)
+		  )
+	   {
+		  cCalcSzWCorrel<U_INT2,INT> aCalc(aNameOut,trans(aTF.in_proj(),aP0),aSz,aSzW);
+	   }
+	   else
+	   {
+		  cCalcSzWCorrel<REAL4,REAL8> aCalc(aNameOut,trans(aTF.in_proj(),aP0),aSz,aSzW);
+	   }
+
+	  // aCalc.TestMultiEch_Deriche();
+
+	   return EXIT_SUCCESS;
    }
    else
-   {
-      cCalcSzWCorrel<REAL4,REAL8> aCalc(aNameOut,trans(aTF.in_proj(),aP0),aSz,aSzW);
-   }
-
-  // aCalc.TestMultiEch_Deriche();
-
-   return EXIT_SUCCESS;
+	   return EXIT_FAILURE;
 }
 
 

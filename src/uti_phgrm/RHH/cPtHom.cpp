@@ -273,7 +273,7 @@ void cPtHom::ShowAll()
 
        std::cout << "\n";
    }
-   getchar();
+   // getchar();
 }
 
 NS_RHH_END

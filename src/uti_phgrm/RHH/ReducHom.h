@@ -222,11 +222,21 @@ class cLink2Img  // dans cImagH.cpp
              // list of   Pt2dr+weight , represent the distribution of the points
          const std::vector<Pt3dr> & EchantP1() const;
 
-        cEqHomogFormelle * &  EqHF();
+         cEqHomogFormelle * &  EqHF();
+
+         std::string NameComHomogr() const;
+         void LoadComHomogr();
     private :
+    
        void LoadPack();
        void LoadHomographie(bool ExigOk);
-       // 2 imposteurs
+       void LoadXmlHom(const cXmlRHHResLnk & aXml);
+
+       // Gestion des noms
+       std::string NameHomol() const;
+       std::string NameXmlHomogr() const;
+
+       // 2 imposteurs sur les const
        void LoadPack() const;
        void LoadHomographie(bool ExigOk) const;
 
@@ -262,6 +272,7 @@ class cImagH
          cImagH(const std::string & aName,cAppliReduc &, int aNum);
          void AddLink(cImagH *,const std::string & aNameH);
          const std::string & Name() const;
+         const std::string & NameCalib() const;
 
          void ComputePts();
 
@@ -274,6 +285,8 @@ class cImagH
          // std::vector<cImagH *> AdjRefl();  // Image adj + lui meme
 
 
+         void AddComCompHomogr(std::list<std::string> & aLCom);
+         void LoadComHomogr();
 
 
         static void VoisinsNonMarques(const std::vector<cImagH*> & aIn,std::vector<cImagH*> & aV,int aFlagN,int FlagT );
@@ -297,10 +310,11 @@ class cImagH
          cImagH(const cImagH &); // N.I.
          void ComputePtsLink(cLink2Img & aLnk);
 
+         cAppliReduc &              mAppli;
          std::map<Pt2dr,cPtHom *>   mMapH;  // Liste des Hom deja trouves via les prec
          tMapName2Link                  mLnks;
          std::string                mName;
-         cAppliReduc &              mAppli;
+         std::string                mNameCalib;
          int                        mNum;
          int                        mNumTmp;
          double                     mSomQual;
@@ -310,6 +324,7 @@ class cImagH
          cElHomographie             mHi2t;  // Envoie terrain ver im
          cElHomographie             mHTmp;  // Envoie terrain ver im
          cHomogFormelle *           mHF;
+         cMetaDataPhoto             mMDP;
 };
 
 
@@ -369,15 +384,21 @@ class cAppliReduc
 
          void ComputePts();
          void ComputeHom();
+         std::string NameCalib(const std::string & aNameIm) const;
+
      private :
 
          void CreateIndex();
          void ClearIndex();
          std::string KeyHIn(const std::string & aKeyGen) const;
 
+         bool         mHomByParal;
          std::string  mName;
          std::string  mDir;
          std::string  mFullName;
+         std::string  mOri;
+         std::string  mKeyOri;
+
          bool         mImportTxt;
          bool         mExportTxt;
          std::string  mExtHomol;

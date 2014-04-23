@@ -96,6 +96,18 @@ bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
 /*
 */
 
+void cImagH::LoadComHomogr()
+{
+    for ( tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+        itL->second->LoadComHomogr();
+}
+
+void cImagH::AddComCompHomogr(std::list<std::string> & aLCom)
+{
+    for ( tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+       aLCom.push_back(itL->second->NameComHomogr());
+}
+
 void cImagH::ComputeLnkHom()
 {
     tMapName2Link  aNewL;

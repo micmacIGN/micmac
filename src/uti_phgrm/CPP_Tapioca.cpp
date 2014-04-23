@@ -251,50 +251,51 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 aArg
                 );
 
-
-
-    check_detect_and_match_tools( detectingTool, matchingTool );
-
-    if (aFullRes != -1)
+    if (!MMVisualMode)
     {
-        std::cout << "Ss-RES = " << aSsRes << " ; Full-Res=" << aFullRes << "\n";
-        ELISE_ASSERT(aFullRes>aSsRes,"High Res < Low Res, Probably 2 swap !!");
-    }
+        check_detect_and_match_tools( detectingTool, matchingTool );
 
-    StdAdapt2Crochet(aPat2);
-    DoDevelopp(aSsRes,aFullRes);
+        if (aFullRes != -1)
+        {
+            std::cout << "Ss-RES = " << aSsRes << " ; Full-Res=" << aFullRes << "\n";
+            ELISE_ASSERT(aFullRes>aSsRes,"High Res < Low Res, Probably 2 swap !!");
+        }
 
-    if (DoLowRes)
-    {
-        std::string aSsR =
-                BinPastis
+        StdAdapt2Crochet(aPat2);
+        DoDevelopp(aSsRes,aFullRes);
+
+        if (DoLowRes)
+        {
+            std::string aSsR =
+                    BinPastis
+                    +  aDir + std::string(" ")
+                    +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
+                    +  ToString(aSsRes) + std::string(" ")
+                    +  std::string(" NKS=NKS-Assoc-CplIm2Hom@_SRes@dat")
+                    +  StrMkT()
+                    +  std::string("NbMinPtsExp=2 ")
+                    +  std::string("SsRes=1 ")
+                    +  std::string("ForceByDico=1 ")
+                    +  g_toolsOptions;
+
+            System(aSsR,true);
+            DoMkT();
+        }
+
+
+        std::string aSFR =  BinPastis
                 +  aDir + std::string(" ")
-                +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
-                +  ToString(aSsRes) + std::string(" ")
-                +  std::string(" NKS=NKS-Assoc-CplIm2Hom@_SRes@dat")
+                + QUOTE(std::string("NKS-Rel-SsECh@")+ aPat+ std::string("@")+ToString(aNbMinPt)) + std::string(" ")
+                +  ToString(aFullRes) + std::string(" ")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
-                +  std::string("SsRes=1 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions;
+                +  g_toolsOptions + ' '
+                +  NKS();
 
-        System(aSsR,true);
+        System(aSFR,true);
         DoMkT();
     }
-
-
-    std::string aSFR =  BinPastis
-            +  aDir + std::string(" ")
-            + QUOTE(std::string("NKS-Rel-SsECh@")+ aPat+ std::string("@")+ToString(aNbMinPt)) + std::string(" ")
-            +  ToString(aFullRes) + std::string(" ")
-            +  StrMkT()
-            +  std::string("NbMinPtsExp=2 ")
-            +  std::string("ForceByDico=1 ")
-            +  g_toolsOptions + ' '
-            +  NKS();
-
-    System(aSFR,true);
-    DoMkT();
 
     return 0;
 }
@@ -307,7 +308,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
             (
                 argc,argv,
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
-                            << EAMC(aFullRes,"Size of image", eSAM_None),
+                            << EAMC(aFullRes,"Size of image"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
                 << EAM(PostFix,"PostFix",true)
                 << EAM(ByP,"ByP",true)
@@ -317,25 +318,28 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 aArg
                 );
 
-    check_detect_and_match_tools( detectingTool, matchingTool );
+    if (!MMVisualMode)
+    {
+        check_detect_and_match_tools( detectingTool, matchingTool );
 
-    StdAdapt2Crochet(aPat2);
-    DoDevelopp(-1,aFullRes);
+        StdAdapt2Crochet(aPat2);
+        DoDevelopp(-1,aFullRes);
 
-    std::string aSFR =  BinPastis
-            +  aDir + std::string(" ")
-            +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
-            +  ToString(aFullRes) + std::string(" ")
-            +  StrMkT()
-            +  std::string("NbMinPtsExp=2 ")
-            +  std::string("ForceByDico=1 ")
-            +  g_toolsOptions + ' '
-            +  NKS();
+        std::string aSFR =  BinPastis
+                +  aDir + std::string(" ")
+                +  RelAllIm()     //   +  QUOTE(std::string("NKS-Rel-AllCpleOfPattern@")+ aPat) + std::string(" ")
+                +  ToString(aFullRes) + std::string(" ")
+                +  StrMkT()
+                +  std::string("NbMinPtsExp=2 ")
+                +  std::string("ForceByDico=1 ")
+                +  g_toolsOptions + ' '
+                +  NKS();
 
 
-    System(aSFR,true);
+        System(aSFR,true);
 
-    DoMkT();
+        DoMkT();
+    }
 
     return 0;
 }
@@ -363,37 +367,40 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 aArg
                 );
 
-    check_detect_and_match_tools( detectingTool, matchingTool );
-
-    if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
+    if (!MMVisualMode)
     {
-        std::cout << "Resol=" << aFullRes  << " NbAdjacence=" << aNbAdj << "\n";
-        ELISE_ASSERT
-                (
-                    false,
-                    "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
-                    );
+        check_detect_and_match_tools( detectingTool, matchingTool );
 
+        if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
+        {
+            std::cout << "Resol=" << aFullRes  << " NbAdjacence=" << aNbAdj << "\n";
+            ELISE_ASSERT
+                    (
+                        false,
+                        "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
+                        );
+
+        }
+
+
+        DoDevelopp(-1,aFullRes);
+
+        std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
+
+        std::string aSFR =  BinPastis
+                +  aDir + std::string(" ")
+                +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
+                +  ToString(aFullRes) + std::string(" ")
+                +  StrMkT()
+                +  std::string("NbMinPtsExp=2 ")
+                +  std::string("ForceByDico=1 ")
+                +  g_toolsOptions + ' '
+                +  NKS();
+
+        std::cout << aSFR << "\n";
+        System(aSFR,true);
+        DoMkT();
     }
-
-
-    DoDevelopp(-1,aFullRes);
-
-    std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
-
-    std::string aSFR =  BinPastis
-            +  aDir + std::string(" ")
-            +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
-            +  ToString(aFullRes) + std::string(" ")
-            +  StrMkT()
-            +  std::string("NbMinPtsExp=2 ")
-            +  std::string("ForceByDico=1 ")
-            +  g_toolsOptions + ' '
-            +  NKS();
-
-    std::cout << aSFR << "\n";
-    System(aSFR,true);
-    DoMkT();
 
     return 0;
 }
@@ -417,22 +424,25 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 aArg
                 );
 
-    check_detect_and_match_tools( detectingTool, matchingTool );
+    if (!MMVisualMode)
+    {
+        check_detect_and_match_tools( detectingTool, matchingTool );
 
-    std::string aSFR =  BinPastis
-            +  aDir + std::string(" ")
-            +  QUOTE(std::string("NKS-Rel-ByFile@")+  aPat) + std::string(" ")
-            +  ToString(aFullRes) + std::string(" ")
-            +  StrMkT()
-            +  std::string("NbMinPtsExp=2 ")
-            +  std::string("ForceByDico=1 ")
-            +  g_toolsOptions + ' '
-            +  NKS();
+        std::string aSFR =  BinPastis
+                +  aDir + std::string(" ")
+                +  QUOTE(std::string("NKS-Rel-ByFile@")+  aPat) + std::string(" ")
+                +  ToString(aFullRes) + std::string(" ")
+                +  StrMkT()
+                +  std::string("NbMinPtsExp=2 ")
+                +  std::string("ForceByDico=1 ")
+                +  g_toolsOptions + ' '
+                +  NKS();
 
 
-    std::cout << aSFR << "\n";
-    System(aSFR,true);
-    DoMkT();
+        std::cout << aSFR << "\n";
+        System(aSFR,true);
+        DoMkT();
+    }
     /*
 */
 
@@ -804,7 +814,10 @@ int Graph_(int argc,char ** argv)
 
 int Tapioca_main(int argc,char ** argv)
 {
- #if(ELISE_QT_VERSION >= 4)
+#if(ELISE_QT_VERSION >= 5 && ELISE_unix)
+    ELISE_ASSERT(false, "Visual mode for Tapioca only supported with Qt4 for unix, sorry!");
+    return EXIT_FAILURE;
+#elif(ELISE_QT_VERSION >= 4)
     if (MMVisualMode)
     {
         QStringList items;
