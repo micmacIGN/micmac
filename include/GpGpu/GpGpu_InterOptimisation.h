@@ -171,11 +171,13 @@ public:
     ///
     void            freezeCompute();
 
+    void            simpleJob();
 
     CuHostData3D<uint>      _preFinalCost1D;
 
     CuHostDaPo3D<ushort>    _poInitCost;
 
+    void oneCompute();
 private:
 
     void            threadCompute();
