@@ -178,6 +178,7 @@ public:
     CuHostDaPo3D<ushort>    _poInitCost;
 
     void oneCompute();
+    void optimisation();
 private:
 
     void            threadCompute();

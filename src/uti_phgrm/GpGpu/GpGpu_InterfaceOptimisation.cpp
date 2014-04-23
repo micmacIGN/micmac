@@ -47,6 +47,7 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir)
     _D_data2Opt.setDzMax(_poInitCost._maxDz);
 
     ResetIdBuffer();
+    SetPreComp(true);
 
     SetProgress(NBDir);
 
@@ -54,33 +55,13 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir)
     _D_data2Opt.ReallocParam(size);    
     _D_data2Opt.setPenteMax(penteMax);
 
-//    _D_data2Opt._m_DzMax = iDivUp32(_poInitCost._maxDz) << 5;
-
-//    _D_data2Opt._m_DzMax = _D_data2Opt._m_DzMax < NAPPEMAX ? NAPPEMAX : _D_data2Opt._m_DzMax;
-
-//    if (_D_data2Opt._m_DzMax > 4 * NAPPEMAX) _D_data2Opt._m_DzMax = 4 * NAPPEMAX;
-
-    //DUMP_UINT((uint)_D_data2Opt._m_DzMax)
-
- //   _D_data2Opt._m_DzMax = NAPPEMAX;
-
     _preFinalCost1D.Fill(0);
 
-    SetPreComp(true);
+
 }
 
-void InterfOptimizGpGpu::oneCompute()
+void InterfOptimizGpGpu::optimisation()
 {
-
-     //printf("START oneCompute\n");
-    while(!GetCompute())
-    {
-        //printf("WAIT...\n");
-        boost::this_thread::sleep(boost::posix_time::microsec(5));
-    }
-
-    SetCompute(false);
-
     _D_data2Opt.SetNbLine(_H_data2Opt.nbLines());
 
     _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize(),GetIdBuf());
@@ -97,16 +78,38 @@ void InterfOptimizGpGpu::oneCompute()
 
     //      Copie des couts de passage forcé du device vers le host         ---------------     -
     _D_data2Opt.CopyDevicetoHost(_H_data2Opt,GetIdBuf());
+}
 
-    SwitchIdBuffer();
+void InterfOptimizGpGpu::oneCompute()
+{
+    //cout << "START OPTI :" << boost::this_thread::get_id() << endl;
+
+    while(!GetCompute())
+    {
+        //printf("WAIT COMPUTE CORREL...\n");
+        boost::this_thread::sleep(boost::posix_time::microsec(5));
+    }
+
+    SetCompute(false);
+
+    optimisation();
 
     while(GetDataToCopy());
+//    {
+//        printf("WAIT DATA COPY CORREL...\n");
+//        boost::this_thread::sleep(boost::posix_time::microsec(5));
+//    }
 
-    IncProgress();
+
+    //IncProgress();
+    SwitchIdBuffer();
 
     SetDataToCopy(true);
 
     SetCompute(true);
+
+    //cout << "END OPTI   :" << boost::this_thread::get_id() << endl;
+
 
     //printf("END oneCompute\n");
 }
@@ -147,4 +150,6 @@ void InterfOptimizGpGpu::freezeCompute()
 void InterfOptimizGpGpu::simpleJob()
 {
     boost::thread tOpti(&InterfOptimizGpGpu::oneCompute,this);
+    tOpti.detach();
+    //detached
 }

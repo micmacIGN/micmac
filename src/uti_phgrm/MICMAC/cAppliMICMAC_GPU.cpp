@@ -1650,21 +1650,31 @@ void cAppliMICMAC::DoGPU_Correl
         // Initiation du calcul
         uint interZ = IMmGg.InitCorrelJob(mZMinGlob,mZMaxGlob);
 
-        int anZProjection = mZMinGlob, anZComputed= mZMinGlob, ZtoCopy = 0;
+        int anZProjection = mZMinGlob, anZComputed= mZMinGlob;//, ZtoCopy = 0;
 
         bool idPreBuf = false;
 
+        IMmGg.SetCompute(true);
+
+        int nbCellZ = IMmGg.MaskVolumeBlock().size();
+
+        int     aKCellZ      = 0;
+        int     aKPreCellZ   = 0;
+
         // Parcourt de l'intervalle de Z compris dans la nappe globale
         if (IMmGg.UseMultiThreading())
-            while( anZComputed < mZMaxGlob )
+            //while( anZComputed < mZMaxGlob )
+
+            while( aKCellZ < nbCellZ )
             {
 
                 // Tabulation des projections si la demande est faite
 
-                if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
+                //if ( IMmGg.GetPreComp() && anZProjection <= anZComputed + (int)interZ && anZProjection < mZMaxGlob)
+                if( aKPreCellZ <= aKCellZ + 1 && aKPreCellZ < nbCellZ &&  IMmGg.GetPreComp() )
                 {
 
-                    cellules Mask = IMmGg.MaskVolumeBlock()[abs(anZProjection-mZMinGlob)/INTERZ];
+                    cellules Mask = IMmGg.MaskVolumeBlock()[aKPreCellZ];
 
                     IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
 
@@ -1672,23 +1682,24 @@ void cAppliMICMAC::DoGPU_Correl
 
                     Tabul_Projection( anZProjection, Mask.Dz,idPreBuf);
 
-                    IMmGg.signalComputeCorrel(Mask.Dz);
+                    //IMmGg.signalComputeCorrel(Mask.Dz);
+                    IMmGg.simpleJob();
+                    IMmGg.SetPreComp(false);
 
                     anZProjection+= Mask.Dz;
-
+                    aKPreCellZ++;
                     idPreBuf = !idPreBuf;
                 }
 
                 // Affectation des couts si des nouveaux ont ete calcule!
 
-                if ((ZtoCopy = (int)IMmGg.GetDataToCopy()))
+                if (IMmGg.GetDataToCopy())
                 {
-
+                    uint ZtoCopy = IMmGg.Param(!IMmGg.GetIdBuf()).ZCInter;
                     setVolumeCost(anZComputed,anZComputed + ZtoCopy,!IMmGg.GetIdBuf());
-
+                    IMmGg.SetDataToCopy(false);
                     anZComputed += ZtoCopy;
-
-                    IMmGg.SetDataToCopy(0);
+                    aKCellZ++;
                 }
             }
         else
@@ -1705,15 +1716,13 @@ void cAppliMICMAC::DoGPU_Correl
                 Tabul_Projection( anZComputed,Mask.Dz,0);
 
                 // Kernel Correlation
-                IMmGg.BasicCorrelation(interZ);
+                IMmGg.BasicCorrelation();
 
                 setVolumeCost(anZComputed,anZComputed + interZ,0);
 
                 anZComputed += interZ;
             }
         }
-
-
 
         IMmGg.freezeCompute();
 
