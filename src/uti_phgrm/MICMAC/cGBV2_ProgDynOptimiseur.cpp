@@ -612,6 +612,8 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     int     aKPreDir    = 0;
     bool    idPreCo     = false;
 
+    IGpuOpt.SetCompute(true);
+
     while (aKDir < aNbDir)
     {
 
@@ -645,7 +647,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                     #endif
                 }
 
-                pitIdStream += iDivUp32(lenghtLine) << 5;
+                pitIdStream += iDivUp32(lenghtLine)     << 5;
                 pitStream   += iDivUp32(sizeStreamLine) << 5;
 
                 nbLine++;
@@ -659,7 +661,9 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             copyCells_Mat2Stream(aDirI, IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,idPreCo);
 
-            IGpuOpt.SetCompute(true);
+            //IGpuOpt.SetCompute(true);
+
+            IGpuOpt.simpleJob();
             IGpuOpt.SetPreComp(false);
 
             aKPreDir++;
