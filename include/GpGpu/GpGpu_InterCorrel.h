@@ -29,7 +29,7 @@ extern "C" void	LaunchKernelprojectionImage(pCorGpu &param,CuDeviceData3D<float>
 
 /// \class GpGpuInterfaceCorrel
 /// \brief Class qui lie micmac avec les outils de calculs GpGpu
-class GpGpuInterfaceCorrel : public CSimpleJobCpuGpu< uint>
+class GpGpuInterfaceCorrel : public CSimpleJobCpuGpu< bool>
 {
 
 public:
@@ -41,7 +41,7 @@ public:
   void          SetParameter(int nbLayer , ushort2 dRVig , uint2 dimImg, float mAhEpsilon, uint samplingZ, int uvINTDef, ushort nClass);
 
   /// \brief    Calcul de la correlation en Gpu
-  void          BasicCorrelation(uint ZInter);
+  void          BasicCorrelation();
 
   /// \brief    Renvoie les parametres de correlation
 
@@ -71,6 +71,9 @@ public:
 
   bool              NoMasked;
 
+
+  void         simpleJob();
+
 private:
 
   void              CorrelationGpGpu(ushort idBuf = 0 , const int s = 0);
@@ -80,6 +83,8 @@ private:
   cudaStream_t*		GetStream(int stream);
 
   void              threadCompute();
+
+  void              oneCompute();
 
   cudaStream_t      _stream[NSTREAM];
 

@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define     MAT_TO_STREAM true
 #define     STREAM_TO_MAT false
-#define     CLAMPDZ
+//#define     CLAMPDZ
 
 
 Pt2di Px2Point(int * aPx) { return Pt2di(aPx[0],0); }

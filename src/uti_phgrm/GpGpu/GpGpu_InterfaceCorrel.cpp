@@ -10,7 +10,9 @@ GpGpuInterfaceCorrel::GpGpuInterfaceCorrel():
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
 
-    CreateJob();
+    //CreateJob();
+
+    freezeCompute();
 }
 
 GpGpuInterfaceCorrel::~GpGpuInterfaceCorrel()
@@ -61,7 +63,7 @@ void GpGpuInterfaceCorrel::SetParameter(int nbLayer , ushort2 dRVig , uint2 dimI
     }
 }
 
-void GpGpuInterfaceCorrel::BasicCorrelation(uint ZInter)
+void GpGpuInterfaceCorrel::BasicCorrelation()
 {
 
     // Re-allocation les structures de données si elles ont été modifiées
@@ -101,6 +103,43 @@ cudaStream_t* GpGpuInterfaceCorrel::GetStream( int stream )
     return &(_stream[stream]);
 }
 
+void GpGpuInterfaceCorrel::simpleJob()
+{
+    boost::thread tOpti(&GpGpuInterfaceCorrel::oneCompute,this);
+    tOpti.detach();
+}
+
+void GpGpuInterfaceCorrel::oneCompute()
+{
+    //uint interZ = Param(GetIdBuf()).ZCInter;
+
+//    cout << "START CORREL :" << boost::this_thread::get_id() << endl;
+
+
+    while(!GetCompute())
+    {
+        //printf("WAIT COMPUTE OPTIM...\n");
+        boost::this_thread::sleep(boost::posix_time::microsec(5));
+    }
+
+    SetCompute(false);
+
+    BasicCorrelation();
+
+    while(GetDataToCopy());
+//    {
+//        printf("WAIT DATA COPY OPTIM...\n");
+//        boost::this_thread::sleep(boost::posix_time::microsec(5));
+//    }
+
+    SwitchIdBuffer();
+    SetDataToCopy(true);
+
+    SetCompute(true);
+    //cout << "END CORREL   :" << boost::this_thread::get_id() << endl;
+
+}
+
 void GpGpuInterfaceCorrel::threadCompute()
 {
     ResetIdBuffer();
@@ -108,22 +147,14 @@ void GpGpuInterfaceCorrel::threadCompute()
     {
         if (GetCompute())
         {
-            uint interZ = GetCompute();
+
 
             // TEMP : TENTATIVE DE DEBUGAGE THREAD
             //while(Param(GetIdBuf()).invPC.nbImages > 4096)
             while(!Param(GetIdBuf()).HdPc.sizeCachAll)
                 boost::this_thread::sleep(boost::posix_time::microsec(1));
 
-            SetCompute(0);
-
-            BasicCorrelation(interZ);
-
-            while(GetDataToCopy());
-
-            SwitchIdBuffer();
-
-            SetDataToCopy(interZ);
+            oneCompute();
         }
         else
             boost::this_thread::sleep(boost::posix_time::microsec(1));
@@ -134,8 +165,8 @@ void GpGpuInterfaceCorrel::freezeCompute()
 {
     Param(0).HdPc.sizeCachAll = 0;
     Param(1).HdPc.sizeCachAll = 0;
-    SetDataToCopy(0);
-    SetCompute(0);
+    SetDataToCopy(false);
+    SetCompute(false);
     SetPreComp(false);
     //KillJob();
 }
@@ -182,7 +213,7 @@ pCorGpu& GpGpuInterfaceCorrel::Param(ushort idBuf)
 void GpGpuInterfaceCorrel::signalComputeCorrel(uint dZ)
 {
     SetPreComp(false);
-    SetCompute(dZ);
+    SetCompute(true);
 }
 
 SData2Correl &GpGpuInterfaceCorrel::Data()
