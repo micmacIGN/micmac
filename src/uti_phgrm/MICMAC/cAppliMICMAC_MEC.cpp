@@ -80,22 +80,20 @@ void cAppliMICMAC::DoAllMEC()
 
 #if CUDA_ENABLED
 	
-    //if (mCorrelAdHoc->GPU_CorrelBasik().IsInit())
-    {
-        // Creation du contexte GPGPU
-        //cudaDeviceProp deviceProp;
-        // Obtention de l'identifiant de la carte la plus puissante
-        int devID = gpuGetMaxGflopsDeviceId();
+    // Creation du contexte GPGPU
+    //cudaDeviceProp deviceProp;
+    // Obtention de l'identifiant de la carte la plus puissante
+    int devID = gpuGetMaxGflopsDeviceId();
 
-        ELISE_ASSERT(devID == 0 , "NO GRAPHIC CARD FOR USE CUDA");
+    ELISE_ASSERT(devID == 0 , "NO GRAPHIC CARD FOR USE CUDA");
 
-        // Initialisation du contexte
-        checkCudaErrors(cudaSetDevice(devID));
-        // Obtention des proprietes de la carte
-        //checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-        // Affichage des proprietes de la carte
-        //printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
-    }
+    // Initialisation du contexte
+    checkCudaErrors(cudaSetDevice(devID));
+    // Obtention des proprietes de la carte
+    //checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+    // Affichage des proprietes de la carte
+    //printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+
 #endif
 
      for 
@@ -141,7 +139,7 @@ void cAppliMICMAC::DoAllMEC()
 
 #if CUDA_ENABLED
 
-    if (mCorrelAdHoc->GPU_CorrelBasik().IsInit())
+    if (mCorrelAdHoc && mCorrelAdHoc->GPU_CorrelBasik().IsInit())
     {
         checkCudaErrors( cudaDeviceReset() );
     }
@@ -596,7 +594,7 @@ void cAppliMICMAC::DoOneBloc
    mNbApproxVueActive = -1;
 
 #if CUDA_ENABLED
-   if (mCorrelAdHoc->GPU_CorrelBasik().IsInit())
+   if (mCorrelAdHoc && mCorrelAdHoc->GPU_CorrelBasik().IsInit())
        IMmGg.SetTexturesAreLoaded(false);
 #endif
 
@@ -838,7 +836,7 @@ void cAppliMICMAC::DoOneBloc
         mSurfOpt->SolveOpt();
 
 #if CUDA_ENABLED
-        if (mCorrelAdHoc->GPU_CorrelBasik().IsInit())
+        if (mCorrelAdHoc && mCorrelAdHoc->GPU_CorrelBasik().IsInit())
         {
             IMmGg.Data().DeallocDeviceData();
             IMmGg.Data().DeallocHostData();
