@@ -59,7 +59,7 @@ struct CuHostDaPo3D
         if(_maxDz < dZ)
         {
             _maxDz = iDivUp32(dZ) * WARPSIZE;
-            DUMP_INT(_maxDz)
+            //DUMP_INT(_maxDz)
         }
         _pit[pt]    = _size;
         _size      += dZ;
