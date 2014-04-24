@@ -449,7 +449,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 
     m_lastClickZoom = event->pos();
 
-#if ELISE_QT_VERSION==5
+#if ELISE_QT_VERSION == 5
     setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 70.0f ));
 #else
     setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 70.0f ));

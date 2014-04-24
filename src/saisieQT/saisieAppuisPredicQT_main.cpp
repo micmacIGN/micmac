@@ -111,7 +111,7 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 
     cAppli_SaisiePts   anAppli (aP2,false);
 
-    MainWindow w(POINT2D_PREDIC);
+    SaisieQtWindow w(POINT2D_PREDIC);
 
     new cQT_Interface(anAppli,&w);
 

@@ -38,7 +38,7 @@ See below and http://www.cecill.info.
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#if(ELISE_QT_VERSION >= 4)
+#if((ELISE_QT_VERSION >= 4) && VISUALMODE)
     #ifdef Int
         #undef Int
     #endif
@@ -125,7 +125,7 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
     return true;
 }*/
 
-#if(ELISE_QT_VERSION >= 4)
+#if((ELISE_QT_VERSION >= 4)&& VISUALMODE)
 void setStyleSheet(QApplication &app)
 {
     QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
@@ -142,7 +142,7 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 
     QString msg;
     for (int aK=0; aK < (int)vStr.size(); ++aK)
-#if(ELISE_QT_VERSION >= 5)
+#if((ELISE_QT_VERSION >= 5) && VISUALMODE)
          msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
 #else
         msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
@@ -163,7 +163,7 @@ void MMRunVisualMode
         )
 {
 
-#if(ELISE_QT_VERSION >= 4)
+#if((ELISE_QT_VERSION >= 4) && VISUALMODE)
     if (QApplication::instance() == NULL)
     {
         //cout << "Qt version " << ELISE_QT_VERSION << " " << "no instance" << endl;
