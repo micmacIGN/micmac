@@ -614,6 +614,8 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
     IGpuOpt.SetCompute(true);
 
+    GpGpuTools::OutputInfoGpuMemory();
+
     while (aKDir < aNbDir)
     {
 

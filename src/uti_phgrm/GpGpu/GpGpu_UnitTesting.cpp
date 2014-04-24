@@ -283,9 +283,15 @@ int Main_UnitTest_ProjectionImage()
     return 0;
 }
 
+int Main_UnitTest_Memoire()
+{
+    GpGpuTools::OutputInfoGpuMemory();
+
+    return 0;
+}
 int main()
 {
 
-    return Main_UnitTest_ProjectionImage();
+    return Main_UnitTest_Memoire();
 
 }
