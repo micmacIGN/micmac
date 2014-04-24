@@ -662,9 +662,8 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
             copyCells_Mat2Stream(aDirI, IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,idPreCo);
 
             //IGpuOpt.SetCompute(true);
-
-            IGpuOpt.simpleJob();
             IGpuOpt.SetPreComp(false);
+            IGpuOpt.simpleJob();
 
             aKPreDir++;
             idPreCo = !idPreCo;
