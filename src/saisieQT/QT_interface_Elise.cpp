@@ -1,6 +1,6 @@
 #include "QT_interface_Elise.h"
 
-cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, MainWindow *QTMainWindow):
+cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL),
     _aCpt(0),

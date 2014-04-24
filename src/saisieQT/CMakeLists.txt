@@ -10,7 +10,7 @@ set(saisie_SRCS saisieQT_main.cpp
                 saisieAppuisInitQT_main.cpp
                 saisieAppuisPredicQT_main.cpp
                 GLWidget.cpp
-                mainwindow.cpp
+                saisieQT_window.cpp
                 Cloud.cpp
                 Data.cpp
                 Engine.cpp
@@ -36,7 +36,7 @@ set( saisie_HEADERS_nomoc
 
 set( saisie_HEADERS_tomoc
    GLWidget.h
-   mainwindow.h
+   saisieQT_window.h
    ContextMenu.h
    Settings.h
    QT_interface_Elise.h
@@ -59,7 +59,7 @@ if ( NOT ${qt_version} EQUAL 0 )
 
       QT5_ADD_RESOURCES( Saisie_RC_SRCS ${Saisie_RCS} )
 
-      qt5_wrap_ui(saisie_ui mainwindow.ui Settings.ui)
+      qt5_wrap_ui(saisie_ui saisieQT_window.ui Settings.ui)
 
       add_definitions(-DTWEAK)
       if ( WIN32 )
@@ -84,7 +84,7 @@ if ( NOT ${qt_version} EQUAL 0 )
                                      elise
                                      ${X11_LIBRARIES} )
    elseif ( ${qt_version} EQUAL 4 )
-      QT4_WRAP_UI(saisie_ui mainwindow.ui Settings.ui)
+      QT4_WRAP_UI(saisie_ui saisieQT_window.ui Settings.ui)
       QT4_WRAP_CPP(saisie_HEADERS_tomoc_MOC ${saisie_HEADERS_tomoc})
       INCLUDE(${QT_USE_FILE})
       include_directories( ${PROJECT_BINARY_DIR} )

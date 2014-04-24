@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef SAISIEQTWINDOW_H
+#define SAISIEQTWINDOW_H
 
 //#ifndef  WIN32
 //#ifndef __APPLE__
@@ -24,7 +24,7 @@
 #include "Tree.h"
 
 namespace Ui {
-class MainWindow;
+class SaisieQtWindow;
 }
 
 const QColor colorBorder("#606060");
@@ -33,17 +33,18 @@ const QColor colorBorder("#606060");
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
                 MASK3D,         /**< Point cloud mask **/
                 POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) **/
-                POINT2D_PREDIC  /**< Points in Image (SaisieAppuisPredic) **/
+                POINT2D_PREDIC, /**< Points in Image (SaisieAppuisPredic) **/
+                BOX2D
 };
 
-class MainWindow : public QMainWindow, public GLWidgetSet
+class SaisieQtWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
 
 public:
 
-    explicit MainWindow( int mode = MASK3D, QWidget *parent = 0 );
-    ~MainWindow();
+    explicit SaisieQtWindow( int mode = MASK3D, QWidget *parent = 0 );
+    ~SaisieQtWindow();
 
     void setPostFix(QString str);
 
@@ -205,7 +206,7 @@ private:
 
     int *                   _incre;
 
-    Ui::MainWindow*         _ui;
+    Ui::SaisieQtWindow*     _ui;
 
     cEngine*                _Engine;
 

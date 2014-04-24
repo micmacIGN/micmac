@@ -7,7 +7,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
     app.setApplicationName("SaisieMasqQT");
     app.setOrganizationName("IGN");
 
-    MainWindow w;
+    SaisieQtWindow w;
 
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;

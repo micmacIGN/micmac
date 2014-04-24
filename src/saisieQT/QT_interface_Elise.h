@@ -1,9 +1,9 @@
 #ifndef QT_INTERFACE_ELISE_H
 #define QT_INTERFACE_ELISE_H
 
-#include    "mainwindow.h"
+#include "saisieQT_window.h"
 
-class MainWindow;
+class SaisieQtWindow;
 
 class cQT_Interface  : public QObject, public cVirtualInterface
 {
@@ -12,7 +12,7 @@ class cQT_Interface  : public QObject, public cVirtualInterface
 
 public :
 
-    cQT_Interface(cAppli_SaisiePts &appli,MainWindow* QTMainWindow);
+    cQT_Interface(cAppli_SaisiePts &appli,SaisieQtWindow* QTMainWindow);
     ~cQT_Interface(){}
 
     void                RedrawAllWindows(){}
@@ -105,7 +105,7 @@ private:
     cCaseNamePoint      *_cNamePt;
 
     //                  Fenetre principale
-    MainWindow          *m_QTMainWindow;
+    SaisieQtWindow          *m_QTMainWindow;
 
     cData               *_data;
 

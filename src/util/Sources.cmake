@@ -5,8 +5,50 @@ if( ${qt_version} EQUAL 4 )
         ../include/general/visual_buttons.h
     )
 
-    QT4_WRAP_CPP(Uti_HEADERS_MOCED ${Uti_Headers_ToMoc})
+set(SAISIE_DIR "../saisieQT")
+
+    set(Ui_ToWrap
+        saisieQT/saisieQT_window.ui
+        saisieQT/Settings.ui
+    )
+
+set(vmm_SRCS    ${SAISIE_DIR}/GLWidget.cpp
+                ${SAISIE_DIR}/saisieQT_window.cpp
+                ${SAISIE_DIR}/Cloud.cpp
+                ${SAISIE_DIR}/Data.cpp
+                ${SAISIE_DIR}/Engine.cpp
+                ${SAISIE_DIR}/3DObject.cpp
+                ${SAISIE_DIR}/GLWidgetSet.cpp
+                ${SAISIE_DIR}/MatrixManager.cpp
+                ${SAISIE_DIR}/HistoryManager.cpp
+                ${SAISIE_DIR}/ContextMenu.cpp
+                ${SAISIE_DIR}/Settings.cpp
+                ${SAISIE_DIR}/QT_interface_Elise.cpp
+                ${SAISIE_DIR}/Tree.cpp)
+
+set( vmm_HEADERS_nomoc
+   ${SAISIE_DIR}/HistoryManager.h
+   ${SAISIE_DIR}/MatrixManager.h
+   ${SAISIE_DIR}/Cloud.h
+   ${SAISIE_DIR}/saisieQT_main.h
+   ${SAISIE_DIR}/Data.h
+   #SaisieGlsl.glsl
+   ${SAISIE_DIR}/Engine.h
+   ${SAISIE_DIR}/GLWidgetSet.h
+   ${SAISIE_DIR}/3DObject.h )
+
+set( vmm_HEADERS_tomoc
+   ${SAISIE_DIR}/GLWidget.h
+   ${SAISIE_DIR}/saisieQT_window.h
+   ${SAISIE_DIR}/ContextMenu.h
+   ${SAISIE_DIR}/Settings.h
+   ${SAISIE_DIR}/QT_interface_Elise.h
+   ${SAISIE_DIR}/Tree.h)
+
+    QT4_WRAP_UI(Ui_VisualMode ${Ui_ToWrap})
+    QT4_WRAP_CPP(Uti_HEADERS_MOCED ${Uti_Headers_ToMoc} ${vmm_HEADERS_tomoc})
     add_definitions(${QT_DEFINITIONS})
+    INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
 set(Util_Src_Files
@@ -46,6 +88,7 @@ set(Util_Src_Files
         #${UTIL_DIR}/win_regex.c
         ${UTIL_DIR}/visual_mainwindow.cpp
         ${UTIL_DIR}/visual_buttons.cpp
+        saisieQT/saisieQT_window.cpp
         ${Uti_HEADERS_MOCED}
 )
 

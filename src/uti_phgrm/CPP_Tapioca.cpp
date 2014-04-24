@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#if(ELISE_QT_VERSION >= 4)
+#if ((ELISE_QT_VERSION >= 4) && VISUALMODE)
 #ifdef Int
 #undef Int
 #endif
@@ -814,10 +814,10 @@ int Graph_(int argc,char ** argv)
 
 int Tapioca_main(int argc,char ** argv)
 {
-#if(ELISE_QT_VERSION >= 5 && ELISE_unix)
+#if(ELISE_QT_VERSION >= 5 && ELISE_unix && VISUALMODE)
     ELISE_ASSERT(false, "Visual mode for Tapioca only supported with Qt4 for unix, sorry!");
     return EXIT_FAILURE;
-#elif(ELISE_QT_VERSION >= 4)
+#elif((ELISE_QT_VERSION >= 4) && VISUALMODE)
     if (MMVisualMode)
     {
         QStringList items;

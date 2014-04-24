@@ -1,9 +1,9 @@
-﻿#include "mainwindow.h"
-#include "ui_mainwindow.h"
+﻿#include "saisieQT_window.h"
+#include "ui_saisieQT_window.h"
 
-MainWindow::MainWindow(int mode, QWidget *parent) :
+SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
-        _ui(new Ui::MainWindow),
+        _ui(new Ui::SaisieQtWindow),
         _Engine(new cEngine),
         _layout_GLwidgets(new QGridLayout),
         _zoomLayout(new QGridLayout),
@@ -38,7 +38,7 @@ MainWindow::MainWindow(int mode, QWidget *parent) :
     tableView_PG()->setMouseTracking(true);
 }
 
-MainWindow::~MainWindow()
+SaisieQtWindow::~SaisieQtWindow()
 {
     delete _ui;
     delete _Engine;
@@ -49,7 +49,7 @@ MainWindow::~MainWindow()
     delete _params;
 }
 
-void MainWindow::connectActions()
+void SaisieQtWindow::connectActions()
 {
     _ProgressDialog = new QProgressDialog("Loading files", "Stop",0,100,this, Qt::ToolTip);
 
@@ -91,7 +91,7 @@ void MainWindow::connectActions()
 
 }
 
-void MainWindow::createRecentFileMenu()
+void SaisieQtWindow::createRecentFileMenu()
 {
     _RFMenu = new QMenu(tr("&Recent files"), this);
 
@@ -103,20 +103,20 @@ void MainWindow::createRecentFileMenu()
     updateRecentFileActions();
 }
 
-void MainWindow::setPostFix(QString str)
+void SaisieQtWindow::setPostFix(QString str)
 {
     _params->setPostFix(str);
 
     _Engine->setPostFix();
 }
 
-void MainWindow::progression()
+void SaisieQtWindow::progression()
 {
     if(_incre)
         _ProgressDialog->setValue(*_incre);
 }
 
-void MainWindow::runProgressDialog(QFuture<void> future)
+void SaisieQtWindow::runProgressDialog(QFuture<void> future)
 {
     _FutureWatcher.setFuture(future);
     _ProgressDialog->setWindowModality(Qt::WindowModal);
@@ -128,7 +128,7 @@ void MainWindow::runProgressDialog(QFuture<void> future)
     future.waitForFinished();
 }
 
-void MainWindow::loadPly(const QStringList& filenames)
+void SaisieQtWindow::loadPly(const QStringList& filenames)
 {
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
@@ -143,7 +143,7 @@ void MainWindow::loadPly(const QStringList& filenames)
     delete timer_test;
 }
 
-void MainWindow::addFiles(const QStringList& filenames, bool setGLData)
+void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 {
     if (filenames.size())
     {
@@ -203,14 +203,14 @@ void MainWindow::addFiles(const QStringList& filenames, bool setGLData)
     }
 }
 
-void MainWindow::on_actionFullScreen_toggled(bool state)
+void SaisieQtWindow::on_actionFullScreen_toggled(bool state)
 {
     _params->setFullScreen(state);
 
     return state ? showFullScreen() : showNormal();
 }
 
-void MainWindow::on_actionShow_ball_toggled(bool state)
+void SaisieQtWindow::on_actionShow_ball_toggled(bool state)
 {
     if (_mode == MASK3D)
     {
@@ -224,19 +224,19 @@ void MainWindow::on_actionShow_ball_toggled(bool state)
     }
 }
 
-void MainWindow::on_actionShow_bbox_toggled(bool state)
+void SaisieQtWindow::on_actionShow_bbox_toggled(bool state)
 {
     if (_mode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_BBox,state);
 }
 
-void MainWindow::on_actionShow_grid_toggled(bool state)
+void SaisieQtWindow::on_actionShow_grid_toggled(bool state)
 {
     if (_mode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_Grid,state);
 }
 
-void MainWindow::on_actionShow_axis_toggled(bool state)
+void SaisieQtWindow::on_actionShow_axis_toggled(bool state)
 {
     if (_mode == MASK3D)
     {
@@ -250,20 +250,20 @@ void MainWindow::on_actionShow_axis_toggled(bool state)
     }
 }
 
-void MainWindow::on_actionShow_cams_toggled(bool state)
+void SaisieQtWindow::on_actionShow_cams_toggled(bool state)
 {
     if (_mode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_Cams,state);
 }
 
-void MainWindow::on_actionShow_messages_toggled(bool state)
+void SaisieQtWindow::on_actionShow_messages_toggled(bool state)
 {
     currentWidget()->setOption(cGLData::OpShow_Mess,state);
 
     labelShowMode(state);
 }
 
-void MainWindow::on_actionShow_names_toggled(bool show)
+void SaisieQtWindow::on_actionShow_names_toggled(bool show)
 {
     for (int aK = 0; aK < nbWidgets();++aK)
     {
@@ -275,7 +275,7 @@ void MainWindow::on_actionShow_names_toggled(bool show)
     }
 }
 
-void MainWindow::on_actionShow_refuted_toggled(bool show)
+void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 {
     for (int aK = 0; aK < nbWidgets();++aK)
     {
@@ -289,13 +289,13 @@ void MainWindow::on_actionShow_refuted_toggled(bool show)
     emit showRefuted( show );
 }
 
-void MainWindow::on_actionToggleMode_toggled(bool mode)
+void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 {
     if (_mode == MASK3D)
         currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 }
 
-void MainWindow::on_actionHelpShortcuts_triggered()
+void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 {
     QString text = tr("File menu:") +"\n\n";
     if (_mode == MASK3D)
@@ -402,7 +402,7 @@ void MainWindow::on_actionHelpShortcuts_triggered()
     msgbox.exec();
 }
 
-void MainWindow::on_actionAbout_triggered()
+void SaisieQtWindow::on_actionAbout_triggered()
 {
     QFont font("Courier New", 9, QFont::Normal);
 
@@ -417,37 +417,37 @@ void MainWindow::on_actionAbout_triggered()
     msgbox.exec();
 }
 
-void MainWindow::resizeEvent(QResizeEvent *)
+void SaisieQtWindow::resizeEvent(QResizeEvent *)
 {
     _params->setSzFen(size());
 }
 
-void MainWindow::moveEvent(QMoveEvent *)
+void SaisieQtWindow::moveEvent(QMoveEvent *)
 {
     _params->setPosition(pos());
 }
 
-void MainWindow::on_actionAdd_triggered()
+void SaisieQtWindow::on_actionAdd_triggered()
 {
     currentWidget()->Select(ADD);
 }
 
-void MainWindow::on_actionSelect_none_triggered()
+void SaisieQtWindow::on_actionSelect_none_triggered()
 {
     currentWidget()->Select(NONE);
 }
 
-void MainWindow::on_actionInvertSelected_triggered()
+void SaisieQtWindow::on_actionInvertSelected_triggered()
 {
     currentWidget()->Select(INVERT);
 }
 
-void MainWindow::on_actionSelectAll_triggered()
+void SaisieQtWindow::on_actionSelectAll_triggered()
 {
     currentWidget()->Select(ALL);
 }
 
-void MainWindow::on_actionReset_triggered()
+void SaisieQtWindow::on_actionReset_triggered()
 {
     if (_mode != MASK3D)
     {
@@ -461,7 +461,7 @@ void MainWindow::on_actionReset_triggered()
     }
 }
 
-void MainWindow::on_actionRemove_triggered()
+void SaisieQtWindow::on_actionRemove_triggered()
 {
     if (_mode > MASK3D)
         currentWidget()->polygon()->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
@@ -469,78 +469,78 @@ void MainWindow::on_actionRemove_triggered()
         currentWidget()->Select(SUB);
 }
 
-void MainWindow::on_actionSetViewTop_triggered()
+void SaisieQtWindow::on_actionSetViewTop_triggered()
 {
     if (_mode == MASK3D)
         currentWidget()->setView(TOP_VIEW);
 }
 
-void MainWindow::on_actionSetViewBottom_triggered()
+void SaisieQtWindow::on_actionSetViewBottom_triggered()
 {
     if (_mode == MASK3D)
         currentWidget()->setView(BOTTOM_VIEW);
 }
 
-void MainWindow::on_actionSetViewFront_triggered()
+void SaisieQtWindow::on_actionSetViewFront_triggered()
 {
     if (_mode == MASK3D)
         currentWidget()->setView(FRONT_VIEW);
 }
 
-void MainWindow::on_actionSetViewBack_triggered()
+void SaisieQtWindow::on_actionSetViewBack_triggered()
 {
     if (_mode == MASK3D)
         currentWidget()->setView(BACK_VIEW);
 }
 
-void MainWindow::on_actionSetViewLeft_triggered()
+void SaisieQtWindow::on_actionSetViewLeft_triggered()
 {
     if (_mode == MASK3D)
         currentWidget()->setView(LEFT_VIEW);
 }
 
-void MainWindow::on_actionSetViewRight_triggered()
+void SaisieQtWindow::on_actionSetViewRight_triggered()
 {
     if (_mode == MASK3D)
         currentWidget()->setView(RIGHT_VIEW);
 }
 
-void MainWindow::on_actionReset_view_triggered()
+void SaisieQtWindow::on_actionReset_view_triggered()
 {
     currentWidget()->resetView(true,true,true,true);
 }
 
-void MainWindow::on_actionZoom_Plus_triggered()
+void SaisieQtWindow::on_actionZoom_Plus_triggered()
 {
     currentWidget()->setZoom(currentWidget()->getZoom()*1.5f);
 }
 
-void MainWindow::on_actionZoom_Moins_triggered()
+void SaisieQtWindow::on_actionZoom_Moins_triggered()
 {
     currentWidget()->setZoom(currentWidget()->getZoom()/1.5f);
 }
 
-void MainWindow::on_actionZoom_fit_triggered()
+void SaisieQtWindow::on_actionZoom_fit_triggered()
 {
     currentWidget()->zoomFit();
 }
 
-void MainWindow::zoomFactor(int aFactor)
+void SaisieQtWindow::zoomFactor(int aFactor)
 {
     currentWidget()->zoomFactor(aFactor);
 }
 
-void MainWindow::on_actionLoad_plys_triggered()
+void SaisieQtWindow::on_actionLoad_plys_triggered()
 {
     addFiles(QFileDialog::getOpenFileNames(this, tr("Open Cloud Files"),QString(), tr("Files (*.ply)")));
 }
 
-void MainWindow::on_actionLoad_camera_triggered()
+void SaisieQtWindow::on_actionLoad_camera_triggered()
 {
     addFiles(QFileDialog::getOpenFileNames(this, tr("Open Camera Files"),QString(), tr("Files (*.xml)")));
 }
 
-void MainWindow::on_actionLoad_image_triggered()
+void SaisieQtWindow::on_actionLoad_image_triggered()
 {
     QString img_filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
 
@@ -557,12 +557,12 @@ void MainWindow::on_actionLoad_image_triggered()
     }
 }
 
-void MainWindow::on_actionSave_masks_triggered()
+void SaisieQtWindow::on_actionSave_masks_triggered()
 {
     _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
 }
 
-void MainWindow::on_actionSave_as_triggered()
+void SaisieQtWindow::on_actionSave_as_triggered()
 {
     QString fname = QFileDialog::getSaveFileName(NULL, tr("Save mask Files"),QString(), tr("Files (*.*)"));
 
@@ -574,12 +574,12 @@ void MainWindow::on_actionSave_as_triggered()
     }
 }
 
-void MainWindow::on_actionSave_selection_triggered()
+void SaisieQtWindow::on_actionSave_selection_triggered()
 {
     currentWidget()->getHistoryManager()->save();
 }
 
-void MainWindow::on_actionSettings_triggered()
+void SaisieQtWindow::on_actionSettings_triggered()
 {
     cSettingsDlg uiSettings(this, _params);
     connect(&uiSettings, SIGNAL(nbFenChanged(bool)), this, SLOT(redraw(bool)));
@@ -616,7 +616,7 @@ void MainWindow::on_actionSettings_triggered()
     disconnect(&uiSettings, 0, 0, 0);
 }
 
-void MainWindow::closeAll()
+void SaisieQtWindow::closeAll()
 {
     emit sCloseAll();
 
@@ -632,7 +632,7 @@ void MainWindow::closeAll()
     }
 }
 
-void MainWindow::closeCurrentWidget()
+void SaisieQtWindow::closeCurrentWidget()
 {
     _Engine->unloadAll();
     //_Engine->unload(currentWidgetIdx());
@@ -640,7 +640,7 @@ void MainWindow::closeCurrentWidget()
     currentWidget()->reset();
 }
 
-void MainWindow::openRecentFile()
+void SaisieQtWindow::openRecentFile()
 {
     // A TESTER en multi images
 
@@ -658,7 +658,7 @@ void MainWindow::openRecentFile()
     }
 }
 
-void MainWindow::setCurrentFile(const QString &fileName)
+void SaisieQtWindow::setCurrentFile(const QString &fileName)
 {
     // Rafraichit le menu des fichiers récents
     _curFile = fileName;
@@ -679,7 +679,7 @@ void MainWindow::setCurrentFile(const QString &fileName)
         #if WINVER == 0x0601
             MainWindow *mainWin = dynamic_cast<MainWindow *>(widget);
         #else
-            MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
+            SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
         #endif
         if (mainWin)
             mainWin->updateRecentFileActions();
@@ -687,7 +687,7 @@ void MainWindow::setCurrentFile(const QString &fileName)
 
 }
 
-void MainWindow::updateRecentFileActions()
+void SaisieQtWindow::updateRecentFileActions()
 {
     QSettings settings;
     QStringList files = settings.value("recentFileList").toStringList();
@@ -706,7 +706,7 @@ void MainWindow::updateRecentFileActions()
     //m_RFMenu->setVisible(numRecentFiles > 0);
 }
 
-QString MainWindow::strippedName(const QString &fullFileName)
+QString SaisieQtWindow::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
 }
@@ -717,7 +717,7 @@ void hideAction(QAction* action, bool show)
     action->setEnabled(show);
 }
 
-void MainWindow::setLayout(uint sy)
+void SaisieQtWindow::setLayout(uint sy)
 {
     _layout_GLwidgets->setContentsMargins(sy,sy,sy,sy);
     _layout_GLwidgets->setHorizontalSpacing(sy);
@@ -730,7 +730,7 @@ void MainWindow::setLayout(uint sy)
             _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
 }
 
-void MainWindow::updateUI()
+void SaisieQtWindow::updateUI()
 {
     labelShowMode(true);
 
@@ -762,7 +762,7 @@ void MainWindow::updateUI()
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
 }
 
-void MainWindow::setUI()
+void SaisieQtWindow::setUI()
 {
     setLayout(0);
 
@@ -802,7 +802,7 @@ void MainWindow::setUI()
     }
 }
 
-bool MainWindow::eventFilter( QObject* object, QEvent* event )
+bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
 {
     if( object == tableView_PG() )
     {
@@ -833,11 +833,11 @@ bool MainWindow::eventFilter( QObject* object, QEvent* event )
     return false;
 }
 
-QTableView *MainWindow::tableView_PG(){return _ui->tableView_PG;}
+QTableView *SaisieQtWindow::tableView_PG(){return _ui->tableView_PG;}
 
-QTableView *MainWindow::tableView_Images(){return _ui->tableView_Images;}
+QTableView *SaisieQtWindow::tableView_Images(){return _ui->tableView_Images;}
 
-void MainWindow::resizeTables()
+void SaisieQtWindow::resizeTables()
 {
     tableView_PG()->resizeColumnsToContents();
     tableView_PG()->resizeRowsToContents();
@@ -848,18 +848,18 @@ void MainWindow::resizeTables()
     tableView_Images()->horizontalHeader()->setStretchLastSection(true);
 }
 
-void MainWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images)
+void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images)
 {
     tableView_PG()->setModel(model_Pg);
     tableView_Images()->setModel(model_Images);
 }
 
-void MainWindow::SelectPointAllWGL(QString pointName)
+void SaisieQtWindow::SelectPointAllWGL(QString pointName)
 {
     emit selectPoint(pointName);
 }
 
-void MainWindow::SetDataToGLWidget(int idGLW, cGLData *glData)
+void SaisieQtWindow::SetDataToGLWidget(int idGLW, cGLData *glData)
 {
     if (glData)
     {
@@ -869,7 +869,7 @@ void MainWindow::SetDataToGLWidget(int idGLW, cGLData *glData)
     }
 }
 
-void MainWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCache)
+void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCache)
 {
     if (filenames.size())
     {
@@ -897,12 +897,12 @@ void MainWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCache)
     }
 }
 
-void  MainWindow::setGamma(float aGamma)
+void  SaisieQtWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
     if (zoomWidget())
         _params->setZoomWindowValue(zoomWidget()->getZoom());
@@ -912,7 +912,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void MainWindow::redraw(bool nbWidgetsChanged)
+void SaisieQtWindow::redraw(bool nbWidgetsChanged)
 {
     if (size() != _params->getSzFen())
     {
@@ -959,12 +959,12 @@ void MainWindow::redraw(bool nbWidgetsChanged)
     }
 }
 
-void MainWindow::setAutoName(QString val)
+void SaisieQtWindow::setAutoName(QString val)
 {
     emit setName(val);
 }
 
-void MainWindow::setImagePosition(QPointF pt)
+void SaisieQtWindow::setImagePosition(QPointF pt)
 {
     QString text(tr("Image position : "));
 
@@ -980,17 +980,17 @@ void MainWindow::setImagePosition(QPointF pt)
     _ui->label_ImagePosition_2->setText(text);
 }
 
-void MainWindow::setImageName(QString name)
+void SaisieQtWindow::setImageName(QString name)
 {
     _ui->label_ImageName->setText(QString(tr("Image name : ") + name));
 }
 
-void MainWindow::setZoom(float val)
+void SaisieQtWindow::setZoom(float val)
 {
     _params->setZoomWindowValue(val);
 }
 
-void MainWindow::changeCurrentWidget(void *cuWid)
+void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 {
     GLWidget* glW = (GLWidget*) cuWid;
 
@@ -1019,7 +1019,7 @@ void MainWindow::changeCurrentWidget(void *cuWid)
     }
 }
 
-void MainWindow::undo(bool undo)
+void SaisieQtWindow::undo(bool undo)
 {
     if (_mode <= MASK3D)
     {
@@ -1044,7 +1044,7 @@ void MainWindow::undo(bool undo)
     }
 }
 
-void MainWindow::applyParams()
+void SaisieQtWindow::applyParams()
 {
     move(_params->getPosition());
 
@@ -1069,7 +1069,7 @@ void MainWindow::applyParams()
         resize(szFen);
 }
 
-void MainWindow::labelShowMode(bool state)
+void SaisieQtWindow::labelShowMode(bool state)
 {
     if ((!state) || (_mode == MASK3D))
     {

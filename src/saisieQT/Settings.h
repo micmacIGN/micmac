@@ -1,12 +1,16 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include "ui_Settings.h"
+//#include "ui_Settings.h"
 
 #include <QDialog>
 #include <QSettings>
 
 #include "StdAfx.h"
+
+namespace Ui {
+class cSettingsDlg;
+}
 
 //Min and max zoom ratio (relative)
 const float GL_MAX_ZOOM = 50.f;
@@ -94,7 +98,7 @@ private:
 };
 
 //! Dialog to setup display settings
-class cSettingsDlg : public QDialog, public Ui::settingsDialog
+class cSettingsDlg : public QDialog
 {
     Q_OBJECT
 
@@ -160,6 +164,8 @@ protected:
 
     //! settings copy
     cParameters  _oldParameters;
+
+    Ui::cSettingsDlg* _ui;
 };
 
 
