@@ -1657,9 +1657,8 @@ void cAppliMICMAC::DoGPU_Correl
         IMmGg.SetCompute(true);
 
         int nbCellZ = IMmGg.MaskVolumeBlock().size();
-
-        int     aKCellZ      = 0;
-        int     aKPreCellZ   = 0;
+        int aKCellZ      = 0;
+        int aKPreCellZ   = 0;
 
         // Parcourt de l'intervalle de Z compris dans la nappe globale
         if (IMmGg.UseMultiThreading())
@@ -1683,14 +1682,13 @@ void cAppliMICMAC::DoGPU_Correl
                     Tabul_Projection( anZProjection, Mask.Dz,idPreBuf);
 
                     //IMmGg.signalComputeCorrel(Mask.Dz);
-                    IMmGg.simpleJob();
                     IMmGg.SetPreComp(false);
+                    IMmGg.simpleJob();                    
 
                     anZProjection+= Mask.Dz;
                     aKPreCellZ++;
                     idPreBuf = !idPreBuf;
                 }
-
                 // Affectation des couts si des nouveaux ont ete calcule!
 
                 if (IMmGg.GetDataToCopy())
