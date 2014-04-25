@@ -139,42 +139,113 @@ set(Elise_Src_Files
 
 set(libElise elise)
 
-if ( (${qt_version} EQUAL 5) OR WITH_QT5)
-    # Find includes in corresponding build directories
-    set(CMAKE_INCLUDE_CURRENT_DIR ON)
-    # Instruct CMake to run moc automatically when needed.
-    set(CMAKE_AUTOMOC ON)
+set(SAISIE_DIR ${PROJECT_SOURCE_DIR}/src/saisieQT)
 
-    find_package(Qt5Core REQUIRED)
-    if( Qt5Core_FOUND )
+set(vmm_SRCS    ${SAISIE_DIR}/GLWidget.cpp
+                ${SAISIE_DIR}/saisieQT_window.cpp
+                ${SAISIE_DIR}/Cloud.cpp
+                ${SAISIE_DIR}/Data.cpp
+                ${SAISIE_DIR}/Engine.cpp
+                ${SAISIE_DIR}/3DObject.cpp
+                ${SAISIE_DIR}/GLWidgetSet.cpp
+                ${SAISIE_DIR}/MatrixManager.cpp
+                ${SAISIE_DIR}/HistoryManager.cpp
+                ${SAISIE_DIR}/ContextMenu.cpp
+                ${SAISIE_DIR}/Settings.cpp
+                ${SAISIE_DIR}/QT_interface_Elise.cpp
+                ${SAISIE_DIR}/Tree.cpp)
 
-        include_directories(${Qt5Widgets_INCLUDE_DIRS})
-        include_directories(${Qt5Core_INCLUDE_DIRS})
-        include_directories(${Qt5Concurrent_INCLUDE_DIRS})
-        include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-        include_directories(${Qt5Xml_INCLUDE_DIRS})
-        include_directories(${Qt5Gui_INCLUDE_DIRS})
+set( HEADERS_nomoc
+   ${SAISIE_DIR}/HistoryManager.h
+   ${SAISIE_DIR}/MatrixManager.h
+   ${SAISIE_DIR}/Cloud.h
+   ${SAISIE_DIR}/saisieQT_main.h
+   ${SAISIE_DIR}/Data.h
+   #SaisieGlsl.glsl
+   ${SAISIE_DIR}/Engine.h
+   ${SAISIE_DIR}/GLWidgetSet.h
+   ${SAISIE_DIR}/3DObject.h )
 
-     # Use the compile definitions defined in the Qt 5 Widgets module
-     add_definitions(${Qt5Widgets_DEFINITIONS})
+set( HEADERS_tomoc
+   ${SAISIE_DIR}/GLWidget.h
+   ${SAISIE_DIR}/saisieQT_window.h
+   ${SAISIE_DIR}/ContextMenu.h
+   ${SAISIE_DIR}/Settings.h
+   ${SAISIE_DIR}/QT_interface_Elise.h
+   ${SAISIE_DIR}/Tree.h
+)
 
-     # Add compiler flags for building executables (-fPIE)
-     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+set ( ui_toWrap
+ ${SAISIE_DIR}/saisieQT_window.ui
+ ${SAISIE_DIR}/Settings.ui
+)
 
-    endif()
-elseif( ${qt_version} EQUAL 4 )
+if ( NOT ${qt_version} EQUAL 0 )
+   if ( ${qt_version} EQUAL 5 )
+
+      set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+      if ( NOT ${OPENGL_GLU_FOUND} )
+              message( FATAL_ERROR "GLU library could not be found" )
+              return( -1 )
+      endif()
+
+      set(CMAKE_AUTOMOC ON)
+
+      set(Saisie_DIR "saisieQT")
+
+      QT5_ADD_RESOURCES( RC_SRCS ${Saisie_DIR}/icones/icones.qrc )
+
+      qt5_wrap_ui(saisie_ui saisieQT/saisieQT_window.ui saisieQT/Settings.ui)
+
+      add_definitions(-DTWEAK)
+      if ( WIN32 )
+         add_definitions(-DELISE_windows)
+      ENDIF()
+
+      find_package(Qt5Core REQUIRED)
+      if( Qt5Core_FOUND )
+
+      include_directories( ${Qt5_INCLUDES}
+                           ${OPENGL_INCLUDE_DIR}
+                           ${PROJECT_SOURCE_DIR}
+                           ${PROJECT_BINARY_DIR} )
+
+        #include_directories(${Qt5Widgets_INCLUDE_DIRS})
+        #include_directories(${Qt5Core_INCLUDE_DIRS})
+        #include_directories(${Qt5Concurrent_INCLUDE_DIRS})
+        #include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+        #include_directories(${Qt5Xml_INCLUDE_DIRS})
+        #include_directories(${Qt5Gui_INCLUDE_DIRS})
+
+         # Use the compile definitions defined in the Qt 5 Widgets module
+         add_definitions(${Qt5Widgets_DEFINITIONS})
+
+        # Add compiler flags for building executables (-fPIE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+
+        endif()
+
+   elseif ( ${qt_version} EQUAL 4 )
+      QT4_WRAP_UI(ui_wraped ${ui_toWrap})
+      QT4_WRAP_CPP(HEADERS_moced ${HEADERS_tomoc} )#${visual_tomoc})
+
       INCLUDE(${QT_USE_FILE})
-endif()
+      include_directories( ${PROJECT_BINARY_DIR} )
+      INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+   endif()
 
+endif()
 
 # CONSTRUCTION : Lib ELISE
 if(${CUDA_ENABLED})
     INCLUDE (GpGpu.cmake)
 else()
-    add_library( elise ${Elise_Src_Files} ${IncFiles} )
+
+    add_library( elise ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${ui_wraped})
 
     if( ${qt_version} EQUAL 5 )
-        qt5_use_modules(elise Widgets Core Gui Xml)
+        qt5_use_modules(elise Widgets Core Gui Xml Concurrent OpenGL)
     endif()
 
     INSTALL(TARGETS elise ARCHIVE DESTINATION ${Install_Dir_lib} )
@@ -196,7 +267,8 @@ if (WITH_INTERFACE)
     ADD_SUBDIRECTORY(interface)
 endif()
 
-if (WITH_SAISIEQT)
+#if (WITH_SAISIEQT)
+if ( NOT ${qt_version} EQUAL 0)
     ADD_SUBDIRECTORY(saisieQT)
 endif()
 

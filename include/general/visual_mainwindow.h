@@ -3,14 +3,13 @@
 
 #include "StdAfx.h"
 
-#if(ELISE_QT_VERSION >= 4)
+#if (ELISE_QT_VERSION >= 4)
 
 #ifdef Int
     #undef Int
 #endif
 
-#include <QMainWindow>
-
+#include <QWidget>
 #include <QGridLayout>
 #include <QLabel>
 #include <QComboBox>
@@ -24,6 +23,8 @@
 #include <QMessageBox>
 
 #include "general/visual_buttons.h"
+
+#include "../../src/saisieQT/saisieQT_window.h"
 
 using namespace std;
 
@@ -90,12 +91,17 @@ public:
 
     std::string getFirstArg() { return mFirstArg; }
 
+    void add_saisieButton(vector< pair < int, QWidget * > > vWidgets, QGridLayout *layout, int aK);
+
+    void setSaisieWin(SaisieQtWindow* win){ _SaisieWin = win;}
+
 public slots:
 
     void onRunCommandPressed();
     void onSelectFilePressed(int);
     void onSelectImgsPressed(int);
     void onSelectDirPressed(int);
+    void onSaisieButtonPressed(int);
     void _adjustSize(int);
 
 protected:
@@ -115,6 +121,8 @@ protected:
     QString             mlastDir;
 
     string              mFirstArg;    //truc&astuces: stores the first arg (for Tapioca)
+
+    SaisieQtWindow*     _SaisieWin;
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);

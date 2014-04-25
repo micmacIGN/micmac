@@ -7,7 +7,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
     app.setApplicationName("SaisieMasqQT");
     app.setOrganizationName("IGN");
 
-    MainWindow w;
+    SaisieQtWindow w;
 
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
@@ -96,6 +96,9 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
     if (cmdline_args.size() > 0)
         w.addFiles(cmdline_args, true);
+
+    //TODO: remove
+    w.setCurrentPolygonIndex(1);
 
     return app.exec();
 }

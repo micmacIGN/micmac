@@ -144,7 +144,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     cAppli_SaisiePts   anAppli (aP2,false);
 
-    MainWindow w(POINT2D_INIT);
+    SaisieQtWindow w(POINT2D_INIT);
 
     new cQT_Interface(anAppli,&w);
 

@@ -1,6 +1,6 @@
 #include "general/visual_buttons.h"
 
-#if(ELISE_QT_VERSION >= 4)
+#if (ELISE_QT_VERSION >= 4)
 
 int selectionButton::buttonNumber=0;
 

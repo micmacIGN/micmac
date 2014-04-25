@@ -1,8 +1,9 @@
 #include "Settings.h"
+#include "ui_Settings.h"
 
-cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), Ui::settingsDialog()
+cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), _ui(new Ui::cSettingsDlg)
 {
-    setupUi(this);
+    _ui->setupUi(this);
 
     setWindowFlags(Qt::Tool/*Qt::Dialog | Qt::WindowStaysOnTopHint*/);
 
@@ -15,7 +16,9 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(paren
 }
 
 cSettingsDlg::~cSettingsDlg()
-{}
+{
+    delete _ui;
+}
 
 void cSettingsDlg::setParameters(cParameters &params)
 {
@@ -100,9 +103,9 @@ void cSettingsDlg::on_PrefixTextEdit_textChanged(QString val)
 
 void cSettingsDlg::enableMarginSpinBox(bool show)
 {
-    doubleSpinBoxSz->setEnabled(show);
-    label_Margin->setEnabled(show);
-    label_pixels->setEnabled(show);
+    _ui->doubleSpinBoxSz->setEnabled(show);
+    _ui->label_Margin->setEnabled(show);
+    _ui->label_pixels->setEnabled(show);
 }
 
 void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
@@ -121,7 +124,7 @@ void cSettingsDlg::on_radioButtonMin_toggled(bool checked)
     if (checked)
     {
         _parameters->setPtCreationMode(eNSM_MinLoc);
-        enableMarginSpinBox(!radioButtonStd->isChecked());
+        enableMarginSpinBox(!_ui->radioButtonStd->isChecked());
     }
 }
 
@@ -130,7 +133,7 @@ void cSettingsDlg::on_radioButtonMax_toggled(bool checked)
     if (checked)
     {
         _parameters->setPtCreationMode(eNSM_MaxLoc);
-        enableMarginSpinBox(!radioButtonStd->isChecked());
+        enableMarginSpinBox(!_ui->radioButtonStd->isChecked());
     }
 }
 
@@ -172,37 +175,37 @@ void cSettingsDlg::on_resetButton_clicked()
 
 void cSettingsDlg::refresh()
 {
-    NBF_x_spinBox->setValue(_parameters->getNbFen().x());
-    NBF_y_spinBox->setValue(_parameters->getNbFen().y());
+    _ui->NBF_x_spinBox->setValue(_parameters->getNbFen().x());
+    _ui->NBF_y_spinBox->setValue(_parameters->getNbFen().y());
 
-    WindowWidth_spinBox->setValue( _parameters->getSzFen().width());
-    WindowHeight_spinBox->setValue(_parameters->getSzFen().height());
+    _ui->WindowWidth_spinBox->setValue( _parameters->getSzFen().width());
+    _ui->WindowHeight_spinBox->setValue(_parameters->getSzFen().height());
 
-    LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
-    PointDiameter_doubleSpinBox->setValue(_parameters->getPointDiameter());
-    GammaDoubleSpinBox->setValue(_parameters->getGamma());
+    _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
+    _ui->PointDiameter_doubleSpinBox->setValue(_parameters->getPointDiameter());
+    _ui->GammaDoubleSpinBox->setValue(_parameters->getGamma());
 
-    zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
-    PrefixTextEdit->setText(_parameters->getDefPtName());
-    RadiusSpinBox->setValue(_parameters->getSelectionRadius());
+    _ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
+    _ui->PrefixTextEdit->setText(_parameters->getDefPtName());
+    _ui->RadiusSpinBox->setValue(_parameters->getSelectionRadius());
 
     switch (_parameters->getPtCreationMode())
     {
         case eNSM_Pts:
         {
-            radioButtonStd->setChecked(true);
+            _ui->radioButtonStd->setChecked(true);
             enableMarginSpinBox(false);
             break;
         }
         case eNSM_MinLoc:
         {
-            radioButtonMin->setChecked(true);
+            _ui->radioButtonMin->setChecked(true);
             enableMarginSpinBox();
             break;
         }
         case eNSM_MaxLoc:
         {
-            radioButtonMax->setChecked(true);
+            _ui->radioButtonMax->setChecked(true);
             enableMarginSpinBox();
             break;
         }
@@ -212,7 +215,7 @@ void cSettingsDlg::refresh()
             break;
     }
 
-    doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
+    _ui->doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
 
     update();
 }

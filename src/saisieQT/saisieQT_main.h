@@ -3,7 +3,7 @@
 
 #include <QtGui>
 #include <QApplication>
-#include "mainwindow.h"
+#include "saisieQT_window.h"
 #include <memory>
 
 extern void SaisieAppuisInit(int argc, char ** argv,
