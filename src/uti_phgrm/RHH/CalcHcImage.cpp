@@ -68,33 +68,6 @@ bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
    return true;
 }
 
-/*
-   // const ElPackHomologue aPack=ElPackHomologue::FromFile(mAppli.Dir()+aLnk.NameH());
-   const ElPackHomologue & aPack=    aLnk.Pack() ; //   ElPackHomologue::FromFile(mAppli.Dir()+aLnk.NameH());
-   int aNbPts = aPack.size();
-   aLnk.NbPts() = aPack.size();
-
-   if (aNbPts < mAppli.MinNbPtH())
-      return false;
-
-   bool Ok;
-   double aQual;
-   cElHomographie  aHom12 = cElHomographie::RobustInit(&aQual,aPack,Ok,NB_RANSAC_H,90.0,1000);
-   // mLnk.push_back(cLink2Img(anI2,aNameH));
-
-   if (!Ok)
-     return false;
-
-   aLnk.Hom12() = aHom12;
-   aLnk.Qual() = aQual;
-
-   mSomQual += ElMin(aQual,mAppli.SeuilQual()) * aNbPts;
-   mSomNbPts += aNbPts;
-
-   return true;
-*/
-/*
-*/
 
 void cImagH::LoadComHomogr()
 {

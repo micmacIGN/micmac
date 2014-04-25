@@ -24,6 +24,7 @@
                     <IterationsCompensation> </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt> ${DoFoc} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberteFocale_1      </Val>
@@ -35,6 +36,7 @@
 
 
                     <IterationsCompensation>
+                       <DoIt> ${DoPPandCD} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLib_PP_CD_11      </Val>

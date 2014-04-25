@@ -669,16 +669,6 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
           aVDist.push_back(aDist);
        }
        
-/*
-	   #if __cplusplus <= 199711L
-			ELISE_ASSERT(aVDist.size()>0 ,"Empty vector: aVDist");	
-			SplitArrounKthValue(&aVDist.front(),aNbPts,aNbKth);	
-			double aSom = Moy(&aVDist.front(),aNbKth);
-	   #else
-			SplitArrounKthValue(aVDist.data(),aNbPts,aNbKth);
-			double aSom = Moy(aVDist.data(),aNbKth);
-	   #endif
-*/
        double aSom = MoyKPPVal(aVDist,aNbKth);
        
        aVD.push_back(aSom);
@@ -694,7 +684,7 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
    }
 
 
-   double aDMinInit = aDMIn;
+   // double aDMinInit = aDMIn;
    ElPackHomologue aPckPds;
    for (int anIterL2 = 0 ; anIterL2 < 4 ; anIterL2++)
    {
@@ -715,16 +705,6 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
        ELISE_ASSERT(aNbPtsTot==aPack.size() ,"KKKKK ????");
        int aKTh = round_ni(aNbPtsTot * (aPerc/100.0));
 
-/*
-	   #if __cplusplus <= 199711L
-			ELISE_ASSERT(aVDist.size()>0 ,"Empty vector: aVDist");
-			SplitArrounKthValue(&aVDist.front(),aNbPtsTot,aKTh);
-			aDMIn = Moy(&aVDist.front(),aKTh);
-	   #else
-			SplitArrounKthValue(aVDist.data(),aNbPtsTot,aKTh);
-			aDMIn = Moy(aVDist.data(),aKTh);
-	   #endif
-*/
        ELISE_ASSERT(int(aVDist.size())==aNbPtsTot,"Compat MoyKPPVal/SplitArrounKthValue");
        aDMIn = MoyKPPVal(aVDist,aKTh);
 
@@ -773,45 +753,7 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
        aVEstim.push_back(aSomDist);
    }
 
-/*
-   #if __cplusplus <= 199711L
-		ELISE_ASSERT(aVEstim.size()>0 ,"Empty vector: aVEstim");	
-		SplitArrounKthValue(&aVEstim.front(),aNbTestValid,aNbTestValid/2);		 
-   #else
-		SplitArrounKthValue(aVEstim.data(),aNbTestValid,aNbTestValid/2);
-   #endif
-
-   {
-       
-   }
-   std::cout << " CCCCCC " <<  KthVal(aVEstim,aNbTestValid/2) -  KthVal(aVEstim.data(),aNbTestValid,aNbTestValid/2) <<  " " << KthVal(aVEstim,aNbTestValid/2) - MedianeSup(aVEstim)    << "\n";
-   *aQuality = aVEstim[aNbTestValid/2];
-*/
-
    *aQuality  = MedianeSup(aVEstim);
-
-
-   if (0)
-   {
-      std::sort(aVD.begin(),aVD.end());
-      std::cout << "Quality " << *aQuality << " DIST-HOM " << aDMinInit << " L2 " <<  aDMIn << " V10 " << aVD[ElMin(int(aVD.size()-1),10)] << " NB "<< aNbPtsTot << "\n";
-   }
-
-/*
-
-   std::sort(aVD.begin(),aVD.end());
-   for (int aK=0 ; aK<10 ; aK++)
-       std::cout << "DDD " << aVD[aK] << "\n";
-   std::cout << " KMIN " << aKMIN <<  "\n";
-*/
-//    getchar();
-/*
-*/
-
-   // std::cout << "WAIIT::Robust:Hom:SOM \n";
-   // getchar();
-
-    
 
    Ok= true;
    return aRes;
