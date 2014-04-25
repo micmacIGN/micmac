@@ -52,12 +52,6 @@ OPTION(WITH_QT5 "compile Qt interfaces" OFF )
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
 
-# construire les interfaces de saisie basees sur Qt5
-OPTION(WITH_SAISIEQT "build graphic interface for point or mask capture" ON)
-
-# construire les interfaces automatiques
-OPTION(WITH_VISUALMODE "build Micmac visual mode" ON)
-
 #
 OPTION(WITH_MM3dSat "Graphical interface for MNS creation" OFF)
 
@@ -148,34 +142,14 @@ else()
    message( "OpenGL or GLU not available, Qt graphical tools disabled" )
 endif()
 
-if ( ${WITH_VISUALMODE} )
-   if ( NOT ${qt_version} EQUAL 0 )
+if ( NOT ${qt_version} EQUAL 0 )
       message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
-      set( WITH_SAISIEQT true )
-      add_definitions(-DVISUALMODE)
-   else()
-      message( STATUS "unable to find QT : visual mode (vTapas, etc.) disabled" )
-      set( WITH_VISUALMODE false )
-   endif()
 endif()
-
-if ( ${WITH_SAISIEQT} )
-   if ( NOT ${qt_version} EQUAL 0 )
-      add_definitions(-DSAISIE_QT)
-   else()
-      message( STATUS "unable to find QT : QT graphical tools disabled" )
-      set( WITH_SAISIEQT false )
-   endif()
-endif()
-
-
 
 if ( ${WITH_MM3dSat} )
    if ( NOT ${qt_version} EQUAL 0 )
-      message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
       add_definitions(-DMM3dSat)
    else()
-      message( STATUS "unable to find QT : QT graphical tools disabled" )
       set( WITH_MM3dSat false )
    endif()
 endif()

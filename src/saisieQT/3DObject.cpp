@@ -631,13 +631,13 @@ cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int sty
     _helper(new cPolygonHelper(this, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
+    _style(style),
     _pointDiameter(6.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
-    _bShowRefuted(true),
-    _style(style)
+    _bShowRefuted(true)
 {
     setColor(pointColor);
     setLineWidth(lineWidth);
@@ -652,13 +652,13 @@ cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
 cPolygon::cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineColor(lineColor),
     _idx(-1),
+    _style(style),
     _pointDiameter(6.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
-    _bShowRefuted(true),
-    _style(style)
+    _bShowRefuted(true)
 {
     if (!withHelper) _helper = NULL;
     cObject::setColor(pointColor);
@@ -675,38 +675,43 @@ void cPolygon::draw()
         _points[aK].draw();
     }
 
-    enableOptionLine();
-
-    if (_bShowLines)
+    if(isVisible())
     {
-        QColor color(isSelected() ? QColor(0,140,180) : _lineColor);
+        enableOptionLine();
 
-        glColor3f(color.redF(),color.greenF(),color.blueF());
-        glLineWidth(_lineWidth);
-
-        if(_style == LINE_STIPPLE)
+        if (_bShowLines)
         {
-            glLineStipple(2, 0xAAAA);
-            glEnable(GL_LINE_STIPPLE);
+            QColor color(isSelected() ? QColor(0,140,180) : _lineColor);
+
+            glColor3f(color.redF(),color.greenF(),color.blueF());
+            glLineWidth(_lineWidth);
+
+            if(_style == LINE_STIPPLE)
+            {
+                glLineStipple(2, 0xAAAA);
+                glEnable(GL_LINE_STIPPLE);
+            }
+
+            //draw segments
+            glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
+            for (int aK = 0;aK < _points.size(); ++aK)
+            {
+                QPointF aPt = _points[aK].scaledPt();
+                glVertex2f(aPt.x(), aPt.y());
+            }
+            glEnd();
+
+            if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
+
+            glColor3f(_color[state_default].redF(),_color[state_default].greenF(),_color[state_default].blueF());
         }
 
-        //draw segments
-        glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-        for (int aK = 0;aK < _points.size(); ++aK)
-        {
-            QPointF aPt = _points[aK].scaledPt();
-            glVertex2f(aPt.x(), aPt.y());
-        }
-        glEnd();
 
-        if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
 
-        glColor3f(_color[state_default].redF(),_color[state_default].greenF(),_color[state_default].blueF());
+        disableOptionLine();
     }
 
     if(helper() != NULL)  helper()->draw();
-
-    disableOptionLine();
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -848,8 +853,10 @@ void cPolygon::add(cPoint &pt)
 void cPolygon::add(const QPointF &pt, bool selected)
 {
     cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
+
     cPt.setDiameter(_pointDiameter);
     cPt.drawCenter(!isLinear());
+
     _points.push_back(cPt);
 }
 
@@ -861,6 +868,7 @@ void cPolygon::addPoint(const QPointF &pt)
 
         cPt.setDiameter(_pointDiameter);
         cPt.drawCenter(!isLinear());
+
         _points[size()-1] = cPoint(cPt);
     }
 
@@ -929,6 +937,7 @@ void cPolygon::setVector(const QVector<QPointF> &aPts)
 
 void cPolygon::setPointSelected()
 {
+    cout << "**** selecting point " << _idx << endl;
     _bSelectedPoint = true;
 
     if (pointValid())
@@ -941,6 +950,7 @@ void cPolygon::resetSelectedPoint()
 
     if (pointValid())
         _points[_idx].setSelected(false);
+
     _idx = -1;
 }
 
@@ -1013,7 +1023,7 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
     return false;
 }
 
-void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
+void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible)
 {
     int nbVertex = size();
 
@@ -1031,15 +1041,18 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom)
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
-        if ( insertMode || isPointSelected()) // insert polygon point
+        if ( insertMode || isPointSelected()) // insert or move polygon point
         {
             cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
+            if (!ptIsVisible) pt.setVisible(false);
 
             _helper->build(pt, insertMode);
         }
         else                                 // select nearest polygon point
-
+        {
+            cout << "find nearest point" << endl;
             findNearestPoint(pos, _selectionRadius / zoom);
+        }
     }
 }
 
@@ -1050,6 +1063,8 @@ int cPolygon::finalMovePoint()
     if ((_idx>=0) && _helper->size())   // after point move
     {
         int state = _points[_idx].statePoint();
+
+        printf("idx = %d\n",_idx);
 
         _points[_idx] = (*_helper)[1];
         _points[_idx].setColor(_color[state_default]); // reset color to polygon color
@@ -1217,7 +1232,7 @@ void cPolygonHelper::build(cPoint const &pos, bool insertMode)
     if (insertMode)
     {
         float dist, dist2 = FLT_MAX;
-        int idx  = -1;
+        int idx = -1;
         for (int aK =0; aK < sz; ++aK)
         {
             dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%sz], pos);
@@ -1254,6 +1269,71 @@ void cPolygonHelper::setPoints(cPoint p1, cPoint p2, cPoint p3)
     add(p1);
     add(p2);
     add(p3);
+}
+
+//********************************************************************************
+
+cRectangle::cRectangle(float lineWidth, QColor lineColor, int style) :
+    cPolygon(lineWidth, lineColor)
+{
+    _style = style;
+
+    _helper->setStyle(LINE_NOSTIPPLE);
+    _helper->setLineColor(lineColor);
+
+    setLineWidth(lineWidth);
+
+
+}
+
+void cRectangle::addPoint(const QPointF &pt)
+{
+    if (size() == 0)
+    {
+        for (int aK=0; aK <4; aK++)
+        {
+            add(pt);
+            _points[aK].setName(QString::number(aK));
+            _points[aK].showName(true);
+        }
+
+        selectPoint(2);
+    }
+}
+
+void cRectangle::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible)
+{
+    if (size())
+    {
+        if(isPointSelected())
+        {
+            setVisible(false);
+
+            _points[1].setX(pos.x());
+            _points[1].setY(_points[0].y());
+
+            _points[3].setX(_points[0].x());
+            _points[3].setY(pos.y());
+
+            setClosed(true);
+            showLines(true);
+
+            cPolygon::refreshHelper(pos, false, zoom, false);
+
+            this->showNames(true);
+            helper()->showNames(true);
+        }
+        else
+            setVisible(true);
+    }
+}
+
+void cRectangle::draw()
+{
+    /*for (int aK= 0; aK < size(); ++aK)
+        _points[aK].setVisible(false);*/
+
+    cPolygon::draw();
 }
 
 //********************************************************************************
@@ -1469,10 +1549,13 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
 {
     initOptions();
 
-    polygon()->showLines(!modePt);
-    polygon()->showNames(modePt);
+    for (int aK=0; aK < _vPolygons.size(); ++aK)
+    {
+        polygon(aK)->showLines(!modePt);
+        polygon(aK)->showNames(modePt);
 
-    polygon()->setDefaultName(ptName);
+        polygon(aK)->setDefaultName(ptName);
+    }
 }
 
 
@@ -1489,8 +1572,11 @@ cGLData::cGLData(cData *data, bool modePt):
 
     setData(data);
 
-    polygon()->showLines(!modePt);
-    polygon()->showNames(modePt);
+    for (int aK=0; aK < _vPolygons.size(); ++aK)
+    {
+        polygon(aK)->showLines(!modePt);
+        polygon(aK)->showNames(modePt);
+    }
 }
 
 void cGLData::setData(cData *data, bool setCam)
@@ -1551,6 +1637,14 @@ cPolygon *cGLData::polygon(int id)
         return NULL;
 }
 
+cPolygon *cGLData::currentPolygon()
+{
+    if (_currentPolygon < (int) _vPolygons.size())
+        return _vPolygons[_currentPolygon];
+    else
+        return NULL;
+}
+
 GlCloud* cGLData::getCloud(int iC)
 {
     return _vClouds[iC];
@@ -1574,6 +1668,8 @@ int cGLData::polygonCount()
 void cGLData::initOptions()
 {
     _vPolygons.push_back(new cPolygon());
+    _vPolygons.push_back(new cRectangle());
+    _currentPolygon = 0;
     _options = options(OpShow_Mess);
 }
 
@@ -2001,3 +2097,4 @@ void cGrid::draw()
         glEnd();
     }
 }
+

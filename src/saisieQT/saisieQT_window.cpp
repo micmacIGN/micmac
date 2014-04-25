@@ -269,7 +269,7 @@ void SaisieQtWindow::on_actionShow_names_toggled(bool show)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            getWidget(aK)->getGLData()->polygon()->showNames(show);
+            getWidget(aK)->getGLData()->currentPolygon()->showNames(show);
             getWidget(aK)->update();
         }
     }
@@ -281,7 +281,7 @@ void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            getWidget(aK)->getGLData()->polygon()->showRefuted(show);
+            getWidget(aK)->getGLData()->currentPolygon()->showRefuted(show);
             getWidget(aK)->update();
         }
     }
@@ -894,6 +894,14 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
             threeDWidget()->resetView(false,false,false,true);
             option3DPreview();
         }
+    }
+}
+
+void SaisieQtWindow::setCurrentPolygonIndex(int idx)
+{
+    for (int aK = 0; aK < getEngine()->nbGLData(); ++aK)
+    {
+        _Engine->getGLData(aK)->setCurrentPolygonIndex(idx);
     }
 }
 
