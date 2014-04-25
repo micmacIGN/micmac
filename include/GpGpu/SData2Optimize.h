@@ -29,12 +29,16 @@ struct p_ReadLine
     const ushort    itid;
     short2 prev_Dz;
     ushort pente;
+    float  ZRegul;
+    float  ZRegul_Quad;
 
-    __device__ p_ReadLine(ushort t,ushort ipente):
+    __device__ p_ReadLine(ushort t,ushort ipente,float zReg,float zRegQuad):
         Id_Buf(false),
         tid(t),
         itid(WARPSIZE - t - 1),
-        pente(ipente)
+        pente(ipente),
+        ZRegul(zReg),
+        ZRegul_Quad(zRegQuad)
     {
         line.id = 0;
         seg.id  = 1;
@@ -143,6 +147,12 @@ public:
 
     void        setDzMax(const ushort &m_DzMax);
 
+    float       zReg() const;
+    void        setZReg(float zReg);
+
+    float       zRegQuad() const;
+    void        setZRegQuad(float zRegQuad);
+
 private:
 
     U<uint3>     _param[NBUFFER];
@@ -153,6 +163,9 @@ private:
     uint         _nbLines;
     bool         _idBuffer;
     ushort       _penteMax;
+    float        _zReg;
+    float        _zRegQuad;
+
     ushort       _m_DzMax;
 };
 
@@ -319,13 +332,36 @@ U<uint> &Data2Optimiz<U,NBUFFER>::s_ForceCostVol(ushort i)
 TEMPLATE_D2OPTI
 ushort Data2Optimiz<U,NBUFFER>::DzMax() const
 {
-return _m_DzMax;
+    return _m_DzMax;
 }
 TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::setDzMax(const ushort &m_DzMax)
 {
-_m_DzMax = m_DzMax;
+    _m_DzMax = m_DzMax;
 }
+TEMPLATE_D2OPTI
+float Data2Optimiz<U,NBUFFER>::zReg() const
+{
+    return _zReg;
+}
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::setZReg(float zReg)
+{
+    _zReg = zReg;
+}
+TEMPLATE_D2OPTI
+float Data2Optimiz<U,NBUFFER>::zRegQuad() const
+{
+    return _zRegQuad;
+}
+
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::setZRegQuad(float zRegQuad)
+{
+    _zRegQuad = zRegQuad;
+}
+
+
 
 
 
