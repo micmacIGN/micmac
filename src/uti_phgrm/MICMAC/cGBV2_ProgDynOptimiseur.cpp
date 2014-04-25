@@ -606,7 +606,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
     ushort aPenteMax = (ushort)mEtape.EtapeMEC().ModulationProgDyn().Val().Px1PenteMax().Val();
 
-    IGpuOpt.Prepare(mSz.x,mSz.y,aPenteMax,aNbDir);
+    IGpuOpt.Prepare(mSz.x,mSz.y,aPenteMax,aNbDir,mCostRegul[0],mCostRegul[1]);
 
     int     aKDir       = 0;
     int     aKPreDir    = 0;
@@ -614,7 +614,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
     IGpuOpt.SetCompute(true);
 
-    GpGpuTools::OutputInfoGpuMemory();
+    //GpGpuTools::OutputInfoGpuMemory();
 
     while (aKDir < aNbDir)
     {
@@ -717,6 +717,8 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
     mCostRegul[0] = aRegul;
     mCostRegul[1] = 0;
+
+    //printf("mCostRegul %f-----------------\n",mCostRegul[0]);
 
     mCostRegul_Quad[0] = aRegul_Quad;
     mCostRegul_Quad[1] = 0 ;

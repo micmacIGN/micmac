@@ -321,6 +321,8 @@ void ReadLine_V02(
 
     bool lined = p.line.id < p.line.lenght;
 
+    const int regulZ  = (int)((float)1000.f*p.ZRegul);
+
     while(lined)
     {
         while(p.seg.id < p.seg.lenght)
@@ -352,9 +354,7 @@ void ReadLine_V02(
                 ConeZ.y = min(sizeBuffer - pitPrZ,ConeZ.y );
 
                 for (short i = ConeZ.x; i <= ConeZ.y; ++i)
-//a finaliser
-//                    fCostMin = min(fCostMin, costInit + prevFCost[i]);
-                    fCostMin = min(fCostMin, costInit + prevFCost[i] + abs((int)i)*1000);
+                    fCostMin = min(fCostMin, costInit + prevFCost[i] + abs((int)i)*regulZ);
 
                 const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
                 bool inside = tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < sizeBuffer && tZ < sizeBuffer;
@@ -404,7 +404,7 @@ void ReadLine_V02(
 }
 
 template<class T> __global__
-void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax, ushort sizeBuffer)
+void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrParam, uint penteMax, float zReg,float zRegQuad, ushort sizeBuffer)
 {
 
     extern __shared__ float sharedMemory[];
@@ -425,7 +425,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 //    __shared__ uint     pit_Stream;
 
 
-    p_ReadLine p(threadIdx.x,penteMax);
+    p_ReadLine p(threadIdx.x,penteMax,zReg,zRegQuad);
 
     uint*    S_BuffFCost[2] = {S_BuffFCost0 + WARPSIZE,S_BuffFCost1 + WARPSIZE};
     ushort*  S_BuffICost    = S_BuffICost0 + WARPSIZE + p.tid;
@@ -489,7 +489,13 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint3* g_RecStrPar
 
 extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
 {
-    uint deltaMax = d2O.penteMax();
+    uint deltaMax   = d2O.penteMax();
+    float zReg      = (float)d2O.zReg();
+    float zRegQuad  = d2O.zRegQuad();
+
+//    DUMP_FLOAT(zReg);
+//    DUMP_FLOAT(zRegQuad);
+
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O.NBlines(),1,1);
 
@@ -513,6 +519,8 @@ extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
                                                            d2O.pForceCostVol(),
                                                            d2O.pParam(),
                                                            deltaMax,
+                                                           zReg,
+                                                           zRegQuad,
                                                            sizeBuff
                                                            );
 

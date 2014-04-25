@@ -164,7 +164,7 @@ public:
     ///
     //void            Prepare(uint x,uint y);
 
-    void            Prepare(uint x,uint y,ushort penteMax, ushort NBDir);
+    void            Prepare(uint x, uint y, ushort penteMax, ushort NBDir, float zReg, float zRegQuad);
 
     ///
     /// \brief freezeCompute

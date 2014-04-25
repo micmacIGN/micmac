@@ -44,6 +44,7 @@ typedef unsigned char pixel;
 #define DUMP_INT2(varname) printf("%s = [%d,%d]\n", #varname, varname.x,varname.y);
 #define DUMP_INT(varname) printf("%s = %d\n", #varname, varname);
 #define DUMP_FLOAT2(varname) printf("%s = [%f,%f]\n", #varname, varname.x,varname.y);
+#define DUMP_FLOAT(varname) printf("%s = %f\n", #varname, varname);
 #define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
 #define DUMP_LINE printf("-----------------------------------\n");
 
