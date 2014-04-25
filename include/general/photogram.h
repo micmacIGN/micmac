@@ -319,6 +319,7 @@ class cPackNupletsHom
 };
 
 
+typedef std::pair<Pt2dr,Pt2dr> tPairPt;
 
 class ElPackHomologue : public cPackNupletsHom
 {
@@ -420,10 +421,13 @@ class ElPackHomologue : public cPackNupletsHom
                        INT &                NbP2
                   );
 
+             tPairPt  PMed() const;
+
              // Si tous les points sont coplanaires, ou presque,
              //  la mise en place par l'algo standard est degenere,
              // on choisit donc un algo ad hoc
               cResMepRelCoplan   MepRelCoplan (REAL LongBase,bool HomEstL2);
+              cResMepRelCoplan   MepRelCoplan (REAL LongBase,cElHomographie,const tPairPt & Centre);
 
               // s'adapte a xml, tif , dat
 	      static ElPackHomologue   FromFile(const std::string &);
@@ -2481,6 +2485,8 @@ class cElemMepRelCoplan
              bool PhysOk() const;
              void Show() const;
              REAL AngTot() const;
+             REAL Ang1() const;
+             REAL Ang2() const;
              const ElRotation3D & Rot() const;
 
              double TestSol() const;
@@ -2507,12 +2513,14 @@ class cElemMepRelCoplan
 	     const Pt3dr & P0() const;
 	     const Pt3dr & P1() const;
 	     const Pt3dr & P2() const;
+
+             Pt3dr ToR1(Pt3dr aP2) const;
+
         private :
 
                 // Point du plan, ayant P2 comme image  par cam2
                 // (en coord camera 1)
              Pt3dr ImCam2(Pt2dr aP2);
-             Pt3dr ToR1(Pt3dr aP1) const;
 
              REAL AngleNormale(Pt3dr);
 

@@ -46,6 +46,11 @@
 
 
                <Symb>  DegRadMax=12 </Symb>
+               <Symb>  DoPP=true    </Symb>
+               <Symb>  DoCD=true    </Symb>
+               <Symb>  DoFoc=true   </Symb>
+
+
 
                <eSymb>  DoDR1=  SupEq ${DegRadMax} 1 </eSymb>
                <eSymb>  DoDR2=  SupEq ${DegRadMax} 2 </eSymb>
@@ -57,6 +62,9 @@
                <eSymb>  DoDR8=  SupEq ${DegRadMax} 8 </eSymb>
                <eSymb>  DoDR9=  SupEq ${DegRadMax} 9 </eSymb>
                <eSymb>  DoDR10=  SupEq ${DegRadMax} 10 </eSymb>
+               <eSymb>  DoPPorCD= Or ${DoPP} ${DoCD}  </eSymb>
+               <eSymb>  DoPPandCD= And  ${DoPP} ${DoCD}  </eSymb>
+
 
 
        </DicoLoc>

@@ -46,33 +46,98 @@ cXmlRHHResLnk  ComputeHomographie
                (
                   const std::string & aName,
                   const std::string & aNameCal1,
-                  const std::string & aNameCal2
+                  const std::string & aNameCal2,
+                  const std::string & aNameVerif1,
+                  const std::string & aNameVerif2
                )
 {
   cXmlRHHResLnk  aRes;
 
   ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
-  
-  CamStenope *  aCam1 = CamOrientGenFromFile(aNameCal1,0);
-  CamStenope *  aCam2 = CamOrientGenFromFile(aNameCal2,0);
- 
-  for 
-  (
-      ElPackHomologue::iterator itH=aPack.begin();
-      itH !=  aPack.end();
-      itH++
-  )
+
+  if (aNameVerif1 != "")
   {
-      itH->P1() =  aCam1->F2toPtDirRayonL3(itH->P1());
-      itH->P2() =  aCam2->F2toPtDirRayonL3(itH->P2());
+      ElPackHomologue aNewPack;
+      CamStenope *  aCam1 = CamOrientGenFromFile(aNameVerif1,0);
+      CamStenope *  aCam2 = CamOrientGenFromFile(aNameVerif2,0);
+      for 
+      (
+          ElPackHomologue::iterator itH=aPack.begin();
+          itH !=  aPack.end();
+          itH++
+      )
+      {
+          Pt3dr  aPTer = aCam1->PseudoInter(itH->P1(),*aCam2,itH->P2());
+          aPTer.z = 0;
+          Pt2dr aP1 = aCam1->R3toF2(aPTer);
+          Pt2dr aP2 = aCam2->R3toF2(aPTer);
+          if ( aCam1->IsInZoneUtile(aP1)  && aCam2->IsInZoneUtile(aP2))
+          {
+              aNewPack.Cple_Add(ElCplePtsHomologues(aP1,aP2));
+          }
+
+      }
+
+      // std::cout << "SZZZ-VERIF " << aPack.size() << " => " << aNewPack.size() << "\n";
+
+      aPack = aNewPack;
   }
 
 
 
+
+  CamStenope *  aCam1 = CamOrientGenFromFile(aNameCal1,0);
+  CamStenope *  aCam2 = CamOrientGenFromFile(aNameCal2,0);
+
+  // On laisse, au cas ou l'on reveuille tester
+  bool 	aCorCam = true;
+  ELISE_ASSERT(aCorCam,"Cor cam mandatory");
+ 
+
+  if (aCorCam)
+  {
+      for 
+      (
+          ElPackHomologue::iterator itH=aPack.begin();
+          itH !=  aPack.end();
+          itH++
+      )
+      {
+          itH->P1() =  aCam1->F2toPtDirRayonL3(itH->P1());
+          itH->P2() =  aCam2->F2toPtDirRayonL3(itH->P2());
+      }
+  }
+
+
   cElHomographie   aHom = cElHomographie::RobustInit(&(aRes.Qual()),aPack,aRes.Ok(),NB_RANSAC_H,90.0,1000);
+  if (aCorCam)
+  {
+      aRes.Qual() *=  aCam2->Focale();
+  }
+
+
 
   if (aRes.Ok())
   {
+
+
+     std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
+
+     cResMepRelCoplan aRCP = aPack.MepRelCoplan(1,aHom,aPair);
+
+     const std::vector<cElemMepRelCoplan> & aVSol = aRCP.VElOk();
+
+     std::cout <<   aName << " ANGLES : ";
+     for (int aK=0 ; aK<int(aVSol.size()) ; aK++)
+     {
+        std::cout  << aPack.size() << " ";
+        std::cout  <<  aRes.Qual() << " ";
+        std::cout  << aVSol[aK].Norm() << " ## ";
+        // std::cout  << aVSol[aK].TestSol() << " ";
+     }
+     std::cout << " \n";
+
+
      aRes.Hom12() = aHom.ToXml();
   }
 
@@ -101,7 +166,7 @@ int RHHComputHom_main(int argc,char ** argv)
    );
 
 
-   cXmlRHHResLnk aXmlLnk = ComputeHomographie(aNameHom,aNameCal1,aNameCal2);
+   cXmlRHHResLnk aXmlLnk = ComputeHomographie(aNameHom,aNameCal1,aNameCal2,"","");
 
    MakeFileXML(aXmlLnk,aNameRes);
 
@@ -187,7 +252,14 @@ void  cLink2Img::LoadHomographie(bool ExigOk)
      LoadPack();
      if (!mHomLoaded) 
      {
-        cXmlRHHResLnk 	aXml = ComputeHomographie(NameHomol(),mSrce->NameCalib(),mDest->NameCalib());
+        cXmlRHHResLnk 	aXml = ComputeHomographie
+                               (
+                                    NameHomol(),
+                                    mSrce->NameCalib(),
+                                    mDest->NameCalib(),
+                                    mSrce->NameVerif(),
+                                    mDest->NameVerif()
+                               );
         LoadXmlHom(aXml);
      }
        
@@ -359,6 +431,7 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mAppli    (anAppli),
    mName     (aName),
    mNameCalib (mAppli.NameCalib(mName)),
+   mNameVerif (mAppli.NameVerif(mName)),
    mNum      (aNum),
    mNumTmp   (-1),
    mSomQual  (0),
@@ -368,7 +441,7 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName))
 {
 
-   std::cout << "NCCC " << mNameCalib << "\n";
+   std::cout << "NCCC " << mNameCalib << " [" << mNameVerif<< "]\n";
 }
 
    //============ FONCTION DE GRAPHE IMAGE =========================
@@ -422,6 +495,11 @@ const std::string & cImagH::Name() const
 const std::string & cImagH::NameCalib() const
 {
   return mNameCalib;
+}
+
+const std::string & cImagH::NameVerif() const
+{
+  return mNameVerif;
 }
 
 void cImagH::AddOnePtToExistingH(cPtHom * aH1,const Pt2dr & aP1,cImagH * aI2,const Pt2dr & aP2)

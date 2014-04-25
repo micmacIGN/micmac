@@ -267,6 +267,10 @@ int Tapas_main(int argc,char ** argv)
 
     int  aDRadMaxUser = -1;
 
+    bool aDoPP=true;
+    bool aDoCD=true;
+    bool aDoFoc=true;
+
     ElInitArgMain
     (
         argc,argv,
@@ -289,8 +293,11 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ")
                     << EAM(Debug,"Debug",true,"Partial file for debug", eSAM_IsBool)
                     << EAM(aDRadMaxUser,"DegRadMax",true,"Max degree of radial, defaut dependant of model")
-                    << EAM(LibAff,"LibAff",true,"Do some stuff", eSAM_IsBool)
-                    << EAM(LibDec,"LibDec",true,"Do some stuff", eSAM_IsBool)
+                    << EAM(LibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
+                    << EAM(LibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
+                    << EAM(aDoPP,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
+                    << EAM(aDoCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
+                    << EAM(aDoFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
                     << EAM(aRapTxt,"RapTxt",true)
                     << EAM(TolLPPCD,"LinkPPaPPs",true)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
@@ -365,6 +372,15 @@ int Tapas_main(int argc,char ** argv)
                        + std::string(" +ValAff=") + (LibAff ?"eLiberte_Phgr_Std_Aff" : "eFige_Phgr_Std_Aff")
 
                     ;
+
+    if (EAMIsInit(&aDoPP))
+       aCom = aCom + std::string(" +DoPP=") + ToString(aDoPP) + std::string(" ");
+    if (EAMIsInit(&aDoCD))
+       aCom = aCom + std::string(" +DoCD=") + ToString(aDoCD) + std::string(" ");
+    if (EAMIsInit(&aDoFoc))
+       aCom = aCom + std::string(" +DoFoc=") + ToString(aDoFoc) + std::string(" ");
+
+
 
     if (EAMIsInit(&aDRadMaxUser))
        aDegRadMax = aDRadMaxUser;

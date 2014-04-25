@@ -88,9 +88,12 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mRatioQualMoy,"RatioQualMoy",true,"Ratio to validate / average qual (def=4.0)")
                     << EAM(aIntNivShow,"Show",true,"Level of Show (0=None, Def= 1)")
                     << EAM(mHomByParal,"HbP",true,"Compute Homography in // (Def=true)")
+                    << EAM(mOriVerif,"Verif",true,"Compute Homography in // (Def=true)")
     );
 
     mKeyOri = "NKS-Assoc-FromFocMm@Ori-" + mOri +"/AutoCal@" + ".xml";
+    if (EAMIsInit(&mOriVerif))
+       mKeyVerif = "NKS-Assoc-Im2Orient@-" + mOriVerif;
 
     mNivShow = (eNivShow) aIntNivShow;
     if (Show(eShowGlob))
@@ -141,6 +144,14 @@ std::string cAppliReduc::NameCalib(const std::string & aNameIm) const
 {
    return mDir+ mICNM->Assoc1To1(mKeyOri,aNameIm,true);
 }
+
+
+std::string cAppliReduc::NameVerif(const std::string & aNameIm) const
+{
+   return  (mKeyVerif== "") ? ""  : mDir+ mICNM->Assoc1To1(mKeyVerif,aNameIm,true);
+}
+
+
 
 bool cAppliReduc::Show(eNivShow aLevel) const
 {
