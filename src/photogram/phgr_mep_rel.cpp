@@ -499,6 +499,25 @@ cElemMepRelCoplan::cElemMepRelCoplan
   mDEuclidP    (ElAbs(scal(mNorm,mP0)))
 {
 
+     // VERIF 
+/*
+     if (1)
+     {
+          for (int aK=0; aK<10 ; aK++)
+          {
+              Pt2dr aI = ImCam1(aP1);
+              // std::cout << "AAAAAAAAAAAAAaa\n";
+              cElPlan3D aPl(mP0,mP1,mP2);
+
+              Pt3dr aQ1 = aPl.Inter(S1);
+              Pt3dr aQ2 = aPl.Inter(S2);
+
+              double aDist = euclid(aI-aQ1) + euclid(aI-aQ2);
+              std::cout << "BBBBBB " << aDist << "\n";
+          }
+     }
+*/
+
 }
 
 void cElemMepRelCoplan::TestPack(const ElPackHomologue & aPack) const
@@ -523,9 +542,9 @@ void cElemMepRelCoplan::TestPack(const ElPackHomologue & aPack) const
           Pt3dr   aI1 = S1.PseudoInter(S2);
           Pt3dr   aI2 = mRot.ImAff(aI1);
 
-           aNbTot++;
-           aNbPos1 += aI1.z > 0 ;
-           aNbPos2 += aI2.z > 0 ;
+          aNbTot++;
+          aNbPos1 += aI1.z > 0 ;
+          aNbPos2 += aI2.z > 0 ;
     }
 
     std::cout << "Test pack " << aNbTot << " Pt1 " << aNbPos1 << "  Pt2 " << aNbPos2 << "\n";
@@ -571,6 +590,8 @@ bool cElemMepRelCoplan::PhysOk() const
 }
 
 REAL  cElemMepRelCoplan::AngTot() const {return mAngTot;}
+REAL  cElemMepRelCoplan::Ang1() const {return mAng1;}
+REAL  cElemMepRelCoplan::Ang2() const {return mAng2;}
 
 const ElRotation3D & cElemMepRelCoplan::Rot() const {return mRot;}
 
@@ -618,22 +639,21 @@ static REAL SetDiff(REAL V1,REAL V2,REAL U1,REAL U2)
 	     + ElAbs(ElMin(V1,V2)-(ElMin(U1,U2)));
 }
 
-
 cResMepRelCoplan ElPackHomologue::MepRelCoplan(REAL LBase,bool HomEstL2)
 {
+    static tPairPt aP00(Pt2dr(0,0),Pt2dr(0,0));
+
+    return MepRelCoplan(LBase,cElHomographie(*this,HomEstL2),aP00);
+}
+
+
+cResMepRelCoplan ElPackHomologue::MepRelCoplan(REAL LBase,cElHomographie aHom12,const tPairPt & aP00)
+{
    cResMepRelCoplan aRes;
-   cElHomographie aHom12(*this,HomEstL2);
+   //  cElHomographie aHom12(*this,HomEstL2);
    cElHomographie aHom21 = aHom12.Inverse();
    ElMatrix<REAL>  aMHom = aHom21.MatCoordHom();
 
-/*
-   if (BUG) 
-   {
-      std::cout << "ElPackHomologue::MepRelCoplan " << size() << "\n";
-      aHom12.Show();
-      // ShowMatr("xyzstoto",aMHom);
-   }
-*/
 
    ElMatrix<REAL> aSvdInit1(3,3),aDiagInit(3,3),aSvdInit2(3,3);
    svdcmp_diag(aMHom,aSvdInit1,aDiagInit,aSvdInit2,true);

@@ -2,6 +2,7 @@
                    <IterationsCompensation> </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt> ${DoDR1} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR1      </Val>
@@ -12,6 +13,7 @@
                     <IterationsCompensation> </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt> ${DoDR2} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR2      </Val>
@@ -22,6 +24,7 @@
                     <IterationsCompensation> </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt> ${DoFoc} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberteFocale_1      </Val>
@@ -33,6 +36,7 @@
                     <IterationsCompensation> </IterationsCompensation>
 
                     <IterationsCompensation>
+                       <DoIt> ${DoDR3} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLiberte_DR3      </Val>
@@ -45,6 +49,7 @@
 
 
                     <IterationsCompensation>
+                       <DoIt> ${DoPPorCD} </DoIt>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eLib_PP_CD_11      </Val>

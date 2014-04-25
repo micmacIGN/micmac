@@ -95,6 +95,8 @@ static double FEq(const std::vector<double> & aV) { return aV[0]==aV[1]; }
 static double FNotEq(const std::vector<double> & aV) { return aV[0]!=aV[1]; }
     
 static double FSom(const std::vector<double> & aV) { return aV[0]+aV[1]; }
+static double FOr(const std::vector<double> & aV) { return (aV[0]!=0)||(aV[1]!=0); }
+static double FAnd(const std::vector<double> & aV) { return (aV[0]!=0)&&(aV[1]!=0); }
 static double FMul(const std::vector<double> & aV) { return aV[0]*aV[1]; }
 static double FInfEq(const std::vector<double> & aV) { return aV[0]<=aV[1]; }
 static double FSupEq(const std::vector<double> & aV) { return aV[0]>=aV[1]; }
@@ -114,6 +116,8 @@ const std::vector<cOpPolI> & OpPolI()
    if (aRes.empty())
    {
        aRes.push_back(cOpPolI(2,"+",FSom));
+       aRes.push_back(cOpPolI(2,"Or",FOr));
+       aRes.push_back(cOpPolI(2,"And",FAnd));
        aRes.push_back(cOpPolI(2,"*",FMul));
        aRes.push_back(cOpPolI(2,"InfEq",FInfEq));
        aRes.push_back(cOpPolI(2,"SupEq",FSupEq));

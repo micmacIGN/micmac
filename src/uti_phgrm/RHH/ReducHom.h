@@ -273,6 +273,7 @@ class cImagH
          void AddLink(cImagH *,const std::string & aNameH);
          const std::string & Name() const;
          const std::string & NameCalib() const;
+         const std::string & NameVerif() const;
 
          void ComputePts();
 
@@ -315,6 +316,7 @@ class cImagH
          tMapName2Link                  mLnks;
          std::string                mName;
          std::string                mNameCalib;
+         std::string                mNameVerif;
          int                        mNum;
          int                        mNumTmp;
          double                     mSomQual;
@@ -385,6 +387,7 @@ class cAppliReduc
          void ComputePts();
          void ComputeHom();
          std::string NameCalib(const std::string & aNameIm) const;
+         std::string NameVerif(const std::string & aNameIm) const;
 
      private :
 
@@ -397,7 +400,9 @@ class cAppliReduc
          std::string  mDir;
          std::string  mFullName;
          std::string  mOri;
+         std::string  mOriVerif;
          std::string  mKeyOri;
+         std::string  mKeyVerif;
 
          bool         mImportTxt;
          bool         mExportTxt;
