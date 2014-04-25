@@ -81,7 +81,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool re
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
-        _contextMenu.setPolygon( m_GLData->polygon() );
+        _contextMenu.setPolygon( m_GLData->currentPolygon() );
 
         resetView(doZoom, showMessage, true, resetPoly);
     }
@@ -96,7 +96,7 @@ void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2
 
     if (pt1 != QPointF(0.f,0.f)) point.setEpipolar(pt1, pt2);
 
-    getGLData()->polygon()->add(point);
+    getGLData()->currentPolygon()->add(point);
 }
 
 void GLWidget::setTranslation(Pt3d<double> trans)
@@ -375,7 +375,7 @@ void GLWidget::applyInfos()
         {
             selectInfos &infos = vInfos[aK];
 
-            m_GLData->setPolygon(new cPolygon(infos.poly, true));
+            m_GLData->setPolygon(0, new cPolygon(infos.poly, true));
 
             if (!m_bDisplayMode2D)
 
@@ -449,7 +449,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
 
     m_lastClickZoom = event->pos();
 
-#if ELISE_QT_VERSION==5
+#if ELISE_QT_VERSION == 5
     setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 70.0f ));
 #else
     setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 70.0f ));
@@ -510,13 +510,17 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton && hasDataLoaded())
     {
+
         int idMovePoint = polygon()->finalMovePoint(); //ne pas factoriser
 
         polygon()->findNearestPoint(m_lastPosImage);
 
+        cout << "point found: " << polygon()->getSelectedPointIndex()<<endl;
+
         update();
 
         emit movePoint(idMovePoint);
+
     }
 }
 
@@ -554,7 +558,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
 
                 if(id != polygon()->getSelectedPointIndex())
+
                     emit selectPoint(polygon()->getSelectedPointIndex());
+
             }
         }
 
@@ -744,7 +750,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                emit removePoint(eEPI_Disparu, m_GLData->polygon()->getSelectedPointIndex());
+                emit removePoint(eEPI_Disparu, m_GLData->currentPolygon()->getSelectedPointIndex());
                 polygon()->removeSelectedPoint();
                 break;
             case Qt::Key_Escape:

@@ -66,32 +66,37 @@ int MakeGrid_main(int argc,char ** argv)
                     << EAM(AeroOut,"Out",true)
     );
 
-    if (AeroOut=="")
-       AeroOut = "Grid-"+AeroIn;
+    if (!MMVisualMode)
+    {
+        if (AeroOut=="")
+           AeroOut = "Grid-"+AeroIn;
+
+        #if (ELISE_windows)
+            replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+        #endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
+
 
     #if (ELISE_windows)
-        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+        std::string aCom =     MMDir() + std::string("bin\\Apero ")
+    #else
+        std::string aCom =     MMDir() + std::string("bin/Apero ")
     #endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
+                           +  MMDir() + std::string("include/XML_MicMac/AperoGrid.xml ")
+                           + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
+                           + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
+                           + std::string(" +AeroOut=-") + AeroOut
+                           + std::string(" +AeroIn=-") + AeroIn
+                        ;
+
+       std::cout << "Com = " << aCom << "\n";
+       int aRes = system_call(aCom.c_str());
 
 
-#if (ELISE_windows)
-    std::string aCom =     MMDir() + std::string("bin\\Apero ")
-#else
-    std::string aCom =     MMDir() + std::string("bin/Apero ")
-#endif
-                       +  MMDir() + std::string("include/XML_MicMac/AperoGrid.xml ")
-                       + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
-                       + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
-                       + std::string(" +AeroOut=-") + AeroOut
-                       + std::string(" +AeroIn=-") + AeroIn
-                    ;
-
-   std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
-
-
-   return aRes;
+       return aRes;
+    }
+    else
+        return EXIT_FAILURE;
 }
 
 

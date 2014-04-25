@@ -1,6 +1,6 @@
 #include "general/visual_mainwindow.h"
 
-#if(ELISE_QT_VERSION >= 4)
+#if (ELISE_QT_VERSION >= 4)
 
 // aVAM: Mandatory args
 // aVAO: Optional args
@@ -285,12 +285,12 @@ void visual_MainWindow::onRunCommandPressed()
     if (runCom)
     {
         cout << "VisualMM - Com = " << aCom << endl;
-		hide();
+        hide();
 
         ::System(aCom);
 
         QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
-		QApplication::exit();
+        QApplication::exit();
     }
     else
     {
@@ -358,6 +358,28 @@ void visual_MainWindow::onSelectDirPressed(int aK)
         vLineEdit[aK]->setText(QDir(aDir).dirName());
 
         adjustSize();
+    }
+}
+
+void visual_MainWindow::onSaisieButtonPressed(int aK)
+{
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), mlastDir);
+
+    if (filename != NULL)
+    {
+        string aDir, aNameFile;
+        SplitDirAndFile(aDir,aNameFile,filename.toStdString());
+        mlastDir = QString(aDir.c_str());
+
+        _SaisieWin->resize(800,600);
+        _SaisieWin->move(200,200);
+        _SaisieWin->show();
+
+        QStringList aFiles;
+        aFiles.push_back(filename);
+        _SaisieWin->addFiles(aFiles);
+
+        _SaisieWin->setCurrentPolygonIndex(1);
     }
 }
 
@@ -533,23 +555,32 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
+void visual_MainWindow::add_saisieButton(vector< pair < int, QWidget * > > vWidgets, QGridLayout *layout, int aK)
+{
+    selectionButton *saisieButton = new selectionButton(tr("Selection editor"));
+    layout->addWidget(saisieButton, aK, 5);
+    connect(saisieButton,SIGNAL(my_click(int)),this,SLOT(onSaisieButtonPressed(int)));
+    vWidgets.push_back(pair <int, QPushButton*>(eIT_None, saisieButton));
+}
+
 void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QDoubleSpinBox *x0SpinBox = create_dSpinBox(layout, parent, aK, 1);
-    QDoubleSpinBox *y0SpinBox = create_dSpinBox(layout, parent, aK, 2);
-    QDoubleSpinBox *x1SpinBox = create_dSpinBox(layout, parent, aK, 3);
-    QDoubleSpinBox *y1SpinBox = create_dSpinBox(layout, parent, aK, 4);
-
-    x0SpinBox->setValue( (*(aArg.DefaultValue<Box2dr>())).x(0) );
-    y0SpinBox->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
-    x1SpinBox->setValue( (*(aArg.DefaultValue<Box2dr>())).x(1) );
-    y1SpinBox->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
-
     vector< pair < int, QWidget * > > vWidgets;
-    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, x0SpinBox));
-    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, y0SpinBox));
-    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, x1SpinBox));
-    vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, y1SpinBox));
+
+    int nbItems = 4;
+    for (int i=0; i< nbItems;++i)
+    {
+        QDoubleSpinBox *spinBox = create_dSpinBox(layout, parent, aK, i+1);
+
+        vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, spinBox));
+    }
+
+    add_saisieButton(vWidgets, layout, aK);
+
+    ((QSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(0) );
+    ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
+    ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(1) );
+    ((QSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
@@ -600,21 +631,22 @@ void visual_MainWindow::add_3SpinBox(QGridLayout *layout, QWidget *parent, int a
 
 void visual_MainWindow::add_4SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QSpinBox *x0SpinBox = create_SpinBox(layout, parent, aK, 1);
-    QSpinBox *y0SpinBox = create_SpinBox(layout, parent, aK, 2);
-    QSpinBox *x1SpinBox = create_SpinBox(layout, parent, aK, 3);
-    QSpinBox *y1SpinBox = create_SpinBox(layout, parent, aK, 4);
-
-    x0SpinBox->setValue( (*(aArg.DefaultValue<Box2di>())).x(0) );
-    y0SpinBox->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
-    x1SpinBox->setValue( (*(aArg.DefaultValue<Box2di>())).x(1) );
-    y1SpinBox->setValue( (*(aArg.DefaultValue<Box2di>())).y(1) );
-
     vector< pair < int, QWidget * > > vWidgets;
-    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, x0SpinBox));
-    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, y0SpinBox));
-    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, x1SpinBox));
-    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, y1SpinBox));
+
+    int nbItems = 4;
+    for (int i=0; i< nbItems;++i)
+    {
+        QSpinBox *spinBox = create_SpinBox(layout, parent, aK, i+1);
+
+        vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, spinBox));
+    }
+
+    add_saisieButton(vWidgets, layout, aK);
+
+    ((QSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(0) );
+    ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
+    ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(1) );
+    ((QSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(1) );
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }

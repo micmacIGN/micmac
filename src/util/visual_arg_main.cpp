@@ -190,6 +190,10 @@ void MMRunVisualMode
 
         w.show();
 
+        SaisieQtWindow SaisieWin(MASK2D);
+
+        w.setSaisieWin(&SaisieWin);
+
         app.exec();
     }
 #endif //ELISE_QT_VERSION >= 4

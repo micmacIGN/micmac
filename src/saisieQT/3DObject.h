@@ -269,7 +269,7 @@ class cPolygon : public cObjectGL
         cPolygon(float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
         cPolygon(QVector <QPointF> points, bool isClosed);
 
-        void    draw();
+        virtual void draw();
 
         void    close();
 
@@ -300,7 +300,7 @@ class cPolygon : public cObjectGL
 
         void    add(cPoint &pt);
         void    add(QPointF const &pt, bool selected=false);
-        void    addPoint(QPointF const &pt);
+        virtual void    addPoint(QPointF const &pt);
 
         void    clear();
         void    clearPoints() { _points.clear(); }
@@ -327,7 +327,7 @@ class cPolygon : public cObjectGL
 
         cPolygonHelper* helper() { return _helper; }
 
-        void    refreshHelper(QPointF pos, bool insertMode, float zoom);
+        virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true);
 
         int     finalMovePoint();
 
@@ -363,6 +363,10 @@ class cPolygon : public cObjectGL
 
         bool    pointValid();
 
+        void    setStyle(int style)     { _style = style; }
+        void    setLineColor(QColor col){ _lineColor = col; }
+
+
     protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
@@ -370,6 +374,7 @@ class cPolygon : public cObjectGL
         cPolygonHelper*     _helper;
         QColor              _lineColor;
         int                 _idx;
+        int                 _style;
 
 private:
         float               _pointDiameter;
@@ -390,7 +395,6 @@ private:
         //!states if refuted points should be displayed
         bool                _bShowRefuted;
 
-        int                 _style;
         QVector<qreal>      _dashes;
         QString             _defPtName;
 
@@ -412,6 +416,19 @@ class cPolygonHelper : public cPolygon
         cPolygon* _polygon;
 };
 
+class cRectangle : public cPolygon
+{
+    public:
+
+        cRectangle(float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
+        //cRectangle(QVector <QPointF> points, bool isClosed);
+
+        void    addPoint(QPointF const &pt);
+
+        void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false);
+
+        void    draw();
+};
 
 class cImageGL : public cObjectGL
 {
@@ -639,9 +656,12 @@ public:
 
     QImage*     getMask()                               { return _pQMask;     }
 
-    void        setPolygon(cPolygon *aPoly)             { _vPolygons[0] = aPoly; }
+    void        setPolygon(int aK, cPolygon *aPoly)     { _vPolygons[aK] = aPoly; }
 
-    void        clearPolygon()                          { polygon()->clear(); }
+    void        setCurrentPolygonIndex(int id)          { _currentPolygon = id;   }
+    int         getCurrentPolygonIndex()                { return _currentPolygon; }
+
+    void        clearPolygon()                          { currentPolygon()->clear(); }
 
     bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
 
@@ -703,6 +723,7 @@ public:
     cMaskedImageGL &glImage();
 
     cPolygon*   polygon(int id = 0);
+    cPolygon*   currentPolygon();
 
     GlCloud*    getCloud(int iC);
 
@@ -740,6 +761,8 @@ private:
 
     //! Point list for polygonal selection
     QVector<cPolygon*>  _vPolygons;
+
+    int         _currentPolygon;
 
     void        initOptions();
 

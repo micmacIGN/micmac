@@ -39,7 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if (ELISE_X11||SAISIE_QT)
+//#if (ELISE_X11||SAISIE_QT)
+#if (ELISE_X11||(ELISE_QT_VERSION >= 4))
 
 void SaisieAppuisPredic(int argc, char ** argv,
                       Pt2di &aSzW,
