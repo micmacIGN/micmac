@@ -68,6 +68,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //#include <strstream>
 
+#include "CMake_defines.h"
+
 class cMMSpecArg;
 
 std::string MakeStrFromArgcARgv(int  argc,char** argv);
@@ -671,7 +673,8 @@ int GrapheHom_main(int argc,char ** argv);
 
 #endif
 
-#ifdef SAISIE_QT
+//#ifdef SAISIE_QT
+#if (ELISE_QT_VERSION >= 4)
     int SaisieMasqQT_main(int argc,char ** argv);
     int SaisieAppuisInitQT_main(int argc,char ** argv);
     int SaisieAppuisPredicQT_main(int argc,char ** argv);

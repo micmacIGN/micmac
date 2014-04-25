@@ -3,7 +3,7 @@
 
 #include "StdAfx.h"
 
-#if((ELISE_QT_VERSION >= 4) && VISUALMODE)
+#if (ELISE_QT_VERSION >= 4)
 
 #ifdef Int
     #undef Int
@@ -92,6 +92,9 @@ public:
     std::string getFirstArg() { return mFirstArg; }
 
     void add_saisieButton(vector< pair < int, QWidget * > > vWidgets, QGridLayout *layout, int aK);
+
+    void setSaisieWin(SaisieQtWindow* win){ _SaisieWin = win;}
+
 public slots:
 
     void onRunCommandPressed();
@@ -118,6 +121,8 @@ protected:
     QString             mlastDir;
 
     string              mFirstArg;    //truc&astuces: stores the first arg (for Tapioca)
+
+    SaisieQtWindow*     _SaisieWin;
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);

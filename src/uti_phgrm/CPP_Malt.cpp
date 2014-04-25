@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "XML_GEN/all_tpl.h"
 
-#if((ELISE_QT_VERSION >= 4) && VISUALMODE)
+#if (ELISE_QT_VERSION >= 4)
     #ifdef Int
         #undef Int
     #endif
@@ -196,9 +196,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mEZA           (true)
 {
 
-#if( (ELISE_QT_VERSION >= 5) && ELISE_unix && VISUALMODE)
+#if( (ELISE_QT_VERSION >= 5) && ELISE_unix )
     ELISE_ASSERT(false, "Visual mode for Malt only supported with Qt4 for unix, sorry!");
-#elif((ELISE_QT_VERSION >= 4) && VISUALMODE)
+#elif(ELISE_QT_VERSION >= 4)
     if (MMVisualMode)
     {
         LArgMain LAM;
@@ -305,6 +305,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if(mUseGpu && mSzW > 3) // TEMPORAIRE
           mSzW = 3;
+
+
 
       std::string mFullModeOri;
       mModePB = EAMIsInit(&mModeOri);

@@ -1,6 +1,6 @@
 #include "general/visual_mainwindow.h"
 
-#if((ELISE_QT_VERSION >= 4) && VISUALMODE)
+#if (ELISE_QT_VERSION >= 4)
 
 // aVAM: Mandatory args
 // aVAO: Optional args
@@ -371,7 +371,15 @@ void visual_MainWindow::onSaisieButtonPressed(int aK)
         SplitDirAndFile(aDir,aNameFile,filename.toStdString());
         mlastDir = QString(aDir.c_str());
 
-        SaisieQtWindow SaisieWin(BOX2D);
+        _SaisieWin->resize(800,600);
+        _SaisieWin->move(200,200);
+        _SaisieWin->show();
+
+        QStringList aFiles;
+        aFiles.push_back(filename);
+        _SaisieWin->addFiles(aFiles);
+
+        _SaisieWin->setCurrentPolygonIndex(1);
     }
 }
 
@@ -549,7 +557,7 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
 
 void visual_MainWindow::add_saisieButton(vector< pair < int, QWidget * > > vWidgets, QGridLayout *layout, int aK)
 {
-    QPushButton *saisieButton = new QPushButton(tr("Selection editor"));
+    selectionButton *saisieButton = new selectionButton(tr("Selection editor"));
     layout->addWidget(saisieButton, aK, 5);
     connect(saisieButton,SIGNAL(my_click(int)),this,SLOT(onSaisieButtonPressed(int)));
     vWidgets.push_back(pair <int, QPushButton*>(eIT_None, saisieButton));

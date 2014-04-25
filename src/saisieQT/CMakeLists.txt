@@ -44,20 +44,15 @@ set( saisie_HEADERS_tomoc
 
 if ( NOT ${qt_version} EQUAL 0 )
    if ( ${qt_version} EQUAL 5 )
-      if ( WIN32 )
-              #cmake_policy(SET CMP0020 NEW)
-      ENDIF()
 
       if ( NOT ${OPENGL_GLU_FOUND} )
-              message( FATAL_ERROR "GLU library could not be found " )
+              message( FATAL_ERROR "GLU library could not be found" )
               return( -1 )
       endif()
 
       set(CMAKE_AUTOMOC ON)
 
-      SET(Saisie_RCS ./icones/icones.qrc)
-
-      QT5_ADD_RESOURCES( Saisie_RC_SRCS ${Saisie_RCS} )
+      QT5_ADD_RESOURCES( Saisie_RC_SRCS ./icones/icones.qrc )
 
       qt5_wrap_ui(saisie_ui saisieQT_window.ui Settings.ui)
 
@@ -88,7 +83,7 @@ if ( NOT ${qt_version} EQUAL 0 )
       QT4_WRAP_CPP(saisie_HEADERS_tomoc_MOC ${saisie_HEADERS_tomoc})
       INCLUDE(${QT_USE_FILE})
       include_directories( ${PROJECT_BINARY_DIR} )
-      add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_tomoc_MOC} ${saisie_HEADERS_nomoc})
+      add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} ${saisie_HEADERS_tomoc_MOC})
       target_link_libraries(SaisieQT ${OPENGL_LIBRARIES}
                                      ${QT_LIBRARIES}
                                      elise

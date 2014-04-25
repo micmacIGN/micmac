@@ -33,8 +33,7 @@ const QColor colorBorder("#606060");
 enum UI_MODE {  MASK2D,         /**< Image mask mode  **/
                 MASK3D,         /**< Point cloud mask **/
                 POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) **/
-                POINT2D_PREDIC, /**< Points in Image (SaisieAppuisPredic) **/
-                BOX2D
+                POINT2D_PREDIC  /**< Points in Image (SaisieAppuisPredic) **/
 };
 
 class SaisieQtWindow : public QMainWindow, public GLWidgetSet
@@ -83,6 +82,8 @@ public:
     void    SetDataToGLWidget(int idGLW, cGLData *glData);
 
     void    loadPlyIn3DPrev(const QStringList &filenames,cData* dataCache);
+
+    void    setCurrentPolygonIndex(int idx);
 
 public slots:
 

@@ -72,7 +72,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     m_QTMainWindow->resizeTables();
 
-    connect(((PointGlobalSFModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));    
+    connect(((PointGlobalSFModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
 
     connect(this,SIGNAL(dataChanged()), proxyPointGlob, SLOT(invalidate()));
 
@@ -253,7 +253,7 @@ void cQT_Interface::addPoint(QPointF point)
     if (m_QTMainWindow->currentWidget()->hasDataLoaded() && mAppli)
         if(cVirtualInterface::addPoint(transformation(point),currentCImage()))
         {
-            emit dataChanged();            
+            emit dataChanged();
             m_QTMainWindow->resizeTables();
         }
 }
@@ -416,7 +416,7 @@ void cQT_Interface::selectPointGlobal(QModelIndex modelIndex)
 }
 
 int cQT_Interface::idPointGlobal(int idSelectGlPoint)
-{    
+{
     return idSelectGlPoint < 0 ? idSelectGlPoint : cVirtualInterface::idPointGlobal(getNameGLPt_CurWidget(idSelectGlPoint));
 }
 
@@ -427,7 +427,7 @@ QString cQT_Interface::namePointGlobal(int idPtGlobal)
 
 cPoint cQT_Interface::getGLPt_CurWidget(int idPt)
 {
-    return (*m_QTMainWindow->currentWidget()->getGLData()->polygon())[idPt];
+    return (*m_QTMainWindow->currentWidget()->getGLData()->currentPolygon())[idPt];
 }
 
 string cQT_Interface::getNameGLPt_CurWidget(int idPt)
