@@ -323,6 +323,11 @@ const ElPackHomologue & cLink2Img::Pack() const
    LoadPack();
    return mPack;
 }
+ElPackHomologue & cLink2Img::Pack() 
+{
+   LoadPack();
+   return mPack;
+}
 
 
 // Compute the quality of the "closing" relation
@@ -405,6 +410,14 @@ const cElHomographie &  cLink2Img::Hom12() const
     LoadHomographie(true);
     return mHom12;
 }
+cElHomographie &  cLink2Img::Hom12() 
+{
+    LoadHomographie(true);
+    return mHom12;
+}
+
+
+
 
 cElHomographie cLink2Img::CalcSrceFromDest ()
 {

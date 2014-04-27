@@ -129,6 +129,8 @@ void cImagH::ComputeLnkHom()
 }
 
 
+
+
 void cImagH::VoisinsNonMarques(const std::vector<cImagH*> & aIn,std::vector<cImagH*> & aVois,int aFlagN,int aFlagT )
 {
    aVois.clear();
@@ -237,15 +239,17 @@ void cAppliReduc::TestMerge_CalcHcImage()
 
     const std::set<tNodIm *> & aRoot = anAlgo.Roots();
 
-
-    for
-    (
+    if (Show(eShowDetail))
+    {
+       for
+       (
            std::set<tNodIm *>::const_iterator itN=aRoot.begin();
            itN!=aRoot.end();
            itN++
-    )
-    {
+       )
+       {
               anAlgo.Show(*itN);
+       }
     }
 }
 

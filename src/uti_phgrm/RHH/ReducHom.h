@@ -213,10 +213,12 @@ class cLink2Img  // dans cImagH.cpp
          const double &         QualHom() const;
          const bool &           OkHom() const;
          const cElHomographie & Hom12() const;
+         cElHomographie & Hom12() ;
 
          // Dependant de PackHom
          const int   & NbPts() const;
          const ElPackHomologue & Pack() const;
+         ElPackHomologue & Pack() ;
              // Obtained by GetDistribRepresentative from util/pt2di.cpp
              // simply by averaging points on a regular grid
              // list of   Pt2dr+weight , represent the distribution of the points
@@ -279,6 +281,7 @@ class cImagH
 
          void SetPHom(const Pt2dr & aP,cPtHom *);
          void ComputeLnkHom();
+         void EstimatePlan();
 
          void SetMarqued(int);
          void SetUnMarqued(int);
@@ -371,6 +374,7 @@ class cAppliReduc
          double SeuilQual () const;
          bool Show(eNivShow aLev) const;
          double RatioQualMoy () const;
+         double SeuilDistNorm () const;
          int    KernConnec() const;
          int    KernSize() const;
          cSetEqFormelles & SetEq();
@@ -410,6 +414,7 @@ class cAppliReduc
          int          mMinNbPtH;
          double       mSeuilQual;
          double       mRatioQualMoy;
+         double       mSeuilDistNorm;
          int          mKernConnec;
          int          mKernSize;
 

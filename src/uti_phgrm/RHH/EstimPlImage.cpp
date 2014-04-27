@@ -43,92 +43,100 @@ Header-MicMac-eLiSe-25/06/2007*/
 NS_RHH_BEGIN
 
 
+/*************************************************/
+/*                                               */
+/*                  cImagH                       */
+/*                                               */
+/*************************************************/
 
-cParamMerge::cParamMerge(cAppliReduc & anAppli) :
-    mAppli (anAppli)
+
+double DistNorm(const cElemMepRelCoplan & anEl)
 {
+   Pt3dr aVert(0,0,1);
+   return euclid(aVert-anEl.Norm());
 }
 
 
-double  cParamMerge::Gain // <0, veut dire on valide pas le noeud
-               (
-                     tNodIm * aN1,tNodIm * aN2,
-                     const std::vector<cImagH*>&,
-                     const std::vector<cImagH*>&,
-                     const std::list<std::pair<cImagH*,cImagH*> >& aLPair,
-                     int aNewNum
-               )
+class cCmpNormPlan
 {
-    double aRes = 0.0;
-    for
-    (
-          std::list<std::pair<cImagH*,cImagH*> >::const_iterator itL=aLPair.begin();
-          itL!=aLPair.end();
-          itL++
-    )
-    {
-        cImagH* aIm1 =  itL->first;
-        cImagH* aIm2 =  itL->second;
-        cLink2Img *  aLnk12 = aIm1->GetLinkOfImage(aIm2);
+   public :
+      bool operator () (const cElemMepRelCoplan & anEl1,const cElemMepRelCoplan & anEl2)
+      {
+          // return anEl1.Norm().z > anEl2.Norm().z;
+          return DistNorm(anEl1) < DistNorm(anEl2);
+      }
+};
 
-        aRes += aLnk12->NbPts();
-    }
-    int aDepth = 1 + ElMax(aN1->Depth(),aN2->Depth());
-    aRes = aRes / pow(2.0,aDepth);
 
-    if (mAppli.Show(eShowDetail))
-    {
-        std::cout <<  aNewNum
-                  << "  Candidate " << aN1->Num() << " " << aN2->Num() << " " << aRes
-                   << " " << NameNode(aN1) << " " << NameNode(aN2) << " "
-                  << "\n";
-    }
-    return aRes;
+class cTestPlIm
+{
+    public :
+        cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan aRMCP) :
+             mLnk (aLnk),
+             mRMCP (aRMCP)
+        {
+        }
+       
+        cLink2Img *       mLnk;
+        cElemMepRelCoplan  mRMCP;
+};
+
+
+
+
+void cImagH::EstimatePlan()
+{
+     std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
+     std::vector<cTestPlIm> aVPlIm;
+
+     std::cout << " =========== Begin EstimatePlan " << mName << "\n";
+     for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+     {
+          cLink2Img * aLnk   = itL->second;
+
+          ElPackHomologue & aPack = aLnk->Pack();
+          cElHomographie &   aHom = aLnk->Hom12();
+
+          // std::cout << "  " << aLnk->Dest()->Name()  << " Sz " << aPack.size() << " Qual  " << aLnk->QualHom() << " " ;
+
+          cResMepRelCoplan aRCP = aPack.MepRelCoplan(1,aHom,aPair);
+          std::vector<cElemMepRelCoplan>  aVSol = aRCP.VElOk();
+          cCmpNormPlan aCmp;
+          std::sort(aVSol.begin(),aVSol.end(),aCmp);
+
+          if (aVSol.size() >=2) 
+          {
+              double aS0 = DistNorm(aVSol[0]);
+              double aS1 = DistNorm(aVSol[1]);
+
+              if (aS0 + mAppli.SeuilDistNorm() < aS1)
+              {
+                  aVPlIm.push_back(cTestPlIm(aLnk,aVSol[0]));
+              }
+                    
+          }
+     }
+
+     for (int aK=0 ; aK<int(aVPlIm.size()) ; aK++)
+     {
+           cLink2Img * aLnk   = aVPlIm[aK].mLnk;
+           ElPackHomologue & aPack = aLnk->Pack();
+           std::cout << " " << aLnk->Dest()->Name() << " Sz " << aPack.size() << " " << aVPlIm[aK].mRMCP.Norm() << "\n";
+     }
+     
+     std::cout << " =========== End  EstimatePlan \n";
 }
 
-void cParamMerge::OnNewLeaf(tNodIm * aSingle)
-{
-   if (mAppli.Show(eShowDetail))
-      std::cout << "Creat Feuille " << aSingle->Val()->Name() << " " << aSingle->Num() << "\n";
-}
 
-void  cParamMerge::OnNewCandidate(tNodIm * aN1)
-{
-}
-
-void cParamMerge::OnNewMerge(tNodIm * aN1)
-{
-   if (mAppli.Show(eShowAll))
-   {
-       std::cout << aN1->Num() << " MERGE " ;
-       for (int aK=0 ; aK<int(aN1->NbFils()) ; aK++)
-           std::cout << " " << aN1->FilsK(aK)->Num();
-       std::cout << "\n";
-   }
-}
-
-void cParamMerge::Vois(cImagH* anIm,std::vector<cImagH *> & aV)
-{
-    const tMapName2Link & aLnks = anIm->Lnks();
-    for (tMapName2Link::const_iterator  itL=aLnks.begin(); itL!=aLnks.end(); itL++)
-    {
-         aV.push_back(itL->second->Dest());
-    }
-}
-
-std::string NameNode(tNodIm * aN)
-{
-    cImagH * anI = aN->Val();
-    return anI ? anI->Name() : "XXX" ;
-}
-
-// -------
 NS_RHH_END
-NS_RHH_USE
 
-template class cMergingNode<cImagH,cAttrLnkIm>;
-template class cAlgoMergingRec<cImagH,cAttrLnkIm,cParamMerge>;
-template class  ElHeap<cMergingNode<cImagH,cAttrLnkIm> *,cCmpMNode<cImagH,cAttrLnkIm> >;
+
+/*
+*/
+/*
+*/
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
