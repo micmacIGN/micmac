@@ -186,9 +186,13 @@ void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileM
         std::cout << aCom << "\n";
     }
 	*/
+
+    std::string aSilent = " -s ";
+    std::string aContinueOnError  =  (MoinsK?"-k":"");
 	if ( Exe )
 	{
-	     launchMake( FileMk, "all", aNbProc, (MoinsK?"-k":"") );
+	     // launchMake( FileMk, "all", aNbProc, (MoinsK?"-k":"") );
+	     launchMake( FileMk, "all", aNbProc, aSilent + aContinueOnError);
              ELISE_fp::RmFile(FileMk);
 	}
 	else

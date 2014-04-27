@@ -66,6 +66,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mMinNbPtH     (20),
    mSeuilQual    (20),
    mRatioQualMoy (4.0),
+   mSeuilDistNorm (0.2),
    mKernConnec   (3),
    mKernSize     (6),
    mSetEq        (cNameSpaceEqF::eSysL2BlocSym)
@@ -86,10 +87,15 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mMinNbPtH,"NbMinHom",true,"Nb Min Pts For Homography Computation def=20")
                     << EAM(mSeuilQual,"SeuilQual",true,"Quality Theshold for homography (Def=20.0)")
                     << EAM(mRatioQualMoy,"RatioQualMoy",true,"Ratio to validate / average qual (def=4.0)")
+                    << EAM(mSeuilDistNorm,"SeuilDistNorm",true,"threshold to validate firt normal / second (def=0.2)")
                     << EAM(aIntNivShow,"Show",true,"Level of Show (0=None, Def= 1)")
                     << EAM(mHomByParal,"HbP",true,"Compute Homography in // (Def=true)")
                     << EAM(mOriVerif,"Verif",true,"Compute Homography in // (Def=true)")
+                    << EAM(mOriVerif,"Verif",true,"Compute Homography in // (Def=true)")
     );
+
+   SplitDirAndFile(mDir,mName,mFullName);
+   StdCorrecNameOrient(mOri,mDir);
 
     mKeyOri = "NKS-Assoc-FromFocMm@Ori-" + mOri +"/AutoCal@" + ".xml";
     if (EAMIsInit(&mOriVerif))
@@ -99,7 +105,6 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
     if (Show(eShowGlob))
         std::cout << "RHH begin \n";
 
-   SplitDirAndFile(mDir,mName,mFullName);
 
    // Creation noms et associations
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
@@ -183,7 +188,10 @@ void cAppliReduc::ComputeHom()
     for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {
          mIms[aK]->ComputeLnkHom();
+         mIms[aK]->EstimatePlan();
     }
+
+
 
     bool SpaceInit = true;
 
@@ -283,6 +291,11 @@ double cAppliReduc::SeuilQual () const
 double cAppliReduc::RatioQualMoy () const
 {
    return mRatioQualMoy;
+}
+
+double cAppliReduc::SeuilDistNorm () const
+{
+   return mSeuilDistNorm;
 }
 
 int    cAppliReduc::KernConnec() const
