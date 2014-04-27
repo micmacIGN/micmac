@@ -2,8 +2,16 @@ EVOLUTIONS :
 
 
 A DOCUMENTER  :
+XifGps2Xml
 HomolFilterMasq
+Generere un base des meta donnees (un fichier par image dans MTD);
 
+================================================================
+
+A Faire :  
+
+
+    Lancee a chaque commande importante ....
 
 
 ================================================================

@@ -55,6 +55,9 @@ cXmlRHHResLnk  ComputeHomographie
 
   ElPackHomologue aPack = ElPackHomologue::FromFile(aName);
 
+
+  // Si les orientation de verification sont passees, on met des homologues correspondant a des 
+  // homographies pures. On le fait en mettant tout le monde en Z=0, suppose une bascule faite
   if (aNameVerif1 != "")
   {
       ElPackHomologue aNewPack;
@@ -89,7 +92,8 @@ cXmlRHHResLnk  ComputeHomographie
   CamStenope *  aCam1 = CamOrientGenFromFile(aNameCal1,0);
   CamStenope *  aCam2 = CamOrientGenFromFile(aNameCal2,0);
 
-  // On laisse, au cas ou l'on reveuille tester
+  // On laisse, au cas ou l'on reveuille tester ....
+  // On fait une correction de distorsion
   bool 	aCorCam = true;
   ELISE_ASSERT(aCorCam,"Cor cam mandatory");
  
@@ -120,7 +124,7 @@ cXmlRHHResLnk  ComputeHomographie
   if (aRes.Ok())
   {
 
-
+/*
      std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
 
      cResMepRelCoplan aRCP = aPack.MepRelCoplan(1,aHom,aPair);
@@ -136,6 +140,7 @@ cXmlRHHResLnk  ComputeHomographie
         // std::cout  << aVSol[aK].TestSol() << " ";
      }
      std::cout << " \n";
+*/
 
 
      aRes.Hom12() = aHom.ToXml();
@@ -441,7 +446,7 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName))
 {
 
-   std::cout << "NCCC " << mNameCalib << " [" << mNameVerif<< "]\n";
+   // std::cout << "NCCC " << mNameCalib << " [" << mNameVerif<< "]\n";
 }
 
    //============ FONCTION DE GRAPHE IMAGE =========================

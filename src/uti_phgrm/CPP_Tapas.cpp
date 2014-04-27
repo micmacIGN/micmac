@@ -325,6 +325,10 @@ int Tapas_main(int argc,char ** argv)
 		cTplValGesInit<std::string> aTplN;
 		cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::StdAlloc(0,0,aDir,aTplN);
 
+                MakeXmlXifInfo(aFullDir,aICNM);
+
+                
+
 		if (FEAutom && (SeuilFEAutom<0))
 		   SeuilFEAutom = 16.5;
 

@@ -1188,6 +1188,36 @@
            <DirVertLoc Nb="?" Type="Pt3dr"> </DirVertLoc>
            <ProfInVertLoc Nb="?" Type="double"> </ProfInVertLoc>
     </ExportApero2MM>
+    
+    <XmlHour Nb="1" Class="true" ToReference="true">
+         <H Nb="1" Type="int"> </H>
+         <M Nb="1" Type="int"> </M>
+         <S Nb="1" Type="double"> </S>
+    </XmlHour>
+
+    <XmlDate Nb="1" Class="true" ToReference="true">
+         <Y Nb="1" Type="int"> </Y>
+         <M Nb="1" Type="int"> </M>
+         <D Nb="1" Type="int"> </D>
+         <Hour Nb="1" RefType="XmlHour"> </Hour>
+    </XmlDate>
+
+    <XmlXifInfo Nb="1" Class="true" ToReference="true">
+        <HGRev Nb="1" Type="int">        </HGRev>
+        <FocMM  Nb="?" Type="double">    </FocMM>
+        <Foc35  Nb="?" Type="double">    </Foc35>
+        <ExpTime  Nb="?" Type="double">  </ExpTime>
+        <Diaph  Nb="?" Type="double">  </Diaph>
+        <IsoSpeed  Nb="?" Type="double"> </IsoSpeed>
+        <Sz Nb="?" Type="Pt2di">         </Sz>
+        <GPSLat Nb="?" Type="double">    </GPSLat>
+        <GPSLon Nb="?" Type="double">    </GPSLon>
+        <GPSAlt Nb="?" Type="double">    </GPSAlt>
+        <Cam Nb="?" Type="std::string">    </Cam>
+        <BayPat Nb="?" Type="std::string">    </BayPat>
+        <Date Nb="?" RefType="XmlDate">    </Date>
+    </XmlXifInfo>
+
 
 
     <MMCameraDataBase Nb="1" Class="true" ToReference="true">

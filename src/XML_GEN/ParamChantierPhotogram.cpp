@@ -9717,6 +9717,343 @@ void xml_init(cExportApero2MM & anObj,cElXMLTree * aTree)
 }
 
 
+int & cXmlHour::H()
+{
+   return mH;
+}
+
+const int & cXmlHour::H()const 
+{
+   return mH;
+}
+
+
+int & cXmlHour::M()
+{
+   return mM;
+}
+
+const int & cXmlHour::M()const 
+{
+   return mM;
+}
+
+
+double & cXmlHour::S()
+{
+   return mS;
+}
+
+const double & cXmlHour::S()const 
+{
+   return mS;
+}
+
+cElXMLTree * ToXMLTree(const cXmlHour & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlHour",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("H"),anObj.H())->ReTagThis("H"));
+   aRes->AddFils(::ToXMLTree(std::string("M"),anObj.M())->ReTagThis("M"));
+   aRes->AddFils(::ToXMLTree(std::string("S"),anObj.S())->ReTagThis("S"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlHour & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.H(),aTree->Get("H",1)); //tototo 
+
+   xml_init(anObj.M(),aTree->Get("M",1)); //tototo 
+
+   xml_init(anObj.S(),aTree->Get("S",1)); //tototo 
+}
+
+
+int & cXmlDate::Y()
+{
+   return mY;
+}
+
+const int & cXmlDate::Y()const 
+{
+   return mY;
+}
+
+
+int & cXmlDate::M()
+{
+   return mM;
+}
+
+const int & cXmlDate::M()const 
+{
+   return mM;
+}
+
+
+int & cXmlDate::D()
+{
+   return mD;
+}
+
+const int & cXmlDate::D()const 
+{
+   return mD;
+}
+
+
+cXmlHour & cXmlDate::Hour()
+{
+   return mHour;
+}
+
+const cXmlHour & cXmlDate::Hour()const 
+{
+   return mHour;
+}
+
+cElXMLTree * ToXMLTree(const cXmlDate & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlDate",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Y"),anObj.Y())->ReTagThis("Y"));
+   aRes->AddFils(::ToXMLTree(std::string("M"),anObj.M())->ReTagThis("M"));
+   aRes->AddFils(::ToXMLTree(std::string("D"),anObj.D())->ReTagThis("D"));
+   aRes->AddFils(ToXMLTree(anObj.Hour())->ReTagThis("Hour"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlDate & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Y(),aTree->Get("Y",1)); //tototo 
+
+   xml_init(anObj.M(),aTree->Get("M",1)); //tototo 
+
+   xml_init(anObj.D(),aTree->Get("D",1)); //tototo 
+
+   xml_init(anObj.Hour(),aTree->Get("Hour",1)); //tototo 
+}
+
+
+int & cXmlXifInfo::HGRev()
+{
+   return mHGRev;
+}
+
+const int & cXmlXifInfo::HGRev()const 
+{
+   return mHGRev;
+}
+
+
+cTplValGesInit< double > & cXmlXifInfo::FocMM()
+{
+   return mFocMM;
+}
+
+const cTplValGesInit< double > & cXmlXifInfo::FocMM()const 
+{
+   return mFocMM;
+}
+
+
+cTplValGesInit< double > & cXmlXifInfo::Foc35()
+{
+   return mFoc35;
+}
+
+const cTplValGesInit< double > & cXmlXifInfo::Foc35()const 
+{
+   return mFoc35;
+}
+
+
+cTplValGesInit< double > & cXmlXifInfo::ExpTime()
+{
+   return mExpTime;
+}
+
+const cTplValGesInit< double > & cXmlXifInfo::ExpTime()const 
+{
+   return mExpTime;
+}
+
+
+cTplValGesInit< double > & cXmlXifInfo::Diaph()
+{
+   return mDiaph;
+}
+
+const cTplValGesInit< double > & cXmlXifInfo::Diaph()const 
+{
+   return mDiaph;
+}
+
+
+cTplValGesInit< double > & cXmlXifInfo::IsoSpeed()
+{
+   return mIsoSpeed;
+}
+
+const cTplValGesInit< double > & cXmlXifInfo::IsoSpeed()const 
+{
+   return mIsoSpeed;
+}
+
+
+cTplValGesInit< Pt2di > & cXmlXifInfo::Sz()
+{
+   return mSz;
+}
+
+const cTplValGesInit< Pt2di > & cXmlXifInfo::Sz()const 
+{
+   return mSz;
+}
+
+
+cTplValGesInit< double > & cXmlXifInfo::GPSLat()
+{
+   return mGPSLat;
+}
+
+const cTplValGesInit< double > & cXmlXifInfo::GPSLat()const 
+{
+   return mGPSLat;
+}
+
+
+cTplValGesInit< double > & cXmlXifInfo::GPSLon()
+{
+   return mGPSLon;
+}
+
+const cTplValGesInit< double > & cXmlXifInfo::GPSLon()const 
+{
+   return mGPSLon;
+}
+
+
+cTplValGesInit< double > & cXmlXifInfo::GPSAlt()
+{
+   return mGPSAlt;
+}
+
+const cTplValGesInit< double > & cXmlXifInfo::GPSAlt()const 
+{
+   return mGPSAlt;
+}
+
+
+cTplValGesInit< std::string > & cXmlXifInfo::Cam()
+{
+   return mCam;
+}
+
+const cTplValGesInit< std::string > & cXmlXifInfo::Cam()const 
+{
+   return mCam;
+}
+
+
+cTplValGesInit< std::string > & cXmlXifInfo::BayPat()
+{
+   return mBayPat;
+}
+
+const cTplValGesInit< std::string > & cXmlXifInfo::BayPat()const 
+{
+   return mBayPat;
+}
+
+
+cTplValGesInit< cXmlDate > & cXmlXifInfo::Date()
+{
+   return mDate;
+}
+
+const cTplValGesInit< cXmlDate > & cXmlXifInfo::Date()const 
+{
+   return mDate;
+}
+
+cElXMLTree * ToXMLTree(const cXmlXifInfo & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlXifInfo",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("HGRev"),anObj.HGRev())->ReTagThis("HGRev"));
+   if (anObj.FocMM().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FocMM"),anObj.FocMM().Val())->ReTagThis("FocMM"));
+   if (anObj.Foc35().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Foc35"),anObj.Foc35().Val())->ReTagThis("Foc35"));
+   if (anObj.ExpTime().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ExpTime"),anObj.ExpTime().Val())->ReTagThis("ExpTime"));
+   if (anObj.Diaph().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Diaph"),anObj.Diaph().Val())->ReTagThis("Diaph"));
+   if (anObj.IsoSpeed().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IsoSpeed"),anObj.IsoSpeed().Val())->ReTagThis("IsoSpeed"));
+   if (anObj.Sz().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Sz"),anObj.Sz().Val())->ReTagThis("Sz"));
+   if (anObj.GPSLat().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("GPSLat"),anObj.GPSLat().Val())->ReTagThis("GPSLat"));
+   if (anObj.GPSLon().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("GPSLon"),anObj.GPSLon().Val())->ReTagThis("GPSLon"));
+   if (anObj.GPSAlt().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("GPSAlt"),anObj.GPSAlt().Val())->ReTagThis("GPSAlt"));
+   if (anObj.Cam().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Cam"),anObj.Cam().Val())->ReTagThis("Cam"));
+   if (anObj.BayPat().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("BayPat"),anObj.BayPat().Val())->ReTagThis("BayPat"));
+   if (anObj.Date().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.Date().Val())->ReTagThis("Date"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlXifInfo & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.HGRev(),aTree->Get("HGRev",1)); //tototo 
+
+   xml_init(anObj.FocMM(),aTree->Get("FocMM",1)); //tototo 
+
+   xml_init(anObj.Foc35(),aTree->Get("Foc35",1)); //tototo 
+
+   xml_init(anObj.ExpTime(),aTree->Get("ExpTime",1)); //tototo 
+
+   xml_init(anObj.Diaph(),aTree->Get("Diaph",1)); //tototo 
+
+   xml_init(anObj.IsoSpeed(),aTree->Get("IsoSpeed",1)); //tototo 
+
+   xml_init(anObj.Sz(),aTree->Get("Sz",1)); //tototo 
+
+   xml_init(anObj.GPSLat(),aTree->Get("GPSLat",1)); //tototo 
+
+   xml_init(anObj.GPSLon(),aTree->Get("GPSLon",1)); //tototo 
+
+   xml_init(anObj.GPSAlt(),aTree->Get("GPSAlt",1)); //tototo 
+
+   xml_init(anObj.Cam(),aTree->Get("Cam",1)); //tototo 
+
+   xml_init(anObj.BayPat(),aTree->Get("BayPat",1)); //tototo 
+
+   xml_init(anObj.Date(),aTree->Get("Date",1)); //tototo 
+}
+
+
 std::string & cCameraEntry::Name()
 {
    return mName;

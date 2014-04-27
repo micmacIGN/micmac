@@ -162,6 +162,8 @@ class cMMCom
 };
 
 
+int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
+
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -169,6 +171,7 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+
        aRes.push_back(cMMCom("Ann",Ann_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualization of camera in ply file",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
@@ -332,6 +335,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TestLib",SampleLibElise_main," To call the program illustrating the library"));
        aRes.push_back(cMMCom("FieldDep3d",ChamVec3D_main," To export results of matching as 3D deplacement"));
        aRes.push_back(cMMCom("SupMntIm",SupMntIm_main," Tool for superposition of Mnt Im & level curve"));
+
+       aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
    }
    return aRes;
 }
@@ -384,6 +389,8 @@ int ExoMCI_main(int argc, char** argv);
 // int RHH_main(int argc,char **argv);
 
 
+int MakeOneXmlXifInfo_main(int argc,char ** argv);
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -414,6 +421,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
    aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 
+   aRes.push_back(cMMCom("XmlXif",MakeOneXmlXifInfo_main,"Internal : generate Xml to accelerate Xif extracton  "));
 
    return aRes;
 }

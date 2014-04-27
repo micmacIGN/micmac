@@ -41,6 +41,146 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+int NumHgRev()
+{
+   static int aRes=-1;
+   if (aRes<0) FromString(aRes,__HG_REV__);
+
+   return aRes;
+}
+
+static const std::string HRevXif = "3293";
+
+/**************************************************************/
+/*                                                            */
+/*                                                            */
+/*                                                            */
+/**************************************************************/
+
+void SetIfPos(cTplValGesInit<double> & aTpl,double aVal)
+{
+    if (aVal>0) 
+       aTpl.SetVal(aVal);
+    else
+       aTpl.SetNoInit();
+}
+
+cXmlXifInfo MDT2Xml(const cMetaDataPhoto & aMTD)
+{
+   cXmlXifInfo aRes;
+
+   aRes.HGRev() = NumHgRev();
+
+   SetIfPos(aRes.FocMM(),aMTD.FocMm(true));
+   SetIfPos(aRes.Foc35(),aMTD.Foc35(true));
+   SetIfPos(aRes.ExpTime(),aMTD.ExpTime(true));
+   SetIfPos(aRes.Diaph(),aMTD.Diaph(true));
+   SetIfPos(aRes.IsoSpeed(),aMTD.IsoSpeed(true));
+
+   Pt2di aSz = aMTD.SzImTifOrXif(true);
+   if (aSz.x>0) aRes.Sz().SetVal(aSz);
+
+   if (aMTD.HasGPSLatLon())
+   {
+      aRes.GPSLat().SetVal(aMTD.GPSLat());
+      aRes.GPSLon().SetVal(aMTD.GPSLon());
+   }
+
+   if (aMTD.HasGPSAlt())
+      aRes.GPSAlt().SetVal(aMTD.GPSAlt());
+
+   cElDate aDate = aMTD.Date(true);
+   if (! aDate.IsNoDate())
+       aRes.Date().SetVal(aDate.ToXml());
+
+   std::string aCam = aMTD.Cam(true);
+   if (aCam != "" )
+      aRes.Cam().SetVal(aCam);
+
+   aRes.BayPat().SetVal(aMTD.BayPat());
+
+   return aRes;
+}
+
+
+int MakeOneXmlXifInfo_main(int argc,char ** argv)
+{
+    std::string aNameIm,aNameXml,toto;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name Image")
+                    << EAMC(aNameXml,"NameXml"),
+        LArgMain()  << EAM(toto,"toto",true)
+    );
+
+    ELISE_fp::MkDirSvp(DirOfFile(aNameXml));
+    cMetaDataPhoto aMTD = cMetaDataPhoto::CreateExiv2(aNameIm);
+    
+
+    cXmlXifInfo aXML =  MDT2Xml(aMTD);
+
+    MakeFileXML(aXML,aNameXml);
+
+    return 1;
+}
+
+
+
+
+void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur * aICNM)
+{
+   std::string aDir,aPat;
+   SplitDirAndFile(aDir,aPat,aFullPat);
+
+   if (aICNM==0)
+      aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+
+   std::list<std::string> aLCom;
+   const std::vector<std::string> * aSet = aICNM->Get(aPat);
+
+   for (int aK=0 ; aK<int(aSet->size()) ; aK++)
+   {
+       std::string aNameIm = (*aSet)[aK];
+       std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameIm + "-MDT-"+ HRevXif + ".xml";
+       if (! ELISE_fp::exist_file(aNameXml))
+       {
+           std::string aCom = MM3dBinFile("TestLib") +  " XmlXif " + aDir+aNameIm + " " + aNameXml;
+           aLCom.push_back(aCom);
+
+           std::cout << aCom << "\n";
+       }
+   }
+
+   if (!aLCom.empty())
+      cEl_GPAO::DoComInParal(aLCom);
+
+}
+
+int MakeMultipleXmlXifInfo_main(int argc,char ** argv)
+{
+    std::string aPatt,toto;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aPatt,"Full Pat"),
+        LArgMain()  << EAM(toto,"toto",true)
+    );
+
+    MakeXmlXifInfo(aPatt,0);
+
+    return 1;
+}
+
+
+/*
+    std::string aDir,aNameIm;
+    SplitDirAndFile(aDir,aNameIm,aFullNameIm);
+    if (! EAMIsInit(aNameXml))
+       aNameXml  = aDir + "/Tmp-MM-Dir/" + aNameIm + "-MDT.xml";
+*/
+
 
 /**************************************************************/
 /*                                                            */
@@ -132,6 +272,7 @@ void WarnNo35(const std::string &aName)
 
 	std::cout << "WARN  !! , for camera "  << aName << " cannot determine focale equiv-35mm\n";
 	std::cout << "          add it in include/XML_User/DicoCamera.xml\n";
+
 }
 
 
@@ -148,7 +289,7 @@ cElHour::cElHour
 	int aNbMin,
 	double aNbSec
 	) :
-mH  (aNbHour),
+       mH  (aNbHour),
 	mM  (aNbMin),
 	mS  (aNbSec)
 {
@@ -157,6 +298,24 @@ mH  (aNbHour),
 int cElHour::H() const {return mH;}
 int cElHour::M() const {return mM;}
 double cElHour::S() const {return mS;}
+
+
+cXmlHour cElHour::ToXml()
+{
+   cXmlHour aRes;
+   aRes.H() = mH;
+   aRes.M() = mM;
+   aRes.S() = mS;
+
+   return aRes;
+}
+
+cElHour cElHour::FromXml(const cXmlHour & aXml)
+{
+   return cElHour(aXml.H(),aXml.M(),aXml.S());
+}
+      // static cElHour FromXml(const cXmlHour &);
+
 
 double cElHour::InSec() const
 {
@@ -288,11 +447,28 @@ cElDate::cElDate
 	int aY,
 	const cElHour &  aH
 	) :
-mD  (aD),
+        mD  (aD),
 	mM  (aM),
 	mY  (aY),
 	mH  (aH)
 {
+}
+
+cXmlDate cElDate::ToXml()
+{
+    cXmlDate aRes;
+    aRes.D() = mD;
+    aRes.M() = mM;
+    aRes.Y() = mY;
+    aRes.Hour() = mH.ToXml();
+
+    return aRes;
+    
+}
+
+cElDate cElDate::FromXml(const cXmlDate & aXml)
+{
+   return cElDate(aXml.D(),aXml.M(),aXml.Y(),cElHour::FromXml(aXml.Hour()));
 }
 
 
@@ -782,7 +958,6 @@ Pt2di  cMetaDataPhoto::SzImTifOrXif(bool Svp) const
 
 
 /*
-std::cout << "AAAAAAkklMMMmpp \n"; getchar();
 */
 
 
@@ -808,6 +983,7 @@ const cMetaDataPhoto & cMetaDataPhoto::CreateExiv2(const std::string & aNameFile
 		// std::string aStrF = aGICNM->Assoc1To1("NKS-Assoc-STD-FOC",aNameFile,true);
 		double aF; 
 		FromString(aF,aStrF);
+
 
 		/// std::cout << "JJJJJJJJJj " << aF << "\n";
 		if (aF>0)
@@ -850,9 +1026,10 @@ const cMetaDataPhoto & cMetaDataPhoto::CreateExiv2(const std::string & aNameFile
 
 
 
-
 	double aF35 = aMDP->Foc35(true);
 	bool  aFForced  = aMDP->FocForced();
+
+
 
 	if ((aF35<=0) || (aFForced))
 	{
@@ -985,6 +1162,7 @@ private  :
 	{
 	}
 
+           // std::cout << "  XXXXXxxxxXX  " << aNameXml << aXml.Foc35().Val() << "\n";
 	std::string         mStrExe;
 	std::string         mStrLangE;
 	std::string         mStrTmp;
@@ -1349,198 +1527,54 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 
 cMetaDataPhoto cMetaDataPhoto::CreateNewExiv2(const std::string & aNameFile) // ,const char *  aNameTest)
 {
+       std::string aDir,aNameSsDir;
+       SplitDirAndFile(aDir,aNameSsDir,aNameFile);
+       std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameSsDir + "-MDT-"+ HRevXif + ".xml";
 
-	return cXifDecoder::GetMTDIm(aNameFile);
+       if ( ELISE_fp::exist_file(aNameXml))
+       {
+           cXmlXifInfo aXml = StdGetFromPCP(aNameXml,XmlXifInfo);
+           cElDate aDate = cElDate::NoDate;
+           if (aXml.Date().IsInit())
+             aDate = cElDate::FromXml(aXml.Date().Val());
+          
+           cMetaDataPhoto aMTD
+                          (
+                              aNameFile,                               // const std::string & aNameIm,
+                              aXml.Sz().ValWithDef(Pt2di(-1,-1)),      // Pt2di aXifSzIm,
+	                      aXml.Cam().ValWithDef(""),               // const std::string & aCam,
+                              aDate,                                   //  cElDate aDate,
+                              aXml.FocMM().ValWithDef(-1),             // double aFocMm,
+                              aXml.Foc35().ValWithDef(-1),             // double aFoc35,
+                              aXml.ExpTime().ValWithDef(-1),           // double aExpTime,
+                              aXml.Diaph().ValWithDef(-1),             // double aDiaph,
+                              aXml.IsoSpeed().ValWithDef(-1),          // double anIsoSpeed,
+                              aXml.BayPat().ValWithDef(DEFBayPatt)     // const std::string & aBayPat  DEFBayPatt
+                          );
+
+
+           ELISE_ASSERT(aXml.GPSLat().IsInit()==aXml.GPSLon().IsInit(),"Incoherence inr cMetaDataPhoto::CreateNewExiv2");
+           if (aXml.GPSLat().IsInit())
+           {
+               aMTD.mGPSLat = aXml.GPSLat().Val();
+               aMTD.mGPSLon = aXml.GPSLon().Val();
+               aMTD.mHasGPSLatLon = true;
+           }
+
+           if (aXml.GPSAlt().IsInit())
+           {
+               aMTD.mGPSAlt = aXml.GPSAlt().Val();
+               aMTD.mHasGPSAlt = true;
+           }
+
+            return aMTD;
+
+       }
+
+       return cXifDecoder::GetMTDIm(aNameFile);
 }
 
 #if (0)
-{
-	bool aModeDCRaw = true;
-
-
-	const char * aNameFileTMP;
-	std::string aStrTMP;
-
-	/*
-	if (aNameTest)
-	{
-	aNameFileTMP = aNameTest;
-	if (sizeofile(aNameTest)==0)
-	{
-	return TheNoMTD;
-	}
-	}
-	else
-	*/
-	{
-		// std::string aStrCom = aModeDCRaw ? "LANG=C dcraw -i -v " : "exiv2 ";
-		bool OK = false;
-		for (int aKTest=0 ; (aKTest<2) && (! OK)  ; aKTest++)
-		{
-			aModeDCRaw  = (aKTest==0);
-          std::string aStrCom = aModeDCRaw ? (STRLANG+MMDir()+"bin"+ELISE_CAR_DIR+"ElDcraw -i -v ") : (STRLANG+ " exiv2 ");
-			aStrTMP = ExeCom(aStrCom,aNameFile);
-			aNameFileTMP = aStrTMP.c_str();
-			if (sizeofile(aNameFileTMP ) != 0)
-			{
-				OK = true;
-			}
-			else
-			{
-				if ( ELISE_fp::exist_file(aNameFileTMP))
-					ELISE_fp::RmFile(aNameFileTMP);
-			}
-		}
-		if (!OK)
-		{
-			if (Tiff_Im::IsTiff(aNameFile.c_str()))
-			{
-				cMetaDataPhoto  aMDP = Tiff_Im(aNameFile.c_str()).MDP();
-
-				if (aMDP.FocMm() >=0)
-					return aMDP;
-			}
-
-			std::cout << "For file " << aNameFile << " Cannot get xif data\n";
-			ELISE_ASSERT(false,"Nor dcraw nor exiv2 can create xif data");
-		}
-	}
-
-	std::string aStrDate = aModeDCRaw ?
-		"Timestamp: .* (...)  ?([0-9]{1,2})  ?([0-9]{1,2}):([0-9]{2}):([0-9]{2}) ([0-9]{4})"            :
-	"Image timestamp : ([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})";
-
-	std::string aOrdreDate = aModeDCRaw ? "612345" : "123456";
-
-	std::string aStrFoc = aModeDCRaw ? "Focal length: ([0-9]*\\.?[0-9]*) mm" : "Focal length    : ([0-9]*\\.?[0-9]*) mm";
-
-	std::string aStrTime = aModeDCRaw ? "Shutter: ((1/)?[0-9]*\\.?[0-9]*) sec" : "Exposure time   : ((1/)?[0-9]*\\.?[0-9]*) s";
-
-	std::string aStrOuv = aModeDCRaw ? "Aperture: f/(([0-9]*\\.?[0-9]*)|(inf))" : "Aperture        : F([0-9]*\\.?[0-9]*)";
-	std::string aStrIso = aModeDCRaw ? "ISO speed: ([0-9]*\\.?[0-9]*)" :"ISO speed       : ([0-9]*\\.?[0-9]*)";
-
-
-	std::string aStrCam = aModeDCRaw ? "Camera: (.*)" : "Camera model    : (.*)";
-
-
-	//Modif de Greg suite a des pb avec des photos 640 x 480 (on a 4 espaces plutot que 3 apres les ':', sans doute parce qu'on a 3 chiffres au lieu des 4 habituels) 
-	//std::string aStrSz = aModeDCRaw ? "Full size:   ([0-9]+) x ([0-9]+)" : "Image size      : ([0-9]+) x ([0-9]+)";
-	std::string aStrSz = aModeDCRaw ? "Full size:[ ]+([0-9]+) x ([0-9]+)" : "Image size      :[ ]+([0-9]+) x ([0-9]+)";
-
-	std::string aNameTmp = aNameFileTMP;
-
-	//   std::cout << "11111111111111111 [" << aStrIso << "]\n";
-
-	int aNbMatch;
-	std::vector<double> aVDate =
-		GetValsNumFromLineExprReg
-		(
-		mDateRegExiV2,
-		aNameTmp,
-		aStrDate,
-		aOrdreDate,
-		&aNbMatch
-		);
-
-	//   std::cout << "22222222222222 [" << aStrIso << "]\n";
-	cElDate aDate = cElDate::NoDate;
-
-	if (aNbMatch==1)
-	{
-		aDate = cElDate
-			(
-			round_ni(aVDate[2]),round_ni(aVDate[1]),round_ni(aVDate[0]),
-			cElHour(round_ni(aVDate[3]),round_ni(aVDate[4]),round_ni(aVDate[5]))
-			);
-	}
-
-	//   std::cout << "3333333333333333 [" << aStrIso << "]\n";
-
-	std::vector<double> aVFoc =
-		GetValsNumFromLineExprReg
-		(
-		mFocRegExiV2,
-		aNameTmp,
-		aStrFoc,
-		"1",
-		&aNbMatch
-		);
-	double aFoc = VAtDef(aVFoc,0,-1.0);
-
-
-	//   std::cout << "44444444444444444 [" << aStrIso << "]\n";
-	std::vector<double> aVExpTime =
-		GetValsNumFromLineExprReg
-		(
-		mExpTimeRegExiV2,
-		aNameTmp,
-		aStrTime,
-		"1",
-		&aNbMatch
-		);
-	double aExpTime = VAtDef(aVExpTime,0,-1.0);
-
-	//   std::cout << "55555555555555555 [" << aStrIso << "]\n";
-	std::vector<double> aVDiaph =
-		GetValsNumFromLineExprReg
-		(
-		mDiaphRegExiV2,
-		aNameTmp,
-		aStrOuv,
-		"1",
-		&aNbMatch
-		);
-	double aDiaph = VAtDef(aVDiaph,0,-1.0);
-
-	//   std::cout << "AAAAAAAAAA [" << aStrIso << "]\n";
-	std::vector<double> aVIsoSpeed =
-		GetValsNumFromLineExprReg
-		(
-		mIsoSpeedRegExiV2,
-		aNameTmp,
-		aStrIso,
-		"1",
-		&aNbMatch
-		);
-	//   std::cout << "BBBBBBBB\n";
-	double anIsoSpeed = VAtDef(aVIsoSpeed,0,-1.0);
-
-	std::vector<double> aVSz =
-		GetValsNumFromLineExprReg
-		(
-		mSzImExiV2,
-		aNameTmp,
-		aStrSz,
-		"12",
-		&aNbMatch
-		);
-	Pt2di  aSz(round_ni(VAtDef(aVSz,0,-1.0)),round_ni(VAtDef(aVSz,1,-1.0)));
-
-
-	std::string aCam=GetStringFromLineExprReg(mCameraExiV2,aNameTmp,aStrCam,"$1",&aNbMatch);
-
-	// std::cout << "CAM = " << 
-
-
-	double aFoc35 = -1;
-	if (aModeDCRaw)
-	{
-		std::string aStrFoc35 = "Focal Equi35: (-?[0-9]*\\.?[0-9]*) mm";
-		std::vector<double> aVFoc35 =
-			GetValsNumFromLineExprReg
-			(
-			mFoc35RegExiV2,
-			aNameTmp,
-			aStrFoc35,
-			"1"
-			);
-		aFoc35  = aVFoc35[0];
-	}
-	
-	ELISE_fp::RmFile(aNameTmp);
-
-	return cMetaDataPhoto(aSz,aCam,aDate,aFoc,aFoc35,aExpTime,aDiaph,anIsoSpeed);
-}
 #endif
 
 void cMetaDataPhoto::SetXYZTetas(const Pt3dr & aXYZ,const Pt3dr & aTetas)
@@ -1585,7 +1619,7 @@ void cMetaDataPhoto::SetFocal(const double & aF)
 	mFocMm = aF;
 }
 
-void cMetaDataPhoto::SetFoc35(const double & aF)
+void cMetaDataPhoto::SetFoc35(const double &aF)
 {
 	mFoc35 = aF;
 }
