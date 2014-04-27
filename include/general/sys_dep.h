@@ -369,6 +369,11 @@ typedef REAL8  tSysCho ;
 #endif
 
 
+// Version int de __HG_REV__
+int NumHgRev();
+
+
+
 #endif /* ! _ELISE_SYS_DEP_H */
 
 

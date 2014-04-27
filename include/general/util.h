@@ -1336,9 +1336,14 @@ class cCpleString
         std::string mN2;
 };
 
+class cXmlHour;
+class cXmlDate;
+
 class cElHour
 {
     public :
+      cXmlHour ToXml();
+      static cElHour FromXml(const cXmlHour &);
       cElHour
       (
           int aNbHour,
@@ -1373,6 +1378,9 @@ class cElHour
 class cElDate
 {
     public :
+       cXmlDate ToXml();
+       static cElDate FromXml(const cXmlDate &);
+
        static const cElDate NoDate;
        bool IsNoDate() const;
        cElDate

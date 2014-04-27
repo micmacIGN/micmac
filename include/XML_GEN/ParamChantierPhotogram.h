@@ -3732,6 +3732,128 @@ cElXMLTree * ToXMLTree(const cExportApero2MM &);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlHour
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlHour & anObj,cElXMLTree * aTree);
+
+
+        int & H();
+        const int & H()const ;
+
+        int & M();
+        const int & M()const ;
+
+        double & S();
+        const double & S()const ;
+    private:
+        int mH;
+        int mM;
+        double mS;
+};
+cElXMLTree * ToXMLTree(const cXmlHour &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlDate
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlDate & anObj,cElXMLTree * aTree);
+
+
+        int & Y();
+        const int & Y()const ;
+
+        int & M();
+        const int & M()const ;
+
+        int & D();
+        const int & D()const ;
+
+        cXmlHour & Hour();
+        const cXmlHour & Hour()const ;
+    private:
+        int mY;
+        int mM;
+        int mD;
+        cXmlHour mHour;
+};
+cElXMLTree * ToXMLTree(const cXmlDate &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlXifInfo
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlXifInfo & anObj,cElXMLTree * aTree);
+
+
+        int & HGRev();
+        const int & HGRev()const ;
+
+        cTplValGesInit< double > & FocMM();
+        const cTplValGesInit< double > & FocMM()const ;
+
+        cTplValGesInit< double > & Foc35();
+        const cTplValGesInit< double > & Foc35()const ;
+
+        cTplValGesInit< double > & ExpTime();
+        const cTplValGesInit< double > & ExpTime()const ;
+
+        cTplValGesInit< double > & Diaph();
+        const cTplValGesInit< double > & Diaph()const ;
+
+        cTplValGesInit< double > & IsoSpeed();
+        const cTplValGesInit< double > & IsoSpeed()const ;
+
+        cTplValGesInit< Pt2di > & Sz();
+        const cTplValGesInit< Pt2di > & Sz()const ;
+
+        cTplValGesInit< double > & GPSLat();
+        const cTplValGesInit< double > & GPSLat()const ;
+
+        cTplValGesInit< double > & GPSLon();
+        const cTplValGesInit< double > & GPSLon()const ;
+
+        cTplValGesInit< double > & GPSAlt();
+        const cTplValGesInit< double > & GPSAlt()const ;
+
+        cTplValGesInit< std::string > & Cam();
+        const cTplValGesInit< std::string > & Cam()const ;
+
+        cTplValGesInit< std::string > & BayPat();
+        const cTplValGesInit< std::string > & BayPat()const ;
+
+        cTplValGesInit< cXmlDate > & Date();
+        const cTplValGesInit< cXmlDate > & Date()const ;
+    private:
+        int mHGRev;
+        cTplValGesInit< double > mFocMM;
+        cTplValGesInit< double > mFoc35;
+        cTplValGesInit< double > mExpTime;
+        cTplValGesInit< double > mDiaph;
+        cTplValGesInit< double > mIsoSpeed;
+        cTplValGesInit< Pt2di > mSz;
+        cTplValGesInit< double > mGPSLat;
+        cTplValGesInit< double > mGPSLon;
+        cTplValGesInit< double > mGPSAlt;
+        cTplValGesInit< std::string > mCam;
+        cTplValGesInit< std::string > mBayPat;
+        cTplValGesInit< cXmlDate > mDate;
+};
+cElXMLTree * ToXMLTree(const cXmlXifInfo &);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cCameraEntry
 {
     public:

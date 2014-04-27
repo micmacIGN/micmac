@@ -859,6 +859,7 @@ int Tapioca_main(int argc,char ** argv)
     if (argc>=3)
     {
         aFullDir = argv[1];
+
 #if(ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
@@ -883,6 +884,9 @@ int Tapioca_main(int argc,char ** argv)
 
     cTplValGesInit<std::string>  aTplFCND;
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
+
+
+     MakeXmlXifInfo(aFullDir,anICNM);
 
     if (TheType == Type[0])
     {
