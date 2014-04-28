@@ -510,12 +510,13 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton && hasDataLoaded())
     {
+        m_lastPosWindow = event->pos();
+
+        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
 
         int idMovePoint = polygon()->finalMovePoint(); //ne pas factoriser
 
         polygon()->findNearestPoint(m_lastPosImage);
-
-        cout << "point found: " << polygon()->getSelectedPointIndex()<<endl;
 
         update();
 
