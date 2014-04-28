@@ -6,12 +6,20 @@ XifGps2Xml
 HomolFilterMasq
 Generere un base des meta donnees (un fichier par image dans MTD);
 
+Mineure :
+
+  Im2XYZ
+point absent
+Correc resol capteur
+
 ================================================================
 
 A Faire :  
 
 
     Lancee a chaque commande importante ....
+
+Bascule en relvet ds l'espace
 
 
 ================================================================
