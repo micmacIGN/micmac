@@ -139,48 +139,49 @@ set(Elise_Src_Files
 
 set(libElise elise)
 
-set(SAISIE_DIR ${PROJECT_SOURCE_DIR}/src/saisieQT)
-
-set(vmm_SRCS    ${SAISIE_DIR}/GLWidget.cpp
-                ${SAISIE_DIR}/saisieQT_window.cpp
-                ${SAISIE_DIR}/Cloud.cpp
-                ${SAISIE_DIR}/Data.cpp
-                ${SAISIE_DIR}/Engine.cpp
-                ${SAISIE_DIR}/3DObject.cpp
-                ${SAISIE_DIR}/GLWidgetSet.cpp
-                ${SAISIE_DIR}/MatrixManager.cpp
-                ${SAISIE_DIR}/HistoryManager.cpp
-                ${SAISIE_DIR}/ContextMenu.cpp
-                ${SAISIE_DIR}/Settings.cpp
-                ${SAISIE_DIR}/QT_interface_Elise.cpp
-                ${SAISIE_DIR}/Tree.cpp)
-
-set( HEADERS_nomoc
-   ${SAISIE_DIR}/HistoryManager.h
-   ${SAISIE_DIR}/MatrixManager.h
-   ${SAISIE_DIR}/Cloud.h
-   ${SAISIE_DIR}/saisieQT_main.h
-   ${SAISIE_DIR}/Data.h
-   #SaisieGlsl.glsl
-   ${SAISIE_DIR}/Engine.h
-   ${SAISIE_DIR}/GLWidgetSet.h
-   ${SAISIE_DIR}/3DObject.h )
-
-set( HEADERS_tomoc
-   ${SAISIE_DIR}/GLWidget.h
-   ${SAISIE_DIR}/saisieQT_window.h
-   ${SAISIE_DIR}/ContextMenu.h
-   ${SAISIE_DIR}/Settings.h
-   ${SAISIE_DIR}/QT_interface_Elise.h
-   ${SAISIE_DIR}/Tree.h
-)
-
-set ( ui_toWrap
- ${SAISIE_DIR}/saisieQT_window.ui
- ${SAISIE_DIR}/Settings.ui
-)
-
 if ( NOT ${qt_version} EQUAL 0 )
+
+    set(SAISIE_DIR ${PROJECT_SOURCE_DIR}/src/saisieQT)
+
+    set(vmm_SRCS    ${SAISIE_DIR}/GLWidget.cpp
+                    ${SAISIE_DIR}/saisieQT_window.cpp
+                    ${SAISIE_DIR}/Cloud.cpp
+                    ${SAISIE_DIR}/Data.cpp
+                    ${SAISIE_DIR}/Engine.cpp
+                    ${SAISIE_DIR}/3DObject.cpp
+                    ${SAISIE_DIR}/GLWidgetSet.cpp
+                    ${SAISIE_DIR}/MatrixManager.cpp
+                    ${SAISIE_DIR}/HistoryManager.cpp
+                    ${SAISIE_DIR}/ContextMenu.cpp
+                    ${SAISIE_DIR}/Settings.cpp
+                    ${SAISIE_DIR}/QT_interface_Elise.cpp
+                    ${SAISIE_DIR}/Tree.cpp)
+
+    set( HEADERS_nomoc
+       ${SAISIE_DIR}/HistoryManager.h
+       ${SAISIE_DIR}/MatrixManager.h
+       ${SAISIE_DIR}/Cloud.h
+       ${SAISIE_DIR}/saisieQT_main.h
+       ${SAISIE_DIR}/Data.h
+       #SaisieGlsl.glsl
+       ${SAISIE_DIR}/Engine.h
+       ${SAISIE_DIR}/GLWidgetSet.h
+       ${SAISIE_DIR}/3DObject.h )
+
+    set( HEADERS_tomoc
+       ${SAISIE_DIR}/GLWidget.h
+       ${SAISIE_DIR}/saisieQT_window.h
+       ${SAISIE_DIR}/ContextMenu.h
+       ${SAISIE_DIR}/Settings.h
+       ${SAISIE_DIR}/QT_interface_Elise.h
+       ${SAISIE_DIR}/Tree.h
+    )
+
+    set ( ui_toWrap
+     ${SAISIE_DIR}/saisieQT_window.ui
+     ${SAISIE_DIR}/Settings.ui
+    )
+
    if ( ${qt_version} EQUAL 5 )
 
       set(CMAKE_INCLUDE_CURRENT_DIR ON)
