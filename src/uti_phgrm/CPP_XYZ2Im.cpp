@@ -50,18 +50,40 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
 {
     MMD_InitArgcArgv(argc,argv,2);
 
-    std::string  aFullNC,aFilePtsIn,aFilePtsOut;
+    std::string  aFullNC,aFilePtsIn,aFilePtsOut,aFilteredInput;
     std::string XYZ = "X,Y,Z";
     std::string IJ = "I,J";
+    bool aPoinIsImRef = true;
 
-    ElInitArgMain
-    (
+    if (Ter2Im)
+    {
+       ElInitArgMain
+       (
            argc,argv,
            LArgMain()  << EAMC(aFullNC,"Nuage or Cam", eSAM_IsExistFile)
                        << EAMC(aFilePtsIn,"File In : " + (Ter2Im ? XYZ : IJ), eSAM_IsExistFile)
                        << EAMC(aFilePtsOut,"File Out : " + (Ter2Im ? IJ : XYZ), eSAM_IsOutputFile),
-           LArgMain()
-    );
+           LArgMain()  
+       );
+    }
+    else
+    {
+       ElInitArgMain
+       (
+           argc,argv,
+           LArgMain()  << EAMC(aFullNC,"Nuage or Cam", eSAM_IsExistFile)
+                       << EAMC(aFilePtsIn,"File In : " + (Ter2Im ? XYZ : IJ), eSAM_IsExistFile)
+                       << EAMC(aFilePtsOut,"File Out : " + (Ter2Im ? IJ : XYZ), eSAM_IsOutputFile),
+           LArgMain()  << EAM(aFilteredInput,"FilterInput",true,"To generate a file of input superposable to output",eSAM_IsOutputFile)
+                       << EAM(aPoinIsImRef,"PointIsImRef",true,"Point must be corrected from cloud resolution def = true")
+       );
+    }
+
+    if (!EAMIsInit(&aFilteredInput))
+    {
+      aFilteredInput = DirOfFile(aFilePtsIn) + "Filtered_" + NameWithoutDir(aFilePtsIn);
+    }
+
 
     std::string aDir,aNC;
 
@@ -86,6 +108,8 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
     FILE *  aFOut = FopenNN(aFilePtsOut.c_str(),"w","XYZ2Im");
 
     char * aLine;
+    std::vector<Pt2dr> aV2Ok;
+    bool HasEmpty = false;
 
     while ((aLine = aFIn.std_fgets()))
     {
@@ -107,18 +131,30 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
             int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
             ELISE_ASSERT(aNb==2,"Could not read 2 double values");
 
+            if (aPoinIsImRef) 
+                aPIm = aNuage->ImRef2Capteur (aPIm);
+
             if (aNuage->CaptHasData(aPIm))
             {
                Pt3dr aP  = aNuage->PreciseCapteur2Terrain(aPIm);
                fprintf(aFOut,"%lf %lf %f\n",aP.x,aP.y,aP.z);
+               aV2Ok.push_back(aPIm);
             }
             else
             {
+                HasEmpty = true;
                 std::cout << "Warn :: " << aPIm << " has no data in cloud\n";
             }
         }
      }
 
+     if (HasEmpty || EAMIsInit(&aFilteredInput))
+     {
+         FILE *  aFFilter = FopenNN(aFilteredInput.c_str(),"w","XYZ2Im");
+         for (int aKP=0 ; aKP<int(aV2Ok.size()) ; aKP++)
+            fprintf(aFFilter,"%lf %lf\n",aV2Ok[aKP].x,aV2Ok[aKP].y);
+         ElFclose(aFFilter);
+     }
 
     aFIn.close();
     ElFclose(aFOut);
