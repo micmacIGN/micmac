@@ -443,4 +443,7 @@ void ViewportParameters::ptSizeUp(bool up)
     glPointSize((GLfloat) m_pointSize);
 }
 
+void cEngine::checkGeoReferencement(QStringList filenames)
+{
 
+}

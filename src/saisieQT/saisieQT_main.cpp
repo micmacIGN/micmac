@@ -109,6 +109,8 @@ public:
                     saisieAppuisInitQT_main(app, argc, argv);
                 else if (str.contains("SaisieAppuisPredicQT"))
                     saisieAppuisPredicQT_main(app, argc, argv);
+                else if (str.contains("SaisieBoxQT"))
+                    saisieBoxQT_main(app, argc, argv);
                 else
                 {
                     QString text = str + QObject::tr(" is not a valid command!!!") + "\n\n" + cmds;

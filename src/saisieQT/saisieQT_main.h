@@ -37,5 +37,6 @@ int helpMessage(QApplication const &app, QString text);
 int saisieMasqQT_main(QApplication &app, int argc, char *argv[]);
 int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[]);
 int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[]);
+int saisieBoxQT_main(QApplication &app, int argc, char *argv[]);
 
 #endif

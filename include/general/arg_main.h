@@ -673,11 +673,11 @@ int GrapheHom_main(int argc,char ** argv);
 
 #endif
 
-//#ifdef SAISIE_QT
 #if (ELISE_QT_VERSION >= 4)
     int SaisieMasqQT_main(int argc,char ** argv);
     int SaisieAppuisInitQT_main(int argc,char ** argv);
     int SaisieAppuisPredicQT_main(int argc,char ** argv);
+    int SaisieBoxQT_main(int argc,char ** argv);
     //int SaisieBascQT_main(int argc,char ** argv);
 #endif
 

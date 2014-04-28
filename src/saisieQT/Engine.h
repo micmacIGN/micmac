@@ -117,6 +117,9 @@ public:
     //! Load images  files
     void    loadImages(QStringList);
 
+    //! Check if georeferencing data exist (for box2d mode)
+    void    checkGeoReferencement(QStringList);
+
     //! Load image (and mask) file
     void    loadImage(QString );
     void    loadImage(int aK);
