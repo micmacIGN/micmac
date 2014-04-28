@@ -1193,6 +1193,61 @@ std::vector<std::vector<Pt2di> > StdPointOfCouronnes(int aDMax,bool AddD4First)
 }
 
 
+class cCmpPtOnX
+{
+    public : bool operator()(const Pt2dr & aP1,const Pt2dr & aP2) {return aP1.x < aP2.x;}
+};
+class cCmpPtOnY
+{
+    public : bool operator()(const Pt2dr & aP1,const Pt2dr & aP2) {return aP1.y < aP2.y;}
+};
+
+
+
+
+std::vector<Pt3dr>  GetDistribRepreBySort(std::vector<Pt2dr> & aVP,const Pt2di & aNbOut)
+{
+    Pt2dr * aAdr0 = VData(aVP);
+    int aNbIn0 = aVP.size();
+    std::vector<Pt3dr> aRes;
+
+    cCmpPtOnX aCmpX;
+    cCmpPtOnY aCmpY;
+    std::sort(aAdr0,aAdr0+aNbIn0,aCmpX);
+
+    for (int aNx=0 ; aNx<aNbOut.x ; aNx++)
+    {
+         int aX0 = (aNbIn0 * aNx) / aNbOut.x ;
+         int aX1 = (aNbIn0 * (aNx+1)) / aNbOut.x ;
+
+         Pt2dr * aAdrX = aAdr0 + aX0;
+         int aNbInX = (aX1-aX0);
+
+         std::sort(aAdrX,aAdrX+aNbInX,aCmpY);
+         for (int aNy=0 ; aNy<aNbOut.y ; aNy++)
+         {
+              int aY0 = (aNbInX * aNy) / aNbOut.y ;
+              int aY1 = (aNbInX * (aNy+1)) / aNbOut.y ;
+
+              int aNbInY =  aY1 -aY0;
+              if (aNbInY)
+              {
+                   Pt2dr * aAdrY = aAdrX + aY0;
+                   Pt2dr aSomP(0,0);
+                   for (int aK=0 ; aK<aNbInY ; aK++)
+                   {
+                       aSomP = aSomP + aAdrY[aK];
+                   }
+                   aSomP = aSomP / double(aNbInY);
+                   aRes.push_back(Pt3dr(aSomP.x,aSomP.y,aNbInY));
+              }
+         }
+    }
+
+    return aRes;
+}
+
+
 template <class TypeCont,class TypeRes>  TypeRes  TplGetDistribRepre
                                      (
                                                  Pt3dr & aCdg,
