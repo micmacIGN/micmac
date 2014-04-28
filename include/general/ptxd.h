@@ -1375,6 +1375,8 @@ Pt3dr  tCho2double(const Pt3d<tSysCho> & aP);
 typedef TypeSubst<Pt2di>   Pt2diSubst;
 typedef TypeSubst<Pt2dr>   Pt2drSubst;
 
+std::vector<Pt3dr>  GetDistribRepreBySort(std::vector<Pt2dr> & aVP,const Pt2di & aNbOut);
+
 std::vector<Pt3dr> GetDistribRepresentative(Pt3dr & aCdg,const std::vector<Pt2dr> & aV,const Pt2di & aNb);
 
 
