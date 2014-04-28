@@ -75,6 +75,11 @@ int SaisieBascQT_main(int argc,char ** argv)
     return runCmd(argc, argv, "SaisieBascQT");
 }
 
+int SaisieBoxQT_main(int argc,char ** argv)
+{
+    return runCmd(argc, argv, "SaisieBoxQT");
+}
+
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007

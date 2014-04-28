@@ -9,6 +9,7 @@ set(saisie_SRCS saisieQT_main.cpp
                 saisieMasqQT_main.cpp
                 saisieAppuisInitQT_main.cpp
                 saisieAppuisPredicQT_main.cpp
+                saisieBoxQT_main.cpp
                 GLWidget.cpp
                 saisieQT_window.cpp
                 Cloud.cpp
