@@ -19,7 +19,6 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 
 void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
 {
-
     maskedImg._m_image = new QImage( aNameFile );
 
     QFileInfo fi(aNameFile);
@@ -443,4 +442,31 @@ void ViewportParameters::ptSizeUp(bool up)
     glPointSize((GLfloat) m_pointSize);
 }
 
+void cEngine::checkGeoReferencement(QStringList filenames)
+{
+    if (filenames.size())
+    {
+        for (int aK=0; aK < filenames.size(); ++aK)
+        {
+            QString filename = filenames[aK];
 
+            QFileInfo fi(filename);
+
+            QString suffix = fi.suffix();
+            QString xmlFile = fi.absolutePath() + QDir::separator() + fi.baseName() + ".xml";
+
+            if ((suffix == "tif") && (QFile(xmlFile).exists()))
+            {
+                std::string aNameTif = filename.toStdString();
+
+                cFileOriMnt aFOMInit = StdGetObjFromFile<cFileOriMnt>
+                                       (
+                                            StdPrefix(aNameTif)+".xml",
+                                            StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                           "FileOriMnt",
+                                           "FileOriMnt"
+                                       );
+            }
+        }
+    }
+}
