@@ -190,7 +190,7 @@ void MMRunVisualMode
 
         w.show();
 
-        SaisieQtWindow SaisieWin(MASK2D);
+        SaisieQtWindow SaisieWin(BOX2D);
 
         w.setSaisieWin(&SaisieWin);
 

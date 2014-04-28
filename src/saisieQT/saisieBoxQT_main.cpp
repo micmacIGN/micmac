@@ -1,13 +1,13 @@
 #include "saisieQT_main.h"
 
-int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
+int saisieBoxQT_main(QApplication &app, int argc, char *argv[])
 {
     MMD_InitArgcArgv(argc,argv);
 
-    app.setApplicationName("SaisieMasqQT");
+    app.setApplicationName("SaisieBoxQT");
     app.setOrganizationName("IGN");
 
-    SaisieQtWindow w;
+    SaisieQtWindow w(BOX2D);
 
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
@@ -28,7 +28,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             if (str.contains("help"))
             {
                 QString help =  app.applicationName() +" [filename] [option=]\n\n"
-                                "* [filename] string\t: open file (image or ply or camera xml)\n\n"
+                                "* [filename] string\t: open image file\n\n"
                                 "Options\n\n"
                                 "* [Name=SzW] integer\t: set window width (default=800)\n"
                                 "* [Name=Post] string\t: change postfix output file (default=_Masq)\n"
@@ -81,7 +81,6 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
             if (str.contains(app.applicationName()))
                 removeArg=true;
-
 
             if (removeArg)
             {
