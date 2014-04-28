@@ -427,7 +427,7 @@ class ElPackHomologue : public cPackNupletsHom
              //  la mise en place par l'algo standard est degenere,
              // on choisit donc un algo ad hoc
               cResMepRelCoplan   MepRelCoplan (REAL LongBase,bool HomEstL2);
-              cResMepRelCoplan   MepRelCoplan (REAL LongBase,cElHomographie,const tPairPt & Centre);
+              static cResMepRelCoplan   MepRelCoplan (REAL LongBase,cElHomographie,const tPairPt & Centre);
 
               // s'adapte a xml, tif , dat
 	      static ElPackHomologue   FromFile(const std::string &);
@@ -2478,8 +2478,7 @@ class cElemMepRelCoplan
                 cElemMepRelCoplan
                 (
                    const cElHomographie &,
-                   const ElRotation3D &,
-                   const ElPackHomologue & aPack
+                   const ElRotation3D &
                 );
 
              bool PhysOk() const;
@@ -2509,10 +2508,15 @@ class cElemMepRelCoplan
                 // Point du plan, ayant P1 comme image  par cam1
                 // (en coord camera 1)
              Pt3dr ImCam1(Pt2dr aP1);
+             // Homographie envoyant un (u,v,1) en (X,Y,0)
+             cElHomographie HomCam2Plan();
+
 	     cElPlan3D  Plan() const;
 	     const Pt3dr & P0() const;
 	     const Pt3dr & P1() const;
 	     const Pt3dr & P2() const;
+
+             // Des coordoones Cam2 a Cam1
 
              Pt3dr ToR1(Pt3dr aP2) const;
 
