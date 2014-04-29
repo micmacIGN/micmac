@@ -337,7 +337,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
             </#WHEN>
             <#WHEN VTEST=${UseGpu}>
                <CorrelAdHoc>
-                   <SzBlocAH > 48 </SzBlocAH>
+                   <SzBlocAH > 128 </SzBlocAH>
                    <TypeCAH>
                            <GPU_CorrelBasik >  true   </GPU_CorrelBasik>
                    </TypeCAH>
@@ -442,7 +442,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                                 </TypeCAH>
                             </#WHEN>
                             <#WHEN VTEST=${UseGpu}>
-                                <SzBlocAH > 48 </SzBlocAH>
+                                <SzBlocAH > 128 </SzBlocAH>
                                 <TypeCAH>
                                         <GPU_CorrelBasik >  true   </GPU_CorrelBasik>
                                 </TypeCAH>
