@@ -121,6 +121,7 @@ cXmlRHHResLnk  ComputeHomographie
 
 
 
+
   if (aRes.Ok())
   {
 
@@ -285,17 +286,22 @@ void cLink2Img::LoadPack()
       return;
    mPckLoaded = true;
    mPack = ElPackHomologue::FromFile(mSrce->Appli().Dir()+mNameH);
-   mNbPts =  mPack.size();
 
+
+   mNbPts =  mPack.size();
    std::vector<Pt2dr>  aVP2;
    Pt2dr aSom(0,0);
+   CamStenope * aCam1 = mSrce->CamC();
+   CamStenope * aCam2 = mDest->CamC();
    for
    (
-       ElPackHomologue::const_iterator itP=mPack.begin();
+       ElPackHomologue::iterator itP=mPack.begin();
        itP != mPack.end();
        itP++
    )
    {
+       itP->P1() =  aCam1->F2toPtDirRayonL3(itP->P1());
+       itP->P2() =  aCam2->F2toPtDirRayonL3(itP->P2());
        Pt2dr aP1 = itP->P1();
        aVP2.push_back(aP1);
        aSom = aSom + aP1;
@@ -464,6 +470,7 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mAppli    (anAppli),
    mName     (aName),
    mNameCalib (mAppli.NameCalib(mName)),
+   mCamC      (CamOrientGenFromFile(mNameCalib,0)),
    mNameVerif (mAppli.NameVerif(mName)),
    mNum      (aNum),
    mNumTmp   (-1),
@@ -476,6 +483,13 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
 
    // std::cout << "NCCC " << mNameCalib << " [" << mNameVerif<< "]\n";
 }
+
+
+CamStenope *   cImagH::CamC()
+{
+   return mCamC;
+}
+
 
    //============ FONCTION DE GRAPHE IMAGE =========================
 
