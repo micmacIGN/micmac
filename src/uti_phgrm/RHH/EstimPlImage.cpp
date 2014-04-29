@@ -88,6 +88,73 @@ class cTestPlIm
 };
 
 
+double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2)
+{
+/*
+   std::vector<int> aVInd;
+   for (int aK=0 ; aK<4 ; aK++)
+      aVInd.push_back(aK);
+*/
+    const std::vector<Pt3dr> & aV =  aPL1.mLnk->EchantP1();
+
+   L2SysSurResol aSys(4,true);
+   double aCoeff[4];  // A B TrX TrY
+
+   for (int aK=0 ; aK<int(aV.size()) ; aK++)
+   {
+       Pt2dr aP(aV[aK].x,aV[aK].y);
+       double aPds =aV[aK].z;
+
+       Pt2dr aPt1 = aPL1.mHomI2T.Direct(aP);
+       Pt2dr aPt2 = aPL2.mHomI2T.Direct(aP);
+       
+       aCoeff[0] = aPt1.x;
+       aCoeff[1] = -aPt1.y;
+       aCoeff[2] = 1;
+       aCoeff[3] = 0;
+       aSys.AddEquation(aPds,aCoeff,aPt2.x);
+       //  
+       aCoeff[0] = aPt1.y;
+       aCoeff[1] = aPt1.x;
+       aCoeff[2] = 0;
+       aCoeff[3] = 1;
+       aSys.AddEquation(aPds,aCoeff,aPt2.y);
+   }
+   bool Ok;
+   Im1D_REAL8 aSol = aSys.Solve(&Ok);
+   double aResidu = aSys.ResiduOfSol(aSol.data());
+
+
+   if (1)
+   {
+       double * aDS = aSol.data();
+       Pt2dr aMul(aDS[0] ,aDS[1]);
+       Pt2dr aTR(aDS[2] ,aDS[3]);
+
+
+       double aSomV = 0;
+
+       for (int aK=0 ; aK<int(aV.size()) ; aK++)
+       {
+           Pt2dr aP(aV[aK].x,aV[aK].y);
+           double aPds =aV[aK].z;
+
+           Pt2dr aPt1 = aPL1.mHomI2T.Direct(aP);
+           Pt2dr aPt2 = aPL2.mHomI2T.Direct(aP);
+
+           Pt2dr aDif = aPt1 * aMul + aTR - aPt2;
+
+           aSomV += aPds * square_euclid(aDif);
+        }
+
+    }
+
+
+
+
+    return aResidu;
+}
+
 
 
 void cImagH::EstimatePlan()
@@ -123,18 +190,18 @@ void cImagH::EstimatePlan()
           }
      }
 
-/*
-     for (int aK=0 ; aK<int(aVPlIm.size()) ; aK++)
-     {
-           cLink2Img * aLnk   = aVPlIm[aK].mLnk;
-           ElPackHomologue & aPack = aLnk->Pack();
-           std::cout << " " << aLnk->Dest()->Name() << " Sz " << aPack.size() << " " << aVPlIm[aK].mRMCP.Norm() << "\n";
-           aVPlIm[aK].mRMCP.HomCam2Plan();
-     }
-*/
+      for (int aK1 = 0 ; aK1<int(aVPlIm.size()) ; aK1++)
+      {
+          for (int aK2 = 0 ; aK2<int(aVPlIm.size()) ; aK2++)
+          {
+             double aResidu =    TestCohHomogr(aVPlIm[aK1],aVPlIm[aK2]);
+             std::cout << "RESIDU " << aResidu  << "  "  << (aK1==aK2) << "\n";
+          }
+      }
+
      
      std::cout << " =========== End  EstimatePlan \n";
-     // getchar();
+     getchar();
 }
 
 
