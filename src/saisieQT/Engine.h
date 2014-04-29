@@ -136,6 +136,8 @@ public:
     //! Creates binary image from selection and saves
     void    doMaskImage(ushort idCur, bool isFirstAction);
 
+    void    saveBox2D(ushort idCur);
+
     void    saveMask(ushort idCur, bool isFirstAction);
 
     cData*  getData()  {return _Data;}
@@ -158,6 +160,8 @@ private:
     QVector <cGLData*>  _vGLData;
 
     cParameters*        _params;
+
+    cFileOriMnt         _FileOriMnt;
 };
 
 

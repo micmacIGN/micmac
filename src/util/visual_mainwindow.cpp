@@ -380,12 +380,21 @@ void visual_MainWindow::onSaisieButtonPressed(int aK)
         _SaisieWin->addFiles(aFiles);
 
         _SaisieWin->setCurrentPolygonIndex(1);
+
+        connect(_SaisieWin->getWidget(0),SIGNAL(newRectanglePosition(QVector <QPointF>)),this,SLOT(onRectanglePositionChanged(QVector<QPointF>)));
     }
 }
 
 void visual_MainWindow::_adjustSize(int)
 {
     adjustSize();
+}
+
+void visual_MainWindow::onRectanglePositionChanged(QVector<QPointF> points)
+{
+    cout << "points" << points.size() << endl;
+
+    //((QSpinBox*) aIn->Widgets()[aK].second)->setValue();
 }
 
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
@@ -555,12 +564,13 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_saisieButton(vector< pair < int, QWidget * > > vWidgets, QGridLayout *layout, int aK)
+void visual_MainWindow::add_saisieButton(/*vector< pair < int, QWidget * > > vWidgets,*/ QGridLayout *layout, int aK)
 {
     selectionButton *saisieButton = new selectionButton(tr("Selection editor"));
     layout->addWidget(saisieButton, aK, 5);
     connect(saisieButton,SIGNAL(my_click(int)),this,SLOT(onSaisieButtonPressed(int)));
-    vWidgets.push_back(pair <int, QPushButton*>(eIT_None, saisieButton));
+
+    //vWidgets.push_back(pair <int, QPushButton*>(eIT_None, saisieButton));
 }
 
 void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
@@ -575,7 +585,7 @@ void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int 
         vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, spinBox));
     }
 
-    add_saisieButton(vWidgets, layout, aK);
+    add_saisieButton(/*vWidgets, */layout, aK);
 
     ((QSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(0) );
     ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
@@ -641,7 +651,7 @@ void visual_MainWindow::add_4SpinBox(QGridLayout *layout, QWidget *parent, int a
         vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, spinBox));
     }
 
-    add_saisieButton(vWidgets, layout, aK);
+    add_saisieButton(/*vWidgets,*/ layout, aK);
 
     ((QSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(0) );
     ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
