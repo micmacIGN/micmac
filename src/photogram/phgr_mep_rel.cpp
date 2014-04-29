@@ -407,6 +407,43 @@ Pt3dr cElemMepRelCoplan::Norm() const
    return mNorm;
 }
 
+static double aEpsPl = 1e-2;
+static double aEpsHom = 5e-2;
+
+
+cElHomographie cElemMepRelCoplan::HomCam2Plan()
+{
+   ElPackHomologue aPack;
+   ElRotation3D  aRE2P = Plan().CoordPlan2Euclid().inv();
+
+   double aResidu = 0;
+   for (int aDx=-1; aDx<=1; aDx++)
+   {
+       for (int aDy=-1; aDy<=1; aDy++)
+       {
+           Pt2dr aPIm(aDx*aEpsHom,aDy*aEpsHom);
+           Pt3dr aPTer = ImCam1(aPIm);
+           Pt3dr aPPlan = aRE2P.ImAff(aPTer);
+
+           aPack.Cple_Add(ElCplePtsHomologues(aPIm,Pt2dr(aPPlan.x,aPPlan.y)));
+
+           aResidu += ElAbs(aPPlan.z);
+
+       }
+   }
+
+   cElHomographie aRes(aPack,true);
+   for (ElPackHomologue::iterator itC=aPack.begin(); itC!=aPack.end(); itC++)
+   {
+        double aD = euclid(aRes.Direct(itC->P1()) -itC->P2());
+        aResidu += aD;
+   }
+   // std::cout << "RRRRR " << aResidu << "\n";
+   ELISE_ASSERT(aResidu<1e-4,"Incoherence in cElemMepRelCoplan::HomCam2Plan");
+
+   return aRes;
+}
+
 
 Pt3dr cElemMepRelCoplan::ImCam1 (Pt2dr aP1)
 {
@@ -466,13 +503,11 @@ REAL cElemMepRelCoplan::DPlan() const
 	return euclid(mP0);
 }
 
-static double aEpsPl = 1e-2;
 
 cElemMepRelCoplan::cElemMepRelCoplan
 (
      const cElHomographie & aHom,
-     const ElRotation3D &   aRot,
-     const ElPackHomologue & aPack
+     const ElRotation3D &   aRot
 ) :
   mHom         (aHom),
   mHomI        (mHom.Inverse()),
@@ -648,6 +683,8 @@ cResMepRelCoplan ElPackHomologue::MepRelCoplan(REAL LBase,bool HomEstL2)
 
 
 cResMepRelCoplan ElPackHomologue::MepRelCoplan(REAL LBase,cElHomographie aHom12,const tPairPt & aP00)
+
+// cResMepRelCoplan FFFFMepRelCoplan(REAL LBase,cElHomographie aHom12,const tPairPt & aP00)
 {
    cResMepRelCoplan aRes;
    //  cElHomographie aHom12(*this,HomEstL2);
@@ -730,7 +767,7 @@ cResMepRelCoplan ElPackHomologue::MepRelCoplan(REAL LBase,cElHomographie aHom12,
                          for (INT sign = -1; sign <=1 ; sign += 2)
 		         {
                             ElRotation3D aR(aR2T*Pt3dr(0,LBase*sign,0),aR2T*aR1,true);
-			    cElemMepRelCoplan anEl(aHom12,aR,*this);
+			    cElemMepRelCoplan anEl(aHom12,aR);
                             aRes.AddSol(anEl);
 			 }
 		    }

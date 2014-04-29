@@ -1050,7 +1050,6 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
         }
         else                                 // select nearest polygon point
         {
-            cout << "find nearest point" << endl;
             findNearestPoint(pos, _selectionRadius / zoom);
         }
     }
@@ -1274,28 +1273,15 @@ void cPolygonHelper::setPoints(cPoint p1, cPoint p2, cPoint p3)
 //********************************************************************************
 
 cRectangle::cRectangle(float lineWidth, QColor lineColor, int style) :
-    cPolygon(lineWidth, lineColor)
-{
-    _style = style;
-
-    _helper->setStyle(LINE_NOSTIPPLE);
-    _helper->setLineColor(lineColor);
-
-    setLineWidth(lineWidth);
-
-
-}
+    cPolygon(lineWidth, lineColor, Qt::red, style)
+{}
 
 void cRectangle::addPoint(const QPointF &pt)
 {
     if (size() == 0)
     {
         for (int aK=0; aK <4; aK++)
-        {
             add(pt);
-            _points[aK].setName(QString::number(aK));
-            _points[aK].showName(true);
-        }
 
         selectPoint(2);
     }
@@ -1307,31 +1293,48 @@ void cRectangle::refreshHelper(QPointF pos, bool insertMode, float zoom, bool pt
     {
         if(isPointSelected())
         {
-            setVisible(false);
-
-            _points[1].setX(pos.x());
-            _points[1].setY(_points[0].y());
-
-            _points[3].setX(_points[0].x());
-            _points[3].setY(pos.y());
-
-            setClosed(true);
             showLines(true);
+            setClosed(true);
 
-            cPolygon::refreshHelper(pos, false, zoom, false);
+            _points[_idx].setX(pos.x());
+            _points[_idx].setY(pos.y());
 
-            this->showNames(true);
-            helper()->showNames(true);
+            if (_idx == 2)
+            {
+                _points[1].setX(pos.x());
+
+                _points[3].setY(pos.y());
+            }
+            else if(_idx == 1)
+            {
+                _points[0].setY(pos.y());
+
+                _points[2].setX(pos.x());
+            }
+            else if(_idx == 0)
+            {
+                _points[3].setX(pos.x());
+
+                _points[1].setY(pos.y());
+            }
+            else if(_idx == 3)
+            {
+                _points[2].setY(pos.y());
+
+                _points[0].setX(pos.x());
+            }
         }
         else
-            setVisible(true);
+        {
+            cPolygon::refreshHelper(pos, false, zoom, false);
+        }
     }
 }
 
 void cRectangle::draw()
 {
-    /*for (int aK= 0; aK < size(); ++aK)
-        _points[aK].setVisible(false);*/
+    for (int aK= 0; aK < size(); ++aK)
+        _points[aK].setVisible(false);
 
     cPolygon::draw();
 }

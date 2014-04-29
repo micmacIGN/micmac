@@ -113,6 +113,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
         bool isMST = itP->MEP_SPEC_MST().IsInit();
 
         std::list<std::string> aLName;
+std::cout << "GGGGG  " << aLName.size() << "\n";
         for 
         (
            std::list<std::string>::const_iterator itPat=itP->PatternName().begin();
@@ -153,6 +154,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 	}
 
 
+
         if (itP->AutomGetImC().IsInit())
         {
             const std::string  & anId = itP->AutomGetImC().Val();
@@ -163,6 +165,8 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 
             std::map<std::string,double> mCpt;
 
+            for (std::list<std::string>::const_iterator it1 =  aLName.begin() ;it1!=aLName.end() ; it1++)
+                mCpt[*it1] = 0;
             for (std::list<std::string>::const_iterator it1 =  aLName.begin() ;it1!=aLName.end() ; it1++)
             {
                   std::list<std::string>::const_iterator it2 = it1; 
@@ -193,6 +197,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
             aLName.clear();
             aLName.push_back(aBestN);
         }
+
 
         if (itP->AddAllNameConnectedBy().IsInit())
         {
@@ -330,6 +335,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
                     itP->OptimizeAfterInit().IsInit()              ?
                     new cCompileAOI(itP->OptimizeAfterInit().Val()):
                     0                                              ;
+
 	   for 
 	   (
 	      std::list<std::string>::const_iterator itS=aLName.begin();
