@@ -76,6 +76,10 @@ class cTestPlIm
              mRMCP   (aRMCP),
              mHomI2T (mRMCP.HomCam2Plan())
         {
+            std::cout << "  PLL " << aLnk->Dest()->Name()
+                      << mRMCP.Norm()
+                      << mHomI2T.Direct(Pt2dr(0.5,0.5))
+                      << "\n";
         }
        
         cLink2Img *       mLnk;
