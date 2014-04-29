@@ -1,0 +1,283 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+    NumPoseC="0003"
+    NumOri="00007"
+   
+>
+   <ParamApero>
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Cal-Init-Nikon-10.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^${PrefixImages}${NumPoseC}${SepPoseOri}${NumOri}${PostfixImages}\.tif </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosId> toto </PosId>
+                   </PosValueInit>
+
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName> ^${PrefixImages}${PatPose}${SepPoseOri}${NumOri}${PostfixImages}\.tif   </PatternName> 
+                   <InitNow> true </InitNow>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+
+                   <MEP_SPEC_MST> 
+                           <Show> true </Show>
+                   </MEP_SPEC_MST>
+
+
+		   <PosValueInit>
+		        <PoseFromLiaisons>
+                             <LiaisonsInit>
+                                 <NameCam> ###   </NameCam>
+				 <IdBD> Id_Pastis_Hom  </IdBD>
+                             </LiaisonsInit>
+		        </PoseFromLiaisons>
+		   </PosValueInit>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+<!--
+                       <Pose2Init>
+                             <ProfMin> [2,3,4,5] </ProfMin>
+                             <Show> true </Show>
+                       </Pose2Init>
+-->
+		       <SectionContraintes>
+
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+                              <Val> eLiberte_Dec0      </Val>
+                              <Val> eLiberteParamDeg_0 </Val>
+
+		          </ContraintesCamerasInc>
+
+		          <ContraintesPoses>
+			     <NamePose>   0 </NamePose>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>
+
+		          <ContraintesPoses>
+			     <NamePose>   1     </NamePose>
+			     <Val>      ePoseBaseNormee   </Val>
+			     <PoseRattachement>   0 </PoseRattachement>
+		          </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 15 </EcartMax>
+                                  <SigmaPond> 5 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberte_DR3      </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1  </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_11     </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1  </Val>
+                              <Val> eLiberte_DR5  </Val>
+		          </ContraintesCamerasInc>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                             <ContraintesCamerasInc>
+                                 <Val> eLiberteParamDeg_2  </Val>
+                                 <Val>  eLiberte_Dec2  </Val>
+                             </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages> FIN PARAMETRES STANDARDS </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+
+
+
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR10  </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                             <ContraintesCamerasInc>
+                                 <Val> eLiberteParamDeg_5  </Val>
+                                 <Val>  eLiberte_Dec5  </Val>
+                             </ContraintesCamerasInc>
+                       </SectionContraintes>
+                    </IterationsCompensation>
+
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 10 </EcartMax>
+                                  <SigmaPond> 4 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+
+	      </EtapeCompensation>
+<!--
+-->
+
+
+
+
+
+	      <EtapeCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+<!--
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc> Key-Assoc-Im2OrInit </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                            <FileExtern> Orient/Grid-Calib-FE-Plaf.xml </FileExtern>
+                        </ExportPose>
+                        <ExportCalib>
+                             <KeyAssoc> Orient/Grid-Calib-FE-Plaf.xml </KeyAssoc>
+                             <KeyIsName> true </KeyIsName>
+                             <ExportAsNewGrid>
+                                 <Step> 30 30  </Step>
+                                 <RayonInv> 2800 </RayonInv>
+                              </ExportAsNewGrid>
+                        </ExportCalib>
+                        <ExportCalib>
+                             <KeyAssoc> Orient/AutoCalibVillesavin-Cannon15.xml </KeyAssoc>
+                             <KeyIsName> true </KeyIsName>
+                        </ExportCalib>
+-->
+
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
