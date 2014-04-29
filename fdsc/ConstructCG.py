@@ -173,17 +173,22 @@ class ConstructCG:
    #print 'offset value: ', offset_val
    return offset_val
 
+  def saveInfosPlot(self, fich):
+    fich.write("#begin infos plot for stack nb.{}\n".format(self.num_stack))
+    for x,y in zip(self.profil_absc, self.profil_ordo):
+      fich.write("{} {}\n".format(x, y))
+    fich.write("#end infos plot\n")
+
+
   def saveInfosOffset(self):
     offset_val=self.estimOffset()
-    #~ offset_val_m=offset_val*self.resol
-    #~ print 'Offset value (px):', offset_val
     print "Offsets direction: ", self.type_dirStack_name
     print 'Offset value (m):', offset_val
     #~ print 'Save offsets to file:',self.filepath_out
     if os.path.exists(self.filepath_out):
       with open(self.filepath_out, 'a') as file:
-        #~ file.write("  {}    {}    {}  {}  {}\n".format(self.num_stack, self.num_CenProfile, self.colCen_stack,self.ligCen_stack, offset_val))
         file.write("  {}    {}    {}  {}  {}\n".format(self.num_stack, self.num_CenProfile, self.colCen_stack,self.ligCen_stack, offset_val))
+        #~ self.saveInfosPlot(file)
     else:
       with open(self.filepath_out, 'w') as file:
         file.write("#fault trace file {}\n".format(self.filepath_poly))
@@ -203,10 +208,9 @@ class ConstructCG:
         file.write("#offsets direction: {}\n".format(str(self.type_dirStack_name)))
         file.write("#end info stack\n")
         file.write("\n")
-        #~ file.write("#no.stack  no.profile   X(px)   Y(px)   offset(px)\n")
-        #~ file.write("  {}    {}    {}  {}  {}\n".format(self.num_stack, self.num_CenProfile, self.colCen_stack,self.ligCen_stack, offset_val))
         file.write("#no.stack  no.profile   X(px)   Y(px)   offset(m)\n")
         file.write("  {}    {}    {}  {}  {}\n".format(self.num_stack, self.num_CenProfile, self.colCen_stack,self.ligCen_stack, offset_val))
+        #~ self.saveInfosPlot(file)
 
   #Least Mean Square fonction :
   #   equation y=ax+b

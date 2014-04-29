@@ -19,6 +19,7 @@ import re
 import os
 import sys
 
+
 from scipy import *
 from pylab import *
 from osgeo import gdal
@@ -106,13 +107,20 @@ def stackPerp(filename_Px1, filename_Px2, filename_poids,im_resolution, puiss_po
     u=(vectAB[0]/normeAB,vectAB[1]/normeAB) #unit vector parallel to fault
     v=(u[1],-u[0]) #unit vector perp to fault
     #~ print "Profile ",num_profil_central,": parall ",u,"; perp ",v
-    fig=figure()
+    fig=figure(1)
     #~ profil_absc,profil_ordo,tab_ecart=stack_calcMethod(data_Px1,data_Px2, data_poids,largeur_moy,tab_toutes_perp,num_profil_central,pas_perp,interpol_bilin,puiss_poids, u, v, type_output)
     profil_absc,profil_ordo,tab_ecart=stack_calcMethod(data_Px1*im_resolution,data_Px2*im_resolution, data_poids,largeur_moy,tab_toutes_perp,num_profil_central,pas_perp,interpol_bilin,puiss_poids, u, v, type_output)
     compteur_profilMoy+=1
     ax = fig.add_subplot(111)
+    #~ ax = plt.subplot2grid((1,2),(0, 0))
     #~ print "**** type_output: ", type_output
     constr_cg=ConstructCG(filename_Px1,filename_Px2,filename_poids,im_resolution, puiss_poids, longueur_profil, largeur_moy, ecart_profils, stack_calcMethod,fig,ax,profil_absc,profil_ordo,tab_ecart,label_fig,color_fig, xlabel_fig, ylabel_fig,title_fig, racine_nom_fig, compteur_profilMoy, num_profil_central, col_cen_num_profil_central,lig_cen_num_profil_central, filename_polyline, filename_info_out,type_output,showFig,showErrBar)
+
+    #~ g=figure(2)
+    #~ ds = gdal.Open(filename_Px1, gdal.GA_ReadOnly)
+    #~ data_im=ds.ReadAsArray()
+    #~ imshow(data_im,cmap=cm.Greys_r, interpolation=None)
+
     if showFig:
       show()
 
