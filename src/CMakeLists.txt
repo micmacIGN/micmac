@@ -141,6 +141,7 @@ set(libElise elise)
 
 if ( NOT ${qt_version} EQUAL 0 )
 
+	  
     set(SAISIE_DIR ${PROJECT_SOURCE_DIR}/src/saisieQT)
 
     set(vmm_SRCS    ${SAISIE_DIR}/GLWidget.cpp

@@ -90,12 +90,13 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mSeuilDistNorm,"SeuilDistNorm",true,"threshold to validate firt normal / second (def=0.2)")
                     << EAM(aIntNivShow,"Show",true,"Level of Show (0=None, Def= 1)")
                     << EAM(mHomByParal,"HbP",true,"Compute Homography in // (Def=true)")
-                    << EAM(mOriVerif,"Verif",true,"Compute Homography in // (Def=true)")
-                    << EAM(mOriVerif,"Verif",true,"Compute Homography in // (Def=true)")
+                    << EAM(mOriVerif,"Verif",true,"To generate perfect homographic tie (tuning purpose)")
     );
 
    SplitDirAndFile(mDir,mName,mFullName);
    StdCorrecNameOrient(mOri,mDir);
+   if (EAMIsInit(&mOriVerif))
+      StdCorrecNameOrient(mOriVerif,mDir);
 
     mKeyOri = "NKS-Assoc-FromFocMm@Ori-" + mOri +"/AutoCal@" + ".xml";
     if (EAMIsInit(&mOriVerif))
