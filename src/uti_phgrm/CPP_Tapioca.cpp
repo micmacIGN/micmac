@@ -886,7 +886,7 @@ int Tapioca_main(int argc,char ** argv)
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
 
 
-     MakeXmlXifInfo(aFullDir,anICNM);
+    MakeXmlXifInfo(aFullDir,anICNM);
 
     if (TheType == Type[0])
     {
