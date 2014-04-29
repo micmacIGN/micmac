@@ -49,14 +49,14 @@ if ( NOT ${qt_version} EQUAL 0 )
       if ( NOT ${OPENGL_GLU_FOUND} )
               message( FATAL_ERROR "GLU library could not be found" )
               return( -1 )
-      endif()
-
+      endif() 
+	  
       set(CMAKE_AUTOMOC ON)
 
-      QT5_ADD_RESOURCES( Saisie_RC_SRCS ./icones/icones.qrc )
+	  QT5_ADD_RESOURCES( Saisie_RC_SRCS ./icones/icones.qrc )
 
-      qt5_wrap_ui(saisie_ui saisieQT_window.ui Settings.ui)
-
+      QT5_WRAP_UI(saisieQT_ui saisieQT_window.ui Settings.ui)
+	  
       add_definitions(-DTWEAK)
       if ( WIN32 )
          add_definitions(-DELISE_windows)
@@ -69,9 +69,10 @@ if ( NOT ${qt_version} EQUAL 0 )
                            ${PROJECT_BINARY_DIR} )
 
       IF(WIN32)
-              add_executable(SaisieQT WIN32 ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} )
+	  
+              add_executable(SaisieQT WIN32 ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisieQT_ui} )
       else()
-              add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisie_ui} )
+              add_executable(SaisieQT ${saisie_SRCS} ${Saisie_RC_SRCS} ${saisieQT_ui} )
       endif()
 
       qt5_use_modules(SaisieQT Widgets Core Gui Xml Concurrent OpenGL)
