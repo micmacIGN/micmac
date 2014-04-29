@@ -93,10 +93,14 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mOriVerif,"Verif",true,"To generate perfect homographic tie (tuning purpose)")
     );
 
+
    SplitDirAndFile(mDir,mName,mFullName);
    StdCorrecNameOrient(mOri,mDir);
    if (EAMIsInit(&mOriVerif))
+   {
+      mHomByParal = false;
       StdCorrecNameOrient(mOriVerif,mDir);
+   }
 
     mKeyOri = "NKS-Assoc-FromFocMm@Ori-" + mOri +"/AutoCal@" + ".xml";
     if (EAMIsInit(&mOriVerif))

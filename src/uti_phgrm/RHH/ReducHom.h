@@ -303,6 +303,7 @@ class cImagH
          int & NumTmp();
          cHomogFormelle *  & HF();
          const tMapName2Link & Lnks() const;
+         CamStenope *  CamC();
      private :
 
 
@@ -319,6 +320,7 @@ class cImagH
          tMapName2Link                  mLnks;
          std::string                mName;
          std::string                mNameCalib;
+         CamStenope *               mCamC;
          std::string                mNameVerif;
          int                        mNum;
          int                        mNumTmp;
