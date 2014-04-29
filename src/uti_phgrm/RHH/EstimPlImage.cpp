@@ -71,14 +71,16 @@ class cCmpNormPlan
 class cTestPlIm
 {
     public :
-        cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan aRMCP) :
-             mLnk (aLnk),
-             mRMCP (aRMCP)
+        cTestPlIm(cLink2Img * aLnk,const cElemMepRelCoplan & aRMCP) :
+             mLnk    (aLnk),
+             mRMCP   (aRMCP),
+             mHomI2T (mRMCP.HomCam2Plan())
         {
         }
        
         cLink2Img *       mLnk;
         cElemMepRelCoplan  mRMCP;
+        cElHomographie     mHomI2T;
 };
 
 
@@ -94,12 +96,12 @@ void cImagH::EstimatePlan()
      {
           cLink2Img * aLnk   = itL->second;
 
-          ElPackHomologue & aPack = aLnk->Pack();
+          // ElPackHomologue & aPack = aLnk->Pack();
           cElHomographie &   aHom = aLnk->Hom12();
 
           // std::cout << "  " << aLnk->Dest()->Name()  << " Sz " << aPack.size() << " Qual  " << aLnk->QualHom() << " " ;
 
-          cResMepRelCoplan aRCP = aPack.MepRelCoplan(1,aHom,aPair);
+          cResMepRelCoplan aRCP = ElPackHomologue::MepRelCoplan(1,aHom,aPair);
           std::vector<cElemMepRelCoplan>  aVSol = aRCP.VElOk();
           cCmpNormPlan aCmp;
           std::sort(aVSol.begin(),aVSol.end(),aCmp);
@@ -117,14 +119,18 @@ void cImagH::EstimatePlan()
           }
      }
 
+/*
      for (int aK=0 ; aK<int(aVPlIm.size()) ; aK++)
      {
            cLink2Img * aLnk   = aVPlIm[aK].mLnk;
            ElPackHomologue & aPack = aLnk->Pack();
            std::cout << " " << aLnk->Dest()->Name() << " Sz " << aPack.size() << " " << aVPlIm[aK].mRMCP.Norm() << "\n";
+           aVPlIm[aK].mRMCP.HomCam2Plan();
      }
+*/
      
      std::cout << " =========== End  EstimatePlan \n";
+     // getchar();
 }
 
 

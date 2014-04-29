@@ -288,6 +288,7 @@ void cLink2Img::LoadPack()
    mNbPts =  mPack.size();
 
    std::vector<Pt2dr>  aVP2;
+   Pt2dr aSom(0,0);
    for
    (
        ElPackHomologue::const_iterator itP=mPack.begin();
@@ -297,8 +298,11 @@ void cLink2Img::LoadPack()
    {
        Pt2dr aP1 = itP->P1();
        aVP2.push_back(aP1);
+       aSom = aSom + aP1;
        // mEchantP1.push_back(Pt3dr(aP1.x,aP1.y,1.0));
    }
+   aSom = aSom / mNbPts;
+   mCdg1 = Pt3dr(aSom.x,aSom.y,mNbPts);
 
    Pt2di aSz (3,3);
    if (aVP2.size() > 100)
@@ -308,8 +312,19 @@ void cLink2Img::LoadPack()
    if (aVP2.size() > 2000)
       aSz = Pt2di(6,6);
 
-   mEchantP1 = GetDistribRepresentative(mCdg1,aVP2,aSz);
+   // mEchantP1 = GetDistribRepresentative(mCdg1,aVP2,aSz);
+   mEchantP1 = GetDistribRepreBySort(aVP2,aSz);
 
+
+if(0)
+{
+   std::cout << mCdg1  << NameHomol() << "\n";
+   for (int aK=0 ; aK<int(mEchantP1.size()) ; aK++)
+      std::cout << mEchantP1[aK] << "\n";
+   getchar();
+}
+
+   
 }
 
 void  cLink2Img::LoadPack() const
