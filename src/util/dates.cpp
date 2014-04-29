@@ -133,16 +133,45 @@ void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur
    std::string aDir,aPat;
    SplitDirAndFile(aDir,aPat,aFullPat);
 
-   if (aICNM==0)
-      aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+   const std::vector<std::string> * aVS =  0 ;
+
+   if (IsPostfixed(aPat) && (StdPostfix(aPat)=="xml"))
+   {
+      cSauvegardeNamedRel * aSNR =  OptionalGetObjFromFile_WithLC<cSauvegardeNamedRel>
+                                    (
+                                        0,0,
+                                        aFullPat,StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                        "SauvegardeNamedRel","SauvegardeNamedRel"
+                                    );
+
+      if (aSNR)
+      {
+         std::set<std::string> aSS;
+         for (int aKC=0 ; aKC<int(aSNR->Cple().size()) ; aKC++)
+         {
+              aSS.insert(aSNR->Cple()[aKC].N1());
+              aSS.insert(aSNR->Cple()[aKC].N2());
+         }
+         std::vector<std::string> aV0;
+         std::copy(aSS.begin(),aSS.end(),std::back_inserter(aV0));
+
+          aVS = new std::vector<std::string>(aV0);
+      }
+   }
+
+   if (aVS == 0)
+   {
+      if (aICNM==0)
+         aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+      aVS = aICNM->Get(aPat);
+   }
 
 
    std::list<std::string> aLCom;
-   const std::vector<std::string> * aSet = aICNM->Get(aPat);
 
-   for (int aK=0 ; aK<int(aSet->size()) ; aK++)
+   for (int aK=0 ; aK<int(aVS->size()) ; aK++)
    {
-       std::string aNameIm = (*aSet)[aK];
+       std::string aNameIm = (*aVS)[aK];
        std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameIm + "-MDT-"+ HRevXif + ".xml";
        if (! ELISE_fp::exist_file(aNameXml))
        {
