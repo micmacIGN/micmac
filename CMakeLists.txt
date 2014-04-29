@@ -92,8 +92,12 @@ set(UnixBinPath
                 /usr/local/bin)
 
 set(qt_version 0)
-find_package(OpenGL)
-if ( OPENGL_FOUND AND OPENGL_GLU_FOUND AND (${WITH_QT4} OR ${WITH_QT5}) )
+
+if (${WITH_QT4} OR ${WITH_QT5})
+    find_package(OpenGL)
+endif()
+
+if ( OPENGL_FOUND AND OPENGL_GLU_FOUND )
    message( STATUS "-----> OpenGL found" )
 
     if ( MSVC )

@@ -179,9 +179,7 @@ def calc_profil_coef_correl(data_px1, data_px2,coef_correl,larg_moy,tab_toutes_p
           val_px2=interpol(data_px2,col,lig)
           total=(val_px1, val_px2) #vector of total parallax
           px_projection_paral=val_px1*vect_paral[0]+val_px2*vect_paral[1]
-          px_paral=(px_projection_paral*vect_paral[0],px_projection_paral*vect_paral[1]) #parallel part
-          px_paral_norm=sqrt(px_paral[0]**2+px_paral[1]**2)
-          valeurs.append(px_paral_norm)
+          valeurs.append(px_projection_paral)
           poids.append(interpol(coef_correl,col,lig))
           ordonnees_profil[i]+=valeurs[-1]*poids[-1]**int(puiss_poids)
           diviseur+=poids[-1]**int(puiss_poids)
@@ -191,9 +189,7 @@ def calc_profil_coef_correl(data_px1, data_px2,coef_correl,larg_moy,tab_toutes_p
           val_px2=interpol(data_px2,col,lig)
           total=(val_px1, val_px2) #vector of total parallax
           px_projection_perp=val_px1*vect_perp[0]+val_px2*vect_perp[1]
-          px_perp=(px_projection_perp*vect_perp[0],px_projection_perp*vect_perp[1]) #perp part
-          px_perp_norm=sqrt(px_perp[0]**2+px_perp[1]**2)
-          valeurs.append(px_perp_norm)
+          valeurs.append(px_projection_perp)
           poids.append(interpol(coef_correl,col,lig))
           ordonnees_profil[i]+=valeurs[-1]*poids[-1]**int(puiss_poids)
           diviseur+=poids[-1]**int(puiss_poids)
@@ -309,11 +305,9 @@ def calc_ecartMoy_profil(data_px1, data_px2,coef_correl,larg_moy,tab_toutes_perp
       if type_output==1:
         if not isnan(interpol(data_px1,col,lig)) :
           tab_ecartMoy_profil[i]+=abs(interpol(data_px1,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
-          #~ diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
       if type_output==2:
         if not isnan(interpol(data_px2,col,lig)):
           tab_ecartMoy_profil[i]+=abs(interpol(data_px2,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
-          #~ diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
       if type_output==3:
         if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))):
           val_px1=interpol(data_px1,col,lig)
@@ -323,7 +317,6 @@ def calc_ecartMoy_profil(data_px1, data_px2,coef_correl,larg_moy,tab_toutes_perp
           px_paral=(px_projection_paral*vect_paral[0],px_projection_paral*vect_paral[1]) #parallel part
           px_paral_norm=sqrt(px_paral[0]**2+px_paral[1]**2)
           tab_ecartMoy_profil[i]+=abs(interpol(px_paral_norm,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
-          #~ diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
       if type_output==4:
         if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))):
           val_px1=interpol(data_px1,col,lig)
@@ -333,7 +326,6 @@ def calc_ecartMoy_profil(data_px1, data_px2,coef_correl,larg_moy,tab_toutes_perp
           px_perp=(px_projection_perp*vect_perp[0],px_projection_perp*vect_perp[1]) #perp part
           px_perp_norm=sqrt(px_perp[0]**2+px_perp[1]**2)
           tab_ecartMoy_profil[i]+=abs(interpol(px_perp_norm,col,lig)-mes_tendanceCentrale[i])*interpol(coef_correl,col,lig)**int(puiss_poids)
-          #~ diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
       diviseur+=interpol(coef_correl,col,lig)**int(puiss_poids)
     tab_ecartMoy_profil[i]/=diviseur
   return tab_ecartMoy_profil
