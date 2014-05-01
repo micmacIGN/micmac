@@ -284,6 +284,7 @@ void cLink2Img::LoadPack()
 {
    if (mPckLoaded)
       return;
+
    mPckLoaded = true;
    mPack = ElPackHomologue::FromFile(mSrce->Appli().Dir()+mNameH);
 

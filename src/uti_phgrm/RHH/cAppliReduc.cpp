@@ -69,7 +69,8 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mSeuilDistNorm (0.2),
    mKernConnec   (3),
    mKernSize     (6),
-   mSetEq        (cNameSpaceEqF::eSysL2BlocSym)
+   mSetEq        (cNameSpaceEqF::eSysL2BlocSym),
+   mH1On2        (true)
    // mQT        (PtOfPhi,Box2dr(Pt2dr(-100,-100),Pt2dr(30000,30000)),10,500)
 {
 
@@ -91,6 +92,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(aIntNivShow,"Show",true,"Level of Show (0=None, Def= 1)")
                     << EAM(mHomByParal,"HbP",true,"Compute Homography in // (Def=true)")
                     << EAM(mOriVerif,"Verif",true,"To generate perfect homographic tie (tuning purpose)")
+                    << EAM(mH1On2,"H1on2",true,"Fix arbitrary order of hom , tuning")
     );
 
 
@@ -179,6 +181,9 @@ void cAppliReduc::ComputeHom()
 {
    if (mHomByParal)
    {
+       if (Show(eShowGlob))
+          std::cout << "HomByParal BEGIN\n";
+
        std::list<std::string> aLCom;
        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
            mIms[aK]->AddComCompHomogr(aLCom);
@@ -187,6 +192,9 @@ void cAppliReduc::ComputeHom()
 
        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
            mIms[aK]->LoadComHomogr();
+
+       if (Show(eShowGlob))
+          std::cout << "HomByParal END\n";
    }
    
    // Read homologous point and compute homography per pair
@@ -310,6 +318,11 @@ int    cAppliReduc::KernConnec() const
 int    cAppliReduc::KernSize() const
 {
     return mKernSize;
+}
+
+bool  cAppliReduc::H1On2() const
+{
+   return mH1On2;
 }
 
 NS_RHH_END
