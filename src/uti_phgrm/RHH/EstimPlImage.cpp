@@ -72,9 +72,10 @@ class cTestPlIm
 {
     public :
         cTestPlIm(cLink2Img * aLnk,const cElemMepRelCoplan & aRMCP) :
-             mLnk    (aLnk),
-             mRMCP   (aRMCP),
-             mHomI2T (mRMCP.HomCam2Plan())
+             mLnk     (aLnk),
+             mRMCP    (aRMCP),
+             mHomI2T  (mRMCP.HomCam2Plan()),
+             mOk      (true)
         {
             std::cout << "  PLL " << aLnk->Dest()->Name()
                       << mRMCP.Norm()
@@ -85,21 +86,60 @@ class cTestPlIm
         cLink2Img *       mLnk;
         cElemMepRelCoplan  mRMCP;
         cElHomographie     mHomI2T;
+        bool               mOk;
+    private :
+        // cTestPlIm(const cTestPlIm&);  // N.I.
 };
 
 
-double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2)
+double CostSolCur(int aK1,const std::vector<cTestPlIm> & aVPlIm,const ElMatrix<double> & aMCost)
 {
-/*
-   std::vector<int> aVInd;
-   for (int aK=0 ; aK<4 ; aK++)
-      aVInd.push_back(aK);
-*/
-    const std::vector<Pt3dr> & aV =  aPL1.mLnk->EchantP1();
+   double aRes = 0;
 
-   L2SysSurResol aSys(4,true);
+   for (int aK2=0 ; aK2<int(aVPlIm.size()); aK2++)
+   {
+       if (aVPlIm[aK2].mOk)
+       {
+          aRes += aMCost(aK1,aK2);
+       }
+   }
+
+   return aRes;
+}
+
+int WorstSol(const std::vector<cTestPlIm> & aVPlIm,const ElMatrix<double> & aMCost)
+{
+   int aRes=-1;
+   double aCostMax=-1;
+
+   for (int aK=0; aK<int(aVPlIm.size()); aK++)
+   {
+       if (aVPlIm[aK].mOk)
+       {
+           double aCost = CostSolCur(aK,aVPlIm,aMCost);
+           if (aCost > aCostMax)
+           {
+               aCostMax = aCost;
+               aRes = aK;
+           }
+       }
+   }
+   ELISE_ASSERT(aRes>=0,"WorsSol");
+
+   return aRes;
+}
+
+void AddAqCohHom2Sys
+     (
+         L2SysSurResol & aSys,
+         RMat_Inertie & aMat,
+         double & aSomPds,
+         const std::vector<Pt3dr> & aV,
+         const cTestPlIm & aPL1,
+         const cTestPlIm & aPL2
+     )
+{
    double aCoeff[4];  // A B TrX TrY
-
    for (int aK=0 ; aK<int(aV.size()) ; aK++)
    {
        Pt2dr aP(aV[aK].x,aV[aK].y);
@@ -119,14 +159,72 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2)
        aCoeff[2] = 0;
        aCoeff[3] = 1;
        aSys.AddEquation(aPds,aCoeff,aPt2.y);
+       aSomPds += aPds;
+
+       aMat.add_pt_en_place(aPt2.x,aPt2.y,aPds);
    }
+}
+
+double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2)
+{
+/*
+   std::vector<int> aVInd;
+   for (int aK=0 ; aK<4 ; aK++)
+      aVInd.push_back(aK);
+*/
+  bool TestDiff= false;
+
+   L2SysSurResol aSys(4,true);
+   double aSomPds =0;
+
+   RMat_Inertie aMat;
+
+   if (H1On2 || TestDiff)
+   {
+      AddAqCohHom2Sys(aSys,aMat,aSomPds,aPL1.mLnk->EchantP1(),aPL1,aPL2);
+      if (!TestDiff) 
+         AddAqCohHom2Sys(aSys,aMat,aSomPds,aPL2.mLnk->EchantP1(),aPL1,aPL2);
+   }
+   else
+   {
+      AddAqCohHom2Sys(aSys,aMat,aSomPds,aPL1.mLnk->EchantP1(),aPL2,aPL1);
+      AddAqCohHom2Sys(aSys,aMat,aSomPds,aPL2.mLnk->EchantP1(),aPL2,aPL1);
+   }
+
+
+
+/*
+   double aCoeff[4];  // A B TrX TrY
+   for (int aK=0 ; aK<int(aV.size()) ; aK++)
+   {
+       Pt2dr aP(aV[aK].x,aV[aK].y);
+       double aPds =aV[aK].z;
+
+       Pt2dr aPt1 = aPL1.mHomI2T.Direct(aP);
+       Pt2dr aPt2 = aPL2.mHomI2T.Direct(aP);
+       
+       aCoeff[0] = aPt1.x;
+       aCoeff[1] = -aPt1.y;
+       aCoeff[2] = 1;
+       aCoeff[3] = 0;
+       aSys.AddEquation(aPds,aCoeff,aPt2.x);
+       //  
+       aCoeff[0] = aPt1.y;
+       aCoeff[1] = aPt1.x;
+       aCoeff[2] = 0;
+       aCoeff[3] = 1;
+       aSys.AddEquation(aPds,aCoeff,aPt2.y);
+       aSomPds += aPds;
+   }
+*/
    bool Ok;
    Im1D_REAL8 aSol = aSys.Solve(&Ok);
    double aResidu = aSys.ResiduOfSol(aSol.data());
 
 
-   if (1)
+   if (TestDiff)
    {
+       const std::vector<Pt3dr> & aV =  aPL1.mLnk->EchantP1();
        double * aDS = aSol.data();
        Pt2dr aMul(aDS[0] ,aDS[1]);
        Pt2dr aTR(aDS[2] ,aDS[3]);
@@ -144,15 +242,28 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2)
 
            Pt2dr aDif = aPt1 * aMul + aTR - aPt2;
 
+           std::cout <<"DIF " << aDif  << aPt1  << aP << "\n";
+
            aSomV += aPds * square_euclid(aDif);
         }
 
-    }
+        std::cout << "RSSSS " << aResidu << " " << aSomV << "\n";
+   }
 
 
+   aMat = aMat.normalize();
+   double aTrace = sqrt(aMat.s11() + aMat.s22());
 
+   if (TestDiff)
+   {
+       std::cout << " TRR " << aTrace << " " << aSomPds << "\n";
+       getchar();
+   }
 
-    return aResidu;
+   aResidu = sqrt(ElMax(0.0,aResidu/aSomPds));
+   // aResidu *=  aPL1.mLnk->Srce()->CamC()->Focale();
+   aResidu /= aTrace;
+   return aResidu;
 }
 
 
@@ -190,14 +301,67 @@ void cImagH::EstimatePlan()
           }
      }
 
+      int aNbCdt = aVPlIm.size();
+      ElMatrix<double> aMCost(aNbCdt,aNbCdt,0.0);
+
       for (int aK1 = 0 ; aK1<int(aVPlIm.size()) ; aK1++)
       {
           for (int aK2 = 0 ; aK2<int(aVPlIm.size()) ; aK2++)
           {
-             double aResidu =    TestCohHomogr(aVPlIm[aK1],aVPlIm[aK2]);
-             std::cout << "RESIDU " << aResidu  << "  "  << (aK1==aK2) << "\n";
+             double aResidu =  (aK1==aK2) ? 0 :  TestCohHomogr(aVPlIm[aK1],aVPlIm[aK2],mAppli.H1On2());
+             aMCost(aK1,aK2) += aResidu;
+             aMCost(aK2,aK1) += aResidu;
           }
       }
+
+      if (1)
+      {
+          for (int aK1 = 0 ; aK1<int(aVPlIm.size()) ; aK1++)
+          {
+              std::cout <<  aVPlIm[aK1].mLnk->Dest()->Name() << " ";
+              for (int aK2 = 0 ; aK2<int(aVPlIm.size()) ; aK2++)
+              {
+                  printf("%5e ",aMCost(aK1,aK2));
+              }
+              printf(" Som=%5e \n",CostSolCur(aK1,aVPlIm,aMCost));
+          }
+      }
+
+      int aKBEst = -1;
+
+       if (aVPlIm.size()==0)
+          return;
+       else if (aVPlIm.size()==1)
+       {
+          aKBEst = 0;
+       }
+       else
+       {
+           for (int Elim=2; Elim<int(aVPlIm.size()) ; Elim++)
+           {
+               int aKWorst = WorstSol(aVPlIm,aMCost);
+               aVPlIm[aKWorst].mOk = false;
+           }
+
+           std::vector<int> TwoBest;
+           for (int aK=0; aK<int(aVPlIm.size()) ; aK++)
+           {
+               if (aVPlIm[aK].mOk)
+               {
+                  TwoBest.push_back(aK);
+               }
+           }
+           ELISE_ASSERT(TwoBest.size()==2,"Not Two Best sol !!");
+           int aK1 = TwoBest[0];
+           int aK2 = TwoBest[1];
+           aKBEst = (aVPlIm[aK1].mLnk->NbPts() > aVPlIm[aK2].mLnk->NbPts()) ? aK1 : aK2 ;
+       }
+
+
+       std::cout << "KBEST " << aVPlIm[aKBEst].mLnk->Dest()->Name() << "\n";
+
+
+
 
      
      std::cout << " =========== End  EstimatePlan \n";

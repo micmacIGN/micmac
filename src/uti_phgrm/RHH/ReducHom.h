@@ -394,6 +394,7 @@ class cAppliReduc
          void ComputeHom();
          std::string NameCalib(const std::string & aNameIm) const;
          std::string NameVerif(const std::string & aNameIm) const;
+         bool  H1On2() const;
 
      private :
 
@@ -433,6 +434,7 @@ class cAppliReduc
 
         cSetEqFormelles                     mSetEq;
         eNivShow                            mNivShow;
+        bool                                mH1On2;
 
 };
 
