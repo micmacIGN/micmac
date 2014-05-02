@@ -71,13 +71,14 @@ class cCmpNormPlan
 class cTestPlIm
 {
     public :
-        cTestPlIm(cLink2Img * aLnk,const cElemMepRelCoplan & aRMCP) :
+        cTestPlIm(cLink2Img * aLnk,const cElemMepRelCoplan & aRMCP,bool Show) :
              mLnk     (aLnk),
              mRMCP    (aRMCP),
              mHomI2T  (mRMCP.HomCam2Plan()),
              mOk      (true)
         {
-            std::cout << "  PLL " << aLnk->Dest()->Name()
+            if (Show)
+               std::cout << "  PLL " << aLnk->Dest()->Name()
                       << mRMCP.Norm()
                       << mHomI2T.Direct(Pt2dr(0.5,0.5))
                       << "\n";
@@ -268,12 +269,26 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2)
 
 
 
-void cImagH::EstimatePlan()
+std::string cImagH::EstimatePlan()
 {
+     mPlanEst = false;
+     /*
+          1-LOOK For the most reliable plane
+
+          1-1  For each image, select the plane form :MepRelCoplan , if sufficient != of other
+          1-2  Fill the matrix Mosct[PL1][PL2] whith the fitting cost (difference up to a similitude)
+          1-3 Get the the best plane by iteratively suppress the worst and update cost
+
+          2- Generate measure (Im & Ter) in the repair of plane
+     */
      std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
      std::vector<cTestPlIm> aVPlIm;
 
-     std::cout << " =========== Begin EstimatePlan " << mName << "\n";
+     if (1) // (mAppli.Show(eShowDetail))
+        std::cout << " =========== Begin EstimatePlan " << mName  << " NbL0=" << mLnks.size() << "\n";
+
+
+     //  1.1 
      for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
      {
           cLink2Img * aLnk   = itL->second;
@@ -295,12 +310,14 @@ void cImagH::EstimatePlan()
 
               if (aS0 + mAppli.SeuilDistNorm() < aS1)
               {
-                  aVPlIm.push_back(cTestPlIm(aLnk,aVSol[0]));
+                  aVPlIm.push_back(cTestPlIm(aLnk,aVSol[0],mAppli.Show(eShowAll)));
               }
                     
           }
      }
 
+
+      // 1.2
       int aNbCdt = aVPlIm.size();
       ElMatrix<double> aMCost(aNbCdt,aNbCdt,0.0);
 
@@ -314,7 +331,7 @@ void cImagH::EstimatePlan()
           }
       }
 
-      if (1)
+      if (mAppli.Show(eShowAll))
       {
           for (int aK1 = 0 ; aK1<int(aVPlIm.size()) ; aK1++)
           {
@@ -327,10 +344,12 @@ void cImagH::EstimatePlan()
           }
       }
 
+
+      // 1.3
       int aKBEst = -1;
 
        if (aVPlIm.size()==0)
-          return;
+          return "";
        else if (aVPlIm.size()==1)
        {
           aKBEst = 0;
@@ -358,14 +377,178 @@ void cImagH::EstimatePlan()
        }
 
 
-       std::cout << "KBEST " << aVPlIm[aKBEst].mLnk->Dest()->Name() << "\n";
+       /*  ====      2    =============== */
+
+       if (0) //(mAppli.Show(eShowGlob))
+       {
+          std::cout << "KBEST " << aVPlIm[aKBEst].mLnk->Dest()->Name() << "\n";
+          std::cout << " =========== End  EstimatePlan \n";
+       }
+
+       cElemMepRelCoplan  mRMCP = aVPlIm[aKBEst].mRMCP ;
+       ElRotation3D aRCam12P = mRMCP.Plan().CoordPlan2Euclid().inv();
+       std::string aDir = mAppli.Dir();
+
+       ElRotation3D aR0(Pt3dr(0,0,0),0,0,0);
+       CamStenopeIdeale aCam = CamStenopeIdeale::CameraId(true,aR0);
+
+       
+       Pt2dr aPMin(1e10,1e10);
+       Pt2dr aPMax(-1e10,-1e10);
+
+       cSetOfMesureAppuisFlottants  aMesureIm;
+       cDicoAppuisFlottant          aDAF;
+       cMesureAppuiFlottant1Im  aMAF1;
+       aMAF1.NameIm() = mName;
+       int aCpt=0;
+
+       std::vector<ElPackHomologue>  aVPack;
+       std::vector<std::string>  aVNamePack;
+       cPatOfName  aPON;
+       aPON.AddName(mName);
+
+       for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+       {
+            cLink2Img * aLnk   = itL->second;
+            aPON.AddName(aLnk->Dest()->Name());
+            // std::cout << "Plan::Export  " << aLnk->Dest()->Name() << "\n";
+            const std::vector<Pt3dr> &  aVPts1 = aLnk->EchantP1();
+            cElHomographie aHom =  aLnk->Hom12();
+
+            ElPackHomologue aPack;
+            cMesureAppuiFlottant1Im  aMAF2;
+            aMAF2.NameIm() = aLnk->Dest()->Name();
+            // std::list<Appar23> aL32;
+            
+            for (int aKP=0 ; aKP<int(aVPts1.size()) ; aKP++)
+            {
+                Pt3dr aPPds1 = aVPts1[aKP];
+                double aPds = aPPds1.z;
+                Pt2dr aP1 (aPPds1.x,aPPds1.y);
+                Pt2dr aP2 = aHom.Direct(aP1);
+
+                std::string anId = "App_"+ToString(aCpt);
+                cOneMesureAF1I aMesIm;
+                aMesIm.NamePt() = anId;
+
+                aMesIm.PtIm() = aP1;
+                aMAF1.OneMesureAF1I().push_back(aMesIm);
+                
+                aMesIm.PtIm() = aP2;
+                aMAF2.OneMesureAF1I().push_back(aMesIm);
+
+                aPMin.SetInf(aP1);
+                aPMin.SetInf(aP2);
+                aPMax.SetSup(aP1);
+                aPMax.SetSup(aP2);
+
+                aPack.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+
+                Pt3dr aPTC1 = mRMCP.ImCam1(aP1);
+                Pt3dr aPtPl = aRCam12P.ImAff(aPTC1);
+
+                cOneAppuisDAF anAF;
+                anAF.Pt()  = aPtPl;
+                anAF.NamePt() = anId;
+                double anInc=1e-7;
+                anAF.Incertitude() = Pt3dr(anInc,anInc,anInc);
+                aDAF.OneAppuisDAF().push_back(anAF);
+                
 
 
 
+                // aL32.push_back(Appar23(aP2,aPtPl));
 
-     
-     std::cout << " =========== End  EstimatePlan \n";
-     getchar();
+                
+                aCpt++;
+            }
+            aMesureIm.MesureAppuiFlottant1Im().push_back(aMAF2);
+
+ 
+            std::string aNameH = aDir+mAppli.ICNM()->Assoc1To2("NKS-RHH-Assoc-CplIm2Hom@@dat",aLnk->Srce()->Name(),aLnk->Dest()->Name(),true);
+            aVPack.push_back(aPack);
+            aVNamePack.push_back(aNameH);
+/*
+            double aDMin;
+            ElRotation3D aR = aCam.RansacOFPA(true,100,aL32,&aDMin);
+            std::cout << "  DIST RELVT " << aDMin << "\n";
+*/
+       }
+ 
+
+
+       aMesureIm.MesureAppuiFlottant1Im().push_back(aMAF1);
+
+//        std::cout << "BOX " << aPMin << " " << aPMax << "\n";
+
+       Pt2dr aSzPh = aPMax-aPMin;
+       double aCible = 1000;
+       double aRab = 20;
+
+       Pt2dr aPRab(aRab,aRab);
+       double aHaut = ElMin(aSzPh.x,aSzPh.y);
+       double aFocale =  round_ni( aCible/aHaut);
+       Pt2dr aPP = Pt2dr(round_ni(aPRab - aPMin * aFocale));
+       Pt2di aSzIm = round_ni(aSzPh*aFocale + aPRab*2);
+
+       for (int aK=0 ; aK<int(aVPack.size()) ; aK++)
+       {
+           ElPackHomologue & aPack = aVPack[aK];
+           for (ElPackHomologue::iterator itH=aPack.begin() ; itH!=aPack.end() ; itH++)
+           {
+                itH->P1() = aPP + itH->P1()*aFocale;
+                itH->P2() = aPP + itH->P2()*aFocale;
+           }
+           aPack.StdPutInFile(aVNamePack[aK]);
+       }
+
+       cCalibrationInternConique aCIC =  StdGetFromPCP(Basic_XML_MM_File("CalibIdentite.xml"),CalibrationInternConique);
+       aCIC.SzIm() = aSzIm;
+       aCIC.PP() = aPP;
+       aCIC.F() = aFocale;
+       aCIC.CalibDistortion()[0].ModRad().Val().CDist() = aPP;
+       MakeFileXML(aCIC,aDir+  "RHH/" + mName + "-Calib.xml");
+
+       for 
+       (
+            std::list<cMesureAppuiFlottant1Im>::iterator itMAF=aMesureIm.MesureAppuiFlottant1Im().begin();
+            itMAF !=aMesureIm.MesureAppuiFlottant1Im().end();
+            itMAF++
+       )
+       {
+            for 
+            (
+                  std::list<cOneMesureAF1I>::iterator itOM=itMAF->OneMesureAF1I().begin();
+                  itOM !=itMAF->OneMesureAF1I().end();
+                  itOM++
+            )
+            {
+                itOM->PtIm() = aPP + itOM->PtIm()*aFocale;
+            }
+       }
+
+
+
+       std::string aNameMesureIm = aDir+  "RHH/" + mName + "-Mesure-S2D.xml";
+       std::string aNameMesureTer = aDir+ "RHH/" + mName + "-Mesure-S3D.xml";
+       MakeFileXML(aMesureIm,aNameMesureIm);
+       MakeFileXML(aDAF,aNameMesureTer);
+
+
+       std::string aCom =   MM3dBinFile("Apero") 
+                          + XML_MM_File("Apero-RHH-ByImIndiv.xml") 
+                          + " DirectoryChantier=" + mAppli.Dir() 
+                          + " +PatternIm=" + QUOTE(aPON.Pattern())
+                          + " +MasterIm="  + mName;
+
+
+       ///std::cout << "COM = " << aCom << "\n";
+
+        mPlanEst = true;
+
+
+        return aCom;
+       // getchar();
 }
 
 

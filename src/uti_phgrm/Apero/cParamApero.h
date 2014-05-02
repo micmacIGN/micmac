@@ -1191,6 +1191,9 @@ class cCalibrationCameraInc
         cTplValGesInit< std::string > & Directory();
         const cTplValGesInit< std::string > & Directory()const ;
 
+        cTplValGesInit< bool > & AddDirCur();
+        const cTplValGesInit< bool > & AddDirCur()const ;
+
         cTplValGesInit< cCalibrationInternConique > & CalFromValues();
         const cTplValGesInit< cCalibrationInternConique > & CalFromValues()const ;
 
@@ -1251,6 +1254,7 @@ class cCalibrationCameraInc
         std::string mName;
         cTplValGesInit< eConventionsOrientation > mConvCal;
         cTplValGesInit< std::string > mDirectory;
+        cTplValGesInit< bool > mAddDirCur;
         cCalValueInit mCalValueInit;
         cTplValGesInit< cCalibDistortion > mDistortionAddInc;
         cTplValGesInit< cAddParamAFocal > mAddParamAFocal;

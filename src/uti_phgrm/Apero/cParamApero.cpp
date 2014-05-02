@@ -3314,6 +3314,17 @@ const cTplValGesInit< std::string > & cCalibrationCameraInc::Directory()const
 }
 
 
+cTplValGesInit< bool > & cCalibrationCameraInc::AddDirCur()
+{
+   return mAddDirCur;
+}
+
+const cTplValGesInit< bool > & cCalibrationCameraInc::AddDirCur()const 
+{
+   return mAddDirCur;
+}
+
+
 cTplValGesInit< cCalibrationInternConique > & cCalibrationCameraInc::CalFromValues()
 {
    return CalValueInit().CalFromValues();
@@ -3531,6 +3542,8 @@ cElXMLTree * ToXMLTree(const cCalibrationCameraInc & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ConvCal"),anObj.ConvCal().Val())->ReTagThis("ConvCal"));
    if (anObj.Directory().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Directory"),anObj.Directory().Val())->ReTagThis("Directory"));
+   if (anObj.AddDirCur().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("AddDirCur"),anObj.AddDirCur().Val())->ReTagThis("AddDirCur"));
    aRes->AddFils(ToXMLTree(anObj.CalValueInit())->ReTagThis("CalValueInit"));
    if (anObj.DistortionAddInc().IsInit())
       aRes->AddFils(ToXMLTree(anObj.DistortionAddInc().Val())->ReTagThis("DistortionAddInc"));
@@ -3561,6 +3574,8 @@ void xml_init(cCalibrationCameraInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvCal(),aTree->Get("ConvCal",1),eConventionsOrientation(eConvApero_DistM2C)); //tototo 
 
    xml_init(anObj.Directory(),aTree->Get("Directory",1),std::string("")); //tototo 
+
+   xml_init(anObj.AddDirCur(),aTree->Get("AddDirCur",1),bool(true)); //tototo 
 
    xml_init(anObj.CalValueInit(),aTree->Get("CalValueInit",1)); //tototo 
 

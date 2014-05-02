@@ -281,7 +281,7 @@ class cImagH
 
          void SetPHom(const Pt2dr & aP,cPtHom *);
          void ComputeLnkHom();
-         void EstimatePlan();
+         std::string EstimatePlan();
 
          void SetMarqued(int);
          void SetUnMarqued(int);
@@ -332,6 +332,7 @@ class cImagH
          cElHomographie             mHTmp;  // Envoie terrain ver im
          cHomogFormelle *           mHF;
          cMetaDataPhoto             mMDP;
+         bool                       mPlanEst;
 };
 
 
@@ -395,6 +396,7 @@ class cAppliReduc
          std::string NameCalib(const std::string & aNameIm) const;
          std::string NameVerif(const std::string & aNameIm) const;
          bool  H1On2() const;
+         cInterfChantierNameManipulateur *ICNM() const;
 
      private :
 

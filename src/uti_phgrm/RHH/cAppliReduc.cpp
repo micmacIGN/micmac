@@ -188,21 +188,48 @@ void cAppliReduc::ComputeHom()
        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
            mIms[aK]->AddComCompHomogr(aLCom);
 
-       cEl_GPAO::DoComInParal(aLCom);
+       if (0)
+       {
+          cEl_GPAO::DoComInSerie(aLCom);
+          for (int aK=0 ; aK< 10 ; aK++) std::cout << "SERIIIIIIIIIIIIIIIii\n";
+       }
+       else
+       {
+          cEl_GPAO::DoComInParal(aLCom);
+       }
+
+       if (Show(eShowGlob))
+       {
+          std::cout << "HomByParal : Command run\n";
+          //getchar();
+       }
 
        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
            mIms[aK]->LoadComHomogr();
 
        if (Show(eShowGlob))
+       {
           std::cout << "HomByParal END\n";
+          // getchar();
+       }
    }
    
+   if (Show(eShowGlob))
+      std::cout << "Lnk && Plan BEGIN\n";
    // Read homologous point and compute homography per pair
-    for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {
-         mIms[aK]->ComputeLnkHom();
-         mIms[aK]->EstimatePlan();
-    }
+        std::list<std::string> aLComPl;
+        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
+        {
+             mIms[aK]->ComputeLnkHom();
+             std::string aCom = mIms[aK]->EstimatePlan();
+             if (aCom!="") 
+                aLComPl.push_back(aCom);
+        }
+        cEl_GPAO::DoComInParal(aLComPl);
+   }
+   if (Show(eShowGlob))
+      std::cout << "Lnk && Plan END\n";
 
 
 
@@ -279,6 +306,11 @@ cSetEqFormelles &  cAppliReduc::SetEq()
 const std::string & cAppliReduc::Dir() const
 {
    return mDir;
+}
+
+cInterfChantierNameManipulateur * cAppliReduc::ICNM() const
+{
+    return mICNM;
 }
 
 

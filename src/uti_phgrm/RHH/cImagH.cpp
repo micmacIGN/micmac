@@ -114,6 +114,18 @@ cXmlRHHResLnk  ComputeHomographie
 
 
   cElHomographie   aHom = cElHomographie::RobustInit(&(aRes.Qual()),aPack,aRes.Ok(),NB_RANSAC_H,90.0,1000);
+
+  if (0)
+  {
+    cXmlHomogr aXH =  aHom.ToXml();
+
+    std::cout << "ROBUST:Nan " << aHom.HasNan() << " " << aName << "\n";
+    aHom.Show();
+    std::cout << "XML ZX  " << aXH.Z().CoeffX() << "\n";
+    MakeFileXML(aXH,"toto.xml");
+    getchar();
+  }
+
   if (aCorCam)
   {
       aRes.Qual() *=  aCam2->Focale();
