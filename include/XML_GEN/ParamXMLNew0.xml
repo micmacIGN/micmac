@@ -1,7 +1,12 @@
 <!--
     Nouveau fichier :
-     - pour alleger un peu les autres qui deviennent lourd
+     - (pour alleger un peu les autres qui deviennent lourd)
      - pour faire un test sur les dump
+
+   NE PAS FAIRE CROITRE POUR QUE CA RESTE LE TERRAIN D'EXPERIMENTATION DE LA GENERATION DE CODE
+   Pour que ce soit facile, il faut que personne n'utilise ces classes ....
+
+  Rajouter des ParamXMLNew1.xml , ParamXMLNew2.xml ...
 -->
 
 <GenCpp  Difndef="Define_ParamXMLNew0">
@@ -16,8 +21,24 @@
 // NOMORE ... 
 </Verbatim>
 
+   <enum Name="eTestDump">
+       <eTestDump_0> </eTestDump_0>
+       <eTestDump_1> </eTestDump_1>
+   </enum>
+
+   <TD2REF  Nb="1" Class="true" ToReference="true">
+        <S Nb="1" Type="std::string"> </S>
+        <V Nb="+" Type="int"> </V>
+   </TD2REF>
+
    <TestDump  Nb="1" Class="true">
        <I Nb="1" Type="int"> </I>
+       <D Nb="?" Type="Pt2dr"> </D>
+       <E Nb="1" Type="eTestDump"> </E>
+       <V Nb="*" Type="eTestDump"> </V>
+
+       <R1 Nb="1" RefType="TD2REF"> </R1>
+       <R2 Nb="?" RefType="TD2REF"> </R2>
        <Compos Nb="1">
              <A Nb="1" Type="double"> </A>
              <B Nb="1" Type="Pt2dr">  </B>

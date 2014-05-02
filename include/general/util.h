@@ -792,6 +792,8 @@ class cTplValGesInit
                   SetVal(aVal);
           }
           bool IsInit() const {return mIsInit;}
+          Type & ValForcedForUnUmp() { return mVal; }
+          const Type & ValForcedForUnUmp() const { return mVal; }
           const Type & Val() const
           {
               ELISE_ASSERT(mIsInit,"Unitialized Value in cValGesInit");

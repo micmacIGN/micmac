@@ -1865,6 +1865,28 @@ void BinaryDumpInFile(ELISE_fp &,const Pt2drSubst &);
 template <class T1,class T2> void BinaryDumpInFile(ELISE_fp &,const Im2D<T1,T2> &      anObj);
 
 
+void BinaryUnDumpFromFile(bool &,ELISE_fp &);
+void BinaryUnDumpFromFile(int &,ELISE_fp &);
+void BinaryUnDumpFromFile(double &,ELISE_fp &);
+void BinaryUnDumpFromFile(Box2dr &,ELISE_fp &);
+void BinaryUnDumpFromFile(Box2di &,ELISE_fp &);
+void BinaryUnDumpFromFile(Pt2dr &,ELISE_fp &);
+void BinaryUnDumpFromFile(Pt2di &,ELISE_fp &);
+void BinaryUnDumpFromFile(std::string &,ELISE_fp &);
+void BinaryUnDumpFromFile(std::vector<double> &,ELISE_fp &);
+void BinaryUnDumpFromFile(std::vector<int> &,ELISE_fp &);
+void BinaryUnDumpFromFile(std::vector<std::string> &,ELISE_fp &);
+void BinaryUnDumpFromFile(Pt3dr &,ELISE_fp &);
+void BinaryUnDumpFromFile(Pt3di &,ELISE_fp &);
+void BinaryUnDumpFromFile(cElRegex_Ptr &,ELISE_fp &);
+void BinaryUnDumpFromFile(cCpleString &,ELISE_fp &);
+void BinaryUnDumpFromFile(IntSubst &,ELISE_fp &);
+void BinaryUnDumpFromFile(DoubleSubst &,ELISE_fp &);
+void BinaryUnDumpFromFile(Pt2diSubst &,ELISE_fp &);
+void BinaryUnDumpFromFile(Pt2drSubst &,ELISE_fp &);
+template <class T1,class T2> void BinaryUnDumpFromFile(Im2D<T1,T2> &,ELISE_fp &);
+
+
 
 template <class T1,class T2> void xml_init( Im2D<T1,T2>  & anIm,cElXMLTree * aTree);
 
