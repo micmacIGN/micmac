@@ -21,6 +21,10 @@ class cNuageByImage
 };
 cElXMLTree * ToXMLTree(const cNuageByImage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cNuageByImage &);
+
+void  BinaryUnDumpFromFile(cNuageByImage &,ELISE_fp &);
+
 class cSectionLoadNuage
 {
     public:
@@ -48,6 +52,10 @@ class cSectionLoadNuage
 };
 cElXMLTree * ToXMLTree(const cSectionLoadNuage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSectionLoadNuage &);
+
+void  BinaryUnDumpFromFile(cSectionLoadNuage &,ELISE_fp &);
+
 class cSectionEstimSurf
 {
     public:
@@ -66,6 +74,10 @@ class cSectionEstimSurf
         int mNbRansac;
 };
 cElXMLTree * ToXMLTree(const cSectionEstimSurf &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSectionEstimSurf &);
+
+void  BinaryUnDumpFromFile(cSectionEstimSurf &,ELISE_fp &);
 
 class cSectionInitModele
 {
@@ -108,6 +120,10 @@ class cSectionInitModele
 };
 cElXMLTree * ToXMLTree(const cSectionInitModele &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSectionInitModele &);
+
+void  BinaryUnDumpFromFile(cSectionInitModele &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -134,6 +150,10 @@ class cEtapeCompensation
 };
 cElXMLTree * ToXMLTree(const cEtapeCompensation &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cEtapeCompensation &);
+
+void  BinaryUnDumpFromFile(cEtapeCompensation &,ELISE_fp &);
+
 class cSectionCompensation
 {
     public:
@@ -152,6 +172,10 @@ class cSectionCompensation
         cTplValGesInit< double > mCoherenceOrientation;
 };
 cElXMLTree * ToXMLTree(const cSectionCompensation &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSectionCompensation &);
+
+void  BinaryUnDumpFromFile(cSectionCompensation &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -188,6 +212,10 @@ class cParamCasa
         std::string mDirectoryChantier;
 };
 cElXMLTree * ToXMLTree(const cParamCasa &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cParamCasa &);
+
+void  BinaryUnDumpFromFile(cParamCasa &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/

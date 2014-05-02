@@ -763,19 +763,40 @@ void cElXMLTree::GenCppClass
                fprintf
                (
                      aFileCpp
-                    ,"        if (IsInit) BinaryDumpInFile(aFp,anObj.%s().ValForcedForUnUmp());\n"
+                    ,"        if (IsInit) BinaryUnDumpFromFile(anObj.%s().ValForcedForUnUmp(),aFp);\n"
                      "        else  anObj.%s().SetNoInit();\n"
                     ,(*itF)->mValTag.c_str()
                     ,(*itF)->mValTag.c_str()
                );
                fprintf(aFileCpp,"  } ;\n");
            }
-/*
            else if ((aPat=="*") || (aPat=="+"))
            {
-               fprintf(aFileCpp,"    BinaryDumpInFile(aFp,(int)anObj.%s().size());\n",(*itF)->mValTag.c_str());
+               std::string aContainer = (*itF)->ValAttr("Container","std::list");
+               bool IsOk = (aContainer=="std::list") || (aContainer=="std::vector");
+               if (IsOk)
+               {
+                    fprintf(aFileCpp,"  { int aNb;\n");
+                    fprintf(aFileCpp,"    BinaryUnDumpFromFile(aNb,aFp);\n");
+                    fprintf
+                    (
+                           aFileCpp,
+                           "        for(  int aK=0 ; aK<aNb ; aK++)\n"
+                           "        {\n"
+                           "             %s aVal;\n"
+                           "              BinaryUnDumpFromFile(aVal,aFp);\n"
+                           "              anObj.%s().push_back(aVal);\n"
+                           "        }\n"
+                           ,(*itF)->NameOfClass().c_str()
+                           ,(*itF)->mValTag.c_str()
+                     );
+                     fprintf(aFileCpp,"  } ;\n");
+               }
+               else
+               {
+                     fprintf(aFileCpp,"    ELISE_ASSERT(false,\"No Support for this conainer in bin dump\");\n");
+               }
            }
-*/
        }
        // std::cout << " XXX " << aNOC << " " << (*itF)->mValTag << " " << TagFilsIsClass((*itF)->mValTag) << "\n";
     }
@@ -818,7 +839,28 @@ void cElXMLTree::GenCppClass
            }
            else if ((aPat=="*") || (aPat=="+"))
            {
-               fprintf(aFileCpp,"    BinaryDumpInFile(aFp,(int)anObj.%s().size());\n",(*itF)->mValTag.c_str());
+               std::string aContainer = (*itF)->ValAttr("Container","std::list");
+               bool IsOk = (aContainer=="std::list") || (aContainer=="std::vector");
+               if (IsOk)
+               {
+                    fprintf(aFileCpp,"    BinaryDumpInFile(aFp,(int)anObj.%s().size());\n",(*itF)->mValTag.c_str());
+                    fprintf
+                    (
+                           aFileCpp,
+                           "    for(  %s::const_iterator iT=anObj.%s().begin();\n"
+                           "         iT!=anObj.%s().end();\n"
+                           "          iT++\n"
+                           "    )\n"
+                           "        BinaryDumpInFile(aFp,*iT);\n"
+                           ,(*itF)->NameImplemOfClass().c_str()
+                           ,(*itF)->mValTag.c_str()
+                           ,(*itF)->mValTag.c_str()
+                     );
+               }
+               else
+               {
+                     fprintf(aFileCpp,"    ELISE_ASSERT(false,\"No Support for this conainer in bin dump\");\n");
+               }
            }
        }
        // std::cout << " XXX " << aNOC << " " << (*itF)->mValTag << " " << TagFilsIsClass((*itF)->mValTag) << "\n";

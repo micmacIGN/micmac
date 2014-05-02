@@ -19,6 +19,10 @@ eTypeTopolPt  Str2eTypeTopolPt(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeTopolPt & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eTypeTopolPt &);
+
+void  BinaryUnDumpFromFile(eTypeTopolPt &,ELISE_fp &);
+
 typedef enum
 {
   eRDI_121,
@@ -32,6 +36,10 @@ eReducDemiImage  Str2eReducDemiImage(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eReducDemiImage & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eReducDemiImage &);
+
+void  BinaryUnDumpFromFile(eReducDemiImage &,ELISE_fp &);
+
 typedef enum
 {
   eTest12345_A,
@@ -44,6 +52,10 @@ std::string  eToString(const eTest12345 & aVal);
 eTest12345  Str2eTest12345(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTest12345 & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTest12345 &);
+
+void  BinaryUnDumpFromFile(eTest12345 &,ELISE_fp &);
 
 class cParamExtractCaracIm
 {
@@ -59,6 +71,10 @@ class cParamExtractCaracIm
         cTplValGesInit< int > mSzMinImDeZoom;
 };
 cElXMLTree * ToXMLTree(const cParamExtractCaracIm &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cParamExtractCaracIm &);
+
+void  BinaryUnDumpFromFile(cParamExtractCaracIm &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -98,6 +114,10 @@ class cParamVisuCarac
 };
 cElXMLTree * ToXMLTree(const cParamVisuCarac &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cParamVisuCarac &);
+
+void  BinaryUnDumpFromFile(cParamVisuCarac &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -115,6 +135,10 @@ class cPredicteurGeom
         cTplValGesInit< std::string > mUnused;
 };
 cElXMLTree * ToXMLTree(const cPredicteurGeom &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPredicteurGeom &);
+
+void  BinaryUnDumpFromFile(cPredicteurGeom &,ELISE_fp &);
 
 class cImageDigeo
 {
@@ -158,6 +182,10 @@ class cImageDigeo
 };
 cElXMLTree * ToXMLTree(const cImageDigeo &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cImageDigeo &);
+
+void  BinaryUnDumpFromFile(cImageDigeo &,ELISE_fp &);
+
 class cTypeNumeriqueOfNiv
 {
     public:
@@ -176,6 +204,10 @@ class cTypeNumeriqueOfNiv
         int mNiv;
 };
 cElXMLTree * ToXMLTree(const cTypeNumeriqueOfNiv &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cTypeNumeriqueOfNiv &);
+
+void  BinaryUnDumpFromFile(cTypeNumeriqueOfNiv &,ELISE_fp &);
 
 class cPyramideGaussienne
 {
@@ -232,6 +264,10 @@ class cPyramideGaussienne
 };
 cElXMLTree * ToXMLTree(const cPyramideGaussienne &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cPyramideGaussienne &);
+
+void  BinaryUnDumpFromFile(cPyramideGaussienne &,ELISE_fp &);
+
 class cTypePyramide
 {
     public:
@@ -283,6 +319,10 @@ class cTypePyramide
         cTplValGesInit< cPyramideGaussienne > mPyramideGaussienne;
 };
 cElXMLTree * ToXMLTree(const cTypePyramide &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cTypePyramide &);
+
+void  BinaryUnDumpFromFile(cTypePyramide &,ELISE_fp &);
 
 class cPyramideImage
 {
@@ -353,6 +393,10 @@ class cPyramideImage
         cTypePyramide mTypePyramide;
 };
 cElXMLTree * ToXMLTree(const cPyramideImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPyramideImage &);
+
+void  BinaryUnDumpFromFile(cPyramideImage &,ELISE_fp &);
 
 class cDigeoSectionImages
 {
@@ -427,6 +471,10 @@ class cDigeoSectionImages
 };
 cElXMLTree * ToXMLTree(const cDigeoSectionImages &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cDigeoSectionImages &);
+
+void  BinaryUnDumpFromFile(cDigeoSectionImages &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -445,6 +493,10 @@ class cOneCarac
 };
 cElXMLTree * ToXMLTree(const cOneCarac &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cOneCarac &);
+
+void  BinaryUnDumpFromFile(cOneCarac &,ELISE_fp &);
+
 class cCaracTopo
 {
     public:
@@ -459,6 +511,10 @@ class cCaracTopo
         std::list< cOneCarac > mOneCarac;
 };
 cElXMLTree * ToXMLTree(const cCaracTopo &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCaracTopo &);
+
+void  BinaryUnDumpFromFile(cCaracTopo &,ELISE_fp &);
 
 class cSiftCarac
 {
@@ -490,6 +546,10 @@ class cSiftCarac
         cTplValGesInit< double > mRatioGrad;
 };
 cElXMLTree * ToXMLTree(const cSiftCarac &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSiftCarac &);
+
+void  BinaryUnDumpFromFile(cSiftCarac &,ELISE_fp &);
 
 class cSectionCaracImages
 {
@@ -532,6 +592,10 @@ class cSectionCaracImages
 };
 cElXMLTree * ToXMLTree(const cSectionCaracImages &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSectionCaracImages &);
+
+void  BinaryUnDumpFromFile(cSectionCaracImages &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -554,6 +618,10 @@ class cGenereRandomRect
 };
 cElXMLTree * ToXMLTree(const cGenereRandomRect &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cGenereRandomRect &);
+
+void  BinaryUnDumpFromFile(cGenereRandomRect &,ELISE_fp &);
+
 class cGenereCarroyage
 {
     public:
@@ -573,6 +641,10 @@ class cGenereCarroyage
 };
 cElXMLTree * ToXMLTree(const cGenereCarroyage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cGenereCarroyage &);
+
+void  BinaryUnDumpFromFile(cGenereCarroyage &,ELISE_fp &);
+
 class cGenereAllRandom
 {
     public:
@@ -587,6 +659,10 @@ class cGenereAllRandom
         int mSzFilter;
 };
 cElXMLTree * ToXMLTree(const cGenereAllRandom &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGenereAllRandom &);
+
+void  BinaryUnDumpFromFile(cGenereAllRandom &,ELISE_fp &);
 
 class cSectionTest
 {
@@ -630,6 +706,10 @@ class cSectionTest
 };
 cElXMLTree * ToXMLTree(const cSectionTest &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSectionTest &);
+
+void  BinaryUnDumpFromFile(cSectionTest &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -668,6 +748,10 @@ class cSauvPyram
 };
 cElXMLTree * ToXMLTree(const cSauvPyram &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSauvPyram &);
+
+void  BinaryUnDumpFromFile(cSauvPyram &,ELISE_fp &);
+
 class cDigeoDecoupageCarac
 {
     public:
@@ -686,6 +770,10 @@ class cDigeoDecoupageCarac
         int mBord;
 };
 cElXMLTree * ToXMLTree(const cDigeoDecoupageCarac &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDigeoDecoupageCarac &);
+
+void  BinaryUnDumpFromFile(cDigeoDecoupageCarac &,ELISE_fp &);
 
 class cModifGCC
 {
@@ -710,6 +798,10 @@ class cModifGCC
 };
 cElXMLTree * ToXMLTree(const cModifGCC &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cModifGCC &);
+
+void  BinaryUnDumpFromFile(cModifGCC &,ELISE_fp &);
+
 class cGenereCodeConvol
 {
     public:
@@ -733,6 +825,10 @@ class cGenereCodeConvol
 };
 cElXMLTree * ToXMLTree(const cGenereCodeConvol &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cGenereCodeConvol &);
+
+void  BinaryUnDumpFromFile(cGenereCodeConvol &,ELISE_fp &);
+
 class cFenVisu
 {
     public:
@@ -751,6 +847,10 @@ class cFenVisu
         Pt2di mSz;
 };
 cElXMLTree * ToXMLTree(const cFenVisu &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cFenVisu &);
+
+void  BinaryUnDumpFromFile(cFenVisu &,ELISE_fp &);
 
 class cSectionWorkSpace
 {
@@ -822,6 +922,10 @@ class cSectionWorkSpace
         cTplValGesInit< bool > mVerbose;
 };
 cElXMLTree * ToXMLTree(const cSectionWorkSpace &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSectionWorkSpace &);
+
+void  BinaryUnDumpFromFile(cSectionWorkSpace &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -1021,6 +1125,10 @@ class cParamDigeo
         cSectionWorkSpace mSectionWorkSpace;
 };
 cElXMLTree * ToXMLTree(const cParamDigeo &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cParamDigeo &);
+
+void  BinaryUnDumpFromFile(cParamDigeo &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
