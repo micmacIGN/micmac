@@ -1034,10 +1034,10 @@ else
 	 // aRot = aCamId.CombinatoireOFPA(anAppli.Param().NbMaxAppuisInit().Val(),aL,&aDMin);
 	 aRot = aCamId.RansacOFPA(true,aPFA.NbTestRansac(),aL,&aDMin,aPtrDirApprox);
 
-         // std::cout << "DIST-MIN  = " << aDMin << "\n";
 /*
 */
 	 aRot = aRot.inv();
+         // std::cout << "DIST-MIN  = " << aDMin << aRot.ImAff(Pt3dr(0,0,0)) << "\n";
 	 // cObserv1Im<cTypeEnglob_Appuis>  &  anObs = mAppli.ObsAppuis(anId,mName);
 	 // Pt3dr aCdg =  anObs.mBarryTer;
          Pt3dr aCdg = BarryImTer(aL).pter;

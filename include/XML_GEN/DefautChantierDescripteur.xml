@@ -52,6 +52,42 @@
 *                                                               *
  *********************************************************** -->
 
+<!--   HOMOGRAPHY-COMPUTING
+-->
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> RHH#1/$1/Homol$2.#2  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> RHH#1/(.*)/Homol(.*)\.#2 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  NKS-RHH-Assoc-CplIm2Hom </Key>
+	<SubDirAutoMake>  RHH#1</SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> #3/(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   RHH#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-RHH-Set-Homol </Key>
+    </KeyedSetsOfNames>
+
+
+
+
         <!-- ***********************************************   -->
         <!--                                                   -->
         <!--                SETS                               -->
@@ -88,6 +124,7 @@
 	  </Sets>
           <Key> NKS-Set-Homol </Key>
     </KeyedSetsOfNames>
+
     <KeyedSetsOfNames >
           <IsParametrized>  true </IsParametrized>
           <Sets>
@@ -315,8 +352,6 @@
         <Key>   NKS-Assoc-Im2OrientChangExt </Key>
 	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
     </KeyedNamesAssociations>
-
-
 
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>

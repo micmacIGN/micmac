@@ -766,6 +766,7 @@ class cElComposHomographie
           REAL  Coeff1() const;
 
           void Show(const std::string & aMes);
+          bool HasNan() const;
 
       private  :
           void SetCoHom(REAL *) const;
@@ -780,6 +781,7 @@ class cXmlHomogr;
 class cElHomographie
 {
      public :
+          bool HasNan() const;
           Pt2dr Direct  (const Pt2dr & aP) const;
           Pt2d<Fonc_Num> Direct (Pt2d<Fonc_Num> ) const;
 

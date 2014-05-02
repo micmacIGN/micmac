@@ -189,7 +189,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
    {
       if (aShowDet)
       {
-          std::cout << "NOT OK 0 FOR " << mName << "\n";
+          std::cout << "NOT OK 0 FOR " << mName << " NbOK " << aNbOK  << " NbContr " << aNbContrainte << "\n";
       }
       return;
    }
@@ -237,7 +237,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
    {
       if (aShowDet)
       {
-          std::cout << "NOT OK FOR " << mName << "\n";
+          std::cout << "NOT OK (UPL) FOR " << mName << "\n";
       }
       return;
    }

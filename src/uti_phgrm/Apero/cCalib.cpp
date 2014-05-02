@@ -917,7 +917,9 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
             }
         }
 
-        std::string aFullName = anAppli.DC()+aCCI.Directory().Val()+ aSEF.NameFile();
+        std::string aFullName = aCCI.Directory().Val()+ aSEF.NameFile();
+        if (aCCI.AddDirCur().Val())
+            aFullName = anAppli.DC() + aFullName;
         aTestFullName = aFullName;
 
 

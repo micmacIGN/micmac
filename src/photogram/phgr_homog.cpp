@@ -73,6 +73,10 @@ cXmlAffinR2ToR cElComposHomographie::ToXml() const
    return aRes;
 }
 
+bool  cElComposHomographie::HasNan() const
+{
+    return isnan(mX) || isnan(mY) || isnan(m1);
+}
 
 void cElComposHomographie::Show(const std::string & aMes)
 {
@@ -275,6 +279,11 @@ void cElHomographie::Show()
     mHX.Show("X");
     mHY.Show("Y");
     mHZ.Show("Z");
+}
+
+bool  cElHomographie::HasNan() const
+{
+   return mHX.HasNan() || mHY.HasNan() ||   mHZ.HasNan();
 }
 
 cElHomographie::cElHomographie

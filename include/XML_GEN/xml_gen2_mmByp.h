@@ -181,6 +181,17 @@ void StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir);
 void   CorrecNameMasq(const std::string & aDir,const std::string & aPat,std::string & aMasq);
 cSpecifFormatRaw * GetSFRFromString(const std::string & aNameHdr);
 
+class cPatOfName
+{
+    public :
+       cPatOfName();
+       std::string Pattern() const;
+       void AddName(const std::string &);
+    private :
+        std::string mPat;
+        int mNb;
+};
+
 
 
 #endif   // _ELISE_XML_GEN_MMBY_P_
