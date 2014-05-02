@@ -16,6 +16,10 @@ eModeGeomMEC  Str2eModeGeomMEC(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeGeomMEC & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eModeGeomMEC &);
+
+void  BinaryUnDumpFromFile(eModeGeomMEC &,ELISE_fp &);
+
 typedef enum
 {
   eMCC_GrCensus,
@@ -30,6 +34,10 @@ eModeCensusCost  Str2eModeCensusCost(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeCensusCost & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eModeCensusCost &);
+
+void  BinaryUnDumpFromFile(eModeCensusCost &,ELISE_fp &);
+
 typedef enum
 {
   eTMA_Homologues,
@@ -43,6 +51,10 @@ std::string  eToString(const eTypeModeleAnalytique & aVal);
 eTypeModeleAnalytique  Str2eTypeModeleAnalytique(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeModeleAnalytique & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeModeleAnalytique &);
+
+void  BinaryUnDumpFromFile(eTypeModeleAnalytique &,ELISE_fp &);
 
 typedef enum
 {
@@ -65,6 +77,10 @@ eModeGeomImage  Str2eModeGeomImage(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeGeomImage & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eModeGeomImage &);
+
+void  BinaryUnDumpFromFile(eModeGeomImage &,ELISE_fp &);
+
 typedef enum
 {
   eOEISA_error,
@@ -77,6 +93,10 @@ std::string  eToString(const eOnEmptyImSecApero & aVal);
 eOnEmptyImSecApero  Str2eOnEmptyImSecApero(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eOnEmptyImSecApero & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eOnEmptyImSecApero &);
+
+void  BinaryUnDumpFromFile(eOnEmptyImSecApero &,ELISE_fp &);
 
 typedef enum
 {
@@ -94,6 +114,10 @@ eModeAggregCorr  Str2eModeAggregCorr(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeAggregCorr & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eModeAggregCorr &);
+
+void  BinaryUnDumpFromFile(eModeAggregCorr &,ELISE_fp &);
+
 typedef enum
 {
   eCoeffCorrelStd,
@@ -107,6 +131,10 @@ eModeDynamiqueCorrel  Str2eModeDynamiqueCorrel(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeDynamiqueCorrel & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eModeDynamiqueCorrel &);
+
+void  BinaryUnDumpFromFile(eModeDynamiqueCorrel &,ELISE_fp &);
+
 typedef enum
 {
   eUInt8Bits,
@@ -119,6 +147,10 @@ std::string  eToString(const eTypeImPyram & aVal);
 eTypeImPyram  Str2eTypeImPyram(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeImPyram & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeImPyram &);
+
+void  BinaryUnDumpFromFile(eTypeImPyram &,ELISE_fp &);
 
 typedef enum
 {
@@ -139,6 +171,10 @@ eAlgoRegul  Str2eAlgoRegul(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eAlgoRegul & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eAlgoRegul &);
+
+void  BinaryUnDumpFromFile(eAlgoRegul &,ELISE_fp &);
+
 typedef enum
 {
   eInterpolPPV,
@@ -156,6 +192,10 @@ eModeInterpolation  Str2eModeInterpolation(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeInterpolation & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eModeInterpolation &);
+
+void  BinaryUnDumpFromFile(eModeInterpolation &,ELISE_fp &);
+
 typedef enum
 {
   eFiltrageMedian,
@@ -171,6 +211,10 @@ eTypeFiltrage  Str2eTypeFiltrage(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFiltrage & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eTypeFiltrage &);
+
+void  BinaryUnDumpFromFile(eTypeFiltrage &,ELISE_fp &);
+
 typedef enum
 {
   eApplyPx1,
@@ -183,6 +227,10 @@ std::string  eToString(const ePxApply & aVal);
 ePxApply  Str2ePxApply(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const ePxApply & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const ePxApply &);
+
+void  BinaryUnDumpFromFile(ePxApply &,ELISE_fp &);
 
 typedef enum
 {
@@ -197,6 +245,10 @@ std::string  eToString(const eModeAggregProgDyn & aVal);
 eModeAggregProgDyn  Str2eModeAggregProgDyn(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeAggregProgDyn & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eModeAggregProgDyn &);
+
+void  BinaryUnDumpFromFile(eModeAggregProgDyn &,ELISE_fp &);
 
 typedef enum
 {
@@ -213,6 +265,10 @@ eMicMacCodeRetourErreur  Str2eMicMacCodeRetourErreur(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eMicMacCodeRetourErreur & anObj);
 
+void  BinaryDumpInFile(ELISE_fp &,const eMicMacCodeRetourErreur &);
+
+void  BinaryUnDumpFromFile(eMicMacCodeRetourErreur &,ELISE_fp &);
+
 typedef enum
 {
   eWInCorrelFixe,
@@ -225,6 +281,10 @@ std::string  eToString(const eTypeWinCorrel & aVal);
 eTypeWinCorrel  Str2eTypeWinCorrel(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeWinCorrel & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeWinCorrel &);
+
+void  BinaryUnDumpFromFile(eTypeWinCorrel &,ELISE_fp &);
 
 typedef enum
 {
@@ -239,6 +299,10 @@ std::string  eToString(const eTypeModeEchantPtsI & aVal);
 eTypeModeEchantPtsI  Str2eTypeModeEchantPtsI(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeModeEchantPtsI & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeModeEchantPtsI &);
+
+void  BinaryUnDumpFromFile(eTypeModeEchantPtsI &,ELISE_fp &);
 
 typedef enum
 {
@@ -263,6 +327,10 @@ std::string  eToString(const eSemantiqueLL & aVal);
 eSemantiqueLL  Str2eSemantiqueLL(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eSemantiqueLL & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eSemantiqueLL &);
+
+void  BinaryUnDumpFromFile(eSemantiqueLL &,ELISE_fp &);
 
 class cSpecFitrageImage
 {
@@ -307,6 +375,10 @@ class cSpecFitrageImage
 };
 cElXMLTree * ToXMLTree(const cSpecFitrageImage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSpecFitrageImage &);
+
+void  BinaryUnDumpFromFile(cSpecFitrageImage &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -332,6 +404,10 @@ class cCorrectionPxTransverse
         double mSsResol;
 };
 cElXMLTree * ToXMLTree(const cCorrectionPxTransverse &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCorrectionPxTransverse &);
+
+void  BinaryUnDumpFromFile(cCorrectionPxTransverse &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -383,6 +459,10 @@ class cLidarLayer
 };
 cElXMLTree * ToXMLTree(const cLidarLayer &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cLidarLayer &);
+
+void  BinaryUnDumpFromFile(cLidarLayer &,ELISE_fp &);
+
 class cGeometrieAffineApprochee
 {
     public:
@@ -405,6 +485,10 @@ class cGeometrieAffineApprochee
         Pt2dr mDerImTerain_Dj;
 };
 cElXMLTree * ToXMLTree(const cGeometrieAffineApprochee &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGeometrieAffineApprochee &);
+
+void  BinaryUnDumpFromFile(cGeometrieAffineApprochee &,ELISE_fp &);
 
 class cLidarStrip
 {
@@ -442,6 +526,10 @@ class cLidarStrip
 };
 cElXMLTree * ToXMLTree(const cLidarStrip &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cLidarStrip &);
+
+void  BinaryUnDumpFromFile(cLidarStrip &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -468,6 +556,10 @@ class cLidarFlight
 };
 cElXMLTree * ToXMLTree(const cLidarFlight &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cLidarFlight &);
+
+void  BinaryUnDumpFromFile(cLidarFlight &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -489,6 +581,10 @@ class cMemPartMICMAC
         cTplValGesInit< double > mBSurHGlob;
 };
 cElXMLTree * ToXMLTree(const cMemPartMICMAC &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMemPartMICMAC &);
+
+void  BinaryUnDumpFromFile(cMemPartMICMAC &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -512,6 +608,10 @@ class cParamMasqAnam
 };
 cElXMLTree * ToXMLTree(const cParamMasqAnam &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cParamMasqAnam &);
+
+void  BinaryUnDumpFromFile(cParamMasqAnam &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -529,6 +629,10 @@ class cMM_EtatAvancement
         bool mAllDone;
 };
 cElXMLTree * ToXMLTree(const cMM_EtatAvancement &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMM_EtatAvancement &);
+
+void  BinaryUnDumpFromFile(cMM_EtatAvancement &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -551,6 +655,10 @@ class cImageFDC
         cTplValGesInit< Pt2dr > mDirEpipTransv;
 };
 cElXMLTree * ToXMLTree(const cImageFDC &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cImageFDC &);
+
+void  BinaryUnDumpFromFile(cImageFDC &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -578,6 +686,10 @@ class cCouplesFDC
 };
 cElXMLTree * ToXMLTree(const cCouplesFDC &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cCouplesFDC &);
+
+void  BinaryUnDumpFromFile(cCouplesFDC &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -600,6 +712,10 @@ class cFileDescriptionChantier
 };
 cElXMLTree * ToXMLTree(const cFileDescriptionChantier &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cFileDescriptionChantier &);
+
+void  BinaryUnDumpFromFile(cFileDescriptionChantier &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -617,6 +733,10 @@ class cBoxMasqIsBoxTer
         Box2dr mBox;
 };
 cElXMLTree * ToXMLTree(const cBoxMasqIsBoxTer &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cBoxMasqIsBoxTer &);
+
+void  BinaryUnDumpFromFile(cBoxMasqIsBoxTer &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -644,6 +764,10 @@ class cMNT_Init
 };
 cElXMLTree * ToXMLTree(const cMNT_Init &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cMNT_Init &);
+
+void  BinaryUnDumpFromFile(cMNT_Init &,ELISE_fp &);
+
 class cEnveloppeMNT_INIT
 {
     public:
@@ -662,6 +786,10 @@ class cEnveloppeMNT_INIT
         std::string mZSup;
 };
 cElXMLTree * ToXMLTree(const cEnveloppeMNT_INIT &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cEnveloppeMNT_INIT &);
+
+void  BinaryUnDumpFromFile(cEnveloppeMNT_INIT &,ELISE_fp &);
 
 class cIntervAltimetrie
 {
@@ -713,6 +841,10 @@ class cIntervAltimetrie
 };
 cElXMLTree * ToXMLTree(const cIntervAltimetrie &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cIntervAltimetrie &);
+
+void  BinaryUnDumpFromFile(cIntervAltimetrie &,ELISE_fp &);
+
 class cIntervParalaxe
 {
     public:
@@ -752,6 +884,10 @@ class cIntervParalaxe
 };
 cElXMLTree * ToXMLTree(const cIntervParalaxe &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cIntervParalaxe &);
+
+void  BinaryUnDumpFromFile(cIntervParalaxe &,ELISE_fp &);
+
 class cNuageXMLInit
 {
     public:
@@ -770,6 +906,10 @@ class cNuageXMLInit
         cTplValGesInit< bool > mCanAdaptGeom;
 };
 cElXMLTree * ToXMLTree(const cNuageXMLInit &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cNuageXMLInit &);
+
+void  BinaryUnDumpFromFile(cNuageXMLInit &,ELISE_fp &);
 
 class cIntervSpecialZInv
 {
@@ -790,6 +930,10 @@ class cIntervSpecialZInv
 };
 cElXMLTree * ToXMLTree(const cIntervSpecialZInv &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cIntervSpecialZInv &);
+
+void  BinaryUnDumpFromFile(cIntervSpecialZInv &,ELISE_fp &);
+
 class cListePointsInclus
 {
     public:
@@ -808,6 +952,10 @@ class cListePointsInclus
         std::string mIm;
 };
 cElXMLTree * ToXMLTree(const cListePointsInclus &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cListePointsInclus &);
+
+void  BinaryUnDumpFromFile(cListePointsInclus &,ELISE_fp &);
 
 class cMasqueTerrain
 {
@@ -831,6 +979,10 @@ class cMasqueTerrain
         std::string mMT_Xml;
 };
 cElXMLTree * ToXMLTree(const cMasqueTerrain &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMasqueTerrain &);
+
+void  BinaryUnDumpFromFile(cMasqueTerrain &,ELISE_fp &);
 
 class cPlanimetrie
 {
@@ -880,6 +1032,10 @@ class cPlanimetrie
 };
 cElXMLTree * ToXMLTree(const cPlanimetrie &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cPlanimetrie &);
+
+void  BinaryUnDumpFromFile(cPlanimetrie &,ELISE_fp &);
+
 class cRugositeMNT
 {
     public:
@@ -902,6 +1058,10 @@ class cRugositeMNT
         cTplValGesInit< double > mEnergieExpRegulAlti;
 };
 cElXMLTree * ToXMLTree(const cRugositeMNT &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cRugositeMNT &);
+
+void  BinaryUnDumpFromFile(cRugositeMNT &,ELISE_fp &);
 
 class cSection_Terrain
 {
@@ -1067,6 +1227,10 @@ class cSection_Terrain
 };
 cElXMLTree * ToXMLTree(const cSection_Terrain &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSection_Terrain &);
+
+void  BinaryUnDumpFromFile(cSection_Terrain &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1089,6 +1253,10 @@ class cOneMasqueImage
 };
 cElXMLTree * ToXMLTree(const cOneMasqueImage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cOneMasqueImage &);
+
+void  BinaryUnDumpFromFile(cOneMasqueImage &,ELISE_fp &);
+
 class cMasqImageIn
 {
     public:
@@ -1107,6 +1275,10 @@ class cMasqImageIn
         cTplValGesInit< bool > mAcceptNonExistingFile;
 };
 cElXMLTree * ToXMLTree(const cMasqImageIn &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMasqImageIn &);
+
+void  BinaryUnDumpFromFile(cMasqImageIn &,ELISE_fp &);
 
 class cModuleGeomImage
 {
@@ -1127,6 +1299,10 @@ class cModuleGeomImage
 };
 cElXMLTree * ToXMLTree(const cModuleGeomImage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cModuleGeomImage &);
+
+void  BinaryUnDumpFromFile(cModuleGeomImage &,ELISE_fp &);
+
 class cFCND_CalcIm2fromIm1
 {
     public:
@@ -1145,6 +1321,10 @@ class cFCND_CalcIm2fromIm1
         bool mI2FromI1SensDirect;
 };
 cElXMLTree * ToXMLTree(const cFCND_CalcIm2fromIm1 &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cFCND_CalcIm2fromIm1 &);
+
+void  BinaryUnDumpFromFile(cFCND_CalcIm2fromIm1 &,ELISE_fp &);
 
 class cImSecCalcApero
 {
@@ -1177,6 +1357,10 @@ class cImSecCalcApero
 };
 cElXMLTree * ToXMLTree(const cImSecCalcApero &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cImSecCalcApero &);
+
+void  BinaryUnDumpFromFile(cImSecCalcApero &,ELISE_fp &);
+
 class cAutoSelectionneImSec
 {
     public:
@@ -1191,6 +1375,10 @@ class cAutoSelectionneImSec
         double mRecouvrMin;
 };
 cElXMLTree * ToXMLTree(const cAutoSelectionneImSec &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAutoSelectionneImSec &);
+
+void  BinaryUnDumpFromFile(cAutoSelectionneImSec &,ELISE_fp &);
 
 class cImages
 {
@@ -1267,6 +1455,10 @@ class cImages
 };
 cElXMLTree * ToXMLTree(const cImages &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cImages &);
+
+void  BinaryUnDumpFromFile(cImages &,ELISE_fp &);
+
 class cFCND_Mode_GeomIm
 {
     public:
@@ -1286,6 +1478,10 @@ class cFCND_Mode_GeomIm
 };
 cElXMLTree * ToXMLTree(const cFCND_Mode_GeomIm &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cFCND_Mode_GeomIm &);
+
+void  BinaryUnDumpFromFile(cFCND_Mode_GeomIm &,ELISE_fp &);
+
 class cModuleImageLoader
 {
     public:
@@ -1304,6 +1500,10 @@ class cModuleImageLoader
         std::string mNomLoader;
 };
 cElXMLTree * ToXMLTree(const cModuleImageLoader &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cModuleImageLoader &);
+
+void  BinaryUnDumpFromFile(cModuleImageLoader &,ELISE_fp &);
 
 class cCropAndScale
 {
@@ -1327,6 +1527,10 @@ class cCropAndScale
         cTplValGesInit< double > mScaleY;
 };
 cElXMLTree * ToXMLTree(const cCropAndScale &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCropAndScale &);
+
+void  BinaryUnDumpFromFile(cCropAndScale &,ELISE_fp &);
 
 class cGeom
 {
@@ -1355,6 +1559,10 @@ class cGeom
         cTplValGesInit< std::string > mNamePxTr;
 };
 cElXMLTree * ToXMLTree(const cGeom &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGeom &);
+
+void  BinaryUnDumpFromFile(cGeom &,ELISE_fp &);
 
 class cModifieurGeometrie
 {
@@ -1389,6 +1597,10 @@ class cModifieurGeometrie
         cTplValGesInit< cElRegex_Ptr > mApply;
 };
 cElXMLTree * ToXMLTree(const cModifieurGeometrie &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cModifieurGeometrie &);
+
+void  BinaryUnDumpFromFile(cModifieurGeometrie &,ELISE_fp &);
 
 class cNomsGeometrieImage
 {
@@ -1449,6 +1661,10 @@ class cNomsGeometrieImage
 };
 cElXMLTree * ToXMLTree(const cNomsGeometrieImage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cNomsGeometrieImage &);
+
+void  BinaryUnDumpFromFile(cNomsGeometrieImage &,ELISE_fp &);
+
 class cNomsHomomologues
 {
     public:
@@ -1471,6 +1687,10 @@ class cNomsHomomologues
         cTplValGesInit< std::string > mSeparateurHom;
 };
 cElXMLTree * ToXMLTree(const cNomsHomomologues &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cNomsHomomologues &);
+
+void  BinaryUnDumpFromFile(cNomsHomomologues &,ELISE_fp &);
 
 class cSection_PriseDeVue
 {
@@ -1612,6 +1832,10 @@ class cSection_PriseDeVue
 };
 cElXMLTree * ToXMLTree(const cSection_PriseDeVue &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSection_PriseDeVue &);
+
+void  BinaryUnDumpFromFile(cSection_PriseDeVue &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1662,6 +1886,10 @@ class cEchantillonagePtsInterets
 };
 cElXMLTree * ToXMLTree(const cEchantillonagePtsInterets &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cEchantillonagePtsInterets &);
+
+void  BinaryUnDumpFromFile(cEchantillonagePtsInterets &,ELISE_fp &);
+
 class cAdapteDynCov
 {
     public:
@@ -1688,6 +1916,10 @@ class cAdapteDynCov
         cTplValGesInit< double > mValRef;
 };
 cElXMLTree * ToXMLTree(const cAdapteDynCov &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAdapteDynCov &);
+
+void  BinaryUnDumpFromFile(cAdapteDynCov &,ELISE_fp &);
 
 class cOneParamCMS
 {
@@ -1716,6 +1948,10 @@ class cOneParamCMS
 };
 cElXMLTree * ToXMLTree(const cOneParamCMS &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cOneParamCMS &);
+
+void  BinaryUnDumpFromFile(cOneParamCMS &,ELISE_fp &);
+
 class cCorrelMultiScale
 {
     public:
@@ -1742,6 +1978,10 @@ class cCorrelMultiScale
         std::vector< cOneParamCMS > mOneParamCMS;
 };
 cElXMLTree * ToXMLTree(const cCorrelMultiScale &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCorrelMultiScale &);
+
+void  BinaryUnDumpFromFile(cCorrelMultiScale &,ELISE_fp &);
 
 class cCensusCost
 {
@@ -1778,6 +2018,10 @@ class cCensusCost
 };
 cElXMLTree * ToXMLTree(const cCensusCost &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cCensusCost &);
+
+void  BinaryUnDumpFromFile(cCensusCost &,ELISE_fp &);
+
 class cCorrel2DLeastSquare
 {
     public:
@@ -1801,6 +2045,10 @@ class cCorrel2DLeastSquare
 };
 cElXMLTree * ToXMLTree(const cCorrel2DLeastSquare &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cCorrel2DLeastSquare &);
+
+void  BinaryUnDumpFromFile(cCorrel2DLeastSquare &,ELISE_fp &);
+
 class cGPU_Correl
 {
     public:
@@ -1816,6 +2064,10 @@ class cGPU_Correl
 };
 cElXMLTree * ToXMLTree(const cGPU_Correl &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cGPU_Correl &);
+
+void  BinaryUnDumpFromFile(cGPU_Correl &,ELISE_fp &);
+
 class cGPU_CorrelBasik
 {
     public:
@@ -1830,6 +2082,10 @@ class cGPU_CorrelBasik
         cTplValGesInit< std::string > mUnused;
 };
 cElXMLTree * ToXMLTree(const cGPU_CorrelBasik &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGPU_CorrelBasik &);
+
+void  BinaryUnDumpFromFile(cGPU_CorrelBasik &,ELISE_fp &);
 
 class cMultiCorrelPonctuel
 {
@@ -1858,6 +2114,10 @@ class cMultiCorrelPonctuel
 };
 cElXMLTree * ToXMLTree(const cMultiCorrelPonctuel &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cMultiCorrelPonctuel &);
+
+void  BinaryUnDumpFromFile(cMultiCorrelPonctuel &,ELISE_fp &);
+
 class cCorrel_Ponctuel2ImGeomI
 {
     public:
@@ -1872,6 +2132,10 @@ class cCorrel_Ponctuel2ImGeomI
         cTplValGesInit< double > mRatioI1I2;
 };
 cElXMLTree * ToXMLTree(const cCorrel_Ponctuel2ImGeomI &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCorrel_Ponctuel2ImGeomI &);
+
+void  BinaryUnDumpFromFile(cCorrel_Ponctuel2ImGeomI &,ELISE_fp &);
 
 class cCorrel_PonctuelleCroisee
 {
@@ -1896,6 +2160,10 @@ class cCorrel_PonctuelleCroisee
 };
 cElXMLTree * ToXMLTree(const cCorrel_PonctuelleCroisee &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cCorrel_PonctuelleCroisee &);
+
+void  BinaryUnDumpFromFile(cCorrel_PonctuelleCroisee &,ELISE_fp &);
+
 class cCorrel_MultiFen
 {
     public:
@@ -1910,6 +2178,10 @@ class cCorrel_MultiFen
         int mNbFen;
 };
 cElXMLTree * ToXMLTree(const cCorrel_MultiFen &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCorrel_MultiFen &);
+
+void  BinaryUnDumpFromFile(cCorrel_MultiFen &,ELISE_fp &);
 
 class cCorrel_Correl_MNE_ZPredic
 {
@@ -1926,6 +2198,10 @@ class cCorrel_Correl_MNE_ZPredic
 };
 cElXMLTree * ToXMLTree(const cCorrel_Correl_MNE_ZPredic &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cCorrel_Correl_MNE_ZPredic &);
+
+void  BinaryUnDumpFromFile(cCorrel_Correl_MNE_ZPredic &,ELISE_fp &);
+
 class cCorrel_NC_Robuste
 {
     public:
@@ -1940,6 +2216,10 @@ class cCorrel_NC_Robuste
         cTplValGesInit< std::string > mUnused;
 };
 cElXMLTree * ToXMLTree(const cCorrel_NC_Robuste &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCorrel_NC_Robuste &);
+
+void  BinaryUnDumpFromFile(cCorrel_NC_Robuste &,ELISE_fp &);
 
 class cTiePMasqIm
 {
@@ -1959,6 +2239,10 @@ class cTiePMasqIm
         int mDilate;
 };
 cElXMLTree * ToXMLTree(const cTiePMasqIm &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cTiePMasqIm &);
+
+void  BinaryUnDumpFromFile(cTiePMasqIm &,ELISE_fp &);
 
 class cMasqueAutoByTieP
 {
@@ -2021,6 +2305,10 @@ class cMasqueAutoByTieP
 };
 cElXMLTree * ToXMLTree(const cMasqueAutoByTieP &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cMasqueAutoByTieP &);
+
+void  BinaryUnDumpFromFile(cMasqueAutoByTieP &,ELISE_fp &);
+
 class cTypeCAH
 {
     public:
@@ -2075,6 +2363,10 @@ class cTypeCAH
         cTplValGesInit< cMasqueAutoByTieP > mMasqueAutoByTieP;
 };
 cElXMLTree * ToXMLTree(const cTypeCAH &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cTypeCAH &);
+
+void  BinaryUnDumpFromFile(cTypeCAH &,ELISE_fp &);
 
 class cCorrelAdHoc
 {
@@ -2152,6 +2444,10 @@ class cCorrelAdHoc
 };
 cElXMLTree * ToXMLTree(const cCorrelAdHoc &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cCorrelAdHoc &);
+
+void  BinaryUnDumpFromFile(cCorrelAdHoc &,ELISE_fp &);
+
 class cDoImageBSurH
 {
     public:
@@ -2187,6 +2483,10 @@ class cDoImageBSurH
 };
 cElXMLTree * ToXMLTree(const cDoImageBSurH &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cDoImageBSurH &);
+
+void  BinaryUnDumpFromFile(cDoImageBSurH &,ELISE_fp &);
+
 class cDoStatResult
 {
     public:
@@ -2201,6 +2501,10 @@ class cDoStatResult
         bool mDoRatio2Im;
 };
 cElXMLTree * ToXMLTree(const cDoStatResult &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDoStatResult &);
+
+void  BinaryUnDumpFromFile(cDoStatResult &,ELISE_fp &);
 
 class cMasqOfEtape
 {
@@ -2220,6 +2524,10 @@ class cMasqOfEtape
         cTplValGesInit< Box2dr > mRectInclus;
 };
 cElXMLTree * ToXMLTree(const cMasqOfEtape &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMasqOfEtape &);
+
+void  BinaryUnDumpFromFile(cMasqOfEtape &,ELISE_fp &);
 
 class cEtapeProgDyn
 {
@@ -2252,6 +2560,10 @@ class cEtapeProgDyn
 };
 cElXMLTree * ToXMLTree(const cEtapeProgDyn &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cEtapeProgDyn &);
+
+void  BinaryUnDumpFromFile(cEtapeProgDyn &,ELISE_fp &);
+
 class cEtiqBestImage
 {
     public:
@@ -2270,6 +2582,10 @@ class cEtiqBestImage
         cTplValGesInit< bool > mSauvEtiq;
 };
 cElXMLTree * ToXMLTree(const cEtiqBestImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cEtiqBestImage &);
+
+void  BinaryUnDumpFromFile(cEtiqBestImage &,ELISE_fp &);
 
 class cArgMaskAuto
 {
@@ -2319,6 +2635,10 @@ class cArgMaskAuto
         cTplValGesInit< cEtiqBestImage > mEtiqBestImage;
 };
 cElXMLTree * ToXMLTree(const cArgMaskAuto &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cArgMaskAuto &);
+
+void  BinaryUnDumpFromFile(cArgMaskAuto &,ELISE_fp &);
 
 class cModulationProgDyn
 {
@@ -2381,6 +2701,10 @@ class cModulationProgDyn
 };
 cElXMLTree * ToXMLTree(const cModulationProgDyn &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cModulationProgDyn &);
+
+void  BinaryUnDumpFromFile(cModulationProgDyn &,ELISE_fp &);
+
 class cPostFiltragePx
 {
     public:
@@ -2395,6 +2719,10 @@ class cPostFiltragePx
         std::list< cSpecFitrageImage > mOneFitragePx;
 };
 cElXMLTree * ToXMLTree(const cPostFiltragePx &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPostFiltragePx &);
+
+void  BinaryUnDumpFromFile(cPostFiltragePx &,ELISE_fp &);
 
 class cPostFiltrageDiscont
 {
@@ -2431,6 +2759,10 @@ class cPostFiltrageDiscont
 };
 cElXMLTree * ToXMLTree(const cPostFiltrageDiscont &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cPostFiltrageDiscont &);
+
+void  BinaryUnDumpFromFile(cPostFiltrageDiscont &,ELISE_fp &);
+
 class cImageSelecteur
 {
     public:
@@ -2449,6 +2781,10 @@ class cImageSelecteur
         std::list< std::string > mPatternSel;
 };
 cElXMLTree * ToXMLTree(const cImageSelecteur &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cImageSelecteur &);
+
+void  BinaryUnDumpFromFile(cImageSelecteur &,ELISE_fp &);
 
 class cGenerateProjectionInImages
 {
@@ -2477,6 +2813,10 @@ class cGenerateProjectionInImages
 };
 cElXMLTree * ToXMLTree(const cGenerateProjectionInImages &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cGenerateProjectionInImages &);
+
+void  BinaryUnDumpFromFile(cGenerateProjectionInImages &,ELISE_fp &);
+
 class cGenCorPxTransv
 {
     public:
@@ -2496,6 +2836,10 @@ class cGenCorPxTransv
 };
 cElXMLTree * ToXMLTree(const cGenCorPxTransv &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cGenCorPxTransv &);
+
+void  BinaryUnDumpFromFile(cGenCorPxTransv &,ELISE_fp &);
+
 class cSimulFrac
 {
     public:
@@ -2510,6 +2854,10 @@ class cSimulFrac
         double mCoutFrac;
 };
 cElXMLTree * ToXMLTree(const cSimulFrac &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSimulFrac &);
+
+void  BinaryUnDumpFromFile(cSimulFrac &,ELISE_fp &);
 
 class cInterfaceVisualisation
 {
@@ -2553,6 +2901,10 @@ class cInterfaceVisualisation
 };
 cElXMLTree * ToXMLTree(const cInterfaceVisualisation &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cInterfaceVisualisation &);
+
+void  BinaryUnDumpFromFile(cInterfaceVisualisation &,ELISE_fp &);
+
 class cMTD_Nuage_Maille
 {
     public:
@@ -2576,6 +2928,10 @@ class cMTD_Nuage_Maille
 };
 cElXMLTree * ToXMLTree(const cMTD_Nuage_Maille &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cMTD_Nuage_Maille &);
+
+void  BinaryUnDumpFromFile(cMTD_Nuage_Maille &,ELISE_fp &);
+
 class cCannauxExportPly
 {
     public:
@@ -2598,6 +2954,10 @@ class cCannauxExportPly
         cTplValGesInit< int > mFlagUse;
 };
 cElXMLTree * ToXMLTree(const cCannauxExportPly &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCannauxExportPly &);
+
+void  BinaryUnDumpFromFile(cCannauxExportPly &,ELISE_fp &);
 
 class cPlyFile
 {
@@ -2629,6 +2989,10 @@ class cPlyFile
         std::list< cCannauxExportPly > mCannauxExportPly;
 };
 cElXMLTree * ToXMLTree(const cPlyFile &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPlyFile &);
+
+void  BinaryUnDumpFromFile(cPlyFile &,ELISE_fp &);
 
 class cMMExportNuage
 {
@@ -2673,6 +3037,10 @@ class cMMExportNuage
 };
 cElXMLTree * ToXMLTree(const cMMExportNuage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cMMExportNuage &);
+
+void  BinaryUnDumpFromFile(cMMExportNuage &,ELISE_fp &);
+
 class cReCalclCorrelMultiEchelle
 {
     public:
@@ -2703,6 +3071,10 @@ class cReCalclCorrelMultiEchelle
         double mSeuil;
 };
 cElXMLTree * ToXMLTree(const cReCalclCorrelMultiEchelle &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cReCalclCorrelMultiEchelle &);
+
+void  BinaryUnDumpFromFile(cReCalclCorrelMultiEchelle &,ELISE_fp &);
 
 class cOneModeleAnalytique
 {
@@ -2851,6 +3223,10 @@ class cOneModeleAnalytique
 };
 cElXMLTree * ToXMLTree(const cOneModeleAnalytique &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cOneModeleAnalytique &);
+
+void  BinaryUnDumpFromFile(cOneModeleAnalytique &,ELISE_fp &);
+
 class cModelesAnalytiques
 {
     public:
@@ -2865,6 +3241,10 @@ class cModelesAnalytiques
         std::list< cOneModeleAnalytique > mOneModeleAnalytique;
 };
 cElXMLTree * ToXMLTree(const cModelesAnalytiques &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cModelesAnalytiques &);
+
+void  BinaryUnDumpFromFile(cModelesAnalytiques &,ELISE_fp &);
 
 class cByFileNomChantier
 {
@@ -2892,6 +3272,10 @@ class cByFileNomChantier
         cTplValGesInit< std::string > mNameTag;
 };
 cElXMLTree * ToXMLTree(const cByFileNomChantier &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cByFileNomChantier &);
+
+void  BinaryUnDumpFromFile(cByFileNomChantier &,ELISE_fp &);
 
 class cOri
 {
@@ -2923,6 +3307,10 @@ class cOri
         cTplValGesInit< cByFileNomChantier > mByFileNomChantier;
 };
 cElXMLTree * ToXMLTree(const cOri &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOri &);
+
+void  BinaryUnDumpFromFile(cOri &,ELISE_fp &);
 
 class cBasculeRes
 {
@@ -2961,6 +3349,10 @@ class cBasculeRes
 };
 cElXMLTree * ToXMLTree(const cBasculeRes &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cBasculeRes &);
+
+void  BinaryUnDumpFromFile(cBasculeRes &,ELISE_fp &);
+
 class cVisuSuperposMNT
 {
     public:
@@ -2980,6 +3372,10 @@ class cVisuSuperposMNT
 };
 cElXMLTree * ToXMLTree(const cVisuSuperposMNT &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cVisuSuperposMNT &);
+
+void  BinaryUnDumpFromFile(cVisuSuperposMNT &,ELISE_fp &);
+
 class cMakeMTDMaskOrtho
 {
     public:
@@ -2998,6 +3394,10 @@ class cMakeMTDMaskOrtho
         cMasqMesures mMesures;
 };
 cElXMLTree * ToXMLTree(const cMakeMTDMaskOrtho &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMakeMTDMaskOrtho &);
+
+void  BinaryUnDumpFromFile(cMakeMTDMaskOrtho &,ELISE_fp &);
 
 class cMakeOrthoParImage
 {
@@ -3087,6 +3487,10 @@ class cMakeOrthoParImage
         cTplValGesInit< Pt2di > mTranslateIm;
 };
 cElXMLTree * ToXMLTree(const cMakeOrthoParImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMakeOrthoParImage &);
+
+void  BinaryUnDumpFromFile(cMakeOrthoParImage &,ELISE_fp &);
 
 class cGenerePartiesCachees
 {
@@ -3237,6 +3641,10 @@ class cGenerePartiesCachees
 };
 cElXMLTree * ToXMLTree(const cGenerePartiesCachees &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cGenerePartiesCachees &);
+
+void  BinaryUnDumpFromFile(cGenerePartiesCachees &,ELISE_fp &);
+
 class cRedrLocAnam
 {
     public:
@@ -3296,6 +3704,10 @@ class cRedrLocAnam
 };
 cElXMLTree * ToXMLTree(const cRedrLocAnam &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cRedrLocAnam &);
+
+void  BinaryUnDumpFromFile(cRedrLocAnam &,ELISE_fp &);
+
 class cNuagePredicteur
 {
     public:
@@ -3318,6 +3730,10 @@ class cNuagePredicteur
         double mScaleNuage;
 };
 cElXMLTree * ToXMLTree(const cNuagePredicteur &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cNuagePredicteur &);
+
+void  BinaryUnDumpFromFile(cNuagePredicteur &,ELISE_fp &);
 
 class cEtapeMEC
 {
@@ -4047,6 +4463,10 @@ class cEtapeMEC
 };
 cElXMLTree * ToXMLTree(const cEtapeMEC &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cEtapeMEC &);
+
+void  BinaryUnDumpFromFile(cEtapeMEC &,ELISE_fp &);
+
 class cTypePyramImage
 {
     public:
@@ -4069,6 +4489,10 @@ class cTypePyramImage
         eTypeImPyram mTypeEl;
 };
 cElXMLTree * ToXMLTree(const cTypePyramImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cTypePyramImage &);
+
+void  BinaryUnDumpFromFile(cTypePyramImage &,ELISE_fp &);
 
 class cSection_MEC
 {
@@ -4197,6 +4621,10 @@ class cSection_MEC
 };
 cElXMLTree * ToXMLTree(const cSection_MEC &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSection_MEC &);
+
+void  BinaryUnDumpFromFile(cSection_MEC &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4267,6 +4695,10 @@ class cDoNothingBut
 };
 cElXMLTree * ToXMLTree(const cDoNothingBut &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cDoNothingBut &);
+
+void  BinaryUnDumpFromFile(cDoNothingBut &,ELISE_fp &);
+
 class cFoncPer
 {
     public:
@@ -4290,6 +4722,10 @@ class cFoncPer
 };
 cElXMLTree * ToXMLTree(const cFoncPer &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cFoncPer &);
+
+void  BinaryUnDumpFromFile(cFoncPer &,ELISE_fp &);
+
 class cMNTPart
 {
     public:
@@ -4308,6 +4744,10 @@ class cMNTPart
         std::list< cFoncPer > mFoncPer;
 };
 cElXMLTree * ToXMLTree(const cMNTPart &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMNTPart &);
+
+void  BinaryUnDumpFromFile(cMNTPart &,ELISE_fp &);
 
 class cSimulBarres
 {
@@ -4348,6 +4788,10 @@ class cSimulBarres
 };
 cElXMLTree * ToXMLTree(const cSimulBarres &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSimulBarres &);
+
+void  BinaryUnDumpFromFile(cSimulBarres &,ELISE_fp &);
+
 class cMNEPart
 {
     public:
@@ -4362,6 +4806,10 @@ class cMNEPart
         std::list< cSimulBarres > mSimulBarres;
 };
 cElXMLTree * ToXMLTree(const cMNEPart &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMNEPart &);
+
+void  BinaryUnDumpFromFile(cMNEPart &,ELISE_fp &);
 
 class cSimulRelief
 {
@@ -4395,6 +4843,10 @@ class cSimulRelief
 };
 cElXMLTree * ToXMLTree(const cSimulRelief &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSimulRelief &);
+
+void  BinaryUnDumpFromFile(cSimulRelief &,ELISE_fp &);
+
 class cTexturePart
 {
     public:
@@ -4413,6 +4865,10 @@ class cTexturePart
         std::string mImRes;
 };
 cElXMLTree * ToXMLTree(const cTexturePart &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cTexturePart &);
+
+void  BinaryUnDumpFromFile(cTexturePart &,ELISE_fp &);
 
 class cProjImPart
 {
@@ -4464,6 +4920,10 @@ class cProjImPart
         cTplValGesInit< double > mBruit;
 };
 cElXMLTree * ToXMLTree(const cProjImPart &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cProjImPart &);
+
+void  BinaryUnDumpFromFile(cProjImPart &,ELISE_fp &);
 
 class cSectionSimulation
 {
@@ -4542,6 +5002,10 @@ class cSectionSimulation
 };
 cElXMLTree * ToXMLTree(const cSectionSimulation &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSectionSimulation &);
+
+void  BinaryUnDumpFromFile(cSectionSimulation &,ELISE_fp &);
+
 class cAnamSurfaceAnalytique
 {
     public:
@@ -4560,6 +5024,10 @@ class cAnamSurfaceAnalytique
         std::string mId;
 };
 cElXMLTree * ToXMLTree(const cAnamSurfaceAnalytique &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAnamSurfaceAnalytique &);
+
+void  BinaryUnDumpFromFile(cAnamSurfaceAnalytique &,ELISE_fp &);
 
 class cMakeMaskImNadir
 {
@@ -4595,6 +5063,10 @@ class cMakeMaskImNadir
         cTplValGesInit< int > mErod32;
 };
 cElXMLTree * ToXMLTree(const cMakeMaskImNadir &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMakeMaskImNadir &);
+
+void  BinaryUnDumpFromFile(cMakeMaskImNadir &,ELISE_fp &);
 
 class cAnamorphoseGeometrieMNT
 {
@@ -4647,6 +5119,10 @@ class cAnamorphoseGeometrieMNT
 };
 cElXMLTree * ToXMLTree(const cAnamorphoseGeometrieMNT &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cAnamorphoseGeometrieMNT &);
+
+void  BinaryUnDumpFromFile(cAnamorphoseGeometrieMNT &,ELISE_fp &);
+
 class cColorimetriesCanaux
 {
     public:
@@ -4669,6 +5145,10 @@ class cColorimetriesCanaux
         cTplValGesInit< double > mValNoir;
 };
 cElXMLTree * ToXMLTree(const cColorimetriesCanaux &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cColorimetriesCanaux &);
+
+void  BinaryUnDumpFromFile(cColorimetriesCanaux &,ELISE_fp &);
 
 class cSuperpositionImages
 {
@@ -4720,6 +5200,10 @@ class cSuperpositionImages
         cTplValGesInit< bool > mGenFileImages;
 };
 cElXMLTree * ToXMLTree(const cSuperpositionImages &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSuperpositionImages &);
+
+void  BinaryUnDumpFromFile(cSuperpositionImages &,ELISE_fp &);
 
 class cSection_Results
 {
@@ -4964,6 +5448,10 @@ class cSection_Results
 };
 cElXMLTree * ToXMLTree(const cSection_Results &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSection_Results &);
+
+void  BinaryUnDumpFromFile(cSection_Results &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4990,6 +5478,10 @@ class cCalcNomChantier
 };
 cElXMLTree * ToXMLTree(const cCalcNomChantier &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cCalcNomChantier &);
+
+void  BinaryUnDumpFromFile(cCalcNomChantier &,ELISE_fp &);
+
 class cPurgeFiles
 {
     public:
@@ -5008,6 +5500,10 @@ class cPurgeFiles
         bool mPurgeToSupress;
 };
 cElXMLTree * ToXMLTree(const cPurgeFiles &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPurgeFiles &);
+
+void  BinaryUnDumpFromFile(cPurgeFiles &,ELISE_fp &);
 
 class cSection_WorkSpace
 {
@@ -5197,6 +5693,10 @@ class cSection_WorkSpace
 };
 cElXMLTree * ToXMLTree(const cSection_WorkSpace &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSection_WorkSpace &);
+
+void  BinaryUnDumpFromFile(cSection_WorkSpace &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -5218,6 +5718,10 @@ class cOneBatch
         std::list< std::string > mPatternCommandeBatch;
 };
 cElXMLTree * ToXMLTree(const cOneBatch &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOneBatch &);
+
+void  BinaryUnDumpFromFile(cOneBatch &,ELISE_fp &);
 
 class cSectionBatch
 {
@@ -5242,6 +5746,10 @@ class cSectionBatch
 };
 cElXMLTree * ToXMLTree(const cSectionBatch &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSectionBatch &);
+
+void  BinaryUnDumpFromFile(cSectionBatch &,ELISE_fp &);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -5263,6 +5771,10 @@ class cListTestCpleHomol
         Pt2dr mPtIm2;
 };
 cElXMLTree * ToXMLTree(const cListTestCpleHomol &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cListTestCpleHomol &);
+
+void  BinaryUnDumpFromFile(cListTestCpleHomol &,ELISE_fp &);
 
 class cDebugEscalier
 {
@@ -5287,6 +5799,10 @@ class cDebugEscalier
 };
 cElXMLTree * ToXMLTree(const cDebugEscalier &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cDebugEscalier &);
+
+void  BinaryUnDumpFromFile(cDebugEscalier &,ELISE_fp &);
+
 class cSectionDebug
 {
     public:
@@ -5310,6 +5826,10 @@ class cSectionDebug
         cTplValGesInit< cDebugEscalier > mDebugEscalier;
 };
 cElXMLTree * ToXMLTree(const cSectionDebug &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSectionDebug &);
+
+void  BinaryUnDumpFromFile(cSectionDebug &,ELISE_fp &);
 
 class cSection_Vrac
 {
@@ -5433,6 +5953,10 @@ class cSection_Vrac
         cTplValGesInit< cSectionDebug > mSectionDebug;
 };
 cElXMLTree * ToXMLTree(const cSection_Vrac &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSection_Vrac &);
+
+void  BinaryUnDumpFromFile(cSection_Vrac &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/
@@ -6262,6 +6786,10 @@ class cParamMICMAC
         cSection_Vrac mSection_Vrac;
 };
 cElXMLTree * ToXMLTree(const cParamMICMAC &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cParamMICMAC &);
+
+void  BinaryUnDumpFromFile(cParamMICMAC &,ELISE_fp &);
 
 /******************************************************/
 /******************************************************/

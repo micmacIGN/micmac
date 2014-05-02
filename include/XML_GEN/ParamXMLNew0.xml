@@ -32,18 +32,30 @@
    </TD2REF>
 
    <TestDump  Nb="1" Class="true">
-       <I Nb="1" Type="int"> </I>
+       <I Nb="?" Type="int" Def="128"> </I>
        <D Nb="?" Type="Pt2dr"> </D>
        <E Nb="1" Type="eTestDump"> </E>
        <V Nb="*" Type="eTestDump"> </V>
 
        <R1 Nb="1" RefType="TD2REF"> </R1>
        <R2 Nb="?" RefType="TD2REF"> </R2>
+       <R3 Nb="*" RefType="TD2REF"> </R3>
+       <R4 Nb="*" RefType="TD2REF"  Container="std::vector"> </R4>
        <Compos Nb="1">
              <A Nb="1" Type="double"> </A>
              <B Nb="1" Type="Pt2dr">  </B>
        </Compos>
    </TestDump>
+
+
+   <TestNoDump  Nb="1" Class="true">
+       <R5 Nb="*" Container="std::map"  KeyType="std::string" KeyGetVal="IdImage" > 
+              <IdImage Nb="1" Type="std::string">  </IdImage>
+       </R5>
+       <AA Nb="1" Type="int"> </AA>
+       <vvAA Nb="1" Type="std::vector<int>"> </vvAA>
+   </TestNoDump>
+ 
 
 
 
