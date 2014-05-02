@@ -289,6 +289,19 @@ void cElXMLTree::GenEnum
 	"cElXMLTree * ToXMLTree(const std::string & aNameTag,const %s & anObj);\n\n",
 	aName.c_str()
     );
+    fprintf
+    (
+        aFileH,
+	"void  BinaryDumpInFile(ELISE_fp &,const %s &);\n\n",
+	aName.c_str()
+    );
+    fprintf
+    (
+        aFileH,
+	"void  BinaryUnDumpFromFile(%s &,ELISE_fp &);\n\n",
+	aName.c_str()
+    );
+
 
 
 
@@ -398,6 +411,34 @@ void cElXMLTree::GenEnum
     );
 
 
+    fprintf
+    (
+         aFileCpp,
+         "void  BinaryDumpInFile(ELISE_fp & aFp,const %s & anObj)\n"
+         "{\n"
+         "   BinaryDumpInFile(aFp,int(anObj));\n"
+         "}\n\n",
+	  aName.c_str()
+    );
+
+    fprintf
+    (
+         aFileCpp,
+         "void  BinaryUnDumpFromFile(%s & anObj,ELISE_fp & aFp)\n"
+         "{\n"
+         "   int aIVal;\n"
+         "   BinaryUnDumpFromFile(aIVal,aFp);\n"
+         "   anObj=(%s) aIVal;\n"
+         "}\n\n",
+	  aName.c_str(),
+	  aName.c_str()
+    );
+/*
+*/
+
+
+
+	// "void  BinaryUnDumpFromFile(%s &,ELISE_fp &);\n\n",
 }
 
 
@@ -662,6 +703,19 @@ void cElXMLTree::GenCppClass
         aNOC.c_str()
      );
 
+    fprintf
+    (
+        aFileH,
+	"void  BinaryDumpInFile(ELISE_fp &,const %s &);\n\n",
+	aNOC.c_str()
+    );
+    fprintf
+    (
+        aFileH,
+	"void  BinaryUnDumpFromFile(%s &,ELISE_fp &);\n\n",
+	aNOC.c_str()
+    );
+
 
    for
    (
@@ -676,7 +730,104 @@ void cElXMLTree::GenCppClass
       }
    }
 
+   //============================================================
+   //  Generation de BinaryDumpInFile  / BinaryUnDumpFromFile
+   //============================================================
+
+            // ========== BinaryUnDumpFromFile ==========
+    fprintf
+    (
+        aFileCpp,
+	"void  BinaryUnDumpFromFile(%s & anObj,ELISE_fp & aFp)\n"
+	"{\n ",
+	aNOC.c_str()
+    );
+    for
+    (
+       std::list<cElXMLTree *>::iterator itF=mFils.begin();
+       itF != mFils.end();
+       itF++
+    )
+    {
+       if (TagFilsIsClass((*itF)->mValTag))  // Cas speciaux Herit/ Verbatim ....
+       {
+           const std::string & aPat = (*itF)->ValAttr("Nb");
+           if (aPat=="1")
+           {
+               fprintf(aFileCpp,"    BinaryUnDumpFromFile(anObj.%s(),aFp);\n",(*itF)->mValTag.c_str());
+           }
+           else if (aPat=="?")
+           {
+               fprintf(aFileCpp,"  { bool IsInit;\n");
+               fprintf(aFileCpp,"       BinaryUnDumpFromFile(IsInit,aFp);\n");
+               fprintf
+               (
+                     aFileCpp
+                    ,"        if (IsInit) BinaryDumpInFile(aFp,anObj.%s().ValForcedForUnUmp());\n"
+                     "        else  anObj.%s().SetNoInit();\n"
+                    ,(*itF)->mValTag.c_str()
+                    ,(*itF)->mValTag.c_str()
+               );
+               fprintf(aFileCpp,"  } ;\n");
+           }
+/*
+           else if ((aPat=="*") || (aPat=="+"))
+           {
+               fprintf(aFileCpp,"    BinaryDumpInFile(aFp,(int)anObj.%s().size());\n",(*itF)->mValTag.c_str());
+           }
+*/
+       }
+       // std::cout << " XXX " << aNOC << " " << (*itF)->mValTag << " " << TagFilsIsClass((*itF)->mValTag) << "\n";
+    }
+
+    fprintf ( aFileCpp, "}\n\n");
+
+            // ========== BinaryDumpInFile ==========
+
+    fprintf
+    (
+        aFileCpp,
+	"void  BinaryDumpInFile(ELISE_fp & aFp,const %s & anObj)\n"
+	"{\n",
+	aNOC.c_str()
+    );
+    for
+    (
+       std::list<cElXMLTree *>::iterator itF=mFils.begin();
+       itF != mFils.end();
+       itF++
+    )
+    {
+       if (TagFilsIsClass((*itF)->mValTag))  // Cas speciaux Herit/ Verbatim ....
+       {
+           const std::string & aPat = (*itF)->ValAttr("Nb");
+           if (aPat=="1")
+           {
+               fprintf(aFileCpp,"    BinaryDumpInFile(aFp,anObj.%s());\n",(*itF)->mValTag.c_str());
+           }
+           else if (aPat=="?")
+           {
+               fprintf(aFileCpp,"    BinaryDumpInFile(aFp,anObj.%s().IsInit());\n",(*itF)->mValTag.c_str());
+               fprintf
+               (
+                     aFileCpp
+                    ,"    if (anObj.%s().IsInit()) BinaryDumpInFile(aFp,anObj.%s().Val());\n"
+                    ,(*itF)->mValTag.c_str()
+                    ,(*itF)->mValTag.c_str()
+               );
+           }
+           else if ((aPat=="*") || (aPat=="+"))
+           {
+               fprintf(aFileCpp,"    BinaryDumpInFile(aFp,(int)anObj.%s().size());\n",(*itF)->mValTag.c_str());
+           }
+       }
+       // std::cout << " XXX " << aNOC << " " << (*itF)->mValTag << " " << TagFilsIsClass((*itF)->mValTag) << "\n";
+    }
+
+    fprintf ( aFileCpp, "}\n\n");
    //  Generation de xml_write 
+
+   
 
    fprintf
    (
