@@ -1,0 +1,33 @@
+<!--
+    Nouveau fichier :
+     - pour alleger un peu les autres qui deviennent lourd
+     - pour faire un test sur les dump
+-->
+
+<GenCpp  Difndef="Define_ParamXMLNew0">
+
+<Verbatim File=".h">
+#include "StdAfx.h"
+</Verbatim>
+<Verbatim File=".cpp">
+#include "cParamXMLNew0.h"
+</Verbatim>
+<Verbatim File=".h.cpp">
+// NOMORE ... 
+</Verbatim>
+
+   <TestDump  Nb="1" Class="true">
+       <I Nb="1" Type="int"> </I>
+       <Compos Nb="1">
+             <A Nb="1" Type="double"> </A>
+             <B Nb="1" Type="Pt2dr">  </B>
+       </Compos>
+   </TestDump>
+
+
+
+<Verbatim File=".h.cpp">
+// };
+</Verbatim>
+
+</GenCpp>

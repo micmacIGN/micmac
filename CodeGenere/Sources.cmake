@@ -8,6 +8,7 @@ list( APPEND code_genere_file2string_Src_Files
     ${code_genere_file2string_dir}/Str_ParamApero.cpp
     ${code_genere_file2string_dir}/Str_ParamDigeo.cpp
     ${code_genere_file2string_dir}/Str_DefautChantierDescripteur.cpp
+    ${code_genere_file2string_dir}/cParamXMLNew0.cpp
 )
 
 SOURCE_GROUP(CodeGenere FILES ${code_genere_file2string_Src_Files})
