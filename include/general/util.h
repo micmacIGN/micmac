@@ -1497,6 +1497,8 @@ extern bool TransFormArgKey
          const std::vector<std::string> & aDirExt
      );
 
+// Class sepeciale pour gerer les objets autre que string qui peuvent etre initialise par des #1 #2 ..
+// dans les xml pour les cles parametrees, par exemple le <DeltaMin> de <ByAdjacence>
 
 template <class Type> class TypeSubst
 {

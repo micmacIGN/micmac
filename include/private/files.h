@@ -1840,9 +1840,31 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const IntSubst   &      anOb
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const DoubleSubst   &      anObj);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2diSubst   &      anObj);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      anObj);
-
 template <class T1,class T2>
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<T1,T2> &      anObj);
+
+void BinaryDumpInFile(ELISE_fp &,const bool &);
+void BinaryDumpInFile(ELISE_fp &,const double &);
+void BinaryDumpInFile(ELISE_fp &,const int &);
+void BinaryDumpInFile(ELISE_fp &,const Box2dr &);
+void BinaryDumpInFile(ELISE_fp &,const Box2di &);
+void BinaryDumpInFile(ELISE_fp &,const Pt2dr &);
+void BinaryDumpInFile(ELISE_fp &,const Pt2di &);
+void BinaryDumpInFile(ELISE_fp &,const std::string &);
+void BinaryDumpInFile(ELISE_fp &,const std::vector<double> &);
+void BinaryDumpInFile(ELISE_fp &,const std::vector<int> &);
+void BinaryDumpInFile(ELISE_fp &,const std::vector<std::string> &);
+void BinaryDumpInFile(ELISE_fp &,const Pt3dr &);
+void BinaryDumpInFile(ELISE_fp &,const Pt3di &);
+void BinaryDumpInFile(ELISE_fp &,const cElRegex_Ptr &);
+void BinaryDumpInFile(ELISE_fp &,const cCpleString &);
+void BinaryDumpInFile(ELISE_fp &,const IntSubst &);
+void BinaryDumpInFile(ELISE_fp &,const DoubleSubst &);
+void BinaryDumpInFile(ELISE_fp &,const Pt2diSubst &);
+void BinaryDumpInFile(ELISE_fp &,const Pt2drSubst &);
+template <class T1,class T2> void BinaryDumpInFile(ELISE_fp &,const Im2D<T1,T2> &      anObj);
+
+
 
 template <class T1,class T2> void xml_init( Im2D<T1,T2>  & anIm,cElXMLTree * aTree);
 
