@@ -1899,6 +1899,189 @@ INT sizeofile (const char * nom)
 
 
 
+/******************************************************************/
+/*  Quand c'est possible on passe par l'interface standard des Fp */
+/******************************************************************/
+
+#define  STD_ElFp_Dump(aType)\
+void BinaryDumpInFile(ELISE_fp & aFp,const aType & aVal)\
+{\
+     aFp.write(aVal);\
+}
+#define  STD_ElFp_UnDump(aType)\
+void BinaryUnDumpFromFile(aType & aVal,ELISE_fp & aFp)\
+{\
+     aVal = aFp.read(&aVal);\
+}
+
+#define STD_ElFp_DumpUndump(aType)\
+STD_ElFp_Dump(aType)\
+STD_ElFp_UnDump(aType)
+
+
+STD_ElFp_DumpUndump(bool)
+STD_ElFp_DumpUndump(double)
+STD_ElFp_DumpUndump(int)
+STD_ElFp_DumpUndump(Pt2di)
+STD_ElFp_DumpUndump(Pt2dr)
+STD_ElFp_DumpUndump(Pt3dr)
+STD_ElFp_DumpUndump(std::string)
+// STD_ElFp_DumpUndump(std::vector<double>)
+
+
+/********************************************************/
+/*  Pour les type a taille fixe on fait du fwrite fread */
+/********************************************************/
+
+#define Raw_ElFp_Dump(aType)\
+void BinaryDumpInFile(ELISE_fp & aFp,const aType & aVal)\
+{\
+   aFp.write(&aVal,sizeof(aType),1);\
+}
+#define Raw_ElFp_Undump(aType)\
+void BinaryUnDumpFromFile(aType & aVal,ELISE_fp & aFp)\
+{\
+     aFp.read(&aVal,sizeof(aType),1);\
+}
+
+#define Raw_ElFp_DumpUndump(aType)\
+Raw_ElFp_Dump(aType)\
+Raw_ElFp_Undump(aType)
+
+
+Raw_ElFp_DumpUndump(Pt3di)
+Raw_ElFp_DumpUndump(Box2dr)
+Raw_ElFp_DumpUndump(Box2di)
+
+/********************************************************/
+/* Pour les container on passe par des template         */
+/********************************************************/
+
+template <class tCont> void TplContDumpInFile(ELISE_fp & aFp,const tCont & aCont)
+{
+    aFp.write_INT4(aCont.size());
+    for (typename tCont::const_iterator itV=aCont.begin(); itV!=aCont.end() ; itV++)
+         BinaryDumpInFile(aFp,*itV);
+}
+template <class tCont> void TplContUndumpFromFile(tCont & aCont,ELISE_fp & aFp)
+{
+   aCont.clear();
+   int aSz = aFp.read_INT4();
+   for (int aK=0 ; aK<aSz ; aK++)
+   {
+        typename tCont::value_type  aVal;
+        BinaryUnDumpFromFile(aVal,aFp);
+        aCont.push_back(aVal);
+   }
+}
+
+
+
+#define Tpl_ElFp_Dump(aType)\
+void BinaryDumpInFile(ELISE_fp & aFp,const aType & aVal)\
+{\
+   TplContDumpInFile(aFp,aVal);\
+}
+#define Tpl_ElFp_Undump(aType)\
+void BinaryUnDumpFromFile(aType & aVal,ELISE_fp & aFp)\
+{\
+    TplContUndumpFromFile(aVal,aFp);\
+}
+
+#define Tpl_ElFp_DumpUndump(aType)\
+Tpl_ElFp_Dump(aType)\
+Tpl_ElFp_Undump(aType)
+
+
+Tpl_ElFp_DumpUndump(std::vector<double>)
+Tpl_ElFp_DumpUndump(std::vector<int>)
+Tpl_ElFp_DumpUndump(std::vector<std::string>)
+
+
+/********************************************************/
+/*   Qq ad hoc                                          */
+/********************************************************/
+
+void BinaryDumpInFile(ELISE_fp & aFp,const cCpleString & aVal)
+{
+     BinaryDumpInFile(aFp,aVal.N1());
+     BinaryDumpInFile(aFp,aVal.N2());
+}
+void BinaryUnDumpFromFile(cCpleString & aVal,ELISE_fp & aFp)
+{
+    std::string aN1,aN2;
+    BinaryUnDumpFromFile(aN1,aFp);
+    BinaryUnDumpFromFile(aN2,aFp);
+    aVal = cCpleString(aN1,aN2);
+}
+
+void BinaryDumpInFile(ELISE_fp & aFp,const cElRegex_Ptr & aVal)
+{
+     BinaryDumpInFile(aFp,aVal->NameExpr());
+}
+void BinaryUnDumpFromFile(cElRegex_Ptr & aVal,ELISE_fp & aFp)
+{
+    std::string anExpr;
+    BinaryUnDumpFromFile(anExpr,aFp);
+    aVal = new cElRegex(anExpr,30);
+}
+
+/********************************************************/
+/*    le case adhoc tpl des images                      */
+/********************************************************/
+
+template <class T1,class T2> void BinaryDumpInFile(ELISE_fp & aFp,const Im2D<T1,T2> &      anObj)
+{
+    Pt2di aSz = anObj.sz();
+    BinaryDumpInFile(aFp,aSz);
+    aFp.write(anObj.data_lin(),sizeof(T1),aSz.x*aSz.y);
+}
+
+template void BinaryDumpInFile(ELISE_fp&,const Im2D<REAL4,REAL8> & anIm);
+template void BinaryDumpInFile(ELISE_fp&,const Im2D<REAL8,REAL8> & anIm);
+template void BinaryDumpInFile(ELISE_fp&,const Im2D<U_INT1,INT> & anIm);
+template void BinaryDumpInFile(ELISE_fp&,const Im2D<INT1,INT> & anIm);
+
+template <class T1,class T2> void BinaryUnDumpFromFile(Im2D<T1,T2> & aVal,ELISE_fp & aFp)
+{
+    Pt2di aSz;
+    BinaryUnDumpFromFile(aSz,aFp);
+    aVal.Resize(aSz);
+    aFp.read(aVal.data_lin(),sizeof(T1),aSz.x*aSz.y);
+}
+
+template void BinaryUnDumpFromFile(Im2D<REAL4,REAL8> & anIm,ELISE_fp&);
+template void BinaryUnDumpFromFile(Im2D<REAL8,REAL8> & anIm,ELISE_fp&);
+template void BinaryUnDumpFromFile(Im2D<U_INT1,INT> & anIm,ELISE_fp&);
+template void BinaryUnDumpFromFile(Im2D<INT1,INT> & anIm,ELISE_fp&);
+
+/********************************************************/
+/*    ceux dont ne sait pas trop quoi faire             */
+/********************************************************/
+
+#define No_ElFp_Dump(aType)\
+void BinaryDumpInFile(ELISE_fp & aFp,const aType & aVal)\
+{\
+   ELISE_ASSERT(false,"No_ElFp_Dump");\
+}
+#define No_ElFp_Undump(aType)\
+void BinaryUnDumpFromFile(aType & aVal,ELISE_fp & aFp)\
+{\
+   ELISE_ASSERT(false,"No_ElFp_unDump");\
+}
+
+#define No_ElFp_DumpUndump(aType)\
+No_ElFp_Dump(aType)\
+No_ElFp_Undump(aType)
+
+
+No_ElFp_DumpUndump(IntSubst)
+No_ElFp_DumpUndump(DoubleSubst)
+No_ElFp_DumpUndump(Pt2diSubst)
+No_ElFp_DumpUndump(Pt2drSubst)
+
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en
