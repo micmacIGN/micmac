@@ -1161,6 +1161,9 @@
         <Hom12 Nb="1"  RefType="XmlHomogr">  </Hom12>
         <Ok Nb="1"  Type="bool">               </Ok>
         <Qual Nb="1"  Type="double">           </Qual>
+        <NbPts Nb="1"  Type="int">           </NbPts>
+        <EchRepP1 Nb="*" Type="Pt3dr" Container="std::vector"> </EchRepP1>
+        <PRep Nb="1" Type="Pt3dr"> </PRep>
    </XmlRHHResLnk>
 
 <Verbatim File=".h.cpp">

@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+bool DebugOFPA = false;
 bool BugFE = false;
 bool BugAZL = false;
 
@@ -3580,6 +3581,7 @@ void CamStenope::OrientFromPtsAppui
     OrientFromPtsAppui(Res,PR3,PF2);
 }
 
+
 ElRotation3D  CamStenope::OrientFromPtsAppui
               (
                     bool RequireTousDevant,
@@ -3619,6 +3621,9 @@ ElRotation3D  CamStenope::OrientFromPtsAppui
        if ((!RequireTousDevant) || Cam.TousDevant(PR3))
        {
           REAL dist = Cam.EcProj(PR3,PF2);
+
+if (DebugOFPA) std::cout << " " << dist << " " <<  it->IRecVect(Pt3dr(0,0,1)) << "\n";
+
           if (dist<dmin)
           {
               dmin = dist;
@@ -3626,6 +3631,8 @@ ElRotation3D  CamStenope::OrientFromPtsAppui
           }
        }
     }
+
+if (DebugOFPA) std::cout <<  "\n";
 
     if (Res_Dmin) 
        *Res_Dmin = dmin;
@@ -3653,6 +3660,7 @@ void RansacTriplet
       aK3 = NRrandom3(aNb);
    }
 }
+
 
 ElRotation3D  CamStenope::CombinatoireOFPAGen
               (
@@ -3692,6 +3700,7 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
           {
                for (INT k2= k1+1 ; k2<aNB ; k2++)
                {
+                  
 	            if (aModeRansac)
                         RansacTriplet(k0,k1,k2,V3.size());
 	            L3.push_front(V3[k0]);
@@ -3701,32 +3710,37 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
 	            L3.push_front(V3[k2]);
 	            L2.push_front(V2[k2]);
 
+                    double aDist2 = ElMin3(dist8(V2[k0]-V2[k1]),dist8(V2[k1]-V2[k2]),dist8(V2[k2]-V2[k0]));
 
+                    if (0) // (DebugOFPA)
+                    {
+                        std::cout << "AVANT OrientFromPtsAppu " << aNbTestMade  << " D=" << aDist2  << " NBt" << aNbTestMade  << " Nb=" << aNB << " " << V3.size() << "\n";
+                        std::cout << V3[k0] << V3[k1] << V3[k2] << "\n";
+                        std::cout << V2[k0] << V2[k1] << V2[k2] << "\n";
+                    }
 
-		    REAL aDist;
-		    INT  aNbSol;
-                    ElRotation3D   aRot = 
-			    OrientFromPtsAppui(TousDevant,L3,L2,&aDist,&aNbSol);
-		    if ((aNbSol)&& (aDist < *Res_Dmin))
-		    {
-                       bool Ok = true;
-                       if (aDirApprox !=0)
-                       {
-                           Ok = (scal(*aDirApprox,aRot.IRecVect(Pt3dr(0,0,1))) > 0);
-                       }
-                       if (Ok)
-                       {
-		          *Res_Dmin = aDist;
-		          aRes = aRot;
-                       }
+                    if (aDist2>1e-6)
+                    {
+
+		         REAL aDist;
+		         INT  aNbSol;
+                         ElRotation3D   aRot = OrientFromPtsAppui(TousDevant,L3,L2,&aDist,&aNbSol);
+
+		         if ((aNbSol)&& (aDist < *Res_Dmin))
+		         {
+                            bool Ok = true;
+                            if (aDirApprox !=0)
+                            {
+                                Ok = (scal(*aDirApprox,aRot.IRecVect(Pt3dr(0,0,1))) > 0);
+                            }
+                            if (Ok)
+                            {
+		               *Res_Dmin = aDist;
+		               aRes = aRot;
+                            }
+		         }
+		         aNbTestMade ++;
 		    }
-	            L3.pop_front();
-	            L2.pop_front();
-	            L3.pop_front();
-	            L2.pop_front();
-	            L3.pop_front();
-	            L2.pop_front();
-		    aNbTestMade ++;
 		    if (aModeRansac)
 		    {
 		       if (aNbTestMade==NbTest)
@@ -3738,11 +3752,16 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
 		           k0 = k1 = k2 = 0;
 		       }
 		    }
+	            L3.pop_front();
+	            L2.pop_front();
+	            L3.pop_front();
+	            L2.pop_front();
+	            L3.pop_front();
+	            L2.pop_front();
                }
 
           }
      }
-
      return aRes;
 }
 

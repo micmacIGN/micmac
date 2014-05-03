@@ -1730,6 +1730,7 @@ class cElXMLTree
           void Verbatim(FILE * aFileCpp,FILE * aFileH);
 
           void GenEnum(FILE * aFileCpp,FILE* aFileH);
+          void ModifMangling(cMajickChek &);
           void GenCppClass
 	      (
 	         FILE * aFileCpp,
@@ -1843,48 +1844,37 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      an
 template <class T1,class T2>
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<T1,T2> &      anObj);
 
-void BinaryDumpInFile(ELISE_fp &,const bool &);
-void BinaryDumpInFile(ELISE_fp &,const double &);
-void BinaryDumpInFile(ELISE_fp &,const int &);
-void BinaryDumpInFile(ELISE_fp &,const Box2dr &);
-void BinaryDumpInFile(ELISE_fp &,const Box2di &);
-void BinaryDumpInFile(ELISE_fp &,const Pt2dr &);
-void BinaryDumpInFile(ELISE_fp &,const Pt2di &);
-void BinaryDumpInFile(ELISE_fp &,const std::string &);
-void BinaryDumpInFile(ELISE_fp &,const std::vector<double> &);
-void BinaryDumpInFile(ELISE_fp &,const std::vector<int> &);
-void BinaryDumpInFile(ELISE_fp &,const std::vector<std::string> &);
-void BinaryDumpInFile(ELISE_fp &,const Pt3dr &);
-void BinaryDumpInFile(ELISE_fp &,const Pt3di &);
-void BinaryDumpInFile(ELISE_fp &,const cElRegex_Ptr &);
-void BinaryDumpInFile(ELISE_fp &,const cCpleString &);
-void BinaryDumpInFile(ELISE_fp &,const IntSubst &);
-void BinaryDumpInFile(ELISE_fp &,const DoubleSubst &);
-void BinaryDumpInFile(ELISE_fp &,const Pt2diSubst &);
-void BinaryDumpInFile(ELISE_fp &,const Pt2drSubst &);
+#define TypeForDump(aType)\
+void BinaryDumpInFile(ELISE_fp &,const aType &);\
+void BinaryUnDumpFromFile(aType &,ELISE_fp &);\
+std::string Mangling(aType *);
+
+TypeForDump(bool)
+TypeForDump(double)
+TypeForDump(int)
+TypeForDump(Box2dr)
+TypeForDump(Box2di)
+TypeForDump(Pt2dr)
+TypeForDump(Pt2di)
+TypeForDump(std::string)
+TypeForDump(std::vector<double>)
+TypeForDump(std::vector<int>)
+TypeForDump(std::vector<std::string>)
+TypeForDump(Pt3dr)
+TypeForDump(Pt3di)
+TypeForDump(cElRegex_Ptr)
+TypeForDump(cCpleString)
+TypeForDump(IntSubst)
+TypeForDump(DoubleSubst)
+TypeForDump(Pt2diSubst)
+TypeForDump(Pt2drSubst)
+
+/*
+*/
+
 template <class T1,class T2> void BinaryDumpInFile(ELISE_fp &,const Im2D<T1,T2> &      anObj);
-
-
-void BinaryUnDumpFromFile(bool &,ELISE_fp &);
-void BinaryUnDumpFromFile(int &,ELISE_fp &);
-void BinaryUnDumpFromFile(double &,ELISE_fp &);
-void BinaryUnDumpFromFile(Box2dr &,ELISE_fp &);
-void BinaryUnDumpFromFile(Box2di &,ELISE_fp &);
-void BinaryUnDumpFromFile(Pt2dr &,ELISE_fp &);
-void BinaryUnDumpFromFile(Pt2di &,ELISE_fp &);
-void BinaryUnDumpFromFile(std::string &,ELISE_fp &);
-void BinaryUnDumpFromFile(std::vector<double> &,ELISE_fp &);
-void BinaryUnDumpFromFile(std::vector<int> &,ELISE_fp &);
-void BinaryUnDumpFromFile(std::vector<std::string> &,ELISE_fp &);
-void BinaryUnDumpFromFile(Pt3dr &,ELISE_fp &);
-void BinaryUnDumpFromFile(Pt3di &,ELISE_fp &);
-void BinaryUnDumpFromFile(cElRegex_Ptr &,ELISE_fp &);
-void BinaryUnDumpFromFile(cCpleString &,ELISE_fp &);
-void BinaryUnDumpFromFile(IntSubst &,ELISE_fp &);
-void BinaryUnDumpFromFile(DoubleSubst &,ELISE_fp &);
-void BinaryUnDumpFromFile(Pt2diSubst &,ELISE_fp &);
-void BinaryUnDumpFromFile(Pt2drSubst &,ELISE_fp &);
 template <class T1,class T2> void BinaryUnDumpFromFile(Im2D<T1,T2> &,ELISE_fp &);
+template <class T1,class T2> std::string Mangling(Im2D<T1,T2> *);
 
 
 
@@ -1974,6 +1964,39 @@ void xml_init
     }
 }
 
+
+
+template <class Type> void BinDumpObj(const Type & anObj,const std::string & aFile)
+{
+    ELISE_fp aFPOut(aFile.c_str(),ELISE_fp::WRITE);
+    BinaryDumpInFile(aFPOut,NumHgRev());
+    BinaryDumpInFile(aFPOut,Mangling((Type*)0));
+    BinaryDumpInFile(aFPOut,anObj);
+    aFPOut.close();
+}
+
+template <class Type> void BinUndumpObj(Type & anObj,const std::string & aFile)
+{
+     ELISE_fp aFPIn(aFile.c_str(),ELISE_fp::READ);
+     int aNum;
+
+     BinaryUnDumpFromFile(aNum,aFPIn);
+     if (aNum!=NumHgRev())
+     {
+     }
+
+     std::string aVerifMangling;
+     BinaryUnDumpFromFile(aVerifMangling,aFPIn);
+     ELISE_ASSERT(aVerifMangling==Mangling((Type*)0),"Type has changed between Dump/Undump")
+
+
+     BinaryUnDumpFromFile(anObj,aFPIn);
+     aFPIn.close();
+}
+
+
+bool IsFileDmp(const std::string &);
+
 template <class Type> Type StdGetObjFromFile_WithLC
                       (
 		          int argc,
@@ -1987,6 +2010,13 @@ template <class Type> Type StdGetObjFromFile_WithLC
                           const char *  aNameSauv = 0
                       )
 {
+   if (IsFileDmp(aNameFileObj))
+   {
+        Type aRes;
+        BinUndumpObj(aRes,aNameFileObj);
+        return aRes;
+   }
+
    cElXMLTree aFullTreeParam(aNameFileObj,anArg);
    cElXMLTree * aTreeParam = aFullTreeParam.GetUnique(aNameTagObj,ByAttr);
    cElXMLTree aTreeSpec(aNameFileSpecif);
@@ -2080,6 +2110,12 @@ template <class Type> Type * OptionalGetObjFromFile_WithLC
                           const std::string & aNameTagType
                       )
 {
+   if (IsFileDmp(aNameFileObj))
+   {
+        Type aRes;
+        BinUndumpObj(aRes,aNameFileObj);
+        return new Type(aRes);
+   }
    cElXMLTree aFullTreeParam(aNameFileObj);
    cElXMLTree * aTreeParam = aFullTreeParam.GetOneOrZero(aNameTagObj);
    if (! aTreeParam) return 0;
@@ -2107,6 +2143,12 @@ std::string  GetValLC(int,char **,const std::string & aKey, const std::string & 
 template <class Type>
 void MakeFileXML(const Type & anObj,const std::string & aName,const std::string & aTagEnglob="")
 {
+   if (IsFileDmp(aName))
+   {
+       BinDumpObj(anObj,aName);
+       return;
+   }
+
    cElXMLTree * aTree = ToXMLTree(anObj);
    // FILE * aFp = Fopen(aName.c_str(),"w");
    // Fclose(aFp);

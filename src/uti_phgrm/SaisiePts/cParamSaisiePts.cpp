@@ -61,6 +61,8 @@ void  BinaryUnDumpFromFile(eTypePts & anObj,ELISE_fp & aFp)
    anObj=(eTypePts) aIVal;
 }
 
+std::string  Mangling( eTypePts *) {return "50A137A783D946ABFC3F";};
+
 eEtatPointeImage  Str2eEtatPointeImage(const std::string & aName)
 {
    if (aName=="eEPI_NonSaisi")
@@ -126,6 +128,8 @@ void  BinaryUnDumpFromFile(eEtatPointeImage & anObj,ELISE_fp & aFp)
    anObj=(eEtatPointeImage) aIVal;
 }
 
+std::string  Mangling( eEtatPointeImage *) {return "D3AE890CE8E04AD0FE3F";};
+
 
 cTplValGesInit< std::string > & cContenuPt::None()
 {
@@ -141,7 +145,10 @@ void  BinaryUnDumpFromFile(cContenuPt & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.None().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.None().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.None().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.None().SetNoInit();
   } ;
 }
@@ -170,6 +177,8 @@ void xml_init(cContenuPt & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.None(),aTree->Get("None",1)); //tototo 
 }
+
+std::string  Mangling( cContenuPt *) {return "0B725EF036B1C6BDFE3F";};
 
 
 eTypePts & cPointGlob::Type()
@@ -331,57 +340,90 @@ void  BinaryUnDumpFromFile(cPointGlob & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.Name(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.P3D().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.P3D().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.P3D().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.P3D().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.Mes3DExportable().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.Mes3DExportable().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Mes3DExportable().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.Mes3DExportable().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.Incert().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.Incert().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Incert().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.Incert().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.LargeurFlou().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.LargeurFlou().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.LargeurFlou().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.LargeurFlou().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.ContenuPt().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.ContenuPt().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ContenuPt().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.ContenuPt().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.NumAuto().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.NumAuto().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NumAuto().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.NumAuto().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.PS1().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.PS1().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PS1().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.PS1().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.PS2().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.PS2().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PS2().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.PS2().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.SzRech().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.SzRech().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzRech().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.SzRech().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.Disparu().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.Disparu().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Disparu().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.Disparu().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.FromDico().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.FromDico().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FromDico().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.FromDico().SetNoInit();
   } ;
 }
@@ -479,6 +521,8 @@ void xml_init(cPointGlob & anObj,cElXMLTree * aTree)
    xml_init(anObj.FromDico(),aTree->Get("FromDico",1)); //tototo 
 }
 
+std::string  Mangling( cPointGlob *) {return "58044E838F1588CAFBBF";};
+
 
 std::list< cPointGlob > & cSetPointGlob::PointGlob()
 {
@@ -535,6 +579,8 @@ void xml_init(cSetPointGlob & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PointGlob(),aTree->GetAll("PointGlob",false,1));
 }
+
+std::string  Mangling( cSetPointGlob *) {return "D529A4EC704CC49AFF3F";};
 
 
 eEtatPointeImage & cOneSaisie::Etat()
@@ -606,6 +652,8 @@ void xml_init(cOneSaisie & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PtIm(),aTree->Get("PtIm",1)); //tototo 
 }
+
+std::string  Mangling( cOneSaisie *) {return "CC09723FBCE52CBBFC3F";};
 
 
 std::string & cSaisiePointeIm::NameIm()
@@ -680,6 +728,8 @@ void xml_init(cSaisiePointeIm & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneSaisie(),aTree->GetAll("OneSaisie",false,1));
 }
 
+std::string  Mangling( cSaisiePointeIm *) {return "94DC419067D1B1DCFC3F";};
+
 
 std::list< cSaisiePointeIm > & cSetOfSaisiePointeIm::SaisiePointeIm()
 {
@@ -736,6 +786,8 @@ void xml_init(cSetOfSaisiePointeIm & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SaisiePointeIm(),aTree->GetAll("SaisiePointeIm",false,1));
 }
+
+std::string  Mangling( cSetOfSaisiePointeIm *) {return "BA84B0AA819A94E5FD3F";};
 
 
 cTplValGesInit< Pt2di > & cSectionWindows::SzTotIm()
@@ -796,27 +848,42 @@ void  BinaryUnDumpFromFile(cSectionWindows & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.SzTotIm().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.SzTotIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzTotIm().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.SzTotIm().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.NbFenIm().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.NbFenIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbFenIm().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.NbFenIm().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.SzWZ().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.SzWZ().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzWZ().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.SzWZ().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.ShowDet().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.ShowDet().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ShowDet().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.ShowDet().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.RefInvis().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.RefInvis().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RefInvis().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.RefInvis().SetNoInit();
   } ;
 }
@@ -870,6 +937,8 @@ void xml_init(cSectionWindows & anObj,cElXMLTree * aTree)
    xml_init(anObj.RefInvis(),aTree->Get("RefInvis",1),bool(false)); //tototo 
 }
 
+std::string  Mangling( cSectionWindows *) {return "1F5CC3C6D5FDDDB5FE3F";};
+
 
 eTypePts & cImportFromDico::TypePt()
 {
@@ -909,7 +978,10 @@ void  BinaryUnDumpFromFile(cImportFromDico & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.File(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.LargeurFlou().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.LargeurFlou().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.LargeurFlou().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.LargeurFlou().SetNoInit();
   } ;
 }
@@ -946,6 +1018,8 @@ void xml_init(cImportFromDico & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.LargeurFlou(),aTree->Get("LargeurFlou",1),double(0.0)); //tototo 
 }
+
+std::string  Mangling( cImportFromDico *) {return "DCC85356BC2653D0FE3F";};
 
 
 cTplValGesInit< std::string > & cSectionInOut::Prefix2Add2IdPt()
@@ -1061,7 +1135,10 @@ void  BinaryUnDumpFromFile(cSectionInOut & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.Prefix2Add2IdPt().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.Prefix2Add2IdPt().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Prefix2Add2IdPt().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.Prefix2Add2IdPt().SetNoInit();
   } ;
   { int aNb;
@@ -1075,27 +1152,42 @@ void  BinaryUnDumpFromFile(cSectionInOut & anObj,ELISE_fp & aFp)
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.FlouGlobEcras().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.FlouGlobEcras().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FlouGlobEcras().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.FlouGlobEcras().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.TypeGlobEcras().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.TypeGlobEcras().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.TypeGlobEcras().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.TypeGlobEcras().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.NamePointesImage().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.NamePointesImage().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NamePointesImage().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.NamePointesImage().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.NamePointsGlobal().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.NamePointsGlobal().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NamePointsGlobal().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.NamePointsGlobal().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.ExportPointeImage().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.ExportPointeImage().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ExportPointeImage().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.ExportPointeImage().SetNoInit();
   } ;
   { int aNb;
@@ -1109,12 +1201,18 @@ void  BinaryUnDumpFromFile(cSectionInOut & anObj,ELISE_fp & aFp)
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.NameAuto().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.NameAuto().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NameAuto().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.NameAuto().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.EnterName().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.EnterName().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.EnterName().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.EnterName().SetNoInit();
   } ;
 }
@@ -1214,6 +1312,8 @@ void xml_init(cSectionInOut & anObj,cElXMLTree * aTree)
    xml_init(anObj.EnterName(),aTree->Get("EnterName",1),bool(false)); //tototo 
 }
 
+std::string  Mangling( cSectionInOut *) {return "45686146B6F56584FE3F";};
+
 
 std::string & cSectionImages::SetOfImages()
 {
@@ -1252,12 +1352,18 @@ void  BinaryUnDumpFromFile(cSectionImages & anObj,ELISE_fp & aFp)
      BinaryUnDumpFromFile(anObj.SetOfImages(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.ForceGray().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.ForceGray().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ForceGray().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.ForceGray().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.KeyAssocOri().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.KeyAssocOri().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeyAssocOri().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.KeyAssocOri().SetNoInit();
   } ;
 }
@@ -1297,6 +1403,8 @@ void xml_init(cSectionImages & anObj,cElXMLTree * aTree)
    xml_init(anObj.KeyAssocOri(),aTree->Get("KeyAssocOri",1)); //tototo 
 }
 
+std::string  Mangling( cSectionImages *) {return "6ED26217808C9BC8FF3F";};
+
 
 cTplValGesInit< double > & cProfEstimator::ZMoyen()
 {
@@ -1323,12 +1431,18 @@ void  BinaryUnDumpFromFile(cProfEstimator & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.ZMoyen().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.ZMoyen().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ZMoyen().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.ZMoyen().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.ZMoyenInIma().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.ZMoyenInIma().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ZMoyenInIma().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.ZMoyenInIma().SetNoInit();
   } ;
 }
@@ -1363,6 +1477,8 @@ void xml_init(cProfEstimator & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ZMoyenInIma(),aTree->Get("ZMoyenInIma",1)); //tototo 
 }
+
+std::string  Mangling( cProfEstimator *) {return "C91AEA13F187C790FF3F";};
 
 
 cTplValGesInit< double > & cSectionTerrain::IntervPercProf()
@@ -1412,12 +1528,18 @@ void  BinaryUnDumpFromFile(cSectionTerrain & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.IntervPercProf().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.IntervPercProf().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.IntervPercProf().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.IntervPercProf().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.ProfEstimator().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.ProfEstimator().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ProfEstimator().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.ProfEstimator().SetNoInit();
   } ;
 }
@@ -1452,6 +1574,8 @@ void xml_init(cSectionTerrain & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ProfEstimator(),aTree->Get("ProfEstimator",1)); //tototo 
 }
+
+std::string  Mangling( cSectionTerrain *) {return "DC9A24F02C66BCB5FE3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamSaisiePts::DicoLoc()
@@ -1765,7 +1889,10 @@ void  BinaryUnDumpFromFile(cParamSaisiePts & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.DicoLoc().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.DicoLoc().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DicoLoc().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.DicoLoc().SetNoInit();
   } ;
     BinaryUnDumpFromFile(anObj.SectionWindows(),aFp);
@@ -1819,5 +1946,7 @@ void xml_init(cParamSaisiePts & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
+
+std::string  Mangling( cParamSaisiePts *) {return "3FE47656AAF6DAA8FC3F";};
 
 // };

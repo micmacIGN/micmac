@@ -6,6 +6,8 @@ eTestDump  Str2eTestDump(const std::string & aName)
       return eTestDump_0;
    else if (aName=="eTestDump_1")
       return eTestDump_1;
+   else if (aName=="eTestDump_3")
+      return eTestDump_3;
   else
   {
       cout << aName << " is not a correct value for enum eTestDump\n" ;
@@ -23,6 +25,8 @@ std::string  eToString(const eTestDump & anObj)
       return  "eTestDump_0";
    if (anObj==eTestDump_1)
       return  "eTestDump_1";
+   if (anObj==eTestDump_3)
+      return  "eTestDump_3";
  std::cout << "Enum = eTestDump\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -45,15 +49,17 @@ void  BinaryUnDumpFromFile(eTestDump & anObj,ELISE_fp & aFp)
    anObj=(eTestDump) aIVal;
 }
 
+std::string  Mangling( eTestDump *) {return "767F80144228FCC6FD3F";};
 
-std::string & cTD2REF::S()
+
+std::string & cTD2REF::K()
 {
-   return mS;
+   return mK;
 }
 
-const std::string & cTD2REF::S()const 
+const std::string & cTD2REF::K()const 
 {
-   return mS;
+   return mK;
 }
 
 
@@ -69,7 +75,7 @@ const std::list< int > & cTD2REF::V()const
 
 void  BinaryUnDumpFromFile(cTD2REF & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.S(),aFp);
+     BinaryUnDumpFromFile(anObj.K(),aFp);
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -83,7 +89,7 @@ void  BinaryUnDumpFromFile(cTD2REF & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cTD2REF & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.S());
+    BinaryDumpInFile(aFp,anObj.K());
     BinaryDumpInFile(aFp,(int)anObj.V().size());
     for(  std::list< int >::const_iterator iT=anObj.V().begin();
          iT!=anObj.V().end();
@@ -96,7 +102,7 @@ cElXMLTree * ToXMLTree(const cTD2REF & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"TD2REF",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("S"),anObj.S())->ReTagThis("S"));
+   aRes->AddFils(::ToXMLTree(std::string("K"),anObj.K())->ReTagThis("K"));
   for
   (       std::list< int >::const_iterator it=anObj.V().begin();
       it !=anObj.V().end();
@@ -113,10 +119,12 @@ void xml_init(cTD2REF & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
-   xml_init(anObj.S(),aTree->Get("S",1)); //tototo 
+   xml_init(anObj.K(),aTree->Get("K",1)); //tototo 
 
    xml_init(anObj.V(),aTree->GetAll("V",false,1));
 }
+
+std::string  Mangling( cTD2REF *) {return "7EFC8AD6E59EB7D4FE3F";};
 
 
 double & cCompos::A()
@@ -172,6 +180,8 @@ void xml_init(cCompos & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.B(),aTree->Get("B",1)); //tototo 
 }
+
+std::string  Mangling( cCompos *) {return "D086D69AE4A1D684FF3F";};
 
 
 cTplValGesInit< int > & cTestDump::I()
@@ -298,12 +308,18 @@ void  BinaryUnDumpFromFile(cTestDump & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.I().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.I().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.I().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.I().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.D().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.D().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.D().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.D().SetNoInit();
   } ;
     BinaryUnDumpFromFile(anObj.E(),aFp);
@@ -319,7 +335,10 @@ void  BinaryUnDumpFromFile(cTestDump & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.R1(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) BinaryUnDumpFromFile(anObj.R2().ValForcedForUnUmp(),aFp);
+        if (IsInit) {
+             anObj.R2().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.R2().ValForcedForUnUmp(),aFp);
+        }
         else  anObj.R2().SetNoInit();
   } ;
   { int aNb;
@@ -434,6 +453,8 @@ void xml_init(cTestDump & anObj,cElXMLTree * aTree)
    xml_init(anObj.Compos(),aTree->Get("Compos",1)); //tototo 
 }
 
+std::string  Mangling( cTestDump *) {return "128BFF1C5EFFC3DFFD3F";};
+
 
 std::string & cR5::IdImage()
 {
@@ -472,6 +493,8 @@ void xml_init(cR5 & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.IdImage(),aTree->Get("IdImage",1)); //tototo 
 }
+
+std::string  Mangling( cR5 *) {return "F7EBE053FF11F1E2FD3F";};
 
 
 std::map< std::string,cR5 > & cTestNoDump::R5()
@@ -548,5 +571,7 @@ void xml_init(cTestNoDump & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.vvAA(),aTree->Get("vvAA",1)); //tototo 
 }
+
+std::string  Mangling( cTestNoDump *) {return "A6658EA494FF9EE8FE3F";};
 
 // };

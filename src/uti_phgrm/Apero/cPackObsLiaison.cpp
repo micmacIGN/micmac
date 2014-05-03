@@ -600,7 +600,8 @@ cPackObsLiaison::cPackObsLiaison
 		}
 	}
 
-	std::cout << "NB PACK PTS " << aNbTot << "\n";
+        if (mAppli.ShowMes())
+	   std::cout << "NB PACK PTS " << aNbTot << "\n";
 	if (aNbTot == 0)
 	{
 		std::cout << "FOR LIAISONS " <<  aBDL.Id() << "\n";

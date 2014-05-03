@@ -82,7 +82,8 @@ extern "C" {
 
 	void ShowFClose()
 	{
-		std::cout << "DELTA FCLOSE = " << NbFopen  << " " << FullVerifFClose << " " << FCMapCpt.size()<< "\n";
+                if (NbFopen) 
+		   std::cout << "DELTA FCLOSE = " << NbFopen  << " " << FullVerifFClose << " " << FCMapCpt.size()<< "\n";
 		if (FullVerifFClose)
 		{
 			for
@@ -1898,6 +1899,7 @@ INT sizeofile (const char * nom)
 }
 
 
+#define STD_MANGL(aType) std::string Mangling(aType *) {return #aType;}
 
 /******************************************************************/
 /*  Quand c'est possible on passe par l'interface standard des Fp */
@@ -1916,7 +1918,8 @@ void BinaryUnDumpFromFile(aType & aVal,ELISE_fp & aFp)\
 
 #define STD_ElFp_DumpUndump(aType)\
 STD_ElFp_Dump(aType)\
-STD_ElFp_UnDump(aType)
+STD_ElFp_UnDump(aType)\
+STD_MANGL(aType)
 
 
 STD_ElFp_DumpUndump(bool)
@@ -1946,7 +1949,8 @@ void BinaryUnDumpFromFile(aType & aVal,ELISE_fp & aFp)\
 
 #define Raw_ElFp_DumpUndump(aType)\
 Raw_ElFp_Dump(aType)\
-Raw_ElFp_Undump(aType)
+Raw_ElFp_Undump(aType)\
+STD_MANGL(aType)
 
 
 Raw_ElFp_DumpUndump(Pt3di)
@@ -1990,7 +1994,8 @@ void BinaryUnDumpFromFile(aType & aVal,ELISE_fp & aFp)\
 
 #define Tpl_ElFp_DumpUndump(aType)\
 Tpl_ElFp_Dump(aType)\
-Tpl_ElFp_Undump(aType)
+Tpl_ElFp_Undump(aType)\
+STD_MANGL(aType)
 
 
 Tpl_ElFp_DumpUndump(std::vector<double>)
@@ -2014,6 +2019,7 @@ void BinaryUnDumpFromFile(cCpleString & aVal,ELISE_fp & aFp)
     BinaryUnDumpFromFile(aN2,aFp);
     aVal = cCpleString(aN1,aN2);
 }
+STD_MANGL(cCpleString)
 
 void BinaryDumpInFile(ELISE_fp & aFp,const cElRegex_Ptr & aVal)
 {
@@ -2025,6 +2031,7 @@ void BinaryUnDumpFromFile(cElRegex_Ptr & aVal,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anExpr,aFp);
     aVal = new cElRegex(anExpr,30);
 }
+STD_MANGL(cElRegex_Ptr)
 
 /********************************************************/
 /*    le case adhoc tpl des images                      */
@@ -2055,6 +2062,10 @@ template void BinaryUnDumpFromFile(Im2D<REAL8,REAL8> & anIm,ELISE_fp&);
 template void BinaryUnDumpFromFile(Im2D<U_INT1,INT> & anIm,ELISE_fp&);
 template void BinaryUnDumpFromFile(Im2D<INT1,INT> & anIm,ELISE_fp&);
 
+STD_MANGL(Im2D_REAL8)
+STD_MANGL(Im2D_REAL4)
+STD_MANGL(Im2D_U_INT1)
+STD_MANGL(Im2D_INT1)
 /********************************************************/
 /*    ceux dont ne sait pas trop quoi faire             */
 /********************************************************/
@@ -2072,7 +2083,8 @@ void BinaryUnDumpFromFile(aType & aVal,ELISE_fp & aFp)\
 
 #define No_ElFp_DumpUndump(aType)\
 No_ElFp_Dump(aType)\
-No_ElFp_Undump(aType)
+No_ElFp_Undump(aType)\
+STD_MANGL(aType)
 
 
 No_ElFp_DumpUndump(IntSubst)

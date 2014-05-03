@@ -113,7 +113,6 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
         bool isMST = itP->MEP_SPEC_MST().IsInit();
 
         std::list<std::string> aLName;
-std::cout << "GGGGG  " << aLName.size() << "\n";
         for 
         (
            std::list<std::string>::const_iterator itPat=itP->PatternName().begin();
