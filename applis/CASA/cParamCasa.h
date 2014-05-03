@@ -25,6 +25,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cNuageByImage &);
 
 void  BinaryUnDumpFromFile(cNuageByImage &,ELISE_fp &);
 
+std::string  Mangling( cNuageByImage *);
+
 class cSectionLoadNuage
 {
     public:
@@ -56,6 +58,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cSectionLoadNuage &);
 
 void  BinaryUnDumpFromFile(cSectionLoadNuage &,ELISE_fp &);
 
+std::string  Mangling( cSectionLoadNuage *);
+
 class cSectionEstimSurf
 {
     public:
@@ -78,6 +82,8 @@ cElXMLTree * ToXMLTree(const cSectionEstimSurf &);
 void  BinaryDumpInFile(ELISE_fp &,const cSectionEstimSurf &);
 
 void  BinaryUnDumpFromFile(cSectionEstimSurf &,ELISE_fp &);
+
+std::string  Mangling( cSectionEstimSurf *);
 
 class cSectionInitModele
 {
@@ -124,6 +130,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cSectionInitModele &);
 
 void  BinaryUnDumpFromFile(cSectionInitModele &,ELISE_fp &);
 
+std::string  Mangling( cSectionInitModele *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -154,6 +162,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cEtapeCompensation &);
 
 void  BinaryUnDumpFromFile(cEtapeCompensation &,ELISE_fp &);
 
+std::string  Mangling( cEtapeCompensation *);
+
 class cSectionCompensation
 {
     public:
@@ -176,6 +186,8 @@ cElXMLTree * ToXMLTree(const cSectionCompensation &);
 void  BinaryDumpInFile(ELISE_fp &,const cSectionCompensation &);
 
 void  BinaryUnDumpFromFile(cSectionCompensation &,ELISE_fp &);
+
+std::string  Mangling( cSectionCompensation *);
 
 /******************************************************/
 /******************************************************/
@@ -216,6 +228,8 @@ cElXMLTree * ToXMLTree(const cParamCasa &);
 void  BinaryDumpInFile(ELISE_fp &,const cParamCasa &);
 
 void  BinaryUnDumpFromFile(cParamCasa &,ELISE_fp &);
+
+std::string  Mangling( cParamCasa *);
 
 /******************************************************/
 /******************************************************/

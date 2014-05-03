@@ -272,6 +272,15 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2)
 std::string cImagH::EstimatePlan()
 {
      mPlanEst = false;
+ 
+
+     double aAltiCible = mAppli.AltiCible();
+     if (mAppli.SkipPlanDone() && ELISE_fp::exist_file(NameOriHomPlane()))
+     {
+        mPlanEst = true;
+        return "";
+     }
+
      /*
           1-LOOK For the most reliable plane
 
@@ -284,7 +293,7 @@ std::string cImagH::EstimatePlan()
      std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
      std::vector<cTestPlIm> aVPlIm;
 
-     if (1) // (mAppli.Show(eShowDetail))
+     if (mAppli.Show(eShowDetail))
         std::cout << " =========== Begin EstimatePlan " << mName  << " NbL0=" << mLnks.size() << "\n";
 
 
@@ -387,6 +396,11 @@ std::string cImagH::EstimatePlan()
 
        cElemMepRelCoplan  mRMCP = aVPlIm[aKBEst].mRMCP ;
        ElRotation3D aRCam12P = mRMCP.Plan().CoordPlan2Euclid().inv();
+
+       Pt3dr aCentre0 = aRCam12P.ImAff(Pt3dr(0,0,0));
+       double aMulXZ =  aAltiCible / aCentre0.z; // Si <0 remet les camera par dessus
+       double aMulY  =  ElAbs(aMulXZ);           // Pour que la transfo soit directe
+
        std::string aDir = mAppli.Dir();
 
        ElRotation3D aR0(Pt3dr(0,0,0),0,0,0);
@@ -446,17 +460,15 @@ std::string cImagH::EstimatePlan()
 
                 Pt3dr aPTC1 = mRMCP.ImCam1(aP1);
                 Pt3dr aPtPl = aRCam12P.ImAff(aPTC1);
+                aPtPl = Pt3dr(aPtPl.x*aMulXZ,aPtPl.y*aMulY,aPtPl.z*aMulXZ);
 
                 cOneAppuisDAF anAF;
                 anAF.Pt()  = aPtPl;
                 anAF.NamePt() = anId;
-                double anInc=1e-7;
+                double anInc= aAltiCible * 1e-5;
                 anAF.Incertitude() = Pt3dr(anInc,anInc,anInc);
                 aDAF.OneAppuisDAF().push_back(anAF);
                 
-
-
-
                 // aL32.push_back(Appar23(aP2,aPtPl));
 
                 
@@ -465,14 +477,9 @@ std::string cImagH::EstimatePlan()
             aMesureIm.MesureAppuiFlottant1Im().push_back(aMAF2);
 
  
-            std::string aNameH = aDir+mAppli.ICNM()->Assoc1To2("NKS-RHH-Assoc-CplIm2Hom@@dat",aLnk->Srce()->Name(),aLnk->Dest()->Name(),true);
+            std::string aNameH = mAppli.NameFileHomolH(*aLnk);
             aVPack.push_back(aPack);
             aVNamePack.push_back(aNameH);
-/*
-            double aDMin;
-            ElRotation3D aR = aCam.RansacOFPA(true,100,aL32,&aDMin);
-            std::cout << "  DIST RELVT " << aDMin << "\n";
-*/
        }
  
 
@@ -539,7 +546,8 @@ std::string cImagH::EstimatePlan()
                           + XML_MM_File("Apero-RHH-ByImIndiv.xml") 
                           + " DirectoryChantier=" + mAppli.Dir() 
                           + " +PatternIm=" + QUOTE(aPON.Pattern())
-                          + " +MasterIm="  + mName;
+                          + " +MasterIm="  + mName
+                          + " +Alti="  + ToString(aAltiCible);
 
 
        ///std::cout << "COM = " << aCom << "\n";

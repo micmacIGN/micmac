@@ -63,7 +63,9 @@ class cMajickChek
         void Add(cGenSysSurResol &);
         void Add(cSetEqFormelles &);
 
+        void Add(const std::string &);
 
+        std::string ShortMajId();
         std::string MajId();
     private :
         char sMajAscii[1+2*sizeof(REAL16)];

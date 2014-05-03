@@ -1203,9 +1203,23 @@ class cCmpPtOnY
 };
 
 
+Pt3dr PMoyFromEchant(const std::vector<Pt3dr> & anEch)
+{
+    Pt2dr aSomPt(0,0);
+    double aSomPds;
+    for (int aK=0;aK<int(anEch.size()) ; aK++)
+    {
+         const Pt3dr & aP = anEch[aK];
+         aSomPt.x += aP.x * aP.z;
+         aSomPt.y += aP.y * aP.z;
+         aSomPds += aP.z;
+    }
+
+    return Pt3dr(aSomPt.x/aSomPds,aSomPt.y/aSomPds,aSomPds);
+}
 
 
-std::vector<Pt3dr>  GetDistribRepreBySort(std::vector<Pt2dr> & aVP,const Pt2di & aNbOut)
+std::vector<Pt3dr>  GetDistribRepreBySort(std::vector<Pt2dr> & aVP,const Pt2di & aNbOut,Pt3dr & aPRep)
 {
     Pt2dr * aAdr0 = VData(aVP);
     int aNbIn0 = aVP.size();
@@ -1243,6 +1257,9 @@ std::vector<Pt3dr>  GetDistribRepreBySort(std::vector<Pt2dr> & aVP,const Pt2di &
               }
          }
     }
+
+    aPRep = PMoyFromEchant(aRes);
+   
 
     return aRes;
 }

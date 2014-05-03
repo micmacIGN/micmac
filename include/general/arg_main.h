@@ -608,6 +608,11 @@ int Prep4masq_main(int argc,char ** argv);
 int ReducHom_main(int argc,char ** argv);
 int RHH_main(int argc,char ** argv);
 int RHHComputHom_main(int argc,char ** argv);
+int MakeOneXmlXifInfo_main(int argc,char ** argv);
+int Xml2Dmp_main(int argc,char ** argv);
+int Dmp2Xml_main(int argc,char ** argv);
+
+
 
 int RepLocBascule_main(int argc,char ** argv);
 int SBGlobBascule_main(int argc,char ** argv);

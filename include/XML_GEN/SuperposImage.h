@@ -19,6 +19,8 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeSurfaceAnalytique
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeSurfaceAnalytique &);
 
+std::string  Mangling( eTypeSurfaceAnalytique *);
+
 void  BinaryUnDumpFromFile(eTypeSurfaceAnalytique &,ELISE_fp &);
 
 typedef enum
@@ -35,6 +37,8 @@ eModeBoxFusion  Str2eModeBoxFusion(const std::string & aName);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeBoxFusion & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeBoxFusion &);
+
+std::string  Mangling( eModeBoxFusion *);
 
 void  BinaryUnDumpFromFile(eModeBoxFusion &,ELISE_fp &);
 
@@ -61,6 +65,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cIntervLutConvertion &);
 
 void  BinaryUnDumpFromFile(cIntervLutConvertion &,ELISE_fp &);
 
+std::string  Mangling( cIntervLutConvertion *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -82,6 +88,8 @@ cElXMLTree * ToXMLTree(const cLutConvertion &);
 void  BinaryDumpInFile(ELISE_fp &,const cLutConvertion &);
 
 void  BinaryUnDumpFromFile(cLutConvertion &,ELISE_fp &);
+
+std::string  Mangling( cLutConvertion *);
 
 /******************************************************/
 /******************************************************/
@@ -113,6 +121,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cWindowSelection &);
 
 void  BinaryUnDumpFromFile(cWindowSelection &,ELISE_fp &);
 
+std::string  Mangling( cWindowSelection *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -143,6 +153,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cMasqTerrain &);
 
 void  BinaryUnDumpFromFile(cMasqTerrain &,ELISE_fp &);
 
+std::string  Mangling( cMasqTerrain *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -169,6 +181,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cBoxPixMort &);
 
 void  BinaryUnDumpFromFile(cBoxPixMort &,ELISE_fp &);
 
+std::string  Mangling( cBoxPixMort *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -194,6 +208,8 @@ cElXMLTree * ToXMLTree(const cFlattField &);
 void  BinaryDumpInFile(ELISE_fp &,const cFlattField &);
 
 void  BinaryUnDumpFromFile(cFlattField &,ELISE_fp &);
+
+std::string  Mangling( cFlattField *);
 
 /******************************************************/
 /******************************************************/
@@ -236,6 +252,8 @@ cElXMLTree * ToXMLTree(const cChannelCmpCol &);
 void  BinaryDumpInFile(ELISE_fp &,const cChannelCmpCol &);
 
 void  BinaryUnDumpFromFile(cChannelCmpCol &,ELISE_fp &);
+
+std::string  Mangling( cChannelCmpCol *);
 
 /******************************************************/
 /******************************************************/
@@ -299,6 +317,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cImageCmpCol &);
 
 void  BinaryUnDumpFromFile(cImageCmpCol &,ELISE_fp &);
 
+std::string  Mangling( cImageCmpCol *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -325,6 +345,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cShowCalibsRel &);
 
 void  BinaryUnDumpFromFile(cShowCalibsRel &,ELISE_fp &);
 
+std::string  Mangling( cShowCalibsRel *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -347,6 +369,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cImResultCC_Gray &);
 
 void  BinaryUnDumpFromFile(cImResultCC_Gray &,ELISE_fp &);
 
+std::string  Mangling( cImResultCC_Gray *);
+
 class cImResultCC_RVB
 {
     public:
@@ -365,6 +389,8 @@ cElXMLTree * ToXMLTree(const cImResultCC_RVB &);
 void  BinaryDumpInFile(ELISE_fp &,const cImResultCC_RVB &);
 
 void  BinaryUnDumpFromFile(cImResultCC_RVB &,ELISE_fp &);
+
+std::string  Mangling( cImResultCC_RVB *);
 
 class cImResultCC_Cnes
 {
@@ -409,6 +435,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cImResultCC_Cnes &);
 
 void  BinaryUnDumpFromFile(cImResultCC_Cnes &,ELISE_fp &);
 
+std::string  Mangling( cImResultCC_Cnes *);
+
 class cImResultCC_PXs
 {
     public:
@@ -444,6 +472,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cImResultCC_PXs &);
 
 void  BinaryUnDumpFromFile(cImResultCC_PXs &,ELISE_fp &);
 
+std::string  Mangling( cImResultCC_PXs *);
+
 class cPondThom
 {
     public:
@@ -466,6 +496,8 @@ cElXMLTree * ToXMLTree(const cPondThom &);
 void  BinaryDumpInFile(ELISE_fp &,const cPondThom &);
 
 void  BinaryUnDumpFromFile(cPondThom &,ELISE_fp &);
+
+std::string  Mangling( cPondThom *);
 
 class cThomBidouille
 {
@@ -490,6 +522,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cThomBidouille &);
 
 void  BinaryUnDumpFromFile(cThomBidouille &,ELISE_fp &);
 
+std::string  Mangling( cThomBidouille *);
+
 class cMPDBidouille
 {
     public:
@@ -508,6 +542,8 @@ cElXMLTree * ToXMLTree(const cMPDBidouille &);
 void  BinaryDumpInFile(ELISE_fp &,const cMPDBidouille &);
 
 void  BinaryUnDumpFromFile(cMPDBidouille &,ELISE_fp &);
+
+std::string  Mangling( cMPDBidouille *);
 
 class cThomAgreg
 {
@@ -540,6 +576,8 @@ cElXMLTree * ToXMLTree(const cThomAgreg &);
 void  BinaryDumpInFile(ELISE_fp &,const cThomAgreg &);
 
 void  BinaryUnDumpFromFile(cThomAgreg &,ELISE_fp &);
+
+std::string  Mangling( cThomAgreg *);
 
 class cImResultCC_Thom
 {
@@ -601,6 +639,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cImResultCC_Thom &);
 
 void  BinaryUnDumpFromFile(cImResultCC_Thom &,ELISE_fp &);
 
+std::string  Mangling( cImResultCC_Thom *);
+
 class cImResultCC
 {
     public:
@@ -635,6 +675,8 @@ cElXMLTree * ToXMLTree(const cImResultCC &);
 void  BinaryDumpInFile(ELISE_fp &,const cImResultCC &);
 
 void  BinaryUnDumpFromFile(cImResultCC &,ELISE_fp &);
+
+std::string  Mangling( cImResultCC *);
 
 class cResultCompCol
 {
@@ -690,6 +732,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cResultCompCol &);
 
 void  BinaryUnDumpFromFile(cResultCompCol &,ELISE_fp &);
 
+std::string  Mangling( cResultCompCol *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -720,6 +764,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cEspaceResultSuperpCol &);
 
 void  BinaryUnDumpFromFile(cEspaceResultSuperpCol &,ELISE_fp &);
 
+std::string  Mangling( cEspaceResultSuperpCol *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -749,6 +795,8 @@ cElXMLTree * ToXMLTree(const cImages2Verif &);
 void  BinaryDumpInFile(ELISE_fp &,const cImages2Verif &);
 
 void  BinaryUnDumpFromFile(cImages2Verif &,ELISE_fp &);
+
+std::string  Mangling( cImages2Verif *);
 
 class cVisuEcart
 {
@@ -789,6 +837,8 @@ cElXMLTree * ToXMLTree(const cVisuEcart &);
 void  BinaryDumpInFile(ELISE_fp &,const cVisuEcart &);
 
 void  BinaryUnDumpFromFile(cVisuEcart &,ELISE_fp &);
+
+std::string  Mangling( cVisuEcart *);
 
 class cVerifHoms
 {
@@ -833,6 +883,8 @@ cElXMLTree * ToXMLTree(const cVerifHoms &);
 void  BinaryDumpInFile(ELISE_fp &,const cVerifHoms &);
 
 void  BinaryUnDumpFromFile(cVerifHoms &,ELISE_fp &);
+
+std::string  Mangling( cVerifHoms *);
 
 class cImSec
 {
@@ -915,6 +967,8 @@ cElXMLTree * ToXMLTree(const cImSec &);
 void  BinaryDumpInFile(ELISE_fp &,const cImSec &);
 
 void  BinaryUnDumpFromFile(cImSec &,ELISE_fp &);
+
+std::string  Mangling( cImSec *);
 
 /******************************************************/
 /******************************************************/
@@ -1015,6 +1069,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cCreateCompColoree &);
 
 void  BinaryUnDumpFromFile(cCreateCompColoree &,ELISE_fp &);
 
+std::string  Mangling( cCreateCompColoree *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1044,6 +1100,8 @@ cElXMLTree * ToXMLTree(const cSauvegardeMR2A &);
 void  BinaryDumpInFile(ELISE_fp &,const cSauvegardeMR2A &);
 
 void  BinaryUnDumpFromFile(cSauvegardeMR2A &,ELISE_fp &);
+
+std::string  Mangling( cSauvegardeMR2A *);
 
 /******************************************************/
 /******************************************************/
@@ -1120,6 +1178,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cGenereModeleRaster2Analytique &);
 
 void  BinaryUnDumpFromFile(cGenereModeleRaster2Analytique &,ELISE_fp &);
 
+std::string  Mangling( cGenereModeleRaster2Analytique *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1149,6 +1209,8 @@ cElXMLTree * ToXMLTree(const cBayerGridDirecteEtInverse &);
 void  BinaryDumpInFile(ELISE_fp &,const cBayerGridDirecteEtInverse &);
 
 void  BinaryUnDumpFromFile(cBayerGridDirecteEtInverse &,ELISE_fp &);
+
+std::string  Mangling( cBayerGridDirecteEtInverse *);
 
 /******************************************************/
 /******************************************************/
@@ -1180,6 +1242,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cBayerCalibGeom &);
 
 void  BinaryUnDumpFromFile(cBayerCalibGeom &,ELISE_fp &);
 
+std::string  Mangling( cBayerCalibGeom *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1206,6 +1270,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cSpecifEtalRelOneChan &);
 
 void  BinaryUnDumpFromFile(cSpecifEtalRelOneChan &,ELISE_fp &);
 
+std::string  Mangling( cSpecifEtalRelOneChan *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1227,6 +1293,8 @@ cElXMLTree * ToXMLTree(const cSpecifEtalRadiom &);
 void  BinaryDumpInFile(ELISE_fp &,const cSpecifEtalRadiom &);
 
 void  BinaryUnDumpFromFile(cSpecifEtalRadiom &,ELISE_fp &);
+
+std::string  Mangling( cSpecifEtalRadiom *);
 
 /******************************************************/
 /******************************************************/
@@ -1254,6 +1322,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cPolyNRadiom &);
 
 void  BinaryUnDumpFromFile(cPolyNRadiom &,ELISE_fp &);
 
+std::string  Mangling( cPolyNRadiom *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1276,6 +1346,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cEtalRelOneChan &);
 
 void  BinaryUnDumpFromFile(cEtalRelOneChan &,ELISE_fp &);
 
+std::string  Mangling( cEtalRelOneChan *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1297,6 +1369,8 @@ cElXMLTree * ToXMLTree(const cColorCalib &);
 void  BinaryDumpInFile(ELISE_fp &,const cColorCalib &);
 
 void  BinaryUnDumpFromFile(cColorCalib &,ELISE_fp &);
+
+std::string  Mangling( cColorCalib *);
 
 /******************************************************/
 /******************************************************/
@@ -1323,6 +1397,8 @@ cElXMLTree * ToXMLTree(const cOneGridECG &);
 void  BinaryDumpInFile(ELISE_fp &,const cOneGridECG &);
 
 void  BinaryUnDumpFromFile(cOneGridECG &,ELISE_fp &);
+
+std::string  Mangling( cOneGridECG *);
 
 /******************************************************/
 /******************************************************/
@@ -1362,6 +1438,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cEvalComposeGrid &);
 
 void  BinaryUnDumpFromFile(cEvalComposeGrid &,ELISE_fp &);
 
+std::string  Mangling( cEvalComposeGrid *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1392,6 +1470,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cCalcNomFromCouple &);
 
 void  BinaryUnDumpFromFile(cCalcNomFromCouple &,ELISE_fp &);
 
+std::string  Mangling( cCalcNomFromCouple *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1417,6 +1497,8 @@ cElXMLTree * ToXMLTree(const cCalcNomFromOne &);
 void  BinaryDumpInFile(ELISE_fp &,const cCalcNomFromOne &);
 
 void  BinaryUnDumpFromFile(cCalcNomFromOne &,ELISE_fp &);
+
+std::string  Mangling( cCalcNomFromOne *);
 
 /******************************************************/
 /******************************************************/
@@ -1451,6 +1533,8 @@ cElXMLTree * ToXMLTree(const cOneResync &);
 void  BinaryDumpInFile(ELISE_fp &,const cOneResync &);
 
 void  BinaryUnDumpFromFile(cOneResync &,ELISE_fp &);
+
+std::string  Mangling( cOneResync *);
 
 /******************************************************/
 /******************************************************/
@@ -1494,6 +1578,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cReSynchronImage &);
 
 void  BinaryUnDumpFromFile(cReSynchronImage &,ELISE_fp &);
 
+std::string  Mangling( cReSynchronImage *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1523,6 +1609,8 @@ cElXMLTree * ToXMLTree(const cXmlCylindreRevolution &);
 void  BinaryDumpInFile(ELISE_fp &,const cXmlCylindreRevolution &);
 
 void  BinaryUnDumpFromFile(cXmlCylindreRevolution &,ELISE_fp &);
+
+std::string  Mangling( cXmlCylindreRevolution *);
 
 /******************************************************/
 /******************************************************/
@@ -1558,6 +1646,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cXmlOrthoCyl &);
 
 void  BinaryUnDumpFromFile(cXmlOrthoCyl &,ELISE_fp &);
 
+std::string  Mangling( cXmlOrthoCyl *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1583,6 +1673,8 @@ cElXMLTree * ToXMLTree(const cXmlDescriptionAnalytique &);
 void  BinaryDumpInFile(ELISE_fp &,const cXmlDescriptionAnalytique &);
 
 void  BinaryUnDumpFromFile(cXmlDescriptionAnalytique &,ELISE_fp &);
+
+std::string  Mangling( cXmlDescriptionAnalytique *);
 
 /******************************************************/
 /******************************************************/
@@ -1614,6 +1706,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cXmlOneSurfaceAnalytique &);
 
 void  BinaryUnDumpFromFile(cXmlOneSurfaceAnalytique &,ELISE_fp &);
 
+std::string  Mangling( cXmlOneSurfaceAnalytique *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1635,6 +1729,8 @@ cElXMLTree * ToXMLTree(const cXmlModeleSurfaceComplexe &);
 void  BinaryDumpInFile(ELISE_fp &,const cXmlModeleSurfaceComplexe &);
 
 void  BinaryUnDumpFromFile(cXmlModeleSurfaceComplexe &,ELISE_fp &);
+
+std::string  Mangling( cXmlModeleSurfaceComplexe *);
 
 /******************************************************/
 /******************************************************/
@@ -1661,6 +1757,8 @@ cElXMLTree * ToXMLTree(const cMapByKey &);
 void  BinaryDumpInFile(ELISE_fp &,const cMapByKey &);
 
 void  BinaryUnDumpFromFile(cMapByKey &,ELISE_fp &);
+
+std::string  Mangling( cMapByKey *);
 
 /******************************************************/
 /******************************************************/
@@ -1692,6 +1790,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cOneAutomMapN2N &);
 
 void  BinaryUnDumpFromFile(cOneAutomMapN2N &,ELISE_fp &);
 
+std::string  Mangling( cOneAutomMapN2N *);
+
 class cMapN2NByAutom
 {
     public:
@@ -1710,6 +1810,8 @@ cElXMLTree * ToXMLTree(const cMapN2NByAutom &);
 void  BinaryDumpInFile(ELISE_fp &,const cMapN2NByAutom &);
 
 void  BinaryUnDumpFromFile(cMapN2NByAutom &,ELISE_fp &);
+
+std::string  Mangling( cMapN2NByAutom *);
 
 /******************************************************/
 /******************************************************/
@@ -1746,6 +1848,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cMapName2Name &);
 
 void  BinaryUnDumpFromFile(cMapName2Name &,ELISE_fp &);
 
+std::string  Mangling( cMapName2Name *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1771,6 +1875,8 @@ cElXMLTree * ToXMLTree(const cImage_Point3D &);
 void  BinaryDumpInFile(ELISE_fp &,const cImage_Point3D &);
 
 void  BinaryUnDumpFromFile(cImage_Point3D &,ELISE_fp &);
+
+std::string  Mangling( cImage_Point3D *);
 
 class cImage_Profondeur
 {
@@ -1811,6 +1917,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cImage_Profondeur &);
 
 void  BinaryUnDumpFromFile(cImage_Profondeur &,ELISE_fp &);
 
+std::string  Mangling( cImage_Profondeur *);
+
 class cPN3M_Nuage
 {
     public:
@@ -1833,6 +1941,8 @@ cElXMLTree * ToXMLTree(const cPN3M_Nuage &);
 void  BinaryDumpInFile(ELISE_fp &,const cPN3M_Nuage &);
 
 void  BinaryUnDumpFromFile(cPN3M_Nuage &,ELISE_fp &);
+
+std::string  Mangling( cPN3M_Nuage *);
 
 /******************************************************/
 /******************************************************/
@@ -1868,6 +1978,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cAttributsNuage3D &);
 
 void  BinaryUnDumpFromFile(cAttributsNuage3D &,ELISE_fp &);
 
+std::string  Mangling( cAttributsNuage3D *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1901,6 +2013,8 @@ cElXMLTree * ToXMLTree(const cModeFaisceauxImage &);
 void  BinaryDumpInFile(ELISE_fp &,const cModeFaisceauxImage &);
 
 void  BinaryUnDumpFromFile(cModeFaisceauxImage &,ELISE_fp &);
+
+std::string  Mangling( cModeFaisceauxImage *);
 
 class cPM3D_ParamSpecifs
 {
@@ -1937,6 +2051,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cPM3D_ParamSpecifs &);
 
 void  BinaryUnDumpFromFile(cPM3D_ParamSpecifs &,ELISE_fp &);
 
+std::string  Mangling( cPM3D_ParamSpecifs *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -1966,6 +2082,8 @@ cElXMLTree * ToXMLTree(const cVerifNuage &);
 void  BinaryDumpInFile(ELISE_fp &,const cVerifNuage &);
 
 void  BinaryUnDumpFromFile(cVerifNuage &,ELISE_fp &);
+
+std::string  Mangling( cVerifNuage *);
 
 /******************************************************/
 /******************************************************/
@@ -2049,6 +2167,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cXML_ParamNuage3DMaille &);
 
 void  BinaryUnDumpFromFile(cXML_ParamNuage3DMaille &,ELISE_fp &);
 
+std::string  Mangling( cXML_ParamNuage3DMaille *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2075,6 +2195,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cMasqMesures &);
 
 void  BinaryUnDumpFromFile(cMasqMesures &,ELISE_fp &);
 
+std::string  Mangling( cMasqMesures *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2096,6 +2218,8 @@ cElXMLTree * ToXMLTree(const cCielVisible &);
 void  BinaryDumpInFile(ELISE_fp &,const cCielVisible &);
 
 void  BinaryUnDumpFromFile(cCielVisible &,ELISE_fp &);
+
+std::string  Mangling( cCielVisible *);
 
 /******************************************************/
 /******************************************************/
@@ -2134,6 +2258,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cXML_ParamOmbrageNuage &);
 
 void  BinaryUnDumpFromFile(cXML_ParamOmbrageNuage &,ELISE_fp &);
 
+std::string  Mangling( cXML_ParamOmbrageNuage *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2159,6 +2285,8 @@ cElXMLTree * ToXMLTree(const cFTrajParamInit2Actuelle &);
 void  BinaryDumpInFile(ELISE_fp &,const cFTrajParamInit2Actuelle &);
 
 void  BinaryUnDumpFromFile(cFTrajParamInit2Actuelle &,ELISE_fp &);
+
+std::string  Mangling( cFTrajParamInit2Actuelle *);
 
 /******************************************************/
 /******************************************************/
@@ -2193,6 +2321,8 @@ cElXMLTree * ToXMLTree(const cPtTrajecto &);
 void  BinaryDumpInFile(ELISE_fp &,const cPtTrajecto &);
 
 void  BinaryUnDumpFromFile(cPtTrajecto &,ELISE_fp &);
+
+std::string  Mangling( cPtTrajecto *);
 
 /******************************************************/
 /******************************************************/
@@ -2229,6 +2359,8 @@ cElXMLTree * ToXMLTree(const cFichier_Trajecto &);
 void  BinaryDumpInFile(ELISE_fp &,const cFichier_Trajecto &);
 
 void  BinaryUnDumpFromFile(cFichier_Trajecto &,ELISE_fp &);
+
+std::string  Mangling( cFichier_Trajecto *);
 
 /******************************************************/
 /******************************************************/
@@ -2280,6 +2412,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cSectionEntree &);
 
 void  BinaryUnDumpFromFile(cSectionEntree &,ELISE_fp &);
 
+std::string  Mangling( cSectionEntree *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2309,6 +2443,8 @@ cElXMLTree * ToXMLTree(const cBoucheTrou &);
 void  BinaryDumpInFile(ELISE_fp &,const cBoucheTrou &);
 
 void  BinaryUnDumpFromFile(cBoucheTrou &,ELISE_fp &);
+
+std::string  Mangling( cBoucheTrou *);
 
 class cSectionFiltrageIn
 {
@@ -2349,6 +2485,8 @@ cElXMLTree * ToXMLTree(const cSectionFiltrageIn &);
 void  BinaryDumpInFile(ELISE_fp &,const cSectionFiltrageIn &);
 
 void  BinaryUnDumpFromFile(cSectionFiltrageIn &,ELISE_fp &);
+
+std::string  Mangling( cSectionFiltrageIn *);
 
 /******************************************************/
 /******************************************************/
@@ -2404,6 +2542,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cSectionSorties &);
 
 void  BinaryUnDumpFromFile(cSectionSorties &,ELISE_fp &);
 
+std::string  Mangling( cSectionSorties *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2438,6 +2578,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cNoiseSSI &);
 
 void  BinaryUnDumpFromFile(cNoiseSSI &,ELISE_fp &);
 
+std::string  Mangling( cNoiseSSI *);
+
 class cSectionSimulImage
 {
     public:
@@ -2468,6 +2610,8 @@ cElXMLTree * ToXMLTree(const cSectionSimulImage &);
 void  BinaryDumpInFile(ELISE_fp &,const cSectionSimulImage &);
 
 void  BinaryUnDumpFromFile(cSectionSimulImage &,ELISE_fp &);
+
+std::string  Mangling( cSectionSimulImage *);
 
 /******************************************************/
 /******************************************************/
@@ -2506,6 +2650,8 @@ cElXMLTree * ToXMLTree(const cGlobRappInit &);
 void  BinaryDumpInFile(ELISE_fp &,const cGlobRappInit &);
 
 void  BinaryUnDumpFromFile(cGlobRappInit &,ELISE_fp &);
+
+std::string  Mangling( cGlobRappInit *);
 
 class cSectionEgalisation
 {
@@ -2608,6 +2754,8 @@ cElXMLTree * ToXMLTree(const cSectionEgalisation &);
 void  BinaryDumpInFile(ELISE_fp &,const cSectionEgalisation &);
 
 void  BinaryUnDumpFromFile(cSectionEgalisation &,ELISE_fp &);
+
+std::string  Mangling( cSectionEgalisation *);
 
 /******************************************************/
 /******************************************************/
@@ -2816,6 +2964,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cCreateOrtho &);
 
 void  BinaryUnDumpFromFile(cCreateOrtho &,ELISE_fp &);
 
+std::string  Mangling( cCreateOrtho *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2858,6 +3008,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cMetaDataPartiesCachees &);
 
 void  BinaryUnDumpFromFile(cMetaDataPartiesCachees &,ELISE_fp &);
 
+std::string  Mangling( cMetaDataPartiesCachees *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2879,6 +3031,8 @@ cElXMLTree * ToXMLTree(const cPVPN_Orientation &);
 void  BinaryDumpInFile(ELISE_fp &,const cPVPN_Orientation &);
 
 void  BinaryUnDumpFromFile(cPVPN_Orientation &,ELISE_fp &);
+
+std::string  Mangling( cPVPN_Orientation *);
 
 /******************************************************/
 /******************************************************/
@@ -2906,6 +3060,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cPVPN_ImFixe &);
 
 void  BinaryUnDumpFromFile(cPVPN_ImFixe &,ELISE_fp &);
 
+std::string  Mangling( cPVPN_ImFixe *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2932,6 +3088,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cPVPN_Camera &);
 
 void  BinaryUnDumpFromFile(cPVPN_Camera &,ELISE_fp &);
 
+std::string  Mangling( cPVPN_Camera *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2954,6 +3112,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cPVPN_Fond &);
 
 void  BinaryUnDumpFromFile(cPVPN_Fond &,ELISE_fp &);
 
+std::string  Mangling( cPVPN_Fond *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -2975,6 +3135,8 @@ cElXMLTree * ToXMLTree(const cPVPN_Nuages &);
 void  BinaryDumpInFile(ELISE_fp &,const cPVPN_Nuages &);
 
 void  BinaryUnDumpFromFile(cPVPN_Nuages &,ELISE_fp &);
+
+std::string  Mangling( cPVPN_Nuages *);
 
 /******************************************************/
 /******************************************************/
@@ -3041,6 +3203,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cParamVisuProjNuage &);
 
 void  BinaryUnDumpFromFile(cParamVisuProjNuage &,ELISE_fp &);
 
+std::string  Mangling( cParamVisuProjNuage *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -3066,6 +3230,8 @@ cElXMLTree * ToXMLTree(const cPoinAvionJaune &);
 void  BinaryDumpInFile(ELISE_fp &,const cPoinAvionJaune &);
 
 void  BinaryUnDumpFromFile(cPoinAvionJaune &,ELISE_fp &);
+
+std::string  Mangling( cPoinAvionJaune *);
 
 /******************************************************/
 /******************************************************/
@@ -3100,6 +3266,8 @@ cElXMLTree * ToXMLTree(const cValueAvionJaune &);
 void  BinaryDumpInFile(ELISE_fp &,const cValueAvionJaune &);
 
 void  BinaryUnDumpFromFile(cValueAvionJaune &,ELISE_fp &);
+
+std::string  Mangling( cValueAvionJaune *);
 
 /******************************************************/
 /******************************************************/
@@ -3138,6 +3306,8 @@ cElXMLTree * ToXMLTree(const cValueXYAvionJaune &);
 void  BinaryDumpInFile(ELISE_fp &,const cValueXYAvionJaune &);
 
 void  BinaryUnDumpFromFile(cValueXYAvionJaune &,ELISE_fp &);
+
+std::string  Mangling( cValueXYAvionJaune *);
 
 /******************************************************/
 /******************************************************/
@@ -3189,6 +3359,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cnavigation &);
 
 void  BinaryUnDumpFromFile(cnavigation &,ELISE_fp &);
 
+std::string  Mangling( cnavigation *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -3218,6 +3390,8 @@ cElXMLTree * ToXMLTree(const cimage &);
 void  BinaryDumpInFile(ELISE_fp &,const cimage &);
 
 void  BinaryUnDumpFromFile(cimage &,ELISE_fp &);
+
+std::string  Mangling( cimage *);
 
 /******************************************************/
 /******************************************************/
@@ -3252,6 +3426,8 @@ cElXMLTree * ToXMLTree(const cgeometrieAPriori &);
 void  BinaryDumpInFile(ELISE_fp &,const cgeometrieAPriori &);
 
 void  BinaryUnDumpFromFile(cgeometrieAPriori &,ELISE_fp &);
+
+std::string  Mangling( cgeometrieAPriori *);
 
 /******************************************************/
 /******************************************************/
@@ -3332,6 +3508,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cAvionJauneDocument &);
 
 void  BinaryUnDumpFromFile(cAvionJauneDocument &,ELISE_fp &);
 
+std::string  Mangling( cAvionJauneDocument *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -3378,6 +3556,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cTrAJ2_GenerateOrient &);
 
 void  BinaryUnDumpFromFile(cTrAJ2_GenerateOrient &,ELISE_fp &);
 
+std::string  Mangling( cTrAJ2_GenerateOrient *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -3399,6 +3579,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_ModeliseVitesse &);
 void  BinaryDumpInFile(ELISE_fp &,const cTrAJ2_ModeliseVitesse &);
 
 void  BinaryUnDumpFromFile(cTrAJ2_ModeliseVitesse &,ELISE_fp &);
+
+std::string  Mangling( cTrAJ2_ModeliseVitesse *);
 
 /******************************************************/
 /******************************************************/
@@ -3433,6 +3615,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_SectionImages &);
 void  BinaryDumpInFile(ELISE_fp &,const cTrAJ2_SectionImages &);
 
 void  BinaryUnDumpFromFile(cTrAJ2_SectionImages &,ELISE_fp &);
+
+std::string  Mangling( cTrAJ2_SectionImages *);
 
 /******************************************************/
 /******************************************************/
@@ -3479,6 +3663,8 @@ cElXMLTree * ToXMLTree(const cGenerateTabExemple &);
 void  BinaryDumpInFile(ELISE_fp &,const cGenerateTabExemple &);
 
 void  BinaryUnDumpFromFile(cGenerateTabExemple &,ELISE_fp &);
+
+std::string  Mangling( cGenerateTabExemple *);
 
 class cFullDate
 {
@@ -3543,6 +3729,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cFullDate &);
 
 void  BinaryUnDumpFromFile(cFullDate &,ELISE_fp &);
 
+std::string  Mangling( cFullDate *);
+
 class cSectionTime
 {
     public:
@@ -3606,6 +3794,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cSectionTime &);
 
 void  BinaryUnDumpFromFile(cSectionTime &,ELISE_fp &);
 
+std::string  Mangling( cSectionTime *);
+
 class cTrajAngles
 {
     public:
@@ -3657,6 +3847,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cTrajAngles &);
 
 void  BinaryUnDumpFromFile(cTrajAngles &,ELISE_fp &);
 
+std::string  Mangling( cTrajAngles *);
+
 class cGetImInLog
 {
     public:
@@ -3675,6 +3867,8 @@ cElXMLTree * ToXMLTree(const cGetImInLog &);
 void  BinaryDumpInFile(ELISE_fp &,const cGetImInLog &);
 
 void  BinaryUnDumpFromFile(cGetImInLog &,ELISE_fp &);
+
+std::string  Mangling( cGetImInLog *);
 
 class cTrAJ2_SectionLog
 {
@@ -3834,6 +4028,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cTrAJ2_SectionLog &);
 
 void  BinaryUnDumpFromFile(cTrAJ2_SectionLog &,ELISE_fp &);
 
+std::string  Mangling( cTrAJ2_SectionLog *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -3876,6 +4072,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cLearnByExample &);
 
 void  BinaryUnDumpFromFile(cLearnByExample &,ELISE_fp &);
 
+std::string  Mangling( cLearnByExample *);
+
 class cLearnByStatDiff
 {
     public:
@@ -3894,6 +4092,8 @@ cElXMLTree * ToXMLTree(const cLearnByStatDiff &);
 void  BinaryDumpInFile(ELISE_fp &,const cLearnByStatDiff &);
 
 void  BinaryUnDumpFromFile(cLearnByStatDiff &,ELISE_fp &);
+
+std::string  Mangling( cLearnByStatDiff *);
 
 class cLearnOffset
 {
@@ -3939,6 +4139,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cLearnOffset &);
 
 void  BinaryUnDumpFromFile(cLearnOffset &,ELISE_fp &);
 
+std::string  Mangling( cLearnOffset *);
+
 class cMatchNearestIm
 {
     public:
@@ -3962,6 +4164,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cMatchNearestIm &);
 
 void  BinaryUnDumpFromFile(cMatchNearestIm &,ELISE_fp &);
 
+std::string  Mangling( cMatchNearestIm *);
+
 class cMatchByName
 {
     public:
@@ -3980,6 +4184,8 @@ cElXMLTree * ToXMLTree(const cMatchByName &);
 void  BinaryDumpInFile(ELISE_fp &,const cMatchByName &);
 
 void  BinaryUnDumpFromFile(cMatchByName &,ELISE_fp &);
+
+std::string  Mangling( cMatchByName *);
 
 class cAlgoMatch
 {
@@ -4012,6 +4218,8 @@ cElXMLTree * ToXMLTree(const cAlgoMatch &);
 void  BinaryDumpInFile(ELISE_fp &,const cAlgoMatch &);
 
 void  BinaryUnDumpFromFile(cAlgoMatch &,ELISE_fp &);
+
+std::string  Mangling( cAlgoMatch *);
 
 class cTrAJ2_SectionMatch
 {
@@ -4094,6 +4302,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cTrAJ2_SectionMatch &);
 
 void  BinaryUnDumpFromFile(cTrAJ2_SectionMatch &,ELISE_fp &);
 
+std::string  Mangling( cTrAJ2_SectionMatch *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4131,6 +4341,8 @@ cElXMLTree * ToXMLTree(const cTraJ2_FilesInputi_Appuis &);
 void  BinaryDumpInFile(ELISE_fp &,const cTraJ2_FilesInputi_Appuis &);
 
 void  BinaryUnDumpFromFile(cTraJ2_FilesInputi_Appuis &,ELISE_fp &);
+
+std::string  Mangling( cTraJ2_FilesInputi_Appuis *);
 
 class cTrAJ2_ConvertionAppuis
 {
@@ -4227,6 +4439,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cTrAJ2_ConvertionAppuis &);
 
 void  BinaryUnDumpFromFile(cTrAJ2_ConvertionAppuis &,ELISE_fp &);
 
+std::string  Mangling( cTrAJ2_ConvertionAppuis *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4264,6 +4478,8 @@ cElXMLTree * ToXMLTree(const cTrAJ2_ExportProjImage &);
 void  BinaryDumpInFile(ELISE_fp &,const cTrAJ2_ExportProjImage &);
 
 void  BinaryUnDumpFromFile(cTrAJ2_ExportProjImage &,ELISE_fp &);
+
+std::string  Mangling( cTrAJ2_ExportProjImage *);
 
 /******************************************************/
 /******************************************************/
@@ -4315,6 +4531,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cParam_Traj_AJ &);
 
 void  BinaryUnDumpFromFile(cParam_Traj_AJ &,ELISE_fp &);
 
+std::string  Mangling( cParam_Traj_AJ *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4340,6 +4558,8 @@ cElXMLTree * ToXMLTree(const cParamGenereStr &);
 void  BinaryDumpInFile(ELISE_fp &,const cParamGenereStr &);
 
 void  BinaryUnDumpFromFile(cParamGenereStr &,ELISE_fp &);
+
+std::string  Mangling( cParamGenereStr *);
 
 /******************************************************/
 /******************************************************/
@@ -4375,6 +4595,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cParamGenereStrVois &);
 
 void  BinaryUnDumpFromFile(cParamGenereStrVois &,ELISE_fp &);
 
+std::string  Mangling( cParamGenereStrVois *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4404,6 +4626,8 @@ cElXMLTree * ToXMLTree(const cSectionName &);
 void  BinaryDumpInFile(ELISE_fp &,const cSectionName &);
 
 void  BinaryUnDumpFromFile(cSectionName &,ELISE_fp &);
+
+std::string  Mangling( cSectionName *);
 
 /******************************************************/
 /******************************************************/
@@ -4447,6 +4671,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cScoreMM1P &);
 
 void  BinaryUnDumpFromFile(cScoreMM1P &,ELISE_fp &);
 
+std::string  Mangling( cScoreMM1P *);
+
 class cSectionScoreQualite
 {
     public:
@@ -4484,6 +4710,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cSectionScoreQualite &);
 
 void  BinaryUnDumpFromFile(cSectionScoreQualite &,ELISE_fp &);
 
+std::string  Mangling( cSectionScoreQualite *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4505,6 +4733,8 @@ cElXMLTree * ToXMLTree(const cFMNtBySort &);
 void  BinaryDumpInFile(ELISE_fp &,const cFMNtBySort &);
 
 void  BinaryUnDumpFromFile(cFMNtBySort &,ELISE_fp &);
+
+std::string  Mangling( cFMNtBySort *);
 
 class cFMNT_GesNoVal
 {
@@ -4532,6 +4762,8 @@ cElXMLTree * ToXMLTree(const cFMNT_GesNoVal &);
 void  BinaryDumpInFile(ELISE_fp &,const cFMNT_GesNoVal &);
 
 void  BinaryUnDumpFromFile(cFMNT_GesNoVal &,ELISE_fp &);
+
+std::string  Mangling( cFMNT_GesNoVal *);
 
 class cFMNT_ProgDyn
 {
@@ -4572,6 +4804,8 @@ cElXMLTree * ToXMLTree(const cFMNT_ProgDyn &);
 void  BinaryDumpInFile(ELISE_fp &,const cFMNT_ProgDyn &);
 
 void  BinaryUnDumpFromFile(cFMNT_ProgDyn &,ELISE_fp &);
+
+std::string  Mangling( cFMNT_ProgDyn *);
 
 class cFMNtByMaxEvid
 {
@@ -4628,6 +4862,8 @@ cElXMLTree * ToXMLTree(const cFMNtByMaxEvid &);
 void  BinaryDumpInFile(ELISE_fp &,const cFMNtByMaxEvid &);
 
 void  BinaryUnDumpFromFile(cFMNtByMaxEvid &,ELISE_fp &);
+
+std::string  Mangling( cFMNtByMaxEvid *);
 
 class cSpecAlgoFMNT
 {
@@ -4690,6 +4926,8 @@ cElXMLTree * ToXMLTree(const cSpecAlgoFMNT &);
 void  BinaryDumpInFile(ELISE_fp &,const cSpecAlgoFMNT &);
 
 void  BinaryUnDumpFromFile(cSpecAlgoFMNT &,ELISE_fp &);
+
+std::string  Mangling( cSpecAlgoFMNT *);
 
 class cParamAlgoFusionMNT
 {
@@ -4763,6 +5001,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cParamAlgoFusionMNT &);
 
 void  BinaryUnDumpFromFile(cParamAlgoFusionMNT &,ELISE_fp &);
 
+std::string  Mangling( cParamAlgoFusionMNT *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4812,6 +5052,8 @@ cElXMLTree * ToXMLTree(const cSectionGestionChantier &);
 void  BinaryDumpInFile(ELISE_fp &,const cSectionGestionChantier &);
 
 void  BinaryUnDumpFromFile(cSectionGestionChantier &,ELISE_fp &);
+
+std::string  Mangling( cSectionGestionChantier *);
 
 /******************************************************/
 /******************************************************/
@@ -4967,6 +5209,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cParamFusionMNT &);
 
 void  BinaryUnDumpFromFile(cParamFusionMNT &,ELISE_fp &);
 
+std::string  Mangling( cParamFusionMNT *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -4996,6 +5240,8 @@ cElXMLTree * ToXMLTree(const cXmlAffinR2ToR &);
 void  BinaryDumpInFile(ELISE_fp &,const cXmlAffinR2ToR &);
 
 void  BinaryUnDumpFromFile(cXmlAffinR2ToR &,ELISE_fp &);
+
+std::string  Mangling( cXmlAffinR2ToR *);
 
 /******************************************************/
 /******************************************************/
@@ -5027,6 +5273,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cXmlHomogr &);
 
 void  BinaryUnDumpFromFile(cXmlHomogr &,ELISE_fp &);
 
+std::string  Mangling( cXmlHomogr *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -5046,16 +5294,30 @@ class cXmlRHHResLnk
 
         double & Qual();
         const double & Qual()const ;
+
+        int & NbPts();
+        const int & NbPts()const ;
+
+        std::vector< Pt3dr > & EchRepP1();
+        const std::vector< Pt3dr > & EchRepP1()const ;
+
+        Pt3dr & PRep();
+        const Pt3dr & PRep()const ;
     private:
         cXmlHomogr mHom12;
         bool mOk;
         double mQual;
+        int mNbPts;
+        std::vector< Pt3dr > mEchRepP1;
+        Pt3dr mPRep;
 };
 cElXMLTree * ToXMLTree(const cXmlRHHResLnk &);
 
 void  BinaryDumpInFile(ELISE_fp &,const cXmlRHHResLnk &);
 
 void  BinaryUnDumpFromFile(cXmlRHHResLnk &,ELISE_fp &);
+
+std::string  Mangling( cXmlRHHResLnk *);
 
 /******************************************************/
 /******************************************************/

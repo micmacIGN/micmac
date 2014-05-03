@@ -24,10 +24,11 @@
    <enum Name="eTestDump">
        <eTestDump_0> </eTestDump_0>
        <eTestDump_1> </eTestDump_1>
+       <eTestDump_3> </eTestDump_3>
    </enum>
 
    <TD2REF  Nb="1" Class="true" ToReference="true">
-        <S Nb="1" Type="std::string"> </S>
+        <K Nb="1" Type="std::string"> </K>
         <V Nb="+" Type="int"> </V>
    </TD2REF>
 

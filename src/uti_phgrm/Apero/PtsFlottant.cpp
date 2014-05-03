@@ -124,7 +124,8 @@ void  cOneAppuisFlottant::Compile()
 
     mMP3TI = new cManipPt3TerInc(mAppli.SetEq(),0,aVCF);
 
-    std::cout << "NB[" << mName << "]= " << mCams.size() << "\n";
+    if (mAppli.ShowMes())
+       std::cout << "NB[" << mName << "]= " << mCams.size() << "\n";
 
 
    if (0)

@@ -70,6 +70,8 @@ int CurPrec()
 /*                                                         */
 /***********************************************************/
 
+static std::map<std::string,std::string> TheMapMangl;
+
 bool TagFilsIsClass(const std::string & aNameTag)
 {
    return (aNameTag != "Verbatim") && (aNameTag!="Herit");
@@ -230,6 +232,8 @@ void cElXMLTree::GenEnum
            FILE * aFileH
      )
 {
+    cMajickChek aMj;
+    aMj.Add("enum");
     std::string aName = ValAttr("Name");
     fprintf
     (
@@ -251,10 +255,18 @@ void cElXMLTree::GenEnum
           fprintf (aFileH, ",\n");
        std::string aValue = (*itF)->ValAttr("Value","");
        if (aValue=="")
+       {
           fprintf (aFileH, "  %s", (*itF)->mValTag.c_str());
+          aMj.Add((*itF)->mValTag);
+       }
        else
+       {
           fprintf (aFileH, "  %s = %s", (*itF)->mValTag.c_str(),aValue.c_str());
+          aMj.Add((*itF)->mValTag);
+          aMj.Add(aValue);
+       }
    }
+   aMj.Add(aName);
 
     fprintf
     (
@@ -293,6 +305,12 @@ void cElXMLTree::GenEnum
     (
         aFileH,
 	"void  BinaryDumpInFile(ELISE_fp &,const %s &);\n\n",
+	aName.c_str()
+    );
+    fprintf
+    (
+        aFileH,
+	"std::string  Mangling( %s *);\n\n",
 	aName.c_str()
     );
     fprintf
@@ -433,13 +451,21 @@ void cElXMLTree::GenEnum
 	  aName.c_str(),
 	  aName.c_str()
     );
+    fprintf
+    (
+        aFileCpp,
+	"std::string  Mangling( %s *) {return \"%s\";};\n\n",
+	aName.c_str(),
+	aMj.ShortMajId().c_str()
+    );
 /*
 */
 
-
+     TheMapMangl[aName] =  aMj.ShortMajId();
 
 	// "void  BinaryUnDumpFromFile(%s &,ELISE_fp &);\n\n",
 }
+
 
 
 
@@ -571,6 +597,28 @@ bool cElXMLTree::HasFilsPorteeGlob(const std::string & aName)
 }
 
 
+void  cElXMLTree::ModifMangling(cMajickChek & aMj)
+{
+    aMj.Add(NameOfClass());
+    for
+    (
+       std::list<cElXMLTree *>::iterator itF=mFils.begin();
+       itF != mFils.end();
+       itF++
+    )
+    {
+       if (TagFilsIsClass((*itF)->mValTag))  // Cas speciaux Herit/ Verbatim ....
+       {
+           const std::string & aPat = (*itF)->ValAttr("Nb");
+           aMj.Add(aPat);
+           aMj.Add((*itF)->mValTag);
+           aMj.Add((*itF)->NameImplemOfClass());
+           aMj.Add((*itF)->NameOfClass());
+           aMj.Add(TheMapMangl[(*itF)->NameOfClass()]);
+       }
+    }
+}
+
 
 void cElXMLTree::GenCppClass
      (
@@ -602,6 +650,10 @@ void cElXMLTree::GenCppClass
    }
 
    std::string aNOC = NameOfClass();
+   cMajickChek aMj;
+   ModifMangling(aMj);
+   TheMapMangl[aNOC]=aMj.ShortMajId();
+    
 
    //  Generation du .h 
 
@@ -715,6 +767,12 @@ void cElXMLTree::GenCppClass
 	"void  BinaryUnDumpFromFile(%s &,ELISE_fp &);\n\n",
 	aNOC.c_str()
     );
+    fprintf
+    (
+        aFileH,
+	"std::string  Mangling( %s *);\n\n",
+	aNOC.c_str()
+    );
 
 
    for
@@ -762,9 +820,13 @@ void cElXMLTree::GenCppClass
                fprintf(aFileCpp,"       BinaryUnDumpFromFile(IsInit,aFp);\n");
                fprintf
                (
-                     aFileCpp
-                    ,"        if (IsInit) BinaryUnDumpFromFile(anObj.%s().ValForcedForUnUmp(),aFp);\n"
+                     aFileCpp,
+                     "        if (IsInit) {\n"
+                     "             anObj.%s().SetInitForUnUmp();\n"
+                     "             BinaryUnDumpFromFile(anObj.%s().ValForcedForUnUmp(),aFp);\n"
+                     "        }\n"
                      "        else  anObj.%s().SetNoInit();\n"
+                    ,(*itF)->mValTag.c_str()
                     ,(*itF)->mValTag.c_str()
                     ,(*itF)->mValTag.c_str()
                );
@@ -1049,6 +1111,13 @@ void cElXMLTree::GenCppClass
    }
    fprintf(aFileCpp,"}\n\n");
 
+    fprintf
+    (
+        aFileCpp,
+	"std::string  Mangling( %s *) {return \"%s\";};\n\n",
+	aNOC.c_str(),
+	aMj.ShortMajId().c_str()
+    );
 
    if (aProf <= 1 )
    {

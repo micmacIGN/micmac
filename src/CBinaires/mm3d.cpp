@@ -423,6 +423,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
    aRes.push_back(cMMCom("XmlXif",MakeOneXmlXifInfo_main,"Internal : generate Xml to accelerate Xif extracton  "));
 
+   aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump  "));
+   aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
+
    return aRes;
 }
 

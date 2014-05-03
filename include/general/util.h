@@ -664,6 +664,10 @@ void MakeFileDirCompl(std::string &);
 
 
 bool    IsPostfixed  (const ElSTDNS string &,char = '.');
+bool    IsPostfixedBy  (const ElSTDNS string &,const std::string &);
+
+bool IsFileDmp(const std::string &);
+
 
 void EliseBRKP();
 
@@ -793,6 +797,7 @@ class cTplValGesInit
           }
           bool IsInit() const {return mIsInit;}
           Type & ValForcedForUnUmp() { return mVal; }
+          void SetInitForUnUmp() {mIsInit=true;}
           const Type & ValForcedForUnUmp() const { return mVal; }
           const Type & Val() const
           {

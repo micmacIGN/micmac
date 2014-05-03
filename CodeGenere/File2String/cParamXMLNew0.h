@@ -5,7 +5,8 @@
 typedef enum
 {
   eTestDump_0,
-  eTestDump_1
+  eTestDump_1,
+  eTestDump_3
 } eTestDump;
 void xml_init(eTestDump & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTestDump & aVal);
@@ -15,6 +16,8 @@ eTestDump  Str2eTestDump(const std::string & aName);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTestDump & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTestDump &);
+
+std::string  Mangling( eTestDump *);
 
 void  BinaryUnDumpFromFile(eTestDump &,ELISE_fp &);
 
@@ -26,13 +29,13 @@ class cTD2REF
         friend void xml_init(cTD2REF & anObj,cElXMLTree * aTree);
 
 
-        std::string & S();
-        const std::string & S()const ;
+        std::string & K();
+        const std::string & K()const ;
 
         std::list< int > & V();
         const std::list< int > & V()const ;
     private:
-        std::string mS;
+        std::string mK;
         std::list< int > mV;
 };
 cElXMLTree * ToXMLTree(const cTD2REF &);
@@ -40,6 +43,8 @@ cElXMLTree * ToXMLTree(const cTD2REF &);
 void  BinaryDumpInFile(ELISE_fp &,const cTD2REF &);
 
 void  BinaryUnDumpFromFile(cTD2REF &,ELISE_fp &);
+
+std::string  Mangling( cTD2REF *);
 
 /******************************************************/
 /******************************************************/
@@ -66,6 +71,8 @@ cElXMLTree * ToXMLTree(const cCompos &);
 void  BinaryDumpInFile(ELISE_fp &,const cCompos &);
 
 void  BinaryUnDumpFromFile(cCompos &,ELISE_fp &);
+
+std::string  Mangling( cCompos *);
 
 /******************************************************/
 /******************************************************/
@@ -127,6 +134,8 @@ void  BinaryDumpInFile(ELISE_fp &,const cTestDump &);
 
 void  BinaryUnDumpFromFile(cTestDump &,ELISE_fp &);
 
+std::string  Mangling( cTestDump *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -148,6 +157,8 @@ cElXMLTree * ToXMLTree(const cR5 &);
 void  BinaryDumpInFile(ELISE_fp &,const cR5 &);
 
 void  BinaryUnDumpFromFile(cR5 &,ELISE_fp &);
+
+std::string  Mangling( cR5 *);
 
 /******************************************************/
 /******************************************************/
@@ -178,6 +189,8 @@ cElXMLTree * ToXMLTree(const cTestNoDump &);
 void  BinaryDumpInFile(ELISE_fp &,const cTestNoDump &);
 
 void  BinaryUnDumpFromFile(cTestNoDump &,ELISE_fp &);
+
+std::string  Mangling( cTestNoDump *);
 
 /******************************************************/
 /******************************************************/

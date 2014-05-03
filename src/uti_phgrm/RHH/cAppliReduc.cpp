@@ -70,7 +70,14 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mKernConnec   (3),
    mKernSize     (6),
    mSetEq        (cNameSpaceEqF::eSysL2BlocSym),
-   mH1On2        (true)
+   mH1On2        (true),
+   mHFD          (true),
+   mKeyHomogr    (std::string("NKS-RHH-Assoc-CplIm2Data@@Homogr@") + (mHFD ?  ".dmp" : ".xml")),
+   mKeyHomolH    (std::string("NKS-RHH-Assoc-CplIm2Data@@HomolH@dat") ),
+   mSkipHomDone  (true),
+   mSkipPlanDone (true),
+   mSkipAllDone  (true),
+   mAltiCible    (1000)
    // mQT        (PtOfPhi,Box2dr(Pt2dr(-100,-100),Pt2dr(30000,30000)),10,500)
 {
 
@@ -93,7 +100,18 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mHomByParal,"HbP",true,"Compute Homography in // (Def=true)")
                     << EAM(mOriVerif,"Verif",true,"To generate perfect homographic tie (tuning purpose)")
                     << EAM(mH1On2,"H1on2",true,"Fix arbitrary order of hom , tuning")
+                    << EAM(mHFD,"HFD",true,"Homogr in dump format, tuning (Def true)")
+                    << EAM(mSkipHomDone,"SHD",true,"Skip Hom calc when files already Done (accelerate tuning))")
+                    << EAM(mSkipPlanDone,"SPD",true,"Skip Plan calc when files already Done (accelerate tuning))")
+                    << EAM(mSkipAllDone,"SAD",true,"Skip All calc when files already Done (accelerate tuning))")
+                    << EAM(mAltiCible,"Alti",true,"Fix arbitrary altitude (def = 1000)")
     );
+
+    if (EAMIsInit(&mSkipAllDone))
+    {
+         if  (!EAMIsInit(&mSkipHomDone))  mSkipHomDone = mSkipAllDone;
+         if  (!EAMIsInit(&mSkipPlanDone)) mSkipPlanDone = mSkipAllDone;
+    }
 
 
    SplitDirAndFile(mDir,mName,mFullName);
@@ -118,9 +136,10 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mSetNameIm = mICNM->Get(mName);
    // mKeyHomol = "NKS-Set-Homol@"+mExtHomol+"@"+(mImportTxt ?"txt" : "dat");
    // mKeyH2I = "NKS-Assoc-CplIm2Hom@"+mExtHomol+"@"+(mImportTxt ?"txt" : "dat");
-   mKeyHomol = KeyHIn("NKS-Set-Homol");
-   mKeyH2I =  KeyHIn("NKS-Assoc-CplIm2Hom");
-   mSetNameHom =  mICNM->Get(mKeyHomol);
+   // mKeySetHomol = KeyHIn("NKS-Set-Homol");
+   mKeySetHomol = "NKS-Set-Homol-Filtered@" +mExtHomol+(mImportTxt ?"@txt@" : "@dat@") + mName;
+   mKeyInitIm2Homol =  KeyHIn("NKS-Assoc-CplIm2Hom");
+   mSetNameHom =  mICNM->Get(mKeySetHomol);
 
    std::cout << "NbIm " << mSetNameIm->size() << " NbH " << mSetNameHom->size() << "\n";
 
@@ -141,7 +160,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    for (int aKH=0 ; aKH<int(mSetNameHom->size()) ; aKH++)
    {
         const std::string & aName = (*mSetNameHom)[aKH];
-        std::pair<std::string,std::string> aN1N2 = mICNM->Assoc2To1(mKeyH2I,aName,false);
+        std::pair<std::string,std::string> aN1N2 = mICNM->Assoc2To1(mKeyInitIm2Homol,aName,false);
         cImagH * aI1 = mDicoIm[aN1N2.first];
         cImagH * aI2 = mDicoIm[aN1N2.second];
         if (aI1 && aI2)
@@ -201,7 +220,7 @@ void cAppliReduc::ComputeHom()
        if (Show(eShowGlob))
        {
           std::cout << "HomByParal : Command run\n";
-          //getchar();
+          // getchar();
        }
 
        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
@@ -282,7 +301,7 @@ void cAppliReduc::ComputeHom()
 
    mSetEq.SetClosed();
 
-    // Cree l'arbre  de fusion hierarchique
+   // Cree l'arbre  de fusion hierarchique
     TestMerge_CalcHcImage();
 }
 
@@ -356,6 +375,31 @@ bool  cAppliReduc::H1On2() const
 {
    return mH1On2;
 }
+
+
+std::string cAppliReduc::NameFileHomogr(const cLink2Img & aLnK) const
+{
+   return mDir + mICNM->Assoc1To2(mKeyHomogr,aLnK.Srce()->Name(),aLnK.Dest()->Name(),true);
+}
+std::string cAppliReduc::NameFileHomolH(const cLink2Img & aLnK) const
+{
+   return mDir + mICNM->Assoc1To2(mKeyHomolH,aLnK.Srce()->Name(),aLnK.Dest()->Name(),true);
+}
+
+bool cAppliReduc::SkipHomDone() const
+{
+   return mSkipHomDone;
+}
+bool cAppliReduc::SkipPlanDone() const
+{
+   return mSkipPlanDone;
+}
+double cAppliReduc::AltiCible() const
+{
+   return mAltiCible;
+}
+
+
 
 NS_RHH_END
 

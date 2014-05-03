@@ -16,6 +16,8 @@
 
             <Symb>  TetaLVM=0.1 </Symb>
             <Symb>  CentreLVM=1.0 </Symb>
+            <Symb>  Show=false </Symb>
+            <Symb>  Alti=1000 </Symb>
               
             <KeyedNamesAssociations>
                  <Calcs>
@@ -27,13 +29,21 @@
                  </Calcs>
                  <Key>  LocKeyOri</Key>
             </KeyedNamesAssociations>
+
+            <eSymb>  IncZ1= * ${Alti} 1e-2 </eSymb>
+            <eSymb>  IncZ2= * ${Alti} 1e-4 </eSymb>
        </DicoLoc>
+
+        <ShowSection>
+            <ShowMes> ${Show} </ShowMes>
+         </ShowSection>
+
 
        <SectionBDD_Observation>
              <BDD_PtsLiaisons>
                  <Id>    Id_Pastis_Hom  </Id>
                  <KeySet>  NKS-RHH-Set-Homol@@dat@${MasterIm} </KeySet>
-                 <KeyAssoc> NKS-RHH-Assoc-CplIm2Hom@@dat     </KeyAssoc>
+                 <KeyAssoc> NKS-RHH-Assoc-CplIm2Data@@HomolH@dat     </KeyAssoc>
              </BDD_PtsLiaisons>
              <BDD_ObsAppuisFlottant >
                   <Id> Id-Appui </Id>
@@ -61,7 +71,9 @@
                         <PosFromBDAppuis>
                               <Id > Id-Appui </Id>
                               <NbTestRansac>  100 </NbTestRansac>
-                              <!-- <DirApprox> </DirApprox> -->
+<!--
+                              <DirApprox> 0 0 -1 </DirApprox> 
+-->
                         </PosFromBDAppuis>
                    </PosValueInit>
              </PoseCameraInc>
@@ -155,7 +167,7 @@
                               </Pond>
                               <RappelOnZ>
                                    <Z>  0 </Z>
-                                   <IncC> 1e-2 </IncC>
+                                   <IncC> ${IncZ1} </IncC>
                              </RappelOnZ>
                           </ObsLiaisons>
 		    </SectionObservations>
@@ -179,13 +191,17 @@
                           </ObsAppuisFlottant>
                           <ObsLiaisons>
                               <NameRef> Id_Pastis_Hom </NameRef>
+
                               <Pond>
                                  <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <#WHEN VTEST=${Show}>
+                                     <Show> eNSM_Paquet     </Show>
+                                 </#WHEN>
                                  <ModePonderation> ePondL2 </ModePonderation>
                               </Pond>
                               <RappelOnZ>
                                    <Z>  0 </Z>
-                                   <IncC> 1e-4 </IncC>
+                                   <IncC> ${IncZ2} </IncC>
                              </RappelOnZ>
                           </ObsLiaisons>
 		    </SectionObservations>
