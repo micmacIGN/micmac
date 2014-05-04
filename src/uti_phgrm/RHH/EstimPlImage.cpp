@@ -272,13 +272,23 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2)
 std::string cImagH::EstimatePlan()
 {
      mPlanEst = false;
+     bool AllDetail = false;
  
 
      double aAltiCible = mAppli.AltiCible();
-     if (mAppli.SkipPlanDone() && ELISE_fp::exist_file(NameOriHomPlane()))
+     if (mAppli.HasImFocusPlan())
      {
-        mPlanEst = true;
-        return "";
+         if (mName != mAppli.ImFocusPlan())
+            return "";
+         AllDetail = true;
+     } 
+     else
+     {
+        if (mAppli.SkipPlanDone() && ELISE_fp::exist_file(NameOriHomPlane()))
+        {
+           mPlanEst = true;
+           return "";
+        }
      }
 
      /*
@@ -293,7 +303,7 @@ std::string cImagH::EstimatePlan()
      std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
      std::vector<cTestPlIm> aVPlIm;
 
-     if (mAppli.Show(eShowDetail))
+     if (AllDetail || mAppli.Show(eShowDetail))
         std::cout << " =========== Begin EstimatePlan " << mName  << " NbL0=" << mLnks.size() << "\n";
 
 

@@ -77,7 +77,9 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mSkipHomDone  (true),
    mSkipPlanDone (true),
    mSkipAllDone  (true),
-   mAltiCible    (1000)
+   mAltiCible    (1000),
+   mHasImFocusPlan (false),
+   mImFocusPlan    ("")
    // mQT        (PtOfPhi,Box2dr(Pt2dr(-100,-100),Pt2dr(30000,30000)),10,500)
 {
 
@@ -105,12 +107,18 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mSkipPlanDone,"SPD",true,"Skip Plan calc when files already Done (accelerate tuning))")
                     << EAM(mSkipAllDone,"SAD",true,"Skip All calc when files already Done (accelerate tuning))")
                     << EAM(mAltiCible,"Alti",true,"Fix arbitrary altitude (def = 1000)")
+                    << EAM(mImFocusPlan,"IFP",true,"Image Focus on Plane, tuning")
     );
 
     if (EAMIsInit(&mSkipAllDone))
     {
          if  (!EAMIsInit(&mSkipHomDone))  mSkipHomDone = mSkipAllDone;
          if  (!EAMIsInit(&mSkipPlanDone)) mSkipPlanDone = mSkipAllDone;
+    }
+
+    if (EAMIsInit(&mImFocusPlan))
+    {
+        mHasImFocusPlan = true;
     }
 
 
@@ -397,6 +405,16 @@ bool cAppliReduc::SkipPlanDone() const
 double cAppliReduc::AltiCible() const
 {
    return mAltiCible;
+}
+
+bool   cAppliReduc::HasImFocusPlan () const
+{
+    return mHasImFocusPlan;
+}
+
+std::string      cAppliReduc::ImFocusPlan () const
+{
+    return mImFocusPlan;
 }
 
 

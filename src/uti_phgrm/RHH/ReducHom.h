@@ -404,6 +404,8 @@ class cAppliReduc
          bool SkipHomDone() const;
          bool SkipPlanDone() const;
          double AltiCible() const;
+         bool             HasImFocusPlan () const;
+         std::string      ImFocusPlan () const;
 
      private :
 
@@ -451,6 +453,8 @@ class cAppliReduc
         bool                                mSkipPlanDone;
         bool                                mSkipAllDone;
         double                              mAltiCible;
+        bool                                mHasImFocusPlan;
+        std::string                         mImFocusPlan;
 
 };
 
