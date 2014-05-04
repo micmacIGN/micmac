@@ -268,11 +268,72 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2)
 }
 
 
+class cTestSolPl
+{
+    public :
+         cTestSolPl(cLink2Img * aLnk,const std::vector<cElemMepRelCoplan> & aVS) :
+             mLnk (aLnk),
+             mVSols (aVS)
+         {
+         }
+
+         cLink2Img * mLnk;
+         std::vector<cElemMepRelCoplan>  mVSols;
+};
+
+void cImagH::TestEstimPlDirect()
+{
+     const std::vector<cLink2Img*> &  aVL = VLink() ;
+     int aNbL = aVL.size();
+     std::vector<cTestSolPl> aVS;
+     for (int aKL=0 ; aKL<aNbL ; aKL++)
+     {
+          cLink2Img * aLnk   = aVL[aKL];
+          // std::cout << "TEPd " << aLnk->Dest()->Name() << "\n";
+          cElHomographie &   aHom = aLnk->Hom12();
+          std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
+          cResMepRelCoplan aRCP = ElPackHomologue::MepRelCoplan(1,aHom,aPair);
+          std::vector<cElemMepRelCoplan>  aVSol = aRCP.VElOk();
+          aVS.push_back(cTestSolPl(aLnk,aVSol));
+     }
+
+     for (int aKL=1 ; aKL<int(aVS.size()) ; aKL++)
+     {
+           cLink2Img * aLnk   = aVL[aKL];
+           std::cout << "TEPd " << aLnk->Dest()->Name() ;
+           std::vector<cElemMepRelCoplan> & aV1 = aVS[aKL-1].mVSols;
+           for (int aN1=0; aN1<int(aV1.size()) ; aN1++)
+           {
+               std::cout << aV1[aN1].Norm() ;
+           }
+           std::vector<cElemMepRelCoplan> & aV2 = aVS[aKL].mVSols;
+
+           std::cout << "\n";
+
+           for (int aN1=0; aN1<int(aV1.size()) ; aN1++)
+           {
+               for (int aN2=0; aN2<int(aV2.size()) ; aN2++)
+               {
+                    ElRotation3D aR1 = aV1[aN1].Rot().inv();
+                    ElRotation3D aR2 = aV2[aN2].Rot().inv();
+                    ElMatrix<double> aM1 = aR1.Mat();
+                    ElMatrix<double> aM2 = aR2.Mat();
+
+                    printf("%5f ",aM1.L2(aM2));
+               }
+           }
+           std::cout << "\n";
+           getchar();
+     }
+
+     getchar();
+}
+
 
 std::string cImagH::EstimatePlan()
 {
      mPlanEst = false;
-     bool AllDetail = false;
+     bool FocusOnThisIm = false;
  
 
      double aAltiCible = mAppli.AltiCible();
@@ -280,7 +341,9 @@ std::string cImagH::EstimatePlan()
      {
          if (mName != mAppli.ImFocusPlan())
             return "";
-         AllDetail = true;
+          
+         TestEstimPlDirect();
+         FocusOnThisIm = true;
      } 
      else
      {
@@ -303,7 +366,7 @@ std::string cImagH::EstimatePlan()
      std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
      std::vector<cTestPlIm> aVPlIm;
 
-     if (AllDetail || mAppli.Show(eShowDetail))
+     if (FocusOnThisIm || mAppli.Show(eShowDetail))
         std::cout << " =========== Begin EstimatePlan " << mName  << " NbL0=" << mLnks.size() << "\n";
 
 
