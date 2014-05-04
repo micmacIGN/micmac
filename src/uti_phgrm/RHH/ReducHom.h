@@ -268,6 +268,9 @@ class cImagH
 // PRE REQUIS POUR LE MERGING
 //=====================
 
+        void TestEstimPlDirect();
+        void Close();
+
         cLink2Img * GetLinkOfImage(cImagH*);
 
 
@@ -305,6 +308,7 @@ class cImagH
          const tMapName2Link & Lnks() const;
          CamStenope *  CamC();
          std::string NameOriHomPlane() const;
+         const std::vector<cLink2Img*> &  VLink() const;
 
      private :
 
@@ -316,10 +320,13 @@ class cImagH
 
          cImagH(const cImagH &); // N.I.
          void ComputePtsLink(cLink2Img & aLnk);
+         void AssertLnkUnclosed();
+         void AssertLnkClosed();
 
          cAppliReduc &              mAppli;
          std::map<Pt2dr,cPtHom *>   mMapH;  // Liste des Hom deja trouves via les prec
          tMapName2Link                  mLnks;
+         std::vector<cLink2Img*>    mVLnkInterneSorted;  // Sort by name, valide une  fois closed
          std::string                mName;
          std::string                mNameCalib;
          CamStenope *               mCamC;
@@ -335,6 +342,7 @@ class cImagH
          cHomogFormelle *           mHF;
          cMetaDataPhoto             mMDP;
          bool                       mPlanEst;
+         bool                       mLnkClosed;
 };
 
 

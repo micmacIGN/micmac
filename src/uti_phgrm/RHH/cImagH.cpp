@@ -213,6 +213,7 @@ cLink2Img::cLink2Img(cImagH * aSrce,cImagH * aDest,const std::string & aNameH) :
 {
 }
 
+
 //  Gestion des noms 
 
 std::string cLink2Img::NameHomol() const
@@ -461,10 +462,20 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mSomNbPts (0),
    mHi2t     (cElHomographie::Id()),
    mHTmp     (cElHomographie::Id()),
-   mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName))
+   mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName)),
+   mLnkClosed  (false)
 {
 
    // std::cout << "NCCC " << mNameCalib << " [" << mNameVerif<< "]\n";
+}
+
+void cImagH::AssertLnkClosed()
+{
+  ELISE_ASSERT(mLnkClosed,"cLink2Img::AssertClosed");
+}
+void cImagH::AssertLnkUnclosed()
+{
+  ELISE_ASSERT(!mLnkClosed,"cLink2Img::AssertUnclosed");
 }
 
 
@@ -478,6 +489,7 @@ CamStenope *   cImagH::CamC()
 
 cLink2Img * cImagH::GetLinkOfImage(cImagH* anI2)
 {
+   AssertLnkClosed();
    tMapName2Link::iterator anIt = mLnks.find(anI2);
    if (anIt==mLnks.end())
       return 0;
@@ -487,6 +499,7 @@ cLink2Img * cImagH::GetLinkOfImage(cImagH* anI2)
 
 void cImagH::AddLink(cImagH * anI2,const std::string & aNameH)
 {
+      AssertLnkUnclosed();
       mLnks[anI2] = new cLink2Img(this,anI2,aNameH);
 }
 
@@ -516,6 +529,12 @@ cElHomographie &   cImagH::HTmp()
 
 
    //============ FUSION DE POINT =========================
+
+const std::vector<cLink2Img*> &  cImagH::VLink() const
+{
+   return mVLnkInterneSorted;
+}
+
 
 const std::string & cImagH::Name() const
 {
