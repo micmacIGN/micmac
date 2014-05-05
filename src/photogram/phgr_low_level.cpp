@@ -46,6 +46,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include <vector>
 
+extern bool DebugOFPA ;
+
+/*
 class RacineFonc1D
 {
      public :
@@ -98,6 +101,18 @@ void RacineFonc1D::solutions_1prof
          v0 =  v1;
     }
 }
+*/
+
+
+/*
+    Nouvelle classe pour tenter de resoudre les problemes d'instabilite numerique apparues sur donnees vide drone tres longue focale.
+
+    On ecrit :
+             (1)  + (0)  + (0)
+       pa =  (1)  + (U)  + (Ea)
+             (1)  + (V)  + (Eb)
+    
+*/
 
 
 class  ResProfChamp 
@@ -186,6 +201,8 @@ ResProfChamp::ResProfChamp
 
    _signdisc    (1)
 {
+if ( DebugOFPA)
+std::cout << "ResProfChamp:: " << (pa.z-1) << " " << (pb.z-1) << " " << (pc.z-1) << "\n";
 }
 
 
@@ -223,6 +240,8 @@ void ResProfChamp::ListeC(ElSTDNS list<Pt3dr>&  res)
 
      RealRootsOfRealPolynome(mRoots,_Resolv,1e-10,100);
 
+     int OKS = 0;
+
      for (_signdisc =-1; _signdisc <=1 ; _signdisc+=2)
      {
          for (INT k=0; k<(INT) mRoots.size(); k++) 
@@ -230,6 +249,7 @@ void ResProfChamp::ListeC(ElSTDNS list<Pt3dr>&  res)
             REAL c = mRoots[k];
             if (OkSolC(c))
             {
+               OKS ++;
                bool OK;
                REAL b = BfromC(c,OK);
                ELISE_ASSERT(OK,"Incoh in ResProfChamp::ListeC");
@@ -245,6 +265,16 @@ void ResProfChamp::ListeC(ElSTDNS list<Pt3dr>&  res)
                {
                    REAL ratio = _DistBC / euclid(_PB*b-_PC*c);
                    res.push_back(Pt3dr(1,b,c)*ratio);
+               }
+               else
+               {
+                     if (DebugOFPA)
+                     {
+                         std::cout << "BEGINDbgOFPA \n";
+                         std::cout << ElAbs(RatA-_rhoA) << " " << ElAbs(RatC-_rhoC) << "\n";
+                         std::cout << " POL " <<  c << " " << _Resolv(c) << "\n";
+                         getchar();
+                     }
                }
             }
          }

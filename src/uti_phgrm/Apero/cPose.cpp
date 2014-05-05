@@ -1015,7 +1015,7 @@ else
     }
     else if(mPCI->PosFromBDAppuis().IsInit())
     {
-         //  DebugOFPA = (mName=="Im00565.png");
+         DebugOFPA = (mName=="Im00523.png");
          if (mAppli.ShowMes() || DebugOFPA)
             std::cout << "InitByAppuis " << mName  << "\n\n";
          const cPosFromBDAppuis & aPFA = mPCI->PosFromBDAppuis().Val();

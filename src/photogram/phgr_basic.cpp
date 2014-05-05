@@ -3515,6 +3515,7 @@ void CamStenope::OrientFromPtsAppui
         euclid(R3A-R3B),euclid(R3A-R3C),euclid(R3B-R3C)
     );
 
+
     Res.clear();
     for (INT sign =-1; sign<=1 ; sign += 2)
     {
@@ -3622,7 +3623,7 @@ ElRotation3D  CamStenope::OrientFromPtsAppui
        {
           REAL dist = Cam.EcProj(PR3,PF2);
 
-if (DebugOFPA) std::cout << " " << dist << " " <<  it->IRecVect(Pt3dr(0,0,1)) << "\n";
+// if (DebugOFPA) std::cout << " " << dist << " " <<  it->IRecVect(Pt3dr(0,0,1)) << "\n";
 
           if (dist<dmin)
           {
@@ -3632,7 +3633,7 @@ if (DebugOFPA) std::cout << " " << dist << " " <<  it->IRecVect(Pt3dr(0,0,1)) <<
        }
     }
 
-if (DebugOFPA) std::cout <<  "\n";
+// if (DebugOFPA) std::cout <<  "\n";
 
     if (Res_Dmin) 
        *Res_Dmin = dmin;
@@ -3712,7 +3713,7 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
 
                     double aDist2 = ElMin3(dist8(V2[k0]-V2[k1]),dist8(V2[k1]-V2[k2]),dist8(V2[k2]-V2[k0]));
 
-                    if (0) // (DebugOFPA)
+                    if (0)
                     {
                         std::cout << "AVANT OrientFromPtsAppu " << aNbTestMade  << " D=" << aDist2  << " NBt" << aNbTestMade  << " Nb=" << aNB << " " << V3.size() << "\n";
                         std::cout << V3[k0] << V3[k1] << V3[k2] << "\n";
@@ -3725,6 +3726,11 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
 		         REAL aDist;
 		         INT  aNbSol;
                          ElRotation3D   aRot = OrientFromPtsAppui(TousDevant,L3,L2,&aDist,&aNbSol);
+
+if (0)
+{
+    std::cout << "OrientFromPtsAppui DIST " << aDist   << " NbS " << aNbSol << "\n";
+}
 
 		         if ((aNbSol)&& (aDist < *Res_Dmin))
 		         {

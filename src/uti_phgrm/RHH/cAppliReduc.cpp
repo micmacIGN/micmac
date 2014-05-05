@@ -72,7 +72,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mSetEq        (cNameSpaceEqF::eSysL2BlocSym),
    mH1On2        (true),
    mHFD          (true),
-   mKeyHomogr    (std::string("NKS-RHH-Assoc-CplIm2Data@@Homogr@") + (mHFD ?  ".dmp" : ".xml")),
+   mKeyHomogr    (std::string("NKS-RHH-Assoc-CplIm2Data@@Homogr@") + (mHFD ?  "dmp" : "xml")),
    mKeyHomolH    (std::string("NKS-RHH-Assoc-CplIm2Data@@HomolH@dat") ),
    mSkipHomDone  (true),
    mSkipPlanDone (true),
