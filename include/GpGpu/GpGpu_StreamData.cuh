@@ -165,7 +165,7 @@ public:
 
     void                __device__  AddValue(int id, T value);
 
-    uint                __device__  GetGiD(){return _idG;}
+    //long int                __device__  GetGiD(){return _idG;}
 
     template<bool sens> __device__  void reverse();
 
@@ -174,39 +174,39 @@ public:
 private:
 
     T*      _globalStream;
-    int    _idG;
+    //long int    _idG;
     ushort  _sizeBuffer;
 };
 
 template<class T> __device__
 SimpleStream<T>::SimpleStream( T *globalStream, ushort sizeBuffer):
     _globalStream(globalStream + threadIdx.x),
-    _idG(0),
+    //_idG(0),
     _sizeBuffer(sizeBuffer)
 {}
 
 template<class T> __device__
 T SimpleStream<T>::GetValue(int id)
 {
-    return _globalStream[_idG + id];
+    return _globalStream[id];
 }
 
 template<class T> __device__
 void SimpleStream<T>::SetValue(int id, T value)
 {
-    _globalStream[_idG + id] = value;
+    _globalStream[id] = value;
 }
 
 template<class T> __device__
 void SimpleStream<T>::SubValue(int id, T value)
 {
-    _globalStream[_idG + id] -= value;
+    _globalStream[id] -= value;
 }
 
 template<class T> __device__
 void SimpleStream<T>::AddValue(int id, T value)
 {
-    _globalStream[_idG + id] += value;
+    _globalStream[id] += value;
 }
 
 template<class T> __device__
@@ -216,7 +216,7 @@ void SimpleStream<T>::output()
     {
         printf("----------------------------------\n");
         printf("_sizeBuffer = %d\n",_sizeBuffer);
-        printf("_idG        = %d\n",_idG);
+        //printf("_idG        = %d\n",_idG);
         printf("----------------------------------\n");
     }
 }
@@ -224,7 +224,7 @@ void SimpleStream<T>::output()
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::reverse()
 {
-    _idG += sgn(WARPSIZE);
+    _globalStream += sgn(WARPSIZE);
 }
 
 template<class T> template<bool sens> __device__
@@ -237,7 +237,7 @@ void SimpleStream<T>::read(T *sharedBuffer)
 template<class T> template<bool sens,class S> __device__
 void SimpleStream<T>::readFrom(S *sharedBuffer,uint delta)
 {
-    T* gLocal = _globalStream  + _idG + sgn(delta);
+    T* gLocal = _globalStream + sgn(delta);
 
     for(ushort i = 0; i < _sizeBuffer; i += WARPSIZE)
         *(sharedBuffer + sgn(i)) = *(gLocal+sgn(i));
@@ -246,7 +246,7 @@ void SimpleStream<T>::readFrom(S *sharedBuffer,uint delta)
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::incre()
 {
-    _idG += sgn(_sizeBuffer);
+    _globalStream += sgn(_sizeBuffer);
 }
 
 template<class T> template<bool sens> __device__
