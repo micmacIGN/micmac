@@ -241,11 +241,13 @@ template <class Type>
 }
 
 
+/*
 template <class Type>  ElPolynome<Type> operator *
                        (const Type & v,const ElPolynome<Type> & p)
 {
    return p*v;
 }
+*/
 
 template <> const REAL   ElPolynome<REAL >::El0 (0.0);
 template <> const REAL   ElPolynome<REAL >::El1 (1.0);
@@ -254,12 +256,18 @@ template <> const Pt2dr  ElPolynome<Pt2dr>::El1 (1.0,0.0);
 
 
 template class ElPolynome<REAL>;  
-template ElPolynome<REAL>  operator * (const REAL &,const  ElPolynome<REAL> &);
+// template ElPolynome<REAL>  operator * (const REAL &,const  ElPolynome<REAL> &);
 template class ElPolynome<Pt2dr>;  
 
 
+template <> const float   ElPolynome<float >::El0 (0.0);
+template <> const float   ElPolynome<float >::El1 (1.0);
+template class ElPolynome<float>;  
 
 
+template <> const REAL16   ElPolynome<REAL16 >::El0 (0.0);
+template <> const REAL16   ElPolynome<REAL16 >::El1 (1.0);
+template class ElPolynome<REAL16>;  
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
