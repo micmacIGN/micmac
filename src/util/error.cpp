@@ -418,7 +418,7 @@ char  hexa(int  aV)
   return 16;
 }
 
-std::string cMajickChek::MajId()
+std::string cMajickChek::ShortMajId()
 {
    REAL16 aV = mCheck1 - mCheckInv + mCheck2;
    unsigned char * aTabC = (unsigned char *) &aV;
@@ -430,8 +430,14 @@ std::string cMajickChek::MajId()
         sMajAscii[2*aK+1] = hexa(aC%16);
    }
    sMajAscii[2*aNbOct] = 0;
+   return std::string(sMajAscii);
+}
 
-   std::string aRes =  std::string(sMajAscii) + (mGotNan ? "-NAN" : (mGotInf ? "-INF" :"--OK"));
+
+std::string cMajickChek::MajId()
+{
+
+   std::string aRes =  ShortMajId() + (mGotNan ? "-NAN" : (mGotInf ? "-INF" :"--OK"));
 
    aRes = aRes + "::" + ToString(double(mCheck1)) +  "::" + ToString(double(mCheckInv)) + "::" + ToString(double(mCheck2));
 
@@ -452,6 +458,16 @@ void  cMajickChek::Add(const ElRotation3D & aR)
     AddDouble(aR.teta01());
     AddDouble(aR.teta02());
     AddDouble(aR.teta12());
+}
+
+void cMajickChek::Add(const std::string & aS)
+{
+   int aK=0;
+   for (const char * aC= aS.c_str(); *aC;aC++)
+   {
+      AddDouble(*aC + 1/(0.234+aK));
+      aK++;
+   }
 }
 
 void  cMajickChek::Add(cGenSysSurResol & aSys)

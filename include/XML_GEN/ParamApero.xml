@@ -532,6 +532,7 @@
                    <ConvCal Nb="?"  Type="eConventionsOrientation" Def="eConvApero_DistM2C" > </ConvCal>
                     
 	           <Directory Nb="?" Type="std::string" Def="">        </Directory>
+                   <AddDirCur Nb="?" Type="bool" Def="true">           </AddDirCur>
 		   <CalValueInit Nb="1">
 			 <CalFromValues  Nb="?"     
 			     RefType="CalibrationInternConique" 
@@ -1197,7 +1198,7 @@ normalises en echelle et/ou en translation -->
 		             <!--  PondPlan Ssi la liaison a ete declaree plane -->
 			     <PondSurf Nb="?" RefType="PonderationPackMesure"> </PondSurf>
                              <!-- TRI VALEUR Si on le donne : x =Z, y = Poids compens z=seuil -->
-                             <RappelOnZ Nb="?" Type="Pt3dr"> 
+                             <RappelOnZ Nb="?">  
                                    <Z Nb="1" Type="double"> </Z>
                                    <!-- Incertitude pour l'estimation et la compensation -->
                                    <IncC Nb="1" Type="double"> </IncC>

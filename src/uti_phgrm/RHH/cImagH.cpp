@@ -96,6 +96,7 @@ cXmlRHHResLnk  ComputeHomographie
   // On fait une correction de distorsion
   bool 	aCorCam = true;
   ELISE_ASSERT(aCorCam,"Cor cam mandatory");
+  std::vector<Pt2dr> aVP1;
  
 
   if (aCorCam)
@@ -109,11 +110,26 @@ cXmlRHHResLnk  ComputeHomographie
       {
           itH->P1() =  aCam1->F2toPtDirRayonL3(itH->P1());
           itH->P2() =  aCam2->F2toPtDirRayonL3(itH->P2());
+          aVP1.push_back(itH->P1());
       }
   }
 
 
   cElHomographie   aHom = cElHomographie::RobustInit(&(aRes.Qual()),aPack,aRes.Ok(),NB_RANSAC_H,90.0,1000);
+  int aNbPts = aPack.size();
+  aRes.NbPts() = aNbPts;
+
+  if (0)
+  {
+    cXmlHomogr aXH =  aHom.ToXml();
+
+    std::cout << "ROBUST:Nan " << aHom.HasNan() << " " << aName << "\n";
+    aHom.Show();
+    std::cout << "XML ZX  " << aXH.Z().CoeffX() << "\n";
+    MakeFileXML(aXH,"toto.xml");
+    getchar();
+  }
+
   if (aCorCam)
   {
       aRes.Qual() *=  aCam2->Focale();
@@ -124,27 +140,19 @@ cXmlRHHResLnk  ComputeHomographie
 
   if (aRes.Ok())
   {
-
-/*
-     std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
-
-     cResMepRelCoplan aRCP = aPack.MepRelCoplan(1,aHom,aPair);
-
-     const std::vector<cElemMepRelCoplan> & aVSol = aRCP.VElOk();
-
-     std::cout <<   aName << " ANGLES : ";
-     for (int aK=0 ; aK<int(aVSol.size()) ; aK++)
-     {
-        std::cout  << aPack.size() << " ";
-        std::cout  <<  aRes.Qual() << " ";
-        std::cout  << aVSol[aK].Norm() << " ## ";
-        // std::cout  << aVSol[aK].TestSol() << " ";
-     }
-     std::cout << " \n";
-*/
-
-
      aRes.Hom12() = aHom.ToXml();
+
+
+     Pt2di aSz (3,3);
+     if (aNbPts > 100)
+        aSz = Pt2di(4,4);
+     if (aNbPts > 500)
+        aSz = Pt2di(5,5);
+     if (aNbPts > 2000)
+        aSz = Pt2di(6,6);
+
+   // mEchantP1 = GetDistribRepresentative(mCdg1,aVP2,aSz);
+     aRes.EchRepP1() = GetDistribRepreBySort(aVP1,aSz,aRes.PRep());
   }
 
 
@@ -205,6 +213,7 @@ cLink2Img::cLink2Img(cImagH * aSrce,cImagH * aDest,const std::string & aNameH) :
 {
 }
 
+
 //  Gestion des noms 
 
 std::string cLink2Img::NameHomol() const
@@ -214,24 +223,24 @@ std::string cLink2Img::NameHomol() const
 
 std::string cLink2Img::NameXmlHomogr() const
 {
-    std::string aDir,aNameH;
-    SplitDirAndFile(aDir,aNameH,NameHomol());
-
-    return aDir +  "Homogr-" + StdPrefix(aNameH) + ".xml";
-
+    return mAppli.NameFileHomogr(*this);
 }
 
 std::string  cLink2Img::NameComHomogr() const
 {
+   std::string aNameRes = NameXmlHomogr();
+   if (mAppli.SkipHomDone() && ELISE_fp::exist_file(aNameRes))
+      return "";
+
    return      MM3dBinFile("TestLib") 
-            +  std::string(" RHHComputHom ")
+            +  std::string(" RHHComputHom ")   //  RHHComputHom_main
             +  NameHomol() 
             +  std::string(" ")
             +  mSrce->NameCalib()
             +  std::string(" ")
             +  mDest->NameCalib()
             +  std::string(" ")
-            +  NameXmlHomogr();
+            + aNameRes;
 }
 
 
@@ -243,6 +252,9 @@ void cLink2Img::LoadXmlHom(const cXmlRHHResLnk & aXml)
      {
          mQualHom = aXml.Qual();
          mHom12 =  cElHomographie(aXml.Hom12());
+         mNbPts     = aXml.NbPts();
+         mEchantP1  = aXml.EchRepP1();
+         mPRep1     = aXml.PRep();
      }
 }
 
@@ -253,9 +265,9 @@ void cLink2Img:: LoadComHomogr()
     LoadXmlHom(aXmlLnk);
 }
 
-void  cLink2Img::LoadHomographie(bool ExigOk)
+void  cLink2Img::LoadStatPts(bool ExigOk)
 {
-     LoadPack();
+     // LoadPack();
      if (!mHomLoaded) 
      {
         cXmlRHHResLnk 	aXml = ComputeHomographie
@@ -275,22 +287,21 @@ void  cLink2Img::LoadHomographie(bool ExigOk)
      }
 }
 
-void  cLink2Img::LoadHomographie(bool ExigOk) const
+void  cLink2Img::LoadStatPts(bool ExigOk) const
 {
-   const_cast<cLink2Img*>(this)->LoadHomographie(ExigOk);
+   const_cast<cLink2Img*>(this)->LoadStatPts(ExigOk);
 }
 
-void cLink2Img::LoadPack()
+void cLink2Img::LoadPtsHom()
 {
+   LoadStatPts(true);
    if (mPckLoaded)
       return;
+
+   ELISE_ASSERT(false,"Currenlty RHH shoul not need to load pack");
    mPckLoaded = true;
    mPack = ElPackHomologue::FromFile(mSrce->Appli().Dir()+mNameH);
 
-
-   mNbPts =  mPack.size();
-   std::vector<Pt2dr>  aVP2;
-   Pt2dr aSom(0,0);
    CamStenope * aCam1 = mSrce->CamC();
    CamStenope * aCam2 = mDest->CamC();
    for
@@ -302,51 +313,24 @@ void cLink2Img::LoadPack()
    {
        itP->P1() =  aCam1->F2toPtDirRayonL3(itP->P1());
        itP->P2() =  aCam2->F2toPtDirRayonL3(itP->P2());
-       Pt2dr aP1 = itP->P1();
-       aVP2.push_back(aP1);
-       aSom = aSom + aP1;
        // mEchantP1.push_back(Pt3dr(aP1.x,aP1.y,1.0));
    }
-   aSom = aSom / mNbPts;
-   mCdg1 = Pt3dr(aSom.x,aSom.y,mNbPts);
-
-   Pt2di aSz (3,3);
-   if (aVP2.size() > 100)
-      aSz = Pt2di(4,4);
-   if (aVP2.size() > 500)
-      aSz = Pt2di(5,5);
-   if (aVP2.size() > 2000)
-      aSz = Pt2di(6,6);
-
-   // mEchantP1 = GetDistribRepresentative(mCdg1,aVP2,aSz);
-   mEchantP1 = GetDistribRepreBySort(aVP2,aSz);
-
-
-if(0)
-{
-   std::cout << mCdg1  << NameHomol() << "\n";
-   for (int aK=0 ; aK<int(mEchantP1.size()) ; aK++)
-      std::cout << mEchantP1[aK] << "\n";
-   getchar();
 }
 
-   
-}
-
-void  cLink2Img::LoadPack() const
+void  cLink2Img::LoadPtsHom() const
 {
-   const_cast<cLink2Img*>(this)->LoadPack();
+   const_cast<cLink2Img*>(this)->LoadPtsHom();
 }
 
 
 const ElPackHomologue & cLink2Img::Pack() const
 {
-   LoadPack();
+   LoadPtsHom();
    return mPack;
 }
 ElPackHomologue & cLink2Img::Pack() 
 {
-   LoadPack();
+   LoadPtsHom();
    return mPack;
 }
 
@@ -358,7 +342,7 @@ ElPackHomologue & cLink2Img::Pack()
 
 double cLink2Img::CoherenceH()
 {
-    LoadPack();
+    LoadStatPts(true);
 
     cElHomographie aI2T_A = CalcSrceFromDest();
     cElHomographie aI2T_B = mSrce->Hi2t();
@@ -402,7 +386,7 @@ const std::string &  cLink2Img::NameH() const
 
 const int   &  cLink2Img::NbPts() const
 {
-    LoadPack();
+    LoadStatPts(true);
     return mNbPts;
 }
 
@@ -415,25 +399,25 @@ int   &  cLink2Img::NbPtsAttr()
 
 const bool & cLink2Img::OkHom() const
 {
-   LoadHomographie(false);
+   LoadStatPts(false);
    return mOkHom;
 }
 
 
 const double & cLink2Img::QualHom() const
 {
-   LoadHomographie(true);
+   LoadStatPts(true);
    return mQualHom;
 }
 
 const cElHomographie &  cLink2Img::Hom12() const
 {
-    LoadHomographie(true);
+    LoadStatPts(true);
     return mHom12;
 }
 cElHomographie &  cLink2Img::Hom12() 
 {
-    LoadHomographie(true);
+    LoadStatPts(true);
     return mHom12;
 }
 
@@ -448,7 +432,7 @@ cElHomographie cLink2Img::CalcSrceFromDest ()
 
 const std::vector<Pt3dr> & cLink2Img::EchantP1() const
 {
-    LoadPack();
+    LoadStatPts(true);
     return mEchantP1;
 }
 
@@ -478,10 +462,20 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mSomNbPts (0),
    mHi2t     (cElHomographie::Id()),
    mHTmp     (cElHomographie::Id()),
-   mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName))
+   mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName)),
+   mLnkClosed  (false)
 {
 
    // std::cout << "NCCC " << mNameCalib << " [" << mNameVerif<< "]\n";
+}
+
+void cImagH::AssertLnkClosed()
+{
+  ELISE_ASSERT(mLnkClosed,"cLink2Img::AssertClosed");
+}
+void cImagH::AssertLnkUnclosed()
+{
+  ELISE_ASSERT(!mLnkClosed,"cLink2Img::AssertUnclosed");
 }
 
 
@@ -495,6 +489,7 @@ CamStenope *   cImagH::CamC()
 
 cLink2Img * cImagH::GetLinkOfImage(cImagH* anI2)
 {
+   AssertLnkClosed();
    tMapName2Link::iterator anIt = mLnks.find(anI2);
    if (anIt==mLnks.end())
       return 0;
@@ -504,6 +499,7 @@ cLink2Img * cImagH::GetLinkOfImage(cImagH* anI2)
 
 void cImagH::AddLink(cImagH * anI2,const std::string & aNameH)
 {
+      AssertLnkUnclosed();
       mLnks[anI2] = new cLink2Img(this,anI2,aNameH);
 }
 
@@ -533,6 +529,12 @@ cElHomographie &   cImagH::HTmp()
 
 
    //============ FUSION DE POINT =========================
+
+const std::vector<cLink2Img*> &  cImagH::VLink() const
+{
+   return mVLnkInterneSorted;
+}
+
 
 const std::string & cImagH::Name() const
 {
@@ -633,6 +635,11 @@ void cImagH::ComputePts()
     {
         ComputePtsLink(*(itL->second));
     }
+}
+
+std::string cImagH::NameOriHomPlane() const
+{
+   return mAppli.Dir() + "RHH/" + mName +  "/OriPlane-" +  mName  + ".xml";
 }
 
 

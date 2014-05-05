@@ -41,17 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-class cPatOfName
-{
-    public :
-       cPatOfName();
-       std::string Pattern() const;
-       void AddName(const std::string &);
-    private :
-        std::string mPat;
-        int mNb;
-};
-
 
 cPatOfName::cPatOfName() :
     mPat ("\"(") ,

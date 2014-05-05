@@ -78,11 +78,26 @@ void cImagH::LoadComHomogr()
 void cImagH::AddComCompHomogr(std::list<std::string> & aLCom)
 {
     for ( tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
-       aLCom.push_back(itL->second->NameComHomogr());
+    {
+       std::string aCom = itL->second->NameComHomogr();
+       if (aCom!="")
+          aLCom.push_back(aCom);
+    }
 }
+
+class cCmpLnkPtrOnName
+{
+   public :
+      bool operator ()(cLink2Img * aLnk1,cLink2Img * aLnk2)
+      {
+          return aLnk1->Dest()->Name() < aLnk2->Dest()->Name() ;
+      }
+};
+    cCmpLnkPtrOnName aCmp;
 
 void cImagH::ComputeLnkHom()
 {
+    AssertLnkUnclosed();
     tMapName2Link  aNewL;
     for ( tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
     {
@@ -126,6 +141,14 @@ void cImagH::ComputeLnkHom()
 
     if (mAppli.Show(eShowDetail))
         std::cout << " - " << mName << " QMOY " << (mSomNbPts ? mSomQual : 1e10) << "\n";
+
+    mLnkClosed = true;
+    for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+    {
+       mVLnkInterneSorted.push_back(itL->second);
+    }
+    cCmpLnkPtrOnName aCmp;
+    std::sort(mVLnkInterneSorted.begin(),mVLnkInterneSorted.end(),aCmp);
 }
 
 

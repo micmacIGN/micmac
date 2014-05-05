@@ -52,6 +52,46 @@
 *                                                               *
  *********************************************************** -->
 
+<!--   HOMOGRAPHY-COMPUTING
+
+      NKS-RHH-Assoc-CplIm2Data@@Homogr@dmp
+      NKS-RHH-Assoc-CplIm2Data@@Homologous@dat
+-->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> RHH#1/$1/#2$2.#3  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> RHH#1/(.*)/#2(.*)\.#3 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  NKS-RHH-Assoc-CplIm2Data </Key>
+	<SubDirAutoMake>  RHH#1</SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> #3/HomolH(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   RHH#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-RHH-Set-Homol </Key>
+    </KeyedSetsOfNames>
+
+
+
+
         <!-- ***********************************************   -->
         <!--                                                   -->
         <!--                SETS                               -->
@@ -88,10 +128,11 @@
 	  </Sets>
           <Key> NKS-Set-Homol </Key>
     </KeyedSetsOfNames>
+
     <KeyedSetsOfNames >
           <IsParametrized>  true </IsParametrized>
           <Sets>
-                 <PatternAccepteur> Pastis#3/#3\.(#2)  </PatternAccepteur>
+                 <PatternAccepteur> Pastis#3/(.*).(#2)  </PatternAccepteur>
                  <SubDir>   Homol#1/ </SubDir>
                  <NivSubDir> 2 </NivSubDir>
           </Sets>
@@ -315,8 +356,6 @@
         <Key>   NKS-Assoc-Im2OrientChangExt </Key>
 	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
     </KeyedNamesAssociations>
-
-
 
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>

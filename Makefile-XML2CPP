@@ -2,6 +2,8 @@
 #     !!!   MAKE FILE POUR LES  GENERER LES CPP A PARTIR DES XML
 #     POUR LE RESTE VOIR CMAKE
 #
+CodeGenere/File2String/cParamXMLNew0.cpp : include/XML_GEN/ParamXMLNew0.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamXMLNew0.xml 3 CodeGenere/File2String/cParamXMLNew0
 src/XML_GEN/ParamChantierPhotogram.cpp :  include/XML_GEN/ParamChantierPhotogram.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamChantierPhotogram.xml 1
 CodeGenere/File2String/Str_DefautChantierDescripteur.cpp : include/XML_GEN/DefautChantierDescripteur.xml
@@ -19,6 +21,7 @@ applis/CASA/cParamCasa.cpp : include/XML_GEN/ParamCasa.xml
 CodeGenere/File2String/Str_ParamDigeo.cpp : include/XML_GEN/ParamDigeo.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamDigeo.xml 2 src/uti_image/Digeo/cParamDigeo
 all: src/XML_GEN/ParamChantierPhotogram.cpp\
+     CodeGenere/File2String/cParamXMLNew0.cpp\
      CodeGenere/File2String/Str_DefautChantierDescripteur.cpp\
      CodeGenere/File2String/Str_ParamChantierPhotogram.cpp\
      CodeGenere/File2String/Str_SuperposImage.cpp\

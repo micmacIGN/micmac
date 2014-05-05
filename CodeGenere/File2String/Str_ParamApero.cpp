@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1495]) = {
+const char * (theNameVar_ParamApero[1496]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -534,6 +534,7 @@ const char * (theNameVar_ParamApero[1495]) = {
 "                   <ConvCal Nb=\"?\"  Type=\"eConventionsOrientation\" Def=\"eConvApero_DistM2C\" > </ConvCal>\n",
 "                    \n",
 "	           <Directory Nb=\"?\" Type=\"std::string\" Def=\"\">        </Directory>\n",
+"                   <AddDirCur Nb=\"?\" Type=\"bool\" Def=\"true\">           </AddDirCur>\n",
 "		   <CalValueInit Nb=\"1\">\n",
 "			 <CalFromValues  Nb=\"?\"     \n",
 "			     RefType=\"CalibrationInternConique\" \n",
@@ -1199,7 +1200,7 @@ const char * (theNameVar_ParamApero[1495]) = {
 "		             <!--  PondPlan Ssi la liaison a ete declaree plane -->\n",
 "			     <PondSurf Nb=\"?\" RefType=\"PonderationPackMesure\"> </PondSurf>\n",
 "                             <!-- TRI VALEUR Si on le donne : x =Z, y = Poids compens z=seuil -->\n",
-"                             <RappelOnZ Nb=\"?\" Type=\"Pt3dr\"> \n",
+"                             <RappelOnZ Nb=\"?\">  \n",
 "                                   <Z Nb=\"1\" Type=\"double\"> </Z>\n",
 "                                   <!-- Incertitude pour l'estimation et la compensation -->\n",
 "                                   <IncC Nb=\"1\" Type=\"double\"> </IncC>\n",
