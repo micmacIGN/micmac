@@ -1305,11 +1305,11 @@ template <class Type>  class ElPolynome
 	  static const Type  El1;
 };
 
-void  RealRootsOfRealPolynome
+template <class Type> void  RealRootsOfRealPolynome
      (
-         ElSTDNS vector<REAL> &  Sols,
-         const ElPolynome<REAL>  &aPol,
-         REAL                    tol,
+         ElSTDNS vector<Type> &  Sols,
+         const ElPolynome<Type>  &aPol,
+         Type                    tol,
          INT                     ItMax
      );
 
