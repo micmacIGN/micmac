@@ -108,7 +108,10 @@ public slots:
 
 signals:
 
-    void clickedInLine(int);
+    void newX0Position(double);
+    void newY0Position(double);
+    void newX1Position(double);
+    void newY1Position(double);
 
 protected:
 

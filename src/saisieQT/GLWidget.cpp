@@ -558,7 +558,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
 
-                if (polygon()->size()) emit newRectanglePosition(polygon()->getVector());
+                if (polygon()->size())   emit newRectanglePosition(polygon()->getImgCoordVector(m_GLData->glImage()._m_image->height()));
 
                 if(id != polygon()->getSelectedPointIndex())
 

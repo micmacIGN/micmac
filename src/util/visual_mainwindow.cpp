@@ -392,9 +392,10 @@ void visual_MainWindow::_adjustSize(int)
 
 void visual_MainWindow::onRectanglePositionChanged(QVector<QPointF> points)
 {
-    cout << "points" << points.size() << endl;
-
-    //((QSpinBox*) aIn->Widgets()[aK].second)->setValue();
+    emit newX0Position(points[0].x());
+    emit newY0Position(points[0].y());
+    emit newX1Position(points[2].x());
+    emit newY1Position(points[2].y());
 }
 
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
@@ -585,12 +586,16 @@ void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int 
         vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, spinBox));
     }
 
-    add_saisieButton(/*vWidgets, */layout, aK);
+    ((QDoubleSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(0) );
+    ((QDoubleSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
+    ((QDoubleSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(1) );
+    ((QDoubleSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
 
-    ((QSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(0) );
-    ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
-    ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(1) );
-    ((QSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
+    add_saisieButton(/*vWidgets, */layout, aK);
+    connect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(vWidgets[0].second), SLOT(setValue(double)));
+    connect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(vWidgets[1].second), SLOT(setValue(double)));
+    connect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(vWidgets[2].second), SLOT(setValue(double)));
+    connect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(vWidgets[3].second), SLOT(setValue(double)));
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
