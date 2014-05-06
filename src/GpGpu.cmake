@@ -39,7 +39,7 @@ elseif((NOT ${arch_30} LESS 0))
 
     set(cuda_arch_version 30 )
 
-elseif((NOT ${arch_30} LESS 0))
+elseif((NOT ${arch_35} LESS 0))
 
     set(cuda_arch_version 35 )
 
