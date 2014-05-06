@@ -679,7 +679,7 @@ void SaisieQtWindow::setCurrentFile(const QString &fileName)
     foreach (QWidget *widget, QApplication::topLevelWidgets())
     {
         #if WINVER == 0x0601
-            MainWindow *mainWin = dynamic_cast<MainWindow *>(widget);
+            SaisieQtWindow *mainWin = dynamic_cast<SaisieQtWindow *>(widget);
         #else
             SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
         #endif
