@@ -61,6 +61,8 @@ int ConvertIm_main(int argc,char ** argv)
 
     Tiff_Im::PH_INTER_TYPE aPhInterpOut ;
     std::string aNamePITOut ="";
+    std::string PITOut[] = {"RGB","BW"};
+    std::list<std::string> lOut(PITOut, PITOut + sizeof(PITOut) / sizeof(std::string) );
 
     std::string aNameOut;
     std::string anExt;
@@ -89,8 +91,8 @@ int ConvertIm_main(int argc,char ** argv)
                 << EAM(anExt,"Ext",true)
                     << EAM(aSzOut,"SzOut",true)
                     << EAM(aP0,"P0",true)
-                    << EAM(aNameTypeOut,"Type",true)
-                    << EAM(aNamePITOut,"Col",true)
+                    << EAM(aNameTypeOut,"Type",true, "TypeMNT", eSAM_None, ListOfVal(GenIm::bits1_msbf, ""))
+                    << EAM(aNamePITOut,"Col",true, "Col", eSAM_None,lOut)
                     << EAM(aReducXY,"ReducXY",true)
                     << EAM(aReducX,"ReducX",true)
                     << EAM(aReducY,"ReducY",true)
@@ -104,8 +106,8 @@ int ConvertIm_main(int argc,char ** argv)
                     << EAM(aF2,"F2",true)
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
     // Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameIn);
     Tiff_Im aTifIn = Tiff_Im::UnivConvStd(aNameIn);
     INT aNbChIn = aTifIn.nb_chan();
@@ -258,8 +260,8 @@ int ConvertIm_main(int argc,char ** argv)
     ELISE_COPY(rectangle(Pt2di(0,0),aSzROut),aFin,anOut);
 
     return EXIT_SUCCESS;
-	}
-	else return EXIT_FAILURE;
+    }
+    else return EXIT_FAILURE;
 }
 
 

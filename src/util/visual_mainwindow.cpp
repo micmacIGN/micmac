@@ -112,21 +112,22 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
                     add_select(layout, parent, aK, aArg);
                 break;
             }
-            case AMBT_INT1:
-            case AMBT_char:
-            break;
-            case AMBT_vector_Pt2dr:
-            break;
-            case AMBT_vector_int:
-            break;
-            case AMBT_vector_double:
-            break;
-            case AMBT_vvector_int:
-            break;
             case AMBT_vector_string:
                 add_select(layout, parent, aK, aArg);
             break;
+            case AMBT_INT1:
+            case AMBT_char:
+            //break;
+            case AMBT_vector_Pt2dr:
+            //break;
+            case AMBT_vector_int:
+            //break;
+            case AMBT_vector_double:
+            //break;
+            case AMBT_vvector_int:
+            //break;
             case AMBT_unknown:
+                cout << "type non gere: " << aArg.NameType() << endl;
                 break;
             }
         }
@@ -392,6 +393,11 @@ void visual_MainWindow::_adjustSize(int)
 
 void visual_MainWindow::onRectanglePositionChanged(QVector<QPointF> points)
 {
+    emit newX0Position((int) points[0].x());
+    emit newY0Position((int) points[0].y());
+    emit newX1Position((int) points[2].x());
+    emit newY1Position((int) points[2].y());
+
     emit newX0Position(points[0].x());
     emit newY0Position(points[0].y());
     emit newX1Position(points[2].x());
@@ -471,6 +477,12 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     QLineEdit* aLineEdit = new QLineEdit(parent);
     vLineEdit.push_back(aLineEdit);
     layout->addWidget(aLineEdit,aK,1,1,2);
+
+    if (aArg.Type() == AMBT_string )
+    {
+        string defVal(*(aArg.DefaultValue<string>()));
+        if (defVal != "") aLineEdit->setText(QString(defVal.c_str()));
+    }
 
     if (!aArg.IsOutputFile() && !aArg.IsOutputDirOri())
     {
@@ -565,13 +577,11 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_saisieButton(/*vector< pair < int, QWidget * > > vWidgets,*/ QGridLayout *layout, int aK)
+void visual_MainWindow::add_saisieButton( QGridLayout *layout, int aK)
 {
     selectionButton *saisieButton = new selectionButton(tr("Selection editor"));
     layout->addWidget(saisieButton, aK, 5);
     connect(saisieButton,SIGNAL(my_click(int)),this,SLOT(onSaisieButtonPressed(int)));
-
-    //vWidgets.push_back(pair <int, QPushButton*>(eIT_None, saisieButton));
 }
 
 void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
@@ -591,7 +601,7 @@ void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int 
     ((QDoubleSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(1) );
     ((QDoubleSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
 
-    add_saisieButton(/*vWidgets, */layout, aK);
+    add_saisieButton(layout, aK);
     connect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(vWidgets[0].second), SLOT(setValue(double)));
     connect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(vWidgets[1].second), SLOT(setValue(double)));
     connect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(vWidgets[2].second), SLOT(setValue(double)));
@@ -656,12 +666,17 @@ void visual_MainWindow::add_4SpinBox(QGridLayout *layout, QWidget *parent, int a
         vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, spinBox));
     }
 
-    add_saisieButton(/*vWidgets,*/ layout, aK);
-
     ((QSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(0) );
     ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
     ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(1) );
     ((QSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(1) );
+
+    add_saisieButton(layout, aK);
+
+    connect(this,SIGNAL(newX0Position(int)),(QSpinBox*)(vWidgets[0].second), SLOT(setValue(int)));
+    connect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(vWidgets[1].second), SLOT(setValue(int)));
+    connect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(vWidgets[2].second), SLOT(setValue(int)));
+    connect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(vWidgets[3].second), SLOT(setValue(int)));
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
