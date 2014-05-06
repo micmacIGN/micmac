@@ -342,7 +342,7 @@ std::string cImagH::EstimatePlan()
          if (mName != mAppli.ImFocusPlan())
             return "";
           
-         TestEstimPlDirect();
+         // TestEstimPlDirect();
          FocusOnThisIm = true;
      } 
      else

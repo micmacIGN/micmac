@@ -75,13 +75,13 @@ REAL IRoots(REAL val,INT exp)
     }
 }
 
-REAL MajEncadrRoots(const ElPolynome<REAL>  & aPol)
+template <class Type> Type MajEncadrRoots(const ElPolynome<Type>  & aPol)
 {
-    REAL res = 0;
+    Type res = 0;
     INT n = aPol.degre();
-    REAL An = aPol[n];
+    Type An = aPol[n];
     ELISE_ASSERT(An!=0,"Coeff =0 in MajEncadrRoots");
-    REAL aCoeff = (2.0*n)/An;
+    Type aCoeff = (2.0*n)/An;
 
     for (INT k=1 ; k<=n; k++)
         ElSetMax(res,IRoots(ElAbs(aPol[n-k]*aCoeff),k));
@@ -90,47 +90,47 @@ REAL MajEncadrRoots(const ElPolynome<REAL>  & aPol)
 }
 
 
-class DichotSolvePolynone : public NROptF1vDer
+template <class Type> class DichotSolvePolynone : public NROptF1vDer
 {
     public :
         DichotSolvePolynone
         (
-              const ElPolynome<REAL>  & aPol,
-              const ElPolynome<REAL>  & aPolDeriv
+              const ElPolynome<Type>  & aPol,
+              const ElPolynome<Type>  & aPolDeriv
         ) :
            mPol      (aPol),
            mPolDeriv (aPolDeriv)
         {
         }
 
-        REAL BracketSolve(REAL a,REAL b,bool & Ok,REAL tol,INT ItMax);
+        Type BracketSolve(Type a,Type b,bool & Ok,Type tol,INT ItMax);
 
     private :
-       const ElPolynome<REAL>  & mPol;
-       const ElPolynome<REAL>  & mPolDeriv;
+       const ElPolynome<Type>  & mPol;
+       const ElPolynome<Type>  & mPolDeriv;
 
        REAL NRF1v(REAL c)    {return mPol(c);}
        REAL DerNRF1v(REAL c) {return mPolDeriv(c);}
 };
 
 
-REAL DichotSolvePolynone::BracketSolve
+template <class Type> Type DichotSolvePolynone<Type>::BracketSolve
      (
-        REAL a,
-        REAL b,
+        Type a,
+        Type b,
         bool & Ok,
-        REAL tol,
+        Type tol,
         INT ItMax
      )
 {
-  REAL ca = mPol(a);
-  REAL cb = mPol(b);
+  Type ca = mPol(a);
+  Type cb = mPol(b);
   Ok =   ((ca<0) && (cb>0))    ||  ((ca>0) && (cb<0));
 
   if (!Ok)
       return HUGE_VAL;
 
-  REAL res= rtsafe(a,b,tol,ItMax);
+  Type res= rtsafe(a,b,tol,ItMax);
 
   ELISE_ASSERT((res>=a) && (res<=b), "Bad Bracketting in DichotSolvePolynone::BracketSolve ");
   return res;
@@ -145,13 +145,14 @@ REAL DichotSolvePolynone::BracketSolve
     en tete de vecteur resultats
 */
 
+template<class Type>
 void IntervVarOfPrimtive
      (
-         ElSTDNS vector<REAL> &  Roots,
-         REAL  BorneInf,
-         REAL  BorneSup,
-         const ElPolynome<REAL>  &aPol,
-         REAL                    tol,
+         ElSTDNS vector<Type> &  Roots,
+         Type  BorneInf,
+         Type  BorneSup,
+         const ElPolynome<Type>  &aPol,
+         Type                    tol,
          INT                     ItMax,
          bool                    push_borne
      )
@@ -160,17 +161,17 @@ void IntervVarOfPrimtive
          Roots.push_back(BorneInf);
      if (aPol.degre() == 1)
      {
-        REAL a1 = aPol[1];
+        Type a1 = aPol[1];
         if (a1 == 0) return;
-        REAL TheRoot = - aPol[0] / a1;
+        Type TheRoot = - aPol[0] / a1;
         if  ((TheRoot>BorneInf) && (TheRoot<BorneSup))
              Roots.push_back(TheRoot);
      }
      else
      {
 
-         ElSTDNS vector<REAL>  RootsDeriv;
-         ElPolynome<REAL> PolDeriv = aPol.deriv();
+         ElSTDNS vector<Type>  RootsDeriv;
+         ElPolynome<Type> PolDeriv = aPol.deriv();
       
 
          IntervVarOfPrimtive
@@ -185,9 +186,9 @@ void IntervVarOfPrimtive
          );
          for (INT k=1 ; k<(INT)RootsDeriv.size() ; k++)
          {
-            DichotSolvePolynone aSolver(aPol,PolDeriv);
+            DichotSolvePolynone<Type> aSolver(aPol,PolDeriv);
             bool Ok;
-            REAL aRoot = aSolver.BracketSolve(RootsDeriv[k-1],RootsDeriv[k],Ok,tol,ItMax);
+            Type aRoot = aSolver.BracketSolve(RootsDeriv[k-1],RootsDeriv[k],Ok,tol,ItMax);
             if (Ok)
                Roots.push_back(aRoot); 
          }
@@ -201,11 +202,12 @@ void IntervVarOfPrimtive
 bool BugPoly = false;
 
 
-void  RealRootsOfRealPolynome
+template <class Type> void  
+     RealRootsOfRealPolynome
      (
-         ElSTDNS vector<REAL> &  Sols,
-         const ElPolynome<REAL>  &aPol,
-         REAL                    tol,
+         ElSTDNS vector<Type> &  Sols,
+         const ElPolynome<Type>  &aPol,
+         Type                    tol,
          INT                     ItMax
      )
 {
@@ -213,9 +215,35 @@ void  RealRootsOfRealPolynome
     if (aPol.degre() == 0) return;
 
 
-    REAL  Borne =  MajEncadrRoots(aPol);
+    Type  Borne =  MajEncadrRoots(aPol);
     IntervVarOfPrimtive(Sols,-Borne,+Borne,aPol,tol,ItMax,false);
 }
+
+
+template  void  RealRootsOfRealPolynome<REAL>
+                  (
+                      ElSTDNS vector<REAL> &  Sols,
+                      const ElPolynome<REAL>  &aPol,
+                      REAL                    tol,
+                      INT                     ItMax
+                  );
+template  void  RealRootsOfRealPolynome<float>
+                  (
+                      ElSTDNS vector<float> &  Sols,
+                      const ElPolynome<float>  &aPol,
+                      float                    tol,
+                      INT                     ItMax
+                  );
+template  void  RealRootsOfRealPolynome<REAL16>
+                  (
+                      ElSTDNS vector<REAL16> &  Sols,
+                      const ElPolynome<REAL16>  &aPol,
+                      REAL16                    tol,
+                      INT                     ItMax
+                  );
+
+
+
 
 
 
