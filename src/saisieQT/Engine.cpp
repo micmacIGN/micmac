@@ -195,11 +195,9 @@ cEngine::cEngine():
 
 cEngine::~cEngine()
 {
-
     delete _Loader;
     unloadAll();
     delete _Data;
-
 }
 
 
@@ -338,6 +336,17 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     }
 }
 
+void cEngine::saveBox2D(ushort idCur)
+{
+    cPolygon* poly = _vGLData[idCur]->polygon(1);
+
+    for (int aK=0; aK < poly->size(); ++aK)
+    {
+
+        //if (_FileOriMnt != NULL)
+    }
+}
+
 void cEngine::saveMask(ushort idCur, bool isFirstAction)
 {
     if (getData()->getNbImages())
@@ -394,7 +403,6 @@ cGLData* cEngine::getGLData(int WidgetIndex)
 }
 
 //********************************************************************************
-
 
 ViewportParameters::ViewportParameters()
     : m_zoom(1.f)
@@ -459,13 +467,15 @@ void cEngine::checkGeoReferencement(QStringList filenames)
             {
                 std::string aNameTif = filename.toStdString();
 
-                cFileOriMnt aFOMInit = StdGetObjFromFile<cFileOriMnt>
+                _FileOriMnt =  StdGetObjFromFile<cFileOriMnt>
                                        (
                                             StdPrefix(aNameTif)+".xml",
                                             StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                            "FileOriMnt",
                                            "FileOriMnt"
                                        );
+
+                //Pt2dr ptTerrain = ToMnt(aFOM, ptImage);
             }
         }
     }

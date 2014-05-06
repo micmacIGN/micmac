@@ -154,6 +154,8 @@ signals:
 
     void removePoint(int state, int idPt);
 
+    void newRectanglePosition(QVector <QPointF> points);
+
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);
