@@ -91,7 +91,7 @@ public:
 
     std::string getFirstArg() { return mFirstArg; }
 
-    void add_saisieButton(vector< pair < int, QWidget * > > vWidgets, QGridLayout *layout, int aK);
+    void add_saisieButton(/*vector< pair < int, QWidget * > > vWidgets,*/ QGridLayout *layout, int aK);
 
     void setSaisieWin(SaisieQtWindow* win){ _SaisieWin = win;}
 
@@ -103,6 +103,15 @@ public slots:
     void onSelectDirPressed(int);
     void onSaisieButtonPressed(int);
     void _adjustSize(int);
+
+    void onRectanglePositionChanged(QVector <QPointF>);
+
+signals:
+
+    void newX0Position(double);
+    void newY0Position(double);
+    void newX1Position(double);
+    void newY1Position(double);
 
 protected:
 
