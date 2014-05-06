@@ -155,7 +155,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
         argc,argv,
         LArgMain()  << EAMC(mNameIm1Init,"Name Im1", eSAM_IsExistFile)
                     << EAMC(mNameIm2Init,"Name Im2", eSAM_IsExistFile)
-                    << EAMC(mNameOriInit,"Orientation (if NONE, work directly on epipolar)"),
+                    << EAMC(mNameOriInit,"Orientation (if NONE, work directly on epipolar)", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mExe,"Exe",true,"Execute Matching (Def=true)", eSAM_IsBool)
                     << EAM(mZoom0,"Zoom0",true,"Zoom Init (Def=64)")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final (Def=1)")

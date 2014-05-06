@@ -139,7 +139,7 @@ int TiffDev_main(int argc,char ** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aNameFile,"A Name File"),
+        LArgMain()  << EAMC(aNameFile,"File Name", eSAM_IsExistFile),
         LArgMain()  << EAM(aNbChan,"NbChan",true,"Nb Channel")
                     << EAM(B16,"16B",true,"Conserv in 16 Bits if possible")
                     << EAM(ExigNoCompr,"ENC",true,"Exig No Compr")
@@ -591,9 +591,9 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pattern)")
-                    << EAMC(mOri,"Orientation")
-                    << EAMC(mNameMasterIm,"Image corresponding to the box")
+        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
+                    << EAMC(mOri,"Orientation", eSAM_IsExistDirOri)
+                    << EAMC(mNameMasterIm,"Image corresponding to the box", eSAM_IsPatFile)
                     << EAMC(mBox,"Box to clip"),
         LArgMain()  << EAM(aPrefClip,"PrefCliped","def= Cliped")
                     << EAM(aOriOut,"OriOut","Out Orientation, def = input")
