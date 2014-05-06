@@ -13,7 +13,7 @@ if(NOT _resultNVCC EQUAL 0)
       message(STATUS "Error Cuda")
 else()
       set(_cudaArch "${_outNVCC}")
-      message("Cuda capabilities = ${_cudaArch}")
+
 #      string(REPLACE "2.1" "2.1(2.0)" _cudaArch "${_cudaArch}")
       #message("${_cudaArch}")
 endif()
@@ -21,7 +21,9 @@ endif()
 string(FIND "${_cudaArch}" "2.1" arch_21)
 string(FIND "${_cudaArch}" "2.0" arch_20)
 string(FIND "${_cudaArch}" "3.0" arch_30)
+string(FIND "${_cudaArch}" "3.2" arch_32)
 string(FIND "${_cudaArch}" "3.5" arch_35)
+string(FIND "${_cudaArch}" "5.0" arch_50)
 
 if(${CUDA_LINEINFO})
     set(flag_Lineinfo  -lineinfo)
@@ -34,14 +36,22 @@ endif()
 if((NOT ${arch_20} LESS 0) OR (NOT ${arch_21} LESS 0))
 
     set(cuda_arch_version 20 )
+    set(cuda_generation Fermi)
 
-elseif((NOT ${arch_30} LESS 0))
+elseif((NOT ${arch_30} LESS 0) OR (NOT ${arch_32} LESS 0))
 
     set(cuda_arch_version 30 )
+    set(cuda_generation Kepler)
 
-elseif((NOT ${arch_30} LESS 0))
+elseif((NOT ${arch_35} LESS 0))
 
     set(cuda_arch_version 35 )
+    set(cuda_generation Kepler)
+
+elseif((NOT ${arch_50} LESS 0))
+
+    set(cuda_arch_version 50 )
+    set(cuda_generation Maxwell)
 
 else()
 
@@ -49,6 +59,7 @@ else()
 
 endif()
 
+ message("Cuda capabilities SM ${_cudaArch} (${cuda_generation} generation)")
  set(GENCODE_SM -gencode=arch=compute_${cuda_arch_version},code=sm_${cuda_arch_version} ${flag_Lineinfo} ${flag_fastMath})
 
  set(libStatGpGpuTools GpGpuTools)
