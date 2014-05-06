@@ -212,7 +212,8 @@ void cAppliApero::DoAMD()
       return;
 
  
-   std::cout << "BEGIN AMD \n";
+   if (ShowMes())
+      std::cout << "BEGIN AMD \n";
 
    int aNbBl = mSetEq.NbBloc();
    mAMD = new cAMD_Interf (aNbBl);
@@ -307,7 +308,8 @@ void cAppliApero::DoAMD()
 */
 
    
-   std::cout << "END AMD \n";
+   if (ShowMes())
+      std::cout << "END AMD \n";
    
 }
 
@@ -479,7 +481,6 @@ void cAppliApero::PreCompile()
     PreCompileAppuisFlottants();
 
 {
-  std::cout << "TEST-COMPILE-NOW-InitAndCompileBDDObsFlottant \n";
   InitAndCompileBDDObsFlottant();
   // getchar();
 }

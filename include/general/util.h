@@ -664,6 +664,10 @@ void MakeFileDirCompl(std::string &);
 
 
 bool    IsPostfixed  (const ElSTDNS string &,char = '.');
+bool    IsPostfixedBy  (const ElSTDNS string &,const std::string &);
+
+bool IsFileDmp(const std::string &);
+
 
 void EliseBRKP();
 
@@ -792,6 +796,9 @@ class cTplValGesInit
                   SetVal(aVal);
           }
           bool IsInit() const {return mIsInit;}
+          Type & ValForcedForUnUmp() { return mVal; }
+          void SetInitForUnUmp() {mIsInit=true;}
+          const Type & ValForcedForUnUmp() const { return mVal; }
           const Type & Val() const
           {
               ELISE_ASSERT(mIsInit,"Unitialized Value in cValGesInit");
@@ -1497,6 +1504,8 @@ extern bool TransFormArgKey
          const std::vector<std::string> & aDirExt
      );
 
+// Class sepeciale pour gerer les objets autre que string qui peuvent etre initialise par des #1 #2 ..
+// dans les xml pour les cles parametrees, par exemple le <DeltaMin> de <ByAdjacence>
 
 template <class Type> class TypeSubst
 {

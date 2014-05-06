@@ -230,8 +230,8 @@ class cLink2Img  // dans cImagH.cpp
          void LoadComHomogr();
     private :
     
-       void LoadPack();
-       void LoadHomographie(bool ExigOk);
+       void LoadPtsHom();
+       void LoadStatPts(bool ExigOk); // Hom, Ech, Cdg, Nb ....
        void LoadXmlHom(const cXmlRHHResLnk & aXml);
 
        // Gestion des noms
@@ -239,8 +239,8 @@ class cLink2Img  // dans cImagH.cpp
        std::string NameXmlHomogr() const;
 
        // 2 imposteurs sur les const
-       void LoadPack() const;
-       void LoadHomographie(bool ExigOk) const;
+       void LoadPtsHom() const;
+       void LoadStatPts(bool ExigOk) const;
 
         cLink2Img(const cLink2Img &) ; // N.I.
         int      mNbPts;
@@ -258,7 +258,7 @@ class cLink2Img  // dans cImagH.cpp
         ElPackHomologue mPack;
 
         std::vector<Pt3dr> mEchantP1;
-        Pt3dr              mCdg1;
+        Pt3dr              mPRep1;
         cEqHomogFormelle * mEqHF;
 };
 
@@ -267,6 +267,9 @@ class cImagH
      public :
 // PRE REQUIS POUR LE MERGING
 //=====================
+
+        void TestEstimPlDirect();
+        void Close();
 
         cLink2Img * GetLinkOfImage(cImagH*);
 
@@ -281,7 +284,7 @@ class cImagH
 
          void SetPHom(const Pt2dr & aP,cPtHom *);
          void ComputeLnkHom();
-         void EstimatePlan();
+         std::string EstimatePlan();
 
          void SetMarqued(int);
          void SetUnMarqued(int);
@@ -303,6 +306,10 @@ class cImagH
          int & NumTmp();
          cHomogFormelle *  & HF();
          const tMapName2Link & Lnks() const;
+         CamStenope *  CamC();
+         std::string NameOriHomPlane() const;
+         const std::vector<cLink2Img*> &  VLink() const;
+
      private :
 
 
@@ -313,12 +320,16 @@ class cImagH
 
          cImagH(const cImagH &); // N.I.
          void ComputePtsLink(cLink2Img & aLnk);
+         void AssertLnkUnclosed();
+         void AssertLnkClosed();
 
          cAppliReduc &              mAppli;
          std::map<Pt2dr,cPtHom *>   mMapH;  // Liste des Hom deja trouves via les prec
          tMapName2Link                  mLnks;
+         std::vector<cLink2Img*>    mVLnkInterneSorted;  // Sort by name, valide une  fois closed
          std::string                mName;
          std::string                mNameCalib;
+         CamStenope *               mCamC;
          std::string                mNameVerif;
          int                        mNum;
          int                        mNumTmp;
@@ -330,6 +341,8 @@ class cImagH
          cElHomographie             mHTmp;  // Envoie terrain ver im
          cHomogFormelle *           mHF;
          cMetaDataPhoto             mMDP;
+         bool                       mPlanEst;
+         bool                       mLnkClosed;
 };
 
 
@@ -392,6 +405,15 @@ class cAppliReduc
          void ComputeHom();
          std::string NameCalib(const std::string & aNameIm) const;
          std::string NameVerif(const std::string & aNameIm) const;
+         bool  H1On2() const;
+         cInterfChantierNameManipulateur *ICNM() const;
+         std::string  NameFileHomogr(const cLink2Img &) const;
+         std::string  NameFileHomolH(const cLink2Img &) const;
+         bool SkipHomDone() const;
+         bool SkipPlanDone() const;
+         double AltiCible() const;
+         bool             HasImFocusPlan () const;
+         std::string      ImFocusPlan () const;
 
      private :
 
@@ -421,8 +443,8 @@ class cAppliReduc
          cInterfChantierNameManipulateur *mICNM;
          const cInterfChantierNameManipulateur::tSet * mSetNameIm;
          const cInterfChantierNameManipulateur::tSet * mSetNameHom;
-         std::string  mKeyHomol;
-         std::string  mKeyH2I;
+         std::string  mKeySetHomol;
+         std::string  mKeyInitIm2Homol;
 
 
          std::vector<cImagH *>  mIms;
@@ -431,6 +453,16 @@ class cAppliReduc
 
         cSetEqFormelles                     mSetEq;
         eNivShow                            mNivShow;
+        bool                                mH1On2;
+        bool                                mHFD; // HomogrFormatDump
+        std::string                         mKeyHomogr;
+        std::string                         mKeyHomolH;
+        bool                                mSkipHomDone;
+        bool                                mSkipPlanDone;
+        bool                                mSkipAllDone;
+        double                              mAltiCible;
+        bool                                mHasImFocusPlan;
+        std::string                         mImFocusPlan;
 
 };
 

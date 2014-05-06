@@ -69,7 +69,17 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mSeuilDistNorm (0.2),
    mKernConnec   (3),
    mKernSize     (6),
-   mSetEq        (cNameSpaceEqF::eSysL2BlocSym)
+   mSetEq        (cNameSpaceEqF::eSysL2BlocSym),
+   mH1On2        (true),
+   mHFD          (true),
+   mKeyHomogr    (std::string("NKS-RHH-Assoc-CplIm2Data@@Homogr@") + (mHFD ?  "dmp" : "xml")),
+   mKeyHomolH    (std::string("NKS-RHH-Assoc-CplIm2Data@@HomolH@dat") ),
+   mSkipHomDone  (true),
+   mSkipPlanDone (true),
+   mSkipAllDone  (true),
+   mAltiCible    (1000),
+   mHasImFocusPlan (false),
+   mImFocusPlan    ("")
    // mQT        (PtOfPhi,Box2dr(Pt2dr(-100,-100),Pt2dr(30000,30000)),10,500)
 {
 
@@ -91,12 +101,34 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(aIntNivShow,"Show",true,"Level of Show (0=None, Def= 1)")
                     << EAM(mHomByParal,"HbP",true,"Compute Homography in // (Def=true)")
                     << EAM(mOriVerif,"Verif",true,"To generate perfect homographic tie (tuning purpose)")
+                    << EAM(mH1On2,"H1on2",true,"Fix arbitrary order of hom , tuning")
+                    << EAM(mHFD,"HFD",true,"Homogr in dump format, tuning (Def true)")
+                    << EAM(mSkipHomDone,"SHD",true,"Skip Hom calc when files already Done (accelerate tuning))")
+                    << EAM(mSkipPlanDone,"SPD",true,"Skip Plan calc when files already Done (accelerate tuning))")
+                    << EAM(mSkipAllDone,"SAD",true,"Skip All calc when files already Done (accelerate tuning))")
+                    << EAM(mAltiCible,"Alti",true,"Fix arbitrary altitude (def = 1000)")
+                    << EAM(mImFocusPlan,"IFP",true,"Image Focus on Plane, tuning")
     );
+
+    if (EAMIsInit(&mSkipAllDone))
+    {
+         if  (!EAMIsInit(&mSkipHomDone))  mSkipHomDone = mSkipAllDone;
+         if  (!EAMIsInit(&mSkipPlanDone)) mSkipPlanDone = mSkipAllDone;
+    }
+
+    if (EAMIsInit(&mImFocusPlan))
+    {
+        mHasImFocusPlan = true;
+    }
+
 
    SplitDirAndFile(mDir,mName,mFullName);
    StdCorrecNameOrient(mOri,mDir);
    if (EAMIsInit(&mOriVerif))
+   {
+      mHomByParal = false;
       StdCorrecNameOrient(mOriVerif,mDir);
+   }
 
     mKeyOri = "NKS-Assoc-FromFocMm@Ori-" + mOri +"/AutoCal@" + ".xml";
     if (EAMIsInit(&mOriVerif))
@@ -112,9 +144,10 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mSetNameIm = mICNM->Get(mName);
    // mKeyHomol = "NKS-Set-Homol@"+mExtHomol+"@"+(mImportTxt ?"txt" : "dat");
    // mKeyH2I = "NKS-Assoc-CplIm2Hom@"+mExtHomol+"@"+(mImportTxt ?"txt" : "dat");
-   mKeyHomol = KeyHIn("NKS-Set-Homol");
-   mKeyH2I =  KeyHIn("NKS-Assoc-CplIm2Hom");
-   mSetNameHom =  mICNM->Get(mKeyHomol);
+   // mKeySetHomol = KeyHIn("NKS-Set-Homol");
+   mKeySetHomol = "NKS-Set-Homol-Filtered@" +mExtHomol+(mImportTxt ?"@txt@" : "@dat@") + mName;
+   mKeyInitIm2Homol =  KeyHIn("NKS-Assoc-CplIm2Hom");
+   mSetNameHom =  mICNM->Get(mKeySetHomol);
 
    std::cout << "NbIm " << mSetNameIm->size() << " NbH " << mSetNameHom->size() << "\n";
 
@@ -135,7 +168,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    for (int aKH=0 ; aKH<int(mSetNameHom->size()) ; aKH++)
    {
         const std::string & aName = (*mSetNameHom)[aKH];
-        std::pair<std::string,std::string> aN1N2 = mICNM->Assoc2To1(mKeyH2I,aName,false);
+        std::pair<std::string,std::string> aN1N2 = mICNM->Assoc2To1(mKeyInitIm2Homol,aName,false);
         cImagH * aI1 = mDicoIm[aN1N2.first];
         cImagH * aI2 = mDicoIm[aN1N2.second];
         if (aI1 && aI2)
@@ -175,22 +208,55 @@ void cAppliReduc::ComputeHom()
 {
    if (mHomByParal)
    {
+       if (Show(eShowGlob))
+          std::cout << "HomByParal BEGIN\n";
+
        std::list<std::string> aLCom;
        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
            mIms[aK]->AddComCompHomogr(aLCom);
 
-       cEl_GPAO::DoComInParal(aLCom);
+       if (0)
+       {
+          cEl_GPAO::DoComInSerie(aLCom);
+          for (int aK=0 ; aK< 10 ; aK++) std::cout << "SERIIIIIIIIIIIIIIIii\n";
+       }
+       else
+       {
+          cEl_GPAO::DoComInParal(aLCom);
+       }
+
+       if (Show(eShowGlob))
+       {
+          std::cout << "HomByParal : Command run\n";
+          // getchar();
+       }
 
        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
            mIms[aK]->LoadComHomogr();
+
+       if (Show(eShowGlob))
+       {
+          std::cout << "HomByParal END\n";
+          // getchar();
+       }
    }
    
+   if (Show(eShowGlob))
+      std::cout << "Lnk && Plan BEGIN\n";
    // Read homologous point and compute homography per pair
-    for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {
-         mIms[aK]->ComputeLnkHom();
-         mIms[aK]->EstimatePlan();
-    }
+        std::list<std::string> aLComPl;
+        for (int aK=0 ; aK<int(mIms.size()) ; aK++)
+        {
+             mIms[aK]->ComputeLnkHom();
+             std::string aCom = mIms[aK]->EstimatePlan();
+             if (aCom!="") 
+                aLComPl.push_back(aCom);
+        }
+        cEl_GPAO::DoComInParal(aLComPl);
+   }
+   if (Show(eShowGlob))
+      std::cout << "Lnk && Plan END\n";
 
 
 
@@ -243,7 +309,7 @@ void cAppliReduc::ComputeHom()
 
    mSetEq.SetClosed();
 
-    // Cree l'arbre  de fusion hierarchique
+   // Cree l'arbre  de fusion hierarchique
     TestMerge_CalcHcImage();
 }
 
@@ -267,6 +333,11 @@ cSetEqFormelles &  cAppliReduc::SetEq()
 const std::string & cAppliReduc::Dir() const
 {
    return mDir;
+}
+
+cInterfChantierNameManipulateur * cAppliReduc::ICNM() const
+{
+    return mICNM;
 }
 
 
@@ -307,6 +378,46 @@ int    cAppliReduc::KernSize() const
 {
     return mKernSize;
 }
+
+bool  cAppliReduc::H1On2() const
+{
+   return mH1On2;
+}
+
+
+std::string cAppliReduc::NameFileHomogr(const cLink2Img & aLnK) const
+{
+   return mDir + mICNM->Assoc1To2(mKeyHomogr,aLnK.Srce()->Name(),aLnK.Dest()->Name(),true);
+}
+std::string cAppliReduc::NameFileHomolH(const cLink2Img & aLnK) const
+{
+   return mDir + mICNM->Assoc1To2(mKeyHomolH,aLnK.Srce()->Name(),aLnK.Dest()->Name(),true);
+}
+
+bool cAppliReduc::SkipHomDone() const
+{
+   return mSkipHomDone;
+}
+bool cAppliReduc::SkipPlanDone() const
+{
+   return mSkipPlanDone;
+}
+double cAppliReduc::AltiCible() const
+{
+   return mAltiCible;
+}
+
+bool   cAppliReduc::HasImFocusPlan () const
+{
+    return mHasImFocusPlan;
+}
+
+std::string      cAppliReduc::ImFocusPlan () const
+{
+    return mImFocusPlan;
+}
+
+
 
 NS_RHH_END
 

@@ -20,7 +20,7 @@ cAMD_Interf::cAMD_Interf(int aN) :
    mNb (aN),
    mV  (aN)
 {
-    std::cout << "AMD::NB= " << mV.size() << "\n";
+    // std::cout << "AMD::NB= " << mV.size() << "\n";
 }
 
 

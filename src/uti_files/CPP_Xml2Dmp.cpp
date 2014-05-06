@@ -36,79 +36,73 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-
 #include "StdAfx.h"
+#include <algorithm>
 
+/*
+*/
 
-extern bool L2SYM;
-
-void Apero_Banniere()
+int Xml2Dmp_main(int argc,char ** argv)
 {
-    std::cout <<  "\n";
-    std::cout <<  " *********************************\n";
-    std::cout <<  " *     A-erotriangulation        *\n";
-    std::cout <<  " *     P-hotogrammetrique        *\n";
-    std::cout <<  " *     E-xperimentale            *\n";
-    std::cout <<  " *     R-elativement             *\n";
-    std::cout <<  " *     O-perationelle            *\n";
-    std::cout <<  " *********************************\n\n";
+    MMD_InitArgcArgv(argc,argv,2);
+
+    std::string  aDir,aPat,aFullDir;
+    int  aNbMax=10;
+
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
+         LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def=10)")
+    );
+
+std::cout << "BEGIN Xml2Dmp\n";
+    cOrientationConique anOC = StdGetFromPCP(aFullDir,OrientationConique);
+    // BinDumpObj(anOC,"toto.dmp");
+    MakeFileXML(anOC,"toto.dmp");
+    cOrientationConique anOC2 = StdGetFromPCP("toto.dmp",OrientationConique);
+    // BinUndumpObj(anOC2,"toto.dmp");
+    MakeFileXML(anOC2,"toto.xml");
+/*
+
+
+std::cout << " 1  Xml2Dmp\n";
+    ELISE_fp aFPOut("toto.dmp",ELISE_fp::WRITE);
+    BinaryDumpInFile(aFPOut,anOC);
+    aFPOut.close();
+std::cout << " 2  Xml2Dmp\n";
+
+     cOrientationConique anOC2;
+     ELISE_fp aFPIn("toto.dmp",ELISE_fp::READ);
+     BinaryUnDumpFromFile(anOC2,aFPIn);
+     aFPIn.close();
+     MakeFileXML(anOC2,"toto.xml");
+std::cout << " 3  Xml2Dmp\n";
+*/
+
+    return 0;
 }
 
-extern const char * theNameVar_ParamApero[];
-
-int Apero_main(int argc,char ** argv)
+int Dmp2Xml_main(int argc,char ** argv)
 {
-   MMD_InitArgcArgv(argc,argv);
+/*
+    MMD_InitArgcArgv(argc,argv,2);
 
-   AddEntryStringifie
-   (
-#if ELISE_windows
-        "include\\XML_GEN\\ParamApero.xml",
-#else
-        "include/XML_GEN/ParamApero.xml",
-#endif
-         theNameVar_ParamApero,
-         true
-   );
+    std::string  aDir,aPat,aFullDir;
+    int  aNbMax=10;
 
-   ELISE_ASSERT(argc>=2,"Not enough arg");
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
+         LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def=10)")
+    );
+*/
 
-   std::string aNameSauv = "SauvApero.xml";
-
-   cResultSubstAndStdGetFile<cParamApero> aP2
-                                          ( argc-2,argv+2,
-                                            argv[1],
-                                            StdGetFileXMLSpec("ParamApero.xml"),
-                                            "ParamApero",
-                                            "ParamApero",
-                                            "DirectoryChantier",
-                                            "FileChantierNameDescripteur",
-                                            aNameSauv.c_str() );
-
-   ::DebugPbCondFaisceau = aP2.mObj->DebugPbCondFaisceau().Val();
-
-   L2SYM = aP2.mObj->AllMatSym().Val();
-   cAppliApero   anAppli (aP2);
-
-   if (anAppli.ModeMaping())
-   {
-       anAppli.DoMaping(argc,argv);
-   }
-   else
-   {
-       anAppli.DoCompensation();
-   }
-
-
-   if (anAppli.ShowMes())
-      Apero_Banniere();
-
-   cElWarning::ShowWarns(anAppli.DC() + "WarnApero.txt");
-
-   ShowFClose();
-   return 0;
-
+    return 0;
 }
+
+
 
 
 

@@ -46,6 +46,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include <vector>
 
+extern bool DebugOFPA ;
+
+/*
 class RacineFonc1D
 {
      public :
@@ -98,74 +101,87 @@ void RacineFonc1D::solutions_1prof
          v0 =  v1;
     }
 }
+*/
 
 
-class  ResProfChamp 
+/*
+    Nouvelle classe pour tenter de resoudre les problemes d'instabilite numerique apparues sur donnees vide drone tres longue focale.
+
+    On ecrit :
+             (1)  + (0)  + (0)
+       pa =  (1)  + (U)  + (Ea)
+             (1)  + (V)  + (Eb)
+    
+*/
+
+
+template <class Type> class  ResProfChamp 
 {
      public :
-        ResProfChamp(REAL DistBC,Pt3dr pa,Pt3dr pb,Pt3dr pc,REAL rhoA,REAL rhoC);
+        ResProfChamp(Type DistBC,Pt3dr pa,Pt3dr pb,Pt3dr pc,Type rhoA,Type rhoC);
 
 
         void ListeC(ElSTDNS list<Pt3dr>&  res);
 
      private :
 
-        bool OkSolC(REAL c);
+        bool OkSolC(Type c);
 
-        REAL BfromC(REAL c,bool & OK);
-        // virtual REAL ValRF1D(REAL x,bool & def);
+        Type BfromC(Type c,bool & OK);
+        // virtual Type ValRF1D(Type x,bool & def);
 
-        REAL   _DistBC;
-        Pt3dr  _PA;
-        Pt3dr  _PB;
-        Pt3dr  _PC;
+        Type   _DistBC;
+        Pt3d<Type>  _PA;
+        Pt3d<Type>  _PB;
+        Pt3d<Type>  _PC;
 
-        REAL   _A2;
-        REAL   _B2;
-        REAL   mC2;
-        REAL   _AB;
-        REAL   _AC;
-        REAL   _BC;
+        Type   _A2;
+        Type   _B2;
+        Type   mC2;
+        Type   _AB;
+        Type   _AC;
+        Type   _BC;
 
-        REAL   _rhoA;
-        REAL   _rhoC;
+        Type   _rhoA;
+        Type   _rhoC;
 
-        REAL   _g;
-        REAL   _gam0;
-        REAL   _gam1;
-        REAL   _gam2;
-        ElPolynome<REAL> _Gamma;
+        Type   _g;
+        Type   _gam0;
+        Type   _gam1;
+        Type   _gam2;
+        ElPolynome<Type> _Gamma;
 
-        REAL             _omega0;
-        REAL             _omega1;
-        REAL             _omega2;
-        ElPolynome<REAL> _Omega;
-        ElPolynome<REAL> _Alpha;
-        ElPolynome<REAL> _Resolv;
-        ElSTDNS vector<REAL>     mRoots;
+        Type             _omega0;
+        Type             _omega1;
+        Type             _omega2;
+        ElPolynome<Type> _Omega;
+        ElPolynome<Type> _Alpha;
+        ElPolynome<Type> _Resolv;
+        ElSTDNS vector<Type>     mRoots;
 
         INT    _signdisc;
 };
 
-ResProfChamp::ResProfChamp
+
+template <class Type> ResProfChamp<Type>::ResProfChamp
 (
-     REAL  DistBC,
+     Type  DistBC,
      Pt3dr pa,
      Pt3dr pb,
      Pt3dr pc,
-     REAL rhoA,
-     REAL rhoC
+     Type rhoA,
+     Type rhoC
 )  :
    _DistBC      (DistBC),
-   _PA          (pa),
-   _PB          (pb),
-   _PC          (pc),
-   _A2          (square_euclid(pa)),
-   _B2          (square_euclid(pb)),
-   mC2          (square_euclid(pc)),
-   _AB          (scal(pa,pb)),
-   _AC          (scal(pa,pc)),
-   _BC          (scal(pb,pc)),
+   _PA          (pa.x,pa.y,pa.z),
+   _PB          (pb.x,pb.y,pb.z),
+   _PC          (pc.x,pc.y,pc.z),
+   _A2          (square_euclid(_PA)),
+   _B2          (square_euclid(_PB)),
+   mC2          (square_euclid(_PC)),
+   _AB          (scal(_PA,_PB)),
+   _AC          (scal(_PA,_PC)),
+   _BC          (scal(_PB,_PC)),
 
    _rhoA        (rhoA),
    _rhoC        (rhoC),
@@ -186,13 +202,17 @@ ResProfChamp::ResProfChamp
 
    _signdisc    (1)
 {
+/*
+if ( DebugOFPA)
+std::cout << "ResProfChamp:: " << (pa.z-1) << " " << (pb.z-1) << " " << (pc.z-1) << "\n";
+*/
 }
 
 
 
-REAL ResProfChamp::BfromC(REAL c,bool & OK)
+template <class Type> Type ResProfChamp<Type>::BfromC(Type c,bool & OK)
 {
-     REAL Gamma = _Gamma(c);
+     Type Gamma = _Gamma(c);
 
 
      OK = (Gamma >=0);
@@ -202,9 +222,9 @@ REAL ResProfChamp::BfromC(REAL c,bool & OK)
      return _g + _signdisc * sqrt(Gamma);
 }
 
-bool ResProfChamp::OkSolC(REAL c)
+template <class Type> bool ResProfChamp<Type>::OkSolC(Type c)
 {
-     REAL Gamma = _Gamma(c);
+     Type Gamma = _Gamma(c);
 
 
      if (Gamma <0)
@@ -217,34 +237,48 @@ bool ResProfChamp::OkSolC(REAL c)
 }
 
 
-void ResProfChamp::ListeC(ElSTDNS list<Pt3dr>&  res)
+template <class Type> void ResProfChamp<Type>::ListeC(ElSTDNS list<Pt3dr>&  res)
 {
      res.clear();
 
-     RealRootsOfRealPolynome(mRoots,_Resolv,1e-10,100);
+     // ELISE_ASSERT(false,"REMETTRE ResProfChamp<Type>::ListeC");
+     RealRootsOfRealPolynome<Type>(mRoots,_Resolv,Type(1e-10),100);
+
+     int OKS = 0;
 
      for (_signdisc =-1; _signdisc <=1 ; _signdisc+=2)
      {
          for (INT k=0; k<(INT) mRoots.size(); k++) 
          {
-            REAL c = mRoots[k];
+            Type c = mRoots[k];
             if (OkSolC(c))
             {
+               OKS ++;
                bool OK;
-               REAL b = BfromC(c,OK);
+               Type b = BfromC(c,OK);
                ELISE_ASSERT(OK,"Incoh in ResProfChamp::ListeC");
 
-               REAL RatA =   square_euclid(_PA-_PB*b)
+               Type RatA =   square_euclid(_PA-_PB*b)
                            / square_euclid(_PA-_PC*c);
-               REAL RatC =   square_euclid(_PB*b-_PC*c)
+               Type RatC =   square_euclid(_PB*b-_PC*c)
                            / square_euclid(_PA-_PC*c);
                if ( 
                         (ElAbs(RatA-_rhoA) < 1e-4)
                     &&  (ElAbs(RatC-_rhoC) < 1e-4)
                   )
                {
-                   REAL ratio = _DistBC / euclid(_PB*b-_PC*c);
+                   Type ratio = _DistBC / euclid(_PB*b-_PC*c);
                    res.push_back(Pt3dr(1,b,c)*ratio);
+               }
+               else
+               {
+                     if (DebugOFPA)
+                     {
+                         std::cout << "BEGINDbgOFPA \n";
+                         std::cout << ElAbs(RatA-_rhoA) << " " << ElAbs(RatC-_rhoC) << "\n";
+                         std::cout << " POL " <<  c << " " << _Resolv(c) << "\n";
+                         // getchar();
+                     }
                }
             }
          }
@@ -265,7 +299,7 @@ void ElPhotogram::ProfChampsFromDist
                  REAL dAB, REAL dAC, REAL dBC
      )
 {
-    ResProfChamp  RPC(dBC,A,B,C,ElSquare(dAB/dAC),ElSquare(dBC/dAC));
+    ResProfChamp<REAL>  RPC(dBC,A,B,C,ElSquare(dAB/dAC),ElSquare(dBC/dAC));
     RPC.ListeC(res);
 }
 

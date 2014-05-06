@@ -21,6 +21,12 @@ class cNuageByImage
 };
 cElXMLTree * ToXMLTree(const cNuageByImage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cNuageByImage &);
+
+void  BinaryUnDumpFromFile(cNuageByImage &,ELISE_fp &);
+
+std::string  Mangling( cNuageByImage *);
+
 class cSectionLoadNuage
 {
     public:
@@ -48,6 +54,12 @@ class cSectionLoadNuage
 };
 cElXMLTree * ToXMLTree(const cSectionLoadNuage &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSectionLoadNuage &);
+
+void  BinaryUnDumpFromFile(cSectionLoadNuage &,ELISE_fp &);
+
+std::string  Mangling( cSectionLoadNuage *);
+
 class cSectionEstimSurf
 {
     public:
@@ -66,6 +78,12 @@ class cSectionEstimSurf
         int mNbRansac;
 };
 cElXMLTree * ToXMLTree(const cSectionEstimSurf &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSectionEstimSurf &);
+
+void  BinaryUnDumpFromFile(cSectionEstimSurf &,ELISE_fp &);
+
+std::string  Mangling( cSectionEstimSurf *);
 
 class cSectionInitModele
 {
@@ -108,6 +126,12 @@ class cSectionInitModele
 };
 cElXMLTree * ToXMLTree(const cSectionInitModele &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cSectionInitModele &);
+
+void  BinaryUnDumpFromFile(cSectionInitModele &,ELISE_fp &);
+
+std::string  Mangling( cSectionInitModele *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
@@ -134,6 +158,12 @@ class cEtapeCompensation
 };
 cElXMLTree * ToXMLTree(const cEtapeCompensation &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cEtapeCompensation &);
+
+void  BinaryUnDumpFromFile(cEtapeCompensation &,ELISE_fp &);
+
+std::string  Mangling( cEtapeCompensation *);
+
 class cSectionCompensation
 {
     public:
@@ -152,6 +182,12 @@ class cSectionCompensation
         cTplValGesInit< double > mCoherenceOrientation;
 };
 cElXMLTree * ToXMLTree(const cSectionCompensation &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSectionCompensation &);
+
+void  BinaryUnDumpFromFile(cSectionCompensation &,ELISE_fp &);
+
+std::string  Mangling( cSectionCompensation *);
 
 /******************************************************/
 /******************************************************/
@@ -188,6 +224,12 @@ class cParamCasa
         std::string mDirectoryChantier;
 };
 cElXMLTree * ToXMLTree(const cParamCasa &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cParamCasa &);
+
+void  BinaryUnDumpFromFile(cParamCasa &,ELISE_fp &);
+
+std::string  Mangling( cParamCasa *);
 
 /******************************************************/
 /******************************************************/

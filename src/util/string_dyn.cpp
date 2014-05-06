@@ -81,6 +81,16 @@ bool IsPostfixed(const ElSTDNS string & str,char  c)
      return   str.rfind(c) !=  ElSTDNS string::npos;
 }
 
+bool    IsPostfixedBy  (const ElSTDNS string & aName,const std::string & aPost)
+{
+    return IsPostfixed(aName) && (StdPostfix(aName)==aPost);
+}
+
+bool IsFileDmp(const std::string & aName)
+{
+    return IsPostfixedBy(aName,"dmp");
+}
+
 
 ElSTDNS string StdPrefix(const ElSTDNS string & str,char c)
 {

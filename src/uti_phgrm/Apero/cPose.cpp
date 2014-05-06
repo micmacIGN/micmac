@@ -812,12 +812,14 @@ bool cPoseCam::IsId(const ElAffin2D & anAff) const
 /*
 */
 
+extern bool DebugOFPA;
 
 void   cPoseCam::InitRot()
 {
    const cLiaisonsInit * theLiasInit = 0;
    mNumInit =  mAppli.NbRotInit();
-   std::cout << "NUM " << mNumInit << " FOR " << mName<< "\n";
+   if (mAppli.ShowMes())
+      std::cout << "NUM " << mNumInit << " FOR " << mName<< "\n";
 /*
 {
 
@@ -1013,7 +1015,9 @@ else
     }
     else if(mPCI->PosFromBDAppuis().IsInit())
     {
-         std::cout << "Do Init-by-appuis for " << mName << "\n";
+         DebugOFPA = (mName=="Im00523.png");
+         if (mAppli.ShowMes() || DebugOFPA)
+            std::cout << "InitByAppuis " << mName  << "\n\n";
          const cPosFromBDAppuis & aPFA = mPCI->PosFromBDAppuis().Val();
 	 const std::string & anId = aPFA.Id();
 
@@ -1034,10 +1038,12 @@ else
 	 // aRot = aCamId.CombinatoireOFPA(anAppli.Param().NbMaxAppuisInit().Val(),aL,&aDMin);
 	 aRot = aCamId.RansacOFPA(true,aPFA.NbTestRansac(),aL,&aDMin,aPtrDirApprox);
 
-         // std::cout << "DIST-MIN  = " << aDMin << "\n";
 /*
 */
 	 aRot = aRot.inv();
+
+         if (mAppli.ShowMes() || DebugOFPA)
+            std::cout << mName << " DIST-MIN  = " << aDMin << aRot.ImAff(Pt3dr(0,0,0)) << " "  <<  aRot.ImVect(Pt3dr(0,0,1)) << "\n\n";
 	 // cObserv1Im<cTypeEnglob_Appuis>  &  anObs = mAppli.ObsAppuis(anId,mName);
 	 // Pt3dr aCdg =  anObs.mBarryTer;
          Pt3dr aCdg = BarryImTer(aL).pter;
@@ -1045,6 +1051,8 @@ else
 	 Pt3dr aDirVisee = aRot.ImVect(Pt3dr(0,0,1));
 
 	 aProfPose = scal(aDirVisee,aCdg-aRot.ImAff(Pt3dr(0,0,0)));
+         if (DebugOFPA) getchar();
+         DebugOFPA = false;
     }
     else if (mPCI->PoseFromLiaisons().IsInit())
     {
