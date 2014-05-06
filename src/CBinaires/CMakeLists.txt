@@ -1,10 +1,6 @@
 add_executable(mm3d mm3d.cpp)
 target_link_libraries(mm3d elise ${X11_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ANN)
 
-if (${qt_version} EQUAL 5)
-    qt5_use_modules(mm3d Widgets Core Gui Xml Concurrent OpenGL)
-endif()
-
 if(${CUDA_ENABLED})
          target_link_libraries(mm3d ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt})
 endif()
