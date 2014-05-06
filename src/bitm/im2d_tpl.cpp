@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -51,7 +51,7 @@ Im2DGen gray_im_red_centred(Im2DGen aI)
 {
     Im2DGen anIConv = D2alloc_im2d(aI.TypeEl(),aI.tx(),aI.ty());
     Im2D_REAL8 aMasq
-    (  
+    (
            3,3,
            " 1 2 1 "
            " 2 4 2 "
@@ -69,8 +69,8 @@ Im2DGen gray_im_red_centred(Im2DGen aI)
     ELISE_COPY
     (
         aRes.all_pts(),
-	anIConv.in_proj()[Virgule(FX,FY)*2],
-	aRes.out()
+    anIConv.in_proj()[Virgule(FX,FY)*2],
+    aRes.out()
     );
     return aRes;
 }
@@ -87,7 +87,7 @@ Tiff_Im gray_file_red_centred(Tiff_Im aTif,const std::string & aName)
 
 INT PTS_00000000000000[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-template <class TyBase> 
+template <class TyBase>
          void verif_value_op_ass
               (
                   const OperAssocMixte & op,
@@ -110,12 +110,12 @@ template <class TyBase>
              El_User_Dyn.ElAssert
              (
                  index == INDEX_NOT_FOUND,
-                 EEM0 
+                 EEM0
                     << "values out of range in bitmap-assoc\n"
                     << "|   " << pre_out[i+index]
                     << " o "  << values[i+index]
                     << " => " << v[index] << "\n"
-                    << "|  interval = [" <<  v_min 
+                    << "|  interval = [" <<  v_min
                     << " --- " << v_max << "["
              );
          }
@@ -128,7 +128,7 @@ template <class TyBase>
 /*                                                                     */
 /***********************************************************************/
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          class cTpIm2DInter : public  cIm2DInter
 {
     public :
@@ -182,32 +182,32 @@ template <class Type,class TyBase>
 /*                                                                     */
 /***********************************************************************/
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          int DataGenImType<Type,TyBase>::sz_tot() const
 {
     return _sz_tot;
-}            
+}
 
-template <class Type,class TyBase>  void  DataGenImType<Type,TyBase>::raz() 
+template <class Type,class TyBase>  void  DataGenImType<Type,TyBase>::raz()
 {
     MEM_RAZ(_data_lin,_sz_tot);
 }
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          GenIm::type_el DataGenImType<Type,TyBase>::type() const
 {
      return type_el_bitm;
 }
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
         INT DataGenImType<Type,TyBase>::vmax() const
 {
      return v_max;
 }
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
         INT DataGenImType<Type,TyBase>::vmin() const
 {
      return v_min;
@@ -215,34 +215,34 @@ template <class Type,class TyBase>
 
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
         void DataGenImType<Type,TyBase>::out_rle(void * v,INT nb,const REAL16* i,INT offs_0) const
 {
    ELISE_ASSERT(false,"::out_rle");
 }
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
         void DataGenImType<Type,TyBase>::out_rle(void * v,INT nb,const INT* i,INT offs_0) const
 {
      convert(C_CAST(Type *,v) + offs_0,i,nb);
 }
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
         void DataGenImType<Type,TyBase>::out_rle(void * v,INT nb,const REAL * i,INT offs_0) const
 {
      convert(C_CAST(Type *,v)+offs_0,i,nb);
 }
 
 
-template <class Type,class TyBase>  void 
+template <class Type,class TyBase>  void
          DataGenImType<Type,TyBase>::input_rle
               (void * v_out,INT nb,const void* v_in,INT offs_0) const
 {
      convert(C_CAST(TyBase *,v_out),C_CAST(const Type *,v_in) + offs_0,nb);
 }
 
-template <class Type,class TyBase>  void 
+template <class Type,class TyBase>  void
          DataGenImType<Type,TyBase>::striped_input_rle
             (void * v_out,INT nb,INT dim,const void* v_in,INT offs_0) const
 {
@@ -261,7 +261,7 @@ template <class Type,class TyBase>  void
      }
 }
 
-template <class Type,class TyBase>  void 
+template <class Type,class TyBase>  void
          DataGenImType<Type,TyBase>::striped_output_rle
             (void * v_out,INT nb,INT dim,const void* v_in,INT offs_0) const
 {
@@ -280,7 +280,7 @@ template <class Type,class TyBase>  void
      }
 }
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          DataGenImType<Type,TyBase>::DataGenImType
          (
               INT sz_tot,
@@ -292,7 +292,7 @@ template <class Type,class TyBase>
    Initializer(sz_tot,to_init,v_init,str_init);
 }
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          void DataGenImType<Type,TyBase>::Initializer
          (
               INT sz_tot,
@@ -346,7 +346,7 @@ template <class Type,class TyBase>
     _to_free = true;
 }
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          DataGenImType<Type,TyBase>::~DataGenImType()
 {
      Desinitializer();
@@ -396,8 +396,8 @@ template <class Type,class TyBase>  bool DataGenImType<Type,TyBase>::integral_ty
 }
 
 
-template <class Type,class TyBase> void  *  
-         DataGenImType<Type,TyBase>::data_lin_gen() 
+template <class Type,class TyBase> void  *
+         DataGenImType<Type,TyBase>::data_lin_gen()
 {
     return _data_lin;
 }
@@ -474,7 +474,7 @@ template <> CONST_STAT_TPL DataIm1D<REAL16,REAL16> DataIm1D<REAL16,REAL16>::The_
             /*   DataIm2dGen            */
             /****************************/
 
-DataIm2DGen::DataIm2DGen(INT Tx,INT Ty) 
+DataIm2DGen::DataIm2DGen(INT Tx,INT Ty)
 {
     Initializer(Tx,Ty);
     mTyMem = Ty;
@@ -519,7 +519,7 @@ template <class Type,class TyBase> void DataIm2D<Type,TyBase>::Resize(Pt2di aSz)
 }
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          DataIm2D<Type,TyBase>::DataIm2D
          (
               INT Tx,
@@ -541,7 +541,7 @@ template <class Type,class TyBase>
              ),
              DataIm2DGen(Tx,Ty)
 {
-    if (DataLin) 
+    if (DataLin)
     {
        this->_data_lin = DataLin;
        this->_to_free = false;
@@ -561,7 +561,7 @@ template <class Type,class TyBase>
     if (this->_data_lin)
         for (int y = 0 ; y<ty() ; y++)
             _data[y] = this->_data_lin + y *tx_phys;
-    
+
 }
 
 template <class Type,class TyBase> const INT * DataIm2D<Type,TyBase>::p0() const
@@ -581,7 +581,7 @@ template <class Type,class TyBase> INT   DataIm2D<Type,TyBase>::dim() const
 }
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          void * DataIm2D<Type,TyBase>::calc_adr_seg(INT * pts)
 {
     return _data[pts[1]] ;
@@ -599,7 +599,7 @@ template <class Type,class TyBase> DataIm2D<Type,TyBase>::~DataIm2D()
 
 
 
-template <class Type,class TyBase> void DataIm2D<Type,TyBase>::out_pts_integer 
+template <class Type,class TyBase> void DataIm2D<Type,TyBase>::out_pts_integer
               (Const_INT_PP pts,INT nb,const void * i)
 {
    const INT * tx = pts[0];
@@ -610,7 +610,7 @@ template <class Type,class TyBase> void DataIm2D<Type,TyBase>::out_pts_integer
        _data[ty[j]][tx[j]] = (Type) in[j];
 }
 
-template <class Type,class TyBase> void DataIm2D<Type,TyBase>::input_pts_integer 
+template <class Type,class TyBase> void DataIm2D<Type,TyBase>::input_pts_integer
               (void * o,Const_INT_PP pts,INT nb) const
 {
    const INT * tx = pts[0];
@@ -622,7 +622,7 @@ template <class Type,class TyBase> void DataIm2D<Type,TyBase>::input_pts_integer
 }
 
 
-template <class Type,class TyBase> void DataIm2D<Type,TyBase>::input_pts_reel 
+template <class Type,class TyBase> void DataIm2D<Type,TyBase>::input_pts_reel
               (REAL * out,Const_REAL_PP pts,INT nb) const
 {
    const REAL * tx = pts[0];
@@ -641,7 +641,7 @@ template <class Type,class TyBase> void DataIm2D<Type,TyBase>::input_pts_reel
        p_0x = 1.0-p_1x;
        p_0y = 1.0-p_1y;
 
-       out[i] = 
+       out[i] =
                  p_0x * p_0y * _data[ yi ][ xi ]
                + p_1x * p_0y * _data[ yi ][xi+1]
                + p_0x * p_1y * _data[yi+1][ xi ]
@@ -649,10 +649,10 @@ template <class Type,class TyBase> void DataIm2D<Type,TyBase>::input_pts_reel
    }
 }
 
-template <class Type,class TyBase> 
-         void DataIm2D<Type,TyBase>::out_assoc 
+template <class Type,class TyBase>
+         void DataIm2D<Type,TyBase>::out_assoc
          (
-                  void * out, 
+                  void * out,
                   const OperAssocMixte & op,
                   Const_INT_PP coord,
                   INT nb,
@@ -695,7 +695,7 @@ template <class Type,class TyBase>
     Type *  DataIm2D<Type,TyBase>::data_lin() const {return this->_data_lin;}
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          void   DataIm2D<Type,TyBase>::q_dilate
                    (  Std_Pack_Of_Pts<INT> * set_dilated,
                       char **                    is_neigh,
@@ -784,7 +784,7 @@ template <class Type,class TyBase>
 
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          REAL DataIm2D<Type,TyBase>::som_rect(Pt2dr p0,Pt2dr p1,REAL def) const
 {
     REAL sign = 1;
@@ -816,8 +816,8 @@ template <class Type,class TyBase>
     for (INT x=x0; x<x1; x++)
         for (INT y=y0; y<y1; y++)
         {
-             REAL v = 
-                    ((x>=0) && (x<tx()) && (y>=0) && (y<ty()))  ? 
+             REAL v =
+                    ((x>=0) && (x<tx()) && (y>=0) && (y<ty()))  ?
                     _data[y][x]                                 :
                     def                                         ;
 
@@ -831,8 +831,8 @@ template <class Type,class TyBase>
 
    return res * sign;
 }
- 
-template <class Type,class TyBase> 
+
+template <class Type,class TyBase>
          REAL DataIm2D<Type,TyBase>::moy_rect(Pt2dr p0,Pt2dr p1,REAL def) const
 {
    return som_rect(p0,p1,def) / ((p1.x-p0.x)*(p1.y-p0.y));
@@ -840,7 +840,7 @@ template <class Type,class TyBase>
 
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          void DataIm2D<Type,TyBase>::set_brd(Pt2di sz,Type Val)
 {
     sz.x = ElMin(sz.x,(mTx+1)/2);
@@ -862,7 +862,7 @@ template <class Type,class TyBase>
 }
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          void DataIm2D<Type,TyBase>::raz(Pt2di p0,Pt2di p1)
 {
    pt_set_min_max(p0,p1);
@@ -876,17 +876,17 @@ template <class Type,class TyBase>
        MEM_RAZ(_data[y]+p0.x,p1.x-p0.x);
 }
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          double   DataIm2D<Type,TyBase>::Get
-	          (const Pt2dr & aP,const cInterpolateurIm2D<Type> & anInterp,double aDef)
+              (const Pt2dr & aP,const cInterpolateurIm2D<Type> & anInterp,double aDef)
 {
    int aSz = anInterp.SzKernel();
 
-   if ( 
-           (aP.x < aSz) 
-	|| (aP.y < aSz)
-        || (aP.x > mTx -aSz-1) 
-	|| (aP.y > mTy -aSz-1)
+   if (
+           (aP.x < aSz)
+    || (aP.y < aSz)
+        || (aP.x > mTx -aSz-1)
+    || (aP.y > mTy -aSz-1)
       )
    {
       return aDef;
@@ -904,9 +904,9 @@ Im2DGen::Im2DGen(DataGenIm * gi) :
 {
 }
 
-GenIm::type_el Im2DGen::TypeEl() const 
+GenIm::type_el Im2DGen::TypeEl() const
 {
-	return DGI()->type();
+    return DGI()->type();
 }
 
 DataGenIm *  Im2DGen::DGI() const
@@ -931,19 +931,19 @@ double   Im2DGen::MoyG2() const
 
 INT Im2DGen::vmax() const
 {
-	return DGI()->vmax();
+    return DGI()->vmax();
 }
 INT Im2DGen::vmin() const
 {
-	return DGI()->vmin();
+    return DGI()->vmin();
 }
 
-cIm2DInter * Im2DGen::BilinIm() 
+cIm2DInter * Im2DGen::BilinIm()
 {
    ELISE_ASSERT(false,"no Im2DGen::BilinIm");
    return 0;
 }
-cIm2DInter * Im2DGen::BiCubIm(double aCoef,double aScale) 
+cIm2DInter * Im2DGen::BiCubIm(double aCoef,double aScale)
 {
    ELISE_ASSERT(false,"no Im2DGen::BiCubIm");
    return 0;
@@ -960,17 +960,17 @@ double Im2DGen::Val(const int & x,const int & y) const
    return 0;
 }
 
-Box2di Im2DGen::BoxDef() const 
+Box2di Im2DGen::BoxDef() const
 {
   return Box2di(Pt2di(0,0),Pt2di(tx(),ty()));
 }
 
-INT     Im2DGen::GetI(const Pt2di & ) const 
+INT     Im2DGen::GetI(const Pt2di & ) const
 {
    ELISE_ASSERT(false,"no Im2DGen::GetI");
    return 0;
 }
-double     Im2DGen::GetR(const Pt2di & ) const 
+double     Im2DGen::GetR(const Pt2di & ) const
 {
    ELISE_ASSERT(false,"no Im2DGen::GetR");
    return 0;
@@ -981,11 +981,11 @@ void Im2DGen::Resize(Pt2di aSz)
    ELISE_ASSERT(false,"no Im2DGen::Resize");
 }
 
-void Im2DGen::SetI(const Pt2di & ,int aValI) 
+void Im2DGen::SetI(const Pt2di & ,int aValI)
 {
    ELISE_ASSERT(false,"no Im2DGen::SetI");
 }
-void Im2DGen::SetR(const Pt2di & ,double aValR) 
+void Im2DGen::SetR(const Pt2di & ,double aValR)
 {
    ELISE_ASSERT(false,"no Im2DGen::SetR");
 }
@@ -993,13 +993,13 @@ void Im2DGen::SetR(const Pt2di & ,double aValR)
 
 
 
-void Im2DGen::SetI_SVP(const Pt2di & aP ,int aValI) 
+void Im2DGen::SetI_SVP(const Pt2di & aP ,int aValI)
 {
    if (Inside(aP))
        SetI(aP,aValI);
 }
 
-void Im2DGen::SetR_SVP(const Pt2di & aP,double aValR) 
+void Im2DGen::SetR_SVP(const Pt2di & aP,double aValR)
 {
    if (Inside(aP))
        SetR(aP,aValR);
@@ -1012,12 +1012,12 @@ void Im2DGen::PutData(FILE * aFP,const Pt2di & anI,bool aModeBin) const
    ELISE_ASSERT(false,"no Im2DGen::PutData");
 }
 
-INT    Im2DGen::GetI(const Pt2di &aP,int aDef ) const 
+INT    Im2DGen::GetI(const Pt2di &aP,int aDef ) const
 {
    return Inside(aP) ? GetI(aP) : aDef;
 }
 
-double Im2DGen::GetR(const Pt2di &aP,double aDef ) const 
+double Im2DGen::GetR(const Pt2di &aP,double aDef ) const
 {
    return Inside(aP) ? GetR(aP) : aDef;
 }
@@ -1074,11 +1074,11 @@ Seg2d   Im2DGen::OptimizeSegTournantSomIm
            /*    Im2D             */
            /***********************/
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
           Fonc_Num  Im2D<Type,TyBase>::FoncEtalDyn()
-{ 
+{
    TyBase aMin,aMax;
- 
+
     ELISE_COPY(all_pts(),in(),VMin(aMin)|VMax(aMax));
 
     if (aMax == aMin) aMax++; // Pour eviter / 0
@@ -1087,13 +1087,13 @@ template <class Type,class TyBase>
 }
 
 
-template <class Type,class TyBase>  
-         Im2D<Type,TyBase> 
+template <class Type,class TyBase>
+         Im2D<Type,TyBase>
          Im2D<Type,TyBase>::AugmentSizeTo(Pt2di aSz, Type aValCompl )
 {
     if ((aSz.x<=tx()) && (aSz.y<= ty()))
        return * this;
-    
+
     Im2D<Type,TyBase>  aRes (ElMax(tx(),aSz.x),ElMax(ty(),aSz.y),aValCompl);
     ELISE_COPY(all_pts(),in(),aRes.out());
 
@@ -1105,34 +1105,34 @@ template <class Type,class TyBase> Im2D<Type,TyBase>::~Im2D()
 {
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          Im2D<Type,TyBase>::Im2D() :
         Im2DGen(new DataIm2D<Type,TyBase>(1,1,false,0))
 {
 }
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          Im2D<Type,TyBase>::Im2D(INT tx,INT ty) :
         Im2DGen(new DataIm2D<Type,TyBase>(tx,ty,false,0))
 {
 }
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         Im2D<Type,TyBase>::Im2D(INT tx,INT ty,TyBase v_init) :
         Im2DGen(new DataIm2D<Type,TyBase>(tx,ty,true,v_init))
 {
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         Im2D<Type,TyBase>::Im2D(INT tx,INT ty,const char * v_init) :
         Im2DGen(new DataIm2D<Type,TyBase>(tx,ty,false,0,v_init))
 {
 }
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         Im2D<Type,TyBase>::Im2D(Im2D_NoDataLin,INT tx,INT ty) :
         Im2DGen(new DataIm2D<Type,TyBase>
                     (
@@ -1150,7 +1150,7 @@ template <class Type,class TyBase>
 
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         Im2D<Type,TyBase>::Im2D
         (
               Type *    DataLin,
@@ -1196,11 +1196,11 @@ template <class Type,class TyBase> Im2D<Type,TyBase>  Im2D<Type,TyBase>::FromFil
 
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
 Im2D<Type,TyBase>  Im2D<Type,TyBase>::FromFileOrFonc
 (
       const std::string & aName,
-      Pt2di aSz,  
+      Pt2di aSz,
       Fonc_Num aFonc
 
 )
@@ -1210,18 +1210,18 @@ Im2D<Type,TyBase>  Im2D<Type,TyBase>::FromFileOrFonc
    return FromFileStd(aName);
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         cIm2DInter * Im2D<Type,TyBase>::BilinIm()
 {
      cInterpolBilineaire<Type> * aIB = new cInterpolBilineaire<Type>;
       return new cTpIm2DInter<Type,TyBase>(*this,aIB);
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         double  Im2D<Type,TyBase>::MoyG2() const
 {
-   int aTX = tx(); 
-   int aTY = ty(); 
+   int aTX = tx();
+   int aTY = ty();
    Type ** aData = data();
    double aSom = 0.0;
    for (int anY=1 ; anY<aTY ; anY++)
@@ -1238,7 +1238,7 @@ template <class Type,class TyBase>
    return  aSom / ((aTX-1) * double(aTY-1));
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         cIm2DInter * Im2D<Type,TyBase>::BiCubIm(double aCoef,double aScale)
 {
      if (aScale==1)
@@ -1264,7 +1264,7 @@ template <class Type,class TyBase>
         mIm  (anIm),
 */
 template <class Type,class TyBase> double Im2D<Type,TyBase>::Val(const int & x,const int & y) const
-{ 
+{
       return ((DataIm2D<Type,TyBase> *) (_ptr))->data()[y][x];
 }
 
@@ -1278,13 +1278,13 @@ template <class Type,class TyBase> Type ** Im2D<Type,TyBase>::data() const
       return ((DataIm2D<Type,TyBase> *) (_ptr))->data();
 }
 
-template <class Type,class TyBase> void  Im2D<Type,TyBase>::SetI(const Pt2di  &aP,int aVal ) 
+template <class Type,class TyBase> void  Im2D<Type,TyBase>::SetI(const Pt2di  &aP,int aVal )
 {
    AssertInside(aP);
    data()[aP.y][aP.x] = El_CTypeTraits<Type>::Tronque(aVal);
 }
 
-template <class Type,class TyBase> void  Im2D<Type,TyBase>::SetR(const Pt2di  &aP,double aVal ) 
+template <class Type,class TyBase> void  Im2D<Type,TyBase>::SetR(const Pt2di  &aP,double aVal )
 {
    AssertInside(aP);
    data()[aP.y][aP.x] = (Type)ElStdTypeScal<TyBase>::RtoT(aVal);
@@ -1343,7 +1343,7 @@ template <class Type,class TyBase> void  Im2D<Type,TyBase>::PutData
    }
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
 Im2DGen*   Im2D<Type,TyBase>::ImOfSameType(const Pt2di & aSz) const
 {
    return new Im2D<Type,TyBase>(aSz.x,aSz.y,TyBase(0));
@@ -1389,25 +1389,25 @@ template <class Type,class TyBase> INT   Im2D<Type,TyBase>::ty() const
 }
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
           GenIm::type_el   Im2D<Type,TyBase>::TypeEl()  const
 {
     return  type_of_ptr((Type *) 0);
 }
 
-template <class Type,class TyBase>  void   Im2D<Type,TyBase>::raz() 
+template <class Type,class TyBase>  void   Im2D<Type,TyBase>::raz()
 {
        di2d()->DataGenImType<Type,TyBase>::raz();
 }
 
-template <class Type,class TyBase>  void   Im2D<Type,TyBase>::raz(Pt2di p0,Pt2di p1) 
+template <class Type,class TyBase>  void   Im2D<Type,TyBase>::raz(Pt2di p0,Pt2di p1)
 {
        di2d()->raz(p0,p1);
 }
 
 
-template <class Type,class TyBase>  
-          void   Im2D<Type,TyBase>::dup( Im2D<Type,TyBase> I2) 
+template <class Type,class TyBase>
+          void   Im2D<Type,TyBase>::dup( Im2D<Type,TyBase> I2)
 {
      ELISE_ASSERT
      (
@@ -1418,19 +1418,19 @@ template <class Type,class TyBase>
 }
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          REAL   Im2D<Type,TyBase>::som_rect(Pt2dr p0,Pt2dr p1,REAL def)
 {
     return ((DataIm2D<Type,TyBase> *) (_ptr))->som_rect(p0,p1,def);
 }
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          REAL   Im2D<Type,TyBase>::moy_rect(Pt2dr p0,Pt2dr p1,REAL def)
 {
     return ((DataIm2D<Type,TyBase> *) (_ptr))->moy_rect(p0,p1,def);
 }
 
-template <class Type,class TyBase>   
+template <class Type,class TyBase>
         Im2D<Type,TyBase> Im2D<Type,TyBase>::Reech(REAL aZoom)
 {
     INT aTx = round_ni(tx()* aZoom);
@@ -1448,14 +1448,14 @@ template <class Type,class TyBase>
     return aRes;
 }
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          void   Im2D<Type,TyBase>::set_brd(Pt2di Sz,Type brd)
 {
    di2d()->set_brd(Sz,brd);
 }
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          double   Im2D<Type,TyBase>::Get(const Pt2dr & aP,const cInterpolateurIm2D<Type> & anInterp,double aDef)
 {
    return di2d()->Get(aP,anInterp,aDef);
@@ -1464,7 +1464,7 @@ template <class Type,class TyBase>
 
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          void   Im2D<Type,TyBase>::auto_translate(Pt2di tr)
 {
    TIm2D<Type,TyBase> Tim(*this);
@@ -1474,7 +1474,7 @@ template <class Type,class TyBase>
 
 
 
-template <class Type,class TyBase>  
+template <class Type,class TyBase>
          void   Im2D<Type,TyBase>::Resize(Pt2di Sz)
 {
    di2d()->Resize(Sz);
@@ -1569,19 +1569,19 @@ template <class Type,class TyBase>
      Type ** aDataIn  = data();
      Type ** aDataOut = aRes.data();
 
-     INT Z2 = zoom * zoom; 
+     INT Z2 = zoom * zoom;
 
-     for 
+     for
      (
-          INT y=0,Y0 = 0, Y1 = zoom; 
-          y<aTy ; 
+          INT y=0,Y0 = 0, Y1 = zoom;
+          y<aTy ;
           y++,Y0+= zoom,Y1+=zoom
      )
      {
-          for 
+          for
           (
-               INT x=0,X0 = 0, X1 = zoom; 
-               x<aTx ; 
+               INT x=0,X0 = 0, X1 = zoom;
+               x<aTx ;
                x++,X0+= zoom,X1+=zoom
           )
           {
@@ -1625,7 +1625,7 @@ template <class Type,class TyBase>
    INT aTy = ty();
 
    ELISE_ASSERT
-   ( 
+   (
        (aRes.tx()==aTy) && (aVect.tx() == aTx),
        "Bad Size in Im2D<Type,TyBase>::MulVect"
    );
@@ -1688,13 +1688,13 @@ template <class Type,class TyBase> void
          DataIm1D<Type,TyBase>::Initializer (int Tx,void * data)
 {
     _tx = Tx;
-    if (data) 
+    if (data)
        this->_data_lin = (Type *) data;
     _data = this->_data_lin;
     this->_to_free = (data==0);
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
          DataIm1D<Type,TyBase>::DataIm1D
          (
              INT Tx,
@@ -1708,7 +1708,7 @@ template <class Type,class TyBase>
     Initializer(Tx,data);
 /*
     _tx = Tx;
-    if (data) 
+    if (data)
        _data_lin = (Type *) data;
     _data = _data_lin;
     _to_free = (data==0);
@@ -1741,7 +1741,7 @@ template <class Type,class TyBase> DataIm1D<Type,TyBase>::~DataIm1D()
 
 
 
-template <class Type,class TyBase> void DataIm1D<Type,TyBase>::out_pts_integer 
+template <class Type,class TyBase> void DataIm1D<Type,TyBase>::out_pts_integer
               (Const_INT_PP pts,INT nb,const void * i)
 {
    const INT * tx = pts[0];
@@ -1751,7 +1751,7 @@ template <class Type,class TyBase> void DataIm1D<Type,TyBase>::out_pts_integer
        _data[tx[j]] = (Type) in[j];
 }
 
-template <class Type,class TyBase> void DataIm1D<Type,TyBase>::input_pts_integer 
+template <class Type,class TyBase> void DataIm1D<Type,TyBase>::input_pts_integer
               (void * o,Const_INT_PP pts,INT nb) const
 {
    const INT * tx = pts[0];
@@ -1761,7 +1761,7 @@ template <class Type,class TyBase> void DataIm1D<Type,TyBase>::input_pts_integer
        out[i] = _data[tx[i]];
 }
 
-template <class Type,class TyBase> void DataIm1D<Type,TyBase>::input_pts_reel 
+template <class Type,class TyBase> void DataIm1D<Type,TyBase>::input_pts_reel
               (REAL * out,Const_REAL_PP pts,INT nb) const
 {
    const REAL * tx = pts[0];
@@ -1778,10 +1778,10 @@ template <class Type,class TyBase> void DataIm1D<Type,TyBase>::input_pts_reel
    }
 }
 
-template <class Type,class TyBase> 
-         void DataIm1D<Type,TyBase>::out_assoc 
+template <class Type,class TyBase>
+         void DataIm1D<Type,TyBase>::out_assoc
          (
-                  void * out, 
+                  void * out,
                   const OperAssocMixte & op,
                   Const_INT_PP coord,
                   INT nb,
@@ -1829,7 +1829,7 @@ template <class Type,class TyBase> INT   Im1D<Type,TyBase>::vmax() const
 }
 
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
           void DataIm1D<Type,TyBase>::tiff_predictor
           (INT nb_el,INT nb_ch,INT max_val,bool codage)
 {
@@ -1857,25 +1857,25 @@ template <class Type,class TyBase>
            /*    Im1D             */
            /***********************/
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         Im1D<Type,TyBase>::Im1D(Im1D<Type,TyBase> *,INT tx,void * d) :
         GenIm (new DataIm1D<Type,TyBase> (tx,d,false,0))
 {
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         Im1D<Type,TyBase>::Im1D(INT tx) :
         GenIm (new DataIm1D<Type,TyBase> (tx,0,false,0))
 {
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         Im1D<Type,TyBase>::Im1D(INT tx,TyBase v_init) :
         GenIm (new DataIm1D<Type,TyBase> (tx,0,true,v_init))
 {
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         Im1D<Type,TyBase>::Im1D(INT tx,const char * v_init) :
         GenIm (new DataIm1D<Type,TyBase> (tx,0,false,0,v_init))
 {
@@ -1884,7 +1884,7 @@ template <class Type,class TyBase>
 
 template <class Type,class TyBase> Type  Im1D<Type,TyBase>::At(int aK) const
 {
-  
+
   ELISE_ASSERT
   (
      (aK>=0) && (aK<tx()),
@@ -1911,35 +1911,35 @@ template <class Type,class TyBase> INT  Im1D<Type,TyBase>::tx() const
       return ((DataIm1D<Type,TyBase> *) (_ptr))->tx();
 }
 
-template <class Type,class TyBase>  
-         Im1D<Type,TyBase> 
+template <class Type,class TyBase>
+         Im1D<Type,TyBase>
          Im1D<Type,TyBase>::AugmentSizeTo(INT aSz, Type aValCompl )
 {
     if (aSz<=tx())
        return * this;
-    
+
     Im1D<Type,TyBase>  aRes (ElMax(tx(),aSz),aValCompl);
     ELISE_COPY(all_pts(),in(),aRes.out());
 
     return aRes;
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         void Im1D<Type,TyBase>::Resize(INT aTx)
 {
     ((DataIm1D<Type,TyBase> *) (_ptr)) ->Resize(aTx);
 }
 
-template <class Type,class TyBase> 
+template <class Type,class TyBase>
         void Im1D<Type,TyBase>::raz()
 {
     ((DataIm1D<Type,TyBase> *) (_ptr)) ->raz();
 }
 
-template <class Type,class Type_Base> Im2D<Type,Type_Base> 
+template <class Type,class Type_Base> Im2D<Type,Type_Base>
                     ImMediane
                     (
-                        const std::vector<Im2D<Type,Type_Base> > & aVIm, 
+                        const std::vector<Im2D<Type,Type_Base> > & aVIm,
                         Type_Base VaUnused,
                         Type      ValDef,
                         double    aTolTh
@@ -1952,7 +1952,7 @@ template <class Type,class Type_Base> Im2D<Type,Type_Base>
    {
        ELISE_ASSERT(aSz==aVIm[aK].sz(),"Sz im diff in ImMediane");
    }
-   
+
    Im2D<Type,Type_Base> aRes(aSz.x,aSz.y);
    std::vector<Type> aV;
    for (int aX=0 ; aX<aSz.x ; aX++)
@@ -2055,14 +2055,14 @@ template class cTpIm2DInter<Type,TyBase>;\
 template class DataGenImType<Type,TyBase>;
 
 #if ElTemplateInstantiation
-	INSTANTIATE_BITM_KD_GEN(U_INT1,INT);
-	INSTANTIATE_BITM_KD_GEN(INT1,INT);
-	INSTANTIATE_BITM_KD_GEN(U_INT2,INT);
-	INSTANTIATE_BITM_KD_GEN(INT2,INT);
-	INSTANTIATE_BITM_KD_GEN(INT4,INT);
-	INSTANTIATE_BITM_KD_GEN(REAL8,REAL8);
-	INSTANTIATE_BITM_KD_GEN(REAL4,REAL8);
-	INSTANTIATE_BITM_KD_GEN(REAL16,REAL16);
+    INSTANTIATE_BITM_KD_GEN(U_INT1,INT);
+    INSTANTIATE_BITM_KD_GEN(INT1,INT);
+    INSTANTIATE_BITM_KD_GEN(U_INT2,INT);
+    INSTANTIATE_BITM_KD_GEN(INT2,INT);
+    INSTANTIATE_BITM_KD_GEN(INT4,INT);
+    INSTANTIATE_BITM_KD_GEN(REAL8,REAL8);
+    INSTANTIATE_BITM_KD_GEN(REAL4,REAL8);
+    INSTANTIATE_BITM_KD_GEN(REAL16,REAL16);
     INSTANTIATE_BITM_KD_GEN_BASE(INT4)
     INSTANTIATE_BITM_KD_GEN_BASE(REAL8)
 #endif
@@ -2140,7 +2140,7 @@ Im2DGen D2alloc_im2d(GenIm::type_el type_el,int tx,int ty)
 
 GenIm alloc_im2d(GenIm::type_el type_el,int tx,int ty)
 {
-	return D2alloc_im2d(type_el,tx,ty);
+    return D2alloc_im2d(type_el,tx,ty);
 }
 
 
@@ -2176,21 +2176,21 @@ bool type_im_integral(GenIm::type_el type_el)
 {
       switch (type_el)
       {
-            case GenIm::bits1_msbf :       
-            case GenIm::bits2_msbf :       
-            case GenIm::bits4_msbf :       
+            case GenIm::bits1_msbf :
+            case GenIm::bits2_msbf :
+            case GenIm::bits4_msbf :
 
-            case GenIm::bits1_lsbf :       
-            case GenIm::bits2_lsbf :       
-            case GenIm::bits4_lsbf :       
+            case GenIm::bits1_lsbf :
+            case GenIm::bits2_lsbf :
+            case GenIm::bits4_lsbf :
 
-            case GenIm::u_int1 :       
-            case GenIm::int1 :        
-            case GenIm::u_int2 :     
-            case  GenIm::int2 :     
+            case GenIm::u_int1 :
+            case GenIm::int1 :
+            case GenIm::u_int2 :
+            case  GenIm::int2 :
             case  GenIm::int4 :        return true;
 
-            case  GenIm::real4 :       
+            case  GenIm::real4 :
             case  GenIm::real8 :       return false;
 
 
@@ -2210,7 +2210,7 @@ Fonc_Num Tronque(GenIm::type_el aType,Fonc_Num aF)
 
    int aVMin,aVMax;
    min_max_type_num(aType,aVMin,aVMax);
-  
+
 
   // std::cout << "TRONQUE " << aVMin << " " << aVMax << "\n";
    return Max(aVMin,Min(aVMax-1,aF));
@@ -2220,22 +2220,22 @@ INT nbb_type_num(GenIm::type_el type_el)
 {
       switch (type_el)
       {
-            case GenIm::bits1_msbf :       
+            case GenIm::bits1_msbf :
             case GenIm::bits1_lsbf :    return 1;
-                 
-            case GenIm::bits2_msbf :       
+
+            case GenIm::bits2_msbf :
             case GenIm::bits2_lsbf :    return 2;
 
-            case GenIm::bits4_msbf :       
+            case GenIm::bits4_msbf :
             case GenIm::bits4_lsbf :    return 4;
 
-            case GenIm::u_int1 :       
+            case GenIm::u_int1 :
             case GenIm::int1 :          return 8;
 
-            case GenIm::u_int2 :     
+            case GenIm::u_int2 :
             case  GenIm::int2 :         return 16;
 
-            case  GenIm::int4 :        
+            case  GenIm::int4 :
             case  GenIm::real4 :        return 32;
 
             case  GenIm::real8 :        return 64;
@@ -2251,41 +2251,41 @@ bool msbf_type_num(GenIm::type_el type_el)
 {
       switch (type_el)
       {
-            case GenIm::bits1_msbf :       
-            case GenIm::bits2_msbf :       
-            case GenIm::bits4_msbf :    return true;   
+            case GenIm::bits1_msbf :
+            case GenIm::bits2_msbf :
+            case GenIm::bits4_msbf :    return true;
 
-            case GenIm::bits1_lsbf :    
-            case GenIm::bits2_lsbf :   
+            case GenIm::bits1_lsbf :
+            case GenIm::bits2_lsbf :
             case GenIm::bits4_lsbf :    return false;
 
             default :;
       }
       elise_internal_error
          ("non bits type in msbf_type_num\n",__FILE__,__LINE__);
-      return false; 
+      return false;
 }
 
 bool signed_type_num(GenIm::type_el type_el)
 {
       switch (type_el)
       {
-            case GenIm::bits1_msbf :       
-            case GenIm::bits2_msbf :       
-            case GenIm::bits4_msbf :       
+            case GenIm::bits1_msbf :
+            case GenIm::bits2_msbf :
+            case GenIm::bits4_msbf :
 
-            case GenIm::bits1_lsbf :       
-            case GenIm::bits2_lsbf :       
-            case GenIm::bits4_lsbf :       
+            case GenIm::bits1_lsbf :
+            case GenIm::bits2_lsbf :
+            case GenIm::bits4_lsbf :
 
-            case GenIm::u_int1 :       
+            case GenIm::u_int1 :
             case GenIm::u_int2 :      return false;
 
-            case GenIm::int1 :        
-            case  GenIm::int2 :     
-            case  GenIm::int4 :      
-            case  GenIm::real4 :      
-            case  GenIm::real8 :      
+            case GenIm::int1 :
+            case  GenIm::int2 :
+            case  GenIm::int4 :
+            case  GenIm::real4 :
+            case  GenIm::real8 :
                                        return true;
 
             default :;
@@ -2300,19 +2300,19 @@ GenIm::type_el type_u_int_of_nbb(INT nbb,bool msbf)
       switch(nbb)
       {
             case 1: return msbf              ?
-                           GenIm::bits1_msbf : 
-                           GenIm::bits1_lsbf ;       
+                           GenIm::bits1_msbf :
+                           GenIm::bits1_lsbf ;
 
             case 2: return msbf              ?
-                           GenIm::bits2_msbf : 
-                           GenIm::bits2_lsbf ;       
+                           GenIm::bits2_msbf :
+                           GenIm::bits2_lsbf ;
 
             case 4: return msbf              ?
-                           GenIm::bits4_msbf : 
-                           GenIm::bits4_lsbf ;       
+                           GenIm::bits4_msbf :
+                           GenIm::bits4_lsbf ;
 
 
-            case 8  : return GenIm::u_int1; 
+            case 8  : return GenIm::u_int1;
             case 16 : return GenIm::u_int2;
     }
 
@@ -2344,6 +2344,27 @@ GenIm::type_el type_im(const std::string & aName)
    return GenIm::real8;
 }
 
+std::string eToString(const GenIm::type_el & aType)
+{
+    if (aType==GenIm::u_int1)
+       return  "u_int1";
+    if (aType==GenIm::int1)
+       return  "int1";
+    if (aType==GenIm::u_int2)
+       return  "u_int2";
+    if (aType==GenIm::int2)
+       return  "int2";
+    if (aType==GenIm::int4)
+       return  "int4";
+    if (aType==GenIm::real4)
+       return  "real4";
+    if (aType==GenIm::real8)
+       return  "real8";
+    std::cout << "Enum = GenIm::type_el\n";
+    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+    return "";
+}
+
 GenIm::type_el type_im(bool integral,INT nbb,bool Signed,bool msbf)
 {
      if (integral)
@@ -2357,7 +2378,7 @@ GenIm::type_el type_im(bool integral,INT nbb,bool Signed,bool msbf)
              if (nbb == 32)
                return GenIm::int4;
          }
-         else 
+         else
             return  type_u_int_of_nbb(nbb,msbf);
      }
      else
@@ -2376,7 +2397,7 @@ GenIm::type_el type_im(bool integral,INT nbb,bool Signed,bool msbf)
 int VCentrale_type_num(GenIm::type_el type)
 {
    if (
-            (! type_im_integral(type)) 
+            (! type_im_integral(type))
          || (signed_type_num(type))
       )
       return 0;
@@ -2443,13 +2464,13 @@ Output StdOutput(std::vector<Im2DGen *> aV)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -2459,17 +2480,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

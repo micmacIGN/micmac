@@ -6,7 +6,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -18,12 +18,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -92,7 +92,7 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
     ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(0),mP0),mImMasq.out());
 }
 
-void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack) 
+void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack)
 {
      for (ElPackHomologue::const_iterator itH = aPack.begin() ;  itH!=aPack.end(); itH++)
      {
@@ -164,8 +164,8 @@ cCEM_OneIm::cCEM_OneIm
    mWin2      (0),
    mConj      (0)
 {
-    ELISE_COPY 
-    ( 
+    ELISE_COPY
+    (
          mIm.all_pts(),
          trans(mTifIm.in(),mP0),
          mIm.out()  | VMax(mVMaxIm)
@@ -184,7 +184,7 @@ bool cCEM_OneIm::Empty() const
     return (mSz.x==0) || (mSz.y==0);
 }
 
-void cCEM_OneIm::UsePack(const ElPackHomologue &) 
+void cCEM_OneIm::UsePack(const ElPackHomologue &)
 {
 }
 
@@ -220,7 +220,7 @@ Box2dr cCEM_OneIm::BoxIm2(const Pt2di & aSzIm2)
           }
        }
    }
-   if (!OneOk) 
+   if (!OneOk)
       return I2R(Inf(mBox,Box2di(Pt2di(0,0),aSzIm2)));
 
    return Box2dr(aP0,aP1);
@@ -240,7 +240,7 @@ Im2D_U_INT1  cCEM_OneIm::ImAR()
        {
            bool  Ok;
            Pt2dr aQ = AllerRetour(Pt2dr(aPIm),Ok);
-           if (0) // (aPIm==PBUG) 
+           if (0) // (aPIm==PBUG)
            {
               std::cout << "OOkkkkk " << Ok << "\n";
               Pt2dr aP2 =  ToIm2(Pt2dr(aPIm),Ok);
@@ -255,7 +255,7 @@ Im2D_U_INT1  cCEM_OneIm::ImAR()
            }
        }
    }
-   if (0) 
+   if (0)
    {
       ELISE_COPY(aRes.all_pts(),aRes.in(),VGray());
       getchar();
@@ -313,8 +313,8 @@ void cCEM_OneIm::VerifIm(Im2D_Bits<1> aMasq)
 
       Symb_FNum aCor = aS12 / sqrt(Max(1e-2,aS11*aS22));
 
-       ELISE_COPY 
-       (  
+       ELISE_COPY
+       (
             mImOrtho.all_pts(), Max(0,Min(aIMin.in(), 255*(aCor>0.5))) , mWin2->ogray() | aIMin.out()
        );
    }
@@ -384,16 +384,16 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mDoMasqSym   (false),
     mUseAutoMasq   (true),
     mBSHRejet      (0.02)
-    
+
 {
     double aFactBSHOk=2;
     ElInitArgMain
     (
-	argc,argv,
-	LArgMain()  << EAMC(mNameIm1,"Name Im1") 
-                    << EAMC(mNameIm2,"Name Im2") 
-                    << EAMC(mOri,"Orientation") ,
-	LArgMain()  << EAM(mDir,"Dir",true)
+    argc,argv,
+    LArgMain()  << EAMC(mNameIm1,"Name Im1", eSAM_IsExistFile)
+                    << EAMC(mNameIm2,"Name Im2", eSAM_IsExistFile)
+                    << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
+    LArgMain()  << EAM(mDir,"Dir",true)
                     << EAM(mBoxIm1,"Box",true)
                     << EAM(mSzDecoup,"SzDec",true)
                     << EAM(mBrd,"Brd",true)
@@ -418,7 +418,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mFinal,"ExpFin",true,"For final export (generate dirtosion indicator)")
                     << EAM(mBSHRejet,"BSHReject",true,"Value for low Basr to Ratio leading do rejection (Def=0.02)")
                     << EAM(aFactBSHOk,"FactBSHOk",true,"Multiplier so that BSHOk= FactBSHOk * BSHReject (Def=2)")
-   );	
+   );
 
    mBSHOk  = mBSHRejet * aFactBSHOk;
 
@@ -453,10 +453,10 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    }
 
    std::string aNameIm1DeZoom =  mCple                                          ?
-                                 (mDir+ mCple->LocNameImEpi(mNameIm1,mDeZoom,false))  : 
+                                 (mDir+ mCple->LocNameImEpi(mNameIm1,mDeZoom,false))  :
                                  StdNameImDeZoom(mNameIm1,mDeZoom)              ;
    std::string aNameIm2DeZoom =  mCple                                          ?
-                                 (mDir+ mCple->LocNameImEpi(mNameIm2,mDeZoom,false))  : 
+                                 (mDir+ mCple->LocNameImEpi(mNameIm2,mDeZoom,false))  :
                                  StdNameImDeZoom(mNameIm2,mDeZoom)              ;
 
    std::string aNameIm1Match = mCple ? mCple->LocNameImEpi(mNameIm1) : mNameIm1;
@@ -501,7 +501,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
          Pt2di aPBrd(mBrd,mBrd);
 
          cDecoupageInterv2D aDecoup (mBoxIm1,aPSzDecoup,Box2di(-aPBrd,aPBrd));
- 
+
          std::list<std::string> aLCom;
          std::vector<cBoxCoher> aVBoxC;
 
@@ -543,7 +543,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
          {
              aTifDist = Tiff_Im(aNameImDist.c_str(),mBoxIm1.sz(),GenIm::u_int1,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
          }
-         
+
          for (int aKB=0 ; aKB<int(aVBoxC.size()) ; aKB++)
          {
              std::string aNameC = mDir+ mPrefix+aVBoxC[aKB].mPost + ".tif";
@@ -585,7 +585,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     cMTDCoher aMTD = StdGetFromPCP(aNameFOM2,MTDCoher);
 
                     Tiff_Im aTifLoc2(aNameM2.c_str());
-             
+
                     ELISE_COPY
                     (
                          rectangle(aMTD.Dec2(), aMTD.Dec2()+aTifLoc2.sz()),
@@ -617,7 +617,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
        {
           mIm2 = new cCEM_OneIm_Nuage(this,mNameIm2,mNameIm1,aBoxIm2,mVisu,false);
        }
-  
+
        mIm1->SetConj(mIm2);
 
        if (HasHom)
@@ -762,18 +762,18 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
 void cCoherEpi_main::action(const  ElFifo<Pt2di> & aFil,bool ext)
 {
-    
+
     int aNbOk = 0;
     int aNbPasOk = 0;
     ElList<Pt2di> *  aLCont = new ElList<Pt2di>;
-    ElFifo<Pt2dr> aVSurf; 
+    ElFifo<Pt2dr> aVSurf;
     aVSurf.set_circ(true);
 
     for (int aK=0 ; aK<aFil.nb() ; aK++)
     {
-        bool Ok; 
+        bool Ok;
         Pt2dr aP2 = mIm1->ToIm2(Pt2dr(aFil[aK])*mReduceM,Ok);
-        if (Ok) 
+        if (Ok)
         {
            aNbOk++;
            *aLCont = *aLCont+Pt2di(aP2);
@@ -808,13 +808,13 @@ int CoherEpi_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -824,17 +824,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

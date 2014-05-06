@@ -108,6 +108,11 @@ public slots:
 
 signals:
 
+    void newX0Position(int);
+    void newY0Position(int);
+    void newX1Position(int);
+    void newY1Position(int);
+
     void newX0Position(double);
     void newY0Position(double);
     void newX1Position(double);
