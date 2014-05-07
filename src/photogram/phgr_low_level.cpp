@@ -47,6 +47,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <vector>
 
 extern bool DebugOFPA ;
+extern int aCPTOkOFA ;
+extern int aCPTNotOkOFA ;
+
 
 /*
 class RacineFonc1D
@@ -130,6 +133,12 @@ template <class Type> class  ResProfChamp
         Type BfromC(Type c,bool & OK);
         // virtual Type ValRF1D(Type x,bool & def);
 
+        Type RatA (Type b,Type c);
+        Type RatC (Type b,Type c);
+        
+        Pt3d<Type> FandDerRatA (Type b,Type c);
+        Pt3d<Type> FandDerRatC (Type b,Type c);
+
         Type   _DistBC;
         Pt3d<Type>  _PA;
         Pt3d<Type>  _PB;
@@ -161,6 +170,32 @@ template <class Type> class  ResProfChamp
 
         INT    _signdisc;
 };
+
+template <class Type> Type  ResProfChamp<Type>::RatA(Type b,Type c)
+{
+    return square_euclid(_PA-_PB*b) / square_euclid(_PA-_PC*c);
+}
+
+template <class Type> Type   ResProfChamp<Type>::RatC(Type b,Type c)
+{
+     return square_euclid(_PB*b-_PC*c) / square_euclid(_PA-_PC*c);
+}
+
+
+template <class Type> Pt3d<Type>  ResProfChamp<Type>::FandDerRatA(Type b,Type c)
+{
+    Type aNum =  square_euclid(_PA-_PB*b) ;
+    Type aDen =  square_euclid(_PA-_PC*c);
+
+    Type aVal = aNum/aDen;
+
+    Type aDb = 2* (_B2 - _AB) / aDen;
+
+    Type aDc =  -(2*aNum *(mC2-_AC)) /ElSquare(aDen) ;
+
+     return Pt3d<Type> (aDb,aDc,aVal);
+}
+
 
 
 template <class Type> ResProfChamp<Type>::ResProfChamp
@@ -258,25 +293,34 @@ template <class Type> void ResProfChamp<Type>::ListeC(ElSTDNS list<Pt3dr>&  res)
                Type b = BfromC(c,OK);
                ELISE_ASSERT(OK,"Incoh in ResProfChamp::ListeC");
 
+/*
                Type RatA =   square_euclid(_PA-_PB*b)
                            / square_euclid(_PA-_PC*c);
                Type RatC =   square_euclid(_PB*b-_PC*c)
                            / square_euclid(_PA-_PC*c);
+*/
+               Type aRatA = RatA(b,c);
+               Type aRatC = RatC(b,c);
                if ( 
-                        (ElAbs(RatA-_rhoA) < 1e-4)
-                    &&  (ElAbs(RatC-_rhoC) < 1e-4)
+                        (ElAbs(aRatA-_rhoA) < 1e-4)
+                    &&  (ElAbs(aRatC-_rhoC) < 1e-4)
                   )
                {
                    Type ratio = _DistBC / euclid(_PB*b-_PC*c);
                    res.push_back(Pt3dr(1,b,c)*ratio);
+if (DebugOFPA) aCPTOkOFA++;
                }
                else
                {
                      if (DebugOFPA)
                      {
+if (DebugOFPA) aCPTNotOkOFA++;
+/*
                          std::cout << "BEGINDbgOFPA \n";
                          std::cout << ElAbs(RatA-_rhoA) << " " << ElAbs(RatC-_rhoC) << "\n";
                          std::cout << " POL " <<  c << " " << _Resolv(c) << "\n";
+
+*/
                          // getchar();
                      }
                }
@@ -299,7 +343,7 @@ void ElPhotogram::ProfChampsFromDist
                  REAL dAB, REAL dAC, REAL dBC
      )
 {
-    ResProfChamp<REAL>  RPC(dBC,A,B,C,ElSquare(dAB/dAC),ElSquare(dBC/dAC));
+    ResProfChamp<REAL16>  RPC(dBC,A,B,C,ElSquare(dAB/dAC),ElSquare(dBC/dAC));
     RPC.ListeC(res);
 }
 
