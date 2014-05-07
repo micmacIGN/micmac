@@ -67,6 +67,8 @@ typedef unsigned char pixel;
 
 enum Plans {XY,XZ,YZ,YX,ZX,ZY};
 
+
+// UTILISER le define en dessous
 inline std::string className(const std::string& prettyFunction)
 {
     size_t colons = prettyFunction.find("::");
@@ -78,6 +80,7 @@ inline std::string className(const std::string& prettyFunction)
     return prettyFunction.substr(begin,end);
 }
 
+//
 #define __CLASS_NAME__ className(__PRETTY_FUNCTION__)
 
 #endif //GPGPU_DEFINES_H
