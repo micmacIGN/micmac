@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -69,9 +69,9 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
     string cmdDRUNK;
     list<string> ListDrunk;
     if(nbIm!=1)
-	{
+    {
         for(int i=1;i<=nbIm;i++)
-		{
+        {
             string aFullName=ListIm.front();
             ListIm.pop_front();
             cmdDRUNK=MMDir() + "bin/Drunk " + aNameDir + aFullName + " " + aOri + " Out=" + DirOut + " Talk=0";
@@ -127,11 +127,11 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
     {
         for (int aX=0 ; aX<aSz.x  ; aX++)
         {
-			ptOut=aCam->DistDirecte(Pt2dr(aX,aY));
+            ptOut=aCam->DistDirecte(Pt2dr(aX,aY));
 
-			aDataROut[aY][aX] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
-			aDataGOut[aY][aX] = Reechantillonnage::biline(aDataG, aSz.x, aSz.y, ptOut);
-			aDataBOut[aY][aX] = Reechantillonnage::biline(aDataB, aSz.x, aSz.y, ptOut);
+            aDataROut[aY][aX] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
+            aDataGOut[aY][aX] = Reechantillonnage::biline(aDataG, aSz.x, aSz.y, ptOut);
+            aDataBOut[aY][aX] = Reechantillonnage::biline(aDataB, aSz.x, aSz.y, ptOut);
 
         }
     }
@@ -157,17 +157,18 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
 
 int Drunk_main(int argc,char ** argv)
 {
-	//Testing the existence of argument (if not, print help file)
-    if(argc==1)
-	{
+
+    //Testing the existence of argument (if not, print help file)
+    if(!MMVisualMode && argc==1)
+    {
         argv[1]=(char*)"";//Compulsory to call MMD_InitArgcArgv
         MMD_InitArgcArgv(argc,argv);
         string cmdhelp;
         cmdhelp=MMDir()+"bin/Drunk -help";
         system_call(cmdhelp.c_str());
     }
-	else
-	{
+    else
+    {
         MMD_InitArgcArgv(argc,argv);
 
         string aPattern,aOri;
@@ -178,8 +179,8 @@ int Drunk_main(int argc,char ** argv)
         ElInitArgMain
         (
             argc,argv,
-            LArgMain()  << EAMC(aPattern,"Images Pattern")
-                        << EAMC(aOri,"Orientation name"),
+            LArgMain()  << EAMC(aPattern,"Images Pattern", eSAM_IsPatFile)
+                        << EAMC(aOri,"Orientation name", eSAM_IsExistDirOri),
             LArgMain()  << EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
                         << EAM(Talk,"Talk",true,"Turn on-off commentaries")
                     );
@@ -188,19 +189,19 @@ int Drunk_main(int argc,char ** argv)
         Drunk(aPattern,aOri,DirOut,Talk);
     }
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -210,17 +211,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

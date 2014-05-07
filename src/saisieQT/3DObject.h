@@ -322,6 +322,7 @@ class cPolygon : public cObjectGL
         void    removePoint( int i );
 
         QVector <QPointF> const getVector();
+        QVector <QPointF> const getImgCoordVector(int imgHeight);
         void    setVector(QVector <cPoint> const &aPts){ _points = aPts; }
         void    setVector(QVector <QPointF> const &aPts);
 
@@ -664,8 +665,6 @@ public:
     void        clearPolygon()                          { currentPolygon()->clear(); }
 
     bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
-
-    void        setDimensionImage(int iW,int iH);
 
     void        setScale(float vW, float vH);
 

@@ -923,6 +923,19 @@ const QVector<QPointF> cPolygon::getVector()
     {
         points.push_back(_points[aK]);
     }
+
+    return points;
+}
+
+const QVector<QPointF> cPolygon::getImgCoordVector(int imgHeight)
+{
+    QVector <QPointF> points;
+
+    for(int aK=0; aK < _points.size(); ++aK)
+    {
+        points.push_back( QPointF(_points[aK].x(), (float) imgHeight - _points[aK].y()) );
+    }
+
     return points;
 }
 

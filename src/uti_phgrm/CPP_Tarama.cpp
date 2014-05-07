@@ -78,11 +78,11 @@ int Tarama_main(int argc,char ** argv)
                     << EAM(Repere,"Repere",true,"Local coordinate system as created with RepLocBascule")
                     << EAM(DirOut,"Out",true,"Directory for output (Deg=TA)")
                     << EAM(aZMoy,"ZMoy",true,"Average value of Z")
-                    << EAM(aKNadir,"KNadir",true,"KBest image od Nadir (when exist)")
+                    << EAM(aKNadir,"KNadir",true,"KBest image or Nadir (when exist)")
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
     #endif
@@ -131,9 +131,9 @@ int Tarama_main(int argc,char ** argv)
 
 
    return aRes;
-   
-	}
-	else return EXIT_FAILURE;
+
+    }
+    else return EXIT_FAILURE;
 }
 
 
