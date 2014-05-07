@@ -706,8 +706,6 @@ void cPolygon::draw()
             glColor3f(_color[state_default].redF(),_color[state_default].greenF(),_color[state_default].blueF());
         }
 
-
-
         disableOptionLine();
     }
 
@@ -937,6 +935,26 @@ const QVector<QPointF> cPolygon::getImgCoordVector(int imgHeight)
     }
 
     return points;
+}
+
+//transforms into terrain coordinates if FileOriMNT exists, else transforms into image coordinates
+const QVector<QPointF> cPolygon::transfoTerrain(const cMaskedImageGL &img)
+{
+    QVector <QPointF> res = getImgCoordVector(img._m_image->height());
+
+    if (img._m_FileOriMnt.NameFileMnt() != "")
+    {
+        for (int aK=0; aK < res.size(); ++aK)
+        {
+            Pt2dr ptImage(res[aK].x(), res[aK].y());
+
+            Pt2dr ptTerrain = ToMnt(img._m_FileOriMnt, ptImage);
+
+            res[aK]=  QPointF(ptTerrain.x, ptTerrain.y);
+        }
+    }
+
+    return res;
 }
 
 void cPolygon::setVector(const QVector<QPointF> &aPts)
@@ -1492,6 +1510,7 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
     _m_newMask  = qMaskedImage._m_newMask;
     _m_mask->PrepareTexture(qMaskedImage._m_mask);
     _m_image->PrepareTexture(qMaskedImage._m_image);
+    _m_FileOriMnt = qMaskedImage._m_FileOriMnt;
     cObjectGL::setName(qMaskedImage.name());
 }
 

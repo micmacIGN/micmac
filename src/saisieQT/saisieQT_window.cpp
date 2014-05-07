@@ -177,9 +177,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData, bool
         else // LOAD IMAGE
         {
             if (_mode <= MASK3D) closeAll();
-            //if (filenames.size() == 1) _mode = MASK2D;
-
-            if (_mode == BOX2D) _Engine->checkGeoReferencement(filenames);
+            //else if (filenames.size() == 1) _mode = MASK2D;
 
             _Engine->loadImages(filenames);
         }
@@ -762,6 +760,8 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
+
+    if (_mode == BOX2D)   setCurrentPolygonIndex(1);
 }
 
 void SaisieQtWindow::setUI()
@@ -774,8 +774,6 @@ void SaisieQtWindow::setUI()
 #endif
 
     updateUI();
-
-    if (_mode == BOX2D) setCurrentPolygonIndex(1);
 
     if (_mode > MASK3D)
     {
