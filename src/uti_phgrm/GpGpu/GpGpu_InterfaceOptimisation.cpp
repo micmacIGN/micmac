@@ -88,7 +88,7 @@ void InterfOptimizGpGpu::oneCompute()
     while(!GetCompute())
     {
         //printf("WAIT COMPUTE CORREL...\n");
-        boost::this_thread::sleep(boost::posix_time::microsec(5));
+        boost::this_thread::sleep(boost::posix_time::microsec(1));
     }
 
     SetCompute(false);
