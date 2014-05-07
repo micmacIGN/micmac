@@ -45,6 +45,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 bool DebugOFPA = false;
+int aCPTOkOFA = 0;
+int aCPTNotOkOFA = 0;
 bool BugFE = false;
 bool BugAZL = false;
 
