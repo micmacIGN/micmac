@@ -17,7 +17,7 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
     return GlCloud::loadPly( i_ply_file, incre );
 }
 
-void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
+void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
     maskedImg._m_image = new QImage( aNameFile );
 
@@ -64,6 +64,8 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
             }
         }
     }
+
+    checkGeoref(aNameFile, maskedImg);
 
     *(maskedImg._m_image) = QGLWidget::convertToGLFormat( *(maskedImg._m_image) );
 
@@ -117,6 +119,34 @@ void cLoader::loadImage(QString aNameFile , QMaskedImage &maskedImg)
         maskedImg._m_mask->fill(Qt::white);
     }
 
+}
+
+void cLoader::checkGeoref(QString aNameFile, QMaskedImage &maskedImg)
+{
+    if (!maskedImg._m_image->isNull())
+    {
+        cout << "checking" << endl;
+
+        QFileInfo fi(aNameFile);
+
+        QString suffix = fi.suffix();
+        QString xmlFile = fi.absolutePath() + QDir::separator() + fi.baseName() + ".xml";
+
+        if ((suffix == "tif") && (QFile(xmlFile).exists()))
+        {
+            std::string aNameTif = aNameFile.toStdString();
+
+            maskedImg._m_FileOriMnt = StdGetObjFromFile<cFileOriMnt>
+                                   (
+                                        StdPrefix(aNameTif)+".xml",
+                                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                       "FileOriMnt",
+                                       "FileOriMnt"
+                                   );
+
+            cout << "foMNT" << maskedImg._m_FileOriMnt.NameFileMnt() << endl;
+        }
+    }
 }
 
 void cLoader::setFilenamesAndDir(const QStringList &strl)
@@ -448,35 +478,4 @@ void ViewportParameters::ptSizeUp(bool up)
         m_pointSize = 1;
 
     glPointSize((GLfloat) m_pointSize);
-}
-
-void cEngine::checkGeoReferencement(QStringList filenames)
-{
-    if (filenames.size())
-    {
-        for (int aK=0; aK < filenames.size(); ++aK)
-        {
-            QString filename = filenames[aK];
-
-            QFileInfo fi(filename);
-
-            QString suffix = fi.suffix();
-            QString xmlFile = fi.absolutePath() + QDir::separator() + fi.baseName() + ".xml";
-
-            if ((suffix == "tif") && (QFile(xmlFile).exists()))
-            {
-                std::string aNameTif = filename.toStdString();
-
-                _FileOriMnt =  StdGetObjFromFile<cFileOriMnt>
-                                       (
-                                            StdPrefix(aNameTif)+".xml",
-                                            StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                                           "FileOriMnt",
-                                           "FileOriMnt"
-                                       );
-
-                //Pt2dr ptTerrain = ToMnt(aFOM, ptImage);
-            }
-        }
-    }
 }

@@ -97,12 +97,12 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(anOffset,"Offs","Offset in points to limit 32 Bits accurracy problem")
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
     if (EAMIsInit(&aSz))
     {
          std::cout << "Waaaarnnn  :  meaning of parameter has changed\n";
-         std::cout <<  " it used be the corne (this was a bug)\n";
+         std::cout <<  " it used to be the corner (this was a bug)\n";
          std::cout <<  " now it is really the size\n";
     }
 
@@ -169,9 +169,9 @@ int Nuage2Ply_main(int argc,char ** argv)
     BanniereMM3D();
 
     return EXIT_SUCCESS;
-	
-	}
-	else return EXIT_FAILURE;
+
+    }
+    else return EXIT_FAILURE;
 }
 
 

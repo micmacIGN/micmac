@@ -87,6 +87,7 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
                 break;
             case AMBT_INT:
             case AMBT_U_INT1:
+            case AMBT_INT1:
                 add_spinBox(layout, parent, aK, aArg);
                 break;
             case AMBT_REAL:
@@ -113,19 +114,13 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
                 break;
             }
             case AMBT_vector_string:
-                add_select(layout, parent, aK, aArg);
-            break;
-            case AMBT_INT1:
-            case AMBT_char:
-            //break;
             case AMBT_vector_Pt2dr:
-            //break;
             case AMBT_vector_int:
-            //break;
             case AMBT_vector_double:
-            //break;
             case AMBT_vvector_int:
-            //break;
+                add_select(layout, parent, aK, aArg);
+                break;
+            case AMBT_char:
             case AMBT_unknown:
                 cout << "type non gere: " << aArg.NameType() << endl;
                 break;
@@ -597,14 +592,14 @@ void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int 
     }
 
     ((QDoubleSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(0) );
-    ((QDoubleSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
-    ((QDoubleSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(1) );
+    ((QDoubleSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(0) );
+    ((QDoubleSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
     ((QDoubleSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
 
     add_saisieButton(layout, aK);
     connect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(vWidgets[0].second), SLOT(setValue(double)));
-    connect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(vWidgets[1].second), SLOT(setValue(double)));
-    connect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(vWidgets[2].second), SLOT(setValue(double)));
+    connect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(vWidgets[1].second), SLOT(setValue(double)));
+    connect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(vWidgets[2].second), SLOT(setValue(double)));
     connect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(vWidgets[3].second), SLOT(setValue(double)));
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
@@ -667,15 +662,15 @@ void visual_MainWindow::add_4SpinBox(QGridLayout *layout, QWidget *parent, int a
     }
 
     ((QSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(0) );
-    ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
-    ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(1) );
+    ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(1) );
+    ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
     ((QSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(1) );
 
     add_saisieButton(layout, aK);
 
     connect(this,SIGNAL(newX0Position(int)),(QSpinBox*)(vWidgets[0].second), SLOT(setValue(int)));
-    connect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(vWidgets[1].second), SLOT(setValue(int)));
-    connect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(vWidgets[2].second), SLOT(setValue(int)));
+    connect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(vWidgets[1].second), SLOT(setValue(int)));
+    connect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(vWidgets[2].second), SLOT(setValue(int)));
     connect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(vWidgets[3].second), SLOT(setValue(int)));
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
