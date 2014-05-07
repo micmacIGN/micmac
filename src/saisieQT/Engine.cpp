@@ -125,8 +125,6 @@ void cLoader::checkGeoref(QString aNameFile, QMaskedImage &maskedImg)
 {
     if (!maskedImg._m_image->isNull())
     {
-        cout << "checking" << endl;
-
         QFileInfo fi(aNameFile);
 
         QString suffix = fi.suffix();
@@ -143,8 +141,6 @@ void cLoader::checkGeoref(QString aNameFile, QMaskedImage &maskedImg)
                                        "FileOriMnt",
                                        "FileOriMnt"
                                    );
-
-            cout << "foMNT" << maskedImg._m_FileOriMnt.NameFileMnt() << endl;
         }
     }
 }
