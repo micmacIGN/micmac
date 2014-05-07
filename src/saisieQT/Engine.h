@@ -62,6 +62,9 @@ public:
 
     void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
+    //! Check if georeferencing data exists (for box2d mode)
+    void        checkGeoref(QString aNameFile, QMaskedImage &maskedImg);
+
     void        setDir(QDir aDir){_Dir = aDir;}
     void        setDir(QStringList const &list);
     QDir        getDir(){return _Dir;}
@@ -117,9 +120,6 @@ public:
     //! Load images  files
     void    loadImages(QStringList);
 
-    //! Check if georeferencing data exist (for box2d mode)
-    void    checkGeoReferencement(QStringList);
-
     //! Load image (and mask) file
     void    loadImage(QString );
     void    loadImage(int aK);
@@ -160,8 +160,6 @@ private:
     QVector <cGLData*>  _vGLData;
 
     cParameters*        _params;
-
-    cFileOriMnt         _FileOriMnt;
 };
 
 

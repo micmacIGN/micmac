@@ -262,6 +262,8 @@ class cCam : public cObjectGL
 
 class cPolygonHelper;
 
+class cMaskedImageGL;
+
 class cPolygon : public cObjectGL
 {
     public:
@@ -323,6 +325,8 @@ class cPolygon : public cObjectGL
 
         QVector <QPointF> const getVector();
         QVector <QPointF> const getImgCoordVector(int imgHeight);
+        QVector <QPointF> const transfoTerrain(const cMaskedImageGL &img);
+
         void    setVector(QVector <cPoint> const &aPts){ _points = aPts; }
         void    setVector(QVector <QPointF> const &aPts);
 
@@ -519,6 +523,8 @@ public:
 
     T           *_m_image;
     T           *_m_mask;
+
+    cFileOriMnt  _m_FileOriMnt;
 
     bool        _m_newMask;
     float       _gamma;
