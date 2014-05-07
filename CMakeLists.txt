@@ -231,17 +231,29 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
 # Utiliser le driver Kakadu pour gerer les images JP2OOO
 IF(${WITH_KAKADU} AND NOT ${WITH_IGN_IMAGE})
-#IF(${WITH_KAKADU})
-        FIND_PACKAGE( KAKADU )
-        IF(NOT KAKADU_FOUND)
-                MESSAGE("Warning! Kakadu not found. Micmac will be built without JPEG2000 support.")
-        ELSE()
-                ADD_DEFINITIONS(-D__USE_JP2__)
-                LINK_DIRECTORIES( ${KAKADU_LIBRARY_DIRS})
-                INCLUDE_DIRECTORIES( ${KAKADU_INCLUDE_DIRS})
-                MESSAGE("KAKADU : ${KAKADU_LIBRARIES}")
-        ENDIF()
-
+	if(KAKADU_NO_FIND)
+		# to use when FindKAKAKDU.cmake does not exist (KAKADU_DIR must be set)
+		set( KAKADU_LIBRARY_DIRS "${KAKADU_DIR}/lib" )
+		set( KAKADU_INCLUDE_DIRS "${KAKADU_DIR}/include" )
+		set( KAKADU_LIBRARIES "kdu_v64R;kdu;kdu_aux" )
+		# quick check of Kakadu's headers and libraries
+		if ( ( (EXISTS "${KAKADU_LIBRARY_DIRS}/kdu.lib") OR
+		       (EXISTS "${KAKADU_LIBRARY_DIRS}/libkdu.a") ) AND
+		     ( EXISTS "${KAKADU_DIR}/include/jp2.h" ) )
+			set( KAKADU_FOUND 1 )
+		endif()
+	else()
+		FIND_PACKAGE( KAKADU )
+	endif()
+	
+	IF(NOT KAKADU_FOUND)
+		MESSAGE("Warning! Kakadu not found. Micmac will be built without JPEG2000 support.")
+	ELSE()
+		message( STATUS "Kakadu enabled" )
+		ADD_DEFINITIONS(-D__USE_JP2__)
+		LINK_DIRECTORIES( ${KAKADU_LIBRARY_DIRS})
+		INCLUDE_DIRECTORIES( ${KAKADU_INCLUDE_DIRS} )
+	ENDIF()
 ENDIF()
 
 # Utiliser le socle IGN pour gerer les orientations coniques ET/OU les images JP2000
