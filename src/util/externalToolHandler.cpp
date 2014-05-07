@@ -1,5 +1,9 @@
 #include "StdAfx.h"
 
+#ifdef __USE_JP2__
+	#include "kdu_compressed.h"
+#endif
+
 ExternalToolHandler g_externalToolHandler;
 
 using namespace std;
@@ -223,15 +227,20 @@ int CheckDependencies_main(int argc,char ** argv)
     cout << "address size : " << sizeof(int*)*8 << " bits" << endl;
     cout << endl;
 
-     #ifdef USE_OPEN_MP
-     cout << "OpenMP is enabled" << endl;
-     #endif
+	#ifdef USE_OPEN_MP
+		cout << "--- OpenMP enabled" << endl;
+		cout << endl;
+	#endif
 
-    //#ifdef SAISIE_QT
-    #if ELISE_QT_VERSION != 0
-        cout << "Qt version : " << ELISE_QT_VERSION << endl;
-    #endif
-    cout << endl;
+	#if ELISE_QT_VERSION != 0
+		cout << "--- Qt enabled : " << ELISE_QT_VERSION << endl;
+		cout << endl;
+	#endif
+
+	#if defined __USE_JP2__
+		cout << "--- native JPEG2000 enabled : Kakadu " << KDU_CORE_VERSION << endl;
+		cout << endl;
+	#endif
 
     cout << printResult( "make" ) << endl;
     cout << printResult( "exiftool" ) << endl;
