@@ -2,7 +2,13 @@
 rm -rf build
 mkdir build
 cd build
-cmake ../
+
+if [ "$1" = "serveur" ]
+then
+	SERVER_PARAMS="-DWITH_KAKADU=1 -DKAKADU_DIR=/usr/kakadu-6.0 -DWITH_HEADER_PRECOMP=0"
+fi
+
+cmake ../ $SERVER_PARAMS
 
 OS=$(uname -s)
 

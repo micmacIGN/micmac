@@ -432,9 +432,7 @@ void  cTplImInMem<Type>::SetConvolBordX
 
     int aSzY = aImOut.ty();
     for (int anY=0 ; anY<aSzY ; anY++)
-    {
         aDOut[anY][anX] = CorrelLine(aSom,aDIn[anY]+anX,aDFilter,aDebX,aFinX) / aDiv;
-    }
 }
 
 
@@ -451,19 +449,15 @@ void cTplImInMem<Type>::SetConvolSepX
     ELISE_ASSERT(aImOut.sz()==aImIn.sz(),"Sz in SetConvolSepX");
     int aSzX = aImOut.tx();
     int aSzY = aImOut.ty();
-    int aX0 = - aCS->Deb();
-    int aX1 = aSzX-aCS->Fin();
+    int aX0 = std::min( -aCS->Deb(), aSzX );
 
-	int anX;
-    for (anX = 0 ; anX <aX0 ; anX++)
-    {
+    int anX;
+    for (anX=0; anX <aX0 ; anX++)
         SetConvolBordX(aImOut,aImIn,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
-    }
 
-    for (anX =std::max(anX,aX1)  ; anX <aSzX ; anX++) // max car aX1 peut être < aX0 voir negatif et faire planter
-    {
+    int aX1 = std::max( aSzX-aCS->Fin(), anX );
+    for (anX =aX1; anX <aSzX ; anX++) // max car aX1 peut être < aX0 voir negatif et faire planter
         SetConvolBordX(aImOut,aImIn,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
-    }
    
     // const tBase aSom = InitFromDiv(ShiftG(tBase(1),aNbShitX),(tBase*)0);
     for (int anY=0 ; anY<aSzY ; anY++)
