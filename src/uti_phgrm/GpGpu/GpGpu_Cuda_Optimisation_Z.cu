@@ -529,11 +529,11 @@ extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
     if (cudaSuccess != err)
     {
         // BUG : invalid configuration argument!!
-        printf("Error CUDA TestkernelOptiOneDirection\n");
+        printf("Error CUDA OptimisationOneDirectionZ_V02\n");
         printf("%s",cudaGetErrorString(err));
 
-        DUMP_INT(WARPSIZE)
-        DUMP_INT(d2O.NBlines())
+        //DUMP_INT(WARPSIZE)
+        //DUMP_INT(d2O.NBlines())
     }
 
     getLastCudaError("TestkernelOptiOneDirection failed");

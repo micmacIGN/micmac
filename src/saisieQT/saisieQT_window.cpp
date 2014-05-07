@@ -679,7 +679,7 @@ void SaisieQtWindow::setCurrentFile(const QString &fileName)
     foreach (QWidget *widget, QApplication::topLevelWidgets())
     {
         #if WINVER == 0x0601
-            MainWindow *mainWin = dynamic_cast<MainWindow *>(widget);
+            SaisieQtWindow *mainWin = dynamic_cast<SaisieQtWindow *>(widget);
         #else
             SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
         #endif
@@ -762,8 +762,6 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
-
-    if (_mode == BOX2D) setCurrentPolygonIndex(1);
 }
 
 void SaisieQtWindow::setUI()
@@ -776,6 +774,8 @@ void SaisieQtWindow::setUI()
 #endif
 
     updateUI();
+
+    if (_mode == BOX2D) setCurrentPolygonIndex(1);
 
     if (_mode > MASK3D)
     {
@@ -983,9 +983,12 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
         GLWidget* glW = currentWidget();
-        if(glW )
+        if(glW)
             if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
-                text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(pt.y(),'f',1)+" px");
+            {
+                int imHeight = glW->getGLData()->glImage()._m_image->height();
+                text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(imHeight - pt.y(),'f',1)+" px");
+            }
     }
 
     _ui->label_ImagePosition_1->setText(text);

@@ -597,7 +597,16 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
 
 Pt2di cGBV2_ProgDynOptimiseur::direction(int aNbDir, int aKDir)
 {
-    return Pt2di(vunit(Pt2dr::FromPolar(100.0,(aKDir*PI)/aNbDir)) * 20.0);
+    double teta = (double)((double)aKDir*PI)/(double)aNbDir;
+
+//    BUG cos double retourne NaN en Jp2!!!!!!!!!!!!!!!!
+//    double c    = std::cos(teta);
+//    double s    = std::sin(teta);
+    double c    = std::cos((float)teta);
+    double s    = std::sin((float)teta);
+    Pt2dr d2    = Pt2dr(ElStdTypeScal<double>::RtoT(c*100.f),ElStdTypeScal<double>::RtoT(s*100.f));
+
+    return Pt2di( vunit(d2) * 20.0);
 }
 
 void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
@@ -614,7 +623,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
     IGpuOpt.SetCompute(true);
 
-    direction(aNbDir, 0);
+    //direction(aNbDir, 0);
     //GpGpuTools::OutputInfoGpuMemory();
 
     while (aKDir < aNbDir)
