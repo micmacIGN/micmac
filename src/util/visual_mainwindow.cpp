@@ -236,7 +236,7 @@ void visual_MainWindow::onRunCommandPressed()
 
                 for (int aK=0; aK < max;++aK)
                 {
-                    if ( getSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
+                    if ( getSpinBoxValue(toAdd, aIn, aK, ",") ) nbDefVal++;
                 }
 
                 if ( getSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
@@ -260,7 +260,7 @@ void visual_MainWindow::onRunCommandPressed()
 
                 for (int aK=0; aK < max ;++aK)
                 {
-                    if ( getDoubleSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
+                    if ( getDoubleSpinBoxValue(toAdd, aIn, aK, ",") ) nbDefVal++;
                 }
 
                 if ( getDoubleSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
@@ -301,7 +301,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
                             this,
                             tr("Select images"),
                             mlastDir,
-                            tr("Images (*.png *.xpm *.jpg *.tif)"));
+                            tr("Images (*.png *.xpm *.jpg *.tif);;Images (*.*)"));
 
     if (files.size())
     {
@@ -322,8 +322,6 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 
         vLineEdit[aK]->setText(QString(full_pattern.c_str()));
         //cout<<full_pattern.toStdString()<<endl;
-
-        adjustSize();
     }
 }
 
@@ -338,8 +336,6 @@ void visual_MainWindow::onSelectFilePressed(int aK)
         mlastDir = QString(aDir.c_str());
 
         vLineEdit[aK]->setText(filename);
-
-        adjustSize();
     }
 }
 
@@ -349,11 +345,9 @@ void visual_MainWindow::onSelectDirPressed(int aK)
 
     if (aDir != NULL)
     {
-        mlastDir = aDir;
+        mlastDir = "../" + aDir;
 
         vLineEdit[aK]->setText(QDir(aDir).dirName());
-
-        adjustSize();
     }
 }
 
@@ -617,7 +611,7 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
 
 void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK, bool normalize)
 {
-    cSelectionButton *saisieButton = new cSelectionButton(tr("Selection editor"), vInputs.size(), normalize);
+    cSelectionButton *saisieButton = new cSelectionButton(tr("Selection &editor"), vInputs.size(), normalize);
     layout->addWidget(saisieButton, aK, 5);
     connect(saisieButton,SIGNAL(my_click(int, bool)),this,SLOT(onSaisieButtonPressed(int, bool)));
 }
