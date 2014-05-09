@@ -81,8 +81,11 @@ bool cElRegex::IsOk() const
 void cElRegex::AssertOk() const
 {
    if (!IsOk())
+   {
       std::cout << "EXPR=" << mNameExpr << "\n";
-   assert(IsOk());
+      ELISE_ASSERT(false,"Expression is not valide");
+   }
+   // assert(IsOk());
 }
 
 bool cElRegex::IsMatched() const
@@ -92,7 +95,8 @@ bool cElRegex::IsMatched() const
 
 void cElRegex::AssertIsMatched() const
 {
-   assert(IsMatched());
+   ELISE_ASSERT(IsMatched(),"cElRegex::AssertIsMatched");
+   // assert(IsMatched());
 }
 
 bool cElRegex::IsReplaced() const
@@ -101,7 +105,8 @@ bool cElRegex::IsReplaced() const
 }
 void cElRegex::AssertIsReplaced() const
 {
-   assert(IsReplaced());
+   ELISE_ASSERT(IsReplaced(),"cElRegex::AssertIsReplaced");
+   // assert(IsReplaced());
 }
 
 bool cElRegex::Match(const std::string & aName,int aCFlag)  
