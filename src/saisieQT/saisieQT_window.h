@@ -113,8 +113,6 @@ public slots:
 
     cParameters* getParams() { return _params; }
 
-    void close();
-
 signals:
 
     void showRefuted(bool);
@@ -130,6 +128,8 @@ signals:
     void undoSgnl(bool);
 
     void sCloseAll();
+
+    void sgnClose();
 
 protected slots:
 

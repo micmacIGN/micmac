@@ -379,7 +379,9 @@ void visual_MainWindow::onSaisieButtonPressed(int aK)
 
         connect(_SaisieWin->getWidget(0),SIGNAL(newRectanglePosition(QVector <QPointF>)),this,SLOT(onRectanglePositionChanged(QVector<QPointF>)));
 
-        connect(_SaisieWin->getWidget(0),SIGNAL(destroyed()), this, SLOT(onWidgetClosed()));
+        connect(_SaisieWin,SIGNAL(sgnClose()), this, SLOT(onSaisieQtWindowClosed()));
+
+        _curIdx = aK;
 
         cInputs* aIn = vInputs[aK];
 
@@ -418,26 +420,24 @@ void visual_MainWindow::onRectanglePositionChanged(QVector<QPointF> points)
     emit newY1Position(points[2].y());
 }
 
-void visual_MainWindow::onWidgetClosed()
+void visual_MainWindow::onSaisieQtWindowClosed()
 {
-    cout << "widget closed" << endl;
-//    int aK = 35;
-//    cInputs* aIn = vInputs[aK];
+    cInputs* aIn = vInputs[_curIdx];
 
-//    if(aIn->Type() == eIT_DoubleSpinBox)
-//    {
-//        disconnect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(double)));
-//        disconnect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
-//        disconnect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
-//        disconnect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(double)));
-//    }
-//    else if (aIn->Type() == eIT_SpinBox)
-//    {
-//        disconnect(this,SIGNAL(newX0Position(int)),(QSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(int)));
-//        disconnect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(int)));
-//        disconnect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
-//        disconnect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(int)));
-//    }
+    if(aIn->Type() == eIT_DoubleSpinBox)
+    {
+        disconnect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(double)));
+        disconnect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
+        disconnect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
+        disconnect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(double)));
+    }
+    else if (aIn->Type() == eIT_SpinBox)
+    {
+        disconnect(this,SIGNAL(newX0Position(int)),(QSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(int)));
+        disconnect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(int)));
+        disconnect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
+        disconnect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(int)));
+    }
 }
 
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)

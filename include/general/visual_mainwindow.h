@@ -105,7 +105,7 @@ public slots:
     void _adjustSize(int);
 
     void onRectanglePositionChanged(QVector <QPointF>);
-    void onWidgetClosed();
+    void onSaisieQtWindowClosed();
 
 signals:
 
@@ -118,8 +118,6 @@ signals:
     void newY0Position(double);
     void newX1Position(double);
     void newY1Position(double);
-
-    void disconnectSpinbox();
 
 protected:
 
@@ -140,6 +138,8 @@ protected:
     string              mFirstArg;    //truc&astuces: stores the first arg (for Tapioca)
 
     SaisieQtWindow*     _SaisieWin;
+
+    int                 _curIdx;
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);
