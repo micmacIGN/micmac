@@ -324,7 +324,7 @@ class cPolygon : public cObjectGL
         void    removePoint( int i );
 
         QVector <QPointF> const getVector();
-        QVector <QPointF> const getImgCoordVector(int imgHeight);
+        QVector <QPointF> const getImgCoordVector(const cMaskedImageGL &img);
         QVector <QPointF> const transfoTerrain(const cMaskedImageGL &img);
 
         void    setVector(QVector <cPoint> const &aPts){ _points = aPts; }
@@ -371,6 +371,8 @@ class cPolygon : public cObjectGL
         void    setStyle(int style)     { _style = style; }
         void    setLineColor(QColor col){ _lineColor = col; }
 
+        void    normalize(bool aBool)   { _bNormalize = aBool; }
+
 
     protected:
         cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
@@ -404,6 +406,9 @@ private:
         QString             _defPtName;
 
         float               _shiftStep;
+
+        //!should image coordinates be normalized
+        bool                _bNormalize;
 };
 
 class cPolygonHelper : public cPolygon
@@ -667,6 +672,8 @@ public:
 
     void        setCurrentPolygonIndex(int id)          { _currentPolygon = id;   }
     int         getCurrentPolygonIndex()                { return _currentPolygon; }
+
+    void        normalizeCurrentPolygon(bool nrm)       { currentPolygon()->normalize(nrm); }
 
     void        clearPolygon()                          { currentPolygon()->clear(); }
 

@@ -907,6 +907,14 @@ void SaisieQtWindow::setCurrentPolygonIndex(int idx)
     }
 }
 
+void SaisieQtWindow::setCurrentPolygonNormalize(bool nrm)
+{
+    for (int aK = 0; aK < getEngine()->nbGLData(); ++aK)
+    {
+        _Engine->getGLData(aK)->normalizeCurrentPolygon(nrm);
+    }
+}
+
 void  SaisieQtWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);

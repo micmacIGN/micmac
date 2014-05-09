@@ -925,13 +925,25 @@ const QVector<QPointF> cPolygon::getVector()
     return points;
 }
 
-const QVector<QPointF> cPolygon::getImgCoordVector(int imgHeight)
+const QVector<QPointF> cPolygon::getImgCoordVector(const cMaskedImageGL &img)
 {
+    float nImgWidth, nImgHeight;
+    float imgHeight = (float) img._m_image->height();
+    if (_bNormalize)
+    {
+        nImgWidth = (float) img._m_image->width();
+        nImgHeight = imgHeight;
+    }
+    else
+    {
+        nImgWidth = nImgHeight = 1.f;
+    }
+
     QVector <QPointF> points;
 
     for(int aK=0; aK < _points.size(); ++aK)
     {
-        points.push_back( QPointF(_points[aK].x(), (float) imgHeight - _points[aK].y()) );
+        points.push_back( QPointF(_points[aK].x()/nImgWidth, (imgHeight - _points[aK].y())/nImgHeight));
     }
 
     return points;
@@ -940,7 +952,7 @@ const QVector<QPointF> cPolygon::getImgCoordVector(int imgHeight)
 //transforms into terrain coordinates if FileOriMNT exists, else transforms into image coordinates
 const QVector<QPointF> cPolygon::transfoTerrain(const cMaskedImageGL &img)
 {
-    QVector <QPointF> res = getImgCoordVector(img._m_image->height());
+    QVector <QPointF> res = getImgCoordVector(img);
 
     if (img._m_FileOriMnt.NameFileMnt() != "")
     {
@@ -968,7 +980,6 @@ void cPolygon::setVector(const QVector<QPointF> &aPts)
 
 void cPolygon::setPointSelected()
 {
-    cout << "**** selecting point " << _idx << endl;
     _bSelectedPoint = true;
 
     if (pointValid())
@@ -1424,6 +1435,10 @@ void cImageGL::draw()
 {
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
+
+    /*int max;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+    cout<<max<<endl;*/
 
     if(_gamma !=1.0f)
     {

@@ -357,7 +357,7 @@ void visual_MainWindow::onSelectDirPressed(int aK)
     }
 }
 
-void visual_MainWindow::onSaisieButtonPressed(int aK)
+void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), mlastDir);
 
@@ -376,6 +376,7 @@ void visual_MainWindow::onSaisieButtonPressed(int aK)
         _SaisieWin->addFiles(aFiles);
 
         _SaisieWin->setCurrentPolygonIndex(1);
+        _SaisieWin->setCurrentPolygonNormalize(normalize);
 
         connect(_SaisieWin->getWidget(0),SIGNAL(newRectanglePosition(QVector <QPointF>)),this,SLOT(onRectanglePositionChanged(QVector<QPointF>)));
 
@@ -614,11 +615,11 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK)
+void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK, bool normalize)
 {
-    cSelectionButton *saisieButton = new cSelectionButton(tr("Selection editor"), vInputs.size());
+    cSelectionButton *saisieButton = new cSelectionButton(tr("Selection editor"), vInputs.size(), normalize);
     layout->addWidget(saisieButton, aK, 5);
-    connect(saisieButton,SIGNAL(my_click(int)),this,SLOT(onSaisieButtonPressed(int)));
+    connect(saisieButton,SIGNAL(my_click(int, bool)),this,SLOT(onSaisieButtonPressed(int, bool)));
 }
 
 void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
@@ -638,7 +639,7 @@ void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int 
     ((QDoubleSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
     ((QDoubleSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
 
-    add_saisieButton(layout, aK);
+    add_saisieButton(layout, aK, aArg.IsToNormalize());
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
@@ -705,7 +706,7 @@ void visual_MainWindow::add_4SpinBox(QGridLayout *layout, QWidget *parent, int a
     ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
     ((QSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(1) );
 
-    add_saisieButton(layout, aK);
+    add_saisieButton(layout, aK, aArg.IsToNormalize());
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }

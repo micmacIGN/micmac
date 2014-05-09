@@ -85,6 +85,7 @@ public:
     void    loadPlyIn3DPrev(const QStringList &filenames,cData* dataCache);
 
     void    setCurrentPolygonIndex(int idx);
+    void    setCurrentPolygonNormalize(bool nrm);
 
 public slots:
 
