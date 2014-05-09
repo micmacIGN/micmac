@@ -1,0 +1,47 @@
+<ParamDigeo>
+
+     <DicoLoc >
+     </DicoLoc>
+
+     <SectionImages>
+           <ImageDigeo>
+              <KeyOrPat>  Im1.tif </KeyOrPat>
+           </ImageDigeo>
+           <PyramideImage>
+
+              <TypeNumeriqueOfNiv>
+                 <Type> eTN_u_int2 </Type>
+                 <Niv> 1 </Niv>
+              </TypeNumeriqueOfNiv>
+              <TypeNumeriqueOfNiv>
+                 <Type> eTN_float </Type>
+                 <Niv> 4 </Niv>
+              </TypeNumeriqueOfNiv>
+
+              <TypePyramide>
+                  <PyramideGaussienne>
+                       <NbByOctave> 3 </NbByOctave>
+                       <NivOctaveMax  > 16 </NivOctaveMax> <!-- Par ex 8, 32 ..-->
+                  </PyramideGaussienne>
+              </TypePyramide>
+           </PyramideImage>
+     </SectionImages>
+
+     <SectionCaracImages>
+           <ComputeCarac> true </ComputeCarac>
+     </SectionCaracImages>
+
+     <SectionWorkSpace>
+           <ShowTimes> 10 </ShowTimes>
+           <DirectoryChantier> ../micmac_data/Jeux1-Spot-Epi/ </DirectoryChantier>
+           <GenereCodeConvol>
+           </GenereCodeConvol>
+
+            <UseConvolSpec> true </UseConvolSpec>
+            <ShowConvolSpec> true </ShowConvolSpec>
+
+     </SectionWorkSpace>
+
+
+
+</ParamDigeo>
