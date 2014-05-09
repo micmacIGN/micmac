@@ -813,6 +813,8 @@ bool cPoseCam::IsId(const ElAffin2D & anAff) const
 */
 
 extern bool DebugOFPA;
+extern int aCPTOkOFA ;
+extern int aCPTNotOkOFA ;
 
 void   cPoseCam::InitRot()
 {
@@ -1043,7 +1045,7 @@ else
 	 aRot = aRot.inv();
 
          if (mAppli.ShowMes() || DebugOFPA)
-            std::cout << mName << " DIST-MIN  = " << aDMin << aRot.ImAff(Pt3dr(0,0,0)) << " "  <<  aRot.ImVect(Pt3dr(0,0,1)) << "\n\n";
+            std::cout << mName << " DIST-MIN  = " << aDMin << aRot.ImAff(Pt3dr(0,0,0)) << " "  <<  aRot.ImVect(Pt3dr(0,0,1))  << " OK " << aCPTOkOFA << " NotOk " << aCPTNotOkOFA << "\n\n";
 	 // cObserv1Im<cTypeEnglob_Appuis>  &  anObs = mAppli.ObsAppuis(anId,mName);
 	 // Pt3dr aCdg =  anObs.mBarryTer;
          Pt3dr aCdg = BarryImTer(aL).pter;
