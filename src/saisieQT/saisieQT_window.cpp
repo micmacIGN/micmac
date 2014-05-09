@@ -912,17 +912,10 @@ void  SaisieQtWindow::setGamma(float aGamma)
     _params->setGamma(aGamma);
 }
 
-void SaisieQtWindow::close()
-{
-    cout << "close" << endl;
-
-    //on pourrait faire un emit ici et le recuperer dans visual_mainwindow
-
-    exit(0);
-}
-
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
+    emit sgnClose();
+
     if (zoomWidget())
         _params->setZoomWindowValue(zoomWidget()->getZoom());
 
