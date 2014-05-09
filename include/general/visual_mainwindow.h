@@ -91,7 +91,7 @@ public:
 
     std::string getFirstArg() { return mFirstArg; }
 
-    void add_saisieButton(QGridLayout *layout, int aK);
+    void add_saisieButton(QGridLayout *layout, int aK, bool normalize);
 
     void setSaisieWin(SaisieQtWindow* win){ _SaisieWin = win;}
 
@@ -101,7 +101,7 @@ public slots:
     void onSelectFilePressed(int);
     void onSelectImgsPressed(int);
     void onSelectDirPressed(int);
-    void onSaisieButtonPressed(int);
+    void onSaisieButtonPressed(int, bool normalize);
     void _adjustSize(int);
 
     void onRectanglePositionChanged(QVector <QPointF>);

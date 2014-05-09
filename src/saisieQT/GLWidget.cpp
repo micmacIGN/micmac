@@ -560,7 +560,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 if (polygon()->size() && m_bDisplayMode2D)
 
-                    emit newRectanglePosition(polygon()->transfoTerrain((m_GLData->glImage())));
+                    emit newRectanglePosition(polygon()->transfoTerrain(m_GLData->glImage()));
 
                 if(id != polygon()->getSelectedPointIndex())
 

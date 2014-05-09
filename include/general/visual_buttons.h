@@ -16,15 +16,17 @@ class cSelectionButton: public QPushButton
     Q_OBJECT
 
 public:
-        cSelectionButton(QString text, int id = -1,  QWidget *parent=0);
+        cSelectionButton(QString text, int id = -1, bool normalize = false, QWidget *parent=0);
 
 protected:
         int  _m_line_id;
+        bool _m_nrm;
 
 public slots:
         void onClick();
 
 signals:
+        void my_click(int, bool);
         void my_click(int);
 
 };
