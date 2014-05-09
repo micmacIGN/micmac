@@ -6,6 +6,8 @@
 #include "saisieQT_window.h"
 #include <memory>
 
+void initSettings(QSettings &settings, Pt2di aSzWin, Pt2di aNbFen, bool init);
+
 extern void SaisieAppuisInit(int argc, char ** argv,
                              Pt2di &aSzW,
                              Pt2di &aNbFen,
@@ -32,11 +34,22 @@ extern void SaisieAppuisPredic(int argc, char ** argv,
                                double &aFlou,
                                bool &aForceGray);
 
+extern void SaisieBasc(int argc, char ** argv,
+                        std::string &aFullName,
+                        std::string &aDir,
+                        std::string &aName,
+                        std::string &anOri,
+                        std::string &anOut,
+                        Pt2di &aSzW,
+                        Pt2di &aNbFen,
+                        bool &aForceGray);
+
 int helpMessage(QApplication const &app, QString text);
 
 int saisieMasqQT_main(QApplication &app, int argc, char *argv[]);
 int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[]);
 int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[]);
 int saisieBoxQT_main(QApplication &app, int argc, char *argv[]);
+int saisieBascQT_main(QApplication &app, int argc, char *argv[]);
 
 #endif

@@ -71,6 +71,10 @@ bool cMMSpecArg::IsOutputFile() const
 {
     return mEAM->Spec() == eSAM_IsOutputFile;
 }
+bool cMMSpecArg::IsToNormalize() const
+{
+    return mEAM->Spec() == eSAM_Normalize;
+}
 std::string cMMSpecArg::NameType() const
 {
     return mEAM->NameType();

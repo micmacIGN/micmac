@@ -91,6 +91,9 @@ class cMMSpecArg
         // S'agit-il d'un fichier en sortie
         bool IsOutputFile() const;
 
+        // S'agit-il d'une box2d a normaliser
+        bool IsToNormalize() const;
+
         // Nom du type
         std::string NameType() const;
 

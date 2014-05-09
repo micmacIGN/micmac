@@ -110,6 +110,11 @@ void SaisieQtWindow::setPostFix(QString str)
     _Engine->setPostFix();
 }
 
+QString SaisieQtWindow::getPostFix()
+{
+    return _params->getPostFix();
+}
+
 void SaisieQtWindow::progression()
 {
     if(_incre)
@@ -143,7 +148,7 @@ void SaisieQtWindow::loadPly(const QStringList& filenames)
     delete timer_test;
 }
 
-void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData, bool polygonal)
+void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 {
     if (filenames.size())
     {
@@ -907,6 +912,14 @@ void SaisieQtWindow::setCurrentPolygonIndex(int idx)
     }
 }
 
+void SaisieQtWindow::setCurrentPolygonNormalize(bool nrm)
+{
+    for (int aK = 0; aK < getEngine()->nbGLData(); ++aK)
+    {
+        _Engine->getGLData(aK)->normalizeCurrentPolygon(nrm);
+    }
+}
+
 void  SaisieQtWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);
@@ -914,6 +927,8 @@ void  SaisieQtWindow::setGamma(float aGamma)
 
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
+    emit sgnClose();
+
     if (zoomWidget())
         _params->setZoomWindowValue(zoomWidget()->getZoom());
 

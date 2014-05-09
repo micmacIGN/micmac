@@ -9,6 +9,7 @@ set(saisieQT_SRCS saisieQT_main.cpp
                   saisieMasqQT_main.cpp
                   saisieAppuisInitQT_main.cpp
                   saisieAppuisPredicQT_main.cpp
+                  saisieBascQT_main.cpp
                   saisieBoxQT_main.cpp)
 
 #message ("saisie srcs: " ${saisieQT_SRCS} )

@@ -34,6 +34,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
                                 "* [Name=Post] string\t: change postfix output file (default=_Masq)\n"
                                 "* [Name=Name] string\t: set output filename (default=input+_Masq)\n"
                                 "* [Name=Gama] REAL\t: apply gamma to image\n\n"
+                                "* [Name=Attr] string\t: string to add to postfix\n\n"
                                 "Example: " + app.applicationName() + " IMG.tif SzW=1200 Name=PLAN Gama=1.5\n\n"
                                 "NB: " + app.applicationName() + " can be run without any argument\n\n";
 
@@ -46,6 +47,8 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
                 removeArg = true;
             }
+            else
+                w.setPostFix("Masq");
 
             if (str.contains("SzW="))
             {
@@ -75,6 +78,15 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
                 float aGamma = arg.toFloat();
 
                 w.setGamma(aGamma);
+
+                removeArg = true;
+            }
+
+            if (str.contains("Attr="))
+            {
+                QString arg = str.mid(str.indexOf("Attr=")+5, str.size());
+
+                w.setPostFix(w.getPostFix() + arg);
 
                 removeArg = true;
             }
