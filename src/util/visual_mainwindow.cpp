@@ -236,7 +236,7 @@ void visual_MainWindow::onRunCommandPressed()
 
                 for (int aK=0; aK < max;++aK)
                 {
-                    if ( getSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
+                    if ( getSpinBoxValue(toAdd, aIn, aK, ",") ) nbDefVal++;
                 }
 
                 if ( getSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
@@ -260,7 +260,7 @@ void visual_MainWindow::onRunCommandPressed()
 
                 for (int aK=0; aK < max ;++aK)
                 {
-                    if ( getDoubleSpinBoxValue(toAdd, aIn, aK, ";") ) nbDefVal++;
+                    if ( getDoubleSpinBoxValue(toAdd, aIn, aK, ",") ) nbDefVal++;
                 }
 
                 if ( getDoubleSpinBoxValue(toAdd, aIn, max, "]") ) nbDefVal++;
@@ -301,7 +301,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
                             this,
                             tr("Select images"),
                             mlastDir,
-                            tr("Images (*.png *.xpm *.jpg *.tif)"));
+                            tr("Images (*.png *.xpm *.jpg *.tif);;Images (*.*)"));
 
     if (files.size())
     {
@@ -322,8 +322,6 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
 
         vLineEdit[aK]->setText(QString(full_pattern.c_str()));
         //cout<<full_pattern.toStdString()<<endl;
-
-        adjustSize();
     }
 }
 
@@ -338,8 +336,6 @@ void visual_MainWindow::onSelectFilePressed(int aK)
         mlastDir = QString(aDir.c_str());
 
         vLineEdit[aK]->setText(filename);
-
-        adjustSize();
     }
 }
 
@@ -349,15 +345,13 @@ void visual_MainWindow::onSelectDirPressed(int aK)
 
     if (aDir != NULL)
     {
-        mlastDir = aDir;
+        mlastDir = "../" + aDir;
 
         vLineEdit[aK]->setText(QDir(aDir).dirName());
-
-        adjustSize();
     }
 }
 
-void visual_MainWindow::onSaisieButtonPressed(int aK)
+void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), mlastDir);
 
@@ -376,8 +370,13 @@ void visual_MainWindow::onSaisieButtonPressed(int aK)
         _SaisieWin->addFiles(aFiles);
 
         _SaisieWin->setCurrentPolygonIndex(1);
+        _SaisieWin->setCurrentPolygonNormalize(normalize);
 
         connect(_SaisieWin->getWidget(0),SIGNAL(newRectanglePosition(QVector <QPointF>)),this,SLOT(onRectanglePositionChanged(QVector<QPointF>)));
+
+        connect(_SaisieWin,SIGNAL(sgnClose()), this, SLOT(onSaisieQtWindowClosed()));
+
+        _curIdx = aK;
 
         cInputs* aIn = vInputs[aK];
 
@@ -414,6 +413,26 @@ void visual_MainWindow::onRectanglePositionChanged(QVector<QPointF> points)
     emit newY0Position(points[0].y());
     emit newX1Position(points[2].x());
     emit newY1Position(points[2].y());
+}
+
+void visual_MainWindow::onSaisieQtWindowClosed()
+{
+    cInputs* aIn = vInputs[_curIdx];
+
+    if(aIn->Type() == eIT_DoubleSpinBox)
+    {
+        disconnect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(double)));
+        disconnect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
+        disconnect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
+        disconnect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(double)));
+    }
+    else if (aIn->Type() == eIT_SpinBox)
+    {
+        disconnect(this,SIGNAL(newX0Position(int)),(QSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(int)));
+        disconnect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(int)));
+        disconnect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
+        disconnect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(int)));
+    }
 }
 
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
@@ -500,19 +519,19 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     {
         if (aArg.IsExistDirOri() || aArg.IsDir())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &directory"), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &directory"), vInputs.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsPatFile())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &images"), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &images"), vInputs.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsExistFile())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vInputs.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
             layout->addWidget(sButton,aK,3);
         }
@@ -590,11 +609,11 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK)
+void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK, bool normalize)
 {
-    cSaisieButton *saisieButton = new cSaisieButton(tr("Selection editor"), vInputs.size());
+    cSelectionButton *saisieButton = new cSelectionButton(tr("Selection &editor"), vInputs.size(), normalize);
     layout->addWidget(saisieButton, aK, 5);
-    connect(saisieButton,SIGNAL(my_click(int)),this,SLOT(onSaisieButtonPressed(int)));
+    connect(saisieButton,SIGNAL(my_click(int, bool)),this,SLOT(onSaisieButtonPressed(int, bool)));
 }
 
 void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
@@ -614,7 +633,7 @@ void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int 
     ((QDoubleSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
     ((QDoubleSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
 
-    add_saisieButton(layout, aK);
+    add_saisieButton(layout, aK, aArg.IsToNormalize());
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
@@ -681,7 +700,7 @@ void visual_MainWindow::add_4SpinBox(QGridLayout *layout, QWidget *parent, int a
     ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
     ((QSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(1) );
 
-    add_saisieButton(layout, aK);
+    add_saisieButton(layout, aK, aArg.IsToNormalize());
 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }

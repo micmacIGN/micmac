@@ -2,11 +2,10 @@
 
 #if (ELISE_QT_VERSION >= 4)
 
-int cSelectionButton::buttonNumber=0;
-
-cSelectionButton::cSelectionButton(QString text, QWidget *parent)
+cSelectionButton::cSelectionButton(QString text, int id, bool normalize, QWidget *parent)
     : QPushButton(parent),
-      unique_id(buttonNumber++)
+      _m_line_id(id),
+      _m_nrm(normalize)
 {
     setText(text);
     connect(this,SIGNAL(clicked()),this,SLOT(onClick()));
@@ -14,20 +13,8 @@ cSelectionButton::cSelectionButton(QString text, QWidget *parent)
 
 void cSelectionButton::onClick()
 {
-    emit my_click(unique_id);
-}
-
-cSaisieButton::cSaisieButton(QString text, int id, QWidget *parent)
-    : QPushButton(parent),
-      _m_line_id(id)
-{
-    setText(text);
-    connect(this,SIGNAL(clicked()),this,SLOT(onClick()));
-}
-
-void cSaisieButton::onClick()
-{
     emit my_click(_m_line_id);
+    emit my_click(_m_line_id, _m_nrm);
 }
 #endif // ELISE_QT_VERSION >= 4
 
