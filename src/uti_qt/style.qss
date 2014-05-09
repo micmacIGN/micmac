@@ -25,6 +25,11 @@ QWidget:item:selected
     background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
 }
 
+QListView::item:hover 
+{
+     background-color: QLineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #fafbfe, stop: 1 #dcdef1);
+}
+
 QTreeView:item:hover
 {
     background-color: #ffa02f;
