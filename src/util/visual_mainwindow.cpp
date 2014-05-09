@@ -379,6 +379,8 @@ void visual_MainWindow::onSaisieButtonPressed(int aK)
 
         connect(_SaisieWin->getWidget(0),SIGNAL(newRectanglePosition(QVector <QPointF>)),this,SLOT(onRectanglePositionChanged(QVector<QPointF>)));
 
+        connect(_SaisieWin->getWidget(0),SIGNAL(destroyed()), this, SLOT(onWidgetClosed()));
+
         cInputs* aIn = vInputs[aK];
 
         if(aIn->Type() == eIT_DoubleSpinBox)
@@ -414,6 +416,28 @@ void visual_MainWindow::onRectanglePositionChanged(QVector<QPointF> points)
     emit newY0Position(points[0].y());
     emit newX1Position(points[2].x());
     emit newY1Position(points[2].y());
+}
+
+void visual_MainWindow::onWidgetClosed()
+{
+    cout << "widget closed" << endl;
+//    int aK = 35;
+//    cInputs* aIn = vInputs[aK];
+
+//    if(aIn->Type() == eIT_DoubleSpinBox)
+//    {
+//        disconnect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(double)));
+//        disconnect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
+//        disconnect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
+//        disconnect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(double)));
+//    }
+//    else if (aIn->Type() == eIT_SpinBox)
+//    {
+//        disconnect(this,SIGNAL(newX0Position(int)),(QSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(int)));
+//        disconnect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(int)));
+//        disconnect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
+//        disconnect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(int)));
+//    }
 }
 
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
@@ -500,19 +524,19 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     {
         if (aArg.IsExistDirOri() || aArg.IsDir())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &directory"), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &directory"), vInputs.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsPatFile())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &images"), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &images"), vInputs.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsExistFile())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vInputs.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
             layout->addWidget(sButton,aK,3);
         }
@@ -592,7 +616,7 @@ void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int 
 
 void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK)
 {
-    cSaisieButton *saisieButton = new cSaisieButton(tr("Selection editor"), vInputs.size());
+    cSelectionButton *saisieButton = new cSelectionButton(tr("Selection editor"), vInputs.size());
     layout->addWidget(saisieButton, aK, 5);
     connect(saisieButton,SIGNAL(my_click(int)),this,SLOT(onSaisieButtonPressed(int)));
 }

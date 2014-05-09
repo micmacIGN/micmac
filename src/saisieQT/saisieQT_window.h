@@ -113,6 +113,8 @@ public slots:
 
     cParameters* getParams() { return _params; }
 
+    void close();
+
 signals:
 
     void showRefuted(bool);

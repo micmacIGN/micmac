@@ -105,6 +105,7 @@ public slots:
     void _adjustSize(int);
 
     void onRectanglePositionChanged(QVector <QPointF>);
+    void onWidgetClosed();
 
 signals:
 
@@ -117,6 +118,8 @@ signals:
     void newY0Position(double);
     void newX1Position(double);
     void newY1Position(double);
+
+    void disconnectSpinbox();
 
 protected:
 

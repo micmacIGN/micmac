@@ -156,6 +156,8 @@ signals:
 
     void newRectanglePosition(QVector <QPointF> points);
 
+    void closed();
+
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);
