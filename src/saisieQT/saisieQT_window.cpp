@@ -110,6 +110,11 @@ void SaisieQtWindow::setPostFix(QString str)
     _Engine->setPostFix();
 }
 
+QString SaisieQtWindow::getPostFix()
+{
+    return _params->getPostFix();
+}
+
 void SaisieQtWindow::progression()
 {
     if(_incre)
@@ -143,7 +148,7 @@ void SaisieQtWindow::loadPly(const QStringList& filenames)
     delete timer_test;
 }
 
-void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData, bool polygonal)
+void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 {
     if (filenames.size())
     {

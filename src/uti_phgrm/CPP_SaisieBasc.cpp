@@ -39,6 +39,65 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if (ELISE_X11||(ELISE_QT_VERSION >= 4))
+
+void SaisieBasc(int argc, char ** argv,
+                std::string &aFullName,
+                std::string &aDir,
+                std::string &aName,
+                std::string &anOri,
+                std::string &anOut,
+                Pt2di &aSzW,
+                Pt2di &aNbFen,
+                bool &aForceGray)
+{
+    MMD_InitArgcArgv(argc,argv);
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
+                      << EAMC(anOri,"Orientation, NONE if unused", eSAM_IsExistDirOri)
+                      << EAMC(anOut,"Output File ", eSAM_IsOutputFile),
+          LArgMain()  << EAM(aSzW,"SzW",true,"Total size of windows")
+                      << EAM(aNbFen,"NbF",true,"Number of Windows (def depend of number of images")
+                      << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
+    );
+
+    SplitDirAndFile(aDir,aName,aFullName);
+    if (anOri != "NONE")
+       StdCorrecNameOrient(anOri,aDir);
+
+    cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+    std::cout << "Nb Image =" << aSet->size() << "\n";
+    ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+    if (aNbFen.x<0)
+    {
+       if (aSet->size() == 1)
+       {
+           aNbFen = Pt2di(1,2);
+       }
+       else if (aSet->size() == 2)
+       {
+           Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+           Pt2di aSzIm = aTF.sz();
+           aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+       }
+       else
+       {
+           aNbFen = Pt2di(2,2);
+       }
+    }
+
+    //anOri = "NKS-Assoc-Im2Orient@-" + anOri;
+    aCINM->MakeStdOrient(anOri,true);
+}
+
+#endif
+
 #if (ELISE_X11)
 
 
@@ -54,58 +113,12 @@ Antipasti xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
 
 int SaisieBasc_main(int argc,char ** argv)
 {
-  MMD_InitArgcArgv(argc,argv);
   Pt2di aSzW(800,800);
   Pt2di aNbFen(-1,-1);
-  std::string aFullName,anOri,anOut;
+  std::string aFullName,anOri,anOut, aDir, aName;
   bool aForceGray = true;
 
-
-  ElInitArgMain
-  (
-        argc,argv,
-        LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
-                    << EAMC(anOri,"Orientation, NONE if unused", eSAM_IsExistDirOri)
-                    << EAMC(anOut,"Output File ", eSAM_IsOutputFile),
-        LArgMain()  << EAM(aSzW,"SzW",true,"Total size of windows")
-                    << EAM(aNbFen,"NbF",true,"Number of Windows (def depend of number of images")
-                    << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
-
-  );
-
-  std::string aDir,aName;
-  SplitDirAndFile(aDir,aName,aFullName);
-  if (anOri != "NONE")
-     StdCorrecNameOrient(anOri,aDir);
-
-
-
-  cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-  const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
-
-  std::cout << "Nb Image =" << aSet->size() << "\n";
-  ELISE_ASSERT(aSet->size()!=0,"No image found");
-
-  if (aNbFen.x<0)
-  {
-     if (aSet->size() == 1)
-     {
-         aNbFen = Pt2di(1,2);
-     }
-     else if (aSet->size() == 2)
-     {
-         Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
-         Pt2di aSzIm = aTF.sz();
-         aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
-     }
-     else
-     {
-         aNbFen = Pt2di(2,2);
-     }
-  }
-
-  //anOri = "NKS-Assoc-Im2Orient@-" + anOri;
-  aCINM->MakeStdOrient(anOri,true);
+  SaisieBasc(argc, argv, aFullName, aDir, aName, anOri, anOut, aSzW, aNbFen, aForceGray);
 
   std::string aCom =     MMDir() +"bin/mm3d SaisiePts "
                       +  MMDir() +"include/XML_MicMac/SaisieLine.xml "
@@ -116,7 +129,7 @@ int SaisieBasc_main(int argc,char ** argv)
                       +  std::string(" +SzWx=") + ToString(aSzW.x)
                       +  std::string(" +SzWy=") + ToString(aSzW.y)
                       +  std::string(" +NbFx=") + ToString(aNbFen.x)
-                      +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
+                      +  std::string(" +NbFy=") + ToString(aNbFen.y);
   if (EAMIsInit(&aForceGray))
      aCom = aCom + " +ForceGray=" + ToString(aForceGray);
 

@@ -84,18 +84,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
          cVirtualInterface::ComputeNbFen(aNbFen, aNbW);
     }
 
-    bool init = settings.contains("MainWindow/size");
-
-    settings.beginGroup("MainWindow");
-    if (aSzWin.x > 0)
-        settings.setValue("size", QSize(aSzWin.x, aSzWin.y));
-    else if (!init)
-    {
-        settings.setValue("size", QSize(800, 800));
-         aSzWin.x = aSzWin.y = 800;
-    }
-    settings.setValue("NbFen", QPoint(aNbFen.x, aNbFen.y));
-    settings.endGroup();
+    initSettings(settings, aSzWin, aNbFen, settings.contains("MainWindow/size"));
 
     settings.beginGroup("Misc");
     settings.setValue("defPtName", QString(aNameAuto.c_str()));
@@ -113,7 +102,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
             << QString("+SzWx=") + QString::number(aSzWin.x)
             << QString("+SzWy=") + QString::number(aSzWin.y)
             << QString("+NbFx=") + QString::number(aNbFen.x)
-            << QString("+NbFy=") + QString::number(aNbFen.y) ;
+            << QString("+NbFy=") + QString::number(aNbFen.y);
 
     if (EAMIsInit(&aForceGray))
        input << QString("+ForceGray=") + QString(((string)(ToString(aForceGray))).c_str());

@@ -30,11 +30,12 @@ class SaisieQtWindow;
 const QColor colorBorder("#606060");
 
 //! Interface mode
-enum UI_MODE {  BOX2D,
+enum UI_MODE {  BOX2D,          /**< BOX 2D mode **/
                 MASK2D,         /**< Image mask mode  **/
                 MASK3D,         /**< Point cloud mask **/
                 POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) **/
-                POINT2D_PREDIC  /**< Points in Image (SaisieAppuisPredic) **/
+                POINT2D_PREDIC, /**< Points in Image (SaisieAppuisPredic) **/
+                BASC            /**< 2 lines and 1 point (SaisieBasc) **/
 };
 
 class SaisieQtWindow : public QMainWindow, public GLWidgetSet
@@ -47,6 +48,7 @@ public:
     ~SaisieQtWindow();
 
     void setPostFix(QString str);
+    QString getPostFix();
 
     void runProgressDialog(QFuture<void> future);
 
@@ -90,7 +92,7 @@ public:
 public slots:
 
     //! Try to load a list of files
-    void addFiles(const QStringList& filenames, bool setGLData = true, bool polygonal = true );
+    void addFiles(const QStringList& filenames, bool setGLData = true);
 
     void zoomFactor(int aFactor);
 
