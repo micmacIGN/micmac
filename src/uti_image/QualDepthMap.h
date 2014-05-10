@@ -254,6 +254,8 @@ class cCoherEpi_main : public Cont_Vect_Action
         friend class cCEM_OneIm_Nuage;
         cCoherEpi_main (int argc,char ** argv);
 
+        std::string NameIm(bool First);
+
 
 
      private  :
@@ -268,6 +270,7 @@ class cCoherEpi_main : public Cont_Vect_Action
         cInterfChantierNameManipulateur * mICNM;
         cCpleEpip *  mCple;
         bool          mWithEpi;
+        bool          mNoOri;
         bool          mByP;
         bool          mInParal;
         bool          mCalledByP;

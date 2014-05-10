@@ -62,6 +62,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
        <Symb>  DoPly=false </Symb>
        <Symb>  ScalePly=4 </Symb>
 
+       <Symb> MasqImOptional=false </Symb>
+
+       <Symb> DirPyrIsMEC=true </Symb>
 
   <!-- Clip zone pour le test -->
        <Symb> ClipCalc=false  </Symb>
@@ -144,7 +147,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                 <PatternSel>  (.*).tif  </PatternSel>
                 <NomMasq>  $1_Masq.tif     </NomMasq>
              </OneMasqueImage>
-             <AcceptNonExistingFile> false </AcceptNonExistingFile>
+             <AcceptNonExistingFile> ${MasqImOptional} </AcceptNonExistingFile>
         </MasqImageIn>
     </#WHEN>
 
@@ -481,7 +484,10 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     <WorkDir> ThisDir </WorkDir> 
     <TmpMEC> ${DirMEC}/ </TmpMEC>
     <TmpResult> ${DirMEC}/ </TmpResult>
-    <TmpPyr> ${DirMEC}/ </TmpPyr>
+    <#IF VTEST=${DirPyrIsMEC}>
+         <TmpPyr> ${DirMEC}/ </TmpPyr>
+         <TmpPyr> Pyram/ </TmpPyr>
+    </#IF>
     <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
     <ByProcess>  ${NbProc} </ByProcess>
 <!--

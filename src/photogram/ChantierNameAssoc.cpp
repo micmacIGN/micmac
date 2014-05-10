@@ -3705,6 +3705,8 @@ bool  cInterfChantierNameManipulateur::TestStdOrient
 
 void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri)
 {
+    if (aNameOri=="NONE") return;
+
     int aL = strlen(aNameOri.c_str());
     if (aL && (aNameOri[aL-1]==ELISE_CAR_DIR))
     {

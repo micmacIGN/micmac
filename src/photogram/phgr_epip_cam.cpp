@@ -895,14 +895,28 @@ std::string cCpleEpip::LocDirMatch(bool Im1)
     // return "MEC2Im-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
 }
  
+std::string LocPxFileMatch(const std::string & aDir,int aNum,int aDeZoom)
+{
+    return  aDir + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";
+}
+
 std::string cCpleEpip::LocPxFileMatch(bool Im1,int aNum,int aDeZoom)
 {
-    return LocDirMatch(Im1) + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";
+    //return LocDirMatch(Im1) + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";
+    return  ::LocPxFileMatch(LocDirMatch(Im1),aNum,aDeZoom);
 }
+
+
+std::string  LocMasqFileMatch(const std::string & aDirM,int aNum)
+{
+   return aDirM +  "AutoMask_LeChantier_Num_"+ ToString(aNum) +  ".tif" ;
+}
+
 
 std::string  cCpleEpip::LocMasqFileMatch(bool Im1,int aNum)
 {
-  return LocDirMatch(Im1) + "AutoMask_LeChantier_Num_"+ ToString(aNum) +  ".tif" ; 
+  // return LocDirMatch(Im1) + "AutoMask_LeChantier_Num_"+ ToString(aNum) +  ".tif" ; 
+  return ::LocMasqFileMatch(LocDirMatch(Im1),aNum) ; 
 
 }
 

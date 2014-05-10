@@ -57,12 +57,20 @@ extern Fonc_Num  MasqBorHomogene(Im2D_REAL4 anIm0,Im2D_Bits<1>  aMasq0,Video_Win
 
 cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aName,const Box2di & aBox,bool aVisu,bool IsFirstIm,bool Final) :
    cCEM_OneIm(aCEM,aName,aBox,aVisu,IsFirstIm),
-   mNamePx    (mDir+mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx,mCoher->mDeZoom)),
+   mNamePx    (mDir+ (   mCple ?
+                         mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx,mCoher->mDeZoom) :
+                         LocPxFileMatch(mDirM,mCoher->mNumPx,mCoher->mDeZoom) 
+                     )
+              ),
    mTifPx     (mNamePx.c_str()),
    mImPx      (mSz.x,mSz.y),
    mTPx       (mImPx),
    mImPx_u2   (mSz.x,mSz.y),
-   mNameMasq  (mDir+mCple->LocMasqFileMatch(mNameInit,mCoher->mNumMasq)),
+   mNameMasq  (mDir+ (   mCple ?
+                         mCple->LocMasqFileMatch(mNameInit,mCoher->mNumMasq):
+                         LocMasqFileMatch(mDirM,mCoher->mNumMasq)
+                     )
+              ),
    mTifMasq   (mNameMasq.c_str()),
    mImMasq    (mSz.x,mSz.y),
    mTMasq     (mImMasq)
@@ -84,7 +92,10 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
 
     if (Final)
     {
-        std::string aNamePxU2 = mDir+mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx-1,mCoher->mDeZoom);
+        std::string aNamePxU2 = mDir+   (  mCple ?  
+                                           mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx-1,mCoher->mDeZoom) :
+                                           LocPxFileMatch(mDirM,mCoher->mNumPx-1,mCoher->mDeZoom)
+                                        );
         Tiff_Im aTpxU2 (aNamePxU2.c_str());
         ELISE_COPY(mImPx_u2.all_pts(),trans(aTpxU2.in_proj(),mP0),mImPx_u2.out());
 
@@ -147,7 +158,7 @@ cCEM_OneIm::cCEM_OneIm
    mCoher     (aCoher),
    mCple      (mCoher->mCple),
    mDir       (mCoher->mDir),
-   mDirM      (mDir + mCple->LocDirMatch(IsFirstIm)),
+   mDirM      (mDir + (mCple ? mCple->LocDirMatch(IsFirstIm) : LocDirMec2Im(aCoher->NameIm(IsFirstIm),aCoher->NameIm(!IsFirstIm)))),
    mNameNuage ("NuageImProf_LeChantier_Etape_"+ToString(mCoher->mNumPx) + ".xml"),
    mParNuage  (StdGetFromSI(mDirM+mNameNuage,XML_ParamNuage3DMaille)),
    mResolAlti (mParNuage.Image_Profondeur().Val().ResolutionAlti()),
@@ -365,6 +376,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mDir      ("./"),
     mCple     (0),
     mWithEpi  (true),
+    mNoOri    (false),
     mByP      (true),
     mInParal  (true),
     mCalledByP(false),
@@ -420,6 +432,8 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(aFactBSHOk,"FactBSHOk",true,"Multiplier so that BSHOk= FactBSHOk * BSHReject (Def=2)")
    );
 
+   mNoOri  =  (mOri  == "NONE");
+
    mBSHOk  = mBSHRejet * aFactBSHOk;
 
    if (mVisu)
@@ -446,10 +460,9 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
         mNumMasq =  (mDeZoom==1) ? (mNumPx-1) : mNumPx;
    }
 
-   if (mWithEpi)
+   if (mWithEpi && (! mNoOri))
    {
       mCple = StdCpleEpip(mDir,mOri,mNameIm1,mNameIm2);
-
    }
 
    std::string aNameIm1DeZoom =  mCple                                          ?
@@ -603,10 +616,12 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    else
    {
 
+
        if (mWithEpi)
           mIm1 = new cCEM_OneIm_Epip(this,mNameIm1,mBoxIm1,mVisu,true,mFinal)          ;
        else
           mIm1 = new cCEM_OneIm_Nuage(this,mNameIm1,mNameIm2,mBoxIm1,mVisu,true);
+
 
        Box2di aBoxIm2 = R2ISup(mIm1->BoxIm2(aSzIm2));
        if (mWithEpi)
@@ -653,7 +668,13 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
           }
           else
           {
-               ELISE_ASSERT(false,"Unachieved Coher Epip for non epipolar case");
+               if (mNoOri)
+               {
+               }
+               else
+               {
+                   ELISE_ASSERT(false,"Unachieved Coher Epip for non epipolar case");
+               }
           }
 
 
@@ -757,6 +778,11 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
        }
    }
 
+}
+
+std::string cCoherEpi_main::NameIm(bool First)
+{
+   return First ? mNameIm1 : mNameIm2;
 }
 
 

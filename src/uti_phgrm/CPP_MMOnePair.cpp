@@ -63,7 +63,10 @@ class cMMOnePair
       int              mZoomF;
       int              mStepEnd;
       std::vector<int> mVZoom;
-      bool             mByEpip;
+      bool             mModeEpip;
+      bool             mCreateEpip;
+
+
       bool             mCMS;
       bool             mForceCreateE;
       std::string      mNameIm1Init;
@@ -131,7 +134,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mMM1PInParal  (true),
     mZoom0        (64),
     mZoomF        (1),
-    mByEpip       (true),
+    mModeEpip     (true),
+    mCreateEpip   (true),
     mCMS          (true),
     mForceCreateE (false),
     mCpleE        (0),
@@ -159,7 +163,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
         LArgMain()  << EAM(mExe,"Exe",true,"Execute Matching (Def=true)", eSAM_IsBool)
                     << EAM(mZoom0,"Zoom0",true,"Zoom Init (Def=64)")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final (Def=1)")
-                    << EAM(mByEpip,"CreateE",true," Create Epipolar (def = true when appliable)", eSAM_IsBool)
+                    << EAM(mCreateEpip,"CreateE",true," Create Epipolar (def = true when appliable)", eSAM_IsBool)
                     << EAM(mDoubleSens,"2Way",true,"Match in 2 Way (Def=true)", eSAM_IsBool)
                     << EAM(mCMS,"CMS",true,"Multi Scale Correl (Def=ByEpip)")
                     << EAM(mDoMR,"DoMR",true,"Do re-entering masq (Def=true)", eSAM_IsBool)
@@ -179,11 +183,24 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)", eSAM_IsBool)
   );
 
+  mNoOri = (mNameOriInit=="NONE");
+  if (mNoOri)
+  {
+       mQualOr = eQual_High;
+       mCreateEpip = false;
+       mModeEpip =   true;
+  }
+  else
+  {
+      mCreateEpip = mModeEpip;
+  }
+
   if (mNameIm1Init > mNameIm2Init)
      ElSwap(mNameIm1Init,mNameIm2Init);
 
   if (EAMIsInit(&mStrQualOr))
      mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
+
 
   mDoHom = mDoHom || (mQualOr!= eQual_High);
   if (mQualOr==eQual_High)
@@ -191,16 +208,13 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
   else
     mDegCorrEpip = ElMax(1,mDegCorrEpip);
 
-  mNoOri = (mNameOriInit=="NONE");
-  if ((! EAMIsInit(&mByEpip)) && mNoOri)
-     mByEpip = false;
   mDirP =DirOfFile(mNameIm1Init);
 
   if (! mNoOri)
       StdCorrecNameOrient(mNameOriInit,mDirP); ;
 
   if (!EAMIsInit(&mCMS))
-     mCMS = mByEpip;
+     mCMS = mModeEpip;
 
   if (mQualOr==eQual_Low)
   {
@@ -216,7 +230,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
       System(aCom);
   }
 
-  if (mByEpip)
+  if (mCreateEpip)
   {
        mCpleE = StdCpleEpip(mDirP,mNameOriInit,mNameIm1Init,mNameIm2Init);
        mNameIm1 =  mCpleE->LocNameImEpi(mNameIm1Init);
@@ -348,12 +362,10 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
               SauvMasqReentrant(false,aStep,aStep==mStepEnd);
 /*
    BUGUEE et a priori inutile ...  BUGUEE CAR CREE DES TROU et pas appelle sauf en resol finale (ou ca cree des trous ...).
-              if (mByEpip)
-                 SymetriseMasqReentrant();
 */
            }
 
-           if ((aStep==1) && mByEpip)  // Mis ici pour Nuage2Ply
+           if ((aStep==1) && mCreateEpip)  // Mis ici pour Nuage2Ply
            {
               GenerateMTDEpip(true);
               GenerateMTDEpip(false);
@@ -525,7 +537,7 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + aNameInitB + aBlk
                           + mNameOriInit + aBlk
                           + " DoM=true"  // Pas utilise dans coher epip, et peu creer bug ...
-                          + " ByE="      + ToString(mByEpip)
+                          + " ByE="      + ToString(mModeEpip)
                           + " NumPx="    + ToString(aStep)
                           + " NumMasq="  + ToString(aLast ? (aStep-1) : aStep)
                           + " Zoom="     + ToString(mVZoom[aStep])
@@ -620,13 +632,16 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " LastEtapeMEC=" + ToString(aStepF)
                           + " +Purge="   +  ToString(mPurge && (aStep0==1) && (!ForMTD))
                           + " +Ori="     + (ForMTD ? "Epi" :mNameOri)
-                          + " +DoEpi="   + ToString((mByEpip || mNoOri) && (!ForMTD))
+                          + " +DoEpi="   + ToString((mModeEpip) && (!ForMTD))
                           + " +CMS="     + ToString(mCMS)
                           + " +DoOnlyXml="     + ToString(ForMTD)
                           + " +MMC="     + ToString(!ForMTD)
                           + " +NbProc=" + ToString(mMM1PInParal ? MMNbProc() : 1)
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
+
+     if (mNoOri) aCom = aCom+ " +MasqImOptional=true";
+     if (! mCreateEpip) aCom = aCom+ " +DirPyrIsMEC=false";
 
      if (EAMIsInit(&mBoxIm))
      {
@@ -637,6 +652,8 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                      + std::string(" +Y1Clip=") + ToString(mBoxIm._p1.y)
               ;
      }
+
+
 
 /*
      bool AddPly = (!ForMTD) && ((aStepF-1)== mStepEnd)  && (mDoPly)  && (MasterIs1);
