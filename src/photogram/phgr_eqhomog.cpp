@@ -48,6 +48,186 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+/************************************************************/
+/*                                                          */
+/*                    cEqOneHomogFormelle                   */
+/*                                                          */
+/************************************************************/
+
+
+/*
+class cEqOneHomogFormelle : public  cNameSpaceEqF ,
+                         public cEqFPtLiaison,
+                         public cObjFormel2Destroy
+{
+      public :
+          ~cEqOneHomogFormelle();
+          cEqOneHomogFormelle
+          (
+                cHomogFormelle &,
+                bool Code2Gen
+          );
+
+         // WithD2 : avec derivees secondes
+          REAL AddLiaisonP1P2(Pt2dr P1, Pt2dr aP2, REAL aPds,bool WithD2);
+          Pt2dr StdAddLiaisonP1P2(Pt2dr P1,Pt2dr P2,REAL aPds,bool WithD2); // Version moderne type camera
+          REAL ResiduNonSigneP1P2(Pt2dr aP1,Pt2dr aP2);
+          Pt2dr  PtResidu(Pt2dr aP1,Pt2dr aP2);
+
+          cHomogFormelle&       HF();
+          cSetEqFormelles &       Set();
+      private :
+          struct cOneHEq
+          {
+              cEqOneHomogFormelle & mEQF;
+              cElCompiledFonc * pFEq;
+              double          * pAdrX1;
+              double          * pAdrY1;
+              double          * pAdrX2;
+              double          * pAdrY2;
+              std::string     mName;
+
+              ~cOneHEq();
+              cOneHEq(Fonc_Num F,cEqOneHomogFormelle &,bool isX,bool Code2Gen);
+
+              REAL AddLiaisonP1P2(Pt2dr P1,Pt2dr P2,REAL aPds,bool WithD2);
+              REAL ResiduSigneP1P2(Pt2dr aP1,Pt2dr aP2);
+              void  InitPts(Pt2dr P1,Pt2dr P2);
+          };
+          friend struct cOneHEq;
+
+          cSetEqFormelles & mSet;
+          cHomogFormelle&       mHF;
+
+          Pt2d<Fonc_Num>        mEqHom;
+          cIncListInterv        mLInterv;
+          cOneHEq*                  pFEqX;
+          cOneHEq*                  pFEqY;
+};
+*/
+
+           // ===================================
+           //     cEqOneHomogFormelle::cOneHEq
+           // ===================================
+
+void  cEqOneHomogFormelle::cOneHEq::InitPts(Pt2dr aP1,Pt2dr aP2)
+{
+   *pAdrX1 = aP1.x;
+   *pAdrY1 = aP1.y;
+   if (pAdrX2) *pAdrX2 = aP2.x;
+   if (pAdrY2) *pAdrY2 = aP2.y;
+}
+
+REAL cEqOneHomogFormelle::cOneHEq::AddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool WithD2)
+{
+   InitPts(aP1,aP2);
+   return mEQF.mSet.AddEqFonctToSys(pFEq,aPds,WithD2);
+}
+
+REAL  cEqOneHomogFormelle::cOneHEq::ResiduSigneP1P2(Pt2dr aP1,Pt2dr aP2)
+{
+   InitPts(aP1,aP2);
+   return mEQF.mSet.ResiduSigne(pFEq);
+}
+
+
+cEqOneHomogFormelle::cOneHEq::cOneHEq(Fonc_Num F,cEqOneHomogFormelle & anEQF,bool isX,bool Code2Gen) :
+   mEQF(anEQF)
+{
+  mName =   std::string("cEqOneHomogr") + std::string(isX ? "X" : "Y");
+
+  if (Code2Gen)
+  {
+       cElCompileFN::DoEverything(DIRECTORY_GENCODE_FORMEL,mName,F,anEQF.mLInterv);
+       return;
+  }
+
+  pFEq = cElCompiledFonc::AllocFromName(mName);
+  ELISE_ASSERT(pFEq != 0,"Dont Get CompVal for cEqHomogFormelle");
+  pFEq->SetMappingCur(anEQF.mLInterv,&(anEQF.mSet));
+
+  pAdrX1 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberX1);
+  pAdrY1 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberY1);
+
+  pAdrX2 = (isX ? pFEq->RequireAdrVarLocFromString(anEQF.mMemberX2) : 0);
+  pAdrY2 = (isX ? 0  : pFEq->RequireAdrVarLocFromString(anEQF.mMemberY2));
+
+  anEQF.mSet.AddFonct(pFEq);
+}
+
+cEqOneHomogFormelle::cOneHEq::~cOneHEq()
+{
+}
+
+           // =================================
+           // cEqOneHomogFormelle
+           // =================================
+cEqOneHomogFormelle::~cEqOneHomogFormelle()
+{
+     delete pFEqX;
+     delete pFEqY;
+}
+
+
+cEqOneHomogFormelle::cEqOneHomogFormelle
+(
+      cHomogFormelle & aHF,
+      bool Code2Gen
+)  :
+    mSet (*aHF.Set()),
+    mHF  (aHF),
+    mEqHom  (mHF(mP1) - mP2),
+    mLInterv (),
+    pFEqX    (0),
+    pFEqY    (0)
+{
+  mHF.IncInterv().SetName("Hom");
+  mLInterv.AddInterv(mHF.IncInterv());
+  pFEqX =  new cOneHEq(mEqHom.x,*this,true,Code2Gen);
+  pFEqY =  new cOneHEq(mEqHom.y,*this,false,Code2Gen);
+}
+
+
+cSetEqFormelles &  cEqOneHomogFormelle::Set() { return mSet; }
+cHomogFormelle&    cEqOneHomogFormelle::HF() {return mHF;}
+
+
+
+REAL cEqOneHomogFormelle::AddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool WithD2)
+{
+  return
+       ElAbs(pFEqX->AddLiaisonP1P2(aP1,aP2,aPds,WithD2)) +
+       ElAbs(pFEqY->AddLiaisonP1P2(aP1,aP2,aPds,WithD2)) ;
+}
+
+Pt2dr cEqOneHomogFormelle::StdAddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool WithD2)
+{
+  return  Pt2dr
+          (
+             pFEqX->AddLiaisonP1P2(aP1,aP2,aPds,WithD2) ,
+             pFEqY->AddLiaisonP1P2(aP1,aP2,aPds,WithD2)   
+          );
+}
+
+REAL cEqOneHomogFormelle::ResiduNonSigneP1P2(Pt2dr aP1,Pt2dr aP2)
+{
+   return   ElAbs(pFEqX->ResiduSigneP1P2(aP1,aP2))
+          + ElAbs(pFEqY->ResiduSigneP1P2(aP1,aP2));
+}
+
+Pt2dr  cEqOneHomogFormelle::PtResidu(Pt2dr aP1,Pt2dr aP2)
+{
+   return   Pt2dr
+            (
+                pFEqX->ResiduSigneP1P2(aP1,aP2),
+                pFEqY->ResiduSigneP1P2(aP1,aP2)
+            );
+}
+
+/*
+*/
+
+
 
 
 /************************************************************/
@@ -260,8 +440,6 @@ cEqHomogFormelle::cEq::cEq(Fonc_Num F,cEqHomogFormelle & anEQF,bool isX,bool Cod
      pAdrY2 = 0;
 
   anEQF.mSet.AddFonct(pFEq);
-
-
 }
 
 cEqHomogFormelle::cEq::~cEq()
@@ -297,6 +475,12 @@ cEqHomogFormelle::~cEqHomogFormelle()
      delete pFEqX;
      delete pFEqY;
 }
+
+
+
+
+
+
 
 cEqHomogFormelle::cEqHomogFormelle
 (
@@ -360,9 +544,6 @@ Pt2dr cEqHomogFormelle::StdAddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool Wit
           );
 }
 
-
-
-
 REAL cEqHomogFormelle::ResiduNonSigneP1P2(Pt2dr aP1,Pt2dr aP2)
 {
    return   ElAbs(pFEqX->ResiduSigneP1P2(aP1,aP2))
@@ -386,15 +567,6 @@ cSetEqFormelles &  cEqHomogFormelle::Set()
 }
 
 
-/*
-static REAL DistHomogr(cElHomographie  aH1,cElHomographie  aH2)
-{
-   cDistHomographie aDist1(aH1);
-   cDistHomographie aDist2(aH2);
-
-   return aDist1.D2(aDist2,Pt2dr(-1,-1),Pt2dr(1,1),10);
-}
-*/
 
 cHomogFormelle&       cEqHomogFormelle::HF1() {return mHF1;}
 cHomogFormelle&       cEqHomogFormelle::HF2() {return mHF2;}
@@ -619,9 +791,6 @@ void cLEqHomOneDist::CloseSet()
 {
    mSet.SetClosed();
 }
-
-
-
 
 
 

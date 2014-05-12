@@ -2,17 +2,16 @@
 #include "StdAfx.h"
 
 
-class cEqHomogrY: public cElCompiledFonc
+class cEqOneHomogrY: public cElCompiledFonc
 {
    public :
 
-      cEqHomogrY();
+      cEqOneHomogrY();
       void ComputeVal();
       void ComputeValDeriv();
       void ComputeValDerivHessian();
       double * AdrVarLocFromString(const std::string &);
       void SetXL1(double);
-      void SetXL2(double);
       void SetYL1(double);
       void SetYL2(double);
 
@@ -22,7 +21,6 @@ class cEqHomogrY: public cElCompiledFonc
    private :
 
       double mLocXL1;
-      double mLocXL2;
       double mLocYL1;
       double mLocYL2;
 };

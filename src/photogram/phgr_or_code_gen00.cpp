@@ -422,6 +422,9 @@ AddEntry("cEqAppui_AFocal_PProjInc_M2C"#aDist,cEqAppui_AFocal_PProjInc_M2C##aDis
 #include "../../CodeGenere/photogram/cEqHomogrX.h"
 #include "../../CodeGenere/photogram/cEqHomogrY.h"
 
+#include "../../CodeGenere/photogram/cEqOneHomogrX.h"
+#include "../../CodeGenere/photogram/cEqOneHomogrY.h"
+
 
 #include "../../CodeGenere/photogram/cEqLin_1.h"
 #include "../../CodeGenere/photogram/cEqLin_2.h"
@@ -616,6 +619,8 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqHomogrX",cEqHomogrX::Alloc);    // EqHom
      AddEntry("cEqHomogrY",cEqHomogrY::Alloc);
 
+     AddEntry("cEqOneHomogrX",cEqOneHomogrX::Alloc);    // EqHom
+     AddEntry("cEqOneHomogrY",cEqOneHomogrY::Alloc);
 
 
      AddEntry("cEqCoplanDPol3Id",cEqCoplanDPol3Id::Alloc);  // DPol

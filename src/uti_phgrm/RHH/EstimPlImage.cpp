@@ -43,12 +43,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 NS_RHH_BEGIN
 
 
-/*************************************************/
-/*                                               */
-/*                  cImagH                       */
-/*                                               */
-/*************************************************/
 
+/*************************************************/
+/*                                               */
+/*                  cTestPlIm                    */
+/*                                               */
+/*************************************************/
 
 double DistNorm(const cElemMepRelCoplan & anEl)
 {
@@ -56,79 +56,11 @@ double DistNorm(const cElemMepRelCoplan & anEl)
    return euclid(aVert-anEl.Norm());
 }
 
-
-class cCmpNormPlan
+double DistNorm(const cTestPlIm & aTpl)
 {
-   public :
-      bool operator () (const cElemMepRelCoplan & anEl1,const cElemMepRelCoplan & anEl2)
-      {
-          // return anEl1.Norm().z > anEl2.Norm().z;
-          return DistNorm(anEl1) < DistNorm(anEl2);
-      }
-};
-
-
-class cTestPlIm
-{
-    public :
-        cTestPlIm(cLink2Img * aLnk,const cElemMepRelCoplan & aRMCP,bool Show) :
-             mLnk     (aLnk),
-             mRMCP    (aRMCP),
-             mHomI2T  (mRMCP.HomCam2Plan()),
-             mOk      (true)
-        {
-            if (Show)
-               std::cout << "  PLL " << aLnk->Dest()->Name()
-                      << mRMCP.Norm()
-                      << mHomI2T.Direct(Pt2dr(0.5,0.5))
-                      << "\n";
-        }
-       
-        cLink2Img *       mLnk;
-        cElemMepRelCoplan  mRMCP;
-        cElHomographie     mHomI2T;
-        bool               mOk;
-    private :
-        // cTestPlIm(const cTestPlIm&);  // N.I.
-};
-
-
-double CostSolCur(int aK1,const std::vector<cTestPlIm> & aVPlIm,const ElMatrix<double> & aMCost)
-{
-   double aRes = 0;
-
-   for (int aK2=0 ; aK2<int(aVPlIm.size()); aK2++)
-   {
-       if (aVPlIm[aK2].mOk)
-       {
-          aRes += aMCost(aK1,aK2);
-       }
-   }
-
-   return aRes;
+   return DistNorm(*(aTpl.mRMCP));
 }
 
-int WorstSol(const std::vector<cTestPlIm> & aVPlIm,const ElMatrix<double> & aMCost)
-{
-   int aRes=-1;
-   double aCostMax=-1;
-
-   for (int aK=0; aK<int(aVPlIm.size()); aK++)
-   {
-       if (aVPlIm[aK].mOk)
-       {
-           double aCost = CostSolCur(aK,aVPlIm,aMCost);
-           if (aCost > aCostMax)
-           {
-               aCostMax = aCost;
-               aRes = aK;
-           }
-       }
-   }
-   ELISE_ASSERT(aRes>=0,"WorsSol");
-
-   return aRes;
-}
 
 void AddAqCohHom2Sys
      (
@@ -166,14 +98,14 @@ void AddAqCohHom2Sys
    }
 }
 
-double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2)
+
+// H1on2 permet d'inverser les roles de H1 et H2 ("ou" se fait la comparaison) pour tester la dissymetrie
+
+// TestDiff si active permet de verifier les equation en refaisant le calcul a la main
+
+double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2,bool TestDiff = false)
 {
-/*
-   std::vector<int> aVInd;
-   for (int aK=0 ; aK<4 ; aK++)
-      aVInd.push_back(aK);
-*/
-  bool TestDiff= false;
+  // bool TestDiff= false;
 
    L2SysSurResol aSys(4,true);
    double aSomPds =0;
@@ -267,6 +199,212 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2)
    return aResidu;
 }
 
+cTestPlIm::cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan * aRMCP,bool Show) :
+     mLnk     (aLnk),
+     mRMCP    (aRMCP),
+     mHomI2T  (mRMCP->HomCam2Plan()),
+     mOk      (true)
+{
+/*
+            if (Show)
+               std::cout << "  PLL " << aLnk->Dest()->Name()
+                      << mRMCP.Norm()
+                      << mHomI2T.Direct(Pt2dr(0.5,0.5))
+                      << "\n";
+*/
+}
+
+
+/*************************************************/
+/*                                               */
+/*                  cImagH                       */
+/*                                               */
+/*************************************************/
+
+//void cImagH::ShowLnk
+
+void cImagH::TestCplePlan(int aKIm1,int aKIm2)
+{
+     const std::vector<cLink2Img*> &  aVL = VLink() ;
+     cLink2Img * aLnk1   = aVL[aKIm1];
+     cLink2Img * aLnk2   = aVL[aKIm2];
+     cImagH * aIm1 = aLnk1->Dest();
+     cImagH * aIm2 = aLnk2->Dest();
+
+     std::cout << "SZ " << aIm1->mVTPlIm.size() << " " << aIm2->mVTPlIm.size() << "\n";
+
+     printf("XXXXXXXXXX ");
+     for (int aKP2=0; aKP2 < int(aIm2->mVTPlIm.size()) ; aKP2++)
+          printf("N=%5f ",DistNorm(aIm2->mVTPlIm[aKP2]));
+     printf("\n");
+
+     for (int aKP1=0; aKP1 < int(aIm1->mVTPlIm.size()) ; aKP1++)
+     {
+          printf("N=%5f ",DistNorm(aIm1->mVTPlIm[aKP1]));
+          for (int aKP2=0; aKP2 < int(aIm2->mVTPlIm.size()) ; aKP2++)
+          {
+              double aCost = TestCohHomogr(aIm1->mVTPlIm[aKP1],aIm2->mVTPlIm[aKP2],true);
+              printf("C=%5f ",aCost);
+          }
+          printf("\n");
+     }
+}
+
+#if (0)
+std::string cImagH::EstimatePlan()
+{
+
+    // On regarde si on est en mode focus sur une une image (mise au point);
+     mPlanEst = false;
+     bool FocusOnThisIm = false;
+
+     double aAltiCible = mAppli.AltiCible();
+     if (mAppli.HasImFocusPlan())
+     {
+         if (mName != mAppli.ImFocusPlan())
+            return "";
+         FocusOnThisIm = true;
+     } 
+     else
+     {
+        if (mAppli.SkipPlanDone() && ELISE_fp::exist_file(NameOriHomPlane()))
+        {
+           mPlanEst = true;
+           return "";
+        }
+     }
+
+
+     const std::vector<cLink2Img*> &  aVL = VLink() ;
+     int aNbL = aVL.size();
+
+
+
+     for (int aKL=0 ; aKL<aNbL ; aKL++)
+     {
+          cLink2Img * aLnk   = aVL[aKL];
+          // std::cout << "TEPd " << aLnk->Dest()->Name() << "\n";
+          cElHomographie &   aHom = aLnk->Hom12();
+          std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
+          cResMepRelCoplan aRCP = ElPackHomologue::MepRelCoplan(1,aHom,aPair);
+           aLnk->Dest()->mVercp = aRCP.VElOk();
+          for (int aK=0 ; aK<int( aLnk->Dest()->mVercp.size()) ; aK++)
+              aLnk->Dest()->mVTPlIm.push_back(cTestPlIm(aLnk, VData(aLnk->Dest()->mVercp)+aK,false));
+          // std::vector<cElemMepRelCoplan>  aVSol = aRCP.VElOk();
+     }
+
+
+
+      while (1)
+      {
+          std::cout << "=================\n";
+          int aK1,aK2;
+          GetLnkKbrd(aK1);
+          GetLnkKbrd(aK2);
+          TestCplePlan(aK1,aK2);
+      }
+
+
+
+     for (int aKL=0 ; aKL<aNbL ; aKL++)
+     {
+         cLink2Img * aLnk   = aVL[aKL];
+         aLnk->Dest()->mVercp.clear();
+         aLnk->Dest()->mVTPlIm.clear();
+     }
+     return "";
+}
+
+
+
+/*************************************************/
+/*                                               */
+/*                  cImagH                       */
+/*                                               */
+/*************************************************/
+#else
+
+
+
+
+
+
+class cCmpNormPlan
+{
+   public :
+      bool operator () (const cElemMepRelCoplan & anEl1,const cElemMepRelCoplan & anEl2)
+      {
+          // return anEl1.Norm().z > anEl2.Norm().z;
+          return DistNorm(anEl1) < DistNorm(anEl2);
+      }
+};
+
+
+/*
+class cTestPlIm
+{
+    public :
+        cTestPlIm(cLink2Img * aLnk,const cElemMepRelCoplan & aRMCP,bool Show) :
+             mLnk     (aLnk),
+             mRMCP    (aRMCP),
+             mHomI2T  (mRMCP.HomCam2Plan()),
+             mOk      (true)
+        {
+            if (Show)
+               std::cout << "  PLL " << aLnk->Dest()->Name()
+                      << mRMCP.Norm()
+                      << mHomI2T.Direct(Pt2dr(0.5,0.5))
+                      << "\n";
+        }
+       
+        cLink2Img *        mLnk;
+        cElemMepRelCoplan  mRMCP;
+        cElHomographie     mHomI2T;
+        bool               mOk;
+    private :
+        // cTestPlIm(const cTestPlIm&);  // N.I.
+};
+*/
+
+
+double CostSolCur(int aK1,const std::vector<cTestPlIm> & aVPlIm,const ElMatrix<double> & aMCost)
+{
+   double aRes = 0;
+
+   for (int aK2=0 ; aK2<int(aVPlIm.size()); aK2++)
+   {
+       if (aVPlIm[aK2].mOk)
+       {
+          aRes += aMCost(aK1,aK2);
+       }
+   }
+
+   return aRes;
+}
+
+int WorstSol(const std::vector<cTestPlIm> & aVPlIm,const ElMatrix<double> & aMCost)
+{
+   int aRes=-1;
+   double aCostMax=-1;
+
+   for (int aK=0; aK<int(aVPlIm.size()); aK++)
+   {
+       if (aVPlIm[aK].mOk)
+       {
+           double aCost = CostSolCur(aK,aVPlIm,aMCost);
+           if (aCost > aCostMax)
+           {
+               aCostMax = aCost;
+               aRes = aK;
+           }
+       }
+   }
+   ELISE_ASSERT(aRes>=0,"WorsSol");
+
+   return aRes;
+}
+
+
 
 class cTestSolPl
 {
@@ -330,6 +468,10 @@ void cImagH::TestEstimPlDirect()
 }
 
 
+
+
+
+
 std::string cImagH::EstimatePlan()
 {
      mPlanEst = false;
@@ -371,9 +513,10 @@ std::string cImagH::EstimatePlan()
 
 
      //  1.1 
-     for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+     // for (tMapName2Link::iterator itL = mLnks.begin(); itL != mLnks.end(); itL++)
+     for (int aK=0 ; aK<int(VLink().size()) ; aK++)
      {
-          cLink2Img * aLnk   = itL->second;
+          cLink2Img * aLnk   = VLink()[aK];
 
           // ElPackHomologue & aPack = aLnk->Pack();
           cElHomographie &   aHom = aLnk->Hom12();
@@ -392,7 +535,16 @@ std::string cImagH::EstimatePlan()
 
               if (aS0 + mAppli.SeuilDistNorm() < aS1)
               {
-                  aVPlIm.push_back(cTestPlIm(aLnk,aVSol[0],mAppli.Show(eShowAll)));
+                  if (FocusOnThisIm)
+                  {
+                     ElRotation3D aR1 = aVSol[0].Rot().inv();
+                     Pt3dr aP = aVSol[0].ToR1(Pt3dr(0,0,0)) *  (aAltiCible /  aVSol[0].DPlan());
+                     std::cout << "   "  << aLnk->Dest()->Name() << " " << aP << " " << aS0 << " >> " << aS1  << " " <<  aVSol[0].ToR1(Pt3dr(0,0,0))  << " " << aVSol[0].DPlan() << "\n";
+                  }
+                  aVPlIm.push_back(cTestPlIm(aLnk,new cElemMepRelCoplan(aVSol[0]),mAppli.Show(eShowAll)));
+
+
+
               }
                     
           }
@@ -467,7 +619,7 @@ std::string cImagH::EstimatePlan()
           std::cout << " =========== End  EstimatePlan \n";
        }
 
-       cElemMepRelCoplan  mRMCP = aVPlIm[aKBEst].mRMCP ;
+       cElemMepRelCoplan  mRMCP = *(aVPlIm[aKBEst].mRMCP) ;
        ElRotation3D aRCam12P = mRMCP.Plan().CoordPlan2Euclid().inv();
 
        Pt3dr aCentre0 = aRCam12P.ImAff(Pt3dr(0,0,0));
@@ -631,6 +783,7 @@ std::string cImagH::EstimatePlan()
         return aCom;
        // getchar();
 }
+#endif
 
 
 NS_RHH_END

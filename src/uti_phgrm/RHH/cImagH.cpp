@@ -463,17 +463,19 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mHi2t     (cElHomographie::Id()),
    mHTmp     (cElHomographie::Id()),
    mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName)),
-   mLnkClosed  (false)
+   mLnkClosed  (false),
+   mEqOneHF    (0),
+   mC2CI       (false)
 {
 
    // std::cout << "NCCC " << mNameCalib << " [" << mNameVerif<< "]\n";
 }
 
-void cImagH::AssertLnkClosed()
+void cImagH::AssertLnkClosed() const
 {
   ELISE_ASSERT(mLnkClosed,"cLink2Img::AssertClosed");
 }
-void cImagH::AssertLnkUnclosed()
+void cImagH::AssertLnkUnclosed() const
 {
   ELISE_ASSERT(!mLnkClosed,"cLink2Img::AssertUnclosed");
 }
@@ -484,6 +486,15 @@ CamStenope *   cImagH::CamC()
    return mCamC;
 }
 
+cEqOneHomogFormelle * &  cImagH::EqOneHF()
+{
+   return mEqOneHF;
+}
+
+bool  &  cImagH::C2CI()
+{
+   return mC2CI;
+}
 
    //============ FONCTION DE GRAPHE IMAGE =========================
 
@@ -532,6 +543,8 @@ cElHomographie &   cImagH::HTmp()
 
 const std::vector<cLink2Img*> &  cImagH::VLink() const
 {
+   AssertLnkClosed();
+
    return mVLnkInterneSorted;
 }
 
@@ -656,6 +669,19 @@ cAppliReduc &     cImagH::Appli()
 const tMapName2Link & cImagH::Lnks() const
 {
    return mLnks;
+}
+
+
+cLink2Img *  cImagH::GetLnkKbrd(int & aK)
+{
+    std::cout << "For " << mName << " ENTER NUMBER FOR LINK between 0 and " << VLink().size() << " [" << VLink().front()->Dest()->Name()  << " / "<<  VLink().back()->Dest()->Name()<<"]\n";
+
+    cin >> aK;
+    ELISE_ASSERT((aK>=0) && (aK<int(VLink().size())),"cImagH::GetLnkKbrd");
+    cLink2Img *  aRes = VLink()[aK];
+    std::cout <<  "Got " << aRes->Dest()->Name() << "\n";
+
+    return aRes;
 }
 
 NS_RHH_END

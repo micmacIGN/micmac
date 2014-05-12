@@ -278,7 +278,7 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
         }
 
 
-std::cout << "Type Appui = " << aType << "\n";
+std::cout << "Type Appui = " << aType << "ENTRE GETCHAR \n"; getchar();
 	cSetEqFormelles aSet;
 	cParamIntrinsequeFormel * aPIF = PIF_For_GC(C2M,aType,aSet,aPAF);
 	ElRotation3D aRot(Pt3dr(0,0,0),0,0,0);
@@ -483,6 +483,17 @@ void GenCodeEqHom()
     GenCodeEqHom(false,false);
     GenCodeEqHom(false,true);
 }
+
+
+
+void GenCodeOneEqHom()
+{
+      cSetEqFormelles aSet;
+      cHomogFormelle * aH = aSet.NewHomF(cElHomographie::Id(), cNameSpaceEqF::eHomLibre);
+
+      aSet.NewOneEqHomog(*aH,true);
+}
+
 //===========================================================================
 
 void GenCodeCorrelGrid(INT aNbPix,bool Im2MoyVar)
@@ -611,8 +622,13 @@ extern void GenCodeRigiditeBlock();
 
 int GenCode_main(int argc,char ** argv)
 {
+     GenCodeOneEqHom();
+   //  GenCodeEqHom();
+
+
+
      // GenCodeRigiditeBlock();
-    GenCodeAppui();
+    // GenCodeAppui();
      // GenEqPlanInc();
      // GenDirecteDistorsion();
      //   GencqCalibCroisee();
@@ -622,7 +638,6 @@ int GenCode_main(int argc,char ** argv)
      //  GenCodeAppui();
      // GenCodeGrid(); 
       // GenCodeLiaison();
-      // GenCodeEqHom();
      // GenCodeCorrelGrid();
      // GenCodeDiv();
      // GenCodeDiv2();

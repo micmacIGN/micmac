@@ -124,6 +124,7 @@ class cSetEqFormelles;
 class cHomogFormelle;
 class cDistRadialeFormelle;
 class cEqHomogFormelle;
+class cEqOneHomogFormelle;
 class cParamIntrinsequeFormel;
 class cRotationFormelle;
 class cCameraFormelle;
@@ -469,8 +470,6 @@ class  cElemEqFormelle :  public cNameSpaceEqF
 
 
         protected :
-	    cElemEqFormelle (const cElemEqFormelle &) ; // Prohib
-	    void operator =  (const cElemEqFormelle &) ; // Prohib
 
 	    void AddFoncteurEEF(cElCompiledFonc *);
             void CloseEEF(bool asIntervBlock = true);
@@ -491,6 +490,9 @@ class  cElemEqFormelle :  public cNameSpaceEqF
             std::vector<double *>      mAdrFR;
             std::vector<double  >      mValsInit;
             bool                       mClosed;
+       private :
+	    cElemEqFormelle (const cElemEqFormelle &) ; // Prohib
+	    void operator =  (const cElemEqFormelle &) ; // Prohib
 };
 
 class cEqFPtLiaison
@@ -646,6 +648,15 @@ class cSetEqFormelles : public cNameSpaceEqF
                              cDistRadialeFormelle *,
 			     bool Code2Gen = false
                          );
+              cEqOneHomogFormelle * NewOneEqHomog
+                         (
+                             cHomogFormelle &,
+			     bool Code2Gen = false
+                         );
+
+
+
+
 	      cParamIntrinsequeFormel * NewParamIntrNoDist(bool isDC2M,CamStenope * aCamInit,bool ParamVar=true);
 
 	       cRotationFormelle * NewRotation
@@ -883,6 +894,10 @@ class cSetEqFormelles : public cNameSpaceEqF
           cManipOrdInc                  mMOI;
           Im1D_REAL8                    mSolQuad;
           Im1D_REAL8                    mCurSol;
+
+
+          cSetEqFormelles(const cSetEqFormelles &); // N.I.
+          cSetEqFormelles operator = (const cSetEqFormelles &); // N.I.
 };
 
 
@@ -1755,6 +1770,63 @@ class cEqHomogFormelle : public  cNameSpaceEqF ,
           cEq*                  pFEqY;
 };
 #endif
+
+
+
+class cEqOneHomogFormelle : public  cNameSpaceEqF ,
+                         public cEqFPtLiaison,
+                         public cObjFormel2Destroy
+{
+      public :
+          ~cEqOneHomogFormelle();
+          cEqOneHomogFormelle
+          (
+                cHomogFormelle &,
+                bool Code2Gen
+          );
+
+         // WithD2 : avec derivees secondes
+          REAL AddLiaisonP1P2(Pt2dr P1, Pt2dr aP2, REAL aPds,bool WithD2);
+          Pt2dr StdAddLiaisonP1P2(Pt2dr P1,Pt2dr P2,REAL aPds,bool WithD2); // Version moderne type camera
+          REAL ResiduNonSigneP1P2(Pt2dr aP1,Pt2dr aP2);
+          Pt2dr  PtResidu(Pt2dr aP1,Pt2dr aP2);
+
+          cHomogFormelle&       HF();
+          cSetEqFormelles &       Set();
+      private :
+          struct cOneHEq
+          {
+              cEqOneHomogFormelle & mEQF;
+              cElCompiledFonc * pFEq;
+              double          * pAdrX1;
+              double          * pAdrY1;
+              double          * pAdrX2;
+              double          * pAdrY2;
+              std::string     mName;
+
+              ~cOneHEq();
+              cOneHEq(Fonc_Num F,cEqOneHomogFormelle &,bool isX,bool Code2Gen);
+
+              REAL AddLiaisonP1P2(Pt2dr P1,Pt2dr P2,REAL aPds,bool WithD2);
+              REAL ResiduSigneP1P2(Pt2dr aP1,Pt2dr aP2);
+              void  InitPts(Pt2dr P1,Pt2dr P2);
+          };
+          friend struct cOneHEq;
+
+          cSetEqFormelles & mSet;
+          cHomogFormelle&       mHF;
+
+          Pt2d<Fonc_Num>        mEqHom;
+          cIncListInterv        mLInterv;
+          cOneHEq*                  pFEqX;
+          cOneHEq*                  pFEqY;
+};
+
+
+
+
+
+
 class cEqHomogFormelle : public  cNameSpaceEqF ,
                          public cEqFPtLiaison,
                          public cObjFormel2Destroy

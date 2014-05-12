@@ -2,11 +2,11 @@
 #include "StdAfx.h"
 
 
-class cEqHomogrY: public cElCompiledFonc
+class cEqOneHomogrX: public cElCompiledFonc
 {
    public :
 
-      cEqHomogrY();
+      cEqOneHomogrX();
       void ComputeVal();
       void ComputeValDeriv();
       void ComputeValDerivHessian();
@@ -14,7 +14,6 @@ class cEqHomogrY: public cElCompiledFonc
       void SetXL1(double);
       void SetXL2(double);
       void SetYL1(double);
-      void SetYL2(double);
 
 
       static cAutoAddEntry  mTheAuto;
@@ -24,5 +23,4 @@ class cEqHomogrY: public cElCompiledFonc
       double mLocXL1;
       double mLocXL2;
       double mLocYL1;
-      double mLocYL2;
 };
