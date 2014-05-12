@@ -398,15 +398,15 @@ void cEngine::unload(int aK)
     _Data->clear(aK);
 }
 
-void cEngine::allocAndSetGLData(bool modePt, QString ptName)
+void cEngine::allocAndSetGLData(int appMode, QString ptName)
 {
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), modePt, ptName));
+        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), appMode, ptName));
 
     if (_Data->is3D())
-        _vGLData.push_back(new cGLData(_Data, modePt));
+        _vGLData.push_back(new cGLData(_Data, appMode));
 }
 
 void cEngine::reallocAndSetGLData(int aK)

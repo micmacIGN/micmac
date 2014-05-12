@@ -369,8 +369,7 @@ void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
         aFiles.push_back(filename);
         _SaisieWin->addFiles(aFiles);
 
-        _SaisieWin->setCurrentPolygonIndex(1);
-        _SaisieWin->setCurrentPolygonNormalize(normalize);
+        _SaisieWin->normalizeCurrentPolygon(normalize);
 
         connect(_SaisieWin->getWidget(0),SIGNAL(newRectanglePosition(QVector <QPointF>)),this,SLOT(onRectanglePositionChanged(QVector<QPointF>)));
 
