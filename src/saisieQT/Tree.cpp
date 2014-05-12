@@ -1,6 +1,6 @@
 #include "Tree.h"
 
-#define HORSIMAGE "hors Image"
+#define HORSIMAGE "Outside image"
 
 #define COLOR_OVER "#c89354"
 #define NON_SAISIE "#ba5606"
@@ -249,22 +249,22 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                         case eEPI_NonSaisi:
                         {
                             if(pI->Visible())
-                                return QString(tr("a valide"));
+                                return QString(tr("to validate"));
                             else
                                 return QString(tr(HORSIMAGE));
                         }
                         case eEPI_Refute:
-                            return QString(tr("refute"));
+                            return QString(tr("refuted"));
                         case eEPI_Douteux:
-                            return QString(tr("douteux"));
+                            return QString(tr("dubious"));
                         case eEPI_Valide:
-                            return QString(tr("valide"));
+                            return QString(tr("valid"));
                         case eEPI_NonValue:
-                            return QString(tr("non V"));
+                            return QString(tr("no value"));
                         case eEPI_Disparu:
-                            return QString(tr("Disparu"));
+                            return QString(tr("vanished"));
                         case eEPI_Highlight:
-                            return QString(tr("highlight"));
+                            return QString(tr("highlighted"));
                         }
                     }
                 }

@@ -627,8 +627,8 @@ QPointF cPoint::scale(QPointF aP)
 
 float cPolygon::_selectionRadius = 10.f;
 
-cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(this, lineWidth)),
+cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int style):
+    _helper(new cPolygonHelper(this, maxSz, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
@@ -637,7 +637,8 @@ cPolygon::cPolygon(float lineWidth, QColor lineColor, QColor pointColor, int sty
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
-    _bShowRefuted(true)
+    _bShowRefuted(true),
+    _maxSz(maxSz)
 {
     setColor(pointColor);
     setLineWidth(lineWidth);
@@ -649,7 +650,7 @@ cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
     setVector(points);
 }
 
-cPolygon::cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
+cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
@@ -658,7 +659,8 @@ cPolygon::cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool w
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
-    _bShowRefuted(true)
+    _bShowRefuted(true),
+    _maxSz(maxSz)
 {
     if (!withHelper) _helper = NULL;
     cObject::setColor(pointColor);
@@ -844,18 +846,24 @@ int cPolygon::getSelectedPointState()
 
 void cPolygon::add(cPoint &pt)
 {
-    pt.setDiameter(_pointDiameter);
-    _points.push_back(pt);
+    if (_points.size() < _maxSz)
+    {
+        pt.setDiameter(_pointDiameter);
+        _points.push_back(pt);
+    }
 }
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
+    if (_points.size() < _maxSz)
+    {
+        cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
 
-    cPt.setDiameter(_pointDiameter);
-    cPt.drawCenter(!isLinear());
+        cPt.setDiameter(_pointDiameter);
+        cPt.drawCenter(!isLinear());
 
-    _points.push_back(cPt);
+        _points.push_back(cPt);
+    }
 }
 
 void cPolygon::addPoint(const QPointF &pt)
@@ -1240,8 +1248,8 @@ void cPolygon::showRefuted(bool show)
 
 //********************************************************************************
 
-cPolygonHelper::cPolygonHelper(cPolygon* polygon, float lineWidth, QColor lineColor, QColor pointColor):
-    cPolygon(lineWidth, lineColor, pointColor, false),
+cPolygonHelper::cPolygonHelper(cPolygon* polygon, int maxSz, float lineWidth, QColor lineColor, QColor pointColor):
+    cPolygon(maxSz, lineWidth, lineColor, pointColor, false),
     _polygon(polygon)
 {
 }
@@ -1314,15 +1322,15 @@ void cPolygonHelper::setPoints(cPoint p1, cPoint p2, cPoint p3)
 
 //********************************************************************************
 
-cRectangle::cRectangle(float lineWidth, QColor lineColor, int style) :
-    cPolygon(lineWidth, lineColor, Qt::red, style)
+cRectangle::cRectangle(int maxSz, float lineWidth, QColor lineColor, int style) :
+    cPolygon(maxSz, lineWidth, lineColor, Qt::red, style)
 {}
 
 void cRectangle::addPoint(const QPointF &pt)
 {
     if (size() == 0)
     {
-        for (int aK=0; aK <4; aK++)
+        for (int aK=0; aK < getMaxSize(); aK++)
             add(pt);
 
         selectPoint(2);
@@ -1440,7 +1448,7 @@ void cImageGL::draw()
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     cout<<max<<endl;*/
 
-    if(_gamma !=1.0f)
+    if(_gamma != 1.0f)
     {
         _program.bind();
         _program.setUniformValue(_texLocation, GLint(0));
@@ -1449,7 +1457,7 @@ void cImageGL::draw()
 
     drawQuad(Qt::white);
 
-    if(_gamma !=1.0f) _program.release();
+    if(_gamma != 1.0f) _program.release();
 
     glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
@@ -1581,13 +1589,13 @@ void cObjectGL::disableOptionLine()
 
 //********************************************************************************
 
-cGLData::cGLData():
+cGLData::cGLData(int appMode):
     _diam(1.f)
 {
-    initOptions();
+    initOptions(appMode);
 }
 
-cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
+cGLData::cGLData(QMaskedImage &qMaskedImage, int appMode, QString ptName):
     _glMaskedImage(qMaskedImage),
     _pQMask(qMaskedImage._m_mask),
     _pBall(NULL),
@@ -1595,37 +1603,37 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, bool modePt, QString ptName):
     _pBbox(NULL),
     _pGrid(NULL),
     _center(Pt3dr(0.f,0.f,0.f)),
-    _modePt(modePt)
+    _appMode(appMode)
 {
-    initOptions();
+    initOptions(appMode);
 
     for (int aK=0; aK < _vPolygons.size(); ++aK)
     {
-        polygon(aK)->showLines(!modePt);
-        polygon(aK)->showNames(modePt);
+        polygon(aK)->showLines(!_modePt);
+        polygon(aK)->showNames(_modePt);
 
         polygon(aK)->setDefaultName(ptName);
     }
 }
 
 
-cGLData::cGLData(cData *data, bool modePt):
+cGLData::cGLData(cData *data, int appMode):
     _pBall(new cBall),
     _pAxis(new cAxis),
     _pBbox(new cBBox),
     _pGrid(new cGrid),
-    _modePt(modePt),
+    _appMode(appMode),
     _diam(1.f),
     _incFirstCloud(false)
 {
-    initOptions();
+    initOptions(appMode);
 
     setData(data);
 
     for (int aK=0; aK < _vPolygons.size(); ++aK)
     {
-        polygon(aK)->showLines(!modePt);
-        polygon(aK)->showNames(modePt);
+        polygon(aK)->showLines(!_modePt);
+        polygon(aK)->showNames(_modePt);
     }
 }
 
@@ -1681,7 +1689,7 @@ cMaskedImageGL &cGLData::glImage()
 
 cPolygon *cGLData::polygon(int id)
 {
-    if(id < (int)_vPolygons.size())
+    if(id < (int) _vPolygons.size())
         return _vPolygons[id];
     else
         return NULL;
@@ -1689,10 +1697,7 @@ cPolygon *cGLData::polygon(int id)
 
 cPolygon *cGLData::currentPolygon()
 {
-    if (_currentPolygon < (int) _vPolygons.size())
-        return _vPolygons[_currentPolygon];
-    else
-        return NULL;
+    return polygon(_currentPolygon);
 }
 
 GlCloud* cGLData::getCloud(int iC)
@@ -1715,10 +1720,28 @@ int cGLData::polygonCount()
     return _vPolygons.size();
 }
 
-void cGLData::initOptions()
+void cGLData::initOptions(int appMode)
 {
-    _vPolygons.push_back(new cPolygon());
-    _vPolygons.push_back(new cRectangle());
+    if (appMode == BOX2D)
+    {
+        _vPolygons.push_back(new cRectangle());
+    }
+    else if (appMode == BASC)
+    {
+        _vPolygons.push_back(new cPolygon(2));
+        _vPolygons.push_back(new cPolygon(2));
+        _vPolygons.push_back(new cPolygon(1));
+    }
+    else
+    {
+        _vPolygons.push_back(new cPolygon());
+    }
+
+    if ((appMode == POINT2D_INIT) || (appMode == POINT2D_PREDIC))
+        _modePt = true;
+    else
+        _modePt = false;
+
     _currentPolygon = 0;
     _options = options(OpShow_Mess);
 }

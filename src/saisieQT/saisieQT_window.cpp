@@ -8,7 +8,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _layout_GLwidgets(new QGridLayout),
         _zoomLayout(new QGridLayout),
         _params(new cParameters),
-        _mode(mode)
+        _appMode(mode)
 {
     _ui->setupUi(this);
 
@@ -16,7 +16,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _Engine->setParams(_params);
 
-    init(_params->getNbFen().x()*_params->getNbFen().y(), _mode > MASK3D);
+    init(_params->getNbFen().x()*_params->getNbFen().y(), _appMode > MASK3D);
 
     setUI();
 
@@ -26,7 +26,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     applyParams();
 
-    if (_mode != MASK3D)
+    if (_appMode != MASK3D)
     {
         setImagePosition(QPointF(-1.f,-1.f));
         setImageName("");
@@ -169,7 +169,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         {
             loadPly(filenames);
 
-            _mode = MASK3D;
+            _appMode = MASK3D;
         }
         else if (suffix == "xml")
         {
@@ -177,23 +177,23 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             _ui->actionShow_cams->setChecked(true);
 
-            _mode = MASK3D;
+            _appMode = MASK3D;
         }
         else // LOAD IMAGE
         {
-            if (_mode <= MASK3D) closeAll();
+            if (_appMode <= MASK3D) closeAll();
             //else if (filenames.size() == 1) _mode = MASK2D;
 
             _Engine->loadImages(filenames);
         }
 
-        _Engine->allocAndSetGLData(_mode > MASK3D, _params->getDefPtName());
+        _Engine->allocAndSetGLData(_appMode, _params->getDefPtName());
 
         if (setGLData)
         {
             for (int aK = 0; aK < nbWidgets();++aK)
             {
-                getWidget(aK)->setGLData(_Engine->getGLData(aK),_ui->actionShow_messages->isChecked());
+                getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked());
                 getWidget(aK)->setParams(_params);
 
                 if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
@@ -217,7 +217,7 @@ void SaisieQtWindow::on_actionFullScreen_toggled(bool state)
 
 void SaisieQtWindow::on_actionShow_ball_toggled(bool state)
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
     {
         currentWidget()->setOption(cGLData::OpShow_Ball,state);
 
@@ -231,19 +231,19 @@ void SaisieQtWindow::on_actionShow_ball_toggled(bool state)
 
 void SaisieQtWindow::on_actionShow_bbox_toggled(bool state)
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_BBox,state);
 }
 
 void SaisieQtWindow::on_actionShow_grid_toggled(bool state)
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_Grid,state);
 }
 
 void SaisieQtWindow::on_actionShow_axis_toggled(bool state)
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
     {
         currentWidget()->setOption(cGLData::OpShow_Axis,state);
 
@@ -257,7 +257,7 @@ void SaisieQtWindow::on_actionShow_axis_toggled(bool state)
 
 void SaisieQtWindow::on_actionShow_cams_toggled(bool state)
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setOption(cGLData::OpShow_Cams,state);
 }
 
@@ -296,27 +296,27 @@ void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 
 void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 }
 
 void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 {
     QString text = tr("File menu:") +"\n\n";
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
     {
         text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
         text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
     }
-    text += "Ctrl+O: \t"+tr("open image file")+"\n";
-    if (_mode == MASK3D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
-    text += "Ctrl+S: \t"+tr("save mask file")+"\n";
+    text += "Ctrl+O: \t\t"+tr("open image file")+"\n";
+    if (_appMode == MASK3D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
+    text += "Ctrl+S: \t\t"+tr("save mask file")+"\n";
     text += "Ctrl+Maj+S: \t"+tr("save mask file as")+"\n";
-    text += "Ctrl+X: \t"+tr("close files")+"\n";
-    text += "Ctrl+Q: \t"+tr("quit") +"\n\n";
+    text += "Ctrl+X: \t\t"+tr("close files")+"\n";
+    text += "Ctrl+Q: \t\t"+tr("quit") +"\n\n";
     text += tr("View menu:") +"\n\n";
     text += "F2: \t"+tr("full screen") +"\n";
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
     {
         text += "F3: \t"+tr("show axis") +"\n";
         text += "F4: \t"+tr("show ball") +"\n";
@@ -325,13 +325,13 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         text += "F7: \t"+tr("show cameras") +"\n";
     }
     text += "F8: \t"+tr("show messages") +"\n";
-    if (_mode > MASK3D)
+    if (_appMode > MASK3D)
     {
          text += "Ctrl+N: \t"+tr("show names") +"\n";
          text += "Ctrl+R: \t"+tr("show refuted") +"\n";
     }
 
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
     else
     {
@@ -346,63 +346,45 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
     text += "Shift+R: \t"+tr("reset view") +"\n\n";
 
-    if (_mode <= MASK3D)
+    if (_appMode <= MASK3D)
     {
         text += tr("Selection menu:") +"\n\n";
-        if (_mode == MASK3D)
+        if (_appMode == MASK3D)
         {
             text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
         }
         text += tr("Left click : \tadd a vertex to polyline") +"\n";
         text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
-        text += tr("Echap: \tdelete polyline") +"\n";
+        text += tr("Echap: \t\tdelete polyline") +"\n";
 
 #ifdef ELISE_Darwin
-        if (_mode == MASK3D)
-        {
-            text += tr("Ctrl+Y: \tadd points inside polyline") +"\n";
-            text += tr("Ctrl+U: \tremove points inside polyline") +"\n";
-        }
-        else
-        {
-            text += tr("Ctrl+Y: \tadd pixels inside polyline") +"\n";
-            text += tr("Ctrl+U: \tremove pixels inside polyline") +"\n";
-        }
+        text += tr("Ctrl+U: \tselect inside polyline") +"\n";
+        text += tr("Ctrl+Y: \t\tremove inside polyline") +"\n";
 #else
-        if (_mode == MASK3D)
-        {
-            text += tr("Space bar: \tadd points inside polyline") +"\n";
-            text += tr("Del: \tremove points inside polyline") +"\n";
-        }
-        else
-        {
-            text += tr("Space bar: \tadd pixels inside polyline") +"\n";
-            text += tr("Del: \tremove pixels inside polyline") +"\n";
-        }
+        text += tr("Space bar: \tselect inside polyline") +"\n";
+        text += tr("Del: \t\tremove inside polyline") +"\n";
 #endif
 
         text += tr("Shift+drag: \tinsert vertex in polyline") +"\n";
-        text += tr("Ctrl+right click: remove last vertex") +"\n";
-        text += tr("Drag & drop: move selected polyline vertex") +"\n";
-        text += "Ctrl+A: \t"+tr("select all") +"\n";
-        text += "Ctrl+D: \t"+tr("select none") +"\n";
-        text += "Ctrl+R: \t"+tr("reset") +"\n";
-        text += "Ctrl+I: \t"+tr("invert selection") +"\n";
+        text += tr("Ctrl+right click: \tremove last vertex") +"\n";
+        text += tr("Drag & drop: \tmove selected polyline vertex") +"\n";
+        text += "Ctrl+A: \t\t"+tr("select all") +"\n";
+        text += "Ctrl+D: \t\t"+tr("select none") +"\n";
+        text += "Ctrl+R: \t\t"+tr("reset") +"\n";
+        text += "Ctrl+I: \t\t"+tr("invert selection") +"\n";
     }
     else
     {
-        text += tr("Click: \tadd point")+"\n";
-        text += tr("Right click: \tchange selected point state")+"\n";
-        text += tr("Drag & drop: \tmove selected point") +"\n";
-        text += tr("Shift+right click: \tshow name menu")+"\n";
-        text += tr("Ctrl+right click: \tshow window menu")+"\n\n";
+        text += tr("Left click: \tadd point")+"\n";
+        text += tr("Right click: \tshow state menu or window menu")+"\n";
+        text += tr("Drag & drop: \tmove selected point") +"\n\n";
 
         text += tr("History menu:") +"\n\n";
     }
-    text += "Ctrl+Z: \t"+tr("undo last action") +"\n";
-    text += "Ctrl+Shift+Z: "+tr("redo last action") +"\n";
+    text += "Ctrl+Z: \t\t"+tr("undo last action") +"\n";
+    text += "Ctrl+Shift+Z: \t"+tr("redo last action") +"\n";
 
-    QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
+    QMessageBox msgbox(QMessageBox::Information, QApplication::applicationName() + tr(" shortcuts"),text);
     msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
     msgbox.exec();
 }
@@ -454,7 +436,7 @@ void SaisieQtWindow::on_actionSelectAll_triggered()
 
 void SaisieQtWindow::on_actionReset_triggered()
 {
-    if (_mode != MASK3D)
+    if (_appMode != MASK3D)
     {
         closeAll();
 
@@ -468,7 +450,7 @@ void SaisieQtWindow::on_actionReset_triggered()
 
 void SaisieQtWindow::on_actionRemove_triggered()
 {
-    if (_mode > MASK3D)
+    if (_appMode > MASK3D)
         currentWidget()->polygon()->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
     else
         currentWidget()->Select(SUB);
@@ -476,37 +458,37 @@ void SaisieQtWindow::on_actionRemove_triggered()
 
 void SaisieQtWindow::on_actionSetViewTop_triggered()
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setView(TOP_VIEW);
 }
 
 void SaisieQtWindow::on_actionSetViewBottom_triggered()
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setView(BOTTOM_VIEW);
 }
 
 void SaisieQtWindow::on_actionSetViewFront_triggered()
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setView(FRONT_VIEW);
 }
 
 void SaisieQtWindow::on_actionSetViewBack_triggered()
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setView(BACK_VIEW);
 }
 
 void SaisieQtWindow::on_actionSetViewLeft_triggered()
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setView(LEFT_VIEW);
 }
 
 void SaisieQtWindow::on_actionSetViewRight_triggered()
 {
-    if (_mode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setView(RIGHT_VIEW);
 }
 
@@ -635,6 +617,8 @@ void SaisieQtWindow::closeAll()
         zoomWidget()->reset();
         zoomWidget()->setOption(cGLData::OpShow_Mess,false);
     }
+
+    setImageName("");
 }
 
 void SaisieQtWindow::closeCurrentWidget()
@@ -739,7 +723,7 @@ void SaisieQtWindow::updateUI()
 {
     labelShowMode(true);
 
-    bool isMode3D = _mode == MASK3D;
+    bool isMode3D = _appMode == MASK3D;
 
     hideAction(_ui->actionLoad_plys,  isMode3D);
     hideAction(_ui->actionLoad_camera,isMode3D);
@@ -751,7 +735,7 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionShow_cams,  isMode3D);
     hideAction(_ui->actionToggleMode, isMode3D);
 
-    bool isModeMask = _mode <= MASK3D;
+    bool isModeMask = _appMode <= MASK3D;
     hideAction(_ui->actionShow_names, !isModeMask);
     hideAction(_ui->actionShow_refuted, !isModeMask);
 
@@ -765,8 +749,6 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
-
-    if (_mode == BOX2D)   setCurrentPolygonIndex(1);
 }
 
 void SaisieQtWindow::setUI()
@@ -774,16 +756,17 @@ void SaisieQtWindow::setUI()
     setLayout(0);
 
 #ifdef ELISE_Darwin
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
+    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
+    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
 #endif
 
     updateUI();
 
-    if (_mode > MASK3D)
+    if (_appMode > MASK3D)
     {
-        if (_mode == POINT2D_INIT)          setWindowTitle("Micmac - SaisieAppuisInit QT");
-        else if (_mode == POINT2D_PREDIC)   setWindowTitle("Micmac - SaisieAppuisPredic QT");
+        if (_appMode == POINT2D_INIT)          setWindowTitle("Micmac - SaisieAppuisInitQT");
+        else if (_appMode == POINT2D_PREDIC)   setWindowTitle("Micmac - SaisieAppuisPredicQT");
+        else if (_appMode == BASC)             setWindowTitle("Micmac - SaisieBascQT");
 
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
@@ -912,7 +895,7 @@ void SaisieQtWindow::setCurrentPolygonIndex(int idx)
     }
 }
 
-void SaisieQtWindow::setCurrentPolygonNormalize(bool nrm)
+void SaisieQtWindow::normalizeCurrentPolygon(bool nrm)
 {
     for (int aK = 0; aK < getEngine()->nbGLData(); ++aK)
     {
@@ -941,7 +924,7 @@ void SaisieQtWindow::redraw(bool nbWidgetsChanged)
 {
     if (size() != _params->getSzFen())
     {
-        if (_mode > MASK3D)
+        if (_appMode > MASK3D)
             resize(_params->getSzFen().width() + _ui->QFrame_zoom->width(), _params->getSzFen().height());
         else
             resize(_params->getSzFen());
@@ -1024,7 +1007,7 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 
     setCurrentWidget(glW);
 
-    if (_mode != MASK3D)
+    if (_appMode != MASK3D)
     {
         connect(glW, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
 
@@ -1040,7 +1023,7 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
         }
     }
 
-    if (_mode > MASK3D)
+    if (_appMode > MASK3D)
     {
         if ( glW->hasDataLoaded() && !glW->getGLData()->isImgEmpty() )
             setImageName(glW->getGLData()->glImage().cObjectGL::name());
@@ -1049,11 +1032,11 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 
 void SaisieQtWindow::undo(bool undo)
 {
-    if (_mode <= MASK3D)
+    if (_appMode <= MASK3D)
     {
         if (currentWidget()->getHistoryManager()->size())
         {
-            if (_mode != MASK3D)
+            if (_appMode != MASK3D)
             {
                 int idx = currentWidgetIdx();
 
@@ -1091,7 +1074,7 @@ void SaisieQtWindow::applyParams()
 
         _ui->actionFullScreen->setChecked(true);
     }
-    else if (_mode > MASK3D)
+    else if (_appMode > MASK3D)
         resize(szFen.width() + _ui->QFrame_zoom->width(), szFen.height());
     else
         resize(szFen);
@@ -1099,7 +1082,7 @@ void SaisieQtWindow::applyParams()
 
 void SaisieQtWindow::labelShowMode(bool state)
 {
-    if ((!state) || (_mode == MASK3D))
+    if ((!state) || (_appMode == MASK3D))
     {
         _ui->label_ImagePosition_1->hide();
         _ui->label_ImagePosition_2->hide();
@@ -1107,13 +1090,13 @@ void SaisieQtWindow::labelShowMode(bool state)
     }
     else
     {
-        if(_mode <= MASK2D)
+        if(_appMode <= MASK2D)
         {
             _ui->label_ImagePosition_1->hide();
             _ui->label_ImagePosition_2->show();
             _ui->label_ImageName->hide();
         }
-        else if(_mode > MASK3D)
+        else if(_appMode > MASK3D)
         {
             _ui->label_ImagePosition_1->show();
             _ui->label_ImagePosition_2->hide();

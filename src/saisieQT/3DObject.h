@@ -22,6 +22,15 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
+//! Interface mode
+enum APP_MODE { BOX2D,          /**< BOX 2D mode **/
+                MASK2D,         /**< Image mask mode  **/
+                MASK3D,         /**< Point cloud mask **/
+                POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) - uses cAppli_SaisiePts **/
+                POINT2D_PREDIC, /**< Points in Image (SaisieAppuisPredic) - uses cAppli_SaisiePts **/
+                BASC            /**< 2 lines and 1 point (SaisieBasc) - uses cAppli_SaisiePts **/
+};
+
 //! Interaction mode (only in 3D)
 enum INTERACTION_MODE {
     TRANSFORM_CAMERA,
@@ -268,7 +277,7 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
         cPolygon(QVector <QPointF> points, bool isClosed);
 
         virtual void draw();
@@ -371,11 +380,14 @@ class cPolygon : public cObjectGL
         void    setStyle(int style)     { _style = style; }
         void    setLineColor(QColor col){ _lineColor = col; }
 
+        void    setMaxSize(int aMax)    { _maxSz = aMax; }
+        int     getMaxSize()            { return _maxSz; }
+
         void    normalize(bool aBool)   { _bNormalize = aBool; }
 
 
     protected:
-        cPolygon(float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
+        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
         QVector <cPoint>    _points;
         cPolygonHelper*     _helper;
@@ -407,6 +419,9 @@ private:
 
         float               _shiftStep;
 
+        //!vector max size
+        int                 _maxSz;
+
         //!should image coordinates be normalized
         bool                _bNormalize;
 };
@@ -415,7 +430,7 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(cPolygon* polygon, float lineWidth, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
         void   build(const cPoint &pos, bool insertMode);
 
@@ -430,7 +445,7 @@ class cRectangle : public cPolygon
 {
     public:
 
-        cRectangle(float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
+        cRectangle(int nbMax = 4, float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
         //cRectangle(QVector <QPointF> points, bool isClosed);
 
         void    addPoint(QPointF const &pt);
@@ -652,11 +667,11 @@ class cGLData : cObjectGL
 {
 public:
 
-    cGLData();
+    cGLData(int appMode = MASK2D);
 
-    cGLData(QMaskedImage &qMaskedImage, bool modePt = false, QString ptName = "" );
+    cGLData(QMaskedImage &qMaskedImage, int appMode = MASK2D, QString ptName = "" );
 
-    cGLData(cData *data, bool modePt = false);
+    cGLData(cData *data, int appMode = MASK2D);
 
     ~cGLData();
 
@@ -767,6 +782,8 @@ private:
 
     bool                _modePt;
 
+    int                 _appMode;
+
     QVector<GlCloud*>   _vClouds;
 
     QVector<cCam*>      _vCams;
@@ -776,7 +793,7 @@ private:
 
     int         _currentPolygon;
 
-    void        initOptions();
+    void        initOptions(int appMode = MASK2D);
 
     float       _diam;
 
