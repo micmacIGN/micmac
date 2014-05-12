@@ -186,6 +186,47 @@ void cImagH::VoisinsMarques(std::vector<cLink2Img*> & aVois,int aFlagN)
      }
 }
 
+double cImagH::PdsEchant() const
+{
+   double  aSomP = 0;
+   for (int aKL=0 ; aKL<int(VLink().size()) ; aKL++)
+   {
+        const std::vector<Pt3dr> & anEch = VLink()[aKL]->EchantP1();
+        for (int aKP=0 ; aKP<int(anEch.size()) ; aKP++)
+            aSomP += anEch[aKP].z;
+   }
+   return aSomP;
+}
+
+void cImagH::AddViscositty(double aPdsV)
+{
+   cElHomographie  aH = mHF->HomCur() ;
+
+/*
+   double  aSomP = 0;
+   for (int aKL=0 ; aKL<int(VLink().size()) ; aKL++)
+   {
+        const std::vector<Pt3dr> & anEch = VLink()[aKL]->EchantP1();
+        for (int aKP=0 ; aKP<int(anEch.size()) ; aKP++)
+            aSomP += anEch[aKP].z;
+   }
+*/
+   aPdsV /= PdsEchant();
+
+
+   for (int aKL=0 ; aKL<int(VLink().size()) ; aKL++)
+   {
+        const std::vector<Pt3dr> & anEch = VLink()[aKL]->EchantP1();
+        for (int aKP=0 ; aKP<int(anEch.size()) ; aKP++)
+        {
+            Pt3dr aP = anEch[aKP];
+            Pt2dr aP1(aP.x,aP.y);
+            Pt2dr aP2 = aH.Direct(aP1);
+            mEqOneHF->StdAddLiaisonP1P2(aP1,aP2,aP.z*aPdsV,true);
+        }
+   }
+}
+
 
 
 
