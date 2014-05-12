@@ -49,20 +49,74 @@ NS_RHH_BEGIN
 /*                                               */
 /*************************************************/
 
+double  cAppliReduc::ErrorSolLoc()
+{
+     double aSomEr = 0.0;
+     double aSomP  = 0.0;
+     for (int aKIm1=0 ; aKIm1<int(mIms.size()) ; aKIm1++)
+     {
+          cImagH * anI1 = mIms[aKIm1];
+          cElHomographie  aCurH1 = anI1->HF()->HomCur();
+                
+          if (anI1->C2CI())
+          {
+             double aPdsE = 1 /  anI1->PdsEchant();
+             const std::vector<cLink2Img*> & aVL = anI1->VLink();
+             for (int aKL=0 ; aKL<int(aVL.size()) ; aKL++)
+             {
+                 cLink2Img * aLnk = aVL[aKL];
+                 cImagH* anI2 = aLnk->Dest();
+                 cElHomographie  aCurH2 = anI2->HF()->HomCur();
+                 cElHomographie  aCurH2Inv = aCurH2.Inverse();
+                 if (anI2->C2CI())
+                 {
+                    cElHomographie aH12 = aLnk->Hom12();
+                    const std::vector<Pt3dr> & anEch = aLnk->EchantP1();
+
+                    for (int aKEch = 0 ; aKEch< int(anEch.size()) ; aKEch++)
+                    {
+                        Pt3dr  aP3d =   anEch[aKEch];
+                        Pt2dr aP1(aP3d.x,aP3d.y);
+                        Pt2dr aP2 = aH12.Direct(aP1);
+                        double aPds = aP3d.z * aPdsE;
+
+                        Pt2dr aRes = aCurH2Inv.Direct(aCurH1.Direct(aP1)) - aP2;
+
+                        double anEr = square_euclid(aRes);
+
+                        aSomEr+= anEr * aPds;
+                        aSomP+= aPds;
+                    }
+                 }
+             }
+          }
+     }
+     return sqrt(aSomEr/aSomP);
+}
+
 
  // cEqHomogFormelle   cHomogFormelle
 
 void cAppliReduc::AmelioHomLocal(cImagH & anIm)
 {
-bool DebugRHH= false;
-
-    double aPdsLVMStd = 1.1;
-    double aPdsFreezC = 100;
-    double aPdsEvol = 10;;
-
-
-    std::cout << "INIT AmelioHomLocal \n";
     const std::vector<cLink2Img*> & aVLImC = mImCAmel->VLink();
+
+    for (int aKIm=0 ; aKIm<int(mIms.size()) ; aKIm++)
+    {
+        mIms[aKIm]->HF()->ReinitHom(cElHomographie::Id());
+        mIms[aKIm]->GainLoc() = 0;
+        mIms[aKIm]->InitLoc() = false;
+    }
+
+    for (int aKL=0 ; aKL<int(aVLImC.size()) ; aKL++)
+    {
+         aVLImC[aKL]->Dest()->GainLoc() = aVLImC[aKL]->PdsEchant();
+    }
+    mImCAmel->GainLoc() = 1e10;
+    mImCAmel->InitLoc() = true;
+    
+#if (0)
+
     for (int aKL=0 ; aKL<int(aVLImC.size()) ; aKL++)
     {
          cLink2Img * aLnK = aVLImC[aKL];
@@ -81,9 +135,13 @@ bool DebugRHH= false;
     }
     mImCAmel->C2CI() = true;
   
+    std::cout << "ERROR IN " <<  ErrorSolLoc() << "\n";
 
+    double aPdsLVMStd = 1.1;
+    double aPdsFreezC = 100;
+    double aPdsEvol = 10;;
 
-    for (int aNbIter =0 ; aNbIter < 20 ; aNbIter ++)
+    for (int aNbIter =0 ; aNbIter < 2 ; aNbIter ++)
     {
          std::cout << "Begin AmelioHomLocal , Iter " << aNbIter << "\n";
          mSetEq.SetPhaseEquation();
@@ -115,11 +173,11 @@ bool DebugRHH= false;
                             cElHomographie aH12 = aLnk->Hom12();
                             const std::vector<Pt3dr> & anEch = aLnk->EchantP1();
                             cEqHomogFormelle * anEq = aLnk->EqHF();
-                            int aNbPts = DebugRHH ? 1 : anEch.size();
+                            int aNbPts =  anEch.size();
 
                             for (int aKEch = 0 ; aKEch<int(aNbPts) ; aKEch++)
                             {
-                                 Pt3dr  aP3d = DebugRHH ? Pt3dr(0.25,0.25,1) :  anEch[aKEch];
+                                 Pt3dr  aP3d =  anEch[aKEch];
                                  Pt2dr aP1(aP3d.x,aP3d.y);
 // std::cout << aP1 << "\n";
                                  Pt2dr aP2 = aH12.Direct(aP1);
@@ -156,8 +214,9 @@ bool DebugRHH= false;
 
          mSetEq.SolveResetUpdate();
     }
+#endif
     
-     std::cout << "END AmelioHomLocal\n";
+    std::cout << "ERROR OUT " <<  ErrorSolLoc() << "\n";
 }
 
 

@@ -228,6 +228,7 @@ class cLink2Img  // dans cImagH.cpp
 
          std::string NameComHomogr() const;
          void LoadComHomogr();
+         double PdsEchant() const;
     private :
     
        void LoadPtsHom();
@@ -327,6 +328,8 @@ class cImagH
          bool  &                    C2CI();  // Connected to Center Image
          void AddViscositty(double aPds);
          double PdsEchant() const;
+         double & GainLoc();
+         bool & InitLoc();
 
      private :
 
@@ -375,6 +378,9 @@ class cImagH
          std::vector<cTestPlIm>           mVTPlIm;
          cEqOneHomogFormelle *            mEqOneHF;
          bool                       mC2CI;  // Connected to Center Image
+
+         double    mGainLoc;
+         bool      mInitLoc;
 };
 
 
@@ -448,6 +454,8 @@ class cAppliReduc
          std::string      ImFocusPlan () const;
 
          void AmelioHomLocal(cImagH & anIm);
+         double  ErrorSolLoc();
+
 
      private :
 
