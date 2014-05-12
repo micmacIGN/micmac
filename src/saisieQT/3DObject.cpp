@@ -1669,6 +1669,11 @@ void cGLData::setData(cData *data, bool setCam)
             _vCams.push_back(pCam);
         }
 
+    for (int aK = 0; aK < data->getNbPolygons();++aK)
+    {
+        _vPolygons.push_back(data->getPolygon(aK));
+    }
+
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
 }
@@ -1722,21 +1727,6 @@ int cGLData::polygonCount()
 
 void cGLData::initOptions(int appMode)
 {
-    if (appMode == BOX2D)
-    {
-        _vPolygons.push_back(new cRectangle());
-    }
-    else if (appMode == BASC)
-    {
-        _vPolygons.push_back(new cPolygon(2));
-        _vPolygons.push_back(new cPolygon(2));
-        _vPolygons.push_back(new cPolygon(1));
-    }
-    else
-    {
-        _vPolygons.push_back(new cPolygon());
-    }
-
     if ((appMode == POINT2D_INIT) || (appMode == POINT2D_PREDIC))
         _modePt = true;
     else

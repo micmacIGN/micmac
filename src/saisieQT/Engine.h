@@ -126,6 +126,10 @@ public:
 
     void    reloadImage(int aK);
 
+    //! Load object
+
+    void    loadObject(cObject *);
+
     void    unloadAll();
 
     void    unload(int aK);

@@ -80,6 +80,8 @@ public:
     void    setCurrentPolygonIndex(int idx);
     void    normalizeCurrentPolygon(bool nrm);
 
+    void    initData();
+
 public slots:
 
     //! Try to load a list of files

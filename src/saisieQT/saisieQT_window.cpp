@@ -16,6 +16,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _Engine->setParams(_params);
 
+    initData();
+
     init(_params->getNbFen().x()*_params->getNbFen().y(), _appMode > MASK3D);
 
     setUI();
@@ -900,6 +902,24 @@ void SaisieQtWindow::normalizeCurrentPolygon(bool nrm)
     for (int aK = 0; aK < getEngine()->nbGLData(); ++aK)
     {
         _Engine->getGLData(aK)->normalizeCurrentPolygon(nrm);
+    }
+}
+
+void SaisieQtWindow::initData()
+{
+    if (_appMode == BOX2D)
+    {
+        _Engine->loadObject(new cRectangle());
+    }
+    else if (_appMode == BASC)
+    {
+        _Engine->loadObject(new cPolygon(2));
+        _Engine->loadObject(new cPolygon(2));
+        _Engine->loadObject(new cPolygon(1));
+    }
+    else
+    {
+        _Engine->loadObject(new cPolygon());
     }
 }
 

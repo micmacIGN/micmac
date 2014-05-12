@@ -751,6 +751,7 @@ public:
 
     cPolygon*   polygon(int id = 0);
     cPolygon*   currentPolygon();
+    QVector<cPolygon*> polygons() { return _vPolygons; }
 
     GlCloud*    getCloud(int iC);
 
@@ -760,9 +761,9 @@ public:
 
     int         polygonCount();
 
-    void        clearClouds(){ _vClouds.clear();}
+    void        clearClouds(){ _vClouds.clear(); }
 
-    cCam*       camera(int iC){return _vCams[iC];}
+    cCam*       camera(int iC){ return _vCams[iC]; }
 
 private:
 

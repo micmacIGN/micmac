@@ -461,3 +461,43 @@ cAppli_SaisiePts *PointGlobalSFModel::mAppli() const
 {
     return ((ModelPointGlobal*)(sourceModel()))->getMAppli();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+ModelObjects::ModelObjects(QObject *parent, cAppli_SaisiePts *appli)
+    :QAbstractTableModel(parent),
+      mAppli(appli),
+      _interface((cQT_Interface*)appli->Interface())
+{
+
+}
+
+int ModelObjects::rowCount(const QModelIndex & /*parent*/) const
+{
+    return 5;
+    //return _interface->getGlData();
+}
+
+int ModelObjects::columnCount(const QModelIndex &parent) const
+{
+    return 2;
+}
+
+QVariant ModelObjects::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole)
+    {
+        if (orientation == Qt::Horizontal) {
+            switch (section)
+            {
+            case 0:
+                return QString(tr("Object"));
+            case 1:
+                return QString(tr("State"));
+            }
+        }
+    }
+    return QVariant();
+}

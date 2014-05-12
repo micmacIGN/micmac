@@ -284,6 +284,11 @@ void cEngine::reloadImage(int aK)
     reallocAndSetGLData(aK);
 }
 
+void cEngine::loadObject(cObject * aObj)
+{
+    getData()->addObject(aObj);
+}
+
 void cEngine::do3DMasks()
 {
     CamStenope* pCam;
