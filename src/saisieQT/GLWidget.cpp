@@ -521,7 +521,6 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
         update();
 
         emit movePoint(idMovePoint);
-
     }
 }
 
