@@ -52,6 +52,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqHomogrSpaceInitY.cpp"   //
 #include "../../CodeGenere/photogram/cEqHomogrX.cpp"   //
 #include "../../CodeGenere/photogram/cEqHomogrY.cpp"   // 
+#include "../../CodeGenere/photogram/cEqOneHomogrX.cpp"   // 
+#include "../../CodeGenere/photogram/cEqOneHomogrY.cpp"   // 
 
 
    // GRILLE
