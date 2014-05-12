@@ -326,11 +326,10 @@ class cImagH
          cEqOneHomogFormelle * &  EqOneHF();
          bool  &                    C2CI();  // Connected to Center Image
          void AddViscositty(double aPds);
-          
+         double PdsEchant() const;
 
      private :
 
-         double PdsEchant() const;
 
          void TestCplePlan(int aK1,int aK2);
 

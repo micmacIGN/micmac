@@ -54,6 +54,13 @@ NS_RHH_BEGIN
 
 void cAppliReduc::AmelioHomLocal(cImagH & anIm)
 {
+bool DebugRHH= false;
+
+    double aPdsLVMStd = 1.1;
+    double aPdsFreezC = 100;
+    double aPdsEvol = 10;;
+
+
     std::cout << "INIT AmelioHomLocal \n";
     const std::vector<cLink2Img*> & aVLImC = mImCAmel->VLink();
     for (int aKL=0 ; aKL<int(aVLImC.size()) ; aKL++)
@@ -63,6 +70,7 @@ void cAppliReduc::AmelioHomLocal(cImagH & anIm)
          anI->C2CI() = true;
 
          anI->HF()->ReinitHom(aLnK->Hom12().Inverse());
+         // anI->HF()->ReinitHom(aLnK->Hom12());
     }
 
     for (int aKIm=0 ; aKIm<int(mIms.size()) ; aKIm++)
@@ -75,34 +83,73 @@ void cAppliReduc::AmelioHomLocal(cImagH & anIm)
   
 
 
-    for (int aNbIter =0 ; aNbIter < 10 ; aNbIter ++)
+    for (int aNbIter =0 ; aNbIter < 20 ; aNbIter ++)
     {
          std::cout << "Begin AmelioHomLocal , Iter " << aNbIter << "\n";
          mSetEq.SetPhaseEquation();
 
+         double aSomEr=0;
+         double aSomP=0;
+
+
          for (int aKIm1=0 ; aKIm1<int(mIms.size()) ; aKIm1++)
          {
               cImagH * anI1 = mIms[aKIm1];
-              double aPds = 0.1;
-              if (anI1== mImCAmel) aPds = 1000;
-              anI1->AddViscositty(aPds);
-
+              anI1->AddViscositty((anI1== mImCAmel) ? aPdsFreezC : aPdsLVMStd);
+              cElHomographie  aCurH1 = anI1->HF()->HomCur();
                 
               if (anI1->C2CI())
               {
+                   double aPdsE = aPdsEvol /  anI1->PdsEchant();
                    const std::vector<cLink2Img*> & aVL = anI1->VLink();
                    for (int aKL=0 ; aKL<int(aVL.size()) ; aKL++)
                    {
                         cLink2Img * aLnk = aVL[aKL];
                         cImagH* anI2 = aLnk->Dest();
+                        cElHomographie  aCurH2 = anI2->HF()->HomCur();
+                        cElHomographie  aCurH2Inv = aCurH2.Inverse();
                         if (anI2->C2CI())
                         {
+                            double aSomRes = 0;
+                            double aSomCtrl = 0;
+                            cElHomographie aH12 = aLnk->Hom12();
+                            const std::vector<Pt3dr> & anEch = aLnk->EchantP1();
+                            cEqHomogFormelle * anEq = aLnk->EqHF();
+                            int aNbPts = DebugRHH ? 1 : anEch.size();
+
+                            for (int aKEch = 0 ; aKEch<int(aNbPts) ; aKEch++)
+                            {
+                                 Pt3dr  aP3d = DebugRHH ? Pt3dr(0.25,0.25,1) :  anEch[aKEch];
+                                 Pt2dr aP1(aP3d.x,aP3d.y);
+// std::cout << aP1 << "\n";
+                                 Pt2dr aP2 = aH12.Direct(aP1);
+                                 double aPds = aP3d.z * aPdsE;
+
+                                 Pt2dr aRes = anEq->StdAddLiaisonP1P2(aP1,aP2,aPds,false);
+                                 Pt2dr aCtrl = aCurH2Inv.Direct(aCurH1.Direct(aP1)) - aP2;
+                                 aSomRes += euclid(aRes);
+                                 aSomCtrl += euclid(aCtrl);
+
+
+                                 double anEr = square_euclid(aRes);
+
+                                 aSomEr+= anEr * aPds;
+                                 aSomP+= aPds;
+                            }
+
+/*
+                            std::cout  << anEq
+                                       << " N12=" << anI1->Name() << " " << anI2->Name() 
+                                       << " ; RES = " << aSomRes/aNbPts << " Ctrl=" << aSomCtrl/aNbPts << "\n";
+*/
                         }
                    }
               }
+              // getchar();
 
               // anI->HF()->SetModeCtrl(cNameSpaceEqF::eHomFigee);
          }
+         std::cout << "ERR = " << sqrt(aSomEr/aSomP) << "\n";
 
 
 

@@ -40,6 +40,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "ReducHom.h"
 
+
+bool AllowUnsortedVarIn_SetMappingCur = false;
+
+
 NS_RHH_BEGIN
 
 
@@ -324,6 +328,7 @@ void cAppliReduc::ComputeHom()
           anI->HF() = mSetEq.NewHomF(anI->Hi2t(),cNameSpaceEqF::eHomLibre);
           anI->EqOneHF() = mSetEq.NewOneEqHomog(*anI->HF(),false);
     }
+
     for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {
         cImagH * anI1 =  mIms[aK];
@@ -488,6 +493,7 @@ NS_RHH_USE
 
 int RHH_main(int argc,char **argv)
 {
+   AllowUnsortedVarIn_SetMappingCur = true;
 
    cAppliReduc anAppli(argc,argv);
 

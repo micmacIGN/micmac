@@ -670,12 +670,15 @@ int cElCompiledFonc::LIC(const int & i) const
 }
 
 
+extern bool AllowUnsortedVarIn_SetMappingCur;
+
 void cElCompiledFonc::SetMappingCur
      (
            const cIncListInterv & aList,
            cSetEqFormelles *      aSet
      )
 {
+
       
      if (aList.Surf() != mMapRef.Surf())
      {
@@ -706,11 +709,27 @@ void cElCompiledFonc::SetMappingCur
                 mMapComp2Real.at(I0Comp+aK) = I0Real+aK;
              }
         }
+        // Le 12/05/2014 : j'ai l'impression que la tri de mMapComp2Real est une erreur (subsiste des anciens ??)
+        // mais que jamais cree de pb car deja trie, le isSorted estfait pour verifier cela
+        bool isSorted = true;
         for (int aK=0 ; aK<int(mMapComp2Real.size()) ; aK++)
         {
             ELISE_ASSERT(mMapComp2Real[aK]>=0,"cElCompiledFonc::SetMappingCur Indexe");
+             if ((aK>=1) && (mMapComp2Real[aK] <= mMapComp2Real[aK-1]))
+                 isSorted = false;
         }
-        std::sort(mMapComp2Real.begin(),mMapComp2Real.end());
+        if (!isSorted)
+        {
+            if (! AllowUnsortedVarIn_SetMappingCur)
+            {
+                for (int aK=0 ; aK<20 ; aK++)
+                    std::cout << "INTERNAL ERROR IN MICMAC : contact devlopment team\n";
+                std::cout << "ERROR : bad assertion cElCompiledFonc::SetMappingCur\n";
+                ElEXIT(-1,"INTERNAL ERROR IN MICMAC (cElCompiledFonc::SetMappingCur) : contact devlopment team");
+            }
+        }
+        // A PRIORI CETTE LIGNE EST NEFASTE (en general INUTILE) .... a verifier a l'usage
+        // std::sort(mMapComp2Real.begin(),mMapComp2Real.end());
      }
      // std::cout <<  "  ----SetMappingCur----   "  << aSet.size() << "\n";
 
