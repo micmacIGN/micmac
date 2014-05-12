@@ -443,6 +443,17 @@ cEqHomogFormelle * &  cLink2Img::EqHF()
 }
 
 
+double cLink2Img::PdsEchant() const
+{
+   double  aSomP = 0;
+   for (int aKP=0 ; aKP<int(mEchantP1.size()) ; aKP++)
+       aSomP += mEchantP1[aKP].z;
+   return aSomP;
+}
+
+
+
+
 /*************************************************/
 /*                                               */
 /*                 cImagH                        */
@@ -666,10 +677,10 @@ cAppliReduc &     cImagH::Appli()
    return mAppli;
 }
 
-const tMapName2Link & cImagH::Lnks() const
-{
-   return mLnks;
-}
+const tMapName2Link & cImagH::Lnks() const { return mLnks; }
+
+double & cImagH::GainLoc() {return mGainLoc;}
+bool & cImagH::InitLoc() {return mInitLoc;}
 
 
 cLink2Img *  cImagH::GetLnkKbrd(int & aK)
@@ -683,6 +694,8 @@ cLink2Img *  cImagH::GetLnkKbrd(int & aK)
 
     return aRes;
 }
+
+
 
 NS_RHH_END
 

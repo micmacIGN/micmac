@@ -191,12 +191,11 @@ double cImagH::PdsEchant() const
    double  aSomP = 0;
    for (int aKL=0 ; aKL<int(VLink().size()) ; aKL++)
    {
-        const std::vector<Pt3dr> & anEch = VLink()[aKL]->EchantP1();
-        for (int aKP=0 ; aKP<int(anEch.size()) ; aKP++)
-            aSomP += anEch[aKP].z;
+       aSomP +=  VLink()[aKL]->PdsEchant();
    }
    return aSomP;
 }
+
 
 void cImagH::AddViscositty(double aPdsV)
 {
