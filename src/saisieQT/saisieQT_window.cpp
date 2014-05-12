@@ -308,12 +308,12 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
         text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
     }
-    text += "Ctrl+O: \t"+tr("open image file")+"\n";
+    text += "Ctrl+O: \t\t"+tr("open image file")+"\n";
     if (_mode == MASK3D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
-    text += "Ctrl+S: \t"+tr("save mask file")+"\n";
+    text += "Ctrl+S: \t\t"+tr("save mask file")+"\n";
     text += "Ctrl+Maj+S: \t"+tr("save mask file as")+"\n";
-    text += "Ctrl+X: \t"+tr("close files")+"\n";
-    text += "Ctrl+Q: \t"+tr("quit") +"\n\n";
+    text += "Ctrl+X: \t\t"+tr("close files")+"\n";
+    text += "Ctrl+Q: \t\t"+tr("quit") +"\n\n";
     text += tr("View menu:") +"\n\n";
     text += "F2: \t"+tr("full screen") +"\n";
     if (_mode == MASK3D)
@@ -355,54 +355,36 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         }
         text += tr("Left click : \tadd a vertex to polyline") +"\n";
         text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
-        text += tr("Echap: \tdelete polyline") +"\n";
+        text += tr("Echap: \t\tdelete polyline") +"\n";
 
 #ifdef ELISE_Darwin
-        if (_mode == MASK3D)
-        {
-            text += tr("Ctrl+Y: \tadd points inside polyline") +"\n";
-            text += tr("Ctrl+U: \tremove points inside polyline") +"\n";
-        }
-        else
-        {
-            text += tr("Ctrl+Y: \tadd pixels inside polyline") +"\n";
-            text += tr("Ctrl+U: \tremove pixels inside polyline") +"\n";
-        }
+        text += tr("Ctrl+U: \tselect inside polyline") +"\n";
+        text += tr("Ctrl+Y: \t\tremove inside polyline") +"\n";
 #else
-        if (_mode == MASK3D)
-        {
-            text += tr("Space bar: \tadd points inside polyline") +"\n";
-            text += tr("Del: \tremove points inside polyline") +"\n";
-        }
-        else
-        {
-            text += tr("Space bar: \tadd pixels inside polyline") +"\n";
-            text += tr("Del: \tremove pixels inside polyline") +"\n";
-        }
+        text += tr("Space bar: \tselect inside polyline") +"\n";
+        text += tr("Del: \t\tremove inside polyline") +"\n";
 #endif
 
         text += tr("Shift+drag: \tinsert vertex in polyline") +"\n";
-        text += tr("Ctrl+right click: remove last vertex") +"\n";
-        text += tr("Drag & drop: move selected polyline vertex") +"\n";
-        text += "Ctrl+A: \t"+tr("select all") +"\n";
-        text += "Ctrl+D: \t"+tr("select none") +"\n";
-        text += "Ctrl+R: \t"+tr("reset") +"\n";
-        text += "Ctrl+I: \t"+tr("invert selection") +"\n";
+        text += tr("Ctrl+right click: \tremove last vertex") +"\n";
+        text += tr("Drag & drop: \tmove selected polyline vertex") +"\n";
+        text += "Ctrl+A: \t\t"+tr("select all") +"\n";
+        text += "Ctrl+D: \t\t"+tr("select none") +"\n";
+        text += "Ctrl+R: \t\t"+tr("reset") +"\n";
+        text += "Ctrl+I: \t\t"+tr("invert selection") +"\n";
     }
     else
     {
-        text += tr("Click: \tadd point")+"\n";
-        text += tr("Right click: \tchange selected point state")+"\n";
-        text += tr("Drag & drop: \tmove selected point") +"\n";
-        text += tr("Shift+right click: \tshow name menu")+"\n";
-        text += tr("Ctrl+right click: \tshow window menu")+"\n\n";
+        text += tr("Left click: \tadd point")+"\n";
+        text += tr("Right click: \tshow state menu or window menu")+"\n";
+        text += tr("Drag & drop: \tmove selected point") +"\n\n";
 
         text += tr("History menu:") +"\n\n";
     }
-    text += "Ctrl+Z: \t"+tr("undo last action") +"\n";
-    text += "Ctrl+Shift+Z: "+tr("redo last action") +"\n";
+    text += "Ctrl+Z: \t\t"+tr("undo last action") +"\n";
+    text += "Ctrl+Shift+Z: \t"+tr("redo last action") +"\n";
 
-    QMessageBox msgbox(QMessageBox::Information, tr("Saisie - shortcuts"),text);
+    QMessageBox msgbox(QMessageBox::Information, QApplication::applicationName() + tr(" shortcuts"),text);
     msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
     msgbox.exec();
 }
@@ -774,8 +756,8 @@ void SaisieQtWindow::setUI()
     setLayout(0);
 
 #ifdef ELISE_Darwin
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier+ Qt::Key_U));
+    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
+    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
 #endif
 
     updateUI();
