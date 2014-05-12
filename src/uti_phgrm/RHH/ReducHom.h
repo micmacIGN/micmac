@@ -262,6 +262,20 @@ class cLink2Img  // dans cImagH.cpp
         cEqHomogFormelle * mEqHF;
 };
 
+class cTestPlIm
+{
+    public :
+        cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan * aRMCP,bool Show) ;
+
+        cLink2Img *               mLnk;
+        cElemMepRelCoplan*        mRMCP;
+        cElHomographie            mHomI2T;
+        bool                      mOk;
+    private :
+        // cTestPlIm(const cTestPlIm&);  // N.I.
+};
+
+
 class cImagH
 {
      public :
@@ -309,8 +323,19 @@ class cImagH
          CamStenope *  CamC();
          std::string NameOriHomPlane() const;
          const std::vector<cLink2Img*> &  VLink() const;
+         cEqOneHomogFormelle * &  EqOneHF();
+         bool  &                    C2CI();  // Connected to Center Image
+         void AddViscositty(double aPds);
+          
 
      private :
+
+         double PdsEchant() const;
+
+         void TestCplePlan(int aK1,int aK2);
+
+
+         cLink2Img * GetLnkKbrd(int & aK);  // Saisir un lien au clavier
 
 
          bool ComputeLnkHom(cLink2Img & aLnK);
@@ -320,8 +345,8 @@ class cImagH
 
          cImagH(const cImagH &); // N.I.
          void ComputePtsLink(cLink2Img & aLnk);
-         void AssertLnkUnclosed();
-         void AssertLnkClosed();
+         void AssertLnkUnclosed() const;
+         void AssertLnkClosed() const;
 
          cAppliReduc &              mAppli;
          std::map<Pt2dr,cPtHom *>   mMapH;  // Liste des Hom deja trouves via les prec
@@ -343,6 +368,14 @@ class cImagH
          cMetaDataPhoto             mMDP;
          bool                       mPlanEst;
          bool                       mLnkClosed;
+
+
+    // Variable temporaire pour l'estimation des plans
+
+         std::vector<cElemMepRelCoplan>   mVercp;
+         std::vector<cTestPlIm>           mVTPlIm;
+         cEqOneHomogFormelle *            mEqOneHF;
+         bool                       mC2CI;  // Connected to Center Image
 };
 
 
@@ -415,6 +448,8 @@ class cAppliReduc
          bool             HasImFocusPlan () const;
          std::string      ImFocusPlan () const;
 
+         void AmelioHomLocal(cImagH & anIm);
+
      private :
 
          void CreateIndex();
@@ -463,6 +498,10 @@ class cAppliReduc
         double                              mAltiCible;
         bool                                mHasImFocusPlan;
         std::string                         mImFocusPlan;
+
+        bool                                mHasImCAmel;
+        std::string                         mNameICA;
+        cImagH  *                           mImCAmel;
 
 };
 

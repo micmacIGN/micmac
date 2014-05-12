@@ -70,6 +70,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mKernConnec   (3),
    mKernSize     (6),
    mSetEq        (cNameSpaceEqF::eSysL2BlocSym),
+  //   mSetEq        (cNameSpaceEqF::eSysPlein),
    mH1On2        (true),
    mHFD          (true),
    mKeyHomogr    (std::string("NKS-RHH-Assoc-CplIm2Data@@Homogr@") + (mHFD ?  "dmp" : "xml")),
@@ -79,7 +80,10 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mSkipAllDone  (true),
    mAltiCible    (1000),
    mHasImFocusPlan (false),
-   mImFocusPlan    ("")
+   mImFocusPlan    (""),
+   mHasImCAmel     (false),
+   mNameICA        (""),
+   mImCAmel        (0)
    // mQT        (PtOfPhi,Box2dr(Pt2dr(-100,-100),Pt2dr(30000,30000)),10,500)
 {
 
@@ -93,6 +97,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAMC(mOri,"Orientation"),
         LArgMain()  << EAM(mImportTxt,"ImpTxt",true,"Import in text format(def=false)")
                     << EAM(mExportTxt,"ExpTxt",true,"Export in text format(def=false)")
+                    << EAM(mNameICA,"ICA",true,"Central image for local optim of hom")
                     << EAM(mExtHomol,"ExtH",true,"Extension for homol, like SrRes, def=\"\")")
                     << EAM(mMinNbPtH,"NbMinHom",true,"Nb Min Pts For Homography Computation def=20")
                     << EAM(mSeuilQual,"SeuilQual",true,"Quality Theshold for homography (Def=20.0)")
@@ -119,6 +124,11 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
     if (EAMIsInit(&mImFocusPlan))
     {
         mHasImFocusPlan = true;
+    }
+
+    if (EAMIsInit(&mNameICA))
+    {
+        mHasImCAmel = true;
     }
 
 
@@ -149,6 +159,36 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mKeyInitIm2Homol =  KeyHIn("NKS-Assoc-CplIm2Hom");
    mSetNameHom =  mICNM->Get(mKeySetHomol);
 
+   // If there is a cental image, compute the new set of name
+
+   if (mHasImCAmel)
+   {
+      std::vector<std::string> * aNewSet = new std::vector<std::string>;
+      bool GotImCA = false;
+      for (int aK=0 ; aK<int(mSetNameIm->size()); aK++)
+      {
+          const std::string & aName = (*mSetNameIm)[aK];
+          if (aName== mNameICA)
+          {
+             GotImCA = true;
+             aNewSet->push_back(aName);
+          }
+          else
+          {
+               std::string aFileH = mDir + mICNM->Assoc1To2(mKeyInitIm2Homol,mNameICA,aName,true); 
+               if (ELISE_fp::exist_file(aFileH))
+               {
+                  aNewSet->push_back(aName);
+               }
+               else
+               {
+               }
+          }
+      }
+      ELISE_ASSERT(GotImCA,"Central Image for Homography amelioration is not an existing image");
+      mSetNameIm = aNewSet;
+   }
+
    std::cout << "NbIm " << mSetNameIm->size() << " NbH " << mSetNameHom->size() << "\n";
 
 
@@ -159,6 +199,11 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
         cImagH * anIm=new cImagH(aName,*this,aKIm);
         mIms.push_back(anIm);
         mDicoIm[aName] = anIm;
+
+        if (aName==mNameICA)
+        {
+           mImCAmel = anIm;
+        }
    }
 
 
@@ -240,15 +285,22 @@ void cAppliReduc::ComputeHom()
           // getchar();
        }
    }
+
+
+   for (int aK=0 ; aK<int(mIms.size()) ; aK++)
+   {
+       mIms[aK]->ComputeLnkHom();
+   }
    
+
+/*
+   A priori sera remis plus tard  apres la phase d'image init
    if (Show(eShowGlob))
       std::cout << "Lnk && Plan BEGIN\n";
-   // Read homologous point and compute homography per pair
     {
         std::list<std::string> aLComPl;
         for (int aK=0 ; aK<int(mIms.size()) ; aK++)
         {
-             mIms[aK]->ComputeLnkHom();
              std::string aCom = mIms[aK]->EstimatePlan();
              if (aCom!="") 
                 aLComPl.push_back(aCom);
@@ -257,9 +309,12 @@ void cAppliReduc::ComputeHom()
    }
    if (Show(eShowGlob))
       std::cout << "Lnk && Plan END\n";
+*/
 
 
 
+   // Space Init comme cela c'est H2-H1 (P1) = P2 qui est ajustee, cela evite
+   // d'etre "attire" par la solution nulle.
     bool SpaceInit = true;
 
     // Init systeme equation
@@ -267,6 +322,7 @@ void cAppliReduc::ComputeHom()
     {
           cImagH * anI =  mIms[aK];
           anI->HF() = mSetEq.NewHomF(anI->Hi2t(),cNameSpaceEqF::eHomLibre);
+          anI->EqOneHF() = mSetEq.NewOneEqHomog(*anI->HF(),false);
     }
     for (int aK=0 ; aK<int(mIms.size()) ; aK++)
     {
@@ -309,8 +365,14 @@ void cAppliReduc::ComputeHom()
 
    mSetEq.SetClosed();
 
+   if (mImCAmel)
+   {
+        AmelioHomLocal(*mImCAmel);
+        exit(0);
+   }
+
    // Cree l'arbre  de fusion hierarchique
-    TestMerge_CalcHcImage();
+    //  TestMerge_CalcHcImage();
 }
 
 

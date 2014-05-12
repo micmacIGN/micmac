@@ -995,7 +995,8 @@ void cElMatCreuseBlocSym::ChainageBlocs()
            int aKBy = aKB;
            if (aB0==0)
            {
-              ELISE_ASSERT(aB0!=0,"cElMatCreuseBlocSym::PrepPreCond Chainage");
+              std::cout << "Bloc " << aKB << " on " << mNbBlocs << "\n";
+              ELISE_ASSERT(false,"Bloc Diag0 cElMatCreuseBlocSym::PrepPreCond Chainage");
            }
            for (int aKBx=aKBy+1 ; aKBx<mNbBlocs ; aKBx++)
            {

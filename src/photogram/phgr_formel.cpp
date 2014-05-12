@@ -159,7 +159,13 @@ void cSetEqFormelles::SetPhaseEquation()
 
 }
 
-cSetEqFormelles * cElemEqFormelle::Set() {return &mSet;}
+cSetEqFormelles * cElemEqFormelle::Set() 
+{
+    return &mSet;
+}
+
+
+
 const  cIncIntervale & cElemEqFormelle::IncInterv() const
 {
     return mIncInterv;
@@ -1241,6 +1247,18 @@ cEqHomogFormelle * cSetEqFormelles::NewEqHomog
 {
      AssertUnClosed();
      cEqHomogFormelle * aRes = new cEqHomogFormelle(InSpaceInit,aHF1,aHF2,aDRF,Code2Gen);
+     AddObj2Kill(aRes);
+     return aRes;
+}
+
+cEqOneHomogFormelle *    cSetEqFormelles::NewOneEqHomog
+                         (
+                             cHomogFormelle & aHF,
+                             bool Code2Gen 
+                         )
+{
+     AssertUnClosed();
+     cEqOneHomogFormelle * aRes = new cEqOneHomogFormelle(aHF,Code2Gen);
      AddObj2Kill(aRes);
      return aRes;
 }
