@@ -105,7 +105,7 @@ private:
     cCaseNamePoint      *_cNamePt;
 
     //                  Fenetre principale
-    SaisieQtWindow          *m_QTMainWindow;
+    SaisieQtWindow      *m_QTMainWindow;
 
     cData               *_data;
 

@@ -29,15 +29,6 @@ class SaisieQtWindow;
 
 const QColor colorBorder("#606060");
 
-//! Interface mode
-enum UI_MODE {  BOX2D,          /**< BOX 2D mode **/
-                MASK2D,         /**< Image mask mode  **/
-                MASK3D,         /**< Point cloud mask **/
-                POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) **/
-                POINT2D_PREDIC, /**< Points in Image (SaisieAppuisPredic) **/
-                BASC            /**< 2 lines and 1 point (SaisieBasc) **/
-};
-
 class SaisieQtWindow : public QMainWindow, public GLWidgetSet
 {
     Q_OBJECT
@@ -87,7 +78,7 @@ public:
     void    loadPlyIn3DPrev(const QStringList &filenames,cData* dataCache);
 
     void    setCurrentPolygonIndex(int idx);
-    void    setCurrentPolygonNormalize(bool nrm);
+    void    normalizeCurrentPolygon(bool nrm);
 
 public slots:
 
@@ -232,7 +223,7 @@ private:
 
     cParameters*            _params;
 
-    int                     _mode;
+    int                     _appMode;
 
 };
 #endif // MAINWINDOW_H
