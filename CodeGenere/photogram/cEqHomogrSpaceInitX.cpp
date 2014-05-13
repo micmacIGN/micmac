@@ -3,12 +3,16 @@
 #include "cEqHomogrSpaceInitX.h"
 
 
+
+
 cEqHomogrSpaceInitX::cEqHomogrSpaceInitX():
     cElCompiledFonc(1)
 {
+
    AddIntRef (cIncIntervale("Hom1",0,8));
    AddIntRef (cIncIntervale("Hom2",8,16));
    Close(false);
+
 }
 
 
@@ -53,6 +57,10 @@ void cEqHomogrSpaceInitX::ComputeVal()
 
 void cEqHomogrSpaceInitX::ComputeValDeriv()
 {
+// std::cout << "FFFFFppPUU cEqHomogrSpaceInitX::ComputeValDeriv\n";
+// On passe bien la dedans
+
+
    double tmp0_ = mCompCoord[6];
    double tmp1_ = tmp0_*mLocXL1;
    double tmp2_ = mCompCoord[7];

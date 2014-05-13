@@ -1247,6 +1247,7 @@ cEqHomogFormelle * cSetEqFormelles::NewEqHomog
 {
      AssertUnClosed();
      cEqHomogFormelle * aRes = new cEqHomogFormelle(InSpaceInit,aHF1,aHF2,aDRF,Code2Gen);
+
      AddObj2Kill(aRes);
      return aRes;
 }

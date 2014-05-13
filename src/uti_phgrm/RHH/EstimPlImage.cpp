@@ -250,12 +250,13 @@ void cImagH::TestCplePlan(int aKIm1,int aKIm2)
      }
 }
 
-#if (0)
+#if (1)
 std::string cImagH::EstimatePlan()
 {
 
     // On regarde si on est en mode focus sur une une image (mise au point);
      mPlanEst = false;
+/*
      bool FocusOnThisIm = false;
 
      double aAltiCible = mAppli.AltiCible();
@@ -273,6 +274,7 @@ std::string cImagH::EstimatePlan()
            return "";
         }
      }
+*/
 
 
      const std::vector<cLink2Img*> &  aVL = VLink() ;
@@ -284,12 +286,18 @@ std::string cImagH::EstimatePlan()
      {
           cLink2Img * aLnk   = aVL[aKL];
           // std::cout << "TEPd " << aLnk->Dest()->Name() << "\n";
-          cElHomographie &   aHom = aLnk->Hom12();
+          // cElHomographie &   aHom = aLnk->Hom12();
+          cElHomographie  aHom = aLnk->Dest()->H2ImC().Inverse();
           std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
           cResMepRelCoplan aRCP = ElPackHomologue::MepRelCoplan(1,aHom,aPair);
-           aLnk->Dest()->mVercp = aRCP.VElOk();
+          aLnk->Dest()->mVercp = aRCP.VElOk();
+          std::cout <<  aLnk->Dest()->Name();
           for (int aK=0 ; aK<int( aLnk->Dest()->mVercp.size()) ; aK++)
+          {
               aLnk->Dest()->mVTPlIm.push_back(cTestPlIm(aLnk, VData(aLnk->Dest()->mVercp)+aK,false));
+              std::cout <<  aLnk->Dest()->mVercp[aK].Norm() ;
+          }
+          std::cout <<  "\n";
           // std::vector<cElemMepRelCoplan>  aVSol = aRCP.VElOk();
      }
 
