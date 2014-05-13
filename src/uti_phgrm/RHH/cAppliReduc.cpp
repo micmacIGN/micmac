@@ -87,7 +87,8 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
    mImFocusPlan    (""),
    mHasImCAmel     (false),
    mNameICA        (""),
-   mImCAmel        (0)
+   mImCAmel        (0),
+   mDoCompensLoc   (true)
    // mQT        (PtOfPhi,Box2dr(Pt2dr(-100,-100),Pt2dr(30000,30000)),10,500)
 {
 
@@ -117,6 +118,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mSkipAllDone,"SAD",true,"Skip All calc when files already Done (accelerate tuning))")
                     << EAM(mAltiCible,"Alti",true,"Fix arbitrary altitude (def = 1000)")
                     << EAM(mImFocusPlan,"IFP",true,"Image Focus on Plane, tuning")
+                    << EAM(mDoCompensLoc,"DCL",true,"DoCompens loc (tuning/testing)")
     );
 
     if (EAMIsInit(&mSkipAllDone))
@@ -193,7 +195,8 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
       mSetNameIm = aNewSet;
    }
 
-   std::cout << "NbIm " << mSetNameIm->size() << " NbH " << mSetNameHom->size() << "\n";
+   if (Show(eShowGlob))
+      std::cout << "NbIm " << mSetNameIm->size() << " NbH " << mSetNameHom->size() << "\n";
 
 
    // Creation des images
@@ -373,6 +376,7 @@ void cAppliReduc::ComputeHom()
    if (mImCAmel)
    {
         AmelioHomLocal(*mImCAmel);
+        mImCAmel->EstimatePlan();
         exit(0);
    }
 

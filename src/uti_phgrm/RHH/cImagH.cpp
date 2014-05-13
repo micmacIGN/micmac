@@ -471,6 +471,7 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mNumTmp   (-1),
    mSomQual  (0),
    mSomNbPts (0),
+   mH2ImC     (cElHomographie::Id()),
    mHi2t     (cElHomographie::Id()),
    mHTmp     (cElHomographie::Id()),
    mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName)),
@@ -538,15 +539,9 @@ bool cImagH::Marqued(int aK) const
    return mMarques.kth(aK);
 }
 
-cElHomographie &   cImagH::Hi2t()
-{
-   return mHi2t;
-}
-
-cElHomographie &   cImagH::HTmp()
-{
-   return mHTmp;
-}
+cElHomographie &   cImagH::Hi2t()  { return mHi2t; }
+cElHomographie &   cImagH::HTmp()  { return mHTmp; }
+cElHomographie &   cImagH::H2ImC() { return mH2ImC; }
 
 
 
