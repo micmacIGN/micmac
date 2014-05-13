@@ -67,9 +67,11 @@ public:
 
     QTableView *tableView_Images();
 
+    QTableView *tableView_Objects();
+
     void    resizeTables();
 
-    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
+    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images, QAbstractItemModel *model_Objects);
 
     void    SelectPointAllWGL(QString pointName = QString(""));
 

@@ -1595,7 +1595,7 @@ cGLData::cGLData(int appMode):
     initOptions(appMode);
 }
 
-cGLData::cGLData(QMaskedImage &qMaskedImage, int appMode, QString ptName):
+cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, int appMode, QString ptName):
     _glMaskedImage(qMaskedImage),
     _pQMask(qMaskedImage._m_mask),
     _pBall(NULL),
@@ -1606,6 +1606,8 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, int appMode, QString ptName):
     _appMode(appMode)
 {
     initOptions(appMode);
+
+    setPolygons(data);
 
     for (int aK=0; aK < _vPolygons.size(); ++aK)
     {
@@ -1637,9 +1639,16 @@ cGLData::cGLData(cData *data, int appMode):
     }
 }
 
+void cGLData::setPolygons(cData *data)
+{
+    for (int aK = 0; aK < data->getNbPolygons(); ++aK)
+
+        _vPolygons.push_back(new cPolygon(*(data->getPolygon(aK))));
+}
+
 void cGLData::setData(cData *data, bool setCam)
 {
-    for (int aK = 0; aK < data->getNbClouds();++aK)
+    for (int aK = 0; aK < data->getNbClouds(); ++aK)
     {
         GlCloud *pCloud = data->getCloud(aK);
         _vClouds.push_back(pCloud);
@@ -1669,14 +1678,12 @@ void cGLData::setData(cData *data, bool setCam)
             _vCams.push_back(pCam);
         }
 
-    for (int aK = 0; aK < data->getNbPolygons();++aK)
-    {
-        _vPolygons.push_back(data->getPolygon(aK));
-    }
+    setPolygons(data);
 
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
 }
+
 bool cGLData::incFirstCloud() const
 {
     return _incFirstCloud;

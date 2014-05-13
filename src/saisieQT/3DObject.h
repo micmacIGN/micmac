@@ -669,7 +669,7 @@ public:
 
     cGLData(int appMode = MASK2D);
 
-    cGLData(QMaskedImage &qMaskedImage, int appMode = MASK2D, QString ptName = "" );
+    cGLData(cData *data, QMaskedImage &qMaskedImage, int appMode = MASK2D, QString ptName = "" );
 
     cGLData(cData *data, int appMode = MASK2D);
 
@@ -765,6 +765,7 @@ public:
 
     cCam*       camera(int iC){ return _vCams[iC]; }
 
+    void        setPolygons(cData *data);
 private:
 
     cMaskedImageGL      _glMaskedImage;
