@@ -218,7 +218,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        if(index.row() < (int)mAppli->images().size())
+        if(index.row() < (int) mAppli->images().size())
         {
             cImage* iImage = mAppli->image(index.row());
 
@@ -229,13 +229,12 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
             case 1:
             {
 
-                cSP_PointGlob* pg   = _interface->currentPGlobal();
+                cSP_PointGlob* pg = _interface->currentPGlobal();
 
                 if(!pg)
                     return QString("");
 
                 cSP_PointeImage* pI = iImage->PointeOfNameGlobSVP(pg->PG()->Name());
-
 
                 if(pI)
                 {
@@ -273,7 +272,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
             }
             case 2:
             {
-                cSP_PointGlob* pg   = _interface->currentPGlobal();
+                cSP_PointGlob* pg = _interface->currentPGlobal();
 
                 if(!pg)
                     return QString("");
@@ -468,7 +467,6 @@ cAppli_SaisiePts *PointGlobalSFModel::mAppli() const
 
 ModelObjects::ModelObjects(QObject *parent, cAppli_SaisiePts *appli)
     :QAbstractTableModel(parent),
-      mAppli(appli),
       _interface((cQT_Interface*)appli->Interface())
 {
 
@@ -476,8 +474,7 @@ ModelObjects::ModelObjects(QObject *parent, cAppli_SaisiePts *appli)
 
 int ModelObjects::rowCount(const QModelIndex & /*parent*/) const
 {
-    return 5;
-    //return _interface->getGlData();
+    return _interface->getData()->getNbPolygons();
 }
 
 int ModelObjects::columnCount(const QModelIndex &parent) const
@@ -489,7 +486,8 @@ QVariant ModelObjects::headerData(int section, Qt::Orientation orientation, int 
 {
     if (role == Qt::DisplayRole)
     {
-        if (orientation == Qt::Horizontal) {
+        if (orientation == Qt::Horizontal)
+        {
             switch (section)
             {
             case 0:
@@ -500,4 +498,46 @@ QVariant ModelObjects::headerData(int section, Qt::Orientation orientation, int 
         }
     }
     return QVariant();
+}
+
+QVariant ModelObjects::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        int aK = index.row();
+        if(aK < _interface->getData()->getNbPolygons())
+        {
+            cPolygon* aPoly = _interface->getData()->getPolygon(aK);
+
+            switch (index.column())
+            {
+                case 0:
+                {
+                    if ((aK == 0) && (aPoly->getMaxSize() == 2))        return QString(tr("Line 1"));
+                    else if ((aK ==1) && (aPoly->getMaxSize() == 2))    return QString(tr("Line 2"));
+                    else if ((aK ==2) && (aPoly->getMaxSize() == 1))    return QString(tr("Origin"));
+                    else if  (aPoly->getMaxSize() == 4)                 return QString(tr("Box 2D"));
+                }
+                case 1:
+                {
+                    if (aPoly->getMaxSize() == aPoly->size()) return QString(tr("Done"));
+                    else return QString(tr(""));
+                }
+            }
+        }
+    }
+    return QVariant();
+}
+
+bool ModelObjects::insertRows(int row, int count, const QModelIndex &parent)
+{
+    beginInsertRows(QModelIndex(), row, row+count-1);
+    endInsertRows();
+    return true;
+}
+
+bool ObjectsSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+    //TODO:
+    return true;
 }

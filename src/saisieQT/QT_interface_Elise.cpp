@@ -32,7 +32,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
         connect(widget->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
 
         connect(widget->contextMenu(),	SIGNAL(changeImagesSignal(int, bool)), this, SLOT(changeImages(int, bool)));
-     }
+    }
 
     connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
 
@@ -42,7 +42,10 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     connect(m_QTMainWindow->threeDWidget(),	SIGNAL(filesDropped(QStringList)), this, SLOT(filesDropped(QStringList)));
 
-    _data = new cData;
+    if (m_QTMainWindow->getEngine()->getData() != NULL)
+        _data = m_QTMainWindow->getEngine()->getData();
+    else
+        _data = new cData;
 
     rebuildGlCamera();
 
@@ -62,13 +65,15 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     // Table View :: begin      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    ImagesSFModel*      proxyImageModel = new ImagesSFModel(this);
-    PointGlobalSFModel* proxyPointGlob  = new PointGlobalSFModel(this);
+    ImagesSFModel*      proxyImageModel  = new ImagesSFModel(this);
+    PointGlobalSFModel* proxyPointGlob   = new PointGlobalSFModel(this);
+    ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
 
-    proxyPointGlob->setSourceModel(new ModelPointGlobal(0,mAppli));
-    proxyImageModel->setSourceModel(new ModelCImage(0,mAppli));
+    proxyPointGlob->setSourceModel  (new ModelPointGlobal(0,mAppli));
+    proxyImageModel->setSourceModel (new ModelCImage(0,mAppli));
+    proxyObjectModel->setSourceModel(new ModelObjects(0,mAppli));
 
-    m_QTMainWindow->setModel(proxyPointGlob,proxyImageModel);
+    m_QTMainWindow->setModel(proxyPointGlob,proxyImageModel, proxyObjectModel);
 
     m_QTMainWindow->resizeTables();
 

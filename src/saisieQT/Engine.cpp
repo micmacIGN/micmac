@@ -270,7 +270,7 @@ void  cEngine::loadImage(QString imgName)
     _Data->pushBackMaskedImage(maskedImg);
 }
 
-void cEngine::reloadImage(int aK)
+void cEngine::reloadImage(int appMode, int aK)
 {
     QString imgName = getFilenamesIn()[aK];
 
@@ -281,7 +281,7 @@ void cEngine::reloadImage(int aK)
     if (aK < _Data->getNbImages())
         _Data->getMaskedImage(aK) = maskedImg;
 
-    reallocAndSetGLData(aK);
+    reallocAndSetGLData(appMode, aK);
 }
 
 void cEngine::loadObject(cObject * aObj)
@@ -408,27 +408,28 @@ void cEngine::allocAndSetGLData(int appMode, QString ptName)
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-        _vGLData.push_back(new cGLData(_Data->getMaskedImage(aK), appMode, ptName));
+        _vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), appMode, ptName));
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data, appMode));
 }
 
-void cEngine::reallocAndSetGLData(int aK)
+void cEngine::reallocAndSetGLData(int appMode, int aK)
 {
-    bool modePt = _vGLData[aK]->mode();
     delete _vGLData[aK];
 
     if (_Data->is3D())
-        _vGLData[aK] = new cGLData(_Data, modePt);
+        _vGLData[aK] = new cGLData(_Data, appMode);
     else
-        _vGLData[aK] = new cGLData(_Data->getMaskedImage(aK), modePt);
+        _vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), appMode);
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)
 {
     if ((_vGLData.size() > 0) && (WidgetIndex < _vGLData.size()))
+    {
         return _vGLData[WidgetIndex];
+    }
     else
         return NULL;
 }

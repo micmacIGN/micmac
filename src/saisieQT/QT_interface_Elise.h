@@ -31,6 +31,8 @@ public :
 
     cImage *            currentCImage();
 
+    cData *             getData() { return _data; }
+
 private:
 
     //                  init Interface

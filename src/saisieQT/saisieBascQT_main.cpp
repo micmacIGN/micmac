@@ -88,7 +88,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
 
     w.show();
 
-    w.addFiles(filenames, true);
+    w.addFiles(filenames, false);
 
     return app.exec();
 }
