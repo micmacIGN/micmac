@@ -314,8 +314,9 @@ class cImagH
         static void VoisinsNonMarques(const std::vector<cImagH*> & aIn,std::vector<cImagH*> & aV,int aFlagN,int FlagT );
         void   VoisinsMarques(std::vector<cLink2Img*> & aVois,int aFlagN);
 
-         cElHomographie &     Hi2t() ;  // terrain ver I
-         cElHomographie &     HTmp() ;  // terrain ver I
+         cElHomographie &     Hi2t() ;  // 
+         cElHomographie &     HTmp() ;  // 
+         cElHomographie &     H2ImC() ;  // 
 
          cAppliReduc &    Appli();
          int & NumTmp();
@@ -364,6 +365,7 @@ class cImagH
          double                     mSomNbPts;
          ElTabFlag                  mMarques;
 
+         cElHomographie             mH2ImC;  // stocke le resultat de l'H vers l'image central, qd elle existe
          cElHomographie             mHi2t;  // Envoie terrain ver im
          cElHomographie             mHTmp;  // Envoie terrain ver im
          cHomogFormelle *           mHF;
@@ -510,6 +512,7 @@ class cAppliReduc
         std::string                         mNameICA;
         cImagH  *                           mImCAmel;
 
+        bool                                mDoCompensLoc;
 };
 
 class cAttrLnkIm{};

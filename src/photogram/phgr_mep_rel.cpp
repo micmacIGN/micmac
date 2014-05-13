@@ -439,7 +439,11 @@ cElHomographie cElemMepRelCoplan::HomCam2Plan()
         aResidu += aD;
    }
    // std::cout << "RRRRR " << aResidu << "\n";
-   ELISE_ASSERT(aResidu<1e-4,"Incoherence in cElemMepRelCoplan::HomCam2Plan");
+   if (aResidu>=1e-4)
+   {
+      std::cout << "\nRESIDU " << aResidu << "\n";
+      ELISE_ASSERT(aResidu<1e-4,"Incoherence in cElemMepRelCoplan::HomCam2Plan");
+   }
 
    return aRes;
 }
