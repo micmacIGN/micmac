@@ -228,6 +228,7 @@ class cLink2Img  // dans cImagH.cpp
 
          std::string NameComHomogr() const;
          void LoadComHomogr();
+         double PdsEchant() const;
     private :
     
        void LoadPtsHom();
@@ -313,8 +314,9 @@ class cImagH
         static void VoisinsNonMarques(const std::vector<cImagH*> & aIn,std::vector<cImagH*> & aV,int aFlagN,int FlagT );
         void   VoisinsMarques(std::vector<cLink2Img*> & aVois,int aFlagN);
 
-         cElHomographie &     Hi2t() ;  // terrain ver I
-         cElHomographie &     HTmp() ;  // terrain ver I
+         cElHomographie &     Hi2t() ;  // 
+         cElHomographie &     HTmp() ;  // 
+         cElHomographie &     H2ImC() ;  // 
 
          cAppliReduc &    Appli();
          int & NumTmp();
@@ -326,11 +328,12 @@ class cImagH
          cEqOneHomogFormelle * &  EqOneHF();
          bool  &                    C2CI();  // Connected to Center Image
          void AddViscositty(double aPds);
-          
+         double PdsEchant() const;
+         double & GainLoc();
+         bool & InitLoc();
 
      private :
 
-         double PdsEchant() const;
 
          void TestCplePlan(int aK1,int aK2);
 
@@ -362,6 +365,7 @@ class cImagH
          double                     mSomNbPts;
          ElTabFlag                  mMarques;
 
+         cElHomographie             mH2ImC;  // stocke le resultat de l'H vers l'image central, qd elle existe
          cElHomographie             mHi2t;  // Envoie terrain ver im
          cElHomographie             mHTmp;  // Envoie terrain ver im
          cHomogFormelle *           mHF;
@@ -376,6 +380,9 @@ class cImagH
          std::vector<cTestPlIm>           mVTPlIm;
          cEqOneHomogFormelle *            mEqOneHF;
          bool                       mC2CI;  // Connected to Center Image
+
+         double    mGainLoc;
+         bool      mInitLoc;
 };
 
 
@@ -449,6 +456,8 @@ class cAppliReduc
          std::string      ImFocusPlan () const;
 
          void AmelioHomLocal(cImagH & anIm);
+         double  ErrorSolLoc();
+
 
      private :
 
@@ -503,6 +512,7 @@ class cAppliReduc
         std::string                         mNameICA;
         cImagH  *                           mImCAmel;
 
+        bool                                mDoCompensLoc;
 };
 
 class cAttrLnkIm{};

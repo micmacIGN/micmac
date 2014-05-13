@@ -443,6 +443,17 @@ cEqHomogFormelle * &  cLink2Img::EqHF()
 }
 
 
+double cLink2Img::PdsEchant() const
+{
+   double  aSomP = 0;
+   for (int aKP=0 ; aKP<int(mEchantP1.size()) ; aKP++)
+       aSomP += mEchantP1[aKP].z;
+   return aSomP;
+}
+
+
+
+
 /*************************************************/
 /*                                               */
 /*                 cImagH                        */
@@ -460,6 +471,7 @@ cImagH::cImagH(const std::string & aName,cAppliReduc & anAppli,int aNum) :
    mNumTmp   (-1),
    mSomQual  (0),
    mSomNbPts (0),
+   mH2ImC     (cElHomographie::Id()),
    mHi2t     (cElHomographie::Id()),
    mHTmp     (cElHomographie::Id()),
    mMDP      (cMetaDataPhoto::CreateExiv2(mAppli.Dir() + mName)),
@@ -527,15 +539,9 @@ bool cImagH::Marqued(int aK) const
    return mMarques.kth(aK);
 }
 
-cElHomographie &   cImagH::Hi2t()
-{
-   return mHi2t;
-}
-
-cElHomographie &   cImagH::HTmp()
-{
-   return mHTmp;
-}
+cElHomographie &   cImagH::Hi2t()  { return mHi2t; }
+cElHomographie &   cImagH::HTmp()  { return mHTmp; }
+cElHomographie &   cImagH::H2ImC() { return mH2ImC; }
 
 
 
@@ -666,10 +672,10 @@ cAppliReduc &     cImagH::Appli()
    return mAppli;
 }
 
-const tMapName2Link & cImagH::Lnks() const
-{
-   return mLnks;
-}
+const tMapName2Link & cImagH::Lnks() const { return mLnks; }
+
+double & cImagH::GainLoc() {return mGainLoc;}
+bool & cImagH::InitLoc() {return mInitLoc;}
 
 
 cLink2Img *  cImagH::GetLnkKbrd(int & aK)
@@ -683,6 +689,8 @@ cLink2Img *  cImagH::GetLnkKbrd(int & aK)
 
     return aRes;
 }
+
+
 
 NS_RHH_END
 
