@@ -318,7 +318,7 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     InitImages();
     InitInPuts();
 
-#if ELISE_windows == 0
+#if (ELISE_X11)
     if(instanceInterface)
     {
         mInterface = new cX11_Interface(*this);
@@ -892,7 +892,7 @@ void cAppli_SaisiePts::ChangeImages
 
     SortImages(mImages);
 
-    #if ELISE_windows == 0
+    #if (ELISE_X11)
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)
     {
         aW2Ch[aKW]->SetNoImage();
@@ -909,7 +909,7 @@ void cAppli_SaisiePts::ChangeImages
 
         if (!mInterface->isDisplayed(anIm))
         {
-#if ELISE_windows == 0
+#if (ELISE_X11)
             aW2Ch[aKW]->SetNewImage(anIm);
 #endif
             aKW++;
