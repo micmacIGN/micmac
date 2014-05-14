@@ -627,7 +627,7 @@ void  cPoseCam::TenteInitAltiProf
 	 mPrioSetAlPr = aPrio;
    }
 }
-
+extern bool AllowUnsortedVarIn_SetMappingCur;
 
 cPoseCam * cPoseCam::Alloc
            (
@@ -643,6 +643,8 @@ cPoseCam * cPoseCam::Alloc
 
     if (aPCI.PosesDeRattachement().IsInit())
     {
+        // En fait le tri sur les variables n'avait pas d'effet puisque la fonction est symetrique !!
+        AllowUnsortedVarIn_SetMappingCur = true;
         aPRat = anAppli.PoseFromNameGen
                 (
                     aPCI.PosesDeRattachement().Val(),
