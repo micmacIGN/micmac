@@ -479,6 +479,11 @@ cImage * cQT_Interface::currentCImage()
     return cVirtualInterface::CImage(idCurrentCImage());
 }
 
+int cQT_Interface::getQTWinMode()
+{
+    return m_QTMainWindow->appMode();
+}
+
 cImage *cQT_Interface::CImage(QString nameImage)
 {
     return cVirtualInterface::CImage(idCImage(nameImage));

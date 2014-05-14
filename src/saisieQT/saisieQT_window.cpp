@@ -800,7 +800,7 @@ void SaisieQtWindow::setUI()
         _ui->splitter_Tools->hide();
     }
 
-    if (_appMode != BASC) _ui->tableView_Objects->hide();
+    /*if (_appMode != BASC)*/ _ui->tableView_Objects->hide();
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
@@ -925,17 +925,17 @@ void SaisieQtWindow::initData()
 {
     if (_appMode == BOX2D)
     {
-        _Engine->loadObject(new cRectangle());
+        _Engine->addObject(new cRectangle());
     }
-    else if (_appMode == BASC)
+    /*else if (_appMode == BASC)
     {
-        _Engine->loadObject(new cPolygon(2));
-        _Engine->loadObject(new cPolygon(2));
-        _Engine->loadObject(new cPolygon(1));
-    }
+        _Engine->addObject(new cPolygon(2)); //line
+        _Engine->addObject(new cPolygon(1)); //origin
+        _Engine->addObject(new cPolygon(2)); //scale
+    }*/
     else
     {
-        _Engine->loadObject(new cPolygon());
+        _Engine->addObject(new cPolygon());
     }
 }
 
@@ -1090,6 +1090,16 @@ void SaisieQtWindow::undo(bool undo)
         emit undoSgnl(undo);
     }
 }
+int SaisieQtWindow::appMode() const
+{
+    return _appMode;
+}
+
+void SaisieQtWindow::setAppMode(int appMode)
+{
+    _appMode = appMode;
+}
+
 
 void SaisieQtWindow::applyParams()
 {

@@ -284,7 +284,7 @@ void cEngine::reloadImage(int appMode, int aK)
     reallocAndSetGLData(appMode, aK);
 }
 
-void cEngine::loadObject(cObject * aObj)
+void cEngine::addObject(cObject * aObj)
 {
     getData()->addObject(aObj);
 }

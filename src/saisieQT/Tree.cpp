@@ -415,7 +415,6 @@ bool ModelCImage::insertRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
-
 bool ImagesSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
 
@@ -434,7 +433,10 @@ bool PointGlobalSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sour
 {
     if(mAppli())
     {
-        if((int)mAppli()->PG().size() == sourceRow)
+        cQT_Interface * interf = (cQT_Interface*) mAppli()->Interface();
+        bool saisieBasc = interf->getQTWinMode() == BASC;
+
+        if(((int)mAppli()->PG().size() == sourceRow) && !saisieBasc)
             return false;
 
         ModelPointGlobal*   model   = (ModelPointGlobal*)sourceModel();
@@ -449,6 +451,8 @@ bool PointGlobalSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sour
             else if(!pg->PG()->Disparu().Val())
                 return false;
         }
+        else if(saisieBasc && sourceRow >= (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+            return true;
         else if(sourceRow > (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
             return true;
     }
@@ -505,6 +509,7 @@ QVariant ModelObjects::data(const QModelIndex &index, int role) const
     if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
         int aK = index.row();
+
         if(aK < _interface->getData()->getNbPolygons())
         {
             cPolygon* aPoly = _interface->getData()->getPolygon(aK);
@@ -513,15 +518,17 @@ QVariant ModelObjects::data(const QModelIndex &index, int role) const
             {
                 case 0:
                 {
-                    if ((aK == 0) && (aPoly->getMaxSize() == 2))        return QString(tr("Line 1"));
-                    else if ((aK ==1) && (aPoly->getMaxSize() == 2))    return QString(tr("Line 2"));
-                    else if ((aK ==2) && (aPoly->getMaxSize() == 1))    return QString(tr("Origin"));
+                    if ((aK == 0) && (aPoly->getMaxSize() == 2))        return QString(tr("Line"));
+                    else if ((aK ==1) && (aPoly->getMaxSize() == 1))    return QString(tr("Origin"));
+                    else if ((aK ==2) && (aPoly->getMaxSize() == 2))    return QString(tr("Scale"));
                     else if  (aPoly->getMaxSize() == 4)                 return QString(tr("Box 2D"));
                 }
                 case 1:
                 {
-                    if (aPoly->getMaxSize() == aPoly->size()) return QString(tr("Done"));
-                    else return QString(tr(""));
+                    if (aPoly->getMaxSize() == aPoly->size())
+                        return QString(tr("Done"));
+                    else
+                        return QString(tr("To do"));
                 }
             }
         }

@@ -80,7 +80,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
             "DirectoryChantier",
             "FileChantierNameDescripteur" );
 
-    cAppli_SaisiePts   anAppli (aP2,false);
+    cAppli_SaisiePts anAppli (aP2,false);
 
     SaisieQtWindow w(BASC);
 
