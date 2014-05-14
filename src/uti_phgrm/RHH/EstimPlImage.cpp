@@ -294,8 +294,8 @@ std::string cImagH::EstimatePlan()
           std::cout <<  aLnk->Dest()->Name();
           for (int aK=0 ; aK<int( aLnk->Dest()->mVercp.size()) ; aK++)
           {
-              aLnk->Dest()->mVTPlIm.push_back(cTestPlIm(aLnk, VData(aLnk->Dest()->mVercp)+aK,false));
               std::cout <<  aLnk->Dest()->mVercp[aK].Norm() ;
+              aLnk->Dest()->mVTPlIm.push_back(cTestPlIm(aLnk, VData(aLnk->Dest()->mVercp)+aK,false));
           }
           std::cout <<  "\n";
           // std::vector<cElemMepRelCoplan>  aVSol = aRCP.VElOk();
