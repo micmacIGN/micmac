@@ -1113,8 +1113,6 @@ int cPolygon::finalMovePoint()
     {
         int state = _points[_idx].statePoint();
 
-        printf("idx = %d\n",_idx);
-
         _points[_idx] = (*_helper)[1];
         _points[_idx].setColor(_color[state_default]); // reset color to polygon color
         _points[_idx].setStatePoint(state);
@@ -1734,6 +1732,7 @@ int cGLData::polygonCount()
 
 void cGLData::initOptions(int appMode)
 {
+    //TODO: retirer BASC si on saisit des vraies lignes...
     if ((appMode == POINT2D_INIT) || (appMode == POINT2D_PREDIC) || (appMode == BASC))
         _modePt = true;
     else
