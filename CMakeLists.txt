@@ -260,10 +260,10 @@ ENDIF()
 IF(${WITH_IGN_ORI} OR ${WITH_IGN_IMAGE})
         SET(SOCLE_COMPONENTS "")
         IF(${WITH_IGN_ORI})
-                SET(SOCLE_COMPONENTS core data orientation geodesy transform math numeric tools xml)
+                SET(SOCLE_COMPONENTS orientation geodesy transform math numeric tools  data xml core)
         ENDIF()
         IF(${WITH_IGN_IMAGE})
-                LIST(APPEND SOCLE_COMPONENTS core data image transform math numeric tools xml)
+                LIST(APPEND SOCLE_COMPONENTS image transform math numeric tools data xml core)
 
                 #pour le DMR sinon on peut l'enlever aisni que la dependeance a Geos
                 LIST(APPEND SOCLE_COMPONENTS geometry)
