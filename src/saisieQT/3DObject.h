@@ -145,6 +145,7 @@ class cPoint : public cObjectGL, public QPointF
         void draw();
 
         void setStatePoint(int state){ _statePoint = state; }
+        float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
         int  statePoint() const      { return _statePoint;  }
         void showName(bool show)     { _bShowName = show;   }
@@ -340,6 +341,7 @@ class cPolygon : public cObjectGL
         void    setVector(QVector <QPointF> const &aPts);
 
         cPolygonHelper* helper() { return _helper; }
+        void    setHelper(cPolygonHelper* aHelper) { _helper = aHelper; }
 
         virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true);
 
@@ -395,7 +397,7 @@ class cPolygon : public cObjectGL
         int                 _idx;
         int                 _style;
 
-private:
+    private:
         float               _pointDiameter;
         static float        _selectionRadius;
 
@@ -430,7 +432,7 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
         void   build(const cPoint &pos, bool insertMode);
 

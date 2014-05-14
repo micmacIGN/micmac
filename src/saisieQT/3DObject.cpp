@@ -628,7 +628,7 @@ QPointF cPoint::scale(QPointF aP)
 float cPolygon::_selectionRadius = 10.f;
 
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(this, maxSz, lineWidth)),
+    _helper(new cPolygonHelper(this, 3, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
@@ -892,8 +892,13 @@ void cPolygon::clear()
 
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
-    _points.insert(i,cPoint(value));
-    resetSelectedPoint();
+    if (i <= size())
+    {
+        cPoint pt(value);
+        pt.setDiameter(_points[i-1].diameter());
+        _points.insert(i, pt);
+        resetSelectedPoint();
+    }
 }
 
 void cPolygon::insertPoint()
@@ -1640,8 +1645,11 @@ cGLData::cGLData(cData *data, int appMode):
 void cGLData::setPolygons(cData *data)
 {
     for (int aK = 0; aK < data->getNbPolygons(); ++aK)
-
-        _vPolygons.push_back(new cPolygon(*(data->getPolygon(aK))));
+    {
+        cPolygon* polygon = new cPolygon(*(data->getPolygon(aK)));
+        polygon->setHelper(new cPolygonHelper(polygon, 3));
+        _vPolygons.push_back(polygon);
+    }
 }
 
 void cGLData::setData(cData *data, bool setCam)
