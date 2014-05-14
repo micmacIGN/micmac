@@ -90,7 +90,9 @@ public:
     QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
                    QString("SaisieMasqQT\n") +
                    QString("SaisieAppuisInitQT\n") +
-                   QString("SaisieAppuisPredicQT\n\n");
+                   QString("SaisieAppuisPredicQT\n")+
+                   QString("SaisieBascQT\n")+
+                   QString("SaisieBoxQT\n\n");
 
     if (cmdline_args.size() > 1)
     {
