@@ -105,6 +105,11 @@ bool TestFileOpen(const std::string & aFile)
 
 //  les directory par defaut d'ecriture (install de MicMac) ne permettent pas toujours un acces en erciture
 // pour les fichiers temporaires
+//
+//  Modif MPD met en priorite les directories locales suite a demande de Telecom pour clusterisation des commandes
+// afin que des process concurent ne s'ecrasent pas
+//
+
 std::string Dir2Write()
 {
     static bool First = true;
@@ -112,9 +117,10 @@ std::string Dir2Write()
     if (First)
     {
         First = false;
-        aRes = MMDir() + "TestOpenMMmmmm";
+
+        aRes = "./Tmp-MM-Dir/TestOpenMMmmmm";
         if (TestFileOpen(aRes))
-           return MMDir();
+           return "./Tmp-MM-Dir/";
 
         aRes = "./TestOpenMMmmmm";
         if (TestFileOpen(aRes))
@@ -128,6 +134,13 @@ std::string Dir2Write()
             if (TestFileOpen(aRes))
                return aDir;
         }
+
+
+        aRes = MMDir() + "TestOpenMMmmmm";
+        if (TestFileOpen(aRes))
+           return MMDir();
+
+
         ELISE_ASSERT(false,"Cannot find any directoruy to write tmp files");
         
     }
@@ -218,7 +231,8 @@ void MkFMapCmd
        aNbProc = NbProcSys();
 
     if (FileMk=="") 
-       FileMk = MMDir() + "MkStdMM" + GetUnikId();
+       FileMk = Dir2Write() + "MkStdMM" + GetUnikId();
+       // FileMk = MMDir() + "MkStdMM" + GetUnikId();
 
 
     cEl_GPAO aGPAO;
