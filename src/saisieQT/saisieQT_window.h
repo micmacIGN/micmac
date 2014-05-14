@@ -84,6 +84,9 @@ public:
 
     void    initData();
 
+    int     appMode() const;
+    void    setAppMode(int appMode);
+
 public slots:
 
     //! Try to load a list of files

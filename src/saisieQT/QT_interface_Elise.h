@@ -33,6 +33,8 @@ public :
 
     cData *             getData() { return _data; }
 
+    int                 getQTWinMode();
+
 private:
 
     //                  init Interface

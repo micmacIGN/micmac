@@ -128,7 +128,7 @@ public:
 
     //! Load object
 
-    void    loadObject(cObject*);
+    void    addObject(cObject*);
 
     void    unloadAll();
 

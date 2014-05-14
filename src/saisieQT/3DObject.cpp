@@ -1734,7 +1734,7 @@ int cGLData::polygonCount()
 
 void cGLData::initOptions(int appMode)
 {
-    if ((appMode == POINT2D_INIT) || (appMode == POINT2D_PREDIC))
+    if ((appMode == POINT2D_INIT) || (appMode == POINT2D_PREDIC) || (appMode == BASC))
         _modePt = true;
     else
         _modePt = false;
