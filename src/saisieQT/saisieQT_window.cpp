@@ -16,6 +16,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _Engine->setParams(_params);
 
+    initData();
+
     init(_params->getNbFen().x()*_params->getNbFen().y(), _appMode > MASK3D);
 
     setUI();
@@ -34,8 +36,10 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
     tableView_Images()->setContextMenuPolicy(Qt::CustomContextMenu);
+    tableView_Objects()->setContextMenuPolicy(Qt::CustomContextMenu);
 
     tableView_PG()->setMouseTracking(true);
+    tableView_Objects()->setMouseTracking(true);
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -181,7 +185,11 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         }
         else // LOAD IMAGE
         {
-            if (_appMode <= MASK3D) closeAll();
+            if (_appMode <= MASK3D)
+            {
+                closeAll();
+                initData(); //TODO: ne pas détruire les polygones dans le closeAll
+            }
             //else if (filenames.size() == 1) _mode = MASK2D;
 
             _Engine->loadImages(filenames);
@@ -783,6 +791,7 @@ void SaisieQtWindow::setUI()
         _ui->menuSelection->setTitle(tr("H&istory"));
 
         tableView_PG()->installEventFilter(this);
+        tableView_Objects()->installEventFilter(this);
 
         _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
@@ -790,6 +799,8 @@ void SaisieQtWindow::setUI()
     {
         _ui->splitter_Tools->hide();
     }
+
+    /*if (_appMode != BASC)*/ _ui->tableView_Objects->hide();
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
@@ -827,6 +838,8 @@ QTableView *SaisieQtWindow::tableView_PG(){return _ui->tableView_PG;}
 
 QTableView *SaisieQtWindow::tableView_Images(){return _ui->tableView_Images;}
 
+QTableView *SaisieQtWindow::tableView_Objects(){return _ui->tableView_Objects;}
+
 void SaisieQtWindow::resizeTables()
 {
     tableView_PG()->resizeColumnsToContents();
@@ -836,12 +849,17 @@ void SaisieQtWindow::resizeTables()
     tableView_Images()->resizeColumnsToContents();
     tableView_Images()->resizeRowsToContents();
     tableView_Images()->horizontalHeader()->setStretchLastSection(true);
+
+    tableView_Objects()->resizeColumnsToContents();
+    tableView_Objects()->resizeRowsToContents();
+    tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
 }
 
-void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images)
+void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images, QAbstractItemModel *model_Objects)
 {
     tableView_PG()->setModel(model_Pg);
     tableView_Images()->setModel(model_Images);
+    tableView_Objects()->setModel(model_Objects);
 }
 
 void SaisieQtWindow::SelectPointAllWGL(QString pointName)
@@ -900,6 +918,24 @@ void SaisieQtWindow::normalizeCurrentPolygon(bool nrm)
     for (int aK = 0; aK < getEngine()->nbGLData(); ++aK)
     {
         _Engine->getGLData(aK)->normalizeCurrentPolygon(nrm);
+    }
+}
+
+void SaisieQtWindow::initData()
+{
+    if (_appMode == BOX2D)
+    {
+        _Engine->addObject(new cRectangle());
+    }
+    /*else if (_appMode == BASC)
+    {
+        _Engine->addObject(new cPolygon(2)); //line
+        _Engine->addObject(new cPolygon(1)); //origin
+        _Engine->addObject(new cPolygon(2)); //scale
+    }*/
+    else
+    {
+        _Engine->addObject(new cPolygon());
     }
 }
 
@@ -1040,7 +1076,7 @@ void SaisieQtWindow::undo(bool undo)
             {
                 int idx = currentWidgetIdx();
 
-                _Engine->reloadImage(idx);
+                _Engine->reloadImage(_appMode, idx);
 
                 currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
             }
@@ -1054,6 +1090,16 @@ void SaisieQtWindow::undo(bool undo)
         emit undoSgnl(undo);
     }
 }
+int SaisieQtWindow::appMode() const
+{
+    return _appMode;
+}
+
+void SaisieQtWindow::setAppMode(int appMode)
+{
+    _appMode = appMode;
+}
+
 
 void SaisieQtWindow::applyParams()
 {
