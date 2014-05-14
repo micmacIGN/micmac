@@ -15,6 +15,11 @@ void cData::addCloud(GlCloud * aCloud)
     _Clouds.push_back(aCloud);
 }
 
+void cData::addObject(cObject * aObj)
+{
+    _vPolygons.push_back((cPolygon*) aObj);
+}
+
 void cData::replaceCloud(GlCloud *cloud, int id)
 {
     if(id < _Clouds.size())
@@ -54,11 +59,21 @@ void cData::clearImages()
     reset();
 }
 
+void cData::clearObjects()
+{
+    qDeleteAll(_vPolygons);
+
+    _vPolygons.clear();
+
+    reset();
+}
+
 void cData::clearAll()
 {
     clearClouds();
     clearCameras();
     clearImages();
+    clearObjects();
 }
 
 void cData::clear(int aK)
@@ -104,7 +119,7 @@ int cData::getCloudsSize()
 
 //compute bounding box
 void cData::computeBBox()
-{  
+{
     for (int bK=0; bK < _Clouds.size();++bK)
     {
         GlCloud * aCloud = _Clouds[bK];

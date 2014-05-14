@@ -15,6 +15,7 @@ class cData
 
         void addCamera(CamStenope *);
         void addCloud(GlCloud *);
+        void addObject(cObject *);
 
         void replaceCloud(GlCloud * cloud, int id = 0);
 
@@ -23,6 +24,7 @@ class cData
         void clearCameras();
         void clearClouds();
         void clearImages();
+        void clearObjects();
 
         void clearAll();
 
@@ -34,11 +36,13 @@ class cData
         int getNbCameras()  { return _Cameras.size(); }
         int getNbClouds()   { return _Clouds.size();  }
         int getNbImages()   { return _MaskedImages.size(); }
+        int getNbPolygons() { return _vPolygons.size(); }
 
         CamStenope *   getCamera(int aK) { return aK < _Cameras.size() ? _Cameras[aK] : NULL; }
         GlCloud *      getCloud(int aK)  { return aK < _Clouds.size() ? _Clouds[aK] : NULL;   }
         QImage *       getImage(int aK)  { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_image : NULL; }
         QImage *       getMask(int aK)   { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_mask  : NULL; }
+        cPolygon*      getPolygon(int aK){ return _vPolygons[aK]; }
 
         QMaskedImage&  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
 
@@ -61,6 +65,9 @@ class cData
         QVector <CamStenope *> _Cameras;
         QVector <GlCloud *>    _Clouds;
         QVector <QMaskedImage> _MaskedImages;
+
+        //! list of polygons
+        QVector<cPolygon*>     _vPolygons;
 
         //!Bounding box of all data
         Pt3dr   _min, _max;

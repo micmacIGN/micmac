@@ -124,7 +124,11 @@ public:
     void    loadImage(QString );
     void    loadImage(int aK);
 
-    void    reloadImage(int aK);
+    void    reloadImage(int appMode, int aK);
+
+    //! Load object
+
+    void    addObject(cObject*);
 
     void    unloadAll();
 
@@ -145,7 +149,7 @@ public:
     //!looks for data and creates GLobjects
     void    allocAndSetGLData(int appMode, QString ptName);
 
-    void    reallocAndSetGLData(int aK);
+    void    reallocAndSetGLData(int appMode, int aK);
 
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);

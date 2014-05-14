@@ -287,6 +287,20 @@
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
+			   <widget class="QTableView" name="tableView_Objects">
+               <property name="frameShape">
+                <enum>QFrame::Box</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="verticalHeaderVisible">
+                <bool>false</bool>
+               </attribute>
+              </widget>
               <widget class="QTableView" name="tableView_PG">
                <property name="mouseTracking">
                 <bool>false</bool>
@@ -320,7 +334,7 @@
                <attribute name="verticalHeaderVisible">
                 <bool>false</bool>
                </attribute>
-              </widget>
+              </widget>              
              </widget>
             </item>
            </layout>

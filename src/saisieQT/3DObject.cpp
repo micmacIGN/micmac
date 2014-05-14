@@ -628,7 +628,7 @@ QPointF cPoint::scale(QPointF aP)
 float cPolygon::_selectionRadius = 10.f;
 
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(this, maxSz, lineWidth)),
+    _helper(new cPolygonHelper(this, 3, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
@@ -892,8 +892,13 @@ void cPolygon::clear()
 
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
-    _points.insert(i,cPoint(value));
-    resetSelectedPoint();
+    if (i <= size())
+    {
+        cPoint pt(value);
+        pt.setDiameter(_points[i-1].diameter());
+        _points.insert(i, pt);
+        resetSelectedPoint();
+    }
 }
 
 void cPolygon::insertPoint()
@@ -1112,8 +1117,6 @@ int cPolygon::finalMovePoint()
     if ((_idx>=0) && _helper->size())   // after point move
     {
         int state = _points[_idx].statePoint();
-
-        printf("idx = %d\n",_idx);
 
         _points[_idx] = (*_helper)[1];
         _points[_idx].setColor(_color[state_default]); // reset color to polygon color
@@ -1595,7 +1598,7 @@ cGLData::cGLData(int appMode):
     initOptions(appMode);
 }
 
-cGLData::cGLData(QMaskedImage &qMaskedImage, int appMode, QString ptName):
+cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, int appMode, QString ptName):
     _glMaskedImage(qMaskedImage),
     _pQMask(qMaskedImage._m_mask),
     _pBall(NULL),
@@ -1606,6 +1609,8 @@ cGLData::cGLData(QMaskedImage &qMaskedImage, int appMode, QString ptName):
     _appMode(appMode)
 {
     initOptions(appMode);
+
+    setPolygons(data);
 
     for (int aK=0; aK < _vPolygons.size(); ++aK)
     {
@@ -1637,9 +1642,19 @@ cGLData::cGLData(cData *data, int appMode):
     }
 }
 
+void cGLData::setPolygons(cData *data)
+{
+    for (int aK = 0; aK < data->getNbPolygons(); ++aK)
+    {
+        cPolygon* polygon = new cPolygon(*(data->getPolygon(aK)));
+        polygon->setHelper(new cPolygonHelper(polygon, 3));
+        _vPolygons.push_back(polygon);
+    }
+}
+
 void cGLData::setData(cData *data, bool setCam)
 {
-    for (int aK = 0; aK < data->getNbClouds();++aK)
+    for (int aK = 0; aK < data->getNbClouds(); ++aK)
     {
         GlCloud *pCloud = data->getCloud(aK);
         _vClouds.push_back(pCloud);
@@ -1669,9 +1684,12 @@ void cGLData::setData(cData *data, bool setCam)
             _vCams.push_back(pCam);
         }
 
+    setPolygons(data);
+
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
 }
+
 bool cGLData::incFirstCloud() const
 {
     return _incFirstCloud;
@@ -1722,22 +1740,8 @@ int cGLData::polygonCount()
 
 void cGLData::initOptions(int appMode)
 {
-    if (appMode == BOX2D)
-    {
-        _vPolygons.push_back(new cRectangle());
-    }
-    else if (appMode == BASC)
-    {
-        _vPolygons.push_back(new cPolygon(2));
-        _vPolygons.push_back(new cPolygon(2));
-        _vPolygons.push_back(new cPolygon(1));
-    }
-    else
-    {
-        _vPolygons.push_back(new cPolygon());
-    }
-
-    if ((appMode == POINT2D_INIT) || (appMode == POINT2D_PREDIC))
+    //TODO: retirer BASC si on saisit des vraies lignes...
+    if ((appMode == POINT2D_INIT) || (appMode == POINT2D_PREDIC) || (appMode == BASC))
         _modePt = true;
     else
         _modePt = false;

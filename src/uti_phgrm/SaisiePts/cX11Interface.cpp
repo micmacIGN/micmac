@@ -37,11 +37,9 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#if (ELISE_X11)
+
 #include "StdAfx.h"
-
-
-
-#if ELISE_windows == 0
 
 cX11_Interface::cX11_Interface(cAppli_SaisiePts &appli) :
     mCurWinIm     (0),
