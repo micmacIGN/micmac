@@ -296,7 +296,11 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 		#define _WIN32_WINNT 0x0500 // this is for windows 2000 and higher
 	#endif
 
-	#include <intrin.h>
+	#if (ELISE_MinGW)
+		#include <x86intrin.h>
+	#else
+		#include <intrin.h>
+	#endif
 	#pragma intrinsic(_InterlockedOr)
 	#pragma intrinsic(_InterlockedCompareExchange64)
     #include <Windows.h>
