@@ -10,7 +10,9 @@ elseif (MSVC80)
     GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 endif()
  
-set( ENV{PATH} "${VS_DIR}\\VC\\bin" ) 
+if (MSVC10 OR MSVC90 OR MSVC80)
+    set( ENV{PATH} "${VS_DIR}\\VC\\bin" )
+endif()
 
 execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu" "--run"
                  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
