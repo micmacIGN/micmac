@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "ReducHom.h"
 
+
+bool BugRHH = false;
+
 NS_RHH_BEGIN
 
 
@@ -251,6 +254,7 @@ void cImagH::TestCplePlan(int aKIm1,int aKIm2)
 }
 
 #if (1)
+
 std::string cImagH::EstimatePlan()
 {
 
@@ -291,11 +295,16 @@ std::string cImagH::EstimatePlan()
           std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
           cResMepRelCoplan aRCP = ElPackHomologue::MepRelCoplan(1,aHom,aPair);
           aLnk->Dest()->mVercp = aRCP.VElOk();
-          std::cout <<  aLnk->Dest()->Name();
           for (int aK=0 ; aK<int( aLnk->Dest()->mVercp.size()) ; aK++)
           {
-              std::cout <<  aLnk->Dest()->mVercp[aK].Norm() ;
-              aLnk->Dest()->mVTPlIm.push_back(cTestPlIm(aLnk, VData(aLnk->Dest()->mVercp)+aK,false));
+              BugRHH = (aKL==27) ; // && (aK==1);
+              if (BugRHH)
+              {
+                  std::cout <<  aLnk->Dest()->Name();
+                  std::cout <<  aLnk->Dest()->mVercp[aK].Norm() << aKL << " " << aK << "\n" ;
+             
+                  aLnk->Dest()->mVTPlIm.push_back(cTestPlIm(aLnk, VData(aLnk->Dest()->mVercp)+aK,false));
+              }
           }
           std::cout <<  "\n";
           // std::vector<cElemMepRelCoplan>  aVSol = aRCP.VElOk();
