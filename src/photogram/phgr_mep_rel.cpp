@@ -426,11 +426,13 @@ cElHomographie cElemMepRelCoplan::HomCam2Plan()
            Pt3dr aPPlan = aRE2P.ImAff(aPTer);
 
            aPack.Cple_Add(ElCplePtsHomologues(aPIm,Pt2dr(aPPlan.x,aPPlan.y)));
+std::cout << "HomCam2Plan "<< aPIm << aPTer  << aPPlan<< "\n";
 
            aResidu += ElAbs(aPPlan.z);
 
        }
    }
+std::cout << "========================== HomCam2Plan lan<< \n";
 
    cElHomographie aRes(aPack,true);
    for (ElPackHomologue::iterator itC=aPack.begin(); itC!=aPack.end(); itC++)

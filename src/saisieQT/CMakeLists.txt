@@ -21,7 +21,7 @@ if ( NOT ${qt_version} EQUAL 0 )
       add_executable(SaisieQT ${saisieQT_SRCS})
    endif()
 
-   target_link_libraries(SaisieQT elise)
+   target_link_libraries(SaisieQT elise ${X11_LIBRARIES})
 
    install(TARGETS SaisieQT DESTINATION ${Install_Dir})
 endif()
