@@ -321,7 +321,7 @@ void ReadLine_V02(
 
     bool lined = p.line.id < p.line.lenght;
 
-    const int regulZ  = (int)((float)1000.f*p.ZRegul);
+    const int regulZ  = (int)((float)10000.f*p.ZRegul);
 
     while(lined)
     {
