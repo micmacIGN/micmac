@@ -411,6 +411,8 @@ static double aEpsPl = 1e-2;
 static double aEpsHom = 5e-2;
 
 
+extern bool BugRHH;
+
 cElHomographie cElemMepRelCoplan::HomCam2Plan()
 {
    ElPackHomologue aPack;
@@ -440,7 +442,8 @@ std::cout << "========================== HomCam2Plan lan<< \n";
         double aD = euclid(aRes.Direct(itC->P1()) -itC->P2());
         aResidu += aD;
    }
-   // std::cout << "RRRRR " << aResidu << "\n";
+   if (BugRHH)
+       std::cout << "RRRRR " << aResidu << "\n";
    if (aResidu>=1e-4)
    {
       std::cout << "\nRESIDU " << aResidu << "\n";
