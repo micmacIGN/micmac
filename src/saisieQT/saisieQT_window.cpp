@@ -18,7 +18,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     initData();
 
-    init(_params->getNbFen().x()*_params->getNbFen().y(), _appMode > MASK3D);
+    init(_params, _appMode > MASK3D);
 
     setUI();
 
@@ -366,8 +366,13 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         text += tr("Echap: \t\tdelete polyline") +"\n";
 
 #ifdef ELISE_Darwin
-        text += tr("Ctrl+U: \tselect inside polyline") +"\n";
-        text += tr("Ctrl+Y: \t\tremove inside polyline") +"\n";
+    #if ELISE_QT_VERSION >= 5
+            text += tr("Ctrl+U: \tselect inside polyline") +"\n";
+            text += tr("Ctrl+Y: \t\tremove inside polyline") +"\n";
+    #else
+            text += tr("Space bar: \tselect inside polyline") +"\n";
+            text += tr("Del: \t\tremove inside polyline") +"\n";
+    #endif
 #else
         text += tr("Space bar: \tselect inside polyline") +"\n";
         text += tr("Del: \t\tremove inside polyline") +"\n";

@@ -15,7 +15,7 @@ visual_MainWindow::visual_MainWindow(const vector<cMMSpecArg> & aVAM,
                                      string aFirstArg,
                                      QWidget *parent):
     QWidget(parent),
-    mlastDir(QDir::homePath()),
+    mlastDir(QDir::currentPath()),
     mFirstArg(aFirstArg)
 {
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
@@ -301,7 +301,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
                             this,
                             tr("Select images"),
                             mlastDir,
-                            tr("Images (*.png *.xpm *.jpg *.tif);;Images (*.*)"));
+                            tr("Images (*.png *.jpg *.tif *.cr2 *.crw *.nef);;Images (*.*)"));
 
     if (files.size())
     {
@@ -505,8 +505,6 @@ void visual_MainWindow::add_label(QGridLayout* layout, QWidget* parent, int ak, 
 void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     QLineEdit* aLineEdit = new QLineEdit(parent);
-    vLineEdit.push_back(aLineEdit);
-    layout->addWidget(aLineEdit,aK,1,1,2);
 
     if (aArg.Type() == AMBT_string )
     {
@@ -518,23 +516,26 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     {
         if (aArg.IsExistDirOri() || aArg.IsDir())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &directory"), vInputs.size(), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &directory"), vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsPatFile())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &images"), vInputs.size(), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &images"), vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsExistFile())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vInputs.size(), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
             layout->addWidget(sButton,aK,3);
         }
     }
+
+    vLineEdit.push_back(aLineEdit);
+    layout->addWidget(aLineEdit,aK,1,1,2);
 
     vector< pair < int, QWidget * > > vWidgets;
     vWidgets.push_back(pair <int, QLineEdit*> (eIT_LineEdit, aLineEdit));

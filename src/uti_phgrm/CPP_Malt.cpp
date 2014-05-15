@@ -249,7 +249,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
   (
         argc,argv,
         LArgMain()
-                    << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"))
+                    << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)")
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
