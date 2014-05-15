@@ -16,7 +16,7 @@ public:
     GLWidgetSet();
     ~GLWidgetSet();
 
-    void init(uint aNb, bool modePt);
+    void init(cParameters *params, bool modePt);
 
     void setCurrentWidgetIdx(int aK);
     int  currentWidgetIdx()
@@ -54,6 +54,7 @@ private:
     GLWidget*           _zoomWidget;
     GLWidget*           _3DWidget;
     GLWidget*           _pcurrentWidget;
+
 };
 
 #endif // GLWIDGETGRID_H
