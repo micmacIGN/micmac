@@ -1,7 +1,16 @@
  file(GLOB_RECURSE IncuhCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.cuh  )
  file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
  list(APPEND IncCudaFiles ${IncuhCudaFiles})
-
+ 
+if (MSVC10)
+    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+elseif (MSVC90)
+    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+elseif (MSVC80)
+    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+endif()
+ 
+set( ENV{PATH} "${VS_DIR}\\VC\\bin" ) 
 
 execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu" "--run"
                  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
@@ -13,9 +22,6 @@ if(NOT _resultNVCC EQUAL 0)
       message(STATUS "Error Cuda")
 else()
       set(_cudaArch "${_outNVCC}")
-
-#      string(REPLACE "2.1" "2.1(2.0)" _cudaArch "${_cudaArch}")
-      #message("${_cudaArch}")
 endif()
 
 string(FIND "${_cudaArch}" "2.1" arch_21)
@@ -61,7 +67,7 @@ endif()
 
  message("Cuda capabilities SM ${_cudaArch} (${cuda_generation} generation)")
  set(GENCODE_SM -gencode=arch=compute_${cuda_arch_version},code=sm_${cuda_arch_version} ${flag_Lineinfo} ${flag_fastMath})
-
+ 
  set(libStatGpGpuTools GpGpuTools)
  set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
  set(libStatGpGpuOpt GpGpuOpt)
