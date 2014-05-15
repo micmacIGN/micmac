@@ -876,7 +876,8 @@ int Tapioca_main(int argc,char ** argv)
     }
 */
 
-    MkFT= MMDir() + "MkTapioca";
+    MkFT= aDir  + "MkTapioca";
+    // MkFT= MMDir() + "MkTapioca";
     //BinPastis = MM3dBinFile("Pastis");
     BinPastis = MM3dBinFile_quotes("Pastis");
 
