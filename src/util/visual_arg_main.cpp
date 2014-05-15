@@ -134,6 +134,8 @@ void setStyleSheet(QApplication &app)
         app.setStyleSheet(file.readAll());
         file.close();
     }
+    else
+        QMessageBox::critical(NULL, "Error", "Can't find qss file");
 }
 
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
