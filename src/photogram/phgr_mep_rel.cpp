@@ -443,7 +443,7 @@ std::cout << "========================== HomCam2Plan lan<< \n";
         aResidu += aD;
    }
    if (BugRHH)
-       std::cout << "RRRRR " << aResidu << "\n";
+       std::cout << "RRRRR " << aResidu  << " " << DPlan() << "\n";
    if (aResidu>=1e-4)
    {
       std::cout << "\nRESIDU " << aResidu << "\n";
