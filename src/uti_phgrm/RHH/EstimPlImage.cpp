@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "ReducHom.h"
 
 
-bool BugRHH = false;
 
 NS_RHH_BEGIN
 
@@ -202,11 +201,11 @@ double TestCohHomogr(const cTestPlIm & aPL1,const cTestPlIm & aPL2,bool H1On2,bo
    return aResidu;
 }
 
-cTestPlIm::cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan * aRMCP,bool Show) :
+cTestPlIm::cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan * aRMCP,bool Show, double anEpsRes) :
      mLnk     (aLnk),
      mRMCP    (aRMCP),
-     mHomI2T  (mRMCP->HomCam2Plan()),
-     mOk      (true)
+     mHomI2T  (mRMCP->HomCam2Plan(&mResiduH)),
+     mOk      (mResiduH < anEpsRes)
 {
 /*
             if (Show)
@@ -260,10 +259,10 @@ std::string cImagH::EstimatePlan()
 
     // On regarde si on est en mode focus sur une une image (mise au point);
      mPlanEst = false;
+     double aAltiCible = mAppli.AltiCible();
 /*
      bool FocusOnThisIm = false;
 
-     double aAltiCible = mAppli.AltiCible();
      if (mAppli.HasImFocusPlan())
      {
          if (mName != mAppli.ImFocusPlan())
@@ -289,22 +288,28 @@ std::string cImagH::EstimatePlan()
      for (int aKL=0 ; aKL<aNbL ; aKL++)
      {
           cLink2Img * aLnk   = aVL[aKL];
-          // std::cout << "TEPd " << aLnk->Dest()->Name() << "\n";
+          std::cout << "TEPd " << aLnk->Dest()->Name() ;
           // cElHomographie &   aHom = aLnk->Hom12();
           cElHomographie  aHom = aLnk->Dest()->H2ImC().Inverse();
           std::pair<Pt2dr,Pt2dr> aPair(Pt2dr(0,0),Pt2dr(0,0));
           cResMepRelCoplan aRCP = ElPackHomologue::MepRelCoplan(1,aHom,aPair);
           aLnk->Dest()->mVercp = aRCP.VElOk();
-          for (int aK=0 ; aK<int( aLnk->Dest()->mVercp.size()) ; aK++)
+          std::vector<cElemMepRelCoplan> &  aVRCP =   aLnk->Dest()->mVercp ;
+          for (int aK=0 ; aK<int( aVRCP.size()) ; aK++)
           {
-              BugRHH = (aKL==27) ; // && (aK==1);
-              if (BugRHH)
-              {
-                  std::cout <<  aLnk->Dest()->Name();
-                  std::cout <<  aLnk->Dest()->mVercp[aK].Norm() << aKL << " " << aK << "\n" ;
-             
-                  aLnk->Dest()->mVTPlIm.push_back(cTestPlIm(aLnk, VData(aLnk->Dest()->mVercp)+aK,false));
-              }
+              //    std::cout <<  aLnk->Dest()->Name();
+               aVRCP[aK] = aVRCP[aK].ToGivenProf(aAltiCible);
+               cTestPlIm  aTPI(aLnk, VData(aVRCP)+aK,false,1e-4*aAltiCible);
+               if (aTPI.mOk)
+               {
+                  if (aK==0)  std::cout << aVRCP[aK].Rot().ImRecAff(Pt3dr(0,0,0))  << aVRCP[aK].Norm() ;
+                  // std::cout <<  aLnk->Dest()->mVercp[aK].Norm() << aLnk->Dest()->mVercp[aK].DPlan() ;
+                  aLnk->Dest()->mVTPlIm.push_back(aTPI);
+               }
+               else
+               {
+                 std::cout << "*********";
+               }
           }
           std::cout <<  "\n";
           // std::vector<cElemMepRelCoplan>  aVSol = aRCP.VElOk();
