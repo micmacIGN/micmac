@@ -599,7 +599,7 @@ Pt2di cGBV2_ProgDynOptimiseur::direction(int aNbDir, int aKDir)
 {
     double teta = (double)((double)aKDir*PI)/(double)aNbDir;
 
-//    BUG cos double retourne NaN en Jp2!!!!!!!!!!!!!!!!
+//    BUG cos double retourne NaN en Jp2 avec GCC pas avec Clang!!!!!!!!!!!!!!!!
 //    double c    = std::cos(teta);
 //    double s    = std::sin(teta);
     double c    = std::cos((float)teta);

@@ -3,7 +3,7 @@ QToolTip
      border: 1px solid black;
      background-color: #ffa02f;
      padding: 1px;
-     border-radius: 3px;
+     border-radius: 1px;
      opacity: 100;
 }
 

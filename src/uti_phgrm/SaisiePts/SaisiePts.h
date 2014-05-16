@@ -306,7 +306,7 @@ class cVirtualInterface
 
     virtual void        RedrawAllWindows()=0;
 
-    virtual void        SetInvisRef(bool aVal)=0;         // sert � rendre les points r�fut�s invisibles ou visibles
+    virtual void        SetInvisRef(bool aVal)=0;         // sert a rendre les points refutes invisibles ou visibles
     bool                RefInvis() const    { return mRefInvis; }
 
     void                ChangeFreeNamePoint(const std::string &, bool SetFree);
@@ -406,7 +406,7 @@ public :
     cVirtualInterface*  mIntf;
 };
 
-#if ELISE_windows == 0
+#if (ELISE_X11)
 
 class cX11_Interface : public cVirtualInterface
 {
