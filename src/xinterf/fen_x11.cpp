@@ -509,10 +509,12 @@ void show_mask(char * mes,INT mask,INT nb)
 
 XImage *  Data_Elise_Video_Win::AllocXim(Pt2di sz)
 {
+    
+    //std::cout << "On passe ici"<<std::endl;
        return  XGetImage
                (
                    _devd->_disp,
-                   _w,
+                /*_w*/XDefaultRootWindow(_devd->_disp),
                    0,0,
                    sz.x,sz.y,
                    AllPlanes,ZPixmap
@@ -1161,6 +1163,7 @@ Data_Elise_Video_Win::Data_Elise_Video_Win
     // lorsque l'on passe dans le if(1) ci-dessus
     // empiriquement, l'erreur ne se produit pas si on utilise
     // XDefaultRootWindow(_devd->_disp) plutot que _w
+    //std::cout << "On passe la"<<std::endl;
     _xi = XGetImage
     (
      _devd->_disp,
