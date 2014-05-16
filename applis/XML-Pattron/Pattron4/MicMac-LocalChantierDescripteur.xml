@@ -1,0 +1,296 @@
+<!--
+
+
+ bin/Pastis /mnt/data/Archi/Monastier/120/  sg1l6359_MpDcraw8B_GB.tif sg1l6375_MpDcraw8B_GB.tif -1 FiltreOnlyDupl=1 MkF=MkToto IsRelancedByThis=1 OnlyXML=1
+
+
+     bin/Pastis /mnt/data/Archi/Chap-Monastier/Chap2-MPD-Pentax100/ Key-Rel-AllCpleLongueFoc -1 FiltreOnlyDupl=1 MkF=MkToto
+
+     make all -f MkToto -j2
+
+bin/Pastis /mnt/data/Archi/Chap-Monastier/Chap2-MPD-Pentax100/ Key-Rel-CpleGA-LF -1 FiltreOnlyDupl=1 KG1=Key-APG-Zone-LF-in-GA KG2=Key-APG-LF-scaled2-GA MkF=MkToto
+
+    make all -f MkToto -j2
+
+
+    bin/ImProfAndL2App  /mnt/data/Archi/Chap-Monastier/Chap2-MPD-Pentax100/   Key-Set-Hom-LFonGA  ../Glob-Chap24-MPD-50/GeoI/Nuage3DGeom-Im.tif  1 KPL2A=Key-Assoc-Homol2Appuis
+
+bin/Apero /mnt/data/Archi/Chap-Monastier/Chap2-MPD-Pentax100/Apero-Appuis.xml 
+
+
+-->
+
+<Global>
+
+  <ChantierDescripteur
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     PrefixImages="${SamsungPrefix}"
+     PostfixImages="${GrayBasicPostfix}"
+     PatternNumero="${SamsungPatternNumero}"
+     AutomateNumeroteur="${SamsungAutomateNumeroteur}"
+
+
+     TheCalibLongueFocale="DRadFinalePentax120mmSsFiltre.xml"
+     TheCalibGrandAngle="DRadFinalePentax28mm.xml"
+
+
+
+     PatternNumeroLF="63(5[6-9]|6[0-9]|7[0-9]|8[0-9]|9[0-1])"
+     NumeroImGA="6346"
+     DirGA="../28/"
+
+     ZoneImGA="550 0 2400 2023"
+     ScaleLF2GA="3.7"
+
+
+     PatternAllEnteteImLF="${PrefixImages}${PatternNumeroLF}${PostfixImages}"
+     EnteteImGdAngle="${PrefixImages}${NumeroImGA}${PostfixImages}"
+
+     PatternAllImLF="${PatternAllEnteteImLF}\.${TifPost}"
+     ImageGdAngle="${EnteteImGdAngle}\.${TifPost}"
+     Im3DGA="${DirGA}GeoI/Nuage3DGeom-Im.tif"
+
+  >
+
+       <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                  <ExeRequired>
+                       <Exe> bin/Pastis </Exe>
+                       <Make> Makefile </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/ImProfAndL2App </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/Apero </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/MICMAC </Exe>
+                       <Make> MakeMICMAC </Make>
+                  </ExeRequired>
+
+                  <FileRequired> 
+                         <Pattern> ${TheCalibLongueFocale} </Pattern>
+                         <Pattern> ${TheCalibGrandAngle} </Pattern>
+                         <Pattern> ${ImageGdAngle} </Pattern>
+
+                         <Pattern> ${Im3DGA} </Pattern>
+
+                          <Pattern> Apero-Appuis.xml </Pattern>
+                          <Pattern> param-GeoIm.xml </Pattern>
+                  </FileRequired>
+
+                  <FileRequired> 
+                         <Pattern> ${PatternAllImLF} </Pattern>
+                         <NbMin> 36 </NbMin>
+                         <NbMax> 36 </NbMax>
+                  </FileRequired> 
+
+              </Requirement>
+               
+
+<!--
+              <Line> bin/Pastis ${ThisDir} Key-Rel-CpleGA-LF -1 FiltreOnlyDupl=1 KG1=Key-APG-Zone-LF-in-GA KG2=Key-APG-LF-scaled2-GA MkF=MkToto
+              </Line>
+              <Line> make all -f MkToto -j2  </Line>
+
+-->
+
+              <Line> bin/Pastis  ${ThisDir} Key-Rel-AllCpleLongueFoc -1 FiltreOnlyDupl=1 MkF=MkToto </Line>
+              <Line> make all -f MkToto -j2  </Line>
+
+<!--
+
+               <Line> bin/ImProfAndL2App   ${ThisDir}   Key-Set-Hom-LFonGA  ${DirGA}GeoI/Nuage3DGeom-Im.tif  1 KPL2A=Key-Assoc-Homol2Appuis
+               </Line>
+
+              <Line> bin/Apero ${ThisDir}Apero-Appuis.xml </Line>
+              <Line> bin/MICMAC ${ThisDir}param-GeoIm.xml </Line>
+-->
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ^${ImageGdAngle} </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-TheImGA </Key>
+  </KeyedSetsOfNames>
+
+  
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> ^${PatternAllImLF} </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-AllImLongueFoc </Key>
+  </KeyedSetsOfNames>
+
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> Pastis${EnteteImGdAngle}-${PatternAllEnteteImLF}\.dat 
+                  </PatternAccepteur>
+                  <SubDir>   Homol/ </SubDir>
+           </Sets>
+           <Key > Key-Set-Hom-LFonGA </Key>
+  </KeyedSetsOfNames>
+
+
+
+
+   <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur>  Appuis-${PatternNumero}-From-${NumeroImGA}.xml </PatternAccepteur>
+                  <SubDir>   Appuis/ </SubDir>
+           </Sets>
+           <Key > Key-Set-Appuis-FromGA </Key>
+     </KeyedSetsOfNames>
+
+
+
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+<!-- 
+   GLOB-sg1l6451_MpDcraw8B_GB.tif
+-->
+
+  <APrioriImage>
+       <KeyedAddedSet>  Key-Set-TheImGA    </KeyedAddedSet>
+       <Key>  Key-APG-Zone-LF-in-GA </Key>
+       <ContenuAPrioriImage>
+              <Scale> 1.0 </Scale>
+              <BoiteEnglob>  ${ZoneImGA}  </BoiteEnglob>
+              <MatrixSplitBox>
+                 <KeyMatr> Key-Matrix-3x3-Plafond </KeyMatr>
+                 <Rab > 100 </Rab>
+              </MatrixSplitBox>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+
+
+ <APrioriImage>
+       <KeyedAddedSet>   Key-Set-AllImLongueFoc   </KeyedAddedSet>
+
+       <Key>  Key-APG-LF-scaled2-GA  </Key>
+       <ContenuAPrioriImage>
+              <Scale> ${ScaleLF2GA}  </Scale>
+       </ContenuAPrioriImage>
+  </APrioriImage>
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+  <KeyedSetsORels >
+       <Sets>
+           <ByAdjacence>
+               <KeySets > Key-Set-TheImGA </KeySets>
+               <KeySets > Key-Set-AllImLongueFoc </KeySets>
+
+               <DeltaMax > 10000  </DeltaMax>
+               <DeltaMin > -10000 </DeltaMin>
+           </ByAdjacence>
+       </Sets>
+       <Key>  Key-Rel-CpleGA-LF </Key>
+   </KeyedSetsORels>
+
+  <KeyedSetsORels >
+       <Sets>
+           <ByAdjacence>
+               <KeySets > Key-Set-AllImLongueFoc </KeySets>
+               <DeltaMax > 10000  </DeltaMax>
+               <DeltaMin > -10000 </DeltaMin>
+               <FiltreAdjMatrix> Key-Matrix-3x3-Plafond </FiltreAdjMatrix>
+           </ByAdjacence>
+       </Sets>
+       <Key>  Key-Rel-AllCpleLongueFoc </Key>
+   </KeyedSetsORels>
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ^${PatternAllImLF}  </PatternTransform>
+                       <CalcName> ${TheCalibLongueFocale} </CalcName>
+                 </Direct>
+             </Calcs>
+             <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ^${ImageGdAngle}  </PatternTransform>
+                       <CalcName> ${TheCalibGrandAngle} </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+  <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform>
+                            Homol/Pastis${AutomateNumeroteur}-${AutomateNumeroteur}\.dat
+                       </PatternTransform>
+                       <CalcName>  Appuis/Appuis-$2-From-$1.xml  </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-Homol2Appuis </Key>
+             <SubDirAutoMake> Appuis </SubDirAutoMake>
+   </KeyedNamesAssociations>
+
+
+  <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${AutomateNumeroteur}\.tif </PatternTransform>
+                       <CalcName>  Appuis/Appuis-$1-From-${NumeroImGA}.xml  </CalcName>
+                 </Direct>
+                 <Inverse>
+                       <PatternTransform> Appuis/Appuis-${PatternNumero}-From-${NumeroImGA}\.xml </PatternTransform>
+                       <CalcName>  ${PrefixImages}$1${PostfixImages}.tif  </CalcName>
+                 </Inverse>
+             </Calcs>
+             <Key>Key-Assoc-Im2AppuisOnGA</Key>
+             <SubDirAutoMake> Appuis </SubDirAutoMake>
+   </KeyedNamesAssociations>
+
+<!--   Matrices    -->
+<!--   Matrices    -->
+<!--   Matrices    -->
+
+   <KeyedMatrixStruct>
+         <Key>  Key-Matrix-3x3-Plafond </Key>
+         <Matrix>
+              <KeySet>  Key-Set-AllImLongueFoc  </KeySet>
+              <Period>  3 3 </Period>
+              <XCroissants> true  </XCroissants>
+              <YCroissants>  false </YCroissants>
+              <XVarieFirst>  false </XVarieFirst>
+         </Matrix>
+   </KeyedMatrixStruct>
+
+  </ChantierDescripteur>
+</Global>
