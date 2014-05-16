@@ -6,6 +6,10 @@ Convention Mise en place relative :
  // un point en coordonnee camera1, d'avoir
  // ses coordonnees en camera 2
   (extrait de include/general/photogram.h)
+  
+  C'est donc, seln la conv " Monde to Cam" l'orientation de la camera 2
+   R(P1=Pmonde) = P2
+
 
 
 Convention de sauvegarde de PointPoly  => Etalonage Polygone
