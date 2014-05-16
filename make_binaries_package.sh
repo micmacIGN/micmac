@@ -3,12 +3,13 @@ rm -rf build
 mkdir build
 cd build
 
-if [ "$1" = "serveur" ]
-then
-	SERVER_PARAMS="-DKAKADU_NO_FIND=1 -DKAKADU_DIR=/usr/kakadu-6.0 -DWITH_HEADER_PRECOMP=0"
-fi
+#if [ "$1" = "serveur" ]
+#then
+#	SERVER_PARAMS="-DKAKADU_NO_FIND=1 -DKAKADU_DIR=/usr/kakadu-6.0 -DWITH_HEADER_PRECOMP=0"
+#fi
 
-cmake ../ $SERVER_PARAMS
+#cmake ../ $SERVER_PARAMS
+cmake .. -DWITH_KAKADU=1 -DKAKADU_DIR=$PWD/../../kakadu
 
 OS=$(uname -s)
 
