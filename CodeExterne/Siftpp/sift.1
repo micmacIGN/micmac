@@ -1,0 +1,248 @@
+.Dd March 2008
+.Os
+.Dt SIFT 1
+.Sh NAME
+.Nm sift
+.Nd Scale Invariant Feature Transform
+.Sh SYNOPSIS
+.Nm
+.Op Fl vhb 
+.Op Fl o Ar filename
+.Op Fl k Ar filename
+.Op Fl p Ar prefix
+.Op Fl S Ar number 
+.Op Fl O Ar number
+.Op Fl t Ar number
+.Op Fl e Ar number
+.Op Fl \-save\-gss
+.Op Fl \-no\-descriptors
+.Op Fl \-no\-orientations
+.Op Fl \-stable\-order
+.Op Fl \-floating\-point
+.Op Fl \-unnormalized
+file.pgm ...
+.Sh OPTIONS
+.Bl -tag
+.It Fl \-verbose , Fl v
+Be verbose.
+.It Fl \-help , Fl h
+Print a summary of options.
+.It Fl \-output Ar outfile , Fl o Ar outfile
+Wirte the keypoints to 
+.Ar outfile.
+.It Fl \-prefix Ar prefix , Fl p Ar prefix
+Derive the output filename prefixing 
+.Ar prefix
+to the input filename.
+.It Fl \-binary , Fl b
+Write the descriptors to a binary file. The name of this file
+is derived from the output filename by removing the `.key' suffix
+and adding the `.desc' suffix.
+.It Fl \-keypoints Ar filename, Fl k Ar filename
+Instead of running the SIFT detector, read the keypoints from
+.Ar file name
+(but still compute the descriptors).
+.It Fl \-save\-gss
+Save the layers of the Gaussian scale space. This produces a
+\.pgm file for each level of the pyramid. The name of these file
+is derived from the output filename by removing the `.pgm' suffix,
+and adding the index of the level and the `.pgm' suffix.
+.It Fl \-octaves Ar number ,  Fl O Ar number
+Set the number of octave to 
+.Ar number.
+If not specified, this value is automatically
+computed to span all possible octaves.
+.It Fl \-levels Ar number ,  Fl S Ar number
+Set the number of levels per octave to 
+.Ar number.
+The default value is 3.
+.It Fl \-first\-octave Ar number
+Set the index of the first octave of the pyramid to
+.Ar number.
+The default value is -1.
+.It Fl \-threshold Ar number, Fl t Ar number 
+Set the SIFT detector threshold to
+.Ar number.
+.It Fl \-edge\-threshold Ar number , Fl e Ar number
+Set the SIFT detector edge rejection threshold to
+.Ar number.
+.It Fl \-no\-descriptors
+Do not compute nor wirte to the output file the descriptors.
+.It Fl \-no\-orientations
+Set implicitly the orientation of all keypoints to zero.
+.It Fl \-stable\-order
+Preserve the order of keypoints read from a file.
+.It Fl \-floating\-point
+Save descriptors as floating-point numbers.
+.It Fl \-unnormalized
+Do not normalize the descriptors.
+.El
+.Sh OVERVIEW
+.Nm
+computes D. Lowe's Scale Invariant Feature Transform (SIFT). The
+program can be used to process either a single image or several images
+in a batch.  It is possible to customize the most important parameters
+of the algorithm and to generate descriptors for keypoints computed
+externally.
+.Pp
+In the most simple form
+.Nm
+takes an image in PGM format and computes its SIFT keypoints and the
+relative descriptors, producing a
+.Ql .key
+ASCII file. This file has one line per keypoint, with the x and y
+coordinates (pixels), the scale (pixels), the orientation (radians)
+and 128 numbers (in the range 0-255) representing the descriptor. This
+file is almost equivalent to the output of D. Lowe's original
+implementation, except that x and y are swapped and the orientation is
+negated due to a different choice of the image coordinate system.
+.Fl \-floating-point
+can be used to save full floating point descriptors instead of integer
+descriptors.
+
+.Pp
+By default, the name of the ouptut file is obtained by removing the
+.Ql .pgm
+suffix (if any) from the name of the input file and then appending the
+.Ql .key
+suffix. The option
+.Fl \-output Ar name
+changes this behaviour and uses the name
+.Ar name
+instead. 
+.Fl \-output
+works only when processing a single image. When processing image
+batches, you can use the
+.Fl \-prefix Ar prefix
+option, which constructs the name of each output file by prefixing
+.Ql prefix
+.Ar prefix
+to the base name of the corresponding input file, and then
+substituting
+.Ql .pgm
+with
+.Ql .key
+as before. Note that
+.Ar prefix
+is added verbatim to the name. If 
+.Ar prefix 
+is a directory, it should explicitly contain trailing file separator
+.Ql / \.
+
+.Pp
+Descriptors occupy lots of disk space, especially if saved in ASCII
+format. This problem can be alleviated by specifying the
+.Fl \-binary
+option, which writes (only) the descriptors to a separate file in
+binary format.  The name of this file is obtained by removing the
+suffix
+.Ql .key 
+(if any) from the name of the keypoint output file, and then appending
+the suffix
+.Ql .desc 
+to it. Descriptors and keypoints are written to their files in the
+same order and each component of a descriptor takes exactly one
+byte. If this option is used in conjunction with
+.Fl \-floating-point ,
+then the descriptors are saved as 32 bit IEEE floats, with each
+component taking exactly four bytes. Big-endian (most-significant byte
+first, network order) format is used.
+.Pp
+Sometimes one wants to compute the descriptors of keypoints generated
+externally. This can be done by the
+.Fl \-keypoints Ar file.key
+option, which reads the keypoints from
+.Ar file.key .
+This file has the same format of the keypoint files produced by
+.Nm
+(except that the descriptors are omitted). Keypoints are then written
+along with their descriptors to the output file as normal.  In the
+process keypoints are re-ordered by increasing scale, which means that
+the ordering of the input and output file may differ. This reordering
+can be prevented by specifying
+.Fl \-stalbe\-oder .
+If this option is used, it is recommended to provide keypoints already
+ordered by scale as this may significantly improve the computation
+speed. Note that
+.Fl \-keypoints
+is limited to process a single image per time.
+
+.Pp
+The SIFT algorithm computes a Gaussian pyramid of the input image. To
+change the number of octaves, the index of the first octave and the
+number of levels per octave of the pyramid, use the options
+.Fl \-octaves ,
+.Fl \-first-octave
+and
+.Fl \-levels
+respectively. Note that setting
+.Fl \-first-octave
+to -1, -2, ... will cause the base of the pyramid to be two,
+three, ... times larger than the input image. Usually going beyond -1
+makes little sense.
+.Pp
+In order to select reliable keypoints, SIFT rejects extrema of the
+Difference of Gaussian scale space which are smaller than a threshold
+specified by
+.Fl \-threshold .
+It also rejects keypoints that have an on-edge score above another
+threshold specified by
+.Fl \-edge-threshold.
+
+Other options enable further customization of the algorithm.
+.Fl \-unnormalized
+disables the normalization of the descriptors. In this case descriptors
+entries are likely to overflow byte sizes, so this option
+should always be used in conjunction with
+.Fl \-floating-point.
+
+.Sh EXAMPLES
+.Bl -bullet
+.It 
+Read the image
+.Ql image.pgm 
+and write keypoints and descriptors to
+.Ql image.key :
+.Dl > sift image.pgm
+.It
+Same as above, but use null thresholds
+.Dl > sift -t 0 -e 0 image.pgm
+.It
+Same as above, but do
+.Em not
+double the resolution of the image as part of the computation
+of the Gaussian scale space:
+.Dl > sift --first-octave 0 image.pgm
+.It 
+Read the image
+.Ql image.pgm
+and write the keypoints to
+.Ql image.key
+and the descriptor in binary format to
+.Ql image.desc :
+.Dl > sift -b image.pgm
+.It 
+Read the images
+.Ql image1\&.pgm
+and
+.Ql image2.pgm
+and write the keypoints and descriptors to
+.Ql /tmp/image1.key
+and
+.Ql /tmp/image2.key :
+.Dl > sift -p /tmp/ image1.pgm image2.pgm
+.It
+Read the image
+.Ql image.pgm
+and the keypoints
+.Ql image.key
+and write keypoints and descriptors to
+.Ql /tmp/image.key :
+.Dl > sift -p /tmp/ -k image.key image.pgm
+.It 
+Same as above, but writes the descriptors in binary format to
+.Ql /tmp/image.desc :
+.Dl > sift -b -p /tmp/ -k image.key image.pgm
+.El
+.Sh SEE ALSO
+.Xr convert 1 ,
