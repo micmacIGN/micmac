@@ -8,8 +8,10 @@ GLWidgetSet::GLWidgetSet() :
 const QColor colorBG0("#323232");
 const QColor colorBG1("#808080");
 
-void GLWidgetSet::init(uint aNb, bool modePt)
+void GLWidgetSet::init(cParameters *params, bool modePt)
 {
+    int aNb = params->getNbFen().x()*params->getNbFen().y();
+
     if (aNb==0)
         return;
 
@@ -18,10 +20,10 @@ void GLWidgetSet::init(uint aNb, bool modePt)
     _widgets[0] = new GLWidget(0, NULL);
     _pcurrentWidget = _widgets[0];
 
-    for (uint aK=1 ; aK < aNb; ++aK)
+    for (int aK=1 ; aK < aNb; ++aK)
         _widgets[aK] = new GLWidget( aK, (const QGLWidget*)_widgets[0]);
 
-    for (uint aK=0 ; aK < aNb; ++aK)
+    for (int aK=0 ; aK < aNb; ++aK)
     {
         _widgets[aK]->setBackgroundColors(colorBG0,colorBG1);
         if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
@@ -29,10 +31,10 @@ void GLWidgetSet::init(uint aNb, bool modePt)
 
     if (modePt)
     {
-        _zoomWidget = new GLWidget(-1, (const QGLWidget*)_widgets[0]);        
+        _zoomWidget = new GLWidget(-1, (const QGLWidget*)_widgets[0]);
         _zoomWidget->setBackgroundColors(colorBG1,colorBG1);
         _zoomWidget->setContextMenuPolicy( Qt::NoContextMenu );
-        _zoomWidget->setOption(cGLData::OpShow_Mess,false);        
+        _zoomWidget->setOption(cGLData::OpShow_Mess,false);
         _zoomWidget->setZoom(3.f);
 
         _3DWidget   = new GLWidget(10, (const QGLWidget*)_widgets[0]);
