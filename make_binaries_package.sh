@@ -9,7 +9,7 @@ cd build
 #fi
 
 #cmake ../ $SERVER_PARAMS
-cmake .. -DKAKADU_DIR=../kakadu
+cmake .. -DWITH_KAKADU=1 -DKAKADU_DIR=$PWD/../../kakadu
 
 OS=$(uname -s)
 
