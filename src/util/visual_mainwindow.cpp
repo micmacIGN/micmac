@@ -5,8 +5,8 @@
 // aVAM: Mandatory args
 // aVAO: Optional args
 
-static int IntMin = -1000;
-static int IntMax =  1000;
+static int IntMin = -10000;
+static int IntMax =  10000;
 static double DoubleMin = -10000.;
 static double DoubleMax =  10000.;
 
