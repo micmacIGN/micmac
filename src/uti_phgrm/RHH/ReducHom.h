@@ -266,11 +266,12 @@ class cLink2Img  // dans cImagH.cpp
 class cTestPlIm
 {
     public :
-        cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan * aRMCP,bool Show) ;
+        cTestPlIm(cLink2Img * aLnk,cElemMepRelCoplan * aRMCP,bool Show,double aEps) ;
 
         cLink2Img *               mLnk;
         cElemMepRelCoplan*        mRMCP;
         cElHomographie            mHomI2T;
+        double                    mResiduH;
         bool                      mOk;
     private :
         // cTestPlIm(const cTestPlIm&);  // N.I.
