@@ -1,0 +1,78 @@
+Pour compiler l'interface, Qt4, micmac et tiff2rgba doivent déjà être installés
+
+Pour installer Qt4 avec Ubuntu, taper dans l'invite de commande :
+	sudo aptitude install qt4-dev-tools
+	sudo aptitude install qt4-qmake
+Avec Windows ou Mac, télécharger l'installateur via
+	http://qt.nokia.com/downloads
+(sélectionner Qt SDK license LGPL)
+
+Pour installer micmac, télécharger les sources par svn depuis
+	http://www.micmac.ign.fr/svn/micmac/trunk/
+Le dossier de micmac doit s'appeler "micmac"
+Attention : il se peut que la version de micmac ne soit pas compatible avec la version de l'interface ! Dans ce cas m'envoyer un e-mail que je mette l'interface à jour.
+
+Installer tiff2rgba :
+- via aptitude pour Ubuntu :
+	sudo aptitude install libtiff-tools
+tiff2rgba se trouve dans /usr/bin/
+- via le site pour Windows : http://gnuwin32.sourceforge.net/packages/tiff.htm (binaries)
+- télécharger les sources pour Mac :
+	http://dl.maptools.org/dl/libtiff/ (tiff-3.8.2.zip)
+Puis dans l'invite de commande :
+	cd "le dossier libtiff"
+	./configure
+	cd port/
+	make libport.la
+	cd ../libtiff/
+	make libtiff.la
+	cd ../tools/
+	make tiff2rgba
+tiff2rgba se trouve dans "le dossier libtiff"/tools/
+Déplacer le fichier tiff2rgba dans "le dossier interfaceMicmac"/lib/
+
+Compiler l'interface et micmac :
+- lancer compil.bash dans un terminal
+
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+
+To compile the interface, Qt4, Micmac and tiff2rgba must be already installed
+
+To install Qt4 with Ubuntu, type in the command prompt:
+	sudo aptitude install qt4-dev-tools
+	sudo aptitude install qt4-qmake
+If you use Windows or Mac, download the installer via
+	http://qt.nokia.com/downloads
+(select Qt SDK LGPL)
+
+To install MicMac, download the sources from svn :
+	http://www.micmac.ign.fr/svn/micmac/trunk/
+The directory must be named "micmac"
+Warning: The Micmac version may not be compatible with the version of the interface! In this case, please send me an e-mail so that I can update the interface.
+
+Install tiff2rgba:
+	- Via aptitude for Ubuntu:
+			sudo aptitude install libtiff-tools
+		tiff2rgba is in /usr/bin/
+	- Via the website for Windows: http://gnuwin32.sourceforge.net/packages/tiff.htm (binaries)
+	- Download the sources for Mac:
+			http://dl.maptools.org/dl/libtiff/ (tiff-3.8.2.zip)
+		Then in the command prompt:
+			cd "folder libtiff"
+			. / Configure
+			cd / port
+			make libport.la
+			cd .. / libtiff /
+			make libtiff.la
+			cd .. / tools /
+			make tiff2rgba
+		tiff2rgba is in "directory libtiff"/tools/
+Move tiff2rgba to the directory "directory interfaceMicmac"/lib/
+
+Compile the interface:
+- launch compil.bash in a terminal
+
