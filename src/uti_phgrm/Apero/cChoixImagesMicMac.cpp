@@ -565,7 +565,7 @@ void cPoseCdtImSec::MakeImageOccup()
            mTImOccup.oset(aPi,aPds);
        }
    }
-   Tiff_Im::Create8BFromFonc("Pds"+mPC->Name()+".tif",mTImOccup.sz(),mTImOccup._the_im.in()*(255.0/(1+4+9+1/4.0)));
+   // Tiff_Im::Create8BFromFonc("Pds"+mPC->Name()+".tif",mTImOccup.sz(),mTImOccup._the_im.in()*(255.0/(1+4+9+1/4.0)));
 }
 
 double  cPoseCdtImSec::Recouvrt(const cPoseCdtImSec & aPCIS2) const
