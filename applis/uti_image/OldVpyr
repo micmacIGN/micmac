@@ -1,0 +1,169 @@
+#include "general/all.h"
+#include "private/all.h"
+#include<algorithm>
+
+
+
+class VRed
+{
+	public :
+
+		Tiff_Im 		tiff;
+		INT 			Reduc;
+
+
+		VRed(char * name,INT REDUC) :
+			tiff	(name),
+			Reduc	(REDUC)
+		{
+		}
+
+		bool operator < (const VRed & V2) const {return Reduc>V2.Reduc;}
+};
+
+
+
+Elise_Palette StdTiffPal(Tiff_Im tiff)
+{
+	if (tiff.phot_interp() == Tiff_Im::RGB)
+		return RGB_Pal(6,6,6);
+
+	return Gray_Pal(80);
+}
+	
+
+
+class APPLI
+{
+	public :
+
+		APPLI(Pt2di sz,vector<VRed> &); 
+
+		vector<VRed> & 				reds;
+		
+		INT							ACur;
+		INT							ZCur;
+		Pt2di						TrCur;
+		Elise_Palette               Pal;
+		Elise_Set_Of_Palette        SOP;
+		Video_Display               Ecr;
+		Video_Win                   W;
+
+
+		REAL Ratio() {return reds[ACur].Reduc/(REAL)ZCur;}
+
+		void load();
+		void ChCoord();
+};
+
+
+void APPLI::load()
+{
+	 ELISE_COPY
+	(
+		W.all_pts(),
+		trans(reds[ACur].tiff.in(0),TrCur/  reds[ACur].Reduc),
+		W.chc(Pt2di(0,0),Pt2di(ZCur,ZCur)).out(Pal)
+	);	
+}
+
+void APPLI::ChCoord()
+{
+	Clik cl = W.clik_in();
+	
+    Pt2dr pt = TrCur + cl._pt * Ratio();
+
+
+	switch (cl._b)
+	{
+		case 1 :
+			if (ZCur > 1) 
+				ZCur /= 2;
+			else
+				ACur = ElMax(0,ACur-1);
+		break;
+
+		case 2 :
+		break;
+
+
+		default :
+			if (ACur<((INT)reds.size() -1))
+				ACur ++;	
+			else
+				ZCur *= 2;
+		break;
+	}
+
+
+	TrCur = pt - W.sz() * Ratio() / 2.0;
+
+}
+
+APPLI::APPLI(Pt2di sz,vector<VRed> & REDS) :
+	reds 	(REDS),
+	ACur 	(0),
+	ZCur 	(1),
+	TrCur	(0,0),
+	Pal		(StdTiffPal(REDS[0].tiff)),
+	SOP		(newl(Pal)),
+	Ecr		((char *)NULL),
+	W		(Ecr,SOP,Pt2di(50,50),sz)
+{
+	Ecr.load(SOP);
+	load();
+}
+
+
+
+main(int argc,char ** argv)
+{
+
+	string Name;
+    vector<INT> Zooms;
+
+	Pt2di	Sz(1000,800);
+
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain() 	<< EAM(Name) ,
+		LArgMain() 	<< EAM(Sz,"Sz",true)
+			
+	);	
+
+
+	vector<VRed> reds;
+
+	for (INT k=0;k<100; k++)
+	{
+		char buf[1000];
+		sprintf(buf,"%s%d.tif",Name.c_str(),k);
+		if (ELISE_fp::exist_file(buf)) 
+		{
+			reds.push_back(VRed(buf,k));
+		}
+	}
+
+	if (reds.size() ==0)
+	{
+		cout << "Find no File \n";
+		exit(-1);
+	}
+
+	STDSORT(reds.begin(),reds.end());
+
+	APPLI Ap(Sz,reds);
+
+	while (true)
+	{
+		Ap.ChCoord();
+		Ap.load();
+	}
+
+	getchar();
+}
+
+
+
+
