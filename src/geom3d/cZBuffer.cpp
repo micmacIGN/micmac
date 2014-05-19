@@ -44,6 +44,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 static const REAL Eps = 1e-7;
 
+static const int SzDalleDef = 50;
+
 
 // static bool AssertT0 = false;
 
@@ -66,13 +68,18 @@ cZBuffer::cZBuffer
    mDynEtire   (-1),
    mImEtirement(1,1),
    mWihBuf     (true),
+   mBufDone    (false),
    mImX3       (1,1),
    mTX3        (mImX3),
    mImY3       (1,1),
    mTY3        (mImY3),
    mImZ3       (1,1),
    mTZ3        (mImZ3),
-   mEpsIntInv  (1e-5)
+   mEpsIntInv  (1e-5),
+   mTImDefA    (Pt2di(1,1)),
+   mTImDefB    (Pt2di(1,1)),
+   mTImDefC    (Pt2di(1,1)),
+   mTImDefD    (Pt2di(1,1))
 {
 }
 
@@ -85,6 +92,9 @@ void cZBuffer::SetEpsilonInterpoleInverse(double anEps)
 void  cZBuffer::SetDynEtirement(double aDyn)
 {
     mDynEtire = aDyn;
+    ELISE_ASSERT(!mBufDone,"Internal Error in cZBuffer; Cannot Set Etyr since Buf Done");
+    if (aDyn >0)
+        mWihBuf = true;
 }
 
 
@@ -154,16 +164,34 @@ Im2D_REAL4 cZBuffer::Basculer
     Pt2di aPIn;
     
     int aNbPts=0,aNbOkTer=0,aNbOkIm=0;
-    for (aPIn.x=aP0In.x ; aPIn.x<aP1In.x; aPIn.x++)
+
+    int aSzXDef = (aP1In.x-aP0In.x + SzDalleDef -1) / SzDalleDef;
+    int aSzYDef = (aP1In.y-aP0In.y + SzDalleDef -1) / SzDalleDef;
+    Pt2di aSzDef(aSzXDef,aSzYDef);
+    mTImDefA.Resize(aSzDef);
+    mTImDefB.Resize(aSzDef);
+    mTImDefC.Resize(aSzDef);
+    mTImDefD.Resize(aSzDef);
+
+    // double a
+    for (int anXDal0 = aP0In.x ;  anXDal0< aP1In.x ; anXDal0 += SzDalleDef  )
     {
-        for (aPIn.y=aP0In.y ; aPIn.y<aP1In.y; aPIn.y++)
+        int anXDal1 = ElMin(aP1In.x,anXDal0+SzDalleDef);
+        for (int anYDal0 = aP0In.y ;  anYDal0< aP1In.y ; anYDal0 += SzDalleDef  )
         {
+             int anYDal1 = ElMin(aP1In.y,anYDal0+SzDalleDef);
+             std::vector<double> aVZofXY;
+             for (aPIn.x=anXDal0 ; aPIn.x<anXDal1; aPIn.x++)
+             {
+                  for (aPIn.y=anYDal0 ; aPIn.y<anYDal1; aPIn.y++)
+                  {
 			aNbPts++;
 			if (SelectP(aPIn))
 			{
 				aNbOkTer++;
+                                double aZofXY;
 
-				Pt3dr aP3Out = ProjDisc(aPIn);
+				Pt3dr aP3Out = ProjDisc(aPIn,&aZofXY);
 				Pt2dr aP2Out(aP3Out.x,aP3Out.y);
 
 
@@ -181,8 +209,25 @@ Im2D_REAL4 cZBuffer::Basculer
 					  mDZ3[aPIn.y-aP0In.y][aPIn.x-aP0In.x] = (tElZB)aP3Out.z;
 				   }
 				   mImOkTer.set(aPIn.x-mP0In.x,aPIn.y-mP0In.y,1);
+                                   if (mDynEtire >0) aVZofXY.push_back(aZofXY);
 				}
 			}
+                }
+            }
+            if (mDynEtire >0)
+            {
+                Pt2di anIndexDef((anXDal0-aP0In.x)/SzDalleDef,(anYDal0-aP0In.y)/SzDalleDef);
+                if (! aVZofXY.empty())
+                {
+                }
+                else
+                {
+                   mTImDefA.oset(anIndexDef,0.0);
+                   mTImDefB.oset(anIndexDef,0.0);
+                   mTImDefC.oset(anIndexDef,0.0);
+                   mTImDefD.oset(anIndexDef,0.0);
+                }
+            }
         }
     } 
     // std::cout << "TER " << aNbOkTer/double(aNbPts) << " IM " << aNbOkIm/double(aNbPts) << "\n";
@@ -459,7 +504,7 @@ Pt3dr cZBuffer::ProjDisc(const Pt3dr & aPInDisc) const
          
 }
 
-Pt3dr cZBuffer::ProjDisc(const Pt2di & aPInDisc) const
+Pt3dr cZBuffer::ProjDisc(const Pt2di & aPInDisc,double * aPtrValZofXY) const
 {
     if (mBufDone)
     {
@@ -483,7 +528,11 @@ Pt3dr cZBuffer::ProjDisc(const Pt2di & aPInDisc) const
                );
         return aP;
     }
-    return ProjDisc(Pt3dr(aPInDisc.x,aPInDisc.y,ZofXY(aPInDisc)));
+ 
+    double  aValZofXY = ZofXY(aPInDisc);
+    if (aPtrValZofXY) *aPtrValZofXY = aValZofXY;
+    return ProjDisc(Pt3dr(aPInDisc.x,aPInDisc.y,aValZofXY));
+    // return ProjDisc(Pt3dr(aPInDisc.x,aPInDisc.y,ZofXY(aPInDisc)));
 }
 
 Pt3dr cZBuffer::ProjReelle(const Pt2dr  & aPIn,bool & Ok) const

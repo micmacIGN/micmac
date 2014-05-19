@@ -605,7 +605,7 @@ class cZBuffer
 
        // Utilise le "MNT" pour trouver le Z, si il y a  un buff,
        // fait une simple lecture
-        Pt3dr ProjDisc(const Pt2di  &) const;
+        Pt3dr ProjDisc(const Pt2di  &,double * aPtrValZofXY=0) const;
         Pt3dr ProjReelle(const Pt2dr  &,bool &OK) const;
 
 
@@ -682,6 +682,13 @@ class cZBuffer
         Pt2di        mSzIn;
 
         double       mEpsIntInv;
+
+        //    (A B)  est l'inverse de la matrice qui envoie un pixe (1,0) (0,1) Z=Moyen vers l'espace d'arrivee
+        //    (C D)
+        TIm2D<REAL8,REAL8>   mTImDefA;
+        TIm2D<REAL8,REAL8>   mTImDefB;
+        TIm2D<REAL8,REAL8>   mTImDefC;
+        TIm2D<REAL8,REAL8>   mTImDefD;
 };
 
 class cArgBacule
