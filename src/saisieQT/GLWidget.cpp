@@ -549,7 +549,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
                 polygon()->translate(pos - translation);
             }
-            else if ( (m_bDisplayMode2D && isPtInsideIm(pos)) || (m_interactionMode == SELECTION) )// REFRESH HELPER POLYGON
+            else if ( m_bDisplayMode2D || (m_interactionMode == SELECTION) )// REFRESH HELPER POLYGON
             {
                 int id = polygon()->getSelectedPointIndex();
 
