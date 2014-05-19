@@ -217,8 +217,21 @@ Im2D_REAL4 cZBuffer::Basculer
             if (mDynEtire >0)
             {
                 Pt2di anIndexDef((anXDal0-aP0In.x)/SzDalleDef,(anYDal0-aP0In.y)/SzDalleDef);
-                if (! aVZofXY.empty())
+                int aNbVal = aVZofXY.size();
+                if (aNbVal)
                 {
+                      double aZMed  = KthVal(VData(aVZofXY),aNbVal,aNbVal/2);
+                      Pt3dr aPMed((anXDal0+anXDal1)/2.0,(anYDal0+anYDal1)/2.0,aZMed);
+
+                      Pt3dr aDerX = (ProjDisc(aPMed+Pt3dr(1,0,0)) - ProjDisc(aPMed+Pt3dr(-1,0,0))) / 2.0;
+                      Pt3dr aDerY = (ProjDisc(aPMed+Pt3dr(0,1,0)) - ProjDisc(aPMed+Pt3dr(0,-1,0))) / 2.0;
+
+                      ElMatrix<double> aJac =  MatFromCol(Pt2dr(aDerX.x,aDerX.y),Pt2dr(aDerY.x,aDerY.y));
+                      aJac = gaussj(aJac);
+                      mTImDefA.oset(anIndexDef,aJac(0,0));
+                      mTImDefB.oset(anIndexDef,aJac(1,0));
+                      mTImDefC.oset(anIndexDef,aJac(0,1));
+                      mTImDefD.oset(anIndexDef,aJac(1,1));
                 }
                 else
                 {
