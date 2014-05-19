@@ -144,9 +144,13 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
                     << EAM(mOut,"Out",true)
 
     );
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
     ELISE_ASSERT(mRab>=0,"Rab <0");
+
+
+     StdCorrecNameOrient(mKeyFile,mDir);
+
 
 
     cTplValGesInit<std::string>  aTplFCND;
