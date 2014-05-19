@@ -190,12 +190,13 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 closeAll();
                 initData(); //TODO: ne pas détruire les polygones dans le closeAll
             }
-            //else if (filenames.size() == 1) _mode = MASK2D;
+
+            if ((filenames.size() == 1) && (_appMode != BOX2D)) _appMode = MASK2D;
 
             _Engine->loadImages(filenames);
         }
 
-        _Engine->allocAndSetGLData(_appMode, _params->getDefPtName());
+        _Engine->allocAndSetGLData(_appMode, *_params);
 
         if (setGLData)
         {
@@ -397,24 +398,32 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     text += "Ctrl+Z: \t\t"+tr("undo last action") +"\n";
     text += "Ctrl+Shift+Z: \t"+tr("redo last action") +"\n";
 
-    QMessageBox msgbox(QMessageBox::Information, QApplication::applicationName() + tr(" shortcuts"),text);
-    msgbox.setWindowFlags(msgbox.windowFlags() | Qt::WindowStaysOnTopHint);
-    msgbox.exec();
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setText(text);
+    msgBox->setWindowTitle(QApplication::applicationName() + tr(" shortcuts"));
+    msgBox->setIcon(QMessageBox::Information);
+    msgBox->setWindowFlags(msgBox->windowFlags() | Qt::WindowStaysOnTopHint);
+
+    msgBox->setWindowModality(Qt::NonModal);
+    msgBox->show();
 }
 
 void SaisieQtWindow::on_actionAbout_triggered()
 {
     QFont font("Courier New", 9, QFont::Normal);
 
-    QMessageBox msgbox(QMessageBox::NoIcon, tr("Saisie"),QString(getBanniereMM3D().c_str()));
-    msgbox.setFont(font);
+    QMessageBox *msgBox = new QMessageBox(this);
+    msgBox->setText(QString(getBanniereMM3D().c_str()));
+    msgBox->setWindowTitle(QApplication::applicationName());
+    msgBox->setFont(font);
 
     //trick to enlarge QMessageBox...
     QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    QGridLayout* layout = (QGridLayout*)msgbox.layout();
+    QGridLayout* layout = (QGridLayout*)msgBox->layout();
     layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
 
-    msgbox.exec();
+    msgBox->setWindowModality(Qt::NonModal);
+    msgBox->show();
 }
 
 void SaisieQtWindow::resizeEvent(QResizeEvent *)

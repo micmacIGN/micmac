@@ -645,6 +645,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
 }
 
 cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
+    _helper(new cPolygonHelper(this, 3)),
     _bIsClosed(isClosed)
 {
     setVector(points);
@@ -663,7 +664,8 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
     _maxSz(maxSz)
 {
     if (!withHelper) _helper = NULL;
-    cObject::setColor(pointColor);
+
+    setColor(pointColor);
     setLineWidth(lineWidth);
 
     _dashes << 3 << 4;
@@ -1114,7 +1116,7 @@ int cPolygon::finalMovePoint()
 {
     int idx = _idx;
 
-    if ((_idx>=0) && _helper->size())   // after point move
+    if ((_idx>=0) && (_helper != NULL) && _helper->size())   // after point move
     {
         int state = _points[_idx].statePoint();
 
@@ -1598,7 +1600,7 @@ cGLData::cGLData(int appMode):
     initOptions(appMode);
 }
 
-cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, int appMode, QString ptName):
+cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode):
     _glMaskedImage(qMaskedImage),
     _pQMask(qMaskedImage._m_mask),
     _pBall(NULL),
@@ -1617,7 +1619,9 @@ cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, int appMode, QString p
         polygon(aK)->showLines(!_modePt);
         polygon(aK)->showNames(_modePt);
 
-        polygon(aK)->setDefaultName(ptName);
+        polygon(aK)->setDefaultName(aParams.getDefPtName());
+        polygon(aK)->setPointSize(aParams.getPointDiameter());
+        polygon(aK)->setLineWidth(aParams.getLineThickness());
     }
 }
 
@@ -1646,9 +1650,18 @@ void cGLData::setPolygons(cData *data)
 {
     for (int aK = 0; aK < data->getNbPolygons(); ++aK)
     {
-        cPolygon* polygon = new cPolygon(*(data->getPolygon(aK)));
-        polygon->setHelper(new cPolygonHelper(polygon, 3));
-        _vPolygons.push_back(polygon);
+        if (_appMode == BOX2D)
+        {
+            cRectangle* polygon = new cRectangle();
+            polygon->setHelper(new cPolygonHelper(polygon, 4));
+            _vPolygons.push_back(polygon);
+        }
+        else
+        {
+            cPolygon* polygon = new cPolygon(*(data->getPolygon(aK)));
+            polygon->setHelper(new cPolygonHelper(polygon, 3));
+            _vPolygons.push_back(polygon);
+        }
     }
 }
 
@@ -1802,7 +1815,8 @@ void cGLData::setScale(float vW, float vH)
     for (int aK=0; aK < _vPolygons.size();++aK)
     {
         _vPolygons[aK]->setScale(scale);
-        _vPolygons[aK]->helper()->setScale(scale);
+        if (_vPolygons[aK]->helper() != NULL)
+            _vPolygons[aK]->helper()->setScale(scale);
     }
 }
 
