@@ -346,7 +346,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
 
 int Line(int argc,char ** argv, const std::string &aArg="")
 {
-    int  aNbAdj;
+    int  aNbAdj=5;
     bool  ForceAdj= false;
     int isCirc=0;
     string detectingTool, matchingTool;
@@ -355,8 +355,8 @@ int Line(int argc,char ** argv, const std::string &aArg="")
             (
                 argc,argv,
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
-                            << EAMC(aFullRes,"Size of image",eSAM_None)
-                            << EAMC(aNbAdj,"Number of adjacent images to look for", eSAM_None),
+                            << EAMC(aFullRes,"Image size")
+                            << EAMC(aNbAdj,"Number of adjacent images to look for"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in text format")
                 << EAM(PostFix,"PostFix",true,"Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
@@ -864,7 +864,7 @@ int Tapioca_main(int argc,char ** argv)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
         SplitDirAndFile(aDir,aPat,aFullDir);
-    }
+    
 
     aPatOri = aPat;
 
@@ -888,6 +888,8 @@ int Tapioca_main(int argc,char ** argv)
 
 
     MakeXmlXifInfo(aFullDir,anICNM);
+
+	}
 
     if (TheType == Type[0])
     {
