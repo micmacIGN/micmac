@@ -308,6 +308,7 @@ class cCompileAOI
      std::vector<eTypeContraintePoseCamera> mCstr;
 };
 
+class cPoseCdtImSec;
 
 class cPoseCam
 {
@@ -320,15 +321,19 @@ class cPoseCam
          const ElAffin2D &  OrIntC2M() const;
          bool FidExist() const;
          bool AcceptPoint(const Pt2dr &) const;
+
+         cPoseCdtImSec *  & CdtImSec();
+/*
          double & MMNbPts();
          double & MMGainAng();
          Pt3dr  & MMDir();
-		 Pt2dr  & MMDir2D();
-		 std::vector<double> & MMGainTeta();
+	 Pt2dr  & MMDir2D();
+	 std::vector<double> & MMGainTeta();
 
          bool &  MMSelected();
          double & MMGain();
          double & MMAngle();
+*/
 
 
          void C2MCompenseMesureOrInt(Pt2dr &);
@@ -540,6 +545,8 @@ class cPoseCam
           int                          mNbPosOfInit;
    // Parametres lies aux export pour MicMac (en fait de maniere + generale
    // a la gestion du canevas)
+
+/*
           bool                         mMMSelected;
           double                       mMMGain;
           double                       mMMAngle;
@@ -548,11 +555,15 @@ class cPoseCam
           double                       mMMNbPts;
           double                       mMMGainAng;
           std::vector<double>          mMMGainTeta;
+*/
+
+
           bool                         mFidExist;
 
           std::vector<Pt3dr>           mPtsVu;
           bool                         mLastEstimProfIsInit;
           double                       mLasEstimtProf;
+          cPoseCdtImSec *              mCdtImSec;
 };
 
 

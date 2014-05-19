@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1496]) = {
+const char * (theNameVar_ParamApero[1500]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1456,6 +1456,10 @@ const char * (theNameVar_ParamApero[1496]) = {
 "                               <TetaMinPreSel Nb=\"?\" Type=\"double\" Def=\"0.025\"> </TetaMinPreSel>\n",
 "                               <TetaOpt Nb=\"?\" Type=\"double\" Def=\"0.25\"> </TetaOpt>\n",
 "                               <TetaMaxPreSel Nb=\"?\" Type=\"double\" Def=\"0.80\"> </TetaMaxPreSel>\n",
+"\n",
+"                               <RatioDistMin Nb=\"?\" Type=\"double\" Def=\"0.50\"> </RatioDistMin>\n",
+"                               <!-- En cas d'epipolaire pour eviter les stereo verticale -->\n",
+"                               <RatioStereoVertMax Nb=\"?\" Type=\"double\" Def=\"100.0\"> </RatioStereoVertMax>\n",
 "                            \n",
 "                               <Teta2Min Nb=\"?\" Type=\"double\" Def=\"0.65\"> </Teta2Min>\n",
 "                               <Teta2Max Nb=\"?\" Type=\"double\" Def=\"1.1\"> </Teta2Max>\n",

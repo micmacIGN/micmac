@@ -152,7 +152,8 @@ cPoseCam::cPoseCam
     mNbPosOfInit  (-1),
     mFidExist     (false),
     mLastEstimProfIsInit (false),
-    mLasEstimtProf       (-1)
+    mLasEstimtProf       (-1),
+    mCdtImSec            (0)
 {
     mPrec = this;
     mNext = this;
@@ -1601,19 +1602,19 @@ double cPoseCam::Profondeur() const {return mProfondeur;}
 bool cPoseCam::HasMasqHom() const { return mMasqH !=0; }
 int  cPoseCam::NumInit() const {return mNumInit;}
 
+cPoseCdtImSec *  & cPoseCam::CdtImSec() {return mCdtImSec;}
 
+/*
 bool &   cPoseCam::MMSelected() { return mMMSelected;}
 double & cPoseCam::MMGain()     { return  mMMGain;}
 double & cPoseCam::MMAngle()    { return mMMAngle;}
 Pt3dr  & cPoseCam::MMDir()      { return mMMDir;}
 Pt2dr  & cPoseCam::MMDir2D()      { return mMMDir2D;}
 
-
 std::vector<double> &cPoseCam::MMGainTeta() {return mMMGainTeta;}
-
-
 double & cPoseCam::MMNbPts()    { return  mMMNbPts;}
 double & cPoseCam::MMGainAng()  { return  mMMGainAng;}
+*/
 
 
 /*********************************************************/
