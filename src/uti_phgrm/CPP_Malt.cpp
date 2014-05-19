@@ -245,14 +245,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     bool mModePB = false;
     std::string mModeOri;
 
-  ElInitArgMain
-  (
+
+    ElInitArgMain
+    (
         argc,argv,
         LArgMain()
                     << EAMC(mStrType,"Correlation mode (must be in allowed enumerated values)")
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM")
+        LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM", eSAM_IsExistFile)
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
@@ -295,10 +296,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
                     << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO) if not XML frame camera")
 
-  );
+                );
 
-  if (!MMVisualMode)
-  {
+    if (!MMVisualMode)
+    {
 #if CUDA_ENABLED == 0
       ELISE_ASSERT(!mUseGpu , "NO CUDA VERSION");
 #endif

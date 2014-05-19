@@ -448,7 +448,6 @@ class cRectangle : public cPolygon
     public:
 
         cRectangle(int nbMax = 4, float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
-        //cRectangle(QVector <QPointF> points, bool isClosed);
 
         void    addPoint(QPointF const &pt);
 
@@ -671,7 +670,7 @@ public:
 
     cGLData(int appMode = MASK2D);
 
-    cGLData(cData *data, QMaskedImage &qMaskedImage, int appMode = MASK2D, QString ptName = "" );
+    cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode = MASK2D);
 
     cGLData(cData *data, int appMode = MASK2D);
 
