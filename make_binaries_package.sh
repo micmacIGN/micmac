@@ -14,6 +14,7 @@ OS=$(uname -s)
 
 REV_NUMBER=$(hg log -r tip --template "{rev}")
 NBRP=$(cat /proc/cpuinfo | grep processor | wc -l)
+echo "number of cores : $NBRP"
 make install -j$NBRP
 
 # créer un répertoire pour l'archive
@@ -21,7 +22,7 @@ BIN_DIR=micmac
 rm -fr $BIN_DIR
 mkdir $BIN_DIR
 
-if [ "$1" == "serveur" ]
+if [ "$1" != "serveur" ]
 then
 	# la création d'archive sur le serveur est gérée par maven
 
