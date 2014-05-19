@@ -49,7 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                               */
 /*************************************************/
 
-#if ELISE_windows == 0
+#if (ELISE_X11)
 
 Pt2dr cWinIm::FindPoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob * aPG)
 {
