@@ -147,9 +147,9 @@ public:
     cData*  getData()  {return _Data;}
 
     //!looks for data and creates GLobjects
-    void    allocAndSetGLData(int appMode, QString ptName);
+    void    allocAndSetGLData(int appMode, cParameters aParams);
 
-    void    reallocAndSetGLData(int appMode, int aK);
+    void    reallocAndSetGLData(int appMode, cParameters aParams, int aK);
 
     //!sends GLObjects to GLWidget
     cGLData* getGLData(int WidgetIndex);
