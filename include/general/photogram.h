@@ -2477,11 +2477,14 @@ class cElFaisceauDr2D
 class cElemMepRelCoplan
 {
         public :
-                cElemMepRelCoplan
-                (
-                   const cElHomographie &,
-                   const ElRotation3D &
-                );
+             cElemMepRelCoplan
+             (
+                const cElHomographie &,
+                const ElRotation3D &
+             );
+
+             cElemMepRelCoplan ToGivenProf(double aProProf);
+
 
              bool PhysOk() const;
              void Show() const;
@@ -2511,7 +2514,7 @@ class cElemMepRelCoplan
                 // (en coord camera 1)
              Pt3dr ImCam1(Pt2dr aP1);
              // Homographie envoyant un (u,v,1) en (X,Y,0)
-             cElHomographie HomCam2Plan();
+             cElHomographie HomCam2Plan(double * aResidu = 0);
 
 	     cElPlan3D  Plan() const;
 	     const Pt3dr & P0() const;

@@ -411,9 +411,9 @@ static double aEpsPl = 1e-2;
 static double aEpsHom = 5e-2;
 
 
-extern bool BugRHH;
+// extern bool BugRHH;
 
-cElHomographie cElemMepRelCoplan::HomCam2Plan()
+cElHomographie cElemMepRelCoplan::HomCam2Plan(double * aExportResidu)
 {
    ElPackHomologue aPack;
    ElRotation3D  aRE2P = Plan().CoordPlan2Euclid().inv();
@@ -428,13 +428,11 @@ cElHomographie cElemMepRelCoplan::HomCam2Plan()
            Pt3dr aPPlan = aRE2P.ImAff(aPTer);
 
            aPack.Cple_Add(ElCplePtsHomologues(aPIm,Pt2dr(aPPlan.x,aPPlan.y)));
-std::cout << "HomCam2Plan "<< aPIm << aPTer  << aPPlan<< "\n";
 
            aResidu += ElAbs(aPPlan.z);
 
        }
    }
-std::cout << "========================== HomCam2Plan lan<< \n";
 
    cElHomographie aRes(aPack,true);
    for (ElPackHomologue::iterator itC=aPack.begin(); itC!=aPack.end(); itC++)
@@ -442,12 +440,17 @@ std::cout << "========================== HomCam2Plan lan<< \n";
         double aD = euclid(aRes.Direct(itC->P1()) -itC->P2());
         aResidu += aD;
    }
-   if (BugRHH)
-       std::cout << "RRRRR " << aResidu << "\n";
-   if (aResidu>=1e-4)
+   if (aExportResidu)
    {
-      std::cout << "\nRESIDU " << aResidu << "\n";
-      ELISE_ASSERT(aResidu<1e-4,"Incoherence in cElemMepRelCoplan::HomCam2Plan");
+      * aExportResidu = aResidu;
+   }
+   else
+   {
+       if (aResidu>=1e-4)
+       {
+          std::cout << "\nRESIDU " << aResidu << "\n";
+          ELISE_ASSERT(aResidu<1e-4,"Incoherence in cElemMepRelCoplan::HomCam2Plan");
+       }
    }
 
    return aRes;
@@ -512,6 +515,17 @@ REAL cElemMepRelCoplan::DPlan() const
 	return euclid(mP0);
 }
 
+// Pt3dr cElemMepRelCoplan::ToR1(Pt3dr aP2) const {return mRot.ImRecAff(aP2);}
+
+cElemMepRelCoplan cElemMepRelCoplan::ToGivenProf(double aTargetProf)
+{
+
+    Pt3dr aCImInPlan = Plan().CoordPlan2Euclid().ImRecAff(Pt3dr(0,0,0));
+
+    double aMul = ElAbs(aTargetProf/aCImInPlan.z);
+
+    return cElemMepRelCoplan(mHom,ElRotation3D(mRot.tr()*aMul,mRot.Mat(),true));
+}
 
 cElemMepRelCoplan::cElemMepRelCoplan
 (

@@ -19281,6 +19281,28 @@ const cTplValGesInit< double > & cChoixImSec::TetaMaxPreSel()const
 }
 
 
+cTplValGesInit< double > & cChoixImSec::RatioDistMin()
+{
+   return mRatioDistMin;
+}
+
+const cTplValGesInit< double > & cChoixImSec::RatioDistMin()const 
+{
+   return mRatioDistMin;
+}
+
+
+cTplValGesInit< double > & cChoixImSec::RatioStereoVertMax()
+{
+   return mRatioStereoVertMax;
+}
+
+const cTplValGesInit< double > & cChoixImSec::RatioStereoVertMax()const 
+{
+   return mRatioStereoVertMax;
+}
+
+
 cTplValGesInit< double > & cChoixImSec::Teta2Min()
 {
    return mTeta2Min;
@@ -19380,6 +19402,22 @@ void  BinaryUnDumpFromFile(cChoixImSec & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.RatioDistMin().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RatioDistMin().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.RatioDistMin().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.RatioStereoVertMax().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RatioStereoVertMax().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.RatioStereoVertMax().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.Teta2Min().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.Teta2Min().ValForcedForUnUmp(),aFp);
         }
@@ -19428,6 +19466,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cChoixImSec & anObj)
     if (anObj.TetaOpt().IsInit()) BinaryDumpInFile(aFp,anObj.TetaOpt().Val());
     BinaryDumpInFile(aFp,anObj.TetaMaxPreSel().IsInit());
     if (anObj.TetaMaxPreSel().IsInit()) BinaryDumpInFile(aFp,anObj.TetaMaxPreSel().Val());
+    BinaryDumpInFile(aFp,anObj.RatioDistMin().IsInit());
+    if (anObj.RatioDistMin().IsInit()) BinaryDumpInFile(aFp,anObj.RatioDistMin().Val());
+    BinaryDumpInFile(aFp,anObj.RatioStereoVertMax().IsInit());
+    if (anObj.RatioStereoVertMax().IsInit()) BinaryDumpInFile(aFp,anObj.RatioStereoVertMax().Val());
     BinaryDumpInFile(aFp,anObj.Teta2Min().IsInit());
     if (anObj.Teta2Min().IsInit()) BinaryDumpInFile(aFp,anObj.Teta2Min().Val());
     BinaryDumpInFile(aFp,anObj.Teta2Max().IsInit());
@@ -19457,6 +19499,10 @@ cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
       aRes->AddFils(::ToXMLTree(std::string("TetaOpt"),anObj.TetaOpt().Val())->ReTagThis("TetaOpt"));
    if (anObj.TetaMaxPreSel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("TetaMaxPreSel"),anObj.TetaMaxPreSel().Val())->ReTagThis("TetaMaxPreSel"));
+   if (anObj.RatioDistMin().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("RatioDistMin"),anObj.RatioDistMin().Val())->ReTagThis("RatioDistMin"));
+   if (anObj.RatioStereoVertMax().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("RatioStereoVertMax"),anObj.RatioStereoVertMax().Val())->ReTagThis("RatioStereoVertMax"));
    if (anObj.Teta2Min().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Teta2Min"),anObj.Teta2Min().Val())->ReTagThis("Teta2Min"));
    if (anObj.Teta2Max().IsInit())
@@ -19493,6 +19539,10 @@ void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.TetaMaxPreSel(),aTree->Get("TetaMaxPreSel",1),double(0.80)); //tototo 
 
+   xml_init(anObj.RatioDistMin(),aTree->Get("RatioDistMin",1),double(0.50)); //tototo 
+
+   xml_init(anObj.RatioStereoVertMax(),aTree->Get("RatioStereoVertMax",1),double(100.0)); //tototo 
+
    xml_init(anObj.Teta2Min(),aTree->Get("Teta2Min",1),double(0.65)); //tototo 
 
    xml_init(anObj.Teta2Max(),aTree->Get("Teta2Max",1),double(1.1)); //tototo 
@@ -19502,7 +19552,7 @@ void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbSetPreSelAng(),aTree->Get("NbSetPreSelAng",1),int(5)); //tototo 
 }
 
-std::string  Mangling( cChoixImSec *) {return "05A535E0F68BA08BFF3F";};
+std::string  Mangling( cChoixImSec *) {return "4E276574D71DCA89FCBF";};
 
 
 std::string & cChoixImMM::KeyAssoc()
@@ -19604,6 +19654,28 @@ const cTplValGesInit< double > & cChoixImMM::TetaMaxPreSel()const
 }
 
 
+cTplValGesInit< double > & cChoixImMM::RatioDistMin()
+{
+   return ChoixImSec().RatioDistMin();
+}
+
+const cTplValGesInit< double > & cChoixImMM::RatioDistMin()const 
+{
+   return ChoixImSec().RatioDistMin();
+}
+
+
+cTplValGesInit< double > & cChoixImMM::RatioStereoVertMax()
+{
+   return ChoixImSec().RatioStereoVertMax();
+}
+
+const cTplValGesInit< double > & cChoixImMM::RatioStereoVertMax()const 
+{
+   return ChoixImSec().RatioStereoVertMax();
+}
+
+
 cTplValGesInit< double > & cChoixImMM::Teta2Min()
 {
    return ChoixImSec().Teta2Min();
@@ -19686,7 +19758,7 @@ void xml_init(cChoixImMM & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImSec(),aTree->Get("ChoixImSec",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImMM *) {return "ACE9653FD3F595F1FD3F";};
+std::string  Mangling( cChoixImMM *) {return "44EED45AE49E59F7FC3F";};
 
 
 std::list< cExportCalib > & cSectionExport::ExportCalib()
@@ -19906,6 +19978,28 @@ cTplValGesInit< double > & cSectionExport::TetaMaxPreSel()
 const cTplValGesInit< double > & cSectionExport::TetaMaxPreSel()const 
 {
    return ChoixImMM().Val().ChoixImSec().TetaMaxPreSel();
+}
+
+
+cTplValGesInit< double > & cSectionExport::RatioDistMin()
+{
+   return ChoixImMM().Val().ChoixImSec().RatioDistMin();
+}
+
+const cTplValGesInit< double > & cSectionExport::RatioDistMin()const 
+{
+   return ChoixImMM().Val().ChoixImSec().RatioDistMin();
+}
+
+
+cTplValGesInit< double > & cSectionExport::RatioStereoVertMax()
+{
+   return ChoixImMM().Val().ChoixImSec().RatioStereoVertMax();
+}
+
+const cTplValGesInit< double > & cSectionExport::RatioStereoVertMax()const 
+{
+   return ChoixImMM().Val().ChoixImSec().RatioStereoVertMax();
 }
 
 
@@ -20255,7 +20349,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImMM(),aTree->Get("ChoixImMM",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "D5034E17CEA9CAEDFE3F";};
+std::string  Mangling( cSectionExport *) {return "674BD806A17DE799FE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -20665,6 +20759,28 @@ const cTplValGesInit< double > & cEtapeCompensation::TetaMaxPreSel()const
 }
 
 
+cTplValGesInit< double > & cEtapeCompensation::RatioDistMin()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().RatioDistMin();
+}
+
+const cTplValGesInit< double > & cEtapeCompensation::RatioDistMin()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().RatioDistMin();
+}
+
+
+cTplValGesInit< double > & cEtapeCompensation::RatioStereoVertMax()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().RatioStereoVertMax();
+}
+
+const cTplValGesInit< double > & cEtapeCompensation::RatioStereoVertMax()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().RatioStereoVertMax();
+}
+
+
 cTplValGesInit< double > & cEtapeCompensation::Teta2Min()
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().Teta2Min();
@@ -20876,7 +20992,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "966E67D126B95684FE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "84DD4381473D509FFF3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -20935,7 +21051,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "1CB31EC05F263CDCFDBF";};
+std::string  Mangling( cSectionCompensation *) {return "1C96DA781B66A5AAFD3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -21858,6 +21974,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "FADD6D2DCCD415EDFE3F";};
+std::string  Mangling( cParamApero *) {return "A6F6F7FDEA671CB2FF3F";};
 
 // };

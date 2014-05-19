@@ -228,5 +228,37 @@ Formation :
    italien francophone
    paul lopez, thales ...
 
+==========================================
+
+PIPELINE ALL AUTO :
+
+[1]   Modifier AperoChImSec pour que l'on puisse avoir plus de 2 images dans une acquisition linéaire, sinon cela limite la redondance.
+
+Par exemple :
+
+     - on donne chaque position K  un crière de qualité intrinsèque Q(k) , lié au B/H (en vérifiant que la formule évite la stéréo avan/arrière)
+
+     - on donne a chaque couple un critère de redondance basée par exemple sur des gaussienne assymétrique en Teta et Phi  R(K,J)
+
+     - Pour une famille K1,K2, le gaint de chaque K est Q(K) / (1+ Sigma(R(K,J)));
+
+
+=> Le rattio RatioStereoVert peut eliminer bcp de couple en epipolaire, il faudrait que dans ce cas on repasse sur de la geometrie image "normale" ?
+
+[2] Si on fait de la multi corrélation ? Il faut gérer une géométriequi tienne compte des correction d'epipolaire, faisable à la voléé ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
