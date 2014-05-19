@@ -15,6 +15,7 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
             <Symb>  Ext=XXXX  </Symb>
             <Symb>  SeuilP3d=1.5  </Symb>
             <Symb>  TetaOpt=0.17   </Symb>
+            <Symb>  PatternExport=.*   </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -104,7 +105,7 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                      <ChoixImMM>
                           <ChoixImSec>
                                <KeyAssoc> NKS-Assoc-ImSec@${Out}  </KeyAssoc>
-                               <PatternSel>  .* </PatternSel>
+                               <PatternSel>  ${PatternExport}  </PatternSel>
                                <NbMin >  4 </NbMin>
                                <IdBdl > Id_Pastis_Hom </IdBdl>
                                <NbMinPtsHom > 15 </NbMinPtsHom>

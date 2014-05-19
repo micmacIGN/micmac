@@ -5265,6 +5265,12 @@ class cChoixImSec
         cTplValGesInit< double > & TetaMaxPreSel();
         const cTplValGesInit< double > & TetaMaxPreSel()const ;
 
+        cTplValGesInit< double > & RatioDistMin();
+        const cTplValGesInit< double > & RatioDistMin()const ;
+
+        cTplValGesInit< double > & RatioStereoVertMax();
+        const cTplValGesInit< double > & RatioStereoVertMax()const ;
+
         cTplValGesInit< double > & Teta2Min();
         const cTplValGesInit< double > & Teta2Min()const ;
 
@@ -5286,6 +5292,8 @@ class cChoixImSec
         cTplValGesInit< double > mTetaMinPreSel;
         cTplValGesInit< double > mTetaOpt;
         cTplValGesInit< double > mTetaMaxPreSel;
+        cTplValGesInit< double > mRatioDistMin;
+        cTplValGesInit< double > mRatioStereoVertMax;
         cTplValGesInit< double > mTeta2Min;
         cTplValGesInit< double > mTeta2Max;
         cTplValGesInit< int > mNbMaxPresel;
@@ -5333,6 +5341,12 @@ class cChoixImMM
 
         cTplValGesInit< double > & TetaMaxPreSel();
         const cTplValGesInit< double > & TetaMaxPreSel()const ;
+
+        cTplValGesInit< double > & RatioDistMin();
+        const cTplValGesInit< double > & RatioDistMin()const ;
+
+        cTplValGesInit< double > & RatioStereoVertMax();
+        const cTplValGesInit< double > & RatioStereoVertMax()const ;
 
         cTplValGesInit< double > & Teta2Min();
         const cTplValGesInit< double > & Teta2Min()const ;
@@ -5426,6 +5440,12 @@ class cSectionExport
 
         cTplValGesInit< double > & TetaMaxPreSel();
         const cTplValGesInit< double > & TetaMaxPreSel()const ;
+
+        cTplValGesInit< double > & RatioDistMin();
+        const cTplValGesInit< double > & RatioDistMin()const ;
+
+        cTplValGesInit< double > & RatioStereoVertMax();
+        const cTplValGesInit< double > & RatioStereoVertMax()const ;
 
         cTplValGesInit< double > & Teta2Min();
         const cTplValGesInit< double > & Teta2Min()const ;
@@ -5584,6 +5604,12 @@ class cEtapeCompensation
 
         cTplValGesInit< double > & TetaMaxPreSel();
         const cTplValGesInit< double > & TetaMaxPreSel()const ;
+
+        cTplValGesInit< double > & RatioDistMin();
+        const cTplValGesInit< double > & RatioDistMin()const ;
+
+        cTplValGesInit< double > & RatioStereoVertMax();
+        const cTplValGesInit< double > & RatioStereoVertMax()const ;
 
         cTplValGesInit< double > & Teta2Min();
         const cTplValGesInit< double > & Teta2Min()const ;

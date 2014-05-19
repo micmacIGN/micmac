@@ -302,7 +302,7 @@ std::string cImagH::EstimatePlan()
                cTestPlIm  aTPI(aLnk, VData(aVRCP)+aK,false,1e-4*aAltiCible);
                if (aTPI.mOk)
                {
-                  if (aK==0)  std::cout << aVRCP[aK].Rot().ImRecAff(Pt3dr(0,0,0))  << aVRCP[aK].Norm() ;
+                  if (aK==0)  std::cout << aVRCP[aK].Rot().ImRecAff(Pt3dr(0,0,0))  << aVRCP[aK].Norm() <<aVRCP[aK].ImCam1(Pt2dr(0,0)) ;
                   // std::cout <<  aLnk->Dest()->mVercp[aK].Norm() << aLnk->Dest()->mVercp[aK].DPlan() ;
                   aLnk->Dest()->mVTPlIm.push_back(aTPI);
                }

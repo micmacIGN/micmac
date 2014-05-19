@@ -1595,7 +1595,7 @@ void cAppliMICMAC::DoGPU_Correl
 #endif
     }
 
-    void cAppliMICMAC::setVolumeCost( uint z0, uint z1,ushort idBuf)
+    void cAppliMICMAC::setVolumeCost( int z0, int z1,ushort idBuf)
     {
 #ifdef  NVTOOLS
         GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
@@ -1617,17 +1617,17 @@ void cAppliMICMAC::DoGPU_Correl
             for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
             {                
                 float *tCost =  tabCost + pitY + anX -  zone.pt0.x;
-                int anZ0 = max(z0,mTabZMin[anY][anX]);
-                int anZ1 = min(z1,mTabZMax[anY][anX]);
+                int anZ0 = max(z0,(int)mTabZMin[anY][anX]);
+                int anZ1 = min(z1,(int)mTabZMax[anY][anX]);
 
                 for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
                 {
                     double cost = (double)tCost[rSiTer * abs(anZ - (int)z0)];
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
                 }
-
             }
         }
+
 #ifdef  NVTOOLS
 			nvtxRangePop();
 #endif
