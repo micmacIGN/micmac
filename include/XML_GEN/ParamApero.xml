@@ -1454,6 +1454,10 @@ normalises en echelle et/ou en translation -->
                                <TetaMinPreSel Nb="?" Type="double" Def="0.025"> </TetaMinPreSel>
                                <TetaOpt Nb="?" Type="double" Def="0.25"> </TetaOpt>
                                <TetaMaxPreSel Nb="?" Type="double" Def="0.80"> </TetaMaxPreSel>
+
+                               <RatioDistMin Nb="?" Type="double" Def="0.50"> </RatioDistMin>
+                               <!-- En cas d'epipolaire pour eviter les stereo verticale -->
+                               <RatioStereoVertMax Nb="?" Type="double" Def="100.0"> </RatioStereoVertMax>
                             
                                <Teta2Min Nb="?" Type="double" Def="0.65"> </Teta2Min>
                                <Teta2Max Nb="?" Type="double" Def="1.1"> </Teta2Max>
