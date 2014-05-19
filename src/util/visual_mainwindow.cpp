@@ -138,36 +138,28 @@ bool visual_MainWindow::getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, stri
 {
     int val = ((QSpinBox*) aIn->Widgets()[aK].second)->value();
 
-    if ( aIn->Arg().IsDefaultValue<int>(val) )
-    {
-        return true;
-    }
-    else
-    {
-        stringstream ss;
-        ss << val;
-        aAdd += ss.str() + endingCar;
+    stringstream ss;
+    ss << val;
+    aAdd += ss.str() + endingCar;
 
+    if ( aIn->Arg().IsDefaultValue<int>(val) )
+        return true;
+    else
         return false;
-    }
 }
 
 bool visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
 {
     double val = ((QDoubleSpinBox*) aIn->Widgets()[aK].second)->value();
 
-    if ( aIn->Arg().IsDefaultValue<double>(val) )
-    {
-        return true;
-    }
-    else
-    {
-        stringstream ss;
-        ss << val;
-        aAdd += ss.str() + endingCar;
+    stringstream ss;
+    ss << val;
+    aAdd += ss.str() + endingCar;
 
+    if ( aIn->Arg().IsDefaultValue<double>(val) )
+        return true;
+    else
         return false;
-    }
 }
 
 void visual_MainWindow::onRunCommandPressed()
