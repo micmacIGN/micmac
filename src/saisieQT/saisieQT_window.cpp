@@ -190,12 +190,13 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 closeAll();
                 initData(); //TODO: ne pas détruire les polygones dans le closeAll
             }
-            //else if (filenames.size() == 1) _mode = MASK2D;
+
+            if ((filenames.size() == 1) && (_appMode != BOX2D)) _appMode = MASK2D;
 
             _Engine->loadImages(filenames);
         }
 
-        _Engine->allocAndSetGLData(_appMode, _params->getDefPtName());
+        _Engine->allocAndSetGLData(_appMode, *_params);
 
         if (setGLData)
         {
