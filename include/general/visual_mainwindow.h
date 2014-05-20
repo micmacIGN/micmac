@@ -58,12 +58,14 @@ class visual_MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    visual_MainWindow(const vector<cMMSpecArg> & aVAM,
-                      const vector<cMMSpecArg> & aVAO,
+    visual_MainWindow(vector<cMMSpecArg> &aVAM,
+                      vector<cMMSpecArg> &aVAO,
                       std::string aFirstArg = "",
                       QWidget *parent = 0);
 
     ~visual_MainWindow();
+
+    void moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &aVAO);
 
     void add_label     (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_combo     (QGridLayout*, QWidget*, int, cMMSpecArg);

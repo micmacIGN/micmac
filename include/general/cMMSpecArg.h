@@ -70,6 +70,9 @@ class cMMSpecArg
         // S'agit-il d'un argument optionnel
         bool IsOpt() const;
 
+        // l'argument a-t-il ete initialise
+        bool IsInit() const;
+
         // S'agit-il d'un booleen (ajout pour lever l'ambiguite integer 0/1)
         bool IsBool() const;
 
@@ -122,8 +125,9 @@ class cMMSpecArg
 
 private :
         friend class LArgMain;
-        cMMSpecArg(GenElArgMain *,int aNum);
+        cMMSpecArg(GenElArgMain *, int aNum, bool isOpt);
 
+        bool           mIsOpt;
         GenElArgMain * mEAM;
         int            mNum;
 };

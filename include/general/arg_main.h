@@ -390,7 +390,7 @@ class LArgMain
 {
     public :
 
-        std::vector<cMMSpecArg>  ExportMMSpec() const;
+        std::vector<cMMSpecArg>  ExportMMSpec(bool isOpt = false) const;
 
         template <class Type> LArgMain & operator << (const ElArgMain<Type> & v)
         {
