@@ -281,7 +281,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(CalibIn,"InCal",true,"Directory of Input Internal Orientation (Calibration)",eSAM_IsExistFile)
                     << EAM(AeroIn,"InOri",true,"Directory of Input External Orientation",eSAM_IsExistFile)
                     << EAM(DoC,"DoC",true,"Do Compensation", eSAM_IsBool)
-                    << EAM(IsForCalib,"ForCalib",true,"Is for calibration (Change def value of LMV and prop diag)?", eSAM_IsBool)
+                    << EAM(IsForCalib,"ForCalib",true,"Is for calibration (Change def value of LMV and prop diag)?")
                     << EAM(Focales,"Focs",true)
                     << EAM(aVitesseInit,"VitesseInit",true)
                     << EAM(aPPDec,"PPRel",true)
@@ -299,86 +299,86 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aDoCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
                     << EAM(aDoFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
                     << EAM(aRapTxt,"RapTxt",true)
-                    << EAM(TolLPPCD,"LinkPPaPPs",true)
+                    << EAM(TolLPPCD,"LinkPPaPPs",false)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
 
-		if ((AeroIn!= NoInit)  && (CalibIn==NoInit))
-			CalibIn = AeroIn;
+        if ((AeroIn!= NoInit)  && (CalibIn==NoInit))
+            CalibIn = AeroIn;
 
-		#if (ELISE_windows)
-			replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-		#endif
-		SplitDirAndFile(aDir,aPat,aFullDir);
-
-
-		if (AeroIn!= NoInit)
-		   StdCorrecNameOrient(AeroIn,aDir);
-
-		if (CalibIn!= NoInit)
-		   StdCorrecNameOrient(CalibIn,aDir);
+        #if (ELISE_windows)
+            replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+        #endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
 
 
-		cTplValGesInit<std::string> aTplN;
-		cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::StdAlloc(0,0,aDir,aTplN);
+        if (AeroIn!= NoInit)
+           StdCorrecNameOrient(AeroIn,aDir);
+
+        if (CalibIn!= NoInit)
+           StdCorrecNameOrient(CalibIn,aDir);
+
+
+        cTplValGesInit<std::string> aTplN;
+        cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::StdAlloc(0,0,aDir,aTplN);
 
                 MakeXmlXifInfo(aFullDir,aICNM);
 
-                
-
-		if (FEAutom && (SeuilFEAutom<0))
-		   SeuilFEAutom = 16.5;
-
-		if (IsForCalib<0)
-			IsForCalib=(CalibIn==NoInit); // A Changer avec cle de calib
-
-		double TetaLVM = IsForCalib ? 0.01 : 0.15;
-		double CentreLVM = IsForCalib ? 0.1 : 1.0;
-		double RayFEInit = IsForCalib ? 0.85 : 0.95;
-
-	// std::cout << "IFCCCCC " << IsForCalib << " " << CentreLVM << " " << RayFEInit << "\n"; getchar();
-
-		InitVerifModele(aModele,aICNM);
-
-		if (PropDiag<0) PropDiag = 1.0;
-
-		if (AeroOut=="")
-		   AeroOut = "" +  aModele;
 
 
+        if (FEAutom && (SeuilFEAutom<0))
+           SeuilFEAutom = 16.5;
 
-	   std::string aNameFileApero = Debug  ? "Apero-Debug-Glob.xml" : "Apero-Glob.xml" ;
+        if (IsForCalib<0)
+            IsForCalib=(CalibIn==NoInit); // A Changer avec cle de calib
+
+        double TetaLVM = IsForCalib ? 0.01 : 0.15;
+        double CentreLVM = IsForCalib ? 0.1 : 1.0;
+        double RayFEInit = IsForCalib ? 0.85 : 0.95;
+
+    // std::cout << "IFCCCCC " << IsForCalib << " " << CentreLVM << " " << RayFEInit << "\n"; getchar();
+
+        InitVerifModele(aModele,aICNM);
+
+        if (PropDiag<0) PropDiag = 1.0;
+
+        if (AeroOut=="")
+           AeroOut = "" +  aModele;
 
 
 
+       std::string aNameFileApero = Debug  ? "Apero-Debug-Glob.xml" : "Apero-Glob.xml" ;
 
-	   std::string aCom =     MM3dBinFile_quotes( "Apero" )
-						   + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+ aNameFileApero ) + " "
-						   + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
-						   + std::string(" ") + QUOTE(std::string("+PatternAllIm=") + aPat) + std::string(" ")
-						   //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")
-						   + std::string(" +AeroOut=-") + AeroOut
-						   + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
-						   + std::string(" +ModeleCam=") + eModAutom
-						   + std::string(" +FileLibereParam=") + FileLibere
-						   + std::string(" DoCompensation=") + ToString(DoC)
-						   + std::string(" +SeuilFE=") + ToString(SeuilFEAutom)
-						   + std::string(" +TetaLVM=") + ToString(TetaLVM)
-						   + std::string(" +CentreLVM=") + ToString(CentreLVM)
-						   + std::string(" +RayFEInit=") + ToString(RayFEInit)
-						   + std::string(" +CalibIn=-") + CalibIn
-						   + std::string(" +AeroIn=-") + AeroIn
-						   + std::string(" +VitesseInit=") + ToString(2+aVitesseInit)
-						   + std::string(" +PropDiagU=") + ToString(PropDiag)
-						   + std::string(" +ValDec=") + (LibDec ?"eLiberte_Phgr_Std_Dec" : "eFige_Phgr_Std_Dec")
-						   + std::string(" +ValDecPP=") + (LibDec ?"eLiberte_Dec1" : "eLiberte_Dec0")
-						   + std::string(" +ValAffPP=") + (LibDec ?"eLiberteParamDeg_1" : "eLiberteParamDeg_0")
-						   + std::string(" +ValAff=") + (LibAff ?"eLiberte_Phgr_Std_Aff" : "eFige_Phgr_Std_Aff")
 
-						;
+
+
+       std::string aCom =     MM3dBinFile_quotes( "Apero" )
+                           + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+ aNameFileApero ) + " "
+                           + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
+                           + std::string(" ") + QUOTE(std::string("+PatternAllIm=") + aPat) + std::string(" ")
+                           //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")
+                           + std::string(" +AeroOut=-") + AeroOut
+                           + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
+                           + std::string(" +ModeleCam=") + eModAutom
+                           + std::string(" +FileLibereParam=") + FileLibere
+                           + std::string(" DoCompensation=") + ToString(DoC)
+                           + std::string(" +SeuilFE=") + ToString(SeuilFEAutom)
+                           + std::string(" +TetaLVM=") + ToString(TetaLVM)
+                           + std::string(" +CentreLVM=") + ToString(CentreLVM)
+                           + std::string(" +RayFEInit=") + ToString(RayFEInit)
+                           + std::string(" +CalibIn=-") + CalibIn
+                           + std::string(" +AeroIn=-") + AeroIn
+                           + std::string(" +VitesseInit=") + ToString(2+aVitesseInit)
+                           + std::string(" +PropDiagU=") + ToString(PropDiag)
+                           + std::string(" +ValDec=") + (LibDec ?"eLiberte_Phgr_Std_Dec" : "eFige_Phgr_Std_Dec")
+                           + std::string(" +ValDecPP=") + (LibDec ?"eLiberte_Dec1" : "eLiberte_Dec0")
+                           + std::string(" +ValAffPP=") + (LibDec ?"eLiberteParamDeg_1" : "eLiberteParamDeg_0")
+                           + std::string(" +ValAff=") + (LibAff ?"eLiberte_Phgr_Std_Aff" : "eFige_Phgr_Std_Aff")
+
+                        ;
 
     if (EAMIsInit(&aDoPP))
        aCom = aCom + std::string(" +DoPP=") + ToString(aDoPP) + std::string(" ");
@@ -389,123 +389,123 @@ int Tapas_main(int argc,char ** argv)
 
 
 
-		if (EAMIsInit(&aDRadMaxUser))
-		   aDegRadMax = aDRadMaxUser;
+        if (EAMIsInit(&aDRadMaxUser))
+           aDegRadMax = aDRadMaxUser;
 
-		if (aDegRadMax<100)
-		   aCom = aCom +  std::string(" +DegRadMax=") + ToString(aDegRadMax) + std::string(" ");
-
-
-		if (EAMIsInit(&LibAff) && (!LibAff))
-		{
-			  aCom = aCom + " +LiberteAff=false ";
-		}
-
-		if (EAMIsInit(&TolLPPCD))
-		   aCom = aCom + " +TolLinkPPCD=" + ToString(TolLPPCD);
-
-	   if (aRapTxt!="")
-		  aCom = aCom +  std::string(" +RapTxt=") + aRapTxt;
-
-	   if (DBF)
-		 aCom  = aCom + " DebugPbCondFaisceau=true";
+        if (aDegRadMax<100)
+           aCom = aCom +  std::string(" +DegRadMax=") + ToString(aDegRadMax) + std::string(" ");
 
 
-	   if (ImInit!=NoInit)
-	   {
-			 aCom =   aCom + " +SetImInit="+ImInit;
-			 aCom = aCom + " +FileCamInit=InitCamSpecified.xml";
-			 ELISE_ASSERT(AeroIn==NoInit,"Incoherence AeroIn/ImInit");
-	   }
-	   if (SauvAutom!="")
-		 aCom =   aCom + " +SauvAutom="+SauvAutom;
+        if (EAMIsInit(&LibAff) && (!LibAff))
+        {
+              aCom = aCom + " +LiberteAff=false ";
+        }
 
-	   if (AeroIn!= NoInit)
-		  aCom =   aCom
-				 + " +FileCamInit=InitCamBDD.xml" ;
+        if (EAMIsInit(&TolLPPCD))
+           aCom = aCom + " +TolLinkPPCD=" + ToString(TolLPPCD);
 
-	   if (Focales.x>=0)
-		  aCom =   aCom
-				 + " +FocMin=" + ToString(Focales.x)
-				 + " +FocMax=" + ToString(Focales.y);
+       if (aRapTxt!="")
+          aCom = aCom +  std::string(" +RapTxt=") + aRapTxt;
 
-	   if (aPPDec.x>=0)
-		   aCom =   aCom + " +xPRelPP=" + ToString(aPPDec.x);
-	   else
-		  aPPDec.x =0.5;
-	   if (aPPDec.y>=0)
-		   aCom =   aCom + " +yPRelPP=" + ToString(aPPDec.y);
-	   else
-		  aPPDec.y =0.5;
-
-	   if (aDecentre==-1)
-	   {
-			double aDist = euclid(aPPDec,Pt2dr(0.5,0.5));
-			aDecentre= (aDist>=0.25);
-	   }
-
-	   if (aDecentre)
-	   {
-			aCom  = aCom + " +ModeCDD=eCDD_OnRemontee";
-	   }
-
-	   if (MOI)
-	   {
-			aCom  = aCom + " +MOI=true";
-	   }
-
-	   if (aPoseFigee!="")
-	   {
-		  aCom  = aCom + " +PoseFigee=" + QUOTE(aPoseFigee);
-	   }
-
-	   // std::cout << "Com = " << aCom << "\n";
-	   int aRes = 0;
-	   aRes = TopSystem(aCom);
-	/*
-	   if (MajickTest)
-	   {
-			std::string aNameFile = MMDir() + "DbgAp" + GetUnikId() + ".txt";
-
-			// cMemRes aMR1;
-			// cMemRes aMR2;
-
-			 aCom = aCom + " +FileDebug=" +  aNameFile;
+       if (DBF)
+         aCom  = aCom + " DebugPbCondFaisceau=true";
 
 
-			for (int aTest=0 ; aTest < 1000000 ; aTest++)
-			{
+       if (ImInit!=NoInit)
+       {
+             aCom =   aCom + " +SetImInit="+ImInit;
+             aCom = aCom + " +FileCamInit=InitCamSpecified.xml";
+             ELISE_ASSERT(AeroIn==NoInit,"Incoherence AeroIn/ImInit");
+       }
+       if (SauvAutom!="")
+         aCom =   aCom + " +SauvAutom="+SauvAutom;
 
-			   // int aValInit = (aTest % 17);
-			   // int aSzMax = 29;
-			   // aMR1.Init(aSzMax,aValInit);
-			   // aMR2.Init(aSzMax,aValInit);
+       if (AeroIn!= NoInit)
+          aCom =   aCom
+                 + " +FileCamInit=InitCamBDD.xml" ;
 
-			   // aMR2.Free();
-			   aRes = ::System(aCom.c_str(),true,true);
-			   // aMR1.Free();
+       if (Focales.x>=0)
+          aCom =   aCom
+                 + " +FocMin=" + ToString(Focales.x)
+                 + " +FocMax=" + ToString(Focales.y);
+
+       if (aPPDec.x>=0)
+           aCom =   aCom + " +xPRelPP=" + ToString(aPPDec.x);
+       else
+          aPPDec.x =0.5;
+       if (aPPDec.y>=0)
+           aCom =   aCom + " +yPRelPP=" + ToString(aPPDec.y);
+       else
+          aPPDec.y =0.5;
+
+       if (aDecentre==-1)
+       {
+            double aDist = euclid(aPPDec,Pt2dr(0.5,0.5));
+            aDecentre= (aDist>=0.25);
+       }
+
+       if (aDecentre)
+       {
+            aCom  = aCom + " +ModeCDD=eCDD_OnRemontee";
+       }
+
+       if (MOI)
+       {
+            aCom  = aCom + " +MOI=true";
+       }
+
+       if (aPoseFigee!="")
+       {
+          aCom  = aCom + " +PoseFigee=" + QUOTE(aPoseFigee);
+       }
+
+       // std::cout << "Com = " << aCom << "\n";
+       int aRes = 0;
+       aRes = TopSystem(aCom);
+    /*
+       if (MajickTest)
+       {
+            std::string aNameFile = MMDir() + "DbgAp" + GetUnikId() + ".txt";
+
+            // cMemRes aMR1;
+            // cMemRes aMR2;
+
+             aCom = aCom + " +FileDebug=" +  aNameFile;
+
+
+            for (int aTest=0 ; aTest < 1000000 ; aTest++)
+            {
+
+               // int aValInit = (aTest % 17);
+               // int aSzMax = 29;
+               // aMR1.Init(aSzMax,aValInit);
+               // aMR2.Init(aSzMax,aValInit);
+
+               // aMR2.Free();
+               aRes = ::System(aCom.c_str(),true,true);
+               // aMR1.Free();
 
 
 
-			   sleep(1); // Pour faciliter l'arret
-			}
+               sleep(1); // Pour faciliter l'arret
+            }
 
-	   }
-	   else
-	   {
-		   aRes = ::System(aCom.c_str(),false,true,true);
-	   }
-	*/
-
-
-	   Tapas_Banniere();
-	   BanniereMM3D();
+       }
+       else
+       {
+           aRes = ::System(aCom.c_str(),false,true,true);
+       }
+    */
 
 
-	   return aRes;
+       Tapas_Banniere();
+       BanniereMM3D();
+
+
+       return aRes;
    }
    else
-	   return EXIT_FAILURE;
+       return EXIT_SUCCESS;
 }
 
 

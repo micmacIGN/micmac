@@ -41,8 +41,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 bool cMMSpecArg::IsOpt() const
 {
+    return mIsOpt;
+}
+
+bool cMMSpecArg::IsInit() const
+{
     return mEAM->IsInit();
 }
+
 bool cMMSpecArg::IsBool() const
 {
     return mEAM->Spec() == eSAM_IsBool;
@@ -88,12 +94,18 @@ std::string cMMSpecArg::Comment() const
     return mEAM->Comment();
 }
 
+int cMMSpecArg::NumArg() const
+{
+    return mNum;
+}
+
 void cMMSpecArg::Init(const std::string & aVal)
 {
     mEAM->InitEAM(aVal,ElGramArgMain::StdGram);
 }
 
-cMMSpecArg::cMMSpecArg(GenElArgMain * anEAM,int aNum):
+cMMSpecArg::cMMSpecArg(GenElArgMain * anEAM,int aNum, bool isOpt):
+   mIsOpt(isOpt),
    mEAM  (anEAM),
    mNum  (aNum)
 {
