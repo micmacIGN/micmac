@@ -337,19 +337,17 @@ template <> eArgMainBaseType ElArgMain<vector<vector<int> > >::type() const { re
 template <> eArgMainBaseType ElArgMain<vector<std::string> >::type()  const { return AMBT_vector_string; }
 
 
-std::vector<cMMSpecArg>  LArgMain::ExportMMSpec() const
+std::vector<cMMSpecArg>  LArgMain::ExportMMSpec(bool isOpt) const
 {
-   std::vector<cMMSpecArg>   aRes;
+   std::vector<cMMSpecArg> aRes;
    int aNum=0;
-   for (std::list<GenElArgMain*>::const_iterator itA=_larg.begin(); itA!=_larg.end() ; itA++)
+   for (std::list<GenElArgMain*>::const_iterator itA=_larg.begin(); itA!=_larg.end() ; itA++, aNum++)
    {
-       aRes.push_back(cMMSpecArg(*itA,aNum));
-       aNum++;
+       aRes.push_back(cMMSpecArg(*itA,aNum,isOpt));
    }
 
    return aRes;
 }
-
 
 
 
@@ -592,7 +590,7 @@ std::vector<char *>  	ElInitArgMain
     if (MMVisualMode)
     {
         std::vector<cMMSpecArg> aVAM = LGlob.ExportMMSpec();
-        std::vector<cMMSpecArg> aVAO = L1.ExportMMSpec();
+        std::vector<cMMSpecArg> aVAO = L1.ExportMMSpec(true);
         MMRunVisualMode(argc,argv,aVAM,aVAO,aFirstArg);
         return aRes;
     }
