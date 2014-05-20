@@ -273,7 +273,8 @@ class cElNuage3DMaille : public cCapture3D
    //  Manipulation plus "elaboree"
 
              // "Bascule" N2 dans la geometrie de this, par algo de ZBUfer
-        cElNuage3DMaille * Basculement( const cElNuage3DMaille * N2,
+// NewName pour retracer les appels....
+        cElNuage3DMaille * BasculementNewName( const cElNuage3DMaille * N2,
                                         bool SupprTriInv,
                                         double aCoeffEtire = -1
                                       ) const;
@@ -287,6 +288,7 @@ class cElNuage3DMaille : public cCapture3D
 
         cElNuage3DMaille *   BasculeInThis
                (
+                   const cXML_ParamNuage3DMaille * aGeomOutOri,
                    const cElNuage3DMaille * N2,
                    bool SupprTriInv,
                    double aCoeffEtire,

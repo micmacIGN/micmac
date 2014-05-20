@@ -1432,14 +1432,17 @@ class cBasculeNuage : public cZBuffer
         cBasculeNuage
         (
            cElNuage3DMaille * aDest,
-           const cElNuage3DMaille * aInput
+           const cElNuage3DMaille * aInput,
+           const cXML_ParamNuage3DMaille * aGeomOutOri
         )  :
            cZBuffer
            (
                  Pt2dr(0,0), Pt2dr(1,1),Pt2dr(0,0),Pt2dr(1,1)
            ),
            mDest  (aDest),
-           mInput (aInput)
+           mInput (aInput),
+           mGO    (aGeomOutOri),
+           mSzOut (mGO ? mGO->NbPixel() : Pt2di(0,0))
         {
         }
 
@@ -1466,8 +1469,19 @@ class cBasculeNuage : public cZBuffer
               return  mInput->IndexHasContenu(aP);
         }
 
+        bool SelectPBascul(const Pt2dr & aP)   const 
+        {
+// std::cout << "SelectPBascul " << mDest << "\n";
+// std::cout << "SelectPBascul " << mDest->IndexInsideGeom(round_ni(aP)) << "\n";
+// std::cout << "SelectPBascul " << aP << " " << mDest->SzGeom() << " ppp " << mDest->Params().NbPixel() << "\n";
+            if (! mGO) return true;
+            return (aP.x>0) && (aP.y>0) && (aP.x<mSzOut.x) && (aP.y<mSzOut.y);
+        }
+
         cElNuage3DMaille       * mDest;
         const cElNuage3DMaille * mInput;
+        const cXML_ParamNuage3DMaille * mGO;
+        Pt2di                            mSzOut;
 };
 
  // cXML_ParamNuage3DMaille aNewParam = CropAndSousEch(mParams,aTr,aScale,aSz);
@@ -1478,6 +1492,7 @@ static    float aBasculeValOut = -4e10f;
 
 cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
        (
+            const cXML_ParamNuage3DMaille * aGeomOutOri,
             const cElNuage3DMaille * aN2,
             bool SupprTriInv,
             double  aCoeffEtire,
@@ -1492,7 +1507,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     aN2->AssertNoEmptyData();
     if (anAAB) 
         SupprTriInv = true;
-    cBasculeNuage aBasc(this,aN2);
+    cBasculeNuage aBasc(this,aN2,aGeomOutOri);
 
     if (aVAttr)
     {
@@ -1628,7 +1643,7 @@ Im2D_U_INT1  cElNuage3DMaille::ImEtirement()
 
 
 
-cElNuage3DMaille *  cElNuage3DMaille::Basculement
+cElNuage3DMaille *  cElNuage3DMaille::BasculementNewName
                     (
                          const cElNuage3DMaille * aN2,
                          bool SupprTriInv,
@@ -1636,7 +1651,7 @@ cElNuage3DMaille *  cElNuage3DMaille::Basculement
                     ) const
 {
     cElNuage3DMaille * aRes = Clone();
-    aRes->BasculeInThis(aN2,SupprTriInv,aCoeffEtire,0,0,-1,false,0);
+    aRes->BasculeInThis(0,aN2,SupprTriInv,aCoeffEtire,0,0,-1,false,0);
 
     return aRes;
 }
@@ -1731,7 +1746,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        return 0;
    }
 
-    cElNuage3DMaille * aRes = aNOut->BasculeInThis(aNIn,true,aDynEtir,0,0,-1,AutoResize,&aVAttrIm);
+    cElNuage3DMaille * aRes = aNOut->BasculeInThis(&aGeomOutOri,aNIn,true,aDynEtir,0,0,-1,AutoResize,&aVAttrIm);
 
 
 
