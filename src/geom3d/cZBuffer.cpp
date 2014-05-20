@@ -239,15 +239,6 @@ Im2D_REAL4 cZBuffer::Basculer
                       mTImDef_10.oset(anIndexDef,aJac(1,0));
                       mTImDef_01.oset(anIndexDef,aJac(0,1));
                       mTImDef_11.oset(anIndexDef,aJac(1,1));
-/*
-if (anIndexDef==Pt2di(0,11))
-{
-   std::cout << "WWWWWW " << aNbVal  << anIndexDef << mTImDef_00.get(anIndexDef)  << aDerX  << aPMed  << aP0In << aP1In<< "\n";
-
-    std::cout << ProjDisc(aPMed+Pt3dr(1,0,0))   <<  ProjDisc(aPMed+Pt3dr(-1,0,0)) <<  " SEE " << SelectPBascul(Pt2dr(aPMed.x,aPMed.y)) << "\n";
-getchar();
-}
-*/
                 }
                 else
                 {
@@ -455,6 +446,29 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 
          // De memoire, la + grande des VP de l'affinite
         aCoefEtirReel = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
+
+
+if (0)
+{
+static double aMinCER = 1e20;
+static double aMaxCER = -1e20;
+bool Modif = false;
+if (aCoefEtirReel<aMinCER) 
+{
+     aMinCER = aCoefEtirReel;
+     Modif = true;
+}
+if (aCoefEtirReel> aMaxCER) 
+{
+     aMaxCER = aCoefEtirReel;
+     Modif = true;
+}
+if (Modif)
+     std::cout << "COEFFF =[" << aMinCER << " " << aMaxCER  << "]\n";
+}
+
+
+
 /*
  std::cout << "aCoefEtirReel " << aCoefEtirReel << "\n";
 if (aCoefEtirReel>1e10)
