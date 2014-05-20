@@ -76,10 +76,10 @@ cZBuffer::cZBuffer
    mImZ3       (1,1),
    mTZ3        (mImZ3),
    mEpsIntInv  (1e-5),
-   mTImDefA    (Pt2di(1,1)),
-   mTImDefB    (Pt2di(1,1)),
-   mTImDefC    (Pt2di(1,1)),
-   mTImDefD    (Pt2di(1,1))
+   mTImDef_00  (Pt2di(1,1)),
+   mTImDef_10  (Pt2di(1,1)),
+   mTImDef_01  (Pt2di(1,1)),
+   mTImDef_11  (Pt2di(1,1))
 {
 }
 
@@ -89,7 +89,7 @@ void cZBuffer::SetEpsilonInterpoleInverse(double anEps)
    mEpsIntInv = anEps;
 }
 
-void  cZBuffer::SetDynEtirement(double aDyn)
+void  cZBuffer::InitDynEtirement(double aDyn)
 {
     mDynEtire = aDyn;
     ELISE_ASSERT(!mBufDone,"Internal Error in cZBuffer; Cannot Set Etyr since Buf Done");
@@ -132,6 +132,12 @@ Pt2di cZBuffer::SzOut() const
     return mSzRes;
 }
 
+
+Pt2di cZBuffer::ToPtIndexDef(const Pt2di & aPt) const
+{
+   return Pt2di((aPt.x-mP0In.x)/SzDalleDef,(aPt.y-mP0In.y)/SzDalleDef);
+}
+
 Im2D_REAL4 cZBuffer::Basculer
            (
                Pt2di & aOffset_Out_00,
@@ -140,7 +146,6 @@ Im2D_REAL4 cZBuffer::Basculer
                float aDef
            )
 {
-
     mBufDone = false;
     mP0In = aP0In;
     mSzIn =  aP1In-aP0In;
@@ -168,10 +173,10 @@ Im2D_REAL4 cZBuffer::Basculer
     int aSzXDef = (aP1In.x-aP0In.x + SzDalleDef -1) / SzDalleDef;
     int aSzYDef = (aP1In.y-aP0In.y + SzDalleDef -1) / SzDalleDef;
     Pt2di aSzDef(aSzXDef,aSzYDef);
-    mTImDefA.Resize(aSzDef);
-    mTImDefB.Resize(aSzDef);
-    mTImDefC.Resize(aSzDef);
-    mTImDefD.Resize(aSzDef);
+    mTImDef_00.Resize(aSzDef);
+    mTImDef_10.Resize(aSzDef);
+    mTImDef_01.Resize(aSzDef);
+    mTImDef_11.Resize(aSzDef);
 
     // double a
     for (int anXDal0 = aP0In.x ;  anXDal0< aP1In.x ; anXDal0 += SzDalleDef  )
@@ -216,8 +221,10 @@ Im2D_REAL4 cZBuffer::Basculer
             }
             if (mDynEtire >0)
             {
-                Pt2di anIndexDef((anXDal0-aP0In.x)/SzDalleDef,(anYDal0-aP0In.y)/SzDalleDef);
+                // Pt2di anIndexDef((anXDal0-aP0In.x)/SzDalleDef,(anYDal0-aP0In.y)/SzDalleDef);
+                Pt2di anIndexDef = ToPtIndexDef(Pt2di(anXDal0,anYDal0));
                 int aNbVal = aVZofXY.size();
+
                 if (aNbVal)
                 {
                       double aZMed  = KthVal(VData(aVZofXY),aNbVal,aNbVal/2);
@@ -228,17 +235,26 @@ Im2D_REAL4 cZBuffer::Basculer
 
                       ElMatrix<double> aJac =  MatFromCol(Pt2dr(aDerX.x,aDerX.y),Pt2dr(aDerY.x,aDerY.y));
                       aJac = gaussj(aJac);
-                      mTImDefA.oset(anIndexDef,aJac(0,0));
-                      mTImDefB.oset(anIndexDef,aJac(1,0));
-                      mTImDefC.oset(anIndexDef,aJac(0,1));
-                      mTImDefD.oset(anIndexDef,aJac(1,1));
+                      mTImDef_00.oset(anIndexDef,aJac(0,0));
+                      mTImDef_10.oset(anIndexDef,aJac(1,0));
+                      mTImDef_01.oset(anIndexDef,aJac(0,1));
+                      mTImDef_11.oset(anIndexDef,aJac(1,1));
+/*
+if (anIndexDef==Pt2di(0,11))
+{
+   std::cout << "WWWWWW " << aNbVal  << anIndexDef << mTImDef_00.get(anIndexDef)  << aDerX  << aPMed  << aP0In << aP1In<< "\n";
+
+    std::cout << ProjDisc(aPMed+Pt3dr(1,0,0))   <<  ProjDisc(aPMed+Pt3dr(-1,0,0)) <<  " SEE " << SelectPBascul(Pt2dr(aPMed.x,aPMed.y)) << "\n";
+getchar();
+}
+*/
                 }
                 else
                 {
-                   mTImDefA.oset(anIndexDef,0.0);
-                   mTImDefB.oset(anIndexDef,0.0);
-                   mTImDefC.oset(anIndexDef,0.0);
-                   mTImDefD.oset(anIndexDef,0.0);
+                   mTImDef_00.oset(anIndexDef,0.0);
+                   mTImDef_10.oset(anIndexDef,0.0);
+                   mTImDef_01.oset(anIndexDef,0.0);
+                   mTImDef_11.oset(anIndexDef,0.0);
                 }
             }
         }
@@ -418,8 +434,20 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
      double aCoefEtirReel=-1;
      if (mDynEtire>0)
      {
-        Pt2dr aU = TriBas ? (B2-A2) : (C2-B2);
-        Pt2dr aV = TriBas ? (C2-B2) : (C2-A2);
+        Pt2dr u = TriBas ? (B2-A2) : (C2-B2);
+        Pt2dr v = TriBas ? (C2-B2) : (C2-A2);
+
+        // On tient compte du jacobien inverse pour avoir une estimation plus intrinseque de l'etirement
+        Pt2di anIndexDef = ToPtIndexDef(A);
+        double m00 = mTImDef_00.get(anIndexDef);
+        double m10 = mTImDef_10.get(anIndexDef);
+        double m01 = mTImDef_01.get(anIndexDef);
+        double m11 = mTImDef_11.get(anIndexDef);
+
+        Pt2dr aU (u.x*m00 + v.x*m01 , u.y*m00 +v.y *m01);
+        Pt2dr aV (u.x*m10 + v.x*m11 , u.y*m10 +v.y *m11);
+
+
 
         double aU2 = square_euclid(aU);
         double aV2 = square_euclid(aV);
@@ -427,7 +455,18 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 
          // De memoire, la + grande des VP de l'affinite
         aCoefEtirReel = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
-        aCoefEtire = ElMin(254,round_ni(aCoefEtirReel*mDynEtire));
+/*
+ std::cout << "aCoefEtirReel " << aCoefEtirReel << "\n";
+if (aCoefEtirReel>1e10)
+{
+   std::cout << anIndexDef << m00 << " " << m10 << " " << m01 << " " << m11 << "\n";
+   std::cout << u << " " << v  << "\n";
+   std::cout << aU << " " << aV  << "\n";
+getchar();
+}
+*/
+        // aCoefEtire = ElMin(254,round_ni(aCoefEtirReel*mDynEtire));
+        aCoefEtire = ElMin(254,round_ni(mDynEtire/aCoefEtirReel));
         if (aDet<0)
             aCoefEtire = 254;
      }

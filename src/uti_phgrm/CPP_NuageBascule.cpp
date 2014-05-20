@@ -179,8 +179,10 @@ int  NuageBascule_main(int argc,char ** argv)
                     << EAM(mSeuilEtir,"SeuilE",true,"Threshold for stretching (def = 5.0)")
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
+
+       ELISE_fp::MkDirSvp(DirOfFile(aNameRes));
     Tiff_Im::SetDefTileFile(mTileFile);
 
 

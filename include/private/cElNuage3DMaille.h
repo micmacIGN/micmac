@@ -619,7 +619,7 @@ class cZBuffer
         void SetWithBufXYZ(bool);
 
 
-        void SetDynEtirement(double);
+        void InitDynEtirement(double);
         Im2D_U_INT1    ImEtirement();
         void SetEpsilonInterpoleInverse(double anEps);
 
@@ -630,6 +630,8 @@ class cZBuffer
         std::vector<Im2DGen *> AttrOut();
    private :
        
+        Pt2di ToPtIndexDef(const Pt2di & aPt) const;
+
         std::vector<Im2DGen *>  mImAttrIn;
         std::vector<Im2DGen *>  mImAttrOut;
 
@@ -685,10 +687,10 @@ class cZBuffer
 
         //    (A B)  est l'inverse de la matrice qui envoie un pixe (1,0) (0,1) Z=Moyen vers l'espace d'arrivee
         //    (C D)
-        TIm2D<REAL8,REAL8>   mTImDefA;
-        TIm2D<REAL8,REAL8>   mTImDefB;
-        TIm2D<REAL8,REAL8>   mTImDefC;
-        TIm2D<REAL8,REAL8>   mTImDefD;
+        TIm2D<REAL8,REAL8>   mTImDef_00;
+        TIm2D<REAL8,REAL8>   mTImDef_10;
+        TIm2D<REAL8,REAL8>   mTImDef_01;
+        TIm2D<REAL8,REAL8>   mTImDef_11;
 };
 
 class cArgBacule

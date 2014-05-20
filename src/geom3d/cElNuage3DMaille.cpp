@@ -1501,7 +1501,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     }
 
     if (aCoeffEtire > 0)
-        aBasc.SetDynEtirement(aCoeffEtire);
+        aBasc.InitDynEtirement(aCoeffEtire);
     Pt2di anOfOut;
     Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
     cElNuage3DMaille * aNuageRes = this; 
