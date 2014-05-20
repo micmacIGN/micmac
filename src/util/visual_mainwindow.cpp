@@ -5,19 +5,21 @@
 // aVAM: Mandatory args
 // aVAO: Optional args
 
-static int IntMin = -10000;
-static int IntMax =  10000;
-static double DoubleMin = -10000.;
-static double DoubleMax =  10000.;
+static int IntMin = -1000000;
+static int IntMax =  1000000;
+static double DoubleMin = -1000000.;
+static double DoubleMax =  1000000.;
 
-visual_MainWindow::visual_MainWindow(const vector<cMMSpecArg> & aVAM,
-                                     const vector<cMMSpecArg> & aVAO,
+visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
+                                     vector<cMMSpecArg> & aVAO,
                                      string aFirstArg,
                                      QWidget *parent):
     QWidget(parent),
     mlastDir(QDir::currentPath()),
     mFirstArg(aFirstArg)
 {
+    moveArgs(aVAM, aVAO);
+
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 
     setLayout(verticalLayout);
@@ -48,6 +50,36 @@ visual_MainWindow::~visual_MainWindow()
     delete runCommandButton;
 }
 
+void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &aVAO)
+{
+    bool bGeomImg = false;
+
+    for (int aK=0; aK < (int) aVAM.size(); aK++)
+    {
+        cMMSpecArg arg = aVAM[aK];
+
+        if (( arg.Type() == AMBT_string ) && (*(arg.DefaultValue<string>()) != "GeomImage")) bGeomImg = true;
+        if (bGeomImg) break;
+    }
+
+    if (bGeomImg)
+    {
+        int idx = -1;
+        for (int aK=0; aK < (int) aVAO.size(); aK++)
+        {
+            if (aVAO[aK].NameArg() == "Master")
+            {
+                aVAM.push_back(aVAO[aK]);
+                idx = aK;
+            }
+        }
+
+        for (int aK= idx; aK < (int) aVAO.size() -1; aK++)
+            aVAO[aK] = aVAO[aK+1];
+        aVAO.pop_back();
+    }
+}
+
 void visual_MainWindow::addGridLayout(const vector<cMMSpecArg> &aVA, QString pageName)
 {
     QWidget* mPage = new QWidget();
@@ -68,7 +100,11 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
 
         add_label(layout, parent, aK, aArg);
 
-        if (aArg.IsBool()) // because some boolean values are set with int
+        if (!aArg.IsInit() && aArg.IsOpt())
+        {
+            add_select(layout, parent, aK, aArg);
+        }
+        else if (aArg.IsBool()) // because some boolean values are set with int
         {
             add_combo(layout, parent, aK, aArg);
         }
@@ -180,9 +216,15 @@ void visual_MainWindow::onRunCommandPressed()
         {
             if (aIn->Widgets().size() == 1)
             {
-                string aStr = ((QLineEdit*) aIn->Widgets()[0].second)->text().toStdString();
-                if (!aStr.empty()) aAdd += aStr;
-                else if (!aIn->IsOpt()) runCom = false;
+                QLineEdit* lEdit = (QLineEdit*) aIn->Widgets()[0].second;
+
+                if (lEdit->isModified())
+                {
+                    string aStr = lEdit->text().toStdString();
+
+                    if ( !aStr.empty() ) aAdd += aStr;
+                    else if (!aIn->IsOpt()) runCom = false;
+                }
             }
             break;
         }
@@ -208,8 +250,10 @@ void visual_MainWindow::onRunCommandPressed()
                     if ( !aIn->Arg().IsDefaultValue<bool>(aB) )
                         aAdd += aStr.toStdString();
                 }
-                else
+                else if (( aIn->Arg().IsOpt() && !aIn->Arg().IsDefaultValue<string>(aStr.toStdString()) ) || !aIn->Arg().IsOpt())
+                {
                     aAdd += aStr.toStdString();
+                }
             }
             break;
         }
@@ -217,7 +261,7 @@ void visual_MainWindow::onRunCommandPressed()
         {
             if (aIn->Widgets().size() == 1)
             {
-                getSpinBoxValue(aAdd, aIn, 0);
+                if (getSpinBoxValue(aAdd, aIn, 0)) aAdd.clear();
             }
             else
             {
@@ -241,7 +285,7 @@ void visual_MainWindow::onRunCommandPressed()
         {
             if (aIn->Widgets().size() == 1)
             {
-                getDoubleSpinBoxValue(aAdd, aIn, 0);
+                if (getDoubleSpinBoxValue(aAdd, aIn, 0)) aAdd.clear();
             }
             else
             {
@@ -282,7 +326,7 @@ void visual_MainWindow::onRunCommandPressed()
     }
     else
     {
-        QMessageBox::critical(this, tr("Error"), tr("Mandatory argument not filled!!!"));
+        QMessageBox::critical(this, tr("Error"), tr("Mandatory argument missing!!!"));
     }
 }
 
@@ -313,6 +357,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
         full_pattern = QUOTE(aDir+fileList);
 
         vLineEdit[aK]->setText(QString(full_pattern.c_str()));
+        vLineEdit[aK]->setModified(true);
         //cout<<full_pattern.toStdString()<<endl;
     }
 }
@@ -328,6 +373,7 @@ void visual_MainWindow::onSelectFilePressed(int aK)
         mlastDir = QString(aDir.c_str());
 
         vLineEdit[aK]->setText(filename);
+        vLineEdit[aK]->setModified(true);
     }
 }
 
@@ -340,6 +386,7 @@ void visual_MainWindow::onSelectDirPressed(int aK)
         mlastDir = "../" + aDir;
 
         vLineEdit[aK]->setText(QDir(aDir).dirName());
+        vLineEdit[aK]->setModified(true);
     }
 }
 
@@ -456,7 +503,7 @@ void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, 
         {
             string aStr = *(aArg.DefaultValue<string>());
 
-            if ( aStr.empty() )  aCombo->setCurrentIndex(0);
+            if ( aStr.empty() ) aCombo->setCurrentIndex(0);
             else
             {
                 int idx = -1;
