@@ -1657,13 +1657,30 @@ cElNuage3DMaille *  cElNuage3DMaille::BasculementNewName
 }
 
 
-cArgBacule::cArgBacule(double aSeuilEtir) :
-   mSeuilEtir(aSeuilEtir)
+cArgBacule::cArgBacule() :
+   mSeuilEtir    (5.0),
+   mDynEtir      (100.0),
+   mAutoResize   (true),
+   mBoxClipIn    (0),
+   mResEtir      (1,1)
 {
 }
+cElNuage3DMaille *  BasculeNuageAutoReSize
+                    (
+                       const cXML_ParamNuage3DMaille & aGeomOut,
+                       const cXML_ParamNuage3DMaille & aGeomIn,
+                       const std::string & aDirIn,
+                       const std::string &  aNameRes,
+                       cArgBacule &
+                    )
+{
+    ELISE_ASSERT(false,"Bascule : service momentanement interrompu pour travaux ;-) ");
+    return 0;
+}
 
-cArgBacule cArgBacule::mTheDef(5.0);
 
+
+#if (0)
 
 cElNuage3DMaille *  BasculeNuageAutoReSize
                     (
@@ -1786,6 +1803,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
    return aRes;
 }
+#endif
 /*
 */
 
