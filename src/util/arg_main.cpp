@@ -436,8 +436,8 @@ void LArgMain::InitIfMatchEq
             aRes->push_back(argv[k]);
     }
 
-    if (VerifInit)
-        VerifInitialize();
+   // if (VerifInit)
+        //VerifInitialize();
 
 }
 
@@ -721,7 +721,7 @@ INT GenFileInitArgs
         }
     }
 
-    L1.VerifInitialize();
+    //L1.VerifInitialize();
     INT res = ftell(fp);
     ElFclose(fp);
 
