@@ -1658,13 +1658,14 @@ cElNuage3DMaille *  cElNuage3DMaille::BasculementNewName
 
 
 cArgBacule::cArgBacule() :
-   mSeuilEtir    (5.0),
-   mDynEtir      (100.0),
+   mSeuilEtir    (0.3),
+   mDynEtir      (50.0),
    mAutoResize   (true),
    mBoxClipIn    (0),
    mResEtir      (1,1)
 {
 }
+#if (0)
 cElNuage3DMaille *  BasculeNuageAutoReSize
                     (
                        const cXML_ParamNuage3DMaille & aGeomOut,
@@ -1678,9 +1679,14 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
     return 0;
 }
 
+   bool  AutoResize,
+                       const Box2di  * aBoxClipIn,
+                       const cArgBacule &    anArg
 
 
-#if (0)
+#endif
+
+
 
 cElNuage3DMaille *  BasculeNuageAutoReSize
                     (
@@ -1688,15 +1694,13 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
                        const cXML_ParamNuage3DMaille & aGeomIn,
                        const std::string & aDirIn,
                        const std::string &  aNameRes,
-                       bool  AutoResize,
-                       const Box2di  * aBoxClipIn,
-                       const cArgBacule &    anArg
+                       cArgBacule &    anArgBasc
                     )
 {
    Tiff_Im::SetDefTileFile(100000);
    cXML_ParamNuage3DMaille aGeomOut = aGeomOutOri;
 
-   if (AutoResize)
+   if (anArgBasc.mAutoResize)
        aGeomOut.NbPixel() = Pt2di(1,1);
 
    ELISE_ASSERT
@@ -1718,10 +1722,10 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
         aNameCor = aDirIn + aGeomIn.Image_Profondeur().Val().Correl().Val();
         Pt2di aSz = Tiff_Im::StdConv(aNameCor).sz();
         Pt2di aP0 (0,0);
-        if (aBoxClipIn)
+        if (anArgBasc.mBoxClipIn)
         {
-            aP0 =  aBoxClipIn->_p0 ;
-            aSz =  aBoxClipIn->sz();
+            aP0 =  anArgBasc.mBoxClipIn->_p0 ;
+            aSz =  anArgBasc.mBoxClipIn->sz();
         }
 
 
@@ -1747,32 +1751,35 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    
 
    cParamModifGeomMTDNuage * aParamIn = 0;
-   if (aBoxClipIn!=0) 
+   if (anArgBasc.mBoxClipIn!=0) 
    {
-      aParamIn = new cParamModifGeomMTDNuage(1.0,Box2dr(aBoxClipIn->_p0,aBoxClipIn->_p1));
+      aParamIn = new cParamModifGeomMTDNuage(1.0,Box2dr(anArgBasc.mBoxClipIn->_p0,anArgBasc.mBoxClipIn->_p1));
    }
    cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aGeomIn,aDirIn,"",1.0,aParamIn);
    delete aParamIn;
 
 
-    double aDynEtir = 10.0;
-    double aSeuilEtir = anArg.mSeuilEtir;
 
    if (aNIn->IsEmpty())
    {
        return 0;
    }
 
-    cElNuage3DMaille * aRes = aNOut->BasculeInThis(&aGeomOutOri,aNIn,true,aDynEtir,0,0,-1,AutoResize,&aVAttrIm);
+    cElNuage3DMaille * aRes = aNOut->BasculeInThis(&aGeomOutOri,aNIn,true,anArgBasc.mDynEtir,0,0,-1,anArgBasc.mAutoResize,&aVAttrIm);
+
+    if (anArgBasc.mDynEtir>0)
+    {
+       anArgBasc.mResEtir = aRes->ImEtirement();
+    }
+  
 
 
-
-    if (AutoResize)
+    if (anArgBasc.mAutoResize)
     {
        ELISE_COPY
        (
           aRes->ImDef().all_pts(),
-          (aRes->ImDef().in() && (aRes->ImEtirement().in() < aSeuilEtir * aDynEtir)),
+          (aRes->ImDef().in() && (aRes->ImEtirement().in() > anArgBasc.mSeuilEtir * anArgBasc.mDynEtir)),
           aRes->ImDef().out()
        );
     }
@@ -1803,7 +1810,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
    return aRes;
 }
-#endif
 /*
 */
 

@@ -283,7 +283,7 @@ Im2D_REAL4 cZBuffer::Basculer
     }
 
     if (mDynEtire > 0)
-       mImEtirement = Im2D_U_INT1(mSzRes.x,mSzRes.y,255);
+       mImEtirement = Im2D_U_INT1(mSzRes.x,mSzRes.y,0);
 
     for (int x=aP0In.x ; x<aP1In.x-1; x++)
     {
@@ -447,8 +447,12 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
          // De memoire, la + grande des VP de l'affinite
         aCoefEtirReel = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
 
+         // Version surfacique 
 
-if (0)
+         aCoefEtirReel = ElAbs(aU.x * aV.y - aU.y * aV.x);
+
+
+if (1)
 {
 static double aMinCER = 1e20;
 static double aMaxCER = -1e20;
@@ -480,9 +484,9 @@ getchar();
 }
 */
         // aCoefEtire = ElMin(254,round_ni(aCoefEtirReel*mDynEtire));
-        aCoefEtire = ElMin(254,round_ni(mDynEtire/aCoefEtirReel));
+        aCoefEtire = ElMin(253,round_ni(mDynEtire/aCoefEtirReel));
         if (aDet<0)
-            aCoefEtire = 254;
+            aCoefEtire = 0;
      }
                 // BasculerUnTriangle(P00,P10,P11);
                 // BasculerUnTriangle(P00,P11,P01);
