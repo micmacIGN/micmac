@@ -48,31 +48,6 @@ bool TheExitOnNan   = false;
 bool TheMajickFile  = false;
 int  TheNbIterProcess = 1;
 
-#if ELISE_QT_VERSION >=4
-
-#ifdef Int
-    #undef Int
-#endif
-
-#include <QtGui>
-#include "general/visual_mainwindow.h"
-#include "general/arg_main.h"
-#endif
-
-void qtErrorMsg(std::string mes)
-{
-    #if ELISE_QT_VERSION >=4
-        int argc = 1;
-        char *argv = (char*) "toto";
-
-        QApplication app(argc, &argv);
-
-        setStyleSheet(app);
-
-        QMessageBox::critical(NULL, "FATAL ERROR", QString(mes.c_str()));
-    #endif
-}
-
 void throwError(std::string err)
 {
     ShowArgs();
@@ -184,11 +159,7 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
     msg += "|          of file : " + sf.str()  +                        "\n";
     msg += "-------------------------------------------------------------\n";
 
-#if ELISE_QT_VERSION >= 4
-        qtErrorMsg(msg);
-    #else
-        throwError(msg);
-#endif
+    throwError(msg);
 
     AddMessErrContext(std::string("mes=") +mes + std::string(" line=") +ToString(line) + std::string(" file=") + file);
     ElEXIT ( 1, "cEliseFatalErrorHandler::cEFEH_OnErreur");
@@ -298,11 +269,7 @@ void Elise_Pile_Mess_0::display(const char * kind_of)
     msg += "|                                                                \n";
     msg += "-----------------------------------------------------------------\n";
 
-    #if ELISE_QT_VERSION >= 4
-        qtErrorMsg(msg);
-    #else
-        throwError(msg);
-    #endif
+    throwError(msg);
 
     AddMessErrContext(std::string("Kind of err ") + kind_of);
     ElEXIT (1,"Elise_Pile_Mess_0::display");
