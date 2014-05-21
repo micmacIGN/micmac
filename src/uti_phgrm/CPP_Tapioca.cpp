@@ -229,7 +229,7 @@ void check_detect_and_match_tools( string &detectingTool, string &matchingTool )
 
 int MultiEch(int argc,char ** argv, const std::string &aArg="")
 {
-    int aSsRes;
+    int aSsRes = 300;
     int aNbMinPt=2;
     int DoLowRes = 1;
     string detectingTool, matchingTool;
@@ -246,8 +246,8 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 << EAM(aNbMinPt,"NbMinPt",true)
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                 << EAM(aPat2,"Pat2",true)
-                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true),
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
                 aArg
                 );
 
@@ -313,8 +313,8 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 << EAM(PostFix,"PostFix",true)
                 << EAM(ByP,"ByP",true)
                 << EAM(aPat2,"Pat2",true)
-                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true),
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
                 aArg
                 );
 
@@ -362,8 +362,8 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
-                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true),
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
                 aArg
                 );
 
@@ -417,10 +417,10 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"XML-File of pair", eSAM_IsExistFile)
                             << EAMC(aFullRes,"Resolution",eSAM_None),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                << EAM(PostFix,"PostFix",true)
+                << EAM(PostFix,"PostFix",false)
                 << EAM(ByP,"ByP",true)
-                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true),
+                << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
                 aArg
                 );
 
@@ -864,7 +864,7 @@ int Tapioca_main(int argc,char ** argv)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
         SplitDirAndFile(aDir,aPat,aFullDir);
-    
+
 
     aPatOri = aPat;
 
@@ -889,7 +889,7 @@ int Tapioca_main(int argc,char ** argv)
 
     MakeXmlXifInfo(aFullDir,anICNM);
 
-	}
+    }
 
     if (TheType == Type[0])
     {
