@@ -158,6 +158,7 @@ int  NuageBascule_main(int argc,char ** argv)
     bool   mShowCom = false;
     int    mTileFile = 1e6;
     double mSeuilEtir=5;
+    bool  mSaveEtir=false;
 
     ElInitArgMain
     (
@@ -177,6 +178,7 @@ int  NuageBascule_main(int argc,char ** argv)
                     << EAM(mTileFile,"TileFile",true,"Tile for Big File, def= no tiling for file < 4 Giga Byte")
                     << EAM(mParal,"Paral",true,"Do in parallel, tuning purpose, def=true")
                     << EAM(mSeuilEtir,"SeuilE",true,"Threshold for stretching (def = 5.0)")
+                    << EAM(mSaveEtir,"SaveImEtrir",true,"Save image streching , tuning (def=false)")
     );
 
     if (!MMVisualMode)
@@ -454,8 +456,11 @@ int  NuageBascule_main(int argc,char ** argv)
          cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),anArgBasc);
          if (aN)
          {
-            // std::cout << "AAAAA " << aNameRes << "\n";
             aN->Save(aNameRes);
+            if (mSaveEtir)
+            {
+               Tiff_Im::CreateFromIm(anArgBasc.mResEtir,aNameRes+"Etir.tif");
+            }
          }
          else
          {
