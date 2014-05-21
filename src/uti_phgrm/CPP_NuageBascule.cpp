@@ -167,7 +167,7 @@ int  NuageBascule_main(int argc,char ** argv)
                     << EAMC(aNameRes,"Name result"),
     LArgMain()
                     << EAM(ByP,"ByP",true,"By process in parallel, Def = true (faster and avoid memory overflow)")
-                    << EAM(AutoResize,"AutoResize",true,"Clip result to minimal size, Def = true")
+                    << EAM(AutoResize,"AutoResize",true,"Clip input  to minimal size, Def = true")
                     << EAM(AutoClipIn,"AutoClipIn",true,"Clip result to minimal size")
                     << EAM(aBoxIn,"BoxIn",true,"Box input")
                     << EAM(aSzDecoup,"SzDecoup",true,"Size of split for parallel")
@@ -434,20 +434,24 @@ int  NuageBascule_main(int argc,char ** argv)
          if (! EAMIsInit(&AutoClipIn))
             AutoClipIn = aNuageIn.Image_Profondeur().IsInit();
 
-         Box2di * aBoxClipIn = 0;
+
+
+         cArgBacule anArgBasc;
+
          if  (EAMIsInit(&aBoxIn))
          {
-               aBoxClipIn = new Box2di(aBoxIn);
+               anArgBasc.mBoxClipIn = new Box2di(aBoxIn);
          }
          else if (AutoClipIn)
          {
-               aBoxClipIn = new Box2di(BoxEnglobMasq(DirOfFile(aNameIn) + aNuageIn.Image_Profondeur().Val().Masq()));
-               std::cout << "BoxClipIn " << aBoxClipIn->_p0 << aBoxClipIn->_p1;
+               anArgBasc.mBoxClipIn = new Box2di(BoxEnglobMasq(DirOfFile(aNameIn) + aNuageIn.Image_Profondeur().Val().Masq()));
+               std::cout << "BoxClipIn " << anArgBasc.mBoxClipIn->_p0 << anArgBasc.mBoxClipIn->_p1;
          }
+         anArgBasc.mAutoResize = AutoResize;
+         
 
-         cArgBacule anArg(mSeuilEtir);
 
-         cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),AutoResize,aBoxClipIn,anArg);
+         cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),anArgBasc);
          if (aN)
          {
             // std::cout << "AAAAA " << aNameRes << "\n";
@@ -467,7 +471,7 @@ int  NuageBascule_main(int argc,char ** argv)
          // std::cout << "N=" << aN  << " => " << NameWithoutDir(aNameRes) << "\n";
 
 
-         delete aBoxClipIn;
+         delete anArgBasc.mBoxClipIn;
     }
     return 0;
 	
