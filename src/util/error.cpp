@@ -48,8 +48,43 @@ bool TheExitOnNan   = false;
 bool TheMajickFile  = false;
 int  TheNbIterProcess = 1;
 
+#if ELISE_QT_VERSION >=4
 
+#ifdef Int
+    #undef Int
+#endif
 
+#include <QtGui>
+#include "general/visual_mainwindow.h"
+#include "general/arg_main.h"
+#endif
+
+void qtErrorMsg(std::string mes)
+{
+    #if ELISE_QT_VERSION >=4
+        int argc = 1;
+        char *argv = (char*) "toto";
+
+        QApplication app(argc, &argv);
+
+        setStyleSheet(app);
+
+        QMessageBox::critical(NULL, "FATAL ERROR", QString(mes.c_str()));
+    #endif
+}
+
+void throwError(std::string err)
+{
+    ShowArgs();
+
+    ncout() << err;
+
+    message_copy_where_error();
+
+    ncout() << "Bye  (tape enter)" << endl;
+
+    EliseBRKP();
+}
 
 int GetCharOnBrkp()
 {
@@ -102,7 +137,6 @@ void  elise_test_error(const char * mes,const char * file,int line)
     ncout() << "The following error : \n";
     ncout() << "    " << mes ;
     ncout() << "was to occur at line " << line << " of file " << file << "\n";
-
 }
 
 
@@ -130,28 +164,32 @@ cEliseFatalErrorHandler * cEliseFatalErrorHandler::CurHandler(cEliseFatalErrorHa
 
 void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,int line)
 {
-    ShowArgs();
+    std::string msg =
+           "------------------------------------------------------------\n";
+    msg += "|   Sorry, the following FATAL ERROR happened               \n";
+    msg += "|                                                           \n";
+    msg += "|    " + std::string(mes)  +                               "\n";
+    msg += "|                                                           \n";
+    msg += "------------------------------------------------------------\n";
 
-    ncout() << "--------------------------------------------------\n"
-            << "|   the following FATAL ERROR happened (sorry):   \n"
-            << "|                                                 \n"
-            << "|    " << mes  <<                                "\n"
-            << "|                                                 \n";
+    std::stringstream sl, sf;
+    sl << line;
+    sf << file;
 
+    msg += "-------------------------------------------------------------\n";
+    msg += "|       (Elise's)  LOCATION :                                \n";
+    msg += "|                                                            \n";
+    msg += "| Error  was detected\n";
+    msg += "|          at line : " + sl.str()  +                        "\n";
+    msg += "|          of file : " + sf.str()  +                        "\n";
+    msg += "-------------------------------------------------------------\n";
 
-    message_copy_where_error();
+#if ELISE_QT_VERSION >= 4
+        qtErrorMsg(msg);
+    #else
+        throwError(msg);
+#endif
 
-    ncout()    << "--------------------------------------------------------\n"
-               << "|       (Elise's)  LOCATION :                           \n"
-               << "|                                                       \n"
-               << "| Error  was detected \n"
-               << "|          at line : " << line  << "\n"
-               << "|          of file : " << file  << "\n"
-               << "--------------------------------------------------------\n";
-
-    ncout() << "Bye  (tape enter)" << endl;
-
-    EliseBRKP();
     AddMessErrContext(std::string("mes=") +mes + std::string(" line=") +ToString(line) + std::string(" file=") + file);
     ElEXIT ( 1, "cEliseFatalErrorHandler::cEFEH_OnErreur");
 }
@@ -168,81 +206,104 @@ void  elise_fatal_error(const char * mes,const char * file,int line)
 
 
 
-void ElEM::mes_el() const
+std::string ElEM::mes_el() const
 {
+    std::string mes;
+
     switch(_type)
     {
-        case _int    : ncout() << _data.i     ; break;
-        case _real   : ncout() << _data.r     ; break;
-        case _string : ncout() << _data.s     ; break;
+        case _int    : mes += _data.i     ; break;
+        case _real   : mes += _data.r     ; break;
+        case _string : mes += _data.s     ; break;
         case _pt_pck :  _data.pack->show_kth(_data_2.i);
                         break;
         case _tab_int :
         {
-              ncout() << "[";
+              mes += "[";
 
               for (INT i  = 0 ; i <_data_2.i; i++)
               {
-                  if (i) ncout() <<  " x ";
-                  ncout() << _data.Pi[i];
+                  if (i) mes +=  " x ";
+                  mes += _data.Pi[i];
               }
 
-              ncout() << "]";
+              mes += "]";
         }
         break;
 
         case _tab_real :
         {
-              ncout() << "[";
+              mes += "[";
 
               for (INT i  = 0 ; i <_data_2.i; i++)
               {
-                  if (i) ncout() <<  " x ";
-                  ncout() << _data.Pr[i];
+                  if (i) mes +=  " x ";
+                  mes += _data.Pr[i];
               }
 
-              ncout() << "]";
+              mes += "]";
         }
         break;
 
         case _pt2di :
-             ncout() << "(" << _data.pt->x << "," << _data.pt->x << ")";
-             break;
+        {
+            std::stringstream sx, sy;
+
+            sx << _data.pt->x;
+            sy << _data.pt->y;
+
+            mes += "(" + sx.str() + "," + sy.str() + ")";
+        }
+        break;
 
         case _box_2di :
-             const  Box2di * box = _data.box;
-             ncout() << "[" << box->_p0.x << "," << box->_p1.x << "]"
-                  << "X"
-                  << "[" << box->_p0.y << "," << box->_p1.y << "]";
-             break;
+        {
+            std::stringstream p0x, p0y, p1x, p1y;
+
+            const  Box2di * box = _data.box;
+            p0x << box->_p0.x;
+            p0y << box->_p0.y;
+            p1x << box->_p1.x;
+            p1y << box->_p1.y;
+
+            mes += "[" + p0x.str() + "," + p1x.str() + "]"
+                    + "X"
+                    + "[" + p0y.str() + "," + p1y.str() + "]";
+        }
+        break;
     };
+
+    return mes;
 }
 
 Elise_Pile_Mess_N::Elise_Pile_Mess_N() {}
 
 Elise_Pile_Mess_N Elise_Pile_Mess_N::_the_one;
 
+
+
 void Elise_Pile_Mess_0::display(const char * kind_of)
 {
-    ShowArgs();
-
-    ncout() << "--------------------------------------------------\n"
-         << "|   KIND OF ERR : " << kind_of <<                "\n"
-         << "|   Sorry, the following FATAL ERROR happened     \n"
-         << "|                                                 \n";
-    ncout() << "|    ";
+    std::string msg =
+           "-----------------------------------------------------------------\n";
+    msg += "|   KIND OF ERR : " + string(kind_of) +                         "\n";
+    msg += "|   Sorry, the following FATAL ERROR happened                    \n";
+    msg += "|                                                                \n";
+    msg += "|    ";
     for (INT i=0 ; i<_nb ; i++)
     {
-         _stack[i].mes_el();
+         msg += _stack[i].mes_el();
     }
-    ncout() << "\n";
-    ncout() << "|                                                 \n"
-         << "--------------------------------------------------\n";
+    msg += "\n";
+    msg += "|                                                                \n";
+    msg += "-----------------------------------------------------------------\n";
 
-    message_copy_where_error();
-    ncout() << "Bye  (tape enter to quit)\n";
+    #if ELISE_QT_VERSION >= 4
+        qtErrorMsg(msg);
+    #else
+        throwError(msg);
+    #endif
 
-    EliseBRKP();
     AddMessErrContext(std::string("Kind of err ") + kind_of);
     ElEXIT (1,"Elise_Pile_Mess_0::display");
 }
