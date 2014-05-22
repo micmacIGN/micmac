@@ -58,7 +58,7 @@ class cMCI_Ima
 
        Pt2dr ClikIn();
        // Renvoie le saut de prof pour avoir un pixel
-       double EstimateStep(cMCI_Ima *);
+       void EstimateStep(cMCI_Ima *);
 
        void  DrawFaisceaucReproj(cMCI_Ima & aMas,const Pt2dr & aP);
        Video_Win *  W() {return mW;};
@@ -67,6 +67,7 @@ class cMCI_Ima
        void CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster);
 
        Fonc_Num  FCorrel(cMCI_Ima *);
+       Fonc_Num  FQuickCorrel(cMCI_Ima *);
        Pt2di Sz(){return mSz;}
 
     private :
@@ -98,6 +99,8 @@ class cMCI_Appli
 
         Pt2dr ClikInMaster();
 
+        // Function to make basic test on geometry, seize a point in one image 
+        // and show its projection in others
         void TestProj();
         void InitGeom();
         void AddEchInv(double aInvProf,double aStep)
@@ -154,27 +157,38 @@ void cMCI_Ima::TestManipImage()
        std::cout << mName << mSz << "\n";
        mW = Video_Win::PtrWStd(Pt2di(1200,800));
        mW->set_title(mName.c_str());
-       ELISE_COPY(mW->all_pts(),mTifIm.in(),mW->ogray());
-       //mW->clik_in();
 
-       ELISE_COPY(mW->all_pts(),255-mIm.in(),mW->ogray());
-       //mW->clik_in();
+       // Load tiff file in image and window
+       ELISE_COPY(mW->all_pts(),mTifIm.in(),mW->ogray());
+       std::cout << "IMAGE LOADED\n";
+       mW->clik_in();
+
        std::cout << mNameOri
                  << " F=" << mCam->Focale()
                  << " P=" << mCam->GetProfondeur()
                  << " A=" << mCam->GetAltiSol()
                  << "\n";
-          // 1- Test at very low level
+        // 1- Test of mani at very low level
+
+           // Check that copy of the image share in fact the data
         Im2D<U_INT1,INT> aImAlias = mIm;
         ELISE_ASSERT(aImAlias.data()==mIm.data(),"Data");
+
+           // Test of miroring a part of image
         U_INT1 ** aData = aImAlias.data();
-        for (int anY=0 ; anY<mSz.y/3 ; anY++)
+        for (int anY=0 ; anY<ElMin(mSz.y,mSz.x) /2 ; anY++)
+        {
             for (int anX=0 ; anX<anY ; anX++)
             {
                  ElSwap(aData[anY][anX],aData[anX][anY]);
             }
-        U_INT1 * aDataL = aImAlias.data_lin();
+        }
+        ELISE_COPY(mW->all_pts(),mIm.in(),mW->ogray());
+        std::cout << "TEST MIRORING LOW LEVEL\n";
+        mW->clik_in();
 
+           // Check that 2D representation en 1D share the same memory space
+        U_INT1 * aDataL = aImAlias.data_lin();
         for (int anY=0 ; anY<mSz.y ; anY++)
         {
             ELISE_ASSERT
@@ -184,27 +198,53 @@ void cMCI_Ima::TestManipImage()
             );
          }
          memset(aDataL+mSz.x*50,128,mSz.x*100);
-         ELISE_COPY(mW->all_pts(),mIm.in(),mW->ogray());
+
 
          // 2- Test with functional approach
 
+          // Reload
          ELISE_COPY
          (
             mIm.all_pts(),
             mTifIm.in(),
-            // Output is directed both in window & Im
             mIm.out() | mW->ogray()
           );
 
-          ELISE_COPY
+          // Show in window the negative value, 
+          // 255 is the constant function (a,b,...) -> 255
+          //  "-" is an operator on funtion
+          //  f1-f2  :  (a,b,...) -> f1(a,b..) -f2(a,b...)
+         ELISE_COPY
+         (
+            disc(Pt2dr(200,200),150),
+            255-mIm.in(),
+             mW->ogray()
+          );
+          std::cout << "SHOW NEGATIVE\n";
+          mW->clik_in();
+
+         // Use the [] operator which is compositon of function
+         // Use the Virgule operator which result is concatenation 
+         // FX and FY predefined function, return coordinates of point
+         //  FX    (a,b,...) -> a
+         //  FY    (a,b,...) -> b
+         // Virgule(FY,FX)  (a,b,...) -> (b,a)
+         //  This call show the negative of the mirror image on a disc
+	ELISE_COPY
          (
             disc(Pt2dr(200,200),150),
             255-mIm.in()[Virgule(FY,FX)],
-            // Output is directed both in window & Im
+            // 
              mW->ogray()
           );
+          std::cout << "SHOW NEGATIVE+MIRROR in Functionnal way\n";
+          mW->clik_in();
 
-          int aSzF = 20;
+
+         // rect_som  is an operator (fiter) on function, compute for each
+         // pixel the sum of F on rectangular neighborhood
+         //  rect_som(F,10) :(a,b)->Sum (x in [a-10,a+10]x[b-10,b+10]) F(x)
+         int aSzF = 20;
          ELISE_COPY
          (
             rectangle(Pt2di(0,0),Pt2di(400,500)),
@@ -212,15 +252,23 @@ void cMCI_Ima::TestManipImage()
             rect_som(mIm.in_proj(),aSzF)/ElSquare(1+2*aSzF),
             // Output is directed both in window & Im
              mW->ogray()
-          );
+         );
+         std::cout << "Show the result of filtering by averaging\n";
+         mW->clik_in();
 
-          Fonc_Num aF = mIm.in_proj();
-          aSzF=4;
-          int aNbIter = 5;
-          for (int aK=0 ; aK<aNbIter ; aK++)
+
+         // Compute a function with the application of 5 iteration of
+         // the average filter
+         Fonc_Num aF = mIm.in_proj();
+         aSzF=4;
+         int aNbIter = 5;
+         for (int aK=0 ; aK<aNbIter ; aK++)
               aF = rect_som(aF,aSzF)/ElSquare(1+2*aSzF);
 
          ELISE_COPY(mIm.all_pts(),aF,mW->ogray());
+
+         std::cout << "5 iteration average, functionnal mode\n";
+         mW->clik_in();
 
         //  ELISE_COPY(mIm.all_pts(),mTifIm.in(),mIm.out());
 
@@ -252,15 +300,28 @@ void cMCI_Ima::TestManipImage()
                     aTIm.oset(aP,aTplDup.get(aP));
          }
          ELISE_COPY(mIm.all_pts(),mIm.in(),mW->ogray());
+
+         std::cout << "5 iteration average, pixel manipulation\n";
+         mW->clik_in();
  
 }
 
+// For a given depth, compute the rectified image in the geometry of
+// Master using the plane parallel to Master;  to speed up the computation,
+// a grid of correspondance is first computed, the it is used to interpolate
+
 void cMCI_Ima::CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster)
 {
-    TIm2D<U_INT1,INT> aTIm(mIm);
-    TIm2D<U_INT1,INT> aTImOrtho(mImOrtho);
+ 
+    TIm2D<U_INT1,INT> aTIm(mIm);  // Initial image
+    TIm2D<U_INT1,INT> aTImOrtho(mImOrtho); // image resampled in Master geometry
+ 
+    // Step of the grid
     int aSsEch = 10;
     Pt2di aSzR = aMaster->mSz/ aSsEch;
+
+    // Store the mappind grid  Phi : Master -> Image a given depth,
+    //  Phi(u,v) =  (aImX(u,v),aImY(u,v))
     TIm2D<float,double> aImX(aSzR);
     TIm2D<float,double> aImY(aSzR);
 
@@ -269,8 +330,12 @@ void cMCI_Ima::CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster)
     {
         for (aP.y=0 ; aP.y<aSzR.y; aP.y++)
         {
+            // aP = point of the grid, aP*aSsEch = correspond point in Master
+            // aPTer = corresponding 3D point in the plane at given depth
+            // aPIm = projection of PTer in my geometry
             Pt3dr aPTer = aMaster->mCam->ImEtProf2Terrain(Pt2dr(aP*aSsEch),aProf);
             Pt2dr aPIm = mCam->R3toF2(aPTer);
+            // Store the result in grid
             aImX.oset(aP,aPIm.x);
             aImY.oset(aP,aPIm.y);
         }
@@ -280,10 +345,14 @@ void cMCI_Ima::CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster)
     {
         for (aP.y=0 ; aP.y<aMaster->mSz.y; aP.y++)
         {
-            /*
+            /*  Exact formula, that would be used in case of no grid :
             Pt3dr aPTer = aMaster->mCam->ImEtProf2Terrain(Pt2dr(aP),aProf);
             Pt2dr aPIm0 = mCam->R3toF2(aPTer);
             */
+            //  aP : master image point
+            // aPInt : float point in the grid
+            // aPIm : homologous of aP in my geometry
+            // aVal : value of my image at aPIm
             Pt2dr aPInt = Pt2dr(aP) / double(aSsEch);
             Pt2dr aPIm (aImX.getr(aPInt,0),aImY.getr(aPInt,0));
             float aVal = aTIm.getr(aPIm,0);
@@ -298,30 +367,60 @@ void cMCI_Ima::CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster)
     }
 }
 
+/*
+    Use the formula
 
+      Corr(I1,I2) = [ E(I1*I2) - E(I1)*E(I2)] / sqrt[(E^2(I1) -E(I1^2))*(E^2(I2) -E(I2^2))]
+      Here the "expectation" is computed by the average operator :
+
+       E(I) =  rect_som(aF1,aSzW) / (1+2*aNbW) ^2
+*/
 Fonc_Num  cMCI_Ima::FCorrel(cMCI_Ima *aMaster)
 {
     int aSzW = 2;
-    double aNbW = ElSquare(1+2*aSzW);
+    double aNbW = ElSquare(1+2*aSzW); // Number of Pixel in window
     Fonc_Num aF1 = mImOrtho.in_proj();
     Fonc_Num aF2 = aMaster->mImOrtho.in_proj();
 
 
-    Fonc_Num aS1 = rect_som(aF1,aSzW) / aNbW;
-    Fonc_Num aS2 = rect_som(aF2,aSzW) / aNbW;
+    Fonc_Num aS1 = rect_som(aF1,aSzW) / aNbW; // E(I1)
+    Fonc_Num aS2 = rect_som(aF2,aSzW) / aNbW; // E(I2)
 
-    Fonc_Num aS12 = rect_som(aF1*aF2,aSzW) / aNbW - aS1*aS2;
-    Fonc_Num aS11 = rect_som(Square(aF1),aSzW) / aNbW - Square(aS1);
-    Fonc_Num aS22 = rect_som(Square(aF2),aSzW) / aNbW - Square(aS2);
+    Fonc_Num aS12 = rect_som(aF1*aF2,aSzW) / aNbW - aS1*aS2; // E(I1*I2) - E(I1)*E(I2)
+    Fonc_Num aS11 = rect_som(Square(aF1),aSzW) / aNbW - Square(aS1); // (E^2(I1) -E(I1^2))
+    Fonc_Num aS22 = rect_som(Square(aF2),aSzW) / aNbW - Square(aS2); // E(I1^2))*(E^2(I2) -E(I2^2))
 
-    Fonc_Num aRes = aS12 / sqrt(Max(1e-5,aS11*aS22));
+   // Corr(I1,I2) : aS11 and aS22 should be >=0 , Take care of null 
+   // and negative value, possible because of numerical errors
+    Fonc_Num aRes = aS12 / sqrt(Max(1e-5,aS11*aS22)); 
 
-//static Video_Win * aW = Video_Win::PtrWStd(Pt2di(1200,800));
-//ELISE_COPY(aW->all_pts(),128*(1+aRes),aW->ogray());
 
     return aRes;
 }
 
+// Optimized computation of correlation using the Symb_FNum, who avoid 
+// multiple computation of the same values
+Fonc_Num  cMCI_Ima::FQuickCorrel(cMCI_Ima * aMaster)
+{
+   int aSzW=2;
+   double aNbW = ElSquare(1+2*aSzW);
+   Symb_FNum aS1 (mImOrtho.in_proj());
+   Symb_FNum aS2 (aMaster->mImOrtho.in_proj());
+
+   Symb_FNum  aSom = 
+rect_som(Virgule(aS1,aS2,aS1*aS2,Square(aS1),Square(aS2)),aSzW);
+
+   Symb_FNum aSum1  (aSom.kth_proj(0) / aNbW);
+   Symb_FNum aSum2   (aSom.kth_proj(1)  / aNbW);
+   Symb_FNum aSum12  (aSom.kth_proj(2)  / aNbW -aSum1 * aSum2);
+   Symb_FNum aSum11  (aSom.kth_proj(3)  / aNbW -Square(aSum1));
+   Symb_FNum aSum22   (aSom.kth_proj(4)  / aNbW - Square(aSum2)) ;
+
+    Fonc_Num aRes = aSum12 / sqrt(Max(1e-5,aSum11*aSum22)); 
+
+
+    return aRes;
+}
 
 void cMCI_Ima::InitMemImOrtho(cMCI_Ima * aMas)
 {
@@ -336,26 +435,35 @@ Pt2dr cMCI_Ima::ClikIn()
 void  cMCI_Ima::DrawFaisceaucReproj(cMCI_Ima & aMas,const Pt2dr & aP)
 {
     if (! mW) return ;
-    double aProfMoy =  aMas.mCam->GetProfondeur();
+    double aProfMoy =  aMas.mCam->GetProfondeur(); // Get average depth
     double aCoef = 1.2;
 
     std::vector<Pt2dr> aVProj;
+    // Parse a "big" interval of depth to get the 3D bundle
     for (double aMul = 0.2; aMul < 5; aMul *=aCoef)
     {
+         // Get the 3D point correspond to aP in aMas, and with given depth
          Pt3dr aP3d =  aMas.mCam->ImEtProf2Terrain(aP,aProfMoy*aMul);
+         // Project in this image
          Pt2dr aPIm = this->mCam->R3toF2(aP3d);
 
+         // stack the result
          aVProj.push_back(aPIm);
     }
+    // Show the segments
     for (int aK=0 ; aK<((int) aVProj.size()-1) ; aK++)
         mW->draw_seg(aVProj[aK],aVProj[aK+1],mW->pdisc()(P8COL::red));
 }
 
-double cMCI_Ima::EstimateStep(cMCI_Ima * aMas)
+//  Each image add its own contribution to the estimation of average depth
+// and steps that correspond to a displacement of 1 pixel
+//
+//  Thie estimation is done using the tie points resulting from Tapioca
+
+void cMCI_Ima::EstimateStep(cMCI_Ima * aMas)
 {
-
+   // Get the name of tie points name using the key
    std::string aKey = "NKS-Assoc-CplIm2Hom@@dat";
-
    std::string aNameH =   mAppli.Dir()
                         + mAppli.ICNM()->Assoc1To2
                         (
@@ -364,8 +472,10 @@ double cMCI_Ima::EstimateStep(cMCI_Ima * aMas)
                             aMas->mName,
                             true
                         );
+   // Load the tie points
    ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);
 
+   // Axe of master camera in ground geometry
    Pt3dr aDirK = aMas->mCam->DirK();
    for
    (
@@ -377,36 +487,43 @@ double cMCI_Ima::EstimateStep(cMCI_Ima * aMas)
        Pt2dr aPInit1 = iTH->P1();
        Pt2dr aPInit2 = iTH->P2();
 
+       // Compute the 3D point from tie point by "pseudo" intersection of
+       // bundles
        double aDist;
        Pt3dr aTer = mCam->PseudoInter(aPInit1,*(aMas->mCam),aPInit2,&aDist);
 
        double aProf2 = aMas->mCam->ProfInDir(aTer,aDirK);
 
-
+       // Compute the "real" projection (slightly different of aPInit1)
        Pt2dr aProj1 = mCam->R3toF2(aTer);
        Pt2dr aProj2 = aMas->mCam->R3toF2(aTer);
 
       // std::cout << aMas->mCam->ImEtProf2Terrain(aProj2,aProf2) -aTer << "\n";
 
 
-       if (0)
+       if (0)  // Check if aPInit ~ aProj1
           std::cout << "Ter " << aDist << " " << aProf2
                  << " Pix " << euclid(aPInit1,aProj1)
                  << " Pix " << euclid(aPInit2,aProj2) << "\n";
+
+       // Modify slightly the depth to compute the effect on P1
        double aDeltaProf = aProf2 * 0.0002343;
        Pt3dr aTerPert = aMas->mCam->ImEtProf2Terrain
                       (aProj2,aProf2+aDeltaProf);
 
        Pt2dr aProjPert1 = mCam->R3toF2(aTerPert);
 
+       // Ratio variation in depth (meters) - variation in projection (pixel)
        double aDelta1Pix = aDeltaProf / euclid(aProj1,aProjPert1);
+
+       // Ratio variation in 1/depth  - variation in projection, use
+       // D(1/x) = D(x) / x2
        double aDeltaInv = aDelta1Pix / ElSquare(aProf2);
        // std::cout << "Firts Ecart " << aDelta1Pix << " "<< aDeltaInv  << "\n";
+      
+       // accumulate for averaging, invert prof and step in invert prof 
        mAppli.AddEchInv(1/aProf2,aDeltaInv);
    }
-   return aPack.size();
-
-
 }
 
 /********************************************************************/
@@ -423,6 +540,7 @@ cMCI_Appli::cMCI_Appli(int argc, char** argv):
 {
     // Reading parameter : check and  convert strings to low level objects
     mShowArgs=false;
+    bool mTestIm = false;
     ElInitArgMain
     (
         argc,argv,
@@ -430,6 +548,7 @@ cMCI_Appli::cMCI_Appli(int argc, char** argv):
                     << EAMC(mNameMast,"Name of Master Image")
                     << EAMC(mOri,"Used orientation"),
         LArgMain()  << EAM(mShowArgs,"Show",true,"Give details on args")
+                    << EAM(mTestIm,"TestIm",true,"Test the basic operations on image")
     );
 
     // Initialize name manipulator & files
@@ -450,9 +569,13 @@ cMCI_Appli::cMCI_Appli(int argc, char** argv):
               )
      {
            cMCI_Ima * aNewIm = new  cMCI_Ima(*this,*itS);
+           
            mIms.push_back(aNewIm);
            if (*itS==mNameMast)
+           {
                mMastIm = aNewIm;
+               if (mTestIm) mMastIm->TestManipImage();
+           }
      }
 
      // Ckeck the master is included in the pattern
@@ -473,23 +596,30 @@ cMCI_Appli::cMCI_Appli(int argc, char** argv):
 
 
      double aStep = 0.5;
+
+     //  Parse the different depths
      for (int aKPax = -60 ; aKPax <=60 ; aKPax++)
      {
          std::cout << "ORTHO at " << aKPax << "\n";
+         // Use the average value to get InvDepth and Depth
          double aInvProf = mMoyInvProf + aKPax * mStep1Pix * aStep;
          double aProf = 1/aInvProf;
 
+         // Compute all ortho photos
          for (int aKIm=0 ; aKIm<int(mIms.size()) ; aKIm++)
               mIms[aKIm]->CalculImOrthoOfProf(aProf,mMastIm);
 
+         // Compute the global correlation as sum of individual
          Fonc_Num aFCorrel = 0;
          for (int aKIm=0 ; aKIm<int(mIms.size()) ; aKIm++)
          {
              cMCI_Ima * anIm = mIms[aKIm];
              if (anIm != mMastIm)
-                 aFCorrel = aFCorrel+anIm->FCorrel(mMastIm);
+                 aFCorrel = aFCorrel+anIm->FQuickCorrel(mMastIm);
          }
+         // Store the result in aImCorrel
          ELISE_COPY(aImCorrel.all_pts(),aFCorrel,aImCorrel.out());
+         // Udate the Pax for points the increase the current best correl
          ELISE_COPY
          (
             select(aImCorrel.all_pts(),aImCorrel.in()>aImCorrelMax.in()),
@@ -523,9 +653,11 @@ void cMCI_Appli::TestProj()
     if (! mMastIm->W()) return;
     while (1)
     {
+        // Get a point
         Pt2dr aP = ClikInMaster();
         for (int aKIm=0 ; aKIm<int(mIms.size()) ; aKIm++)
         {
+            // Show the bundle in others
             mIms[aKIm]->DrawFaisceaucReproj(*mMastIm,aP);
         }
     }
