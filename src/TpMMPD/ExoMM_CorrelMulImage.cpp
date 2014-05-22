@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 // List  of classes
+
+// Class to store the application of Multi Correlation
 class cMCI_Appli;
 // Contains the information to store each image : Radiometry & Geometry
 class cMCI_Ima;
@@ -50,6 +52,9 @@ class cMCI_Ima
 {
     public:
        cMCI_Ima(cMCI_Appli & anAppli,const std::string & aName);
+
+       // A didactic test to see different way to manipulate images
+       void TestManipImage();
 
        Pt2dr ClikIn();
        // Renvoie le saut de prof pour avoir un pixel
@@ -127,7 +132,7 @@ class cMCI_Appli
 /*                                                                  */
 /*         cMCI_Ima                                                 */
 /*                                                                  */
-/****************StdCorrecNameOrient****************************************************/
+/********************************************************************/
 
 cMCI_Ima::cMCI_Ima(cMCI_Appli & anAppli,const std::string & aName) :
    mAppli  (anAppli),
@@ -135,15 +140,17 @@ cMCI_Ima::cMCI_Ima(cMCI_Appli & anAppli,const std::string & aName) :
    mTifIm  (Tiff_Im::StdConvGen(mAppli.Dir() + mName,1,true)),
    mSz     (mTifIm.sz()),
    mIm     (mSz.x,mSz.y),
-   mImOrtho (1,1),
+   mImOrtho (1,1), // Do not know the size for now
    mW      (0),
-   mNameOri (mAppli.NameIm2NameOri(mName)),
+   mNameOri  (mAppli.NameIm2NameOri(mName)),
    mCam      (CamOrientGenFromFile(mNameOri,mAppli.ICNM()))
 {
    ELISE_COPY(mIm.all_pts(),mTifIm.in(),mIm.out());
+}
 
-   if (0) // (mAppli.ShowArgs())
-   {
+void cMCI_Ima::TestManipImage()
+{
+
        std::cout << mName << mSz << "\n";
        mW = Video_Win::PtrWStd(Pt2di(1200,800));
        mW->set_title(mName.c_str());
@@ -245,10 +252,7 @@ cMCI_Ima::cMCI_Ima(cMCI_Appli & anAppli,const std::string & aName) :
                     aTIm.oset(aP,aTplDup.get(aP));
          }
          ELISE_COPY(mIm.all_pts(),mIm.in(),mW->ogray());
-   }
-
-
-
+ 
 }
 
 void cMCI_Ima::CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster)
@@ -631,51 +635,212 @@ int ExoMCI_0_main(int argc, char** argv)
    return EXIT_SUCCESS;
 }
 
+// In this exercice, some computation can be made in 3 mode for illustrationb
+typedef enum
+{
+   eMCEM_Func =0,  // Functionnal mode with ELISE_COPY
+   eMCEM_Tpl  =1,   // Using the "securized" access to images
+   eMCEM_Raw  =2,    // Using raw data
+   eMCEM_Raw1D =3
+} eModeComputeEM;
+
 int  ExoCorrelEpip_main(int argc,char ** argv)
 {
     std::string aNameI1,aNameI2;
     int aPxMax= 199;
     int aSzW = 5;
+
+    int aImode=0;    
+
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aNameI1,"Name Image1")
                     << EAMC(aNameI2,"Name Image2"),
         LArgMain()  << EAM(aPxMax,"PxMax",true,"Pax Max")
+                    << EAM(aSzW,"SzW",true,"Size of Window, def=5")
+                    << EAM(aImode,"Mode",true,"Mode comput 0=Func, 1=Tpl, 2=Raw, 3=Raw1D")
     );
+    eModeComputeEM aMode = (eModeComputeEM) aImode;
 
+    // Looding the images from file to memory
     Im2D_U_INT1 aI1 = Im2D_U_INT1::FromFileStd(aNameI1);
     Im2D_U_INT1 aI2 = Im2D_U_INT1::FromFileStd(aNameI2);
 
     Pt2di aSz1 = aI1.sz();
-    Im2D_REAL4  aIScoreMin(aSz1.x,aSz1.y,1e10);
-    Im2D_REAL4  aIScore(aSz1.x,aSz1.y);
-    Im2D_INT2   aIPaxOpt(aSz1.x,aSz1.y);
+    Pt2di aSz2 = aI2.sz();
+    // Tempory images
 
+    // Image of best score, initialized to "infinity" value
+    Im2D_REAL4  aIScoreMin(aSz1.x,aSz1.y,1e10);      
+    Im2D_REAL4  aIScore(aSz1.x,aSz1.y);   // Image of current score
+    Im2D_INT2   aIPaxOpt(aSz1.x,aSz1.y);  // Image giving the best paralax
+
+    // Create object("wraper") for "safe" manipulation of each pixels
+    TIm2D<U_INT1,INT> aTI1(aI1);
+    TIm2D<U_INT1,INT> aTI2(aI2);
+    TIm2D<REAL4,REAL> aTScoreMin(aIScoreMin);
+    TIm2D<REAL4,REAL> aTScore(aIScore);
+    TIm2D<INT2,INT> aTPaxOpt(aIPaxOpt);
+
+    // Create object("wraper") for "safe" manipulation of each pixels
+    U_INT1 ** aDI1 = aI1.data();
+    U_INT1 ** aDI2 = aI2.data();
+
+    // For visualization
     Video_Win aW = Video_Win::WStd(Pt2di(1200,800),true);
 
     for (int aPax = -aPxMax ; aPax <=aPxMax ; aPax++)
     {
-        std::cout << "PAX tested " << aPax << "\n";
-        Fonc_Num aI2Tr = trans(aI2.in_proj(),Pt2di(aPax,0));
-        ELISE_COPY
-        (
-             aI1.all_pts(),
-             rect_som(Abs(aI1.in_proj()-aI2Tr),aSzW),
-             aIScore.out()
-        );
-        ELISE_COPY
-        (
-           select(aI1.all_pts(),aIScore.in()<aIScoreMin.in()),
-           Virgule(aPax,aIScore.in()),
-           Virgule(aIPaxOpt.out(),aIScoreMin.out())
-        );
-    }
+        // Excact limit of domain, used for non functionnal mode to avoid
+        // acces out of image domains
 
+	int aX0 = aSzW+ElMax(0,-aPax);
+        int aX1 = ElMin(aSz2.x+ElMin(0,-aPax),aSz1.x)-aSzW ;
+        int aY0 = aSzW;
+        int aY1 = ElMin(aSz1.y,aSz2.y) - aSzW;
+
+        std::cout << "PAX tested " << aPax << "\n";
+        // Function of image translated 
+        Fonc_Num aI2Tr = trans(aI2.in_proj(),Pt2di(aPax,0));
+
+        // Compute the similarity by sum of differences on a square window
+        // of size [-aSzW,aSzW] x [-aSzW,aSzW]
+
+        // Do 4 time the same computation using different "programming style"
+        // just for didactic purpose
+
+
+        switch (aMode)
+        {
+            // Using "high level" functionnal mode 
+            case eMCEM_Func :
+               ELISE_COPY
+               (
+                  aI1.all_pts(),
+                  rect_som(Abs(aI1.in_proj()-aI2Tr),aSzW),
+                  aIScore.out()
+               );
+            break;
+
+            // Using explicit access to each pixel , with checking of image limit
+            case eMCEM_Tpl :
+            {
+               Pt2di aP;
+               for (aP.x = 0 ; aP.x<aSz1.x ; aP.x++)
+               {
+                  for (aP.y = 0 ; aP.y<aSz1.y ; aP.y++)
+                  {
+                      Pt2di aV;
+                      double aSomDif=0;
+                      for (aV.x = -aSzW ; aV.x<=aSzW ; aV.x++)
+                      {
+                         for (aV.y = -aSzW ; aV.y<=aSzW ; aV.y++)
+                         { 
+// get proj : "safe" access to images, if pixel is outside image, return
+// the value of nearest pixel inside
+                            int aV1 = aTI1.getproj(aP+aV);
+                            int aV2 = aTI2.getproj(aP+aV+Pt2di(aPax,0));
+			    aSomDif += ElAbs(aV1-aV2);
+                         }
+                      }
+                      aTScore.oset(aP,aSomDif);
+                  }
+               }
+            }
+            break;
+
+            // Using raw access to pixel, relatively "clean" code
+            case eMCEM_Raw :
+            {
+               Pt2di aP;
+
+               for (aP.x = aX0 ; aP.x<aX1 ; aP.x++)
+               {
+                  for (aP.y = aY0 ; aP.y<aY1 ; aP.y++)
+                  {
+                      Pt2di aV;
+                      double aSomDif=0;
+                      for (aV.x = -aSzW ; aV.x<=aSzW ; aV.x++)
+                      {
+                         for (aV.y = -aSzW ; aV.y<=aSzW ; aV.y++)
+                         { 
+                            Pt2di aQ1 = aP+aV;
+                            Pt2di aQ2 = aP+aV+Pt2di(aPax,0);
+                           
+                            int aV1 = aDI1[aQ1.y][aQ1.x];
+                            int aV2 = aDI2[aQ2.y][aQ2.x];
+			    aSomDif += ElAbs(aV1-aV2);
+                         }
+                      }
+                      aTScore.oset(aP,aSomDif);
+                  }
+               }
+            }
+            break;
+
+            // Using optimzed Old C style code (*pt++ ...)
+            case eMCEM_Raw1D :
+            {
+               Pt2di aP;
+	
+               for (aP.x = aX0 ; aP.x<aX1 ; aP.x++)
+               {
+                  for (aP.y = aY0 ; aP.y<aY1 ; aP.y++)
+                  {
+                      double aSomDif=0;
+                      for (int aDy = -aSzW ; aDy<=aSzW ; aDy++)
+                      {
+                         U_INT1 * aL1 =  aDI1[aP.y+aDy] -aSzW + aP.x;
+			 U_INT1 * aL2 =  aDI2[aP.y+aDy] -aSzW + aPax+ aP.x;
+
+                         U_INT1 * aL1Sup  =  aL1 + 2 * aSzW+1;
+                         while (aL1 != aL1Sup)
+                         { 
+			    aSomDif += ElAbs(*(aL1++) -  *(aL2++));
+                         }
+                      }
+                      aTScore.oset(aP,aSomDif);
+                  }
+               }
+            }
+            break;
+
+
+        }
+        // Save the paralx and score for pixel that increase the quality of
+        // matching
+
+        if (aMode == eMCEM_Func)
+        {
+           ELISE_COPY
+           (
+              select(aI1.all_pts(),aIScore.in()<aIScoreMin.in()),
+              Virgule(aPax,aIScore.in()),
+              Virgule(aIPaxOpt.out(),aIScoreMin.out())
+           );
+        }
+        else
+        {
+   	    Pt2di aP;
+            for (aP.x = aX0 ; aP.x<aX1 ; aP.x++)
+            {
+                for (aP.y = aY0 ; aP.y<aY1 ; aP.y++)
+                {
+                    if (aTScore.get(aP) < aTScoreMin.get(aP))
+                    {
+                        aTScoreMin.oset(aP,aTScore.get(aP));
+                        aTPaxOpt.oset(aP,aPax);
+                    }
+                }
+            }
+        }
+    }
+ 
     ELISE_COPY
     (
-        aW.all_pts(),
-        aIPaxOpt.in()[Virgule(FY,FX)]*3,
+        aIPaxOpt.all_pts(),
+        aIPaxOpt.in()*3,
         aW.ocirc()
      );
      aW.clik_in();
@@ -688,7 +853,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant \C3  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -704,17 +869,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
+développement et \C3  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
+manipuler et qui le réserve donc \C3  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
+logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
