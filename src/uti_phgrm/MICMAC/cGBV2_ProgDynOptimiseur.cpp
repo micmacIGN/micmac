@@ -481,6 +481,40 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     //GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
     Pt2di aPTer;
 
+//    for (aPTer.y=1 ; aPTer.y<mSz.y ; aPTer.y++)
+//    {
+//        for (aPTer.x=1 ; aPTer.x<mSz.x ; aPTer.x++)
+//        {
+//            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
+//            const Box2di &  aBox = aMat.Box();
+//            Pt2di aPRX;
+
+//            ushort minCor = 1e5;
+
+            //ushort *cI = IGpuOpt._poInitCost[aPTer];
+
+//            for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+//            {
+
+//                ushort cost = cI[aPRX.x - aBox._p0.x] ;
+
+//                if(cost < minCor)
+//                    minCor = cost;
+//            }
+
+//            if(badCor)
+//            {
+
+ //              cI[0] = minCor;
+//               cout << "BAD COR : " << aPTer << "\n";
+//               DUMP_LINE
+//               cout << "Press Enter to Continue";
+//               cin.ignore();
+            //}
+
+//        }
+//    }
+
     for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
     {
         for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
@@ -788,7 +822,10 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     fprintf(aFP,"comment author: Gerald\n");
     fprintf(aFP,"comment object: Nappe\n");
 
-    fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y*3);
+
+
+    //fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y*3);
+    fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y);
     fprintf(aFP,"property float x\n");
     fprintf(aFP,"property float y\n");
     fprintf(aFP,"property float z\n");
@@ -837,11 +874,13 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                 Pt3di aR(255,0,0);
                 Pt3di aG(0,255,0);
 
+                ushort cI = IGpuOpt._poInitCost[aPTer][0];
+
                 if (aBin)
                 {
-                    writePoint(aFP, aP, aW);
-                    writePoint(aFP, aPMax, aR);
-                    writePoint(aFP, aPMin, aG);
+                    writePoint(aFP, aP, cI > 1000 ? Pt3di(255,(float)255.f*(cI-2000)/8000,0) : aW);
+//                    writePoint(aFP, aPMax, aR);
+//                    writePoint(aFP, aPMin, aG);
                 }
                 else
                     fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aW.x,aW.y,aW.z);
