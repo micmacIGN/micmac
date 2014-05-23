@@ -123,13 +123,15 @@ class cMMSpecArg
         template <class T>
         bool IsDefaultValue(T val) const;
 
+        cMMSpecArg & operator = (const cMMSpecArg & arg);
+
 private :
         friend class LArgMain;
         cMMSpecArg(GenElArgMain *, int aNum, bool isOpt);
 
-        bool           mIsOpt;
         GenElArgMain * mEAM;
         int            mNum;
+        bool           mIsOpt;
 };
 
 template <class T>
