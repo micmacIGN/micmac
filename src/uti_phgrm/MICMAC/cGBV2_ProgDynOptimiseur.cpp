@@ -481,6 +481,40 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     //GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
     Pt2di aPTer;
 
+//    for (aPTer.y=1 ; aPTer.y<mSz.y ; aPTer.y++)
+//    {
+//        for (aPTer.x=1 ; aPTer.x<mSz.x ; aPTer.x++)
+//        {
+//            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
+//            const Box2di &  aBox = aMat.Box();
+//            Pt2di aPRX;
+
+//            ushort minCor = 1e5;
+
+            //ushort *cI = IGpuOpt._poInitCost[aPTer];
+
+//            for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+//            {
+
+//                ushort cost = cI[aPRX.x - aBox._p0.x] ;
+
+//                if(cost < minCor)
+//                    minCor = cost;
+//            }
+
+//            if(badCor)
+//            {
+
+ //              cI[0] = minCor;
+//               cout << "BAD COR : " << aPTer << "\n";
+//               DUMP_LINE
+//               cout << "Press Enter to Continue";
+//               cin.ignore();
+            //}
+
+//        }
+//    }
+
     for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
     {
         for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
@@ -711,6 +745,19 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 }
 #endif
 
+void cGBV2_ProgDynOptimiseur::writePoint(FILE* aFP,  Pt3dr            aP,Pt3di           aW)
+{
+    WriteType(aFP,float(aP.x));
+    WriteType(aFP,float(aP.y));
+    WriteType(aFP,float(aP.z));
+
+    WriteType(aFP,(U_INT1)(aW.x));
+    WriteType(aFP,(U_INT1)(aW.y));
+    WriteType(aFP,(U_INT1)(aW.z));
+}
+
+//#define SAVEPLY
+
 void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 {
 
@@ -755,7 +802,43 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         SolveOneEtape(itE->NbDir().Val());
     }
 //GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A0033);
-Im2D_INT4 aDupRes(mSz.x,mSz.y);
+//Im2D_INT4 aDupRes(mSz.x,mSz.y);
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //write ply file
+    //Mode Ecriture : binaire ou non
+#ifdef SAVEPLY
+    string aNameOut = "toto.ply";
+    bool aBin= true;
+    string mode = aBin ? "wb" : "w";
+    FILE * aFP = FopenNN(aNameOut,mode,"MergePly");
+
+    //Header
+    fprintf(aFP,"ply\n");
+    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+
+    fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
+
+    fprintf(aFP,"comment author: Gerald\n");
+    fprintf(aFP,"comment object: Nappe\n");
+
+
+
+    //fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y*3);
+    fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y);
+    fprintf(aFP,"property float x\n");
+    fprintf(aFP,"property float y\n");
+    fprintf(aFP,"property float z\n");
+
+    fprintf(aFP,"property uchar red\n");
+    fprintf(aFP,"property uchar green\n");
+    fprintf(aFP,"property uchar blue\n");
+
+    fprintf(aFP,"element face %d\n",0);
+    fprintf(aFP,"property list uchar int vertex_indices\n");
+    fprintf(aFP,"end_header\n");
+#endif
+    //////////////////////////////////////////////////////////////////////
 
     {
         Pt2di aPTer;
@@ -782,22 +865,47 @@ Im2D_INT4 aDupRes(mSz.x,mSz.y);
                 }
                 // MODIF
                 mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x ;
-aDupRes.data()[aPTer.y][aPTer.x] = aPRXMin.x ;
+                //aDupRes.data()[aPTer.y][aPTer.x] = aPRXMin.x ;
+#ifdef SAVEPLY
+                Pt3dr aP(float(aPTer.x),float(aPTer.y),float(aPRXMin.x));
+                Pt3dr aPMax(float(aPTer.x),float(aPTer.y),float(aBox._p1.x));
+                Pt3dr aPMin(float(aPTer.x),float(aPTer.y),float(aBox._p0.x));
+                Pt3di aW(255,255,255);
+                Pt3di aR(255,0,0);
+                Pt3di aG(0,255,0);
 
+                ushort cI = IGpuOpt._poInitCost[aPTer][0];
 
+                if (aBin)
+                {
+                    writePoint(aFP, aP, cI > 1000 ? Pt3di(255,(float)255.f*(cI-2000)/8000,0) : aW);
+//                    writePoint(aFP, aPMax, aR);
+//                    writePoint(aFP, aPMin, aG);
+                }
+                else
+                    fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aW.x,aW.y,aW.z);
+
+#endif
             }
         }
 
     }
 //nvtxRangePop();
 
-if (0)
-{
-    
-   Video_Win aW = Video_Win::WStd(mSz,5.0);
-   ELISE_COPY(aW.all_pts(),aDupRes.in()*10,aW.ocirc());
-getchar();
-}
+    ////////////////////////////////////
+    ///
+    ///CLOSE PLY...
+#ifdef SAVEPLY
+    ElFclose(aFP);
+#endif
+
+//    if (0)
+//    {
+
+//        Video_Win aW = Video_Win::WStd(mSz,5.0);
+//        ELISE_COPY(aW.all_pts(),aDupRes.in()*10,aW.ocirc());
+//        getchar();
+//    }
 }
 
 cSurfaceOptimiseur * cSurfaceOptimiseur::AllocAlgoTestGPU

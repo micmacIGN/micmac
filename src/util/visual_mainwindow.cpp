@@ -74,9 +74,13 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
             }
         }
 
-        for (int aK= idx; aK < (int) aVAO.size() -1; aK++)
-            aVAO[aK] = aVAO[aK+1];
-        aVAO.pop_back();
+        if (idx >= 0)
+        {
+            for (int aK = idx; aK < (int) aVAO.size()-1; aK++)
+                aVAO[aK] = aVAO[aK+1];
+
+            aVAO.pop_back();
+        }
     }
 }
 
@@ -547,8 +551,15 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
 
     if (aArg.Type() == AMBT_string )
     {
-        string defVal(*(aArg.DefaultValue<string>()));
-        if (defVal != "") aLineEdit->setText(QString(defVal.c_str()));
+        string val(*(aArg.DefaultValue<string>()));
+        if (val != "") aLineEdit->setText(QString(val.c_str()));
+
+        list <string> strList = ListOfVal(eTMalt_NbVals,"eTMalt_");
+        if (std::find(strList.begin(), strList.end(), val) != strList.end())
+        {
+            aLineEdit->setEnabled(false);
+            aLineEdit->setStyleSheet("QLineEdit{background: lightgrey;}");
+        }
     }
 
     if (!aArg.IsOutputFile() && !aArg.IsOutputDirOri())

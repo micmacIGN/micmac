@@ -105,9 +105,9 @@ void cMMSpecArg::Init(const std::string & aVal)
 }
 
 cMMSpecArg::cMMSpecArg(GenElArgMain * anEAM,int aNum, bool isOpt):
-   mIsOpt(isOpt),
    mEAM  (anEAM),
-   mNum  (aNum)
+   mNum  (aNum),
+   mIsOpt(isOpt)
 {
 }
 
@@ -117,6 +117,18 @@ const std::list<std::string>  & cMMSpecArg::EnumeratedValues() const
 }
 
 eArgMainBaseType cMMSpecArg::Type() const { return mEAM->type(); }
+
+cMMSpecArg & cMMSpecArg::operator = (const cMMSpecArg & arg)
+{
+    if (this != &arg)
+    {
+        mEAM    = arg.mEAM;
+        mNum    = arg.mNum;
+        mIsOpt  = arg.mIsOpt;
+    }
+
+    return *this;
+}
 
 
 
