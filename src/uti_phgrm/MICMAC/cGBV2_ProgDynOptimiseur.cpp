@@ -722,6 +722,8 @@ void cGBV2_ProgDynOptimiseur::writePoint(FILE* aFP,  Pt3dr            aP,Pt3di  
     WriteType(aFP,(U_INT1)(aW.z));
 }
 
+//#define SAVEPLY
+
 void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 {
 
@@ -771,34 +773,34 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     ////////////////////////////////////////////////////////////////////////////////
     //write ply file
     //Mode Ecriture : binaire ou non
+#ifdef SAVEPLY
+    string aNameOut = "toto.ply";
+    bool aBin= true;
+    string mode = aBin ? "wb" : "w";
+    FILE * aFP = FopenNN(aNameOut,mode,"MergePly");
 
-//    string aNameOut = "toto.ply";
-//    bool aBin= true;
-//    string mode = aBin ? "wb" : "w";
-//    FILE * aFP = FopenNN(aNameOut,mode,"MergePly");
+    //Header
+    fprintf(aFP,"ply\n");
+    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
 
-//    //Header
-//    fprintf(aFP,"ply\n");
-//    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+    fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
 
-//    fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
+    fprintf(aFP,"comment author: Gerald\n");
+    fprintf(aFP,"comment object: Nappe\n");
 
-//    fprintf(aFP,"comment author: Gerald\n");
-//    fprintf(aFP,"comment object: Nappe\n");
+    fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y*3);
+    fprintf(aFP,"property float x\n");
+    fprintf(aFP,"property float y\n");
+    fprintf(aFP,"property float z\n");
 
-//    fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y*3);
-//    fprintf(aFP,"property float x\n");
-//    fprintf(aFP,"property float y\n");
-//    fprintf(aFP,"property float z\n");
+    fprintf(aFP,"property uchar red\n");
+    fprintf(aFP,"property uchar green\n");
+    fprintf(aFP,"property uchar blue\n");
 
-//    fprintf(aFP,"property uchar red\n");
-//    fprintf(aFP,"property uchar green\n");
-//    fprintf(aFP,"property uchar blue\n");
-
-//    fprintf(aFP,"element face %d\n",0);
-//    fprintf(aFP,"property list uchar int vertex_indices\n");
-//    fprintf(aFP,"end_header\n");
-
+    fprintf(aFP,"element face %d\n",0);
+    fprintf(aFP,"property list uchar int vertex_indices\n");
+    fprintf(aFP,"end_header\n");
+#endif
     //////////////////////////////////////////////////////////////////////
 
     {
@@ -827,22 +829,24 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                 // MODIF
                 mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x ;
                 //aDupRes.data()[aPTer.y][aPTer.x] = aPRXMin.x ;
+#ifdef SAVEPLY
+                Pt3dr aP(float(aPTer.x),float(aPTer.y),float(aPRXMin.x));
+                Pt3dr aPMax(float(aPTer.x),float(aPTer.y),float(aBox._p1.x));
+                Pt3dr aPMin(float(aPTer.x),float(aPTer.y),float(aBox._p0.x));
+                Pt3di aW(255,255,255);
+                Pt3di aR(255,0,0);
+                Pt3di aG(0,255,0);
 
-//                Pt3dr aP(float(aPTer.x),float(aPTer.y),float(aPRXMin.x));
-//                Pt3dr aPMax(float(aPTer.x),float(aPTer.y),float(aBox._p1.x));
-//                Pt3dr aPMin(float(aPTer.x),float(aPTer.y),float(aBox._p0.x));
-//                Pt3di aW(255,255,255);
-//                Pt3di aR(255,0,0);
-//                Pt3di aG(0,255,0);
+                if (aBin)
+                {
+                    writePoint(aFP, aP, aW);
+                    writePoint(aFP, aPMax, aR);
+                    writePoint(aFP, aPMin, aG);
+                }
+                else
+                    fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aW.x,aW.y,aW.z);
 
-//                if (aBin)
-//                {
-//                    writePoint(aFP, aP, aW);
-//                    writePoint(aFP, aPMax, aR);
-//                    writePoint(aFP, aPMin, aG);
-//                }
-//                else
-//                    fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aW.x,aW.y,aW.z);
+#endif
             }
         }
 
@@ -852,7 +856,9 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     ////////////////////////////////////
     ///
     ///CLOSE PLY...
-    //ElFclose(aFP);
+#ifdef SAVEPLY
+    ElFclose(aFP);
+#endif
 
 //    if (0)
 //    {
