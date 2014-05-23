@@ -481,39 +481,39 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     //GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
     Pt2di aPTer;
 
-    for (aPTer.y=1 ; aPTer.y<mSz.y ; aPTer.y++)
-    {
-        for (aPTer.x=1 ; aPTer.x<mSz.x ; aPTer.x++)
-        {
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
-            const Box2di &  aBox = aMat.Box();
-            Pt2di aPRX;
+//    for (aPTer.y=1 ; aPTer.y<mSz.y ; aPTer.y++)
+//    {
+//        for (aPTer.x=1 ; aPTer.x<mSz.x ; aPTer.x++)
+//        {
+//            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
+//            const Box2di &  aBox = aMat.Box();
+//            Pt2di aPRX;
 
-            ushort minCor = 1e5;
+//            ushort minCor = 1e5;
 
-            ushort *cI = IGpuOpt._poInitCost[aPTer];
+            //ushort *cI = IGpuOpt._poInitCost[aPTer];
 
-            for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
-            {
+//            for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+//            {
 
-                ushort cost = cI[aPRX.x - aBox._p0.x] ;
+//                ushort cost = cI[aPRX.x - aBox._p0.x] ;
 
-                if(cost < minCor)
-                    minCor = cost;
-            }
+//                if(cost < minCor)
+//                    minCor = cost;
+//            }
 
 //            if(badCor)
 //            {
 
-                cI[0] = minCor;
+ //              cI[0] = minCor;
 //               cout << "BAD COR : " << aPTer << "\n";
 //               DUMP_LINE
 //               cout << "Press Enter to Continue";
 //               cin.ignore();
             //}
 
-        }
-    }
+//        }
+//    }
 
     for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
     {
