@@ -554,7 +554,8 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
         string val(*(aArg.DefaultValue<string>()));
         if (val != "") aLineEdit->setText(QString(val.c_str()));
 
-        if ((val == "GeomImage") || (val == "Ortho") || (val == "UrbanMNE"))
+        list <string> strList = ListOfVal(eTMalt_NbVals,"eTMalt_");
+        if (std::find(strList.begin(), strList.end(), val) != strList.end())
         {
             aLineEdit->setEnabled(false);
             aLineEdit->setStyleSheet("QLineEdit{background: lightgrey;}");
