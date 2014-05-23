@@ -826,7 +826,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None)
+        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
