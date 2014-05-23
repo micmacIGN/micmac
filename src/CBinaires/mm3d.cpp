@@ -385,7 +385,9 @@ extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
 extern int VisuCoupeEpip_main(int,char **);
 
+int ExoSimulTieP_main(int argc, char** argv);
 int ExoMCI_main(int argc, char** argv);
+int  ExoCorrelEpip_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
 
@@ -418,6 +420,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualization of epipolar pair (cut)  "));
 
    aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercice for multi correlation in image geometry  "));
+   aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercice for correlation in epipolar "));
+   aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
+
+
    aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
    aRes.push_back(cMMCom("RHHComputHom",RHHComputHom_main,"Internal : compute Hom for // in RHH  "));
 

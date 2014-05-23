@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 class cAppliMMOnePair;  // Appli principale
-class cMMOnePair;  // Cree pour gerer l'ordre d'initialisatrion (a faire avant cAppliWithSetImage)
+class cMMOnePair;  // Cree pour gerer l'ordre d'initialisatrion (a faire avant cAppliWithSetImage), afin de transformer en Pattern les 2 images
 
 
 std::string Pair2PattWithoutDir(std::string & aDirRes,const std::string & aName1,const std::string & aName2);
@@ -53,6 +53,8 @@ class cMMOnePair
     public :
       cMMOnePair(int argc,char ** argv);
     protected :
+
+      void ExeCom(const std::string &);
 
       std::string NamePx(int aStep) {return "Px1_Num"+ ToString(aStep) + "_DeZoom"+ ToString(mVZoom[aStep]) + "_LeChantier.tif";}
       std::string NameAutoM(int aStep,std::string aPost = "" ) {return "AutoMask_LeChantier_Num_" + ToString(ElMin(aStep,mStepEnd-1)) + aPost +".tif";}
@@ -99,7 +101,7 @@ class cMMOnePair
       int              mScalePly;
       bool             mDoOnlyMF;
       bool             mDebugCreatE;
-
+      int              mNbCommand;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -152,7 +154,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDoPly        (false),
     mScalePly     (4),
     mDoOnlyMF     (false),
-    mDebugCreatE  (false)
+    mDebugCreatE  (false),
+    mNbCommand    (-1)
 {
   ElInitArgMain
   (
@@ -160,7 +163,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
         LArgMain()  << EAMC(mNameIm1Init,"Name Im1", eSAM_IsExistFile)
                     << EAMC(mNameIm2Init,"Name Im2", eSAM_IsExistFile)
                     << EAMC(mNameOriInit,"Orientation (if NONE, work directly on epipolar)", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(mExe,"Exe",true,"Execute Matching (Def=true)", eSAM_IsBool)
+        LArgMain()  << EAM(mExe,"Exe",true,"Execute Commands, else only print them (Def=true)", eSAM_IsBool)
                     << EAM(mZoom0,"Zoom0",true,"Zoom Init (Def=64)")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final (Def=1)")
                     << EAM(mCreateEpip,"CreateE",true," Create Epipolar (def = true when appliable)", eSAM_IsBool)
@@ -227,7 +230,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                         ;
       if (mZoomF!=1)
          aCom = aCom + " ZoomF=4 ";
-      System(aCom);
+      ExeCom(aCom);
   }
 
   if (mCreateEpip)
@@ -261,7 +264,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     // mDegCorrEpip  (-1)
 // mm3d CreateEpip MVxxxx_MAP_7078.NEF MVxxxx_MAP_7079.NEF Step4  DoIm=true DoHom=true Degre=1
 
-             System(aCom);
+             ExeCom(aCom);
        }
   }
   else
@@ -276,6 +279,19 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
   mArgcAWS.push_back(const_cast<char *>(mPatP.c_str()));
   mArgcAWS.push_back(const_cast<char *>(mNameOri.c_str()));
 }
+
+void cMMOnePair::ExeCom(const std::string & aCom)
+{
+    mNbCommand++;
+    if (mExe)  
+    {
+         ExeCom(aCom);
+         return;
+    }
+    std::cout << "================= COM " << mNbCommand << " ================\n";
+    std::cout << aCom << "\n";
+}
+
 
 /*****************************************************************/
 /*                                                               */
@@ -374,7 +390,7 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 
         if (mDoPly)
         {
-                System(aComPly);
+                ExeCom(aComPly);
         }
 
     }
@@ -406,7 +422,7 @@ void cAppliMMOnePair::BasculeEpip(bool MasterIs1)
                        ;
 //  mm3d TestLib RIE MVxxxx_MAP_6937.NEF MVxxxx_MAP_6938.NEF Basc
 
-    System(aCom);
+    ExeCom(aCom);
 }
 
 void cAppliMMOnePair::BasculeGround(bool MasterIs1)
@@ -428,7 +444,7 @@ void cAppliMMOnePair::BasculeGround(bool MasterIs1)
                            + " SeuilE=500"
                            + aBlk + " Paral=" + ToString(mMM1PInParal)
                          ;
-    System(aCom);
+    ExeCom(aCom);
 
 /*
          std::string aNuageGeom =    mDir +  std::string("MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml");
@@ -470,7 +486,7 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
                         + aBlk + ToString(!mCpleE->IsLeft(true))
                         + " InParal=" + ToString(mMM1PInParal) ;
 
-   System(aCom);
+   ExeCom(aCom);
 
    for (int aK=0 ; aK <2 ; aK++)
    {
@@ -553,11 +569,17 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
         aCom = aCom + " RedM=1.0 ";
      }
 
-     System(aCom);
+     ExeCom(aCom);
 }
 
 void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 {
+     if (! mExe) 
+     {
+           std::cout << "SauvMasqReentrant, M1=" << MasterIs1 << " S=" << aStep << " L=" << aLast << "\n";
+           return;
+     }
+
      std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
      std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
      std::string aNameInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
@@ -600,7 +622,6 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
            ELISE_fp::MvFile(aName,aDest);
 
            ELISE_fp::RmFile(mDir + aPref + "*.tif");
-// LocDirMec2Im(aNamA,aNamB)
      }
 }
 
@@ -662,8 +683,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
           aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";
      }
 */
-     if (mExe)
-        System(aCom);
+     ExeCom(aCom);
 
 }
 
