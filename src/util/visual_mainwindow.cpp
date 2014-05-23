@@ -74,9 +74,13 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
             }
         }
 
-        for (int aK= idx; aK < (int) aVAO.size() -1; aK++)
-            aVAO[aK] = aVAO[aK+1];
-        aVAO.pop_back();
+        if (idx >= 0)
+        {
+            for (int aK = idx; aK < (int) aVAO.size()-1; aK++)
+                aVAO[aK] = aVAO[aK+1];
+
+            aVAO.pop_back();
+        }
     }
 }
 
