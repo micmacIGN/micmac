@@ -551,8 +551,14 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
 
     if (aArg.Type() == AMBT_string )
     {
-        string defVal(*(aArg.DefaultValue<string>()));
-        if (defVal != "") aLineEdit->setText(QString(defVal.c_str()));
+        string val(*(aArg.DefaultValue<string>()));
+        if (val != "") aLineEdit->setText(QString(val.c_str()));
+
+        if ((val == "GeomImage") || (val == "Ortho") || (val == "UrbanMNE"))
+        {
+            aLineEdit->setEnabled(false);
+            aLineEdit->setStyleSheet("QLineEdit{background: lightgrey;}");
+        }
     }
 
     if (!aArg.IsOutputFile() && !aArg.IsOutputDirOri())
