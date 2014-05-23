@@ -333,12 +333,13 @@ void ReadLine_V02(
             globMinFCost        = max_cost;
 
             while( z < dZ)
-            {
-                if(p.ID_Bf_Icost >= sizeBuffer) // VERIFIER si > ou >=
+            {                
+                // Lecture du stream si le buffer est vide | TODO VERIFIER si > ou >=
+                if(p.ID_Bf_Icost >= sizeBuffer)
                 {
-                    streamICost.read<sens>(ST_Bf_ICost);
-                    streamFCost.incre<sens>();
-                    p.ID_Bf_Icost = 0;
+                    streamICost.read<sens>(ST_Bf_ICost);    //  Lecture des couts correlations
+                    streamFCost.incre<sens>();              //  Pointage sur la sortie
+                    p.ID_Bf_Icost = 0;                      //  Pointage la première valeur du buffer des couts correlations
                 }
 
                 uint fCostMin           = max_cost;
@@ -366,7 +367,7 @@ void ReadLine_V02(
                     //streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);
                 }
 
-                if(!sens)
+                if(!sens) // recherche du cout minimum
                 {
                     minCost[p.tid] = inside ? fcost : max_cost;
                     minR(minCost,globMinFCost);
@@ -382,7 +383,7 @@ void ReadLine_V02(
             p.seg.id++;
             p.swBuf();
 
-            if(!sens)
+            if(!sens) // retranche la cout minimum à toutes les cellules de même coordonnées terrain
             {
                 const short piSFC = -p.ID_Bf_Icost + dZ ;
                 for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
