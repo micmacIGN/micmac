@@ -196,9 +196,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mEZA           (true)
 {
 
-#if( (ELISE_QT_VERSION >= 5) && ELISE_unix )
-    ELISE_ASSERT(false, "Visual mode for Malt only supported with Qt4 for unix, sorry!");
-#elif(ELISE_QT_VERSION >= 4)
+#if(ELISE_QT_VERSION >= 4)
     if (MMVisualMode)
     {
         LArgMain LAM;

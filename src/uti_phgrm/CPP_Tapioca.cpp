@@ -814,10 +814,7 @@ int Graph_(int argc,char ** argv)
 
 int Tapioca_main(int argc,char ** argv)
 {
-#if((ELISE_QT_VERSION >= 5) && ELISE_unix)
-    ELISE_ASSERT(false, "Under unix, visual mode for Tapioca only supported with Qt4, sorry!");
-    return EXIT_FAILURE;
-#elif(ELISE_QT_VERSION >= 4)
+#if(ELISE_QT_VERSION >= 4)
     if (MMVisualMode)
     {
         QStringList items;
