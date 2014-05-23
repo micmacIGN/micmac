@@ -147,6 +147,7 @@ public :
 
     Pt2di direction(int aNbDir, int aKDir);
 
+    void writePoint(FILE* aFP,              Pt3d<double> aP,           Pt3d<int> aW);
 private :
 
     void BalayageOneDirection(Pt2dr aDir);
