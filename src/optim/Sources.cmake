@@ -9,8 +9,9 @@ set(Optim_Src_Files
 	#${OPTIM_DIR}/opt_mat_creuse.cpp
 	${OPTIM_DIR}/opt_nvar.cpp
 	${OPTIM_DIR}/opt_somme_formelle.cpp
-	#${OPTIM_DIR}/opt_sysl2.cpp
+	${OPTIM_DIR}/opt_sysl2.cpp
 	${OPTIM_DIR}/opt_syssuresolu.cpp
+	${OPTIM_DIR}/optim_etiq_binaire.cpp
 )
 
 SOURCE_GROUP(Optim FILES ${Optim_Src_Files})

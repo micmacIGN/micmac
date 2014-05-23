@@ -102,6 +102,8 @@ class cMMOnePair
       bool             mDoOnlyMF;
       bool             mDebugCreatE;
       int              mNbCommand;
+      const std::string mNameMasqFinal;
+      bool              mHasVeget;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -155,7 +157,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mScalePly     (4),
     mDoOnlyMF     (false),
     mDebugCreatE  (false),
-    mNbCommand    (-1)
+    mNbCommand    (-1),
+    mNameMasqFinal ("Masq_Etape_Last.tif"),
+    mHasVeget       (false)
 {
   ElInitArgMain
   (
@@ -184,6 +188,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mScalePly,"ScalePly",true,"Dowsize of generated Ply (Def=4)")
                     << EAM(mDoOnlyMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)", eSAM_IsBool)
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)", eSAM_IsBool)
+                    << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
   );
 
   mNoOri = (mNameOriInit=="NONE");
@@ -285,7 +290,7 @@ void cMMOnePair::ExeCom(const std::string & aCom)
     mNbCommand++;
     if (mExe)  
     {
-         ExeCom(aCom);
+         System(aCom);
          return;
     }
     std::cout << "================= COM " << mNbCommand << " ================\n";
@@ -521,7 +526,8 @@ void cAppliMMOnePair::GenerateMTDEpip(bool MasterIs1)
 
        cXML_ParamNuage3DMaille aNuage =  StdGetFromSI(aNameIn,XML_ParamNuage3DMaille);
        aNuage.Image_Profondeur().Val().Image() = NamePx(aStep);
-       aNuage.Image_Profondeur().Val().Masq() =  NameAutoM(aStep);
+       // aNuage.Image_Profondeur().Val().Masq() =  NameAutoM(aStep);
+       aNuage.Image_Profondeur().Val().Masq() =  mNameMasqFinal;
        aNuage.Image_Profondeur().Val().ResolutionAlti() *= aMul;
 
        if (IsLast)
@@ -558,9 +564,10 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " NumMasq="  + ToString(aLast ? (aStep-1) : aStep)
                           + " Zoom="     + ToString(mVZoom[aStep])
                           + " Step="     + ToString(aResol)
-                          + " SigP="     + ToString(mSigmaP)
+                          + " SigP="     + ToString(mSigmaP * ((aZoom==1) ? 1.5 : 1.0))
                           + " Prefix="   + aPref
                           + " InParal="  + ToString(mMM1PInParal)
+                          + " RegCh="  + ToString(! mHasVeget)
                       ;
 
      if (aLast)
@@ -574,11 +581,6 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
 void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 {
-     if (! mExe) 
-     {
-           std::cout << "SauvMasqReentrant, M1=" << MasterIs1 << " S=" << aStep << " L=" << aLast << "\n";
-           return;
-     }
 
      std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
      std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
@@ -586,14 +588,36 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
      std::string aNameInitB = MasterIs1 ? mNameIm2Init : mNameIm1Init;
      std::string aPref = "AR"+ std::string(MasterIs1? "1" : "2") + "-" + aNameInitA + "-" + aNameInitB;
 
-     std::string aNameCor =    aLast                                                             ?
-                               ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
+
+
+     if (! mExe) 
+     {
+     
+           std::cout << "SauvMasqReentrant, M1=" << MasterIs1 << " S=" << aStep << " L=" << aLast << "\n";
+           if (aLast)
+           {
+               std::string aName = mDir + aPref + "_Glob.tif";
+               std::string aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
+               std::cout << "    MMVVV " << aName << " => " << aDest << "\n";
+           }
+           return;
+     }
+
+
+
+     std::string aNameMasq =    aLast                                                             ?
+                               //   ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
+                               mNameMasqFinal                                                    :
                                ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
-     aNameCor =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameCor;
-
-
-     Tiff_Im aFMCor(aNameCor.c_str());
+     aNameMasq =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameMasq;
      std::string aNameNew = aPref + "_Masq1_Glob.tif";
+     if (aLast)
+     {
+           ELISE_fp::CpFile(aNameNew,aNameMasq);
+     }
+
+
+     Tiff_Im aTifMasqCor(aNameMasq.c_str());
      Tiff_Im aFNew(aNameNew.c_str());
 
      Fonc_Num aFonc = aFNew.in(0);
@@ -606,15 +630,17 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
      ELISE_COPY
      (
-        aFMCor.all_pts(),
-        aFMCor.in() && aFonc,
-        aFMCor.out()
+        aTifMasqCor.all_pts(),
+        aTifMasqCor.in() && aFonc,
+        aTifMasqCor.out()
      );
 
      if (aLast)
      {
            std::string aName = mDir + aPref + "_Glob.tif";
            std::string aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
+
+
            ELISE_fp::MvFile(aName,aDest);
 
            aName = mDir + aPref + "_ImDistor_Glob.tif";

@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /********************************************************************/
 /*                                                                  */
-/*         cExo_SimulTieP                                           */
+/*                      cExo_SimulTieP                              */
 /*                                                                  */
 /********************************************************************/
 class cAppliSimulTieP;
@@ -53,22 +53,18 @@ class cIma_TieP;
 class cIma_TieP
 {
     public:
-     
         cIma_TieP(cAppliSimulTieP&,tSomAWSI &);
         void ProjP(const Pt3dr & aP);
-
+ // private :
         Pt2dr mCurP;
         bool mOkP;
-        double mCurRR;
-
-
-    // private :
+        double mCurRR;  //current random rank
         cAppliSimulTieP & mAppli;
         std::string       mNameIm;
         CamStenope *      mCam;
 };
 
-class cCmpPtrI
+class cCmpPtrI      // order images depending on their affected rank
 {
    public :
       bool operator () (cIma_TieP * aI1,cIma_TieP * aI2)
@@ -80,13 +76,12 @@ class cCmpPtrI
 typedef  std::pair<cIma_TieP *,cIma_TieP *> tPairIm;
 typedef  std::map<tPairIm,ElPackHomologue> tMapH;
 
-
 class cAppliSimulTieP : public cAppliWithSetImage
 {
     public :
 
         cAppliSimulTieP(int argc, char** argv);
-       
+
     //private :
 
         double             mTiePNoise;
@@ -97,85 +92,86 @@ class cAppliSimulTieP : public cAppliWithSetImage
         std::vector<cIma_TieP *> mVIms;
         std::map<std::pair<cIma_TieP *,cIma_TieP *> ,ElPackHomologue> mMapH;
 };
-/*
-*/
 
 
 
+/********************************************************************/
+/*                                                                  */
+/*                      cAppliSimulTieP                             */
+/*                                                                  */
+/********************************************************************/
 
-
-cAppliSimulTieP::cAppliSimulTieP(int argc, char** argv):
-    cAppliWithSetImage (argc-1,argv+1,0),
-    mTiePNoise  (2.0)
+cAppliSimulTieP::cAppliSimulTieP(int argc, char** argv):    // cAppliWithSetImage is used to initialize the images
+    cAppliWithSetImage (argc-1,argv+1,0),		// it has to be used without the first argument (name of the command)
+    mTiePNoise  (2.0)    // default value for the noise in tie points
 {
   ElInitArgMain
-  (
+  (     // initialisation of the arguments
         argc,argv,
-        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pattern)")
+        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pattern)")        // EAMC = mandatory arguments
                     << EAMC(mOri,"Orientation")
                     << EAMC(mNameMnt,"Name of DSM"),
-        LArgMain()  << EAM(mTiePNoise,"TPNoise",true,"Noise on Tie Points")
+        LArgMain()  << EAM(mTiePNoise,"TPNoise",true,"Noise on Tie Points")    // EAM = optionnal argument
    );
 
-  
    std::cout << "Nb Image " << mDicIm.size() << "]\n";
 
-    for (int aKIm=0 ;aKIm<int(mVSoms.size()) ; aKIm++)
+    for (int aKIm=0 ;aKIm<int(mVSoms.size()) ; aKIm++)       // mVSoms = image list
     {
-        mVIms.push_back(new cIma_TieP(*this,*mVSoms[aKIm]));
+        mVIms.push_back(new cIma_TieP(*this,*mVSoms[aKIm]));    // images loaded in a vector
     }
-    mMNT = cElNuage3DMaille::FromFileIm(mDir+mNameMnt);
+    mMNT = cElNuage3DMaille::FromFileIm(mDir+mNameMnt); // loading the DSM
 
-   std::cout << "Sz Geom " << mMNT->SzGeom() << "\n";
+    std::cout << "Sz Geom " << mMNT->SzGeom() << "\n";       // DSM size
 
     mSzMNT =  mMNT->SzGeom();
-    int aStep = 3;
-    int aMultMax = 6;
+    int aStep = 3;          // we will browse the DSM using a box to pick points. aStep defines the size of the box
+    int aMultMax = 6;       // defines the maximum amount of image in which one tie point can be seen
 
     for (int anX0 = 0 ; anX0 <mSzMNT.x ; anX0+=aStep)
     {
-       int anX1 = ElMin(anX0+aStep,mSzMNT.x);
-       for (int anY0 = 0 ; anY0 <mSzMNT.x ; anY0 +=aStep)
+       int anX1 = ElMin(anX0+aStep,mSzMNT.x);            // ElMin(a,b) to pick the lowest -> to avoid to pick point outside of the DSM
+       for (int anY0 = 0 ; anY0 <mSzMNT.y ; anY0 +=aStep)       // [anX0,anY0] = lower left corner of the box
        {
-           int anY1 = ElMin(anY0+aStep,mSzMNT.y);
+           int anY1 = ElMin(anY0+aStep,mSzMNT.y);               // [anX1,anY1] = upper right corner of the box
            Box2di aBox(Pt2di(anX0,anY0),Pt2di(anX1,anY1));
-           Pt2di  aPRan = round_ni(aBox.RandomlyGenereInside());
-           if (mMNT->IndexHasContenu(aPRan))
+           Pt2di  aPRan = round_ni(aBox.RandomlyGenereInside());        // randomly pick a point in the box
+           if (mMNT->IndexHasContenu(aPRan))             // if there is a point in the DSM at that place
            {
                int aNbOk = 0;
-               Pt3dr aPTer = mMNT->PtOfIndex(aPRan);
+               Pt3dr aPTer = mMNT->PtOfIndex(aPRan);    // get the 3d coordinate (ground geometry) of that point
 
                std::vector<cIma_TieP *> aVSel;
-	       for (int aKIm=0 ;aKIm<int(mVIms.size()) ; aKIm++)
+               for (int aKIm=0 ;aKIm<int(mVIms.size()) ; aKIm++)       // browse the image list
                {
-                    cIma_TieP & anI = *(mVIms[aKIm]);
-                    anI.ProjP(aPTer);
-                    if (anI.mOkP)
+                    cIma_TieP & anI = *(mVIms[aKIm]);       // load image
+                    anI.ProjP(aPTer);             // project the point in the current image
+                    if (anI.mOkP)                  // if the 3d point can be projected
                     {
                        aNbOk++;
-                       aVSel.push_back(&anI);
-                       anI.mCurRR = NRrandom3();
+                       aVSel.push_back(&anI);       // list of images in which the current point can be seen
+                       anI.mCurRR = NRrandom3();            // assign a rank to the image (will be used further to randomly simulate hidden parts/undetections)
                      }
                }
-               if (int(aVSel.size()) >= 2)
+               if (int(aVSel.size()) >= 2)  // if the point is visible in at least 2 images
                {
                   cCmpPtrI aCmp;
-                  std::sort(aVSel.begin(),aVSel.end(),aCmp);
+                  std::sort(aVSel.begin(),aVSel.end(),aCmp);    // order the list of images (in which the point is seen) by their rank (random order)
                   int aNbMul = ElMax(2,round_ni(aMultMax * ElSquare(NRrandom3())));
-                  while (int(aVSel.size()) > aNbMul) aVSel.pop_back();
+                  while (int(aVSel.size()) > aNbMul) aVSel.pop_back();      // if the point is seen in too many images, reduce the list
                   std::cout << "MULTIPLICITE " << aNbOk << " =>" << aVSel.size()<< "\n";
                   for (int aK1=0 ; aK1<int(aVSel.size()) ; aK1++)
-                  {
+                  {         // browse the list (reduced) of images in which the point is seen
                       for (int aK2=0 ; aK2<int(aVSel.size()) ; aK2++)
                       {
-                         if ((aK1 != aK2) && (NRrandom3() < 0.75))
+                         if ((aK1 != aK2) && (NRrandom3() < 0.75))      // for 2 different images, 3 times on 4, build the dictionnary of image names and point coordinates
                          {
-                             tPairIm aPair;
-                             aPair.first = aVSel[aK1];
-                             aPair.second = aVSel[aK2];
-                             Pt2dr aP1 = aVSel[aK1]->mCurP;
-                             Pt2dr aP2 = aVSel[aK2]->mCurP;
-                             mMapH[aPair].Cple_Add(ElCplePtsHomologues(aP1,aP2));
+                             tPairIm aPair;     //  image pair
+                             aPair.first = aVSel[aK1];  // img1
+                             aPair.second = aVSel[aK2]; // img2
+                             Pt2dr aP1 = aVSel[aK1]->mCurP; // pt_img1
+                             Pt2dr aP2 = aVSel[aK2]->mCurP; // pt_img2
+                             mMapH[aPair].Cple_Add(ElCplePtsHomologues(aP1,aP2));       // save : im1 im2 pt_im1 pt_im2
                          }
                       }
                   }
@@ -184,18 +180,25 @@ cAppliSimulTieP::cAppliSimulTieP(int argc, char** argv):
        }
     }
 
-    std::string aKey = "NKS-Assoc-CplIm2Hom@Simul@dat";
+    std::string aKey = "NKS-Assoc-CplIm2Hom@Simul@dat";     // association key, here results will be saved in a folder "HomolSimul", as .dat files
 
-    for (tMapH::iterator itM=mMapH.begin(); itM!=mMapH.end() ; itM++)
+    for (tMapH::iterator itM=mMapH.begin(); itM!=mMapH.end() ; itM++)       // browse the dictionnary
     {
-         cIma_TieP * aIm1 = itM->first.first;
-         cIma_TieP * aIm2 = itM->first.second;
-         std::string aNameH = mICNM->Assoc1To2(aKey,aIm1->mNameIm,aIm2->mNameIm,true);
-          itM->second.StdPutInFile(aNameH);
-          std::cout << aNameH << "\n";
+         cIma_TieP * aIm1 = itM->first.first;       // img1
+         cIma_TieP * aIm2 = itM->first.second;      // img2
+         std::string aNameH = mICNM->Assoc1To2(aKey,aIm1->mNameIm,aIm2->mNameIm,true);      // name of the file to save ("HomolSimul/Pastis....dat")
+         itM->second.StdPutInFile(aNameH);      // save pt_im1 & pt_im2 in that file
+         std::cout << aNameH << "\n";
     }
 }
 
+
+
+/********************************************************************/
+/*                                                                  */
+/*                          cIma_TieP                               */
+/*                                                                  */
+/********************************************************************/
 
 cIma_TieP::cIma_TieP(cAppliSimulTieP& anAppli,tSomAWSI & aSom) :
    mAppli (anAppli),
@@ -204,18 +207,19 @@ cIma_TieP::cIma_TieP(cAppliSimulTieP& anAppli,tSomAWSI & aSom) :
 {
 }
 
-void cIma_TieP::ProjP(const Pt3dr & aPTer)
+void cIma_TieP::ProjP(const Pt3dr & aPTer)      // function used to project 3d points in the images, and to add noise in the coordinates
 {
-  Pt2dr aNoise(NRrandC(),NRrandC());
+  Pt2dr aNoise(NRrandC(),NRrandC());        // creation of a white noise (centered on [-1;1])
 
-  mCurP = mCam->R3toF2(aPTer) + aNoise * mAppli.mTiePNoise;
-  mOkP = mCam->IsInZoneUtile(mCurP);
-
+  mCurP = mCam->R3toF2(aPTer) + aNoise * mAppli.mTiePNoise;     // projection of the point, noise added
+  mOkP = mCam->IsInZoneUtile(mCurP);        // check if the point is in the image
 }
+
+
 
 /********************************************************************/
 /*                                                                  */
-/*         cTD_Camera                                               */
+/*                          Main                                    */
 /*                                                                  */
 /********************************************************************/
 
@@ -260,3 +264,4 @@ Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
+

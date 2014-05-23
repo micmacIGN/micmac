@@ -290,6 +290,12 @@ void ELISE_fp::MvFile(const std::string & aName1,const std::string &  aDest)
      VoidSystem(aNameCom.c_str());
 }
 
+void ELISE_fp::CpFile(const std::string & aName1,const std::string &  aDest)
+{
+     std::string aNameCom = std::string(SYS_CP)+ " " + aName1 + " " + aDest;
+     VoidSystem(aNameCom.c_str());
+}
+
 void  ELISE_fp::PurgeDirGen(const std::string & aDir,bool Recurs)
 {
 	std::string aDirC = aDir;

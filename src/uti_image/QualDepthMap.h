@@ -284,6 +284,7 @@ class cCoherEpi_main : public Cont_Vect_Action
         int           mNumMasq;
         bool          mVisu;
         double        mSigmaP;
+        bool          mRegulCheck;
         double        mStep;
         double        mRegul;
         double        mReduceM;

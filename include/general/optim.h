@@ -1299,7 +1299,6 @@ class cAMD_Interf
 int amd_demo_1 (void);
 
 
-
 #endif //  _ELISE_GENERAL_OPTIM_H
 
 

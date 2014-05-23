@@ -410,6 +410,35 @@ template <class TArg> void cProg2DOptimiser<TArg>::DoOptim(int aNbDir)
 // Pas ePrgDAgrProgressif
 // PAs Px1MultRegul
 
+class cOptimLabelBinaire
+{
+    public :
+
+        // Les couts sont entre 0 et 1
+        cOptimLabelBinaire(Pt2di aSz,double aDefCost,double aRegul);
+
+        static cOptimLabelBinaire * CoxRoy(Pt2di aSz,double aDefCost,double aRegul);
+        static cOptimLabelBinaire * ProgDyn(Pt2di aSz,double aDefCost,double aRegul); // 2 Do
+
+
+        // 0.0 privilégie l'état 0 ; 1.0 privilégie l'état 1 ....
+        void SetCost(Pt2di aP,double aCost);
+
+        virtual Im2D_Bits<1> Sol() = 0;
+        virtual ~cOptimLabelBinaire();
+
+    protected :
+        static U_INT1 ToCost(double aCost);
+
+        Pt2di              mSz;
+        Im2D_U_INT1        mCost;  // Memorise les couts entre 0 et 1
+        TIm2D<U_INT1,INT>  mTCost;  // Memorise les couts entre 0 et 1
+        double             mRegul;
+
+
+};
+
+
 
 
 #endif  //  _ELISE_TplProgDyn2D

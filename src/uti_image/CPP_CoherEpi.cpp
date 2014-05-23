@@ -387,6 +387,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mNumMasq  (8),
     mVisu     (false),
     mSigmaP   (1.5),
+    mRegulCheck (true),
     mStep     (1.0),
     mRegul    (0.5),
     mReduceM  (2.0),
@@ -410,6 +411,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mSzDecoup,"SzDec",true)
                     << EAM(mBrd,"Brd",true)
                     << EAM(mSigmaP,"SigP",true,"Standard error in pixel (Def=1.5)")
+                    << EAM(mRegulCheck,"RegCh",true,"Chexk regulairity of DSM (avoid whith vegetation)")
                     << EAM(mIntY1,"YBox",true)
                     << EAM(mRegul,"Regul",true,"Regularisation for masq (Def = 0.5)")
                     << EAM(mReduceM,"RedM",true,"Reduce factor for masq (Def = 2.0)")
@@ -678,8 +680,14 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
           }
 
 
-          Im2D_Bits<1>  aMasqL =  TestLabel(mIm1->ImPx_u2(),1<<16);
-          ELISE_COPY(aMasqL.all_pts(),aMasqL.in()*anAR1.in(),anAR1.out());
+          if (mRegulCheck)
+          {
+              Im2D_Bits<1>  aMasqL =  TestLabel(mIm1->ImPx_u2(),1<<16);
+              ELISE_COPY(aMasqL.all_pts(),aMasqL.in()*anAR1.in(),anAR1.out());
+          }
+          else
+          {
+          }
        }
 
 

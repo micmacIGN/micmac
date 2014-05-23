@@ -115,6 +115,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       std::string  mImageOfBox;
       std::string  mStrQualOr;
       eTypeQuality mQualOr;
+      bool         mHasVeget;
       bool         mDoPlyMM1P;
       int          mScalePlyMM1P;
       bool         mDoOMF;
@@ -792,6 +793,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mSkipCorDone  (false),
     mByMM1P       (true),
     mStrQualOr    ("Low"),
+    mHasVeget     (false),
     mDoPlyMM1P    (true),
     mScalePlyMM1P (3),
     mDoOMF        (false),
@@ -804,22 +806,24 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      ELISE_ASSERT(argc >= 2,"Not enough arg");
      mStrType = argv[1];
      StdReadEnum(mModeHelp,mType,mStrType,eNbTypeMMByP);
-  }
 
 
-  if (mType==eGround)
-  {
-     mStrQualOr = "High";
-  }
-  else if (mType==eStatute)
-  {
-     mStrQualOr = "Low";
-     mAddMMImSec = true;
-  }
-  else if (mType==eTestIGN)
-  {
-     mStrQualOr = "High";
-     mDelaunay = true;
+     if (mType==eGround)
+     {
+        mStrQualOr = "High";
+        mHasVeget = true;
+     }
+     else if (mType==eStatute)
+     {
+        mStrQualOr = "Low";
+        mAddMMImSec = true;
+        mHasVeget = false;
+     }
+     else if (mType==eTestIGN)
+     {
+        mStrQualOr = "High";
+        mDelaunay = true;
+     }
   }
 
 
@@ -853,6 +857,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mTimes,"TimesExe",true,"Internal use (debug Reech Inv Epip)")
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip")
                     << EAM(mDoOMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
+                    << EAM(mHasVeget,"HasVeg",true,"Scene contains vegetation (Def=true on Ground)")
   );
 
   StdCorrecNameOrient(mOri,DirOfFile(mFullName));
@@ -1017,6 +1022,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " InParal=" + ToString(mParalMMIndiv)
                          +  " QualOr=" +  mStrQualOr
                          +  " DCE=" +  ToString(mDebugCreatE)
+                         +  " HasVeg=" + ToString(mHasVeget)
                       ;
 
      if (mType == eGround)
