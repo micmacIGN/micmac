@@ -84,7 +84,7 @@ class cAppliMMByPair : public cAppliWithSetImage
 
 
       void DoMDTGround();
-      void DoMDTStatute();
+      void DoMDTRIE();
       void DoMDT();
 
       void DoCorrelAndBasculeStd();
@@ -116,10 +116,12 @@ class cAppliMMByPair : public cAppliWithSetImage
       std::string  mStrQualOr;
       eTypeQuality mQualOr;
       bool         mHasVeget;
+      bool         mSkyBackGround;
       bool         mDoPlyMM1P;
       int          mScalePlyMM1P;
       bool         mDoOMF;
       bool         mRIEInParal;  // Pour debuguer en l'inhibant,
+      bool         mDoRIE;      // Do Reech Inv Epip
       int          mTimes;
       bool         mDebugCreatE;
 };
@@ -284,7 +286,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mAverNbPix (0.0),
    mByEpi     (false)
 {
-   bool WithOri  = ((aFlag & FlagNoOri)==0);
+   bool WithOri  = ((aFlag & TheFlagNoOri)==0);
    if (argc< (WithOri ? 2 : 1 ) )
    {
       mPb = "Not Enough Arg in cAppliWithSetImage";
@@ -304,8 +306,8 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mSetIm = mICNM->Get(mPat);
 
 
-   if (aFlag & FlagDev16BGray) Develop(true,true);
-   if (aFlag & FlagDev8BGray) Develop(true,false);
+   if (aFlag & TheFlagDev16BGray) Develop(true,true);
+   if (aFlag & TheFlagDev8BGray) Develop(true,false);
 
 
    if (mSetIm->size()==0)
@@ -535,6 +537,7 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
            return;
 
     }
+
 
     mGrIm.add_arc(*aS1,*aS2,cAttrArcAWSI(aCpleE));
 
@@ -779,7 +782,7 @@ int ClipIm_main(int argc,char ** argv)
 /*****************************************************************/
 
 cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
-    cAppliWithSetImage (argc-2,argv+2,FlagDev16BGray),
+    cAppliWithSetImage (argc-2,argv+2,TheFlagDev16BGray),
     mDo           ("PMCFR"),
     mZoom0        (64),
     mZoomF        (1),
@@ -794,10 +797,12 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mByMM1P       (true),
     mStrQualOr    ("Low"),
     mHasVeget     (false),
+    mSkyBackGround(true),
     mDoPlyMM1P    (true),
     mScalePlyMM1P (3),
     mDoOMF        (false),
     mRIEInParal   (false),
+    mDoRIE        (true),
     mTimes        (1),
     mDebugCreatE  (false)
 {
@@ -812,17 +817,23 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      {
         mStrQualOr = "High";
         mHasVeget = true;
+        mSkyBackGround = false;
+        mDelaunay = true;
+        mDoRIE = false;
      }
      else if (mType==eStatute)
      {
         mStrQualOr = "Low";
         mAddMMImSec = true;
         mHasVeget = false;
+        mSkyBackGround = true;
+        mDoRIE = true;
      }
      else if (mType==eTestIGN)
      {
         mStrQualOr = "High";
         mDelaunay = true;
+        mDoRIE = true;
      }
   }
 
@@ -835,7 +846,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
-                    << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to macth, Def=False")
+                    << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to macth, Def=true on ground")
                     << EAM(mAddMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statute")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip , first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
                     << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
@@ -850,7 +861,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mImageOfBox,"ImOfBox",true,"Image to define box for MTD (test purpose to limit size of result)")
                     << EAM(mBoxOfImage,"BoxOfIm",true,"Associated to ImOfBox, def = full")
                     << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")
-                    << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
+                    << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low with statute)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
                     << EAM(mDoPlyMM1P,"DoPlyMM1P",true,"Do ply after MM1P, def=false")
                     << EAM(mScalePlyMM1P,"ScalePlyMM1P",true,"Down Scale of ply after MM1P =3")
                     << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)")
@@ -858,7 +869,11 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip")
                     << EAM(mDoOMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
                     << EAM(mHasVeget,"HasVeg",true,"Scene contains vegetation (Def=true on Ground)")
+                    << EAM(mSkyBackGround,"HasSBG",true,"Scene has sky (or homogeneous) background (Def=false on Ground)")
   );
+
+  if (! BoolFind(mDo,'R'))
+     mDoRIE = false;
 
   StdCorrecNameOrient(mOri,DirOfFile(mFullName));
 
@@ -1023,12 +1038,13 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " QualOr=" +  mStrQualOr
                          +  " DCE=" +  ToString(mDebugCreatE)
                          +  " HasVeg=" + ToString(mHasVeget)
+                         +  " HasSBG=" + ToString(mSkyBackGround)
                       ;
 
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
 
-     if (  ((mType == eStatute) || (mType==eTestIGN)) && mRIEInParal)
+     if (  mDoRIE && mRIEInParal)
      {
        aMatchCom = aMatchCom + " RIE=true ";
      }
@@ -1199,11 +1215,11 @@ void cAppliMMByPair::DoFusion()
 
 void cAppliMMByPair::DoMDT()
 {
-  if (  (mType==eStatute) || (mType==eTestIGN))  DoMDTStatute();
+  if (mDoRIE)  DoMDTRIE();
   if (mType==eGround)  DoMDTGround();
 }
 
-void cAppliMMByPair::DoMDTStatute()
+void cAppliMMByPair::DoMDTRIE()
 {
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
@@ -1307,7 +1323,7 @@ int cAppliMMByPair::Exe()
           }
        }
 
-       if ( (!mDebugCreatE) && BoolFind(mDo,'R') && (!mRIEInParal) && mByMM1P )
+       if ( (!mDebugCreatE) &&  (!mRIEInParal) && mDoRIE)
        {
              DoReechantEpipInv();
        }

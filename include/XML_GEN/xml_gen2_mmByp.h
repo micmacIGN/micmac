@@ -123,9 +123,9 @@ class cAppliWithSetImage
       void FilterImageIsolated();
       void Develop(bool EnGray,bool En16B);
 
-      static const int  FlagDev8BGray   = 1;
-      static const int  FlagDev16BGray  = 2;
-      static const int  FlagNoOri  = 3;
+      static const int  TheFlagDev8BGray   = 1;
+      static const int  TheFlagDev16BGray  = 2;
+      static const int  TheFlagNoOri  = 4;  // ERREUR DE DEBUTANT FlagNoOri=3 !!!!
 
       tSomAWSI * ImOfName(const std::string & aName);
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);

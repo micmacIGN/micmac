@@ -440,19 +440,21 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
 
 
 
+/*
         double aU2 = square_euclid(aU);
         double aV2 = square_euclid(aV);
         double aUV = scal(aU,aV);
+*/
 
          // De memoire, la + grande des VP de l'affinite
-        aCoefEtirReel = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
+        // aCoefEtirReel = sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2);
 
          // Version surfacique 
 
          aCoefEtirReel = ElAbs(aU.x * aV.y - aU.y * aV.x);
 
 
-if (1)
+if (0)
 {
 static double aMinCER = 1e20;
 static double aMaxCER = -1e20;
@@ -484,7 +486,7 @@ getchar();
 }
 */
         // aCoefEtire = ElMin(254,round_ni(aCoefEtirReel*mDynEtire));
-        aCoefEtire = ElMin(253,round_ni(mDynEtire/aCoefEtirReel));
+        aCoefEtire = ElMax(1,ElMin(253,round_ni(mDynEtire/aCoefEtirReel)));
         if (aDet<0)
             aCoefEtire = 0;
      }

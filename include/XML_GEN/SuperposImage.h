@@ -2099,6 +2099,9 @@ class cXML_ParamNuage3DMaille
         cTplValGesInit< double > & SsResolRef();
         const cTplValGesInit< double > & SsResolRef()const ;
 
+        cTplValGesInit< bool > & Empty();
+        const cTplValGesInit< bool > & Empty()const ;
+
         Pt2di & NbPixel();
         const Pt2di & NbPixel()const ;
 
@@ -2151,6 +2154,7 @@ class cXML_ParamNuage3DMaille
         const std::list< cVerifNuage > & VerifNuage()const ;
     private:
         cTplValGesInit< double > mSsResolRef;
+        cTplValGesInit< bool > mEmpty;
         Pt2di mNbPixel;
         cPN3M_Nuage mPN3M_Nuage;
         std::list< cAttributsNuage3D > mAttributsNuage3D;

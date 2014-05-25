@@ -296,7 +296,7 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
 /**********************************************************************/
 
 cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
-   cAppliWithSetImage(argc-2,argv +2,FlagNoOri|FlagDev16BGray),
+   cAppliWithSetImage(argc-2,argv +2,TheFlagNoOri|TheFlagDev16BGray),
    // mTifBaseGr   (0),
    mTifBaseCoul (0),
    mImGr        (1,1),

@@ -70,16 +70,17 @@ class cOptimLabelBinaire
 */
 
 
+
 /*******************************************************************/
 /*                                                                 */
-/*                  cOptimLabelBinaire                             */
+/*                  cCoxRoyOLB                                     */
 /*                                                                 */
 /*******************************************************************/
 
 class cCoxRoyOLB : public cOptimLabelBinaire 
 {
     public :
-         cCoxRoyOLB(Pt2di aSz,double aDefCost,double aRegul);
+        cCoxRoyOLB(Pt2di aSz,double aDefCost,double aRegul);
         Im2D_Bits<1> Sol();
 };
 
@@ -114,6 +115,9 @@ Im2D_Bits<1> cCoxRoyOLB::Sol()
      {
          for (aP.y = 0 ;  aP.y < mSz.y ; aP.y++)
          {
+                  // La couche 0 a un cout de 0.5
+                  // La couche 1 un cout de 1-C (donc cost 0 privilegie 0, comme il se doit)
+                  // La couche 2 est juste necessaire au bon fonctionnement ...
                   aCox->SetCostVert(aP.x,aP.y,0,aMul*0.5);
                   double aCost = 1- mTCost.get(aP) /255.0;
                   aCox->SetCostVert(aP.x,aP.y,1,round_ni(aCost*aMul));
@@ -135,6 +139,162 @@ Im2D_Bits<1> cCoxRoyOLB::Sol()
 }
    
 
+
+/*******************************************************************/
+/*                                                                 */
+/*                  cProgDOLB                                      */
+/*                                                                 */
+/*******************************************************************/
+
+// L'attribut auxilaire qui sera memorise dans les nappes completes
+class cNoValPrgD
+{
+};
+
+// L'attribut temporaire qui sera memorise le temps d'un balayage
+class cNoValPrgDTmp
+{
+     public :
+        void InitTmp(const cTplCelNapPrgDyn<cNoValPrgD> &) // S'initialise a partir de la cellue de la napp3d
+        {
+        }
+};
+
+
+class cProgDOLB : public cOptimLabelBinaire 
+{
+
+    public :
+     // Ce qui est necessaire pour cProg2DOptimiser<cProgDOLB>
+         typedef cNoValPrgDTmp            tArgCelTmp;
+         typedef cNoValPrgD            tArgNappe;
+         typedef cProgDOLB             tArgGlob;  // Afin de "se connaitre" dans le calcul
+
+         
+      // Pas pre-requis mais aide
+         typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
+         typedef  cTplCelOptProgDyn<tArgCelTmp>  tCelOpt;
+      // Call back pre requis dans Optim
+         void DoConnexion
+              (
+                 const Pt2di & aPIn, const Pt2di & aPOut,
+                 ePrgSens aSens,int aRab,int aMul,
+                 tCelOpt*Input,int aInZMin,int aInZMax,
+                 tCelOpt*Ouput,int aOutZMin,int aOutZMax
+             );
+         void GlobInitDir(cProg2DOptimiser<cProgDOLB> &);
+
+    public :
+        cProgDOLB(Pt2di aSz,double aDefCost,double aRegul);
+        Im2D_Bits<1> Sol();
+    private :
+        // les couts sont signe <0 => label 0, >0 => label 1; 
+        // Le fait de les "redynamiser" fait que la valeur entre 0 et 1 n'est plus vraiment possible
+        Im2D_REAL4 ImCost( Im2D_REAL4 aCostIn,int aNbDir,double aTeta0);
+        
+
+        static const double mMul = 1000.0;
+        int mICostRegul;
+
+};
+
+cProgDOLB::cProgDOLB(Pt2di aSz,double aDefCost,double aRegul) :
+   cOptimLabelBinaire  (aSz,aDefCost,aRegul),
+   mICostRegul         (round_ni(aRegul*mMul))
+{
+}
+
+void cProgDOLB::GlobInitDir(cProg2DOptimiser<cProgDOLB> & aPrg2D)
+{
+}
+
+void cProgDOLB::DoConnexion
+     (
+                 const Pt2di & aPIn, const Pt2di & aPOut,
+                 ePrgSens aSens,int aRab,int aMul,
+                 tCelOpt*Input,int aInZMin,int aInZMax,
+                 tCelOpt*Ouput,int aOutZMin,int aOutZMax
+     )
+{
+    for (int aZIn=aInZMin ; aZIn<aInZMax ; aZIn++)
+    {
+        for (int aZOut=aOutZMin ; aZOut<aOutZMax ; aZOut++)
+        {
+             Ouput[aZOut].UpdateCostOneArc(Input[aZIn],aSens,mICostRegul*ElAbs(aZIn-aZOut));
+        }
+    }
+}
+
+
+Im2D_REAL4 cProgDOLB::ImCost(Im2D_REAL4 aCostIn,int aNbDir,double aTeta0)
+{
+   TIm2D<REAL4,REAL8>  aTCostIn(aCostIn);
+   Im2D_INT2           mZMin(mSz.x,mSz.y,0);
+   Im2D_INT2           mZMax(mSz.x,mSz.y,2);
+   cProg2DOptimiser<cProgDOLB> mOpt(*this,mZMin,mZMax,0,1);
+
+   
+   // On transfere les cout dans la nappe ; avec les convention A- qu'un des deux couts est nul
+   // B- que les cout <0 signifie que l'on privilegie 0
+
+   tCelNap *** aNaps = mOpt.Nappe().Data();
+   Pt2di aP;
+   double aSigmaIn=0;
+   for (aP.x=0; aP.x<mSz.x; aP.x++)
+   {
+       for (aP.y=0; aP.y<mSz.y; aP.y++)
+       {
+           double aCost = aTCostIn.get(aP);
+           aSigmaIn += ElAbs(aCost);
+           int IndCost = (aCost<0) ; // Si cout negatif, c'est la couche 1 qui est penalisee
+           aNaps[aP.y][aP.x][IndCost].SetOwnCost(round_ni(ElAbs(aCost)*mMul));
+           aNaps[aP.y][aP.x][1-IndCost].SetOwnCost(0);
+       }
+   }
+
+   // On lance l'optimisation
+   mOpt.SetTeta0(aTeta0);
+   mOpt.DoOptim(aNbDir);
+
+
+   // On transfere les couts, en calculant la dynamique
+
+   Im2D_REAL4 aRes(mSz.x,mSz.y);
+   TIm2D<REAL4,REAL8> aTRes(aRes);
+   double aSigmaOut=0;
+   for (aP.x=0; aP.x<mSz.x; aP.x++)
+   {
+       for (aP.y=0; aP.y<mSz.y; aP.y++)
+       {
+           double aCost0 = aNaps[aP.y][aP.x][0].CostAgrege();
+           double aCost1 = aNaps[aP.y][aP.x][1].CostAgrege();
+           double aDelta = (aCost0 - aCost1) / mMul;
+           aTRes.oset(aP,aDelta);
+           aSigmaOut += ElAbs(aDelta);
+       }
+   }
+   double aRatio = aSigmaIn/aSigmaOut;
+
+   ELISE_COPY(aRes.all_pts(),aRes.in()*aRatio,aRes.out());
+
+   return aRes;
+}
+
+Im2D_Bits<1> cProgDOLB::Sol()
+{
+    Im2D_REAL4 aImCostIn(mSz.x,mSz.y);
+    ELISE_COPY(aImCostIn.all_pts(),(mCost.in()-128)/255.0,aImCostIn.out());
+
+    for (int aTimes=0 ; aTimes<1 ; aTimes++)
+    {
+          aImCostIn = ImCost(aImCostIn,4,0.0);
+    }
+
+    Im2D_Bits<1>  aRes(mSz.x,mSz.y);
+    ELISE_COPY(aRes.all_pts(),aImCostIn.in()>0,aRes.out());
+
+    return aRes;
+}
 
 
 /*******************************************************************/
@@ -169,6 +329,12 @@ cOptimLabelBinaire * cOptimLabelBinaire::CoxRoy(Pt2di aSz,double aDefCost,double
 {
     return new cCoxRoyOLB(aSz,aDefCost,aRegul);
 }
+
+cOptimLabelBinaire *  cOptimLabelBinaire::ProgDyn(Pt2di aSz,double aDefCost,double aRegul)
+{
+   return new cProgDOLB(aSz,aDefCost,aRegul);
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
