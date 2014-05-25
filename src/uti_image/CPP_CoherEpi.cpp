@@ -371,8 +371,8 @@ void cCEM_OneIm::ComputeOrtho()
 /*******************************************************************/
 
 cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
-    mSzDecoup (1000),
-    mBrd      (10),
+    mSzDecoup (2000),
+    mBrd      (250),
     mDir      ("./"),
     mCple     (0),
     mWithEpi  (true),
@@ -388,6 +388,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mVisu     (false),
     mSigmaP   (1.5),
     mRegulCheck (true),
+    mFilterBH   (true),
     mStep     (1.0),
     mRegul    (0.5),
     mReduceM  (2.0),
@@ -399,6 +400,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mBSHRejet      (0.02)
 
 {
+    bool Debug=false;
     double aFactBSHOk=2;
     ElInitArgMain
     (
@@ -412,6 +414,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mBrd,"Brd",true)
                     << EAM(mSigmaP,"SigP",true,"Standard error in pixel (Def=1.5)")
                     << EAM(mRegulCheck,"RegCh",true,"Chexk regulairity of DSM (avoid whith vegetation)")
+                    << EAM(mFilterBH,"FBH",true,"Filter on homogenous border (to avoid sky background)")
                     << EAM(mIntY1,"YBox",true)
                     << EAM(mRegul,"Regul",true,"Regularisation for masq (Def = 0.5)")
                     << EAM(mReduceM,"RedM",true,"Reduce factor for masq (Def = 2.0)")
@@ -432,6 +435,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mFinal,"ExpFin",true,"For final export (generate dirtosion indicator)")
                     << EAM(mBSHRejet,"BSHReject",true,"Value for low Basr to Ratio leading do rejection (Def=0.02)")
                     << EAM(aFactBSHOk,"FactBSHOk",true,"Multiplier so that BSHOk= FactBSHOk * BSHReject (Def=2)")
+                    << EAM(Debug,"Debug",true,"Tuning ....")
    );
 
    mNoOri  =  (mOri  == "NONE");
@@ -527,6 +531,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                                         + " InternalPostfixP=" + aPost;
              // System(aComBox);
              aLCom.push_back(aComBox);
+             if (Debug) std::cout << aComBox << "\n";
              aVBoxC.push_back(cBoxCoher(aDecoup.KthIntervIn(aKB),aDecoup.KthIntervOut(aKB),aPost));
          }
          if (mInParal)
@@ -593,7 +598,8 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     trans(Tiff_Im::StdConv(aNameM1).in(),-aBoxIn._p0),
                     aTifMasq1.out()
                  );
-                 ELISE_fp::RmFile(aNameM1);
+                 if (! Debug)
+                    ELISE_fp::RmFile(aNameM1);
                  if (mDoMasqSym)
                  {
                     std::string aNameFOM2 = mDir+mPrefix + "_DEC2"+ aVBoxC[aKB].mPost + ".xml";
@@ -667,6 +673,8 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
              Fonc_Num aFBsH = mCple->BSurHOfPx(I1ISFirst,aFPx);
              aFBsH = Max(0,Min(1,(aFBsH-mBSHRejet) / (mBSHOk-mBSHRejet))) * 255;
              ELISE_COPY(anAR1.all_pts(),Min(anAR1.in(),aFBsH),anAR1.out());
+/*
+*/
           }
           else
           {
@@ -695,7 +703,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
        if (mDoMasq)
        {
-           double aMul = 20;
+           // double aMul = 20;
            // mReduce = 2.0;
 
            Pt2di aSz0 = anAR1.sz();
@@ -711,6 +719,25 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                 anArRed.out()
            );
 
+           Im2D_Bits<1> aMassFR(anAR1.sz().x,anAR1.sz().y);
+
+           TIm2D<REAL4,REAL8>  aTArRed(anArRed);
+           // cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSzR,0.5,mRegul);
+           cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSzR,0.5,mRegul);
+
+           Pt2di aP;
+
+           for (aP.x=0 ;  aP.x<aSzR.x ; aP.x++)
+               for (aP.y=0 ;  aP.y<aSzR.y ; aP.y++)
+                     anOLB->SetCost(aP,aTArRed.get(aP));
+
+
+           Im2D_Bits<1> aISol = anOLB->Sol();
+           ELISE_COPY(anAR1.all_pts(),aISol.in_proj()[Virgule(FX/mReduceM,FY/mReduceM)],aMassFR.out());
+
+           delete anOLB;
+ 
+/*
            Im2D_INT2 aIZMin(aSzR.x,aSzR.y,0);
            Im2D_INT2 aIZMax(aSzR.x,aSzR.y,3);
            Im2D_INT2 aISol(aSzR.x,aSzR.y);
@@ -737,8 +764,8 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
            aCox->SetStdCostRegul(0,aMul*mRegul,0);
            aCox->TopMaxFlowStd(aISol.data());
 
-           Im2D_Bits<1> aMassFR(anAR1.sz().x,anAR1.sz().y);
            ELISE_COPY(anAR1.all_pts(),aISol.in_proj()[Virgule(FX/mReduceM,FY/mReduceM)],aMassFR.out());
+*/
 
 
            if (mFinal)
@@ -750,13 +777,16 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                   anAR1.sz(), Min(255,100*mImQualDepth.in())
               );
 
-               Fonc_Num aF = MasqBorHomogene(mIm1->Im(),aMassFR,mIm1->Win());
-               if (mIm1->Win())
-               {
-                  ELISE_COPY(select(aMassFR.all_pts(),aF),P8COL::yellow,mIm1->Win()->odisc());
-                  getchar();
+              if (mFilterBH)
+              {
+                   Fonc_Num aF = MasqBorHomogene(mIm1->Im(),aMassFR,mIm1->Win());
+                   if (mIm1->Win())
+                   {
+                      ELISE_COPY(select(aMassFR.all_pts(),aF),P8COL::yellow,mIm1->Win()->odisc());
+                      getchar();
+                   }
+                   ELISE_COPY(select(aMassFR.all_pts(),aF),0,aMassFR.out());
                }
-               ELISE_COPY(select(aMassFR.all_pts(),aF),0,aMassFR.out());
               // mIm1->VerifIm(aMassFR);
            }
 

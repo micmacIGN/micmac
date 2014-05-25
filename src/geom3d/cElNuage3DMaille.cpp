@@ -1774,14 +1774,40 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
   
 
 
-    if (anArgBasc.mAutoResize)
+    if (anArgBasc.mDynEtir>0)
     {
+       Im2D_U_INT1 aImEt = aRes->ImEtirement();
+       TIm2D<U_INT1,INT> aTImEtir(aImEt);
+       Pt2di aSz = aImEt.sz();
+       cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSz,0.0,0.0);
+       Pt2di aP;
+       double aSeuil = anArgBasc.mSeuilEtir;
+       double aDynSeuil = 0.5 / ElMax(aSeuil,1-aSeuil);
+       for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+       {
+           for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+           {
+                 double anEtir = aTImEtir.get(aP) /anArgBasc.mDynEtir;
+                 double aCost = (anEtir-aSeuil)* aDynSeuil;
+                 anOLB->SetCost(aP,0.5+ aCost);
+                 anOLB->SetCost(aP,1);
+           }
+       }
+       Im2D_Bits<1> aSol = anOLB->Sol();
+       int aOk;
+       ELISE_COPY(aSol.all_pts(),aSol.in(),sigma(aOk));
+       std::cout << "NB OK " << aOk << "\n";
+       
+/*
+
        ELISE_COPY
        (
           aRes->ImDef().all_pts(),
-          (aRes->ImDef().in() && (aRes->ImEtirement().in() > anArgBasc.mSeuilEtir * anArgBasc.mDynEtir)),
+          (aRes->ImDef().in() && aSol.in()),
           aRes->ImDef().out()
        );
+*/
+       delete anOLB;
     }
     if (HasCor)
     {

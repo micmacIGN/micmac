@@ -6508,6 +6508,17 @@ const cTplValGesInit< double > & cXML_ParamNuage3DMaille::SsResolRef()const
 }
 
 
+cTplValGesInit< bool > & cXML_ParamNuage3DMaille::Empty()
+{
+   return mEmpty;
+}
+
+const cTplValGesInit< bool > & cXML_ParamNuage3DMaille::Empty()const 
+{
+   return mEmpty;
+}
+
+
 Pt2di & cXML_ParamNuage3DMaille::NbPixel()
 {
    return mNbPixel;
@@ -6704,6 +6715,14 @@ void  BinaryUnDumpFromFile(cXML_ParamNuage3DMaille & anObj,ELISE_fp & aFp)
         }
         else  anObj.SsResolRef().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Empty().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Empty().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Empty().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.NbPixel(),aFp);
     BinaryUnDumpFromFile(anObj.PN3M_Nuage(),aFp);
   { int aNb;
@@ -6756,6 +6775,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXML_ParamNuage3DMaille & anObj)
 {
     BinaryDumpInFile(aFp,anObj.SsResolRef().IsInit());
     if (anObj.SsResolRef().IsInit()) BinaryDumpInFile(aFp,anObj.SsResolRef().Val());
+    BinaryDumpInFile(aFp,anObj.Empty().IsInit());
+    if (anObj.Empty().IsInit()) BinaryDumpInFile(aFp,anObj.Empty().Val());
     BinaryDumpInFile(aFp,anObj.NbPixel());
     BinaryDumpInFile(aFp,anObj.PN3M_Nuage());
     BinaryDumpInFile(aFp,(int)anObj.AttributsNuage3D().size());
@@ -6786,6 +6807,8 @@ cElXMLTree * ToXMLTree(const cXML_ParamNuage3DMaille & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XML_ParamNuage3DMaille",eXMLBranche);
    if (anObj.SsResolRef().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SsResolRef"),anObj.SsResolRef().Val())->ReTagThis("SsResolRef"));
+   if (anObj.Empty().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Empty"),anObj.Empty().Val())->ReTagThis("Empty"));
    aRes->AddFils(::ToXMLTree(std::string("NbPixel"),anObj.NbPixel())->ReTagThis("NbPixel"));
    aRes->AddFils(ToXMLTree(anObj.PN3M_Nuage())->ReTagThis("PN3M_Nuage"));
   for
@@ -6820,6 +6843,8 @@ void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SsResolRef(),aTree->Get("SsResolRef",1),double(1.0)); //tototo 
 
+   xml_init(anObj.Empty(),aTree->Get("Empty",1),bool(false)); //tototo 
+
    xml_init(anObj.NbPixel(),aTree->Get("NbPixel",1)); //tototo 
 
    xml_init(anObj.PN3M_Nuage(),aTree->Get("PN3M_Nuage",1)); //tototo 
@@ -6839,7 +6864,7 @@ void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree)
    xml_init(anObj.VerifNuage(),aTree->GetAll("VerifNuage",false,1));
 }
 
-std::string  Mangling( cXML_ParamNuage3DMaille *) {return "20C4600935618BC4FE3F";};
+std::string  Mangling( cXML_ParamNuage3DMaille *) {return "7AFB3BF04661E4D6FE3F";};
 
 
 std::string & cMasqMesures::NameFile()

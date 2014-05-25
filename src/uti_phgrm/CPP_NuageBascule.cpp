@@ -194,10 +194,19 @@ int  NuageBascule_main(int argc,char ** argv)
 
     if (ByP && (!ICalledByP))
     {
+         std::string aPrefRes = StdPrefix(aNameRes);
          int aBrd=5;
          Pt2di aPBrd(aBrd,aBrd);
          std::string aComBase =  MMBinFile(MM3DStr) +  MakeStrFromArgcARgv(argc,argv);
-         Box2di      aBoxInGlob  = BoxEnglobMasq(DirOfFile(aNameIn) + aNuageIn.Image_Profondeur().Val().Masq());
+         bool Ok;
+         Box2di      aBoxInGlob  = BoxEnglobMasq(DirOfFile(aNameIn) + aNuageIn.Image_Profondeur().Val().Masq(),&Ok);
+         if (!Ok)
+         {
+              cXML_ParamNuage3DMaille  aNewNuageOut ;
+              aNewNuageOut.Empty().SetVal(true);
+              MakeFileXML(aNewNuageOut,aPrefRes+".xml");
+              return EXIT_SUCCESS;
+         }
          cDecoupageInterv2D aDecoup (aBoxInGlob,aSzDecoup,Box2di(-aPBrd,aPBrd));
 
 
@@ -268,7 +277,6 @@ int  NuageBascule_main(int argc,char ** argv)
          Pt2dr aRSzN = Pt2dr(aSzNew);
          cXML_ParamNuage3DMaille  aNewNuageOut =  CropAndSousEch(aNuageOut,aRP0,1.0,aRSzN);
 
-         std::string aPrefRes = StdPrefix(aNameRes);
 
          std::string aNameMasq = aPrefRes + "_Masq.tif";
          std::string aNameProf = aPrefRes + "_Prof.tif";
@@ -439,6 +447,7 @@ int  NuageBascule_main(int argc,char ** argv)
 
 
          cArgBacule anArgBasc;
+         anArgBasc.mDynEtir = 50.0;
 
          if  (EAMIsInit(&aBoxIn))
          {
@@ -478,7 +487,7 @@ int  NuageBascule_main(int argc,char ** argv)
 
          delete anArgBasc.mBoxClipIn;
     }
-    return 0;
+    return EXIT_SUCCESS;
 	
 	}
 	else return EXIT_FAILURE;

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1181]) = {
+const char * (theNameVar_SuperposImage[1182]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -481,6 +481,7 @@ const char * (theNameVar_SuperposImage[1181]) = {
 "         les sous ech auront pour valeur 1 2 4 8 16 ...\n",
 "         -->\n",
 "         <SsResolRef Nb=\"?\" Type=\"double\" Def=\"1.0\"> </SsResolRef>\n",
+"         <Empty Nb=\"?\" Type=\"bool\" Def=\"false\"> </Empty>  <!-- Pour traiter le cas des nuage vide -->\n",
 "         <NbPixel Nb=\"1\" Type=\"Pt2di\"> </NbPixel>\n",
 "         <PN3M_Nuage Nb=\"1\"   UnionType=\"true\">\n",
 "             <Image_Point3D Nb=\"?\" AccessorFils=\"false\"> \n",

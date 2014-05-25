@@ -104,6 +104,7 @@ class cMMOnePair
       int              mNbCommand;
       const std::string mNameMasqFinal;
       bool              mHasVeget;
+      bool              mSkyBackgGound;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -159,7 +160,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDebugCreatE  (false),
     mNbCommand    (-1),
     mNameMasqFinal ("Masq_Etape_Last.tif"),
-    mHasVeget       (false)
+    mHasVeget       (false),
+    mSkyBackgGound  (true)
 {
   ElInitArgMain
   (
@@ -189,6 +191,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDoOnlyMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)", eSAM_IsBool)
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)", eSAM_IsBool)
                     << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
+                    << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
   );
 
   mNoOri = (mNameOriInit=="NONE");
@@ -568,12 +571,14 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " Prefix="   + aPref
                           + " InParal="  + ToString(mMM1PInParal)
                           + " RegCh="  + ToString(! mHasVeget)
+                          + " FBH="  + ToString( mSkyBackgGound)
+                          + " Regul=0.5"
                       ;
 
+     aCom = aCom + " RedM=1.0 ";   // Avec la prog dyn, pas de raison de ne pas faire ts le temps à full resol
      if (aLast)
      {
         aCom = aCom + " ExpFin=true " ;
-        aCom = aCom + " RedM=1.0 ";
      }
 
      ExeCom(aCom);
@@ -590,7 +595,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
 
 
-     if (! mExe) 
+     if (1) // (! mExe) 
      {
      
            std::cout << "SauvMasqReentrant, M1=" << MasterIs1 << " S=" << aStep << " L=" << aLast << "\n";
@@ -600,7 +605,9 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                std::string aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
                std::cout << "    MMVVV " << aName << " => " << aDest << "\n";
            }
-           return;
+
+           if (! mExe)
+              return;
      }
 
 
@@ -624,7 +631,13 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
      if (!aLast)
      {
         aFonc = dilat_32((close_32(aFonc,8)),4);
-        aFonc = StdFoncChScale_Bilin(aFonc,Pt2dr(0,0),Pt2dr(0.5,0.5));
+
+        int aZoomCur = mVZoom[aStep];
+        int aZoomNext = mVZoom[aStep+1];
+        double aRatio = aZoomNext / double(aZoomCur);
+// std::cout << "RRRRRrrrrrrrrrrrrrr " << aRatio << "\n"; getchar();
+
+        aFonc = StdFoncChScale_Bilin(aFonc,Pt2dr(0,0),Pt2dr(aRatio,aRatio));
      }
 
 
