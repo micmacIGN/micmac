@@ -228,6 +228,8 @@ void cProgDOLB::DoConnexion
 
 Im2D_REAL4 cProgDOLB::ImCost(Im2D_REAL4 aCostIn,int aNbDir,double aTeta0)
 {
+
+
    TIm2D<REAL4,REAL8>  aTCostIn(aCostIn);
    Im2D_INT2           mZMin(mSz.x,mSz.y,0);
    Im2D_INT2           mZMax(mSz.x,mSz.y,2);
@@ -282,6 +284,7 @@ Im2D_REAL4 cProgDOLB::ImCost(Im2D_REAL4 aCostIn,int aNbDir,double aTeta0)
 
 Im2D_Bits<1> cProgDOLB::Sol()
 {
+
     Im2D_REAL4 aImCostIn(mSz.x,mSz.y);
     ELISE_COPY(aImCostIn.all_pts(),(mCost.in()-128)/255.0,aImCostIn.out());
 
@@ -318,7 +321,8 @@ U_INT1 cOptimLabelBinaire::ToCost(double aCost)
 
 void cOptimLabelBinaire::SetCost(Pt2di aP,double aCost)
 {
-    mTCost.oset(aP,aCost);
+// std::cout << "COOOOst " << aCost    << " " << int << " " << mSz << "\n";
+    mTCost.oset(aP,ToCost(aCost));
 }
 
 cOptimLabelBinaire::~cOptimLabelBinaire()
