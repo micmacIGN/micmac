@@ -107,7 +107,7 @@ int Campari_main(int argc,char ** argv)
     LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]")
                     << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc]")
                     << EAM(aSigmaTieP,"SigmaTieP","Sigma use for TieP weighting (Def=1)")
-                    << EAM(aFactResElimTieP,"FactElimTieP","Fact elimination of type (prop to SigmaTieP, Def=5)")
+                    << EAM(aFactResElimTieP,"FactElimTieP","Fact elimination of tie point (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
                     << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input", eSAM_IsBool)
                     << EAM(FocFree,"FocFree",true,"Foc Free (Def=false)", eSAM_IsBool)
@@ -120,78 +120,78 @@ int Campari_main(int argc,char ** argv)
 
     );
 
-	if (!MMVisualMode)
-	{
-		std::string aDir,aPat;
-	#if (ELISE_windows)
-		 replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-	#endif
-		SplitDirAndFile(aDir,aPat,aFullDir);
-		StdCorrecNameOrient(AeroIn,aDir);
+    if (!MMVisualMode)
+    {
+        std::string aDir,aPat;
+    #if (ELISE_windows)
+         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    #endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
+        StdCorrecNameOrient(AeroIn,aDir);
 
 
 
 
 
-	   std::string aCom =     MM3dBinFile_quotes( "Apero" )
-						   +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
-						   +  std::string(" DirectoryChantier=") + aDir + " "
-						   +  std::string(" +SetIm=") + QUOTE(aPat) + " "
-						   +  std::string(" +AeroIn=-") + AeroIn + " "
-						   +  std::string(" +AeroOut=-") + AeroOut + " "
-						  ;
+       std::string aCom =     MM3dBinFile_quotes( "Apero" )
+                           +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
+                           +  std::string(" DirectoryChantier=") + aDir + " "
+                           +  std::string(" +SetIm=") + QUOTE(aPat) + " "
+                           +  std::string(" +AeroIn=-") + AeroIn + " "
+                           +  std::string(" +AeroOut=-") + AeroOut + " "
+                          ;
 
-		if (CPI1 || CPI2) aCom       += " +CPI=true ";
-		if (CPI2) aCom       += " +CPIInput=true ";
-		if (FocFree) aCom    += " +FocFree=true ";
-		if (PPFree) aCom    += " +PPFree=true ";
-		if (AffineFree) aCom += " +AffineFree=true ";
-		if (AllFree) aCom    += " +AllFree=true ";
-		if (ExpTxt) aCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
-
-
-	   if (EAMIsInit(&Viscos)) aCom  +=  " +Viscos=" + ToString(Viscos) + " ";
-
-	   if (EAMIsInit(&DetailAppuis)) aCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
-
-		if (EAMIsInit(&GCP))
-		{
-			ELISE_ASSERT(GCP.size()==4,"Mandatory part of GCP requires 4 arguments");
-			double aGcpGrU = RequireFromString<double>(GCP[1],"GCP-Ground uncertainty");
-			double aGcpImU = RequireFromString<double>(GCP[3],"GCP-Image  uncertainty");
-
-			std::cout << "THAT IS ::: " << aGcpGrU << " === " << aGcpImU << "\n";
-
-			aCom =   aCom
-				   + std::string("+WithGCP=true ")
-				   + std::string("+FileGCP-Gr=") + GCP[0] + " "
-				   + std::string("+FileGCP-Im=") + GCP[2] + " "
-				   + std::string("+GrIncGr=") + ToString(aGcpGrU) + " "
-				   + std::string("+GrIncIm=") + ToString(aGcpImU) + " ";
-		}
-
-		if (EAMIsInit(&EmGPS))
-		{
-			ELISE_ASSERT(EmGPS.size()==2,"Mandatory part of EmGPS requires 2 arguments");
-			double aGpsU = RequireFromString<double>(EmGPS[1],"GCP-Ground uncertainty");
-			aCom = aCom +  " +BDDC=" + EmGPS[0]
-						+  " +SigmGPS=" + ToString(aGpsU)
-						+  " +WithCenter=true";
-		}
-
-		if (EAMIsInit(&aSigmaTieP)) aCom = aCom + " +SigmaTieP=" + ToString(aSigmaTieP);
+        if (CPI1 || CPI2) aCom       += " +CPI=true ";
+        if (CPI2) aCom       += " +CPIInput=true ";
+        if (FocFree) aCom    += " +FocFree=true ";
+        if (PPFree) aCom    += " +PPFree=true ";
+        if (AffineFree) aCom += " +AffineFree=true ";
+        if (AllFree) aCom    += " +AllFree=true ";
+        if (ExpTxt) aCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
 
-		std::cout << aCom << "\n";
-		int aRes = System(aCom.c_str());
+       if (EAMIsInit(&Viscos)) aCom  +=  " +Viscos=" + ToString(Viscos) + " ";
 
-		Campari_Banniere();
-		BanniereMM3D();
+       if (EAMIsInit(&DetailAppuis)) aCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
 
-		return aRes;
-	}
-	else
-		return EXIT_FAILURE;
+        if (EAMIsInit(&GCP))
+        {
+            ELISE_ASSERT(GCP.size()==4,"Mandatory part of GCP requires 4 arguments");
+            double aGcpGrU = RequireFromString<double>(GCP[1],"GCP-Ground uncertainty");
+            double aGcpImU = RequireFromString<double>(GCP[3],"GCP-Image  uncertainty");
+
+            std::cout << "THAT IS ::: " << aGcpGrU << " === " << aGcpImU << "\n";
+
+            aCom =   aCom
+                   + std::string("+WithGCP=true ")
+                   + std::string("+FileGCP-Gr=") + GCP[0] + " "
+                   + std::string("+FileGCP-Im=") + GCP[2] + " "
+                   + std::string("+GrIncGr=") + ToString(aGcpGrU) + " "
+                   + std::string("+GrIncIm=") + ToString(aGcpImU) + " ";
+        }
+
+        if (EAMIsInit(&EmGPS))
+        {
+            ELISE_ASSERT(EmGPS.size()==2,"Mandatory part of EmGPS requires 2 arguments");
+            double aGpsU = RequireFromString<double>(EmGPS[1],"GCP-Ground uncertainty");
+            aCom = aCom +  " +BDDC=" + EmGPS[0]
+                        +  " +SigmGPS=" + ToString(aGpsU)
+                        +  " +WithCenter=true";
+        }
+
+        if (EAMIsInit(&aSigmaTieP)) aCom = aCom + " +SigmaTieP=" + ToString(aSigmaTieP);
+
+
+        std::cout << aCom << "\n";
+        int aRes = System(aCom.c_str());
+
+        Campari_Banniere();
+        BanniereMM3D();
+
+        return aRes;
+    }
+    else
+        return EXIT_SUCCESS;
 }
 
 

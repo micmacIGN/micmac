@@ -472,7 +472,7 @@ std::cout << "BBBBbbb" << endl;
      return EXIT_SUCCESS;
 
     }
-    else return EXIT_FAILURE;
+    else return EXIT_SUCCESS;
 }
 
 

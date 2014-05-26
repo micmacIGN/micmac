@@ -83,57 +83,55 @@ int Tarama_main(int argc,char ** argv)
 
     if (!MMVisualMode)
     {
-    #if (ELISE_windows)
+#if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-    #endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
+#endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
 
-    StdCorrecNameOrient(Aero,aDir);
+        StdCorrecNameOrient(Aero,aDir);
 
 
-    MMD_InitArgcArgv(argc,argv);
+        MMD_InitArgcArgv(argc,argv);
 
-    std::string aCom =   MM3dBinFile( "MICMAC" )
-                       + MMDir() + std::string("include/XML_MicMac/MM-TA.xml ")
-                       + std::string(" WorkDir=") +aDir +  std::string(" ")
-                       + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
-                       + std::string(" +Zoom=") + ToString(Zoom)
-                       + std::string(" +Aero=") + Aero
-                       + std::string(" +DirMEC=") + DirOut
-              ;
+        std::string aCom =   MM3dBinFile( "MICMAC" )
+                + MMDir() + std::string("include/XML_MicMac/MM-TA.xml ")
+                + std::string(" WorkDir=") +aDir +  std::string(" ")
+                + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
+                + std::string(" +Zoom=") + ToString(Zoom)
+                + std::string(" +Aero=") + Aero
+                + std::string(" +DirMEC=") + DirOut
+                ;
 
-    if (EAMIsInit(&aKNadir))
-       aCom = aCom + " +KBestMasqNadir=" + ToString(aKNadir);
+        if (EAMIsInit(&aKNadir))
+            aCom = aCom + " +KBestMasqNadir=" + ToString(aKNadir);
 
-    if (EAMIsInit(&aZMoy))
-    {
-        aCom = aCom + " +FileZMoy=File-ZMoy.xml"
+        if (EAMIsInit(&aZMoy))
+        {
+            aCom = aCom + " +FileZMoy=File-ZMoy.xml"
                     + " +ZMoy=" + ToString(aZMoy);
+        }
+
+        if (Repere!=NOREP)
+        {
+            bool IsOrthoXCste;
+            if (RepereIsAnam(aDir+Repere,IsOrthoXCste))
+            {
+                aCom =    aCom
+                        +  std::string(" +FileAnam=") + "MM-Anam.xml"
+                        +  std::string(" +ParamAnam=") + Repere;
+            }
+            else
+            {
+                aCom =     aCom    + std::string(" +Repere=") + Repere ;
+            }
+        }
+
+        std::cout << "Com = " << aCom << "\n";
+        int aRes = system_call(aCom.c_str());
+
+        return aRes;
     }
-
-   if (Repere!=NOREP)
-   {
-     bool IsOrthoXCste;
-     if (RepereIsAnam(aDir+Repere,IsOrthoXCste))
-     {
-        aCom =    aCom
-               +  std::string(" +FileAnam=") + "MM-Anam.xml"
-               +  std::string(" +ParamAnam=") + Repere;
-     }
-     else
-     {
-            aCom =     aCom    + std::string(" +Repere=") + Repere ;
-     }
-   }
-
-   std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
-
-
-   return aRes;
-
-    }
-    else return EXIT_FAILURE;
+    else return EXIT_SUCCESS;
 }
 
 

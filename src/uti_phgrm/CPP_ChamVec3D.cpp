@@ -96,8 +96,8 @@ int ChamVec3D_main(int argc,char ** argv)
                     << EAM(aVecYA,"YFirst",true,"Name of X-mapping ref to first image")*/
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
     std::vector<Im2D_REAL8> aImA;
     Im2D_REAL8::ReadAndPushTif(aImA,Tiff_Im(aN3dA.c_str()));
     ELISE_ASSERT(aImA.size()==3,"Bad size for nuage");
@@ -213,9 +213,9 @@ int ChamVec3D_main(int argc,char ** argv)
     BanniereMM3D();
 
     return EXIT_SUCCESS;
-	
-	}
-	else return EXIT_FAILURE;
+
+    }
+    else return EXIT_SUCCESS;
 }
 
 

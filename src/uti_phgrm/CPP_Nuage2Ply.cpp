@@ -171,7 +171,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 
     }
-    else return EXIT_FAILURE;
+    else return EXIT_SUCCESS;
 }
 
 

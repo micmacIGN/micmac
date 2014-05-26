@@ -95,8 +95,8 @@ int CreateEpip_main(int argc,char ** argv)
                     << EAM(aDegre,"Degre",true,"Degre of polynom to correct epi (def=1-, ,2,3)")
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
     if (aName1 > aName2) ElSwap(aName1,aName2);
 
     int aNbChan = Gray ? 1 : - 1;
@@ -159,9 +159,9 @@ int CreateEpip_main(int argc,char ** argv)
 
 
      return EXIT_SUCCESS;
-	 
-	}
-	else return EXIT_FAILURE;
+
+    }
+    else return EXIT_SUCCESS;
 }
 
 

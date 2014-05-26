@@ -49,7 +49,7 @@ const char * (theNameVar_ParamChantierPhotogram[1541]) = {
 "\n",
 "   <enum Name=\"eTypeMMByP\">\n",
 "       <eGround>         </eGround>\n",
-"       <eStatute>        </eStatute>\n",
+"       <eStatue>        </eStatue>\n",
 "       <eTestIGN>        </eTestIGN>\n",
 "       <eNbTypeMMByP>    </eNbTypeMMByP>\n",
 "   </enum>\n",

@@ -132,98 +132,95 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
                      << EAM(mTeta,"Teta","Angle done (Def=180)")
     );
 
-	if (!MMVisualMode)
-	{
-    int aNbB = sizeofile(mFullNameVideo.c_str());
-
-    if (! EAMIsInit(&mRate))
+    if (!MMVisualMode)
     {
-      // Un film de 100 Go au rate de 4 a donne 71 image sur 180, on en voulait 36
-       mRate = 4.0 * ( 1.03e8 / aNbB) * (36.0 /71.0);
-       std::cout << "Rate=" << mRate << "\n";
+        int aNbB = sizeofile(mFullNameVideo.c_str());
+
+        if (! EAMIsInit(&mRate))
+        {
+            // Un film de 100 Go au rate de 4 a donne 71 image sur 180, on en voulait 36
+            mRate = 4.0 * ( 1.03e8 / aNbB) * (36.0 /71.0);
+            std::cout << "Rate=" << mRate << "\n";
+        }
+
+        SplitDirAndFile(mDir,mNameVideo,mFullNameVideo);
+
+        if (! OK_MMLD())
+        {
+            std::cout << "Add MicMac-LocalChantierDescripteur.xml !!!! \n";
+            getchar();
+            ELISE_ASSERT(OK_MMLD(),"No MicMac-LocalChantierDescripteur.xml, no 3D model ...");
+        }
+        DoImage();
+
+        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
+        mPatIm =   NameIm("[0-9]{5}");
+        mSetIm = mICNM->Get(mPatIm);
+        mPatIm =  QUOTE(mPatIm) ;
+
+        mImMedian = NameIm (Str5OfInt(mSetIm->size()/2));
+
+
+        DoHomol();
+        DoOri();
+
+
+        std::cout << "MASKE DONE ?????   When yes type enter \n"; getchar();
+
+
+        // std::list<std::string> aListComMalt;
+        std::list<std::string> aListComPly;
+
+
+        ELISE_fp::MkDir("Pyram");
+
+        for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
+        {
+            std::string aName = (*mSetIm)[aK];
+            std::string aImMasq = mDir + StdPrefix(aName) + "_Masq.tif";
+            if (ELISE_fp::exist_file(aImMasq))
+            {
+                mMasters.push_back(aName);
+                mKMasters.push_back(aK+1);
+
+                int aDelta = 4;
+                int aStep = 1;
+                std::string aPatIm =   "(";
+                bool First = true;
+                for (int aD = -aDelta ; aD<= aDelta ; aD++)
+                {
+                    int aKP = aK+1 + aD * aStep;
+                    if ((aKP>=1) && (aKP<=int(mSetIm->size())))
+                    {
+                        if (!First) aPatIm = aPatIm+"|";
+                        aPatIm = aPatIm+Str5OfInt(aKP);
+                        First=false;
+                    }
+                }
+
+                aPatIm = QUOTE(NameIm(aPatIm+")"));
+                std::string aComMalt = "Malt GeomImage " + aPatIm
+                        + " All Regul=0.1 SzW=2 ZoomF=2 AffineLast=false Master="+aName;
+                system_call(aComMalt.c_str());
+                //        aListComMalt.push_back(aComMalt);
+
+                std::string aComPly = "Nuage2Ply MM-Malt-Img-"
+                        +StdPrefixGen(aName)+"/NuageImProf_STD-MALT_Etape_6.xml"
+                        + " Attr=" +aName
+                        + std::string(" RatioAttrCarte=2 ")
+                        + std::string(" Out=") +StdPrefixGen(aName)+".ply";
+
+                aListComPly.push_back(aComPly);
+                // std::cout << aComPly << "\n";
+            }
+        }
+
+        // cEl_GPAO::DoComInParal(aListComMalt,"Make-Malt-Video");
+        cEl_GPAO::DoComInParal(aListComPly,"Make-Nuage2Ply-Video");
+
+        BanniereMM3D();
     }
-
-    SplitDirAndFile(mDir,mNameVideo,mFullNameVideo);
-
-    if (! OK_MMLD())
-    {
-        std::cout << "Add MicMac-LocalChantierDescripteur.xml !!!! \n";
-        getchar();
-        ELISE_ASSERT(OK_MMLD(),"No MicMac-LocalChantierDescripteur.xml, no 3D model ...");
-    }
-    DoImage();
-
-    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-
-    mPatIm =   NameIm("[0-9]{5}");
-    mSetIm = mICNM->Get(mPatIm);
-    mPatIm =  QUOTE(mPatIm) ;
-
-    mImMedian = NameIm (Str5OfInt(mSetIm->size()/2));
-
-
-    DoHomol();
-    DoOri();
-
-
-     std::cout << "MASKE DONE ?????   When yes type enter \n"; getchar();
-
-
-
-    // std::list<std::string> aListComMalt;
-     std::list<std::string> aListComPly;
-
-
-     ELISE_fp::MkDir("Pyram");
-
-     for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
-     {
-          std::string aName = (*mSetIm)[aK];
-          std::string aImMasq = mDir + StdPrefix(aName) + "_Masq.tif";
-          if (ELISE_fp::exist_file(aImMasq))
-          {
-              mMasters.push_back(aName);
-              mKMasters.push_back(aK+1);
-
-              int aDelta = 4;
-              int aStep = 1;
-              std::string aPatIm =   "(";
-              bool First = true;
-              for (int aD = -aDelta ; aD<= aDelta ; aD++)
-              {
-                  int aKP = aK+1 + aD * aStep;
-                  if ((aKP>=1) && (aKP<=int(mSetIm->size())))
-                  {
-                       if (!First) aPatIm = aPatIm+"|";
-                       aPatIm = aPatIm+Str5OfInt(aKP);
-                       First=false;
-                  }
-              }
-
-              aPatIm = QUOTE(NameIm(aPatIm+")"));
-              std::string aComMalt = "Malt GeomImage " + aPatIm
-                                     + " All Regul=0.1 SzW=2 ZoomF=2 AffineLast=false Master="+aName;
-               system_call(aComMalt.c_str());
-       //        aListComMalt.push_back(aComMalt);
-
-              std::string aComPly = "Nuage2Ply MM-Malt-Img-"
-                                    +StdPrefixGen(aName)+"/NuageImProf_STD-MALT_Etape_6.xml"
-                                    + " Attr=" +aName
-                                    + std::string(" RatioAttrCarte=2 ")
-                                    + std::string(" Out=") +StdPrefixGen(aName)+".ply";
-
-              aListComPly.push_back(aComPly);
-              // std::cout << aComPly << "\n";
-          }
-     }
-
-     // cEl_GPAO::DoComInParal(aListComMalt,"Make-Malt-Video");
-     cEl_GPAO::DoComInParal(aListComPly,"Make-Nuage2Ply-Video");
-
-
-
-    BanniereMM3D();
-	}
 }
 
 int VideoVisage_main(int argc,char ** argv)
