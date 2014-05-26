@@ -88,69 +88,74 @@ int MM2DPostSism_Main(int argc,char ** argv)
     argc,argv,
     LArgMain()  << EAMC(aIm1,"Image 1", eSAM_IsExistFile)
                 << EAMC(aIm2,"Image 2", eSAM_IsExistFile),
-    LArgMain()  << EAM(aImMasq,"Masq",true,"Masq of focus zone (def=none)")
+    LArgMain()  << EAM(aImMasq,"Masq",true,"Mask of focus zone (def=none)", eSAM_IsExistFile)
                 << EAM(aTeta,"Teta",true,"Direction of seism if any (in radian)")
                 << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)")
-                << EAM(aSzW,"SzW",true,"Size of window (Def =4, mean 9x9)")
+                << EAM(aSzW,"SzW",true,"Size of window (Def=4, mean 9x9)")
                 << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
                 << EAM(useDequant,"Dequant",true,"Dequantify (Def=true)")
-                << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0")
+                << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0)")
                 << EAM(aSsResolOpt,"SsResolOpt",true,"Merging factor (Def=4)")
                 << EAM(aDirMEC,"DirMEC",true,"Subdirectory where the results will be stored (Def='MEC/')")
     );
 
-#if (ELISE_windows)
-    replace( aIm1.begin(), aIm1.end(), '\\', '/' );
-    replace( aIm2.begin(), aIm2.end(), '\\', '/' );
-    replace( aImMasq.begin(), aImMasq.end(), '\\', '/' );
-#endif
-    std::string aDir = DirOfFile(aIm1);
-    ELISE_ASSERT(aDir==DirOfFile(aIm2),"Image not on same directory !!!");
-
-
-    std::string aCom =    MM3dBinFile("MICMAC")
-                        + XML_MM_File("MM-PostSism.xml")
-                        + " WorkDir=" + aDir
-                        + " +DirMEC=" + aDirMEC
-                        + " +Im1=" + aIm1
-                        + " +Im2=" + aIm2
-                        + " +Masq=" + aImMasq
-                        + " +SzW=" + ToString(aSzW)
-                        + " +RegulBase=" + ToString(aRegul)
-                        + " +Inc=" + ToString(aIncCalc)
-                        + " +SsResolOpt=" + ToString(aSsResolOpt)
-                        ;
-
-
-    if (EAMIsInit(&aImMasq))
+    if (!MMVisualMode)
     {
-        ELISE_ASSERT(aDir==DirOfFile(aImMasq),"Image not on same directory !!!");
-        MakeMetaData_XML_GeoI(aImMasq);
-        aCom = aCom + " +UseMasq=true +Masq=" + StdPrefix(aImMasq);
-    }
-
-    if (EAMIsInit(&aTeta))
-    {
-        aCom = aCom + " +UseTeta=true +Teta=" + ToString(aTeta);
-    }
-
-    if (useDequant)
-    {
-        aCom = aCom + " +UseDequant=true";
-    }
-
-    MakeFileDirCompl(aDirMEC);
+    #if (ELISE_windows)
+        replace( aIm1.begin(), aIm1.end(), '\\', '/' );
+        replace( aIm2.begin(), aIm2.end(), '\\', '/' );
+        replace( aImMasq.begin(), aImMasq.end(), '\\', '/' );
+    #endif
+        std::string aDir = DirOfFile(aIm1);
+        ELISE_ASSERT(aDir==DirOfFile(aIm2),"Image not on same directory !!!");
 
 
-    if (Exe)
-    {
-          system_call(aCom.c_str());
+        std::string aCom =    MM3dBinFile("MICMAC")
+                            + XML_MM_File("MM-PostSism.xml")
+                            + " WorkDir=" + aDir
+                            + " +DirMEC=" + aDirMEC
+                            + " +Im1=" + aIm1
+                            + " +Im2=" + aIm2
+                            + " +Masq=" + aImMasq
+                            + " +SzW=" + ToString(aSzW)
+                            + " +RegulBase=" + ToString(aRegul)
+                            + " +Inc=" + ToString(aIncCalc)
+                            + " +SsResolOpt=" + ToString(aSsResolOpt)
+                            ;
+
+
+        if (EAMIsInit(&aImMasq))
+        {
+            ELISE_ASSERT(aDir==DirOfFile(aImMasq),"Image not on same directory !!!");
+            MakeMetaData_XML_GeoI(aImMasq);
+            aCom = aCom + " +UseMasq=true +Masq=" + StdPrefix(aImMasq);
+        }
+
+        if (EAMIsInit(&aTeta))
+        {
+            aCom = aCom + " +UseTeta=true +Teta=" + ToString(aTeta);
+        }
+
+        if (useDequant)
+        {
+            aCom = aCom + " +UseDequant=true";
+        }
+
+        MakeFileDirCompl(aDirMEC);
+
+
+        if (Exe)
+        {
+              system_call(aCom.c_str());
+        }
+        else
+        {
+               std::cout << "COM=[" << aCom << "]\n";
+        }
+        return 0;
     }
     else
-    {
-           std::cout << "COM=[" << aCom << "]\n";
-    }
-    return 0;
+        return EXIT_SUCCESS;
 }
 
 
