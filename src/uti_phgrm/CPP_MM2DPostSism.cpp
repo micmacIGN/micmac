@@ -81,22 +81,22 @@ int MM2DPostSism_Main(int argc,char ** argv)
     bool useDequant=true;
     double aIncCalc=2.0;
     int aSsResolOpt=4;
-
+    std::string aDirMEC="MEC/";
 
     ElInitArgMain
     (
     argc,argv,
     LArgMain()  << EAMC(aIm1,"Image 1", eSAM_IsExistFile)
-                    << EAMC(aIm2,"Image 2", eSAM_IsExistFile),
-    LArgMain()
-                    << EAM(aImMasq,"Masq",true,"Masq of focus zone (def=none)")
-                    << EAM(aTeta,"Teta",true,"Direction of seism if any (in radian)")
-                    << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)")
-                    << EAM(aSzW,"SzW",true,"Size of window (Def =4, mean 9x9)")
-                    << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
-                    << EAM(useDequant,"Dequant",true,"Dequantify (Def=true)")
-                    << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0")
-                    << EAM(aSsResolOpt,"SsResolOpt",true,"Merging factor (Def=4)")
+                << EAMC(aIm2,"Image 2", eSAM_IsExistFile),
+    LArgMain()  << EAM(aImMasq,"Masq",true,"Masq of focus zone (def=none)")
+                << EAM(aTeta,"Teta",true,"Direction of seism if any (in radian)")
+                << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)")
+                << EAM(aSzW,"SzW",true,"Size of window (Def =4, mean 9x9)")
+                << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
+                << EAM(useDequant,"Dequant",true,"Dequantify (Def=true)")
+                << EAM(aIncCalc,"Inc",true,"Initial uncertainty (Def=2.0")
+                << EAM(aSsResolOpt,"SsResolOpt",true,"Merging factor (Def=4)")
+                << EAM(aDirMEC,"DirMEC",true,"Subdirectory where the results will be stored (Def='MEC/')")
     );
 
 #if (ELISE_windows)
@@ -111,8 +111,10 @@ int MM2DPostSism_Main(int argc,char ** argv)
     std::string aCom =    MM3dBinFile("MICMAC")
                         + XML_MM_File("MM-PostSism.xml")
                         + " WorkDir=" + aDir
+                        + " +DirMEC=" + aDirMEC
                         + " +Im1=" + aIm1
                         + " +Im2=" + aIm2
+                        + " +Masq=" + aImMasq
                         + " +SzW=" + ToString(aSzW)
                         + " +RegulBase=" + ToString(aRegul)
                         + " +Inc=" + ToString(aIncCalc)
@@ -136,6 +138,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
     {
         aCom = aCom + " +UseDequant=true";
     }
+
+    MakeFileDirCompl(aDirMEC);
 
 
     if (Exe)

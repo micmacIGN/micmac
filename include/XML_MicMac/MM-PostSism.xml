@@ -7,9 +7,7 @@
          <Symb> Im2=XXXX  </Symb>
          <Symb> Masq=XXXX  </Symb>
 
-
-
-         <Symb> Dir=MEC/</Symb>
+         <Symb> DirMEC=MEC/</Symb>
          <Symb> Pyr=Pyram/</Symb>
          <Symb> Inc=2.0  </Symb>
          <Symb> Pas=0.2 </Symb>
@@ -19,14 +17,11 @@
          <Symb> RegulBase=0.3 </Symb>
          <Symb> UseDequant=false </Symb>
 
-          <Symb>  SzW=4 </Symb>
-
-
+         <Symb> SzW=4 </Symb>
          <Symb> CorrelMin=0.5 </Symb>
          <Symb> GammaCorrel=2 </Symb>
 
          <Symb> PdsF=0.1 </Symb>
-
 
          <Symb> NbDir=7 </Symb>
          <eSymb> P0= / ${PdsF} +   ${PdsF} / 0 ${NbDir} </eSymb>
@@ -43,12 +38,12 @@
 
 
          <eSymb> Regul=* ${RegulBase}  ? ${UseTeta} 3 1 </eSymb>
-         
-         
+
+
          <Symb>  SsResolOpt=4 </Symb>
          <eSymb> SsResolOptInterm1=* 4 ${SsResolOpt} </eSymb>
          <eSymb> SsResolOptInterm2=* 2 ${SsResolOpt} </eSymb>
-         
+
     </DicoLoc>
 <!-- *************************************************************
 Parametres lies au terrain "physique", independamment de la prise de vue
@@ -174,7 +169,7 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
         </EtapeMEC>
 
-         
+
         <EtapeMEC>
            <DeZoom > 1 </DeZoom>
            <Px1Pas>   0.8  </Px1Pas>
@@ -213,17 +208,17 @@ L'ordre des resolutions : les plus basses aux plus grandes.
            <Px1Pas>        0.05  </Px1Pas>
            <Px2Pas>        0.05  </Px2Pas>
         </EtapeMEC>
-        
+
         <#WHEN VTEST=${UseDequant}>
-          <EtapeMEC> 
-            <DeZoom >  1  </DeZoom> 
+          <EtapeMEC>
+            <DeZoom >  1  </DeZoom>
             <Px1Pas>   1.0     </Px1Pas>
             <Px2Pas>   1.0     </Px2Pas>
             <AlgoRegul> eAlgoDequant </AlgoRegul>
           </EtapeMEC>
         </#WHEN>
     </Section_MEC>
-    
+
 
     <Section_Results >
         <GeomMNT> eGeomPxBiDim </GeomMNT>
@@ -231,8 +226,8 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
    <Section_WorkSpace >
       <WorkDir >  ThisDir </WorkDir>
-      <TmpMEC>    ${Dir} </TmpMEC>
-      <TmpResult> ${Dir} </TmpResult>
+      <TmpMEC>    ${DirMEC} </TmpMEC>
+      <TmpResult> ${DirMEC} </TmpResult>
       <TmpPyr>  ${Pyr}  </TmpPyr>
       <ByProcess>  ${MMNbProc} </ByProcess>
 
