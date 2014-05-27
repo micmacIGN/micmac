@@ -2168,8 +2168,8 @@ void RenderAreaCorrel::autoClicked(int withHoles) {
 			QApplication::restoreOverrideCursor();
 			return;
 		}
-		CamStenope* cam = new CamStenope(cameras.at(0).getCamera());
 
+		const CamStenope* cam = &cameras.at(0).getCamera();
 		//récupération des points 3D (a priori, ils sont dans le même ordre que les points 2D)
 		QList<pair<Pt3dr, QColor> > listPt3D;
 		QString err2 = VueChantier::getHomol3D (paramMain->getParamApero().getImgToOri().at(N), paramMain->getDossier(), listPt3D);
@@ -2180,7 +2180,8 @@ void RenderAreaCorrel::autoClicked(int withHoles) {
 		}
 
 		autoMask = AutoMask (*liaisons, listPt3D, refImageClean, cam, ptsLiais);
-		delete cam;
+		//delete cam;
+		
 		if (!autoMask.isDone()) {
 			qMessageBox(this, conv(tr("Execution error.")), conv(tr("Tie-point triangulation failed.")));
 			QApplication::restoreOverrideCursor();

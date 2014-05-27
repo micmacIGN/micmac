@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //filtrage des points SIFT trop nombreux
 
+#include "StdAfx.h"
 #include "include_isa/PaireImg.h"
 #include "include_isa/Image.h"
 #include "include_isa/Coord.h"
@@ -333,8 +334,6 @@ void TestW() {
 }
 
 extern const char * theNameVar_addon_ParamChantierPhotogram[];
-
-using namespace NS_ParamChantierPhotogram;
 
 int main(int argc,char ** argv)
 {

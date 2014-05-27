@@ -13,6 +13,7 @@ La classe Pose regroupe les paramètres relatifs à l'orientation d'une image ; 
 
 #include "all.h"
  
+#define GLWidget GLWidget_IC
 
 class Pose
 	//paramètres de pose d'une caméra
@@ -49,7 +50,7 @@ class Pose
 		void copie(const Pose& pose);
 
 		QString						nomImg;
-		CamStenope				   *camera;
+		const CamStenope				   *camera;
 		QList<pair<Pt3dr, QColor> > ptsAppui;
 		QList<pair<Pt3dr, QColor> > ptsAppui2nd;	//points d'appui qui ne seront tracés que si on cherche tous les points de cette caméra (infoButton)
 		QVector<Pt3dr>				emprise;

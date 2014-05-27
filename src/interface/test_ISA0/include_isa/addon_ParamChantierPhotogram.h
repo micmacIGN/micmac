@@ -1,8 +1,8 @@
-#include "StdAfx.h"
-namespace NS_ParamChantierPhotogram{
 class caffichImg
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(caffichImg & anObj,cElXMLTree * aTree);
 
 
@@ -17,12 +17,20 @@ class caffichImg
 };
 cElXMLTree * ToXMLTree(const caffichImg &);
 
+void  BinaryDumpInFile(ELISE_fp &,const caffichImg &);
+
+void  BinaryUnDumpFromFile(caffichImg &,ELISE_fp &);
+
+std::string  Mangling( caffichImg *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
 class caffichPaire
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(caffichPaire & anObj,cElXMLTree * aTree);
 
 
@@ -53,12 +61,20 @@ class caffichPaire
 };
 cElXMLTree * ToXMLTree(const caffichPaire &);
 
+void  BinaryDumpInFile(ELISE_fp &,const caffichPaire &);
+
+void  BinaryUnDumpFromFile(caffichPaire &,ELISE_fp &);
+
+std::string  Mangling( caffichPaire *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
 class cParamFusionSift
 {
     public:
+        cGlobXmlGen mGXml;
+
         friend void xml_init(cParamFusionSift & anObj,cElXMLTree * aTree);
 
 
@@ -173,7 +189,12 @@ class cParamFusionSift
 };
 cElXMLTree * ToXMLTree(const cParamFusionSift &);
 
+void  BinaryDumpInFile(ELISE_fp &,const cParamFusionSift &);
+
+void  BinaryUnDumpFromFile(cParamFusionSift &,ELISE_fp &);
+
+std::string  Mangling( cParamFusionSift *);
+
 /******************************************************/
 /******************************************************/
 /******************************************************/
-};

@@ -6,6 +6,8 @@
 
 #include "vueChantier.h"
 
+#define GLWidget GLWidget_IC
+
 using namespace std;
 
 
@@ -2014,8 +2016,7 @@ Pose& Pose::operator=(const Pose& pose) {
 }
 void Pose::copie(const Pose& pose) {
 	nomImg = pose.getNomImg();
-	if (camera!=0) delete camera;
-        camera = new CamStenope(pose.getCamera());
+	camera = &pose.getCamera();
 	ptsAppui = pose.getPtsAppui();
 	ptsAppui2nd = pose.getPtsAppui2nd();
 	emprise = pose.getEmprise();
