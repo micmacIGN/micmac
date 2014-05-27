@@ -111,11 +111,11 @@ void ANNkd_tree::annkPriSearch(
 
 	while (ANNprBoxPQ->non_empty() &&
 		(!(ANNmaxPtsVisited != 0 && ANNptsVisited > ANNmaxPtsVisited))) {
-		ANNkd_ptr np = NULL;					// next box from prior queue
-		void *void_np = (void*)np;
 
 										// extract closest box from queue
+		void *void_np = NULL;
 		ANNprBoxPQ->extr_min(box_dist, void_np);
+		ANNkd_ptr np = (ANNkd_ptr)void_np;					// next box from prior queue
 
 		ANN_FLOP(2)						// increment floating ops
 		if (box_dist*ANNprMaxErr >= ANNprPointMK->max_key())
