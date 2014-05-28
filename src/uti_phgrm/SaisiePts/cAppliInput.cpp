@@ -114,6 +114,9 @@ bool cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
         if (mPG[aKP]->PG()->Name() == anOldName)
         {
             mPG[aKP]->Rename(aNewName);
+
+          //  mMapPG.erase(anOldName);
+          //  mMapPG[aNewName] = mPG[aKP];
         }
     }
 

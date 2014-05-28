@@ -71,8 +71,8 @@ int GCPBascule_main(int argc,char ** argv)
                     <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
     #endif
@@ -105,9 +105,9 @@ int GCPBascule_main(int argc,char ** argv)
 
 
     return aRes;
-	
-	}
-	else return EXIT_FAILURE;
+
+    }
+    else return EXIT_SUCCESS;
 }
 
 

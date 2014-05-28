@@ -151,8 +151,8 @@ cAppli_VCE::cAppli_VCE(int argc,char ** argv) :
         LArgMain()  << EAMC(mNameIm1,"Name Image 1", eSAM_IsExistFile)
                     << EAMC(mNameIm2,"Name Image 2", eSAM_IsExistFile),
         LArgMain()
-                    << EAM(mSzWIm.x,"SzX",true,"X-Size ow Window")
-                    << EAM(mSzWIm.y,"SzY",true,"Y-Size ow Window")
+                    << EAM(mSzWIm.x,"SzX",true,"X-Size of Window")
+                    << EAM(mSzWIm.y,"SzY",true,"Y-Size of Window")
                     << EAM(mZoom,"Zoom",true,"Zoom of image")
                     << EAM(mPx0,"Px0",true,"Delta Px init")
                     << EAM(mCurTr,"Tr",true,"initial translation")

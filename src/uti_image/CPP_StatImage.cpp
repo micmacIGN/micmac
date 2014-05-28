@@ -43,7 +43,7 @@ int  StatIm_main(int argc,char ** argv)
 {
 
     string Name;
-        Pt2di aP0;
+        Pt2di aP0(0,0);
         Pt2di aSz(1,1);
 
 
@@ -55,7 +55,7 @@ int  StatIm_main(int argc,char ** argv)
                 argc,argv,
                 LArgMain() 	<< EAMC(Name,"Image name", eSAM_IsExistFile)
                                 << EAMC(aP0,"Point or Origin of rectangle"),
-        LArgMain()      <<  EAM(aSz,"Sz",true,"Sz of rectangle (Def=[1,1])")
+        LArgMain()      <<  EAM(aSz,"Sz",true,"Size of rectangle (Def=[1,1])")
     );
 
     Tiff_Im tiff = Tiff_Im::StdConv(Name);

@@ -59,7 +59,7 @@ void  BinaryUnDumpFromFile(eTypeTapas &,ELISE_fp &);
 typedef enum
 {
   eGround,
-  eStatute,
+  eStatue,
   eTestIGN,
   eNbTypeMMByP
 } eTypeMMByP;

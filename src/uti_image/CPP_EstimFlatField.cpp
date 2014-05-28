@@ -50,8 +50,8 @@ int EstimFlatField_main(int argc,char ** argv)
 {
     std::string aFullDir,aDir,aPat;
     std::string aNameOut;
-    double aResol;
-    double aDilate=1;
+    double aResol=1.0;
+    double aDilate=1.0;
     int aNbMed = 1;
     int aNbMedSsRes = 3;
     bool ByMoy = false;

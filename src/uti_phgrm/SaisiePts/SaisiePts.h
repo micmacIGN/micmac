@@ -369,7 +369,7 @@ protected:
 
     virtual double              PtCreationWindowSize() = 0;
 
-    cSP_PointGlob *             addPoint(Pt2dr pt,cImage* curImg);
+    cSP_PointGlob *             addPoint(Pt2dr pt, cImage* curImg);
 
     int                         idPointGlobal(std::string nameGP);
 

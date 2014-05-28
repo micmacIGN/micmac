@@ -64,6 +64,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_DIGEO_H_
 #define _ELISE_DIGEO_H_
 
+#include "StdAfx.h"
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
 
@@ -723,6 +724,8 @@ template <class Type> class cConvolSpec
         cConvolSpec(const cConvolSpec<Type> &); // N.I.
 };
 
+// include compiled kernels
+#include "GenConvolSpec.h"
 
 class cVisuCaracDigeo
 {

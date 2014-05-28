@@ -343,19 +343,19 @@ int CmpCalib_main(int argc,char ** argv)
                 << EAM(aDynV,"DynV",true)
     );
 
-	if (!MMVisualMode)
-	{
-		cAppliCmpCal aCmpC(aName1,aName2, (aL1!=0),aSzW,aDynV);
+    if (!MMVisualMode)
+    {
+        cAppliCmpCal aCmpC(aName1,aName2, (aL1!=0),aSzW,aDynV);
 
-		int aNbStep = 5;
-		for (int aK=0 ; aK< 5 ; aK++)
-			aCmpC.OneItere(aK==0,aK==(aNbStep-1));
+        int aNbStep = 5;
+        for (int aK=0 ; aK< 5 ; aK++)
+            aCmpC.OneItere(aK==0,aK==(aNbStep-1));
 
-		getchar();
+        getchar();
 
-		return EXIT_SUCCESS;
-	}
-	else return EXIT_FAILURE;
+        return EXIT_SUCCESS;
+    }
+    else return EXIT_SUCCESS;
 }
 
 

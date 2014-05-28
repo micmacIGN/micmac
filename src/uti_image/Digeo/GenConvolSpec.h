@@ -1,5 +1,3 @@
-#include "Digeo.h"
-
 /* Sigma 1.226273  ModeIncrem 1 */
 class cConvolSpec_REAL4_Num0 : public cConvolSpec<REAL4>
 {

@@ -394,7 +394,7 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
     AnalyseContextCom(argc,argv);
 
-    if ((aNbMin >=0) && (argc < aNbMin))
+    if (((aNbMin >=0) && (argc < aNbMin)) && (!MMVisualMode))
     {
         if (argc>0)
             std::cout << "For command " << argv[0] << "\n";

@@ -70,14 +70,14 @@ public:
     void add_label     (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_combo     (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_select    (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_spinBox   (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_2SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_3SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_4SpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_dSpinBox  (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_2dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_3dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_4dSpinBox (QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_1i_spinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_2i_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_3i_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_4i_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_1d_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_2d_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_3d_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_4d_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
 
     void set_argv_recup(string);
 
@@ -88,8 +88,8 @@ public:
     bool getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
     bool getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
 
-    QDoubleSpinBox* create_dSpinBox(QGridLayout*, QWidget*, int, int);
-    QSpinBox *create_SpinBox(QGridLayout*, QWidget*, int, int);
+    QDoubleSpinBox* create_1d_SpinBox(QGridLayout*, QWidget*, int, int);
+    QSpinBox*       create_1i_SpinBox(QGridLayout*, QWidget*, int, int);
 
     std::string getFirstArg() { return mFirstArg; }
 

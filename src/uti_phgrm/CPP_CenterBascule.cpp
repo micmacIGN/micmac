@@ -63,52 +63,50 @@ int CentreBascule_main(int argc,char ** argv)
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile )
                     << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
-                    << EAMC(BDC,"Localisation of Information on Centers", eSAM_IsExistDirOri)
+                    << EAMC(BDC,"Localization of Information on Centers", eSAM_IsExistDirOri)
                     << EAMC(AeroOut,"Orientation out", eSAM_IsOutputDirOri),
     LArgMain()
-                    <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2; (Def=false)", eSAM_IsBool)
+                    <<  EAM(ModeL1,"L1",true,"L1 minimization vs L2; (Def=false)", eSAM_IsBool)
                     <<  EAM(CalcV,"CalcV",true,"Use speed to estimate time delay (Def=false)", eSAM_IsBool)
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
 #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
-    StdCorrecNameOrient(AeroIn,aDir);
-    StdCorrecNameOrient(BDC,aDir);
+        SplitDirAndFile(aDir,aPat,aFullDir);
+        StdCorrecNameOrient(AeroIn,aDir);
+        StdCorrecNameOrient(BDC,aDir);
 
 
 
-    std::string aCom =   MMDir() + std::string("bin/Apero ")
-                       + XML_MM_File("Apero-Center-Bascule.xml")
-                       + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
-                       + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
-                       + std::string(" +AeroIn=") + AeroIn
-                       + std::string(" +AeroOut=") +  AeroOut
-                       + std::string(" +BDDC=") +  BDC
-                    ;
+        std::string aCom =   MMDir() + std::string("bin/Apero ")
+                + XML_MM_File("Apero-Center-Bascule.xml")
+                + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
+                + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
+                + std::string(" +AeroIn=") + AeroIn
+                + std::string(" +AeroOut=") +  AeroOut
+                + std::string(" +BDDC=") +  BDC
+                ;
 
-     if (ModeL1)
-     {
-        aCom = aCom+ std::string(" +L2Basc=") + ToString(!ModeL1);
-     }
+        if (ModeL1)
+        {
+            aCom = aCom+ std::string(" +L2Basc=") + ToString(!ModeL1);
+        }
 
-     if (CalcV)
-     {
-        aCom = aCom+ std::string(" +CalcV=") + ToString(CalcV);
-     }
-
-
-   std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
+        if (CalcV)
+        {
+            aCom = aCom+ std::string(" +CalcV=") + ToString(CalcV);
+        }
 
 
-   return aRes;
-   
-	}
-	else return EXIT_FAILURE;
+        std::cout << "Com = " << aCom << "\n";
+        int aRes = system_call(aCom.c_str());
+
+        return aRes;
+    }
+    else return EXIT_SUCCESS;
 }
 
 

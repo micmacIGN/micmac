@@ -47,7 +47,6 @@ int Tawny_main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
     std::string  aDir;
 
-
     int mDeq = 1;
     Pt2di mDeqXY(-1,-1);
     bool mAddCste = false;
@@ -58,12 +57,13 @@ int Tawny_main(int argc,char ** argv)
 
     std::string mImPrio0 = ".*";
     int mSzV = 1;
-    double mNbPerIm = 1e4;
     double mCorrThresh = 0.8;
+    double mNbPerIm = 1e4;
     bool  DoL1Filter=true;
 
     double  aSatThresh = 1e9;
     string aNameOut="Ortho-Eg-Test-Redr.tif";
+
     ElInitArgMain
     (
     argc,argv,
@@ -84,50 +84,50 @@ int Tawny_main(int argc,char ** argv)
                  << EAM(aNameOut,"Out",true,"Name of output file (in the folder)", eSAM_IsOutputFile)
     );
 
-	if (!MMVisualMode)
-	{
-    #if (ELISE_windows)
+    if (!MMVisualMode)
+    {
+#if (ELISE_windows)
         replace( aDir.begin(), aDir.end(), '\\', '/' );
-    #endif
+#endif
 
-    if (! EAMIsInit(&mDeqXY))
-       mDeqXY = Pt2di(mDeq,mDeq);
+        if (! EAMIsInit(&mDeqXY))
+            mDeqXY = Pt2di(mDeq,mDeq);
 
-    if (! EAMIsInit(&mDegRapXY))
-       mDegRapXY = Pt2di(mDegRap,mDegRap);
+        if (! EAMIsInit(&mDegRapXY))
+            mDegRapXY = Pt2di(mDegRap,mDegRap);
 
-    Pt2di aDegCste = mAddCste  ? Pt2di(0,0) : Pt2di(-1,-1);
+        Pt2di aDegCste = mAddCste  ? Pt2di(0,0) : Pt2di(-1,-1);
 
-    MMD_InitArgcArgv(argc,argv);
+        MMD_InitArgcArgv(argc,argv);
 
-    std::string aCom =    MM3dBinFile( "Porto" )
-                        + MMDir() +std::string("include/XML_MicMac/Param-Tawny.xml ")
-                        + std::string(" %WD=") + aDir
-                        + std::string(" +DR1X=") + ToString(mDeqXY.x)
-                        + std::string(" +DR1Y=") + ToString(mDeqXY.y)
-                        + std::string(" +DR0X=") + ToString(aDegCste.x)
-                        + std::string(" +DR0Y=") + ToString(aDegCste.y)
-                        + std::string(" +DegRapX=") + ToString(mDegRapXY.x)
-                        + std::string(" +DegRapY=") + ToString(mDegRapXY.y)
-                        + std::string(" +RapGlobPhys=") + ToString(mRapGlobPhys)
-                        + std::string(" +DynGlob=") + ToString(mDynGlob)
-                        + std::string(" +NameOrtho=") + aNameOut
-                      ;
+        std::string aCom =    MM3dBinFile( "Porto" )
+                + MMDir() +std::string("include/XML_MicMac/Param-Tawny.xml ")
+                + std::string(" %WD=") + aDir
+                + std::string(" +DR1X=") + ToString(mDeqXY.x)
+                + std::string(" +DR1Y=") + ToString(mDeqXY.y)
+                + std::string(" +DR0X=") + ToString(aDegCste.x)
+                + std::string(" +DR0Y=") + ToString(aDegCste.y)
+                + std::string(" +DegRapX=") + ToString(mDegRapXY.x)
+                + std::string(" +DegRapY=") + ToString(mDegRapXY.y)
+                + std::string(" +RapGlobPhys=") + ToString(mRapGlobPhys)
+                + std::string(" +DynGlob=") + ToString(mDynGlob)
+                + std::string(" +NameOrtho=") + aNameOut
+                ;
 
-    if (mImPrio0!="") aCom = aCom+ " +ImPrio="+QUOTE(mImPrio0);
-    if (EAMIsInit(&mSzV)) aCom  = aCom + " +SzV=" + ToString(mSzV);
-    if (EAMIsInit(&mNbPerIm)) aCom  = aCom + " +NbPerIm=" + ToString(mNbPerIm);
-    if (EAMIsInit(&mCorrThresh)) aCom  = aCom + " +CorrThresh=" + ToString(mCorrThresh);
+        if (mImPrio0!="") aCom = aCom+ " +ImPrio="+QUOTE(mImPrio0);
+        if (EAMIsInit(&mSzV)) aCom  = aCom + " +SzV=" + ToString(mSzV);
+        if (EAMIsInit(&mNbPerIm)) aCom  = aCom + " +NbPerIm=" + ToString(mNbPerIm);
+        if (EAMIsInit(&mCorrThresh)) aCom  = aCom + " +CorrThresh=" + ToString(mCorrThresh);
 
-     if (!DoL1Filter) aCom  = aCom +" +DoL1Filter=false ";
+        if (!DoL1Filter) aCom  = aCom +" +DoL1Filter=false ";
 
-    std::cout << aCom << "\n";
-    int aRes = system_call(aCom.c_str());
+        std::cout << aCom << "\n";
+        int aRes = system_call(aCom.c_str());
 
-    BanniereMM3D();
-    return aRes;
-	}
-	else return EXIT_FAILURE;
+        BanniereMM3D();
+        return aRes;
+    }
+    else return EXIT_SUCCESS;
 }
 
 

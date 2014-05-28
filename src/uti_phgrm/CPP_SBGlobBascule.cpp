@@ -77,8 +77,8 @@ int SBGlobBascule_main(int argc,char ** argv)
 
 
     double DistFE = 0;
-    Pt3dr  Normal;
-    Pt3dr  SNormal;
+    //Pt3dr  Normal;
+    //Pt3dr  SNormal;
 
     ElInitArgMain
     (

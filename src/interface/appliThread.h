@@ -10,6 +10,7 @@ Les différentes étapes sont enregistrées (setProgressLabel) pour pouvoir êtr
 
 #include "all.h"
 
+#define GLWidget GLWidget_IC
 
 class AppliThread : public QThread
 {

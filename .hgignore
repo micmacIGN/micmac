@@ -122,3 +122,4 @@ MM-Error-*.txt
 *.autosave
 include/general/CMake_defines.h
 TestOpenMM*
+include/XML_User

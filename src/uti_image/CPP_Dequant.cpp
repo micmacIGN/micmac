@@ -58,61 +58,61 @@ int Dequant_main(int argc,char ** argv)
               << EAM(aSzRecDalles,"SzRecDalles",true)
     );
 
-	if (!MMVisualMode)
-	{
+    if (!MMVisualMode)
+    {
 
-		if (aNameOut=="")
-		   aNameOut = StdPrefix(aNameIn) +std::string("Deq.tif");
+        if (aNameOut=="")
+           aNameOut = StdPrefix(aNameIn) +std::string("Deq.tif");
 
-		 Tiff_Im aFileIn(aNameIn.c_str());
-		 if (aSzGlob== Pt2di(0,0))
-			aSzGlob = aFileIn.sz();
+         Tiff_Im aFileIn(aNameIn.c_str());
+         if (aSzGlob== Pt2di(0,0))
+            aSzGlob = aFileIn.sz();
 
-		Tiff_Im  aTifOut
-				 (
-						aNameOut.c_str(),
-						aSzGlob,
-						GenIm::real4,
-					Tiff_Im::No_Compr,
-					Tiff_Im::BlackIsZero
-				 );
+        Tiff_Im  aTifOut
+                 (
+                        aNameOut.c_str(),
+                        aSzGlob,
+                        GenIm::real4,
+                    Tiff_Im::No_Compr,
+                    Tiff_Im::BlackIsZero
+                 );
 
-		 Pt2di aPRD(aSzRecDalles,aSzRecDalles);
-		 cDecoupageInterv2D aDecoup
-						(
-								Box2di(aP0Glob,aP0Glob+aSzGlob),
-					Pt2di(aSzMaxDalles,aSzMaxDalles),
-					Box2di(-aPRD,aPRD)
-				);
+         Pt2di aPRD(aSzRecDalles,aSzRecDalles);
+         cDecoupageInterv2D aDecoup
+                        (
+                                Box2di(aP0Glob,aP0Glob+aSzGlob),
+                    Pt2di(aSzMaxDalles,aSzMaxDalles),
+                    Box2di(-aPRD,aPRD)
+                );
 
-		 ElImplemDequantifier aDeq(aDecoup.SzMaxIn());
-		 for (int aKDec=0; aKDec<aDecoup.NbInterv() ; aKDec++)
-		 {
+         ElImplemDequantifier aDeq(aDecoup.SzMaxIn());
+         for (int aKDec=0; aKDec<aDecoup.NbInterv() ; aKDec++)
+         {
 
-			 Box2di aBoxIn = aDecoup.KthIntervIn(aKDec);
-		 Pt2di aSzIn = aBoxIn.sz();
-		 Pt2di aP0In = aBoxIn.P0();
-
-
-			 aDeq.SetTraitSpecialCuv(true);
-			 aDeq.DoDequantif(aSzIn, trans(aFileIn.in(),aP0In),1);
+             Box2di aBoxIn = aDecoup.KthIntervIn(aKDec);
+         Pt2di aSzIn = aBoxIn.sz();
+         Pt2di aP0In = aBoxIn.P0();
 
 
-			 Fonc_Num aFoncRes = aDeq.ImDeqReelle();
+             aDeq.SetTraitSpecialCuv(true);
+             aDeq.DoDequantif(aSzIn, trans(aFileIn.in(),aP0In),1);
 
-			 Box2di aBoxOut = aDecoup.KthIntervOut(aKDec);
-			 ELISE_COPY
-			 (
-				  rectangle(aBoxOut.P0()-aP0Glob,aBoxOut.P1()-aP0Glob),
-			  trans(aFoncRes,aP0Glob-aP0In),
-			  aTifOut.out()
-			 );
-		 }
 
-		return EXIT_SUCCESS;
-	}
-	else
-		return EXIT_FAILURE;
+             Fonc_Num aFoncRes = aDeq.ImDeqReelle();
+
+             Box2di aBoxOut = aDecoup.KthIntervOut(aKDec);
+             ELISE_COPY
+             (
+                  rectangle(aBoxOut.P0()-aP0Glob,aBoxOut.P1()-aP0Glob),
+              trans(aFoncRes,aP0Glob-aP0In),
+              aTifOut.out()
+             );
+         }
+
+        return EXIT_SUCCESS;
+    }
+    else
+        return EXIT_SUCCESS;
 }
 
 

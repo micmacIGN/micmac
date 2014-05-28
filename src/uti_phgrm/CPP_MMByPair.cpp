@@ -144,7 +144,7 @@ int TiffDev_main(int argc,char ** argv)
         argc,argv,
         LArgMain()  << EAMC(aNameFile,"File Name", eSAM_IsExistFile),
         LArgMain()  << EAM(aNbChan,"NbChan",true,"Nb Channel")
-                    << EAM(B16,"16B",true,"Conserv in 16 Bits if possible")
+                    << EAM(B16,"16B",true,"Keep in 16 Bits if possible")
                     << EAM(ExigNoCompr,"ENC",true,"Exig No Compr")
     );
 
@@ -714,8 +714,8 @@ int ClipIm_main(int argc,char ** argv)
 
     std::string aNameIn;
     std::string aNameOut;
-    Pt2di P0;
-    Pt2di Sz;
+    Pt2di P0(0,0);
+    Pt2di Sz(0,0);
 
     ElInitArgMain
     (
@@ -723,7 +723,7 @@ int ClipIm_main(int argc,char ** argv)
         LArgMain()  << EAM(aNameIn)
                     << EAMC(P0,"P0")
                     << EAMC(Sz,"SZ")  ,
-        LArgMain()  << EAM(aNameOut,"Out",true)
+        LArgMain()  << EAM(aNameOut,"Out",false)
     );
 
 
@@ -821,7 +821,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         mDelaunay = true;
         mDoRIE = false;
      }
-     else if (mType==eStatute)
+     else if (mType==eStatue)
      {
         mStrQualOr = "Low";
         mAddMMImSec = true;
@@ -846,22 +846,22 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
-                    << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to macth, Def=true on ground")
-                    << EAM(mAddMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statute")
+                    << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to match, Def=true on ground")
+                    << EAM(mAddMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statue")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip , first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
                     << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
                     << EAM(mSym,"Sym",true,"Symetrise all pair (Def=true)")
                     << EAM(mShow,"Show",true,"Show details (def = false))")
-                    << EAM(mIntIncert,"Inc",true,"Uncertaincy interval for matching ")
-                    << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degre from TetaStrip")
+                    << EAM(mIntIncert,"Inc",true,"Uncertainty interval for matching ")
+                    << EAM(mTetaBande,"TetaStrip",true,"If used, cut strip when dir of vector > 45 degree from TetaStrip")
                     << EAM(mSkipCorDone,"SMD",true,"Skip Matching When Already Done (Def=false)")
                     << EAM(mDo,"Do",true,"Step to Do in [Pyram,MetaData,Correl,Reech,Fusion,inspect], Def \"PMCF\" (i.e. All Step)")
-                    << EAM(mByMM1P,"ByMM1P",true,"Do match uSing new MM1P , def = true")
+                    << EAM(mByMM1P,"ByMM1P",true,"Do match using new MM1P , def = true")
                     << EAM(mImageOfBox,"ImOfBox",true,"Image to define box for MTD (test purpose to limit size of result)")
                     << EAM(mBoxOfImage,"BoxOfIm",true,"Associated to ImOfBox, def = full")
                     << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")
-                    << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low with statute)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
+                    << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low with statue)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
                     << EAM(mDoPlyMM1P,"DoPlyMM1P",true,"Do ply after MM1P, def=false")
                     << EAM(mScalePlyMM1P,"ScalePlyMM1P",true,"Down Scale of ply after MM1P =3")
                     << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)")
@@ -970,7 +970,7 @@ bool cAppliMMByPair::InspectMTD(tArcAWSI & anArc)
 bool cAppliMMByPair::InspectMTD_REC(tArcAWSI & anArc)
 {
 
-     if ((mType != eStatute) || (!mRIEInParal))
+     if ((mType != eStatue) || (!mRIEInParal))
         return true;
 
      return InspectMTD(anArc) &&  InspectMTD(anArc.arc_rec());
