@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -97,11 +97,11 @@ const std::vector<std::string>  & cParamEtal::ImagesInit() const {return mImages
 const std::vector<std::string>  & cParamEtal::AllImagesCibles() const {return mImages;}
 const std::vector<std::string>  & cParamEtal::CamRattachees() const {return mCamRattachees;}
 
-std::string cParamEtal::NameCible3DPolygone() const 
+std::string cParamEtal::NameCible3DPolygone() const
 {return mPolygoneDirectory+mNameCible3DPolygone;}
-std::string cParamEtal::NameImPolygone() const 
+std::string cParamEtal::NameImPolygone() const
 {return mPolygoneDirectory+mNameImPolygone;}
-std::string cParamEtal::NamePointePolygone() const 
+std::string cParamEtal::NamePointePolygone() const
 {return mPolygoneDirectory+mNamePointePolygone;}
 
 const std::string & cParamEtal::PointeInitIm() {return mPointeInitIm;}
@@ -143,7 +143,7 @@ Tiff_Im cParamEtal::TiffFile(const std::string Im) const
 {
   return  Tiff_Im::UnivConvStd(NameTiff(Im));
 }
-	
+
 
 std::string cParamEtal::ANameFileExistant()
 {
@@ -183,9 +183,9 @@ eUseCibleInit  Str2UCI(const std::string & aName)
 
 void cParamEtal::FilterImage(std::vector<std::string> &  mVIM)
 {
-   if (! Im2Select().IsInit()) 
+   if (! Im2Select().IsInit())
       return ;
-   if (! Im2Select().Val().UseIt().Val()) 
+   if (! Im2Select().Val().UseIt().Val())
       return ;
    mVIM = Im2Select().Val().Id();
 }
@@ -229,7 +229,7 @@ const std::string & cParamEtal::PatternGlob() const
 
 void cParamEtal::InitFromFile(const std::string & aNameFile)
 {
-     static std::string  aPatternCamV2 = ".*_.x[0-9]{2,3}_[0-9]{4,5}(|\\.tif|_8Bits\\.tif)";  
+     static std::string  aPatternCamV2 = ".*_.x[0-9]{2,3}_[0-9]{4,5}(|\\.tif|_8Bits\\.tif)";
      static cElRegex   anAutomCamV2(aPatternCamV2,10);
 
 
@@ -302,51 +302,51 @@ void cParamEtal::InitFromFile(const std::string & aNameFile)
               <<   EAM(mImages,"ListeImages",true)
               <<   EAM(aPatternIm,"PatternImage",true)
               <<   EAM(aPatternSift,"PatternSift",true)
-	      <<   EAM(mPrefixe,"PrefixeNomImage",false)
-	      <<   EAM(mImagesInit,"ListeImagesInit",false)
-	      <<   EAM(mFocaleInit,"FocaleInit",false)
-	      <<   EAM(mNameCamera,"NameCamera",false)
+          <<   EAM(mPrefixe,"PrefixeNomImage",false)
+          <<   EAM(mImagesInit,"ListeImagesInit",false)
+          <<   EAM(mFocaleInit,"FocaleInit",false)
+          <<   EAM(mNameCamera,"NameCamera",false)
 
-	      <<   EAM(mKeyExportOri,"KeyExportOri",true)
-	      <<   EAM(mKeySetOri,"KeySetOri",true)
+          <<   EAM(mKeyExportOri,"KeyExportOri",true)
+          <<   EAM(mKeySetOri,"KeySetOri",true)
 
-	      <<   EAM(mPostfixe,"PostfixeNomImage",true)
-	      <<   EAM(mNameFileRatt,"EtalonnageRattachement",true)
-	      <<   EAM(mNamePosRattach,"PositionRattachement",true)
-	      <<   EAM(mCamRattachees,"CameraRattachees",true)
-	      <<   EAM(mZoom,"Zoom",true)
-	      <<   EAM(mSzIm,"SzIm",true)
+          <<   EAM(mPostfixe,"PostfixeNomImage",true)
+          <<   EAM(mNameFileRatt,"EtalonnageRattachement",true)
+          <<   EAM(mNamePosRattach,"PositionRattachement",true)
+          <<   EAM(mCamRattachees,"CameraRattachees",true)
+          <<   EAM(mZoom,"Zoom",true)
+          <<   EAM(mSzIm,"SzIm",true)
 
-	      <<   EAM(mNameCible3DPolygone,"NameCible3DPolygone",true)
-	      <<   EAM(mNamePointePolygone,"NamePointePolygone",true)
-	      <<   EAM(mNameImPolygone,"NameImPolygone",true)
+          <<   EAM(mNameCible3DPolygone,"NameCible3DPolygone",true)
+          <<   EAM(mNamePointePolygone,"NamePointePolygone",true)
+          <<   EAM(mNameImPolygone,"NameImPolygone",true)
 
-	      <<   EAM(mPRCInit.mSzW,"FenetreInit",true)
-	      <<   EAM(mPRCInit.mDistConf,"DistConfInit",true)
-	      <<   EAM(mPRCInit.mEllipseConf,"IncFormeInit",true)
-	      <<   EAM(aUCI_Init,"UsePointeManuelInit",true)
+          <<   EAM(mPRCInit.mSzW,"FenetreInit",true)
+          <<   EAM(mPRCInit.mDistConf,"DistConfInit",true)
+          <<   EAM(mPRCInit.mEllipseConf,"IncFormeInit",true)
+          <<   EAM(aUCI_Init,"UsePointeManuelInit",true)
 
-	      <<   EAM(mPRCDrad.mSzW,"FenetreDrad",true)
-	      <<   EAM(mPRCDrad.mDistConf,"DistConfDrad",true)
-	      <<   EAM(mPRCDrad.mEllipseConf,"IncFormeDrad",true)
-	      <<   EAM(aUCI_DRad,"UsePointeManuelDRad",true)
+          <<   EAM(mPRCDrad.mSzW,"FenetreDrad",true)
+          <<   EAM(mPRCDrad.mDistConf,"DistConfDrad",true)
+          <<   EAM(mPRCDrad.mEllipseConf,"IncFormeDrad",true)
+          <<   EAM(aUCI_DRad,"UsePointeManuelDRad",true)
 
               <<   EAM(mSeuilCorrel,"SeuilCorrel",true)
-	      <<   EAM(mEgelsConvImage,"EgelsConvImage",true)
-	      <<   EAM(mCibDirU,"CibDirU",true)
-	      <<   EAM(mCibDirV,"CibDirV",true)
-	      <<   EAM(mCiblesRejetees,"CiblesRejetees",true)
-	      <<   EAM(mCDistLibre,"CDistLibre",true)
-	      <<   EAM(mDegDist,"DegDist",true)
+          <<   EAM(mEgelsConvImage,"EgelsConvImage",true)
+          <<   EAM(mCibDirU,"CibDirU",true)
+          <<   EAM(mCibDirV,"CibDirV",true)
+          <<   EAM(mCiblesRejetees,"CiblesRejetees",true)
+          <<   EAM(mCDistLibre,"CDistLibre",true)
+          <<   EAM(mDegDist,"DegDist",true)
               <<   EAM(mSeuilCoupure,"SeuilCoupure",true)
               <<   EAM(mInvYPointe,"InvYPointe",true)
               <<   EAM(mRabExportGrid,"RabExportGrid",true)
               <<   EAM(mCalibSpecifLoemi,"IsLoemi",true)
               <<   EAM(mDoGrid,"DoGrid",true)
               <<   EAM(aTypeResol,"TypeResol",true)
-	      <<   EAM(mNamePolygGenImageSaisie,"NamePolygGenImageSaisie",true)
-	      <<   EAM(mNameImageGenImageSaisie,"NameImageGenImageSaisie",true)
-	      <<   EAM(mZoomGenImageSaisie,"ZoomGenImageSaisie",true)
+          <<   EAM(mNamePolygGenImageSaisie,"NamePolygGenImageSaisie",true)
+          <<   EAM(mNameImageGenImageSaisie,"NameImageGenImageSaisie",true)
+          <<   EAM(mZoomGenImageSaisie,"ZoomGenImageSaisie",true)
 
               <<   EAM(mXMLAutonome,"XMLAutonome",true)
               <<   EAM(mStepGridXML,"StepGridXML",true)
@@ -369,7 +369,7 @@ void cParamEtal::InitFromFile(const std::string & aNameFile)
      ELISE_ASSERT
      (
            (!mImages.empty()) || (aPatternIm!=""),
-           "Ni images ni patern"
+           "Ni images ni pattern"
      );
 
      if (aPatternIm!="")
@@ -379,7 +379,7 @@ void cParamEtal::InitFromFile(const std::string & aNameFile)
         std::string aPatSubst =  "$1";
         std::list<std::string> aLP=RegexListFileMatch(mDirectory,mPatternGlob,1,false);
         cElRegex anAutom(mPatternGlob,10);
-        for 
+        for
         (
             std::list<std::string>::const_iterator itS=aLP.begin();
             itS!= aLP.end();
@@ -465,30 +465,30 @@ void cParamEtal::InitFromFile(const std::string & aNameFile)
 
       if (mDoGrid==-1)
         mDoGrid= mCalibSpecifLoemi;
-                       
+
 
      if (aPatternSift!="")
         mAutomSift = new cElRegex(aPatternSift,10);
-     
+
 
 
 
      ELISE_ASSERT
      (
         !mModeC2M,
-	"Mode C2M Deconseille"
+    "Mode C2M Deconseille"
      );
 
      if (aNameCompl != "")
      {
-        (cComplParamEtalPoly &) (*this) = 
-	              StdGetObjFromFile<cComplParamEtalPoly>
-		      (
+        (cComplParamEtalPoly &) (*this) =
+                  StdGetObjFromFile<cComplParamEtalPoly>
+              (
                          mDirectory+aNameCompl,
                          StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                           "ComplParamEtalPoly",
                           "ComplParamEtalPoly"
-		      );
+              );
      }
 
      mPRCInit.mUseCI = Str2UCI(aUCI_Init);
@@ -501,30 +501,30 @@ void cParamEtal::InitFromFile(const std::string & aNameFile)
      else
      {
          ELISE_ASSERT
-	 (
-	     false,
-	     "Unknown Type Resol"
-	 );
+     (
+         false,
+         "Unknown Type Resol"
+     );
      }
 
      FilterImage(mImagesInit);
      FilterImage(mImages);
-      
+
 
      ELISE_ASSERT(mImagesInit.size()!=0,"Empty Image Init");
 
 
      if ((mSzIm.x<=0) || (mSzIm.y<=0))
      {
-        std::string aName = ANameFileExistant(); 
+        std::string aName = ANameFileExistant();
         Tiff_Im aTif = Tiff_Im::UnivConvStd(aName);
         mSzIm = aTif.sz();
      }
 
      std::sort(mCiblesRejetees.begin(),mCiblesRejetees.end());
 
-     cout    <<  "SzIm = " << mSzIm 
-	     << " FenetreInit " << mPRCInit.mSzW << "\n";
+     cout    <<  "SzIm = " << mSzIm
+         << " FenetreInit " << mPRCInit.mSzW << "\n";
 
 
 }
@@ -593,7 +593,7 @@ REAL cParamEtal::SeuilCoupure() const
 
 bool cParamEtal::AcceptCible(INT anInd) const
 {
-	return ! binary_search(mCiblesRejetees.begin(),mCiblesRejetees.end(),anInd);
+    return ! binary_search(mCiblesRejetees.begin(),mCiblesRejetees.end(),anInd);
 }
 
 const std::vector<INT>  &  cParamEtal::CiblesRejetees() const
@@ -603,7 +603,7 @@ const std::vector<INT>  &  cParamEtal::CiblesRejetees() const
 
 bool cParamEtal::MakeImagesCibles() const
 {
-	return mMakeImageCibles != 0;
+    return mMakeImageCibles != 0;
 }
 
 cParamEtal::cParamEtal(int argc,char ** argv) :
@@ -628,9 +628,9 @@ cParamEtal::cParamEtal(int argc,char ** argv) :
          argc,argv,
          LArgMain()  <<   EAM(UnUsed),
          anArgFac   << EAM(mCibleDeTest,"Cible",true)
-	            << EAM(mImDeTest,"Im",true)
-	            << EAM(mZoom,"Zoom",true)
-		    << EAM(mMakeImageCibles,"MakeIm",true)
+                << EAM(mImDeTest,"Im",true)
+                << EAM(mZoom,"Zoom",true)
+            << EAM(mMakeImageCibles,"MakeIm",true)
                     << EAM(mPointeInitIm,"Pointe",true)
                     << EAM(mByProcess,"ByP",true)
                     << EAM(mCalledByItsef,"CalledByItsef",true)
@@ -654,7 +654,7 @@ cParamEtal cParamEtal::FromStr(const std::string & aName)
 
 cParamEtal cParamEtal::ParamRatt()
 {
-	return FromStr(NameFileRatt());
+    return FromStr(NameFileRatt());
 }
 
 INT cParamEtal::EgelsConvImage()
@@ -690,13 +690,13 @@ double cParamEtal::SeuilPonder()     const { return mSeuilPonder; }
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -706,17 +706,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
