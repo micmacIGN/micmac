@@ -106,16 +106,19 @@ int MM2DPostSism_Main(int argc,char ** argv)
         replace( aIm2.begin(), aIm2.end(), '\\', '/' );
         replace( aImMasq.begin(), aImMasq.end(), '\\', '/' );
     #endif
-        std::string aDir = DirOfFile(aIm1);
-        ELISE_ASSERT(aDir==DirOfFile(aIm2),"Image not on same directory !!!");
+        std::string aDir;
 
+        std::string aNameFile1, aNameFile2;
+        SplitDirAndFile(aDir, aNameFile1, aIm1);
+        ELISE_ASSERT(aDir==DirOfFile(aIm2),"Image not on same directory !!!");
+        SplitDirAndFile(aDir, aNameFile2, aIm2);
 
         std::string aCom =    MM3dBinFile("MICMAC")
                             + XML_MM_File("MM-PostSism.xml")
                             + " WorkDir=" + aDir
                             + " +DirMEC=" + aDirMEC
-                            + " +Im1=" + aIm1
-                            + " +Im2=" + aIm2
+                            + " +Im1=" + aNameFile1
+                            + " +Im2=" + aNameFile2
                             + " +Masq=" + aImMasq
                             + " +SzW=" + ToString(aSzW)
                             + " +RegulBase=" + ToString(aRegul)
