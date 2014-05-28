@@ -64,7 +64,7 @@ int MMAllAuto_main(int argc,char ** argv)
 
     cInterfChantierNameManipulateur * aICNM =  cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-    // Genere les pryramides pour que le paral ne s'ecrase pas les 1 les autres
+    // Genere les pyramides pour que le paral ne s'ecrase pas les 1 les autres
 
     const cInterfChantierNameManipulateur::tSet * aSetIm = aICNM->Get(aPat);
 

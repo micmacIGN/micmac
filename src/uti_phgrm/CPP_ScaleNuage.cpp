@@ -47,7 +47,7 @@ int ScaleNuage_main(int argc,char ** argv)
 {
     std::string aNameNuage,aNameOut;
 
-    double aSc;
+    double aSc = 1.0;
     Pt2dr  aP0(0,0);
     Pt2dr  aSz(-1,-1);
     bool   Old=false;

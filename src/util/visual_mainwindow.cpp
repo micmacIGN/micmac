@@ -2,13 +2,13 @@
 
 #if (ELISE_QT_VERSION >= 4)
 
-// aVAM: Mandatory args
-// aVAO: Optional args
-
 static int IntMin = -1000000;
 static int IntMax =  1000000;
 static double DoubleMin = -1000000.;
 static double DoubleMax =  1000000.;
+
+// aVAM: Mandatory args
+// aVAO: Optional args
 
 visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
                                      vector<cMMSpecArg> & aVAO,
@@ -117,10 +117,10 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
             switch (aArg.Type())
             {
             case AMBT_Box2di:
-                add_4SpinBox(layout, parent, aK, aArg);
+                add_4i_SpinBox(layout, parent, aK, aArg);
                 break;
             case AMBT_Box2dr:
-                add_4dSpinBox(layout, parent, aK, aArg);
+                add_4d_SpinBox(layout, parent, aK, aArg);
                 break;
             case AMBT_bool:
                 add_combo(layout, parent, aK, aArg);
@@ -128,22 +128,22 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
             case AMBT_INT:
             case AMBT_U_INT1:
             case AMBT_INT1:
-                add_spinBox(layout, parent, aK, aArg);
+                add_1i_spinBox(layout, parent, aK, aArg);
                 break;
             case AMBT_REAL:
-                add_dSpinBox(layout, parent, aK, aArg);
+                add_1d_SpinBox(layout, parent, aK, aArg);
             break;
             case AMBT_Pt2di:
-                add_2SpinBox(layout, parent, aK, aArg);
+                add_2i_SpinBox(layout, parent, aK, aArg);
             break;
             case AMBT_Pt2dr:
-                add_2dSpinBox(layout, parent, aK, aArg);
+                add_2d_SpinBox(layout, parent, aK, aArg);
             break;
             case AMBT_Pt3dr:
-                add_3dSpinBox(layout, parent, aK, aArg);
+                add_3d_SpinBox(layout, parent, aK, aArg);
             break;
             case AMBT_Pt3di:
-                add_3SpinBox(layout, parent, aK, aArg);
+                add_3i_SpinBox(layout, parent, aK, aArg);
             break;
             case AMBT_string:
             {
@@ -552,7 +552,7 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     if (aArg.Type() == AMBT_string )
     {
         string val(*(aArg.DefaultValue<string>()));
-        if (val != "") aLineEdit->setText(QString(val.c_str()));
+        if ((val != "") && (val != NoInit)) aLineEdit->setText(QString(val.c_str()));
 
         list <string> strList = ListOfVal(eTMalt_NbVals,"eTMalt_");
         if (std::find(strList.begin(), strList.end(), val) != strList.end())
@@ -592,7 +592,7 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-QDoubleSpinBox * visual_MainWindow::create_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, int bK)
+QDoubleSpinBox * visual_MainWindow::create_1d_SpinBox(QGridLayout *layout, QWidget *parent, int aK, int bK)
 {
     QDoubleSpinBox *aSpinBox = new QDoubleSpinBox(parent);
     layout->addWidget(aSpinBox,aK, bK);
@@ -602,7 +602,7 @@ QDoubleSpinBox * visual_MainWindow::create_dSpinBox(QGridLayout *layout, QWidget
     return aSpinBox;
 }
 
-QSpinBox * visual_MainWindow::create_SpinBox(QGridLayout *layout, QWidget *parent, int aK, int bK)
+QSpinBox * visual_MainWindow::create_1i_SpinBox(QGridLayout *layout, QWidget *parent, int aK, int bK)
 {
     QSpinBox *aSpinBox = new QSpinBox(parent);
     layout->addWidget(aSpinBox,aK, bK);
@@ -614,9 +614,9 @@ QSpinBox * visual_MainWindow::create_SpinBox(QGridLayout *layout, QWidget *paren
     return aSpinBox;
 }
 
-void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_1d_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QDoubleSpinBox *aSpinBox = create_dSpinBox(layout, parent, aK, 1);
+    QDoubleSpinBox *aSpinBox = create_1d_SpinBox(layout, parent, aK, 1);
 
     aSpinBox->setValue( *(aArg.DefaultValue<double>()) );
 
@@ -625,10 +625,10 @@ void visual_MainWindow::add_dSpinBox(QGridLayout *layout, QWidget *parent, int a
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_2dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_2d_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QDoubleSpinBox *xSpinBox = create_dSpinBox(layout, parent, aK, 1);
-    QDoubleSpinBox *ySpinBox = create_dSpinBox(layout, parent, aK, 2);
+    QDoubleSpinBox *xSpinBox = create_1d_SpinBox(layout, parent, aK, 1);
+    QDoubleSpinBox *ySpinBox = create_1d_SpinBox(layout, parent, aK, 2);
 
     xSpinBox->setValue( (*(aArg.DefaultValue<Pt2dr>())).x );
     ySpinBox->setValue( (*(aArg.DefaultValue<Pt2dr>())).y );
@@ -640,14 +640,14 @@ void visual_MainWindow::add_2dSpinBox(QGridLayout *layout, QWidget *parent, int 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_3dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_3d_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
     vector< pair < int, QWidget * > > vWidgets;
 
     int nbItems = 3;
     for (int i=0; i< nbItems;++i)
     {
-        QDoubleSpinBox *spinBox = create_dSpinBox(layout, parent, aK, i+1);
+        QDoubleSpinBox *spinBox = create_1d_SpinBox(layout, parent, aK, i+1);
 
         vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, spinBox));
     }
@@ -666,14 +666,14 @@ void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK, bool norma
     connect(saisieButton,SIGNAL(my_click(int, bool)),this,SLOT(onSaisieButtonPressed(int, bool)));
 }
 
-void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_4d_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
     vector< pair < int, QWidget * > > vWidgets;
 
     int nbItems = 4;
     for (int i=0; i< nbItems;++i)
     {
-        QDoubleSpinBox *spinBox = create_dSpinBox(layout, parent, aK, i+1);
+        QDoubleSpinBox *spinBox = create_1d_SpinBox(layout, parent, aK, i+1);
 
         vWidgets.push_back(pair <int, QDoubleSpinBox*> (eIT_DoubleSpinBox, spinBox));
     }
@@ -688,9 +688,9 @@ void visual_MainWindow::add_4dSpinBox(QGridLayout *layout, QWidget *parent, int 
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_spinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_1i_spinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
-    QSpinBox *aSpinBox = create_SpinBox(layout, parent, aK, 1);
+    QSpinBox *aSpinBox = create_1i_SpinBox(layout, parent, aK, 1);
 
     aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
 
@@ -699,10 +699,10 @@ void visual_MainWindow::add_spinBox(QGridLayout* layout, QWidget* parent, int aK
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_2SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_2i_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
-    QSpinBox *xSpinBox = create_SpinBox(layout, parent, aK, 1);
-    QSpinBox *ySpinBox = create_SpinBox(layout, parent, aK, 2);
+    QSpinBox *xSpinBox = create_1i_SpinBox(layout, parent, aK, 1);
+    QSpinBox *ySpinBox = create_1i_SpinBox(layout, parent, aK, 2);
 
     xSpinBox->setValue( (*(aArg.DefaultValue<Pt2di>())).x );
     ySpinBox->setValue( (*(aArg.DefaultValue<Pt2di>())).y );
@@ -714,14 +714,14 @@ void visual_MainWindow::add_2SpinBox(QGridLayout *layout, QWidget *parent, int a
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_3SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_3i_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
     vector< pair < int, QWidget * > > vWidgets;
 
     int nbItems = 4;
     for (int i=0; i< nbItems;++i)
     {
-        QSpinBox *spinBox = create_SpinBox(layout, parent, aK, i+1);
+        QSpinBox *spinBox = create_1i_SpinBox(layout, parent, aK, i+1);
 
         vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, spinBox));
     }
@@ -733,14 +733,14 @@ void visual_MainWindow::add_3SpinBox(QGridLayout *layout, QWidget *parent, int a
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_4SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_4i_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
     vector< pair < int, QWidget * > > vWidgets;
 
     int nbItems = 4;
     for (int i=0; i< nbItems;++i)
     {
-        QSpinBox *spinBox = create_SpinBox(layout, parent, aK, i+1);
+        QSpinBox *spinBox = create_1i_SpinBox(layout, parent, aK, i+1);
 
         vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, spinBox));
     }
@@ -764,9 +764,13 @@ void visual_MainWindow::set_argv_recup(string argv)
 
 void visual_MainWindow::resizeEvent(QResizeEvent *)
 {
-    //deplacement au centre de l'ecran
-    const QPoint global = qApp->desktop()->availableGeometry().center();
-    move(global.x() - width() / 2, global.y() - height() / 2);
+    QDesktopWidget* m = qApp->desktop();
+    QRect desk_rect = m->screenGeometry(m->screenNumber(QCursor::pos()));
+
+    int desk_x = desk_rect.width();
+    int desk_y = desk_rect.height();
+
+    move(desk_x / 2 - width() / 2 + desk_rect.left(), desk_y / 2 - height() / 2 + desk_rect.top());
 }
 
 cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):

@@ -1,11 +1,11 @@
 <GenCpp>
 
 <Verbatim  File=".h">
-#include "StdAfx.h"
 #ifndef Define_NotDigeo
 #define Define_NotDigeo
 </Verbatim>
 <Verbatim File=".cpp">
+#include "StdAfx.h"
 #include "cParamDigeo.h"
 </Verbatim>
 

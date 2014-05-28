@@ -147,18 +147,18 @@ int  NuageBascule_main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
 
     std::string  aNameIn,aNameOut,aNameRes;//,aToto;
-    bool  AutoResize=true;
-    bool  AutoClipIn=true;
-    bool  ICalledByP =false;
-    bool  ByP       =true;
-    bool  mParal       =true;
+    bool  AutoResize= true;
+    bool  AutoClipIn= true;
+    bool  ICalledByP = false;
+    bool  ByP       = true;
+    bool  mParal       = true;
     Pt2di aSzDecoup(2500,2500);
     std::string  aSuplOut="";
     Box2di aBoxIn;
-    bool   mShowCom = false;
+    bool   mShowCom  = false;
     int    mTileFile = 1e6;
-    double mSeuilEtir=5;
-    bool  mSaveEtir=false;
+    double mSeuilEtir = 5;
+    bool   mSaveEtir = false;
 
     ElInitArgMain
     (
@@ -459,7 +459,7 @@ int  NuageBascule_main(int argc,char ** argv)
                std::cout << "BoxClipIn " << anArgBasc.mBoxClipIn->_p0 << anArgBasc.mBoxClipIn->_p1;
          }
          anArgBasc.mAutoResize = AutoResize;
-         
+
 
 
          cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,DirOfFile(aNameIn),NameWithoutDir(aNameRes),anArgBasc);
@@ -488,9 +488,9 @@ int  NuageBascule_main(int argc,char ** argv)
          delete anArgBasc.mBoxClipIn;
     }
     return EXIT_SUCCESS;
-	
-	}
-	else return EXIT_FAILURE;
+
+    }
+    else return EXIT_SUCCESS;
 }
 
 

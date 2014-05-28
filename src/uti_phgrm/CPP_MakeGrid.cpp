@@ -96,7 +96,7 @@ int MakeGrid_main(int argc,char ** argv)
        return aRes;
     }
     else
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
 }
 
 

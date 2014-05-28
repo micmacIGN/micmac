@@ -89,7 +89,7 @@ int ConvertIm_main(int argc,char ** argv)
                 LArgMain()  << EAMC(aNameIn, "Image", eSAM_IsExistFile),
     LArgMain()  << EAM(aNameOut,"Out",true)
                 << EAM(anExt,"Ext",true)
-                    << EAM(aSzOut,"SzOut",true)
+                    << EAM(aSzOut,"SzOut",false)
                     << EAM(aP0,"P0",true)
                     << EAM(aNameTypeOut,"Type",true, "TypeMNT", eSAM_None, ListOfVal(GenIm::bits1_msbf, ""))
                     << EAM(aNamePITOut,"Col",true, "Col", eSAM_None,lOut)
@@ -102,166 +102,166 @@ int ConvertIm_main(int argc,char ** argv)
                     << EAM(aDyn,"Dyn",true)
                     << EAM(aKCh,"KCh",true)
                     << EAM(aNoTile,"NoTile",true)
-                    << EAM(aVPermut,"Permut",true)
+                    << EAM(aVPermut,"Permut",false)
                     << EAM(aF2,"F2",true)
     );
 
     if (!MMVisualMode)
     {
-    // Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameIn);
-    Tiff_Im aTifIn = Tiff_Im::UnivConvStd(aNameIn);
-    INT aNbChIn = aTifIn.nb_chan();
+        // Tiff_Im aTifIn = Tiff_Im::BasicConvStd(aNameIn);
+        Tiff_Im aTifIn = Tiff_Im::UnivConvStd(aNameIn);
+        INT aNbChIn = aTifIn.nb_chan();
 
-    if (! EAMIsInit(&aTypeOut)) aTypeOut =aTifIn.type_el();
-    if (! EAMIsInit(&aPhInterpOut)) aPhInterpOut =  aTifIn.phot_interp();
-    if (! EAMIsInit(&aSzOut)) aSzOut = aTifIn.sz();
+        if (! EAMIsInit(&aTypeOut)) aTypeOut =aTifIn.type_el();
+        if (! EAMIsInit(&aPhInterpOut)) aPhInterpOut =  aTifIn.phot_interp();
+        if (! EAMIsInit(&aSzOut)) aSzOut = aTifIn.sz();
 
-    if (aReducXY)
-    {
-        aReducX = 1;
-        aReducY = 1;
-    }
-    if (aNameOut=="")
-    {
-        if (anExt=="")
+        if (aReducXY)
         {
-            if (aReducX && aReducY)
-                anExt = "_RXY";
-            else if (aReducX)
-                anExt = "_RX";
-            else if (aReducY)
-                anExt = "_RY";
-            else
-                anExt= "_Out";
+            aReducX = 1;
+            aReducY = 1;
         }
-        if (IsPostfixed(aNameIn))
-          aNameOut = StdPrefix(aNameIn) + anExt +"." + StdPostfix(aNameIn);
-       else
-          aNameOut = aNameIn + anExt + "tif";
-    }
-
-    Pt2di aCoefReduc(aReducX? 2 : 1,aReducY ? 2 : 1);
-    aSzOut = aSzOut.dcbyc(aCoefReduc);
-
-    if (aNameTypeOut != "")
-       aTypeOut = type_im(aNameTypeOut);
-
-    if (aKCh != -1)
-       aNamePITOut="BW";
-
-    if ( aVPermut.size() !=0)
-    {
-         if ( aVPermut.size() ==1)
-             aPhInterpOut = Tiff_Im::BlackIsZero;
-         else if ( aVPermut.size() ==3)
-             aPhInterpOut = Tiff_Im::RGB;
-         else
+        if (aNameOut=="")
         {
-           ELISE_ASSERT(aNamePITOut=="","Nb Canaux incoherents");
+            if (anExt=="")
+            {
+                if (aReducX && aReducY)
+                    anExt = "_RXY";
+                else if (aReducX)
+                    anExt = "_RX";
+                else if (aReducY)
+                    anExt = "_RY";
+                else
+                    anExt= "_Out";
+            }
+            if (IsPostfixed(aNameIn))
+              aNameOut = StdPrefix(aNameIn) + anExt +"." + StdPostfix(aNameIn);
+           else
+              aNameOut = aNameIn + anExt + "tif";
         }
-    }
-    else
-    {
-        if (aNamePITOut=="RGB")
-           aPhInterpOut = Tiff_Im::RGB;
-        else if (aNamePITOut=="BW")
-           aPhInterpOut = Tiff_Im::BlackIsZero;
+
+        Pt2di aCoefReduc(aReducX? 2 : 1,aReducY ? 2 : 1);
+        aSzOut = aSzOut.dcbyc(aCoefReduc);
+
+        if (aNameTypeOut != "")
+           aTypeOut = type_im(aNameTypeOut);
+
+        if (aKCh != -1)
+           aNamePITOut="BW";
+
+        if ( aVPermut.size() !=0)
+        {
+             if ( aVPermut.size() ==1)
+                 aPhInterpOut = Tiff_Im::BlackIsZero;
+             else if ( aVPermut.size() ==3)
+                 aPhInterpOut = Tiff_Im::RGB;
+             else
+            {
+               ELISE_ASSERT(aNamePITOut=="","Nb Canaux incoherents");
+            }
+        }
         else
         {
-           ELISE_ASSERT(aNamePITOut=="","Mode Couleur Inconnu");
+            if (aNamePITOut=="RGB")
+               aPhInterpOut = Tiff_Im::RGB;
+            else if (aNamePITOut=="BW")
+               aPhInterpOut = Tiff_Im::BlackIsZero;
+            else
+            {
+               ELISE_ASSERT(aNamePITOut=="","Mode Couleur Inconnu");
+            }
         }
+
+
+        Tiff_Im::COMPR_TYPE aComprOut = Tiff_Im::No_Compr;
+
+
+        L_Arg_Opt_Tiff aLArg = Tiff_Im::Empty_ARG;
+
+
+        if (! aNoTile)
+        {
+           if (aSzTileInterne != Pt2di(-1,-1))
+               aLArg = aLArg + Arg_Tiff(Tiff_Im::ATiles(aSzTileInterne));
+
+           if (aSzTF != Pt2di(-1,-1))
+               aLArg = aLArg + Arg_Tiff(Tiff_Im::AFileTiling(aSzTF));
+        }
+        else
+        {
+             aLArg = aLArg + Arg_Tiff(Tiff_Im::ANoStrip());
+             aLArg = aLArg + Arg_Tiff(Tiff_Im::AFileTiling(Pt2di(-1,-1)));
+        }
+
+
+        Tiff_Im aTifOut
+                (
+                      aNameOut.c_str(),
+                      aSzOut,
+                      aTypeOut,
+                      aComprOut,
+                      aPhInterpOut,
+                      aLArg
+                );
+        INT aNbChOut = aTifOut.nb_chan();
+
+        Pt2di aSzROut = aSzOut;
+        Output anOut = aTifOut.out();
+
+        Fonc_Num aFin = aTifIn.in_proj();
+        if (aF2!="")
+        {
+             Tiff_Im aT2 = Tiff_Im::BasicConvStd(DirOfFile(aNameIn)+aF2);
+             aFin = Virgule(aFin,aT2.in(0));
+        }
+
+        if (aVPermut.size() != 0)
+           aFin = aFin.permut(aVPermut);
+
+        if (type_im_integral( aTypeOut))
+        {
+        }
+        else
+        {
+            aFin = Rconv(aFin);
+        }
+
+        aFin = reduc_binaire_gen(aFin,aReducX,aReducY,16,true,0);
+        anOut = Filtre_Out_RedBin_Gen(anOut,aReducX,aReducY);
+        aSzROut = aSzOut.mcbyc(aCoefReduc);
+        aFin = trans(aFin,aP0);
+
+        if (aKCh!=-1)
+           aFin = aFin.kth_proj(aKCh);
+        else
+        {
+
+            if ((aNbChOut==1) && (aNbChIn==3))
+                aFin = (aFin.v0() + aFin.v1() + aFin.v2()) / 3.0;
+
+            if ((aNbChOut==3) && (aNbChIn==1))
+               aFin = Virgule(aFin,aFin,aFin);
+         }
+
+
+        if (aVisu)
+           anOut = anOut |  Video_Win::WiewAv(aSzROut);
+
+        if (aDyn != 1.0)
+           aFin = aFin * aDyn;
+
+        if (type_im_integral(aTypeOut) && (aTypeOut!=GenIm::int4))
+        {
+            int aVMin,aVMax;
+            min_max_type_num(aTypeOut,aVMin,aVMax);
+            aFin = Max(aVMin,Min(aVMax-1,aFin));
+        }
+
+        ELISE_COPY(rectangle(Pt2di(0,0),aSzROut),aFin,anOut);
+
+        return EXIT_SUCCESS;
     }
-
-
-    Tiff_Im::COMPR_TYPE aComprOut = Tiff_Im::No_Compr;
-
-
-    L_Arg_Opt_Tiff aLArg = Tiff_Im::Empty_ARG;
-
-
-    if (! aNoTile)
-    {
-       if (aSzTileInterne != Pt2di(-1,-1))
-           aLArg = aLArg + Arg_Tiff(Tiff_Im::ATiles(aSzTileInterne));
-
-       if (aSzTF != Pt2di(-1,-1))
-           aLArg = aLArg + Arg_Tiff(Tiff_Im::AFileTiling(aSzTF));
-    }
-    else
-    {
-         aLArg = aLArg + Arg_Tiff(Tiff_Im::ANoStrip());
-         aLArg = aLArg + Arg_Tiff(Tiff_Im::AFileTiling(Pt2di(-1,-1)));
-    }
-
-
-    Tiff_Im aTifOut
-            (
-                  aNameOut.c_str(),
-                  aSzOut,
-                  aTypeOut,
-                  aComprOut,
-                  aPhInterpOut,
-                  aLArg
-            );
-    INT aNbChOut = aTifOut.nb_chan();
-
-    Pt2di aSzROut = aSzOut;
-    Output anOut = aTifOut.out();
-
-    Fonc_Num aFin = aTifIn.in_proj();
-    if (aF2!="")
-    {
-         Tiff_Im aT2 = Tiff_Im::BasicConvStd(DirOfFile(aNameIn)+aF2);
-         aFin = Virgule(aFin,aT2.in(0));
-    }
-
-    if (aVPermut.size() != 0)
-       aFin = aFin.permut(aVPermut);
-
-    if (type_im_integral( aTypeOut))
-    {
-    }
-    else
-    {
-        aFin = Rconv(aFin);
-    }
-
-    aFin = reduc_binaire_gen(aFin,aReducX,aReducY,16,true,0);
-    anOut = Filtre_Out_RedBin_Gen(anOut,aReducX,aReducY);
-    aSzROut = aSzOut.mcbyc(aCoefReduc);
-    aFin = trans(aFin,aP0);
-
-    if (aKCh!=-1)
-       aFin = aFin.kth_proj(aKCh);
-    else
-    {
-
-        if ((aNbChOut==1) && (aNbChIn==3))
-            aFin = (aFin.v0() + aFin.v1() + aFin.v2()) / 3.0;
-
-        if ((aNbChOut==3) && (aNbChIn==1))
-           aFin = Virgule(aFin,aFin,aFin);
-     }
-
-
-    if (aVisu)
-       anOut = anOut |  Video_Win::WiewAv(aSzROut);
-
-    if (aDyn != 1.0)
-       aFin = aFin * aDyn;
-
-    if (type_im_integral(aTypeOut) && (aTypeOut!=GenIm::int4))
-    {
-        int aVMin,aVMax;
-        min_max_type_num(aTypeOut,aVMin,aVMax);
-        aFin = Max(aVMin,Min(aVMax-1,aFin));
-    }
-
-    ELISE_COPY(rectangle(Pt2di(0,0),aSzROut),aFin,anOut);
-
-    return EXIT_SUCCESS;
-    }
-    else return EXIT_FAILURE;
+    else return EXIT_SUCCESS;
 }
 
 

@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 #include "Point.h"
 
 using namespace std;

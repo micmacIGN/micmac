@@ -114,8 +114,8 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
         LArgMain()  << EAMC(mMode,"Mode (among allowed values)", eSAM_None, ListOfVal),
         LArgMain()
                     << EAM(mSz,"Sz",true,"Image size, def =[1600,1000]")
-                    << EAM(mFileOut,"Out","Result (Def depend of Mode)")
-                    << EAM(mDoCircle,"DoC","Add Circle")
+                    << EAM(mFileOut,"Out", false, "Result (Def depend of Mode)")
+                    << EAM(mDoCircle,"DoC", true, "Add Circle")
     );
 
     Fonc_Num aFonc=0;

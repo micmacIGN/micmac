@@ -63,7 +63,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
            LArgMain()  << EAMC(aFullNC,"Nuage or Cam", eSAM_IsExistFile)
                        << EAMC(aFilePtsIn,"File In : " + (Ter2Im ? XYZ : IJ), eSAM_IsExistFile)
                        << EAMC(aFilePtsOut,"File Out : " + (Ter2Im ? IJ : XYZ), eSAM_IsOutputFile),
-           LArgMain()  
+           LArgMain()
        );
     }
     else
@@ -74,7 +74,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
            LArgMain()  << EAMC(aFullNC,"Nuage or Cam", eSAM_IsExistFile)
                        << EAMC(aFilePtsIn,"File In : " + (Ter2Im ? XYZ : IJ), eSAM_IsExistFile)
                        << EAMC(aFilePtsOut,"File Out : " + (Ter2Im ? IJ : XYZ), eSAM_IsOutputFile),
-           LArgMain()  << EAM(aFilteredInput,"FilterInput",true,"To generate a file of input superposable to output",eSAM_IsOutputFile)
+           LArgMain()  << EAM(aFilteredInput,"FilterInput",false,"To generate a file of input superposable to output",eSAM_IsOutputFile)
                        << EAM(aPoinIsImRef,"PointIsImRef",true,"Point must be corrected from cloud resolution def = true")
        );
     }
@@ -131,7 +131,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
             int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
             ELISE_ASSERT(aNb==2,"Could not read 2 double values");
 
-            if (aPoinIsImRef) 
+            if (aPoinIsImRef)
                 aPIm = aNuage->ImRef2Capteur (aPIm);
 
             if (aNuage->CaptHasData(aPIm))

@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 #include "cParamDigeo.h"
 //
 eTypeTopolPt  Str2eTypeTopolPt(const std::string & aName)

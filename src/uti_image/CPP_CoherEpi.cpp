@@ -59,7 +59,7 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
    cCEM_OneIm(aCEM,aName,aBox,aVisu,IsFirstIm),
    mNamePx    (mDir+ (   mCple ?
                          mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx,mCoher->mDeZoom) :
-                         LocPxFileMatch(mDirM,mCoher->mNumPx,mCoher->mDeZoom) 
+                         LocPxFileMatch(mDirM,mCoher->mNumPx,mCoher->mDeZoom)
                      )
               ),
    mTifPx     (mNamePx.c_str()),
@@ -92,7 +92,7 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
 
     if (Final)
     {
-        std::string aNamePxU2 = mDir+   (  mCple ?  
+        std::string aNamePxU2 = mDir+   (  mCple ?
                                            mCple->LocPxFileMatch(mNameInit,mCoher->mNumPx-1,mCoher->mDeZoom) :
                                            LocPxFileMatch(mDirM,mCoher->mNumPx-1,mCoher->mDeZoom)
                                         );
@@ -413,14 +413,14 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mSzDecoup,"SzDec",true)
                     << EAM(mBrd,"Brd",true)
                     << EAM(mSigmaP,"SigP",true,"Standard error in pixel (Def=1.5)")
-                    << EAM(mRegulCheck,"RegCh",true,"Chexk regulairity of DSM (avoid whith vegetation)")
-                    << EAM(mFilterBH,"FBH",true,"Filter on homogenous border (to avoid sky background)")
+                    << EAM(mRegulCheck,"RegCh",true,"Check regularity of DSM (avoid with vegetation)")
+                    << EAM(mFilterBH,"FBH",true,"Filter on homogeneous border (to avoid sky background)")
                     << EAM(mIntY1,"YBox",true)
-                    << EAM(mRegul,"Regul",true,"Regularisation for masq (Def = 0.5)")
-                    << EAM(mReduceM,"RedM",true,"Reduce factor for masq (Def = 2.0)")
-                    << EAM(mDoMasqSym,"DoMS",true,"Do masque symetric (Def  = false)")
-                    << EAM(mDoMasq,"DoM",true,"Do Masq, def = false")
-                    << EAM(mUseAutoMasq,"UAM",true,"Use Auto Masq (def = same as DoM)")
+                    << EAM(mRegul,"Regul",true,"Regularisation for mask (Def = 0.5)")
+                    << EAM(mReduceM,"RedM",true,"Reduce factor for mask (Def = 2.0)")
+                    << EAM(mDoMasqSym,"DoMS",true,"Do symetric mask (Def  = false)")
+                    << EAM(mDoMasq,"DoM",true,"Do Mask, def = false")
+                    << EAM(mUseAutoMasq,"UAM",true,"Use Auto Mask (def = same as DoM)")
                     << EAM(mVisu,"Visu",true)
                     << EAM(mDeZoom,"Zoom",true)
                     << EAM(mNumPx,"NumPx",true)
@@ -429,10 +429,10 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mStep,"Step",true)
                     << EAM(mWithEpi,"ByE",true)
                     << EAM(mByP,"ByP",true)
-                    << EAM(mInParal,"InParal",true,"Run command in paral, Def=true, tunning")
+                    << EAM(mInParal,"InParal",true,"Run command in parallel, Def=true, tuning")
                     << EAM(mCalledByP,"InternalCalledByP",true)
                     << EAM(mPostfixP,"InternalPostfixP",true)
-                    << EAM(mFinal,"ExpFin",true,"For final export (generate dirtosion indicator)")
+                    << EAM(mFinal,"ExpFin",true,"For final export (generate distortion indicator)")
                     << EAM(mBSHRejet,"BSHReject",true,"Value for low Basr to Ratio leading do rejection (Def=0.02)")
                     << EAM(aFactBSHOk,"FactBSHOk",true,"Multiplier so that BSHOk= FactBSHOk * BSHReject (Def=2)")
                     << EAM(Debug,"Debug",true,"Tuning ....")
@@ -736,7 +736,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
            ELISE_COPY(anAR1.all_pts(),aISol.in_proj()[Virgule(FX/mReduceM,FY/mReduceM)],aMassFR.out());
 
            delete anOLB;
- 
+
 /*
            Im2D_INT2 aIZMin(aSzR.x,aSzR.y,0);
            Im2D_INT2 aIZMax(aSzR.x,aSzR.y,3);

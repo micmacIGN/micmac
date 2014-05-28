@@ -120,7 +120,7 @@ int GrShade_main(int argc,char ** argv)
               << EAM(aNbIterF,"NbIterF",true)
               << EAM(aFactExp,"FactExp",true)
               << EAM(aDyn,"Dyn",true)
-                      << EAM(aVPdsFiltre,"PdsF",true,"[CielVu,Local,Grad,Med]")
+                      << EAM(aVPdsFiltre,"PdsF",false,"[CielVu,Local,Grad,Med]")
                       << EAM(aModeColor,"ModeColor",true,"Color mode", eSAM_None, lModeColor)
                       << EAM(aNbMed,"NbMed",true)
                       << EAM(aNbIterMed,"NbIterMed",true)
@@ -472,7 +472,7 @@ std::cout << "BBBBbbb" << endl;
      return EXIT_SUCCESS;
 
     }
-    else return EXIT_FAILURE;
+    else return EXIT_SUCCESS;
 }
 
 

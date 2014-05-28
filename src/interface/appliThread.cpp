@@ -6,6 +6,8 @@
 
 #include "appliThread.h"
 
+#define GLWidget GLWidget_IC
+
 using namespace std;
 
 

@@ -233,10 +233,10 @@ int Tapas_main(int argc,char ** argv)
     std::string  aModele,aDir,aPat,aFullDir;
     int ExpTxt=0;
     int DoC=1;
-    std::string AeroOut="";
-    std::string AeroIn= NoInit;
-    std::string CalibIn= NoInit;
-    std::string ImInit=  NoInit;
+    std::string AeroOut = "";
+    std::string AeroIn  = NoInit;
+    std::string CalibIn = NoInit;
+    std::string ImInit  = NoInit;
     int   aVitesseInit=2;
     int   aDecentre = -1;
     Pt2dr Focales(-1,-1);
@@ -298,7 +298,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aDoPP,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
                     << EAM(aDoCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
                     << EAM(aDoFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
-                    << EAM(aRapTxt,"RapTxt",true)
+                    << EAM(aRapTxt,"RapTxt",false)
                     << EAM(TolLPPCD,"LinkPPaPPs",false)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
     );

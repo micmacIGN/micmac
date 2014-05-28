@@ -96,9 +96,9 @@ int MMTestOrient_main(int argc,char ** argv)
                     << EAM(Zoom0,"Zoom0",true,"Zoom init, pow of 2  in [128,8], Def depend of size")
                     << EAM(ZoomF,"ZoomF",true,"Zoom init,  pow of 2  in [4,1], Def=2")
                     << EAM(mModePB,"PB",true,"Push broom sensor")
-                    << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO), Mandatory in PB")
-                    << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB")
-                    << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB")
+                    << EAM(mModeOri,"MOri",false,"Mode Orientation (GRID or RTO), Mandatory in PB")
+                    << EAM(aZMoy,"ZMoy",false,"Average Z, Mandatory in PB")
+                    << EAM(aZInc,"ZInc",false,"Incertitude on Z, Mandatory in PB")
                     << EAM(ShowCom,"ShowCom",true,"Show MicMac command (tuning purpose)")
     );
 
