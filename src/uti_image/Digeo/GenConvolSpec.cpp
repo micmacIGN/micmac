@@ -1,4 +1,4 @@
-#include "GenConvolSpec.h"
+#include "Digeo.h"
 
 void cAppliDigeo::InitConvolSpec()
 {

@@ -1,8 +1,8 @@
 <MMUserEnvironment>
 <!--
          <TiePDetect> mm3d:Digeo </TiePDetect> 
-         <TiePDetect> mm3d:Sift </TiePDetect> 
          <TiePMatch > mm3d:Ann </TiePMatch> 
+         <TiePDetect> mm3d:Sift </TiePDetect> 
          <UserName> MPD </UserName>
 -->
 </MMUserEnvironment>

@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 #include "Filtres.h"
 
 using namespace std;
