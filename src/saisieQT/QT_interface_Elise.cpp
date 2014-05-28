@@ -73,15 +73,15 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
     proxyImageModel->setSourceModel (new ModelCImage(0,mAppli));
     proxyObjectModel->setSourceModel(new ModelObjects(0,mAppli));
 
-    m_QTMainWindow->setModel(proxyPointGlob,proxyImageModel, proxyObjectModel);
+    m_QTMainWindow->setModel(proxyPointGlob, proxyImageModel, proxyObjectModel);
 
     m_QTMainWindow->resizeTables();
 
     connect(((PointGlobalSFModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
 
-    connect(this,SIGNAL(dataChanged()), proxyPointGlob, SLOT(invalidate()));
+    connect(this, SIGNAL(dataChanged()), proxyPointGlob, SLOT(invalidate()));
 
-    connect(this,SIGNAL(dataChanged()), proxyImageModel, SLOT(invalidate()));
+    connect(this, SIGNAL(dataChanged()), proxyImageModel, SLOT(invalidate()));
 
     // Table View   :: End        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -336,13 +336,15 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
 
         cSP_PointeImage * aPIm = currentCImage()->PointeOfNameGlobSVP(oldName);
 
-        if (aPIm)
-
+        if (!aPIm)
+        {
+            cout << "Pointe missing for " << oldName << endl;
             return;
-
+        }
         else if(mAppli->ChangeName(oldName, newName))
-
+        {
             emit dataChanged(aPIm);
+        }
 
         else
 
@@ -466,7 +468,6 @@ void cQT_Interface::filesDropped(const QStringList &filenames)
 
 int cQT_Interface::idCImage(QString nameImage)
 {
-
     for (int i = 0; i < mAppli->nbImages(); ++i)
        if(mAppli->image(i)->Name() == nameImage.toStdString())
            return i;

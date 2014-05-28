@@ -102,7 +102,7 @@ void ContextMenu::rename()
 
     QString newName = inputDialog->getText(NULL, tr("Rename"), tr("Point name:"), QLineEdit::Normal, oldName);
 
-    if (!newName.isEmpty())
+    if (!newName.isEmpty() && (newName != oldName))
 
         emit changeName(oldName, newName);
 }

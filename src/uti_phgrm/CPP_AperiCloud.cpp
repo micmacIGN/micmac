@@ -75,7 +75,7 @@ int AperiCloud_main(int argc,char ** argv)
     {
         if (RGB >=0)
         {
-           RGB = RGB ? 3  : 1;
+            RGB = RGB ? 3  : 1;
         }
 
         string aXmlName="Apero-Cloud.xml";
@@ -84,44 +84,44 @@ int AperiCloud_main(int argc,char ** argv)
             aXmlName="Apero-Cloud-PerIm.xml";
         }
 
-        #if (ELISE_windows)
-            replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-        #endif
+#if (ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+#endif
         SplitDirAndFile(aDir,aPat,aFullDir);
 
         StdCorrecNameOrient(AeroIn,aDir);
         if (Out=="")
         {
-           Out="AperiCloud_" + AeroIn + ".ply";
+            Out="AperiCloud_" + AeroIn + ".ply";
         }
 
 
         //std::string aCom =   MMDir() + std::string("bin" ELISE_STR_DIR  "Apero ")
         //                   + MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
         std::string aCom =   MM3dBinFile_quotes("Apero")
-                           + ToStrBlkCorr( MMDir()+std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR)+ aXmlName)+" "
-                           + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
-                           + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
-                           + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
-                           + std::string(" +AeroIn=-") + AeroIn
-                           + std::string(" +Out=") + Out
-                           + std::string(" +PlyBin=") + (PlyBin?"true":"false")
-                           + std::string(" +NbChan=") +  ToString(RGB)
-                           + std::string(" +SeuilEc=") +  ToString(aSeuilEc)
-                        ;
+                + ToStrBlkCorr( MMDir()+std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR)+ aXmlName)+" "
+                + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
+                + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
+                + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
+                + std::string(" +AeroIn=-") + AeroIn
+                + std::string(" +Out=") + Out
+                + std::string(" +PlyBin=") + (PlyBin?"true":"false")
+                + std::string(" +NbChan=") +  ToString(RGB)
+                + std::string(" +SeuilEc=") +  ToString(aSeuilEc)
+                ;
 
         if (! WithPoints)
         {
-             aCom = aCom + std::string(" +KeyAssocImage=NKS-Assoc-Cste@NoPoint");
+            aCom = aCom + std::string(" +KeyAssocImage=NKS-Assoc-Cste@NoPoint");
         }
 
         if (EAMIsInit(&aLimBsH))
-           aCom = aCom + std::string(" +LimBsH=") + ToString(aLimBsH);
+            aCom = aCom + std::string(" +LimBsH=") + ToString(aLimBsH);
 
-       std::cout << "Com = " << aCom << "\n";
-       int aRes = System(aCom.c_str());
+        std::cout << "Com = " << aCom << "\n";
+        int aRes = System(aCom.c_str());
 
-       return aRes;
+        return aRes;
     }
     else
         return EXIT_SUCCESS;
