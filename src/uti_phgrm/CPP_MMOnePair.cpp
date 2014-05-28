@@ -272,7 +272,10 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     // mDegCorrEpip  (-1)
 // mm3d CreateEpip MVxxxx_MAP_7078.NEF MVxxxx_MAP_7079.NEF Step4  DoIm=true DoHom=true Degre=1
 
-             ExeCom(aCom);
+
+             
+             System(aCom);  //cMMOnePair Car sinon la non existence des epi, bloque le reste a cause a AppliWitSetImage
+            //  ExeCom(aCom);
        }
   }
   else

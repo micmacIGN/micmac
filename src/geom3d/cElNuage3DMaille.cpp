@@ -1780,10 +1780,12 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
        TIm2D<U_INT1,INT> aTImEtir(aImEt);
        Pt2di aSz = aImEt.sz();
-       cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSz,0.0,10.0);
+       cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSz,0.0,1.0);
        //cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSz,0.0,0.0);
        Pt2di aP;
        double aSeuil = anArgBasc.mSeuilEtir;
+// aSeuil = 0.9;
+// std::cout << "SEUIILLL " << aSeuil << "\n";
        double aDynSeuil = 0.5 / ElMax(aSeuil,1-aSeuil);
 
        for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
@@ -1801,13 +1803,22 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        ELISE_COPY(aSol.all_pts(),aSol.in(),sigma(aOk));
        // std::cout << "NB OK " << aOk << "\n";
        
-/*
 
        ELISE_COPY
        (
           aRes->ImDef().all_pts(),
           (aRes->ImDef().in() && aSol.in()),
           aRes->ImDef().out()
+       );
+
+/*
+       aGeomOutOri,
+       Im2D_Bits<1> aImGlog(aSz.x,aSz.y,1);
+       ComplKLipsParLBas
+       (
+           aImGlog,
+           aRes->ImDef(),
+           aRes
        );
 */
        delete anOLB;
