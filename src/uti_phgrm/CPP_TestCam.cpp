@@ -114,6 +114,7 @@ int TestCam_main(int argc,char ** argv)
     Pt2dr TDINV;
 
     double X,Y,Z;
+    X = Y = Z = 0;
     bool aModeGrid = false;
     std::string Out;
 
@@ -127,10 +128,10 @@ int TestCam_main(int argc,char ** argv)
     LArgMain()
                     << EAM(aNameTag,"Tag",true,"Tag to get cam")
                     << EAM(aModeGrid,"Grid",true,"Test Grid Mode", eSAM_IsBool)
-                    << EAM(Out,"Out",true,"To Regenerate an orientation file", eSAM_IsOutputFile)
+                    << EAM(Out,"Out",false,"To Regenerate an orientation file")
                     << EAM(ExtP,"ExtP",true,"Detail on external parameter", eSAM_IsBool)
                     << EAM(TOC,"TOC",true,"Test corners", eSAM_IsBool)
-                    << EAM(TDINV,"TDINV",true,"Test Dist Inv")
+                    << EAM(TDINV,"TDINV",false,"Test Dist Inv")
     );
 
     SplitDirAndFile(aNameDir,aNameCam,aFullName);

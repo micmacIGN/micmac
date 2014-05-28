@@ -126,10 +126,10 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
     (
     argc,argv,
     LArgMain()   << EAMC(mFullNameVideo,"Video name", eSAM_IsExistFile),
-    LArgMain()   << EAM(mRate,"Rate",true,"Number of images / sec; def = 4")
-                     << EAM(mSzSift,"SzS","Size Sift, def=-1 (Max resol)")
-                     << EAM(mLineSift,"LineS","Line Sift, def=8")
-                     << EAM(mTeta,"Teta","Angle done (Def=180)")
+    LArgMain()   << EAM(mRate,"Rate",true,"Number of images / sec (Def=4)")
+                     << EAM(mSzSift,"SzS",true, "Size Sift, (Def=-1 max resol)")
+                     << EAM(mLineSift,"LineS", true, "Line Sift (Def=8)")
+                     << EAM(mTeta,"Teta", true, "Angle done (Def=180)")
     );
 
     if (!MMVisualMode)

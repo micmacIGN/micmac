@@ -397,7 +397,7 @@ int CalcSzWCor_main(int argc,char ** argv)
         argc,argv,
         LArgMain()  << EAMC(aNameIm,"Image name", eSAM_IsExistFile),
         LArgMain()  << EAM(aP0,"P0",true,"Origin (Def=(0,0))")
-                    << EAM(aSz,"Sz",true,"Size (Def full size of tiff file)")
+                    << EAM(aSz,"Sz",false,"Size (Def full size of tiff file)")
                     << EAM(aSzW,"Wsz",true,"Size of window (Def no window)")
                     << EAM(aNameOut,"Out",true,"Out")
                     // << EAM(ForceFloat,"FF",true,"Force Float Tmp Image (tuning purpose)")  !! BUGUE EN INT2 ????

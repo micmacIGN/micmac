@@ -552,7 +552,7 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     if (aArg.Type() == AMBT_string )
     {
         string val(*(aArg.DefaultValue<string>()));
-        if (val != "") aLineEdit->setText(QString(val.c_str()));
+        if ((val != "") && (val != NoInit)) aLineEdit->setText(QString(val.c_str()));
 
         list <string> strList = ListOfVal(eTMalt_NbVals,"eTMalt_");
         if (std::find(strList.begin(), strList.end(), val) != strList.end())

@@ -301,7 +301,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 #if (ELISE_QT_VERSION >= 4)
        aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main,"Interactive tool for initial capture of GCP"));
        aRes.push_back(cMMCom("SaisieAppuisPredicQT",SaisieAppuisPredicQT_main,"Interactive tool for assisted capture of GCP"));
-      // aRes.push_back(cMMCom("SaisieBascQT",SaisieBascQT_main,"Interactive tool to cature information on the scene"));
+       aRes.push_back(cMMCom("SaisieBascQT",SaisieBascQT_main,"Interactive tool to cature information on the scene"));
        aRes.push_back(cMMCom("SaisieMasqQT",SaisieMasqQT_main,"Interactive tool to capture masq"));
        aRes.push_back(cMMCom("SaisieBoxQT",SaisieBoxQT_main,"Interactive tool to capture 2D box"));
 #endif

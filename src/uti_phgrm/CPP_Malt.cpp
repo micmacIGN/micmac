@@ -292,7 +292,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
-                    << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO) if not XML frame camera")
+                    << EAM(mModeOri,"MOri",false,"Mode Orientation (GRID or RTO) if not XML frame camera")
 
                 );
 

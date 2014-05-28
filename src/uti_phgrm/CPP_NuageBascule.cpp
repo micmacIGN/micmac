@@ -147,18 +147,18 @@ int  NuageBascule_main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
 
     std::string  aNameIn,aNameOut,aNameRes;//,aToto;
-    bool  AutoResize=true;
-    bool  AutoClipIn=true;
-    bool  ICalledByP =false;
-    bool  ByP       =true;
-    bool  mParal       =true;
+    bool  AutoResize= true;
+    bool  AutoClipIn= true;
+    bool  ICalledByP = false;
+    bool  ByP       = true;
+    bool  mParal       = true;
     Pt2di aSzDecoup(2500,2500);
     std::string  aSuplOut="";
     Box2di aBoxIn;
-    bool   mShowCom = false;
+    bool   mShowCom  = false;
     int    mTileFile = 1e6;
-    double mSeuilEtir=5;
-    bool  mSaveEtir=false;
+    double mSeuilEtir = 5;
+    bool   mSaveEtir = false;
 
     ElInitArgMain
     (
