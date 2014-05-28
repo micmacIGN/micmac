@@ -714,8 +714,8 @@ int ClipIm_main(int argc,char ** argv)
 
     std::string aNameIn;
     std::string aNameOut;
-    Pt2di P0;
-    Pt2di Sz;
+    Pt2di P0(0,0);
+    Pt2di Sz(0,0);
 
     ElInitArgMain
     (
@@ -723,7 +723,7 @@ int ClipIm_main(int argc,char ** argv)
         LArgMain()  << EAM(aNameIn)
                     << EAMC(P0,"P0")
                     << EAMC(Sz,"SZ")  ,
-        LArgMain()  << EAM(aNameOut,"Out",true)
+        LArgMain()  << EAM(aNameOut,"Out",false)
     );
 
 

@@ -47,7 +47,6 @@ int Tawny_main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
     std::string  aDir;
 
-
     int mDeq = 1;
     Pt2di mDeqXY(-1,-1);
     bool mAddCste = false;
@@ -58,12 +57,13 @@ int Tawny_main(int argc,char ** argv)
 
     std::string mImPrio0 = ".*";
     int mSzV = 1;
-    double mNbPerIm = 1e4;
     double mCorrThresh = 0.8;
+    double mNbPerIm = 1e4;
     bool  DoL1Filter=true;
 
     double  aSatThresh = 1e9;
     string aNameOut="Ortho-Eg-Test-Redr.tif";
+
     ElInitArgMain
     (
     argc,argv,

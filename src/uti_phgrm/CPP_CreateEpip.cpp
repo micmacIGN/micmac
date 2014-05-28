@@ -91,7 +91,7 @@ int CreateEpip_main(int argc,char ** argv)
                     << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaible (Def=true)", eSAM_IsBool)
                     << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)", eSAM_IsBool)
                     << EAM(DoIm,"DoIm",true,"Compute image (def=true !!)", eSAM_IsBool)
-                    << EAM(aNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)")
+                    << EAM(aNameHom,"NameH",false,"Extension to compute Hom point in epi coord (def=none)")
                     << EAM(aDegre,"Degre",true,"Degre of polynom to correct epi (def=1-, ,2,3)")
     );
 

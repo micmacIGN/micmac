@@ -61,12 +61,12 @@ int Tarama_main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
     std::string  aDir,aPat,aFullDir;
     std::string Aero;
-    int  Zoom=8;
+    int  Zoom = 8;
     std::string  NOREP = "NO-REPERE";
-    std::string Repere= NOREP;
-    std::string DirOut="TA";
-    double   aZMoy=0;
-    int     aKNadir=-1;
+    std::string Repere = NOREP;
+    std::string DirOut = "TA";
+    double   aZMoy = 0;
+    int    aKNadir = -1;
 
     ElInitArgMain
     (

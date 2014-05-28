@@ -72,7 +72,7 @@ std::string BinPastis;
 std::string MkFT;
 std::string PostFix;
 std::string TheType = "XXXX";
-list<string> aFileList;				// all filenames matching input pattern, computed by DoDevelopp
+list<string> aFileList;				// all filenames matching input pattern, computed by DoDevelop
 vector<string> aKeypointsFileArray; // keypoints filenames associated to files in aFileList and a specified resolution, computed by DoDetectKeypoints
 
 std::string StrMkT() { return (ByP ? (" \"MkF=" + MkFT +"\" ") : "") ; }
@@ -135,7 +135,7 @@ void DoDevelopp(int aSz1,int aSz2)
     aFileList = anICNM->StdGetListOfFile(aPatOri,1);
 
     cEl_GPAO  aGPAO;
-    string post;
+    //string post;
     string taskName;
     int iImage = 0;
     for (std::list<std::string>::const_iterator iT= aFileList.begin() ; iT!=aFileList.end() ; iT++, iImage++)
@@ -242,7 +242,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Size of High Resolution Images"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
                 << EAM(ByP,"ByP",true)
-                << EAM(PostFix,"PostFix",true)
+                << EAM(PostFix,"PostFix",false)
                 << EAM(aNbMinPt,"NbMinPt",true)
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                 << EAM(aPat2,"Pat2",true)
@@ -310,7 +310,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
                             << EAMC(aFullRes,"Size of image"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                << EAM(PostFix,"PostFix",true)
+                << EAM(PostFix,"PostFix",false)
                 << EAM(ByP,"ByP",true)
                 << EAM(aPat2,"Pat2",true)
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
@@ -346,9 +346,9 @@ int All(int argc,char ** argv, const std::string &aArg="")
 
 int Line(int argc,char ** argv, const std::string &aArg="")
 {
-    int  aNbAdj=5;
-    bool  ForceAdj= false;
-    int isCirc=0;
+    int  aNbAdj = 5;
+    bool ForceAdj = false;
+    int isCirc = 0;
     string detectingTool, matchingTool;
 
     ElInitArgMain
@@ -358,7 +358,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Image size")
                             << EAMC(aNbAdj,"Number of adjacent images to look for"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in text format")
-                << EAM(PostFix,"PostFix",true,"Add post fix in directory")
+                << EAM(PostFix,"PostFix",false,"Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
