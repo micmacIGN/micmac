@@ -314,6 +314,7 @@ cElWarning cElWarning::GeomPointTooManyMeasured("Too many measuremnt, excess wil
 cElWarning cElWarning::ToVerifNuage("The point verification point in nuage where not coherents");
 cElWarning cElWarning::TrueRot("Non rotation matrix has been used as a rotation");
 cElWarning cElWarning::ScaleInNuageFromP("Possible scale-problem in cElNuage3DMaille::FromParam");
+cElWarning cElWarning::AppuisMultipleDefined("Ground point has several measure in same image");
 
 
 cElWarning cElWarning::OrhoLocOnlyXCste("For now RedrLocAnam only workx with X=Cst Anamorphose");

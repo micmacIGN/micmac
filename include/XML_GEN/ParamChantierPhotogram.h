@@ -1969,6 +1969,87 @@ std::string  Mangling( cSetOfMesureAppuisFlottants *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cOneMesureSegDr
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOneMesureSegDr & anObj,cElXMLTree * aTree);
+
+
+        std::list< std::string > & NamePt();
+        const std::list< std::string > & NamePt()const ;
+
+        Pt2dr & Pt1Im();
+        const Pt2dr & Pt1Im()const ;
+
+        Pt2dr & Pt2Im();
+        const Pt2dr & Pt2Im()const ;
+    private:
+        std::list< std::string > mNamePt;
+        Pt2dr mPt1Im;
+        Pt2dr mPt2Im;
+};
+cElXMLTree * ToXMLTree(const cOneMesureSegDr &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOneMesureSegDr &);
+
+void  BinaryUnDumpFromFile(cOneMesureSegDr &,ELISE_fp &);
+
+std::string  Mangling( cOneMesureSegDr *);
+
+class cMesureAppuiSegDr1Im
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMesureAppuiSegDr1Im & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        std::list< cOneMesureSegDr > & OneMesureSegDr();
+        const std::list< cOneMesureSegDr > & OneMesureSegDr()const ;
+    private:
+        std::string mNameIm;
+        std::list< cOneMesureSegDr > mOneMesureSegDr;
+};
+cElXMLTree * ToXMLTree(const cMesureAppuiSegDr1Im &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMesureAppuiSegDr1Im &);
+
+void  BinaryUnDumpFromFile(cMesureAppuiSegDr1Im &,ELISE_fp &);
+
+std::string  Mangling( cMesureAppuiSegDr1Im *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cSetOfMesureSegDr
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cSetOfMesureSegDr & anObj,cElXMLTree * aTree);
+
+
+        std::list< cMesureAppuiSegDr1Im > & MesureAppuiSegDr1Im();
+        const std::list< cMesureAppuiSegDr1Im > & MesureAppuiSegDr1Im()const ;
+    private:
+        std::list< cMesureAppuiSegDr1Im > mMesureAppuiSegDr1Im;
+};
+cElXMLTree * ToXMLTree(const cSetOfMesureSegDr &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSetOfMesureSegDr &);
+
+void  BinaryUnDumpFromFile(cSetOfMesureSegDr &,ELISE_fp &);
+
+std::string  Mangling( cSetOfMesureSegDr *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cMesureAppuis
 {
     public:

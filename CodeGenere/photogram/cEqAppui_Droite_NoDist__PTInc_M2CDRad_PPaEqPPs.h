@@ -2,31 +2,37 @@
 #include "StdAfx.h"
 
 
-class cEqAppui_TerFix_M2CDRad5: public cElCompiledFonc
+class cEqAppui_Droite_NoDist__PTInc_M2CDRad_PPaEqPPs: public cElCompiledFonc
 {
    public :
 
-      cEqAppui_TerFix_M2CDRad5();
+      cEqAppui_Droite_NoDist__PTInc_M2CDRad_PPaEqPPs();
       void ComputeVal();
       void ComputeValDeriv();
       void ComputeValDerivHessian();
       double * AdrVarLocFromString(const std::string &);
+      void SetNDP0_x(double);
+      void SetNDP0_y(double);
+      void SetNDdx_x(double);
+      void SetNDdx_y(double);
+      void SetNDdy_x(double);
+      void SetNDdy_y(double);
       void SetScNorm(double);
       void SetXIm(double);
-      void SetXTer(double);
       void SetYIm(double);
-      void SetYTer(double);
-      void SetZTer(double);
 
 
       static cAutoAddEntry  mTheAuto;
       static cElCompiledFonc *  Alloc();
    private :
 
+      double mLocNDP0_x;
+      double mLocNDP0_y;
+      double mLocNDdx_x;
+      double mLocNDdx_y;
+      double mLocNDdy_x;
+      double mLocNDdy_y;
       double mLocScNorm;
       double mLocXIm;
-      double mLocXTer;
       double mLocYIm;
-      double mLocYTer;
-      double mLocZTer;
 };

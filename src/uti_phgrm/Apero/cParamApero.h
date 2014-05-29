@@ -973,20 +973,24 @@ class cBDD_ObsAppuisFlottant
         std::string & Id();
         const std::string & Id()const ;
 
-        std::string & KeySetOrPat();
-        const std::string & KeySetOrPat()const ;
+        cTplValGesInit< std::string > & KeySetOrPat();
+        const cTplValGesInit< std::string > & KeySetOrPat()const ;
 
         cTplValGesInit< std::string > & NameAppuiSelector();
         const cTplValGesInit< std::string > & NameAppuiSelector()const ;
 
         cTplValGesInit< bool > & AcceptNoGround();
         const cTplValGesInit< bool > & AcceptNoGround()const ;
+
+        cTplValGesInit< std::string > & KeySetSegDroite();
+        const cTplValGesInit< std::string > & KeySetSegDroite()const ;
     private:
         cTplValGesInit< Pt2dr > mOffsetIm;
         std::string mId;
-        std::string mKeySetOrPat;
+        cTplValGesInit< std::string > mKeySetOrPat;
         cTplValGesInit< std::string > mNameAppuiSelector;
         cTplValGesInit< bool > mAcceptNoGround;
+        cTplValGesInit< std::string > mKeySetSegDroite;
 };
 cElXMLTree * ToXMLTree(const cBDD_ObsAppuisFlottant &);
 

@@ -268,8 +268,9 @@ cParamIntrinsequeFormel * PIF_For_GC
 
 //==================== APPUI ======================================
 
-void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const std::string & aType)
+void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const std::string & aType,bool EqDroite)
 {
+
         std::vector<double>  aPAF;
         if (isAFocal)
         {
@@ -278,7 +279,7 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
         }
 
 
-std::cout << "Type Appui = " << aType << "ENTRE GETCHAR \n"; getchar();
+// std::cout << "Type Appui = " << aType << "ENTRE GETCHAR \n"; getchar();
 	cSetEqFormelles aSet;
 	cParamIntrinsequeFormel * aPIF = PIF_For_GC(C2M,aType,aSet,aPAF);
 	ElRotation3D aRot(Pt3dr(0,0,0),0,0,0);
@@ -293,14 +294,19 @@ std::cout << "Type Appui = " << aType << "ENTRE GETCHAR \n"; getchar();
 	   cCameraFormelle * aCam =  aPIF->NewCam(cNameSpaceEqF::eRotFigee,aRot,0,"toto",false,false);
            if (isGL)
               aCam->SetGL(true);
-	   aCam->AddForUseFctrEqAppuisInc(true,false,wDist);
-	   aCam->AddForUseFctrEqAppuisInc(true,true,wDist);
+	   aCam->AddForUseFctrEqAppuisInc(true,false,wDist,EqDroite);
+	   aCam->AddForUseFctrEqAppuisInc(true,true,wDist,EqDroite);
 	}
 }
 
-void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal)
+void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
 {
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"DRad5",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadPPaEqPPs",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"DRad5",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadPPaEqPPs",EqDroite);
 
+/*
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour7x2");
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour7x2");
 
@@ -312,12 +318,10 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal)
 
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour19x2");
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour19x2");
-/*
 */
 
 
 /*
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"DRad5");
 
 
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar");
@@ -352,12 +356,18 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal)
 void GenCodeAppui()
 {
 /*  
+void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
 */
-  // SANS AFOCAL
-    GenCodeAppui(false,true,true,false);
-    GenCodeAppui(false,true,false,false);
-    GenCodeAppui(false,false,true,false);
-    GenCodeAppui(false,false,false,false);
+  // SANS AFOCAL AVEC EQ DROITE
+    GenCodeAppui(false,false,true,false,true);
+    GenCodeAppui(false,false,false,false,true);
+  // SANS AFOCAL SS EQ DROITE
+/*
+    GenCodeAppui(false,true,true,false,false);
+    GenCodeAppui(false,true,false,false,false);
+    GenCodeAppui(false,false,true,false,false);
+    GenCodeAppui(false,false,false,false,false);
+*/
 
   // AVEC AFOCAL
 /*
@@ -622,13 +632,13 @@ extern void GenCodeRigiditeBlock();
 
 int GenCode_main(int argc,char ** argv)
 {
-     GenCodeOneEqHom();
+   //  GenCodeOneEqHom();
    //  GenCodeEqHom();
 
 
 
      // GenCodeRigiditeBlock();
-    // GenCodeAppui();
+     GenCodeAppui();
      // GenEqPlanInc();
      // GenDirecteDistorsion();
      //   GencqCalibCroisee();

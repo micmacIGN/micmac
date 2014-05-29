@@ -3038,12 +3038,12 @@ const std::string & cBDD_ObsAppuisFlottant::Id()const
 }
 
 
-std::string & cBDD_ObsAppuisFlottant::KeySetOrPat()
+cTplValGesInit< std::string > & cBDD_ObsAppuisFlottant::KeySetOrPat()
 {
    return mKeySetOrPat;
 }
 
-const std::string & cBDD_ObsAppuisFlottant::KeySetOrPat()const 
+const cTplValGesInit< std::string > & cBDD_ObsAppuisFlottant::KeySetOrPat()const 
 {
    return mKeySetOrPat;
 }
@@ -3070,6 +3070,17 @@ const cTplValGesInit< bool > & cBDD_ObsAppuisFlottant::AcceptNoGround()const
    return mAcceptNoGround;
 }
 
+
+cTplValGesInit< std::string > & cBDD_ObsAppuisFlottant::KeySetSegDroite()
+{
+   return mKeySetSegDroite;
+}
+
+const cTplValGesInit< std::string > & cBDD_ObsAppuisFlottant::KeySetSegDroite()const 
+{
+   return mKeySetSegDroite;
+}
+
 void  BinaryUnDumpFromFile(cBDD_ObsAppuisFlottant & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -3081,7 +3092,14 @@ void  BinaryUnDumpFromFile(cBDD_ObsAppuisFlottant & anObj,ELISE_fp & aFp)
         else  anObj.OffsetIm().SetNoInit();
   } ;
     BinaryUnDumpFromFile(anObj.Id(),aFp);
-    BinaryUnDumpFromFile(anObj.KeySetOrPat(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.KeySetOrPat().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeySetOrPat().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeySetOrPat().SetNoInit();
+  } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -3098,6 +3116,14 @@ void  BinaryUnDumpFromFile(cBDD_ObsAppuisFlottant & anObj,ELISE_fp & aFp)
         }
         else  anObj.AcceptNoGround().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.KeySetSegDroite().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeySetSegDroite().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeySetSegDroite().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cBDD_ObsAppuisFlottant & anObj)
@@ -3105,11 +3131,14 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cBDD_ObsAppuisFlottant & anObj)
     BinaryDumpInFile(aFp,anObj.OffsetIm().IsInit());
     if (anObj.OffsetIm().IsInit()) BinaryDumpInFile(aFp,anObj.OffsetIm().Val());
     BinaryDumpInFile(aFp,anObj.Id());
-    BinaryDumpInFile(aFp,anObj.KeySetOrPat());
+    BinaryDumpInFile(aFp,anObj.KeySetOrPat().IsInit());
+    if (anObj.KeySetOrPat().IsInit()) BinaryDumpInFile(aFp,anObj.KeySetOrPat().Val());
     BinaryDumpInFile(aFp,anObj.NameAppuiSelector().IsInit());
     if (anObj.NameAppuiSelector().IsInit()) BinaryDumpInFile(aFp,anObj.NameAppuiSelector().Val());
     BinaryDumpInFile(aFp,anObj.AcceptNoGround().IsInit());
     if (anObj.AcceptNoGround().IsInit()) BinaryDumpInFile(aFp,anObj.AcceptNoGround().Val());
+    BinaryDumpInFile(aFp,anObj.KeySetSegDroite().IsInit());
+    if (anObj.KeySetSegDroite().IsInit()) BinaryDumpInFile(aFp,anObj.KeySetSegDroite().Val());
 }
 
 cElXMLTree * ToXMLTree(const cBDD_ObsAppuisFlottant & anObj)
@@ -3119,11 +3148,14 @@ cElXMLTree * ToXMLTree(const cBDD_ObsAppuisFlottant & anObj)
    if (anObj.OffsetIm().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("OffsetIm"),anObj.OffsetIm().Val())->ReTagThis("OffsetIm"));
    aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
-   aRes->AddFils(::ToXMLTree(std::string("KeySetOrPat"),anObj.KeySetOrPat())->ReTagThis("KeySetOrPat"));
+   if (anObj.KeySetOrPat().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("KeySetOrPat"),anObj.KeySetOrPat().Val())->ReTagThis("KeySetOrPat"));
    if (anObj.NameAppuiSelector().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NameAppuiSelector"),anObj.NameAppuiSelector().Val())->ReTagThis("NameAppuiSelector"));
    if (anObj.AcceptNoGround().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("AcceptNoGround"),anObj.AcceptNoGround().Val())->ReTagThis("AcceptNoGround"));
+   if (anObj.KeySetSegDroite().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("KeySetSegDroite"),anObj.KeySetSegDroite().Val())->ReTagThis("KeySetSegDroite"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -3143,9 +3175,11 @@ void xml_init(cBDD_ObsAppuisFlottant & anObj,cElXMLTree * aTree)
    xml_init(anObj.NameAppuiSelector(),aTree->Get("NameAppuiSelector",1)); //tototo 
 
    xml_init(anObj.AcceptNoGround(),aTree->Get("AcceptNoGround",1),bool(false)); //tototo 
+
+   xml_init(anObj.KeySetSegDroite(),aTree->Get("KeySetSegDroite",1)); //tototo 
 }
 
-std::string  Mangling( cBDD_ObsAppuisFlottant *) {return "CCA18D8D345A4487FE3F";};
+std::string  Mangling( cBDD_ObsAppuisFlottant *) {return "3F15C340C116E4C6FE3F";};
 
 
 std::string & cBDD_Orient::Id()
@@ -4327,7 +4361,7 @@ void xml_init(cSectionBDD_Observation & anObj,cElXMLTree * aTree)
    xml_init(anObj.LimSupBSurHPMoy(),aTree->Get("LimSupBSurHPMoy",1),double(2e-1)); //tototo 
 }
 
-std::string  Mangling( cSectionBDD_Observation *) {return "93587E71C0CB0CB7FE3F";};
+std::string  Mangling( cSectionBDD_Observation *) {return "62AC719242F50C8FFE3F";};
 
 
 eTypeCalibAutom & cCalibAutomNoDist::TypeDist()
@@ -21974,6 +22008,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "A6F6F7FDEA671CB2FF3F";};
+std::string  Mangling( cParamApero *) {return "68F4E781A8CB1C8CFF3F";};
 
 // };

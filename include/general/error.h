@@ -290,6 +290,7 @@ class cElWarning
          static cElWarning  ToVerifNuage;
          static cElWarning  TrueRot;
          static cElWarning  ScaleInNuageFromP;
+         static cElWarning  AppuisMultipleDefined;
 
          static void ShowWarns(const std::string & aFile);
     private :

@@ -1540,10 +1540,10 @@ class cCameraFormelle :  public cNameSpaceEqF ,
 	   Pt2dr  CorrigePFromDAdd(const Pt2dr & aP1,bool UseGrid);
 
            class cEqAppui ;
-	   cEqAppui * AddFctrEqAppuisInc(bool aGenCode,bool Proj,bool isGL,bool wDist);  // Initialise si nec le fcteur
-	   cEqAppui * AddForUseFctrEqAppuisInc(bool aGenCode,bool Proj,bool wDist);  // Initialise si nec le fcteur
+	   cEqAppui * AddFctrEqAppuisInc(bool aGenCode,bool Proj,bool isGL,bool wDist,bool EqDr);  // Initialise si nec le fcteur
+	   cEqAppui * AddForUseFctrEqAppuisInc(bool aGenCode,bool Proj,bool wDist,bool IsEqDr);  // Initialise si nec le fcteur
 	   cIncListInterv & IntervAppuisPtsInc(); 
-	   Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &);
+	   Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite);
            virtual void Update_0F2D();
            void TestVB10(const std::string& aMes) const;
            void SetGL(bool aModeGL);
@@ -1562,7 +1562,8 @@ class cCameraFormelle :  public cNameSpaceEqF ,
 		           bool isPTerrainFixe,
 		           bool Comp,
 			   cCameraFormelle &,
-			   bool GenCode
+			   bool GenCode, 
+                           bool IsEqDroite
                       );
 		      void GenCode();
                       cIncListInterv & LInterv();
@@ -1608,6 +1609,7 @@ class cCameraFormelle :  public cNameSpaceEqF ,
                       cP2d_Etat_PhgrF *  mNDP0;
                       cP2d_Etat_PhgrF *  mNDdx;
                       cP2d_Etat_PhgrF *  mNDdy;
+                      bool               mEqDroite;
 
 	  };
 	  CamStenope *  DuplicataCameraCourante();
@@ -1644,6 +1646,10 @@ class cCameraFormelle :  public cNameSpaceEqF ,
           cEqAppui *                    mEqAppuiSDistProjIncXY ;
           cEqAppui *                    mEqAppuiSDistGLIncXY ;
           cEqAppui *                    mEqAppuiSDistGLProjIncXY ;
+
+          static const int TheNbEqDr = 8;
+          cEqAppui *                    mEqAppuiDroite[TheNbEqDr] ; // Dist X Proj X Gl
+
 	  CamStenope *                  mCameraCourante;
 
 

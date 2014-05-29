@@ -1503,7 +1503,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
        double aPds= (AddEq?aVPdsIm[aK]:0) * mMulGlobPds;
        if (aVPdsIm[aK]>0)
        {
-           Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP);
+           Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK));
            mResidus.mEcIm.push_back(anEr);
 // std::cout << aNuple.PK(aK) << "\n";
 

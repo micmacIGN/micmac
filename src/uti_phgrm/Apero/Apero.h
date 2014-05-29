@@ -1374,7 +1374,7 @@ class cOneAppuisFlottant
           cBdAppuisFlottant &
        );
 
-       void AddLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset);
+       void AddLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool aModeDr);
        void Compile();
        void AddObs(const cObsAppuisFlottant &,cStatObs & aSO);
 
@@ -1400,6 +1400,7 @@ class cOneAppuisFlottant
        std::vector<Pt2dr>      mPts;
        std::vector<double>     mPdsIm;
        std::vector<cPoseCam *> mCams;
+       std::vector<bool>       mIsDroite;
        bool mHasGround;
        Pt3dr mPt;
        Pt3dr mInc;
@@ -1415,7 +1416,7 @@ class cBdAppuisFlottant
     public :
        void ShowError();
        cBdAppuisFlottant(cAppliApero &);
-       void AddAFLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool OkNoGr);
+       void AddAFLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool OkNoGr,bool ModeDr);
        void AddAFDico(const cDicoAppuisFlottant &);
 
        void Compile();
@@ -1646,6 +1647,7 @@ class cPonderateur
     |      |  CompileOsbOr()
     |      |  CompileObsCentre()
     |      |  InitAndCompileBDDObsFlottant();
+    |      |  InitAndCompileBDDObsDr();
 
 
 -----------------------------------------------
@@ -2077,6 +2079,7 @@ class cAppliApero : public NROptF1vND
          void CompileOsbOr();
          void CompileObsCentre();
 	 void InitAndCompileBDDObsFlottant();
+	 void InitAndCompileBDDObsDr();
 
           void DoAMD();
 
@@ -2103,6 +2106,8 @@ class cAppliApero : public NROptF1vND
 	         );
 
          void InitOneSetObsFlot(cBdAppuisFlottant * ,const cSetOfMesureAppuisFlottants &,const Pt2dr &,cSetName *,bool OkNoGr);
+         void InitOneSetOnsDr(cBdAppuisFlottant *,const cSetOfMesureSegDr &,const Pt2dr &,cSetName *,bool       OkNoGr);
+
 
 	                    
 

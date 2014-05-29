@@ -134,8 +134,26 @@ void InvY(std::list<Appar23> & aLAp,Pt2dr aSzIm,bool InvX)
 
 cNupletPtsHomologues::cNupletPtsHomologues(int aNb,double aPds) :
     mPts (aNb),   // De taille aNb avec N element par defaut
-    mPds (aPds)
+    mPds (aPds),
+    mFlagDr (0)
 {
+}
+
+bool cNupletPtsHomologues::IsDr(int aK) const
+{
+   AssertIsValideFlagDr(aK);
+   return (mFlagDr& (1<<aK)) !=0;
+}
+
+void   cNupletPtsHomologues::SetDr(int aK)
+{
+   AssertIsValideFlagDr(aK);
+   mFlagDr |= (1<<aK);
+}
+
+void cNupletPtsHomologues::AssertIsValideFlagDr(int aK) const
+{
+   ELISE_ASSERT((aK>=0) && (aK<31) && (aK<int(mPts.size())),"cNupletPtsHomologues::AssertIsValideFlagDr");
 }
 
 void cNupletPtsHomologues::AddPts(const Pt2dr & aPt)
