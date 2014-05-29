@@ -384,18 +384,26 @@
 
             <!--  Observations des appuis "flottants"
 	    -->
-
             <BDD_ObsAppuisFlottant Nb="*">
                   <!-- A rejouter au mesure images si par exemple saisi su Jpg de taille diff -->
                   <OffsetIm Nb="?" Type="Pt2dr" Def="Pt2dr(0,0)"> </OffsetIm>
 	          <Id Nb="1" Type="std::string"> </Id>
-		  <KeySetOrPat Nb="1" Type="std::string"> </KeySetOrPat>
+                  <!-- Ceci est pour les mesures de points -->
+		  <KeySetOrPat Nb="?" Type="std::string"> </KeySetOrPat>
                   <NameAppuiSelector Nb="?" Type="std::string"> </NameAppuiSelector>
 
                   <!-- If true : no error will appear when no ground data base exist;
-                       default is false for full compatibility -->
-                  <AcceptNoGround Nb="?" Type="bool" Def="false"> </AcceptNoGround>
+                       OLD : default is false for full compatibility 
+                       NEW : default is true, do not see any draw back
+                   -->
+                  <AcceptNoGround Nb="?" Type="bool" Def="true"> </AcceptNoGround>
+		  <KeySetSegDroite Nb="?" Type="std::string"> </KeySetSegDroite>
             </BDD_ObsAppuisFlottant>
+
+            <!--  Observations des appuis "flottants"
+	    -->
+
+
 
              <BDD_Orient Nb="*">
 	          <Id Nb="1" Type="std::string" > </Id>

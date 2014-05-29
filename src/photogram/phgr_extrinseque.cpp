@@ -629,13 +629,15 @@ cCameraFormelle::cEqAppui::cEqAppui
      bool isPTerrainFixe,
      bool Comp,
      cCameraFormelle & aCam,
-     bool Code2Gen
+     bool Code2Gen,
+     bool IsEqDroite
 )  :
     mCam            (aCam),
     mUseEqNoVar     ((! wDist) && (!UseTjsDist) && (! Code2Gen)),
     mIsPTerrainFixe (isPTerrainFixe),
     mNameType       (
                         std::string("cEqAppui") 
+                      + std::string(IsEqDroite ? "_Droite" : "")
                       + std::string(mCam.mIntr.UseAFocal() ? "_AFocal" : "")
                       +std::string(wDist ? "" : "_NoDist_" )
                       +std::string(isGL ? "_GL_" : "")
@@ -670,7 +672,8 @@ cCameraFormelle::cEqAppui::cEqAppui
     mMatriceGL      (isGL ? new cMatr_Etat_PhgrF("GL",3,3) : 0),
     mNDP0           (wDist ? 0 : new cP2d_Etat_PhgrF("NDP0")),
     mNDdx           (wDist ? 0 : new cP2d_Etat_PhgrF("NDdx")),
-    mNDdy           (wDist ? 0 : new cP2d_Etat_PhgrF("NDdy"))
+    mNDdy           (wDist ? 0 : new cP2d_Etat_PhgrF("NDdy")),
+    mEqDroite       (IsEqDroite)
 {
 // std::cout <<"DEBUG33 " << mNameType << "\n";
    if (Code2Gen)  // En mode normal, on ne modifie pas la camera
@@ -719,10 +722,21 @@ cCameraFormelle::cEqAppui::cEqAppui
           aP2 = mPIm;
     }
 
-     Pt2d<Fonc_Num> fEcart = (aP1-aP2) * mFScN;
-     // Les ecarts sont des radians !
-     mEcarts.push_back(fEcart.x);
-     mEcarts.push_back(fEcart.y);
+     if (IsEqDroite)
+     {
+        // Pour reutiliser au max "l'infrastructure" existante on prend la convention que
+        // aP2.x -> rho aP2.y -> Theta et que cela code l'equation normale de la droite 
+        // rho = cos(Teta) X + sin(Theta) Y
+        Fonc_Num fEcart = (aP2.x -cos(aP2.y)*aP1.x - sin(aP2.y)* aP1.y) * mFScN;
+        mEcarts.push_back(fEcart);
+     }
+     else
+     {
+         Pt2d<Fonc_Num> fEcart = (aP1-aP2) * mFScN;
+         // Les ecarts sont des radians !
+         mEcarts.push_back(fEcart.x);
+         mEcarts.push_back(fEcart.y);
+     }
 
 
     if (Comp || Code2Gen)
@@ -839,7 +853,7 @@ Pt2dr cCameraFormelle::cEqAppui::Residu(Pt3dr aPTer,Pt2dr aPIm,REAL aPds)
 
     // std::cout << pAdrScN  << " " <<  mCam.PIF().StdScaleN() << "\n";;
    // std::cout << "wdfqhtt  " << mNameType << " " << aRes << "\n";
-   return Pt2dr(aRes.at(0),aRes.at(1));
+   return Pt2dr(aRes.at(0), mEqDroite ? 0.0  : aRes.at(1));
 }
 
 
@@ -875,7 +889,8 @@ Pt2dr cCameraFormelle::cEqAppui::ResiduPInc(Pt2dr aPIm,REAL aPds,const cParamPtP
                   (aPds > 0)                                             ?
                   mCam.mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false)   :
 		  mCam.mSet.VResiduSigne(mFoncEqResidu)                  ;
-    Pt2dr aRes(aVals[0],aVals[1]);
+
+    Pt2dr aRes(aVals[0], mEqDroite ? 0.0 : aVals[1]);
 
     // std::cout << aPPP.wDist << " " <<  mCam.PIF().StdScaleN() << "wdfqhtt  " << mNameType << " " << aRes << "\n";
     return aRes;
@@ -933,9 +948,13 @@ cCameraFormelle::cCameraFormelle
    mEqAppuiSDistGLProjIncXY (0),
    mCameraCourante(NULL)
 {
+        for (int aKEqDr=0 ; aKEqDr<TheNbEqDr; aKEqDr++)
+        {
+            mEqAppuiDroite[aKEqDr] = 0;
+        }
 	// NO_WARN
-	mEqAppuiTerNoGL = new cEqAppui(true,false,false,true,CompEqAppui,*this,GenCodeAppui);
-	mEqAppuiTerGL	 = new cEqAppui(true,true ,false,true,CompEqAppui,*this,GenCodeAppui);
+	mEqAppuiTerNoGL = new cEqAppui(true,false,false,true,CompEqAppui,*this,GenCodeAppui,false);
+	mEqAppuiTerGL	 = new cEqAppui(true,true ,false,true,CompEqAppui,*this,GenCodeAppui,false);
 	mCameraCourante	 = CalcCameraCourante();
 }
 
@@ -946,7 +965,7 @@ cCameraFormelle::~cCameraFormelle(){
 	//if ( mEqAppuiTerGL_II!=NULL ) delete mEqAppuiTerNoGL;
 }
 
-Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtProj & aPPP)
+Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtProj & aPPP,bool IsEqDroite)
 {
      cCamStenopeGrid * aCSG = mIntr.CamGrid();
      if ( aCSG)
@@ -955,6 +974,7 @@ Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtPro
         Pt2dr aPLoc  = ProjStenope(mCameraCourante->R3toL3(aPPP.mTer));
 
         aPPP.mNDP0 =aCSG->L2toF2AndDer(aPLoc,aPPP.mNDdx,aPPP.mNDdy);
+        // Si on remonte jusqu'a PtImGrid::ValueAndDer, on voit que GradX est la derive de X selon x et y (et non la derive selon x de X et Y)
         ElSwap(aPPP.mNDdx.y,aPPP.mNDdy.x);
         aPPP.mNDP0 = aPPP.mNDP0 - aPPP.mNDdx * aPLoc.x - aPPP.mNDdy * aPLoc.y;
 
@@ -964,7 +984,7 @@ Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtPro
      else
         aPPP.wDist = true;
 
-     cEqAppui*  anEq = AddForUseFctrEqAppuisInc ( false, aPPP.mProjIsInit, aPPP.wDist);
+     cEqAppui*  anEq = AddForUseFctrEqAppuisInc ( false, aPPP.mProjIsInit, aPPP.wDist,IsEqDroite);
      Pt2dr aRes = anEq->ResiduPInc(CorrigePFromDAdd(aPIm,true),aPds,aPPP);
 
 // std::cout << "RES " << aRes << " " << aPIm << " " << CorrigePFromDAdd(aPIm,true) << "\n";
@@ -998,10 +1018,10 @@ cIncListInterv & cCameraFormelle::IntervAppuisPtsInc()
        bool wDist = (aKDist==0);
         if (wDist || (!mIntr.UseAFocal())  ||   ( AFocalAcceptNoDist))
        {
-           AddFctrEqAppuisInc(false,false,false,wDist);
-           AddFctrEqAppuisInc(false,true,false,wDist);
-           AddFctrEqAppuisInc(false,false,true,wDist);
-           AddFctrEqAppuisInc(false,true,true,wDist);
+           AddFctrEqAppuisInc(false,false,false,wDist,false);
+           AddFctrEqAppuisInc(false,true,false,wDist,false);
+           AddFctrEqAppuisInc(false,false,true,wDist,false);
+           AddFctrEqAppuisInc(false,true,true,wDist,false);
        }
    }
 // std::cout << "GLglgl " << IsGL() << "\n";getchar();
@@ -1035,13 +1055,28 @@ cIncListInterv & cCameraFormelle::IntervAppuisPtsInc()
 }
 
 
-cCameraFormelle::cEqAppui * cCameraFormelle::AddForUseFctrEqAppuisInc(bool aGenCode,bool isProj,bool wDist)
+cCameraFormelle::cEqAppui * cCameraFormelle::AddForUseFctrEqAppuisInc(bool aGenCode,bool isProj,bool wDist,bool IsEqDroite)
 {
-   return AddFctrEqAppuisInc(aGenCode,isProj,IsGL(),wDist);
+   return AddFctrEqAppuisInc(aGenCode,isProj,IsGL(),wDist,IsEqDroite);
 }
 
-cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bool isProj,bool isGL,bool wDist)
+cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bool isProj,bool isGL,bool wDist,bool IsEqDroite)
 {
+  if (IsEqDroite)
+  {
+       ELISE_ASSERT(!mIntr.UseAFocal(),"EqDroite incompatible with AFocal\n");
+       int aK = (isProj==true) + 2 * (isGL==true) + 4 * (wDist==true);
+
+       if (mEqAppuiDroite[aK] == 0)
+           mEqAppuiDroite[aK] =  new cEqAppui(wDist,isGL,isProj,false,true,*this,aGenCode,true);
+
+      return mEqAppuiDroite[aK];
+       // Avec ss dist
+       // Avec ss Proj
+       // Avec ss GL 
+  }
+
+
   if (wDist  || (mIntr.UseAFocal() && (!AFocalAcceptNoDist)))
   {
       if (isProj)
@@ -1050,7 +1085,7 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
          {
             if (mEqAppuiGLProjIncXY==0)
             {
-                mEqAppuiGLProjIncXY = new cEqAppui(wDist,true,true,false,true,*this,aGenCode);
+                mEqAppuiGLProjIncXY = new cEqAppui(wDist,true,true,false,true,*this,aGenCode,false);
             }
             return mEqAppuiGLProjIncXY;
          }
@@ -1058,7 +1093,7 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
          {
             if (mEqAppuiProjIncXY==0)
             {
-                mEqAppuiProjIncXY = new cEqAppui(wDist,false,true,false,true,*this,aGenCode);
+                mEqAppuiProjIncXY = new cEqAppui(wDist,false,true,false,true,*this,aGenCode,false);
             }
             return mEqAppuiProjIncXY;
          }
@@ -1069,7 +1104,7 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
          {
              if (mEqAppuiGLIncXY==0) 
              {
-                mEqAppuiGLIncXY = new cEqAppui(wDist,true,false,false,true,*this,aGenCode);
+                mEqAppuiGLIncXY = new cEqAppui(wDist,true,false,false,true,*this,aGenCode,false);
              }
              return mEqAppuiGLIncXY;
          }
@@ -1077,7 +1112,7 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
          {
              if (mEqAppuiIncXY==0) 
              {
-                mEqAppuiIncXY = new cEqAppui(wDist,false,false,false,true,*this,aGenCode);
+                mEqAppuiIncXY = new cEqAppui(wDist,false,false,false,true,*this,aGenCode,false);
              }
              return mEqAppuiIncXY;
          }
@@ -1091,7 +1126,7 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
          {
             if (mEqAppuiSDistGLProjIncXY==0)
             {
-                mEqAppuiSDistGLProjIncXY = new cEqAppui(wDist,true,true,false,true,*this,aGenCode);
+                mEqAppuiSDistGLProjIncXY = new cEqAppui(wDist,true,true,false,true,*this,aGenCode,false);
             }
             return mEqAppuiSDistGLProjIncXY;
          }
@@ -1099,7 +1134,7 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
          {
             if (mEqAppuiSDistProjIncXY==0)
             {
-                mEqAppuiSDistProjIncXY = new cEqAppui(wDist,false,true,false,true,*this,aGenCode);
+                mEqAppuiSDistProjIncXY = new cEqAppui(wDist,false,true,false,true,*this,aGenCode,false);
             }
             return mEqAppuiSDistProjIncXY;
          }
@@ -1110,7 +1145,7 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
          {
              if (mEqAppuiSDistGLIncXY==0) 
              {
-                mEqAppuiSDistGLIncXY = new cEqAppui(wDist,true,false,false,true,*this,aGenCode);
+                mEqAppuiSDistGLIncXY = new cEqAppui(wDist,true,false,false,true,*this,aGenCode,false);
              }
              return mEqAppuiSDistGLIncXY;
          }
@@ -1118,14 +1153,12 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
          {
              if (mEqAppuiSDistIncXY==0) 
              {
-                mEqAppuiSDistIncXY = new cEqAppui(wDist,false,false,false,true,*this,aGenCode);
+                mEqAppuiSDistIncXY = new cEqAppui(wDist,false,false,false,true,*this,aGenCode,false);
              }
              return mEqAppuiSDistIncXY;
          }
      }
   }
-
-
 
 
   ELISE_ASSERT(false,"cCameraFormelle::AddFctrEqAppuisInc");

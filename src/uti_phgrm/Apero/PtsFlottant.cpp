@@ -81,27 +81,35 @@ void cOneAppuisFlottant::AddLiaison
      (
           const std::string & aNameIm,
           const cOneMesureAF1I & aMes,
-          const Pt2dr & anOffset
+          const Pt2dr & anOffset,
+          bool  aModeDr
      )
 {
     cPoseCam * aPose = mAppli.PoseFromName(aNameIm);
 
     for (int aK=0; aK<int(mCams.size()) ; aK++)
     {
-        if (aPose==mCams[aK])
+        if ((aPose==mCams[aK]) && (aModeDr==mIsDroite[aK]))
 	{
-	   std::cout << "For Im " << aNameIm << " Pt " << aMes.NamePt() << "\n";
+           std::string aMessage = "For Im " + aNameIm +  " Pt " +  aMes.NamePt();
+	   // std::cout << "For Im " << aNameIm << " Pt " << aMes.NamePt() << "\n";
+           cElWarning::AppuisMultipleDefined.AddWarn(aMessage,__LINE__,__FILE__);
+/*
 	   ELISE_ASSERT
 	   (
                  false,
 		 "Liaison definie plusieurs fois"
 	   );
+*/
 	}
     }
     Pt2dr aP = aMes.PtIm() + anOffset;
-    aPose->C2MCompenseMesureOrInt(aP);
+    if (! aModeDr)
+       aPose->C2MCompenseMesureOrInt(aP);
     mPts.push_back(aP);
     mCams.push_back(aPose);
+    mIsDroite.push_back(aModeDr);
+    
 }
 
 void cOneAppuisFlottant::DoAMD(cAMD_Interf *)
@@ -120,6 +128,8 @@ void  cOneAppuisFlottant::Compile()
         mNupl->PK(aK) = mPts[aK];
 	aVCF.push_back(mCams[aK]->CF());
 	mPdsIm.push_back(1.0);
+        if (mIsDroite[aK])
+            mNupl->SetDr(aK);
     }
 
     mMP3TI = new cManipPt3TerInc(mAppli.SetEq(),0,aVCF);
@@ -498,9 +508,23 @@ void cBdAppuisFlottant::AddAFLiaison
             const std::string & aNameIm,
             const cOneMesureAF1I & aMes,
             const Pt2dr & anOffset,
-            bool  OkNoGr
+            bool  OkNoGr,
+            bool  aModeDr
      )
 {
+    std::map<std::string,cOneAppuisFlottant *>::iterator iT = mApps.find(aMes.NamePt());
+    if (iT== mApps.end())
+    {
+       if (! OkNoGr)
+       {
+          std::cout << "For Pt=" << aMes.NamePt() << "\n";
+          ELISE_ASSERT(false,"Cannot Get point in cBdAppuisFlottant::AddLiaison");
+       }
+       return;
+    }
+    cOneAppuisFlottant * anApp = iT->second;
+
+/*
     cOneAppuisFlottant * anApp = mApps[aMes.NamePt()];
     if (anApp==0)
     {
@@ -523,7 +547,8 @@ void cBdAppuisFlottant::AddAFLiaison
             ELISE_ASSERT(false,"Cannot Get point in cBdAppuisFlottant::AddLiaison");
         }
     }
-    anApp->AddLiaison(aNameIm,aMes,anOffset);
+*/
+    anApp->AddLiaison(aNameIm,aMes,anOffset,aModeDr);
 }
 
 void cBdAppuisFlottant::Compile()
@@ -621,6 +646,8 @@ std::list<Appar23>  cBdAppuisFlottant::Appuis32FromCam(const std::string & aName
 
 void cAppliApero::PreCompileAppuisFlottants()
 {
+
+
    for 
    (
         std::list<cPointFlottantInc>::const_iterator itP=mParam.PointFlottantInc().begin();
@@ -676,11 +703,71 @@ void cAppliApero::InitOneSetObsFlot
          )
          {
              if (aSN->IsSetIn (it1->NamePt()))
-	        aBAF->AddAFLiaison(itM->NameIm(),*it1,anOffset,OkNoGr);
+	        aBAF->AddAFLiaison(itM->NameIm(),*it1,anOffset,OkNoGr,false);
          }
       }
    }
 }
+
+void cAppliApero::InitOneSetOnsDr
+     (
+           cBdAppuisFlottant * aBAF,
+           const cSetOfMesureSegDr & aSMS,
+           const Pt2dr & anOffset,
+           cSetName * aSN,
+           bool       OkNoGr
+      )
+{
+   for
+   (
+       std::list<cMesureAppuiSegDr1Im>::const_iterator itIm=aSMS.MesureAppuiSegDr1Im().begin();
+       itIm!=aSMS.MesureAppuiSegDr1Im().end();
+       itIm++
+   )
+   {
+      std::string aNameIm = itIm->NameIm();
+      if (NamePoseIsKnown(aNameIm))
+      {
+
+         for
+         (
+            std::list<cOneMesureSegDr>::const_iterator itMes=itIm->OneMesureSegDr().begin();
+            itMes!=itIm->OneMesureSegDr().end();
+            itMes++
+         )
+         {
+             cPoseCam * aPose = PoseFromName(aNameIm);
+             Pt2dr aP1 = itMes->Pt1Im();
+             Pt2dr aP2 = itMes->Pt2Im();
+             aPose->C2MCompenseMesureOrInt(aP1);
+             aPose->C2MCompenseMesureOrInt(aP2);
+
+             Pt2dr aTgt = vunit(aP1-aP2);
+             Pt2dr aNorm = aTgt * Pt2dr(0,1);
+             Pt2dr aPolar = Pt2dr::polar(aNorm,0);
+             double aRho = scal(aP1,aNorm);
+             Pt2dr aPEqDr(aRho,aPolar.y);
+             cOneMesureAF1I aMes;
+             aMes.PtIm() = aPEqDr;
+             for (std::list<std::string>::const_iterator itPt=itMes->NamePt().begin() ;  itPt!=itMes->NamePt().end() ; itPt++)
+             {
+                aMes.NamePt() = *itPt;
+	        aBAF->AddAFLiaison(itIm->NameIm(),aMes,anOffset,OkNoGr,true);
+             }
+/*
+             std::cout << "aRhoTetaaRhoTeta " <<  aPEqDr << "\n";
+             if (aSN->IsSetIn (it1->NamePt()))
+	        aBAF->AddAFLiaison(itM->NameIm(),*it1,anOffset,OkNoGr);
+*/
+         }
+      }
+   }
+}
+
+
+
+
+
 
 void cAppliApero::InitAndCompileBDDObsFlottant()
 {
@@ -693,28 +780,36 @@ void cAppliApero::InitAndCompileBDDObsFlottant()
     {
          bool OkNoGr = itO->AcceptNoGround().Val();
          cBdAppuisFlottant *aBAF = BAF_FromName(itO->Id(),OkNoGr);
-	 std::list<std::string> aLN = mICNM->StdGetListOfFile(itO->KeySetOrPat());
          cSetName * aSN = mICNM->KeyOrPatSelector(itO->NameAppuiSelector()) ;
-	 for 
-	 (
-	      std::list<std::string>::const_iterator itNF=aLN.begin();
-	      itNF!=aLN.end();
-	      itNF++
-	 )
-	 {
-	     cSetOfMesureAppuisFlottants aSMAF = StdGetMAF(*itNF);
-/*
-	     cSetOfMesureAppuisFlottants aSMAF = StdGetObjFromFile<cSetOfMesureAppuisFlottants>
-	                                         (
-						    mDC+*itNF,
-						    StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-						    "SetOfMesureAppuisFlottants",
-						    "SetOfMesureAppuisFlottants"
-						 );
-*/
-
-             InitOneSetObsFlot(aBAF,aSMAF,itO->OffsetIm().Val(),aSN,OkNoGr);
+         if (itO->KeySetOrPat().IsInit())
+         {
+	      std::list<std::string> aLN = mICNM->StdGetListOfFile(itO->KeySetOrPat().Val());
+	      for 
+	      (
+	           std::list<std::string>::const_iterator itNF=aLN.begin();
+	           itNF!=aLN.end();
+	           itNF++
+	      )
+	      {
+	          cSetOfMesureAppuisFlottants aSMAF = StdGetMAF(*itNF);
+                  InitOneSetObsFlot(aBAF,aSMAF,itO->OffsetIm().Val(),aSN,OkNoGr);
+	      }
 	 }
+         if (itO->KeySetSegDroite().IsInit())
+         {
+              std::list<std::string> aLS = mICNM->StdGetListOfFile(itO->KeySetSegDroite().Val());
+	      for 
+	      (
+	           std::list<std::string>::const_iterator itS=aLS.begin();
+	           itS!=aLS.end();
+	           itS++
+	      )
+	      {
+                    cSetOfMesureSegDr aSMS = StdGetFromPCP(mDC+*itS,SetOfMesureSegDr);
+                    InitOneSetOnsDr(aBAF,aSMS,itO->OffsetIm().Val(),aSN,OkNoGr);
+	      }
+         }
+  
     }
 
     for 

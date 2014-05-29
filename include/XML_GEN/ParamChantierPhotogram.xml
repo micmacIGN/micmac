@@ -543,6 +543,18 @@
       </MesureAppuiFlottant1Im>
    </SetOfMesureAppuisFlottants>
 
+   <SetOfMesureSegDr Nb="1" Class="true">
+      <MesureAppuiSegDr1Im Nb="*" Class="true">
+         <NameIm Nb="1" Type="std::string"> </NameIm>
+         <OneMesureSegDr Nb="*">
+            <NamePt Nb="+" Type="std::string"> </NamePt>
+            <Pt1Im   Nb="1" Type="Pt2dr"> </Pt1Im>
+            <Pt2Im   Nb="1" Type="Pt2dr"> </Pt2Im>
+         </OneMesureSegDr>
+      </MesureAppuiSegDr1Im>
+   </SetOfMesureSegDr>
+
+
 
 
    <MesureAppuis Nb="1" Class="true" ToReference="true">

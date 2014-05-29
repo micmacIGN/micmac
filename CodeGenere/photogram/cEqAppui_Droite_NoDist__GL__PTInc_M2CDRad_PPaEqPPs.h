@@ -2,11 +2,11 @@
 #include "StdAfx.h"
 
 
-class cEqAppui_GL__TerFix_M2CDRad_PPaEqPPs: public cElCompiledFonc
+class cEqAppui_Droite_NoDist__GL__PTInc_M2CDRad_PPaEqPPs: public cElCompiledFonc
 {
    public :
 
-      cEqAppui_GL__TerFix_M2CDRad_PPaEqPPs();
+      cEqAppui_Droite_NoDist__GL__PTInc_M2CDRad_PPaEqPPs();
       void ComputeVal();
       void ComputeValDeriv();
       void ComputeValDerivHessian();
@@ -20,12 +20,15 @@ class cEqAppui_GL__TerFix_M2CDRad_PPaEqPPs: public cElCompiledFonc
       void SetGL_2_0(double);
       void SetGL_2_1(double);
       void SetGL_2_2(double);
+      void SetNDP0_x(double);
+      void SetNDP0_y(double);
+      void SetNDdx_x(double);
+      void SetNDdx_y(double);
+      void SetNDdy_x(double);
+      void SetNDdy_y(double);
       void SetScNorm(double);
       void SetXIm(double);
-      void SetXTer(double);
       void SetYIm(double);
-      void SetYTer(double);
-      void SetZTer(double);
 
 
       static cAutoAddEntry  mTheAuto;
@@ -41,10 +44,13 @@ class cEqAppui_GL__TerFix_M2CDRad_PPaEqPPs: public cElCompiledFonc
       double mLocGL_2_0;
       double mLocGL_2_1;
       double mLocGL_2_2;
+      double mLocNDP0_x;
+      double mLocNDP0_y;
+      double mLocNDdx_x;
+      double mLocNDdx_y;
+      double mLocNDdy_x;
+      double mLocNDdy_y;
       double mLocScNorm;
       double mLocXIm;
-      double mLocXTer;
       double mLocYIm;
-      double mLocYTer;
-      double mLocZTer;
 };

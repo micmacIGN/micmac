@@ -185,10 +185,17 @@ class cNupletPtsHomologues
 
         void AddPts(const Pt2dr & aPt);
 
+        bool IsDr(int aK) const;
+        void SetDr(int aK);
+
      private :
         void AssertD2() const;
         std::vector<Pt2dr> mPts;
         REAL  mPds;
+  // Gestion super ba-niveau avec des flag de bits pour etre compatible avec la structure physique faite
+  // quand on ne contenait que des points ....
+        int   mFlagDr;
+        void AssertIsValideFlagDr(int aK) const;
 };
 
 class ElCplePtsHomologues : public cNupletPtsHomologues
