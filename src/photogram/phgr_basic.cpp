@@ -1514,13 +1514,17 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
    if (aPCam.z < 0) return false;
 
    Pt2dr aPI0 = Proj().Proj(aPCam);
-   Pt2dr aPF = DistDirecte(aPI0);
+   Pt2dr aPF0 = DistDirecteSsComplem(aPI0);
 
-   if ( ! IsInZoneUtile(aPF)) return false;
 
-   Pt2dr aI0Again = DistInverse(aPF);
 
-    return euclid(aPI0-aI0Again) < 1.0;
+   if ( ! IsInZoneUtile(aPF0)) return false;
+
+   Pt2dr aPF1 = DComplM2C(aPF0);
+   Pt2dr aI0Again = DistInverse(aPF1);
+
+
+    return euclid(aPI0-aI0Again) < 1.0/ mScaleAfnt;
 }
 
 
@@ -1543,10 +1547,14 @@ double  ElCamera::ResolSolGlob() const
 
 bool  ElCamera::CaptHasData(const Pt2dr & aP) const 
 {
-   return  IsInZoneUtile(aP);
+   return  IsInZoneUtile(DComplC2M(aP));
 }
 
-bool &   ElCamera::IsScanned()
+const bool &   ElCamera::IsScanned() const
+{
+    return mScanned;
+}
+bool &   ElCamera::IsScanned() 
 {
     return mScanned;
 }
@@ -1968,14 +1976,32 @@ Box2dr ElCamera::BoxUtile() const
     return aBox;
 }
 
-
+Pt2dr ElCamera::DistDirecteSsComplem(Pt2dr aP) const
+{
+    return mDIsDirect ? Dist().Direct(aP) : Dist().Inverse(aP);
+}
 Pt2dr ElCamera::DistDirecte(Pt2dr aP) const
 {
-   return DComplM2C(mDIsDirect ? Dist().Direct(aP) : Dist().Inverse(aP));
+   // return DComplM2C(mDIsDirect ? Dist().Direct(aP) : Dist().Inverse(aP));
+   return DComplM2C(DistDirecteSsComplem(aP));
 }
+
+
+Pt2dr ElCamera::DistInverseSsComplem(Pt2dr aP) const
+{
+    return  mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
+}
+
 
 Pt2dr ElCamera::DistInverse(Pt2dr aP) const
 {
+    return DistInverseSsComplem(DComplC2M(aP));
+
+/*
+   aP = DComplC2M(aP);
+   aP= mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
+   return aP;
+*/
 /*
    static int aCpt=0; aCpt++;
    // std::cout << "aCPpppt " <<  aCpt << "\n";
@@ -1989,10 +2015,6 @@ Pt2dr ElCamera::DistInverse(Pt2dr aP) const
    }
 */
 
-   aP = DComplC2M(aP);
-   aP= mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
-// std::cout << "xxxxxxxxxxx 333333\n";
-   return aP;
 }
 
 // void ElCamera::SetDistInverse() { mDIsDirect=false; }
@@ -2075,6 +2097,7 @@ void  ElCamera::CamHeritGen(const ElCamera & aCam,bool WithCompl,bool WithOrient
         mStepGrid = aCam.mStepGrid;
         mRayonInvGrid = aCam.mRayonInvGrid;
     }
+    mScanned = aCam.mScanned;
 }
 
 void  ElCamera::AddDistCompl
@@ -2867,6 +2890,9 @@ cCalibrationInternConique  ElCamera::ExportCalibInterne2XmlStruct(Pt2di aSzIm) c
        aParam.CorrectionRefractionAPosteriori().SetVal(mCRAP->ToXML());
     }
 
+
+    if (IsScanned())
+       aParam.ScannedAnalogik().SetVal(true);
    
    return aParam;
 }

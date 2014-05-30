@@ -1376,7 +1376,7 @@ class cOneAppuisFlottant
 
        void AddLiaison(const std::string & aNameIm,const cOneMesureAF1I &,const Pt2dr & anOffset,bool aModeDr);
        void Compile();
-       void AddObs(const cObsAppuisFlottant &,cStatObs & aSO);
+       double AddObs(const cObsAppuisFlottant &,cStatObs & aSO,std::string & aCamMaxErr);
 
        const Pt3dr &  PtRes() const;
        const Pt3dr &  PtInit() const;
@@ -1890,6 +1890,7 @@ class cAppliApero : public NROptF1vND
 
 	bool NamePoseIsKnown(const std::string &) const;
         const std::string &  DC() const;
+        bool  HasEqDr() const;
 
         const std::string & NameCalOfPose(const std::string &);
 	cInterfChantierNameManipulateur * ICNM();
@@ -2079,7 +2080,7 @@ class cAppliApero : public NROptF1vND
          void CompileOsbOr();
          void CompileObsCentre();
 	 void InitAndCompileBDDObsFlottant();
-	 void InitAndCompileBDDObsDr();
+	 void InitHasEqDr();
 
           void DoAMD();
 
@@ -2365,6 +2366,7 @@ class cAppliApero : public NROptF1vND
         FILE *                                 mFileDebug;  // File Rapport Txt
         cMajickChek                            mMajChck;
         int                                    mCptIterCompens;
+        bool                                   mHasEqDr;
 };
 
 

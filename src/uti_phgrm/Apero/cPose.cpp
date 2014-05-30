@@ -159,7 +159,7 @@ cPoseCam::cPoseCam
     mNext = this;
 
 	mCalib = mAppli.CalibFromName(aNameCalib,this);
-	mCF	=  mCalib->PIF().NewCam(cNameSpaceEqF::eRotLibre,ElRotation3D::Id,mCamRF,aNamePose,true);
+	mCF	=  mCalib->PIF().NewCam(cNameSpaceEqF::eRotLibre,ElRotation3D::Id,mCamRF,aNamePose,true,false,mAppli.HasEqDr());
 	mRF = &mCF->RF();
 
    SetOrInt(mAppli.Param().GlobOrInterne());

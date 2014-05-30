@@ -1103,7 +1103,8 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
                                    cCameraFormelle *  = 0, // Cam Att,
 				   const std::string &  aName = "",
 				   bool  CompEqAppui = false,
-				   bool  GenCodeAppui = false
+				   bool  GenCodeAppui = false,
+                                   bool  HasEqDroite  = false
                               );
 
             REAL  CurFocale() const;
@@ -1537,7 +1538,7 @@ class cCameraFormelle :  public cNameSpaceEqF ,
 	         // Donne le residu mais n'ajoute pas au systeme
 	  Pt2dr  ResiduAppui(Pt3dr aP,Pt2dr aPIm);
 
-	   Pt2dr  CorrigePFromDAdd(const Pt2dr & aP1,bool UseGrid);
+	   Pt2dr  CorrigePFromDAdd(const Pt2dr & aP1,bool UseGrid,bool ModeDr);
 
            class cEqAppui ;
 	   cEqAppui * AddFctrEqAppuisInc(bool aGenCode,bool Proj,bool isGL,bool wDist,bool EqDr);  // Initialise si nec le fcteur
@@ -1625,7 +1626,8 @@ class cCameraFormelle :  public cNameSpaceEqF ,
                  cCameraFormelle * CamAttach ,
 		 const std::string & aName,
 		 bool   CompEqAppui,
-		 bool   GenCodeAppui
+		 bool   GenCodeAppui,
+                 bool   HasEqDroite
           );
           cCameraFormelle   *         pCamAttach;
           cParamIntrinsequeFormel &   mIntr;
@@ -1657,6 +1659,7 @@ class cCameraFormelle :  public cNameSpaceEqF ,
          // permet de gerer les marques fiduciaire qui etant integre par modif
          // des points homols, n'interviennent pas dans la camera
          ElAffin2D                      mResiduM2C;
+         bool                           mHasEqDroite;
 
 
 };

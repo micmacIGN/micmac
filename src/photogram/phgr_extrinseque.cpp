@@ -675,7 +675,6 @@ cCameraFormelle::cEqAppui::cEqAppui
     mNDdy           (wDist ? 0 : new cP2d_Etat_PhgrF("NDdy")),
     mEqDroite       (IsEqDroite)
 {
-// std::cout <<"DEBUG33 " << mNameType << "\n";
    if (Code2Gen)  // En mode normal, on ne modifie pas la camera
    {
        mCam.SetGL(isGL);
@@ -859,6 +858,7 @@ Pt2dr cCameraFormelle::cEqAppui::Residu(Pt3dr aPTer,Pt2dr aPIm,REAL aPds)
 
 Pt2dr cCameraFormelle::cEqAppui::ResiduPInc(Pt2dr aPIm,REAL aPds,const cParamPtProj & aPPP)
 {
+  // std::cout <<"DEBUG33 " << mNameType << "\n";
   // std::cout <<  "WWWW : " << mNameType << "\n";
     ELISE_ASSERT(mFoncEqResidu!=0,"cCameraFormelle::cEqAppui::Residu");
     ELISE_ASSERT(!mIsPTerrainFixe,"cCameraFormelle::cEqAppui::Residu");
@@ -925,7 +925,8 @@ cCameraFormelle::cCameraFormelle
      cCameraFormelle *         aCamAtt,
      const std::string & aName,
      bool  CompEqAppui,
-     bool  GenCodeAppui
+     bool  GenCodeAppui,
+     bool  HasEqDroite
 )  :
    pCamAttach  (aCamAtt),
    mIntr       (anIntr),
@@ -946,7 +947,8 @@ cCameraFormelle::cCameraFormelle
    mEqAppuiSDistProjIncXY (0),
    mEqAppuiSDistGLIncXY (0),
    mEqAppuiSDistGLProjIncXY (0),
-   mCameraCourante(NULL)
+   mCameraCourante(NULL),
+   mHasEqDroite   (HasEqDroite)
 {
         for (int aKEqDr=0 ; aKEqDr<TheNbEqDr; aKEqDr++)
         {
@@ -985,9 +987,7 @@ Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtPro
         aPPP.wDist = true;
 
      cEqAppui*  anEq = AddForUseFctrEqAppuisInc ( false, aPPP.mProjIsInit, aPPP.wDist,IsEqDroite);
-     Pt2dr aRes = anEq->ResiduPInc(CorrigePFromDAdd(aPIm,true),aPds,aPPP);
-
-// std::cout << "RES " << aRes << " " << aPIm << " " << CorrigePFromDAdd(aPIm,true) << "\n";
+     Pt2dr aRes = anEq->ResiduPInc(CorrigePFromDAdd(aPIm,true,IsEqDroite),aPds,aPPP);
 
 
      if ( isnan(aRes.x) || isnan(aRes.y))
@@ -1013,15 +1013,20 @@ ElAffin2D & cCameraFormelle::ResiduM2C()
 
 cIncListInterv & cCameraFormelle::IntervAppuisPtsInc()
 {
-   for (int aKDist=0 ; aKDist<2 ; aKDist++)
+   int aNbEqDr =(mHasEqDroite  ? 2  : 1);
+   for (int aKEqDr=0 ; aKEqDr<aNbEqDr ; aKEqDr++)
    {
-       bool wDist = (aKDist==0);
-        if (wDist || (!mIntr.UseAFocal())  ||   ( AFocalAcceptNoDist))
+       bool WithEqDr = (aKEqDr==1);
+       for (int aKDist=0 ; aKDist<2 ; aKDist++)
        {
-           AddFctrEqAppuisInc(false,false,false,wDist,false);
-           AddFctrEqAppuisInc(false,true,false,wDist,false);
-           AddFctrEqAppuisInc(false,false,true,wDist,false);
-           AddFctrEqAppuisInc(false,true,true,wDist,false);
+           bool wDist = (aKDist==0);
+           if (wDist || (!mIntr.UseAFocal())  ||   ( AFocalAcceptNoDist))
+           {
+               AddFctrEqAppuisInc(false,false,false,wDist,WithEqDr);
+               AddFctrEqAppuisInc(false,true,false,wDist,WithEqDr);
+               AddFctrEqAppuisInc(false,false,true,wDist,WithEqDr);
+               AddFctrEqAppuisInc(false,true,true,wDist,WithEqDr);
+           }
        }
    }
 // std::cout << "GLglgl " << IsGL() << "\n";getchar();
@@ -1177,15 +1182,26 @@ void cCameraFormelle::TestVB10(const std::string& aMes) const
 }
 
 
-Pt2dr  cCameraFormelle::CorrigePFromDAdd(const Pt2dr & aP,bool UseGrid)
+Pt2dr  cCameraFormelle::CorrigePFromDAdd(const Pt2dr & aP,bool UseGrid,bool ModeDr)
 {
-    return mIntr.CorrigePFromDAdd(aP,UseGrid);
+    if (ModeDr)
+    {
+        SegComp aSeg = SegComp::FromRhoTeta(aP);
+        Pt2dr aP0 = mIntr.CorrigePFromDAdd(aSeg.p0(),UseGrid);
+        Pt2dr aP1 = mIntr.CorrigePFromDAdd(aSeg.p1(),UseGrid);
+
+        return SegComp(aP0,aP1).ToRhoTeta();
+    }
+    else
+    {
+        return mIntr.CorrigePFromDAdd(aP,UseGrid);
+    }
 }
 
 Pt2dr  cCameraFormelle::AddAppui(Pt3dr aP,Pt2dr aPIm,REAL aPds)
 {
    // ELISE_ASSERT(! mRot->IsGL(),"Do not handle cCameraFormelle::ResiduAppui in mode GL");
-   aPIm = CorrigePFromDAdd(aPIm,false);
+   aPIm = CorrigePFromDAdd(aPIm,false,false);
    cEqAppui * anEq = mRot->IsGL() ? mEqAppuiTerGL : mEqAppuiTerNoGL ;
    return anEq->Residu(aP,aPIm,aPds);
 }
@@ -1444,8 +1460,8 @@ void cCpleCamFormelle::GenCode()
 
 void cCpleCamFormelle::CorrigeP1P2FromDAdd(Pt2dr & aP1,Pt2dr & aP2)
 {
-   aP1 = mCam1.CorrigePFromDAdd(aP1,false);
-   aP2 = mCam2.CorrigePFromDAdd(aP2,false);
+   aP1 = mCam1.CorrigePFromDAdd(aP1,false,false);
+   aP2 = mCam2.CorrigePFromDAdd(aP2,false,false);
 }
 
 

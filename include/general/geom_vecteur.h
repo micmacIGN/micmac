@@ -108,6 +108,9 @@ class SegComp : public Seg2d
 
      public :
 
+        Pt2dr ToRhoTeta() const;
+        static SegComp FromRhoTeta(const Pt2dr &aP);
+
         typedef enum
         {
            droite =0,

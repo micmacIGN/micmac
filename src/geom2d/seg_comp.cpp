@@ -162,6 +162,30 @@ bool SegComp::BoxContains(const Seg2d & s2 ,REAL DLong,REAL DLarg) const
 }
 
 
+// Rho = x Cos T + y Sin T
+
+Pt2dr SegComp::ToRhoTeta() const
+{
+    Pt2dr aPolar = Pt2dr::polar(normale(),0);
+    double aRho = scal(p1(),normale());
+
+    return Pt2dr(aRho,aPolar.y);
+
+}
+
+SegComp SegComp::FromRhoTeta(const Pt2dr &aP)
+{
+    double aC = cos(aP.y);
+    double aS = sin(aP.y);
+    double aRho = aP.x;
+
+    Pt2dr aP0 (aC*aRho,aS*aRho);
+    Pt2dr aP1  = aP0 + Pt2dr(-aS,aC);
+    return SegComp(aP0,aP1);
+}
+
+
+
 
 
 
