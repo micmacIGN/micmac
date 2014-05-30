@@ -1165,29 +1165,35 @@ if (0) // (MPD_MM())
 
    for (int aK=0 ; aK<int(aVCC.size()) ; aK++)
    {
-        Pt2dr aPIm = aNuple.PK(aK);
-        // ElSeg3D aSeg ;
-        cCamStenopeGrid * aCSG =  mVCamVis[aK]->PIF().CamGrid();
-        if (aCSG)
+        if (aNuple.IsDr(aK))
         {
-          aSeg = ElSeg3D(aVCC[aK]->PseudoOpticalCenter(),aVCC[aK]->L3toR3(aCSG->F2toDirRayonL3(aPIm)));
         }
         else
         {
-          aSeg = aVCC[aK]->F2toRayonR3(aPIm);
-        }
+            Pt2dr aPIm = aNuple.PK(aK);
+        // ElSeg3D aSeg ;
+            cCamStenopeGrid * aCSG =  mVCamVis[aK]->PIF().CamGrid();
+            if (aCSG)
+            {
+              aSeg = ElSeg3D(aVCC[aK]->PseudoOpticalCenter(),aVCC[aK]->L3toR3(aCSG->F2toDirRayonL3(aPIm)));
+            }
+            else
+            {
+              aSeg = aVCC[aK]->F2toRayonR3(aPIm);
+            }
 
         // cCamStenopeGrid * aCSG =  mVCamVis[aK]->PIF().CamGrid();
-	if (mEqSurf)
-	{
-	    Pt3dr aIP = mEqSurf->InterSurfCur(aSeg);
-	    aSomIntPl = aSomIntPl + aIP* aVPds[aK];
-	    aSomPds +=  aVPds[aK];
-	}
-	else 
-	{
-           aVS.push_back(aSeg);
-        }
+	    if (mEqSurf)
+	    {
+	        Pt3dr aIP = mEqSurf->InterSurfCur(aSeg);
+	        aSomIntPl = aSomIntPl + aIP* aVPds[aK];
+	        aSomPds +=  aVPds[aK];
+	    }
+	    else 
+	    {
+               aVS.push_back(aSeg);
+            }
+         }
    }
 
        

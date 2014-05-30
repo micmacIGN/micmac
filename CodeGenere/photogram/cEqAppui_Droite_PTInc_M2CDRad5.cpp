@@ -708,7 +708,11 @@ void cEqAppui_Droite_PTInc_M2CDRad5::ComputeValDeriv()
    double tmp593_ = (tmp592_)*tmp85_;
    double tmp594_ = tmp589_+tmp593_;
 
+
   mVal[0] = (mLocXIm-tmp105_*(tmp20_+(tmp48_)*(tmp87_))-tmp118_*(tmp64_+(tmp65_)*(tmp87_)))*mLocScNorm;
+
+// std::cout << "HHHHHHUijJYty   " << mLocXIm << " " <<  mLocYIm << " " << mVal[0] << "\n" ;
+// std::cout << "YYYyTrr " << (tmp20_+(tmp48_)*(tmp87_)) << " " << (tmp64_+(tmp65_)*(tmp87_)) <<  " " << mLocScNorm << "\n";
 
   mCompDer[0][0] = (-((tmp90_*(tmp87_)+(tmp117_)*(tmp48_))*tmp105_)-(tmp92_*(tmp87_)+(tmp117_)*(tmp65_))*tmp118_)*mLocScNorm;
   mCompDer[0][1] = (-((tmp87_+(tmp139_)*(tmp48_))*tmp105_)-(tmp139_)*(tmp65_)*tmp118_)*mLocScNorm;

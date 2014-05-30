@@ -157,8 +157,9 @@ Pt3dr cOneAppuisFlottant::PInter() const
    return InterFaisceaux(mPdsIm,mCams,*mNupl);
 }
 
-void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
+double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO,std::string & aCamMaxErr)
 {
+   aCamMaxErr = "";
 
    bool aShowDet = AuMoinsUnMatch(anObs.PtsShowDet(),mName);
    if (aShowDet)
@@ -170,6 +171,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 
 // std::cout << "SHOOOW DET " << aShowDet  << ":" << (*anObs.PtsShowDet().begin())->NameExpr() << ":" << mName << "\n";
 
+   int aNbContrainte = (mInc.x>0)  +  (mInc.y>0) +  (mInc.z>0) ;
    int aNbOK=0;
    for (int aK=0 ; aK<int(mCams.size()) ; aK++)
    {
@@ -177,6 +179,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
         {
 	   mPdsIm[aK] = aPdsIm;
            aNbOK++;
+           aNbContrainte += mNupl->IsDr(aK) ? 0 : 2 ;
         }
         else
         {
@@ -191,21 +194,20 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
        aPFP = PInter();
    }
 
-   int aNbContrainte = (mInc.x>0)  +  (mInc.y>0) +  (mInc.z>0) + 2 *aNbOK;
 
    // A verifier, mais probable que la methode de subsistution degenere
    // si il n'y a que deux  points (Lambda non inversible)
    //En fait, sans doute pas degeneree car attache au point !
-   if  ( (aNbContrainte<3) || ((aNbOK==0) && ((mInc.x <=0)  || (mInc.y <=0) || (mInc.z <=0))))
+   if   (aNbContrainte<3) // (|| ((aNbOK==0) && ((mInc.x <=0)  || (mInc.y <=0) || (mInc.z <=0))))
    {
       if (aShowDet)
       {
           std::cout << "NOT OK 0 FOR " << mName << " NbOK " << aNbOK  << " NbContr " << aNbContrainte << "\n";
       }
-      return;
+      return 0.0;
    }
 
-   if (  (! (mHasGround)) && (aNbOK<2)) return;
+   if (  (! (mHasGround)) && (aNbOK<2)) return 0.0;
  
    bool aUseAppAsInit = (aNbOK<2) && mHasGround;
    aUseAppAsInit = true;
@@ -250,7 +252,7 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
       {
           std::cout << "NOT OK (UPL) FOR " << mName << "\n";
       }
-      return;
+      return 0.0;
    }
 
    if (aShowDet )
@@ -380,6 +382,9 @@ void cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
    }
    
    if (aShowDet) std::cout << "  - - - - - - - - - - - \n";
+  
+   aCamMaxErr =  mCams[aKMax]->Name();
+   return anErMax;
 }
 
 const Pt3dr &  cOneAppuisFlottant::PtRes() const
@@ -566,6 +571,9 @@ void cBdAppuisFlottant::Compile()
 
 void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 {
+   double anErrMax = -10;
+   cOneAppuisFlottant * aPFMax=0;
+   std::string aCamMax;
    
     for 
     (
@@ -574,9 +582,21 @@ void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
        it1++
     )
     {
-       it1->second->AddObs(anObs,aSO);
+       std::string aCam;
+       double anErr = it1->second->AddObs(anObs,aSO,aCam);
+       if ((anErr >  anErrMax) && (aCam!=""))
+       {
+              anErrMax = anErr;
+              aPFMax = it1->second;
+              aCamMax = aCam;
+       }
     }
-
+    if (aPFMax)
+    {
+           std::cout << "\n   ============================= ERRROR MAX PTS FL ======================\n";
+           std::cout <<   "   ||    Value=" << anErrMax << " for Cam=" << aCamMax << " and Pt=" << aPFMax->Name() << "\n";
+           std::cout <<   "   ======================================================================\n\n";
+    }
 }
 
 void cBdAppuisFlottant::ExportFlottant(const cExportPtsFlottant & anEPF)
@@ -742,11 +762,14 @@ void cAppliApero::InitOneSetOnsDr
              aPose->C2MCompenseMesureOrInt(aP1);
              aPose->C2MCompenseMesureOrInt(aP2);
 
+/*
              Pt2dr aTgt = vunit(aP1-aP2);
              Pt2dr aNorm = aTgt * Pt2dr(0,1);
              Pt2dr aPolar = Pt2dr::polar(aNorm,0);
              double aRho = scal(aP1,aNorm);
              Pt2dr aPEqDr(aRho,aPolar.y);
+*/
+             Pt2dr aPEqDr = SegComp(aP1,aP2).ToRhoTeta();
              cOneMesureAF1I aMes;
              aMes.PtIm() = aPEqDr;
              for (std::list<std::string>::const_iterator itPt=itMes->NamePt().begin() ;  itPt!=itMes->NamePt().end() ; itPt++)
@@ -767,6 +790,19 @@ void cAppliApero::InitOneSetOnsDr
 
 
 
+void cAppliApero::InitHasEqDr()
+{
+    for 
+    (
+        std::list<cBDD_ObsAppuisFlottant>::const_iterator itO=mParam.BDD_ObsAppuisFlottant().begin();
+	itO!=mParam.BDD_ObsAppuisFlottant().end();
+	itO++
+    )
+    {
+         if (itO->KeySetSegDroite().IsInit())
+             mHasEqDr = true;
+    }
+}
 
 
 void cAppliApero::InitAndCompileBDDObsFlottant()

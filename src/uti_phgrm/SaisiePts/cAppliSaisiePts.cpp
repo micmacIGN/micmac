@@ -600,6 +600,7 @@ void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
     Pt2dr aPIm  = anI.PointArbitraire();
     bool OkInIm = true;
 
+
     if (aPG.P3D().IsInit())
     {
         Pt3dr aP3 = aPG.P3D().Val();
@@ -607,6 +608,7 @@ void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
         if (aCapt3D)
         {
             aPIm =  aCapt3D->Ter2Capteur(aP3); //  : anI.PointArbitraire();
+
 
             if (! aCapt3D->PIsVisibleInImage(aP3))
             {

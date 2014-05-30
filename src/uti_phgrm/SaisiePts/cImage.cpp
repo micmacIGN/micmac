@@ -297,6 +297,7 @@ cSP_PointGlob * cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,doubl
 
     mAppli.AddPGInAllImages(aSPG);
 
+
     cSP_PointeImage * aPIm = PointeOfNameGlobSVP(aSPG->PG()->Name());
     ELISE_ASSERT(aPIm!=0,"Incoherence (2) in cImage::CreatePGFromPointeMono");
     aPIm->Saisie()->Etat() = eEPI_Valide;

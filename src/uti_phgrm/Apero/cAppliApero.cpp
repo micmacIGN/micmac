@@ -88,7 +88,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mFpRT              (0),
    mFileDebug         (0),
    mMajChck           (),
-   mCptIterCompens    (0)
+   mCptIterCompens    (0),
+   mHasEqDr           (false)
 {
 
      std::string aNameFileDebug;
@@ -473,6 +474,8 @@ void cAppliApero::InitLayers()
 
 void cAppliApero::PreCompile()
 {
+    InitHasEqDr();
+
     InitLayers();
     InitCalibCam();
 
@@ -782,6 +785,7 @@ const cParamApero & cAppliApero::Param() const {return mParam;}
 cSetEqFormelles &   cAppliApero::SetEq()       {return mSetEq;}
 
 const std::string &   cAppliApero::DC() const {return mDC;}
+bool  cAppliApero::HasEqDr() const { return mHasEqDr; }
 
 cInterfChantierNameManipulateur * cAppliApero::ICNM()
 {

@@ -841,10 +841,11 @@ cCameraFormelle * cParamIntrinsequeFormel::NewCam
                       cCameraFormelle * pCAtt,
                       const std::string & aName,
 		      bool  CompEqAppui,
-		      bool GenCodeAppui
+		      bool GenCodeAppui,
+                      bool HasEqDr
                  )
 {
-   cCameraFormelle * aRes =  new cCameraFormelle(aMode,aRot,*this,pCAtt,aName,CompEqAppui,GenCodeAppui);
+   cCameraFormelle * aRes =  new cCameraFormelle(aMode,aRot,*this,pCAtt,aName,CompEqAppui,GenCodeAppui,HasEqDr);
    mSet.AddCamFormelle(aRes,aName);
    return aRes;
 }

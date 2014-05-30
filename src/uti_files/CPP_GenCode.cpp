@@ -301,10 +301,16 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
 
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
 {
+/*
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"DRad5",EqDroite);
-    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadPPaEqPPs",EqDroite);
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"DRad5",EqDroite);
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadPPaEqPPs",EqDroite);
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadPPaEqPPs",EqDroite);
+*/
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoVar",EqDroite);
 
 /*
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour7x2");

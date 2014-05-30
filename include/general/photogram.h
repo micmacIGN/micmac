@@ -1434,7 +1434,8 @@ class ElCamera : public cCapture3D
      public :
         typedef ElAffin2D tOrIntIma ;
 
-         bool &   IsScanned();
+         const bool &   IsScanned() const;
+         bool &   IsScanned() ;
          bool  CaptHasData(const Pt2dr &) const ;
          Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
          bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
@@ -1602,6 +1603,8 @@ class ElCamera : public cCapture3D
           bool DistIsC2M() const;
 	  Pt2dr DistDirecte(Pt2dr aP) const;
 	  Pt2dr DistInverse(Pt2dr aP) const;
+	  Pt2dr DistDirecteSsComplem(Pt2dr aP) const;
+	  Pt2dr DistInverseSsComplem(Pt2dr aP) const;
 
 
        // Les tailles representent des capteurs avant Clip et Reech

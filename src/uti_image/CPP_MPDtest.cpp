@@ -326,10 +326,51 @@ void DebugDrag()
 // extern  void F2Test();
 // extern  void Ftest();
 
+void TestRandomSetOfMesureSegDr()
+{
+    std::string aInput="/media/data1/ExempleDoc/Test-CompDrAnalogik/MesureLineImageOri.xml";
+    std::string aOut="/media/data1/ExempleDoc/Test-CompDrAnalogik/MesureLineImage.xml";
+
+
+    cSetOfMesureSegDr aSMS = StdGetFromPCP(aInput,SetOfMesureSegDr);
+
+   for
+   (
+       std::list<cMesureAppuiSegDr1Im>::iterator itIm=aSMS.MesureAppuiSegDr1Im().begin();
+       itIm!=aSMS.MesureAppuiSegDr1Im().end();
+       itIm++
+   )
+   {
+      std::string aNameIm = itIm->NameIm();
+      {
+
+         for
+         (
+            std::list<cOneMesureSegDr>::iterator itMes=itIm->OneMesureSegDr().begin();
+            itMes!=itIm->OneMesureSegDr().end();
+            itMes++
+         )
+         {
+             Pt2dr aP1 = itMes->Pt1Im();
+             Pt2dr aP2 = itMes->Pt2Im();
+             SegComp aSeg(aP1,aP2);
+             itMes->Pt1Im() = aSeg.from_rep_loc(Pt2dr(0.6+NRrandC(),0));
+             itMes->Pt2Im() = aSeg.from_rep_loc(Pt2dr(0.4-NRrandC(),0));
+         }
+      }
+   }
+
+
+
+    MakeFileXML(aSMS,aOut);
+
+    exit(0);
+}
 
 int MPDtest_main (int argc,char** argv)
 {
 
+TestRandomSetOfMesureSegDr() ;
    while (1)
    {
        cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
