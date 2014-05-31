@@ -3174,7 +3174,7 @@ void xml_init(cBDD_ObsAppuisFlottant & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NameAppuiSelector(),aTree->Get("NameAppuiSelector",1)); //tototo 
 
-   xml_init(anObj.AcceptNoGround(),aTree->Get("AcceptNoGround",1),bool(false)); //tototo 
+   xml_init(anObj.AcceptNoGround(),aTree->Get("AcceptNoGround",1),bool(true)); //tototo 
 
    xml_init(anObj.KeySetSegDroite(),aTree->Get("KeySetSegDroite",1)); //tototo 
 }
@@ -15019,6 +15019,17 @@ const cTplValGesInit< bool > & cObsAppuisFlottant::ShowSom()const
    return mShowSom;
 }
 
+
+cTplValGesInit< bool > & cObsAppuisFlottant::ShowUnused()
+{
+   return mShowUnused;
+}
+
+const cTplValGesInit< bool > & cObsAppuisFlottant::ShowUnused()const 
+{
+   return mShowUnused;
+}
+
 void  BinaryUnDumpFromFile(cObsAppuisFlottant & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameRef(),aFp);
@@ -15064,6 +15075,14 @@ void  BinaryUnDumpFromFile(cObsAppuisFlottant & anObj,ELISE_fp & aFp)
         }
         else  anObj.ShowSom().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ShowUnused().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ShowUnused().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ShowUnused().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cObsAppuisFlottant & anObj)
@@ -15084,6 +15103,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cObsAppuisFlottant & anObj)
     if (anObj.ShowMax().IsInit()) BinaryDumpInFile(aFp,anObj.ShowMax().Val());
     BinaryDumpInFile(aFp,anObj.ShowSom().IsInit());
     if (anObj.ShowSom().IsInit()) BinaryDumpInFile(aFp,anObj.ShowSom().Val());
+    BinaryDumpInFile(aFp,anObj.ShowUnused().IsInit());
+    if (anObj.ShowUnused().IsInit()) BinaryDumpInFile(aFp,anObj.ShowUnused().Val());
 }
 
 cElXMLTree * ToXMLTree(const cObsAppuisFlottant & anObj)
@@ -15106,6 +15127,8 @@ cElXMLTree * ToXMLTree(const cObsAppuisFlottant & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ShowMax"),anObj.ShowMax().Val())->ReTagThis("ShowMax"));
    if (anObj.ShowSom().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ShowSom"),anObj.ShowSom().Val())->ReTagThis("ShowSom"));
+   if (anObj.ShowUnused().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ShowUnused"),anObj.ShowUnused().Val())->ReTagThis("ShowUnused"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -15129,9 +15152,11 @@ void xml_init(cObsAppuisFlottant & anObj,cElXMLTree * aTree)
    xml_init(anObj.ShowMax(),aTree->Get("ShowMax",1),bool(false)); //tototo 
 
    xml_init(anObj.ShowSom(),aTree->Get("ShowSom",1),bool(false)); //tototo 
+
+   xml_init(anObj.ShowUnused(),aTree->Get("ShowUnused",1),bool(true)); //tototo 
 }
 
-std::string  Mangling( cObsAppuisFlottant *) {return "516726C7A545F988FD3F";};
+std::string  Mangling( cObsAppuisFlottant *) {return "6979847B82116EC1FE3F";};
 
 
 double & cRappelOnZ::Z()
@@ -16020,7 +16045,7 @@ void xml_init(cSectionObservations & anObj,cElXMLTree * aTree)
    xml_init(anObj.TxtRapDetaille(),aTree->Get("TxtRapDetaille",1)); //tototo 
 }
 
-std::string  Mangling( cSectionObservations *) {return "76B486A373FB62F9FD3F";};
+std::string  Mangling( cSectionObservations *) {return "4BF18B6A380313BDFE3F";};
 
 
 cTplValGesInit< bool > & cExportAsGrid::DoExport()
@@ -21026,7 +21051,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "84DD4381473D509FFF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "AA66DD21B9B184BCFE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -21085,7 +21110,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "1C96DA781B66A5AAFD3F";};
+std::string  Mangling( cSectionCompensation *) {return "642CA3EF2F299AADFC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -22008,6 +22033,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "68F4E781A8CB1C8CFF3F";};
+std::string  Mangling( cParamApero *) {return "042001B3EC1E2995FF3F";};
 
 // };

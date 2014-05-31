@@ -56,6 +56,7 @@ int GCPBascule_main(int argc,char ** argv)
     std::string MesureIm;
     bool        ModeL1 = false;
     bool        CPI = false;
+    bool ShowUnused = true;
 
 
     ElInitArgMain
@@ -69,6 +70,7 @@ int GCPBascule_main(int argc,char ** argv)
     LArgMain()
                     <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2 (Def=false)", eSAM_IsBool)
                     <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
+                    <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
     );
 
     if (!MMVisualMode)
@@ -91,6 +93,8 @@ int GCPBascule_main(int argc,char ** argv)
                        + std::string(" +DicoApp=") +  DicoPts
                        + std::string(" +SaisieIm=") +  MesureIm
                     ;
+
+    if (EAMIsInit(&ShowUnused)) aCom = aCom + " +ShowUnused=" + ToString(ShowUnused);
 
     if (ModeL1)
     {

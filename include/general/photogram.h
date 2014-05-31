@@ -196,6 +196,8 @@ class cNupletPtsHomologues
   // quand on ne contenait que des points ....
         int   mFlagDr;
         void AssertIsValideFlagDr(int aK) const;
+        bool IsValideFlagDr(int aK) const;
+
 };
 
 class ElCplePtsHomologues : public cNupletPtsHomologues

@@ -162,7 +162,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    aCamMaxErr = "";
 
    bool aShowDet = AuMoinsUnMatch(anObs.PtsShowDet(),mName);
-   if (aShowDet)
+   bool ShowUnUsed = aShowDet &&  anObs.ShowUnused().Val();
+   if (ShowUnUsed)
        std::cout << "==== ADD Pts " << mName  << " Has Gr " << mHasGround << " Inc " << mInc << "\n";
 
    double aPdsIm = 1 / ElSquare(anObs.PondIm().EcartMesureIndiv());
@@ -200,7 +201,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    //En fait, sans doute pas degeneree car attache au point !
    if   (aNbContrainte<3) // (|| ((aNbOK==0) && ((mInc.x <=0)  || (mInc.y <=0) || (mInc.z <=0))))
    {
-      if (aShowDet)
+      if (ShowUnUsed)
       {
           std::cout << "NOT OK 0 FOR " << mName << " NbOK " << aNbOK  << " NbContr " << aNbContrainte << "\n";
       }
@@ -248,7 +249,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
 
    if (! aRes.mOKRP3I)
    {
-      if (aShowDet)
+      if (ShowUnUsed)
       {
           std::cout << "NOT OK (UPL) FOR " << mName << "\n";
       }
