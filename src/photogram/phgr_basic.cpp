@@ -141,8 +141,7 @@ cNupletPtsHomologues::cNupletPtsHomologues(int aNb,double aPds) :
 
 bool cNupletPtsHomologues::IsDr(int aK) const
 {
-   AssertIsValideFlagDr(aK);
-   return (mFlagDr& (1<<aK)) !=0;
+   return IsValideFlagDr(aK) && ( (mFlagDr& (1<<aK)) !=0);
 }
 
 void   cNupletPtsHomologues::SetDr(int aK)
@@ -151,9 +150,14 @@ void   cNupletPtsHomologues::SetDr(int aK)
    mFlagDr |= (1<<aK);
 }
 
+bool cNupletPtsHomologues::IsValideFlagDr(int aK) const
+{
+   return (aK>=0) && (aK<31) && (aK<int(mPts.size()));
+}
+
 void cNupletPtsHomologues::AssertIsValideFlagDr(int aK) const
 {
-   ELISE_ASSERT((aK>=0) && (aK<31) && (aK<int(mPts.size())),"cNupletPtsHomologues::AssertIsValideFlagDr");
+   ELISE_ASSERT(IsValideFlagDr(aK),"cNupletPtsHomologues::AssertIsValideFlagDr");
 }
 
 void cNupletPtsHomologues::AddPts(const Pt2dr & aPt)

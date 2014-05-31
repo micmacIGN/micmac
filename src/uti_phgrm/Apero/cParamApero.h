@@ -4149,6 +4149,9 @@ class cObsAppuisFlottant
 
         cTplValGesInit< bool > & ShowSom();
         const cTplValGesInit< bool > & ShowSom()const ;
+
+        cTplValGesInit< bool > & ShowUnused();
+        const cTplValGesInit< bool > & ShowUnused()const ;
     private:
         std::string mNameRef;
         cPonderationPackMesure mPondIm;
@@ -4157,6 +4160,7 @@ class cObsAppuisFlottant
         cTplValGesInit< double > mNivAlerteDetail;
         cTplValGesInit< bool > mShowMax;
         cTplValGesInit< bool > mShowSom;
+        cTplValGesInit< bool > mShowUnused;
 };
 cElXMLTree * ToXMLTree(const cObsAppuisFlottant &);
 

@@ -16,6 +16,7 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
             <Symb>  DicoApp=XXXX  </Symb>
             <Symb>  SaisieIm=XXXXX  </Symb>
             <Symb>  L2Basc=true  </Symb>
+            <Symb>  ShowUnused=true  </Symb>
             <Symb>  CPI=false    </Symb>
 
             <eSymb>  NotCPI=! ${CPI} </eSymb>
@@ -135,6 +136,7 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
                                  <DetShow3D >   0 </DetShow3D>
                                  <ShowMax> true </ShowMax>
                                  <ShowSom>  true</ShowSom>
+                                 <ShowUnused> ${ShowUnused} </ShowUnused>
                            </ObsAppuisFlottant>
 
 		    </SectionObservations>

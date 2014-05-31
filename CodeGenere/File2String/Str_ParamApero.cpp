@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1506]) = {
+const char * (theNameVar_ParamApero[1509]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -395,8 +395,10 @@ const char * (theNameVar_ParamApero[1506]) = {
 "                  <NameAppuiSelector Nb=\"?\" Type=\"std::string\"> </NameAppuiSelector>\n",
 "\n",
 "                  <!-- If true : no error will appear when no ground data base exist;\n",
-"                       default is false for full compatibility -->\n",
-"                  <AcceptNoGround Nb=\"?\" Type=\"bool\" Def=\"false\"> </AcceptNoGround>\n",
+"                       OLD : default is false for full compatibility \n",
+"                       NEW : default is true, do not see any draw back\n",
+"                   -->\n",
+"                  <AcceptNoGround Nb=\"?\" Type=\"bool\" Def=\"true\"> </AcceptNoGround>\n",
 "		  <KeySetSegDroite Nb=\"?\" Type=\"std::string\"> </KeySetSegDroite>\n",
 "            </BDD_ObsAppuisFlottant>\n",
 "\n",
@@ -1195,6 +1197,7 @@ const char * (theNameVar_ParamApero[1506]) = {
 "                             <NivAlerteDetail Nb=\"?\" Type=\"double\" Def=\"1e9\"> </NivAlerteDetail>\n",
 "			     <ShowMax    Nb=\"?\" Type=\"bool\" Def=\"false\"> </ShowMax>\n",
 "			     <ShowSom    Nb=\"?\" Type=\"bool\" Def=\"false\"> </ShowSom>\n",
+"			     <ShowUnused    Nb=\"?\" Type=\"bool\" Def=\"true\"> </ShowUnused>\n",
 "\n",
 "		      </ObsAppuisFlottant>\n",
 "\n",

@@ -1195,6 +1195,7 @@ normalises en echelle et/ou en translation -->
                              <NivAlerteDetail Nb="?" Type="double" Def="1e9"> </NivAlerteDetail>
 			     <ShowMax    Nb="?" Type="bool" Def="false"> </ShowMax>
 			     <ShowSom    Nb="?" Type="bool" Def="false"> </ShowSom>
+			     <ShowUnused    Nb="?" Type="bool" Def="true"> </ShowUnused>
 
 		      </ObsAppuisFlottant>
 
