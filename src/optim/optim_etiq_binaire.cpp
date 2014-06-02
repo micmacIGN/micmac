@@ -193,10 +193,12 @@ class cProgDOLB : public cOptimLabelBinaire
         Im2D_REAL4 ImCost( Im2D_REAL4 aCostIn,int aNbDir,double aTeta0);
         
 
-        static const double mMul = 1000.0;
+        static const double mMul;
         int mICostRegul;
 
 };
+
+const double cProgDOLB::mMul = 1000.0;
 
 cProgDOLB::cProgDOLB(Pt2di aSz,double aDefCost,double aRegul) :
    cOptimLabelBinaire  (aSz,aDefCost,aRegul),
