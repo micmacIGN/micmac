@@ -19,8 +19,6 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 
 void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
-    maskedImg._m_image = new QImage( aNameFile );
-
     QFileInfo fi(aNameFile);
 
     QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
@@ -29,103 +27,34 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
     setFilenameOut(mask_filename);
 
-    // TODO factoriser le chargement d'image
-    if (maskedImg._m_image->isNull())
+    Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
+
+    Pt2di aSz = aTF.sz();
+    delete maskedImg._m_image;
+    maskedImg._m_image = new QImage(aSz.x, aSz.y, QImage::Format_RGB888);
+
+    Im2D_U_INT1  aImR(aSz.x,aSz.y);
+    Im2D_U_INT1  aImG(aSz.x,aSz.y);
+    Im2D_U_INT1  aImB(aSz.x,aSz.y);
+
+    ELISE_COPY
+    (
+       aTF.all_pts(),
+       aTF.in(),
+       Virgule(aImR.out(),aImG.out(),aImB.out())
+    );
+
+    U_INT1 ** aDataR = aImR.data();
+    U_INT1 ** aDataG = aImG.data();
+    U_INT1 ** aDataB = aImB.data();
+
+    for (int y=0; y<aSz.y; y++)
     {
-        Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
-
-        Pt2di aSz = aTF.sz();
-        delete maskedImg._m_image;
-        maskedImg._m_image = new QImage(aSz.x, aSz.y, QImage::Format_RGB888);
-
-        if (aTF.type_el() == GenIm::u_int1) //8bits
+        for (int x=0; x<aSz.x; x++)
         {
-            Im2D_U_INT1  aImR(aSz.x,aSz.y);
-            Im2D_U_INT1  aImG(aSz.x,aSz.y);
-            Im2D_U_INT1  aImB(aSz.x,aSz.y);
+            QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
 
-            ELISE_COPY
-            (
-               aTF.all_pts(),
-               aTF.in(),
-               Virgule(aImR.out(),aImG.out(),aImB.out())
-            );
-
-            U_INT1 ** aDataR = aImR.data();
-            U_INT1 ** aDataG = aImG.data();
-            U_INT1 ** aDataB = aImB.data();
-
-            for (int y=0; y<aSz.y; y++)
-            {
-                for (int x=0; x<aSz.x; x++)
-                {
-                    QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
-
-                    maskedImg._m_image->setPixel(x,y,col.rgb());
-                }
-            }
-        }
-        else if (aTF.type_el() == GenIm::u_int2) //16bits
-        {
-            Im2D_U_INT2  aImR(aSz.x,aSz.y);
-            Im2D_U_INT2  aImG(aSz.x,aSz.y);
-            Im2D_U_INT2  aImB(aSz.x,aSz.y);
-
-            ELISE_COPY
-            (
-               aTF.all_pts(),
-               aTF.in(),
-               Virgule(aImR.out(),aImG.out(),aImB.out())
-            );
-
-            U_INT2 ** aDataR = aImR.data();
-            U_INT2 ** aDataG = aImG.data();
-            U_INT2 ** aDataB = aImB.data();
-
-            for (int y=0; y<aSz.y; y++)
-            {
-                for (int x=0; x<aSz.x; x++)
-                {
-                    int valR = (int) ((float) aDataR[y][x] / 256.f);
-                    int valG = (int) ((float) aDataG[y][x] / 256.f);
-                    int valB = (int) ((float) aDataB[y][x] / 256.f);
-
-                    QColor col(valR,valG,valB);
-
-                    maskedImg._m_image->setPixel(x,y,col.rgb());
-                }
-            }
-        }
-        else if (aTF.type_el() == GenIm::int4) //32bits
-        {
-            Im2D_INT4  aImR(aSz.x,aSz.y);
-            Im2D_INT4  aImG(aSz.x,aSz.y);
-            Im2D_INT4  aImB(aSz.x,aSz.y);
-
-            ELISE_COPY
-                    (
-                        aTF.all_pts(),
-                        aTF.in(),
-                        Virgule(aImR.out(),aImG.out(),aImB.out())
-                        );
-
-            INT4 ** aDataR = aImR.data();
-            INT4 ** aDataG = aImG.data();
-            INT4 ** aDataB = aImB.data();
-
-            for (int y=0; y<aSz.y; y++)
-            {
-                for (int x=0; x<aSz.x; x++)
-                {
-                    int valR = (int) ((float) aDataR[y][x] / 65536.f);
-                    int valG = (int) ((float) aDataG[y][x] / 65536.f);
-                    int valB = (int) ((float) aDataB[y][x] / 65536.f);
-
-                    QColor col(valR,valG,valB);
-
-                    maskedImg._m_image->setPixel(x,y,col.rgb());
-                }
-            }
+            maskedImg._m_image->setPixel(x,y,col.rgb());
         }
     }
 
@@ -174,7 +103,6 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
             maskedImg._m_mask->invertPixels(QImage::InvertRgb);
             *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
         }
-
     }
     else
     {
@@ -182,7 +110,6 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
         *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
         maskedImg._m_mask->fill(Qt::white);
     }
-
 }
 
 void cLoader::checkGeoref(QString aNameFile, QMaskedImage &maskedImg)
