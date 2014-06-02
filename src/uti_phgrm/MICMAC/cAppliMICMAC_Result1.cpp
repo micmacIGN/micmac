@@ -913,7 +913,9 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
 
          (itE)->DoRemplitXML_MTD_Nuage();
 
+         GenTFW(aFOM,aName);
          // TFW
+/*
          {
              std::string aNameTFW = StdPrefix(aName) + ".tfw";
              std::ofstream aFtfw(aNameTFW.c_str());
@@ -927,7 +929,25 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
               aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
               aFtfw.close();
           }
+*/
 }
+
+
+void GenTFW(const cFileOriMnt & aFOM,const std::string & aName)
+{
+     std::string aNameTFW = StdPrefix(aName) + ".tfw";
+     std::ofstream aFtfw(aNameTFW.c_str());
+     if (aFOM.mGXml.mPrec >=0)
+        aFtfw.precision(aFOM.mGXml.mPrec);
+     else
+        aFtfw.precision(12);// modification jean christophe michelin je met une precision standard
+
+     aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
+     aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
+     aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
+     aFtfw.close();
+}
+
 
 /*
 void cAppliMICMAC::GenereOrientationMnt()
