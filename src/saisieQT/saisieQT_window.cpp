@@ -382,6 +382,8 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         text += tr("Shift+drag: \tinsert vertex in polyline") +"\n";
         text += tr("Ctrl+right click: \tremove last vertex") +"\n";
         text += tr("Drag & drop: \tmove selected polyline vertex") +"\n";
+        text += tr("Arrow keys: \tmove selected vertex") +"\n";
+        text += tr("Alt+arrow keys: \tmove selected vertex faster") +"\n";
         text += "Ctrl+A: \t\t"+tr("select all") +"\n";
         text += "Ctrl+D: \t\t"+tr("select none") +"\n";
         text += "Ctrl+R: \t\t"+tr("reset") +"\n";
