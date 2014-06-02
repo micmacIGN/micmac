@@ -108,10 +108,14 @@ int MM2DPostSism_Main(int argc,char ** argv)
     #endif
         std::string aDir;
 
-        std::string aNameFile1, aNameFile2;
+        std::string aNameFile1, aNameFile2, aNameMasq;
         SplitDirAndFile(aDir, aNameFile1, aIm1);
         ELISE_ASSERT(aDir==DirOfFile(aIm2),"Image not on same directory !!!");
         SplitDirAndFile(aDir, aNameFile2, aIm2);
+        ELISE_ASSERT(aDir==DirOfFile(aImMasq),"Mask image not on same directory !!!");
+        SplitDirAndFile(aDir, aNameMasq, aImMasq);
+
+        if (IsPostfixed(aNameMasq)) aNameMasq = StdPrefixGen(aNameMasq);
 
         std::string aCom =    MM3dBinFile("MICMAC")
                             + XML_MM_File("MM-PostSism.xml")
@@ -119,7 +123,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                             + " +DirMEC=" + aDirMEC
                             + " +Im1=" + aNameFile1
                             + " +Im2=" + aNameFile2
-                            + " +Masq=" + aImMasq
+                            + " +Masq=" + aNameMasq
                             + " +SzW=" + ToString(aSzW)
                             + " +RegulBase=" + ToString(aRegul)
                             + " +Inc=" + ToString(aIncCalc)

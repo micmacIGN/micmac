@@ -102,6 +102,7 @@ ElSTDNS string StdPostfix(const ElSTDNS string & str,char c)
     return str.substr(IndPostfixed(str,c)+1,str.length());
 }
 
+//remove extension
 ElSTDNS string StdPrefixGen(const ElSTDNS string & aStr,char c)
 {
         if (IsPostfixed(aStr,c))
@@ -118,7 +119,6 @@ bool IsPrefix(const char * aPref,const char *aStr)
    }
    return (*aPref==0);
 }
-
 
 template <>  std::string ToString(const bool & aBool)
 {
