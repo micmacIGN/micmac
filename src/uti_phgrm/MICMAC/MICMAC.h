@@ -3210,7 +3210,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
                  cPriseDeVue &,
                  const cGenerePartiesCachees &,
                  double aZMin,
-                 double aZMax
+                 double aZMax,
+                 int aCpt
              );
        
         void MakeRedrLocAnamSA();
@@ -3742,6 +3743,8 @@ bool ModeGeomIsIm1InvarPx(const cParamMICMAC & aParam);
 
 
 template <class TypeEl,class tBase> cInterpolateurIm2D<TypeEl>  * InterpoleOfEtape(const cEtapeMEC & anEt,TypeEl *,tBase *);
+
+void GenTFW(const cFileOriMnt & aFOM,const std::string & aName);
 
 
 

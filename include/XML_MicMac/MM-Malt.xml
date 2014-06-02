@@ -148,6 +148,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>  UseClas3=false </Symb>
    <Symb>  Clas3=.* </Symb>
    <Symb>  EZA=false </Symb>
+   <Symb>  SzRec=50 </Symb>  <!-- Valeur par defaut actuel pour compatibilite -->
+   <Symb>   AlgoMaxFlow=false </Symb>
 
 <!--
 
@@ -288,8 +290,15 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
              <SzW >      ${SzW}             </SzW>
 
              <#WHEN VTEST=${NotUseGpu}>
-                <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+                <#IF VTEST=${AlgoMaxFlow}>
+                    <AlgoRegul>  eAlgoCoxRoy </AlgoRegul>
+                    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+                 </#IF>
              </#WHEN>
+
+
+             <CoxRoy8Cnx> true </CoxRoy8Cnx>  
+             <CoxRoyUChar> false </CoxRoyUChar> 
 
              <#WHEN VTEST=${UseGpu}>
                 <AlgoRegul>  eAlgoTestGPU </AlgoRegul>
@@ -529,6 +538,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <NomChantier> ${Chantier} </NomChantier>
 
      <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
+
+     <SzRecouvrtDalles> ${SzRec}</SzRecouvrtDalles>
 
 
 <!--

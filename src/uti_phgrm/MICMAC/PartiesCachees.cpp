@@ -335,7 +335,8 @@ void cAppliMICMAC::MakePartiesCachees
                        cPriseDeVue & aPdv,
                        const cGenerePartiesCachees & aGPC,
                        double aZMin,
-                       double aZMax
+                       double aZMax,
+                       int    aCpt
                    )
 {
 
@@ -773,7 +774,6 @@ void cAppliMICMAC::MakePartiesCachees
                if (aKBox==0)
                {
                    std::string   anEnteteO = NamePC(false,aGPC,mCurEtape,aPdv);
-std::cout << "XXXXX " << anEnteteO << "\n";
 
                    cMetaDataPartiesCachees aMTDO = aMetaData;
                    aMTDO.Offset() = OP0G;
@@ -804,13 +804,26 @@ std::cout << "XXXXX " << anEnteteO << "\n";
            {
                 std::string aDir = mICNM->Dir()+aMOPI.DirOrtho().Val();
                 ELISE_fp::MkDir(aDir);
-                MakeFileXML(anOriOrtho, aDir+aMOPI.FileMTD().Val());
+                if (aCpt==0)
+                {
+                   MakeFileXML(anOriOrtho, aDir+aMOPI.FileMTD().Val());
+                   GenTFW(anOriOrtho,aDir+aMOPI.FileMTD().Val());
+                }
 
                 if (aMOPI.MakeMTDMaskOrtho().IsInit())
                 {
                     const cMakeMTDMaskOrtho & aMMMO = aMOPI.MakeMTDMaskOrtho().Val();
                     MakeFileXML(aMMMO.Mesures(),aDir+aMMMO.NameFileSauv().Val());
                 }
+   // aMetaData.Offset();
+   // aMetaData.Sz();
+                cFileOriMnt anOriIm = anOriOrtho ;
+                anOriIm.NombrePixels() = aMetaData.Sz();
+                Pt2dr anOffs = Pt2dr(aMetaData.Offset());
+                anOriIm.OriginePlani() = anOriOrtho.OriginePlani() + anOffs.mcbyc(anOriOrtho.ResolutionPlani());
+                std::string aNameMtdIm = aDir + "MTD-"+ aPdv.Name() + ".xml";
+                MakeFileXML(anOriIm,aNameMtdIm);
+                GenTFW(anOriIm,aNameMtdIm);
            }
        }
 
@@ -1230,7 +1243,7 @@ void cAppliMICMAC::MakePartiesCachees()
 // std::cout << "IDPIsni" << Paral_Pc_IdProcess().IsInit() i
 // << " DoIt:: " << DoIt << " " << (*itPdv)->Name()  << "\n";
              if (DoIt) 
-                MakePartiesCachees(**itPdv,aGPC,aZMin,aZMax);
+                MakePartiesCachees(**itPdv,aGPC,aZMin,aZMax,aCpt);
 
              aCpt++;
           }

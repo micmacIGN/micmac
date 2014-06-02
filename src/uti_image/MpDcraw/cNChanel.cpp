@@ -180,7 +180,7 @@ void  cNChannel::Split(const cArgMpDCRaw & anArg,const std::string & aPost,Tiff_
 Fonc_Num  cArgMpDCRaw::FlatField(const cMetaDataPhoto & aMDP,const std::string & aNameFile)
 {
    double aZoomFF = 10.0;
-   		char foc[5],dia[4];
+   		char foc[15],dia[14];
 		sprintf(foc, "%04d", int(round_ni(aMDP.FocMm(true))));
                 // MPD : il y a du y avoir une regression car tel quel cela ne peut pas marcher
 		// sprintf(dia, "%03d", int(10*round_ni(aMDP.Diaph(true))));

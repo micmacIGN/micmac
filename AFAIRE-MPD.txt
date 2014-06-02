@@ -1,6 +1,8 @@
 EVOLUTIONS :
 
-Compensation sur des lignes 3D
+  *Compensation sur des lignes 3D
+  * Cox Roy accesible ds Malt (en train ...)
+  * Generation des orientation d'ortho par image
 
 
 A DOCUMENTER  :
@@ -13,6 +15,11 @@ Mineure :
   Im2XYZ
 point absent
 Correc resol capteur
+
+BUG :
+
+   Dans SaisieAppuiInit : si on reload des subset different, l'export 3D est perdu pour
+les point absents (pas d'image, donc sans doute pas loade ...)
 
 ================================================================
 
