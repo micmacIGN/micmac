@@ -126,7 +126,10 @@ Header-MicMac-eLiSe-25/06/2007*/
     #define ELISE_STR_DIR "/"
 	// the character separating directories in PATH environment variable
     #define ELISE_CAR_ENV ';'
+        #define isinf(x) (!_finite(x))
 #endif
+
+template <class Type> bool BadNumber(const Type & aVal) {return (isnan(aVal)||isinf(aVal));}
 
 #if Compiler_Gpp2_7_2   // =========
 	#define ElTyName typename

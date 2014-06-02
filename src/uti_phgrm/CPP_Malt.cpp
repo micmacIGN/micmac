@@ -144,6 +144,8 @@ class cAppliMalt
           double      mIncidMax;
           bool        mGenCubeCorrel;
           bool        mEZA;
+          bool        mMaxFlow;
+          int         mSzRec;
           std::vector<std::string> mEquiv;
 };
 
@@ -193,7 +195,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mCorMS        (false),
     mUseGpu       (false),
     mGenCubeCorrel (false),
-    mEZA           (true)
+    mEZA           (true),
+    mMaxFlow       (false),
+    mSzRec         (50)
 {
 
 #if(ELISE_QT_VERSION >= 4)
@@ -293,7 +297,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
                     << EAM(mModeOri,"MOri",false,"Mode Orientation (GRID or RTO) if not XML frame camera")
-
+                    << EAM(mMaxFlow,"MaxFlow",false,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower somtime better, Def=false ")
+                    << EAM(mSzRec,"SzRec",false,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                 );
 
     if (!MMVisualMode)
@@ -692,6 +697,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +Y1Terrain=") + ToString(aBoxTerrain._p1.y) ;
       }
 
+      if (EAMIsInit(&mMaxFlow)) mCom = mCom + " +AlgoMaxFlow=" + ToString(mMaxFlow);
+      if (EAMIsInit(&mSzRec))   mCom = mCom + " +SzRec=" + ToString(mSzRec);
 
       if (mUseRR)
       {
