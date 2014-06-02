@@ -72,9 +72,9 @@ void cX11_Interface::Init()
     Pt2di aSzF =  mParam->SectionWindows().SzTotIm().Val().dcbyc(mNb2W);;
 
     int aCpt=0;
-    Video_Win * aLastW = 0;
+    Video_Win * aLastW   = 0;
     Video_Win * aLastWX0 = 0;
-    Video_Win * aWTitle = 0;
+    Video_Win * aWTitle  = 0;
     Video_Win * aWY0XMax = 0;
     Pt2di aSzTitle(aSzF.x,15);
     for (int aKY =0 ; aKY<mNb2W.y ; aKY++)
@@ -310,6 +310,11 @@ void cX11_Interface::AddUndo(cOneSaisie * aSom)
 bool cX11_Interface::isDisplayed(cImage *anIm)
 {
     return anIm->WAff() != NULL;
+}
+
+void cX11_Interface::Warning(std::string aMsg)
+{
+    std::cout << aMsg;
 }
 
 void cX11_Interface::RedrawAllWindows()

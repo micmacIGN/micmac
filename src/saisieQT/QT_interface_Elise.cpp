@@ -345,10 +345,6 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
         {
             emit dataChanged(aPIm);
         }
-
-        else
-
-            QMessageBox::critical(m_QTMainWindow, "Error", "Point already exists");
     }
 }
 
@@ -483,6 +479,11 @@ cImage * cQT_Interface::currentCImage()
 int cQT_Interface::getQTWinMode()
 {
     return m_QTMainWindow->appMode();
+}
+
+void cQT_Interface::Warning(string aMsg)
+{
+    QMessageBox::warning(NULL, "Warning", QString(aMsg.c_str()));
 }
 
 cImage *cQT_Interface::CImage(QString nameImage)

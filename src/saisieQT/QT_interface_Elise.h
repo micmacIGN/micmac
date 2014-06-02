@@ -35,6 +35,8 @@ public :
 
     int                 getQTWinMode();
 
+    void                Warning(std::string aMsg);
+
 private:
 
     //                  init Interface

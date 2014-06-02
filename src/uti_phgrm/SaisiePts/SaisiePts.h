@@ -345,6 +345,8 @@ class cVirtualInterface
 
     Pt2dr               FindPoint(cImage *curIm, const Pt2dr &aPIm, eTypePts aType, double aSz, cPointGlob *aPG);
 
+    virtual void        Warning(std::string)=0;
+
 protected:
 
     bool                        PtImgIsVisible(cSP_PointeImage &aPIm);
@@ -445,6 +447,8 @@ public :
     void            AddUndo(cOneSaisie * aSom);
 
     bool            isDisplayed(cImage *anIm);
+
+    void            Warning(std::string aMsg);
 
 protected:
 
