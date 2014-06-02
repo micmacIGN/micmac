@@ -98,17 +98,15 @@ void cAppli_SaisiePts::SetInterface( cVirtualInterface * interf )
 
 bool cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
 {
-    //TODO: PARTIE METIER
     for (int aKP=0 ; aKP< int(mPG.size()) ; aKP++)
     {
         if (mPG[aKP]->PG()->Name() == aNewName)
         {
-            std::cout << "Name " << aNewName << " already exists\n";
+            mInterface->Warning("Name " + aNewName + " already exists\n");
             return false;
         }
     }
 
-    //PARTIE VIRTUELLE
     for (int aKP=0 ; aKP< int(mPG.size()) ; aKP++)
     {
         if (mPG[aKP]->PG()->Name() == anOldName)
