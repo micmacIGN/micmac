@@ -425,7 +425,7 @@ bool ImagesSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourcePar
     if( strColl_1 == "")
         return false;
     else
-        return !strColl_1.contains(QRegExp(HORSIMAGE));
+        return !strColl_1.contains(HORSIMAGE);
 
 }
 

@@ -105,7 +105,7 @@ class cSP_PointGlob
 
           cAppli_SaisiePts & mAppli;
           cPointGlob * mPG;
-          std::map<std::string,cSP_PointeImage *>   mPointes;
+          std::map<std::string,cSP_PointeImage *>   mPointes; // map (nom image, pointe image)
 
           bool   mHighLighted;
 };
@@ -143,6 +143,8 @@ class cImage
         cSP_PointGlob * CreatePGFromPointeMono(Pt2dr ,eTypePts,double aSz,cCaseNamePoint *);
         int & CptAff() ;
 
+        void UpdateMapPointes(const std::string aName);
+
      private :
 
            cAppli_SaisiePts &                        mAppli;
@@ -154,7 +156,7 @@ class cImage
            ElCamera *                                mCaptCam;
            cElNuage3DMaille *                        mCaptNuage;
            cSaisiePointeIm *                         mSPIm;
-           std::map<std::string,cSP_PointeImage *>   mPointes;
+           std::map<std::string,cSP_PointeImage *>   mPointes; //map (nom point, pointe image)
            std::vector<cSP_PointeImage *>            mVP;
            mutable Pt2di                             mSzIm;
            cWinIm *                                  mWAff;
