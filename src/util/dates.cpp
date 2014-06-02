@@ -59,7 +59,7 @@ static const std::string HRevXif = "3293";
 
 void SetIfPos(cTplValGesInit<double> & aTpl,double aVal)
 {
-    if (aVal>0) 
+    if ( (aVal>0)  && (! BadNumber(aVal)) && (aVal <= (InfRegex/2.0)))
        aTpl.SetVal(aVal);
     else
        aTpl.SetNoInit();
@@ -67,6 +67,7 @@ void SetIfPos(cTplValGesInit<double> & aTpl,double aVal)
 
 cXmlXifInfo MDT2Xml(const cMetaDataPhoto & aMTD)
 {
+
    cXmlXifInfo aRes;
 
    aRes.HGRev() = NumHgRev();
