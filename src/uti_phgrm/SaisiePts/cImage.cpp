@@ -344,7 +344,21 @@ Fonc_Num  cImage::FilterImage(Fonc_Num aFonc,eTypePts aType,cPointGlob * aPG)
     return aFonc;
 }
 
+void cImage::UpdateMapPointes(const std::string aName)
+{
+    std::map<std::string,cSP_PointeImage *>::iterator It = mPointes.begin();
+    for ( ; It != mPointes.end(); It++)
+    {
+        if (It->second->Saisie()->NamePt() == aName)
+        {
+            std::string oldName = It->first;
+            cSP_PointeImage* aPIm = It->second;
 
+            mPointes.erase(oldName);
+            mPointes[aName] = aPIm;
+        }
+    }
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
