@@ -235,20 +235,28 @@ if ( NOT ${qt_version} EQUAL 0 )
 endif()
 
 # CONSTRUCTION : Lib ELISE
+
 if(${CUDA_ENABLED})
     INCLUDE (GpGpu.cmake)
+
+    cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${saisie_ui} OPTIONS ${GENCODE_SM})
+
+    target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY})
+
 else()
 
-    add_library( elise ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${saisie_ui})
+    add_library( ${libElise}  ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${saisie_ui})
 
-    target_link_libraries(elise ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
-
-    if( ${qt_version} EQUAL 5 )
-        qt5_use_modules(elise Widgets Core Gui Xml Concurrent OpenGL)
-    endif()
-
-    INSTALL(TARGETS elise ARCHIVE DESTINATION ${Install_Dir_lib} )
 endif()
+
+target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
+
+if( ${qt_version} EQUAL 5 )
+    qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
+endif()
+
+INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${Install_Dir_lib} )
+
 
 # OPTION BUILD : En tetes precompilees pour gcc
 enable_precompiled_headers_GCC(StdAfx.h ${libElise} "${CMAKE_CXX_FLAGS}")
