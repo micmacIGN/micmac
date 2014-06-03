@@ -3,7 +3,7 @@ EVOLUTIONS :
   *Compensation sur des lignes 3D
   * Cox Roy accesible ds Malt (en train ...)
   * Generation des orientation d'ortho par image
-
+  * Glob Masq Im
 
 A DOCUMENTER  :
 XifGps2Xml
