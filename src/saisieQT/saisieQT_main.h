@@ -45,6 +45,7 @@ extern void SaisieBasc(int argc, char ** argv,
                         bool &aForceGray);
 
 int helpMessage(QApplication const &app, QString text);
+bool checkNamePt(QString text);
 
 int saisieMasqQT_main(QApplication &app, int argc, char *argv[]);
 int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[]);

@@ -240,12 +240,12 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
                             << EAMC(aSsRes,"Size of Low Resolution Images")
                             << EAMC(aFullRes,"Size of High Resolution Images"),
-                LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                << EAM(ByP,"ByP",true)
-                << EAM(PostFix,"PostFix",false)
-                << EAM(aNbMinPt,"NbMinPt",true)
+                LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
+                << EAM(ByP,"ByP",true,"By process")
+                << EAM(PostFix,"PostFix",false, "Add post fix in directory")
+                << EAM(aNbMinPt,"NbMinPt",true,"Minimum number of points")
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
-                << EAM(aPat2,"Pat2",true)
+                << EAM(aPat2,"Pat2",true, "Second pattern", eSAM_IsPatFile)
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
                 << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
                 aArg
@@ -309,10 +309,10 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 argc,argv,
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
                             << EAMC(aFullRes,"Size of image"),
-                LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                << EAM(PostFix,"PostFix",false)
-                << EAM(ByP,"ByP",true)
-                << EAM(aPat2,"Pat2",true)
+                LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
+                << EAM(PostFix,"PostFix",false, "Add post fix in directory")
+                << EAM(ByP,"ByP",true,"By process")
+                << EAM(aPat2,"Pat2",true,"Second pattern", eSAM_IsPatFile)
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
                 << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
                 aArg
@@ -357,7 +357,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
                             << EAMC(aFullRes,"Image size")
                             << EAMC(aNbAdj,"Number of adjacent images to look for"),
-                LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export Pts in text format")
+                LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(PostFix,"PostFix",false,"Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
@@ -416,9 +416,9 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 argc,argv,
                 LArgMain()  << EAMC(aFullDir,"XML-File of pair", eSAM_IsExistFile)
                             << EAMC(aFullRes,"Resolution",eSAM_None),
-                LArgMain()  << EAM(ExpTxt,"ExpTxt",true)
-                << EAM(PostFix,"PostFix",false)
-                << EAM(ByP,"ByP",true)
+                LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
+                << EAM(PostFix,"PostFix",false,"Add post fix in directory")
+                << EAM(ByP,"ByP",true,"By process")
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
                 << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
                 aArg
@@ -731,7 +731,7 @@ int Graph_(int argc,char ** argv)
                 LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)", eSAM_IsPatFile)
                 << EAMC(maxDimensionResize,"processing size of image  (for the greater dimension)", eSAM_None),
 
-                LArgMain()  << EAM(nbThreads, "ByP", true, "By processe")
+                LArgMain()  << EAM(nbThreads, "ByP", true, "By process")
                 << EAM(detectingTool, PASTIS_DETECT_ARGUMENT_NAME.c_str(), true, "executable used to detect keypoints")
                 << EAM(nbMaxPoints, "MaxPoint", true, "number of points used per image to construct the graph (default 200)")
                 << EAM(minScaleThreshold, "MinScale", true, "if specified, points with a lesser scale are ignored")

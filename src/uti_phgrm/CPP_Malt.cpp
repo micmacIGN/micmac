@@ -283,11 +283,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mCostTrans,"CostTrans",true,"Cost to change from correlation to uncorrelation (Def = 2.0) ")
                     << EAM(mEtapeInit,"Etape0",true,"First Step (Def=1) ")
                     << EAM(mAffineLast,"AffineLast",true,"Affine Last Etape with Step Z/2 (Def=true) ")
-                    << EAM(mResolOrtho,"ResolOrtho",true,"Resolution of ortho, relatively to images (Def=1.0; 0.5 mean smaller images) ")
+                    << EAM(mResolOrtho,"ResolOrtho",true,"Resolution of ortho, relatively to images (Def=1.0; 0.5 means smaller images) ")
                     << EAM(mImMNT,"ImMNT",true,"Filter to select images used for matching (Def All, usable with ortho) ")
                     << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ")
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z")
-                    << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
+                    << EAM(mIsSperik,"Spherik",true,"If true the surface for rectification is a sphere")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ")
@@ -299,8 +299,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
                     << EAM(mModeOri,"MOri",false,"Mode Orientation (GRID or RTO) if not XML frame camera")
-                    << EAM(mMaxFlow,"MaxFlow",false,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower somtime better, Def=false ")
-                    << EAM(mSzRec,"SzRec",false,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
+                    << EAM(mMaxFlow,"MaxFlow",true,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower sometime better, Def=false ")
+                    << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                 );
 
     if (!MMVisualMode)
@@ -369,7 +369,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (mUseImSec)
       {
-          ELISE_ASSERT((mType==eGeomImage),"Illegal combinaison with UseImSec");
+          ELISE_ASSERT((mType==eGeomImage),"Illegal combination with UseImSec");
           mImMaster = mIms;
       }
       else if ((mImMaster!="") != (mType==eGeomImage))
@@ -441,7 +441,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
           if (EAMIsInit(&mIncidMax))
           {
-              ELISE_ASSERT(aNbZM!=0,"Cannit get ZMOy with Inc Max");
+              ELISE_ASSERT(aNbZM!=0,"Cannot get ZMoy with IncMax");
               ZMoyInit = true;
               mZMoy = aSomZM / aNbZM;
 
@@ -849,7 +849,7 @@ int Malt_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -865,17 +865,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

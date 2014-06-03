@@ -108,10 +108,10 @@ if(${CUDA_ENABLED})
          list(REMOVE_ITEM IncFiles ${IncFilesGpGpu})
 endif()
 
- cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM})
+#cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} OPTIONS ${GENCODE_SM})
 
- target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY})
+#target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY})
 
- INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
+INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
             LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
             ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib)
