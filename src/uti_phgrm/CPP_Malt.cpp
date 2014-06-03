@@ -138,6 +138,7 @@ class cAppliMalt
           double      mLargMin;
           Pt2dr       mSzGlob;
           std::string  mMasqIm;
+          std::string  mMasqImGlob;
           bool        mUseImSec;
           bool        mCorMS;
           bool        mUseGpu;
@@ -289,6 +290,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
+                    << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ")
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
@@ -591,11 +593,23 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (EAMIsInit(&mMasqIm))
       {
+          CorrecNameMasq(mDir,mFullName,mMasqIm);
+      //SplitDirAndFile(mDir,mIms,mFullName);
           mCom =  mCom
                   +  std::string(" +UseMasqPerIm=true")
                   +  std::string(" +MasqPerIm=") + mMasqIm
                   ;
       }
+      if (EAMIsInit(&mMasqImGlob))
+      {
+          // CorrecNameMasq(mDir,mFullName,mMasqIm);
+      //SplitDirAndFile(mDir,mIms,mFullName);
+          mCom =  mCom
+                  +  std::string(" +UseGlobMasqPerIm=true")
+                  +  std::string(" +GlobMasqPerIm=") + mMasqImGlob
+                  ;
+      }
+
       if (EAMIsInit(&mModeOri))
           mCom =  mCom + " +ModeOriIm=" + mFullModeOri
                   + std::string(" +Conik=false")
