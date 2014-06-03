@@ -282,11 +282,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mCostTrans,"CostTrans",true,"Cost to change from correlation to uncorrelation (Def = 2.0) ")
                     << EAM(mEtapeInit,"Etape0",true,"First Step (Def=1) ")
                     << EAM(mAffineLast,"AffineLast",true,"Affine Last Etape with Step Z/2 (Def=true) ")
-                    << EAM(mResolOrtho,"ResolOrtho",true,"Resolution of ortho, relatively to images (Def=1.0; 0.5 mean smaller images) ")
+                    << EAM(mResolOrtho,"ResolOrtho",true,"Resolution of ortho, relatively to images (Def=1.0; 0.5 means smaller images) ")
                     << EAM(mImMNT,"ImMNT",true,"Filter to select images used for matching (Def All, usable with ortho) ")
                     << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ")
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z")
-                    << EAM(mIsSperik,"Spherik",true,"If true the surface for redressing are spheres")
+                    << EAM(mIsSperik,"Spherik",true,"If true the surface for rectification is a sphere")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
@@ -297,8 +297,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
                     << EAM(mModeOri,"MOri",false,"Mode Orientation (GRID or RTO) if not XML frame camera")
-                    << EAM(mMaxFlow,"MaxFlow",false,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower somtime better, Def=false ")
-                    << EAM(mSzRec,"SzRec",false,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
+                    << EAM(mMaxFlow,"MaxFlow",true,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower sometime better, Def=false ")
+                    << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                 );
 
     if (!MMVisualMode)
@@ -367,7 +367,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (mUseImSec)
       {
-          ELISE_ASSERT((mType==eGeomImage),"Illegal combinaison with UseImSec");
+          ELISE_ASSERT((mType==eGeomImage),"Illegal combination with UseImSec");
           mImMaster = mIms;
       }
       else if ((mImMaster!="") != (mType==eGeomImage))
@@ -439,7 +439,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
           if (EAMIsInit(&mIncidMax))
           {
-              ELISE_ASSERT(aNbZM!=0,"Cannit get ZMOy with Inc Max");
+              ELISE_ASSERT(aNbZM!=0,"Cannot get ZMoy with IncMax");
               ZMoyInit = true;
               mZMoy = aSomZM / aNbZM;
 

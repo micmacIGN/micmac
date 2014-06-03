@@ -224,7 +224,7 @@ void visual_MainWindow::onRunCommandPressed()
 
                 if (lEdit->isModified())
                 {
-                    string aStr = lEdit->text().toStdString();
+                    string aStr = QUOTE(lEdit->text().toStdString());
 
                     if ( !aStr.empty() ) aAdd += aStr;
                     else if (!aIn->IsOpt()) runCom = false;

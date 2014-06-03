@@ -299,7 +299,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aDoCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
                     << EAM(aDoFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
                     << EAM(aRapTxt,"RapTxt",false)
-                    << EAM(TolLPPCD,"LinkPPaPPs",false)
+                    << EAM(TolLPPCD,"LinkPPaPPs",false, "Link PPa and PPs (double)")
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
     );
 
