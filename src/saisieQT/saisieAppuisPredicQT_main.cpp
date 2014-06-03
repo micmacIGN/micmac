@@ -30,6 +30,8 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 
     SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameMesure, aTypePts, aFlou, aForceGray);
 
+    if (!checkNamePt( QString (aNamePt.c_str()))) return -1;
+
     list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);
     QStringList filenames;
 
