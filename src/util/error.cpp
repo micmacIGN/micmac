@@ -56,7 +56,7 @@ void throwError(std::string err)
 
     message_copy_where_error();
 
-    ncout() << "Bye  (tape enter)" << endl;
+    ncout() << "Bye  (press enter)" << endl;
 
     EliseBRKP();
 }
@@ -99,7 +99,7 @@ void elise_internal_error(const char * mes,const char * file,int line)
     ncout() << "    " << mes << "\n";
     ncout() << "occured at line " << line << " of file " << file  << "\n";
 
-    ncout()  << "please sent a bug report \n";
+    ncout()  << "please send a bug report \n";
 
     Elise_Error_Exit();
 }
@@ -111,7 +111,7 @@ void  elise_test_error(const char * mes,const char * file,int line)
     ncout() << "        this is a test-fatal error \n";
     ncout() << "The following error : \n";
     ncout() << "    " << mes ;
-    ncout() << "was to occur at line " << line << " of file " << file << "\n";
+    ncout() << "was to occure at line " << line << " of file " << file << "\n";
 }
 
 
@@ -291,7 +291,7 @@ Elise_Assertion::Elise_Assertion(const char * kind_of) :
 
 
 Elise_Assertion Tjs_El_User("User's error");
-Elise_Assertion El_User_Dyn("User's  dynamic error");
+Elise_Assertion El_User_Dyn("User's dynamic error");
 
 Elise_Assertion El_Internal("Elise's internal error");
 
@@ -307,17 +307,17 @@ void Elise_Assertion::unactive_user()
 /********************  WARNS  *********************/
 
 cElWarning cElWarning::BehindCam("Point behind camera after initialisation");
-cElWarning cElWarning::FocInxifAndMM("Focal legnth specified both by xif and NKS-Assoc-STD-FOC");
+cElWarning cElWarning::FocInxifAndMM("Focal length specified both by xif and NKS-Assoc-STD-FOC");
 cElWarning cElWarning::CamInxifAndMM("Camera name specified both by xif and NKS-Assoc-STD-FOC");
-cElWarning  cElWarning::GeomIncompAdaptF2Or("Geometrie incompatible Cible/Xml, AdaptFoncFileOriMnt");
-cElWarning cElWarning::GeomPointTooManyMeasured("Too many measuremnt, excess will be ignored");
-cElWarning cElWarning::ToVerifNuage("The point verification point in nuage where not coherents");
+cElWarning  cElWarning::GeomIncompAdaptF2Or("Incompatible geometry Cible/Xml, AdaptFoncFileOriMnt");
+cElWarning cElWarning::GeomPointTooManyMeasured("Too many measures, excess will be ignored");
+cElWarning cElWarning::ToVerifNuage("The point verification in nuage where not coherents");
 cElWarning cElWarning::TrueRot("Non rotation matrix has been used as a rotation");
 cElWarning cElWarning::ScaleInNuageFromP("Possible scale-problem in cElNuage3DMaille::FromParam");
-cElWarning cElWarning::AppuisMultipleDefined("Ground point has several measure in same image");
+cElWarning cElWarning::AppuisMultipleDefined("Ground point has several measures in same image");
 
 
-cElWarning cElWarning::OrhoLocOnlyXCste("For now RedrLocAnam only workx with X=Cst Anamorphose");
+cElWarning cElWarning::OrhoLocOnlyXCste("For now RedrLocAnam only works with X=Cst Anamorphose");
 
 
 int cElWarning::mNbTot = 0;
@@ -354,8 +354,8 @@ void cElWarning::AddWarn
 void cElWarning::ShowOneWarn(FILE  * aFP)
 {
     fprintf(aFP,"%d occurence of warn type [%s]\n",mNbWarns,mName.c_str());
-    fprintf(aFP,"First context  message : %s\n",mMes.c_str());
-    fprintf(aFP,"First detected at line  :  %d of File %s\n",mLine,mFile.c_str());
+    fprintf(aFP,"First context message : %s\n",mMes.c_str());
+    fprintf(aFP,"First detected at line :  %d of File %s\n",mLine,mFile.c_str());
 }
 
 void cElWarning::ShowWarns(const std::string & aFile)
@@ -365,7 +365,7 @@ void cElWarning::ShowWarns(const std::string & aFile)
 
    std::cout << "\n\n";
    std::cout << "*** There were " << mNbTot << " warnings of " << mWarns.size() << " different type \n";
-   std::cout << "***  See "  << aFile << " for all warnd descritption \n";
+   std::cout << "***  See "  << aFile << " for all warn description \n";
    std::cout << "***  First warn occured \n\n";
    mWarns[0]->ShowOneWarn(stdout);
 
