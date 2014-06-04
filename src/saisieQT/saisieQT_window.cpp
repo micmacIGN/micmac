@@ -46,7 +46,7 @@ SaisieQtWindow::~SaisieQtWindow()
 {
     delete _ui;
     delete _Engine;
-    delete _RFMenu;
+    if (_appMode <= MASK3D) delete _RFMenu;
     delete _layout_GLwidgets;
     delete _zoomLayout;
     delete _signalMapper;
@@ -67,7 +67,7 @@ void SaisieQtWindow::connectActions()
     }
 
     //File menu
-    connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
+    if (_appMode <= MASK3D) connect(_ui->actionClose_all, SIGNAL(triggered()), this, SLOT(closeAll()));
 
     for (int i = 0; i < MaxRecentFiles; ++i)
     {
@@ -97,14 +97,17 @@ void SaisieQtWindow::connectActions()
 
 void SaisieQtWindow::createRecentFileMenu()
 {
-    _RFMenu = new QMenu(tr("&Recent files"), this);
+    if (_appMode <= MASK3D)
+    {
+        _RFMenu = new QMenu(tr("&Recent files"), this);
 
-    _ui->menuFile->insertMenu(_ui->actionSettings, _RFMenu);
+        _ui->menuFile->insertMenu(_ui->actionSettings, _RFMenu);
 
-    for (int i = 0; i < MaxRecentFiles; ++i)
-        _RFMenu->addAction(_recentFileActs[i]);
+        for (int i = 0; i < MaxRecentFiles; ++i)
+            _RFMenu->addAction(_recentFileActs[i]);
 
-    updateRecentFileActions();
+        updateRecentFileActions();
+    }
 }
 
 void SaisieQtWindow::setPostFix(QString str)
@@ -463,6 +466,7 @@ void SaisieQtWindow::on_actionReset_triggered()
     if (_appMode != MASK3D)
     {
         closeAll();
+        initData();
 
         addFiles(_Engine->getFilenamesIn());
     }
@@ -793,6 +797,12 @@ void SaisieQtWindow::setUI()
         if (_appMode == POINT2D_INIT)          setWindowTitle("Micmac - SaisieAppuisInitQT");
         else if (_appMode == POINT2D_PREDIC)   setWindowTitle("Micmac - SaisieAppuisPredicQT");
         else if (_appMode == BASC)             setWindowTitle("Micmac - SaisieBascQT");
+
+        hideAction(_ui->actionLoad_image, false);
+        hideAction(_ui->actionSave_masks, false);
+        hideAction(_ui->actionSave_as, false);
+        hideAction(_ui->actionSave_selection, false);
+        hideAction(_ui->actionClose_all, false);
 
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
