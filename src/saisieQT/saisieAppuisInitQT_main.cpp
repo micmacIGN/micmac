@@ -67,16 +67,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     if (!checkNamePt( QString (aNamePt.c_str()))) return -1;
 
-    list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);
-    QStringList filenames;
-
-    for
-    (
-        list<string>::iterator itS=aNamelist.begin();
-        itS!=aNamelist.end();
-        itS++
-    )
-        filenames.push_back( QString((aDir + *itS).c_str()));
+    QStringList filenames = getFilenames(aDir, aName);
 
     int aNbW = aNbFen.x * aNbFen.y;
     if (filenames.size() < aNbW)

@@ -46,6 +46,7 @@ extern void SaisieBasc(int argc, char ** argv,
 
 int helpMessage(QApplication const &app, QString text);
 bool checkNamePt(QString text);
+QStringList getFilenames(std::string aDir, std::string aName);
 
 int saisieMasqQT_main(QApplication &app, int argc, char *argv[]);
 int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[]);
