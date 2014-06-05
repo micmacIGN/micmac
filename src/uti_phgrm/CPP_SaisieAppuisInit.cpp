@@ -60,7 +60,7 @@ void SaisieAppuisInit(int argc, char ** argv,
           argc,argv,
           LArgMain()  << EAMC(aFullName,"Full name (Dir+Pattern)", eSAM_IsPatFile)
                       << EAMC(anOri,"Orientation ; NONE if not used",eSAM_IsExistDirOri)
-                      << EAMC(aNamePt,"Point name", eSAM_None)
+                      << EAMC(aNamePt,"Point name, or point file name", eSAM_None)
                       << EAMC(anOut,"Output",eSAM_IsOutputFile),
           LArgMain()  << EAM(aSzW,"SzW",true,"Sz of window")
                       << EAM(aNbFen,"NbF",true,"Nb of sub window (Def depends of number of images with max of 2x2)")
