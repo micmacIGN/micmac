@@ -485,17 +485,6 @@ border-radius: 5px;
 background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4d4d4d, stop: 0 #646464, stop: 1 #5d5d5d);
 }
 
-/*QAbstractSpinBox*/
-
-QSpinBox::up-arrow, QDoubleSpinBox::up-arrow
-{
-
-    background: url(:/MM/Icons/images/handle.png);
-
-    width: 7px;
-    height: 5px;
-}
-
 QSpinBox::up-arrow, QDoubleSpinBox::up-arrow
 {
     background-image: url(:/MM/Icons/images/up_arrow.png);
