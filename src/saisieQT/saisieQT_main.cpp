@@ -142,3 +142,19 @@ bool checkNamePt(QString text)
     }
     return true;
 }
+
+QStringList getFilenames(string aDir, string aName)
+{
+    list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);
+    QStringList filenames;
+
+    for
+    (
+        list<string>::iterator itS=aNamelist.begin();
+        itS!=aNamelist.end();
+        itS++
+    )
+        filenames.push_back( QString((aDir + *itS).c_str()));
+
+    return filenames;
+}

@@ -224,11 +224,10 @@ void visual_MainWindow::onRunCommandPressed()
 
                 if (lEdit->isModified())
                 {
-                    string aStr = QUOTE(lEdit->text().toStdString());
-
-                    if ( !aStr.empty() ) aAdd += aStr;
-                    else if (!aIn->IsOpt()) runCom = false;
+                    QString txt = lEdit->text();
+                    if ( !txt.isEmpty() ) aAdd += QUOTE(txt.toStdString());
                 }
+                else if (!aIn->IsOpt()) runCom = false;
             }
             break;
         }

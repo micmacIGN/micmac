@@ -127,6 +127,10 @@ struct Rect
         if (pt1.y < y) pt1.y = y;
     }
 
+    bool inside(int2 pt)
+    {
+        return (pt.x>= pt0.x) && (pt.x < pt1.x ) && (pt.y>= pt0.y) && (pt.y < pt1.y);
+    }
 
     void SetMaxMin(Rect rect)
     {
