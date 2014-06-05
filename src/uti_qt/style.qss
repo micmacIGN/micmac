@@ -19,9 +19,12 @@ QWidget:item:hover
     color: #000000;
 }
 
+
+/* gère egalement les combobox */
 QWidget:item:selected
 {
     background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
+    color: white;
 }
 
 QListView::item:hover
@@ -137,7 +140,7 @@ QComboBox
 QComboBox:hover, QPushButton:hover
 {
     color: white;
-    border: 2px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
+    border: 1px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
 }
 
 QComboBox:on
@@ -149,10 +152,11 @@ QComboBox:on
 }
 
 
-QAbstractItemView
+QComboBox QAbstractItemView
 {
     border: 0px;
     background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4d4d4d, stop: 0.1 #646464, stop: 1 #5d5d5d);
+    selection-background-color: #ffaa00;
 }
 
 QComboBox::drop-down
