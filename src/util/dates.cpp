@@ -170,10 +170,15 @@ void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur
 
    std::list<std::string> aLCom;
 
+	// __DEL
+   //const string aDir_noslash = aDir;
+   //if ( aDir.length()>0 && ( (*aDir.rbegin())=='/' || (*aDir.rbegin())=='\\' ) ) aDir_noslash=aDir.substr(0,aDir.length()-1);
    for (int aK=0 ; aK<int(aVS->size()) ; aK++)
    {
        std::string aNameIm = (*aVS)[aK];
-       std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameIm + "-MDT-"+ HRevXif + ".xml";
+       //std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameIm + "-MDT-"+ HRevXif + ".xml";
+       std::string aNameXml = ( isUsingSeparateDirectories()?MMTemporaryDirectory():aDir+"Tmp-MM-Dir/" );
+       aNameXml.append( aNameIm+"-MDT-"+HRevXif+".xml" );
        if (! ELISE_fp::exist_file(aNameXml))
        {
            std::string aCom = MM3dBinFile("TestLib") +  " XmlXif " + aDir+aNameIm + " " + aNameXml;
@@ -1559,8 +1564,9 @@ cMetaDataPhoto cMetaDataPhoto::CreateNewExiv2(const std::string & aNameFile) // 
 {
        std::string aDir,aNameSsDir;
        SplitDirAndFile(aDir,aNameSsDir,aNameFile);
-       std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameSsDir + "-MDT-"+ HRevXif + ".xml";
-
+       //std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameSsDir + "-MDT-"+ HRevXif + ".xml";
+       std::string aNameXml = ( isUsingSeparateDirectories()?MMTemporaryDirectory():aDir+"/Tmp-MM-Dir/" );
+       aNameXml.append( aNameSsDir+"-MDT-"+HRevXif+".xml" );
        if ( ELISE_fp::exist_file(aNameXml))
        {
            cXmlXifInfo aXml = StdGetFromPCP(aNameXml,XmlXifInfo);
