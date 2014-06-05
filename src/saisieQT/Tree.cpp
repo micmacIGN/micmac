@@ -28,7 +28,6 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
     {
         if(index.row() < PG_Count())
         {
-
             cSP_PointGlob * pg = mAppli->PGlob(index.row());
             switch (index.column())
             {
@@ -55,7 +54,7 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
                 case 0:
                     return QString("%1").arg(cnPt.mName.c_str());
                 case 1:
-                    return QString(tr("Non saisi"));
+                    return QString(tr("Not measured"));
                 }
             }
         }

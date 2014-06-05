@@ -52,14 +52,14 @@ public:
 
 
 #if ( ( defined WIN32 ) && ( ELISE_QT_VERSION == 5 ) )
-    int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
-    {
+int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
+{
     Win32CommandLineConverter cmd_line;
     int argc = cmd_line.argc();
     char **argv = cmd_line.argv();
 #else
-    int main(int argc, char *argv[])
-    {
+int main(int argc, char *argv[])
+{
 #endif
 
     QApplication app(argc, argv);
@@ -88,11 +88,11 @@ public:
     QStringList cmdline_args = QCoreApplication::arguments();
 
     QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
-                   QString("SaisieMasqQT\n") +
-                   QString("SaisieAppuisInitQT\n") +
-                   QString("SaisieAppuisPredicQT\n")+
-                   QString("SaisieBascQT\n")+
-                   QString("SaisieBoxQT\n\n");
+            QString("SaisieMasqQT\n") +
+            QString("SaisieAppuisInitQT\n") +
+            QString("SaisieAppuisPredicQT\n")+
+            QString("SaisieBascQT\n")+
+            QString("SaisieBoxQT\n\n");
 
     if (cmdline_args.size() > 1)
     {
@@ -131,4 +131,30 @@ public:
         helpMessage(app, cmds);
 
     return EXIT_SUCCESS;
+}
+
+bool checkNamePt(QString text)
+{
+    if (text.contains(".txt") && QFileInfo(text).isAbsolute())
+    {
+        QMessageBox::critical(NULL, "Error", "Don't use an absolute path for point file name!");
+        return false;
+    }
+    return true;
+}
+
+QStringList getFilenames(string aDir, string aName)
+{
+    list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);
+    QStringList filenames;
+
+    for
+    (
+        list<string>::iterator itS=aNamelist.begin();
+        itS!=aNamelist.end();
+        itS++
+    )
+        filenames.push_back( QString((aDir + *itS).c_str()));
+
+    return filenames;
 }
