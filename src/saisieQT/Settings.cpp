@@ -1,7 +1,8 @@
 #include "Settings.h"
 #include "ui_Settings.h"
+#include "ui_Help.h"
 
-cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), _ui(new Ui::cSettingsDlg)
+cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), _ui(new Ui::SettingsDialog)
 {
     _ui->setupUi(this);
 
@@ -352,4 +353,69 @@ void cParameters::write()
      settings.setValue("Mode", _eType   );
      settings.setValue("WindowSize", _sz);
      settings.endGroup();
+}
+
+//****************************************************************************************
+
+cHelpDlg::cHelpDlg(QString title, QWidget *parent) : QDialog(parent), _ui(new Ui::HelpDialog)
+{
+    _ui->setupUi(this);
+
+    setWindowTitle(title);
+
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+
+    setWindowModality(Qt::NonModal);
+}
+
+cHelpDlg::~cHelpDlg()
+{
+    delete _ui;
+}
+
+void cHelpDlg::populateTableView(const QStringList &shortcuts, const QStringList &actions)
+{
+    QStandardItemModel* model = new QStandardItemModel(shortcuts.size(), 2, this);
+
+    model->setHorizontalHeaderItem(0, new QStandardItem(tr("Shortcut")));
+    model->setHorizontalHeaderItem(1, new QStandardItem(tr("Action")));
+
+    _ui->tableView->setModel(model);
+
+    setStyleSheet("QTableView::item{padding: 2px;}");
+
+    for (int aK=0; aK< shortcuts.size(); ++aK)
+    {
+        QStandardItem *it0 = new QStandardItem(shortcuts[aK]);
+        QStandardItem *it1 = new QStandardItem(actions[aK]);
+
+        it0->setFlags(it0->flags() & ~Qt::ItemIsEditable);
+        it1->setFlags(it1->flags() & ~Qt::ItemIsEditable);
+
+        model->setItem(aK, 0, it0);
+        model->setItem(aK, 1, it1);
+    }
+
+    _ui->tableView->horizontalHeader()->setStretchLastSection(true);
+    _ui->tableView->verticalHeader()->setVisible(false);
+    _ui->tableView->resizeColumnsToContents();
+    _ui->tableView->resizeRowsToContents();
+
+    int width = 2;
+    for(int column = 0; column < model->columnCount(); column++)
+        width += _ui->tableView->columnWidth(column);
+
+    int height = 2 + _ui->tableView->horizontalHeader()->height();
+    for(int row = 0; row < model->rowCount(); row++)
+        height += _ui->tableView->rowHeight(row);
+
+    _ui->tableView->setMinimumWidth(width);
+    _ui->tableView->setMinimumHeight(height);
+
+    resize(_ui->tableView->width()+20,_ui->tableView->height() + _ui->okButton->height());
+}
+
+void cHelpDlg::on_okButton_clicked()
+{
+    close();
 }

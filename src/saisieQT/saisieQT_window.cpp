@@ -1,6 +1,7 @@
 ﻿#include "saisieQT_window.h"
 #include "ui_saisieQT_window.h"
 
+
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
         _ui(new Ui::SaisieQtWindow),
@@ -314,103 +315,163 @@ void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 
 void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 {
-    QString text = tr("File menu:") +"\n\n";
+    QString title = QApplication::applicationName() + tr(" shortcuts");
+    cHelpDlg *helpDialog = new cHelpDlg(title, this);
+
+    const QPoint global = qApp->desktop()->availableGeometry().center();
+    helpDialog->move(global.x() - helpDialog->width() / 2, global.y() - helpDialog->height() / 2);
+
+    helpDialog->show();
+
+    QStringList shortcuts;
+    QStringList actions;
+
     if (_appMode == MASK3D)
     {
-        text += "Ctrl+P: \t" + tr("open .ply files")+"\n";
-        text += "Ctrl+C: \t"+ tr("open .xml camera files")+"\n";
+        shortcuts.push_back("Ctrl+P");
+        actions.push_back(tr("open .ply files"));
+        shortcuts.push_back("Ctrl+C");
+        actions.push_back(tr("open .xml camera files"));
     }
-    text += "Ctrl+O: \t\t"+tr("open image file")+"\n";
-    if (_appMode == MASK3D) text += "tr(""Ctrl+E: \t"+tr("save .xml selection infos")+"\n";
-    text += "Ctrl+S: \t\t"+tr("save mask file")+"\n";
-    text += "Ctrl+Maj+S: \t"+tr("save mask file as")+"\n";
-    text += "Ctrl+X: \t\t"+tr("close files")+"\n";
-    text += "Ctrl+Q: \t\t"+tr("quit") +"\n\n";
-    text += tr("View menu:") +"\n\n";
-    text += "F2: \t"+tr("full screen") +"\n";
+    if (_appMode <= MASK3D)
+    {
+        shortcuts.push_back("Ctrl+O");
+        actions.push_back(tr("open image file"));
+        if (_appMode == MASK3D)
+        {
+            shortcuts.push_back("Ctrl+E");
+        actions.push_back(tr("save .xml selection infos"));
+        }
+        shortcuts.push_back("Ctrl+S");
+        actions.push_back(tr("save mask file"));
+        shortcuts.push_back("Ctrl+Maj+S");
+        actions.push_back(tr("save mask file as"));
+        shortcuts.push_back("Ctrl+X");
+        actions.push_back(tr("close files"));
+    }
+    shortcuts.push_back("Ctrl+T");
+    actions.push_back(tr("settings"));
+    shortcuts.push_back("Ctrl+Q");
+    actions.push_back(tr("quit"));
+
+    shortcuts.push_back("F2");
+    actions.push_back(tr("full screen"));
     if (_appMode == MASK3D)
     {
-        text += "F3: \t"+tr("show axis") +"\n";
-        text += "F4: \t"+tr("show ball") +"\n";
-        text += "F5: \t"+tr("show bounding box") +"\n";
-        text += "F6: \t"+tr("show grid") +"\n";
-        text += "F7: \t"+tr("show cameras") +"\n";
+        shortcuts.push_back("F3");
+        actions.push_back(tr("show axis"));
+        shortcuts.push_back("F4");
+        actions.push_back(tr("show ball"));
+        shortcuts.push_back("F5");
+        actions.push_back(tr("show bounding box"));
+        shortcuts.push_back("F6");
+        actions.push_back(tr("show grid"));
+        shortcuts.push_back("F7");
+        actions.push_back(tr("show cameras"));
     }
-    text += "F8: \t"+tr("show messages") +"\n";
+    shortcuts.push_back("F8");
+    actions.push_back(tr("show messages"));
     if (_appMode > MASK3D)
     {
-         text += "Ctrl+N: \t"+tr("show names") +"\n";
-         text += "Ctrl+R: \t"+tr("show refuted") +"\n";
+         shortcuts.push_back("Ctrl+N");
+         actions.push_back(tr("show names"));
+         shortcuts.push_back("Ctrl+R");
+         actions.push_back(tr("show refuted"));
     }
 
     if (_appMode == MASK3D)
-        text += tr("Key +/-: \tincrease/decrease point size") +"\n\n";
+    {
+        shortcuts.push_back(tr("Key +/-"));
+        actions.push_back(tr("increase/decrease point size"));
+    }
     else
     {
-        text += tr("Key +/-: \tzoom +/-") + "\n";
-        text += "9: \t"+tr("zoom fit") + "\n";
-        text+= "4: \tzoom 400%\n";
-        text+= "2: \tzoom 200%\n";
-        text+= "1: \tzoom 100%\n";
-        text+= "Ctrl+2: \tzoom 50%\n";
-        text+= "Ctrl+4: \tzoom 25%\n";
+        shortcuts.push_back(tr("Key +/-"));
+        actions.push_back(tr("zoom +/-"));
+        shortcuts.push_back(tr("Key 9"));
+        actions.push_back(tr("zoom fit"));
+        shortcuts.push_back("Key 4");
+         actions.push_back(tr("zoom 400%"));
+        shortcuts.push_back(tr("Key 2"));
+        actions.push_back(tr("zoom 200%"));
+        shortcuts.push_back(tr("Key 1"));
+        actions.push_back(tr("zoom 100%"));
+        shortcuts.push_back("Ctrl+2");
+        actions.push_back(tr("zoom 50%"));
+        shortcuts.push_back("Ctrl+4");
+        actions.push_back(tr("zoom 25%"));
     }
 
-    text += "Shift+R: \t"+tr("reset view") +"\n\n";
+    shortcuts.push_back("Shift+R");
+    actions.push_back(tr("reset view"));
 
     if (_appMode <= MASK3D)
     {
-        text += tr("Selection menu:") +"\n\n";
         if (_appMode == MASK3D)
         {
-            text += "F9: \t"+tr("move mode / selection mode (only 3D)") +"\n\n";
+            shortcuts.push_back("F9:");
+            actions.push_back(tr("move mode / selection mode (only 3D)"));
         }
-        text += tr("Left click : \tadd a vertex to polyline") +"\n";
-        text += tr("Right click: \tclose polyline or delete nearest vertex") +"\n";
-        text += tr("Echap: \t\tdelete polyline") +"\n";
+        shortcuts.push_back(tr("Left click"));
+        actions.push_back(tr("add a vertex to polyline"));
+        shortcuts.push_back(tr("Right click"));
+        actions.push_back(tr("close polyline or delete nearest vertex"));
+        shortcuts.push_back(tr("Echap"));
+        actions.push_back(tr("delete polyline"));
 
 #ifdef ELISE_Darwin
     #if ELISE_QT_VERSION >= 5
-            text += tr("Ctrl+U: \tselect inside polyline") +"\n";
-            text += tr("Ctrl+Y: \t\tremove inside polyline") +"\n";
+            shortcuts.push_back("Ctrl+U");
+            actions.push_back(tr("select inside polyline"));
+            shortcuts.push_back("Ctrl+Y");
+            actions.push_back(tr("remove inside polyline"));
     #else
-            text += tr("Space bar: \tselect inside polyline") +"\n";
-            text += tr("Del: \t\tremove inside polyline") +"\n";
+            shortcuts.push_back(tr("Space bar"));
+            actions.push_back(tr("select inside polyline"));
+            shortcuts.push_back(tr("Del"));
+            actions.push_back(tr("remove inside polyline"));
     #endif
 #else
-        text += tr("Space bar: \tselect inside polyline") +"\n";
-        text += tr("Del: \t\tremove inside polyline") +"\n";
+        shortcuts.push_back(tr("Space bar"));
+        actions.push_back(tr("select inside polyline"));
+        shortcuts.push_back(tr("Del"));
+        actions.push_back(tr("remove inside polyline"));
 #endif
 
-        text += tr("Shift+drag: \tinsert vertex in polyline") +"\n";
-        text += tr("Ctrl+right click: \tremove last vertex") +"\n";
-        text += tr("Drag & drop: \tmove selected polyline vertex") +"\n";
-        text += tr("Arrow keys: \tmove selected vertex") +"\n";
-        text += tr("Alt+arrow keys: \tmove selected vertex faster") +"\n";
-        text += "Ctrl+A: \t\t"+tr("select all") +"\n";
-        text += "Ctrl+D: \t\t"+tr("select none") +"\n";
-        text += "Ctrl+R: \t\t"+tr("reset") +"\n";
-        text += "Ctrl+I: \t\t"+tr("invert selection") +"\n";
+        shortcuts.push_back(tr("Shift+drag"));
+        actions.push_back(tr("insert vertex in polyline"));
+        shortcuts.push_back(tr("Ctrl+right click"));
+        actions.push_back(tr("remove last vertex"));
+        shortcuts.push_back(tr("Drag & drop"));
+        actions.push_back(tr("move selected polyline vertex"));
+        shortcuts.push_back(tr("Arrow keys"));
+        actions.push_back(tr("move selected vertex"));
+        shortcuts.push_back(tr("Alt+arrow keys"));
+        actions.push_back(tr("move selected vertex faster"));
+        shortcuts.push_back("Ctrl+A");
+        actions.push_back(tr("select all"));
+        shortcuts.push_back("Ctrl+D");
+        actions.push_back(tr("select none"));
+        shortcuts.push_back("Ctrl+R");
+        actions.push_back(tr("reset"));
+        shortcuts.push_back("Ctrl+I");
+        actions.push_back(tr("invert selection"));
     }
     else
     {
-        text += tr("Left click: \tadd point")+"\n";
-        text += tr("Right click: \tshow state menu or window menu")+"\n";
-        text += tr("Drag & drop: \tmove selected point") +"\n\n";
-
-        text += tr("History menu:") +"\n\n";
+        shortcuts.push_back(tr("Left click"));
+        actions.push_back(tr("add point"));
+        shortcuts.push_back(tr("Right click"));
+        actions.push_back(tr("show state menu or window menu"));
+        shortcuts.push_back(tr("Drag & drop"));
+        actions.push_back(tr("move selected point"));
     }
-    text += "Ctrl+Z: \t\t"+tr("undo last action") +"\n";
-    text += "Ctrl+Shift+Z: \t"+tr("redo last action") +"\n";
+    shortcuts.push_back("Ctrl+Z");
+    actions.push_back(tr("undo last action"));
+    shortcuts.push_back("Ctrl+Shift+Z");
+    actions.push_back(tr("redo last action"));
 
-    QMessageBox *msgBox = new QMessageBox(this);
-    msgBox->setText(text);
-    msgBox->setWindowTitle(QApplication::applicationName() + tr(" shortcuts"));
-    msgBox->setIcon(QMessageBox::Information);
-    msgBox->setWindowFlags(msgBox->windowFlags() | Qt::WindowStaysOnTopHint);
-
-    msgBox->setWindowModality(Qt::NonModal);
-    msgBox->show();
+    helpDialog->populateTableView(shortcuts, actions);
 }
 
 void SaisieQtWindow::on_actionAbout_triggered()
@@ -1178,5 +1239,3 @@ void SaisieQtWindow::labelShowMode(bool state)
         }
     }
 }
-
-

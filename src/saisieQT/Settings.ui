@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>cSettingsDlg</class>
- <widget class="QDialog" name="cSettingsDlg">
+ <class>SettingsDialog</class>
+ <widget class="QDialog" name="SettingsDialog">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -17,7 +17,7 @@
    <string>Settings</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="icones/icones.qrc">
     <normaloff>:/MM/Icons/images/icon_32.png</normaloff>:/MM/Icons/images/icon_32.png</iconset>
   </property>
   <property name="styleSheet">
@@ -591,6 +591,8 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="icones/icones.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -5,11 +5,13 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <QStandardItemModel>
 
 #include "StdAfx.h"
 
 namespace Ui {
-class cSettingsDlg;
+class SettingsDialog;
+class HelpDialog;
 }
 
 //Min and max zoom ratio (relative)
@@ -165,7 +167,28 @@ protected:
     //! settings copy
     cParameters  _oldParameters;
 
-    Ui::cSettingsDlg* _ui;
+    Ui::SettingsDialog* _ui;
+};
+
+class cHelpDlg : public QDialog
+{
+    Q_OBJECT
+
+public:
+
+    //! Default constructor
+    cHelpDlg(QString title, QWidget* parent);
+    ~cHelpDlg();
+
+    void populateTableView(const QStringList &shortcuts, const QStringList &actions);
+
+protected slots:
+
+    void on_okButton_clicked();
+
+protected:
+
+    Ui::HelpDialog*         _ui;
 };
 
 

@@ -180,6 +180,7 @@ if ( NOT ${qt_version} EQUAL 0 )
     set (ui_toWrap
      ${SAISIE_DIR}/saisieQT_window.ui
      ${SAISIE_DIR}/Settings.ui
+     ${SAISIE_DIR}/Help.ui
     )
 
    if ( ${qt_version} EQUAL 5 )
