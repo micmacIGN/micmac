@@ -130,7 +130,8 @@ void setStyleSheet(QApplication &app)
 {
     QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
+    {      
+        Q_INIT_RESOURCE(icones);
         app.setStyleSheet(file.readAll());
         file.close();
     }
