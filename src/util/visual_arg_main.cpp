@@ -130,7 +130,15 @@ void setStyleSheet(QApplication &app)
 {
     QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
+    {      
+/*
+ MPD SINON ERREUR DE LINK :
+../libelise.a(visual_arg_main.cpp.o): In function `setStyleSheet(QApplication&)':
+visual_arg_main.cpp:(.text+0x3e9): undefined reference to `qInitResources_icones()'
+
+
+        Q_INIT_RESOURCE(icones);
+*/
         app.setStyleSheet(file.readAll());
         file.close();
     }
