@@ -99,20 +99,6 @@ QWidget:disabled
     background-color: #323232;
 }
 
-QAbstractItemView
-{
-    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4d4d4d, stop: 0.1 #646464, stop: 1 #5d5d5d);
-}
-
-QLineEdit, QComboBox
-{
-    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4d4d4d, stop: 0 #646464, stop: 1 #5d5d5d);
-    padding: 2px;
-    border-style: solid;
-    border: 1px solid #1e1e1e;
-    border-radius: 5;
-}
-
 QPushButton
 {
     color: #b1b1b1;
@@ -132,6 +118,16 @@ QPushButton:pressed
     background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #2d2d2d, stop: 0.1 #2b2b2b, stop: 0.5 #292929, stop: 0.9 #282828, stop: 1 #252525);
 }
 
+
+QLineEdit, QComboBox
+{
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4d4d4d, stop: 0 #646464, stop: 1 #5d5d5d);
+    padding: 2px;
+    border-style: solid;
+    border: 1px solid #1e1e1e;
+    border-radius: 5;
+}
+
 QComboBox
 {
      min-width: 6em;
@@ -140,6 +136,7 @@ QComboBox
 
 QComboBox:hover, QPushButton:hover
 {
+    color: white;
     border: 2px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
 }
 
@@ -151,10 +148,11 @@ QComboBox:on
     selection-background-color: #ffaa00;
 }
 
-QComboBox QAbstractItemView
+
+QAbstractItemView
 {
-    border: 2px solid darkgray;
-    selection-background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
+    border: 0px;
+    background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4d4d4d, stop: 0.1 #646464, stop: 1 #5d5d5d);
 }
 
 QComboBox::drop-down
@@ -173,7 +171,7 @@ QComboBox::drop-down
 QComboBox::down-arrow
 {
     image:url(:/MM/Icons/images/down_arrow.png);
-    width: 5px;
+    width: 7px;
     height: 5px;
 }
 
