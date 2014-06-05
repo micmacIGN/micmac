@@ -223,6 +223,7 @@ class cAppliPastis : public cAppliBatch
 	   string        mDetectingArguments; // arguments to be passed when calling the detecting tool
 	   string        mMatchingTool;       // name of the program to be used for matching points
 	   string        mMatchingArguments;  // arguments to be passed when calling the matching tool
+	   string        mOutputDirectory;
 
        Pt2dr Homogr1to2(const Pt2dr & aP1)
        {
@@ -239,10 +240,7 @@ std::string cAppliPastis::NameKey(const std::string & aFullName)
 {
    std::string aDir,aName;
    SplitDirAndFile(aDir,aName,aFullName);
-
-   return
-     DirChantier()
-   + ICNM()->Assoc1To2(mSiftImplem+"-Pastis-PtInt",aName,ToString(mSzPastis),true);
+   return mOutputDirectory+ICNM()->Assoc1To2(mSiftImplem+"-Pastis-PtInt",aName,ToString(mSzPastis),true);
 }
 
 void cAppliPastis::GenerateKey(const std::string & aName,const std::string & aNameIm)
@@ -282,10 +280,8 @@ void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aN
 
   std::string aCom;
 
-  string protected_named_key1, protected_named_key2 = protect_spaces(NameKey(aNI2));
-
-	protected_named_key1 = protectFilename(NameKey(aNI1));
-	protected_named_key2 = protectFilename(NameKey(aNI2));
+  string protected_named_key1 = protectFilename(NameKey(aNI1)),
+         protected_named_key2 = protect_spaces(NameKey(aNI2));
 
   if (mModeBin==eModeLeBrisPP)
   {
@@ -317,14 +313,12 @@ CamStenope * cAppliPastis::CamOfIm(const std::string & aNameIm)
 {
    std::string aNameCal;
 
-   if (ELISE_fp::exist_file(DirChantier()+mKCal))
+   if ( ELISE_fp::exist_file( mOutputDirectory+mKCal ) )
       aNameCal = mKCal;
    else
       aNameCal = ICNM()->Assoc1To1(mKCal,aNameIm,true);
 
-
-   if (aNameCal != "NoCalib")
-      return Std_Cal_From_File(DirChantier()+aNameCal);
+   if (aNameCal != "NoCalib") return Std_Cal_From_File( mOutputDirectory+aNameCal );
 
    return 0;
 }
@@ -774,7 +768,7 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
    double aSFH = mSeuilFHom;
    if (aSFH==NOSFH)
    {
-       Tiff_Im aI1 = Tiff_Im::StdConvGen(DirChantier()+CurF1(),1,false);
+       Tiff_Im aI1 = Tiff_Im::StdConvGen(mOutputDirectory+CurF1(),1,false);
        aSFH =  0.1 * euclid(aI1.sz());
    }
    if (aSFH > 0)
@@ -818,8 +812,8 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
 
 void cAppliPastis::Exec()
 {
-  mSzIm1 = Tiff_Im::StdConvGen(DirChantier()+CurF1(),1,false).sz();
-  mSzIm2 = Tiff_Im::StdConvGen(DirChantier()+CurF2(),1,false).sz();
+  mSzIm1 = Tiff_Im::StdConvGen(mOutputDirectory+CurF1(),1,false).sz();
+  mSzIm2 = Tiff_Im::StdConvGen(mOutputDirectory+CurF2(),1,false).sz();
 
   ExecSz(mSzPastis,false);
 }
@@ -837,20 +831,16 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
       SplitDirAndFile(aDir,aN1,NameKey(aPair.first.NameRectif()));
       SplitDirAndFile(aDir,aN2,NameKey(aPair.second.NameRectif()));
 
-      ELISE_fp::MkDirSvp(DirChantier() + "Pastis"+ELISE_CAR_DIR+"LBPp-Match-" + StdPrefix(aN1)+ELISE_CAR_DIR);
+      ELISE_fp::MkDirSvp( mOutputDirectory+"Pastis"+ELISE_CAR_DIR+"LBPp-Match-"+StdPrefix(aN1)+ELISE_CAR_DIR );
 
-      mNameAPM =    DirChantier()
-                 +  ICNM()->Assoc1To2(mSiftImplem+"-Pastis-Hom-Txt",aN1,aN2,true);
+      mNameAPM = mOutputDirectory + ICNM()->Assoc1To2(mSiftImplem+"-Pastis-Hom-Txt",aN1,aN2,true);
   }
   else if (mModeBin==eModeAutopano)
-  {
-      mNameAPM =   DirChantier()
-              + ICNM()->Assoc1To3(mSiftImplem+"-Pastis-Hom-Txt",CurF1(),CurF2(),ToString(mSzPastis),true);
-  }
+      mNameAPM = mOutputDirectory + ICNM()->Assoc1To3(mSiftImplem+"-Pastis-Hom-Txt",CurF1(),CurF2(),ToString(mSzPastis),true);
 
    if (mNKS!="")
    {
-      mNameHomXML =   DirChantier() + ICNM()->Assoc1To2(mNKS,CurF1(),CurF2(),true);
+      mNameHomXML = mOutputDirectory + ICNM()->Assoc1To2(mNKS,CurF1(),CurF2(),true);
    }
    else
    {
@@ -858,12 +848,9 @@ void cAppliPastis::ExecSz(double aSzMaxApp,bool)
                                "Key-Assoc-SsRes-CpleIm2HomolPastisBin" :
                                "Key-Assoc-CpleIm2HomolPastisBin"       ;
 
-      if (mExt!="")
-      {
-         aKAssoc = "KeyStd-Assoc-CplIm2HomBin@" + mExt;
-      }
-      mNameHomXML = DirChantier()
-					+ ICNM()->Assoc1To2(aKAssoc,CurF1(),CurF2(),true);
+      if (mExt!="") aKAssoc = "KeyStd-Assoc-CplIm2HomBin@" + mExt;
+      
+      mNameHomXML = mOutputDirectory + ICNM()->Assoc1To2(aKAssoc,CurF1(),CurF2(),true);
 
       if (mExpBin)
       {
@@ -934,6 +921,7 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
    mDetectingTool     ( TheStrSiftPP ),
    mMatchingTool      ( TheStrAnnPP )
 {
+	mOutputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():DirChantier() );
     std::string aKG12="";
     if (!NivPurgeIsInit())
        SetNivPurge(eNoPurge);

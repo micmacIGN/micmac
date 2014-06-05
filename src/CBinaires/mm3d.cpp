@@ -497,17 +497,12 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        {
           cArgLogCom aLog = aVComs[aKC].mLog;
           bool DoLog = (aLog.mNumArgDir >0) && (aLog.mNumArgDir<argc);
-          if (DoLog)
-          {
-               LogIn(argc,argv,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup);
-          }
+          string outDirectory = ( isUsingSeparateDirectories()?MMLogDirectory():DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup );
+          if (DoLog) LogIn( argc, argv, outDirectory );
+
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
-
-          if (DoLog)
-          {
-               LogOut(aRes,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup);
-          }
-
+          if (DoLog) LogOut( aRes, outDirectory );
+          
           delete PatMach;
           delete PrefMach;
           delete SubMach;

@@ -837,8 +837,8 @@ std::string XML_MM_File(const std::string & aFile)
     void cMultiNC::AutoMakeSubDirRec(const tNuplet & aNuplet)
     {
         if (mSubDirRec)
-            ELISE_fp::MkDirRec(mDir+aNuplet[0]);
-        }
+            ELISE_fp::MkDirRec( ( isUsingSeparateDirectories()?MMOutputDirectory():mDir )+aNuplet[0] );
+    }
 
     cInterfNameCalculator::tNuplet cMultiNC::Inverse(const tNuplet & aNuplet)
     {
@@ -854,7 +854,7 @@ std::string XML_MM_File(const std::string & aFile)
 
     void cMultiNC::AutoMakeSubDir()
     {
-  if (mSubDir!="") ELISE_fp::MkDir(mDir+mSubDir);
+       if (mSubDir!="") ELISE_fp::MkDir( ( isUsingSeparateDirectories()?MMOutputDirectory():mDir )+mSubDir );
     }
 
     cMultiNC::cMultiNC
@@ -3293,7 +3293,8 @@ aKeyOrFile         :
 
         aScale = Arrondi/iScale;
 
-        std::string aNameFinal =   aDir
+        string outDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir );
+        std::string aNameFinal = outDirectory
                              + std::string("Pastis")+ELISE_CAR_DIR
             + std::string("Resol") + ToString(iScale)
             + std::string("_Teta0")
@@ -3302,7 +3303,7 @@ aKeyOrFile         :
 
         if (! ELISE_fp::exist_file(aNameFinal))
         {
-           ELISE_fp::MkDirRec(aDir+"Pastis"+ELISE_CAR_DIR);
+           ELISE_fp::MkDirRec( outDirectory+"Pastis"+ELISE_CAR_DIR );
             Pt2di aSzF = round_down(Pt2dr(aSz)*aScale);
             Tiff_Im aNewF
                 (
@@ -3401,9 +3402,9 @@ aKeyOrFile         :
 
             int  iTeta = round_ni(mTeta);
             mTeta = iTeta;
-      ELISE_fp::MkDir(aDir+"Pastis"+ELISE_CAR_DIR);
-            mFullNameFinal =    aDir
-                       + "Pastis"+ELISE_CAR_DIR
+            string pastisDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir )+"Pastis"+ELISE_CAR_DIR;
+      ELISE_fp::MkDir(pastisDirectory);
+            mFullNameFinal = pastisDirectory
                 + aStrBox
                 + std::string("Resol") + ToString(iScale)
                 + std::string("_Teta") + ToString(iTeta)
@@ -3647,8 +3648,10 @@ aKeyOrFile         :
         //std::cout << "oooo " << aC1.Scale().Val()  << " " <<  aC2.Scale().Val() << "\n";
 
         std::pair<cCompileCAPI,cCompileCAPI> aRes;
-        aRes.first  = cCompileCAPI(*this,aC1,mDir,aN1,aN2);
-        aRes.second = cCompileCAPI(*this,aC2,mDir,aN2,aN1);
+
+        string outDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():mDir );
+        aRes.first  = cCompileCAPI(*this,aC1,outDirectory,aN1,aN2);
+        aRes.second = cCompileCAPI(*this,aC2,outDirectory,aN2,aN1);
 
         return  aRes;
     }
@@ -3891,6 +3894,67 @@ void   CorrecNameMasq
    ELISE_ASSERT(false,"Key is not a valid masq extension");
 }
 
+static void __check_directory( const cTplValGesInit<std::string> &i_XMLDirectory, string &o_directory )
+{
+	if ( !i_XMLDirectory.IsInit() ){ o_directory.clear(); return; }
+	
+	o_directory = i_XMLDirectory.Val();
+	if ( o_directory.length()==0 ) return;
+	char &lastChar = o_directory[o_directory.length()-1];
+	if ( lastChar=='\\' ) lastChar='/';
+	else if ( lastChar!='/' ) o_directory.push_back('/');
+	ELISE_fp::MkDir(o_directory);
+}
+
+std::string MMOutputDirectory()
+{
+	static string res;
+	static bool isInit = false;
+	if ( isInit ) return res;
+	
+	isInit = true;
+	__check_directory( MMUserEnv().OutputDirectory(), res );
+	return res;
+}
+
+std::string MMLogDirectory()
+{
+	static string res;
+	static bool isInit = false;
+	if ( isInit ) return res;
+
+	isInit = true;
+	__check_directory( MMUserEnv().LogDirectory(), res );
+	return res;
+}
+
+std::string MMTemporaryDirectory()
+{
+	static string res;
+	static bool isInit = false;
+	if ( isInit ) return res;
+	isInit = true;
+	res = MMOutputDirectory()+temporarySubdirectory;
+	ELISE_fp::MkDirSvp(res);
+	return res;
+}
+
+static string _inputDirectory;
+static bool _isInputDirectorySet = false;
+
+void setInputDirectory( const std::string &i_directory )
+{
+	_inputDirectory = i_directory;
+	_isInputDirectorySet = true;
+}
+
+bool isInputDirectorySet(){ return _isInputDirectorySet; }
+
+std::string MMInputDirectory()
+{
+   ELISE_ASSERT( _isInputDirectorySet, ( current_program_subcommand()+": MMInputDirectory is used but not set" ).c_str() );
+   return _inputDirectory;
+}
 
 /*
 TestStdMasq("",aDir,aPat,aMasq);

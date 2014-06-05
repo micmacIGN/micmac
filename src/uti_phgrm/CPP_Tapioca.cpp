@@ -173,7 +173,7 @@ void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, str
     double round_ = 10;
     int    round_scaleFactor = round_ni( ( 1/scaleFactor )*round_ );
 
-    o_grayscaleFilename = aDir + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
+    o_grayscaleFilename = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
             + std::string("_Teta0_") + StdPrefixGen( i_baseName ) + ".tif";
 }
 
@@ -451,11 +451,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
 
 void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName )
 {
-    /*
-     o_keypointsName = aDir+"Pastis/LBPp"+i_basename+".dat";
-     */
-
-    o_keypointsName = aDir + anICNM->Assoc1To2( "eModeLeBrisPP-Pastis-PtInt", i_basename, ToString( i_resolution ), true) ;
+    o_keypointsName = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + anICNM->Assoc1To2( "eModeLeBrisPP-Pastis-PtInt", i_basename, ToString( i_resolution ), true) ;
 }
 
 // create a makefile to compute keypoints for all images Using Pastis' filenames format
@@ -469,7 +465,7 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
             //grayscaleDirectory, grayscaleBasename,
             command;
 
-    if ( !ELISE_fp::MkDirSvp( aDir+"Pastis" ) )
+    if ( !ELISE_fp::MkDirSvp( ( isUsingSeparateDirectories()?MMOutputDirectory():aDir )+"Pastis" ) )
     {
         cerr << "ERROR: creation of directory [" << aDir+"Pastis" << "] failed" << endl;
         ElEXIT( EXIT_FAILURE,std::string("Creating dir ") + aDir+"Pastis" );
@@ -814,6 +810,19 @@ int Graph_(int argc,char ** argv)
 
 int Tapioca_main(int argc,char ** argv)
 {
+	if ( MMUserEnv().UseSeparateDirectories().Val() ){
+		cout << "--- using separate directories" << endl;
+		if ( argc>2 ){
+			string directory, basename;
+			SplitDirAndFile( directory, basename, argv[2] );
+			setInputDirectory( directory );
+			if ( isInputDirectorySet() ) cout << "MMInputDirectory() [= " << MMInputDirectory() << ']' << endl;
+		}
+		cout << "MMOutputDirectory() = [" << MMOutputDirectory() << ']' << endl;
+		cout << "MMLogDirectory() = [" << MMLogDirectory() << ']' << endl;
+		cout << "MMTemporaryDirectory() = [" << MMTemporaryDirectory() << ']' << endl;
+	}
+
 #if(ELISE_QT_VERSION >= 4)
     if (MMVisualMode)
     {
@@ -835,8 +844,10 @@ int Tapioca_main(int argc,char ** argv)
         else
             return EXIT_FAILURE;
     }
-    else
-        TheType = argv[1];
+    else{
+       ELISE_ASSERT(argc >= 2,"Not enough arg");
+       TheType = argv[1];
+    }
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     TheType = argv[1];
@@ -873,7 +884,10 @@ int Tapioca_main(int argc,char ** argv)
     }
 */
 
-    MkFT= aDir  + "MkTapioca";
+    if ( isUsingSeparateDirectories() )
+       MkFT= MMTemporaryDirectory()+"MkTapioca";
+    else
+       MkFT= aDir  + "MkTapioca";
     // MkFT= MMDir() + "MkTapioca";
     //BinPastis = MM3dBinFile("Pastis");
     BinPastis = MM3dBinFile_quotes("Pastis");
