@@ -43,6 +43,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define     STREAM_TO_MAT false
 //#define     CLAMPDZ
 
+//#define SAVEPLY
+//#define DEFCOR
 
 Pt2di Px2Point(int * aPx) { return Pt2di(aPx[0],0); }
 bool IsPTest(const Pt2di & aP) {return aP == Pt2di(40,40);}
@@ -481,39 +483,35 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     //GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
     Pt2di aPTer;
 
-//    for (aPTer.y=1 ; aPTer.y<mSz.y ; aPTer.y++)
-//    {
-//        for (aPTer.x=1 ; aPTer.x<mSz.x ; aPTer.x++)
-//        {
-//            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
-//            const Box2di &  aBox = aMat.Box();
-//            Pt2di aPRX;
+#ifdef DEFCOR
 
-//            ushort minCor = 1e5;
+    for (aPTer.y=1 ; aPTer.y<mSz.y ; aPTer.y++)
+    {
+        for (aPTer.x=1 ; aPTer.x<mSz.x ; aPTer.x++)
+        {
+            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
+            const Box2di &  aBox = aMat.Box();
+            Pt2di aPRX;
 
-            //ushort *cI = IGpuOpt._poInitCost[aPTer];
+            ushort minCor = 10000;
 
-//            for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
-//            {
+            ushort *cI = IGpuOpt._poInitCost[aPTer];
 
-//                ushort cost = cI[aPRX.x - aBox._p0.x] ;
+            for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+            {
 
-//                if(cost < minCor)
-//                    minCor = cost;
-//            }
+                ushort cost = cI[aPRX.x - aBox._p0.x] ;
 
-//            if(badCor)
-//            {
+                if(cost < minCor)
+                    minCor = cost;
+            }
 
- //              cI[0] = minCor;
-//               cout << "BAD COR : " << aPTer << "\n";
-//               DUMP_LINE
-//               cout << "Press Enter to Continue";
-//               cin.ignore();
-            //}
+            cI[0] = minCor;
 
-//        }
-//    }
+        }
+    }
+
+#endif
 
     for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
     {
@@ -524,8 +522,8 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
             Pt2di aPRX;
 
 
-            for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
-            {
+//            for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
+//            {
                 for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
                 {
                     tCost & aCF = aMat[aPRX].CostFinal();
@@ -536,7 +534,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
                     aMat[aPRX].SetCostInit(aCF);
                     aCF = 0;
                 }
-            }
+//            }
         }
     }
     //nvtxRangePop();
@@ -756,7 +754,7 @@ void cGBV2_ProgDynOptimiseur::writePoint(FILE* aFP,  Pt3dr            aP,Pt3di  
     WriteType(aFP,(U_INT1)(aW.z));
 }
 
-//#define SAVEPLY
+
 
 void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 {
@@ -805,9 +803,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 //Im2D_INT4 aDupRes(mSz.x,mSz.y);
 
     ////////////////////////////////////////////////////////////////////////////////
-    //write ply file
-    //Mode Ecriture : binaire ou non
+    //  write ply file
+    //  Mode Ecriture : binaire ou non
+
 #ifdef SAVEPLY
+
     string aNameOut = "toto.ply";
     bool aBin= true;
     string mode = aBin ? "wb" : "w";
@@ -837,7 +837,9 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     fprintf(aFP,"element face %d\n",0);
     fprintf(aFP,"property list uchar int vertex_indices\n");
     fprintf(aFP,"end_header\n");
+
 #endif
+
     //////////////////////////////////////////////////////////////////////
 
     {
@@ -863,32 +865,82 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                         }
                     }
                 }
-                // MODIF
-                mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x ;
-                //aDupRes.data()[aPTer.y][aPTer.x] = aPRXMin.x ;
+                mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+            }
+        }
+
+#ifdef DEFCOR
+
+        ushort defCor = 7000;
+        Rect zone(0,0,mSz.x,mSz.y);
+        uint2 pTer;
+        
+        for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
+        {
+            for (pTer.x=0 ; pTer.x<(uint)mSz.x ; pTer.x++)
+            {
+
+                ushort cI = IGpuOpt._poInitCost[pTer][0];
+
+                if(cI > defCor)
+                {
+                    bool findZ = false;
+                    ushort  iteSpi   = 1;
+                    int2    curPT    = make_int2(pTer);
+                    int zMin = 1e9;
+
+                    while(!findZ || iteSpi < 5)
+                    {
+                        bool pair   = (iteSpi % 2) == 0;
+                        int vec     = (float)iteSpi/2.f + 0.5f;
+                        int sign    = (vec % 2) == 0 ? 1 : -1;
+                        int2 tr     = make_int2(sign * pair,sign * !pair);
+                                              
+                        for (int i = 0; i < vec; ++i,curPT += tr)
+                        {
+                            if(zone.inside(curPT) && IGpuOpt._poInitCost[make_uint2(curPT)][0] < (defCor * 3)/4)
+                            {
+                                //if(mDataImRes[0][curPT.y][curPT.x] < mDataImRes[0][pTer.y][pTer.x])
+                                {
+                                    zMin = min(zMin,mDataImRes[0][curPT.y][curPT.x]);
+                                    findZ = true;
+                                    if(iteSpi >= 5)
+                                        break;
+                                }
+                            }
+                        }
+
+                        iteSpi++;
+                    }
+
+                    mDataImRes[0][pTer.y][pTer.x] = zMin;
+
+                }
+
 #ifdef SAVEPLY
-                Pt3dr aP(float(aPTer.x),float(aPTer.y),float(aPRXMin.x));
-                Pt3dr aPMax(float(aPTer.x),float(aPTer.y),float(aBox._p1.x));
-                Pt3dr aPMin(float(aPTer.x),float(aPTer.y),float(aBox._p0.x));
+                Pt3dr aP(float(pTer.x),float(pTer.y),float(mDataImRes[0][pTer.y][pTer.x]));
+                //Pt3dr aPMax(float(pTer.x),float(pTer.y),float(aBox._p1.x));
+                //Pt3dr aPMin(float(pTer.x),float(pTer.y),float(aBox._p0.x));
                 Pt3di aW(255,255,255);
-                Pt3di aR(255,0,0);
+                //Pt3di aR(255,0,0);
                 Pt3di aG(0,255,0);
 
-                ushort cI = IGpuOpt._poInitCost[aPTer][0];
+
 
                 if (aBin)
                 {
-                    writePoint(aFP, aP, cI > 1000 ? Pt3di(255,(float)255.f*(cI-2000)/8000,0) : aW);
+                    writePoint(aFP, aP, cI > clamp ? Pt3di(255,(float)255.f*(cI-clamp)/(10000-clamp),0) : aG);
 //                    writePoint(aFP, aPMax, aR);
 //                    writePoint(aFP, aPMin, aG);
                 }
                 else
                     fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aW.x,aW.y,aW.z);
-
 #endif
             }
+
         }
 
+ #endif
     }
 //nvtxRangePop();
 
