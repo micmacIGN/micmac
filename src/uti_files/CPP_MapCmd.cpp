@@ -56,10 +56,27 @@ mm3d MapCmd ScaleIm  "P=./(IMG_020[0-4]).CR2" 4 F8B=true FG=true M=MKScale "T=\$
 // C  Change
 // T Target
 // c  Change+Target:
+// Z=Paral
 
 int MapCmd_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
+
+   // std::cout << "NbArg = " << argc << "\n";
+   if ((argc>=2) && (std::string(argv[1]) == "-help"))
+   {
+      std::cout << "  P,p   Pattern  (P  conserved not p) \n";
+      std::cout << "  N Niv \n";
+      std::cout << "  M  Makefile \n";
+      std::cout << "  S=Serial (def=0) \n";
+      exit(0);
+   }
+// K  
+// A ->  Ne Rajoute pas la directory dans le C=
+// C  Change
+// T Target
+// c  Change+Target:
+
 
    std::string aPatDir;
    int aNiv=1;
@@ -69,6 +86,7 @@ int MapCmd_main(int argc,char ** argv)
 
    bool NameCompl=false;
    bool AjouteDir = true;  // Compatibilite
+   int  InSerie = false;
 
 // std::cout << "ARGC " << argc << "\n";
 
@@ -94,6 +112,11 @@ int MapCmd_main(int argc,char ** argv)
             aMKF=std::string(aN+2);
         }
 
+        if (aN[0]=='Z')
+        {
+	   sscanf(aN+2,"%d",&InSerie);
+        }
+
         if (aN[0]=='K')
         {
             NameCompl = (aN[2]!='0');
@@ -116,6 +139,8 @@ int MapCmd_main(int argc,char ** argv)
 
    std::list<std::string>  aLNameI = RegexListFileMatch(aDirIn,aPatIn,aNiv,NameCompl);
 
+
+  std::list<std::string> aLCom;
 
    for 
    ( 
@@ -198,14 +223,24 @@ int MapCmd_main(int argc,char ** argv)
        }
        else
        {
+          aLCom.push_back(aCom);
+/*
           ElTimer aChrono;
           VoidSystem(aCom.c_str());
           std::cout << "Time = " << aChrono.uval() << "\n";
+*/
        }
    }
 
    if (aGPAO)
       aGPAO->GenerateMakeFile(aMKF);
+   else
+   {
+      if (InSerie)
+          cEl_GPAO::DoComInSerie(aLCom);
+      else
+          cEl_GPAO::DoComInParal(aLCom);
+   }
 
    return EXIT_SUCCESS;
 }
