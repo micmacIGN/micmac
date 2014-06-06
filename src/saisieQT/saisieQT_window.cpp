@@ -409,7 +409,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     {
         if (_appMode == MASK3D)
         {
-            shortcuts.push_back("F9:");
+            shortcuts.push_back("F9");
             actions.push_back(tr("move mode / selection mode (only 3D)"));
         }
         shortcuts.push_back(tr("Left click"));
