@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>3646.38965691803742 2803.93747628389792</PP>
+          <F>13278.8859136294814</F>
+          <SzIm>7312 5471</SzIm>
+          <CalibDistortion>
+               <ModRad>
+                    <CDist>3186.61775258984972 2863.41146189241726</CDist>
+                    <CoeffDist>-3.87233419782556641e-11</CoeffDist>
+                    <CoeffDist>-7.04845204297681512e-19</CoeffDist>
+                    <CoeffDist>3.05219286303428127e-26</CoeffDist>
+               </ModRad>
+          </CalibDistortion>
+          <CalibDistortion>
+               <ModUnif>
+                    <TypeModele>eModelePolyDeg5</TypeModele>
+                    <Params>-5.3969629856048622e-05</Params>
+                    <Params>-1.99334414790926364e-05</Params>
+                    <Params>-0.000117229915521011878</Params>
+                    <Params>8.74201637852224856e-05</Params>
+                    <Params>0.000239325398409864619</Params>
+                    <Params>4.10240152230299549e-05</Params>
+                    <Params>0.00157849004143200962</Params>
+                    <Params>0.000465421998117011989</Params>
+                    <Params>-2.15706662621495553e-05</Params>
+                    <Params>0.00190613135790957387</Params>
+                    <Params>0.000630927005581806595</Params>
+                    <Params>-0.00277399390486610976</Params>
+                    <Params>0.000444764461906298095</Params>
+                    <Params>0.00175188524725748045</Params>
+                    <Params>-0.00220918421096683634</Params>
+                    <Params>-0.0003160893804958587</Params>
+                    <Params>-0.000476654585481787367</Params>
+                    <Params>0.000497163141268254917</Params>
+                    <Params>-0.00489198533529376037</Params>
+                    <Params>-5.8806618097487566e-05</Params>
+                    <Params>0.00095133617310814956</Params>
+                    <Params>0.000756362094227580389</Params>
+                    <Params>-0.00209998247539888846</Params>
+                    <Params>0.00842513729839469358</Params>
+                    <Params>-0.0124831691785966988</Params>
+                    <Params>0.0098193015946325974</Params>
+                    <Params>0.0228567870234480004</Params>
+                    <Params>-0.0249443967486939373</Params>
+                    <Params>-0.0390085158491692355</Params>
+                    <Params>-0.0449809678585447667</Params>
+                    <Params>-0.00477394771113095334</Params>
+                    <Params>0.0196314616585597408</Params>
+                    <Params>-0.00602019293605797652</Params>
+                    <Params>0.0370600664124386553</Params>
+                    <Params>0.0140613741322832102</Params>
+                    <Params>-0.0348446076748545608</Params>
+                    <Etats>13279.2599050290537</Etats>
+                    <Etats>3646.29427769824133</Etats>
+                    <Etats>2802.20551132661285</Etats>
+               </ModUnif>
+          </CalibDistortion>
+     </CalibrationInternConique>
+</ExportAPERO>
