@@ -775,6 +775,7 @@ Fonc_Num  cPriseDeVue::FoncMasq(std::string  & aName) const
 
    const std::list<cMasqImageIn> aLM = mAppli.MasqImageIn();
 
+
    for 
    ( 
       std::list<cMasqImageIn>::const_iterator itM = aLM.begin();
@@ -812,10 +813,12 @@ std::string  cPriseDeVue::NameMasqOfResol(int aDz) const
     FoncMasq(aName);
 // Fonc_Num  cPriseDeVue::FoncMasq(std::string  & aName) const
 
-   return   mAppli.FullDirPyr() 
+   std::string aRes =   mAppli.FullDirPyr() 
           + mAppli.PrefixMasqImRes().Val()
           + std::string("_Dz") + ToString(aDz) + std::string("_")
           + aName +".tif";
+
+   return   aRes;
 // #endif
 }
 

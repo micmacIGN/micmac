@@ -106,6 +106,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <!-- GESTION DES MASQUE IMAGE -->
     <Symb>  UseMasqPerIm=false </Symb>
     <Symb>  MasqPerIm="XXXXXX" </Symb>
+    <Symb>  UseGlobMasqPerIm=false </Symb>
+    <Symb>  GlobMasqPerIm="XXXXXX" </Symb>
+
 
     <!-- GESTION DES IMAGES MAX MIN -->
     <Symb>  UseImMaxMin="false" </Symb>
@@ -166,6 +169,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb> ModeOriIm=eGeomImageOri  </Symb>  
      <Symb> ModeOrientStd=${Conik}     </Symb>   
 
+     <eSymb> UseMasqImGlobOrLoc= Or ${UseMasqPerIm} ${UseGlobMasqPerIm} </eSymb>
 
 </DicoLoc>
 
@@ -234,11 +238,20 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      </#IF>
 
 
+     <#WHEN VTEST=${UseGlobMasqPerIm}>
+         <MasqImageIn>
+             <OneMasqueImage>
+                 <PatternSel> .*   </PatternSel>
+                 <NomMasq>  ${GlobMasqPerIm}    </NomMasq>
+             </OneMasqueImage>
+         </MasqImageIn>
+     </#WHEN>
+
      <#WHEN VTEST=${UseMasqPerIm}>
          <MasqImageIn>
              <OneMasqueImage>
-                <PatternSel> (.*)\.(.*)   </PatternSel>
-                <NomMasq>  $1_${MasqPerIm}.tif    </NomMasq>
+                 <PatternSel> (.*)\.(.*)   </PatternSel>
+                 <NomMasq>  $1${MasqPerIm}.tif    </NomMasq>
              </OneMasqueImage>
              <AcceptNonExistingFile> true </AcceptNonExistingFile>
         </MasqImageIn>
