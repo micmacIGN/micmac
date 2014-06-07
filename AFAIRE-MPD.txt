@@ -1,8 +1,9 @@
 EVOLUTIONS :
 
-  *Compensation sur des lignes 3D
-  * Cox Roy accesible ds Malt (en train ...)
+  * Compensation sur des lignes 3D
+  * Cox Roy accesible ds Malt (en train ...) + SzRec 
   * Generation des orientation d'ortho par image
+  * (En train) dir Horizontal autom dans RepLocBascule
 
 
 A DOCUMENTER  :
