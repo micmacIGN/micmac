@@ -138,6 +138,7 @@ class cAppliMalt
           double      mLargMin;
           Pt2dr       mSzGlob;
           std::string  mMasqIm;
+          std::string  mMasqImGlob;
           bool        mUseImSec;
           bool        mCorMS;
           bool        mUseGpu;
@@ -289,6 +290,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for rectification is a sphere")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",false,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
+                    << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ")
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
@@ -591,11 +593,23 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (EAMIsInit(&mMasqIm))
       {
+          CorrecNameMasq(mDir,mFullName,mMasqIm);
+      //SplitDirAndFile(mDir,mIms,mFullName);
           mCom =  mCom
                   +  std::string(" +UseMasqPerIm=true")
                   +  std::string(" +MasqPerIm=") + mMasqIm
                   ;
       }
+      if (EAMIsInit(&mMasqImGlob))
+      {
+          // CorrecNameMasq(mDir,mFullName,mMasqIm);
+      //SplitDirAndFile(mDir,mIms,mFullName);
+          mCom =  mCom
+                  +  std::string(" +UseGlobMasqPerIm=true")
+                  +  std::string(" +GlobMasqPerIm=") + mMasqImGlob
+                  ;
+      }
+
       if (EAMIsInit(&mModeOri))
           mCom =  mCom + " +ModeOriIm=" + mFullModeOri
                   + std::string(" +Conik=false")
@@ -835,7 +849,7 @@ int Malt_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -851,17 +865,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

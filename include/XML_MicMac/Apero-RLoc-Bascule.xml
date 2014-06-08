@@ -13,6 +13,7 @@
             <Symb>  OrthoCyl=XXXX </Symb>
             <Symb>  PostMasq=XXX_MasqPlanFace2 </Symb>
             <Symb>  Ext=dat                </Symb>
+            <Symb>  P1P2Hor=false                </Symb>
 
 
        </DicoLoc>
@@ -121,6 +122,7 @@
                                    <EcartMax>5.0</EcartMax>
                               </Pond>
                          </EstimPlanHor>
+                         <P1P2Hor> ${P1P2Hor} </P1P2Hor>
                          <P1>123456.000000  -8765432.000000</P1>
                          <P2>123456.000000  -8765432.000000</P2>
                          <AxeDef>1.000000  0.000000</AxeDef>

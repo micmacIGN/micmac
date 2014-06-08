@@ -6,6 +6,12 @@
              
             <Symb>   LimBsH=1e-2 </Symb>
             <Symb>   KeyAssocImage=NKS-Assoc-Id  </Symb>
+
+            <Symb>  CalPerIm=false </Symb>
+            <Symb>  FocMin=0 </Symb>
+            <Symb>  FocMax=1000000 </Symb>
+            <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
+
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -13,7 +19,7 @@
                  <Id>    Id_Pastis_Hom  </Id>
                  <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
                  <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
-   </BDD_PtsLiaisons>
+           </BDD_PtsLiaisons>
            <BDD_Orient>
                   <Id>  Or-Init   </Id>
                   <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
@@ -28,21 +34,31 @@
                    <CalValueInit>
                          <CalFromFileExtern>
                               <NameFile>   ####  </NameFile>
-                              <NameTag>    CalibrationInternConique </NameTag>
+                              <#IF VTEST=${CalPerIm}>
+                                    <NameTag>    Interne </NameTag>
+                                    <NameTag>    CalibrationInternConique </NameTag>
+                              </#IF>
                               <AutorizeNonExisting > true </AutorizeNonExisting>
                          </CalFromFileExtern>
                    </CalValueInit>
-                   <CalibPerPose>
-                        <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
-                        <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
-                    </CalibPerPose>
+                   <#IF VTEST=${CalPerIm}>
+                         <CalibPerPose>
+                              <KeyPose2Cal> NKS-Assoc-Id </KeyPose2Cal>
+                              <KeyInitFromPose> NKS-Assoc-Im2Orient@${AeroIn} </KeyInitFromPose>
+                         </CalibPerPose>
+
+                         <CalibPerPose>
+                              <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                              <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                         </CalibPerPose>
+                    </#IF>
              </CalibrationCameraInc>
 
              <PoseCameraInc>
 <!--
 	           <PatternName>     NKS-Set-OfPattern@${PatternAllIm}   </PatternName>
 -->
-	           <PatternName>     ${PatternAllIm}   </PatternName>
+	           <PatternName>     ${SetIm}   </PatternName>
 	           <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
                    <PosValueInit>
                             <PosFromBDOrient> Or-Init </PosFromBDOrient>

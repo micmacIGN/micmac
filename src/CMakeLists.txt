@@ -180,6 +180,7 @@ if ( NOT ${qt_version} EQUAL 0 )
     set (ui_toWrap
      ${SAISIE_DIR}/saisieQT_window.ui
      ${SAISIE_DIR}/Settings.ui
+     ${SAISIE_DIR}/Help.ui
     )
 
    if ( ${qt_version} EQUAL 5 )
@@ -193,9 +194,7 @@ if ( NOT ${qt_version} EQUAL 0 )
 
       set(CMAKE_AUTOMOC ON)
 
-      set(Saisie_DIR "saisieQT")
-
-      QT5_ADD_RESOURCES( RC_SRCS ${Saisie_DIR}/icones/icones.qrc )
+      QT5_ADD_RESOURCES( RC_SRCS ${SAISIE_DIR}/icones/icones.qrc )
 
       qt5_wrap_ui(saisie_ui ${ui_toWrap})
 
@@ -224,6 +223,9 @@ if ( NOT ${qt_version} EQUAL 0 )
       endif()
 
    elseif ( ${qt_version} EQUAL 4 )
+
+      QT4_ADD_RESOURCES( RC_SRCS ${SAISIE_DIR}/icones/icones.qrc )
+
       QT4_WRAP_UI(saisie_ui ${ui_toWrap})
       QT4_WRAP_CPP(HEADERS_moced ${HEADERS_tomoc} )
 

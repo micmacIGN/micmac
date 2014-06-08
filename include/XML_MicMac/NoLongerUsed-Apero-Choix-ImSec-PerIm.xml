@@ -1,9 +1,5 @@
 <!--
-Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  DirectoryChantier=/home/marc/TMP/ExempleDoc/Boudha/ +AeroIn=-Test-3 +PatternAllIm="IMG_[0-9]{4}\.tif"
-
-Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  DirectoryChantier=/home/marc/TMP/Versailles/  +AeroIn=-All +PatternAllIm="IMGP[0-9]{4}.PEF" +Ext=dat Out=-All
-                               <TetaMinPreSel> 0.025</TetaMinPreSel>
-                               <TetaOpt > 0.17 </TetaOpt>
+NO LONGER USED REPLACED BY UNIFIED Apero-Choix-ImSec.xml (using ${CalPerIm})
 -->
 <Global>
    <ParamApero>

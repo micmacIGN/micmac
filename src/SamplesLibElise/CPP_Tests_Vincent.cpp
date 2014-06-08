@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -30,52 +30,216 @@ Francais :
 
 English :
 
-    MicMa cis an open source software specialized in image matching
+    MicMac is an open source software specialized in image matching
     for research in geographic information. MicMac is built on the
     eLiSe image library. MicMac is governed by the  "Cecill-B licence".
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
-#include <algorithm>
-#include "hassan/reechantillonnage.h"
 
-int Vincent_main(int argc,char ** argv)
+// Main header in which a lot of libraries are included
+#include "StdAfx.h"
+
+// List  of classes
+
+class cCMP_Ima;
+class cCMP_Appli;
+
+class cCMP_Ima
 {
-	cout<<"Allo allo, this is a test"<<endl;
-	return 0;
+    public :
+        cCMP_Ima(cCMP_Appli & anAppli,const std::string & aName, const std::string & aOri);
+        Pt3dr ManipImage();
+    //private :
+        cCMP_Appli &   mAppli;
+        CamStenope *    mCam;
+        std::string mNameOri;
+        std::string     mName;
+};
+
+class cCMP_Appli
+{
+    public :
+		// Main function
+        cCMP_Appli(int argc, char** argv);
+        cInterfChantierNameManipulateur * ICNM() const {return mICNM;}
+        std::string NameIm2NameOri(const std::string &, const std::string &) const;
+    private :
+        std::string mOri1;
+        std::string mOri2;
+        std::string mOut;
+        std::string mFullName;
+        std::string mPat1;
+        std::string mPat2;
+        std::string mDir1;
+        std::string mDir2;
+        std::list<std::string> mLFile1;
+        std::list<std::string> mLFile2;
+        cInterfChantierNameManipulateur * mICNM;
+        std::vector<cCMP_Ima *>          mIms1;
+        std::vector<cCMP_Ima *>          mIms2;
+        // const std::string & Dir() const {return mDir;}
+};
+
+/********************************************************************/
+/*                                                                  */
+/*         cCMP_Ima                                                 */
+/*                                                                  */
+/********************************************************************/
+
+cCMP_Ima::cCMP_Ima(cCMP_Appli & anAppli,const std::string & aName, const std::string & aOri) :
+   mAppli  (anAppli),
+   mName   (aName)
+{
+    mNameOri  = mAppli.NameIm2NameOri(mName,aOri);
+    mCam      = CamOrientGenFromFile(mNameOri,mAppli.ICNM());
+
+}
+
+Pt3dr cCMP_Ima::ManipImage()
+{
+    Pt3dr mCentreCam = mCam->VraiOpticalCenter();
+    return mCentreCam;
 }
 
 
+/********************************************************************/
+/*                                                                  */
+/*         cCMP_Appli                                               */
+/*                                                                  */
+/********************************************************************/
+
+
+cCMP_Appli::cCMP_Appli(int argc, char** argv)
+{
+    // Initialisation of the arguments
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pat)")
+                    << EAMC(mOri1,"First Orientation")
+                    << EAMC(mOri2,"Second Orientation"),
+        LArgMain()  << EAM(mOut,"Out",true,"Output result file")
+    );
+
+    // Initialize name manipulator & files
+    SplitDirAndFile(mDir1,mPat1,mFullName);
+
+    cout << "Ori1 : " << mOri1 << "\tOri2 : " << mOri2 << "\tOut : " << mOut << endl;
+    // Get the list of files from the directory and pattern
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir1);
+    mLFile1 = mICNM->StdGetListOfFile(mPat1);
+	// If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
+    StdCorrecNameOrient(mOri1,mDir1);
+
+    SplitDirAndFile(mDir2,mPat2,mFullName);
+    // Get the list of files from the directory and pattern
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir2);
+    mLFile2 = mICNM->StdGetListOfFile(mPat2);
+	// If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
+    StdCorrecNameOrient(mOri2,mDir2);
+
+    if (mOut == ""){mOut=mOri1+"_"+mOri2+".txt";};
+
+    for (
+              std::list<std::string>::iterator itS=mLFile1.begin();
+              itS!=mLFile1.end();
+              itS++
+              )
+     {
+           cCMP_Ima * aNewIm1 = new  cCMP_Ima(*this,*itS,mOri1);
+           cCMP_Ima * aNewIm2 = new  cCMP_Ima(*this,*itS,mOri2);
+
+           mIms1.push_back(aNewIm1);
+           mIms2.push_back(aNewIm2);
+     }
+
+     Pt3dr mDiffCentre;
+     vector <Pt3dr> mVDCentre;
+     for (unsigned int i = 0 ; i < mIms1.size() ; i++)
+     {
+        if (mIms1[i]->mName != mIms2[i]->mName) { cout << "!!!!!!!!! NOMS D'IMAGES INCOHÃ‰RENTS !!!!!!!!!" << endl;}
+        else
+        {
+           Pt3dr mCentre1 = mIms1[i]->ManipImage();
+           Pt3dr mCentre2 = mIms2[i]->ManipImage();
+           mDiffCentre = mCentre1 - mCentre2;
+           cout << "Image : " << mIms1[i]->mName << " " << mDiffCentre << endl;
+           mVDCentre.push_back(mDiffCentre);
+        }
+     }
+/*
+double dX(0),dY(0),dZ(0);
+     for (unsigned int i = 0 ; i < mVDCentre.size() ; i++)
+     {
+
+        cout << "dX = " << dX  << "\tdY = " << dY << "\tdZ = " << dZ << endl; 
+        dX = dX + abs(mVDCentre[i].x);
+        dY = dY + abs(mVDCentre[i].y);
+        dZ = dZ + abs(mVDCentre[i].z);
+     }
+     cout << "Ecarts moyen absolus en X : " << dX/mVDCentre.size()
+          << "\t en Y : " << dY/mVDCentre.size()
+          << "\ten Z : " << dZ/mVDCentre.size() << endl;
+*/
+}
+
+
+std::string cCMP_Appli::NameIm2NameOri(const std::string & aNameIm, const std::string & aOri) const
+{
+    return mICNM->Assoc1To1
+    (
+        "NKS-Assoc-Im2Orient@-"+aOri+"@",
+        aNameIm,
+        true
+    );
+}
+
+
+/********************************************************************/
+/*                                                                  */
+/*         cTD_Camera                                               */
+/*                                                                  */
+/********************************************************************/
+
+// Main exercise
+int Vincent_main(int argc, char** argv)
+{
+   cCMP_Appli anAppli(argc,argv);
+
+   return EXIT_SUCCESS;
+}
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant Ãƒ  la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est rÃƒÂ©gi par la licence CeCILL-B soumise au droit franÃƒÂ§ais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusÃƒÂ©e par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilitÃƒÂ© au code source et des droits de copie,
+de modification et de redistribution accordÃƒÂ©s par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitÃƒÂ©e.  Pour les mÃƒÂªmes raisons,
+seule une responsabilitÃƒÂ© restreinte pÃƒÂ¨se sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concÃƒÂ©dants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+A cet ÃƒÂ©gard  l'attention de l'utilisateur est attirÃƒÂ©e sur les risques
+associÃƒÂ©s au chargement,  Ãƒ  l'utilisation,  Ãƒ  la modification et/ou au
+dÃƒÂ©veloppement et Ãƒ  la reproduction du logiciel par l'utilisateur ÃƒÂ©tant
+donnÃƒÂ© sa spÃƒÂ©cificitÃƒÂ© de logiciel libre, qui peut le rendre complexe Ãƒ
+manipuler et qui le rÃƒÂ©serve donc Ãƒ  des dÃƒÂ©veloppeurs et des professionnels
+avertis possÃƒÂ©dant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invitÃƒÂ©s Ãƒ  charger  et  tester  l'adÃƒÂ©quation  du
+logiciel Ãƒ  leurs besoins dans des conditions permettant d'assurer la
+sÃƒÂ©curitÃƒÂ© de leurs systÃƒÂ¨mes et ou de leurs donnÃƒÂ©es et, plus gÃƒÂ©nÃƒÂ©ralement,
+Ãƒ  l'utiliser et l'exploiter dans les mÃƒÂªmes conditions de sÃƒÂ©curitÃƒÂ©.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez accÃƒÂ©der Ãƒ  cet en-tÃƒÂªte signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez acceptÃƒÂ© les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
