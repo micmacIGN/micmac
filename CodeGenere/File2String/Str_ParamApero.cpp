@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1509]) = {
+const char * (theNameVar_ParamApero[1511]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1319,6 +1319,8 @@ const char * (theNameVar_ParamApero[1509]) = {
 "                          <AxeDef Nb=\"?\" Type=\"Pt2dr\" Def=\"Pt2dr(1,0)\"> </AxeDef>\n",
 "                          <Origine Nb=\"?\" Type=\"Pt2dr\"> </Origine> <!-- Def P1 , pas vraiment utile en correl -->\n",
 "                          <NameImOri Nb=\"?\" Type=\"std::string\"> </NameImOri>\n",
+"                          <!-- Si true P1P2 est la direction du plan qui est horizontale-->\n",
+"                          <P1P2Hor Nb=\"?\" Type=\"bool\" Def=\"false\"> </P1P2Hor>\n",
 "                          <ExportOrthoCyl Nb=\"?\">\n",
 "                               <UseIt Nb=\"?\" Type=\"bool\" Def=\"true\"></UseIt>\n",
 "                               <PatternEstimAxe Nb=\"?\" Type=\"std::string\"> </PatternEstimAxe>\n",

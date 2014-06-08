@@ -47,13 +47,14 @@ int AperiCloud_main(int argc,char ** argv)
     //std::vector<std::string> ImPl;
     int ExpTxt=0;
     int PlyBin=1;
-    int CalPerIm=0;
+    bool CalPerIm=false;
     std::string Out="";
 
     int RGB = -1;
     double aSeuilEc = 10.0;
     double aLimBsH;
     bool   WithPoints = true;
+    Pt2dr  aFocs;
 
     ElInitArgMain
     (
@@ -69,6 +70,7 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(aLimBsH,"LimBsH",false,"Limit ratio base to height (Def=1e-2)")
                     << EAM(WithPoints,"WithPoints",true,"Do we add point cloud? (Def=true) ",eSAM_IsBool)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=false)",eSAM_IsBool)
+                    << EAM(aFocs,"Focs",true,"Interval of Focal")
     );
 
     if (!MMVisualMode)
@@ -79,10 +81,12 @@ int AperiCloud_main(int argc,char ** argv)
         }
 
         string aXmlName="Apero-Cloud.xml";
+/*
         if (CalPerIm)
         {
             aXmlName="Apero-Cloud-PerIm.xml";
         }
+*/
 
 #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
@@ -109,6 +113,16 @@ int AperiCloud_main(int argc,char ** argv)
                 + std::string(" +NbChan=") +  ToString(RGB)
                 + std::string(" +SeuilEc=") +  ToString(aSeuilEc)
                 ;
+
+        if (EAMIsInit(&CalPerIm))
+              aCom =  aCom + " +CalPerIm=" +ToString(CalPerIm);
+
+
+        if (EAMIsInit(&aFocs))
+        {
+            aCom = aCom + " +FocMin=" + ToString(aFocs.x) + " +FocMax=" + ToString(aFocs.y);
+        }
+
 
         if (! WithPoints)
         {
