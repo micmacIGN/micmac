@@ -42,20 +42,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_CASA_ALL_H_
 
 
-#include "general/all.h"
-#include "private/all.h"
-#include "im_tpl/image.h"
-#include "ext_stl/tab2D_dyn.h"
-#include "graphes/graphe.h"
-#include "algo_geom/qdt.h"
-#include <map>
-#include <set>
+#include "StdAfx.h"
 
 #include "cParamCasa.h"
 
-#include "XML_GEN/all.h"
-using namespace NS_ParamChantierPhotogram;
-using namespace NS_SuperposeImage;
 
 
 // Dans un faceton la normale est orientee dans le meme sens que les rayon camera
@@ -104,12 +94,20 @@ class cAccumFaceton
 };
 
 
+struct cResEcartCompense
+{
+    public :
+       double  mMoyQuad;
+       double  mMoyHaut;
+};
+
+
 struct   cOneSurf_Casa
 {
     public :
         cOneSurf_Casa();
         void ActiveContrainte(cSetEqFormelles & aSet);
-        void Compense(const cEtapeCompensation & anEtape);
+        void  Compense(const cCasaEtapeCompensation & anEtape,bool First);
 
          bool IsFaceExterne(const cInterfSurfaceAnalytique &,double aTol) const;
 
@@ -119,6 +117,7 @@ struct   cOneSurf_Casa
         Video_Win *                       mW;
         cFaceton *                        mFMoy;
         std::string                       mName;
+        cResEcartCompense                 mREC;
 };
 
 
@@ -140,8 +139,8 @@ class cAppli_Casa
                           const cSectionEstimSurf & aSES
                         );
 
-         void Compense(const cSectionCompensation &);
-         void OneEtapeCompense(const cEtapeCompensation &);
+         void Compense(const cCasaSectionCompensation &);
+         void OneEtapeCompense(const cCasaEtapeCompensation &);
 
 
 

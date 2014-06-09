@@ -41,6 +41,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Casa.h"
 
+// cEtapeCompensation cSectionCompensation
+
+//ggg();
 
 cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
      mParam   (*aP2.mObj),
@@ -72,7 +75,7 @@ cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
 
      mSetEq.SetClosed();
 
-    Compense(mParam.SectionCompensation());
+    Compense(mParam.CasaSectionCompensation());
 }
 
 

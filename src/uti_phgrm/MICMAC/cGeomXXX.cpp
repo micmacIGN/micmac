@@ -383,6 +383,7 @@ void cGeomDiscFPx::PostInit()
          if ((*itFI)->Geom().HasCentre())
          {
               aNbCentreGot ++;
+            // Par exemple si cylindre, c'est en coordonnees cylindriques
               Pt3dr aC =  (*itFI)->Geom().CentreRestit();
               aCentre = aCentre + aC;
          }

@@ -110,10 +110,11 @@ class cInterfSurfaceAnalytique
          virtual cXmlDescriptionAnalytique Xml() const=0;
 
 
-        virtual bool HasOrthoLoc() const = 0;
+        virtual bool HasOrthoLoc() const = 0;  // Apparement identique en pratique a OrthoLocIsXCste ?
+                                              // En theorie plus general, indique qu'il doit se desanamorphoser ...
         virtual Pt3dr ToOrLoc(const Pt3dr & aP) const ; // Def Err fatale
         virtual Pt3dr FromOrLoc(const Pt3dr & aP) const ; // Def Err fatale
-        virtual bool OrthoLocIsXCste() const ;
+        virtual bool OrthoLocIsXCste() const ; // Si vrai les ligne F(X,Y,Z0) = F(Y,Z0), la desanamorphose est automatique
 
 
 

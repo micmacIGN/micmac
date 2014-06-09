@@ -69,7 +69,7 @@ int CASA_main(int argc,char ** argv)
                                           (
                                               0,0,
 		                              argv[1],
-			                      MMDir() + StdGetFileXMLSpec("ParamCasa.xml"),
+			                      StdGetFileXMLSpec("ParamCasa.xml"),
 			                      "ParamCasa",
 			                      "ParamCasa",
                                               "DirectoryChantier",

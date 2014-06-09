@@ -38,18 +38,18 @@ class cSectionLoadNuage
         std::list< cNuageByImage > & NuageByImage();
         const std::list< cNuageByImage > & NuageByImage()const ;
 
-        double & DistSep();
-        const double & DistSep()const ;
+        cTplValGesInit< double > & DistSep();
+        const cTplValGesInit< double > & DistSep()const ;
 
-        double & DistZone();
-        const double & DistZone()const ;
+        cTplValGesInit< double > & DistZone();
+        const cTplValGesInit< double > & DistZone()const ;
 
         cTplValGesInit< Pt2di > & SzW();
         const cTplValGesInit< Pt2di > & SzW()const ;
     private:
         std::list< cNuageByImage > mNuageByImage;
-        double mDistSep;
-        double mDistZone;
+        cTplValGesInit< double > mDistSep;
+        cTplValGesInit< double > mDistZone;
         cTplValGesInit< Pt2di > mSzW;
 };
 cElXMLTree * ToXMLTree(const cSectionLoadNuage &);
@@ -71,11 +71,11 @@ class cSectionEstimSurf
         eTypeSurfaceAnalytique & TypeSurf();
         const eTypeSurfaceAnalytique & TypeSurf()const ;
 
-        int & NbRansac();
-        const int & NbRansac()const ;
+        cTplValGesInit< int > & NbRansac();
+        const cTplValGesInit< int > & NbRansac()const ;
     private:
         eTypeSurfaceAnalytique mTypeSurf;
-        int mNbRansac;
+        cTplValGesInit< int > mNbRansac;
 };
 cElXMLTree * ToXMLTree(const cSectionEstimSurf &);
 
@@ -99,11 +99,11 @@ class cSectionInitModele
         std::list< cNuageByImage > & NuageByImage();
         const std::list< cNuageByImage > & NuageByImage()const ;
 
-        double & DistSep();
-        const double & DistSep()const ;
+        cTplValGesInit< double > & DistSep();
+        const cTplValGesInit< double > & DistSep()const ;
 
-        double & DistZone();
-        const double & DistZone()const ;
+        cTplValGesInit< double > & DistZone();
+        const cTplValGesInit< double > & DistZone()const ;
 
         cTplValGesInit< Pt2di > & SzW();
         const cTplValGesInit< Pt2di > & SzW()const ;
@@ -114,8 +114,8 @@ class cSectionInitModele
         eTypeSurfaceAnalytique & TypeSurf();
         const eTypeSurfaceAnalytique & TypeSurf()const ;
 
-        int & NbRansac();
-        const int & NbRansac()const ;
+        cTplValGesInit< int > & NbRansac();
+        const cTplValGesInit< int > & NbRansac()const ;
 
         cSectionEstimSurf & SectionEstimSurf();
         const cSectionEstimSurf & SectionEstimSurf()const ;
@@ -135,16 +135,13 @@ std::string  Mangling( cSectionInitModele *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cEtapeCompensation
+class cCasaEtapeCompensation
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree);
+        friend void xml_init(cCasaEtapeCompensation & anObj,cElXMLTree * aTree);
 
-
-        std::list< double > & Sigma();
-        const std::list< double > & Sigma()const ;
 
         cTplValGesInit< int > & NbIter();
         const cTplValGesInit< int > & NbIter()const ;
@@ -152,42 +149,41 @@ class cEtapeCompensation
         cTplValGesInit< std::string > & Export();
         const cTplValGesInit< std::string > & Export()const ;
     private:
-        std::list< double > mSigma;
         cTplValGesInit< int > mNbIter;
         cTplValGesInit< std::string > mExport;
 };
-cElXMLTree * ToXMLTree(const cEtapeCompensation &);
+cElXMLTree * ToXMLTree(const cCasaEtapeCompensation &);
 
-void  BinaryDumpInFile(ELISE_fp &,const cEtapeCompensation &);
+void  BinaryDumpInFile(ELISE_fp &,const cCasaEtapeCompensation &);
 
-void  BinaryUnDumpFromFile(cEtapeCompensation &,ELISE_fp &);
+void  BinaryUnDumpFromFile(cCasaEtapeCompensation &,ELISE_fp &);
 
-std::string  Mangling( cEtapeCompensation *);
+std::string  Mangling( cCasaEtapeCompensation *);
 
-class cSectionCompensation
+class cCasaSectionCompensation
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree);
+        friend void xml_init(cCasaSectionCompensation & anObj,cElXMLTree * aTree);
 
 
-        std::list< cEtapeCompensation > & EtapeCompensation();
-        const std::list< cEtapeCompensation > & EtapeCompensation()const ;
+        std::list< cCasaEtapeCompensation > & CasaEtapeCompensation();
+        const std::list< cCasaEtapeCompensation > & CasaEtapeCompensation()const ;
 
-        cTplValGesInit< double > & CoherenceOrientation();
-        const cTplValGesInit< double > & CoherenceOrientation()const ;
+        cTplValGesInit< double > & PercCoherenceOrientation();
+        const cTplValGesInit< double > & PercCoherenceOrientation()const ;
     private:
-        std::list< cEtapeCompensation > mEtapeCompensation;
-        cTplValGesInit< double > mCoherenceOrientation;
+        std::list< cCasaEtapeCompensation > mCasaEtapeCompensation;
+        cTplValGesInit< double > mPercCoherenceOrientation;
 };
-cElXMLTree * ToXMLTree(const cSectionCompensation &);
+cElXMLTree * ToXMLTree(const cCasaSectionCompensation &);
 
-void  BinaryDumpInFile(ELISE_fp &,const cSectionCompensation &);
+void  BinaryDumpInFile(ELISE_fp &,const cCasaSectionCompensation &);
 
-void  BinaryUnDumpFromFile(cSectionCompensation &,ELISE_fp &);
+void  BinaryUnDumpFromFile(cCasaSectionCompensation &,ELISE_fp &);
 
-std::string  Mangling( cSectionCompensation *);
+std::string  Mangling( cCasaSectionCompensation *);
 
 /******************************************************/
 /******************************************************/
@@ -206,21 +202,21 @@ class cParamCasa
         std::list< cSectionInitModele > & SectionInitModele();
         const std::list< cSectionInitModele > & SectionInitModele()const ;
 
-        std::list< cEtapeCompensation > & EtapeCompensation();
-        const std::list< cEtapeCompensation > & EtapeCompensation()const ;
+        std::list< cCasaEtapeCompensation > & CasaEtapeCompensation();
+        const std::list< cCasaEtapeCompensation > & CasaEtapeCompensation()const ;
 
-        cTplValGesInit< double > & CoherenceOrientation();
-        const cTplValGesInit< double > & CoherenceOrientation()const ;
+        cTplValGesInit< double > & PercCoherenceOrientation();
+        const cTplValGesInit< double > & PercCoherenceOrientation()const ;
 
-        cSectionCompensation & SectionCompensation();
-        const cSectionCompensation & SectionCompensation()const ;
+        cCasaSectionCompensation & CasaSectionCompensation();
+        const cCasaSectionCompensation & CasaSectionCompensation()const ;
 
         std::string & DirectoryChantier();
         const std::string & DirectoryChantier()const ;
     private:
         cTplValGesInit< cChantierDescripteur > mDicoLoc;
         std::list< cSectionInitModele > mSectionInitModele;
-        cSectionCompensation mSectionCompensation;
+        cCasaSectionCompensation mCasaSectionCompensation;
         std::string mDirectoryChantier;
 };
 cElXMLTree * ToXMLTree(const cParamCasa &);

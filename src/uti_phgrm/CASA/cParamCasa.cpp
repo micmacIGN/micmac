@@ -78,23 +78,23 @@ const std::list< cNuageByImage > & cSectionLoadNuage::NuageByImage()const
 }
 
 
-double & cSectionLoadNuage::DistSep()
+cTplValGesInit< double > & cSectionLoadNuage::DistSep()
 {
    return mDistSep;
 }
 
-const double & cSectionLoadNuage::DistSep()const 
+const cTplValGesInit< double > & cSectionLoadNuage::DistSep()const 
 {
    return mDistSep;
 }
 
 
-double & cSectionLoadNuage::DistZone()
+cTplValGesInit< double > & cSectionLoadNuage::DistZone()
 {
    return mDistZone;
 }
 
-const double & cSectionLoadNuage::DistZone()const 
+const cTplValGesInit< double > & cSectionLoadNuage::DistZone()const 
 {
    return mDistZone;
 }
@@ -121,8 +121,22 @@ void  BinaryUnDumpFromFile(cSectionLoadNuage & anObj,ELISE_fp & aFp)
               anObj.NuageByImage().push_back(aVal);
         }
   } ;
-    BinaryUnDumpFromFile(anObj.DistSep(),aFp);
-    BinaryUnDumpFromFile(anObj.DistZone(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DistSep().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DistSep().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DistSep().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DistZone().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DistZone().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DistZone().SetNoInit();
+  } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -141,8 +155,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionLoadNuage & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,anObj.DistSep());
-    BinaryDumpInFile(aFp,anObj.DistZone());
+    BinaryDumpInFile(aFp,anObj.DistSep().IsInit());
+    if (anObj.DistSep().IsInit()) BinaryDumpInFile(aFp,anObj.DistSep().Val());
+    BinaryDumpInFile(aFp,anObj.DistZone().IsInit());
+    if (anObj.DistZone().IsInit()) BinaryDumpInFile(aFp,anObj.DistZone().Val());
     BinaryDumpInFile(aFp,anObj.SzW().IsInit());
     if (anObj.SzW().IsInit()) BinaryDumpInFile(aFp,anObj.SzW().Val());
 }
@@ -157,8 +173,10 @@ cElXMLTree * ToXMLTree(const cSectionLoadNuage & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("NuageByImage"));
-   aRes->AddFils(::ToXMLTree(std::string("DistSep"),anObj.DistSep())->ReTagThis("DistSep"));
-   aRes->AddFils(::ToXMLTree(std::string("DistZone"),anObj.DistZone())->ReTagThis("DistZone"));
+   if (anObj.DistSep().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DistSep"),anObj.DistSep().Val())->ReTagThis("DistSep"));
+   if (anObj.DistZone().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DistZone"),anObj.DistZone().Val())->ReTagThis("DistZone"));
    if (anObj.SzW().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SzW"),anObj.SzW().Val())->ReTagThis("SzW"));
   aRes->mGXml = anObj.mGXml;
@@ -173,14 +191,14 @@ void xml_init(cSectionLoadNuage & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NuageByImage(),aTree->GetAll("NuageByImage",false,1));
 
-   xml_init(anObj.DistSep(),aTree->Get("DistSep",1)); //tototo 
+   xml_init(anObj.DistSep(),aTree->Get("DistSep",1),double(50.0)); //tototo 
 
-   xml_init(anObj.DistZone(),aTree->Get("DistZone",1)); //tototo 
+   xml_init(anObj.DistZone(),aTree->Get("DistZone",1),double(90.0)); //tototo 
 
    xml_init(anObj.SzW(),aTree->Get("SzW",1)); //tototo 
 }
 
-std::string  Mangling( cSectionLoadNuage *) {return "48F74EBAABE970FAFCBF";};
+std::string  Mangling( cSectionLoadNuage *) {return "84C8A5EF81DF75E5FD3F";};
 
 
 eTypeSurfaceAnalytique & cSectionEstimSurf::TypeSurf()
@@ -194,12 +212,12 @@ const eTypeSurfaceAnalytique & cSectionEstimSurf::TypeSurf()const
 }
 
 
-int & cSectionEstimSurf::NbRansac()
+cTplValGesInit< int > & cSectionEstimSurf::NbRansac()
 {
    return mNbRansac;
 }
 
-const int & cSectionEstimSurf::NbRansac()const 
+const cTplValGesInit< int > & cSectionEstimSurf::NbRansac()const 
 {
    return mNbRansac;
 }
@@ -207,13 +225,21 @@ const int & cSectionEstimSurf::NbRansac()const
 void  BinaryUnDumpFromFile(cSectionEstimSurf & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.TypeSurf(),aFp);
-    BinaryUnDumpFromFile(anObj.NbRansac(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NbRansac().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbRansac().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbRansac().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionEstimSurf & anObj)
 {
     BinaryDumpInFile(aFp,anObj.TypeSurf());
-    BinaryDumpInFile(aFp,anObj.NbRansac());
+    BinaryDumpInFile(aFp,anObj.NbRansac().IsInit());
+    if (anObj.NbRansac().IsInit()) BinaryDumpInFile(aFp,anObj.NbRansac().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionEstimSurf & anObj)
@@ -221,7 +247,8 @@ cElXMLTree * ToXMLTree(const cSectionEstimSurf & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionEstimSurf",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("TypeSurf"),anObj.TypeSurf())->ReTagThis("TypeSurf"));
-   aRes->AddFils(::ToXMLTree(std::string("NbRansac"),anObj.NbRansac())->ReTagThis("NbRansac"));
+   if (anObj.NbRansac().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbRansac"),anObj.NbRansac().Val())->ReTagThis("NbRansac"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -234,10 +261,10 @@ void xml_init(cSectionEstimSurf & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.TypeSurf(),aTree->Get("TypeSurf",1)); //tototo 
 
-   xml_init(anObj.NbRansac(),aTree->Get("NbRansac",1)); //tototo 
+   xml_init(anObj.NbRansac(),aTree->Get("NbRansac",1),int(500)); //tototo 
 }
 
-std::string  Mangling( cSectionEstimSurf *) {return "A38EEC2A56EDFF84FF3F";};
+std::string  Mangling( cSectionEstimSurf *) {return "14B52C2247706AA0FC3F";};
 
 
 std::string & cSectionInitModele::Name()
@@ -262,23 +289,23 @@ const std::list< cNuageByImage > & cSectionInitModele::NuageByImage()const
 }
 
 
-double & cSectionInitModele::DistSep()
+cTplValGesInit< double > & cSectionInitModele::DistSep()
 {
    return SectionLoadNuage().DistSep();
 }
 
-const double & cSectionInitModele::DistSep()const 
+const cTplValGesInit< double > & cSectionInitModele::DistSep()const 
 {
    return SectionLoadNuage().DistSep();
 }
 
 
-double & cSectionInitModele::DistZone()
+cTplValGesInit< double > & cSectionInitModele::DistZone()
 {
    return SectionLoadNuage().DistZone();
 }
 
-const double & cSectionInitModele::DistZone()const 
+const cTplValGesInit< double > & cSectionInitModele::DistZone()const 
 {
    return SectionLoadNuage().DistZone();
 }
@@ -317,12 +344,12 @@ const eTypeSurfaceAnalytique & cSectionInitModele::TypeSurf()const
 }
 
 
-int & cSectionInitModele::NbRansac()
+cTplValGesInit< int > & cSectionInitModele::NbRansac()
 {
    return SectionEstimSurf().NbRansac();
 }
 
-const int & cSectionInitModele::NbRansac()const 
+const cTplValGesInit< int > & cSectionInitModele::NbRansac()const 
 {
    return SectionEstimSurf().NbRansac();
 }
@@ -376,53 +403,33 @@ void xml_init(cSectionInitModele & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionEstimSurf(),aTree->Get("SectionEstimSurf",1)); //tototo 
 }
 
-std::string  Mangling( cSectionInitModele *) {return "855AB8BB94354FEBFE3F";};
+std::string  Mangling( cSectionInitModele *) {return "758C5C01F0BA8AE4FE3F";};
 
 
-std::list< double > & cEtapeCompensation::Sigma()
-{
-   return mSigma;
-}
-
-const std::list< double > & cEtapeCompensation::Sigma()const 
-{
-   return mSigma;
-}
-
-
-cTplValGesInit< int > & cEtapeCompensation::NbIter()
+cTplValGesInit< int > & cCasaEtapeCompensation::NbIter()
 {
    return mNbIter;
 }
 
-const cTplValGesInit< int > & cEtapeCompensation::NbIter()const 
+const cTplValGesInit< int > & cCasaEtapeCompensation::NbIter()const 
 {
    return mNbIter;
 }
 
 
-cTplValGesInit< std::string > & cEtapeCompensation::Export()
+cTplValGesInit< std::string > & cCasaEtapeCompensation::Export()
 {
    return mExport;
 }
 
-const cTplValGesInit< std::string > & cEtapeCompensation::Export()const 
+const cTplValGesInit< std::string > & cCasaEtapeCompensation::Export()const 
 {
    return mExport;
 }
 
-void  BinaryUnDumpFromFile(cEtapeCompensation & anObj,ELISE_fp & aFp)
+void  BinaryUnDumpFromFile(cCasaEtapeCompensation & anObj,ELISE_fp & aFp)
 {
-   { int aNb;
-    BinaryUnDumpFromFile(aNb,aFp);
-        for(  int aK=0 ; aK<aNb ; aK++)
-        {
-             double aVal;
-              BinaryUnDumpFromFile(aVal,aFp);
-              anObj.Sigma().push_back(aVal);
-        }
-  } ;
-  { bool IsInit;
+   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
              anObj.NbIter().SetInitForUnUmp();
@@ -440,30 +447,18 @@ void  BinaryUnDumpFromFile(cEtapeCompensation & anObj,ELISE_fp & aFp)
   } ;
 }
 
-void  BinaryDumpInFile(ELISE_fp & aFp,const cEtapeCompensation & anObj)
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCasaEtapeCompensation & anObj)
 {
-    BinaryDumpInFile(aFp,(int)anObj.Sigma().size());
-    for(  std::list< double >::const_iterator iT=anObj.Sigma().begin();
-         iT!=anObj.Sigma().end();
-          iT++
-    )
-        BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.NbIter().IsInit());
     if (anObj.NbIter().IsInit()) BinaryDumpInFile(aFp,anObj.NbIter().Val());
     BinaryDumpInFile(aFp,anObj.Export().IsInit());
     if (anObj.Export().IsInit()) BinaryDumpInFile(aFp,anObj.Export().Val());
 }
 
-cElXMLTree * ToXMLTree(const cEtapeCompensation & anObj)
+cElXMLTree * ToXMLTree(const cCasaEtapeCompensation & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"EtapeCompensation",eXMLBranche);
-  for
-  (       std::list< double >::const_iterator it=anObj.Sigma().begin();
-      it !=anObj.Sigma().end();
-      it++
-  ) 
-      aRes->AddFils(::ToXMLTree(std::string("Sigma"),(*it))->ReTagThis("Sigma"));
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CasaEtapeCompensation",eXMLBranche);
    if (anObj.NbIter().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbIter"),anObj.NbIter().Val())->ReTagThis("NbIter"));
    if (anObj.Export().IsInit())
@@ -473,103 +468,101 @@ cElXMLTree * ToXMLTree(const cEtapeCompensation & anObj)
   return aRes;
 }
 
-void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
+void xml_init(cCasaEtapeCompensation & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
-
-   xml_init(anObj.Sigma(),aTree->GetAll("Sigma",false,1));
 
    xml_init(anObj.NbIter(),aTree->Get("NbIter",1),int(1)); //tototo 
 
    xml_init(anObj.Export(),aTree->Get("Export",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "D217B9629EC82EE5FE3F";};
+std::string  Mangling( cCasaEtapeCompensation *) {return "76350DA56B69528BFD3F";};
 
 
-std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
+std::list< cCasaEtapeCompensation > & cCasaSectionCompensation::CasaEtapeCompensation()
 {
-   return mEtapeCompensation;
+   return mCasaEtapeCompensation;
 }
 
-const std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()const 
+const std::list< cCasaEtapeCompensation > & cCasaSectionCompensation::CasaEtapeCompensation()const 
 {
-   return mEtapeCompensation;
+   return mCasaEtapeCompensation;
 }
 
 
-cTplValGesInit< double > & cSectionCompensation::CoherenceOrientation()
+cTplValGesInit< double > & cCasaSectionCompensation::PercCoherenceOrientation()
 {
-   return mCoherenceOrientation;
+   return mPercCoherenceOrientation;
 }
 
-const cTplValGesInit< double > & cSectionCompensation::CoherenceOrientation()const 
+const cTplValGesInit< double > & cCasaSectionCompensation::PercCoherenceOrientation()const 
 {
-   return mCoherenceOrientation;
+   return mPercCoherenceOrientation;
 }
 
-void  BinaryUnDumpFromFile(cSectionCompensation & anObj,ELISE_fp & aFp)
+void  BinaryUnDumpFromFile(cCasaSectionCompensation & anObj,ELISE_fp & aFp)
 {
    { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
         {
-             cEtapeCompensation aVal;
+             cCasaEtapeCompensation aVal;
               BinaryUnDumpFromFile(aVal,aFp);
-              anObj.EtapeCompensation().push_back(aVal);
+              anObj.CasaEtapeCompensation().push_back(aVal);
         }
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.CoherenceOrientation().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.CoherenceOrientation().ValForcedForUnUmp(),aFp);
+             anObj.PercCoherenceOrientation().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PercCoherenceOrientation().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.CoherenceOrientation().SetNoInit();
+        else  anObj.PercCoherenceOrientation().SetNoInit();
   } ;
 }
 
-void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionCompensation & anObj)
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCasaSectionCompensation & anObj)
 {
-    BinaryDumpInFile(aFp,(int)anObj.EtapeCompensation().size());
-    for(  std::list< cEtapeCompensation >::const_iterator iT=anObj.EtapeCompensation().begin();
-         iT!=anObj.EtapeCompensation().end();
+    BinaryDumpInFile(aFp,(int)anObj.CasaEtapeCompensation().size());
+    for(  std::list< cCasaEtapeCompensation >::const_iterator iT=anObj.CasaEtapeCompensation().begin();
+         iT!=anObj.CasaEtapeCompensation().end();
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,anObj.CoherenceOrientation().IsInit());
-    if (anObj.CoherenceOrientation().IsInit()) BinaryDumpInFile(aFp,anObj.CoherenceOrientation().Val());
+    BinaryDumpInFile(aFp,anObj.PercCoherenceOrientation().IsInit());
+    if (anObj.PercCoherenceOrientation().IsInit()) BinaryDumpInFile(aFp,anObj.PercCoherenceOrientation().Val());
 }
 
-cElXMLTree * ToXMLTree(const cSectionCompensation & anObj)
+cElXMLTree * ToXMLTree(const cCasaSectionCompensation & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionCompensation",eXMLBranche);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CasaSectionCompensation",eXMLBranche);
   for
-  (       std::list< cEtapeCompensation >::const_iterator it=anObj.EtapeCompensation().begin();
-      it !=anObj.EtapeCompensation().end();
+  (       std::list< cCasaEtapeCompensation >::const_iterator it=anObj.CasaEtapeCompensation().begin();
+      it !=anObj.CasaEtapeCompensation().end();
       it++
   ) 
-      aRes->AddFils(ToXMLTree((*it))->ReTagThis("EtapeCompensation"));
-   if (anObj.CoherenceOrientation().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("CoherenceOrientation"),anObj.CoherenceOrientation().Val())->ReTagThis("CoherenceOrientation"));
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("CasaEtapeCompensation"));
+   if (anObj.PercCoherenceOrientation().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PercCoherenceOrientation"),anObj.PercCoherenceOrientation().Val())->ReTagThis("PercCoherenceOrientation"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
 }
 
-void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
+void xml_init(cCasaSectionCompensation & anObj,cElXMLTree * aTree)
 {
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
-   xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
+   xml_init(anObj.CasaEtapeCompensation(),aTree->GetAll("CasaEtapeCompensation",false,1));
 
-   xml_init(anObj.CoherenceOrientation(),aTree->Get("CoherenceOrientation",1),double(95.0)); //tototo 
+   xml_init(anObj.PercCoherenceOrientation(),aTree->Get("PercCoherenceOrientation",1),double(95.0)); //tototo 
 }
 
-std::string  Mangling( cSectionCompensation *) {return "FACBBF82DF691F95FD3F";};
+std::string  Mangling( cCasaSectionCompensation *) {return "84B5641FF908D9A3FC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamCasa::DicoLoc()
@@ -594,36 +587,36 @@ const std::list< cSectionInitModele > & cParamCasa::SectionInitModele()const
 }
 
 
-std::list< cEtapeCompensation > & cParamCasa::EtapeCompensation()
+std::list< cCasaEtapeCompensation > & cParamCasa::CasaEtapeCompensation()
 {
-   return SectionCompensation().EtapeCompensation();
+   return CasaSectionCompensation().CasaEtapeCompensation();
 }
 
-const std::list< cEtapeCompensation > & cParamCasa::EtapeCompensation()const 
+const std::list< cCasaEtapeCompensation > & cParamCasa::CasaEtapeCompensation()const 
 {
-   return SectionCompensation().EtapeCompensation();
-}
-
-
-cTplValGesInit< double > & cParamCasa::CoherenceOrientation()
-{
-   return SectionCompensation().CoherenceOrientation();
-}
-
-const cTplValGesInit< double > & cParamCasa::CoherenceOrientation()const 
-{
-   return SectionCompensation().CoherenceOrientation();
+   return CasaSectionCompensation().CasaEtapeCompensation();
 }
 
 
-cSectionCompensation & cParamCasa::SectionCompensation()
+cTplValGesInit< double > & cParamCasa::PercCoherenceOrientation()
 {
-   return mSectionCompensation;
+   return CasaSectionCompensation().PercCoherenceOrientation();
 }
 
-const cSectionCompensation & cParamCasa::SectionCompensation()const 
+const cTplValGesInit< double > & cParamCasa::PercCoherenceOrientation()const 
 {
-   return mSectionCompensation;
+   return CasaSectionCompensation().PercCoherenceOrientation();
+}
+
+
+cCasaSectionCompensation & cParamCasa::CasaSectionCompensation()
+{
+   return mCasaSectionCompensation;
+}
+
+const cCasaSectionCompensation & cParamCasa::CasaSectionCompensation()const 
+{
+   return mCasaSectionCompensation;
 }
 
 
@@ -656,7 +649,7 @@ void  BinaryUnDumpFromFile(cParamCasa & anObj,ELISE_fp & aFp)
               anObj.SectionInitModele().push_back(aVal);
         }
   } ;
-    BinaryUnDumpFromFile(anObj.SectionCompensation(),aFp);
+    BinaryUnDumpFromFile(anObj.CasaSectionCompensation(),aFp);
     BinaryUnDumpFromFile(anObj.DirectoryChantier(),aFp);
 }
 
@@ -670,7 +663,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cParamCasa & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,anObj.SectionCompensation());
+    BinaryDumpInFile(aFp,anObj.CasaSectionCompensation());
     BinaryDumpInFile(aFp,anObj.DirectoryChantier());
 }
 
@@ -686,7 +679,7 @@ cElXMLTree * ToXMLTree(const cParamCasa & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("SectionInitModele"));
-   aRes->AddFils(ToXMLTree(anObj.SectionCompensation())->ReTagThis("SectionCompensation"));
+   aRes->AddFils(ToXMLTree(anObj.CasaSectionCompensation())->ReTagThis("CasaSectionCompensation"));
    aRes->AddFils(::ToXMLTree(std::string("DirectoryChantier"),anObj.DirectoryChantier())->ReTagThis("DirectoryChantier"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -702,11 +695,11 @@ void xml_init(cParamCasa & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SectionInitModele(),aTree->GetAll("SectionInitModele",false,1));
 
-   xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
+   xml_init(anObj.CasaSectionCompensation(),aTree->Get("CasaSectionCompensation",1)); //tototo 
 
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamCasa *) {return "B2233C9892DA5DF3FD3F";};
+std::string  Mangling( cParamCasa *) {return "D7611FDA0F397EFCFDBF";};
 
 // };

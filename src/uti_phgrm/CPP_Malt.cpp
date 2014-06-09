@@ -679,7 +679,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       if (mUseImSec)
           mCom = mCom + std::string(" +UseImSec=true");
       if (mCorMS)
+      {
           mCom = mCom + std::string(" +CorMS=true");
+          if (mType!=eGeomImage) mCom = mCom + std::string(" +MSDense=false");
+      }
 
       if (mGenCubeCorrel)
           mCom = mCom + std::string(" +GCC=true");
