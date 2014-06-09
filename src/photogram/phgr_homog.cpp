@@ -565,6 +565,7 @@ void AddPair(ElPackHomologue & aPack,const std::pair<Pt2dr,Pt2dr> &aPair)
 */
 
 
+/*
 template <class TVal> void SplitArrounKthValue(std::vector<TVal> & aV,int aKth)
 {
    SplitArrounKthValue(VData(aV),aV.size(),aKth);
@@ -585,6 +586,7 @@ template <class TVal> TVal MedianeSup(std::vector<TVal> & aV)
 {
     return KthVal(aV,aV.size()/2);
 }
+*/
 
 cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomologue & aPack,bool & Ok ,int aNbTestEstim, double aPerc,int aNbMaxPts)
 {

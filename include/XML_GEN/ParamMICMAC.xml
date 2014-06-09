@@ -910,6 +910,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                 <SzBlocAH Nb="?" Type="int" Def="40"> </SzBlocAH>
                 <CorrelMultiScale Nb="?">
                       <ModeDense Nb="?" Type="bool"> </ModeDense>
+                      <!-- Si true un indicateur de forme est calcule sur l'image maitresse pour choisir quel type de fenetre est utilise -->
                       <UseWAdapt Nb="?" Type="bool" Def="false"> </UseWAdapt>
                       <ModeMax Nb="?" Type="bool" Def="false">  </ModeMax> <!--Pour l'instant Uniquement Implante dans la filiere Census-->
                       <OneParamCMS Nb="+" Container="std::vector">

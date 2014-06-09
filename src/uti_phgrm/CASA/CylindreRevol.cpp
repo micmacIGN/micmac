@@ -81,7 +81,7 @@ void cAppli_Casa::TestCylindreRevolution
 
    if (aVar < aSurf.mBestScore)
    {
-         std::cout << "DistDroite = " << aSD1 << " SigmaDist= " << aVar << "\n";
+         std::cout << "   DistDroite = " << aSD1 << " SigmaDist= " << aVar << "\n";
          aSurf.mBestScore = aVar;
 
 /*
@@ -112,12 +112,13 @@ void cAppli_Casa::EstimeCylindreRevolution
             const cSectionEstimSurf & aSES
      )
 {
+    std::cout << "Begin Ransac \n";
     delete mBestCyl;
     mBestCyl = 0;
     aSurf.mBestScore = 1e30;
     std::vector<cFaceton> & aVF = aSurf.mVF;
     std::cout << "Nb Facette " << aVF.size() << "\n";
-    for (int aK=0 ; aK<aSES.NbRansac() ; aK++)
+    for (int aK=0 ; aK<aSES.NbRansac().Val() ; aK++)
     {
         int aK1 = NRrandom3(aVF.size());
         int aK2 = NRrandom3(aVF.size());
@@ -129,6 +130,8 @@ void cAppli_Casa::EstimeCylindreRevolution
     }
 
     aSurf.mISAF = &(mSetEq.AllocCylindre(*mBestCyl));
+    std::cout << "End Ransac \n";
+
 
 /*
     for (int aK=0 ; aK<int(aVF.size()) ; aK++)

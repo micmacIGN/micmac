@@ -69,7 +69,7 @@ bool cOneSurf_Casa::IsFaceExterne(const cInterfSurfaceAnalytique & anISA,double 
           aNbInt++;
    }
    double aRatio = aNbExt / double(aNbExt+aNbInt);
-   std::cout << "RATIO " << aRatio << "\n";
+   std::cout << "RATIO Ext/Int" << aRatio << "\n";
    aRatio *= 100.0;
    if (aRatio<50) aRatio = 100 -aRatio;
    if (aRatio<aTol)
@@ -85,8 +85,9 @@ void cOneSurf_Casa::ActiveContrainte(cSetEqFormelles & aSet)
    aSet.AddContrainte(mISAF->StdContraintes(),true);
 }
 
-void  cOneSurf_Casa::Compense(const cEtapeCompensation & anEtape)
+void  cOneSurf_Casa::Compense(const cCasaEtapeCompensation & anEtape,bool First)
 {
+     std::vector<double> aVEcart;
      const cInterfSurfaceAnalytique & aSan= mISAF->CurSurf();
      double aSP=0.0;
      double aSEc2=0.0;
@@ -95,16 +96,29 @@ void  cOneSurf_Casa::Compense(const cEtapeCompensation & anEtape)
      {
         Pt3dr aP = mVF[aK].Centre();
         double aPds = 1.0;
-
         double anEc = aSan.E2UVL(aP).z;
-        mISAF->AddObservRatt(aP,1.0);
+
+        if (! First)
+        {
+           if (anEc > mREC.mMoyHaut)
+              aPds = 0.0;
+        }
+
+
+        mISAF->AddObservRatt(aP,aPds);
 
         aSP +=  aPds;
         aSEc2 += aPds*ElSquare(anEc);
+        aVEcart.push_back(ElAbs(anEc));
      }
 
      aSEc2 /= aSP;
-     cout << mName << " " << sqrt(aSEc2) << "\n";
+
+     mREC.mMoyHaut =  KthValProp(aVEcart,0.99);
+     mREC.mMoyQuad = sqrt(aSEc2);
+
+
+     cout  << "  Compense :" << mName << " " << mREC.mMoyQuad  << " ECAR a 99 " <<  mREC.mMoyHaut << "\n";
 }
 
 
@@ -115,7 +129,7 @@ void  cOneSurf_Casa::Compense(const cEtapeCompensation & anEtape)
 /***************************************************/
 
 
-void cAppli_Casa::OneEtapeCompense(const cEtapeCompensation & anEtape)
+void cAppli_Casa::OneEtapeCompense(const cCasaEtapeCompensation & anEtape)
 {
      for (int aKIter=0; aKIter<anEtape.NbIter().Val() ; aKIter++)
      {
@@ -126,7 +140,7 @@ void cAppli_Casa::OneEtapeCompense(const cEtapeCompensation & anEtape)
          mSetEq.SetPhaseEquation();
          for (int aK=0 ; aK<int(mVSC.size()) ; aK++)
          {
-             mVSC[aK]->Compense(anEtape);
+             mVSC[aK]->Compense(anEtape,(aKIter==0));
          }
          mSetEq.SolveResetUpdate();
      }
@@ -140,7 +154,7 @@ void cAppli_Casa::OneEtapeCompense(const cEtapeCompensation & anEtape)
              cXmlOneSurfaceAnalytique aXmlSurf;
              aXmlSurf.XmlDescriptionAnalytique() = aSurf.Xml();
              aXmlSurf.Id() = mVSC[aK]->mName;
-             aXmlSurf.VueDeLExterieur() = mVSC[aK]->IsFaceExterne(aSurf,mParam.CoherenceOrientation().Val());
+             aXmlSurf.VueDeLExterieur() = mVSC[aK]->IsFaceExterne(aSurf,mParam.PercCoherenceOrientation().Val());
              aXmlModele.XmlOneSurfaceAnalytique().push_back(aXmlSurf);
          }
          MakeFileXML
@@ -152,12 +166,12 @@ void cAppli_Casa::OneEtapeCompense(const cEtapeCompensation & anEtape)
 
 }
 
-void cAppli_Casa::Compense(const cSectionCompensation & aSC)
+void cAppli_Casa::Compense(const cCasaSectionCompensation & aSC)
 {
    for 
    (
-      std::list<cEtapeCompensation>::const_iterator itEC = aSC.EtapeCompensation().begin();
-      itEC != aSC.EtapeCompensation().end();
+      std::list<cCasaEtapeCompensation>::const_iterator itEC = aSC.CasaEtapeCompensation().begin();
+      itEC != aSC.CasaEtapeCompensation().end();
       itEC++
    )
    {

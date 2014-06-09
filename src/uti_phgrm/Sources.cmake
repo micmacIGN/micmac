@@ -3,6 +3,7 @@ set(UTI_PHGRM_MICMAC_DIR ${UTI_PHGRM_DIR}/MICMAC)
 set(UTI_PHGRM_MAXFLOW_DIR ${UTI_PHGRM_DIR}/MaxFlow)
 set(UTI_PHGRM_REDUCHOM_DIR ${UTI_PHGRM_DIR}/ReducHom)
 set(UTI_PHGRM_RHH_DIR ${UTI_PHGRM_DIR}/RHH)
+set(UTI_PHGRM_CASA_DIR ${UTI_PHGRM_DIR}/CASA)
 
 set(UTI_PHGRM_PORTO_DIR ${UTI_PHGRM_DIR}/Porto)
 set(UTI_PHGRM_SAISIEPTS_DIR ${UTI_PHGRM_DIR}/SaisiePts)
@@ -20,6 +21,7 @@ INCLUDE (${UTI_PHGRM_RHH_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_PORTO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_CASA_DIR}/Sources.cmake)
 
 
 #define __CUDA_API_VERSION 0x5050
@@ -131,5 +133,5 @@ list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MaxFlow_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Porto_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_RHH_Src_Files})
-
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Casa_Src_Files})
 list( APPEND Elise_Src_Files ${uti_phgrm_Src_Files})

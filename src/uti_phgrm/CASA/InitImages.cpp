@@ -120,7 +120,7 @@ void cAppli_Casa::AddNuage2Surf
      aNameMask = mDC+aNBI.NameMasqSup().Val();
 
    cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage,"XML_ParamNuage3DMaille",aNameMask);
-   Pt2di aSz = aNuage->Sz();
+   Pt2di aSz = aNuage->SzGeom();
    Im2D_Bits<1> aMasq(aSz.x,aSz.y,0);
    TIm2DBits<1> aTMasq(aMasq);
 
@@ -172,7 +172,7 @@ void cAppli_Casa::AddNuage2Surf
             {
                // if (aW) aW->draw_circle_abs(aP0,1,aW->pdisc()(P8COL::green)); 
                aLGerm.push_back(aP0);
-               CC(aW,aP0,aVExpl,aMasq,aMarqTmp,aSLN.DistSep(),false);
+               CC(aW,aP0,aVExpl,aMasq,aMarqTmp,aSLN.DistSep().Val(),false);
             }
         }
     }
@@ -200,7 +200,7 @@ void cAppli_Casa::AddNuage2Surf
         )
         {
              cAccumFaceton anAcu;
-             CC(aW,*iTp,aVExpl,aMasq,aMarqTmp,aSLN.DistZone(),true);
+             CC(aW,*iTp,aVExpl,aMasq,aMarqTmp,aSLN.DistZone().Val(),true);
              
              for (int aKP=0 ; aKP<int(aVExpl.size()) ; aKP++)
              {
@@ -236,7 +236,7 @@ void cAppli_Casa::AddNuage2Surf
                 // getchar();
              }
         }
-      std::cout << "Time " << aTime << " Done \n";
+      std::cout << "For " << aNBI.NameXMLNuage() << " Iter " << aTime << " Loaded \n";
     }
     if (aW) 
       getchar();
