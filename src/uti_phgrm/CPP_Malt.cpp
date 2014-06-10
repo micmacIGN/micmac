@@ -202,6 +202,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 {
 
 #if(ELISE_QT_VERSION >= 4)
+
+    QApplication app(argc, argv);
+
     if (MMVisualMode)
     {
         LArgMain LAM;
@@ -216,9 +219,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         QStringList items;
         list<string>::iterator it=liste_valeur_enum.begin();
         for (; it != liste_valeur_enum.end(); ++it)
-            items << QString((*it).c_str());
-
-        QApplication app(argc, argv);
+            items << QString((*it).c_str());        
 
         setStyleSheet(app);
 
