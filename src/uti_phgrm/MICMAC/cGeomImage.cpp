@@ -2560,6 +2560,7 @@ if (1)
           for (int aK=1 ; aK<mDimPx ; aK++)
               aRatio[aK] = 1.0;
 
+
           return true;
       }
       CamStenope *  GetOri()  const

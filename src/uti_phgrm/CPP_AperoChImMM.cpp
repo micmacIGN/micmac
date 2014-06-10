@@ -49,6 +49,8 @@ int AperoChImMM_main(int argc,char ** argv)
     bool ExpTxt=0;
     bool CalPerIm=0;
 
+    Pt2dr aFocs;
+
 
     ElInitArgMain
     (
@@ -60,6 +62,7 @@ int AperoChImMM_main(int argc,char ** argv)
                     << EAM(Out,"Out",false,"Output destination (Def= same as Orientation-parameter)", eSAM_IsOutputFile)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=False)", eSAM_IsBool)
                     << EAM(aPatternExport,"PatExp",true,"Pattern to limit export (Def=.* , i.e. all are exported)", eSAM_IsBool)
+                    << EAM(aFocs,"Focs",true,"Interval of Focal")
     );
 
 
@@ -68,10 +71,12 @@ int AperoChImMM_main(int argc,char ** argv)
     #endif
 
     string aXmlName="Apero-Choix-ImSec.xml";
+/*
     if (CalPerIm)
     {
         aXmlName="Apero-Choix-ImSec-PerIm.xml";
     }
+*/
 
     SplitDirAndFile(aDir,aPat,aFullDir);
    StdCorrecNameOrient(AeroIn,aDir);
@@ -89,6 +94,14 @@ int AperoChImMM_main(int argc,char ** argv)
                        + std::string(" +Out=-") + Out
                        + std::string(" +PatternExport=") + QUOTE(aPatternExport) + std::string(" ")
                     ;
+    if (EAMIsInit(&CalPerIm))
+         aCom =  aCom + " +CalPerIm=" +ToString(CalPerIm);
+
+
+    if (EAMIsInit(&aFocs))
+    {
+       aCom = aCom + " +FocMin=" + ToString(aFocs.x) + " +FocMax=" + ToString(aFocs.y);
+    }
 
    std::cout << "Com = " << aCom << "\n";
    int aRes = system_call(aCom.c_str());

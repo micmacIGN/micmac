@@ -1,9 +1,19 @@
 EVOLUTIONS :
 
-  *Compensation sur des lignes 3D
-  * Cox Roy accesible ds Malt (en train ...)
+  * Compensation sur des lignes 3D
+  * Cox Roy accesible ds Malt (en train ...) + SzRec 
   * Generation des orientation d'ortho par image
-  * Glob Masq Im
+  * Masq Glob dans Malt
+  * dir Horizontal autom dans RepLocBascule
+  * Focs dans ChImSec, AperiCloud
+  * Export NuageUnAnam dans ortho cyl
+
+
+Progr MM-Dev :
+
+   * Dans Apero ajouter contrainte sur blic rigide
+   * Apero et MicMac en mode XML
+
 
 A DOCUMENTER  :
 XifGps2Xml

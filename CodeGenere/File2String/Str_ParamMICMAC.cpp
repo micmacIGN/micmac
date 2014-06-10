@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2082]) = {
+const char * (theNameVar_ParamMICMAC[2084]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -912,6 +912,7 @@ const char * (theNameVar_ParamMICMAC[2082]) = {
 "                <SzBlocAH Nb=\"?\" Type=\"int\" Def=\"40\"> </SzBlocAH>\n",
 "                <CorrelMultiScale Nb=\"?\">\n",
 "                      <ModeDense Nb=\"?\" Type=\"bool\"> </ModeDense>\n",
+"                      <!-- Si true un indicateur de forme est calcule sur l'image maitresse pour choisir quel type de fenetre est utilise -->\n",
 "                      <UseWAdapt Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseWAdapt>\n",
 "                      <ModeMax Nb=\"?\" Type=\"bool\" Def=\"false\">  </ModeMax> <!--Pour l'instant Uniquement Implante dans la filiere Census-->\n",
 "                      <OneParamCMS Nb=\"+\" Container=\"std::vector\">\n",
@@ -1558,8 +1559,8 @@ const char * (theNameVar_ParamMICMAC[2082]) = {
 "                       ces param pa def\n",
 "                   -->\n",
 "\n",
-"                  <SzBloc Nb=\"?\" Type=\"int\" Def=\"6000\"> </SzBloc>\n",
-"                  <SzBord Nb=\"?\" Type=\"int\" Def=\"400\"> </SzBord>\n",
+"                  <SzBloc Nb=\"?\" Type=\"int\" Def=\"4000\"> </SzBloc>\n",
+"                  <SzBord Nb=\"?\" Type=\"int\" Def=\"300\"> </SzBord>\n",
 "                  <ImSuperpMNT Nb=\"?\" Type=\"bool\" Def=\"false\"> </ImSuperpMNT>\n",
 "                  <!-- Si cette valeur est donnees tous les calculs d'emprise sont fait dessus, utile lorsqu'une partie\n",
 "                       meme faible du MNE est tres bruitees -->\n",
@@ -1622,6 +1623,7 @@ const char * (theNameVar_ParamMICMAC[2082]) = {
 "                 <NameOut Type=\"std::string\" Nb=\"1\"> </NameOut>\n",
 "                 <NameMasq Type=\"std::string\" Nb=\"1\"> </NameMasq>\n",
 "                 <NameOriGlob Type=\"std::string\" Nb=\"1\"> </NameOriGlob>\n",
+"                 <NameNuage Type=\"std::string\" Nb=\"?\"> </NameNuage>\n",
 "\n",
 "                 <XRecouvrt Type=\"int\" Def=\"300\" Nb=\"?\"> </XRecouvrt>\n",
 "                 <MemAvalaible Type=\"double\" Def=\"3e7\" Nb=\"?\"> </MemAvalaible>\n",

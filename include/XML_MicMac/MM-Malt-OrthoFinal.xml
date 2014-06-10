@@ -2,8 +2,11 @@
                     <ByMkF> ${MkFPC} </ByMkF>
                     <SeuilUsePC> 3 </SeuilUsePC>
                     <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirOrthoF}@PC_ </KeyCalcPC>
-
                     <PatternApply>  ${ImOrtho}</PatternApply>
+
+                    <SzBloc> 2000 </SzBloc>
+                    <SzBord>  200 </SzBord>
+
 
                     <MakeOrthoParImage >
                          <DirOrtho> ${DirOrthoF} </DirOrtho>

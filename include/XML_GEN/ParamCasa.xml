@@ -35,30 +35,32 @@
 -->
 
                </NuageByImage>
-               <DistSep Nb="1" Type="double"> </DistSep>
-               <DistZone Nb="1" Type="double"> </DistZone>
-               <SzW Nb="?" Type="Pt2di"> </SzW>
+               <DistSep Nb="?" Type="double" Def="50.0"> </DistSep>  <!-- Ecartement entre les germes des "facetons" -->
+               <DistZone Nb="?" Type="double" Def="90.0"> </DistZone>  <!-- Taille du faceton, car ils se recouvrent -->
+               <SzW Nb="?" Type="Pt2di"> </SzW>  <!-- Pour fenetre de visualisation -->
 	   </SectionLoadNuage>
 
            <SectionEstimSurf Nb="1">
                 <TypeSurf Nb="1" Type="eTypeSurfaceAnalytique"> </TypeSurf>
-                <NbRansac Nb="1" Type="int"> </NbRansac>
+                <NbRansac Nb="?" Type="int" Def="500"> </NbRansac>
            </SectionEstimSurf>
         </SectionInitModele>
 
-        <SectionCompensation Nb="1">
-            <EtapeCompensation Nb="*">
+        <CasaSectionCompensation Nb="1">
+            <CasaEtapeCompensation Nb="*">
+<!--
                  <Sigma  Nb="*" Type="double"> </Sigma>
+-->
                  <NbIter Nb="?" Type="int" Def="1"> </NbIter>
                  <Export Nb="?" Type="std::string"> </Export>
-            </EtapeCompensation>
+            </CasaEtapeCompensation>
             
             <!-- Chaque facette vote pour orienter la surface, normalement 
              elle devraient toute voter dans le meme sens, ce que l'on verifie avec
              une certaine tolerance -->
 
-             <CoherenceOrientation Nb="?" Type="double" Def="95.0"> </CoherenceOrientation>
-        </SectionCompensation>
+             <PercCoherenceOrientation Nb="?" Type="double" Def="95.0"> </PercCoherenceOrientation>
+        </CasaSectionCompensation>
 
 
         <DirectoryChantier Nb="1" Type="std::string"></DirectoryChantier>

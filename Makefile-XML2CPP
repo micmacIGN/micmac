@@ -16,8 +16,8 @@ CodeGenere/File2String/Str_ParamApero.cpp : include/XML_GEN/ParamApero.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamApero.xml 2 src/uti_phgrm/Apero/cParamApero
 src/uti_phgrm/SaisiePts/cParamSaisiePts.cpp : include/XML_GEN/ParamSaisiePts.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamSaisiePts.xml 3 src/uti_phgrm/SaisiePts/cParamSaisiePts
-applis/CASA/cParamCasa.cpp : include/XML_GEN/ParamCasa.xml
-	bin/GenXML2Cpp  include/XML_GEN/ParamCasa.xml 3 applis/CASA/cParamCasa
+src/uti_phgrm/CASA/cParamCasa.cpp : include/XML_GEN/ParamCasa.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamCasa.xml 3 src/uti_phgrm/CASA/cParamCasa
 CodeGenere/File2String/Str_ParamDigeo.cpp : include/XML_GEN/ParamDigeo.xml
 	bin/GenXML2Cpp  include/XML_GEN/ParamDigeo.xml 2 src/uti_image/Digeo/cParamDigeo
 all: src/XML_GEN/ParamChantierPhotogram.cpp\
@@ -28,6 +28,6 @@ all: src/XML_GEN/ParamChantierPhotogram.cpp\
      CodeGenere/File2String/Str_ParamMICMAC.cpp\
      CodeGenere/File2String/Str_ParamApero.cpp\
      src/uti_phgrm/SaisiePts/cParamSaisiePts.cpp\
-     applis/CASA/cParamCasa.cpp\
+     src/uti_phgrm/CASA/cParamCasa.cpp\
      CodeGenere/File2String/Str_ParamDigeo.cpp
 

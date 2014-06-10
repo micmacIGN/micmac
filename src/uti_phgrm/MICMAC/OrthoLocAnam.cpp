@@ -61,7 +61,7 @@ void cAppliMICMAC::MakeRedrLocAnamSA()
    const cEtapeMEC &  anET = mCurEtape->EtapeMEC();
    if (! anET.RedrLocAnam().IsInit())
       return;
-    const cRedrLocAnam & aRLA =  anET.RedrLocAnam().Val();
+   const cRedrLocAnam & aRLA =  anET.RedrLocAnam().Val();
 
    if (! mAnamSA) return;
    if (! mAnamSA->HasOrthoLoc()) return;
@@ -180,6 +180,45 @@ void cAppliMICMAC::MakeRedrLocAnamSA()
     std::string aNameOut = FullDirResult()+aRLA.NameOut() + ".tif";
     std::string aNameMaskOut = FullDirResult()+aRLA.NameMasq() + ".tif";
     MakeFileXML(aFOMFinale, StdPrefix(aNameOut)+".xml");
+
+
+    if (aRLA.NameNuage().IsInit())
+    {
+       std::string aNNRed = aRLA.NameNuage().Val();
+       std::string aNNInit =    mCurEtape->NameXMLNuage();
+       cXML_ParamNuage3DMaille aNuageInit = StdGetFromSI(aNNInit,XML_ParamNuage3DMaille);
+       cXML_ParamNuage3DMaille aNuageFinal = aNuageInit;
+       cXmlOrthoCyl * anOC = 0;
+       bool DoExp = false;
+
+       // On regarde si il y a des cas que l'on sait gerer 
+       {
+          cXmlOneSurfaceAnalytique * aSAN = aNuageInit.Anam().PtrVal();
+          if (aSAN)
+          {
+             anOC = aSAN->XmlDescriptionAnalytique().OrthoCyl().PtrVal();
+          }
+       }
+
+       // En fait le seul cas que l'on sache gerer est le cylindre
+       if (anOC)
+       {
+          DoExp = true;
+          aNuageFinal.Anam().SetNoInit();
+          aNuageFinal.RepereGlob().SetVal(anOC->Repere());
+       }
+
+       if (DoExp)
+       {
+          aNuageFinal.NbPixel() = aFOMFinale.NombrePixels() ;
+          aNuageFinal.Image_Profondeur().Val().Image() = aRLA.NameOut() + ".tif";
+          aNuageFinal.Image_Profondeur().Val().Masq() = aRLA.NameMasq() + ".tif";
+          ElAffin2D anAffC2M = ElAffin2D::TransfoImCropAndSousEch(aFOMFinale.OriginePlani(),aFOMFinale.ResolutionPlani());
+          aNuageFinal.Orientation().OrIntImaM2C().SetVal( El2Xml(anAffC2M));
+
+          MakeFileXML(aNuageFinal,FullDirResult() +aNNRed);
+       }
+    }
 
     int  aZoom = mCurEtape->DeZoomTer();
     cFileOriMnt aFomR1 =  aFOMFinale;

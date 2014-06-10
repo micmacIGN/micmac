@@ -16,6 +16,13 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
             <Symb>  SeuilP3d=1.5  </Symb>
             <Symb>  TetaOpt=0.17   </Symb>
             <Symb>  PatternExport=.*   </Symb>
+            <Symb>  CalPerIm=false   </Symb>
+
+
+            <Symb>  FocMin=0 </Symb>
+            <Symb>  FocMax=1000000 </Symb>
+            <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
+
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -38,19 +45,32 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                    <CalValueInit>
                          <CalFromFileExtern>
                               <NameFile>   ####  </NameFile>
-                              <NameTag>    CalibrationInternConique </NameTag>
+                              <#IF VTEST=${CalPerIm}>
+                                    <NameTag>    Interne </NameTag>
+                                    <NameTag>    CalibrationInternConique </NameTag>
+                              </#IF>
                               <AutorizeNonExisting > true </AutorizeNonExisting>
                          </CalFromFileExtern>
                    </CalValueInit>
-                   <CalibPerPose>
-                        <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
-                        <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
-                    </CalibPerPose>
+                   <#IF VTEST=${CalPerIm}>
+                         <CalibPerPose>
+                              <KeyPose2Cal> NKS-Assoc-Id </KeyPose2Cal>
+                              <KeyInitFromPose> NKS-Assoc-Im2Orient@${AeroIn} </KeyInitFromPose>
+                         </CalibPerPose>
+
+                         <CalibPerPose>
+                              <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                              <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                         </CalibPerPose>
+                   </#IF>
               </CalibrationCameraInc>
 
 
              <PoseCameraInc>
+<!--
 	           <PatternName>    ${PatternAllIm}    </PatternName>
+-->
+	           <PatternName>    ${SetIm}    </PatternName>
 	           <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
 
                    <PosValueInit>

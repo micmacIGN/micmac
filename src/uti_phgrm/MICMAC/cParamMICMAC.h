@@ -3866,6 +3866,9 @@ class cRedrLocAnam
         std::string & NameOriGlob();
         const std::string & NameOriGlob()const ;
 
+        cTplValGesInit< std::string > & NameNuage();
+        const cTplValGesInit< std::string > & NameNuage()const ;
+
         cTplValGesInit< int > & XRecouvrt();
         const cTplValGesInit< int > & XRecouvrt()const ;
 
@@ -3896,6 +3899,7 @@ class cRedrLocAnam
         std::string mNameOut;
         std::string mNameMasq;
         std::string mNameOriGlob;
+        cTplValGesInit< std::string > mNameNuage;
         cTplValGesInit< int > mXRecouvrt;
         cTplValGesInit< double > mMemAvalaible;
         cTplValGesInit< double > mFilterMulLargY;
@@ -4523,6 +4527,9 @@ class cEtapeMEC
 
         std::string & NameOriGlob();
         const std::string & NameOriGlob()const ;
+
+        cTplValGesInit< std::string > & NameNuage();
+        const cTplValGesInit< std::string > & NameNuage()const ;
 
         cTplValGesInit< int > & XRecouvrt();
         const cTplValGesInit< int > & XRecouvrt()const ;

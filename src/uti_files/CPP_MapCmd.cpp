@@ -112,7 +112,7 @@ int MapCmd_main(int argc,char ** argv)
             aMKF=std::string(aN+2);
         }
 
-        if (aN[0]=='Z')
+        if (aN[0]=='S')
         {
 	   sscanf(aN+2,"%d",&InSerie);
         }

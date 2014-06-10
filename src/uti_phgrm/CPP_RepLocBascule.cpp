@@ -58,13 +58,14 @@ int RepLocBascule_main(int argc,char ** argv)
     bool ExpTxt=false;
     std::string PostPlan="_Masq";
     bool OrthoCyl = false;
+    bool P1P2Hor = false;
 
     ElInitArgMain
     (
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile )
                     << EAMC(AeroIn,"Input orientation", eSAM_IsExistDirOri)
-                    << EAMC(FileMesures,"Images measures xml file", eSAM_IsExistFile)
+                    << EAMC(FileMesures,"Images measures xml file, set \"HOR\" if horizonatl line is wanted", eSAM_IsExistFile)
                     << EAMC(RepereOut,"Output xml file", eSAM_IsOutputFile),
     LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true,"Are tie points in ascii mode ? (Def=false)")
@@ -72,6 +73,7 @@ int RepLocBascule_main(int argc,char ** argv)
                     << EAM(OrthoCyl,"OrthoCyl",true,"Is the coordinate system in ortho-cylindric mode?")
 
     );
+    P1P2Hor = (FileMesures=="HOR");
 
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
@@ -101,6 +103,8 @@ int RepLocBascule_main(int argc,char ** argv)
                        + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
                        + std::string(" +PostMasq=") + PostPlan
                     ;
+
+   if (P1P2Hor) aCom = aCom + " +P1P2Hor=true";
 
 
 

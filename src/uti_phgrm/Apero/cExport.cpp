@@ -521,7 +521,17 @@ void cAppliApero::ExportRepereLoc(const cExportRepereLoc & anERL)
 
     std::vector<cPoseCam *> aVP = mVecPose;
     std::string aNameP1P2 = anERL.ImP1P2().ValWithDef(anERL.PatternEstimPl());
-    if (aNameP1P2 != "NoP1P2")
+    if (anERL.P1P2Hor().Val())
+    {
+           Pt3dr aNormPl = vunit(Pt3dr(aVZ.x,aVZ.y,0));  
+           Pt3dr aHorInPl (-aNormPl.y,aNormPl.x,0);
+
+           Pt3dr aVertInPl = vunit(aVZ ^ aHorInPl);
+
+           aVX = aHorInPl;
+           aVY = aVertInPl;
+    }
+    else if (aNameP1P2 != "NoP1P2")
     {
        std::string aNameP1 = aNameP1P2;
        std::string aNameP2 = aNameP1P2;

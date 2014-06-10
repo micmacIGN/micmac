@@ -365,6 +365,12 @@ void cAppliMICMAC::MakePartiesCachees
 
    bool DoOrtho =  aGPC.MakeOrthoParImage().IsInit();
 
+   double aResRelOrtho = 1.0;
+   if (DoOrtho)
+   {
+       cMakeOrthoParImage aMOPI = aGPC.MakeOrthoParImage().Val();
+       aResRelOrtho  =  aMOPI.ResolRelOrhto().ValWithDef(1.0);
+   }
 
    std::string   anEntete = NamePC(true,aGPC,mCurEtape,aPdv);
    std::cout << "ENTETE =" << anEntete << "\n";
@@ -608,6 +614,8 @@ void cAppliMICMAC::MakePartiesCachees
    
    int aSzBord = aGPC.SzBord().Val();
    int aMaxSz= aGPC.SzBloc().Val();
+   if (aResRelOrtho > 1.0)  
+      aMaxSz = round_ni(aMaxSz/aResRelOrtho);
 
 
    Pt2di aPBord(aSzBord,aSzBord);
@@ -680,13 +688,12 @@ void cAppliMICMAC::MakePartiesCachees
            double aRXSurY = aRx/aRy;
 
            ELISE_ASSERT(ElAbs(ElAbs(aRXSurY)-1)<1e-5,"Incoherence in ResolAbsOrtho");
-           double aResRel =  aMOPI.ResolRelOrhto().ValWithDef(1.0);
            if (aMOPI.ResolAbsOrtho().IsInit())
            {
-               aResRel = aMOPI.ResolAbsOrtho().Val()/ElAbs(aRx);
+               aResRelOrtho = aMOPI.ResolAbsOrtho().Val()/ElAbs(aRx);
            }
 
-           anOriOrtho.ResolutionPlani() = Pt2dr(aRx,aRy)*aResRel;
+           anOriOrtho.ResolutionPlani() = Pt2dr(aRx,aRy)*aResRelOrtho;
 
 
            if (aMOPI.PixelTerrainPhase().IsInit())
@@ -717,7 +724,7 @@ void cAppliMICMAC::MakePartiesCachees
            Box2di  aBoxOrthoIn  =  Inf(aBoxOrthoGlob,R2I(aBoxIn.BoxImage(aAfPM2PO)));
            Box2di  aBoxOrthoOut =  Inf(aBoxOrthoGlob,R2I(aBoxOut.BoxImage(aAfPM2PO)));
 
-           anOriOrtho.NombrePixels() = round_ni(Pt2dr(anOriMNT.NombrePixels())/aResRel);
+           anOriOrtho.NombrePixels() = round_ni(Pt2dr(anOriMNT.NombrePixels())/aResRelOrtho);
 
            ElAffin2D  aAfPML2POL =   AffPixTer2BoxLoc(aBoxOrthoIn) * aAfPM2PO   * AffPixTer2BoxLoc(aBoxIn).inv();
 
