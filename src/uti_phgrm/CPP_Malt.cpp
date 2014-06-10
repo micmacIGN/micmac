@@ -236,8 +236,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         ReadType(mStrType);
     }
     else
+    {
         ELISE_ASSERT(argc >= 2,"Not enough arg");
         ReadType(argv[1]);
+    }
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     ReadType(argv[1]);
@@ -291,7 +293,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for rectification is a sphere")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
-                    << EAM(mMasqIm,"MasqIm",false,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
+                    << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq")
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ")
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image")
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)", eSAM_Normalize)
@@ -300,7 +302,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
-                    << EAM(mModeOri,"MOri",false,"Mode Orientation (GRID or RTO) if not XML frame camera")
+                    << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO) if not XML frame camera")
                     << EAM(mMaxFlow,"MaxFlow",true,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower sometime better, Def=false ")
                     << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                 );
