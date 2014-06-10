@@ -1557,8 +1557,8 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                        ces param pa def
                    -->
 
-                  <SzBloc Nb="?" Type="int" Def="6000"> </SzBloc>
-                  <SzBord Nb="?" Type="int" Def="400"> </SzBord>
+                  <SzBloc Nb="?" Type="int" Def="4000"> </SzBloc>
+                  <SzBord Nb="?" Type="int" Def="300"> </SzBord>
                   <ImSuperpMNT Nb="?" Type="bool" Def="false"> </ImSuperpMNT>
                   <!-- Si cette valeur est donnees tous les calculs d'emprise sont fait dessus, utile lorsqu'une partie
                        meme faible du MNE est tres bruitees -->
@@ -1621,6 +1621,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                  <NameOut Type="std::string" Nb="1"> </NameOut>
                  <NameMasq Type="std::string" Nb="1"> </NameMasq>
                  <NameOriGlob Type="std::string" Nb="1"> </NameOriGlob>
+                 <NameNuage Type="std::string" Nb="?"> </NameNuage>
 
                  <XRecouvrt Type="int" Def="300" Nb="?"> </XRecouvrt>
                  <MemAvalaible Type="double" Def="3e7" Nb="?"> </MemAvalaible>

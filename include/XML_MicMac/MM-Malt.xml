@@ -434,8 +434,10 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                         <GenerePartiesCachees >
                              <SeuilUsePC> 4 </SeuilUsePC>
                              <ByMkF> true </ByMkF>
+<!--
                              <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirQO}@PC_ </KeyCalcPC>
                              <IncludeFileLoc>  ${FileOthoQ} </IncludeFileLoc>
+-->
                         </GenerePartiesCachees>
                    </#WHEN>
                    <#WHEN VTEST=${CorMS}>

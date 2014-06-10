@@ -6,6 +6,7 @@ EVOLUTIONS :
   * Masq Glob dans Malt
   * dir Horizontal autom dans RepLocBascule
   * Focs dans ChImSec, AperiCloud
+  * Export NuageUnAnam dans ortho cyl
 
 
 Progr MM-Dev :
