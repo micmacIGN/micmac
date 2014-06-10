@@ -1278,6 +1278,8 @@ void xml_init(bool  & aVal,cElXMLTree * aTree)
 
 void xml_init(double         & aVal,cElXMLTree * aTree)
 {
+     // setlocale(LC_ALL,"C");
+
    int aNb = sscanf(aTree->Contenu().c_str(),"%lf %s",&aVal,aBuf);
    if (aNb!=1)
    {
