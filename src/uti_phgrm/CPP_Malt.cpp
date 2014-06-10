@@ -438,10 +438,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mSzGlob = mSzGlob / double(mNbIm);
       }
 
-      bool ZMoyInit = EAMIsInit(&mZMoy) ;
+      bool ZMoyInit = EAMIsInit(&mZMoy)  && (mType != eGeomImage);
+      bool IncMaxInit = EAMIsInit(&mIncidMax)  && (mType != eGeomImage);
       if (!ZMoyInit)
       {
-          if (EAMIsInit(&mIncidMax))
+          if (IncMaxInit)
           {
               ELISE_ASSERT(aNbZM!=0,"Cannot get ZMoy with IncMax");
               ZMoyInit = true;

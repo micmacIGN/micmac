@@ -102,14 +102,22 @@ void LogTime(FILE * aFp,const std::string & aMes)
   fprintf(aFp," PID : %d ;   %s %s",mm_getpid(),aMes.c_str(),asctime (timeinfo));
 }
 
-void LogIn(int  argc,char **  argv,const std::string & aDir)
+void LogIn(int  argc,char **  argv,const std::string & aDir,int aFlagQuote)
 {
    if (! DOLOG_MM3d) return;
    FILE * aFp = FileLogMM3d(aDir);
 
-   fprintf(aFp,"=================================================================\n");
+
+   fprintf(aFp,"================================================================= \n");
    for (int aK=0 ; aK< argc ; aK++)
-       fprintf(aFp,"%s ",argv[aK]);
+   {
+       // Pour l'instant on fait le quote selectif
+       if ( aFlagQuote & (1<<aK))
+          fprintf(aFp,"\"%s\" ",argv[aK]);
+       else
+          fprintf(aFp,"%s ",argv[aK]);
+    }
+
    fprintf(aFp,"\n");
    LogTime(aFp,"[Beginning at ]");
 
@@ -501,7 +509,11 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           bool DoLog = (aLog.mNumArgDir >0) && (aLog.mNumArgDir<argc);
           if (DoLog)
           {
-               LogIn(argc,argv,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup);
+               int aFlagQuote = 0;
+               if (aLog.mNumArgDir >=0)
+                   aFlagQuote |= (1<<aLog.mNumArgDir);
+
+               LogIn(argc,argv,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup,aFlagQuote);
           }
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
 
