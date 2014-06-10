@@ -236,6 +236,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         ReadType(mStrType);
     }
     else
+        ELISE_ASSERT(argc >= 2,"Not enough arg");
         ReadType(argv[1]);
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
