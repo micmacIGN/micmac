@@ -815,14 +815,15 @@ int Graph_(int argc,char ** argv)
 int Tapioca_main(int argc,char ** argv)
 {
 #if(ELISE_QT_VERSION >= 4)
+
+    QApplication app(argc, argv);
+
     if (MMVisualMode)
     {
         QStringList items;
 
         for (int aK=0; aK < aNbType; ++aK)
-            items << QString((Type[aK]).c_str());
-
-        QApplication app(argc, argv);
+            items << QString((Type[aK]).c_str());      
 
         setStyleSheet(app);
 

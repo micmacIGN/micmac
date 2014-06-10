@@ -168,19 +168,19 @@ void MMRunVisualMode
 {
 
 #if(ELISE_QT_VERSION >= 4)
-    if (QApplication::instance() == NULL)
+    //if (QApplication::instance() == NULL)
     {
         //cout << "Qt version " << ELISE_QT_VERSION << " " << "no instance" << endl;
 
-        QApplication app(argc, argv);
+        QApplication *app = (QApplication::instance() == NULL)   ? new QApplication(argc, argv) : static_cast<QApplication *>(QApplication::instance());
 
-        setStyleSheet(app);
+        setStyleSheet(*app);
 
         // qt translations
         const QString locale = QLocale::system().name().section('_', 0, 0);
         QTranslator qtTranslator;
-        qtTranslator.load(app.applicationName() + "_" + locale);
-        app.installTranslator(&qtTranslator);
+        qtTranslator.load(app->applicationName() + "_" + locale);
+        app->installTranslator(&qtTranslator);
         //TODO: traductions
 
         visual_MainWindow w(aVAM, aVAO, aFirstArg);
@@ -198,7 +198,7 @@ void MMRunVisualMode
 
         w.setSaisieWin(&SaisieWin);
 
-        app.exec();
+        app->exec();
     }
 #endif //ELISE_QT_VERSION >= 4
 
