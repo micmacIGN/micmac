@@ -112,11 +112,7 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
 
         add_label(layout, parent, aK, aArg);
 
-        if (!aArg.IsInit() && aArg.IsOpt())
-        {
-            add_select(layout, parent, aK, aArg);
-        }
-        else if (aArg.IsBool()) // because some boolean values are set with int
+        if (aArg.IsBool()) // because some boolean values are set with int
         {
             add_combo(layout, parent, aK, aArg);
         }
@@ -136,7 +132,7 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
             case AMBT_INT:
             case AMBT_U_INT1:
             case AMBT_INT1:
-                add_1i_spinBox(layout, parent, aK, aArg);
+                add_1i_SpinBox(layout, parent, aK, aArg);
                 break;
             case AMBT_REAL:
                 add_1d_SpinBox(layout, parent, aK, aArg);
@@ -485,6 +481,11 @@ void visual_MainWindow::onSaisieQtWindowClosed()
     }
 }
 
+void visual_MainWindow::dSpinBoxValueChanged(double)
+{
+    cout << "value changed" << endl;
+}
+
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     list<string> liste_valeur_enum = listPossibleValues(aArg);
@@ -495,6 +496,7 @@ void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, 
     vector< pair < int, QWidget * > > vWidgets;
     vWidgets.push_back(pair <int, QComboBox*> (eIT_ComboBox, aCombo));
     vInputs.push_back(new cInputs(aArg, vWidgets));
+
 
     list<string>::const_iterator it = liste_valeur_enum.begin();
     for (; it != liste_valeur_enum.end(); it++)
@@ -607,6 +609,8 @@ QDoubleSpinBox * visual_MainWindow::create_1d_SpinBox(QGridLayout *layout, QWidg
 
     aSpinBox->setRange(DoubleMin, DoubleMax);
 
+    connect (aSpinBox, SIGNAL(valueChanged(double)), this, SLOT(dSpinBoxValueChanged(double)));
+
     return aSpinBox;
 }
 
@@ -696,7 +700,7 @@ void visual_MainWindow::add_4d_SpinBox(QGridLayout *layout, QWidget *parent, int
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
-void visual_MainWindow::add_1i_spinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
+void visual_MainWindow::add_1i_SpinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     QSpinBox *aSpinBox = create_1i_SpinBox(layout, parent, aK, 1);
 
