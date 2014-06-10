@@ -585,6 +585,8 @@ std::vector<char *>  	ElInitArgMain
          int   aNbArgGlobGlob
     )
 {
+    setlocale(LC_ALL,"C");
+
     std::vector<char *> aRes;
 
     if (MMVisualMode)
@@ -594,6 +596,7 @@ std::vector<char *>  	ElInitArgMain
         MMRunVisualMode(argc,argv,aVAM,aVAO,aFirstArg);
         return aRes;
     }
+    setlocale(LC_ALL,"C");
 
     aRes.push_back(argv[0]);
 
@@ -636,6 +639,8 @@ std::vector<char *>  	ElInitArgMain
             aRes.push_back(argv[k]);
     }
     L1.InitIfMatchEq(&aRes,argc-k,argv+k,ElGramArgMain::StdGram,VerifInit,AccUnK);
+    setlocale(LC_ALL,"C");
+
 
     return aRes;
 }
