@@ -222,9 +222,15 @@ void visual_MainWindow::onRunCommandPressed()
             {
                 QLineEdit* lEdit = (QLineEdit*) aIn->Widgets()[0].second;
 
-                if (lEdit->isModified())
+                QString txt = lEdit->text();
+
+                bool isFirstMaltArg = false;
+                list <string> strList = ListOfVal(eTMalt_NbVals,"eTMalt_");
+                if (std::find(strList.begin(), strList.end(),txt.toStdString()) != strList.end())
+                    isFirstMaltArg = true;
+
+                if (lEdit->isModified() || isFirstMaltArg)
                 {
-                    QString txt = lEdit->text();
                     if ( !txt.isEmpty() ) aAdd += QUOTE(txt.toStdString());
                 }
                 else if (!aIn->IsOpt()) runCom = false;
@@ -340,7 +346,7 @@ void visual_MainWindow::onSelectImgsPressed(int aK)
                             this,
                             tr("Select images"),
                             mlastDir,
-                            tr("Images (*.png *.jpg *.tif *.cr2 *.crw *.nef);;Images (*.*)"));
+                            tr("Images (*.png *.PNG *.jpg *.JPG *.TIF *.tif *.cr2 *.CR2 *.crw *.CRW *.nef *.NEF);;All Files (*.*)"));
 
     if (files.size())
     {
