@@ -97,7 +97,7 @@
 
         </SectionFiltrageIn>
 
-        <SectionEgalisation Nb="?">
+        <SectionEgalisation>
                <SzVois >  ${SzV}  </SzVois>
                <CorrelThreshold> ${CorrThresh} </CorrelThreshold>
                <NbPEqualMoyPerImage>  ${NbPerIm} </NbPEqualMoyPerImage>

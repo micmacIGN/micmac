@@ -13646,9 +13646,9 @@ void xml_init(cGenerePartiesCachees & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.DoOnlyWhenNew(),aTree->Get("DoOnlyWhenNew",1),bool(false)); //tototo 
 
-   xml_init(anObj.SzBloc(),aTree->Get("SzBloc",1),int(6000)); //tototo 
+   xml_init(anObj.SzBloc(),aTree->Get("SzBloc",1),int(4000)); //tototo 
 
-   xml_init(anObj.SzBord(),aTree->Get("SzBord",1),int(400)); //tototo 
+   xml_init(anObj.SzBord(),aTree->Get("SzBord",1),int(300)); //tototo 
 
    xml_init(anObj.ImSuperpMNT(),aTree->Get("ImSuperpMNT",1),bool(false)); //tototo 
 
@@ -13692,6 +13692,17 @@ std::string & cRedrLocAnam::NameOriGlob()
 const std::string & cRedrLocAnam::NameOriGlob()const 
 {
    return mNameOriGlob;
+}
+
+
+cTplValGesInit< std::string > & cRedrLocAnam::NameNuage()
+{
+   return mNameNuage;
+}
+
+const cTplValGesInit< std::string > & cRedrLocAnam::NameNuage()const 
+{
+   return mNameNuage;
 }
 
 
@@ -13801,6 +13812,14 @@ void  BinaryUnDumpFromFile(cRedrLocAnam & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.NameNuage().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NameNuage().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NameNuage().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.XRecouvrt().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.XRecouvrt().ValForcedForUnUmp(),aFp);
         }
@@ -13877,6 +13896,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cRedrLocAnam & anObj)
     BinaryDumpInFile(aFp,anObj.NameOut());
     BinaryDumpInFile(aFp,anObj.NameMasq());
     BinaryDumpInFile(aFp,anObj.NameOriGlob());
+    BinaryDumpInFile(aFp,anObj.NameNuage().IsInit());
+    if (anObj.NameNuage().IsInit()) BinaryDumpInFile(aFp,anObj.NameNuage().Val());
     BinaryDumpInFile(aFp,anObj.XRecouvrt().IsInit());
     if (anObj.XRecouvrt().IsInit()) BinaryDumpInFile(aFp,anObj.XRecouvrt().Val());
     BinaryDumpInFile(aFp,anObj.MemAvalaible().IsInit());
@@ -13904,6 +13925,8 @@ cElXMLTree * ToXMLTree(const cRedrLocAnam & anObj)
    aRes->AddFils(::ToXMLTree(std::string("NameOut"),anObj.NameOut())->ReTagThis("NameOut"));
    aRes->AddFils(::ToXMLTree(std::string("NameMasq"),anObj.NameMasq())->ReTagThis("NameMasq"));
    aRes->AddFils(::ToXMLTree(std::string("NameOriGlob"),anObj.NameOriGlob())->ReTagThis("NameOriGlob"));
+   if (anObj.NameNuage().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NameNuage"),anObj.NameNuage().Val())->ReTagThis("NameNuage"));
    if (anObj.XRecouvrt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("XRecouvrt"),anObj.XRecouvrt().Val())->ReTagThis("XRecouvrt"));
    if (anObj.MemAvalaible().IsInit())
@@ -13938,6 +13961,8 @@ void xml_init(cRedrLocAnam & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NameOriGlob(),aTree->Get("NameOriGlob",1)); //tototo 
 
+   xml_init(anObj.NameNuage(),aTree->Get("NameNuage",1)); //tototo 
+
    xml_init(anObj.XRecouvrt(),aTree->Get("XRecouvrt",1),int(300)); //tototo 
 
    xml_init(anObj.MemAvalaible(),aTree->Get("MemAvalaible",1),double(3e7)); //tototo 
@@ -13957,7 +13982,7 @@ void xml_init(cRedrLocAnam & anObj,cElXMLTree * aTree)
    xml_init(anObj.UseAutoMask(),aTree->Get("UseAutoMask",1),bool(true)); //tototo 
 }
 
-std::string  Mangling( cRedrLocAnam *) {return "7C88D0F69C7439A2FF3F";};
+std::string  Mangling( cRedrLocAnam *) {return "3E27EF94880BAA8FFF3F";};
 
 
 std::string & cNuagePredicteur::KeyAssocIm2Nuage()
@@ -16143,6 +16168,17 @@ const std::string & cEtapeMEC::NameOriGlob()const
 }
 
 
+cTplValGesInit< std::string > & cEtapeMEC::NameNuage()
+{
+   return RedrLocAnam().Val().NameNuage();
+}
+
+const cTplValGesInit< std::string > & cEtapeMEC::NameNuage()const 
+{
+   return RedrLocAnam().Val().NameNuage();
+}
+
+
 cTplValGesInit< int > & cEtapeMEC::XRecouvrt()
 {
    return RedrLocAnam().Val().XRecouvrt();
@@ -17739,7 +17775,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "6387352079FE7797FEBF";};
+std::string  Mangling( cEtapeMEC *) {return "E8BFF753879FF5A8FC3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -18879,7 +18915,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "B2F80C67747B97A3FE3F";};
+std::string  Mangling( cSection_MEC *) {return "D6ABBFDE69725DBCFE3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -27721,6 +27757,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "C2A9ACF58CD02E81FD3F";};
+std::string  Mangling( cParamMICMAC *) {return "A6563A71E86609D2FDBF";};
 
 // Quelque chose
