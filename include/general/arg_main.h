@@ -245,6 +245,7 @@ class GenElArgMain
         virtual GenElArgMain * dup() const = 0;
 
         virtual void InitEAM(const ElSTDNS string &s,const ElGramArgMain &) const = 0;
+        virtual void * AddrArg() const = 0;
         bool InitIfMatchEq(const ElSTDNS string &s,const ElGramArgMain & Gram) const;
 
         bool IsInit() const;
@@ -291,6 +292,7 @@ template <class Type> class ElArgMain : public GenElArgMain
                 std::string Comment() const {return  mCom;}
                 Type*       DefVal() const {return _adr;}
 
+        virtual void * AddrArg() const  {return _adr;}
         void InitEAM(const ElSTDNS string &s,const ElGramArgMain & Gram) const
         {
                         AllAddrEAM.insert( (void *) _adr);
