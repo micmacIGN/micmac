@@ -46,7 +46,8 @@ bool cMMSpecArg::IsOpt() const
 
 bool cMMSpecArg::IsInit() const
 {
-    return mEAM->IsInit();
+    return EAMIsInit(mEAM->AddrArg());
+    // return mEAM->IsInit();
 }
 
 bool cMMSpecArg::IsBool() const

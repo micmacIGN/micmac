@@ -1,12 +1,13 @@
 EVOLUTIONS :
 
   * Compensation sur des lignes 3D
-  * Cox Roy accesible ds Malt (en train ...) + SzRec 
+  * Cox Roy accesible ds Malt  + SzRec 
   * Generation des orientation d'ortho par image
   * Masq Glob dans Malt
   * dir Horizontal autom dans RepLocBascule
   * Focs dans ChImSec, AperiCloud
   * Export NuageUnAnam dans ortho cyl
+  * Quote des arguments 
 
 
 Progr MM-Dev :
