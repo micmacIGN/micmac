@@ -7,6 +7,14 @@ static int IntMax =  1000000;
 static double DoubleMin = -1000000.;
 static double DoubleMax =  1000000.;
 
+bool isFirstArgMalt(string val)
+{
+    list <string> strList = ListOfVal(eTMalt_NbVals,"eTMalt_");
+    if (std::find(strList.begin(), strList.end(), val) != strList.end())
+        return true;
+    return false;
+}
+
 // aVAM: Mandatory args
 // aVAO: Optional args
 
@@ -224,12 +232,7 @@ void visual_MainWindow::onRunCommandPressed()
 
                 QString txt = lEdit->text();
 
-                bool isFirstMaltArg = false;
-                list <string> strList = ListOfVal(eTMalt_NbVals,"eTMalt_");
-                if (std::find(strList.begin(), strList.end(),txt.toStdString()) != strList.end())
-                    isFirstMaltArg = true;
-
-                if (lEdit->isModified() || isFirstMaltArg)
+                if (lEdit->isModified() || isFirstArgMalt(txt.toStdString()))
                 {
                     if ( !txt.isEmpty() ) aAdd += QUOTE(txt.toStdString());
                 }
@@ -557,10 +560,10 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     if (aArg.Type() == AMBT_string )
     {
         string val(*(aArg.DefaultValue<string>()));
+
         if ((val != "") && (val != NoInit)) aLineEdit->setText(QString(val.c_str()));
 
-        list <string> strList = ListOfVal(eTMalt_NbVals,"eTMalt_");
-        if (std::find(strList.begin(), strList.end(), val) != strList.end())
+        if (isFirstArgMalt(val))
         {
             aLineEdit->setEnabled(false);
             aLineEdit->setStyleSheet("QLineEdit{background: lightgrey;}");
