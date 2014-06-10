@@ -70,7 +70,7 @@ public:
     void add_label     (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_combo     (QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_select    (QGridLayout*, QWidget*, int, cMMSpecArg);
-    void add_1i_spinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
+    void add_1i_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_2i_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_3i_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
     void add_4i_SpinBox(QGridLayout*, QWidget*, int, cMMSpecArg);
@@ -97,6 +97,8 @@ public:
 
     void setSaisieWin(SaisieQtWindow* win){ _SaisieWin = win;}
 
+
+
 public slots:
 
     void onRunCommandPressed();
@@ -108,6 +110,8 @@ public slots:
 
     void onRectanglePositionChanged(QVector <QPointF>);
     void onSaisieQtWindowClosed();
+
+    void dSpinBoxValueChanged(double);
 
 signals:
 
