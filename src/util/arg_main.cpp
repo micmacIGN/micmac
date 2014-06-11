@@ -591,6 +591,13 @@ std::vector<char *>  	ElInitArgMain
 
     if (MMVisualMode)
     {
+        if(argc > 1)
+        {
+            MMVisualMode = false;
+            ElInitArgMain(argc,argv,LGlob,L1,aFirstArg,VerifInit,AccUnK,aNbArgGlobGlob);
+            MMVisualMode = true;
+        }
+
         std::vector<cMMSpecArg> aVAM = LGlob.ExportMMSpec();
         std::vector<cMMSpecArg> aVAO = L1.ExportMMSpec(true);
         MMRunVisualMode(argc,argv,aVAM,aVAO,aFirstArg);

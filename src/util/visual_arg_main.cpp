@@ -185,12 +185,12 @@ void MMRunVisualMode
 
         visual_MainWindow w(aVAM, aVAO, aFirstArg);
 
-        string arg_eff="";
-        for (int i=0;i<argc;i++) //argc = 1 en general
-        {
-            arg_eff += string(argv[i]);
-        }
-        w.set_argv_recup(arg_eff);
+//        string arg_eff="";
+//        for (int i=0;i<argc;i++) //argc = 1 en general
+//        {
+//            arg_eff += string(argv[i]);
+//        }
+        w.set_argv_recup(string(argv[0]));
 
         w.show();
 
