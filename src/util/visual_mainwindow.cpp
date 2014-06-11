@@ -228,9 +228,9 @@ void visual_MainWindow::onRunCommandPressed()
 
                 QString txt = lEdit->text();
 
-                if (lEdit->isModified() || isFirstArgMalt(txt.toStdString()))
+                if (!txt.isEmpty()  || isFirstArgMalt(txt.toStdString()))
                 {
-                    if ( !txt.isEmpty() ) aAdd += QUOTE(txt.toStdString());
+                    aAdd += QUOTE(txt.toStdString());
                 }
                 else if (!aIn->IsOpt()) runCom = false;
             }
