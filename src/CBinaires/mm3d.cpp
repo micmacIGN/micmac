@@ -483,7 +483,9 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    // puisqu le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
    // bool aValInit_TheExitOnBrkp=TheExitOnBrkp;
    // TheExitOnBrkp=true;
-   MMD_InitArgcArgv( argc, argv );
+    setlocale(LC_ALL,"C");
+    MMD_InitArgcArgv( argc, argv );
+    setlocale(LC_ALL,"C");
     // TheExitOnBrkp=true;
 
    // On reactive le blocage par defaut
@@ -515,6 +517,8 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
                LogIn(argc,argv,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup,aFlagQuote);
           }
+          // On balaye les merdes de QT
+          setlocale(LC_ALL,"C");
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
 
           if (DoLog)
@@ -564,6 +568,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
 int main(int argc,char ** argv)
 {
+     setlocale(LC_ALL,"C");
 
     return GenMain(argc,argv, getAvailableCommands());
 }
