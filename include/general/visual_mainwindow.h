@@ -61,7 +61,9 @@ public:
     visual_MainWindow(vector<cMMSpecArg> &aVAM,
                       vector<cMMSpecArg> &aVAO,
                       std::string aFirstArg = "",
-                      QWidget *parent = 0);
+                      QString aLastDir = QDir::currentPath(),
+                      QWidget *parent = 0
+                      );
 
     ~visual_MainWindow();
 
@@ -126,6 +128,7 @@ signals:
 protected:
 
     void resizeEvent(QResizeEvent *);
+    void closeEvent(QCloseEvent *);
 
     int          id_unique;
     string       argv_recup;

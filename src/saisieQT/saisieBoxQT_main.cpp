@@ -5,7 +5,7 @@ int saisieBoxQT_main(QApplication &app, int argc, char *argv[])
     MMD_InitArgcArgv(argc,argv);
 
     app.setApplicationName("SaisieBoxQT");
-    app.setOrganizationName("IGN");
+    app.setOrganizationName("Culture3D");
 
     SaisieQtWindow w(BOX2D);
 
