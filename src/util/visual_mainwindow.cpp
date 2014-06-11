@@ -350,15 +350,11 @@ void visual_MainWindow::onRunCommandPressed()
         ::System(aCom);
 
         QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
-        cout << "exit" << endl;
-        //QApplication::exit();
-        cout << "coucou" << endl;
         _SaisieWin->close();
-        //QApplication::exit();
+        QApplication::exit();
     }
     else
     {
-        cout << "crticial" << endl;
         QMessageBox::critical(this, tr("Error"), tr("Mandatory argument missing!!!"));
     }
 }
