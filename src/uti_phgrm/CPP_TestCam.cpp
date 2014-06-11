@@ -128,10 +128,10 @@ int TestCam_main(int argc,char ** argv)
     LArgMain()
                     << EAM(aNameTag,"Tag",true,"Tag to get cam")
                     << EAM(aModeGrid,"Grid",true,"Test Grid Mode", eSAM_IsBool)
-                    << EAM(Out,"Out",false,"To Regenerate an orientation file")
+                    << EAM(Out,"Out",true,"To Regenerate an orientation file",eSAM_NoInit)
                     << EAM(ExtP,"ExtP",true,"Detail on external parameter", eSAM_IsBool)
                     << EAM(TOC,"TOC",true,"Test corners", eSAM_IsBool)
-                    << EAM(TDINV,"TDINV",false,"Test Dist Inv")
+                    << EAM(TDINV,"TDINV",true,"Test Dist Inv",eSAM_NoInit)
     );
 
     SplitDirAndFile(aNameDir,aNameCam,aFullName);

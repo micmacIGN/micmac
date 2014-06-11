@@ -151,31 +151,6 @@ void ShowEnum(const cMMSpecArg & anArg);
 void setStyleSheet(QApplication &app);
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr);
 
-class cCmpMMSpecArg
-{
-public :
-
-    cCmpMMSpecArg(){}
-
-    // Comparison; not case sensitive.
-    bool operator ()(const cMMSpecArg & aArg0, const cMMSpecArg & aArg1)
-    {
-        string first  = aArg0.NameArg();
-        string second = aArg1.NameArg();
-
-        unsigned int i=0;
-        while ((i < first.length()) && (i < second.length()))
-        {
-            if (tolower (first[i]) < tolower (second[i])) return true;
-            else if (tolower (first[i]) > tolower (second[i])) return false;
-            i++;
-        }
-
-        if (first.length() < second.length()) return true;
-        else return false;
-    }
-};
-
 #endif //ELISE_QT_VERSION >= 4
 
 #endif // MAINWINDOW_H
