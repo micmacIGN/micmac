@@ -21,9 +21,11 @@ bool isFirstArgMalt(string val)
 visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
                                      vector<cMMSpecArg> & aVAO,
                                      string aFirstArg,
-                                     QWidget *parent):
+                                     QString aLastDir,
+                                     QWidget *parent
+                                     ):
     QWidget(parent),
-    mlastDir(QDir::currentPath()),
+    mlastDir(aLastDir),
     mFirstArg(aFirstArg)
 {
     moveArgs(aVAM, aVAO);
@@ -348,10 +350,15 @@ void visual_MainWindow::onRunCommandPressed()
         ::System(aCom);
 
         QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
-        QApplication::exit();
+        cout << "exit" << endl;
+        //QApplication::exit();
+        cout << "coucou" << endl;
+        _SaisieWin->close();
+        //QApplication::exit();
     }
     else
     {
+        cout << "crticial" << endl;
         QMessageBox::critical(this, tr("Error"), tr("Mandatory argument missing!!!"));
     }
 }
@@ -794,6 +801,15 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
     int desk_y = desk_rect.height();
 
     move(desk_x / 2 - width() / 2 + desk_rect.left(), desk_y / 2 - height() / 2 + desk_rect.top());
+}
+
+void visual_MainWindow::closeEvent(QCloseEvent *)
+{
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+    settings.beginGroup("FilePath");
+    settings.setValue("Path", mlastDir);
+    settings.endGroup();
 }
 
 cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):

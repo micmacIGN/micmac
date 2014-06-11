@@ -42,7 +42,7 @@ int SaisiePts_main2(int argc,char ** argv)
 int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 {
     app.setApplicationName("SaisieAppuisInitQT");
-    app.setOrganizationName("IGN");
+    app.setOrganizationName("Culture3D");
 
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
