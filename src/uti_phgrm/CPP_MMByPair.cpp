@@ -723,7 +723,7 @@ int ClipIm_main(int argc,char ** argv)
         LArgMain()  << EAM(aNameIn)
                     << EAMC(P0,"P0")
                     << EAMC(Sz,"SZ")  ,
-        LArgMain()  << EAM(aNameOut,"Out",false)
+        LArgMain()  << EAM(aNameOut,"Out",true)
     );
 
 
