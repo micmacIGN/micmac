@@ -232,5 +232,7 @@ private:
 
     int                     _appMode;
 
+    bool                    _bSaved;
+
 };
 #endif // MAINWINDOW_H

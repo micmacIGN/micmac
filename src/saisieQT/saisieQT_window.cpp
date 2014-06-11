@@ -9,7 +9,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _layout_GLwidgets(new QGridLayout),
         _zoomLayout(new QGridLayout),
         _params(new cParameters),
-        _appMode(mode)
+        _appMode(mode),
+        _bSaved(false)
 {
     _ui->setupUi(this);
 
@@ -636,6 +637,7 @@ void SaisieQtWindow::on_actionLoad_image_triggered()
 void SaisieQtWindow::on_actionSave_masks_triggered()
 {
     _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+    _bSaved = true;
 }
 
 void SaisieQtWindow::on_actionSave_as_triggered()
@@ -1035,6 +1037,16 @@ void  SaisieQtWindow::setGamma(float aGamma)
 
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
+    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D))
+    {
+        QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Warning"), tr("Quit without saving?"),QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::No)
+        {
+            event->ignore();
+            return;
+        }
+    }
+
     emit sgnClose();
 
     if (zoomWidget())
@@ -1172,6 +1184,7 @@ void SaisieQtWindow::undo(bool undo)
 
             undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
             currentWidget()->applyInfos();
+            _bSaved = false;
         }
     }
     else
@@ -1188,7 +1201,6 @@ void SaisieQtWindow::setAppMode(int appMode)
 {
     _appMode = appMode;
 }
-
 
 void SaisieQtWindow::applyParams()
 {
