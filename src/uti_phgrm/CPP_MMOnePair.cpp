@@ -273,7 +273,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
 // mm3d CreateEpip MVxxxx_MAP_7078.NEF MVxxxx_MAP_7079.NEF Step4  DoIm=true DoHom=true Degre=1
 
 
-             
+
              System(aCom);  //cMMOnePair Car sinon la non existence des epi, bloque le reste a cause a AppliWitSetImage
             //  ExeCom(aCom);
        }
@@ -294,7 +294,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
 void cMMOnePair::ExeCom(const std::string & aCom)
 {
     mNbCommand++;
-    if (mExe)  
+    if (mExe)
     {
          System(aCom);
          return;
@@ -598,9 +598,9 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
 
 
-     if (1) // (! mExe) 
+     if (1) // (! mExe)
      {
-     
+
            std::cout << "SauvMasqReentrant, M1=" << MasterIs1 << " S=" << aStep << " L=" << aLast << "\n";
            if (aLast)
            {
