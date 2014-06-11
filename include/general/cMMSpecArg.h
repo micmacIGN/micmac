@@ -97,6 +97,9 @@ class cMMSpecArg
         // S'agit-il d'une box2d a normaliser
         bool IsToNormalize() const;
 
+        // S'agit-il d'un argument de test
+        bool IsForInternalUse() const;
+
         // Nom du type
         std::string NameType() const;
 
