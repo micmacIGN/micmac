@@ -28,6 +28,8 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     mlastDir(aLastDir),
     mFirstArg(aFirstArg)
 {
+    //setAttribute( Qt::WA_DeleteOnClose );
+
     moveArgs(aVAM, aVAO);
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
@@ -226,8 +228,19 @@ bool visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK
         return false;
 }
 
+void visual_MainWindow::saveSettings()
+{
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+    settings.beginGroup("FilePath");
+    settings.setValue("Path", mlastDir);
+    settings.endGroup();
+}
+
 void visual_MainWindow::onRunCommandPressed()
 {
+    saveSettings();
+
     bool runCom = true;
 
     string aCom = MM3dBinFile(argv_recup) + " " + mFirstArg + " ";
@@ -349,9 +362,11 @@ void visual_MainWindow::onRunCommandPressed()
 
         ::System(aCom);
 
+        setWindowFlags(Qt::WindowStaysOnTopHint);
         QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
-        _SaisieWin->close();
-        QApplication::exit();
+
+        //_SaisieWin->close();
+        //QApplication::exit();
     }
     else
     {
@@ -692,13 +707,6 @@ void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK, bool norma
     connect(saisieButton,SIGNAL(my_click(int, bool)),this,SLOT(onSaisieButtonPressed(int, bool)));
 }
 
-void visual_MainWindow::setSaisieWin(SaisieQtWindow *win)
-{
-    _SaisieWin = win;
-    connect(this,SIGNAL(destroyed()),_SaisieWin,SLOT(closeAll()));
-    connect(this,SIGNAL(destroyed()),_SaisieWin,SLOT(close()));
-}
-
 void visual_MainWindow::add_4d_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
 {
     vector< pair < int, QWidget * > > vWidgets;
@@ -806,15 +814,9 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
     move(desk_x / 2 - width() / 2 + desk_rect.left(), desk_y / 2 - height() / 2 + desk_rect.top());
 }
 
-void visual_MainWindow::closeEvent(QCloseEvent *event)
+void visual_MainWindow::closeEvent(QCloseEvent *)
 {
-    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-
-    settings.beginGroup("FilePath");
-    settings.setValue("Path", mlastDir);
-    settings.endGroup();
-
-    QWidget::closeEvent(event);
+    saveSettings();
 }
 
 cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):

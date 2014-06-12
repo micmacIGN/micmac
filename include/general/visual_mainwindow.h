@@ -101,6 +101,7 @@ public:
 
 
 
+    void saveSettings();
 public slots:
 
     void onRunCommandPressed();
