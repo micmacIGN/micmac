@@ -1037,7 +1037,7 @@ void  SaisieQtWindow::setGamma(float aGamma)
 
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
-    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D))
+    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->size())
     {
         QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Warning"), tr("Quit without saving?"),QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::No)
