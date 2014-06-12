@@ -97,11 +97,10 @@ public:
 
     void add_saisieButton(QGridLayout *layout, int aK, bool normalize);
 
-    void setSaisieWin(SaisieQtWindow* win);
-
-
+    void setSaisieWin(SaisieQtWindow* win){ _SaisieWin = win; }
 
     void saveSettings();
+
 public slots:
 
     void onRunCommandPressed();
