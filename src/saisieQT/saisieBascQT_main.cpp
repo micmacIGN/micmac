@@ -84,7 +84,11 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
 
     SaisieQtWindow w(BASC);
 
-    new cQT_Interface(anAppli,&w);
+    //QAction* actionBascule = w.addCommandTools("Bascule");
+
+   /* cQT_Interface* interQT = */new cQT_Interface(anAppli,&w);
+
+    //interQT->connect(actionBascule,	SIGNAL(triggered()), interQT,SLOT(cmdBascule()));
 
     w.show();
 

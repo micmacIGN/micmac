@@ -554,11 +554,12 @@ class cAppli_SaisiePts
     void                SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCpt);
 
     void                SortImages(std::vector<cImage *> &images);
+
 private :
 
-         void RenameIdPt(std::string &);
+    void RenameIdPt(std::string &);
 
-         void UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush); //UTILISE L'INTERFACE ReaffAllW();
+    void UndoRedo(std::vector<cUndoRedo>  & ToExe ,std::vector<cUndoRedo>  & ToPush); //UTILISE L'INTERFACE ReaffAllW();
 
 
          void InitImages();
@@ -645,3 +646,4 @@ Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
+

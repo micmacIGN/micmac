@@ -85,7 +85,10 @@ public:
     void    initData();
 
     int     appMode() const;
+
     void    setAppMode(int appMode);
+
+    QAction *addCommandTools(QString nameCommand);
 
 public slots:
 

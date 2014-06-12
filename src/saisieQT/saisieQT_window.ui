@@ -17,7 +17,7 @@
    <string>Micmac selection tool</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="icones/icones.qrc">
     <normaloff>:/MM/Icons/images/icon_32.png</normaloff>:/MM/Icons/images/icon_32.png</iconset>
   </property>
   <property name="styleSheet">
@@ -287,7 +287,7 @@
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
-			   <widget class="QTableView" name="tableView_Objects">
+              <widget class="QTableView" name="tableView_Objects">
                <property name="frameShape">
                 <enum>QFrame::Box</enum>
                </property>
@@ -334,7 +334,7 @@
                <attribute name="verticalHeaderVisible">
                 <bool>false</bool>
                </attribute>
-              </widget>              
+              </widget>
              </widget>
             </item>
            </layout>
@@ -479,10 +479,19 @@
     <addaction name="actionAbout"/>
     <addaction name="actionHelpShortcuts"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="title">
+     <string>Tools</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuSelection"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuTools"/>
   </widget>
   <action name="actionFullScreen">
    <property name="checkable">
@@ -1028,7 +1037,9 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="icones/icones.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionExit</sender>

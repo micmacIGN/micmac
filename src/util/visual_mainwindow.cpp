@@ -483,7 +483,7 @@ void visual_MainWindow::onSaisieQtWindowClosed()
 
 void visual_MainWindow::dSpinBoxValueChanged(double)
 {
-    cout << "value changed" << endl;
+    //cout << "value changed" << endl;
 }
 
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
@@ -676,6 +676,13 @@ void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK, bool norma
     cSelectionButton *saisieButton = new cSelectionButton(tr("Selection &editor"), vInputs.size(), normalize);
     layout->addWidget(saisieButton, aK, 5);
     connect(saisieButton,SIGNAL(my_click(int, bool)),this,SLOT(onSaisieButtonPressed(int, bool)));
+}
+
+void visual_MainWindow::setSaisieWin(SaisieQtWindow *win)
+{
+    _SaisieWin = win;
+    connect(this,SIGNAL(destroyed()),_SaisieWin,SLOT(closeAll()));
+    connect(this,SIGNAL(destroyed()),_SaisieWin,SLOT(close()));
 }
 
 void visual_MainWindow::add_4d_SpinBox(QGridLayout *layout, QWidget *parent, int aK, cMMSpecArg aArg)
