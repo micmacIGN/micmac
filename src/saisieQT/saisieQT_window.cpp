@@ -345,7 +345,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         if (_appMode == MASK3D)
         {
             shortcuts.push_back("Ctrl+E");
-        actions.push_back(tr("save .xml selection infos"));
+            actions.push_back(tr("save .xml selection infos"));
         }
         shortcuts.push_back("Ctrl+S");
         actions.push_back(tr("save mask file"));
@@ -1043,11 +1043,16 @@ void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
     if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->size())
     {
-        QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Warning"), tr("Quit without saving?"),QMessageBox::Yes|QMessageBox::No);
-        if (reply == QMessageBox::No)
+        int reply = QMessageBox::question(this, tr("Warning"), tr("Save mask before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
+
+        if (reply == 2)
         {
             event->ignore();
             return;
+        }
+        else if (reply == 0)
+        {
+            _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
         }
     }
 
