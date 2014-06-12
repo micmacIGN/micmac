@@ -21,14 +21,31 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
     maskedImg._m_image = new QImage( aNameFile );
 
-   /* int max;
+    int max;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-    cout << max << " " << maskedImg._m_image->width() << " " << maskedImg._m_image->height() << endl;
 
+    bool rescaleImg = false;
     if ( maskedImg._m_image->width() >= max || maskedImg._m_image->height() >= max )
     {
-        cout << "you are too big" << endl;
-    }*/
+        rescaleImg = true;
+        //cout << max << " " << maskedImg._m_image->width() << " " << maskedImg._m_image->height() << endl;
+
+        QImageReader *reader = new QImageReader(aNameFile);
+
+        // Read image current size
+        QSize imageSize = reader->size();
+
+        // Scale image
+        imageSize.scale(QSize(max,max), Qt::KeepAspectRatio);
+
+        //cout << "new size: " << imageSize.width() << " " << imageSize.height() << endl;
+
+        reader->setScaledSize(imageSize);
+
+        delete maskedImg._m_image;
+        maskedImg._m_image = new QImage(imageSize, QImage::Format_RGB888);
+        *maskedImg._m_image = reader->read();
+    }
 
     if (maskedImg._m_image->isNull())
     {
@@ -67,6 +84,8 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
     checkGeoref(aNameFile, maskedImg);
 
+    *(maskedImg._m_image) = QGLWidget::convertToGLFormat( *(maskedImg._m_image) );
+
     //MASK
 
     QFileInfo fi(aNameFile);
@@ -77,48 +96,61 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
     setFilenameOut(mask_filename);
 
-    *(maskedImg._m_image) = QGLWidget::convertToGLFormat( *(maskedImg._m_image) );
-
     if (QFile::exists(mask_filename))
     {
         maskedImg._m_newMask = false;
 
-        maskedImg._m_mask = new QImage( mask_filename );
-
-        if (maskedImg._m_mask->isNull())
+        if (rescaleImg)
         {
-            Tiff_Im imgMask( mask_filename.toStdString().c_str() );
+            maskedImg._m_mask = new QImage( maskedImg._m_image->size(), QImage::Format_Mono);
 
-            if( imgMask.can_elise_use() )
-            {
-                int w = imgMask.sz().x;
-                int h = imgMask.sz().y;
+            QImageReader *reader = new QImageReader(mask_filename);
 
-                delete maskedImg._m_mask;
-                maskedImg._m_mask = new QImage( w, h, QImage::Format_Mono);
-                maskedImg._m_mask->fill(0);
+            reader->setScaledSize(maskedImg._m_image->size());
 
-                Im2D_Bits<1> aOut(w,h,1);
-                ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
-
-                for (int x=0;x< w;++x)
-                    for (int y=0; y<h;++y)
-                        if (aOut.get(x,y) == 1 )
-                            maskedImg._m_mask->setPixel(x,y,1);
-
-                maskedImg._m_mask->invertPixels(QImage::InvertRgb);
-                *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
-
-            }
-            else
-            {
-                QMessageBox::critical(NULL, "cLoader::loadMask","Cannot load mask image");
-            }
+            *(maskedImg._m_mask) = reader->read();
+            maskedImg._m_mask->invertPixels(QImage::InvertRgb);
+            *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
         }
         else
         {
-            maskedImg._m_mask->invertPixels(QImage::InvertRgb);
-            *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
+            maskedImg._m_mask = new QImage( mask_filename );
+
+            if (maskedImg._m_mask->isNull())
+            {
+                Tiff_Im imgMask( mask_filename.toStdString().c_str() );
+
+                if( imgMask.can_elise_use() )
+                {
+                    int w = imgMask.sz().x;
+                    int h = imgMask.sz().y;
+
+                    delete maskedImg._m_mask;
+                    maskedImg._m_mask = new QImage( w, h, QImage::Format_Mono);
+                    maskedImg._m_mask->fill(0);
+
+                    Im2D_Bits<1> aOut(w,h,1);
+                    ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
+
+                    for (int x=0;x< w;++x)
+                        for (int y=0; y<h;++y)
+                            if (aOut.get(x,y) == 1 )
+                                maskedImg._m_mask->setPixel(x,y,1);
+
+                    maskedImg._m_mask->invertPixels(QImage::InvertRgb);
+                    *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
+
+                }
+                else
+                {
+                    QMessageBox::critical(NULL, "cLoader::loadMask","Cannot load mask image");
+                }
+            }
+            else
+            {
+                maskedImg._m_mask->invertPixels(QImage::InvertRgb);
+                *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
+            }
         }
     }
     else
