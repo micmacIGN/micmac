@@ -170,9 +170,6 @@ void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur
 
    std::list<std::string> aLCom;
 
-	// __DEL
-   //const string aDir_noslash = aDir;
-   //if ( aDir.length()>0 && ( (*aDir.rbegin())=='/' || (*aDir.rbegin())=='\\' ) ) aDir_noslash=aDir.substr(0,aDir.length()-1);
    for (int aK=0 ; aK<int(aVS->size()) ; aK++)
    {
        std::string aNameIm = (*aVS)[aK];

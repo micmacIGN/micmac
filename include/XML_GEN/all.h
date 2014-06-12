@@ -321,6 +321,7 @@ class cInterfChantierNameManipulateur
                                          ) = 0;
 
 	  const std::string   & Dir () const;
+	  void setDir( const std::string &i_directory );
           cArgCreatXLMTree &  ArgTree();
 
          // Assez sale, interface pour aller taper dans 
@@ -903,7 +904,7 @@ class  cSetName
 
           const cSetNameDescriptor & SND() const;
           cInterfChantierNameManipulateur * ICNM();
-
+          string Dir() const { return mDir; }
       private :
           void CompileDef();
 

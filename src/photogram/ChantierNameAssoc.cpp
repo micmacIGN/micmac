@@ -1021,7 +1021,6 @@ std::string XML_MM_File(const std::string & aFile)
         if (!mExtIsCalc)
         {
             mExtIsCalc = true;
-
             for
                 (
                 std::list<std::string>::const_iterator itA=mSND.PatternAccepteur().begin();
@@ -1079,6 +1078,7 @@ std::string XML_MM_File(const std::string & aFile)
             std::sort(mRes.begin(),mRes.end());
             mRes.erase(std::unique(mRes.begin(),mRes.end()),mRes.end());
         }
+        
         return &mRes;
     }
 
@@ -2606,6 +2606,7 @@ aKeyOrFile         :
         {
             aRes = Assoc1To1(*itK,aRes,isDirect);
         }
+
         return aRes;
     }
 
@@ -2616,6 +2617,7 @@ aKeyOrFile         :
 
         tNuplet aRes= isDirect ? Direct(aKey,aVNames)  : Inverse(aKey,aVNames);
         ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1To1");
+
         return aRes[0];
     }
 
@@ -2624,6 +2626,7 @@ aKeyOrFile         :
         return mDir;
     }
 
+	  void cInterfChantierNameManipulateur::setDir( const std::string &i_directory ){ mDir=i_directory; }
 
 
 
@@ -3218,7 +3221,10 @@ aKeyOrFile         :
         itA++
             )
         {
+            string oldDirectory = mICNM.Dir();
+            if ( isUsingSeparateDirectories() ) mICNM.setDir( MMOutputDirectory() );
             cComputeFiltreRelOr aCFO(itA->Filtre(),mICNM);
+
             // cComputeFiltreRelSsEch * aFSsEch = 0;
             int aNbSet = itA->KeySets().size();
             int aDefDeltaMin = (aNbSet==2) ? -1000000 : 0;
@@ -3228,7 +3234,7 @@ aKeyOrFile         :
             const std::string & aKeyA= itA->KeySets()[0];
             const std::string & aKeyB= itA->KeySets().back();
 
-
+            if ( isUsingSeparateDirectories() ) mICNM.setDir( oldDirectory );
             AddAllCpleKeySet
                 (
                 aKeyA, aKeyB,
