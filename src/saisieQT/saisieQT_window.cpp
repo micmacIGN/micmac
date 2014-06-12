@@ -1059,6 +1059,8 @@ void SaisieQtWindow::closeEvent(QCloseEvent *event)
     _params->write();
 
     event->accept();
+
+    QMainWindow::closeEvent(event);
 }
 
 void SaisieQtWindow::redraw(bool nbWidgetsChanged)

@@ -158,7 +158,7 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 
 #endif
 
-void MMRunVisualMode
+int MMRunVisualMode
 (
         int argc,char ** argv, // A priori inutile, mais peut-etre cela evoluera-t-il ?
         std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory
@@ -168,72 +168,54 @@ void MMRunVisualMode
 {
 
 #if(ELISE_QT_VERSION >= 4)
-    //if (QApplication::instance() == NULL)
-    //{
-        //cout << "Qt version " << ELISE_QT_VERSION << " " << "no instance" << endl;
 
-        QApplication *app = (QApplication::instance() == NULL)   ? new QApplication(argc, argv) : static_cast<QApplication *>(QApplication::instance());
+    //cout << "Qt version " << ELISE_QT_VERSION << endl;
 
-        app->setApplicationName("MMVisualMode");
-        app->setOrganizationName("Culture3D");
+    bool deleteAPp = QApplication::instance() == NULL;
 
-        QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+    QApplication *app = (QApplication::instance() == NULL)   ? new QApplication(argc, argv) : static_cast<QApplication *>(QApplication::instance());
 
-        settings.beginGroup("FilePath");
-        QString lastDir = settings.value( "Path", QDir::currentPath() ).toString();
-        settings.endGroup();
+    app->setApplicationName("MMVisualMode");
+    app->setOrganizationName("Culture3D");
 
-        setStyleSheet(*app);
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
-        // qt translations
-        const QString locale = QLocale::system().name().section('_', 0, 0);
-        QTranslator qtTranslator;
-        qtTranslator.load(app->applicationName() + "_" + locale);
-        app->installTranslator(&qtTranslator);
-        //TODO: traductions
+    settings.beginGroup("FilePath");
+    QString lastDir = settings.value( "Path", QDir::currentPath() ).toString();
+    settings.endGroup();
 
-        visual_MainWindow w(aVAM, aVAO, aFirstArg, lastDir);
+    setStyleSheet(*app);
 
-//        string arg_eff="";
-//        for (int i=0;i<argc;i++) //argc = 1 en general
-//        {
-//            arg_eff += string(argv[i]);
-//        }
-        w.set_argv_recup(string(argv[0]));
+    // qt translations
+    const QString locale = QLocale::system().name().section('_', 0, 0);
+    QTranslator qtTranslator;
+    qtTranslator.load(app->applicationName() + "_" + locale);
+    app->installTranslator(&qtTranslator);
+    //TODO: traductions
 
-        w.show();
+    visual_MainWindow * w = new visual_MainWindow(aVAM, aVAO, aFirstArg, lastDir);
 
-        SaisieQtWindow SaisieWin(BOX2D);
+    w->set_argv_recup(string(argv[0]));
 
-        w.setSaisieWin(&SaisieWin);
+    SaisieQtWindow *SaisieWin = new SaisieQtWindow(BOX2D);
 
-        app->exec();
-    //}
+    SaisieWin->setAttribute(Qt::WA_DeleteOnClose);
+
+    w->setSaisieWin(SaisieWin);
+
+    w->setAttribute(Qt::WA_DeleteOnClose);
+
+    w->show();
+
+    int appReturn = app->exec();
+
+    if(deleteAPp)
+        delete app;
+
+    return appReturn;
+
 #endif //ELISE_QT_VERSION >= 4
 
-
-    // On lit tous les arguments obligatoires
-    //     for (int aK=0 ; aK<int(aVAM.size()) ; aK++)
-    //     {
-    //         // On imprime un peu d'info
-    //         std::cout << "Enter Mandatory Arg " << aK << " ; Type is " << aVAM[aK].NameType() << "\n";
-    //         std::string aCom = aVAM[aK].Comment();
-    //         if (aCom != "") std::cout << "Comment=" << aCom << "\n";
-    //         ShowEnum(aVAM[aK]);
-
-    //         // on lit une chaine de caractere
-    //         std::string aVal;
-    //         std::cin >> aVal;
-    //         // on initialise la variable a partir de la chaine
-    //         aVAM[aK].Init(aVal);
-    //     }
-
-    //     // On lit autant d'arguments optionnels que l'utilisateur souhaite en passer
-    //     bool FirstCall = true;
-    //     while (ContinuerReadOneArg(aVAO,FirstCall))
-    //     {
-    //         FirstCall=false;
-    //     }
 }
 
 
