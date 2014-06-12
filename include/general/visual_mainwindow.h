@@ -128,7 +128,7 @@ signals:
 protected:
 
     void resizeEvent(QResizeEvent *);
-    void closeEvent(QCloseEvent *);
+    void closeEvent(QCloseEvent *event);
 
     int          id_unique;
     string       argv_recup;

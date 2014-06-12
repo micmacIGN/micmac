@@ -446,7 +446,7 @@ class LArgMain
 // initialisee dans GenMain, utilisee dans ElInitArgMain
 extern bool MMVisualMode;
 
-void MMRunVisualMode
+int MMRunVisualMode
      (
          int argc,char ** argv,
          std::vector<cMMSpecArg> & aVAM,
