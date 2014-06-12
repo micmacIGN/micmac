@@ -28,6 +28,8 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     mlastDir(aLastDir),
     mFirstArg(aFirstArg)
 {
+    //setAttribute( Qt::WA_DeleteOnClose );
+
     moveArgs(aVAM, aVAO);
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
@@ -226,8 +228,19 @@ bool visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK
         return false;
 }
 
+void visual_MainWindow::saveSettings()
+{
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+    settings.beginGroup("FilePath");
+    settings.setValue("Path", mlastDir);
+    settings.endGroup();
+}
+
 void visual_MainWindow::onRunCommandPressed()
 {
+    saveSettings();
+
     bool runCom = true;
 
     string aCom = MM3dBinFile(argv_recup) + " " + mFirstArg + " ";
@@ -349,9 +362,11 @@ void visual_MainWindow::onRunCommandPressed()
 
         ::System(aCom);
 
+        setWindowFlags(Qt::WindowStaysOnTopHint);
         QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
-        _SaisieWin->close();
-        QApplication::exit();
+
+        //_SaisieWin->close();
+        //QApplication::exit();
     }
     else
     {
@@ -801,11 +816,7 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
 
 void visual_MainWindow::closeEvent(QCloseEvent *)
 {
-    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-
-    settings.beginGroup("FilePath");
-    settings.setValue("Path", mlastDir);
-    settings.endGroup();
+    saveSettings();
 }
 
 cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):
