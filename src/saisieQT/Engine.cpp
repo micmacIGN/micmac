@@ -19,6 +19,56 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 
 void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
+    maskedImg._m_image = new QImage( aNameFile );
+
+   /* int max;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+    cout << max << " " << maskedImg._m_image->width() << " " << maskedImg._m_image->height() << endl;
+
+    if ( maskedImg._m_image->width() >= max || maskedImg._m_image->height() >= max )
+    {
+        cout << "you are too big" << endl;
+    }*/
+
+    if (maskedImg._m_image->isNull())
+    {
+        Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
+
+        Pt2di aSz = aTF.sz();
+
+        delete maskedImg._m_image;
+        maskedImg._m_image = new QImage(aSz.x, aSz.y, QImage::Format_RGB888);
+
+        Im2D_U_INT1  aImR(aSz.x,aSz.y);
+        Im2D_U_INT1  aImG(aSz.x,aSz.y);
+        Im2D_U_INT1  aImB(aSz.x,aSz.y);
+
+        ELISE_COPY
+        (
+           aTF.all_pts(),
+           aTF.in(),
+           Virgule(aImR.out(),aImG.out(),aImB.out())
+        );
+
+        U_INT1 ** aDataR = aImR.data();
+        U_INT1 ** aDataG = aImG.data();
+        U_INT1 ** aDataB = aImB.data();
+
+        for (int y=0; y<aSz.y; y++)
+        {
+            for (int x=0; x<aSz.x; x++)
+            {
+                QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
+
+                maskedImg._m_image->setPixel(x,y,col.rgb());
+            }
+        }
+    }
+
+    checkGeoref(aNameFile, maskedImg);
+
+    //MASK
+
     QFileInfo fi(aNameFile);
 
     QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
@@ -26,39 +76,6 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     maskedImg.setName(fi.fileName());
 
     setFilenameOut(mask_filename);
-
-    Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
-
-    Pt2di aSz = aTF.sz();
-    delete maskedImg._m_image;
-    maskedImg._m_image = new QImage(aSz.x, aSz.y, QImage::Format_RGB888);
-
-    Im2D_U_INT1  aImR(aSz.x,aSz.y);
-    Im2D_U_INT1  aImG(aSz.x,aSz.y);
-    Im2D_U_INT1  aImB(aSz.x,aSz.y);
-
-    ELISE_COPY
-    (
-       aTF.all_pts(),
-       aTF.in(),
-       Virgule(aImR.out(),aImG.out(),aImB.out())
-    );
-
-    U_INT1 ** aDataR = aImR.data();
-    U_INT1 ** aDataG = aImG.data();
-    U_INT1 ** aDataB = aImB.data();
-
-    for (int y=0; y<aSz.y; y++)
-    {
-        for (int x=0; x<aSz.x; x++)
-        {
-            QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
-
-            maskedImg._m_image->setPixel(x,y,col.rgb());
-        }
-    }
-
-    checkGeoref(aNameFile, maskedImg);
 
     *(maskedImg._m_image) = QGLWidget::convertToGLFormat( *(maskedImg._m_image) );
 
