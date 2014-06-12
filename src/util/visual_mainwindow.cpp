@@ -806,13 +806,15 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
     move(desk_x / 2 - width() / 2 + desk_rect.left(), desk_y / 2 - height() / 2 + desk_rect.top());
 }
 
-void visual_MainWindow::closeEvent(QCloseEvent *)
+void visual_MainWindow::closeEvent(QCloseEvent *event)
 {
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
     settings.beginGroup("FilePath");
     settings.setValue("Path", mlastDir);
     settings.endGroup();
+
+    QWidget::closeEvent(event);
 }
 
 cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):
