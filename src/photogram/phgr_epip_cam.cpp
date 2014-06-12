@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -44,13 +44,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 class cEpipOrientCam : public  ElDistortion22_Gen
 {
-	friend class PourFairPlaisirAGCC;
-	public :
+    friend class PourFairPlaisirAGCC;
+    public :
            cEpipOrientCam
-	   (
-	         bool ToDel,
-		 REAL aZoom,
-	         CamStenope & aCam,
+       (
+             bool ToDel,
+         REAL aZoom,
+             CamStenope & aCam,
                  const ElMatrix<REAL> & aRot
            );
 
@@ -59,15 +59,15 @@ class cEpipOrientCam : public  ElDistortion22_Gen
            cEpipOrientCam MapingChScale(REAL aChSacle) const;
 
 
-	private :
-	   virtual ~cEpipOrientCam();
+    private :
+       virtual ~cEpipOrientCam();
            virtual ElDistortion22_Gen  * D22G_ChScale(REAL aS) const; //
            void  Diff(ElMatrix<REAL> &,Pt2dr) const ;  //  Erreur Fatale
 
-	   bool               m2Del;
-	   REAL               mZoom;
-	   CamStenope *       mCamInit;
-	   CamStenopeIdeale   mCamEpip;
+       bool               m2Del;
+       REAL               mZoom;
+       CamStenope *       mCamInit;
+       CamStenopeIdeale   mCamEpip;
 
 };
 
@@ -80,7 +80,7 @@ ElMatrix<REAL>  OrientationEpipolaire(ElRotation3D R1,ElRotation3D R2);
 /*                                                      */
 /********************************************************/
 
-Pt2dr cEpipOrientCam::Direct(Pt2dr aP) const  
+Pt2dr cEpipOrientCam::Direct(Pt2dr aP) const
 {
    Pt3dr R1,R2;
    mCamInit->F2toRayonR3(aP/mZoom,R1,R2);
@@ -98,13 +98,13 @@ bool cEpipOrientCam::OwnInverse(Pt2dr & aP) const     //  Epi vers Phot
 
 cEpipOrientCam cEpipOrientCam::MapingChScale(REAL aChSacle) const
 {
-	return cEpipOrientCam
-		(
-		    false,
+    return cEpipOrientCam
+        (
+            false,
                     mZoom * aChSacle,
-		    *mCamInit,
-		    mCamEpip.Orient().Mat()
-		);
+            *mCamInit,
+            mCamEpip.Orient().Mat()
+        );
 }
 
 
@@ -120,16 +120,16 @@ ElDistortion22_Gen  * cEpipOrientCam::D22G_ChScale(REAL aS) const
     return new cEpipOrientCam(aNewS);
 }
 
-void  cEpipOrientCam::Diff(ElMatrix<REAL> & ,Pt2dr) const 
+void  cEpipOrientCam::Diff(ElMatrix<REAL> & ,Pt2dr) const
 {
       ELISE_ASSERT(false,"No cEpipOrientCam::Diff");
 }
 
 cEpipOrientCam::cEpipOrientCam
 (
-	         bool ToDel,
-		 REAL aZoom,
-	         CamStenope & aCam,
+             bool ToDel,
+         REAL aZoom,
+             CamStenope & aCam,
                  const ElMatrix<REAL> & aMat
 ) :
   m2Del    (ToDel),
@@ -261,7 +261,7 @@ CpleEpipolaireCoord * CpleEpipolaireCoord::CamEpipolaire
 
 
 
-Pt2dr GlobTransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const CamStenope & aCamOut) 
+Pt2dr GlobTransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const CamStenope & aCamOut)
 {
 
     Pt3dr aC = aCamIn.VraiOpticalCenter();
@@ -269,7 +269,7 @@ Pt2dr GlobTransfoEpip ( const Pt2dr & aPIm, const CamStenope & aCamIn, const Cam
     return  aCamOut.R3toF2(aC+aRay);
 }
 
-std::vector<Pt2dr>  GlobEnvCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
+std::vector<Pt2dr>  GlobEnvCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut)
 {
     std::vector<Pt2dr> aVPtsIn;
     int aNbPts =4;
@@ -285,7 +285,7 @@ std::vector<Pt2dr>  GlobEnvCam(Box2dr aBoxIn,const CamStenope & aCamIn,const Cam
     return aRes;
 }
 
-Box2dr  GlobBoxCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut) 
+Box2dr  GlobBoxCam(Box2dr aBoxIn,const CamStenope & aCamIn,const CamStenope & aCamOut)
 {
    std::vector<Pt2dr> anEnv = GlobEnvCam(aBoxIn,aCamIn,aCamOut);
 
@@ -384,7 +384,7 @@ double  cCpleEpip::RatioCam() const
 
 //Box2di BoxEpip
 
-// double 
+// double
 void  cCpleEpip::SetNameLock(const std::string & anExt)
 {
     mFileLock= mDir + "LockEpi-"  + mName1 + "-" +mName2 + "-" + anExt + ".txt";
@@ -416,8 +416,8 @@ cCpleEpip::cCpleEpip
    mName1    (aName1),
    mCInit2   (aC2),
    mName2    (aName2),
-   mNamePair (   (aName1<aName2) ? 
-                 (StdPrefixGen(aName1)+ "_" +StdPrefixGen(aName2)) : 
+   mNamePair (   (aName1<aName2) ?
+                 (StdPrefixGen(aName1)+ "_" +StdPrefixGen(aName2)) :
                  (StdPrefixGen(aName2)+ "_" +StdPrefixGen(aName1))
              ),
    mPrefLeft (aPrefLeft),
@@ -463,7 +463,7 @@ cCpleEpip::cCpleEpip
       Pt3dr aP2 =  aC2.ImEtProf2Terrain(Pt2dr(aC2.Sz()/2),aC2.GetRoughProfondeur());
       Pt3dr aP = (aP1+aP2) / 2.0;
 
- 
+
       Pt2dr aPI1 = mCamOut1.R3toF2(aP);
       Pt2dr aPI2 = mCamOut2.R3toF2(aP);
       double aDX = aPI2.x - aPI1.x;
@@ -480,7 +480,7 @@ cCpleEpip::cCpleEpip
       int aSzX2 = mSzX;
 
       // Emprise nulle des cameras
-      if ((aSzX1<=0) || (aSzX2 <=0)) 
+      if ((aSzX1<=0) || (aSzX2 <=0))
       {
           //std::cout << "SZX-NEG \n";
           return;
@@ -505,7 +505,7 @@ cCpleEpip::cCpleEpip
    mCamOut1.SetProfondeur(aProf);
    mCamOut2.SetProfondeur(aProf);
 
-   // std::cout << "0000=DIST = " << aDist << " " << aProf1 << " " << aProf2<< "\n"; 
+   // std::cout << "0000=DIST = " << aDist << " " << aProf1 << " " << aProf2<< "\n";
 
    Pt3dr  aPProche = mCamOut1.ImEtProf2Terrain(aMil,aProf/2.0);
    Pt2dr aPRojP2 = mCamOut2.R3toF2(aPProche);
@@ -519,11 +519,11 @@ cCpleEpip::cCpleEpip
    {
          double aBase = euclid(mCamOut1.VraiOpticalCenter()-mCamOut2.VraiOpticalCenter());
          double aBSH = aBase / aProf1;
-         
-   std::cout << "CCc " << mName1 
-             << "#" << mName2 << " " 
-             <<  BSurHOfPx(true,mPxInf) << " " 
-             <<  BSurHOfPx(true,mPxInf*0.9)<< " " 
+
+   std::cout << "CCc " << mName1
+             << "#" << mName2 << " "
+             <<  BSurHOfPx(true,mPxInf) << " "
+             <<  BSurHOfPx(true,mPxInf*0.9)<< " "
              <<  BSurHOfPx(true,0)   << " "
              <<  " Verif :: " <<  (BSurHOfPx(true,0) / aBSH)   << " "
              << "\n";
@@ -533,9 +533,9 @@ cCpleEpip::cCpleEpip
    std::cout << "CCCcPleee   " << mFirstIsLeft << " " << mPxInf << "\n";
    Pt2dr aProjInf2 (aMil.x+aDPX,aMil.y);
    Pt3dr aPInf = mCamOut1.PseudoInter(aMil,mCamOut2,aProjInf2,&aDist);
-   
+
    std::cout << aPRojP2 << aMil << aProjInf2 << " Infty?=" << aPInf<< "\n";
-   std::cout << "DIST = " << aDist << " " << aProf1 << " " << aProf2<< "\n"; 
+   std::cout << "DIST = " << aDist << " " << aProf1 << " " << aProf2<< "\n";
    std::cout << "PX INF=" << aDPX << "\n";
 
     std::cout << aMil  << Pt2dr(mCamOut2.Sz()) /2.0 << mCamOut1.R3toF2(aPCentre) <<  mCamOut2.R3toF2(aPCentre) << "\n";
@@ -567,7 +567,7 @@ double cCpleEpip::BSurHOfPx(bool Im1,double aPx)
 
 Fonc_Num cCpleEpip::BSurHOfPx(bool Im1,Fonc_Num aPx)
 {
-//std::cout << "PXXXINF " << mPxInf 
+//std::cout << "PXXXINF " << mPxInf
 //std::cout << BSurHOfP(mPxInf*0.9) << "\n";
 //std::cout << BSurHOfP(mPxInf*1.1) << "\n";
 
@@ -611,9 +611,9 @@ Pt2dr CorrecPoly(const Pt2dr aP,Polynome2dReal *aPol,double aMul)
    return Pt2dr (aP.x,aP.y+aMul*aDY);
 }
 
-template <class Type,class TypeBase> 
+template <class Type,class TypeBase>
          cReechantEpi<Type,TypeBase>::cReechantEpi
-         ( 
+         (
              const CamStenope & aCamIn,
              Tiff_Im aTIn,
              const CamStenope & aCamOut,
@@ -656,7 +656,7 @@ template <class Type,class TypeBase>
       aFOut = (aKC==0) ? aFK : Virgule(aFOut,aFK);
    }
    ELISE_COPY(rectangle(Pt2di(0,0),aSzIn),trans(aTIn.in(),aBoxIn._p0),aOutInit);
- 
+
 
 
    int aPas = 4;
@@ -708,7 +708,7 @@ template <class Type,class TypeBase>
                       && (aPIm.x< aTxKer)
                       && (aPIm.y< aTyKer);
 
-     
+
 
             aTMasqOut.oset(aPOut,Ok);
             for (int aKC=0 ; aKC<aNbChan ; aKC++)
@@ -741,7 +741,7 @@ template <class Type,class TypeBase>
 }
 
 void ReechEpipGen
-     ( 
+     (
              const CamStenope & aCamIn,
              Tiff_Im aTIn,
              const CamStenope & aCamOut,
@@ -787,10 +787,10 @@ int CreateBlockEpip_main(int argc,char ** argv)
    ElInitArgMain
    (
         argc,argv,
-        LArgMain()  << EAMC(aNameTifIn,"Tiff In")
-                    << EAMC(aNameTifOut,"Tiff Out")
-                    << EAMC(aNameCamIn,"Camera In")
-                    << EAMC(aNameCamOut,"Camera Out")
+        LArgMain()  << EAMC(aNameTifIn,"Tiff In", eSAM_IsExistFile)
+                    << EAMC(aNameTifOut,"Tiff Out", eSAM_IsOutputFile)
+                    << EAMC(aNameCamIn,"Camera In", eSAM_IsExistFile)
+                    << EAMC(aNameCamOut,"Camera Out", eSAM_IsOutputFile)
                     << EAMC(aBoxOut,"Box out"),
         LArgMain()  << EAM(mSinCard,"SinCard",true,"Use sinus card for interp, def = false")
                     << EAM(aVecPolCorrec,"PolCorr",true,"Coeff of pol correc")
@@ -866,9 +866,9 @@ std::string  StdNameImDeZoom(const std::string & aName,int aDeZoom)
 std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom,bool Pyram)
 {
     // bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
-    std::string aRes =   "Epi_" 
-           + std::string(Im1 ? "Im1_" : "Im2_") 
-           + (IsLeft(Im1) ? mPrefLeft : mPrefRight  ) 
+    std::string aRes =   "Epi_"
+           + std::string(Im1 ? "Im1_" : "Im2_")
+           + (IsLeft(Im1) ? mPrefLeft : mPrefRight  )
            + mNamePair + ".tif";
 
     if (aDeZoom!=1)
@@ -894,7 +894,7 @@ std::string cCpleEpip::LocDirMatch(bool Im1)
     return LocDirMec2Im(LocNameImEpi(Im1),LocNameImEpi(!Im1));
     // return "MEC2Im-" + LocNameImEpi(Im1) + "-" +  LocNameImEpi(!Im1) + "/";
 }
- 
+
 std::string LocPxFileMatch(const std::string & aDir,int aNum,int aDeZoom)
 {
     return  aDir + "Px1_Num"+ToString(aNum) + "_DeZoom"+  ToString(aDeZoom) +"_LeChantier.tif";
@@ -915,8 +915,8 @@ std::string  LocMasqFileMatch(const std::string & aDirM,int aNum)
 
 std::string  cCpleEpip::LocMasqFileMatch(bool Im1,int aNum)
 {
-  // return LocDirMatch(Im1) + "AutoMask_LeChantier_Num_"+ ToString(aNum) +  ".tif" ; 
-  return ::LocMasqFileMatch(LocDirMatch(Im1),aNum) ; 
+  // return LocDirMatch(Im1) + "AutoMask_LeChantier_Num_"+ ToString(aNum) +  ".tif" ;
+  return ::LocMasqFileMatch(LocDirMatch(Im1),aNum) ;
 
 }
 
@@ -928,7 +928,7 @@ class cChangEpip
          Polynome2dReal * PolyCor() {return new Polynome2dReal(mCurPoly);}
      private :
           void OneIteration(int aDeg,double aSeuil,double aPond);
-  
+
           int                mDegre;
           ElPackHomologue    mPck;
           double             mAmpl;
@@ -992,7 +992,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
        aPrefixHom = "";
 
 
-    bool ByP= true; 
+    bool ByP= true;
     std::string aNameImOut = mDir + LocNameImEpi(Im1);
 /*
     bool ImLeft = mFirstIsLeft ? Im1 : (!Im1) ;
@@ -1017,10 +1017,10 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
     {
         std::string & aNamA  =  Im1 ? mName1 : mName2;
         std::string & aNamB  =  Im1 ? mName2 : mName1;
-        std::string aNameHom = mICNM->Dir() 
+        std::string aNameHom = mICNM->Dir()
                              + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+aPrefixHom+"@dat",aNamA,aNamB,true);
 
-        std::string aNameHomMatch = mICNM->Dir() 
+        std::string aNameHomMatch = mICNM->Dir()
                              + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNamA,aNamB,true);
 
         ElPackHomologue aPackIn = ElPackHomologue::FromFile(aNameHom);
@@ -1067,12 +1067,12 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
         if (CarNameHom)
         {
-            std::string aNameHEpi = mICNM->Dir() 
+            std::string aNameHEpi = mICNM->Dir()
                                   + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",LocNameImEpi(Im1),LocNameImEpi(!Im1),true);
 
             aPackMatch.StdPutInFile(aNameHEpi);
         }
-            
+
 
     }
 
@@ -1165,13 +1165,13 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1181,17 +1181,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

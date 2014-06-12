@@ -309,8 +309,8 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
            argc,argv,
                  LArgMain() << EAM(mNameImBase, "Image name",  true, "Image name", eSAM_IsExistFile)
                             << EAM(mPatImRas, "Image pattern", true, "Pattern", eSAM_IsPatFile) ,
-           LArgMain() << EAM(mPostMasq,"Masq",false,"Mask for computation")
-                      << EAM(aPdsI,"PdsIn",false,"Pds on RGB Input, def=[1,1,1]")
+           LArgMain() << EAM(mPostMasq,"Masq",true,"Mask for computation", eSAM_NoInit)
+                      << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]", eSAM_NoInit)
     );
 
 

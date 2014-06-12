@@ -5,7 +5,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
     MMD_InitArgcArgv(argc,argv);
 
     app.setApplicationName("SaisieMasqQT");
-    app.setOrganizationName("IGN");
+    app.setOrganizationName("Culture3D");
 
     SaisieQtWindow w;
 

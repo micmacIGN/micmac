@@ -19,7 +19,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
     MMD_InitArgcArgv(argc,argv);
 
     app.setApplicationName("SaisieBascQT");
-    app.setOrganizationName("IGN");
+    app.setOrganizationName("Culture3D");
 
     if ((argc>0)&&(string(argv[0]).find("SaisieQT")!= string::npos))
     {

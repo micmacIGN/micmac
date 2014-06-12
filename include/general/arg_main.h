@@ -205,7 +205,9 @@ typedef enum
     eSAM_IsOutputDirOri,
     eSAM_IsExistFile,
     eSAM_IsOutputFile,
-    eSAM_Normalize
+    eSAM_Normalize,
+    eSAM_NoInit,
+    eSAM_InternalUse
 } eSpecArgMain;
 
 typedef enum
