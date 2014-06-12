@@ -60,7 +60,7 @@ int MakePlancheImage_main(int argc,char ** argv)
                     <<  EAM(aNbLine,"NbL",true,"Number of line (def to have NbLine=NbCol)")
                     <<  EAM(aRes,"Res",true,"Result, default Panel.tif")
                     <<  EAM(aScale,"Scale",true,"Scale of Image, def=10 ")
-                    <<  EAM(aColF,"Fond",false,"Background colour")
+                    <<  EAM(aColF,"Fond",true,"Background colour", eSAM_NoInit)
                     <<  EAM(aForceGray,"Gray",true,"Force result to gray image")
    );
 

@@ -169,10 +169,19 @@ void MMRunVisualMode
 
 #if(ELISE_QT_VERSION >= 4)
     //if (QApplication::instance() == NULL)
-    {
+    //{
         //cout << "Qt version " << ELISE_QT_VERSION << " " << "no instance" << endl;
 
         QApplication *app = (QApplication::instance() == NULL)   ? new QApplication(argc, argv) : static_cast<QApplication *>(QApplication::instance());
+
+        app->setApplicationName("MMVisualMode");
+        app->setOrganizationName("Culture3D");
+
+        QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+        settings.beginGroup("FilePath");
+        QString lastDir = settings.value( "Path", QDir::currentPath() ).toString();
+        settings.endGroup();
 
         setStyleSheet(*app);
 
@@ -183,7 +192,7 @@ void MMRunVisualMode
         app->installTranslator(&qtTranslator);
         //TODO: traductions
 
-        visual_MainWindow w(aVAM, aVAO, aFirstArg);
+        visual_MainWindow w(aVAM, aVAO, aFirstArg, lastDir);
 
 //        string arg_eff="";
 //        for (int i=0;i<argc;i++) //argc = 1 en general
@@ -199,7 +208,7 @@ void MMRunVisualMode
         w.setSaisieWin(&SaisieWin);
 
         app->exec();
-    }
+    //}
 #endif //ELISE_QT_VERSION >= 4
 
 

@@ -100,8 +100,8 @@ int GCP_Txt2Xml_main(int argc,char ** argv)
                       << EAMC(aFilePtsIn,"GCP  File", eSAM_IsExistFile),
            LArgMain() << EAM(aFilePtsOut,"Out",true,"Xml Out File")
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
-                      << EAM(aMul,"MulCo",true,"Mutilpier of result (for devlopment and testing use)")
-                      << EAM(aMulIncAlso,"MulInc",true,"Mutilpier also incertitude ? (for devlopment and testing use)")
+                      << EAM(aMul,"MulCo",true,"Multiplier of result (for development and testing use)",eSAM_InternalUse)
+                      << EAM(aMulIncAlso,"MulInc",true,"Multiplier also incertitude ? (for development and testing use)",eSAM_InternalUse)
     );
 
     // StdReadEnum(Help,aType,argv[1],eNbTypeApp,true);

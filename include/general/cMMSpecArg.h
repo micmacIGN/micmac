@@ -97,6 +97,9 @@ class cMMSpecArg
         // S'agit-il d'une box2d a normaliser
         bool IsToNormalize() const;
 
+        // S'agit-il d'un argument de test
+        bool IsForInternalUse() const;
+
         // Nom du type
         std::string NameType() const;
 
@@ -139,6 +142,31 @@ T* cMMSpecArg::DefaultValue() const { return ( (ElArgMain<T>*)mEAM )->DefVal(); 
 
 template <class T>
 bool cMMSpecArg::IsDefaultValue(T val) const { return (IsOpt() && (val == *(DefaultValue<T>()))); }
+
+class cCmpMMSpecArg
+{
+public :
+
+    cCmpMMSpecArg(){}
+
+    // Comparison; not case sensitive.
+    bool operator ()(const cMMSpecArg & aArg0, const cMMSpecArg & aArg1)
+    {
+        string first  = aArg0.NameArg();
+        string second = aArg1.NameArg();
+
+        unsigned int i=0;
+        while ((i < first.length()) && (i < second.length()))
+        {
+            if (tolower (first[i]) < tolower (second[i])) return true;
+            else if (tolower (first[i]) > tolower (second[i])) return false;
+            i++;
+        }
+
+        if (first.length() < second.length()) return true;
+        else return false;
+    }
+};
 
 #endif // _ELISE_GENERAL_MM_SPEC_ARG_H
 

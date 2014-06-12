@@ -58,8 +58,8 @@ int Impainting_main(int argc,char ** argv)
     argc,argv,
     LArgMain()  << EAMC(aNameIn,"Name of Input image", eSAM_IsExistFile)
                     << EAMC(aNameMasqOK,"Name Of Ok Masq (0 value means OK)", eSAM_IsExistFile),
-    LArgMain()  << EAM(aNameOut,"Out",false,"Name of Result")
-                    << EAM(aNameMasq2FIll,"2Fill", false, "Masq of point 2 fill, def = all")
+    LArgMain()  << EAM(aNameOut,"Out",true,"Name of Result", eSAM_NoInit)
+                    << EAM(aNameMasq2FIll,"2Fill", true, "Masq of point 2 fill, def = all", eSAM_NoInit)
     );
 
     Tiff_Im aFileIm = Tiff_Im::UnivConvStd(aNameIn.c_str());
