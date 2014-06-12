@@ -497,8 +497,11 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        {
           cArgLogCom aLog = aVComs[aKC].mLog;
           bool DoLog = (aLog.mNumArgDir >0) && (aLog.mNumArgDir<argc);
-          string outDirectory = ( isUsingSeparateDirectories()?MMLogDirectory():DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup );
-          if (DoLog) LogIn( argc, argv, outDirectory );
+          string outDirectory;
+          if (DoLog){
+             outDirectory = ( isUsingSeparateDirectories()?MMLogDirectory():DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup );
+             LogIn( argc, argv, outDirectory );
+          }
 
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
           if (DoLog) LogOut( aRes, outDirectory );
