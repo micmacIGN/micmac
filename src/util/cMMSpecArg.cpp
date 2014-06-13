@@ -71,6 +71,10 @@ bool cMMSpecArg::IsExistFile() const
 {
     return mEAM->Spec() == eSAM_IsExistFile;
 }
+bool cMMSpecArg::IsExistFileWithRelativePath() const
+{
+    return mEAM->Spec() == eSAM_IsExistFileRP;
+}
 bool cMMSpecArg::IsOutputFile() const
 {
     return mEAM->Spec() == eSAM_IsOutputFile;

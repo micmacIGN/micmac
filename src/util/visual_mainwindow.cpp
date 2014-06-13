@@ -261,6 +261,11 @@ void visual_MainWindow::onRunCommandPressed()
 
                 QString txt = lEdit->text();
 
+                if (aIn->Arg().IsExistFileWithRelativePath())
+                {
+                    txt = QFileInfo(txt).fileName();
+                }
+
                 if (!txt.isEmpty()  || isFirstArgMalt(txt.toStdString()))
                 {
                     aAdd += QUOTE(txt.toStdString());
@@ -617,7 +622,7 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
-        else if (aArg.IsExistFile())
+        else if (aArg.IsExistFile() || aArg.IsExistFileWithRelativePath())
         {
             cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
