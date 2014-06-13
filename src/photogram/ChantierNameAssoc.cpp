@@ -3694,7 +3694,8 @@ bool  cInterfChantierNameManipulateur::TestStdOrient
         if (anOri.find(aPrefix) != 0)
             return false;
 
-   std::string aDir = mDir + aManquant + anOri + ELISE_CAR_DIR;
+   string inputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():mDir );
+   std::string aDir = inputDirectory + aManquant + anOri + ELISE_CAR_DIR;
         std::list<std::string> aL = RegexListFileMatch(aDir,"(Orientation-|AutoCal).*\\.xml",2,false);
         // std::list<std::string> aL = RegexListFileMatch(mDir,aManquant + anOri+ "(Orientation-|AutoCal).*\\.xml",2);
 
