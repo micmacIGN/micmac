@@ -68,7 +68,7 @@ void cAppliApero::ExportRedressement(const cExportRedressement & anER,cPoseCam &
           return;
     }
     std::string aName = aPC.Name();
-    std::string aNameImOut= mDC+mICNM->Assoc1To1(anER.KeyAssocOut(),aName,true);
+    std::string aNameImOut= mOutputDirectory+mICNM->Assoc1To1(anER.KeyAssocOut(),aName,true);
     if (anER.DoOnlyIfNew().Val() && ELISE_fp::exist_file(aNameImOut))
        return;
 

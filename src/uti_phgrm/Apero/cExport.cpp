@@ -96,7 +96,7 @@ void cAppliApero::ExportCalib(const cExportCalib & anEC)
        {
 
 	   std::string Engl="ExportAPERO";
-	   std::string aNXml =   DC()
+	   std::string aNXml =   mOutputDirectory
                                + (   (anEC.KeyIsName().Val()) ? 
                                      anEC.KeyAssoc() : 
                                      mICNM->Assoc1To1(anEC.KeyAssoc(),aNC,true)
@@ -201,7 +201,7 @@ void cAppliApero::ExportSauvAutom()
    {
       if (! mParam.SauvAutomBasic().Val())
          return;
-      aPref = "Tmp-MM-Dir/";
+      aPref = MMTemporaryDirectory();
       aStrS ="Autom";
    }
    aStrS = "-Sauv-" + aStrS + "-" + ToString(mNumSauvAuto);
@@ -293,7 +293,7 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
            }
 
 
-           std::string aNXml = DC() +  aPref + mICNM->Assoc1To1(anEP.KeyAssoc(),aNP,true);
+           std::string aNXml = mOutputDirectory +  aPref + mICNM->Assoc1To1(anEP.KeyAssoc(),aNP,true);
            ELISE_fp::MkDirRec(aNXml);
 	   if (anEP.AddCalib().Val())
 	   {

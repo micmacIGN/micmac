@@ -313,7 +313,7 @@ int Tapas_main(int argc,char ** argv)
             replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
         #endif
         SplitDirAndFile(aDir,aPat,aFullDir);
-
+        setInputDirectory( aDir );
 
         if (AeroIn!= NoInit)
            StdCorrecNameOrient(AeroIn,aDir);

@@ -92,6 +92,7 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mCptIterCompens    (0),
    mHasEqDr           (false)
 {
+     setInputDirectory( mDC );
      std::string aNameFileDebug;
      if (mParam.FileDebug().IsInit())
      {

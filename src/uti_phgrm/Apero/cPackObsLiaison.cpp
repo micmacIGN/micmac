@@ -532,12 +532,15 @@ cPackObsLiaison::cPackObsLiaison
 	{
 		std::string keyset =  aBDL.KeySet()[aKS];
 		cInterfChantierNameManipulateur * iChantierNM = mAppli.ICNM();
+
+		if ( isUsingSeparateDirectories() ) iChantierNM->setDir( MMOutputDirectory() );
 		const std::vector<std::string> * aVName = iChantierNM->Get(keyset);
+		if ( isUsingSeparateDirectories() ) iChantierNM->setDir( MMInputDirectory() );
 
 		aNbTot += aVName->size();
 
 		if (1)
-		{			
+		{
 			// if none of inverse files exist, filenames are processed in inverse order
 			bool addReverseFile = true;
 			for 
@@ -574,21 +577,20 @@ cPackObsLiaison::cPackObsLiaison
 				
 				std::string aN1 = aPair.first;
 				std::string aN2 = aPair.second;
+				
 				addFileToObservation( aN1, aN2, *itN, aBDL, aCpt, aKS==0, false );
 				aFirst = false;
 			}
 						
 			if ( addReverseFile && mIsMult )
 			{
-				ELISE_ASSERT(mIsMult,"\"No-Multiple\" mode is not handled by the auto-reverse feature since it's a backward compatibility mode");
-
 				for 
 				(
 					std::vector<std::string>::const_iterator itN = aVName->begin();
 					itN!=aVName->end();
 					itN++
 				)
-				{				
+				{
 					std::pair<std::string,std::string> aPair = mAppli.ICNM()->Assoc2To1(aBDL.KeyAssoc()[aKS],*itN,false);
 					addFileToObservation( aPair.second, aPair.first, *itN, aBDL, aCpt, aKS==0, true );
 				}
