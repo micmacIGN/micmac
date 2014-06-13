@@ -195,6 +195,8 @@ int MMRunVisualMode
 
     visual_MainWindow * w = new visual_MainWindow(aVAM, aVAO, aFirstArg, lastDir);
 
+    w->setWindowIcon(QIcon(QString(MMDir().c_str()) + QString("/src/saisieQT/icones/images/icon_64.png")));
+
     w->set_argv_recup(string(argv[0]));
 
     SaisieQtWindow *SaisieWin = new SaisieQtWindow(BOX2D);
