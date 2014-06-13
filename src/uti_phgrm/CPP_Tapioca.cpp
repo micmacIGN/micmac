@@ -66,7 +66,7 @@ string g_toolsOptions; // contains arguments to pass to Pastis concerning detect
 std::string aDir,aPat,aPatOri;
 std::string aPat2="";
 std::string aFullDir;
-int aFullRes;
+int aFullRes = -1;
 cInterfChantierNameManipulateur * anICNM =0;
 std::string BinPastis;
 std::string MkFT;
@@ -241,7 +241,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aSsRes,"Size of Low Resolution Images")
                             << EAMC(aFullRes,"Size of High Resolution Images"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(ByP,"ByP",true,"By process", eSAM_NoInit)
+                << EAM(ByP,"ByP",true,"By process")
                 << EAM(PostFix,"PostFix",true, "Add post fix in directory")
                 << EAM(aNbMinPt,"NbMinPt",true,"Minimum number of points")
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
@@ -311,7 +311,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Size of image"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(PostFix,"PostFix",true, "Add post fix in directory")
-                << EAM(ByP,"ByP",true,"By process", eSAM_NoInit)
+                << EAM(ByP,"ByP",true,"By process")
                 << EAM(aPat2,"Pat2",true,"Second pattern", eSAM_IsPatFile)
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
                 << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
@@ -359,7 +359,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aNbAdj,"Number of adjacent images to look for"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(PostFix,"PostFix",true,"Add post fix in directory")
-                << EAM(ByP,"ByP",true,"By process", eSAM_NoInit)
+                << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
@@ -418,7 +418,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Resolution",eSAM_None),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(PostFix,"PostFix",true,"Add post fix in directory")
-                << EAM(ByP,"ByP",true,"By process", eSAM_NoInit)
+                << EAM(ByP,"ByP",true,"By process")
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
                 << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
                 aArg
@@ -731,7 +731,7 @@ int Graph_(int argc,char ** argv)
                 LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)", eSAM_IsPatFile)
                 << EAMC(maxDimensionResize,"processing size of image  (for the greater dimension)", eSAM_None),
 
-                LArgMain()  << EAM(nbThreads, "ByP", true, "By process", eSAM_NoInit)
+                LArgMain()  << EAM(nbThreads, "ByP", true, "By process")
                 << EAM(detectingTool, PASTIS_DETECT_ARGUMENT_NAME.c_str(), true, "executable used to detect keypoints")
                 << EAM(nbMaxPoints, "MaxPoint", true, "number of points used per image to construct the graph (default 200)")
                 << EAM(minScaleThreshold, "MinScale", true, "if specified, points with a lesser scale are ignored")
@@ -837,7 +837,10 @@ int Tapioca_main(int argc,char ** argv)
             return EXIT_FAILURE;
     }
     else
+    {
+        ELISE_ASSERT(argc >= 2,"Not enough arg");
         TheType = argv[1];
+    }
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     TheType = argv[1];
