@@ -293,16 +293,17 @@ std::string  cAppliMICMAC::NamePC
       std::string aRes;
       if (aGPC.AddChantierKPC().Val())
       {
-          aRes = WorkDir() + ICNM()->Assoc1To2(aGPC.KeyCalcPC().Val(),aPdv.Name(),NameChantier(),true);
+          aRes = mOutputDirectory + ICNM()->Assoc1To2(aGPC.KeyCalcPC().Val(),aPdv.Name(),NameChantier(),true);
       }
       else
       {
-          aRes = WorkDir() + ICNM()->Assoc1To1(aGPC.KeyCalcPC().Val(),aPdv.Name(),true);
+          aRes = mOutputDirectory + ICNM()->Assoc1To1(aGPC.KeyCalcPC().Val(),aPdv.Name(),true);
       }
       if (aGPC.SupresExtChantierKPC().Val())
          aRes= StdPrefix(aRes);
       return aRes;
    }
+   
    return    FullDirResult() 
           +  std::string("MasqPC_")
           +  (  ((!OrthoEgalePC(aGPC))&&(! ForPC)) ? "Ortho_":"")
@@ -367,6 +368,7 @@ void cAppliMICMAC::MakePartiesCachees
 
 
    std::string   anEntete = NamePC(true,aGPC,mCurEtape,aPdv);
+
    std::cout << "ENTETE =" << anEntete << "\n";
    if (aGPC.DoOnlyWhenNew().Val())
    {

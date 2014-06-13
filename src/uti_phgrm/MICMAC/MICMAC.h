@@ -3280,7 +3280,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
        /*   Partie Data                  */
        /**********************************/
 
-       std::string  mNameChantier;
+       std::string mNameChantier;
+       string mOutputDirectory;
        cInterfChantierNameManipulateur * mICNM;
        bool         mWM;
        bool         mFullIm1;
