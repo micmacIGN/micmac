@@ -174,7 +174,7 @@ double dX(0),dY(0),dZ(0);
      for (unsigned int i = 0 ; i < mVDCentre.size() ; i++)
      {
 
-        cout << "dX = " << dX  << "\tdY = " << dY << "\tdZ = " << dZ << endl; 
+        cout << "dX = " << dX  << "\tdY = " << dY << "\tdZ = " << dZ << endl;
         dX = dX + abs(mVDCentre[i].x);
         dY = dY + abs(mVDCentre[i].y);
         dZ = dZ + abs(mVDCentre[i].z);
@@ -204,10 +204,42 @@ std::string cCMP_Appli::NameIm2NameOri(const std::string & aNameIm, const std::s
 /********************************************************************/
 
 // Main exercise
-int Vincent_main(int argc, char** argv)
+int Vincent_main1(int argc, char** argv)
 {
+/* Retourne, à partir de 2 orientations, les différences en X, Y, Z associées à chaque caméra */
    cCMP_Appli anAppli(argc,argv);
 
+   return EXIT_SUCCESS;
+}
+
+int Vincent_main(int argc, char** argv)
+{
+/* Transforme résidus de GCPBascule (utiliser GCPBasc ... | tee myFile.txt) en un fichier "NamePt dX dY dZ sigmaX sY sZ eMoyPixel eMaxPixel")*/
+    string mNameIn, mNameOut("");
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mNameIn,"Name of the residuals file"),
+        LArgMain()  << EAM(mNameOut,"Out",true,"File to save the results")
+    );
+    ifstream fin (mNameIn.c_str());
+    string mRead;
+    int i=0;
+    ofstream fout (mNameOut.c_str(),ios::out);
+    while (fin >> mRead){
+
+        if (mRead == "--NamePt"){i++;}
+        if (i!=0){i++;}
+        if (i==3){fout << mRead << " ";}
+        if (i==6){fout << mRead << " ";}
+        if (i==13){fout << mRead << " ";}
+        if (i==20){fout << mRead << " ";}
+        if (i==25){
+            fout << mRead << "\n";}
+        if (i!=0){cout << mRead << " at " << i << endl;}
+        if (mRead == "For"){i=0;}
+    }
+    fout.close();
    return EXIT_SUCCESS;
 }
 

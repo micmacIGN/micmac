@@ -21,11 +21,15 @@ bool isFirstArgMalt(string val)
 visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
                                      vector<cMMSpecArg> & aVAO,
                                      string aFirstArg,
-                                     QWidget *parent):
+                                     QString aLastDir,
+                                     QWidget *parent
+                                     ):
     QWidget(parent),
-    mlastDir(QDir::currentPath()),
+    mlastDir(aLastDir),
     mFirstArg(aFirstArg)
 {
+    //setAttribute( Qt::WA_DeleteOnClose );
+
     moveArgs(aVAM, aVAO);
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
@@ -90,6 +94,20 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
             aVAO.pop_back();
         }
     }
+
+    //Remove arg for internal use
+    for (int aK=0; aK < (int) aVAO.size(); aK++)
+    {
+        if (aVAO[aK].IsForInternalUse())
+        {
+            aVAO.erase(aVAO.begin() + aK);
+            aK--;
+        }
+    }
+
+    //Sort optional args
+    cCmpMMSpecArg aCmpMMSpecArg;
+    std::sort(aVAO.begin(),aVAO.end(),aCmpMMSpecArg);
 }
 
 void visual_MainWindow::addGridLayout(const vector<cMMSpecArg> &aVA, QString pageName)
@@ -112,7 +130,11 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
 
         add_label(layout, parent, aK, aArg);
 
-        if (aArg.IsBool()) // because some boolean values are set with int
+        if (!aArg.IsInit() && aArg.IsOpt())
+        {
+             add_select(layout, parent, aK, aArg);
+        }
+        else if (aArg.IsBool()) // because some boolean values are set with int
         {
             add_combo(layout, parent, aK, aArg);
         }
@@ -206,8 +228,19 @@ bool visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK
         return false;
 }
 
+void visual_MainWindow::saveSettings()
+{
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+    settings.beginGroup("FilePath");
+    settings.setValue("Path", mlastDir);
+    settings.endGroup();
+}
+
 void visual_MainWindow::onRunCommandPressed()
 {
+    saveSettings();
+
     bool runCom = true;
 
     string aCom = MM3dBinFile(argv_recup) + " " + mFirstArg + " ";
@@ -228,9 +261,14 @@ void visual_MainWindow::onRunCommandPressed()
 
                 QString txt = lEdit->text();
 
-                if (lEdit->isModified() || isFirstArgMalt(txt.toStdString()))
+                if (aIn->Arg().IsExistFileWithRelativePath())
                 {
-                    if ( !txt.isEmpty() ) aAdd += QUOTE(txt.toStdString());
+                    txt = QFileInfo(txt).fileName();
+                }
+
+                if (!txt.isEmpty()  || isFirstArgMalt(txt.toStdString()))
+                {
+                    aAdd += QUOTE(txt.toStdString());
                 }
                 else if (!aIn->IsOpt()) runCom = false;
             }
@@ -329,8 +367,11 @@ void visual_MainWindow::onRunCommandPressed()
 
         ::System(aCom);
 
+        setWindowFlags(Qt::WindowStaysOnTopHint);
         QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
-        QApplication::exit();
+
+        //_SaisieWin->close();
+        //QApplication::exit();
     }
     else
     {
@@ -481,11 +522,6 @@ void visual_MainWindow::onSaisieQtWindowClosed()
     }
 }
 
-void visual_MainWindow::dSpinBoxValueChanged(double)
-{
-    cout << "value changed" << endl;
-}
-
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
     list<string> liste_valeur_enum = listPossibleValues(aArg);
@@ -586,7 +622,7 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
-        else if (aArg.IsExistFile())
+        else if (aArg.IsExistFile() || aArg.IsExistFileWithRelativePath())
         {
             cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
@@ -608,8 +644,6 @@ QDoubleSpinBox * visual_MainWindow::create_1d_SpinBox(QGridLayout *layout, QWidg
     layout->addWidget(aSpinBox,aK, bK);
 
     aSpinBox->setRange(DoubleMin, DoubleMax);
-
-    connect (aSpinBox, SIGNAL(valueChanged(double)), this, SLOT(dSpinBoxValueChanged(double)));
 
     return aSpinBox;
 }
@@ -783,6 +817,11 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
     int desk_y = desk_rect.height();
 
     move(desk_x / 2 - width() / 2 + desk_rect.left(), desk_y / 2 - height() / 2 + desk_rect.top());
+}
+
+void visual_MainWindow::closeEvent(QCloseEvent *)
+{
+    saveSettings();
 }
 
 cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):

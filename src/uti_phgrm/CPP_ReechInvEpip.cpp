@@ -73,8 +73,8 @@ int ReechInvEpip_main(int argc,char ** argv)
                 << EAMC(anOri,"Name second orient", eSAM_IsExistFile) ,
     LArgMain()  << EAM(aDir,"Dir",true,"directory (Def=current)")
                     << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
-                    << EAM(CalleByP,"CalleByP",true,"Internal Use")
-                    << EAM(aBoxOut,"BoxOut",true,"Internal Use")
+                    << EAM(CalleByP,"CalleByP",true,"Internal Use", eSAM_InternalUse)
+                    << EAM(aBoxOut,"BoxOut",true,"Internal Use", eSAM_InternalUse)
                     << EAM(aSzDecoup,"SzDec",true,"Sz Decoup")
     );
 

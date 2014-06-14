@@ -1,5 +1,7 @@
 #include "QT_interface_Elise.h"
 
+extern void NewSplit( const std::string  &  a2Stplit,std::string & aK0,std::vector<std::string>  & aSup);
+
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWindow):
     m_QTMainWindow(QTMainWindow),
     _data(NULL),
@@ -437,6 +439,36 @@ string cQT_Interface::getNameGLPt_CurWidget(int idPt)
 {
     return getGLPt_CurWidget(idPt).name().toStdString();
 }
+
+void cQT_Interface::cmdBascule()
+{
+    std::string aKeySsArb;
+    std::vector<std::string> aVParams;
+    NewSplit(mAppli->Param().KeyAssocOri().Val(),aKeySsArb,aVParams);
+    QString oriName = QString(aVParams[0].c_str()).remove(0,1);
+
+    QApplication *app = static_cast<QApplication *>(QApplication::instance());
+
+    QFile file(app->applicationDirPath() + "/mm3d");
+
+    if(file.exists())
+        printf("%s\n",app->applicationDirPath().toStdString().c_str());
+
+    std::string aNameExp = mAppli->DC()+StdPrefix(mAppli->Param().ExportPointeImage().Val());
+
+    QProcess myProcess;
+
+    // Start the QProcess instance.
+    myProcess.execute("mm3d", QStringList()
+                    << "vGCPBascule"
+                    << ".*."
+                    << oriName
+                    << oriName + "Basculed"
+                    << QString(aNameExp.c_str()).remove(0,2) + "-S3D.xml"
+                    << QString(aNameExp.c_str()).remove(0,2) + "-S2D.xml" );
+
+}
+
 cSP_PointGlob *cQT_Interface::currentPGlobal() const
 {
     return _currentPGlobal;

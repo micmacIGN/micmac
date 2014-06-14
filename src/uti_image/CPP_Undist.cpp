@@ -57,7 +57,7 @@ int Undist_main(int argc,char ** argv)
            LArgMain() << EAMC(aFullName,"Image name (Dir + Pat)", eSAM_IsPatFile)
                       << EAMC(aKeyOri,"Orientation (Calibration or Orientation File or Directory of Orientation)", eSAM_IsExistFile),
            LArgMain() << EAM(aCanUseMkF,"UseMkF",true,"Can use make file for parallelization, def=true")
-              << EAM(aIC,aStrIC,true,"Internal use")
+              << EAM(aIC,aStrIC,true,"Internal use", eSAM_InternalUse)
     );
 
     std::string aDir,aPat;

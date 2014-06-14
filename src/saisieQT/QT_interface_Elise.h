@@ -2,6 +2,8 @@
 #define QT_INTERFACE_ELISE_H
 
 #include "saisieQT_window.h"
+#include <QApplication>
+#include <QProcess>
 
 class SaisieQtWindow;
 
@@ -134,6 +136,8 @@ signals:
     void                dataChanged(cSP_PointeImage *aPIm = NULL);
 
 public slots:
+
+    void                cmdBascule();
 
     void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
 

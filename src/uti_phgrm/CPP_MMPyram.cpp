@@ -53,7 +53,7 @@ int MMPyram_main(int argc,char ** argv)
     LArgMain()  << EAMC(aFullDir,"Dir + Pattern", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation", eSAM_IsExistDirOri),
     LArgMain()
-                    << EAM(ImSec,"ImSec",false,"Output destination (Def= same as Orientation-parameter)")
+                    << EAM(ImSec,"ImSec",true,"Output destination (Def= same as Orientation-parameter)", eSAM_NoInit)
     );
 
     #if (ELISE_windows)
