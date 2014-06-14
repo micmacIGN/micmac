@@ -71,9 +71,9 @@ void cVirtualInterface::InitNbWindows()
 
     mNbW = mNb2W.x * mNb2W.y;
 
-    if (mAppli->nbImages() < mNbW)
+    if (mAppli->nbImagesVis() < mNbW)
     {
-        mNbW = mAppli->nbImages();
+        mNbW = mAppli->nbImagesVis();
 
         ComputeNbFen(mNb2W, mNbW);
     }
@@ -167,19 +167,19 @@ int cVirtualInterface::idPointGlobal(cSP_PointGlob *PG)
     return id;
 }
 
-cImage *cVirtualInterface::CImage(int idCimg)
+cImage *cVirtualInterface::CImageVis(int idCimg)
 {
-    if(idCimg < 0 || idCimg >= (int)mAppli->images().size())
+    if(idCimg < 0 || idCimg >= (int)mAppli->imagesVis().size())
         return NULL;
     else
-        return mAppli->image(idCimg);
+        return mAppli->imageVis(idCimg);
 }
 
 vector<cImage *> cVirtualInterface::ComputeNewImagesPriority(cSP_PointGlob *pg,bool aUseCpt)
 {
     mAppli->SetImagesPriority(pg, aUseCpt);
 
-    vector<cImage *> images = mAppli->images();
+    vector<cImage *> images = mAppli->imagesVis();
 
     mAppli->SortImages(images);
 
@@ -353,19 +353,52 @@ void cAppli_SaisiePts::InitImages()
              itN++
              )
     {
-        if (! ImageOfNameSVP(*itN))
+        AddImageOfImOfName(*itN,true);
+    }
+    mImagesVis = mImagesTot;
+    mNbImVis  = mImagesVis.size();
+
+    mNameSauvPtIm = mDC + mParam.NamePointesImage().Val();
+    mDupNameSauvPtIm = mNameSauvPtIm + ".dup";
+    if (ELISE_fp::exist_file(mNameSauvPtIm))
+    {
+        mSOSPI = StdGetObjFromFile<cSetOfSaisiePointeIm>
+                (
+                    mNameSauvPtIm,
+                    StdGetFileXMLSpec("ParamSaisiePts.xml"),
+                    "SetOfSaisiePointeIm",
+                    "SetOfSaisiePointeIm"
+                    );
+        for
+        (
+             std::list<cSaisiePointeIm>::iterator itS=mSOSPI.SaisiePointeIm().begin();
+             itS != mSOSPI.SaisiePointeIm().end();
+             itS++
+        )
         {
-            mImages.push_back(new cImage(*itN,*this));
-            mMapIms[*itN] = mImages.back();
+            // std::cout << " GGGGGhUjj " << itS->NameIm() << " " <<  itS->OneSaisie().size() << "\n";
+            AddImageOfImOfName(itS->NameIm(),false);
         }
     }
-    mNbIm = mImages.size();
+    mNbImTot = mImagesTot.size();
 }
 
-cImage *  cAppli_SaisiePts::ImageOfNameSVP(const std::string & aName)
+void   cAppli_SaisiePts::AddImageOfImOfName (const std::string & aName,bool Visualisable)
 {
-    std::map<std::string,cImage *>::iterator iT = mMapIms.find(aName);
-    if (iT == mMapIms.end()) return 0;
+     if (! GetImageOfNameSVP(aName))
+     {
+            mImagesTot.push_back(new cImage(aName,*this,Visualisable));
+            mMapNameIms[aName] = mImagesTot.back();
+     }
+
+}
+
+
+
+cImage *  cAppli_SaisiePts::GetImageOfNameSVP(const std::string & aName)
+{
+    std::map<std::string,cImage *>::iterator iT = mMapNameIms.find(aName);
+    if (iT == mMapNameIms.end()) return 0;
     return iT->second;
 }
 
@@ -516,18 +549,9 @@ void cAppli_SaisiePts::InitPG()
 
 void cAppli_SaisiePts::InitPointeIm()
 {
-    mNameSauvPtIm = mDC + mParam.NamePointesImage().Val();
-    mDupNameSauvPtIm = mNameSauvPtIm + ".dup";
-    if (ELISE_fp::exist_file(mNameSauvPtIm))
-    {
-        mSOSPI = StdGetObjFromFile<cSetOfSaisiePointeIm>
-                (
-                    mNameSauvPtIm,
-                    StdGetFileXMLSpec("ParamSaisiePts.xml"),
-                    "SetOfSaisiePointeIm",
-                    "SetOfSaisiePointeIm"
-                    );
-    }
+
+
+
 
     for
             (
@@ -537,8 +561,8 @@ void cAppli_SaisiePts::InitPointeIm()
              )
     {
         static bool FirstNoIm = true;
-        cImage * anIm = ImageOfNameSVP(itS->NameIm());
-        if (FirstNoIm && (!anIm))
+        cImage * anIm = GetImageOfNameSVP(itS->NameIm());
+        if (FirstNoIm && (!anIm)) // A priori ce warning va disparaitre ....
         {
             FirstNoIm = false;
             std::cout << "There is an image in Pointe with NO corresponding loaded image \n";
@@ -586,7 +610,7 @@ void cAppli_SaisiePts::AddPGInAllImages(cSP_PointGlob  * aSPG)
 {
     if (mParam.KeyAssocOri().IsInit())
     {
-        for (std::vector<cImage*>::iterator itI=mImages.begin(); itI!=mImages.end() ; itI++)
+        for (std::vector<cImage*>::iterator itI=mImagesTot.begin(); itI!=mImagesTot.end() ; itI++)
         {
             AddOnePGInImage(aSPG,**itI);
         }
@@ -829,6 +853,13 @@ void cAppli_SaisiePts::Save()
 */
 }
 
+
+void  cAppli_SaisiePts::SetImagesVis(std::vector <cImage *> aImgs) 
+{
+   // std::cout << " cAppli_SaisiePts::SetImagesVis ### " << aImgs.size() << " " << mImagesVis.size() << "\n";
+   mImagesVis = aImgs;
+}
+
 void cAppli_SaisiePts::Exit()
 {
     Save();
@@ -870,9 +901,9 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
 
 void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCpt)
 {
-    for (int aKI=0 ; aKI<int(mImages.size()); aKI++)
+    for (int aKI=0 ; aKI<int(mImagesTot.size()); aKI++)
     {
-        cImage & anIm = *(mImages[aKI]);
+        cImage & anIm = *(mImagesTot[aKI]);
         anIm.SetPrio(anIm.CalcPriority(PointPrio,aUseCpt));
     }
 }
@@ -892,7 +923,7 @@ void cAppli_SaisiePts::ChangeImages
 {
     SetImagesPriority(PointPrio,aUseCpt);
 
-    SortImages(mImages);
+    SortImages(mImagesVis);
 
     #if (ELISE_X11)
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)
@@ -905,9 +936,9 @@ void cAppli_SaisiePts::ChangeImages
 
     while (aKW <int(aW2Ch.size()) )
     {
-        ELISE_ASSERT(aKI<int(mImages.size()),"Incoherence in cAppli_SaisiePts::ChangeImages");
+        ELISE_ASSERT(aKI<int(mImagesVis.size()),"Incoherence in cAppli_SaisiePts::ChangeImages");
 
-        cImage * anIm = mImages[aKI];
+        cImage * anIm = mImagesVis[aKI];
 
         if (!mInterface->isDisplayed(anIm))
         {

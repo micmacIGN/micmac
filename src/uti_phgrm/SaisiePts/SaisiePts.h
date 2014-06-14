@@ -116,7 +116,7 @@ class cImage
      public :
         void InitCameraAndNuage();
         Pt2dr PointArbitraire() const;
-        cImage(const std::string & aName,cAppli_SaisiePts &);
+        cImage(const std::string & aName,cAppli_SaisiePts &,bool Visualizable);
 
         Fonc_Num  FilterImage(Fonc_Num,eTypePts,cPointGlob *);
 
@@ -144,6 +144,7 @@ class cImage
         int & CptAff() ;
 
         void UpdateMapPointes(const std::string aName);
+        bool Visualizable() const;
 
      private :
 
@@ -163,6 +164,7 @@ class cImage
            double                                    mPrio;
            bool                                      mInitCamNDone;
            int                                       mCptAff;
+           bool                                      mVisualizable;
 };
 
 typedef cImage * tImPtr;
@@ -381,7 +383,7 @@ protected:
 
     int                         idPointGlobal(cSP_PointGlob* PG);
 
-    cImage *                    CImage(int idCimg);
+    cImage *                    CImageVis(int idCimg);
 
      vector<cImage *>           ComputeNewImagesPriority(cSP_PointGlob *pg, bool aUseCpt);
 
@@ -488,7 +490,8 @@ class cAppli_SaisiePts
 
     void ErreurFatale(const std::string &);
 
-    cImage *                ImageOfNameSVP(const std::string & aName);
+    void AddImageOfImOfName (const std::string & aName,bool Visualisable);
+    cImage *                GetImageOfNameSVP(const std::string & aName);
     cSP_PointGlob *         PGlobOfNameSVP(const std::string & aName);
     cSP_PointGlob *         PGlob(int id);
     cSetOfSaisiePointeIm  & SOSPI();
@@ -539,13 +542,16 @@ class cAppli_SaisiePts
 
     int                 GetCptMax() const;
 
-    int                 nbImages()  { return mNbIm; }
+    int                 nbImagesVis()  { return mNbImVis; }
+    int                 nbImagesTot()  { return mNbImTot; }
 
-    cImage*             image(int aK) { return mImages[aK]; }
+    cImage*             imageVis(int aK) { return mImagesVis[aK]; }
+    std::vector< cImage * > imagesVis() { return mImagesVis; }
+    cImage*             imageTot(int aK) { return mImagesTot[aK]; }
+    std::vector< cImage * > imagesTot() { return mImagesTot; }
 
-    std::vector< cImage * > images() { return mImages; }
-
-    void                SetImages(std::vector <cImage *> aImgs) { mImages = aImgs; }
+    void                SetImagesVis(std::vector <cImage *> aImgs) ;//  { mImages = aImgs; } A voir si utile,
+    void                SetImagesTot(std::vector <cImage *> aImgs) ;//  { mImages = aImgs; }
 
     std::vector< cSP_PointGlob * > PG() { return mPG; }
 
@@ -576,8 +582,9 @@ private :
 
          cInterfChantierNameManipulateur *     mICNM;
          std::string                           mDC;
-         std::vector<cImage *>                 mImages;
-         std::map<std::string,cImage *>        mMapIms;
+         std::vector<cImage *>                 mImagesVis;
+         std::vector<cImage *>                 mImagesTot;
+         std::map<std::string,cImage *>        mMapNameIms;
 
          cSetPointGlob                         mSPG;
          std::vector<cSP_PointGlob *>          mPG;
@@ -586,7 +593,8 @@ private :
 
          cSetOfSaisiePointeIm              mSOSPI;
 
-         int                               mNbIm;
+         int                               mNbImVis;
+         int                               mNbImTot;
 
          std::string                       mNameSauvPtIm;
          std::string                       mDupNameSauvPtIm;

@@ -204,7 +204,7 @@ ModelCImage::ModelCImage(QObject *parent, cAppli_SaisiePts *appli)
 
 int ModelCImage::rowCount(const QModelIndex & /*parent*/) const
 {
-    return mAppli->images().size();
+    return mAppli->imagesVis().size();
 }
 
 int ModelCImage::columnCount(const QModelIndex & /*parent*/) const
@@ -217,9 +217,9 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        if(index.row() < (int) mAppli->images().size())
+        if(index.row() < (int) mAppli->imagesVis().size())
         {
-            cImage* iImage = mAppli->image(index.row());
+            cImage* iImage = mAppli->imageVis(index.row());
 
             switch (index.column())
             {
@@ -313,7 +313,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
         if(!pg)
             return QVariant(QColor("#5f5f5f"));
 
-        cImage* iImage = mAppli->image(index.row());
+        cImage* iImage = mAppli->imageVis(index.row());
 
         if(index.column() == 0)
         {
@@ -363,7 +363,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
     }
 
     if (role == Qt::TextColorRole && index.column() == 0 && _interface->currentPGlobal())
-            if(index.row() < (int)mAppli->images().size() && mAppli->image(index.row()) == _interface->currentCImage() )
+            if(index.row() < (int)mAppli->imagesVis().size() && mAppli->imageVis(index.row()) == _interface->currentCImage() )
                 return QColor(Qt::white);
 
     return QVariant();

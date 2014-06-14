@@ -118,9 +118,9 @@ bool cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
         }
     }
 
-    for (int aKI=0 ; aKI < mNbIm ; aKI++)
+    for (int aKI=0 ; aKI < mNbImTot ; aKI++)
     {
-        image(aKI)->UpdateMapPointes(aNewName);
+        imageTot(aKI)->UpdateMapPointes(aNewName);
     }
 
     for (int aKC=0 ; aKC< mInterface->GetNumCaseNamePoint(); aKC++)
