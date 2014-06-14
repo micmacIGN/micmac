@@ -123,7 +123,7 @@ void cQT_Interface::viewSelectImages()
         if(!index.column())
         {
             QString imageName = model->data(model->index(index.row(), 0)).toString();
-            mAppli->image(idCImage(imageName))->CptAff() = -prio;
+            mAppli->imageVis(idCImage(imageName))->CptAff() = -prio;
             prio--;
         }
     }
@@ -371,7 +371,7 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
             aKW++;
         }
 
-        mAppli->SetImages(images);
+        mAppli->SetImagesVis(images);
 
         rebuildGlPoints();
     }
@@ -496,8 +496,8 @@ void cQT_Interface::filesDropped(const QStringList &filenames)
 
 int cQT_Interface::idCImage(QString nameImage)
 {
-    for (int i = 0; i < mAppli->nbImages(); ++i)
-       if(mAppli->image(i)->Name() == nameImage.toStdString())
+    for (int i = 0; i < mAppli->nbImagesVis(); ++i)
+       if(mAppli->imageVis(i)->Name() == nameImage.toStdString())
            return i;
 
     return -1;
@@ -505,7 +505,7 @@ int cQT_Interface::idCImage(QString nameImage)
 
 cImage * cQT_Interface::currentCImage()
 {
-    return cVirtualInterface::CImage(idCurrentCImage());
+    return cVirtualInterface::CImageVis(idCurrentCImage());
 }
 
 int cQT_Interface::getQTWinMode()
@@ -520,7 +520,7 @@ void cQT_Interface::Warning(string aMsg)
 
 cImage *cQT_Interface::CImage(QString nameImage)
 {
-    return cVirtualInterface::CImage(idCImage(nameImage));
+    return cVirtualInterface::CImageVis(idCImage(nameImage));
 }
 
 int cQT_Interface::idCurrentCImage()
@@ -553,7 +553,7 @@ cSP_PointGlob *cQT_Interface::PointGlobInCurrentWGL(int idPointGL)
 
 cSP_PointeImage * cQT_Interface::pointeImage(cPointGlob* pg, int idWGL)
 {
-    cImage* image = mAppli->image(idCImage(idWGL));
+    cImage* image = mAppli->imageVis(idCImage(idWGL));
 
     if(!image)
         return NULL;
@@ -695,7 +695,7 @@ void cQT_Interface::rebuild2DGlPoints()
 
             if(t!=-1)
             {
-                const vector<cSP_PointeImage *> &  aVP = mAppli->image(t)->VP();
+                const vector<cSP_PointeImage *> &  aVP = mAppli->imageVis(t)->VP();
 
                 m_QTMainWindow->getWidget(i)->getGLData()->clearPolygon();
 
@@ -713,9 +713,9 @@ void cQT_Interface::rebuild2DGlPoints()
 
 void cQT_Interface::rebuildGlCamera()
 {
-    for (int i = 0; i < mAppli->nbImages(); ++i)
+    for (int i = 0; i < mAppli->nbImagesVis(); ++i)
     {
-        ElCamera * aCamera = mAppli->image(i)->CaptCam();
+        ElCamera * aCamera = mAppli->imageVis(i)->CaptCam();
         _data->addCamera(aCamera->CS());
     }
 }

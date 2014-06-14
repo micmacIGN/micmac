@@ -49,7 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*************************************************/
 
 
-cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli) :
+cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli,bool Visualizable) :
    mAppli (anAppli),
    mName  (aName),
    mTif   (0),
@@ -61,9 +61,17 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli) :
    mWAff  (0),
    mPrio  (0),
    mInitCamNDone (false),
-   mCptAff       (0)
+   mCptAff       (0),
+   mVisualizable (Visualizable)
 {
 }
+
+
+bool  cImage::Visualizable() const
+{
+   return mVisualizable;
+}
+
 
 int & cImage::CptAff() {return mCptAff;}
 
