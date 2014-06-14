@@ -8,6 +8,12 @@ EVOLUTIONS :
   * Focs dans ChImSec, AperiCloud
   * Export NuageUnAnam dans ortho cyl
   * Quote des arguments 
+  * AperiCloud : couleur des cams, possible faire que cam ou que pts
+
+
+A faire ("Bug") :
+
+   * Dans SaisieAppuisInit : exporter tous les points 3D;
 
 
 Progr MM-Dev :

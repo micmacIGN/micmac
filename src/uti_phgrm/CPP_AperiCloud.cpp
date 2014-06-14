@@ -38,6 +38,13 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+std::string StrP2Coul(const Pt3di & aP)
+{
+   char aBuf[100];
+   sprintf(aBuf,"\"%d %d %d\"",aP.x,aP.y,aP.z);
+   return aBuf;
+}
+
 int AperiCloud_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);
@@ -54,7 +61,10 @@ int AperiCloud_main(int argc,char ** argv)
     double aSeuilEc = 10.0;
     double aLimBsH;
     bool   WithPoints = true;
+    bool   WithCam = true;
     Pt2dr  aFocs;
+    Pt3di aColCadre(255,0,0);
+    Pt3di aColRay(0,255,0);
 
     ElInitArgMain
     (
@@ -71,6 +81,9 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(WithPoints,"WithPoints",true,"Do we add point cloud? (Def=true) ",eSAM_IsBool)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=false)",eSAM_IsBool)
                     << EAM(aFocs,"Focs",true,"Interval of Focal")
+                    << EAM(WithCam,"WithCam",true,"With Camera (Def=true)")
+                    << EAM(aColCadre,"ColCadre",true,"Col of camera rect Def= 255 0 0 (Red)")
+                    << EAM(aColRay,"ColRay",true,"Col of camera rect Def=  0 255 0 (Green)")
     );
 
     if (!MMVisualMode)
@@ -123,11 +136,27 @@ int AperiCloud_main(int argc,char ** argv)
             aCom = aCom + " +FocMin=" + ToString(aFocs.x) + " +FocMax=" + ToString(aFocs.y);
         }
 
+        if (EAMIsInit(&WithCam))
+        {
+            aCom = aCom + " +WithCam=" + ToString(WithCam) ;
+        }
+
+        if (EAMIsInit(&aColCadre))
+        {
+            aCom = aCom + " +ColCadre=" + StrP2Coul(aColCadre) ;
+        }
+        if (EAMIsInit(&aColRay))
+        {
+            aCom = aCom + " +ColRay=" + StrP2Coul(aColRay) ;
+        }
+
 
         if (! WithPoints)
         {
             aCom = aCom + std::string(" +KeyAssocImage=NKS-Assoc-Cste@NoPoint");
         }
+
+        
 
         if (EAMIsInit(&aLimBsH))
             aCom = aCom + std::string(" +LimBsH=") + ToString(aLimBsH);

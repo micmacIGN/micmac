@@ -11,7 +11,9 @@
             <Symb>  FocMin=0 </Symb>
             <Symb>  FocMax=1000000 </Symb>
             <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
-
+            <Symb>  WithCam=true </Symb>
+            <Symb>  ColCadre="255 0 0" </Symb>
+            <Symb>  ColRay="0 255 0" </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -123,14 +125,15 @@
                                    <KeyFileColImage> ${KeyAssocImage}   </KeyFileColImage>
                                    <NbChan> ${NbChan} </NbChan>
                                    <LimBSurH> ${LimBsH} </LimBSurH>
-                                   <NuagePutCam >
-                                       <ColCadre > 255 0 0 </ColCadre>
-                                       <ColRay >  0 255 0 </ColRay>
-                                       <Long > 0.3 </Long>
-                                       <StepSeg > 0.01 </StepSeg>
-                                   </NuagePutCam>
+                                   <#WHEN VTEST=${WithCam}>
+                                       <NuagePutCam >
+                                           <ColCadre > ${ColCadre} </ColCadre>
+                                           <ColRay >  ${ColRay} </ColRay>
+                                           <Long > 0.3 </Long>
+                                           <StepSeg > 0.01 </StepSeg>
+                                       </NuagePutCam>
+                                   </#WHEN>
                              </ExportNuage>
-
                     </SectionExport>
 
 	      </EtapeCompensation>
