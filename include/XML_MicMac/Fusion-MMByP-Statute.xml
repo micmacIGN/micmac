@@ -1,0 +1,128 @@
+<!--
+mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml WorkDirPFM=/media/data1/Jeux-Tests/MedinetAbou/MTD-Image-IMG_0107.CR2/
+
+mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml WorkDirPFM=/home/marc/TMP/EPI/Pompei/MTD-Image-MVxxxx_MAP_7043.NEF/
+-->
+<ParamFusionMNT>
+    <DicoLoc>
+
+      <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur>   Nuage-.*.xml  </PatternAccepteur>
+<!--
+                 <PatternAccepteur>   .* </PatternAccepteur>
+-->
+          </Sets>
+          <Key> Loc-SetInput </Key>
+    </KeyedSetsOfNames>
+
+
+       <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  2 1 </Arrite>
+                <Direct>
+                    <PatternTransform> (.*)%(.*) </PatternTransform>
+                    <CalcName> $2  </CalcName>
+                    <Separateur > % </Separateur>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-CplIm2Nuage </Key>
+       </KeyedNamesAssociations>
+
+
+   <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  2 1 </Arrite>
+                <Direct>
+                    <PatternTransform> (.*) </PatternTransform>
+                    <CalcName> Fusion_$1  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-Im2NuageFusionne </Key>
+     </KeyedNamesAssociations>
+
+
+    </DicoLoc>
+
+    <SectionName>
+
+        <KeyNuage> Loc-Assoc-CplIm2Nuage </KeyNuage>  
+        <KeyResult> Loc-Assoc-Im2NuageFusionne </KeyResult> <!-- NKS-Assoc-Cste@MaSortie.xml -->
+
+<!--
+        <KeyResult> NKS-Assoc-Cste@FusionZ2 </KeyResult>
+-->
+
+        <ModeleNuageResult> NKS-Assoc-Id </ModeleNuageResult> 
+    </SectionName>
+
+      <SectionScoreQualite>
+           <ScoreMM1P>
+                 <PdsAR> 1.0 </PdsAR>
+
+                 <PdsDistor> 0.5 </PdsDistor>
+                 <AmplImDistor> 100.0 </AmplImDistor>
+                 <!-- Score = Seuil/ (Seuil+Dist) -->
+                 <SeuilDist> 0.25 </SeuilDist>
+
+                 <PdsDistBord > 0.25</PdsDistBord>
+                 <!-- Score = Min(1, D/Seuil) -->
+                 <SeuilDisBord> 30.0 </SeuilDisBord>
+           </ScoreMM1P>
+       </SectionScoreQualite>
+
+
+
+       <ParamAlgoFusionMNT>
+           <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel>
+           <FMNTGammaCorrel > 4 </FMNTGammaCorrel>
+           <SpecAlgoFMNT>
+<!--
+                <FMNtBySort>
+                       <PercFusion> 50.0 </PercFusion>
+                </FMNtBySort>
+-->
+                <FMNtByMaxEvid>
+                       <SigmaPds> 5.0 </SigmaPds>
+                       <SigmaZ> 7.5  </SigmaZ>
+                       <MaxDif> 10  </MaxDif>
+                       <FMNT_ProgDyn>
+                            <Regul> 1.0 </Regul>
+                            <Sigma0> 10.0 </Sigma0>
+                            <NbDir>  7 </NbDir>
+                            <FMNT_GesNoVal>
+                                <PenteMax> 10 </PenteMax>
+                                <GainNoVal> 0.5 </GainNoVal>
+                                <Trans>     3 </Trans>
+                            </FMNT_GesNoVal>
+<!--
+-->
+                       </FMNT_ProgDyn>
+
+                </FMNtByMaxEvid>
+           </SpecAlgoFMNT>
+       </ParamAlgoFusionMNT>
+
+
+    <GenereRes> 
+            <KeyString> NuageImProf_LeChantier_Etape_1.xml </KeyString>
+    </GenereRes>
+
+    <GenereInput> 
+              <KeySet> Loc-SetInput </KeySet>
+    </GenereInput>
+
+
+   <SectionGestionChantier>
+             <SzDalles >  1300 </SzDalles>
+             <RecouvrtDalles> 150  </RecouvrtDalles>
+<!--
+             <ParalMkF> MkFusion.txt </ParalMkF> 
+-->
+             <WorkDirPFM> XXXX </WorkDirPFM>
+   </SectionGestionChantier>
+
+
+  </ParamFusionMNT>
+
+
