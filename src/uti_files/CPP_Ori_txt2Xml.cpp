@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -169,7 +169,7 @@ tSomVois & SomDif(const ElFilo<tArcVois *>& aF,const tSomVois & aS1,const tSomVo
                    // std::string  aKeyExport = "NKS-Assoc-Im2Orient@-" + VerifReexp;
                    // std::string aNOE = aICNM->Assoc1To1(aKeyExport,aNewCam.mNameIm,true);
 
-class cAppli_Ori_Txt2Xml_main 
+class cAppli_Ori_Txt2Xml_main
 {
      public :
           cAppli_Ori_Txt2Xml_main (int argc,char ** argv);
@@ -234,7 +234,7 @@ class cAppli_Ori_Txt2Xml_main
          bool                mAddCalib;
          std::string         mImC;
          int                 mNbImC;
-         int                 mSizeRC; 
+         int                 mSizeRC;
          std::string         mReexpMatr;
          std::string         mDir;
          cInterfChantierNameManipulateur * mICNM;
@@ -321,7 +321,7 @@ void cAppli_Ori_Txt2Xml_main::AddArc(tSomVois* aS1,tSomVois* aS2,int aCoul,int a
 
            anArc.attr().mNbPts =  NbPtsOfFile(aF1);
            anArc.arc_rec().attr().mNbPts =  NbPtsOfFile(aF2);
-           
+
        }
 
        ShowArc(anArc.s1(),anArc.s2(),aCoul);
@@ -345,16 +345,16 @@ void cAppli_Ori_Txt2Xml_main::ShowArc(const tSomVois & aSom1,const tSomVois & aS
 
 /*
 
-   On cherche à decomposer en un sous ensemble de sommets connexes.
+   On cherche �  decomposer en un sous ensemble de sommets connexes.
 Il y a 4 etat possible
 
    * debut de brin
    * fin de brin
    * milieu de brin
-   * no brin 
+   * no brin
 
    eVitMil  -> eVitMil, eVitApr, eNoVit,
-   eVitAv   -> eVitMil, eVitApr, 
+   eVitAv   -> eVitMil, eVitApr,
    eVitApr  -> eVitAv, eNoVit,
    eNoVit   -> eNoVit, eVitAv,
 
@@ -400,7 +400,7 @@ class cAttrHypSomV
        }
 
        cAttrHypSomV()   :
-           mCam(0) 
+           mCam(0)
        {}
 
        cTxtCam * mCam;
@@ -417,10 +417,10 @@ class cHypAttrA
 
 
 
-class OriSubGr  : public ElSubGraphe<cAttrHypSomV,cHypAttrA> 
+class OriSubGr  : public ElSubGraphe<cAttrHypSomV,cHypAttrA>
 {
     public :
-          REAL   pds(TArc & anArc) 
+          REAL   pds(TArc & anArc)
           {
              return anArc.attr().mCost;
           }
@@ -485,7 +485,7 @@ void cAppli_Ori_Txt2Xml_main::SauvOriFinal()
 
 void cAppli_Ori_Txt2Xml_main::CalcVitesse()
 {
-   
+
    if (mTetaFromCap)
       mHasWPK = true;
 
@@ -530,7 +530,7 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
                         if (CreateBr)
                            anAA.mCost += mRegul * mRelNewBr;
 
-                           
+
                          mGr.add_arc(*aS1,*aS2,anAA);
                     }
                 }
@@ -559,9 +559,9 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
                        aSub,
                        eModePCC_Somme
                   );
-    
+
      ELISE_ASSERT(aRes!=0,"Pcc inc in cAppli_Ori_Txt2Xml_main::CalcVitesse");
- 
+
      ElFilo<tSom *> aPCC;
      aPcc.chemin(aPCC,*(aRes));
 
@@ -604,13 +604,13 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
 
              std::cout << "   Num " << aCam->mNum << " " << " Band " << aCam-> mNumBande << " " ;
 
- 
 
-              if (aTyn== eNoTraj)   
+
+              if (aTyn== eNoTraj)
                  std::cout << " ******";
               else
               {
-                 if (Fiable) 
+                 if (Fiable)
                     std::cout  << "##";
                  else
                     std::cout  << "  ";
@@ -622,7 +622,7 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
                     std::cout << aV << "TETA " << aTeta <<  " Kap=" << aKap << " Dif=" << mod_real(aTeta-aKap,360) ;
                  }
               }
-             
+
 
 
              std::cout << "\n";
@@ -699,7 +699,7 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
 {
 
     bool Help;
-    std::string aStrType; 
+    std::string aStrType;
     if (argc >=2)
     {
         aStrType = argv[1];
@@ -710,16 +710,16 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     std::string aStrChSys;
     std::vector<std::string> aPrePost;
     std::vector<int>         aVCpt;
-    
+
     std::string   aNameConvOri;
 
     ElInitArgMain
     (
            argc,argv,
-           LArgMain() << EAMC(aStrType,"Format specification") 
-                      << EAMC(mFilePtsIn,"Orientation   File") 
+           LArgMain() << EAMC(aStrType,"Format specification")
+                      << EAMC(mFilePtsIn,"Orientation   File")
                       << EAMC(mOriOut,"Targeted orientation") ,
-           LArgMain() 
+           LArgMain()
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
                       << EAM(mFileCalib,"Calib",true,"External XML calibration file")
                       << EAM(mAddCalib,"AddCalib",true,"Try to add calibration, def=true")
@@ -731,14 +731,14 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mImC,"ImC",true,"Image \"Center\" for computing AltiSol")
                       << EAM(mNbImC,"NbImC",true,"Number of neigboor around Image \"Center\" (Def=50)")
                       << EAM(mSizeRC,"RedSizeSC",true,"Reduced Size of image to use for Tapioca for AltiSol (Def=1000)")
-                      << EAM(mReexpMatr,"Reexp",true,"Reexport as Matrix (internal set up)")
+                      << EAM(mReexpMatr,"Reexp",true,"Reexport as Matrix (internal set up)", eSAM_InternalUse)
                       << EAM(mRegul,"Regul",true,"Regularisation cost (Cost of hole), Def=5.0")
                       << EAM(mRelNewBr,"RegNewBr",true,"cost of creating a new branch (Def=0.4, prop to Regul)")
                       << EAM(mRelFiabl,"Reliab",true,"Threshold for reliable speed, Def=0.75 (prop to Regul)")
                       << EAM(mCalcV,"CalcV",true,"Calcul speed (def = false)")
                       << EAM(mDelay,"Delay",true,"Delay to take into accound after speed estimate")
                       << EAM(mTetaFromCap,"TFC",true,"Teta from cap : compute orientation from speed)")
-                      << EAM(mRefOri,"RefOri",true,"Ref Orientation (internal purpose)")
+                      << EAM(mRefOri,"RefOri",true,"Ref Orientation (internal purpose)", eSAM_InternalUse)
                       << EAM(mSiftResol,"SiftR",true,"Resolution of sift point for Tapioca ,when ImC, (Def No Sift)")
                       << EAM(mSiftLowResol,"SiftLR",true,"Low Resolution of sift point for MultisCale ,when ImC (Def no multicale)")
 
@@ -881,11 +881,11 @@ void  cAppli_Ori_Txt2Xml_main::InitGrapheVois()
        mBoxC._p0.SetInf(POfSom(aSom));
        mBoxC._p1.SetSup(POfSom(aSom));
     }
-	
+
 #if (ELISE_X11)
-	bool elise_x11 = true;
+    bool elise_x11 = true;
 #else
-	bool elise_x11 = false;
+    bool elise_x11 = false;
 #endif
 
     if ((mSzV >0) && elise_x11)
@@ -973,12 +973,12 @@ void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK)
     const cElDate & aDate =   aCam.mMTD->Date(true);
     const cElDate & aDate0 =   mVCam[0]->mMTD->Date(true);
     static bool allDateUnInit = true;
-    allDateUnInit = allDateUnInit && aDate.IsNoDate() && aDate0.IsNoDate(); 
+    allDateUnInit = allDateUnInit && aDate.IsNoDate() && aDate0.IsNoDate();
 
     {
        aCam.mOC->Externe().Centre() = aC;
        aCam.mTime =  (mMTDOnce | allDateUnInit)  ? aCam.mNum : aCam.mMTD->Date().DifInSec(mVCam[0]->mMTD->Date()) ;
-               
+
        aCam.mOC->Externe().Time().SetVal(aCam.mTime);
        aCam.mC = aC;
     }
@@ -1018,7 +1018,7 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
     char * aLine;
 
     int aCpt = 0;
-    
+
     const cMetaDataPhoto * aMTD0 = 0;
     while ((aLine = aFIn.std_fgets()))
     {
@@ -1031,7 +1031,7 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
               aReadApp.mPt.y -= mOffsetXY.y;
            }
            {
-              if (mNbCam==0) 
+              if (mNbCam==0)
                  mHasWPK = aReadApp.IsDef(aReadApp.mWPK);
               ELISE_ASSERT(mHasWPK==aReadApp.IsDef(aReadApp.mWPK),"Incoherence in HasWPK");
            }
@@ -1097,7 +1097,7 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
                    // std::cout  << "Annagle " <<  mod_real(aReadApp.mWPK.z - aTeta,360) << "\n";
                }
            }
-           if (1)  
+           if (1)
            {
                std::cout << "Read data for " << aNewCam.mNameIm  <<  "  NB=" << mNbCam  << " T=" <<  aNewCam.mCam->GetTime() << "\n";
                if (mNbCam != 0)
@@ -1257,13 +1257,13 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
                 if (aK1 != aK2)
                    AddArc(mVSomVois[aK1],mVSomVois[aK2],P8COL::white,-1);
            }
-           
+
            // std::cout << "TTttiim e " << mVSomVois[aK1]->attr().mCam->mTime << "\n";
        }
        //getchar();
    }
 
-   cSauvegardeNamedRel  aRelIm;    
+   cSauvegardeNamedRel  aRelIm;
 
    for (tItSVois itS=mGrVois.begin(mSubAll) ; itS.go_on() ;itS++)
    {
@@ -1277,7 +1277,7 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
              aRelIm.Cple().push_back(aCpl);
        }
    }
-  
+
 
    if ( EAMIsInit(&mNameCple))
       MakeFileXML(aRelIm,mDir+mNameCple);
@@ -1392,7 +1392,7 @@ void cAppli_Ori_Txt2Xml_main::GenerateOrientInit()
         }
    }
 
-   
+
    std::list<std::string> aLCom;
   // int aCptFOk=0;
    for (int aKF=0 ; aKF<int(aVF.size()) ; aKF++)
@@ -1416,15 +1416,15 @@ void cAppli_Ori_Txt2Xml_main::GenerateOrientInit()
                             + " +AeroOut=" + std::string("GenFromC")
                             + " +BDDC=" + mOriOut
                             + " +ImC=" +  aF->mVBelongs[0]->attr().mCam->mNameIm
-                            + " +ImSec=" + QUOTE("(" +aPatIm +")") 
-                            + " +ImSauv=" + QUOTE("(" +aPatSauv +")") 
+                            + " +ImSec=" + QUOTE("(" +aPatIm +")")
+                            + " +ImSauv=" + QUOTE("(" +aPatSauv +")")
                          ;
             // std::cout << aCom << "\n";
             aLCom.push_back(aCom);
         }
    }
 
-   
+
     cEl_GPAO::DoComInParal(aLCom,"",-1,true,true);
 
 /*
@@ -1481,13 +1481,13 @@ int Ori_Txt2Xml_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1497,17 +1497,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

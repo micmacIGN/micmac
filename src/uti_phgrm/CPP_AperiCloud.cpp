@@ -77,7 +77,7 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(PlyBin,"Bin",true,"Ply in binary mode (Def=true)", eSAM_IsBool)
                     << EAM(RGB,"RGB",true,"Use RGB image to texturate points (Def=true)", eSAM_IsBool)
                     << EAM(aSeuilEc,"SeuilEc",true,"Max residual (Def=10)")
-                    << EAM(aLimBsH,"LimBsH",false,"Limit ratio base to height (Def=1e-2)")
+                    << EAM(aLimBsH,"LimBsH",true,"Limit ratio base to height (Def=1e-2)", eSAM_NoInit)
                     << EAM(WithPoints,"WithPoints",true,"Do we add point cloud? (Def=true) ",eSAM_IsBool)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=false)",eSAM_IsBool)
                     << EAM(aFocs,"Focs",true,"Interval of Focal")
@@ -176,7 +176,7 @@ int AperiCloud_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -192,17 +192,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

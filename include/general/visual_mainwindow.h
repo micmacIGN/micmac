@@ -61,7 +61,9 @@ public:
     visual_MainWindow(vector<cMMSpecArg> &aVAM,
                       vector<cMMSpecArg> &aVAO,
                       std::string aFirstArg = "",
-                      QWidget *parent = 0);
+                      QString aLastDir = QDir::currentPath(),
+                      QWidget *parent = 0
+                      );
 
     ~visual_MainWindow();
 
@@ -95,9 +97,9 @@ public:
 
     void add_saisieButton(QGridLayout *layout, int aK, bool normalize);
 
-    void setSaisieWin(SaisieQtWindow* win){ _SaisieWin = win;}
+    void setSaisieWin(SaisieQtWindow* win){ _SaisieWin = win; }
 
-
+    void saveSettings();
 
 public slots:
 
@@ -110,8 +112,6 @@ public slots:
 
     void onRectanglePositionChanged(QVector <QPointF>);
     void onSaisieQtWindowClosed();
-
-    void dSpinBoxValueChanged(double);
 
 signals:
 
@@ -128,6 +128,7 @@ signals:
 protected:
 
     void resizeEvent(QResizeEvent *);
+    void closeEvent(QCloseEvent *event);
 
     int          id_unique;
     string       argv_recup;

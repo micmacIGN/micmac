@@ -89,7 +89,7 @@ int ConvertIm_main(int argc,char ** argv)
                 LArgMain()  << EAMC(aNameIn, "Image", eSAM_IsExistFile),
     LArgMain()  << EAM(aNameOut,"Out",true)
                 << EAM(anExt,"Ext",true)
-                    << EAM(aSzOut,"SzOut",false)
+                    << EAM(aSzOut,"SzOut",true, "Size out", eSAM_NoInit)
                     << EAM(aP0,"P0",true)
                     << EAM(aNameTypeOut,"Type",true, "TypeMNT", eSAM_None, ListOfVal(GenIm::bits1_msbf, ""))
                     << EAM(aNamePITOut,"Col",true, "Col", eSAM_None,lOut)
@@ -102,7 +102,7 @@ int ConvertIm_main(int argc,char ** argv)
                     << EAM(aDyn,"Dyn",true)
                     << EAM(aKCh,"KCh",true)
                     << EAM(aNoTile,"NoTile",true)
-                    << EAM(aVPermut,"Permut",false)
+                    << EAM(aVPermut,"Permut",true, "Permut", eSAM_NoInit)
                     << EAM(aF2,"F2",true)
     );
 

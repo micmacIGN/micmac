@@ -9,7 +9,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _layout_GLwidgets(new QGridLayout),
         _zoomLayout(new QGridLayout),
         _params(new cParameters),
-        _appMode(mode)
+        _appMode(mode),
+        _bSaved(false)
 {
     _ui->setupUi(this);
 
@@ -41,6 +42,10 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     tableView_PG()->setMouseTracking(true);
     tableView_Objects()->setMouseTracking(true);
+
+    _ui->menuTools->setEnabled(false);
+    _ui->menuTools->setVisible(false);
+    _ui->menuTools->hide();
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -340,7 +345,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         if (_appMode == MASK3D)
         {
             shortcuts.push_back("Ctrl+E");
-        actions.push_back(tr("save .xml selection infos"));
+            actions.push_back(tr("save .xml selection infos"));
         }
         shortcuts.push_back("Ctrl+S");
         actions.push_back(tr("save mask file"));
@@ -636,6 +641,7 @@ void SaisieQtWindow::on_actionLoad_image_triggered()
 void SaisieQtWindow::on_actionSave_masks_triggered()
 {
     _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+    _bSaved = true;
 }
 
 void SaisieQtWindow::on_actionSave_as_triggered()
@@ -1035,6 +1041,21 @@ void  SaisieQtWindow::setGamma(float aGamma)
 
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
+    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->size())
+    {
+        int reply = QMessageBox::question(this, tr("Warning"), tr("Save mask before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
+
+        if (reply == 2)
+        {
+            event->ignore();
+            return;
+        }
+        else if (reply == 0)
+        {
+            _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+        }
+    }
+
     emit sgnClose();
 
     if (zoomWidget())
@@ -1043,6 +1064,8 @@ void SaisieQtWindow::closeEvent(QCloseEvent *event)
     _params->write();
 
     event->accept();
+
+    QMainWindow::closeEvent(event);
 }
 
 void SaisieQtWindow::redraw(bool nbWidgetsChanged)
@@ -1172,6 +1195,7 @@ void SaisieQtWindow::undo(bool undo)
 
             undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
             currentWidget()->applyInfos();
+            _bSaved = false;
         }
     }
     else
@@ -1189,6 +1213,12 @@ void SaisieQtWindow::setAppMode(int appMode)
     _appMode = appMode;
 }
 
+QAction* SaisieQtWindow::addCommandTools(QString nameCommand)
+{
+    //_ui->menuTools->setVisible(true);
+
+    return _ui->menuTools->addAction(nameCommand);
+}
 
 void SaisieQtWindow::applyParams()
 {

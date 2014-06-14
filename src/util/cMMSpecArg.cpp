@@ -43,13 +43,10 @@ bool cMMSpecArg::IsOpt() const
 {
     return mIsOpt;
 }
-
 bool cMMSpecArg::IsInit() const
 {
-    return EAMIsInit(mEAM->AddrArg());
-    // return mEAM->IsInit();
+   return mEAM->Spec() != eSAM_NoInit;
 }
-
 bool cMMSpecArg::IsBool() const
 {
     return mEAM->Spec() == eSAM_IsBool;
@@ -74,6 +71,10 @@ bool cMMSpecArg::IsExistFile() const
 {
     return mEAM->Spec() == eSAM_IsExistFile;
 }
+bool cMMSpecArg::IsExistFileWithRelativePath() const
+{
+    return mEAM->Spec() == eSAM_IsExistFileRP;
+}
 bool cMMSpecArg::IsOutputFile() const
 {
     return mEAM->Spec() == eSAM_IsOutputFile;
@@ -81,6 +82,10 @@ bool cMMSpecArg::IsOutputFile() const
 bool cMMSpecArg::IsToNormalize() const
 {
     return mEAM->Spec() == eSAM_Normalize;
+}
+bool cMMSpecArg::IsForInternalUse() const
+{
+    return mEAM->Spec() == eSAM_InternalUse;
 }
 std::string cMMSpecArg::NameType() const
 {

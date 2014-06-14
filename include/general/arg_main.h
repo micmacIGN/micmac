@@ -204,8 +204,11 @@ typedef enum
     eSAM_IsExistDirOri,
     eSAM_IsOutputDirOri,
     eSAM_IsExistFile,
+    eSAM_IsExistFileRP, //Relative path
     eSAM_IsOutputFile,
-    eSAM_Normalize
+    eSAM_Normalize,
+    eSAM_NoInit,
+    eSAM_InternalUse
 } eSpecArgMain;
 
 typedef enum
@@ -444,7 +447,7 @@ class LArgMain
 // initialisee dans GenMain, utilisee dans ElInitArgMain
 extern bool MMVisualMode;
 
-void MMRunVisualMode
+int MMRunVisualMode
      (
          int argc,char ** argv,
          std::vector<cMMSpecArg> & aVAM,

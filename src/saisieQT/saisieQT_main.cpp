@@ -64,12 +64,12 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    app.setStyle("fusion");
+    //app.setStyle("fusion");
 
     // QT Modifie le comportement de sscanf !!!!! problematique quand on parse les fichiers XML
     setlocale(LC_NUMERIC,"C");
 
-    app.setOrganizationName("IGN");
+    app.setOrganizationName("Culture3D");
     app.setApplicationName("QT graphical tools");
 
     QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");

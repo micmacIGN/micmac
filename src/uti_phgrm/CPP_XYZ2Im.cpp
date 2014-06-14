@@ -74,7 +74,7 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
            LArgMain()  << EAMC(aFullNC,"Nuage or Cam", eSAM_IsExistFile)
                        << EAMC(aFilePtsIn,"File In : " + (Ter2Im ? XYZ : IJ), eSAM_IsExistFile)
                        << EAMC(aFilePtsOut,"File Out : " + (Ter2Im ? IJ : XYZ), eSAM_IsOutputFile),
-           LArgMain()  << EAM(aFilteredInput,"FilterInput",false,"To generate a file of input superposable to output",eSAM_IsOutputFile)
+           LArgMain()  << EAM(aFilteredInput,"FilterInput",true,"To generate a file of input superposable to output",eSAM_IsOutputFile)
                        << EAM(aPoinIsImRef,"PointIsImRef",true,"Point must be corrected from cloud resolution def = true")
        );
     }

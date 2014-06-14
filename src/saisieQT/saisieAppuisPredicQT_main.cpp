@@ -8,7 +8,7 @@ using namespace std;
 int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 {
     app.setApplicationName("SaisieAppuisPredicQT");
-    app.setOrganizationName("IGN");
+    app.setOrganizationName("Culture3D");
 
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 

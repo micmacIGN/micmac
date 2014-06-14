@@ -66,7 +66,7 @@ string g_toolsOptions; // contains arguments to pass to Pastis concerning detect
 std::string aDir,aPat,aPatOri;
 std::string aPat2="";
 std::string aFullDir;
-int aFullRes;
+int aFullRes = -1;
 cInterfChantierNameManipulateur * anICNM =0;
 std::string BinPastis;
 std::string MkFT;
@@ -823,7 +823,7 @@ int Tapioca_main(int argc,char ** argv)
         QStringList items;
 
         for (int aK=0; aK < aNbType; ++aK)
-            items << QString((Type[aK]).c_str());      
+            items << QString((Type[aK]).c_str());
 
         setStyleSheet(app);
 
@@ -837,7 +837,10 @@ int Tapioca_main(int argc,char ** argv)
             return EXIT_FAILURE;
     }
     else
+    {
+        ELISE_ASSERT(argc >= 2,"Not enough arg");
         TheType = argv[1];
+    }
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     TheType = argv[1];

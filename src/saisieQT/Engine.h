@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDir>
+#include <QImageReader>
 
 #include "Data.h"
 #include "general/bitm.h"
