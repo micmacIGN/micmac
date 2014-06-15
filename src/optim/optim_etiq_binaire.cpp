@@ -287,7 +287,6 @@ Im2D_REAL4 cProgDOLB::ImCost(Im2D_REAL4 aCostIn,int aNbDir,double aTeta0)
 Im2D_Bits<1> cProgDOLB::Sol()
 {
 
-Tiff_Im::Create8BFromFonc("cProgDOLB.tif",mSz,mCost.in());
 
     Im2D_REAL4 aImCostIn(mSz.x,mSz.y);
     ELISE_COPY(aImCostIn.all_pts(),(mCost.in()-128.0)/255.0,aImCostIn.out());
