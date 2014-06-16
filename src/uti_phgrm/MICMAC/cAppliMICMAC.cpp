@@ -2007,7 +2007,7 @@ void cAppliMICMAC::ExeProcessParallelisable
 #endif
       // creation d'un Makefile
       // Modif MPD, pour risque potentiel de crash sur MicMac concurent
-      std::string nomMakefile = WorkDir()+TmpMEC()+std::string("MakefileParallelisation") + GetUnikId();
+      std::string nomMakefile = ( isUsingSeparateDirectories()?MMTemporaryDirectory():WorkDir()+TmpMEC() )+std::string("MakefileParallelisation") + GetUnikId();
       std::ofstream fic(nomMakefile.c_str());
       int nbDalles = 0;
       //int numEtape = mCurEtape->Num();
