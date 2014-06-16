@@ -217,7 +217,7 @@ int MMRunVisualMode
     return appReturn;
 
 #endif //ELISE_QT_VERSION >= 4
-
+    return EXIT_SUCCESS;
 }
 
 
