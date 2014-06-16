@@ -530,7 +530,10 @@ int cQT_Interface::idCurrentCImage()
 
 int cQT_Interface::idCImage(cGLData* data)
 {
-    return idCImage(data->imageName());
+    if(data)
+        return idCImage(data->imageName());
+    else
+        return -1;
 }
 
 int cQT_Interface::idCImage(int idGlWidget)
@@ -563,6 +566,9 @@ cSP_PointeImage * cQT_Interface::pointeImage(cPointGlob* pg, int idWGL)
 
 void cQT_Interface::centerOnPtGlobal(int idWGL, cPointGlob* aPG)
 {
+    if(!m_QTMainWindow->getWidget(idWGL)->getGLData())
+        return;
+
     cSP_PointeImage* ptI = pointeImage(aPG, idWGL);
 
     if(ptI && ptI->Visible() && ptI->Saisie())
