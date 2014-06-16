@@ -44,8 +44,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
     tableView_Objects()->setMouseTracking(true);
 
     _ui->menuTools->setEnabled(false);
-    _ui->menuTools->setVisible(false);
-    _ui->menuTools->hide();
+
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -1215,7 +1214,7 @@ void SaisieQtWindow::setAppMode(int appMode)
 
 QAction* SaisieQtWindow::addCommandTools(QString nameCommand)
 {
-    //_ui->menuTools->setVisible(true);
+    _ui->menuTools->setEnabled(true);
 
     return _ui->menuTools->addAction(nameCommand);
 }

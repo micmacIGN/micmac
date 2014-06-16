@@ -97,8 +97,8 @@ public:
     GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
-    cPolygon* polygon(int id){ return m_GLData->polygon(id); }
-    cPolygon* polygon(){ return m_GLData->currentPolygon(); }
+    cPolygon* polygon(int id);
+    cPolygon* polygon();
 
     void setCursorShape(QPointF pos);
 
