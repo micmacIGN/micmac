@@ -4435,16 +4435,19 @@ CamStenope * Std_Cal_From_CIC
 
 CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantierNameManipulateur * anICNM)
 {
-   std::string aFullFileName = (anICNM ? anICNM->Dir() : "") + aNameFile;
+   std::string aFullFileName;
+   if ( isUsingSeparateDirectories() )
+      aFullFileName = MMOutputDirectory()+aNameFile;
+   else
+      aFullFileName = (anICNM ? anICNM->Dir() : "") + aNameFile;
 
     cElXMLTree aTree(aFullFileName);
     cElXMLTree * aF1 = aTree.Get("CalibrationInternConique");
-    if (aF1)
-       return Std_Cal_From_File(aFullFileName,"CalibrationInternConique");
-    cElXMLTree * aF2 = aTree.Get("OrientationConique");
-    if (aF2)
-       return Cam_Gen_From_File(aFullFileName,"OrientationConique",anICNM)->CS();
+    if (aF1) return Std_Cal_From_File(aFullFileName,"CalibrationInternConique");
 
+    cElXMLTree * aF2 = aTree.Get("OrientationConique");
+    if (aF2) return Cam_Gen_From_File(aFullFileName,"OrientationConique",anICNM)->CS();
+    
    std::cout << "For name " << aNameFile << "\n";
    ELISE_ASSERT(false,"Cannot Get Orientation from File");
    return 0;
@@ -4457,7 +4460,6 @@ CamStenope * Std_Cal_From_File
                    const std::string &  aNameTag
              )
 {
-///std::cout << "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\n";
    cCalibrationInternConique  aCIC =  StdGetObjFromFile<cCalibrationInternConique>
                   (
                         aNameFile,
@@ -4533,23 +4535,24 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 
           if (anICNM)
           {
+				 string outputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():anICNM->Dir() );
              if (anOC.RelativeNameFI().Val())
              {
-                std::string aNewName = anICNM->Dir()+aName;
+                std::string aNewName = outputDirectory+aName;
                 if (ELISE_fp::exist_file(aNewName))
                 {
                    aName = aNewName;
                 }
                 else
                 {
-                   aNewName = anICNM->Dir() + NameWithoutDir(aName);
+                   aNewName = outputDirectory + NameWithoutDir(aName);
                    if (ELISE_fp::exist_file(aNewName))
                    {
                          aName = aNewName;
                    }
                    else
                    {
-                       std::cout << "With dir = " <<  anICNM->Dir()  << " and file = " << aName << "\n";
+                       std::cout << "With dir = " <<  outputDirectory  << " and file = " << aName << "\n";
                        ELISE_ASSERT(false,"Cannot get internal file");
                    }
                 }

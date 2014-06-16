@@ -90,6 +90,7 @@ class cAppliMalt
 
           std::string mFullName;
           std::string mDir;
+          std::string mOutputDirectory;
           cInterfChantierNameManipulateur * mICNM;
           const cInterfChantierNameManipulateur::tSet * mSetIm;
           int         mNbIm;
@@ -367,7 +368,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       replace( mFullName.begin(), mFullName.end(), '\\', '/' );
 #endif
       SplitDirAndFile(mDir,mIms,mFullName);
-
+      setInputDirectory(mDir);
+      mOutputDirectory = (isUsingSeparateDirectories()?MMOutputDirectory():mDir);
 
 
 
@@ -414,7 +416,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
           {
               const std::string & aNameIm = (*mSetIm)[aKIm];
-              std::string aNameOri =  mICNM->Assoc1To1(aKeyOri,aNameIm,true);
+              std::string aNameOri = mICNM->Assoc1To1(aKeyOri,aNameIm,true);
 
               //ToDo: Faire evoluer ce code pour pouvoir gerer d'autres type d'orientation (Grille et RTO).
               // utilisation d'une ElCamera (avec cCameraModuleOrientation pour le cas des ModuleOrientation)

@@ -74,6 +74,7 @@ int Apero_main(int argc,char ** argv)
    ELISE_ASSERT(argc>=2,"Not enough arg");
 
    std::string aNameSauv = "SauvApero.xml";
+   if ( isUsingSeparateDirectories() ) aNameSauv=MMLogDirectory()+aNameSauv;
 
    cResultSubstAndStdGetFile<cParamApero> aP2
                                           ( argc-2,argv+2,

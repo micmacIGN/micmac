@@ -20240,6 +20240,39 @@ const cTplValGesInit< int > & cMMUserEnvironment::NbMaxProc()const
    return mNbMaxProc;
 }
 
+
+cTplValGesInit< bool > & cMMUserEnvironment::UseSeparateDirectories()
+{
+   return mUseSeparateDirectories;
+}
+
+const cTplValGesInit< bool > & cMMUserEnvironment::UseSeparateDirectories()const 
+{
+   return mUseSeparateDirectories;
+}
+
+
+cTplValGesInit< std::string > & cMMUserEnvironment::OutputDirectory()
+{
+   return mOutputDirectory;
+}
+
+const cTplValGesInit< std::string > & cMMUserEnvironment::OutputDirectory()const 
+{
+   return mOutputDirectory;
+}
+
+
+cTplValGesInit< std::string > & cMMUserEnvironment::LogDirectory()
+{
+   return mLogDirectory;
+}
+
+const cTplValGesInit< std::string > & cMMUserEnvironment::LogDirectory()const 
+{
+   return mLogDirectory;
+}
+
 void  BinaryUnDumpFromFile(cMMUserEnvironment & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -20274,6 +20307,30 @@ void  BinaryUnDumpFromFile(cMMUserEnvironment & anObj,ELISE_fp & aFp)
         }
         else  anObj.NbMaxProc().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.UseSeparateDirectories().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UseSeparateDirectories().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.UseSeparateDirectories().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OutputDirectory().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OutputDirectory().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OutputDirectory().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.LogDirectory().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.LogDirectory().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.LogDirectory().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMMUserEnvironment & anObj)
@@ -20286,6 +20343,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMMUserEnvironment & anObj)
     if (anObj.UserName().IsInit()) BinaryDumpInFile(aFp,anObj.UserName().Val());
     BinaryDumpInFile(aFp,anObj.NbMaxProc().IsInit());
     if (anObj.NbMaxProc().IsInit()) BinaryDumpInFile(aFp,anObj.NbMaxProc().Val());
+    BinaryDumpInFile(aFp,anObj.UseSeparateDirectories().IsInit());
+    if (anObj.UseSeparateDirectories().IsInit()) BinaryDumpInFile(aFp,anObj.UseSeparateDirectories().Val());
+    BinaryDumpInFile(aFp,anObj.OutputDirectory().IsInit());
+    if (anObj.OutputDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.OutputDirectory().Val());
+    BinaryDumpInFile(aFp,anObj.LogDirectory().IsInit());
+    if (anObj.LogDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.LogDirectory().Val());
 }
 
 cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
@@ -20300,6 +20363,12 @@ cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
       aRes->AddFils(::ToXMLTree(std::string("UserName"),anObj.UserName().Val())->ReTagThis("UserName"));
    if (anObj.NbMaxProc().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbMaxProc"),anObj.NbMaxProc().Val())->ReTagThis("NbMaxProc"));
+   if (anObj.UseSeparateDirectories().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UseSeparateDirectories"),anObj.UseSeparateDirectories().Val())->ReTagThis("UseSeparateDirectories"));
+   if (anObj.OutputDirectory().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OutputDirectory"),anObj.OutputDirectory().Val())->ReTagThis("OutputDirectory"));
+   if (anObj.LogDirectory().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("LogDirectory"),anObj.LogDirectory().Val())->ReTagThis("LogDirectory"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -20317,9 +20386,15 @@ void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree)
    xml_init(anObj.UserName(),aTree->Get("UserName",1),std::string("Anonymous")); //tototo 
 
    xml_init(anObj.NbMaxProc(),aTree->Get("NbMaxProc",1),int(10000000)); //tototo 
+
+   xml_init(anObj.UseSeparateDirectories(),aTree->Get("UseSeparateDirectories",1),bool(false)); //tototo 
+
+   xml_init(anObj.OutputDirectory(),aTree->Get("OutputDirectory",1)); //tototo 
+
+   xml_init(anObj.LogDirectory(),aTree->Get("LogDirectory",1)); //tototo 
 }
 
-std::string  Mangling( cMMUserEnvironment *) {return "567BE4BEA340E3C4FD3F";};
+std::string  Mangling( cMMUserEnvironment *) {return "121CD2EABC920CBEFDBF";};
 
 
 double & cItem::Scale()
