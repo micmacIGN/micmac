@@ -87,6 +87,17 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool re
     }
 }
 
+cPolygon *GLWidget::polygon(int id){ return m_GLData->polygon(id); }
+
+cPolygon *GLWidget::polygon(){
+
+    if(m_GLData)
+        return m_GLData->currentPolygon();
+    else
+        return NULL;
+
+}
+
 void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
 {
     QString name(aSom->NamePt().c_str());
@@ -279,7 +290,8 @@ void GLWidget::zoomFit()
 
 void GLWidget::selectPoint(QString namePt)
 {
-    polygon()->selectPoint(namePt);
+    if(polygon())
+        polygon()->selectPoint(namePt);
     update();
 }
 
