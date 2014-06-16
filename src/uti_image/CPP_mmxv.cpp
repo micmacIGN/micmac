@@ -85,7 +85,7 @@ int mmxv_main(int argc,char ** argv)
     {
         std::string aDir,aNewName;
         SplitDirAndFile(aDir,aNewName,aNameIm);
-        aNewName = aDir + "Tmp-MM-Dir/" + StdPrefix(aNewName) + "_8Bits.gif";
+        aNewName = ( isUsingSeparateDirectories()?MMTemporaryDirectory():aDir+"Tmp-MM-Dir/" ) + StdPrefix(aNewName) + "_8Bits.gif";
         if (FileStrictPlusRecent(aNameIm,aNewName))
         {
             std::string aCom = std::string("to8Bits ") + aNameIm + std::string(" 2XV=1 ");

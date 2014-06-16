@@ -438,7 +438,7 @@ void cPackObsLiaison::addFileToObservation(
 											bool i_isReverseFile // couples inside i_packFilename are to be reversed before use
 										  )
 {
-	std::string packFullFilename =  mAppli.DC()+i_packFilename;
+	std::string packFullFilename =  mAppli.OutputDirectory()+i_packFilename;
 	if (
 			( mAppli.NamePoseIsKnown(i_poseName1) && mAppli.NamePoseIsKnown(i_poseName2) ) &&
 			( ( i_poseName1!=i_poseName2 ) || ( !i_bd_liaison.AutoSuprReflexif().Val() ) )
@@ -532,12 +532,15 @@ cPackObsLiaison::cPackObsLiaison
 	{
 		std::string keyset =  aBDL.KeySet()[aKS];
 		cInterfChantierNameManipulateur * iChantierNM = mAppli.ICNM();
-		const std::vector<std::string> * aVName =  iChantierNM->Get(keyset);
+
+		if ( isUsingSeparateDirectories() ) iChantierNM->setDir( MMOutputDirectory() );
+		const std::vector<std::string> * aVName = iChantierNM->Get(keyset);
+		if ( isUsingSeparateDirectories() ) iChantierNM->setDir( MMInputDirectory() );
 
 		aNbTot += aVName->size();
 
 		if (1)
-		{			
+		{
 			// if none of inverse files exist, filenames are processed in inverse order
 			bool addReverseFile = true;
 			for 
@@ -548,7 +551,7 @@ cPackObsLiaison::cPackObsLiaison
 			)
 			{
 				pair<string,string> filenames = mAppli.ICNM()->Assoc2To1( aBDL.KeyAssoc()[aKS], *itN, false );
-				string reversePackname = mAppli.DC()+mAppli.ICNM()->Assoc1To2( aBDL.KeyAssoc()[aKS], filenames.second, filenames.first, true );
+				string reversePackname = mAppli.OutputDirectory()+mAppli.ICNM()->Assoc1To2( aBDL.KeyAssoc()[aKS], filenames.second, filenames.first, true );
 				if ( ELISE_fp::exist_file( reversePackname ) )
 				{
 					addReverseFile = false;
@@ -581,15 +584,13 @@ cPackObsLiaison::cPackObsLiaison
 						
 			if ( addReverseFile && mIsMult )
 			{
-				ELISE_ASSERT(mIsMult,"\"No-Multiple\" mode is not handled by the auto-reverse feature since it's a backward compatibility mode");
-
 				for 
 				(
 					std::vector<std::string>::const_iterator itN = aVName->begin();
 					itN!=aVName->end();
 					itN++
 				)
-				{				
+				{
 					std::pair<std::string,std::string> aPair = mAppli.ICNM()->Assoc2To1(aBDL.KeyAssoc()[aKS],*itN,false);
 					addFileToObservation( aPair.second, aPair.first, *itN, aBDL, aCpt, aKS==0, true );
 				}
@@ -852,6 +853,7 @@ void  cPackObsLiaison::GetPtsTerrain
                         mAppli.ICNM()->Assoc1To2(aPEP.KeyCalculMasq().Val(),aNameP,anAttr,true):
                         mAppli.ICNM()->StdCorrect(aPEP.KeyCalculMasq().Val(),aNameP,true);
                   aNameM = mAppli.DC() + aNameM;
+
                   Tiff_Im aTF = Tiff_Im::UnivConvStd(aNameM);
                   Pt2di aSz = aTF.sz();
                   aM = Im2D_Bits<1>(aSz.x,aSz.y);

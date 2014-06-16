@@ -6485,11 +6485,23 @@ class cMMUserEnvironment
 
         cTplValGesInit< int > & NbMaxProc();
         const cTplValGesInit< int > & NbMaxProc()const ;
+
+        cTplValGesInit< bool > & UseSeparateDirectories();
+        const cTplValGesInit< bool > & UseSeparateDirectories()const ;
+
+        cTplValGesInit< std::string > & OutputDirectory();
+        const cTplValGesInit< std::string > & OutputDirectory()const ;
+
+        cTplValGesInit< std::string > & LogDirectory();
+        const cTplValGesInit< std::string > & LogDirectory()const ;
     private:
         cTplValGesInit< std::string > mTiePDetect;
         cTplValGesInit< std::string > mTiePMatch;
         cTplValGesInit< std::string > mUserName;
         cTplValGesInit< int > mNbMaxProc;
+        cTplValGesInit< bool > mUseSeparateDirectories;
+        cTplValGesInit< std::string > mOutputDirectory;
+        cTplValGesInit< std::string > mLogDirectory;
 };
 cElXMLTree * ToXMLTree(const cMMUserEnvironment &);
 

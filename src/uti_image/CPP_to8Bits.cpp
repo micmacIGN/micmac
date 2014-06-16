@@ -400,11 +400,12 @@ cout << "Types = "
 */
         std::string aDir,aNewName;
         SplitDirAndFile(aDir,aNewName,aNameOut);
-        ELISE_fp::MkDir(aDir+"Tmp-MM-Dir/");
+        string outputDirectory = ( isUsingSeparateDirectories()?MMTemporaryDirectory():aDir+"Tmp-MM-Dir/" );
+        ELISE_fp::MkDir(outputDirectory);
 
         std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + " "
                            + aNameOut +  std::string(" ")
-                           + aDir+"Tmp-MM-Dir/"+StdPrefix(aNewName) + std::string(".gif ");
+                           + outputDirectory+StdPrefix(aNewName) + std::string(".gif ");
 
         system_call(aCom.c_str());
         ELISE_fp::RmFile( aNameOut );
