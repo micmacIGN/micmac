@@ -322,7 +322,10 @@ class cPolygon : public cObjectGL
 
         int     size(){ return _points.size(); }
 
-        cPoint & operator[](int ak){ return _points[ak]; }
+        cPoint & operator[](int ak){ return point(ak); }
+
+        cPoint & point(int ak){ return _points[ak]; }
+
         const cPoint & operator[](int ak) const { return _points[ak]; }
 
         cPolygon & operator = (const cPolygon &);
