@@ -205,16 +205,19 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
 
 	if (mOrder==true)
 	{
-		std::vector<std::string> aBuf;
+		std::vector<std::string> aBuf1, aBuf2;
 		for 
 		(int aK=0 ; aK <int(aVM.size()) ; aK++)
 		{
-			aBuf.push_back(aVM[aK].mNameIn);
+			aBuf1.push_back(aVM[aK].mNameIn);
+			aBuf2.push_back(aVM[aK].mNameOut);
 		}
 		for (int aK=0 ; aK <int(aVM.size()) ; aK++)
 		{
-			aVM[aK].mNameIn=aBuf.back();
-			aBuf.pop_back();
+			aVM[aK].mNameIn=aBuf1.back();
+			aBuf1.pop_back();
+			aVM[aK].mNameOut=aBuf2.back();
+			aBuf2.pop_back();
 		}
 	}	
 
@@ -239,15 +242,15 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
 
     for (int aK=0 ; aK <int(aVM.size()) ; aK++)
     {
-		std::string aSys;
+		;
 		if (mPrfNum!=0)
 		{
 			int aPrf=aK+mPrfNum;
 			stringstream ss;
 			ss << aPrf;
-			aSys = string(SYS_MV) + ' ' + ToStrBlkCorr(mDir+aVM[aK].mNameIn) + " " + ss.str() + ToStrBlkCorr(mDir+aVM[aK].mNameOut);
+			aVM[aK].mNameOut = ss.str() + aVM[aK].mNameOut;
 		}	
-		else{aSys = string(SYS_MV) + ' ' + ToStrBlkCorr(mDir+aVM[aK].mNameIn) + " " + ToStrBlkCorr(mDir+aVM[aK].mNameOut);}	
+		std::string aSys = string(SYS_MV) + ' ' + ToStrBlkCorr(mDir+aVM[aK].mNameIn) + " " + ToStrBlkCorr(mDir+aVM[aK].mNameOut);
 			  
 		std::cout << aSys << "\n";
 		if (mExe)
