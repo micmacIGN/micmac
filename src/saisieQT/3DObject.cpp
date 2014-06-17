@@ -673,6 +673,7 @@ void cPolygon::draw()
 {
     for (int aK=0; aK < size();++aK)
     {
+        // TODO a verifier le set scale à chaque draw!!
         point(aK).setScale(_scale);
         point(aK).draw();
     }
@@ -731,6 +732,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _style            = aP._style;
         _defPtName        = aP._defPtName;
 
+        // TODO a verifier
         _shiftStep        = _shiftStep;
     }
 
