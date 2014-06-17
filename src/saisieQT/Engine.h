@@ -122,8 +122,7 @@ public:
     void    loadImages(QStringList);
 
     //! Load image (and mask) file
-    void    loadImage(QString );
-    void    loadImage(int aK);
+    void    loadImage(QString imgName, float scaleFactor);
 
     void    reloadImage(int appMode, int aK);
 

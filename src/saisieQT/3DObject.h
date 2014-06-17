@@ -468,7 +468,7 @@ class cRectangle : public cPolygon
 class cImageGL : public cObjectGL
 {
     public:
-        cImageGL(float gamma = 1.0f);
+        cImageGL(float gamma = 1.f);
         ~cImageGL();
 
         void    draw(QColor color);
@@ -518,7 +518,6 @@ private:
         //! Texture image
         GLuint  _texture;
         float   _gamma;
-
 };
 
 template<class T>
@@ -527,11 +526,12 @@ class cMaskedImage : public cObject
 
 public:
 
-    cMaskedImage(float gamma = 1.0f):
+    cMaskedImage(float gamma = 1.f, float sFactor= 1.f):
         _m_image(NULL),
         _m_mask(NULL),
         _m_newMask(true),
-        _gamma(gamma)
+        _gamma(gamma),
+        _loadedImageRescaleFactor(sFactor)
     {}
 
     ~cMaskedImage()
@@ -558,6 +558,7 @@ public:
 
     bool        _m_newMask;
     float       _gamma;
+    float       _loadedImageRescaleFactor;
 
 };
 
@@ -575,6 +576,8 @@ public:
         _m_image->setScale(aScale);
         _m_mask->setScale(aScale);
     }
+
+    float getLoadedImageRescaleFactor() { return _loadedImageRescaleFactor; }
 
     void draw();
 
@@ -776,6 +779,7 @@ public:
     cCam*       camera(int iC){ return _vCams[iC]; }
 
     void        setPolygons(cData *data);
+
 private:
 
     cMaskedImageGL      _glMaskedImage;

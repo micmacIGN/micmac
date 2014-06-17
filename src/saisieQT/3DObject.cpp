@@ -1527,6 +1527,7 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
     _m_mask->PrepareTexture(qMaskedImage._m_mask);
     _m_image->PrepareTexture(qMaskedImage._m_image);
     _m_FileOriMnt = qMaskedImage._m_FileOriMnt;
+    _loadedImageRescaleFactor = qMaskedImage._loadedImageRescaleFactor;
     cObjectGL::setName(qMaskedImage.name());
 }
 
