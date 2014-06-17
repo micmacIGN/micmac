@@ -61,7 +61,7 @@ public:
 
     GlCloud*    loadCloud(string i_ply_file , int *incre = NULL);
 
-    void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
+    void        loadImage(QString aNameFile, QMaskedImage &maskedImg, float scaleFactor);
 
     //! Check if georeferencing data exists (for box2d mode)
     void        checkGeoref(QString aNameFile, QMaskedImage &maskedImg);
@@ -122,8 +122,7 @@ public:
     void    loadImages(QStringList);
 
     //! Load image (and mask) file
-    void    loadImage(QString );
-    void    loadImage(int aK);
+    void    loadImage(QString imgName, float scaleFactor);
 
     void    reloadImage(int appMode, int aK);
 
