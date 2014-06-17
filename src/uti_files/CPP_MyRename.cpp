@@ -93,6 +93,7 @@ class cAppliMyRename
        int         mForce;
        int         mForceDup;
        int         mAddF;
+       bool        mOrder;
        bool        mFull;
 };
 
@@ -102,6 +103,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
     mForce    (0),
     mForceDup (0),
     mAddF     (0),
+    mOrder    (false),
     mFull     (false)
 {
 
@@ -118,6 +120,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
                       << EAM(mAddF,"AddFoc",true)
                       << EAM(mFile2M,"File2M",true)
                       << EAM(mFull,"Full",true)
+                      << EAM(mOrder,"LastFirst",true,"Treat the last image first (Def=false)")
                       << EAM(mPatSubst,"PatSub","Can be diff from Pattern when use key")
     );
     SplitDirAndFile(mDir,mPat,aDP);
@@ -128,7 +131,6 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    const cInterfChantierNameManipulateur::tSet * aVecIm = aICNM->Get(mPat);
    std::list<std::string> aLIn (aVecIm->begin(),aVecIm->end());
-
 
    if (EAMIsInit(&mPatSubst))
       mPat = mPatSubst;
@@ -147,8 +149,36 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
     }
 
     cElRegex * anAutom = new cElRegex(mPat,10);
-
-    bool anOverW=false;
+/*
+    if (mOrder==true)
+	{
+		cout << "un !!!!!!!!!!\n";
+		std::list<std::string> aLInB;
+    	for
+    	(
+        	std::list<std::string>::const_iterator itS=aLIn.begin();
+        	itS!=aLIn.end();
+    		itS++
+    	)
+    	{
+			cout << *itS << endl;
+			aLInB.push_back(*itS);
+		}
+		aLIn.clear();
+		cout << "go !\n";
+    	for
+    	(
+        	std::list<std::string>::reverse_iterator itS=aLInB.rbegin();
+        	itS!=aLInB.rend();
+    		itS++
+    	)
+    	{
+			cout << *itS << endl;
+			aLIn.push_back(*itS);
+		}
+	}
+*/
+	bool anOverW=false;
     for
     (
         std::list<std::string>::const_iterator itS=aLIn.begin();
@@ -156,6 +186,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
     itS++
     )
     {
+	
         std::string aName=*itS;
         if (mAddF)
         {
@@ -197,6 +228,22 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
 
     std::sort(aVM.begin(),aVM.end());
 
+	if (mOrder==true)
+	{
+		std::vector<std::string> aBuf;
+		for 
+		(int aK=0 ; aK <int(aVM.size()) ; aK++)
+		{
+			aBuf.push_back(aVM[aK].mNameIn);
+			std::cout << aVM[aK].mNameIn << std::endl;
+		}
+		for (int aK=0 ; aK <int(aVM.size()) ; aK++)
+		{
+			aVM[aK].mNameIn=aBuf.back();
+			aBuf.pop_back();
+		}
+	}	
+
     if (!mForceDup)
     {
         bool aGotDup = false;
@@ -214,7 +261,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
             }
         }
         ELISE_ASSERT(!aGotDup,"Cannot force duplicata !! ");
-    }
+    }		
 
     for (int aK=0 ; aK <int(aVM.size()) ; aK++)
     {
