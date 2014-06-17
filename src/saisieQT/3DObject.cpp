@@ -637,7 +637,6 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
-    _bShowRefuted(true),
     _maxSz(maxSz)
 {
     setColor(pointColor);
@@ -660,7 +659,6 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
-    _bShowRefuted(true),
     _maxSz(maxSz)
 {
     if (!withHelper) _helper = NULL;
@@ -729,7 +727,6 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
 
         _bShowLines       = aP._bShowLines;
         _bShowNames       = aP._bShowNames;
-        _bShowRefuted     = aP._bShowRefuted;
 
         _style            = aP._style;
         _defPtName        = aP._defPtName;
@@ -932,12 +929,10 @@ const QVector<QPointF> cPolygon::getVector()
 {
     QVector <QPointF> points;
 
-    // TODO : ???? je ne comprends pas
-
     for(int aK=0; aK < size(); ++aK)
-    {
+
         points.push_back(point(aK));
-    }
+
 
     return points;
 }
@@ -1240,17 +1235,6 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
     }
 
     return inside;
-}
-
-void cPolygon::showRefuted(bool show)
-{
-    _bShowRefuted = show;
-
-    for (int aK=0; aK < size(); ++aK)
-    {
-        if (point(aK).statePoint() == eEPI_Refute)
-            point(aK).setVisible(_bShowRefuted);
-    }
 }
 
 //********************************************************************************

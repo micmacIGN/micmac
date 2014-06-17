@@ -364,41 +364,50 @@ class cPolygon : public cObjectGL
         void    showLines(bool show = true);
         bool    isLinear() { return _bShowLines; }
 
-        void    showRefuted(bool show);
-        bool    bShowRefuted() { return _bShowRefuted; }
-
         void    translate(QPointF Tr);
+
         cPoint  translateSelectedPoint(QPointF Tr);
 
         void    flipY(float height);
 
         float   getRadius()             { return _selectionRadius; }
+
         void    setRadius(float val)    { _selectionRadius = val;  }
 
         void    setParams(cParameters* aParams);
 
         float   getShiftStep()          { return _shiftStep; }
+
         void    setShiftStep(float val) { _shiftStep = val;  }
 
         bool    pointValid();
 
         void    setStyle(int style)     { _style = style; }
+
         void    setLineColor(QColor col){ _lineColor = col; }
 
         void    setMaxSize(int aMax)    { _maxSz = aMax; }
+
         int     getMaxSize()            { return _maxSz; }
 
         void    normalize(bool aBool)   { _bNormalize = aBool; }
 
 
     protected:
+
         cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
         QVector <cPoint>    _points;
+
         cPolygonHelper*     _helper;
+
         QColor              _lineColor;
+
         int                 _idx;
+
         int                 _style;
+
+
 
     private:
         float               _pointDiameter;
@@ -415,9 +424,6 @@ class cPolygon : public cObjectGL
 
         //!states if names should be displayed
         bool                _bShowNames;
-
-        //!states if refuted points should be displayed
-        bool                _bShowRefuted;
 
         QVector<qreal>      _dashes;
         QString             _defPtName;

@@ -299,16 +299,7 @@ void SaisieQtWindow::on_actionShow_names_toggled(bool show)
 
 void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 {
-    for (int aK = 0; aK < nbWidgets();++aK)
-    {
-        if (getWidget(aK)->hasDataLoaded())
-        {
-            getWidget(aK)->getGLData()->currentPolygon()->showRefuted(show);
-            getWidget(aK)->update();
-        }
-    }
-
-    emit showRefuted( show );
+    emit showRefuted( !show );
 }
 
 void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
