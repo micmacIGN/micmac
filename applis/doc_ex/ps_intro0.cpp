@@ -4,11 +4,11 @@
 typedef void (* ACT)(Plot_1d,Line_St);
 
    //************************
-   //  1-1
+   //  1-1  
    //************************
 
        //=======
-       //  1-1-1
+       //  1-1-1 
        //=======
 
 
@@ -77,7 +77,7 @@ void TEST_plot_Im2 (Plot_1d plot,Line_St)
 
 
        //=======
-       //  1 -2
+       //  1 -2 
        //=======
 
 
@@ -124,11 +124,11 @@ void TEST_plot_expr_Im1 (Plot_1d plot,Line_St)
 
 
    //************************
-   //  2
+   //  2  
    //************************
 
        //=======
-       //  2 -1
+       //  2 -1 
        //=======
 
 
@@ -150,7 +150,7 @@ void TEST_plot_rects (Plot_1d plot,Line_St)
 
 
        //=======
-       //  2 -2
+       //  2 -2 
        //=======
 
 
@@ -182,7 +182,7 @@ void TEST_plot_op_flx1 (Plot_1d plot,Line_St)
    //**************************
 
        //=======
-       //  3 -1
+       //  3 -1 
        //=======
 
 
@@ -190,23 +190,23 @@ void TEST_plot_out_image (Plot_1d plot,Line_St)
 {
      Im1D_REAL4 I (50);
 
-     ELISE_COPY
-     (
-         I.all_pts(),
+     ELISE_COPY 
+     ( 
+         I.all_pts(), 
          (FX%10) * 5,
          I.out()
      );
 
-     ELISE_COPY
-     (
-         I.all_pts(),
+     ELISE_COPY 
+     ( 
+         I.all_pts(), 
          I.in(),
          plot.out()
      );
 }
 
        //=======
-       //  3 -2
+       //  3 -2 
        //=======
 
 
@@ -214,9 +214,9 @@ void TEST_plot_oper_out_0(Plot_1d plot,Line_St lst)
 {
      Im1D_REAL4 I (50);
 
-     ELISE_COPY
-     (
-         I.all_pts(),
+     ELISE_COPY 
+     ( 
+         I.all_pts(), 
          cos(FX/2.0)*30,
          I.out() |  plot.out()
      );
@@ -224,9 +224,9 @@ void TEST_plot_oper_out_0(Plot_1d plot,Line_St lst)
      plot.set(NewlArgPl1d(PlModePl(Plots::line)));
      plot.set(NewlArgPl1d(PlotLinSty(lst)));
 
-     ELISE_COPY
-     (
-         I.all_pts(),
+     ELISE_COPY 
+     ( 
+         I.all_pts(), 
          -I.in(),
          plot.out()
      );
@@ -236,9 +236,9 @@ void TEST_plot_oper_out_1(Plot_1d plot,Line_St)
 {
      Im1D_REAL4 I (50);
 
-     ELISE_COPY
-     (
-         I.all_pts(),
+     ELISE_COPY 
+     ( 
+         I.all_pts(), 
          Square(FX)/50.0,
            I.out()
         |  plot.out()
@@ -267,15 +267,15 @@ void PS(const char * name,ACT action)
 
            char  buf[200];
            sprintf(buf,"DOC/PS/%s.eps",name);
-
+    
            PS_Display disp(buf,"Mon beau fichier ps",SOP,false);
 
            PS_Window  Wps = disp.w_centered_max(SZ,Pt2dr(4.0,4.0));
 
 
-     // define a window to draw simultaneously in
+     // define a window to draw simultaneously in 
 
-         Plot_1d  Plot1
+         Plot_1d  Plot1  
                   (
                         Wps,
                         Line_St(Pdisc(P8COL::green),3),
@@ -302,11 +302,8 @@ void PS(const char * name,ACT action)
 
 int  main(int,char **)
 {
-    std::cout << "go !";
     PS("Int_TEST_plot_FX",TEST_plot_FX);
-    std::cout<<"\¬rego !";
     PS("Int_TEST_plot_2",TEST_plot_2);
-    std::cout<"rrerrrego !";
     PS("Int_TEST_plot_Im0",TEST_plot_Im0);
 
     PS("Int_TEST_plot_Im1",TEST_plot_Im1);
