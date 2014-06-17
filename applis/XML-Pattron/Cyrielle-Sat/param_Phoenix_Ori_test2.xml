@@ -1,0 +1,125 @@
+<ParamMICMAC>
+
+<Section_Terrain>
+       <IntervParalaxe>
+             <Px1IncCalc>   100.0  </Px1IncCalc> <!-- champ de recherche en ligne -->
+             <Px2IncCalc>   1.0  </Px2IncCalc>
+	     <Px1Moy>   0.0  </Px1Moy>  <!-- biais de rech en ligne -->
+	     <Px2Moy>  11.0  </Px2Moy>
+       </IntervParalaxe>
+
+     <!--  <Planimetrie> -->
+       <!-- possibilite de definir une box terrain en coord terrain :  xmin ymin xmax ymax -->
+ <!--	<ListePointsInclus>>-->
+ <!--	    <Im>3V040717P0000419242S520000600222S_001558356.tif </Im>--> <!-- Definition d une sous image
+ <!--	    <Pt> 4000 8000 </Pt>-->
+ <!--	    <Pt> 3000 9000 </Pt>-->
+ <!--	</ListePointsInclus>-->
+ 
+
+ <!--	</Planimetrie> -->
+
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImage_Epip </GeomImages>
+     <Images >
+          <Im1> Img3.tif </Im1>
+          <Im2> Img4.tif </Im2>
+     </Images>
+     <NomsGeometrieImage>
+             <PatternSel> .*   </PatternSel>
+             <PatNameGeom> GridDistId  </PatNameGeom>
+     </NomsGeometrieImage>
+
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+	 <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel> <!-- fonction de correlation seulement -->
+             <AggregCorr> eAggregSymetrique </AggregCorr>
+
+             <AlgoRegul>   eAlgo2PrgDyn   </AlgoRegul>
+	     <ModulationProgDyn Portee="Globale">
+	           <EtapeProgDyn>
+		     <ModeAgreg> 		ePrgDAgrSomme 	</ModeAgreg>
+		     <NbDir>			8  		</NbDir>
+                  </EtapeProgDyn>		  
+             </ModulationProgDyn>
+
+             <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+
+	     <CoxRoy8Cnx>   true </CoxRoy8Cnx>
+	     <CoxRoyUChar>  false </CoxRoyUChar>
+
+             <SzW >      2             </SzW>  <!-- taille de la fenetre de correlation -->
+             <Px1Regul>      0.1  </Px1Regul> <!-- poids accorde a la regularisation -->
+             <Px2Regul >     0.05 </Px2Regul>
+             <Px1Pas>        0.5  </Px1Pas>
+             <Px2Pas >       0.25       </Px2Pas>
+	     <Px1DilatAlti>  3    </Px1DilatAlti> 
+             <Px1DilatPlani> 1    </Px1DilatPlani>
+             <Px2DilatAlti>  0     </Px2DilatAlti>
+             <Px2DilatPlani> 2   </Px2DilatPlani>
+
+
+             <GenImagesCorrel> true </GenImagesCorrel> 
+        </EtapeMEC>
+	     
+<!--	  <EtapeMEC>-->
+  <!--           <DeZoom >        32       </DeZoom>-->
+  <!--      </EtapeMEC> -->
+
+        <EtapeMEC>
+             <DeZoom >        16       </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+             <DeZoom >        8        </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+             <DeZoom >        4       </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+             <DeZoom >        2        </DeZoom>
+         </EtapeMEC>
+
+        <EtapeMEC>
+             <DeZoom >        1        </DeZoom>
+
+        </EtapeMEC>
+
+<!--        <EtapeMEC> -->
+    <!--          <Px1Pas>        0.25     </Px1Pas> -->
+    <!--          <DeZoom >     1        </DeZoom> -->
+    <!--     </EtapeMEC> -->
+	 
+
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomPxBiDim  </GeomMNT> 
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir> /cea/temp/b4/guerinc/etude_phoenix/ </WorkDir>
+     <TmpMEC>  MEC/  </TmpMEC>
+     <NomChantier> Phoenix </NomChantier>
+     <TmpPyr > Pyram/ </TmpPyr>
+     <ByProcess> 7 </ByProcess>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
