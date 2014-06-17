@@ -1121,7 +1121,10 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
             if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
             {
                 int imHeight = glW->getGLData()->glImage()._m_image->height();
-                text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(imHeight - pt.y(),'f',1)+" px");
+
+                float factor = glW->getGLData()->glImage().getLoadedImageRescaleFactor();
+
+                text =  QString(text + QString::number(pt.x()/factor,'f',1) + ", " + QString::number((imHeight - pt.y())/factor,'f',1)+" px");
             }
     }
 
