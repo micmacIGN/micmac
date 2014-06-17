@@ -764,7 +764,7 @@ void visual_MainWindow::add_3i_SpinBox(QGridLayout *layout, QWidget *parent, int
 {
     vector< pair < int, QWidget * > > vWidgets;
 
-    int nbItems = 4;
+    int nbItems = 3;
     for (int i=0; i< nbItems;++i)
     {
         QSpinBox *spinBox = create_1i_SpinBox(layout, parent, aK, i+1);
