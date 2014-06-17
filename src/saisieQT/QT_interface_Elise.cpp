@@ -609,12 +609,16 @@ cGLData *cQT_Interface::getGlData(cImage *image)
 
 Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
 {
-    return Pt2dr(pt.x(),getGlData(idImage)->glImage()._m_image->height() - pt.y());
+    float scaleFactor = getGlData(idImage)->glImage().getLoadedImageRescaleFactor();
+
+    return Pt2dr(pt.x()/scaleFactor,(getGlData(idImage)->glImage()._m_image->height() - pt.y())/scaleFactor);
 }
 
 QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
 {
-    return QPointF(pt.x,getGlData(idImage)->glImage()._m_image->height() - pt.y);
+    float scaleFactor = getGlData(idImage)->glImage().getLoadedImageRescaleFactor();
+
+    return QPointF(pt.x*scaleFactor,getGlData(idImage)->glImage()._m_image->height() - pt.y*scaleFactor);
 }
 
 void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int idImag)
