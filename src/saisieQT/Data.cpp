@@ -97,6 +97,11 @@ void cData::clear(int aK)
     if (_MaskedImages.size())   _MaskedImages[aK].deallocImages();
 }
 
+int cData::idPolygon(cPolygon *polygon)
+{
+    return _vPolygons.indexOf(polygon);
+}
+
 void cData::reset()
 {
     _min.x = _min.y = _min.z =  FLT_MAX;
