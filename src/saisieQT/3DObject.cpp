@@ -2101,7 +2101,7 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
                 if (mode == TRANSFORM_CAMERA)
                 {
                     displayNewMessage(QString("Move mode"),UPPER_CENTER_MESSAGE);
-                    displayNewMessage(QString("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+                    displayNewMessage(QString("Left click: rotate viewpoint / Middle click: translate viewpoint"),LOWER_CENTER_MESSAGE);
                 }
                 else if (mode == SELECTION)
                 {
