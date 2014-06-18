@@ -30,7 +30,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
 {
     //setAttribute( Qt::WA_DeleteOnClose );
 
-    moveArgs(aVAM, aVAO);
+
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 
@@ -39,6 +39,8 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     toolBox = new QToolBox();
 
     verticalLayout->addWidget(toolBox);
+
+    moveArgs(aVAM, aVAO);
 
     addGridLayout(aVAM, tr("&Mandatory arguments"));
 
@@ -96,14 +98,20 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
     }
 
     //Remove arg for internal use
+    bool bHasBox2D = false;
     for (int aK=0; aK < (int) aVAO.size(); aK++)
     {
-        if (aVAO[aK].IsForInternalUse())
+        cMMSpecArg arg = aVAO[aK];
+
+        if (arg.IsForInternalUse())
         {
             aVAO.erase(aVAO.begin() + aK);
             aK--;
         }
+        else if (( arg.Type() ==  AMBT_Box2di ) || ( arg.Type() ==  AMBT_Box2dr ) ) bHasBox2D = true;
     }
+
+    if ((bHasBox2D) && (toolBox != NULL)) toolBox->setMinimumWidth(675);
 
     //Sort optional args
     cCmpMMSpecArg aCmpMMSpecArg;
@@ -259,7 +267,7 @@ void visual_MainWindow::onRunCommandPressed()
             {
                 QLineEdit* lEdit = (QLineEdit*) aIn->Widgets()[0].second;
 
-                QString txt = lEdit->text();
+                QString txt = lEdit->text().simplified();
 
                 if (aIn->Arg().IsExistFileWithRelativePath())
                 {
