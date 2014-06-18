@@ -322,7 +322,10 @@ class cPolygon : public cObjectGL
 
         int     size(){ return _points.size(); }
 
-        cPoint & operator[](int ak){ return _points[ak]; }
+        cPoint & operator[](int ak){ return point(ak); }
+
+        cPoint & point(int ak){ return _points[ak]; }
+
         const cPoint & operator[](int ak) const { return _points[ak]; }
 
         cPolygon & operator = (const cPolygon &);
@@ -361,41 +364,50 @@ class cPolygon : public cObjectGL
         void    showLines(bool show = true);
         bool    isLinear() { return _bShowLines; }
 
-        void    showRefuted(bool show);
-        bool    bShowRefuted() { return _bShowRefuted; }
-
         void    translate(QPointF Tr);
+
         cPoint  translateSelectedPoint(QPointF Tr);
 
         void    flipY(float height);
 
         float   getRadius()             { return _selectionRadius; }
+
         void    setRadius(float val)    { _selectionRadius = val;  }
 
         void    setParams(cParameters* aParams);
 
         float   getShiftStep()          { return _shiftStep; }
+
         void    setShiftStep(float val) { _shiftStep = val;  }
 
         bool    pointValid();
 
         void    setStyle(int style)     { _style = style; }
+
         void    setLineColor(QColor col){ _lineColor = col; }
 
         void    setMaxSize(int aMax)    { _maxSz = aMax; }
+
         int     getMaxSize()            { return _maxSz; }
 
         void    normalize(bool aBool)   { _bNormalize = aBool; }
 
 
     protected:
+
         cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
         QVector <cPoint>    _points;
+
         cPolygonHelper*     _helper;
+
         QColor              _lineColor;
+
         int                 _idx;
+
         int                 _style;
+
+
 
     private:
         float               _pointDiameter;
@@ -412,9 +424,6 @@ class cPolygon : public cObjectGL
 
         //!states if names should be displayed
         bool                _bShowNames;
-
-        //!states if refuted points should be displayed
-        bool                _bShowRefuted;
 
         QVector<qreal>      _dashes;
         QString             _defPtName;
@@ -459,7 +468,7 @@ class cRectangle : public cPolygon
 class cImageGL : public cObjectGL
 {
     public:
-        cImageGL(float gamma = 1.0f);
+        cImageGL(float gamma = 1.f);
         ~cImageGL();
 
         void    draw(QColor color);
@@ -509,7 +518,6 @@ private:
         //! Texture image
         GLuint  _texture;
         float   _gamma;
-
 };
 
 template<class T>
@@ -518,11 +526,12 @@ class cMaskedImage : public cObject
 
 public:
 
-    cMaskedImage(float gamma = 1.0f):
+    cMaskedImage(float gamma = 1.f, float sFactor= 1.f):
         _m_image(NULL),
         _m_mask(NULL),
         _m_newMask(true),
-        _gamma(gamma)
+        _gamma(gamma),
+        _loadedImageRescaleFactor(sFactor)
     {}
 
     ~cMaskedImage()
@@ -549,6 +558,7 @@ public:
 
     bool        _m_newMask;
     float       _gamma;
+    float       _loadedImageRescaleFactor;
 
 };
 
@@ -566,6 +576,8 @@ public:
         _m_image->setScale(aScale);
         _m_mask->setScale(aScale);
     }
+
+    float getLoadedImageRescaleFactor() { return _loadedImageRescaleFactor; }
 
     void draw();
 
@@ -767,6 +779,7 @@ public:
     cCam*       camera(int iC){ return _vCams[iC]; }
 
     void        setPolygons(cData *data);
+
 private:
 
     cMaskedImageGL      _glMaskedImage;

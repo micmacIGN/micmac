@@ -51,6 +51,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) : 
    mParam             (*(aParam.mObj)),
    mDC                (aParam.mDC),
+   mOutputDirectory   ( isUsingSeparateDirectories()?MMOutputDirectory():mDC ),
    mICNM              (aParam.mICNM),
    mSetEq             (ToNS_EqF(mParam.ModeResolution()),1),
    mAMD               (0),
@@ -91,7 +92,7 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mCptIterCompens    (0),
    mHasEqDr           (false)
 {
-
+     setInputDirectory( mDC );
      std::string aNameFileDebug;
      if (mParam.FileDebug().IsInit())
      {
@@ -448,6 +449,7 @@ Im2D_Bits<1> * cAppliApero::MasqHom(const std::string & aName)
       return 0;
 
   Tiff_Im aFile = Tiff_Im::StdConvGen(mDC+aNamMasq,1,true,false);
+
   Pt2di aSz = aFile.sz();
   Im2D_Bits<1> aRes(aSz.x,aSz.y);
   ELISE_COPY(aRes.all_pts(),aFile.in_bool(),aRes.out());
@@ -785,6 +787,7 @@ const cParamApero & cAppliApero::Param() const {return mParam;}
 cSetEqFormelles &   cAppliApero::SetEq()       {return mSetEq;}
 
 const std::string &   cAppliApero::DC() const {return mDC;}
+const std::string &   cAppliApero::OutputDirectory() const { return mOutputDirectory; }
 bool  cAppliApero::HasEqDr() const { return mHasEqDr; }
 
 cInterfChantierNameManipulateur * cAppliApero::ICNM()

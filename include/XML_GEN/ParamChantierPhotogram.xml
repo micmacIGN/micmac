@@ -1520,6 +1520,9 @@
          <TiePMatch  Nb="?" Type="std::string">  </TiePMatch> <!-- Ou  mm3d:Ann -->
          <UserName  Nb="?" Type="std::string" Def="Anonymous">  </UserName> <!-- Ou  mm3d:Ann -->
          <NbMaxProc  Nb="?" Type="int" Def="10000000">  </NbMaxProc> <!-- Ou  mm3d:Ann -->
+         <UseSeparateDirectories Nb="?" Type="bool" Def="false"> </UseSeparateDirectories>
+         <OutputDirectory  Nb="?" Type="std::string">  </OutputDirectory>
+         <LogDirectory  Nb="?" Type="std::string">  </LogDirectory>
     </MMUserEnvironment>
 
 <SelectionInfos Nb="1" Class="true" ToReference="true">

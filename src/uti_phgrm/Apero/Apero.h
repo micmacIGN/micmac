@@ -1890,6 +1890,7 @@ class cAppliApero : public NROptF1vND
 
 	bool NamePoseIsKnown(const std::string &) const;
         const std::string &  DC() const;
+        const std::string &  OutputDirectory() const;
         bool  HasEqDr() const;
 
         const std::string & NameCalOfPose(const std::string &);
@@ -2270,6 +2271,7 @@ class cAppliApero : public NROptF1vND
 
         cParamApero     mParam;
         std::string     mDC;
+        std::string     mOutputDirectory;
 	cInterfChantierNameManipulateur * mICNM;
 
 

@@ -923,7 +923,10 @@ void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
    if (aCode==0)
       StdEXIT(0);
 
-   std::string aFileName = Dir2Write() + "MM-Error-"+ GetUnikId() + ".txt";
+	std::string aFileName = ( isUsingSeparateDirectories() ?
+	                          MMTemporaryDirectory() + "MM-Error-"+ GetUnikId() + ".txt" :
+	                          Dir2Write() + "MM-Error-"+ GetUnikId() + ".txt" );
+
    FILE * aFP = fopen(aFileName.c_str(),"a+");
    if (aFP)
    {
@@ -1365,6 +1368,8 @@ mICNM           (0),
         aNbArgGlob
         );
 
+    setInputDirectory( mDirChantier );
+    
 #if (ELISE_windows)
     replace( mDirChantier.begin(), mDirChantier.end(),'\\', '/' );
 #endif
