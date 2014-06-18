@@ -313,7 +313,7 @@ getchar();
 
    aNuage.Orientation() = aCam->StdExportCalibGlob();
    if (aZUP)
-       aNuage.Orientation().ZoneUtilInPixel().SetVal(true);
+       aNuage.Orientation().ZoneUtileInPixel().SetVal(true);
    if (ToDel)
       delete aCam;
 /*

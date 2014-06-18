@@ -835,7 +835,7 @@ const char * (theNameVar_ParamChantierPhotogram[1557]) = {
 "\n",
 "\n",
 "        <TypeProj Nb=\"?\" Type=\"eTypeProjectionCam\" Def=\"eProjStenope\"> </TypeProj>\n",
-"        <ZoneUtilInPixel Nb=\"?\" Type=\"bool\" Def=\"false\"> </ZoneUtilInPixel>\n",
+"        <ZoneUtileInPixel Nb=\"?\" Type=\"bool\" Def=\"false\"> </ZoneUtileInPixel>\n",
 "        <Interne Nb=\"?\" RefType=\"CalibrationInternConique\"> </Interne>\n",
 "        <FileInterne Nb=\"?\" Type=\"std::string\"> </FileInterne>\n",
 "        <!-- Par compat ancien fichier genere, Def  = false -->\n",
