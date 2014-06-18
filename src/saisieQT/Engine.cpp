@@ -26,19 +26,10 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     if ( scaleFactor != 1.f )
     {
         rescaleImg = true;
-        //cout << max << " " << maskedImg._m_image->width() << " " << maskedImg._m_image->height() << endl;
 
         QImageReader *reader = new QImageReader(aNameFile);
 
-        // Read image current size
-        QSize imageSize = reader->size();
-        QSize newSize = QSize(imageSize.width()*scaleFactor, imageSize.height()*scaleFactor);
-
-        //cout << "image size before : " << imageSize.width() << " " << imageSize.height() << endl;
-        //cout << "image size after : " << newSize.width() << " " << newSize.height() << endl;
-
-        // Scale image
-        //newSize.scale(QSize(max,max), Qt::KeepAspectRatio);
+        QSize newSize = reader->size()*scaleFactor;
 
         //cout << "new size: " << newSize.width() << " " << newSize.height() << endl;
 

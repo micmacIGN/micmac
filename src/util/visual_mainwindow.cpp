@@ -805,7 +805,7 @@ void visual_MainWindow::set_argv_recup(string argv)
 {
     argv_recup = argv;
 
-    if (mFirstArg != "") setWindowTitle( QString((argv + " " + mFirstArg).c_str()) );
+    setWindowTitle( QString((argv + " " + mFirstArg).c_str()) );
 }
 
 void visual_MainWindow::resizeEvent(QResizeEvent *)
