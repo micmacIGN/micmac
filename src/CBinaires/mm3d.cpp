@@ -102,22 +102,14 @@ void LogTime(FILE * aFp,const std::string & aMes)
   fprintf(aFp," PID : %d ;   %s %s",mm_getpid(),aMes.c_str(),asctime (timeinfo));
 }
 
-void LogIn(int  argc,char **  argv,const std::string & aDir,int aFlagQuote)
+void LogIn(int  argc,char **  argv,const std::string & aDir)
 {
    if (! DOLOG_MM3d) return;
    FILE * aFp = FileLogMM3d(aDir);
 
-
-   fprintf(aFp,"================================================================= \n");
+   fprintf(aFp,"=================================================================\n");
    for (int aK=0 ; aK< argc ; aK++)
-   {
-       // Pour l'instant on fait le quote selectif
-       if ( aFlagQuote & (1<<aK))
-          fprintf(aFp,"\"%s\" ",argv[aK]);
-       else
-          fprintf(aFp,"%s ",argv[aK]);
-    }
-
+       fprintf(aFp,"%s ",argv[aK]);
    fprintf(aFp,"\n");
    LogTime(aFp,"[Beginning at ]");
 
@@ -190,8 +182,6 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
-       aRes.push_back(cMMCom("CASA",CASA_main,"Compute Analytical Surface "));
-
        aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Change coordinate system of orientation",cArgLogCom(2)));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
@@ -483,9 +473,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    // puisqu le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
    // bool aValInit_TheExitOnBrkp=TheExitOnBrkp;
    // TheExitOnBrkp=true;
-    setlocale(LC_ALL,"C");
-    MMD_InitArgcArgv( argc, argv );
-    setlocale(LC_ALL,"C");
+   MMD_InitArgcArgv( argc, argv );
     // TheExitOnBrkp=true;
 
    // On reactive le blocage par defaut
@@ -509,23 +497,15 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        {
           cArgLogCom aLog = aVComs[aKC].mLog;
           bool DoLog = (aLog.mNumArgDir >0) && (aLog.mNumArgDir<argc);
-          if (DoLog)
-          {
-               int aFlagQuote = 0;
-               if (aLog.mNumArgDir >=0)
-                   aFlagQuote |= (1<<aLog.mNumArgDir);
-
-               LogIn(argc,argv,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup,aFlagQuote);
+          string outDirectory;
+          if (DoLog){
+             outDirectory = ( isUsingSeparateDirectories()?MMLogDirectory():DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup );
+             LogIn( argc, argv, outDirectory );
           }
-          // On balaye les merdes de QT
-          setlocale(LC_ALL,"C");
+
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
-
-          if (DoLog)
-          {
-               LogOut(aRes,DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup);
-          }
-
+          if (DoLog) LogOut( aRes, outDirectory );
+          
           delete PatMach;
           delete PrefMach;
           delete SubMach;
@@ -568,7 +548,6 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
 int main(int argc,char ** argv)
 {
-     setlocale(LC_ALL,"C");
 
     return GenMain(argc,argv, getAvailableCommands());
 }

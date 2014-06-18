@@ -30,7 +30,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
 {
     //setAttribute( Qt::WA_DeleteOnClose );
 
-    moveArgs(aVAM, aVAO);
+
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 
@@ -39,6 +39,8 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     toolBox = new QToolBox();
 
     verticalLayout->addWidget(toolBox);
+
+    moveArgs(aVAM, aVAO);
 
     addGridLayout(aVAM, tr("&Mandatory arguments"));
 
@@ -70,7 +72,7 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
     {
         cMMSpecArg arg = aVAM[aK];
 
-        if (( arg.Type() == AMBT_string ) && (*(arg.DefaultValue<string>()) != "GeomImage")) bGeomImg = true;
+        if (( arg.Type() == AMBT_string ) && (*(arg.DefaultValue<string>()) == "GeomImage")) bGeomImg = true;
         if (bGeomImg) break;
     }
 
@@ -96,13 +98,24 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
     }
 
     //Remove arg for internal use
+    bool bHasBox2D = false;
     for (int aK=0; aK < (int) aVAO.size(); aK++)
     {
-        if (aVAO[aK].IsForInternalUse())
+        cMMSpecArg arg = aVAO[aK];
+
+        if (arg.IsForInternalUse())
         {
             aVAO.erase(aVAO.begin() + aK);
             aK--;
         }
+        else if (( arg.Type() ==  AMBT_Box2di ) || ( arg.Type() ==  AMBT_Box2dr ) ) bHasBox2D = true;
+    }
+
+    //set minimum width
+    if  (toolBox != NULL)
+    {
+        if (bHasBox2D) toolBox->setMinimumWidth(670);
+        else toolBox->setMinimumWidth(470);
     }
 
     //Sort optional args
@@ -259,7 +272,7 @@ void visual_MainWindow::onRunCommandPressed()
             {
                 QLineEdit* lEdit = (QLineEdit*) aIn->Widgets()[0].second;
 
-                QString txt = lEdit->text();
+                QString txt = lEdit->text().simplified();
 
                 if (aIn->Arg().IsExistFileWithRelativePath())
                 {
@@ -764,7 +777,7 @@ void visual_MainWindow::add_3i_SpinBox(QGridLayout *layout, QWidget *parent, int
 {
     vector< pair < int, QWidget * > > vWidgets;
 
-    int nbItems = 4;
+    int nbItems = 3;
     for (int i=0; i< nbItems;++i)
     {
         QSpinBox *spinBox = create_1i_SpinBox(layout, parent, aK, i+1);
@@ -805,7 +818,7 @@ void visual_MainWindow::set_argv_recup(string argv)
 {
     argv_recup = argv;
 
-    if (mFirstArg != "") setWindowTitle( QString((argv + " " + mFirstArg).c_str()) );
+    setWindowTitle( QString((argv + " " + mFirstArg).c_str()) );
 }
 
 void visual_MainWindow::resizeEvent(QResizeEvent *)

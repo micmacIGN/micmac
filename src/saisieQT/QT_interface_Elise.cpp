@@ -530,7 +530,10 @@ int cQT_Interface::idCurrentCImage()
 
 int cQT_Interface::idCImage(cGLData* data)
 {
-    return idCImage(data->imageName());
+    if(data)
+        return idCImage(data->imageName());
+    else
+        return -1;
 }
 
 int cQT_Interface::idCImage(int idGlWidget)
@@ -563,6 +566,9 @@ cSP_PointeImage * cQT_Interface::pointeImage(cPointGlob* pg, int idWGL)
 
 void cQT_Interface::centerOnPtGlobal(int idWGL, cPointGlob* aPG)
 {
+    if(!m_QTMainWindow->getWidget(idWGL)->getGLData())
+        return;
+
     cSP_PointeImage* ptI = pointeImage(aPG, idWGL);
 
     if(ptI && ptI->Visible() && ptI->Saisie())
@@ -603,12 +609,16 @@ cGLData *cQT_Interface::getGlData(cImage *image)
 
 Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
 {
-    return Pt2dr(pt.x(),getGlData(idImage)->glImage()._m_image->height() - pt.y());
+    float scaleFactor = getGlData(idImage)->glImage().getLoadedImageRescaleFactor();
+
+    return Pt2dr(pt.x()/scaleFactor,(getGlData(idImage)->glImage()._m_image->height() - pt.y())/scaleFactor);
 }
 
 QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
 {
-    return QPointF(pt.x,getGlData(idImage)->glImage()._m_image->height() - pt.y);
+    float scaleFactor = getGlData(idImage)->glImage().getLoadedImageRescaleFactor();
+
+    return QPointF(pt.x*scaleFactor,getGlData(idImage)->glImage()._m_image->height() - pt.y*scaleFactor);
 }
 
 void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int idImag)

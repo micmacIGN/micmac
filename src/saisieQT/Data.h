@@ -44,6 +44,8 @@ class cData
         QImage *       getMask(int aK)   { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_mask  : NULL; }
         cPolygon*      getPolygon(int aK){ return _vPolygons[aK]; }
 
+        int            idPolygon(cPolygon* polygon);
+
         QMaskedImage&  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
 
         void    computeBBox();

@@ -173,7 +173,7 @@ void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, str
     double round_ = 10;
     int    round_scaleFactor = round_ni( ( 1/scaleFactor )*round_ );
 
-    o_grayscaleFilename = aDir + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
+    o_grayscaleFilename = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
             + std::string("_Teta0_") + StdPrefixGen( i_baseName ) + ".tif";
 }
 
@@ -242,7 +242,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Size of High Resolution Images"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(ByP,"ByP",true,"By process")
-                << EAM(PostFix,"PostFix",true, "Add post fix in directory")
+                << EAM(PostFix,"PostFix",false, "Add post fix in directory")
                 << EAM(aNbMinPt,"NbMinPt",true,"Minimum number of points")
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                 << EAM(aPat2,"Pat2",true, "Second pattern", eSAM_IsPatFile)
@@ -310,7 +310,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
                             << EAMC(aFullRes,"Size of image"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",true, "Add post fix in directory")
+                << EAM(PostFix,"PostFix",false, "Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(aPat2,"Pat2",true,"Second pattern", eSAM_IsPatFile)
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
@@ -358,7 +358,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Image size")
                             << EAMC(aNbAdj,"Number of adjacent images to look for"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",true,"Add post fix in directory")
+                << EAM(PostFix,"PostFix",false,"Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
@@ -417,7 +417,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"XML-File of pair", eSAM_IsExistFile)
                             << EAMC(aFullRes,"Resolution",eSAM_None),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",true,"Add post fix in directory")
+                << EAM(PostFix,"PostFix",false,"Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
                 << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
@@ -451,11 +451,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
 
 void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName )
 {
-    /*
-     o_keypointsName = aDir+"Pastis/LBPp"+i_basename+".dat";
-     */
-
-    o_keypointsName = aDir + anICNM->Assoc1To2( "eModeLeBrisPP-Pastis-PtInt", i_basename, ToString( i_resolution ), true) ;
+    o_keypointsName = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + anICNM->Assoc1To2( "eModeLeBrisPP-Pastis-PtInt", i_basename, ToString( i_resolution ), true) ;
 }
 
 // create a makefile to compute keypoints for all images Using Pastis' filenames format
@@ -469,7 +465,7 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
             //grayscaleDirectory, grayscaleBasename,
             command;
 
-    if ( !ELISE_fp::MkDirSvp( aDir+"Pastis" ) )
+    if ( !ELISE_fp::MkDirSvp( ( isUsingSeparateDirectories()?MMOutputDirectory():aDir )+"Pastis" ) )
     {
         cerr << "ERROR: creation of directory [" << aDir+"Pastis" << "] failed" << endl;
         ElEXIT( EXIT_FAILURE,std::string("Creating dir ") + aDir+"Pastis" );
@@ -823,23 +819,27 @@ int Tapioca_main(int argc,char ** argv)
         QStringList items;
 
         for (int aK=0; aK < aNbType; ++aK)
-            items << QString((Type[aK]).c_str());
+            items << QString((Type[aK]).c_str());        
 
         setStyleSheet(app);
 
+        int  defaultItem = 0;
+
+        if(argc > 1)
+            defaultItem = items.indexOf(QString(argv[1]));
+
         bool ok = false;
         QString item = QInputDialog::getItem(NULL, app.applicationName(),
-                                             QString ("Strategy"), items, 0, false, &ok);
+                                             QString ("Strategy"), items, defaultItem, false, &ok);
 
         if (ok && !item.isEmpty())
             TheType = item.toStdString();
         else
             return EXIT_FAILURE;
     }
-    else
-    {
-        ELISE_ASSERT(argc >= 2,"Not enough arg");
-        TheType = argv[1];
+    else{
+       ELISE_ASSERT(argc >= 2,"Not enough arg");
+       TheType = argv[1];
     }
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
@@ -877,7 +877,10 @@ int Tapioca_main(int argc,char ** argv)
     }
 */
 
-    MkFT= aDir  + "MkTapioca";
+    if ( isUsingSeparateDirectories() )
+       MkFT= MMTemporaryDirectory()+"MkTapioca";
+    else
+       MkFT= aDir  + "MkTapioca";
     // MkFT= MMDir() + "MkTapioca";
     //BinPastis = MM3dBinFile("Pastis");
     BinPastis = MM3dBinFile_quotes("Pastis");

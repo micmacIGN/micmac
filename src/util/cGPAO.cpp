@@ -52,6 +52,8 @@ cElCommand::cElCommand( const char *i_command ){ push_back(string(i_command)); }
 cElCommand::cElCommand( const string &i_command ){ push_back(i_command); }
 #endif
 
+const string temporarySubdirectory = "Tmp-MM-Dir/";
+
 int Round(double aV,double aSup,double aInf)
 {
   double aVal = aV / aSup;
@@ -160,8 +162,12 @@ void cEl_GPAO::DoComInParal(const std::list<std::string> & aL,std::string  FileM
    // tente un unique Id sur ces makefiles ...
 
 
-    if (FileMk=="") 
-       FileMk = Dir2Write() + "MkStdMM" +GetUnikId();
+    if (FileMk==""){
+       if ( isUsingSeparateDirectories() )
+          FileMk = MMTemporaryDirectory() + "MkStdMM" +GetUnikId();
+       else
+          FileMk = Dir2Write() + "MkStdMM" +GetUnikId();
+    }
     else  if (Exe)
     {
        FileMk = FileMk + GetUnikId();
@@ -236,9 +242,10 @@ void MkFMapCmd
 
 
     cEl_GPAO aGPAO;
+    string targetPath = ( isUsingSeparateDirectories()?MMTemporaryDirectory():aDir+aBeforeTarget );
     for (int aK=0 ; aK<int(aSet.size())  ; aK++)
     {
-        std::string aTarget = aDir + aBeforeTarget + aSet[aK] + anAfterTarget;
+        std::string aTarget = targetPath + aSet[aK] + anAfterTarget;
         std::string aCom = aBeforeCom +  aDir+ aSet[aK] + anAfterCom;
         aGPAO.GetOrCreate(aTarget,aCom);
         aGPAO.TaskOfName("all").AddDep(aTarget);

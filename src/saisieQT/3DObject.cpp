@@ -637,7 +637,6 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
-    _bShowRefuted(true),
     _maxSz(maxSz)
 {
     setColor(pointColor);
@@ -660,7 +659,6 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
     _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
-    _bShowRefuted(true),
     _maxSz(maxSz)
 {
     if (!withHelper) _helper = NULL;
@@ -673,10 +671,11 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
 
 void cPolygon::draw()
 {
-    for (int aK=0; aK < _points.size();++aK)
+    for (int aK=0; aK < size();++aK)
     {
-        _points[aK].setScale(_scale);
-        _points[aK].draw();
+        // TODO a verifier le set scale à chaque draw!!
+        point(aK).setScale(_scale);
+        point(aK).draw();
     }
 
     if(isVisible())
@@ -698,9 +697,9 @@ void cPolygon::draw()
 
             //draw segments
             glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
-            for (int aK = 0;aK < _points.size(); ++aK)
+            for (int aK = 0;aK < size(); ++aK)
             {
-                QPointF aPt = _points[aK].scaledPt();
+                QPointF aPt = point(aK).scaledPt();
                 glVertex2f(aPt.x(), aPt.y());
             }
             glEnd();
@@ -729,11 +728,11 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
 
         _bShowLines       = aP._bShowLines;
         _bShowNames       = aP._bShowNames;
-        _bShowRefuted     = aP._bShowRefuted;
 
         _style            = aP._style;
         _defPtName        = aP._defPtName;
 
+        // TODO a verifier
         _shiftStep        = _shiftStep;
     }
 
@@ -742,7 +741,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
 
 void cPolygon::close()
 {
-    int sz = _points.size();
+    int sz = size();
 
     if ((sz>1)&&(!_bIsClosed))
     {
@@ -791,8 +790,8 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
         }
         else
         {
-            _points[_idx].setStatePoint(state);
-            _points[_idx].setSelected(false);
+            point(_idx).setStatePoint(state);
+            point(_idx).setSelected(false);
         }
     }
 
@@ -808,7 +807,7 @@ int cPolygon::highlightNearestPoint(const QPointF &pos)
 
     if (pointValid())
     {
-        _points[_idx].switchHighlight();
+        point(_idx).switchHighlight();
     }
 
     return _idx;
@@ -832,7 +831,7 @@ QString cPolygon::getSelectedPointName()
 {
     if (pointValid())
     {
-        return _points[_idx].name();
+        return point(_idx).name();
     }
     else return _defPtName;
 }
@@ -841,14 +840,14 @@ int cPolygon::getSelectedPointState()
 {
     if (pointValid())
     {
-        return _points[_idx].statePoint();
+        return point(_idx).statePoint();
     }
     else return eEPI_NonValue;
 }
 
 void cPolygon::add(cPoint &pt)
 {
-    if (_points.size() < _maxSz)
+    if (size() < _maxSz)
     {
         pt.setDiameter(_pointDiameter);
         _points.push_back(pt);
@@ -857,7 +856,7 @@ void cPolygon::add(cPoint &pt)
 
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    if (_points.size() < _maxSz)
+    if (size() < _maxSz)
     {
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
 
@@ -877,7 +876,7 @@ void cPolygon::addPoint(const QPointF &pt)
         cPt.setDiameter(_pointDiameter);
         cPt.drawCenter(!isLinear());
 
-        _points[size()-1] = cPoint(cPt);
+        point(size()-1) = cPoint(cPt);
     }
 
     add(pt);
@@ -897,7 +896,7 @@ void cPolygon::insertPoint(int i, const QPointF &value)
     if (i <= size())
     {
         cPoint pt(value);
-        pt.setDiameter(_points[i-1].diameter());
+        pt.setDiameter(point(i-1).diameter());
         _points.insert(i, pt);
         resetSelectedPoint();
     }
@@ -913,7 +912,7 @@ void cPolygon::insertPoint()
 
         for (int i=0;i<size();++i)
         {
-            if (_points[i] == Pt1) idx = i;
+            if (point(i) == Pt1) idx = i;
         }
 
         if (idx >=0) insertPoint(idx+1, Pt2);
@@ -932,10 +931,10 @@ const QVector<QPointF> cPolygon::getVector()
 {
     QVector <QPointF> points;
 
-    for(int aK=0; aK < _points.size(); ++aK)
-    {
-        points.push_back(_points[aK]);
-    }
+    for(int aK=0; aK < size(); ++aK)
+
+        points.push_back(point(aK));
+
 
     return points;
 }
@@ -956,9 +955,9 @@ const QVector<QPointF> cPolygon::getImgCoordVector(const cMaskedImageGL &img)
 
     QVector <QPointF> points;
 
-    for(int aK=0; aK < _points.size(); ++aK)
+    for(int aK=0; aK < size(); ++aK)
     {
-        points.push_back( QPointF(_points[aK].x()/nImgWidth, (imgHeight - _points[aK].y())/nImgHeight));
+        points.push_back( QPointF(point(aK).x()/nImgWidth, (imgHeight - point(aK).y())/nImgHeight));
     }
 
     return points;
@@ -998,7 +997,7 @@ void cPolygon::setPointSelected()
     _bSelectedPoint = true;
 
     if (pointValid())
-        _points[_idx].setSelected(true);
+        point(_idx).setSelected(true);
 }
 
 void cPolygon::resetSelectedPoint()
@@ -1006,26 +1005,26 @@ void cPolygon::resetSelectedPoint()
     _bSelectedPoint = false;
 
     if (pointValid())
-        _points[_idx].setSelected(false);
+        point(_idx).setSelected(false);
 
     _idx = -1;
 }
 
 bool cPolygon::pointValid()
 {
-    return ((_idx >=0) && (_idx < _points.size()));
+    return ((_idx >=0) && (_idx < size()));
 }
 
 int cPolygon::selectPoint(QString namePt)
 {
     resetSelectedPoint();
 
-    for (int i = 0; i < _points.size(); ++i)
+    for (int i = 0; i < size(); ++i)
     {
-        if(_points[i].name() == namePt)
+        if(point(i).name() == namePt)
         {
             _idx = i;
-            _points[i].setSelected(true);
+            point(i).setSelected(true);
             return i;
         }
     }
@@ -1039,7 +1038,7 @@ void cPolygon::selectPoint(int idx)
 
     if (pointValid())
     {
-        _points[idx].setSelected(true);
+        point(idx).setSelected(true);
         _bSelectedPoint = true;
     }
 }
@@ -1055,10 +1054,10 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
         x = pos.x();
         y = pos.y();
 
-        for (int aK = 0; aK < _points.size(); ++aK)
+        for (int aK = 0; aK < size(); ++aK)
         {
-            dx = x - _points[aK].x();
-            dy = y - _points[aK].y();
+            dx = x - point(aK).x();
+            dy = y - point(aK).y();
 
             dist = dx * dx + dy * dy;
 
@@ -1071,7 +1070,7 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
 
         if (pointValid())
         {
-            _points[_idx].setSelected(true);
+            point(_idx).setSelected(true);
 
             return true;
         }
@@ -1092,8 +1091,8 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
 
         else if (nbVertex > 1)               // replace last point by the current one
         {
-            _points[nbVertex-1].setX( pos.x() );
-            _points[nbVertex-1].setY( pos.y() );
+            point(nbVertex-1).setX( pos.x() );
+            point(nbVertex-1).setY( pos.y() );
         }
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
@@ -1118,11 +1117,11 @@ int cPolygon::finalMovePoint()
 
     if ((_idx>=0) && (_helper != NULL) && _helper->size())   // after point move
     {
-        int state = _points[_idx].statePoint();
+        int state = point(_idx).statePoint();
 
-        _points[_idx] = (*_helper)[1];
-        _points[_idx].setColor(_color[state_default]); // reset color to polygon color
-        _points[_idx].setStatePoint(state);
+        point(_idx) = (*_helper)[1];
+        point(_idx).setColor(_color[state_default]); // reset color to polygon color
+        point(_idx).setStatePoint(state);
 
         _helper->clear();
 
@@ -1145,8 +1144,8 @@ void cPolygon::showNames(bool show)
 {
     _bShowNames = show;
 
-    for (int aK=0; aK < _points.size(); ++aK)
-        _points[aK].showName(_bShowNames);
+    for (int aK=0; aK < size(); ++aK)
+        point(aK).showName(_bShowNames);
 }
 
 void cPolygon::rename(QPointF pos, QString name)
@@ -1154,7 +1153,7 @@ void cPolygon::rename(QPointF pos, QString name)
     findNearestPoint(pos, 400000.f);
 
     if (pointValid())
-        _points[_idx].setName(name);
+        point(_idx).setName(name);
 }
 
 void cPolygon::showLines(bool show)
@@ -1170,16 +1169,16 @@ void cPolygon::showLines(bool show)
 
 void cPolygon::translate(QPointF Tr)
 {
-    for (int aK=0; aK < _points.size(); ++aK)
-        _points[aK] += Tr;
+    for (int aK=0; aK < size(); ++aK)
+        point(aK) += Tr;
 }
 
 cPoint cPolygon::translateSelectedPoint(QPointF Tr)
 {
     if (pointValid())
     {
-        _points[_idx] += Tr;
-        return _points[_idx];
+        point(_idx) += Tr;
+        return point(_idx);
     }
     else
         return ErrPoint;
@@ -1188,7 +1187,7 @@ cPoint cPolygon::translateSelectedPoint(QPointF Tr)
 void cPolygon::flipY(float height)
 {
     for (int aK=0; aK < size(); ++aK)
-        _points[aK].setY(height - _points[aK].y());
+        point(aK).setY(height - point(aK).y());
 }
 
 void cPolygon::setParams(cParameters *aParams)
@@ -1208,7 +1207,7 @@ void cPolygon::setParams(cParameters *aParams)
 
 bool cPolygon::isPointInsidePoly(const QPointF& P)
 {
-    int vertices=_points.size();
+    int vertices=size();
     if (vertices<3)
         return false;
 
@@ -1238,17 +1237,6 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
     }
 
     return inside;
-}
-
-void cPolygon::showRefuted(bool show)
-{
-    _bShowRefuted = show;
-
-    for (int aK=0; aK < _points.size(); ++aK)
-    {
-        if (_points[aK].statePoint() == eEPI_Refute)
-            _points[aK].setVisible(_bShowRefuted);
-    }
 }
 
 //********************************************************************************
@@ -1351,8 +1339,8 @@ void cRectangle::refreshHelper(QPointF pos, bool insertMode, float zoom, bool pt
             showLines(true);
             setClosed(true);
 
-            _points[_idx].setX(pos.x());
-            _points[_idx].setY(pos.y());
+            point(_idx).setX(pos.x());
+            point(_idx).setY(pos.y());
 
             if (_idx == 2)
             {
@@ -1539,6 +1527,7 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
     _m_mask->PrepareTexture(qMaskedImage._m_mask);
     _m_image->PrepareTexture(qMaskedImage._m_image);
     _m_FileOriMnt = qMaskedImage._m_FileOriMnt;
+    _loadedImageRescaleFactor = qMaskedImage._loadedImageRescaleFactor;
     cObjectGL::setName(qMaskedImage.name());
 }
 
@@ -2113,7 +2102,7 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
                 if (mode == TRANSFORM_CAMERA)
                 {
                     displayNewMessage(QString("Move mode"),UPPER_CENTER_MESSAGE);
-                    displayNewMessage(QString("Left click: rotate viewpoint / Right click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+                    displayNewMessage(QString("Left click: rotate viewpoint / Middle click: translate viewpoint"),LOWER_CENTER_MESSAGE);
                 }
                 else if (mode == SELECTION)
                 {

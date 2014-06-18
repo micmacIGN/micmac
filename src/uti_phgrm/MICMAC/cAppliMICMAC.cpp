@@ -363,6 +363,8 @@ cAppliMICMAC::cAppliMICMAC
 	mDefCorr		= DefCorrelation().Val();
 	mEpsCorr		= EpsilonCorrelation().Val();	
 	mMapEquiv		= StdAllocMn2n( ClassEquivalenceImage(), mICNM );
+	mOutputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():WorkDir() );
+	setInputDirectory( WorkDir() );
 
   if (RepereCorrel().IsInit() && (RepereCorrel().Val() != "NO-REPERE"))
   {
@@ -681,11 +683,11 @@ void cAppliMICMAC::InitDirectories()
     if (!TmpPyr().IsInit())
        TmpPyr().SetVal(TmpMEC());
 
-    mFullDirMEC =  WorkDir() + TmpMEC();
-    mFullDirPyr =  WorkDir() + TmpPyr().Val();
-    mFullDirGeom =  WorkDir() + TmpGeom().Val();
-    mFullDirResult =  WorkDir() + TmpResult().Val();
-
+    mFullDirMEC =  mOutputDirectory + TmpMEC();
+    mFullDirPyr = mOutputDirectory + TmpPyr().Val();
+    mFullDirGeom =  mOutputDirectory + TmpGeom().Val();
+    mFullDirResult =  mOutputDirectory + TmpResult().Val();
+    
 
     ELISE_fp::MkDir(mFullDirMEC);
     ELISE_fp::MkDir(mFullDirPyr);
@@ -1402,7 +1404,12 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
 
      cInterfModuleImageLoader * aIMIL = GetMIL(theGotGeom,aName);
 
-     mPrisesDeVue.push_back(new cPriseDeVue(*this,aName,aIMIL,mNbPDV,aNameGeom,theGotGeom->ModG()));
+     mPrisesDeVue.push_back( new cPriseDeVue( *this,
+                                              aName,
+                                              aIMIL,
+                                              mNbPDV,
+                                              ( isUsingSeparateDirectories()?MMOutputDirectory()+aNameGeom:aNameGeom ),
+                                              theGotGeom->ModG() ) );
 
 // InitAnam
      if (mAnamSA)
@@ -2000,7 +2007,7 @@ void cAppliMICMAC::ExeProcessParallelisable
 #endif
       // creation d'un Makefile
       // Modif MPD, pour risque potentiel de crash sur MicMac concurent
-      std::string nomMakefile = WorkDir()+TmpMEC()+std::string("MakefileParallelisation") + GetUnikId();
+      std::string nomMakefile = ( isUsingSeparateDirectories()?MMTemporaryDirectory():WorkDir()+TmpMEC() )+std::string("MakefileParallelisation") + GetUnikId();
       std::ofstream fic(nomMakefile.c_str());
       int nbDalles = 0;
       //int numEtape = mCurEtape->Num();

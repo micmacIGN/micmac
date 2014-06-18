@@ -105,6 +105,15 @@ std::string current_program_subcommand(); // mm3d's subcommand (Tapioca, Apero, 
 int MMNbProc();
 bool MPD_MM(); // Est ce que c'est ma machine, afin de ne pas polluer les autres en phase de test !!!!
 
+inline bool isUsingSeparateDirectories();
+extern const string temporarySubdirectory; // = "Tmp-MM-Dir/" (see src/photogram/ChantierNameAssoc.cpp)
+void setInputDirectory( const std::string &i_directory );
+bool isInputDirectorySet();
+std::string MMInputDirectory(); // is the directory containing base pictures (must be set by setInputDirectory before use)
+std::string MMTemporaryDirectory(); // equals MMUserEnvironment.LogDirectory or "./"+temporarySubdirectory if not set
+std::string MMOutputDirectory(); // equals MMUserEnvironment.OutputDirectory (if set) or MMInputDirectory (if set) or ./
+std::string MMLogDirectory(); // equals MMUserEnvironment.LogDirectory or ./ if not set
+
 extern std::string MM3DStr;
 
 //   Binaire a "l'ancienne"  MMDir() + std::string("bin" ELISE_STR_DIR  COMMANDE) 
@@ -312,6 +321,7 @@ class cInterfChantierNameManipulateur
                                          ) = 0;
 
 	  const std::string   & Dir () const;
+	  void setDir( const std::string &i_directory );
           cArgCreatXLMTree &  ArgTree();
 
          // Assez sale, interface pour aller taper dans 
@@ -894,7 +904,7 @@ class  cSetName
 
           const cSetNameDescriptor & SND() const;
           cInterfChantierNameManipulateur * ICNM();
-
+          string Dir() const { return mDir; }
       private :
           void CompileDef();
 
@@ -1401,6 +1411,9 @@ class cAppliListIm
       const cInterfChantierNameManipulateur::tSet * mSetIm;
 };
 
+// inline functions
+
+bool isUsingSeparateDirectories(){ return MMUserEnv().UseSeparateDirectories().Val(); }
 
 #endif   // _ELISE_XML_GEN_ALL_H
 
