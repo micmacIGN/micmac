@@ -833,6 +833,7 @@
 
 
         <TypeProj Nb="?" Type="eTypeProjectionCam" Def="eProjStenope"> </TypeProj>
+        <ZoneUtilInPixel Nb="?" Type="bool" Def="false"> </ZoneUtilInPixel>
         <Interne Nb="?" RefType="CalibrationInternConique"> </Interne>
         <FileInterne Nb="?" Type="std::string"> </FileInterne>
         <!-- Par compat ancien fichier genere, Def  = false -->

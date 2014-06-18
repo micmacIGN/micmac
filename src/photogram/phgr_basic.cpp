@@ -1459,6 +1459,7 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     _orient (Pt3dr(0,0,0),0,0,0),
     mSz        (-1,-1),
     mSzPixel   (-1,-1),
+    mZoneUtilInPixel (false),
     mDIsDirect (! isDistC2M),
     mTypeProj  (aTP),
     // mAltisSolIsDef (false),
@@ -1480,6 +1481,17 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
 {
     UndefAltisSol();
 }
+
+void  ElCamera::SetZoneUtilInPixel(bool aZUP ) 
+{
+  mZoneUtilInPixel = aZUP;
+}
+
+bool  ElCamera::GetZoneUtilInPixel() const
+{
+    return mZoneUtilInPixel;
+}
+
 
 
 Pt3dr ElCamera::Vitesse() const
@@ -2839,6 +2851,9 @@ cOrientationConique  ElCamera::ExportCalibGlob
 
    anOC.OrIntImaM2C().SetVal(El2Xml(mScanOrImaM2C));
    anOC.TypeProj().SetVal(El2Xml(mTypeProj));
+
+   if (mZoneUtilInPixel) 
+      anOC.ZoneUtilInPixel().SetVal(true);
 
    if (aNbVerif || aNbVeridDet)
    {
