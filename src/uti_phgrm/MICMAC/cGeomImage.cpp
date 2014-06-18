@@ -233,9 +233,10 @@ cGeomImage * cGeomImage::NC_GeoTerrainIntrinseque()
 }
 
 
-ElCamera * cGeomImage::GetCamera(const Pt2di & aSz,bool & ToDel) const
+ElCamera * cGeomImage::GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) const
 {
    ToDel = true;
+   aZUP = true;
    return  cCameraOrtho::Alloc(aSz);
 }
 
@@ -270,7 +271,8 @@ void cGeomImage::RemplitOriXMLNuage
    // cCameraOrtho * aCam = cCameraOrtho::Alloc(aGT.SzDz());
    // ElCamera * aCam = cCameraOrtho::Alloc(aGT.SzDz());
    bool ToDel;
-   ElCamera * aCam = GetCamera(aGT.SzDz(),ToDel);
+   bool aZUP = false;
+   ElCamera * aCam = GetCamera(aGT.SzDz(),ToDel,aZUP);
 
 
    Pt2dr anOrigine,aResol;
@@ -310,6 +312,8 @@ getchar();
    aCam->SetScanImaC2M(anAffC2M);
 
    aNuage.Orientation() = aCam->StdExportCalibGlob();
+   if (aZUP)
+       aNuage.Orientation().ZoneUtilInPixel().SetVal(true);
    if (ToDel)
       delete aCam;
 /*
@@ -1999,12 +2003,12 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
 {
     public :
 
-      ElCamera * GetCamera(const Pt2di & aSz,bool & ToDel) const
+      ElCamera * GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) const
       {
             ToDel = false;
             ElCamera * aCam = GetOri();
             if (aCam) return aCam;
-            return  cGeomImage::GetCamera(aSz,ToDel);
+            return  cGeomImage::GetCamera(aSz,ToDel,aZUP);
       }
       Pt3dr TerrainRest2Euclid(const Pt2dr & aP,double * aPax) const
       {
