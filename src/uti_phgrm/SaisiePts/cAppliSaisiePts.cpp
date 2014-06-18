@@ -619,6 +619,7 @@ void cAppli_SaisiePts::AddPGInAllImages(cSP_PointGlob  * aSPG)
 
 void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
 {
+
     const cPointGlob & aPG = *(aSPG->PG());
 
     Pt2dr aPIm  = anI.PointArbitraire();
