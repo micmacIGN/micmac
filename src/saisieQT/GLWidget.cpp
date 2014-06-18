@@ -729,6 +729,9 @@ void GLWidget::overlay()
         {
             cPolygon* polyg = polygon(i);
 
+            if (m_bDisplayMode2D)
+                _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
+
             polyg->draw();
 
             if (polyg->bShowNames())

@@ -64,36 +64,39 @@ void SaisieBasc(int argc, char ** argv,
                       << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
     );
 
-    SplitDirAndFile(aDir,aName,aFullName);
-    if (anOri != "NONE")
-       StdCorrecNameOrient(anOri,aDir);
-
-    cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
-
-    //std::cout << "Nb Image =" << aSet->size() << "\n";
-    ELISE_ASSERT(aSet->size()!=0,"No image found");
-
-    if (aNbFen.x<0)
+    if(!MMVisualMode)
     {
-       if (aSet->size() == 1)
-       {
-           aNbFen = Pt2di(1,2);
-       }
-       else if (aSet->size() == 2)
-       {
-           Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
-           Pt2di aSzIm = aTF.sz();
-           aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
-       }
-       else
-       {
-           aNbFen = Pt2di(2,2);
-       }
-    }
+        SplitDirAndFile(aDir,aName,aFullName);
+        if (anOri != "NONE")
+            StdCorrecNameOrient(anOri,aDir);
 
-    //anOri = "NKS-Assoc-Im2Orient@-" + anOri;
-    aCINM->MakeStdOrient(anOri,true);
+        cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+        const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+        //std::cout << "Nb Image =" << aSet->size() << "\n";
+        ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+        if (aNbFen.x<0)
+        {
+            if (aSet->size() == 1)
+            {
+                aNbFen = Pt2di(1,2);
+            }
+            else if (aSet->size() == 2)
+            {
+                Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+                Pt2di aSzIm = aTF.sz();
+                aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+            }
+            else
+            {
+                aNbFen = Pt2di(2,2);
+            }
+        }
+
+        //anOri = "NKS-Assoc-Im2Orient@-" + anOri;
+        aCINM->MakeStdOrient(anOri,true);
+    }
 }
 
 #endif
@@ -130,16 +133,21 @@ int SaisieBasc_main(int argc,char ** argv)
                       +  std::string(" +SzWy=") + ToString(aSzW.y)
                       +  std::string(" +NbFx=") + ToString(aNbFen.x)
                       +  std::string(" +NbFy=") + ToString(aNbFen.y);
-  if (EAMIsInit(&aForceGray))
-     aCom = aCom + " +ForceGray=" + ToString(aForceGray);
+
+  if(!MMVisualMode)
+  {
+      if (EAMIsInit(&aForceGray))
+          aCom = aCom + " +ForceGray=" + ToString(aForceGray);
 
 
-  std::cout << aCom << "\n";
+      std::cout << aCom << "\n";
 
-  int aRes = system(aCom.c_str());
+      int aRes = system(aCom.c_str());
 
+      return aRes;
+  }
 
-  return aRes;
+  return 0;
 }
 
 

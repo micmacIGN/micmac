@@ -21,29 +21,22 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
     maskedImg._m_image = new QImage( aNameFile );
 
-    int max;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-
     bool rescaleImg = false;
-    if ( maskedImg._m_image->width() >= max || maskedImg._m_image->height() >= max )
+    float scaleFactor = maskedImg._loadedImageRescaleFactor;
+    if ( scaleFactor != 1.f )
     {
         rescaleImg = true;
-        //cout << max << " " << maskedImg._m_image->width() << " " << maskedImg._m_image->height() << endl;
 
         QImageReader *reader = new QImageReader(aNameFile);
 
-        // Read image current size
-        QSize imageSize = reader->size();
+        QSize newSize = reader->size()*scaleFactor;
 
-        // Scale image
-        imageSize.scale(QSize(max,max), Qt::KeepAspectRatio);
+        //cout << "new size: " << newSize.width() << " " << newSize.height() << endl;
 
-        //cout << "new size: " << imageSize.width() << " " << imageSize.height() << endl;
-
-        reader->setScaledSize(imageSize);
+        reader->setScaledSize(newSize);
 
         delete maskedImg._m_image;
-        maskedImg._m_image = new QImage(imageSize, QImage::Format_RGB888);
+        maskedImg._m_image = new QImage(newSize, QImage::Format_RGB888);
         *maskedImg._m_image = reader->read();
     }
 
@@ -290,20 +283,39 @@ void cEngine::loadCameras(QStringList filenames)
 
 void cEngine::loadImages(QStringList filenames)
 {
+    int max;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+
+    int widthTotal = 0;
+    int heightTotal = 0;
+
     for (int i=0;i<filenames.size();++i)
     {
-        loadImage(filenames[i]);
+        QSize imageSize = (new QImageReader(filenames[i]))->size();
+
+        widthTotal  += imageSize.width();
+        heightTotal += imageSize.height();
+    }
+
+    float scaleFactor = 1.f;
+    if ( widthTotal > max || heightTotal > max )
+    {
+        QSize totalSize(widthTotal, heightTotal);
+
+        totalSize.scale(QSize(max,max), Qt::KeepAspectRatio);
+
+        scaleFactor = ((float) totalSize.width()) / widthTotal;
+    }
+
+    for (int i=0;i<filenames.size();++i)
+    {
+        loadImage(filenames[i], scaleFactor);
     }
 }
 
-void  cEngine::loadImage(int aK)
+void  cEngine::loadImage(QString imgName, float scaleFactor)
 {
-    loadImage(getFilenamesIn()[aK]);
-}
-
-void  cEngine::loadImage(QString imgName)
-{
-    QMaskedImage maskedImg(_params->getGamma());
+    QMaskedImage maskedImg(_params->getGamma(), scaleFactor);
 
     _Loader->loadImage(imgName, maskedImg);
 
@@ -386,6 +398,18 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     if (!pMask.isNull())
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
+
+        float scaleFactor =  _vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
+
+        if (scaleFactor != 1.f)
+        {
+            cout << "scaling " <<  scaleFactor << endl;
+
+            int width  = (int) ((float) pMask.width() / scaleFactor);
+            int height = (int) ((float) pMask.height() / scaleFactor);
+
+            pMask = pMask.scaled(width, height,Qt::KeepAspectRatio);
+        }
 
         pMask.save(aOut);
 

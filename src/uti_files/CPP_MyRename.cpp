@@ -94,6 +94,7 @@ class cAppliMyRename
        int         mForceDup;
        int         mAddF;
        bool        mOrder;
+       int         mPrfNum;
        bool        mFull;
 };
 
@@ -104,6 +105,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
     mForceDup (0),
     mAddF     (0),
     mOrder    (false),
+    mPrfNum   (0),
     mFull     (false)
 {
 
@@ -121,6 +123,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
                       << EAM(mFile2M,"File2M",true)
                       << EAM(mFull,"Full",true)
                       << EAM(mOrder,"LastFirst",true,"Treat the last image first (Def=false)")
+                      << EAM(mPrfNum,"PrfNum",true,"Add a numerical growing prefix, must be diff from 0")
                       << EAM(mPatSubst,"PatSub","Can be diff from Pattern when use key")
     );
     SplitDirAndFile(mDir,mPat,aDP);
@@ -149,35 +152,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
     }
 
     cElRegex * anAutom = new cElRegex(mPat,10);
-/*
-    if (mOrder==true)
-	{
-		cout << "un !!!!!!!!!!\n";
-		std::list<std::string> aLInB;
-    	for
-    	(
-        	std::list<std::string>::const_iterator itS=aLIn.begin();
-        	itS!=aLIn.end();
-    		itS++
-    	)
-    	{
-			cout << *itS << endl;
-			aLInB.push_back(*itS);
-		}
-		aLIn.clear();
-		cout << "go !\n";
-    	for
-    	(
-        	std::list<std::string>::reverse_iterator itS=aLInB.rbegin();
-        	itS!=aLInB.rend();
-    		itS++
-    	)
-    	{
-			cout << *itS << endl;
-			aLIn.push_back(*itS);
-		}
-	}
-*/
+
 	bool anOverW=false;
     for
     (
@@ -230,17 +205,19 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
 
 	if (mOrder==true)
 	{
-		std::vector<std::string> aBuf;
+		std::vector<std::string> aBuf1, aBuf2;
 		for 
 		(int aK=0 ; aK <int(aVM.size()) ; aK++)
 		{
-			aBuf.push_back(aVM[aK].mNameIn);
-			std::cout << aVM[aK].mNameIn << std::endl;
+			aBuf1.push_back(aVM[aK].mNameIn);
+			aBuf2.push_back(aVM[aK].mNameOut);
 		}
 		for (int aK=0 ; aK <int(aVM.size()) ; aK++)
 		{
-			aVM[aK].mNameIn=aBuf.back();
-			aBuf.pop_back();
+			aVM[aK].mNameIn=aBuf1.back();
+			aBuf1.pop_back();
+			aVM[aK].mNameOut=aBuf2.back();
+			aBuf2.pop_back();
 		}
 	}	
 
@@ -265,12 +242,21 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
 
     for (int aK=0 ; aK <int(aVM.size()) ; aK++)
     {
-         std::string aSys = string(SYS_MV) + ' ' + ToStrBlkCorr(mDir+aVM[aK].mNameIn) + " " + ToStrBlkCorr(mDir+aVM[aK].mNameOut);
-     std::cout << aSys << "\n";
-     if (mExe)
-     {
+		;
+		if (mPrfNum!=0)
+		{
+			int aPrf=aK+mPrfNum;
+			stringstream ss;
+			ss << aPrf;
+			aVM[aK].mNameOut = ss.str() + aVM[aK].mNameOut;
+		}	
+		std::string aSys = string(SYS_MV) + ' ' + ToStrBlkCorr(mDir+aVM[aK].mNameIn) + " " + ToStrBlkCorr(mDir+aVM[aK].mNameOut);
+			  
+		std::cout << aSys << "\n";
+		if (mExe)
+		{
              VoidSystem(aSys.c_str());
-     }
+		}
     }
     if (!mExe)
        std::cout << "\n     Use Exe=1 to execute moves !!\n";

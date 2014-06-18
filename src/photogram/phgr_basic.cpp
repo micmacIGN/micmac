@@ -1515,16 +1515,27 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
 {
    Pt3dr aPCam = R3toL3(aPTer);
 
-   if (aPCam.z < 0) return false;
+
+
+   if (HasOrigineProf() && (aPCam.z < 0)) return false;
+
 
    Pt2dr aPI0 = Proj().Proj(aPCam);
    Pt2dr aPF0 = DistDirecteSsComplem(aPI0);
 
 
 
-   if ( ! IsInZoneUtile(aPF0)) return false;
+   // Si "vraie" camera et scannee il est necessaire de faire le test maintenant
+   // car IsZoneUtil est en mm
+   if ( ! IsInZoneUtile(aPF0)) return false; 
 
    Pt2dr aPF1 = DComplM2C(aPF0);
+
+   // MPD le 17/06/2014 : je ne comprend plus le [1], qui fait planter les camera ortho
+   // a priori la zone utile se juge a la fin
+   // if ( ! IsInZoneUtile(aPF1)) return false;
+
+
    Pt2dr aI0Again = DistInverse(aPF1);
 
 
@@ -4637,7 +4648,8 @@ Pt3dr  cCameraOrtho::OrigineProf() const
 
 bool  cCameraOrtho::HasOrigineProf() const
 {
-    return true;
+    // Modif MPD le 17/06/2014 ; semle + logique comme cela et est utilise dans ElCamera::PIsVisibleInImage
+    return false;
 }
 
 

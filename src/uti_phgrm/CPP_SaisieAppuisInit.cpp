@@ -69,43 +69,46 @@ void SaisieAppuisInit(int argc, char ** argv,
                       << EAM(aForceGray,"ForceGray",true," Force gray image, def =true")
     );
 
-    SplitDirAndFile(aDir,aName,aFullName);
-
-    cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    if (anOri!="NONE")
-       aCINM->CorrecNameOrient(anOri);
-    const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
-
-    //std::cout << "Nb Image =" << aSet->size() << "\n";
-    ELISE_ASSERT(aSet->size()!=0,"No image found");
-
-    if (aNbFen.x<0)
+    if (!MMVisualMode)
     {
-        if (aSet->size() == 1)
-        {
-            aNbFen = Pt2di(1,2);
-        }
-        else if (aSet->size() == 2)
-        {
-            Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
-            Pt2di aSzIm = aTF.sz();
-            aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
-        }
-        else
-        {
-            aNbFen = Pt2di(2,2);
-        }
-    }
+        SplitDirAndFile(aDir,aName,aFullName);
 
-    cResulMSO aRMSO = aCINM->MakeStdOrient(anOri,true);
+        cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+        if (anOri!="NONE")
+           aCINM->CorrecNameOrient(anOri);
+        const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
 
-    if (0)
-    {
-       std::cout  << "RMSO; Cam "  << aRMSO.Cam()
-                  << " Nuage " <<  aRMSO.Nuage()
-                  << " Ori " <<  aRMSO.IsKeyOri()
-                  << "\n";
-       getchar();
+        //std::cout << "Nb Image =" << aSet->size() << "\n";
+        ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+        if (aNbFen.x<0)
+        {
+            if (aSet->size() == 1)
+            {
+                aNbFen = Pt2di(1,2);
+            }
+            else if (aSet->size() == 2)
+            {
+                Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+                Pt2di aSzIm = aTF.sz();
+                aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+            }
+            else
+            {
+                aNbFen = Pt2di(2,2);
+            }
+        }
+
+        cResulMSO aRMSO = aCINM->MakeStdOrient(anOri,true);
+
+        if (0)
+        {
+           std::cout  << "RMSO; Cam "  << aRMSO.Cam()
+                      << " Nuage " <<  aRMSO.Nuage()
+                      << " Ori " <<  aRMSO.IsKeyOri()
+                      << "\n";
+           getchar();
+        }
     }
 }
 #endif
@@ -124,30 +127,35 @@ int SaisieAppuisInit_main(int argc,char ** argv)
 
   SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, anOut, aNameAuto, aPrefix2Add, aForceGray);
 
-  std::string aCom =     MMDir() +"bin/SaisiePts "
-                      +  MMDir() +"include/XML_MicMac/SaisieInitiale.xml "
-                      +  std::string(" DirectoryChantier=") + aDir
-                      +  std::string(" +Image=") + QUOTE(aName)
-                      +  std::string(" +Ori=") + anOri
-                      +  std::string(" +NamePt=") + aNamePt
-                      +  std::string(" +NameAuto=") + aNameAuto
-                      +  std::string(" +Sauv=") + anOut
-                      +  std::string(" +SzWx=") + ToString(aSzW.x)
-                      +  std::string(" +SzWy=") + ToString(aSzW.y)
-                      +  std::string(" +NbFx=") + ToString(aNbFen.x)
-                      +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
+  if (!MMVisualMode)
+  {
+      std::string aCom =     MMDir() +"bin/SaisiePts "
+                          +  MMDir() +"include/XML_MicMac/SaisieInitiale.xml "
+                          +  std::string(" DirectoryChantier=") + aDir
+                          +  std::string(" +Image=") + QUOTE(aName)
+                          +  std::string(" +Ori=") + anOri
+                          +  std::string(" +NamePt=") + aNamePt
+                          +  std::string(" +NameAuto=") + aNameAuto
+                          +  std::string(" +Sauv=") + anOut
+                          +  std::string(" +SzWx=") + ToString(aSzW.x)
+                          +  std::string(" +SzWy=") + ToString(aSzW.y)
+                          +  std::string(" +NbFx=") + ToString(aNbFen.x)
+                          +  std::string(" +NbFy=") + ToString(aNbFen.y) ;
 
-  if (EAMIsInit(&aForceGray))
-     aCom = aCom + " +ForceGray=" + ToString(aForceGray);
+      if (EAMIsInit(&aForceGray))
+         aCom = aCom + " +ForceGray=" + ToString(aForceGray);
 
-  if (EAMIsInit(&aPrefix2Add))
-     aCom = aCom + " +Pref2Add=" + aPrefix2Add;
-  std::cout << aCom << "\n";
+      if (EAMIsInit(&aPrefix2Add))
+         aCom = aCom + " +Pref2Add=" + aPrefix2Add;
+      std::cout << aCom << "\n";
 
-  int aRes = system(aCom.c_str());
+      int aRes = system(aCom.c_str());
 
 
-  return aRes;
+      return aRes;
+  }
+  else
+      return EXIT_SUCCESS;
 }
 
 

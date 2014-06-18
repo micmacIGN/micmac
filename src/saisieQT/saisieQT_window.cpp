@@ -299,16 +299,7 @@ void SaisieQtWindow::on_actionShow_names_toggled(bool show)
 
 void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 {
-    for (int aK = 0; aK < nbWidgets();++aK)
-    {
-        if (getWidget(aK)->hasDataLoaded())
-        {
-            getWidget(aK)->getGLData()->currentPolygon()->showRefuted(show);
-            getWidget(aK)->update();
-        }
-    }
-
-    emit showRefuted( show );
+    emit showRefuted( !show );
 }
 
 void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
@@ -1130,7 +1121,10 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
             if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
             {
                 int imHeight = glW->getGLData()->glImage()._m_image->height();
-                text =  QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number(imHeight - pt.y(),'f',1)+" px");
+
+                float factor = glW->getGLData()->glImage().getLoadedImageRescaleFactor();
+
+                text =  QString(text + QString::number(pt.x()/factor,'f',1) + ", " + QString::number((imHeight - pt.y())/factor,'f',1)+" px");
             }
     }
 
