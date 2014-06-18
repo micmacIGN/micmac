@@ -111,7 +111,12 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
         else if (( arg.Type() ==  AMBT_Box2di ) || ( arg.Type() ==  AMBT_Box2dr ) ) bHasBox2D = true;
     }
 
-    if ((bHasBox2D) && (toolBox != NULL)) toolBox->setMinimumWidth(675);
+    //set minimum width
+    if  (toolBox != NULL)
+    {
+        if (bHasBox2D) toolBox->setMinimumWidth(670);
+        else toolBox->setMinimumWidth(470);
+    }
 
     //Sort optional args
     cCmpMMSpecArg aCmpMMSpecArg;
