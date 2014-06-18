@@ -4628,7 +4628,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 
    aRes->SetScanImaM2C(AffCur(anOC));
 
-   if (anOC.ZoneUtilInPixel().Val()) 
+   if (anOC.ZoneUtileInPixel().ValWithDef(false)) 
       aRes->SetZoneUtilInPixel(true);
 
    eConventionsOrientation aConvEnum = eConvApero_DistM2C;
