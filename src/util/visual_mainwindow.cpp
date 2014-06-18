@@ -70,7 +70,7 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
     {
         cMMSpecArg arg = aVAM[aK];
 
-        if (( arg.Type() == AMBT_string ) && (*(arg.DefaultValue<string>()) != "GeomImage")) bGeomImg = true;
+        if (( arg.Type() == AMBT_string ) && (*(arg.DefaultValue<string>()) == "GeomImage")) bGeomImg = true;
         if (bGeomImg) break;
     }
 
