@@ -72,37 +72,40 @@ void SaisieAppuisPredic(int argc, char ** argv,
 
                 );
 
-    aTypePts = "eNSM_" + aTypePts;
-
-    SplitDirAndFile(aDir,aName,aFullName);
-
-
-    cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    aCINM->CorrecNameOrient(anOri);
-    const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
-
-    //std::cout << "Nb Image =" << aSet->size() << "\n";
-    ELISE_ASSERT(aSet->size()!=0,"No image found");
-
-    if (aNbFen.x<0)
+    if (!MMVisualMode)
     {
-        if (aSet->size() == 1)
-        {
-            aNbFen = Pt2di(1,2);
-        }
-        else if (aSet->size() == 2)
-        {
-            Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
-            Pt2di aSzIm = aTF.sz();
-            aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
-        }
-        else
-        {
-            aNbFen = Pt2di(2,2);
-        }
-    }
+        aTypePts = "eNSM_" + aTypePts;
 
-    aCINM->MakeStdOrient(anOri,false);
+        SplitDirAndFile(aDir,aName,aFullName);
+
+
+        cInterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+        aCINM->CorrecNameOrient(anOri);
+        const cInterfChantierNameManipulateur::tSet  *  aSet = aCINM->Get(aName);
+
+        //std::cout << "Nb Image =" << aSet->size() << "\n";
+        ELISE_ASSERT(aSet->size()!=0,"No image found");
+
+        if (aNbFen.x<0)
+        {
+            if (aSet->size() == 1)
+            {
+                aNbFen = Pt2di(1,2);
+            }
+            else if (aSet->size() == 2)
+            {
+                Tiff_Im aTF = Tiff_Im::StdConvGen(aDir+(*aSet)[0],1,false,true);
+                Pt2di aSzIm = aTF.sz();
+                aNbFen = (aSzIm.x>aSzIm.y) ? Pt2di(1,2) : Pt2di(2,1);
+            }
+            else
+            {
+                aNbFen = Pt2di(2,2);
+            }
+        }
+
+        aCINM->MakeStdOrient(anOri,false);
+    }
 }
 #endif
 
@@ -120,34 +123,39 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
 
     SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aNameMesure, aTypePts, aFlou, aForceGray);
 
-    std::string aCom =     MMDir() +"bin/SaisiePts "
-            +  MMDir() +"include/XML_MicMac/SaisieAppuisPredic.xml "
-            +  std::string(" DirectoryChantier=") + aDir
-            +  std::string(" +Images=") + QUOTE(aName)
-            +  std::string(" +Ori=") + anOri
-            +  std::string(" +LargeurFlou=") + ToString(aFlou)
-            +  std::string(" +Terrain=") + aNamePt
-            +  std::string(" +Sauv=") + aNameMesure
-            +  std::string(" +SzWx=") + ToString(aSzW.x)
-            +  std::string(" +SzWy=") + ToString(aSzW.y)
-            +  std::string(" +NbFx=") + ToString(aNbFen.x)
-            +  std::string(" +NbFy=") + ToString(aNbFen.y)
-            +  std::string(" +TypePts=") + aTypePts;
+    if(!MMVisualMode)
+    {
+        std::string aCom =     MMDir() +"bin/SaisiePts "
+                +  MMDir() +"include/XML_MicMac/SaisieAppuisPredic.xml "
+                +  std::string(" DirectoryChantier=") + aDir
+                +  std::string(" +Images=") + QUOTE(aName)
+                +  std::string(" +Ori=") + anOri
+                +  std::string(" +LargeurFlou=") + ToString(aFlou)
+                +  std::string(" +Terrain=") + aNamePt
+                +  std::string(" +Sauv=") + aNameMesure
+                +  std::string(" +SzWx=") + ToString(aSzW.x)
+                +  std::string(" +SzWy=") + ToString(aSzW.y)
+                +  std::string(" +NbFx=") + ToString(aNbFen.x)
+                +  std::string(" +NbFy=") + ToString(aNbFen.y)
+                +  std::string(" +TypePts=") + aTypePts;
 
-    if (EAMIsInit(&aFlou))
-        aCom = aCom + std::string(" +FlouSpecified=true");
-    if (EAMIsInit(&aTypePts))
-        aCom = aCom + std::string(" +TypeGlobEcras=true");
-    if (EAMIsInit(&aForceGray))
-        aCom = aCom + " +ForceGray=" + ToString(aForceGray);
-
-
-    std::cout << aCom << "\n";
-
-    int aRes = system(aCom.c_str());
+        if (EAMIsInit(&aFlou))
+            aCom = aCom + std::string(" +FlouSpecified=true");
+        if (EAMIsInit(&aTypePts))
+            aCom = aCom + std::string(" +TypeGlobEcras=true");
+        if (EAMIsInit(&aForceGray))
+            aCom = aCom + " +ForceGray=" + ToString(aForceGray);
 
 
-    return aRes;
+        std::cout << aCom << "\n";
+
+        int aRes = system(aCom.c_str());
+
+
+        return aRes;
+    }
+    else
+        return EXIT_SUCCESS;
 }
 
 
