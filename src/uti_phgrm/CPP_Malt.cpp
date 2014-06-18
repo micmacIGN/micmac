@@ -225,9 +225,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         setStyleSheet(app);
 
         bool ok = false;
+        int  defaultItem = 0;
+
+        if(argc > 1)
+            defaultItem = items.indexOf(QString(argv[1]));
+
         QInputDialog myDialog;
         QString item = myDialog.getItem(NULL, app.applicationName(),
-                                             QString (aArg.Comment().c_str()), items, 0, false, &ok);
+                                             QString (aArg.Comment().c_str()), items, defaultItem, false, &ok);
 
         if (ok && !item.isEmpty())
             mStrType = item.toStdString();
