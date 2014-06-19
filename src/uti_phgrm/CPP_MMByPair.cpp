@@ -866,7 +866,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mScalePlyMM1P,"ScalePlyMM1P",true,"Down Scale of ply after MM1P =3")
                     << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mTimes,"TimesExe",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
-                    << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip")
+                    << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip", eSAM_InternalUse)
                     << EAM(mDoOMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
                     << EAM(mHasVeget,"HasVeg",true,"Scene contains vegetation (Def=true on Ground)")
                     << EAM(mSkyBackGround,"HasSBG",true,"Scene has sky (or homogeneous) background (Def=false on Ground)")

@@ -60,25 +60,28 @@ int PastDevlop_main(int argc,char ** argv)
                 << EAM(aSz2,"Sz2",true)
                 << EAM(aCoul8B,"Coul8B",true)
     );
-    cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullName));
 
-    Tiff_Im::StdConvGen(aFullName,1,true,true);
-    Tiff_Im::StdConvGen(aFullName,1,false,true);
-
-    if (aCoul8B)
+    if (!MMVisualMode)
     {
-       Tiff_Im::StdConvGen(aFullName,3,false,true);
+        cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullName));
+
+        Tiff_Im::StdConvGen(aFullName,1,true,true);
+        Tiff_Im::StdConvGen(aFullName,1,false,true);
+
+        if (aCoul8B)
+        {
+           Tiff_Im::StdConvGen(aFullName,3,false,true);
+        }
+
+        cTplValGesInit<std::string> aTName;
+        cInterfChantierNameManipulateur::StdAlloc(argc,argv,DirOfFile(aFullName),aTName);
+
+        DoSimplePastisSsResol(aFullName,-1);
+        if (aSz1 >0)
+           DoSimplePastisSsResol(aFullName,aSz1);
+        if (aSz2 >0)
+           DoSimplePastisSsResol(aFullName,aSz2);
     }
-
-    cTplValGesInit<std::string> aTName;
-    cInterfChantierNameManipulateur::StdAlloc(argc,argv,DirOfFile(aFullName),aTName);
-
-    DoSimplePastisSsResol(aFullName,-1);
-    if (aSz1 >0)
-       DoSimplePastisSsResol(aFullName,aSz1);
-    if (aSz2 >0)
-       DoSimplePastisSsResol(aFullName,aSz2);
-
     return EXIT_SUCCESS;
 }
 
