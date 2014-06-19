@@ -663,6 +663,7 @@ void SaisieQtWindow::on_actionSettings_triggered()
         connect(&uiSettings, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
         connect(&uiSettings, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
         connect(&uiSettings, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
+        connect(&uiSettings, SIGNAL(showMasks(bool)),             getWidget(aK), SLOT(showMasks(bool)));
         connect(&uiSettings, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
         connect(&uiSettings, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
     }

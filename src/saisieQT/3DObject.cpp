@@ -1540,7 +1540,7 @@ void cMaskedImageGL::draw()
 
     glColor4f(1.0f,1.0f,1.0f,1.0f);
 
-    if(_m_mask != NULL && true)
+    if(_m_mask != NULL && _m_mask->isVisible())
     {
         _m_mask->draw();
         glBlendFunc(GL_ONE,GL_ONE);
@@ -1599,6 +1599,8 @@ cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, i
     _center(Pt3dr(0.f,0.f,0.f)),
     _appMode(appMode)
 {
+    if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
+
     initOptions(appMode);
 
     setPolygons(data);
