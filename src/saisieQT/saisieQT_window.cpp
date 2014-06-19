@@ -45,6 +45,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _ui->menuTools->setEnabled(false);
 
+    _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -56,6 +57,7 @@ SaisieQtWindow::~SaisieQtWindow()
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
+    delete _helpDialog;
 }
 
 void SaisieQtWindow::connectActions()
@@ -310,13 +312,10 @@ void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 
 void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 {
-    QString title = QApplication::applicationName() + tr(" shortcuts");
-    cHelpDlg *helpDialog = new cHelpDlg(title, this);
-
     const QPoint global = qApp->desktop()->availableGeometry().center();
-    helpDialog->move(global.x() - helpDialog->width() / 2, global.y() - helpDialog->height() / 2);
+    _helpDialog->move(global.x() - _helpDialog->width() / 2, global.y() - _helpDialog->height() / 2);
 
-    helpDialog->show();
+    _helpDialog->show();
 
     QStringList shortcuts;
     QStringList actions;
@@ -466,7 +465,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     shortcuts.push_back("Ctrl+Shift+Z");
     actions.push_back(tr("redo last action"));
 
-    helpDialog->populateTableView(shortcuts, actions);
+    _helpDialog->populateTableView(shortcuts, actions);
 }
 
 void SaisieQtWindow::on_actionAbout_triggered()
