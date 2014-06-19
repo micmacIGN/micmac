@@ -604,6 +604,8 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                     << EAM(aMinSz,"MinSz",true,"Min sz to select cliped def = 500")
    );
 
+  if (!MMVisualMode)
+  {
    StdCorrecNameOrient(mOri,DirOfFile(mFullName));
 
 
@@ -701,6 +703,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
    }
 
+  }
 }
 
 /*****************************************************************/
@@ -844,8 +847,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
                     << EAMC(mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64")
-                    << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1")
+        LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64",eSAM_IsPowerOf2)
+                    << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1",eSAM_IsPowerOf2)
                     << EAM(mDelaunay,"Delaunay","Add delaunay edges in pair to match, Def=true on ground")
                     << EAM(mAddMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statue")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip , first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
@@ -872,37 +875,40 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mSkyBackGround,"HasSBG",true,"Scene has sky (or homogeneous) background (Def=false on Ground)")
   );
 
-  if (! BoolFind(mDo,'R'))
-     mDoRIE = false;
-
-  StdCorrecNameOrient(mOri,DirOfFile(mFullName));
-
-
-  mByEpi = mByMM1P;
-
-  mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
-
-
-  if (mModeHelp)
-      StdEXIT(0);
-  if (! EAMIsInit(&mZoom0))
-     mZoom0 =  DeZoomOfSize(7e4);
-  VerifAWSI();
-
-  if (EAMIsInit(&mPairByStrip))
+  if (!MMVisualMode)
   {
-      MakeStripStruct(mPairByStrip,mStripIsFirt);
-      ComputeStripPair(mDiffInStrip);
+      if (! BoolFind(mDo,'R'))
+         mDoRIE = false;
+
+      StdCorrecNameOrient(mOri,DirOfFile(mFullName));
+
+
+      mByEpi = mByMM1P;
+
+      mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
+
+
+      if (mModeHelp)
+          StdEXIT(0);
+      if (! EAMIsInit(&mZoom0))
+         mZoom0 =  DeZoomOfSize(7e4);
+      VerifAWSI();
+
+      if (EAMIsInit(&mPairByStrip))
+      {
+          MakeStripStruct(mPairByStrip,mStripIsFirt);
+          ComputeStripPair(mDiffInStrip);
+      }
+      if (mDelaunay)
+         AddDelaunayCple();
+      if (mAddMMImSec)
+         AddCoupleMMImSec();
+
+
+      FilterImageIsolated();
+
+      mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
   }
-  if (mDelaunay)
-     AddDelaunayCple();
-  if (mAddMMImSec)
-     AddCoupleMMImSec();
-
-
-  FilterImageIsolated();
-
-  mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 }
 
 
