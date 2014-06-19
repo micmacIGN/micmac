@@ -313,60 +313,62 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
                       << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]", eSAM_NoInit)
     );
 
-
-    for (int aK=aPdsI.size() ; aK<3 ; aK++)
-        aPdsI.push_back(1);
-    // mTifBaseGr =   new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,1,true));
-    mTifBaseCoul = new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,3,true));
-
-    mSz =  mTifBaseCoul->sz();
-    mImGr.Resize(mSz);
-    Symb_FNum aFCoul(mTifBaseCoul->in());
-    Fonc_Num aFGr =  (aPdsI[0]*aFCoul.v0()+aPdsI[1]*aFCoul.v1()+aPdsI[2]*aFCoul.v2())/(aPdsI[0]+aPdsI[1]+aPdsI[2]);
-
-    ELISE_COPY(mImGr.all_pts(),aFGr,mImGr.out());
-
-
-    mImMasq = Im2D_Bits<1>(mSz.x,mSz.y,1);
-    if (EAMIsInit(&mPostMasq))
+    if (!MMVisualMode)
     {
-        CorrecNameMasq(mDir,NameWithoutDir(mNameImBase),mPostMasq);
-        std::string aNameMasq = StdPrefix(mNameImBase)+mPostMasq+".tif";
-        Tiff_Im aTM(aNameMasq.c_str());
-        ELISE_COPY(mImMasq.all_pts(),aTM.in(0),mImMasq.out());
+        for (int aK=aPdsI.size() ; aK<3 ; aK++)
+            aPdsI.push_back(1);
+        // mTifBaseGr =   new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,1,true));
+        mTifBaseCoul = new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,3,true));
+
+        mSz =  mTifBaseCoul->sz();
+        mImGr.Resize(mSz);
+        Symb_FNum aFCoul(mTifBaseCoul->in());
+        Fonc_Num aFGr =  (aPdsI[0]*aFCoul.v0()+aPdsI[1]*aFCoul.v1()+aPdsI[2]*aFCoul.v2())/(aPdsI[0]+aPdsI[1]+aPdsI[2]);
+
+        ELISE_COPY(mImGr.all_pts(),aFGr,mImGr.out());
+
+
+        mImMasq = Im2D_Bits<1>(mSz.x,mSz.y,1);
+        if (EAMIsInit(&mPostMasq))
+        {
+            CorrecNameMasq(mDir,NameWithoutDir(mNameImBase),mPostMasq);
+            std::string aNameMasq = StdPrefix(mNameImBase)+mPostMasq+".tif";
+            Tiff_Im aTM(aNameMasq.c_str());
+            ELISE_COPY(mImMasq.all_pts(),aTM.in(0),mImMasq.out());
+        }
+        ELISE_COPY(mImMasq.border(1),0,mImMasq.out());
+
+        mKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
+        // mKeyHom = "";
+
+        Fonc_Num aGlobSh;
+        for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+        {
+            std::string aName = mVSoms[aK]->attr().mIma->mNameIm;
+            mVIm.push_back(new cImage_LumRas(mDir+aName,*this));
+            Fonc_Num aFShade = mVIm.back()->mImShade.in();
+            aGlobSh = (aK==0) ? aFShade : Virgule(aGlobSh,aFShade);
+        }
+
+       std::string aNameOut = mDir+ "LumRas_"+StdPrefix(mNameImBase) + ".tif";
+       Tiff_Im TifTest
+               (
+                     aNameOut.c_str(),
+                     mSz,
+                     GenIm::u_int1,
+                     Tiff_Im::No_Compr,
+                     Tiff_Im::RGB
+               );
+
+
+       ELISE_COPY
+       (
+             TifTest.all_pts(),
+             // Max(0,Min(255,128 * (1 + 5*aGlobSh))),
+             Max(0,Min(255,aFCoul+ 20*aGlobSh)),
+             TifTest.out()
+       );
     }
-    ELISE_COPY(mImMasq.border(1),0,mImMasq.out());
-
-    mKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
-    // mKeyHom = "";
-
-    Fonc_Num aGlobSh;
-    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
-    {
-        std::string aName = mVSoms[aK]->attr().mIma->mNameIm;
-        mVIm.push_back(new cImage_LumRas(mDir+aName,*this));
-        Fonc_Num aFShade = mVIm.back()->mImShade.in();
-        aGlobSh = (aK==0) ? aFShade : Virgule(aGlobSh,aFShade);
-    }
-
-   std::string aNameOut = mDir+ "LumRas_"+StdPrefix(mNameImBase) + ".tif";
-   Tiff_Im TifTest
-           (
-                 aNameOut.c_str(),
-                 mSz,
-                 GenIm::u_int1,
-                 Tiff_Im::No_Compr,
-                 Tiff_Im::RGB
-           );
-
-
-   ELISE_COPY
-   (
-         TifTest.all_pts(),
-         // Max(0,Min(255,128 * (1 + 5*aGlobSh))),
-         Max(0,Min(255,aFCoul+ 20*aGlobSh)),
-         TifTest.out()
-   );
 }
 
 

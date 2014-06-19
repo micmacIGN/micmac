@@ -304,7 +304,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
-                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
+                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)", eSAM_InternalUse)
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")

@@ -70,6 +70,8 @@ int EstimFlatField_main(int argc,char ** argv)
                     << EAM(ByMoy,"ByMoy",true,"Average or median (def=false")
     );
 
+    if (!MMVisualMode)
+    {
     SplitDirAndFile(aDir,aPat,aFullDir);
 
     if (aNameOut=="")
@@ -206,8 +208,9 @@ int EstimFlatField_main(int argc,char ** argv)
          aTOut.out()
     );
 
+    }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 
