@@ -39,6 +39,7 @@ public:
     void setLineThickness(float val)    { _lineThickness = val;  }
     void setPointDiameter(float val)    { _pointDiameter = val;  }
     void setGamma(float val)            { _gamma = val;          }
+    void setShowMasks(bool val)         { _showMasks = val;      }
 
     void setSelectionRadius(int val)    { _radius = val;         }
     void setShiftStep(float val)        {_shiftStep = val;       }
@@ -59,6 +60,7 @@ public:
     float getLineThickness()            { return _lineThickness; }
     float getPointDiameter()            { return _pointDiameter; }
     float getGamma()                    { return _gamma;         }
+    bool  getShowMasks()                { return _showMasks;     }
 
     int   getSelectionRadius()          { return _radius;        }
     float getShiftStep()                { return _shiftStep;     }
@@ -86,6 +88,7 @@ private:
     float       _lineThickness;
     float       _pointDiameter;
     float       _gamma;
+    bool        _showMasks;
 
     //! Other parameters
     float       _zoomWindow;
@@ -120,6 +123,7 @@ signals:
     void lineThicknessChanged(float);
     void pointDiameterChanged(float);
     void gammaChanged(float);
+    void showMasks(bool);
     void zoomWindowChanged(float);
     void selectionRadiusChanged(int);
     void prefixTextEdit(QString);
@@ -142,6 +146,7 @@ protected slots:
     void on_LineThickness_doubleSpinBox_valueChanged(double);
     void on_PointDiameter_doubleSpinBox_valueChanged(double);
     void on_GammaDoubleSpinBox_valueChanged(double);
+    void on_showMasks_checkBox_toggled(bool);
 
     //!other display settings
     void on_zoomWin_spinBox_valueChanged(int);

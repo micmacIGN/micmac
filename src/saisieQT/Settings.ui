@@ -27,7 +27,7 @@
    <item>
     <widget class="QToolBox" name="toolBox">
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <property name="tabSpacing">
       <number>6</number>
@@ -37,8 +37,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>255</width>
-        <height>80</height>
+        <width>346</width>
+        <height>173</height>
        </rect>
       </property>
       <property name="layoutDirection">
@@ -153,8 +153,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>191</width>
-        <height>110</height>
+        <width>346</width>
+        <height>173</height>
        </rect>
       </property>
       <attribute name="label">
@@ -251,6 +251,13 @@
            </property>
            <property name="value">
             <double>2.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="showMasks_checkBox">
+           <property name="text">
+            <string>Show masks</string>
            </property>
           </widget>
          </item>
@@ -409,8 +416,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>225</width>
-        <height>151</height>
+        <width>346</width>
+        <height>173</height>
        </rect>
       </property>
       <attribute name="label">
