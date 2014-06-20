@@ -1480,6 +1480,9 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
     glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
+    GLenum glError = glGetError();
+    if(glError == GL_OUT_OF_MEMORY)
+        printf("GL_OUT_OF_MEMORY \n");
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);

@@ -91,6 +91,17 @@ private:
 
 class cGLData;
 
+
+enum idGPU_Vendor
+{
+    NVIDIA,
+    AMD,
+    ATI,
+    INTEL,
+    NOMODEL
+};
+
+
 class cEngine
 {
 public:
