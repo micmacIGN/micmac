@@ -21,6 +21,7 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QMessageBox>
+#include <QShortcut>
 
 #include "general/visual_buttons.h"
 

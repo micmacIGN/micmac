@@ -1667,6 +1667,8 @@ class ElCamera : public cCapture3D
           const std::vector<Pt2dr> &  ContourUtile() ;
           bool  HasRayonUtile() const;
           bool IsInZoneUtile(const Pt2dr & aP) const;
+          void     SetZoneUtilInPixel(bool ) ;
+          bool     GetZoneUtilInPixel() const;
 
           double  RayonUtile() const;
      // A priori lie a HasRayonUtile, mais eventuellement
@@ -1729,6 +1731,7 @@ class ElCamera : public cCapture3D
          virtual const ElProj32       &  Proj() const = 0;
 	 Pt2di    mSz;
          Pt2dr    mSzPixel;
+         bool     mZoneUtilInPixel;
 
 
 

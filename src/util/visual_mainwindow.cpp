@@ -56,6 +56,11 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     verticalLayout->addWidget(runCommandButton, 1, Qt::AlignRight);
 
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
+
+    //shortcut quit
+    QKeySequence ks(Qt::CTRL + Qt::Key_Q);
+    QShortcut* shortcut = new QShortcut(ks, this);
+    QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(close()));
 }
 
 visual_MainWindow::~visual_MainWindow()
@@ -749,12 +754,23 @@ void visual_MainWindow::add_4d_SpinBox(QGridLayout *layout, QWidget *parent, int
 
 void visual_MainWindow::add_1i_SpinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
-    QSpinBox *aSpinBox = create_1i_SpinBox(layout, parent, aK, 1);
-
-    aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
-
     vector< pair < int, QWidget * > > vWidgets;
-    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, aSpinBox));
+
+    if (aArg.IsPowerOf2())
+    {
+        cSpinBox *aSpinBox = new cSpinBox(*(aArg.DefaultValue<int>()), parent);
+        layout->addWidget(aSpinBox,aK, 1);
+
+        vWidgets.push_back(pair <int, cSpinBox*> (eIT_SpinBox, aSpinBox));
+    }
+    else
+    {
+        QSpinBox *aSpinBox = create_1i_SpinBox(layout, parent, aK, 1);
+
+        aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
+        vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, aSpinBox));
+    }
+
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 
