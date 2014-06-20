@@ -1600,6 +1600,7 @@ cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, i
     _appMode(appMode)
 {
     if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
+    else _glMaskedImage._m_mask->setVisible(true);
 
     initOptions(appMode);
 

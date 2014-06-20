@@ -234,6 +234,7 @@ private:
     cParameters*            _params;
 
     cHelpDlg*               _helpDialog;
+    cSettingsDlg*           _settingsDialog;
 
     int                     _appMode;
 
