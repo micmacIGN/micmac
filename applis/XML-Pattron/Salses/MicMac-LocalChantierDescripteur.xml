@@ -1,0 +1,204 @@
+<!--
+
+
+
+bin/Pastis  /mnt/data/Archi/Salses/Helico/ Key-Rel-Delaunay-GPS 1500  MkF=MkToto
+
+-->
+
+<Global>
+   <ChantierDescripteur
+        Subst="@$#1"
+        NameDecl="@$#1"
+
+        PrefixImages="dsc_"
+        PatternNumero="${NikonPatternNumero}"
+
+        TheCalib="Nikon20mm.xml"
+
+        PatternAllIm="${PrefixImages}${PatternNumero}.${TifPost}"
+
+   >
+
+<!--   BATCH  -->
+
+        <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+                 <ExeRequired>
+                    <Exe> bin/Pastis </Exe>
+                    <Make> Makefile </Make>
+                 </ExeRequired>
+                 <ExeRequired>
+                    <Exe> bin/Apero </Exe>
+                    <Make> AperiMake </Make>
+                 </ExeRequired>
+                 <ExeRequired>
+                    <Exe> bin/MICMAC </Exe>
+                    <Make> MakeMICMAC </Make>
+                 </ExeRequired>
+
+                 <FileRequired>
+                     <Pattern> ^${TheCalib} </Pattern>
+                 </FileRequired>
+
+              </Requirement>
+
+              <Line> bin/Pastis  ${ThisDir}  AllCpleImages -1 MkF=MkToto </Line>
+              <Line> make all -f MkToto -j2  </Line>
+              <Line> bin/Apero ${ThisDir}Apero1-Pastis.xml </Line>
+              <Line> bin/MICMAC ${ThisDir}param-GeoIm.xml </Line>
+        </BatchChantDesc>
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+   <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ^Pastis(.*)-(.*)\.(dat)  </PatternAccepteur>
+                 <SubDir>   Homol-R1/ </SubDir>
+          </Sets>
+          <Key> Key-Set-Homol-R1-PastisBin </Key>
+    </KeyedSetsOfNames>
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ${PatternAllIm}  </PatternAccepteur>
+          </Sets>
+          <Key> Key-Set-AllImages </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> DSC_(.*).xml  </PatternAccepteur>
+                 <SubDir>   Ori-GPS/ </SubDir>
+          </Sets>
+          <Key> Key-Set-Centre-GPS  </Key>
+    </KeyedSetsOfNames>
+
+
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${PatternAllIm}  </PatternTransform>
+                       <CalcName> ${TheCalib} </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+   <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Homol-R1/Pastis$1-$2.dat  </CalcName>
+             </Direct>
+             <Inverse>
+                <PatternTransform> Homol-R1/Pastis(.*)-(.*)\.dat </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>  Key-Assoc-CpleIm2Homol-R1-PastisBin </Key>
+        <SubDirAutoMake> Homol </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+   <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> dsc_(.*)\.tif </PatternTransform>
+                <CalcName>  Ori-GPS/DSC_$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform>  Ori-GPS/DSC_(.*)\.xml </PatternTransform>
+                <CalcName>   dsc_$1.tif   </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Ori-GPS </Key>
+        <SubDirAutoMake> Ori-GPS </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+    <KeyedSetsORels>
+       <Sets >
+            <NameFileSauvegarde> Gps-Delaunay-Rel.xml </NameFileSauvegarde>
+
+            <ByFiltreSpatial>
+                 <KeyOri> Key-Assoc-Ori-GPS </KeyOri>
+                 <KeySet> Key-Set-AllImages    </KeySet>
+                 <TagCentre> Centre </TagCentre>
+
+                 <Sym> true </Sym>
+                 <ModeFiltreSpatial>
+                      <FiltreDelaunay> </FiltreDelaunay>
+                 </ModeFiltreSpatial>
+            </ByFiltreSpatial>
+
+       </Sets>
+       <Key  > Key-Rel-Delaunay-GPS </Key>
+    </KeyedSetsORels>
+
+
+<!--
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-AllImages   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+                <FiltreEmprise>
+                    <KeyOri> Key-Assoc-Im2OriJpp </KeyOri>
+                    <RatioMin> 0.05 </RatioMin>
+                </FiltreEmprise>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-AllCpleImage </Key>
+    </KeyedSetsORels>
+-->
+
+<!--
+     ORTHO 
+-->
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> ^(.*)\.tif </PatternTransform>
+                <CalcName>  jpeg/RGB_$1_Scaled.tif </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Gray2Coul </Key>
+        <SubDirAutoMake> COUL </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+  </ChantierDescripteur>
+</Global>
