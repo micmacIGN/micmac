@@ -117,6 +117,8 @@ public:
 
     void enableMarginSpinBox(bool show = true);
 
+    void hidePage();
+
 signals:
     void nbFenChanged(bool closeWidgets);
 
