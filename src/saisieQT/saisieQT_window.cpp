@@ -45,6 +45,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _ui->menuTools->setEnabled(false);
 
+    _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
+    _settingsDialog = new cSettingsDlg(this, _params);
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -56,6 +58,8 @@ SaisieQtWindow::~SaisieQtWindow()
     delete _zoomLayout;
     delete _signalMapper;
     delete _params;
+    delete _helpDialog;
+    delete _settingsDialog;
 }
 
 void SaisieQtWindow::connectActions()
@@ -310,13 +314,10 @@ void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 
 void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 {
-    QString title = QApplication::applicationName() + tr(" shortcuts");
-    cHelpDlg *helpDialog = new cHelpDlg(title, this);
-
     const QPoint global = qApp->desktop()->availableGeometry().center();
-    helpDialog->move(global.x() - helpDialog->width() / 2, global.y() - helpDialog->height() / 2);
+    _helpDialog->move(global.x() - _helpDialog->width() / 2, global.y() - _helpDialog->height() / 2);
 
-    helpDialog->show();
+    _helpDialog->show();
 
     QStringList shortcuts;
     QStringList actions;
@@ -466,7 +467,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     shortcuts.push_back("Ctrl+Shift+Z");
     actions.push_back(tr("redo last action"));
 
-    helpDialog->populateTableView(shortcuts, actions);
+    _helpDialog->populateTableView(shortcuts, actions);
 }
 
 void SaisieQtWindow::on_actionAbout_triggered()
@@ -653,39 +654,42 @@ void SaisieQtWindow::on_actionSave_selection_triggered()
 
 void SaisieQtWindow::on_actionSettings_triggered()
 {
-    cSettingsDlg uiSettings(this, _params);
-    connect(&uiSettings, SIGNAL(nbFenChanged(bool)), this, SLOT(redraw(bool)));
+    connect(_settingsDialog, SIGNAL(nbFenChanged(bool)), this, SLOT(redraw(bool)));
 
-    connect(&uiSettings, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
+    connect(_settingsDialog, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
 
     for (int aK = 0; aK < nbWidgets();++aK)
     {
-        connect(&uiSettings, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
-        connect(&uiSettings, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
-        connect(&uiSettings, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
-        connect(&uiSettings, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
-        connect(&uiSettings, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
+        connect(_settingsDialog, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
+        connect(_settingsDialog, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
+        connect(_settingsDialog, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
+        connect(_settingsDialog, SIGNAL(showMasks(bool)),             getWidget(aK), SLOT(showMasks(bool)));
+        connect(_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
+        connect(_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
     }
 
     if (zoomWidget() != NULL)
     {
-        connect(&uiSettings, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
+        connect(_settingsDialog, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
         //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
     }
 
     const QPoint global = qApp->desktop()->availableGeometry().center();
-    uiSettings.move(global.x() - uiSettings.width() / 2, global.y() - uiSettings.height() / 2);
+    _settingsDialog->move(global.x() - _settingsDialog->width() / 2, global.y() - _settingsDialog->height() / 2);
 
-    //uiSettings.setFixedSize(uiSettings.size());
-    uiSettings.exec();
+
+    if (_appMode <= MASK3D) _settingsDialog->hidePage();
+
+    //_settingsDialog->setFixedSize(uiSettings.size());
+    _settingsDialog->show();
 
     /*#if defined(Q_OS_SYMBIAN)
-        uiSettings.showMaximized();
+        _settingsDialog->showMaximized();
     #else
-        uiSettings.show();
+        _settingsDialog->show();
     #endif*/
 
-    disconnect(&uiSettings, 0, 0, 0);
+    disconnect(_settingsDialog, 0, 0, 0);
 }
 
 void SaisieQtWindow::closeAll()

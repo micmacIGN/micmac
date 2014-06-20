@@ -21,6 +21,7 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QMessageBox>
+#include <QShortcut>
 
 #include "general/visual_buttons.h"
 
@@ -92,8 +93,6 @@ public:
 
     QDoubleSpinBox* create_1d_SpinBox(QGridLayout*, QWidget*, int, int);
     QSpinBox*       create_1i_SpinBox(QGridLayout*, QWidget*, int, int);
-
-    std::string getFirstArg() { return mFirstArg; }
 
     void add_saisieButton(QGridLayout *layout, int aK, bool normalize);
 

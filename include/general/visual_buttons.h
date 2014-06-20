@@ -10,6 +10,8 @@
 #endif
 
 #include <QPushButton>
+#include <QSpinBox>
+#include <cmath>
 
 class cSelectionButton: public QPushButton
 {
@@ -31,6 +33,21 @@ signals:
 
 };
 
+//SpinBox showing power of 2
+class cSpinBox: public QSpinBox
+{
+    Q_OBJECT
+
+public:
+        cSpinBox(int value, QWidget *parent=0);
+
+        void stepBy(int steps);
+
+private:
+        QVector <int> _m_values;
+        int           _m_index;
+
+};
 #endif //ELISE_QT_VERSION >= 4
 
 #endif /* VISUAL_BUTTONS_H */

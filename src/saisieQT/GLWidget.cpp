@@ -246,6 +246,15 @@ void GLWidget::shiftStepChanged(float val)
     }
 }
 
+void GLWidget::showMasks(bool val)
+{
+    if (hasDataLoaded())
+    {
+        m_GLData->glImage().showMask(val);
+        update();
+    }
+}
+
 void GLWidget::setParams(cParameters* aParams)
 {
     polygon()->setParams(aParams);

@@ -14,6 +14,8 @@ EVOLUTIONS :
 
 A faire ("Bug") :
 
+A voir si ImRef2Capteur , qui pose pb dans SaisieAppui peut pas être change autom si detecte taille incohe
+
 
 
 Progr MM-Dev :
