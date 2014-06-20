@@ -332,7 +332,7 @@ void cEngine::loadImages(QStringList filenames)
         break;
     }
 
-    printf("%s %d\n",sGLVendor.toStdString().c_str(),cur_avail_mem_kb/1024);
+    //printf("%s %d\n",sGLVendor.toStdString().c_str(),cur_avail_mem_kb/1024);
 
     for (int i=0;i<filenames.size();++i)
     {
@@ -343,10 +343,22 @@ void cEngine::loadImages(QStringList filenames)
 
         sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
     }
-
-    printf("texture %d\n",sizeMemoryTexture_kb);
+    //cur_avail_mem_kb = 5 * 1024;
 
     float scaleFactorVRAM = 1.f;
+    // TODO delete texture car il y a un fuite dans la VRAM!!!
+    if(cur_avail_mem_kb !=0)
+    {
+        sizeMemoryTexture_kb *= 2; // Image + masque
+        if(sizeMemoryTexture_kb > cur_avail_mem_kb)
+        {
+            scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
+        }
+    }
+
+    //printf("texture %d\n",sizeMemoryTexture_kb);
+
+
 
     float scaleFactor     = 1.f;
 
