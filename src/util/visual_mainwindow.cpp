@@ -56,6 +56,11 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     verticalLayout->addWidget(runCommandButton, 1, Qt::AlignRight);
 
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
+
+    //shortcut quit
+    QKeySequence ks(Qt::CTRL + Qt::Key_Q);
+    QShortcut* shortcut = new QShortcut(ks, this);
+    QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(close()));
 }
 
 visual_MainWindow::~visual_MainWindow()
