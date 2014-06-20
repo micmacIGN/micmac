@@ -79,12 +79,14 @@ int ScaleIm_main(int argc,char ** argv)
                     << EAM(aFactMult,"Mult",true)
                     << EAM(aDilate,"Dilate",true)
                     << EAM(aDilXY,"DilXY",true)
-                    << EAM(aDebug,"Debug",true)
+                    << EAM(aDebug,"Debug",true,"Debug", eSAM_InternalUse)
                     << EAM(anOffset,"Offset",true)
                     << EAM(Tile,"Tile",true)
                     << EAM(aForceGray,"FG",true,"Force gray (Def=false)")
                     << EAM(aForce8B,"F8B",true,"Force 8 bits (Def=false)")
     );
+    if (!MMVisualMode)
+    {
     if (Tile<0)
        Tile = 1<<30;
      Tiff_Im::SetDefTileFile(Tile);
@@ -174,7 +176,7 @@ int ScaleIm_main(int argc,char ** argv)
          aFIn,
      TiffOut.out()
     );
-
+    }
     return EXIT_SUCCESS;
 }
 

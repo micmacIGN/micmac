@@ -579,8 +579,9 @@ public:
 
     float getLoadedImageRescaleFactor() { return _loadedImageRescaleFactor; }
 
-    void draw();
+    void  showMask(bool show) { _m_mask->setVisible(show); }
 
+    void draw();
 };
 //====================================================================================
 

@@ -1459,6 +1459,7 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     _orient (Pt3dr(0,0,0),0,0,0),
     mSz        (-1,-1),
     mSzPixel   (-1,-1),
+    mZoneUtilInPixel (false),
     mDIsDirect (! isDistC2M),
     mTypeProj  (aTP),
     // mAltisSolIsDef (false),
@@ -1480,6 +1481,17 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
 {
     UndefAltisSol();
 }
+
+void  ElCamera::SetZoneUtilInPixel(bool aZUP ) 
+{
+  mZoneUtilInPixel = aZUP;
+}
+
+bool  ElCamera::GetZoneUtilInPixel() const
+{
+    return mZoneUtilInPixel;
+}
+
 
 
 Pt3dr ElCamera::Vitesse() const
@@ -1527,13 +1539,15 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
 
    // Si "vraie" camera et scannee il est necessaire de faire le test maintenant
    // car IsZoneUtil est en mm
-   if ( ! IsInZoneUtile(aPF0)) return false; 
+
+  // std::cout << "AAAAAA " << aPF0 << " " << mZoneUtilInPixel << "\n";
+   if ( (!mZoneUtilInPixel) && ( ! IsInZoneUtile(aPF0))) return false; 
 
    Pt2dr aPF1 = DComplM2C(aPF0);
 
    // MPD le 17/06/2014 : je ne comprend plus le [1], qui fait planter les camera ortho
    // a priori la zone utile se juge a la fin
-   // if ( ! IsInZoneUtile(aPF1)) return false;
+   if (mZoneUtilInPixel && ( ! IsInZoneUtile(aPF1))) return false;
 
 
    Pt2dr aI0Again = DistInverse(aPF1);
@@ -1563,6 +1577,7 @@ double  ElCamera::ResolSolGlob() const
 bool  ElCamera::CaptHasData(const Pt2dr & aP) const 
 {
    return  IsInZoneUtile(DComplC2M(aP));
+   // return  IsInZoneUtile(aP);
 }
 
 const bool &   ElCamera::IsScanned() const
@@ -1667,8 +1682,10 @@ void ElCamera::SetParamGrid(const NS_ParamChantierPhotogram::cParamForGrid & aPa
    mRayonInvGrid = aParam.RayonInv();
 }
 
-bool ElCamera::IsInZoneUtile(const Pt2dr & aP) const
+bool ElCamera::IsInZoneUtile(const Pt2dr & aQ) const
 {
+   // Pt2dr aP = mZoneUtilInPixel ? DComplM2C(aQ) : aQ;
+    Pt2dr aP = aQ;
    Pt2di aSz = Sz();
    if ((aP.x<=0)  || (aP.y<=0) || (aP.x>=aSz.x) || (aP.y>=aSz.y))
       return false;
@@ -2839,6 +2856,9 @@ cOrientationConique  ElCamera::ExportCalibGlob
 
    anOC.OrIntImaM2C().SetVal(El2Xml(mScanOrImaM2C));
    anOC.TypeProj().SetVal(El2Xml(mTypeProj));
+
+   if (mZoneUtilInPixel) 
+      anOC.ZoneUtileInPixel().SetVal(true);
 
    if (aNbVerif || aNbVeridDet)
    {

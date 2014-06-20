@@ -90,7 +90,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
                 << EAMC(aIm2,"Image 2", eSAM_IsExistFile),
     LArgMain()  << EAM(aImMasq,"Masq",true,"Mask of focus zone (def=none)", eSAM_IsExistFile)
                 << EAM(aTeta,"Teta",true,"Direction of seism if any (in radian)",eSAM_NoInit)
-                << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)")
+                << EAM(Exe,"Exe",true,"Execute command , def=true (tuning purpose)",eSAM_InternalUse)
                 << EAM(aSzW,"SzW",true,"Size of window (Def=4, mean 9x9)")
                 << EAM(aRegul,"Reg",true,"Regularization (Def=0.3)")
                 << EAM(useDequant,"Dequant",true,"Dequantify (Def=true)")

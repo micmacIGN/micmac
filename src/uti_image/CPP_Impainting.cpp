@@ -62,56 +62,58 @@ int Impainting_main(int argc,char ** argv)
                     << EAM(aNameMasq2FIll,"2Fill", true, "Masq of point 2 fill, def = all", eSAM_NoInit)
     );
 
-    Tiff_Im aFileIm = Tiff_Im::UnivConvStd(aNameIn.c_str());
-    Pt2di aSzIm = aFileIm.sz();
-    int aNBC = aFileIm.nb_chan();
-
-    std::vector<Im2D_REAL4> aVIm;
-    Output anOut = Output::onul(0);
-    for (int aK=0 ; aK<aNBC ; aK++)
+    if (!MMVisualMode)
     {
-         Im2D_REAL4  anIm(aSzIm.x,aSzIm.y);
-         aVIm.push_back(anIm);
-         anOut = (aK==0) ? anIm.out() : Virgule(anOut,anIm.out());
+        Tiff_Im aFileIm = Tiff_Im::UnivConvStd(aNameIn.c_str());
+        Pt2di aSzIm = aFileIm.sz();
+        int aNBC = aFileIm.nb_chan();
+
+        std::vector<Im2D_REAL4> aVIm;
+        Output anOut = Output::onul(0);
+        for (int aK=0 ; aK<aNBC ; aK++)
+        {
+            Im2D_REAL4  anIm(aSzIm.x,aSzIm.y);
+            aVIm.push_back(anIm);
+            anOut = (aK==0) ? anIm.out() : Virgule(anOut,anIm.out());
+        }
+        ELISE_COPY(aFileIm.all_pts(),aFileIm.in(),anOut);
+
+
+        Tiff_Im aFileMasq(aNameMasqOK.c_str());
+        Im2D_Bits<1> aMasq(aSzIm.x,aSzIm.y,1);
+        ELISE_COPY(aFileMasq.all_pts(),!aFileMasq.in_bool(),aMasq.out());
+
+
+        Im2D_Bits<1> aMasq2Fill(aSzIm.x,aSzIm.y,1);
+        if (EAMIsInit(&aNameMasq2FIll))
+        {
+            Tiff_Im aFileMasq(aNameMasq2FIll.c_str());
+            ELISE_COPY(aFileMasq.all_pts(),!aFileMasq.in_bool(),aMasq2Fill.out());
+        }
+
+
+        Fonc_Num aFRes=0;
+        for (int aK=0 ; aK<aNBC ; aK++)
+        {
+            aVIm[aK] = ImpaintL2(aMasq,aMasq2Fill,aVIm[aK]);
+            aFRes = (aK==0) ? aVIm[aK].in() : Virgule(aFRes,aVIm[aK].in());
+        }
+
+        if (!EAMIsInit(&aNameOut))
+        {
+            aNameOut = StdPrefix(aNameIn) + "_Impaint.tif";
+        }
+        Tiff_Im aTifOut
+                (
+                    aNameOut.c_str(),
+                    aSzIm,
+                    aFileIm.type_el(),
+                    Tiff_Im::No_Compr,
+                    aFileIm.phot_interp()
+                    );
+
+        ELISE_COPY(aTifOut.all_pts(),aFRes,aTifOut.out());
     }
-    ELISE_COPY(aFileIm.all_pts(),aFileIm.in(),anOut);
-
-
-    Tiff_Im aFileMasq(aNameMasqOK.c_str());
-    Im2D_Bits<1> aMasq(aSzIm.x,aSzIm.y,1);
-    ELISE_COPY(aFileMasq.all_pts(),!aFileMasq.in_bool(),aMasq.out());
-
-
-    Im2D_Bits<1> aMasq2Fill(aSzIm.x,aSzIm.y,1);
-    if (EAMIsInit(&aNameMasq2FIll))
-    {
-        Tiff_Im aFileMasq(aNameMasq2FIll.c_str());
-        ELISE_COPY(aFileMasq.all_pts(),!aFileMasq.in_bool(),aMasq2Fill.out());
-    }
-
-
-    Fonc_Num aFRes=0;
-    for (int aK=0 ; aK<aNBC ; aK++)
-    {
-         aVIm[aK] = ImpaintL2(aMasq,aMasq2Fill,aVIm[aK]);
-         aFRes = (aK==0) ? aVIm[aK].in() : Virgule(aFRes,aVIm[aK].in());
-    }
-
-    if (!EAMIsInit(&aNameOut))
-    {
-       aNameOut = StdPrefix(aNameIn) + "_Impaint.tif";
-    }
-    Tiff_Im aTifOut
-            (
-                aNameOut.c_str(),
-                aSzIm,
-                aFileIm.type_el(),
-                Tiff_Im::No_Compr,
-                aFileIm.phot_interp()
-            );
-
-    ELISE_COPY(aTifOut.all_pts(),aFRes,aTifOut.out());
-
     return EXIT_SUCCESS;
 }
 

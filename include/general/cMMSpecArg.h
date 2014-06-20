@@ -76,6 +76,9 @@ class cMMSpecArg
         // S'agit-il d'un booleen (ajout pour lever l'ambiguite integer 0/1)
         bool IsBool() const;
 
+        // S'agit-il d'une puissance de 2
+        bool IsPowerOf2() const;
+
         // S'agit-il d'un repertoire
         bool IsDir() const;
 
@@ -196,7 +199,7 @@ titulaire des droits patrimoniaux et les concédants successifs.
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,    l'utilisation,    la modification et/ou au
 développement et   la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe
 manipuler et qui le réserve donc   des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités   charger  et  tester  l'adéquation  du
