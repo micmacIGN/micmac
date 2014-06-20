@@ -116,6 +116,32 @@ void cSettingsDlg::enableMarginSpinBox(bool show)
     _ui->label_pixels->setEnabled(show);
 }
 
+void deleteChildWidgets(QLayoutItem *item)
+{
+    if (item->layout()) {
+        // Process all child items recursively.
+        for (int i = 0; i < item->layout()->count(); i++) {
+            deleteChildWidgets(item->layout()->itemAt(i));
+        }
+    }
+    delete item->widget();
+}
+
+void cSettingsDlg::hidePage()
+{
+    _ui->toolBox->widget(3)->hide();
+    _ui->toolBox->removeItem(3);
+
+    for (int aK=0; aK<  _ui->gridLayout_3->columnCount();++aK)
+    {
+        QLayoutItem * item0 = _ui->gridLayout_3->itemAtPosition(0, aK);
+        if (item0) deleteChildWidgets(item0);
+
+        QLayoutItem * item1 = _ui->gridLayout_3->itemAtPosition(3, aK);
+        if (item1) deleteChildWidgets(item1);
+    }
+}
+
 void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
 {
     if (checked)
