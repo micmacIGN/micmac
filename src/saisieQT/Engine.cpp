@@ -281,31 +281,85 @@ void cEngine::loadCameras(QStringList filenames)
     _Data->computeBBox();
 }
 
+
+#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
+#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
+
+
+
+
 void cEngine::loadImages(QStringList filenames)
 {
-    int max;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
 
-    int widthTotal = 0;
-    int heightTotal = 0;
+    QString  sGLVendor((char*)glGetString(GL_VENDOR));
+
+    // GPU Model
+
+    int GPUModel = NOMODEL;
+
+    if ( sGLVendor.contains("AMD"))
+        GPUModel = AMD;
+    else if ( sGLVendor.contains("ATI"))
+        GPUModel = ATI;
+    else if ( sGLVendor.contains("NVIDIA"))
+        GPUModel = NVIDIA;
+    else if ( sGLVendor.contains("INTEL"))
+        GPUModel = INTEL;
+
+    int maxTexture;
+
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
+
+    int widthTotal              = 0;
+    int heightTotal             = 0;
+//    GLint total_mem_kb      = 0;
+    GLint cur_avail_mem_kb      = 0;
+    int sizeMemoryTexture_kb    = 0;
+
+
+    switch (GPUModel) {
+    case NVIDIA:
+        glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX,&cur_avail_mem_kb);
+        break;
+    case ATI:
+        glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI,&cur_avail_mem_kb);
+        break;
+    case AMD:
+        glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI,&cur_avail_mem_kb);
+        break;
+    default:
+        cur_avail_mem_kb = 0;
+        break;
+    }
+
+    printf("%s %d\n",sGLVendor.toStdString().c_str(),cur_avail_mem_kb/1024);
 
     for (int i=0;i<filenames.size();++i)
     {
-        QSize imageSize = (new QImageReader(filenames[i]))->size();
+        QSize imageSize = QImageReader(filenames[i]).size();
 
         widthTotal  += imageSize.width();
         heightTotal += imageSize.height();
+
+        sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
     }
 
-    float scaleFactor = 1.f;
-    if ( widthTotal > max || heightTotal > max )
+    printf("texture %d\n",sizeMemoryTexture_kb);
+
+    float scaleFactorVRAM = 1.f;
+
+    float scaleFactor     = 1.f;
+
+    if ( widthTotal > maxTexture || heightTotal > maxTexture )
     {
         QSize totalSize(widthTotal, heightTotal);
 
-        totalSize.scale(QSize(max,max), Qt::KeepAspectRatio);
+        totalSize.scale(QSize(maxTexture,maxTexture), Qt::KeepAspectRatio);
 
         scaleFactor = ((float) totalSize.width()) / widthTotal;
     }
+
+    scaleFactor = min(scaleFactor,scaleFactorVRAM);
 
     for (int i=0;i<filenames.size();++i)
     {
