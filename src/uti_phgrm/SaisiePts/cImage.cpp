@@ -151,6 +151,11 @@ void cImage::InitCameraAndNuage()
       mCaptNuage = aRMso.Nuage();
       // std::cout << "mCaptNuage " << mName << " " << mCaptNuage
    }
+
+   if (0)
+   {
+      std::cout << "ICAN "  << mName << " Cap3D " << mCapt3d  << " Cam " << mCaptCam << " Nuage " << mCaptNuage << "\n";
+   }
 }
 
 

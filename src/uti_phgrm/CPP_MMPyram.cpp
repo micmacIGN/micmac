@@ -56,6 +56,8 @@ int MMPyram_main(int argc,char ** argv)
                     << EAM(ImSec,"ImSec",true,"Output destination (Def= same as Orientation-parameter)", eSAM_NoInit)
     );
 
+    if (!MMVisualMode)
+    {
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
     #endif
@@ -77,6 +79,8 @@ int MMPyram_main(int argc,char ** argv)
 
 
    return aRes;
+    }
+    else return EXIT_SUCCESS;
 }
 
 

@@ -435,7 +435,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mFinal,"ExpFin",true,"For final export (generate distortion indicator)")
                     << EAM(mBSHRejet,"BSHReject",true,"Value for low Basr to Ratio leading do rejection (Def=0.02)")
                     << EAM(aFactBSHOk,"FactBSHOk",true,"Multiplier so that BSHOk= FactBSHOk * BSHReject (Def=2)")
-                    << EAM(Debug,"Debug",true,"Tuning ....")
+                    << EAM(Debug,"Debug",true,"Tuning ....", eSAM_InternalUse)
    );
 
    mNoOri  =  (mOri  == "NONE");
