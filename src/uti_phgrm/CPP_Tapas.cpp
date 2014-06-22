@@ -242,6 +242,7 @@ int Tapas_main(int argc,char ** argv)
     Pt2dr Focales(-1,-1);
     Pt2dr aPPDec(-1,-1);
     std::string SauvAutom="";
+    std::string aSetHom="";
     double  TolLPPCD;
 
     if ((argc>=2)  && (std::string(argv[1])==std::string("-help")))
@@ -301,6 +302,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aRapTxt,"RapTxt",true, "RapTxt", eSAM_NoInit)
                     << EAM(TolLPPCD,"LinkPPaPPs",true, "Link PPa and PPs (double)", eSAM_NoInit)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
+                    << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
     );
 
     if (!MMVisualMode)
@@ -387,6 +389,12 @@ int Tapas_main(int argc,char ** argv)
     if (EAMIsInit(&aDoFoc))
        aCom = aCom + std::string(" +DoFoc=") + ToString(aDoFoc) + std::string(" ");
 
+
+        StdCorrecNameHomol(aSetHom,aDir);
+        if (EAMIsInit(&aSetHom))
+        {
+            aCom = aCom + std::string(" +SetHom=") + aSetHom;
+        }
 
 
         if (EAMIsInit(&aDRadMaxUser))

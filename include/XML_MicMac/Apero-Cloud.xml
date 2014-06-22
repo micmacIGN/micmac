@@ -14,13 +14,14 @@
             <Symb>  WithCam=true </Symb>
             <Symb>  ColCadre="255 0 0" </Symb>
             <Symb>  ColRay="0 255 0" </Symb>
+            <Symb>  SetHom=""   </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
            <BDD_PtsLiaisons>
                  <Id>    Id_Pastis_Hom  </Id>
-                 <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
-                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
+                 <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
            </BDD_PtsLiaisons>
            <BDD_Orient>
                   <Id>  Or-Init   </Id>
