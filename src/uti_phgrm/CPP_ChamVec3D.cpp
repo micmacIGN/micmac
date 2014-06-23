@@ -81,93 +81,117 @@ int ChamVec3D_main(int argc,char ** argv)
    std::string aVecXB;
    std::string aVecYB;
 
+   double aSeuilG = 5;
+   int aSzW = 10;
+   int aNbIter = 3;
+
+   double aMulDep3d = 20.0;
+   double aMulDep2d = 30.0;
    //std::string aVecXA;
    //std::string aVecYA;
 
+
+   /*
+        aN3dA et aN3dB sont des images de XYZ (codees en RVB) , provenant par ex de Nuage2Ply
+
+
+       aVecXB aVecYB deplacement image-image inter dates
+
+   */
+
     ElInitArgMain
     (
-    argc,argv,
-    LArgMain()  << EAMC(aN3dA,"First XYZ image name", eSAM_IsExistFile)
-                    << EAMC(aN3dB,"Second XYZ image name", eSAM_IsExistFile)
-                    << EAMC(aVecXB,"Name of X-mapping ref to second image", eSAM_IsExistFile)
-                    << EAMC(aVecYB,"Name of Y-mapping ref to second image", eSAM_IsExistFile),
+       argc,argv,
+       LArgMain()  << EAMC(aN3dA,"First XYZ image name", eSAM_IsExistFile)
+                   << EAMC(aN3dB,"Second XYZ image name", eSAM_IsExistFile)
+                   << EAMC(aVecXB,"Name of X-mapping ref to second image", eSAM_IsExistFile)
+                   << EAMC(aVecYB,"Name of Y-mapping ref to second image", eSAM_IsExistFile),
 
-    LArgMain()  /*<< EAM(aVecXA,"XFirst",true,"Name of X-mapping ref to first image")
+       LArgMain()   << EAM(aSeuilG,"SeuilG",true,"Threshold for gradient weighting")
+                    
+
+/*<< EAM(aVecXA,"XFirst",true,"Name of X-mapping ref to first image")
                     << EAM(aVecYA,"YFirst",true,"Name of X-mapping ref to first image")*/
     );
 
     if (!MMVisualMode)
     {
-    std::vector<Im2D_REAL8> aImA;
-    Im2D_REAL8::ReadAndPushTif(aImA,Tiff_Im(aN3dA.c_str()));
-    ELISE_ASSERT(aImA.size()==3,"Bad size for nuage");
 
-    std::vector<Im2D_REAL8> aImB;
-    Im2D_REAL8::ReadAndPushTif(aImB,Tiff_Im(aN3dB.c_str()));
-    ELISE_ASSERT(aImB.size()==3,"Bad size for nuage");
+    // Charge les images 3D
+         std::vector<Im2D_REAL8> aImP3dA;
+         Im2D_REAL8::ReadAndPushTif(aImP3dA,Tiff_Im(aN3dA.c_str()));
+         ELISE_ASSERT(aImP3dA.size()==3,"Bad size for nuage");
 
-
-
-    Im2D_REAL8 aDepX = Im2D_REAL8::FromFileStd(aVecXB);
-    Im2D_REAL8 aDepY = Im2D_REAL8::FromFileStd(aVecYB);
-
-    Pt2di aSz = aDepX.sz();
-
-    std::vector<Im2D_REAL8> aRes;
-    std::vector<Im2D_REAL8> aImA2;
-    for (int aK=0 ; aK< 3 ; aK++)
-    {
-        aRes.push_back(Im2D_REAL8(aSz.x,aSz.y));
-        aImA2.push_back(Im2D_REAL8(aSz.x,aSz.y));
-    }
+         std::vector<Im2D_REAL8> aImP3dB;
+         Im2D_REAL8::ReadAndPushTif(aImP3dB,Tiff_Im(aN3dB.c_str()));
+         ELISE_ASSERT(aImP3dB.size()==3,"Bad size for nuage");
 
 
-   ELISE_COPY
-   (
-        aRes[0].all_pts(),
-        FoncVec(aImB)[Virgule(FX+aDepX.in(),FY+aDepY.in())],
+
+    // Charge le deplacement image-image
+         Im2D_REAL8 aDepX = Im2D_REAL8::FromFileStd(aVecXB);
+         Im2D_REAL8 aDepY = Im2D_REAL8::FromFileStd(aVecYB);
+
+         Pt2di aSz = aDepX.sz();
+
+          // Alloue la place
+
+         std::vector<Im2D_REAL8> aRes;
+         std::vector<Im2D_REAL8> aImP3dBInGeomA;
+         for (int aK=0 ; aK< 3 ; aK++)
+         {
+             aRes.push_back(Im2D_REAL8(aSz.x,aSz.y));
+             aImP3dBInGeomA.push_back(Im2D_REAL8(aSz.x,aSz.y));
+         }
+
+
+        // Changement de geometrie
+        ELISE_COPY
+        (
+             aRes[0].all_pts(),
+             FoncVec(aImP3dB)[Virgule(FX+aDepX.in(),FY+aDepY.in())],
+             // Virgule(aDepX.in(),aDepY.in(),0),
+             OutVec(aImP3dBInGeomA)
+        );
+
+
+        Im2D_REAL8 aGrad(aSz.x,aSz.y);
+        ELISE_COPY
+        (
+             aRes[0].all_pts(),
+             Grad(aImP3dA) + Grad(aImP3dBInGeomA),
+             // Virgule(aDepX.in(),aDepY.in(),0),
+             aGrad.out()
+        );
+
+
+        Tiff_Im::Create8BFromFonc
+        (
+            "aGrad.tif",
+             aSz,
+             aGrad.in()
+        );
+
+
+         // Comme la diff est mal definie la ou il y a du gradient spatial, on fait un
+         // filtrage moyenneur en deponderant les points de fort gradient
+
+         Fonc_Num aDif =  FoncVec(aImP3dA) - FoncVec(aImP3dBInGeomA);
+         // aDif = MedianBySort(aDif,2);
+         Fonc_Num aPds = 1/(1+Square(aGrad.in_proj()/aSeuilG));
+         for (int aK=0 ; aK < aNbIter; aK++)
+         {
+             aDif = rect_som(aDif*aPds,aSzW) /  rect_som(aPds,aSzW);
+         }
+
+
+         ELISE_COPY
+         (
+              aRes[0].all_pts(),
+              aDif,
         // Virgule(aDepX.in(),aDepY.in(),0),
-        OutVec(aImA2)
-   );
-
-
-   Im2D_REAL8 aGrad(aSz.x,aSz.y);
-   ELISE_COPY
-   (
-        aRes[0].all_pts(),
-        Grad(aImA) + Grad(aImA2),
-        // Virgule(aDepX.in(),aDepY.in(),0),
-        aGrad.out()
-   );
-
-
-   Tiff_Im::Create8BFromFonc
-   (
-       "aGrad.tif",
-        aSz,
-        aGrad.in()
-   );
-
-
-
-   double aSeuilG = 5;
-   int aSzW = 10;
-   Fonc_Num aDif =  FoncVec(aImA) - FoncVec(aImA2);
-   // aDif = MedianBySort(aDif,2);
-   Fonc_Num aPds = 1/(1+Square(aGrad.in_proj()/aSeuilG));
-   for (int aK=0 ; aK < 3; aK++)
-   {
-       aDif = rect_som(aDif*aPds,aSzW) /  rect_som(aPds,aSzW);
-   }
-
-
-   ELISE_COPY
-   (
-        aRes[0].all_pts(),
-        aDif,
-        // Virgule(aDepX.in(),aDepY.in(),0),
-        OutVec(aRes) | Video_Win::WiewAv(aSz)
-   );
+              OutVec(aRes) | Video_Win::WiewAv(aSz)
+         );
 
 /*
    ELISE_COPY
@@ -177,42 +201,63 @@ int ChamVec3D_main(int argc,char ** argv)
         // Virgule(aDepX.in(),aDepY.in(),0),
         OutVec(aRes) | Video_Win::WiewAv(aSz)
    );
+   double aMulDep3d = 20.0;
+   double aMulDep2d = 30.0;
 */
 
 
-   Tiff_Im::Create8BFromFonc
-   (
-       "NormDep3d.tif",
-        aSz,
-        20*sqrt(Square(aRes[0].in())+Square(aRes[1].in())+Square(aRes[2].in()))
-   );
+      Tiff_Im::Create8BFromFonc
+      (
+          "NormDep3d.tif",
+           aSz,
+           aMulDep3d*sqrt(Square(aRes[0].in())+Square(aRes[1].in())+Square(aRes[2].in()))
+      );
 
-   Tiff_Im::Create8BFromFonc
-   (
-       "NormDep2d.tif",
-        aSz,
-       10*sqrt(Square(aRes[0].in())+Square(aRes[1].in()))
-   );
+      Tiff_Im::Create8BFromFonc
+      (
+          "NormDep2d.tif",
+           aSz,
+           aMulDep2d*sqrt(Square(aRes[0].in())+Square(aRes[1].in()))
+      );
 
-   Tiff_Im::Create8BFromFonc
-   (
-       "DepZ.tif",
-        aSz,
-        128 + 20 * aRes[2].in()
-   );
+      Tiff_Im::Create8BFromFonc
+      (
+          "DepZ.tif",
+           aSz,
+           128 + 20 * aRes[2].in()
+      );
 
-   Tiff_Im::CreateFromFonc
-   (
-       "Teta.tif",
-        aSz,
-        Polar_Def_Opun::polar(Virgule(aRes[0].in(),aRes[1].in()),0).v1(),
-        GenIm::real4
-   );
+      Tiff_Im::CreateFromFonc
+      (
+          "Teta.tif",
+           aSz,
+           Polar_Def_Opun::polar(Virgule(aRes[0].in(),aRes[1].in()),0).v1(),
+           GenIm::real4
+      );
 
 
-    BanniereMM3D();
+      L_Arg_Opt_Tiff anArgTif3d = Tiff_Im::Empty_ARG + Arg_Tiff(Tiff_Im::ANoStrip());
+      for (int aK=0 ; aK<3 ; aK++)
+      {
+              const char * aXYZ[3]= {"X","Y","Z"};
+              std::string aName =std::string(aXYZ[aK]) + "_Dep.tif";
+              Tiff_Im aTifDep3d
+              (
+                 aName.c_str(),
+                 aSz,
+                 GenIm::real4,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero,
+                 anArgTif3d
+              );
+              // ELISE_COPY(aTifDep3d.all_pts(),FoncVec(aRes),aTifDep3d.out());
+              ELISE_COPY(aTifDep3d.all_pts(),aRes[aK].in(),aTifDep3d.out());
+       }
+    
 
-    return EXIT_SUCCESS;
+       BanniereMM3D();
+
+       return EXIT_SUCCESS;
 
     }
     else return EXIT_SUCCESS;
