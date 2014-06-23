@@ -281,12 +281,9 @@ void cEngine::loadCameras(QStringList filenames)
     _Data->computeBBox();
 }
 
-
-#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
-#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
-
-
-
+//#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
+//#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
+//#define GL_RENDERBUFFER_FREE_MEMORY_ATI   0x87FD
 
 void cEngine::loadImages(QStringList filenames)
 {
@@ -319,13 +316,13 @@ void cEngine::loadImages(QStringList filenames)
 
     switch (GPUModel) {
     case NVIDIA:
-        glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX,&cur_avail_mem_kb);
+        glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
         break;
     case ATI:
-        glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI,&cur_avail_mem_kb);
+        glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
         break;
     case AMD:
-        glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI,&cur_avail_mem_kb);
+        glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
         break;
     default:
         cur_avail_mem_kb = 0;
