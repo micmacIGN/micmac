@@ -64,7 +64,7 @@ void cSettingsDlg::on_PointDiameter_doubleSpinBox_valueChanged(double val)
 {
     _parameters->setPointDiameter(val);
 
-    emit pointDiameterChanged(val);
+    emit pointDiameterChanged(val * 0.01);
 }
 
 void cSettingsDlg::on_GammaDoubleSpinBox_valueChanged(double val)
