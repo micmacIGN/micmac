@@ -170,8 +170,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAMC(mNameIm2Init,"Name Im2", eSAM_IsExistFile)
                     << EAMC(mNameOriInit,"Orientation (if NONE, work directly on epipolar)", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mExe,"Exe",true,"Execute Commands, else only print them (Def=true)", eSAM_IsBool)
-                    << EAM(mZoom0,"Zoom0",true,"Zoom Init (Def=64)")
-                    << EAM(mZoomF,"ZoomF",true,"Zoom Final (Def=1)")
+                    << EAM(mZoom0,"Zoom0",true,"Zoom Init (Def=64)",eSAM_IsPowerOf2)
+                    << EAM(mZoomF,"ZoomF",true,"Zoom Final (Def=1)",eSAM_IsPowerOf2)
                     << EAM(mCreateEpip,"CreateE",true," Create Epipolar (def = true when appliable)", eSAM_IsBool)
                     << EAM(mDoubleSens,"2Way",true,"Match in 2 Way (Def=true)", eSAM_IsBool)
                     << EAM(mCMS,"CMS",true,"Multi Scale Correl (Def=ByEpip)")

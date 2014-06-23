@@ -64,7 +64,7 @@ void cSettingsDlg::on_PointDiameter_doubleSpinBox_valueChanged(double val)
 {
     _parameters->setPointDiameter(val);
 
-    emit pointDiameterChanged(val);
+    emit pointDiameterChanged(val * 0.01);
 }
 
 void cSettingsDlg::on_GammaDoubleSpinBox_valueChanged(double val)
@@ -72,6 +72,13 @@ void cSettingsDlg::on_GammaDoubleSpinBox_valueChanged(double val)
     _parameters->setGamma(val);
 
     emit gammaChanged((float)val);
+}
+
+void cSettingsDlg::on_showMasks_checkBox_toggled(bool val)
+{
+    _parameters->setShowMasks(val);
+
+    emit showMasks(val);
 }
 
 void cSettingsDlg::on_zoomWin_spinBox_valueChanged(int val)
@@ -107,6 +114,32 @@ void cSettingsDlg::enableMarginSpinBox(bool show)
     _ui->doubleSpinBoxSz->setEnabled(show);
     _ui->label_Margin->setEnabled(show);
     _ui->label_pixels->setEnabled(show);
+}
+
+void deleteChildWidgets(QLayoutItem *item)
+{
+    if (item->layout()) {
+        // Process all child items recursively.
+        for (int i = 0; i < item->layout()->count(); i++) {
+            deleteChildWidgets(item->layout()->itemAt(i));
+        }
+    }
+    delete item->widget();
+}
+
+void cSettingsDlg::hidePage()
+{
+    _ui->toolBox->widget(3)->hide();
+    _ui->toolBox->removeItem(3);
+
+    for (int aK=0; aK<  _ui->gridLayout_3->columnCount();++aK)
+    {
+        QLayoutItem * item0 = _ui->gridLayout_3->itemAtPosition(0, aK);
+        if (item0) deleteChildWidgets(item0);
+
+        QLayoutItem * item1 = _ui->gridLayout_3->itemAtPosition(3, aK);
+        if (item1) deleteChildWidgets(item1);
+    }
 }
 
 void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
@@ -185,6 +218,7 @@ void cSettingsDlg::refresh()
     _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
     _ui->PointDiameter_doubleSpinBox->setValue(_parameters->getPointDiameter());
     _ui->GammaDoubleSpinBox->setValue(_parameters->getGamma());
+    _ui->showMasks_checkBox->setChecked(_parameters->getShowMasks());
 
     _ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
     _ui->PrefixTextEdit->setText(_parameters->getDefPtName());
@@ -229,6 +263,7 @@ cParameters::cParameters():
     _lineThickness(2.f),
     _pointDiameter(2.f),
     _gamma(1.f),
+    _showMasks(false),
     _zoomWindow(3.f),
     _ptName(QString("100")),
     _postFix(QString("_mask")),
@@ -247,6 +282,7 @@ cParameters& cParameters::operator =(const cParameters &params)
     _lineThickness  = params._lineThickness;
     _pointDiameter  = params._pointDiameter;
     _gamma          = params._gamma;
+    _showMasks      = params._showMasks;
 
     _zoomWindow     = params._zoomWindow;
     _ptName         = params._ptName;
@@ -269,6 +305,7 @@ bool cParameters::operator!=(cParameters &p)
             (p._lineThickness  != _lineThickness) ||
             (p._pointDiameter  != _pointDiameter) ||
             (p._gamma          != _gamma) ||
+            (p._showMasks      != _showMasks) ||
             (p._zoomWindow     != _zoomWindow) ||
             (p._ptName         != _ptName)  ||
             (p._postFix        != _postFix) ||
@@ -308,6 +345,7 @@ void cParameters::read()
      setLineThickness(  settings.value("linethickness", 2.f     ).toFloat());
      setPointDiameter(  settings.value("pointdiameter",0.8f      ).toFloat());
      setGamma(          settings.value("gamma",1.f              ).toFloat());
+     setShowMasks(      settings.value("showMasks", false       ).toBool());
      settings.endGroup();
 
      settings.beginGroup("Misc");
@@ -339,6 +377,7 @@ void cParameters::write()
      settings.setValue("linethickness", QString::number(_lineThickness,'f',1)  );
      settings.setValue("pointdiameter", QString::number(_pointDiameter,'f',1)  );
      settings.setValue("gamma",         QString::number(_gamma        ,'f',1)  );
+     settings.setValue("showMasks",     _showMasks  );
      settings.endGroup();
 
      settings.beginGroup("Misc");

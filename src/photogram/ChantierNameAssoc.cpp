@@ -3694,8 +3694,8 @@ bool  cInterfChantierNameManipulateur::TestStdOrient
         if (anOri.find(aPrefix) != 0)
             return false;
 
-   string inputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():mDir );
-   std::string aDir = inputDirectory + aManquant + anOri + ELISE_CAR_DIR;
+        string inputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():mDir );
+        std::string aDir = inputDirectory + aManquant + anOri + ELISE_CAR_DIR;
         std::list<std::string> aL = RegexListFileMatch(aDir,"(Orientation-|AutoCal).*\\.xml",2,false);
         // std::list<std::string> aL = RegexListFileMatch(mDir,aManquant + anOri+ "(Orientation-|AutoCal).*\\.xml",2);
 
@@ -3706,12 +3706,10 @@ bool  cInterfChantierNameManipulateur::TestStdOrient
 
         anOri = anOri.substr(aPrefix.size(),std::string::npos);
                 if (AddNKS)
-            anOri =  "NKS-Assoc-Im2Orient@-" + anOri;
-
-
+        anOri =  "NKS-Assoc-Im2Orient@-" + anOri;
         return true;
-
 }
+
 
 void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri)
 {
@@ -3849,6 +3847,26 @@ std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std
 }
 
 
+void StdCorrecNameHomol(std::string & aNameH,const std::string & aDir)
+{
+
+    int aL = strlen(aNameH.c_str());
+    if (aL && (aNameH[aL-1]==ELISE_CAR_DIR))
+    {
+        aNameH = aNameH.substr(0,aL-1);
+    }
+
+    if ((strlen(aNameH.c_str())>=5) && (aNameH.substr(0,5)==std::string("Homol")))
+       aNameH = aNameH.substr(5,std::string::npos);
+
+    std::string aTest =  ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + "Homol"+aNameH+ ELISE_CAR_DIR;
+
+    if (!ELISE_fp::IsDirectory(aTest))
+    {
+         std::cout << "For Name homol= " << aNameH << "\n";
+         ELISE_ASSERT(false,"Name is not a correct homologue prefix");
+    }
+}
 
 
 void StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir)

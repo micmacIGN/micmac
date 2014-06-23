@@ -51,6 +51,10 @@ bool cMMSpecArg::IsBool() const
 {
     return mEAM->Spec() == eSAM_IsBool;
 }
+bool cMMSpecArg::IsPowerOf2() const
+{
+    return mEAM->Spec() == eSAM_IsPowerOf2;
+}
 bool cMMSpecArg::IsDir() const
 {
     return mEAM->Spec() == eSAM_IsDir;

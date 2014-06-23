@@ -81,7 +81,7 @@ class cObject
 
         void    setName(QString name)          { _name = name;     }
         void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
-        void    setColor(QColor const &aCol,object_state state = state_default)   { _color[state] = aCol;    }
+        void    setColor(QColor const &aCol, object_state state = state_default)   { _color[state] = aCol;    }
         void    setScale(Pt3dr aScale)         { _scale = aScale; }
         void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
         void    setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
@@ -138,7 +138,8 @@ class cPoint : public cObjectGL, public QPointF
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
-           float diameter = 4.f,
+           float diameter = .05f,
+           float zoom = 1.f,
            bool  highlight  = false,
            bool  drawCenter = true);
 
@@ -147,6 +148,7 @@ class cPoint : public cObjectGL, public QPointF
         void setStatePoint(int state){ _statePoint = state; }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
+        void setZoom(float val)      { _zoom = val;         }
         int  statePoint() const      { return _statePoint;  }
         void showName(bool show)     { _bShowName = show;   }
 
@@ -164,6 +166,7 @@ class cPoint : public cObjectGL, public QPointF
 private:
 
         float   _diameter;
+        float   _zoom;
         bool    _bShowName;
         int     _statePoint;
         bool    _highlight;
@@ -308,11 +311,12 @@ class cPolygon : public cObjectGL
         int     selectPoint(QString namePt);
         void    selectPoint(int idx);
 
-        void    setPointSize(float size) { _pointDiameter = size; }
+        void    setPointSize(float size);
+        float   getPointDiameter() { return _pointDiameter; }
 
         void    add(cPoint &pt);
-        void    add(QPointF const &pt, bool selected=false);
-        virtual void    addPoint(QPointF const &pt);
+        void    add(QPointF const &pt, float zoom, bool selected=false);
+        virtual void    addPoint(QPointF const &pt, float zoom);
 
         void    clear();
         void    clearPoints() { _points.clear(); }
@@ -458,7 +462,7 @@ class cRectangle : public cPolygon
 
         cRectangle(int nbMax = 4, float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
 
-        void    addPoint(QPointF const &pt);
+        void    addPoint(QPointF const &pt, float zoom);
 
         void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false);
 
@@ -579,8 +583,9 @@ public:
 
     float getLoadedImageRescaleFactor() { return _loadedImageRescaleFactor; }
 
-    void draw();
+    void  showMask(bool show) { _m_mask->setVisible(show); }
 
+    void draw();
 };
 //====================================================================================
 

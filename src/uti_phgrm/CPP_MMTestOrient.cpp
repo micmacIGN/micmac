@@ -94,7 +94,7 @@ int MMTestOrient_main(int argc,char ** argv)
                     << EAMC(AeroIn,"Orientation", eSAM_IsExistFile),
     LArgMain()  << EAM(aDir,"Dir",true,"Directory, Def=./")
                     << EAM(Zoom0,"Zoom0",true,"Zoom init, pow of 2  in [128,8], Def depend of size")
-                    << EAM(ZoomF,"ZoomF",true,"Zoom init,  pow of 2  in [4,1], Def=2")
+                    << EAM(ZoomF,"ZoomF",true,"Zoom init,  pow of 2  in [4,1], Def=2",eSAM_IsPowerOf2)
                     << EAM(mModePB,"PB",true,"Push broom sensor")
                     << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO), Mandatory in PB", eSAM_NoInit)
                     << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
