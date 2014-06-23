@@ -102,6 +102,8 @@ void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2
 {
     QString name(aSom->NamePt().c_str());
     cPoint point(pt,name,true,aSom->Etat());
+    point.setZoom(_vp_Params.m_zoom);
+    point.setDiameter(_params->getPointDiameter() * 0.01);
 
     point.setHighlight(highlight);
 
@@ -221,7 +223,8 @@ void GLWidget::pointDiameterChanged(float val)
     {
         for (int aK =0; aK < polygon()->size();++aK)
         {
-            (*polygon())[aK].setDiameter(val);
+            //(*polygon())[aK].setDiameter(val);
+            (*polygon())[aK].setZoom(_vp_Params.m_zoom);
         }
 
         polygon()->setPointSize(val);
@@ -257,6 +260,8 @@ void GLWidget::showMasks(bool val)
 
 void GLWidget::setParams(cParameters* aParams)
 {
+    _params = aParams;
+
     polygon()->setParams(aParams);
 }
 
@@ -266,10 +271,22 @@ void GLWidget::setZoom(float val)
 
     _vp_Params.m_zoom = val;
 
+    if (hasDataLoaded() && m_bDisplayMode2D)
+        for (int i = 0; i < m_GLData->polygonCount(); ++i)
+        {
+            cPolygon* polyg = polygon(i);
+
+            if (polyg)
+            {
+                for (int i = 0; i < polyg->size(); ++i)
+                {
+                    polyg->point(i).setZoom(_vp_Params.m_zoom);
+                }
+            }
+        }
+
     if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_vp_Params.m_zoom*100,'f',1) + "%";
-
-    emit zoomChanged(val);
 
     update();
 }
@@ -492,7 +509,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 if(!polygon()->isClosed())             // ADD POINT
 
-                    polygon()->addPoint(m_lastPosImage);
+                    polygon()->addPoint(m_lastPosImage, _vp_Params.m_zoom);
 
                 else if (polygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
@@ -741,22 +758,25 @@ void GLWidget::overlay()
             if (m_bDisplayMode2D)
                 _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
 
-            polyg->draw();
-
-            if (polyg->bShowNames())
+            if (polyg)
             {
-                for (int aK=0; aK < polyg->size();++aK)
+                polyg->draw();
+
+                if (polyg->bShowNames())
                 {
-                    cPoint pt = polyg->operator [](aK);
-
-                    if (pt.showName() && (pt.name() != ""))
+                    for (int aK=0; aK < polyg->size();++aK)
                     {
-                        QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
+                        cPoint pt = polyg->operator [](aK);
 
-                        QColor color(pt.isSelected() ? Qt::blue : Qt::white);
-                        glColor3f(color.redF(),color.greenF(),color.blueF());
+                        if (pt.showName() && (pt.name() != ""))
+                        {
+                            QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
 
-                        renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
+                            QColor color(pt.isSelected() ? Qt::blue : Qt::white);
+                            glColor3f(color.redF(),color.greenF(),color.blueF());
+
+                            renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
+                        }
                     }
                 }
             }

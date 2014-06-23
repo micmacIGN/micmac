@@ -46,7 +46,6 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
     _ui->menuTools->setEnabled(false);
 
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
-    _settingsDialog = new cSettingsDlg(this, _params);
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -59,7 +58,6 @@ SaisieQtWindow::~SaisieQtWindow()
     delete _signalMapper;
     delete _params;
     delete _helpDialog;
-    delete _settingsDialog;
 }
 
 void SaisieQtWindow::connectActions()
@@ -654,42 +652,43 @@ void SaisieQtWindow::on_actionSave_selection_triggered()
 
 void SaisieQtWindow::on_actionSettings_triggered()
 {
-    connect(_settingsDialog, SIGNAL(nbFenChanged(bool)), this, SLOT(redraw(bool)));
+    cSettingsDlg _settingsDialog(this, _params);
+    connect(&_settingsDialog, SIGNAL(nbFenChanged(bool)), this, SLOT(redraw(bool)));
 
-    connect(_settingsDialog, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
+    connect(&_settingsDialog, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
 
     for (int aK = 0; aK < nbWidgets();++aK)
     {
-        connect(_settingsDialog, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
-        connect(_settingsDialog, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
-        connect(_settingsDialog, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
-        connect(_settingsDialog, SIGNAL(showMasks(bool)),             getWidget(aK), SLOT(showMasks(bool)));
-        connect(_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
-        connect(_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
+        connect(&_settingsDialog, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
+        connect(&_settingsDialog, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
+        connect(&_settingsDialog, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
+        connect(&_settingsDialog, SIGNAL(showMasks(bool)),             getWidget(aK), SLOT(showMasks(bool)));
+        connect(&_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
+        connect(&_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
     }
 
     if (zoomWidget() != NULL)
     {
-        connect(_settingsDialog, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
+        connect(&_settingsDialog, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
         //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
     }
 
     const QPoint global = qApp->desktop()->availableGeometry().center();
-    _settingsDialog->move(global.x() - _settingsDialog->width() / 2, global.y() - _settingsDialog->height() / 2);
+    _settingsDialog.move(global.x() - _settingsDialog.width() / 2, global.y() - _settingsDialog.height() / 2);
 
 
-    if (_appMode <= MASK3D) _settingsDialog->hidePage();
+    if (_appMode <= MASK3D) _settingsDialog.hidePage();
 
-    //_settingsDialog->setFixedSize(uiSettings.size());
-    _settingsDialog->show();
+    //_settingsDialog.setFixedSize(uiSettings.size());
+    _settingsDialog.exec();
 
     /*#if defined(Q_OS_SYMBIAN)
-        _settingsDialog->showMaximized();
+        _settingsDialog.showMaximized();
     #else
-        _settingsDialog->show();
+        _settingsDialog.show();
     #endif*/
 
-    disconnect(_settingsDialog, 0, 0, 0);
+    disconnect(&_settingsDialog, 0, 0, 0);
 }
 
 void SaisieQtWindow::closeAll()

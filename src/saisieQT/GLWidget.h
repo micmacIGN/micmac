@@ -145,8 +145,6 @@ signals:
 
     void gammaChangedSgnl(float gamma);
 
-    void zoomChanged(float val);
-
     void addPoint(QPointF point);
 
     void movePoint(int idPt);
@@ -223,6 +221,8 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
+
+    cParameters* _params;
 
    // QPainter*   _painter;
 };
