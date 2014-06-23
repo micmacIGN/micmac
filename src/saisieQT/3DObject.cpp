@@ -527,10 +527,12 @@ cPoint::cPoint(QPointF pos,
                bool isSelected,
                QColor color, QColor selectionColor,
                float diameter,
+               float zoom,
                bool highlight,
                bool drawCenter):
     QPointF(pos),
     _diameter(diameter),
+    _zoom(zoom),
     _bShowName(showName),
     _statePoint(state),
     _highlight(highlight),
@@ -578,13 +580,18 @@ void cPoint::draw()
         glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
 
         float rx, ry;
-        rx = _diameter * 0.01; //to do: corriger / zoom
+        rx = _diameter / _zoom;
         ry = rx * _scale.x/_scale.y;
 
         QPointF aPt = scaledPt();
 
         glDrawEllipse( aPt.x(), aPt.y(), rx, ry);
-        if (_drawCenter) glDrawEllipse( aPt.x(), aPt.y(), 0.001, 0.001* _scale.x/_scale.y);
+
+        if (_drawCenter)
+        {
+            float diam = 0.002 / _zoom;
+            glDrawEllipse( aPt.x(), aPt.y(), diam, diam * _scale.x/_scale.y);
+        }
 
         if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
         {
@@ -632,7 +639,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
-    _pointDiameter(6.f),
+    _pointDiameter(1.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
@@ -650,11 +657,12 @@ cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
     setVector(points);
 }
 
+
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
-    _pointDiameter(6.f),
+    _pointDiameter(1.f),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
@@ -720,11 +728,12 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
     if (this != &aP)
     {
         _lineWidth        = aP._lineWidth;
-        _pointDiameter    = aP._pointDiameter;
         _bIsClosed        = aP._bIsClosed;
         _idx              = aP._idx;
 
         _points           = aP._points;
+        _pointDiameter    = aP._pointDiameter;
+        _selectionRadius  = aP._selectionRadius;
 
         _bShowLines       = aP._bShowLines;
         _bShowNames       = aP._bShowNames;
@@ -854,32 +863,34 @@ void cPolygon::add(cPoint &pt)
     }
 }
 
-void cPolygon::add(const QPointF &pt, bool selected)
+void cPolygon::add(const QPointF &pt, float zoom, bool selected)
 {
     if (size() < _maxSz)
     {
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
-
         cPt.setDiameter(_pointDiameter);
+        cPt.setZoom(zoom);
+
         cPt.drawCenter(!isLinear());
 
         _points.push_back(cPt);
     }
 }
 
-void cPolygon::addPoint(const QPointF &pt)
+void cPolygon::addPoint(const QPointF &pt, float zoom)
 {
     if (size() >= 1)
     {
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
-
         cPt.setDiameter(_pointDiameter);
+        cPt.setZoom(zoom);
+
         cPt.drawCenter(!isLinear());
 
         point(size()-1) = cPoint(cPt);
     }
 
-    add(pt);
+    add(pt, zoom);
 }
 
 void cPolygon::clear()
@@ -1043,6 +1054,18 @@ void cPolygon::selectPoint(int idx)
     }
 }
 
+void cPolygon::setPointSize(float sz)
+{
+    _pointDiameter = sz;
+
+    for (int i = 0; i < size(); ++i)
+    {
+        point(i).setDiameter(sz);
+    }
+
+    if (helper() != NULL) helper()->setPointSize(sz);
+}
+
 bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
 {
     if (_bIsClosed || _bShowLines)
@@ -1087,7 +1110,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
     {
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
 
-            add(pos);
+            add(pos, zoom);
 
         else if (nbVertex > 1)               // replace last point by the current one
         {
@@ -1100,6 +1123,9 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
         if ( insertMode || isPointSelected()) // insert or move polygon point
         {
             cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
+            pt.setDiameter(_pointDiameter);
+            pt.setZoom(zoom);
+
             if (!ptIsVisible) pt.setVisible(false);
 
             _helper->build(pt, insertMode);
@@ -1193,14 +1219,14 @@ void cPolygon::flipY(float height)
 void cPolygon::setParams(cParameters *aParams)
 {
     setRadius(aParams->getSelectionRadius());
-    setPointSize(aParams->getPointDiameter());
+    setPointSize(aParams->getPointDiameter() *0.01);
     setLineWidth(aParams->getLineThickness());
     setShiftStep(aParams->getShiftStep());
 
     if (_helper != NULL)
     {
         _helper->setRadius(aParams->getSelectionRadius());
-        _helper->setPointSize(aParams->getPointDiameter());
+        _helper->setPointSize(aParams->getPointDiameter() *0.01);
         _helper->setLineWidth(aParams->getLineThickness());
     }
 }
@@ -1319,12 +1345,12 @@ cRectangle::cRectangle(int maxSz, float lineWidth, QColor lineColor, int style) 
     cPolygon(maxSz, lineWidth, lineColor, Qt::red, style)
 {}
 
-void cRectangle::addPoint(const QPointF &pt)
+void cRectangle::addPoint(const QPointF &pt, float zoom)
 {
     if (size() == 0)
     {
         for (int aK=0; aK < getMaxSize(); aK++)
-            add(pt);
+            add(pt, zoom);
 
         selectPoint(2);
     }
@@ -1615,7 +1641,7 @@ cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, i
         polygon(aK)->showNames(_modePt);
 
         polygon(aK)->setDefaultName(aParams.getDefPtName());
-        polygon(aK)->setPointSize(aParams.getPointDiameter());
+        polygon(aK)->setPointSize(aParams.getPointDiameter() * 0.01);
         polygon(aK)->setLineWidth(aParams.getLineThickness());
     }
 }
