@@ -693,6 +693,18 @@ void SaisieQtWindow::on_actionSettings_triggered()
 
 void SaisieQtWindow::closeAll()
 {
+    int reply = checkBeforeClose();
+
+    // 1 close without saving
+    if (reply == 2) //cancel
+    {
+        return;
+    }
+    else if (reply == 0) // save
+    {
+        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+    }
+
     emit sCloseAll();
 
     _Engine->unloadAll();
@@ -1034,19 +1046,16 @@ void  SaisieQtWindow::setGamma(float aGamma)
 
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
-    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->size())
-    {
-        int reply = QMessageBox::question(this, tr("Warning"), tr("Save mask before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
+    int reply = checkBeforeClose();
 
-        if (reply == 2)
-        {
-            event->ignore();
-            return;
-        }
-        else if (reply == 0)
-        {
-            _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
-        }
+    if (reply == 2)
+    {
+        event->ignore();
+        return;
+    }
+    else if (reply == 0)
+    {
+        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
     }
 
     emit sgnClose();
@@ -1214,6 +1223,15 @@ QAction* SaisieQtWindow::addCommandTools(QString nameCommand)
     _ui->menuTools->setEnabled(true);
 
     return _ui->menuTools->addAction(nameCommand);
+}
+
+int SaisieQtWindow::checkBeforeClose()
+{
+    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->size())
+    {
+        return QMessageBox::question(this, tr("Warning"), tr("Save mask before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
+    }
+    else return -1;
 }
 
 void SaisieQtWindow::applyParams()

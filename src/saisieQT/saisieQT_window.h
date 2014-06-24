@@ -90,6 +90,8 @@ public:
 
     QAction *addCommandTools(QString nameCommand);
 
+    int     checkBeforeClose();
+
 public slots:
 
     //! Try to load a list of files
