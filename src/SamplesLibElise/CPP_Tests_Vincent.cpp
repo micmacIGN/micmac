@@ -260,31 +260,43 @@ int Vincent_main(int argc, char** argv)
 		      * ULTIME : colore le MNT à pas régulier, dessine une échelle de répartitions des couleurs/altitudes sur la droite de l'image (to8bits "maîtrisé")
 		* Orthophoto réduite avec emplacement des GCP (en rouge les points d'appuis, en bleu les points de contrôle), nom du point (option)	*/
  
-	std::string aGCP, aMNT, aDirOF("./Ortho-MEC-Malt/"), aMesIm; 
+	std::string aGCP, 
+				aMNT, 
+				aOrthoName, 
+				aDir, 
+				aPat, 
+				aMesIm; 
 	bool aAddNamePt(true);
-	int aPtSz(10),aImSize(3000);
-	
+	int aPtSz(10),
+		aImSize(3000);
+		
 	ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aGCP,"Ground Control Points File")
-					<< EAMC(aMNT,"DSM xml file (NuageImProf...)"),
-        LArgMain()  << EAM(aDirOF,"DirOF",true,"Subdirectory for ortho (def in Ortho-${DirMEC})")
-					<< EAM(aMesIm,"ImMeasure",true,"Image measurements file (to distinguish control & check points)")
+					<< EAMC(aMNT,"DSM xml file (NuageImProf...)")
+					<< EAMC(aOrthoName,"Subdirectory for ortho (def in Ortho-${DirMEC})"),
+		LArgMain()  << EAM(aMesIm,"ImMeasure",true,"Image measurements file (to distinguish control & check points)")
 					<< EAM(aAddNamePt,"NamePt",true,"Add the name of the point (default : true)")
 					<< EAM(aImSize,"ImSz",true,"Rescaled ortho size ( default : 3000)")
 					<< EAM(aPtSz,"PtSz",true,"Size of the point (default : 10)")
     );
     
-    ELISE_ASSERT(aImSize<10,"Probable confusion with Final Size argument");
+    cout << "aImSize = " << aImSize << endl;
+    ELISE_ASSERT(aImSize>100,"Probable confusion with Final Size argument");
     
 // Charger MTD-Ortho.xml
-    std::string aMTD = aDirOF + "MTDOrtho.xml";
+	SplitDirAndFile(aDir,aPat,aOrthoName);
+	
+    std::string aMTD = aDir + "MTDOrtho.xml";
+    cout << "aMTD = " << aMTD;
     ifstream fin (aMTD.c_str());
     
 // Récupérer taille de l'ortho, nom de l'ortho, origineX, origineY, resolutionXY, origineZ, resolutionZ
     std::string aNameOrthoFull;
-    float aOrX, aOrY, aResXY;
+    float aOrX,
+		  aOrY,
+		  aResXY;
     // float aOrZ, aResZ;
     Pt2di aSizeOrtho;
     
@@ -345,7 +357,9 @@ int Vincent_main(int argc, char** argv)
     cElNuage3DMaille *  mMNT;
     mMNT = cElNuage3DMaille::FromFileIm(aMNT);		// mDir + mMNT ?
     
-    float bOrX, bOrY,  bResXY ;		// récupérer paramètres du MNT (or + res)
+    float bOrX, 
+		  bOrY,
+		  bResXY ;		// récupérer paramètres du MNT (or + res)
     //float bOrZ,bResZ;
     Pt2di  aCGPinMNT;
     pair <std::string,float> aMNTinterpoled;
