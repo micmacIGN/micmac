@@ -466,8 +466,6 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 
         if (scaleFactor != 1.f)
         {
-            cout << "scaling " <<  scaleFactor << endl;
-
             int width  = (int) ((float) pMask.width() / scaleFactor);
             int height = (int) ((float) pMask.height() / scaleFactor);
 
