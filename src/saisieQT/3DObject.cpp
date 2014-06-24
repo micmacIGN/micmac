@@ -579,8 +579,11 @@ void cPoint::draw()
         glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
 
         float rx, ry;
-        rx = _diameter / _zoom;
-        ry = rx * _scale.x/_scale.y;
+
+        float size1Pixel =  1.f / _zoom / _scale.x / 2.f;
+
+        rx = _diameter * 100.f * size1Pixel ;
+        ry = rx * _scale.x / _scale.y;
 
         QPointF aPt = scaledPt();
 
@@ -588,7 +591,7 @@ void cPoint::draw()
 
         if (_drawCenter)
         {
-            float diam = 0.002 / _zoom;
+            float diam = size1Pixel * 2.f;
             glDrawEllipse( aPt.x(), aPt.y(), diam, diam * _scale.x/_scale.y);
         }
 
