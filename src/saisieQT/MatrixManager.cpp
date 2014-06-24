@@ -10,6 +10,8 @@ MatrixManager::MatrixManager()
     _rY = 0.0;
     _distance = 10.f;
 
+    _upY = 1.f;
+
     resetAllMatrix();
 }
 
@@ -27,6 +29,8 @@ void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei heigh
     glViewport( 0, 0, width, height );
     glGetIntegerv (GL_VIEWPORT, getGLViewport());
 }
+
+
 
 void MatrixManager::doProjection(QPointF point, float zoom)
 {
@@ -93,7 +97,7 @@ void MatrixManager::getProjection3D(QPointF &P2D, Pt3dr &P)
         gluUnProject((GLdouble) P2D.x(),(GLdouble) recal, 1.f,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
 
         P = Pt3dr(xp,yp,zp);
-    #endif
+#endif
 }
 
 void MatrixManager::translate(float x, float y)
@@ -312,8 +316,6 @@ void MatrixManager::arcBall()
     target.y = -m_translationMatrix[1];
     target.z = -m_translationMatrix[2];
 
-    //cout << "target: " << target << "\n";
-
     camPos.x = target.x +  _distance * -sinf(_rX) * cosf(_rY);
     camPos.y = target.y +  _distance * -sinf(_rY);
     camPos.z = target.z + -_distance * cosf(_rX) * cosf(_rY);
@@ -323,25 +325,49 @@ void MatrixManager::arcBall()
         #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
             GLKMatrix4MakeLookAt(camPos.x,camPos.y,camPos.z,
                                  target.x, target.y, target.z,
-                                 0.0, 1.0, 0.0);
+                                 0.0, _upY, 0.0);
         #else
             gluLookAt(camPos.x,camPos.y,camPos.z,
                   target.x, target.y, target.z,
-                  0.0, 1.0, 0.0);
+                  0.0, _upY, 0.0);
         #endif
     #else
         gluLookAt(camPos.x,camPos.y,camPos.z,      // Camera position
                   target.x, target.y, target.z,    // Look at point
-                  0.0, 1.0, 0.0);
+                  0.0, _upY, 0.0);
     #endif
 
-    glGetDoublev(GL_MODELVIEW_MATRIX, _mvMatrix);
+    glGetDoublev(GL_MODELVIEW_MATRIX,  _mvMatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX, _projMatrix); // TODO a placer pour le realiser une seule fois
 }
 
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
 {
-    _rX -= rX * factor;
+    float ry = _rY;
+
+    _rX -= _upY * rX * factor;
     _rY -= rY * factor;
+
+    _rX = fmod(_rX,2*PI);
+    _rY = fmod(_rY,2*PI);
+
+    if(
+            //(abs(ry) > (2.f * PI -1.f) && abs(_rY)< 0.5) ||
+            (abs(ry)<PI/2.f && abs(_rY)>PI/2.f) ||
+            (abs(ry)>PI/2.f && abs(_rY)<PI/2.f) ||
+            (abs(ry)< 3*PI/2.f && abs(_rY)> 3*PI/2.f)||
+            (abs(ry)> 3*PI/2.f && abs(_rY)< 3*PI/2.f)
+            )
+    {
+        if((abs(ry)< 2.f*PI - PI/4.f))
+        {
+            //printf("FLIP\n");
+            _upY = -_upY;
+        }
+    }
+
+    //printf("x %f\n",_rX);
+    //printf("y %f\n",_rY);
 }
 
 void MatrixManager::MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4],float* vec)

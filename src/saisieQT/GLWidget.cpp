@@ -530,6 +530,29 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                     emit addPoint(m_lastPosImage);
 
             }
+            else
+            {
+                QPointF centerProj;
+
+                _matrixManager.getProjection(centerProj,_matrixManager.centerScene());
+
+                QPointF projMouse(event->pos().x(), vpHeight() - event->pos().y());
+
+                //qDebug() << projMouse << centerProj;
+
+                _lR = (projMouse.x() < centerProj.x()) ? -1 : 1;
+                _uD = (projMouse.y() > centerProj.y()) ? -1 : 1;
+
+//                if(_lR == -1)
+//                    qDebug() << "gauche";
+//                else
+//                    qDebug() << "droit";
+
+//                if(_uD == -1)
+//                    qDebug() << "haut";
+//                else
+//                    qDebug() << "bas";
+            }
         }
         else if (event->button() == Qt::RightButton)
         {
@@ -623,6 +646,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
                 {
+
                     r.x = dPWin.y() / vpWidth();
                     r.y = dPWin.x() / vpHeight();
                 }
@@ -640,6 +664,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 }
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
+
+
+
+
 
                 //_matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
                 _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);

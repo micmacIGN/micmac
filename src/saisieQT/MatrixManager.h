@@ -108,6 +108,7 @@ public:
 
     void        getProjection3D(QPointF &P2D, Pt3d<double> &P);
 
+
 private:
     //! GL context aspect ratio (width/height)
     float       m_glRatio;
@@ -117,6 +118,8 @@ private:
     GLint       *_glViewport;
     GLdouble    _rX;
     GLdouble    _rY;
+    GLdouble    _upY;
+
     GLdouble    _distance;
     Pt3dr       _centerScene;
 
