@@ -42,9 +42,23 @@ void MatrixManager::doProjection(QPointF point, float zoom)
 
         GLint recal = _glViewport[3] - (GLint) point.y() - 1;
 
-        //from viewport to world coordinates
-        gluUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
-                      _mvMatrix, _projMatrix, _glViewport, &wx, &wy, &wz);
+         //from viewport to world coordinates
+        #if defined Q_WS_MAC
+            #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+                    bool result;
+                    GLKVector3 window_coord = GLKVector3Make(point.x(), recal, 1.f);
+                    GLKVector3 wPt = GLKMathUnproject(window_coord, (GLKMatrix4) _mvMatrix, (GLKMatrix4) _projMatrix, _glViewport, &result);
+                    wx = wPt.x;
+                    wy = wPt.y;
+                    wz = 0.f;
+            #else
+                    gluUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
+                    _mvMatrix, _projMatrix, _glViewport, &wx, &wy, &wz);
+            #endif
+        #else
+                gluUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
+                              _mvMatrix, _projMatrix, _glViewport, &wx, &wy, &wz);
+        #endif
 
         glTranslatef(wx,wy,0);
         glScalef(zoom/_projMatrix[0], zoom/_projMatrix[0], 1.f);
@@ -62,9 +76,24 @@ void MatrixManager::getProjection3D(QPointF &P2D, Pt3dr &P)
 {
     GLint recal = _glViewport[3] - (GLint) P2D.y() - 1;
 
-    GLdouble xp,yp,zp;
-    gluUnProject((GLdouble) P2D.x(),(GLdouble) recal, 1.f,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
-    P = Pt3dr(xp,yp,zp);
+    #if defined Q_WS_MAC
+        #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+                bool result;
+                GLKVector3 window_coord = GLKVector3Make(P2D.x(), recal, 1.f);
+                GLKVector3 wPt = GLKMathUnproject(window_coord, (GLKMatrix4) _mvMatrix, (GLKMatrix4) _projMatrix, _glViewport, &result);
+                P = Pt3dr(wPt.x, wPt.y, wPt.z)
+        #else
+                GLdouble xp,yp,zp;
+                gluUnProject ((GLdouble) P2D.x(), (GLdouble) recal, 1.f,_mvMatrix, _projMatrix, _glViewport, &xp, &yp, &zp);
+
+                P = Pt3dr(xp,yp,zp);
+        #endif
+    #else
+        GLdouble xp,yp,zp;
+        gluUnProject((GLdouble) P2D.x(),(GLdouble) recal, 1.f,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+
+        P = Pt3dr(xp,yp,zp);
+    #endif
 }
 
 void MatrixManager::translate(float x, float y)
@@ -114,9 +143,23 @@ void MatrixManager::exportMatrices(selectInfos &infos)
 
 void MatrixManager::getProjection(QPointF &P2D, Pt3dr P)
 {
-    GLdouble xp,yp,zp;
-    gluProject(P.x,P.y,P.z,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
-    P2D = QPointF(xp,yp);
+    #if defined Q_WS_MAC
+        #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+                bool result;
+                GLKVector3 Pt = GLKVector3Make(P.x,P.y,P.z);
+                GLKVector3 wPt = GLKMathproject(Pt, (GLKMatrix4) _mvMatrix, (GLKMatrix4) _projMatrix, _glViewport);
+                P2D = QPointF(wPt.x,wPt.y);
+        #else
+                GLdouble xp,yp,zp;
+                gluProject(P.x,P.y,P.z,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+
+                P2D = QPointF(xp,yp);
+        #endif
+    #else
+        GLdouble xp,yp,zp;
+        gluProject(P.x,P.y,P.z,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+        P2D = QPointF(xp,yp);
+    #endif
 }
 
 QPointF MatrixManager::WindowToImage(QPointF const &winPt, float zoom)
@@ -276,9 +319,21 @@ void MatrixManager::arcBall()
     camPos.z = target.z + -_distance * cosf(_rX) * cosf(_rY);
 
     // Set the camera position and lookat point
-    gluLookAt(camPos.x,camPos.y,camPos.z,      // Camera position
-              target.x, target.y, target.z,    // Look at point
-              0.0, 1.0, 0.0);
+    #if defined Q_WS_MAC
+        #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+            GLKMatrix4MakeLookAt(camPos.x,camPos.y,camPos.z,
+                                 target.x, target.y, target.z,
+                                 0.0, 1.0, 0.0);
+        #else
+            gluLookAt(camPos.x,camPos.y,camPos.z,
+                  target.x, target.y, target.z,
+                  0.0, 1.0, 0.0);
+        #endif
+    #else
+        gluLookAt(camPos.x,camPos.y,camPos.z,      // Camera position
+                  target.x, target.y, target.z,    // Look at point
+                  0.0, 1.0, 0.0);
+    #endif
 
     glGetDoublev(GL_MODELVIEW_MATRIX, _mvMatrix);
 }
