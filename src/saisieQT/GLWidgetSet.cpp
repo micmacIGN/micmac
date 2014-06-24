@@ -50,9 +50,9 @@ void GLWidgetSet::option3DPreview()
     threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
 }
 
-void GLWidgetSet::init3DPreview(cData* data)
+void GLWidgetSet::init3DPreview(cData* data, cParameters params)
 {
-    threeDWidget()->setGLData(new cGLData(data));
+    threeDWidget()->setGLData(new cGLData(data,params));
     threeDWidget()->getGLData()->setIncFirstCloud(true);
     option3DPreview();
 }

@@ -582,7 +582,7 @@ void cPoint::draw()
 
         float size1Pixel =  1.f / _zoom / _scale.x / 2.f;
 
-        rx = _diameter * 100.f * size1Pixel ;
+        rx = _diameter * size1Pixel ;
         ry = rx * _scale.x / _scale.y;
 
         QPointF aPt = scaledPt();
@@ -1212,14 +1212,14 @@ void cPolygon::flipY(float height)
 void cPolygon::setParams(cParameters *aParams)
 {
     setRadius(aParams->getSelectionRadius());
-    setPointSize(aParams->getPointDiameter() *0.01);
+    setPointSize(aParams->getPointDiameter());
     setLineWidth(aParams->getLineThickness());
     setShiftStep(aParams->getShiftStep());
 
     if (_helper != NULL)
     {
         _helper->setRadius(aParams->getSelectionRadius());
-        _helper->setPointSize(aParams->getPointDiameter() *0.01);
+        _helper->setPointSize(aParams->getPointDiameter());
         _helper->setLineWidth(aParams->getLineThickness());
     }
 }
@@ -1611,6 +1611,19 @@ cGLData::cGLData(int appMode):
     initOptions(appMode);
 }
 
+void cGLData::setOptionPolygons(cParameters aParams)
+{
+    for (int aK=0; aK < _vPolygons.size(); ++aK)
+    {
+        polygon(aK)->showLines(!_modePt);
+        polygon(aK)->showNames(_modePt);
+
+        polygon(aK)->setDefaultName(aParams.getDefPtName());
+        polygon(aK)->setPointSize(aParams.getPointDiameter() * 0.01);
+        polygon(aK)->setLineWidth(aParams.getLineThickness());
+    }
+}
+
 cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode):
     _glMaskedImage(qMaskedImage),
     _pQMask(qMaskedImage._m_mask),
@@ -1628,19 +1641,11 @@ cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, i
 
     setPolygons(data);
 
-    for (int aK=0; aK < _vPolygons.size(); ++aK)
-    {
-        polygon(aK)->showLines(!_modePt);
-        polygon(aK)->showNames(_modePt);
-
-        polygon(aK)->setDefaultName(aParams.getDefPtName());
-        polygon(aK)->setPointSize(aParams.getPointDiameter() * 0.01);
-        polygon(aK)->setLineWidth(aParams.getLineThickness());
-    }
+    setOptionPolygons(aParams);
 }
 
 
-cGLData::cGLData(cData *data, int appMode):
+cGLData::cGLData(cData *data, cParameters aParams,int appMode):
     _pBall(new cBall),
     _pAxis(new cAxis),
     _pBbox(new cBBox),
@@ -1653,11 +1658,9 @@ cGLData::cGLData(cData *data, int appMode):
 
     setData(data);
 
-    for (int aK=0; aK < _vPolygons.size(); ++aK)
-    {
-        polygon(aK)->showLines(!_modePt);
-        polygon(aK)->showNames(_modePt);
-    }
+    setPolygons(data);
+
+    setOptionPolygons(aParams);
 }
 
 void cGLData::setPolygons(cData *data)
@@ -1710,8 +1713,6 @@ void cGLData::setData(cData *data, bool setCam)
 
             _vCams.push_back(pCam);
         }
-
-    setPolygons(data);
 
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
@@ -1819,6 +1820,18 @@ void cGLData::draw()
     for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
 
     disableOptionLine();
+}
+
+void cGLData::normalizeCurrentPolygon(bool nrm)
+{
+    if(currentPolygon())
+        currentPolygon()->normalize(nrm);
+}
+
+void cGLData::clearPolygon()
+{
+    if(currentPolygon())
+        currentPolygon()->clear();
 }
 
 void cGLData::setScale(float vW, float vH)

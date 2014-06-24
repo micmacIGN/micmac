@@ -92,6 +92,10 @@ public:
 
     int     checkBeforeClose();
 
+    cParameters *params() const;
+
+    void setParams(cParameters *params);
+
 public slots:
 
     //! Try to load a list of files

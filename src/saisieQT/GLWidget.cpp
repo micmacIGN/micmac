@@ -262,7 +262,8 @@ void GLWidget::setParams(cParameters* aParams)
 {
     _params = aParams;
 
-    polygon()->setParams(aParams);
+    if(polygon())
+        polygon()->setParams(aParams);
 }
 
 void GLWidget::setZoom(float val)
@@ -529,6 +530,29 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                     emit addPoint(m_lastPosImage);
 
             }
+            else
+            {
+                QPointF centerProj;
+
+                _matrixManager.getProjection(centerProj,_matrixManager.centerScene());
+
+                QPointF projMouse(event->pos().x(), vpHeight() - event->pos().y());
+
+                //qDebug() << projMouse << centerProj;
+
+                _lR = (projMouse.x() < centerProj.x()) ? -1 : 1;
+                _uD = (projMouse.y() > centerProj.y()) ? -1 : 1;
+
+//                if(_lR == -1)
+//                    qDebug() << "gauche";
+//                else
+//                    qDebug() << "droit";
+
+//                if(_uD == -1)
+//                    qDebug() << "haut";
+//                else
+//                    qDebug() << "bas";
+            }
         }
         else if (event->button() == Qt::RightButton)
         {
@@ -557,9 +581,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
         m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
 
-        int idMovePoint = polygon()->finalMovePoint(); //ne pas factoriser
+        int idMovePoint = polygon() ? polygon()->finalMovePoint() : -1; //ne pas factoriser
 
-        polygon()->findNearestPoint(m_lastPosImage);
+        if(polygon())
+            polygon()->findNearestPoint(m_lastPosImage);
 
         update();
 
@@ -621,6 +646,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
                 {
+
                     r.x = dPWin.y() / vpWidth();
                     r.y = dPWin.x() / vpHeight();
                 }
@@ -638,6 +664,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 }
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
+
+
+
+
 
                 //_matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
                 _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
