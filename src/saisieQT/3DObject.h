@@ -282,7 +282,6 @@ class cPolygon : public cObjectGL
     public:
 
         cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
-        cPolygon(QVector <QPointF> points, bool isClosed);
 
         virtual void draw();
 
