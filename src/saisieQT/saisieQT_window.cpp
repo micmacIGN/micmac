@@ -18,8 +18,6 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _Engine->setParams(_params);
 
-    //initData();
-
     init(_params, _appMode > MASK3D);
 
     setUI();
