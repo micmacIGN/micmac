@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1556]) = {
+const char * (theNameVar_ParamChantierPhotogram[1557]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -835,6 +835,7 @@ const char * (theNameVar_ParamChantierPhotogram[1556]) = {
 "\n",
 "\n",
 "        <TypeProj Nb=\"?\" Type=\"eTypeProjectionCam\" Def=\"eProjStenope\"> </TypeProj>\n",
+"        <ZoneUtileInPixel Nb=\"?\" Type=\"bool\" Def=\"false\"> </ZoneUtileInPixel>\n",
 "        <Interne Nb=\"?\" RefType=\"CalibrationInternConique\"> </Interne>\n",
 "        <FileInterne Nb=\"?\" Type=\"std::string\"> </FileInterne>\n",
 "        <!-- Par compat ancien fichier genere, Def  = false -->\n",

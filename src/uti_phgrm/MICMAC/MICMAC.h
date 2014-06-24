@@ -1031,7 +1031,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 {
     public :
 
-        virtual ElCamera * GetCamera(const Pt2di & aSz,bool & ToDel) const;
+        virtual ElCamera * GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) const;
 
     // Pour l'instant seul la geometrie conique accepte les anamorphose,
     // car cela necessite des adaptation pas encore faite pour les autres

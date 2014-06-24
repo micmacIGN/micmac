@@ -127,6 +127,7 @@ public slots:
     void pointDiameterChanged(float);
     void selectionRadiusChanged(int);
     void shiftStepChanged(float);
+    void showMasks(bool);
 
     //! Sets current zoom
     void setZoom(float val);
@@ -143,8 +144,6 @@ signals:
     void overWidget(void* widget);
 
     void gammaChangedSgnl(float gamma);
-
-    void zoomChanged(float val);
 
     void addPoint(QPointF point);
 
@@ -222,6 +221,8 @@ private:
 
     QColor      _BGColor0;
     QColor      _BGColor1;
+
+    cParameters* _params;
 
    // QPainter*   _painter;
 };

@@ -233,6 +233,8 @@ private:
 
     cParameters*            _params;
 
+    cHelpDlg*               _helpDialog;
+
     int                     _appMode;
 
     bool                    _bSaved;

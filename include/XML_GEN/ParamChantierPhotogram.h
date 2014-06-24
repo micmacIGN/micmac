@@ -3113,6 +3113,9 @@ class cOrientationConique
         cTplValGesInit< eTypeProjectionCam > & TypeProj();
         const cTplValGesInit< eTypeProjectionCam > & TypeProj()const ;
 
+        cTplValGesInit< bool > & ZoneUtileInPixel();
+        const cTplValGesInit< bool > & ZoneUtileInPixel()const ;
+
         cTplValGesInit< cCalibrationInternConique > & Interne();
         const cTplValGesInit< cCalibrationInternConique > & Interne()const ;
 
@@ -3167,6 +3170,7 @@ class cOrientationConique
         cTplValGesInit< cModuleOrientationFile > mModuleOrientationFile;
         cTplValGesInit< cAffinitePlane > mOrIntImaM2C;
         cTplValGesInit< eTypeProjectionCam > mTypeProj;
+        cTplValGesInit< bool > mZoneUtileInPixel;
         cTplValGesInit< cCalibrationInternConique > mInterne;
         cTplValGesInit< std::string > mFileInterne;
         cTplValGesInit< bool > mRelativeNameFI;
