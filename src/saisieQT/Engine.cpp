@@ -536,7 +536,7 @@ void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
         _vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode));
 
     if (_Data->is3D())
-        _vGLData.push_back(new cGLData(_Data, appMode));
+        _vGLData.push_back(new cGLData(_Data, aParams,appMode));
 }
 
 void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
@@ -544,7 +544,7 @@ void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
     delete _vGLData[aK];
 
     if (_Data->is3D())
-        _vGLData[aK] = new cGLData(_Data, appMode);
+        _vGLData[aK] = new cGLData(_Data, aParams,appMode);
     else
         _vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode);
 }

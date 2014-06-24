@@ -688,7 +688,7 @@ public:
 
     cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode = MASK2D);
 
-    cGLData(cData *data, int appMode = MASK2D);
+    cGLData(cData *data, cParameters aParams, int appMode = MASK2D);
 
     ~cGLData();
 
@@ -705,9 +705,9 @@ public:
     void        setCurrentPolygonIndex(int id)          { _currentPolygon = id;   }
     int         getCurrentPolygonIndex()                { return _currentPolygon; }
 
-    void        normalizeCurrentPolygon(bool nrm)       { currentPolygon()->normalize(nrm); }
+    void        normalizeCurrentPolygon(bool nrm);
 
-    void        clearPolygon()                          { currentPolygon()->clear(); }
+    void        clearPolygon();
 
     bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
 
@@ -784,6 +784,7 @@ public:
 
     void        setPolygons(cData *data);
 
+    void setOptionPolygons(cParameters aParams);
 private:
 
     cMaskedImageGL      _glMaskedImage;
