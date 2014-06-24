@@ -376,7 +376,7 @@
      <x>0</x>
      <y>0</y>
      <width>1163</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="mouseTracking">
@@ -872,9 +872,6 @@
    <property name="text">
     <string>Zoom -</string>
    </property>
-   <property name="shortcut">
-    <string>-</string>
-   </property>
   </action>
   <action name="actionZoom_Plus">
    <property name="checkable">
@@ -882,9 +879,6 @@
    </property>
    <property name="text">
     <string>Zoom +</string>
-   </property>
-   <property name="shortcut">
-    <string>+</string>
    </property>
   </action>
   <action name="actionZoom_fit">

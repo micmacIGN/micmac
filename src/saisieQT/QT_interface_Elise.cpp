@@ -53,7 +53,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     _data->computeBBox();
 
-    m_QTMainWindow->init3DPreview(_data);
+    m_QTMainWindow->init3DPreview(_data,*m_QTMainWindow->params());
 
     Init();
 
