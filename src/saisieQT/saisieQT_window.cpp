@@ -18,7 +18,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _Engine->setParams(_params);
 
-    initData();
+    //initData();
 
     init(_params, _appMode > MASK3D);
 
@@ -182,6 +182,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         if (suffix == "ply")
         {
             loadPly(filenames);
+            initData();
 
             _appMode = MASK3D;
         }
@@ -1199,6 +1200,16 @@ void SaisieQtWindow::undo(bool undo)
         emit undoSgnl(undo);
     }
 }
+cParameters *SaisieQtWindow::params() const
+{
+    return _params;
+}
+
+void SaisieQtWindow::setParams(cParameters *params)
+{
+    _params = params;
+}
+
 int SaisieQtWindow::appMode() const
 {
     return _appMode;

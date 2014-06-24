@@ -262,7 +262,8 @@ void GLWidget::setParams(cParameters* aParams)
 {
     _params = aParams;
 
-    polygon()->setParams(aParams);
+    if(polygon())
+        polygon()->setParams(aParams);
 }
 
 void GLWidget::setZoom(float val)
@@ -557,9 +558,10 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
         m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
 
-        int idMovePoint = polygon()->finalMovePoint(); //ne pas factoriser
+        int idMovePoint = polygon() ? polygon()->finalMovePoint() : -1; //ne pas factoriser
 
-        polygon()->findNearestPoint(m_lastPosImage);
+        if(polygon())
+            polygon()->findNearestPoint(m_lastPosImage);
 
         update();
 

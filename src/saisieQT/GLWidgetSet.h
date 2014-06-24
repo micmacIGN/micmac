@@ -44,7 +44,7 @@ public:
 
     void option3DPreview();
 
-    void init3DPreview(cData *data);
+    void init3DPreview(cData *data, cParameters params);
 
     void selectCameraIn3DP(int idCam);
 
