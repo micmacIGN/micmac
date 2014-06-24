@@ -3,6 +3,16 @@
 
 #include "Engine.h"
 
+#if defined Q_WS_MAC
+    #ifndef MAC_OS_X_VERSION_10_9
+        #define MAC_OS_X_VERSION_10_9 1090
+    #endif
+
+    #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_9
+        #include "GLKMathUtils.h"
+    #endif
+#endif
+
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          BOTTOM_VIEW,	/**< Bottom view **/
