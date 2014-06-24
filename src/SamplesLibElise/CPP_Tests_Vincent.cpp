@@ -294,9 +294,9 @@ int Vincent_main(int argc, char** argv)
     
 // Récupérer taille de l'ortho, nom de l'ortho, origineX, origineY, resolutionXY, origineZ, resolutionZ
     std::string aNameOrthoFull;
-    float aOrX,
-		  aOrY,
-		  aResXY;
+ //   float aOrX,
+ //		  aOrY,
+//		  aResXY;
     // float aOrZ, aResZ;
     Pt2di aSizeOrtho;
     
@@ -357,9 +357,9 @@ int Vincent_main(int argc, char** argv)
     cElNuage3DMaille *  mMNT;
     mMNT = cElNuage3DMaille::FromFileIm(aMNT);		// mDir + mMNT ?
     
-    float bOrX, 
-		  bOrY,
-		  bResXY ;		// récupérer paramètres du MNT (or + res)
+//    float bOrX, 
+	//	  bOrY,
+		//  bResXY ;		// récupérer paramètres du MNT (or + res)
     //float bOrZ,bResZ;
     Pt2di  aCGPinMNT;
     pair <std::string,float> aMNTinterpoled;
