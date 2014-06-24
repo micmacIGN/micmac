@@ -242,6 +242,7 @@ int Tapas_main(int argc,char ** argv)
     Pt2dr Focales(-1,-1);
     Pt2dr aPPDec(-1,-1);
     std::string SauvAutom="";
+    std::string aSetHom="";
     double  TolLPPCD;
 
     if ((argc>=2)  && (std::string(argv[1])==std::string("-help")))
@@ -291,7 +292,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(ImInit,"ImInit",true, "Force first image", eSAM_IsExistFile)
                     << EAM(MOI,"MOI",true,"MOI", eSAM_IsBool)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ",eSAM_InternalUse)
-                    << EAM(Debug,"Debug",true,"Partial file for debug", eSAM_IsBool)
+                    << EAM(Debug,"Debug",true,"Partial file for debug", eSAM_InternalUse)
                     << EAM(aDRadMaxUser,"DegRadMax",true,"Max degree of radial, defaut dependant of model")
                     << EAM(LibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
                     << EAM(LibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
@@ -301,6 +302,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aRapTxt,"RapTxt",true, "RapTxt", eSAM_NoInit)
                     << EAM(TolLPPCD,"LinkPPaPPs",true, "Link PPa and PPs (double)", eSAM_NoInit)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
+                    << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
     );
 
     if (!MMVisualMode)
@@ -387,6 +389,12 @@ int Tapas_main(int argc,char ** argv)
     if (EAMIsInit(&aDoFoc))
        aCom = aCom + std::string(" +DoFoc=") + ToString(aDoFoc) + std::string(" ");
 
+
+        StdCorrecNameHomol(aSetHom,aDir);
+        if (EAMIsInit(&aSetHom))
+        {
+            aCom = aCom + std::string(" +SetHom=") + aSetHom;
+        }
 
 
         if (EAMIsInit(&aDRadMaxUser))

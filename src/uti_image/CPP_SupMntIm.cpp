@@ -82,71 +82,75 @@ int SupMntIm_main(int argc,char ** argv)
                     << EAM(aCoulCDN,"CoulCDN",true)
     );
 
-    if (aNameOut == "")
-       aNameOut = StdPrefix(aNameIm) + "Superp.tif";
-
-    Tiff_Im TifIm  = Tiff_Im::StdConv(aNameIm.c_str());
-    Tiff_Im Mnt = Tiff_Im::StdConv(aNameMnt.c_str());
-
-    Tiff_Im TiffOut  = Tiff_Im
-                       (
-                              aNameOut.c_str(),
-                              TifIm.sz(),
-                              GenIm::u_int1,
-                              Tiff_Im::No_Compr,
-                              Tiff_Im::RGB
-               );
-
-   Fonc_Num aFin = 0;
-
-   for (int aK=0 ; aK<TifIm.nb_chan() ; aK++)
-       aFin = aFin + TifIm.in_proj().kth_proj(aK);
-    aFin = aFin / TifIm.nb_chan();
-    // Rconv(TifIm.in_proj().kth_proj(0));
-
-   // Fonc_Num aFin =0;
-    if (Grad)
+    if (!MMVisualMode)
     {
-        int aNbV= 1;
-        for (int aK=0 ; aK<3 ; aK++)
-            aFin = rect_som(aFin,aNbV) /ElSquare(1.0+2*aNbV);
-        aFin =  128 + Laplacien(aFin);
-    }
-    Symb_FNum fGr (aFin);
-    if ((DynGray != 1.0) || (OffsetGray!=0.0))
-       fGr =  OffsetGray + fGr*DynGray;
-    if (GamaGray != 1.0)
-       fGr = 255.0 * pow(fGr/255.0,1/GamaGray);
+        if (aNameOut == "")
+            aNameOut = StdPrefix(aNameIm) + "Superp.tif";
 
-    Fonc_Num aRes =  its_to_rgb( Virgule
-                      (
-                            fGr,
-                            Mnt.in() * DynCoul,
-                            Sat * 255 * ( aFin != NoVal)
-                       ));
+        Tiff_Im TifIm  = Tiff_Im::StdConv(aNameIm.c_str());
+        Tiff_Im Mnt = Tiff_Im::StdConv(aNameMnt.c_str());
 
-    if (CDN > 0)
-    {
-       Fonc_Num aCDN = cdn(Mnt.in_proj() / CDN);
-       aRes = aRes * (!aCDN)  +  Fonc_Num(aCoulCDN.x,aCoulCDN.y,aCoulCDN.z) * aCDN; // Virgule(!cdn(Mnt.in_proj()),1,1);
-    }
-    if (ShowSat)
-       aRes =  its_to_rgb(Virgule
+        Tiff_Im TiffOut  = Tiff_Im
                 (
-                     fGr,
-                     0,
-                     Mnt.in() * DynCoul
-                ));
+                    aNameOut.c_str(),
+                    TifIm.sz(),
+                    GenIm::u_int1,
+                    Tiff_Im::No_Compr,
+                    Tiff_Im::RGB
+                    );
 
-    ELISE_COPY
-    (
-         TifIm.all_pts(),
-         aRes,
-         TiffOut.out() | Video_Win::WiewAv(TifIm.sz())
-    );
+        Fonc_Num aFin = 0;
+
+        for (int aK=0 ; aK<TifIm.nb_chan() ; aK++)
+            aFin = aFin + TifIm.in_proj().kth_proj(aK);
+        aFin = aFin / TifIm.nb_chan();
+        // Rconv(TifIm.in_proj().kth_proj(0));
+
+        // Fonc_Num aFin =0;
+        if (Grad)
+        {
+            int aNbV= 1;
+            for (int aK=0 ; aK<3 ; aK++)
+                aFin = rect_som(aFin,aNbV) /ElSquare(1.0+2*aNbV);
+            aFin =  128 + Laplacien(aFin);
+        }
+        Symb_FNum fGr (aFin);
+        if ((DynGray != 1.0) || (OffsetGray!=0.0))
+            fGr =  OffsetGray + fGr*DynGray;
+        if (GamaGray != 1.0)
+            fGr = 255.0 * pow(fGr/255.0,1/GamaGray);
+
+        Fonc_Num aRes =  its_to_rgb( Virgule
+                                     (
+                                         fGr,
+                                         Mnt.in() * DynCoul,
+                                         Sat * 255 * ( aFin != NoVal)
+                                         ));
+
+        if (CDN > 0)
+        {
+            Fonc_Num aCDN = cdn(Mnt.in_proj() / CDN);
+            aRes = aRes * (!aCDN)  +  Fonc_Num(aCoulCDN.x,aCoulCDN.y,aCoulCDN.z) * aCDN; // Virgule(!cdn(Mnt.in_proj()),1,1);
+        }
+        if (ShowSat)
+            aRes =  its_to_rgb(Virgule
+                               (
+                                   fGr,
+                                   0,
+                                   Mnt.in() * DynCoul
+                                   ));
+
+        ELISE_COPY
+                (
+                    TifIm.all_pts(),
+                    aRes,
+                    TiffOut.out() | Video_Win::WiewAv(TifIm.sz())
+                    );
 
 
-    return 0;
+        return 0;
+    }
+    else return EXIT_SUCCESS;
 }
 
 

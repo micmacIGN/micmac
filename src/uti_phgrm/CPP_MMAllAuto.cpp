@@ -53,7 +53,7 @@ int MMAllAuto_main(int argc,char ** argv)
     LArgMain()  << EAMC(aFullDir,"Dir + Pattern", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation", eSAM_IsExistDirOri),
     LArgMain()
-                    << EAM(aZoomF,"ZoomF",true,"Zoom Final, def=2")
+                    << EAM(aZoomF,"ZoomF",true,"Zoom Final, def=2",eSAM_IsPowerOf2)
     );
 
 #if (ELISE_windows)

@@ -225,9 +225,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         setStyleSheet(app);
 
         bool ok = false;
+        int  defaultItem = 0;
+
+        if(argc > 1)
+            defaultItem = items.indexOf(QString(argv[1]));
+
         QInputDialog myDialog;
         QString item = myDialog.getItem(NULL, app.applicationName(),
-                                             QString (aArg.Comment().c_str()), items, 0, false, &ok);
+                                             QString (aArg.Comment().c_str()), items, defaultItem, false, &ok);
 
         if (ok && !item.isEmpty())
             mStrType = item.toStdString();
@@ -269,8 +274,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mDirMEC,"DirMEC",true,"Subdirectory where the results will be stored")
                     << EAM(mDirOrthoF,"DirOF",true,"Subdirectory for ortho (def in Ortho-${DirMEC}) ")
                     << EAM(mUseMasqTA,"UseTA",true,"Use TA as Masq when it exists (Def is true)")
-                    << EAM(mZoomFinal,"ZoomF",true,"Final zoom, (Def 2 in ortho,1 in MNE)")
-                    << EAM(mZoomInit,"ZoomI",true,"Initial Zoom, (Def depends on number of images)")
+                    << EAM(mZoomFinal,"ZoomF",true,"Final zoom, (Def 2 in ortho,1 in MNE)",eSAM_IsPowerOf2)
+                    << EAM(mZoomInit,"ZoomI",true,"Initial Zoom, (Def depends on number of images)",eSAM_NoInit)
                     << EAM(mZPas,"ZPas",true,"Quantification step in equivalent pixel (def is 0.4)")
                     << EAM(mExe,"Exe",true,"Execute command (Def is true !!)", eSAM_IsBool)
                     << EAM(mRep,"Repere",true,"Local system of coordinates")
@@ -299,7 +304,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
-                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)")
+                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)", eSAM_InternalUse)
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")

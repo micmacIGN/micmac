@@ -823,9 +823,14 @@ int Tapioca_main(int argc,char ** argv)
 
         setStyleSheet(app);
 
+        int  defaultItem = 0;
+
+        if(argc > 1)
+            defaultItem = items.indexOf(QString(argv[1]));
+
         bool ok = false;
         QString item = QInputDialog::getItem(NULL, app.applicationName(),
-                                             QString ("Strategy"), items, 0, false, &ok);
+                                             QString ("Strategy"), items, defaultItem, false, &ok);
 
         if (ok && !item.isEmpty())
             TheType = item.toStdString();

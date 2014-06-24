@@ -65,13 +65,14 @@ int AperiCloud_main(int argc,char ** argv)
     Pt2dr  aFocs;
     Pt3di aColCadre(255,0,0);
     Pt3di aColRay(0,255,0);
+    std::string aSetHom="";
 
     ElInitArgMain
     (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pattern)", eSAM_IsPatFile)
+               argc,argv,
+               LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation directory", eSAM_IsExistDirOri),
-    LArgMain()
+               LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true,"Point in txt format ? (Def=false)", eSAM_IsBool)
                     << EAM(Out,"Out",true,"Result (Def=AperiCloud.ply)", eSAM_IsOutputFile)
                     << EAM(PlyBin,"Bin",true,"Ply in binary mode (Def=true)", eSAM_IsBool)
@@ -84,6 +85,7 @@ int AperiCloud_main(int argc,char ** argv)
                     << EAM(WithCam,"WithCam",true,"With Camera (Def=true)")
                     << EAM(aColCadre,"ColCadre",true,"Col of camera rect Def= 255 0 0 (Red)")
                     << EAM(aColRay,"ColRay",true,"Col of camera rect Def=  0 255 0 (Green)")
+                    << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
     );
 
     if (!MMVisualMode)
@@ -150,11 +152,15 @@ int AperiCloud_main(int argc,char ** argv)
             aCom = aCom + " +ColRay=" + StrP2Coul(aColRay) ;
         }
 
-
         if (! WithPoints)
         {
             aCom = aCom + std::string(" +KeyAssocImage=NKS-Assoc-Cste@NoPoint");
         }
+
+        StdCorrecNameHomol(aSetHom,aDir);
+        if (EAMIsInit(&aSetHom))
+            aCom = aCom + std::string(" +SetHom=") + aSetHom;
+
 
         
 

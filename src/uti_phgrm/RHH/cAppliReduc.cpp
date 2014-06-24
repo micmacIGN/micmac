@@ -98,11 +98,11 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(mFullName,"Full Directory (Dir+Pattern)")
-                    << EAMC(mOri,"Orientation"),
+        LArgMain()  << EAMC(mFullName,"Full Directory (Dir+Pattern)",eSAM_IsPatFile)
+                    << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mImportTxt,"ImpTxt",true,"Import in text format(def=false)")
                     << EAM(mExportTxt,"ExpTxt",true,"Export in text format(def=false)")
-                    << EAM(mNameICA,"ICA",true,"Central image for local optim of hom")
+                    << EAM(mNameICA,"ICA",true,"Central image for local optim of hom", eSAM_IsExistFile)
                     << EAM(mExtHomol,"ExtH",true,"Extension for homol, like SrRes, def=\"\")")
                     << EAM(mMinNbPtH,"NbMinHom",true,"Nb Min Pts For Homography Computation def=20")
                     << EAM(mSeuilQual,"SeuilQual",true,"Quality Theshold for homography (Def=20.0)")
@@ -110,17 +110,19 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
                     << EAM(mSeuilDistNorm,"SeuilDistNorm",true,"threshold to validate firt normal / second (def=0.2)")
                     << EAM(aIntNivShow,"Show",true,"Level of Show (0=None, Def= 1)")
                     << EAM(mHomByParal,"HbP",true,"Compute Homography in // (Def=true)")
-                    << EAM(mOriVerif,"Verif",true,"To generate perfect homographic tie (tuning purpose)")
-                    << EAM(mH1On2,"H1on2",true,"Fix arbitrary order of hom , tuning")
-                    << EAM(mHFD,"HFD",true,"Homogr in dump format, tuning (Def true)")
-                    << EAM(mSkipHomDone,"SHD",true,"Skip Hom calc when files already Done (accelerate tuning))")
-                    << EAM(mSkipPlanDone,"SPD",true,"Skip Plan calc when files already Done (accelerate tuning))")
-                    << EAM(mSkipAllDone,"SAD",true,"Skip All calc when files already Done (accelerate tuning))")
+                    << EAM(mOriVerif,"Verif",true,"To generate perfect homographic tie (tuning purpose)", eSAM_InternalUse)
+                    << EAM(mH1On2,"H1on2",true,"Fix arbitrary order of hom , tuning", eSAM_InternalUse)
+                    << EAM(mHFD,"HFD",true,"Homogr in dump format, tuning (Def true)", eSAM_InternalUse)
+                    << EAM(mSkipHomDone,"SHD",true,"Skip Hom calc when files already Done (accelerate tuning))", eSAM_InternalUse)
+                    << EAM(mSkipPlanDone,"SPD",true,"Skip Plan calc when files already Done (accelerate tuning))", eSAM_InternalUse)
+                    << EAM(mSkipAllDone,"SAD",true,"Skip All calc when files already Done (accelerate tuning))", eSAM_InternalUse)
                     << EAM(mAltiCible,"Alti",true,"Fix arbitrary altitude (def = 1000)")
-                    << EAM(mImFocusPlan,"IFP",true,"Image Focus on Plane, tuning")
-                    << EAM(mDoCompensLoc,"DCL",true,"DoCompens loc (tuning/testing)")
+                    << EAM(mImFocusPlan,"IFP",true,"Image Focus on Plane, tuning", eSAM_InternalUse)
+                    << EAM(mDoCompensLoc,"DCL",true,"DoCompens loc (tuning/testing)", eSAM_InternalUse)
     );
 
+    if (!MMVisualMode)
+    {
     if (EAMIsInit(&mSkipAllDone))
     {
          if  (!EAMIsInit(&mSkipHomDone))  mSkipHomDone = mSkipAllDone;
@@ -181,7 +183,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
           }
           else
           {
-               std::string aFileH = mDir + mICNM->Assoc1To2(mKeyInitIm2Homol,mNameICA,aName,true); 
+               std::string aFileH = mDir + mICNM->Assoc1To2(mKeyInitIm2Homol,mNameICA,aName,true);
                if (ELISE_fp::exist_file(aFileH))
                {
                   aNewSet->push_back(aName);
@@ -229,6 +231,7 @@ cAppliReduc::cAppliReduc(int argc,char ** argv) :
         }
    }
 
+    }
 }
 
 std::string cAppliReduc::NameCalib(const std::string & aNameIm) const
@@ -298,7 +301,7 @@ void cAppliReduc::ComputeHom()
    {
        mIms[aK]->ComputeLnkHom();
    }
-   
+
 
 /*
    A priori sera remis plus tard  apres la phase d'image init
@@ -309,7 +312,7 @@ void cAppliReduc::ComputeHom()
         for (int aK=0 ; aK<int(mIms.size()) ; aK++)
         {
              std::string aCom = mIms[aK]->EstimatePlan();
-             if (aCom!="") 
+             if (aCom!="")
                 aLComPl.push_back(aCom);
         }
         cEl_GPAO::DoComInParal(aLComPl);

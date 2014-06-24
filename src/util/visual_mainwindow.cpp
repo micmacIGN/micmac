@@ -30,7 +30,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
 {
     //setAttribute( Qt::WA_DeleteOnClose );
 
-    moveArgs(aVAM, aVAO);
+
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 
@@ -39,6 +39,8 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     toolBox = new QToolBox();
 
     verticalLayout->addWidget(toolBox);
+
+    moveArgs(aVAM, aVAO);
 
     addGridLayout(aVAM, tr("&Mandatory arguments"));
 
@@ -54,6 +56,11 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     verticalLayout->addWidget(runCommandButton, 1, Qt::AlignRight);
 
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
+
+    //shortcut quit
+    QKeySequence ks(Qt::CTRL + Qt::Key_Q);
+    QShortcut* shortcut = new QShortcut(ks, this);
+    QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(close()));
 }
 
 visual_MainWindow::~visual_MainWindow()
@@ -96,13 +103,24 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
     }
 
     //Remove arg for internal use
+    bool bHasBox2D = false;
     for (int aK=0; aK < (int) aVAO.size(); aK++)
     {
-        if (aVAO[aK].IsForInternalUse())
+        cMMSpecArg arg = aVAO[aK];
+
+        if (arg.IsForInternalUse())
         {
             aVAO.erase(aVAO.begin() + aK);
             aK--;
         }
+        else if (( arg.Type() ==  AMBT_Box2di ) || ( arg.Type() ==  AMBT_Box2dr ) ) bHasBox2D = true;
+    }
+
+    //set minimum width
+    if  (toolBox != NULL)
+    {
+        if (bHasBox2D) toolBox->setMinimumWidth(670);
+        else toolBox->setMinimumWidth(470);
     }
 
     //Sort optional args
@@ -259,7 +277,7 @@ void visual_MainWindow::onRunCommandPressed()
             {
                 QLineEdit* lEdit = (QLineEdit*) aIn->Widgets()[0].second;
 
-                QString txt = lEdit->text();
+                QString txt = lEdit->text().simplified();
 
                 if (aIn->Arg().IsExistFileWithRelativePath())
                 {
@@ -736,12 +754,23 @@ void visual_MainWindow::add_4d_SpinBox(QGridLayout *layout, QWidget *parent, int
 
 void visual_MainWindow::add_1i_SpinBox(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
 {
-    QSpinBox *aSpinBox = create_1i_SpinBox(layout, parent, aK, 1);
-
-    aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
-
     vector< pair < int, QWidget * > > vWidgets;
-    vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, aSpinBox));
+
+    if (aArg.IsPowerOf2())
+    {
+        cSpinBox *aSpinBox = new cSpinBox(*(aArg.DefaultValue<int>()), parent);
+        layout->addWidget(aSpinBox,aK, 1);
+
+        vWidgets.push_back(pair <int, cSpinBox*> (eIT_SpinBox, aSpinBox));
+    }
+    else
+    {
+        QSpinBox *aSpinBox = create_1i_SpinBox(layout, parent, aK, 1);
+
+        aSpinBox->setValue( *(aArg.DefaultValue<int>()) );
+        vWidgets.push_back(pair <int, QSpinBox*> (eIT_SpinBox, aSpinBox));
+    }
+
     vInputs.push_back(new cInputs(aArg, vWidgets));
 }
 

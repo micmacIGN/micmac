@@ -9194,6 +9194,17 @@ const cTplValGesInit< eTypeProjectionCam > & cOrientationConique::TypeProj()cons
 }
 
 
+cTplValGesInit< bool > & cOrientationConique::ZoneUtileInPixel()
+{
+   return mZoneUtileInPixel;
+}
+
+const cTplValGesInit< bool > & cOrientationConique::ZoneUtileInPixel()const 
+{
+   return mZoneUtileInPixel;
+}
+
+
 cTplValGesInit< cCalibrationInternConique > & cOrientationConique::Interne()
 {
    return mInterne;
@@ -9409,6 +9420,14 @@ void  BinaryUnDumpFromFile(cOrientationConique & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.ZoneUtileInPixel().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ZoneUtileInPixel().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ZoneUtileInPixel().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.Interne().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.Interne().ValForcedForUnUmp(),aFp);
         }
@@ -9450,6 +9469,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOrientationConique & anObj)
     if (anObj.OrIntImaM2C().IsInit()) BinaryDumpInFile(aFp,anObj.OrIntImaM2C().Val());
     BinaryDumpInFile(aFp,anObj.TypeProj().IsInit());
     if (anObj.TypeProj().IsInit()) BinaryDumpInFile(aFp,anObj.TypeProj().Val());
+    BinaryDumpInFile(aFp,anObj.ZoneUtileInPixel().IsInit());
+    if (anObj.ZoneUtileInPixel().IsInit()) BinaryDumpInFile(aFp,anObj.ZoneUtileInPixel().Val());
     BinaryDumpInFile(aFp,anObj.Interne().IsInit());
     if (anObj.Interne().IsInit()) BinaryDumpInFile(aFp,anObj.Interne().Val());
     BinaryDumpInFile(aFp,anObj.FileInterne().IsInit());
@@ -9472,6 +9493,8 @@ cElXMLTree * ToXMLTree(const cOrientationConique & anObj)
       aRes->AddFils(ToXMLTree(anObj.OrIntImaM2C().Val())->ReTagThis("OrIntImaM2C"));
    if (anObj.TypeProj().IsInit())
       aRes->AddFils(ToXMLTree(std::string("TypeProj"),anObj.TypeProj().Val())->ReTagThis("TypeProj"));
+   if (anObj.ZoneUtileInPixel().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ZoneUtileInPixel"),anObj.ZoneUtileInPixel().Val())->ReTagThis("ZoneUtileInPixel"));
    if (anObj.Interne().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Interne().Val())->ReTagThis("Interne"));
    if (anObj.FileInterne().IsInit())
@@ -9498,6 +9521,8 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.TypeProj(),aTree->Get("TypeProj",1),eTypeProjectionCam(eProjStenope)); //tototo 
 
+   xml_init(anObj.ZoneUtileInPixel(),aTree->Get("ZoneUtileInPixel",1),bool(false)); //tototo 
+
    xml_init(anObj.Interne(),aTree->Get("Interne",1)); //tototo 
 
    xml_init(anObj.FileInterne(),aTree->Get("FileInterne",1)); //tototo 
@@ -9511,7 +9536,7 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvOri(),aTree->Get("ConvOri",1)); //tototo 
 }
 
-std::string  Mangling( cOrientationConique *) {return "7EE4D6DBA17D2F85FD3F";};
+std::string  Mangling( cOrientationConique *) {return "EA4760985B9CD4B6FF3F";};
 
 
 std::string & cMNT2Cmp::NameIm()

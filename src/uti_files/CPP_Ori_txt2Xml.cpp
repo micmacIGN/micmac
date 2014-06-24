@@ -746,9 +746,9 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mAddDelaunay,"Delaunay",true,"Add delaunay arc when save couple (Def=true)")
                       << EAM(mAddDelaunayCroist,"DelaunayCross",true,"Complete delaunay with some crossing trick arc when save couple (Def=true)")
 
-                      << EAM(aVCpt,"Cpt",true,"============ [CptMin,CptMax] for tuning purpose =======")
-                      << EAM(mUseOnlyC,"UOC",true,"Use Only Center (tuning)")
-                      << EAM(mMTDOnce,"MTD1",true,"Compute Metadata only for first image (tuning)")
+                      << EAM(aVCpt,"Cpt",true,"============ [CptMin,CptMax] for tuning purpose =======", eSAM_InternalUse)
+                      << EAM(mUseOnlyC,"UOC",true,"Use Only Center (tuning)",eSAM_InternalUse)
+                      << EAM(mMTDOnce,"MTD1",true,"Compute Metadata only for first image (tuning)",eSAM_InternalUse)
                       << EAM(mLine,"Line",true,"Nb neighbour in the same line")
                       << EAM(mCalibByFile,"CBF",true,"Export calib as a link to existing file")
                       << EAM(mAltiSol,"AltiSol",true,"Average altitude of ground")

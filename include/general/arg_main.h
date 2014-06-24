@@ -199,6 +199,7 @@ typedef enum
 {
     eSAM_None,
     eSAM_IsBool,
+    eSAM_IsPowerOf2,
     eSAM_IsDir,
     eSAM_IsPatFile,
     eSAM_IsExistDirOri,
