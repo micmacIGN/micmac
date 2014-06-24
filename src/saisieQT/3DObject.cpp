@@ -27,10 +27,9 @@ cObject::cObject(Pt3dr pos, QColor color_default) :
 
 cObject::~cObject(){}
 
-QColor cObject::getColor(){
-
+QColor cObject::getColor()
+{
     return _color[state()];
-
 }
 
 cObject& cObject::operator =(const cObject& aB)
@@ -650,14 +649,6 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     setLineWidth(lineWidth);
 }
 
-cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
-    _helper(new cPolygonHelper(this, 3)),
-    _bIsClosed(isClosed)
-{
-    setVector(points);
-}
-
-
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineColor(lineColor),
     _idx(-1),
@@ -741,8 +732,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _style            = aP._style;
         _defPtName        = aP._defPtName;
 
-        // TODO a verifier
-        _shiftStep        = _shiftStep;
+        _shiftStep        = aP._shiftStep;
     }
 
     return *this;

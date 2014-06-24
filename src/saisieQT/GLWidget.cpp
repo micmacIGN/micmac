@@ -413,7 +413,12 @@ void GLWidget::applyInfos()
         {
             selectInfos &infos = vInfos[aK];
 
-            m_GLData->setPolygon(0, new cPolygon(infos.poly, true));
+            cPolygon * poly = new cPolygon();
+            poly->setVector(infos.poly);
+            poly->setClosed(true);
+            poly->setPointSize(_params->getPointDiameter()*0.01);
+
+            m_GLData->setPolygon(0, poly);
 
             if (!m_bDisplayMode2D)
 
