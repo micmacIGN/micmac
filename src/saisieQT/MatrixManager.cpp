@@ -380,8 +380,6 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
             (abs(rY()) > PI - hAngle)))
         _uD = -1;
 
-
-
 }
 
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
