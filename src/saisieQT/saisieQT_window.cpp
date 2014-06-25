@@ -993,7 +993,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
         if (suffix == "ply")
         {
             loadPly(filenames);
-            dataCache->addCloud(getEngine()->getData()->getCloud(0));
+            //dataCache->addCloud(getEngine()->getData()->getCloud(0));
             threeDWidget()->getGLData()->clearClouds();
             dataCache->computeBBox();
             threeDWidget()->getGLData()->setData(dataCache,false);
