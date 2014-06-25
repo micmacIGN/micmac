@@ -108,6 +108,10 @@ public:
 
     void        getProjection3D(QPointF &P2D, Pt3d<double> &P);
 
+    void        handleRotation(QPointF clicPosMouse);
+
+    GLdouble rY() const;
+    void setRY(const GLdouble &rY);
 
 private:
     //! GL context aspect ratio (width/height)
@@ -122,6 +126,9 @@ private:
 
     GLdouble    _distance;
     Pt3dr       _centerScene;
+
+    int         _lR;
+    int         _uD;
 
 };
 
