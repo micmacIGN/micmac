@@ -100,6 +100,17 @@ void MatrixManager::getProjection3D(QPointF &P2D, Pt3dr &P)
 #endif
 }
 
+GLdouble MatrixManager::rY() const
+{
+    return _rY;
+}
+
+void MatrixManager::setRY(const GLdouble &rY)
+{
+    _rY = rY;
+}
+
+
 void MatrixManager::translate(float x, float y)
 {
     glMatrixMode(GL_PROJECTION);
@@ -341,11 +352,50 @@ void MatrixManager::arcBall()
     glGetDoublev(GL_PROJECTION_MATRIX, _projMatrix); // TODO a placer pour le realiser une seule fois
 }
 
+void MatrixManager::handleRotation(QPointF clicPosMouse)
+{
+
+    QPointF centerProj;
+
+    getProjection(centerProj,centerScene());
+
+    QPointF projMouse(clicPosMouse.x(), vpHeight() - clicPosMouse.y());
+
+    _lR = (projMouse.x() < centerProj.x()) ? -1 : 1;
+    _uD = (projMouse.y() > centerProj.y()) ? -1 : 1;
+
+    float hAngle = PI / 24;
+
+
+    if(rY()>0)
+        _uD = -_uD;
+
+    if((rY()< 0 && rY() < - PI) ||
+       (rY()> PI && rY() < 2.f * PI))
+         _uD = - _uD;
+
+    if((abs(rY()) < hAngle))
+        _uD = 1;
+    else if (((abs(rY()) < PI + hAngle) &&
+            (abs(rY()) > PI - hAngle)))
+        _uD = -1;
+
+
+
+}
+
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
 {
-    float ry = _rY;
 
-    _rX -= _upY * rX * factor;
+    rX = _uD*rX;
+    float ry = _rY;
+    int sR = -1;
+
+    if(abs(_rY)>= 0 && abs(_rY)<= 2.f * PI)
+        sR = 1;
+
+
+    _rX -= rX * factor * sR;
     _rY -= rY * factor;
 
     _rX = fmod(_rX,2*PI);
