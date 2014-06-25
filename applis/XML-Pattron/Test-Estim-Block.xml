@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<ParamApero>
+     <DicoLoc>
+          <Symb>NbChan="-1"</Symb>
+          <Symb>SeuilEc="10"</Symb>
+          <Symb>LimBsH=1e-2</Symb>
+          <Symb>KeyAssocImage=NKS-Assoc-Id</Symb>
+     </DicoLoc>
+     <SectionBDD_Observation>
+<!--
+          <BDD_PtsLiaisons>
+               <Id>Id_Pastis_Hom</Id>
+               <KeySet>NKS-Set-Homol@@dat</KeySet>
+               <KeyAssoc>NKS-Assoc-CplIm2Hom@@dat</KeyAssoc>
+          </BDD_PtsLiaisons>
+-->
+          <BDD_Orient>
+               <Id>Or-Init</Id>
+               <KeySet>NKS-Set-Orient@-LR0</KeySet>
+               <KeyAssoc>NKS-Assoc-Im2Orient@-LR0</KeyAssoc>
+          </BDD_Orient>
+     </SectionBDD_Observation>
+     <SectionInconnues>
+          <CalibrationCameraInc>
+               <Name>GenerateKC-Others</Name>
+               <CalValueInit>
+                    <CalFromFileExtern>
+                         <NameFile>####</NameFile>
+                         <NameTag>CalibrationInternConique</NameTag>
+                         <AutorizeNonExisting>true</AutorizeNonExisting>
+                    </CalFromFileExtern>
+               </CalValueInit>
+               <CalibPerPose>
+                    <KeyPose2Cal>NKS-Assoc-FromFocMm@TheKeyCalib_@</KeyPose2Cal>
+                    <KeyInitFromPose>NKS-Assoc-FromFocMm@Ori-LR0/AutoCal@.xml</KeyInitFromPose>
+               </CalibPerPose>
+          </CalibrationCameraInc>
+          <PoseCameraInc>
+               <PatternName>D.*jpg</PatternName>
+               <CalcNameCalib>GenerateKC-Others</CalcNameCalib>
+               <PosValueInit>
+                    <PosFromBDOrient>Or-Init</PosFromBDOrient>
+               </PosValueInit>
+          </PoseCameraInc>
+          <BlockCamera>
+              <NameFile>  Bloc_LR.xml </NameFile>
+              <!-- <Id> </Id> -->
+          </BlockCamera>
+
+     </SectionInconnues>
+     <SectionChantier>
+          <DirectoryChantier>./</DirectoryChantier>
+     </SectionChantier>
+     <SectionSolveur>
+          <ModeResolution>eSysL2BlocSym</ModeResolution>
+     </SectionSolveur>
+     <SectionCompensation>
+          <EtapeCompensation>
+               <IterationsCompensation>
+                    <SectionContraintes>
+                         <ContraintesCamerasInc>
+                              <Val>eAllParamFiges</Val>
+                         </ContraintesCamerasInc>
+                         <ContraintesPoses>
+                              <NamePose>.*</NamePose>
+                              <ByPattern>true</ByPattern>
+                              <Val>ePoseFigee</Val>
+                         </ContraintesPoses>
+                    </SectionContraintes>
+                    <EstimateOrientationInitBlockCamera>
+                         <Id>   Bloc_LR.xml </Id>
+                         <Show> true </Show>
+                    </EstimateOrientationInitBlockCamera>
+               </IterationsCompensation>
+               <SectionObservations>
+               </SectionObservations>
+               <SectionExport>
+                     <ExportBlockCamera>
+                         <Id> Bloc_LR.xml </Id>
+                         <NameFile> Bloc_Init_LR.xml </NameFile>
+                     </ExportBlockCamera>
+               </SectionExport>
+          </EtapeCompensation>
+     </SectionCompensation>
+</ParamApero>
