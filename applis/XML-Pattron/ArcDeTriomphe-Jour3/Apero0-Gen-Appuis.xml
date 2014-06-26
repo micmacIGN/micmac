@@ -1,0 +1,99 @@
+<Global
+    Subst="@$#1"
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+           <BDD_PtsLiaisons>
+                 <Id>    Id_Std_Hom  </Id>
+                 <KeySet> Key-Set-StdHom </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>   Key-Assoc-StdHom  </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_050 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>  AutoCalDRad-Canon-050.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>   F050_IMG_542(3|5|8)_MpDcraw8B_GR.tif  </PatternName>
+	           <PatternName>   ImageRef.tif  </PatternName>
+	           <CalcNameCalib>   TheKeyCalib_050 </CalcNameCalib>
+                   <PosValueInit>
+	               <PosId> ### </PosId>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+
+		          </ContraintesCamerasInc>
+
+		          <ContraintesPoses>
+			     <NamePose>   .*</NamePose>
+                             <ByPattern> true </ByPattern>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>
+
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+
+                 <SectionExport >
+
+                    <ExportMesuresFromCarteProf>
+                          <Cartes2Export>
+                              <Im1>  ImageRef.tif</Im1>
+                              <Nuage> Carte2ApL/NuageImProf_GeomIm-xxx_Etape_7.xml </Nuage>
+                              <FilterIm2 > ^F.* </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn>  Id_Std_Hom </IdBdLiaisonIn>
+                          <!-- Le sens 12 est celui ou les premiers points sont ceux de la carte de profondeur,
+                              a priori le + courant 
+                          -->
+                          <KeyAssocAppuis>  Key-Assoc-Carte2Appuis </KeyAssocAppuis>
+                          <AppuisModeAdd> false</AppuisModeAdd>
+                     </ExportMesuresFromCarteProf>
+                 </SectionExport>
+
+
+		    <SectionObservations>
+		    </SectionObservations>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
