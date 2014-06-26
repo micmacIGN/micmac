@@ -673,7 +673,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
         else
             _data->replaceCloud(cloud);
 
-        _data->computeBBox();
+        _data->computeBBox(0);
 
         m_QTMainWindow->threeDWidget()->getGLData()->replaceCloud(_data->getCloud(0));
         m_QTMainWindow->threeDWidget()->resetView(first,false,first,true);
