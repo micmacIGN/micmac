@@ -444,6 +444,21 @@ void visual_MainWindow::onSelectFilePressed(int aK)
     }
 }
 
+void visual_MainWindow::onSelectFileRPPressed(int aK)
+{
+    QString filename = QFileDialog::getOpenFileName(this, tr("Select file"), mlastDir);
+
+    if (filename != NULL)
+    {
+        string aDir, aNameFile;
+        SplitDirAndFile(aDir,aNameFile,filename.toStdString());
+        mlastDir = QString(aDir.c_str());
+
+        vLineEdit[aK]->setText(QString(aNameFile.c_str()));
+        vLineEdit[aK]->setModified(true);
+    }
+}
+
 void visual_MainWindow::onSelectDirPressed(int aK)
 {
     QString aDir = QFileDialog::getExistingDirectory( this, tr("Select directory"), mlastDir);
@@ -640,12 +655,19 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
-        else if (aArg.IsExistFile() || aArg.IsExistFileWithRelativePath())
+        else if (aArg.IsExistFile() )
         {
             cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
             layout->addWidget(sButton,aK,3);
         }
+        else if (aArg.IsExistFileWithRelativePath())
+        {
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vLineEdit.size(), parent);
+            connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFileRPPressed(int)));
+            layout->addWidget(sButton,aK,3);
+        }
+
     }
 
     vLineEdit.push_back(aLineEdit);
