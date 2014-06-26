@@ -209,8 +209,7 @@ private:
     int         _previousTime;
     int         _currentTime;
 
-    int         _lR;
-    int         _uD;
+
 
     QTime       _time;
 

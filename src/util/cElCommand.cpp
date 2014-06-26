@@ -618,7 +618,9 @@ bool ctPath::getContent( list<cElFilename> &o_files ) const
         FindClose(hFind);
         return true;
     #else
-        not implemented
+        //not implemented
+        cerr << RED_DEBUG_ERROR << "ctPath::getContent: not implemented";
+        return false;
     #endif
 }
 

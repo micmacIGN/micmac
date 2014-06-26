@@ -493,13 +493,14 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
 			#if (ELISE_windows)
 				// avoid a '\' at the end of a line in a makefile
 				if (!itBR->empty())
-		
+                {
 					if ( *(itBR->rbegin())=='\\' )
 					{
-							string str = *itBR+' ';
-							fprintf(aFP,"\t %s\n",str.c_str());
+                        string str = *itBR+' ';
+                        fprintf(aFP,"\t %s\n",str.c_str());
+                        return;
 					}
-					else
+                }
 			#endif
 			fprintf(aFP,"\t %s\n",itBR->c_str());
 		}
