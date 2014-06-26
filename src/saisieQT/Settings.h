@@ -171,9 +171,6 @@ protected:
     //! settings
     cParameters *_parameters;
 
-    //! settings copy
-    cParameters  _oldParameters;
-
     Ui::SettingsDialog* _ui;
 };
 
