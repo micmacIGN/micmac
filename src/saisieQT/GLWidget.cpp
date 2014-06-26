@@ -333,14 +333,39 @@ void GLWidget::zoomFactor(int percent)
         setZoom(m_GLData->getBBoxMaxSize() / (float) percent * 100.f);
 }
 
-void GLWidget::setCursorShape(QPointF pos)
+void GLWidget::setCursorShape(QPointF pos, QPointF mPos)
 {
     QCursor c = cursor();
 
     if ( imageLoaded() && !polygon()->isLinear() && isPtInsideIm(pos) && (_widgetId >=0) )
+    {
 
-        c.setShape(Qt::CrossCursor);
+        QImage gIma = grabFrameBuffer();
 
+        int r   = 7;
+        int kP  = 0;
+        int cP  = 0;
+
+        for (int x = max(0,(int)mPos.x()-r); x < min(gIma.width()-1,(int)mPos.x()+r); ++x)
+            for (int y = max(0,(int)mPos.y()-r); y < min(gIma.height()-1,(int)mPos.y()+r); ++y)
+        {
+            cP  += qGray(gIma.pixel(x, y));
+             ++kP;
+        }
+
+        cP /= kP;
+        QPixmap cuCross(":/MM/Icons/images/cross_cursor.png");
+
+        if(cP < 128)
+        {
+            QImage image = cuCross.toImage();
+            image.invertPixels();
+
+            cuCross = cuCross.fromImage(image);
+        }
+
+        c = QCursor(cuCross, 0, 0);
+    }
     else
 
         c.setShape(Qt::ArrowCursor);
@@ -577,12 +602,14 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     {
 
 #if ELISE_QT_VERSION == 5
-        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->localPos(), _vp_Params.m_zoom) : event->localPos();
+        QPointF mPos = event->localPos();
 #else
-        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(event->posF(), _vp_Params.m_zoom) : event->posF();
+        QPointF mPos = event->posF();
 #endif
 
-        setCursorShape(pos);
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, _vp_Params.m_zoom) : mPos;
+
+        setCursorShape(pos,mPos);
 
         if (m_bDisplayMode2D)
 
@@ -949,3 +976,4 @@ void GLWidget::dropEvent(QDropEvent *event)
 
     event->ignore();
 }
+
