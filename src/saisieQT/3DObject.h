@@ -145,11 +145,11 @@ class cPoint : public cObjectGL, public QPointF
 
         void draw();
 
-        void setStatePoint(int state){ _statePoint = state; }
+        void setPointState(int state){ _pointState = state; }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
         void setZoom(float val)      { _zoom = val;         }
-        int  statePoint() const      { return _statePoint;  }
+        int  statePoint() const      { return _pointState;  }
         void showName(bool show)     { _bShowName = show;   }
 
         bool highlight() const       { return _highlight;   }
@@ -168,7 +168,7 @@ private:
         float   _diameter;
         float   _zoom;
         bool    _bShowName;
-        int     _statePoint;
+        int     _pointState;
         bool    _highlight;
         bool    _drawCenter;
 

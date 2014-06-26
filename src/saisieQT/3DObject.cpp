@@ -526,7 +526,7 @@ cPoint::cPoint(QPointF pos,
     _diameter(diameter),
     _zoom(zoom),
     _bShowName(showName),
-    _statePoint(state),
+    _pointState(state),
     _highlight(highlight),
     _drawCenter(drawCenter),
     _bEpipolar(false)
@@ -545,7 +545,7 @@ void cPoint::draw()
 
         if (!isSelected())
         {
-            switch(_statePoint)
+            switch(_pointState)
             {
             case eEPI_NonSaisi :
                 color = Qt::yellow;
@@ -588,7 +588,7 @@ void cPoint::draw()
             glDrawEllipse( aPt.x(), aPt.y(), diam, diam * _scale.x/_scale.y);
         }
 
-        if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
+        if (_highlight && ((_pointState == eEPI_Valide) || (_pointState == eEPI_NonSaisi)))
         {
             if (_bEpipolar)
             {
@@ -778,16 +778,8 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
 
     if (pointValid())
     {
-        if (state == eEPI_NonValue)
-        {
-            //TODO: cWinIm l.661
-            _points.remove(_idx);
-        }
-        else
-        {
-            point(_idx).setStatePoint(state);
-            point(_idx).setSelected(false);
-        }
+        point(_idx).setPointState(state);
+        point(_idx).setSelected(false);
     }
 
     _idx = -1;
@@ -1136,7 +1128,7 @@ int cPolygon::finalMovePoint()
 
         point(_idx) = (*_helper)[1];
         point(_idx).setColor(_color[state_default]); // reset color to polygon color
-        point(_idx).setStatePoint(state);
+        point(_idx).setPointState(state);
 
         _helper->clear();
 
