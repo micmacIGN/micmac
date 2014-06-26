@@ -123,25 +123,29 @@ int cData::getCloudsSize()
 }
 
 //compute bounding box
-void cData::computeBBox()
+void cData::computeBBox(int idCloud)
 {
     for (int bK=0; bK < _Clouds.size();++bK)
     {
-        GlCloud * aCloud = _Clouds[bK];
-
-        for (int aK=0; aK < aCloud->size(); ++aK)
+        if(idCloud == -1 || bK == idCloud)
         {
-            Pt3dr vert = aCloud->getVertex(aK).getPosition();
+            GlCloud * aCloud = _Clouds[bK];
 
-            if (vert.x > _max.x) _max.x = vert.x;
-            if (vert.x < _min.x) _min.x = vert.x;
-            if (vert.y > _max.y) _max.y = vert.y;
-            if (vert.y < _min.y) _min.y = vert.y;
-            if (vert.z > _max.z) _max.z = vert.z;
-            if (vert.z < _min.z) _min.z = vert.z;
+            for (int aK=0; aK < aCloud->size(); ++aK)
+            {
+                Pt3dr vert = aCloud->getVertex(aK).getPosition();
+
+                if (vert.x > _max.x) _max.x = vert.x;
+                if (vert.x < _min.x) _min.x = vert.x;
+                if (vert.y > _max.y) _max.y = vert.y;
+                if (vert.y < _min.y) _min.y = vert.y;
+                if (vert.z > _max.z) _max.z = vert.z;
+                if (vert.z < _min.z) _min.z = vert.z;
+            }
         }
     }
 
+    if(idCloud == -1)
     for (int  cK=0; cK < _Cameras.size();++cK) // TODO à factoriser
     {
         CamStenope * aCam= _Cameras[cK];
