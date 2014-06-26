@@ -139,7 +139,7 @@ public slots:
 
     void                cmdBascule();
 
-    void                rebuildGlPoints(bool bSave, cSP_PointeImage *aPIm = NULL);
+    void                rebuildGlPoints(bool bSave = false, cSP_PointeImage *aPIm = NULL);
 
     void                changeImages(int idPtGl, bool aUseCpt);
 

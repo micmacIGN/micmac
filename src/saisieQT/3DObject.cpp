@@ -103,7 +103,6 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
     glEnd();
 }
 
-//TODO: factoriser avec glDrawUnitCircle
 void glDrawEllipse(float cx, float cy, float rx, float ry, int steps)
 {
     float theta = 2.f * PI / float(steps);
@@ -456,15 +455,9 @@ void cCam::draw()
 
         glPointSize(_pointSize);
 
-        Pt2di sz = _Cam->Sz();
-
-        double aZ = _scale.z*.05f;
-
         Pt3dr C  = _Cam->VraiOpticalCenter();
-        Pt3dr P1 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,0.f),aZ);
-        Pt3dr P2 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,0.f),aZ);
-        Pt3dr P3 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,sz.y),aZ);
-        Pt3dr P4 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,sz.y),aZ);
+        Pt3dr P1, P2, P3, P4;
+        _Cam->Coins(P1, P2, P3, P4, _scale.z*.05f);
 
         glBegin(GL_LINES);
         //perspective cone
@@ -863,6 +856,7 @@ void cPolygon::add(const QPointF &pt, float zoom, bool selected)
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
         cPt.setZoom(zoom);
+        cPt.setScale(_scale);
 
         cPt.drawCenter(!isLinear());
 
@@ -877,6 +871,7 @@ void cPolygon::addPoint(const QPointF &pt, float zoom)
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
         cPt.setZoom(zoom);
+        cPt.setScale(_scale);
 
         cPt.drawCenter(!isLinear());
 
@@ -1118,6 +1113,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
             cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
             pt.setDiameter(_pointDiameter);
             pt.setZoom(zoom);
+            pt.setScale(_scale);
 
             if (!ptIsVisible) pt.setVisible(false);
 
