@@ -609,11 +609,13 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, _vp_Params.m_zoom) : mPos;
 
-        setCursorShape(pos,mPos);
+        if ( event->buttons() != Qt::MiddleButton )
+            setCursorShape(pos,mPos);
 
         if (m_bDisplayMode2D)
 
             m_lastMoveImage = pos;
+
 
         if (m_bDisplayMode2D || (m_interactionMode == SELECTION))
         {
@@ -623,7 +625,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
                 polygon()->translate(pos - translation);
             }
-            else if ( m_bDisplayMode2D || (m_interactionMode == SELECTION) )// REFRESH HELPER POLYGON
+            else if ( (m_bDisplayMode2D || (m_interactionMode == SELECTION)) &&  !(event->buttons() == Qt::MiddleButton))// REFRESH HELPER POLYGON
             {
                 int id = polygon()->getSelectedPointIndex();
 
@@ -635,7 +637,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                     emit newRectanglePosition(polygon()->transfoTerrain(m_GLData->glImage()));
 
-                if(id != polygon()->getSelectedPointIndex())
+                if((id != polygon()->getSelectedPointIndex()))
 
                     emit selectPoint(polygon()->getSelectedPointIndex());
 
@@ -671,8 +673,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
 
-
-                //_matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);
                 _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
             }
 
@@ -794,7 +794,7 @@ void GLWidget::overlay()
             cPolygon* polyg = polygon(i);
 
             if (m_bDisplayMode2D)
-                _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
+                _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom); // TODO : surement inutile
 
             if (polyg)
             {
