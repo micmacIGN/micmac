@@ -106,7 +106,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     // Context Menu :: End        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    connect(this,SIGNAL(dataChanged(cSP_PointeImage*)), this, SLOT(rebuildGlPoints(cSP_PointeImage*)));
+    connect(this,SIGNAL(dataChanged(bool, cSP_PointeImage*)), this, SLOT(rebuildGlPoints(bool, cSP_PointeImage*)));
 
     connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
 }
@@ -260,7 +260,7 @@ void cQT_Interface::addPoint(QPointF point)
     if (m_QTMainWindow->currentWidget()->hasDataLoaded() && mAppli)
         if(cVirtualInterface::addPoint(transformation(point),currentCImage()))
         {
-            emit dataChanged();
+            emit dataChanged(true);
             m_QTMainWindow->resizeTables();
         }
 }
@@ -270,7 +270,7 @@ void cQT_Interface::removePointGlobal(cSP_PointGlob * pPg)
     if (pPg && mAppli)
     {
         DeletePoint( pPg );
-        emit dataChanged();
+        emit dataChanged(true);
     }
 }
 
@@ -290,7 +290,7 @@ void cQT_Interface::movePoint(int idPt)
         {
             UpdatePoints(aPIm, transformation(getGLPt_CurWidget(idPt)));
 
-            emit dataChanged(aPIm);
+            emit dataChanged(true, aPIm);
         }
     }
 }
@@ -324,7 +324,7 @@ void cQT_Interface::changeState(int state, int idPt)
                     centerOnPtGlobal(idWGL, aPIm->Gl()->PG());
             }
 
-            emit dataChanged(aPIm);
+            emit dataChanged(true, aPIm);
         }
     }
 }
@@ -345,7 +345,7 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
         }
         else if(mAppli->ChangeName(oldName, newName))
         {
-            emit dataChanged(aPIm);
+            emit dataChanged(true, aPIm);
         }
     }
 }
@@ -373,7 +373,7 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
 
         mAppli->SetImagesVis(images);
 
-        rebuildGlPoints();
+        rebuildGlPoints(true);
     }
 }
 
@@ -388,7 +388,7 @@ void cQT_Interface::changeCurPose(void *widgetGL)
     {
         int idImg = idCImage(((GLWidget*)widgetGL)->getGLData());
         m_QTMainWindow->selectCameraIn3DP(idImg);
-        emit dataChanged(); // TODO un peu fort
+        emit dataChanged();
     }
 }
 
@@ -486,7 +486,7 @@ void cQT_Interface::undo(bool aBool)
     else
         mAppli->Redo();
 
-    emit dataChanged();
+    emit dataChanged(true);
 }
 
 void cQT_Interface::filesDropped(const QStringList &filenames)
@@ -681,13 +681,13 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
     }
 }
 
-void cQT_Interface::rebuildGlPoints(cSP_PointeImage* aPIm)
+void cQT_Interface::rebuildGlPoints(bool bSave, cSP_PointeImage* aPIm)
 {
     rebuild2DGlPoints();
 
     rebuild3DGlPoints(aPIm);
 
-    Save(); // TODO trop de sauvegarde ---> même en selection ou over
+    if (bSave) Save();
 }
 
 void cQT_Interface::rebuild3DGlPoints(cSP_PointeImage* aPIm)
