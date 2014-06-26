@@ -38,7 +38,7 @@ public:
     GLdouble    projMatrix(int i)   { return _projMatrix[i]; }
 
     GLint       Viewport(int i)     { return _glViewport[i]; }
-
+culture3d_src% 
     GLint       vpWidth()     { return _glViewport[2]; }
 
     GLint       vpHeight()    { return _glViewport[3]; }
@@ -99,6 +99,10 @@ public:
 
     void        getProjection3D(QPointF &P2D, Pt3d<double> &P);
 
+    void        handleRotation(QPointF clicPosMouse);
+
+    GLdouble rY() const;
+    void setRY(const GLdouble &rY);
 
 private:
     //! GL context aspect ratio (width/height)
@@ -113,6 +117,9 @@ private:
 
     GLdouble    _distance;
     Pt3dr       _centerScene;
+
+    int         _lR;
+    int         _uD;
 
 };
 

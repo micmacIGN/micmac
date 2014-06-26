@@ -378,7 +378,12 @@ template <class Type> class Mat_Inertie
              ElTyName Type::TypeReel::TypeEff  S1 =  _s1 / (REAL) _s;
              ElTyName Type::TypeReel::TypeEff  S2 =  _s2 / (REAL) _s;
 
-             return Mat_Inertie<ElTypeName_NotMSW Type::TypeReel>
+
+#if ( ELISE_windows & ELISE_MinGW )
+    return Mat_Inertie<typename Type::TypeReel>
+#else
+    return Mat_Inertie<ElTypeName_NotMSW Type::TypeReel>
+#endif
                     (
                          _s,
                          S1,
@@ -391,13 +396,21 @@ template <class Type> class Mat_Inertie
 
        REAL  correlation(REAL epsilon = 1e-14)
        {
+           #if ( ELISE_windows & ELISE_MinGW )
+             Mat_Inertie<typename  Type::TypeReel> m =  normalize();
+           #else
              Mat_Inertie<ElTypeName_NotMSW  Type::TypeReel> m =  normalize();
+           #endif
              return m.s12() / sqrt(ElMax(epsilon,m.s11()*m.s22()));
        }
 
        REAL  correlation_with_def(REAL aDef)
        {
-             Mat_Inertie<ElTypeName_NotMSW  Type::TypeReel> m =  normalize();
+            #if ( ELISE_windows & ELISE_MinGW )
+              Mat_Inertie<typename  Type::TypeReel> m =  normalize();
+            #else
+              Mat_Inertie<ElTypeName_NotMSW  Type::TypeReel> m =  normalize();
+            #endif
 	     if ((m.s11()<=0) || (m.s22() <=0)) return aDef;
              return m.s12() / sqrt(m.s11()*m.s22());
        }

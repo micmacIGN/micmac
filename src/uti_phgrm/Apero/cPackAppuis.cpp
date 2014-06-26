@@ -888,7 +888,7 @@ template <class Type,class TGlob> void cAppliApero::InitBDDPose
                            const std::list<typename Type::tArg>  & aL
                       )
 {
-    typedef typename Type::tArg tArg;
+    //typedef typename Type::tArg tArg;
     for 
     (
        typename std::list<typename Type::tArg>::const_iterator itB=aL.begin();

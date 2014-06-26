@@ -531,28 +531,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
             }
             else
-            {
-                QPointF centerProj;
-
-                _matrixManager.getProjection(centerProj,_matrixManager.centerScene());
-
-                QPointF projMouse(event->pos().x(), vpHeight() - event->pos().y());
-
-                //qDebug() << projMouse << centerProj;
-
-                _lR = (projMouse.x() < centerProj.x()) ? -1 : 1;
-                _uD = (projMouse.y() > centerProj.y()) ? -1 : 1;
-
-//                if(_lR == -1)
-//                    qDebug() << "gauche";
-//                else
-//                    qDebug() << "droit";
-
-//                if(_uD == -1)
-//                    qDebug() << "haut";
-//                else
-//                    qDebug() << "bas";
-            }
+                _matrixManager.handleRotation(event->pos());
         }
         else if (event->button() == Qt::RightButton)
         {
@@ -664,9 +643,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 }
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
-
-
-
 
 
                 //_matrixManager.rotate(r.x, r.y, r.z, 50.f *_vp_Params.m_speed);

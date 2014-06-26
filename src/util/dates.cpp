@@ -1274,21 +1274,15 @@ void cXifDecoder::GenerateTxtFile(const std::string & aFullName)
 	int aRes = System(aCom,true);
 
 
-	//GERALD
-#if (ELISE_windows)
-
-#else
-	//const std::string STRLANG="LANG=C LANGUAGE=C ";
-	if ((aRes%256) !=0)  // ?? En fait convetion ElDcraw
-	{
-		std::cout << "COM="<< aCom << " RES = " << aRes << "\n";
-		ELISE_ASSERT
-			(
-			aRes==0,
-			"Cannot exec cXifDecoder::GenerateTxtFile"
-			);
-	}
-#endif
+    if ((aRes%256) !=0)  // ?? En fait conversion ElDcraw
+    {
+        std::cout << "COM="<< aCom << " RES = " << aRes << "\n";
+        ELISE_ASSERT
+            (
+            aRes==0,
+            "Cannot exec cXifDecoder::GenerateTxtFile"
+            );
+    }
 	
 }
 
