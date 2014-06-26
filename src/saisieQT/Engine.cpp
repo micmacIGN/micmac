@@ -259,8 +259,6 @@ cEngine::~cEngine()
     delete _Data;
 }
 
-
-
 void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
