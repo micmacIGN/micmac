@@ -48,6 +48,7 @@ class cData
 
         QMaskedImage&  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
 
+        void    getMinMax(Pt3dr);
         void    computeBBox(int idCloud = -1);
 
         int     getCloudsSize();
