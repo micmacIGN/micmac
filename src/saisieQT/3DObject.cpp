@@ -827,7 +827,7 @@ int cPolygon::getSelectedPointState()
 {
     if (pointValid())
     {
-        return point(_idx).statePoint();
+        return point(_idx).pointState();
     }
     else return eEPI_NonValue;
 }
@@ -1124,7 +1124,7 @@ int cPolygon::finalMovePoint()
 
     if ((_idx>=0) && (_helper != NULL) && _helper->size())   // after point move
     {
-        int state = point(_idx).statePoint();
+        int state = point(_idx).pointState();
 
         point(_idx) = (*_helper)[1];
         point(_idx).setColor(_color[state_default]); // reset color to polygon color
