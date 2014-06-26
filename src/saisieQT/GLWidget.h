@@ -100,7 +100,7 @@ public:
     cPolygon* polygon(int id);
     cPolygon* polygon();
 
-    void setCursorShape(QPointF pos);
+    void setCursorShape(QPointF pos, QPointF mPos);
 
     void drawCenter();
 
