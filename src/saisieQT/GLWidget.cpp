@@ -533,7 +533,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             else
                 _matrixManager.handleRotation(event->pos());
         }
-        else if (event->button() == Qt::RightButton)
+        else if (event->button() == Qt::RightButton && polygon())
         {
             if (polygon()->isLinear())
             {
@@ -809,11 +809,14 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             switch(event->key())
             {
             case Qt::Key_Delete:
-                emit removePoint(eEPI_Disparu, m_GLData->currentPolygon()->getSelectedPointIndex());
-                polygon()->removeSelectedPoint();
+                if (polygon())
+                {
+                    emit removePoint(eEPI_Disparu, m_GLData->currentPolygon()->getSelectedPointIndex());
+                    polygon()->removeSelectedPoint();
+                }
                 break;
             case Qt::Key_Escape:
-                if (polygon()->isLinear()) m_GLData->clearPolygon();
+                if (polygon() && polygon()->isLinear()) m_GLData->clearPolygon();
                 break;
             case Qt::Key_1:
                 zoomFactor(100);
@@ -828,16 +831,26 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                 zoomFit();
                 break;
             case Qt::Key_G:
-                m_GLData->glImage()._m_image->incGamma(0.2f);
-                emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
+                if(m_bDisplayMode2D)
+                {
+                    m_GLData->glImage()._m_image->incGamma(0.2f);
+                    emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
+                }
                 break;
             case Qt::Key_H:
-                m_GLData->glImage()._m_image->incGamma(-0.2f);
-                emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
+                if(m_bDisplayMode2D)
+                {
+                    m_GLData->glImage()._m_image->incGamma(-0.2f);
+                    emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
+                }
                 break;
             case Qt::Key_J:
-                m_GLData->glImage()._m_image->setGamma(1.f);
-                emit gammaChangedSgnl(1.f);
+                if(m_bDisplayMode2D)
+                {
+                    m_GLData->glImage()._m_image->setGamma(1.f);
+                    emit gammaChangedSgnl(1.f);
+                }
+
                 break;
             case Qt::Key_Plus:
                 if (m_bDisplayMode2D)
@@ -858,9 +871,12 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                     _vp_Params.ptSizeUp(false);
                 break;
             case Qt::Key_W:
-                    setCursor(Qt::SizeAllCursor);
+                setCursor(Qt::SizeAllCursor);
+                if(polygon())
+                {
                     polygon()->helper()->clear();
                     polygon()->setSelected(true);
+                }
                 break;
             case Qt::Key_Up:
             case Qt::Key_Down:
@@ -880,14 +896,15 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 
 void GLWidget::keyReleaseEvent(QKeyEvent* event)
 {
-    if(hasDataLoaded())
+    if(hasDataLoaded() && (polygon()))
     {
         if (event->key() == Qt::Key_Shift )
         {
             polygon()->helper()->clear();
             polygon()->resetSelectedPoint();
         }
-        polygon()->setSelected(false);
+
+            polygon()->setSelected(false);
 
         update();
     }
