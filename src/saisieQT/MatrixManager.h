@@ -38,7 +38,7 @@ public:
     GLdouble    projMatrix(int i)   { return _projMatrix[i]; }
 
     GLint       Viewport(int i)     { return _glViewport[i]; }
-culture3d_src% 
+
     GLint       vpWidth()     { return _glViewport[2]; }
 
     GLint       vpHeight()    { return _glViewport[3]; }
