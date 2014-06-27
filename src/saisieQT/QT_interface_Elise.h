@@ -133,13 +133,13 @@ private:
 
 signals:
 
-    void                dataChanged(cSP_PointeImage *aPIm = NULL);
+    void                dataChanged(bool save = false, cSP_PointeImage *aPIm = NULL);
 
 public slots:
 
     void                cmdBascule();
 
-    void                rebuildGlPoints(cSP_PointeImage *aPIm = NULL);
+    void                rebuildGlPoints(bool bSave = false, cSP_PointeImage *aPIm = NULL);
 
     void                changeImages(int idPtGl, bool aUseCpt);
 

@@ -27,10 +27,9 @@ cObject::cObject(Pt3dr pos, QColor color_default) :
 
 cObject::~cObject(){}
 
-QColor cObject::getColor(){
-
+QColor cObject::getColor()
+{
     return _color[state()];
-
 }
 
 cObject& cObject::operator =(const cObject& aB)
@@ -104,7 +103,6 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
     glEnd();
 }
 
-//TODO: factoriser avec glDrawUnitCircle
 void glDrawEllipse(float cx, float cy, float rx, float ry, int steps)
 {
     float theta = 2.f * PI / float(steps);
@@ -457,15 +455,9 @@ void cCam::draw()
 
         glPointSize(_pointSize);
 
-        Pt2di sz = _Cam->Sz();
-
-        double aZ = _scale.z*.05f;
-
         Pt3dr C  = _Cam->VraiOpticalCenter();
-        Pt3dr P1 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,0.f),aZ);
-        Pt3dr P2 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,0.f),aZ);
-        Pt3dr P3 = _Cam->ImEtProf2Terrain(Pt2dr(0.f,sz.y),aZ);
-        Pt3dr P4 = _Cam->ImEtProf2Terrain(Pt2dr(sz.x,sz.y),aZ);
+        Pt3dr P1, P2, P3, P4;
+        _Cam->Coins(P1, P2, P3, P4, _scale.z*.05f);
 
         glBegin(GL_LINES);
         //perspective cone
@@ -534,7 +526,7 @@ cPoint::cPoint(QPointF pos,
     _diameter(diameter),
     _zoom(zoom),
     _bShowName(showName),
-    _statePoint(state),
+    _pointState(state),
     _highlight(highlight),
     _drawCenter(drawCenter),
     _bEpipolar(false)
@@ -553,7 +545,7 @@ void cPoint::draw()
 
         if (!isSelected())
         {
-            switch(_statePoint)
+            switch(_pointState)
             {
             case eEPI_NonSaisi :
                 color = Qt::yellow;
@@ -580,8 +572,11 @@ void cPoint::draw()
         glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
 
         float rx, ry;
-        rx = _diameter / _zoom;
-        ry = rx * _scale.x/_scale.y;
+
+        float size1Pixel =  1.f / _zoom / _scale.x / 2.f;
+
+        rx = _diameter * size1Pixel ;
+        ry = rx * _scale.x / _scale.y;
 
         QPointF aPt = scaledPt();
 
@@ -589,11 +584,11 @@ void cPoint::draw()
 
         if (_drawCenter)
         {
-            float diam = 0.002 / _zoom;
+            float diam = size1Pixel * 2.f;
             glDrawEllipse( aPt.x(), aPt.y(), diam, diam * _scale.x/_scale.y);
         }
 
-        if (_highlight && ((_statePoint == eEPI_Valide) || (_statePoint == eEPI_NonSaisi)))
+        if (_highlight && ((_pointState == eEPI_Valide) || (_pointState == eEPI_NonSaisi)))
         {
             if (_bEpipolar)
             {
@@ -649,14 +644,6 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     setColor(pointColor);
     setLineWidth(lineWidth);
 }
-
-cPolygon::cPolygon(QVector<QPointF> points, bool isClosed) :
-    _helper(new cPolygonHelper(this, 3)),
-    _bIsClosed(isClosed)
-{
-    setVector(points);
-}
-
 
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
     _lineColor(lineColor),
@@ -741,8 +728,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _style            = aP._style;
         _defPtName        = aP._defPtName;
 
-        // TODO a verifier
-        _shiftStep        = _shiftStep;
+        _shiftStep        = aP._shiftStep;
     }
 
     return *this;
@@ -792,16 +778,8 @@ int cPolygon::setNearestPointState(const QPointF &pos, int state)
 
     if (pointValid())
     {
-        if (state == eEPI_NonValue)
-        {
-            //TODO: cWinIm l.661
-            _points.remove(_idx);
-        }
-        else
-        {
-            point(_idx).setStatePoint(state);
-            point(_idx).setSelected(false);
-        }
+        point(_idx).setPointState(state);
+        point(_idx).setSelected(false);
     }
 
     _idx = -1;
@@ -849,7 +827,7 @@ int cPolygon::getSelectedPointState()
 {
     if (pointValid())
     {
-        return point(_idx).statePoint();
+        return point(_idx).pointState();
     }
     else return eEPI_NonValue;
 }
@@ -863,6 +841,7 @@ void cPolygon::add(cPoint &pt)
     }
 }
 
+// TODO pourquoi les fonctions : 2 add et addPoint?
 void cPolygon::add(const QPointF &pt, float zoom, bool selected)
 {
     if (size() < _maxSz)
@@ -870,6 +849,7 @@ void cPolygon::add(const QPointF &pt, float zoom, bool selected)
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
         cPt.setZoom(zoom);
+        cPt.setScale(_scale);
 
         cPt.drawCenter(!isLinear());
 
@@ -884,6 +864,7 @@ void cPolygon::addPoint(const QPointF &pt, float zoom)
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
         cPt.setZoom(zoom);
+        cPt.setScale(_scale);
 
         cPt.drawCenter(!isLinear());
 
@@ -1125,6 +1106,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
             cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
             pt.setDiameter(_pointDiameter);
             pt.setZoom(zoom);
+            pt.setScale(_scale);
 
             if (!ptIsVisible) pt.setVisible(false);
 
@@ -1143,11 +1125,11 @@ int cPolygon::finalMovePoint()
 
     if ((_idx>=0) && (_helper != NULL) && _helper->size())   // after point move
     {
-        int state = point(_idx).statePoint();
+        int state = point(_idx).pointState();
 
         point(_idx) = (*_helper)[1];
         point(_idx).setColor(_color[state_default]); // reset color to polygon color
-        point(_idx).setStatePoint(state);
+        point(_idx).setPointState(state);
 
         _helper->clear();
 
@@ -1219,14 +1201,14 @@ void cPolygon::flipY(float height)
 void cPolygon::setParams(cParameters *aParams)
 {
     setRadius(aParams->getSelectionRadius());
-    setPointSize(aParams->getPointDiameter() *0.01);
+    setPointSize(aParams->getPointDiameter());
     setLineWidth(aParams->getLineThickness());
     setShiftStep(aParams->getShiftStep());
 
     if (_helper != NULL)
     {
         _helper->setRadius(aParams->getSelectionRadius());
-        _helper->setPointSize(aParams->getPointDiameter() *0.01);
+        _helper->setPointSize(aParams->getPointDiameter());
         _helper->setLineWidth(aParams->getLineThickness());
     }
 }
@@ -1618,6 +1600,19 @@ cGLData::cGLData(int appMode):
     initOptions(appMode);
 }
 
+void cGLData::setOptionPolygons(cParameters aParams)
+{
+    for (int aK=0; aK < _vPolygons.size(); ++aK)
+    {
+        polygon(aK)->showLines(!_modePt);
+        polygon(aK)->showNames(_modePt);
+
+        polygon(aK)->setDefaultName(aParams.getDefPtName());
+        polygon(aK)->setPointSize(aParams.getPointDiameter() * 0.01);
+        polygon(aK)->setLineWidth(aParams.getLineThickness());
+    }
+}
+
 cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode):
     _glMaskedImage(qMaskedImage),
     _pQMask(qMaskedImage._m_mask),
@@ -1635,19 +1630,11 @@ cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, i
 
     setPolygons(data);
 
-    for (int aK=0; aK < _vPolygons.size(); ++aK)
-    {
-        polygon(aK)->showLines(!_modePt);
-        polygon(aK)->showNames(_modePt);
-
-        polygon(aK)->setDefaultName(aParams.getDefPtName());
-        polygon(aK)->setPointSize(aParams.getPointDiameter() * 0.01);
-        polygon(aK)->setLineWidth(aParams.getLineThickness());
-    }
+    setOptionPolygons(aParams);
 }
 
 
-cGLData::cGLData(cData *data, int appMode):
+cGLData::cGLData(cData *data, cParameters aParams,int appMode):
     _pBall(new cBall),
     _pAxis(new cAxis),
     _pBbox(new cBBox),
@@ -1660,11 +1647,9 @@ cGLData::cGLData(cData *data, int appMode):
 
     setData(data);
 
-    for (int aK=0; aK < _vPolygons.size(); ++aK)
-    {
-        polygon(aK)->showLines(!_modePt);
-        polygon(aK)->showNames(_modePt);
-    }
+    setPolygons(data);
+
+    setOptionPolygons(aParams);
 }
 
 void cGLData::setPolygons(cData *data)
@@ -1717,8 +1702,6 @@ void cGLData::setData(cData *data, bool setCam)
 
             _vCams.push_back(pCam);
         }
-
-    setPolygons(data);
 
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
@@ -1826,6 +1809,18 @@ void cGLData::draw()
     for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
 
     disableOptionLine();
+}
+
+void cGLData::normalizeCurrentPolygon(bool nrm)
+{
+    if(currentPolygon())
+        currentPolygon()->normalize(nrm);
+}
+
+void cGLData::clearPolygon()
+{
+    if(currentPolygon())
+        currentPolygon()->clear();
 }
 
 void cGLData::setScale(float vW, float vH)
@@ -1943,7 +1938,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
 {
-    mm.setModelViewMatrix();
+
     QPointF P2D;
     bool pointInside;
 
@@ -2167,7 +2162,6 @@ MessageToDisplay &cMessages2DGL::LastMessage()
 {
     return m_messagesToDisplay.back();
 }
-
 
 cGrid::cGrid(Pt3d<double> pt, float scale, int nb)
 {

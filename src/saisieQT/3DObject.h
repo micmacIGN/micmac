@@ -12,12 +12,12 @@
 #include <QPainter>
 
 #ifdef ELISE_Darwin
-    #include "OpenGL/glu.h"
+    #include "OpenGL/gl.h"
 #else
     #ifdef _WIN32
         #include "windows.h"
     #endif
-    #include "GL/glu.h"
+    #include "GL/gl.h"
 #endif
 
 #define QMaskedImage cMaskedImage<QImage>
@@ -145,11 +145,11 @@ class cPoint : public cObjectGL, public QPointF
 
         void draw();
 
-        void setStatePoint(int state){ _statePoint = state; }
+        void setPointState(int state){ _pointState = state; }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
-        void setZoom(float val)      { _zoom = val;         }
-        int  statePoint() const      { return _statePoint;  }
+        void setZoom(float val)      { _zoom = val;         } // TODO : à agreger
+        int  pointState() const      { return _pointState;  }
         void showName(bool show)     { _bShowName = show;   }
 
         bool highlight() const       { return _highlight;   }
@@ -168,7 +168,7 @@ private:
         float   _diameter;
         float   _zoom;
         bool    _bShowName;
-        int     _statePoint;
+        int     _pointState;
         bool    _highlight;
         bool    _drawCenter;
 
@@ -282,7 +282,6 @@ class cPolygon : public cObjectGL
     public:
 
         cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
-        cPolygon(QVector <QPointF> points, bool isClosed);
 
         virtual void draw();
 
@@ -689,7 +688,7 @@ public:
 
     cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode = MASK2D);
 
-    cGLData(cData *data, int appMode = MASK2D);
+    cGLData(cData *data, cParameters aParams, int appMode = MASK2D);
 
     ~cGLData();
 
@@ -706,9 +705,9 @@ public:
     void        setCurrentPolygonIndex(int id)          { _currentPolygon = id;   }
     int         getCurrentPolygonIndex()                { return _currentPolygon; }
 
-    void        normalizeCurrentPolygon(bool nrm)       { currentPolygon()->normalize(nrm); }
+    void        normalizeCurrentPolygon(bool nrm);
 
-    void        clearPolygon()                          { currentPolygon()->clear(); }
+    void        clearPolygon();
 
     bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
 
@@ -785,6 +784,7 @@ public:
 
     void        setPolygons(cData *data);
 
+    void setOptionPolygons(cParameters aParams);
 private:
 
     cMaskedImageGL      _glMaskedImage;

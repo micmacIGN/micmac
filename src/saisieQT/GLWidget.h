@@ -11,9 +11,9 @@
 #include <QDebug>
 
 #ifdef ELISE_Darwin
-    #include "OpenGL/glu.h"
+    #include "OpenGL/gl.h"
 #else
-    #include "GL/glu.h"
+    #include "GL/gl.h"
 #endif
 
 #include <QUrl>
@@ -100,7 +100,7 @@ public:
     cPolygon* polygon(int id);
     cPolygon* polygon();
 
-    void setCursorShape(QPointF pos);
+    void setCursorShape(QPointF pos, QPointF mPos);
 
     void drawCenter();
 
@@ -158,7 +158,6 @@ signals:
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);
-    void paintEvent(QPaintEvent*);
     void paintGL();
 
     //! inherited from QWidget
@@ -206,13 +205,17 @@ private:
     void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
+
     int         _previousTime;
+
     int         _currentTime;
 
     QTime       _time;
 
     MatrixManager   _matrixManager;
+
     cMessages2DGL   _messageManager;
+
     HistoryManager  _historyManager;
 
     ContextMenu     _contextMenu;
@@ -220,6 +223,7 @@ private:
     int             _widgetId;
 
     QColor      _BGColor0;
+
     QColor      _BGColor1;
 
     cParameters* _params;

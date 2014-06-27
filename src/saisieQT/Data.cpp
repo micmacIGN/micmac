@@ -23,7 +23,20 @@ void cData::addObject(cObject * aObj)
 void cData::replaceCloud(GlCloud *cloud, int id)
 {
     if(id < _Clouds.size())
+    {
         _Clouds[id] = cloud;
+        computeBBox(id);
+    }
+}
+
+void cData::addReplaceCloud(GlCloud *cloud, int id)
+{
+    if(id < _Clouds.size())
+        _Clouds[id] = cloud;
+    else
+        addCloud(cloud);
+
+    computeBBox(id);
 }
 
 void cData::addCamera(CamStenope * aCam)
@@ -113,6 +126,13 @@ void cData::cleanCameras()
     _Cameras.clear();
 }
 
+void cData::deleteCloud(int idCloud)
+{
+   GlCloud* cloud = getCloud(idCloud);
+   if(cloud)
+       delete cloud;
+}
+
 int cData::getCloudsSize()
 {
     int sizeClouds = 0;
@@ -122,49 +142,50 @@ int cData::getCloudsSize()
     return sizeClouds;
 }
 
+void cData::getMinMax(Pt3dr pt)
+{
+    if (pt.x > _max.x) _max.x = pt.x;
+    if (pt.x < _min.x) _min.x = pt.x;
+    if (pt.y > _max.y) _max.y = pt.y;
+    if (pt.y < _min.y) _min.y = pt.y;
+    if (pt.z > _max.z) _max.z = pt.z;
+    if (pt.z < _min.z) _min.z = pt.z;
+}
+
 //compute bounding box
-void cData::computeBBox()
+void cData::computeBBox(int idCloud)
 {
     for (int bK=0; bK < _Clouds.size();++bK)
     {
-        GlCloud * aCloud = _Clouds[bK];
-
-        for (int aK=0; aK < aCloud->size(); ++aK)
+        if(idCloud == -1 || bK == idCloud)
         {
-            Pt3dr vert = aCloud->getVertex(aK).getPosition();
+            GlCloud * aCloud = _Clouds[bK];
 
-            if (vert.x > _max.x) _max.x = vert.x;
-            if (vert.x < _min.x) _min.x = vert.x;
-            if (vert.y > _max.y) _max.y = vert.y;
-            if (vert.y < _min.y) _min.y = vert.y;
-            if (vert.z > _max.z) _max.z = vert.z;
-            if (vert.z < _min.z) _min.z = vert.z;
+            for (int aK=0; aK < aCloud->size(); ++aK)
+            {
+                getMinMax(aCloud->getVertex(aK).getPosition());
+            }
         }
     }
 
-    for (int  cK=0; cK < _Cameras.size();++cK) // TODO à factoriser
+    if(idCloud == -1)
+    for (int  cK=0; cK < _Cameras.size();++cK)
     {
         CamStenope * aCam= _Cameras[cK];
 
         QVector <Pt3dr> vert;
-        Pt2di sz = aCam->Sz();
+        Pt3dr c1, c2, c3, c4;
 
+        aCam->Coins(c1,c2,c3,c4,1.f);
         vert.push_back(aCam->VraiOpticalCenter());
-        vert.push_back(aCam->ImEtProf2Terrain(Pt2dr(0.f,0.f),1.f));
-        vert.push_back(aCam->ImEtProf2Terrain(Pt2dr(sz.x,0.f),1.f));
-        vert.push_back(aCam->ImEtProf2Terrain(Pt2dr(0.f,sz.y),1.f));
-        vert.push_back(aCam->ImEtProf2Terrain(Pt2dr(sz.x,sz.y),1.f));
+        vert.push_back(c1);
+        vert.push_back(c2);
+        vert.push_back(c3);
+        vert.push_back(c4);
 
         for (int aK=0; aK < vert.size(); ++aK)
         {
-            Pt3dr C = vert[aK];
-
-            if (C.x > _max.x) _max.x = C.x;
-            if (C.x < _min.x) _min.x = C.x;
-            if (C.y > _max.y) _max.y = C.y;
-            if (C.y < _min.y) _min.y = C.y;
-            if (C.z > _max.z) _max.z = C.z;
-            if (C.z < _min.z) _min.z = C.z;
+            getMinMax(vert[aK]);
         }
     }
 }

@@ -18,8 +18,6 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _Engine->setParams(_params);
 
-    initData();
-
     init(_params, _appMode > MASK3D);
 
     setUI();
@@ -182,6 +180,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         if (suffix == "ply")
         {
             loadPly(filenames);
+            initData();
 
             _appMode = MASK3D;
         }
@@ -195,11 +194,10 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         }
         else // LOAD IMAGE
         {
-            if (_appMode <= MASK3D)
-            {
-                closeAll();
-                initData(); //TODO: ne pas détruire les polygones dans le closeAll
-            }
+            if (_appMode <= MASK3D)            
+                closeAll();                
+
+            initData(); //TODO: ne pas détruire les polygones dans le closeAll
 
             if ((filenames.size() == 1) && (_appMode == MASK3D)) _appMode = MASK2D;
 
@@ -693,6 +691,18 @@ void SaisieQtWindow::on_actionSettings_triggered()
 
 void SaisieQtWindow::closeAll()
 {
+    int reply = checkBeforeClose();
+
+    // 1 close without saving
+    if (reply == 2) //cancel
+    {
+        return;
+    }
+    else if (reply == 0) // save
+    {
+        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+    }
+
     emit sCloseAll();
 
     _Engine->unloadAll();
@@ -983,9 +993,8 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
         if (suffix == "ply")
         {
             loadPly(filenames);
-            dataCache->addCloud(getEngine()->getData()->getCloud(0));
             threeDWidget()->getGLData()->clearClouds();
-            dataCache->computeBBox();
+            dataCache->computeBBox(1);
             threeDWidget()->getGLData()->setData(dataCache,false);
             threeDWidget()->resetView(false,false,false,true);
             option3DPreview();
@@ -1034,19 +1043,16 @@ void  SaisieQtWindow::setGamma(float aGamma)
 
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
 {
-    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->size())
-    {
-        int reply = QMessageBox::question(this, tr("Warning"), tr("Save mask before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
+    int reply = checkBeforeClose();
 
-        if (reply == 2)
-        {
-            event->ignore();
-            return;
-        }
-        else if (reply == 0)
-        {
-            _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
-        }
+    if (reply == 2)
+    {
+        event->ignore();
+        return;
+    }
+    else if (reply == 0)
+    {
+        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
     }
 
     emit sgnClose();
@@ -1199,6 +1205,16 @@ void SaisieQtWindow::undo(bool undo)
         emit undoSgnl(undo);
     }
 }
+cParameters *SaisieQtWindow::params() const
+{
+    return _params;
+}
+
+void SaisieQtWindow::setParams(cParameters *params)
+{
+    _params = params;
+}
+
 int SaisieQtWindow::appMode() const
 {
     return _appMode;
@@ -1214,6 +1230,15 @@ QAction* SaisieQtWindow::addCommandTools(QString nameCommand)
     _ui->menuTools->setEnabled(true);
 
     return _ui->menuTools->addAction(nameCommand);
+}
+
+int SaisieQtWindow::checkBeforeClose()
+{
+    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->size())
+    {
+        return QMessageBox::question(this, tr("Warning"), tr("Save mask before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
+    }
+    else return -1;
 }
 
 void SaisieQtWindow::applyParams()

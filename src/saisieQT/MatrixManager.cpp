@@ -10,6 +10,8 @@ MatrixManager::MatrixManager()
     _rY = 0.0;
     _distance = 10.f;
 
+    _upY = 1.f;
+
     resetAllMatrix();
 }
 
@@ -30,10 +32,9 @@ void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei heigh
 
 void MatrixManager::doProjection(QPointF point, float zoom)
 {
+    //glPushMatrix();
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glPushMatrix();
+    glLoadIdentity();    
     glMultMatrixd(_projMatrix);
 
     if(_projMatrix[0] != zoom)
@@ -43,7 +44,8 @@ void MatrixManager::doProjection(QPointF point, float zoom)
         GLint recal = _glViewport[3] - (GLint) point.y() - 1;
 
         //from viewport to world coordinates
-        gluUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
+        //TODO peut etre simplifier!
+        mmUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
                       _mvMatrix, _projMatrix, _glViewport, &wx, &wy, &wz);
 
         glTranslatef(wx,wy,0);
@@ -56,6 +58,7 @@ void MatrixManager::doProjection(QPointF point, float zoom)
     m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
+
 }
 
 void MatrixManager::getProjection3D(QPointF &P2D, Pt3dr &P)
@@ -63,8 +66,19 @@ void MatrixManager::getProjection3D(QPointF &P2D, Pt3dr &P)
     GLint recal = _glViewport[3] - (GLint) P2D.y() - 1;
 
     GLdouble xp,yp,zp;
-    gluUnProject((GLdouble) P2D.x(),(GLdouble) recal, 1.f,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+    mmUnProject((GLdouble) P2D.x(),(GLdouble) recal, 1.f,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+
     P = Pt3dr(xp,yp,zp);
+}
+
+GLdouble MatrixManager::rY() const
+{
+    return _rY;
+}
+
+void MatrixManager::setRY(const GLdouble &rY)
+{
+    _rY = rY;
 }
 
 void MatrixManager::translate(float x, float y)
@@ -115,7 +129,7 @@ void MatrixManager::exportMatrices(selectInfos &infos)
 void MatrixManager::getProjection(QPointF &P2D, Pt3dr P)
 {
     GLdouble xp,yp,zp;
-    gluProject(P.x,P.y,P.z,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+    mmProject(P.x,P.y,P.z,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
     P2D = QPointF(xp,yp);
 }
 
@@ -269,24 +283,93 @@ void MatrixManager::arcBall()
     target.y = -m_translationMatrix[1];
     target.z = -m_translationMatrix[2];
 
-    //cout << "target: " << target << "\n";
-
     camPos.x = target.x +  _distance * -sinf(_rX) * cosf(_rY);
     camPos.y = target.y +  _distance * -sinf(_rY);
     camPos.z = target.z + -_distance * cosf(_rX) * cosf(_rY);
 
     // Set the camera position and lookat point
-    gluLookAt(camPos.x,camPos.y,camPos.z,      // Camera position
-              target.x, target.y, target.z,    // Look at point
-              0.0, 1.0, 0.0);
+    mmLookAt(camPos.x,camPos.y,camPos.z,      // Camera position
+                  target.x, target.y, target.z,    // Look at point
+                  0.0, _upY, 0.0);
 
-    glGetDoublev(GL_MODELVIEW_MATRIX, _mvMatrix);
+    glGetDoublev(GL_MODELVIEW_MATRIX,  _mvMatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX, _projMatrix); // TODO a placer pour le realiser une seule fois
+}
+
+void MatrixManager::handleRotation(QPointF clicPosMouse)
+{
+
+    QPointF centerProj;
+
+    getProjection(centerProj,centerScene());
+
+    QPointF projMouse(clicPosMouse.x(), vpHeight() - clicPosMouse.y());
+
+    _lR = (projMouse.x() < centerProj.x()) ? -1 : 1;
+    _uD = (projMouse.y() > centerProj.y()) ? -1 : 1;
+
+    float hAngle = PI / 24;
+
+
+    if(rY()>0)
+        _uD = -_uD;
+
+    if((rY()< 0 && rY() < - PI) ||
+       (rY()> PI && rY() < 2.f * PI))
+         _uD = - _uD;
+
+    if((abs(rY()) < hAngle))
+        _uD = 1;
+    else if (((abs(rY()) < PI + hAngle) &&
+            (abs(rY()) > PI - hAngle)))
+        _uD = -1;
+
+}
+
+void MatrixManager::setMatrixDrawViewPort()
+{
+    glPushMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(-1,-1,0.f);
 }
 
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
 {
-    _rX -= rX * factor;
+
+    rX = _uD*rX;
+    float ry = _rY;
+    int sR = -1;
+
+    if(abs(_rY)>= 0 && abs(_rY)<= 2.f * PI)
+        sR = 1;
+
+
+    _rX -= rX * factor * sR;
     _rY -= rY * factor;
+
+    _rX = fmod(_rX,2*PI);
+    _rY = fmod(_rY,2*PI);
+
+    if(
+            //(abs(ry) > (2.f * PI -1.f) && abs(_rY)< 0.5) ||
+            (abs(ry)<PI/2.f && abs(_rY)>PI/2.f) ||
+            (abs(ry)>PI/2.f && abs(_rY)<PI/2.f) ||
+            (abs(ry)< 3*PI/2.f && abs(_rY)> 3*PI/2.f)||
+            (abs(ry)> 3*PI/2.f && abs(_rY)< 3*PI/2.f)
+            )
+    {
+        if((abs(ry)< 2.f*PI - PI/4.f))
+        {
+            //printf("FLIP\n");
+            _upY = -_upY;
+        }
+    }
+
+    //printf("x %f\n",_rX);
+    //printf("y %f\n",_rY);
 }
 
 void MatrixManager::MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4],float* vec)

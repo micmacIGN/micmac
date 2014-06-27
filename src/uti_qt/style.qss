@@ -54,6 +54,13 @@ QFrame[frameShape="1"]
         border: 1px solid #707070;
 }
 
+ QSplitter {
+
+    border: 0px solid #ffaa00;
+    padding: 0px;
+
+ }
+
 QMenuBar::item
 {
     background: transparent;
@@ -528,4 +535,6 @@ QSpinBox::up-button:pressed, QDoubleSpinBox::up-button:pressed
 {
      background-color: orange;
 }
+
+
 

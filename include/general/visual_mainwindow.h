@@ -104,6 +104,7 @@ public slots:
 
     void onRunCommandPressed();
     void onSelectFilePressed(int);
+    void onSelectFileRPPressed(int);
     void onSelectImgsPressed(int);
     void onSelectDirPressed(int);
     void onSaisieButtonPressed(int, bool normalize);

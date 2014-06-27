@@ -51,7 +51,7 @@ inline void octaves_func        ( const string &val, sift_parameters_t &p ){ p.n
 inline void levels_func         ( const string &val, sift_parameters_t &p ){ p.nb_levels=atoi( val.c_str() ); }
 inline void first_octave_func   ( const string &val, sift_parameters_t &p ){ p.first_octave=atoi( val.c_str() ); }
 inline void threshold_func      ( const string &val, sift_parameters_t &p ){ p.strength_threshold=atof( val.c_str() ); }
-inline void edge_threshold_func ( const string &val, sift_parameters_t &p ){ p.nb_levels=atof( val.c_str() ); }
+inline void edge_threshold_func ( const string &val, sift_parameters_t &p ){ p.nb_levels=atoi( val.c_str() ); }
 inline void chunk_size_func     ( const string &val, sift_parameters_t &p ){ p.chunk_size=atoi( val.c_str() ); }
 inline void no_orientations_func( const string &val, sift_parameters_t &p ){ p.no_orientations=atoi( val.c_str() ); }
 inline void no_descriptors_func ( const string &val, sift_parameters_t &p ){ p.no_descriptors=true; }

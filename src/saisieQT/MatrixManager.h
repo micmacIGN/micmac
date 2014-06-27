@@ -2,6 +2,7 @@
 #define __MATRIXMANAGER__
 
 #include "Engine.h"
+#include "mmglu.h"
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
@@ -98,6 +99,13 @@ public:
 
     void        getProjection3D(QPointF &P2D, Pt3d<double> &P);
 
+    void        handleRotation(QPointF clicPosMouse);
+
+    void        setMatrixDrawViewPort();
+
+    GLdouble rY() const;
+    void setRY(const GLdouble &rY);
+
 private:
     //! GL context aspect ratio (width/height)
     float       m_glRatio;
@@ -107,8 +115,13 @@ private:
     GLint       *_glViewport;
     GLdouble    _rX;
     GLdouble    _rY;
+    GLdouble    _upY;
+
     GLdouble    _distance;
     Pt3dr       _centerScene;
+
+    int         _lR;
+    int         _uD;
 
 };
 

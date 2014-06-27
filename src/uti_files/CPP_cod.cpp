@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if (ELISE_windows)&&(!ELISE_MinGW)
+#if (ELISE_windows)&(!ELISE_MinGW)
 	inline int isblank( int c ){ return ( c==int(' ') || c==int('\t') ); }
 #endif
 

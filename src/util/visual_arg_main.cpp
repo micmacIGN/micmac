@@ -39,6 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 #if(ELISE_QT_VERSION >= 4)
+
+ #if (ELISE_windows & ELISE_MinGW)
+     #include "QTCore/qt_windows.h"
+     #undef MemoryBarrier
+ #endif
+
     #ifdef Int
         #undef Int
     #endif

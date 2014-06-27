@@ -48,7 +48,8 @@ class cData
 
         QMaskedImage&  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
 
-        void    computeBBox();
+        void    getMinMax(Pt3dr);
+        void    computeBBox(int idCloud = -1);
 
         int     getCloudsSize();
 
@@ -62,7 +63,10 @@ class cData
 
         void    cleanCameras();
 
-   private:
+        void    deleteCloud(int idCloud);
+
+        void    addReplaceCloud(GlCloud *cloud, int id = 0);
+private:
 
         QVector <CamStenope *> _Cameras;
         QVector <GlCloud *>    _Clouds;

@@ -259,8 +259,6 @@ cEngine::~cEngine()
     delete _Data;
 }
 
-
-
 void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
@@ -466,8 +464,6 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 
         if (scaleFactor != 1.f)
         {
-            cout << "scaling " <<  scaleFactor << endl;
-
             int width  = (int) ((float) pMask.width() / scaleFactor);
             int height = (int) ((float) pMask.height() / scaleFactor);
 
@@ -538,7 +534,7 @@ void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
         _vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode));
 
     if (_Data->is3D())
-        _vGLData.push_back(new cGLData(_Data, appMode));
+        _vGLData.push_back(new cGLData(_Data, aParams,appMode));
 }
 
 void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
@@ -546,7 +542,7 @@ void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
     delete _vGLData[aK];
 
     if (_Data->is3D())
-        _vGLData[aK] = new cGLData(_Data, appMode);
+        _vGLData[aK] = new cGLData(_Data, aParams,appMode);
     else
         _vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode);
 }

@@ -9,7 +9,6 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(paren
     setWindowFlags(Qt::Tool/*Qt::Dialog | Qt::WindowStaysOnTopHint*/);
 
     _parameters = params;
-    _oldParameters = *params;
 
     refresh();
 
@@ -64,7 +63,7 @@ void cSettingsDlg::on_PointDiameter_doubleSpinBox_valueChanged(double val)
 {
     _parameters->setPointDiameter(val);
 
-    emit pointDiameterChanged(val * 0.01);
+    emit pointDiameterChanged(val);
 }
 
 void cSettingsDlg::on_GammaDoubleSpinBox_valueChanged(double val)
@@ -178,8 +177,6 @@ void cSettingsDlg::on_doubleSpinBoxSz_valueChanged(double val)
 
 void  cSettingsDlg::on_okButton_clicked()
 {
-    on_applyButton_clicked();
-
     _parameters->write();
 
     accept();
@@ -196,8 +193,7 @@ void cSettingsDlg::on_cancelButton_clicked()
 
 void cSettingsDlg::on_applyButton_clicked()
 {
-    //TODO: a corriger
-    emit nbFenChanged(_parameters->getNbFen() != _oldParameters.getNbFen());
+    _parameters->write();
 }
 
 void cSettingsDlg::on_resetButton_clicked()

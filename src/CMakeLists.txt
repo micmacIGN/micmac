@@ -155,7 +155,8 @@ if ( NOT ${qt_version} EQUAL 0 )
                     ${SAISIE_DIR}/ContextMenu.cpp
                     ${SAISIE_DIR}/Settings.cpp
                     ${SAISIE_DIR}/QT_interface_Elise.cpp
-                    ${SAISIE_DIR}/Tree.cpp)
+                    ${SAISIE_DIR}/Tree.cpp
+                    ${SAISIE_DIR}/mmglu.cpp)
 
     set( HEADERS_nomoc
        ${SAISIE_DIR}/HistoryManager.h
@@ -166,7 +167,8 @@ if ( NOT ${qt_version} EQUAL 0 )
        #SaisieGlsl.glsl
        ${SAISIE_DIR}/Engine.h
        ${SAISIE_DIR}/GLWidgetSet.h
-       ${SAISIE_DIR}/3DObject.h )
+       ${SAISIE_DIR}/3DObject.h
+       ${SAISIE_DIR}/mmglu.h )
 
     set( HEADERS_tomoc
        ${SAISIE_DIR}/GLWidget.h
@@ -186,11 +188,6 @@ if ( NOT ${qt_version} EQUAL 0 )
    if ( ${qt_version} EQUAL 5 )
 
       set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-      if ( NOT ${OPENGL_GLU_FOUND} )
-              message( FATAL_ERROR "GLU library could not be found" )
-              return( -1 )
-      endif()
 
       set(CMAKE_AUTOMOC ON)
 
