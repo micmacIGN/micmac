@@ -81,6 +81,8 @@ std::cout << "xxxxxxxxxxxxxxxxxxWWWWWW " << aCpt << "\n ";
      for (int aK=0; aK<int(aVIm.size()) ; aK++)
      {
         double aVK = aVV[aK] * mAppli.DynGlob();
+
+ // aVK *= 1 /(1+ (((unsigned long int)(this))%257)/123.0);
         //  if (mAppli.ValMasqMesure( aPLoc)) aVK= 255- aVK;
         // aVIm[aK]->SetI(aPLoc,aVV[aK]);
 

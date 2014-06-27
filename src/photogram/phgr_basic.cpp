@@ -2442,21 +2442,6 @@ ElCamera::~ElCamera()
 //  R2 =  R1 S2toS1 = R1 S1.FromSys2This(S2
 
 
-/*
-void ElCamera::ChangeSys(const cSysCoord & a1Source,const cSysCoord & a2Cible,const Pt3dr & aP1)
-{
-      Pt3dr aCam = _orient.ImAff(aP1);
-      Pt3dr aP2 = a2Cible.FromSys2This(a1Source,aP1);
-
-
-      ElMatrix<double>  aMatr2 =  _orient.Mat()*  a1Source.JacobSys2This(a2Cible,aP2) ;
-      aMatr2 = NearestRotation(aMatr2);
-
-      Pt3dr aTr2 =  aCam - aMatr2*aP2;
-
-      _orient = ElRotation3D(aTr2,aMatr2);
-}
-*/
 
 //
 //  Orientation Monde to Cam (CamStenope::CentreOptique() = _orient.IRecAff(Pt3dr(0,0,0))
@@ -2482,6 +2467,152 @@ void TestCamCHC(ElCamera & aCam)
     std::cout << " TTttCamm  " << aCam.ImEtProf2Terrain(aPIm1,aProf0+1) -  aCam.ImEtProf2Terrain(aPIm1,aProf0) << "\n";
 }
 
+/*
+    Notations pour tentattve de meilleure prise en compt de la "courbure de terre" (ou du moins du fait que l'alteration
+lineaire est prise en compte en optimisant la pojection du sol sur les  camera)
+
+
+               aS.ToGec         aC.FromGeoC
+      S=RTL   --------->  GeoC  ----------->  C=L93
+
+        (C-Oc)  ~ aVJacG2C[aK] * aVJacS2G[aK] * (S-Os)
+ 
+         C ~ Oc + aVJacG2C[aK] * aVJacS2G[aK] * (S-Os) = Af(S)
+
+                  Phi
+             S -------> C
+              \        /
+        Aff    \      /  Delta
+                \    /
+                  AA
+
+*/
+
+class cAffiApprox
+{
+     public   :
+           cAffiApprox(const Pt3dr & aOC,const Pt3dr &aOS,const ElMatrix<double> & aJS2C,const cSysCoord * aSysS,const cSysCoord * aSysC) :
+              mOC (aOC),
+              mOS (aOS),
+              mJS2C (aJS2C),
+              mJC2S (gaussj(aJS2C)),
+              mSysS (aSysS),
+              mSysC (aSysC)
+           {
+           }
+           Pt3dr S2A(const Pt3dr &aS) {return mOC + mJS2C*(aS-mOS);}
+
+     private   :
+           Pt3dr             mOC;  // Centre en coordonnees cible
+           Pt3dr             mOS;  // Centre en coordonnees Source
+           ElMatrix<double>  mJS2C;
+           ElMatrix<double>  mJC2S;
+           const cSysCoord * mSysS;
+           const cSysCoord * mSysC;
+
+};
+
+
+/*   =-=-=-=-=-=-=-=-=-=-=-=-=
+    0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
+    0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
+*/
+
+class cEq12Parametre
+{
+    public :
+        cEq12Parametre();
+        void AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const double&  aPds);
+        std::pair<ElMatrix<double>,Pt3dr> Compute();
+
+    private :
+        L2SysSurResol mSys;
+        std::vector<Pt3dr>  mVPG;
+        std::vector<Pt2dr>  mVPPhgr;
+        std::vector<double> mVPds;
+
+        void ComputeOneObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const double&  aPds);
+
+        // Indexe et valeur permettant de fixer l'arbitraire
+        int    mIndFixArb;
+        double mValueFixArb;
+};
+
+
+cEq12Parametre::cEq12Parametre() :
+       mSys         (12,true),
+       mIndFixArb   (10),
+       mValueFixArb (-1)
+{
+}
+
+void cEq12Parametre::AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const double&  aPds)
+{
+  mVPG.push_back(aPGround);
+  mVPPhgr.push_back(aPPhgr);
+  mVPds.push_back(aPds);
+}
+
+
+std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::Compute()
+{
+    mSys.GSSR_Reset(false);
+    for (int aK=0 ; aK <int(mVPG.size()) ; aK++)
+    {
+         ComputeOneObs(mVPG[aK],mVPPhgr[aK],mVPds[aK]);
+    }
+
+
+    ElMatrix<double> aMat(3,3);
+    Pt3dr aC;
+
+    bool aOk;
+    Im1D_REAL8  aISol = mSys.GSSR_Solve(&aOk);
+    double aSomL2;
+    ELISE_COPY(rectangle(0,9),Square(aISol.in()),sigma(aSomL2));
+    ELISE_COPY(rectangle(0,9),aISol.in() * sqrt(3/aSomL2),aISol.out());
+    double * aDS = aISol.data();
+
+
+    for (int aK=0 ; aK<9 ; aK+=3)
+    {
+        std::cout << aDS[aK] << " " <<  aDS[aK+1] << " " << aDS[aK+2] << "\n";
+    }
+    std::cout << "===================\n";
+
+    return std::pair<ElMatrix<double>,Pt3dr> (aMat,aC);
+}
+
+
+void cEq12Parametre::ComputeOneObs(const Pt3dr & aPG,const Pt2dr & aPPhgr,const double&  aPds)
+{
+    double aC[12];
+  
+    aC[0] = aPG.x;
+    aC[1] = aPG.y;
+    aC[2] = aPG.z;
+    aC[3] = 1;
+    for (int aK=0 ; aK<4 ; aK++)
+    {
+       aC[aK+4] = 0.0;
+       aC[aK+8] = aC[aK] * aPPhgr.x;
+    }
+    mSys.GSSR_AddNewEquation(aPds,aC,0.0,(double *)0);
+
+    for (int aK=0 ; aK<4 ; aK++)
+    {
+       aC[aK+4] = aC[aK];
+       aC[aK+8] = aC[aK] * aPPhgr.x;
+       aC[aK] = 0;
+    }
+    mSys.GSSR_AddNewEquation(aPds,aC,0.0,(double *)0);
+
+    for (int aK=0 ; aK<12 ; aK++)
+        aC[aK] = (aK==mIndFixArb);
+    mSys.GSSR_AddNewEquation(aPds,aC,mValueFixArb,(double *)0);
+}
+
+
 void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord & aSource,const cSysCoord & aCible,bool ForceRot)
 {
     bool Test = false;
@@ -2503,6 +2634,34 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
     Pt3dr aCible1(0,0,0);
     double aProf1=110;
 
+/*
+    for (int aK=0 ; aK<int(aVCam.size()); aK++)
+    {
+        cEq12Parametre anEq12;
+        int aNbXY = 3;
+        int aNbProf  = 2;
+        double aPropProf= 0.3;
+
+        ElCamera & aCam = *(aVCam[aK]);
+        Pt2dr aSzP = aCam.SzPixel();
+        double aProfMoy = aCam.GetRoughProfondeur();
+ 
+        for (int aKp= -aNbProf ; aKp<= aNbProf ; aKp++)
+        {
+            double aProf =  aProfMoy * pow(1+aPropProf,aKp/double(aNbProf));
+            for (int aKx=0 ; aKx<= aNbXY ; aKx++)
+            {
+                for (int aKy=0 ; aKy<= aNbXY ; aKy++)
+                {
+                    Pt2dr aPIm = aSzP.mcbyc(Pt2dr(aKx,aKy)/aNbXY);
+                    Pt2dr aPPhgr = aCam.F2toPtDirRayonL3(aPIm);
+                    Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf);
+                    anEq12.AddObs(aPSource,aPPhgr,1.0);
+                }
+            }
+        }
+    }
+*/
 
     for (int aK=0 ; aK<int(aVCam.size()); aK++)
     {
@@ -4710,7 +4869,7 @@ class cCameraOrtho : public ElCamera
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -4726,17 +4885,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
