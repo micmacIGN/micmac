@@ -730,7 +730,7 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
            }
        }
       
-
+       // filtrage des composantes connexes
        FiltrageCardCC(true,aTMask,1,0,mArgMaskAuto->SeuilZC().Val());
        FiltrageCardCC(true,aTMask,0,1,mArgMaskAuto->SeuilZC().Val());
 
@@ -738,6 +738,8 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
        // TIm2D<INT2,INT>   aTImRes(mImRes[mNumNap]);
        TIm2DBits<1>    aTMaskTer(mLTCur->ImMasqTer());
 
+       // aTMask    --> masque de non correlation
+       // aTMaskTer --> masque terrain
        //ComplKLipsParLBas(aTMaskTer.Im(),aTMask.Im(),mImRes[mNumNap],1.0);
        ComplKLipsParLBas(aTMask.Im(),aTMaskTer.Im(),mImRes[mNumNap],1.0);
 
