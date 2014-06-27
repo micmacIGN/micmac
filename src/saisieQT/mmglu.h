@@ -3,6 +3,10 @@
 #ifndef __MM_GLU__
 #define __MM_GLU__
 
+#ifdef _WIN32
+	#include "windows.h"
+#endif
+
 #include <GL/gl.h>
 
 #ifndef GLAPIENTRY
