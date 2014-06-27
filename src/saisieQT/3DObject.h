@@ -148,7 +148,7 @@ class cPoint : public cObjectGL, public QPointF
         void setStatePoint(int state){ _statePoint = state; }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
-        void setZoom(float val)      { _zoom = val;         }
+        void setZoom(float val)      { _zoom = val;         } // TODO : à agreger
         int  statePoint() const      { return _statePoint;  }
         void showName(bool show)     { _bShowName = show;   }
 
