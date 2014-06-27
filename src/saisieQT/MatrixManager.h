@@ -101,6 +101,8 @@ public:
 
     void        handleRotation(QPointF clicPosMouse);
 
+    void        setMatrixDrawViewPort();
+
     GLdouble rY() const;
     void setRY(const GLdouble &rY);
 

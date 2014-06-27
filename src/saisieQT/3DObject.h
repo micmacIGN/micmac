@@ -134,7 +134,7 @@ class cPoint : public cObjectGL, public QPointF
     cPoint(QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            bool showName   = false,
-           int  pointState = eEPI_NonValue,
+           int  statePoint = eEPI_NonValue,
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
@@ -145,11 +145,11 @@ class cPoint : public cObjectGL, public QPointF
 
         void draw();
 
-        void setPointState(int state){ _pointState = state; }
+        void setStatePoint(int state){ _statePoint = state; }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
-        void setZoom(float val)      { _zoom = val;         }
-        int  pointState() const      { return _pointState;  }
+        void setZoom(float val)      { _zoom = val;         } // TODO : à agreger
+        int  statePoint() const      { return _statePoint;  }
         void showName(bool show)     { _bShowName = show;   }
 
         bool highlight() const       { return _highlight;   }
@@ -168,7 +168,7 @@ private:
         float   _diameter;
         float   _zoom;
         bool    _bShowName;
-        int     _pointState;
+        int     _statePoint;
         bool    _highlight;
         bool    _drawCenter;
 

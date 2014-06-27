@@ -30,14 +30,11 @@ void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei heigh
     glGetIntegerv (GL_VIEWPORT, getGLViewport());
 }
 
-
-
 void MatrixManager::doProjection(QPointF point, float zoom)
 {
+    //glPushMatrix();
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glPushMatrix();
+    glLoadIdentity();    
     glMultMatrixd(_projMatrix);
 
     if(_projMatrix[0] != zoom)
@@ -47,6 +44,7 @@ void MatrixManager::doProjection(QPointF point, float zoom)
         GLint recal = _glViewport[3] - (GLint) point.y() - 1;
 
         //from viewport to world coordinates
+        //TODO peut etre simplifier!
         mmUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
                       _mvMatrix, _projMatrix, _glViewport, &wx, &wy, &wz);
 
@@ -60,6 +58,7 @@ void MatrixManager::doProjection(QPointF point, float zoom)
     m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
+
 }
 
 void MatrixManager::getProjection3D(QPointF &P2D, Pt3dr &P)
@@ -81,7 +80,6 @@ void MatrixManager::setRY(const GLdouble &rY)
 {
     _rY = rY;
 }
-
 
 void MatrixManager::translate(float x, float y)
 {
@@ -326,6 +324,16 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
             (abs(rY()) > PI - hAngle)))
         _uD = -1;
 
+}
+
+void MatrixManager::setMatrixDrawViewPort()
+{
+    glPushMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslatef(-1,-1,0.f);
 }
 
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
