@@ -841,6 +841,7 @@ void cPolygon::add(cPoint &pt)
     }
 }
 
+// TODO pourquoi les fonctions : 2 add et addPoint?
 void cPolygon::add(const QPointF &pt, float zoom, bool selected)
 {
     if (size() < _maxSz)
@@ -1937,7 +1938,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
 {
-    mm.setModelViewMatrix();
+
     QPointF P2D;
     bool pointInside;
 
@@ -2161,7 +2162,6 @@ MessageToDisplay &cMessages2DGL::LastMessage()
 {
     return m_messagesToDisplay.back();
 }
-
 
 cGrid::cGrid(Pt3d<double> pt, float scale, int nb)
 {

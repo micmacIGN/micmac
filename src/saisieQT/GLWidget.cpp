@@ -124,11 +124,6 @@ bool GLWidget::imageLoaded()
     return hasDataLoaded() &&  m_bDisplayMode2D;
 }
 
-void GLWidget::paintEvent(QPaintEvent *event)
-{
-    updateGL();
-}
-
 void GLWidget::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -140,7 +135,7 @@ void GLWidget::paintGL()
 
     if (hasDataLoaded())
     {
-        m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f);
+        m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f); // TODO a retirer --> gestion intrinsèque des transformations
 
         if (m_bDisplayMode2D)
         {
@@ -160,7 +155,7 @@ void GLWidget::paintGL()
 
         overlay();
 
-        if (_widgetId < 0)
+        if (_widgetId < 0) // TODO a retirer --> gestion intrinsèque des contenues
             drawCenter();
 
         if (_messageManager.drawMessages() && !m_bDisplayMode2D)
@@ -168,6 +163,51 @@ void GLWidget::paintGL()
     }
 
     _messageManager.draw();
+}
+
+void GLWidget::overlay()
+{
+    if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)) )
+    {
+        if (m_bDisplayMode2D )
+
+            _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom); // TODO : surement inutile
+
+        else if(m_interactionMode == SELECTION)
+
+            _matrixManager.setMatrixDrawViewPort();
+
+        for (int i = 0; i < m_GLData->polygonCount(); ++i)
+        {
+            cPolygon* polyg = polygon(i);
+
+            if (polyg)
+            {
+                polyg->draw();
+
+                if (polyg->bShowNames())
+                {
+                    for (int aK=0; aK < polyg->size();++aK)
+                    {
+                        cPoint pt = polyg->operator [](aK);
+
+                        if (pt.showName() && (pt.name() != ""))
+                        {
+                            QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
+
+                            QColor color(pt.isSelected() ? Qt::blue : Qt::white);
+                            glColor3f(color.redF(),color.greenF(),color.blueF());
+
+                            renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
+                        }
+                    }
+                }
+            }
+        }
+
+        if(m_interactionMode == SELECTION)
+            glPopMatrix();
+    }
 }
 
 void GLWidget::setInteractionMode(int mode, bool showmessage)
@@ -394,14 +434,9 @@ void GLWidget::Select(int mode, bool saveInfos)
     {
         cPolygon polyg = *polygon();
 
-        if(mode == ADD || mode == SUB)
-        {
+        if(mode == ADD || mode == SUB)        // TODO cette condition semble inutile
             if ((polyg.size() < 3) || (!polyg.isClosed()))
                 return;
-
-            if (!m_bDisplayMode2D)
-                polyg.flipY((float)_matrixManager.vpHeight());
-        }
 
         if (m_bDisplayMode2D)
             m_GLData->editImageMask(mode,polyg,m_bFirstAction);
@@ -531,7 +566,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         m_lastPosWindow = event->pos();
 
-        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
+        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : QPointF(m_lastPosWindow.x(),_matrixManager.vpHeight() - m_lastPosWindow.y());
 
         if (event->button() == Qt::LeftButton)
         {
@@ -540,7 +575,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 if(!polygon()->isClosed())             // ADD POINT
 
-                    polygon()->addPoint(m_lastPosImage, _vp_Params.m_zoom);
+                    polygon()->addPoint(m_lastPosImage, m_bDisplayMode2D ? _vp_Params.m_zoom : 1.f);
 
                 else if (polygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
@@ -607,6 +642,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         QPointF mPos = event->posF();
 #endif
 
+
+
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, _vp_Params.m_zoom) : mPos;
 
         if ( event->buttons() != Qt::MiddleButton )
@@ -631,7 +668,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 bool insertMode = polygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
 
-                polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
+                if(m_interactionMode == SELECTION)
+                    polygon()->refreshHelper( QPointF(pos.x(),_matrixManager.vpHeight() - pos.y()), insertMode, 1.f);
+                else
+                    polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
 
                 if (polygon()->size() && m_bDisplayMode2D)
 
@@ -687,7 +727,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
 void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (hasDataLoaded() && m_GLData->cloudCount())
+    if (hasDataLoaded() && m_interactionMode == TRANSFORM_CAMERA && m_GLData->cloudCount() )
     {
 #if ELISE_QT_VERSION == 5
         QPointF pos = event->localPos();
@@ -785,42 +825,7 @@ void GLWidget::movePointWithArrows(QKeyEvent* event)
     polygon()->findNearestPoint(pt, 400000.f);
 }
 
-void GLWidget::overlay()
-{
-    if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)) )
-    {
-        for (int i = 0; i < m_GLData->polygonCount(); ++i)
-        {
-            cPolygon* polyg = polygon(i);
 
-            if (m_bDisplayMode2D)
-                _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom); // TODO : surement inutile
-
-            if (polyg)
-            {
-                polyg->draw();
-
-                if (polyg->bShowNames())
-                {
-                    for (int aK=0; aK < polyg->size();++aK)
-                    {
-                        cPoint pt = polyg->operator [](aK);
-
-                        if (pt.showName() && (pt.name() != ""))
-                        {
-                            QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
-
-                            QColor color(pt.isSelected() ? Qt::blue : Qt::white);
-                            glColor3f(color.redF(),color.greenF(),color.blueF());
-
-                            renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
 {

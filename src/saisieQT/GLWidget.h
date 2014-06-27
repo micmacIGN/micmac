@@ -158,7 +158,6 @@ signals:
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);
-    void paintEvent(QPaintEvent*);
     void paintGL();
 
     //! inherited from QWidget
@@ -206,15 +205,17 @@ private:
     void        computeFPS(MessageToDisplay &dynMess);
 
     int         _frameCount;
+
     int         _previousTime;
+
     int         _currentTime;
-
-
 
     QTime       _time;
 
     MatrixManager   _matrixManager;
+
     cMessages2DGL   _messageManager;
+
     HistoryManager  _historyManager;
 
     ContextMenu     _contextMenu;
@@ -222,6 +223,7 @@ private:
     int             _widgetId;
 
     QColor      _BGColor0;
+
     QColor      _BGColor1;
 
     cParameters* _params;
