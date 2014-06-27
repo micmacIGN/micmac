@@ -57,27 +57,42 @@ int runCmd(int argc,char ** argv, std::string cmdName)
 
 int SaisieMasqQT_main(int argc,char ** argv)
 {
-    return runCmd(argc, argv, "SaisieMasqQT");
+    if (MMVisualMode)
+        return runCmd(argc, argv, "vSaisieMasqQT");
+    else
+        return runCmd(argc, argv, "SaisieMasqQT");
 }
 
 int SaisieAppuisInitQT_main(int argc,char ** argv)
 {
-    return runCmd(argc, argv, "SaisieAppuisInitQT");
+    if (MMVisualMode)
+        return runCmd(argc, argv, "vSaisieAppuisInitQT");
+    else
+        return runCmd(argc, argv, "SaisieAppuisInitQT");
 }
 
 int SaisieAppuisPredicQT_main(int argc,char ** argv)
 {
-    return runCmd(argc, argv, "SaisieAppuisPredicQT");
+    if (MMVisualMode)
+        return runCmd(argc, argv, "vSaisieAppuisPrdicQT");
+    else
+        return runCmd(argc, argv, "SaisieAppuisPredicQT");
 }
 
 int SaisieBascQT_main(int argc,char ** argv)
 {
-    return runCmd(argc, argv, "SaisieBascQT");
+    if (MMVisualMode)
+        return runCmd(argc, argv, "vSaisieBascQT");
+    else
+        return runCmd(argc, argv, "SaisieBascQT");
 }
 
 int SaisieBoxQT_main(int argc,char ** argv)
 {
-    return runCmd(argc, argv, "SaisieBoxQT");
+    if (MMVisualMode)
+        return runCmd(argc, argv, "vSaisieBoxQT");
+    else
+        return runCmd(argc, argv, "SaisieBoxQT");
 }
 
 #endif
