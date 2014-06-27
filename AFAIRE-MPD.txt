@@ -11,6 +11,7 @@ EVOLUTIONS :
   * AperiCloud : couleur des cams, possible faire que cam ou que pts
   * Dans SaisieAppuisInit : exporter tous les points 3D (correc de bug, avant n'exportait que les images courantes)
   * SetHom dans Tapas (a completer ...)
+  * Dans CmpIm
 
 
 A faire ("Bug") :
