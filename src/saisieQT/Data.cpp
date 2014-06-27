@@ -23,7 +23,20 @@ void cData::addObject(cObject * aObj)
 void cData::replaceCloud(GlCloud *cloud, int id)
 {
     if(id < _Clouds.size())
+    {
         _Clouds[id] = cloud;
+        computeBBox(id);
+    }
+}
+
+void cData::addReplaceCloud(GlCloud *cloud, int id)
+{
+    if(id < _Clouds.size())
+        _Clouds[id] = cloud;
+    else
+        addCloud(cloud);
+
+    computeBBox(id);
 }
 
 void cData::addCamera(CamStenope * aCam)
@@ -111,6 +124,13 @@ void cData::reset()
 void cData::cleanCameras()
 {
     _Cameras.clear();
+}
+
+void cData::deleteCloud(int idCloud)
+{
+   GlCloud* cloud = getCloud(idCloud);
+   if(cloud)
+       delete cloud;
 }
 
 int cData::getCloudsSize()
