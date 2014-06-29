@@ -131,7 +131,7 @@ int CmpIm_main(int argc,char ** argv)
         {
            if (aFileDiff!="")
            {
-                Symb_FNum aFDifSigne(aDyn*(aFile1.in()-aFonc2));
+                Symb_FNum aFDifSigne(aFile1.in()-aFonc2);
 
                 Fonc_Num  aRes = aDyn*aFDifSigne;
                 if (aColDif)

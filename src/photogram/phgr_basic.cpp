@@ -2523,7 +2523,7 @@ class cEq12Parametre
     public :
         cEq12Parametre();
         void AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const double&  aPds);
-        std::pair<ElMatrix<double>,Pt3dr> Compute();
+        std::pair<ElMatrix<double>,Pt3dr> ComputeNonOrtho();
 
     private :
         L2SysSurResol mSys;
@@ -2554,12 +2554,24 @@ void cEq12Parametre::AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const do
 }
 
 
-std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::Compute()
+std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::ComputeNonOrtho()
 {
     mSys.GSSR_Reset(false);
+
+    // Pour limiter les erreurs numériques, on se remet sur des coordonnees centrees
+    Pt3dr aMoyP(0,0,0);
+    double aSomPds = 0;
     for (int aK=0 ; aK <int(mVPG.size()) ; aK++)
     {
-         ComputeOneObs(mVPG[aK],mVPPhgr[aK],mVPds[aK]);
+       aMoyP = aMoyP + mVPG[aK] * mVPds[aK];
+       aSomPds += mVPds[aK];
+    }
+    aMoyP = aMoyP / aSomPds;
+
+
+    for (int aK=0 ; aK <int(mVPG.size()) ; aK++)
+    {
+         ComputeOneObs(mVPG[aK]-aMoyP,mVPPhgr[aK],mVPds[aK]);
     }
 
 
@@ -2570,18 +2582,30 @@ std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::Compute()
     Im1D_REAL8  aISol = mSys.GSSR_Solve(&aOk);
     double * aDS = aISol.data();
 
+    // Tout est a un facteur pres, on normalise pour que la matrice 3x3 soit de norme L2
+    // (a permis de tester pour les rotations pure si OK ...)
     double aSomL2=0;
     for (int aK=0 ; aK<12 ; aK+=4)
     {
         aSomL2 += Square(aDS[aK]) + Square(aDS[aK+1])  + Square(aDS[aK+2]) ;
     }
     aSomL2 = sqrt(aSomL2/3);
-    for (int aK=0 ; aK<12 ; aK+=4)
+    for (int aK=0 ; aK<12 ; aK++)
     {
         aDS[aK  ] /= aSomL2;
-        aDS[aK+1] /= aSomL2;
-        aDS[aK+2] /= aSomL2;
     }
+
+
+    // Le centre est le point ou les trois terme sont nul (et les deux ratio indetermines)
+    Pt3dr aPInc(-aDS[3],-aDS[7],-aDS[11]);
+    for (int aKy=0 ; aKy<3 ; aKy++)
+    {
+        for (int aKx=0 ; aKx<3 ; aKx++)
+        {
+            aMat(aKx,aKy) = aDS[aKx+4*aKy];
+        }
+    }
+    aC = gaussj(aMat) * aPInc + aMoyP;
 /*
     ELISE_COPY(rectangle(0,9),Square(aISol.in()),sigma(aSomL2));
     ELISE_COPY(rectangle(0,9),aISol.in() * sqrt(3/aSomL2),aISol.out());
@@ -2592,13 +2616,8 @@ std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::Compute()
     0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
     0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
 */
-    for (int aK=0 ; aK<12 ; aK+=4)
-    {
-        std::cout << aDS[aK] << " " <<  aDS[aK+1] << " " << aDS[aK+2] << "\n";
-    }
-    std::cout << "===================\n";
 
-    return std::pair<ElMatrix<double>,Pt3dr> (aMat,aC);
+    return std::pair<ElMatrix<double>,Pt3dr> (gaussj(aMat),aC);
 }
 
 
@@ -2637,6 +2656,63 @@ void cEq12Parametre::ComputeOneObs(const Pt3dr & aPG,const Pt2dr & aPPhgr,const 
 
 void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord & aSource,const cSysCoord & aCible,bool ForceRot)
 {
+
+    // Pour l'instant, pas encore ecrit la fonction  qui transform l'eq aux 12 param en  param physique ....
+    //
+    if (! ForceRot)
+    {
+        for (int aK=0 ; aK<int(aVCam.size()); aK++)
+        {
+            std::vector<Pt2dr> aVPhGr;
+            std::vector<Pt3dr> aVSource;
+            cEq12Parametre anEq12;
+            int aNbXY = 3;
+            int aNbProf  = 2;
+            double aPropProf= 0.3;
+
+            ElCamera & aCam = *(aVCam[aK]);
+            Pt2dr aSzP = aCam.SzPixel();
+            double aProfMoy = aCam.GetRoughProfondeur();
+            int anIndCentre =-1;
+ 
+            for (int aKp= -aNbProf ; aKp<= aNbProf ; aKp++)
+            {
+                double aProf =  aProfMoy * pow(1+aPropProf,aKp/double(aNbProf));
+                for (int aKx=0 ; aKx<= aNbXY ; aKx++)
+                {
+                    for (int aKy=0 ; aKy<= aNbXY ; aKy++)
+                    {
+                        Pt2dr aPIm = aSzP.mcbyc(Pt2dr(aKx,aKy)/aNbXY);
+                        Pt2dr aPPhgr = aCam.F2toPtDirRayonL3(aPIm);
+                        Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf) ;//   + Pt3dr(1e6,1e7,1e5);
+                        if ((aKp==0) && (aKx==0) && (aKy==0))
+                           anIndCentre = aVSource.size();
+                        aVPhGr.push_back(aPPhgr);
+                        aVSource.push_back(aPSource);
+                    }
+                }
+            }
+
+            std::vector<Pt3dr> aVCible = aCible.FromGeoC(aSource.ToGeoC(aVSource));
+            Pt3dr aPCentreCible  = aVCible[anIndCentre];
+            for (int aKP = 0 ; aKP<int(aVCible.size()) ; aKP++)
+            {
+                anEq12.AddObs(aVCible[aKP],aVPhGr[aKP],1.0);
+            }
+            std::pair<ElMatrix<double>,Pt3dr>  aTransfo = anEq12.ComputeNonOrtho();
+
+
+            ElRotation3D aOriCam2Cible(aTransfo.second,aTransfo.first,false);
+            aCam.SetOrientation(aOriCam2Cible.inv());
+
+            aCam.SetAltiSol(aPCentreCible.z);
+            aCam.SetProfondeur(aCam.ProfondeurDeChamps(aPCentreCible));
+        }
+        return ;
+    }
+
+
+
     bool Test = false;
     std::vector<Pt3dr> aVCenterSrc;
     std::vector<Pt3dr> aPMoy;
@@ -2655,40 +2731,6 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
     Pt3dr aGeoC1(0,0,0);
     Pt3dr aCible1(0,0,0);
     double aProf1=110;
-
-if (0)
-{
-    for (int aK=0 ; aK<int(aVCam.size()); aK++)
-    {
-        cEq12Parametre anEq12;
-        int aNbXY = 3;
-        int aNbProf  = 2;
-        double aPropProf= 0.3;
-
-        ElCamera & aCam = *(aVCam[aK]);
-        Pt2dr aSzP = aCam.SzPixel();
-        double aProfMoy = aCam.GetRoughProfondeur();
- 
-        for (int aKp= -aNbProf ; aKp<= aNbProf ; aKp++)
-        {
-            double aProf =  aProfMoy * pow(1+aPropProf,aKp/double(aNbProf));
-            for (int aKx=0 ; aKx<= aNbXY ; aKx++)
-            {
-                for (int aKy=0 ; aKy<= aNbXY ; aKy++)
-                {
-                    Pt2dr aPIm = aSzP.mcbyc(Pt2dr(aKx,aKy)/aNbXY);
-                    Pt2dr aPPhgr = aCam.F2toPtDirRayonL3(aPIm);
-                    Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf) + Pt3dr(1e6,1e7,1e5);
-                    anEq12.AddObs(aPSource,aPPhgr,1.0);
-                }
-            }
-        }
-        anEq12.Compute();
-
-        std::cout << "fghTTThh \n";
-        getchar();
-    }
-}
 /*
 */
 
