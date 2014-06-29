@@ -2513,7 +2513,7 @@ class cAffiApprox
 };
 
 
-/*   =-=-=-=-=-=-=-=-=-=-=-=-=
+/*   
     0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
     0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
 */
@@ -2568,13 +2568,31 @@ std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::Compute()
 
     bool aOk;
     Im1D_REAL8  aISol = mSys.GSSR_Solve(&aOk);
-    double aSomL2;
-    ELISE_COPY(rectangle(0,9),Square(aISol.in()),sigma(aSomL2));
-    ELISE_COPY(rectangle(0,9),aISol.in() * sqrt(3/aSomL2),aISol.out());
     double * aDS = aISol.data();
 
+    double aSomL2=0;
+    for (int aK=0 ; aK<12 ; aK+=4)
+    {
+        aSomL2 += Square(aDS[aK]) + Square(aDS[aK+1])  + Square(aDS[aK+2]) ;
+    }
+    aSomL2 = sqrt(aSomL2/3);
+    for (int aK=0 ; aK<12 ; aK+=4)
+    {
+        aDS[aK  ] /= aSomL2;
+        aDS[aK+1] /= aSomL2;
+        aDS[aK+2] /= aSomL2;
+    }
+/*
+    ELISE_COPY(rectangle(0,9),Square(aISol.in()),sigma(aSomL2));
+    ELISE_COPY(rectangle(0,9),aISol.in() * sqrt(3/aSomL2),aISol.out());
+*/
 
-    for (int aK=0 ; aK<9 ; aK+=3)
+
+/*   
+    0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
+    0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
+*/
+    for (int aK=0 ; aK<12 ; aK+=4)
     {
         std::cout << aDS[aK] << " " <<  aDS[aK+1] << " " << aDS[aK+2] << "\n";
     }
@@ -2584,6 +2602,10 @@ std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::Compute()
 }
 
 
+/*   
+    0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
+    0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
+*/
 void cEq12Parametre::ComputeOneObs(const Pt3dr & aPG,const Pt2dr & aPPhgr,const double&  aPds)
 {
     double aC[12];
@@ -2595,14 +2617,14 @@ void cEq12Parametre::ComputeOneObs(const Pt3dr & aPG,const Pt2dr & aPPhgr,const 
     for (int aK=0 ; aK<4 ; aK++)
     {
        aC[aK+4] = 0.0;
-       aC[aK+8] = aC[aK] * aPPhgr.x;
+       aC[aK+8] = -aC[aK] * aPPhgr.x;
     }
     mSys.GSSR_AddNewEquation(aPds,aC,0.0,(double *)0);
 
     for (int aK=0 ; aK<4 ; aK++)
     {
        aC[aK+4] = aC[aK];
-       aC[aK+8] = aC[aK] * aPPhgr.x;
+       aC[aK+8] = -aC[aK] * aPPhgr.y;
        aC[aK] = 0;
     }
     mSys.GSSR_AddNewEquation(aPds,aC,0.0,(double *)0);
@@ -2634,7 +2656,8 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
     Pt3dr aCible1(0,0,0);
     double aProf1=110;
 
-/*
+if (0)
+{
     for (int aK=0 ; aK<int(aVCam.size()); aK++)
     {
         cEq12Parametre anEq12;
@@ -2655,12 +2678,18 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
                 {
                     Pt2dr aPIm = aSzP.mcbyc(Pt2dr(aKx,aKy)/aNbXY);
                     Pt2dr aPPhgr = aCam.F2toPtDirRayonL3(aPIm);
-                    Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf);
+                    Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf) + Pt3dr(1e6,1e7,1e5);
                     anEq12.AddObs(aPSource,aPPhgr,1.0);
                 }
             }
         }
+        anEq12.Compute();
+
+        std::cout << "fghTTThh \n";
+        getchar();
     }
+}
+/*
 */
 
     for (int aK=0 ; aK<int(aVCam.size()); aK++)
