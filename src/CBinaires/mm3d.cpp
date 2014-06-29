@@ -431,6 +431,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
    aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump  "));
    aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
+    
+    aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an aproximate model "));
 
    return aRes;
 }
