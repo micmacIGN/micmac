@@ -2525,6 +2525,8 @@ class cEq12Parametre
         void AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const double&  aPds);
         std::pair<ElMatrix<double>,Pt3dr> ComputeNonOrtho();
 
+       void ComputeOrtho();
+
     private :
         L2SysSurResol mSys;
         std::vector<Pt3dr>  mVPG;
@@ -2552,6 +2554,39 @@ void cEq12Parametre::AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const do
   mVPPhgr.push_back(aPPhgr);
   mVPds.push_back(aPds);
 }
+
+
+void cEq12Parametre::ComputeOrtho()
+{
+   std::pair<ElMatrix<double>,Pt3dr> aPair = ComputeNonOrtho();
+
+   std::pair<ElMatrix<double>,ElMatrix<double> > aRQ = RQDecomp(gaussj(aPair.first));
+   ElMatrix<double> aR = aRQ.first;
+
+   double aC= aR(2,2);
+
+   for (int anX=0 ; anX<3; anX++)
+   {
+      for (int anY=0 ; anY<3; anY++)
+      {
+           aR(anX,anY) /= aC;
+      }
+   }
+
+   std::cout << "ComputeOrthoComputeOrtho C=" << aC << "\n";
+   aR(0,0) *= -1 ;  // Warumm !!! purement experimental, peut etre lie au repere indirect ???
+   for (int anY=0 ; anY<3; anY++)
+   {
+      for (int anX=0 ; anX<3; anX++)
+      {
+           std::cout << aR(anX,anY)  << " " ;
+      }
+      std::cout <<  " \n" ;
+   }
+   getchar();
+   
+}
+
 
 
 std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::ComputeNonOrtho()
@@ -2661,6 +2696,7 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
     //
     if (! ForceRot)
     {
+        bool Test = false;
         for (int aK=0 ; aK<int(aVCam.size()); aK++)
         {
             std::vector<Pt2dr> aVPhGr;
@@ -2684,6 +2720,7 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
                     {
                         Pt2dr aPIm = aSzP.mcbyc(Pt2dr(aKx,aKy)/aNbXY);
                         Pt2dr aPPhgr = aCam.F2toPtDirRayonL3(aPIm);
+                        if (Test) aPPhgr = Pt2dr(aPPhgr.x*1.1 +0.05 * aPPhgr.y,aPPhgr.y*0.9) + Pt2dr(0.1,0.15)  ;
                         Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf) ;//   + Pt3dr(1e6,1e7,1e5);
                         if ((aKp==0) && (aKx==0) && (aKy==0))
                            anIndCentre = aVSource.size();
@@ -2701,6 +2738,8 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
             }
             std::pair<ElMatrix<double>,Pt3dr>  aTransfo = anEq12.ComputeNonOrtho();
 
+            if (Test) anEq12.ComputeOrtho();
+
 
             ElRotation3D aOriCam2Cible(aTransfo.second,aTransfo.first,false);
             aCam.SetOrientation(aOriCam2Cible.inv());
@@ -2708,6 +2747,7 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
             aCam.SetAltiSol(aPCentreCible.z);
             aCam.SetProfondeur(aCam.ProfondeurDeChamps(aPCentreCible));
         }
+        if (Test) ELISE_ASSERT(false,"ComputeOrtho TTTTEssst\n");
         return ;
     }
 
