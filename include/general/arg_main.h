@@ -662,6 +662,9 @@ int VideoVisage_main(int argc,char ** argv);
 int Poisson_main(int argc,char ** argv);
 int GrapheHom_main(int argc,char ** argv);
 
+
+int RefineModel_main(int argc, char **argv);
+
 #if (ELISE_X11)
     int SaisieAppuisInit_main(int argc,char ** argv);
     int SaisieAppuisPredic_main(int argc,char ** argv);
