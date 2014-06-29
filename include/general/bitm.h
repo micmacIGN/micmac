@@ -941,6 +941,14 @@ void svdcmp ( const ElMatrix<REAL> & aMat, ElMatrix<REAL> & anU,
 void svdcmp_diag ( const ElMatrix<REAL> & aMat, ElMatrix<REAL> & anU,
               ElMatrix<REAL> & aDiag, ElMatrix<REAL> & aV,bool direct);
 
+
+// L'"habituelle" decomposition QR,
+std::pair<ElMatrix<double>, ElMatrix<double> > QRDecomp(const ElMatrix<double> & aM0);
+
+// La RQ decomposition (sans doute + utile pour l'equation au 12 param)
+std::pair<ElMatrix<double>, ElMatrix<double> > RQDecomp(const ElMatrix<double> & aM0);
+
+
 // Renvoie la rotation la + proche, selon un algo trouve dans Golub et base sur
 // la SVD
 ElMatrix<REAL>  NearestRotation(const ElMatrix<REAL> &);
