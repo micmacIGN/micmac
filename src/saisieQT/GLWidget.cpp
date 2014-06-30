@@ -404,11 +404,13 @@ void GLWidget::setCursorShape(QPointF pos, QPointF mPos)
             cuCross = cuCross.fromImage(image);
         }
 
-        c = QCursor(cuCross, 0, 0);
+        c = QCursor(cuCross, cuCross.width()/2, cuCross.height()/2);
     }
     else
-
+    {
         c.setShape(Qt::ArrowCursor);
+        //c.setPos();
+    }
 
     setCursor(c);
 }
@@ -782,6 +784,8 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
 void GLWidget::enterEvent(QEvent *event)
 {
+    // TODO : pourquoi
+    // peut etre capter les mvts de souris en dehors de la fenetre
     setFocus(Qt::ActiveWindowFocusReason);
     setFocusPolicy(Qt::StrongFocus);
 

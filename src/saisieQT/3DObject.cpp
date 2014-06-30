@@ -103,7 +103,7 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
     glEnd();
 }
 
-void glDrawEllipse(float cx, float cy, float rx, float ry, int steps)
+void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO step Auto....
 {
     float theta = 2.f * PI / float(steps);
 
@@ -608,18 +608,21 @@ void cPoint::draw()
             {
                 QPointF epi1 = scale(_epipolar1);
 
-                GLdouble x1,y1;
+                GLdouble x1,y1,z1;
 
-                mmProject((GLdouble)epi1.x(), (GLdouble)epi1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z);
-                epi1.setX(x1);
-                epi1.setY(y1);
+                mmProject((GLdouble)epi1.x(), (GLdouble)epi1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z1);
+
+                epi1.setX(2.f*x1/glViewport[2]-1.f);
+                epi1.setY(2.f*y1/glViewport[3]-1.f);
+
 
                 QPointF epi2 = scale(_epipolar2);
+                GLdouble x2,y2,z2;
 
-                mmProject((GLdouble)epi2.x(), (GLdouble)epi2.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z);
+                mmProject((GLdouble)epi2.x(), (GLdouble)epi2.y(),0,mvMatrix,projMatrix,glViewport,&x2,&y2,&z2);
 
-                epi2.setX(x1);
-                epi2.setY(y1);
+                epi2.setX(2.f*x2/glViewport[2]-1.f);
+                epi2.setY(2.f*y2/glViewport[3]-1.f);
 
                 glBegin(GL_LINES);
                     glVertex2f(epi1.x(),epi1.y());
