@@ -360,11 +360,15 @@ INT LArgMain::Init
 {
     if (argc<(INT)_larg.size())
     {
+        std::ostringstream oss0, oss1;
+        oss0 << argc;
+        oss1 << _larg.size();
+
         Tjs_El_User.ElAssert
             (
             argc>=(INT)_larg.size(),
             EEM0 << "Not enough Arg in LArgMain::Init"
-            << " Got : " << argc << " expecting " << (INT)_larg.size()
+                 << " Got : " << oss0.str().c_str() << " expecting " << oss1.str().c_str()
             );
     }
 
@@ -923,9 +927,9 @@ void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
    if (aCode==0)
       StdEXIT(0);
 
-	std::string aFileName = ( isUsingSeparateDirectories() ?
-	                          MMTemporaryDirectory() + "MM-Error-"+ GetUnikId() + ".txt" :
-	                          Dir2Write() + "MM-Error-"+ GetUnikId() + ".txt" );
+    std::string aFileName = ( isUsingSeparateDirectories() ?
+                              MMTemporaryDirectory() + "MM-Error-"+ GetUnikId() + ".txt" :
+                              Dir2Write() + "MM-Error-"+ GetUnikId() + ".txt" );
 
    FILE * aFP = fopen(aFileName.c_str(),"a+");
    if (aFP)
@@ -1369,7 +1373,7 @@ mICNM           (0),
         );
 
     setInputDirectory( mDirChantier );
-    
+
 #if (ELISE_windows)
     replace( mDirChantier.begin(), mDirChantier.end(),'\\', '/' );
 #endif
