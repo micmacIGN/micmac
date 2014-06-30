@@ -385,8 +385,8 @@ void visual_MainWindow::onRunCommandPressed()
 
         ::System(aCom);
 
-        setWindowFlags(Qt::WindowStaysOnTopHint);
-        QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job finished"));
+        //setWindowFlags(Qt::WindowStaysOnTopHint);
+        //QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job done"));
 
         //_SaisieWin->close();
         //QApplication::exit();

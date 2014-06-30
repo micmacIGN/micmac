@@ -32,6 +32,11 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
     std::string aFullName,anOri,anOut, aDir, aName;
     bool aForceGray = true;
 
+    if (argv[0][0] == 'v')
+    {
+        MMVisualMode = true;
+        argv[0] = (char*) "SaisieBascQT";
+    }
     SaisieBasc(argc, argv, aFullName, aDir, aName, anOri, anOut, aSzWin, aNbFen, aForceGray);
 
     list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);

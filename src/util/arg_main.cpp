@@ -362,7 +362,7 @@ INT LArgMain::Init
     {
         std::ostringstream oss0, oss1;
         oss0 << argc;
-        oss1 << _larg.size();
+        oss1 << (INT)_larg.size();
 
         Tjs_El_User.ElAssert
             (

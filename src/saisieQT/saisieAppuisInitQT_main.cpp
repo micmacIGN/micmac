@@ -63,6 +63,11 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     aPrefix2Add = "";
     bool aForceGray = false;
 
+    if (argv[0][0] == 'v')
+    {
+        MMVisualMode = true;
+        argv[0] = (char*) "SaisieAppuisInitQT";
+    }
     SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray);
 
     if (!checkNamePt( QString (aNamePt.c_str()))) return -1;

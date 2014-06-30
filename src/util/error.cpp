@@ -55,8 +55,9 @@ int  TheNbIterProcess = 1;
 #endif
 
 #include <QtGui>
+#include <QApplication>
+#include <QMessageBox>
 #include "general/visual_mainwindow.h"
-#include "general/arg_main.h"
 
 void qtErrorMsg(std::string mes)
 {

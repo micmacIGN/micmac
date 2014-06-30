@@ -28,6 +28,11 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 
     bool aForceGray = false;
 
+    if (argv[0][0] == 'v')
+    {
+        MMVisualMode = true;
+        argv[0] = (char*) "SaisieAppuisPredicQT";
+    }
     SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameMesure, aTypePts, aFlou, aForceGray);
 
     if (!checkNamePt( QString (aNamePt.c_str()))) return -1;
