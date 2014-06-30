@@ -74,7 +74,7 @@ int SaisieAppuisInitQT_main(int argc,char ** argv)
 int SaisieAppuisPredicQT_main(int argc,char ** argv)
 {
     if (MMVisualMode)
-        return runCmd(argc, argv, "vSaisieAppuisPrdicQT");
+        return runCmd(argc, argv, "vSaisieAppuisPredicQT");
     else
         return runCmd(argc, argv, "SaisieAppuisPredicQT");
 }

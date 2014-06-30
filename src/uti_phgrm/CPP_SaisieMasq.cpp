@@ -39,6 +39,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+void saisieMasq_ElInitArgMain(int argc,char ** argv, std::string &aFullName, std::string &aPost, std::string &aNameMasq, std::string &aAttr, Pt2di &aSzW, double &aGama)
+{
+    ElInitArgMain
+    (
+           argc,argv,
+           LArgMain() << EAMC(aFullName,"Name of input image", eSAM_IsExistFile) ,
+           LArgMain() << EAM(aSzW,"SzW",true)
+                      << EAM(aPost,"Post",true)
+                      << EAM(aNameMasq,"Name",true,"Name of result, default toto->toto_Masq.tif")
+                      << EAM(aGama,"Gama",true)
+                      << EAM(aAttr,"Attr",true)
+    );
+}
 
 #if (ELISE_X11)
 
@@ -192,16 +205,8 @@ cAppliSM::cAppliSM(int argc,char ** argv) :
     std::string aPost("Masq");
     std::string aNameMasq ="";
     double aGama=1.0;
-    ElInitArgMain
-    (
-           argc,argv,
-           LArgMain() << EAMC(aFullName,"Name of input image", eSAM_IsExistFile) ,
-           LArgMain() << EAM(mSzWP,"SzW",true)
-                      << EAM(aPost,"Post",true)
-                      << EAM(aNameMasq,"Name",true,"Name of result, default toto->toto_Masq.tif")
-                      << EAM(aGama,"Gama",true)
-                      << EAM(mAttr,"Attr",true)
-    );
+
+    saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, mAttr, mSzWP, aGama);
 
     aPost = aPost + mAttr;
 
