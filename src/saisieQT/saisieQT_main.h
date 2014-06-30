@@ -54,4 +54,6 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[]);
 int saisieBoxQT_main(QApplication &app, int argc, char *argv[]);
 int saisieBascQT_main(QApplication &app, int argc, char *argv[]);
 
+void saisieMasq_ElInitArgMain(int argc, char ** argv, std::string &aFullName, std::string &aPost, std::string &aNameMasq, std::string &aAttr, Pt2di &aSzW, double &aGama);
+
 #endif
