@@ -1,0 +1,40 @@
+<assembly>
+    <id>src</id>
+    <formats>
+        <format>zip</format>
+        <format>tar.bz2</format>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <baseDirectory></baseDirectory>
+    <fileSets>
+        <fileSet>
+            <directory>${basedir}</directory>
+            <includes>
+                <include>**</include>
+            </includes>
+            <excludes>
+                <exclude>.hgignore</exclude> <!-- Mercurial stuff -->
+                <exclude>.hgtags</exclude> <!-- Mercurial stuff -->
+                <exclude>target/</exclude> <!-- Maven stuff -->
+                <exclude>pom.xml</exclude> <!-- Maven stuff -->
+                <exclude>src/main</exclude> <!-- Maven stuff -->
+                <exclude>BenchElise/</exclude>
+                <exclude>Documentation/</exclude>
+                <exclude>applis/</exclude>
+                <exclude>binaire-aux/</exclude>
+                <exclude>interface/documentation/</exclude>
+            </excludes>
+            <outputDirectory>/micmac-${project.version}/</outputDirectory>
+            <fileMode>0644</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${basedir}</directory>
+            <includes>
+                <include>binaire-aux/*</include>
+            </includes>
+            <outputDirectory>/micmac-${project.version}/</outputDirectory>
+            <fileMode>0755</fileMode>
+        </fileSet>
+    </fileSets>
+</assembly>
