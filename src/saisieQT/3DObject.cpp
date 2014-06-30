@@ -571,29 +571,55 @@ void cPoint::draw()
 
         glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
 
-        float rx, ry;
-
-        float size1Pixel =  1.f / _zoom / _scale.x / 2.f;
-
-        rx = _diameter * size1Pixel ;
-        ry = rx * _scale.x / _scale.y;
-
         QPointF aPt = scaledPt();
 
-        glDrawEllipse( aPt.x(), aPt.y(), rx, ry);
+        GLdouble    mvMatrix[16];
+        GLdouble    projMatrix[16];
+        GLint       glViewport[4];
+
+        glGetIntegerv(GL_VIEWPORT, glViewport);
+        glMatrixMode(GL_PROJECTION);
+        glGetDoublev (GL_PROJECTION_MATRIX, projMatrix);
+        glPushMatrix();
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glGetDoublev(GL_MODELVIEW_MATRIX, mvMatrix);
+        glPushMatrix();
+        glLoadIdentity();
+
+        GLdouble x,y,z;
+        mmProject(aPt.x(), aPt.y(),0,mvMatrix,projMatrix,glViewport,&x,&y,&z);
+
+        float size1Pixel2   =  2.f/glViewport[2];
+        float rPix          =  size1Pixel2 * _diameter /2.f;
+
+        x = 2.f*x/glViewport[2]-1.f;
+        y = 2.f*y/glViewport[3]-1.f;
+
+        glDrawEllipse(x, y, rPix, rPix* _scale.x / _scale.y);
 
         if (_drawCenter)
-        {
-            float diam = size1Pixel * 2.f;
-            glDrawEllipse( aPt.x(), aPt.y(), diam, diam * _scale.x/_scale.y);
-        }
+            glDrawEllipse( x, y, size1Pixel2, size1Pixel2 * _scale.x/_scale.y);
+
 
         if (_highlight && ((_pointState == eEPI_Valide) || (_pointState == eEPI_NonSaisi)))
         {
             if (_bEpipolar)
             {
                 QPointF epi1 = scale(_epipolar1);
+
+                GLdouble x1,y1;
+
+                mmProject((GLdouble)epi1.x(), (GLdouble)epi1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z);
+                epi1.setX(x1);
+                epi1.setY(y1);
+
                 QPointF epi2 = scale(_epipolar2);
+
+                mmProject((GLdouble)epi2.x(), (GLdouble)epi2.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z);
+
+                epi2.setX(x1);
+                epi2.setY(y1);
 
                 glBegin(GL_LINES);
                     glVertex2f(epi1.x(),epi1.y());
@@ -601,9 +627,13 @@ void cPoint::draw()
                 glEnd();
             }
             else
-
-                glDrawEllipse( aPt.x(), aPt.y(), 2.f*rx, 2.f*ry);
+                glDrawEllipse( x, y, 2.f*rPix, 2.f*rPix* _scale.x / _scale.y);
         }
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
     }
 }
 
