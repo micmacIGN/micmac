@@ -38,6 +38,20 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+const cOneAppuisDAF * GetDAFFromName(const cDicoAppuisFlottant & aDic,const std::string & aName)
+{
+   for 
+   (
+       std::list<cOneAppuisDAF>::const_iterator itOAD=aDic.OneAppuisDAF().begin();
+       itOAD!=aDic.OneAppuisDAF().end();
+       itOAD++
+   )
+   {
+        if (itOAD->NamePt() == aName)
+           return &(*itOAD);
+   }
+   return 0;
+}
 
 class cInitCamAppuis
 {
@@ -45,23 +59,54 @@ class cInitCamAppuis
 
        cInitCamAppuis(int argc,char ** argv,LArgMain &);
 
+       void InitPts(const cMesureAppuiFlottant1Im &);
+
        std::string aNameFile3D;
        std::string aNameFile2D;
 
+       cSetOfMesureAppuisFlottants mSMAF;
+       cDicoAppuisFlottant         mDicApp;
+
+       std::vector<Pt3dr> mVCPCur;
+       std::vector<Pt2dr> mVImCur;
 };
 
 cInitCamAppuis::cInitCamAppuis(int argc,char ** argv,LArgMain & ArgOpt)
 {
-    ElInitArgMain
-    (
+   ElInitArgMain
+   (
        argc,argv,
        LArgMain()  << EAMC(aNameFile3D,"Name File for GCP",eSAM_IsExistFile)
-                   << EAMC(aNameFile3D,"Name File for GCP",eSAM_IsExistFile),
+                   << EAMC(aNameFile2D,"Name File for Image Measures",eSAM_IsExistFile),
        ArgOpt
-    );
+   );
+ 
+   mDicApp = StdGetFromPCP(aNameFile3D,DicoAppuisFlottant);
+   mSMAF =  StdGetFromPCP(aNameFile2D,SetOfMesureAppuisFlottants);
 }
 
+void cInitCamAppuis::InitPts(const cMesureAppuiFlottant1Im & aMAF)
+{
+   mVCPCur.clear();
+   mVImCur.clear();
 
+   for 
+   (
+         std::list<cOneMesureAF1I>::const_iterator itM=aMAF.OneMesureAF1I().begin();
+         itM!=aMAF.OneMesureAF1I().end();
+         itM++
+   )
+   {
+         const cOneAppuisDAF * aOAF = GetDAFFromName(mDicApp,itM->NamePt());
+         if (aOAF)
+         {
+             mVCPCur.push_back(aOAF->Pt());
+             mVImCur.push_back(itM->PtIm());
+         }
+   }
+}
+
+//==============================================
 
 
 int Init11Param_Main(int argc,char ** argv)
