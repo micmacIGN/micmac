@@ -47,7 +47,7 @@ public:
         while(fic.good())
         {
             Pt2dr P1,P2;
-			double Z;
+			// double Z; // MPD : unused
            // fic >> P1.x >> P1.y >> P2.x >> P2.y >> Z;
 			 fic >> P1.x >> P1.y >> P2.x >> P2.y ;//>> Z;
             if (fic.good())
@@ -242,7 +242,8 @@ public:
 
 		//Resolution du systeme
 		std::string cmd = "tool-IgnSocle_math_solveSparseLS --A A.txt --B B.txt --X X.txt --P P.txt";
-		system(cmd.c_str());
+		//system(cmd.c_str());  // MPD : attention : ignoring return value of ‘int system(const char*)’
+		System(cmd);
 
 		//Recuperation de la solution
 
