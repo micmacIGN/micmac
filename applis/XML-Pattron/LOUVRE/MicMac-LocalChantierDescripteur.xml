@@ -1,0 +1,171 @@
+<!--
+
+   Pattron pour mise en place de vue convergente a partir de longue focale.
+
+   Toute les vues convergent vers le meme point, on calcule tout les couples
+   homologues.
+
+   Focale trop longue pour mise en place directes, on utilise une prise
+   de vue grand angles "annexe" (eventuellement a resolution plus basse)
+   pour faire une mise en place initiale par points d'appuis
+
+
+-->
+
+<Global>
+
+  <ChantierDescripteur
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     ImC="0033"
+     ImRefLF="0038"
+     FocGA="035"
+     LFoc="400"
+     ScaleGA-LFoc="5.0"
+     DynLF="0.05"
+
+     PrefixImages="IMG_"
+     PostfixImagesBrute=""
+     PostfixRAW="CR2"
+     PostfixImagesDebay="_MpDcraw8B_GR"
+     PostfixColImagesDebay="_MpDcraw8B_CR"
+     NbJob="2"
+
+     PatternFoc="F([0-9]{3})_"
+     PatternNumero="[0-9]{4}"
+
+     PrefixCalibGeom="AutoCalDRad-Canon-"
+     PrefixCalibCoul="Bayer-Canon-"
+
+     SzPastisDef="1500"
+     SzPastisSsRes="500"
+
+  >
+
+       <BatchChantDesc>
+              <Key> Batch </Key>
+
+              <Requirement>
+<!--
+                  <ExeRequired>
+                       <Exe> bin/Pastis </Exe>
+                       <Make> Makefile </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/ImProfAndL2App </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/Apero </Exe>
+                       <Make> AperiMake </Make>
+                  </ExeRequired>
+                  <ExeRequired>
+                       <Exe> bin/MICMAC </Exe>
+                       <Make> MakeMICMAC </Make>
+                  </ExeRequired>
+-->
+
+              </Requirement>
+               
+
+               <Line>  mkdir ${ThisDir}JPEG  </Line>
+               <Line>  mv  ${ThisDir}*.JPG ${ThisDir}JPEG/  </Line>
+
+               <Line>  bin/MyRename  "${ThisDir}(${PrefixImages}.*).${PostfixRAW}"   "F\$2_\$1.${PostfixRAW}" AddFoc=1  Exe=1 </Line>
+
+               <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(.*).${PostfixRAW}" 16B=0 Cal=Key-Assoc-Calib-Coul GR=1    BiCubParam=-0.5 M=MkToto "T=\$1${PostfixImagesDebay}.tif" </Line>
+               <Line> make all -f MkToto -j${NbJob}  </Line>
+
+               <Line>   bin/MpDcraw ${ThisDir} F${FocGA}_${PrefixImages}${ImC}.${PostfixRAW}  16B=0 Cal=Key-Assoc-Calib-Coul CR=1    BiCubParam=-0.5  </Line>
+
+               <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(F${LFoc}.*).${PostfixRAW}" 16B=0 Cal=Key-Assoc-Calib-Coul CR=1    BiCubParam=-0.5 M=MkToto "T=\$1${PostfixColImagesDebay}.tif" ImRef=F${LFoc}_${PrefixImages}${ImRefLF}.${PostfixRAW}    Dyn=${DynLF}</Line>
+               <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-All-Cple  ${SzPastisDef} FiltreOnlyDupl=1 MkF=MkToto NbMinPtsExp=2 KG1=Key-APG-Scale KG2=Key-APG-Scale  </Line>
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+              <Line> bin/SaisieMasq   ${ThisDir}F${FocGA}_${PrefixImages}${ImC}_MpDcraw8B_GR.tif Attr=Plan </Line>
+
+
+
+              <Line> bin/Apero  ${ThisDir}Apero-GA.xml  </Line>
+              <Line> bin/MICMAC  ${ThisDir}param-MM-GA.xml   </Line>
+
+
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+
+              <Line> bin/Apero  ${ThisDir}Apero-Appuis.xml  </Line>
+
+        </BatchChantDesc>
+
+
+<!--   ***********************************************   -->
+<!--                                                     -->
+<!--   MISE EN PLACE DES IMAGES FAISANT LE TOUR DE L'ARC -->
+<!--                                                     -->
+<!--   ***********************************************   -->
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> F[0-9]{3}_.*_MpDcraw8B_GR.tif </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-Im </Key>
+  </KeyedSetsOfNames>
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> F${FocGA}_.*_MpDcraw8B_GR.tif </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-Im-GA </Key>
+  </KeyedSetsOfNames>
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> F${LFoc}_.*_MpDcraw8B_GR.tif </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-Im-LF </Key>
+  </KeyedSetsOfNames>
+
+  <APrioriImage>
+       <KeyedAddedSet>  Key-Set-All-Im-GA    </KeyedAddedSet>
+       <Key>  Key-APG-Scale </Key>
+       <ContenuAPrioriImage>
+              <Scale> 1.0 </Scale>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+  <APrioriImage>
+       <KeyedAddedSet>  Key-Set-All-Im-LF    </KeyedAddedSet>
+       <Key>  Key-APG-Scale </Key>
+       <ContenuAPrioriImage>
+              <Scale> ${ScaleGA-LFoc} </Scale>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+
+
+
+
+
+  <KeyedSetsORels >
+       <Sets>
+           <ByAdjacence>
+               <KeySets >  Key-Set-All-Im </KeySets>
+               <DeltaMin > -1000 </DeltaMin>
+               <DeltaMax > 1000  </DeltaMax>
+           </ByAdjacence>
+       </Sets>
+       <Key>  Key-Rel-All-Cple</Key>
+   </KeyedSetsORels>
+
+
+
+
+<!--   ***********************************************   -->
+<!--                                                     -->
+<!--   MISE EN PLACE DES 100 et 400 mm                   -->
+<!--                                                     -->
+<!--   ***********************************************   -->
+
+
+  </ChantierDescripteur>
+</Global>
