@@ -120,6 +120,23 @@ void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO st
     glEnd();
 }
 
+void glDrawEllipsed(double cx, double cy, double rx, double ry, int steps) // TODO step Auto....
+{
+    double theta = 2.f * PI / double(steps);
+
+    double x,y,z = 0.f;
+
+    glBegin(GL_LINE_LOOP);
+    for(double t = 0.f; t <= 2.f * PI; t+= theta)
+    {
+        x = cx + rx*std::sin(t);
+        y = cy + ry*std::cos(t);
+
+        glVertex3d(x,y,z);
+    }
+    glEnd();
+}
+
 void cCircle::draw()
 {
     glMatrixMode(GL_MODELVIEW);
@@ -590,16 +607,21 @@ void cPoint::draw()
         GLdouble x,y,z;
         mmProject(aPt.x(), aPt.y(),0,mvMatrix,projMatrix,glViewport,&x,&y,&z);
 
-        float size1Pixel2   =  2.f/glViewport[2];
-        float rPix          =  size1Pixel2 * _diameter /2.f;
+        double size1Pixel2   =  1.f/glViewport[2];
+        double rPix          =  size1Pixel2 * _diameter;
 
         x = 2.f*x/glViewport[2]-1.f;
         y = 2.f*y/glViewport[3]-1.f;
 
-        glDrawEllipse(x, y, rPix, rPix* _scale.x / _scale.y);
+        glDrawEllipsed(x, y, rPix, rPix* _scale.x / _scale.y,16);
 
         if (_drawCenter)
-            glDrawEllipse( x, y, size1Pixel2, size1Pixel2 * _scale.x/_scale.y);
+            //glDrawEllipse( x, y, 1.5f*size1Pixel2, 1.5f*size1Pixel2 * _scale.x/_scale.y,4);
+        {
+            glBegin(GL_POINTS);
+            glVertex2d(x, y);
+            glEnd( );
+        }
 
 
         if (_highlight && ((_pointState == eEPI_Valide) || (_pointState == eEPI_NonSaisi)))
@@ -614,7 +636,6 @@ void cPoint::draw()
 
                 epi1.setX(2.f*x1/glViewport[2]-1.f);
                 epi1.setY(2.f*y1/glViewport[3]-1.f);
-
 
                 QPointF epi2 = scale(_epipolar2);
                 GLdouble x2,y2,z2;
