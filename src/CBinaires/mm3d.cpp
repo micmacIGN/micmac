@@ -165,6 +165,8 @@ class cMMCom
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
 
+int Init11Param_Main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -337,6 +339,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SupMntIm",SupMntIm_main," Tool for superposition of Mnt Im & level curve"));
 
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
+       aRes.push_back(cMMCom("Init11P",Init11Param_Main,"Init Internal & External from GCP using 11-parameter algo "));
    }
    return aRes;
 }

@@ -174,7 +174,8 @@ class  ELISE_fp
 	 static void RmFile(const std::string &);
 	 static void MvFile(const std::string & aFile,const std::string & aDest);
 	 static void CpFile(const std::string & aFile,const std::string & aDest);
-	 static void PurgeDir(const std::string &);
+	 static void PurgeDir(const std::string &,bool WithRmDir=false);
+	 static void RmDir(const std::string &);
 	 static void PurgeDirGen(const std::string &,bool Recurs);
 	 static void PurgeDirRecursif(const std::string &);
       
