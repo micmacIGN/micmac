@@ -7,6 +7,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/Match1.cpp
 	${TDPPMD_DIR}/ExoMM_SimulTieP.cpp
 	${TDPPMD_DIR}/RefineModel.cpp
+	${TDPPMD_DIR}/Dimap2Grid.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
