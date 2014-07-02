@@ -102,14 +102,17 @@ void LogTime(FILE * aFp,const std::string & aMes)
   fprintf(aFp," PID : %d ;   %s %s",mm_getpid(),aMes.c_str(),asctime (timeinfo));
 }
 
-void LogIn(int  argc,char **  argv,const std::string & aDir)
+void LogIn(int  argc,char **  argv,const std::string & aDir,int aNumArgDir)
 {
    if (! DOLOG_MM3d) return;
    FILE * aFp = FileLogMM3d(aDir);
 
    fprintf(aFp,"=================================================================\n");
    for (int aK=0 ; aK< argc ; aK++)
-       fprintf(aFp,"%s ",argv[aK]);
+   {
+       // MPD : je l'avais deja fait il y a 15 jours, ai pas du commite !!!!  Ca facilite copier-coller sur commande
+       fprintf(aFp,"\"%s\" ",argv[aK]);
+   }
    fprintf(aFp,"\n");
    LogTime(aFp,"[Beginning at ]");
 
@@ -505,7 +508,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           string outDirectory;
           if (DoLog){
              outDirectory = ( isUsingSeparateDirectories()?MMLogDirectory():DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup );
-             LogIn( argc, argv, outDirectory );
+             LogIn( argc, argv, outDirectory,aLog.mNumArgDir );
           }
 
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
