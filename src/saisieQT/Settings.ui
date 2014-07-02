@@ -38,7 +38,7 @@
         <x>0</x>
         <y>0</y>
         <width>346</width>
-        <height>173</height>
+        <height>181</height>
        </rect>
       </property>
       <property name="layoutDirection">
@@ -154,7 +154,7 @@
         <x>0</x>
         <y>0</y>
         <width>346</width>
-        <height>173</height>
+        <height>181</height>
        </rect>
       </property>
       <attribute name="label">
@@ -284,7 +284,7 @@
         <x>0</x>
         <y>0</y>
         <width>346</width>
-        <height>173</height>
+        <height>181</height>
        </rect>
       </property>
       <attribute name="label">
@@ -417,7 +417,7 @@
         <x>0</x>
         <y>0</y>
         <width>346</width>
-        <height>173</height>
+        <height>181</height>
        </rect>
       </property>
       <attribute name="label">
@@ -569,20 +569,6 @@
       <widget class="QPushButton" name="okButton">
        <property name="text">
         <string>Ok</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="applyButton">
-       <property name="text">
-        <string>Apply</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="resetButton">
-       <property name="text">
-        <string>Reset</string>
        </property>
       </widget>
      </item>

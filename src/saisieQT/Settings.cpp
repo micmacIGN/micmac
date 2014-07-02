@@ -2,7 +2,7 @@
 #include "ui_Settings.h"
 #include "ui_Help.h"
 
-cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), _ui(new Ui::SettingsDialog)
+cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), _ui(new Ui::SettingsDialog), pageHidden(false)
 {
     _ui->setupUi(this);
 
@@ -128,6 +128,8 @@ void deleteChildWidgets(QLayoutItem *item)
 
 void cSettingsDlg::hidePage()
 {
+	pageHidden = true;
+
     _ui->toolBox->widget(3)->hide();
     _ui->toolBox->removeItem(3);
 
@@ -139,6 +141,11 @@ void cSettingsDlg::hidePage()
         QLayoutItem * item1 = _ui->gridLayout_3->itemAtPosition(3, aK);
         if (item1) deleteChildWidgets(item1);
     }
+}
+
+void cSettingsDlg::uiShowMasks(bool aBool)
+{
+	_ui->showMasks_checkBox->setChecked(aBool);
 }
 
 void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
@@ -185,22 +192,10 @@ void  cSettingsDlg::on_okButton_clicked()
 void cSettingsDlg::on_cancelButton_clicked()
 {
     _parameters->read();
-
+	
     refresh();
 
     reject();
-}
-
-void cSettingsDlg::on_applyButton_clicked()
-{
-    _parameters->write();
-}
-
-void cSettingsDlg::on_resetButton_clicked()
-{
-    _parameters->read();
-
-    refresh();
 }
 
 void cSettingsDlg::refresh()
@@ -216,37 +211,42 @@ void cSettingsDlg::refresh()
     _ui->GammaDoubleSpinBox->setValue(_parameters->getGamma());
     _ui->showMasks_checkBox->setChecked(_parameters->getShowMasks());
 
-    _ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
-    _ui->PrefixTextEdit->setText(_parameters->getDefPtName());
-    _ui->RadiusSpinBox->setValue(_parameters->getSelectionRadius());
+	_ui->shiftStep_doubleSpinBox->setValue(_parameters->getShiftStep());
+	_ui->RadiusSpinBox->setValue(_parameters->getSelectionRadius());
 
-    switch (_parameters->getPtCreationMode())
-    {
-        case eNSM_Pts:
-        {
-            _ui->radioButtonStd->setChecked(true);
-            enableMarginSpinBox(false);
-            break;
-        }
-        case eNSM_MinLoc:
-        {
-            _ui->radioButtonMin->setChecked(true);
-            enableMarginSpinBox();
-            break;
-        }
-        case eNSM_MaxLoc:
-        {
-            _ui->radioButtonMax->setChecked(true);
-            enableMarginSpinBox();
-            break;
-        }
-        case eNSM_GeoCube:
-        case eNSM_Plaquette:
-        case eNSM_NonValue:
-            break;
-    }
+	if (!pageHidden)
+	{
+		_ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
+		_ui->PrefixTextEdit->setText(_parameters->getDefPtName());
+		
+		switch (_parameters->getPtCreationMode())
+		{
+			case eNSM_Pts:
+			{
+				_ui->radioButtonStd->setChecked(true);
+				enableMarginSpinBox(false);
+				break;
+			}
+			case eNSM_MinLoc:
+			{
+				_ui->radioButtonMin->setChecked(true);
+				enableMarginSpinBox();
+				break;
+			}
+			case eNSM_MaxLoc:
+			{
+				_ui->radioButtonMax->setChecked(true);
+				enableMarginSpinBox();
+				break;
+			}
+			case eNSM_GeoCube:
+			case eNSM_Plaquette:
+			case eNSM_NonValue:
+				break;
+		}
 
-    _ui->doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
+		_ui->doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
+	}
 
     update();
 }

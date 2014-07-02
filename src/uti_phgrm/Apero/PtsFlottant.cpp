@@ -573,6 +573,8 @@ void cBdAppuisFlottant::Compile()
 void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 {
    double anErrMax = -10;
+   double anErrMoy = 0;
+   double aSomP = 0;
    cOneAppuisFlottant * aPFMax=0;
    std::string aCamMax;
    
@@ -585,6 +587,8 @@ void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
     {
        std::string aCam;
        double anErr = it1->second->AddObs(anObs,aSO,aCam);
+       anErrMoy += anErr;
+       aSomP ++;
        if ((anErr >  anErrMax) && (aCam!=""))
        {
               anErrMax = anErr;
@@ -595,7 +599,7 @@ void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
     if (aPFMax)
     {
            std::cout << "\n   ============================= ERRROR MAX PTS FL ======================\n";
-           std::cout <<   "   ||    Value=" << anErrMax << " for Cam=" << aCamMax << " and Pt=" << aPFMax->Name() << "\n";
+           std::cout <<   "   ||    Value=" << anErrMax << " for Cam=" << aCamMax << " and Pt=" << aPFMax->Name() << " ; MoyErr=" << anErrMoy/aSomP << "\n";
            std::cout <<   "   ======================================================================\n\n";
     }
 }
