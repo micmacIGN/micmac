@@ -616,6 +616,17 @@ void NR_QRDecomp(double **A, int n, double *c, double *d, int *sing)
    if (d[n] == 0.0) *sing=1;
 }
 
+//void QRCorrectSign()
+
+/*
+   (a b) (-1 0)  =  (-a b)
+   (c d) (0  1)     (-c d)
+
+   Si S est une matrice de signe et QR une decomposition QR alors  (QS) (SR) aussi,
+   on peut donc changer le signe des colonne de Q et des lignes de R de manière a 
+   avoir une diagonale > 0
+*/
+
 std::pair<ElMatrix<double>, ElMatrix<double> > QRDecomp(const ElMatrix<double> & aM0)
 {
    ElMatrix<double> aMat(aM0);
@@ -639,7 +650,20 @@ std::pair<ElMatrix<double>, ElMatrix<double> > QRDecomp(const ElMatrix<double> &
        }
    }
 
+
    ElMatrix<double> aQ = aM0 * gaussj(aR);
+
+   for (int aDiag=0 ; aDiag <aN ; aDiag++)
+   {
+       if (aR(aDiag,aDiag) < 0)
+       {
+           for (int aK=0 ; aK <aN ; aK++)
+           {
+               aR(aK,aDiag) *= -1;
+               aQ(aDiag,aK) *= -1;
+           }
+       }
+   }
 
    return std::pair<ElMatrix<double>, ElMatrix<double> >(aQ,aR); 
 }
@@ -725,7 +749,7 @@ void TestQR(int aN)
        }
    }
 
-if (0)
+   if (0)
    {
         std::pair<ElMatrix<double>, ElMatrix<double> > aQR =  QRDecomp(aM);
 
@@ -753,7 +777,18 @@ if (0)
         ElMatrix<double> anId2(aN,true);
         ElMatrix<double> aT2 = aM - aR * aQ;
 
-        std::cout << "RQ-Test OrthoNo " << anId.L2(anId2) << " " << aT2.L2() << "\n";
+        int aNbNeg=0;
+        for (int aK=0 ;  aK< aN ; aK++)
+            aNbNeg += (aR(aK,aK) <0);
+
+        double aSomInf = 0;
+        for (int anX=0 ;  anX< aN ; anX++)
+           for (int anY=0 ;  anY< aN ; anY++)
+               if (anY>anX) 
+                  aSomInf += ElAbs(aR(anX,anY));
+
+        std::cout << "RQ-Test OrthoNo " << anId.L2(anId2) << " " << aT2.L2() 
+                  << " NEG=" << aNbNeg  << " SomInf=" << aSomInf << "\n";
  
         ShowMatr("Rrr-QQq",aR);
 

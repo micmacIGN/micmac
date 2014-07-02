@@ -13,6 +13,7 @@ EVOLUTIONS :
   * SetHom dans Tapas (a completer ...)
   * Dans CmpIm options pour traiter les MNT (et diff en coul)
   * Correction d'un bug dans ChSysCo lie +ou- a la courbure de terre...
+  * Amelioration dans ChSysCo de la precision des orientation lorsque generees avec ForceRot=true
 
 
 A faire ("Bug") :

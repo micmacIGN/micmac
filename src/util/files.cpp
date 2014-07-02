@@ -317,9 +317,20 @@ void  ELISE_fp::PurgeDirRecursif(const std::string & aDir)
     ELISE_fp::PurgeDirGen(aDir,true);
 }
 
-void  ELISE_fp::PurgeDir(const std::string & aDir)
+void  ELISE_fp::PurgeDir(const std::string & aDir,bool WithRmDir)
 {
     ELISE_fp::PurgeDirGen(aDir,false);
+    if (WithRmDir)
+       RmDir(aDir);
+}
+
+void  ELISE_fp::RmDir(const std::string & aDir)
+{
+#if ELISE_POSIX
+rmdir(aDir.c_str());
+#else
+RemoveDirectory(aDir.c_str());
+#endif
 }
 
 

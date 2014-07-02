@@ -111,6 +111,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_MMOnePair.cpp
     ${UTI_PHGRM_DIR}/CPP_VisuCoupeEpip.cpp
     ${UTI_PHGRM_DIR}/CPP_HomFilterMasq.cpp
+    ${UTI_PHGRM_DIR}/CPP_InitCamFromAppuis.cpp
 )
 
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})

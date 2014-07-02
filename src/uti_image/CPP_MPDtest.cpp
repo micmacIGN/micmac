@@ -373,10 +373,13 @@ extern void TestQR(int aN);
 int MPDtest_main (int argc,char** argv)
 {
 
-   TestQR(2); getchar();
-   TestQR(3); getchar();
-   TestQR(4); getchar();
-   TestQR(5); getchar();
+   while (1)
+   {
+      TestQR(2); getchar();
+      TestQR(3); getchar();
+      TestQR(4); getchar();
+      TestQR(5); getchar();
+   }
 
 
    return 0;
