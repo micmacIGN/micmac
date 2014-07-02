@@ -118,6 +118,7 @@ public:
     void enableMarginSpinBox(bool show = true);
 
     void hidePage();
+	void uiShowMasks(bool);
 
 signals:
     void nbFenChanged(bool closeWidgets);
@@ -134,8 +135,6 @@ signals:
 protected slots:
 
     void on_okButton_clicked();
-    void on_applyButton_clicked();
-    void on_resetButton_clicked();
     void on_cancelButton_clicked();
 
     //!layout settings
@@ -172,6 +171,8 @@ protected:
     cParameters *_parameters;
 
     Ui::SettingsDialog* _ui;
+
+	bool	pageHidden;
 };
 
 class cHelpDlg : public QDialog

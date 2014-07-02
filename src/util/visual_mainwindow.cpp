@@ -389,7 +389,7 @@ void visual_MainWindow::onRunCommandPressed()
         //QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job done"));
 
         //_SaisieWin->close();
-        //QApplication::exit();
+        QApplication::exit();
     }
     else
     {
