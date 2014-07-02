@@ -675,7 +675,13 @@ void SaisieQtWindow::on_actionSettings_triggered()
     _settingsDialog.move(global.x() - _settingsDialog.width() / 2, global.y() - _settingsDialog.height() / 2);
 
 
-    if (_appMode <= MASK3D) _settingsDialog.hidePage();
+    if (_appMode <= MASK3D)
+	{
+		_settingsDialog.hidePage();
+		_settingsDialog.uiShowMasks(true);
+		_params->setShowMasks(true);
+		_params->write();
+	}
 
     //_settingsDialog.setFixedSize(uiSettings.size());
     _settingsDialog.exec();
