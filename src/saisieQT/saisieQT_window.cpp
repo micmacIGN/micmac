@@ -194,8 +194,8 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         }
         else // LOAD IMAGE
         {
-            if (_appMode <= MASK3D)            
-                closeAll();                
+            if (_appMode <= MASK3D)
+                closeAll();
 
             initData(); //TODO: ne pas détruire les polygones dans le closeAll
 
@@ -676,12 +676,12 @@ void SaisieQtWindow::on_actionSettings_triggered()
 
 
     if (_appMode <= MASK3D)
-	{
-		_settingsDialog.hidePage();
-		_settingsDialog.uiShowMasks(true);
-		_params->setShowMasks(true);
-		_params->write();
-	}
+    {
+        _settingsDialog.hidePage();
+        _settingsDialog.uiShowMasks(true);
+        _params->setShowMasks(true);
+        _params->write();
+    }
 
     //_settingsDialog.setFixedSize(uiSettings.size());
     _settingsDialog.exec();
