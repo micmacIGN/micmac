@@ -15,6 +15,16 @@ EVOLUTIONS :
   * Correction d'un bug dans ChSysCo lie +ou- a la courbure de terre...
   * Amelioration dans ChSysCo de la precision des orientation lorsque generees avec ForceRot=true
 
+Torsion de bande,
+
+  1- Supprimer les fichiers inclus dans Apero-Glob (New) pour faciliter maintenance et evol
+  2- Remettre une contrainte rigide et passer du SLM GLOB tres faible, pas SectionCompens
+  3- Ajouter indicateur d'evolution su Centres, Rotations, (calib ?)
+  4- Ponderer le LVM en fonction des indicateurs ...
+  5- Mettre des iteration jusqu'à stabilité de ces indic ....
+
+Voir i on etend a calib ? Et a Pts3D ??????
+
 
 A faire ("Bug") :
 

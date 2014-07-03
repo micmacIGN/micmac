@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
+namespace NEW_TAPAS
+{
 
 
 class cMemRes
@@ -139,9 +141,7 @@ const char * Modele[NbModele] = {
 
 
 std::string eModAutom;
-int aDegRadMax = 100;
 int aDegGenMax = 100;
-std::string FileLibere;
 double PropDiag = -1.0;
 
 
@@ -265,7 +265,6 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         LocDegGen = 1;
         LocLibDec = false;
 
-        aDegRadMax =  3 + (aKModele-11) * 2;
         aDegGenMax = 2;
     }
     else
@@ -278,10 +277,12 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     if (! EAMIsInit(&GlobLibPP ))       GlobLibPP = LocLibPP ;
     if (! EAMIsInit(&GlobLibCD ))       GlobLibCD = LocLibCD ;
     if (! EAMIsInit(&GlobLibFoc ))      GlobLibFoc = LocLibFoc ;
-    if (! EAMIsInit(&GlobDRadMaxUSer )) LocDRadMaxUSer = GlobDRadMaxUSer ;
-    if (! EAMIsInit(&GlobDegGen ))      LocDegGen = GlobDegGen ;
+    if (! EAMIsInit(&GlobDRadMaxUSer )) GlobDRadMaxUSer = LocDRadMaxUSer ;
+    if (! EAMIsInit(&GlobDegGen ))      GlobDegGen = LocDegGen;
 
-    FileLibere = "Param-"+aModParam+".xml";
+
+    if (EAMIsInit(&GlobLibAff))  ElSetMax(GlobDegGen,(GlobLibAff ? 1 : 0));
+
 }
 /*
 bool GlobLibFoc=true;
@@ -353,6 +354,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ",eSAM_InternalUse)
                     << EAM(Debug,"Debug",true,"Partial file for debug", eSAM_InternalUse)
                     << EAM(GlobDRadMaxUSer,"DegRadMax",true,"Max degree of radial, defaut dependant of model")
+                    << EAM(GlobDegGen,"DegGen",true,"Max degree of general polynome, defaut dependant of model (generally 0 or 1)")
                     << EAM(GlobLibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
                     << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
                     << EAM(GlobLibPP  ,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
@@ -411,7 +413,7 @@ int Tapas_main(int argc,char ** argv)
 
 
 
-       std::string aNameFileApero = Debug  ? "Apero-Debug-Glob.xml" : "Apero-Glob.xml" ;
+       std::string aNameFileApero = "Apero-Glob-New.xml" ;
 
 
 
@@ -424,7 +426,6 @@ int Tapas_main(int argc,char ** argv)
                            + std::string(" +AeroOut=-") + AeroOut
                            + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
                            + std::string(" +ModeleCam=") + eModAutom
-                           + std::string(" +FileLibereParam=") + FileLibere
                            + std::string(" DoCompensation=") + ToString(DoC)
                            + std::string(" +SeuilFE=") + ToString(SeuilFEAutom)
                            + std::string(" +TetaLVM=") + ToString(TetaLVM)
@@ -434,19 +435,14 @@ int Tapas_main(int argc,char ** argv)
                            + std::string(" +AeroIn=-") + AeroIn
                            + std::string(" +VitesseInit=") + ToString(2+aVitesseInit)
                            + std::string(" +PropDiagU=") + ToString(PropDiag)
-                           + std::string(" +ValDec=") + (GlobLibDec ?"eLiberte_Phgr_Std_Dec" : "eFige_Phgr_Std_Dec")
-                           + std::string(" +ValDecPP=") + (GlobLibDec ?"eLiberte_Dec1" : "eLiberte_Dec0")
-                           + std::string(" +ValAffPP=") + (GlobLibDec ?"eLiberteParamDeg_1" : "eLiberteParamDeg_0")
-                           + std::string(" +ValAff=") + (GlobLibAff ?"eLiberte_Phgr_Std_Aff" : "eFige_Phgr_Std_Aff")
 
-                        ;
-
-    if (EAMIsInit(&GlobLibPP  ))
-       aCom = aCom + std::string(" +DoPP=") + ToString(GlobLibPP  ) + std::string(" ");
-    if (EAMIsInit(&GlobLibCD))
-       aCom = aCom + std::string(" +DoCD=") + ToString(GlobLibCD) + std::string(" ");
-    if (EAMIsInit(&GlobLibFoc))
-       aCom = aCom + std::string(" +DoFoc=") + ToString(GlobLibFoc) + std::string(" ");
+                           + std::string(" +DegRadMax=") + ToString(GlobDRadMaxUSer)
+                           + std::string(" +LibFoc=") + ToString(GlobLibFoc)
+                           + std::string(" +LibPP=") + ToString(GlobLibPP)
+                           + std::string(" +LibCD=") + ToString(GlobLibCD)
+                           + std::string(" +DegGen=") + ToString(GlobDegGen)
+                           + std::string(" +LibDec=") + ToString(GlobLibDec)
+                          ;
 
 
         StdCorrecNameHomol(aSetHom,aDir);
@@ -456,11 +452,6 @@ int Tapas_main(int argc,char ** argv)
         }
 
 
-        if (EAMIsInit(&GlobDRadMaxUSer))
-           aDegRadMax = GlobDRadMaxUSer;
-
-        if (aDegRadMax<100)
-           aCom = aCom +  std::string(" +DegRadMax=") + ToString(aDegRadMax) + std::string(" ");
 
 
         if (EAMIsInit(&GlobLibAff) && (!GlobLibAff))
@@ -526,7 +517,7 @@ int Tapas_main(int argc,char ** argv)
           aCom  = aCom + " +PoseFigee=" + QUOTE(aPoseFigee);
        }
 
-       // std::cout << "Com = " << aCom << "\n";
+       std::cout << "Com = " << aCom << "\n";
        int aRes = 0;
        aRes = TopSystem(aCom);
     /*
@@ -574,9 +565,14 @@ int Tapas_main(int argc,char ** argv)
    else
        return EXIT_SUCCESS;
 }
+}
 
 
 
+int New_Tapas_main(int argc,char ** argv)
+{
+   return  NEW_TAPAS::Tapas_main(argc,argv);
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

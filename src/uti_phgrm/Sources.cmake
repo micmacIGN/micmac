@@ -94,6 +94,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_ScaleNuage.cpp
     ${UTI_PHGRM_DIR}/CPP_SBGlobBascule.cpp
     ${UTI_PHGRM_DIR}/CPP_Tapas.cpp
+    ${UTI_PHGRM_DIR}/CPP_NewTapas.cpp
     ${UTI_PHGRM_DIR}/CPP_Tapioca.cpp
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
