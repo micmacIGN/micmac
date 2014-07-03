@@ -710,8 +710,6 @@ public:
 
     bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
 
-    void        setScale(float vW, float vH);
-
     QString     imageName() { return _glMaskedImage.cObjectGL::name(); }
 
     //info coming from cData

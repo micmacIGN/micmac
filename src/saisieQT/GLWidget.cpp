@@ -134,9 +134,7 @@ void GLWidget::paintGL()
     glClear(GL_DEPTH_BUFFER_BIT);
 
     if (hasDataLoaded())
-    {
-        m_GLData->setScale((float) vpWidth()*.5f, (float) vpHeight()*.5f); // TODO a retirer --> gestion intrinsèque des transformations
-
+    {       
         if (m_bDisplayMode2D)
         {
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
@@ -230,8 +228,6 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
 
     m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
 
-
-    // ATTENTION EST UN RESET DE LA MATRICE DE PROJECTION !!!!!!!!!!!!
     _matrixManager.resetMatrixProjection(-pt.x(), -pt.y());
 
     if(zoom > 0.f)
