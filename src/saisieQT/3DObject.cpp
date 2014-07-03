@@ -536,12 +536,10 @@ cPoint::cPoint(QPointF pos,
                bool isSelected,
                QColor color, QColor selectionColor,
                float diameter,
-               float zoom,
                bool highlight,
                bool drawCenter):
     QPointF(pos),
     _diameter(diameter),
-    _zoom(zoom),
     _bShowName(showName),
     _pointState(state),
     _highlight(highlight),
@@ -554,41 +552,48 @@ cPoint::cPoint(QPointF pos,
     setSelected(isSelected);
 }
 
+QColor cPoint::colorPointState()
+{
+
+    QColor color = getColor();
+
+    if (!isSelected())
+    {
+        switch(_pointState)
+        {
+        case eEPI_NonSaisi :
+            color = Qt::yellow;
+            break;
+
+        case eEPI_Refute :
+            color = Qt::red;
+            break;
+
+        case eEPI_Douteux :
+            color = QColor(255, 127, 0, 255);
+            break;
+
+        case eEPI_Valide :
+            color = Qt::green;
+            break;
+
+        case eEPI_Disparu  :
+        case eEPI_NonValue :
+            break;
+        }
+    }
+
+    return color;
+}
+
 void cPoint::draw()
 {
     if (isVisible())
     {
-        QColor color = getColor();
 
-        if (!isSelected())
-        {
-            switch(_pointState)
-            {
-            case eEPI_NonSaisi :
-                color = Qt::yellow;
-                break;
-
-            case eEPI_Refute :
-                color = Qt::red;
-                break;
-
-            case eEPI_Douteux :
-                color = QColor(255, 127, 0, 255);
-                break;
-
-            case eEPI_Valide :
-                color = Qt::green;
-                break;
-
-            case eEPI_Disparu  :
-            case eEPI_NonValue :
-                break;
-            }
-        }
+        QColor color = colorPointState();
 
         glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
-
-        QPointF aPt = scaledPt();
 
         GLdouble    mvMatrix[16];
         GLdouble    projMatrix[16];
@@ -599,59 +604,42 @@ void cPoint::draw()
         glGetDoublev (GL_PROJECTION_MATRIX, projMatrix);
         glPushMatrix();
         glLoadIdentity();
+        glTranslatef(-1.f,-1.f,0.f);
+        glScalef(2.f/(float)glViewport[2],2.f/(float)glViewport[3],1.f);
         glMatrixMode(GL_MODELVIEW);
         glGetDoublev(GL_MODELVIEW_MATRIX, mvMatrix);
         glPushMatrix();
         glLoadIdentity();
 
-        GLdouble x,y,z;
-        mmProject(aPt.x(), aPt.y(),0,mvMatrix,projMatrix,glViewport,&x,&y,&z);
+        GLdouble xp,yp,zp;
+        //mmProject(2.f*x()/glViewport[2], 2.f*y()/glViewport[2],0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
+        mmProject(x(),y(),0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
 
-        double size1Pixel2   =  1.f/glViewport[2];
-        double rPix          =  size1Pixel2 * _diameter;
-
-        x = 2.f*x/glViewport[2]-1.f;
-        y = 2.f*y/glViewport[3]-1.f;
-
-        glDrawEllipsed(x, y, rPix, rPix* _scale.x / _scale.y,16);
+        glDrawEllipsed(xp, yp, _diameter, _diameter,16);
 
         if (_drawCenter)
-            //glDrawEllipse( x, y, 1.5f*size1Pixel2, 1.5f*size1Pixel2 * _scale.x/_scale.y,4);
         {
             glBegin(GL_POINTS);
-            glVertex2d(x, y);
+                glVertex2d(xp, yp);
             glEnd( );
         }
-
 
         if (_highlight && ((_pointState == eEPI_Valide) || (_pointState == eEPI_NonSaisi)))
         {
             if (_bEpipolar)
             {
-                QPointF epi1 = scale(_epipolar1);
+                GLdouble x1,y1,z1,x2,y2,z2;
 
-                GLdouble x1,y1,z1;
-
-                mmProject((GLdouble)epi1.x(), (GLdouble)epi1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z1);
-
-                epi1.setX(2.f*x1/glViewport[2]-1.f);
-                epi1.setY(2.f*y1/glViewport[3]-1.f);
-
-                QPointF epi2 = scale(_epipolar2);
-                GLdouble x2,y2,z2;
-
-                mmProject((GLdouble)epi2.x(), (GLdouble)epi2.y(),0,mvMatrix,projMatrix,glViewport,&x2,&y2,&z2);
-
-                epi2.setX(2.f*x2/glViewport[2]-1.f);
-                epi2.setY(2.f*y2/glViewport[3]-1.f);
+                mmProject(_epipolar1.x(), _epipolar1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z1);
+                mmProject(_epipolar2.x(), _epipolar2.y(),0,mvMatrix,projMatrix,glViewport,&x2,&y2,&z2);
 
                 glBegin(GL_LINES);
-                    glVertex2f(epi1.x(),epi1.y());
-                    glVertex2f(epi2.x(),epi2.y());
+                    glVertex2f(x1,y1);
+                    glVertex2f(x2,y2);
                 glEnd();
             }
             else
-                glDrawEllipse( x, y, 2.f*rPix, 2.f*rPix* _scale.x / _scale.y);
+                glDrawEllipse( xp, yp, 2.f*_diameter, 2.f*_diameter);
         }
 
         glMatrixMode(GL_PROJECTION);
@@ -668,16 +656,10 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
     _bEpipolar = true;
 }
 
-QPointF cPoint::scaledPt()
+void cPoint::glDraw()
 {
-    return scale(*this);
+    glVertex2f(x(),y());
 }
-
-QPointF cPoint::scale(QPointF aP)
-{
-    return QPointF(aP.x()/_scale.x, aP.y()/_scale.y);
-}
-
 
 //********************************************************************************
 
@@ -722,8 +704,7 @@ void cPolygon::draw()
 {
     for (int aK=0; aK < size();++aK)
     {
-        // TODO a verifier le set scale à chaque draw!!
-        point(aK).setScale(_scale);
+        // TODO a verifier le set scale à chaque draw!!        
         point(aK).draw();
     }
 
@@ -742,15 +723,11 @@ void cPolygon::draw()
             {
                 glLineStipple(2, 0xAAAA);
                 glEnable(GL_LINE_STIPPLE);
-            }
-
+            }            
             //draw segments
             glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
             for (int aK = 0;aK < size(); ++aK)
-            {
-                QPointF aPt = point(aK).scaledPt();
-                glVertex2f(aPt.x(), aPt.y());
-            }
+                point(aK).glDraw();
             glEnd();
 
             if(_style == LINE_STIPPLE) glDisable(GL_LINE_STIPPLE);
@@ -896,14 +873,14 @@ void cPolygon::add(cPoint &pt)
 }
 
 // TODO pourquoi les fonctions : 2 add et addPoint?
-void cPolygon::add(const QPointF &pt, float zoom, bool selected)
+void cPolygon::add(const QPointF &pt, bool selected)
 {
     if (size() < _maxSz)
     {
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
-        cPt.setZoom(zoom);
-        cPt.setScale(_scale);
+        //cPt.setZoom(zoom);
+        //cPt.setScale(_scale);
 
         cPt.drawCenter(!isLinear());
 
@@ -911,13 +888,13 @@ void cPolygon::add(const QPointF &pt, float zoom, bool selected)
     }
 }
 
-void cPolygon::addPoint(const QPointF &pt, float zoom)
+void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
     {
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
-        cPt.setZoom(zoom);
+        //cPt.setZoom(zoom);
         cPt.setScale(_scale);
 
         cPt.drawCenter(!isLinear());
@@ -925,7 +902,7 @@ void cPolygon::addPoint(const QPointF &pt, float zoom)
         point(size()-1) = cPoint(cPt);
     }
 
-    add(pt, zoom);
+    add(pt);
 }
 
 void cPolygon::clear()
@@ -1145,7 +1122,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
     {
         if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
 
-            add(pos, zoom);
+            add(pos);
 
         else if (nbVertex > 1)               // replace last point by the current one
         {
@@ -1157,10 +1134,9 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
     {
         if ( insertMode || isPointSelected()) // insert or move polygon point
         {
-            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]);
+            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]); // TODO add diameter parameter
             pt.setDiameter(_pointDiameter);
-            pt.setZoom(zoom);
-            pt.setScale(_scale);
+
 
             if (!ptIsVisible) pt.setVisible(false);
 
@@ -1381,14 +1357,14 @@ cRectangle::cRectangle(int maxSz, float lineWidth, QColor lineColor, int style) 
     cPolygon(maxSz, lineWidth, lineColor, Qt::red, style)
 {}
 
-void cRectangle::addPoint(const QPointF &pt, float zoom)
+void cRectangle::addPoint(const QPointF &pt)
 {
     if (size() == 0)
     {
         for (int aK=0; aK < getMaxSize(); aK++)
-            add(pt, zoom);
+            add(pt);
 
-        selectPoint(2);
+        selectPoint(2); //
     }
 }
 
@@ -1474,7 +1450,7 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-    drawQuad(_originX, _originY, width()/_scale.x, height()/_scale.y, color);
+    drawQuad(_originX, _originY, width(), height(), color);
 }
 
 void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
@@ -1644,6 +1620,14 @@ void cObjectGL::disableOptionLine()
     glDisable(GL_BLEND);
     glDisable(GL_LINE_SMOOTH);
     //glEnable(GL_DEPTH_TEST);
+}
+
+float cObjectGL::getHalfViewPort()
+{
+    GLint       glViewport[4];
+    glGetIntegerv(GL_VIEWPORT, glViewport);
+
+    return (float)glViewport[2]/2.f;
 }
 
 //********************************************************************************
