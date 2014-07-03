@@ -29,7 +29,7 @@ public:
 
     void        setGLViewport(GLint x, GLint y,GLsizei width, GLsizei height);
 
-    void        doProjection(QPointF point, float zoom);
+    void        doProjection(QPointF point, float glOrthoZoom);
 
     void        resetMatrixProjection(float x, float y);
 
@@ -57,10 +57,10 @@ public:
     void        getProjection(QPointF &P2D, Pt3dr P);
 
     //! Project a point from window to image
-    QPointF     WindowToImage(const QPointF &winPt, float zoom);
+    QPointF     WindowToImage(const QPointF &winPt, float glOrthoZoom);
 
     //! Project a point from image to window
-    QPointF     ImageToWindow(const QPointF &imPt, float zoom);
+    QPointF     ImageToWindow(const QPointF &imPt, float glOrthoZoom);
 
     static void mglOrtho( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near_val, GLdouble far_val );
 
@@ -78,7 +78,7 @@ public:
 
     void        setModelViewMatrix();
 
-    void        zoom(float zoom, float far);
+    void        glOrthoZoom(float glOrthoZoom, float far);
 
     float       getGlRatio(){return m_glRatio;}
 
@@ -87,11 +87,11 @@ public:
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
 
-    void        translate(float tX, float tY, float tZ, float factor);
+    void        translate(float tX, float tY, float tZ);
     GLdouble    distance() const;
     void        setDistance(const GLdouble &distance);
 
-    void        arcBall();
+    void        SetArcBallCamera(float zoom);
     Pt3dr       centerScene() const;
     void        setCenterScene(const Pt3dr &centerScene);
 
@@ -105,6 +105,10 @@ public:
 
     GLdouble rY() const;
     void setRY(const GLdouble &rY);
+
+    void setSceneTopo(const Pt3d<double> &centerScene, float diametre);
+
+    QPointF     screen2TransABall(QPointF ptScreen);
 
 private:
     //! GL context aspect ratio (width/height)
@@ -120,8 +124,12 @@ private:
     GLdouble    _distance;
     Pt3dr       _centerScene;
 
+    float       _diameterScene;
+
     int         _lR;
     int         _uD;
+
+    Pt3d<double> _targetCamera;
 
 };
 
