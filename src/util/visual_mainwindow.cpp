@@ -26,7 +26,8 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
                                      ):
     QWidget(parent),
     mlastDir(aLastDir),
-    mFirstArg(aFirstArg)
+    mFirstArg(aFirstArg),
+    _showDialog(false)
 {
     //setAttribute( Qt::WA_DeleteOnClose );
 
@@ -46,16 +47,28 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
 
     if (aVAO.size())
     {
-        addGridLayout(aVAO, tr("&Optional arguments"));
+        addGridLayout(aVAO, tr("&Optional arguments"), false);
 
         connect(toolBox, SIGNAL(currentChanged(int)), this, SLOT(_adjustSize(int)));
     }
 
     runCommandButton = new QPushButton(tr(" &Run command "), this);
+    showPromptDialog = new QCheckBox(tr("Show dialog when job done"), this);
+    showPromptDialog->setChecked(false);
 
-    verticalLayout->addWidget(runCommandButton, 1, Qt::AlignRight);
+    QSpacerItem *vSpacer = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    QGridLayout* RunGridLayout = new QGridLayout(this);
+    RunGridLayout->addItem(vSpacer, 0, 0);
+    RunGridLayout->addWidget(showPromptDialog, 1, 0);
+    QSpacerItem* spacer = new QSpacerItem(0,0,QSizePolicy::Expanding, QSizePolicy::Fixed);
+    RunGridLayout->addItem(spacer, 1, 1);
+    RunGridLayout->addWidget(runCommandButton, 1, 2);
+    verticalLayout->insertLayout(1, RunGridLayout);
+
 
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
+    connect(showPromptDialog,SIGNAL(stateChanged(int)),this,SLOT(setShowDialog(int)));
 
     //shortcut quit
     QKeySequence ks(Qt::CTRL + Qt::Key_Q);
@@ -67,6 +80,7 @@ visual_MainWindow::~visual_MainWindow()
 {
     delete toolBox;
     delete runCommandButton;
+    delete showPromptDialog;
 }
 
 void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &aVAO)
@@ -128,7 +142,7 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
     std::sort(aVAO.begin(),aVAO.end(),aCmpMMSpecArg);
 }
 
-void visual_MainWindow::addGridLayout(const vector<cMMSpecArg> &aVA, QString pageName)
+void visual_MainWindow::addGridLayout(const vector<cMMSpecArg> &aVA, QString pageName, bool addSpace)
 {
     QWidget* mPage = new QWidget();
 
@@ -137,6 +151,11 @@ void visual_MainWindow::addGridLayout(const vector<cMMSpecArg> &aVA, QString pag
     QGridLayout* gridLayout = new QGridLayout(mPage);
 
     buildUI(aVA, gridLayout, mPage);
+
+    if (addSpace)
+    {
+        gridLayout->addItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding), aVA.size(), 0);
+    }
 }
 
 void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layout, QWidget *parent)
@@ -212,10 +231,6 @@ void visual_MainWindow::buildUI(const vector<cMMSpecArg>& aVA, QGridLayout *layo
         }
         //ShowEnum(aVA[aK]);
     }
-
-    QSpacerItem *vSpacer = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-    layout->addItem(vSpacer, aVA.size(), 0);
 }
 
 bool visual_MainWindow::getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
@@ -385,8 +400,11 @@ void visual_MainWindow::onRunCommandPressed()
 
         ::System(aCom);
 
-        //setWindowFlags(Qt::WindowStaysOnTopHint);
-        //QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job done"));
+        if (_showDialog)
+        {
+            setWindowFlags(Qt::WindowStaysOnTopHint);
+            QMessageBox::information(this, QString(argv_recup.c_str()), tr("Job done"));
+        }
 
         //_SaisieWin->close();
         QApplication::exit();
@@ -553,6 +571,13 @@ void visual_MainWindow::onSaisieQtWindowClosed()
         disconnect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
         disconnect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(int)));
     }
+}
+
+void visual_MainWindow::setShowDialog(int state)
+{
+    cout << "change state" << endl;
+    if (state == Qt::Checked) _showDialog = true;
+    else _showDialog = false;
 }
 
 void visual_MainWindow::add_combo(QGridLayout* layout, QWidget* parent, int aK, cMMSpecArg aArg)
@@ -873,6 +898,14 @@ void visual_MainWindow::resizeEvent(QResizeEvent *)
 void visual_MainWindow::closeEvent(QCloseEvent *)
 {
     saveSettings();
+}
+
+void visual_MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Enter)
+    {
+        onRunCommandPressed();
+    }
 }
 
 cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):

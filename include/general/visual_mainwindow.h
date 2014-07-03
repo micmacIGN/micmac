@@ -22,6 +22,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QShortcut>
+#include <QCheckBox>
 
 #include "general/visual_buttons.h"
 
@@ -86,7 +87,7 @@ public:
 
     void buildUI(const vector<cMMSpecArg>& aVA, QGridLayout* layout, QWidget* parent);
 
-    void addGridLayout(const vector<cMMSpecArg>& aVA, QString pageName);
+    void addGridLayout(const vector<cMMSpecArg>& aVA, QString pageName, bool addSpace =true);
 
     bool getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
     bool getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
@@ -113,6 +114,8 @@ public slots:
     void onRectanglePositionChanged(QVector <QPointF>);
     void onSaisieQtWindowClosed();
 
+    void setShowDialog(int state);
+
 signals:
 
     void newX0Position(int);
@@ -129,12 +132,14 @@ protected:
 
     void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *event);
+    void keyPressEvent(QKeyEvent* event);
 
     int          id_unique;
     string       argv_recup;
 
     QToolBox*    toolBox;
     QPushButton* runCommandButton;
+    QCheckBox*   showPromptDialog;
 
     vector <QLineEdit*> vLineEdit;    //LineEdit: display what has been selected (images, files, directories)
 
@@ -147,6 +152,8 @@ protected:
     SaisieQtWindow*     _SaisieWin;
 
     int                 _curIdx;
+
+    bool                _showDialog; //do we show "Job done" at the end of process"
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);
