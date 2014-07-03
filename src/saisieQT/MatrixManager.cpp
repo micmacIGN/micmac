@@ -93,7 +93,7 @@ void MatrixManager::setRY(const GLdouble &rY)
     _rY = rY;
 }
 
-void MatrixManager::translate(float x, float y) // TODO A renomer car reset de la matrice de projection!!!!!!!
+void MatrixManager::resetMatrixProjection(float x, float y)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
