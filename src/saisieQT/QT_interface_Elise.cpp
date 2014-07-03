@@ -582,7 +582,7 @@ void cQT_Interface::HighlightPoint(cSP_PointeImage* aPIm)
 {
     aPIm->Gl()->HighLighted() = !aPIm->Gl()->HighLighted();
 
-    if(aPIm->Gl()->HighLighted())
+    if(aPIm->Gl()->HighLighted() && aPIm->Gl()->PG()->P3D().IsInit())
 
         m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
 
@@ -644,11 +644,10 @@ void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int idImag)
 
 void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
 {
-
     vector< cSP_PointGlob * > pGV = mAppli->PG();
 
     if(pGV.size())
-    {        
+    {
         _data->deleteCloud(0);
 
         GlCloud *cloud = new GlCloud();
@@ -657,14 +656,18 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
         {
             cPointGlob * pg = pGV[i]->PG();
 
-            QColor colorPt = pGV[i]->HighLighted() ? Qt::red : Qt::green;
+            if (pg != NULL && pg->P3D().IsInit())
+            {
+                QColor colorPt = pGV[i]->HighLighted() ? Qt::red : Qt::green;
 
-            cloud->addVertex(GlVertex(Pt3dr(pg->P3D().Val()), pg == selectPtGlob ? colorPt: Qt::blue));
+                cloud->addVertex(GlVertex(Pt3dr(pg->P3D().Val()), pg == selectPtGlob ? colorPt: Qt::blue));
+            }
         }
 
         _data->addReplaceCloud(cloud);
 
         m_QTMainWindow->threeDWidget()->getGLData()->replaceCloud(_data->getCloud(0));
+
         m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
         m_QTMainWindow->option3DPreview();
     }
@@ -715,6 +718,6 @@ void cQT_Interface::rebuildGlCamera()
     for (int i = 0; i < mAppli->nbImagesVis(); ++i)
     {
         ElCamera * aCamera = mAppli->imageVis(i)->CaptCam();
-        _data->addCamera(aCamera->CS());
+        if (aCamera != NULL) _data->addCamera(aCamera->CS());
     }
 }
