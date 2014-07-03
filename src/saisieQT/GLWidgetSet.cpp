@@ -62,7 +62,8 @@ void GLWidgetSet::selectCameraIn3DP(int idCam)
     for (int c = 0; c  < threeDWidget()->getGLData()->camerasCount(); ++c )
         threeDWidget()->getGLData()->camera(c)->setSelected(false);
 
-    threeDWidget()->getGLData()->camera(idCam)->setSelected(true);
+    if (threeDWidget()->getGLData()->camerasCount() > idCam)
+        threeDWidget()->getGLData()->camera(idCam)->setSelected(true);
 
     threeDWidget()->update();
 }

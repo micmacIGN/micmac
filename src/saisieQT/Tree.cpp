@@ -35,11 +35,16 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
                 return QString("%1").arg(pg->PG()->Name().c_str());
             case 1:
             {
-                Pt3dr *p3d = pg->PG()->P3D().PtrVal();
-                return QString("%1\t %2\t %3")
-                        .arg(QString::number(p3d->x, 'f' ,2))
-                        .arg(QString::number(p3d->y, 'f' ,2))
-                        .arg(QString::number(p3d->z, 'f' ,2));
+                if (pg->PG()->P3D().IsInit())
+                {
+                    Pt3dr *p3d = pg->PG()->P3D().PtrVal();
+                    return QString("%1\t %2\t %3")
+                            .arg(QString::number(p3d->x, 'f' ,2))
+                            .arg(QString::number(p3d->y, 'f' ,2))
+                            .arg(QString::number(p3d->z, 'f' ,2));
+                }
+                else
+                    return QString("Not computed");  //Orientation = NONE
             }
             }
         }
@@ -106,7 +111,7 @@ QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, 
             case 0:
                 return QString(tr("Point"));
             case 1:
-                return QString(tr("Coordinates"));
+                return QString(tr("3D Coordinates"));
             }
         }
     }
