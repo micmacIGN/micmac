@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 const cOneAppuisDAF * GetDAFFromName(const cDicoAppuisFlottant & aDic,const std::string & aName)
 {
-   for 
+   for
    (
        std::list<cOneAppuisDAF>::const_iterator itOAD=aDic.OneAppuisDAF().begin();
        itOAD!=aDic.OneAppuisDAF().end();
@@ -91,13 +91,16 @@ cInitCamAppuis::cInitCamAppuis(int argc,char ** argv,LArgMain & ArgOpt,const std
                    << EAMC(aNameFile2D,"Name File for Image Measures",eSAM_IsExistFile),
        ArgOpt
    );
- 
-   mDicApp = StdGetFromPCP(aNameFile3D,DicoAppuisFlottant);
-   mSMAF =  StdGetFromPCP(aNameFile2D,SetOfMesureAppuisFlottants);
 
-   mAutoF = new cElRegex(mFilter,10);
-   aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aNameFile3D));
-   mKeyOri = "NKS-Assoc-Im2Orient@"+anOri;
+   if (!MMVisualMode)
+   {
+       mDicApp = StdGetFromPCP(aNameFile3D,DicoAppuisFlottant);
+       mSMAF =  StdGetFromPCP(aNameFile2D,SetOfMesureAppuisFlottants);
+
+       mAutoF = new cElRegex(mFilter,10);
+       aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aNameFile3D));
+       mKeyOri = "NKS-Assoc-Im2Orient@"+anOri;
+   }
 }
 
 bool cInitCamAppuis::InitPts(const cMesureAppuiFlottant1Im & aMAF)
@@ -108,7 +111,7 @@ bool cInitCamAppuis::InitPts(const cMesureAppuiFlottant1Im & aMAF)
    if (! mAutoF->Match(aMAF.NameIm()))
       return false;
 
-   for 
+   for
    (
          std::list<cOneMesureAF1I>::const_iterator itM=aMAF.OneMesureAF1I().begin();
          itM!=aMAF.OneMesureAF1I().end();
@@ -136,9 +139,9 @@ int Init11Param_Main(int argc,char ** argv)
 
     cInitCamAppuis aICA(argc,argv,ArgOpt,"-11Param");
 
-    
 
-    for 
+
+    for
     (
         std::list<cMesureAppuiFlottant1Im>::const_iterator itMAF = aICA.mSMAF.MesureAppuiFlottant1Im().begin();
         itMAF != aICA.mSMAF.MesureAppuiFlottant1Im().end();
@@ -165,7 +168,7 @@ int Init11Param_Main(int argc,char ** argv)
              double aFY =  aMat(1,1);
              Pt2dr aPP(aMat(2,0),aMat(2,1));
              double aSkew =  aMat(1,0);
-             
+
              Pt3dr aCenter =  aR.ImAff(Pt3dr(0,0,0));
              double Alti = aPMoy.z;
              double Prof = euclid(aPMoy-aCenter);
@@ -174,14 +177,14 @@ int Init11Param_Main(int argc,char ** argv)
              std::cout << "C=" <<  aR.ImAff(Pt3dr(0,0,0))  << "  "   << aR.ImRecAff(Pt3dr(0,0,0)) << "\n";
              std::cout << "VVVV " <<  anEq12.ComputeNonOrtho().second << "\n";
 */
-             
+
              cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aNameIm);
-            
+
              Pt2di aSz = aMDP.SzImTifOrXif();
              Pt2dr aRSz = Pt2dr(aSz);
 
              ElDistRadiale_PolynImpair aDR((1.1*euclid(aRSz))/2.0,aPP);
-             
+
              CamStenope * aCS=0;
              std::vector<double> aPAF;
              if (isFraserModel)
@@ -190,7 +193,7 @@ int Init11Param_Main(int argc,char ** argv)
                  aDPhg.b1() = (aFX-aFY)/ aFY;
                  aDPhg.b2() = aSkew / aFY;
                  aCS = new cCamStenopeModStdPhpgr(true,aFY,aPP,aDPhg,aPAF);
-             } 
+             }
              else
              {
                   aCS = new cCamStenopeDistRadPol(true,(aFX+aFY)/2.0,aPP,aDR,aPAF);
