@@ -31,7 +31,7 @@ public:
 
     void        doProjection(QPointF point, float zoom);
 
-    void        translate(float x, float y);
+    void        resetMatrixProjection(float x, float y);
 
     GLdouble    mvMatrix(int i)     { return _mvMatrix[i];   }
 

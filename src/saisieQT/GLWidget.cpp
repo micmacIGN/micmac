@@ -27,6 +27,7 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 
 void GLWidget::resizeGL(int width, int height)
 {
+
     if (width==0 || height==0) return;
 
     _matrixManager.setGLViewport(0,0,width, height);
@@ -101,8 +102,7 @@ cPolygon *GLWidget::polygon(){
 void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
 {
     QString name(aSom->NamePt().c_str());
-    cPoint point(pt,name,true,aSom->Etat());
-    point.setZoom(_vp_Params.m_zoom);
+    cPoint point(pt,name,true,aSom->Etat());    
     point.setDiameter(_params->getPointDiameter() * 0.01);
 
     point.setHighlight(highlight);
@@ -230,7 +230,9 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
 
     m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
 
-    _matrixManager.translate(-pt.x() / vpCenterX, -pt.y() / vpCenterY);
+
+    // ATTENTION EST UN RESET DE LA MATRICE DE PROJECTION !!!!!!!!!!!!
+    _matrixManager.resetMatrixProjection(-pt.x(), -pt.y());
 
     if(zoom > 0.f)
         setZoom(zoom);
@@ -261,11 +263,11 @@ void GLWidget::pointDiameterChanged(float val)
 {
     if (hasDataLoaded())
     {
-        for (int aK =0; aK < polygon()->size();++aK)
-        {
-            //(*polygon())[aK].setDiameter(val);
-            (*polygon())[aK].setZoom(_vp_Params.m_zoom);
-        }
+//        for (int aK =0; aK < polygon()->size();++aK)
+//        {
+//            //(*polygon())[aK].setDiameter(val);
+//            (*polygon())[aK].setZoom(_vp_Params.m_zoom);
+//        }
 
         polygon()->setPointSize(val);
 
@@ -312,19 +314,19 @@ void GLWidget::setZoom(float val)
 
     _vp_Params.m_zoom = val;
 
-    if (hasDataLoaded() && m_bDisplayMode2D)
-        for (int i = 0; i < m_GLData->polygonCount(); ++i)
-        {
-            cPolygon* polyg = polygon(i);
+//    if (hasDataLoaded() && m_bDisplayMode2D)
+//        for (int i = 0; i < m_GLData->polygonCount(); ++i)
+//        {
+//            cPolygon* polyg = polygon(i);
 
-            if (polyg)
-            {
-                for (int i = 0; i < polyg->size(); ++i)
-                {
-                    polyg->point(i).setZoom(_vp_Params.m_zoom);
-                }
-            }
-        }
+//            if (polyg)
+//            {
+//                for (int i = 0; i < polyg->size(); ++i)
+//                {
+//                    polyg->point(i).setZoom(_vp_Params.m_zoom);
+//                }
+//            }
+//        }
 
     if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_vp_Params.m_zoom*100,'f',1) + "%";
@@ -515,6 +517,7 @@ void GLWidget::reset()
 
 void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool resetPoly)
 {
+
     if (resetMatrix)
         _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() : Pt3dr(0.f,0.f,0.f) );
 
@@ -577,7 +580,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 
                 if(!polygon()->isClosed())             // ADD POINT
 
-                    polygon()->addPoint(m_lastPosImage, m_bDisplayMode2D ? _vp_Params.m_zoom : 1.f);
+                    polygon()->addPoint(m_lastPosImage);
 
                 else if (polygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
@@ -644,8 +647,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         QPointF mPos = event->posF();
 #endif
 
-
-
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, _vp_Params.m_zoom) : mPos;
 
         if ( event->buttons() != Qt::MiddleButton )
@@ -709,7 +710,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     else if( vpWidth() && vpHeight())                   // TRANSLATION VIEW
                     {
                         QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin .x(),-dPWin .y()) * m_GLData->getBBoxMaxSize();
-                        _matrixManager.translate(dp.x()/vpWidth(),dp.y()/vpHeight(),0.0,_vp_Params.m_speed);
+                        _matrixManager.translate(dp.x(),dp.y(),0.0,1.f);
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
