@@ -1,0 +1,81 @@
+<ParamApero
+     Subst="@$#1"
+>
+       <SectionBDD_Observation >
+             <BDD_Orient>
+                 <Id>    Id_Orient_Finale </Id>
+                 <KeySet>  Key-Set-OrFinale   </KeySet>
+                 <KeyAssoc> Key-Assoc-Im2OrFinale </KeyAssoc>
+             </BDD_Orient>
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> Id_Calib_LF </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   ${CalibGeomLF} </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>   ${PatternAllImTifLF} </PatternName>
+	           <CalcNameCalib>  Id_Calib_LF </CalcNameCalib>
+	           <PosValueInit>
+                          <PosFromBDOrient>  Id_Orient_Finale </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+			      <PatternNameApply> .* </PatternNameApply>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		          </ContraintesCamerasInc>
+                          <ContraintesPoses>
+                             <NamePose>   .* </NamePose>
+                             <ByPattern>true </ByPattern>
+                             <Val>      ePoseFigee   </Val>
+                          </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <SectionObservations>
+                    </SectionObservations>
+
+                    <SectionExport>
+                         <ExportVisuConfigGrpPose>
+                            <PatternSel> img_(0505|0511|0517|0523|0529)_MpDcraw8B_GR.tif </PatternSel>
+                            <NameFile> VisuGrp.txt </NameFile>
+                         </ExportVisuConfigGrpPose>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+
+	</SectionCompensation>
+
+</ParamApero>
+
