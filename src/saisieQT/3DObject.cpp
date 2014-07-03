@@ -612,7 +612,7 @@ void cPoint::draw()
         glLoadIdentity();
 
         GLdouble xp,yp,zp;
-        //mmProject(2.f*x()/glViewport[2], 2.f*y()/glViewport[2],0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
+
         mmProject(x(),y(),0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
 
         glDrawEllipsed(xp, yp, _diameter, _diameter,16);
@@ -2181,7 +2181,7 @@ MessageToDisplay &cMessages2DGL::LastMessage()
     return m_messagesToDisplay.back();
 }
 
-cGrid::cGrid(Pt3d<double> pt, float scale, int nb)
+cGrid::cGrid(Pt3d<double> pt, float scale, int nb) // TODO ne fait rien??!!
 {
 
 }
