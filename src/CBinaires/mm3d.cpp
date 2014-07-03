@@ -164,6 +164,30 @@ class cMMCom
       cArgLogCom  mLog;
 };
 
+class cCmpMMCom
+{
+public :
+
+    cCmpMMCom(){}
+
+    // Comparison; not case sensitive.
+    bool operator ()(const cMMCom & aArg0, const cMMCom & aArg1)
+    {
+        string first  = aArg0.mName;
+        string second = aArg1.mName;
+
+        unsigned int i=0;
+        while ((i < first.length()) && (i < second.length()))
+        {
+            if (tolower (first[i]) < tolower (second[i])) return true;
+            else if (tolower (first[i]) > tolower (second[i])) return false;
+            i++;
+        }
+
+        if (first.length() < second.length()) return true;
+        else return false;
+    }
+};
 
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
@@ -344,6 +368,10 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
        aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo "));
    }
+
+   cCmpMMCom CmpMMCom;
+   std::sort(aRes.begin(),aRes.end(),CmpMMCom);
+
    return aRes;
 }
 
@@ -443,6 +471,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
 #endif
 
+    cCmpMMCom CmpMMCom;
+    std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
    return aRes;
 }
@@ -466,6 +496,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
    {
        BanniereMM3D();
+
        std::cout << "mm3d : Allowed commands \n";
        for (unsigned int aKC=0 ; aKC<aVComs.size() ; aKC++)
        {
