@@ -342,7 +342,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SupMntIm",SupMntIm_main," Tool for superposition of Mnt Im & level curve"));
 
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
-       aRes.push_back(cMMCom("Init11P",Init11Param_Main,"Init Internal & External from GCP using 11-parameter algo "));
+       aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo "));
    }
    return aRes;
 }
@@ -437,7 +437,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
    aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump  "));
    aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
-    
+
     aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an aproximate model "));
 #if (ELISE_QT_VERSION >= 4)
     aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
@@ -517,7 +517,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
           if (DoLog) LogOut( aRes, outDirectory );
-          
+
           delete PatMach;
           delete PrefMach;
           delete SubMach;
