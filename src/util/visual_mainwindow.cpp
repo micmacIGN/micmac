@@ -31,8 +31,6 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
 {
     //setAttribute( Qt::WA_DeleteOnClose );
 
-
-
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 
     setLayout(verticalLayout);
@@ -58,7 +56,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
 
     QSpacerItem *vSpacer = new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    QGridLayout* RunGridLayout = new QGridLayout(this);
+    QGridLayout* RunGridLayout = new QGridLayout();
     RunGridLayout->addItem(vSpacer, 0, 0);
     RunGridLayout->addWidget(showPromptDialog, 1, 0);
     QSpacerItem* spacer = new QSpacerItem(0,0,QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -575,7 +573,6 @@ void visual_MainWindow::onSaisieQtWindowClosed()
 
 void visual_MainWindow::setShowDialog(int state)
 {
-    cout << "change state" << endl;
     if (state == Qt::Checked) _showDialog = true;
     else _showDialog = false;
 }
