@@ -48,47 +48,17 @@ bool TheExitOnNan   = false;
 bool TheMajickFile  = false;
 int  TheNbIterProcess = 1;
 
-#if ELISE_QT_VERSION >=4
-
-#ifdef Int
-    #undef Int
-#endif
-
-#include <QtGui>
-#include <QApplication>
-#include <QMessageBox>
-#include "general/visual_mainwindow.h"
-
-void qtErrorMsg(std::string mes)
-{
-    int argc = 1;
-    char *argv = (char*) "toto";
-
-    QApplication *app = (QApplication::instance() == NULL) ? new QApplication(argc, &argv) : static_cast<QApplication *>(QApplication::instance());
-
-    setStyleSheet(*app);
-
-    QMessageBox::critical(NULL, "FATAL ERROR", QString(mes.c_str()));
-
-    app->quit();
-}
-#endif
-
 void throwError(std::string err)
 {
     message_copy_where_error();
 
-    #if ELISE_QT_VERSION >= 4
-        qtErrorMsg(err);
-    #else
-        ShowArgs();
+    ShowArgs();
 
-        ncout() << err;
+    ncout() << err;
 
-        ncout() << "Bye  (press enter)" << endl;
+    ncout() << "Bye  (press enter)" << endl;
 
-        EliseBRKP();
-    #endif
+    EliseBRKP();
 }
 
 int GetCharOnBrkp()
