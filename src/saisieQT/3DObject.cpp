@@ -1854,19 +1854,6 @@ void cGLData::clearPolygon()
         currentPolygon()->clear();
 }
 
-void cGLData::setScale(float vW, float vH)
-{
-    Pt3dr scale(vW, vH,0.f);
-    if ( !isImgEmpty() ) _glMaskedImage.setScale(scale);
-
-    for (int aK=0; aK < _vPolygons.size();++aK)
-    {
-        _vPolygons[aK]->setScale(scale);
-        if (_vPolygons[aK]->helper() != NULL)
-            _vPolygons[aK]->helper()->setScale(scale);
-    }
-}
-
 void cGLData::setGlobalCenter(Pt3d<double> aCenter)
 {
     setBBoxCenter(aCenter);
