@@ -28,28 +28,40 @@ void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei heigh
 
     glViewport( 0, 0, width, height );
     glGetIntegerv (GL_VIEWPORT, getGLViewport());
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    glScalef(width,width,1.f);
+
+    glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
+
 }
 
 void MatrixManager::doProjection(QPointF point, float zoom)
 {
     //glPushMatrix();
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();    
+    glLoadIdentity();
     glMultMatrixd(_projMatrix);
+
+    zoom *= 2.f/_glViewport[2];
 
     if(_projMatrix[0] != zoom)
     {
         GLdouble wx, wy, wz;
 
-        GLint recal = _glViewport[3] - (GLint) point.y() - 1;
+        GLint recal = _glViewport[3] - (GLint) point.y() /*- 1*/;
 
         //from viewport to world coordinates
         //TODO peut etre simplifier!
         mmUnProject ((GLdouble) point.x(), (GLdouble) recal, 1.f,
                       _mvMatrix, _projMatrix, _glViewport, &wx, &wy, &wz);
 
+        GLfloat scale = zoom/_projMatrix[0];
+
         glTranslatef(wx,wy,0);
-        glScalef(zoom/_projMatrix[0], zoom/_projMatrix[0], 1.f);
+        glScalef(scale,scale, 1.f);
         glTranslatef(-wx,-wy,0);
     }
 
@@ -81,16 +93,32 @@ void MatrixManager::setRY(const GLdouble &rY)
     _rY = rY;
 }
 
-void MatrixManager::translate(float x, float y)
+void MatrixManager::resetMatrixProjection(float x, float y)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glPushMatrix();
+
+    glScalef(_glViewport[3]/2.f,_glViewport[2]/2.f,1.f);
     glTranslatef(x,y,0.f);
     glGetDoublev (GL_PROJECTION_MATRIX, _projMatrix);
-    glPopMatrix();
 
     m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
+}
+
+void MatrixManager::translate(float tX, float tY, float tZ, float factor)
+{
+    //float inverMat[4][4];
+
+    float translation[3];
+    translation[0] = factor * tX;
+    translation[1] = factor * tY;
+    translation[2] = factor * tZ;
+
+    //MatrixInverse(_mvMatrix, inverMat,translation); // TODO ????
+
+    m_translationMatrix[0] += translation[0];
+    m_translationMatrix[1] += translation[1];
+    m_translationMatrix[2] += translation[2];
 }
 
 void MatrixManager::setMatrices()
@@ -424,21 +452,6 @@ void MatrixManager::setCenterScene(const Pt3d<double> &centerScene)
     _centerScene = centerScene;
 }
 
-void MatrixManager::translate(float tX, float tY, float tZ, float factor)
-{
-    float inverMat[4][4];
-
-    float translation[3];
-    translation[0] = factor * tX;
-    translation[1] = factor * tY;
-    translation[2] = factor * tZ;
-
-    MatrixInverse(_mvMatrix, inverMat,translation);
-
-    m_translationMatrix[0] += translation[0];
-    m_translationMatrix[1] += translation[1];
-    m_translationMatrix[2] += translation[2];
-}
 
 GLdouble MatrixManager::distance() const
 {
