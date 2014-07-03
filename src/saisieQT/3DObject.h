@@ -126,6 +126,8 @@ class cObjectGL : public cObject
         void    enableOptionLine();
 
         void    disableOptionLine();
+
+        float   getHalfViewPort();
 };
 
 class cPoint : public cObjectGL, public QPointF
@@ -138,8 +140,7 @@ class cPoint : public cObjectGL, public QPointF
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
-           float diameter = .05f,
-           float zoom = 1.f,
+           float diameter = 5.f,
            bool  highlight  = false,
            bool  drawCenter = true);
 
@@ -148,7 +149,6 @@ class cPoint : public cObjectGL, public QPointF
         void setPointState(int state){ _pointState = state; }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
-        void setZoom(float val)      { _zoom = val;         } // TODO : à agreger
         int  pointState() const      { return _pointState;  }
         void showName(bool show)     { _bShowName = show;   }
 
@@ -160,13 +160,12 @@ class cPoint : public cObjectGL, public QPointF
 
         void setEpipolar(QPointF pt1, QPointF pt2);
 
-        QPointF scaledPt();
-        QPointF scale(QPointF);
+        void glDraw();
 
+        QColor colorPointState();
 private:
 
         float   _diameter;
-        float   _zoom;
         bool    _bShowName;
         int     _pointState;
         bool    _highlight;
@@ -314,8 +313,8 @@ class cPolygon : public cObjectGL
         float   getPointDiameter() { return _pointDiameter; }
 
         void    add(cPoint &pt);
-        void    add(QPointF const &pt, float zoom, bool selected=false);
-        virtual void    addPoint(QPointF const &pt, float zoom);
+        void    add(QPointF const &pt, bool selected=false);
+        virtual void    addPoint(QPointF const &pt);
 
         void    clear();
         void    clearPoints() { _points.clear(); }
@@ -335,7 +334,7 @@ class cPolygon : public cObjectGL
 
         void    insertPoint( int i, const QPointF & value );
 
-        void    insertPoint();
+        void    insertPoint();       
 
         void    removePoint( int i );
 
@@ -461,7 +460,7 @@ class cRectangle : public cPolygon
 
         cRectangle(int nbMax = 4, float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
 
-        void    addPoint(QPointF const &pt, float zoom);
+        void    addPoint(QPointF const &pt);
 
         void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false);
 
