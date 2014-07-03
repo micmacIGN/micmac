@@ -84,6 +84,8 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool re
 
         _contextMenu.setPolygon( m_GLData->currentPolygon() );
 
+        _matrixManager.setSceneTopo(getGLData()->getBBoxCenter(),getGLData()->getBBoxMaxSize());
+
         resetView(doZoom, showMessage, true, resetPoly);
     }
 }
@@ -142,11 +144,11 @@ void GLWidget::paintGL()
             m_GLData->glImage().draw();
         }
         else
-        {
-            _matrixManager.setCenterScene(getGLData()->getBBoxCenter() );
-            _matrixManager.setDistance(_vp_Params.m_zoom );
-            _matrixManager.zoom(_vp_Params.m_zoom,_vp_Params.m_zoom + getGLData()->getBBoxMaxSize());
-            _matrixManager.arcBall();
+        {            
+//            _matrixManager.setDistance(_vp_Params.m_zoom);
+//            _matrixManager.glOrthoZoom(_vp_Params.m_zoom,_vp_Params.m_zoom + getGLData()->getBBoxMaxSize());
+            _matrixManager.SetArcBallCamera(_vp_Params.m_zoom);
+
 
             m_GLData->draw();
         }
@@ -168,11 +170,8 @@ void GLWidget::overlay()
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)) )
     {
         if (m_bDisplayMode2D )
-
             _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom); // TODO : surement inutile
-
         else if(m_interactionMode == SELECTION)
-
             _matrixManager.setMatrixDrawViewPort();
 
         for (int i = 0; i < m_GLData->polygonCount(); ++i)
@@ -310,20 +309,6 @@ void GLWidget::setZoom(float val)
 
     _vp_Params.m_zoom = val;
 
-//    if (hasDataLoaded() && m_bDisplayMode2D)
-//        for (int i = 0; i < m_GLData->polygonCount(); ++i)
-//        {
-//            cPolygon* polyg = polygon(i);
-
-//            if (polyg)
-//            {
-//                for (int i = 0; i < polyg->size(); ++i)
-//                {
-//                    polyg->point(i).setZoom(_vp_Params.m_zoom);
-//                }
-//            }
-//        }
-
     if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(_vp_Params.m_zoom*100,'f',1) + "%";
 
@@ -421,7 +406,7 @@ void GLWidget::drawCenter()
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
         glLoadIdentity();
-        _matrixManager.zoom(1.f,1.f);
+        _matrixManager.glOrthoZoom(1.f,1.f);
         glColor3f(0.f,0.f,0.f);
         glDrawEllipse( 0.f, 0.f, radius, radius);
         glDrawEllipse( 0.f, 0.f, mini, mini);
@@ -693,7 +678,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
                 {
-
                     r.x = dPWin.y() / vpWidth();
                     r.y = dPWin.x() / vpHeight();
                 }
@@ -703,10 +687,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                         setZoom(_vp_Params.changeZoom(dPWin.y()));
 
-                    else if( vpWidth() && vpHeight())                   // TRANSLATION VIEW
+                    else                                                // TRANSLATION VIEW
                     {
-                        QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin .x(),-dPWin .y()) * m_GLData->getBBoxMaxSize();
-                        _matrixManager.translate(dp.x(),dp.y(),0.0,1.f);
+                        //QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : QPointF(dPWin .x(),-dPWin .y())/vpWidth()*getGLData()->getBBoxMaxSize()*_vp_Params.m_zoom/2.f;
+
+                        QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : _matrixManager.screen2TransABall(dPWin);
+                        _matrixManager.translate(dp.x(),dp.y(),0.0);
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
