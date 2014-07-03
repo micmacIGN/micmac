@@ -102,14 +102,17 @@ void LogTime(FILE * aFp,const std::string & aMes)
   fprintf(aFp," PID : %d ;   %s %s",mm_getpid(),aMes.c_str(),asctime (timeinfo));
 }
 
-void LogIn(int  argc,char **  argv,const std::string & aDir)
+void LogIn(int  argc,char **  argv,const std::string & aDir,int aNumArgDir)
 {
    if (! DOLOG_MM3d) return;
    FILE * aFp = FileLogMM3d(aDir);
 
    fprintf(aFp,"=================================================================\n");
    for (int aK=0 ; aK< argc ; aK++)
-       fprintf(aFp,"%s ",argv[aK]);
+   {
+       // MPD : je l'avais deja fait il y a 15 jours, ai pas du commite !!!!  Ca facilite copier-coller sur commande
+       fprintf(aFp,"\"%s\" ",argv[aK]);
+   }
    fprintf(aFp,"\n");
    LogTime(aFp,"[Beginning at ]");
 
@@ -436,6 +439,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
     
     aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an aproximate model "));
+#if (ELISE_QT_VERSION >= 4)
+    aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
+#endif
+
 
    return aRes;
 }
@@ -505,7 +512,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           string outDirectory;
           if (DoLog){
              outDirectory = ( isUsingSeparateDirectories()?MMLogDirectory():DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup );
-             LogIn( argc, argv, outDirectory );
+             LogIn( argc, argv, outDirectory,aLog.mNumArgDir );
           }
 
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));

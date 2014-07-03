@@ -695,6 +695,7 @@ int RefineModel_main(int argc, char **argv);
     int SaisieAppuisPredicQT_main(int argc,char ** argv);
     int SaisieBoxQT_main(int argc,char ** argv);
     int SaisieBascQT_main(int argc,char ** argv);
+    int Dimap2Grid_main(int argc, char **argv);
 #endif
 
 #endif // ElMemberTpl
