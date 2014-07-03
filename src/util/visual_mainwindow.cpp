@@ -899,7 +899,7 @@ void visual_MainWindow::closeEvent(QCloseEvent *)
 
 void visual_MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    if(event->key() == Qt::Key_Enter)
+    if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return)
     {
         onRunCommandPressed();
     }
