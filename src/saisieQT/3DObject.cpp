@@ -702,11 +702,9 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
 
 void cPolygon::draw()
 {
-    for (int aK=0; aK < size();++aK)
-    {
-        // TODO a verifier le set scale à chaque draw!!        
+    for (int aK=0; aK < size();++aK)            
         point(aK).draw();
-    }
+
 
     if(isVisible())
     {
@@ -877,10 +875,7 @@ void cPolygon::add(const QPointF &pt, bool selected)
 {
     if (size() < _maxSz)
     {
-        cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default]);
-        cPt.setDiameter(_pointDiameter);
-        //cPt.setZoom(zoom);
-        //cPt.setScale(_scale);
+        cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default],Qt::blue,_pointDiameter);
 
         cPt.drawCenter(!isLinear());
 
@@ -894,8 +889,6 @@ void cPolygon::addPoint(const QPointF &pt)
     {
         cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
-        //cPt.setZoom(zoom);
-        cPt.setScale(_scale);
 
         cPt.drawCenter(!isLinear());
 

@@ -102,8 +102,7 @@ cPolygon *GLWidget::polygon(){
 void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
 {
     QString name(aSom->NamePt().c_str());
-    cPoint point(pt,name,true,aSom->Etat());
-    //point.setZoom(_vp_Params.m_zoom);
+    cPoint point(pt,name,true,aSom->Etat());    
     point.setDiameter(_params->getPointDiameter() * 0.01);
 
     point.setHighlight(highlight);
@@ -233,7 +232,7 @@ void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
 
 
     // ATTENTION EST UN RESET DE LA MATRICE DE PROJECTION !!!!!!!!!!!!
-    _matrixManager.translate(-pt.x() /*/ vpCenterX*/, -pt.y() /*/ vpCenterY*/);
+    _matrixManager.resetMatrixProjection(-pt.x(), -pt.y());
 
     if(zoom > 0.f)
         setZoom(zoom);
