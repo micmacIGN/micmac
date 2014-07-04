@@ -113,7 +113,7 @@ void MatrixManager::translate(float tX, float tY, float tZ)
         translation[1] = tY;
         translation[2] = tZ;
 
-        MatrixInverse(_mvMatrix, inverMat,translation); // TODO ????
+        MatrixInverse(_mvMatrix, inverMat,translation); // on se place dans le repere
 
         m_translationMatrix[0] += translation[0];
         m_translationMatrix[1] += translation[1];
@@ -466,7 +466,7 @@ void MatrixManager::setSceneTopo(const Pt3d<double> &centerScene,float diametre)
 
 QPointF MatrixManager::screen2TransABall(QPointF ptScreen)
 {
-   return QPointF(ptScreen .x()/vpWidth()*m_glRatio,-ptScreen .y()/vpHeight())*_diameterScene*_distance/2.f;
+    return QPointF(ptScreen .x()/((float)vpWidth()*_projMatrix[0]),/*-ptScreen .y()/((float)vpHeight()*_projMatrix[4])*/0)*2.f;
 }
 
 GLdouble MatrixManager::distance() const
