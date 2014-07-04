@@ -37,6 +37,7 @@ void GLWidgetSet::init(cParameters *params, bool modePt)
         _zoomWidget->setOption(cGLData::OpShow_Mess,false);
         _zoomWidget->setZoom(3.f);
 
+
         _3DWidget   = new GLWidget(10, (const QGLWidget*)_widgets[0]);
         _3DWidget->setBackgroundColors(colorBG0,colorBG1);
         _3DWidget->setContextMenuPolicy( Qt::NoContextMenu );
