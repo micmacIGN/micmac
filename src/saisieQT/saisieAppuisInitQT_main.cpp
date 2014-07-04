@@ -56,19 +56,20 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     Pt2di aNbFen(-1,-1);
 
     string aFullName, aDir, aName, aNamePt, aNameOut;   //mandatory arguments
-    string aNameOri, aNameAuto, aPrefix2Add;            //named args
+    string aNameOri, aModeOri, aNameAuto, aPrefix2Add;  //named args
     settings.beginGroup("Misc");
     aNameAuto = settings.value("defPtName", QString("100")).toString().toStdString();
     settings.endGroup();
     aPrefix2Add = "";
     bool aForceGray = false;
+    double aZInc, aZMoy;
 
     if (argv[0][0] == 'v')
     {
         MMVisualMode = true;
         argv[0] = (char*) "SaisieAppuisInitQT";
     }
-    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray);
+    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc);
 
     if (!checkNamePt( QString (aNamePt.c_str()))) return -1;
 
@@ -101,6 +102,18 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
             << QString("+SzWy=") + QString::number(aSzWin.y)
             << QString("+NbFx=") + QString::number(aNbFen.x)
             << QString("+NbFy=") + QString::number(aNbFen.y);
+
+    if (aModeOri == "GRID")
+    {
+        aCom += " +ModeOriIm=eGeomImageGrille"
+                + std::string(" +Conik=false")
+                +  std::string(" +ZIncIsProp=false")
+                //+ " +PostFixOri=GRIBin"
+                + " +Px1Inc="+ ToString(aZInc) + std::string(" ")
+                + " +Px1Moy="+ ToString(aZMoy) + std::string(" ");
+
+        //aCom += std::string(" +Geom=eGeomMNTFaisceauIm1ZTerrain_Px1D");
+    }
 
     if (EAMIsInit(&aForceGray))
        input << QString("+ForceGray=") + QString(((string)(ToString(aForceGray))).c_str());
