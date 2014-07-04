@@ -473,8 +473,8 @@ template <class Type> inline void ElSwap (Type &v1,Type & v2)
 template <class Type> inline void set_min_max (Type &v1,Type & v2) {  if (v1 > v2) ElSwap(v1,v2);}
 
 
-template <class Type,class T2> inline void ElSetMax (Type & v1,T2 v2) {if (v1<v2) v1 = v2;}
-template <class Type,class T2> inline void ElSetMin (Type & v1,T2 v2) {if (v1>v2) v1 = v2;}
+template <class Type,class T2> inline void ElSetMax (Type & v1,T2 v2) {if (v1<v2) v1=(Type)v2;}
+template <class Type,class T2> inline void ElSetMin (Type & v1,T2 v2) {if (v1>v2) v1=(Type)v2;}
 
 template <class Type> inline void SetInRange
                       (const Type & v0,Type & aV,const Type & v1)
