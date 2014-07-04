@@ -131,6 +131,8 @@ private:
 
     QSignalMapper       *_signalMapperPG;
 
+    QStringList         _listSelectedPG;
+
 signals:
 
     void                dataChanged(bool save = false, cSP_PointeImage *aPIm = NULL);
@@ -178,6 +180,10 @@ private slots:
     void                contextMenu_ImagesTable(const QPoint &widgetXY);
 
     void                viewSelectImages();
+
+    void                deleteSelectedGlobalPoints();
+
+    void                validateSelectedGlobalPoints();
 };
 
 #endif // QT_INTERFACE_ELISE_H
