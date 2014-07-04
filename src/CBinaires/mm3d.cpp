@@ -404,7 +404,6 @@ extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
 extern int  Luc_main(int argc,char ** argv);
-extern int  Vincent_main(int argc,char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  Mathieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
@@ -424,6 +423,10 @@ extern int New_Tapas_main(int,char **);
 int ExoSimulTieP_main(int argc, char** argv);
 int ExoMCI_main(int argc, char** argv);
 int  ExoCorrelEpip_main(int argc,char ** argv);
+
+int  CheckOri_main(int argc,char ** argv);
+int  ResToTxt_main(int argc,char ** argv);
+int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
 
@@ -439,9 +442,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("X3",TD_Sol3,"Some stuff "));
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square library "));
-   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
    aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
-   aRes.push_back(cMMCom("Tests_Vincent",Vincent_main,"tests de Vincent"));
+   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
+   aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
+   aRes.push_back(cMMCom("ResToTxt",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
+   aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
    aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
