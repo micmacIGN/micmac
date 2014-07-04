@@ -13,6 +13,8 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
                          RIGHT_VIEW     /**< Right view **/
 };
 
+#define HANGLE (PI/24)
+
 class selectInfos;
 
 class MatrixManager
@@ -45,9 +47,6 @@ public:
 
     void        setMatrices();
 
-    void        rotate(GLdouble* matrix, float rX, float rY, float rZ, float factor);
-    void        rotate(float rX, float rY, float rZ, float factor);
-
     void        rotateArcBall(float rX, float rY, float rZ, float factor);
 
     void        importMatrices(selectInfos &infos);
@@ -74,8 +73,6 @@ public:
 
     void        resetAllMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
 
-    void        applyTransfo();
-
     void        setModelViewMatrix();
 
     void        glOrthoZoom(float glOrthoZoom, float far);
@@ -95,9 +92,7 @@ public:
     Pt3dr       centerScene() const;
     void        setCenterScene(const Pt3dr &centerScene);
 
-    void        MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);
-
-    void        getProjection3D(QPointF &P2D, Pt3d<double> &P);
+    void        MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);   
 
     void        handleRotation(QPointF clicPosMouse);
 

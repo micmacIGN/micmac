@@ -2181,6 +2181,13 @@ MessageToDisplay &cMessages2DGL::LastMessage()
     return m_messagesToDisplay.back();
 }
 
+void cMessages2DGL::glRenderText(QString text, QPointF pt, QColor color)
+{
+    glColor3f(color.redF(),color.greenF(),color.blueF());
+
+    glwid->renderText ( pt.x(), pt.y(), text);
+}
+
 cGrid::cGrid(Pt3d<double> pt, float scale, int nb) // TODO ne fait rien??!!
 {
 
