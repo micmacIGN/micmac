@@ -96,6 +96,10 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
     _menuImagesView     = new QMenu(m_QTMainWindow);
 
     _thisPointAction    = _menuPGView->addAction("Change Images for this point");
+
+    QAction* deleteSelectedPGAction = _menuPGView->addAction("Delete selected points");
+    QAction* validateSelectedPGAction = _menuPGView->addAction("Validate selected points");
+
     _thisImagesAction   = _menuImagesView->addAction("View Images");
 
      _signalMapperPG    = new QSignalMapper(this);
@@ -103,6 +107,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
     connect(_signalMapperPG, SIGNAL(mapped(int)), this, SLOT(changeImagesPG(int)));
     connect(_thisPointAction, SIGNAL(triggered()), _signalMapperPG, SLOT(map()));
     connect(_thisImagesAction, SIGNAL(triggered()), this, SLOT(viewSelectImages()));
+    connect(deleteSelectedPGAction, SIGNAL(triggered()), this, SLOT(deleteSelectedGlobalPoints()));
+    connect(validateSelectedPGAction, SIGNAL(triggered()), this, SLOT(validateSelectedGlobalPoints()));
 
     // Context Menu :: End        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -130,6 +136,23 @@ void cQT_Interface::viewSelectImages()
     changeImages(-4,true);
 }
 
+void cQT_Interface::deleteSelectedGlobalPoints()
+{
+    foreach (QString namePoint,_listSelectedPG)
+        removePoint(namePoint);
+}
+
+void cQT_Interface::validateSelectedGlobalPoints()
+{
+    foreach (QString namePoint,_listSelectedPG)
+        for (int iI = 0; iI < mAppli->nbImagesTot(); ++iI)
+        {
+               cImage* image = mAppli->imageTot(iI);
+
+               ChangeState(image->PointeOfNameGlobSVP(namePoint.toStdString()),eEPI_Valide);
+        }
+}
+
 void cQT_Interface::contextMenu_ImagesTable(const QPoint &widgetXY)
 {
     Q_UNUSED(widgetXY);
@@ -143,6 +166,13 @@ void cQT_Interface::contextMenu_PGsTable(const QPoint &widgetXY)
     QModelIndex         index = m_QTMainWindow->tableView_PG()->currentIndex();
     QAbstractItemModel* model = m_QTMainWindow->tableView_PG()->model();
     QString             pGName= model->data(model->index(index.row(), 0)).toString();
+
+    QModelIndexList indexList = m_QTMainWindow->tableView_PG()->selectionModel()->selectedIndexes();
+
+    _listSelectedPG.clear();
+
+    foreach (QModelIndex indexa, indexList)
+        _listSelectedPG.push_back(model->data(model->index(indexa.row(), 0)).toString());
 
     _signalMapperPG->removeMappings(_thisPointAction);
     _signalMapperPG->setMapping(_thisPointAction, cVirtualInterface::idPointGlobal(pGName.toStdString()));
