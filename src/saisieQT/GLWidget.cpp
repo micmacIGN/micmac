@@ -245,12 +245,6 @@ void GLWidget::pointDiameterChanged(float val)
 {
     if (hasDataLoaded())
     {
-//        for (int aK =0; aK < polygon()->size();++aK)
-//        {
-//            //(*polygon())[aK].setDiameter(val);
-//            (*polygon())[aK].setZoom(_vp_Params.m_zoom);
-//        }
-
         polygon()->setPointSize(val);
 
         update();
