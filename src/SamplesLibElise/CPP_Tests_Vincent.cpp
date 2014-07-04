@@ -39,7 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // Main header in which a lot of libraries are included
 #include "StdAfx.h"
-#include <dirent.h>
 
 // List  of classes
 
@@ -242,6 +241,7 @@ int ResToTxt_main(int argc, char** argv)
    return EXIT_SUCCESS;
 }
 
+/*
 vector <string> GetFilesFromFolder (string dossier)
 {
 	DIR* rep = NULL;
@@ -255,7 +255,7 @@ vector <string> GetFilesFromFolder (string dossier)
 	sort(dirName.begin(),dirName.end());
 	return dirName;
 }
-
+*/
 void Idem_Banniere()
 {
     std::cout <<  "\n";
@@ -294,7 +294,7 @@ int Idem_main(int argc, char** argv)
 	);
 	
 	ELISE_ASSERT(aImSize>100,"Probable confusion with Final Size argument");
-	
+/*	
 // Charger les GCP, calculer leur projection dans l'ortho et le MNT
 	cDicoAppuisFlottant cDico=  StdGetFromPCP(aGCP,DicoAppuisFlottant);
 	std::cout << "Nb Pts " <<  cDico.OneAppuisDAF().size() << "\n\n";
@@ -359,7 +359,7 @@ int Idem_main(int argc, char** argv)
 // Récupération du dernier fichier Z_Num.xml
 	std::string aDir2,aPat2,aZ_Num;
 	SplitDirAndFile(aDir2,aPat2,aMNT);
-	vector<std::string> aListOfFileInMEC = GetFilesFromFolder(aDir2);
+	//vector<std::string> aListOfFileInMEC = GetFilesFromFolder(aDir2);
 	
 	for (unsigned int i=0;i<aListOfFileInMEC.size();i++)
 	{
@@ -626,7 +626,7 @@ int Idem_main(int argc, char** argv)
 	}
 
 	Idem_Banniere();
-	
+	*/
 	return EXIT_SUCCESS;
 }
 
