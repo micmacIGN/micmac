@@ -1154,7 +1154,7 @@ class cEl_GPAO
          void  GenerateMakeFile(const std::string & aNameFile) const ;
          void  GenerateMakeFile(const std::string & aNameFile,bool ModeAdditif) const;
          void ExeParal(std::string aFile,int aNbProc = -1,bool SuprFile=true);
-
+		 void dump( std::ostream &io_ostream=std::cout ) const;
      private :
          std::map<std::string,cElTask *>  mDico;
 

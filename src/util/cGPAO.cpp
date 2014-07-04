@@ -384,6 +384,7 @@ cElTask & cEl_GPAO::TaskOfName(const std::string &aName)
 
 void  cEl_GPAO::GenerateMakeFile(const std::string & aNameFile,bool ModeAdditif)  const
 {
+	//dump();
    // FILE * aFp = ElFopen(aNameFile.c_str(),ModeAdditif ? "a" : "w");
    FILE * aFp = FopenNN(aNameFile.c_str(),ModeAdditif ? "a" : "w","cEl_GPAO::GenerateMakeFile");
    for
@@ -403,7 +404,28 @@ void  cEl_GPAO::GenerateMakeFile(const std::string & aNameFile)  const
      GenerateMakeFile(aNameFile,false);
 }
 
-
+void cEl_GPAO::dump( std::ostream &io_ostream ) const
+{
+	map<string,cElTask*>::const_iterator itMap = mDico.begin();
+	while ( itMap!=mDico.end() ){
+		const cElTask &task = *(itMap->second);
+		// print name from map
+		io_ostream << "task [" << itMap->first << "] " << &task << endl;
+		// print name from task's internal data
+		io_ostream << "\tname = [" << task.mName << ']' << endl;
+		// print rules
+		io_ostream << "\trules" << endl;
+		list<string>::const_iterator itRule = task.mBR.begin();
+		while ( itRule!=task.mBR.end() )
+			io_ostream << "\t\t[" << *itRule++ << ']' << endl;
+		// print dependencies
+		io_ostream << "\tdependencies" << endl;
+		vector<cElTask*>::const_iterator itDep = task.mDeps.begin();
+		while ( itDep!=task.mDeps.end() )
+			io_ostream << "\t\t[" << (*itDep++)->mName << ']' << endl;
+		itMap++;
+	}
+}
 
 
 
@@ -492,17 +514,12 @@ void cElTask::GenerateMakeFile(FILE * aFP) const
 		{
 			#if (ELISE_windows)
 				// avoid a '\' at the end of a line in a makefile
-				if (!itBR->empty())
-                {
-					if ( *(itBR->rbegin())=='\\' )
-					{
-                        string str = *itBR+' ';
-                        fprintf(aFP,"\t %s\n",str.c_str());
-                        return;
-					}
-                }
+				string rule = *itBR;
+				if ( !rule.empty() && *(itBR->rbegin())=='\\' ) rule.append(" ");
+				fprintf( aFP, "\t %s\n", rule.c_str() );
+			#else
+				fprintf(aFP,"\t %s\n",itBR->c_str());
 			#endif
-			fprintf(aFP,"\t %s\n",itBR->c_str());
 		}
 	#endif
 }
