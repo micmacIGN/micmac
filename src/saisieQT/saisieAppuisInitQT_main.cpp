@@ -105,12 +105,15 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     if (aModeOri == "GRID")
     {
+       ELISE_ASSERT(false,"saisieAppuisInitQT_main.cpp GRID : no compile ..."); //MPD
+/*
         aCom += " +ModeOriIm=eGeomImageGrille"
                 + std::string(" +Conik=false")
                 +  std::string(" +ZIncIsProp=false")
                 //+ " +PostFixOri=GRIBin"
                 + " +Px1Inc="+ ToString(aZInc) + std::string(" ")
                 + " +Px1Moy="+ ToString(aZMoy) + std::string(" ");
+*/
 
         //aCom += std::string(" +Geom=eGeomMNTFaisceauIm1ZTerrain_Px1D");
     }

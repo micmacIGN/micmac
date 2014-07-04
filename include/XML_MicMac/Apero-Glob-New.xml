@@ -71,6 +71,10 @@
                <eSymb>  DoPolyn1=  SupEq ${DegGen} 1 </eSymb>
                <eSymb>  DoPolyn2=  SupEq ${DegGen} 2 </eSymb>
                <eSymb>  DoPolyn3=  SupEq ${DegGen} 3 </eSymb>
+               <eSymb>  DoPolyn4=  SupEq ${DegGen} 4 </eSymb>
+               <eSymb>  DoPolyn5=  SupEq ${DegGen} 5 </eSymb>
+               <eSymb>  DoPolyn6=  SupEq ${DegGen} 6 </eSymb>
+               <eSymb>  DoPolyn7=  SupEq ${DegGen} 7 </eSymb>
 
 
        </DicoLoc>
