@@ -151,9 +151,7 @@ void GLWidget::overlay()
         if (_widgetId < 0)
                     m_GLData->drawCenter();
 
-/*        if (m_bDisplayMode2D )
-            _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom); // TODO : surement inutile
-        else*/ if(m_interactionMode == SELECTION)
+        if(m_interactionMode == SELECTION)
             _matrixManager.setMatrixDrawViewPort();
 
         for (int i = 0; i < m_GLData->polygonCount(); ++i)
@@ -201,10 +199,8 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
 
 void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
 {
-    float vpCenterX = vpWidth() *.5f;
-    float vpCenterY = vpHeight()*.5f;
 
-    m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
+    m_lastClickZoom = QPoint((int) (vpWidth()*.5f), (int) (vpHeight()*.5f));
 
     _matrixManager.resetMatrixProjection(-pt.x(), -pt.y());
 
