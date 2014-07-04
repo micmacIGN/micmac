@@ -333,6 +333,14 @@ void MatrixManager::setMatrixDrawViewPort()
     glLoadIdentity();
 }
 
+void MatrixManager::applyAllTransformation(bool mode2D,QPoint pt,float zoom)
+{
+    if (mode2D)
+        doProjection(pt, zoom);
+    else
+        SetArcBallCamera(zoom);
+}
+
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
 {
 
