@@ -515,11 +515,8 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool 
         setOption(cGLData::OpShow_Grid, m_interactionMode == TRANSFORM_CAMERA);
 
         if (m_interactionMode == SELECTION)
-        {
-            _matrixManager.setMatrices();
 
             setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams,false);
-        }
     }
 
     if (zoomfit)

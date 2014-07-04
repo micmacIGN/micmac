@@ -36,8 +36,7 @@ void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei heigh
 }
 
 void MatrixManager::doProjection(QPointF point, float zoom)
-{
-    //glPushMatrix();
+{    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glMultMatrixd(_projMatrix);
@@ -70,16 +69,6 @@ void MatrixManager::doProjection(QPointF point, float zoom)
 
 }
 
-void MatrixManager::getProjection3D(QPointF &P2D, Pt3dr &P)
-{
-    GLint recal = _glViewport[3] - (GLint) P2D.y() - 1;
-
-    GLdouble xp,yp,zp;
-    mmUnProject((GLdouble) P2D.x(),(GLdouble) recal, 1.f,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
-
-    P = Pt3dr(xp,yp,zp);
-}
-
 GLdouble MatrixManager::rY() const
 {
     return _rY;
@@ -105,23 +94,18 @@ void MatrixManager::resetMatrixProjection(float x, float y)
 
 void MatrixManager::translate(float tX, float tY, float tZ)
 {    
+    float inverMat[4][4];
 
-        float inverMat[4][4];
+    float translation[3];
+    translation[0] = tX;
+    translation[1] = tY;
+    translation[2] = tZ;
 
-        float translation[3];
-        translation[0] = tX;
-        translation[1] = tY;
-        translation[2] = tZ;
+    MatrixInverse(_mvMatrix, inverMat,translation); // on se place dans le repere
 
-        MatrixInverse(_mvMatrix, inverMat,translation); // on se place dans le repere
-
-        m_translationMatrix[0] += translation[0];
-        m_translationMatrix[1] += translation[1];
-        m_translationMatrix[2] += translation[2];
-
-//    m_translationMatrix[0] += tX;
-//    m_translationMatrix[1] += tY;
-//    m_translationMatrix[2] += tZ;
+    m_translationMatrix[0] += translation[0];
+    m_translationMatrix[1] += translation[1];
+    m_translationMatrix[2] += translation[2];
 }
 
 void MatrixManager::setMatrices()
@@ -223,16 +207,6 @@ void MatrixManager::resetModelViewMatrix()
     glGetDoublev (GL_MODELVIEW_MATRIX, getModelViewMatrix());
 }
 
-void MatrixManager::applyTransfo()
-{
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glPushMatrix();
-
-    glMultMatrixd(m_rotationMatrix);
-    //glTranslated(m_translationMatrix[0],m_translationMatrix[1],m_translationMatrix[2]);
-}
-
 void MatrixManager::setModelViewMatrix()
 {
     glMatrixMode(GL_MODELVIEW);
@@ -286,23 +260,6 @@ void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerSce
     glGetDoublev(GL_MODELVIEW_MATRIX, m_rotationMatrix);
 
     resetTranslationMatrix(centerScene);
-}
-
-void MatrixManager::rotate(GLdouble* matrix, float rX, float rY, float rZ, float factor)
-{
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMultMatrixd(matrix);
-
-    glRotated(rX * factor,1.0,0.0,0.0);
-    glRotated(rY * factor,0.0,1.0,0.0);
-    glRotated(rZ * factor,0.0,0.0,1.0);
-    glGetDoublev(GL_MODELVIEW_MATRIX, matrix);
-}
-
-void MatrixManager::rotate(float rX, float rY, float rZ, float factor)
-{
-    rotate(m_rotationMatrix, rX, rY, rZ, factor);
 }
 
 void MatrixManager::SetArcBallCamera(float zoom)
@@ -375,7 +332,6 @@ void MatrixManager::setMatrixDrawViewPort()
     glScalef(2.f/(float)_glViewport[2],2.f/(float)_glViewport[3],1.f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
 }
 
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
@@ -466,7 +422,7 @@ void MatrixManager::setSceneTopo(const Pt3d<double> &centerScene,float diametre)
 
 QPointF MatrixManager::screen2TransABall(QPointF ptScreen)
 {
-    return QPointF(ptScreen .x()/((float)vpWidth()*_projMatrix[0]),/*-ptScreen .y()/((float)vpHeight()*_projMatrix[4])*/0)*2.f;
+    return QPointF(ptScreen .x()/((float)vpWidth()*_projMatrix[0]),-ptScreen .y()/((float)vpHeight()*_projMatrix[5]))*2.f;
 }
 
 GLdouble MatrixManager::distance() const
