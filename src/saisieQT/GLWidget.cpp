@@ -94,11 +94,7 @@ cPolygon *GLWidget::polygon(int id){ return m_GLData->polygon(id); }
 
 cPolygon *GLWidget::polygon(){
 
-    if(m_GLData)
-        return m_GLData->currentPolygon();
-    else
-        return NULL;
-
+    return m_GLData ? m_GLData->currentPolygon() : NULL;
 }
 
 void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
@@ -116,9 +112,7 @@ void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2
 
 void GLWidget::setTranslation(Pt3d<double> trans)
 {
-    _matrixManager.m_translationMatrix[0] = -trans.x;
-    _matrixManager.m_translationMatrix[1] = -trans.y;
-    _matrixManager.m_translationMatrix[2] = -trans.z;
+    _matrixManager.resetTranslationMatrix(trans);
 }
 
 bool GLWidget::imageLoaded()
@@ -145,11 +139,7 @@ void GLWidget::paintGL()
         }
         else
         {            
-//            _matrixManager.setDistance(_vp_Params.m_zoom);
-//            _matrixManager.glOrthoZoom(_vp_Params.m_zoom,_vp_Params.m_zoom + getGLData()->getBBoxMaxSize());
             _matrixManager.SetArcBallCamera(_vp_Params.m_zoom);
-
-
             m_GLData->draw();
         }
 
@@ -190,12 +180,9 @@ void GLWidget::overlay()
 
                         if (pt.showName() && (pt.name() != ""))
                         {
-                            QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom);
+                            QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom) + QPointF(10.f,-5.f);
 
-                            QColor color(pt.isSelected() ? Qt::blue : Qt::white);
-                            glColor3f(color.redF(),color.greenF(),color.blueF());
-
-                            renderText ( wPt.x() + 10, wPt.y() - 5, pt.name() );
+                            _messageManager.glRenderText(pt.name(),wPt, pt.isSelected() ? Qt::blue : Qt::white);
                         }
                     }
                 }
