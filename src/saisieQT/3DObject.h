@@ -740,8 +740,8 @@ public:
       OpShow_BBox   = 0x04,
       OpShow_Mess   = 0x08,
       OpShow_Cams   = 0x10,
-      OpShow_Grid   = 0x20
-    //  OpShow_next      = 0x40
+      OpShow_Grid   = 0x20,
+      //OpShow_Cent   = 0x40
       // ...
     };
 
@@ -766,7 +766,9 @@ public:
     cMaskedImageGL &glImage();
 
     cPolygon*   polygon(int id = 0);
+
     cPolygon*   currentPolygon();
+
     QVector<cPolygon*> polygons() { return _vPolygons; }
 
     GlCloud*    getCloud(int iC);
@@ -783,7 +785,10 @@ public:
 
     void        setPolygons(cData *data);
 
-    void setOptionPolygons(cParameters aParams);
+    void        setOptionPolygons(cParameters aParams);
+
+    void        drawCenter();
+
 private:
 
     cMaskedImageGL      _glMaskedImage;
@@ -817,8 +822,7 @@ private:
 
     float       _diam;
 
-    bool        _incFirstCloud;
-
+    bool        _incFirstCloud;        
 
 };
 

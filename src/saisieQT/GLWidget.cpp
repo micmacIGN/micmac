@@ -130,23 +130,12 @@ void GLWidget::paintGL()
     glClear(GL_DEPTH_BUFFER_BIT);
 
     if (hasDataLoaded())
-    {       
-        if (m_bDisplayMode2D)
-        {
-            _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom);
+    {               
+        _matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,_vp_Params.m_zoom);
 
-            m_GLData->glImage().draw();
-        }
-        else
-        {            
-            _matrixManager.SetArcBallCamera(_vp_Params.m_zoom);
-            m_GLData->draw();
-        }
+        m_GLData->draw();
 
         overlay();
-
-        if (_widgetId < 0) // TODO a retirer --> gestion intrinsèque des contenues
-            drawCenter();
 
         if (_messageManager.drawMessages() && !m_bDisplayMode2D)
             computeFPS(_messageManager.LastMessage());
@@ -159,9 +148,10 @@ void GLWidget::overlay()
 {
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)) )
     {
-        if (m_bDisplayMode2D )
-            _matrixManager.doProjection(m_lastClickZoom, _vp_Params.m_zoom); // TODO : surement inutile
-        else if(m_interactionMode == SELECTION)
+        if (_widgetId < 0)
+                    m_GLData->drawCenter();
+
+        if(m_interactionMode == SELECTION)
             _matrixManager.setMatrixDrawViewPort();
 
         for (int i = 0; i < m_GLData->polygonCount(); ++i)
@@ -209,10 +199,8 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
 
 void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
 {
-    float vpCenterX = vpWidth() *.5f;
-    float vpCenterY = vpHeight()*.5f;
 
-    m_lastClickZoom = QPoint((int) vpCenterX, (int) vpCenterY);
+    m_lastClickZoom = QPoint((int) (vpWidth()*.5f), (int) (vpHeight()*.5f));
 
     _matrixManager.resetMatrixProjection(-pt.x(), -pt.y());
 
@@ -371,27 +359,10 @@ void GLWidget::setCursorShape(QPointF pos, QPointF mPos)
         c = QCursor(cuCross, cuCross.width()/2, cuCross.height()/2);
     }
     else
-    {
         c.setShape(Qt::ArrowCursor);
-        //c.setPos();
-    }
+
 
     setCursor(c);
-}
-
-void GLWidget::drawCenter()
-{
-    float radius = .06f;
-    float mini   = .01f;
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-        glLoadIdentity();
-        _matrixManager.glOrthoZoom(1.f,1.f);
-        glColor3f(0.f,0.f,0.f);
-        glDrawEllipse( 0.f, 0.f, radius, radius);
-        glDrawEllipse( 0.f, 0.f, mini, mini);
-    glPopMatrix();
 }
 
 void GLWidget::Select(int mode, bool saveInfos)

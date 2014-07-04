@@ -98,6 +98,8 @@ public:
 
     void        setMatrixDrawViewPort();
 
+    void        applyAllTransformation(bool mode2D, QPoint pt, float zoom);
+
     GLdouble rY() const;
     void setRY(const GLdouble &rY);
 

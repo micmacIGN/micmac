@@ -1816,30 +1816,55 @@ cGLData::~cGLData()
 
 void cGLData::draw()
 {
-    enableOptionLine();
 
-    for (int i=0; i<_vClouds.size();i++)
+    if(!is3D())
+        glImage().draw();
+    else
     {
-        GLfloat oldPointSize;
-        glGetFloatv(GL_POINT_SIZE,&oldPointSize);
+        enableOptionLine();
 
-        if(_incFirstCloud && i == 0)
-            glPointSize(oldPointSize*3.f);
+        for (int i=0; i<_vClouds.size();i++)
+        {
+            GLfloat oldPointSize;
+            glGetFloatv(GL_POINT_SIZE,&oldPointSize);
 
-         _vClouds[i]->draw();
+            if(_incFirstCloud && i == 0)
+                glPointSize(oldPointSize*3.f);
 
-         glPointSize(oldPointSize);
+            _vClouds[i]->draw();
+
+            glPointSize(oldPointSize);
+        }
+
+        _pBall->draw();
+        _pAxis->draw();
+        _pBbox->draw();
+        _pGrid->draw();
+
+        //cameras
+        for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
+
+        disableOptionLine();
     }
+}
 
-    _pBall->draw();
-    _pAxis->draw();
-    _pBbox->draw();
-    _pGrid->draw();
+void cGLData::drawCenter()
+{
+    float radius = 6.f;
+    float mini   = 1.f;
 
-    //cameras
-    for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
+    GLint       glViewport[4];
+    glGetIntegerv(GL_VIEWPORT, glViewport);
 
-    disableOptionLine();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glScalef(2.f/(float)glViewport[2],2.f/(float)glViewport[3],1.f);
+    glColor3f(0.f,0.f,0.f);
+    glDrawEllipse( 0.f, 0.f, radius, radius);
+    glDrawEllipse( 0.f, 0.f, mini, mini);
+    glPopMatrix();
+
 }
 
 void cGLData::normalizeCurrentPolygon(bool nrm)
