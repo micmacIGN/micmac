@@ -652,6 +652,8 @@ public:
 
     int size(){ return m_messagesToDisplay.size(); }
 
+    void    glRenderText(QString text,QPointF pt,QColor color);
+
 private:
 
     bool _bDrawMessages;

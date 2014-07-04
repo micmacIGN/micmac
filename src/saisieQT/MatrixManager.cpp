@@ -193,6 +193,9 @@ void MatrixManager::resetAllMatrix(Pt3d<double> center)
     _targetCamera.y = 0;
     _targetCamera.z = 0;
 
+    _distance = 10.f;
+    _upY = 1.f;
+
     resetRotationMatrix();
 
     resetModelViewMatrix();
@@ -231,35 +234,35 @@ void MatrixManager::glOrthoZoom(float zoom, float farr)
 
 void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerScene)
 {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    _centerScene = centerScene;
+    resetAllMatrix(centerScene);
 
     switch (orientation)
     {
     case TOP_VIEW:
-        glRotatef(90.0f,1.0f,0.0f,0.0f);
+        _rX = PI;
+        _rY = PI/2.f;
         break;
     case BOTTOM_VIEW:
-        glRotatef(-90.0f,1.0f,0.0f,0.0f);
+        _rX = 0.0;
+        _rY = 0.0;
         break;
     case FRONT_VIEW:
-        glRotatef(0.0,1.0f,0.0f,0.0f);
+        _rX = PI;
+        _rY = 0.0;
         break;
     case BACK_VIEW:
-        glRotatef(180.0f,0.0f,1.0f,0.0f);
+        _rX = PI;
+        _rY = -PI/2.f;
         break;
     case LEFT_VIEW:
-        glRotatef(90.0f,0.0f,1.0f,0.0f);
+        _rX = PI/2.f;
+        _rY = 0.0;
         break;
     case RIGHT_VIEW:
-        glRotatef(-90.0f,0.0f,1.0f,0.0f);
+
+        _rX = -PI/2.f;
+        _rY = 0.0;
     }
-
-    glGetDoublev(GL_MODELVIEW_MATRIX, m_rotationMatrix);
-
-    resetTranslationMatrix(centerScene);
 }
 
 void MatrixManager::SetArcBallCamera(float zoom)
@@ -285,9 +288,7 @@ void MatrixManager::SetArcBallCamera(float zoom)
                   _targetCamera.x, _targetCamera.y, _targetCamera.z,    // Look at point
                   0.0, _upY, 0.0);
 
-    m_translationMatrix[0] = 0;
-    m_translationMatrix[1] = 0;
-    m_translationMatrix[2] = 0;
+    resetTranslationMatrix();
 
     glGetDoublev(GL_MODELVIEW_MATRIX,  _mvMatrix);
     glGetDoublev(GL_PROJECTION_MATRIX, _projMatrix); // TODO a placer pour le realiser une seule fois
@@ -305,8 +306,6 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
     _lR = (projMouse.x() < centerProj.x()) ? -1 : 1;
     _uD = (projMouse.y() > centerProj.y()) ? -1 : 1;
 
-    float hAngle = PI / 24;
-
 
     if(rY()>0)
         _uD = -_uD;
@@ -315,10 +314,10 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
        (rY()> PI && rY() < 2.f * PI))
          _uD = - _uD;
 
-    if((abs(rY()) < hAngle))
+    if((abs(rY()) < HANGLE))
         _uD = 1;
-    else if (((abs(rY()) < PI + hAngle) &&
-            (abs(rY()) > PI - hAngle)))
+    else if (((abs(rY()) < PI + HANGLE ) &&
+            (abs(rY()) > PI - HANGLE)))
         _uD = -1;
 
 }
