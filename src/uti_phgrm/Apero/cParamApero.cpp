@@ -1906,6 +1906,47 @@ void xml_init(cRappelOnCentres & anObj,cElXMLTree * aTree)
 std::string  Mangling( cRappelOnCentres *) {return "A2CA6920A1657380FE3F";};
 
 
+cParamForceRappel & cRappelOnIntrinseque::ParamF()
+{
+   return mParamF;
+}
+
+const cParamForceRappel & cRappelOnIntrinseque::ParamF()const 
+{
+   return mParamF;
+}
+
+void  BinaryUnDumpFromFile(cRappelOnIntrinseque & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ParamF(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cRappelOnIntrinseque & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ParamF());
+}
+
+cElXMLTree * ToXMLTree(const cRappelOnIntrinseque & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"RappelOnIntrinseque",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.ParamF())->ReTagThis("ParamF"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cRappelOnIntrinseque & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ParamF(),aTree->Get("ParamF",1)); //tototo 
+}
+
+std::string  Mangling( cRappelOnIntrinseque *) {return "754E5035B214CC95FE3F";};
+
+
 std::list< cRappelOnAngles > & cSectionLevenbergMarkard::RappelOnAngles()
 {
    return mRappelOnAngles;
@@ -1925,6 +1966,17 @@ std::list< cRappelOnCentres > & cSectionLevenbergMarkard::RappelOnCentres()
 const std::list< cRappelOnCentres > & cSectionLevenbergMarkard::RappelOnCentres()const 
 {
    return mRappelOnCentres;
+}
+
+
+std::list< cRappelOnIntrinseque > & cSectionLevenbergMarkard::RappelOnIntrinseque()
+{
+   return mRappelOnIntrinseque;
+}
+
+const std::list< cRappelOnIntrinseque > & cSectionLevenbergMarkard::RappelOnIntrinseque()const 
+{
+   return mRappelOnIntrinseque;
 }
 
 void  BinaryUnDumpFromFile(cSectionLevenbergMarkard & anObj,ELISE_fp & aFp)
@@ -1947,6 +1999,15 @@ void  BinaryUnDumpFromFile(cSectionLevenbergMarkard & anObj,ELISE_fp & aFp)
               anObj.RappelOnCentres().push_back(aVal);
         }
   } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cRappelOnIntrinseque aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.RappelOnIntrinseque().push_back(aVal);
+        }
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionLevenbergMarkard & anObj)
@@ -1960,6 +2021,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionLevenbergMarkard & anObj)
     BinaryDumpInFile(aFp,(int)anObj.RappelOnCentres().size());
     for(  std::list< cRappelOnCentres >::const_iterator iT=anObj.RappelOnCentres().begin();
          iT!=anObj.RappelOnCentres().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.RappelOnIntrinseque().size());
+    for(  std::list< cRappelOnIntrinseque >::const_iterator iT=anObj.RappelOnIntrinseque().begin();
+         iT!=anObj.RappelOnIntrinseque().end();
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
@@ -1981,6 +2048,12 @@ cElXMLTree * ToXMLTree(const cSectionLevenbergMarkard & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("RappelOnCentres"));
+  for
+  (       std::list< cRappelOnIntrinseque >::const_iterator it=anObj.RappelOnIntrinseque().begin();
+      it !=anObj.RappelOnIntrinseque().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("RappelOnIntrinseque"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -1994,9 +2067,11 @@ void xml_init(cSectionLevenbergMarkard & anObj,cElXMLTree * aTree)
    xml_init(anObj.RappelOnAngles(),aTree->GetAll("RappelOnAngles",false,1));
 
    xml_init(anObj.RappelOnCentres(),aTree->GetAll("RappelOnCentres",false,1));
+
+   xml_init(anObj.RappelOnIntrinseque(),aTree->GetAll("RappelOnIntrinseque",false,1));
 }
 
-std::string  Mangling( cSectionLevenbergMarkard *) {return "F1B79F6ED6C1A483FD3F";};
+std::string  Mangling( cSectionLevenbergMarkard *) {return "807C30A68BB488E6FABF";};
 
 
 std::string & cSetOrientationInterne::KeyFile()
@@ -9563,7 +9638,114 @@ void xml_init(cSectionSolveur & anObj,cElXMLTree * aTree)
    xml_init(anObj.Im2Aff(),aTree->Get("Im2Aff",1)); //tototo 
 }
 
-std::string  Mangling( cSectionSolveur *) {return "A8F864BAADEA4AFBFD3F";};
+std::string  Mangling( cSectionSolveur *) {return "72470B15A77312E9FE3F";};
+
+
+cTplValGesInit< int > & cCtrlTimeCompens::NbMin()
+{
+   return mNbMin;
+}
+
+const cTplValGesInit< int > & cCtrlTimeCompens::NbMin()const 
+{
+   return mNbMin;
+}
+
+
+int & cCtrlTimeCompens::NbMax()
+{
+   return mNbMax;
+}
+
+const int & cCtrlTimeCompens::NbMax()const 
+{
+   return mNbMax;
+}
+
+
+double & cCtrlTimeCompens::SeuilEvolMoy()
+{
+   return mSeuilEvolMoy;
+}
+
+const double & cCtrlTimeCompens::SeuilEvolMoy()const 
+{
+   return mSeuilEvolMoy;
+}
+
+
+cTplValGesInit< double > & cCtrlTimeCompens::SeuilEvolMax()
+{
+   return mSeuilEvolMax;
+}
+
+const cTplValGesInit< double > & cCtrlTimeCompens::SeuilEvolMax()const 
+{
+   return mSeuilEvolMax;
+}
+
+void  BinaryUnDumpFromFile(cCtrlTimeCompens & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NbMin().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbMin().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbMin().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.NbMax(),aFp);
+    BinaryUnDumpFromFile(anObj.SeuilEvolMoy(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SeuilEvolMax().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SeuilEvolMax().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SeuilEvolMax().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCtrlTimeCompens & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NbMin().IsInit());
+    if (anObj.NbMin().IsInit()) BinaryDumpInFile(aFp,anObj.NbMin().Val());
+    BinaryDumpInFile(aFp,anObj.NbMax());
+    BinaryDumpInFile(aFp,anObj.SeuilEvolMoy());
+    BinaryDumpInFile(aFp,anObj.SeuilEvolMax().IsInit());
+    if (anObj.SeuilEvolMax().IsInit()) BinaryDumpInFile(aFp,anObj.SeuilEvolMax().Val());
+}
+
+cElXMLTree * ToXMLTree(const cCtrlTimeCompens & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CtrlTimeCompens",eXMLBranche);
+   if (anObj.NbMin().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbMin"),anObj.NbMin().Val())->ReTagThis("NbMin"));
+   aRes->AddFils(::ToXMLTree(std::string("NbMax"),anObj.NbMax())->ReTagThis("NbMax"));
+   aRes->AddFils(::ToXMLTree(std::string("SeuilEvolMoy"),anObj.SeuilEvolMoy())->ReTagThis("SeuilEvolMoy"));
+   if (anObj.SeuilEvolMax().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilEvolMax"),anObj.SeuilEvolMax().Val())->ReTagThis("SeuilEvolMax"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cCtrlTimeCompens & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.NbMin(),aTree->Get("NbMin",1),int(0)); //tototo 
+
+   xml_init(anObj.NbMax(),aTree->Get("NbMax",1)); //tototo 
+
+   xml_init(anObj.SeuilEvolMoy(),aTree->Get("SeuilEvolMoy",1)); //tototo 
+
+   xml_init(anObj.SeuilEvolMax(),aTree->Get("SeuilEvolMax",1)); //tototo 
+}
+
+std::string  Mangling( cCtrlTimeCompens *) {return "683DC5C2BFAD0C9CFBBF";};
 
 
 std::vector<int> & cPose2Init::ProfMin()
@@ -13073,6 +13255,61 @@ void xml_init(cTestInteractif & anObj,cElXMLTree * aTree)
 std::string  Mangling( cTestInteractif *) {return "6CBE59924D172FDAFC3F";};
 
 
+cTplValGesInit< int > & cIterationsCompensation::NbMin()
+{
+   return CtrlTimeCompens().Val().NbMin();
+}
+
+const cTplValGesInit< int > & cIterationsCompensation::NbMin()const 
+{
+   return CtrlTimeCompens().Val().NbMin();
+}
+
+
+int & cIterationsCompensation::NbMax()
+{
+   return CtrlTimeCompens().Val().NbMax();
+}
+
+const int & cIterationsCompensation::NbMax()const 
+{
+   return CtrlTimeCompens().Val().NbMax();
+}
+
+
+double & cIterationsCompensation::SeuilEvolMoy()
+{
+   return CtrlTimeCompens().Val().SeuilEvolMoy();
+}
+
+const double & cIterationsCompensation::SeuilEvolMoy()const 
+{
+   return CtrlTimeCompens().Val().SeuilEvolMoy();
+}
+
+
+cTplValGesInit< double > & cIterationsCompensation::SeuilEvolMax()
+{
+   return CtrlTimeCompens().Val().SeuilEvolMax();
+}
+
+const cTplValGesInit< double > & cIterationsCompensation::SeuilEvolMax()const 
+{
+   return CtrlTimeCompens().Val().SeuilEvolMax();
+}
+
+
+cTplValGesInit< cCtrlTimeCompens > & cIterationsCompensation::CtrlTimeCompens()
+{
+   return mCtrlTimeCompens;
+}
+
+const cTplValGesInit< cCtrlTimeCompens > & cIterationsCompensation::CtrlTimeCompens()const 
+{
+   return mCtrlTimeCompens;
+}
+
+
 cTplValGesInit< bool > & cIterationsCompensation::DoIt()
 {
    return mDoIt;
@@ -13814,6 +14051,14 @@ void  BinaryUnDumpFromFile(cIterationsCompensation & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.CtrlTimeCompens().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CtrlTimeCompens().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CtrlTimeCompens().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.DoIt().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.DoIt().ValForcedForUnUmp(),aFp);
         }
@@ -13997,6 +14242,8 @@ void  BinaryUnDumpFromFile(cIterationsCompensation & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cIterationsCompensation & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.CtrlTimeCompens().IsInit());
+    if (anObj.CtrlTimeCompens().IsInit()) BinaryDumpInFile(aFp,anObj.CtrlTimeCompens().Val());
     BinaryDumpInFile(aFp,anObj.DoIt().IsInit());
     if (anObj.DoIt().IsInit()) BinaryDumpInFile(aFp,anObj.DoIt().Val());
     BinaryDumpInFile(aFp,anObj.SLMIter().IsInit());
@@ -14071,6 +14318,8 @@ cElXMLTree * ToXMLTree(const cIterationsCompensation & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"IterationsCompensation",eXMLBranche);
+   if (anObj.CtrlTimeCompens().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.CtrlTimeCompens().Val())->ReTagThis("CtrlTimeCompens"));
    if (anObj.DoIt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DoIt"),anObj.DoIt().Val())->ReTagThis("DoIt"));
    if (anObj.SLMIter().IsInit())
@@ -14149,6 +14398,8 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
+   xml_init(anObj.CtrlTimeCompens(),aTree->Get("CtrlTimeCompens",1)); //tototo 
+
    xml_init(anObj.DoIt(),aTree->Get("DoIt",1),bool(true)); //tototo 
 
    xml_init(anObj.SLMIter(),aTree->Get("SLMIter",1)); //tototo 
@@ -14194,7 +14445,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "E627584732E8FE84FE3F";};
+std::string  Mangling( cIterationsCompensation *) {return "77D5CCE84152828DFF3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -21076,7 +21327,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "6EC5F86C0CBC728BFF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "18C75E524D9D11A0FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -21135,7 +21386,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "6A5D37184EEA3FFAFD3F";};
+std::string  Mangling( cSectionCompensation *) {return "145655EB9A6DFAA6FC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -22058,6 +22309,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "5C1B616418A6CEA5FF3F";};
+std::string  Mangling( cParamApero *) {return "EE1E819B5E53D7C4FD3F";};
 
 // };

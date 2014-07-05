@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1511]) = {
+const char * (theNameVar_ParamApero[1521]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -274,6 +274,9 @@ const char * (theNameVar_ParamApero[1511]) = {
 "          <!-- A priori idiot de mettre de la viscosite si deja force de rappel en GPS -->\n",
 "          <OnlyWhenNoCentreInit Nb=\"?\" Type=\"bool\" Def=\"true\"> </OnlyWhenNoCentreInit>\n",
 "    </RappelOnCentres>\n",
+"    <RappelOnIntrinseque Nb=\"*\">\n",
+"          <ParamF Nb=\"1\" RefType=\"ParamForceRappel\" AccessorFils=\"false\"> </ParamF> \n",
+"    </RappelOnIntrinseque>\n",
 "</SectionLevenbergMarkard>\n",
 "\n",
 "\n",
@@ -927,6 +930,13 @@ const char * (theNameVar_ParamApero[1511]) = {
 "      donc que les objets modifies\n",
 "-->\n",
 "		 <IterationsCompensation Nb=\"*\" Container=\"std::vector\">\n",
+"\n",
+"                     <CtrlTimeCompens Nb=\"?\">\n",
+"                           <NbMin Nb=\"?\" Type=\"int\" Def=\"0\"> </NbMin>\n",
+"                           <NbMax Nb=\"1\" Type=\"int\">         </NbMax>\n",
+"                           <SeuilEvolMoy Nb=\"1\" Type=\"double\">  </SeuilEvolMoy>\n",
+"                           <SeuilEvolMax Nb=\"?\" Type=\"double\">  </SeuilEvolMax>  <!-- Default 2*SeuilEvolMoy -->\n",
+"                     </CtrlTimeCompens>\n",
 "                     <DoIt Nb=\"?\" Type=\"bool\" Def=\"true\"> </DoIt> <!-- Add to make easier the control with symbol -->\n",
 "		     <SLMIter  Nb=\"?\" RefType=\"SectionLevenbergMarkard\"> </SLMIter>\n",
 "		     <SLMEtape  Nb=\"?\" RefType=\"SectionLevenbergMarkard\"> </SLMEtape>\n",

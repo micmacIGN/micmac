@@ -891,6 +891,12 @@ void cAppliApero::NormaliseScTr(CamStenope & aCam)
    aCam.StdNormalise(mParam.NormaliseEqSc().Val(),mParam.NormaliseEqTr().Val());
 }
 
+
+void cCalibCam::AddViscosite(const std::vector<double> & aTol)
+{
+    mPIF.AddRapViscosite(aTol[0]);
+}
+
 cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,const cCalibrationCameraInc & aCCI,cPoseCam * aPC)
 {
     cCalibrationInternConique aCIC;

@@ -939,7 +939,12 @@ double cPackObsLiaison::AddObs
    {
        double aSqrtEr = sqrt(aSEr);
        mAppli.COUT() << "| | " << " RESIDU LIAISON MOYENS = "  
-                 <<  aSqrtEr << " pour " << mId << "\n";
+                 <<  aSqrtEr << " pour " << mId ;
+       if (aSO.PdsEvol())
+       {
+           mAppli.COUT() << " Evol, Moy=" <<  aSO.MoyEvol() << " ,Max=" << aSO.MaxEvol() ;
+       }
+       mAppli.COUT() <<  "\n";
 
 
 
