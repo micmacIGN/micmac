@@ -529,6 +529,22 @@ cParamIntrinsequeFormel::cParamIntrinsequeFormel
   NV_UpdateCurPIF();
 }
 
+
+void cParamIntrinsequeFormel::AddRapViscosite(double aTol)
+{
+    for (int aK=0 ; aK<NbInc() ; aK++)
+    {
+        AddRappViscosite
+        (
+             "cParamIntrinsequeFormel::AddViscosite",
+             true,
+             aK,
+             aTol,
+             true
+        );
+   }
+}
+
 bool cParamIntrinsequeFormel::UseAFocal() const
 {
    return mProjStenF.UseAFocal();
@@ -720,6 +736,7 @@ Fonc_Num       cParamIntrinsequeFormel::FFoc()
 cMultiContEQF cParamIntrinsequeFormel::StdContraintes()
 {
     
+
     cMultiContEQF aRes;
 
     if ( mParamVar)

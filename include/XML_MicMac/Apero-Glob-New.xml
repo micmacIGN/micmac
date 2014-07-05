@@ -12,6 +12,7 @@
                <Symb>  SeuilFE=16.5 </Symb> 
                <Symb>  TetaLVM=0.01 </Symb>
                <Symb>  CentreLVM=0.1 </Symb>
+               <Symb>  IntrLVM=0.1 </Symb>
                <Symb>  RayFEInit=0.85 </Symb>
                <Symb>  CalibIn="ABC" </Symb>
 
@@ -40,8 +41,7 @@
                <Symb> ValAff=eLiberte_Phgr_Std_Aff </Symb>
                <Symb> RapTxt=""   </Symb>
                <Symb> PoseFigee="HUyZZ9_m@@9hyY" </Symb>
-
-
+               <Symb> WithPoseFigee=false </Symb>
 
                <Symb>  DeuxIter=false </Symb>
 
@@ -75,6 +75,9 @@
                <eSymb>  DoPolyn5=  SupEq ${DegGen} 5 </eSymb>
                <eSymb>  DoPolyn6=  SupEq ${DegGen} 6 </eSymb>
                <eSymb>  DoPolyn7=  SupEq ${DegGen} 7 </eSymb>
+
+               <eSymb> WithNoPoseFigee=! ${WithPoseFigee} </eSymb>
+               <eSymb> IntrLVM1000=* 1000 ${IntrLVM} </eSymb>
 
 
        </DicoLoc>
@@ -164,7 +167,6 @@
 	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
 <!--
               <LimBsHRefut>  1e-3  </LimBsHRefut>
--->
 
               <SLMGlob> 
                  <RappelOnAngles>
@@ -177,7 +179,7 @@
                       <TetaApply> 1 </TetaApply>
                       <TetaApply> 2 </TetaApply>
                 </RappelOnAngles>
-                 <RappelOnCentres>
+                <RappelOnCentres>
                       <ParamF> 
                              <PatternNameApply> .* </PatternNameApply>
                              <Incertitude> ${CentreLVM} </Incertitude>
@@ -185,8 +187,8 @@
                       </ParamF>
                       <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
                 </RappelOnCentres>
-
              </SLMGlob>
+-->
 
         </SectionSolveur>
 
@@ -195,6 +197,36 @@
 	<SectionCompensation>
 	      <EtapeCompensation>
                    <IterationsCompensation>
+
+                       <SLMEtape> 
+                           <RappelOnAngles>
+                                <ParamF >
+                                    <PatternNameApply> .* </PatternNameApply>
+                                    <Incertitude> ${TetaLVM} </Incertitude>
+                                    <OnCur> true </OnCur>  
+                                 </ParamF>
+                                <TetaApply> 0 </TetaApply>
+                                <TetaApply> 1 </TetaApply>
+                                <TetaApply> 2 </TetaApply>
+                          </RappelOnAngles>
+                          <RappelOnCentres>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${CentreLVM} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                                <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                          </RappelOnCentres>
+                          <RappelOnIntrinseque>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${IntrLVM} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                          </RappelOnIntrinseque>
+                       </SLMEtape>
+
+
                        <SectionContraintes>
                           <ContraintesCamerasInc>
                               <Val> eAllParamFiges  </Val>
@@ -203,7 +235,20 @@
                                    <NamePose>   ${PoseFigee} </NamePose>
                                    <ByPattern>  true </ByPattern>
                                    <Val>      ePoseFigee   </Val>
-                           </ContraintesPoses>
+                          </ContraintesPoses>
+                          <#WHEN VTEST=${WithNoPoseFigee}>
+                              <ContraintesPoses>
+                                   <NamePose>   0 </NamePose>
+                                   <Val>      ePoseFigee   </Val>
+                               </ContraintesPoses>
+
+                              <ContraintesPoses>
+                                   <NamePose>   1     </NamePose>
+                                   <Val>      ePoseBaseNormee   </Val>
+                                   <PoseRattachement>   0 </PoseRattachement>
+                                </ContraintesPoses>
+                          </#WHEN>
+ 
                        </SectionContraintes>
                        <Pose2Init>
                              <ProfMin> [2,${VitesseInit}] </ProfMin>
@@ -345,7 +390,66 @@
                     </#WHEN>
 
 
-
+                    <#WHEN VTEST=${DoPolyn2}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_2      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn2 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn3}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_3      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn3 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn4}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_4      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn4 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn5}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_5      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn5 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn6}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_6      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn6 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn7}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_7      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn7 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
 
 
                     <IterationsCompensation> </IterationsCompensation> 
@@ -369,12 +473,84 @@
 
 	      <EtapeCompensation>
 
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
+                       <SLMEtape> 
+                           <RappelOnAngles>
+                                <ParamF >
+                                    <PatternNameApply> .* </PatternNameApply>
+                                    <Incertitude> ${TetaLVM} </Incertitude>
+                                    <OnCur> true </OnCur>  
+                                 </ParamF>
+                                <TetaApply> 0 </TetaApply>
+                                <TetaApply> 1 </TetaApply>
+                                <TetaApply> 2 </TetaApply>
+                          </RappelOnAngles>
+                          <RappelOnCentres>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${CentreLVM} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                                <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                          </RappelOnCentres>
+                          <RappelOnIntrinseque>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${IntrLVM1000} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                          </RappelOnIntrinseque>
+                       </SLMEtape>
+
+
+                   <IterationsCompensation>  <MultSLMEtape> 0.6 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.31 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.17 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.1 </MultSLMEtape> </IterationsCompensation>
+
+                   <IterationsCompensation>  <MultSLMEtape> 0.06 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.031 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.017 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.01 </MultSLMEtape> </IterationsCompensation>
+
+                   <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.0031 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.0017 </MultSLMEtape> </IterationsCompensation>
+                   <IterationsCompensation>  <MultSLMEtape> 0.001 </MultSLMEtape> </IterationsCompensation>
+
+
+
+		    <SectionObservations>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                          </ObsLiaisons>
+                          <TxtRapDetaille>
+                               <NameFile> ${RapTxt}</NameFile>
+                         </TxtRapDetaille>
+		    </SectionObservations>
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+
+
+                   <MultSLMEtape> 0.0 </MultSLMEtape>
+
                    <IterationsCompensation> 
+                        <CtrlTimeCompens>
+                              <NbMin > 3 </NbMin>
+                              <NbMax>    100      </NbMax>
+                              <SeuilEvolMoy > 1e-10  </SeuilEvolMoy>
+                        </CtrlTimeCompens>
                    </IterationsCompensation>
+
 
 		    <SectionObservations>
                           <ObsLiaisons>

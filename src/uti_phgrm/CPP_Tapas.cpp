@@ -278,8 +278,8 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     if (! EAMIsInit(&GlobLibPP ))       GlobLibPP = LocLibPP ;
     if (! EAMIsInit(&GlobLibCD ))       GlobLibCD = LocLibCD ;
     if (! EAMIsInit(&GlobLibFoc ))      GlobLibFoc = LocLibFoc ;
-    if (! EAMIsInit(&GlobDRadMaxUSer )) LocDRadMaxUSer = GlobDRadMaxUSer ;
-    if (! EAMIsInit(&GlobDegGen ))      LocDegGen = GlobDegGen ;
+    if (! EAMIsInit(&GlobDRadMaxUSer )) GlobDRadMaxUSer = LocDRadMaxUSer ;
+    if (! EAMIsInit(&GlobDegGen ))      GlobDegGen = LocDegGen ;
 
     FileLibere = "Param-"+aModParam+".xml";
 }
