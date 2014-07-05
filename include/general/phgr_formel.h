@@ -657,7 +657,7 @@ class cSetEqFormelles : public cNameSpaceEqF
 
 
 
-	      cParamIntrinsequeFormel * NewParamIntrNoDist(bool isDC2M,CamStenope * aCamInit,bool ParamVar=true);
+	       cParamIntrinsequeFormel * NewParamIntrNoDist(bool isDC2M,CamStenope * aCamInit,bool ParamVar=true);
 
 	       cRotationFormelle * NewRotation
                                    (
@@ -1150,6 +1150,7 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 
 
             void AssertNoAFocalParam(const std::string &);
+            void AddRapViscosite(double aTol);
 
 
         protected :

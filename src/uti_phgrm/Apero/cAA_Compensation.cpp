@@ -339,6 +339,7 @@ void cAppliApero::OneIterationCompensation(const cIterationsCompensation & anIte
     }
 
     AddObservations(anEC.SectionObservations(),IsLast,aSO);
+    mStatLastIter = aSO;
 
     // Eventuel affichage des points des images a peu de liaison
     if (mCurPbLiaison && mCurPbLiaison->Actif().Val())
@@ -782,6 +783,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
     InitLVM(mCurSLMGlob,anEC.SLMGlob(),mMulSLMGlob,anEC.MultSLMGlob());
     InitLVM(mCurSLMEtape,anEC.SLMEtape(),mMulSLMEtape,anEC.MultSLMEtape());
 
+    int aNbIterDone =0;
     for (int aK=0 ; aK<int(anEC.IterationsCompensation().size()) ; aK++)
     {
         bool kIterLast = (aK==((int)anEC.IterationsCompensation().size()-1));
@@ -789,6 +791,10 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
 
         if (anIter.DoIt().Val())
         {
+            bool GoOnIter= true;
+            int aCptInIter = 0;
+            while (GoOnIter)
+            {
 
                 TestInteractif(anIter.TestInteractif(),true);
 
@@ -958,10 +964,35 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
 
                 if (ShowMes())
                 {
-	            COUT()  << "--- End Iter " << aK << " ETAPE " << mNbEtape << "\n\n";
+	            COUT()  << "--- End Iter " << aNbIterDone << " ETAPE " << mNbEtape << "\n\n";
                 }
 
                 TestInteractif(anIter.TestInteractif(),false);
+
+                GoOnIter = false;
+
+                const cCtrlTimeCompens * aCtrl = anIter.CtrlTimeCompens().PtrVal();
+                if (aCtrl)
+                {
+                   if (aCptInIter <aCtrl->NbMin().Val() )
+                       GoOnIter = true;
+                   else if (aCptInIter >= aCtrl->NbMax())
+                   {
+                        GoOnIter = false;
+                   }
+                   else
+                   {
+                       if (mStatLastIter.PdsEvol())
+                       {
+                           double aSeuilMoy = aCtrl->SeuilEvolMoy();
+                           double aSeuilMax = aCtrl->SeuilEvolMax().ValWithDef(aSeuilMoy*2.0);
+                           GoOnIter = (mStatLastIter.MoyEvol()>=aSeuilMoy) ||  ( mStatLastIter.MaxEvol()>=aSeuilMax);
+                       }
+                   }
+                }
+                aCptInIter++;
+                aNbIterDone++;
+            }
         }
     }
 

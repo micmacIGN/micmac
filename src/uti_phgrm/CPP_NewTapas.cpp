@@ -165,8 +165,6 @@ int  GlobDegGen = 100;
 
 void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 {
-    std::string  aModParam = aMod;
-
 
     int aKModele = -1;
 
@@ -212,7 +210,6 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         LocDRadMaxUSer = 5;
 
         eModAutom = "eCalibAutomFishEyeLineaire";
-        aModParam  = Modele[3];
         if (aMod==Modele[6])
         {
             if (PropDiag<0)
@@ -228,7 +225,6 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         eModAutom = "eCalibAutomFishEyeLineaire";
         if (aMod==Modele[10])
            eModAutom = "eCalibAutomFishEyeEquiSolid";
-        aModParam  = Modele[9];
     }
     else if ((aMod==Modele[4]) || (aMod==Modele[5])) // AutoCal  +  Figee
     {
@@ -246,7 +242,6 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     else if (aMod==Modele[8])  //  FraserBasic
     {
         eModAutom = "eCalibAutomPhgrStdBasic";
-        aModParam= Modele[2];
         LocDegGen = 1;
         LocLibDec = true;
         LocDRadMaxUSer = 3;
@@ -259,7 +254,6 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
             )
     {
         eModAutom = "eCalibAutom" + aMod;
-        aModParam = "Four";
 
         LocDRadMaxUSer = 3 + (aKModele-11) * 2;
         LocDegGen = 1;
@@ -398,8 +392,12 @@ int Tapas_main(int argc,char ** argv)
         if (IsForCalib<0)
             IsForCalib=(CalibIn==NoInit); // A Changer avec cle de calib
 
-        double TetaLVM = IsForCalib ? 0.01 : 0.15;
-        double CentreLVM = IsForCalib ? 0.1 : 1.0;
+        double TetaLVM = IsForCalib ?     0.1 : 1.5;
+        double CentreLVM = IsForCalib ?   1.0 : 10.0;
+        double IntrLVM = IsForCalib ?   0.1 : 1.0;
+
+
+
         double RayFEInit = IsForCalib ? 0.85 : 0.95;
 
     // std::cout << "IFCCCCC " << IsForCalib << " " << CentreLVM << " " << RayFEInit << "\n"; getchar();
@@ -430,6 +428,7 @@ int Tapas_main(int argc,char ** argv)
                            + std::string(" +SeuilFE=") + ToString(SeuilFEAutom)
                            + std::string(" +TetaLVM=") + ToString(TetaLVM)
                            + std::string(" +CentreLVM=") + ToString(CentreLVM)
+                           + std::string(" +IntrLVM=") + ToString(IntrLVM)
                            + std::string(" +RayFEInit=") + ToString(RayFEInit)
                            + std::string(" +CalibIn=-") + CalibIn
                            + std::string(" +AeroIn=-") + AeroIn
@@ -514,7 +513,7 @@ int Tapas_main(int argc,char ** argv)
 
        if (aPoseFigee!="")
        {
-          aCom  = aCom + " +PoseFigee=" + QUOTE(aPoseFigee);
+          aCom  = aCom + " +PoseFigee=" + QUOTE(aPoseFigee) + " +WithPoseFigee=true";
        }
 
        std::cout << "Com = " << aCom << "\n";

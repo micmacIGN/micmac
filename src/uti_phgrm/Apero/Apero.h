@@ -187,6 +187,7 @@ class cCalibCam
 
         bool HasRayonMax() const;
         double RayonMax() const;
+        void AddViscosite(const std::vector<double> & aTol);
      protected :
         virtual ~cCalibCam();
 
@@ -908,19 +909,26 @@ class cOnePtsMult
         cPoseCam *  Pose0() const;
         cPoseCam *  PoseK(int aK) const;
 
-         double & MemPds();
+         double & MemPds() ;
+         Pt3dr  & MemPt() ;
+         bool    MemPtOk() const;
+         void    SetMemPtOk(bool) ;
+
+
          bool OnPRaz() const;
          void SetOnPRaz(bool);
 
     private :
         double              mMemPds;
+        Pt3dr               mMemPt;
         // std::vector<Pt2dr>  mPts;
         cNupletPtsHomologues mNPts;
         tFixedSetInt         mFlagI;
         cOneCombinMult *     mOCM;
   // Rajouter a posteriori, donc valeur def par compatibilite, c.a.d si pas specifiee,
   // tous les points appartiennent au plan de rappel
-        bool                mOnPlaneRapOnz;
+        U_INT1                 mOnPlaneRapOnz;
+        U_INT1                 mMemPtOk;
 };
 
 
@@ -957,9 +965,19 @@ class cStatObs
          void AddSEP(double aSEP);
          double SomErPond() const;
          bool   AddEq() const;
+
+         void AddEvol(const double & aPds,const double & anEvol,const double & aMaxEvol);
+         double PdsEvol() const;
+         double MaxEvol() const;
+         double MoyEvol() const;
     private :
+         void AssertPdsEvolNN() const;
+
          double mSomErPond;
          double mAddEq;
+         double mMaxEvol;
+         double mPdsEvol;
+         double mSomEvol;
 };
 
 /*
@@ -2159,6 +2177,7 @@ class cAppliApero : public NROptF1vND
         void AddLevenbergMarkard(cStatObs & aSO);
         void AddRappelOnAngle(const cRappelOnAngles & aRAO,double aMult,cStatObs & aSO);
         void AddRappelOnCentre(const cRappelOnCentres & aRAC,double aMult,cStatObs & aSO);
+        void AddRappelOnIntrinseque(const cRappelOnIntrinseque & aROI,double aMult,cStatObs & aSO);
 
 
         void AddObservationsAppuis(const std::list<cObsAppuis> &,bool IsLastIter,cStatObs & aSO);
@@ -2369,6 +2388,7 @@ class cAppliApero : public NROptF1vND
         cMajickChek                            mMajChck;
         int                                    mCptIterCompens;
         bool                                   mHasEqDr;
+        cStatObs                               mStatLastIter;
 };
 
 
