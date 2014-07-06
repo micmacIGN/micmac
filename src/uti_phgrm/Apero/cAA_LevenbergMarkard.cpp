@@ -190,6 +190,14 @@ void  cAppliApero::InitLVM
 }
 
 
+void cAppliApero:: UpdateMul(double & aMult,double aNewV,bool aModeMin)
+{
+   if (aModeMin) 
+      ElSetMin(aMult,aNewV);
+   else
+       aMult = aNewV;
+}
+
 
 
 

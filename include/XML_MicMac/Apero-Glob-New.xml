@@ -29,7 +29,6 @@
 
                <Symb>  ModeCDD=eCDD_Jamais </Symb>
 
-               <Symb> VitesseInit=4 </Symb>
                <Symb> xPRelPP=0.5  </Symb>
                <Symb> yPRelPP=0.5  </Symb>
                <Symb> PropDiagU=1.0  </Symb>
@@ -43,7 +42,7 @@
                <Symb> PoseFigee="HUyZZ9_m@@9hyY" </Symb>
                <Symb> WithPoseFigee=false </Symb>
 
-               <Symb>  DeuxIter=false </Symb>
+               <Symb>   Fast=false </Symb>
 
                <Symb>  DoPP=true    </Symb>
                <Symb>  DoCD=true    </Symb>
@@ -54,6 +53,9 @@
                <Symb>  LibPP=XXXX    </Symb>
                <Symb>  LibCD=XXXX    </Symb>
                <Symb>  LibDec=XXXX    </Symb>
+    
+               <Symb>  HasModeleAdd=false  </Symb>
+               <Symb>  ModeleAdditionnel=XXXXX  </Symb>
 
                <eSymb>  DoDR1=  SupEq ${DegRadMax} 1 </eSymb>
                <eSymb>  DoDR2=  SupEq ${DegRadMax} 2 </eSymb>
@@ -79,6 +81,7 @@
                <eSymb> WithNoPoseFigee=! ${WithPoseFigee} </eSymb>
                <eSymb> IntrLVM1000=* 1000 ${IntrLVM} </eSymb>
 
+               <eSymb>  AffineAll=! ${Fast}  </eSymb>
 
        </DicoLoc>
 
@@ -116,6 +119,15 @@
                               <AutorizeNonExisting > true </AutorizeNonExisting>
                          </CalFromFileExtern>
                    </CalValueInit>
+                   <#WHEN VTEST=${HasModeleAdd}>
+                        <DistortionAddInc>
+                               <ModUnif>
+                                     <TypeModele> ${ModeleAdditionnel}  </TypeModele>
+                               </ModUnif>
+                        </DistortionAddInc>
+                   </#WHEN>
+
+
                    <CalibPerPose>
                         <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
                         <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${CalibIn}/AutoCal@.xml  </KeyInitFromPose>
@@ -257,8 +269,14 @@
                     </IterationsCompensation>
 
 
-                    <IterationsCompensation> </IterationsCompensation>
-                    <IterationsCompensation> </IterationsCompensation>
+                    <!-- Fermeture de la boucle -->
+                    <IterationsCompensation> 
+                        <CtrlTimeCompens>
+                              <NbMin > 2 </NbMin>
+                              <NbMax>  10       </NbMax>
+                              <SeuilEvolMoy > 1e-5  </SeuilEvolMoy>
+                        </CtrlTimeCompens>
+                    </IterationsCompensation>
 
 
 		    <SectionObservations>
@@ -291,7 +309,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  DR1 </Messages>
                          </IterationsCompensation>
-                         <#WHEN VTEST=${DeuxIter}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
                     <#WHEN VTEST=${DoDR2}>
                          <IterationsCompensation>
@@ -302,7 +320,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  DR2 </Messages>
                          </IterationsCompensation>
-                         <#WHEN VTEST=${DeuxIter}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
 
 
@@ -316,7 +334,7 @@
                               </SectionContraintes>
                               <Messages>  Lib FOC </Messages>
                          </IterationsCompensation>
-                         <#WHEN VTEST=${DeuxIter}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
 
                     <!-- Liberer le point principal, aussi assez faux... -->
@@ -335,7 +353,7 @@
                               </SectionContraintes>
                               <Messages>  Lib PP </Messages>
                          </IterationsCompensation>
-                         <#WHEN VTEST=${DeuxIter}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
 
                     <#WHEN VTEST=${DoDR3}>
@@ -347,7 +365,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  DR3 </Messages>
                          </IterationsCompensation>
-                         <#WHEN VTEST=${DeuxIter}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
 
                     <#WHEN VTEST=${LibCD}>
@@ -362,7 +380,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  CD </Messages>
                          </IterationsCompensation>
-                         <#WHEN VTEST=${DeuxIter}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
 
                     <#WHEN VTEST=${DoPolyn1}>
@@ -387,6 +405,30 @@
                               </SectionContraintes>
                               <Messages>  LIB  Decentrik </Messages>
                          </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR4}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR4      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR4 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoDR5}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR5      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR5 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
 
 
@@ -399,6 +441,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  Polyn2 </Messages>
                          </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
                     <#WHEN VTEST=${DoPolyn3}>
                          <IterationsCompensation>
@@ -409,6 +452,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  Polyn3 </Messages>
                          </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
                     <#WHEN VTEST=${DoPolyn4}>
                          <IterationsCompensation>
@@ -419,6 +463,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  Polyn4 </Messages>
                          </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
                     <#WHEN VTEST=${DoPolyn5}>
                          <IterationsCompensation>
@@ -429,6 +474,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  Polyn5 </Messages>
                          </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
                     <#WHEN VTEST=${DoPolyn6}>
                          <IterationsCompensation>
@@ -439,6 +485,7 @@
                               </SectionContraintes>
                               <Messages>  LIB  Polyn6 </Messages>
                          </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
                     <#WHEN VTEST=${DoPolyn7}>
                          <IterationsCompensation>
@@ -449,7 +496,58 @@
                               </SectionContraintes>
                               <Messages>  LIB  Polyn7 </Messages>
                          </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
                     </#WHEN>
+
+                    <#WHEN VTEST=${DoDR6}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR6      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR6 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR7}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR7      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR7 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR8}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR8      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR8 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR9}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR9      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR9 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+
 
 
                     <IterationsCompensation> </IterationsCompensation> 
@@ -503,19 +601,22 @@
 
 
                    <IterationsCompensation>  <MultSLMEtape> 0.6 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.31 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.17 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.1 </MultSLMEtape> </IterationsCompensation>
+                   <#WHEN VTEST=${AffineAll}>
+                       <IterationsCompensation>  <MultSLMEtape> 0.31 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.17 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.1 </MultSLMEtape> </IterationsCompensation>
 
-                   <IterationsCompensation>  <MultSLMEtape> 0.06 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.031 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.017 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.01 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.06 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.031 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.017 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.01 </MultSLMEtape> </IterationsCompensation>
 
-                   <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.0031 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.0017 </MultSLMEtape> </IterationsCompensation>
-                   <IterationsCompensation>  <MultSLMEtape> 0.001 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.0031 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.0017 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.001 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.31 </MultSLMEtape> </IterationsCompensation>
+                   </#WHEN>
 
 
 
@@ -541,14 +642,28 @@
 	      <EtapeCompensation>
 
 
-                   <MultSLMEtape> 0.0 </MultSLMEtape>
+                   <#IF VTEST=${AffineAll}>
+                        <MultSLMEtape> 1e-7 </MultSLMEtape>
+                        <MultSLMEtape>  0   </MultSLMEtape>
+                   </#IF>
 
                    <IterationsCompensation> 
-                        <CtrlTimeCompens>
-                              <NbMin > 3 </NbMin>
-                              <NbMax>    100      </NbMax>
-                              <SeuilEvolMoy > 1e-10  </SeuilEvolMoy>
-                        </CtrlTimeCompens>
+                        <#IF VTEST=${AffineAll}>
+                              <CtrlTimeCompens>
+                                    <NbMin > 3 </NbMin>
+                                    <NbMax>    100      </NbMax>
+                                    <SeuilEvolMoy > 1e-10  </SeuilEvolMoy>
+                                    <AutoAdaptLVM>
+                                         <Mult> 1e-2  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
+                                         <ModeMin> true </ModeMin>
+                                    </AutoAdaptLVM>
+                              </CtrlTimeCompens>
+                              <CtrlTimeCompens>
+                                    <NbMin > 0 </NbMin>
+                                    <NbMax>    5      </NbMax>
+                                    <SeuilEvolMoy > 1e-5  </SeuilEvolMoy>
+                              </CtrlTimeCompens>
+                        </#IF>
                    </IterationsCompensation>
 
 

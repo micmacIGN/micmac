@@ -974,20 +974,29 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
                 const cCtrlTimeCompens * aCtrl = anIter.CtrlTimeCompens().PtrVal();
                 if (aCtrl)
                 {
+                   if (mStatLastIter.PdsEvol())
+                   {
+                      double aSeuilMoy = aCtrl->SeuilEvolMoy();
+                      double aSeuilMax = aCtrl->SeuilEvolMax().ValWithDef(aSeuilMoy*2.0);
+                      GoOnIter = (mStatLastIter.MoyEvol()>=aSeuilMoy) ||  ( mStatLastIter.MaxEvol()>=aSeuilMax);
+                      const cAutoAdaptLVM * aAAL = aCtrl->AutoAdaptLVM().PtrVal();
+                      if (aAAL)
+                      {
+                           double aNewV = aSeuilMoy * aAAL->Mult();
+                           bool aModeM =  aAAL->ModeMin().Val();
+                           UpdateMul(mMulSLMGlob,aNewV,aModeM);
+                           UpdateMul(mMulSLMEtape,aNewV,aModeM);
+                           UpdateMul(mMulSLMIter,aNewV,aModeM);
+                      }
+                   }
+
                    if (aCptInIter <aCtrl->NbMin().Val() )
+                   {
                        GoOnIter = true;
+                   }
                    else if (aCptInIter >= aCtrl->NbMax())
                    {
                         GoOnIter = false;
-                   }
-                   else
-                   {
-                       if (mStatLastIter.PdsEvol())
-                       {
-                           double aSeuilMoy = aCtrl->SeuilEvolMoy();
-                           double aSeuilMax = aCtrl->SeuilEvolMax().ValWithDef(aSeuilMoy*2.0);
-                           GoOnIter = (mStatLastIter.MoyEvol()>=aSeuilMoy) ||  ( mStatLastIter.MaxEvol()>=aSeuilMax);
-                       }
                    }
                 }
                 aCptInIter++;

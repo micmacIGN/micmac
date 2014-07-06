@@ -2625,6 +2625,31 @@ std::string  Mangling( cSectionSolveur *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cAutoAdaptLVM
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cAutoAdaptLVM & anObj,cElXMLTree * aTree);
+
+
+        double & Mult();
+        const double & Mult()const ;
+
+        cTplValGesInit< bool > & ModeMin();
+        const cTplValGesInit< bool > & ModeMin()const ;
+    private:
+        double mMult;
+        cTplValGesInit< bool > mModeMin;
+};
+cElXMLTree * ToXMLTree(const cAutoAdaptLVM &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAutoAdaptLVM &);
+
+void  BinaryUnDumpFromFile(cAutoAdaptLVM &,ELISE_fp &);
+
+std::string  Mangling( cAutoAdaptLVM *);
+
 class cCtrlTimeCompens
 {
     public:
@@ -2644,11 +2669,21 @@ class cCtrlTimeCompens
 
         cTplValGesInit< double > & SeuilEvolMax();
         const cTplValGesInit< double > & SeuilEvolMax()const ;
+
+        double & Mult();
+        const double & Mult()const ;
+
+        cTplValGesInit< bool > & ModeMin();
+        const cTplValGesInit< bool > & ModeMin()const ;
+
+        cTplValGesInit< cAutoAdaptLVM > & AutoAdaptLVM();
+        const cTplValGesInit< cAutoAdaptLVM > & AutoAdaptLVM()const ;
     private:
         cTplValGesInit< int > mNbMin;
         int mNbMax;
         double mSeuilEvolMoy;
         cTplValGesInit< double > mSeuilEvolMax;
+        cTplValGesInit< cAutoAdaptLVM > mAutoAdaptLVM;
 };
 cElXMLTree * ToXMLTree(const cCtrlTimeCompens &);
 
@@ -3723,6 +3758,15 @@ class cIterationsCompensation
 
         cTplValGesInit< double > & SeuilEvolMax();
         const cTplValGesInit< double > & SeuilEvolMax()const ;
+
+        double & Mult();
+        const double & Mult()const ;
+
+        cTplValGesInit< bool > & ModeMin();
+        const cTplValGesInit< bool > & ModeMin()const ;
+
+        cTplValGesInit< cAutoAdaptLVM > & AutoAdaptLVM();
+        const cTplValGesInit< cAutoAdaptLVM > & AutoAdaptLVM()const ;
 
         cTplValGesInit< cCtrlTimeCompens > & CtrlTimeCompens();
         const cTplValGesInit< cCtrlTimeCompens > & CtrlTimeCompens()const ;

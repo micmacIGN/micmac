@@ -119,7 +119,7 @@ void Tapas_Banniere()
 }
 
 
-#define  NbModele 15
+#define  NbModele 25
 
 const char * Modele[NbModele] = {
                                    "RadialBasic",     // 0
@@ -136,12 +136,26 @@ const char * Modele[NbModele] = {
                                    "Four7x2",          // 11
                                    "Four11x2",         // 12
                                    "Four15x2",         // 13
-                                   "Four19x2"          // 14
+                                   "Four19x2",         // 14
+
+                                   "AddFour7x2",          // 15
+                                   "AddFour11x2",         // 16
+                                   "AddFour15x2",         // 17
+                                   "AddFour19x2",         // 18
+
+                                   "AddPolyDeg2",          // 19
+                                   "AddPolyDeg3",          // 20
+                                   "AddPolyDeg4",          // 21
+                                   "AddPolyDeg5",          // 22
+                                   "AddPolyDeg6",          // 23
+                                   "AddPolyDeg7"           // 24
+
                                 };
 
 
+
+
 std::string eModAutom;
-int aDegGenMax = 100;
 double PropDiag = -1.0;
 
 
@@ -162,6 +176,20 @@ bool GlobLibFoc=true;
 int  GlobDRadMaxUSer = 100;
 int  GlobDegGen = 100;
 
+int  LocDegGen  = 100;
+bool LocLibDec = true;
+bool LocLibCD=true;
+int  LocDRadMaxUSer = 100;
+bool LocLibPP  =true;
+bool LocLibFoc=true;
+
+bool ModeleAdditional=false;
+bool ModeleAddFour=false;
+bool ModeleAddPoly=false;
+std::string TheModelAdd = "";
+
+
+
 
 void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 {
@@ -172,14 +200,13 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
        if (aMod==Modele[aK])
          aKModele = aK;
 
-    int  LocDegGen  = 100;
-    bool LocLibDec = true;
+    if (aKModele==-1)
+    {
+        ShowAuthorizedModel();
+        ELISE_ASSERT(false,"Value is not a correct model\n");
+    }
 
-    bool LocLibCD=true;
-    int  LocDRadMaxUSer = 100;
 
-    bool LocLibPP  =true;
-    bool LocLibFoc=true;
 
 
     if (aMod==Modele[0])  // RadialBasic
@@ -258,13 +285,33 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         LocDRadMaxUSer = 3 + (aKModele-11) * 2;
         LocDegGen = 1;
         LocLibDec = false;
-
-        aDegGenMax = 2;
+    }
+    else if ((aKModele>=15) && (aKModele<=24))
+    {
+        ModeleAdditional= true;
+        ModeleAddFour= (aKModele<=18);
+        ModeleAddPoly = ! ModeleAddFour;
+        if (ModeleAddFour)
+        {
+              LocDRadMaxUSer = 3 + (aKModele-15) * 2;
+              LocDegGen = 2;
+              LocLibDec = false;
+              TheModelAdd = "eModeleRadFour"+ ToString(7+4*(aKModele-15)) +"x2";
+        }
+        else if (ModeleAddPoly)
+        {
+              LocDRadMaxUSer = 0;
+              LocLibDec = false;
+              LocLibCD = false;
+              LocDegGen = 2 + (aKModele-19);
+              TheModelAdd = "eModelePolyDeg" +  ToString(LocDegGen);
+        }
+        eModAutom = "eCalibAutomNone";
     }
     else
     {
-        ShowAuthorizedModel();
-        ELISE_ASSERT(false,"Value is not a correct model\n");
+        std::cout << "For modele =" << aMod << " KMod=" << aKModele << "\n";
+        ELISE_ASSERT(false,"internal error for calib in tapas\n");
     }
 
     if (! EAMIsInit(&GlobLibDec))       GlobLibDec = LocLibDec;
@@ -324,6 +371,7 @@ int Tapas_main(int argc,char ** argv)
     std::string  aRapTxt;
     std::string  aPoseFigee="";
     bool Debug = false;
+    bool AffineAll = true;
 
 
     ElInitArgMain
@@ -358,7 +406,10 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(TolLPPCD,"LinkPPaPPs",true, "Link PPa and PPs (double)", eSAM_NoInit)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
+                    << EAM(AffineAll,"RefineAll",true,"More refinement at all step, safer and more accurate, but slower, def=true")
     );
+
+
 
     if (!MMVisualMode)
     {
@@ -396,6 +447,8 @@ int Tapas_main(int argc,char ** argv)
         double CentreLVM = IsForCalib ?   1.0 : 10.0;
         double IntrLVM = IsForCalib ?   0.1 : 1.0;
 
+
+        if (! EAMIsInit(& aVitesseInit)) aVitesseInit = AffineAll ? 2 : 5;
 
 
         double RayFEInit = IsForCalib ? 0.85 : 0.95;
@@ -441,6 +494,7 @@ int Tapas_main(int argc,char ** argv)
                            + std::string(" +LibCD=") + ToString(GlobLibCD)
                            + std::string(" +DegGen=") + ToString(GlobDegGen)
                            + std::string(" +LibDec=") + ToString(GlobLibDec)
+                           + std::string(" +Fast=") + ToString(! AffineAll)
                           ;
 
 
@@ -451,6 +505,12 @@ int Tapas_main(int argc,char ** argv)
         }
 
 
+
+        if (ModeleAdditional)
+        {
+              aCom = aCom + std::string(" +HasModeleAdd=true")
+                          + std::string(" +ModeleAdditionnel=") + TheModelAdd;
+        }
 
 
         if (EAMIsInit(&GlobLibAff) && (!GlobLibAff))

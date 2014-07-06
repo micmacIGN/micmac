@@ -2287,6 +2287,8 @@ class cAppliApero : public NROptF1vND
 
         void Bascule(const cBasculeOrientation &,bool CalleAfter);
 
+         void UpdateMul(double & aMult,double aNew,bool aModeMin);
+
 
         cParamApero     mParam;
         std::string     mDC;

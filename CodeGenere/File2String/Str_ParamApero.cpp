@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1521]) = {
+const char * (theNameVar_ParamApero[1525]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -936,6 +936,10 @@ const char * (theNameVar_ParamApero[1521]) = {
 "                           <NbMax Nb=\"1\" Type=\"int\">         </NbMax>\n",
 "                           <SeuilEvolMoy Nb=\"1\" Type=\"double\">  </SeuilEvolMoy>\n",
 "                           <SeuilEvolMax Nb=\"?\" Type=\"double\">  </SeuilEvolMax>  <!-- Default 2*SeuilEvolMoy -->\n",
+"                           <AutoAdaptLVM Nb=\"?\">\n",
+"                                <Mult Nb=\"1\" Type=\"double\">  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->\n",
+"                                <ModeMin Nb=\"?\" Type=\"bool\" Def=\"true\"> </ModeMin>\n",
+"                           </AutoAdaptLVM>\n",
 "                     </CtrlTimeCompens>\n",
 "                     <DoIt Nb=\"?\" Type=\"bool\" Def=\"true\"> </DoIt> <!-- Add to make easier the control with symbol -->\n",
 "		     <SLMIter  Nb=\"?\" RefType=\"SectionLevenbergMarkard\"> </SLMIter>\n",
