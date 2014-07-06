@@ -934,6 +934,10 @@ normalises en echelle et/ou en translation -->
                            <NbMax Nb="1" Type="int">         </NbMax>
                            <SeuilEvolMoy Nb="1" Type="double">  </SeuilEvolMoy>
                            <SeuilEvolMax Nb="?" Type="double">  </SeuilEvolMax>  <!-- Default 2*SeuilEvolMoy -->
+                           <AutoAdaptLVM Nb="?">
+                                <Mult Nb="1" Type="double">  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
+                                <ModeMin Nb="?" Type="bool" Def="true"> </ModeMin>
+                           </AutoAdaptLVM>
                      </CtrlTimeCompens>
                      <DoIt Nb="?" Type="bool" Def="true"> </DoIt> <!-- Add to make easier the control with symbol -->
 		     <SLMIter  Nb="?" RefType="SectionLevenbergMarkard"> </SLMIter>

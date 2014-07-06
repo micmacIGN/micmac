@@ -1387,7 +1387,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                 << " Mul-NN " << aNbMultPdsNN
                 <<  " Time " << aT0.uval();
 
-          if (aSomPdsEvol)
+          if (0 && aSomPdsEvol)
           {
              mAppli.COUT() << " Evol, Moy=" <<  aSomEvolPt << " Max=" << aMaxEvolPt ;
           }
