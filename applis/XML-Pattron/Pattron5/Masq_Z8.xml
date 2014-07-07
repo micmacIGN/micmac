@@ -1,0 +1,12 @@
+<FileOriMnt>
+      <NameFileMnt>/mnt/data/Archi/Villeneuve-les-Maguelone/Dieu/Ter/Z_Num4_DeZoom8_Geom-Im.tif</NameFileMnt>
+      <NameFileMasque>/mnt/data/Archi/Villeneuve-les-Maguelone/Dieu/Ter/Masq_Geom-Im_DeZoom8.tif</NameFileMasque>
+      <NombrePixels>490 759</NombrePixels>
+      <OriginePlani>0.950916727249291882 0.761306335387718858</OriginePlani>
+      <ResolutionPlani>0.00197101074714778335 -0.00197101074714778335</ResolutionPlani>
+      <OrigineAlti>0</OrigineAlti>
+      <ResolutionAlti>0.00098550537357387823</ResolutionAlti>
+      <NumZoneLambert>-1</NumZoneLambert>
+      <Geometrie>eGeomMNTEuclid</Geometrie>
+      <OrigineTgtLoc>0 0</OrigineTgtLoc>
+</FileOriMnt>
