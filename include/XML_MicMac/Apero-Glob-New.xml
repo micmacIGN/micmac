@@ -43,6 +43,8 @@
                <Symb> WithPoseFigee=false </Symb>
 
                <Symb>   Fast=false </Symb>
+               <Symb>   AutoCal=false </Symb>
+               <Symb>   CalFigee=false </Symb>
 
                <Symb>  DoPP=true    </Symb>
                <Symb>  DoCD=true    </Symb>
@@ -56,7 +58,6 @@
     
                <Symb>  HasModeleAdd=false  </Symb>
                <Symb>  ModeleAdditionnel=XXXXX  </Symb>
-
                <eSymb>  DoDR1=  SupEq ${DegRadMax} 1 </eSymb>
                <eSymb>  DoDR2=  SupEq ${DegRadMax} 2 </eSymb>
                <eSymb>  DoDR3=  SupEq ${DegRadMax} 3 </eSymb>
@@ -177,30 +178,6 @@
         <SectionSolveur>
               <ModeControleDescDic> ${ModeCDD} </ModeControleDescDic>
 	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
-<!--
-              <LimBsHRefut>  1e-3  </LimBsHRefut>
-
-              <SLMGlob> 
-                 <RappelOnAngles>
-                      <ParamF >
-                          <PatternNameApply> .* </PatternNameApply>
-                          <Incertitude> ${TetaLVM} </Incertitude>
-                          <OnCur> true </OnCur>  
-                       </ParamF>
-                      <TetaApply> 0 </TetaApply>
-                      <TetaApply> 1 </TetaApply>
-                      <TetaApply> 2 </TetaApply>
-                </RappelOnAngles>
-                <RappelOnCentres>
-                      <ParamF> 
-                             <PatternNameApply> .* </PatternNameApply>
-                             <Incertitude> ${CentreLVM} </Incertitude>
-                             <OnCur> true </OnCur>  
-                      </ParamF>
-                      <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
-                </RappelOnCentres>
-             </SLMGlob>
--->
 
         </SectionSolveur>
 
@@ -297,6 +274,27 @@
 
 	      <EtapeCompensation>
                     <IterationsCompensation> </IterationsCompensation>
+                    <#WHEN  VTEST=${AutoCal}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eAllParamLibres      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <CtrlTimeCompens>
+                                    <NbMax > 3 </NbMax>
+                                    <SeuilEvolMoy> 1e10  </SeuilEvolMoy>
+                              </CtrlTimeCompens>
+                         </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN  VTEST=${CalFigee}>
+                         <IterationsCompensation>
+                              <CtrlTimeCompens>
+                                    <NbMax > 3 </NbMax>
+                                    <SeuilEvolMoy> 1e10  </SeuilEvolMoy>
+                              </CtrlTimeCompens>
+                         </IterationsCompensation>
+                    </#WHEN>
 
 
                     <!-- D'abord 2 Coeff radiaux, car souvent focal instable -->
