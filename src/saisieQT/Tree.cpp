@@ -79,6 +79,8 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 
             std::map<std::string,cSP_PointeImage *> ptIs = pg->getPointes();
 
+
+
             for
                     (
                      std::map<std::string,cSP_PointeImage *>::iterator itM = ptIs.begin();
@@ -87,8 +89,10 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
                      )
             {
                 cSP_PointeImage * ptImag = itM->second;
-                if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible())
+                if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible() && _interface->idCImage(QString(ptImag->Image()->Name().c_str())) !=-1)
+
                     return NonSaisie;
+
             }
         }
     }
@@ -455,9 +459,10 @@ bool PointGlobalSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sour
             else if(!pg->PG()->Disparu().Val())
                 return false;
         }
-        else if(saisieBasc && sourceRow >= (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+        else if(saisieBasc && sourceRow >= (int)mAppli()->PG().size() && mAppli()->Interface()->GetCaseNamePoint(sourceRow-(int)mAppli()->PG().size()).mFree)
             return true;
-        else if(sourceRow > (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+        //else if(sourceRow > (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+        else if(sourceRow > (int)mAppli()->PG().size() && mAppli()->Interface()->GetCaseNamePoint(sourceRow-(int)mAppli()->PG().size()).mFree)
             return true;
     }
 

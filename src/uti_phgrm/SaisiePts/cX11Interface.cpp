@@ -168,6 +168,8 @@ cCaseNamePoint *  cX11_Interface::GetIndexNamePoint()
     Pt2di aKse = mMenuNamePoint->Pt2Case(Pt2di(aClk._pt));
     cCaseNamePoint * aRes =  &(mVNameCase[aKse.y]);
 
+    cout << aRes->mName << " Type "  << aRes->mTCP << endl;
+
     if (! aRes->mFree) return 0;
 
     return aRes;

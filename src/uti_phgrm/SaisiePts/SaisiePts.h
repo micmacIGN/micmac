@@ -349,6 +349,9 @@ class cVirtualInterface
 
     virtual void        Warning(std::string)=0;
 
+    cCaseNamePoint *    GetCaseNamePoint(string name);
+
+    void OUT_Map();
 protected:
 
     bool                        PtImgIsVisible(cSP_PointeImage &aPIm);
