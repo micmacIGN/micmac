@@ -10,6 +10,11 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(paren
 
     _parameters = params;
 
+    list<string> languages = ListOfVal(eEsperanto,"e");
+    list<string>::const_iterator it = languages.begin();
+    for (; it != languages.end(); it++)
+        _ui->comboBox->addItem(QString((*it).c_str()));
+
     refresh();
 
     setUpdatesEnabled(true);
@@ -128,7 +133,7 @@ void deleteChildWidgets(QLayoutItem *item)
 
 void cSettingsDlg::hidePage()
 {
-	pageHidden = true;
+    pageHidden = true;
 
     _ui->toolBox->widget(3)->hide();
     _ui->toolBox->removeItem(3);
@@ -145,7 +150,7 @@ void cSettingsDlg::hidePage()
 
 void cSettingsDlg::uiShowMasks(bool aBool)
 {
-	_ui->showMasks_checkBox->setChecked(aBool);
+    _ui->showMasks_checkBox->setChecked(aBool);
 }
 
 void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
@@ -182,6 +187,13 @@ void cSettingsDlg::on_doubleSpinBoxSz_valueChanged(double val)
     _parameters->setPtCreationWindowSize(val);
 }
 
+void cSettingsDlg::on_comboBox_activated(int val)
+{
+    _parameters->setLanguage(val);
+
+    emit langChanged(val);
+}
+
 void  cSettingsDlg::on_okButton_clicked()
 {
     _parameters->write();
@@ -192,7 +204,7 @@ void  cSettingsDlg::on_okButton_clicked()
 void cSettingsDlg::on_cancelButton_clicked()
 {
     _parameters->read();
-	
+
     refresh();
 
     reject();
@@ -211,42 +223,44 @@ void cSettingsDlg::refresh()
     _ui->GammaDoubleSpinBox->setValue(_parameters->getGamma());
     _ui->showMasks_checkBox->setChecked(_parameters->getShowMasks());
 
-	_ui->shiftStep_doubleSpinBox->setValue(_parameters->getShiftStep());
-	_ui->RadiusSpinBox->setValue(_parameters->getSelectionRadius());
+    _ui->shiftStep_doubleSpinBox->setValue(_parameters->getShiftStep());
+    _ui->RadiusSpinBox->setValue(_parameters->getSelectionRadius());
 
-	if (!pageHidden)
-	{
-		_ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
-		_ui->PrefixTextEdit->setText(_parameters->getDefPtName());
-		
-		switch (_parameters->getPtCreationMode())
-		{
-			case eNSM_Pts:
-			{
-				_ui->radioButtonStd->setChecked(true);
-				enableMarginSpinBox(false);
-				break;
-			}
-			case eNSM_MinLoc:
-			{
-				_ui->radioButtonMin->setChecked(true);
-				enableMarginSpinBox();
-				break;
-			}
-			case eNSM_MaxLoc:
-			{
-				_ui->radioButtonMax->setChecked(true);
-				enableMarginSpinBox();
-				break;
-			}
-			case eNSM_GeoCube:
-			case eNSM_Plaquette:
-			case eNSM_NonValue:
-				break;
-		}
+    _ui->comboBox->setCurrentIndex(_parameters->getLanguage());
 
-		_ui->doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
-	}
+    if (!pageHidden)
+    {
+        _ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
+        _ui->PrefixTextEdit->setText(_parameters->getDefPtName());
+
+        switch (_parameters->getPtCreationMode())
+        {
+            case eNSM_Pts:
+            {
+                _ui->radioButtonStd->setChecked(true);
+                enableMarginSpinBox(false);
+                break;
+            }
+            case eNSM_MinLoc:
+            {
+                _ui->radioButtonMin->setChecked(true);
+                enableMarginSpinBox();
+                break;
+            }
+            case eNSM_MaxLoc:
+            {
+                _ui->radioButtonMax->setChecked(true);
+                enableMarginSpinBox();
+                break;
+            }
+            case eNSM_GeoCube:
+            case eNSM_Plaquette:
+            case eNSM_NonValue:
+                break;
+        }
+
+        _ui->doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
+    }
 
     update();
 }
@@ -265,7 +279,8 @@ cParameters::cParameters():
     _postFix(QString("_mask")),
     _radius(50),
     _eType(eNSM_Pts),
-    _sz(5.f)
+    _sz(5.f),
+    _lang(0)
 {}
 
 cParameters& cParameters::operator =(const cParameters &params)
@@ -289,6 +304,8 @@ cParameters& cParameters::operator =(const cParameters &params)
     _eType          = params._eType;
     _sz             = params._sz;
 
+    _lang           = params._lang;
+
     return *this;
 }
 
@@ -308,7 +325,8 @@ bool cParameters::operator!=(cParameters &p)
             (p._radius         != _radius)  ||
             (p._shiftStep      != _shiftStep)  ||
             (p._eType          != _eType)   ||
-            (p._sz             != _sz)) return true;
+            (p._sz             != _sz) ||
+            (p._lang           != _lang)) return true;
     return  false;
 }
 
@@ -356,6 +374,10 @@ void cParameters::read()
      setPtCreationMode( static_cast<eTypePts> (settings.value("Mode", eNSM_Pts).toInt()));
      setPtCreationWindowSize( settings.value("WindowSize",3.f).toFloat());
      settings.endGroup();
+
+     settings.beginGroup("Language");
+     setLanguage( settings.value("lang", 0).toInt() );
+     settings.endGroup();
 }
 
 void cParameters::write()
@@ -387,6 +409,10 @@ void cParameters::write()
      settings.beginGroup("Point creation");
      settings.setValue("Mode", _eType   );
      settings.setValue("WindowSize", _sz);
+     settings.endGroup();
+
+     settings.beginGroup("Language");
+     settings.setValue("lang", _lang);
      settings.endGroup();
 }
 
@@ -459,3 +485,23 @@ void cHelpDlg::on_okButton_clicked()
 {
     close();
 }
+
+string eToString(const eLANG &anObj)
+{
+    if (anObj==eEnglish)
+       return  "eEnglish";
+    if (anObj==eFrench)
+       return  "eFrench";
+    if (anObj==eSpanish)
+       return  "eSpanish";
+    if (anObj==eChinese)
+       return  "eChinese";
+    if (anObj==eArabic)
+       return  "eArabic";
+    if (anObj==eRussian)
+       return  "eRussian";
+  std::cout << "Enum = eLANG\n";
+    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+    return "";
+}
+

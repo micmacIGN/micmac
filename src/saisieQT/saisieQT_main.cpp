@@ -72,18 +72,12 @@ int main(int argc, char *argv[])
     app.setOrganizationName("Culture3D");
     app.setApplicationName("QT graphical tools");
 
-    QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
+    QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         app.setStyleSheet(file.readAll());
         file.close();
     }
-
-    // qt translations
-    const QString locale = QLocale::system().name().section('_', 0, 0);
-    QTranslator qtTranslator;
-    qtTranslator.load(app.applicationName() + "_" + locale);
-    app.installTranslator(&qtTranslator);
 
     QStringList cmdline_args = QCoreApplication::arguments();
 
@@ -157,4 +151,42 @@ QStringList getFilenames(string aDir, string aName)
         filenames.push_back( QString((aDir + *itS).c_str()));
 
     return filenames;
+}
+
+void loadTranslation(QApplication &app)
+{
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+    settings.beginGroup("Language");
+    int lang = settings.value("lang", 0).toInt();
+    settings.endGroup();
+
+    if(lang>0)
+    {
+        QString sLang = "saisie_";
+
+        //cf Settings.h
+        if (lang == 1)
+            sLang += "fr";
+        else if (lang == 2)
+            sLang += "es";
+        else if (lang == 3)
+            sLang += "cn";
+        else if (lang == 4)
+            sLang += "ar";
+        else if (lang == 5)
+            sLang += "ru";
+
+        sLang += ".qm";
+
+        QTranslator *qtTranslator = new QTranslator(QApplication::instance());
+
+        if ( qtTranslator->load(sLang, app.applicationDirPath() + QDir::separator() + "../include/qt/translations") )
+        {
+            QApplication::instance()->installTranslator(qtTranslator);
+        }
+        else
+        {
+            QMessageBox::critical(NULL, "Error", "Can't load translation file: " + sLang);
+        }
+    }
 }
