@@ -595,6 +595,7 @@ cCalibDistortion GlobXmlDistNoVal()
    aRes.ModRad().SetNoInit();
    aRes.ModPhgrStd().SetNoInit();
    aRes.ModUnif().SetNoInit();
+   aRes.ModGridDef().SetNoInit();
 
    return aRes;
 }
