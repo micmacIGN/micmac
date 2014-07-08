@@ -15,6 +15,9 @@ EVOLUTIONS :
   * Correction d'un bug dans ChSysCo lie +ou- a la courbure de terre...
   * Amelioration dans ChSysCo de la precision des orientation lorsque generees avec ForceRot=true
 
+  * Dans NewTapas :
+      * remise contrainte rigie + viscosite faible + viscosite sur le
+
 Torsion de bande,
 
   1- Supprimer les fichiers inclus dans Apero-Glob (New) pour faciliter maintenance et evol

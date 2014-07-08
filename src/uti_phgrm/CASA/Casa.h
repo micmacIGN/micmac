@@ -42,8 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_CASA_ALL_H_
 
 
-#include "StdAfx.h"
-
 #include "cParamCasa.h"
 
 
