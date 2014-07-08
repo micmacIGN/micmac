@@ -58,6 +58,7 @@ class cDistorBilin :   public ElDistortion22_Gen
 {
      public :
           cDistorBilin(Pt2dr aSz,Pt2dr aNb);
+          Pt2dr Direct(Pt2dr) const ;
      private  :
           Pt2dr                              mStep;
           Pt2dr                               mSz;
@@ -80,11 +81,16 @@ cDistorBilin::cDistorBilin(Pt2dr aSz,Pt2dr aNb) :
     for (int aKX=0 ; aKX<= mNb.x ; aKX++)
         aV0.push_back(Pt2dr(0,0));
 
-
     for (int aKY=0 ; aKY<= mNb.y ; aKY++)
         mDist.push_back(aV0);
 }
 
+/*
+Pt2dr cDistorBilin::Direct(Pt2dr) const
+{
+   
+}
+*/
 
 
 

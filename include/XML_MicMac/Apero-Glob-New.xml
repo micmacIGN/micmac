@@ -649,7 +649,7 @@
                         <#IF VTEST=${AffineAll}>
                               <CtrlTimeCompens>
                                     <NbMin > 3 </NbMin>
-                                    <NbMax>    100      </NbMax>
+                                    <NbMax>    10       </NbMax>
                                     <SeuilEvolMoy > 1e-10  </SeuilEvolMoy>
                                     <AutoAdaptLVM>
                                          <Mult> 1e-2  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
