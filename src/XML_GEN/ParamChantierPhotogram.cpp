@@ -6290,6 +6290,113 @@ void  BinaryUnDumpFromFile(eConventionsOrientation & anObj,ELISE_fp & aFp)
 std::string  Mangling( eConventionsOrientation *) {return "D45887C8F44ACDAFFC3F";};
 
 
+Pt2dr & cCalibrationInterneGridDef::P0()
+{
+   return mP0;
+}
+
+const Pt2dr & cCalibrationInterneGridDef::P0()const 
+{
+   return mP0;
+}
+
+
+Pt2dr & cCalibrationInterneGridDef::Sz()
+{
+   return mSz;
+}
+
+const Pt2dr & cCalibrationInterneGridDef::Sz()const 
+{
+   return mSz;
+}
+
+
+Pt2di & cCalibrationInterneGridDef::Nb()
+{
+   return mNb;
+}
+
+const Pt2di & cCalibrationInterneGridDef::Nb()const 
+{
+   return mNb;
+}
+
+
+std::vector< Pt2dr > & cCalibrationInterneGridDef::PGr()
+{
+   return mPGr;
+}
+
+const std::vector< Pt2dr > & cCalibrationInterneGridDef::PGr()const 
+{
+   return mPGr;
+}
+
+void  BinaryUnDumpFromFile(cCalibrationInterneGridDef & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.P0(),aFp);
+    BinaryUnDumpFromFile(anObj.Sz(),aFp);
+    BinaryUnDumpFromFile(anObj.Nb(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             Pt2dr aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.PGr().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCalibrationInterneGridDef & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.P0());
+    BinaryDumpInFile(aFp,anObj.Sz());
+    BinaryDumpInFile(aFp,anObj.Nb());
+    BinaryDumpInFile(aFp,(int)anObj.PGr().size());
+    for(  std::vector< Pt2dr >::const_iterator iT=anObj.PGr().begin();
+         iT!=anObj.PGr().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cCalibrationInterneGridDef & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CalibrationInterneGridDef",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("P0"),anObj.P0())->ReTagThis("P0"));
+   aRes->AddFils(::ToXMLTree(std::string("Sz"),anObj.Sz())->ReTagThis("Sz"));
+   aRes->AddFils(::ToXMLTree(std::string("Nb"),anObj.Nb())->ReTagThis("Nb"));
+  for
+  (       std::vector< Pt2dr >::const_iterator it=anObj.PGr().begin();
+      it !=anObj.PGr().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("PGr"),(*it))->ReTagThis("PGr"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cCalibrationInterneGridDef & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.P0(),aTree->Get("P0",1)); //tototo 
+
+   xml_init(anObj.Sz(),aTree->Get("Sz",1)); //tototo 
+
+   xml_init(anObj.Nb(),aTree->Get("Nb",1)); //tototo 
+
+   xml_init(anObj.PGr(),aTree->GetAll("PGr",false,1));
+}
+
+std::string  Mangling( cCalibrationInterneGridDef *) {return "A4F484050A7D1BC4FD3F";};
+
+
 Pt2dr & cCalibrationInterneRadiale::CDist()
 {
    return mCDist;
@@ -7525,6 +7632,17 @@ const cTplValGesInit< cCalibrationInterneGrid > & cCalibDistortion::ModGrid()con
    return mModGrid;
 }
 
+
+cTplValGesInit< cCalibrationInterneGridDef > & cCalibDistortion::ModGridDef()
+{
+   return mModGridDef;
+}
+
+const cTplValGesInit< cCalibrationInterneGridDef > & cCalibDistortion::ModGridDef()const 
+{
+   return mModGridDef;
+}
+
 void  BinaryUnDumpFromFile(cCalibDistortion & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -7567,6 +7685,14 @@ void  BinaryUnDumpFromFile(cCalibDistortion & anObj,ELISE_fp & aFp)
         }
         else  anObj.ModGrid().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ModGridDef().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ModGridDef().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ModGridDef().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cCalibDistortion & anObj)
@@ -7581,6 +7707,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cCalibDistortion & anObj)
     if (anObj.ModUnif().IsInit()) BinaryDumpInFile(aFp,anObj.ModUnif().Val());
     BinaryDumpInFile(aFp,anObj.ModGrid().IsInit());
     if (anObj.ModGrid().IsInit()) BinaryDumpInFile(aFp,anObj.ModGrid().Val());
+    BinaryDumpInFile(aFp,anObj.ModGridDef().IsInit());
+    if (anObj.ModGridDef().IsInit()) BinaryDumpInFile(aFp,anObj.ModGridDef().Val());
 }
 
 cElXMLTree * ToXMLTree(const cCalibDistortion & anObj)
@@ -7597,6 +7725,8 @@ cElXMLTree * ToXMLTree(const cCalibDistortion & anObj)
       aRes->AddFils(ToXMLTree(anObj.ModUnif().Val())->ReTagThis("ModUnif"));
    if (anObj.ModGrid().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ModGrid().Val())->ReTagThis("ModGrid"));
+   if (anObj.ModGridDef().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ModGridDef().Val())->ReTagThis("ModGridDef"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -7616,9 +7746,11 @@ void xml_init(cCalibDistortion & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModUnif(),aTree->Get("ModUnif",1)); //tototo 
 
    xml_init(anObj.ModGrid(),aTree->Get("ModGrid",1)); //tototo 
+
+   xml_init(anObj.ModGridDef(),aTree->Get("ModGridDef",1)); //tototo 
 }
 
-std::string  Mangling( cCalibDistortion *) {return "C51A523CBA4BD5A3FF3F";};
+std::string  Mangling( cCalibDistortion *) {return "A820DEEF72768781FF3F";};
 
 
 std::string & cCorrectionRefractionAPosteriori::FileEstimCam()
@@ -8163,7 +8295,7 @@ void xml_init(cCalibrationInternConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.CorrectionRefractionAPosteriori(),aTree->Get("CorrectionRefractionAPosteriori",1)); //tototo 
 }
 
-std::string  Mangling( cCalibrationInternConique *) {return "62B7806652CBDBD1FE3F";};
+std::string  Mangling( cCalibrationInternConique *) {return "D48EFFE141B11DD4FE3F";};
 
 
 Pt3dr & cRepereCartesien::Ori()
@@ -9536,7 +9668,7 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvOri(),aTree->Get("ConvOri",1)); //tototo 
 }
 
-std::string  Mangling( cOrientationConique *) {return "EA4760985B9CD4B6FF3F";};
+std::string  Mangling( cOrientationConique *) {return "B0582EB7CCB2DC82FE3F";};
 
 
 std::string & cMNT2Cmp::NameIm()
