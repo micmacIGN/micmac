@@ -148,8 +148,11 @@ void cQT_Interface::validateSelectedGlobalPoints()
         for (int iI = 0; iI < mAppli->nbImagesTot(); ++iI)
         {
                cImage* image = mAppli->imageTot(iI);
+               cSP_PointeImage* spPI =  image->PointeOfNameGlobSVP(namePoint.toStdString());
+               if(spPI && spPI->Saisie()->Etat() == eEPI_NonSaisi)
 
-               ChangeState(image->PointeOfNameGlobSVP(namePoint.toStdString()),eEPI_Valide);
+                   ChangeState(spPI,eEPI_Valide);
+
         }
 }
 
@@ -200,19 +203,21 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 
     if (selModel->currentIndex().column() != 0)
     {
-        return _cNamePt;
+        return &mAppli->Interface()->GetCaseNamePoint(0);
     }
     else
     {
-        if(_cNamePt)
-            delete _cNamePt;
+//        if(_cNamePt)
+//            delete _cNamePt;
 
         string aName = selModel->currentIndex().data(Qt::DisplayRole).toString().toStdString();
 
-        cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
-        if (!aPt)
+        cCaseNamePoint* CNP = mAppli->Interface()->GetCaseNamePoint(aName);
 
-            _cNamePt = new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
+        //cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
+        if (CNP)
+
+            _cNamePt = CNP;//new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
 
         else
             _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
@@ -686,7 +691,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
         {
             cPointGlob * pg = pGV[i]->PG();
 
-            if (pg != NULL && pg->P3D().IsInit())
+            if (pg != NULL && pg->P3D().IsInit() && (!pg->Disparu().IsInit() || (pg->Disparu().IsInit() && !pg->Disparu().Val())))
             {
                 QColor colorPt = pGV[i]->HighLighted() ? Qt::red : Qt::green;
 

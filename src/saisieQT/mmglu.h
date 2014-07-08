@@ -7,7 +7,11 @@
 	#include "windows.h"
 #endif
 
-#include <GL/gl.h>
+#if ELISE_Darwin
+	#include <OpenGL/gl.h>
+#else
+	#include <GL/gl.h>
+#endif
 
 #ifndef GLAPIENTRY
 	#if defined(_MSC_VER) || defined(__MINGW32__)
