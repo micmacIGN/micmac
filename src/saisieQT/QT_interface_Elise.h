@@ -39,6 +39,8 @@ public :
 
     void                Warning(std::string aMsg);
 
+    int                 idCImage(QString nameImage);
+
 private:
 
     //                  init Interface
@@ -46,9 +48,7 @@ private:
 
     cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
 
-    //                  Tools cImage                        ///////////////////////////////////////////
-
-    int                 idCImage(QString nameImage);
+    //                  Tools cImage                        ///////////////////////////////////////////    
 
     int                 idCImage(int idGlWidget);
 

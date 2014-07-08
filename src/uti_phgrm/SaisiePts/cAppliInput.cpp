@@ -140,7 +140,7 @@ bool cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
         }
     }
 
-    RedrawAllWindows();
+    RedrawAllWindows();   
 
     return true;
 }

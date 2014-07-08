@@ -51,11 +51,26 @@ cCaseNamePoint::cCaseNamePoint(const std::string & aName, eTypeCasePt aTCP) :
 
 //********************************************************************************
 
+void cVirtualInterface::OUT_Map()
+{
+    std::map<std::string,cCaseNamePoint *>::iterator ETE;
+
+    for(ETE = mMapNC.begin(); ETE!=mMapNC.end(); ++ETE)
+        cout << "mMapNC : " << ETE->first << endl;
+
+    for(int i = 0; i < (int)mVNameCase.size(); ++i)
+    {
+        cCaseNamePoint CNP = ((cCaseNamePoint)mVNameCase[i]);
+        cout << "mVNameCase : "<< CNP.mName << " " <<(CNP.mFree ? "free" : "No free") << endl;
+
+    }
+}
+
 void cVirtualInterface::DeletePoint(cSP_PointGlob * aSG)
 {
     aSG->SetKilled();
 
-    ChangeFreeNamePoint(aSG->PG()->Name(), true);
+    ChangeFreeNamePoint(aSG->PG()->Name(), true);  
 }
 
 void cVirtualInterface::ComputeNbFen(Pt2di &pt, int aNbW)
@@ -123,11 +138,11 @@ cSP_PointGlob *cVirtualInterface::addPoint(Pt2dr pt, cImage *curImg)
         eTypePts        aType   = PtCreationMode();
         double          aSz     = PtCreationWindowSize();
         Pt2dr           aPGlob  = FindPoint(curImg,pt,aType,aSz,0);
-        cCaseNamePoint* aCNP    = GetIndexNamePoint();
-        cSP_PointGlob*  PG1     = mAppli->PGlobOfNameSVP(aCNP->mName);
+        cCaseNamePoint* aCNP    = GetIndexNamePoint();        
 
-        if(!PG1)
+        if (aCNP && aCNP->mFree)
             PG = curImg->CreatePGFromPointeMono(aPGlob, aType, aSz, aCNP);
+
     }
 
     return PG;
@@ -194,7 +209,7 @@ void cVirtualInterface::ChangeFreeNamePoint(const std::string & aName, bool SetF
     if (it->second->mTCP == eCaseStd)
     {
         it->second->mFree = SetFree;
-    }
+    }      
 }
 
 void cVirtualInterface::Save()
@@ -289,6 +304,13 @@ Pt2dr cVirtualInterface::FindPoint(cImage* curIm, const Pt2dr & aPIm,eTypePts aT
     }
 
     return aPIm;
+}
+
+cCaseNamePoint *cVirtualInterface::GetCaseNamePoint(string name)
+{
+    std::map<std::string,cCaseNamePoint *>::iterator iT = mMapNC.find(name);
+    if (iT == mMapNC.end()) return NULL;
+    return iT->second;
 }
 
 bool cVirtualInterface::PtImgIsVisible(cSP_PointeImage &aPIm)

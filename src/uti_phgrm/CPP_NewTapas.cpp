@@ -186,6 +186,8 @@ bool LocLibFoc=true;
 bool ModeleAdditional=false;
 bool ModeleAddFour=false;
 bool ModeleAddPoly=false;
+bool IsAutoCal = false;
+bool IsFigee   = false;
 std::string TheModelAdd = "";
 
 
@@ -255,15 +257,16 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     }
     else if ((aMod==Modele[4]) || (aMod==Modele[5])) // AutoCal  +  Figee
     {
-        if (aMod==Modele[5])
-        {
-           LocDegGen  = 0;
-           LocLibDec = false;
-           LocLibCD= false;
-           LocDRadMaxUSer = 0;
-           LocLibPP  =false;
-           LocLibFoc=false;
-        }
+        LocDegGen  = 0;
+        LocLibDec = false;
+        LocLibCD= false;
+        LocDRadMaxUSer = 0;
+        LocLibPP  =false;
+        LocLibFoc=false;
+
+        IsAutoCal = (aMod==Modele[4]);
+        IsFigee   = (aMod==Modele[5]);
+       
         eModAutom = "eCalibAutomNone";
     }
     else if (aMod==Modele[8])  //  FraserBasic
@@ -575,6 +578,9 @@ int Tapas_main(int argc,char ** argv)
        {
           aCom  = aCom + " +PoseFigee=" + QUOTE(aPoseFigee) + " +WithPoseFigee=true";
        }
+
+       if (IsAutoCal) aCom  = aCom + " +AutoCal=true";
+       if (IsFigee) aCom  = aCom + " +CalFigee=true";
 
        std::cout << "Com = " << aCom << "\n";
        int aRes = 0;
