@@ -37,55 +37,67 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+
 #include "StdAfx.h"
-#include "Casa.h"
+
+/*
+   La distorsion d'une camera Bilineaire est codee par la valeur du deplacement sur les N Noeuds.
+
+   Le modele bilineaire a ete prefere au modele triangule car :
+
+      * plus simple a gerer au niveau des indexe
+      * naturellement continu en extrapolation
+      * ni pire ni meilleur  que la triangulation en continuite
+      
+
+*/
 
 
-void Casa_Banniere()
+
+class cDistorBilin :   public ElDistortion22_Gen 
 {
-    std::cout <<  "\n";
-    std::cout <<  " *********************************\n";
-    std::cout <<  " *     C-alcul                   *\n";
-    std::cout <<  " *     A-utomatique de           *\n";
-    std::cout <<  " *     S-urfaces                 *\n";
-    std::cout <<  " *     A-nalytiques              *\n";
-    std::cout <<  " *********************************\n\n";
+     public :
+          cDistorBilin(Pt2dr aSz,Pt2dr aNb);
+          Pt2dr Direct(Pt2dr) const ;
+     private  :
+          Pt2dr                              mStep;
+          Pt2dr                               mSz;
+          Pt2di                               mNb;
+          std::vector<std::vector<Pt2dr > >   mDist;
+};
+
+/**************************************************************/
+/*                                                            */
+/*                 cDistorBilin                               */
+/*                                                            */
+/**************************************************************/
+
+cDistorBilin::cDistorBilin(Pt2dr aSz,Pt2dr aNb) :
+   mStep   (aSz.dcbyc(Pt2dr(aNb))),
+   mSz     (aSz),
+   mNb     (aNb)
+{
+    std::vector<Pt2dr > aV0;
+    for (int aKX=0 ; aKX<= mNb.x ; aKX++)
+        aV0.push_back(Pt2dr(0,0));
+
+    for (int aKY=0 ; aKY<= mNb.y ; aKY++)
+        mDist.push_back(aV0);
 }
 
-int CASA_main(int argc,char ** argv)
+/*
+Pt2dr cDistorBilin::Direct(Pt2dr) const
 {
-  // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
-
-  //if (0) delete anAppli;
-
-   ELISE_ASSERT(argc>=2,"Not enough arg");
-
-   cElXMLTree aTree(argv[1]);
-
-
-
-   cResultSubstAndStdGetFile<cParamCasa> aP2
-                                          (
-                                              0,0,
-                                      argv[1],
-                                  StdGetFileXMLSpec("ParamCasa.xml"),
-                                  "ParamCasa",
-                                  "ParamCasa",
-                                              "DirectoryChantier",
-                                              "FileChantierNameDescripteur"
-                                          );
-
-   cAppli_Casa   anAppli (aP2);
-
-   Casa_Banniere();
-   return 0;
+   
 }
+*/
+
 
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -101,17 +113,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
