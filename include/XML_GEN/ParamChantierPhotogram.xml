@@ -607,6 +607,13 @@
    </enum>
 
 
+   <CalibrationInterneGridDef Nb="1" Class="true" ToReference="true">
+         <P0 Nb="1" Type="Pt2dr"> </P0>
+         <Sz Nb="1" Type="Pt2dr"> </Sz>
+         <Nb Nb="1" Type="Pt2di"> </Nb>
+         <PGr Nb="+" Container="std::vector" Type="Pt2dr"> </PGr>
+   </CalibrationInterneGridDef>
+
    <CalibrationInterneRadiale Nb="1" Class="true" ToReference="true">
    <!--  Redondant avec OrientationConique quand il est utilise pour
    creer un ori a la main, necessaire quand l'orientation est a part de
@@ -719,6 +726,9 @@
              <ModPhgrStd Nb="?" RefType="CalibrationInternePghrStd"> </ModPhgrStd>
              <ModUnif Nb="?"   RefType="CalibrationInterneUnif">    </ModUnif>
              <ModGrid Nb="?"   RefType="CalibrationInterneGrid">    </ModGrid>
+               
+              <!-- Mode Grille deformable -->
+             <ModGridDef Nb="?"   RefType="CalibrationInterneGridDef">    </ModGridDef>
         </CalibDistortion>
         <!-- Pour pouvoir etre utilisee dans l'autocalibration avec les modeles formels existant la
              correction de diffraction doit se faire a la fin, du coup il faut connaitre le modele approche ... -->
