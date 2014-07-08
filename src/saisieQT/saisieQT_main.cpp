@@ -163,6 +163,7 @@ void loadTranslation(QApplication &app)
     if(lang>0)
     {
         QString sLang = "saisie_";
+        QString path = app.applicationDirPath() + QDir::separator() + "../include/qt/translations";
 
         //cf Settings.h
         if (lang == 1)
@@ -180,13 +181,14 @@ void loadTranslation(QApplication &app)
 
         QTranslator *qtTranslator = new QTranslator(QApplication::instance());
 
-        if ( qtTranslator->load(sLang, app.applicationDirPath() + QDir::separator() + "../include/qt/translations") )
+        if ( qtTranslator->load(sLang, path) )
         {
             QApplication::instance()->installTranslator(qtTranslator);
         }
         else
         {
-            QMessageBox::critical(NULL, "Error", "Can't load translation file: " + sLang);
+            QMessageBox::critical(NULL, "Error", "Can't load translation file: " + sLang + "\n" +
+                                         "In: " + path);
         }
     }
 }
