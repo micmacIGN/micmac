@@ -505,6 +505,12 @@ template <class Type> void ElMatrix<Type>::GetCol(INT col,Pt3d<Type> &  p) const
     p.y = (*this)(col,1);
     p.z = (*this)(col,2);
 }
+template <class Type> void ElMatrix<Type>::GetCol(INT col,Pt2d<Type> &  p) const
+{
+    ELISE_ASSERT(ty()==2,"Wrong size in  ElMatrix.GetCol(Pt3d)");
+    p.x = (*this)(col,0);
+    p.y = (*this)(col,1);
+}
 
 
 template <class Type> void ElMatrix<Type>::GetLig(INT lig,Pt3d<Type> &  p) const
@@ -513,6 +519,12 @@ template <class Type> void ElMatrix<Type>::GetLig(INT lig,Pt3d<Type> &  p) const
     p.x = (*this)(0,lig);
     p.y = (*this)(1,lig);
     p.z = (*this)(2,lig);
+}
+template <class Type> void ElMatrix<Type>::GetLig(INT lig,Pt2d<Type> &  p) const
+{
+    ELISE_ASSERT(tx()==2,"Wrong size in  ElMatrix.GetCol(Pt3d)");
+    p.x = (*this)(0,lig);
+    p.y = (*this)(1,lig);
 }
 
 
