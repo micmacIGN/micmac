@@ -196,13 +196,13 @@ mmLookAt(GLdouble eyex, GLdouble eyey, GLdouble eyez, GLdouble centerx,
     float forward[3], side[3], up[3];
     GLfloat m[4][4];
 
-    forward[0] = centerx - eyex;
-    forward[1] = centery - eyey;
-    forward[2] = centerz - eyez;
+    forward[0] = (float)(centerx - eyex);
+    forward[1] = (float)(centery - eyey);
+    forward[2] = (float)(centerz - eyez);
 
-    up[0] = upx;
-    up[1] = upy;
-    up[2] = upz;
+    up[0] = (float)upx;
+    up[1] = (float)upy;
+    up[2] = (float)upz;
 
     normalize(forward);
 
