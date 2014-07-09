@@ -20,7 +20,7 @@ QWidget:item:hover
 }
 
 
-/* gère egalement les combobox */
+/* gÃ¨re egalement les combobox */
 QWidget:item:selected
 {
     background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
@@ -535,6 +535,7 @@ QSpinBox::up-button:pressed, QDoubleSpinBox::up-button:pressed
 {
      background-color: orange;
 }
+
 
 
 

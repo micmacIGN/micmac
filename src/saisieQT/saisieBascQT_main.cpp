@@ -21,6 +21,8 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
     app.setApplicationName("SaisieBascQT");
     app.setOrganizationName("Culture3D");
 
+    loadTranslation(app);
+
     if ((argc>0)&&(string(argv[0]).find("SaisieQT")!= string::npos))
     {
         argv++;

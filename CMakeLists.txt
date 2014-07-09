@@ -52,6 +52,8 @@ OPTION(WITH_QT5 "compile Qt interfaces" OFF )
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
 
+OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
+
 #
 OPTION(WITH_MM3dSat "Graphical interface for MNS creation" OFF)
 
@@ -125,6 +127,7 @@ if (${WITH_QT4} OR ${WITH_QT5})
                         find_package(Qt5Xml QUIET)
                         find_package(Qt5Concurrent QUIET)
                         find_package(Qt5OpenGL QUIET)
+                        find_package(Qt5LinguistTools QUIET)
                 endif()
 
                 if ( Qt5Widgets_FOUND AND
@@ -132,7 +135,8 @@ if (${WITH_QT4} OR ${WITH_QT5})
                           Qt5Gui_FOUND AND
                           Qt5Xml_FOUND AND
                           Qt5Concurrent_FOUND AND
-                          Qt5OpenGL_FOUND )
+                          Qt5OpenGL_FOUND AND
+                          Qt5LinguistTools_FOUND)
                         message( STATUS "-----> Qt5 found" )
                         set(qt_version 5)
                 else()

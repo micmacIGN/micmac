@@ -14,7 +14,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 {
     _ui->setupUi(this);
 
-    _params->read();
+     _params->read();
 
     _Engine->setParams(_params);
 
@@ -60,7 +60,7 @@ SaisieQtWindow::~SaisieQtWindow()
 
 void SaisieQtWindow::connectActions()
 {
-    _ProgressDialog = new QProgressDialog("Loading files", "Stop",0,100,this, Qt::ToolTip);
+    _ProgressDialog = new QProgressDialog(tr("Loading files"), "Stop",0,100,this, Qt::ToolTip);
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog, SLOT(cancel()));
 
@@ -168,7 +168,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         {
             if(!QFile(filenames[i]).exists())
             {
-                QMessageBox::critical(this, "Error", "File does not exist (or bad argument)");
+                QMessageBox::critical(this, tr("Error"), tr("File does not exist (or bad argument)"));
                 return;
             }
         }
