@@ -63,6 +63,7 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
         //  Reset frame count
         _frameCount = 0;
 
+
         if (fps > 1e-3)
             dynMess.message = "fps: " + QString::number(fps,'f',1);
     }
@@ -78,6 +79,23 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool re
     if (aData != NULL)
     {
         m_GLData = aData;
+
+        if(!m_GLData->isImgEmpty())
+        {
+            int rglError = (int)m_GLData->glImage().cMaskedImageGL::_m_image->glError();
+            if(rglError)
+            {
+                QMessageBox msgBox;
+                QString nameImageT = m_GLData->glImage().cObjectGL::name();
+                QString messageError = nameImageT + QString(" Error ") + QString::number(rglError);
+                msgBox.setText(messageError);
+                msgBox.exec();
+
+                qDebug() << m_GLData->glImage().cMaskedImageGL::_m_mask->glError();
+            }
+
+
+        }
 
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
