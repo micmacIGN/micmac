@@ -139,39 +139,67 @@ class cCamStenopeBilin : public CamStenope
 };
 
 
-/*
 class cPIF_Bilin : public cParamIntrinsequeFormel
 {
      public :
-         cPIF_Bilin(bool isDistC2M,cCamStenopeBilin *,cSetEqFormelles &);
+         cPIF_Bilin(cCamStenopeBilin *,cSetEqFormelles &);
+          static cPIF_Bilin * Alloc(const cPIF_Bilin &,cSetEqFormelles &);
 
      private  :
+          // virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>); a priori inutile
+          virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
           // virtual bool UseSz() const; ==> A priori 
+/*
           virtual bool IsDistFiged() const;
 
           virtual ~cPIF_Bilin();
           virtual std::string  NameType() const;
 
           virtual cMultiContEQF  StdContraintes();
-          virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
-          virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>);
           virtual void    UpdateCurPIF();
           void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
 
 
           virtual CamStenope * CurPIF(); ;
           virtual CamStenope * DupCurPIF(); ;
-          static cPIF_Unif * Alloc(bool isDistC2M,tCam *,cSetEqFormelles &);
+*/
  
 
        // ==============================================
+          cSetEqFormelles &                            mSet;
+          cVarEtat_PhgrF                               mPds00;
+          cVarEtat_PhgrF                               mPds10;
+          cVarEtat_PhgrF                               mPds01;
+          cVarEtat_PhgrF                               mPds11;
           bool mFiged;
           std::vector<std::vector<Pt2d<Fonc_Num> > >   mVDist;
           cDistorBilin                                 mDBL;
           // cCamStenopeBilin                             
 };
+/*
 */
 
+/**************************************************************/
+/*                                                            */
+/*                 cPIF_Bilin      :                          */
+/*                                                            */
+/**************************************************************/
+
+Pt2d<Fonc_Num> cPIF_Bilin::VDist(Pt2d<Fonc_Num>,int aKCam)
+{
+    return     mVDist[0][0].mul(mPds00.FN())
+            +  mVDist[1][0].mul(mPds10.FN())
+            +  mVDist[0][1].mul(mPds01.FN())
+            +  mVDist[1][1].mul(mPds11.FN());
+}
+
+/*
+cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
+    cParamIntrinsequeFormel(true,aCSB,aSet,true),
+    mSet (aSet)
+{
+}
+*/
 
 /**************************************************************/
 /*                                                            */
