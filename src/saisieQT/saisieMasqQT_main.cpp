@@ -26,13 +26,15 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
     }
     else
     {
-		//Set application name before SaisieQtWindow creation to read settings
-		app.setApplicationName("SaisieMasqQT");
+        //Set application name before SaisieQtWindow creation to read settings
+        app.setApplicationName("SaisieMasqQT");
         app.setOrganizationName("Culture3D");
 
-        SaisieQtWindow w;
-
         QStringList cmdline_args = QCoreApplication::arguments();
+
+        loadTranslation(app);
+
+        SaisieQtWindow w;
 
 #ifdef _DEBUG
         for (int aK=0; aK < cmdline_args.size();++aK)

@@ -10,6 +10,8 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
     app.setApplicationName("SaisieAppuisPredicQT");
     app.setOrganizationName("Culture3D");
 
+    loadTranslation(app);
+
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
     if ((argc>0)&&(string(argv[0]).find("SaisieQT")!= string::npos))

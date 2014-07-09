@@ -702,7 +702,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
 
 void cPolygon::draw()
 {
-    for (int aK=0; aK < size();++aK)            
+    for (int aK=0; aK < size();++aK)
         point(aK).draw();
 
 
@@ -721,7 +721,7 @@ void cPolygon::draw()
             {
                 glLineStipple(2, 0xAAAA);
                 glEnable(GL_LINE_STIPPLE);
-            }            
+            }
             //draw segments
             glBegin(_bIsClosed ? GL_LINE_LOOP : GL_LINE_STRIP);
             for (int aK = 0;aK < size(); ++aK)
@@ -2198,14 +2198,14 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
                 {
                     displayNewMessage(QString("Selection mode"),UPPER_CENTER_MESSAGE);
                     displayNewMessage(QString("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
-                    displayNewMessage(QString("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
+                    displayNewMessage(QString(QObject::tr("Space: add / Suppr: delete")),LOWER_CENTER_MESSAGE);
                 }
 
                 displayNewMessage(QString("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
         }
         else
-            displayNewMessage(QString("Drag & drop files"));
+            displayNewMessage(QString(QObject::tr("Drag & drop files")));
     }
 }
 

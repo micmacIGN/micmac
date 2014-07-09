@@ -185,6 +185,8 @@ if ( NOT ${qt_version} EQUAL 0 )
      ${SAISIE_DIR}/Help.ui
     )
 
+   set (FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${vmm_SRCS} ${ui_toWrap} ${HEADERS_nomoc} ${HEADERS_Tomoc})
+
    if ( ${qt_version} EQUAL 5 )
 
       set(CMAKE_INCLUDE_CURRENT_DIR ON)

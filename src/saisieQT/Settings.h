@@ -20,6 +20,19 @@ const float GL_MIN_ZOOM = 0.01f;
 
 float zoomClip(float val);
 
+typedef enum
+{
+   eEnglish = 0,
+   eFrench  = 1,
+   eSpanish = 2,
+   eChinese = 3,
+   eArabic  = 4,
+   eRussian = 5,
+   eEsperanto
+} eLANG;
+
+string eToString(const eLANG& langue);
+
 class cParameters
 {
 public:
@@ -47,6 +60,8 @@ public:
     void setPtCreationMode(eTypePts mode){ _eType = mode;        }
     void setPtCreationWindowSize(double sz){ _sz = sz;           }
 
+    void setLanguage(int lang)          { _lang = lang;          }
+
     //! Getters
     bool    getFullScreen()             { return _fullScreen;    }
     QPoint  getPosition()               { return _position;      }
@@ -67,6 +82,8 @@ public:
 
     eTypePts getPtCreationMode()        { return _eType;         }
     double getPtCreationWindowSize()    { return _sz;            }
+
+    int    getLanguage()                { return _lang;          }
 
     //! Copy operator
     cParameters& operator =(const cParameters& params);
@@ -100,6 +117,9 @@ private:
     //! Point creation mode
     eTypePts    _eType;
     double      _sz;
+
+    //! Language
+    int         _lang;
 };
 
 //! Dialog to setup display settings
@@ -118,7 +138,7 @@ public:
     void enableMarginSpinBox(bool show = true);
 
     void hidePage();
-	void uiShowMasks(bool);
+    void uiShowMasks(bool);
 
 signals:
     void nbFenChanged(bool closeWidgets);
@@ -131,6 +151,8 @@ signals:
     void selectionRadiusChanged(int);
     void prefixTextEdit(QString);
     void shiftStepChanged(float);
+
+    void langChanged(int);
 
 protected slots:
 
@@ -161,6 +183,8 @@ protected slots:
     void on_radioButtonMax_toggled(bool);
     void on_doubleSpinBoxSz_valueChanged(double);
 
+     //!translation
+    void on_comboBox_activated(int);
 
 protected:
 
@@ -172,7 +196,7 @@ protected:
 
     Ui::SettingsDialog* _ui;
 
-	bool	pageHidden;
+    bool	pageHidden;
 };
 
 class cHelpDlg : public QDialog

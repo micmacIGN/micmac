@@ -44,6 +44,8 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
     app.setApplicationName("SaisieAppuisInitQT");
     app.setOrganizationName("Culture3D");
 
+    loadTranslation(app);
+
     QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
     if ((argc>0)&&(string(argv[0]).find("SaisieQT")!= string::npos))
@@ -108,9 +110,9 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
         input << QString("+ModeOriIm=eGeomImageGrille")
               << QString("+Conik=false")
               << QString("+ZIncIsProp=false")
-                //+ " +PostFixOri=GRIBin"
-              << QString("+Px1Inc=")+ QString::number(aZInc)
-              << QString("+Px1Moy=")+ QString::number(aZMoy);
+                //<< QString(+PostFixOri=GRIBin")
+              << QString("+Px1Inc=") + QString::number(aZInc)
+              << QString("+Px1Moy=") + QString::number(aZMoy);
 
         //<< QString("+Geom=eGeomMNTFaisceauIm1ZTerrain_Px1D");
     }

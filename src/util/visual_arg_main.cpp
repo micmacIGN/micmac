@@ -134,7 +134,7 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
 #if(ELISE_QT_VERSION >= 4)
 void setStyleSheet(QApplication &app)
 {
-    QFile file(app.applicationDirPath() + "/../src/uti_qt/style.qss");
+    QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         Q_INIT_RESOURCE(icones);
