@@ -57,6 +57,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cDistorBilin :   public ElDistortion22_Gen 
 {
      public :
+          friend void Test_DBL();
+
           cDistorBilin(Pt2dr aSz,Pt2dr aP0,Pt2di aNb);
           Pt2dr Direct(Pt2dr) const ;
 
@@ -74,6 +76,11 @@ class cDistorBilin :   public ElDistortion22_Gen
 
 
      private  :
+        //  ==== Tests ============
+          Box2dr BoxRab(double aMulStep) const;
+          void Randomize();
+
+        //  =============
           Pt2dr ToCoordGrid(const Pt2dr &) const;
           Pt2dr FromCoordGrid(const Pt2dr &) const;
           // Renvoie le meilleur interval [X0, X0+1[ contenat aCoordGr, valide qqsoit aCoordGr
@@ -85,8 +92,8 @@ class cDistorBilin :   public ElDistortion22_Gen
           void InitEtatFromCorner(const Pt2dr & aCoorGr) const; 
 
           Pt2dr                               mP0;
+          Pt2dr                               mP1;
           Pt2dr                               mStep;
-          Pt2dr                               mSz;
           Pt2di                               mNb;
           std::vector<std::vector<Pt2dr > >   mVDist;
 
@@ -103,10 +110,10 @@ class cDistorBilin :   public ElDistortion22_Gen
 /*                                                            */
 /**************************************************************/
 
-cDistorBilin::cDistorBilin(Pt2dr aP0,Pt2dr aSz,Pt2di aNb) :
+cDistorBilin::cDistorBilin(Pt2dr aP0,Pt2dr aP1,Pt2di aNb) :
    mP0     (aP0),
-   mStep   (aSz.dcbyc(Pt2dr(aNb))),
-   mSz     (aSz),
+   mP1     (aP1),
+   mStep   ((aP1-aP0).dcbyc(Pt2dr(aNb))),
    mNb     (aNb)
 {
     std::vector<Pt2dr > aV0;
@@ -159,12 +166,18 @@ Pt2dr cDistorBilin::Direct(Pt2dr aP) const
            + Dist(mCurCorner + Pt2di(0,1)) * mP01
            + Dist(mCurCorner + Pt2di(1,1)) * mP11;
 }
+
+Box2dr cDistorBilin::BoxRab(double aMulStep) const
+{
+    Pt2dr aRab= mStep * aMulStep;
+    return Box2dr (mP0-aRab,mP1+aRab);
+}
   
 cCalibrationInterneGridDef  cDistorBilin::ToXmlGridStruct() const
 {
    cCalibrationInterneGridDef aRes;
    aRes.P0() = mP0;
-   aRes.Sz() = mSz;
+   aRes.P1() = mP1;
    aRes.Nb() = mNb;
 
    for (int aKY=0 ; aKY<= mNb.y ; aKY++)
@@ -178,6 +191,16 @@ cCalibrationInterneGridDef  cDistorBilin::ToXmlGridStruct() const
    return aRes;
 }
 
+void cDistorBilin::Randomize()
+{
+   for (int aKY=0 ; aKY<= mNb.y ; aKY++)
+   {
+       for (int aKX=0 ; aKX<= mNb.x ; aKX++)
+       {
+             Dist(Pt2di(aKX,aKY)) = Pt2dr(NRrandC(),NRrandC()).mcbyc(mStep) * 0.1;
+       }
+   }
+}
 
 extern cCalibDistortion GlobXmlDistNoVal();
 
@@ -199,11 +222,83 @@ cCalibDistortion cDistorBilin::ToXmlStruct(const ElCamera *) const
 bool  cDistorBilin::AcceptScaling() const {return true; }
 bool  cDistorBilin::AcceptTranslate() const {return true; }
 
-void cDistorBilin::V_SetScalingTranslate(const double &,const Pt2dr &)
+/*
+
+   Extrait de photogram.h :
+     Soit H (X) == PP + X * F   se transforme en H-1 D H
+
+     Pt2dr cDistorBilin::ToCoordGrid(const Pt2dr & aP) const   { return (aP-mP0).dcbyc(mStep); } 
+    ( PP + X * F -mP0) / S  = (X-P')/S'
+    (PP -mP0)/S = -P' *F/S
+
+    P' = (mP0 -PP) /F   ; S' = S/F     
+
+*/
+
+void cDistorBilin::V_SetScalingTranslate(const double & aF,const Pt2dr & aPP)
 {
-    ELISE_ASSERT(false,"cDistorBilin::V_SetScalingTranslate");
+   for (int aKY=0 ; aKY<= mNb.y ; aKY++)
+   {
+       for (int aKX=0 ; aKX<= mNb.x ; aKX++)
+       {
+           Dist(Pt2di(aKX,aKY)) = ( Dist(Pt2di(aKX,aKY))- aPP) / aF;
+       }
+   }
+   mP0 = (mP0-aPP) / aF;
+   mP1 = (mP1-aPP) / aF;
+   mStep = mStep / aF;
 }
 
+void Test_DBL()
+{
+    Pt2dr aP0(-10,-20);
+    Pt2dr aP1(1500,2000);
+    Pt2di aNb(10,15);
+
+    
+
+    cDistorBilin aDBL1(aP0,aP1,aNb);
+    aDBL1.Randomize();
+
+    cDistorBilin aDBL2 = aDBL1;
+
+    Box2dr aBoxRab1 = aDBL1.BoxRab(0.3);
+
+   // Test copy
+    for (int aK=0 ; aK<100000 ; aK++)
+    {
+         Pt2dr aP0 = aBoxRab1.RandomlyGenereInside();
+         Pt2dr aP1 = aDBL1.Direct(aP0);
+         Pt2dr aP2 = aDBL2.Direct(aP0);
+         double aDist = euclid(aP1,aP2);
+         ELISE_ASSERT(aDist==0,"Test_DBL dist");
+    }
+    
+    for (int aTime=0 ; aTime<100000 ; aTime++)
+    {
+        double aF = pow(2.0,NRrandC()*8);
+        Pt2dr aPP = Pt2dr(NRrandC(),NRrandC()) * aF;
+        aDBL2 = aDBL1;
+        aDBL2.V_SetScalingTranslate(aF,aPP);
+        Box2dr aBoxRab2 = aDBL2.BoxRab(0.3);
+        for (int aK=0 ; aK<10; aK++)
+        {
+            Pt2dr aP0 = aBoxRab2.RandomlyGenereInside();
+            Pt2dr aP2 = aDBL2.Direct(aP0);
+
+            Pt2dr aP1 = (aDBL1.Direct(aPP+aP0*aF)-aPP) /aF;
+
+            std::cout << aP1 << " " << aP2 << "\n";
+     // Soit H (X) == PP + X * F   se transforme en H-1 D H
+             
+        }
+        // aDBL2 = 
+    }
+
+
+    std::cout << "DONE Test cDistorBilin\n";
+
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

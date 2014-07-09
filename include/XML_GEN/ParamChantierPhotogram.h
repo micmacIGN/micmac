@@ -2190,8 +2190,8 @@ class cCalibrationInterneGridDef
         Pt2dr & P0();
         const Pt2dr & P0()const ;
 
-        Pt2dr & Sz();
-        const Pt2dr & Sz()const ;
+        Pt2dr & P1();
+        const Pt2dr & P1()const ;
 
         Pt2di & Nb();
         const Pt2di & Nb()const ;
@@ -2200,7 +2200,7 @@ class cCalibrationInterneGridDef
         const std::vector< Pt2dr > & PGr()const ;
     private:
         Pt2dr mP0;
-        Pt2dr mSz;
+        Pt2dr mP1;
         Pt2di mNb;
         std::vector< Pt2dr > mPGr;
 };

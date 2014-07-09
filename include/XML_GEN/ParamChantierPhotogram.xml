@@ -609,7 +609,7 @@
 
    <CalibrationInterneGridDef Nb="1" Class="true" ToReference="true">
          <P0 Nb="1" Type="Pt2dr"> </P0>
-         <Sz Nb="1" Type="Pt2dr"> </Sz>
+         <P1 Nb="1" Type="Pt2dr"> </P1>
          <Nb Nb="1" Type="Pt2di"> </Nb>
          <PGr Nb="+" Container="std::vector" Type="Pt2dr"> </PGr>
    </CalibrationInterneGridDef>

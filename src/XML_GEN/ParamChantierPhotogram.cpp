@@ -6301,14 +6301,14 @@ const Pt2dr & cCalibrationInterneGridDef::P0()const
 }
 
 
-Pt2dr & cCalibrationInterneGridDef::Sz()
+Pt2dr & cCalibrationInterneGridDef::P1()
 {
-   return mSz;
+   return mP1;
 }
 
-const Pt2dr & cCalibrationInterneGridDef::Sz()const 
+const Pt2dr & cCalibrationInterneGridDef::P1()const 
 {
-   return mSz;
+   return mP1;
 }
 
 
@@ -6336,7 +6336,7 @@ const std::vector< Pt2dr > & cCalibrationInterneGridDef::PGr()const
 void  BinaryUnDumpFromFile(cCalibrationInterneGridDef & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.P0(),aFp);
-    BinaryUnDumpFromFile(anObj.Sz(),aFp);
+    BinaryUnDumpFromFile(anObj.P1(),aFp);
     BinaryUnDumpFromFile(anObj.Nb(),aFp);
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
@@ -6352,7 +6352,7 @@ void  BinaryUnDumpFromFile(cCalibrationInterneGridDef & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cCalibrationInterneGridDef & anObj)
 {
     BinaryDumpInFile(aFp,anObj.P0());
-    BinaryDumpInFile(aFp,anObj.Sz());
+    BinaryDumpInFile(aFp,anObj.P1());
     BinaryDumpInFile(aFp,anObj.Nb());
     BinaryDumpInFile(aFp,(int)anObj.PGr().size());
     for(  std::vector< Pt2dr >::const_iterator iT=anObj.PGr().begin();
@@ -6367,7 +6367,7 @@ cElXMLTree * ToXMLTree(const cCalibrationInterneGridDef & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CalibrationInterneGridDef",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("P0"),anObj.P0())->ReTagThis("P0"));
-   aRes->AddFils(::ToXMLTree(std::string("Sz"),anObj.Sz())->ReTagThis("Sz"));
+   aRes->AddFils(::ToXMLTree(std::string("P1"),anObj.P1())->ReTagThis("P1"));
    aRes->AddFils(::ToXMLTree(std::string("Nb"),anObj.Nb())->ReTagThis("Nb"));
   for
   (       std::vector< Pt2dr >::const_iterator it=anObj.PGr().begin();
@@ -6387,14 +6387,14 @@ void xml_init(cCalibrationInterneGridDef & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.P0(),aTree->Get("P0",1)); //tototo 
 
-   xml_init(anObj.Sz(),aTree->Get("Sz",1)); //tototo 
+   xml_init(anObj.P1(),aTree->Get("P1",1)); //tototo 
 
    xml_init(anObj.Nb(),aTree->Get("Nb",1)); //tototo 
 
    xml_init(anObj.PGr(),aTree->GetAll("PGr",false,1));
 }
 
-std::string  Mangling( cCalibrationInterneGridDef *) {return "A4F484050A7D1BC4FD3F";};
+std::string  Mangling( cCalibrationInterneGridDef *) {return "2EC6FF6F58AB1090FD3F";};
 
 
 Pt2dr & cCalibrationInterneRadiale::CDist()
@@ -7750,7 +7750,7 @@ void xml_init(cCalibDistortion & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModGridDef(),aTree->Get("ModGridDef",1)); //tototo 
 }
 
-std::string  Mangling( cCalibDistortion *) {return "A820DEEF72768781FF3F";};
+std::string  Mangling( cCalibDistortion *) {return "C8E0F61C836443D1FC3F";};
 
 
 std::string & cCorrectionRefractionAPosteriori::FileEstimCam()
@@ -8295,7 +8295,7 @@ void xml_init(cCalibrationInternConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.CorrectionRefractionAPosteriori(),aTree->Get("CorrectionRefractionAPosteriori",1)); //tototo 
 }
 
-std::string  Mangling( cCalibrationInternConique *) {return "D48EFFE141B11DD4FE3F";};
+std::string  Mangling( cCalibrationInternConique *) {return "AFE15207CCF5A7D3FE3F";};
 
 
 Pt3dr & cRepereCartesien::Ori()
@@ -9668,7 +9668,7 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvOri(),aTree->Get("ConvOri",1)); //tototo 
 }
 
-std::string  Mangling( cOrientationConique *) {return "B0582EB7CCB2DC82FE3F";};
+std::string  Mangling( cOrientationConique *) {return "40CFEC0D4D20FFC9F8BF";};
 
 
 std::string & cMNT2Cmp::NameIm()

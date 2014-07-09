@@ -611,7 +611,7 @@ const char * (theNameVar_ParamChantierPhotogram[1567]) = {
 "\n",
 "   <CalibrationInterneGridDef Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "         <P0 Nb=\"1\" Type=\"Pt2dr\"> </P0>\n",
-"         <Sz Nb=\"1\" Type=\"Pt2dr\"> </Sz>\n",
+"         <P1 Nb=\"1\" Type=\"Pt2dr\"> </P1>\n",
 "         <Nb Nb=\"1\" Type=\"Pt2di\"> </Nb>\n",
 "         <PGr Nb=\"+\" Container=\"std::vector\" Type=\"Pt2dr\"> </PGr>\n",
 "   </CalibrationInterneGridDef>\n",
