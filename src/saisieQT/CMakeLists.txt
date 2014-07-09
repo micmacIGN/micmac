@@ -17,39 +17,30 @@ set (FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${saisieQT_SRCS} PARENT_SCOPE)
 
 if ( NOT ${qt_version} EQUAL 0 )
 
-    set(translation_dir ${PROJECT_SOURCE_DIR}/include/qt/translations)
-    #message ("translation_dir " ${translation_dir})
+    if (UPDATE_TRANSLATIONS)
+        set(translation_dir ${PROJECT_SOURCE_DIR}/include/qt/translations)
+        #message ("translation_dir " ${translation_dir})
 
-    set(languages fr es)
-    set(language_ts_files)
+        set(languages fr es)
+        set(language_ts_files)
 
-    foreach(language ${languages})
-        set(ts_file ${ts_files} ${translation_dir}/saisie_${language}.ts)
-        set(language_ts_files ${language_ts_files} ${ts_file})
-        SET_SOURCE_FILES_PROPERTIES(${ts_file} PROPERTIES OUTPUT_LOCATION ${translation_dir})
-    endforeach(language)
+        foreach(language ${languages})
+            set(ts_file ${ts_files} ${translation_dir}/saisie_${language}.ts)
+            set(language_ts_files ${language_ts_files} ${ts_file})
+            SET_SOURCE_FILES_PROPERTIES(${ts_file} PROPERTIES OUTPUT_LOCATION ${translation_dir})
+        endforeach(language)
 
-    if ( ${qt_version} EQUAL 5 )
-
-        if (UPDATE_TRANSLATIONS)
-            qt5_create_translation(QM_FILES ${FILES_TO_TRANSLATE} ${language_ts_files})
-            #message("language ts files: " ${language_ts_files})
-            add_custom_target(update_translations DEPENDS ${QM_FILES} ${language_ts_files})
+        if ( ${qt_version} EQUAL 5 )
+                qt5_create_translation(QM_FILES ${FILES_TO_TRANSLATE} ${language_ts_files})
+                #message("language ts files: " ${language_ts_files})
         else()
-            qt5_add_translation(QM_FILES ${language_ts_files})
+                qt4_create_translation(QM_FILES ${FILES_TO_TRANSLATE} ${language_ts_files})
         endif()
-    else()
-        if (UPDATE_TRANSLATIONS)
-            qt4_create_translation(QM_FILES ${FILES_TO_TRANSLATE} ${language_ts_files})
-            add_custom_target(update_translations DEPENDS ${QM_FILES} ${language_ts_files})
-        else()
-            qt4_add_translation(QM_FILES ${language_ts_files})
-        endif()
+
+        add_custom_target(update_translations DEPENDS ${QM_FILES} ${language_ts_files})
+
+        install(FILES ${QM_FILES} DESTINATION ${translation_dir})
     endif()
-
-    add_custom_target (translations_target DEPENDS ${QM_FILES})
-
-    install(FILES ${QM_FILES} DESTINATION ${translation_dir})
 
     if ( ${qt_version} EQUAL 5 AND WIN32)
       add_executable(SaisieQT WIN32 ${saisieQT_SRCS} ${QM_FILES})
