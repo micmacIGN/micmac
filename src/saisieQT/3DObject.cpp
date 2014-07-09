@@ -1513,9 +1513,12 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
     glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
-    GLenum glError = glGetError();
-    if(glError == GL_OUT_OF_MEMORY)
+    GLenum glErrorT = glGetError();
+    if(glErrorT == GL_OUT_OF_MEMORY)
+    {
+        setGlError(glErrorT);
         printf("GL_OUT_OF_MEMORY \n");
+    }
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);
@@ -1552,6 +1555,16 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 
     glDisable(GL_BLEND);
 }
+GLenum cImageGL::glError() const
+{
+    return _glError;
+}
+
+void cImageGL::setGlError(const GLenum &glError)
+{
+    _glError = glError;
+}
+
 
 //********************************************************************************
 
@@ -1657,7 +1670,7 @@ cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, i
     _appMode(appMode)
 {
     if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
-    else _glMaskedImage._m_mask->setVisible(true);
+    else _glMaskedImage._m_mask->setVisible(true);    
 
     initOptions(appMode);
 

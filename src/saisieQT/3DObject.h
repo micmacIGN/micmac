@@ -509,6 +509,9 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
+        GLenum glError() const;
+        void setGlError(const GLenum &glError);
+
 private:
 
         QGLShaderProgram _program;
@@ -516,6 +519,8 @@ private:
         int     _matrixLocation;
         int     _texLocation  ;
         int     _gammaLocation;
+
+        GLenum  _glError;
 
         GLfloat _originX;
         GLfloat _originY;
