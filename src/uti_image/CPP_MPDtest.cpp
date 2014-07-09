@@ -368,10 +368,12 @@ void TestRandomSetOfMesureSegDr()
 
 extern void TestQR(int aN);
 
+extern void Test_DBL();
 
 
 int MPDtest_main (int argc,char** argv)
 {
+   Test_DBL();
 
    while (1)
    {
