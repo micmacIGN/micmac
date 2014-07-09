@@ -846,6 +846,7 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionLoad_plys,  isMode3D);
     hideAction(_ui->actionLoad_camera,isMode3D);
     hideAction(_ui->actionShow_cams,  isMode3D);
+    hideAction(_ui->actionSwitch_axis_Y_Z,  isMode3D);
     hideAction(_ui->actionShow_axis,  isMode3D);
     hideAction(_ui->actionShow_ball,  isMode3D);
     hideAction(_ui->actionShow_bbox,  isMode3D);
@@ -892,7 +893,7 @@ void SaisieQtWindow::setUI()
         hideAction(_ui->actionSave_masks, false);
         hideAction(_ui->actionSave_as, false);
         hideAction(_ui->actionSave_selection, false);
-        hideAction(_ui->actionClose_all, false);
+        hideAction(_ui->actionClose_all, false);      
 
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
