@@ -268,7 +268,7 @@ void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerSce
 void MatrixManager::SetArcBallCamera(float zoom)
 {
     setDistance(zoom);
-    glOrthoZoom(zoom,zoom + _diameterScene);
+    glOrthoZoom(zoom,zoom + 1.5f*_diameterScene);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -324,7 +324,7 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
 
 void MatrixManager::setMatrixDrawViewPort()
 {
-    glPushMatrix();
+    glPushMatrix(); // TODO ????
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();    
     glTranslatef(-1.f,-1.f,0.f);

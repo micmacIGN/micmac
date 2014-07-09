@@ -1,6 +1,7 @@
 #include "Tree.h"
 
-#define HORSIMAGE "Outside image"
+#define HORSIMAGE       "Outside image"
+#define VANISHED_TEXT   "Vanished"
 
 #define COLOR_OVER "#c89354"
 #define NON_SAISIE "#ba5606"
@@ -269,7 +270,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                         case eEPI_NonValue:
                             return QString(tr("no value"));
                         case eEPI_Disparu:
-                            return QString(tr("vanished"));
+                            return QString(tr(VANISHED_TEXT));
                         case eEPI_Highlight:
                             return QString(tr("highlighted"));
                         }
@@ -430,10 +431,11 @@ bool ImagesSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourcePar
 
     QString strColl_1 = sourceModel()->data(index1).toString();
 
+
     if( strColl_1 == "")
         return false;
     else
-        return !strColl_1.contains(HORSIMAGE);
+        return !strColl_1.contains(HORSIMAGE) && !strColl_1.contains(VANISHED_TEXT);
 
 }
 

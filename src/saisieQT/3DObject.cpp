@@ -460,8 +460,8 @@ void cCam::draw()
         GLfloat oldPointSize;
         glGetFloatv(GL_POINT_SIZE,&oldPointSize);
 
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
+//        glMatrixMode(GL_MODELVIEW);
+//        glPushMatrix();
 
         GLuint list = glGenLists(1);
         glNewList(list, GL_COMPILE);
@@ -525,7 +525,7 @@ void cCam::draw()
 
         glCallList(list);
 
-        glPopMatrix();
+ //       glPopMatrix();
         glPointSize(oldPointSize);
     }
 }
@@ -1814,6 +1814,16 @@ cGLData::~cGLData()
     _vClouds.clear();
 }
 
+void outMatrix4X4(GLdouble *mvMatrix)
+{
+
+    QString esp = "       ";
+    qDebug() << mvMatrix[0] << esp << mvMatrix[1] << esp << mvMatrix[2] << esp <<  mvMatrix[3] << endl;
+    qDebug() << mvMatrix[4] << esp << mvMatrix[5] << esp << mvMatrix[6] << esp <<  mvMatrix[7] << endl;
+    qDebug() << mvMatrix[8] << esp << mvMatrix[9] << esp << mvMatrix[10] << esp <<  mvMatrix[11] << endl;
+    qDebug() << mvMatrix[12] << esp << mvMatrix[13] << esp << mvMatrix[14] << esp <<  mvMatrix[15] << endl;
+}
+
 void cGLData::draw()
 {
 
@@ -1822,6 +1832,12 @@ void cGLData::draw()
     else
     {
         enableOptionLine();
+
+//        glMatrixMode(GL_MODELVIEW);
+//        glPushMatrix();
+//        glTranslated(getBBoxCenter().x,getBBoxCenter().y,getBBoxCenter().z);
+//        glRotatef(-90,1,0,0);
+//        glTranslated(-getBBoxCenter().x,-getBBoxCenter().y,-getBBoxCenter().z);
 
         for (int i=0; i<_vClouds.size();i++)
         {
@@ -1836,13 +1852,17 @@ void cGLData::draw()
             glPointSize(oldPointSize);
         }
 
+        //cameras
+        for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
+
+//        glMatrixMode(GL_MODELVIEW);
+//        glPopMatrix();
+
+
         _pBall->draw();
         _pAxis->draw();
         _pBbox->draw();
         _pGrid->draw();
-
-        //cameras
-        for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
 
         disableOptionLine();
     }
