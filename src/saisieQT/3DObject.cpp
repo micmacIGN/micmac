@@ -4,6 +4,7 @@
 cObject::cObject() :
     _name(""),
     _position(Pt3dr(0.f,0.f,0.f)),
+    _rotation(Pt3dr(0.f,0.f,0.f)),
     _scale(Pt3dr(1.f, 1.f,1.f)),
     _alpha(0.6f),
     _state(state_default)
@@ -15,11 +16,12 @@ cObject::cObject() :
 
 cObject::cObject(Pt3dr pos, QColor color_default) :
     _name(""),
+    _position(pos),
+    _rotation(Pt3dr(0.f,0.f,0.f)),
     _scale(Pt3dr(1.f, 1.f,1.f)),
     _alpha(0.6f),
     _state(state_default)
 {
-    _position  = pos;
 
     for (int iC = 0; iC < state_COUNT; ++iC)
         _color[iC] = color_default;
@@ -1833,11 +1835,13 @@ void cGLData::draw()
     {
         enableOptionLine();
 
-//        glMatrixMode(GL_MODELVIEW);
-//        glPushMatrix();
-//        glTranslated(getBBoxCenter().x,getBBoxCenter().y,getBBoxCenter().z);
-//        glRotatef(-90,1,0,0);
-//        glTranslated(-getBBoxCenter().x,-getBBoxCenter().y,-getBBoxCenter().z);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glTranslated(getBBoxCenter().x,getBBoxCenter().y,getBBoxCenter().z);
+        glRotatef(cObject::getRotation().x,1.f,0.f,0.f);
+        glRotatef(cObject::getRotation().y,0.f,1.f,0.f);
+        glRotatef(cObject::getRotation().z,0.f,0.f,1.f);
+        glTranslated(-getBBoxCenter().x,-getBBoxCenter().y,-getBBoxCenter().z);
 
         for (int i=0; i<_vClouds.size();i++)
         {

@@ -151,6 +151,7 @@ protected slots:
     void changeCurrentWidget(void* cuWid);
 
     //View Menu
+    void on_actionSwitch_axis_Y_Z_toggled(bool state);
     void on_actionShow_axis_toggled(bool);
     void on_actionShow_ball_toggled(bool);
     void on_actionShow_cams_toggled(bool);

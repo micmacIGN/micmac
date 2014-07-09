@@ -4,6 +4,15 @@
 
 #include <cmath>
 
+// suppress bogus warning when compiling with gcc 4.3
+
+#if (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+
+#pragma GCC diagnostic ignored "-Warray-bounds"
+
+#endif
+
+
 /*
 ** Invert 4x4 matrix.
 ** Contributed by David Moore (See Mesa bug #6748)

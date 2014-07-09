@@ -74,6 +74,7 @@ class cObject
 
         QString name()          { return _name;     }
         Pt3dr   getPosition()   { return _position; }
+        Pt3dr   getRotation()   { return _rotation; }
         QColor  getColor();
         Pt3dr   getScale()      { return _scale;    }
         bool    isVisible()     { return (state() != state_invible); }
@@ -81,6 +82,7 @@ class cObject
 
         void    setName(QString name)          { _name = name;     }
         void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
+        void    setRotation(Pt3dr const &aPt)  { _rotation = aPt;  }
         void    setColor(QColor const &aCol, object_state state = state_default)   { _color[state] = aCol;    }
         void    setScale(Pt3dr aScale)         { _scale = aScale; }
         void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
@@ -96,6 +98,9 @@ protected:
         QString _name;
 
         Pt3dr   _position;
+
+        Pt3dr   _rotation;
+
         QColor  _color[state_COUNT];
         Pt3dr   _scale;
 
@@ -681,7 +686,7 @@ class MatrixManager;
 
 
 
-class cGLData : cObjectGL
+class cGLData : public cObjectGL
 {
 public:
 
