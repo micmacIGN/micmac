@@ -50,9 +50,21 @@ Header-MicMac-eLiSe-25/06/2007*/
       * ni pire ni meilleur  que la triangulation en continuite
       
 
+   Analyse de phgr_dist_unif.h
+
+         cDist_Param_Unif_Gen => ElDistortion22_Gen
+         class cCamera_Param_Unif_Gen :  public CamStenope
+
+class cPIF_Unif_Gen : public cParamIntrinsequeFormel
+
+
+
 */
 
 
+class cDistorBilin ;
+class cPIF_Bilin ;
+class cPIF_Bilin ;
 
 class cDistorBilin :   public ElDistortion22_Gen 
 {
@@ -78,9 +90,11 @@ class cDistorBilin :   public ElDistortion22_Gen
      private  :
         //  ==== Tests ============
           Box2dr BoxRab(double aMulStep) const;
-          void Randomize();
+          void Randomize(double aFact=0.1);
+          void InitAffine(double aF,Pt2dr aPP);
 
         //  =============
+          void  Diff(ElMatrix<REAL> &,Pt2dr) const;
           Pt2dr ToCoordGrid(const Pt2dr &) const;
           Pt2dr FromCoordGrid(const Pt2dr &) const;
           // Renvoie le meilleur interval [X0, X0+1[ contenat aCoordGr, valide qqsoit aCoordGr
@@ -104,6 +118,83 @@ class cDistorBilin :   public ElDistortion22_Gen
           mutable double                              mP11;
 };
 
+
+
+class cCamStenopeBilin : public CamStenope
+{
+    public :
+           cCamStenopeBilin
+           (
+               REAL Focale,
+               Pt2dr Centre,
+               const  cDistorBilin & aDBL
+           );
+
+            const ElDistortion22_Gen & Dist() const;
+            ElDistortion22_Gen & Dist() ;
+
+    private :
+
+           cDistorBilin mDBL;
+};
+
+
+/*
+class cPIF_Bilin : public cParamIntrinsequeFormel
+{
+     public :
+         cPIF_Bilin(bool isDistC2M,cCamStenopeBilin *,cSetEqFormelles &);
+
+     private  :
+          // virtual bool UseSz() const; ==> A priori 
+          virtual bool IsDistFiged() const;
+
+          virtual ~cPIF_Bilin();
+          virtual std::string  NameType() const;
+
+          virtual cMultiContEQF  StdContraintes();
+          virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+          virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>);
+          virtual void    UpdateCurPIF();
+          void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
+
+
+          virtual CamStenope * CurPIF(); ;
+          virtual CamStenope * DupCurPIF(); ;
+          static cPIF_Unif * Alloc(bool isDistC2M,tCam *,cSetEqFormelles &);
+ 
+
+       // ==============================================
+          bool mFiged;
+          std::vector<std::vector<Pt2d<Fonc_Num> > >   mVDist;
+          cDistorBilin                                 mDBL;
+          // cCamStenopeBilin                             
+};
+*/
+
+
+/**************************************************************/
+/*                                                            */
+/*                 cCamStenopeBilin:                          */
+/*                                                            */
+/**************************************************************/
+
+std::vector<double> NoAF;
+
+cCamStenopeBilin::cCamStenopeBilin
+(
+     REAL Focale,
+     Pt2dr Centre,
+     const  cDistorBilin & aDBL
+) :
+  CamStenope  (true,Focale,Centre,NoAF),
+  mDBL        (aDBL)
+{
+}
+
+const ElDistortion22_Gen & cCamStenopeBilin::Dist() const {return mDBL;}
+ElDistortion22_Gen & cCamStenopeBilin::Dist()  {return mDBL;}
+
 /**************************************************************/
 /*                                                            */
 /*                 cDistorBilin                               */
@@ -116,12 +207,16 @@ cDistorBilin::cDistorBilin(Pt2dr aP0,Pt2dr aP1,Pt2di aNb) :
    mStep   ((aP1-aP0).dcbyc(Pt2dr(aNb))),
    mNb     (aNb)
 {
-    std::vector<Pt2dr > aV0;
-    for (int aKX=0 ; aKX<= mNb.x ; aKX++)
-        aV0.push_back(Pt2dr(0,0));
 
     for (int aKY=0 ; aKY<= mNb.y ; aKY++)
+    {
+        std::vector<Pt2dr > aV0;
+        for (int aKX=0 ; aKX<= mNb.x ; aKX++)
+        {
+            aV0.push_back(FromCoordGrid(Pt2dr(aKX,aKY)));
+        }
         mVDist.push_back(aV0);
+    }
 }
 
 Pt2dr cDistorBilin::ToCoordGrid(const Pt2dr & aP) const   { return (aP-mP0).dcbyc(mStep); } 
@@ -143,7 +238,7 @@ void cDistorBilin::GetDebIntervalAndPds(int & aX0,double & aPdsX0,const int & aS
 void  cDistorBilin::GetParamCorner(Pt2di & aCornerBG,Pt2dr & aPdsBG,const Pt2dr & aCoorGr) const
 {
      GetDebIntervalAndPds(aCornerBG.x,aPdsBG.x,mNb.x,aCoorGr.x);
-     GetDebIntervalAndPds(aCornerBG.y,aPdsBG.x,mNb.y,aCoorGr.y);
+     GetDebIntervalAndPds(aCornerBG.y,aPdsBG.y,mNb.y,aCoorGr.y);
 }
 
 void cDistorBilin::InitEtatFromCorner(const Pt2dr & aCoorGr) const
@@ -160,11 +255,63 @@ Pt2dr cDistorBilin::Direct(Pt2dr aP) const
 {
     InitEtatFromCorner(ToCoordGrid(aP));
 
-    return   aP 
-           + Dist(mCurCorner             ) * mP00
+    return   
+             Dist(mCurCorner             ) * mP00
            + Dist(mCurCorner + Pt2di(1,0)) * mP10
            + Dist(mCurCorner + Pt2di(0,1)) * mP01
            + Dist(mCurCorner + Pt2di(1,1)) * mP11;
+}
+
+
+void  cDistorBilin::Diff(ElMatrix<REAL> & aM,Pt2dr aP) const
+{
+    // InitEtatFromCorner(ToCoordGrid(aP));
+
+    Pt2dr aPds;
+    GetParamCorner(mCurCorner,aPds,ToCoordGrid(aP)); 
+    const Pt2dr & aP00 =  Dist(mCurCorner            ) ;
+    const Pt2dr & aP10 =  Dist(mCurCorner+ Pt2di(1,0)) ;
+    const Pt2dr & aP01 =  Dist(mCurCorner+ Pt2di(0,1)) ;
+    const Pt2dr & aP11 =  Dist(mCurCorner+ Pt2di(1,1)) ;
+
+
+    Pt2dr aGx =    ((aP10-aP00)*aPds.y + (aP11-aP01)*(1-aPds.y))  / mStep.x;
+    Pt2dr aGy =    ((aP01-aP00)*aPds.x + (aP11-aP10)*(1-aPds.x))  / mStep.y;
+
+    aM.ResizeInside(2,2);
+    SetCol(aM,0,aGx);
+    SetCol(aM,1,aGy);
+
+    // A conserver, verification par diff std
+    if (0)
+    {
+        ElMatrix<REAL> aM2(2,2);
+        DiffByDiffFinies(aM2,aP,euclid(mStep)/1e4);
+        static double aDMax = 0;
+        double aD = aM.L2(aM2);
+        if (aD>aDMax)
+        {
+            aDMax = aD;
+            std::cout << "DDDD " << aD << "\n";
+        }
+    }
+    // InitEtatFromCorner(ToCoordGrid(aP));
+
+}
+
+void cDistorBilin::InitAffine(double aF,Pt2dr aPP)
+{
+   for (int aKY=0 ; aKY<= mNb.y ; aKY++)
+   {
+       for (int aKX=0 ; aKX<= mNb.x ; aKX++)
+       {
+           Pt2di aPGrI(aKX,aKY);
+           Pt2dr aPGrR(aPGrI);
+           Pt2dr aPR = FromCoordGrid(aPGrR);
+
+           Dist(aPGrI) = aPP + aPR*aF;
+       }
+   }
 }
 
 Box2dr cDistorBilin::BoxRab(double aMulStep) const
@@ -191,13 +338,13 @@ cCalibrationInterneGridDef  cDistorBilin::ToXmlGridStruct() const
    return aRes;
 }
 
-void cDistorBilin::Randomize()
+void cDistorBilin::Randomize(double aFact)
 {
    for (int aKY=0 ; aKY<= mNb.y ; aKY++)
    {
        for (int aKX=0 ; aKX<= mNb.x ; aKX++)
        {
-             Dist(Pt2di(aKX,aKY)) = Pt2dr(NRrandC(),NRrandC()).mcbyc(mStep) * 0.1;
+             Dist(Pt2di(aKX,aKY)) = FromCoordGrid(Pt2dr(aKX,aKY) + Pt2dr(NRrandC(),NRrandC()) * aFact);
        }
    }
 }
@@ -255,18 +402,42 @@ void Test_DBL()
     Pt2dr aP1(1500,2000);
     Pt2di aNb(10,15);
 
-    
-
     cDistorBilin aDBL1(aP0,aP1,aNb);
-    aDBL1.Randomize();
-
-    cDistorBilin aDBL2 = aDBL1;
-
     Box2dr aBoxRab1 = aDBL1.BoxRab(0.3);
 
-   // Test copy
-    for (int aK=0 ; aK<100000 ; aK++)
+   //======================================================
+   // Verif interpol/extrapol de fon lineaire est exacte 
+   //======================================================
+
+    for (int aTime=0 ; aTime<10000 ; aTime++)
     {
+        double aF = pow(2.0,NRrandC()*8);
+        Pt2dr aPP = Pt2dr(NRrandC(),NRrandC()) * aF;
+        aDBL1.InitAffine(aF,aPP);
+        for (int aK=0 ; aK<10; aK++)
+        {
+            Pt2dr aP0 = aBoxRab1.RandomlyGenereInside();
+            Pt2dr aP1 = aDBL1.Direct(aP0);
+            Pt2dr aQ1 = aPP + aP0 * aF;
+            double aDist = euclid(aP1,aQ1);
+            if (aDist>1e-9)
+            {
+                ELISE_ASSERT(false,"Test_DBL Affine");
+            }
+        }
+    }
+
+
+
+
+   //============================
+   // Test copy
+   //============================
+
+    for (int aK=0 ; aK<10000 ; aK++)
+    {
+         aDBL1.Randomize();
+         cDistorBilin aDBL2 = aDBL1;
          Pt2dr aP0 = aBoxRab1.RandomlyGenereInside();
          Pt2dr aP1 = aDBL1.Direct(aP0);
          Pt2dr aP2 = aDBL2.Direct(aP0);
@@ -274,30 +445,56 @@ void Test_DBL()
          ELISE_ASSERT(aDist==0,"Test_DBL dist");
     }
     
-    for (int aTime=0 ; aTime<100000 ; aTime++)
+   //============================
+   //  V_SetScalingTranslate
+   //============================
+
+    for (int aTime=0 ; aTime<10000 ; aTime++)
     {
         double aF = pow(2.0,NRrandC()*8);
         Pt2dr aPP = Pt2dr(NRrandC(),NRrandC()) * aF;
-        aDBL2 = aDBL1;
+        aDBL1.Randomize();
+        cDistorBilin aDBL2 = aDBL1;
         aDBL2.V_SetScalingTranslate(aF,aPP);
         Box2dr aBoxRab2 = aDBL2.BoxRab(0.3);
+
         for (int aK=0 ; aK<10; aK++)
         {
             Pt2dr aP0 = aBoxRab2.RandomlyGenereInside();
             Pt2dr aP2 = aDBL2.Direct(aP0);
 
             Pt2dr aP1 = (aDBL1.Direct(aPP+aP0*aF)-aPP) /aF;
+            double aDist = euclid(aP1 - aP2);
 
-            std::cout << aP1 << " " << aP2 << "\n";
-     // Soit H (X) == PP + X * F   se transforme en H-1 D H
-             
+            ELISE_ASSERT(aDist<1e-9,"DBL-setScalingTranslate");
         }
-        // aDBL2 = 
     }
+
+   //============================
+   //  Verif Inverse
+   //============================
+
+    for (int aTime=0 ; aTime<100000 ; aTime++)
+    {
+        aDBL1.Randomize(0.01);
+
+        for (int aK=0 ; aK<10; aK++)
+        {
+            Pt2dr aP0 = aBoxRab1.RandomlyGenereInside();
+            Pt2dr aP1 = aDBL1.Direct(aP0);
+            Pt2dr aP2 = aDBL1.Inverse(aP1);
+
+            double aDist = euclid(aP0 - aP2);
+            // std::cout << "D= " << aDist << "\n";
+
+            ELISE_ASSERT(aDist<1e-5,"DBL-setScalingTranslate");
+        }
+   }
+/*
+*/
 
 
     std::cout << "DONE Test cDistorBilin\n";
-
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007
