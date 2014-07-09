@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1557]) = {
+const char * (theNameVar_ParamChantierPhotogram[1567]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -609,6 +609,13 @@ const char * (theNameVar_ParamChantierPhotogram[1557]) = {
 "   </enum>\n",
 "\n",
 "\n",
+"   <CalibrationInterneGridDef Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"         <P0 Nb=\"1\" Type=\"Pt2dr\"> </P0>\n",
+"         <P1 Nb=\"1\" Type=\"Pt2dr\"> </P1>\n",
+"         <Nb Nb=\"1\" Type=\"Pt2di\"> </Nb>\n",
+"         <PGr Nb=\"+\" Container=\"std::vector\" Type=\"Pt2dr\"> </PGr>\n",
+"   </CalibrationInterneGridDef>\n",
+"\n",
 "   <CalibrationInterneRadiale Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "   <!--  Redondant avec OrientationConique quand il est utilise pour\n",
 "   creer un ori a la main, necessaire quand l'orientation est a part de\n",
@@ -721,6 +728,9 @@ const char * (theNameVar_ParamChantierPhotogram[1557]) = {
 "             <ModPhgrStd Nb=\"?\" RefType=\"CalibrationInternePghrStd\"> </ModPhgrStd>\n",
 "             <ModUnif Nb=\"?\"   RefType=\"CalibrationInterneUnif\">    </ModUnif>\n",
 "             <ModGrid Nb=\"?\"   RefType=\"CalibrationInterneGrid\">    </ModGrid>\n",
+"               \n",
+"              <!-- Mode Grille deformable -->\n",
+"             <ModGridDef Nb=\"?\"   RefType=\"CalibrationInterneGridDef\">    </ModGridDef>\n",
 "        </CalibDistortion>\n",
 "        <!-- Pour pouvoir etre utilisee dans l'autocalibration avec les modeles formels existant la\n",
 "             correction de diffraction doit se faire a la fin, du coup il faut connaitre le modele approche ... -->\n",

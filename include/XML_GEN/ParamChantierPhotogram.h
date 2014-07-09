@@ -2179,6 +2179,42 @@ std::string  Mangling( eConventionsOrientation *);
 
 void  BinaryUnDumpFromFile(eConventionsOrientation &,ELISE_fp &);
 
+class cCalibrationInterneGridDef
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCalibrationInterneGridDef & anObj,cElXMLTree * aTree);
+
+
+        Pt2dr & P0();
+        const Pt2dr & P0()const ;
+
+        Pt2dr & P1();
+        const Pt2dr & P1()const ;
+
+        Pt2di & Nb();
+        const Pt2di & Nb()const ;
+
+        std::vector< Pt2dr > & PGr();
+        const std::vector< Pt2dr > & PGr()const ;
+    private:
+        Pt2dr mP0;
+        Pt2dr mP1;
+        Pt2di mNb;
+        std::vector< Pt2dr > mPGr;
+};
+cElXMLTree * ToXMLTree(const cCalibrationInterneGridDef &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCalibrationInterneGridDef &);
+
+void  BinaryUnDumpFromFile(cCalibrationInterneGridDef &,ELISE_fp &);
+
+std::string  Mangling( cCalibrationInterneGridDef *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cCalibrationInterneRadiale
 {
     public:
@@ -2651,12 +2687,16 @@ class cCalibDistortion
 
         cTplValGesInit< cCalibrationInterneGrid > & ModGrid();
         const cTplValGesInit< cCalibrationInterneGrid > & ModGrid()const ;
+
+        cTplValGesInit< cCalibrationInterneGridDef > & ModGridDef();
+        const cTplValGesInit< cCalibrationInterneGridDef > & ModGridDef()const ;
     private:
         cTplValGesInit< cModNoDist > mModNoDist;
         cTplValGesInit< cCalibrationInterneRadiale > mModRad;
         cTplValGesInit< cCalibrationInternePghrStd > mModPhgrStd;
         cTplValGesInit< cCalibrationInterneUnif > mModUnif;
         cTplValGesInit< cCalibrationInterneGrid > mModGrid;
+        cTplValGesInit< cCalibrationInterneGridDef > mModGridDef;
 };
 cElXMLTree * ToXMLTree(const cCalibDistortion &);
 
