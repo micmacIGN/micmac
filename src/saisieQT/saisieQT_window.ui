@@ -376,7 +376,7 @@
      <x>0</x>
      <y>0</y>
      <width>1163</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="mouseTracking">
@@ -463,6 +463,7 @@
     <addaction name="menuZoom"/>
     <addaction name="actionFullScreen"/>
     <addaction name="actionShow_axis"/>
+    <addaction name="actionSwitch_axis_Y_Z"/>
     <addaction name="actionShow_ball"/>
     <addaction name="actionShow_bbox"/>
     <addaction name="actionShow_grid"/>
@@ -1027,6 +1028,14 @@
    </property>
    <property name="shortcut">
     <string>F6</string>
+   </property>
+  </action>
+  <action name="actionSwitch_axis_Y_Z">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Switch axis Y/Z</string>
    </property>
   </action>
  </widget>
