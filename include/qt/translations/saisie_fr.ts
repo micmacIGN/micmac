@@ -41,7 +41,7 @@
     <message>
         <location filename="../../../src/saisieQT/ContextMenu.cpp" line="33"/>
         <source>Not captured</source>
-        <translation>Non mesuré</translation>
+        <translation>Non saisi</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ContextMenu.cpp" line="35"/>
@@ -174,7 +174,7 @@
     <message>
         <location filename="../../../src/saisieQT/Tree.cpp" line="62"/>
         <source>Not measured</source>
-        <translation>PAs mesuré</translation>
+        <translation>Pas saisi</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/Tree.cpp" line="112"/>
@@ -205,7 +205,7 @@
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.ui" line="17"/>
         <source>Micmac selection tool</source>
-        <translation>Outil de sélection pour Micmac</translation>
+        <translation>Outil de sélection</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.ui" line="129"/>
@@ -890,7 +890,7 @@
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="407"/>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="454"/>
         <source>Left click</source>
-        <translation>Clci gauche</translation>
+        <translation>Clic gauche</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="408"/>
