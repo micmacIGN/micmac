@@ -323,8 +323,7 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
 }
 
 void MatrixManager::setMatrixDrawViewPort()
-{
-    glPushMatrix(); // TODO ????
+{    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();    
     glTranslatef(-1.f,-1.f,0.f);

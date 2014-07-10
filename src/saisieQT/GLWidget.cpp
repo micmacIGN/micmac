@@ -398,7 +398,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (mode == ADD || mode == SUB) m_bFirstAction = false;
 
-        if (saveInfos)
+        if (saveInfos) //  TODO ne marche pas avec le switch y/z
         {
             selectInfos info(polygon()->getVector(),mode);
 

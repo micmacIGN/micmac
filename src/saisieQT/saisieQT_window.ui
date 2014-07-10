@@ -1037,6 +1037,9 @@
    <property name="text">
     <string>Switch axis Y/Z</string>
    </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
