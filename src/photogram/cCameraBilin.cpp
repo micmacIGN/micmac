@@ -75,6 +75,7 @@ class cDistorBilin :   public ElDistortion22_Gen
           Pt2dr Direct(Pt2dr) const ;
 
           Pt2dr & Dist(const Pt2di aP) {return mVDist[aP.y][aP.x];}
+          const Pt2di & Nb() const {return mNb ;}
           const Pt2dr & Dist(const Pt2di aP) const {return mVDist[aP.y][aP.x];}
 
 
@@ -132,6 +133,7 @@ class cCamStenopeBilin : public CamStenope
 
             const ElDistortion22_Gen & Dist() const;
             ElDistortion22_Gen & Dist() ;
+            const cDistorBilin & DBL() const;
 
     private :
 
@@ -148,6 +150,8 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
      private  :
           // virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>); a priori inutile
           virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+          void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
+          virtual void    UpdateCurPIF();
           // virtual bool UseSz() const; ==> A priori 
 /*
           virtual bool IsDistFiged() const;
@@ -156,24 +160,22 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
           virtual std::string  NameType() const;
 
           virtual cMultiContEQF  StdContraintes();
-          virtual void    UpdateCurPIF();
-          void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
 
 
           virtual CamStenope * CurPIF(); ;
           virtual CamStenope * DupCurPIF(); ;
 */
  
+          Pt2d<Fonc_Num> & Dist(const Pt2di & aP);
 
        // ==============================================
           cSetEqFormelles &                            mSet;
-          cVarEtat_PhgrF                               mPds00;
-          cVarEtat_PhgrF                               mPds10;
-          cVarEtat_PhgrF                               mPds01;
-          cVarEtat_PhgrF                               mPds11;
+          std::vector<cVarEtat_PhgrF>                  mPds; // Size 8, pour eventuelleme,t gerer aKCam=1
           bool mFiged;
+          cDistorBilin                                 mDistInit;
+          cDistorBilin                                 mDistCur;
           std::vector<std::vector<Pt2d<Fonc_Num> > >   mVDist;
-          cDistorBilin                                 mDBL;
+          cCamStenopeBilin *                           mCurPIF;
           // cCamStenopeBilin                             
 };
 /*
@@ -187,19 +189,53 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
 
 Pt2d<Fonc_Num> cPIF_Bilin::VDist(Pt2d<Fonc_Num>,int aKCam)
 {
-    return     mVDist[0][0].mul(mPds00.FN())
-            +  mVDist[1][0].mul(mPds10.FN())
-            +  mVDist[0][1].mul(mPds01.FN())
-            +  mVDist[1][1].mul(mPds11.FN());
+    int aOffs = aKCam * 4;
+    return     mVDist[0][0].mul(mPds[0+aOffs].FN())
+            +  mVDist[1][0].mul(mPds[1+aOffs].FN())
+            +  mVDist[0][1].mul(mPds[2+aOffs].FN())
+            +  mVDist[1][1].mul(mPds[3+aOffs].FN());
 }
 
-/*
 cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
-    cParamIntrinsequeFormel(true,aCSB,aSet,true),
-    mSet (aSet)
+    cParamIntrinsequeFormel (true,aCSB,aSet,true),
+    mSet                    (aSet),
+    mFiged                  (false),
+    mDistInit               (aCSB->DBL()),
+    mDistCur                (aCSB->DBL()),
+    mVDist                  (mDistCur.Nb().y),
+    mCurPIF                 (0)
 {
+    SetFocFree(true);
+    SetPPFree(true);
+ 
+    for (int aK=0 ; aK<8 ; aK++)
+    {
+        mPds.push_back(cVarEtat_PhgrF(std::string("Pds")+ToString(aK)));
+    }
+
+    // Pour etre sur a 100% que init est correcte
+    ELISE_ASSERT(int(mVDist.size())==mDistCur.Nb().y ,"cPIF_Bilin::cPIF_Bilin pb in sz init");
+    for (int aKY=0; aKY<mDistCur.Nb().y ; aKY++)
+    {
+        for (int aKX=0; aKX<mDistCur.Nb().x ; aKX++)
+        {
+             mVDist[aKY].push_back(mSet.Alloc().NewPt2(mDistCur.Dist(Pt2di(aKX,aKY))));
+        }
+    }
+
+    NV_UpdateCurPIF();
 }
+/*
 */
+
+void   cPIF_Bilin::NV_UpdateCurPIF()
+{
+   mCurPIF = new  cCamStenopeBilin(CurFocale(),CurPP(),mDistCur);
+   mCurPIF->HeritComplAndSz(*CamInit());
+}
+
+void   cPIF_Bilin::UpdateCurPIF()  {NV_UpdateCurPIF();}
+
 
 /**************************************************************/
 /*                                                            */
@@ -222,6 +258,7 @@ cCamStenopeBilin::cCamStenopeBilin
 
 const ElDistortion22_Gen & cCamStenopeBilin::Dist() const {return mDBL;}
 ElDistortion22_Gen & cCamStenopeBilin::Dist()  {return mDBL;}
+const cDistorBilin & cCamStenopeBilin::DBL() const  {return mDBL;}
 
 /**************************************************************/
 /*                                                            */

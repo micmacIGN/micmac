@@ -287,8 +287,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Prep4masq",Prep4masq_main," Generates files for making Masks (if SaisieMasq unavailable)"));
        aRes.push_back(cMMCom("Reduc2MM",Reduc2MM_main," Do some stuff"));
        aRes.push_back(cMMCom("ReducHom",ReducHom_main," Do some stuff"));
-       aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation"));
-       aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
+       aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation",cArgLogCom(2)));
+       aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule",cArgLogCom(2)));
        aRes.push_back(cMMCom("HomolFilterMasq",HomFilterMasq_main," Tool for filter homologous points according to masq",cArgLogCom(2)));
 
 

@@ -149,6 +149,9 @@ int Campari_main(int argc,char ** argv)
         if (AllFree) aCom    += " +AllFree=true ";
         if (ExpTxt) aCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
+        if (EAMIsInit(&aFactResElimTieP))
+           aCom =  " +FactMaxRes=" + ToString(aFactResElimTieP);
+
 
        if (EAMIsInit(&Viscos)) aCom  +=  " +Viscos=" + ToString(Viscos) + " ";
 
