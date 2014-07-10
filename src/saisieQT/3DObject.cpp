@@ -1872,9 +1872,8 @@ void cGLData::draw()
         //cameras
         for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
 
-//        glMatrixMode(GL_MODELVIEW);
-//        glPopMatrix();
-
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
 
         _pBall->draw();
         _pAxis->draw();
@@ -2030,6 +2029,13 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
         {
             GlVertex &P  = a_cloud->getVertex( bK );
             Pt3dr  Pt = P.getPosition();
+
+            if(getRotation().x != 0)
+            {
+                Pt = Pt - getBBoxCenter() ;
+                Pt = Pt3dr(Pt.x,Pt.z,-Pt.y);
+                Pt = Pt + getBBoxCenter() ;
+            }
 
             switch (mode)
             {
