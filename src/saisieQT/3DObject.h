@@ -111,16 +111,30 @@ protected:
 class cObjectGL : public cObject
 {
     public:
-        cObjectGL(){}
+
+        cObjectGL();
 
         cObjectGL(Pt3dr pos, QColor color_default) :
-            cObject(pos, color_default){}
+            cObject(pos, color_default),
+            _glError(0)
+        {}
 
         virtual ~cObjectGL(){}
 
         virtual void draw()=0;
 
         void    setLineWidth(float width) { _lineWidth = width; }
+
+        GLenum glError() const
+        {
+            return _glError;
+        }
+
+        void setGlError(const GLenum &glError)
+        {
+            _glError = glError;
+        }
+
 
     protected:
 
@@ -133,6 +147,10 @@ class cObjectGL : public cObject
         void    disableOptionLine();
 
         float   getHalfViewPort();
+
+private:
+
+        GLenum _glError;
 };
 
 class cPoint : public cObjectGL, public QPointF
@@ -509,9 +527,6 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
-        GLenum glError() const;
-        void setGlError(const GLenum &glError);
-
 private:
 
         QGLShaderProgram _program;
@@ -519,8 +534,6 @@ private:
         int     _matrixLocation;
         int     _texLocation  ;
         int     _gammaLocation;
-
-        GLenum  _glError;
 
         GLfloat _originX;
         GLfloat _originY;

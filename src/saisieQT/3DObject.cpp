@@ -1555,15 +1555,6 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 
     glDisable(GL_BLEND);
 }
-GLenum cImageGL::glError() const
-{
-    return _glError;
-}
-
-void cImageGL::setGlError(const GLenum &glError)
-{
-    _glError = glError;
-}
 
 
 //********************************************************************************
@@ -1606,6 +1597,10 @@ void cMaskedImageGL::draw()
 }
 
 //********************************************************************************
+
+cObjectGL::cObjectGL():
+_glError(0)
+{}
 
 void cObjectGL::setGLColor()
 {
