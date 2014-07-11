@@ -152,30 +152,40 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
           virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
           void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
           virtual void    UpdateCurPIF();
-          // virtual bool UseSz() const; ==> A priori 
-/*
           virtual bool IsDistFiged() const;
-
-          virtual ~cPIF_Bilin();
           virtual std::string  NameType() const;
-
-          virtual cMultiContEQF  StdContraintes();
-
-
+          virtual ~cPIF_Bilin();
           virtual CamStenope * CurPIF(); ;
           virtual CamStenope * DupCurPIF(); ;
+          virtual cMultiContEQF  StdContraintes();
+
+          // virtual bool UseSz() const; ==> A priori 
+/*
+
+
+
+
 */
  
           Pt2d<Fonc_Num> & Dist(const Pt2di & aP);
 
        // ==============================================
+          static const std::string TheNameType ;
+       // ==============================================
           cSetEqFormelles &                            mSet;
           std::vector<cVarEtat_PhgrF>                  mPds; // Size 8, pour eventuelleme,t gerer aKCam=1
-          bool mFiged;
+          bool                                         mFiged;
           cDistorBilin                                 mDistInit;
           cDistorBilin                                 mDistCur;
-          std::vector<std::vector<Pt2d<Fonc_Num> > >   mVDist;
           cCamStenopeBilin *                           mCurPIF;
+          std::vector<std::vector<Pt2d<Fonc_Num> > >   mVDist;
+
+          std::vector<cElCompiledFonc* >               mFctrRegul;
+
+          // Index des deux point qui doivent etre figee arbirtairemnt pour fixer PP,Focale, Rotation
+          // situes sur les extre de la ligne horiz coupant la capteur en 2
+          int                                          mIndFrozen0;
+          int                                          mIndFrozen1;
           // cCamStenopeBilin                             
 };
 /*
@@ -187,14 +197,6 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
 /*                                                            */
 /**************************************************************/
 
-Pt2d<Fonc_Num> cPIF_Bilin::VDist(Pt2d<Fonc_Num>,int aKCam)
-{
-    int aOffs = aKCam * 4;
-    return     mVDist[0][0].mul(mPds[0+aOffs].FN())
-            +  mVDist[1][0].mul(mPds[1+aOffs].FN())
-            +  mVDist[0][1].mul(mPds[2+aOffs].FN())
-            +  mVDist[1][1].mul(mPds[3+aOffs].FN());
-}
 
 cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
     cParamIntrinsequeFormel (true,aCSB,aSet,true),
@@ -202,8 +204,8 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
     mFiged                  (false),
     mDistInit               (aCSB->DBL()),
     mDistCur                (aCSB->DBL()),
-    mVDist                  (mDistCur.Nb().y),
-    mCurPIF                 (0)
+    mCurPIF                 (0),
+    mVDist                  (mDistCur.Nb().y)
 {
     SetFocFree(true);
     SetPPFree(true);
@@ -215,18 +217,54 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
 
     // Pour etre sur a 100% que init est correcte
     ELISE_ASSERT(int(mVDist.size())==mDistCur.Nb().y ,"cPIF_Bilin::cPIF_Bilin pb in sz init");
-    for (int aKY=0; aKY<mDistCur.Nb().y ; aKY++)
+    for (int aKY=0; aKY<=mDistCur.Nb().y ; aKY++)
     {
-        for (int aKX=0; aKX<mDistCur.Nb().x ; aKX++)
+        for (int aKX=0; aKX<=mDistCur.Nb().x ; aKX++)
         {
-             mVDist[aKY].push_back(mSet.Alloc().NewPt2(mDistCur.Dist(Pt2di(aKX,aKY))));
+            if (aKY == (mDistCur.Nb().y/2))
+            {
+                if (aKX==0)
+                   mIndFrozen0 = NbInc();
+                if (aKX==mDistCur.Nb().x)
+                   mIndFrozen1 = NbInc();
+            }
+            mVDist[aKY].push_back(mSet.Alloc().NewPt2(mDistCur.Dist(Pt2di(aKX,aKY))));
         }
     }
 
     NV_UpdateCurPIF();
 }
+
+
+
+Pt2d<Fonc_Num> cPIF_Bilin::VDist(Pt2d<Fonc_Num>,int aKCam)
+{
+    int aOffs = aKCam * 4;
+    return     mVDist[0][0].mul(mPds[0+aOffs].FN())
+            +  mVDist[1][0].mul(mPds[1+aOffs].FN())
+            +  mVDist[0][1].mul(mPds[2+aOffs].FN())
+            +  mVDist[1][1].mul(mPds[3+aOffs].FN());
+}
+
+cPIF_Bilin::~cPIF_Bilin() {}
+
 /*
 */
+
+CamStenope * cPIF_Bilin::CurPIF()
+{
+    return mCurPIF;
+}
+
+CamStenope * cPIF_Bilin::DupCurPIF()
+{
+    //  Respecte le protocole standard pour le cas ou on ajoute qq ch de + complexe dans NV_UpdateCurPIF
+     cCamStenopeBilin * aCSB = mCurPIF;
+     NV_UpdateCurPIF();
+     ElSwap(aCSB,mCurPIF);
+  
+    return aCSB;
+}
 
 void   cPIF_Bilin::NV_UpdateCurPIF()
 {
@@ -235,6 +273,34 @@ void   cPIF_Bilin::NV_UpdateCurPIF()
 }
 
 void   cPIF_Bilin::UpdateCurPIF()  {NV_UpdateCurPIF();}
+
+bool  cPIF_Bilin::IsDistFiged() const
+{
+    return mFiged;
+}
+
+
+const std::string cPIF_Bilin::TheNameType  = "CamBilin";
+std::string  cPIF_Bilin::NameType() const { return TheNameType; }
+
+
+
+cMultiContEQF  cPIF_Bilin::StdContraintes()
+{
+   cMultiContEQF aRes;
+   if (mFiged)
+   {
+        AddFoncRappInit(aRes,0,NbInc(),cContrainteEQF::theContrStricte);
+   }
+   else
+   {
+        AddFoncRappInit(aRes,mIndFrozen0,mIndFrozen0+2,cContrainteEQF::theContrStricte);
+        AddFoncRappInit(aRes,mIndFrozen1,mIndFrozen1+2,cContrainteEQF::theContrStricte);
+   }
+
+   return aRes;
+}
+
 
 
 /**************************************************************/
