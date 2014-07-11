@@ -186,58 +186,61 @@
                               <Val> eAllParamFiges  </Val>
                           </ContraintesCamerasInc>
                        </SectionContraintes>
-                    </IterationsCompensation>
+                   </IterationsCompensation>
 
-                    <#WHEN VTEST=${FocFree}>
+                   <#WHEN VTEST=${FocFree}>
                          <IterationsCompensation>
                             <SectionContraintes>
                                <ContraintesCamerasInc>
                                    <Val> eLiberteFocale_1  </Val>
                                </ContraintesCamerasInc>
                             </SectionContraintes>
+                            <Messages>  LIB  Focale </Messages>
                          </IterationsCompensation>
                          <IterationsCompensation> </IterationsCompensation>
-                    </#WHEN>
+                   </#WHEN>
 
-                    <#WHEN VTEST=${PPFree}>
+                   <#WHEN VTEST=${PPFree}>
                          <IterationsCompensation>
                             <SectionContraintes>
                                <ContraintesCamerasInc>
                                    <Val> eLib_PP_CD_10  </Val>
                                </ContraintesCamerasInc>
                             </SectionContraintes>
+                             <Messages>  LIB  PP </Messages>
                          </IterationsCompensation>
                          <IterationsCompensation> </IterationsCompensation>
-                    </#WHEN>
+                   </#WHEN>
 
 
-                    <#WHEN VTEST=${AffineFree}>
+                   <#WHEN VTEST=${AffineFree}>
                          <IterationsCompensation>
                             <SectionContraintes>
                                <ContraintesCamerasInc>
                                    <Val> eLiberte_Phgr_Std_Aff  </Val>
+                                   <Val> eLiberteParamDeg_1  </Val>
                                </ContraintesCamerasInc>
                             </SectionContraintes>
+                             <Messages>  LIB  Affine </Messages>
                          </IterationsCompensation>
                          <IterationsCompensation> </IterationsCompensation>
-                    </#WHEN>
-                    <#WHEN VTEST=${AllFree}>
+                   </#WHEN>
+                   <#WHEN VTEST=${AllFree}>
                          <IterationsCompensation>
                             <SectionContraintes>
                                <ContraintesCamerasInc>
                                    <Val> eAllParamLibres  </Val>
                                </ContraintesCamerasInc>
                             </SectionContraintes>
+                            <Messages>  LIB  All </Messages>
                          </IterationsCompensation>
                          <IterationsCompensation> </IterationsCompensation>
-                    </#WHEN>
+                   </#WHEN>
 
 
 
-                    <IterationsCompensation> </IterationsCompensation>
-                    <IterationsCompensation> </IterationsCompensation>
-
-
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
                    <IterationsCompensation> </IterationsCompensation>
                    <IterationsCompensation> </IterationsCompensation>
 

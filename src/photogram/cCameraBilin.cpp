@@ -63,20 +63,22 @@ class cPIF_Unif_Gen : public cParamIntrinsequeFormel
 
 
 class cDistorBilin ;
-class cPIF_Bilin ;
+class cCamStenopeBilin ;
 class cPIF_Bilin ;
 
 class cDistorBilin :   public ElDistortion22_Gen 
 {
      public :
+          friend class cPIF_Bilin;
+
           friend void Test_DBL();
 
           cDistorBilin(Pt2dr aSz,Pt2dr aP0,Pt2di aNb);
           Pt2dr Direct(Pt2dr) const ;
 
-          Pt2dr & Dist(const Pt2di aP) {return mVDist[aP.y][aP.x];}
+          Pt2dr & Dist(const Pt2di aP) {return mVDist[aP.x + aP.y*(mNb.x+1)];}
+          const Pt2dr & Dist(const Pt2di aP) const {return mVDist[aP.x + aP.y*(mNb.x+1)];}
           const Pt2di & Nb() const {return mNb ;}
-          const Pt2dr & Dist(const Pt2di aP) const {return mVDist[aP.y][aP.x];}
 
 
           virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
@@ -110,13 +112,10 @@ class cDistorBilin :   public ElDistortion22_Gen
           Pt2dr                               mP1;
           Pt2dr                               mStep;
           Pt2di                               mNb;
-          std::vector<std::vector<Pt2dr > >   mVDist;
+          std::vector<Pt2dr >                 mVDist;
 
           mutable Pt2di                               mCurCorner;
-          mutable double                              mP00;
-          mutable double                              mP10;
-          mutable double                              mP01;
-          mutable double                              mP11;
+          mutable double                              mPds[4];
 };
 
 
@@ -141,6 +140,11 @@ class cCamStenopeBilin : public CamStenope
 };
 
 
+class cSquareFBilin
+{
+     public :
+};
+
 class cPIF_Bilin : public cParamIntrinsequeFormel
 {
      public :
@@ -149,6 +153,7 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
 
      private  :
           // virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>); a priori inutile
+          virtual void PrepareEqFForPointIm(cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);
           virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
           void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
           virtual void    UpdateCurPIF();
@@ -178,7 +183,7 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
           cDistorBilin                                 mDistInit;
           cDistorBilin                                 mDistCur;
           cCamStenopeBilin *                           mCurPIF;
-          std::vector<std::vector<Pt2d<Fonc_Num> > >   mVDist;
+          std::vector<Pt2d<Fonc_Num>  >                mFVDist;
 
           std::vector<cElCompiledFonc* >               mFctrRegul;
 
@@ -186,9 +191,34 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
           // situes sur les extre de la ligne horiz coupant la capteur en 2
           int                                          mIndFrozen0;
           int                                          mIndFrozen1;
+
+          Pt2di                                        mLastCase;
           // cCamStenopeBilin                             
 };
 /*
+
+class cEqAffine
+{
+    public :
+        cEqAffine(cSetEqFormelles * aSet,int aNbInc,bool GenCode);
+
+    private  :
+        std::vector<cVarEtat_PhgrF>   mEtaLin;
+        cVarEtat_PhgrF                mEtatCste;
+};
+*/
+
+/**************************************************************/
+/*                                                            */
+/*                 cPIF_Bilin      :                          */
+/*                                                            */
+/**************************************************************/
+
+
+/*
+cEqAffine::cEqAffine(cSetEqFormelles * aSet,int aNbInc,bool GenCode)
+{
+}
 */
 
 /**************************************************************/
@@ -205,7 +235,8 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
     mDistInit               (aCSB->DBL()),
     mDistCur                (aCSB->DBL()),
     mCurPIF                 (0),
-    mVDist                  (mDistCur.Nb().y)
+    mFVDist                 (),
+    mLastCase               (-1,-1)
 {
     SetFocFree(true);
     SetPPFree(true);
@@ -216,7 +247,7 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
     }
 
     // Pour etre sur a 100% que init est correcte
-    ELISE_ASSERT(int(mVDist.size())==mDistCur.Nb().y ,"cPIF_Bilin::cPIF_Bilin pb in sz init");
+    ELISE_ASSERT(int(mFVDist.size())==mDistCur.Nb().y ,"cPIF_Bilin::cPIF_Bilin pb in sz init");
     for (int aKY=0; aKY<=mDistCur.Nb().y ; aKY++)
     {
         for (int aKX=0; aKX<=mDistCur.Nb().x ; aKX++)
@@ -228,7 +259,7 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
                 if (aKX==mDistCur.Nb().x)
                    mIndFrozen1 = NbInc();
             }
-            mVDist[aKY].push_back(mSet.Alloc().NewPt2(mDistCur.Dist(Pt2di(aKX,aKY))));
+            mFVDist.push_back(mSet.Alloc().NewPt2(mDistCur.Dist(Pt2di(aKX,aKY))));
         }
     }
 
@@ -236,14 +267,29 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
 }
 
 
+void cPIF_Bilin::PrepareEqFForPointIm(cElCompiledFonc * aFonc,const Pt2dr & aPIm,bool EqDroite,int aKCam)
+{
+    ELISE_ASSERT(!EqDroite,"cPIF_Bilin do not handle eq droite!!");
+
+    mDistCur.InitEtatFromCorner(aPIm);
+    int aOffs = aKCam*4;
+    for (int aK=0 ; aK<4 ; aK++)
+    {
+         mPds[aK+aOffs].InitAdr(*aFonc);
+         mPds[aK+aOffs].SetEtat(mDistCur.mPds[aK]);
+    }
+    Pt2di aCorner = mDistCur.mCurCorner;
+    if (aCorner== mLastCase) return;
+    
+}
 
 Pt2d<Fonc_Num> cPIF_Bilin::VDist(Pt2d<Fonc_Num>,int aKCam)
 {
     int aOffs = aKCam * 4;
-    return     mVDist[0][0].mul(mPds[0+aOffs].FN())
-            +  mVDist[1][0].mul(mPds[1+aOffs].FN())
-            +  mVDist[0][1].mul(mPds[2+aOffs].FN())
-            +  mVDist[1][1].mul(mPds[3+aOffs].FN());
+    return     mFVDist[0].mul(mPds[0+aOffs].FN())
+            +  mFVDist[1].mul(mPds[1+aOffs].FN())
+            +  mFVDist[2].mul(mPds[2+aOffs].FN())
+            +  mFVDist[3].mul(mPds[3+aOffs].FN());
 }
 
 cPIF_Bilin::~cPIF_Bilin() {}
@@ -341,12 +387,10 @@ cDistorBilin::cDistorBilin(Pt2dr aP0,Pt2dr aP1,Pt2di aNb) :
 
     for (int aKY=0 ; aKY<= mNb.y ; aKY++)
     {
-        std::vector<Pt2dr > aV0;
         for (int aKX=0 ; aKX<= mNb.x ; aKX++)
         {
-            aV0.push_back(FromCoordGrid(Pt2dr(aKX,aKY)));
+            mVDist.push_back(FromCoordGrid(Pt2dr(aKX,aKY)));
         }
-        mVDist.push_back(aV0);
     }
 }
 
@@ -376,10 +420,10 @@ void cDistorBilin::InitEtatFromCorner(const Pt2dr & aCoorGr) const
 {
    Pt2dr aPds;
    GetParamCorner(mCurCorner,aPds,aCoorGr);
-   mP00 = aPds.x * aPds.y;
-   mP10 = (1-aPds.x) * aPds.y;
-   mP01 = aPds.x * (1-aPds.y);
-   mP11 = (1-aPds.x) * (1-aPds.y);
+   mPds[0] = aPds.x * aPds.y;
+   mPds[1] = (1-aPds.x) * aPds.y;
+   mPds[2] = aPds.x * (1-aPds.y);
+   mPds[3] = (1-aPds.x) * (1-aPds.y);
     
 }
 Pt2dr cDistorBilin::Direct(Pt2dr aP) const
@@ -387,10 +431,10 @@ Pt2dr cDistorBilin::Direct(Pt2dr aP) const
     InitEtatFromCorner(ToCoordGrid(aP));
 
     return   
-             Dist(mCurCorner             ) * mP00
-           + Dist(mCurCorner + Pt2di(1,0)) * mP10
-           + Dist(mCurCorner + Pt2di(0,1)) * mP01
-           + Dist(mCurCorner + Pt2di(1,1)) * mP11;
+             Dist(mCurCorner             ) * mPds[0]
+           + Dist(mCurCorner + Pt2di(1,0)) * mPds[1]
+           + Dist(mCurCorner + Pt2di(0,1)) * mPds[2]
+           + Dist(mCurCorner + Pt2di(1,1)) * mPds[3];
 }
 
 

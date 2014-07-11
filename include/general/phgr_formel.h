@@ -1066,6 +1066,11 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
                                 public cObjFormel2Destroy
 {
 	public  :
+           // certaine camera (par exe de type grid def) ont besoin de "changer l'état" des equations ou
+           // elle interviennet notamment sur la numeroration  dans les inconnues des variable
+           virtual void PrepareEqFForPointIm(cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam); 
+
+
            bool UseAFocal() const;
            bool   AllParamIsFiged() const;
            virtual bool IsDistFiged() const;
@@ -1503,6 +1508,7 @@ class cCameraFormelle :  public cNameSpaceEqF ,
 {
      public :
           
+          void PrepareEqFForPointIm(cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);  // Transmet a Intrinseque
           ElAffin2D & ResiduM2C();
 
 
@@ -1555,6 +1561,7 @@ class cCameraFormelle :  public cNameSpaceEqF ,
 	  class cEqAppui
 	  {
 		  public :
+                      void PrepareEqFForPointIm(const Pt2dr &);  // Transmet a Camera Formelle
                       friend class cCameraFormelle;
                       cEqAppui
 		      (
