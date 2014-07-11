@@ -545,6 +545,11 @@ void cParamIntrinsequeFormel::AddRapViscosite(double aTol)
    }
 }
 
+void  cParamIntrinsequeFormel::PrepareEqFForPointIm
+      (cElCompiledFonc * anEq,const Pt2dr & aPIm,bool EqDroite,int aKCam)
+{
+}
+
 bool cParamIntrinsequeFormel::UseAFocal() const
 {
    return mProjStenF.UseAFocal();
