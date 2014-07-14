@@ -745,7 +745,10 @@ cCameraFormelle::cEqAppui::cEqAppui
 
        mLInterv.AddInterv(mCam.RF().IncInterv());
        if (! mUseEqNoVar)
-          mLInterv.AddInterv(mCam.PIF().IncInterv());
+       {
+          mCam.PIF().AddToListInterval(mLInterv);
+          // mLInterv.AddInterv(mCam.PIF().IncInterv());
+       }
 
        if (!isPTerrainFixe)
        {
@@ -818,7 +821,7 @@ cCameraFormelle::cEqAppui::cEqAppui
 
 void  cCameraFormelle::cEqAppui::PrepareEqFForPointIm(const Pt2dr & aPIm)
 {
-     mCam.PrepareEqFForPointIm(mFoncEqResidu,aPIm,mEqDroite,0);
+     mCam.PrepareEqFForPointIm(mLInterv,mFoncEqResidu,aPIm,mEqDroite,0);
 }
 
 Pt2dr cCameraFormelle::cEqAppui::Residu(Pt3dr aPTer,Pt2dr aPIm,REAL aPds)
@@ -1177,9 +1180,9 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
 }
 
 
-void  cCameraFormelle::PrepareEqFForPointIm(cElCompiledFonc * anEq,const Pt2dr & aPIm,bool EqDroite,int aKCam)
+void  cCameraFormelle::PrepareEqFForPointIm(const cIncListInterv & anII,cElCompiledFonc * anEq,const Pt2dr & aPIm,bool EqDroite,int aKCam)
 {
-   mIntr.PrepareEqFForPointIm(anEq,aPIm,EqDroite,aKCam);
+   mIntr.PrepareEqFForPointIm(anII,anEq,aPIm,EqDroite,aKCam);
 }
 
 void cCameraFormelle::TestVB10(const std::string& aMes) const

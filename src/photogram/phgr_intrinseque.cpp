@@ -545,8 +545,13 @@ void cParamIntrinsequeFormel::AddRapViscosite(double aTol)
    }
 }
 
+void cParamIntrinsequeFormel::AddToListInterval(cIncListInterv & aLInterv)
+{
+   aLInterv.AddInterv(IncInterv());
+}
+
 void  cParamIntrinsequeFormel::PrepareEqFForPointIm
-      (cElCompiledFonc * anEq,const Pt2dr & aPIm,bool EqDroite,int aKCam)
+      (const cIncListInterv &,cElCompiledFonc * anEq,const Pt2dr & aPIm,bool EqDroite,int aKCam)
 {
 }
 

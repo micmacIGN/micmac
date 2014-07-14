@@ -611,7 +611,7 @@
          <P0 Nb="1" Type="Pt2dr"> </P0>
          <P1 Nb="1" Type="Pt2dr"> </P1>
          <Nb Nb="1" Type="Pt2di"> </Nb>
-         <PGr Nb="+" Container="std::vector" Type="Pt2dr"> </PGr>
+         <PGr Nb="*" Container="std::vector" Type="Pt2dr"> </PGr>
    </CalibrationInterneGridDef>
 
    <CalibrationInterneRadiale Nb="1" Class="true" ToReference="true">
