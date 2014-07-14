@@ -119,6 +119,7 @@ class cElCompiledFonc
          double * RequireAdrVarLocFromString(const std::string &);
 
          void SetMappingCur(const cIncListInterv &,cSetEqFormelles *);
+         const cIncListInterv &  MapRef() const;
          void SetCoordCur(double * aRealCoord);
 
          void ComputeValAndSetIVC();

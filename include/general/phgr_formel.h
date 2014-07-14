@@ -155,6 +155,9 @@ class cCylindreRevolFormel;
 class cL2EqObsBascult;
 class cSolBasculeRig;
 
+class cPIF_Bilin;
+class cCamStenopeBilin;
+
 
 //   Il n'avait pas ete prevu de renumeroter les intervales. Quand le besoin
 //   est apparu, pour la resolution des systemes par cholesky creux, on a gere
@@ -302,7 +305,7 @@ class  cIncListInterv
        void Init();
     private :
 
-       cIncListInterv  (const cIncListInterv &) ; // Un imlemanted
+       // cIncListInterv  (const cIncListInterv &) ; // Un imlemanted
        void operator = (const cIncListInterv &) ; // Un imlemanted
 
        INT          mI0Min;
@@ -692,6 +695,11 @@ class cSetEqFormelles : public cNameSpaceEqF
                 cParamIFDistStdPhgr * NewIntrDistStdPhgr
 			              (bool isDistC2M,cCamStenopeModStdPhpgr *, int aDegFig);
 
+
+                cPIF_Bilin *  NewPIFBilin(cCamStenopeBilin * aCSB);
+                cParamIntrinsequeFormel *  AsPIF_NewPIFBilin(cCamStenopeBilin * aCSB); // Pour utiliser sans connaitre cPIF_Bilin
+
+
                 cEqEllipseImage * NewEqElIm
                 (
 	           const cMirePolygonEtal &,
@@ -1068,7 +1076,12 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 	public  :
            // certaine camera (par exe de type grid def) ont besoin de "changer l'état" des equations ou
            // elle interviennet notamment sur la numeroration  dans les inconnues des variable
-           virtual void PrepareEqFForPointIm(cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam); 
+           virtual void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam); 
+
+           // Avant il y avait en dur :   mLInterv.AddInterv(mCam.PIF().IncInterv());
+           // Pour prendre en compte les camera grilles avec des intervalles d'inconnues non connexes
+           // (et evolutif) on ajoute cette fonction virtuelle qui pemet de specialiser
+           virtual void AddToListInterval( cIncListInterv &);
 
 
            bool UseAFocal() const;
@@ -1508,7 +1521,7 @@ class cCameraFormelle :  public cNameSpaceEqF ,
 {
      public :
           
-          void PrepareEqFForPointIm(cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);  // Transmet a Intrinseque
+          void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);  // Transmet a Intrinseque
           ElAffin2D & ResiduM2C();
 
 

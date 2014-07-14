@@ -6394,7 +6394,7 @@ void xml_init(cCalibrationInterneGridDef & anObj,cElXMLTree * aTree)
    xml_init(anObj.PGr(),aTree->GetAll("PGr",false,1));
 }
 
-std::string  Mangling( cCalibrationInterneGridDef *) {return "2EC6FF6F58AB1090FD3F";};
+std::string  Mangling( cCalibrationInterneGridDef *) {return "103FDE5D91381085FF3F";};
 
 
 Pt2dr & cCalibrationInterneRadiale::CDist()
@@ -7750,7 +7750,7 @@ void xml_init(cCalibDistortion & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModGridDef(),aTree->Get("ModGridDef",1)); //tototo 
 }
 
-std::string  Mangling( cCalibDistortion *) {return "C8E0F61C836443D1FC3F";};
+std::string  Mangling( cCalibDistortion *) {return "DCCE3AC21BBF1BEDFE3F";};
 
 
 std::string & cCorrectionRefractionAPosteriori::FileEstimCam()
@@ -8295,7 +8295,7 @@ void xml_init(cCalibrationInternConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.CorrectionRefractionAPosteriori(),aTree->Get("CorrectionRefractionAPosteriori",1)); //tototo 
 }
 
-std::string  Mangling( cCalibrationInternConique *) {return "AFE15207CCF5A7D3FE3F";};
+std::string  Mangling( cCalibrationInternConique *) {return "874FDD245394C4B7FE3F";};
 
 
 Pt3dr & cRepereCartesien::Ori()
@@ -9668,7 +9668,7 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvOri(),aTree->Get("ConvOri",1)); //tototo 
 }
 
-std::string  Mangling( cOrientationConique *) {return "40CFEC0D4D20FFC9F8BF";};
+std::string  Mangling( cOrientationConique *) {return "2B20E4927327B4A1FF3F";};
 
 
 std::string & cMNT2Cmp::NameIm()

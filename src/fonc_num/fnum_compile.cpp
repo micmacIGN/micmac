@@ -672,6 +672,12 @@ int cElCompiledFonc::LIC(const int & i) const
 
 extern bool AllowUnsortedVarIn_SetMappingCur;
 
+const cIncListInterv &  cElCompiledFonc::MapRef() const
+{
+   return mMapRef;
+}
+
+
 void cElCompiledFonc::SetMappingCur
      (
            const cIncListInterv & aList,

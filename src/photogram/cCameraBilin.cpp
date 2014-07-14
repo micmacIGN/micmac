@@ -61,6 +61,7 @@ class cPIF_Unif_Gen : public cParamIntrinsequeFormel
 
 */
 
+static const Pt2di CamBilinCorn[4]={Pt2di(0,0),Pt2di(1,0),Pt2di(0,1),Pt2di(1,1)};
 
 class cDistorBilin ;
 class cCamStenopeBilin ;
@@ -83,6 +84,8 @@ class cDistorBilin :   public ElDistortion22_Gen
 
           virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
           cCalibrationInterneGridDef ToXmlGridStruct() const;
+
+          static cDistorBilin FromXmlGridStuct(const cCalibrationInterneGridDef & );
 
 
           bool  AcceptScaling() const;
@@ -140,10 +143,35 @@ class cCamStenopeBilin : public CamStenope
 };
 
 
-class cSquareFBilin
+// Voir cCpleGridEq::SetP1P2
+// Voir cEqAppuiGrid.cpp
+
+class cSomBilin
 {
      public :
+        cSomBilin(cSetEqFormelles &,Pt2dr &,const cIncIntervale & anInt);
+
+        Pt2d<Fonc_Num>   mPtF;
+        cIncIntervale    mInterv;
+        
 };
+
+class cQuadrangle
+{
+      public :
+           cQuadrangle
+           (
+                   const cIncIntervale & aI00,
+                   const cIncIntervale & aI10,
+                   const cIncIntervale & aI01,
+                   const cIncIntervale & aI11
+           );
+           cIncIntervale    mInt00;
+           cIncIntervale    mInt10;
+           cIncIntervale    mInt01;
+           cIncIntervale    mInt11;
+};
+
 
 class cPIF_Bilin : public cParamIntrinsequeFormel
 {
@@ -153,7 +181,7 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
 
      private  :
           // virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>); a priori inutile
-          virtual void PrepareEqFForPointIm(cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);
+          virtual void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);
           virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
           void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
           virtual void    UpdateCurPIF();
@@ -164,6 +192,7 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
           virtual CamStenope * DupCurPIF(); ;
           virtual cMultiContEQF  StdContraintes();
 
+          virtual void AddToListInterval(cIncListInterv & aLInterv);
           // virtual bool UseSz() const; ==> A priori 
 /*
 
@@ -172,18 +201,20 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
 
 */
  
-          Pt2d<Fonc_Num> & Dist(const Pt2di & aP);
+          cSomBilin & FDist(const Pt2di & aP);
 
        // ==============================================
           static const std::string TheNameType ;
        // ==============================================
           cSetEqFormelles &                            mSet;
-          std::vector<cVarEtat_PhgrF>                  mPds; // Size 8, pour eventuelleme,t gerer aKCam=1
+          std::vector<cP2d_Etat_PhgrF>                 mCornF; // Size 8, pour eventuelleme,t gerer aKCam=1
           bool                                         mFiged;
           cDistorBilin                                 mDistInit;
           cDistorBilin                                 mDistCur;
           cCamStenopeBilin *                           mCurPIF;
-          std::vector<Pt2d<Fonc_Num>  >                mFVDist;
+          // std::vector<Pt2d<Fonc_Num>  >                mFVDist;
+          std::vector<std::vector<cSomBilin > >        mFVDist;
+          std::vector<std::vector<cQuadrangle > >      mQuads;
 
           std::vector<cElCompiledFonc* >               mFctrRegul;
 
@@ -193,6 +224,7 @@ class cPIF_Bilin : public cParamIntrinsequeFormel
           int                                          mIndFrozen1;
 
           Pt2di                                        mLastCase;
+          // cIncListInterv                               mLInterv;
           // cCamStenopeBilin                             
 };
 /*
@@ -223,43 +255,101 @@ cEqAffine::cEqAffine(cSetEqFormelles * aSet,int aNbInc,bool GenCode)
 
 /**************************************************************/
 /*                                                            */
+/*                 cPIF_Bilin,cQuadrangle                     */
+/*                                                            */
+/**************************************************************/
+cSomBilin::cSomBilin(cSetEqFormelles & aSet,Pt2dr & aPt,const cIncIntervale & anInt)  :
+   mPtF        (aSet.Alloc().NewPt2(aPt)),
+   mInterv     (anInt)
+{
+}
+
+
+cQuadrangle::cQuadrangle
+(
+     const cIncIntervale & aI00,
+     const cIncIntervale & aI10,
+     const cIncIntervale & aI01,
+     const cIncIntervale & aI11
+) :
+   mInt00  (aI00),
+   mInt10  (aI10),
+   mInt01  (aI01),
+   mInt11  (aI11)
+{
+}
+
+
+/**************************************************************/
+/*                                                            */
 /*                 cPIF_Bilin      :                          */
 /*                                                            */
 /**************************************************************/
 
+static std::string NameInterv(const Pt2di & aP)
+{
+   return std::string("Bil"+ToString(aP.x)+"_"+ToString(aP.y));
+}
 
 cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
-    cParamIntrinsequeFormel (true,aCSB,aSet,true),
+    cParamIntrinsequeFormel (false,aCSB,aSet,true),
     mSet                    (aSet),
     mFiged                  (false),
     mDistInit               (aCSB->DBL()),
     mDistCur                (aCSB->DBL()),
     mCurPIF                 (0),
-    mFVDist                 (),
+    mFVDist                 (1+mDistCur.Nb().y),
+    mQuads                  (mDistCur.Nb().y),
     mLastCase               (-1,-1)
 {
     SetFocFree(true);
     SetPPFree(true);
  
-    for (int aK=0 ; aK<8 ; aK++)
+    for (int aK=0 ; aK<4 ; aK++)
     {
-        mPds.push_back(cVarEtat_PhgrF(std::string("Pds")+ToString(aK)));
+        mCornF.push_back(cP2d_Etat_PhgrF(std::string("Pts")+ToString(aK)));
     }
 
-    // Pour etre sur a 100% que init est correcte
-    ELISE_ASSERT(int(mFVDist.size())==mDistCur.Nb().y ,"cPIF_Bilin::cPIF_Bilin pb in sz init");
-    for (int aKY=0; aKY<=mDistCur.Nb().y ; aKY++)
+    int aCpt=0;
+    // Pour initier dans unr ordre ou le premri quadrangle passe d'abord
+    for (int aKD8=0 ; aKD8<=ElMax(mDistCur.Nb().y,mDistCur.Nb().x) ; aKD8++)
     {
-        for (int aKX=0; aKX<=mDistCur.Nb().x ; aKX++)
+        for (int aKY=0; aKY<=mDistCur.Nb().y ; aKY++)
         {
-            if (aKY == (mDistCur.Nb().y/2))
+            for (int aKX=0; aKX<=mDistCur.Nb().x ; aKX++)
             {
-                if (aKX==0)
-                   mIndFrozen0 = NbInc();
-                if (aKX==mDistCur.Nb().x)
-                   mIndFrozen1 = NbInc();
+                if (ElMax(aKX,aKY)==aKD8)
+                {
+                    if (aKY == (mDistCur.Nb().y/2))
+                    {
+                        if (aKX==0)
+                           mIndFrozen0 = NbInc();
+                        if (aKX==mDistCur.Nb().x)
+                           mIndFrozen1 = NbInc();
+                    }
+                    cIncIntervale anInt(false,NameInterv(Pt2di(aKX,aKY)),aSet,2);
+                // anInt.Close();
+                    cSomBilin aSB(mSet,mDistCur.Dist(Pt2di(aKX,aKY)),anInt);
+                // aSB.mPtF = mSet.Alloc().NewPt2(mDistCur.Dist(Pt2di(aKX,aKY)));
+                    mFVDist[aKY].push_back(aSB);
+                    aCpt++;
+                // mFVDist.push_back(mSet.Alloc().NewPt2(mDistCur.Dist(Pt2di(aKX,aKY))));
+                }
             }
-            mFVDist.push_back(mSet.Alloc().NewPt2(mDistCur.Dist(Pt2di(aKX,aKY))));
+        }
+    }
+
+    Pt2di aC;
+    for (aC.y=0; aC.y<mDistCur.Nb().y ; aC.y++)
+    {
+        for (aC.x=0; aC.x<mDistCur.Nb().x ; aC.x++)
+        {
+             cIncIntervale  anI00(FDist(aC+Pt2di(0,0)).mInterv,NameInterv(Pt2di(0,0)));
+             cIncIntervale  anI10(FDist(aC+Pt2di(1,0)).mInterv,NameInterv(Pt2di(1,0)));
+             cIncIntervale  anI01(FDist(aC+Pt2di(0,1)).mInterv,NameInterv(Pt2di(0,1)));
+             cIncIntervale  anI11(FDist(aC+Pt2di(1,1)).mInterv,NameInterv(Pt2di(1,1)));
+
+             mQuads[aC.y].push_back(cQuadrangle(anI00,anI10,anI01,anI11));
         }
     }
 
@@ -267,30 +357,78 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
 }
 
 
-void cPIF_Bilin::PrepareEqFForPointIm(cElCompiledFonc * aFonc,const Pt2dr & aPIm,bool EqDroite,int aKCam)
+void cPIF_Bilin::PrepareEqFForPointIm(const cIncListInterv & aII0,cElCompiledFonc * aFonc,const Pt2dr & aPIm,bool EqDroite,int aKCam)
 {
     ELISE_ASSERT(!EqDroite,"cPIF_Bilin do not handle eq droite!!");
+    ELISE_ASSERT(aKCam==0,"cPIF_Bilin do not handle KCam!=0!!");
 
     mDistCur.InitEtatFromCorner(aPIm);
     int aOffs = aKCam*4;
     for (int aK=0 ; aK<4 ; aK++)
     {
-         mPds[aK+aOffs].InitAdr(*aFonc);
-         mPds[aK+aOffs].SetEtat(mDistCur.mPds[aK]);
+          mCornF[aK+aOffs].InitAdr(*aFonc);
+          mCornF[aK+aOffs].SetEtat(mDistCur.FromCoordGrid(Pt2dr(mDistCur.mCurCorner+CamBilinCorn[aK])));
     }
     Pt2di aCorner = mDistCur.mCurCorner;
     if (aCorner== mLastCase) return;
+
+    mLastCase = aCorner;
+
+
+    cIncListInterv aNewI(aII0);
+    const cQuadrangle  aQ= mQuads[aCorner.y][aCorner.x];
+    aNewI.ResetInterv(aQ.mInt00);
+    aNewI.ResetInterv(aQ.mInt10);
+    aNewI.ResetInterv(aQ.mInt01);
+    aNewI.ResetInterv(aQ.mInt11);
+    aFonc->SetMappingCur(aNewI,&mSet);
     
 }
 
-Pt2d<Fonc_Num> cPIF_Bilin::VDist(Pt2d<Fonc_Num>,int aKCam)
+cSomBilin & cPIF_Bilin::FDist(const Pt2di & aP)
 {
-    int aOffs = aKCam * 4;
-    return     mFVDist[0].mul(mPds[0+aOffs].FN())
-            +  mFVDist[1].mul(mPds[1+aOffs].FN())
-            +  mFVDist[2].mul(mPds[2+aOffs].FN())
-            +  mFVDist[3].mul(mPds[3+aOffs].FN());
+   return mFVDist[aP.y][aP.x];
 }
+
+Pt2d<Fonc_Num> cPIF_Bilin::VDist(Pt2d<Fonc_Num> aP,int aKCam)
+{
+   ELISE_ASSERT(aKCam==0,"cPIF_Bilin do not handle KCam!=0!!");
+   int aOffs = aKCam * 4;
+
+   Pt2d<Fonc_Num> aP00 = mCornF[aOffs].PtF();
+   Pt2d<Fonc_Num> aP10 = mCornF[aOffs+1].PtF();
+   Pt2d<Fonc_Num> aP01 = mCornF[aOffs+2].PtF();
+
+   Fonc_Num aPdsX = (aP10.x-aP.x) / (aP10.x-aP00.x);
+   Fonc_Num aPdsY = (aP01.y-aP.y) / (aP01.y-aP00.y);
+
+   return    FDist(Pt2di(0,0)).mPtF.mul(aPdsX     * aPdsY    )
+          +  FDist(Pt2di(1,0)).mPtF.mul((1-aPdsX) * aPdsY    )
+          +  FDist(Pt2di(0,1)).mPtF.mul(aPdsX     * (1-aPdsY))
+          +  FDist(Pt2di(1,1)).mPtF.mul((1-aPdsX) * (1-aPdsY))  ;
+
+/*
+    return     mFVDist[0].mPtF.mul(mPds[0+aOffs].FN())
+            +  mFVDist[1].mPtF.mul(mPds[1+aOffs].FN())
+            +  mFVDist[2].mPtF.mul(mPds[2+aOffs].FN())
+            +  mFVDist[3].mPtF.mul(mPds[3+aOffs].FN());
+*/
+}
+
+void cPIF_Bilin::AddToListInterval(cIncListInterv & aLInterv)
+{
+   int aI0Alloc = mIncInterv.I0Alloc();
+   cIncIntervale aI("Intr",aI0Alloc,aI0Alloc+3);
+   
+   aLInterv.AddInterv(aI);
+   const cQuadrangle  aQ= mQuads[0][0];
+   aLInterv.AddInterv(aQ.mInt00);
+   aLInterv.AddInterv(aQ.mInt10);
+   aLInterv.AddInterv(aQ.mInt01);
+   aLInterv.AddInterv(aQ.mInt11);
+  
+}
+
 
 cPIF_Bilin::~cPIF_Bilin() {}
 
@@ -347,6 +485,28 @@ cMultiContEQF  cPIF_Bilin::StdContraintes()
    return aRes;
 }
 
+cPIF_Bilin * cSetEqFormelles::NewPIFBilin(cCamStenopeBilin * aCSB)
+{
+   cPIF_Bilin * aRes = new cPIF_Bilin(aCSB,*this);
+   aRes->CloseEEF();
+   AddObj2Kill(aRes);
+
+
+   return aRes;
+}
+
+cParamIntrinsequeFormel *  cSetEqFormelles::AsPIF_NewPIFBilin(cCamStenopeBilin * aCSB)
+{
+   return NewPIFBilin(aCSB);
+}
+
+cParamIntrinsequeFormel * GenCodePIFCamBilin(cSetEqFormelles * aSet)
+{
+     cDistorBilin aDBL(Pt2dr(3000,2000),Pt2dr(0,0),Pt2di(1,1));
+     cCamStenopeBilin  * aCBL = new cCamStenopeBilin(5000,Pt2dr(1500,1000),aDBL);
+
+     return aSet->NewPIFBilin(aCBL);
+}
 
 
 /**************************************************************/
@@ -431,10 +591,10 @@ Pt2dr cDistorBilin::Direct(Pt2dr aP) const
     InitEtatFromCorner(ToCoordGrid(aP));
 
     return   
-             Dist(mCurCorner             ) * mPds[0]
-           + Dist(mCurCorner + Pt2di(1,0)) * mPds[1]
-           + Dist(mCurCorner + Pt2di(0,1)) * mPds[2]
-           + Dist(mCurCorner + Pt2di(1,1)) * mPds[3];
+             Dist(mCurCorner +CamBilinCorn[0] ) * mPds[0]
+           + Dist(mCurCorner +CamBilinCorn[1] ) * mPds[1]
+           + Dist(mCurCorner +CamBilinCorn[2] ) * mPds[2]
+           + Dist(mCurCorner +CamBilinCorn[3] ) * mPds[3];
 }
 
 
@@ -444,10 +604,10 @@ void  cDistorBilin::Diff(ElMatrix<REAL> & aM,Pt2dr aP) const
 
     Pt2dr aPds;
     GetParamCorner(mCurCorner,aPds,ToCoordGrid(aP)); 
-    const Pt2dr & aP00 =  Dist(mCurCorner            ) ;
-    const Pt2dr & aP10 =  Dist(mCurCorner+ Pt2di(1,0)) ;
-    const Pt2dr & aP01 =  Dist(mCurCorner+ Pt2di(0,1)) ;
-    const Pt2dr & aP11 =  Dist(mCurCorner+ Pt2di(1,1)) ;
+    const Pt2dr & aP00 =  Dist(mCurCorner+CamBilinCorn[0] ) ;
+    const Pt2dr & aP10 =  Dist(mCurCorner+CamBilinCorn[1] ) ;
+    const Pt2dr & aP01 =  Dist(mCurCorner+CamBilinCorn[2] ) ;
+    const Pt2dr & aP11 =  Dist(mCurCorner+CamBilinCorn[3] ) ;
 
 
     Pt2dr aGx =    ((aP10-aP00)*aPds.y + (aP11-aP01)*(1-aPds.y))  / mStep.x;
@@ -495,6 +655,55 @@ Box2dr cDistorBilin::BoxRab(double aMulStep) const
     return Box2dr (mP0-aRab,mP1+aRab);
 }
   
+void cDistorBilin::Randomize(double aFact)
+{
+   for (int aKY=0 ; aKY<= mNb.y ; aKY++)
+   {
+       for (int aKX=0 ; aKX<= mNb.x ; aKX++)
+       {
+             Dist(Pt2di(aKX,aKY)) = FromCoordGrid(Pt2dr(aKX,aKY) + Pt2dr(NRrandC(),NRrandC()) * aFact);
+       }
+   }
+}
+
+extern cCalibDistortion GlobXmlDistNoVal();
+
+cDistorBilin cDistorBilin::FromXmlGridStuct(const cCalibrationInterneGridDef &  aCIG)
+{
+    cDistorBilin aCBL(aCIG.P0(),aCIG.P1(),aCIG.Nb());
+
+    int aNbPtGr = aCIG.PGr().size();
+    Pt2di aNb = aCIG.Nb();
+
+    if (aNbPtGr==((aNb.y+1)*(aNb.x+1)))
+    {
+        int aCpt=0;
+        for (int aKY=0 ; aKY<= aNb.y ; aKY++)
+        {
+            for (int aKX=0 ; aKX<= aNb.x ; aKX++)
+            {
+                  aCBL.Dist(Pt2di(aKX,aKY)) = aCIG.PGr()[aCpt++];
+            }
+        }
+    }
+    else if (aNbPtGr==0)
+    {
+    }
+    else
+    {
+        std::cout << "Sz=" << aNbPtGr << "\n";
+        ELISE_ASSERT(false,"Bad size for cDistorBilin::FromXmlGridStuct");
+    }
+
+    return aCBL;
+}
+
+CamStenope * GlobFromXmlGridStuct(REAL aFoc,Pt2dr aCentre,const cCalibrationInterneGridDef &  aCIG)
+{
+    return new cCamStenopeBilin(aFoc,aCentre,cDistorBilin::FromXmlGridStuct(aCIG));
+}
+
+
 cCalibrationInterneGridDef  cDistorBilin::ToXmlGridStruct() const
 {
    cCalibrationInterneGridDef aRes;
@@ -512,19 +721,6 @@ cCalibrationInterneGridDef  cDistorBilin::ToXmlGridStruct() const
 
    return aRes;
 }
-
-void cDistorBilin::Randomize(double aFact)
-{
-   for (int aKY=0 ; aKY<= mNb.y ; aKY++)
-   {
-       for (int aKX=0 ; aKX<= mNb.x ; aKX++)
-       {
-             Dist(Pt2di(aKX,aKY)) = FromCoordGrid(Pt2dr(aKX,aKY) + Pt2dr(NRrandC(),NRrandC()) * aFact);
-       }
-   }
-}
-
-extern cCalibDistortion GlobXmlDistNoVal();
 
 
 cCalibDistortion FromCIGD(const cCalibrationInterneGridDef & aCIGD)
