@@ -11,14 +11,7 @@
 #include <QGLShaderProgram>
 #include <QPainter>
 
-#ifdef ELISE_Darwin
-    #include "OpenGL/gl.h"
-#else
-    #ifdef _WIN32
-        #include "windows.h"
-    #endif
-    #include "GL/gl.h"
-#endif
+
 
 #define QMaskedImage cMaskedImage<QImage>
 
@@ -511,6 +504,8 @@ class cImageGL : public cObjectGL
 
         void    ImageToTexture(QImage *pImg);
 
+        void    deleteTexture();
+
         GLuint* getTexture(){return &_texture;}
 
         //height and width of original data
@@ -594,7 +589,7 @@ public:
 
     cMaskedImageGL(){}
 
-    cMaskedImageGL(QMaskedImage &qMaskedImage);
+    cMaskedImageGL(QMaskedImage *qMaskedImage);
 
     void setScale(Pt3dr aScale)
     {
@@ -607,6 +602,14 @@ public:
     void  showMask(bool show) { _m_mask->setVisible(show); }
 
     void draw();
+
+    void deleteTextures();
+
+    void prepareTextures();
+
+private:
+
+    cMaskedImage<QImage> *_qMaskedImage;
 };
 //====================================================================================
 
@@ -710,7 +713,7 @@ public:
 
     cGLData(int appMode = MASK2D);
 
-    cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode = MASK2D);
+    cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode = MASK2D);
 
     cGLData(cData *data, cParameters aParams, int appMode = MASK2D);
 
