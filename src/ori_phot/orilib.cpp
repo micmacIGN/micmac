@@ -86,8 +86,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // extern cDistorBilin GlobFromXmlGridStuct(const cCalibrationInterneGridDef &  aCIG);
 
-extern CamStenope * GlobFromXmlGridStuct(REAL aFoc,Pt2dr aCentre,const cCalibrationInterneGridDef &  aCIG);
-
 
 
 void AdaptDist2PPaEqPPs(NS_ParamChantierPhotogram::cCalibDistortion & aCD)
@@ -3247,7 +3245,7 @@ class cDistFromCIC
                  return  mConv.SensYVideo().Val() ? aP  : Pt2dr(aP.x,mCIC.SzIm().y-aP.y);
            }
 	   CamStenope * Cam();
-	   CamStenope * CamBilin();
+	   cCamStenopeBilin * CamBilin();
 
 	   cCamStenopeDistRadPol *  CamDRad();
 	   cCamStenopeModStdPhpgr * CamPhgrStd();
@@ -3272,7 +3270,7 @@ class cDistFromCIC
 	   ElDistRadiale_PolynImpair  DRP(const cCalibrationInternConique & aCIC,const cCalibrationInterneRadiale &,bool C2M);
 
 	   CamStenope              * mCam;
-	   CamStenope              * mCamBilin;
+	   cCamStenopeBilin        * mCamBilin;
 	   cCamStenopeModStdPhpgr  * mCamPS;
 	   cCamStenopeDistRadPol   * mCamDR;
            CamStenopeIdeale        * mCamSI;
@@ -3325,7 +3323,7 @@ cCam_RadFour19x2 * cDistFromCIC::Cam_RadFour19x2()
    return mCam_RadFour19x2;
 }
 
-CamStenope * cDistFromCIC::CamBilin()
+cCamStenopeBilin * cDistFromCIC::CamBilin()
 {
    ELISE_ASSERT(mCamBilin!=0,"cDistFromCIC::Cam");
    return mCamBilin;
@@ -3571,7 +3569,8 @@ cDistFromCIC::cDistFromCIC
        }
        else if (aCD.ModGridDef().IsInit())
        {
-            mCamBilin = GlobFromXmlGridStuct(aCIC.F(),aCIC.PP(),aCD.ModGridDef().Val());
+            // mCamBilin = GlobFromXmlGridStuct(aCIC.F(),aCIC.PP(),aCD.ModGridDef().Val());
+            mCamBilin = new cCamStenopeBilin(aCIC.F(),aCIC.PP(),cDistorBilin::FromXmlGridStuct(aCD.ModGridDef().Val()));
             mCam = mCamBilin;
 
        }
@@ -4395,6 +4394,35 @@ cCamera_Param_Unif_Gen *  Std_Cal_Unif
     }
     return aRes;
 }
+
+
+cCamStenopeBilin *  Std_Cal_Bilin
+                          (
+	                         const cCalibrationInternConique & aCIC,
+			         eConventionsOrientation            aKnownC
+                          )
+{
+    cConvExplicite aConv = MakeExplicite(aKnownC);
+    cDistFromCIC  aDF(aCIC,&aConv,false);
+
+    cCamStenopeBilin * aRes = aDF.CamBilin();
+    if (aCIC.OrIntGlob().IsInit())
+    {
+        aRes->SetIntrImaC2M(AfGC2M(aCIC));
+    }
+    return aRes;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 cCamStenopeDistRadPol * Std_Cal_DRad_C2M
              (
