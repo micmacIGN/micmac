@@ -13,6 +13,10 @@
 #include "HistoryManager.h"
 #include "Settings.h"
 
+#if ELISE_QT_VERSION == 5
+#include <QOpenGLContext>
+#endif
+
 class ViewportParameters
 {
 public:
