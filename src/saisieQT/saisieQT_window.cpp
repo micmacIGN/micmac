@@ -18,7 +18,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _Engine->setParams(_params);
 
-    init(_params, _appMode > MASK3D);
+    init(_params, _appMode > MASK3D);    
 
     setUI();
 
@@ -1090,6 +1090,8 @@ void SaisieQtWindow::closeEvent(QCloseEvent *event)
 
 void SaisieQtWindow::redraw(bool nbWidgetsChanged)
 {
+
+    printf("redraw\n");
     if (size() != _params->getSzFen())
     {
         if (_appMode > MASK3D)

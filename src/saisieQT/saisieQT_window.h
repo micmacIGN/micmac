@@ -1,11 +1,14 @@
 #ifndef SAISIEQTWINDOW_H
 #define SAISIEQTWINDOW_H
 
-//#ifndef  WIN32
-//#ifndef __APPLE__
-//#include "GL/glew.h"
-//#endif
-//#endif
+#include "general/CMake_defines.h"
+
+#ifdef ELISE_Darwin
+    #include "OpenGL/gl.h"
+#else
+    #include "GL/gl.h"
+#endif
+
 #include <QMainWindow>
 #include <QFutureWatcher>
 #include <QtConcurrentRun>

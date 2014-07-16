@@ -1,5 +1,15 @@
 #ifndef _HISTORYMANAGER_H
 #define _HISTORYMANAGER_H
+#include "general/CMake_defines.h"
+
+#ifdef ELISE_Darwin
+#include "OpenGL/gl.h"
+#else
+#ifdef _WIN32
+    #include "windows.h"
+#endif
+#include "GL/gl.h"
+#endif
 
 #include <QVector>
 #include <QPoint>
@@ -10,14 +20,7 @@
 
 #include <iostream>
 
-#ifdef ELISE_Darwin
-    #include "OpenGL/gl.h"
-#else
-    #ifdef _WIN32
-        #include "windows.h"
-    #endif
-    #include "GL/gl.h"
-#endif
+
 
 struct selectInfos
 {
