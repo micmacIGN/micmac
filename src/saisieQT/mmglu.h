@@ -8,9 +8,9 @@
 #endif
 
 #if ELISE_Darwin
-	#include <OpenGL/gl.h>
+    #include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+    #include <GL/gl.h>
 #endif
 
 #ifndef GLAPIENTRY

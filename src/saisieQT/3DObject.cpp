@@ -1500,7 +1500,7 @@ bool cImageGL::isPtInside(const QPointF &pt)
 }
 
 void cImageGL::PrepareTexture(QImage * pImg)
-{
+{    
     glGenTextures(1, getTexture() );
 
     ImageToTexture(pImg);
@@ -1509,7 +1509,7 @@ void cImageGL::PrepareTexture(QImage * pImg)
 }
 
 void cImageGL::ImageToTexture(QImage *pImg)
-{
+{    
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
     glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
@@ -1523,6 +1523,13 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
+}
+
+void cImageGL::deleteTexture()
+{
+    if(_texture != GL_INVALID_LIST_ID)
+    glDeleteTextures(1,&_texture);
+    _texture = GL_INVALID_LIST_ID;
 }
 
 void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
@@ -1559,16 +1566,17 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 
 //********************************************************************************
 
-cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> &qMaskedImage)
+cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
+    _qMaskedImage(qMaskedImage)
 {
+
     _m_mask     = new cImageGL();
-    _m_image    = new cImageGL(qMaskedImage._gamma);
-    _m_newMask  = qMaskedImage._m_newMask;
-    _m_mask->PrepareTexture(qMaskedImage._m_mask);
-    _m_image->PrepareTexture(qMaskedImage._m_image);
-    _m_FileOriMnt = qMaskedImage._m_FileOriMnt;
-    _loadedImageRescaleFactor = qMaskedImage._loadedImageRescaleFactor;
-    cObjectGL::setName(qMaskedImage.name());
+    _m_image    = new cImageGL(qMaskedImage->_gamma);
+    _m_newMask  = qMaskedImage->_m_newMask;   
+
+    _m_FileOriMnt = qMaskedImage->_m_FileOriMnt;
+    _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
+    cObjectGL::setName(qMaskedImage->name());
 }
 
 void cMaskedImageGL::draw()
@@ -1594,6 +1602,22 @@ void cMaskedImageGL::draw()
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
+}
+
+void cMaskedImageGL::prepareTextures()
+{
+    if(_m_mask && _m_mask->isVisible())
+        _m_mask->PrepareTexture(_qMaskedImage->_m_mask);
+    if(_m_image && _m_image->isVisible())
+        _m_image->PrepareTexture(_qMaskedImage->_m_image);
+}
+
+void cMaskedImageGL::deleteTextures()
+{
+    if(_m_mask)
+        _m_mask->deleteTexture();
+    if(_m_image)
+        _m_image->deleteTexture();
 }
 
 //********************************************************************************
@@ -1654,9 +1678,9 @@ void cGLData::setOptionPolygons(cParameters aParams)
     }
 }
 
-cGLData::cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode):
+cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode):
     _glMaskedImage(qMaskedImage),
-    _pQMask(qMaskedImage._m_mask),
+    _pQMask(qMaskedImage->_m_mask),
     _pBall(NULL),
     _pAxis(NULL),
     _pBbox(NULL),
@@ -1810,6 +1834,7 @@ void cGLData::initOptions(int appMode)
 
 cGLData::~cGLData()
 {
+    _glMaskedImage.deleteTextures();
     _glMaskedImage.deallocImages();
 
     qDeleteAll(_vCams);
@@ -2007,7 +2032,8 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     if(mode == INVERT)
         getMask()->invertPixels(QImage::InvertRgb);
 
-    _glMaskedImage._m_mask->ImageToTexture(getMask());
+    _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
+    _glMaskedImage._m_mask->PrepareTexture(getMask());
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)

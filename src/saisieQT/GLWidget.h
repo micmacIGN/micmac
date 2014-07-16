@@ -5,16 +5,10 @@
 #include <limits>
 #include <iostream>
 #include <algorithm>
-
+#include "Data.h"
 #include <QtOpenGL/QGLWidget>
 #include <QGLContext>
 #include <QDebug>
-
-#ifdef ELISE_Darwin
-    #include "OpenGL/gl.h"
-#else
-    #include "GL/gl.h"
-#endif
 
 #include <QUrl>
 #include <QtGui/QMouseEvent>
@@ -23,7 +17,7 @@
 #include <QTime>
 //#include <QPainter>
 
-#include "Data.h"
+
 #include "Engine.h"
 #include "GLWidgetSet.h"
 

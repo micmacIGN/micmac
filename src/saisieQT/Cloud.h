@@ -11,9 +11,11 @@
     #undef Int
 #endif
 
+#include "3DObject.h"
+
 #include <QtOpenGL/QGLBuffer>
 
-#include "3DObject.h"
+
 
 class GlVertex : public cObjectGL
 {
