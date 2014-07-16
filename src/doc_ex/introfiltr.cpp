@@ -180,7 +180,6 @@ int  DocEx_Introfiltr_main(int,char **)
        getchar();
        
        ELISE_COPY(W.all_pts(),P8COL::red,W.out(Pdisc));
-       getchar();
        
        ELISE_COPY
        (
@@ -399,7 +398,8 @@ int  DocEx_Introfiltr_main(int,char **)
        ELISE_COPY(Plot1.all_pts(),H.in(),Plot1.out());
        getchar();
 
-
+		std::cout << "Last examples need refurbishment" << std::endl;
+/*
        Im2D_INT4 Cooc(256,256,0);
        INT cmax;
        ELISE_COPY
@@ -414,7 +414,6 @@ int  DocEx_Introfiltr_main(int,char **)
           |  (VMax(cmax) << Cooc.in())
        );
        
-       cout << "1111111&&& !" << endl;
        getchar();
        
        ELISE_COPY
@@ -424,9 +423,8 @@ int  DocEx_Introfiltr_main(int,char **)
              *  (255.0/log(cmax+1)),
              W.out(Pgr)
        );
-       cout << "YYYYYYYYYYYYYYYY" << endl;
        getchar();
-
+*/
 
     return 0;      
 }
