@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // Main header in which a lot of libraries are included
 #include "StdAfx.h"
+#if (ELISE_unix)
+	#include "dirent.h"
+#endif
 
 // List  of classes
 
@@ -241,7 +244,40 @@ int ResToTxt_main(int argc, char** argv)
    return EXIT_SUCCESS;
 }
 
-/*
+void WriteAppuis(vector <pair <std::string,float> > ListOfDiffAppuis, ofstream &fout)
+{
+	float AbsSumDiffAppuis=0;
+	fout << "\nCONTROL POINTS : \n";
+	for
+	(
+		unsigned int i=0;
+		i<ListOfDiffAppuis.size();
+		i++
+	)
+	{
+		fout << ListOfDiffAppuis[i].first << "\t" << ListOfDiffAppuis[i].second << endl;
+		AbsSumDiffAppuis += fabs(ListOfDiffAppuis[i].second);
+	}
+	fout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size()<<endl;
+}
+
+void WriteControl(vector <pair <std::string,float> > ListOfDiffControl, ofstream &fout)
+{
+	fout << "\nCHECK POINTS : \n";
+	float AbsSumDiffControl=0;
+	for
+	(
+		unsigned int i=0;
+		i<ListOfDiffControl.size();
+		i++
+	)
+	{
+		fout << ListOfDiffControl[i].first << "\t" << ListOfDiffControl[i].second << endl;
+		AbsSumDiffControl += fabs(ListOfDiffControl[i].second);
+	}
+	fout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size() << endl; 
+}
+
 vector <string> GetFilesFromFolder (string dossier)
 {
 	DIR* rep = NULL;
@@ -255,7 +291,7 @@ vector <string> GetFilesFromFolder (string dossier)
 	sort(dirName.begin(),dirName.end());
 	return dirName;
 }
-*/
+
 void Idem_Banniere()
 {
     std::cout <<  "\n";
@@ -276,8 +312,8 @@ int Idem_main(int argc, char** argv)
 				aDir, 
 				aPat, 
 				aMesIm; 
-	bool aAddNamePt(true);
-	int aPtSz(10),
+	bool treatGCP(true), treatCP(true);
+	int aPtSz(5),
 		aImSize(3000);
 		
 	ElInitArgMain
@@ -287,21 +323,22 @@ int Idem_main(int argc, char** argv)
 					<< EAMC(aGCP,"Ground Control Points File")
 					<< EAMC(aMesIm,"Image measurements file"),
 		LArgMain()	<< EAM(aNameFileTxt,"Out",true,"File to store the results")
-					<< EAM(aOrthoName,"Ortho",true,"Orthophotography... still under development")
+					<< EAM(aOrthoName,"Ortho",true,"Display the results on a video window")
 					<< EAM(aImSize,"ImSz",true,"Rescaled ortho size ( default : 3000)")
-					<< EAM(aAddNamePt,"NamePt",true,"Add the name of the point (default : true)")
+					<< EAM(treatGCP,"GCP",true,"Interpolate on Ground Control Points {Def = true}")
+					<< EAM(treatCP,"CP",true,"Interpolate on Check Points {Def = true}")
 					<< EAM(aPtSz,"PtSz",true,"Size of the point (default : 10)")
 	);
-	
+	ELISE_ASSERT(treatGCP || treatCP,"Either GCP or CP must be true");
 	ELISE_ASSERT(aImSize>100,"Probable confusion with Final Size argument");
-/*	
+
 // Charger les GCP, calculer leur projection dans l'ortho et le MNT
 	cDicoAppuisFlottant cDico=  StdGetFromPCP(aGCP,DicoAppuisFlottant);
 	std::cout << "Nb Pts " <<  cDico.OneAppuisDAF().size() << "\n\n";
 	std::list<cOneAppuisDAF> & aLGCP =  cDico.OneAppuisDAF();
 
 
-// Charger les mesures images pour distinguer points d'appuis et points de contrôle
+// Charger les mesures images
 	cSetOfMesureAppuisFlottants dDico=  StdGetFromPCP(aMesIm,SetOfMesureAppuisFlottants);
 	std::list<cMesureAppuiFlottant1Im> & dLGCP =  dDico.MesureAppuiFlottant1Im();
 	vector <std::string> aListOfApp;
@@ -359,7 +396,7 @@ int Idem_main(int argc, char** argv)
 // Récupération du dernier fichier Z_Num.xml
 	std::string aDir2,aPat2,aZ_Num;
 	SplitDirAndFile(aDir2,aPat2,aMNT);
-	//vector<std::string> aListOfFileInMEC = GetFilesFromFolder(aDir2);
+	vector<std::string> aListOfFileInMEC = GetFilesFromFolder(aDir2);
 	
 	for (unsigned int i=0;i<aListOfFileInMEC.size();i++)
 	{
@@ -379,7 +416,7 @@ int Idem_main(int argc, char** argv)
 	Pt2dr aResMNT = bDico.ResolutionPlani();
 
 
-// Interpole le MNT à l'emplacement de chaque GCP (distinguer ou non control/appuis)
+// Interpole le MNT à l'emplacement de chaque GCP
  	cElNuage3DMaille *  bMNT = cElNuage3DMaille::FromFileIm(aMNT);			 
 	Pt2di  aGCPinMNT;
 	pair <std::string,float> aMNTinterpoled;
@@ -436,62 +473,49 @@ int Idem_main(int argc, char** argv)
 		}
 	}
 	
-	ofstream fout(aNameFileTxt.c_str(),ios::out);
-	if (aNameFileTxt != " ")
-	{
-		fout << "Difference between altitude in xml file, and altitude in DEM (Id	 dZ)\n"
-			 << "CHECK POINTS : \n";
-	}
-	
 	float AbsSumDiffControl=0, AbsSumDiffAppuis=0;
-	for
-	(
-		unsigned int i=0;
-		i<ListOfDiffControl.size();
-		i++
-	)
+	
+	if (treatGCP)
 	{
-		cout << "Check point : " << ListOfDiffControl[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffControl[i].second << endl;
-		if (aNameFileTxt != " ")
+		for
+		(
+			unsigned int i=0;
+			i<ListOfDiffAppuis.size();
+			i++
+		)
 		{
-			fout << ListOfDiffControl[i].first << "\t" << ListOfDiffControl[i].second << endl;
+			cout << "Control point : " << ListOfDiffAppuis[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffAppuis[i].second << endl;
+			AbsSumDiffAppuis += fabs(ListOfDiffAppuis[i].second);
 		}
-		AbsSumDiffControl += fabs(ListOfDiffControl[i].second);
+		cout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size() << endl << endl << "Results saved in : " << aNameFileTxt << endl; 
 	}
 	
-	cout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size()<<endl<<endl; 
-	if (aNameFileTxt != " ")
+	if (treatCP)
 	{
-		fout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size()<<endl; 
-		fout << "CONTROL POINTS : \n";
+		for
+		(
+			unsigned int i=0;
+			i<ListOfDiffControl.size();
+			i++
+		)
+		{
+			cout << "Check point : " << ListOfDiffControl[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffControl[i].second << endl;
+			AbsSumDiffControl += fabs(ListOfDiffControl[i].second);
+		}
+		cout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size()<<endl<<endl;
 	}
 	
-	for
-	(
-		unsigned int i=0;
-		i<ListOfDiffAppuis.size();
-		i++
-	)
-	{
-		cout << "Control point : " << ListOfDiffAppuis[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffAppuis[i].second << endl;
-		if (aNameFileTxt != " ")
-		{
-			fout << ListOfDiffAppuis[i].first << "\t" << ListOfDiffAppuis[i].second << endl;
-		}
-		AbsSumDiffAppuis += fabs(ListOfDiffAppuis[i].second);
-	}
-	cout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size() << endl << endl << "Results saved in : " << aNameFileTxt << endl; 
 	if (aNameFileTxt != " ")
 	{
-		fout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size()<<endl; 
-		fout.close();
+		ofstream fout (aNameFileTxt.c_str(),ios::out);
+		fout << "Difference between altitude in xml file, and altitude in DEM (Id	 dZ)\n";
+		if (treatGCP){WriteAppuis(ListOfDiffAppuis,fout);}
+		if (treatCP){WriteControl(ListOfDiffControl,fout);}
 	}
 
 // Ecriture des résultats sur l'orthophoto (option)
 	if (aOrthoName != " ")
-	{
-		cout << "Orthophoto plotting under development..." << endl;
-		
+	{		
 		SplitDirAndFile(aDir,aPat,aOrthoName);
 		std::string aMTD = aDir + "MTDOrtho.xml";
 	// Recup param ortho
@@ -501,7 +525,6 @@ int Idem_main(int argc, char** argv)
 		Pt2dr aResOrt = aDico.ResolutionPlani();
 
 	// Calculer facteur d'échelle, lancer ScaleIm
-		double aScFactor = 1;
 		if ((aNbPixel.x > aImSize) | (aNbPixel.y > aImSize))
 		{
 			cout << "Rescaling the orthophoto..." << endl;
@@ -511,6 +534,7 @@ int Idem_main(int argc, char** argv)
 				aSzMax=aNbPixel.y;
 			}
 			else{aSzMax=aNbPixel.x;}
+			double aScFactor = 1;
 			aScFactor = aSzMax/aImSize;
 			cout << "aScFactor = " << aScFactor << endl;
 			stringstream ss;
@@ -519,10 +543,10 @@ int Idem_main(int argc, char** argv)
 			std::string aScIm = "mm3d ScaleIm " + aOrthoName + " " + ss.str() ;
 			VoidSystem(aScIm.c_str());
 			
-			aNbPixel.x /= 4;
-			aNbPixel.y /= 4;
-			aResOrt.x *= 4;
-			aResOrt.y *= 4;
+			aNbPixel.x /= aScFactor;
+			aNbPixel.y /= aScFactor;
+			aResOrt.x *= aScFactor;
+			aResOrt.y *= aScFactor;
 			aOrthoName = aOrthoName.substr(0,aOrthoName.size()-4)+"_Scaled.tif";
 		}
 	// Projection des GCP dans l'ortho
@@ -556,29 +580,34 @@ int Idem_main(int argc, char** argv)
 			}
 		}
 		
+		
 	// Tracer des cercles sur les GCP dans l'ortho (réduite ou non)
 		Tiff_Im  aImOrtho = Tiff_Im::StdConv(aOrthoName);
 		std::string aNameOut = "MyQualityTime.tif";
-		Disc_Pal  Pdisc = Disc_Pal::P8COL();
 		Im2D_U_INT1 I(aNbPixel.x,aNbPixel.y);
-		Tiff_Im  aTOut
-		(
-			 aNameOut.c_str(),
-			 aNbPixel,
-			 GenIm::u_int1,
-			 Tiff_Im::No_Compr,
-			 Tiff_Im::RGB
-		);
 		
+		 //  palette allocation
+        Disc_Pal  Pdisc = Disc_Pal::P8COL();
+        Gray_Pal  Pgr (30);
+        Circ_Pal  Pcirc = Circ_Pal::PCIRC6(30);
+        RGB_Pal   Prgb  (5,5,5);
+        Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+
+        // Drawing with Elise
+		Video_Display Ecr((char *) NULL);
+        Ecr.load(SOP);
+        Video_Win   W  (Ecr,SOP,Pt2di(50,50),Pt2di(aNbPixel.x,aNbPixel.y));
+
+        W.set_title("GCP in Red ; CP in blue");
+
 		ELISE_COPY
 		(
-			aTOut.all_pts(),
+			I.all_pts(),
 			aImOrtho.in(),
-			aTOut.out()
+			W.out(Prgb)
 		);
 		
 		bool isAppuis=false; 
-		
 		for 
 		(
 			unsigned int i=0;
@@ -586,8 +615,7 @@ int Idem_main(int argc, char** argv)
 			i++
 		)
 		{   
-			isAppuis=false; 
-			
+			isAppuis=false;
 			for
 			(
 				unsigned int j =0;
@@ -602,31 +630,34 @@ int Idem_main(int argc, char** argv)
 			}
 			
 			Pt2dr aPtOrt (aGCPortho[i].second);
-			cout << "aNbPixel = " << aNbPixel << "\taPtOrt = " << aPtOrt << endl;
 			
-			if (isAppuis)
+			if (isAppuis && treatGCP)
 			{
+				cout << "Id = " << aGCPortho[i].first << endl;
 				ELISE_COPY
 				(
-					disc(Pt2dr(100,200),10),
+					disc(aPtOrt,aPtSz),
 					P8COL::red,
-					aTOut.out()
+					W.out(Pdisc)
 				);
 			}
-			else
+			else if (!isAppuis && treatCP)
 			{
+				cout << "Id = " << aGCPortho[i].first << endl;
 				ELISE_COPY
 				(
-					disc(Pt2dr(100,200),10),
+					disc(aPtOrt,aPtSz),
 					P8COL::blue,
-					aTOut.out()
+					W.out(Pdisc)
 				);
 			}
 		}
+		W.clik_in();
+		
 	}
 
 	Idem_Banniere();
-	*/
+	
 	return EXIT_SUCCESS;
 }
 
