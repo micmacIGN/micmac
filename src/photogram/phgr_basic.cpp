@@ -1821,6 +1821,17 @@ double ElCamera::GetAltiSol() const
    return mAltiSol;
 }
 
+cCamStenopeBilin *  ElCamera::CSBil_SVP()
+{
+   return 0;
+}
+cCamStenopeBilin * ElCamera::CSBil()
+{
+   cCamStenopeBilin * aCSBil = CSBil_SVP();
+   ELISE_ASSERT(aCSBil!=0,"ElCamera::CSBil");
+
+   return aCSBil;
+}
 
 CamStenope *  ElCamera::CS()
 {
@@ -4282,7 +4293,6 @@ cParamIntrinsequeFormel * cCamStenopeDistRadPol::AllocParamInc(bool isDC2M,cSetE
 cParamIFDistRadiale * cCamStenopeDistRadPol::AllocDRadInc(bool isDC2M,cSetEqFormelles & aSetEq)
 {
 
-   // ELISE_ASSERT(!DistIsDirecte(),"cCamStenopeDistRadPol::AllocDRadInc");
 
 
    cParamIFDistRadiale * aRes = aSetEq.NewIntrDistRad(isDC2M,this,5);
@@ -4345,9 +4355,6 @@ cParamIntrinsequeFormel * cCamStenopeModStdPhpgr::AllocParamInc(bool isDC2M,cSet
 
 cParamIFDistStdPhgr * cCamStenopeModStdPhpgr::AllocPhgrStdInc(bool isDC2M,cSetEqFormelles & aSetEq)
 {
-   // ELISE_ASSERT(!DistIsDirecte(),"cCamStenopeDistRadPol::AllocDRadInc");
-   /*
-   */
 
    cParamIFDistStdPhgr * aRes = aSetEq.NewIntrDistStdPhgr (isDC2M,this,5);
    aRes->SetFocFree(true);

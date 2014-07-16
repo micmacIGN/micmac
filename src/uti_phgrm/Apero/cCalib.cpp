@@ -654,8 +654,121 @@ bool cCalibCam_ModeleUnif::InstSetContrainte
 }
 
 
+/**************************************************/
+/*                                                */
+/*          cCalibCam_BiLin                       */
+/*                                                */
+/**************************************************/
+
+/*
+class cCalibCam_BiLin : public  cCalibCam
+{
+     public :
+         ~cCalibCam_BiLin() {}
+
+         cCalibCam_BiLin
+	 (
+              const         std::string & aKeyId,
+*/
+
+class cCalibCam_BiLin : public  cCalibCam
+{
+     public :
+
+//          void Inspect();
+         ~cCalibCam_BiLin() {}
+
+         cCalibCam_BiLin
+	 (
+              const         std::string & aKeyId,
+	      cAppliApero & anAppli,
+	      const cCalibrationCameraInc & aCCI,
+	      const cCalibrationInternConique & aCIR,
+	      cPIF_Bilin &              aPIF,
+	      cCamStenopeBilin &            aCamInit
+	 );
+	 bool InstSetContrainte
+              (
+                     double aTol,
+                     const eTypeContrainteCalibCamera &
+              );
+     private :
+
+        cPIF_Bilin &             mPIF;
+	//cCamera_Param_Unif_Gen &    mCamInit;
+};
+
+cCalibCam_BiLin::cCalibCam_BiLin
+(
+       const         std::string & aKeyId,
+       cAppliApero & anAppli,
+       const cCalibrationCameraInc & aCCI,
+       const cCalibrationInternConique & aCIC,
+       cPIF_Bilin &              aPIF,
+       cCamStenopeBilin &            aCamInit
+) :
+   cCalibCam (aCIC,false,aKeyId,anAppli,aCCI,aPIF,aCamInit,aCIC.SzIm()),
+   mPIF      (aPIF)//,
+   //mCamInit  (aCamInit)
+{
+}
+
+bool cCalibCam_BiLin::InstSetContrainte
+     (
+            double aTol,
+            const eTypeContrainteCalibCamera & aCstr
+     )
+{
+   switch (aCstr)
+   {
+
+       case eAllParamLibres :
+	     mPIF.SetPPFree(true);
+	     mPIF.SetDistFree(100);
+       break;
+       case  eAllParamFiges :
+	     mPIF.SetPPFree(false);
+	     mPIF.SetDistFigee();
+       break;
+
+       case eLiberteParamDeg_0 :
+       break;
+
+       case eLiberteParamDeg_1 :
+           mPIF.SetDistFree(1);
+       break;
+
+       case eLiberteParamDeg_2 :
+           mPIF.SetDistFree(2);
+       break;
+
+       case eLiberteParamDeg_3 :
+           mPIF.SetDistFree(3);
+       break;
+
+       case eLiberteParamDeg_4 :
+           mPIF.SetDistFree(4);
+       break;
+
+       case eLiberteParamDeg_5 :
+           mPIF.SetDistFree(5);
+       break;
+
+       case eLiberteParamDeg_6 :
+           mPIF.SetDistFree(6);
+       break;
+       case eLiberteParamDeg_7 :
+           mPIF.SetDistFree(7);
+       break;
 
 
+       default :
+           return false;
+       break;
+
+   }
+   return true;
+}
 
 /**************************************************/
 /*                                                */
@@ -1060,8 +1173,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
         return  aRes;
         
     }
-
-    if (aCD.ModPhgrStd().IsInit())
+    else if (aCD.ModPhgrStd().IsInit())
     {
         cCamStenopeModStdPhpgr * aCam =  Std_Cal_PS_C2M(aCIC,aConv);
 
@@ -1070,8 +1182,7 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
 
         return  new cCalibCam_PhgrStd(aKeyId,anAppli,aCCI,aCIC,*aPIF,*aCam);
     }
-
-    if (aCD.ModUnif().IsInit())
+    else if (aCD.ModUnif().IsInit())
     {
        cCamera_Param_Unif_Gen * aCam = Std_Cal_Unif(aCIC,aConv);
 // std::cout << "CCaaaam "<< aCam << "\n";
@@ -1081,8 +1192,20 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
 
        return new cCalibCam_ModeleUnif(aCam->IsFE(),aKeyId,anAppli,aCCI,aCIC,*aPIF,*aCam);
     }
+    else if (aCD.ModGridDef().IsInit())
+    {
+        cCamStenopeBilin * aCBL =  Std_Cal_Bilin(aCIC,aConv);
+        anAppli.NormaliseScTr(*aCBL);
 
-    ELISE_ASSERT(false,"Use a (still) unsuported init of calibration");
+        cPIF_Bilin *  aPIF = anAppli.SetEq().NewPIFBilin(aCBL);
+
+        return new cCalibCam_BiLin(aKeyId,anAppli,aCCI,aCIC,*aPIF,*aCBL);
+        // ELISE_ASSERT(false,"aCD.ModGridDef : to finish");
+    }
+    else
+    {
+        ELISE_ASSERT(false,"Use a (still) unsuported init of calibration");
+    }
     return 0;
 }
 

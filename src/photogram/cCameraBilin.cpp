@@ -63,170 +63,7 @@ class cPIF_Unif_Gen : public cParamIntrinsequeFormel
 
 static const Pt2di CamBilinCorn[4]={Pt2di(0,0),Pt2di(1,0),Pt2di(0,1),Pt2di(1,1)};
 
-class cDistorBilin ;
-class cCamStenopeBilin ;
-class cPIF_Bilin ;
 
-class cDistorBilin :   public ElDistortion22_Gen 
-{
-     public :
-          friend class cPIF_Bilin;
-
-          friend void Test_DBL();
-
-          cDistorBilin(Pt2dr aSz,Pt2dr aP0,Pt2di aNb);
-          Pt2dr Direct(Pt2dr) const ;
-
-          Pt2dr & Dist(const Pt2di aP) {return mVDist[aP.x + aP.y*(mNb.x+1)];}
-          const Pt2dr & Dist(const Pt2di aP) const {return mVDist[aP.x + aP.y*(mNb.x+1)];}
-          const Pt2di & Nb() const {return mNb ;}
-
-
-          virtual cCalibDistortion ToXmlStruct(const ElCamera *) const;
-          cCalibrationInterneGridDef ToXmlGridStruct() const;
-
-          static cDistorBilin FromXmlGridStuct(const cCalibrationInterneGridDef & );
-
-
-          bool  AcceptScaling() const;
-          bool  AcceptTranslate() const;
-          void V_SetScalingTranslate(const double &,const Pt2dr &);
-
-
-     private  :
-        //  ==== Tests ============
-          Box2dr BoxRab(double aMulStep) const;
-          void Randomize(double aFact=0.1);
-          void InitAffine(double aF,Pt2dr aPP);
-
-        //  =============
-          void  Diff(ElMatrix<REAL> &,Pt2dr) const;
-          Pt2dr ToCoordGrid(const Pt2dr &) const;
-          Pt2dr FromCoordGrid(const Pt2dr &) const;
-          // Renvoie le meilleur interval [X0, X0+1[ contenat aCoordGr, valide qqsoit aCoordGr
-          void GetDebInterval(int & aX0,const int & aSzGrd,const double & aCoordGr) const;
-          //  tel que aCoordGr soit le barry de (aX0,aX0+1) avec (aPdsX0,1-aPdsX0)  et 0<= aX0 < aSzGr, aX0 entier
-          void GetDebIntervalAndPds(int & aX0,double & aPdsX0,const int & aSzGrd,const double & aCoordGr) const;
-          //  A partir d'un points en coordonnees grille retourne le coin bas-gauche et le poids 
-          void GetParamCorner(Pt2di & aCornerBG,Pt2dr & aPdsBG,const Pt2dr & aCoorGr) const;
-          void InitEtatFromCorner(const Pt2dr & aCoorGr) const; 
-
-          Pt2dr                               mP0;
-          Pt2dr                               mP1;
-          Pt2dr                               mStep;
-          Pt2di                               mNb;
-          std::vector<Pt2dr >                 mVDist;
-
-          mutable Pt2di                               mCurCorner;
-          mutable double                              mPds[4];
-};
-
-
-
-class cCamStenopeBilin : public CamStenope
-{
-    public :
-           cCamStenopeBilin
-           (
-               REAL Focale,
-               Pt2dr Centre,
-               const  cDistorBilin & aDBL
-           );
-
-            const ElDistortion22_Gen & Dist() const;
-            ElDistortion22_Gen & Dist() ;
-            const cDistorBilin & DBL() const;
-
-    private :
-
-           cDistorBilin mDBL;
-};
-
-
-// Voir cCpleGridEq::SetP1P2
-// Voir cEqAppuiGrid.cpp
-
-class cSomBilin
-{
-     public :
-        cSomBilin(cSetEqFormelles &,Pt2dr &,const cIncIntervale & anInt);
-
-        Pt2d<Fonc_Num>   mPtF;
-        cIncIntervale    mInterv;
-        
-};
-
-class cQuadrangle
-{
-      public :
-           cQuadrangle
-           (
-                   const cIncIntervale & aI00,
-                   const cIncIntervale & aI10,
-                   const cIncIntervale & aI01,
-                   const cIncIntervale & aI11
-           );
-           cIncIntervale    mInt00;
-           cIncIntervale    mInt10;
-           cIncIntervale    mInt01;
-           cIncIntervale    mInt11;
-};
-
-
-class cPIF_Bilin : public cParamIntrinsequeFormel
-{
-     public :
-         cPIF_Bilin(cCamStenopeBilin *,cSetEqFormelles &);
-          static cPIF_Bilin * Alloc(const cPIF_Bilin &,cSetEqFormelles &);
-
-     private  :
-          // virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>); a priori inutile
-          virtual void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);
-          virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
-          void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
-          virtual void    UpdateCurPIF();
-          virtual bool IsDistFiged() const;
-          virtual std::string  NameType() const;
-          virtual ~cPIF_Bilin();
-          virtual CamStenope * CurPIF(); ;
-          virtual CamStenope * DupCurPIF(); ;
-          virtual cMultiContEQF  StdContraintes();
-
-          virtual void AddToListInterval(cIncListInterv & aLInterv);
-          // virtual bool UseSz() const; ==> A priori 
-/*
-
-
-
-
-*/
- 
-          cSomBilin & FDist(const Pt2di & aP);
-
-       // ==============================================
-          static const std::string TheNameType ;
-       // ==============================================
-          cSetEqFormelles &                            mSet;
-          std::vector<cP2d_Etat_PhgrF>                 mCornF; // Size 8, pour eventuelleme,t gerer aKCam=1
-          bool                                         mFiged;
-          cDistorBilin                                 mDistInit;
-          cDistorBilin                                 mDistCur;
-          cCamStenopeBilin *                           mCurPIF;
-          // std::vector<Pt2d<Fonc_Num>  >                mFVDist;
-          std::vector<std::vector<cSomBilin > >        mFVDist;
-          std::vector<std::vector<cQuadrangle > >      mQuads;
-
-          std::vector<cElCompiledFonc* >               mFctrRegul;
-
-          // Index des deux point qui doivent etre figee arbirtairemnt pour fixer PP,Focale, Rotation
-          // situes sur les extre de la ligne horiz coupant la capteur en 2
-          int                                          mIndFrozen0;
-          int                                          mIndFrozen1;
-
-          Pt2di                                        mLastCase;
-          // cIncListInterv                               mLInterv;
-          // cCamStenopeBilin                             
-};
 /*
 
 class cEqAffine
@@ -467,6 +304,16 @@ bool  cPIF_Bilin::IsDistFiged() const
 const std::string cPIF_Bilin::TheNameType  = "CamBilin";
 std::string  cPIF_Bilin::NameType() const { return TheNameType; }
 
+void cPIF_Bilin::SetDistFigee()
+{
+   mFiged = true;
+}
+
+void cPIF_Bilin::SetDistFree(int aDegre)
+{
+   mFiged = false;
+   mDegreFree = aDegre;  // Pour l'instant inutile
+}
 
 
 cMultiContEQF  cPIF_Bilin::StdContraintes()
@@ -531,6 +378,11 @@ cCamStenopeBilin::cCamStenopeBilin
 const ElDistortion22_Gen & cCamStenopeBilin::Dist() const {return mDBL;}
 ElDistortion22_Gen & cCamStenopeBilin::Dist()  {return mDBL;}
 const cDistorBilin & cCamStenopeBilin::DBL() const  {return mDBL;}
+
+cCamStenopeBilin * cCamStenopeBilin::CSBil_SVP()
+{
+    return this;
+}
 
 /**************************************************************/
 /*                                                            */
