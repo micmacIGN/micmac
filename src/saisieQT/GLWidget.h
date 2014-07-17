@@ -5,25 +5,15 @@
 #include <limits>
 #include <iostream>
 #include <algorithm>
+
 #include "Data.h"
-#include <QtOpenGL/QGLWidget>
-#include <QGLContext>
-#include <QDebug>
-
-#include <QUrl>
-#include <QtGui/QMouseEvent>
-#include <QSettings>
-#include <QMimeData>
-#include <QTime>
-//#include <QPainter>
-
-
 #include "Engine.h"
 #include "GLWidgetSet.h"
-
 #include "MatrixManager.h"
 #include "HistoryManager.h"
 #include "ContextMenu.h"
+
+#include "Elise_QT.h"
 
 class GLWidgetSet;
 

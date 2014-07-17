@@ -1,10 +1,8 @@
 #ifndef __MATRIXMANAGER__
 #define __MATRIXMANAGER__
 
-
-#include "mmglu.h"
 #include "Engine.h"
-
+#include "mmglu.h"
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/

@@ -1,13 +1,13 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-//#include "ui_Settings.h"
+//#include "ui_Settings.h" TODO pour en commentaire ???
 
-#include <QDialog>
-#include <QSettings>
-#include <QStandardItemModel>
+
 
 #include "StdAfx.h"
+
+#include "Elise_QT.h"
 
 namespace Ui {
 class SettingsDialog;

@@ -1,16 +1,8 @@
 #ifndef __CONTEXTMENUMANAGER__
 #define __CONTEXTMENUMANAGER__
 
-#include <QMenu>
-#include <QSignalMapper>
-#include <QIcon>
-#include <QInputDialog>
-#include <QDialogButtonBox>
-
-#include <QWidget>
-#include <QAction>
-
 #include "3DObject.h"
+#include "Elise_QT.h"
 
 typedef enum
 {

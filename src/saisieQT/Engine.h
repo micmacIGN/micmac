@@ -1,21 +1,12 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include "qiodevice.h"
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QDir>
-#include <QImageReader>
-
 #include "Data.h"
 #include "general/bitm.h"
-
 #include "HistoryManager.h"
 #include "Settings.h"
 
-#if ELISE_QT_VERSION == 5
-#include <QOpenGLContext>
-#endif
+#include "Elise_QT.h"
 
 class ViewportParameters
 {

@@ -1,30 +1,14 @@
 #ifndef SAISIEQTWINDOW_H
 #define SAISIEQTWINDOW_H
 
-#include "general/CMake_defines.h"
-
-#ifdef ELISE_Darwin
-    #include "OpenGL/gl.h"
-#else
-    #include "GL/gl.h"
-#endif
-
-#include <QMainWindow>
-#include <QFutureWatcher>
-#include <QtConcurrentRun>
-#include <QProgressDialog>
-#include <QTimer>
-#include <QSignalMapper>
-#include <QGridLayout>
-#include <QTableView>
-#include <QTreeView>
+#include "StdAfx.h"
 
 #include "Engine.h"
 #include "GLWidgetSet.h"
 #include "Settings.h"
-#include "qdesktopwidget.h"
-
 #include "Tree.h"
+
+#include "Elise_QT.h"
 
 namespace Ui {
 class SaisieQtWindow;

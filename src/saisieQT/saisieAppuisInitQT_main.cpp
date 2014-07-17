@@ -1,9 +1,4 @@
 #include "saisieQT_main.h"
-#include "../uti_phgrm/SaisiePts/cParamSaisiePts.h"
-#include "QT_interface_Elise.h"
-#include "private/files.h"
-
-using namespace std;
 
 //extern const char * theNameVar_ParamApero[];
 
