@@ -3,8 +3,6 @@
 
 //#include "ui_Settings.h" TODO pour en commentaire ???
 
-
-
 #include "StdAfx.h"
 
 #include "Elise_QT.h"

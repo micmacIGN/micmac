@@ -1,9 +1,9 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include "Elise_QT.h"
-
 #include "QT_interface_Elise.h"
+
+#include "Elise_QT.h"
 
 
 class cQT_Interface ;

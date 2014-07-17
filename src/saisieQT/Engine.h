@@ -1,10 +1,10 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include "Data.h"
-#include "general/bitm.h"
+
+#include "StdAfx.h"
 #include "HistoryManager.h"
-#include "Settings.h"
+#include "cgldata.h"
 
 #include "Elise_QT.h"
 
