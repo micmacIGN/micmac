@@ -2,9 +2,7 @@
 #define __3DOBJECT__
 
 #include "Settings.h"
-
-
-#include  "Elise_QT.h"
+#include "Elise_QT.h"
 
 #define QMaskedImage cMaskedImage<QImage>
 
@@ -631,8 +629,6 @@ struct MessageToDisplay
     MessagePosition position;
 };
 
-#include <QGLWidget>
-
 class cMessages2DGL : public cObjectGL
 {
 public:
@@ -696,7 +692,7 @@ class MatrixManager;
 
 #include "Data.h"
 #include "MatrixManager.h"
-#include <QFlags>
+
 
 
 
