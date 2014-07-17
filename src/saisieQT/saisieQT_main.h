@@ -1,10 +1,14 @@
 #ifndef SAISIEMASQQT_MAIN_H
 #define SAISIEMASQQT_MAIN_H
 
-#include <QtGui>
-#include <QApplication>
-#include "saisieQT_window.h"
 #include <memory>
+#include "StdAfx.h"
+
+#include "QT_interface_Elise.h"
+
+#include "Elise_QT.h"
+
+using namespace std;
 
 void initSettings(QSettings &settings, Pt2di aSzWin, Pt2di aNbFen, bool init);
 

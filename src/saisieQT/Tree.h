@@ -1,12 +1,10 @@
 #ifndef TREE_H
 #define TREE_H
 
-#include <QAbstractTableModel>
-#include <QSortFilterProxyModel>
-#include <QColor>
+#include "Elise_QT.h"
 
 #include "QT_interface_Elise.h"
-#include "../uti_phgrm/SaisiePts/SaisiePts.h"
+
 
 class cQT_Interface ;
 

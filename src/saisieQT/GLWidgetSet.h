@@ -2,8 +2,7 @@
 #define GLWIDGETGRID_H
 
 #include "GLWidget.h"
-#include <QVector>
-#include <QStyle>
+#include "Elise_QT.h"
 
 class GLWidget;
 

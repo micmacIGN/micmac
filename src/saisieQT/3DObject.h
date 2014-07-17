@@ -3,15 +3,8 @@
 
 #include "Settings.h"
 
-#ifdef Int
-    #undef Int
-#endif
-#include <QColor>
-#include <QGLWidget>
-#include <QGLShaderProgram>
-#include <QPainter>
 
-
+#include  "Elise_QT.h"
 
 #define QMaskedImage cMaskedImage<QImage>
 

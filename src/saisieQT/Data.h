@@ -2,8 +2,7 @@
 #define DATA_H
 
 #include "Cloud.h"
-#include <QImage>
-
+#include "Elise_QT.h"
 
 class GlCloud;
 
