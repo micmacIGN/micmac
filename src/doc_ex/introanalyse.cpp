@@ -81,18 +81,18 @@ int  DocEx_Introanalyse_main(int,char **)
               W.out(Pdisc) 
           );
           getchar();
-          
+          /*
           ELISE_COPY
           (
               l2.all_pts().chc((FY,FX)),
               P8COL::cyan,
               W.out(Pdisc) 
           );
-          getchar();
+          getchar();*/
 
           ELISE_COPY(W.all_pts(),Im.in(),W.out(Pgr));
           Liste_Pts_INT2 l3(3);
-          ELISE_COPY
+  /*        ELISE_COPY
           (
               select
               (
@@ -103,7 +103,7 @@ int  DocEx_Introanalyse_main(int,char **)
               l3
           );
           ELISE_COPY(l3.all_pts(),FZ,W.out(Pgr).chc((FX,FY)));
-          getchar();
+          getchar();*/
 
           Im2D_INT2 Il3 = l3.image();
           INT2 **  d = Il3.data();
@@ -298,6 +298,7 @@ int  DocEx_Introanalyse_main(int,char **)
               Ibin.in()!=0,
               Ibin.out()|I2.out()|W.out(Pdisc)
           );
+          /*
           ELISE_COPY
           (
               select
@@ -308,7 +309,7 @@ int  DocEx_Introanalyse_main(int,char **)
               P8COL::red,
               I2.out()|W.out(Pdisc)
           );
-          getchar();
+          getchar();*/
           ELISE_COPY
           (
               conc
@@ -330,7 +331,8 @@ int  DocEx_Introanalyse_main(int,char **)
 
 
           ELISE_COPY(Ibin.all_pts(),Ibin.in()!=0,Ibin.out()|W.out(Pdisc));
-          U_INT1 ** d = Ibin.data();
+ 
+/*         U_INT1 ** d = Ibin.data();
 
    // Parcourt toute les composant connexes de l'image
    // et les met en vert, si elles ont + de 200 point:
@@ -377,7 +379,7 @@ int  DocEx_Introanalyse_main(int,char **)
                        //   W.draw_rect(pmin,pmax,lstbox);
                       }
                   }
-          getchar();
+          getchar();*/
        }
 
 
@@ -441,6 +443,7 @@ int  DocEx_Introanalyse_main(int,char **)
 
           
       }
+	return 0;
 }
 
 

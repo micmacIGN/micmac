@@ -219,12 +219,14 @@ Pt3dr SplitToPt3dr(string inS)
 {
 	inS=inS.substr(1,inS.size()-2); 	// delete [ & ]
 	double rX,rY,rZ;
+	Pt3dr myPoint;
 	for (unsigned int i =0 ; i < inS.size() ; i++)
 	{
 		if (inS[i] == ',')
 		{
 			std::string inS2 = inS.substr(0,i);
 			rX = atof(inS2.c_str());
+			myPoint.x=rX;
 			inS=inS.substr(i+1,inS.size()-i-1);
 		}
 	}
@@ -234,14 +236,13 @@ Pt3dr SplitToPt3dr(string inS)
 		{
 			std::string inS2 = inS.substr(0,i);
 			rY = atof(inS2.c_str());
+			myPoint.y=rY;
 			inS=inS.substr(i+1,inS.size()-i-1);
+			rZ = atof(inS.c_str());
+			myPoint.z=rZ;
 		}
 	}
-	rZ = atof(inS.c_str());
-	Pt3dr myPoint;
-	myPoint.x=rX;
-	myPoint.y=rY;
-	myPoint.z=rZ;
+	
 	return myPoint;
 }
 
@@ -318,15 +319,14 @@ int ResToTxt_main(int argc, char** argv)
 		 <<" m\nZ : " << rZmoy
 		 <<" m\nXYZ : " << rXYZ
 		 <<" m\nImage : " << rImMoy << " pixel\n";
-	fout.close();
-	
+		  
 	cout << "\nMEAN ABSOLUTE ERROR :\n"
 		 << "X : " << rXmoy
 		 <<" m\nY : " << rYmoy
 		 <<" m\nZ : " << rZmoy
 		 <<" m\nXYZ : " << rXYZ
 		 <<" m\nImage : " << rImMoy << " pixel\n";
-		 
+	fout.close();
    return EXIT_SUCCESS;
 }
 
