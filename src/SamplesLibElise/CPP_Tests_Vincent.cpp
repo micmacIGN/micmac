@@ -215,6 +215,37 @@ int CheckOri_main(int argc, char** argv)
    return EXIT_SUCCESS;
 }
 
+Pt3dr SplitToPt3dr(string inS)
+{
+	inS=inS.substr(1,inS.size()-2); 	// delete [ & ]
+	double rX,rY,rZ;
+	Pt3dr myPoint;
+	for (unsigned int i =0 ; i < inS.size() ; i++)
+	{
+		if (inS[i] == ',')
+		{
+			std::string inS2 = inS.substr(0,i);
+			rX = atof(inS2.c_str());
+			myPoint.x=rX;
+			inS=inS.substr(i+1,inS.size()-i-1);
+		}
+	}
+	for (unsigned int i =0 ; i < inS.size() ; i++)
+	{
+		if (inS[i] == ',')
+		{
+			std::string inS2 = inS.substr(0,i);
+			rY = atof(inS2.c_str());
+			myPoint.y=rY;
+			inS=inS.substr(i+1,inS.size()-i-1);
+			rZ = atof(inS.c_str());
+			myPoint.z=rZ;
+		}
+	}
+	
+	return myPoint;
+}
+
 int ResToTxt_main(int argc, char** argv)
 {
 /* Transforme résidus de GCPBascule (utiliser GCPBasc ... | tee myFile.txt) en un fichier "NamePt dX dY dZ sigmaX sY sZ eMoyPixel eMaxPixel")*/
@@ -225,21 +256,76 @@ int ResToTxt_main(int argc, char** argv)
 		LArgMain()  << EAMC(mNameIn,"Name of the residuals file"),
 		LArgMain()  << EAM(mNameOut,"Out",true,"File to save the results")
 	);
+	
 	ifstream fin (mNameIn.c_str());
-	string mRead;
-	int i=0;
 	ofstream fout (mNameOut.c_str(),ios::out);
+	string 	 mRead;
+	int 	 i=0;
+	double   rImMoy(0),
+			 rXmoy(0),
+			 rYmoy(0),
+			 rZmoy(0);
+	Pt3dr 	 ptRes, 
+			 ptPres;
+	vector <Pt3dr> ptResLs;
+	vector <double> rImMoyLs,
+					rImMaxLs;
+			 
 	while (fin >> mRead){
 
 		if (mRead == "--NamePt"){i++;}
 		if (i!=0){i++;}
-		if (i==3){fout << mRead << " ";}
-		if (i==6){fout << mRead << " ";}
-		if (i==13){fout << mRead << " ";}
-		if (i==20){fout << mRead << " ";}
-		if (i==25){fout << mRead << "\n";}
+		if (i==3){fout << mRead << " ";}	// Id
+		if (i==6)		// [rX,rY,rZ]
+		{
+			ptRes = SplitToPt3dr (mRead);
+			ptResLs.push_back(ptRes);
+			fout << ptRes.x << " " << ptRes.y << " " << ptRes.z << " ";
+		}
+		if (i==13)
+		{				// [pX,pY,pZ]
+			ptPres = SplitToPt3dr (mRead);
+			fout << ptPres.x << " " << ptPres.y << " " << ptPres.z << " ";
+		}
+		if (i==20)		// rImMoy
+		{
+			fout << mRead << " ";
+			rImMoyLs.push_back(atof(mRead.c_str()));
+		}
+		if (i==25)
+		{				// rImMax
+			fout << mRead << "\n";
+			rImMoyLs.push_back(atof(mRead.c_str()));
+		}
 		if (mRead == "For"){i=0;}
 	}
+	
+	for (unsigned int i=0;i<ptResLs.size();i++)
+	{
+		rXmoy += fabs(ptResLs[i].x);
+		rYmoy += fabs(ptResLs[i].y);
+		rZmoy += fabs(ptResLs[i].z);
+		rImMoy += rImMoyLs[i];
+	}
+	rXmoy = rXmoy/ptResLs.size();
+	rYmoy = rYmoy/ptResLs.size();
+	rZmoy = rZmoy/ptResLs.size();
+	double rXYZ = sqrt(rXmoy*rXmoy + rYmoy*rYmoy + rZmoy*rZmoy);
+	rImMoy = rImMoy/ptResLs.size();
+	
+	fout << "\nMEAN ABSOLUTE ERROR :\n"
+		 << "X : " << rXmoy
+		 <<" m\nY : " << rYmoy
+		 <<" m\nZ : " << rZmoy
+		 <<" m\nXYZ : " << rXYZ
+		 <<" m\nImage : " << rImMoy << " pixel\n";
+		  
+	cout << "\nMEAN ABSOLUTE ERROR :\n"
+		 << "X : " << rXmoy
+		 <<" m\nY : " << rYmoy
+		 <<" m\nZ : " << rZmoy
+		 <<" m\nXYZ : " << rXYZ
+		 <<" m\nImage : " << rImMoy << " pixel\n";
 	fout.close();
    return EXIT_SUCCESS;
 }
