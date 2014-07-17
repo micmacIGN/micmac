@@ -31,7 +31,7 @@
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QFileDialog>
-
+#include <QFlags>
 #include <QGLWidget>
 #include <QGLShaderProgram>
 #include <QGLContext>
