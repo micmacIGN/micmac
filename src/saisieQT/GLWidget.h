@@ -6,16 +6,10 @@
 #include <iostream>
 #include <algorithm>
 
-#include "Data.h"
 #include "Engine.h"
-#include "GLWidgetSet.h"
-#include "MatrixManager.h"
-#include "HistoryManager.h"
 #include "ContextMenu.h"
 
 #include "Elise_QT.h"
-
-class GLWidgetSet;
 
 class GLWidget : public QGLWidget
 {

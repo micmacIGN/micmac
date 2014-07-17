@@ -8,6 +8,7 @@ if ( NOT ${qt_version} EQUAL 0 )
                     ${SAISIE_DIR}/Data.cpp
                     ${SAISIE_DIR}/Engine.cpp
                     ${SAISIE_DIR}/3DObject.cpp
+                    ${SAISIE_DIR}/cgldata.cpp
                     ${SAISIE_DIR}/GLWidgetSet.cpp
                     ${SAISIE_DIR}/MatrixManager.cpp
                     ${SAISIE_DIR}/HistoryManager.cpp
@@ -27,6 +28,7 @@ if ( NOT ${qt_version} EQUAL 0 )
        ${SAISIE_DIR}/Engine.h
        ${SAISIE_DIR}/GLWidgetSet.h
        ${SAISIE_DIR}/3DObject.h
+       ${SAISIE_DIR}/cgldata.cpp
        ${SAISIE_DIR}/mmglu.h )
 
     set( HEADERS_tomoc
