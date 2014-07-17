@@ -2,8 +2,8 @@
 #define QT_INTERFACE_ELISE_H
 
 #include "saisieQT_window.h"
-#include <QApplication>
-#include <QProcess>
+
+#include "Elise_QT.h"
 
 class SaisieQtWindow;
 

@@ -1,3 +1,6 @@
+#ifndef SAISIEGLSL_GLSL
+#define SAISIEGLSL_GLSL
+
 #define GLSL(version, shader)  "#version " #version "\n" #shader
 
 // VERTEX SHADER
@@ -32,3 +35,5 @@ void main(void)
 }
 
 );
+
+#endif //SAISIEGLSL_GLSL

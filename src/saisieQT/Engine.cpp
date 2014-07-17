@@ -1,8 +1,5 @@
 #include "Engine.h"
 
-
-
-
 cLoader::cLoader()
  : _FilenamesIn(),
    _FilenamesOut(),
