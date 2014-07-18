@@ -204,7 +204,7 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 //    qDebug() << "selModel->currentIndex().column() : " << selModel->currentIndex().column();
 //    qDebug() << "selModel->currentIndex().row() : " << selModel->currentIndex().row();
 
-    if (selModel->currentIndex().row() == -1 && selModel->currentIndex().column() !=0)
+    if (selModel->currentIndex().row() == -1 || selModel->currentIndex().column() == -1)
     {
         //qDebug() << "Nothing";
         return &mAppli->Interface()->GetCaseNamePoint(0);
