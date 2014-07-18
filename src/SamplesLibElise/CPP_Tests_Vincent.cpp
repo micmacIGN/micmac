@@ -366,16 +366,19 @@ void WriteControl(vector <pair <std::string,float> > ListOfDiffControl, ofstream
 
 vector <string> GetFilesFromFolder (string dossier)
 {
-	DIR* rep = NULL;
-	struct dirent* fichierLu = NULL;
-	rep = opendir(dossier.c_str());
-	if (rep == NULL) 
-		exit(1); 
-	vector <string> dirName;
-	while ((fichierLu = readdir(rep)) != NULL){
-		dirName.push_back(fichierLu->d_name);}
-	sort(dirName.begin(),dirName.end());
-	return dirName;
+	if (ELISE_unix)
+	{
+		DIR* rep = NULL;
+		struct dirent* fichierLu = NULL;
+		rep = opendir(dossier.c_str());
+		if (rep == NULL) 
+			exit(1); 
+		vector <string> dirName;
+		while ((fichierLu = readdir(rep)) != NULL){
+			dirName.push_back(fichierLu->d_name);}
+		sort(dirName.begin(),dirName.end());
+		return dirName;
+	}
 }
 
 void Idem_Banniere()
@@ -482,7 +485,11 @@ int Idem_main(int argc, char** argv)
 // Récupération du dernier fichier Z_Num.xml
 	std::string aDir2,aPat2,aZ_Num;
 	SplitDirAndFile(aDir2,aPat2,aMNT);
-	vector<std::string> aListOfFileInMEC = GetFilesFromFolder(aDir2);
+	vector<std::string> aListOfFileInMEC;
+	if (ELISE_unix)
+	{
+		aListOfFileInMEC = GetFilesFromFolder(aDir2);
+	}
 	
 	for (unsigned int i=0;i<aListOfFileInMEC.size();i++)
 	{
