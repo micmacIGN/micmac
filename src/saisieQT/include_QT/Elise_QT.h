@@ -10,7 +10,8 @@
 #endif
 
 #ifdef _WIN32
-    #include "windows.h"
+#define NOMINMAX
+#include "windows.h"
 #endif
 
 #if ELISE_Darwin
@@ -88,6 +89,5 @@
 #include <QVector>
 #include <QXmlStreamReader>
 #include <QWidget>
-
 
 #endif // ELISE_QT_H
