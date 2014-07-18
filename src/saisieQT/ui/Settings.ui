@@ -17,7 +17,7 @@
    <string>Settings</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icones/icones.qrc">
+   <iconset resource="../icones/icones.qrc">
     <normaloff>:/MM/Icons/images/icon_32.png</normaloff>:/MM/Icons/images/icon_32.png</iconset>
   </property>
   <property name="styleSheet">
@@ -37,8 +37,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>346</width>
-        <height>144</height>
+        <width>255</width>
+        <height>80</height>
        </rect>
       </property>
       <property name="layoutDirection">
@@ -153,8 +153,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>346</width>
-        <height>144</height>
+        <width>198</width>
+        <height>137</height>
        </rect>
       </property>
       <attribute name="label">
@@ -283,8 +283,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>346</width>
-        <height>144</height>
+        <width>298</width>
+        <height>139</height>
        </rect>
       </property>
       <attribute name="label">
@@ -416,7 +416,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>332</width>
+        <width>225</width>
         <height>151</height>
        </rect>
       </property>
@@ -623,7 +623,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="icones/icones.qrc"/>
+  <include location="../icones/icones.qrc"/>
  </resources>
  <connections/>
 </ui>
