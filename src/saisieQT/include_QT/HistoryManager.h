@@ -1,23 +1,10 @@
 #ifndef _HISTORYMANAGER_H
 #define _HISTORYMANAGER_H
 
-#include <QVector>
-#include <QPoint>
-
-#include <QDomDocument>
-#include <QTextStream>
-#include <QFile>
-
+#include "Elise_QT.h"
 #include <iostream>
 
-#ifdef ELISE_Darwin
-    #include "OpenGL/gl.h"
-#else
-    #ifdef _WIN32
-        #include "windows.h"
-    #endif
-    #include "GL/gl.h"
-#endif
+
 
 struct selectInfos
 {

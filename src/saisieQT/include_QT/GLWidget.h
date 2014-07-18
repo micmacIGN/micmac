@@ -6,32 +6,10 @@
 #include <iostream>
 #include <algorithm>
 
-#include <QtOpenGL/QGLWidget>
-#include <QGLContext>
-#include <QDebug>
-
-#ifdef ELISE_Darwin
-    #include "OpenGL/gl.h"
-#else
-    #include "GL/gl.h"
-#endif
-
-#include <QUrl>
-#include <QtGui/QMouseEvent>
-#include <QSettings>
-#include <QMimeData>
-#include <QTime>
-//#include <QPainter>
-
-#include "Data.h"
 #include "Engine.h"
-#include "GLWidgetSet.h"
-
-#include "MatrixManager.h"
-#include "HistoryManager.h"
 #include "ContextMenu.h"
 
-class GLWidgetSet;
+#include "Elise_QT.h"
 
 class GLWidget : public QGLWidget
 {

@@ -1,16 +1,8 @@
 #ifndef __CONTEXTMENUMANAGER__
 #define __CONTEXTMENUMANAGER__
 
-#include <QMenu>
-#include <QSignalMapper>
-#include <QIcon>
-#include <QInputDialog>
-#include <QDialogButtonBox>
-
-#include <QWidget>
-#include <QAction>
-
 #include "3DObject.h"
+#include "Elise_QT.h"
 
 typedef enum
 {
@@ -29,7 +21,7 @@ public:
 
     void createContextMenuActions();
 
-    void setPolygon(cPolygon * poly){ _polygon = poly; }
+    void setPolygon(cPolygon * poly){ _polygon = poly; } // TODO virer _polygon
     void setPos(QPointF pt) { _lastPosImage = pt; }
 
     cPolygon    *_polygon;

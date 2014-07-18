@@ -18,6 +18,7 @@ void GLWidgetSet::init(cParameters *params, bool modePt)
     _widgets.resize(aNb);
 
     _widgets[0] = new GLWidget(0, NULL);
+
     _pcurrentWidget = _widgets[0];
 
     for (int aK=1 ; aK < aNb; ++aK)
@@ -68,6 +69,7 @@ void GLWidgetSet::selectCameraIn3DP(int idCam)
 
     threeDWidget()->update();
 }
+
 
 void GLWidgetSet::widgetSetResize(int aSz)
 {
