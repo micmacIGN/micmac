@@ -29,6 +29,7 @@
 #include <QColor>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QtConcurrent>
 #include <QDebug>
 #include <QDir>
 #include <QDomDocument>
