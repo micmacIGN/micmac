@@ -301,10 +301,18 @@ class cPolygon : public cObjectGL
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
 
+
+        // TODO fonctions utilisees uniquement dans contexte  menu, le contexte menu ne doit pas gerer le polygon!!
+        // --------------------------------------------
+        //                  |                         |
+        //                  V                         V
         int     setNearestPointState(const QPointF &pos, int state);
         int     highlightNearestPoint(const QPointF &pos);
         int     getNearestPointIndex(const QPointF &pos);
         QString getNearestPointName(const QPointF &pos);
+        // ---------------------------------------------------------------------------
+
+
         QString getSelectedPointName();
         int     getSelectedPointState();
 
@@ -324,8 +332,7 @@ class cPolygon : public cObjectGL
         void    add(QPointF const &pt, bool selected=false);
         virtual void    addPoint(QPointF const &pt);
 
-        void    clear();
-        void    clearPoints() { _points.clear(); }
+        void    clear();        
 
         void    setClosed(bool closed) { _bIsClosed = closed; }
         bool    isClosed(){ return _bIsClosed; }
@@ -376,9 +383,7 @@ class cPolygon : public cObjectGL
 
         void    translate(QPointF Tr);
 
-        cPoint  translateSelectedPoint(QPointF Tr);
-
-        void    flipY(float height);
+        cPoint  translateSelectedPoint(QPointF Tr);        
 
         float   getRadius()             { return _selectionRadius; }
 
