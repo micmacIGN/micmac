@@ -283,6 +283,19 @@ void cEngine::loadCameras(QStringList filenames)
 //#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
 //#define GL_RENDERBUFFER_FREE_MEMORY_ATI   0x87FD
 
+bool cEngine::extGLIsSupported(const char* strExt)
+{
+#if ELISE_QT_VERSION == 5
+    QOpenGLContext * contextHGL = QGLContext::currentContext()->contextHandle();
+    return contextHGL->hasExtension(strExt);
+#else
+    const GLubyte *str;
+    str = glGetString (GL_EXTENSIONS);
+    //qDebug() << strExt;
+    return (strstr((const char *)str, strExt) != NULL);
+#endif
+}
+
 void cEngine::loadImages(QStringList filenames)
 {
 
@@ -295,7 +308,7 @@ void cEngine::loadImages(QStringList filenames)
     int heightMax             = 0;
 
     //int sizeMemoryTexture_kb    = 0;
-#if ELISE_QT_VERSION == 5
+
 
     QString  sGLVendor((char*)glGetString(GL_VENDOR));
 
@@ -311,47 +324,30 @@ void cEngine::loadImages(QStringList filenames)
         GPUModel = NVIDIA;
     else if ( sGLVendor.contains("INTEL"))
         GPUModel = INTEL;
+
     GLint cur_avail_mem_kb      = 0;
-
-    QOpenGLContext * contextHGL = QGLContext::currentContext()->contextHandle();
-
-//    const QGLContext * contextGL = QGLContext::currentContext();
-
-//    PFNGLGENBUFFERSARBPROC glGenBuffers = (PFNGLGENBUFFERSARBPROC) contextGL->getProcAddress("GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX");
-//    bool extCheck1 = glGenBuffers ? true : false;
-
-//    //if(glewIsSupported())
-//    //if (extCheck1)
-//        printf("OK \n");
-//    else
-//        printf("NOT OK %p\n",glGenBuffers);
 
     switch (GPUModel) {
     case NVIDIA:
-        if(contextHGL->hasExtension("GL_NVX_gpu_memory_info"))
+        if(extGLIsSupported("GL_NVX_gpu_memory_info"))
         {
             glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
         }
         break;
     case ATI:
         //TODO A RE TESTER
-
-        if(contextHGL->hasExtension("GL_ATI_meminfo"))
-
+        if(extGLIsSupported("GL_ATI_meminfo"))
             glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
-
         break;
     case AMD:
-
-        if(contextHGL->hasExtension("GL_ATI_meminfo"))
-
+        if(extGLIsSupported("GL_ATI_meminfo"))
             glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
         break;
     default:
         cur_avail_mem_kb = 0;
         break;
     }
-#endif
+
     //printf("%s %d\n",sGLVendor.toStdString().c_str(),cur_avail_mem_kb/1024);
 
     for (int i=0;i<filenames.size();++i)
