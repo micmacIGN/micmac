@@ -1,16 +1,13 @@
 #ifndef VISUAL_BUTTONS_H
 #define VISUAL_BUTTONS_H
 
-#include "CMake_defines.h"
+#include "general/CMake_defines.h"
+
 
 #if(ELISE_QT_VERSION >= 4)
 
-#ifdef Int
-    #undef Int
-#endif
+#include "Elise_QT.h"
 
-#include <QPushButton>
-#include <QSpinBox>
 #include <cmath>
 
 class cSelectionButton: public QPushButton

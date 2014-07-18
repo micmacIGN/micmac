@@ -283,8 +283,32 @@ void cEngine::loadCameras(QStringList filenames)
 //#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
 //#define GL_RENDERBUFFER_FREE_MEMORY_ATI   0x87FD
 
+bool cEngine::extGLIsSupported(const char* strExt)
+{
+#if ELISE_QT_VERSION == 5
+    QOpenGLContext * contextHGL = QGLContext::currentContext()->contextHandle();
+    return contextHGL->hasExtension(strExt);
+#else
+    const GLubyte *str;
+    str = glGetString (GL_EXTENSIONS);
+    //qDebug() << strExt;
+    return (strstr((const char *)str, strExt) != NULL);
+#endif
+}
+
 void cEngine::loadImages(QStringList filenames)
 {
+
+
+    int maxTexture;
+
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
+
+    int widthMax              = 0;
+    int heightMax             = 0;
+
+    //int sizeMemoryTexture_kb    = 0;
+
 
     QString  sGLVendor((char*)glGetString(GL_VENDOR));
 
@@ -301,28 +325,23 @@ void cEngine::loadImages(QStringList filenames)
     else if ( sGLVendor.contains("INTEL"))
         GPUModel = INTEL;
 
-    int maxTexture;
-
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
-
-    int widthTotal              = 0;
-    int heightTotal             = 0;
-//    GLint total_mem_kb      = 0;
     GLint cur_avail_mem_kb      = 0;
-    int sizeMemoryTexture_kb    = 0;
-
 
     switch (GPUModel) {
     case NVIDIA:
-        glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
+        if(extGLIsSupported("GL_NVX_gpu_memory_info"))
+        {
+            glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
+        }
         break;
     case ATI:
-        //TODO NE MARCHE PAS SOUS ATI
-        //glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
-
+        //TODO A RE TESTER
+        if(extGLIsSupported("GL_ATI_meminfo"))
+            glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
         break;
     case AMD:
-        glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
+        if(extGLIsSupported("GL_ATI_meminfo"))
+            glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
         break;
     default:
         cur_avail_mem_kb = 0;
@@ -335,40 +354,46 @@ void cEngine::loadImages(QStringList filenames)
     {
         QSize imageSize = QImageReader(filenames[i]).size();
 
-        widthTotal  += imageSize.width();
-        heightTotal += imageSize.height();
+        widthMax  = max(imageSize.width(),widthMax);
+        heightMax = max(imageSize.height(),heightMax);
 
-        sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
+        //sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
     }
+
+    int maxImagesDraw = min(_params->getNbFen().x()*_params->getNbFen().y(),filenames.size());
+
+    widthMax    *= maxImagesDraw;
+    heightMax   *= maxImagesDraw;
+
+    //sizeMemoryTexture_kb = widthMax*heightMax*4/1024;
+
     //cur_avail_mem_kb = 5 * 1024;
 
-    float scaleFactorVRAM = 1.f;
+    //float scaleFactorVRAM = 1.f;
     // TODO delete texture car il y a un fuite dans la VRAM!!!
-    if(cur_avail_mem_kb !=0)
-    {
-        sizeMemoryTexture_kb *= 2; // Image + masque
-        if(sizeMemoryTexture_kb > cur_avail_mem_kb)
-        {
-            scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
-        }
-    }
 
-    //printf("texture %d\n",sizeMemoryTexture_kb);
-
-
+//    if(cur_avail_mem_kb !=0)
+//    {
+//        // TODO GERER le MASK... car pas forcememt afficher
+//        sizeMemoryTexture_kb *= 2; // Image + masque
+//        if(sizeMemoryTexture_kb > cur_avail_mem_kb)
+//        {
+//            scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
+//        }
+//    }
 
     float scaleFactor     = 1.f;
 
-    if ( widthTotal > maxTexture || heightTotal > maxTexture )
+    if ( widthMax > maxTexture || heightMax > maxTexture )
     {
-        QSize totalSize(widthTotal, heightTotal);
+        QSize totalSize(widthMax, heightMax);
 
         totalSize.scale(QSize(maxTexture,maxTexture), Qt::KeepAspectRatio);
 
-        scaleFactor = ((float) totalSize.width()) / widthTotal;
+        scaleFactor = ((float) totalSize.width()) / widthMax;
     }
 
-    scaleFactor = min(scaleFactor,scaleFactorVRAM);
+    //scaleFactor = min(scaleFactor,scaleFactorVRAM); // TODO A GERER
 
     for (int i=0;i<filenames.size();++i)
     {
@@ -533,7 +558,7 @@ void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-        _vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode));
+        _vGLData.push_back(new cGLData(_Data, &(_Data->getMaskedImage(aK)), aParams, appMode));
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data, aParams,appMode));
@@ -546,7 +571,7 @@ void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
     if (_Data->is3D())
         _vGLData[aK] = new cGLData(_Data, aParams,appMode);
     else
-        _vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode);
+        _vGLData[aK] = new cGLData(_Data, &(_Data->getMaskedImage(aK)), aParams, appMode);
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)
@@ -558,6 +583,7 @@ cGLData* cEngine::getGLData(int WidgetIndex)
     else
         return NULL;
 }
+
 
 //********************************************************************************
 

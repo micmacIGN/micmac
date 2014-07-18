@@ -1,32 +1,17 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "general/CMake_defines.h"
+
+#if(ELISE_QT_VERSION >= 4)
+
 #include "StdAfx.h"
 
-#if (ELISE_QT_VERSION >= 4)
 
-#ifdef Int
-    #undef Int
-#endif
-
-#include <QWidget>
-#include <QGridLayout>
-#include <QLabel>
-#include <QComboBox>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QToolBox>
-#include <QFileDialog>
-#include <QDesktopWidget>
-#include <QApplication>
-#include <QMessageBox>
-#include <QShortcut>
-#include <QCheckBox>
-
+#include "Elise_QT.h"
+#include "saisieQT_window.h"
 #include "general/visual_buttons.h"
 
-#include "../../src/saisieQT/saisieQT_window.h"
 
 using namespace std;
 

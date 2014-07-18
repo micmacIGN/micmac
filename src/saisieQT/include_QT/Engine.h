@@ -1,17 +1,12 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include "qiodevice.h"
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QDir>
-#include <QImageReader>
 
-#include "Data.h"
-#include "general/bitm.h"
-
+#include "StdAfx.h"
 #include "HistoryManager.h"
-#include "Settings.h"
+#include "cgldata.h"
+
+#include "Elise_QT.h"
 
 class ViewportParameters
 {
@@ -167,6 +162,7 @@ public:
 
     int     nbGLData(){return (int)_vGLData.size();}
 
+    bool    extGLIsSupported(const char *strExt);
 private:
 
     cLoader*            _Loader;

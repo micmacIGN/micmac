@@ -5,12 +5,12 @@ IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
     add_definitions(-DELISE_Darwin)
 endif()
 
-set(saisieQT_SRCS saisieQT_main.cpp
-                  saisieMasqQT_main.cpp
-                  saisieAppuisInitQT_main.cpp
-                  saisieAppuisPredicQT_main.cpp
-                  saisieBascQT_main.cpp
-                  saisieBoxQT_main.cpp)
+set(saisieQT_SRCS main/saisieQT_main.cpp
+                  main/saisieMasqQT_main.cpp
+                  main/saisieAppuisInitQT_main.cpp
+                  main/saisieAppuisPredicQT_main.cpp
+                  main/saisieBascQT_main.cpp
+                  main/saisieBoxQT_main.cpp)
 
 set (FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${saisieQT_SRCS} PARENT_SCOPE)
 #message ("saisie srcs: " ${saisieQT_SRCS} )

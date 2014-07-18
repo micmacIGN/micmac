@@ -1,8 +1,8 @@
 #ifndef DATA_H
 #define DATA_H
 
-#include <QImage>
 #include "Cloud.h"
+#include "Elise_QT.h"
 
 class GlCloud;
 

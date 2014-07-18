@@ -2,8 +2,7 @@
 #define GLWIDGETGRID_H
 
 #include "GLWidget.h"
-#include <QVector>
-#include <QStyle>
+#include "Elise_QT.h"
 
 class GLWidget;
 
@@ -53,7 +52,7 @@ private:
     QVector <GLWidget*> _widgets;
     GLWidget*           _zoomWidget;
     GLWidget*           _3DWidget;
-    GLWidget*           _pcurrentWidget;
+    GLWidget*           _pcurrentWidget;    
 
 };
 

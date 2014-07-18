@@ -3,15 +3,8 @@
 #ifndef __MM_GLU__
 #define __MM_GLU__
 
-#ifdef _WIN32
-	#include "windows.h"
-#endif
-
-#if ELISE_Darwin
-	#include <OpenGL/gl.h>
-#else
-	#include <GL/gl.h>
-#endif
+#include <cmath>
+#include "Elise_QT.h"
 
 #ifndef GLAPIENTRY
 	#if defined(_MSC_VER) || defined(__MINGW32__)

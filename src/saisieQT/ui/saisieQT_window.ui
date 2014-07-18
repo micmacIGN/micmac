@@ -17,7 +17,7 @@
    <string>Micmac selection tool</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icones/icones.qrc">
+   <iconset resource="../icones/icones.qrc">
     <normaloff>:/MM/Icons/images/icon_32.png</normaloff>:/MM/Icons/images/icon_32.png</iconset>
   </property>
   <property name="styleSheet">
@@ -1044,7 +1044,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="icones/icones.qrc"/>
+  <include location="../icones/icones.qrc"/>
  </resources>
  <connections>
   <connection>

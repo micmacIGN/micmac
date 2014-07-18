@@ -2,23 +2,8 @@
 #define __3DOBJECT__
 
 #include "Settings.h"
-
-#ifdef Int
-    #undef Int
-#endif
-#include <QColor>
-#include <QGLWidget>
-#include <QGLShaderProgram>
-#include <QPainter>
-
-#ifdef ELISE_Darwin
-    #include "OpenGL/gl.h"
-#else
-    #ifdef _WIN32
-        #include "windows.h"
-    #endif
-    #include "GL/gl.h"
-#endif
+#include "mmglu.h"
+#include "Elise_QT.h"
 
 #define QMaskedImage cMaskedImage<QImage>
 
@@ -316,10 +301,18 @@ class cPolygon : public cObjectGL
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
 
+
+        // TODO fonctions utilisees uniquement dans contexte  menu, le contexte menu ne doit pas gerer le polygon!!
+        // --------------------------------------------
+        //                  |                         |
+        //                  V                         V
         int     setNearestPointState(const QPointF &pos, int state);
         int     highlightNearestPoint(const QPointF &pos);
         int     getNearestPointIndex(const QPointF &pos);
         QString getNearestPointName(const QPointF &pos);
+        // ---------------------------------------------------------------------------
+
+
         QString getSelectedPointName();
         int     getSelectedPointState();
 
@@ -339,8 +332,7 @@ class cPolygon : public cObjectGL
         void    add(QPointF const &pt, bool selected=false);
         virtual void    addPoint(QPointF const &pt);
 
-        void    clear();
-        void    clearPoints() { _points.clear(); }
+        void    clear();        
 
         void    setClosed(bool closed) { _bIsClosed = closed; }
         bool    isClosed(){ return _bIsClosed; }
@@ -391,9 +383,7 @@ class cPolygon : public cObjectGL
 
         void    translate(QPointF Tr);
 
-        cPoint  translateSelectedPoint(QPointF Tr);
-
-        void    flipY(float height);
+        cPoint  translateSelectedPoint(QPointF Tr);        
 
         float   getRadius()             { return _selectionRadius; }
 
@@ -511,6 +501,8 @@ class cImageGL : public cObjectGL
 
         void    ImageToTexture(QImage *pImg);
 
+        void    deleteTexture();
+
         GLuint* getTexture(){return &_texture;}
 
         //height and width of original data
@@ -594,7 +586,7 @@ public:
 
     cMaskedImageGL(){}
 
-    cMaskedImageGL(QMaskedImage &qMaskedImage);
+    cMaskedImageGL(QMaskedImage *qMaskedImage);
 
     void setScale(Pt3dr aScale)
     {
@@ -607,6 +599,14 @@ public:
     void  showMask(bool show) { _m_mask->setVisible(show); }
 
     void draw();
+
+    void deleteTextures();
+
+    void prepareTextures();
+
+private:
+
+    cMaskedImage<QImage> *_qMaskedImage;
 };
 //====================================================================================
 
@@ -634,8 +634,6 @@ struct MessageToDisplay
     //! Message position on screen
     MessagePosition position;
 };
-
-#include <QGLWidget>
 
 class cMessages2DGL : public cObjectGL
 {
@@ -692,165 +690,6 @@ private:
     int h;
 };
 
-//====================================================================================
-
-class cData;
-class GlCloud;
-class MatrixManager;
-
-#include "Data.h"
-#include "MatrixManager.h"
-#include <QFlags>
-
-
-
-class cGLData : public cObjectGL
-{
-public:
-
-    cGLData(int appMode = MASK2D);
-
-    cGLData(cData *data, QMaskedImage &qMaskedImage, cParameters aParams, int appMode = MASK2D);
-
-    cGLData(cData *data, cParameters aParams, int appMode = MASK2D);
-
-    ~cGLData();
-
-    void        draw();
-
-    bool        is3D()                                  { return _vClouds.size() || _vCams.size();   }
-
-    bool        isImgEmpty()                            { return _glMaskedImage._m_image == NULL; }
-
-    QImage*     getMask()                               { return _pQMask;     }
-
-    void        setPolygon(int aK, cPolygon *aPoly)     { _vPolygons[aK] = aPoly; }
-
-    void        setCurrentPolygonIndex(int id)          { _currentPolygon = id;   }
-    int         getCurrentPolygonIndex()                { return _currentPolygon; }
-
-    void        normalizeCurrentPolygon(bool nrm);
-
-    void        clearPolygon();
-
-    bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
-
-    QString     imageName() { return _glMaskedImage.cObjectGL::name(); }
-
-    //info coming from cData
-    float       getBBoxMaxSize(){return _diam;}
-
-    void        setBBoxMaxSize(float aS){_diam = aS;}
-
-    Pt3dr       getBBoxCenter(){return _center;}
-
-    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;} // TODO a verifier : pourquoi le centre cGLData est initialisé avec BBoxCenter
-
-    void        setGlobalCenter(Pt3dr aCenter);
-
-    bool        position2DClouds(MatrixManager &mm,QPointF pos);
-
-    void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
-
-    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
-
-    void        replaceCloud(GlCloud* cloud, int id = 0);
-
-    enum Option {
-      OpNO          = 0x00,
-      OpShow_Ball   = 0x01,
-      OpShow_Axis   = 0x02,
-      OpShow_BBox   = 0x04,
-      OpShow_Mess   = 0x08,
-      OpShow_Cams   = 0x10,
-      OpShow_Grid   = 0x20,
-      //OpShow_Cent   = 0x40
-      // ...
-    };
-
-    Q_DECLARE_FLAGS(options, Option)
-
-    options     _options;
-
-    void        GprintBits(size_t const size, void const * const ptr);
-
-    void        setOption(QFlags<Option> option,bool show);
-
-    bool        stateOption(QFlags<Option> option){ return _options & option; }
-
-    bool        mode() { return _modePt; }
-
-    void        setData(cData *data, bool setCam = true);
-
-    bool        incFirstCloud() const;
-
-    void        setIncFirstCloud(bool incFirstCloud);
-
-    cMaskedImageGL &glImage();
-
-    cPolygon*   polygon(int id = 0);
-
-    cPolygon*   currentPolygon();
-
-    QVector<cPolygon*> polygons() { return _vPolygons; }
-
-    GlCloud*    getCloud(int iC);
-
-    int         cloudCount();
-
-    int         camerasCount();
-
-    int         polygonCount();
-
-    void        clearClouds(){ _vClouds.clear(); }
-
-    cCam*       camera(int iC){ return _vCams[iC]; }
-
-    void        setPolygons(cData *data);
-
-    void        setOptionPolygons(cParameters aParams);
-
-    void        drawCenter();
-
-private:
-
-    cMaskedImageGL      _glMaskedImage;
-
-    QImage*             _pQMask;
-
-    cBall*              _pBall;
-
-    cAxis*              _pAxis;
-
-    cBBox*              _pBbox;
-
-    cGrid*              _pGrid;
-
-    Pt3dr               _center;
-
-    bool                _modePt;
-
-    int                 _appMode;
-
-    QVector<GlCloud*>   _vClouds;
-
-    QVector<cCam*>      _vCams;
-
-    //! Point list for polygonal selection
-    QVector<cPolygon*>  _vPolygons;
-
-    int         _currentPolygon;
-
-    void        initOptions(int appMode = MASK2D);
-
-    float       _diam;
-
-    bool        _incFirstCloud;        
-
-};
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(cGLData::options)
-//====================================================================================
 void glDrawUnitCircle(uchar dim, float cx = 0.f, float cy = 0.f, float r = 1.f, int steps = 128);
 void glDrawEllipse(float cx, float cy, float rx=3.f, float ry= 3.f, int steps = 64);
 

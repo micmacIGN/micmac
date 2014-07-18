@@ -201,8 +201,12 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
 
     QItemSelectionModel *selModel = m_QTMainWindow->tableView_PG()->selectionModel();
 
-    if (selModel->currentIndex().column() != 0)
+//    qDebug() << "selModel->currentIndex().column() : " << selModel->currentIndex().column();
+//    qDebug() << "selModel->currentIndex().row() : " << selModel->currentIndex().row();
+
+    if (selModel->currentIndex().row() == -1 || selModel->currentIndex().column() == -1)
     {
+        //qDebug() << "Nothing";
         return &mAppli->Interface()->GetCaseNamePoint(0);
     }
     else
@@ -217,8 +221,10 @@ cCaseNamePoint *cQT_Interface::GetIndexNamePoint()
         //cSP_PointGlob * aPt = mAppli->PGlobOfNameSVP(aName);
         if (CNP)
 
-            _cNamePt = CNP;//new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
-
+            if(CNP->mFree)
+                _cNamePt = CNP;//new cCaseNamePoint(aName, eCaseSaisie); //fake pour faire croire à une saisie à la X11
+            else
+                _cNamePt = &mAppli->Interface()->GetCaseNamePoint(0);
         else
             _cNamePt = new cCaseNamePoint("CHANGE", eCaseAutoNum);
     }
@@ -292,6 +298,7 @@ double cQT_Interface::PtCreationWindowSize()
 
 void cQT_Interface::addPoint(QPointF point)
 {
+
     if (m_QTMainWindow->currentWidget()->hasDataLoaded() && mAppli)
         if(cVirtualInterface::addPoint(transformation(point),currentCImage()))
         {

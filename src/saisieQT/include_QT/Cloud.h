@@ -7,13 +7,8 @@
 #include <fstream>
 #include <iostream>
 
-#ifdef Int
-    #undef Int
-#endif
-
-#include <QtOpenGL/QGLBuffer>
-
 #include "3DObject.h"
+#include "Elise_QT.h"
 
 class GlVertex : public cObjectGL
 {

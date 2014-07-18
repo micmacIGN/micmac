@@ -2,7 +2,7 @@
 
 #include "mmglu.h"
 
-#include <cmath>
+
 
 // suppress bogus warning when compiling with gcc 4.3
 

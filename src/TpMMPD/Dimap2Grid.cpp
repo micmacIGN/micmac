@@ -1,13 +1,8 @@
 #include "StdAfx.h"
 
 #if (ELISE_QT_VERSION >= 4)
-#ifdef Int
-#undef Int
-#endif
 
-#include <QFile>
-#include <QDebug>
-#include <QXmlStreamReader>
+#include "Elise_QT.h"
 
 class Dimap{
 public:
@@ -544,7 +539,7 @@ void Dimap::lireDimapFile(std::string const &nomFile)
             if (motLu.startsWith ("LINE_SCALE", Qt::CaseInsensitive)) line_scale = lectureXML.readElementText().toDouble();
             if (motLu.startsWith ("LINE_OFF", Qt::CaseInsensitive)) line_off = lectureXML.readElementText().toDouble();
         }
-        //test si on est Ã  la fin d'une famille d'informations
+        //test si on est Ã  la fin d'une famille d'informations
         else if (lectureXML.isEndElement())
         {
             lectureXML.readNext();
