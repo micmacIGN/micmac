@@ -26,7 +26,7 @@
 
 #include "general/visual_buttons.h"
 
-#include "../../src/saisieQT/saisieQT_window.h"
+#include "saisieQT_window.h"
 
 using namespace std;
 
