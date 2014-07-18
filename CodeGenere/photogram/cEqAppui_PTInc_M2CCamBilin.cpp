@@ -95,6 +95,14 @@ void cEqAppui_PTInc_M2CCamBilin::ComputeVal()
    double tmp72_ = (tmp49_)*(tmp69_);
    double tmp73_ = (tmp68_)*(tmp69_);
 
+/*
+std::cout << "KKKkkKkKkK CC " << mCompCoord[0] << " " << mCompCoord[1] << " " << mCompCoord[2]<< "\n";
+std::cout << "KKKkkKkKkK CC " << mCompCoord[3] << " " << mCompCoord[4] << " " << mCompCoord[5] << " " <<  mCompCoord[6]<< "\n";
+std::cout << "KKKkkKkKkK CC" << mCompCoord[7] << " " << mCompCoord[8] << " " << mCompCoord[9] << " " <<  mCompCoord[10]<< "\n";
+std::cout << "KKKkkKkKkK LPpp " << mLocPts0_x << " " << mLocPts1_x << " " << mLocPts0_y << " " <<  mLocPts2_y << "\n";
+std::cout << "KKKkkKkKkK " << mVal[0] << " " << mVal[1] << "\n\n";
+*/
+
   mVal[0] = ((mCompCoord[3]*tmp70_+mCompCoord[5]*tmp71_+mCompCoord[7]*tmp72_+mCompCoord[9]*tmp73_)-mLocXIm)*mLocScNorm;
 
   mVal[1] = ((mCompCoord[4]*tmp70_+mCompCoord[6]*tmp71_+mCompCoord[8]*tmp72_+mCompCoord[10]*tmp73_)-mLocYIm)*mLocScNorm;
@@ -619,6 +627,22 @@ void cEqAppui_PTInc_M2CCamBilin::ComputeValDeriv()
   mCompDer[1][17] = ((tmp436_)*tmp337_+(tmp439_)*tmp341_+(tmp442_)*tmp345_+(tmp445_)*tmp349_)*mLocScNorm;
   mCompDer[1][18] = ((tmp448_)*tmp337_+(tmp451_)*tmp341_+(tmp454_)*tmp345_+(tmp457_)*tmp349_)*mLocScNorm;
   mCompDer[1][19] = ((tmp460_)*tmp337_+(tmp463_)*tmp341_+(tmp466_)*tmp345_+(tmp469_)*tmp349_)*mLocScNorm;
+
+
+/*
+for (int aK=0 ; aK<=19 ; aK++)
+{
+   std::cout <<  mCompDer[0][aK] << " " ;
+}
+std::cout << "\n";
+for (int aK=0 ; aK<=19 ; aK++)
+{
+   std::cout <<  mCompDer[1][aK] << " " ;
+}
+std::cout << "\n";
+std::cout << "KKKkkKkKkK " << mVal[0] << " " << mVal[1] << "\n\n";
+*/
+
 }
 
 

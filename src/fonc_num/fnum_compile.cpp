@@ -57,6 +57,10 @@ cSsBloc::cSsBloc (int aI0,int aI1) :
 void cSsBloc::BlocSetInt(cIncIntervale & anInt) 
 {
    mInt = &anInt;
+/*
+std::cout << "cSsBloc::theCptGlob " << theCptGlob << " " << mInt << "\n";
+getchar();
+*/
 }
 
 /*
@@ -608,6 +612,12 @@ cElCompiledFonc::cElCompiledFonc(INT aDimOut)  :
     mVal             (aDimOut)
 {
 }
+
+std::string & cElCompiledFonc::NameAlloc()
+{
+   return mNameAlloc;
+}
+
 
 void cElCompiledFonc::AddIntRef(const cIncIntervale & anInterv)
 {

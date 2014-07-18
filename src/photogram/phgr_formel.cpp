@@ -49,6 +49,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <iterator>
 
 
+extern bool DebugCamBil;
 
 /************************************************************/
 /*                                                          */
@@ -195,7 +196,7 @@ void cElemEqFormelle::CloseEEF(bool asIntervBlock)
    if (asIntervBlock)
       mSet.AddABlocAlloc(&mIncInterv);
 
-   if (false) // (false && asIntervBlock)
+   if (DebugCamBil) // (false && asIntervBlock)
    {
       std::cout << asIntervBlock << " CLOSE-EEF " << mNumInc0 << " " << mNumIncN <<  " " << mIncInterv.Id() << "\n";
       getchar();
@@ -872,6 +873,11 @@ int   cSetEqFormelles::GetNumBlocInclusIAlloc(int anI0) const
 
 void cSetEqFormelles::AddABlocAlloc(cIncIntervale * anII)
 {
+if (DebugCamBil)
+{
+   std::cout << "AAA cSetEqFormelles::AddABlocAlloc \n"; 
+   getchar();
+}
    AssertUnClosed();
    if (mBlocsIncAlloc.empty())
    {
