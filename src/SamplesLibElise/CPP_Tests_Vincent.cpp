@@ -366,19 +366,20 @@ void WriteControl(vector <pair <std::string,float> > ListOfDiffControl, ofstream
 
 vector <string> GetFilesFromFolder (string dossier)
 {
-	if (ELISE_unix)
-	{
+		vector <string> dirName;
+#if ELISE_unix
 		DIR* rep = NULL;
 		struct dirent* fichierLu = NULL;
 		rep = opendir(dossier.c_str());
 		if (rep == NULL) 
 			exit(1); 
-		vector <string> dirName;
+	
 		while ((fichierLu = readdir(rep)) != NULL){
 			dirName.push_back(fichierLu->d_name);}
 		sort(dirName.begin(),dirName.end());
-		return dirName;
-	}
+		
+#endif
+	return dirName;
 }
 
 void Idem_Banniere()
