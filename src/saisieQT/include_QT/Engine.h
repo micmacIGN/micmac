@@ -162,6 +162,7 @@ public:
 
     int     nbGLData(){return (int)_vGLData.size();}
 
+    bool    extGLIsSupported(const char *strExt);
 private:
 
     cLoader*            _Loader;
