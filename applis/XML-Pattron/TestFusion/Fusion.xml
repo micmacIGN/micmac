@@ -1,0 +1,50 @@
+<ParamFusionMNT>
+       <DicoLoc>
+           <KeyedNamesAssociations>
+                <Calcs>
+                    <Arrite>  2 1 </Arrite>
+                    <Direct>
+                        <PatternTransform>  ${PrefixIm}(${PatNum})${PostfixIm}%${PrefixIm}(${PatNum})${PostfixIm} </PatternTransform>
+                        <CalcName> ${PrefixMEC}$1_$2/Z_Num${NumEtape2MECIm}_DeZoom${ZoomMEC2Im}_LeChantier.tif  </CalcName>
+                        <Separateur > % </Separateur>
+                     </Direct>
+                </Calcs>
+                <Key>  NKS-Assoc-CplIm2Hom </Key>
+            </KeyedNamesAssociations>
+
+       </DicoLoc>
+
+
+       <SectionName>
+
+             <KeyCarteProf > NKS-Assoc-CplIm2Hom </KeyCarteProf>
+             <KeyMetaData  > NKS-Assoc-MM-Prof2MetaData </KeyMetaData>
+             <KeyMasq      > NKS-Assoc-MM-Prof2AutoMask </KeyMasq>
+             <KeyCorrel    > NKS-Assoc-MM-Prof2Correl </KeyCorrel>
+             <KeyResult    > aaa </KeyResult>
+       </SectionName>
+
+
+       <GenereRes> 
+           <KeySet>    Fr9130_028~105[1]_rgb.tif  </KeySet>
+       </GenereRes>
+
+
+       <GenereInput> 
+           <KeySet>   Fr9130_028~105[02]_rgb.tif  </KeySet>
+<!--
+           <KeyRel>  LocKey-Rel-CpleImInit  </KeyRel>
+           <KeyString>  ABCDE </KeyString>
+           <KeyString>  FGHIJ </KeyString>
+           <KeySet Nb="*"  Type="std::string"> </KeySet>
+-->
+       </GenereInput>
+
+      <!-- Gestion du // par MkF -->
+
+       <ParalMkF> </ParalMkF>
+
+
+</ParamFusionMNT>
+
+
