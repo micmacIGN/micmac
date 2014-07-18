@@ -16,6 +16,9 @@
 #if ELISE_Darwin
     #include <OpenGL/gl.h>
 #else
+#if ELISE_QT_VERSION == 4
+    #include <GL/glew.h>
+#endif
     #include <GL/gl.h>
 #endif
 
@@ -29,7 +32,7 @@
 #include <QColor>
 #include <QCheckBox>
 #include <QComboBox>
-#include <QtConcurrent>
+#include <QtConcurrentRun>
 #include <QDebug>
 #include <QDir>
 #include <QDomDocument>
