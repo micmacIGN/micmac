@@ -96,6 +96,7 @@ set(UnixBinPath
 set(qt_version 0)
 
 if (${WITH_QT4} OR ${WITH_QT5})
+
         find_package(OpenGL)
         if ( OPENGL_FOUND )
                 message( STATUS "-----> OpenGL found" )

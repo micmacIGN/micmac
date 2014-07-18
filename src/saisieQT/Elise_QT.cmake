@@ -2,6 +2,12 @@
 
 if ( NOT ${qt_version} EQUAL 0 )
 
+#    INCLUDE_DIRECTORIES(${SAISIE_DIR}/include_QT)
+
+
+INCLUDE_DIRECTORIES(${SAISIE_DIR}/include_QT)
+#INCLUDE_DIRECTORIES(${SAISIE_DIR})
+
     set(vmm_SRCS    ${SAISIE_DIR}/GLWidget.cpp
                     ${SAISIE_DIR}/saisieQT_window.cpp
                     ${SAISIE_DIR}/Cloud.cpp
@@ -19,31 +25,31 @@ if ( NOT ${qt_version} EQUAL 0 )
                     ${SAISIE_DIR}/mmglu.cpp)
 
     set( HEADERS_nomoc
-       ${SAISIE_DIR}/HistoryManager.h
-       ${SAISIE_DIR}/MatrixManager.h
-       ${SAISIE_DIR}/Cloud.h
-       ${SAISIE_DIR}/saisieQT_main.h
-       ${SAISIE_DIR}/Data.h
+       ${SAISIE_DIR}/include_QT/HistoryManager.h
+       ${SAISIE_DIR}/include_QT/MatrixManager.h
+       ${SAISIE_DIR}/include_QT/Cloud.h
+       ${SAISIE_DIR}/include_QT/saisieQT_main.h
+       ${SAISIE_DIR}/include_QT/Data.h
        #SaisieGlsl.glsl
-       ${SAISIE_DIR}/Engine.h
-       ${SAISIE_DIR}/GLWidgetSet.h
-       ${SAISIE_DIR}/3DObject.h
-       ${SAISIE_DIR}/cgldata.cpp
-       ${SAISIE_DIR}/mmglu.h )
+       ${SAISIE_DIR}/include_QT/Engine.h
+       ${SAISIE_DIR}/include_QT/GLWidgetSet.h
+       ${SAISIE_DIR}/include_QT/3DObject.h
+       ${SAISIE_DIR}/include_QT/cgldata.h
+       ${SAISIE_DIR}/include_QT/mmglu.h )
 
     set( HEADERS_tomoc
-       ${SAISIE_DIR}/GLWidget.h
-       ${SAISIE_DIR}/saisieQT_window.h
-       ${SAISIE_DIR}/ContextMenu.h
-       ${SAISIE_DIR}/Settings.h
-       ${SAISIE_DIR}/QT_interface_Elise.h
-       ${SAISIE_DIR}/Tree.h
+       ${SAISIE_DIR}/include_QT/GLWidget.h
+       ${SAISIE_DIR}/include_QT/saisieQT_window.h
+       ${SAISIE_DIR}/include_QT/ContextMenu.h
+       ${SAISIE_DIR}/include_QT/Settings.h
+       ${SAISIE_DIR}/include_QT/QT_interface_Elise.h
+       ${SAISIE_DIR}/include_QT/Tree.h
     )
 
     set (ui_toWrap
-     ${SAISIE_DIR}/saisieQT_window.ui
-     ${SAISIE_DIR}/Settings.ui
-     ${SAISIE_DIR}/Help.ui
+     ${SAISIE_DIR}/ui/saisieQT_window.ui
+     ${SAISIE_DIR}/ui/Settings.ui
+     ${SAISIE_DIR}/ui/Help.ui
     )
 
    set (FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${vmm_SRCS} ${ui_toWrap} ${HEADERS_nomoc} ${HEADERS_Tomoc})
@@ -52,13 +58,14 @@ if ( NOT ${qt_version} EQUAL 0 )
 
       set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-      set(CMAKE_AUTOMOC ON)
+      QT5_WRAP_CPP(HEADERS_moced ${HEADERS_tomoc} )
 
       QT5_ADD_RESOURCES( RC_SRCS ${SAISIE_DIR}/icones/icones.qrc )
 
       qt5_wrap_ui(saisie_ui ${ui_toWrap})
 
       add_definitions(-DTWEAK)
+
       if ( WIN32 )
          add_definitions(-DELISE_windows)
       ENDIF()
