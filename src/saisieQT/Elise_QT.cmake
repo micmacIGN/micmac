@@ -25,12 +25,13 @@ INCLUDE_DIRECTORIES(${SAISIE_DIR}/include_QT)
                     ${SAISIE_DIR}/mmglu.cpp)
 
     set( HEADERS_nomoc
+       ${SAISIE_DIR}/include_QT/Elise_QT.h
        ${SAISIE_DIR}/include_QT/HistoryManager.h
        ${SAISIE_DIR}/include_QT/MatrixManager.h
        ${SAISIE_DIR}/include_QT/Cloud.h
        ${SAISIE_DIR}/include_QT/saisieQT_main.h
        ${SAISIE_DIR}/include_QT/Data.h
-       #SaisieGlsl.glsl
+       ${SAISIE_DIR}/include_QT/SaisieGlsl.glsl
        ${SAISIE_DIR}/include_QT/Engine.h
        ${SAISIE_DIR}/include_QT/GLWidgetSet.h
        ${SAISIE_DIR}/include_QT/3DObject.h
