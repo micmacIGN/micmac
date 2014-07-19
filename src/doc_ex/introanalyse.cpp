@@ -17,7 +17,6 @@ int  DocEx_Introanalyse_main(int,char **)
 								+ Elise_Palette(Pgr)
 								+ Elise_Palette(Prgb)
 								+ Elise_Palette(Pcirc)	);
-	 /*
    // Creation of video windows
        Video_Display Ecr((char *) NULL);
        Ecr.load(SOP);
@@ -237,10 +236,6 @@ int  DocEx_Introanalyse_main(int,char **)
           ELISE_COPY(W.border(1),0,Ibin.out()|W.out(Pdisc));
 
           Pt2di pt;
-<<<<<<< local
-=======
-       
->>>>>>> other
           Col_Pal red =Pdisc(P8COL::red);
           for (;;)
           {
@@ -255,12 +250,8 @@ int  DocEx_Introanalyse_main(int,char **)
              }
           }
           getchar();
-<<<<<<< local
         
           
-=======
-
->>>>>>> other
           Neighbourhood V8 = Neighbourhood::v8();
           ELISE_COPY
           (
@@ -309,7 +300,6 @@ int  DocEx_Introanalyse_main(int,char **)
               Ibin.in()!=0,
               Ibin.out()|I2.out()|W.out(Pdisc)
           );
-          
           ELISE_COPY
           (
               select
@@ -343,8 +333,7 @@ int  DocEx_Introanalyse_main(int,char **)
 
 
           ELISE_COPY(Ibin.all_pts(),Ibin.in()!=0,Ibin.out()|W.out(Pdisc));
- 
-         U_INT1 ** d = Ibin.data();
+          U_INT1 ** d = Ibin.data();
 
    // Parcourt toute les composant connexes de l'image
    // et les met en vert, si elles ont + de 200 point:
@@ -453,14 +442,8 @@ int  DocEx_Introanalyse_main(int,char **)
           );
           getchar();    
       }
-<<<<<<< local
       
       return 0;
-=======
-      */
-       
-	return 0;
->>>>>>> other
 }
 
 #endif
