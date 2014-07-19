@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 
+#if (ELISE_unix)
+
 int  DocEx_Introanalyse_main(int,char **)
 {
 
@@ -46,7 +48,7 @@ int  DocEx_Introanalyse_main(int,char **)
           ELISE_COPY
           (
               W.all_pts(),
-              rect_median(I.in_proj(),9,256),
+              rect_median(I.in_proj(),5,256),
               Im.out() | W.out(Pgr)
           );
           getchar();
@@ -85,7 +87,7 @@ int  DocEx_Introanalyse_main(int,char **)
           
           ELISE_COPY
           (
-              l2.all_pts().chc((FY,FX)),
+              l2.all_pts().chc(Virgule(FY,FX)),
               P8COL::cyan,
               W.out(Pdisc) 
           );
@@ -99,11 +101,11 @@ int  DocEx_Introanalyse_main(int,char **)
               (
                   W.all_pts(),
                   Im.in()>128
-              ).chc((FX,FY,I.in())),
+              ).chc(Virgule(FX,FY,I.in())),
               1,
               l3
           );
-          ELISE_COPY(l3.all_pts(),FZ,W.out(Pgr).chc((FX,FY)));
+          ELISE_COPY(l3.all_pts(),FZ,W.out(Pgr).chc(Virgule(FX,FY)));
           getchar();
 
           Im2D_INT2 Il3 = l3.image();
@@ -136,13 +138,12 @@ int  DocEx_Introanalyse_main(int,char **)
               W.out(Pdisc) | Ibin.out()
            );
            ELISE_COPY(W.border(1),P8COL::red, W.out(Pdisc) | Ibin.out());
+           getchar();
          
            Pt2di Tv4[4] = {Pt2di(1,0),Pt2di(0,1),Pt2di(-1,0),Pt2di(0,-1)};
            Neighbourhood V4 (Tv4,4);
            Neighbourhood V8 = Neighbourhood::v8();
-    
-      
-      
+          
            ELISE_COPY
            (
               dilate
@@ -225,7 +226,6 @@ int  DocEx_Introanalyse_main(int,char **)
 //
 //=========================================================
 
-
       {
           Im2D_U_INT1 Ibin(256,256);
           ELISE_COPY
@@ -237,20 +237,30 @@ int  DocEx_Introanalyse_main(int,char **)
           ELISE_COPY(W.border(1),0,Ibin.out()|W.out(Pdisc));
 
           Pt2di pt;
+<<<<<<< local
+=======
        
+>>>>>>> other
           Col_Pal red =Pdisc(P8COL::red);
           for (;;)
           {
              std::cout << "CLIKER SUR UN POINT NOIR \n";
-             pt = Ecr.clik()._pt;
+             Pt2dr ptTmp = Ecr.clik()._pt;
+             pt.x=round_ni(ptTmp.x);
+             pt.y=round_ni(ptTmp.y);
              if (Ibin.data()[pt.y][pt.x] == 1)
              {
-                 W.draw_circle_loc(pt,3,red);
+                 W.draw_circle_loc(ptTmp,3.0,W.pdisc()(P8COL::red));
                  break;
              }
           }
           getchar();
+<<<<<<< local
+        
+          
+=======
 
+>>>>>>> other
           Neighbourhood V8 = Neighbourhood::v8();
           ELISE_COPY
           (
@@ -305,12 +315,13 @@ int  DocEx_Introanalyse_main(int,char **)
               select
               (
                   Ibin.all_pts(),
-                  Ibin.in()[(FY,FX)]&& (FX<FY) && (!Ibin.in())
+                  Ibin.in()[Virgule(FY,FX)]&& (FX<FY) && (!Ibin.in())
                ),
               P8COL::red,
               I2.out()|W.out(Pdisc)
           );
           getchar();
+          
           ELISE_COPY
           (
               conc
@@ -366,18 +377,18 @@ int  DocEx_Introanalyse_main(int,char **)
                       {
                          Line_St lstbox(Prgb(0,0,255),2);
                          Line_St lstcdg(Prgb(255,128,0),3);
-                         Pt2di pmax,pmin,cdg;
+                         Pt2dr pmax,pmin,cdg;
                          ELISE_COPY
                          (
                               cc.all_pts(),
-                              (FX,FY),
+                              Virgule(FX,FY),
                                  (pmax.VMax())
                               |  (pmin.VMin())
                               |  (cdg.sigma())
                               |  (W.out(Pdisc) << P8COL::cyan)
                           );
-                       //   W.draw_circle_loc(cdg/cc.card(),5,lstcdg);
-                       //   W.draw_rect(pmin,pmax,lstbox);
+                          W.draw_circle_loc(cdg/cc.card(),5,lstcdg);
+                          W.draw_rect(pmin,pmax,lstbox);
                       }
                   }
           getchar();
@@ -440,16 +451,19 @@ int  DocEx_Introanalyse_main(int,char **)
               2+Neigh_Rel(V4).red_sum(Ibin.in()),
               W.out(Pdisc)
           );
-          getchar();
-
-          
+          getchar();    
       }
+<<<<<<< local
+      
+      return 0;
+=======
       */
        
 	return 0;
+>>>>>>> other
 }
 
-
+#endif
 
 
 
