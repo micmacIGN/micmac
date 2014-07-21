@@ -1494,7 +1494,7 @@ bool cImageGL::isPtInside(const QPointF &pt)
 }
 
 void cImageGL::PrepareTexture(QImage * pImg)
-{    
+{
     glGenTextures(1, getTexture() );
 
     ImageToTexture(pImg);
@@ -1503,7 +1503,7 @@ void cImageGL::PrepareTexture(QImage * pImg)
 }
 
 void cImageGL::ImageToTexture(QImage *pImg)
-{    
+{
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
     glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
@@ -1566,7 +1566,7 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
 
     _m_mask     = new cImageGL();
     _m_image    = new cImageGL(qMaskedImage->_gamma);
-    _m_newMask  = qMaskedImage->_m_newMask;   
+    _m_newMask  = qMaskedImage->_m_newMask;
 
     _m_FileOriMnt = qMaskedImage->_m_FileOriMnt;
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
@@ -1736,21 +1736,21 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
             {
                 if (mode == TRANSFORM_CAMERA)
                 {
-                    displayNewMessage(QString("Move mode"),UPPER_CENTER_MESSAGE);
-                    displayNewMessage(QString("Left click: rotate viewpoint / Middle click: translate viewpoint"),LOWER_CENTER_MESSAGE);
+                    displayNewMessage(QObject::tr("Move mode"),UPPER_CENTER_MESSAGE);
+                    displayNewMessage(QObject::tr("Left click: rotate viewpoint / Middle click: translate viewpoint"),LOWER_CENTER_MESSAGE);
                 }
                 else if (mode == SELECTION)
                 {
-                    displayNewMessage(QString("Selection mode"),UPPER_CENTER_MESSAGE);
-                    displayNewMessage(QString("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
-                    displayNewMessage(QString(QObject::tr("Space: add / Suppr: delete")),LOWER_CENTER_MESSAGE);
+                    displayNewMessage(QObject::tr("Selection mode"),UPPER_CENTER_MESSAGE);
+                    displayNewMessage(QObject::tr("Left click: add contour point / Right click: close"),LOWER_CENTER_MESSAGE);
+                    displayNewMessage(QObject::tr("Space: add / Suppr: delete"),LOWER_CENTER_MESSAGE);
                 }
 
                 displayNewMessage(QString("0 Fps"), LOWER_LEFT_MESSAGE, Qt::lightGray);
             }
         }
         else
-            displayNewMessage(QString(QObject::tr("Drag & drop files")));
+            displayNewMessage(QObject::tr("Drag & drop files"));
     }
 }
 
