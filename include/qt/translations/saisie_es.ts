@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="es_ES">
+<TS version="2.1" language="es_ES">
 <context>
     <name>ContextMenu</name>
     <message>
@@ -102,7 +102,7 @@
     </message>
     <message>
         <source>vanished</source>
-        <translation>Desaparecido</translation>
+        <translation type="vanished">Desaparecido</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/Tree.cpp" line="275"/>

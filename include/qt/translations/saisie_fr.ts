@@ -747,7 +747,7 @@
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="107"/>
         <source>&amp;Recent files</source>
-        <translation>Ficheiers &amp;récents</translation>
+        <translation>Fichiers &amp;récents</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="171"/>
