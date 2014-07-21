@@ -1,0 +1,28 @@
+
+<Global>
+     <DicoAppuisFlottant>
+          <OneAppuisDAF>
+               <Pt>  527102.93  4349803.36 996.43 </Pt>
+               <NamePt> point1 </NamePt>
+               <Incertitude> 0.1 0.1  1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>   527064.09  4349159.92  980.22 </Pt>
+               <NamePt> point5 </NamePt>
+               <Incertitude> 0.1 0.1  1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>   526562.51 4348930.12 881.40 </Pt>
+               <NamePt> point4 </NamePt>
+               <Incertitude> 0.1 0.1  1</Incertitude>
+          </OneAppuisDAF>
+          <OneAppuisDAF>
+               <Pt>    526725.01 4348581.85 886.24 </Pt>
+               <NamePt> point6 </NamePt>
+               <Incertitude> 0.1 0.1  1</Incertitude>
+          </OneAppuisDAF>
+     </DicoAppuisFlottant>
+
+
+</Global>
+
