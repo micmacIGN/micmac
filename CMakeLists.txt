@@ -178,7 +178,30 @@ if (${CUDA_ENABLED})
 
         FIND_PACKAGE(CUDA)
         INCLUDE(FindCUDA)
-        INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/inc)
+
+        if(CUDA_FOUND)
+
+            FIND_PATH(
+                        CUDA_SAMPLE_DIR
+                        NAMES
+                            common/inc/helper_cuda.h
+                        PATHS
+                            ${CUDA_TOOLKIT_ROOT_DIR}/samples
+                            $ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}
+                            $ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}
+                     )
+
+            if(NOT CUDA_SAMPLE_DIR-NOTFOUND )
+#                message("Cuda Samples Found")
+#                message(${CUDA_SAMPLE_DIR})
+                INCLUDE_DIRECTORIES(${CUDA_SAMPLE_DIR}/common/inc)
+            else()
+                message("Cuda Samples Dir Not Found !!!")
+            endif()
+
+        endif()
+
+
         #IFNOT(${WITH_IGN_ORI})
 
     # ne pas oublier boost_no_system_paths
