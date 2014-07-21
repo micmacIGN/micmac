@@ -23,9 +23,9 @@ typedef enum
    eEnglish = 0,
    eFrench  = 1,
    eSpanish = 2,
-   eChinese = 3,
+   /*eChinese = 3,
    eArabic  = 4,
-   eRussian = 5,
+   eRussian = 5,*/
    eEsperanto
 } eLANG;
 
