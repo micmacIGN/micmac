@@ -84,7 +84,10 @@ cElCompiledFonc *
    if (it==  mDicoAlloc->end())
       return 0;
    tAllocObj aF = it->second;
-   return (*aF)();
+   cElCompiledFonc * aRes = (*aF)();
+   if (aRes)
+      aRes->NameAlloc() = aName;
+   return aRes;
 }
 
 void cElCompiledFonc::AddEntry(const std::string & aName,tAllocObj aFonc)

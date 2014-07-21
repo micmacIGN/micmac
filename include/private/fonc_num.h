@@ -112,6 +112,7 @@ class cElCompiledFonc
 */
 
 
+         std::string & NameAlloc();
           static cElCompiledFonc * AllocFromName(const std::string &);
          // Renvoie 0 si pas un des champs de la structure
 	 
@@ -273,6 +274,7 @@ class cElCompiledFonc
 
           cIncListInterv                   mMapRef;
           std::vector<cSsBloc>     mBlocs;
+          std::string              mNameAlloc;
           // std::vector<double>     mBufLin;
            
 };
