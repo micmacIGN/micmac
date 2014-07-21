@@ -63,6 +63,7 @@ class cPIF_Unif_Gen : public cParamIntrinsequeFormel
 
 static const Pt2di CamBilinCorn[4]={Pt2di(0,0),Pt2di(1,0),Pt2di(0,1),Pt2di(1,1)};
 
+bool DebugCamBil = false;
 
 /*
 
@@ -122,6 +123,8 @@ cQuadrangle::cQuadrangle
 /*                 cPIF_Bilin      :                          */
 /*                                                            */
 /**************************************************************/
+extern bool AllowUnsortedVarIn_SetMappingCur;
+
 
 static std::string NameInterv(const Pt2di & aP)
 {
@@ -139,6 +142,7 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
     mQuads                  (mDistCur.Nb().y),
     mLastCase               (-1,-1)
 {
+    AllowUnsortedVarIn_SetMappingCur = true;
     SetFocFree(true);
     SetPPFree(true);
  
@@ -160,9 +164,9 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
                     if (aKY == (mDistCur.Nb().y/2))
                     {
                         if (aKX==0)
-                           mIndFrozen0 = NbInc();
+                           mIndFrozen0 = 2 * aCpt;
                         if (aKX==mDistCur.Nb().x)
-                           mIndFrozen1 = NbInc();
+                           mIndFrozen1 = 2 * aCpt;
                     }
                     cIncIntervale anInt(false,NameInterv(Pt2di(aKX,aKY)),aSet,2);
                 // anInt.Close();
@@ -181,10 +185,10 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
     {
         for (aC.x=0; aC.x<mDistCur.Nb().x ; aC.x++)
         {
-             cIncIntervale  anI00(FDist(aC+Pt2di(0,0)).mInterv,NameInterv(Pt2di(0,0)));
-             cIncIntervale  anI10(FDist(aC+Pt2di(1,0)).mInterv,NameInterv(Pt2di(1,0)));
-             cIncIntervale  anI01(FDist(aC+Pt2di(0,1)).mInterv,NameInterv(Pt2di(0,1)));
-             cIncIntervale  anI11(FDist(aC+Pt2di(1,1)).mInterv,NameInterv(Pt2di(1,1)));
+             cIncIntervale  anI00(FDist(aC+CamBilinCorn[0]).mInterv,NameInterv(CamBilinCorn[0]));
+             cIncIntervale  anI10(FDist(aC+CamBilinCorn[1]).mInterv,NameInterv(CamBilinCorn[1]));
+             cIncIntervale  anI01(FDist(aC+CamBilinCorn[2]).mInterv,NameInterv(CamBilinCorn[2]));
+             cIncIntervale  anI11(FDist(aC+CamBilinCorn[3]).mInterv,NameInterv(CamBilinCorn[3]));
 
              mQuads[aC.y].push_back(cQuadrangle(anI00,anI10,anI01,anI11));
         }
@@ -196,18 +200,28 @@ cPIF_Bilin::cPIF_Bilin(cCamStenopeBilin *aCSB,cSetEqFormelles & aSet):
 
 void cPIF_Bilin::PrepareEqFForPointIm(const cIncListInterv & aII0,cElCompiledFonc * aFonc,const Pt2dr & aPIm,bool EqDroite,int aKCam)
 {
+   //  std::cout << "PPprePP " << this << " " << aFonc << "\n";
+
+    // std::cout << "JJJJJJjjjJJjKK " << aFonc->NameAlloc() << "\n";
+
     ELISE_ASSERT(!EqDroite,"cPIF_Bilin do not handle eq droite!!");
     ELISE_ASSERT(aKCam==0,"cPIF_Bilin do not handle KCam!=0!!");
 
-    mDistCur.InitEtatFromCorner(aPIm);
+    mDistCur.InitEtatFromCorner(mDistCur.ToCoordGrid(aPIm));
+    Pt2di aCorner = mDistCur.mCurCorner;
+
     int aOffs = aKCam*4;
     for (int aK=0 ; aK<4 ; aK++)
     {
-          mCornF[aK+aOffs].InitAdr(*aFonc);
-          mCornF[aK+aOffs].SetEtat(mDistCur.FromCoordGrid(Pt2dr(mDistCur.mCurCorner+CamBilinCorn[aK])));
+          mCornF[aK+aOffs].InitAdrSVP(*aFonc);
+          Pt2di aPInt = aCorner+CamBilinCorn[aK];
+          mCornF[aK+aOffs].SetEtatSVP(mDistCur.FromCoordGrid(Pt2dr(aPInt)));
+
+// std::cout << "Pprrp " << aPInt << " =>>" << mDistCur.FromCoordGrid(Pt2dr(aPInt)) << "\n";
     }
-    Pt2di aCorner = mDistCur.mCurCorner;
-    if (aCorner== mLastCase) return;
+
+    // ON NE PEUT PAS UTILISER mLastCase car aFonc est reutilise un peu partout !!!
+    // if (aCorner== mLastCase) return;
 
     mLastCase = aCorner;
 
@@ -220,6 +234,7 @@ void cPIF_Bilin::PrepareEqFForPointIm(const cIncListInterv & aII0,cElCompiledFon
     aNewI.ResetInterv(aQ.mInt11);
     aFonc->SetMappingCur(aNewI,&mSet);
     
+     // std::cout << "PPprePP  " << aPIm << " " << aCorner << "\n";
 }
 
 cSomBilin & cPIF_Bilin::FDist(const Pt2di & aP)
