@@ -18,7 +18,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _Engine->setParams(_params);
 
-    init(_params, _appMode > MASK3D);    
+    init(_params, _appMode > MASK3D);
 
     setUI();
 
@@ -274,7 +274,7 @@ void SaisieQtWindow::on_actionShow_axis_toggled(bool state)
 
 
 void SaisieQtWindow::on_actionSwitch_axis_Y_Z_toggled(bool state)
-{   
+{
     for (int aK = 0; aK < nbWidgets();++aK)
     {
         if (getWidget(aK)->hasDataLoaded())
@@ -294,7 +294,12 @@ void SaisieQtWindow::on_actionShow_cams_toggled(bool state)
 
 void SaisieQtWindow::on_actionShow_messages_toggled(bool state)
 {
-    currentWidget()->setOption(cGLData::OpShow_Mess,state);
+    for (int aK = 0; aK < nbWidgets();++aK)
+    {
+        getWidget(aK)->setOption(cGLData::OpShow_Mess,state);
+
+        getWidget(aK)->getMessageManager()->displayNewMessage(QString::number(getWidget(aK)->getZoom()*100,'f',1) + "%", LOWER_LEFT_MESSAGE, QColor("#ffa02f"));
+    }
 
     labelShowMode(state);
 }
@@ -899,7 +904,7 @@ void SaisieQtWindow::setUI()
         hideAction(_ui->actionSave_masks, false);
         hideAction(_ui->actionSave_as, false);
         hideAction(_ui->actionSave_selection, false);
-        hideAction(_ui->actionClose_all, false);      
+        hideAction(_ui->actionClose_all, false);
 
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
