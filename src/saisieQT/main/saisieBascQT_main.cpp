@@ -39,68 +39,74 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
         MMVisualMode = true;
         argv[0] = (char*) "SaisieBascQT";
     }
+
     SaisieBasc(argc, argv, aFullName, aDir, aName, anOri, anOut, aSzWin, aNbFen, aForceGray);
 
-    list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);
-    QStringList filenames;
+    if (!MMVisualMode)
+    {
+        list<string> aNamelist = RegexListFileMatch(aDir, aName, 1, false);
+        QStringList filenames;
 
-    for
-    (
-        list<string>::iterator itS=aNamelist.begin();
-        itS!=aNamelist.end();
-        itS++
-    )
-        filenames.push_back( QString((aDir + *itS).c_str()));
+        for
+        (
+            list<string>::iterator itS=aNamelist.begin();
+            itS!=aNamelist.end();
+            itS++
+        )
+            filenames.push_back( QString((aDir + *itS).c_str()));
 
-    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+        QSettings settings(QApplication::organizationName(), QApplication::applicationName());
 
-    initSettings(settings, aSzWin, aNbFen, settings.contains("MainWindow/size"));
+        initSettings(settings, aSzWin, aNbFen, settings.contains("MainWindow/size"));
 
-    QStringList input;
-    input   << QString(MMDir().c_str()) + QString("bin/SaisiePts")
-            << QString(MMDir().c_str()) + QString("include/XML_MicMac/SaisieLine.xml")
-            << QString("DirectoryChantier=") + QString(aDir.c_str())
-            << QString("+Image=") +  QString(aName.c_str())
-            << QString("+Ori=")  + QString(anOri.c_str())
-            << QString("+Sauv=") + QString(anOut.c_str())
-            << QString("+SzWx=") + QString::number(aSzWin.x)
-            << QString("+SzWy=") + QString::number(aSzWin.y)
-            << QString("+NbFx=") + QString::number(aNbFen.x)
-            << QString("+NbFy=") + QString::number(aNbFen.y);
+        QStringList input;
+        input   << QString(MMDir().c_str()) + QString("bin/SaisiePts")
+                << QString(MMDir().c_str()) + QString("include/XML_MicMac/SaisieLine.xml")
+                << QString("DirectoryChantier=") + QString(aDir.c_str())
+                << QString("+Image=") +  QString(aName.c_str())
+                << QString("+Ori=")  + QString(anOri.c_str())
+                << QString("+Sauv=") + QString(anOut.c_str())
+                << QString("+SzWx=") + QString::number(aSzWin.x)
+                << QString("+SzWy=") + QString::number(aSzWin.y)
+                << QString("+NbFx=") + QString::number(aNbFen.x)
+                << QString("+NbFy=") + QString::number(aNbFen.y);
 
-    char **output;
+        char **output;
 
-    // Copy input to output
-    output = new char*[input.size() + 1];
-    for (int i = 0; i < input.size(); i++) {
-        output[i] = new char[strlen(input.at(i).toStdString().c_str())+1];
-        memcpy(output[i], input.at(i).toStdString().c_str(), strlen(input.at(i).toStdString().c_str())+1);
+        // Copy input to output
+        output = new char*[input.size() + 1];
+        for (int i = 0; i < input.size(); i++) {
+            output[i] = new char[strlen(input.at(i).toStdString().c_str())+1];
+            memcpy(output[i], input.at(i).toStdString().c_str(), strlen(input.at(i).toStdString().c_str())+1);
+        }
+        output[input.size()] = ((char*)NULL);
+
+        cResultSubstAndStdGetFile<cParamSaisiePts> aP2(
+                input.size()-2,output+2,
+                output[1],
+                StdGetFileXMLSpec("ParamSaisiePts.xml"),
+                "ParamSaisiePts",
+                "ParamSaisiePts",
+                "DirectoryChantier",
+                "FileChantierNameDescripteur" );
+
+        cAppli_SaisiePts anAppli (aP2,false);
+
+        SaisieQtWindow w(BASC);
+
+        QAction* actionBascule = w.addCommandTools("Bascule");
+
+        cQT_Interface* interQT = new cQT_Interface(anAppli,&w);
+
+        interQT->connect(actionBascule,	SIGNAL(triggered()), interQT,SLOT(cmdBascule()));
+
+        w.show();
+
+        w.addFiles(filenames, false);
+
+        return app.exec();
     }
-    output[input.size()] = ((char*)NULL);
-
-    cResultSubstAndStdGetFile<cParamSaisiePts> aP2(
-            input.size()-2,output+2,
-            output[1],
-            StdGetFileXMLSpec("ParamSaisiePts.xml"),
-            "ParamSaisiePts",
-            "ParamSaisiePts",
-            "DirectoryChantier",
-            "FileChantierNameDescripteur" );
-
-    cAppli_SaisiePts anAppli (aP2,false);
-
-    SaisieQtWindow w(BASC);
-
-    QAction* actionBascule = w.addCommandTools("Bascule");
-
-    cQT_Interface* interQT = new cQT_Interface(anAppli,&w);
-
-    interQT->connect(actionBascule,	SIGNAL(triggered()), interQT,SLOT(cmdBascule()));
-
-    w.show();
-
-    w.addFiles(filenames, false);
-
-    return app.exec();
+    else
+        return EXIT_SUCCESS;
 }
 
