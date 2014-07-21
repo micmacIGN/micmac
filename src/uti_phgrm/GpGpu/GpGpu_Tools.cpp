@@ -112,36 +112,43 @@ void GpGpuTools::OutputInfoGpuMemory()
 
 void GpGpuTools::check_Cuda()
 {
-	cout << "CUDA enabled, version Cuda API ";
-	switch (__CUDA_API_VERSION)
-	{
-	case 0x3000:
-		cout << "3.0";
-		break;
-	case 0x3020:
-		cout << "3.2";
-		break;
-	case 0x4000:
-		cout << "4.0";
-		break;
-	case 0x5000:
-		cout << "5.0";
-		break;
-	case 0x5050:
-		cout << "5.5";
-		break;
-	case 0x6000:
-		cout << "6.0";
-		break;
-	}
-	cout << endl;
+    cout << "CUDA build enabled\n";
+
+//    int apiVersion = 0;
+
+//    cudaRuntimeGetVersion(&apiVersion);
+
+            //DUMP_INT(apiVersion)
+
+//	switch (__CUDA_API_VERSION)
+//	{
+//	case 0x3000:
+//		cout << "3.0";
+//		break;
+//	case 0x3020:
+//		cout << "3.2";
+//		break;
+//	case 0x4000:
+//		cout << "4.0";
+//		break;
+//	case 0x5000:
+//		cout << "5.0";
+//		break;
+//	case 0x5050:
+//		cout << "5.5";
+//		break;
+//	case 0x6000:
+//		cout << "6.0";
+//		break;
+//	}
+//	cout << endl;
 
 	int device_count = 0;
 	 
 	checkCudaErrors(cudaGetDeviceCount(&device_count));
 
 	if(device_count == 0)
-		printf("NO GRAPHIC CARD FOR USE CUDA");
+        printf("NO NVIDIA GRAPHIC CARD FOR USE CUDA");
 	else
 	{
 

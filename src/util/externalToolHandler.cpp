@@ -247,30 +247,6 @@ int CheckDependencies_main(int argc,char ** argv)
 	#endif
 
 	#if defined CUDA_ENABLED
-// 		cout << "--- CUDA enabled version ";
-// 		switch (__CUDA_API_VERSION)
-// 		{
-// 		case 0x3000:
-// 			cout << "3.0";
-// 				break;
-// 		case 0x3020:
-// 			cout << "3.2";
-// 				break;
-// 		case 0x4000:
-// 			cout << "4.0";
-// 				break;
-// 		case 0x5000:
-// 			cout << "5.0";
-// 				break;
-// 		case 0x5050:
-// 			cout << "5.5";
-// 				break;
-// 		case 0x6000:
-// 			cout << "6.0";
-// 			break;
-// 		}
-// 
-// 		cout << endl;
 		GpGpuTools::check_Cuda();
 	#endif
 
