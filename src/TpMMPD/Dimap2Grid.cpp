@@ -4,7 +4,7 @@
 #ifdef Int
 #undef Int
 #endif
-#endif 
+#endif
 
 class Dimap{
 public:
@@ -12,29 +12,29 @@ public:
     {
         lireDimapFile(nomFile);
     }
-    
+
     void lireDimapFile(std::string const &nomFile);
-    
+
     Pt2dr direct(Pt2dr Pimg, double altitude)const;
-    
+
     Pt2dr indirect(Pt2dr Pgeo, double altitude)const;
-    
+
     Pt2dr ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const;
-    
+
     void createDirectGrid(double ulcSamp, double ulcLine,
                           double stepPixel,
                           int nbSamp, int  nbLine,
                           std::vector<double> const &vAltitude,
                           std::vector<Pt2dr> &vPtCarto, std::string targetSyst)const;
-    
+
     void createIndirectGrid(double ulcX, double ulcY,
                             int nbrSamp, int nbrLine,
                             double stepCarto,
                             std::vector<double> const &vAltitude,
                             std::vector<Pt2dr> &vPtImg, std::string targetSyst)const;
-    
-    
-    
+
+
+
     void createGrid(std::string const &nomGrid, std::string const &nomImage,
                     double stepPixel, double stepCarto,
                     double rowCrop, double sampCrop,
@@ -51,32 +51,31 @@ public:
         std::cout << "first_lon    : "<<first_lon<<   " | last_lon   : "<<last_lon<<std::endl;
         std::cout << "first_lat    : "<<first_lat<<   " | last_lat   : "<<last_lat<<std::endl;
     }
-    
+
     void clearing(std::string const &nomImage)
     {
-        std::string aString[] ={nomImage+".GRI",nomImage+".GRC",
-            "processing/conv_ptGeo.txt","processing/conv_ptLamb93.txt",
-            "processing/direct_ptGeo.txt", "processing/direct_ptLamb93.txt",
-            "processing/indirect_ptGeo.txt","processing/indirect_ptLamb93.txt"};
-        
-        for (int j=0; j<sizeof(aString)/sizeof(aString[0]); j++)
-            {
-            remove (aString[j].c_str());
-            }
+        remove((nomImage+".GRI").c_str());
+        remove((nomImage+".GRC").c_str());
+        remove("processing/conv_ptGeo.txt");
+        remove("processing/conv_ptLamb93.txt");
+        remove("processing/direct_ptGeo.txt");
+        remove("processing/direct_ptLamb93.txt");
+        remove("processing/indirect_ptGeo.txt");
+        remove("processing/indirect_ptLamb93.txt");
         remove ("processing");
-    }       
+    }
 
 //private:
     std::vector<double> direct_samp_num_coef;
     std::vector<double> direct_samp_den_coef;
     std::vector<double> direct_line_num_coef;
     std::vector<double> direct_line_den_coef;
-    
+
     std::vector<double> indirect_samp_num_coef;
     std::vector<double> indirect_samp_den_coef;
     std::vector<double> indirect_line_num_coef;
     std::vector<double> indirect_line_den_coef;
-    
+
     double indirErrBiasRow;
     double indirErrBiasCol;
     double dirErrBiasX;
@@ -90,7 +89,7 @@ public:
     double first_lat;
     double last_lon;
     double last_lat;
-    
+
     double long_scale;
     double long_off;
     double lat_scale;
@@ -103,8 +102,8 @@ public:
 
     double height_scale;
     double height_off;
-    
-    
+
+
 };
 
 Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
@@ -114,12 +113,12 @@ Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
     double X=(Pimg.x-samp_off)/samp_scale;
     double Z=(altitude-height_off)/height_scale;
     double vecteurD[]={1,X,Y,Z,Y*X,X*Z,Y*Z,X*X,Y*Y,Z*Z,X*Y*Z,X*X*X,Y*Y*X,X*Z*Z,X*X*Y,Y*Y*Y,Y*Z*Z,X*X*Z,Y*Y*Z,Z*Z*Z};
-    
+
     double long_den = 0.;
     double long_num = 0.;
     double lat_den = 0.;
     double lat_num = 0.;
-    
+
     for (int i=0; i<20; i++)
     {
         lat_num  += vecteurD[i]*direct_line_num_coef[i];
@@ -127,7 +126,7 @@ Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
         long_num += vecteurD[i]*direct_samp_num_coef[i];
         long_den += vecteurD[i]*direct_samp_den_coef[i];
     }
-    
+
     //Calcul final
     Pt2dr Pgeo;
     if ((lat_den != 0) &&
@@ -150,12 +149,12 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude)const
     double X=(Pgeo.x-lat_off)/lat_scale;
     double Z=(altitude-height_off)/height_scale;
     double vecteurD[]={1,Y,X,Z,Y*X,Y*Z,X*Z,Y*Y,X*X,Z*Z,X*Y*Z,Y*Y*Y,Y*X*X,Y*Z*Z,X*Y*Y,X*X*X,X*Z*Z,Y*Y*Z,X*X*Z,Z*Z*Z};
-    
+
     double samp_den = 0.;
     double samp_num = 0.;
     double line_den = 0.;
     double line_num = 0.;
-    
+
     for (int i=0; i<20; i++)
     {
         line_num  += vecteurD[i]*indirect_line_num_coef[i];
@@ -180,14 +179,16 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude)const
 
 Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const
 {
-    
+
     std::ofstream fic("processing/conv_ptGeo.txt");
     fic << std::setprecision(15);
     fic << Pgeo.y <<" "<<Pgeo.x<<";"<<std::endl;
     // transfo en Lambert93
     std::string command;
     command = "cs2cs +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/conv_ptGeo.txt > processing/conv_ptLamb93.txt";
-    system(command.c_str());
+    int res = system_call(command.c_str());
+    ELISE_ASSERT(res == EXIT_SUCCESS,"Error in PROJ4 command");
+
     // chargement des coordonnées du point converti
     Pt2dr PointCarto;
     std::ifstream fic2("processing/conv_ptLamb93.txt");
@@ -237,7 +238,9 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
     // transfo en Lambert93
     std::string command;
     command = "cs2cs +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/direct_ptGeo.txt >  processing/direct_ptLamb93.txt";
-    system(command.c_str());
+    int res = system(command.c_str());
+    ELISE_ASSERT(res == EXIT_SUCCESS,"Error in PROJ4 command");
+
     // chargement des points
     std::ifstream fic("processing/direct_ptLamb93.txt");
     while(!fic.eof()&&fic.good())
@@ -274,7 +277,9 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
     // transfo en Geo
     std::string command;
     command = "cs2cs "+targetSyst+" +to +proj=latlon +datum=WGS84 +ellps=WGS84 -f %.12f -s  processing/indirect_ptLamb93.txt >  processing/indirect_ptGeo.txt";
-    system(command.c_str());
+    int res=system(command.c_str());
+    ELISE_ASSERT(res == EXIT_SUCCESS,"Error in PROJ4 command");
+
     for(size_t i=0;i<vAltitude.size();++i)
     {
         double altitude = vAltitude[i];
@@ -307,16 +312,17 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
     double lastLine = last_row;
 
     //Creation d'un dossier pour les fichiers intermediaires
-    system ("mkdir processing");
-    
+    int res = system ("mkdir processing");
+    ELISE_ASSERT(res == EXIT_SUCCESS,"Error in mkdir");
+
     //Direct nbr Lignes et colonnes + step last ligne et colonne
     int nbLine, nbSamp;
     nbLine=(lastLine-firstLine)/stepPixel +1;
     nbSamp=(lastSamp-firstSamp)/stepPixel +1 ;
-    
+
     std::vector<Pt2dr> vPtCarto;
     createDirectGrid(firstSamp,firstLine,stepPixel,nbSamp,nbLine,vAltitude,vPtCarto, targetSyst);
-    
+
     double xmin,xmax,ymin,ymax;
     // Pour estimer la zone carto on projette le domaine de validite geo
     // Recherche de la zone la plus etendue
@@ -340,12 +346,12 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
     else if (xmax<Pcarto.x) xmax = Pcarto.x;
     if (ymin>Pcarto.y) ymin = Pcarto.y;
     else if (ymax<Pcarto.y) ymax = Pcarto.y;
-    
+
     //Coins sup gauche et inf droit du domaine de validite RPC inverse
     Pt2dr urc(xmax,ymax);
     Pt2dr llc(xmin,ymin);
     std::cout << "Emprise carto : "<<llc.x<<" "<<urc.y<<" "<<urc.x<<" "<<llc.y<<std::endl;
-    
+
     //Indirect nbr Lignes et colonnes + step last ligne et colonne
     int nbrLine, nbrSamp;
     nbrSamp=(urc.x-llc.x)/stepCarto +1;
@@ -353,7 +359,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
 
     std::vector<Pt2dr> vPtImg;
     createIndirectGrid( xmin, ymax,nbrSamp,nbrLine,stepCarto,vAltitude,vPtImg, targetSyst);
-    
+
     //Ecriture de la grille
     //Création de la grille et du flux d'ecriture
     std::ofstream writeGrid(nomGrid.c_str());
@@ -365,9 +371,9 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
         std::string date;
         std::stringstream ssdate;
         ssdate<<timeInfo-> tm_year+1900;
-        double adate []= {timeInfo-> tm_mon, timeInfo-> tm_mday,
-                timeInfo-> tm_hour,timeInfo-> tm_min, timeInfo-> tm_sec};
-        std::vector<double> vdate (adate,adate+5);
+        int vdate []= {timeInfo->tm_mon, timeInfo->tm_mday,
+                timeInfo->tm_hour,timeInfo->tm_min, timeInfo->tm_sec};
+        //std::vector<double> vdate (adate,adate+5);
         //Mise en forme de la date
         for (int ida=0; ida<5;ida++)
             {
@@ -381,23 +387,23 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
             }
         date=ssdate.str();
         writeGrid <<"\t<date>"<<date<<"</date>"<<std::endl;
-    
+
         writeGrid <<"\t<trans_coord name=\"\">"<<std::endl;
             writeGrid <<"\t\t<trans_sys_coord name=\"\">"<<std::endl;
                 writeGrid <<"\t\t\t<sys_coord name=\"sys1\">"<<std::endl;
                     writeGrid <<"\t\t\t\t<sys_coord_plani name=\"sys1\">"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<code>"<<nomImage<<"</code>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<unit>"<<"p"<<"</unit>"<<std::endl;
-                        writeGrid <<"\t\t\t\t\t<direct>"<<"0"<<"</direct>"<<std::endl;    
+                        writeGrid <<"\t\t\t\t\t<direct>"<<"0"<<"</direct>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<sub_code>"<<"*"<<"</sub_code>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<vertical>"<<nomImage<<"</vertical>"<<std::endl;
-                    writeGrid <<"\t\t\t\t</sys_coord_plani>"<<std::endl;   
-                    writeGrid <<"\t\t\t\t<sys_coord_alti name=\"sys1\">"<<std::endl;    
+                    writeGrid <<"\t\t\t\t</sys_coord_plani>"<<std::endl;
+                    writeGrid <<"\t\t\t\t<sys_coord_alti name=\"sys1\">"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<code>"<<"LAMBERT93"<<"</code>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<unit>"<<"m"<<"</unit>"<<std::endl;
-                    writeGrid <<"\t\t\t\t</sys_coord_alti>"<<std::endl;    
+                    writeGrid <<"\t\t\t\t</sys_coord_alti>"<<std::endl;
                 writeGrid <<"\t\t\t</sys_coord>"<<std::endl;
-    
+
                 writeGrid <<"\t\t\t<sys_coord name=\"sys2\">"<<std::endl;
                     writeGrid <<"\t\t\t\t<sys_coord_plani name=\"sys2\">"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<code>"<<"LAMBERT93"<<"</code>"<<std::endl;
@@ -411,13 +417,13 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                         writeGrid <<"\t\t\t\t\t<unit>"<<"m"<<"</unit>"<<std::endl;
                     writeGrid <<"\t\t\t\t</sys_coord_alti>"<<std::endl;
                 writeGrid <<"\t\t\t</sys_coord>"<<std::endl;
-            writeGrid <<"\t\t</trans_sys_coord>"<<std::endl;   
+            writeGrid <<"\t\t</trans_sys_coord>"<<std::endl;
             writeGrid <<"\t\t<category>"<<"1"<<"</category>"<<std::endl;
             writeGrid <<"\t\t<type_modele>"<<"2"<<"</type_modele>"<<std::endl;
             writeGrid <<"\t\t<direct_available>"<<"1"<<"</direct_available>"<<std::endl;
-            writeGrid <<"\t\t<inverse_available>"<<"1"<<"</inverse_available>"<<std::endl;    
+            writeGrid <<"\t\t<inverse_available>"<<"1"<<"</inverse_available>"<<std::endl;
         writeGrid <<"\t</trans_coord>"<<std::endl;
-    
+
         writeGrid <<"\t<multi_grid version=\"1\" name=\"1-2\" >"<<std::endl;
             std::stringstream ssUL;
             std::stringstream ssStepPix;
@@ -440,9 +446,9 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
             writeGrid <<"\t\t<rows_interval>"<<"-"+sStepPix<<"</rows_interval>"<<std::endl;
             writeGrid <<"\t\t<columns_number>"<<sNumbCol<<"</columns_number>"<<std::endl;
             writeGrid <<"\t\t<rows_number>"<<sNumbLine<<"</rows_number>"<<std::endl;
-            writeGrid <<"\t\t<components_number>"<<"2"<<"</components_number>"<<std::endl;    
+            writeGrid <<"\t\t<components_number>"<<"2"<<"</components_number>"<<std::endl;
             std::vector<Pt2dr>::const_iterator it = vPtCarto.begin();
-    
+
             for(size_t i=0;i<vAltitude.size();++i)
                 {
                         std::stringstream ssAlti;
@@ -450,7 +456,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                         ssAlti<<std::setprecision(15)<<vAltitude[i];
                         sAlti=ssAlti.str();
                         writeGrid <<"\t\t\t<layer value=\""<<sAlti<<"\">"<<std::endl;
-        
+
                         for(int l=0;l<nbLine;++l)
                             {
                                     for(int c = 0;c<nbSamp;++c)
@@ -493,7 +499,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
             writeGrid <<"\t\t<rows_number>"<<sNumbLineInv<<"</rows_number>"<<std::endl;
             writeGrid <<"\t\t<components_number>"<<"2"<<"</components_number>"<<std::endl;
             std::vector<Pt2dr>::const_iterator it2 = vPtImg.begin();
-    
+
             for(size_t i=0;i<vAltitude.size();++i)
                 {
                     std::stringstream ssAlti;
@@ -501,7 +507,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                     ssAlti<<std::setprecision(15)<<vAltitude[i];
                     sAlti=ssAlti.str();
                     writeGrid <<"\t\t\t<layer value=\""<<sAlti<<"\">"<<std::endl;
-        
+
                     for(int l=0;l<nbrLine;++l)
                         {
                             for(int c = 0;c<nbrSamp;++c)
@@ -519,7 +525,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                     writeGrid <<"\t\t\t</layer>"<<std::endl;
                 }
         writeGrid <<"\t</multi_grid>"<<std::endl;
-   
+
     writeGrid <<"</trans_coord_grid>"<<std::endl;
 }
 
@@ -530,14 +536,14 @@ void Dimap::lireDimapFile(std::string const &nomFile)
     direct_samp_den_coef.clear();
     direct_line_num_coef.clear();
     direct_line_den_coef.clear();
-    
+
     indirect_samp_num_coef.clear();
     indirect_samp_den_coef.clear();
     indirect_line_num_coef.clear();
     indirect_line_den_coef.clear();
 
     cElXMLTree tree(nomFile.c_str());
-    
+
  {
     std::list<cElXMLTree*> noeuds=tree.GetAll(std::string("Direct_Model"));
     std::list<cElXMLTree*>::iterator it_grid,fin_grid=noeuds.end();
@@ -549,7 +555,6 @@ void Dimap::lireDimapFile(std::string const &nomFile)
     std::string coefLineD="LINE_DEN_COEFF";
     for (int c=1; c<21;c++)
     {
-        double value;
         std::stringstream ss;
         ss<<"_"<<c;
         coefSampN.append(ss.str());
@@ -571,12 +576,12 @@ void Dimap::lireDimapFile(std::string const &nomFile)
             std::istringstream buffer4((*it_grid)->GetUnique(coefLineD.c_str())->GetUniqueVal());
             buffer4 >> value;
             direct_line_den_coef.push_back(value);
-        } 
+        }
         coefSampN=coefSampN.substr(0,14);
         coefSampD=coefSampD.substr(0,14);
         coefLineN=coefLineN.substr(0,14);
         coefLineD=coefLineD.substr(0,14);
-        
+
     }
      for(it_grid=noeuds.begin();it_grid!=fin_grid;++it_grid)
      {
@@ -585,13 +590,13 @@ void Dimap::lireDimapFile(std::string const &nomFile)
          std::istringstream bufferb((*it_grid)->GetUnique("ERR_BIAS_Y")->GetUniqueVal());
          bufferb >> dirErrBiasY;
      }
- }         
-        
+ }
+
 
  {
     std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model"));
     std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
-    
+
     std::string coefSampN="SAMP_NUM_COEFF";
     std::string coefSampD="SAMP_DEN_COEFF";
     std::string coefLineN="LINE_NUM_COEFF";
@@ -633,8 +638,8 @@ void Dimap::lireDimapFile(std::string const &nomFile)
          bufferb >> indirErrBiasCol;
      }
   }
-  
-    
+
+
   {
         std::list<cElXMLTree*> noeudsRFM=tree.GetAll(std::string("RFM_Validity"));
         std::list<cElXMLTree*>::iterator it_gridRFM,fin_gridRFM=noeudsRFM.end();
@@ -643,7 +648,7 @@ void Dimap::lireDimapFile(std::string const &nomFile)
         std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Direct_Model_Validity_Domain"));
         std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
 
-        
+
         for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
             {
                 std::istringstream bufferInd((*it_gridInd)->GetUnique("FIRST_ROW")->GetUniqueVal());
@@ -656,8 +661,8 @@ void Dimap::lireDimapFile(std::string const &nomFile)
                 bufferInd4 >> last_col;
             }
     }
-    
-    
+
+
     {
         std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model_Validity_Domain"));
         std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
@@ -714,10 +719,10 @@ int Dimap2Grid_main(int argc, char **argv) {
 
     double stepPixel = 100;
     double stepCarto = 50;
-    
+
     int rowCrop = 0;
     int sampCrop = 0;
-    
+
     ElInitArgMain
     (
         argc, argv,
@@ -735,21 +740,21 @@ int Dimap2Grid_main(int argc, char **argv) {
      << EAM(stepCarto,"stepCarto",true,"Step in m (carto)")
      << EAM(sampCrop,"sampCrop",true,"upper left samp - crop")
      << EAM(rowCrop,"rowCrop",true,"upper left row - crop")
-     
+
      );
-    
+
     Dimap dimap(aNameFileDimap);
     std::cout << "Dimap info:"<<std::endl;
     std::cout << "=============================="<<std::endl;
     dimap.info();
     std::cout << "=============================="<<std::endl;
-    
+
     dimap.clearing(aNameImage);
-    
+
     std::vector<double> vAltitude;
     for(int i=0;i<nbLayers;++i)
         vAltitude.push_back(altiMin+i*(altiMax-altiMin)/(nbLayers-1));
-    
+
     //Parser du targetSyst
     //std::string systParsed=targetSyst;
     std::size_t found = targetSyst.find_first_of("+");
@@ -763,12 +768,12 @@ int Dimap2Grid_main(int argc, char **argv) {
     }
     for (int i=position.size()-1; i>-1;i--)
         targetSyst.insert(position[i]+1,str);
-    
+
     dimap.createGrid(aNameFileGrid,aNameImage,
                      stepPixel,stepCarto,
                      rowCrop, sampCrop,
                      vAltitude,targetSyst);
-    
+
     return EXIT_SUCCESS;
 }
 
