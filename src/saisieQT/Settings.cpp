@@ -494,12 +494,12 @@ string eToString(const eLANG &anObj)
        return  "eFrench";
     if (anObj==eSpanish)
        return  "eSpanish";
-    if (anObj==eChinese)
+    /*if (anObj==eChinese)
        return  "eChinese";
     if (anObj==eArabic)
        return  "eArabic";
     if (anObj==eRussian)
-       return  "eRussian";
+       return  "eRussian";*/
   std::cout << "Enum = eLANG\n";
     ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
     return "";
