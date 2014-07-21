@@ -23,7 +23,6 @@ INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_CASA_DIR}/Sources.cmake)
 
-
 #define __CUDA_API_VERSION 0x5050
 if(${CUDA_ENABLED})
     set(OptionCuda 1)
@@ -35,6 +34,8 @@ if(${CUDA_ENABLED})
         set(__CUDA_API_VERSION 0x5000)
     elseif("${CUDA_VERSION}" MATCHES "4.0")
         set(__CUDA_API_VERSION 0x4000)
+	elseif("${CUDA_VERSION}" MATCHES "3.2")
+        set(__CUDA_API_VERSION 0x3020)
     elseif("${CUDA_VERSION}" MATCHES "3.0")
         set(__CUDA_API_VERSION 0x3000)
     endif()
