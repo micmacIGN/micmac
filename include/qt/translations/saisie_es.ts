@@ -950,138 +950,138 @@
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="447"/>
         <source>Shift+drag</source>
-        <translation>Shift+déplacement</translation>
+        <translation>Shift+Arrastrar</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="448"/>
         <source>insert vertex in polyline</source>
-        <translation>Insérer un sommet dans la polyligne</translation>
+        <translation>insertar vértice en polilínea</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="449"/>
         <source>Ctrl+right click</source>
-        <translation>Ctrl+ clic droit</translation>
+        <translation>Ctrl+ clic derecho</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="450"/>
         <source>remove last vertex</source>
-        <translation>Supprimer le dernier sommet saisi</translation>
+        <translation>Supprimir último vértice</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="451"/>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="472"/>
         <source>Drag &amp; drop</source>
-        <translation>Glisser &amp; déposer</translation>
+        <translation>Arrastrar y soltar</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="452"/>
         <source>move selected polyline vertex</source>
-        <translation>Déplacer le sommet sélectionné</translation>
+        <translation>mover vértice seleccionado</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="453"/>
         <source>Arrow keys</source>
-        <translation>Touche flèche</translation>
+        <translation>Teclas de flecha</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="454"/>
         <source>move selected vertex</source>
-        <translation>Déplacer le sommet sélectionné</translation>
+        <translation>mover vértice seleccionado</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="455"/>
         <source>Alt+arrow keys</source>
-        <translation>Alt+touches flèche</translation>
+        <translation>Alt+teclas de flecha</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="456"/>
         <source>move selected vertex faster</source>
-        <translation>Déplacer les sommets plus rapidement</translation>
+        <translation>mover más rápido el vértice seleccionado</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="458"/>
         <source>select all</source>
-        <translation>Sélectionner tout</translation>
+        <translation>seleccionar todo</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="460"/>
         <source>select none</source>
-        <translation>Tout déselectionner</translation>
+        <translation>seleccionar nada</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="462"/>
         <source>reset</source>
-        <translation>Réinitialiser</translation>
+        <translation>reinicializar</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="464"/>
         <source>invert selection</source>
-        <translation>Inverser la sélection</translation>
+        <translation>invertir selección</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="469"/>
         <source>add point</source>
-        <translation>Ajouter un point</translation>
+        <translation>añadir punto</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="471"/>
         <source>show state menu or window menu</source>
-        <translation>Afficher le menu de changement d&apos;état ou le menu de changement des images</translation>
+        <translation>mostrar el menú de estado o el menú de las ventanas</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="473"/>
         <source>move selected point</source>
-        <translation>Déplacer le point sélectionné</translation>
+        <translation>mover el punto seleccionado</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="476"/>
         <source>undo last action</source>
-        <translation>Annuler la dernière action</translation>
+        <translation>deshacer la última acción</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="478"/>
         <source>redo last action</source>
-        <translation>Refaire la dernière action</translation>
+        <translation>rehacer la última acción</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="617"/>
         <source>Open Cloud Files</source>
-        <translation>Ouvrir des fichiers de nuage</translation>
+        <translation>Abrir archivos de nubes</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="617"/>
         <source>Files (*.ply)</source>
-        <translation>Fichiers (*.ply)</translation>
+        <translation>Archivos (*.ply)</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="622"/>
         <source>Open Camera Files</source>
-        <translation>Ouvrir des fichiers caméra</translation>
+        <translation>Abrir archivos de camera</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="622"/>
         <source>Files (*.xml)</source>
-        <translation>Fichiers (*.xml)</translation>
+        <translation>Archivos (*.xml)</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="627"/>
         <source>Open Image File</source>
-        <translation>Ouvrir un fichier image</translation>
+        <translation>Abrir imagen</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="627"/>
         <source>File (*.*)</source>
-        <translation>Fichier (*.*)</translation>
+        <translation>Archivo (*.*)</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="650"/>
         <source>Save mask Files</source>
-        <translation>Enregistrer les fichiers masque</translation>
+        <translation>Guardar el archivo de máscara</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="650"/>
         <source>Files (*.*)</source>
-        <translation>Fichiers (*.*)</translation>
+        <translation>Archivos (*.*)</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="805"/>
@@ -1091,42 +1091,42 @@
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="910"/>
         <source>H&amp;istory</source>
-        <translation>H&amp;istorique</translation>
+        <translation>H&amp;istoria</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1147"/>
         <source>Image position : </source>
-        <translation>Position image :</translation>
+        <translation>Posición : </translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1169"/>
         <source>Image name : </source>
-        <translation>Nom de l&apos;image :</translation>
+        <translation>Nombre de la imagen : </translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1262"/>
         <source>Warning</source>
-        <translation>Attention</translation>
+        <translation>Advertencia</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1262"/>
         <source>Save mask before closing?</source>
-        <translation>Enregistrer le masque avant de fermer ?</translation>
+        <translation>Guardar la máscara antes de cerrar?</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1262"/>
         <source>&amp;Save</source>
-        <translation>&amp;Enregistrer</translation>
+        <translation>&amp;Guardar</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1262"/>
         <source>&amp;Close without saving</source>
-        <translation>&amp;Fermer sans enregistrer</translation>
+        <translation>&amp;Cerrar sin guardar</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1262"/>
         <source>Ca&amp;ncel</source>
-        <translation>An&amp;nuler</translation>
+        <translation>Ca&amp;ncelar</translation>
     </message>
 </context>
 <context>
@@ -1134,22 +1134,22 @@
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="17"/>
         <source>Settings</source>
-        <translation>Paramètres</translation>
+        <translation>Ajustes</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="48"/>
         <source>Layout settings</source>
-        <translation>Mise en page</translation>
+        <translation>Disposición</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="56"/>
         <source>Window size:</source>
-        <translation>Taille :</translation>
+        <translation>Tamaño de la ventana :</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="83"/>
         <source>Window grid:</source>
-        <translation>Grille :</translation>
+        <translation>Cuadrícula de la ventana :</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="100"/>
@@ -1160,77 +1160,77 @@
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="161"/>
         <source>Drawing settings</source>
-        <translation>Affichage</translation>
+        <translation>Configuración de dibujo</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="172"/>
         <source>Point diameter:</source>
-        <translation>Diamètre des points :</translation>
+        <translation>Diámetro de punto :</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="182"/>
         <source>Gamma:</source>
-        <translation>Gamma :</translation>
+        <translation>Gama :</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="192"/>
         <source>Line thickness:</source>
-        <translation>Epaisseur des lignes :</translation>
+        <translation>Grosor de la línea :</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="260"/>
         <source>Show masks</source>
-        <translation>Afficher les masques</translation>
+        <translation>Muestrar máscaras</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="291"/>
         <source>Other display settings</source>
-        <translation>Autres paramètres</translation>
+        <translation>Otros ajustes</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="341"/>
         <source>Zoom factor in zoom window  </source>
-        <translation>Factuer de zoom dans la fenêtre zoom</translation>
+        <translation>Factor de zoom en la ventana de zoom</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="360"/>
         <source>Prefix for automatic point creation</source>
-        <translation>Préfixe pour la création automatique de point</translation>
+        <translation>Prefijo para la creación automática de punto</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="370"/>
         <source>Selection radius, in pixel</source>
-        <translation>Rayon de sélection, en pixel</translation>
+        <translation>Radio de selección, en pixel</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="377"/>
         <source>Step for point move, in pixel</source>
-        <translation>Pas pour le déplacement de point, en pixel</translation>
+        <translation>Paso para punto movimiento, en pixel</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="424"/>
         <source>Point creation mode</source>
-        <translation>Mode de création de point</translation>
+        <translation>Modo de creación de punto</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="430"/>
         <source>Standard</source>
-        <translation>Standard</translation>
+        <translation>Estándar</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="443"/>
         <source>Correlation on local minimum</source>
-        <translation>Corrélation sur le minimum local</translation>
+        <translation>Mínimo local</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="456"/>
         <source>Correlation on local maximum</source>
-        <translation>Corrélation sur le maximum local</translation>
+        <translation>Máximo local</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="488"/>
         <source>Margin width </source>
-        <translation>Largeur de la marge</translation>
+        <translation>Tamano del margen</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="517"/>
@@ -1240,7 +1240,7 @@
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="561"/>
         <source>Translations</source>
-        <translation>Traductions</translation>
+        <translation>Traducción</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="609"/>
@@ -1250,7 +1250,7 @@
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="616"/>
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation>Cancelar</translation>
     </message>
 </context>
 <context>
@@ -1258,12 +1258,12 @@
     <message>
         <location filename="../../../src/saisieQT/Settings.cpp" line="441"/>
         <source>Shortcut</source>
-        <translation>Raccourci</translation>
+        <translation>Atajo</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/Settings.cpp" line="442"/>
         <source>Action</source>
-        <translation>Action</translation>
+        <translation>Acción</translation>
     </message>
 </context>
 </TS>
