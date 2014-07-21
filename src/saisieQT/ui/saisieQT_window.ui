@@ -487,6 +487,7 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionRule"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -1039,6 +1040,14 @@
    </property>
    <property name="shortcut">
     <string>F10</string>
+   </property>
+  </action>
+  <action name="actionRule">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Rule</string>
    </property>
   </action>
  </widget>

@@ -498,6 +498,12 @@ void SaisieQtWindow::on_actionAbout_triggered()
     msgBox->show();
 }
 
+void SaisieQtWindow::on_actionRule_toggled(bool check)
+{
+//    if(check)
+//        qDebug() << "Rules";
+}
+
 void SaisieQtWindow::resizeEvent(QResizeEvent *)
 {
     _params->setSzFen(size());

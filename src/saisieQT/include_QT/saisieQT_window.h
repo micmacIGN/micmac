@@ -188,6 +188,9 @@ protected slots:
     void on_actionHelpShortcuts_triggered();
     void on_actionAbout_triggered();
 
+    // Tools
+    void on_actionRule_toggled(bool check);
+
     void resizeEvent(QResizeEvent *);
     void moveEvent(QMoveEvent *);
 
