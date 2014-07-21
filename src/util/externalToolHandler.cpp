@@ -4,6 +4,10 @@
 	#include "kdu_compressed.h"
 #endif
 
+#ifdef CUDA_ENABLED
+#include "GpGpu/GpGpu_Tools.h"
+#endif
+
 ExternalToolHandler g_externalToolHandler;
 
 using namespace std;
@@ -240,6 +244,10 @@ int CheckDependencies_main(int argc,char ** argv)
 	#if defined __USE_JP2__
 		cout << "--- native JPEG2000 enabled : Kakadu " << KDU_CORE_VERSION << endl;
 		cout << endl;
+	#endif
+
+	#if defined CUDA_ENABLED
+		GpGpuTools::check_Cuda();
 	#endif
 
     cout << printResult( "make" ) << endl;

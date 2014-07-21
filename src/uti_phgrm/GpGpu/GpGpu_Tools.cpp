@@ -109,3 +109,60 @@ void GpGpuTools::OutputInfoGpuMemory()
     checkCudaErrors( cudaMemGetInfo(&free, &total));
     cout << "Memoire video       : " << (float)free / pow(2.0f,20) << " / " << (float)total / pow(2.0f,20) << "Mo" << endl;
 }
+
+void GpGpuTools::check_Cuda()
+{
+    cout << "CUDA build enabled\n";
+
+//    int apiVersion = 0;
+
+//    cudaRuntimeGetVersion(&apiVersion);
+
+            //DUMP_INT(apiVersion)
+
+//	switch (__CUDA_API_VERSION)
+//	{
+//	case 0x3000:
+//		cout << "3.0";
+//		break;
+//	case 0x3020:
+//		cout << "3.2";
+//		break;
+//	case 0x4000:
+//		cout << "4.0";
+//		break;
+//	case 0x5000:
+//		cout << "5.0";
+//		break;
+//	case 0x5050:
+//		cout << "5.5";
+//		break;
+//	case 0x6000:
+//		cout << "6.0";
+//		break;
+//	}
+//	cout << endl;
+
+	int device_count = 0;
+	 
+	checkCudaErrors(cudaGetDeviceCount(&device_count));
+
+	if(device_count == 0)
+        printf("NO NVIDIA GRAPHIC CARD FOR USE CUDA");
+	else
+	{
+
+		// Creation du contexte GPGPU
+		cudaDeviceProp deviceProp;
+		// Obtention de l'identifiant de la carte la plus puissante
+		int devID = gpuGetMaxGflopsDeviceId();
+
+		// Initialisation du contexte
+		checkCudaErrors(cudaSetDevice(devID));
+		// Obtention des proprietes de la carte
+		checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+		// Affichage des proprietes de la carte
+		printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+
+	}
+}
