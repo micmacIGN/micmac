@@ -1,0 +1,21 @@
+<SelectionInfos>
+ <Item>
+  <Scale>0.0398154</Scale>
+  <Rotation>0.00469043 -0.00326371 0</Rotation>
+  <Translation>-0.0515553 -0.0567577 -0.0586615</Translation>
+  <Pt>404 176  </Pt>
+  <Pt>311 253  </Pt>
+  <Pt>301 391  </Pt>
+  <Pt> 510 385 </Pt>
+  <Mode>1</Mode>
+ </Item>
+ <Item>
+  <Scale>0.0398154</Scale>
+  <Rotation>0.00469043 -0.00326371 0</Rotation>
+  <Translation>-0.0515553 -0.0567577 -0.0586615</Translation>
+  <Pt>332 159  </Pt>
+  <Mode>0</Mode>
+ </Item>
+</SelectionInfos>
+
+
