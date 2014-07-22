@@ -248,6 +248,8 @@ void cGLData::draw()
 
 void cGLData::drawCenter()
 {
+    //TODO: check if a point is drawn close to center
+
     float radius = 6.f;
     float mini   = 1.f;
 

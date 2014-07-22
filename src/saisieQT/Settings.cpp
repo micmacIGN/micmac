@@ -33,30 +33,6 @@ void cSettingsDlg::setParameters(cParameters &params)
      _parameters = &params;
 }
 
-void cSettingsDlg::on_NBF_x_spinBox_valueChanged(int value)
-{
-    int y = _parameters->getNbFen().y();
-    _parameters->setNbFen(QPoint(value, y));
-}
-
-void cSettingsDlg::on_NBF_y_spinBox_valueChanged(int value)
-{
-    int x = _parameters->getNbFen().x();
-    _parameters->setNbFen(QPoint(x, value));
-}
-
-void cSettingsDlg::on_WindowWidth_spinBox_valueChanged(int value)
-{
-    int y = _parameters->getSzFen().height();
-    _parameters->setSzFen(QSize(value, y));
-}
-
-void cSettingsDlg::on_WindowHeight_spinBox_valueChanged(int value)
-{
-    int x = _parameters->getSzFen().width();
-    _parameters->setSzFen(QSize(x, value));
-}
-
 void cSettingsDlg::on_LineThickness_doubleSpinBox_valueChanged(double val)
 {
     _parameters->setLineThickness(val);
@@ -135,16 +111,31 @@ void cSettingsDlg::hidePage()
 {
     pageHidden = true;
 
-    _ui->toolBox->widget(3)->hide();
-    _ui->toolBox->removeItem(3);
+    //hide page 2 (point creation mode)
+    _ui->toolBox->widget(2)->hide();
+    _ui->toolBox->removeItem(2);
 
+    //hide items in page 2 (other display settings)
     for (int aK=0; aK<  _ui->gridLayout_3->columnCount();++aK)
     {
+        //zoom factor in zoom window
         QLayoutItem * item0 = _ui->gridLayout_3->itemAtPosition(0, aK);
         if (item0) deleteChildWidgets(item0);
 
+        //prefix for automatic point creation
         QLayoutItem * item1 = _ui->gridLayout_3->itemAtPosition(3, aK);
         if (item1) deleteChildWidgets(item1);
+    }
+}
+
+void cSettingsDlg::hideSaisieMasqItems()
+{
+    //hide item in page 1 (other display settings)
+   for (int aK=0; aK < _ui->gridLayout->columnCount();++aK)
+    {
+        //line thickness
+        QLayoutItem * item0 = _ui->gridLayout->itemAtPosition(0, aK);
+        if (item0) deleteChildWidgets(item0);
     }
 }
 
@@ -212,12 +203,6 @@ void cSettingsDlg::on_cancelButton_clicked()
 
 void cSettingsDlg::refresh()
 {
-    _ui->NBF_x_spinBox->setValue(_parameters->getNbFen().x());
-    _ui->NBF_y_spinBox->setValue(_parameters->getNbFen().y());
-
-    _ui->WindowWidth_spinBox->setValue( _parameters->getSzFen().width());
-    _ui->WindowHeight_spinBox->setValue(_parameters->getSzFen().height());
-
     _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
     _ui->PointDiameter_doubleSpinBox->setValue(_parameters->getPointDiameter());
     _ui->GammaDoubleSpinBox->setValue(_parameters->getGamma());

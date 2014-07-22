@@ -1215,7 +1215,7 @@
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="341"/>
         <source>Zoom factor in zoom window  </source>
-        <translation>Factuer de zoom dans la fenêtre zoom</translation>
+        <translation type="unfinished">Facteur de zoom dans la fenêtre zoom</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="360"/>

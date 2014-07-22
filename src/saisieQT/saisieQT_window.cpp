@@ -676,7 +676,6 @@ void SaisieQtWindow::on_actionSave_selection_triggered()
 void SaisieQtWindow::on_actionSettings_triggered()
 {
     cSettingsDlg _settingsDialog(this, _params);
-    connect(&_settingsDialog, SIGNAL(nbFenChanged(bool)), this, SLOT(redraw(bool)));
 
     connect(&_settingsDialog, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
 
@@ -699,7 +698,6 @@ void SaisieQtWindow::on_actionSettings_triggered()
     const QPoint global = qApp->desktop()->availableGeometry().center();
     _settingsDialog.move(global.x() - _settingsDialog.width() / 2, global.y() - _settingsDialog.height() / 2);
 
-
     if (_appMode <= MASK3D)
     {
         _settingsDialog.hidePage();
@@ -707,6 +705,8 @@ void SaisieQtWindow::on_actionSettings_triggered()
         _params->setShowMasks(true);
         _params->write();
     }
+    else
+        _settingsDialog.hideSaisieMasqItems();
 
     //_settingsDialog.setFixedSize(uiSettings.size());
     _settingsDialog.exec();
@@ -1101,16 +1101,6 @@ void SaisieQtWindow::closeEvent(QCloseEvent *event)
 
 void SaisieQtWindow::redraw(bool nbWidgetsChanged)
 {
-
-    printf("redraw\n");
-    if (size() != _params->getSzFen())
-    {
-        if (_appMode > MASK3D)
-            resize(_params->getSzFen().width() + _ui->QFrame_zoom->width(), _params->getSzFen().height());
-        else
-            resize(_params->getSzFen());
-    }
-
     if (nbWidgetsChanged)
     {
         delete _layout_GLwidgets;

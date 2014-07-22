@@ -123,7 +123,7 @@ cPolygon *GLWidget::polygon(){
 void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
 {
     QString name(aSom->NamePt().c_str());
-    cPoint point(pt,name,true,aSom->Etat());    
+    cPoint point(pt,name,true,aSom->Etat());
     point.setDiameter(_params->getPointDiameter() * 0.01);
 
     point.setHighlight(highlight);
@@ -153,7 +153,7 @@ void GLWidget::paintGL()
     glClear(GL_DEPTH_BUFFER_BIT);
 
     if (hasDataLoaded())
-    {               
+    {
         _matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,_vp_Params.m_zoom);
 
         m_GLData->draw();
@@ -618,7 +618,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
                 polygon()->translate(pos - translation);
             }
-            else if ( (m_bDisplayMode2D || (m_interactionMode == SELECTION)) &&  !(event->buttons() == Qt::MiddleButton))// REFRESH HELPER POLYGON
+            else if (!(event->buttons() == Qt::MiddleButton))// REFRESH HELPER POLYGON
             {
                 int id = polygon()->getSelectedPointIndex();
 

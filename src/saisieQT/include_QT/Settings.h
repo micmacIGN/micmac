@@ -136,11 +136,10 @@ public:
     void enableMarginSpinBox(bool show = true);
 
     void hidePage();
+    void hideSaisieMasqItems();
     void uiShowMasks(bool);
 
 signals:
-    void nbFenChanged(bool closeWidgets);
-
     void lineThicknessChanged(float);
     void pointDiameterChanged(float);
     void gammaChanged(float);
@@ -156,12 +155,6 @@ protected slots:
 
     void on_okButton_clicked();
     void on_cancelButton_clicked();
-
-    //!layout settings
-    void on_NBF_x_spinBox_valueChanged(int);
-    void on_NBF_y_spinBox_valueChanged(int);
-    void on_WindowWidth_spinBox_valueChanged(int);
-    void on_WindowHeight_spinBox_valueChanged(int);
 
     //!drawing settings
     void on_LineThickness_doubleSpinBox_valueChanged(double);
