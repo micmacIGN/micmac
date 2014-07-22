@@ -255,6 +255,7 @@ void ReadLine(
                 p_ReadLine &p
 )
 {
+
     short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
 
     while(p.line.id < p.line.lenght)
@@ -313,6 +314,7 @@ void ReadLine_V02(
                 ushort sizeBuffer
 )
 {
+
     short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
 
     __shared__ uint minCost[WARPSIZE];
@@ -331,6 +333,9 @@ void ReadLine_V02(
             const ushort dZ     = count(index); // creer buffer de count
             ushort       z      = 0;
             globMinFCost        = max_cost;
+
+//            ushort reservedCells = 0;
+//            ushort       z      = reservedCells;
 
             while( z < dZ)
             {                
