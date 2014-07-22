@@ -870,14 +870,17 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionInvertSelected, isModeMask);
     hideAction(_ui->actionSelectAll, isModeMask);
     hideAction(_ui->actionReset, isModeMask);
+    hideAction(_ui->actionSave_selection, isMode3D);
+
 
     hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
 }
 
-void SaisieQtWindow::setUI()
+void SaisieQtWindow::setUI() // TODO Voir si cette fonction est vraiment utile
 {
+
     setLayout(0);
 
 #ifdef ELISE_Darwin
@@ -922,6 +925,9 @@ void SaisieQtWindow::setUI()
     }
     else
     {
+        if(_appMode == MASK2D || _appMode == BOX2D)
+            hideAction(_ui->actionSave_selection, false);
+
         _ui->splitter_Tools->hide();
     }
 
