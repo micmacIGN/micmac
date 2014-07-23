@@ -83,7 +83,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
     QFileInfo fi(aNameFile);
 
-    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
+    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif";
 
     maskedImg.setName(fi.fileName());
 
@@ -235,9 +235,9 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
         cout << "filename : "    << filename << endl;
     #endif
 
-    QFileInfo fi(aNameFile);
+    //QFileInfo fi(aNameFile);
 
-    _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
+//    _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
