@@ -3,7 +3,7 @@
 int helpMessage(const QApplication &app, QString text)
 {
 #ifdef WIN32
-    QMessageBox msgBox(QMessageBox::NoIcon, app.applicationName(), text, QMessageBox::Ok);
+    QMessageBox msgBox(QMessageBox::NoIcon, QObject::tr("Help for ") + app.applicationName(), text, QMessageBox::Ok);
     return msgBox.exec();
 #else
     printf("\n%s\n", app.applicationName().toStdString().c_str());
