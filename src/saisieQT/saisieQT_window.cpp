@@ -64,6 +64,8 @@ void SaisieQtWindow::connectActions()
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog, SLOT(cancel()));
 
+    connect(_ui->menuFile, SIGNAL(aboutToShow()),this, SLOT(on_menuFile_triggered()));
+
     for (int aK = 0; aK < nbWidgets();++aK)
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&, bool)), this,	SLOT(addFiles(const QStringList&, bool)));
@@ -263,6 +265,8 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
 
         updateUI();
+
+        _ui->actionClose_all->setEnabled(true);
     }
 }
 
@@ -764,6 +768,57 @@ void SaisieQtWindow::on_actionSettings_triggered()
     disconnect(&_settingsDialog, 0, 0, 0);
 }
 
+void hideAction(QAction* action, bool show)
+{
+    action->setVisible(show);
+    action->setEnabled(show);
+}
+
+void SaisieQtWindow::on_menuFile_triggered()
+{
+    //mode saisieAppuisInit
+    hideAction(_ui->actionSave_selection, false);
+    hideAction(_ui->actionSave_masks, false);
+    hideAction(_ui->actionSave_as, false);
+
+    if (currentWidget()->getHistoryManager()->size() > 0)
+    {
+        if (_appMode == MASK3D)
+        {
+            hideAction(_ui->actionSave_selection, true);
+            hideAction(_ui->actionSave_masks, false);
+            hideAction(_ui->actionSave_as, false);
+        }
+        else if (_appMode == MASK2D)
+        {
+            hideAction(_ui->actionSave_selection, false);
+            hideAction(_ui->actionSave_masks, true);
+            hideAction(_ui->actionSave_as, true);
+        }
+    }
+    else
+    {
+        if (_appMode == MASK3D)
+        {
+            _ui->actionSave_selection->setVisible(true);
+            _ui->actionSave_selection->setEnabled(false);
+
+            hideAction(_ui->actionSave_masks, false);
+            hideAction(_ui->actionSave_as, false);
+        }
+        else if (_appMode == MASK2D)
+        {
+            hideAction(_ui->actionSave_selection, false);
+
+            _ui->actionSave_masks->setVisible(true);
+            _ui->actionSave_masks->setEnabled(false);
+
+            _ui->actionSave_as->setVisible(true);
+            _ui->actionSave_as->setEnabled(false);
+        }
+    }
+}
+
 void SaisieQtWindow::closeAll()
 {
     int reply = checkBeforeClose();
@@ -792,6 +847,8 @@ void SaisieQtWindow::closeAll()
     }
 
     setImageName("");
+
+    _ui->actionClose_all->setDisabled(true);
 }
 
 void SaisieQtWindow::closeCurrentWidget()
@@ -873,12 +930,6 @@ QString SaisieQtWindow::strippedName(const QString &fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
-void hideAction(QAction* action, bool show)
-{
-    action->setVisible(show);
-    action->setEnabled(show);
-}
-
 void SaisieQtWindow::setLayout(uint sy)
 {
     _layout_GLwidgets->setContentsMargins(sy,sy,sy,sy);
@@ -909,7 +960,7 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionShow_cams,  isMode3D);
     hideAction(_ui->actionToggleMode, isMode3D);
 
-    bool isModeMask = _appMode <= MASK3D;
+    bool isModeMask = _appMode == MASK3D || _appMode == MASK2D;
     hideAction(_ui->actionShow_names, !isModeMask);
     hideAction(_ui->actionShow_refuted, !isModeMask);
 
@@ -919,15 +970,13 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionInvertSelected, isModeMask);
     hideAction(_ui->actionSelectAll, isModeMask);
     hideAction(_ui->actionReset, isModeMask);
-    hideAction(_ui->actionSave_selection, isMode3D);
-
 
     hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
 }
 
-void SaisieQtWindow::setUI() // TODO Voir si cette fonction est vraiment utile
+void SaisieQtWindow::setUI()
 {
 
     setLayout(0);
@@ -950,7 +999,6 @@ void SaisieQtWindow::setUI() // TODO Voir si cette fonction est vraiment utile
         hideAction(_ui->actionLoad_image, false);
         hideAction(_ui->actionSave_masks, false);
         hideAction(_ui->actionSave_as, false);
-        hideAction(_ui->actionSave_selection, false);
         hideAction(_ui->actionClose_all, false);
 
         //zoom Window
@@ -974,9 +1022,6 @@ void SaisieQtWindow::setUI() // TODO Voir si cette fonction est vraiment utile
     }
     else
     {
-        if(_appMode == MASK2D || _appMode == BOX2D)
-            hideAction(_ui->actionSave_selection, false);
-
         _ui->splitter_Tools->hide();
     }
 

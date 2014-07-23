@@ -188,6 +188,8 @@ protected slots:
     void on_actionSave_selection_triggered();
     void on_actionSettings_triggered();
 
+    void on_menuFile_triggered();
+
     //Help Menu
     void on_actionHelpShortcuts_triggered();
     void on_actionAbout_triggered();
