@@ -122,10 +122,10 @@ public:
     void    loadClouds(QStringList, int *incre = NULL);
 
     //! Load cameras .xml files
-    void    loadCameras(QStringList);
+    void    loadCameras(QStringList, int *incre = NULL);
 
     //! Load images  files
-    void    loadImages(QStringList);
+    void    loadImages(QStringList, int *incre = NULL);
 
     //! Load image (and mask) file
     void    loadImage(QString imgName, float scaleFactor);
@@ -163,6 +163,8 @@ public:
     int     nbGLData(){return (int)_vGLData.size();}
 
     bool    extGLIsSupported(const char *strExt);
+    void    setGLMaxTextureSize(int size) { _glMaxTextSize = size; }
+
 private:
 
     cLoader*            _Loader;
@@ -171,6 +173,8 @@ private:
     QVector <cGLData*>  _vGLData;
 
     cParameters*        _params;
+
+    int                 _glMaxTextSize;
 };
 
 

@@ -1215,7 +1215,7 @@
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="341"/>
         <source>Zoom factor in zoom window  </source>
-        <translation type="unfinished">Facteur de zoom dans la fenêtre zoom</translation>
+        <translation>Facteur de zoom dans la fenêtre zoom</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="360"/>
@@ -1245,17 +1245,17 @@
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="443"/>
         <source>Correlation on local minimum</source>
-        <translation>Corrélation sur le minimum local</translation>
+        <translation>Minimum local</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="456"/>
         <source>Correlation on local maximum</source>
-        <translation>Corrélation sur le maximum local</translation>
+        <translation>Maximum local</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="488"/>
         <source>Margin width </source>
-        <translation>Largeur de la marge</translation>
+        <translation>Taille de la fenêtre</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="517"/>

@@ -188,6 +188,7 @@ protected:
     Ui::SettingsDialog* _ui;
 
     bool	pageHidden;
+    bool    lineItemHidden;
 };
 
 class cHelpDlg : public QDialog
