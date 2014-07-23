@@ -2,7 +2,10 @@
 #include "ui_Settings.h"
 #include "ui_Help.h"
 
-cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), _ui(new Ui::SettingsDialog), pageHidden(false)
+cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent)
+  , _ui(new Ui::SettingsDialog)
+  , pageHidden(false)
+  , lineItemHidden(false)
 {
     _ui->setupUi(this);
 
@@ -130,6 +133,8 @@ void cSettingsDlg::hidePage()
 
 void cSettingsDlg::hideSaisieMasqItems()
 {
+    lineItemHidden = true;
+
     //hide item in page 1 (other display settings)
    for (int aK=0; aK < _ui->gridLayout->columnCount();++aK)
     {
@@ -203,7 +208,7 @@ void cSettingsDlg::on_cancelButton_clicked()
 
 void cSettingsDlg::refresh()
 {
-    _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
+    if (!lineItemHidden) _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
     _ui->PointDiameter_doubleSpinBox->setValue(_parameters->getPointDiameter());
     _ui->GammaDoubleSpinBox->setValue(_parameters->getGamma());
     _ui->showMasks_checkBox->setChecked(_parameters->getShowMasks());

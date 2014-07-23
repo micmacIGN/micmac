@@ -72,12 +72,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName("Culture3D");
     app.setApplicationName("QT graphical tools");
 
-    QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
-    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        app.setStyleSheet(file.readAll());
-        file.close();
-    }
+    setStyleSheet(app);
 
     QStringList cmdline_args = QCoreApplication::arguments();
 

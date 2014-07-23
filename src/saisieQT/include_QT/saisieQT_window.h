@@ -44,6 +44,10 @@ public:
 
     void loadPly(const QStringList& filenames);
 
+    void loadImages(const QStringList& filenames);
+
+    void loadCameras(const QStringList& filenames);
+
     void setUI();
 
     void updateUI();

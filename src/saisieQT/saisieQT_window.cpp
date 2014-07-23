@@ -60,7 +60,7 @@ SaisieQtWindow::~SaisieQtWindow()
 
 void SaisieQtWindow::connectActions()
 {
-    _ProgressDialog = new QProgressDialog(tr("Loading files"), "Stop",0,100,this, Qt::ToolTip);
+    _ProgressDialog = new QProgressDialog(tr("Loading files"), tr("Stop"),0,100,this, Qt::ToolTip);
 
     connect(&_FutureWatcher, SIGNAL(finished()),_ProgressDialog, SLOT(cancel()));
 
@@ -137,8 +137,10 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> future)
 {
     _FutureWatcher.setFuture(future);
     _ProgressDialog->setWindowModality(Qt::WindowModal);
-    int ax = pos().x() + (size().width()  - _ProgressDialog->size().width())/2;
-    int ay = pos().y() + (size().height() - _ProgressDialog->size().height())/2;
+
+    int ax = pos().x() + (_ui->frame_GLWidgets->size().width()  - _ProgressDialog->size().width())/2;
+    int ay = pos().y() + (_ui->frame_GLWidgets->size().height() - _ProgressDialog->size().height())/2;
+
     _ProgressDialog->move(ax, ay);
     _ProgressDialog->exec();
 
@@ -153,6 +155,37 @@ void SaisieQtWindow::loadPly(const QStringList& filenames)
     timer_test->start(10);
 
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre));
+
+    timer_test->stop();
+    disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+    delete _incre;
+    delete timer_test;
+}
+
+void SaisieQtWindow::loadImages(const QStringList& filenames)
+{
+    QTimer *timer_test = new QTimer(this);
+    _incre = new int(0);
+    connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+    timer_test->start(10);
+
+    if (filenames.size() == 1) _ProgressDialog->setMaximum(0);
+    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages,filenames,_incre));
+
+    timer_test->stop();
+    disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+    delete _incre;
+    delete timer_test;
+}
+
+void SaisieQtWindow::loadCameras(const QStringList& filenames)
+{
+    QTimer *timer_test = new QTimer(this);
+    _incre = new int(0);
+    connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
+    timer_test->start(10);
+
+    runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras,filenames,_incre));
 
     timer_test->stop();
     disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -186,7 +219,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         }
         else if (suffix == "xml")
         {
-            runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras, filenames));
+            loadCameras(filenames);
 
             _ui->actionShow_cams->setChecked(true);
 
@@ -201,7 +234,13 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             if ((filenames.size() == 1) && (_appMode == MASK3D)) _appMode = MASK2D;
 
-            _Engine->loadImages(filenames);
+            int maxTexture;
+
+            glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
+
+            _Engine->setGLMaxTextureSize(maxTexture);
+
+            loadImages(filenames);
         }
 
         _Engine->allocAndSetGLData(_appMode, *_params);
