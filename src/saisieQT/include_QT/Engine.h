@@ -115,6 +115,8 @@ public:
     //! Set output filename
     void    setFilenameOut(QString filename){_Loader->setFilenameOut(filename);}
 
+    QStringList& getSelectionFilenamesOut() { return _Loader->getSelectionFilenames(); }
+
     //! Set postfix
     void    setPostFix(){_Loader->setPostFix(_params->getPostFix());}
 

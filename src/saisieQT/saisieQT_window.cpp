@@ -215,6 +215,8 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             loadPly(filenames);
             initData();
 
+            //currentWidget()->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[0]);
+
             _appMode = MASK3D;
         }
         else if (suffix == "xml")
@@ -252,7 +254,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked());
                 getWidget(aK)->setParams(_params);
 
-                if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getFilenamesIn()[aK]);
+                if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[aK]);
             }
         }
         else
@@ -701,9 +703,12 @@ void SaisieQtWindow::on_actionSave_as_triggered()
 
     if (!fname.isEmpty())
     {
+        if (QFileInfo(fname).suffix().isEmpty()) fname += ".tif";
+
         _Engine->setFilenameOut(fname);
 
         _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+        _bSaved = true;
     }
 }
 
