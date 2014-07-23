@@ -54,7 +54,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
                     "Example: mm3d " + app.applicationName() + " IMG.tif SzW=1200 Name=PLAN Gama=1.5\n\n"
                     "NB: \n"
                     "1: "+ app.applicationName() + " can be run without any argument\n"
-                    "2: visual interface for argument edition available with v" + app.applicationName() + "\n\n";
+                    "2: visual interface for argument edition available with command: mm3d v" + app.applicationName() + "\n\n";
 
             return helpMessage(app, help);
         }
