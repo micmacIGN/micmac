@@ -21,6 +21,25 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
     app.setApplicationName("SaisieBascQT");
     app.setOrganizationName("Culture3D");
 
+	QStringList cmdline_args = QCoreApplication::arguments();
+
+	if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    {
+        QString help = "Mandatory unnamed args :\n"
+				 "* string :: {Full Name (Dir+Pattern)}\n"
+				 "* string :: {Orientation, NONE if unused}\n"
+				 "* string :: {Output File}\n\n"
+                "Named args :\n"
+				"* [Name=SzW] Pt2di :: {Sz of window}\n"
+				"* [Name=NbF] Pt2di :: {Number of Windows}\n"
+				"* [Name=ForceGray] bool :: {Force gray image, def=false}\n\n" 
+				
+				"Example:\nmm3d " + app.applicationName() + " IMG_558{0-9}[1].tif RadialBasic basc.xml\n\n"
+                "NB: visual interface for argument edition available with command\n\n mm3d v" + app.applicationName();
+
+        return helpMessage(app, help);
+    }
+
     loadTranslation(app);
 
     if ((argc>0)&&(string(argv[0]).find("SaisieQT")!= string::npos))

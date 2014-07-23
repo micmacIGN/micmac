@@ -6,6 +6,28 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 {
     app.setApplicationName("SaisieAppuisPredicQT");
     app.setOrganizationName("Culture3D");
+	
+	QStringList cmdline_args = QCoreApplication::arguments();
+
+	if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    {
+        QString help = "Mandatory unnamed args :\n"
+				 "* string :: {Full name (Dir+Pattern)}\n"
+				 "* string :: {Orientation ; NONE if not used}\n"
+				 " * string :: {File for Ground Control Points}\n"
+				 "* string :: {File for Image Measurements}\n\n"
+                "Named args :\n"
+				"* [Name=SzW] Pt2di :: {Sz of window}\n"
+				"* [Name=NbF] Pt2di :: {Nb of sub window}\n"
+				"* [Name=WBlur] REAL :: {Size IN GROUND GEOMETRY of bluring for target}\n"
+			    "* [Name=Type] string :: {in [MaxLoc,MinLoc,GeoCube]}\n"
+				"* [Name=ForceGray] bool :: {Force gray image, def=false}\n\n"
+				
+				"Example:\nmm3d " + app.applicationName() + " IMG_558{0-9}[1].tif RadialBasic gcp.xml measures.xml\n\n"
+                "NB: visual interface for argument edition available with command\n\n mm3d v" + app.applicationName() + "\n\n";
+
+        return helpMessage(app, help);
+    }
 
     loadTranslation(app);
 
