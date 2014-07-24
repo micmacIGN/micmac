@@ -74,7 +74,7 @@ ContextMenu* GLWidget::contextMenu()
     return &_contextMenu;
 }
 
-void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool resetPoly)
+void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool doZoom, bool resetPoly)
 {
     if (aData != NULL)
     {
@@ -109,7 +109,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool re
 
         _matrixManager.setSceneTopo(getGLData()->getBBoxCenter(),getGLData()->getBBoxMaxSize());
 
-        resetView(doZoom, showMessage, true, resetPoly);
+        resetView(doZoom, showMessage, showCams, true, resetPoly);
     }
 }
 
@@ -207,11 +207,11 @@ void GLWidget::overlay()
     }
 }
 
-void GLWidget::setInteractionMode(int mode, bool showmessage)
+void GLWidget::setInteractionMode(int mode, bool showmessage, bool showcams)
 {
     m_interactionMode = mode;
 
-    resetView(false,showmessage,false);
+    resetView(false, showmessage, showcams, false);
 }
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
@@ -487,7 +487,7 @@ void GLWidget::reset()
     resetView();
 }
 
-void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool resetPoly)
+void GLWidget::resetView(bool zoomfit, bool showMessage, bool showCams, bool resetMatrix, bool resetPoly)
 {
 
     if (resetMatrix)
@@ -495,7 +495,8 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool 
 
     if (hasDataLoaded() && resetPoly) m_GLData->clearPolygon();
 
-    setOption(cGLData::OpShow_Mess,showMessage);
+    setOption(cGLData::OpShow_Mess, showMessage);
+    setOption(cGLData::OpShow_Cams, showCams);
 
     if (!m_bDisplayMode2D)
     {
@@ -507,7 +508,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool 
 
         if (m_interactionMode == SELECTION)
 
-            setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams,false);
+            setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams, false);
     }
 
     if (zoomfit)
