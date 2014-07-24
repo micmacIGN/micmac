@@ -90,7 +90,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mFileDebug         (0),
    mMajChck           (),
    mCptIterCompens    (0),
-   mHasEqDr           (false)
+   mHasEqDr           (false),
+   mStatLastIter      (false)
 {
      setInputDirectory( mDC );
      std::string aNameFileDebug;
@@ -242,23 +243,24 @@ void cAppliApero::DoAMD()
        it++
    )
    {
-       int aNums[4];
+       // int aNums[4];
+       std::vector<int> aNums;
        cPoseCam * aPC1 = it->first;
        cCalibCam * aCal1 = aPC1->Calib();
        cParamIntrinsequeFormel &  aPIF1 = aCal1->PIF();
-       aNums[0] = aPIF1.IncInterv().NumBlocAlloc();
-       aNums[1] = aPC1->RF().IncInterv().NumBlocAlloc();
+       aNums.push_back(aPIF1.IncInterv().NumBlocAlloc());
+       aNums.push_back(aPC1->RF().IncInterv().NumBlocAlloc());
 
 
        cPoseCam * aPC2 = it->second;
        cCalibCam * aCal2 = aPC2->Calib();
        cParamIntrinsequeFormel &  aPIF2 = aCal2->PIF();
-       aNums[2] = aPIF2.IncInterv().NumBlocAlloc();
-       aNums[3] = aPC2->RF().IncInterv().NumBlocAlloc();
+       aNums.push_back(aPIF2.IncInterv().NumBlocAlloc());
+       aNums.push_back(aPC2->RF().IncInterv().NumBlocAlloc());
 
 
-       for (int aK1=0 ; aK1 <4 ; aK1++)
-           for (int aK2=aK1 ; aK2 <4 ; aK2++)
+       for (int aK1=0 ; aK1 <int(aNums.size()) ; aK1++)
+           for (int aK2=aK1 ; aK2 <int(aNums.size()) ; aK2++)
                 mAMD->AddArc(aNums[aK1],aNums[aK2],true);
 
 

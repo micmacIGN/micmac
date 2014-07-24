@@ -52,6 +52,8 @@ int CmpIm_main(int argc,char ** argv)
      double aDyn=1.0;
      Pt2di  aBrd(0,0);
      double aMulIm2 = 1.0;
+     bool aUseXmlFOM = false;
+     double   aColDif = 0;
 
      ElInitArgMain
      (
@@ -63,6 +65,8 @@ int CmpIm_main(int argc,char ** argv)
                        << EAM(aBrd,"Brd",true,"Border to eliminate")
                        << EAM(OkSzDif,"OkSzDif",true,"Process files with different sizes")
                        << EAM(aMulIm2,"Mul2",true,"Multiplier of file2 (Def 1.0)")
+                       << EAM(aUseXmlFOM,"UseFOM",true,"Consider file as DTSM and use XML FileOriMnt")
+                       << EAM(aColDif,"ColDif",true,"Color file of diff using Red/Blue for sign")
     );
 
     if (!MMVisualMode)
@@ -70,9 +74,11 @@ int CmpIm_main(int argc,char ** argv)
         Tiff_Im aFile1 = Tiff_Im::BasicConvStd(aName1);
         Tiff_Im aFile2 = Tiff_Im::BasicConvStd(aName2);
 
+       if (aUseXmlFOM && (! EAMIsInit(&OkSzDif))) OkSzDif = true;
         Pt2di aSz = aFile1.sz();
         if (aFile1.sz() != aFile2.sz())
         {
+           
            std::cout << "Tailles Differentes " << aFile1.sz() << aFile2.sz() << "\n";
            if (OkSzDif)
                aSz = Inf( aFile1.sz(),aFile2.sz());
@@ -80,7 +86,25 @@ int CmpIm_main(int argc,char ** argv)
               return -1;
         }
 
-        Symb_FNum aFDif(Rconv(Abs(aFile1.in()-aMulIm2*aFile2.in())));
+        Fonc_Num aFonc2 = aMulIm2*aFile2.in_proj();
+        if (aUseXmlFOM)
+        {
+              cFileOriMnt anFOM1 = StdGetFromPCP(StdPrefix(aName1)+".xml",FileOriMnt);
+              cFileOriMnt anFOM2 = StdGetFromPCP(StdPrefix(aName2)+".xml",FileOriMnt);
+
+              aFonc2 = AdaptFonc2FileOriMnt
+                       (
+                         "CmpIm",
+                          anFOM1,
+                          anFOM2,
+                          aFonc2,
+                          true,
+                          0.0, 
+                          Pt2dr(0,0)
+                       );
+        }
+
+        Symb_FNum aFDifAbs(Rconv(Abs(aFile1.in()-aFonc2)));
 
         double aNbDif,aSomDif,aMaxDif,aSom1;
         int  aPtDifMax[2];
@@ -91,8 +115,8 @@ int CmpIm_main(int argc,char ** argv)
             rectangle(aBrd,aSz-aBrd),
             Virgule
             (
-                  Rconv(aFDif),
-                  aFDif!=0,
+                  Rconv(aFDifAbs),
+                  aFDifAbs!=0,
                   1.0
             ),
             Virgule
@@ -107,11 +131,23 @@ int CmpIm_main(int argc,char ** argv)
         {
            if (aFileDiff!="")
            {
+                Symb_FNum aFDifSigne(aFile1.in()-aFonc2);
+
+                Fonc_Num  aRes = aDyn*aFDifSigne;
+                if (aColDif)
+                {
+                    aRes = Virgule
+                           (
+                               aRes + (aFDifSigne>0) * aColDif,
+                               aRes,
+                               aRes + (aFDifSigne<0) * aColDif
+                           );
+                }
                 Tiff_Im::Create8BFromFonc
                 (
                    aFileDiff,
                    aSz,
-                   Max(0,Min(255,128+round_ni(aDyn*(aFile1.in()-aMulIm2*aFile2.in()))))
+                   Max(0,Min(255,128+round_ni(aRes)))
                 );
            }
 

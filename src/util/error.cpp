@@ -50,11 +50,11 @@ int  TheNbIterProcess = 1;
 
 void throwError(std::string err)
 {
+    message_copy_where_error();
+
     ShowArgs();
 
     ncout() << err;
-
-    message_copy_where_error();
 
     ncout() << "Bye  (press enter)" << endl;
 

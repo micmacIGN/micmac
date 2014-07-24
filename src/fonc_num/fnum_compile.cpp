@@ -57,6 +57,10 @@ cSsBloc::cSsBloc (int aI0,int aI1) :
 void cSsBloc::BlocSetInt(cIncIntervale & anInt) 
 {
    mInt = &anInt;
+/*
+std::cout << "cSsBloc::theCptGlob " << theCptGlob << " " << mInt << "\n";
+getchar();
+*/
 }
 
 /*
@@ -609,6 +613,12 @@ cElCompiledFonc::cElCompiledFonc(INT aDimOut)  :
 {
 }
 
+std::string & cElCompiledFonc::NameAlloc()
+{
+   return mNameAlloc;
+}
+
+
 void cElCompiledFonc::AddIntRef(const cIncIntervale & anInterv)
 {
    mMapRef.AddInterv(anInterv);
@@ -671,6 +681,12 @@ int cElCompiledFonc::LIC(const int & i) const
 
 
 extern bool AllowUnsortedVarIn_SetMappingCur;
+
+const cIncListInterv &  cElCompiledFonc::MapRef() const
+{
+   return mMapRef;
+}
+
 
 void cElCompiledFonc::SetMappingCur
      (

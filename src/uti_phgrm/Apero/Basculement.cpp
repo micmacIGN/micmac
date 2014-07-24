@@ -538,6 +538,13 @@ void cAppliApero::BasculePoints
 
 }
 
+extern    cElPlan3D RobustePlan3D
+          (
+             const std::vector<Pt3dr> & aVPts,
+             const std::vector<double> * aVPond,
+             double anEffort
+          );
+
      //---------------------------------------------
      //     BasculeLiaison
      //---------------------------------------------
@@ -558,8 +565,24 @@ cElPlan3D cAppliApero::EstimPlan
    const std::vector<Pt3dr>  &  aVPts = aAGPt.Pts();
    const std::vector<double> &  aVPds = aAGPt.Pds();
 
+/*
+{
+   Pt3dr aPMin(1e9,1e9,1e9);
+   Pt3dr aPMax(-1e9,-1e9,-1e9);
+   for (int aK=0 ; aK <int(aVPts.size()) ; aK++)
+   {
+       aPMax= Sup(aPMax,aVPts[aK]);
+       aPMin= Inf(aPMin,aVPts[aK]);
+   }
+    std::cout << "EEEEEppl "  << aPMin << aPMax << "\n";
+}
+*/
 
-   cElPlan3D aPlan(aVPts,&aVPds);
+   // cElPlan3D aPlan(aVPts,&aVPds);
+   cElPlan3D aPlan =  RobustePlan3D(aVPts,&aVPds,1e6);
+
+
+    // std::cout << "EEEEEppl "  << aPlan.Norm() << "\n";
 
 
    ElRotation3D aRE2Pl = aPlan.CoordPlan2Euclid().inv();
@@ -629,6 +652,8 @@ void cAppliApero::BasculePlan
      )
 {
    cElPlan3D aPlan= EstimPlan(aBL.EstimPl(), aSelectorEstim,(const char *)0);
+
+   //std::cout << "ZZZ::cAppliApero::BasculePlan  \n";
    ElRotation3D  aRP2E = aPlan.CoordPlan2Euclid();
    ElMatrix<REAL>  aMP2E = aRP2E.Mat();
 

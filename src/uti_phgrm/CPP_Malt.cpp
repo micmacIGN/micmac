@@ -40,13 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "XML_GEN/all_tpl.h"
 
 #if (ELISE_QT_VERSION >= 4)
-    #ifdef Int
-        #undef Int
-    #endif
-
-    #include <QApplication>
-    #include <QInputDialog>
-
     #include "general/visual_mainwindow.h"
 #endif
 
@@ -300,7 +293,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIsSperik,"Spherik",true,"If true the surface for rectification is a sphere")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq", eSAM_NoInit)
-                    << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ")
+                    << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ", eSAM_IsExistFileRP)
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")

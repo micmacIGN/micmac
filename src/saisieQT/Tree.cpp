@@ -1,6 +1,7 @@
 #include "Tree.h"
 
-#define HORSIMAGE "Outside image"
+#define HORSIMAGE       "Outside image"
+#define VANISHED_TEXT   "Vanished"
 
 #define COLOR_OVER "#c89354"
 #define NON_SAISIE "#ba5606"
@@ -35,11 +36,16 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
                 return QString("%1").arg(pg->PG()->Name().c_str());
             case 1:
             {
-                Pt3dr *p3d = pg->PG()->P3D().PtrVal();
-                return QString("%1\t %2\t %3")
-                        .arg(QString::number(p3d->x, 'f' ,2))
-                        .arg(QString::number(p3d->y, 'f' ,2))
-                        .arg(QString::number(p3d->z, 'f' ,2));
+                if (pg->PG()->P3D().IsInit())
+                {
+                    Pt3dr *p3d = pg->PG()->P3D().PtrVal();
+                    return QString("%1\t %2\t %3")
+                            .arg(QString::number(p3d->x, 'f' ,2))
+                            .arg(QString::number(p3d->y, 'f' ,2))
+                            .arg(QString::number(p3d->z, 'f' ,2));
+                }
+                else
+                    return QString("Not computed");  //Orientation = NONE
             }
             }
         }
@@ -74,6 +80,8 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
 
             std::map<std::string,cSP_PointeImage *> ptIs = pg->getPointes();
 
+
+
             for
                     (
                      std::map<std::string,cSP_PointeImage *>::iterator itM = ptIs.begin();
@@ -82,8 +90,10 @@ QVariant ModelPointGlobal::data(const QModelIndex &index, int role) const
                      )
             {
                 cSP_PointeImage * ptImag = itM->second;
-                if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible())
+                if(ptImag->Saisie()->Etat() == eEPI_NonSaisi && ptImag->Visible() && _interface->idCImage(QString(ptImag->Image()->Name().c_str())) !=-1)
+
                     return NonSaisie;
+
             }
         }
     }
@@ -106,7 +116,7 @@ QVariant ModelPointGlobal::headerData(int section, Qt::Orientation orientation, 
             case 0:
                 return QString(tr("Point"));
             case 1:
-                return QString(tr("Coordinates"));
+                return QString(tr("3D Coordinates"));
             }
         }
     }
@@ -260,7 +270,7 @@ QVariant ModelCImage::data(const QModelIndex &index, int role) const
                         case eEPI_NonValue:
                             return QString(tr("no value"));
                         case eEPI_Disparu:
-                            return QString(tr("vanished"));
+                            return QString(tr(VANISHED_TEXT));
                         case eEPI_Highlight:
                             return QString(tr("highlighted"));
                         }
@@ -421,10 +431,11 @@ bool ImagesSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourcePar
 
     QString strColl_1 = sourceModel()->data(index1).toString();
 
+
     if( strColl_1 == "")
         return false;
     else
-        return !strColl_1.contains(HORSIMAGE);
+        return !strColl_1.contains(HORSIMAGE) && !strColl_1.contains(VANISHED_TEXT);
 
 }
 
@@ -450,9 +461,10 @@ bool PointGlobalSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sour
             else if(!pg->PG()->Disparu().Val())
                 return false;
         }
-        else if(saisieBasc && sourceRow >= (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+        else if(saisieBasc && sourceRow >= (int)mAppli()->PG().size() && mAppli()->Interface()->GetCaseNamePoint(sourceRow-(int)mAppli()->PG().size()).mFree)
             return true;
-        else if(sourceRow > (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+        //else if(sourceRow > (int)mAppli()->PG().size() && !model->caseIsSaisie(sourceRow))
+        else if(sourceRow > (int)mAppli()->PG().size() && mAppli()->Interface()->GetCaseNamePoint(sourceRow-(int)mAppli()->PG().size()).mFree)
             return true;
     }
 

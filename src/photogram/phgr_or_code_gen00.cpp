@@ -99,6 +99,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFour19x2.h"
 
 
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CCamBilin.h"
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CCamBilin.h"
+
+
+
+
 /*
 */
 
@@ -612,6 +626,7 @@ void cElCompiledFonc::InitEntries()
      FULL_NEW_ADD_ENTRY(Four11x2);
      FULL_NEW_ADD_ENTRY(Four15x2);
      FULL_NEW_ADD_ENTRY(Four19x2);
+     FULL_NEW_ADD_ENTRY(CamBilin);
 /*
      NEW_ADD_ENTRY(Fraser_PPaEqPPs)
      AddEntry("cEqAppui_PTInc_M2CFraser_PPaEqPPs",cEqAppui_PTInc_M2CFraser_PPaEqPPs::Alloc);

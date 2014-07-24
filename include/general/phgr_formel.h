@@ -155,6 +155,8 @@ class cCylindreRevolFormel;
 class cL2EqObsBascult;
 class cSolBasculeRig;
 
+class cPIF_Bilin;
+
 
 //   Il n'avait pas ete prevu de renumeroter les intervales. Quand le besoin
 //   est apparu, pour la resolution des systemes par cholesky creux, on a gere
@@ -302,7 +304,7 @@ class  cIncListInterv
        void Init();
     private :
 
-       cIncListInterv  (const cIncListInterv &) ; // Un imlemanted
+       // cIncListInterv  (const cIncListInterv &) ; // Un imlemanted
        void operator = (const cIncListInterv &) ; // Un imlemanted
 
        INT          mI0Min;
@@ -657,7 +659,7 @@ class cSetEqFormelles : public cNameSpaceEqF
 
 
 
-	      cParamIntrinsequeFormel * NewParamIntrNoDist(bool isDC2M,CamStenope * aCamInit,bool ParamVar=true);
+	       cParamIntrinsequeFormel * NewParamIntrNoDist(bool isDC2M,CamStenope * aCamInit,bool ParamVar=true);
 
 	       cRotationFormelle * NewRotation
                                    (
@@ -691,6 +693,11 @@ class cSetEqFormelles : public cNameSpaceEqF
 		cParamIFDistPolynXY  * NewIntrPolyn(bool isDistC2M,cCamStenopeDistPolyn *);
                 cParamIFDistStdPhgr * NewIntrDistStdPhgr
 			              (bool isDistC2M,cCamStenopeModStdPhpgr *, int aDegFig);
+
+
+                cPIF_Bilin *  NewPIFBilin(cCamStenopeBilin * aCSB);
+                cParamIntrinsequeFormel *  AsPIF_NewPIFBilin(cCamStenopeBilin * aCSB); // Pour utiliser sans connaitre cPIF_Bilin
+
 
                 cEqEllipseImage * NewEqElIm
                 (
@@ -1066,6 +1073,16 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
                                 public cObjFormel2Destroy
 {
 	public  :
+           // certaine camera (par exe de type grid def) ont besoin de "changer l'état" des equations ou
+           // elle interviennet notamment sur la numeroration  dans les inconnues des variable
+           virtual void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam); 
+
+           // Avant il y avait en dur :   mLInterv.AddInterv(mCam.PIF().IncInterv());
+           // Pour prendre en compte les camera grilles avec des intervalles d'inconnues non connexes
+           // (et evolutif) on ajoute cette fonction virtuelle qui pemet de specialiser
+           virtual void AddToListInterval( cIncListInterv &);
+
+
            bool UseAFocal() const;
            bool   AllParamIsFiged() const;
            virtual bool IsDistFiged() const;
@@ -1150,6 +1167,7 @@ class cParamIntrinsequeFormel : public cElemEqFormelle,
 
 
             void AssertNoAFocalParam(const std::string &);
+            void AddRapViscosite(double aTol);
 
 
         protected :
@@ -1502,6 +1520,7 @@ class cCameraFormelle :  public cNameSpaceEqF ,
 {
      public :
           
+          void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);  // Transmet a Intrinseque
           ElAffin2D & ResiduM2C();
 
 
@@ -1554,6 +1573,7 @@ class cCameraFormelle :  public cNameSpaceEqF ,
 	  class cEqAppui
 	  {
 		  public :
+                      void PrepareEqFForPointIm(const Pt2dr &);  // Transmet a Camera Formelle
                       friend class cCameraFormelle;
                       cEqAppui
 		      (
@@ -2737,6 +2757,92 @@ class cEqFormelleLineaire
 	     std::string                 mNameType;
              cElCompiledFonc *           mFctr ;
 
+};
+
+class cSomBilin
+{
+     public :
+        cSomBilin(cSetEqFormelles &,Pt2dr &,const cIncIntervale & anInt);
+
+        Pt2d<Fonc_Num>   mPtF;
+        cIncIntervale    mInterv;
+
+};
+
+class cQuadrangle
+{
+      public :
+           cQuadrangle
+           (
+                   const cIncIntervale & aI00,
+                   const cIncIntervale & aI10,
+                   const cIncIntervale & aI01,
+                   const cIncIntervale & aI11
+           );
+           cIncIntervale    mInt00;
+           cIncIntervale    mInt10;
+           cIncIntervale    mInt01;
+           cIncIntervale    mInt11;
+};
+
+
+class cPIF_Bilin : public cParamIntrinsequeFormel
+{
+     public :
+         cPIF_Bilin(cCamStenopeBilin *,cSetEqFormelles &);
+         static cPIF_Bilin * Alloc(const cPIF_Bilin &,cSetEqFormelles &);
+
+         void SetDistFigee();
+         void SetDistFree(int aDegree);
+
+     private  :
+          // virtual Fonc_Num  NormGradC2M(Pt2d<Fonc_Num>); a priori inutile
+          virtual void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);
+          virtual  Pt2d<Fonc_Num> VDist(Pt2d<Fonc_Num>,int aKCam);
+          void    NV_UpdateCurPIF();   // Non virtuel, pour appel constructeur ????
+          virtual void    UpdateCurPIF();
+          virtual bool IsDistFiged() const;
+          virtual std::string  NameType() const;
+          virtual ~cPIF_Bilin();
+          virtual CamStenope * CurPIF(); ;
+          virtual CamStenope * DupCurPIF(); ;
+          virtual cMultiContEQF  StdContraintes();
+
+          virtual void AddToListInterval(cIncListInterv & aLInterv);
+          // virtual bool UseSz() const; ==> A priori 
+/*
+
+
+
+
+*/
+
+          cSomBilin & FDist(const Pt2di & aP);
+
+       // ==============================================
+          static const std::string TheNameType ;
+       // ==============================================
+          cSetEqFormelles &                            mSet;
+          std::vector<cP2d_Etat_PhgrF>                 mCornF; // Size 8, pour eventuelleme,t gerer aKCam=1
+          bool                                         mFiged;
+          int                                          mDegreFree;
+          cDistorBilin                                 mDistInit;
+          cDistorBilin                                 mDistCur;
+          cCamStenopeBilin *                           mCurPIF;
+          // std::vector<Pt2d<Fonc_Num>  >                mFVDist;
+          std::vector<std::vector<cSomBilin > >        mFVDist;
+          std::vector<std::vector<cQuadrangle > >      mQuads;
+
+          std::vector<cElCompiledFonc* >               mFctrRegul;
+
+          // Index des deux point qui doivent etre figee arbirtairemnt pour fixer PP,Focale, Rotation
+          // situes sur les extre de la ligne horiz coupant la capteur en 2
+          int                                          mIndFrozen0;
+          int                                          mIndFrozen1;
+
+          Pt2di                                        mLastCase;
+          // cIncListInterv                               mLInterv;
+          // cCamStenopeBilin                             
 };
 
 

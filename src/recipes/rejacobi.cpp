@@ -62,11 +62,11 @@ INT NR_jacobi (REAL ** A ,INT n ,REAL *d ,REAL ** V)
 
 	d--;
 
-	static ElFilo<REAL *> a;  NR_InitNrMat(a,A,n);
-	static ElFilo<REAL *> v;  NR_InitNrMat(v,V,n);
+	static ElFilo<REAL *> Fa;  NR_InitNrMat(Fa,A,n); REAL ** a= Fa.tab();
+	static ElFilo<REAL *> Fv;  NR_InitNrMat(Fv,V,n); REAL ** v = Fv.tab();
 
-	static ElFilo<REAL> b;  NR_InitVect(b,n);
-	static ElFilo<REAL> z;  NR_InitVect(z,n);
+	static ElFilo<REAL> Fb;  NR_InitVect(Fb,n); REAL * b = Fb.tab();
+	static ElFilo<REAL> Fz;  NR_InitVect(Fz,n); REAL * z = Fz.tab();
 
 	for (ip=1;ip<=n;ip++) {
 		for (iq=1;iq<=n;iq++) v[ip][iq]=0.0;
@@ -80,7 +80,7 @@ INT NR_jacobi (REAL ** A ,INT n ,REAL *d ,REAL ** V)
 		sm=0.0;
 		for (ip=1;ip<=n-1;ip++) {
 			for (iq=ip+1;iq<=n;iq++)
-				sm += fabs(a[ip][iq]);
+				sm += ElAbs(a[ip][iq]);
 		}
 		if (sm == 0.0) {
 			return(1);
@@ -91,17 +91,17 @@ INT NR_jacobi (REAL ** A ,INT n ,REAL *d ,REAL ** V)
 			tresh=0.0;
 		for (ip=1;ip<=n-1;ip++) {
 			for (iq=ip+1;iq<=n;iq++) {
-				g=100.0*fabs(a[ip][iq]);
-				if (i > 4 && fabs(d[ip])+g == fabs(d[ip])
-					&& fabs(d[iq])+g == fabs(d[iq]))
+				g=100.0*ElAbs(a[ip][iq]);
+				if (i > 4 && ElAbs(d[ip])+g == ElAbs(d[ip])
+					&& ElAbs(d[iq])+g == ElAbs(d[iq]))
 					a[ip][iq]=0.0;
-				else if (fabs(a[ip][iq]) > tresh) {
+				else if (ElAbs(a[ip][iq]) > tresh) {
 					h=d[iq]-d[ip];
-					if (fabs(h)+g == fabs(h))
+					if (ElAbs(h)+g == ElAbs(h))
 						t=(a[ip][iq])/h;
 					else {
 						theta=0.5*h/(a[ip][iq]);
-						t=1.0/(fabs(theta)+sqrt(1.0+theta*theta));
+						t=1.0/(ElAbs(theta)+sqrt(1.0+theta*theta));
 						if (theta < 0.0) t = -t;
 					}
 					c=1.0/sqrt(1+t*t);
@@ -211,7 +211,7 @@ std::vector<int> jacobi_diag
         
 
 
-/*  #define PYTHAG(a,b) ((at=fabs(a)) > (bt=fabs(b)) ? \
+/*  #define PYTHAG(a,b) ((at=ElAbs(a)) > (bt=ElAbs(b)) ? \
   (ct=bt/at,at*sqrt(1.0+ct*ct)) : (bt ? (ct=at/bt,bt*sqrt(1.0+ct*ct)): 0.0))
 */
 
@@ -232,7 +232,7 @@ static inline double  PYTHAG(const double & a,const double & b)
    }
    
 }
-// #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
+// #define SIGN(a,b) ((b) >= 0.0 ? ElAbs(a) : -ElAbs(a))
 static double  SIGN(const double & a,const double & b) 
 {
 	return ((b)>=0.0 ? ElAbs(a) : -ElAbs(a));
@@ -247,9 +247,9 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 
 	ELISE_ASSERT( (m == n),"SVDCMP: You must augment A with extra zero rows");
 	w--;
-	static ElFilo<REAL *> a; NR_InitNrMat(a,A,n); 
-	static ElFilo<REAL *> v; NR_InitNrMat(v,V,n); 
-	static ElFilo<REAL> rv1;  NR_InitVect(rv1,n);
+	static ElFilo<REAL *> Fa; NR_InitNrMat(Fa,A,n);  REAL ** a = Fa.tab();
+	static ElFilo<REAL *> Fv; NR_InitNrMat(Fv,V,n);   REAL ** v = Fv.tab();
+	static ElFilo<REAL>  Frv1;  NR_InitVect(Frv1,n); REAL * rv1 = Frv1.tab();
 
 
 	//  Dans NR, la condition etait, (m >= n)
@@ -258,7 +258,7 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 		rv1[i]=scale*g;
 		g=s=scale=0.0;
 		if (i <= m) {
-			for (k=i;k<=m;k++) scale += fabs(a[k][i]);
+			for (k=i;k<=m;k++) scale += ElAbs(a[k][i]);
 			if (scale) {
 				for (k=i;k<=m;k++) {
 					a[k][i] /= scale;
@@ -281,7 +281,7 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 		w[i]=scale*g;
 		g=s=scale=0.0;
 		if (i <= m && i != n) {
-			for (k=l;k<=n;k++) scale += fabs(a[i][k]);
+			for (k=l;k<=n;k++) scale += ElAbs(a[i][k]);
 			if (scale) {
 				for (k=l;k<=n;k++) {
 					a[i][k] /= scale;
@@ -301,7 +301,7 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 				for (k=l;k<=n;k++) a[i][k] *= scale;
 			}
 		}
-		anorm=ElMax(anorm,(fabs(w[i])+fabs(rv1[i])));
+		anorm=ElMax(anorm,(ElAbs(w[i])+ElAbs(rv1[i])));
 	}
 	for (i=n;i>=1;i--) {
 		if (i < n) {
@@ -344,18 +344,18 @@ void NR_svdcmp(double ** A,int m,int n,double * w,double ** V)
 			flag=1;
 			for (l=k;l>=1;l--) {
 				nm=l-1;
-				if (fabs(rv1[l])+anorm == anorm) {
+				if (ElAbs(rv1[l])+anorm == anorm) {
 					flag=0;
 					break;
 				}
-				if (fabs(w[nm])+anorm == anorm) break;
+				if (ElAbs(w[nm])+anorm == anorm) break;
 			}
 			if (flag) {
 				c=0.0;
 				s=1.0;
 				for (i=l;i<=k;i++) {
 					f=s*rv1[i];
-					if (fabs(f)+anorm != anorm) {
+					if (ElAbs(f)+anorm != anorm) {
 						g=w[i];
 						h=PYTHAG(f,g);
 						w[i]=h;
@@ -557,6 +557,242 @@ void svdcmp_diag
    ElMatrix<REAL> aLineVP(aMat.tx(),1);
    svdcmp(aMat,anU,aLineVP,aV,direct);
    MatLigneToDiag(aLineVP,aDiag);
+}
+
+
+
+void NR_QRDecomp(double **A, int n, double *c, double *d, int *sing)
+{
+   // Mise au convention NR
+   c--; d--;
+   static ElFilo<REAL *> Fa; NR_InitNrMat(Fa,A,n);  REAL ** a = Fa.tab();
+
+
+
+   int i,j,k;
+   double scale,sigma,sum,tau;
+   *sing=0;
+   for (k=1;k<n;k++)
+   {
+      scale=0.0;
+      for (i=k;i<=n;i++)
+      {
+          scale=ElMax(scale,ElAbs(a[i][k]));
+      }
+      if (scale == 0.0)
+      {
+         *sing=1;
+         c[k]=d[k]=0.0;
+      }
+      else {
+         for (i=k;i<=n;i++)
+         {
+             a[i][k] /= scale;
+         }
+         for (sum=0.0,i=k;i<=n;i++)
+         {
+              sum += ElSquare(a[i][k]);
+         }
+         // sigma=SIGN(sqrt(sum),a[k][k]);
+         sigma=SIGN(sqrt(sum),a[k][k]);
+         a[k][k] += sigma;
+         c[k]=sigma*a[k][k];
+         d[k] = -scale*sigma;
+         for (j=k+1;j<=n;j++)
+         {
+            for (sum=0.0,i=k;i<=n;i++)
+            {
+                 sum += a[i][k]*a[i][j];
+            }
+            tau=sum/c[k];
+            for (i=k;i<=n;i++)
+            {
+                a[i][j] -= tau*a[i][k];
+            }
+         }
+      }
+   }
+   d[n]=a[n][n];
+   if (d[n] == 0.0) *sing=1;
+}
+
+//void QRCorrectSign()
+
+/*
+   (a b) (-1 0)  =  (-a b)
+   (c d) (0  1)     (-c d)
+
+   Si S est une matrice de signe et QR une decomposition QR alors  (QS) (SR) aussi,
+   on peut donc changer le signe des colonne de Q et des lignes de R de manière a 
+   avoir une diagonale > 0
+*/
+
+std::pair<ElMatrix<double>, ElMatrix<double> > QRDecomp(const ElMatrix<double> & aM0)
+{
+   ElMatrix<double> aMat(aM0);
+   int aN = aMat.tx();
+   ELISE_ASSERT(aMat.ty()==aN,"Non Square Mat in QR-Dcmp");
+   std::vector<double> d(aN+1);
+   std::vector<double> c(aN+1);
+   int aSign;
+
+   NR_QRDecomp(aMat.data(),aN,VData(c),VData(d),&aSign);
+
+   ElMatrix<double> aR(aN,aN);
+  
+   for (int anX=0 ; anX <aN ; anX++)
+   {
+       for (int anY=0 ; anY <aN ; anY++)
+       {
+           if (anX>anY)  aR(anX,anY) = aMat(anX,anY) ;
+           else if (anX==anY)  aR(anX,anY) = d[anX] ;
+           else aR(anX,anY) = 0;
+       }
+   }
+
+
+   ElMatrix<double> aQ = aM0 * gaussj(aR);
+
+   for (int aDiag=0 ; aDiag <aN ; aDiag++)
+   {
+       if (aR(aDiag,aDiag) < 0)
+       {
+           for (int aK=0 ; aK <aN ; aK++)
+           {
+               aR(aK,aDiag) *= -1;
+               aQ(aDiag,aK) *= -1;
+           }
+       }
+   }
+
+   return std::pair<ElMatrix<double>, ElMatrix<double> >(aQ,aR); 
+}
+
+ElMatrix<double> InvertLine(const ElMatrix<double> & aM0)
+{
+   int aSzX = aM0.tx();
+   int aSzY = aM0.ty();
+   ElMatrix<double> aRes(aSzX,aSzY);
+
+   for (int anY=0 ; anY <aSzY ; anY++)
+   {
+      for (int anX=0 ; anX <aSzX ; anX++)
+      {
+           aRes(anX,anY) = aM0(anX,aSzY-anY-1);
+      }
+  }
+  return aRes;
+}
+
+ElMatrix<double> InvertCol(const ElMatrix<double> & aM0)
+{
+   int aSzX = aM0.tx();
+   int aSzY = aM0.ty();
+   ElMatrix<double> aRes(aSzX,aSzY);
+
+   for (int anY=0 ; anY <aSzY ; anY++)
+   {
+      for (int anX=0 ; anX <aSzX ; anX++)
+      {
+           aRes(anX,anY) = aM0(aSzX-anX-1,anY);
+      }
+  }
+  return aRes;
+}
+
+
+
+/* Soit S la matrice (0 0 1)
+                     (0 1 0)
+                     (1 0 0)
+   On a InvertLine(A)  = S A
+   On a InvertCol(A)  = A S   
+         S S  = Id
+
+   On calcule la QRDec de t(SA) = QR
+
+   Donc  A = S tR  tQ = (StRS) SQ
+   StRS est diag sup, SQ est tjrs Orthog
+*/
+
+
+
+ 
+std::pair<ElMatrix<double>, ElMatrix<double> > RQDecomp(const ElMatrix<double> & aM0)
+{
+   int aN = aM0.tx();
+   ELISE_ASSERT(aM0.ty()==aN,"Non Square Mat in QR-Dcmp");
+
+   std::pair<ElMatrix<double>, ElMatrix<double> >  aQR = QRDecomp(InvertLine(aM0).transpose());
+
+   const ElMatrix<double> & aQ = aQR.first;
+   const ElMatrix<double> & aR = aQR.second;
+
+    // ShowMatr("AAAA",aR);
+   //  ShowMatr("BBBB",aR.transpose());
+   // ShowMatr("CCCC",InvertLine(InvertCol(aR.transpose())));
+
+   return std::pair<ElMatrix<double>, ElMatrix<double> > (InvertLine(InvertCol(aR.transpose())),InvertLine(aQ.transpose()));
+}
+
+
+
+void TestQR(int aN)
+{
+   ElMatrix<double> aM(aN,aN);
+
+   for (int anX=0 ; anX <aN ; anX++)
+   {
+       for (int anY=0 ; anY <aN ; anY++)
+       {
+            aM(anX,anY) = 100 * NRrandC();
+       }
+   }
+
+   if (0)
+   {
+        std::pair<ElMatrix<double>, ElMatrix<double> > aQR =  QRDecomp(aM);
+
+        ElMatrix<double> aQ = aQR.first;
+        ElMatrix<double> aR = aQR.second;
+
+
+        ElMatrix<double> anId =  aQ * aQ.transpose();
+        ElMatrix<double> anId2(aN,true);
+        ElMatrix<double> aT2 = aM - aQ*aR;
+
+        std::cout << "QR-Test OrthoNo " << anId.L2(anId2) << " " << aT2.L2() << "\n";
+        ShowMatr("QQq-RRr",aR);
+
+   }
+
+   {
+        std::pair<ElMatrix<double>, ElMatrix<double> > aRQ =  RQDecomp(aM);
+
+        ElMatrix<double> aR = aRQ.first;
+        ElMatrix<double> aQ = aRQ.second;
+
+
+        ElMatrix<double> anId =  aQ * aQ.transpose();
+        ElMatrix<double> anId2(aN,true);
+        ElMatrix<double> aT2 = aM - aR * aQ;
+
+        int aNbNeg=0;
+        for (int aK=0 ;  aK< aN ; aK++)
+            aNbNeg += (aR(aK,aK) <0);
+
+        double aSomInf = 0;
+        for (int anX=0 ;  anX< aN ; anX++)
+           for (int anY=0 ;  anY< aN ; anY++)
+               if (anY>anX) 
+                  aSomInf += ElAbs(aR(anX,anY));
+
+        std::cout << "RQ-Test OrthoNo " << anId.L2(anId2) << " " << aT2.L2() 
+                  << " NEG=" << aNbNeg  << " SomInf=" << aSomInf << "\n";
+ 
+        ShowMatr("Rrr-QQq",aR);
+
+   }
 }
 
 #undef SIGN

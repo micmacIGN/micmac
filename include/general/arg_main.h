@@ -662,6 +662,9 @@ int VideoVisage_main(int argc,char ** argv);
 int Poisson_main(int argc,char ** argv);
 int GrapheHom_main(int argc,char ** argv);
 
+
+int RefineModel_main(int argc, char **argv);
+
 #if (ELISE_X11)
     int SaisieAppuisInit_main(int argc,char ** argv);
     int SaisieAppuisPredic_main(int argc,char ** argv);
@@ -693,6 +696,7 @@ int GrapheHom_main(int argc,char ** argv);
     int SaisieBoxQT_main(int argc,char ** argv);
     int SaisieBascQT_main(int argc,char ** argv);
 #endif
+    int Dimap2Grid_main(int argc, char **argv);
 
 #endif // ElMemberTpl
 

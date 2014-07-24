@@ -1149,7 +1149,7 @@ public :
 	static const std::vector<cXifDecoder *>  &  TheVect();
 	static cMetaDataPhoto GetMTDIm(const std::string & aNameIm);
 private  :
-	void GenerateTxtFile(const std::string & aNameIm);
+	bool GenerateTxtFile(const std::string & aNameIm);
 	void  GetOneDouble(cElRegex * & anAutom,bool & aGot,double & aVal);
 
 	void  GetOneAngle(cElRegex * & anAutom,bool & aGot,double & aVal);
@@ -1262,7 +1262,7 @@ void  cXifDecoder::GetOneAngle(cElRegex * & anAutom,bool & aGot,double & aVal)
 	// std::cout << "AAANgle" <<  int (aRes) << " " << aRes - int (aRes) << "\n";
 }
 
-void cXifDecoder::GenerateTxtFile(const std::string & aFullName)
+bool cXifDecoder::GenerateTxtFile(const std::string & aFullName)
 {
 	std::string aDir,aNSsDir;
 
@@ -1270,26 +1270,8 @@ void cXifDecoder::GenerateTxtFile(const std::string & aFullName)
 
 	mFileTxt = aDir + GenerateNameUnique(aNSsDir,mStrTmp);
 	std::string aCom = mStrLangE + QUOTE(aFullName) + " > " + mFileTxt;
-
-	int aRes = System(aCom,true);
-
-
-	//GERALD
-#if (ELISE_windows)
-
-#else
-	//const std::string STRLANG="LANG=C LANGUAGE=C ";
-	if ((aRes%256) !=0)  // ?? En fait convetion ElDcraw
-	{
-		std::cout << "COM="<< aCom << " RES = " << aRes << "\n";
-		ELISE_ASSERT
-			(
-			aRes==0,
-			"Cannot exec cXifDecoder::GenerateTxtFile"
-			);
-	}
-#endif
 	
+	return ( System(aCom,true)%256 )==0;
 }
 
 void  cXifDecoder::GetOneDouble(cElRegex * & anAutom,bool & aGot,double & aVal)

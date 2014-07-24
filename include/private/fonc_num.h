@@ -112,6 +112,7 @@ class cElCompiledFonc
 */
 
 
+         std::string & NameAlloc();
           static cElCompiledFonc * AllocFromName(const std::string &);
          // Renvoie 0 si pas un des champs de la structure
 	 
@@ -119,6 +120,7 @@ class cElCompiledFonc
          double * RequireAdrVarLocFromString(const std::string &);
 
          void SetMappingCur(const cIncListInterv &,cSetEqFormelles *);
+         const cIncListInterv &  MapRef() const;
          void SetCoordCur(double * aRealCoord);
 
          void ComputeValAndSetIVC();
@@ -272,6 +274,7 @@ class cElCompiledFonc
 
           cIncListInterv                   mMapRef;
           std::vector<cSsBloc>     mBlocs;
+          std::string              mNameAlloc;
           // std::vector<double>     mBufLin;
            
 };

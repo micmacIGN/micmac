@@ -111,6 +111,17 @@ void cAppliApero::AddRappelOnCentre(const cRappelOnCentres & aRAC,double aMultIn
     }
 }
 
+void cAppliApero::AddRappelOnIntrinseque(const cRappelOnIntrinseque & aROI,double aMultInit,cStatObs & aSO)
+{
+    for (tDiCal::iterator itC=mDicoCalib.begin(); itC!=mDicoCalib.end() ; itC++)
+    {
+        if (  aROI.ParamF().PatternNameApply()->Match(itC->first))
+        {
+             itC->second->AddViscosite(aROI.ParamF().Incertitude());
+        }
+    }
+}
+
 void cAppliApero::AddOneLevenbergMarkard
      (
         const cSectionLevenbergMarkard * aSLM,
@@ -132,8 +143,6 @@ void cAppliApero::AddOneLevenbergMarkard
          AddRappelOnAngle(*itR,aMult,aSO);
    }
 
-
-
    for 
    (
         std::list<cRappelOnCentres>::const_iterator itR=aSLM->RappelOnCentres().begin();
@@ -143,6 +152,19 @@ void cAppliApero::AddOneLevenbergMarkard
    {
          AddRappelOnCentre(*itR,aMult,aSO);
    }
+
+   for 
+   (
+        std::list<cRappelOnIntrinseque>::const_iterator itR=aSLM->RappelOnIntrinseque().begin();
+        itR!=aSLM->RappelOnIntrinseque().end();
+        itR++
+   )
+   {
+         AddRappelOnIntrinseque(*itR,aMult,aSO);
+   }
+
+
+
 }
 void cAppliApero::AddLevenbergMarkard(cStatObs & aSO)
 {
@@ -167,6 +189,14 @@ void  cAppliApero::InitLVM
      aMult = aOpMul.Val();
 }
 
+
+void cAppliApero:: UpdateMul(double & aMult,double aNewV,bool aModeMin)
+{
+   if (aModeMin) 
+      ElSetMin(aMult,aNewV);
+   else
+       aMult = aNewV;
+}
 
 
 

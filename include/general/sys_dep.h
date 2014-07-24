@@ -141,7 +141,7 @@ template <class Type> bool BadNumber(const Type & aVal) {return (isnan(aVal)||is
 
 #define ElTemplateInstantiation 1
 
-// Apparamment MSW est assez restrictif sur l'emploi du typename
+// Apparemment MSW est assez restrictif sur l'emploi du typename
 #if ( ELISE_windows & !ELISE_MinGW )
 	#define ElTypeName_NotMSW
 	#define  ClassFriend
@@ -202,7 +202,7 @@ template <class Type> bool BadNumber(const Type & aVal) {return (isnan(aVal)||is
  *   ISO/IEC 14881:1998 (E) (autrement dit la norme ANSI/C++).
  *
  */
-#if (ELISE_windows)&&(!ELISE_MinGW)
+#if (ELISE_windows & !ELISE_MinGW)
 	#define STRICT_ANSI_FRIEND_TPL 0
 #else
 	#define STRICT_ANSI_FRIEND_TPL 1

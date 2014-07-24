@@ -93,7 +93,7 @@
                     <IterationsCompensation>
                        <SectionContraintes>
                           <ContraintesCamerasInc>
-                              <Val> eLiberteParamDeg_2      </Val>
+                              <Val> eLiberteParamDeg_1      </Val>
                           </ContraintesCamerasInc>
                        </SectionContraintes>
                        <Messages>   Polyn 2 </Messages>

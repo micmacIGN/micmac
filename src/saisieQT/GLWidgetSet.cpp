@@ -18,6 +18,7 @@ void GLWidgetSet::init(cParameters *params, bool modePt)
     _widgets.resize(aNb);
 
     _widgets[0] = new GLWidget(0, NULL);
+
     _pcurrentWidget = _widgets[0];
 
     for (int aK=1 ; aK < aNb; ++aK)
@@ -37,6 +38,7 @@ void GLWidgetSet::init(cParameters *params, bool modePt)
         _zoomWidget->setOption(cGLData::OpShow_Mess,false);
         _zoomWidget->setZoom(3.f);
 
+
         _3DWidget   = new GLWidget(10, (const QGLWidget*)_widgets[0]);
         _3DWidget->setBackgroundColors(colorBG0,colorBG1);
         _3DWidget->setContextMenuPolicy( Qt::NoContextMenu );
@@ -50,9 +52,9 @@ void GLWidgetSet::option3DPreview()
     threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
 }
 
-void GLWidgetSet::init3DPreview(cData* data)
+void GLWidgetSet::init3DPreview(cData* data, cParameters params)
 {
-    threeDWidget()->setGLData(new cGLData(data));
+    threeDWidget()->setGLData(new cGLData(data,params));
     threeDWidget()->getGLData()->setIncFirstCloud(true);
     option3DPreview();
 }
@@ -62,10 +64,12 @@ void GLWidgetSet::selectCameraIn3DP(int idCam)
     for (int c = 0; c  < threeDWidget()->getGLData()->camerasCount(); ++c )
         threeDWidget()->getGLData()->camera(c)->setSelected(false);
 
-    threeDWidget()->getGLData()->camera(idCam)->setSelected(true);
+    if (threeDWidget()->getGLData()->camerasCount() > idCam)
+        threeDWidget()->getGLData()->camera(idCam)->setSelected(true);
 
     threeDWidget()->update();
 }
+
 
 void GLWidgetSet::widgetSetResize(int aSz)
 {

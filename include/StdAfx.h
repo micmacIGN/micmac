@@ -293,7 +293,9 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 		#define NOMINMAX
 	#endif
 	#if (ELISE_MinGW)
-		#define _WIN32_WINNT 0x0500 // this is for windows 2000 and higher
+        #ifndef _WIN32_WINNT
+            #define _WIN32_WINNT 0x0500 // this is for windows 2000 and higher
+        #endif
 	#endif
 
 	#if (ELISE_MinGW)
@@ -301,8 +303,11 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 	#else
 		#include <intrin.h>
 	#endif
+
+#ifndef __GNUC__
 	#pragma intrinsic(_InterlockedOr)
 	#pragma intrinsic(_InterlockedCompareExchange64)
+#endif
     #include <Windows.h>
 
     #include <Psapi.h>

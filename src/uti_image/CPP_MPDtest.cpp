@@ -360,115 +360,32 @@ void TestRandomSetOfMesureSegDr()
       }
    }
 
-
-
     MakeFileXML(aSMS,aOut);
 
     exit(0);
 }
 
+
+extern void TestQR(int aN);
+
+extern void Test_DBL();
+
+
 int MPDtest_main (int argc,char** argv)
 {
+   Test_DBL();
 
-TestRandomSetOfMesureSegDr() ;
    while (1)
    {
-       cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
-        std::cout << "ENTRE NAME \n";
-       std::string aName ;
-       cin >> aName;
-       std::cout << "IS TILE NAME " << Tiff_Im::IsNameInternalTile(aName,aICNM) << "\n";
+      TestQR(2); getchar();
+      TestQR(3); getchar();
+      TestQR(4); getchar();
+      TestQR(5); getchar();
    }
-
-   Bench_Rank();
-{
-   std::string aNameTifIn,aNameTifOut,aNameCamIn,aNameCamOut;
-   // Box2di aBoxOut;
-   std::string aBoxOut;
-   int toto;
-
-   ElInitArgMain
-   (
-        argc,argv,
-        LArgMain()  << EAMC(aNameTifIn,"Tiff In", eSAM_IsExistFile)
-                    << EAMC(aNameTifOut,"Tiff Out", eSAM_IsOutputFile)
-                    << EAMC(aNameCamIn,"Camera In", eSAM_IsExistFile)
-                    << EAMC(aNameCamOut,"Camera Out", eSAM_IsOutputFile)
-                    << EAMC(aBoxOut,"Box out"),
-        LArgMain()  << EAM(toto,"toto",true,"toto")
-   );
-
-/*
-   Box2di aB;
-   ElInitArgMain
-   (
-        argc,argv,
-        LArgMain()  << EAMC(aB,"Box"),
-        LArgMain()  << EAM(toto,"toto",true,"toto")
-   );
-*/
-
-   std::cout << "BBBBB  = " <<  aBoxOut << "\n";
-   exit(0);
-}
-
-   std::cout << "NBPROC " << NbProcSys() << "\n";
-   DebugDrag();
-
-
-   FILE * aFP = FopenNN("TEST.txt","a+","Log File");
-   fprintf(aFP,"AAAAAAAAA\n");
-   std::cout << "WAITING\n";
-   getchar();
-   fclose(aFP);
-   StdEXIT(0);
-
-
-   {
-      while (1)
-      {
-             for (int aK=0 ; aK<3 ; aK++)
-                 std::cout << GetUnikId() << "\n";
-             getchar();
-      }
-   }
-
-
-   BanniereMM3D(); StdEXIT(0);
-   PbHom("Test-Four");
-   PbHom("RadialExtended");
-
-   getchar();
-
-
-   // ElList<Pt2di> aL = NewLPt2di(Pt2di(20,20));
-
-   std::string aPref = "eTT_";
-   std::list<std::string>  aL = ListOfVal(eTT_NbVals,aPref);
-   for (std::list<std::string>::iterator it=aL.begin() ; it!=aL.end() ; it++)
-   {
-       std::cout << " fff [" <<  *it << "]\n";
-   }
-
-   std::cout << "BBBB " << BoolFind(std::string("ABC"),'B') << "\n";
-   std::cout << "bbbb " << BoolFind(std::string("ABC"),'b') << "\n";
-
-   double aDif;
-
-   ELISE_COPY
-   (
-      rectangle(Pt2di(0,0),Pt2di(10,10)),
-      Abs(trans(FX,Pt2di(2,2)) - StdFoncChScale(FX,Pt2dr(2.00,2),Pt2dr(1,1))),
-      sigma(aDif)
-   );
-
-   std::cout << "DIF = " << aDif << "\n";
-
 
 
    return 0;
 
-    return EXIT_SUCCESS;
 }
 
 #endif

@@ -272,6 +272,9 @@
           <!-- A priori idiot de mettre de la viscosite si deja force de rappel en GPS -->
           <OnlyWhenNoCentreInit Nb="?" Type="bool" Def="true"> </OnlyWhenNoCentreInit>
     </RappelOnCentres>
+    <RappelOnIntrinseque Nb="*">
+          <ParamF Nb="1" RefType="ParamForceRappel" AccessorFils="false"> </ParamF> 
+    </RappelOnIntrinseque>
 </SectionLevenbergMarkard>
 
 
@@ -925,6 +928,17 @@ normalises en echelle et/ou en translation -->
       donc que les objets modifies
 -->
 		 <IterationsCompensation Nb="*" Container="std::vector">
+
+                     <CtrlTimeCompens Nb="?">
+                           <NbMin Nb="?" Type="int" Def="0"> </NbMin>
+                           <NbMax Nb="1" Type="int">         </NbMax>
+                           <SeuilEvolMoy Nb="1" Type="double">  </SeuilEvolMoy>
+                           <SeuilEvolMax Nb="?" Type="double">  </SeuilEvolMax>  <!-- Default 2*SeuilEvolMoy -->
+                           <AutoAdaptLVM Nb="?">
+                                <Mult Nb="1" Type="double">  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
+                                <ModeMin Nb="?" Type="bool" Def="true"> </ModeMin>
+                           </AutoAdaptLVM>
+                     </CtrlTimeCompens>
                      <DoIt Nb="?" Type="bool" Def="true"> </DoIt> <!-- Add to make easier the control with symbol -->
 		     <SLMIter  Nb="?" RefType="SectionLevenbergMarkard"> </SLMIter>
 		     <SLMEtape  Nb="?" RefType="SectionLevenbergMarkard"> </SLMEtape>

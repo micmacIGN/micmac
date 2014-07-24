@@ -745,7 +745,10 @@ cCameraFormelle::cEqAppui::cEqAppui
 
        mLInterv.AddInterv(mCam.RF().IncInterv());
        if (! mUseEqNoVar)
-          mLInterv.AddInterv(mCam.PIF().IncInterv());
+       {
+          mCam.PIF().AddToListInterval(mLInterv);
+          // mLInterv.AddInterv(mCam.PIF().IncInterv());
+       }
 
        if (!isPTerrainFixe)
        {
@@ -816,6 +819,10 @@ cCameraFormelle::cEqAppui::cEqAppui
     }
 }
 
+void  cCameraFormelle::cEqAppui::PrepareEqFForPointIm(const Pt2dr & aPIm)
+{
+     mCam.PrepareEqFForPointIm(mLInterv,mFoncEqResidu,aPIm,mEqDroite,0);
+}
 
 Pt2dr cCameraFormelle::cEqAppui::Residu(Pt3dr aPTer,Pt2dr aPIm,REAL aPds)
 {
@@ -836,6 +843,7 @@ Pt2dr cCameraFormelle::cEqAppui::Residu(Pt3dr aPTer,Pt2dr aPIm,REAL aPds)
     {
        mMatriceGL->SetEtat(mCam.RF().MGL());
     }
+    PrepareEqFForPointIm(aPIm);
 
     // std::cout <<  "cEA::RES " <<  mNameType << "\n";
 
@@ -884,6 +892,7 @@ Pt2dr cCameraFormelle::cEqAppui::ResiduPInc(Pt2dr aPIm,REAL aPds,const cParamPtP
     *pAdrXIm =  aPIm.x;
     *pAdrYIm =  aPIm.y;
     *pAdrScN = mCam.PIF().StdScaleN();
+    PrepareEqFForPointIm(aPIm);
 
     const std::vector<REAL> & aVals = 
                   (aPds > 0)                                             ?
@@ -1170,6 +1179,11 @@ cCameraFormelle::cEqAppui * cCameraFormelle::AddFctrEqAppuisInc(bool aGenCode,bo
   return 0;
 }
 
+
+void  cCameraFormelle::PrepareEqFForPointIm(const cIncListInterv & anII,cElCompiledFonc * anEq,const Pt2dr & aPIm,bool EqDroite,int aKCam)
+{
+   mIntr.PrepareEqFForPointIm(anII,anEq,aPIm,EqDroite,aKCam);
+}
 
 void cCameraFormelle::TestVB10(const std::string& aMes) const
 {

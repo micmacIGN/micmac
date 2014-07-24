@@ -632,6 +632,30 @@ std::string  Mangling( cRappelOnCentres *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cRappelOnIntrinseque
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cRappelOnIntrinseque & anObj,cElXMLTree * aTree);
+
+
+        cParamForceRappel & ParamF();
+        const cParamForceRappel & ParamF()const ;
+    private:
+        cParamForceRappel mParamF;
+};
+cElXMLTree * ToXMLTree(const cRappelOnIntrinseque &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cRappelOnIntrinseque &);
+
+void  BinaryUnDumpFromFile(cRappelOnIntrinseque &,ELISE_fp &);
+
+std::string  Mangling( cRappelOnIntrinseque *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSectionLevenbergMarkard
 {
     public:
@@ -645,9 +669,13 @@ class cSectionLevenbergMarkard
 
         std::list< cRappelOnCentres > & RappelOnCentres();
         const std::list< cRappelOnCentres > & RappelOnCentres()const ;
+
+        std::list< cRappelOnIntrinseque > & RappelOnIntrinseque();
+        const std::list< cRappelOnIntrinseque > & RappelOnIntrinseque()const ;
     private:
         std::list< cRappelOnAngles > mRappelOnAngles;
         std::list< cRappelOnCentres > mRappelOnCentres;
+        std::list< cRappelOnIntrinseque > mRappelOnIntrinseque;
 };
 cElXMLTree * ToXMLTree(const cSectionLevenbergMarkard &);
 
@@ -2597,6 +2625,74 @@ std::string  Mangling( cSectionSolveur *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cAutoAdaptLVM
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cAutoAdaptLVM & anObj,cElXMLTree * aTree);
+
+
+        double & Mult();
+        const double & Mult()const ;
+
+        cTplValGesInit< bool > & ModeMin();
+        const cTplValGesInit< bool > & ModeMin()const ;
+    private:
+        double mMult;
+        cTplValGesInit< bool > mModeMin;
+};
+cElXMLTree * ToXMLTree(const cAutoAdaptLVM &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAutoAdaptLVM &);
+
+void  BinaryUnDumpFromFile(cAutoAdaptLVM &,ELISE_fp &);
+
+std::string  Mangling( cAutoAdaptLVM *);
+
+class cCtrlTimeCompens
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCtrlTimeCompens & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< int > & NbMin();
+        const cTplValGesInit< int > & NbMin()const ;
+
+        int & NbMax();
+        const int & NbMax()const ;
+
+        double & SeuilEvolMoy();
+        const double & SeuilEvolMoy()const ;
+
+        cTplValGesInit< double > & SeuilEvolMax();
+        const cTplValGesInit< double > & SeuilEvolMax()const ;
+
+        double & Mult();
+        const double & Mult()const ;
+
+        cTplValGesInit< bool > & ModeMin();
+        const cTplValGesInit< bool > & ModeMin()const ;
+
+        cTplValGesInit< cAutoAdaptLVM > & AutoAdaptLVM();
+        const cTplValGesInit< cAutoAdaptLVM > & AutoAdaptLVM()const ;
+    private:
+        cTplValGesInit< int > mNbMin;
+        int mNbMax;
+        double mSeuilEvolMoy;
+        cTplValGesInit< double > mSeuilEvolMax;
+        cTplValGesInit< cAutoAdaptLVM > mAutoAdaptLVM;
+};
+cElXMLTree * ToXMLTree(const cCtrlTimeCompens &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCtrlTimeCompens &);
+
+void  BinaryUnDumpFromFile(cCtrlTimeCompens &,ELISE_fp &);
+
+std::string  Mangling( cCtrlTimeCompens *);
+
 class cPose2Init
 {
     public:
@@ -3651,6 +3747,30 @@ class cIterationsCompensation
         friend void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< int > & NbMin();
+        const cTplValGesInit< int > & NbMin()const ;
+
+        int & NbMax();
+        const int & NbMax()const ;
+
+        double & SeuilEvolMoy();
+        const double & SeuilEvolMoy()const ;
+
+        cTplValGesInit< double > & SeuilEvolMax();
+        const cTplValGesInit< double > & SeuilEvolMax()const ;
+
+        double & Mult();
+        const double & Mult()const ;
+
+        cTplValGesInit< bool > & ModeMin();
+        const cTplValGesInit< bool > & ModeMin()const ;
+
+        cTplValGesInit< cAutoAdaptLVM > & AutoAdaptLVM();
+        const cTplValGesInit< cAutoAdaptLVM > & AutoAdaptLVM()const ;
+
+        cTplValGesInit< cCtrlTimeCompens > & CtrlTimeCompens();
+        const cTplValGesInit< cCtrlTimeCompens > & CtrlTimeCompens()const ;
+
         cTplValGesInit< bool > & DoIt();
         const cTplValGesInit< bool > & DoIt()const ;
 
@@ -3852,6 +3972,7 @@ class cIterationsCompensation
         cTplValGesInit< cTestInteractif > & TestInteractif();
         const cTplValGesInit< cTestInteractif > & TestInteractif()const ;
     private:
+        cTplValGesInit< cCtrlTimeCompens > mCtrlTimeCompens;
         cTplValGesInit< bool > mDoIt;
         cTplValGesInit< cSectionLevenbergMarkard > mSLMIter;
         cTplValGesInit< cSectionLevenbergMarkard > mSLMEtape;

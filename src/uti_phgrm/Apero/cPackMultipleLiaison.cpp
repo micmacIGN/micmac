@@ -53,9 +53,42 @@ template  class ElQT<NS_ParamApero::cOnePtsMult *,Pt2dr,NS_ParamApero::cFctrPtsO
 
 cStatObs::cStatObs(bool aAddEq) :
    mSomErPond (0),
-   mAddEq     (aAddEq)
+   mAddEq     (aAddEq),
+   mMaxEvol   (0),
+   mPdsEvol   (0),
+   mSomEvol   (0)
 {
 }
+
+
+void cStatObs::AddEvol(const double & aPds,const double & anEvol,const double &  aMaxEvol)
+{
+   if (aPds)
+   {
+      ElSetMax(mMaxEvol,aMaxEvol);
+      mPdsEvol += aPds;
+      mSomEvol += anEvol ;
+   }
+}
+
+void cStatObs::AssertPdsEvolNN() const
+{
+    ELISE_ASSERT(mPdsEvol!=0,"cStatObs::AssertPdsEvolNN");
+}
+
+double cStatObs::PdsEvol() const {return mPdsEvol;}
+double cStatObs::MaxEvol() const 
+{
+   
+   AssertPdsEvolNN();
+   return mMaxEvol;
+}
+double cStatObs::MoyEvol() const 
+{
+   AssertPdsEvolNN();
+   return mSomEvol / mPdsEvol;
+}
+
 
 void cStatObs::AddSEP(double aSEP)
 {
@@ -181,12 +214,15 @@ void cOneCombinMult::AddLink(cAppliApero & anAppli)
 /*                                                */
 /**************************************************/
 
+static const Pt3dr NoMemPt(0,0,0);
 
 cOnePtsMult::cOnePtsMult() :
    mMemPds (0),
+   mMemPt  (NoMemPt),
    mNPts (0,1.0),
    mOCM  (0),
-   mOnPlaneRapOnz (true)
+   mOnPlaneRapOnz (true),
+   mMemPtOk       (false)
 {
 }
 
@@ -199,6 +235,17 @@ void cOnePtsMult::SetOnPRaz(bool aPRaz)
 {
    mOnPlaneRapOnz  = aPRaz;
 }
+
+bool cOnePtsMult::MemPtOk() const
+{
+   return mMemPtOk;
+}
+
+void cOnePtsMult::SetMemPtOk(bool aOk)
+{
+   mMemPtOk = (aOk != 0);
+}
+
 
 const Pt2dr& cOnePtsMult::P0()  const
 {
@@ -252,11 +299,15 @@ cOneCombinMult * cOnePtsMult::OCM()
    return mOCM;
 }
 
-double & cOnePtsMult::MemPds()
+double & cOnePtsMult::MemPds() 
 {
    return mMemPds;
 }
 
+Pt3dr & cOnePtsMult::MemPt() 
+{
+   return mMemPt;
+}
 
 
 
@@ -1014,12 +1065,27 @@ double cObsLiaisonMultiple::AddObsLM
 
    InitRapOnZ(aRAZGlob);
 
+   bool Add2C =  aImPPM.Add2Compens().Val();
+
+
+   double aMaxEvolPt=0 ;
+   double aSomEvolPt=0 ;
+   double aSomPdsEvol=0;
 
    int aNbNN=0;
    for (int aKPm=0 ; aKPm<int(mVPMul.size()) ; aKPm++)
    {
         cOnePtsMult * aPM = mVPMul[aKPm];
         aPM->MemPds() = 0;
+
+        bool aOldMemPtOk = aPM->MemPtOk();
+        Pt3dr aOldMemPt  = aPM->MemPt();
+        if (Add2C)
+        {
+           aPM->SetMemPtOk(false);
+           aPM->MemPt() =  NoMemPt;
+        }
+
         cOneCombinMult * aCOM = aPM->OCM();
         const  cNupletPtsHomologues & aNupl = aPM->NPts() ;
         const std::vector<cPoseCam *> & aVP = aCOM->VP();
@@ -1046,17 +1112,17 @@ double cObsLiaisonMultiple::AddObsLM
                 }
 
 
-                double aDist = euclid(aRes.mPTer-aVP[0]->CurCentre());
-                if (aDist >aMaxDistW)
+                double aDistPtC0 = euclid(aRes.mPTer-aVP[0]->CurCentre());
+                if (aDistPtC0 >aMaxDistW)
                 {
                     static bool first = true;
                     if (first)
                     {
                        first = false;
                        std::cout <<  "WWWwwwaarning !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n";
-	               std::cout << " Dist = " << aDist <<   " Pose 0 " << aVP[0]->Name() << "\n";
+	               std::cout << " Dist = " << aDistPtC0 <<   " Pose 0 " << aVP[0]->Name() << "\n";
                     }
-                    if (aDist >aMaxDistE)
+                    if (aDistPtC0 >aMaxDistE)
                     {
                         for (int aKC=0 ; aKC<int(aVP.size()) ; aKC++)
                            aVP[aKC]->Trace();
@@ -1213,7 +1279,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                    aPM->MemPds() = aPdsIm;
                 }
 
-                if (   ((aPdsIm >0) &&  aImPPM.Add2Compens().Val()) && isInF3D)
+                if (((aPdsIm >0) &&  Add2C) && isInF3D)
                 {
                     aNbPdsNN++;   
                     aNbMultPdsNN += (aNbRInit>=3);
@@ -1238,15 +1304,26 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                      aCOM->LiaisTer()->SetMulPdsGlob(1.0);
                      aCOM->LiaisTer()->SetTerrainInit(false);  // Conservatif
 
+                     if (aRes2.mOKRP3I)
+                     {
+                        aSO.AddSEP(aRes2.mSomPondEr);
+                        aPM->MemPds() = aPdsIm;
 
+                        aPM->SetMemPtOk(true);
+                        aPM->MemPt() = aRes2.mPTer;
+                        if (aOldMemPtOk)
+                        {
+                            Pt3dr aPDif = aRes2.mPTer-aOldMemPt;
+                            // On calcule une variation  normalise / distance au centre camera 0
+                            double aVarPt = euclid(aPDif) / aDistPtC0;
 
-
-                    if (aRes2.mOKRP3I)
-                    {
-                       aSO.AddSEP(aRes2.mSomPondEr);
-                       aPM->MemPds() = aPdsIm;
-                    }
-                    // aNb++;
+                            double aPdsDif = 1.0;
+                            
+                            aSomPdsEvol += aPdsDif;
+                            aSomEvolPt +=  aPdsDif * aVarPt;
+                            ElSetMax(aMaxEvolPt,aVarPt);
+                        }
+                     }
                 }
                 if (anAVA &&  (anAVA->VA().TypeVerif()==eVerifDZ) && (aPdsIm >0) && (aNbRInit>=3))
                 {
@@ -1269,12 +1346,27 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
         }
         BugUPL = false;
    }
+   if (aSomPdsEvol)
+   {
+      aSO.AddEvol(aSomPdsEvol,aSomEvolPt,aMaxEvolPt);
+      aSomEvolPt /= aSomPdsEvol;
+   }
+
+
+
 
    aSEr2 /= aSPds2;
    int aNbP = mVPMul.size();
       
   mVPoses[0]->Pose()->SetNbPtsMulNN(aNbMultPdsNN+mVPoses[0]->Pose()->NbPtsMulNN());
 
+
+
+/*
+   double aMaxEvolPt=0 ;
+   double aSomEvolPt=0 ;
+   double aSomPdsEvol=0;
+*/
    if (aSO.AddEq())
    {
        if (int(aImPPM.Show().Val()) >= int(eNSM_Paquet))
@@ -1284,15 +1376,23 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
           // myfile = std::cout;
 
           if (mEqS)
+          {
              mAppli.COUT() << "PDS Surf = " << aSomPSurf << "\n";
+          }
           mAppli.COUT() << "RES:["  << mVPoses[0]->NameCam() << "]"
                 <<  " ER2 " << sqrt(aSEr2)
                 << " Nn " << (100.0*aNbPdsNN)/double(aNbP) 
                 << " Of " << aNbP
                 << " Mul " << aNbMult
                 << " Mul-NN " << aNbMultPdsNN
-                <<  " Time " << aT0.uval()
-                << "\n";
+                <<  " Time " << aT0.uval();
+
+          if (0 && aSomPdsEvol)
+          {
+             mAppli.COUT() << " Evol, Moy=" <<  aSomEvolPt << " Max=" << aMaxEvolPt ;
+          }
+
+          mAppli.COUT() << "\n";
        }
        cElRegex_Ptr aFilterImAff  = mAppli.Param().Im2Aff().ValWithDef(0);  
        bool aMatchIm0 =   (aFilterImAff==0)

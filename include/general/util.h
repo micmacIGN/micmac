@@ -473,8 +473,8 @@ template <class Type> inline void ElSwap (Type &v1,Type & v2)
 template <class Type> inline void set_min_max (Type &v1,Type & v2) {  if (v1 > v2) ElSwap(v1,v2);}
 
 
-template <class Type,class T2> inline void ElSetMax (Type & v1,T2 v2) {if (v1<v2) v1 = v2;}
-template <class Type,class T2> inline void ElSetMin (Type & v1,T2 v2) {if (v1>v2) v1 = v2;}
+template <class Type,class T2> inline void ElSetMax (Type & v1,T2 v2) {if (v1<v2) v1=(Type)v2;}
+template <class Type,class T2> inline void ElSetMin (Type & v1,T2 v2) {if (v1>v2) v1=(Type)v2;}
 
 template <class Type> inline void SetInRange
                       (const Type & v0,Type & aV,const Type & v1)
@@ -1154,7 +1154,7 @@ class cEl_GPAO
          void  GenerateMakeFile(const std::string & aNameFile) const ;
          void  GenerateMakeFile(const std::string & aNameFile,bool ModeAdditif) const;
          void ExeParal(std::string aFile,int aNbProc = -1,bool SuprFile=true);
-
+		 void dump( std::ostream &io_ostream=std::cout ) const;
      private :
          std::map<std::string,cElTask *>  mDico;
 

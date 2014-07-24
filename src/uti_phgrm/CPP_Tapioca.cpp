@@ -39,13 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 #if (ELISE_QT_VERSION >= 4)
-#ifdef Int
-#undef Int
-#endif
-
-#include <QApplication>
-#include <QInputDialog>
-
 #include "general/visual_mainwindow.h"
 #endif
 

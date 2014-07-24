@@ -88,6 +88,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CFour19x2.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFour19x2.cpp"
 
+
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CCamBilin.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CCamBilin.cpp"
+
+
+
+
 #endif // ELISE_INSERT_CODE_GEN
 
 

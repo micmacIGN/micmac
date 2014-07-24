@@ -2,14 +2,21 @@
 #include "ui_Settings.h"
 #include "ui_Help.h"
 
-cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), _ui(new Ui::SettingsDialog)
+cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent)
+  , _ui(new Ui::SettingsDialog)
+  , pageHidden(false)
+  , lineItemHidden(false)
 {
     _ui->setupUi(this);
 
     setWindowFlags(Qt::Tool/*Qt::Dialog | Qt::WindowStaysOnTopHint*/);
 
     _parameters = params;
-    _oldParameters = *params;
+
+    list<string> languages = ListOfVal(eEsperanto,"e");
+    list<string>::const_iterator it = languages.begin();
+    for (; it != languages.end(); it++)
+        _ui->comboBox->addItem(QString((*it).c_str()));
 
     refresh();
 
@@ -27,30 +34,6 @@ void cSettingsDlg::setParameters(cParameters &params)
         _parameters = new cParameters();
 
      _parameters = &params;
-}
-
-void cSettingsDlg::on_NBF_x_spinBox_valueChanged(int value)
-{
-    int y = _parameters->getNbFen().y();
-    _parameters->setNbFen(QPoint(value, y));
-}
-
-void cSettingsDlg::on_NBF_y_spinBox_valueChanged(int value)
-{
-    int x = _parameters->getNbFen().x();
-    _parameters->setNbFen(QPoint(x, value));
-}
-
-void cSettingsDlg::on_WindowWidth_spinBox_valueChanged(int value)
-{
-    int y = _parameters->getSzFen().height();
-    _parameters->setSzFen(QSize(value, y));
-}
-
-void cSettingsDlg::on_WindowHeight_spinBox_valueChanged(int value)
-{
-    int x = _parameters->getSzFen().width();
-    _parameters->setSzFen(QSize(x, value));
 }
 
 void cSettingsDlg::on_LineThickness_doubleSpinBox_valueChanged(double val)
@@ -129,17 +112,41 @@ void deleteChildWidgets(QLayoutItem *item)
 
 void cSettingsDlg::hidePage()
 {
-    _ui->toolBox->widget(3)->hide();
-    _ui->toolBox->removeItem(3);
+    pageHidden = true;
 
+    //hide page 2 (point creation mode)
+    _ui->toolBox->widget(2)->hide();
+    _ui->toolBox->removeItem(2);
+
+    //hide items in page 2 (other display settings)
     for (int aK=0; aK<  _ui->gridLayout_3->columnCount();++aK)
     {
+        //zoom factor in zoom window
         QLayoutItem * item0 = _ui->gridLayout_3->itemAtPosition(0, aK);
         if (item0) deleteChildWidgets(item0);
 
+        //prefix for automatic point creation
         QLayoutItem * item1 = _ui->gridLayout_3->itemAtPosition(3, aK);
         if (item1) deleteChildWidgets(item1);
     }
+}
+
+void cSettingsDlg::hideSaisieMasqItems()
+{
+    lineItemHidden = true;
+
+    //hide item in page 1 (other display settings)
+   for (int aK=0; aK < _ui->gridLayout->columnCount();++aK)
+    {
+        //line thickness
+        QLayoutItem * item0 = _ui->gridLayout->itemAtPosition(0, aK);
+        if (item0) deleteChildWidgets(item0);
+    }
+}
+
+void cSettingsDlg::uiShowMasks(bool aBool)
+{
+    _ui->showMasks_checkBox->setChecked(aBool);
 }
 
 void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
@@ -176,10 +183,15 @@ void cSettingsDlg::on_doubleSpinBoxSz_valueChanged(double val)
     _parameters->setPtCreationWindowSize(val);
 }
 
+void cSettingsDlg::on_comboBox_activated(int val)
+{
+    _parameters->setLanguage(val);
+
+    emit langChanged(val);
+}
+
 void  cSettingsDlg::on_okButton_clicked()
 {
-    on_applyButton_clicked();
-
     _parameters->write();
 
     accept();
@@ -194,63 +206,51 @@ void cSettingsDlg::on_cancelButton_clicked()
     reject();
 }
 
-void cSettingsDlg::on_applyButton_clicked()
-{
-    //TODO: a corriger
-    emit nbFenChanged(_parameters->getNbFen() != _oldParameters.getNbFen());
-}
-
-void cSettingsDlg::on_resetButton_clicked()
-{
-    _parameters->read();
-
-    refresh();
-}
-
 void cSettingsDlg::refresh()
 {
-    _ui->NBF_x_spinBox->setValue(_parameters->getNbFen().x());
-    _ui->NBF_y_spinBox->setValue(_parameters->getNbFen().y());
-
-    _ui->WindowWidth_spinBox->setValue( _parameters->getSzFen().width());
-    _ui->WindowHeight_spinBox->setValue(_parameters->getSzFen().height());
-
-    _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
+    if (!lineItemHidden) _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
     _ui->PointDiameter_doubleSpinBox->setValue(_parameters->getPointDiameter());
     _ui->GammaDoubleSpinBox->setValue(_parameters->getGamma());
     _ui->showMasks_checkBox->setChecked(_parameters->getShowMasks());
 
-    _ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
-    _ui->PrefixTextEdit->setText(_parameters->getDefPtName());
+    _ui->shiftStep_doubleSpinBox->setValue(_parameters->getShiftStep());
     _ui->RadiusSpinBox->setValue(_parameters->getSelectionRadius());
 
-    switch (_parameters->getPtCreationMode())
-    {
-        case eNSM_Pts:
-        {
-            _ui->radioButtonStd->setChecked(true);
-            enableMarginSpinBox(false);
-            break;
-        }
-        case eNSM_MinLoc:
-        {
-            _ui->radioButtonMin->setChecked(true);
-            enableMarginSpinBox();
-            break;
-        }
-        case eNSM_MaxLoc:
-        {
-            _ui->radioButtonMax->setChecked(true);
-            enableMarginSpinBox();
-            break;
-        }
-        case eNSM_GeoCube:
-        case eNSM_Plaquette:
-        case eNSM_NonValue:
-            break;
-    }
+    _ui->comboBox->setCurrentIndex(_parameters->getLanguage());
 
-    _ui->doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
+    if (!pageHidden)
+    {
+        _ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
+        _ui->PrefixTextEdit->setText(_parameters->getDefPtName());
+
+        switch (_parameters->getPtCreationMode())
+        {
+            case eNSM_Pts:
+            {
+                _ui->radioButtonStd->setChecked(true);
+                enableMarginSpinBox(false);
+                break;
+            }
+            case eNSM_MinLoc:
+            {
+                _ui->radioButtonMin->setChecked(true);
+                enableMarginSpinBox();
+                break;
+            }
+            case eNSM_MaxLoc:
+            {
+                _ui->radioButtonMax->setChecked(true);
+                enableMarginSpinBox();
+                break;
+            }
+            case eNSM_GeoCube:
+            case eNSM_Plaquette:
+            case eNSM_NonValue:
+                break;
+        }
+
+        _ui->doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
+    }
 
     update();
 }
@@ -269,7 +269,8 @@ cParameters::cParameters():
     _postFix(QString("_mask")),
     _radius(50),
     _eType(eNSM_Pts),
-    _sz(5.f)
+    _sz(5.f),
+    _lang(0)
 {}
 
 cParameters& cParameters::operator =(const cParameters &params)
@@ -293,6 +294,8 @@ cParameters& cParameters::operator =(const cParameters &params)
     _eType          = params._eType;
     _sz             = params._sz;
 
+    _lang           = params._lang;
+
     return *this;
 }
 
@@ -312,7 +315,8 @@ bool cParameters::operator!=(cParameters &p)
             (p._radius         != _radius)  ||
             (p._shiftStep      != _shiftStep)  ||
             (p._eType          != _eType)   ||
-            (p._sz             != _sz)) return true;
+            (p._sz             != _sz) ||
+            (p._lang           != _lang)) return true;
     return  false;
 }
 
@@ -360,6 +364,10 @@ void cParameters::read()
      setPtCreationMode( static_cast<eTypePts> (settings.value("Mode", eNSM_Pts).toInt()));
      setPtCreationWindowSize( settings.value("WindowSize",3.f).toFloat());
      settings.endGroup();
+
+     settings.beginGroup("Language");
+     setLanguage( settings.value("lang", 0).toInt() );
+     settings.endGroup();
 }
 
 void cParameters::write()
@@ -391,6 +399,10 @@ void cParameters::write()
      settings.beginGroup("Point creation");
      settings.setValue("Mode", _eType   );
      settings.setValue("WindowSize", _sz);
+     settings.endGroup();
+
+     settings.beginGroup("Language");
+     settings.setValue("lang", _lang);
      settings.endGroup();
 }
 
@@ -463,3 +475,23 @@ void cHelpDlg::on_okButton_clicked()
 {
     close();
 }
+
+string eToString(const eLANG &anObj)
+{
+    if (anObj==eEnglish)
+       return  "eEnglish";
+    if (anObj==eFrench)
+       return  "eFrench";
+    if (anObj==eSpanish)
+       return  "eSpanish";
+    /*if (anObj==eChinese)
+       return  "eChinese";
+    if (anObj==eArabic)
+       return  "eArabic";
+    if (anObj==eRussian)
+       return  "eRussian";*/
+  std::cout << "Enum = eLANG\n";
+    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+    return "";
+}
+

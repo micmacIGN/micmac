@@ -1,6 +1,5 @@
 #ifndef Define_NotCasa
 #define Define_NotCasa
-#include "StdAfx.h"
 // NOMORE ...
 class cNuageByImage
 {

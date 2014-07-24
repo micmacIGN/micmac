@@ -1299,6 +1299,39 @@ class cAMD_Interf
 int amd_demo_1 (void);
 
 
+/*   
+    0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
+    0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
+*/
+
+
+class cEq12Parametre
+{
+    public :
+        cEq12Parametre();
+        void AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const double&  aPds);
+
+        // Cam 2 Monde
+        std::pair<ElMatrix<double>,Pt3dr> ComputeNonOrtho();
+
+        // Intrinseques + extrinseques
+        std::pair<ElMatrix<double>,ElRotation3D > ComputeOrtho();
+
+    private :
+        L2SysSurResol mSys;
+        std::vector<Pt3dr>  mVPG;
+        std::vector<Pt2dr>  mVPPhgr;
+        std::vector<double> mVPds;
+
+        void ComputeOneObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const double&  aPds);
+
+        // Indexe et valeur permettant de fixer l'arbitraire
+        int    mIndFixArb;
+        double mValueFixArb;
+};
+
+
+
 #endif //  _ELISE_GENERAL_OPTIM_H
 
 

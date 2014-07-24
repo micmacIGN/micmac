@@ -52,7 +52,7 @@ struct CuHostDaPo3D
     {
         ushort dZ   = abs(count(ptZ));
         _ptZ[pt]    = ptZ;
-        _dZ[pt]     = dZ;
+        _dZ[pt]     = dZ; // PREDEFCOR : _dZ[pt]+1 reserved cell
 
     // ATTENTION : Nappe Dynamique!! _maxDz
     // NAPPEMAX

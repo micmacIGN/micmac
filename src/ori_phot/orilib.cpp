@@ -83,6 +83,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define orkMeridienDeParis 	2.0+20.0/60.0+16.0/3600.0	/* 220'16'' Est */
 #endif
 
+
+// extern cDistorBilin GlobFromXmlGridStuct(const cCalibrationInterneGridDef &  aCIG);
+
+
+
 void AdaptDist2PPaEqPPs(NS_ParamChantierPhotogram::cCalibDistortion & aCD)
 {
      if (aCD.ModRad().IsInit())
@@ -3240,6 +3245,7 @@ class cDistFromCIC
                  return  mConv.SensYVideo().Val() ? aP  : Pt2dr(aP.x,mCIC.SzIm().y-aP.y);
            }
 	   CamStenope * Cam();
+	   cCamStenopeBilin * CamBilin();
 
 	   cCamStenopeDistRadPol *  CamDRad();
 	   cCamStenopeModStdPhpgr * CamPhgrStd();
@@ -3264,6 +3270,7 @@ class cDistFromCIC
 	   ElDistRadiale_PolynImpair  DRP(const cCalibrationInternConique & aCIC,const cCalibrationInterneRadiale &,bool C2M);
 
 	   CamStenope              * mCam;
+	   cCamStenopeBilin        * mCamBilin;
 	   cCamStenopeModStdPhpgr  * mCamPS;
 	   cCamStenopeDistRadPol   * mCamDR;
            CamStenopeIdeale        * mCamSI;
@@ -3316,10 +3323,11 @@ cCam_RadFour19x2 * cDistFromCIC::Cam_RadFour19x2()
    return mCam_RadFour19x2;
 }
 
-
-
-
-
+cCamStenopeBilin * cDistFromCIC::CamBilin()
+{
+   ELISE_ASSERT(mCamBilin!=0,"cDistFromCIC::Cam");
+   return mCamBilin;
+}
 
 cCam_Ebner * cDistFromCIC::CamEbner()
 {
@@ -3526,6 +3534,7 @@ cDistFromCIC::cDistFromCIC
        mCam = 0;
        mCamPS =0;
        mCamDR =0;
+       mCamBilin = 0;
        mCamEb = 0;
        mCam_RadFour7x2 = 0;
        mCam_RadFour11x2 = 0;
@@ -3557,6 +3566,13 @@ cDistFromCIC::cDistFromCIC
             mCamSI =  new CamStenopeIdeale(aKC2M,aCIC.F(),aCIC.PP(),aCIC.ParamAF());
 
             mCam = mCamSI;
+       }
+       else if (aCD.ModGridDef().IsInit())
+       {
+            // mCamBilin = GlobFromXmlGridStuct(aCIC.F(),aCIC.PP(),aCD.ModGridDef().Val());
+            mCamBilin = new cCamStenopeBilin(aCIC.F(),aCIC.PP(),cDistorBilin::FromXmlGridStuct(aCD.ModGridDef().Val()));
+            mCam = mCamBilin;
+
        }
        else if (aCD.ModRad().IsInit())
        {
@@ -4378,6 +4394,35 @@ cCamera_Param_Unif_Gen *  Std_Cal_Unif
     }
     return aRes;
 }
+
+
+cCamStenopeBilin *  Std_Cal_Bilin
+                          (
+	                         const cCalibrationInternConique & aCIC,
+			         eConventionsOrientation            aKnownC
+                          )
+{
+    cConvExplicite aConv = MakeExplicite(aKnownC);
+    cDistFromCIC  aDF(aCIC,&aConv,false);
+
+    cCamStenopeBilin * aRes = aDF.CamBilin();
+    if (aCIC.OrIntGlob().IsInit())
+    {
+        aRes->SetIntrImaC2M(AfGC2M(aCIC));
+    }
+    return aRes;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 cCamStenopeDistRadPol * Std_Cal_DRad_C2M
              (

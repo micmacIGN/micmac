@@ -219,7 +219,7 @@ int GlCloud::size()
 GlVertex& GlCloud::getVertex(uint nb_vert)
 {
     if (_vertices.size() > nb_vert)
-    {
+    {        
         return _vertices[nb_vert];
     }
     else

@@ -102,14 +102,17 @@ void LogTime(FILE * aFp,const std::string & aMes)
   fprintf(aFp," PID : %d ;   %s %s",mm_getpid(),aMes.c_str(),asctime (timeinfo));
 }
 
-void LogIn(int  argc,char **  argv,const std::string & aDir)
+void LogIn(int  argc,char **  argv,const std::string & aDir,int aNumArgDir)
 {
    if (! DOLOG_MM3d) return;
    FILE * aFp = FileLogMM3d(aDir);
 
    fprintf(aFp,"=================================================================\n");
    for (int aK=0 ; aK< argc ; aK++)
-       fprintf(aFp,"%s ",argv[aK]);
+   {
+       // MPD : je l'avais deja fait il y a 15 jours, ai pas du commite !!!!  Ca facilite copier-coller sur commande
+       fprintf(aFp,"\"%s\" ",argv[aK]);
+   }
    fprintf(aFp,"\n");
    LogTime(aFp,"[Beginning at ]");
 
@@ -161,9 +164,36 @@ class cMMCom
       cArgLogCom  mLog;
 };
 
+class cCmpMMCom
+{
+public :
+
+    cCmpMMCom(){}
+
+    // Comparison; not case sensitive.
+    bool operator ()(const cMMCom & aArg0, const cMMCom & aArg1)
+    {
+        string first  = aArg0.mName;
+        string second = aArg1.mName;
+
+        unsigned int i=0;
+        while ((i < first.length()) && (i < second.length()))
+        {
+            if (tolower (first[i]) < tolower (second[i])) return true;
+            else if (tolower (first[i]) > tolower (second[i])) return false;
+            i++;
+        }
+
+        if (first.length() < second.length()) return true;
+        else return false;
+    }
+};
 
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
+
+int Init11Param_Main(int argc,char ** argv);
+int New_Tapas_main(int,char **);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -257,8 +287,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Prep4masq",Prep4masq_main," Generates files for making Masks (if SaisieMasq unavailable)"));
        aRes.push_back(cMMCom("Reduc2MM",Reduc2MM_main," Do some stuff"));
        aRes.push_back(cMMCom("ReducHom",ReducHom_main," Do some stuff"));
-       aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation"));
-       aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule"));
+       aRes.push_back(cMMCom("RepLocBascule",RepLocBascule_main," Tool to define a local repair without changing the orientation",cArgLogCom(2)));
+       aRes.push_back(cMMCom("SBGlobBascule",SBGlobBascule_main," Tool for 'scene based global' bascule",cArgLogCom(2)));
        aRes.push_back(cMMCom("HomolFilterMasq",HomFilterMasq_main," Tool for filter homologous points according to masq",cArgLogCom(2)));
 
 
@@ -270,6 +300,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Sift",Sift_main," Tool for extracting points of interest using Lowe's SIFT method"));
        aRes.push_back(cMMCom("SysCoordPolyn",SysCoordPolyn_main," Tool for creating a polynomial coordinate system from a set of known pair of coordinate"));
        aRes.push_back(cMMCom("Tapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLogCom(3)));
+       aRes.push_back(cMMCom("NewTapas",New_Tapas_main,"In dev, will replace Tapas while validated ",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image"));
 
@@ -337,7 +368,12 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SupMntIm",SupMntIm_main," Tool for superposition of Mnt Im & level curve"));
 
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
+       aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo "));
    }
+
+   cCmpMMCom CmpMMCom;
+   std::sort(aRes.begin(),aRes.end(),CmpMMCom);
+
    return aRes;
 }
 
@@ -370,7 +406,6 @@ extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
 extern int  Luc_main(int argc,char ** argv);
-extern int  Vincent_main(int argc,char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  Mathieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
@@ -383,11 +418,20 @@ extern int  TD_Sol3(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
+extern int  DocEx_Introfiltr_main(int,char **);
+#if (ELISE_UNIX)
+extern int  DocEx_Introanalyse_main(int,char **);
+#endif
 extern int VisuCoupeEpip_main(int,char **);
+
 
 int ExoSimulTieP_main(int argc, char** argv);
 int ExoMCI_main(int argc, char** argv);
 int  ExoCorrelEpip_main(int argc,char ** argv);
+
+int  CheckOri_main(int argc,char ** argv);
+int  ResToTxt_main(int argc,char ** argv);
+int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
 
@@ -403,9 +447,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("X3",TD_Sol3,"Some stuff "));
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square library "));
-   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
    aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
-   aRes.push_back(cMMCom("Tests_Vincent",Vincent_main,"tests de Vincent"));
+   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
+   aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
+   aRes.push_back(cMMCom("ResToTxt",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
+   aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
    aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
@@ -416,6 +462,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("TD_Test",TD_Exemple_main,"Test TD "));
    aRes.push_back(cMMCom("DocI0",DocEx_Intro0_main,"Introduction 0 of example from DocElise  "));
    aRes.push_back(cMMCom("DocID2",DocEx_Introd2_main,"Introduction to D2 of example from DocElise  "));
+   aRes.push_back(cMMCom("DocIntrofiltre",DocEx_Introfiltr_main,"Introduction to filter example from DocElise  "));
+#if (ELISE_UNIX)
+   aRes.push_back(cMMCom("DocIntroanalyse",DocEx_Introanalyse_main,"Introduction to image analysis from DocElise  "));
+#endif
    aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualization of epipolar pair (cut)  "));
    aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualization of epipolar pair (cut)  "));
 
@@ -431,6 +481,12 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
    aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump  "));
    aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
+
+    aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an aproximate model "));
+    aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
+
+    cCmpMMCom CmpMMCom;
+    std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
    return aRes;
 }
@@ -454,6 +510,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    if ((argc==1) || ((argc==2) && (std::string(argv[1])=="-help")))
    {
        BanniereMM3D();
+
        std::cout << "mm3d : Allowed commands \n";
        for (unsigned int aKC=0 ; aKC<aVComs.size() ; aKC++)
        {
@@ -500,12 +557,12 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           string outDirectory;
           if (DoLog){
              outDirectory = ( isUsingSeparateDirectories()?MMLogDirectory():DirOfFile(argv[aLog.mNumArgDir])+aLog.mDirSup );
-             LogIn( argc, argv, outDirectory );
+             LogIn( argc, argv, outDirectory,aLog.mNumArgDir );
           }
 
           int aRes =  (aVComs[aKC].mCommand(argc-1,argv+1));
           if (DoLog) LogOut( aRes, outDirectory );
-          
+
           delete PatMach;
           delete PrefMach;
           delete SubMach;

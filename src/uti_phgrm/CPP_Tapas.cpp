@@ -153,6 +153,16 @@ void ShowAuthorizedModel()
        std::cout << "   " << Modele[aKM] << "\n";
 }
 
+bool GlobLibAff = true;
+
+bool GlobLibDec = true;
+bool GlobLibPP  =true;
+bool GlobLibCD=true;
+bool GlobLibFoc=true;
+int  GlobDRadMaxUSer = 100;
+int  GlobDegGen = 100;
+
+
 void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 {
     std::string  aModParam = aMod;
@@ -164,21 +174,43 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
        if (aMod==Modele[aK])
          aKModele = aK;
 
+    int  LocDegGen  = 100;
+    bool LocLibDec = true;
 
-    if (aMod==Modele[0])
+    bool LocLibCD=true;
+    int  LocDRadMaxUSer = 100;
+
+    bool LocLibPP  =true;
+    bool LocLibFoc=true;
+
+
+    if (aMod==Modele[0])  // RadialBasic
     {
        eModAutom = "eCalibAutomRadialBasic";
+
+       LocDegGen = 0;
+       LocLibDec = false;
+       LocDRadMaxUSer = 2;
+       LocLibCD = false;
     }
-    else if ((aMod==Modele[1]) ||  (aMod==Modele[7]))
+    else if ((aMod==Modele[1]) ||  (aMod==Modele[7]))  // RadialExtended +  RadialStd
     {
+       LocDegGen = 0;
+       LocLibDec = false;
+       LocDRadMaxUSer = (aMod==Modele[1]) ? 5 : 3;
        eModAutom = "eCalibAutomRadial";
     }
-    else if (aMod==Modele[2])
+    else if (aMod==Modele[2])  //  Fraser
     {
+        LocDegGen = 1;
+        LocDRadMaxUSer = 3;
         eModAutom = "eCalibAutomPhgrStd";
     }
-    else if ((aMod==Modele[3]) || (aMod==Modele[6]))
+    else if ((aMod==Modele[3]) || (aMod==Modele[6]))   //   FishEyeEqui +  HemiEqui
     {
+        LocDegGen = 2;
+        LocDRadMaxUSer = 5;
+
         eModAutom = "eCalibAutomFishEyeLineaire";
         aModParam  = Modele[3];
         if (aMod==Modele[6])
@@ -187,22 +219,39 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
                PropDiag = 0.52;
         }
     }
-    else if ((aMod==Modele[9]) || (aMod==Modele[10]))
+    else if ((aMod==Modele[9]) || (aMod==Modele[10])) // "FishEyeBasic" +  "FE_EquiSolBasic"
     {
+        LocDegGen = 1;
+        LocDRadMaxUSer = 3;
+        LocLibDec = false;
+
         eModAutom = "eCalibAutomFishEyeLineaire";
         if (aMod==Modele[10])
            eModAutom = "eCalibAutomFishEyeEquiSolid";
         aModParam  = Modele[9];
     }
-    else if ((aMod==Modele[4]) || (aMod==Modele[5]))
+    else if ((aMod==Modele[4]) || (aMod==Modele[5])) // AutoCal  +  Figee
     {
+        if (aMod==Modele[5])
+        {
+           LocDegGen  = 0;
+           LocLibDec = false;
+           LocLibCD= false;
+           LocDRadMaxUSer = 0;
+           LocLibPP  =false;
+           LocLibFoc=false;
+        }
         eModAutom = "eCalibAutomNone";
     }
-    else if (aMod==Modele[8])
+    else if (aMod==Modele[8])  //  FraserBasic
     {
         eModAutom = "eCalibAutomPhgrStdBasic";
         aModParam= Modele[2];
+        LocDegGen = 1;
+        LocLibDec = true;
+        LocDRadMaxUSer = 3;
     }
+    // Four7x2  => Four19x2
     else if (     (aMod==Modele[11])
               ||  (aMod==Modele[12])
               ||  (aMod==Modele[13])
@@ -211,6 +260,10 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     {
         eModAutom = "eCalibAutom" + aMod;
         aModParam = "Four";
+
+        LocDRadMaxUSer = 3 + (aKModele-11) * 2;
+        LocDegGen = 1;
+        LocLibDec = false;
 
         aDegRadMax =  3 + (aKModele-11) * 2;
         aDegGenMax = 2;
@@ -221,8 +274,21 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         ELISE_ASSERT(false,"Value is not a correct model\n");
     }
 
+    if (! EAMIsInit(&GlobLibDec))       GlobLibDec = LocLibDec;
+    if (! EAMIsInit(&GlobLibPP ))       GlobLibPP = LocLibPP ;
+    if (! EAMIsInit(&GlobLibCD ))       GlobLibCD = LocLibCD ;
+    if (! EAMIsInit(&GlobLibFoc ))      GlobLibFoc = LocLibFoc ;
+    if (! EAMIsInit(&GlobDRadMaxUSer )) GlobDRadMaxUSer = LocDRadMaxUSer ;
+    if (! EAMIsInit(&GlobDegGen ))      GlobDegGen = LocDegGen ;
+
     FileLibere = "Param-"+aModParam+".xml";
 }
+/*
+bool GlobLibFoc=true;
+int  GlobDRadMaxUSer = 100;
+int  GlobDegGen = 100;
+*/
+
 
 int Tapas_main(int argc,char ** argv)
 {
@@ -242,6 +308,7 @@ int Tapas_main(int argc,char ** argv)
     Pt2dr Focales(-1,-1);
     Pt2dr aPPDec(-1,-1);
     std::string SauvAutom="";
+    std::string aSetHom="";
     double  TolLPPCD;
 
     if ((argc>=2)  && (std::string(argv[1])==std::string("-help")))
@@ -258,18 +325,11 @@ int Tapas_main(int argc,char ** argv)
     bool MOI = false;
     int DBF = 0;
 
-    bool LibAff = true;
-    bool LibDec = true;
 
     std::string  aRapTxt;
     std::string  aPoseFigee="";
     bool Debug = false;
 
-    int  aDRadMaxUser = -1;
-
-    bool aDoPP=true;
-    bool aDoCD=true;
-    bool aDoFoc=true;
 
     ElInitArgMain
     (
@@ -292,15 +352,16 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(MOI,"MOI",true,"MOI", eSAM_IsBool)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ",eSAM_InternalUse)
                     << EAM(Debug,"Debug",true,"Partial file for debug", eSAM_InternalUse)
-                    << EAM(aDRadMaxUser,"DegRadMax",true,"Max degree of radial, defaut dependant of model")
-                    << EAM(LibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
-                    << EAM(LibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
-                    << EAM(aDoPP,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
-                    << EAM(aDoCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
-                    << EAM(aDoFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
+                    << EAM(GlobDRadMaxUSer,"DegRadMax",true,"Max degree of radial, default dependant of model")
+                    << EAM(GlobLibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
+                    << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
+                    << EAM(GlobLibPP  ,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
+                    << EAM(GlobLibCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
+                    << EAM(GlobLibFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
                     << EAM(aRapTxt,"RapTxt",true, "RapTxt", eSAM_NoInit)
                     << EAM(TolLPPCD,"LinkPPaPPs",true, "Link PPa and PPs (double)", eSAM_NoInit)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
+                    << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
     );
 
     if (!MMVisualMode)
@@ -373,30 +434,36 @@ int Tapas_main(int argc,char ** argv)
                            + std::string(" +AeroIn=-") + AeroIn
                            + std::string(" +VitesseInit=") + ToString(2+aVitesseInit)
                            + std::string(" +PropDiagU=") + ToString(PropDiag)
-                           + std::string(" +ValDec=") + (LibDec ?"eLiberte_Phgr_Std_Dec" : "eFige_Phgr_Std_Dec")
-                           + std::string(" +ValDecPP=") + (LibDec ?"eLiberte_Dec1" : "eLiberte_Dec0")
-                           + std::string(" +ValAffPP=") + (LibDec ?"eLiberteParamDeg_1" : "eLiberteParamDeg_0")
-                           + std::string(" +ValAff=") + (LibAff ?"eLiberte_Phgr_Std_Aff" : "eFige_Phgr_Std_Aff")
+                           + std::string(" +ValDec=") + (GlobLibDec ?"eLiberte_Phgr_Std_Dec" : "eFige_Phgr_Std_Dec")
+                           + std::string(" +ValDecPP=") + (GlobLibDec ?"eLiberte_Dec1" : "eLiberte_Dec0")
+                           + std::string(" +ValAffPP=") + (GlobLibDec ?"eLiberteParamDeg_1" : "eLiberteParamDeg_0")
+                           + std::string(" +ValAff=") + (GlobLibAff ?"eLiberte_Phgr_Std_Aff" : "eFige_Phgr_Std_Aff")
 
                         ;
 
-    if (EAMIsInit(&aDoPP))
-       aCom = aCom + std::string(" +DoPP=") + ToString(aDoPP) + std::string(" ");
-    if (EAMIsInit(&aDoCD))
-       aCom = aCom + std::string(" +DoCD=") + ToString(aDoCD) + std::string(" ");
-    if (EAMIsInit(&aDoFoc))
-       aCom = aCom + std::string(" +DoFoc=") + ToString(aDoFoc) + std::string(" ");
+    if (EAMIsInit(&GlobLibPP  ))
+       aCom = aCom + std::string(" +DoPP=") + ToString(GlobLibPP  ) + std::string(" ");
+    if (EAMIsInit(&GlobLibCD))
+       aCom = aCom + std::string(" +DoCD=") + ToString(GlobLibCD) + std::string(" ");
+    if (EAMIsInit(&GlobLibFoc))
+       aCom = aCom + std::string(" +DoFoc=") + ToString(GlobLibFoc) + std::string(" ");
 
 
+        StdCorrecNameHomol(aSetHom,aDir);
+        if (EAMIsInit(&aSetHom))
+        {
+            aCom = aCom + std::string(" +SetHom=") + aSetHom;
+        }
 
-        if (EAMIsInit(&aDRadMaxUser))
-           aDegRadMax = aDRadMaxUser;
+
+        if (EAMIsInit(&GlobDRadMaxUSer))
+           aDegRadMax = GlobDRadMaxUSer;
 
         if (aDegRadMax<100)
            aCom = aCom +  std::string(" +DegRadMax=") + ToString(aDegRadMax) + std::string(" ");
 
 
-        if (EAMIsInit(&LibAff) && (!LibAff))
+        if (EAMIsInit(&GlobLibAff) && (!GlobLibAff))
         {
               aCom = aCom + " +LiberteAff=false ";
         }

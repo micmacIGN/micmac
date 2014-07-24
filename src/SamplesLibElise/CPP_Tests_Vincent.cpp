@@ -1,24 +1,24 @@
 /*Header-MicMac-eLiSe-25/06/2007
 
-    MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
-    eLiSe  : ELements of an Image Software Environnement
+	MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
+	eLiSe  : ELements of an Image Software Environnement
 
-    www.micmac.ign.fr
+	www.micmac.ign.fr
 
 
-    Copyright : Institut Geographique National
-    Author : Marc Pierrot Deseilligny
-    Contributors : Gregoire Maillet, Didier Boldo.
+	Copyright : Institut Geographique National
+	Author : Marc Pierrot Deseilligny
+	Contributors : Gregoire Maillet, Didier Boldo.
 
 [1] M. Pierrot-Deseilligny, N. Paparoditis.
-    "A multiresolution and optimization-based image matching approach:
-    An application to surface reconstruction from SPOT5-HRS stereo imagery."
-    In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
-    (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
+	"A multiresolution and optimization-based image matching approach:
+	An application to surface reconstruction from SPOT5-HRS stereo imagery."
+	In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
+	(With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in
-    Bulletin d'information de l'Institut Geographique National, 2007.
+	d'images, adapte au contexte geograhique" to appears in
+	Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
@@ -30,15 +30,18 @@ Francais :
 
 English :
 
-    MicMac is an open source software specialized in image matching
-    for research in geographic information. MicMac is built on the
-    eLiSe image library. MicMac is governed by the  "Cecill-B licence".
-    See below and http://www.cecill.info.
+	MicMac is an open source software specialized in image matching
+	for research in geographic information. MicMac is built on the
+	eLiSe image library. MicMac is governed by the  "Cecill-B licence".
+	See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 
 // Main header in which a lot of libraries are included
 #include "StdAfx.h"
+#if (ELISE_unix)
+	#include "dirent.h"
+#endif
 
 // List  of classes
 
@@ -47,164 +50,164 @@ class cCMP_Appli;
 
 class cCMP_Ima
 {
-    public :
-        cCMP_Ima(cCMP_Appli & anAppli,const std::string & aName, const std::string & aOri);
-        Pt3dr ManipImage();
-    //private :
-        cCMP_Appli &   mAppli;
-        CamStenope *    mCam;
-        std::string mNameOri;
-        std::string     mName;
+	public :
+		cCMP_Ima(cCMP_Appli & anAppli,const std::string & aName, const std::string & aOri);
+		Pt3dr ManipImage();
+	//private :
+		cCMP_Appli &   mAppli;
+		CamStenope *	mCam;
+		std::string mNameOri;
+		std::string	 mName;
 };
 
 class cCMP_Appli
 {
-    public :
+	public :
 		// Main function
-        cCMP_Appli(int argc, char** argv);
-        cInterfChantierNameManipulateur * ICNM() const {return mICNM;}
-        std::string NameIm2NameOri(const std::string &, const std::string &) const;
-    private :
-        std::string mOri1;
-        std::string mOri2;
-        std::string mOut;
-        std::string mFullName;
-        std::string mPat1;
-        std::string mPat2;
-        std::string mDir1;
-        std::string mDir2;
-        std::list<std::string> mLFile1;
-        std::list<std::string> mLFile2;
-        cInterfChantierNameManipulateur * mICNM;
-        std::vector<cCMP_Ima *>          mIms1;
-        std::vector<cCMP_Ima *>          mIms2;
-        // const std::string & Dir() const {return mDir;}
+		cCMP_Appli(int argc, char** argv);
+		cInterfChantierNameManipulateur * ICNM() const {return mICNM;}
+		std::string NameIm2NameOri(const std::string &, const std::string &) const;
+	private :
+		std::string mOri1;
+		std::string mOri2;
+		std::string mOut;
+		std::string mFullName;
+		std::string mPat1;
+		std::string mPat2;
+		std::string mDir1;
+		std::string mDir2;
+		std::list<std::string> mLFile1;
+		std::list<std::string> mLFile2;
+		cInterfChantierNameManipulateur * mICNM;
+		std::vector<cCMP_Ima *>		  mIms1;
+		std::vector<cCMP_Ima *>		  mIms2;
+		// const std::string & Dir() const {return mDir;}
 };
 
 /********************************************************************/
-/*                                                                  */
-/*         cCMP_Ima                                                 */
-/*                                                                  */
+/*																  */
+/*		 cCMP_Ima												 */
+/*																  */
 /********************************************************************/
 
 cCMP_Ima::cCMP_Ima(cCMP_Appli & anAppli,const std::string & aName, const std::string & aOri) :
    mAppli  (anAppli),
    mName   (aName)
 {
-    mNameOri  = mAppli.NameIm2NameOri(mName,aOri);
-    mCam      = CamOrientGenFromFile(mNameOri,mAppli.ICNM());
+	mNameOri  = mAppli.NameIm2NameOri(mName,aOri);
+	mCam	  = CamOrientGenFromFile(mNameOri,mAppli.ICNM());
 
 }
 
 Pt3dr cCMP_Ima::ManipImage()
 {
-    Pt3dr mCentreCam = mCam->VraiOpticalCenter();
-    return mCentreCam;
+	Pt3dr mCentreCam = mCam->VraiOpticalCenter();
+	return mCentreCam;
 }
 
 
 /********************************************************************/
-/*                                                                  */
-/*         cCMP_Appli                                               */
-/*                                                                  */
+/*																  */
+/*		 cCMP_Appli											   */
+/*																  */
 /********************************************************************/
 
 
 cCMP_Appli::cCMP_Appli(int argc, char** argv)
 {
-    // Initialisation of the arguments
+	// Initialisation of the arguments
 
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pat)")
-                    << EAMC(mOri1,"First Orientation")
-                    << EAMC(mOri2,"Second Orientation"),
-        LArgMain()  << EAM(mOut,"Out",true,"Output result file")
-    );
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pat)")
+					<< EAMC(mOri1,"First Orientation")
+					<< EAMC(mOri2,"Second Orientation"),
+		LArgMain()  << EAM(mOut,"Out",true,"Output result file")
+	);
 
-    // Initialize name manipulator & files
-    SplitDirAndFile(mDir1,mPat1,mFullName);
+	// Initialize name manipulator & files
+	SplitDirAndFile(mDir1,mPat1,mFullName);
 
-    cout << "Ori1 : " << mOri1 << "\tOri2 : " << mOri2 << "\tOut : " << mOut << endl;
-    // Get the list of files from the directory and pattern
-    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir1);
-    mLFile1 = mICNM->StdGetListOfFile(mPat1);
+	cout << "Ori1 : " << mOri1 << "\tOri2 : " << mOri2 << "\tOut : " << mOut << endl;
+	// Get the list of files from the directory and pattern
+	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir1);
+	mLFile1 = mICNM->StdGetListOfFile(mPat1);
 	// If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
-    StdCorrecNameOrient(mOri1,mDir1);
+	StdCorrecNameOrient(mOri1,mDir1);
 
-    SplitDirAndFile(mDir2,mPat2,mFullName);
-    // Get the list of files from the directory and pattern
-    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir2);
-    mLFile2 = mICNM->StdGetListOfFile(mPat2);
+	SplitDirAndFile(mDir2,mPat2,mFullName);
+	// Get the list of files from the directory and pattern
+	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir2);
+	mLFile2 = mICNM->StdGetListOfFile(mPat2);
 	// If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
-    StdCorrecNameOrient(mOri2,mDir2);
+	StdCorrecNameOrient(mOri2,mDir2);
 
-    if (mOut == ""){mOut=mOri1+"_"+mOri2+".txt";};
+	if (mOut == ""){mOut=mOri1+"_"+mOri2+".txt";};
 
-    for (
-              std::list<std::string>::iterator itS=mLFile1.begin();
-              itS!=mLFile1.end();
-              itS++
-              )
-     {
-           cCMP_Ima * aNewIm1 = new  cCMP_Ima(*this,*itS,mOri1);
-           cCMP_Ima * aNewIm2 = new  cCMP_Ima(*this,*itS,mOri2);
+	for (
+			  std::list<std::string>::iterator itS=mLFile1.begin();
+			  itS!=mLFile1.end();
+			  itS++
+			  )
+	 {
+		   cCMP_Ima * aNewIm1 = new  cCMP_Ima(*this,*itS,mOri1);
+		   cCMP_Ima * aNewIm2 = new  cCMP_Ima(*this,*itS,mOri2);
 
-           mIms1.push_back(aNewIm1);
-           mIms2.push_back(aNewIm2);
-     }
+		   mIms1.push_back(aNewIm1);
+		   mIms2.push_back(aNewIm2);
+	 }
 
-     Pt3dr mDiffCentre;
-     vector <Pt3dr> mVDCentre;
-     for (unsigned int i = 0 ; i < mIms1.size() ; i++)
-     {
-        if (mIms1[i]->mName != mIms2[i]->mName) { cout << "!!!!!!!!! NOMS D'IMAGES INCOHÉRENTS !!!!!!!!!" << endl;}
-        else
-        {
-           Pt3dr mCentre1 = mIms1[i]->ManipImage();
-           Pt3dr mCentre2 = mIms2[i]->ManipImage();
-           mDiffCentre = mCentre1 - mCentre2;
-           cout << "Image : " << mIms1[i]->mName << " " << mDiffCentre << endl;
-           mVDCentre.push_back(mDiffCentre);
-        }
-     }
+	 Pt3dr mDiffCentre;
+	 vector <Pt3dr> mVDCentre;
+	 for (unsigned int i = 0 ; i < mIms1.size() ; i++)
+	 {
+		if (mIms1[i]->mName != mIms2[i]->mName) { cout << "!!!!!!!!! NOMS D'IMAGES INCOHÉRENTS !!!!!!!!!" << endl;}
+		else
+		{
+		   Pt3dr mCentre1 = mIms1[i]->ManipImage();
+		   Pt3dr mCentre2 = mIms2[i]->ManipImage();
+		   mDiffCentre = mCentre1 - mCentre2;
+		   cout << "Image : " << mIms1[i]->mName << " " << mDiffCentre << endl;
+		   mVDCentre.push_back(mDiffCentre);
+		}
+	 }
 /*
 double dX(0),dY(0),dZ(0);
-     for (unsigned int i = 0 ; i < mVDCentre.size() ; i++)
-     {
+	 for (unsigned int i = 0 ; i < mVDCentre.size() ; i++)
+	 {
 
-        cout << "dX = " << dX  << "\tdY = " << dY << "\tdZ = " << dZ << endl;
-        dX = dX + abs(mVDCentre[i].x);
-        dY = dY + abs(mVDCentre[i].y);
-        dZ = dZ + abs(mVDCentre[i].z);
-     }
-     cout << "Ecarts moyen absolus en X : " << dX/mVDCentre.size()
-          << "\t en Y : " << dY/mVDCentre.size()
-          << "\ten Z : " << dZ/mVDCentre.size() << endl;
+		cout << "dX = " << dX  << "\tdY = " << dY << "\tdZ = " << dZ << endl;
+		dX = dX + abs(mVDCentre[i].x);
+		dY = dY + abs(mVDCentre[i].y);
+		dZ = dZ + abs(mVDCentre[i].z);
+	 }
+	 cout << "Ecarts moyen absolus en X : " << dX/mVDCentre.size()
+		  << "\t en Y : " << dY/mVDCentre.size()
+		  << "\ten Z : " << dZ/mVDCentre.size() << endl;
 */
 }
 
 
 std::string cCMP_Appli::NameIm2NameOri(const std::string & aNameIm, const std::string & aOri) const
 {
-    return mICNM->Assoc1To1
-    (
-        "NKS-Assoc-Im2Orient@-"+aOri+"@",
-        aNameIm,
-        true
-    );
+	return mICNM->Assoc1To1
+	(
+		"NKS-Assoc-Im2Orient@-"+aOri+"@",
+		aNameIm,
+		true
+	);
 }
 
 
 /********************************************************************/
-/*                                                                  */
-/*         cTD_Camera                                               */
-/*                                                                  */
+/*																  */
+/*		 cTD_Camera											   */
+/*																  */
 /********************************************************************/
 
 // Main exercise
-int Vincent_main1(int argc, char** argv)
+int CheckOri_main(int argc, char** argv)
 {
 /* Retourne, à partir de 2 orientations, les différences en X, Y, Z associées à chaque caméra */
    cCMP_Appli anAppli(argc,argv);
@@ -212,213 +215,600 @@ int Vincent_main1(int argc, char** argv)
    return EXIT_SUCCESS;
 }
 
-int Vincent_main2(int argc, char** argv)
+Pt3dr SplitToPt3dr(string inS)
+{
+	inS=inS.substr(1,inS.size()-2); 	// delete [ & ]
+	double rX,rY,rZ;
+	Pt3dr myPoint;
+	for (unsigned int i =0 ; i < inS.size() ; i++)
+	{
+		if (inS[i] == ',')
+		{
+			std::string inS2 = inS.substr(0,i);
+			rX = atof(inS2.c_str());
+			myPoint.x=rX;
+			inS=inS.substr(i+1,inS.size()-i-1);
+		}
+	}
+	for (unsigned int i =0 ; i < inS.size() ; i++)
+	{
+		if (inS[i] == ',')
+		{
+			std::string inS2 = inS.substr(0,i);
+			rY = atof(inS2.c_str());
+			myPoint.y=rY;
+			inS=inS.substr(i+1,inS.size()-i-1);
+			rZ = atof(inS.c_str());
+			myPoint.z=rZ;
+		}
+	}
+	
+	return myPoint;
+}
+
+int ResToTxt_main(int argc, char** argv)
 {
 /* Transforme résidus de GCPBascule (utiliser GCPBasc ... | tee myFile.txt) en un fichier "NamePt dX dY dZ sigmaX sY sZ eMoyPixel eMaxPixel")*/
-    string mNameIn, mNameOut("");
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(mNameIn,"Name of the residuals file"),
-        LArgMain()  << EAM(mNameOut,"Out",true,"File to save the results")
-    );
-    ifstream fin (mNameIn.c_str());
-    string mRead;
-    int i=0;
-    ofstream fout (mNameOut.c_str(),ios::out);
-    while (fin >> mRead){
+	string mNameIn, mNameOut("");
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain()  << EAMC(mNameIn,"Name of the residuals file"),
+		LArgMain()  << EAM(mNameOut,"Out",true,"File to save the results")
+	);
+	
+	ifstream fin (mNameIn.c_str());
+	ofstream fout (mNameOut.c_str(),ios::out);
+	string 	 mRead;
+	int 	 i=0;
+	double   rImMoy(0),
+			 rXmoy(0),
+			 rYmoy(0),
+			 rZmoy(0);
+	Pt3dr 	 ptRes, 
+			 ptPres;
+	vector <Pt3dr> ptResLs;
+	vector <double> rImMoyLs,
+					rImMaxLs;
+			 
+	while (fin >> mRead){
 
-        if (mRead == "--NamePt"){i++;}
-        if (i!=0){i++;}
-        if (i==3){fout << mRead << " ";}
-        if (i==6){fout << mRead << " ";}
-        if (i==13){fout << mRead << " ";}
-        if (i==20){fout << mRead << " ";}
-        if (i==25){
-            fout << mRead << "\n";}
-        if (i!=0){cout << mRead << " at " << i << endl;}
-        if (mRead == "For"){i=0;}
-    }
-    fout.close();
+		if (mRead == "--NamePt"){i++;}
+		if (i!=0){i++;}
+		if (i==3){fout << mRead << " ";}	// Id
+		if (i==6)		// [rX,rY,rZ]
+		{
+			ptRes = SplitToPt3dr (mRead);
+			ptResLs.push_back(ptRes);
+			fout << ptRes.x << " " << ptRes.y << " " << ptRes.z << " ";
+		}
+		if (i==13)
+		{				// [pX,pY,pZ]
+			ptPres = SplitToPt3dr (mRead);
+			fout << ptPres.x << " " << ptPres.y << " " << ptPres.z << " ";
+		}
+		if (i==20)		// rImMoy
+		{
+			fout << mRead << " ";
+			rImMoyLs.push_back(atof(mRead.c_str()));
+		}
+		if (i==25)
+		{				// rImMax
+			fout << mRead << "\n";
+			rImMoyLs.push_back(atof(mRead.c_str()));
+		}
+		if (mRead == "For"){i=0;}
+	}
+	
+	for (unsigned int i=0;i<ptResLs.size();i++)
+	{
+		rXmoy += fabs(ptResLs[i].x);
+		rYmoy += fabs(ptResLs[i].y);
+		rZmoy += fabs(ptResLs[i].z);
+		rImMoy += rImMoyLs[i];
+	}
+	rXmoy = rXmoy/ptResLs.size();
+	rYmoy = rYmoy/ptResLs.size();
+	rZmoy = rZmoy/ptResLs.size();
+	double rXYZ = sqrt(rXmoy*rXmoy + rYmoy*rYmoy + rZmoy*rZmoy);
+	rImMoy = rImMoy/ptResLs.size();
+	
+	fout << "\nMEAN ABSOLUTE ERROR :\n"
+		 << "X : " << rXmoy
+		 <<" m\nY : " << rYmoy
+		 <<" m\nZ : " << rZmoy
+		 <<" m\nXYZ : " << rXYZ
+		 <<" m\nImage : " << rImMoy << " pixel\n";
+		  
+	cout << "\nMEAN ABSOLUTE ERROR :\n"
+		 << "X : " << rXmoy
+		 <<" m\nY : " << rYmoy
+		 <<" m\nZ : " << rZmoy
+		 <<" m\nXYZ : " << rXYZ
+		 <<" m\nImage : " << rImMoy << " pixel\n";
+	fout.close();
    return EXIT_SUCCESS;
 }
 
-int Vincent_main(int argc, char** argv)
+void WriteAppuis(vector <pair <std::string,float> > ListOfDiffAppuis, ofstream &fout)
 {
-	
-	/* QualityTime : programme d'analyse qualitative des résultats générés.
-	 * S'éxécute après une boucle de travail complète (MicMac/Malt en géométrie terrain, orthophoto générée)
-	 * Le Programme prend en entrée : GCP.xml et NuageImProf-Etape9.xml; 
-		* Option : Nom de Ortho-MEC-Malt ; Nom du fichier de mesures image (pour distinguer appuis/contrôle), taille  de l'image
-     * Le programme en sortie va créer un dossier dans lequel :
-		* Un fichier .txt de la forme :
-		    * Points d'appuis (utilisés pendant le calcul)
-			    * Nom du point	Différence entre altitude dans le fichier, et altitude obtenue en interpolant le MNT
-		    * Idem pour les points de contrôle (si option ImageMeasure indiquée, alors on distingue contrôle/appuis)
-		    * Calcul de l'écart moyen absolu, 
-		* Génère des imagettes individuelles (256x256pixels) autour de chaque GCP, une croix(16x16) au centre, en haut : nom du point [différence entre xml et mnt]
-		      * ULTIME : colore le MNT à pas régulier, dessine une échelle de répartitions des couleurs/altitudes sur la droite de l'image (to8bits "maîtrisé")
-		* Orthophoto réduite avec emplacement des GCP (en rouge les points d'appuis, en bleu les points de contrôle), nom du point (option)	*/
- 
-	std::string aGCP, aMNT, aDirOF("./Ortho-MEC-Malt/"), aMesIm; 
-	bool aAddNamePt(true);
-	int aPtSz(10),aImSize(3000);
-	
-	ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aGCP,"Ground Control Points File")
-					<< EAMC(aMNT,"DSM xml file (NuageImProf...)"),
-        LArgMain()  << EAM(aDirOF,"DirOF",true,"Subdirectory for ortho (def in Ortho-${DirMEC})")
-					<< EAM(aMesIm,"ImMeasure",true,"Image measurements file (to distinguish control & check points)")
-					<< EAM(aAddNamePt,"NamePt",true,"Add the name of the point (default : true)")
-					<< EAM(aImSize,"ImSz",true,"Rescaled ortho size ( default : 3000)")
-					<< EAM(aPtSz,"PtSz",true,"Size of the point (default : 10)")
-    );
-    
-    ELISE_ASSERT(aImSize<10,"Probable confusion with Final Size argument");
-    
-// Charger MTD-Ortho.xml
-    std::string aMTD = aDirOF + "MTDOrtho.xml";
-    ifstream fin (aMTD.c_str());
-    
-// Récupérer taille de l'ortho, nom de l'ortho, origineX, origineY, resolutionXY, origineZ, resolutionZ
-    std::string aNameOrthoFull;
-    float aOrX, aOrY, aResXY;
-    // float aOrZ, aResZ;
-    Pt2di aSizeOrtho;
-    
-// Calculer facteur d'échelle, lancer ScaleIm
-    bool aOrthoScaled = false;
-    double aScFactor = 1;
-    if ((aSizeOrtho.x > aImSize) | (aSizeOrtho.y > aImSize))
-    {
-		aOrthoScaled = true ;
-		int aSzMax;
-		if (aSizeOrtho.y > aSizeOrtho.x)
-		{
-			aSzMax=aSizeOrtho.y;
-		}
-		else{aSzMax=aSizeOrtho.x;}
-		aScFactor = aSzMax/aImSize;
-		
-		stringstream ss;
-		ss << aScFactor;
-		
-		std::string aScIm = "mm3d ScaleIm " + aNameOrthoFull + " " + ss.str();
-	}
-	Pt2di aSizeOrhoReduc;
-	aSizeOrhoReduc.x = aSizeOrtho.x * aScFactor;		// barbare, voudrait mieux récupérer taille de l'image scaled (ou non)
-	aSizeOrhoReduc.y = aSizeOrtho.y * aScFactor;
-    
-// Charger les GCP, calculer leur projection dans l'ortho réduite
-    vector <pair <std::string,Pt3dr> > aGCPground; 
-    vector <pair <std::string,Pt2di> > aGCPortho;
-    pair <std::string,Pt2di> toPushGCP;
-    int aXproj, aYproj;
-    for 
-    (
+	float AbsSumDiffAppuis=0;
+	fout << "\nCONTROL POINTS : \n";
+	for
+	(
 		unsigned int i=0;
-		i<aGCPground.size();
+		i<ListOfDiffAppuis.size();
 		i++
 	)
 	{
-		aXproj = (aGCPground[i].second.x - aOrX) / aResXY;
-		aYproj = (aGCPground[i].second.y - aOrY) / aResXY;
-		if 
+		fout << ListOfDiffAppuis[i].first << "\t" << ListOfDiffAppuis[i].second << endl;
+		AbsSumDiffAppuis += fabs(ListOfDiffAppuis[i].second);
+	}
+	fout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size()<<endl;
+}
+
+void WriteControl(vector <pair <std::string,float> > ListOfDiffControl, ofstream &fout)
+{
+	fout << "\nCHECK POINTS : \n";
+	float AbsSumDiffControl=0;
+	for
+	(
+		unsigned int i=0;
+		i<ListOfDiffControl.size();
+		i++
+	)
+	{
+		fout << ListOfDiffControl[i].first << "\t" << ListOfDiffControl[i].second << endl;
+		AbsSumDiffControl += fabs(ListOfDiffControl[i].second);
+	}
+	fout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size() << endl; 
+}
+
+vector <string> GetFilesFromFolder (string dossier)
+{
+		vector <string> dirName;
+#if ELISE_unix
+		DIR* rep = NULL;
+		struct dirent* fichierLu = NULL;
+		rep = opendir(dossier.c_str());
+		if (rep == NULL) 
+			exit(1); 
+	
+		while ((fichierLu = readdir(rep)) != NULL){
+			dirName.push_back(fichierLu->d_name);}
+		sort(dirName.begin(),dirName.end());
+		
+#endif
+	return dirName;
+}
+
+void Idem_Banniere()
+{
+    std::cout <<  "\n";
+    std::cout <<  " *********************************\n";
+    std::cout <<  " *     I-nterpolate              *\n";
+    std::cout <<  " *     D-ense                    *\n";
+    std::cout <<  " *     E-levation                *\n";
+    std::cout <<  " *     M-odel                    *\n";
+    std::cout <<  " *********************************\n\n";
+}
+
+float GiveStats(vector <pair <std::string,float> > mes, string want)
+{
+    float total=0, ecart, moyenne, variance, stdev, max=mes[0].second;
+	
+	for(unsigned int i=0; i<mes.size() ; i++)
+	{
+		total = total + mes[i].second;
+		if (fabs(max) < fabs(mes[i].second)){max=mes[i].second;}
+	}
+	moyenne = total / mes.size();
+	if (want == "moyenne"){return moyenne;}
+	if (want == "max"){return max;}
+	
+	total=0;
+    for(unsigned int i=0; i < mes.size(); i++)
+    {
+		ecart = mes[i].second-moyenne;
+        total = total + ecart*ecart;
+    } 
+    variance = total / (mes.size() -1);
+    if (want == "variance"){return variance;}
+    
+    stdev = sqrt(variance);
+    if (want == "stdev"){return stdev;}
+    
+    else{return -99999;}
+}
+
+int Idem_main(int argc, char** argv)
+{
+	std::string aGCP, 
+				aMNT, 
+				aOrthoName(" "),
+				aNameFileTxt(" "), 
+				aDir, 
+				aPat, 
+				aMesIm; 
+	bool treatGCP(true), treatCP(true);
+	int aPtSz(5),
+		aImSize(3000);
+		
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain()  << EAMC(aMNT,"DEM xml file (NuageImProf...)")
+					<< EAMC(aGCP,"Ground Control Points File")
+					<< EAMC(aMesIm,"Image measurements file"),
+		LArgMain()	<< EAM(aNameFileTxt,"Out",true,"File to store the results")
+					<< EAM(aOrthoName,"Ortho",true,"Display the results on a video window")
+					<< EAM(aImSize,"ImSz",true,"Rescaled ortho size ( default : 3000)")
+					<< EAM(treatGCP,"GCP",true,"Interpolate on Ground Control Points {Def = true}")
+					<< EAM(treatCP,"CP",true,"Interpolate on Check Points {Def = true}")
+					<< EAM(aPtSz,"PtSz",true,"Size of the point (default : 10)")
+	);
+	ELISE_ASSERT(treatGCP || treatCP,"Either GCP or CP must be true");
+	ELISE_ASSERT(aImSize>100,"Probable confusion with Final Size argument");
+
+// Charger les GCP, calculer leur projection dans l'ortho et le MNT
+	cDicoAppuisFlottant cDico=  StdGetFromPCP(aGCP,DicoAppuisFlottant);
+	std::cout << "Nb Pts " <<  cDico.OneAppuisDAF().size() << "\n\n";
+	std::list<cOneAppuisDAF> & aLGCP =  cDico.OneAppuisDAF();
+
+
+// Charger les mesures images
+	cSetOfMesureAppuisFlottants dDico=  StdGetFromPCP(aMesIm,SetOfMesureAppuisFlottants);
+	std::list<cMesureAppuiFlottant1Im> & dLGCP =  dDico.MesureAppuiFlottant1Im();
+	vector <std::string> aListOfApp;
+	
+	for 
+	(
+		 std::list<cMesureAppuiFlottant1Im>::iterator iT1= dLGCP.begin();
+		 iT1 != dLGCP.end();
+		 iT1++
+	)
+	{
+		for
 		(
-			(aXproj>=0) &
-			(aYproj>=0) &
-			(aXproj<aSizeOrhoReduc.x) &
-			(aYproj<aSizeOrhoReduc.y)
+			std::list<cOneMesureAF1I>::iterator iT2 = iT1->OneMesureAF1I().begin();
+			iT2 != iT1->OneMesureAF1I().end();
+			iT2++
 		)
 		{
-			toPushGCP.first = aGCPground[i].first;
-			toPushGCP.second.x = aXproj;
-			toPushGCP.second.y = aYproj;
-			aGCPortho.push_back(toPushGCP);
+			for 
+			(
+				std::list<cOneAppuisDAF>::iterator iT3= aLGCP.begin();
+				iT3 != aLGCP.end();
+				iT3++
+			)
+			{
+				if (iT2->NamePt() == iT3->NamePt())
+				{
+					aListOfApp.push_back(iT3->NamePt());
+				}
+			}
 		}
 	}
-    
-// Interpoler le MNT à l'emplacement de chaque GCP (distinguer ou non control/appuis)
-// Calculer différence mesure - MNT (enregistrer dans fichier txt), calculer pour la projection des GCP dans l'ortho réduite
-    cElNuage3DMaille *  mMNT;
-    mMNT = cElNuage3DMaille::FromFileIm(aMNT);		// mDir + mMNT ?
-    
-    float bOrX, bOrY,  bResXY ;		// récupérer paramètres du MNT (or + res)
-    //float bOrZ,bResZ;
-    Pt2di  aCGPinMNT;
-    pair <std::string,float> aMNTinterpoled;
-    vector <pair <std::string,float> > aListOfDiff;
-    
-    for 
-    (
-		unsigned int i=0;
-		i<aGCPground.size();
-		i++
+	
+	std::sort (aListOfApp.begin(), aListOfApp.end());
+	vector<std::string> bListOfApp;
+	bListOfApp.push_back(aListOfApp[0]);
+	int i=0;
+	
+	for
+	(
+		vector <std::string>::iterator iT = aListOfApp.begin();
+		iT != aListOfApp.end();
+		iT++
 	)
 	{
-		aCGPinMNT.x = round_ni((aGCPground[i].second.x - bOrX) / bResXY);
-		aCGPinMNT.y = round_ni((aGCPground[i].second.y - bOrY) / bResXY);
+		if (bListOfApp[i] != *iT)
+		{
+			bListOfApp.push_back(*iT);
+			i++;
+		}
+	}	
+	aListOfApp.clear();
+	
+	
+// Récupération du dernier fichier Z_Num.xml
+	std::string aDir2,aPat2,aZ_Num;
+	SplitDirAndFile(aDir2,aPat2,aMNT);
+	vector<std::string> aListOfFileInMEC;
+	if (ELISE_unix)
+	{
+		aListOfFileInMEC = GetFilesFromFolder(aDir2);
+	}
+	
+	for (unsigned int i=0;i<aListOfFileInMEC.size();i++)
+	{
+		if 
+		(
+			(aListOfFileInMEC[i].substr(0,5) == "Z_Num")
+			&&
+			(aListOfFileInMEC[i].substr(aListOfFileInMEC[i].size()-3,3) == "xml")
+		)
+		{
+			aZ_Num = aDir2 + aListOfFileInMEC[i];
+		}
+	}
+	
+	cFileOriMnt bDico = StdGetFromPCP(aZ_Num,FileOriMnt);
+	Pt2dr aOrgMNT = bDico.OriginePlani();
+	Pt2dr aResMNT = bDico.ResolutionPlani();
+
+
+// Interpole le MNT à l'emplacement de chaque GCP
+ 	cElNuage3DMaille *  bMNT = cElNuage3DMaille::FromFileIm(aMNT);			 
+	Pt2di  aGCPinMNT;
+	pair <std::string,float> aMNTinterpoled;
+	vector <pair <std::string,float> > aListOfDiff;
+	
+	for 
+	(
+		 std::list<cOneAppuisDAF>::iterator iT= aLGCP.begin();
+		 iT != aLGCP.end();
+		 iT++
+	)
+	{
+		aGCPinMNT.x = round_ni((iT->Pt().x - aOrgMNT.x) / aResMNT.x);
+		aGCPinMNT.y = round_ni((iT->Pt().y - aOrgMNT.y) / aResMNT.y);
 		
-        if (mMNT->IndexHasContenu(aCGPinMNT))
-        {
-			Pt3dr aPTer = mMNT->PtOfIndex(aCGPinMNT);
-			aMNTinterpoled.first = aGCPground[i].first;
-			aMNTinterpoled.second = aGCPground[i].second.z - aPTer.z;
+		if (bMNT->IndexHasContenu(aGCPinMNT))
+		{
+			Pt3dr aPTer = bMNT->PtOfIndex(aGCPinMNT);
+			aMNTinterpoled.first = iT->NamePt();
+			aMNTinterpoled.second = iT->Pt().z - aPTer.z;
 			aListOfDiff.push_back(aMNTinterpoled);
-		} 
+		}
 	}
 	
-    ofstream fout("GCP-DSM_diff.txt",ios::out);
-    fout << "Differences between the altitude in the xml file, and the one computed in the DSM\n";
-    for
-    (
+	
+// Différence entre appuis et contrôle	
+	vector <pair <std::string,float> > ListOfDiffAppuis, ListOfDiffControl;
+	for
+	(
 		unsigned int i=0;
-		i<aListOfDiff.size();
+		i < aListOfDiff.size();
 		i++
 	)
 	{
-		fout << aListOfDiff[i].first << " " << aListOfDiff[i].second << endl;
+		bool isAppuis=false;
+		
+		for
+		(
+			unsigned int j=0;
+			j < bListOfApp.size();
+			j++
+		)
+		{
+			if (bListOfApp[j] == aListOfDiff[i].first)
+			{
+				ListOfDiffAppuis.push_back(aListOfDiff[i]);		// [Id] [dZ]
+				isAppuis=true;
+			}
+		}
+		
+		if (!isAppuis)
+		{
+			ListOfDiffControl.push_back(aListOfDiff[i]);		// [Id] [dZ]
+		}
 	}
-    fout.close();
-    
-// Charger l'ortho réduite, projeter les GCP, tracer des cercles autour, enregistrer l'image avec NamePt[diff]
-	std::string aNameOrth = aNameOrthoFull;
-	if (aOrthoScaled)
+	
+	float moyenne1, moyenne2, stdev1, stdev2, max1, max2;
+	
+	float AbsSumDiffControl=0, AbsSumDiffAppuis=0;
+	if (treatGCP)
 	{
-		aNameOrth = aNameOrthoFull.substr(0,aNameOrthoFull.size()-4) + "_Scaled.tif";
+		float moyenne1, stdev1, max1;
+		moyenne1 = GiveStats(ListOfDiffAppuis,"moyenne");
+		stdev1 = GiveStats(ListOfDiffAppuis,"stdev");
+		max1 = GiveStats(ListOfDiffAppuis,"max");
+		for
+		(
+			unsigned int i=0;
+			i<ListOfDiffAppuis.size();
+			i++
+		)
+		{
+			cout << "Control point : " << ListOfDiffAppuis[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffAppuis[i].second << endl;
+			AbsSumDiffAppuis += fabs(ListOfDiffAppuis[i].second);
+		}
+		cout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size() << endl
+			 << "AVERAGE ERROR = " << moyenne1 << endl
+			 << "STANDARD DEVIATION = " << stdev1 << endl
+			 << "ERROR MAXIMUM = " << max1 << endl ;
 	}
 	
-	Tiff_Im  aImOrtho = Tiff_Im::StdConv(aNameOrth);
 	
-	Im2D_U_INT1 I(aSizeOrhoReduc.x,aSizeOrhoReduc.y);
-	ELISE_COPY
-    (
-		I.all_pts(),
-		aImOrtho.in(),
-		I.out()
-	);
- /*   
-    for 
-    (
-		unsigned int i=0;
-		i<aGCPortho.size();
-		i++
-	)
-	{     
+	if (treatCP)
+	{	
+		float moyenne2, stdev2, max2;
+		moyenne2 = GiveStats(ListOfDiffControl,"moyenne");
+		stdev2 = GiveStats(ListOfDiffControl,"stdev");
+		max2 = GiveStats(ListOfDiffControl,"max");
+		for
+		(
+			unsigned int i=0;
+			i<ListOfDiffControl.size();
+			i++
+		)
+		{
+			cout << "Check point : " << ListOfDiffControl[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffControl[i].second << endl;
+			AbsSumDiffControl += fabs(ListOfDiffControl[i].second);
+		}
+		
+		cout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size() << endl
+			 << "AVERAGE ERROR = " << moyenne2 << endl
+			 << "STANDARD DEVIATION = " << stdev2 << endl
+			 << "ERROR MAXIMUM = " << max2 << endl ;
+	}
+	
+	if (aNameFileTxt != " ")
+	{
+		ofstream fout (aNameFileTxt.c_str(),ios::out);
+		fout << "Difference between altitude in xml file, and altitude in DEM (Id	 dZ)\n";
+		if (treatGCP)
+		{
+			WriteAppuis(ListOfDiffAppuis,fout);
+			fout << "AVERAGE ERROR = " << moyenne1 << endl
+			 << "STANDARD DEVIATION = " << stdev1 << endl
+			 << "ERROR MAXIMUM = " << max1 << endl;
+		}
+		if (treatCP)
+		{
+			WriteControl(ListOfDiffControl,fout);
+			fout << "AVERAGE ERROR = " << moyenne2 << endl
+			 << "STANDARD DEVIATION = " << stdev2 << endl
+			 << "ERROR MAXIMUM = " << max2 << endl;
+		}
+	}
+
+// Ecriture des résultats sur l'orthophoto (option)
+	if (aOrthoName != " ")
+	{		
+		SplitDirAndFile(aDir,aPat,aOrthoName);
+		std::string aMTD = aDir + "MTDOrtho.xml";
+	// Recup param ortho
+		cFileOriMnt aDico = StdGetFromPCP(aMTD,FileOriMnt);
+		Pt2di aNbPixel = aDico.NombrePixels();
+		Pt2dr aOrgOrt = aDico.OriginePlani();
+		Pt2dr aResOrt = aDico.ResolutionPlani();
+
+	// Calculer facteur d'échelle, lancer ScaleIm
+		if ((aNbPixel.x > aImSize) | (aNbPixel.y > aImSize))
+		{
+			cout << "Rescaling the orthophoto..." << endl;
+			int aSzMax;
+			if (aNbPixel.y > aNbPixel.x)
+			{
+				aSzMax=aNbPixel.y;
+			}
+			else{aSzMax=aNbPixel.x;}
+			double aScFactor = 1;
+			aScFactor = aSzMax/aImSize;
+			cout << "aScFactor = " << aScFactor << endl;
+			stringstream ss;
+			ss << aScFactor;
+			
+			std::string aScIm = "mm3d ScaleIm " + aOrthoName + " " + ss.str() ;
+			VoidSystem(aScIm.c_str());
+			
+			aNbPixel.x /= aScFactor;
+			aNbPixel.y /= aScFactor;
+			aResOrt.x *= aScFactor;
+			aResOrt.y *= aScFactor;
+			aOrthoName = aOrthoName.substr(0,aOrthoName.size()-4)+"_Scaled.tif";
+		}
+	// Projection des GCP dans l'ortho
+		vector <pair <std::string,Pt3dr> > aGCPground;
+		vector <pair <std::string,Pt2di> > aGCPortho; 
+		pair <std::string,Pt2di> toPushGCP;
+		int aXproj, aYproj;
+		
+		for 
+		(
+			 std::list<cOneAppuisDAF>::iterator iT= aLGCP.begin();
+			 iT != aLGCP.end();
+			 iT++
+		)
+		{
+			aXproj = round_ni((iT->Pt().x - aOrgOrt.x) / aResOrt.x);
+			aYproj = round_ni((iT->Pt().y - aOrgOrt.y) / aResOrt.y);
+			
+			if 
+			(
+				(aXproj>=0) &
+				(aYproj>=0) &
+				(aXproj<aNbPixel.x) &
+				(aYproj<aNbPixel.y)
+			)
+			{
+				toPushGCP.first = iT->NamePt();
+				toPushGCP.second.x = aXproj;
+				toPushGCP.second.y = aYproj;
+				aGCPortho.push_back(toPushGCP);			//Liste des points visibles sur l'ortho (dans la box)
+			}
+		}
+		
+		
+	// Tracer des cercles sur les GCP dans l'ortho (réduite ou non)
+		Tiff_Im  aImOrtho = Tiff_Im::StdConv(aOrthoName);
+		std::string aNameOut = "MyQualityTime.tif";
+		Im2D_U_INT1 I(aNbPixel.x,aNbPixel.y);
+		
+		 //  palette allocation
+        Disc_Pal  Pdisc = Disc_Pal::P8COL();
+        Gray_Pal  Pgr (30);
+        Circ_Pal  Pcirc = Circ_Pal::PCIRC6(30);
+        RGB_Pal   Prgb  (5,5,5);
+        Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+
+        // Drawing with Elise
+		Video_Display Ecr((char *) NULL);
+        Ecr.load(SOP);
+        Video_Win   W  (Ecr,SOP,Pt2di(50,50),Pt2di(aNbPixel.x,aNbPixel.y));
+
+        W.set_title("GCP in Red ; CP in blue");
+
 		ELISE_COPY
 		(
-			disc(aGCPortho[i].second,10),
-			P8COL::red,
-			I.out(Pdisc)
+			I.all_pts(),
+			aImOrtho.in(),
+			W.out(Prgb)
 		);
+		
+		bool isAppuis=false; 
+		for 
+		(
+			unsigned int i=0;
+			i<aGCPortho.size();
+			i++
+		)
+		{   
+			isAppuis=false;
+			for
+			(
+				unsigned int j =0;
+				j < ListOfDiffAppuis.size();
+				j++
+			)
+			{
+				if (aGCPortho[i].first == ListOfDiffAppuis[j].first)
+				{
+					isAppuis=true;
+				}
+			}
+			
+			Pt2dr aPtOrt (aGCPortho[i].second);
+			
+			if (isAppuis && treatGCP)
+			{
+				cout << "Id = " << aGCPortho[i].first << endl;
+				ELISE_COPY
+				(
+					disc(aPtOrt,aPtSz),
+					P8COL::red,
+					W.out(Pdisc)
+				);
+			}
+			else if (!isAppuis && treatCP)
+			{
+				cout << "Id = " << aGCPortho[i].first << endl;
+				ELISE_COPY
+				(
+					disc(aPtOrt,aPtSz),
+					P8COL::blue,
+					W.out(Pdisc)
+				);
+			}
+		}
+		W.clik_in();
+		
 	}
-  */  
-    // Génèrer des imagettes individuelles (256x256pixels), les charger
-    
-    
-    // Tracer autour de chaque GCP une croix(16x16) au centre, en haut : nom du point [diff]. Enregistrer avec NamePt[i].tif
+
+	Idem_Banniere();
+	
 	return EXIT_SUCCESS;
 }
 

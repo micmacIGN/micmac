@@ -796,7 +796,7 @@ cPackObserv1Im<TypeEngl,TGlob>::cPackObserv1Im
             {
                  static bool first = true;
                  if (first)
-                    std::cout << "WARN, For Pack=" << aNamePack << " Im=" << aNameIm << " Do No exist\n";
+                    std::cout << "WARN, For Existing file =" << aNamePack << " Im=" << aNameIm << " is not loaded\n";
                  first = false;
                 // ELISE_ASSERT(false,"Cannot find image for pack appuis");
             }
@@ -888,7 +888,7 @@ template <class Type,class TGlob> void cAppliApero::InitBDDPose
                            const std::list<typename Type::tArg>  & aL
                       )
 {
-    typedef typename Type::tArg tArg;
+    //typedef typename Type::tArg tArg;
     for 
     (
        typename std::list<typename Type::tArg>::const_iterator itB=aL.begin();

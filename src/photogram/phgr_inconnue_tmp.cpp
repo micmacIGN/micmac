@@ -51,6 +51,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+extern bool DebugCamBil;
+
 bool UseProjForFaisParal = true;
 
 static int CptUPL = 0;
@@ -662,6 +664,18 @@ double cBufSubstIncTmp::DoSubst
           bool                     doRaz
      )
 {
+
+if(DebugCamBil)
+{
+  std::cout << "DoSubst " << aX_SBlTmp.size() << " " << aY_SBlNonTmp.size() << " :: ";
+  for (int aK=0 ;aK<int(aY_SBlNonTmp.size()) ; aK++)
+  {
+      cSsBloc aSBY = aY_SBlNonTmp[aK];
+      std::cout << " [" << aSBY.I0AbsAlloc()  <<  " " << aSBY.I1AbsAlloc() << "]";
+  }
+  std::cout << "\n";
+  getchar();
+}
    cGenSysSurResol & aSys =  *(aSet->Sys());
 /*
 */

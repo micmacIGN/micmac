@@ -1,31 +1,17 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "general/CMake_defines.h"
+
+#if(ELISE_QT_VERSION >= 4)
+
 #include "StdAfx.h"
 
-#if (ELISE_QT_VERSION >= 4)
 
-#ifdef Int
-    #undef Int
-#endif
-
-#include <QWidget>
-#include <QGridLayout>
-#include <QLabel>
-#include <QComboBox>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QToolBox>
-#include <QFileDialog>
-#include <QDesktopWidget>
-#include <QApplication>
-#include <QMessageBox>
-#include <QShortcut>
-
+#include "Elise_QT.h"
+#include "saisieQT_window.h"
 #include "general/visual_buttons.h"
 
-#include "../../src/saisieQT/saisieQT_window.h"
 
 using namespace std;
 
@@ -86,7 +72,7 @@ public:
 
     void buildUI(const vector<cMMSpecArg>& aVA, QGridLayout* layout, QWidget* parent);
 
-    void addGridLayout(const vector<cMMSpecArg>& aVA, QString pageName);
+    void addGridLayout(const vector<cMMSpecArg>& aVA, QString pageName, bool addSpace =true);
 
     bool getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
     bool getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar ="");
@@ -104,6 +90,7 @@ public slots:
 
     void onRunCommandPressed();
     void onSelectFilePressed(int);
+    void onSelectFileRPPressed(int);
     void onSelectImgsPressed(int);
     void onSelectDirPressed(int);
     void onSaisieButtonPressed(int, bool normalize);
@@ -111,6 +98,8 @@ public slots:
 
     void onRectanglePositionChanged(QVector <QPointF>);
     void onSaisieQtWindowClosed();
+
+    void setShowDialog(int state);
 
 signals:
 
@@ -128,12 +117,14 @@ protected:
 
     void resizeEvent(QResizeEvent *);
     void closeEvent(QCloseEvent *event);
+    void keyPressEvent(QKeyEvent* event);
 
     int          id_unique;
     string       argv_recup;
 
     QToolBox*    toolBox;
     QPushButton* runCommandButton;
+    QCheckBox*   showPromptDialog;
 
     vector <QLineEdit*> vLineEdit;    //LineEdit: display what has been selected (images, files, directories)
 
@@ -146,6 +137,8 @@ protected:
     SaisieQtWindow*     _SaisieWin;
 
     int                 _curIdx;
+
+    bool                _showDialog; //do we show "Job done" at the end of process"
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);

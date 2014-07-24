@@ -44,6 +44,8 @@ set(Photogram_Src_Files
 	${PHOTOGR_DIR}/phgr_triangul.cpp
 	${PHOTOGR_DIR}/transfo_xml_phgr.cpp
 	${PHOTOGR_DIR}/transfo_xml_phgr2.cpp
+	${PHOTOGR_DIR}/cEq12Param.cpp
+	${PHOTOGR_DIR}/cCameraBilin.cpp
 )
 
 SOURCE_GROUP(Photogram FILES ${Photogram_Src_Files})

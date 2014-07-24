@@ -1126,6 +1126,14 @@ cCamera_Param_Unif_Gen *  Std_Cal_Unif
              );
 
 
+cCamStenopeBilin *  Std_Cal_Bilin
+             (
+                    const cCalibrationInternConique & aCIC,
+                    eConventionsOrientation            aKnownC
+             );
+
+// cCamStenopeBilin * GlobFromXmlGridStuct(REAL aFoc,Pt2dr aCentre,const cCalibrationInterneGridDef &  aCIG);
+
 
 bool ConvIsSensVideo(eConventionsOrientation aConv);
 

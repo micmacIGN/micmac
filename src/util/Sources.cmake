@@ -7,7 +7,18 @@ if( ${qt_version} EQUAL 4 )
 
  QT4_WRAP_CPP(Uti_HEADERS_MOCED ${Uti_Headers_ToMoc})
     #add_definitions(${QT_DEFINITIONS})
+elseif( ${qt_version} EQUAL 5 )
+
+
+    set(Uti_Headers_ToMoc
+        ../include/general/visual_mainwindow.h
+        ../include/general/visual_buttons.h
+    )
+
+ QT5_WRAP_CPP(Uti_HEADERS_MOCED ${Uti_Headers_ToMoc})
+
 endif()
+
 set(Util_Src_Files
         ${UTIL_DIR}/affin2d.cpp
         ${UTIL_DIR}/all.cpp

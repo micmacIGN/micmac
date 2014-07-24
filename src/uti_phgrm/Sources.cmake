@@ -23,27 +23,33 @@ INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_CASA_DIR}/Sources.cmake)
 
-
 #define __CUDA_API_VERSION 0x5050
+
 if(${CUDA_ENABLED})
-    set(OptionCuda 1)
-    if("${CUDA_VERSION}" MATCHES "6.0")
-        set(__CUDA_API_VERSION 0x6000)
-    elseif("${CUDA_VERSION}" MATCHES "5.5")
-        set(__CUDA_API_VERSION 0x5050)
-    elseif("${CUDA_VERSION}" MATCHES "5.0")
-        set(__CUDA_API_VERSION 0x5000)
-    elseif("${CUDA_VERSION}" MATCHES "4.0")
-        set(__CUDA_API_VERSION 0x4000)
-    elseif("${CUDA_VERSION}" MATCHES "3.0")
-        set(__CUDA_API_VERSION 0x3000)
-    endif()
+        set(OptionCuda 1)
+
+#        if("${CUDA_VERSION}" MATCHES "6.0")
+#            set(__CUDA_API_VERSION 0x6000)
+#        elseif("${CUDA_VERSION}" MATCHES "5.5")
+#            set(__CUDA_API_VERSION 0x5050)
+#        elseif("${CUDA_VERSION}" MATCHES "5.0")
+#            set(__CUDA_API_VERSION 0x5000)
+#        elseif("${CUDA_VERSION}" MATCHES "4.0")
+#            set(__CUDA_API_VERSION 0x4000)
+#            elseif("${CUDA_VERSION}" MATCHES "3.2")
+#            set(__CUDA_API_VERSION 0x3020)
+#        elseif("${CUDA_VERSION}" MATCHES "3.0")
+#            set(__CUDA_API_VERSION 0x3000)
+#        endif()
 
     INCLUDE (${UTI_PHGRM_GPGPU_DIR}/Sources.cmake)
 else()
     set(OptionCuda 0)
-    set(__CUDA_API_VERSION 0x0000)
+
+#    set(__CUDA_API_VERSION 0x0000)
+
 endif()
+
 
 if(${WITH_OPEN_MP})
     set(OPM_ENABLED 1)
@@ -55,6 +61,7 @@ configure_file(
     ${UTI_PHGRM_GPGPU_DIR}/GpGpu_BuildOptions.h.in
     ${PROJECT_SOURCE_DIR}/include/GpGpu/GpGpu_BuildOptions.h
 )
+
 
 set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_ChamVec3D.cpp
@@ -94,6 +101,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_ScaleNuage.cpp
     ${UTI_PHGRM_DIR}/CPP_SBGlobBascule.cpp
     ${UTI_PHGRM_DIR}/CPP_Tapas.cpp
+    ${UTI_PHGRM_DIR}/CPP_NewTapas.cpp
     ${UTI_PHGRM_DIR}/CPP_Tapioca.cpp
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
@@ -111,6 +119,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_MMOnePair.cpp
     ${UTI_PHGRM_DIR}/CPP_VisuCoupeEpip.cpp
     ${UTI_PHGRM_DIR}/CPP_HomFilterMasq.cpp
+    ${UTI_PHGRM_DIR}/CPP_InitCamFromAppuis.cpp
 )
 
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})

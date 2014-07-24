@@ -83,7 +83,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
     QFileInfo fi(aNameFile);
 
-    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
+    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif";
 
     maskedImg.setName(fi.fileName());
 
@@ -235,9 +235,9 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
         cout << "filename : "    << filename << endl;
     #endif
 
-    QFileInfo fi(aNameFile);
+    //QFileInfo fi(aNameFile);
 
-    _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
+//    _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
@@ -259,8 +259,6 @@ cEngine::~cEngine()
     delete _Data;
 }
 
-
-
 void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
@@ -271,26 +269,39 @@ void cEngine::loadClouds(QStringList filenames, int* incre)
     _Data->computeBBox();
 }
 
-void cEngine::loadCameras(QStringList filenames)
+void cEngine::loadCameras(QStringList filenames, int *incre)
 {
     for (int i=0;i<filenames.size();++i)
     {
+         if (incre) *incre = 100.0f*(float)i/filenames.size();
         _Data->addCamera(_Loader->loadCamera(filenames[i]));
     }
 
     _Data->computeBBox();
 }
 
+//#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
+//#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
+//#define GL_RENDERBUFFER_FREE_MEMORY_ATI   0x87FD
 
-#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
-#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
+bool cEngine::extGLIsSupported(const char* strExt)
+{
+#if ELISE_QT_VERSION == 5
+    QOpenGLContext * contextHGL = QGLContext::currentContext()->contextHandle();
+    return contextHGL->hasExtension(strExt);
+#else
+    const GLubyte *str;
+    str = glGetString (GL_EXTENSIONS);
+    //qDebug() << strExt;
+    return (strstr((const char *)str, strExt) != NULL);
+#endif
+}
 
-
-
-
-void cEngine::loadImages(QStringList filenames)
+void cEngine::loadImages(QStringList filenames, int* incre)
 {
 
+#ifdef compMem
+    // TODO: pas utilise pour l'instant
     QString  sGLVendor((char*)glGetString(GL_VENDOR));
 
     // GPU Model
@@ -306,26 +317,24 @@ void cEngine::loadImages(QStringList filenames)
     else if ( sGLVendor.contains("INTEL"))
         GPUModel = INTEL;
 
-    int maxTexture;
-
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
-
-    int widthTotal              = 0;
-    int heightTotal             = 0;
-//    GLint total_mem_kb      = 0;
     GLint cur_avail_mem_kb      = 0;
-    int sizeMemoryTexture_kb    = 0;
 
-
-    switch (GPUModel) {
+    switch (GPUModel)
+    {
     case NVIDIA:
-        glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX,&cur_avail_mem_kb);
+        if(extGLIsSupported("GL_NVX_gpu_memory_info"))
+        {
+            glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
+        }
         break;
     case ATI:
-        glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI,&cur_avail_mem_kb);
+        //TODO A RE TESTER
+        if(extGLIsSupported("GL_ATI_meminfo"))
+            glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
         break;
     case AMD:
-        glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI,&cur_avail_mem_kb);
+        if(extGLIsSupported("GL_ATI_meminfo"))
+            glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
         break;
     default:
         cur_avail_mem_kb = 0;
@@ -334,47 +343,63 @@ void cEngine::loadImages(QStringList filenames)
 
     //printf("%s %d\n",sGLVendor.toStdString().c_str(),cur_avail_mem_kb/1024);
 
+    //sizeMemoryTexture_kb = widthMax*heightMax*4/1024;
+
+    //cur_avail_mem_kb = 5 * 1024;
+
+    //float scaleFactorVRAM = 1.f;
+    // TODO delete texture car il y a un fuite dans la VRAM!!!
+
+//    if(cur_avail_mem_kb !=0)
+//    {
+//        // TODO GERER le MASK... car pas forcememt afficher
+//        sizeMemoryTexture_kb *= 2; // Image + masque
+//        if(sizeMemoryTexture_kb > cur_avail_mem_kb)
+//        {
+//            scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
+//        }
+//    }
+#endif //compMEM
+
+    int widthMax              = 0;
+    int heightMax             = 0;
+
     for (int i=0;i<filenames.size();++i)
     {
         QSize imageSize = QImageReader(filenames[i]).size();
 
-        widthTotal  += imageSize.width();
-        heightTotal += imageSize.height();
+        widthMax  = max(imageSize.width(),widthMax);
+        heightMax = max(imageSize.height(),heightMax);
 
-        sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
-    }
-    //cur_avail_mem_kb = 5 * 1024;
-
-    float scaleFactorVRAM = 1.f;
-    // TODO delete texture car il y a un fuite dans la VRAM!!!
-    if(cur_avail_mem_kb !=0)
-    {
-        sizeMemoryTexture_kb *= 2; // Image + masque
-        if(sizeMemoryTexture_kb > cur_avail_mem_kb)
-        {
-            scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
-        }
+        //sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
     }
 
-    //printf("texture %d\n",sizeMemoryTexture_kb);
+    //TODO: apparemment ne marche pas :
+    /* sur plusieurs jeux de données, quand on charge en faisant ".*jpg" par
+    ex, il charge 4 images, dans un tableau 2*2. Le problème c'est que les
+    images sont très sous-échantillonnées. Le problème ne se pose pas si on le
+    lance avec une image ou 2 à la fois*/
+    int maxImagesDraw = min(_params->getNbFen().x()*_params->getNbFen().y(),filenames.size());
 
-
+    widthMax    *= maxImagesDraw;
+    heightMax   *= maxImagesDraw;
 
     float scaleFactor     = 1.f;
 
-    if ( widthTotal > maxTexture || heightTotal > maxTexture )
+    if ( widthMax > _glMaxTextSize || heightMax > _glMaxTextSize )
     {
-        QSize totalSize(widthTotal, heightTotal);
+        QSize totalSize(widthMax, heightMax);
 
-        totalSize.scale(QSize(maxTexture,maxTexture), Qt::KeepAspectRatio);
+        totalSize.scale(QSize(_glMaxTextSize,_glMaxTextSize), Qt::KeepAspectRatio);
 
-        scaleFactor = ((float) totalSize.width()) / widthTotal;
+        scaleFactor = ((float) totalSize.width()) / widthMax;
     }
 
-    scaleFactor = min(scaleFactor,scaleFactorVRAM);
+    //scaleFactor = min(scaleFactor,scaleFactorVRAM); // TODO A GERER
 
     for (int i=0;i<filenames.size();++i)
     {
+        if (incre) *incre = 100.0f*(float)i/filenames.size();
         loadImage(filenames[i], scaleFactor);
     }
 }
@@ -469,8 +494,6 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 
         if (scaleFactor != 1.f)
         {
-            cout << "scaling " <<  scaleFactor << endl;
-
             int width  = (int) ((float) pMask.width() / scaleFactor);
             int height = (int) ((float) pMask.height() / scaleFactor);
 
@@ -538,10 +561,10 @@ void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-        _vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode));
+        _vGLData.push_back(new cGLData(_Data, &(_Data->getMaskedImage(aK)), aParams, appMode));
 
     if (_Data->is3D())
-        _vGLData.push_back(new cGLData(_Data, appMode));
+        _vGLData.push_back(new cGLData(_Data, aParams,appMode));
 }
 
 void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
@@ -549,9 +572,9 @@ void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
     delete _vGLData[aK];
 
     if (_Data->is3D())
-        _vGLData[aK] = new cGLData(_Data, appMode);
+        _vGLData[aK] = new cGLData(_Data, aParams,appMode);
     else
-        _vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode);
+        _vGLData[aK] = new cGLData(_Data, &(_Data->getMaskedImage(aK)), aParams, appMode);
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)
@@ -563,6 +586,7 @@ cGLData* cEngine::getGLData(int WidgetIndex)
     else
         return NULL;
 }
+
 
 //********************************************************************************
 

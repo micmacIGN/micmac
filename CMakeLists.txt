@@ -52,6 +52,8 @@ OPTION(WITH_QT5 "compile Qt interfaces" OFF )
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
 
+OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
+
 #
 OPTION(WITH_MM3dSat "Graphical interface for MNS creation" OFF)
 
@@ -94,63 +96,66 @@ set(UnixBinPath
 set(qt_version 0)
 
 if (${WITH_QT4} OR ${WITH_QT5})
-	find_package(OpenGL)
-	if ( OPENGL_FOUND AND OPENGL_GLU_FOUND )
-		message( STATUS "-----> OpenGL found" )
 
-		if ( MSVC )
-			include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
-			# ajoute /lib a tous les répertoires contenant un SDK
-			foreach( sdk_dir ${WINDOWSSDK_DIRS} )
-				list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
-			endforeach()
-			set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
-			message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
-		endif()
+        find_package(OpenGL)
+        if ( OPENGL_FOUND )
+                message( STATUS "-----> OpenGL found" )
 
-		if ( WIN32 )
-			#if (VERSION > 2.8.11)
-			cmake_policy(SET CMP0020 NEW)			
-			#else()
-			#	cmake_policy(SET CMP0020 OLD)
-			#endif()
-		endif()
+                if ( MSVC )
+                        include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
+                        # ajoute /lib a tous les répertoires contenant un SDK
+                        foreach( sdk_dir ${WINDOWSSDK_DIRS} )
+                                list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
+                        endforeach()
+                        set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
+                        message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
+                endif()
 
-		if(${WITH_QT4})
-			message("Force Qt 4")
-		else()
-			find_package(Qt5Widgets QUIET)
-			find_package(Qt5Core QUIET)
-			find_package(Qt5Gui QUIET)
-			find_package(Qt5Xml QUIET)
-			find_package(Qt5Concurrent QUIET)
-			find_package(Qt5OpenGL QUIET)
-		endif()
+                if ( WIN32 )
+                        #if (VERSION > 2.8.11)
+                        cmake_policy(SET CMP0020 NEW)
+                        #else()
+                        #	cmake_policy(SET CMP0020 OLD)
+                        #endif()
+                endif()
 
-		if ( Qt5Widgets_FOUND AND
-			  Qt5Core_FOUND AND
-			  Qt5Gui_FOUND AND
-			  Qt5Xml_FOUND AND
-			  Qt5Concurrent_FOUND AND
-			  Qt5OpenGL_FOUND )
-			message( STATUS "-----> Qt5 found" )
-			set(qt_version 5)
-		else()
-			FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
-			if ( QT4_FOUND )
-				message( STATUS "-----> Qt4 found" )
-				set(qt_version 4)
-			else()
-				message( "Qt not available, Qt graphical tools disabled" )
-				message( "**************************************************************************************************************************************" )
-				message( "If Qt4 is installed, please set QT_QMAKE_EXECUTABLE" )
-				message( "If Qt5 is installed, please set CMAKE_PREFIX_PATH (ex: cmake ../ -DCMAKE_PREFIX_PATH=/opt/Qt5.1.1/5.1.1/gcc_64/lib/cmake/Qt5Widgets/ )" )
-				message( "**************************************************************************************************************************************" )
-			endif()
-		endif()
-	else()
-		message( "OpenGL or GLU not available, Qt graphical tools disabled" )
-	endif()
+                if(${WITH_QT4})
+                        message("Force Qt 4")
+                else()
+                        find_package(Qt5Widgets QUIET)
+                        find_package(Qt5Core QUIET)
+                        find_package(Qt5Gui QUIET)
+                        find_package(Qt5Xml QUIET)
+                        find_package(Qt5Concurrent QUIET)
+                        find_package(Qt5OpenGL QUIET)
+                        find_package(Qt5LinguistTools QUIET)
+                endif()
+
+                if ( Qt5Widgets_FOUND AND
+                          Qt5Core_FOUND AND
+                          Qt5Gui_FOUND AND
+                          Qt5Xml_FOUND AND
+                          Qt5Concurrent_FOUND AND
+                          Qt5OpenGL_FOUND AND
+                          Qt5LinguistTools_FOUND)
+                        message( STATUS "-----> Qt5 found" )
+                        set(qt_version 5)
+                else()
+                        FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
+                        if ( QT4_FOUND )
+                                message( STATUS "-----> Qt4 found" )
+                                set(qt_version 4)
+                        else()
+                                message( "Qt not available, Qt graphical tools disabled" )
+                                message( "**************************************************************************************************************************************" )
+                                message( "If Qt4 is installed, please set QT_QMAKE_EXECUTABLE" )
+                                message( "If Qt5 is installed, please set CMAKE_PREFIX_PATH (ex: cmake ../ -DCMAKE_PREFIX_PATH=/opt/Qt5.1.1/5.1.1/gcc_64/lib/cmake/Qt5Widgets/ )" )
+                                message( "**************************************************************************************************************************************" )
+                        endif()
+                endif()
+        else()
+                message( "OpenGL not available, Qt graphical tools disabled" )
+        endif()
 endif()
 
 if ( NOT ${qt_version} EQUAL 0 )
@@ -173,7 +178,38 @@ if (${CUDA_ENABLED})
 
         FIND_PACKAGE(CUDA)
         INCLUDE(FindCUDA)
-        INCLUDE_DIRECTORIES(${CUDA_SDK_ROOT_DIR}/inc)
+
+        if(CUDA_FOUND)
+		
+			SET(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
+			SET(Cuda_Sample_path_Windows_XP "$ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
+			SET(Cuda_Sample_path_Apple "/Developer/NVIDIA/CUDA-${CUDA_VERSION}/samples/")
+			SET(Cuda_Sample_path_Linux "${CUDA_TOOLKIT_ROOT_DIR}/samples")
+			
+            FIND_PATH(
+                        CUDA_SAMPLE_DIR
+                        NAMES
+                            common/inc/helper_cuda.h
+                        PATHS
+                            ${Cuda_Sample_path_Linux}
+                            ${Cuda_Sample_path_Windows_VISTA_7_8}
+							${Cuda_Sample_path_Windows_XP}
+                            ${Cuda_Sample_path_Windows_Apple}
+                     )
+
+					#message(${CUDA_SAMPLE_DIR})
+
+            if(NOT CUDA_SAMPLE_DIR STREQUAL "CUDA_SAMPLE_DIR-NOTFOUND")
+				#message("Cuda Samples Found")
+                message("Cuda Samples Found : " ${CUDA_SAMPLE_DIR})
+                INCLUDE_DIRECTORIES(${CUDA_SAMPLE_DIR}/common/inc)
+            else()
+                message("Cuda Samples Dir Not Found, install cuda samples or set CUDA_SAMPLE_DIR")
+            endif()
+
+        endif()
+
+
         #IFNOT(${WITH_IGN_ORI})
 
     # ne pas oublier boost_no_system_paths
@@ -231,29 +267,29 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
 # Utiliser le driver Kakadu pour gerer les images JP2OOO
 IF(${WITH_KAKADU} AND NOT ${WITH_IGN_IMAGE})
-	if(KAKADU_NO_FIND)
-		# to use when FindKAKAKDU.cmake does not exist (KAKADU_DIR must be set)
-		set( KAKADU_LIBRARY_DIRS "${KAKADU_DIR}/lib" )
-		set( KAKADU_INCLUDE_DIRS "${KAKADU_DIR}/include" )
-		set( KAKADU_LIBRARIES "kdu_v64R;kdu;kdu_aux" )
-		# quick check of Kakadu's headers and libraries
-		if ( ( (EXISTS "${KAKADU_LIBRARY_DIRS}/kdu.lib") OR
-		       (EXISTS "${KAKADU_LIBRARY_DIRS}/libkdu.a") ) AND
-		     ( EXISTS "${KAKADU_DIR}/include/jp2.h" ) )
-			set( KAKADU_FOUND 1 )
-		endif()
-	else()
-		FIND_PACKAGE( KAKADU )
-	endif()
-	
-	IF(NOT KAKADU_FOUND)
-		MESSAGE("Warning! Kakadu not found. Micmac will be built without JPEG2000 support.")
-	ELSE()
-		message( STATUS "Kakadu enabled" )
-		ADD_DEFINITIONS(-D__USE_JP2__)
-		LINK_DIRECTORIES( ${KAKADU_LIBRARY_DIRS})
-		INCLUDE_DIRECTORIES( ${KAKADU_INCLUDE_DIRS} )
-	ENDIF()
+        if(KAKADU_NO_FIND)
+                # to use when FindKAKAKDU.cmake does not exist (KAKADU_DIR must be set)
+                set( KAKADU_LIBRARY_DIRS "${KAKADU_DIR}/lib" )
+                set( KAKADU_INCLUDE_DIRS "${KAKADU_DIR}/include" )
+                set( KAKADU_LIBRARIES "kdu_v64R;kdu;kdu_aux" )
+                # quick check of Kakadu's headers and libraries
+                if ( ( (EXISTS "${KAKADU_LIBRARY_DIRS}/kdu.lib") OR
+                       (EXISTS "${KAKADU_LIBRARY_DIRS}/libkdu.a") ) AND
+                     ( EXISTS "${KAKADU_DIR}/include/jp2.h" ) )
+                        set( KAKADU_FOUND 1 )
+                endif()
+        else()
+                FIND_PACKAGE( KAKADU )
+        endif()
+
+        IF(NOT KAKADU_FOUND)
+                MESSAGE("Warning! Kakadu not found. Micmac will be built without JPEG2000 support.")
+        ELSE()
+                message( STATUS "Kakadu enabled" )
+                ADD_DEFINITIONS(-D__USE_JP2__)
+                LINK_DIRECTORIES( ${KAKADU_LIBRARY_DIRS})
+                INCLUDE_DIRECTORIES( ${KAKADU_INCLUDE_DIRS} )
+        ENDIF()
 ENDIF()
 
 # Utiliser le socle IGN pour gerer les orientations coniques ET/OU les images JP2000

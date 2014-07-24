@@ -23,6 +23,9 @@ class JP2ImageLoader: public cInterfModuleImageLoader
 		int                     m_BPS;
  		eIFImL_TypeNumerique    m_Type;               
 		int                     m_Nbc;
+        
+        bool _CKernels_W9X7;
+        bool _reversible;
 		
 		
 	public:

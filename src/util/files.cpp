@@ -249,8 +249,20 @@ void ELISE_fp::MkDir(const std::string & aName )
 
 bool ELISE_fp::IsDirectory(const std::string &  aName )
 {
+	#if ELISE_windows
+		// MSVC's stat does not tolerate ending '/' or '\'
+		string newName = aName;
+		if ( newName.length()!=0 ){
+			const char lastChar = *aName.rbegin();
+			if ( lastChar=='/' || lastChar=='\\' ) newName.resize( newName.length()-1 );
+		}
+		const string &directoryName = newName;
+	#else
+		const string &directoryName = aName;
+	#endif
+
 	struct stat status;
-	return     (stat(aName.c_str(),&status)== 0)
+	return     (stat(directoryName.c_str(),&status)== 0)
 		&& (S_ISDIR(status.st_mode));
 }
 void ELISE_fp::AssertIsDirectory(const std::string &  aName )
@@ -317,9 +329,20 @@ void  ELISE_fp::PurgeDirRecursif(const std::string & aDir)
     ELISE_fp::PurgeDirGen(aDir,true);
 }
 
-void  ELISE_fp::PurgeDir(const std::string & aDir)
+void  ELISE_fp::PurgeDir(const std::string & aDir,bool WithRmDir)
 {
     ELISE_fp::PurgeDirGen(aDir,false);
+    if (WithRmDir)
+       RmDir(aDir);
+}
+
+void  ELISE_fp::RmDir(const std::string & aDir)
+{
+#if ELISE_POSIX
+rmdir(aDir.c_str());
+#else
+RemoveDirectory(aDir.c_str());
+#endif
 }
 
 

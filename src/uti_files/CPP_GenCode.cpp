@@ -182,6 +182,9 @@ static cCam_RadFour15x2 * CamRadFour15x2(bool C2M,const tParamAFocal  & aPAF) { 
 static cCam_RadFour19x2 * CamRadFour19x2(bool C2M,const tParamAFocal  & aPAF) { return new cCam_RadFour19x2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);}
 
 
+extern cParamIntrinsequeFormel * GenCodePIFCamBilin(cSetEqFormelles * aSet);
+
+
 cParamIntrinsequeFormel * PIF_For_GC
                           (
 			       bool                 C2M,
@@ -190,6 +193,10 @@ cParamIntrinsequeFormel * PIF_For_GC
                                const tParamAFocal & aPAF
 			  )
 {
+    if (aType == "BiLin")
+    {
+       return GenCodePIFCamBilin(&aSet);
+    }
     if (aType == "NoVar")
     {
        return aSet.NewParamIntrNoDist(C2M,CamIdeale(C2M,aPAF),false);
@@ -301,18 +308,18 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
 
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
 {
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"BiLin",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"BiLin",EqDroite);
 /*
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"DRad5",EqDroite);
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"DRad5",EqDroite);
 
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadPPaEqPPs",EqDroite);
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadPPaEqPPs",EqDroite);
-*/
 
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar",EqDroite);
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoVar",EqDroite);
 
-/*
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"RadFour7x2");
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"RadFour7x2");
 
@@ -365,14 +372,14 @@ void GenCodeAppui()
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite)
 */
   // SANS AFOCAL AVEC EQ DROITE
-    GenCodeAppui(false,false,true,false,true);
-    GenCodeAppui(false,false,false,false,true);
+    // GenCodeAppui(false,false,true,false,true);
+    // GenCodeAppui(false,false,false,false,true);
   // SANS AFOCAL SS EQ DROITE
-/*
     GenCodeAppui(false,true,true,false,false);
     GenCodeAppui(false,true,false,false,false);
     GenCodeAppui(false,false,true,false,false);
     GenCodeAppui(false,false,false,false,false);
+/*
 */
 
   // AVEC AFOCAL
