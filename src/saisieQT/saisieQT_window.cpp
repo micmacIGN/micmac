@@ -253,7 +253,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         {
             for (int aK = 0; aK < nbWidgets();++aK)
             {
-                getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked());
+                getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
                 getWidget(aK)->setParams(_params);
 
                 if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[aK]);
@@ -369,7 +369,7 @@ void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 {
     if (_appMode == MASK3D)
-        currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
+        currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
 }
 
 void fillStringList(QStringList & actions, int appMode)
@@ -674,7 +674,7 @@ void SaisieQtWindow::on_actionSetViewRight_triggered()
 
 void SaisieQtWindow::on_actionReset_view_triggered()
 {
-    currentWidget()->resetView(true,true,true,true);
+    currentWidget()->resetView(true,true,true,true,true);
 }
 
 void SaisieQtWindow::on_actionZoom_Plus_triggered()
@@ -1135,7 +1135,7 @@ void SaisieQtWindow::SetDataToGLWidget(int idGLW, cGLData *glData)
     if (glData)
     {
         GLWidget * glW = getWidget(idGLW);
-        glW->setGLData(glData, glData->stateOption(cGLData::OpShow_Mess));
+        glW->setGLData(glData, glData->stateOption(cGLData::OpShow_Mess), glData->stateOption(cGLData::OpShow_Cams));
         glW->setParams(getParams());
     }
 }
@@ -1161,7 +1161,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
             threeDWidget()->getGLData()->clearClouds();
             dataCache->computeBBox(1);
             threeDWidget()->getGLData()->setData(dataCache,false);
-            threeDWidget()->resetView(false,false,false,true);
+            threeDWidget()->resetView(false,false,false,false,true);
             option3DPreview();
         }
     }
@@ -1258,7 +1258,7 @@ void SaisieQtWindow::redraw(bool nbWidgetsChanged)
                     _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
 
                     if (cpt < _Engine->getData()->getNbImages())
-                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages);
+                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages, _ui->actionShow_cams);
 
                     cpt++;
                 }
@@ -1322,7 +1322,7 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 
         if (zoomWidget())
         {
-            zoomWidget()->setGLData(glW->getGLData(),false,true,false);
+            zoomWidget()->setGLData(glW->getGLData(),false,false,true,false);
             zoomWidget()->setZoom(_params->getZoomWindowValue());
             zoomWidget()->setOption(cGLData::OpShow_Mess,false);
 
@@ -1349,7 +1349,7 @@ void SaisieQtWindow::undo(bool undo)
 
                 _Engine->reloadImage(_appMode, idx);
 
-                currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages, false);
+                currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages, false, false);
             }
 
             undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();

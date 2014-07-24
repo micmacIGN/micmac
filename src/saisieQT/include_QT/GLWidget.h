@@ -37,7 +37,7 @@ public:
     void zoomFactor(int percent);
 
     //! Switch between move mode and selection mode (only in 3D)
-    void setInteractionMode(int mode, bool showmessage);
+    void setInteractionMode(int mode, bool showmessage, bool showcams);
 
     bool getInteractionMode(){return m_interactionMode;}
 
@@ -52,13 +52,13 @@ public:
     void reset();
 
     //! Reset view
-    void resetView(bool zoomfit = true, bool showMessage = true, bool resetMatrix = true, bool resetPoly = true);
+    void resetView(bool zoomfit = true, bool showMessage = true, bool showCams = true, bool resetMatrix = true, bool resetPoly = true);
 
     ViewportParameters* getParams()         { return &_vp_Params;      }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
 
-    void        setGLData(cGLData* aData, bool showMessage = true, bool doZoom = true, bool resetPoly = true);
+    void        setGLData(cGLData* aData, bool showMessage = true, bool showCams = true, bool doZoom = true, bool resetPoly = true);
     cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)

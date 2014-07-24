@@ -710,7 +710,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
 
         m_QTMainWindow->threeDWidget()->getGLData()->replaceCloud(_data->getCloud(0));
 
-        m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
+        m_QTMainWindow->threeDWidget()->resetView(false,false,false,false,true);
         m_QTMainWindow->option3DPreview();
     }
 }
