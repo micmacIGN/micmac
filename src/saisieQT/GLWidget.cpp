@@ -403,9 +403,16 @@ void GLWidget::Select(int mode, bool saveInfos)
     {
         cPolygon polyg = *polygon();
 
-        if(mode == ADD || mode == SUB)        // TODO cette condition semble inutile
-            if ((polyg.size() < 3) || (!polyg.isClosed()))
-                return;
+        if(mode == ADD || mode == SUB)
+        {
+           if (polyg.size() == 0)
+           {
+               QMessageBox::warning(this,tr("Warning"), tr("Draw a polygon first\n\nLeft clic:\tadd vertex\nRight clic:\tclose polygon"));
+               return;
+           }
+           else  if ((polyg.size() < 3) || (!polyg.isClosed()))
+               return;
+        }
 
         if (m_bDisplayMode2D)
             m_GLData->editImageMask(mode,polyg,m_bFirstAction);

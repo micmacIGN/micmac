@@ -444,7 +444,7 @@ void cHelpDlg::populateTableView(const QStringList &shortcuts, const QStringList
 {
     QStandardItemModel* model = new QStandardItemModel(shortcuts.size(), 2, this);
 
-    model->setHorizontalHeaderItem(0, new QStandardItem(tr("Shortcut")));
+    model->setHorizontalHeaderItem(0, new QStandardItem(""));
     model->setHorizontalHeaderItem(1, new QStandardItem(tr("Action")));
 
     _ui->tableView->setModel(model);
@@ -455,6 +455,13 @@ void cHelpDlg::populateTableView(const QStringList &shortcuts, const QStringList
     {
         QStandardItem *it0 = new QStandardItem(shortcuts[aK]);
         QStandardItem *it1 = new QStandardItem(actions[aK]);
+
+        if (actions[aK].isEmpty())
+        {
+            QFont theFont = it0->font();
+            theFont.setBold(true);
+            it0->setFont(theFont);
+        }
 
         it0->setFlags(it0->flags() & ~Qt::ItemIsEditable);
         it1->setFlags(it1->flags() & ~Qt::ItemIsEditable);
