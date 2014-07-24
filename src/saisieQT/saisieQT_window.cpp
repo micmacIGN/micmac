@@ -217,7 +217,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             loadPly(filenames);
             initData();
 
-            //currentWidget()->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[0]);
+            currentWidget()->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[0]);
 
             _appMode = MASK3D;
         }
@@ -719,6 +719,7 @@ void SaisieQtWindow::on_actionSave_as_triggered()
 void SaisieQtWindow::on_actionSave_selection_triggered()
 {
     currentWidget()->getHistoryManager()->save();
+    _bSaved = true;
 }
 
 void SaisieQtWindow::on_actionSettings_triggered()

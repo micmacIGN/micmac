@@ -15,7 +15,7 @@ void cGLData::setOptionPolygons(cParameters aParams)
         polygon(aK)->showNames(_modePt);
 
         polygon(aK)->setDefaultName(aParams.getDefPtName());
-        polygon(aK)->setPointSize(aParams.getPointDiameter() * 0.01);
+        polygon(aK)->setPointSize(aParams.getPointDiameter());
         polygon(aK)->setLineWidth(aParams.getLineThickness());
     }
 }

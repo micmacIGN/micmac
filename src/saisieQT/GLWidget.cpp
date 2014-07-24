@@ -446,7 +446,7 @@ void GLWidget::applyInfos()
             cPolygon * poly = new cPolygon();
             poly->setVector(infos.poly);
             poly->setClosed(true);
-            poly->setPointSize(_params->getPointDiameter()*0.01);
+            poly->setPointSize(_params->getPointDiameter());
 
             m_GLData->setPolygon(0, poly);
 

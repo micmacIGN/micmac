@@ -801,50 +801,6 @@ void cPolygon::removeSelectedPoint()
         removePoint(_idx);
 }
 
-int cPolygon::setNearestPointState(const QPointF &pos, int state)
-{
-    int idx = _idx;
-
-    findNearestPoint(pos, 400000.f);
-
-    if (pointValid())
-    {
-        point(_idx).setPointState(state);
-        point(_idx).setSelected(false);
-    }
-
-    _idx = -1;
-    _bSelectedPoint = false;
-
-    return idx;
-}
-
-int cPolygon::highlightNearestPoint(const QPointF &pos)
-{
-    findNearestPoint(pos, 400000.f);
-
-    if (pointValid())
-    {
-        point(_idx).switchHighlight();
-    }
-
-    return _idx;
-}
-
-int cPolygon::getNearestPointIndex(const QPointF &pos)
-{
-    findNearestPoint(pos, 400000.f);
-
-    return _idx;
-}
-
-QString cPolygon::getNearestPointName(const QPointF &pos)
-{
-    findNearestPoint(pos, 400000.f);
-
-    return getSelectedPointName();
-}
-
 QString cPolygon::getSelectedPointName()
 {
     if (pointValid())
