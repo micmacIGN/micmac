@@ -11,8 +11,8 @@ set(uti_image_Digeo_Src_Files
 #    ${UTI_IMAGE_DIGEO_DIR}/Digeo_Detecteurs.cpp
 #    ${UTI_IMAGE_DIGEO_DIR}/Digeo_GaussFilter.cpp
 #    ${UTI_IMAGE_DIGEO_DIR}/Digeo_Pyram.cpp
-    ${UTI_IMAGE_DIGEO_DIR}/GenConvolSpec.cpp
-    ${UTI_IMAGE_DIGEO_DIR}/TestDigeoExt.cpp
+#    ${UTI_IMAGE_DIGEO_DIR}/GenConvolSpec.cpp
+#    ${UTI_IMAGE_DIGEO_DIR}/TestDigeoExt.cpp
     ${UTI_IMAGE_DIGEO_DIR}/DigeoPoint.cpp
 )
 

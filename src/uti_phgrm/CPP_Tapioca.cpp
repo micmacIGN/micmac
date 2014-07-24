@@ -567,9 +567,9 @@ void setLabel( vector<vector<int> > &i_graph, vector<int> &i_labels, size_t i_in
 }
 
 // delete points with a scale lesser than i_minScale of greater than i_maxScale
-void delete_out_of_bound_scales( vector<SiftPoint> &io_points, REAL i_minScale, REAL i_maxScale )
+void delete_out_of_bound_scales( vector<DigeoPoint> &io_points, REAL i_minScale, REAL i_maxScale )
 {
-    vector<SiftPoint> points( io_points.size() );
+    vector<DigeoPoint> points( io_points.size() );
     size_t nbKeptPoints = 0;
     for ( size_t iPoint=0; iPoint<io_points.size(); iPoint++ )
     {
@@ -586,44 +586,12 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 {
     size_t nbImages = aFileList.size();
     string keypointsFilename;
-    vector<vector<SiftPoint> > keypoints_per_image( nbImages );
-    vector<SiftPoint> all_keypoints; // a big vector with all keypoints of all images
+    vector<vector<DigeoPoint> > keypoints_per_image( nbImages );
+    vector<DigeoPoint> all_keypoints; // a big vector with all keypoints of all images
     vector<int> all_image_indices; // contains the index of the image from which the keypoint is from
     size_t iImage = 0,
             nbTotalKeypoints = 0,
             addedPoints;
-
-	// __DEL
-	int nbResult=0, nbExistingResult=0, threshold=100, nbSupThreshold=0;
-	map<int,int> histo;
-	for ( std::list<std::string>::const_iterator iT0=aFileList.begin(); iT0!=aFileList.end(); iT0++ ){
-		cout << *iT0 << endl;
-		for ( std::list<std::string>::const_iterator iT1=iT0; iT1!=aFileList.end(); iT1++ )
-			if ( iT0!=iT1 ) {
-				nbResult++;
-				string resultName = MMOutputDirectory()+anICNM->Assoc1To2( "NKS-Assoc-CplIm2Hom@_all@dat", *iT1, *iT0, true );
-				bool resultExists  = ELISE_fp::exist_file( resultName );
-				int nbPoints = 0;
-				if ( resultExists ){
-					nbExistingResult++;
-					ElPackHomologue pack = ElPackHomologue::FromFile( resultName );
-					nbPoints = pack.size();
-				}
-				if ( nbPoints>=threshold ) nbSupThreshold++;
-				histo[nbPoints]++;
-				cout << "\t- " << *iT1 << " -> " << resultName << " : " << nbPoints << endl;
-				
-			}
-	}
-	cout << "nbResult = " << nbResult << endl;
-	cout << "nbExistingResult = " << nbExistingResult << endl;
-	cout << "nbSupThreshold = " << nbSupThreshold << endl;
-	cout << endl;
-	for ( map<int,int>::const_iterator itHisto=histo.begin(); itHisto!=histo.end(); itHisto++ ){
-		cout << itHisto->first << " : " << itHisto->second << endl;
-	}
-	cout << "histo.size() = " << histo.size() << endl;
-	return;
 
     // read all keypoints files
     cout << "--------------------> read all keypoints files" << endl;
@@ -631,7 +599,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     {
         keypointsFilename = aKeypointsFileArray[iImage];
 
-        if ( !read_siftPoint_list( keypointsFilename, keypoints_per_image[iImage] ) ){
+        if ( !DigeoPoint::readDigeoFile( keypointsFilename, keypoints_per_image[iImage] ) ){
             cerr << "WARNING: unable to read keypoints in [" << keypointsFilename << "], image [" << *iT << "] will be ignored" << endl;
             continue;
         }
@@ -646,7 +614,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 
         if ( keypoints_per_image[iImage].size()>=i_nbMaxPointsPerImage )
         {
-            SiftPoint *data = &( keypoints_per_image[iImage][0] );
+            DigeoPoint *data = &( keypoints_per_image[iImage][0] );
             size_t nbPoints = keypoints_per_image[iImage].size();
             std::copy( data+nbPoints-i_nbMaxPointsPerImage, data+nbPoints, data );
             keypoints_per_image[iImage].resize( i_nbMaxPointsPerImage );
@@ -670,9 +638,9 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     size_t nbPoints;
     all_keypoints.resize( nbTotalKeypoints );
     all_image_indices.resize( nbTotalKeypoints );
-    vector<vector<SiftPoint> >::const_iterator itSrc = keypoints_per_image.begin();
-    const SiftPoint *pSrc;
-    SiftPoint *pDst = &( all_keypoints[0] );
+    vector<vector<DigeoPoint> >::const_iterator itSrc = keypoints_per_image.begin();
+    const DigeoPoint *pSrc;
+    DigeoPoint *pDst = &( all_keypoints[0] );
     int *itIndex = &( all_image_indices[0] );
     for ( iImage=0; iImage<nbImages; iImage++, itSrc++ )
     {
@@ -680,7 +648,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
         if ( nbPoints==0 ) continue;
 
         pSrc = &( ( *itSrc )[0] );
-        memcpy( pDst, pSrc, nbPoints*sizeof( SiftPoint ) );
+        memcpy( pDst, pSrc, nbPoints*sizeof( DigeoPoint ) );
         pDst += nbPoints;
         while ( nbPoints-- ) *itIndex++=iImage;
     }
@@ -696,7 +664,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     search.setErrorBound( 0. );
     search.setMaxVisitedPoints( SIFT_ANN_DEFAULT_MAX_PRI_POINTS );
     search.createTree( annArray );
-    SiftPoint *query = &( all_keypoints[0] );
+    DigeoPoint *query = &( all_keypoints[0] );
     const ANNidx *neighbours = search.getNeighboursIndices();
     size_t iImageQuery, iImageNeighbour,
             nbBadNeighbours = 0,

@@ -384,6 +384,8 @@ class GenIm : public PRC0 ,
 
 };
 
+string type_elToString( GenIm::type_el );
+
 template <class Type,class TyBase> class Im1D;
 
 class cFoncI2D
