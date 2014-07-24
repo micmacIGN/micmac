@@ -1506,7 +1506,12 @@ void cImageGL::ImageToTexture(QImage *pImg)
 {
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
-    glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
+
+    if (pImg->format() == QImage::Format_Indexed8)
+        glTexImage2D( GL_TEXTURE_2D, 0, 3, pImg->width(), pImg->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, pImg->bits());
+    else
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
+
     GLenum glErrorT = glGetError();
     if(glErrorT == GL_OUT_OF_MEMORY)
     {

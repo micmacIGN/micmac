@@ -21,6 +21,10 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(paren
     refresh();
 
     setUpdatesEnabled(true);
+
+    //temp
+    _ui->forceGray_checkBox->setVisible(false);
+    _ui->forceGray_checkBox->setEnabled(false);
 }
 
 cSettingsDlg::~cSettingsDlg()
@@ -55,6 +59,13 @@ void cSettingsDlg::on_GammaDoubleSpinBox_valueChanged(double val)
     _parameters->setGamma(val);
 
     emit gammaChanged((float)val);
+}
+
+void cSettingsDlg::on_forceGray_checkBox_toggled(bool val)
+{
+    _parameters->setForceGray(val);
+
+    emit forceGray(val);
 }
 
 void cSettingsDlg::on_showMasks_checkBox_toggled(bool val)
@@ -263,6 +274,7 @@ cParameters::cParameters():
     _lineThickness(2.f),
     _pointDiameter(2.f),
     _gamma(1.f),
+    _forceGray(false),
     _showMasks(false),
     _zoomWindow(3.f),
     _ptName(QString("100")),
@@ -283,6 +295,7 @@ cParameters& cParameters::operator =(const cParameters &params)
     _lineThickness  = params._lineThickness;
     _pointDiameter  = params._pointDiameter;
     _gamma          = params._gamma;
+    _forceGray      = params._forceGray;
     _showMasks      = params._showMasks;
 
     _zoomWindow     = params._zoomWindow;
@@ -308,6 +321,7 @@ bool cParameters::operator!=(cParameters &p)
             (p._lineThickness  != _lineThickness) ||
             (p._pointDiameter  != _pointDiameter) ||
             (p._gamma          != _gamma) ||
+            (p._forceGray      != _forceGray) ||
             (p._showMasks      != _showMasks) ||
             (p._zoomWindow     != _zoomWindow) ||
             (p._ptName         != _ptName)  ||
@@ -349,6 +363,7 @@ void cParameters::read()
      setLineThickness(  settings.value("linethickness", 2.f     ).toFloat());
      setPointDiameter(  settings.value("pointdiameter",0.8f      ).toFloat());
      setGamma(          settings.value("gamma",1.f              ).toFloat());
+     setForceGray(      settings.value("forceGray", false       ).toBool());
      setShowMasks(      settings.value("showMasks", false       ).toBool());
      settings.endGroup();
 
@@ -385,6 +400,7 @@ void cParameters::write()
      settings.setValue("linethickness", QString::number(_lineThickness,'f',1)  );
      settings.setValue("pointdiameter", QString::number(_pointDiameter,'f',1)  );
      settings.setValue("gamma",         QString::number(_gamma        ,'f',1)  );
+     settings.setValue("forceGray",     _forceGray  );
      settings.setValue("showMasks",     _showMasks  );
      settings.endGroup();
 

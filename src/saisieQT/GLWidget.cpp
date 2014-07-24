@@ -278,6 +278,15 @@ void GLWidget::shiftStepChanged(float val)
     }
 }
 
+void GLWidget::forceGray(bool val)
+{
+    if (hasDataLoaded())
+    {
+        //reload in
+        update();
+    }
+}
+
 void GLWidget::showMasks(bool val)
 {
     if (hasDataLoaded())

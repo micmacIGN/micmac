@@ -732,6 +732,7 @@ void SaisieQtWindow::on_actionSettings_triggered()
         connect(&_settingsDialog, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
         connect(&_settingsDialog, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
         connect(&_settingsDialog, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
+        connect(&_settingsDialog, SIGNAL(forceGray(bool)),             getWidget(aK), SLOT(forceGray(bool)));
         connect(&_settingsDialog, SIGNAL(showMasks(bool)),             getWidget(aK), SLOT(showMasks(bool)));
         connect(&_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
         connect(&_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));

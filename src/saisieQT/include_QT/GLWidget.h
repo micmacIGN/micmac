@@ -103,6 +103,7 @@ public slots:
     void pointDiameterChanged(float);
     void selectionRadiusChanged(int);
     void shiftStepChanged(float);
+    void forceGray(bool);
     void showMasks(bool);
 
     //! Sets current zoom
