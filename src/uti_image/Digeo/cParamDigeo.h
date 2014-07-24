@@ -1,5 +1,5 @@
 #ifndef Define_NotDigeo
-#define Define_NotDigeo
+	#define Define_NotDigeo
 #include "XML_GEN/all.h"
 //
 typedef enum
@@ -701,6 +701,39 @@ void  BinaryUnDumpFromFile(cGenereAllRandom &,ELISE_fp &);
 
 std::string  Mangling( cGenereAllRandom *);
 
+class cDigeoTestOutput
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cDigeoTestOutput & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< bool > & OutputGaussians();
+        const cTplValGesInit< bool > & OutputGaussians()const ;
+
+        cTplValGesInit< std::string > & OutputGaussiansDirectory();
+        const cTplValGesInit< std::string > & OutputGaussiansDirectory()const ;
+
+        cTplValGesInit< bool > & OutputTiles();
+        const cTplValGesInit< bool > & OutputTiles()const ;
+
+        cTplValGesInit< std::string > & OutputTilesDirectory();
+        const cTplValGesInit< std::string > & OutputTilesDirectory()const ;
+    private:
+        cTplValGesInit< bool > mOutputGaussians;
+        cTplValGesInit< std::string > mOutputGaussiansDirectory;
+        cTplValGesInit< bool > mOutputTiles;
+        cTplValGesInit< std::string > mOutputTilesDirectory;
+};
+cElXMLTree * ToXMLTree(const cDigeoTestOutput &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDigeoTestOutput &);
+
+void  BinaryUnDumpFromFile(cDigeoTestOutput &,ELISE_fp &);
+
+std::string  Mangling( cDigeoTestOutput *);
+
 class cSectionTest
 {
     public:
@@ -735,11 +768,27 @@ class cSectionTest
 
         cTplValGesInit< bool > & VerifExtrema();
         const cTplValGesInit< bool > & VerifExtrema()const ;
+
+        cTplValGesInit< bool > & OutputGaussians();
+        const cTplValGesInit< bool > & OutputGaussians()const ;
+
+        cTplValGesInit< std::string > & OutputGaussiansDirectory();
+        const cTplValGesInit< std::string > & OutputGaussiansDirectory()const ;
+
+        cTplValGesInit< bool > & OutputTiles();
+        const cTplValGesInit< bool > & OutputTiles()const ;
+
+        cTplValGesInit< std::string > & OutputTilesDirectory();
+        const cTplValGesInit< std::string > & OutputTilesDirectory()const ;
+
+        cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput();
+        const cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput()const ;
     private:
         cTplValGesInit< cGenereRandomRect > mGenereRandomRect;
         cTplValGesInit< cGenereCarroyage > mGenereCarroyage;
         cTplValGesInit< cGenereAllRandom > mGenereAllRandom;
         cTplValGesInit< bool > mVerifExtrema;
+        cTplValGesInit< cDigeoTestOutput > mDigeoTestOutput;
 };
 cElXMLTree * ToXMLTree(const cSectionTest &);
 
@@ -855,17 +904,17 @@ class cGenereCodeConvol
         friend void xml_init(cGenereCodeConvol & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< std::string > & Dir();
-        const cTplValGesInit< std::string > & Dir()const ;
+        cTplValGesInit< std::string > & DirectoryCodeConvol();
+        const cTplValGesInit< std::string > & DirectoryCodeConvol()const ;
 
-        cTplValGesInit< std::string > & File();
-        const cTplValGesInit< std::string > & File()const ;
+        cTplValGesInit< std::string > & FileBaseCodeConvol();
+        const cTplValGesInit< std::string > & FileBaseCodeConvol()const ;
 
         std::vector< cModifGCC > & ModifGCC();
         const std::vector< cModifGCC > & ModifGCC()const ;
     private:
-        cTplValGesInit< std::string > mDir;
-        cTplValGesInit< std::string > mFile;
+        cTplValGesInit< std::string > mDirectoryCodeConvol;
+        cTplValGesInit< std::string > mFileBaseCodeConvol;
         std::vector< cModifGCC > mModifGCC;
 };
 cElXMLTree * ToXMLTree(const cGenereCodeConvol &);
@@ -944,6 +993,15 @@ class cSectionWorkSpace
 
         cTplValGesInit< bool > & ExigeCodeCompile();
         const cTplValGesInit< bool > & ExigeCodeCompile()const ;
+
+        cTplValGesInit< std::string > & DirectoryCodeConvol();
+        const cTplValGesInit< std::string > & DirectoryCodeConvol()const ;
+
+        cTplValGesInit< std::string > & FileBaseCodeConvol();
+        const cTplValGesInit< std::string > & FileBaseCodeConvol()const ;
+
+        std::vector< cModifGCC > & ModifGCC();
+        const std::vector< cModifGCC > & ModifGCC()const ;
 
         cTplValGesInit< cGenereCodeConvol > & GenereCodeConvol();
         const cTplValGesInit< cGenereCodeConvol > & GenereCodeConvol()const ;
@@ -1112,6 +1170,21 @@ class cParamDigeo
         cTplValGesInit< bool > & VerifExtrema();
         const cTplValGesInit< bool > & VerifExtrema()const ;
 
+        cTplValGesInit< bool > & OutputGaussians();
+        const cTplValGesInit< bool > & OutputGaussians()const ;
+
+        cTplValGesInit< std::string > & OutputGaussiansDirectory();
+        const cTplValGesInit< std::string > & OutputGaussiansDirectory()const ;
+
+        cTplValGesInit< bool > & OutputTiles();
+        const cTplValGesInit< bool > & OutputTiles()const ;
+
+        cTplValGesInit< std::string > & OutputTilesDirectory();
+        const cTplValGesInit< std::string > & OutputTilesDirectory()const ;
+
+        cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput();
+        const cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput()const ;
+
         cTplValGesInit< cSectionTest > & SectionTest();
         const cTplValGesInit< cSectionTest > & SectionTest()const ;
 
@@ -1151,6 +1224,15 @@ class cParamDigeo
         cTplValGesInit< bool > & ExigeCodeCompile();
         const cTplValGesInit< bool > & ExigeCodeCompile()const ;
 
+        cTplValGesInit< std::string > & DirectoryCodeConvol();
+        const cTplValGesInit< std::string > & DirectoryCodeConvol()const ;
+
+        cTplValGesInit< std::string > & FileBaseCodeConvol();
+        const cTplValGesInit< std::string > & FileBaseCodeConvol()const ;
+
+        std::vector< cModifGCC > & ModifGCC();
+        const std::vector< cModifGCC > & ModifGCC()const ;
+
         cTplValGesInit< cGenereCodeConvol > & GenereCodeConvol();
         const cTplValGesInit< cGenereCodeConvol > & GenereCodeConvol()const ;
 
@@ -1186,5 +1268,4 @@ std::string  Mangling( cParamDigeo *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-// };
 #endif // Define_NotDigeo

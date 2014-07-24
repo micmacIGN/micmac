@@ -73,12 +73,14 @@ void normalizeDescriptor( REAL8 *io_descriptor );
 // tronque à DIGEO_DESCRIBE_THRESHOLD
 void truncateDescriptor( REAL8 *io_descriptor );
 
+/*
 // lit/écrit une liste de point au format siftpp_tgi
 inline void write_DigeoPoint_binary_legacy( std::ostream &output, const DigeoPoint &p );
 inline void read_DigeoPoint_binary_legacy( std::istream &output, DigeoPoint &p );
 // lit/écrit un point au format siftpp_tgi
 bool write_digeo_points( const string &i_filename, const list<DigeoPoint> &i_list );
 bool read_digeo_points( const string &i_filename, vector<DigeoPoint> &o_list );
+*/
 
 //----------
 
@@ -121,10 +123,9 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 o
 	static REAL8 histo[DIGEO_ORIENTATION_NB_BINS];
 
 	int xi = ((int) (i_p.mPt.x+0.5)) ;
-    int yi = ((int) (i_p.mPt.y+0.5)) ;
-
-    const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mScale;
-	const int W = (int)floor( 3*sigmaw );
+	int yi = ((int) (i_p.mPt.y+0.5)) ;
+	const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mLocalScale;
+	const int W = (int)ceil( 3*sigmaw );
 
     // fill the SIFT histogram
 	const INT width  = i_gradient.sz().x/2,
@@ -149,15 +150,14 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 o
             offset = ( xs+ys*width )*2;
             mod    = p[offset];
             ang    = p[offset+1];
-
             int bin = (int) floor( DIGEO_ORIENTATION_NB_BINS*ang/( 2*M_PI ) ) ;
             histo[bin] += mod*wgt ;
 
         }
     }
-
+    
     REAL8 prev;
-    // smooth histogram  (Vedaldi style)
+    // smooth histogram
     // mean of a bin and its two neighbour values (x6)
     REAL8 *itHisto,
            first, mean;
@@ -180,7 +180,7 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 o
     // find histogram's peaks
     // peaks are values > 80% of histoMax and > to both its neighbours
     REAL8 histoMax = 0.8*( *std::max_element( histo, histo+DIGEO_ORIENTATION_NB_BINS ) ),
-		  v, next, di;
+          v, next, di;
     int nbAngles = 0;
     for ( int i=0; i<DIGEO_ORIENTATION_NB_BINS; i++ )
     {
@@ -210,8 +210,8 @@ void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
 	int xi = int( i_p.mPt.x+0.5 );
     int yi = int( i_p.mPt.y+0.5 );
 
-    const REAL8 SBP = DIGEO_DESCRIBE_MAGNIFY*i_p.mScale;
-    const int  W   = (int)floor( sqrt( 2.0 )*SBP*( DIGEO_DESCRIBE_NBP+1 )/2.0+0.5 );
+    const REAL8 SBP = DIGEO_DESCRIBE_MAGNIFY*i_p.mLocalScale;
+    const int  W   = (int)ceil( sqrt( 2.0 )*SBP*( DIGEO_DESCRIBE_NBP+1 )/2.0+0.5 );
 
     /* Offsets to move in the descriptor. */
     /* Use Lowe's convention. */
@@ -260,7 +260,7 @@ void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
                 theta = 2*M_PI+std::fmod( theta, REAL8( 2*M_PI ) );
 
             // fractional displacement
-			dx = xi+dxi-i_p.mPt.x;
+            dx = xi+dxi-i_p.mPt.x;
             dy = yi+dyi-i_p.mPt.y;
 
             // get the displacement normalized w.r.t. the keypoint
@@ -309,6 +309,7 @@ void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
     }
 }
 
+/*
 // same format as siftpp_tgi (not endian-wise)
 // Real_ values are cast to float
 // descriptors are cast from float to unsigned char values d[i]->(unsigned char)(512*d[i])
@@ -321,7 +322,7 @@ inline void write_DigeoPoint_binary_legacy( std::ostream &output, const DigeoPoi
 	static unsigned char uchar_desc[DIGEO_DESCRIPTOR_SIZE];
 	int i=DIGEO_DESCRIPTOR_SIZE; const REAL8 *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
 	while (i--)	(*it_uchar++)=(unsigned char)( 512*(*itReal++) );
-    output.write( (char*)uchar_desc, DIGEO_DESCRIPTOR_SIZE );
+		output.write( (char*)uchar_desc, DIGEO_DESCRIPTOR_SIZE );
 }
 
 // same format as siftpp_tgi (not endian-wise)
@@ -337,7 +338,7 @@ inline void read_DigeoPoint_binary_legacy( std::istream &output, DigeoPoint &p )
 	p.angle = (REAL8)float_values[3];
 	static unsigned char uchar_desc[DIGEO_DESCRIPTOR_SIZE];
 	const REAL8 k = REAL8(1)/REAL8(512);
-    output.read( (char*)uchar_desc, DIGEO_DESCRIPTOR_SIZE );
+	output.read( (char*)uchar_desc, DIGEO_DESCRIPTOR_SIZE );
 	int i=DIGEO_DESCRIPTOR_SIZE; REAL8 *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
 	while (i--) (*itReal++)=(REAL8)(*it_uchar++)*k;
 }
@@ -386,6 +387,7 @@ bool read_digeo_points( const string &i_filename, vector<DigeoPoint> &o_list )
 
     return true;
 }
+*/
 
 void normalizeDescriptor( REAL8 *io_descriptor )
 {
@@ -432,26 +434,26 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
   DigeoPoint p;
   int nbAngles;
   const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
+  double trueSamplingPace = anOct->Niv()*anOct->ImDigeo().Resol();
   
   for (int aKIm=0 ; aKIm<int(aVIm.size()) ; aKIm++)
   {
        cTplImInMem<Type> & anIm = *(aVIm[aKIm]);
        Im2D<Type,tBase> aTIm = anIm.TIm();
-       //std::cout << "   #  Sz " << aTIm.sz() << " SInit:" <<  anIm.ScaleInit() << " SOct:" << anIm.ScaleInOct() << endl;
 
-	   p.scale = anIm.ScaleInit();
-       std::vector<cPtsCaracDigeo> &  aVPC = anIm.VPtsCarac();
-       //std::cout << "NB PTS " <<aVPC.size()<<endl;
-	   if ( aVPC.size()!=0 )
-	   {
-		   gradient( aTIm, anOct->GetMaxValue(), imgGradient );
-		   for ( unsigned int i=0; i<aVPC.size(); i++ )
-		   {
-			   p.x=aVPC[i].mPt.x*anOct->Niv(); p.y=aVPC[i].mPt.y*anOct->Niv(); p.type=(DigeoPoint::DetectType)aVPC[i].mType;
-			   nbAngles = orientate( imgGradient, aVPC[i], angles );
-			   if ( nbAngles!=0 )
-			   {
-				   for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
+		p.scale = anIm.ScaleInit();
+		std::vector<cPtsCaracDigeo> &  aVPC = anIm.VPtsCarac();
+		if ( aVPC.size()!=0 )
+		{
+			gradient( aTIm, anOct->GetMaxValue(), imgGradient );
+			for ( unsigned int i=0; i<aVPC.size(); i++ ){
+				p.x = aVPC[i].mPt.x*trueSamplingPace;
+				p.y = aVPC[i].mPt.y*trueSamplingPace;
+				p.type = (DigeoPoint::DetectType)aVPC[i].mType;
+				aVPC[i].mLocalScale = aVPC[i].mScale/trueSamplingPace;
+				nbAngles = orientate( imgGradient, aVPC[i], angles );
+				if ( nbAngles!=0 ){
+					for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
 						describe( imgGradient, aVPC[i], angles[iAngle], p.descriptor );
 						normalize_and_truncate( p.descriptor );
 						p.angle = angles[iAngle];
@@ -463,6 +465,83 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
   }
 }
 
+// add i_v to the coordinates of the i_nbPoints last points of io_points
+void translate_points( list<DigeoPoint> &io_points, size_t i_nbPoints, const Pt2di &i_v )
+{
+	#ifdef __DEBUG_DIGEO
+		if ( i_nbPoints>io_points.size() ){ cerr << "translate_points: trying to translate " << i_nbPoints << " out of " << io_points.size() << endl; exit(EXIT_FAILURE); }
+	#endif
+	const double tx = (double)i_v.x,
+	             ty = (double)i_v.y;
+	list<DigeoPoint>::reverse_iterator itPoint = io_points.rbegin();
+	while ( i_nbPoints-- ){
+		itPoint->x = itPoint->x+tx;
+		itPoint->y = itPoint->y+ty;
+		itPoint++;
+	}
+}
+
+extern bool load_ppm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height );
+extern bool save_ppm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height );
+
+// load i_ppmFilename, a ppm image, plot the last i_nbPoints in the list and save the image
+// add i_v to the coordinates of the i_nbPoints last points of io_points
+bool plot_tile_points( const string &i_ppmFilename, const list<DigeoPoint> &i_points, unsigned int i_nbPoints, double i_scale )
+{
+	unsigned char *image;
+	unsigned int width, height;
+	if ( !load_ppm( i_ppmFilename, image, width, height ) ) return false;
+
+	list<DigeoPoint>::const_reverse_iterator itPoint = i_points.rbegin();
+	while ( i_nbPoints-- ){
+		int x = (int)( ( i_scale*itPoint->x )+0.5 ),
+			 y = (int)( ( i_scale*itPoint->y )+0.5 );
+		#ifdef __DEBUG_DIGEO
+			if ( x<0 || x>=(int)width || y<0 || y>=(int)height ){
+				cerr << "plot_tile_points: point " << x << ',' << y << " out of range, image size is " << width << 'x' << height << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif
+		unsigned char *pix = image+3*( x+y*width );
+		pix[2] = 255;
+		itPoint++;
+	}
+	bool res = save_ppm( i_ppmFilename, image, width, height );
+	delete [] image;
+	return res;
+}
+
+template <class T>
+bool generate_convolution_code( cAppliDigeo &i_appli )
+{
+	if ( i_appli.nbSlowConvolutionsUsed<T>()==0 ) return true;
+
+	const string typeName = El_CTypeTraits<T>::Name();
+	if ( i_appli.mVerbose ) cout << "WARNING: " << i_appli.nbSlowConvolutionsUsed<T>() << " slow convolutions of type " << typeName << " have been used" << endl;
+
+	string lowerTypeName = El_CTypeTraits<T>::Name();
+	for ( size_t i=0; i<lowerTypeName.length(); i++ ) lowerTypeName[i] = ::tolower(lowerTypeName[i]);
+
+	string classFilename = i_appli.getConvolutionClassesFilename( lowerTypeName );
+	string instantiationsFilename = i_appli.getConvolutionInstantiationsFilename( lowerTypeName );
+	if ( !ELISE_fp::exist_file( classFilename ) || !ELISE_fp::exist_file( instantiationsFilename ) ){
+		cout << "WARNING: source code do not seem to be available, no convolution code generated for type " << typeName << endl;
+		return false;
+	}
+	
+	if ( !cConvolSpec<T>::generate_classes( classFilename ) ){
+		cout << "WARNING: generated convolution couldn't be saved to " << classFilename << endl;
+		return false;
+	}
+
+	if ( !cConvolSpec<T>::generate_instantiations( instantiationsFilename ) ){
+		cout << "WARNING: generated convolution couldn't be saved to " << instantiationsFilename << endl;
+		return false;
+	}
+	if ( i_appli.mVerbose ) cout << "convolution code has been generated for type " << typeName << ", compile again to improve speed with the same parameters" << endl;
+	return true;
+}
+
 int Digeo_main( int argc, char **argv )
 {
 	if ( argc!=4 ){
@@ -470,91 +549,103 @@ int Digeo_main( int argc, char **argv )
 		return EXIT_FAILURE;
 	}
     std::string inputName  = argv[1];
-	std::string outputName = argv[3];
+	 std::string outputName = argv[3];
 
-	cParamAppliDigeo aParam;
-    aParam.mSauvPyram = false;
-    aParam.mSigma0 = 1.0;
-
-    aParam.mResolInit = 1.0;
-
+    cParamAppliDigeo aParam;
     cAppliDigeo * anAD = DigeoCPP(inputName,aParam);
     cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
 
-    list<DigeoPoint> total_list;
+    if ( anAD->mVerbose ){
+       cout << "number of tiles : " << anAD->NbInterv() << endl;
+       cout << "margin : " << anAD->DigeoDecoupageCarac().Val().Bord() << endl;
+    }
 
+    list<DigeoPoint> total_list;
     for (int aKBox = 0 ; aKBox<anAD->NbInterv() ; aKBox++)
     {
         anAD->LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
+        Box2di box = anAD->getInterv( aKBox );
+        box._p0.x *= anImD.Resol();
+        box._p0.y *= anImD.Resol();
+
+        if ( anAD->mVerbose ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
+
         const std::vector<cOctaveDigeo *> & aVOct = anImD.Octaves();
         
-        for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++)
-        {
-            cOctaveDigeo & anOct = *(aVOct[aKo]);
-            cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
-            cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
-            
-			if ( anAD->mVerbose )
-			{
-				cout << "\tOctave " << aKo << " of type ";
-				if (aUI2_Oct !=0) cout << "uint2" << endl;
-				else if (aR4_Oct !=0) cout << "real4" << endl;
-				else cout << "unknown" << endl;
-			}
-			
-			anOct.DoAllExtract();
-			
-			#ifdef __DEBUG_DIGEO_STATS
-			   if ( anAD->mVerbose && ( anOct.VIms().size()!=0 ) )
-			   {
-				   size_t iImg = anOct.VIms().size(),
-					      countRefined     = 0,
-					      countUncalc      = 0,
-					      countInstable    = 0,
-					      countInstable2   = 0,
-					      countInstable3   = 0,
-					      countGradFaible  = 0,
-					      countTropAllonge = 0,
-					      countOk          = 0,
-					      countExtrema;
-				   cImInMem *const *itImg = &( anOct.VIms()[0] );
-				   while ( iImg-- )
-				   {
-					   countRefined     += ( *itImg )->VPtsCarac().size();
-					   countUncalc      += ( *itImg )->mCount_eTES_Uncalc;
-					   countInstable    += ( *itImg )->mCount_eTES_instable_unsolvable;
-					   countInstable2   += ( *itImg )->mCount_eTES_instable_tooDeepRecurrency;
-					   countInstable3   += ( *itImg )->mCount_eTES_instable_outOfImageBound;
-					   countGradFaible  += ( *itImg )->mCount_eTES_GradFaible;
-					   countTropAllonge += ( *itImg )->mCount_eTES_TropAllonge;
-					   countOk          += ( *itImg )->mCount_eTES_Ok;
-					   itImg++;
-				   }
-				   countExtrema = countInstable+countInstable2+countInstable3+countGradFaible+countTropAllonge+countOk;
-				   cout << "\t\textrema detected                    \t" << countExtrema << endl;
-				   cout << "\t\tafter refinement and on-edge removal\t" << countRefined << endl;
-				   cout << "\t\t------------------------------------" << endl;
-				   cout << "\t\teTES_Uncalc                       \t" << countUncalc << endl;
-				   cout << "\t\teTES_instable_unsolvable          \t" << countInstable << endl;
-				   cout << "\t\teTES_instable_tooDeepRecurrency   \t" << countInstable2 << endl;
-				   cout << "\t\teTES_instable_outOfImageBound     \t" << countInstable3 << endl;
-				   cout << "\t\teTES_GradFaible                   \t" << countGradFaible << endl;
-				   cout << "\t\teTES_TropAllonge                  \t" << countTropAllonge << endl;
-				   cout << "\t\teTES_Ok                           \t" << countOk << endl;
-			   }
-			#endif
-			
-			if (aUI2_Oct !=0)
-				orientate_and_describe_all<U_INT2,INT>(aUI2_Oct, total_list);
-			if (aR4_Oct !=0) 
-			orientate_and_describe_all<REAL4,REAL8>(aR4_Oct, total_list);
+        size_t nbPointsBeforeTile = total_list.size();
+        for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++){
+				unsigned int nbPointsBeforeOctave = total_list.size();
+				cOctaveDigeo & anOct = *( aVOct[aKo] );
+				cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
+				cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
+
+				anOct.DoAllExtract();
+
+				if ( anAD->doSaveGaussians() ) anOct.saveGaussians( anAD->outputGaussiansDirectory(), anAD->currentTileBasename() );
+
+				#ifdef __DEBUG_DIGEO_STATS
+					if ( anAD->mVerbose && ( anOct.VIms().size()!=0 ) )
+					{
+						size_t iImg = anOct.VIms().size(),
+								 countRefined     = 0,
+								 countUncalc      = 0,
+								 countInstable    = 0,
+								 countInstable2   = 0,
+								 countInstable3   = 0,
+								 countGradFaible  = 0,
+								 countTropAllonge = 0,
+								 countOk          = 0,
+								 countExtrema;
+						cImInMem *const *itImg = &( anOct.VIms()[0] );
+						while ( iImg-- ){
+							countRefined     += ( *itImg )->VPtsCarac().size();
+							countUncalc      += ( *itImg )->mCount_eTES_Uncalc;
+							countInstable    += ( *itImg )->mCount_eTES_instable_unsolvable;
+							countInstable2   += ( *itImg )->mCount_eTES_instable_tooDeepRecurrency;
+							countInstable3   += ( *itImg )->mCount_eTES_instable_outOfImageBound;
+							countGradFaible  += ( *itImg )->mCount_eTES_GradFaible;
+							countTropAllonge += ( *itImg )->mCount_eTES_TropAllonge;
+							countOk          += ( *itImg )->mCount_eTES_Ok;
+							itImg++;
+						}
+						countExtrema = countInstable+countInstable2+countInstable3+countGradFaible+countTropAllonge+countOk;
+						cout << "\t\textrema detected                    \t" << countExtrema << endl;
+						cout << "\t\tafter refinement and on-edge removal\t" << countRefined << endl;
+						cout << "\t\t------------------------------------" << endl;
+						cout << "\t\teTES_Uncalc                       \t" << countUncalc << endl;
+						cout << "\t\teTES_instable_unsolvable          \t" << countInstable << endl;
+						cout << "\t\teTES_instable_tooDeepRecurrency   \t" << countInstable2 << endl;
+						cout << "\t\teTES_instable_outOfImageBound     \t" << countInstable3 << endl;
+						cout << "\t\teTES_GradFaible                   \t" << countGradFaible << endl;
+						cout << "\t\teTES_TropAllonge                  \t" << countTropAllonge << endl;
+						cout << "\t\teTES_Ok                           \t" << countOk << endl;
+					}
+				#endif
+
+				if ( aUI2_Oct!=0 ) orientate_and_describe_all<U_INT2,INT>(aUI2_Oct, total_list);
+				else if ( aR4_Oct!=0 ) orientate_and_describe_all<REAL4,REAL8>(aR4_Oct, total_list);
+				else ELISE_ASSERT( false, ( string("octave ")+ToString(aKo)+" of unknown type" ).c_str() );
+
+				size_t nbOctavePoints = total_list.size()-nbPointsBeforeOctave;
+				if ( anAD->doSaveTiles() ){
+					const string ppmFilename = anAD->currentTileFullname()+".ppm";
+					ELISE_ASSERT( plot_tile_points( ppmFilename, total_list, nbOctavePoints, (double)1./anImD.Resol() ), (string("cannot load tile's ppm file [")+ppmFilename+"]").c_str() );
+				}
+
+				// translate tile-based coordinates to full image coordinates
+				translate_points( total_list, nbOctavePoints, box._p0 );
         }
+
+        size_t nbTilePoints = total_list.size()-nbPointsBeforeTile;
+        if ( anAD->mVerbose ) cout << "\t" << nbTilePoints << " points" << endl;
     }
-	cout << total_list.size() << " points" << endl;
-	if ( !write_digeo_points( outputName, total_list ) ){
-		cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
-	}
-	return EXIT_SUCCESS;
+    
+    generate_convolution_code<U_INT2>( *anAD );
+    generate_convolution_code<REAL4>( *anAD );
+    
+    cout << total_list.size() << " points" << endl;
+    if ( !DigeoPoint::writeDigeoFile( outputName, total_list ) ) cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
+    return EXIT_SUCCESS;
 }
 
 
