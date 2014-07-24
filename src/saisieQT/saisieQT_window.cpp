@@ -372,6 +372,20 @@ void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
         currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
 }
 
+void fillStringList(QStringList & actions, int appMode)
+{
+    if (appMode == MASK3D)
+    {
+        actions.push_back(QObject::tr("select inside polygon"));
+        actions.push_back(QObject::tr("remove inside polygon"));
+    }
+    else if (appMode == MASK2D)
+    {
+        actions.push_back(QObject::tr("add to mask"));
+        actions.push_back(QObject::tr("remove from mask"));
+    }
+}
+
 void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 {
     const QPoint global = qApp->desktop()->availableGeometry().center();
@@ -381,6 +395,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
     QStringList shortcuts;
     QStringList actions;
+
+    shortcuts.push_back(tr("File Menu"));
+    actions.push_back("");
 
     if (_appMode == MASK3D)
     {
@@ -409,6 +426,12 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     actions.push_back(tr("settings"));
     shortcuts.push_back("Ctrl+Q");
     actions.push_back(tr("quit"));
+
+    shortcuts.push_back("");
+    actions.push_back("");
+
+    shortcuts.push_back(tr("View Menu"));
+    actions.push_back("");
 
     shortcuts.push_back("F2");
     actions.push_back(tr("full screen"));
@@ -461,6 +484,15 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     shortcuts.push_back("Shift+R");
     actions.push_back(tr("reset view"));
 
+    shortcuts.push_back("");
+    actions.push_back("");
+
+    if (_appMode == MASK3D)
+        shortcuts.push_back(tr("Selection Menu"));
+    else if (_appMode == MASK2D)
+        shortcuts.push_back(tr("Mask Edition Menu"));
+    actions.push_back("");
+
     if (_appMode <= MASK3D)
     {
         if (_appMode == MASK3D)
@@ -469,37 +501,34 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             actions.push_back(tr("move mode / selection mode (only 3D)"));
         }
         shortcuts.push_back(tr("Left click"));
-        actions.push_back(tr("add a vertex to polyline"));
+        actions.push_back(tr("add a vertex to polygon"));
         shortcuts.push_back(tr("Right click"));
-        actions.push_back(tr("close polyline or delete nearest vertex"));
+        actions.push_back(tr("close polygon or delete nearest vertex"));
         shortcuts.push_back(tr("Echap"));
-        actions.push_back(tr("delete polyline"));
+        actions.push_back(tr("delete polygon"));
 
 #ifdef ELISE_Darwin
     #if ELISE_QT_VERSION >= 5
             shortcuts.push_back("Ctrl+U");
-            actions.push_back(tr("select inside polyline"));
             shortcuts.push_back("Ctrl+Y");
-            actions.push_back(tr("remove inside polyline"));
+            fillStringList(actions, _appMode);
     #else
             shortcuts.push_back(tr("Space bar"));
-            actions.push_back(tr("select inside polyline"));
             shortcuts.push_back(tr("Del"));
-            actions.push_back(tr("remove inside polyline"));
+            fillStringList(actions, _appMode);
     #endif
 #else
         shortcuts.push_back(tr("Space bar"));
-        actions.push_back(tr("select inside polyline"));
         shortcuts.push_back(tr("Del"));
-        actions.push_back(tr("remove inside polyline"));
+        fillStringList(actions, _appMode);
 #endif
 
         shortcuts.push_back(tr("Shift+drag"));
-        actions.push_back(tr("insert vertex in polyline"));
+        actions.push_back(tr("insert vertex in polygon"));
         shortcuts.push_back(tr("Ctrl+right click"));
         actions.push_back(tr("remove last vertex"));
         shortcuts.push_back(tr("Drag & drop"));
-        actions.push_back(tr("move selected polyline vertex"));
+        actions.push_back(tr("move selected polygon vertex"));
         shortcuts.push_back(tr("Arrow keys"));
         actions.push_back(tr("move selected vertex"));
         shortcuts.push_back(tr("Alt+arrow keys"));
@@ -509,7 +538,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back("Ctrl+D");
         actions.push_back(tr("select none"));
         shortcuts.push_back("Ctrl+R");
-        actions.push_back(tr("reset"));
+        actions.push_back(tr("reset selection"));
         shortcuts.push_back("Ctrl+I");
         actions.push_back(tr("invert selection"));
     }
@@ -976,6 +1005,13 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
+
+    if (_appMode == MASK2D)
+    {
+        _ui->menuSelection->setTitle(tr("&Mask edition"));
+        _ui->actionAdd->setText(tr("Add to mask"));
+        _ui->actionRemove->setText(tr("Remove from mask"));
+    }
 }
 
 void SaisieQtWindow::setUI()
@@ -1313,7 +1349,7 @@ void SaisieQtWindow::undo(bool undo)
 
                 _Engine->reloadImage(_appMode, idx);
 
-                currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+                currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages, false);
             }
 
             undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
