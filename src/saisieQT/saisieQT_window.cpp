@@ -70,6 +70,7 @@ void SaisieQtWindow::connectActions()
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&, bool)), this,	SLOT(addFiles(const QStringList&, bool)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
+        connect(getWidget(aK),	SIGNAL(maskEdited()), this,SLOT(resetSavedState()));
         connect(this, SIGNAL(selectPoint(QString)),getWidget(aK),SLOT(selectPoint(QString)));
     }
 
@@ -617,7 +618,7 @@ void SaisieQtWindow::on_actionReset_triggered()
 {
     if (_appMode != MASK3D)
     {
-        closeAll();
+        closeAll(false);
         initData();
 
         addFiles(_Engine->getFilenamesIn());
@@ -717,8 +718,6 @@ void SaisieQtWindow::on_actionLoad_image_triggered()
         QStringList & filenames = _Engine->getFilenamesIn();
         filenames.clear();
         filenames.push_back(img_filename);
-
-        setCurrentFile(img_filename);
 
         addFiles(filenames);
     }
@@ -850,18 +849,21 @@ void SaisieQtWindow::on_menuFile_triggered()
     }
 }
 
-void SaisieQtWindow::closeAll()
+void SaisieQtWindow::closeAll(bool check)
 {
-    int reply = checkBeforeClose();
+    if (check)
+    {
+        int reply = checkBeforeClose();
 
-    // 1 close without saving
-    if (reply == 2) //cancel
-    {
-        return;
-    }
-    else if (reply == 0) // save
-    {
-        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+        // 1 close without saving
+        if (reply == 2) //cancel
+        {
+            return;
+        }
+        else if (reply == 0) // save
+        {
+            _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+        }
     }
 
     emit sCloseAll();

@@ -430,6 +430,8 @@ void GLWidget::Select(int mode, bool saveInfos)
             _historyManager.push_back(info);
         }
 
+        emit maskEdited();
+
         m_GLData->clearPolygon();
 
         update();
@@ -792,15 +794,12 @@ void GLWidget::movePointWithArrows(QKeyEvent* event)
 
     cPoint pt = polygon()->translateSelectedPoint(tr);
 
-    int idx = polygon()->getSelectedPointIndex();
+    emit movePoint(polygon()->getSelectedPointIndex());
 
-    emit movePoint(idx);
-
-    polygon()->helper()->clear();
+    //polygon()->helper()->clear();
 
     polygon()->findNearestPoint(pt, 400000.f);
 }
-
 
 
 void GLWidget::keyPressEvent(QKeyEvent* event)
