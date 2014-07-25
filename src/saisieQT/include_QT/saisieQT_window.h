@@ -94,7 +94,7 @@ public slots:
 
     void zoomFactor(int aFactor);
 
-    void closeAll();
+    void closeAll(bool checkBeforeClose = true);
 
     void closeCurrentWidget();
 
@@ -113,6 +113,8 @@ public slots:
     void setGamma(float);
 
     cParameters* getParams() { return _params; }
+
+    void resetSavedState() { _bSaved = false; }
 
 signals:
 
