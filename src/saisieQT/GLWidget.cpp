@@ -79,7 +79,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
     if (aData != NULL)
     {
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-            m_GLData->glImage().deleteTextures();
+            m_GLData->glImage().deleteTextures();  //TODO: undo => seg fault
 
         m_GLData = aData;
 
