@@ -489,10 +489,15 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     actions.push_back("");
 
     if (_appMode == MASK3D)
-        shortcuts.push_back(tr("Selection Menu"));
+    {	
+		shortcuts.push_back(tr("Selection Menu"));
+		actions.push_back("");
+	}
     else if (_appMode == MASK2D)
+	{
         shortcuts.push_back(tr("Mask Edition Menu"));
-    actions.push_back("");
+		actions.push_back("");
+	}
 
     if (_appMode <= MASK3D)
     {
@@ -501,9 +506,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             shortcuts.push_back("F9");
             actions.push_back(tr("move mode / selection mode (only 3D)"));
         }
-        shortcuts.push_back(tr("Left click"));
+        shortcuts.push_back(tr("Left clic"));
         actions.push_back(tr("add a vertex to polygon"));
-        shortcuts.push_back(tr("Right click"));
+        shortcuts.push_back(tr("Right clic"));
         actions.push_back(tr("close polygon or delete nearest vertex"));
         shortcuts.push_back(tr("Echap"));
         actions.push_back(tr("delete polygon"));
