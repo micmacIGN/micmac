@@ -23,9 +23,9 @@ typedef enum
    eEnglish = 0,
    eFrench  = 1,
    eSpanish = 2,
-   eChinese = 3,
+   /*eChinese = 3,
    eArabic  = 4,
-   eRussian = 5,
+   eRussian = 5,*/
    eEsperanto
 } eLANG;
 
@@ -50,6 +50,7 @@ public:
     void setLineThickness(float val)    { _lineThickness = val;  }
     void setPointDiameter(float val)    { _pointDiameter = val;  }
     void setGamma(float val)            { _gamma = val;          }
+    void setForceGray(bool val)         { _forceGray = val;      }
     void setShowMasks(bool val)         { _showMasks = val;      }
 
     void setSelectionRadius(int val)    { _radius = val;         }
@@ -73,6 +74,7 @@ public:
     float getLineThickness()            { return _lineThickness; }
     float getPointDiameter()            { return _pointDiameter; }
     float getGamma()                    { return _gamma;         }
+    bool  getForceGray()                { return _forceGray;     }
     bool  getShowMasks()                { return _showMasks;     }
 
     int   getSelectionRadius()          { return _radius;        }
@@ -103,6 +105,7 @@ private:
     float       _lineThickness;
     float       _pointDiameter;
     float       _gamma;
+    bool        _forceGray;
     bool        _showMasks;
 
     //! Other parameters
@@ -136,14 +139,14 @@ public:
     void enableMarginSpinBox(bool show = true);
 
     void hidePage();
+    void hideSaisieMasqItems();
     void uiShowMasks(bool);
 
 signals:
-    void nbFenChanged(bool closeWidgets);
-
     void lineThicknessChanged(float);
     void pointDiameterChanged(float);
     void gammaChanged(float);
+    void forceGray(bool);
     void showMasks(bool);
     void zoomWindowChanged(float);
     void selectionRadiusChanged(int);
@@ -157,16 +160,11 @@ protected slots:
     void on_okButton_clicked();
     void on_cancelButton_clicked();
 
-    //!layout settings
-    void on_NBF_x_spinBox_valueChanged(int);
-    void on_NBF_y_spinBox_valueChanged(int);
-    void on_WindowWidth_spinBox_valueChanged(int);
-    void on_WindowHeight_spinBox_valueChanged(int);
-
     //!drawing settings
     void on_LineThickness_doubleSpinBox_valueChanged(double);
     void on_PointDiameter_doubleSpinBox_valueChanged(double);
     void on_GammaDoubleSpinBox_valueChanged(double);
+    void on_forceGray_checkBox_toggled(bool);
     void on_showMasks_checkBox_toggled(bool);
 
     //!other display settings
@@ -195,6 +193,7 @@ protected:
     Ui::SettingsDialog* _ui;
 
     bool	pageHidden;
+    bool    lineItemHidden;
 };
 
 class cHelpDlg : public QDialog

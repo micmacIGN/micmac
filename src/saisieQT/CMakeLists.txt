@@ -18,7 +18,7 @@ set (FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${saisieQT_SRCS} PARENT_SCOPE)
 if ( NOT ${qt_version} EQUAL 0 )
 
     if (UPDATE_TRANSLATIONS)
-        set(translation_dir ${PROJECT_SOURCE_DIR}/include/qt/translations)
+        set(translation_dir ${CMAKE_SOURCE_DIR}/include/qt/translations)
         #message ("translation_dir " ${translation_dir})
 
         set(languages fr es)

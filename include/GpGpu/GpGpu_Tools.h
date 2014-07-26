@@ -117,6 +117,8 @@ public:
     ///	\brief			(X)
     static void			OutputGpu();
 
+	static void			check_Cuda();
+
 	#ifdef  NVTOOLS
     static void			NvtxR_Push(const char* message, int32_t color);
 #endif
