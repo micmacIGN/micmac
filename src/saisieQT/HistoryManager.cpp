@@ -21,6 +21,8 @@ void HistoryManager::push_back(selectInfos &infos)
 
 void HistoryManager::save()
 {
+    //std::cout << "saving in " << _filename.toStdString().c_str() << std::endl;
+
     QDomDocument doc;
 
     QFile outFile(_filename);

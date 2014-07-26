@@ -95,12 +95,12 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
     _menuPGView         = new QMenu(m_QTMainWindow);
     _menuImagesView     = new QMenu(m_QTMainWindow);
 
-    _thisPointAction    = _menuPGView->addAction("Change Images for this point");
+    _thisPointAction    = _menuPGView->addAction(tr("Change Images for this point"));
 
-    QAction* deleteSelectedPGAction = _menuPGView->addAction("Delete selected points");
-    QAction* validateSelectedPGAction = _menuPGView->addAction("Validate selected points");
+    QAction* deleteSelectedPGAction = _menuPGView->addAction(tr("Delete selected points"));
+    QAction* validateSelectedPGAction = _menuPGView->addAction(tr("Validate selected points"));
 
-    _thisImagesAction   = _menuImagesView->addAction("View Images");
+    _thisImagesAction   = _menuImagesView->addAction(tr("View Images"));
 
      _signalMapperPG    = new QSignalMapper(this);
 
@@ -179,7 +179,7 @@ void cQT_Interface::contextMenu_PGsTable(const QPoint &widgetXY)
 
     _signalMapperPG->removeMappings(_thisPointAction);
     _signalMapperPG->setMapping(_thisPointAction, cVirtualInterface::idPointGlobal(pGName.toStdString()));
-    _thisPointAction->setText("Change images for " + pGName);
+    _thisPointAction->setText(tr("Change images for ") + pGName);
 
     _menuPGView->exec(QCursor::pos());
 }
@@ -557,7 +557,7 @@ int cQT_Interface::getQTWinMode()
 
 void cQT_Interface::Warning(string aMsg)
 {
-    QMessageBox::warning(NULL, "Warning", QString(aMsg.c_str()));
+    QMessageBox::warning(NULL, tr("Warning"), QString(aMsg.c_str()));
 }
 
 cImage *cQT_Interface::CImage(QString nameImage)
@@ -710,7 +710,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
 
         m_QTMainWindow->threeDWidget()->getGLData()->replaceCloud(_data->getCloud(0));
 
-        m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
+        m_QTMainWindow->threeDWidget()->resetView(false,false,false,false,true);
         m_QTMainWindow->option3DPreview();
     }
 }

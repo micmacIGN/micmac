@@ -154,7 +154,7 @@ void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int 
 
 #if CUDA_ENABLED
     Pt2di z     = Px2Point(aPX);
-    int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
+    int3 pt = make_int3(aPTer.x,aPTer.y,z.x); // PREDEFCOR : z.x++ reserved cell
     IGpuOpt._poInitCost[pt] = cGBV2_TabulCost::CostR2I(aCost);
 #else
     mMatrCel[aPTer][Px2Point(aPX)].SetCostInit(cGBV2_TabulCost::CostR2I(aCost));
@@ -674,7 +674,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             while ((aVPt = mLMR.Next()))
             {
-                uint lenghtLine = (uint)(aVPt->size());
+                uint lenghtLine = (uint)(aVPt->size()); // PREDEFCOR :  Pas de changement
 
                 IGpuOpt.HData2Opt().SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine,idPreCo);
 
@@ -682,7 +682,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
                 for (uint aK = 0 ; aK < lenghtLine; aK++)
                 {
-                    #ifndef CLAMPDZ
+                    #ifndef CLAMPDZ                        
                         sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
                     #else
 //                        if(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]) > IGpuOpt._poInitCost._maxDz)
@@ -691,6 +691,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                     #endif
                 }
 
+                // PREDEFCOR
                 pitIdStream += iDivUp32(lenghtLine)     << 5;
                 pitStream   += iDivUp32(sizeStreamLine) << 5;
 

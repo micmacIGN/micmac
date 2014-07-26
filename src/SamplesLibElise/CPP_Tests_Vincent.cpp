@@ -393,6 +393,34 @@ void Idem_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
+float GiveStats(vector <pair <std::string,float> > mes, string want)
+{
+    float total=0, ecart, moyenne, variance, stdev, max=mes[0].second;
+	
+	for(unsigned int i=0; i<mes.size() ; i++)
+	{
+		total = total + mes[i].second;
+		if (fabs(max) < fabs(mes[i].second)){max=mes[i].second;}
+	}
+	moyenne = total / mes.size();
+	if (want == "moyenne"){return moyenne;}
+	if (want == "max"){return max;}
+	
+	total=0;
+    for(unsigned int i=0; i < mes.size(); i++)
+    {
+		ecart = mes[i].second-moyenne;
+        total = total + ecart*ecart;
+    } 
+    variance = total / (mes.size() -1);
+    if (want == "variance"){return variance;}
+    
+    stdev = sqrt(variance);
+    if (want == "stdev"){return stdev;}
+    
+    else{return -99999;}
+}
+
 int Idem_main(int argc, char** argv)
 {
 	std::string aGCP, 
@@ -567,10 +595,15 @@ int Idem_main(int argc, char** argv)
 		}
 	}
 	
-	float AbsSumDiffControl=0, AbsSumDiffAppuis=0;
+	float moyenne1, moyenne2, stdev1, stdev2, max1, max2;
 	
+	float AbsSumDiffControl=0, AbsSumDiffAppuis=0;
 	if (treatGCP)
 	{
+		float moyenne1, stdev1, max1;
+		moyenne1 = GiveStats(ListOfDiffAppuis,"moyenne");
+		stdev1 = GiveStats(ListOfDiffAppuis,"stdev");
+		max1 = GiveStats(ListOfDiffAppuis,"max");
 		for
 		(
 			unsigned int i=0;
@@ -581,11 +614,19 @@ int Idem_main(int argc, char** argv)
 			cout << "Control point : " << ListOfDiffAppuis[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffAppuis[i].second << endl;
 			AbsSumDiffAppuis += fabs(ListOfDiffAppuis[i].second);
 		}
-		cout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size() << endl << endl << "Results saved in : " << aNameFileTxt << endl; 
+		cout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size() << endl
+			 << "AVERAGE ERROR = " << moyenne1 << endl
+			 << "STANDARD DEVIATION = " << stdev1 << endl
+			 << "ERROR MAXIMUM = " << max1 << endl ;
 	}
 	
+	
 	if (treatCP)
-	{
+	{	
+		float moyenne2, stdev2, max2;
+		moyenne2 = GiveStats(ListOfDiffControl,"moyenne");
+		stdev2 = GiveStats(ListOfDiffControl,"stdev");
+		max2 = GiveStats(ListOfDiffControl,"max");
 		for
 		(
 			unsigned int i=0;
@@ -596,15 +637,31 @@ int Idem_main(int argc, char** argv)
 			cout << "Check point : " << ListOfDiffControl[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffControl[i].second << endl;
 			AbsSumDiffControl += fabs(ListOfDiffControl[i].second);
 		}
-		cout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size()<<endl<<endl;
+		
+		cout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size() << endl
+			 << "AVERAGE ERROR = " << moyenne2 << endl
+			 << "STANDARD DEVIATION = " << stdev2 << endl
+			 << "ERROR MAXIMUM = " << max2 << endl ;
 	}
 	
 	if (aNameFileTxt != " ")
 	{
 		ofstream fout (aNameFileTxt.c_str(),ios::out);
 		fout << "Difference between altitude in xml file, and altitude in DEM (Id	 dZ)\n";
-		if (treatGCP){WriteAppuis(ListOfDiffAppuis,fout);}
-		if (treatCP){WriteControl(ListOfDiffControl,fout);}
+		if (treatGCP)
+		{
+			WriteAppuis(ListOfDiffAppuis,fout);
+			fout << "AVERAGE ERROR = " << moyenne1 << endl
+			 << "STANDARD DEVIATION = " << stdev1 << endl
+			 << "ERROR MAXIMUM = " << max1 << endl;
+		}
+		if (treatCP)
+		{
+			WriteControl(ListOfDiffControl,fout);
+			fout << "AVERAGE ERROR = " << moyenne2 << endl
+			 << "STANDARD DEVIATION = " << stdev2 << endl
+			 << "ERROR MAXIMUM = " << max2 << endl;
+		}
 	}
 
 // Ecriture des résultats sur l'orthophoto (option)

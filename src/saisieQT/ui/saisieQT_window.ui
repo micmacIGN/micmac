@@ -126,7 +126,7 @@
            </size>
           </property>
           <property name="text">
-           <string>TextLabel</string>
+           <string/>
           </property>
          </widget>
         </item>
@@ -487,6 +487,7 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionRule"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -762,14 +763,20 @@
    </property>
   </action>
   <action name="actionSave_selection">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
-    <string>Save selection infos</string>
+    <string>Save selection info</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
    </property>
   </action>
   <action name="actionClose_all">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Close all</string>
    </property>
@@ -843,6 +850,9 @@
    </property>
   </action>
   <action name="actionSave_masks">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save masks</string>
    </property>
@@ -851,6 +861,9 @@
    </property>
   </action>
   <action name="actionSave_as">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save as</string>
    </property>
@@ -1039,6 +1052,14 @@
    </property>
    <property name="shortcut">
     <string>F10</string>
+   </property>
+  </action>
+  <action name="actionRule">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Rule</string>
    </property>
   </action>
  </widget>
