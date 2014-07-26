@@ -52,6 +52,10 @@
            <Symb>  Viscos=1 </Symb>
            <eSymb>  TetaLVM=/   0.1 ${Viscos} </eSymb>
            <eSymb>  CentreLVM=/ 1.0  ${Viscos}</eSymb>
+
+           <Symb>  NbMinIterFin=4 </Symb>
+           <Symb>  NbMaxIterFin=4 </Symb>
+           <Symb>  SeuilEvolIterFin=1e50 </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -237,12 +241,14 @@
                          <IterationsCompensation> </IterationsCompensation>
                    </#WHEN>
 
+                   <IterationsCompensation>
+                        <CtrlTimeCompens>
+                              <NbMin > ${NbMinIterFin} </NbMin>
+                              <NbMax>  ${NbMaxIterFin}       </NbMax>
+                              <SeuilEvolMoy > ${SeuilEvolIterFin}  </SeuilEvolMoy>
+                        </CtrlTimeCompens>
+                    </IterationsCompensation>
 
-
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
 
 		    <SectionObservations>
                           <ObsLiaisons>
