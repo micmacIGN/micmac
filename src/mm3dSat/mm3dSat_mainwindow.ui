@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>834</width>
+    <height>915</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MM3dSat</string>
+  </property>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetMaximumSize</enum>
+    </property>
+    <item>
+     <widget class="QGroupBox" name="groupBox_areaType">
+      <property name="title">
+       <string>Area type</string>
+      </property>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <widget class="QRadioButton" name="rButton_nonUrb">
+         <property name="text">
+          <string>Non-urban area</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QRadioButton" name="rButton_urb">
+         <property name="text">
+          <string>Urban area</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QTextEdit" name="textEdit"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_Img">
+      <property name="locale">
+       <locale language="English" country="UnitedStates"/>
+      </property>
+      <property name="title">
+       <string>Images</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0" alignment="Qt::AlignLeft">
+        <widget class="QPushButton" name="button_SelectImg">
+         <property name="mouseTracking">
+          <bool>false</bool>
+         </property>
+         <property name="statusTip">
+          <string/>
+         </property>
+         <property name="whatsThis">
+          <string/>
+         </property>
+         <property name="accessibleDescription">
+          <string extracomment="Select at least two images"/>
+         </property>
+         <property name="text">
+          <string>Select Image Files</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_MMParams">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="statusTip">
+       <string/>
+      </property>
+      <property name="locale">
+       <locale language="English" country="UnitedStates"/>
+      </property>
+      <property name="title">
+       <string>MicMac parameters</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="3" column="6">
+        <widget class="QSpinBox" name="spin_ymin"/>
+       </item>
+       <item row="3" column="2" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_xmin">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;x&lt;span style=&quot; vertical-align:sub;&quot;&gt;min&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="9">
+        <widget class="QSpinBox" name="spin_xmax"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_ZMoy">
+         <property name="text">
+          <string>ZMoyen</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QLabel" name="label_or">
+         <property name="text">
+          <string>or </string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="2" alignment="Qt::AlignLeft">
+        <widget class="QPushButton" name="button_BoxTerr">
+         <property name="text">
+          <string>Set BoxTerrain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="2" alignment="Qt::AlignLeft">
+        <widget class="QPushButton" name="button_SelectMasq">
+         <property name="text">
+          <string>Select MasqIm</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_ZInc">
+         <property name="text">
+          <string>ZIncCalc</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="3" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_ZDilatAlti">
+         <property name="text">
+          <string>ZDilatAlti</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="8" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_xmax">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;x&lt;span style=&quot; vertical-align:sub;&quot;&gt;max&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="3" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_ZDilatPlani">
+         <property name="text">
+          <string>ZDilatPlani</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QDoubleSpinBox" name="dSpin_ZMoy">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="maximum">
+          <double>100000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="4">
+        <widget class="QSpinBox" name="spin_ZDilatAlti">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="value">
+          <number>4</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="4">
+        <widget class="QSpinBox" name="spin_ZDilatPlani">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="value">
+          <number>3</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QDoubleSpinBox" name="dSpin_ZInc">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="4">
+        <widget class="QSpinBox" name="spin_SzW">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="value">
+          <number>2</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_SzW">
+         <property name="text">
+          <string>SzW</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="14" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_ymax">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;y&lt;span style=&quot; vertical-align:sub;&quot;&gt;max&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="5" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_ymin">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;y&lt;span style=&quot; vertical-align:sub;&quot;&gt;min&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="15">
+        <widget class="QSpinBox" name="spin_ymax"/>
+       </item>
+       <item row="3" column="3">
+        <widget class="QSpinBox" name="spin_xmin"/>
+       </item>
+       <item row="7" column="0" alignment="Qt::AlignLeft">
+        <widget class="QPushButton" name="button_moreOpt">
+         <property name="text">
+          <string>More options...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_MoreOpt">
+      <property name="locale">
+       <locale language="English" country="UnitedStates"/>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_moreOpt">
+       <item row="3" column="2">
+        <widget class="QDoubleSpinBox" name="dSpin_ZRegulInit">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.300000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="6">
+        <widget class="QDoubleSpinBox" name="dSpin_ZRegulFin">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.010000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="6">
+        <widget class="QDoubleSpinBox" name="dSpin_ZPasFin">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLabel" name="label_DeZoomInit">
+         <property name="text">
+          <string>DeZoomInit</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="5" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_DeZoomFin">
+         <property name="text">
+          <string>DeZoomFinal</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="5" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_ZPasFin">
+         <property name="text">
+          <string>ZPasFinal</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="5" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_ZRegulFin">
+         <property name="text">
+          <string>ZRegulFinal</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLabel" name="label_ZPasInit">
+         <property name="text">
+          <string>ZPasInit</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="6">
+        <widget class="QSpinBox" name="spin_DeZoomFin">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>256</number>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QDoubleSpinBox" name="dSpin_ZPasInit">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QCheckBox" name="cBox_force_ResolTer">
+         <property name="text">
+          <string>ResolTerr</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="2">
+        <widget class="QSpinBox" name="spin_DeZoomInit">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>256</number>
+         </property>
+         <property name="value">
+          <number>32</number>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLabel" name="label_ZRegulInit">
+         <property name="minimumSize">
+          <size>
+           <width>193</width>
+           <height>27</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>ZRegulInit</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="2">
+        <widget class="QDoubleSpinBox" name="dSpin_ResolTer">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="decimals">
+          <number>6</number>
+         </property>
+         <property name="maximum">
+          <double>1000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="cBox_Exe">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="locale">
+       <locale language="English" country="UnitedStates"/>
+      </property>
+      <property name="text">
+       <string>ExecuteCommand</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTextEdit" name="textOutput">
+      <property name="locale">
+       <locale language="English" country="UnitedStates"/>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="html">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </item>
+    <item alignment="Qt::AlignHCenter">
+     <widget class="QPushButton" name="button_startCompute">
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Start Computation</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>834</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="File_actionReload"/>
+    <addaction name="File_actionExit"/>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="File_actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="File_actionReload">
+   <property name="text">
+    <string>Reload</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
