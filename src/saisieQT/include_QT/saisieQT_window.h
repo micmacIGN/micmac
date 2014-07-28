@@ -114,7 +114,8 @@ public slots:
 
     cParameters* getParams() { return _params; }
 
-    void resetSavedState() { _bSaved = false; }
+    void updateSaveActions();
+    void resetSavedState();
 
 signals:
 
