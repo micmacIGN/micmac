@@ -303,6 +303,9 @@ cElPlan3D RobustePlan3D
          // cElPlan3D aPTest(aVPts[aK1],aVPts[aK2],aVPts[aK3]);
          }
     }
+    
+	// ATTENTION : un patch, dans certains cas (si un aVPts[aIndPts[aKInd]]==aP0), aBestDist==0 et tous les points ont un poids nul
+	if ( aBestDist<1e-9 ) return cElPlan3D(aVPts,aVPondInit);
 
     double aDistMoy = aBestDist;
     for (int aTime=0  ; aTime <7 ; aTime++)
