@@ -411,12 +411,6 @@ void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
 #endif
 
 template <class Type>
-bool cTplImInMem<Type>::load_raw( const string &i_filename )
-{
-	return ::load_raw( i_filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty() );
-}
-
-template <class Type>
 bool load_raw( const string &i_filename, Type *o_image, unsigned int i_width, unsigned int i_height )
 {
 	ELISE_ASSERT( false, (string("save_raw ")+El_CTypeTraits<Type>::Name()).c_str() );
@@ -433,6 +427,12 @@ bool load_raw( const string &i_filename, float *o_image, unsigned int i_width, u
 	if ( sz[0]!=i_width || sz[1]!=i_height ) return false;
 	f.read( (char*)o_image, i_width*i_height*sizeof(float) );
 	return true;
+}
+
+template <class Type>
+bool cTplImInMem<Type>::load_raw( const string &i_filename )
+{
+	return ::load_raw( i_filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty() );
 }
 
 template <>
