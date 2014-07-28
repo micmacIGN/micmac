@@ -282,7 +282,8 @@ void GLWidget::forceGray(bool val)
 {
     if (hasDataLoaded())
     {
-        //reload in
+        //TODO
+        //reload in gray
         update();
     }
 }
@@ -693,7 +694,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             }
         }
 
-        if (event->buttons() != Qt::MiddleButton)
+        if (event->buttons() != Qt::MiddleButton)  //pour eviter le changement de label_ImagePosition_2 en mode translation
             emit newImagePosition( m_lastMoveImage );
 
         m_lastPosWindow = event->pos();

@@ -809,13 +809,8 @@ void hideAction(QAction* action, bool show)
     action->setEnabled(show);
 }
 
-void SaisieQtWindow::on_menuFile_triggered()
+void SaisieQtWindow::updateSaveActions()
 {
-    //mode saisieAppuisInit
-    hideAction(_ui->actionSave_selection, false);
-    hideAction(_ui->actionSave_masks, false);
-    hideAction(_ui->actionSave_as, false);
-
     if (currentWidget()->getHistoryManager()->size() > 0)
     {
         if (_appMode == MASK3D)
@@ -852,6 +847,16 @@ void SaisieQtWindow::on_menuFile_triggered()
             _ui->actionSave_as->setEnabled(false);
         }
     }
+}
+
+void SaisieQtWindow::on_menuFile_triggered()
+{
+    //mode saisieAppuisInit
+    hideAction(_ui->actionSave_selection, false);
+    hideAction(_ui->actionSave_masks, false);
+    hideAction(_ui->actionSave_as, false);
+
+    updateSaveActions();
 }
 
 void SaisieQtWindow::closeAll(bool check)
@@ -1211,6 +1216,12 @@ void SaisieQtWindow::initData()
 void  SaisieQtWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);
+}
+
+void SaisieQtWindow::resetSavedState()
+{
+    _bSaved = false;
+    updateSaveActions();
 }
 
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
