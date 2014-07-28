@@ -282,7 +282,7 @@ cParameters::cParameters():
     _showMasks(false),
     _zoomWindow(3.f),
     _ptName(QString("100")),
-    _postFix(QString("_mask")),
+    _postFix(QString("_Masq")),
     _radius(50),
     _eType(eNSM_Pts),
     _sz(5.f),
