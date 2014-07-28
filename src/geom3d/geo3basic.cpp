@@ -304,9 +304,6 @@ cElPlan3D RobustePlan3D
          }
     }
     
-	// ATTENTION : un patch, dans certains cas (si un aVPts[aIndPts[aKInd]]==aP0), aBestDist==0 et tous les points ont un poids nul
-	if ( aBestDist<1e-9 ) return cElPlan3D(aVPts,aVPondInit);
-
     double aDistMin=1e-10; // Juste anti plantage au cas ou seulement 3 pt
     double aDistMoy = ElMax(aDistMin,aBestDist);
     for (int aTime=0  ; aTime <7 ; aTime++)
