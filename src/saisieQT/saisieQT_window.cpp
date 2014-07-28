@@ -489,15 +489,15 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     actions.push_back("");
 
     if (_appMode == MASK3D)
-    {	
-		shortcuts.push_back(tr("Selection Menu"));
-		actions.push_back("");
-	}
+    {
+        shortcuts.push_back(tr("Selection Menu"));
+        actions.push_back("");
+    }
     else if (_appMode == MASK2D)
-	{
+    {
         shortcuts.push_back(tr("Mask Edition Menu"));
-		actions.push_back("");
-	}
+        actions.push_back("");
+    }
 
     if (_appMode <= MASK3D)
     {
