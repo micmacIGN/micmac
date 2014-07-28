@@ -663,16 +663,16 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             QPointF dPWin = QPointF(event->pos() - m_lastPosWindow);
 
-            if ( event->buttons())
+            if (event->buttons())
             {
                 Pt3dr r(0,0,0);
 
-                if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
+                if (event->buttons() == Qt::LeftButton)               // ROTATION X et Y
                 {
                     r.x = dPWin.y() / vpWidth();
                     r.y = dPWin.x() / vpHeight();
                 }
-                else if ( event->buttons() == Qt::MiddleButton )
+                else if (event->buttons() == Qt::MiddleButton)
                 {
                     if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
 
@@ -691,9 +691,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
             }
-
-            emit newImagePosition( m_lastMoveImage );
         }
+
+        if (event->buttons() != Qt::MiddleButton)
+            emit newImagePosition( m_lastMoveImage );
 
         m_lastPosWindow = event->pos();
 
