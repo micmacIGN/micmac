@@ -134,26 +134,6 @@ bool save_ppm( const string &i_filename, const T *i_image, unsigned int i_width,
 	return res;
 }
 
-bool load_raw( const string &i_filename, float *o_image, unsigned int i_width, unsigned int i_height )
-{
-	ifstream f( i_filename.c_str(), ios::binary );
-	if ( !f ) return false;
-	U_INT4 sz[2];
-	f.read( (char*)sz, 8 );
-	if ( sz[0]!=i_width || sz[1]!=i_height ){
-		cout << "read size = " << sz[0] << 'x' << sz[1] << " != " << i_width << 'x' << i_height << endl;
-		return false;
-	}
-	f.read( (char*)o_image, i_width*i_height*sizeof(float) );
-	return true;
-}
-
-bool load_raw( const string &i_filename, U_INT2 *i_image, unsigned int i_width, unsigned int i_height )
-{
-	ELISE_ASSERT( false, "save_raw(U_INT2*)");
-	return false;
-}
-
 
 /****************************************/
 /*                                      */
@@ -434,6 +414,25 @@ template <class Type>
 bool cTplImInMem<Type>::load_raw( const string &i_filename )
 {
 	return ::load_raw( i_filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty() );
+}
+
+template <class Type>
+bool load_raw( const string &i_filename, Type *o_image, unsigned int i_width, unsigned int i_height )
+{
+	ELISE_ASSERT( false, (string("save_raw ")+El_CTypeTraits<Type>::Name()).c_str() );
+	return false;
+}
+
+template <>
+bool load_raw( const string &i_filename, float *o_image, unsigned int i_width, unsigned int i_height )
+{
+	ifstream f( i_filename.c_str(), ios::binary );
+	if ( !f ) return false;
+	U_INT4 sz[2];
+	f.read( (char*)sz, 8 );
+	if ( sz[0]!=i_width || sz[1]!=i_height ) return false;
+	f.read( (char*)o_image, i_width*i_height*sizeof(float) );
+	return true;
 }
 
 template <>
