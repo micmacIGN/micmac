@@ -74,12 +74,12 @@ ContextMenu* GLWidget::contextMenu()
     return &_contextMenu;
 }
 
-void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool resetPoly)
+void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool doZoom, bool resetPoly)
 {
     if (aData != NULL)
     {
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-            m_GLData->glImage().deleteTextures();
+            m_GLData->glImage().deleteTextures();  //TODO: undo => seg fault
 
         m_GLData = aData;
 
@@ -109,7 +109,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool doZoom, bool re
 
         _matrixManager.setSceneTopo(getGLData()->getBBoxCenter(),getGLData()->getBBoxMaxSize());
 
-        resetView(doZoom, showMessage, true, resetPoly);
+        resetView(doZoom, showMessage, showCams, true, resetPoly);
     }
 }
 
@@ -207,11 +207,11 @@ void GLWidget::overlay()
     }
 }
 
-void GLWidget::setInteractionMode(int mode, bool showmessage)
+void GLWidget::setInteractionMode(int mode, bool showmessage, bool showcams)
 {
     m_interactionMode = mode;
 
-    resetView(false,showmessage,false);
+    resetView(false, showmessage, showcams, false);
 }
 
 void GLWidget::setView(VIEW_ORIENTATION orientation)
@@ -275,6 +275,16 @@ void GLWidget::shiftStepChanged(float val)
     if (hasDataLoaded())
     {
         polygon()->setShiftStep(val);
+    }
+}
+
+void GLWidget::forceGray(bool val)
+{
+    if (hasDataLoaded())
+    {
+        //TODO
+        //reload in gray
+        update();
     }
 }
 
@@ -394,9 +404,16 @@ void GLWidget::Select(int mode, bool saveInfos)
     {
         cPolygon polyg = *polygon();
 
-        if(mode == ADD || mode == SUB)        // TODO cette condition semble inutile
-            if ((polyg.size() < 3) || (!polyg.isClosed()))
-                return;
+        if(mode == ADD || mode == SUB)
+        {
+           if (polyg.size() == 0)
+           {
+               QMessageBox::warning(this,tr("Warning"), tr("Draw a polygon first\n\nLeft clic:\tadd vertex\nRight clic:\tclose polygon"));
+               return;
+           }
+           else  if ((polyg.size() < 3) || (!polyg.isClosed()))
+               return;
+        }
 
         if (m_bDisplayMode2D)
             m_GLData->editImageMask(mode,polyg,m_bFirstAction);
@@ -413,6 +430,8 @@ void GLWidget::Select(int mode, bool saveInfos)
 
             _historyManager.push_back(info);
         }
+
+        emit maskEdited();
 
         m_GLData->clearPolygon();
 
@@ -437,7 +456,7 @@ void GLWidget::applyInfos()
             cPolygon * poly = new cPolygon();
             poly->setVector(infos.poly);
             poly->setClosed(true);
-            poly->setPointSize(_params->getPointDiameter()*0.01);
+            poly->setPointSize(_params->getPointDiameter());
 
             m_GLData->setPolygon(0, poly);
 
@@ -471,7 +490,7 @@ void GLWidget::reset()
     resetView();
 }
 
-void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool resetPoly)
+void GLWidget::resetView(bool zoomfit, bool showMessage, bool showCams, bool resetMatrix, bool resetPoly)
 {
 
     if (resetMatrix)
@@ -479,7 +498,8 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool 
 
     if (hasDataLoaded() && resetPoly) m_GLData->clearPolygon();
 
-    setOption(cGLData::OpShow_Mess,showMessage);
+    setOption(cGLData::OpShow_Mess, showMessage);
+    setOption(cGLData::OpShow_Cams, showCams);
 
     if (!m_bDisplayMode2D)
     {
@@ -491,7 +511,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool resetMatrix, bool 
 
         if (m_interactionMode == SELECTION)
 
-            setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams,false);
+            setOption(cGLData::OpShow_BBox | cGLData::OpShow_Cams, false);
     }
 
     if (zoomfit)
@@ -644,16 +664,16 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             QPointF dPWin = QPointF(event->pos() - m_lastPosWindow);
 
-            if ( event->buttons())
+            if (event->buttons())
             {
                 Pt3dr r(0,0,0);
 
-                if ( event->buttons() == Qt::LeftButton )               // ROTATION X et Y
+                if (event->buttons() == Qt::LeftButton)               // ROTATION X et Y
                 {
                     r.x = dPWin.y() / vpWidth();
                     r.y = dPWin.x() / vpHeight();
                 }
-                else if ( event->buttons() == Qt::MiddleButton )
+                else if (event->buttons() == Qt::MiddleButton)
                 {
                     if (event->modifiers() & Qt::ShiftModifier)         // ZOOM VIEW
 
@@ -672,9 +692,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
             }
-
-            emit newImagePosition( m_lastMoveImage );
         }
+
+        if (event->buttons() != Qt::MiddleButton)  //pour eviter le changement de label_ImagePosition_2 en mode translation
+            emit newImagePosition( m_lastMoveImage );
 
         m_lastPosWindow = event->pos();
 
@@ -775,15 +796,12 @@ void GLWidget::movePointWithArrows(QKeyEvent* event)
 
     cPoint pt = polygon()->translateSelectedPoint(tr);
 
-    int idx = polygon()->getSelectedPointIndex();
+    emit movePoint(polygon()->getSelectedPointIndex());
 
-    emit movePoint(idx);
-
-    polygon()->helper()->clear();
+    //polygon()->helper()->clear();
 
     polygon()->findNearestPoint(pt, 400000.f);
 }
-
 
 
 void GLWidget::keyPressEvent(QKeyEvent* event)

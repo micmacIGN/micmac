@@ -70,6 +70,7 @@ void SaisieQtWindow::connectActions()
     {
         connect(getWidget(aK),	SIGNAL(filesDropped(const QStringList&, bool)), this,	SLOT(addFiles(const QStringList&, bool)));
         connect(getWidget(aK),	SIGNAL(overWidget(void*)), this,SLOT(changeCurrentWidget(void*)));
+        connect(getWidget(aK),	SIGNAL(maskEdited()), this,SLOT(resetSavedState()));
         connect(this, SIGNAL(selectPoint(QString)),getWidget(aK),SLOT(selectPoint(QString)));
     }
 
@@ -217,7 +218,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             loadPly(filenames);
             initData();
 
-            //currentWidget()->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[0]);
+            currentWidget()->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[0]);
 
             _appMode = MASK3D;
         }
@@ -253,7 +254,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         {
             for (int aK = 0; aK < nbWidgets();++aK)
             {
-                getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked());
+                getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
                 getWidget(aK)->setParams(_params);
 
                 if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[aK]);
@@ -369,7 +370,21 @@ void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 {
     if (_appMode == MASK3D)
-        currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked());
+        currentWidget()->setInteractionMode(mode ? SELECTION : TRANSFORM_CAMERA,_ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
+}
+
+void fillStringList(QStringList & actions, int appMode)
+{
+    if (appMode == MASK3D)
+    {
+        actions.push_back(QObject::tr("select inside polygon"));
+        actions.push_back(QObject::tr("remove inside polygon"));
+    }
+    else if (appMode == MASK2D)
+    {
+        actions.push_back(QObject::tr("add to mask"));
+        actions.push_back(QObject::tr("remove from mask"));
+    }
 }
 
 void SaisieQtWindow::on_actionHelpShortcuts_triggered()
@@ -381,6 +396,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
     QStringList shortcuts;
     QStringList actions;
+
+    shortcuts.push_back(tr("File Menu"));
+    actions.push_back("");
 
     if (_appMode == MASK3D)
     {
@@ -409,6 +427,12 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     actions.push_back(tr("settings"));
     shortcuts.push_back("Ctrl+Q");
     actions.push_back(tr("quit"));
+
+    shortcuts.push_back("");
+    actions.push_back("");
+
+    shortcuts.push_back(tr("View Menu"));
+    actions.push_back("");
 
     shortcuts.push_back("F2");
     actions.push_back(tr("full screen"));
@@ -461,6 +485,20 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     shortcuts.push_back("Shift+R");
     actions.push_back(tr("reset view"));
 
+    shortcuts.push_back("");
+    actions.push_back("");
+
+    if (_appMode == MASK3D)
+    {
+        shortcuts.push_back(tr("Selection Menu"));
+        actions.push_back("");
+    }
+    else if (_appMode == MASK2D)
+    {
+        shortcuts.push_back(tr("Mask Edition Menu"));
+        actions.push_back("");
+    }
+
     if (_appMode <= MASK3D)
     {
         if (_appMode == MASK3D)
@@ -468,38 +506,35 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             shortcuts.push_back("F9");
             actions.push_back(tr("move mode / selection mode (only 3D)"));
         }
-        shortcuts.push_back(tr("Left click"));
-        actions.push_back(tr("add a vertex to polyline"));
-        shortcuts.push_back(tr("Right click"));
-        actions.push_back(tr("close polyline or delete nearest vertex"));
+        shortcuts.push_back(tr("Left clic"));
+        actions.push_back(tr("add a vertex to polygon"));
+        shortcuts.push_back(tr("Right clic"));
+        actions.push_back(tr("close polygon or delete nearest vertex"));
         shortcuts.push_back(tr("Echap"));
-        actions.push_back(tr("delete polyline"));
+        actions.push_back(tr("delete polygon"));
 
 #ifdef ELISE_Darwin
     #if ELISE_QT_VERSION >= 5
             shortcuts.push_back("Ctrl+U");
-            actions.push_back(tr("select inside polyline"));
             shortcuts.push_back("Ctrl+Y");
-            actions.push_back(tr("remove inside polyline"));
+            fillStringList(actions, _appMode);
     #else
             shortcuts.push_back(tr("Space bar"));
-            actions.push_back(tr("select inside polyline"));
             shortcuts.push_back(tr("Del"));
-            actions.push_back(tr("remove inside polyline"));
+            fillStringList(actions, _appMode);
     #endif
 #else
         shortcuts.push_back(tr("Space bar"));
-        actions.push_back(tr("select inside polyline"));
         shortcuts.push_back(tr("Del"));
-        actions.push_back(tr("remove inside polyline"));
+        fillStringList(actions, _appMode);
 #endif
 
         shortcuts.push_back(tr("Shift+drag"));
-        actions.push_back(tr("insert vertex in polyline"));
+        actions.push_back(tr("insert vertex in polygon"));
         shortcuts.push_back(tr("Ctrl+right click"));
         actions.push_back(tr("remove last vertex"));
         shortcuts.push_back(tr("Drag & drop"));
-        actions.push_back(tr("move selected polyline vertex"));
+        actions.push_back(tr("move selected polygon vertex"));
         shortcuts.push_back(tr("Arrow keys"));
         actions.push_back(tr("move selected vertex"));
         shortcuts.push_back(tr("Alt+arrow keys"));
@@ -509,7 +544,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back("Ctrl+D");
         actions.push_back(tr("select none"));
         shortcuts.push_back("Ctrl+R");
-        actions.push_back(tr("reset"));
+        actions.push_back(tr("reset selection"));
         shortcuts.push_back("Ctrl+I");
         actions.push_back(tr("invert selection"));
     }
@@ -588,7 +623,7 @@ void SaisieQtWindow::on_actionReset_triggered()
 {
     if (_appMode != MASK3D)
     {
-        closeAll();
+        closeAll(false);
         initData();
 
         addFiles(_Engine->getFilenamesIn());
@@ -645,7 +680,7 @@ void SaisieQtWindow::on_actionSetViewRight_triggered()
 
 void SaisieQtWindow::on_actionReset_view_triggered()
 {
-    currentWidget()->resetView(true,true,true,true);
+    currentWidget()->resetView(true,true,true,true,true);
 }
 
 void SaisieQtWindow::on_actionZoom_Plus_triggered()
@@ -689,8 +724,6 @@ void SaisieQtWindow::on_actionLoad_image_triggered()
         filenames.clear();
         filenames.push_back(img_filename);
 
-        setCurrentFile(img_filename);
-
         addFiles(filenames);
     }
 }
@@ -719,6 +752,7 @@ void SaisieQtWindow::on_actionSave_as_triggered()
 void SaisieQtWindow::on_actionSave_selection_triggered()
 {
     currentWidget()->getHistoryManager()->save();
+    _bSaved = true;
 }
 
 void SaisieQtWindow::on_actionSettings_triggered()
@@ -732,6 +766,7 @@ void SaisieQtWindow::on_actionSettings_triggered()
         connect(&_settingsDialog, SIGNAL(lineThicknessChanged(float)), getWidget(aK), SLOT(lineThicknessChanged(float)));
         connect(&_settingsDialog, SIGNAL(pointDiameterChanged(float)), getWidget(aK), SLOT(pointDiameterChanged(float)));
         connect(&_settingsDialog, SIGNAL(gammaChanged(float)),         getWidget(aK), SLOT(gammaChanged(float)));
+        connect(&_settingsDialog, SIGNAL(forceGray(bool)),             getWidget(aK), SLOT(forceGray(bool)));
         connect(&_settingsDialog, SIGNAL(showMasks(bool)),             getWidget(aK), SLOT(showMasks(bool)));
         connect(&_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
         connect(&_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
@@ -774,13 +809,8 @@ void hideAction(QAction* action, bool show)
     action->setEnabled(show);
 }
 
-void SaisieQtWindow::on_menuFile_triggered()
+void SaisieQtWindow::updateSaveActions()
 {
-    //mode saisieAppuisInit
-    hideAction(_ui->actionSave_selection, false);
-    hideAction(_ui->actionSave_masks, false);
-    hideAction(_ui->actionSave_as, false);
-
     if (currentWidget()->getHistoryManager()->size() > 0)
     {
         if (_appMode == MASK3D)
@@ -819,18 +849,31 @@ void SaisieQtWindow::on_menuFile_triggered()
     }
 }
 
-void SaisieQtWindow::closeAll()
+void SaisieQtWindow::on_menuFile_triggered()
 {
-    int reply = checkBeforeClose();
+    //mode saisieAppuisInit
+    hideAction(_ui->actionSave_selection, false);
+    hideAction(_ui->actionSave_masks, false);
+    hideAction(_ui->actionSave_as, false);
 
-    // 1 close without saving
-    if (reply == 2) //cancel
+    updateSaveActions();
+}
+
+void SaisieQtWindow::closeAll(bool check)
+{
+    if (check)
     {
-        return;
-    }
-    else if (reply == 0) // save
-    {
-        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+        int reply = checkBeforeClose();
+
+        // 1 close without saving
+        if (reply == 2) //cancel
+        {
+            return;
+        }
+        else if (reply == 0) // save
+        {
+            _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+        }
     }
 
     emit sCloseAll();
@@ -974,6 +1017,13 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionRemove, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
+
+    if (_appMode == MASK2D)
+    {
+        _ui->menuSelection->setTitle(tr("&Mask edition"));
+        _ui->actionAdd->setText(tr("Add to mask"));
+        _ui->actionRemove->setText(tr("Remove from mask"));
+    }
 }
 
 void SaisieQtWindow::setUI()
@@ -1097,7 +1147,7 @@ void SaisieQtWindow::SetDataToGLWidget(int idGLW, cGLData *glData)
     if (glData)
     {
         GLWidget * glW = getWidget(idGLW);
-        glW->setGLData(glData, glData->stateOption(cGLData::OpShow_Mess));
+        glW->setGLData(glData, glData->stateOption(cGLData::OpShow_Mess), glData->stateOption(cGLData::OpShow_Cams));
         glW->setParams(getParams());
     }
 }
@@ -1123,7 +1173,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
             threeDWidget()->getGLData()->clearClouds();
             dataCache->computeBBox(1);
             threeDWidget()->getGLData()->setData(dataCache,false);
-            threeDWidget()->resetView(false,false,false,true);
+            threeDWidget()->resetView(false,false,false,false,true);
             option3DPreview();
         }
     }
@@ -1166,6 +1216,12 @@ void SaisieQtWindow::initData()
 void  SaisieQtWindow::setGamma(float aGamma)
 {
     _params->setGamma(aGamma);
+}
+
+void SaisieQtWindow::resetSavedState()
+{
+    _bSaved = false;
+    updateSaveActions();
 }
 
 void SaisieQtWindow::closeEvent(QCloseEvent *event)
@@ -1220,7 +1276,7 @@ void SaisieQtWindow::redraw(bool nbWidgetsChanged)
                     _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
 
                     if (cpt < _Engine->getData()->getNbImages())
-                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages);
+                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
 
                     cpt++;
                 }
@@ -1284,7 +1340,7 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 
         if (zoomWidget())
         {
-            zoomWidget()->setGLData(glW->getGLData(),false,true,false);
+            zoomWidget()->setGLData(glW->getGLData(),false,false,true,false);
             zoomWidget()->setZoom(_params->getZoomWindowValue());
             zoomWidget()->setOption(cGLData::OpShow_Mess,false);
 
@@ -1311,7 +1367,7 @@ void SaisieQtWindow::undo(bool undo)
 
                 _Engine->reloadImage(_appMode, idx);
 
-                currentWidget()->setGLData(_Engine->getGLData(idx),_ui->actionShow_messages);
+                currentWidget()->setGLData(_Engine->getGLData(idx), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(), false);
             }
 
             undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();

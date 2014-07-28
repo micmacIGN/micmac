@@ -38,6 +38,11 @@ public:
     QAction     *_highLight;
     QAction     *_rename;
 
+    int     setNearestPointState(const QPointF &pos, int state);
+    int     highlightNearestPoint(const QPointF &pos);
+    int     getNearestPointIndex(const QPointF &pos);
+    QString getNearestPointName(const QPointF &pos);
+
 signals:
 
     void changeState(int state, int idPt);

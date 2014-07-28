@@ -1,19 +1,5 @@
 #include "saisieQT_main.h"
 
-void initSettings(QSettings &settings, Pt2di aSzWin, Pt2di aNbFen, bool init)
-{
-    settings.beginGroup("MainWindow");
-    if (aSzWin.x > 0)
-        settings.setValue("size", QSize(aSzWin.x, aSzWin.y));
-    else if (!init)
-    {
-        settings.setValue("size", QSize(800, 800));
-         aSzWin.x = aSzWin.y = 800;
-    }
-    settings.setValue("NbFen", QPoint(aNbFen.x, aNbFen.y));
-    settings.endGroup();
-}
-
 int saisieBascQT_main(QApplication &app, int argc, char *argv[])
 {
     MMD_InitArgcArgv(argc,argv);
@@ -21,20 +7,20 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
     app.setApplicationName("SaisieBascQT");
     app.setOrganizationName("Culture3D");
 
-	QStringList cmdline_args = QCoreApplication::arguments();
+    QStringList cmdline_args = QCoreApplication::arguments();
 
-	if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
     {
         QString help = "Mandatory unnamed args :\n"
-				 "* string :: {Full Name (Dir+Pattern)}\n"
-				 "* string :: {Orientation, NONE if unused}\n"
-				 "* string :: {Output File}\n\n"
+                 "* string :: {Full Name (Dir+Pattern)}\n"
+                 "* string :: {Orientation, NONE if unused}\n"
+                 "* string :: {Output File}\n\n"
                 "Named args :\n"
-				"* [Name=SzW] Pt2di :: {Sz of window}\n"
-				"* [Name=NbF] Pt2di :: {Number of Windows}\n"
-				"* [Name=ForceGray] bool :: {Force gray image, def=false}\n\n" 
-				
-				"Example:\nmm3d " + app.applicationName() + " IMG_558{0-9}[1].tif RadialBasic basc.xml\n\n"
+                "* [Name=SzW] Pt2di :: {Sz of window}\n"
+                "* [Name=NbF] Pt2di :: {Number of Windows}\n"
+                "* [Name=ForceGray] bool :: {Force gray image, def=false}\n\n"
+
+                "Example:\nmm3d " + app.applicationName() + " IMG_558{0-9}[1].tif RadialBasic basc.xml\n\n"
                 "NB: visual interface for argument edition available with command\n\n mm3d v" + app.applicationName();
 
         return helpMessage(app, help);
@@ -51,7 +37,13 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
     Pt2di aSzWin(800,800);
     Pt2di aNbFen(-1,-1);
     std::string aFullName,anOri,anOut, aDir, aName;
-    bool aForceGray = true;
+    bool aForceGray = false;
+
+    QSettings settings(QApplication::organizationName(), QApplication::applicationName());
+
+    settings.beginGroup("Drawing settings");
+    aForceGray = settings.value("forceGray", false       ).toBool();
+    settings.endGroup();
 
     if (argv[0][0] == 'v')
     {
@@ -74,9 +66,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
         )
             filenames.push_back( QString((aDir + *itS).c_str()));
 
-        QSettings settings(QApplication::organizationName(), QApplication::applicationName());
-
-        initSettings(settings, aSzWin, aNbFen, settings.contains("MainWindow/size"));
+        updateSettings(settings, aSzWin, aNbFen, aForceGray);
 
         QStringList input;
         input   << QString(MMDir().c_str()) + QString("bin/SaisiePts")

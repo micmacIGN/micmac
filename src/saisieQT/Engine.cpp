@@ -148,6 +148,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     }
     else
     {
+        //cout << "No mask found for image: " << aNameFile.toStdString().c_str() << endl;
         maskedImg._m_mask = new QImage(maskedImg._m_image->size(),QImage::Format_Mono);
         *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
         maskedImg._m_mask->fill(Qt::white);
@@ -484,9 +485,9 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     if (!isFirstAction)
         _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
 
-    QImage pMask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
+    QImage Mask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
 
-    if (!pMask.isNull())
+    if (!Mask.isNull())
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
@@ -494,18 +495,18 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 
         if (scaleFactor != 1.f)
         {
-            int width  = (int) ((float) pMask.width() / scaleFactor);
-            int height = (int) ((float) pMask.height() / scaleFactor);
+            int width  = (int) ((float) Mask.width() / scaleFactor);
+            int height = (int) ((float) Mask.height() / scaleFactor);
 
-            pMask = pMask.scaled(width, height,Qt::KeepAspectRatio);
+            Mask = Mask.scaled(width, height,Qt::KeepAspectRatio);
         }
 
-        pMask.save(aOut);
+        Mask.save(aOut);
 
         cFileOriMnt anOri;
 
         anOri.NameFileMnt()		= aOut.toStdString();
-        anOri.NombrePixels()	= Pt2di(pMask.width(),pMask.height());
+        anOri.NombrePixels()	= Pt2di(Mask.width(),Mask.height());
         anOri.OriginePlani()	= Pt2dr(0,0);
         anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
         anOri.OrigineAlti()		= 0.0;
@@ -513,10 +514,13 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
         anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
 
         MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
+
+        if (!isFirstAction)
+            _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
     }
     else
     {
-        QMessageBox::critical(NULL, "cEngine::doMaskImage","pMask is Null");
+        QMessageBox::critical(NULL, "cEngine::doMaskImage","Mask is Null");
     }
 }
 
