@@ -329,9 +329,9 @@ void ReadLine_V02(
     // Remarque
     // p.seg.id = 1 au premier passage, car simple copie des initcost
 
-    //const ushort defCorInit = 150;
+    const uint defCorInit = 3000;
 
-    //uint  prevDefCor      = defCorInit;
+    uint  prevDefCor      = defCorInit;
 
     while(lined)
     {
@@ -372,7 +372,7 @@ void ReadLine_V02(
                 for (short i = ConeZ.x; i <= ConeZ.y; ++i)
                     fCostMin = min(fCostMin, costInit + prevFCost[i] + abs((int)i)*regulZ);
 
-                //fCostMin = min(fCostMin,costInit+prevDefCor);
+                fCostMin = min(fCostMin,costInit+prevDefCor);
 
                 const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
                 bool inside = tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < sizeBuffer && tZ < sizeBuffer;
@@ -385,7 +385,7 @@ void ReadLine_V02(
                 }
 
 
-                if(!sens) // recherche du cout minimum
+                //if(!sens) // recherche du cout minimum
                 {
                     minCost[p.tid] = inside ? fcost : max_cost;
                     minR(minCost,globMinFCost); // TODO verifier cette fonction elle peut lancer trop de fois..... Attentioncd ,inline en attendant
@@ -397,34 +397,31 @@ void ReadLine_V02(
 
             }
 
-            //globMinFCost    = min(globMinFCost,defCorInit);
-            //prevDefCor      = defCorInit - globMinFCost;
-            //prevDefCor      = globMinFCost;
+            globMinFCost    = min(globMinFCost,defCorInit);
+            prevDefCor      = defCorInit - globMinFCost;
 
 
-            if(p.tid == 0 && !sens)
+
+            if(p.tid == 0)
             {
-//                if(blockIdx.x == 30)
-//                    DUMP_UINT(globMinFCost)
-                const ushort idGline = sens ? p.line.id + p.seg.id : p.line.lenght  - (p.line.id + p.seg.id);
-                //if(sens)
-                    streamDefCor.SetValue(idGline, globMinFCost);//
-               // else
-                 //   streamDefCor.AddValue(idGline,prevDefCor);
-                //streamDefCor.Value(,p.line.id + p.seg.id); // sens
+                const ushort idGline = p.line.id + p.seg.id;
+
+                if(sens)
+                    streamDefCor.SetValue(idGline, prevDefCor);
+                else
+                    streamDefCor.AddValue(p.line.lenght  - idGline, prevDefCor);
             }
 
             p.prev_Dz = indexZ;
             p.seg.id++;
             p.swBuf();
 
-            if(!sens) // retranche la cout minimum à toutes les cellules de même coordonnées terrain
+            //if(!sens) // retranche la cout minimum à toutes les cellules de même coordonnées terrain
             {
                 const short piSFC = -p.ID_Bf_Icost + dZ ;
                 for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
                     streamFCost.SubValue(piSFC - i,globMinFCost);
             }
-
         }
 
         p.line.id += p.seg.lenght;
@@ -517,7 +514,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, ui
     for (ushort i = 0; i < sizeBuffer; i+=WARPSIZE)
         locFCost[-i] = S_BuffICost[-i];
 
-    ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p,sizeBuffer);
+    //ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p,sizeBuffer);
 }
 
 extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)

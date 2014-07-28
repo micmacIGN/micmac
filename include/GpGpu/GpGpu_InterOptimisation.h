@@ -174,6 +174,7 @@ public:
     void            simpleJob();
 
     CuHostData3D<uint>      _preFinalCost1D;
+    CuHostData3D<uint>      _FinalDefCor;
 
     CuHostDaPo3D<ushort>    _poInitCost;
 
