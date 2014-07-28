@@ -141,8 +141,16 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> future)
     _FutureWatcher.setFuture(future);
     _ProgressDialog->setWindowModality(Qt::WindowModal);
 
-    int ax = pos().x() + (_ui->frame_GLWidgets->size().width()  - _ProgressDialog->size().width())/2;
-    int ay = pos().y() + (_ui->frame_GLWidgets->size().height() - _ProgressDialog->size().height())/2;
+    float szFactor = 1.f;
+    if (_params->getFullScreen())
+    {
+        QRect screen = QApplication::desktop()->screenGeometry ( -1 );
+
+        szFactor = (float) screen.width() / size().width();
+    }
+
+    int ax = pos().x() + (_ui->frame_GLWidgets->size().width() * szFactor - _ProgressDialog->size().width())/2;
+    int ay = pos().y() + (_ui->frame_GLWidgets->size().height() * szFactor - _ProgressDialog->size().height())/2;
 
     _ProgressDialog->move(ax, ay);
     _ProgressDialog->exec();
@@ -155,7 +163,7 @@ void SaisieQtWindow::loadPly(const QStringList& filenames)
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
     connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start(10);
+    timer_test->start();
 
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre));
 
@@ -170,7 +178,7 @@ void SaisieQtWindow::loadImages(const QStringList& filenames)
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
     connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start(10);
+    timer_test->start();
 
     if (filenames.size() == 1) _ProgressDialog->setMaximum(0);
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages,filenames,_incre));
@@ -186,7 +194,7 @@ void SaisieQtWindow::loadCameras(const QStringList& filenames)
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
     connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start(10);
+    timer_test->start();
 
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras,filenames,_incre));
 
@@ -273,9 +281,11 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
 void SaisieQtWindow::on_actionFullScreen_toggled(bool state)
 {
-    _params->setFullScreen(state);
+    state ? showFullScreen() : showNormal();
 
-    return state ? showFullScreen() : showNormal();
+    _params->setFullScreen(state);
+    _params->setPosition(pos());
+    _params->setSzFen(size());
 }
 
 void SaisieQtWindow::on_actionShow_ball_toggled(bool state)
