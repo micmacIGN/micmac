@@ -217,9 +217,9 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             }
         }
 
-        _Engine->setFilenamesAndDir(filenames);
+        _Engine->setFilenames(filenames);
 
-        QString suffix = QFileInfo(filenames[0]).suffix();
+        QString suffix = QFileInfo(filenames[0]).suffix();  //TODO: separer la stringlist si differents types de fichiers
 
         if (suffix == "ply")
         {
@@ -285,7 +285,7 @@ void SaisieQtWindow::on_actionFullScreen_toggled(bool state)
 
     _params->setFullScreen(state);
     _params->setPosition(pos());
-    _params->setSzFen(size());
+    _params->setSzFen(size()); //ambiguité entre size() et screen.size() => scale factor quand fullScreen
 }
 
 void SaisieQtWindow::on_actionShow_ball_toggled(bool state)
@@ -516,9 +516,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             shortcuts.push_back("F9");
             actions.push_back(tr("move mode / selection mode (only 3D)"));
         }
-        shortcuts.push_back(tr("Left clic"));
+        shortcuts.push_back(tr("Left click"));
         actions.push_back(tr("add a vertex to polygon"));
-        shortcuts.push_back(tr("Right clic"));
+        shortcuts.push_back(tr("Right click"));
         actions.push_back(tr("close polygon or delete nearest vertex"));
         shortcuts.push_back(tr("Echap"));
         actions.push_back(tr("delete polygon"));
@@ -549,6 +549,8 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("move selected vertex"));
         shortcuts.push_back(tr("Alt+arrow keys"));
         actions.push_back(tr("move selected vertex faster"));
+        shortcuts.push_back(tr("Key W+drag"));
+        actions.push_back(tr("move polygon"));
         shortcuts.push_back("Ctrl+A");
         actions.push_back(tr("select all"));
         shortcuts.push_back("Ctrl+D");
@@ -924,9 +926,7 @@ void SaisieQtWindow::openRecentFile()
 
     if (action)
     {
-        _Engine->setFilenamesAndDir(QStringList(action->data().toString()));
-
-        addFiles(_Engine->getFilenamesIn());
+        addFiles(QStringList(action->data().toString()));
     }
 }
 
@@ -1073,7 +1073,12 @@ void SaisieQtWindow::setUI()
          _tdLayout->setContentsMargins(2,2,2,2);
         _ui->frame_preview3D->setLayout(_tdLayout);
         _ui->frame_preview3D->setContentsMargins(0,0,0,0);
-        _ui->menuSelection->setTitle(tr("H&istory"));
+        //TEMP: undo ne marche pas du coté Elise (a voir avec Marc)
+        hideAction(_ui->menuSelection->menuAction(), false);
+        hideAction(_ui->actionUndo, false);
+        hideAction(_ui->actionRedo, false);
+        //_ui->menuSelection->setTitle(tr("H&istory"));
+        //fin TEMP
 
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);

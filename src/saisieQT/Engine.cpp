@@ -179,11 +179,9 @@ void cLoader::checkGeoref(QString aNameFile, QMaskedImage &maskedImg)
     }
 }
 
-void cLoader::setFilenamesAndDir(const QStringList &strl)
+void cLoader::setFilenames(const QStringList &strl)
 {
     _FilenamesIn = strl;
-
-    setDir(strl);
 
     _FilenamesOut.clear();
 
@@ -211,38 +209,19 @@ void cLoader::setFilenameOut(QString str)
     _FilenamesOut.push_back(str);
 }
 
-void cLoader::setDir(const QStringList &list)
-{
-    QFileInfo fi(list[0]);
-
-    //set default working directory as first file subfolder
-    QDir Dir = fi.dir();
-    Dir.cdUp();
-
-    _Dir = Dir;
-}
-
-// File structure is assumed to be a typical Micmac workspace structure:
-// .ply files are in /MEC folder and orientations files in /Ori- folder
-// /MEC and /Ori- are in the main working directory (m_Dir)
-
 CamStenope* cLoader::loadCamera(QString aNameFile)
 {
-    string DirChantier = (_Dir.absolutePath()+ QDir::separator()).toStdString();
-    string filename    = aNameFile.toStdString();
+    QFileInfo fi(aNameFile);
+    string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
 
     #ifdef _DEBUG
         cout << "DirChantier : " << DirChantier << endl;
         cout << "filename : "    << filename << endl;
     #endif
 
-    //QFileInfo fi(aNameFile);
-
-//    _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
-
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
-    return CamOrientGenFromFile(filename.substr(DirChantier.size(),filename.size()),anICNM);
+    return CamOrientGenFromFile(fi.fileName().toStdString(),anICNM);
 }
 
 //****************************************
