@@ -488,8 +488,8 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
 
 void print_graph( const vector<vector<int> > &i_graph )
 {
-    size_t 	nbFiles = i_graph.size(),
-            i, j;
+    size_t nbFiles = i_graph.size(),
+           i, j;
     for ( j=0; j<nbFiles; j++ )
     {
         for ( i=0; i<nbFiles; i++ )
@@ -522,7 +522,7 @@ void writeBinaryGraphToXML( const string &i_filename, const vector<vector<int> >
 }
 
 // i_graph[i][j] represent the connexion between images aFileList[i] and aFileList[j]
-// i_graph[i][j] = number of points of in i whose nearest neighbour is in j
+// i_graph[i][j] = number of points of i whose nearest neighbour is in j
 // a couple of images is output if i_graph[i][j]+i_graph[j][i]>i_threshold
 size_t normalizeGraph( vector<vector<int> > &i_graph, int i_threshold  )
 {
@@ -532,9 +532,10 @@ size_t normalizeGraph( vector<vector<int> > &i_graph, int i_threshold  )
     for ( j=1; j<n; j++ )
         for ( i=0; i<j; i++ )
         {
-            if ( i_graph[i][j]+i_graph[j][i]>=i_threshold )
+            int sum = i_graph[i][j]+i_graph[j][i];
+            if ( sum>=i_threshold )
             {
-                i_graph[j][i] = 1;
+                i_graph[j][i] = sum;
                 count++;
             }
             else
@@ -558,10 +559,10 @@ void setLabel( vector<vector<int> > &i_graph, vector<int> &i_labels, size_t i_in
     }
 }
 
-// delete points with a scale less than i_threshold
-void delete_out_of_bound_scales( vector<SiftPoint> &io_points, REAL i_minScale, REAL i_maxScale )
+// delete points with a scale lesser than i_minScale of greater than i_maxScale
+void delete_out_of_bound_scales( vector<DigeoPoint> &io_points, REAL i_minScale, REAL i_maxScale )
 {
-    vector<SiftPoint> points( io_points.size() );
+    vector<DigeoPoint> points( io_points.size() );
     size_t nbKeptPoints = 0;
     for ( size_t iPoint=0; iPoint<io_points.size(); iPoint++ )
     {
@@ -574,13 +575,13 @@ void delete_out_of_bound_scales( vector<SiftPoint> &io_points, REAL i_minScale, 
 }
 
 // load all keypoints from their files and construct the proximity graph
-void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, REAL i_minScale, REAL i_maxScale, int i_nbRequiredMatches )
+void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, REAL i_minScale, REAL i_maxScale, int i_nbRequiredMatches, bool i_printGraph )
 {
     size_t nbImages = aFileList.size();
     string keypointsFilename;
-    vector<vector<SiftPoint> > keypoints_per_image( nbImages );
-    vector<SiftPoint> 		   all_keypoints; 		// a big vector with all keypoints of all images
-    vector<int> 	  		   all_image_indices;	// contains the index of the image from which the keypoint is from
+    vector<vector<DigeoPoint> > keypoints_per_image( nbImages );
+    vector<DigeoPoint> all_keypoints; // a big vector with all keypoints of all images
+    vector<int> all_image_indices; // contains the index of the image from which the keypoint is from
     size_t iImage = 0,
             nbTotalKeypoints = 0,
             addedPoints;
@@ -591,7 +592,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     {
         keypointsFilename = aKeypointsFileArray[iImage];
 
-        if ( !read_siftPoint_list( keypointsFilename, keypoints_per_image[iImage] ) ){
+        if ( !DigeoPoint::readDigeoFile( keypointsFilename, keypoints_per_image[iImage] ) ){
             cerr << "WARNING: unable to read keypoints in [" << keypointsFilename << "], image [" << *iT << "] will be ignored" << endl;
             continue;
         }
@@ -606,7 +607,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 
         if ( keypoints_per_image[iImage].size()>=i_nbMaxPointsPerImage )
         {
-            SiftPoint *data = &( keypoints_per_image[iImage][0] );
+            DigeoPoint *data = &( keypoints_per_image[iImage][0] );
             size_t nbPoints = keypoints_per_image[iImage].size();
             std::copy( data+nbPoints-i_nbMaxPointsPerImage, data+nbPoints, data );
             keypoints_per_image[iImage].resize( i_nbMaxPointsPerImage );
@@ -630,9 +631,9 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     size_t nbPoints;
     all_keypoints.resize( nbTotalKeypoints );
     all_image_indices.resize( nbTotalKeypoints );
-    vector<vector<SiftPoint> >::const_iterator itSrc = keypoints_per_image.begin();
-    const SiftPoint *pSrc;
-    SiftPoint *pDst = &( all_keypoints[0] );
+    vector<vector<DigeoPoint> >::const_iterator itSrc = keypoints_per_image.begin();
+    const DigeoPoint *pSrc;
+    DigeoPoint *pDst = &( all_keypoints[0] );
     int *itIndex = &( all_image_indices[0] );
     for ( iImage=0; iImage<nbImages; iImage++, itSrc++ )
     {
@@ -640,7 +641,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
         if ( nbPoints==0 ) continue;
 
         pSrc = &( ( *itSrc )[0] );
-        memcpy( pDst, pSrc, nbPoints*sizeof( SiftPoint ) );
+        memcpy( pDst, pSrc, nbPoints*sizeof( DigeoPoint ) );
         pDst += nbPoints;
         while ( nbPoints-- ) *itIndex++=iImage;
     }
@@ -656,7 +657,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     search.setErrorBound( 0. );
     search.setMaxVisitedPoints( SIFT_ANN_DEFAULT_MAX_PRI_POINTS );
     search.createTree( annArray );
-    SiftPoint *query = &( all_keypoints[0] );
+    DigeoPoint *query = &( all_keypoints[0] );
     const ANNidx *neighbours = search.getNeighboursIndices();
     size_t iImageQuery, iImageNeighbour,
             nbBadNeighbours = 0,
@@ -684,13 +685,14 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     size_t nbChecks = normalizeGraph( graph, i_nbRequiredMatches );
     cout << nbChecks << " / " << ( nbImages*(nbImages-1) )/2 << endl;
 
-    //print_graph( graph );
+    if ( i_printGraph ) print_graph( graph );
 
+    // compute number of connected components
     vector<int> labels( nbImages, -1 );
     int currentLabel = 0;
     for ( size_t iStartingElement=0; iStartingElement<nbImages; iStartingElement++ )
-        if ( labels[iStartingElement]==-1 )	setLabel( graph, labels, iStartingElement, currentLabel++ );
-    cout << currentLabel << " connected component" << endl;
+        if ( labels[iStartingElement]==-1 ) setLabel( graph, labels, iStartingElement, currentLabel++ );
+    cout << currentLabel << " connected component" << (currentLabel>1?'s':'\0') << endl;
 
     writeBinaryGraphToXML( i_outputFilename, graph );
 }
@@ -708,6 +710,7 @@ int Graph_(int argc,char ** argv)
     int nbRequiredMatches = 1;
     string outputFile = "tapioca_connectivity_graph.xml"; // default XML filename for the graph
     string detectingTool, detectingToolArguments;
+    bool printGraph = false;
 
     // aDir is "chantier" directory
     // aPat is images' pattern
@@ -727,6 +730,7 @@ int Graph_(int argc,char ** argv)
                 << EAM(maxScaleThreshold, "MaxScale", true, "if specified, points with a greater scale are ignored")
                 << EAM(nbRequiredMatches, "NbRequired", true, "number of matches to create a connexion between two images (default 1)")
                 << EAM(outputFile, "Out", true, "name of the produced XML file")
+                << EAM(printGraph, "PrintGraph", true, "print result graph in standard output")
                 );
 
     // if no output filename is given, use the default one in "chantier" directory
@@ -762,7 +766,7 @@ int Graph_(int argc,char ** argv)
 
     cout << "--------------------> DoDetectKeypoints" << endl;
 
-    DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches );
+    DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches, printGraph );
 
     /*
     check_detect_and_match_tools( detectingTool, matchingTool );
