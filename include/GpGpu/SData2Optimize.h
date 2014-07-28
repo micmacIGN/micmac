@@ -108,7 +108,7 @@ public:
 
     void ReallocInputIf(uint pStr,uint pIdStr);
 
-    void ReallocOutputIf(uint pStr, uint idbuf = 0);
+    void ReallocOutputIf(uint pStr, uint pIdStr,uint idbuf = 0);
 
     void ReallocIf(Data2Optimiz<CuHostData3D,2> &d2o);
 
@@ -124,10 +124,11 @@ public:
 
     uint NBlines(){return _nbLines;}
 
-    ushort*     pInitCost(){    return _s_InitCostVol.pData();}
-    short2*     pIndex(){       return _s_Index.pData();}
-    uint*       pForceCostVol(){return _s_ForceCostVol[0].pData();}
-    uint3*      pParam(){       return _param[0].pData();}
+    ushort*     pInitCost(){    return  _s_InitCostVol.pData();}
+    short2*     pIndex(){       return  _s_Index.pData();}
+    uint*       pDefCor(){      return  _s_DefCor[0].pData();}
+    uint*       pForceCostVol(){return  _s_ForceCostVol[0].pData();}
+    uint3*      pParam(){       return  _param[0].pData();}
 
     ushort      penteMax() const;
     void        setPenteMax(const ushort &penteMax);
@@ -142,6 +143,8 @@ public:
     U<short2>   s_Index() const;
 
     U<uint>     &s_ForceCostVol(ushort i);
+
+    U<uint>     &s_DefCor(ushort i);
 
     ushort      DzMax() const;
 
@@ -159,6 +162,7 @@ private:
     U<ushort>    _s_InitCostVol;
     U<uint>      _s_ForceCostVol[NBUFFER];
     U<short2>    _s_Index;
+    U<uint>      _s_DefCor[NBUFFER];
 
     uint         _nbLines;
     bool         _idBuffer;
@@ -185,6 +189,7 @@ Data2Optimiz<U,NBUFFER>::Data2Optimiz():
     for(uint i = 0;i < NBUFFER;i++)
     {
         _s_ForceCostVol[i].SetName("_s_ForceCostVol_0",i);
+        _s_DefCor[i].SetName("_s_DefCor_0",i);
         _param[i].SetName("_param",i);
     }
 
@@ -204,6 +209,7 @@ void Data2Optimiz<U,NBUFFER>::Dealloc()
     {
         _param[i]           .Dealloc();
         _s_ForceCostVol[i]  .Dealloc();
+        _s_DefCor[i]        .Dealloc();
     }
 }
 
@@ -227,6 +233,7 @@ TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::ReallocIf(uint pStr, uint pIdStr)
 {
     _s_ForceCostVol[0]  .ReallocIf(pStr);
+    _s_DefCor[0]        .ReallocIf(pIdStr);
     ReallocInputIf(pStr, pIdStr);
 }
 
@@ -239,9 +246,10 @@ void Data2Optimiz<U,NBUFFER>::ReallocInputIf(uint pStr, uint pIdStr)
 }
 
 TEMPLATE_D2OPTI
-void Data2Optimiz<U,NBUFFER>::ReallocOutputIf(uint pStr, uint idbuf)
+void Data2Optimiz<U,NBUFFER>::ReallocOutputIf(uint pStr, uint pIdStr, uint idbuf)
 {
     _s_ForceCostVol[idbuf] .ReallocIf(pStr);
+    _s_DefCor[idbuf]       .ReallocIf(pIdStr);
 }
 
 TEMPLATE_D2OPTI
@@ -280,6 +288,7 @@ TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::CopyDevicetoHost(Data2Optimiz<CuHostData3D, 2> &h2o, uint idbuf)
 {
     _s_ForceCostVol[0].CopyDevicetoHost(h2o.s_ForceCostVol(idbuf));
+    _s_DefCor[0].CopyDevicetoHost(h2o.s_DefCor(idbuf));
 }
 
 TEMPLATE_D2OPTI
@@ -330,6 +339,12 @@ U<uint> &Data2Optimiz<U,NBUFFER>::s_ForceCostVol(ushort i)
 }
 
 TEMPLATE_D2OPTI
+U<uint> &Data2Optimiz<U,NBUFFER>::s_DefCor(ushort i)
+{
+    return _s_DefCor[i];
+}
+
+TEMPLATE_D2OPTI
 ushort Data2Optimiz<U,NBUFFER>::DzMax() const
 {
     return _m_DzMax;
@@ -360,6 +375,8 @@ void Data2Optimiz<U,NBUFFER>::setZRegQuad(float zRegQuad)
 {
     _zRegQuad = zRegQuad;
 }
+
+
 
 
 

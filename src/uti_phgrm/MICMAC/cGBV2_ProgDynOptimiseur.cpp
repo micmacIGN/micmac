@@ -597,12 +597,18 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
     const std::vector<Pt2di>* aVPt;
     uint idLine = 0;
 
+    uint iii = 30;
+
     while ((aVPt = mLMR.Next()))
     {
-        uint    pitStrm = 0;
-        uint    lLine   = aVPt->size();
+        uint    pitStrm         = 0;
+        uint    lenghtLine      = aVPt->size();
+        uint    piTStream_Alti  = d2Opt.param(idBuf)[idLine].y; // Position dans le stream des altitudes/defCor
 
-        for (uint aK= 0 ; aK < lLine; aK++)
+
+        if(idLine == iii)
+            DUMP_UINT(lenghtLine)
+        for (uint aK= 0 ; aK < lenghtLine; aK++)
         {
 
             Pt2di ptTer = (Pt2di)(*aVPt)[aK];
@@ -611,20 +617,31 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
             #else
             ushort dZ   =  min(costInit1D.DZ(ptTer),costInit1D._maxDz);
             #endif
+
+            // position dans le stream cout force....
             uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
-            uint *forCo = d2Opt.s_ForceCostVol(idBuf).pData() + idStrm;
+            uint *forCo = d2Opt.s_ForceCostVol(idBuf).pData() + idStrm; // TODO A verifier car devrait deja calculer dans les parametres...
             uint *finCo = costFinal1D.pData() + costInit1D.Pit(ptTer);
+
+            if(idLine == iii)
+            {
+                uint testoo = d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK];
+                DUMP_UINT(testoo)
+
+            }
 
             for ( int aPx = 0 ; aPx < dZ ; aPx++)
                 finCo[aPx] += forCo[aPx];
 
             pitStrm += dZ;
+            //piTStream_Alti++;
         }
 
         idLine++;
     }
 
     //nvtxRangePop();
+    DUMP_LINE
 }
 
 Pt2di cGBV2_ProgDynOptimiseur::direction(int aNbDir, int aKDir)
@@ -658,6 +675,8 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     //direction(aNbDir, 0);
     //GpGpuTools::OutputInfoGpuMemory();
 
+
+
     while (aKDir < aNbDir)
     {
 
@@ -666,7 +685,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             Pt2di aDirI = direction(aNbDir, aKPreDir);
 
-            uint nbLine = 0, sizeStreamLine, pitStream = IGpuOpt._poInitCost._maxDz, pitIdStream = WARPSIZE ;
+            uint idLine = 0, sizeStreamLine, pitStream = IGpuOpt._poInitCost._maxDz, pitIdStream = WARPSIZE ;
 
             mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
@@ -676,7 +695,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
             {
                 uint lenghtLine = (uint)(aVPt->size()); // PREDEFCOR :  Pas de changement
 
-                IGpuOpt.HData2Opt().SetParamLine(nbLine,pitStream,pitIdStream,lenghtLine,idPreCo);
+                IGpuOpt.HData2Opt().SetParamLine(idLine,pitStream,pitIdStream,lenghtLine,idPreCo);
 
                 sizeStreamLine = 0;
 
@@ -695,17 +714,17 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                 pitIdStream += iDivUp32(lenghtLine)     << 5;
                 pitStream   += iDivUp32(sizeStreamLine) << 5;
 
-                nbLine++;
+                idLine++;
             }
 
             //nvtxRangePop();
 
-            IGpuOpt.HData2Opt().SetNbLine(nbLine);
+            IGpuOpt.HData2Opt().SetNbLine(idLine);
 
             IGpuOpt.HData2Opt().ReallocInputIf(pitStream + IGpuOpt._poInitCost._maxDz,pitIdStream + WARPSIZE);
 
             copyCells_Mat2Stream(aDirI, IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,idPreCo);
-
+           
             //IGpuOpt.SetCompute(true);
             IGpuOpt.SetPreComp(false);
             IGpuOpt.simpleJob();
