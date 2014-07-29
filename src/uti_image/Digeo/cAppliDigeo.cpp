@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
-
+#include <cctype>
 
 /****************************************/
 /*                                      */
@@ -65,9 +65,19 @@ cAppliDigeo::cAppliDigeo
     mFileGGC_Cpp (aMaterAppli ? aMaterAppli->mFileGGC_Cpp : 0),
     mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
     mSiftCarac   (cParamDigeo::SiftCarac().PtrVal()),
-    mVerbose	 ( Verbose().Val() )
+    mNbSlowConvolutionsUsed_uint2(0),
+    mNbSlowConvolutionsUsed_real4(0),
+    mVerbose     ( Verbose().Val() )
 {
+   processImageName();
+   processTestSection();
    InitConvolSpec();
+
+	if ( GenereCodeConvol().IsInit() ){
+		const cGenereCodeConvol &genereCodeConvol = GenereCodeConvol().Val();
+		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
+		cout << "mConvolutionFileBase = " << mConvolutionCodeFileBase << endl;
+	}
 }
 
 cSiftCarac * cAppliDigeo::SiftCarac()
@@ -120,6 +130,8 @@ void cAppliDigeo::InitAllImage()
 {
   if (! ComputeCarac())
       return;
+
+	/*
   if (GenereCodeConvol().IsInit() && (mFileGGC_H ==0))
   {
       cGenereCodeConvol & aGCC = GenereCodeConvol().Val();
@@ -142,6 +154,7 @@ void cAppliDigeo::InitAllImage()
       fprintf(mFileGGC_Cpp,"\n");
 
   }
+	*/
 
   Box2di aBox = mVIms[0]->BoxImCalc();
   Pt2di aSzGlob = aBox.sz();
@@ -166,7 +179,7 @@ void cAppliDigeo::InitAllImage()
   }
 
 
-
+	/*
   if (GenereCodeConvol().IsInit() &&  mLastGCC)
   {
        DoAllInterv();
@@ -177,6 +190,7 @@ void cAppliDigeo::InitAllImage()
       // fprintf(mFileGGC_Cpp,"}\n");
       ElFclose(mFileGGC_Cpp);
   }
+  */
 }
 
 void cAppliDigeo::DoAllInterv()
@@ -198,23 +212,21 @@ void cAppliDigeo::DoOneInterv(int aKB,bool DoExtract)
 {
    mBoxIn = mDecoupInt.KthIntervIn(aKB);
    mBoxOut = mDecoupInt.KthIntervOut(aKB);
-
    for (size_t aKI=0 ; aKI<mVIms.size() ; aKI++)
    {
           mVIms[aKI]->LoadImageAndPyram(mBoxIn,mBoxOut);
-          if (DoExtract)
-          {
-             mVIms[aKI]->DoExtract();
-          }
+          if ( DoExtract ) mVIms[aKI]->DoExtract();
    }
 }
 
 void cAppliDigeo::LoadOneInterv(int aKB)
 {
+    mCurrentBoxIndex = aKB;
+    if ( doSaveTiles() ) ELISE_fp::MkDir( outputTilesDirectory() );
     DoOneInterv(aKB,false);
 }
 
-
+Box2di cAppliDigeo::getInterv( int aKB ) const { return mDecoupInt.KthIntervIn(aKB); }
 
 void cAppliDigeo::DoAll()
 {
@@ -223,7 +235,6 @@ void cAppliDigeo::DoAll()
      InitAllImage();
      DoAllInterv();
 }
-
 
      // cOctaveDigeo & GetOctOfDZ(int aDZ);
 
@@ -252,8 +263,86 @@ cModifGCC * cAppliDigeo::ModifGCC() const
    return mModifGCC; 
 }
 
+string cAppliDigeo::imageFullname() const { return mImageFullname; }
 
+string cAppliDigeo::outputGaussiansDirectory() const { return mOutputGaussiansDirectory; }
 
+string cAppliDigeo::outputTilesDirectory() const { return mOutputTilesDirectory; }
+
+bool cAppliDigeo::doSaveGaussians() const { return mDoSaveGaussians; }
+
+bool cAppliDigeo::doSaveTiles() const { return mDoSaveGaussians; }
+
+int cAppliDigeo::currentBoxIndex() const { return mCurrentBoxIndex; }
+
+void cAppliDigeo::processImageName()
+{
+   #ifdef __DEBUG_DIGEO
+		ELISE_ASSERT( ImageDigeo().size()==1, ( string("setImageFullname: only one file can be processed at a time (nb ImageDigeo = ")+ToString((int)ImageDigeo().size()) ).c_str() );
+	#endif
+   for ( std::list<cImageDigeo>::const_iterator itI=ImageDigeo().begin(); itI!=ImageDigeo().end(); itI++ ) 
+		mImageFullname = itI->KeyOrPat();
+	SplitDirAndFile( mImagePath, mImageBasename, mImageFullname );	
+}
+
+string cAppliDigeo::outputTileBasename( int i_iTile ) const
+{
+	stringstream ss;
+	ss << mImageBasename << "_tile" << setfill('0') << setw(3) << i_iTile;
+	return ss.str();
+}
+
+string cAppliDigeo::currentTileBasename() const
+{
+	return outputTileBasename( currentBoxIndex() );
+}
+
+string cAppliDigeo::currentTileFullname() const
+{
+	return outputTilesDirectory()+"/"+currentTileBasename();
+}
+
+void removeEndingSlash( string &i_str )
+{
+	if ( i_str.length()==0 ) return;
+	const char c = *i_str.rbegin();
+	if ( c=='/' || c=='\\' ) i_str.resize(i_str.length()-1);
+}
+
+void cAppliDigeo::processTestSection()
+{
+	const cSectionTest *mSectionTest = ( SectionTest().IsInit()?&SectionTest().Val():NULL );
+	mDoSaveGaussians = mDoSaveTiles = false;
+	if ( mSectionTest!=NULL && mSectionTest->DigeoTestOutput().IsInit() ){
+		const cDigeoTestOutput &testOutput = mSectionTest->DigeoTestOutput().Val();
+		if ( testOutput.OutputGaussians().IsInit() && testOutput.OutputGaussians().Val() ){
+			mDoSaveGaussians = true;
+			mOutputGaussiansDirectory = testOutput.OutputGaussiansDirectory().ValWithDef("");
+			removeEndingSlash( mOutputGaussiansDirectory );
+		}
+		if ( testOutput.OutputTiles().IsInit() && mSectionTest->OutputTiles().Val() ){
+			mDoSaveTiles = true;
+			mOutputTilesDirectory = testOutput.OutputTilesDirectory().ValWithDef("");
+			removeEndingSlash( mOutputTilesDirectory );
+		}
+	}
+}
+
+void cAppliDigeo::InitConvolSpec()
+{
+	__InitConvolSpec<U_INT2>();
+	__InitConvolSpec<REAL4>();
+}
+
+string cAppliDigeo::getConvolutionClassesFilename( string i_type )
+{
+	return mConvolutionCodeFileBase+i_type+".classes.h";
+}
+
+string cAppliDigeo::getConvolutionInstantiationsFilename( string i_type )
+{
+	return mConvolutionCodeFileBase+i_type+".instantiations.h";
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
