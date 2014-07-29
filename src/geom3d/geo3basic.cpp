@@ -293,12 +293,12 @@ cElPlan3D RobustePlan3D
             for (int aKInd=0 ; aKInd<int(aIndPts.size()) ; aKInd++)
             {
                 aVDist.push_back(ElAbs(scal(aNorm,aVPts[aIndPts[aKInd]]-aP0)));
-                double aScore = KthValProp(aVDist,aProp);
-                if (aScore < aBestDist)
-                {
+            }
+            double aScore = KthValProp(aVDist,aProp);
+            if (aScore < aBestDist)
+            {
                     aBestDist = aScore;
                     aRes = cElPlan3D(aP0,aP1,aP2);
-                }
             }
          // cElPlan3D aPTest(aVPts[aK1],aVPts[aK2],aVPts[aK3]);
          }

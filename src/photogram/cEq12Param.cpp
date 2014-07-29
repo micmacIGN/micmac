@@ -211,8 +211,8 @@ void AffinePose(ElCamera & aCam,const std::vector<Pt2dr> & aVIm,const std::vecto
     std::string aDirOriTmp = "-"+aTCS_PrefGen;
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::Glob();
+    ELISE_ASSERT(aICNM!=0,"ICNM Null in AffinePose");
     std::string aDir = aICNM->Dir();
-    ELISE_ASSERT(aICNM!=0,"ICNM Null in ElCamera::ChangeSys");
     std::string aKeyOriTmp =  "NKS-Assoc-Im2Orient@"+aDirOriTmp;
     std::string aNameOriTmp = aDir+aICNM->Assoc1To1(aKeyOriTmp,aNameCam,true);
     cOrientationConique anOC =  aCam.StdExportCalibGlob(false);
