@@ -1382,11 +1382,12 @@ void SaisieQtWindow::undo(bool undo)
     {
         if (currentWidget()->getHistoryManager()->size())
         {
-            if (_appMode != MASK3D)
+            if ((_appMode != MASK3D) && undo)
             {
                 int idx = currentWidgetIdx();
 
-                _Engine->reloadImage(_appMode, idx);
+                //_Engine->reloadImage(_appMode, idx);
+                _Engine->reloadMask(_appMode, idx);
 
                 currentWidget()->setGLData(_Engine->getGLData(idx), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(), false);
             }
