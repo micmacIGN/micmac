@@ -303,7 +303,7 @@ cElPlan3D RobustePlan3D
          // cElPlan3D aPTest(aVPts[aK1],aVPts[aK2],aVPts[aK3]);
          }
     }
-
+    
     double aDistMin=1e-10; // Juste anti plantage au cas ou seulement 3 pt
     double aDistMoy = ElMax(aDistMin,aBestDist);
     for (int aTime=0  ; aTime <7 ; aTime++)

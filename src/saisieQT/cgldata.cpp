@@ -246,7 +246,7 @@ void cGLData::draw()
     }
 }
 
-void cGLData::drawCenter()
+void cGLData::drawCenter(bool white)
 {
     //TODO: check if a point is drawn close to center
 
@@ -260,7 +260,10 @@ void cGLData::drawCenter()
     glPushMatrix();
     glLoadIdentity();
     glScalef(2.f/(float)glViewport[2],2.f/(float)glViewport[3],1.f);
-    glColor3f(0.f,0.f,0.f);
+    if (white)
+        glColor3f(1.f,1.f,1.f);
+    else
+        glColor3f(0.f,0.f,0.f);
     glDrawEllipse( 0.f, 0.f, radius, radius);
     glDrawEllipse( 0.f, 0.f, mini, mini);
     glPopMatrix();

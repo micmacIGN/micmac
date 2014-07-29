@@ -6,7 +6,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
     Pt2di SzWP = Pt2di(900,700);
     std::string aFullName ="";
-    std::string aPost("Masq");
+    std::string aPost("_Masq");
     std::string aNameMasq ="";
     std::string aAttr="";
     double aGama=1.0;
@@ -46,7 +46,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             QString help =  app.applicationName() +" [filename] [option=]\n\n"
                     "* [filename] string\t: open file (image or ply or camera xml)\n\n"
                     "Options\n\n"
-					"* [Name=SzW] Pt2di\t: set window size (default=[900,700])\n"
+                    "* [Name=SzW] Pt2di\t: set window size (default=[900,700])\n"
                     "* [Name=Post] string\t: change postfix output file (default=_Masq)\n"
                     "* [Name=Name] string\t: set output filename (default=input+_Masq)\n"
                     "* [Name=Gama] REAL\t: apply gamma to image\n"
@@ -68,7 +68,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             if (EAMIsInit(&aPost))
                 w.setPostFix(QString(aPost.c_str()));
             else
-                w.setPostFix("Masq");
+                w.setPostFix("_Masq");
 
             if (EAMIsInit(&aAttr))
                 w.setPostFix(w.getPostFix() + QString(aAttr.c_str()));

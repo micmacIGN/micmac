@@ -61,11 +61,7 @@ public:
     //! Check if georeferencing data exists (for box2d mode)
     void        checkGeoref(QString aNameFile, QMaskedImage &maskedImg);
 
-    void        setDir(QDir aDir){_Dir = aDir;}
-    void        setDir(QStringList const &list);
-    QDir        getDir(){return _Dir;}
-
-    void        setFilenamesAndDir(QStringList const &strl);
+    void        setFilenames(QStringList const &strl);
     void        setFilenameOut(QString str);
 
     QStringList& getFilenamesIn()        { return _FilenamesIn; }
@@ -79,9 +75,6 @@ private:
     QStringList _FilenamesOut; //binary masks
     QStringList _SelectionOut; //selection infos
     QString     _postFix;
-
-    //! Working directory
-    QDir        _Dir;
 };
 
 class cGLData;
@@ -108,7 +101,7 @@ public:
     void    setParams(cParameters *params){ _params = params; }
 
     //! Set input filenames
-    void    setFilenamesAndDir(QStringList const &strl){ _Loader->setFilenamesAndDir(strl); }
+    void    setFilenames(QStringList const &strl){ _Loader->setFilenames(strl); }
 
     QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
 

@@ -246,11 +246,6 @@ template <class Type>  cTplOctDig<REAL4> * cTplOctDig<Type>::REAL4_This()
 
 template <class Type> const std::vector<cTplImInMem<Type> *> &  cTplOctDig<Type>::VTplIms() const {return mVTplIms;}
 
-
-//cOctaveDigeo<U_INT2> * U_Int2_This() ;
-//cOctaveDigeo<REAL4> *  REAL4_Tis() ;
-
-
 // INSTANTIATION FORCEE
 
 InstantiateClassTplDigeo(cTplOctDig)
@@ -286,7 +281,6 @@ const Box2di  &  cOctaveDigeo::BoxImCalc () const {return mBoxImCalc;}
 const Box2dr  &  cOctaveDigeo::BoxCurIn  () const {return mBoxCurIn;}
 const Box2di  &  cOctaveDigeo::BoxCurOut () const {return mBoxCurOut;}
 
-
 Pt2dr  cOctaveDigeo::ToPtImCalc(const Pt2dr& aP0) const
 {
    return aP0*double(mNiv) + Pt2dr(mIm.P0Cur());
@@ -296,9 +290,6 @@ Pt2dr  cOctaveDigeo::ToPtImR1(const Pt2dr& aP0) const
 {
    return ToPtImCalc(aP0) *mIm.Resol();
 }
-
-
-
 
 bool cOctaveDigeo::Pt2Sauv(const Pt2dr& aP0) const
 {
@@ -312,9 +303,15 @@ int cOctaveDigeo::NbImOri() const
    return mNbImOri;
 }
 
+int cOctaveDigeo::lastLevelIndex() const
+{
+   return mLastLevelIndex;
+}
+
 void cOctaveDigeo::SetNbImOri(int aNbImOri)
 {
    mNbImOri = aNbImOri;
+   mLastLevelIndex = aNbImOri+2;
 }
 
 const std::vector<cImInMem *> &  cOctaveDigeo::VIms()
@@ -349,28 +346,6 @@ void cOctaveDigeo::DoAllExtract()
 }
 
 REAL8 cOctaveDigeo::GetMaxValue() const{ return mIm.GetMaxValue(); }
-/*
-Pt2dr cOctaveDigeo::P0CurMyResol() const
-{
-   return Pt2dr(mIm.P0Cur()) / double (mNiv);
-}
-
-Pt2dr cOctaveDigeo::P0GlobMyResol() const
-{
-   return Pt2dr(mIm.P0Cur()) / double (mNiv);
-}
-
-Pt2dr cOctaveDigeo::SzGlobMyResol() const
-{
-   return round_up(Pt2dr(mIm.BoxImCalc())/mNiv)
-}
-*/
-/*
-void cOctaveDigeo::AddIm(cImInMem * aIm)
-{
-     mVIms.push_back(aIm);
-}
-*/
 
 int cOctaveDigeo::NbIm() const { return mVIms.size(); }
 cImInMem * cOctaveDigeo::KthIm(int aK) const { return mVIms.at(aK); }
@@ -387,17 +362,11 @@ cOctaveDigeo * cOctaveDigeo::AllocGen
 {
      switch (aType)
      {
-         case GenIm::u_int1 : return new cTplOctDig<U_INT1>(anUp,aType,aIm,aNiv,aSzMax);
          case GenIm::u_int2 : return new cTplOctDig<U_INT2>(anUp,aType,aIm,aNiv,aSzMax);
-         case GenIm::int4 :   return new cTplOctDig<INT>   (anUp,aType,aIm,aNiv,aSzMax);
          case GenIm::real4 :  return new cTplOctDig<REAL4> (anUp,aType,aIm,aNiv,aSzMax);
-
-         default :
-           ;
+         default : ELISE_ASSERT(false,"cImInMem");
      }
-
-     ELISE_ASSERT(false,"cImInMem");
-     return 0;
+     return NULL;
 }
 
 cOctaveDigeo * cOctaveDigeo::AllocTop
@@ -411,6 +380,28 @@ cOctaveDigeo * cOctaveDigeo::AllocTop
    return AllocGen(0,aType,aIm,aNiv,aSzMax);
 }
 
+const cImDigeo & cOctaveDigeo::ImDigeo() const { return mIm; }
+
+bool cOctaveDigeo::saveGaussians( string i_directory, const string &i_basename ) const
+{
+	// put i_directory in a proper form
+	if ( i_directory.length()==0 ) i_directory="./";
+	else{
+		char lastChar = *i_directory.rbegin();
+		if ( lastChar=='/' || lastChar=='\\' ) i_directory.resize( i_directory.length()-1 );
+		// create the directory to store gaussians if it does not exist
+		if ( !ELISE_fp::IsDirectory( i_directory ) && !ELISE_fp::MkDirSvp( i_directory ) ) return false;
+		i_directory.append("/");
+	}
+
+	// add octave sampling pace to the filename
+	stringstream ss;
+	ss << i_directory << i_basename << "_DZ"  << setw(3) << setfill('0') << Niv();
+	
+	for ( size_t i=0; i<mVIms.size(); i++ )
+		if ( !mVIms[i]->saveGaussian_pgm( ss.str() ) ) return false;
+	return true;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
