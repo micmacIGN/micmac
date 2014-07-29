@@ -1322,7 +1322,14 @@ class cSysCoord
 
 class ElCamera;
 
-class cChSysCo
+class cTransfo3D
+{
+     public :
+          virtual std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> &) const = 0;
+
+};
+
+class cChSysCo : public cTransfo3D
 {
      public :
            Pt3dr Src2Cibl(const Pt3dr &) const;
@@ -1335,6 +1342,7 @@ class cChSysCo
      private :
            //   cChSysCo(const cChangementCoordonnees &,const std::string &) ;
            cChSysCo(cSysCoord * aSrc,cSysCoord * aCibl);
+           ~cChSysCo();
            cSysCoord * mSrc;
            cSysCoord * mCibl;
 };
