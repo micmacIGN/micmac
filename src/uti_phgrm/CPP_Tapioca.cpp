@@ -700,7 +700,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 
 // this option is to construct a proximity graph from points of interests
 // it generates an XML file to process with the "File" option
-int Graph_(int argc,char ** argv)
+int Graph_(int argc,char ** argv, const std::string &aArg="")
 {
     int nbThreads = NbProcSys(); // default is the number of cores of the system
     int maxDimensionResize = -1;
@@ -730,45 +730,48 @@ int Graph_(int argc,char ** argv)
                 << EAM(maxScaleThreshold, "MaxScale", true, "if specified, points with a greater scale are ignored")
                 << EAM(nbRequiredMatches, "NbRequired", true, "number of matches to create a connexion between two images (default 1)")
                 << EAM(outputFile, "Out", true, "name of the produced XML file")
-                << EAM(printGraph, "PrintGraph", true, "print result graph in standard output")
+                << EAM(printGraph, "PrintGraph", true, "print result graph in standard output"),
+                aArg
                 );
 
-    // if no output filename is given, use the default one in "chantier" directory
-    if ( !EAMIsInit(&outputFile) )
+    if (!MMVisualMode)
     {
-        outputFile = aDir+outputFile;
-        cout << "no output filename specified Using default: " << outputFile << endl;
-    }
+        // if no output filename is given, use the default one in "chantier" directory
+        if ( !EAMIsInit(&outputFile) )
+        {
+            outputFile = aDir+outputFile;
+            cout << "no output filename specified Using default: " << outputFile << endl;
+        }
 
-    // retrieve points of interest detecting program
-    g_toolsOptions.clear();
-    InitDetectingTool( detectingTool );
-    if ( detectingTool.length()==0 ) detectingTool=TheStrSiftPP;
-    check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
+        // retrieve points of interest detecting program
+        g_toolsOptions.clear();
+        InitDetectingTool( detectingTool );
+        if ( detectingTool.length()==0 ) detectingTool=TheStrSiftPP;
+        check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
 
-    cout << "chantierDirectory  = " << aDir << endl;
-    cout << "pattern            = " << aPat << endl;
-    cout << "maxDimensionResize = " << maxDimensionResize << endl;
-    cout << "------" << endl;
-    cout << "nbThreads          = " << nbThreads << endl;
-    cout << "nbMaxPoints        = " << nbMaxPoints << endl;
-    cout << "minScaleThreshold  = " << minScaleThreshold << endl;
-    cout << "maxScaleThreshold  = " << maxScaleThreshold << endl;
-    cout << "outputFile         = " << outputFile << endl;
-    cout << "detectingTool      = " << detectingTool << endl;
-    cout << "g_toolsOptions     = " << g_toolsOptions << endl;
+        cout << "chantierDirectory  = " << aDir << endl;
+        cout << "pattern            = " << aPat << endl;
+        cout << "maxDimensionResize = " << maxDimensionResize << endl;
+        cout << "------" << endl;
+        cout << "nbThreads          = " << nbThreads << endl;
+        cout << "nbMaxPoints        = " << nbMaxPoints << endl;
+        cout << "minScaleThreshold  = " << minScaleThreshold << endl;
+        cout << "maxScaleThreshold  = " << maxScaleThreshold << endl;
+        cout << "outputFile         = " << outputFile << endl;
+        cout << "detectingTool      = " << detectingTool << endl;
+        cout << "g_toolsOptions     = " << g_toolsOptions << endl;
 
-    // convert images into TIFF and resize them if needed (maxDimensionResize!=-1)
-    DoDevelopp( -1,maxDimensionResize );
+        // convert images into TIFF and resize them if needed (maxDimensionResize!=-1)
+        DoDevelopp( -1,maxDimensionResize );
 
-    // create a makefile to detect key points for all images
-    DoDetectKeypoints( detectingTool, maxDimensionResize );
+        // create a makefile to detect key points for all images
+        DoDetectKeypoints( detectingTool, maxDimensionResize );
 
-    cout << "--------------------> DoDetectKeypoints" << endl;
+        cout << "--------------------> DoDetectKeypoints" << endl;
 
-    DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches, printGraph );
+        DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches, printGraph );
 
-    /*
+        /*
     check_detect_and_match_tools( detectingTool, matchingTool );
 
     if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
@@ -802,7 +805,10 @@ int Graph_(int argc,char ** argv)
     System(aSFR,true);
     DoMkT();
 */
-    return EXIT_SUCCESS;
+        return EXIT_SUCCESS;
+    }
+    else
+        return EXIT_SUCCESS;
 }
 
 int Tapioca_main(int argc,char ** argv)
@@ -816,7 +822,7 @@ int Tapioca_main(int argc,char ** argv)
         QStringList items;
 
         for (int aK=0; aK < aNbType; ++aK)
-            items << QString((Type[aK]).c_str());        
+            items << QString((Type[aK]).c_str());
 
         setStyleSheet(app);
 
@@ -918,7 +924,7 @@ int Tapioca_main(int argc,char ** argv)
     }
     else if (TheType == Type[4])
     {
-        int aRes = Graph_(argc,argv);
+        int aRes = Graph_(argc,argv,TheType);
         BanniereMM3D();
         return aRes;
     }
