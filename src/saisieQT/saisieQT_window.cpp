@@ -1034,19 +1034,21 @@ void SaisieQtWindow::updateUI()
         _ui->actionAdd->setText(tr("Add to mask"));
         _ui->actionRemove->setText(tr("Remove from mask"));
     }
+
+    _ui->actionAdd->setShortcut(Qt::Key_Space);
+    _ui->actionRemove->setShortcut(Qt::Key_Delete);
+    #ifdef ELISE_Darwin
+    #if(ELISE_QT_VERSION >= 5) //TODO: verifier avec QT5 - mettre a jour l'aide
+        _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
+        _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
+    #endif
+    #endif
 }
 
 void SaisieQtWindow::setUI()
 {
 
     setLayout(0);
-
-#ifdef ELISE_Darwin
-#if(ELISE_QT_VERSION >= 5) //TODO: verifier avec QT5 - mettre a jour l'aide
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
-#endif
-#endif
 
     updateUI();
 
