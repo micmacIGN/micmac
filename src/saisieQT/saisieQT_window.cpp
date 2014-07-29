@@ -41,8 +41,6 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
     tableView_PG()->setMouseTracking(true);
     tableView_Objects()->setMouseTracking(true);
 
-    _ui->menuTools->setEnabled(false);
-
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
 }
 
@@ -569,10 +567,13 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("Drag & drop"));
         actions.push_back(tr("move selected point"));
     }
-    shortcuts.push_back("Ctrl+Z");
-    actions.push_back(tr("undo last action"));
-    shortcuts.push_back("Ctrl+Shift+Z");
-    actions.push_back(tr("redo last action"));
+    if (_appMode <= MASK3D) //TEMP: TODO corriger le undo Elise
+    {
+        shortcuts.push_back("Ctrl+Z");
+        actions.push_back(tr("undo last action"));
+        shortcuts.push_back("Ctrl+Shift+Z");
+        actions.push_back(tr("redo last action"));
+    }
 
     _helpDialog->populateTableView(shortcuts, actions);
 }
@@ -1093,6 +1094,9 @@ void SaisieQtWindow::setUI()
     }
 
     /*if (_appMode != BASC)*/ _ui->tableView_Objects->hide();
+
+    //TEMP:
+    hideAction(_ui->menuTools->menuAction(), false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
