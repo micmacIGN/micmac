@@ -195,8 +195,6 @@ int MMRunVisualMode
 
     SaisieQtWindow *SaisieWin = new SaisieQtWindow(BOX2D);
 
-    SaisieWin->setAttribute(Qt::WA_DeleteOnClose);
-
     w->setSaisieWin(SaisieWin);
 
     w->setAttribute(Qt::WA_DeleteOnClose);
