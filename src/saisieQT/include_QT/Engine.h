@@ -58,14 +58,16 @@ public:
 
     void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
+    void        loadMask(QString aNameFile, QMaskedImage &maskedImg);
+
     //! Check if georeferencing data exists (for box2d mode)
     void        checkGeoref(QString aNameFile, QMaskedImage &maskedImg);
 
     void        setFilenames(QStringList const &strl);
     void        setFilenameOut(QString str);
 
-    QStringList& getFilenamesIn()        { return _FilenamesIn; }
-    QStringList  getFilenamesOut()       { return _FilenamesOut; }
+    QStringList& getFilenamesIn()        { return _FilenamesIn;  }
+    QStringList& getFilenamesOut()       { return _FilenamesOut; }
     QStringList& getSelectionFilenames() { return _SelectionOut; }
 
     void        setPostFix(QString str);
@@ -105,6 +107,8 @@ public:
 
     QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
 
+    QStringList& getFilenamesOut(){return _Loader->getFilenamesOut();}
+
     //! Set output filename
     void    setFilenameOut(QString filename){_Loader->setFilenameOut(filename);}
 
@@ -125,7 +129,8 @@ public:
     //! Load image (and mask) file
     void    loadImage(QString imgName, float scaleFactor);
 
-    void    reloadImage(int appMode, int aK);
+    //void    reloadImage(int appMode, int aK);
+    void    reloadMask(int appMode, int aK);
 
     //! Load object
 
