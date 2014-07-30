@@ -23,7 +23,7 @@ void AnnArray::set( vector<DigeoPoint> &i_array, SIFT_ANN_SEARCH_MODE i_mode )
 		case SIFT_ANN_DESC_SEARCH:
 			// fills annArray for search based on descriptors
 			while ( iPoint-- )
-				( *itANN++ ) = ( itSift++ )->descriptor;
+				( *itANN++ ) = ( itSift++ )->descriptors[0];
 			return;
 		case SIFT_ANN_2D_SEARCH:
 			// fills annArray for search based on 2d coordinates
@@ -124,7 +124,7 @@ void match_lebris( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1, s
 
 	for ( iQuery=0; iQuery<nbQueries; iQuery++ )
 	{
-		anns.search( itQuery->descriptor );
+		anns.search( itQuery->descriptors[0] );
 
 		#ifdef _DEBUG
 			if ( neighIndices[0]==-1 || neighIndices[1]==-1 )
