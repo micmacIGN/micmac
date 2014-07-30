@@ -592,7 +592,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     {
         keypointsFilename = aKeypointsFileArray[iImage];
 
-        if ( !DigeoPoint::readDigeoFile( keypointsFilename, keypoints_per_image[iImage] ) ){
+        if ( !DigeoPoint::readDigeoFile( keypointsFilename, false/*do no use multiple angles*/, keypoints_per_image[iImage] ) ){
             cerr << "WARNING: unable to read keypoints in [" << keypointsFilename << "], image [" << *iT << "] will be ignored" << endl;
             continue;
         }
@@ -664,7 +664,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
             iQuery;
     for ( iQuery=0; iQuery<nbTotalKeypoints; iQuery++ )
     {
-        search.search( query->descriptor );
+        search.search( query->descriptors[0] );
         iImageQuery 	= all_image_indices[iQuery];
         iImageNeighbour = all_image_indices[neighbours[1]];
 

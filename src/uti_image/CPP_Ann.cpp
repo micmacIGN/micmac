@@ -6,7 +6,7 @@ using namespace std;
 
 inline bool ann_read_sift_file( const string &i_filename, vector<DigeoPoint> &array )
 {
-	if ( !DigeoPoint::readDigeoFile( i_filename, array ) ){
+	if ( !DigeoPoint::readDigeoFile( i_filename, false/*do no use multiple angles*/, array ) ){
 		cerr << "ERROR: Ann: unable to read file " << i_filename << endl;
 		return false;
 	}
