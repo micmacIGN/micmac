@@ -431,6 +431,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
 int  ResToTxt_main(int argc,char ** argv);
+int  SelTieP_main(int argc,char ** argv);
 int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
@@ -451,6 +452,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
    aRes.push_back(cMMCom("ResToTxt",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
+   aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favourable angles"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
    aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
