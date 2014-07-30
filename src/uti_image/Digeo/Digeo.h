@@ -73,7 +73,8 @@ bool isStudied( int x, int y );
 bool isStudied( const Pt2dr &p );
 
 //#define __DEBUG_DIGEO_STATS
-#define __DEBUG_DIGEO
+//#define __DEBUG_DIGEO
+#define __DIGEO_MAP_USED
 
 //  cRotationFormelle::AddRappOnCentre
 
@@ -145,6 +146,7 @@ typedef enum
   eTES_displacementTooBig,
   eTES_GradFaible,
   eTES_TropAllonge,
+  eTES_AlreadyComputed,
   eTES_Ok
 } eTypeExtreSift;
 
@@ -300,6 +302,10 @@ class cImInMem
          int mN0, mN1, mN2, mN3, mN4, mN5, mN6, mN7;
 
          int mFileTheoricalMaxValue;
+         
+         #ifdef __DIGEO_MAP_USED
+            unsigned char *mUsed_points_map;
+         #endif
      private :
         cImInMem(const cImInMem &);  // N.I.
      public:

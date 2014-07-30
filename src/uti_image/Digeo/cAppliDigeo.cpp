@@ -76,7 +76,6 @@ cAppliDigeo::cAppliDigeo
 	if ( GenereCodeConvol().IsInit() ){
 		const cGenereCodeConvol &genereCodeConvol = GenereCodeConvol().Val();
 		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
-		cout << "mConvolutionFileBase = " << mConvolutionCodeFileBase << endl;
 	}
 }
 
