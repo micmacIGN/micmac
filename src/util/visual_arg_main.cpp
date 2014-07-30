@@ -180,24 +180,9 @@ int MMRunVisualMode
 
     setStyleSheet(*app);
 
-    // qt translations
-    const QString locale = QLocale::system().name().section('_', 0, 0);
-    QTranslator qtTranslator;
-    qtTranslator.load(app->applicationName() + "_" + locale);
-    app->installTranslator(&qtTranslator);
-    //TODO: traductions
-
     visual_MainWindow * w = new visual_MainWindow(aVAM, aVAO, aFirstArg, lastDir);
 
-    w->setWindowIcon(QIcon(QString(MMDir().c_str()) + QString("/src/saisieQT/icones/images/icon_64.png")));
-
     w->set_argv_recup(string(argv[0]));
-
-    SaisieQtWindow *SaisieWin = new SaisieQtWindow(BOX2D);
-
-    SaisieWin->setAttribute(Qt::WA_DeleteOnClose);
-
-    w->setSaisieWin(SaisieWin);
 
     w->setAttribute(Qt::WA_DeleteOnClose);
 

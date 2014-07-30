@@ -41,8 +41,6 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
     tableView_PG()->setMouseTracking(true);
     tableView_Objects()->setMouseTracking(true);
 
-    _ui->menuTools->setEnabled(false);
-
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
 }
 
@@ -569,10 +567,13 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("Drag & drop"));
         actions.push_back(tr("move selected point"));
     }
-    shortcuts.push_back("Ctrl+Z");
-    actions.push_back(tr("undo last action"));
-    shortcuts.push_back("Ctrl+Shift+Z");
-    actions.push_back(tr("redo last action"));
+    if (_appMode <= MASK3D) //TEMP: TODO corriger le undo Elise
+    {
+        shortcuts.push_back("Ctrl+Z");
+        actions.push_back(tr("undo last action"));
+        shortcuts.push_back("Ctrl+Shift+Z");
+        actions.push_back(tr("redo last action"));
+    }
 
     _helpDialog->populateTableView(shortcuts, actions);
 }
@@ -1034,19 +1035,21 @@ void SaisieQtWindow::updateUI()
         _ui->actionAdd->setText(tr("Add to mask"));
         _ui->actionRemove->setText(tr("Remove from mask"));
     }
+
+    _ui->actionAdd->setShortcut(Qt::Key_Space);
+    _ui->actionRemove->setShortcut(Qt::Key_Delete);
+    #ifdef ELISE_Darwin
+    #if(ELISE_QT_VERSION >= 5) //TODO: verifier avec QT5 - mettre a jour l'aide
+        _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
+        _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
+    #endif
+    #endif
 }
 
 void SaisieQtWindow::setUI()
 {
 
     setLayout(0);
-
-#ifdef ELISE_Darwin
-#if(ELISE_QT_VERSION >= 5) //TODO: verifier avec QT5 - mettre a jour l'aide
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
-#endif
-#endif
 
     updateUI();
 
@@ -1091,6 +1094,9 @@ void SaisieQtWindow::setUI()
     }
 
     /*if (_appMode != BASC)*/ _ui->tableView_Objects->hide();
+
+    //TEMP:
+    hideAction(_ui->menuTools->menuAction(), false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
@@ -1376,11 +1382,12 @@ void SaisieQtWindow::undo(bool undo)
     {
         if (currentWidget()->getHistoryManager()->size())
         {
-            if (_appMode != MASK3D)
+            if ((_appMode != MASK3D) && undo)
             {
                 int idx = currentWidgetIdx();
 
-                _Engine->reloadImage(_appMode, idx);
+                //_Engine->reloadImage(_appMode, idx);
+                _Engine->reloadMask(_appMode, idx);
 
                 currentWidget()->setGLData(_Engine->getGLData(idx), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(), false);
             }

@@ -91,77 +91,83 @@ int SEL_main(int argc,char ** argv)
                       << EAM(aSzW,"SzW",true)
     );
 
-    std::string aCom =   MM3dBinFile("MICMACSaisieLiaisons")
-                       // + MMDir()+std::string("applis/XML-Pattron/Pattron-MicMacLiaison.xml ")
-                       + MMDir()+std::string("include/XML_MicMac/Pattron-MicMacLiaison.xml ")
-                       + " WorkDir=" + aDir
-                       + " %Im1=" + aN1
-                       + " %Im2=" + aN2
-                       + " %SL_XSzW=" + ToString(aSzW.x)
-                       + " %SL_YSzW=" + ToString(aSzW.y)
-                     ;
+    if (!MMVisualMode)
+    {
 
-    if (aRedr)
-       aCom = aCom + " SL_NewRedrCur=true";
+        std::string aCom =   MM3dBinFile("MICMACSaisieLiaisons")
+                           // + MMDir()+std::string("applis/XML-Pattron/Pattron-MicMacLiaison.xml ")
+                           + MMDir()+std::string("include/XML_MicMac/Pattron-MicMacLiaison.xml ")
+                           + " WorkDir=" + aDir
+                           + " %Im1=" + aN1
+                           + " %Im2=" + aN2
+                           + " %SL_XSzW=" + ToString(aSzW.x)
+                           + " %SL_YSzW=" + ToString(aSzW.y)
+                         ;
 
-    if (aRedrL1)
-       aCom = aCom + " SL_L2Estim=false";
+        if (aRedr)
+           aCom = aCom + " SL_NewRedrCur=true";
 
-   if (aFilter!="")
-       aCom = aCom
-              /* + " SL_TJS_FILTER=true" */
-          +  " SL_FILTER=" +aFilter;
+        if (aRedrL1)
+           aCom = aCom + " SL_L2Estim=false";
 
-   if (aKeyH!="")
-   {
-       if (aKeyH=="P")
-       {
-          aKeyCompl = "PastisHom";
-       }
-       else if (aKeyH=="PB")
-       {
-          aKeyCompl = "Key-Assoc-CpleIm2HomolPastisBin";
-       }
-       else if (aKeyH=="PBR")
-       {
-          aKeyCompl = "Key-Assoc-SsRes-CpleIm2HomolPastisBin";
-       }
-       else if (aKeyH=="M")
-       {
-          aKeyCompl = "MarcHom";
-       }
-       else if (aKeyH=="S")
-       {
-          // aKeyCompl = "Key-Assoc-StdHom";
-          aKeyCompl = "NKS-Assoc-CplIm2Hom@-Man@xml";
-       }
-       else if (aKeyH=="NB")
-       {
-          aKeyCompl = "NKS-Assoc-CplIm2Hom@@dat";
-       }
-       else if (aKeyH=="NT")
-       {
-          aKeyCompl = "NKS-Assoc-CplIm2Hom@@txt";
-       }
-       else if (aKeyH=="MMD")
-       {
-          aKeyCompl = "NKS-Assoc-CplIm2Hom@-DenseM@dat";
-       }
-       else
-       {
-           std::cout << "For Key=[" << aKeyH << "]\n";
-           ELISE_ASSERT(false,"Do Not know key");
-       }
-   }
+       if (aFilter!="")
+           aCom = aCom
+                  /* + " SL_TJS_FILTER=true" */
+              +  " SL_FILTER=" +aFilter;
 
-   aCom = aCom + " FCND_CalcHomFromI1I2=" + aKeyCompl;
+       if (aKeyH!="")
+       {
+           if (aKeyH=="P")
+           {
+              aKeyCompl = "PastisHom";
+           }
+           else if (aKeyH=="PB")
+           {
+              aKeyCompl = "Key-Assoc-CpleIm2HomolPastisBin";
+           }
+           else if (aKeyH=="PBR")
+           {
+              aKeyCompl = "Key-Assoc-SsRes-CpleIm2HomolPastisBin";
+           }
+           else if (aKeyH=="M")
+           {
+              aKeyCompl = "MarcHom";
+           }
+           else if (aKeyH=="S")
+           {
+              // aKeyCompl = "Key-Assoc-StdHom";
+              aKeyCompl = "NKS-Assoc-CplIm2Hom@-Man@xml";
+           }
+           else if (aKeyH=="NB")
+           {
+              aKeyCompl = "NKS-Assoc-CplIm2Hom@@dat";
+           }
+           else if (aKeyH=="NT")
+           {
+              aKeyCompl = "NKS-Assoc-CplIm2Hom@@txt";
+           }
+           else if (aKeyH=="MMD")
+           {
+              aKeyCompl = "NKS-Assoc-CplIm2Hom@-DenseM@dat";
+           }
+           else
+           {
+               std::cout << "For Key=[" << aKeyH << "]\n";
+               ELISE_ASSERT(false,"Do Not know key");
+           }
+       }
+
+       aCom = aCom + " FCND_CalcHomFromI1I2=" + aKeyCompl;
 
 
-    std::cout << aCom << "\n";
-    Sys(aCom);
-    Banniere_SEL();
+        std::cout << aCom << "\n";
+        Sys(aCom);
+        Banniere_SEL();
 
-    return 0;
+        return 0;
+    }
+    else
+        return EXIT_SUCCESS;
 }
 
 

@@ -157,28 +157,32 @@ cAppli_VCE::cAppli_VCE(int argc,char ** argv) :
                     << EAM(mPx0,"Px0",true,"Delta Px init")
                     << EAM(mCurTr,"Tr",true,"initial translation")
     );
-    mSzIm = mSzWIm / mZoom;
-    int aSzX = mSzWIm.x;
 
-    mWGlob = Video_Win::PtrWStd(Pt2di(aSzX,100));
+    if (!MMVisualMode)
+    {
+        mSzIm = mSzWIm / mZoom;
+        int aSzX = mSzWIm.x;
 
-    Video_Win aWIm1 = Video_Win::WStd(mSzWIm,1.0,mWGlob);
-    ELISE_COPY(aWIm1.all_pts(),P8COL::white,aWIm1.odisc());
+        mWGlob = Video_Win::PtrWStd(Pt2di(aSzX,100));
 
-    mWProfil = new Video_Win(aWIm1,Video_Win::eBasG,Pt2di(aSzX,mSzH));
+        Video_Win aWIm1 = Video_Win::WStd(mSzWIm,1.0,mWGlob);
+        ELISE_COPY(aWIm1.all_pts(),P8COL::white,aWIm1.odisc());
 
-    Video_Win aWIm2(*mWProfil,Video_Win::eBasG,mSzWIm);
-    ELISE_COPY(aWIm2.all_pts(),P8COL::white,aWIm2.odisc());
+        mWProfil = new Video_Win(aWIm1,Video_Win::eBasG,Pt2di(aSzX,mSzH));
 
-    mCoupes.push_back(new cCoupe_VCE(this,mNameIm1,aWIm1,true));
-    mCoupes.push_back(new cCoupe_VCE(this,mNameIm2,aWIm2,false));
+        Video_Win aWIm2(*mWProfil,Video_Win::eBasG,mSzWIm);
+        ELISE_COPY(aWIm2.all_pts(),P8COL::white,aWIm2.odisc());
 
-    if (! EAMIsInit(&mCurTr))
-       mCurTr = Pt2di(mCoupes.back()->Tif().sz() -mSzIm) / 2;
-    LoadAll();
+        mCoupes.push_back(new cCoupe_VCE(this,mNameIm1,aWIm1,true));
+        mCoupes.push_back(new cCoupe_VCE(this,mNameIm2,aWIm2,false));
 
-    std::cout << "AAAAAAAAAAAa\n";
-    getchar();
+        if (! EAMIsInit(&mCurTr))
+           mCurTr = Pt2di(mCoupes.back()->Tif().sz() -mSzIm) / 2;
+        LoadAll();
+
+        std::cout << "AAAAAAAAAAAa\n";
+        getchar();
+    }
 }
 
 void cAppli_VCE::LoadAll()

@@ -1483,7 +1483,7 @@ void cImageGL::ImageToTexture(QImage *pImg)
 void cImageGL::deleteTexture()
 {
     if(_texture != GL_INVALID_LIST_ID)
-    glDeleteTextures(1,&_texture);
+        glDeleteTextures(1,&_texture);
     _texture = GL_INVALID_LIST_ID;
 }
 
@@ -1570,7 +1570,7 @@ void cMaskedImageGL::prepareTextures()
 void cMaskedImageGL::deleteTextures()
 {
     if(_m_mask)
-        _m_mask->deleteTexture();
+        _m_mask->deleteTexture(); //TODO segfault (undo)
     if(_m_image)
         _m_image->deleteTexture();
 }

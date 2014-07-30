@@ -64,7 +64,8 @@ int ScaleNuage_main(int argc,char ** argv)
                     << EAM(Old,"Old",true)
     );
 
-
+    if(!MMVisualMode)
+    {
     if (Old)
     {
         cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage);
@@ -147,6 +148,9 @@ int ScaleNuage_main(int argc,char ** argv)
 */
 
     return EXIT_SUCCESS;
+    }
+    else
+        return EXIT_SUCCESS;
 }
 
 
