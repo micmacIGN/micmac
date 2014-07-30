@@ -194,6 +194,7 @@ int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
 int Init11Param_Main(int argc,char ** argv);
 int New_Tapas_main(int,char **);
+int GCPCtrl_main(int,char **);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -226,6 +227,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Drunk", Drunk_main,"Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
+       aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with  GCP"));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
 

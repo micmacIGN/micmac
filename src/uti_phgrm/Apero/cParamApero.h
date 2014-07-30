@@ -2801,6 +2801,31 @@ void  BinaryUnDumpFromFile(cBascOnAppuis &,ELISE_fp &);
 
 std::string  Mangling( cBascOnAppuis *);
 
+class cAerialDeformNonLin
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cAerialDeformNonLin & anObj,cElXMLTree * aTree);
+
+
+        bool & ZOfXY();
+        const bool & ZOfXY()const ;
+
+        bool & XYofY();
+        const bool & XYofY()const ;
+    private:
+        bool mZOfXY;
+        bool mXYofY;
+};
+cElXMLTree * ToXMLTree(const cAerialDeformNonLin &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAerialDeformNonLin &);
+
+void  BinaryUnDumpFromFile(cAerialDeformNonLin &,ELISE_fp &);
+
+std::string  Mangling( cAerialDeformNonLin *);
+
 class cBasculeOnPoints
 {
     public:
@@ -2826,10 +2851,20 @@ class cBasculeOnPoints
 
         cTplValGesInit< bool > & ModeL2();
         const cTplValGesInit< bool > & ModeL2()const ;
+
+        bool & ZOfXY();
+        const bool & ZOfXY()const ;
+
+        bool & XYofY();
+        const bool & XYofY()const ;
+
+        cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
+        const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
     private:
         cTplValGesInit< cBascOnCentre > mBascOnCentre;
         cTplValGesInit< cBascOnAppuis > mBascOnAppuis;
         cTplValGesInit< bool > mModeL2;
+        cTplValGesInit< cAerialDeformNonLin > mAerialDeformNonLin;
 };
 cElXMLTree * ToXMLTree(const cBasculeOnPoints &);
 
@@ -2928,6 +2963,15 @@ class cModeBascule
         cTplValGesInit< bool > & ModeL2();
         const cTplValGesInit< bool > & ModeL2()const ;
 
+        bool & ZOfXY();
+        const bool & ZOfXY()const ;
+
+        bool & XYofY();
+        const bool & XYofY()const ;
+
+        cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
+        const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
+
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;
 
@@ -2994,6 +3038,15 @@ class cBasculeOrientation
 
         cTplValGesInit< bool > & ModeL2();
         const cTplValGesInit< bool > & ModeL2()const ;
+
+        bool & ZOfXY();
+        const bool & ZOfXY()const ;
+
+        bool & XYofY();
+        const bool & XYofY()const ;
+
+        cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
+        const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
 
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;
@@ -3833,6 +3886,15 @@ class cIterationsCompensation
 
         cTplValGesInit< bool > & ModeL2();
         const cTplValGesInit< bool > & ModeL2()const ;
+
+        bool & ZOfXY();
+        const bool & ZOfXY()const ;
+
+        bool & XYofY();
+        const bool & XYofY()const ;
+
+        cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
+        const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
 
         cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints();
         const cTplValGesInit< cBasculeOnPoints > & BasculeOnPoints()const ;

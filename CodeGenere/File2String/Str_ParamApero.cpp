@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1525]) = {
+const char * (theNameVar_ParamApero[1533]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -986,6 +986,14 @@ const char * (theNameVar_ParamApero[1525]) = {
 "                                        <NameRef Nb=\"1\" Type=\"std::string\"> </NameRef>   \n",
 "                                   </BascOnAppuis>\n",
 "                                   <ModeL2 Nb=\"?\" Type=\"bool\" Def=\"true\"> </ModeL2>\n",
+"                                   <AerialDeformNonLin Nb=\"?\"> \n",
+"                                         <!-- Notation X gd Axe, Y Petit Axe -->\n",
+"                                         <!-- Si false Z n'est fonction que de la coordonnee X (Gd Axe) \n",
+"                                              Z = a X2  (ou a + b X + c X2) a voir\n",
+"                                         -->\n",
+"                                         <ZOfXY Nb=\"1\" Type=\"bool\"> </ZOfXY>\n",
+"                                         <XYofY Nb=\"1\" Type=\"bool\"> </XYofY>\n",
+"                                   </AerialDeformNonLin>\n",
 "                               </BasculeOnPoints>\n",
 "\n",
 "                               <BasculeLiaisonOnPlan Nb=\"?\">\n",

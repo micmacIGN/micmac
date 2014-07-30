@@ -327,6 +327,182 @@ void TestBasc
    }
 }
 
+/******************************************************/
+/*                                                    */
+/*            cCompBascNonLin                         */
+/*                                                    */
+/******************************************************/
+
+// cAnalyseZoneLiaison
+// seg_mean_square
+class cCompBascNonLin;
+class cPtBNL;
+
+
+
+class cPtBNL
+{
+   public :
+      bool operator < (const cPtBNL & aP2) const {return mPLine.x < aP2.mPLine.x;}
+      cPtBNL(const cCompBascNonLin & aCBNL,int aK);
+      cPtBNL();
+      const Pt3dr & PLine() const {return mPLine;}
+      const Pt3dr & ErLine() const {return mErLine;}
+      inline Pt3dr PAvant () const;
+      inline Pt3dr PApres () const;
+      inline Pt3dr PGot () const;
+      inline const std::string  & Name() const;
+
+   private :
+      const cCompBascNonLin * mCBNL;
+      int  mK;
+      Pt3dr  mPLine;
+      Pt3dr  mErLine;  // Erreur en coord line
+
+};
+
+class cModelQuadXY
+{
+    public :
+
+       cModelQuadXY();
+       void AddObs(const Pt2dr & aP,double aV);
+       void Solve();
+      
+    private :
+       L2SysSurResol mSys;
+       Im1D_REAL8    mSol;
+};
+
+
+
+class cCompBascNonLin
+{
+    friend class cPtBNL;
+    public :
+       cCompBascNonLin
+       (
+             const cRansacBasculementRigide & aBasc,
+             const cSolBasculeRig   & aSBR,
+             const cAerialDeformNonLin &
+       );
+       Pt3dr ToLineC(const Pt3dr &) const;
+       Pt3dr FromLineC(const Pt3dr &) const;
+    private :
+       cCompBascNonLin (const cCompBascNonLin &); // N.I.
+       const cRansacBasculementRigide & mBasc;
+       const cSolBasculeRig   &         mSBR;
+       const cAerialDeformNonLin &      mADLN;
+       SegComp                          mSegLine;
+       int                              mNb;
+       std::vector<cPtBNL>              mVPt;
+
+};
+
+
+
+    // ============= cModelQuadXY  =======================
+
+cModelQuadXY::cModelQuadXY() :
+   mSys (6),
+   mSol (6)
+{
+}
+   
+void cModelQuadXY::AddObs(const Pt2dr & aP,double aV)
+{
+    double aCoeff[6];
+    
+    aCoeff[0] = 1;
+    aCoeff[1] = aP.x;
+    aCoeff[2] = aP.y;
+    aCoeff[3] = aP.x * aP.x;
+    aCoeff[4] = aP.x * aP.y;
+    aCoeff[5] = aP.y * aP.y;
+
+    mSys.AddEquation(1.0,aCoeff,aV);
+}
+
+    // ============= cPtBNL =======================
+
+const std::string  & cPtBNL::Name() const { return mCBNL->mBasc.Names()[mK]; }
+Pt3dr   cPtBNL::PAvant() const { return mCBNL->mBasc.PAvant()[mK]; }
+Pt3dr   cPtBNL::PApres() const { return mCBNL->mBasc.PApres()[mK]; }
+Pt3dr   cPtBNL::PGot() const { return mCBNL->mSBR(mCBNL->mBasc.PAvant()[mK]); }
+
+cPtBNL::cPtBNL(const cCompBascNonLin & aCBNL,int aK) :
+   mCBNL   (&aCBNL),
+   mK      (aK),
+   mPLine  (mCBNL->ToLineC(PApres())),
+   mErLine (mCBNL->ToLineC(PApres())-mCBNL->ToLineC(PGot()))
+{
+}
+
+    // ============= cCompBascNonLin =======================
+
+cCompBascNonLin::cCompBascNonLin
+(
+             const cRansacBasculementRigide & aBasc,
+             const cSolBasculeRig   & aSBR,
+             const cAerialDeformNonLin & anADLN
+)  :
+   mBasc (aBasc),
+   mSBR  (aSBR),
+   mADLN (anADLN),
+   mNb   (mBasc.PAvant().size())
+{
+   // Calcul du segment
+   RMat_Inertie aMat;
+   for (int aK=0 ; aK<mNb ; aK++)
+   {
+       Pt3dr aTarg =  mBasc.PApres()[aK];
+       aMat.add_pt_en_place(aTarg.x,aTarg.y,1.0);
+   }
+   mSegLine = seg_mean_square(aMat,1.0);
+
+   // Calcul du vecteur de points
+   for (int aK=0 ; aK<mNb ; aK++)
+   {
+       mVPt.push_back(cPtBNL(*this,aK));
+   }
+   std::sort(mVPt.begin(),mVPt.end());
+
+
+   // Calcul du vecteur de points
+   for (int aK=0 ; aK<mNb ; aK++)
+   {
+       const cPtBNL & aPt = mVPt[aK];
+
+       std::cout << aPt.Name() << aPt.PLine() << aPt.ErLine() << "\n";
+/*
+       Pt3dr aTarg =  mBasc.PApres()[aK];
+       Pt2dr aT2(aTarg.x,aTarg.y);
+       Pt3dr aGot= mSBR(mBasc.PAvant()[aK]);
+       std::cout << " DNNLL " << mBasc.Names()[aK] << mSegLine.to_rep_loc(aT2) << " " << aTarg - aGot << "\n";
+*/
+   }
+
+
+
+
+   getchar();
+}
+
+Pt3dr cCompBascNonLin::ToLineC(const Pt3dr & aP) const
+{
+    Pt2dr aRes2 = mSegLine.to_rep_loc(Pt2dr(aP.x,aP.y));
+    return Pt3dr(aRes2.x,aRes2.y,aP.z);
+}
+
+Pt3dr cCompBascNonLin::FromLineC(const Pt3dr & aP) const
+{
+    Pt2dr aRes2 = mSegLine.from_rep_loc(Pt2dr(aP.x,aP.y));
+    return Pt3dr(aRes2.x,aRes2.y,aP.z);
+}
+
+
+/*************************************************************/
+
 void cAppliApero::BasculePoints
      (
            const cBasculeOnPoints & aBOP,
@@ -371,11 +547,11 @@ void cAppliApero::BasculePoints
                if (CalcV)
                {
                    Pt3dr aV = aPC->Vitesse();
-                   aBasc.AddExemple(aC0,aCObs,&aV);
+                   aBasc.AddExemple(aC0,aCObs,&aV,aPC->Name());
                }
                else
                {
-                   aBasc.AddExemple(aC0,aCObs,0);
+                   aBasc.AddExemple(aC0,aCObs,0,aPC->Name());
                }
 
                if (   aBOP.PoseCentrale().IsInit()
@@ -414,7 +590,7 @@ void cAppliApero::BasculePoints
                 cOneAppuiMul * anOAM = itO->second;
                 if (anOAM->NbInter() >=2)  
                 {
-                    aBasc.AddExemple(anOAM->PInter(),anOAM->PTer(),0);
+                    aBasc.AddExemple(anOAM->PInter(),anOAM->PTer(),0,ToString(itO->first));
                 }
            }
        }
@@ -436,7 +612,7 @@ void cAppliApero::BasculePoints
                     ///std::cout << "BASCULEFFF " <<  anOAF->Name() << " " << aPInc << "\n";
                     if ((aPInc.x>0) && (aPInc.y>0) && (aPInc.z>0))
                     {
-                        aBasc.AddExemple(anOAF->PInter(),anOAF->PtRes(),0);
+                        aBasc.AddExemple(anOAF->PInter(),anOAF->PtRes(),0,anOAF->Name());
                     }
                 }
            }
@@ -505,6 +681,13 @@ void cAppliApero::BasculePoints
 
    }
 
+   cCompBascNonLin * aPtrBNL=0;
+   const cAerialDeformNonLin * anADNL = aBOP.AerialDeformNonLin().PtrVal();
+   if (anADNL!=0) 
+   {
+       aPtrBNL = new cCompBascNonLin(aBasc,aSBR,*anADNL);
+   }
+
    //for (int aKPose=0 ; aKPose<int(mVecPose.size()) ; aKPose++)
    // Pour conserver l'ordre alphabetique, + utile pour l'affichage on passe
    // par le dico
@@ -536,6 +719,8 @@ void cAppliApero::BasculePoints
        }
    }
 
+
+   delete aPtrBNL;
 }
 
 extern    cElPlan3D RobustePlan3D
