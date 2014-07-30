@@ -41,13 +41,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define __DEBUG_DIGEO
 
-
 /****************************************/
 /*                                      */
 /*           cTplImInMem                */
 /*                                      */
 /****************************************/
 
+#ifdef __DIGEO_MAP_USED
+	// __DEL
+	int g_avoidedRecomputation = 0;
+	int g_nbComputation = 0;
+#endif
 
 template <class Type> typename cTplImInMem<Type>::tBase cTplImInMem<Type>::DOG(Type *** aC,const Pt3di& aP)
 {
@@ -387,6 +391,17 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_3d
 				  ( anY>=mBrd ) &&
 				  ( anY<mSz.y-mBrd ) ){
 				int offset = aDx+aDy*mSz.x;
+
+            #ifdef __DIGEO_MAP_USED
+               // __DEL
+               if ( mUsed_points_map==NULL ) cout << "----------------------------> dammit" << endl;
+               if ( anX<0 || anX>=mSz.x || anY<0 || anY>=mSz.y ) cout << "----------------------------> dammit2" << endl;
+               unsigned char *used = mUsed_points_map+( anX+anY*mSz.x );
+               if ( *used!=0 ){ g_avoidedRecomputation++; return eTES_AlreadyComputed; }
+               g_nbComputation++;
+					*used = 1;
+            #endif
+            
 				return CalculateDiff_3d( prevDoG+offset, currDoG+offset, nextDoG+offset, anX, anY, aNiv+1 );
 			}
 			else
@@ -423,6 +438,14 @@ void cTplImInMem<Type>::ExtractExtremaDOG
           cTplImInMem<Type> & aNext
      )
 {
+	#ifdef __DIGEO_MAP_USED
+		const int nbPix = mSz.x*mSz.y;
+		// __DEL
+		if ( mUsed_points_map!=NULL ) cout << "------------------------------------------> crap" << endl;
+		mUsed_points_map = new unsigned char[nbPix];
+		memset( mUsed_points_map, 0, nbPix );
+	#endif
+
     //Type strengthThreshold = Type( (0.02/mOct.NbImOri())*mImGlob.GetMaxValue() );
     const Type strengthThreshold = 2./375.;
 
@@ -447,10 +470,19 @@ void cTplImInMem<Type>::ExtractExtremaDOG
     int aX1 = mSz.x-mBrd;
     for (int anY=mBrd ; anY<(mSz.y-mBrd) ; anY++)
     {
-        for (int anX = mBrd; anX<aX1 ; anX++)
+        for (int anX=mBrd; anX<aX1 ; anX++)
         {
+            #ifdef __DIGEO_MAP_USED
+               // __DEL
+               if ( mUsed_points_map==NULL ) cout << "----------------------------> dammit" << endl;
+               if ( anX<0 || anX>=mSz.x || anY<0 || anY>=mSz.y ) cout << "----------------------------> dammit2" << endl;
+               unsigned char *used = mUsed_points_map+( anX+anY*mSz.x );
+               bool isAlreadyComputed = true;
+               if ( *used==0 ){ *used=1; isAlreadyComputed=false; }
+               g_nbComputation++;
+            #endif
+            
             mDogPC = *itDoG;
-            //bool isMax=false;
             bool isMin=false;
             mResDifSift = eTES_Uncalc;
 
@@ -525,12 +557,15 @@ void cTplImInMem<Type>::ExtractExtremaDOG
                      && ( mDogPC < itNextDoG[mN7] )
                    )
             {
-
                 isMin=true;
                 //mResDifSift = CalculateDiff_2d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
                 mResDifSift = CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
             }
 
+            #ifdef __DIGEO_MAP_USED
+               if ( isAlreadyComputed ){ g_avoidedRecomputation++; mResDifSift = eTES_AlreadyComputed; }
+            #endif
+            
             if (mResDifSift==eTES_Ok)
             {
                 Pt2dr aP(mIx+mTrX,mIy+mTrY);
@@ -553,11 +588,16 @@ void cTplImInMem<Type>::ExtractExtremaDOG
 		  case eTES_Ok: mCount_eTES_Ok++;
 	       }
 	    #endif
-	    
+
             itDoG++; itPrevDoG++; itNextDoG++;
         }
         itDoG+=brd_2; itPrevDoG+=brd_2; itNextDoG+=brd_2;
     }
+    
+	#ifdef __DIGEO_MAP_USED
+		delete [] mUsed_points_map;
+		mUsed_points_map = NULL;
+	#endif
 }
 
 
@@ -817,6 +857,7 @@ string eTypeExtreSift_to_string( eTypeExtreSift i_enum )
 	case eTES_displacementTooBig: return "eTES_displacementTooBig";
 	case eTES_GradFaible: return "eTES_GradFaible";
 	case eTES_TropAllonge: return "eTES_TropAllonge";
+	case eTES_AlreadyComputed: return "eTES_AlreadyComputed";
 	case eTES_Ok: return "eTES_Ok";
 	}
 	return "eTES_unknown";

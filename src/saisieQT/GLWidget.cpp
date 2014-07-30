@@ -79,7 +79,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
     if (aData != NULL)
     {
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-            m_GLData->glImage().deleteTextures();  //TODO: undo => seg fault
+            m_GLData->glImage().deleteTextures();
 
         m_GLData = aData;
 
@@ -820,8 +820,8 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 {
     if(event->modifiers().testFlag(Qt::ControlModifier))
     {
-        if(event->key() == Qt::Key_1)    zoomFactor(50);
-        else if(event->key() == Qt::Key_2)    zoomFactor(25);
+        if(event->key() == Qt::Key_2)    zoomFactor(50);
+        else if(event->key() == Qt::Key_4)    zoomFactor(25);
     }
     else
     {
@@ -925,7 +925,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
             polygon()->resetSelectedPoint();
         }
 
-            polygon()->setSelected(false);
+        polygon()->setSelected(false);
 
         update();
     }
