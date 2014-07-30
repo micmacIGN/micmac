@@ -700,6 +700,9 @@ cImInMem::cImInMem
        mCount_eTES_TropAllonge(0),
        mCount_eTES_Ok(0)
    #endif
+   #ifdef __DIGEO_MAP_USED
+     ,mUsed_points_map(NULL)
+   #endif
 {
     if ( aIGlob.Appli().mVerbose )
     {
