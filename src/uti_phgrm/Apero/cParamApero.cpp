@@ -10175,6 +10175,63 @@ void xml_init(cBascOnAppuis & anObj,cElXMLTree * aTree)
 std::string  Mangling( cBascOnAppuis *) {return "8F6D4799BEDF989BFE3F";};
 
 
+bool & cAerialDeformNonLin::ZOfXY()
+{
+   return mZOfXY;
+}
+
+const bool & cAerialDeformNonLin::ZOfXY()const 
+{
+   return mZOfXY;
+}
+
+
+bool & cAerialDeformNonLin::XYofY()
+{
+   return mXYofY;
+}
+
+const bool & cAerialDeformNonLin::XYofY()const 
+{
+   return mXYofY;
+}
+
+void  BinaryUnDumpFromFile(cAerialDeformNonLin & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ZOfXY(),aFp);
+    BinaryUnDumpFromFile(anObj.XYofY(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cAerialDeformNonLin & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ZOfXY());
+    BinaryDumpInFile(aFp,anObj.XYofY());
+}
+
+cElXMLTree * ToXMLTree(const cAerialDeformNonLin & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"AerialDeformNonLin",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("ZOfXY"),anObj.ZOfXY())->ReTagThis("ZOfXY"));
+   aRes->AddFils(::ToXMLTree(std::string("XYofY"),anObj.XYofY())->ReTagThis("XYofY"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cAerialDeformNonLin & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ZOfXY(),aTree->Get("ZOfXY",1)); //tototo 
+
+   xml_init(anObj.XYofY(),aTree->Get("XYofY",1)); //tototo 
+}
+
+std::string  Mangling( cAerialDeformNonLin *) {return "1D1CAEA0F05FB2D9FE3F";};
+
+
 cTplValGesInit< std::string > & cBasculeOnPoints::PoseCentrale()
 {
    return BascOnCentre().Val().PoseCentrale();
@@ -10240,6 +10297,39 @@ const cTplValGesInit< bool > & cBasculeOnPoints::ModeL2()const
    return mModeL2;
 }
 
+
+bool & cBasculeOnPoints::ZOfXY()
+{
+   return AerialDeformNonLin().Val().ZOfXY();
+}
+
+const bool & cBasculeOnPoints::ZOfXY()const 
+{
+   return AerialDeformNonLin().Val().ZOfXY();
+}
+
+
+bool & cBasculeOnPoints::XYofY()
+{
+   return AerialDeformNonLin().Val().XYofY();
+}
+
+const bool & cBasculeOnPoints::XYofY()const 
+{
+   return AerialDeformNonLin().Val().XYofY();
+}
+
+
+cTplValGesInit< cAerialDeformNonLin > & cBasculeOnPoints::AerialDeformNonLin()
+{
+   return mAerialDeformNonLin;
+}
+
+const cTplValGesInit< cAerialDeformNonLin > & cBasculeOnPoints::AerialDeformNonLin()const 
+{
+   return mAerialDeformNonLin;
+}
+
 void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -10266,6 +10356,14 @@ void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
         }
         else  anObj.ModeL2().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.AerialDeformNonLin().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.AerialDeformNonLin().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.AerialDeformNonLin().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOnPoints & anObj)
@@ -10276,6 +10374,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOnPoints & anObj)
     if (anObj.BascOnAppuis().IsInit()) BinaryDumpInFile(aFp,anObj.BascOnAppuis().Val());
     BinaryDumpInFile(aFp,anObj.ModeL2().IsInit());
     if (anObj.ModeL2().IsInit()) BinaryDumpInFile(aFp,anObj.ModeL2().Val());
+    BinaryDumpInFile(aFp,anObj.AerialDeformNonLin().IsInit());
+    if (anObj.AerialDeformNonLin().IsInit()) BinaryDumpInFile(aFp,anObj.AerialDeformNonLin().Val());
 }
 
 cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
@@ -10288,6 +10388,8 @@ cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
       aRes->AddFils(ToXMLTree(anObj.BascOnAppuis().Val())->ReTagThis("BascOnAppuis"));
    if (anObj.ModeL2().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ModeL2"),anObj.ModeL2().Val())->ReTagThis("ModeL2"));
+   if (anObj.AerialDeformNonLin().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.AerialDeformNonLin().Val())->ReTagThis("AerialDeformNonLin"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -10303,9 +10405,11 @@ void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree)
    xml_init(anObj.BascOnAppuis(),aTree->Get("BascOnAppuis",1)); //tototo 
 
    xml_init(anObj.ModeL2(),aTree->Get("ModeL2",1),bool(true)); //tototo 
+
+   xml_init(anObj.AerialDeformNonLin(),aTree->Get("AerialDeformNonLin",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOnPoints *) {return "98783DD188E91AAAFE3F";};
+std::string  Mangling( cBasculeOnPoints *) {return "4EA7202F4124F382FF3F";};
 
 
 cTplValGesInit< double > & cOrientInPlane::DistFixEch()
@@ -10564,6 +10668,39 @@ const cTplValGesInit< bool > & cModeBascule::ModeL2()const
 }
 
 
+bool & cModeBascule::ZOfXY()
+{
+   return BasculeOnPoints().Val().AerialDeformNonLin().Val().ZOfXY();
+}
+
+const bool & cModeBascule::ZOfXY()const 
+{
+   return BasculeOnPoints().Val().AerialDeformNonLin().Val().ZOfXY();
+}
+
+
+bool & cModeBascule::XYofY()
+{
+   return BasculeOnPoints().Val().AerialDeformNonLin().Val().XYofY();
+}
+
+const bool & cModeBascule::XYofY()const 
+{
+   return BasculeOnPoints().Val().AerialDeformNonLin().Val().XYofY();
+}
+
+
+cTplValGesInit< cAerialDeformNonLin > & cModeBascule::AerialDeformNonLin()
+{
+   return BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+const cTplValGesInit< cAerialDeformNonLin > & cModeBascule::AerialDeformNonLin()const 
+{
+   return BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+
 cTplValGesInit< cBasculeOnPoints > & cModeBascule::BasculeOnPoints()
 {
    return mBasculeOnPoints;
@@ -10691,7 +10828,7 @@ void xml_init(cModeBascule & anObj,cElXMLTree * aTree)
    xml_init(anObj.BasculeLiaisonOnPlan(),aTree->Get("BasculeLiaisonOnPlan",1)); //tototo 
 }
 
-std::string  Mangling( cModeBascule *) {return "05093AFB93C83CDDFE3F";};
+std::string  Mangling( cModeBascule *) {return "E4FCDC302442B5F9FE3F";};
 
 
 cTplValGesInit< bool > & cBasculeOrientation::AfterCompens()
@@ -10790,6 +10927,39 @@ cTplValGesInit< bool > & cBasculeOrientation::ModeL2()
 const cTplValGesInit< bool > & cBasculeOrientation::ModeL2()const 
 {
    return ModeBascule().BasculeOnPoints().Val().ModeL2();
+}
+
+
+bool & cBasculeOrientation::ZOfXY()
+{
+   return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin().Val().ZOfXY();
+}
+
+const bool & cBasculeOrientation::ZOfXY()const 
+{
+   return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin().Val().ZOfXY();
+}
+
+
+bool & cBasculeOrientation::XYofY()
+{
+   return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin().Val().XYofY();
+}
+
+const bool & cBasculeOrientation::XYofY()const 
+{
+   return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin().Val().XYofY();
+}
+
+
+cTplValGesInit< cAerialDeformNonLin > & cBasculeOrientation::AerialDeformNonLin()
+{
+   return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+const cTplValGesInit< cAerialDeformNonLin > & cBasculeOrientation::AerialDeformNonLin()const 
+{
+   return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
 }
 
 
@@ -10950,7 +11120,7 @@ void xml_init(cBasculeOrientation & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModeBascule(),aTree->Get("ModeBascule",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOrientation *) {return "F08EE1FC916006FCFC3F";};
+std::string  Mangling( cBasculeOrientation *) {return "C07636C90D0C8FE1FBBF";};
 
 
 std::vector< cAperoPointeStereo > & cStereoFE::HomFE()
@@ -13687,6 +13857,39 @@ const cTplValGesInit< bool > & cIterationsCompensation::ModeL2()const
 }
 
 
+bool & cIterationsCompensation::ZOfXY()
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin().Val().ZOfXY();
+}
+
+const bool & cIterationsCompensation::ZOfXY()const 
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin().Val().ZOfXY();
+}
+
+
+bool & cIterationsCompensation::XYofY()
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin().Val().XYofY();
+}
+
+const bool & cIterationsCompensation::XYofY()const 
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin().Val().XYofY();
+}
+
+
+cTplValGesInit< cAerialDeformNonLin > & cIterationsCompensation::AerialDeformNonLin()
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+const cTplValGesInit< cAerialDeformNonLin > & cIterationsCompensation::AerialDeformNonLin()const 
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+
 cTplValGesInit< cBasculeOnPoints > & cIterationsCompensation::BasculeOnPoints()
 {
    return BasculeOrientation().Val().ModeBascule().BasculeOnPoints();
@@ -14591,7 +14794,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "9CEC3133086566EDFA3F";};
+std::string  Mangling( cIterationsCompensation *) {return "20859CFACBBCD5E9FE3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -21473,7 +21676,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "54BF958F16D47187FF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "264FCDE6F2F6288AFE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -21532,7 +21735,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "E8FA547A35F9EBD9FCBF";};
+std::string  Mangling( cSectionCompensation *) {return "F8357EDFEF01EB89FC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -22455,6 +22658,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "8854132EEA7B0786FF3F";};
+std::string  Mangling( cParamApero *) {return "F8D3E35E6A33C4FCFD3F";};
 
 // };

@@ -194,6 +194,7 @@ int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
 int Init11Param_Main(int argc,char ** argv);
 int New_Tapas_main(int,char **);
+int GCPCtrl_main(int,char **);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -226,6 +227,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Drunk", Drunk_main,"Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
+       aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with  GCP"));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
 
@@ -431,6 +433,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
 int  ResToTxt_main(int argc,char ** argv);
+int  SelTieP_main(int argc,char ** argv);
 int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
@@ -451,6 +454,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
    aRes.push_back(cMMCom("ResToTxt",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
+   aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favourable angles"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
    aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));

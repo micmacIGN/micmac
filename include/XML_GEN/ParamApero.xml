@@ -984,6 +984,14 @@ normalises en echelle et/ou en translation -->
                                         <NameRef Nb="1" Type="std::string"> </NameRef>   
                                    </BascOnAppuis>
                                    <ModeL2 Nb="?" Type="bool" Def="true"> </ModeL2>
+                                   <AerialDeformNonLin Nb="?"> 
+                                         <!-- Notation X gd Axe, Y Petit Axe -->
+                                         <!-- Si false Z n'est fonction que de la coordonnee X (Gd Axe) 
+                                              Z = a X2  (ou a + b X + c X2) a voir
+                                         -->
+                                         <ZOfXY Nb="1" Type="bool"> </ZOfXY>
+                                         <XYofY Nb="1" Type="bool"> </XYofY>
+                                   </AerialDeformNonLin>
                                </BasculeOnPoints>
 
                                <BasculeLiaisonOnPlan Nb="?">

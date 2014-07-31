@@ -430,7 +430,6 @@ int Idem_main(int argc, char** argv)
 				aDir, 
 				aPat, 
 				aMesIm; 
-	bool treatGCP(true), treatCP(true);
 	int aPtSz(5),
 		aImSize(3000);
 		
@@ -443,11 +442,8 @@ int Idem_main(int argc, char** argv)
 		LArgMain()	<< EAM(aNameFileTxt,"Out",true,"File to store the results")
 					<< EAM(aOrthoName,"Ortho",true,"Display the results on a video window")
 					<< EAM(aImSize,"ImSz",true,"Rescaled ortho size ( default : 3000)")
-					<< EAM(treatGCP,"GCP",true,"Interpolate on Ground Control Points {Def = true}")
-					<< EAM(treatCP,"CP",true,"Interpolate on Check Points {Def = true}")
 					<< EAM(aPtSz,"PtSz",true,"Size of the point (default : 10)")
 	);
-	ELISE_ASSERT(treatGCP || treatCP,"Either GCP or CP must be true");
 	ELISE_ASSERT(aImSize>100,"Probable confusion with Final Size argument");
 
 // Charger les GCP, calculer leur projection dans l'ortho et le MNT
@@ -595,73 +591,62 @@ int Idem_main(int argc, char** argv)
 		}
 	}
 	
-	float moyenne1, moyenne2, stdev1, stdev2, max1, max2;
+	float moyenne1, moyenne2, stdev1, stdev2, max1, max2, AbsSumDiffControl=0, AbsSumDiffAppuis=0;
+
+	moyenne1 = GiveStats(ListOfDiffAppuis,"moyenne");
+	stdev1 = GiveStats(ListOfDiffAppuis,"stdev");
+	max1 = GiveStats(ListOfDiffAppuis,"max");
 	
-	float AbsSumDiffControl=0, AbsSumDiffAppuis=0;
-	if (treatGCP)
+	for
+	(
+		unsigned int i=0;
+		i<ListOfDiffAppuis.size();
+		i++
+	)
 	{
-		float moyenne1, stdev1, max1;
-		moyenne1 = GiveStats(ListOfDiffAppuis,"moyenne");
-		stdev1 = GiveStats(ListOfDiffAppuis,"stdev");
-		max1 = GiveStats(ListOfDiffAppuis,"max");
-		for
-		(
-			unsigned int i=0;
-			i<ListOfDiffAppuis.size();
-			i++
-		)
-		{
-			cout << "Control point : " << ListOfDiffAppuis[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffAppuis[i].second << endl;
-			AbsSumDiffAppuis += fabs(ListOfDiffAppuis[i].second);
-		}
-		cout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size() << endl
-			 << "AVERAGE ERROR = " << moyenne1 << endl
-			 << "STANDARD DEVIATION = " << stdev1 << endl
-			 << "ERROR MAXIMUM = " << max1 << endl ;
+		cout << "Control point : " << ListOfDiffAppuis[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffAppuis[i].second << endl;
+		AbsSumDiffAppuis += fabs(ListOfDiffAppuis[i].second);
 	}
 	
+	cout << "MEAN ABSOLUTE ERROR ON CONTROL POINTS = " << AbsSumDiffAppuis/ListOfDiffAppuis.size() << endl
+		 << "AVERAGE ERROR = " << moyenne1 << endl
+		 << "STANDARD DEVIATION = " << stdev1 << endl
+		 << "ERROR MAXIMUM = " << max1 << endl ;	
 	
-	if (treatCP)
-	{	
-		float moyenne2, stdev2, max2;
-		moyenne2 = GiveStats(ListOfDiffControl,"moyenne");
-		stdev2 = GiveStats(ListOfDiffControl,"stdev");
-		max2 = GiveStats(ListOfDiffControl,"max");
-		for
-		(
-			unsigned int i=0;
-			i<ListOfDiffControl.size();
-			i++
-		)
-		{
-			cout << "Check point : " << ListOfDiffControl[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffControl[i].second << endl;
-			AbsSumDiffControl += fabs(ListOfDiffControl[i].second);
-		}
-		
-		cout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size() << endl
-			 << "AVERAGE ERROR = " << moyenne2 << endl
-			 << "STANDARD DEVIATION = " << stdev2 << endl
-			 << "ERROR MAXIMUM = " << max2 << endl ;
+	moyenne2 = GiveStats(ListOfDiffControl,"moyenne");
+	stdev2 = GiveStats(ListOfDiffControl,"stdev");
+	max2 = GiveStats(ListOfDiffControl,"max");
+	
+	for
+	(
+		unsigned int i=0;
+		i<ListOfDiffControl.size();
+		i++
+	)
+	{
+		cout << "Check point : " << ListOfDiffControl[i].first << "\t" << "Difference between xml & DEM : " << ListOfDiffControl[i].second << endl;
+		AbsSumDiffControl += fabs(ListOfDiffControl[i].second);
 	}
+	
+	cout << "MEAN ABSOLUTE ERROR ON CHECK POINTS = " << AbsSumDiffControl/ListOfDiffControl.size() << endl
+		 << "AVERAGE ERROR = " << moyenne2 << endl
+		 << "STANDARD DEVIATION = " << stdev2 << endl
+		 << "ERROR MAXIMUM = " << max2 << endl ;
 	
 	if (aNameFileTxt != " ")
 	{
 		ofstream fout (aNameFileTxt.c_str(),ios::out);
 		fout << "Difference between altitude in xml file, and altitude in DEM (Id	 dZ)\n";
-		if (treatGCP)
-		{
-			WriteAppuis(ListOfDiffAppuis,fout);
-			fout << "AVERAGE ERROR = " << moyenne1 << endl
+	
+		WriteAppuis(ListOfDiffAppuis,fout);
+		fout << "AVERAGE ERROR = " << moyenne1 << endl
 			 << "STANDARD DEVIATION = " << stdev1 << endl
 			 << "ERROR MAXIMUM = " << max1 << endl;
-		}
-		if (treatCP)
-		{
-			WriteControl(ListOfDiffControl,fout);
-			fout << "AVERAGE ERROR = " << moyenne2 << endl
+	
+		WriteControl(ListOfDiffControl,fout);
+		fout << "AVERAGE ERROR = " << moyenne2 << endl
 			 << "STANDARD DEVIATION = " << stdev2 << endl
 			 << "ERROR MAXIMUM = " << max2 << endl;
-		}
 	}
 
 // Ecriture des résultats sur l'orthophoto (option)
@@ -782,7 +767,7 @@ int Idem_main(int argc, char** argv)
 			
 			Pt2dr aPtOrt (aGCPortho[i].second);
 			
-			if (isAppuis && treatGCP)
+			if (isAppuis)
 			{
 				cout << "Id = " << aGCPortho[i].first << endl;
 				ELISE_COPY
@@ -792,7 +777,7 @@ int Idem_main(int argc, char** argv)
 					W.out(Pdisc)
 				);
 			}
-			else if (!isAppuis && treatCP)
+			else if (!isAppuis)
 			{
 				cout << "Id = " << aGCPortho[i].first << endl;
 				ELISE_COPY
@@ -811,6 +796,75 @@ int Idem_main(int argc, char** argv)
 	
 	return EXIT_SUCCESS;
 }
+	
+int SelTieP_main (int  argc, char** argv)
+{
+	/*
+	std::string aFullName, aOri, aDir, aPat, aNameOri;
+	float minAngle(10);
+	cInterfChantierNameManipulateur * aICNM();
+	std::list<std::string> aLFile;
+	CamStenope *	aCam;
+	
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pat)")
+					<< EAMC(aOri,"Orientation"),
+		LArgMain()  << EAM(minAngle,"Angle",true,"Angle under which TieP will be rejected {Default = 10}")
+	);
+	
+	// Initialize name manipulator & files
+	SplitDirAndFile(aDir,aPat,aFullName);
+
+	// Get the list of files from the directory and pattern
+	aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+	aLFile = aICNM->StdGetListOfFile(aPat);
+	// If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
+	StdCorrecNameOrient(aOri,aDir);
+
+
+	Pt3dr aCentreCam = aCam->VraiOpticalCenter();
+	std::vector<Pt3dr> aLCentreCam;
+	for 
+	(
+		std::list<std::string>::iterator itS=aLFile.begin();
+		itS!=aLFile.end();
+		itS++
+	)
+	{
+		aNameOri = NameIm2NameOri(*itS,ICNM());
+		aCam  = CamOrientGenFromFile(aNameOri,ICNM());
+		Pt3dr aCentreCam = aCam->VraiOpticalCenter();
+		aLCentreCam.puh_back(aCentreCam);
+	}
+	
+	for 
+	(
+		int i=0;
+		i<aLFile.size()-1;
+		i++
+	)
+	{
+		for 
+		(
+			int j=i+1;
+			j<aLFile.size();
+			j++
+		)
+		{
+			//CAlculer angle
+			
+			//aLCentreCam[i]
+			
+			//Si angle < minAngle, on renomme le fichier de couples homol en .OLD
+			
+		}
+	}
+	*/
+	return EXIT_SUCCESS;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
