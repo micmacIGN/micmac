@@ -370,6 +370,33 @@ void DigeoPoint::multipleToUniqueAngle( vector<DigeoPoint> &io_points )
 	io_points.swap(res);
 }
 
+void DigeoPoint::removePointsOfType( DetectType i_type, vector<DigeoPoint> &io_points )
+{
+	// compute the number of points of type i_type, ie the number of points to remove
+	size_t nbToRemove = 0;
+	size_t iPoint = io_points.size();
+	DigeoPoint *itSrc = io_points.data();
+	while ( iPoint-- ) if ( (*itSrc++).type==i_type ) nbToRemove++;
+
+	if ( nbToRemove==0 ) return;
+
+	// allocate a new vector and copy the points to be kept into it
+	vector<DigeoPoint> res( io_points.size()-nbToRemove );
+	DigeoPoint *itDst = res.data();
+	itSrc = io_points.data();
+	iPoint = res.size();
+	while ( iPoint-- ){
+		if ( itSrc->type==i_type ) *itDst++ = *itSrc;
+		itSrc++;
+	}
+
+	io_points.swap( res );
+}
+
+// --------------------------------------------------------------
+// DigeoPoint related functions
+// --------------------------------------------------------------
+
 ostream & operator <<( ostream &s, const DigeoPoint &p )
 {
 	s << p.x << ',' << p.y << ' ' << p.scale << ' ' << p.nbAngles << endl;

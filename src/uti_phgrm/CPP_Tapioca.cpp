@@ -48,10 +48,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 // bin/Tapioca File  "../micmac_data/ExempleDoc/Boudha/MesCouples.xml" -1  ExpTxt=1
 
 #define DEF_OFSET -12349876
+
 // cf. CPP_Pastis.cpp
-extern const string PASTIS_MATCH_ARGUMENT_NAME;
-extern const string PASTIS_DETECT_ARGUMENT_NAME;
+extern const std::string PASTIS_MATCH_ARGUMENT_NAME;
+extern const std::string PASTIS_DETECT_ARGUMENT_NAME;
 extern bool process_pastis_tool_string( string &io_tool, string &o_args );
+extern const std::string PASTIS_IGNORE_MAX_NAME;
+extern const std::string PASTIS_IGNORE_MIN_NAME;
+extern const std::string PASTIS_IGNORE_UNKNOWN_NAME;
 
 int ExpTxt=0;
 int	ByP=-1;
@@ -67,6 +71,9 @@ std::string PostFix;
 std::string TheType = "XXXX";
 list<string> aFileList;				// all filenames matching input pattern, computed by DoDevelop
 vector<string> aKeypointsFileArray; // keypoints filenames associated to files in aFileList and a specified resolution, computed by DoDetectKeypoints
+bool ignoreMin = false,
+     ignoreMax = false,
+     ignoreUnknown = false;
 
 std::string StrMkT() { return (ByP ? (" \"MkF=" + MkFT +"\" ") : "") ; }
 
@@ -208,15 +215,32 @@ void check_pastis_tool( string &io_tool, const string &i_toolType )
     }
 }
 
-void check_detect_and_match_tools( string &detectingTool, string &matchingTool )
+void check_detect_and_match_tools( string &detectingTool, string &matchingTool, bool ignoreMax, bool ignoreMin, bool ignoreUnknown, string &ignoreMinMaxStr )
 {
-    g_toolsOptions.clear();
+	g_toolsOptions.clear();
 
-    InitDetectingTool( detectingTool );
-    check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
+	InitDetectingTool( detectingTool );
+	check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
 
-    InitMatchingTool( matchingTool );
-    check_pastis_tool( matchingTool, PASTIS_MATCH_ARGUMENT_NAME );
+	InitMatchingTool( matchingTool );
+	check_pastis_tool( matchingTool, PASTIS_MATCH_ARGUMENT_NAME );
+
+	if ( ignoreMax||ignoreMin||ignoreUnknown ){
+		if ( detectingTool.find( TheStrSiftPP )!=string::npos ){
+			cerr << "WARNING: the detecting tool [" << TheStrSiftPP << "] is not compatible with NoMax, NoMin, NoUnknown options. [mm3d Digeo] will be used instead." << endl;
+			detectingTool = "mm3d:Digeo";
+		}
+		if ( matchingTool.find( TheStrAnnPP )!=string::npos ){
+			cerr << "WARNING: the matching tool [" << TheStrAnnPP << "] is not compatible with NoMax, NoMin, NoUnknown options. [mm3d Ann] will be used instead." << endl;
+			matchingTool = "mm3d:Ann";
+		}
+	}
+
+	ignoreMinMaxStr.clear();
+	const string space(" ");
+	if ( ignoreMax ) ignoreMinMaxStr += space + PASTIS_IGNORE_MAX_NAME + "=1";
+	if ( ignoreMin ) ignoreMinMaxStr += space + PASTIS_IGNORE_MIN_NAME + "=1";
+	if ( ignoreUnknown ) ignoreMinMaxStr += space + PASTIS_IGNORE_UNKNOWN_NAME + "=1";
 }
 
 
@@ -226,6 +250,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
     int aNbMinPt=2;
     int DoLowRes = 1;
     string detectingTool, matchingTool;
+    string ignoreMinMaxStr;
 
     ElInitArgMain
             (
@@ -239,14 +264,19 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 << EAM(aNbMinPt,"NbMinPt",true,"Minimum number of points")
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                 << EAM(aPat2,"Pat2",true, "Second pattern", eSAM_IsPatFile)
+
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false)
+                
+                << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
                 aArg
                 );
 
     if (!MMVisualMode)
     {
-        check_detect_and_match_tools( detectingTool, matchingTool );
+        check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
 
         if (aFullRes != -1)
         {
@@ -269,7 +299,8 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                     +  std::string("NbMinPtsExp=2 ")
                     +  std::string("SsRes=1 ")
                     +  std::string("ForceByDico=1 ")
-                    +  g_toolsOptions;
+                    +  g_toolsOptions
+                    /*+  ignoreMinMaxStr*/; // using only min or max in low resolution may not produce enough point
 
             System(aSsR,true);
             DoMkT();
@@ -283,7 +314,8 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions + ' '
+                +  g_toolsOptions 
+                +  ignoreMinMaxStr + ' '
                 +  NKS();
 
         System(aSFR,true);
@@ -295,7 +327,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
 
 int All(int argc,char ** argv, const std::string &aArg="")
 {
-    string detectingTool, matchingTool;
+    string detectingTool, matchingTool, ignoreMinMaxStr;
 
     ElInitArgMain
             (
@@ -306,14 +338,19 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 << EAM(PostFix,"PostFix",false, "Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(aPat2,"Pat2",true,"Second pattern", eSAM_IsPatFile)
+                
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false)
+                
+                << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
                 aArg
                 );
 
     if (!MMVisualMode)
     {
-        check_detect_and_match_tools( detectingTool, matchingTool );
+        check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
 
         StdAdapt2Crochet(aPat2);
         DoDevelopp(-1,aFullRes);
@@ -325,7 +362,8 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions + ' '
+                +  g_toolsOptions
+                +  ignoreMinMaxStr + ' '
                 +  NKS();
 
 
@@ -342,7 +380,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
     int  aNbAdj = 5;
     bool ForceAdj = false;
     int isCirc = 0;
-    string detectingTool, matchingTool;
+    string detectingTool, matchingTool, ignoreMinMaxStr;
 
     ElInitArgMain
             (
@@ -355,15 +393,20 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
+                
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false)
+
+                << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
                 aArg
                 );
 
     if (!MMVisualMode)
     {
-        check_detect_and_match_tools( detectingTool, matchingTool );
-
+        check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
+        
         if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
         {
             std::cout << "Resol=" << aFullRes  << " NbAdjacence=" << aNbAdj << "\n";
@@ -387,7 +430,8 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions + ' '
+                +  g_toolsOptions
+                +  ignoreMinMaxStr + ' '
                 +  NKS();
 
         std::cout << aSFR << "\n";
@@ -402,7 +446,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
 
 int File(int argc,char ** argv, const std::string &aArg="")
 {
-    string detectingTool, matchingTool;
+    string detectingTool, matchingTool, ignoreMinMaxStr;
 
     ElInitArgMain
             (
@@ -412,14 +456,19 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(PostFix,"PostFix",false,"Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
+                
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false)
+                
+                << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
                 aArg
                 );
 
     if (!MMVisualMode)
     {
-        check_detect_and_match_tools( detectingTool, matchingTool );
+        check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
 
         std::string aSFR =  BinPastis
                 +  aDir + std::string(" ")
@@ -428,7 +477,8 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions + ' '
+                +  g_toolsOptions
+                +  ignoreMinMaxStr + ' '
                 +  NKS();
 
 

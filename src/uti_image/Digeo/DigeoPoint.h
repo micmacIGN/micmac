@@ -66,6 +66,8 @@ public:
 
 	static void multipleToUniqueAngle( std::vector<DigeoPoint> &io_points );
 	static void uniqueToMultipleAngles( std::vector<DigeoPoint> &io_points );
+
+	static void removePointsOfType( DetectType i_type, std::vector<DigeoPoint> &io_points );
 };
 
 std::ostream & operator <<( std::ostream &s, const DigeoPoint &p );

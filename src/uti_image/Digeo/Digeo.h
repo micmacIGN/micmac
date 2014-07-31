@@ -68,13 +68,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
 
-// __DEL
-bool isStudied( int x, int y );
-bool isStudied( const Pt2dr &p );
-
 //#define __DEBUG_DIGEO_STATS
 //#define __DEBUG_DIGEO
-#define __DIGEO_MAP_USED
 
 //  cRotationFormelle::AddRappOnCentre
 
@@ -303,9 +298,7 @@ class cImInMem
 
          int mFileTheoricalMaxValue;
          
-         #ifdef __DIGEO_MAP_USED
-            unsigned char *mUsed_points_map;
-         #endif
+         unsigned char *mUsed_points_map;
      private :
         cImInMem(const cImInMem &);  // N.I.
      public:
