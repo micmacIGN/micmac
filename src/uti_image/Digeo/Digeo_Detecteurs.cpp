@@ -47,12 +47,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                      */
 /****************************************/
 
-#ifdef __DIGEO_MAP_USED
-	// __DEL
-	int g_avoidedRecomputation = 0;
-	int g_nbComputation = 0;
-#endif
-
 template <class Type> typename cTplImInMem<Type>::tBase cTplImInMem<Type>::DOG(Type *** aC,const Pt3di& aP)
 {
      return aC[aP.z][aP.y][aP.x]-aC[aP.z+1][aP.y][aP.x];
@@ -386,22 +380,14 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_3d
 		if ( ( (aDx!=0) || (aDy!=0) ) && aNiv<4 ){
 			anX += aDx;
 			anY += aDy;
-			if ( ( anX>=mBrd ) &&
-				  ( anX<mSz.x-mBrd ) &&
-				  ( anY>=mBrd ) &&
-				  ( anY<mSz.y-mBrd ) ){
+			if ( ( anX>=mBrd ) && ( anX<mSz.x-mBrd ) &&
+				  ( anY>=mBrd ) && ( anY<mSz.y-mBrd ) ){
 				int offset = aDx+aDy*mSz.x;
 
-            #ifdef __DIGEO_MAP_USED
-               // __DEL
-               if ( mUsed_points_map==NULL ) cout << "----------------------------> dammit" << endl;
-               if ( anX<0 || anX>=mSz.x || anY<0 || anY>=mSz.y ) cout << "----------------------------> dammit2" << endl;
-               unsigned char *used = mUsed_points_map+( anX+anY*mSz.x );
-               if ( *used!=0 ){ g_avoidedRecomputation++; return eTES_AlreadyComputed; }
-               g_nbComputation++;
-					*used = 1;
-            #endif
-            
+				unsigned char *used = mUsed_points_map+( anX+anY*mSz.x );
+				if ( *used!=0 ) return eTES_AlreadyComputed;
+				*used = 1;
+
 				return CalculateDiff_3d( prevDoG+offset, currDoG+offset, nextDoG+offset, anX, anY, aNiv+1 );
 			}
 			else
@@ -438,17 +424,14 @@ void cTplImInMem<Type>::ExtractExtremaDOG
           cTplImInMem<Type> & aNext
      )
 {
-	#ifdef __DIGEO_MAP_USED
-		const int nbPix = mSz.x*mSz.y;
-		// __DEL
-		if ( mUsed_points_map!=NULL ) cout << "------------------------------------------> crap" << endl;
-		mUsed_points_map = new unsigned char[nbPix];
-		memset( mUsed_points_map, 0, nbPix );
-	#endif
+	// allocate the map of already used point
+	const int nbPix = mSz.x*mSz.y;
+	mUsed_points_map = new unsigned char[nbPix];
+	// the map is empty for now
+	memset( mUsed_points_map, 0, nbPix );
 
     //Type strengthThreshold = Type( (0.02/mOct.NbImOri())*mImGlob.GetMaxValue() );
     const Type strengthThreshold = 2./375.;
-
 
    double aRalm = aSC.RatioAllongMin().Val();
    mSeuilTr2Det = (aRalm+1)*(1+1/aRalm);
@@ -472,15 +455,9 @@ void cTplImInMem<Type>::ExtractExtremaDOG
     {
         for (int anX=mBrd; anX<aX1 ; anX++)
         {
-            #ifdef __DIGEO_MAP_USED
-               // __DEL
-               if ( mUsed_points_map==NULL ) cout << "----------------------------> dammit" << endl;
-               if ( anX<0 || anX>=mSz.x || anY<0 || anY>=mSz.y ) cout << "----------------------------> dammit2" << endl;
-               unsigned char *used = mUsed_points_map+( anX+anY*mSz.x );
-               bool isAlreadyComputed = true;
-               if ( *used==0 ){ *used=1; isAlreadyComputed=false; }
-               g_nbComputation++;
-            #endif
+				unsigned char *used = mUsed_points_map+( anX+anY*mSz.x );
+				bool isAlreadyComputed = true;
+				if ( *used==0 ){ *used=1; isAlreadyComputed=false; }
             
             mDogPC = *itDoG;
             bool isMin=false;
@@ -521,7 +498,7 @@ void cTplImInMem<Type>::ExtractExtremaDOG
                )
             {
                 //mResDifSift = CalculateDiff_2d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
-                mResDifSift = CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
+                mResDifSift = CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX, anY, 0 );
             }
             else if ( doMin
 
@@ -559,12 +536,10 @@ void cTplImInMem<Type>::ExtractExtremaDOG
             {
                 isMin=true;
                 //mResDifSift = CalculateDiff_2d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
-                mResDifSift = CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
+                mResDifSift = CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX,anY, 0 );
             }
 
-            #ifdef __DIGEO_MAP_USED
-               if ( isAlreadyComputed ){ g_avoidedRecomputation++; mResDifSift = eTES_AlreadyComputed; }
-            #endif
+            if ( isAlreadyComputed ) mResDifSift = eTES_AlreadyComputed;
             
             if (mResDifSift==eTES_Ok)
             {
@@ -593,11 +568,10 @@ void cTplImInMem<Type>::ExtractExtremaDOG
         }
         itDoG+=brd_2; itPrevDoG+=brd_2; itNextDoG+=brd_2;
     }
-    
-	#ifdef __DIGEO_MAP_USED
-		delete [] mUsed_points_map;
-		mUsed_points_map = NULL;
-	#endif
+
+	// free the map of already used point
+	delete [] mUsed_points_map;
+	mUsed_points_map = NULL;
 }
 
 

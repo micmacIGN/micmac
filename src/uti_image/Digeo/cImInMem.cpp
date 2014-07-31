@@ -690,7 +690,8 @@ cImInMem::cImInMem
     mFille            (0),
     mKernelTot        (1,1.0),
     mFirstSauv        (true),
-    mFileTheoricalMaxValue( (1<<aIGlob.TifF().bitpp())-1 )
+    mFileTheoricalMaxValue( (1<<aIGlob.TifF().bitpp())-1 ),
+    mUsed_points_map(NULL)
    #ifdef __DEBUG_DIGEO_STATS
       ,mCount_eTES_Uncalc(0),
        mCount_eTES_instable_unsolvable(0),
@@ -699,9 +700,6 @@ cImInMem::cImInMem
        mCount_eTES_GradFaible(0),
        mCount_eTES_TropAllonge(0),
        mCount_eTES_Ok(0)
-   #endif
-   #ifdef __DIGEO_MAP_USED
-     ,mUsed_points_map(NULL)
    #endif
 {
     if ( aIGlob.Appli().mVerbose )

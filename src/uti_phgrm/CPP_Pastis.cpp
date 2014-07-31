@@ -39,9 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-extern const string PASTIS_MATCH_ARGUMENT_NAME = "Match";
-extern const string PASTIS_DETECT_ARGUMENT_NAME = "Detect";
+extern const std::string PASTIS_MATCH_ARGUMENT_NAME = "Match";
+extern const std::string PASTIS_DETECT_ARGUMENT_NAME = "Detect";
 
+extern const std::string PASTIS_IGNORE_MAX_NAME = "NoMax";
+extern const std::string PASTIS_IGNORE_MIN_NAME = "NoMin";
+extern const std::string PASTIS_IGNORE_UNKNOWN_NAME = "NoUnknown";
 
 #if ELISE_unix
     const std::string TheStrSiftPP = "siftpp_tgi.LINUX";
@@ -224,6 +227,9 @@ class cAppliPastis : public cAppliBatch
        string        mMatchingTool;       // name of the program to be used for matching points
        string        mMatchingArguments;  // arguments to be passed when calling the matching tool
        string        mOutputDirectory;
+       bool          mIgnoreMin;
+       bool          mIgnoreMax;
+       bool          mIgnoreUnknown;
 
        Pt2dr Homogr1to2(const Pt2dr & aP1)
        {
@@ -285,7 +291,7 @@ void cAppliPastis::GenerateMatch(const std::string & aNI1,const std::string & aN
 
   if (mModeBin==eModeLeBrisPP)
   {
-    aCom =	protect_spaces(g_externalToolHandler.get( mMatchingTool ).callName()) + ' ' + mMatchingArguments + ' ' +
+    aCom =	protect_spaces(g_externalToolHandler.get( mMatchingTool ).callName()) + " " + mMatchingArguments + ' ' +
             protected_named_key1 + std::string(" ") +
             protected_named_key2 + std::string(" ") +
             mNameAPM;
@@ -918,8 +924,11 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
    mNbMinValidGlobH  (4),
    mNbMaxValidGlobH  (200000),
    mSeuilHGLOB       (-1.0),
-   mDetectingTool     ( TheStrSiftPP ),
-   mMatchingTool      ( TheStrAnnPP )
+   mDetectingTool    ( TheStrSiftPP ),
+   mMatchingTool     ( TheStrAnnPP ),
+   mIgnoreMin        (false),
+   mIgnoreMax        (false),
+   mIgnoreUnknown    (false)
 {
     mOutputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():DirChantier() );
     std::string aKG12="";
@@ -953,14 +962,14 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
                       << EAM(aKG12,"KG12",true)
                       << EAM(mKeyGeom1,"KG1",true)
                       << EAM(mKeyGeom2,"KG2",true)
-              << EAM(mSiftImplem,"mSiftImplem",true)
-              << EAM(mKCal,"KCal",true)
-              << EAM(mSeuilFHom,"SFH",true)
-              << EAM(mSeuilDistEpip,"DistEpip",true)
-              << EAM(mSeuilPente,"SeuilPente",true)
-              << EAM(mExpBin,"ExportBinaire",true)
-              << EAM(mExpTxt,"ExpTxt",true)
-              << EAM(mSeuilDup,"SeuilDup",true)
+                      << EAM(mSiftImplem,"mSiftImplem",true)
+                      << EAM(mKCal,"KCal",true)
+                      << EAM(mSeuilFHom,"SFH",true)
+                      << EAM(mSeuilDistEpip,"DistEpip",true)
+                      << EAM(mSeuilPente,"SeuilPente",true)
+                      << EAM(mExpBin,"ExportBinaire",true)
+                      << EAM(mExpTxt,"ExpTxt",true)
+                      << EAM(mSeuilDup,"SeuilDup",true)
                       << EAM(mNbMinPtsExp,"NbMinPtsExp",true)
                       << EAM(mForceByDico,"ForceByDico",true)
                       << EAM(mOnlyXML,"OnlyXML",true)
@@ -969,8 +978,13 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
                       << EAM(mSsRes,"SsRes",true)
                       << EAM(mExt,"Ext",true)
                       << EAM(mNKS,"NKS",true)
+                      
                       << EAM(mDetectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
                       << EAM(mMatchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
+                      
+                      << EAM(mIgnoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                      << EAM(mIgnoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                      << EAM(mIgnoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)
     );
 
     if ( !process_pastis_tool_string( mDetectingTool, mDetectingArguments ) ){
@@ -981,6 +995,10 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
         cerr << "Pastis: ERROR: specified string for the matching tool is invalid (format is : tool[:arguments] )" << endl;
         ElEXIT( EXIT_FAILURE,"Pastis: match error" );
     }
+
+    if ( mIgnoreMax ) mMatchingArguments += " -ignoreMax";
+    if ( mIgnoreMin ) mMatchingArguments += " -ignoreMin";
+    if ( mIgnoreUnknown ) mMatchingArguments += " -ignoreUnknown";
 
     if (mExpTxt) mExpBin = 0;
 
