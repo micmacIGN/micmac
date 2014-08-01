@@ -114,15 +114,17 @@ cAppliDigeo * DigeoCPP
    aCAA.AddArg(Basic_XML_MM_File("Digeo-Parameters.xml"));
    aCAA.AddArg("+Im1=" +aNameIm);
    aCAA.AddArg("DirectoryChantier="+aDir);
+   
+   /*
+   aCAA.AddArg("+Sauv="+ToString(aParam.mSauvPyram));
    aCAA.AddArg("+Sigma0="+ToString(aParam.mSigma0));
    aCAA.AddArg("+Resol="+ToString(aParam.mResolInit));
    aCAA.AddArg("+OctaveMax="+ToString(aParam.mOctaveMax));
    aCAA.AddArg("+NbNivByOct="+ToString(aParam.mNivByOctave));
    aCAA.AddArg("+ExigeCodeCompile="+ToString(aParam.mExigeCodeCompile));
    aCAA.AddArg("+NivFloatIm="+ToString(aParam.mNivFloatIm));
-   aCAA.AddArg("+Sauv="+ToString(aParam.mSauvPyram));
    aCAA.AddArg("+RatioGrad="+ToString(aParam.mRatioGrad));
-
+	*/
    cAppliDigeo * aRes = NewDigeo( aCAA.ArgC(), aCAA.ArgV(), aCAA.ArgV()[1] );
    
    aRes->AllocImages();   
@@ -131,13 +133,10 @@ cAppliDigeo * DigeoCPP
    return aRes;
 }
 
-
-
 /*
         bool     mExigeCodeCompile;
         int      mNivFloatIm;        // Ne depend pas de la resolution
 */
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

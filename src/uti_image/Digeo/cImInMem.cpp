@@ -282,7 +282,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 
 	const cTypePyramide & aTP = mAppli.TypePyramide();
 	if ( aTP.PyramideGaussienne().IsInit() ){
-		double aSigmD =  sqrt( ElSquare(mImGlob.Sigma0()) - ElSquare(mImGlob.SigmaN()) );
+		const double aSigmD = mImGlob.InitialDeltaSigma();
 		if ( aSigmD!=0. ){
 			Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
 			SetConvolSepXY( true, aSigmD, *this, aIKerD, mNbShift );
@@ -706,7 +706,7 @@ cImInMem::cImInMem
     {
         cout << "\tgaussian of index " << aKInOct << endl;
         cout << "\t\tresolution in octave = " << mResolOctaveBase << endl;
-        cout << "\t\tglobal resolution    = " << mResolOctaveBase*anOct.Niv()/2. << endl;
+        cout << "\t\tglobal resolution    = " << mResolOctaveBase*anOct.Niv()*mImGlob.Resol() << endl;
     }
 }
 
@@ -747,8 +747,7 @@ void cImInMem::SauvIm(const std::string & aAdd)
         loadGaussians( "gaussians_sift" );
     #endif
     
-   if (! mAppli.SauvPyram().IsInit())
-      return;
+   if ( ! mAppli.SauvPyram().IsInit()) return;
 
    const cTypePyramide & aTP = mAppli.TypePyramide();
    cSauvPyram aSP = mAppli.SauvPyram().Val();

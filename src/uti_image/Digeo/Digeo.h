@@ -657,6 +657,7 @@ class cImDigeo
        const std::vector<cOctaveDigeo *> &   Octaves() const;
        double Sigma0() const;
        double SigmaN() const;
+       double InitialDeltaSigma() const;
 
        Tiff_Im TifF();
      private :
@@ -695,6 +696,7 @@ class cImDigeo
         Im2DGen *                    mFileInMem;
         double                       mSigma0; // sigma of the first level of each octave (in the octave's space)
         double                       mSigmaN; // nominal sigma value of source image
+        double                       mInitialDeltaSigma;
      private :
         cImDigeo(const cImDigeo &);  // N.I.
         

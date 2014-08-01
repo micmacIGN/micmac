@@ -589,15 +589,6 @@ int Digeo_main( int argc, char **argv )
 }
 
 
-
-
-
-/*
-        bool     mExigeCodeCompile;
-        int      mNivFloatIm;        // Ne depend pas de la resolution
-*/
-
-
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en
