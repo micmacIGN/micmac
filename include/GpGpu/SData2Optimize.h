@@ -156,6 +156,12 @@ public:
     float       zRegQuad() const;
     void        setZRegQuad(float zRegQuad);
 
+    ushort      CostDefMasked() const;
+    void        setCostDefMasked(const ushort &CostDefMasked);
+
+    ushort      CostTransMaskNoMask() const;
+    void        setCostTransMaskNoMask(const ushort &CostTransMaskNoMask);
+
 private:
 
     U<uint3>     _param[NBUFFER];
@@ -167,6 +173,8 @@ private:
     uint         _nbLines;
     bool         _idBuffer;
     ushort       _penteMax;
+    ushort       _CostDefMasked;
+    ushort       _CostTransMaskNoMask;
     float        _zReg;
     float        _zRegQuad;
 
@@ -375,6 +383,32 @@ void Data2Optimiz<U,NBUFFER>::setZRegQuad(float zRegQuad)
 {
     _zRegQuad = zRegQuad;
 }
+
+TEMPLATE_D2OPTI
+ushort Data2Optimiz<U,NBUFFER>::CostDefMasked() const
+{
+    return _CostDefMasked;
+}
+
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::setCostDefMasked(const ushort &CostDefMasked)
+{
+    _CostDefMasked = CostDefMasked;
+}
+
+TEMPLATE_D2OPTI
+ushort Data2Optimiz<U,NBUFFER>::CostTransMaskNoMask() const
+{
+    return _CostTransMaskNoMask;
+}
+
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::setCostTransMaskNoMask(const ushort &CostTransMaskNoMask)
+{
+    _CostTransMaskNoMask = CostTransMaskNoMask;
+}
+
+
 
 
 

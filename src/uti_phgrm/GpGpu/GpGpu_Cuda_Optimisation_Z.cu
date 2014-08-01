@@ -312,6 +312,8 @@ void ReadLine_V02(
                 ushort     *ST_Bf_ICost,
                 uint       *S_FCost[2],
                 p_ReadLine &p,
+                ushort costDefMask,
+                ushort costTransDefMask,
                 ushort sizeBuffer
 )
 {
@@ -329,9 +331,10 @@ void ReadLine_V02(
     // Remarque
     // p.seg.id = 1 au premier passage, car simple copie des initcost
 
-    const uint defCorInit = 3000;
+    const ushort costTransDef = costTransDefMask;//costTransDefMask;
+    const ushort defCorInit   = costDefMask;
 
-    uint  prevDefCor      = defCorInit;
+    uint         prevMinCost  = 0;
 
     while(lined)
     {
@@ -372,7 +375,14 @@ void ReadLine_V02(
                 for (short i = ConeZ.x; i <= ConeZ.y; ++i)
                     fCostMin = min(fCostMin, costInit + prevFCost[i] + abs((int)i)*regulZ);
 
-                fCostMin = min(fCostMin,costInit+prevDefCor);
+
+                // fCostMin = min(fCostMin, costInit + defCorInit*6); // <----- MARCHE PAS MAL
+
+
+//                if(prevMinCost == defCorInit)
+//                    fCostMin = min(fCostMin, costInit + prevMinCost +  defCorInit + costTransDef);
+
+                //fCostMin -= prevMinCost;
 
                 const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
                 bool inside = tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < sizeBuffer && tZ < sizeBuffer;
@@ -397,26 +407,30 @@ void ReadLine_V02(
 
             }
 
-            globMinFCost    = min(globMinFCost,defCorInit);
-            prevDefCor      = defCorInit - globMinFCost;
+            //prevNonCorrel  = defCorInit;
 
+            prevMinCost    = globMinFCost;
 
+            /*
+            prevMinCost    = min(defCorInit,globMinFCost);
 
             if(p.tid == 0)
             {
                 const ushort idGline = p.line.id + p.seg.id;
 
                 if(sens)
-                    streamDefCor.SetValue(idGline, prevDefCor);
+
+                    streamDefCor.SetValue(idGline, dZ == 1  ? defCorInit : prevMinCost);
                 else
-                    streamDefCor.AddValue(p.line.lenght  - idGline, prevDefCor);
+                    streamDefCor.AddValue(p.line.lenght  - idGline, dZ == 1  ? defCorInit : prevMinCost);
             }
+            */
 
             p.prev_Dz = indexZ;
             p.seg.id++;
             p.swBuf();
 
-            //if(!sens) // retranche la cout minimum à toutes les cellules de même coordonnées terrain
+            if(!sens) // retranche la cout minimum à toutes les cellules de même coordonnées terrain
             {
                 const short piSFC = -p.ID_Bf_Icost + dZ ;
                 for (ushort i = 0; i < dZ - p.stid<sens>(); i+=WARPSIZE)
@@ -437,8 +451,10 @@ void ReadLine_V02(
     }
 }
 
+// TODO Passer les parametres en variable constante !!!!!!!!!!!
+
 template<class T> __global__
-void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, uint3* g_RecStrParam, uint penteMax, float zReg,float zRegQuad, ushort sizeBuffer)
+void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, uint3* g_RecStrParam, uint penteMax, float zReg,float zRegQuad, ushort costDefMask,ushort costTransDefMask,ushort sizeBuffer)
 {
 
     extern __shared__ float sharedMemory[];
@@ -471,8 +487,8 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, ui
     SimpleStream<short2>    streamIndex(    g_Index     + *pit_Id       ,WARPSIZE);
     SimpleStream<uint>      streamDefCor(   g_DefCor    + *pit_Id       ,WARPSIZE);
 
-    if(p.tid == 0)
-        streamDefCor.SetValue(0,300); // car la premiere ligne n'est calculer
+   if(p.tid == 0)
+        streamDefCor.SetValue(0,0); // car la premiere ligne n'est calculer
                                     // Attention voir pour le retour arriere
 
     streamICost.read<eAVANT>(S_BuffICost);
@@ -487,7 +503,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, ui
         streamFCost.SetValue(i,S_BuffICost[i]);
     }
 
-    ReadLine_V02<eAVANT>(streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex,S_BuffICost,S_BuffFCost,p,sizeBuffer);
+    ReadLine_V02<eAVANT>(streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex,S_BuffICost,S_BuffFCost,p, costDefMask, costTransDefMask, sizeBuffer);
 
     streamIndex.ReverseIncre<eARRIERE>();
     streamFCost.incre<eAVANT>();
@@ -514,7 +530,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, ui
     for (ushort i = 0; i < sizeBuffer; i+=WARPSIZE)
         locFCost[-i] = S_BuffICost[-i];
 
-    //ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p,sizeBuffer);
+    ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p, costDefMask, costTransDefMask,sizeBuffer);
 }
 
 extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
@@ -522,6 +538,8 @@ extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
     uint deltaMax   = d2O.penteMax();
     float zReg      = (float)d2O.zReg();
     float zRegQuad  = d2O.zRegQuad();
+    ushort costDefMask = d2O.CostDefMasked();
+    ushort costTransDefMask = d2O.CostTransMaskNoMask();
 
 //    DUMP_FLOAT(zReg);
 //    DUMP_FLOAT(zRegQuad);
@@ -553,6 +571,8 @@ extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)
                                                            deltaMax,
                                                            zReg,
                                                            zRegQuad,
+                                                           costDefMask,
+                                                           costTransDefMask,
                                                            sizeBuff
                                                            );
 

@@ -37,16 +37,18 @@ struct CuHostDaPo3D
 
     void                    ReallocData()
     {
-        _data1D.ReallocIf(_size);
+        _data1D.ReallocIf(_size);        
+
     }
 
     void                    Dealloc()
     {
         _data1D.Dealloc();
+
         _ptZ.Dealloc();
         _dZ.Dealloc();
         _pit.Dealloc();
-    }
+    }        
 
     void PointIncre(uint2 pt,short2 ptZ)
     {
@@ -74,6 +76,8 @@ struct CuHostDaPo3D
     {
         return _pit[toUi2(pt)];
     }
+
+
 
     short2                  PtZ(uint2 pt)
     {
@@ -103,7 +107,7 @@ struct CuHostDaPo3D
     uint                    Size()
     {
         return _size;
-    }
+    }       
 
     T*                      operator[](uint2 pt)
     {
@@ -164,7 +168,7 @@ public:
     ///
     //void            Prepare(uint x,uint y);
 
-    void            Prepare(uint x, uint y, ushort penteMax, ushort NBDir, float zReg, float zRegQuad);
+    void            Prepare(uint x, uint y, ushort penteMax, ushort NBDir, float zReg, float zRegQuad, ushort costDefMask,ushort costDefMaskTrans);
 
     ///
     /// \brief freezeCompute

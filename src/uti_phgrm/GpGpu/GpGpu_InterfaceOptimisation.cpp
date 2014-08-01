@@ -39,7 +39,7 @@ void InterfOptimizGpGpu::oneDirOptGpGpu()
 
 }
 
-void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,float zReg,float zRegQuad)
+void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,float zReg,float zRegQuad, ushort costDefMask,ushort costDefMaskTrans)
 {
     uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
 
@@ -56,6 +56,8 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,f
     _D_data2Opt.setPenteMax(penteMax);
     _D_data2Opt.setZReg(zReg);
     _D_data2Opt.setZRegQuad(zRegQuad);
+    _D_data2Opt.setCostDefMasked(costDefMask);
+    _D_data2Opt.setCostTransMaskNoMask(costDefMaskTrans);
     _FinalDefCor.Fill(0);
     _preFinalCost1D.Fill(0);
 

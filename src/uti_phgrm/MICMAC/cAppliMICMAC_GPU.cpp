@@ -1623,7 +1623,8 @@ void cAppliMICMAC::DoGPU_Correl
                 for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
                 {
                     double cost = (double)tCost[rSiTer * abs(anZ - (int)z0)];
-                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
+
+                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : 2.0);
                 }
             }
         }
