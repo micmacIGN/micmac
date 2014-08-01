@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[232]) = {
+const char * (theNameVar_ParamDigeo[233]) = {
 "<GenCpp>\n",
 "	<Verbatim  File=\".h\">\n",
 "	#ifndef Define_NotDigeo\n",
@@ -202,6 +202,7 @@ const char * (theNameVar_ParamDigeo[232]) = {
 "			<!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait\n",
 "			insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment -->\n",
 "			<ExigeCodeCompile Nb=\"?\" Type=\"bool\" Def=\"true\"></ExigeCodeCompile>\n",
+"			\n",
 "			<GenereCodeConvol Nb=\"?\">\n",
 "				<DirectoryCodeConvol Nb=\"?\" Type=\"std::string\" Def=\"src/uti_image/Digeo/\"> </DirectoryCodeConvol>\n",
 "				<FileBaseCodeConvol Nb=\"?\" Type=\"std::string\" Def=\"GenConvolSpec\"> </FileBaseCodeConvol>\n",

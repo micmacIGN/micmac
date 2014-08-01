@@ -200,6 +200,7 @@
 			<!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait
 			insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment -->
 			<ExigeCodeCompile Nb="?" Type="bool" Def="true"></ExigeCodeCompile>
+			
 			<GenereCodeConvol Nb="?">
 				<DirectoryCodeConvol Nb="?" Type="std::string" Def="src/uti_image/Digeo/"> </DirectoryCodeConvol>
 				<FileBaseCodeConvol Nb="?" Type="std::string" Def="GenConvolSpec"> </FileBaseCodeConvol>

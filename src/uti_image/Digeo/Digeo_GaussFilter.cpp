@@ -555,8 +555,7 @@ void cTplImInMem<Type>::SetConvolSepXY
                                 aSigma, Increm
                              );
 
-
-
+    /*
     if (mAppli.ShowConvolSpec().Val())
        std::cout << "CS = " << aCS << "\n";
     if (mAppli.ExigeCodeCompile().Val() )
@@ -568,6 +567,7 @@ void cTplImInMem<Type>::SetConvolSepXY
           ELISE_ASSERT(false,"cannot find code compiled\n");
        }
     }
+    */
 
     if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
 

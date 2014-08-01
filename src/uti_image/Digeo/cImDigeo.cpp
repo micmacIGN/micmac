@@ -108,7 +108,7 @@ cImDigeo::cImDigeo
   mBoxImR1     (Inf(mIMD.BoxImR1().ValWithDef(mBoxGlobR1),mBoxGlobR1)),
   mBoxImCalc   (round_ni(Pt2dr(mBoxImR1._p0)/mResol),round_ni(Pt2dr(mBoxImR1._p1)/mResol)),
   mSzMax       (0,0),
-  mNiv	      (0),
+  mNiv         (0),
   mVisu        (0),
   mG2MoyIsCalc (false),
   mDyn         (1.0),
@@ -185,6 +185,10 @@ cImDigeo::cImDigeo
           
        }
    }
+
+   // compute gaussians' standard-deviation
+   mInitialDeltaSigma = sqrt( ElSquare(mSigma0)-ElSquare(SigmaN()) );
+   if ( mAppli.mVerbose ) cout << "initial convolution sigma : " << mInitialDeltaSigma << ( mInitialDeltaSigma==0.?"(no convolution)":"" ) << endl;
 }
 
 Tiff_Im cImDigeo::TifF()
@@ -212,6 +216,8 @@ const std::vector<cOctaveDigeo *> &   cImDigeo::Octaves() const
 double cImDigeo::Sigma0() const { return mSigma0; }
 
 double cImDigeo::SigmaN() const { return mSigmaN; }
+
+double cImDigeo::InitialDeltaSigma() const { return mInitialDeltaSigma; }
 
 void cImDigeo::NotifUseBox(const Box2di & aBox)
 {
