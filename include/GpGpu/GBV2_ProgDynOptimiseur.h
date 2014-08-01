@@ -198,8 +198,8 @@ private :
     int                                mNbDir;
     double                             mPdsProgr;
 
-
-
+    int                                mCostDefMasked;
+    int                                mCostTransMaskNoMask;
 
 };
 }
