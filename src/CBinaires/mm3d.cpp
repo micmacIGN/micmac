@@ -208,8 +208,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Apero",Apero_main," Compute external and internal orientations"));
        aRes.push_back(cMMCom("Arsenic",Arsenic_main," IN DEV : Radiometric equalization from tie points"));
        aRes.push_back(cMMCom("Digeo",Digeo_main," In development- Will compute tie points "));
-       aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main,"Select secondary images for MicMac",cArgLogCom(2)));
-       aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main,"Convert Orientation from Apero-Micmac workflow to PMVS format"));
+       aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main," Select secondary images for MicMac",cArgLogCom(2)));
+       aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main," Convert Orientation from Apero-Micmac workflow to PMVS format"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
@@ -224,14 +224,14 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Devlop",Devlop_main," Do some stuff"));
        aRes.push_back(cMMCom("TifDev",TiffDev_main," Develop raw-jpg-tif, in suitable tiff file"));
 
-       aRes.push_back(cMMCom("Drunk", Drunk_main,"Images distortion removing tool"));
+       aRes.push_back(cMMCom("Drunk", Drunk_main," Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
        aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with  GCP"));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
 
-       aRes.push_back(cMMCom("GrapheHom",GrapheHom_main,"Compute XML-Visibility graph from approximative orientation ",cArgLogCom(3)));
+       aRes.push_back(cMMCom("GrapheHom",GrapheHom_main," Compute XML-Visibility graph from approximative orientation ",cArgLogCom(3)));
        aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("XifGps2Xml",XifGps2Xml_main," Create MicMac-Xml struct from GPS embedded in EXIF",cArgLogCom(2)));
@@ -281,7 +281,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 
 
-       aRes.push_back(cMMCom("Pasta",Pasta_main," Do some stuff"));
+       aRes.push_back(cMMCom("Pasta",Pasta_main," Compute external calibration and radial basic internal calibration"));
        aRes.push_back(cMMCom("PastDevlop",PastDevlop_main," Do some stuff"));
        aRes.push_back(cMMCom("Pastis",Pastis_main," Tie points detection"));
        aRes.push_back(cMMCom("Poisson",Poisson_main," Mesh Poisson reconstruction by M. Khazdan"));
@@ -294,7 +294,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("HomolFilterMasq",HomFilterMasq_main," Tool for filter homologous points according to masq",cArgLogCom(2)));
 
 
-       aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for scaling image"));
+       aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for image scaling"));
        aRes.push_back(cMMCom("StatIm",StatIm_main," Tool for basic stat on an image"));
        aRes.push_back(cMMCom("ConvertIm",ConvertIm_main," Tool for convertion inside tiff-format"));
        aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a pannel of images "));
@@ -332,30 +332,30 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool to develop MPO stereo format in pair of images"));
 
 #if (ELISE_QT_VERSION >= 4)
-       aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main,"Interactive tool for initial capture of GCP"));
-       aRes.push_back(cMMCom("SaisieAppuisPredicQT",SaisieAppuisPredicQT_main,"Interactive tool for assisted capture of GCP"));
-       aRes.push_back(cMMCom("SaisieBascQT",SaisieBascQT_main,"Interactive tool to cature information on the scene"));
-       aRes.push_back(cMMCom("SaisieMasqQT",SaisieMasqQT_main,"Interactive tool to capture masq"));
-       aRes.push_back(cMMCom("SaisieBoxQT",SaisieBoxQT_main,"Interactive tool to capture 2D box"));
+       aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main," Interactive tool for initial capture of GCP"));
+       aRes.push_back(cMMCom("SaisieAppuisPredicQT",SaisieAppuisPredicQT_main," Interactive tool for assisted capture of GCP"));
+       aRes.push_back(cMMCom("SaisieBascQT",SaisieBascQT_main," Interactive tool to cature information on the scene"));
+       aRes.push_back(cMMCom("SaisieMasqQT",SaisieMasqQT_main," Interactive tool to capture masq"));
+       aRes.push_back(cMMCom("SaisieBoxQT",SaisieBoxQT_main," Interactive tool to capture 2D box"));
 #endif
 
 #if (ELISE_X11)
        aRes.push_back(cMMCom("MPDtest",MPDtest_main," My own test"));
-       aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main,"Interactive tool for initial capture of GCP",cArgLogCom(2)));
-       aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main,"Interactive tool for assisted capture of GCP"));
-       aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main,"Interactive tool to cature information on the scene"));
-       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main,"Interactive tool to capture masq"));
-       aRes.push_back(cMMCom("SaisiePts",SaisiePts_main,"Tool to capture GCP (low level, not recommanded)"));
-       aRes.push_back(cMMCom("SEL",SEL_main,"Tool to visualise tie points"));
-       aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main,"low level version of SEL, not recommanded"));
+       aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main," Interactive tool for initial capture of GCP",cArgLogCom(2)));
+       aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main," Interactive tool for assisted capture of GCP"));
+       aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main," Interactive tool to cature information on the scene"));
+       aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main," Interactive tool to capture masq"));
+       aRes.push_back(cMMCom("SaisiePts",SaisiePts_main," Tool to capture GCP (low level, not recommanded)"));
+       aRes.push_back(cMMCom("SEL",SEL_main," Tool to visualise tie points"));
+       aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main," Low level version of SEL, not recommanded"));
 
 #ifdef ETA_POLYGON
 
        //Etalonnage polygone
        aRes.push_back(cMMCom("Compens",Compens_main," Do some stuff"));
        aRes.push_back(cMMCom("CatImSaisie",CatImSaisie_main," Do some stuff"));
-       aRes.push_back(cMMCom("CalibFinale",CalibFinale_main," Do some stuff"));
-       aRes.push_back(cMMCom("CalibInit",CalibInit_main," Do some stuff"));
+       aRes.push_back(cMMCom("CalibFinale",CalibFinale_main," Compute Final Radial distortion model"));
+       aRes.push_back(cMMCom("CalibInit",CalibInit_main," Compute Initial Radial distortion model"));
        aRes.push_back(cMMCom("ConvertPolygone",ConvertPolygone_main," Do some stuff"));
        aRes.push_back(cMMCom("PointeInitPolyg",PointeInitPolyg_main," Do some stuff"));
        aRes.push_back(cMMCom("RechCibleDRad",RechCibleDRad_main," Do some stuff"));
