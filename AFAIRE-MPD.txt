@@ -18,9 +18,10 @@ EVOLUTIONS :
   * Plan 3D robuste
 
   * Dans NewTapas :
-      * remise contrainte rigie + viscosite faible + viscosite sur le
+  * remise contrainte rigie + viscosite faible + viscosite sur le
 
   * Modeles additionnels dans Tapas (AddPol et AddFour ) + les options dans NewTapas
+  * GCPCtrl
 
 Torsion de bande : FAITS
 

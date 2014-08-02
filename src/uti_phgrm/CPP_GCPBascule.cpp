@@ -40,6 +40,24 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
+//                   1  X  Y  X2 XY Y2
+int NLDDegFlagX[6] ={0 ,1 ,0 ,2 ,1 ,0 };
+int NLDDegFlagY[6] ={0 ,0 ,1 ,0 ,1 ,2 };
+
+int FlagOfDeg(const Pt3di & aDXY)
+{
+   int aRes = 0;
+   for (int aK=0 ; aK<6 ; aK++)
+   {
+        if (      (aDXY.x>=NLDDegFlagX[aK]) 
+               && (aDXY.y>=NLDDegFlagY[aK]) 
+               && (aDXY.z >= (NLDDegFlagX[aK]+NLDDegFlagY[aK]))
+           )
+           aRes |= 1<< aK;
+   }
+   return aRes;
+}
+
 int GCPBascule_main(int argc,char ** argv)
 {
     // MemoArg(argc,argv);
@@ -54,7 +72,13 @@ int GCPBascule_main(int argc,char ** argv)
     bool        ModeL1 = false;
     bool        CPI = false;
     bool ShowUnused = true;
-    bool aUseNLD = false;
+    bool NLDShow = false;
+    bool NLDFTR = true;
+
+    std::string aPatNLD;
+    Pt3di NLDDegX(1,1,1);
+    Pt3di NLDDegY(1,1,1);
+    Pt3di NLDDegZ(2,0,2);
 
 
     ElInitArgMain
@@ -69,7 +93,12 @@ int GCPBascule_main(int argc,char ** argv)
                     <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2 (Def=false)", eSAM_IsBool)
                     <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
                     <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
-                    <<  EAM(aUseNLD,"NLD",true,"Non linear deformation (def=false, for aerial like geometry)", eSAM_IsBool)
+                    <<  EAM(aPatNLD,"PatNLD",true,"Pattern for Non linear deformation, with aerial like geometry (def,unused)")
+                    <<  EAM(NLDDegX,"NLDegX",true,"Non Linear Degree X, when PatNLD, (Def =1,1,1)")
+                    <<  EAM(NLDDegY,"NLDegY",true,"Non Linear Degree Y, when PatNLD, (Def =1,1,1)")
+                    <<  EAM(NLDDegZ,"NLDegZ",true,"Non Linear Degree Z, when PatNLD, (Def =2,0,2)")
+                    <<  EAM(NLDFTR,"NLFR",true,"Non Linear : Force True Rot (Def=true)",eSAM_IsBool)
+                    <<  EAM(NLDShow,"NLShow",true,"Non Linear : Show Details (Def=false)",eSAM_IsBool)
     );
 
     if (!MMVisualMode)
@@ -103,9 +132,15 @@ int GCPBascule_main(int argc,char ** argv)
     if (CPI) aCom += " +CPI=true ";
 
 
-    if (aUseNLD)
+    if (EAMIsInit(&aPatNLD))
     {
-       aCom = aCom + " +UseNLD=true";
+       aCom = aCom + " +UseNLD=true +PatNLD=" + QUOTE(aPatNLD)
+                   + " +NLFlagX=" + ToString(FlagOfDeg(NLDDegX))
+                   + " +NLFlagY=" + ToString(FlagOfDeg(NLDDegY))
+                   + " +NLFlagZ=" + ToString(FlagOfDeg(NLDDegZ))
+                   + " +NLDForceTR=" + ToString(NLDFTR)
+                   + " +NLDShow=" + ToString(NLDShow)
+              ;
     }
 
 

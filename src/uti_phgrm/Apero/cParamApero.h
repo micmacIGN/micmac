@@ -2809,14 +2809,30 @@ class cAerialDeformNonLin
         friend void xml_init(cAerialDeformNonLin & anObj,cElXMLTree * aTree);
 
 
-        bool & ZOfXY();
-        const bool & ZOfXY()const ;
+        cTplValGesInit< int > & FlagX();
+        const cTplValGesInit< int > & FlagX()const ;
 
-        bool & XYofY();
-        const bool & XYofY()const ;
+        cTplValGesInit< int > & FlagY();
+        const cTplValGesInit< int > & FlagY()const ;
+
+        cTplValGesInit< int > & FlagZ();
+        const cTplValGesInit< int > & FlagZ()const ;
+
+        cTplValGesInit< bool > & ForceTrueRot();
+        const cTplValGesInit< bool > & ForceTrueRot()const ;
+
+        cTplValGesInit< std::string > & PattEstim();
+        const cTplValGesInit< std::string > & PattEstim()const ;
+
+        cTplValGesInit< bool > & Show();
+        const cTplValGesInit< bool > & Show()const ;
     private:
-        bool mZOfXY;
-        bool mXYofY;
+        cTplValGesInit< int > mFlagX;
+        cTplValGesInit< int > mFlagY;
+        cTplValGesInit< int > mFlagZ;
+        cTplValGesInit< bool > mForceTrueRot;
+        cTplValGesInit< std::string > mPattEstim;
+        cTplValGesInit< bool > mShow;
 };
 cElXMLTree * ToXMLTree(const cAerialDeformNonLin &);
 
@@ -2851,12 +2867,6 @@ class cBasculeOnPoints
 
         cTplValGesInit< bool > & ModeL2();
         const cTplValGesInit< bool > & ModeL2()const ;
-
-        bool & ZOfXY();
-        const bool & ZOfXY()const ;
-
-        bool & XYofY();
-        const bool & XYofY()const ;
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
@@ -2963,12 +2973,6 @@ class cModeBascule
         cTplValGesInit< bool > & ModeL2();
         const cTplValGesInit< bool > & ModeL2()const ;
 
-        bool & ZOfXY();
-        const bool & ZOfXY()const ;
-
-        bool & XYofY();
-        const bool & XYofY()const ;
-
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
 
@@ -3038,12 +3042,6 @@ class cBasculeOrientation
 
         cTplValGesInit< bool > & ModeL2();
         const cTplValGesInit< bool > & ModeL2()const ;
-
-        bool & ZOfXY();
-        const bool & ZOfXY()const ;
-
-        bool & XYofY();
-        const bool & XYofY()const ;
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
@@ -3886,12 +3884,6 @@ class cIterationsCompensation
 
         cTplValGesInit< bool > & ModeL2();
         const cTplValGesInit< bool > & ModeL2()const ;
-
-        bool & ZOfXY();
-        const bool & ZOfXY()const ;
-
-        bool & XYofY();
-        const bool & XYofY()const ;
 
         cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin();
         const cTplValGesInit< cAerialDeformNonLin > & AerialDeformNonLin()const ;
