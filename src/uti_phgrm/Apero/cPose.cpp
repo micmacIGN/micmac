@@ -450,6 +450,12 @@ const CamStenope *  cPoseCam::CurCam() const
    return  mCF->CameraCourante() ;
 }
 
+CamStenope *  cPoseCam::NC_CurCam() const 
+{
+   return  mCF->DuplicataCameraCourante() ;
+}
+
+
 void    cPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
 {
    double aPds = (aBSurH-mAppli.Param().LimInfBSurHPMoy().Val());

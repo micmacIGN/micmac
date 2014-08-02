@@ -360,6 +360,7 @@ class cPoseCam
                            );
 
          const CamStenope * CurCam() const;
+         CamStenope * NC_CurCam() const;
          void DoInitIfNow();
 
           cCalibCam * Calib();
