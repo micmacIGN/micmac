@@ -2504,8 +2504,8 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cTransfo3D
             std::vector<Pt2dr> aVPhGr;
             std::vector<Pt3dr> aVSource;
             cEq12Parametre anEq12;
-            int aNbXY = 20;
-            int aNbProf  = 5;
+            int aNbXY = 5;
+            int aNbProf  = 3;
             double aPropProf= 0.2;
 
             ElCamera & aCam = *(aVCam[aK]);
