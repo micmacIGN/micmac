@@ -258,8 +258,8 @@ void  cObservLiaison_1Cple::Compile
     // mCpleR2 = anAppli.SetEq().NewCpleCam(*(mPose1->CF()),*(mPose2->CF()),cNameSpaceEqF::eResiduIm2);
 
     std::vector<cCameraFormelle *>  aVCF;
-    aVCF.push_back(mPose1->CF());
-    aVCF.push_back(mPose2->CF());
+    aVCF.push_back(mPose1->CamF());
+    aVCF.push_back(mPose2->CamF());
 
     mPLiaisTer = new cManipPt3TerInc(aVCF[0]->Set(),mEqS,aVCF);
 

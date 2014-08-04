@@ -60,7 +60,7 @@ void cAppliApero::ExportMesuresFromCarteProf
   }
 
   cPoseCam * aPoseCarte = PoseFromName(aNameCarte);
-  const CamStenope * aCSC = aPoseCarte->CF()->CameraCourante();
+  const CamStenope * aCSC = aPoseCarte->CurCam();
   Pt2di aSzIm = aCSC->Sz();
 
   ElPackHomologue aNewPack;

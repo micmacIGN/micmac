@@ -1,3 +1,6 @@
+BUG sur Tapioca Boudha 
+
+
 EVOLUTIONS :
 
   * Compensation sur des lignes 3D

@@ -126,7 +126,7 @@ void  cOneAppuisFlottant::Compile()
     for (int aK=0; aK<int(mCams.size()) ; aK++)
     {
         mNupl->PK(aK) = mPts[aK];
-	aVCF.push_back(mCams[aK]->CF());
+	aVCF.push_back(mCams[aK]->CamF());
 	mPdsIm.push_back(1.0);
         if (mIsDroite[aK])
             mNupl->SetDr(aK);
@@ -159,6 +159,32 @@ Pt3dr cOneAppuisFlottant::PInter() const
 
 double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO,std::string & aCamMaxErr)
 {
+   if (mAppli.SqueezeDOCOAC())
+   {
+      if (mHasGround)
+      {
+          int aNbCam =0;
+          double anErMax=0;
+          for (int aK=0 ; aK<int(mCams.size()) ; aK++)
+          {
+              if (mCams[aK]->RotIsInit())
+              {
+                  aNbCam++;
+              }
+          }
+          
+          if (aNbCam>=2)
+          {
+             // std::cout << "AxCAA " << mPt << PInter() << "\n";
+             Pt3dr aDif =  mPt - PInter();
+             std::cout << "Ctrl " << mName  << " GCP-Bundle, D=" <<  euclid(aDif) << " P=" << aDif<< "\n";
+          }
+          return anErMax;
+      }
+      return 0;
+   }
+ 
+
    aCamMaxErr = "";
 
    bool aShowDet = AuMoinsUnMatch(anObs.PtsShowDet(),mName);
@@ -255,6 +281,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
       }
       return 0.0;
    }
+
 
    if (aShowDet )
    {
