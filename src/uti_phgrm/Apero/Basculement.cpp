@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-
+   
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in
+    d'images, adapte au contexte geograhique" to appears in 
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte
+   MicMac est un logiciel de mise en correspondance d'image adapte 
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -49,21 +49,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
      //---------------------------------------------
-     //     UTILITAIRES
+     //     UTILITAIRES 
      //---------------------------------------------
 
 Pt3dr cAppliApero::CpleIm2PTer(const cAperoPointeStereo & anAPS)
 {
-    const CamStenope * aCS1 = PoseFromName(anAPS.Im1())->CF()->CameraCourante();
-    const CamStenope * aCS2 = PoseFromName(anAPS.Im2())->CF()->CameraCourante();
+    const CamStenope * aCS1 = PoseFromName(anAPS.Im1())->CurCam();
+    const CamStenope * aCS2 = PoseFromName(anAPS.Im2())->CurCam();
 
     return   aCS1->PseudoInter(anAPS.P1(),*aCS2,anAPS.P2());
 }
 
 Pt3dr cAppliApero::PImetZ2PTer(const cAperoPointeMono & anAPM,double aZ)
 {
-
-    const CamStenope * aCS = PoseFromName(anAPM.Im())->CF()->CameraCourante();
+    
+    const CamStenope * aCS = PoseFromName(anAPM.Im())->CurCam();
     return aCS->F2AndZtoR3(anAPM.Pt(),aZ);
 }
 
@@ -71,13 +71,13 @@ Pt3dr cAppliApero::PImetZ2PTer(const cAperoPointeMono & anAPM,double aZ)
 
 
      //---------------------------------------------
-     //     cArgGetPtsTerrain
+     //     cArgGetPtsTerrain 
      //---------------------------------------------
 
 cArgGetPtsTerrain::cArgGetPtsTerrain(double aResolMAsq,double aLimBsH) :
      mResol      (aResolMAsq),
      mMasq       (0),
-     mMode       (eModeAGPIm),
+     mMode       (eModeAGPIm), 
      mLimBsH     (aLimBsH),
      mDoByIm     (false),
      mSymDoByIm  (false)
@@ -204,7 +204,7 @@ void cArgGetPtsTerrain::AddAGP
                  )
            );
 
-
+           
       }
       else if (mMode==eModeAGPNoAttr)
       {
@@ -214,7 +214,7 @@ void cArgGetPtsTerrain::AddAGP
 
 void cArgGetPtsTerrain::AddPts(Pt3dr aP1,Pt3di aCoul)
 {
-   mCouls.push_back(aCoul);
+   mCouls.push_back(aCoul); 
    mPts.push_back(aP1);
 }
 
@@ -226,7 +226,7 @@ void cArgGetPtsTerrain::AddSeg(Pt3dr aP1,Pt3dr aP2,double aStep,Pt3di aCoul)
    {
         double aPds = aKP / double(aNb);
         Pt3dr aP = aP1*aPds + aP2*(1.0-aPds);
-        mCouls.push_back(aCoul);
+        mCouls.push_back(aCoul); 
         mPts.push_back(aP);
    }
 }
@@ -274,7 +274,7 @@ void cArgGetPtsTerrain::InitFileColor(const std::string & aName,double aStepIm,c
             Im2DGen * aI1 = mVIms[aKIM];
             mVImRed.push_back(aI1->ImOfSameType(round_up(Pt2dr(aI1->sz())/mStepImRed)));
             Im2DGen * aIR = mVImRed[aKIM];
-
+ 
             ELISE_COPY
             (
                 aIR->all_pts(),
@@ -298,7 +298,7 @@ const std::vector<Pt3di>  &  cArgGetPtsTerrain::Cols() const  {return mCouls;}
 
 
      //---------------------------------------------
-     //     BasculeCentre
+     //     BasculeCentre 
      //---------------------------------------------
 
 void TestBasc
@@ -371,7 +371,7 @@ class cModelQuadXY
        void Solve();
        double  ValOfPt(const Pt3dr & aP) const;
        void Show();
-
+      
     private :
        bool Masqued(const int & aK) {return 0== (mMasq & (1<<aK));}
 
@@ -380,7 +380,7 @@ class cModelQuadXY
        Im1D_REAL8      mSol;
        double *        mDS;
        int             mMasq; // Masque des variables anhilees
-
+      
 };
 
 
@@ -395,7 +395,6 @@ class cCompBascNonLin : public cTransfo3D
              const cSolBasculeRig   & aSBR,
              const cAerialDeformNonLin &
        );
-       virtual ~cCompBascNonLin(){}
        Pt3dr ToLineC(const Pt3dr &) const;
        Pt3dr FromLineC(const Pt3dr &) const;
 
@@ -453,11 +452,11 @@ double  cModelQuadXY::ValOfPt(const Pt3dr & aP) const
          +  mDS[5] * aP.y * aP.y ;
 }
 
-
+   
 void cModelQuadXY::AddObs(const Pt3dr & aP,double aV)
 {
     double aCoeff[6];
-
+    
     aCoeff[0] = 1;
     aCoeff[1] = aP.x;
     aCoeff[2] = aP.y;
@@ -578,14 +577,18 @@ cCompBascNonLin::cCompBascNonLin
 
           Pt3dr aModEr = ModeleOfCorr(aPLine);
 
-          Pt3dr aPG = aPt.PGot();
+          Pt3dr aPG = aPt.PGot(); 
           Pt3dr aPCor = Src2Cibl(aPG);
           Pt3dr aCibl = aPt.PApres();
 
-          std::cout << (aPt.UseForEstim() ? "* " : "  ")
-                    << aPt.Name() << " " << euclid(aPEr)
-                    << " S2C " << euclid(aCibl-aPCor)
-                    << " => " << euclid(aModEr-aPEr)  << " DZ=" << (aModEr.z-aPEr.z) << "\n";
+          // Pt3dr aVerif = (aCibl-aPCor) - (aModEr-aPEr);
+          double aVerif = ElAbs(euclid(aCibl-aPCor) - euclid(aModEr-aPEr)) / (euclid(aCibl));
+          ELISE_ASSERT(aVerif<1e-10,"cCompBascNonLin::cCompBascNonLin");
+
+          std::cout << (aPt.UseForEstim() ? "* " : "  ") 
+                    << aPt.Name() << " ErInit : " << euclid(aPEr) 
+                    // << " Ver " << aVerif
+                    << " => ErCor : " << euclid(aModEr-aPEr)  << " DZ=" << (aModEr.z-aPEr.z) << "\n";
        }
    }
 
@@ -625,7 +628,7 @@ Pt3dr cCompBascNonLin::Src2Cibl(const Pt3dr & aPBasc) const
 {
    Pt3dr aPLine =  ToLineC(aPBasc);
    Pt3dr aCorrec = ModeleOfCorr(aPLine);
-
+    
    return FromLineC(aPLine+aCorrec);
 }
 
@@ -657,7 +660,7 @@ void cAppliApero::BasculePoints
 
           cPoseCam * aPC = mVecPose[aKPose];
           if (
-                   aSelectorEstim.IsSetIn(aPC->Name())
+                   aSelectorEstim.IsSetIn(aPC->Name()) 
                 && (aPC->RotIsInit())
                 && (aPC->HasObsOnCentre())
                 && ((! CalcV) || aPC->HasObsOnVitesse())
@@ -671,7 +674,7 @@ void cAppliApero::BasculePoints
               // const cObserv1Im<cTypeEnglob_Centre> & anOC = ObsCentre(aBC.IdBDC(),aPC->Name());
               //
                 if (Test) aVName.push_back(aPC->Name());
-
+  
                if (CalcV)
                {
                    Pt3dr aV = aPC->Vitesse();
@@ -716,7 +719,7 @@ void cAppliApero::BasculePoints
            )
            {
                 cOneAppuiMul * anOAM = itO->second;
-                if (anOAM->NbInter() >=2)
+                if (anOAM->NbInter() >=2)  
                 {
                     aBasc.AddExemple(anOAM->PInter(),anOAM->PTer(),0,ToString(itO->first));
                 }
@@ -752,7 +755,7 @@ void cAppliApero::BasculePoints
 
 // std::cout << "--------------BBBBBBBBBBBBBBBB\n";
 
-
+  
    bool OkBasc=false;
    if (aKC!=-1)
    {
@@ -811,7 +814,7 @@ void cAppliApero::BasculePoints
 
    cCompBascNonLin * aPtrBNL=0;
    const cAerialDeformNonLin * anADNL = aBOP.AerialDeformNonLin().PtrVal();
-   if (anADNL!=0)
+   if (anADNL!=0) 
    {
        aPtrBNL = new cCompBascNonLin(aBasc,aSBR,*anADNL);
    }
@@ -819,7 +822,7 @@ void cAppliApero::BasculePoints
    //for (int aKPose=0 ; aKPose<int(mVecPose.size()) ; aKPose++)
    // Pour conserver l'ordre alphabetique, + utile pour l'affichage on passe
    // par le dico
-   for
+   for 
    (
        tDiPo::const_iterator itD=mDicoPose.begin();
        itD!=mDicoPose.end();
@@ -834,19 +837,31 @@ void cAppliApero::BasculePoints
           )
        {
             aPC->SetBascRig(aSBR);
-
+            
             if (aPtrBNL)
             {
                std::vector<ElCamera *> aVC;
-               CamStenope * aCS = aPC->NC_CurCam();
+               CamStenope * aCS = aPC->DupCurCam();
                aCS->UnNormalize();
                aCS->SetAltiSol(aPC->AltiSol());
                aCS->SetProfondeur(aPC->Profondeur());
                aVC.push_back(aCS);
-               ElCamera::ChangeSys(aVC,*aPtrBNL,anADNL->ForceTrueRot().Val(),!aBonC);
-               aPC->SetCurRot(aCS->Orient().inv());
+               bool FTR = anADNL->ForceTrueRot().Val();
+               ElCamera::ChangeSys(aVC,*aPtrBNL,FTR,!aBonC);
+               if (FTR)
+               {
+                  aPC->SetCurRot(aCS->Orient().inv());
+               }
+               else
+               {
+                  // Si mode non ortho, on ne pourra plus faire de compensation
+                  SetSqueezeDOCOAC();
+                  aPC->SetCamNonOrtho(aCS);
+               }
+/*
+*/
             }
-            //   aPC->SetCurRot ( aSBR.TransformOriC2M(aPC->CurRot()));
+            //   aPC->SetCurRot ( aSBR.TransformOriC2M(aPC->CurRot())); 
 
             if (aPC->HasObsOnCentre() && ((!CalcV) || (aPC->HasObsOnVitesse())))
             {
@@ -859,6 +874,7 @@ void cAppliApero::BasculePoints
        }
    }
 
+/*
    if (anADNL && anADNL->Show().Val())
    {
       if (aBAF)
@@ -878,16 +894,18 @@ void cAppliApero::BasculePoints
                     ///std::cout << "BASCULEFFF " <<  anOAF->Name() << " " << aPInc << "\n";
                     if ((aPInc.x>0) && (aPInc.y>0) && (aPInc.z>0))
                     {
-                        Pt3dr aPG = anOAF->PtRes();
+                        Pt3dr aPG = anOAF->PtInit();
                         Pt3dr aPI = anOAF->PInter();
                         Pt3dr aDif = aPI-aPG;
                         std::cout << "Non Linear Basc : " <<  anOAF->Name() << " " << aPG << " " << euclid(aDif) << " " << aDif  << "\n";
                     }
                 }
            }
+           getchar();
            // std::cout << "BAF= " << aBAF << "\n";
       }
    }
+*/
 
 
    delete aPtrBNL;
@@ -946,7 +964,7 @@ cElPlan3D cAppliApero::EstimPlan
    {
        if (aSelectorEstim.IsSetIn(mVecPose[aKP]->Name()))
        {
-
+        
            const CamStenope * aCS =  mVecPose[aKP]->CurCam();
            Pt3dr aP = aRE2Pl.ImAff(aCS->PseudoOpticalCenter());
            aSomZ += aP.z;
@@ -1035,7 +1053,7 @@ void cAppliApero::BasculePlan
             Pt3dr aPE2 =  CpleIm2PTer(CreatePointeStereo(aSMAF,"Ech2"));
             aRatio = aD/ euclid(aPE1-aPE2) ;
         }
-
+  
         Pt3dr aNorm = aRP2E.ImVect(Pt3dr(0,0,1));
         Pt3dr aDirX = vunit(aP2-aP1);
         // Pt3dr aDirY = aNorm ^ aDirX;
@@ -1058,7 +1076,7 @@ void cAppliApero::BasculePlan
                        aRatio
                    );
 
-   for
+   for 
    (
        tDiPo::const_iterator itD=mDicoPose.begin();
        itD!=mDicoPose.end();
@@ -1071,10 +1089,10 @@ void cAppliApero::BasculePlan
              && (aPC->RotIsInit())
           )
        {
-//  -- SENS DE LA COMBINAISON :
+//  -- SENS DE LA COMBINAISON : 
 //  Rc (Cam) = Monde
 //  aRP2E (Plan) = Monde
-//
+//  
 //       (-1)
 //  {RP2E     * Rc}(Cam)  = Plan
 //
@@ -1106,7 +1124,7 @@ void cAppliApero::BasculePlan
      //---------------------------------------------
      //    cAppliApero::Bascule
      //---------------------------------------------
-
+ 
 
 
 void cAppliApero::Bascule(const cBasculeOrientation & aBO,bool CalledAfter)
@@ -1174,7 +1192,7 @@ void cAppliApero::FixeEchelle(const cFixeEchelle & aFE)
 
    double aMult = aFE.DistVraie()  / aDTer;
 
-   for
+   for 
    (
        tDiPo::const_iterator itD=mDicoPose.begin();
        itD!=mDicoPose.end();
@@ -1245,7 +1263,7 @@ cAperoPointeMono cAppliApero::CreatePointeMono
 
    if (int(aV.size()) <1)
    {
-       if (aDef)
+       if (aDef) 
        {
           return * aDef;
        }
@@ -1268,7 +1286,7 @@ cAperoPointeMono cAppliApero::CreatePointeMono
    aRes.Im() = aV[0].NamePt();
    return aRes;
 }
-
+ 
 cAperoPointeStereo cAppliApero::CreatePointeStereo(const cSetOfMesureAppuisFlottants & aMAF,const std::string & aNamePt)
 {
    std::vector<cOneMesureAF1I>  aV = GetMesureOfPts(aMAF,aNamePt);
@@ -1283,7 +1301,7 @@ cAperoPointeStereo cAppliApero::CreatePointeStereo(const cSetOfMesureAppuisFlott
    {
        cElWarning::GeomPointTooManyMeasured.AddWarn
        (
-           "Nb Mes =" + ToString(int(aV.size())) + " For point "  +aNamePt + " wil use images "
+           "Nb Mes =" + ToString(int(aV.size())) + " For point "  +aNamePt + " wil use images " 
           + aV[0].NamePt() +  " and " +  aV[1].NamePt() ,
            __LINE__,
            __FILE__
@@ -1338,9 +1356,9 @@ void cAppliApero::FixeOrientPlane(const cFixeOrientPlane & aFOP)
                          );
     ElRotation3D aR(Pt3dr(0,0,0),aMat,true);
 
+    
 
-
-   for
+   for 
    (
        tDiPo::const_iterator itD=mDicoPose.begin();
        itD!=mDicoPose.end();
@@ -1361,7 +1379,7 @@ void cAppliApero::FixeOrientPlane(const cFixeOrientPlane & aFOP)
 cAperoPointeMono  Pointe(const Pt2dr & aP,const std::string &aIm)
 {
    cAperoPointeMono anAPM;
-
+   
    anAPM.Pt() = aP;
    anAPM.Im() = aIm;
 
@@ -1427,9 +1445,9 @@ cAVA_Residu::cAVA_Residu(const Pt2dr & aPt,const Pt2dr & aResidu) :
     //   cArgVerifAero
     //-----------------
 
-void cArgVerifAero::AddResidu (const Pt2dr & aP1,const  Pt2dr & aRes)
+void cArgVerifAero::AddResidu (const Pt2dr & aP1,const  Pt2dr & aRes) 
 {
-   mRes.push_back(cAVA_Residu(aP1,aRes));
+   mRes.push_back(cAVA_Residu(aP1,aRes)); 
 }
 
 void cArgVerifAero::AddPImDZ
@@ -1546,7 +1564,7 @@ cArgVerifAero::~cArgVerifAero()
   }
   else if (mVA.TypeVerif()==eVerifResPerIm)
   {
-       Tiff_Im aTF = Tiff_Im::StdConvGen(mAppli.DC()+mName,-1,false);
+       Tiff_Im aTF = Tiff_Im::StdConvGen(mAppli.DC()+mName,-1,false); 
        ELISE_COPY
        (
           mW.all_pts(),
@@ -1568,7 +1586,7 @@ cArgVerifAero::~cArgVerifAero()
        }
        mW.make_tif(mNameS.c_str());
   }
-
+  
 }
 
 
@@ -1705,7 +1723,7 @@ void  cAppliApero::BlocBasculeOneWay
             cOnePtsMult * aPM = aVMul[aKPm];
             cOneCombinMult * aCOM = aPM->OCM();
             const std::vector<cPoseCam *> & aVP =  aCOM->VP();
-
+            
             int aNb1=0;
             int aNb2=0;
   //  Recherche rapide des mesures potentiellement valides
@@ -1726,7 +1744,7 @@ void  cAppliApero::BlocBasculeOneWay
                 for (int aKP=0 ; aKP<int (aVP.size()) ; aKP++)
                 {
                       cPoseCam & aPC = *(aVP[aKP]);
-                      const CamStenope * aCS =   aPC.CF()->CameraCourante();
+                      const CamStenope * aCS =   aPC.CurCam();
                       if (aPC.NumTmp() == aNum1) aV1.push_back(aCS->F2toRayonR3(aNP.PK(aKP)));
                       if (aPC.NumTmp() == aNum2) aV2.push_back(aCS->F2toRayonR3(aNP.PK(aKP)));
 
@@ -1745,7 +1763,7 @@ void  cAppliApero::BlocBasculeOneWay
                 }
             }
         }
-
+            
    }
 
 }
@@ -1821,13 +1839,13 @@ void  cAppliApero::BasculeBloc(const cBlocBascule & aBB)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant à la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1837,17 +1855,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

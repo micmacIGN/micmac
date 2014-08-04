@@ -81,6 +81,7 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
 
 
         <SectionChantier>
+             <IsAperiCloud> true </IsAperiCloud>  <!-- => Donc pas de compense, OK non rot -->
 	     <DirectoryChantier> XXXXX </DirectoryChantier>
         </SectionChantier>
 
