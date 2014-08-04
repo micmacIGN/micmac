@@ -288,13 +288,13 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
 
 
       //Formating the camera name
-      string aNameCam="Ori-"+aOri+"/Orientation-"+aFullName+".xml";
+      string aNameCam="Ori-" + aOri + "/Orientation-" + aFullName + ".xml";
 
       //Loading the camera
       cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-      CamStenope * aCS = CamOrientGenFromFile(aNameCam,anICNM);
+	  CamStenope * aCS = CamOrientGenFromFile(aNameCam, anICNM);
 
-      ElCamera * aCam = Cam_Gen_From_File(aNameCam, "OrientationConique" , anICNM);
+      ElCamera * aCam = Cam_Gen_From_File(aNameDir + aNameCam, "OrientationConique" , anICNM);
 
 
       ElMatrix<double> Rot(3,3,0.0);
@@ -313,7 +313,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
       Trans= -aCS->OrigineProf();
 
       //Loading EXIF data, to get FocMm and Calculate PixelSizeMm
-      cMetaDataPhoto aMetaData = cMetaDataPhoto::CreateExiv2(aFullName);
+      cMetaDataPhoto aMetaData = cMetaDataPhoto::CreateExiv2(aNameDir + aFullName);
       double rap35MmThisFrame = aMetaData.Foc35()/aMetaData.FocMm();
       double PxSize35Mm = euclid(Pt2di(24,36))/euclid(aMetaData.TifSzIm());
       double PxSizeMm = PxSize35Mm / rap35MmThisFrame;
@@ -370,7 +370,6 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
 
 
 
-
       writer.writeMLRasterStart(aRawName + ".jpg");
       writer.writeVCGCamera(Trans,  NRot, distortions, viewport, pixelsize, principal_point, focal);
       if (aUnDist)
@@ -392,7 +391,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
   if (aUnDist)
     {
       //Undistorting the images with Drunk
-      cout<<"Undistorting the imagaRawNamees with Drunk"<<endl;
+      cout<<"Undistorting the images with Drunk"<<endl;
       cEl_GPAO::DoComInParal(ListDrunk,aNameDir + "MkDrunk");
 
       //Converting into .jpg
@@ -420,7 +419,7 @@ int Apero2Meshlab_main(int argc,char ** argv)
   MMD_InitArgcArgv(argc,argv);
 
   //Reading the arguments
-  string aFullPattern,aOri;
+  string aFullPattern,aOri,aDir,aPat;
   bool aUnDist = false;
 
   ElInitArgMain
@@ -430,6 +429,9 @@ int Apero2Meshlab_main(int argc,char ** argv)
                     << EAMC(aOri,"Orientation name", eSAM_IsExistDirOri),
         LArgMain()  << EAM(aUnDist,"UnDist", true, "Undistort images using Drunk", eSAM_IsBool)
         );
+
+  SplitDirAndFile(aDir, aPat, aFullPattern);
+  StdCorrecNameOrient(aOri, aDir);
 
   if (!MMVisualMode)
   {
