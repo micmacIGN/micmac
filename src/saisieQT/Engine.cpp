@@ -280,64 +280,6 @@ bool cEngine::extGLIsSupported(const char* strExt)
 
 void cEngine::loadImages(QStringList filenames, int* incre)
 {
-
-#ifdef compMem
-    // TODO: pas utilise pour l'instant
-    QString  sGLVendor((char*)glGetString(GL_VENDOR));
-
-    // GPU Model
-
-    int GPUModel = NOMODEL;
-
-    if ( sGLVendor.contains("AMD"))
-        GPUModel = AMD;
-    else if ( sGLVendor.contains("ATI"))
-        GPUModel = ATI;
-    else if ( sGLVendor.contains("NVIDIA"))
-        GPUModel = NVIDIA;
-    else if ( sGLVendor.contains("INTEL"))
-        GPUModel = INTEL;
-
-    GLint cur_avail_mem_kb      = 0;
-
-    switch (GPUModel)
-    {
-    case NVIDIA:
-        if(extGLIsSupported("GL_NVX_gpu_memory_info"))
-        {
-            glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
-        }
-        break;
-    case ATI: //TODO A RE TESTER
-    case AMD:
-        if(extGLIsSupported("GL_ATI_meminfo"))
-            glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
-        break;
-    default:
-        cur_avail_mem_kb = 0;
-        break;
-    }
-
-    //printf("%s %d\n",sGLVendor.toStdString().c_str(),cur_avail_mem_kb/1024);
-
-    //sizeMemoryTexture_kb = widthMax*heightMax*4/1024;
-
-    //cur_avail_mem_kb = 5 * 1024;
-
-    //float scaleFactorVRAM = 1.f;
-    // TODO delete texture car il y a un fuite dans la VRAM!!!
-
-//    if(cur_avail_mem_kb !=0)
-//    {
-//        // TODO GERER le MASK... car pas forcememt afficher
-//        sizeMemoryTexture_kb *= 2; // Image + masque
-//        if(sizeMemoryTexture_kb > cur_avail_mem_kb)
-//        {
-//            scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
-//        }
-//    }
-#endif //compMEM
-
     int widthMax              = 0;
     int heightMax             = 0;
 
@@ -347,19 +289,17 @@ void cEngine::loadImages(QStringList filenames, int* incre)
 
         widthMax  = max(imageSize.width(),widthMax);
         heightMax = max(imageSize.height(),heightMax);
-
-        //sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
     }
 
-    //TODO: apparemment ne marche pas :
-    /* sur plusieurs jeux de données, quand on charge en faisant ".*jpg" par
-    ex, il charge 4 images, dans un tableau 2*2. Le problème c'est que les
-    images sont très sous-échantillonnées. Le problème ne se pose pas si on le
-    lance avec une image ou 2 à la fois*/
-    int maxImagesDraw = min(_params->getNbFen().x()*_params->getNbFen().y(),filenames.size());
+    //int maxImagesDraw = min(_params->getNbFen().x()*_params->getNbFen().y(),filenames.size());
+    int maxImagesByRow = min(_params->getNbFen().x(),filenames.size());
+    int maxImagesByCol = min(_params->getNbFen().y(),filenames.size());
 
-    widthMax    *= maxImagesDraw;
-    heightMax   *= maxImagesDraw;
+   // widthMax    *= maxImagesDraw;
+   // heightMax   *= maxImagesDraw;
+
+    widthMax    *= maxImagesByRow;
+    heightMax   *= maxImagesByCol;
 
     float scaleFactor     = 1.f;
 
@@ -370,6 +310,8 @@ void cEngine::loadImages(QStringList filenames, int* incre)
         totalSize.scale(QSize(_glMaxTextSize,_glMaxTextSize), Qt::KeepAspectRatio);
 
         scaleFactor = ((float) totalSize.width()) / widthMax;
+
+        //cout << "scale factor = " << scaleFactor << endl;
     }
 
     //scaleFactor = min(scaleFactor,scaleFactorVRAM); // TODO A GERER
@@ -571,6 +513,86 @@ cGLData* cEngine::getGLData(int WidgetIndex)
     }
     else
         return NULL;
+}
+
+void cEngine::computeAvailableVRAM(QStringList const &filenames)
+{
+
+#if ELISE_QT_VERSION == 5
+
+    if (QGLContext::currentContext())
+    {
+
+        QString  sGLVendor((char*)glGetString(GL_VENDOR));
+
+        // GPU Model
+
+        int GPUModel = NOMODEL;
+
+        if ( sGLVendor.contains("AMD"))
+            GPUModel = AMD;
+        else if ( sGLVendor.contains("ATI"))
+            GPUModel = ATI;
+        else if ( sGLVendor.contains("NVIDIA"))
+            GPUModel = NVIDIA;
+        else if ( sGLVendor.contains("INTEL"))
+            GPUModel = INTEL;
+
+        GLint cur_avail_mem_kb      = 0;
+
+        switch (GPUModel)
+        {
+        case NVIDIA:
+            if(extGLIsSupported("GL_NVX_gpu_memory_info"))
+            {
+                glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
+            }
+            break;
+        case ATI: //TODO A RE TESTER
+        case AMD:
+            if(extGLIsSupported("GL_ATI_meminfo"))
+                glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
+            break;
+        default:
+            cur_avail_mem_kb = 0;
+            break;
+        }
+
+        //cout << sGLVendor.toStdString().c_str() << " - current available memory " << cur_avail_mem_kb/1024 << " MB" << endl;
+
+        int sizeMemoryTexture_kb = 0;
+
+        for (int i=0;i<filenames.size();++i)
+        {
+            QSize imageSize = QImageReader(filenames[i]).size();
+
+            sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
+        }
+
+        //sizeMemoryTexture_kb = widthMax*heightMax*4/1024;
+
+        //cur_avail_mem_kb = 5 * 1024;
+
+        /*float scaleFactorVRAM = 1.f;
+        // TODO delete texture car il y a un fuite dans la VRAM!!!
+
+        if(cur_avail_mem_kb !=0)
+        {
+            // TODO GERER le MASK... car pas forcememt afficher
+            sizeMemoryTexture_kb *= 2; // Image + masque
+            if(sizeMemoryTexture_kb > cur_avail_mem_kb)
+            {
+                scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
+            }
+        }*/
+
+        //TODO _Engine->setVRAMscaleFactor(scaleFactorVRAM);
+    }
+    else
+        cout << "No GLContext" << endl;
+
+#endif
+
 }
 
 
