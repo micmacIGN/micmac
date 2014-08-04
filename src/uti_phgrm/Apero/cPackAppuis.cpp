@@ -605,7 +605,7 @@ void cObserv1Im<TypeEngl>::Compile( cAppliApero & anAppli)
     if ( anAppli.PoseExist(mIm))
     {
          mPose = anAppli.PoseFromName(mIm);
-         mCF = mPose->CF();
+         mCF = mPose->CamF();
          // mCF = anAppli.PoseFromName(mIm)->CF();
     }
 }
@@ -1334,7 +1334,7 @@ bool  cCompFilterProj3D::InFiltre(const Pt3dr & aPTer) const
 {
    for (int aKP=0 ; aKP<int(mCams.size()) ; aKP++)
    {
-       const CamStenope *  aCS = mCams[aKP]->CF()->CameraCourante();
+       const CamStenope *  aCS = mCams[aKP]->CurCam();
        Pt2dr aPIm = aCS->R3toF2(aPTer);
        if (! mVTMasq[aKP]->get(round_ni(aPIm),0))
           return false;

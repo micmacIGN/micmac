@@ -54,8 +54,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 Pt3dr cAppliApero::CpleIm2PTer(const cAperoPointeStereo & anAPS)
 {
-    const CamStenope * aCS1 = PoseFromName(anAPS.Im1())->CF()->CameraCourante();
-    const CamStenope * aCS2 = PoseFromName(anAPS.Im2())->CF()->CameraCourante();
+    const CamStenope * aCS1 = PoseFromName(anAPS.Im1())->CurCam();
+    const CamStenope * aCS2 = PoseFromName(anAPS.Im2())->CurCam();
 
     return   aCS1->PseudoInter(anAPS.P1(),*aCS2,anAPS.P2());
 }
@@ -63,7 +63,7 @@ Pt3dr cAppliApero::CpleIm2PTer(const cAperoPointeStereo & anAPS)
 Pt3dr cAppliApero::PImetZ2PTer(const cAperoPointeMono & anAPM,double aZ)
 {
     
-    const CamStenope * aCS = PoseFromName(anAPM.Im())->CF()->CameraCourante();
+    const CamStenope * aCS = PoseFromName(anAPM.Im())->CurCam();
     return aCS->F2AndZtoR3(anAPM.Pt(),aZ);
 }
 
@@ -577,14 +577,18 @@ cCompBascNonLin::cCompBascNonLin
 
           Pt3dr aModEr = ModeleOfCorr(aPLine);
 
-          Pt3dr aPG = aPt.PGot();
+          Pt3dr aPG = aPt.PGot(); 
           Pt3dr aPCor = Src2Cibl(aPG);
           Pt3dr aCibl = aPt.PApres();
 
+          // Pt3dr aVerif = (aCibl-aPCor) - (aModEr-aPEr);
+          double aVerif = ElAbs(euclid(aCibl-aPCor) - euclid(aModEr-aPEr)) / (euclid(aCibl));
+          ELISE_ASSERT(aVerif<1e-10,"cCompBascNonLin::cCompBascNonLin");
+
           std::cout << (aPt.UseForEstim() ? "* " : "  ") 
-                    << aPt.Name() << " " << euclid(aPEr) 
-                    << " S2C " << euclid(aCibl-aPCor)
-                    << " => " << euclid(aModEr-aPEr)  << " DZ=" << (aModEr.z-aPEr.z) << "\n";
+                    << aPt.Name() << " ErInit : " << euclid(aPEr) 
+                    // << " Ver " << aVerif
+                    << " => ErCor : " << euclid(aModEr-aPEr)  << " DZ=" << (aModEr.z-aPEr.z) << "\n";
        }
    }
 
@@ -837,13 +841,25 @@ void cAppliApero::BasculePoints
             if (aPtrBNL)
             {
                std::vector<ElCamera *> aVC;
-               CamStenope * aCS = aPC->NC_CurCam();
+               CamStenope * aCS = aPC->DupCurCam();
                aCS->UnNormalize();
                aCS->SetAltiSol(aPC->AltiSol());
                aCS->SetProfondeur(aPC->Profondeur());
                aVC.push_back(aCS);
-               ElCamera::ChangeSys(aVC,*aPtrBNL,anADNL->ForceTrueRot().Val(),!aBonC);
-               aPC->SetCurRot(aCS->Orient().inv());
+               bool FTR = anADNL->ForceTrueRot().Val();
+               ElCamera::ChangeSys(aVC,*aPtrBNL,FTR,!aBonC);
+               if (FTR)
+               {
+                  aPC->SetCurRot(aCS->Orient().inv());
+               }
+               else
+               {
+                  // Si mode non ortho, on ne pourra plus faire de compensation
+                  SetSqueezeDOCOAC();
+                  aPC->SetCamNonOrtho(aCS);
+               }
+/*
+*/
             }
             //   aPC->SetCurRot ( aSBR.TransformOriC2M(aPC->CurRot())); 
 
@@ -858,6 +874,7 @@ void cAppliApero::BasculePoints
        }
    }
 
+/*
    if (anADNL && anADNL->Show().Val())
    {
       if (aBAF)
@@ -877,16 +894,18 @@ void cAppliApero::BasculePoints
                     ///std::cout << "BASCULEFFF " <<  anOAF->Name() << " " << aPInc << "\n";
                     if ((aPInc.x>0) && (aPInc.y>0) && (aPInc.z>0))
                     {
-                        Pt3dr aPG = anOAF->PtRes();
+                        Pt3dr aPG = anOAF->PtInit();
                         Pt3dr aPI = anOAF->PInter();
                         Pt3dr aDif = aPI-aPG;
                         std::cout << "Non Linear Basc : " <<  anOAF->Name() << " " << aPG << " " << euclid(aDif) << " " << aDif  << "\n";
                     }
                 }
            }
+           getchar();
            // std::cout << "BAF= " << aBAF << "\n";
       }
    }
+*/
 
 
    delete aPtrBNL;
@@ -1725,7 +1744,7 @@ void  cAppliApero::BlocBasculeOneWay
                 for (int aKP=0 ; aKP<int (aVP.size()) ; aKP++)
                 {
                       cPoseCam & aPC = *(aVP[aKP]);
-                      const CamStenope * aCS =   aPC.CF()->CameraCourante();
+                      const CamStenope * aCS =   aPC.CurCam();
                       if (aPC.NumTmp() == aNum1) aV1.push_back(aCS->F2toRayonR3(aNP.PK(aKP)));
                       if (aPC.NumTmp() == aNum2) aV2.push_back(aCS->F2toRayonR3(aNP.PK(aKP)));
 
