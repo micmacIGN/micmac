@@ -9,9 +9,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>364</width>
+    <width>404</width>
     <height>338</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Settings</string>
@@ -26,6 +32,12 @@
   <layout class="QVBoxLayout" name="verticalLayout_6">
    <item>
     <widget class="QToolBox" name="toolBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -37,7 +49,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>346</width>
+        <width>386</width>
         <height>173</height>
        </rect>
       </property>
@@ -177,8 +189,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>298</width>
-        <height>139</height>
+        <width>371</width>
+        <height>173</height>
        </rect>
       </property>
       <attribute name="label">
@@ -310,8 +322,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>225</width>
-        <height>151</height>
+        <width>371</width>
+        <height>173</height>
        </rect>
       </property>
       <attribute name="label">
@@ -447,8 +459,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>97</width>
-        <height>47</height>
+        <width>371</width>
+        <height>173</height>
        </rect>
       </property>
       <attribute name="label">

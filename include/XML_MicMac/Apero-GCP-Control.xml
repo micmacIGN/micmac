@@ -12,19 +12,10 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
             <Symb>  AeroIn=Ext15  </Symb>
 -->
 
-            <Symb>  AeroOut=XXXX  </Symb>
             <Symb>  DicoApp=XXXX  </Symb>
             <Symb>  SaisieIm=XXXXX  </Symb>
-            <Symb>  L2Basc=true  </Symb>
             <Symb>  ShowUnused=true  </Symb>
             <Symb>  CPI=false    </Symb>
-            <Symb>  UseNLD=false    </Symb>
-            <Symb>  PatNLD=.*    </Symb>
-            <Symb>  NLFlagX=63    </Symb>
-            <Symb>  NLFlagY=63    </Symb>
-            <Symb>  NLFlagZ=63    </Symb>
-            <Symb>  NLDForceTR=true    </Symb>
-            <Symb>  NLDShow=false    </Symb>
 
             <eSymb>  NotCPI=! ${CPI} </eSymb>
        </DicoLoc>
@@ -103,29 +94,6 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
 	      <EtapeCompensation>
 
                    <IterationsCompensation>
-                      <BasculeOrientation>
-                          <AfterCompens> false </AfterCompens>
-                          <PatternNameEstim> .* </PatternNameEstim>
-                          <ModeBascule>
-                               <BasculeOnPoints>
-                                   <BascOnAppuis >
-                                        <NameRef> Id-Appui </NameRef>
-                                   </BascOnAppuis>
-                                   <ModeL2> ${L2Basc} </ModeL2>
-                                   <#WHEN VTEST=${UseNLD}>
-                                        <AerialDeformNonLin>
-                                              <FlagX> ${NLFlagX} </FlagX>
-                                              <FlagY> ${NLFlagY} </FlagY>
-                                              <FlagZ> ${NLFlagZ} </FlagZ>
-                                              <ForceTrueRot> ${NLDForceTR} </ForceTrueRot>
-                                              <PattEstim> ${PatNLD}  </PattEstim>
-                                              <Show> ${NLDShow}  </Show>
-                                        </AerialDeformNonLin>
-                                   </#WHEN>
-                               </BasculeOnPoints>
-                          </ModeBascule>
-
-                       </BasculeOrientation>
                        <SectionContraintes>
                              <ContraintesCamerasInc>
                                  <Val> eAllParamFiges  </Val>
@@ -160,23 +128,6 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
 		    </SectionObservations>
 
                     <SectionExport>
-                         <ExportPose>
-                                <PatternSel> (.*) </PatternSel>
-                                <KeyAssoc> NKS-Assoc-Im2Orient@-${AeroOut} </KeyAssoc>
-                                <AddCalib>  true </AddCalib>
-                                <NbVerif>  10 </NbVerif>
-                                <TolWhenVerif> 1e-3 </TolWhenVerif>
-                                <#WHEN VTEST=${NotCPI}>
-                                    <FileExtern> NKS-Assoc-FromFocMm@Ori-${AeroOut}/AutoCal@.xml </FileExtern>
-                                    <FileExternIsKey> true </FileExternIsKey>
-                                </#WHEN>
-                            </ExportPose>
-                            <#WHEN VTEST=${NotCPI}>
-                                 <ExportCalib>
-                                     <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori-${AeroOut}/AutoCal@.xml </KeyAssoc>
-                                     <KeyIsName> false </KeyIsName>
-                                </ExportCalib>
-                            </#WHEN>
                     </SectionExport>
 
 

@@ -48,10 +48,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 // bin/Tapioca File  "../micmac_data/ExempleDoc/Boudha/MesCouples.xml" -1  ExpTxt=1
 
 #define DEF_OFSET -12349876
+
 // cf. CPP_Pastis.cpp
-extern const string PASTIS_MATCH_ARGUMENT_NAME;
-extern const string PASTIS_DETECT_ARGUMENT_NAME;
+extern const std::string PASTIS_MATCH_ARGUMENT_NAME;
+extern const std::string PASTIS_DETECT_ARGUMENT_NAME;
 extern bool process_pastis_tool_string( string &io_tool, string &o_args );
+extern const std::string PASTIS_IGNORE_MAX_NAME;
+extern const std::string PASTIS_IGNORE_MIN_NAME;
+extern const std::string PASTIS_IGNORE_UNKNOWN_NAME;
 
 int ExpTxt=0;
 int	ByP=-1;
@@ -67,6 +71,9 @@ std::string PostFix;
 std::string TheType = "XXXX";
 list<string> aFileList;				// all filenames matching input pattern, computed by DoDevelop
 vector<string> aKeypointsFileArray; // keypoints filenames associated to files in aFileList and a specified resolution, computed by DoDetectKeypoints
+bool ignoreMin = false,
+     ignoreMax = false,
+     ignoreUnknown = false;
 
 std::string StrMkT() { return (ByP ? (" \"MkF=" + MkFT +"\" ") : "") ; }
 
@@ -208,15 +215,32 @@ void check_pastis_tool( string &io_tool, const string &i_toolType )
     }
 }
 
-void check_detect_and_match_tools( string &detectingTool, string &matchingTool )
+void check_detect_and_match_tools( string &detectingTool, string &matchingTool, bool ignoreMax, bool ignoreMin, bool ignoreUnknown, string &ignoreMinMaxStr )
 {
-    g_toolsOptions.clear();
+	g_toolsOptions.clear();
 
-    InitDetectingTool( detectingTool );
-    check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
+	InitDetectingTool( detectingTool );
+	check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
 
-    InitMatchingTool( matchingTool );
-    check_pastis_tool( matchingTool, PASTIS_MATCH_ARGUMENT_NAME );
+	InitMatchingTool( matchingTool );
+	check_pastis_tool( matchingTool, PASTIS_MATCH_ARGUMENT_NAME );
+
+	if ( ignoreMax||ignoreMin||ignoreUnknown ){
+		if ( detectingTool.find( TheStrSiftPP )!=string::npos ){
+			cerr << "WARNING: the detecting tool [" << TheStrSiftPP << "] is not compatible with NoMax, NoMin, NoUnknown options. [mm3d Digeo] will be used instead." << endl;
+			detectingTool = "mm3d:Digeo";
+		}
+		if ( matchingTool.find( TheStrAnnPP )!=string::npos ){
+			cerr << "WARNING: the matching tool [" << TheStrAnnPP << "] is not compatible with NoMax, NoMin, NoUnknown options. [mm3d Ann] will be used instead." << endl;
+			matchingTool = "mm3d:Ann";
+		}
+	}
+
+	ignoreMinMaxStr.clear();
+	const string space(" ");
+	if ( ignoreMax ) ignoreMinMaxStr += space + PASTIS_IGNORE_MAX_NAME + "=1";
+	if ( ignoreMin ) ignoreMinMaxStr += space + PASTIS_IGNORE_MIN_NAME + "=1";
+	if ( ignoreUnknown ) ignoreMinMaxStr += space + PASTIS_IGNORE_UNKNOWN_NAME + "=1";
 }
 
 
@@ -226,6 +250,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
     int aNbMinPt=2;
     int DoLowRes = 1;
     string detectingTool, matchingTool;
+    string ignoreMinMaxStr;
 
     ElInitArgMain
             (
@@ -239,14 +264,19 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 << EAM(aNbMinPt,"NbMinPt",true,"Minimum number of points")
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                 << EAM(aPat2,"Pat2",true, "Second pattern", eSAM_IsPatFile)
+
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false)
+                
+                << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
                 aArg
                 );
 
     if (!MMVisualMode)
     {
-        check_detect_and_match_tools( detectingTool, matchingTool );
+        check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
 
         if (aFullRes != -1)
         {
@@ -269,7 +299,8 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                     +  std::string("NbMinPtsExp=2 ")
                     +  std::string("SsRes=1 ")
                     +  std::string("ForceByDico=1 ")
-                    +  g_toolsOptions;
+                    +  g_toolsOptions
+                    /*+  ignoreMinMaxStr*/; // using only min or max in low resolution may not produce enough point
 
             System(aSsR,true);
             DoMkT();
@@ -283,7 +314,8 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions + ' '
+                +  g_toolsOptions 
+                +  ignoreMinMaxStr + ' '
                 +  NKS();
 
         System(aSFR,true);
@@ -295,7 +327,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
 
 int All(int argc,char ** argv, const std::string &aArg="")
 {
-    string detectingTool, matchingTool;
+    string detectingTool, matchingTool, ignoreMinMaxStr;
 
     ElInitArgMain
             (
@@ -306,14 +338,19 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 << EAM(PostFix,"PostFix",false, "Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(aPat2,"Pat2",true,"Second pattern", eSAM_IsPatFile)
+                
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false)
+                
+                << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
                 aArg
                 );
 
     if (!MMVisualMode)
     {
-        check_detect_and_match_tools( detectingTool, matchingTool );
+        check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
 
         StdAdapt2Crochet(aPat2);
         DoDevelopp(-1,aFullRes);
@@ -325,7 +362,8 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions + ' '
+                +  g_toolsOptions
+                +  ignoreMinMaxStr + ' '
                 +  NKS();
 
 
@@ -342,7 +380,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
     int  aNbAdj = 5;
     bool ForceAdj = false;
     int isCirc = 0;
-    string detectingTool, matchingTool;
+    string detectingTool, matchingTool, ignoreMinMaxStr;
 
     ElInitArgMain
             (
@@ -355,15 +393,20 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
+                
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false)
+
+                << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
                 aArg
                 );
 
     if (!MMVisualMode)
     {
-        check_detect_and_match_tools( detectingTool, matchingTool );
-
+        check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
+        
         if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
         {
             std::cout << "Resol=" << aFullRes  << " NbAdjacence=" << aNbAdj << "\n";
@@ -387,7 +430,8 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions + ' '
+                +  g_toolsOptions
+                +  ignoreMinMaxStr + ' '
                 +  NKS();
 
         std::cout << aSFR << "\n";
@@ -402,7 +446,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
 
 int File(int argc,char ** argv, const std::string &aArg="")
 {
-    string detectingTool, matchingTool;
+    string detectingTool, matchingTool, ignoreMinMaxStr;
 
     ElInitArgMain
             (
@@ -412,14 +456,19 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(PostFix,"PostFix",false,"Add post fix in directory")
                 << EAM(ByP,"ByP",true,"By process")
+                
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
-                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false),
+                << EAM(matchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),false)
+                
+                << EAM(ignoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
+                << EAM(ignoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
+                << EAM(ignoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true),
                 aArg
                 );
 
     if (!MMVisualMode)
     {
-        check_detect_and_match_tools( detectingTool, matchingTool );
+        check_detect_and_match_tools( detectingTool, matchingTool, ignoreMax, ignoreMin, ignoreUnknown, ignoreMinMaxStr );
 
         std::string aSFR =  BinPastis
                 +  aDir + std::string(" ")
@@ -428,7 +477,8 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
                 +  std::string("ForceByDico=1 ")
-                +  g_toolsOptions + ' '
+                +  g_toolsOptions
+                +  ignoreMinMaxStr + ' '
                 +  NKS();
 
 
@@ -488,8 +538,8 @@ void DoDetectKeypoints( string i_detectingTool, int i_resolution )
 
 void print_graph( const vector<vector<int> > &i_graph )
 {
-    size_t 	nbFiles = i_graph.size(),
-            i, j;
+    size_t nbFiles = i_graph.size(),
+           i, j;
     for ( j=0; j<nbFiles; j++ )
     {
         for ( i=0; i<nbFiles; i++ )
@@ -522,7 +572,7 @@ void writeBinaryGraphToXML( const string &i_filename, const vector<vector<int> >
 }
 
 // i_graph[i][j] represent the connexion between images aFileList[i] and aFileList[j]
-// i_graph[i][j] = number of points of in i whose nearest neighbour is in j
+// i_graph[i][j] = number of points of i whose nearest neighbour is in j
 // a couple of images is output if i_graph[i][j]+i_graph[j][i]>i_threshold
 size_t normalizeGraph( vector<vector<int> > &i_graph, int i_threshold  )
 {
@@ -532,9 +582,10 @@ size_t normalizeGraph( vector<vector<int> > &i_graph, int i_threshold  )
     for ( j=1; j<n; j++ )
         for ( i=0; i<j; i++ )
         {
-            if ( i_graph[i][j]+i_graph[j][i]>=i_threshold )
+            int sum = i_graph[i][j]+i_graph[j][i];
+            if ( sum>=i_threshold )
             {
-                i_graph[j][i] = 1;
+                i_graph[j][i] = sum;
                 count++;
             }
             else
@@ -558,10 +609,10 @@ void setLabel( vector<vector<int> > &i_graph, vector<int> &i_labels, size_t i_in
     }
 }
 
-// delete points with a scale less than i_threshold
-void delete_out_of_bound_scales( vector<SiftPoint> &io_points, REAL i_minScale, REAL i_maxScale )
+// delete points with a scale lesser than i_minScale of greater than i_maxScale
+void delete_out_of_bound_scales( vector<DigeoPoint> &io_points, REAL i_minScale, REAL i_maxScale )
 {
-    vector<SiftPoint> points( io_points.size() );
+    vector<DigeoPoint> points( io_points.size() );
     size_t nbKeptPoints = 0;
     for ( size_t iPoint=0; iPoint<io_points.size(); iPoint++ )
     {
@@ -574,13 +625,13 @@ void delete_out_of_bound_scales( vector<SiftPoint> &io_points, REAL i_minScale, 
 }
 
 // load all keypoints from their files and construct the proximity graph
-void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, REAL i_minScale, REAL i_maxScale, int i_nbRequiredMatches )
+void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerImage, REAL i_minScale, REAL i_maxScale, int i_nbRequiredMatches, bool i_printGraph )
 {
     size_t nbImages = aFileList.size();
     string keypointsFilename;
-    vector<vector<SiftPoint> > keypoints_per_image( nbImages );
-    vector<SiftPoint> 		   all_keypoints; 		// a big vector with all keypoints of all images
-    vector<int> 	  		   all_image_indices;	// contains the index of the image from which the keypoint is from
+    vector<vector<DigeoPoint> > keypoints_per_image( nbImages );
+    vector<DigeoPoint> all_keypoints; // a big vector with all keypoints of all images
+    vector<int> all_image_indices; // contains the index of the image from which the keypoint is from
     size_t iImage = 0,
             nbTotalKeypoints = 0,
             addedPoints;
@@ -591,7 +642,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     {
         keypointsFilename = aKeypointsFileArray[iImage];
 
-        if ( !read_siftPoint_list( keypointsFilename, keypoints_per_image[iImage] ) ){
+        if ( !DigeoPoint::readDigeoFile( keypointsFilename, false/*do no use multiple angles*/, keypoints_per_image[iImage] ) ){
             cerr << "WARNING: unable to read keypoints in [" << keypointsFilename << "], image [" << *iT << "] will be ignored" << endl;
             continue;
         }
@@ -606,7 +657,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 
         if ( keypoints_per_image[iImage].size()>=i_nbMaxPointsPerImage )
         {
-            SiftPoint *data = &( keypoints_per_image[iImage][0] );
+            DigeoPoint *data = &( keypoints_per_image[iImage][0] );
             size_t nbPoints = keypoints_per_image[iImage].size();
             std::copy( data+nbPoints-i_nbMaxPointsPerImage, data+nbPoints, data );
             keypoints_per_image[iImage].resize( i_nbMaxPointsPerImage );
@@ -630,9 +681,9 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     size_t nbPoints;
     all_keypoints.resize( nbTotalKeypoints );
     all_image_indices.resize( nbTotalKeypoints );
-    vector<vector<SiftPoint> >::const_iterator itSrc = keypoints_per_image.begin();
-    const SiftPoint *pSrc;
-    SiftPoint *pDst = &( all_keypoints[0] );
+    vector<vector<DigeoPoint> >::const_iterator itSrc = keypoints_per_image.begin();
+    const DigeoPoint *pSrc;
+    DigeoPoint *pDst = &( all_keypoints[0] );
     int *itIndex = &( all_image_indices[0] );
     for ( iImage=0; iImage<nbImages; iImage++, itSrc++ )
     {
@@ -640,7 +691,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
         if ( nbPoints==0 ) continue;
 
         pSrc = &( ( *itSrc )[0] );
-        memcpy( pDst, pSrc, nbPoints*sizeof( SiftPoint ) );
+        memcpy( pDst, pSrc, nbPoints*sizeof( DigeoPoint ) );
         pDst += nbPoints;
         while ( nbPoints-- ) *itIndex++=iImage;
     }
@@ -656,14 +707,14 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     search.setErrorBound( 0. );
     search.setMaxVisitedPoints( SIFT_ANN_DEFAULT_MAX_PRI_POINTS );
     search.createTree( annArray );
-    SiftPoint *query = &( all_keypoints[0] );
+    DigeoPoint *query = &( all_keypoints[0] );
     const ANNidx *neighbours = search.getNeighboursIndices();
     size_t iImageQuery, iImageNeighbour,
             nbBadNeighbours = 0,
             iQuery;
     for ( iQuery=0; iQuery<nbTotalKeypoints; iQuery++ )
     {
-        search.search( query->descriptor );
+        search.search( query->descriptors[0] );
         iImageQuery 	= all_image_indices[iQuery];
         iImageNeighbour = all_image_indices[neighbours[1]];
 
@@ -684,13 +735,14 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     size_t nbChecks = normalizeGraph( graph, i_nbRequiredMatches );
     cout << nbChecks << " / " << ( nbImages*(nbImages-1) )/2 << endl;
 
-    //print_graph( graph );
+    if ( i_printGraph ) print_graph( graph );
 
+    // compute number of connected components
     vector<int> labels( nbImages, -1 );
     int currentLabel = 0;
     for ( size_t iStartingElement=0; iStartingElement<nbImages; iStartingElement++ )
-        if ( labels[iStartingElement]==-1 )	setLabel( graph, labels, iStartingElement, currentLabel++ );
-    cout << currentLabel << " connected component" << endl;
+        if ( labels[iStartingElement]==-1 ) setLabel( graph, labels, iStartingElement, currentLabel++ );
+    cout << currentLabel << " connected component" << (currentLabel>1?'s':'\0') << endl;
 
     writeBinaryGraphToXML( i_outputFilename, graph );
 }
@@ -698,7 +750,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
 
 // this option is to construct a proximity graph from points of interests
 // it generates an XML file to process with the "File" option
-int Graph_(int argc,char ** argv)
+int Graph_(int argc,char ** argv, const std::string &aArg="")
 {
     int nbThreads = NbProcSys(); // default is the number of cores of the system
     int maxDimensionResize = -1;
@@ -708,6 +760,7 @@ int Graph_(int argc,char ** argv)
     int nbRequiredMatches = 1;
     string outputFile = "tapioca_connectivity_graph.xml"; // default XML filename for the graph
     string detectingTool, detectingToolArguments;
+    bool printGraph = false;
 
     // aDir is "chantier" directory
     // aPat is images' pattern
@@ -727,44 +780,48 @@ int Graph_(int argc,char ** argv)
                 << EAM(maxScaleThreshold, "MaxScale", true, "if specified, points with a greater scale are ignored")
                 << EAM(nbRequiredMatches, "NbRequired", true, "number of matches to create a connexion between two images (default 1)")
                 << EAM(outputFile, "Out", true, "name of the produced XML file")
+                << EAM(printGraph, "PrintGraph", true, "print result graph in standard output"),
+                aArg
                 );
 
-    // if no output filename is given, use the default one in "chantier" directory
-    if ( !EAMIsInit(&outputFile) )
+    if (!MMVisualMode)
     {
-        outputFile = aDir+outputFile;
-        cout << "no output filename specified Using default: " << outputFile << endl;
-    }
+        // if no output filename is given, use the default one in "chantier" directory
+        if ( !EAMIsInit(&outputFile) )
+        {
+            outputFile = aDir+outputFile;
+            cout << "no output filename specified Using default: " << outputFile << endl;
+        }
 
-    // retrieve points of interest detecting program
-    g_toolsOptions.clear();
-    InitDetectingTool( detectingTool );
-    if ( detectingTool.length()==0 ) detectingTool=TheStrSiftPP;
-    check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
+        // retrieve points of interest detecting program
+        g_toolsOptions.clear();
+        InitDetectingTool( detectingTool );
+        if ( detectingTool.length()==0 ) detectingTool=TheStrSiftPP;
+        check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
 
-    cout << "chantierDirectory  = " << aDir << endl;
-    cout << "pattern            = " << aPat << endl;
-    cout << "maxDimensionResize = " << maxDimensionResize << endl;
-    cout << "------" << endl;
-    cout << "nbThreads          = " << nbThreads << endl;
-    cout << "nbMaxPoints        = " << nbMaxPoints << endl;
-    cout << "minScaleThreshold  = " << minScaleThreshold << endl;
-    cout << "maxScaleThreshold  = " << maxScaleThreshold << endl;
-    cout << "outputFile         = " << outputFile << endl;
-    cout << "detectingTool      = " << detectingTool << endl;
-    cout << "g_toolsOptions     = " << g_toolsOptions << endl;
+        cout << "chantierDirectory  = " << aDir << endl;
+        cout << "pattern            = " << aPat << endl;
+        cout << "maxDimensionResize = " << maxDimensionResize << endl;
+        cout << "------" << endl;
+        cout << "nbThreads          = " << nbThreads << endl;
+        cout << "nbMaxPoints        = " << nbMaxPoints << endl;
+        cout << "minScaleThreshold  = " << minScaleThreshold << endl;
+        cout << "maxScaleThreshold  = " << maxScaleThreshold << endl;
+        cout << "outputFile         = " << outputFile << endl;
+        cout << "detectingTool      = " << detectingTool << endl;
+        cout << "g_toolsOptions     = " << g_toolsOptions << endl;
 
-    // convert images into TIFF and resize them if needed (maxDimensionResize!=-1)
-    DoDevelopp( -1,maxDimensionResize );
+        // convert images into TIFF and resize them if needed (maxDimensionResize!=-1)
+        DoDevelopp( -1,maxDimensionResize );
 
-    // create a makefile to detect key points for all images
-    DoDetectKeypoints( detectingTool, maxDimensionResize );
+        // create a makefile to detect key points for all images
+        DoDetectKeypoints( detectingTool, maxDimensionResize );
 
-    cout << "--------------------> DoDetectKeypoints" << endl;
+        cout << "--------------------> DoDetectKeypoints" << endl;
 
-    DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches );
+        DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches, printGraph );
 
-    /*
+        /*
     check_detect_and_match_tools( detectingTool, matchingTool );
 
     if ((aFullRes < aNbAdj) && (!ForceAdj) && (aFullRes>0))
@@ -798,7 +855,10 @@ int Graph_(int argc,char ** argv)
     System(aSFR,true);
     DoMkT();
 */
-    return EXIT_SUCCESS;
+        return EXIT_SUCCESS;
+    }
+    else
+        return EXIT_SUCCESS;
 }
 
 int Tapioca_main(int argc,char ** argv)
@@ -812,7 +872,7 @@ int Tapioca_main(int argc,char ** argv)
         QStringList items;
 
         for (int aK=0; aK < aNbType; ++aK)
-            items << QString((Type[aK]).c_str());        
+            items << QString((Type[aK]).c_str());
 
         setStyleSheet(app);
 
@@ -914,7 +974,7 @@ int Tapioca_main(int argc,char ** argv)
     }
     else if (TheType == Type[4])
     {
-        int aRes = Graph_(argc,argv);
+        int aRes = Graph_(argc,argv,TheType);
         BanniereMM3D();
         return aRes;
     }

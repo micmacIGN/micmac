@@ -96,41 +96,48 @@ int SBGlobBascule_main(int argc,char ** argv)
 
     );
 
-    #if (ELISE_windows)
-        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-    #endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
-    if (EAMIsInit(&PostPlan))
+    if (!MMVisualMode)
     {
-        CorrecNameMasq(aDir,aPat,PostPlan);
+#if (ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+#endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
+        if (EAMIsInit(&PostPlan))
+        {
+            CorrecNameMasq(aDir,aPat,PostPlan);
+        }
+
+        StdCorrecNameOrient(AeroIn,aDir);
+
+
+        MMD_InitArgcArgv(argc,argv);
+
+        std::string aCom =   MM3dBinFile( "Apero" )
+                + MMDir() + std::string("include/XML_MicMac/Apero-SB-Bascule.xml ")
+                + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
+                + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
+                + std::string(" +AeroOut=-") +  AeroOut
+                + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
+                + std::string(" +AeroIn=-") + AeroIn
+                + std::string(" +PostMasq=") + PostPlan
+                + std::string(" +DistFE=") + ToString(DistFE)
+                + std::string(" +RepNL=") + TargetRep
+                + std::string(" +FileMesures=") + FileMesures
+                + std::string(" +CPI=") + ToString(CPI)
+                ;
+
+
+
+        std::cout << "Com = " << aCom << "\n";
+        int aRes = system_call(aCom.c_str());
+
+
+        return aRes;
     }
-
-    StdCorrecNameOrient(AeroIn,aDir);
-
-
-    MMD_InitArgcArgv(argc,argv);
-
-    std::string aCom =   MM3dBinFile( "Apero" )
-                       + MMDir() + std::string("include/XML_MicMac/Apero-SB-Bascule.xml ")
-                       + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
-                       + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
-                       + std::string(" +AeroOut=-") +  AeroOut
-                       + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
-                       + std::string(" +AeroIn=-") + AeroIn
-                       + std::string(" +PostMasq=") + PostPlan
-                       + std::string(" +DistFE=") + ToString(DistFE)
-                       + std::string(" +RepNL=") + TargetRep
-                       + std::string(" +FileMesures=") + FileMesures
-                       + std::string(" +CPI=") + ToString(CPI)
-                    ;
-
-
-
-   std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
-
-
-   return aRes;
+    else
+    {
+        return EXIT_SUCCESS;
+    }
 }
 
 

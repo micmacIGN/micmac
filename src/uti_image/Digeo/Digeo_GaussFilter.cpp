@@ -396,17 +396,17 @@ template <class Type,class tBase> cConvolSpec<Type> *  GaussCS(double aSigma,int
           );
 }
 
+#ifdef __WITH_GAUSS_SEP_FILTER
+	cConvolSpec<INT>*   IGausCS(double aSigma,double anEpsilon)
+	{
+		 return GaussCS<int,int>(aSigma,15,anEpsilon,10);
+	}
 
-cConvolSpec<INT>*   IGausCS(double aSigma,double anEpsilon)
-{
-    return GaussCS<int,int>(aSigma,15,anEpsilon,10);
-}
-
-cConvolSpec<double>*  RGausCS(double aSigma,double anEpsilon)
-{
-    return GaussCS<double,double>(aSigma,0,anEpsilon,10);
-}
-
+	cConvolSpec<double>*  RGausCS(double aSigma,double anEpsilon)
+	{
+		 return GaussCS<double,double>(aSigma,0,anEpsilon,10);
+	}
+#endif
 
 /****************************************/
 /*                                      */
@@ -534,9 +534,6 @@ void cTplImInMem<Type>::SelfSetConvolSepY
     }
 }
 
-
-  
-
 template <class Type> 
 void cTplImInMem<Type>::SetConvolSepXY
      (
@@ -558,8 +555,7 @@ void cTplImInMem<Type>::SetConvolSepXY
                                 aSigma, Increm
                              );
 
-
-
+    /*
     if (mAppli.ShowConvolSpec().Val())
        std::cout << "CS = " << aCS << "\n";
     if (mAppli.ExigeCodeCompile().Val() )
@@ -571,6 +567,9 @@ void cTplImInMem<Type>::SetConvolSepXY
           ELISE_ASSERT(false,"cannot find code compiled\n");
        }
     }
+    */
+
+    if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
 
     ElTimer aChrono;
     SetConvolSepX(aImIn,aNbShitXY,aCS);
@@ -639,8 +638,7 @@ template <class Type>
 void cTplImInMem<Type>::ReduceGaussienne()
 {
     const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
-    mNbShift =  aPG.NbShift().Val();
-
+ 
     if (mKInOct==0)
     {
          // cTplOctDig<Type>* anOcUp = mTOct.OctUp();
@@ -679,8 +677,6 @@ void cTplImInMem<Type>::ReduceGaussienne()
 
     double aSigmD =  sqrt(ElSquare(mResolOctaveBase) - ElSquare(mTMere->mResolOctaveBase));
     Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
-
-
     SetConvolSepXY(true,aSigmD,*mTMere,aIKerD,mNbShift);
 
 /*
@@ -691,19 +687,6 @@ void cTplImInMem<Type>::ReduceGaussienne()
 
     
 }
-
-
-//InstantiateClassTplDigeo(cTplImInMem)
-
-/*
-template  class cTplImInMem<U_INT1>;
-template  class cTplImInMem<U_INT2>;
-template  class cTplImInMem<INT>;
-template  class cTplImInMem<float>;
-*/
-
- 
-
 
 /****************************************/
 /*                                      */

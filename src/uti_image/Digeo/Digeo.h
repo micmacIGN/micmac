@@ -68,8 +68,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
 
-
 //#define __DEBUG_DIGEO_STATS
+//#define __DEBUG_DIGEO
 
 //  cRotationFormelle::AddRappOnCentre
 
@@ -137,10 +137,15 @@ typedef enum
   eTES_instable_unsolvable,
   eTES_instable_tooDeepRecurrency,
   eTES_instable_outOfImageBound,
+  eTES_instable_outOfScaleBound,
+  eTES_displacementTooBig,
   eTES_GradFaible,
   eTES_TropAllonge,
+  eTES_AlreadyComputed,
   eTES_Ok
 } eTypeExtreSift;
+
+string eTypeExtreSift_to_string( eTypeExtreSift i_enum );
 
 class cPtsCaracDigeo
 {
@@ -149,6 +154,7 @@ class cPtsCaracDigeo
        Pt2dr         mPt;
        eTypeTopolPt  mType;
        double        mScale;
+       double        mLocalScale;
 };
 
    // Permt de shifter les entiers (+ rapide que la div) sans rien faire pour
@@ -262,8 +268,8 @@ class cImInMem
          std::vector<cPtsCaracDigeo> & 	     VPtsCarac();
          const std::vector<cPtsCaracDigeo> & VPtsCarac() const;
 
-         virtual void saveGaussians( const std::string &i_directory ) const = 0;
-         virtual void loadGaussians( const std::string &i_directory ) = 0;
+         virtual bool saveGaussian_pgm( const std::string &i_directory ) const = 0;
+         virtual bool loadGaussian_raw( const std::string &i_directory ) = 0;
      protected :
 
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
@@ -289,9 +295,14 @@ class cImInMem
          // mN3 xxx mN4
          // mN5 mN6 mN7
          int mN0, mN1, mN2, mN3, mN4, mN5, mN6, mN7;
+
+         int mFileTheoricalMaxValue;
+         
+         unsigned char *mUsed_points_map;
      private :
         cImInMem(const cImInMem &);  // N.I.
      public:
+			virtual bool load_raw( const string &i_filename ){ return true; }
 	 #ifdef __DEBUG_DIGEO_STATS
 	    unsigned int mCount_eTES_Uncalc,
 			 mCount_eTES_instable_unsolvable,
@@ -367,8 +378,8 @@ template <class Type> class cTplImInMem : public cImInMem
 
         void ResizeBasic(const Pt2di & aSz);
         eTypeExtreSift CalculateDiff_old(Type***aC,int anX,int anY,int aNiv);
-
         eTypeExtreSift CalculateDiff_2d( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
+        eTypeExtreSift CalculateDiff_3d( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
 
 /*
         SetConvolBordX :
@@ -439,11 +450,13 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          bool  SupDOG(Type *** aC,const Pt3di& aP1,const Pt3di& aP2);
          tBase DOG(Type *** aC,const Pt3di& aP1);
 
-	 void saveGaussians( const std::string &i_directory ) const;
-         void loadGaussians( const std::string &i_directory );
+         bool saveGaussian_pgm( const std::string &i_directory ) const;
+         bool loadGaussian_raw( const std::string &i_directory );
 
          void saveDoG( const std::string &i_directory ) const;
          void loadDoG( const std::string &i_directory );
+         
+			bool load_raw( const string &i_filename );
 
          cTplOctDig<Type> & mTOct;
          tIm    mIm;
@@ -495,6 +508,7 @@ class cOctaveDigeo
         int NbIm() const;
         cImInMem * KthIm(int aK) const;
         int                      Niv() const;
+        const cImDigeo & ImDigeo() const;
 
         bool OkForSift(int aK) const;
         void DoAllExtract(int aK);
@@ -507,6 +521,7 @@ class cOctaveDigeo
         virtual  cImInMem * FirstImage() = 0;
         void SetNbImOri(int aNbIm);
         int  NbImOri() const;
+        int  lastLevelIndex() const;
 
         // virtual void DoSiftExtract(const cSiftCarac &) = 0;
         // virtual void DoSiftExtract(int aK) = 0;
@@ -533,7 +548,8 @@ class cOctaveDigeo
         Pt2dr  ToPtImCalc(const Pt2dr& aP0) const;  // Renvoie dans l'image sur/sous-resolue
         Pt2dr  ToPtImR1(const Pt2dr& aP0) const;  // Renvoie les coordonnees dans l'image initiale
 
-		REAL8 GetMaxValue() const;
+        REAL8 GetMaxValue() const;
+        bool saveGaussians( string i_directory, const string &i_basename ) const;
     protected :
         static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
        
@@ -548,6 +564,7 @@ class cOctaveDigeo
         std::vector<cImInMem *>  mVIms;
         Pt2di                    mSzMax;
         int                      mNbImOri;  // de NbByOctave()
+        int                      mLastLevelIndex;
         Box2di                   mBoxImCalc;
         Box2dr                   mBoxCurIn;
         Box2di                   mBoxCurOut;
@@ -640,6 +657,7 @@ class cImDigeo
        const std::vector<cOctaveDigeo *> &   Octaves() const;
        double Sigma0() const;
        double SigmaN() const;
+       double InitialDeltaSigma() const;
 
        Tiff_Im TifF();
      private :
@@ -678,6 +696,7 @@ class cImDigeo
         Im2DGen *                    mFileInMem;
         double                       mSigma0; // sigma of the first level of each octave (in the octave's space)
         double                       mSigmaN; // nominal sigma value of source image
+        double                       mInitialDeltaSigma;
      private :
         cImDigeo(const cImDigeo &);  // N.I.
         
@@ -695,6 +714,8 @@ template <class Type> class cConvolSpec
 
         static cConvolSpec<Type> * GetExisting(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
         static cConvolSpec<Type> * GetOrCreate(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
+        static bool generate_classes( const string &i_filename  );
+        static bool generate_instantiations( const string &i_filename  );
 
         cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
         virtual bool IsCompiled() const;
@@ -725,7 +746,9 @@ template <class Type> class cConvolSpec
 };
 
 // include compiled kernels
-#include "GenConvolSpec.h"
+//#include "GenConvolSpec.h"
+#include "GenConvolSpec_u_int2.classes.h"
+#include "GenConvolSpec_real4.classes.h"
 
 class cVisuCaracDigeo
 {
@@ -777,8 +800,9 @@ class cAppliDigeo : public cParamDigeo
         void DoOneInterv(int aK,bool DoExtract);
         void LoadOneInterv(int aKB);
         int  NbInterv() const;
-
-
+        Box2di getInterv( int aKB ) const;
+        string getConvolutionClassesFilename( string i_type );
+        string getConvolutionInstantiationsFilename( string i_type );
 
        FILE *  FileGGC_H();
        FILE *  FileGGC_Cpp();
@@ -789,15 +813,26 @@ class cAppliDigeo : public cParamDigeo
        cImDigeo & SingleImage();
        cSiftCarac *  RequireSiftCarac();
        cSiftCarac *  SiftCarac();
+       template <class T> unsigned int nbSlowConvolutionsUsed() const { return 0; }
+       template <class T> void upNbSlowConvolutionsUsed(){}
+       string imageFullname() const;
+       string outputGaussiansDirectory() const;
+       string outputTilesDirectory() const;
+       string outputTileBasename( int i_iTile ) const;
+       string currentTileBasename() const;
+       string currentTileFullname() const;
+       bool doSaveGaussians() const;
+       bool doSaveTiles() const;
+       int currentBoxIndex() const;
 
     private :
        void InitAllImage();
        void DoAllInterv();
-       
        static void InitConvolSpec();
-
-
+       template <class T> inline static void __InitConvolSpec(){}
        void AllocImages();
+       void processImageName();
+       void processTestSection();
 
        std::string                       mDC;
        cInterfChantierNameManipulateur * mICNM;
@@ -812,22 +847,50 @@ class cAppliDigeo : public cParamDigeo
        Box2di                            mBoxIn;
        Box2di                            mBoxOut;
 
-       cSiftCarac *                     mSiftCarac;
+       cSiftCarac *                      mSiftCarac;
+       string                            mImagePath;
+       string                            mImageBasename;
+       string                            mImageFullname;
+       string                            mOutputGaussiansDirectory;
+       string                            mOutputTilesDirectory;
+       cSectionTest *                    mSectionTest;
+       bool                              mDoSaveGaussians;
+       bool                              mDoSaveTiles;
+       int                               mCurrentBoxIndex;
+       unsigned int                      mNbSlowConvolutionsUsed_uint2;
+       unsigned int                      mNbSlowConvolutionsUsed_real4;
+       string                            mConvolutionCodeFileBase;
     public:
        bool mVerbose;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
-        
 
 };
 
-#define InstantiateClassTplDigeo(aClass)\
-template  class aClass<U_INT1>;\
-template  class aClass<U_INT2>;\
-template  class aClass<REAL4>;\
-template  class aClass<REAL8>;\
-template  class aClass<INT>;
+#include "GenConvolSpec_u_int2.instantiations.h"
+#include "GenConvolSpec_real4.instantiations.h"
+
+template <> inline unsigned int cAppliDigeo::nbSlowConvolutionsUsed<U_INT2>() const { return mNbSlowConvolutionsUsed_uint2; }
+template <> inline unsigned int cAppliDigeo::nbSlowConvolutionsUsed<REAL4>() const { return mNbSlowConvolutionsUsed_real4; }
+
+template <> inline void cAppliDigeo::upNbSlowConvolutionsUsed<U_INT2>() { mNbSlowConvolutionsUsed_uint2++; }
+template <> inline void cAppliDigeo::upNbSlowConvolutionsUsed<REAL4>() { mNbSlowConvolutionsUsed_real4++; }
+
+//#define __WITH_GAUSS_SEP_FILTER
+
+#ifdef __WITH_GAUSS_SEP_FILTER
+	#define InstantiateClassTplDigeo(aClass)\
+	template  class aClass<U_INT2>;\
+	template  class aClass<REAL4>;\
+	template  class aClass<U_INT1>;\
+	template  class aClass<REAL8>;\
+	template  class aClass<INT>;
+#else
+	#define InstantiateClassTplDigeo(aClass)\
+	template  class aClass<U_INT2>;\
+	template  class aClass<REAL4>;
+#endif
 
 // =========================  INTERFACE EXTERNE ======================
 
@@ -846,8 +909,8 @@ class cParamAppliDigeo
         double   mRatioGrad;  // Le gradient doit etre > a mRatioGrad le gradient moyen
 
         cParamAppliDigeo() :
-            mSigma0           (1.6),
-            mResolInit        (1.0),
+            mSigma0           (1.269920842/*1.6*/),
+            mResolInit        (0.5/*1.0*/),
             mOctaveMax        (32),
             mNivByOctave      (3),
             mExigeCodeCompile (false),

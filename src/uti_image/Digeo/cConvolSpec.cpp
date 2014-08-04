@@ -176,16 +176,18 @@ Fonc_Num LinearSepFilter
 
 }
 
-Fonc_Num GaussSepFilter(Fonc_Num   aFonc,double aSigma,double anEpsilon)
-{
-   if (aSigma==0) return aFonc;
-   return LinearSepFilter
-          (
-              aFonc,
-              IGausCS(aSigma,anEpsilon),
-              RGausCS(aSigma,anEpsilon)
-          );
-}
+#ifdef __WITH_GAUSS_SEP_FILTER
+	Fonc_Num GaussSepFilter(Fonc_Num   aFonc,double aSigma,double anEpsilon)
+	{
+		if (aSigma==0) return aFonc;
+		return LinearSepFilter
+				 (
+					  aFonc,
+					  IGausCS(aSigma,anEpsilon),
+					  RGausCS(aSigma,anEpsilon)
+				 );
+	}
+#endif
 
 /****************************************/
 /*                                      */
@@ -203,26 +205,20 @@ cConvolSpec<Type>::cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShit,bool
     mSym       (true),
     mFirstGet  (true)
 {
-    for (int aK=aDeb; aK<= aFin ; aK++)
-    {
-       mCoeffs.push_back(aFilter[aK]);
-    }
+	for (int aK=aDeb; aK<= aFin ; aK++)
+		mCoeffs.push_back(aFilter[aK]);
 
-    mDataCoeff = (&(mCoeffs[0])) -aDeb;
+	mDataCoeff = (&(mCoeffs[0])) -aDeb;
 
-    if (aFin+aDeb != 0)
-    {
-        mSym = false;
-    }
-    else
-    {
-        for (int aK=1 ; aK<= aDeb; aK++) // aK<=aFin ou le test est desactivé ?
-        {
-            if (ElAbs(mDataCoeff[aK]-mDataCoeff[-aK])>1e-6)
-               mSym = false;
-        }
-    }
-    theVec.push_back(this);
+	if ( aFin+aDeb!=0 )
+		mSym = false;
+	else{
+		for (int aK=1 ; aK<=aDeb; aK++){  // aK<=aFin ou le test est desactivé ?
+			if (ElAbs(mDataCoeff[aK]-mDataCoeff[-aK])>1e-6)
+			mSym = false;
+		}
+	}
+	theVec.push_back( this );
 }
 
 template <class Type>  typename El_CTypeTraits<Type>::tBase  *  cConvolSpec<Type>::DataCoeff()
@@ -373,70 +369,156 @@ template <class Type> int cConvolSpec<Type>::Deb() const {return mDeb;}
 template <class Type> int cConvolSpec<Type>::Fin() const {return mFin;}
 template <class Type> bool cConvolSpec<Type>::Sym() const {return mSym;}
 
+template <class Type> std::string NameClassConvSpec(Type *)
+{
+    static int  aCpt=0;
+	
+    std::string aRes =  std::string("cConvolSpec_") 
+	+ El_CTypeTraits<Type>::Name()
+	+ std::string("_Num") + ToString(aCpt++) ;
+	
+    return aRes;
+}
+
+std::string NameClassConvSpec_( const string i_typename, unsigned int i_iConvolution )
+{
+	stringstream ss;
+	ss << "cConvolSpec_" << i_typename << "_Num" << i_iConvolution;
+	return ss.str();
+}
+
+static void LineSym( ostream &aFile,int aVal,int aK)
+{
+	aFile << "\t\t\t\t              +   " << aVal << "*(In[" << aK << "]+In[" << -aK << "])" << endl;
+}
+
+static void LineSym( ostream &aFile,double aVal,int aK)
+{
+	aFile << "\t\t\t\t              +   " << aVal << "*(In[" << aK << "]+In[" << -aK << "])" << endl;
+}
+
+static void LineStd( ostream &aFile,int aVal,int aK)
+{
+	aFile << "\t\t\t\t              +   " << aVal << "*(In[" << aK << "])" << endl;
+}
+static void LineStd( ostream &aFile,double aVal,int aK)
+{
+	aFile << "\t\t\t\t              +   " << aVal << "*(In[" << aK << "])" << endl;
+}
+
+template <class Type> 
+bool cConvolSpec<Type>::generate_classes( const string &i_filename )
+{
+	ofstream f( i_filename.c_str() );
+	if ( !f ) return false;
+
+	std::string aNType = El_CTypeTraits<Type>::Name();
+	std::string aNTBase = El_CTypeTraits<tBase>::Name();
+	typename vector<cConvolSpec<Type> *>::iterator itConvolution = theVec.begin();
+	unsigned int iConvolution = 0;
+	while ( itConvolution!=theVec.end() ){
+		cConvolSpec<Type> &convolution = **itConvolution++;
+		
+		std::string aNClass = NameClassConvSpec_( aNType, iConvolution++ );;
+		const int aFin  = convolution.mFin;
+		const int aDeb  = convolution.mDeb;
+		const int aNbShift = convolution.mNbShift;
+		const tBase *aFilter = convolution.mDataCoeff;
+
+		f << "class " << aNClass << " : public cConvolSpec<" << aNType << ">" << endl;
+		f << "{" << endl;
+		f << "\tpublic :" << endl;
+		f << "\t\tbool IsCompiled() const { return true; }" << endl;
+		f << "\t\tvoid Convol(" << aNType << " * Out," << aNType << " * In,int aK0,int aK1)" << endl;
+		f << "\t\t{" << endl;
+		f << "\t\t\tIn+=aK0;" << endl;
+		f << "\t\t\tOut+=aK0;" << endl;
+		f << "\t\t\tfor (int aK=aK0; aK<aK1 ; aK++){" << endl;
+		f << "\t\t\t\t*(Out++) =  (" << endl;
+		if ( El_CTypeTraits<Type>::IsIntType() )
+			f << "\t\t\t\t                  " << (1<<aNbShift)/2 << endl;
+		else
+			f << "\t\t\t\t                  0" << endl;
+		for (int aK=aDeb ; aK <=aFin ; aK++)
+			if ((-aK>=aDeb) && (-aK<=aFin) && (aK) && (aFilter[aK]==aFilter[-aK])){
+				if (aK<0) LineSym( f, aFilter[aK], aK );
+			}
+			else
+				LineStd( f, aFilter[aK], aK );
+		if (El_CTypeTraits<Type>::IsIntType())
+			f << "\t\t\t\t            )>>" << aNbShift << ";" << endl;
+		else
+			f << "                           );" << endl;
+		f << "\t\t\t\tIn++;" << endl;
+		f << "\t\t\t}" << endl;
+		f << "\t\t}\n" << endl;
+		f << "\t\t" << aNClass << "(" << aNTBase << " * aFilter):";
+		f << "cConvolSpec<" << aNType << ">(aFilter-(" << aDeb << ")," << aDeb << "," << aFin << "," << aNbShift << ",false){}" << endl;
+		f << "};\n" << endl;
+	}
+
+	return true;
+}
+
+static void  PutVal( ostream &aFile,int aVal)
+{
+	aFile << aVal;
+}
+static void  PutVal( ostream &aFile,double aVal)
+{
+	aFile << aVal;
+}
+
+template <class Type> 
+bool cConvolSpec<Type>::generate_instantiations( const string &i_filename )
+{
+	ofstream f( i_filename.c_str() );
+	if ( !f ) return false;
+
+	std::string aNType = El_CTypeTraits<Type>::Name();
+	std::string aNTBase = El_CTypeTraits<tBase>::Name();
+	f << "template <> inline void cAppliDigeo::__InitConvolSpec<" << aNType << ">()" << endl;
+	f << "{" << endl;
+	f << "\tstatic bool theFirst = true;" << endl;
+	f << "\tif ( !theFirst ) return;" << endl;
+	f << "\ttheFirst = false;" << endl;
+
+	typename vector<cConvolSpec<Type> *>::iterator itConvolution = theVec.begin();
+	unsigned int iConvolution = 0;
+	while ( itConvolution!=theVec.end() ){
+		cConvolSpec<Type> &convolution = **itConvolution++;
+		
+		std::string aNClass = NameClassConvSpec_( aNType, iConvolution++ );
+		const int aFin  = convolution.mFin;
+		const int aDeb  = convolution.mDeb;
+		const tBase *aFilter = convolution.mDataCoeff;
+
+		f << "\t{" << endl;
+		f << "\t\t" << aNTBase << " theCoeff[" << aFin-aDeb+1 << "] = {";
+		for (int aK=aDeb ; aK <=aFin ; aK++){
+			if (aK!=aDeb) f << ",";
+			PutVal( f, aFilter[aK] );
+		}
+		f << "};" << endl;
+		f << "\t\tnew " << aNClass << "(theCoeff);" << endl;
+		f << "\t}" << endl;
+	}
+
+	f << "}" << endl;
+	
+	return true;
+}
 
 
-
-template <> std::vector<cConvolSpec<U_INT1> *>  cConvolSpec<U_INT1>::theVec(0);
 template <> std::vector<cConvolSpec<U_INT2> *>  cConvolSpec<U_INT2>::theVec(0);
 template <> std::vector<cConvolSpec<REAL4> *>  cConvolSpec<REAL4>::theVec(0);
-template <> std::vector<cConvolSpec<INT> *>  cConvolSpec<INT>::theVec(0);
-template <> std::vector<cConvolSpec<REAL8> *>  cConvolSpec<REAL8>::theVec(0);
-
-
-
-InstantiateClassTplDigeo(cConvolSpec)
-
-//InstantiateClassTplDigeo(cTplImInMem)
-
-/************************************/
-
-// Nb = 4 ;; 1 24 248 990 1570 990 248 24 1 
-
-#if (0)
-class cConvolSpec_U_INT2_Sig_0_5_12 : public cConvolSpec<U_INT2>
-{
-   public :
-      void Convol(U_INT2 * Out,U_INT2 * In,int aK0,int aK1)
-      {
-           In+=aK0;
-           Out+=aK0;
-           for (int aK=aK0; aK<aK1 ; aK++)
-           {
-                *(Out++) =  (
-                                2048
-                              +    1*(In[-4]+In[4])
-                              +   24*(In[-3]+In[3])
-                              +  248*(In[-2]+In[2])
-                              +  990*(In[-1]+In[1])
-                              + 1570*(In[0])
-                          ) >> 12;
-
-                 In++;
-           }
-      }
-
-
-      cConvolSpec_U_INT2_Sig_0_5_12(int * aFilter) :
-            cConvolSpec<U_INT2>(aFilter+4,-4,4,12,false)
-      {
-      }
-};
-
-
-void cAppliDigeo::InitConvolSpec()
-{
-    static bool theFirst = true;
-    if (! theFirst) return;
-    theFirst = false;
-
-    {
-       int theCoeff[9] = {1,24,248,990,1570,990,248,24,1};
-       new cConvolSpec_U_INT2_Sig_0_5_12(theCoeff);
-    }
-}
+#ifdef __WITH_GAUSS_SEP_FILTER
+	template <> std::vector<cConvolSpec<U_INT1> *>  cConvolSpec<U_INT1>::theVec(0);
+	template <> std::vector<cConvolSpec<REAL> *>  cConvolSpec<REAL>::theVec(0);
+	template <> std::vector<cConvolSpec<INT> *>  cConvolSpec<INT>::theVec(0);
 #endif
 
-
+InstantiateClassTplDigeo(cConvolSpec)
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

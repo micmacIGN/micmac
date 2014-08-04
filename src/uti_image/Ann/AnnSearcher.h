@@ -1,8 +1,6 @@
 #ifndef __ANN_SEARCHER__
 #define __ANN_SEARCHER__
 
-#include "../Sift/Sift.h"
-
 #include <vector>
 #include <list>
 #include <string>
@@ -12,6 +10,8 @@
 
 // this can possibly be removed if ANN is not installed
 #include "../../../CodeExterne/ANN/include/ANN/ANN.h"
+
+#include "../Digeo/DigeoPoint.h"
 
 #define SIFT_POINT_UNDEFINED_INDEX -1
 
@@ -42,7 +42,7 @@ typedef enum{
     SIFT_ANN_2D_SEARCH    // ANN search base on 2D coordinates
 } SIFT_ANN_SEARCH_MODE;
 
-// an array of SiftPoint, viewable as an array of ANNpoint on 2d coordinates or on sift descriptors
+// an array of DigeoPoint, viewable as an array of ANNpoint on 2d coordinates or on sift descriptors
 // used as a seed for AnnSearcher::createTree
 // setSearchMode is to switch between modes
 class AnnArray
@@ -56,13 +56,13 @@ private:
 
 public:
 	inline AnnArray();
-    inline AnnArray( std::vector<SiftPoint> &i_siftArray, SIFT_ANN_SEARCH_MODE	m_searchMode );
+    inline AnnArray( std::vector<DigeoPoint> &i_siftArray, SIFT_ANN_SEARCH_MODE m_searchMode );
 
-	void set( std::vector<SiftPoint> &i_siftArray, SIFT_ANN_SEARCH_MODE	m_searchMode );
+	void set( std::vector<DigeoPoint> &i_siftArray, SIFT_ANN_SEARCH_MODE m_searchMode );
 
 	// getters
-    inline       ANNpointArray	getANNpointArray();
-    inline const ANNpointArray	getANNpointArray() const;
+    inline       ANNpointArray getANNpointArray();
+    inline const ANNpointArray getANNpointArray() const;
     inline SIFT_ANN_SEARCH_MODE getSearchMode() const;
 
     inline unsigned int size() const;
@@ -100,22 +100,22 @@ public:
 
 // try to match points of i_arrayQuery with points of i_arrayData
 // this function may change the search mode of i_arrayData
-void match_lebris( std::vector<SiftPoint> &i_arrayData, std::vector<SiftPoint> &i_arrayQuery, // arrays of points to be matched
+void match_lebris( std::vector<DigeoPoint> &i_arrayData, std::vector<DigeoPoint> &i_arrayQuery, // arrays of points to be matched
                    std::list<V2I> &o_matchCouples,                              	// the returned list of indices to matching points in their respective array
                    double i_closenessRatio = SIFT_ANN_DEFAULT_CLOSENESS_RATIO,  	// a distance ratio to validate a matching
                    int i_nbMaxPriPoints    = SIFT_ANN_DEFAULT_MAX_PRI_POINTS ); 	// max number of point per search (with annkPriSearch)
 
-bool write_matches_ascii( const std::string &i_filename, const std::vector<SiftPoint> &i_array0, const std::vector<SiftPoint> &i_array1, const std::list<V2I> &i_matchingCouples );
+bool write_matches_ascii( const std::string &i_filename, const std::vector<DigeoPoint> &i_array0, const std::vector<DigeoPoint> &i_array1, const std::list<V2I> &i_matchingCouples );
 
 // unfold couples described in the i_matchedCoupleIndices list and split data in the two arrays io_array0, io_array1
 // after a call, arrays have the same size, and points with the same index are homologues
 // search mode of io_array0 is set to i_newMode
-void unfoldMatchingCouples( std::vector<SiftPoint> &io_array0, std::vector<SiftPoint> &io_array1, const std::list<V2I> &i_matchedCoupleIndices );
+void unfoldMatchingCouples( std::vector<DigeoPoint> &io_array0, std::vector<DigeoPoint> &io_array1, const std::list<V2I> &i_matchedCoupleIndices );
 
 // check if more than i_ratio of a point's neighbours are homologue to its homologue's neighbours
 // if not, both the point and its homologue are erased
 // this function may change i_array0 and/or i_array1 search mode
-void neighbourFilter( std::vector<SiftPoint> &i_array0, std::vector<SiftPoint> &i_array1, std::list<V2I> &o_keptCouples, double i_ratio=0.5 );
+void neighbourFilter( std::vector<DigeoPoint> &i_array0, std::vector<DigeoPoint> &i_array1, std::list<V2I> &o_keptCouples, double i_ratio=0.5 );
 
 //
 // inline methods
@@ -125,7 +125,7 @@ void neighbourFilter( std::vector<SiftPoint> &i_array0, std::vector<SiftPoint> &
 
 inline AnnArray::AnnArray(){}
 
-inline AnnArray::AnnArray( std::vector<SiftPoint> &i_b, SIFT_ANN_SEARCH_MODE i_mode ){ set( i_b, i_mode ); }
+inline AnnArray::AnnArray( std::vector<DigeoPoint> &i_b, SIFT_ANN_SEARCH_MODE i_mode ){ set( i_b, i_mode ); }
 
 inline       ANNpointArray AnnArray::getANNpointArray()       { return (ANNpointArray)m_annArray.data(); }
 inline const ANNpointArray AnnArray::getANNpointArray() const { return (const ANNpointArray)m_annArray.data(); }

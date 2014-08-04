@@ -40,11 +40,26 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
+//                   1  X  Y  X2 XY Y2
+int NLDDegFlagX[6] ={0 ,1 ,0 ,2 ,1 ,0 };
+int NLDDegFlagY[6] ={0 ,0 ,1 ,0 ,1 ,2 };
+
+int FlagOfDeg(const Pt3di & aDXY)
+{
+   int aRes = 0;
+   for (int aK=0 ; aK<6 ; aK++)
+   {
+        if (      (aDXY.x>=NLDDegFlagX[aK]) 
+               && (aDXY.y>=NLDDegFlagY[aK]) 
+               && (aDXY.z >= (NLDDegFlagX[aK]+NLDDegFlagY[aK]))
+           )
+           aRes |= 1<< aK;
+   }
+   return aRes;
+}
+
 int GCPBascule_main(int argc,char ** argv)
 {
-    NoInit = "NoP1P2";
-    aNoPt = Pt2dr(123456,-8765432);
-
     // MemoArg(argc,argv);
     MMD_InitArgcArgv(argc,argv);
     std::string  aDir,aPat,aFullDir;
@@ -57,20 +72,33 @@ int GCPBascule_main(int argc,char ** argv)
     bool        ModeL1 = false;
     bool        CPI = false;
     bool ShowUnused = true;
+    bool NLDShow = false;
+    bool NLDFTR = true;
+
+    std::string aPatNLD;
+    Pt3di NLDDegX(1,1,1);
+    Pt3di NLDDegY(1,1,1);
+    Pt3di NLDDegZ(2,0,2);
 
 
     ElInitArgMain
     (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
                     << EAMC(AeroOut,"Orientation out", eSAM_IsOutputDirOri)
                     << EAMC(DicoPts,"Ground Control Points File", eSAM_IsExistFile)
                     << EAMC(MesureIm,"Image Measurements File", eSAM_IsExistFile),
-    LArgMain()
+        LArgMain()
                     <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2 (Def=false)", eSAM_IsBool)
                     <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
                     <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
+                    <<  EAM(aPatNLD,"PatNLD",true,"Pattern for Non linear deformation, with aerial like geometry (def,unused)")
+                    <<  EAM(NLDDegX,"NLDegX",true,"Non Linear Degree X, when PatNLD, (Def =1,1,1)")
+                    <<  EAM(NLDDegY,"NLDegY",true,"Non Linear Degree Y, when PatNLD, (Def =1,1,1)")
+                    <<  EAM(NLDDegZ,"NLDegZ",true,"Non Linear Degree Z, when PatNLD, (Def =2,0,2)")
+                    <<  EAM(NLDFTR,"NLFR",true,"Non Linear : Force True Rot (Def=true)",eSAM_IsBool)
+                    <<  EAM(NLDShow,"NLShow",true,"Non Linear : Show Details (Def=false)",eSAM_IsBool)
     );
 
     if (!MMVisualMode)
@@ -104,6 +132,18 @@ int GCPBascule_main(int argc,char ** argv)
     if (CPI) aCom += " +CPI=true ";
 
 
+    if (EAMIsInit(&aPatNLD))
+    {
+       aCom = aCom + " +UseNLD=true +PatNLD=" + QUOTE(aPatNLD)
+                   + " +NLFlagX=" + ToString(FlagOfDeg(NLDDegX))
+                   + " +NLFlagY=" + ToString(FlagOfDeg(NLDDegY))
+                   + " +NLFlagZ=" + ToString(FlagOfDeg(NLDDegZ))
+                   + " +NLDForceTR=" + ToString(NLDFTR)
+                   + " +NLDShow=" + ToString(NLDShow)
+              ;
+    }
+
+
     std::cout << "Com = " << aCom << "\n";
     int aRes = System(aCom.c_str(),false,true,true);
 
@@ -114,6 +154,65 @@ int GCPBascule_main(int argc,char ** argv)
     else return EXIT_SUCCESS;
 }
 
+
+int GCPCtrl_main(int argc,char ** argv)
+{
+    // MemoArg(argc,argv);
+    MMD_InitArgcArgv(argc,argv);
+    std::string  aDir,aPat,aFullDir;
+
+
+    std::string AeroIn;
+    std::string DicoPts;
+    std::string MesureIm;
+    bool        CPI = false;
+    bool ShowUnused = true;
+
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile)
+                    << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
+                    << EAMC(DicoPts,"Ground Control Points File", eSAM_IsExistFile)
+                    << EAMC(MesureIm,"Image Measurements File", eSAM_IsExistFile),
+        LArgMain()
+                    <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
+                    <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
+    );
+
+    if (!MMVisualMode)
+    {
+    #if (ELISE_windows)
+        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    #endif
+    SplitDirAndFile(aDir,aPat,aFullDir);
+    StdCorrecNameOrient(AeroIn,aDir);
+
+
+
+    std::string aCom =   MM3dBinFile_quotes( "Apero" )
+                       + ToStrBlkCorr( MMDir()+"include/XML_MicMac/Apero-GCP-Control.xml" )+" "
+                       + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
+                       + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
+                       + std::string(" +AeroIn=") + AeroIn
+                       + std::string(" +DicoApp=") +  DicoPts
+                       + std::string(" +SaisieIm=") +  MesureIm
+                    ;
+
+    if (EAMIsInit(&ShowUnused)) aCom = aCom + " +ShowUnused=" + ToString(ShowUnused);
+    if (CPI) aCom += " +CPI=true ";
+
+
+    std::cout << "Com = " << aCom << "\n";
+    int aRes = System(aCom.c_str(),false,true,true);
+
+
+    return aRes;
+
+    }
+    else return EXIT_SUCCESS;
+}
 
 
 
