@@ -292,7 +292,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
 
       //Loading the camera
       cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-	  CamStenope * aCS = CamOrientGenFromFile(aNameCam, anICNM);
+      CamStenope * aCS = CamOrientGenFromFile(aNameCam, anICNM);
 
       ElCamera * aCam = Cam_Gen_From_File(aNameDir + aNameCam, "OrientationConique" , anICNM);
 
@@ -419,7 +419,7 @@ int Apero2Meshlab_main(int argc,char ** argv)
   MMD_InitArgcArgv(argc,argv);
 
   //Reading the arguments
-  string aFullPattern,aOri,aDir,aPat;
+  string aFullPattern, aOri;
   bool aUnDist = false;
 
   ElInitArgMain
@@ -430,11 +430,12 @@ int Apero2Meshlab_main(int argc,char ** argv)
         LArgMain()  << EAM(aUnDist,"UnDist", true, "Undistort images using Drunk", eSAM_IsBool)
         );
 
-  SplitDirAndFile(aDir, aPat, aFullPattern);
-  StdCorrecNameOrient(aOri, aDir);
-
   if (!MMVisualMode)
   {
+      string aDir, aPat;
+      SplitDirAndFile(aDir, aPat, aFullPattern);
+      StdCorrecNameOrient(aOri, aDir);
+
       Apero2Meshlab(aFullPattern, aOri, aUnDist);
 
       return EXIT_SUCCESS;
