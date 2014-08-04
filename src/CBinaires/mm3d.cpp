@@ -210,6 +210,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Digeo",Digeo_main," In development- Will compute tie points "));
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main," Select secondary images for MicMac",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main," Convert Orientation from Apero-Micmac workflow to PMVS format"));
+	   aRes.push_back(cMMCom("Apero2Meshlab", Apero2Meshlab_main, "Convert Orientation from Apero-Micmac workflow to a meshlab-compatible format"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
