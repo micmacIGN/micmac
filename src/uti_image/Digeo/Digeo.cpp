@@ -54,15 +54,7 @@ void DigeoBanniere()
 
 }
 
-cAppliDigeo * NewDigeo
-              (
-                   int argc,
-                   char ** argv,
-                   const std::string & aName,
-                   cAppliDigeo * aMaster,
-                   cModifGCC * aModif,
-                   bool IsLastGCC
-              )
+cAppliDigeo * NewDigeo( int argc, char ** argv, const std::string & aName )
 {
    cResultSubstAndStdGetFile<cParamDigeo> aP2 
                                           (
@@ -74,78 +66,14 @@ cAppliDigeo * NewDigeo
                                               "DirectoryChantier",
                                               "FileChantierNameDescripteur"
                                           );
-
-   if (aModif == 0)
-   {
-         IsLastGCC =     (!aP2.mObj->GenereCodeConvol().IsInit())
-                      || (aP2.mObj->GenereCodeConvol().Val().ModifGCC().empty());
-   }
-   return new cAppliDigeo   (aP2,aMaster,aModif,IsLastGCC);
+	/*
+	bool IsLastGCC = ( !aP2.mObj->GenereCodeConvol().IsInit() ) ||
+	                 ( aP2.mObj->GenereCodeConvol().Val().ModifGCC().empty() );
+	*/
+	return new cAppliDigeo( aP2, NULL, NULL, true/*IsLastGCC*/ );
 }
 
 extern const char * theNameVar_ParamDigeo[];
-
-
-/*
-int Digeo_main_(int argc,char ** argv)
-{
-   MMD_InitArgcArgv(argc,argv);
-
-//for (int aK=0 ; aK<20 ; aK++)
-//std::cout << "RRRRRRRRRRRRRRRRRRRRRRAAAAAAAAAAAAAAAAAAAAAAAAYYON UTILE \n";
-   AddEntryStringifie
-   (
-        "include/XML_GEN/ParamDigeo.xml",
-         theNameVar_ParamDigeo,
-         true
-   );
-  // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
-
-  //if (0) delete anAppli;
-    
-   ELISE_ASSERT(argc>=2,"Not enough arg");
-
-   //  cElXMLTree aTree(argv[1]);  : A priori inutile depuis la stringification
-
-
-   cAppliDigeo * aMaterApp = NewDigeo(argc,argv,argv[1],0,0,true);
-   aMaterApp->DoAll();
-
-   if (aMaterApp->GenereCodeConvol().IsInit())
-   {
-      cGenereCodeConvol aGCC = aMaterApp->GenereCodeConvol().Val();
-      int aNbMod = aGCC.ModifGCC().size();
-      for (int aK=0 ; aK<aNbMod ; aK++)
-      {
-          cAppliDigeo * anAp = NewDigeo
-                               (
-                                   argc,argv,argv[1],
-                                   aMaterApp,
-                                   &(aGCC.ModifGCC()[aK]),
-                                   aK == (aNbMod-1)
-                               );
-            anAp->DoAll();
-      }
-   }
-
-//   cResultSubstAndStdGetFile<cParamDigeo> aP2 
-//                                          (
-//                                              argc-2,argv+2,
-//		                              argv[1],
-//			                      StdGetFileXMLSpec("ParamDigeo.xml"),
-//			                      "ParamDigeo",
-//			                      "ParamDigeo",
-//                                              "DirectoryChantier",
-//                                              "FileChantierNameDescripteur"
-//                                          );
-//
-//   cAppliDigeo   anAppli (aP2);
-//   anAppli.DoAll();
-
-   DigeoBanniere();
-   return 0;
-}
-*/
 
 class cCreateArgcArgv
 {
@@ -181,23 +109,23 @@ cAppliDigeo * DigeoCPP
    std::string aDir,aNameIm;
    SplitDirAndFile(aDir,aNameIm,aFullNameIm);
 
-
    cCreateArgcArgv aCAA;
    aCAA.AddArg("Digeo");
-   aCAA.AddArg(Basic_XML_MM_File("Digeo-Test.xml"));
+   aCAA.AddArg(Basic_XML_MM_File("Digeo-Parameters.xml"));
    aCAA.AddArg("+Im1=" +aNameIm);
    aCAA.AddArg("DirectoryChantier="+aDir);
-
+   
+   /*
+   aCAA.AddArg("+Sauv="+ToString(aParam.mSauvPyram));
    aCAA.AddArg("+Sigma0="+ToString(aParam.mSigma0));
    aCAA.AddArg("+Resol="+ToString(aParam.mResolInit));
    aCAA.AddArg("+OctaveMax="+ToString(aParam.mOctaveMax));
    aCAA.AddArg("+NbNivByOct="+ToString(aParam.mNivByOctave));
    aCAA.AddArg("+ExigeCodeCompile="+ToString(aParam.mExigeCodeCompile));
    aCAA.AddArg("+NivFloatIm="+ToString(aParam.mNivFloatIm));
-   aCAA.AddArg("+Sauv="+ToString(aParam.mSauvPyram));
    aCAA.AddArg("+RatioGrad="+ToString(aParam.mRatioGrad));
-
-   cAppliDigeo * aRes = NewDigeo(aCAA.ArgC(),aCAA.ArgV(),aCAA.ArgV()[1],0,0,true);
+	*/
+   cAppliDigeo * aRes = NewDigeo( aCAA.ArgC(), aCAA.ArgV(), aCAA.ArgV()[1] );
    
    aRes->AllocImages();   
    aRes->InitAllImage();
@@ -205,13 +133,10 @@ cAppliDigeo * DigeoCPP
    return aRes;
 }
 
-
-
 /*
         bool     mExigeCodeCompile;
         int      mNivFloatIm;        // Ne depend pas de la resolution
 */
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

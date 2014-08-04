@@ -147,12 +147,16 @@ void cSettingsDlg::hideSaisieMasqItems()
     lineItemHidden = true;
 
     //hide item in page 1 (other display settings)
-   for (int aK=0; aK < _ui->gridLayout->columnCount();++aK)
+    for (int aK=0; aK < _ui->gridLayout->columnCount();++aK)
     {
         //line thickness
         QLayoutItem * item0 = _ui->gridLayout->itemAtPosition(0, aK);
         if (item0) deleteChildWidgets(item0);
     }
+
+    //temp: bug en mode SaisieAppuis
+    _ui->showMasks_checkBox->setVisible(false);
+    _ui->showMasks_checkBox->setCheckable(false);
 }
 
 void cSettingsDlg::uiShowMasks(bool aBool)
@@ -278,7 +282,7 @@ cParameters::cParameters():
     _showMasks(false),
     _zoomWindow(3.f),
     _ptName(QString("100")),
-    _postFix(QString("_mask")),
+    _postFix(QString("_Masq")),
     _radius(50),
     _eType(eNSM_Pts),
     _sz(5.f),

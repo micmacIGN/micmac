@@ -10175,6 +10175,181 @@ void xml_init(cBascOnAppuis & anObj,cElXMLTree * aTree)
 std::string  Mangling( cBascOnAppuis *) {return "8F6D4799BEDF989BFE3F";};
 
 
+cTplValGesInit< int > & cAerialDeformNonLin::FlagX()
+{
+   return mFlagX;
+}
+
+const cTplValGesInit< int > & cAerialDeformNonLin::FlagX()const 
+{
+   return mFlagX;
+}
+
+
+cTplValGesInit< int > & cAerialDeformNonLin::FlagY()
+{
+   return mFlagY;
+}
+
+const cTplValGesInit< int > & cAerialDeformNonLin::FlagY()const 
+{
+   return mFlagY;
+}
+
+
+cTplValGesInit< int > & cAerialDeformNonLin::FlagZ()
+{
+   return mFlagZ;
+}
+
+const cTplValGesInit< int > & cAerialDeformNonLin::FlagZ()const 
+{
+   return mFlagZ;
+}
+
+
+cTplValGesInit< bool > & cAerialDeformNonLin::ForceTrueRot()
+{
+   return mForceTrueRot;
+}
+
+const cTplValGesInit< bool > & cAerialDeformNonLin::ForceTrueRot()const 
+{
+   return mForceTrueRot;
+}
+
+
+cTplValGesInit< std::string > & cAerialDeformNonLin::PattEstim()
+{
+   return mPattEstim;
+}
+
+const cTplValGesInit< std::string > & cAerialDeformNonLin::PattEstim()const 
+{
+   return mPattEstim;
+}
+
+
+cTplValGesInit< bool > & cAerialDeformNonLin::Show()
+{
+   return mShow;
+}
+
+const cTplValGesInit< bool > & cAerialDeformNonLin::Show()const 
+{
+   return mShow;
+}
+
+void  BinaryUnDumpFromFile(cAerialDeformNonLin & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FlagX().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FlagX().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FlagX().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FlagY().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FlagY().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FlagY().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FlagZ().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FlagZ().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FlagZ().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ForceTrueRot().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ForceTrueRot().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ForceTrueRot().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PattEstim().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PattEstim().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PattEstim().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Show().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Show().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Show().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cAerialDeformNonLin & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.FlagX().IsInit());
+    if (anObj.FlagX().IsInit()) BinaryDumpInFile(aFp,anObj.FlagX().Val());
+    BinaryDumpInFile(aFp,anObj.FlagY().IsInit());
+    if (anObj.FlagY().IsInit()) BinaryDumpInFile(aFp,anObj.FlagY().Val());
+    BinaryDumpInFile(aFp,anObj.FlagZ().IsInit());
+    if (anObj.FlagZ().IsInit()) BinaryDumpInFile(aFp,anObj.FlagZ().Val());
+    BinaryDumpInFile(aFp,anObj.ForceTrueRot().IsInit());
+    if (anObj.ForceTrueRot().IsInit()) BinaryDumpInFile(aFp,anObj.ForceTrueRot().Val());
+    BinaryDumpInFile(aFp,anObj.PattEstim().IsInit());
+    if (anObj.PattEstim().IsInit()) BinaryDumpInFile(aFp,anObj.PattEstim().Val());
+    BinaryDumpInFile(aFp,anObj.Show().IsInit());
+    if (anObj.Show().IsInit()) BinaryDumpInFile(aFp,anObj.Show().Val());
+}
+
+cElXMLTree * ToXMLTree(const cAerialDeformNonLin & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"AerialDeformNonLin",eXMLBranche);
+   if (anObj.FlagX().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FlagX"),anObj.FlagX().Val())->ReTagThis("FlagX"));
+   if (anObj.FlagY().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FlagY"),anObj.FlagY().Val())->ReTagThis("FlagY"));
+   if (anObj.FlagZ().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FlagZ"),anObj.FlagZ().Val())->ReTagThis("FlagZ"));
+   if (anObj.ForceTrueRot().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ForceTrueRot"),anObj.ForceTrueRot().Val())->ReTagThis("ForceTrueRot"));
+   if (anObj.PattEstim().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PattEstim"),anObj.PattEstim().Val())->ReTagThis("PattEstim"));
+   if (anObj.Show().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Show"),anObj.Show().Val())->ReTagThis("Show"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cAerialDeformNonLin & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.FlagX(),aTree->Get("FlagX",1),int(63)); //tototo 
+
+   xml_init(anObj.FlagY(),aTree->Get("FlagY",1),int(63)); //tototo 
+
+   xml_init(anObj.FlagZ(),aTree->Get("FlagZ",1),int(63)); //tototo 
+
+   xml_init(anObj.ForceTrueRot(),aTree->Get("ForceTrueRot",1),bool(true)); //tototo 
+
+   xml_init(anObj.PattEstim(),aTree->Get("PattEstim",1),std::string(".*")); //tototo 
+
+   xml_init(anObj.Show(),aTree->Get("Show",1),bool(false)); //tototo 
+}
+
+std::string  Mangling( cAerialDeformNonLin *) {return "D4BF4C04AB361D9AFDBF";};
+
+
 cTplValGesInit< std::string > & cBasculeOnPoints::PoseCentrale()
 {
    return BascOnCentre().Val().PoseCentrale();
@@ -10240,6 +10415,17 @@ const cTplValGesInit< bool > & cBasculeOnPoints::ModeL2()const
    return mModeL2;
 }
 
+
+cTplValGesInit< cAerialDeformNonLin > & cBasculeOnPoints::AerialDeformNonLin()
+{
+   return mAerialDeformNonLin;
+}
+
+const cTplValGesInit< cAerialDeformNonLin > & cBasculeOnPoints::AerialDeformNonLin()const 
+{
+   return mAerialDeformNonLin;
+}
+
 void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -10266,6 +10452,14 @@ void  BinaryUnDumpFromFile(cBasculeOnPoints & anObj,ELISE_fp & aFp)
         }
         else  anObj.ModeL2().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.AerialDeformNonLin().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.AerialDeformNonLin().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.AerialDeformNonLin().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOnPoints & anObj)
@@ -10276,6 +10470,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cBasculeOnPoints & anObj)
     if (anObj.BascOnAppuis().IsInit()) BinaryDumpInFile(aFp,anObj.BascOnAppuis().Val());
     BinaryDumpInFile(aFp,anObj.ModeL2().IsInit());
     if (anObj.ModeL2().IsInit()) BinaryDumpInFile(aFp,anObj.ModeL2().Val());
+    BinaryDumpInFile(aFp,anObj.AerialDeformNonLin().IsInit());
+    if (anObj.AerialDeformNonLin().IsInit()) BinaryDumpInFile(aFp,anObj.AerialDeformNonLin().Val());
 }
 
 cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
@@ -10288,6 +10484,8 @@ cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
       aRes->AddFils(ToXMLTree(anObj.BascOnAppuis().Val())->ReTagThis("BascOnAppuis"));
    if (anObj.ModeL2().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ModeL2"),anObj.ModeL2().Val())->ReTagThis("ModeL2"));
+   if (anObj.AerialDeformNonLin().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.AerialDeformNonLin().Val())->ReTagThis("AerialDeformNonLin"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -10303,9 +10501,11 @@ void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree)
    xml_init(anObj.BascOnAppuis(),aTree->Get("BascOnAppuis",1)); //tototo 
 
    xml_init(anObj.ModeL2(),aTree->Get("ModeL2",1),bool(true)); //tototo 
+
+   xml_init(anObj.AerialDeformNonLin(),aTree->Get("AerialDeformNonLin",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOnPoints *) {return "98783DD188E91AAAFE3F";};
+std::string  Mangling( cBasculeOnPoints *) {return "9DC5A0385B88F289FF3F";};
 
 
 cTplValGesInit< double > & cOrientInPlane::DistFixEch()
@@ -10564,6 +10764,17 @@ const cTplValGesInit< bool > & cModeBascule::ModeL2()const
 }
 
 
+cTplValGesInit< cAerialDeformNonLin > & cModeBascule::AerialDeformNonLin()
+{
+   return BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+const cTplValGesInit< cAerialDeformNonLin > & cModeBascule::AerialDeformNonLin()const 
+{
+   return BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+
 cTplValGesInit< cBasculeOnPoints > & cModeBascule::BasculeOnPoints()
 {
    return mBasculeOnPoints;
@@ -10691,7 +10902,7 @@ void xml_init(cModeBascule & anObj,cElXMLTree * aTree)
    xml_init(anObj.BasculeLiaisonOnPlan(),aTree->Get("BasculeLiaisonOnPlan",1)); //tototo 
 }
 
-std::string  Mangling( cModeBascule *) {return "05093AFB93C83CDDFE3F";};
+std::string  Mangling( cModeBascule *) {return "5A22EE77C0542EE8FE3F";};
 
 
 cTplValGesInit< bool > & cBasculeOrientation::AfterCompens()
@@ -10790,6 +11001,17 @@ cTplValGesInit< bool > & cBasculeOrientation::ModeL2()
 const cTplValGesInit< bool > & cBasculeOrientation::ModeL2()const 
 {
    return ModeBascule().BasculeOnPoints().Val().ModeL2();
+}
+
+
+cTplValGesInit< cAerialDeformNonLin > & cBasculeOrientation::AerialDeformNonLin()
+{
+   return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+const cTplValGesInit< cAerialDeformNonLin > & cBasculeOrientation::AerialDeformNonLin()const 
+{
+   return ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
 }
 
 
@@ -10950,7 +11172,7 @@ void xml_init(cBasculeOrientation & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModeBascule(),aTree->Get("ModeBascule",1)); //tototo 
 }
 
-std::string  Mangling( cBasculeOrientation *) {return "F08EE1FC916006FCFC3F";};
+std::string  Mangling( cBasculeOrientation *) {return "78CA29DB946412E0FB3F";};
 
 
 std::vector< cAperoPointeStereo > & cStereoFE::HomFE()
@@ -13687,6 +13909,17 @@ const cTplValGesInit< bool > & cIterationsCompensation::ModeL2()const
 }
 
 
+cTplValGesInit< cAerialDeformNonLin > & cIterationsCompensation::AerialDeformNonLin()
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+const cTplValGesInit< cAerialDeformNonLin > & cIterationsCompensation::AerialDeformNonLin()const 
+{
+   return BasculeOrientation().Val().ModeBascule().BasculeOnPoints().Val().AerialDeformNonLin();
+}
+
+
 cTplValGesInit< cBasculeOnPoints > & cIterationsCompensation::BasculeOnPoints()
 {
    return BasculeOrientation().Val().ModeBascule().BasculeOnPoints();
@@ -14591,7 +14824,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "9CEC3133086566EDFA3F";};
+std::string  Mangling( cIterationsCompensation *) {return "5E5688A1694FD9ABFE3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -21473,7 +21706,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "54BF958F16D47187FF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "8A8ADA558C434EB8FF3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -21532,7 +21765,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "E8FA547A35F9EBD9FCBF";};
+std::string  Mangling( cSectionCompensation *) {return "7C9202DB2EF2EAFAFC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -22455,6 +22688,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "8854132EEA7B0786FF3F";};
+std::string  Mangling( cParamApero *) {return "FF72E873795E05DAFE3F";};
 
 // };

@@ -247,6 +247,8 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
 void cQT_Interface::SetInvisRef(bool aVal)
 {
     mRefInvis = aVal;
+
+    emit dataChanged(true);  //pour update des widgets (raccourci Ctrl+R)
 }
 
 void cQT_Interface::close()

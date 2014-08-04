@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "cParamDigeo.h"
+	#include "cParamDigeo.h"
 //
 eTypeTopolPt  Str2eTypeTopolPt(const std::string & aName)
 {
@@ -2298,6 +2298,131 @@ void xml_init(cGenereAllRandom & anObj,cElXMLTree * aTree)
 std::string  Mangling( cGenereAllRandom *) {return "3F464AECA1F873DEFD3F";};
 
 
+cTplValGesInit< bool > & cDigeoTestOutput::OutputGaussians()
+{
+   return mOutputGaussians;
+}
+
+const cTplValGesInit< bool > & cDigeoTestOutput::OutputGaussians()const 
+{
+   return mOutputGaussians;
+}
+
+
+cTplValGesInit< std::string > & cDigeoTestOutput::OutputGaussiansDirectory()
+{
+   return mOutputGaussiansDirectory;
+}
+
+const cTplValGesInit< std::string > & cDigeoTestOutput::OutputGaussiansDirectory()const 
+{
+   return mOutputGaussiansDirectory;
+}
+
+
+cTplValGesInit< bool > & cDigeoTestOutput::OutputTiles()
+{
+   return mOutputTiles;
+}
+
+const cTplValGesInit< bool > & cDigeoTestOutput::OutputTiles()const 
+{
+   return mOutputTiles;
+}
+
+
+cTplValGesInit< std::string > & cDigeoTestOutput::OutputTilesDirectory()
+{
+   return mOutputTilesDirectory;
+}
+
+const cTplValGesInit< std::string > & cDigeoTestOutput::OutputTilesDirectory()const 
+{
+   return mOutputTilesDirectory;
+}
+
+void  BinaryUnDumpFromFile(cDigeoTestOutput & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OutputGaussians().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OutputGaussians().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OutputGaussians().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OutputGaussiansDirectory().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OutputGaussiansDirectory().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OutputGaussiansDirectory().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OutputTiles().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OutputTiles().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OutputTiles().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OutputTilesDirectory().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OutputTilesDirectory().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OutputTilesDirectory().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cDigeoTestOutput & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.OutputGaussians().IsInit());
+    if (anObj.OutputGaussians().IsInit()) BinaryDumpInFile(aFp,anObj.OutputGaussians().Val());
+    BinaryDumpInFile(aFp,anObj.OutputGaussiansDirectory().IsInit());
+    if (anObj.OutputGaussiansDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.OutputGaussiansDirectory().Val());
+    BinaryDumpInFile(aFp,anObj.OutputTiles().IsInit());
+    if (anObj.OutputTiles().IsInit()) BinaryDumpInFile(aFp,anObj.OutputTiles().Val());
+    BinaryDumpInFile(aFp,anObj.OutputTilesDirectory().IsInit());
+    if (anObj.OutputTilesDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.OutputTilesDirectory().Val());
+}
+
+cElXMLTree * ToXMLTree(const cDigeoTestOutput & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DigeoTestOutput",eXMLBranche);
+   if (anObj.OutputGaussians().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OutputGaussians"),anObj.OutputGaussians().Val())->ReTagThis("OutputGaussians"));
+   if (anObj.OutputGaussiansDirectory().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OutputGaussiansDirectory"),anObj.OutputGaussiansDirectory().Val())->ReTagThis("OutputGaussiansDirectory"));
+   if (anObj.OutputTiles().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OutputTiles"),anObj.OutputTiles().Val())->ReTagThis("OutputTiles"));
+   if (anObj.OutputTilesDirectory().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OutputTilesDirectory"),anObj.OutputTilesDirectory().Val())->ReTagThis("OutputTilesDirectory"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cDigeoTestOutput & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.OutputGaussians(),aTree->Get("OutputGaussians",1),bool(false)); //tototo 
+
+   xml_init(anObj.OutputGaussiansDirectory(),aTree->Get("OutputGaussiansDirectory",1),std::string("gaussians")); //tototo 
+
+   xml_init(anObj.OutputTiles(),aTree->Get("OutputTiles",1),bool(false)); //tototo 
+
+   xml_init(anObj.OutputTilesDirectory(),aTree->Get("OutputTilesDirectory",1),std::string("tiles")); //tototo 
+}
+
+std::string  Mangling( cDigeoTestOutput *) {return "6CF21521D2DB7BB6FE3F";};
+
+
 int & cSectionTest::NbRect()
 {
    return GenereRandomRect().Val().NbRect();
@@ -2396,6 +2521,61 @@ const cTplValGesInit< bool > & cSectionTest::VerifExtrema()const
    return mVerifExtrema;
 }
 
+
+cTplValGesInit< bool > & cSectionTest::OutputGaussians()
+{
+   return DigeoTestOutput().Val().OutputGaussians();
+}
+
+const cTplValGesInit< bool > & cSectionTest::OutputGaussians()const 
+{
+   return DigeoTestOutput().Val().OutputGaussians();
+}
+
+
+cTplValGesInit< std::string > & cSectionTest::OutputGaussiansDirectory()
+{
+   return DigeoTestOutput().Val().OutputGaussiansDirectory();
+}
+
+const cTplValGesInit< std::string > & cSectionTest::OutputGaussiansDirectory()const 
+{
+   return DigeoTestOutput().Val().OutputGaussiansDirectory();
+}
+
+
+cTplValGesInit< bool > & cSectionTest::OutputTiles()
+{
+   return DigeoTestOutput().Val().OutputTiles();
+}
+
+const cTplValGesInit< bool > & cSectionTest::OutputTiles()const 
+{
+   return DigeoTestOutput().Val().OutputTiles();
+}
+
+
+cTplValGesInit< std::string > & cSectionTest::OutputTilesDirectory()
+{
+   return DigeoTestOutput().Val().OutputTilesDirectory();
+}
+
+const cTplValGesInit< std::string > & cSectionTest::OutputTilesDirectory()const 
+{
+   return DigeoTestOutput().Val().OutputTilesDirectory();
+}
+
+
+cTplValGesInit< cDigeoTestOutput > & cSectionTest::DigeoTestOutput()
+{
+   return mDigeoTestOutput;
+}
+
+const cTplValGesInit< cDigeoTestOutput > & cSectionTest::DigeoTestOutput()const 
+{
+   return mDigeoTestOutput;
+}
+
 void  BinaryUnDumpFromFile(cSectionTest & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -2430,6 +2610,14 @@ void  BinaryUnDumpFromFile(cSectionTest & anObj,ELISE_fp & aFp)
         }
         else  anObj.VerifExtrema().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DigeoTestOutput().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DigeoTestOutput().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DigeoTestOutput().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionTest & anObj)
@@ -2442,6 +2630,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionTest & anObj)
     if (anObj.GenereAllRandom().IsInit()) BinaryDumpInFile(aFp,anObj.GenereAllRandom().Val());
     BinaryDumpInFile(aFp,anObj.VerifExtrema().IsInit());
     if (anObj.VerifExtrema().IsInit()) BinaryDumpInFile(aFp,anObj.VerifExtrema().Val());
+    BinaryDumpInFile(aFp,anObj.DigeoTestOutput().IsInit());
+    if (anObj.DigeoTestOutput().IsInit()) BinaryDumpInFile(aFp,anObj.DigeoTestOutput().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionTest & anObj)
@@ -2456,6 +2646,8 @@ cElXMLTree * ToXMLTree(const cSectionTest & anObj)
       aRes->AddFils(ToXMLTree(anObj.GenereAllRandom().Val())->ReTagThis("GenereAllRandom"));
    if (anObj.VerifExtrema().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("VerifExtrema"),anObj.VerifExtrema().Val())->ReTagThis("VerifExtrema"));
+   if (anObj.DigeoTestOutput().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.DigeoTestOutput().Val())->ReTagThis("DigeoTestOutput"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -2473,9 +2665,11 @@ void xml_init(cSectionTest & anObj,cElXMLTree * aTree)
    xml_init(anObj.GenereAllRandom(),aTree->Get("GenereAllRandom",1)); //tototo 
 
    xml_init(anObj.VerifExtrema(),aTree->Get("VerifExtrema",1),bool(false)); //tototo 
+
+   xml_init(anObj.DigeoTestOutput(),aTree->Get("DigeoTestOutput",1)); //tototo 
 }
 
-std::string  Mangling( cSectionTest *) {return "FCDB69724757B2EDFE3F";};
+std::string  Mangling( cSectionTest *) {return "62A12515C88268D2FE3F";};
 
 
 cTplValGesInit< std::string > & cSauvPyram::Dir()
@@ -2783,25 +2977,25 @@ void xml_init(cModifGCC & anObj,cElXMLTree * aTree)
 std::string  Mangling( cModifGCC *) {return "8B572270006D7AF9FE3F";};
 
 
-cTplValGesInit< std::string > & cGenereCodeConvol::Dir()
+cTplValGesInit< std::string > & cGenereCodeConvol::DirectoryCodeConvol()
 {
-   return mDir;
+   return mDirectoryCodeConvol;
 }
 
-const cTplValGesInit< std::string > & cGenereCodeConvol::Dir()const 
+const cTplValGesInit< std::string > & cGenereCodeConvol::DirectoryCodeConvol()const 
 {
-   return mDir;
+   return mDirectoryCodeConvol;
 }
 
 
-cTplValGesInit< std::string > & cGenereCodeConvol::File()
+cTplValGesInit< std::string > & cGenereCodeConvol::FileBaseCodeConvol()
 {
-   return mFile;
+   return mFileBaseCodeConvol;
 }
 
-const cTplValGesInit< std::string > & cGenereCodeConvol::File()const 
+const cTplValGesInit< std::string > & cGenereCodeConvol::FileBaseCodeConvol()const 
 {
-   return mFile;
+   return mFileBaseCodeConvol;
 }
 
 
@@ -2820,18 +3014,18 @@ void  BinaryUnDumpFromFile(cGenereCodeConvol & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.Dir().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.Dir().ValForcedForUnUmp(),aFp);
+             anObj.DirectoryCodeConvol().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DirectoryCodeConvol().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.Dir().SetNoInit();
+        else  anObj.DirectoryCodeConvol().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.File().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.File().ValForcedForUnUmp(),aFp);
+             anObj.FileBaseCodeConvol().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FileBaseCodeConvol().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.File().SetNoInit();
+        else  anObj.FileBaseCodeConvol().SetNoInit();
   } ;
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
@@ -2846,10 +3040,10 @@ void  BinaryUnDumpFromFile(cGenereCodeConvol & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cGenereCodeConvol & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.Dir().IsInit());
-    if (anObj.Dir().IsInit()) BinaryDumpInFile(aFp,anObj.Dir().Val());
-    BinaryDumpInFile(aFp,anObj.File().IsInit());
-    if (anObj.File().IsInit()) BinaryDumpInFile(aFp,anObj.File().Val());
+    BinaryDumpInFile(aFp,anObj.DirectoryCodeConvol().IsInit());
+    if (anObj.DirectoryCodeConvol().IsInit()) BinaryDumpInFile(aFp,anObj.DirectoryCodeConvol().Val());
+    BinaryDumpInFile(aFp,anObj.FileBaseCodeConvol().IsInit());
+    if (anObj.FileBaseCodeConvol().IsInit()) BinaryDumpInFile(aFp,anObj.FileBaseCodeConvol().Val());
     BinaryDumpInFile(aFp,(int)anObj.ModifGCC().size());
     for(  std::vector< cModifGCC >::const_iterator iT=anObj.ModifGCC().begin();
          iT!=anObj.ModifGCC().end();
@@ -2862,10 +3056,10 @@ cElXMLTree * ToXMLTree(const cGenereCodeConvol & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GenereCodeConvol",eXMLBranche);
-   if (anObj.Dir().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("Dir"),anObj.Dir().Val())->ReTagThis("Dir"));
-   if (anObj.File().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("File"),anObj.File().Val())->ReTagThis("File"));
+   if (anObj.DirectoryCodeConvol().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DirectoryCodeConvol"),anObj.DirectoryCodeConvol().Val())->ReTagThis("DirectoryCodeConvol"));
+   if (anObj.FileBaseCodeConvol().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileBaseCodeConvol"),anObj.FileBaseCodeConvol().Val())->ReTagThis("FileBaseCodeConvol"));
   for
   (       std::vector< cModifGCC >::const_iterator it=anObj.ModifGCC().begin();
       it !=anObj.ModifGCC().end();
@@ -2882,14 +3076,14 @@ void xml_init(cGenereCodeConvol & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
-   xml_init(anObj.Dir(),aTree->Get("Dir",1),std::string("src/uti_image/Digeo/")); //tototo 
+   xml_init(anObj.DirectoryCodeConvol(),aTree->Get("DirectoryCodeConvol",1),std::string("src/uti_image/Digeo/")); //tototo 
 
-   xml_init(anObj.File(),aTree->Get("File",1),std::string("GenConvolSpec")); //tototo 
+   xml_init(anObj.FileBaseCodeConvol(),aTree->Get("FileBaseCodeConvol",1),std::string("GenConvolSpec")); //tototo 
 
    xml_init(anObj.ModifGCC(),aTree->GetAll("ModifGCC",false,1));
 }
 
-std::string  Mangling( cGenereCodeConvol *) {return "66C8EBA65DCE3097FE3F";};
+std::string  Mangling( cGenereCodeConvol *) {return "DD3F4A0B6E7B61FCFD3F";};
 
 
 std::string & cFenVisu::Name()
@@ -3078,6 +3272,39 @@ cTplValGesInit< bool > & cSectionWorkSpace::ExigeCodeCompile()
 const cTplValGesInit< bool > & cSectionWorkSpace::ExigeCodeCompile()const 
 {
    return mExigeCodeCompile;
+}
+
+
+cTplValGesInit< std::string > & cSectionWorkSpace::DirectoryCodeConvol()
+{
+   return GenereCodeConvol().Val().DirectoryCodeConvol();
+}
+
+const cTplValGesInit< std::string > & cSectionWorkSpace::DirectoryCodeConvol()const 
+{
+   return GenereCodeConvol().Val().DirectoryCodeConvol();
+}
+
+
+cTplValGesInit< std::string > & cSectionWorkSpace::FileBaseCodeConvol()
+{
+   return GenereCodeConvol().Val().FileBaseCodeConvol();
+}
+
+const cTplValGesInit< std::string > & cSectionWorkSpace::FileBaseCodeConvol()const 
+{
+   return GenereCodeConvol().Val().FileBaseCodeConvol();
+}
+
+
+std::vector< cModifGCC > & cSectionWorkSpace::ModifGCC()
+{
+   return GenereCodeConvol().Val().ModifGCC();
+}
+
+const std::vector< cModifGCC > & cSectionWorkSpace::ModifGCC()const 
+{
+   return GenereCodeConvol().Val().ModifGCC();
 }
 
 
@@ -3293,7 +3520,7 @@ void xml_init(cSectionWorkSpace & anObj,cElXMLTree * aTree)
    xml_init(anObj.Verbose(),aTree->Get("Verbose",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cSectionWorkSpace *) {return "9E78B14BACC588ADFE3F";};
+std::string  Mangling( cSectionWorkSpace *) {return "F464CED09317AC82FF3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamDigeo::DicoLoc()
@@ -3747,6 +3974,61 @@ const cTplValGesInit< bool > & cParamDigeo::VerifExtrema()const
 }
 
 
+cTplValGesInit< bool > & cParamDigeo::OutputGaussians()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGaussians();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::OutputGaussians()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGaussians();
+}
+
+
+cTplValGesInit< std::string > & cParamDigeo::OutputGaussiansDirectory()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGaussiansDirectory();
+}
+
+const cTplValGesInit< std::string > & cParamDigeo::OutputGaussiansDirectory()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGaussiansDirectory();
+}
+
+
+cTplValGesInit< bool > & cParamDigeo::OutputTiles()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputTiles();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::OutputTiles()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputTiles();
+}
+
+
+cTplValGesInit< std::string > & cParamDigeo::OutputTilesDirectory()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputTilesDirectory();
+}
+
+const cTplValGesInit< std::string > & cParamDigeo::OutputTilesDirectory()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputTilesDirectory();
+}
+
+
+cTplValGesInit< cDigeoTestOutput > & cParamDigeo::DigeoTestOutput()
+{
+   return SectionTest().Val().DigeoTestOutput();
+}
+
+const cTplValGesInit< cDigeoTestOutput > & cParamDigeo::DigeoTestOutput()const 
+{
+   return SectionTest().Val().DigeoTestOutput();
+}
+
+
 cTplValGesInit< cSectionTest > & cParamDigeo::SectionTest()
 {
    return mSectionTest;
@@ -3890,6 +4172,39 @@ const cTplValGesInit< bool > & cParamDigeo::ExigeCodeCompile()const
 }
 
 
+cTplValGesInit< std::string > & cParamDigeo::DirectoryCodeConvol()
+{
+   return SectionWorkSpace().GenereCodeConvol().Val().DirectoryCodeConvol();
+}
+
+const cTplValGesInit< std::string > & cParamDigeo::DirectoryCodeConvol()const 
+{
+   return SectionWorkSpace().GenereCodeConvol().Val().DirectoryCodeConvol();
+}
+
+
+cTplValGesInit< std::string > & cParamDigeo::FileBaseCodeConvol()
+{
+   return SectionWorkSpace().GenereCodeConvol().Val().FileBaseCodeConvol();
+}
+
+const cTplValGesInit< std::string > & cParamDigeo::FileBaseCodeConvol()const 
+{
+   return SectionWorkSpace().GenereCodeConvol().Val().FileBaseCodeConvol();
+}
+
+
+std::vector< cModifGCC > & cParamDigeo::ModifGCC()
+{
+   return SectionWorkSpace().GenereCodeConvol().Val().ModifGCC();
+}
+
+const std::vector< cModifGCC > & cParamDigeo::ModifGCC()const 
+{
+   return SectionWorkSpace().GenereCodeConvol().Val().ModifGCC();
+}
+
+
 cTplValGesInit< cGenereCodeConvol > & cParamDigeo::GenereCodeConvol()
 {
    return SectionWorkSpace().GenereCodeConvol();
@@ -4021,6 +4336,5 @@ void xml_init(cParamDigeo & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionWorkSpace(),aTree->Get("SectionWorkSpace",1)); //tototo 
 }
 
-std::string  Mangling( cParamDigeo *) {return "92C1DCC6B7DD5E87FF3F";};
+std::string  Mangling( cParamDigeo *) {return "9ED2CBD39E8749A9FE3F";};
 
-// };

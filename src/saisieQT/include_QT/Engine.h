@@ -58,18 +58,16 @@ public:
 
     void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
 
+    void        loadMask(QString aNameFile, QMaskedImage &maskedImg);
+
     //! Check if georeferencing data exists (for box2d mode)
     void        checkGeoref(QString aNameFile, QMaskedImage &maskedImg);
 
-    void        setDir(QDir aDir){_Dir = aDir;}
-    void        setDir(QStringList const &list);
-    QDir        getDir(){return _Dir;}
-
-    void        setFilenamesAndDir(QStringList const &strl);
+    void        setFilenames(QStringList const &strl);
     void        setFilenameOut(QString str);
 
-    QStringList& getFilenamesIn()        { return _FilenamesIn; }
-    QStringList  getFilenamesOut()       { return _FilenamesOut; }
+    QStringList& getFilenamesIn()        { return _FilenamesIn;  }
+    QStringList& getFilenamesOut()       { return _FilenamesOut; }
     QStringList& getSelectionFilenames() { return _SelectionOut; }
 
     void        setPostFix(QString str);
@@ -79,9 +77,6 @@ private:
     QStringList _FilenamesOut; //binary masks
     QStringList _SelectionOut; //selection infos
     QString     _postFix;
-
-    //! Working directory
-    QDir        _Dir;
 };
 
 class cGLData;
@@ -108,9 +103,11 @@ public:
     void    setParams(cParameters *params){ _params = params; }
 
     //! Set input filenames
-    void    setFilenamesAndDir(QStringList const &strl){ _Loader->setFilenamesAndDir(strl); }
+    void    setFilenames(QStringList const &strl){ _Loader->setFilenames(strl); }
 
     QStringList& getFilenamesIn(){return _Loader->getFilenamesIn();}
+
+    QStringList& getFilenamesOut(){return _Loader->getFilenamesOut();}
 
     //! Set output filename
     void    setFilenameOut(QString filename){_Loader->setFilenameOut(filename);}
@@ -132,7 +129,8 @@ public:
     //! Load image (and mask) file
     void    loadImage(QString imgName, float scaleFactor);
 
-    void    reloadImage(int appMode, int aK);
+    //void    reloadImage(int appMode, int aK);
+    void    reloadMask(int appMode, int aK);
 
     //! Load object
 

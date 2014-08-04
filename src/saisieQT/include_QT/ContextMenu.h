@@ -21,7 +21,7 @@ public:
 
     void createContextMenuActions();
 
-    void setPolygon(cPolygon * poly){ _polygon = poly; } // TODO virer _polygon
+    void setPolygon(cPolygon * poly){ _polygon = poly; }
     void setPos(QPointF pt) { _lastPosImage = pt; }
 
     cPolygon    *_polygon;

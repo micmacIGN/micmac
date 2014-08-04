@@ -99,7 +99,7 @@ class cRansacBasculementRigide
         void ExploreAllRansac() ;
 
 
-        void AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres,const Pt3dr * aSpeedApres);
+        void AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres,const Pt3dr * aSpeedApres,const std::string & aName);
 
         // Clos et estim la position centrale par Barrycentre
         bool CloseWithTrGlob(bool Svp= false);
@@ -108,6 +108,7 @@ class cRansacBasculementRigide
         int  CurK() const;
         const std::vector<Pt3dr>  & PAvant() const;
         const  std::vector<Pt3dr> & PApres()  const;
+        const  std::vector<std::string> & Names()  const;
         void EstimateDelay();
         double   Delay() const;
     private :
@@ -132,6 +133,7 @@ class cRansacBasculementRigide
          std::vector<Pt3dr>  mApres ;
          std::vector<Pt3dr>  mApresInit ;
          std::vector<Pt3dr>  mSpeedApres ;
+         std::vector<std::string>  mNames ;
          bool                mUseV;
 
          Pt3dr               mP0Avant;

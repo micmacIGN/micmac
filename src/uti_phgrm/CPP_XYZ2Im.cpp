@@ -79,87 +79,92 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
        );
     }
 
-    if (!EAMIsInit(&aFilteredInput))
+    if (!MMVisualMode)
     {
-      aFilteredInput = DirOfFile(aFilePtsIn) + "Filtered_" + NameWithoutDir(aFilePtsIn);
-    }
-
-
-    std::string aDir,aNC;
-
-    SplitDirAndFile(aDir,aNC,aFullNC);
-
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    cResulMSO aRMso =  anICNM->MakeStdOrient(aNC,false);
-
-
-    cElNuage3DMaille *  aNuage = aRMso.Nuage();
-    ElCamera         * aCam    = aRMso.Cam();
-    if (! Ter2Im)
-    {
-        if (aNuage)
+        if (!EAMIsInit(&aFilteredInput))
         {
-            std::cout  << "For name " << aFullNC << "\n";
-            ELISE_ASSERT(aNuage!=0,"Is not a MicMac Cloud -XML specif");
+          aFilteredInput = DirOfFile(aFilePtsIn) + "Filtered_" + NameWithoutDir(aFilePtsIn);
         }
-    }
 
-    ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
-    FILE *  aFOut = FopenNN(aFilePtsOut.c_str(),"w","XYZ2Im");
 
-    char * aLine;
-    std::vector<Pt2dr> aV2Ok;
-    bool HasEmpty = false;
+        std::string aDir,aNC;
 
-    while ((aLine = aFIn.std_fgets()))
-    {
-        if (Ter2Im)
+        SplitDirAndFile(aDir,aNC,aFullNC);
+
+        cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+        cResulMSO aRMso =  anICNM->MakeStdOrient(aNC,false);
+
+
+        cElNuage3DMaille *  aNuage = aRMso.Nuage();
+        ElCamera         * aCam    = aRMso.Cam();
+        if (! Ter2Im)
         {
-            Pt3dr aP;
-            int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
-            ELISE_ASSERT(aNb==3,"Could not read 3 double values");
-
-            Pt2dr aPIm;
-            if (aNuage) aPIm = aNuage->Terrain2Index(aP);
-            if (aCam)   aPIm = aCam->R3toF2(aP);
-
-            fprintf(aFOut,"%lf %lf\n",aPIm.x,aPIm.y);
-        }
-        else
-        {
-            Pt2dr aPIm;
-            int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
-            ELISE_ASSERT(aNb==2,"Could not read 2 double values");
-
-            if (aPoinIsImRef)
-                aPIm = aNuage->ImRef2Capteur (aPIm);
-
-            if (aNuage->CaptHasData(aPIm))
+            if (aNuage)
             {
-               Pt3dr aP  = aNuage->PreciseCapteur2Terrain(aPIm);
-               fprintf(aFOut,"%lf %lf %f\n",aP.x,aP.y,aP.z);
-               aV2Ok.push_back(aPIm);
+                std::cout  << "For name " << aFullNC << "\n";
+                ELISE_ASSERT(aNuage!=0,"Is not a MicMac Cloud -XML specif");
+            }
+        }
+
+        ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
+        FILE *  aFOut = FopenNN(aFilePtsOut.c_str(),"w","XYZ2Im");
+
+        char * aLine;
+        std::vector<Pt2dr> aV2Ok;
+        bool HasEmpty = false;
+
+        while ((aLine = aFIn.std_fgets()))
+        {
+            if (Ter2Im)
+            {
+                Pt3dr aP;
+                int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
+                ELISE_ASSERT(aNb==3,"Could not read 3 double values");
+
+                Pt2dr aPIm;
+                if (aNuage) aPIm = aNuage->Terrain2Index(aP);
+                if (aCam)   aPIm = aCam->R3toF2(aP);
+
+                fprintf(aFOut,"%lf %lf\n",aPIm.x,aPIm.y);
             }
             else
             {
-                HasEmpty = true;
-                std::cout << "Warn :: " << aPIm << " has no data in cloud\n";
+                Pt2dr aPIm;
+                int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
+                ELISE_ASSERT(aNb==2,"Could not read 2 double values");
+
+                if (aPoinIsImRef)
+                    aPIm = aNuage->ImRef2Capteur (aPIm);
+
+                if (aNuage->CaptHasData(aPIm))
+                {
+                   Pt3dr aP  = aNuage->PreciseCapteur2Terrain(aPIm);
+                   fprintf(aFOut,"%lf %lf %f\n",aP.x,aP.y,aP.z);
+                   aV2Ok.push_back(aPIm);
+                }
+                else
+                {
+                    HasEmpty = true;
+                    std::cout << "Warn :: " << aPIm << " has no data in cloud\n";
+                }
             }
-        }
-     }
+         }
 
-     if (HasEmpty || EAMIsInit(&aFilteredInput))
-     {
-         FILE *  aFFilter = FopenNN(aFilteredInput.c_str(),"w","XYZ2Im");
-         for (int aKP=0 ; aKP<int(aV2Ok.size()) ; aKP++)
-            fprintf(aFFilter,"%lf %lf\n",aV2Ok[aKP].x,aV2Ok[aKP].y);
-         ElFclose(aFFilter);
-     }
+         if (HasEmpty || EAMIsInit(&aFilteredInput))
+         {
+             FILE *  aFFilter = FopenNN(aFilteredInput.c_str(),"w","XYZ2Im");
+             for (int aKP=0 ; aKP<int(aV2Ok.size()) ; aKP++)
+                fprintf(aFFilter,"%lf %lf\n",aV2Ok[aKP].x,aV2Ok[aKP].y);
+             ElFclose(aFFilter);
+         }
 
-    aFIn.close();
-    ElFclose(aFOut);
+        aFIn.close();
+        ElFclose(aFOut);
 
-    return 0;
+        return 0;
+    }
+    else
+        return EXIT_SUCCESS;
 }
 
 

@@ -327,6 +327,309 @@ void TestBasc
    }
 }
 
+/******************************************************/
+/*                                                    */
+/*            cCompBascNonLin                         */
+/*                                                    */
+/******************************************************/
+
+// cAnalyseZoneLiaison
+// seg_mean_square
+class cCompBascNonLin;
+class cPtBNL;
+
+
+
+class cPtBNL
+{
+   public :
+      bool operator < (const cPtBNL & aP2) const {return mPLine.x < aP2.mPLine.x;}
+      cPtBNL(const cCompBascNonLin & aCBNL,int aK);
+      cPtBNL();
+      const Pt3dr & PLine() const {return mPLine;}
+      const Pt3dr & ErLine() const {return mErLine;}
+      inline Pt3dr PAvant () const;
+      inline Pt3dr PApres () const;
+      inline Pt3dr PGot () const;
+      inline const std::string  & Name() const;
+      bool  UseForEstim() const;
+
+   private :
+      const cCompBascNonLin * mCBNL;
+      int  mK;
+      Pt3dr  mPLine;
+      Pt3dr  mErLine;  // Erreur en coord line
+
+};
+
+class cModelQuadXY
+{
+    public :
+
+       cModelQuadXY(bool DoShow,const std::string & aName,int aFlagMasq);
+       void AddObs(const Pt3dr & aP,double aV);
+       void Solve();
+       double  ValOfPt(const Pt3dr & aP) const;
+       void Show();
+      
+    private :
+       bool Masqued(const int & aK) {return 0== (mMasq & (1<<aK));}
+
+       std::string     mName;
+       L2SysSurResol   mSys;
+       Im1D_REAL8      mSol;
+       double *        mDS;
+       int             mMasq; // Masque des variables anhilees
+      
+};
+
+
+
+class cCompBascNonLin : public cTransfo3D
+{
+    friend class cPtBNL;
+    public :
+       cCompBascNonLin
+       (
+             const cRansacBasculementRigide & aBasc,
+             const cSolBasculeRig   & aSBR,
+             const cAerialDeformNonLin &
+       );
+       Pt3dr ToLineC(const Pt3dr &) const;
+       Pt3dr FromLineC(const Pt3dr &) const;
+
+       std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> &) const;
+       Pt3dr Src2Cibl(const Pt3dr &) const;
+       Pt3dr ModeleOfCorr(const Pt3dr & ) const; // Line-Coord to Line-Coord
+    private :
+       cCompBascNonLin (const cCompBascNonLin &); // N.I.
+       const cRansacBasculementRigide & mBasc;
+       const cSolBasculeRig   &         mSBR;
+       const cAerialDeformNonLin &      mADLN;
+       bool                             mShow;
+       SegComp                          mSegLine;
+       int                              mNb;
+       std::vector<cPtBNL>              mVPt;
+
+       cModelQuadXY                     mMQX;
+       cModelQuadXY                     mMQY;
+       cModelQuadXY                     mMQZ;
+       mutable cElRegex                 mSelEstim;
+};
+
+
+
+    // ============= cModelQuadXY  =======================
+
+cModelQuadXY::cModelQuadXY(bool DoShow,const std::string & aName,int aFlagMasq) :
+   mName (aName),
+   mSys  (6),
+   mSol  (6),
+   mDS   (0),
+   mMasq (aFlagMasq)
+{
+   if ( DoShow) Show();
+}
+
+void cModelQuadXY::Show()
+{
+    const char * Name[6] = {"1","X","Y","X2","XY","Y2"};
+
+    std::cout << " MQ:" << mName << " [";
+    for (int aK=0 ; aK<6 ; aK++)
+        if (! Masqued(aK))
+           std::cout << Name[aK] << " ";
+    std::cout << "]\n";
+}
+
+double  cModelQuadXY::ValOfPt(const Pt3dr & aP) const
+{
+   return   mDS[0]
+         +  mDS[1] * aP.x
+         +  mDS[2] * aP.y
+         +  mDS[3] * aP.x * aP.x
+         +  mDS[4] * aP.x * aP.y
+         +  mDS[5] * aP.y * aP.y ;
+}
+
+   
+void cModelQuadXY::AddObs(const Pt3dr & aP,double aV)
+{
+    double aCoeff[6];
+    
+    aCoeff[0] = 1;
+    aCoeff[1] = aP.x;
+    aCoeff[2] = aP.y;
+    aCoeff[3] = aP.x * aP.x;
+    aCoeff[4] = aP.x * aP.y;
+    aCoeff[5] = aP.y * aP.y;
+
+    for (int aFlag=0 ; aFlag<6 ; aFlag++)
+    {
+       if (Masqued(aFlag))
+       {
+         aCoeff[aFlag] = 0;
+       }
+    }
+
+    mSys.AddEquation(1.0,aCoeff,aV);
+}
+
+void cModelQuadXY::Solve()
+{
+    for (int aFlag=0 ; aFlag<6 ; aFlag++)
+    {
+       if (Masqued(aFlag))
+       {
+          double aCoeff[6];
+          for (int aK=0 ; aK<6 ; aK++)
+          {
+               aCoeff[aK] = (aK==aFlag);
+          }
+          mSys.AddEquation(1.0,aCoeff,0.0);
+       }
+    }
+
+    mSol = mSys.Solve((bool *) 0);
+    mDS = mSol.data();
+}
+
+    // ============= cPtBNL =======================
+
+const std::string  & cPtBNL::Name() const { return mCBNL->mBasc.Names()[mK]; }
+Pt3dr   cPtBNL::PAvant() const { return mCBNL->mBasc.PAvant()[mK]; }
+Pt3dr   cPtBNL::PApres() const { return mCBNL->mBasc.PApres()[mK]; }
+Pt3dr   cPtBNL::PGot() const { return mCBNL->mSBR(mCBNL->mBasc.PAvant()[mK]); }
+
+cPtBNL::cPtBNL(const cCompBascNonLin & aCBNL,int aK) :
+   mCBNL   (&aCBNL),
+   mK      (aK),
+   mPLine  (mCBNL->ToLineC(PGot())),
+   mErLine (mCBNL->ToLineC(PApres())-mPLine)
+{
+}
+
+bool   cPtBNL::UseForEstim() const
+{
+   return mCBNL->mSelEstim.Match(Name());
+}
+    // ============= cCompBascNonLin =======================
+
+cCompBascNonLin::cCompBascNonLin
+(
+             const cRansacBasculementRigide & aBasc,
+             const cSolBasculeRig   & aSBR,
+             const cAerialDeformNonLin & anADLN
+)  :
+   mBasc (aBasc),
+   mSBR  (aSBR),
+   mADLN (anADLN),
+   mShow (mADLN.Show().Val()),
+   mNb   (mBasc.PAvant().size()),
+   mMQX  (mShow,"X",anADLN.FlagX().Val()),
+   mMQY  (mShow,"Y",anADLN.FlagY().Val()),
+   mMQZ  (mShow,"Z",anADLN.FlagZ().Val()),
+   mSelEstim (anADLN.PattEstim().Val(),10)
+{
+   // Calcul du segment
+   RMat_Inertie aMat;
+   for (int aK=0 ; aK<mNb ; aK++)
+   {
+       Pt3dr aTarg =  mBasc.PApres()[aK];
+       aMat.add_pt_en_place(aTarg.x,aTarg.y,1.0);
+   }
+   mSegLine = seg_mean_square(aMat,1.0);
+
+   // Calcul du vecteur de points
+   for (int aK=0 ; aK<mNb ; aK++)
+   {
+       mVPt.push_back(cPtBNL(*this,aK));
+   }
+   std::sort(mVPt.begin(),mVPt.end());
+
+   // Calcul de l'estimateur
+   for (int aK=0 ; aK<mNb ; aK++)
+   {
+       const cPtBNL & aPt = mVPt[aK];
+       if (aPt.UseForEstim())
+       {
+          Pt3dr aPLine = aPt.PLine();
+          Pt3dr aPEr = aPt.ErLine();
+
+          mMQX.AddObs(aPLine,aPEr.x);
+          mMQY.AddObs(aPLine,aPEr.y);
+          mMQZ.AddObs(aPLine,aPEr.z);
+       }
+   }
+
+   mMQX.Solve();
+   mMQY.Solve();
+   mMQZ.Solve();
+
+   // Calcul du vecteur de points
+   if (mShow)
+   {
+       for (int aK=0 ; aK<mNb ; aK++)
+       {
+          const cPtBNL & aPt = mVPt[aK];
+          Pt3dr aPLine = aPt.PLine();
+          Pt3dr aPEr = aPt.ErLine();
+
+          Pt3dr aModEr = ModeleOfCorr(aPLine);
+
+          Pt3dr aPG = aPt.PGot();
+          Pt3dr aPCor = Src2Cibl(aPG);
+          Pt3dr aCibl = aPt.PApres();
+
+          std::cout << (aPt.UseForEstim() ? "* " : "  ") 
+                    << aPt.Name() << " " << euclid(aPEr) 
+                    << " S2C " << euclid(aCibl-aPCor)
+                    << " => " << euclid(aModEr-aPEr)  << " DZ=" << (aModEr.z-aPEr.z) << "\n";
+       }
+   }
+
+}
+
+Pt3dr cCompBascNonLin::ToLineC(const Pt3dr & aP) const
+{
+    Pt2dr aRes2 = mSegLine.to_rep_loc(Pt2dr(aP.x,aP.y));
+    return Pt3dr(aRes2.x,aRes2.y,aP.z);
+}
+
+Pt3dr cCompBascNonLin::FromLineC(const Pt3dr & aP) const
+{
+    Pt2dr aRes2 = mSegLine.from_rep_loc(Pt2dr(aP.x,aP.y));
+    return Pt3dr(aRes2.x,aRes2.y,aP.z);
+}
+
+std::vector<Pt3dr> cCompBascNonLin::Src2Cibl(const std::vector<Pt3dr> & aInput) const
+{
+    std::vector<Pt3dr> aRes;
+    for (int aK=0 ; aK<int(aInput.size()) ; aK++)
+       aRes.push_back(Src2Cibl(aInput[aK]));
+
+   return aRes;
+}
+
+Pt3dr  cCompBascNonLin::ModeleOfCorr(const Pt3dr &  aP) const // Line-Coord to Line-Coord
+{
+    return Pt3dr
+           (
+               mMQX.ValOfPt(aP),
+               mMQY.ValOfPt(aP),
+               mMQZ.ValOfPt(aP)
+           );
+}
+Pt3dr cCompBascNonLin::Src2Cibl(const Pt3dr & aPBasc) const
+{
+   Pt3dr aPLine =  ToLineC(aPBasc);
+   Pt3dr aCorrec = ModeleOfCorr(aPLine);
+    
+   return FromLineC(aPLine+aCorrec);
+}
+
+/*************************************************************/
+
 void cAppliApero::BasculePoints
      (
            const cBasculeOnPoints & aBOP,
@@ -371,11 +674,11 @@ void cAppliApero::BasculePoints
                if (CalcV)
                {
                    Pt3dr aV = aPC->Vitesse();
-                   aBasc.AddExemple(aC0,aCObs,&aV);
+                   aBasc.AddExemple(aC0,aCObs,&aV,aPC->Name());
                }
                else
                {
-                   aBasc.AddExemple(aC0,aCObs,0);
+                   aBasc.AddExemple(aC0,aCObs,0,aPC->Name());
                }
 
                if (   aBOP.PoseCentrale().IsInit()
@@ -414,7 +717,7 @@ void cAppliApero::BasculePoints
                 cOneAppuiMul * anOAM = itO->second;
                 if (anOAM->NbInter() >=2)  
                 {
-                    aBasc.AddExemple(anOAM->PInter(),anOAM->PTer(),0);
+                    aBasc.AddExemple(anOAM->PInter(),anOAM->PTer(),0,ToString(itO->first));
                 }
            }
        }
@@ -436,7 +739,7 @@ void cAppliApero::BasculePoints
                     ///std::cout << "BASCULEFFF " <<  anOAF->Name() << " " << aPInc << "\n";
                     if ((aPInc.x>0) && (aPInc.y>0) && (aPInc.z>0))
                     {
-                        aBasc.AddExemple(anOAF->PInter(),anOAF->PtRes(),0);
+                        aBasc.AddExemple(anOAF->PInter(),anOAF->PtRes(),0,anOAF->Name());
                     }
                 }
            }
@@ -505,6 +808,13 @@ void cAppliApero::BasculePoints
 
    }
 
+   cCompBascNonLin * aPtrBNL=0;
+   const cAerialDeformNonLin * anADNL = aBOP.AerialDeformNonLin().PtrVal();
+   if (anADNL!=0) 
+   {
+       aPtrBNL = new cCompBascNonLin(aBasc,aSBR,*anADNL);
+   }
+
    //for (int aKPose=0 ; aKPose<int(mVecPose.size()) ; aKPose++)
    // Pour conserver l'ordre alphabetique, + utile pour l'affichage on passe
    // par le dico
@@ -523,6 +833,18 @@ void cAppliApero::BasculePoints
           )
        {
             aPC->SetBascRig(aSBR);
+            
+            if (aPtrBNL)
+            {
+               std::vector<ElCamera *> aVC;
+               CamStenope * aCS = aPC->NC_CurCam();
+               aCS->UnNormalize();
+               aCS->SetAltiSol(aPC->AltiSol());
+               aCS->SetProfondeur(aPC->Profondeur());
+               aVC.push_back(aCS);
+               ElCamera::ChangeSys(aVC,*aPtrBNL,anADNL->ForceTrueRot().Val(),!aBonC);
+               aPC->SetCurRot(aCS->Orient().inv());
+            }
             //   aPC->SetCurRot ( aSBR.TransformOriC2M(aPC->CurRot())); 
 
             if (aPC->HasObsOnCentre() && ((!CalcV) || (aPC->HasObsOnVitesse())))
@@ -536,6 +858,38 @@ void cAppliApero::BasculePoints
        }
    }
 
+   if (anADNL && anADNL->Show().Val())
+   {
+      if (aBAF)
+      {
+         const std::map<std::string,cOneAppuisFlottant *> &  aMAP = aBAF->Apps();
+         for
+         (
+               std::map<std::string,cOneAppuisFlottant *>::const_iterator itF= aMAP.begin();
+               itF!= aMAP.end();
+               itF++
+         )
+         {
+                cOneAppuisFlottant * anOAF = itF->second;
+                if ((anOAF->NbMesures() >=2) && (anOAF->HasGround()))
+                {
+                    Pt3dr aPInc = anOAF->PInc();
+                    ///std::cout << "BASCULEFFF " <<  anOAF->Name() << " " << aPInc << "\n";
+                    if ((aPInc.x>0) && (aPInc.y>0) && (aPInc.z>0))
+                    {
+                        Pt3dr aPG = anOAF->PtRes();
+                        Pt3dr aPI = anOAF->PInter();
+                        Pt3dr aDif = aPI-aPG;
+                        std::cout << "Non Linear Basc : " <<  anOAF->Name() << " " << aPG << " " << euclid(aDif) << " " << aDif  << "\n";
+                    }
+                }
+           }
+           // std::cout << "BAF= " << aBAF << "\n";
+      }
+   }
+
+
+   delete aPtrBNL;
 }
 
 extern    cElPlan3D RobustePlan3D

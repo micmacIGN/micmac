@@ -408,12 +408,14 @@ ENDIF()
 
 # VERIFICATION si ImageMagick est installe
 
-find_package(ImageMagick REQUIRED)
+if(NOT WIN32) # ImageMagick n'est pas obligatoire sous windows puisque les exécutables nécessaire sont fournis
+	find_package(ImageMagick QUIET)
 
-if(NOT ImageMagick_FOUND)
-        MESSAGE("ATTENTION!!! Vous devez installer Image Magick.")
-        MESSAGE("http://www.imagemagick.org/script/index.php")
-endif(NOT ImageMagick_FOUND)
+	if(NOT ImageMagick_FOUND)
+			MESSAGE("\n***   ATTENTION!!! Vous devez installer Image Magick. ***")
+			MESSAGE("***   http://www.imagemagick.org/script/index.php     ***\n")
+	endif(NOT ImageMagick_FOUND)
+endif()
 
 # VERIFICATION si exiftool est installe
 
@@ -481,7 +483,7 @@ if(NOT WIN32)
                 MESSAGE("X11 Not Found : pas de SaisieMasq")
         ENDIF()
 ELSE()
-
+		set( CMAKE_BUILD_TYPE Release )
         find_program(MAKE_EXECUTABLE make
                                 PATHS 	${BinAuxWinDir}
                                 DOC "Chemin vers la commande Make"

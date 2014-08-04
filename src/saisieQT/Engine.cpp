@@ -21,12 +21,9 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
     maskedImg._m_image = new QImage( aNameFile );
 
-    bool rescaleImg = false;
     float scaleFactor = maskedImg._loadedImageRescaleFactor;
     if ( scaleFactor != 1.f )
     {
-        rescaleImg = true;
-
         QImageReader *reader = new QImageReader(aNameFile);
 
         QSize newSize = reader->size()*scaleFactor;
@@ -87,17 +84,23 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
     maskedImg.setName(fi.fileName());
 
-    setFilenameOut(mask_filename);
+    loadMask(mask_filename, maskedImg);
+}
 
-    if (QFile::exists(mask_filename))
+void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> &maskedImg)
+{
+
+    setFilenameOut(aNameFile);
+
+    if (QFile::exists(aNameFile))
     {
         maskedImg._m_newMask = false;
 
-        if (rescaleImg)
+        if ( maskedImg._loadedImageRescaleFactor != 1.f )
         {
             maskedImg._m_mask = new QImage( maskedImg._m_image->size(), QImage::Format_Mono);
 
-            QImageReader *reader = new QImageReader(mask_filename);
+            QImageReader *reader = new QImageReader(aNameFile);
 
             reader->setScaledSize(maskedImg._m_image->size());
 
@@ -107,11 +110,11 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
         }
         else
         {
-            maskedImg._m_mask = new QImage( mask_filename );
+            maskedImg._m_mask = new QImage( aNameFile );
 
             if (maskedImg._m_mask->isNull())
             {
-                Tiff_Im imgMask( mask_filename.toStdString().c_str() );
+                Tiff_Im imgMask( aNameFile.toStdString().c_str() );
 
                 if( imgMask.can_elise_use() )
                 {
@@ -120,7 +123,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
                     delete maskedImg._m_mask;
                     maskedImg._m_mask = new QImage( w, h, QImage::Format_Mono);
-                    maskedImg._m_mask->fill(0);
+                    maskedImg._m_mask->fill(1);
 
                     Im2D_Bits<1> aOut(w,h,1);
                     ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
@@ -128,15 +131,13 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
                     for (int x=0;x< w;++x)
                         for (int y=0; y<h;++y)
                             if (aOut.get(x,y) == 1 )
-                                maskedImg._m_mask->setPixel(x,y,1);
+                                maskedImg._m_mask->setPixel(x,y,0);
 
-                    maskedImg._m_mask->invertPixels(QImage::InvertRgb);
                     *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
-
                 }
                 else
                 {
-                    QMessageBox::critical(NULL, "cLoader::loadMask","Cannot load mask image");
+                    QMessageBox::critical(NULL, "cLoader::loadMask",QObject::tr("Cannot load mask image"));
                 }
             }
             else
@@ -148,7 +149,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     }
     else
     {
-        //cout << "No mask found for image: " << aNameFile.toStdString().c_str() << endl;
+        //cout << "No mask found: " << aNameFile.toStdString().c_str() << endl;
         maskedImg._m_mask = new QImage(maskedImg._m_image->size(),QImage::Format_Mono);
         *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
         maskedImg._m_mask->fill(Qt::white);
@@ -179,11 +180,9 @@ void cLoader::checkGeoref(QString aNameFile, QMaskedImage &maskedImg)
     }
 }
 
-void cLoader::setFilenamesAndDir(const QStringList &strl)
+void cLoader::setFilenames(const QStringList &strl)
 {
     _FilenamesIn = strl;
-
-    setDir(strl);
 
     _FilenamesOut.clear();
 
@@ -211,38 +210,19 @@ void cLoader::setFilenameOut(QString str)
     _FilenamesOut.push_back(str);
 }
 
-void cLoader::setDir(const QStringList &list)
-{
-    QFileInfo fi(list[0]);
-
-    //set default working directory as first file subfolder
-    QDir Dir = fi.dir();
-    Dir.cdUp();
-
-    _Dir = Dir;
-}
-
-// File structure is assumed to be a typical Micmac workspace structure:
-// .ply files are in /MEC folder and orientations files in /Ori- folder
-// /MEC and /Ori- are in the main working directory (m_Dir)
-
 CamStenope* cLoader::loadCamera(QString aNameFile)
 {
-    string DirChantier = (_Dir.absolutePath()+ QDir::separator()).toStdString();
-    string filename    = aNameFile.toStdString();
+    QFileInfo fi(aNameFile);
+    string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
 
     #ifdef _DEBUG
         cout << "DirChantier : " << DirChantier << endl;
         cout << "filename : "    << filename << endl;
     #endif
 
-    //QFileInfo fi(aNameFile);
-
-//    _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif");
-
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
-    return CamOrientGenFromFile(filename.substr(DirChantier.size(),filename.size()),anICNM);
+    return CamOrientGenFromFile(fi.fileName().toStdString(),anICNM);
 }
 
 //****************************************
@@ -328,11 +308,7 @@ void cEngine::loadImages(QStringList filenames, int* incre)
             glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
         }
         break;
-    case ATI:
-        //TODO A RE TESTER
-        if(extGLIsSupported("GL_ATI_meminfo"))
-            glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
-        break;
+    case ATI: //TODO A RE TESTER
     case AMD:
         if(extGLIsSupported("GL_ATI_meminfo"))
             glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
@@ -414,16 +390,22 @@ void  cEngine::loadImage(QString imgName, float scaleFactor)
     _Data->pushBackMaskedImage(maskedImg);
 }
 
-void cEngine::reloadImage(int appMode, int aK)
+/*void cEngine::reloadImage(int appMode, int aK)
 {
-    QString imgName = getFilenamesIn()[aK];
-
     QMaskedImage maskedImg(_params->getGamma());
 
-    _Loader->loadImage(imgName, maskedImg);
+    _Loader->loadImage(getFilenamesIn()[aK], maskedImg);
 
     if (aK < _Data->getNbImages())
         _Data->getMaskedImage(aK) = maskedImg;
+
+    reallocAndSetGLData(appMode, *_params, aK);
+}*/
+
+void cEngine::reloadMask(int appMode, int aK)
+{
+    if (aK < _Data->getNbImages())
+        _Loader->loadMask(getFilenamesOut()[aK], _Data->getMaskedImage(aK));
 
     reallocAndSetGLData(appMode, *_params, aK);
 }

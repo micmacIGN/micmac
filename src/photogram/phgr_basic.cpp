@@ -2491,7 +2491,7 @@ extern void AffinePose(ElCamera & aCam,const std::vector<Pt2dr> & aVIm,const std
 #endif
 
 
-void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord & aSource,const cSysCoord & aCible,bool ForceRot)
+void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cTransfo3D & aTransfo3D,bool ForceRot,bool AtGroundLevel)
 {
 
     // Pour l'instant, pas encore ecrit la fonction  qui transform l'eq aux 12 param en  param physique ....
@@ -2504,8 +2504,8 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
             std::vector<Pt2dr> aVPhGr;
             std::vector<Pt3dr> aVSource;
             cEq12Parametre anEq12;
-            int aNbXY = 20;
-            int aNbProf  = 5;
+            int aNbXY = 5;
+            int aNbProf  = 3;
             double aPropProf= 0.2;
 
             ElCamera & aCam = *(aVCam[aK]);
@@ -2515,25 +2515,32 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
  
             for (int aKp= -aNbProf ; aKp<= aNbProf ; aKp++)
             {
-                double aProf =  aProfMoy * pow(1+aPropProf,aKp/double(aNbProf));
-                for (int aKx=0 ; aKx<= aNbXY ; aKx++)
+                if (AtGroundLevel || (aKp!=0))
                 {
-                    for (int aKy=0 ; aKy<= aNbXY ; aKy++)
+                    double aMul = aKp/double(aNbProf);
+                    if (AtGroundLevel) 
+                       aMul =  pow(1+aPropProf,aMul);
+                    double aProf =  aProfMoy * aMul;
+                    for (int aKx=0 ; aKx<= aNbXY ; aKx++)
                     {
-                        Pt2dr aPIm = aSzP.mcbyc(Pt2dr(aKx,aKy)/aNbXY);
-                        Pt2dr aPPhgr = aCam.F2toPtDirRayonL3(aPIm);
+                        for (int aKy=0 ; aKy<= aNbXY ; aKy++)
+                        {
+                            Pt2dr aPIm = aSzP.mcbyc(Pt2dr(aKx,aKy)/aNbXY);
+                            Pt2dr aPPhgr = aCam.F2toPtDirRayonL3(aPIm);
                         // if (Test) aPPhgr = Pt2dr(aPPhgr.x*1.1 +0.05 * aPPhgr.y,aPPhgr.y*0.9) + Pt2dr(0.1,0.15)  ;
-                        Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf) ;//   + Pt3dr(1e6,1e7,1e5);
-                        if ((aKp==0) && (aKx==0) && (aKy==0))
-                           anIndCentre = aVSource.size();
-                        aVPhGr.push_back(aPPhgr);
-                        aVSource.push_back(aPSource);
-                        aVIm.push_back(aPIm);
+                            Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf) ;//   + Pt3dr(1e6,1e7,1e5);
+                            if ((aKp==0) && (aKx==0) && (aKy==0))
+                               anIndCentre = aVSource.size();
+                            aVPhGr.push_back(aPPhgr);
+                            aVSource.push_back(aPSource);
+                            aVIm.push_back(aPIm);
+                        }
                     }
                 }
             }
 
-            std::vector<Pt3dr> aVCible = aCible.FromGeoC(aSource.ToGeoC(aVSource));
+            // std::vector<Pt3dr> aVCible = aCible.FromGeoC(aSource.ToGeoC(aVSource));
+            std::vector<Pt3dr> aVCible = aTransfo3D.Src2Cibl(aVSource); 
             Pt3dr aPCentreCible  = aVCible[anIndCentre];
             for (int aKP = 0 ; aKP<int(aVCible.size()) ; aKP++)
             {
@@ -2562,6 +2569,7 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
     }
 
 
+#if (0) // Ancienne facon a priori obsolete
 
     bool Test = false;
     std::vector<Pt3dr> aVCenterSrc;
@@ -2674,6 +2682,7 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cSysCoord 
             }
         }
     }
+#endif
 }
 
 

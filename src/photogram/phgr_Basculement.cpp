@@ -249,6 +249,11 @@ const std::vector<Pt3dr> &  cRansacBasculementRigide::PApres() const
    return mApres;
 }
 
+const  std::vector<std::string> & cRansacBasculementRigide::Names()  const
+{
+   return mNames;
+}
+
 
 void cRansacBasculementRigide::AssertOpened() const
 {
@@ -322,12 +327,19 @@ cRansacBasculementRigide::~cRansacBasculementRigide()
 {
 }
 
-void cRansacBasculementRigide::AddExemple(const Pt3dr & aAvant,const Pt3dr & aApres,const Pt3dr * aSpeedApres)
+void cRansacBasculementRigide::AddExemple
+     (
+            const Pt3dr & aAvant,
+            const Pt3dr & aApres,
+            const Pt3dr * aSpeedApres,
+            const std::string & aName
+     )
 {
    ELISE_ASSERT((aSpeedApres!=0)==(mUseV),"Incoherence UseV cRansacBasculementRigide::AddExemple");
    AssertOpened();
    mAvant.push_back(aAvant);
    mApres.push_back(aApres);
+   mNames.push_back(aName);
    mP0Avant  = mP0Avant + aAvant;
    mP0Apres  = mP0Apres + aApres;
 

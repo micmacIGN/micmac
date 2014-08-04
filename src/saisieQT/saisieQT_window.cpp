@@ -41,8 +41,6 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
     tableView_PG()->setMouseTracking(true);
     tableView_Objects()->setMouseTracking(true);
 
-    _ui->menuTools->setEnabled(false);
-
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
 }
 
@@ -141,8 +139,16 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> future)
     _FutureWatcher.setFuture(future);
     _ProgressDialog->setWindowModality(Qt::WindowModal);
 
-    int ax = pos().x() + (_ui->frame_GLWidgets->size().width()  - _ProgressDialog->size().width())/2;
-    int ay = pos().y() + (_ui->frame_GLWidgets->size().height() - _ProgressDialog->size().height())/2;
+    float szFactor = 1.f;
+    if (_params->getFullScreen())
+    {
+        QRect screen = QApplication::desktop()->screenGeometry ( -1 );
+
+        szFactor = (float) screen.width() / size().width();
+    }
+
+    int ax = pos().x() + (_ui->frame_GLWidgets->size().width() * szFactor - _ProgressDialog->size().width())/2;
+    int ay = pos().y() + (_ui->frame_GLWidgets->size().height() * szFactor - _ProgressDialog->size().height())/2;
 
     _ProgressDialog->move(ax, ay);
     _ProgressDialog->exec();
@@ -155,7 +161,7 @@ void SaisieQtWindow::loadPly(const QStringList& filenames)
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
     connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start(10);
+    timer_test->start();
 
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadClouds,filenames,_incre));
 
@@ -170,7 +176,7 @@ void SaisieQtWindow::loadImages(const QStringList& filenames)
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
     connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start(10);
+    timer_test->start();
 
     if (filenames.size() == 1) _ProgressDialog->setMaximum(0);
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadImages,filenames,_incre));
@@ -186,7 +192,7 @@ void SaisieQtWindow::loadCameras(const QStringList& filenames)
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
     connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
-    timer_test->start(10);
+    timer_test->start();
 
     runProgressDialog(QtConcurrent::run(_Engine, &cEngine::loadCameras,filenames,_incre));
 
@@ -209,9 +215,9 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             }
         }
 
-        _Engine->setFilenamesAndDir(filenames);
+        _Engine->setFilenames(filenames);
 
-        QString suffix = QFileInfo(filenames[0]).suffix();
+        QString suffix = QFileInfo(filenames[0]).suffix();  //TODO: separer la stringlist si differents types de fichiers
 
         if (suffix == "ply")
         {
@@ -273,9 +279,11 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
 void SaisieQtWindow::on_actionFullScreen_toggled(bool state)
 {
-    _params->setFullScreen(state);
+    state ? showFullScreen() : showNormal();
 
-    return state ? showFullScreen() : showNormal();
+    _params->setFullScreen(state);
+    _params->setPosition(pos());
+    _params->setSzFen(size()); //ambiguité entre size() et screen.size() => scale factor quand fullScreen
 }
 
 void SaisieQtWindow::on_actionShow_ball_toggled(bool state)
@@ -506,9 +514,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             shortcuts.push_back("F9");
             actions.push_back(tr("move mode / selection mode (only 3D)"));
         }
-        shortcuts.push_back(tr("Left clic"));
+        shortcuts.push_back(tr("Left click"));
         actions.push_back(tr("add a vertex to polygon"));
-        shortcuts.push_back(tr("Right clic"));
+        shortcuts.push_back(tr("Right click"));
         actions.push_back(tr("close polygon or delete nearest vertex"));
         shortcuts.push_back(tr("Echap"));
         actions.push_back(tr("delete polygon"));
@@ -539,6 +547,8 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("move selected vertex"));
         shortcuts.push_back(tr("Alt+arrow keys"));
         actions.push_back(tr("move selected vertex faster"));
+        shortcuts.push_back(tr("Key W+drag"));
+        actions.push_back(tr("move polygon"));
         shortcuts.push_back("Ctrl+A");
         actions.push_back(tr("select all"));
         shortcuts.push_back("Ctrl+D");
@@ -557,10 +567,13 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("Drag & drop"));
         actions.push_back(tr("move selected point"));
     }
-    shortcuts.push_back("Ctrl+Z");
-    actions.push_back(tr("undo last action"));
-    shortcuts.push_back("Ctrl+Shift+Z");
-    actions.push_back(tr("redo last action"));
+    if (_appMode <= MASK3D) //TEMP: TODO corriger le undo Elise
+    {
+        shortcuts.push_back("Ctrl+Z");
+        actions.push_back(tr("undo last action"));
+        shortcuts.push_back("Ctrl+Shift+Z");
+        actions.push_back(tr("redo last action"));
+    }
 
     _helpDialog->populateTableView(shortcuts, actions);
 }
@@ -914,9 +927,7 @@ void SaisieQtWindow::openRecentFile()
 
     if (action)
     {
-        _Engine->setFilenamesAndDir(QStringList(action->data().toString()));
-
-        addFiles(_Engine->getFilenamesIn());
+        addFiles(QStringList(action->data().toString()));
     }
 }
 
@@ -1024,19 +1035,21 @@ void SaisieQtWindow::updateUI()
         _ui->actionAdd->setText(tr("Add to mask"));
         _ui->actionRemove->setText(tr("Remove from mask"));
     }
+
+    _ui->actionAdd->setShortcut(Qt::Key_Space);
+    _ui->actionRemove->setShortcut(Qt::Key_Delete);
+    #ifdef ELISE_Darwin
+    #if(ELISE_QT_VERSION >= 5) //TODO: verifier avec QT5 - mettre a jour l'aide
+        _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
+        _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
+    #endif
+    #endif
 }
 
 void SaisieQtWindow::setUI()
 {
 
     setLayout(0);
-
-#ifdef ELISE_Darwin
-#if(ELISE_QT_VERSION >= 5) //TODO: verifier avec QT5 - mettre a jour l'aide
-    _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
-    _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
-#endif
-#endif
 
     updateUI();
 
@@ -1063,7 +1076,12 @@ void SaisieQtWindow::setUI()
          _tdLayout->setContentsMargins(2,2,2,2);
         _ui->frame_preview3D->setLayout(_tdLayout);
         _ui->frame_preview3D->setContentsMargins(0,0,0,0);
-        _ui->menuSelection->setTitle(tr("H&istory"));
+        //TEMP: undo ne marche pas du coté Elise (a voir avec Marc)
+        hideAction(_ui->menuSelection->menuAction(), false);
+        hideAction(_ui->actionUndo, false);
+        hideAction(_ui->actionRedo, false);
+        //_ui->menuSelection->setTitle(tr("H&istory"));
+        //fin TEMP
 
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);
@@ -1076,6 +1094,9 @@ void SaisieQtWindow::setUI()
     }
 
     /*if (_appMode != BASC)*/ _ui->tableView_Objects->hide();
+
+    //TEMP:
+    hideAction(_ui->menuTools->menuAction(), false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
@@ -1361,11 +1382,12 @@ void SaisieQtWindow::undo(bool undo)
     {
         if (currentWidget()->getHistoryManager()->size())
         {
-            if (_appMode != MASK3D)
+            if ((_appMode != MASK3D) && undo)
             {
                 int idx = currentWidgetIdx();
 
-                _Engine->reloadImage(_appMode, idx);
+                //_Engine->reloadImage(_appMode, idx);
+                _Engine->reloadMask(_appMode, idx);
 
                 currentWidget()->setGLData(_Engine->getGLData(idx), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(), false);
             }

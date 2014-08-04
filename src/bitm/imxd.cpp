@@ -285,7 +285,27 @@ void GenIm::write_data(ELISE_fp & fp) const
 
 
 
-
+string type_elToString( GenIm::type_el i_type )
+{
+	switch ( i_type ){
+	case GenIm::u_int1: return "u_int1";
+	case GenIm::int1: return "int1";
+	case GenIm::u_int2: return "u_int2";
+	case GenIm::int2: return "int2";
+	case GenIm::int4: return "int4";
+	case GenIm::real4: return "real4";
+	case GenIm::real8: return "real8";
+	case GenIm::bits1_msbf: return "bits1_msbf";
+	case GenIm::bits2_msbf: return "bits2_msbf";
+	case GenIm::bits4_msbf: return "bits4_msbf";
+	case GenIm::bits1_lsbf: return "bits1_lsbf";
+	case GenIm::bits2_lsbf: return "bits2_lsbf";
+	case GenIm::bits4_lsbf: return "bits4_lsbf";
+	case GenIm::real16: return "real_16";
+	case GenIm::no_type: return "no_type";
+	}
+	return "unknown";
+}
 
 
 

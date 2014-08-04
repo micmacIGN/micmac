@@ -115,7 +115,7 @@ public:
 
     void        setOptionPolygons(cParameters aParams);
 
-    void        drawCenter();
+    void        drawCenter(bool white);
 
 private:
 

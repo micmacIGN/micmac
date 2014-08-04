@@ -18,6 +18,11 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Optim-ChSysCo-Rot.xml D
             <eSymb>  NotCPI=! ${CPI} </eSymb>
        </DicoLoc>
 
+       <ShowSection>
+            <ShowMes > false </ShowMes>
+        </ShowSection>
+
+
 
        <SectionBDD_Observation>
             <BDD_Orient>
@@ -85,8 +90,6 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Optim-ChSysCo-Rot.xml D
                        </SectionContraintes>
                     </IterationsCompensation>
 
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
                    <IterationsCompensation> </IterationsCompensation>
                    <IterationsCompensation> </IterationsCompensation>
                    <IterationsCompensation> </IterationsCompensation>

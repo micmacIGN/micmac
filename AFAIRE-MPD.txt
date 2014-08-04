@@ -18,9 +18,12 @@ EVOLUTIONS :
   * Plan 3D robuste
 
   * Dans NewTapas :
-      * remise contrainte rigie + viscosite faible + viscosite sur le
+  * remise contrainte rigie + viscosite faible + viscosite sur le
 
-Torsion de bande,
+  * Modeles additionnels dans Tapas (AddPol et AddFour ) + les options dans NewTapas
+  * GCPCtrl
+
+Torsion de bande : FAITS
 
   1- Supprimer les fichiers inclus dans Apero-Glob (New) pour faciliter maintenance et evol
   2- Remettre une contrainte rigide et passer du SLM GLOB tres faible, pas SectionCompens
@@ -293,6 +296,32 @@ Par exemple :
 => Le rattio RatioStereoVert peut eliminer bcp de couple en epipolaire, il faudrait que dans ce cas on repasse sur de la geometrie image "normale" ?
 
 [2] Si on fait de la multi corrélation ? Il faut gérer une géométriequi tienne compte des correction d'epipolaire, faisable à la voléé ?
+
+
+=====================================================
+
+Pour option Deformation non lineaire dans GCP Bascule :
+
+Dans Apero/ Basculement.cpp :
+
+   void cAppliApero::BasculePoints
+
+   On recupere les points 3D avant et apres la bascule.
+
+   Point d'entree pour faire une transfo non  lineaire
+
+Option Affine Pose :
+
+     void AffinePose(ElCamera & aCam,const std::vector<Pt2dr> & aVIm,const std::vector<Pt3dr> & aVPts) dans cEq12Param.cpp
+
+Appel depuis ChSys :
+
+   aChCo->ChangCoordCamera   // Apero/cExport.cpp
+   ElCamera::ChangeSys
+
+
+  
+
 
 
 

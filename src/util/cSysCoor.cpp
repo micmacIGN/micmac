@@ -1457,7 +1457,11 @@ std::vector<Pt3dr>  cChSysCo::Cibl2Src(const std::vector<Pt3dr> & aP) const
 
 void cChSysCo::ChangCoordCamera(const std::vector<ElCamera *> & aVCam,bool ForceRot)
 {
-    ElCamera::ChangeSys(aVCam,*mSrc,*mCibl,ForceRot);
+    ElCamera::ChangeSys(aVCam,*this,ForceRot,true);
+}
+
+cChSysCo::~cChSysCo()
+{
 }
 
 /*

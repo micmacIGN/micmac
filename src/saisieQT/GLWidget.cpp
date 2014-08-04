@@ -79,7 +79,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
     if (aData != NULL)
     {
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-            m_GLData->glImage().deleteTextures();  //TODO: undo => seg fault
+            m_GLData->glImage().deleteTextures();
 
         m_GLData = aData;
 
@@ -167,12 +167,39 @@ void GLWidget::paintGL()
     _messageManager.draw();
 }
 
+int GLWidget::getWindowMeanValue(QPoint pos, int r)
+{
+    QImage gIma = grabFrameBuffer();
+
+    int kP  = 0;
+    int cP  = 0;
+
+    for (int x = max(0,pos.x()-r); x < min(gIma.width()-1,pos.x()+r); ++x)
+        for (int y = max(0,pos.y()-r); y < min(gIma.height()-1,pos.y()+r); ++y)
+    {
+        cP  += qGray(gIma.pixel(x, y));
+         ++kP;
+    }
+
+    cP /= kP;
+
+    return cP;
+}
+
 void GLWidget::overlay()
 {
     if (hasDataLoaded() && (m_bDisplayMode2D || (m_interactionMode == SELECTION)) )
     {
         if (_widgetId < 0)
-                    m_GLData->drawCenter();
+        {
+            GLint       glViewport[4];
+            glGetIntegerv(GL_VIEWPORT, glViewport);
+
+            //todo remplacer par la croix
+            int cP = getWindowMeanValue(QPoint( (int)glViewport[2]/2, (int)glViewport[3]/2 ) );
+
+            m_GLData->drawCenter(cP<128);
+        }
 
         if(m_interactionMode == SELECTION)
             _matrixManager.setMatrixDrawViewPort();
@@ -364,24 +391,9 @@ void GLWidget::setCursorShape(QPointF pos, QPointF mPos)
 
     if ( imageLoaded() && !polygon()->isLinear() && isPtInsideIm(pos) && (_widgetId >=0) )
     {
-
-        QImage gIma = grabFrameBuffer();
-
-        int r   = 7;
-        int kP  = 0;
-        int cP  = 0;
-
-        for (int x = max(0,(int)mPos.x()-r); x < min(gIma.width()-1,(int)mPos.x()+r); ++x)
-            for (int y = max(0,(int)mPos.y()-r); y < min(gIma.height()-1,(int)mPos.y()+r); ++y)
-        {
-            cP  += qGray(gIma.pixel(x, y));
-             ++kP;
-        }
-
-        cP /= kP;
         QPixmap cuCross(":/MM/Icons/images/cross_cursor.png");
 
-        if(cP < 128)
+        if( getWindowMeanValue(QPoint((int) mPos.x(), (int)mPos.y())) < 128)
         {
             QImage image = cuCross.toImage();
             image.invertPixels();
@@ -634,7 +646,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (polygon()->isSelected())                    // MOVE POLYGON
             {
-                //TODO: a verifier
+                //TODO: a verifier => y inversé en 3D - OK en 2D
                 QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
                 polygon()->translate(pos - translation);
             }
@@ -808,8 +820,8 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
 {
     if(event->modifiers().testFlag(Qt::ControlModifier))
     {
-        if(event->key() == Qt::Key_1)    zoomFactor(50);
-        else if(event->key() == Qt::Key_2)    zoomFactor(25);
+        if(event->key() == Qt::Key_2)    zoomFactor(50);
+        else if(event->key() == Qt::Key_4)    zoomFactor(25);
     }
     else
     {
@@ -913,7 +925,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
             polygon()->resetSelectedPoint();
         }
 
-            polygon()->setSelected(false);
+        polygon()->setSelected(false);
 
         update();
     }
