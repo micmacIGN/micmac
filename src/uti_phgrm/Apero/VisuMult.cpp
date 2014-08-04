@@ -227,7 +227,7 @@ void cOneVisuPMul::DoOnePMul(cOnePtsMult & aPM )
                  );
 
 
-    const CamStenope * aCS0 = aPM.Pose0()->CF()->CameraCourante();
+    const CamStenope * aCS0 = aPM.Pose0()->CurCam();
 
     // cInterpolBilineaire<U_INT2> anIB;
     // cRecorrel aRC(anIB,aPM.Pose0()
@@ -299,7 +299,7 @@ void cOneVisuPMul::DoOnePMul(cOnePtsMult & aPM )
        Pt2dr aDec = Pt2dr(aBox._p0);
        Im2D_U_INT2 anIm = aVPCL[aKPose]->Im();
 
-       const CamStenope * aCS = aVPCL[aKPose]->CF()->CameraCourante();
+       const CamStenope * aCS = aVPCL[aKPose]->CurCam();
        Pt2dr aPImAbs = aCS->R3toF2(mPTer00);
        Pt2dr aPImLoc = aPImAbs - aDec;
 
@@ -393,7 +393,7 @@ ElTimer aChr;
                 aW->draw_circle_loc(aPOptImLoc,0.5,aW->pdisc()(P8COL::red));
            }
        }
-       aVCS.push_back(aVPCL[aKPose]->CF()->NC_CameraCourante());
+       aVCS.push_back(aVPCL[aKPose]->NC_CurCam());
        aVPdsNew.push_back(OkPts?1.0:0.0);
        aNewNuple.AddPts(aRCK.BestPImAbs());
    }

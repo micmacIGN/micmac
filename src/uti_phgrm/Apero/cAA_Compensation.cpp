@@ -318,6 +318,21 @@ class cCmpNbNNPose
 
 void cAppliApero::OneIterationCompensation(const cIterationsCompensation & anIter,const cEtapeCompensation & anEC,bool IsLast)
 {
+    if (mSqueezeDOCOAC)
+    {
+        ELISE_ASSERT(mSqueezeDOCOAC==1,"Multiple mSqueezeDOCOAC");
+        cStatObs  aSO(false);
+        mSqueezeDOCOAC++;
+        AddObservationsAppuisFlottants(anEC.SectionObservations().ObsAppuisFlottant(),IsLast,aSO);
+/*
+std::cout << "AOAF : NonO =================================================\n";
+        // cSectionObservation
+std::cout << "DONNNNE AOAF : NonO =================================================\n";
+*/
+
+        // cwanEC.AddObservations().anSO.ObsAppuisFlottant(),IsLast,aSO);
+        return;
+    }
 
     mCurEC = & anEC;
     mIsLastIter = IsLast;
@@ -331,13 +346,13 @@ void cAppliApero::OneIterationCompensation(const cIterationsCompensation & anIte
     mSetEq.SetPhaseEquation();
     ActiveContraintes(false);
 
-    cStatObs  aSO(true);
 
     for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
     {
        mVecPose[aKP]->SetNbPtsMulNN(0);
     }
 
+    cStatObs  aSO(true);
     AddObservations(anEC.SectionObservations(),IsLast,aSO);
     mStatLastIter = aSO;
 
@@ -672,6 +687,16 @@ bool cAppliApero::PIsActif(const Pt2dr & aP) const
   return (!mMTAct) || (mMTAct->SelectVal(aP));
 }
 
+void cAppliApero::SetSqueezeDOCOAC()
+{
+   ELISE_ASSERT(mSqueezeDOCOAC<=1,"cAppliApero::SetSqueezeDOCOAC");
+   mSqueezeDOCOAC = 1;
+}
+
+bool cAppliApero::SqueezeDOCOAC() const
+{
+   return mSqueezeDOCOAC != 0;
+}
 
 void cAppliApero::DoContraintesAndCompens
      (
@@ -680,6 +705,16 @@ void cAppliApero::DoContraintesAndCompens
             bool  IsLastIter
      )
 {
+
+/*
+   if (mSqueezeDOCOAC)
+   {
+      ELISE_ASSERT(mSqueezeDOCOAC==1,"Multiple mSqueezeDOCOAC");
+      mSqueezeDOCOAC++;
+      // AddObservationsAppuisFlottants(anSO.ObsAppuisFlottant(),IsLastIter,aSO);
+      return;
+   }
+*/
 
    mMTAct = 0;
    if (!anIter.MesureErreurTournante().IsInit())
