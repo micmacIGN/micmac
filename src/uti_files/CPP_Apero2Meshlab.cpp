@@ -51,7 +51,10 @@ void Apero2Meshlab_Banniere()
   std::cout << "  **                                             **\n";
   std::cout << "  **                   Apero                     **\n";
   std::cout << "  **                     2                       **\n";
-  std::cout << "  **                 Meshlab                     **\n";
+  std::cout << "  **                  Meshlab                    **\n";
+  std::cout << "  **                                             **\n";
+  std::cout << "  **              Contribution by:               **\n";
+  std::cout << "  **    Luca Penasa, after Girod's Apero2PMVS    **\n";
   std::cout << "  **                                             **\n";
   std::cout << "  *************************************************\n";
 }
