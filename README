@@ -37,7 +37,7 @@ Compiling from the sources' archive
 
 		In addition of previously named tools, people willing to compile binaries from the source code will need to install the cmake
 program (www.cmake.org). Linux and MacOS X users may also want to get X11 header files in order to generate graphical functionalities
-like SaisieBasc, SaisieMasq, etc.
+like SaisieBasc, SaisieMasque, etc.
 		The package of X11 headers is general called 'libx11-dev' under Linux distributions.
 		X11-based tools are not available in the Windows version.
 Windows users may need Qt5 libraries to generate graphical interfaces such as SaisieMasqQT.
@@ -80,5 +80,6 @@ of the statue's head. Open the PLY files with a viewer like meshlab to check eve
 
 additionnal notes
 
-	You can append the full path of the "bin" directory to "PATH" environment variable to call Micmac commands from anywhere. However, it is
-not necessary to add the "binaire-aux" directory to the PATH variable.
+	You can append the full path of the "bin" directory to "PATH" environment variable to call Micmac commands from anywhere. However, it is not necessary to add the "binaire-aux" directory to the PATH variable.
+	For Linux / MacOSX, you have to append the path to the "lib" directory to "LD_LIBRARY_PATH" in .bashrc to be able to use QT tools. 
+Add the following line: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/micmac/lib/
