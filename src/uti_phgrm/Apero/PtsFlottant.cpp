@@ -164,14 +164,24 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
       if (mHasGround)
       {
           int aNbCam =0;
-          double anErMax=0;
+          double anErMax=-1;
+          int aKMax= -1;
           for (int aK=0 ; aK<int(mCams.size()) ; aK++)
           {
               if (mCams[aK]->RotIsInit())
               {
                   aNbCam++;
+                  CamStenope * aCS = mCams[aK]->GetCamNonOrtho();
+                  Pt2dr aPProj = aCS->R3toF2(mPt);
+                  double aDist = euclid(aPProj,mPts[aK]);
+                  if (aDist>anErMax)
+                  {
+                      anErMax = aDist;
+                      aKMax = aK;
+                  }
               }
           }
+          if (aNbCam==0) return 0;
           
           if (aNbCam>=2)
           {
@@ -179,6 +189,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
              Pt3dr aDif =  mPt - PInter();
              std::cout << "Ctrl " << mName  << " GCP-Bundle, D=" <<  euclid(aDif) << " P=" << aDif<< "\n";
           }
+          if (aKMax>=0)
+             aCamMaxErr =  mCams[aKMax]->Name();
           return anErMax;
       }
       return 0;
@@ -614,13 +626,16 @@ void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
     {
        std::string aCam;
        double anErr = it1->second->AddObs(anObs,aSO,aCam);
-       anErrMoy += anErr;
-       aSomP ++;
-       if ((anErr >  anErrMax) && (aCam!=""))
+       if (aCam!="")
        {
+          anErrMoy += anErr;
+          aSomP ++;
+          if (anErr >  anErrMax) 
+          {
               anErrMax = anErr;
               aPFMax = it1->second;
               aCamMax = aCam;
+          }
        }
     }
     if (aPFMax)
