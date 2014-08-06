@@ -56,7 +56,7 @@ void cAppliApero::ExportVisuConfigPose(const cExportVisuConfigGrpPose & anEVCGP)
        for ( int aK=0 ; aK<int(aVC.size()) ; aK++)
        {
             double aPds = 1.0;
-            aCdg = aCdg  +aVC[aK]->CF()->CameraCourante()->PseudoOpticalCenter()*aPds;
+            aCdg = aCdg  +aVC[aK]->CurCam()->PseudoOpticalCenter()*aPds;
             aSPds += aPds;
        }
        aCdg = aCdg/ aSPds;
@@ -64,7 +64,7 @@ void cAppliApero::ExportVisuConfigPose(const cExportVisuConfigGrpPose & anEVCGP)
        {
            fprintf(aFP,"  ------------------\n");
            fprintf(aFP,"       Pose=%s\n",aVC[aK]->Name().c_str());
-           Pt3dr aC = aVC[aK]->CF()->CameraCourante()->PseudoOpticalCenter();
+           Pt3dr aC = aVC[aK]->CurCam()->PseudoOpticalCenter();
            fprintf(aFP,"       DCDG=%f\n",euclid(aC-aCdg));
        }
    }
@@ -260,7 +260,7 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
            double aP= aPC->Profondeur();
 	   std::string Engl="ExportAPERO";
 
-           const CamStenope * aCS = aPC->CF()->CameraCourante();
+           const CamStenope * aCS = aPC->CurCam();
 
 	   if (aPC->PMoyIsInit())
 	   {
@@ -274,7 +274,7 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
            {
                // ELISE_ASSERT(false,"CHC in Apero, inhibed : use ad-hoc command\n");
               // On modifie, donc on travaille sur un dupl
-                CamStenope *aCS2 = aPC->CF()->DuplicataCameraCourante();
+                CamStenope *aCS2 = aPC->DupCurCam();
                 aCS2->UnNormalize();
                 aCS2->SetProfondeur(aP);
                 std::vector<ElCamera*> aVC;
@@ -298,7 +298,7 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
            ELISE_fp::MkDirRec(aNXml);
 	   if (anEP.AddCalib().Val())
 	   {
-               CamStenope * aCS2 = aPC->CF()->PIF().DupCurPIF();
+               CamStenope * aCS2 = aPC->CamF()->PIF().DupCurPIF();
 	       Pt2di aSzIm = aPC->Calib()->SzIm();
                if (anEP.ExportAsNewGrid().IsInit())
                {
@@ -397,7 +397,7 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
 	   }
 	   else
            {
-               XML_SauvFile(aPC->CF()->CurRot(),aNXml,Engl,aZ,aP,aMM);
+               XML_SauvFile(aPC->CamF()->CurRot(),aNXml,Engl,aZ,aP,aMM);
            }
        }
    }

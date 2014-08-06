@@ -395,7 +395,7 @@ ElSeg3D  cOnePtsMult::GetUniqueDroiteInit(bool UseZU)
    }
    ELISE_ASSERT(aPcK!=0,"cOnePtsMult::GetUniqueDroiteInit Aucune");
  
-   const CamStenope & aCS =   * (aPcK->CF()->CameraCourante());
+   const CamStenope & aCS =   * (aPcK->CurCam());
 
 // std::cout << "ttttt " << aPtK << aCS.CentreOptique() << "\n";
 
@@ -438,7 +438,8 @@ Pt3dr InterFaisceaux
      {
          if ( (aKR>=int(aVPds.size())) || (aVPds[aKR] >0))
          {
-             const CamStenope * aCS =   aVC[aKR]->CF()->CameraCourante();
+              // C'EST LA IL FAUT TESTER LA CAMERA NON ORTHO
+             const CamStenope * aCS =   aVC[aKR]->CurCam();
              ElSeg3D aSeg = aCS->F2toRayonR3(aNPt.PK(aKR));
              aVSeg.push_back(aSeg);
          }
@@ -464,12 +465,12 @@ Pt3dr TestInterFaisceaux
 
       for (int aK1=0 ; aK1 <int( aVC.size()) ; aK1++)
       {
-          const CamStenope * aCS1 =   aVC[aK1]->CF()->CameraCourante();
+          const CamStenope * aCS1 =   aVC[aK1]->CurCam();
           Pt2dr aP1 = aNPt.PK(aK1);
           ElSeg3D aSeg1 = aCS1->F2toRayonR3(aP1);
           for (int aK2=aK1+1 ; aK2 <int( aVC.size()) ; aK2++)
           {
-              const CamStenope * aCS2 =   aVC[aK2]->CF()->CameraCourante();
+              const CamStenope * aCS2 =   aVC[aK2]->CurCam();
               Pt2dr aP2 = aNPt.PK(aK2);
               ElSeg3D aSeg2 = aCS2->F2toRayonR3(aP2);
 
@@ -478,7 +479,7 @@ Pt3dr TestInterFaisceaux
 
               for (int aK3 = 0 ; aK3<int( aVC.size()) ; aK3++)
               {
-                  const CamStenope * aCS3 =   aVC[aK3]->CF()->CameraCourante();
+                  const CamStenope * aCS3 =   aVC[aK3]->CurCam();
                   Pt2dr aP3 = aNPt.PK(aK3);
                   Pt2dr aQ3 = aCS3->R3toF2(aPTest);
                   double aDist = euclid(aP3,aQ3);
@@ -498,7 +499,7 @@ Pt3dr TestInterFaisceaux
    {
        for (int aK3 = 0 ; aK3<int( aVC.size()) ; aK3++)
        {
-            const CamStenope * aCS3 =   aVC[aK3]->CF()->CameraCourante();
+            const CamStenope * aCS3 =   aVC[aK3]->CurCam();
             Pt2dr aP3 = aNPt.PK(aK3);
             Pt2dr aQ3 = aCS3->R3toF2(aPMax);
             double aDist = euclid(aP3,aQ3);
@@ -918,7 +919,7 @@ cOneCombinMult *  cObsLiaisonMultiple::AddAFlag(const cOnePtsMult & aPM)
     {
          if (aFlag.IsIn(aK))  // (aFlag & (1<<(aK-1))()
          {
-             aVCF.push_back(mVPoses[aK]->Pose()->CF());
+             aVCF.push_back(mVPoses[aK]->Pose()->CamF());
 	     aVP.push_back(mVPoses[aK]->Pose());
          }
     }
@@ -1253,7 +1254,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                            for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                            {
                               if (aVpds[aK] > 0)
-                                 std::cout << aVP[aK]->CF()->CameraCourante()->R3toF2(aRes.mPTer) 
+                                 std::cout << aVP[aK]->CurCam()->R3toF2(aRes.mPTer) 
                                       <<  aRes.mEcIm[aK] 
                                       << aNupl.PK(aK) << "\n";
                               else
