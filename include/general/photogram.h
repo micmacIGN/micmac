@@ -71,8 +71,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern bool NewBug;
 extern bool DoCheckResiduPhgrm;
-extern bool AcceptTrueRot;
-extern bool ForceTrueRot;
+extern bool AcceptFalseRot;
 
 // Definis dans phgr_formel.h
 class cSetEqFormelles;

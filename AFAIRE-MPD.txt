@@ -1,6 +1,9 @@
+BUG sur Tapioca Boudha 
+
+
 EVOLUTIONS :
 
-  * Compensation sur des lignes 3D
+  *# Compensation sur des lignes 3D
   * Cox Roy accesible ds Malt  + SzRec 
   * Generation des orientation d'ortho par image
   * Masq Glob dans Malt

@@ -4055,7 +4055,7 @@ ElMatrix<double>   Std_RAff_C2M
 
        TrueRot = aRVect.CodageMatr().Val().TrueRot().ValWithDef(true);
 
-       if ((!TrueRot) && (ForceTrueRot))
+       if ((!TrueRot) && (false)) // false : valeur de ForceTrueRot avant supression
        {
            TrueRot = true;
            cElWarning::TrueRot.AddWarn("Force True Rot",__LINE__,__FILE__);
