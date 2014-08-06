@@ -46,15 +46,29 @@ Header-MicMac-eLiSe-25/06/2007*/
 // List  of classes
 
 class cCMP_Ima;
+class VT_Img;
 class cCMP_Appli;
+class VT_AppSelTieP;
 
 class cCMP_Ima
 {
 	public :
 		cCMP_Ima(cCMP_Appli & anAppli,const std::string & aName, const std::string & aOri);
-		Pt3dr ManipImage();
+		Pt3dr CentreOptique();
 	//private :
 		cCMP_Appli &   mAppli;
+		CamStenope *	mCam;
+		std::string mNameOri;
+		std::string	 mName;
+};
+
+class VT_Img
+{
+	public :
+		VT_Img(VT_AppSelTieP & anAppli,const std::string & aName, const std::string & aOri);
+		Pt3dr CentreOptique();
+	//private :
+		VT_AppSelTieP &   mAppli;
 		CamStenope *	mCam;
 		std::string mNameOri;
 		std::string	 mName;
@@ -84,6 +98,193 @@ class cCMP_Appli
 		// const std::string & Dir() const {return mDir;}
 };
 
+typedef  std::pair<VT_Img *,VT_Img *> tPairIm;
+typedef  std::map<tPairIm,ElPackHomologue> tMapH;
+
+class VT_AppSelTieP : public cAppliWithSetImage
+{
+    public :
+
+        VT_AppSelTieP(int argc, char** argv);
+        cInterfChantierNameManipulateur * ICNM() const {return mICNM;}
+        const std::string & Dir() const {return mDir;}
+		std::string NameIm2NameOri(const std::string &, const std::string &) const;
+   // private :
+
+        std::string 					  mFullName, mOri, mDir, mPat, mNameOri;
+		double 							  minAngle;
+		cInterfChantierNameManipulateur * mICNM;
+		std::list<std::string> 			  mLFile;
+		CamStenope					    * aCam;
+		tPairIm 						  aPair;
+		std::map<std::pair<VT_Img *,VT_Img *> ,ElPackHomologue> mMapH;
+		
+};
+
+
+/********************************************************************/
+/*                                                                  */
+/*                      VT_AppSelTieP                               */
+/*                                                                  */
+/********************************************************************/
+bool FileExists( const char * FileName )
+{
+    FILE* fp = NULL;
+    fp = fopen( FileName, "rb" );
+    if( fp != NULL )
+    {
+        fclose( fp );
+        return true;
+    }
+    return false;
+}
+
+float AngleBetween3Pts(Pt3dr pt1, Pt3dr pt2, Pt3dr ptCent)
+{
+	Pt3dr v1 = ptCent-pt1;
+	Pt3dr v2 = ptCent-pt2;
+	float angle=0;
+	float pi=3.14159265359;
+	float n1 = sqrt( v1.x*v1.x + v1.y*v1.y + v1.z*v1.z );
+	float n2 = sqrt( v2.x*v2.x + v2.y*v2.y + v2.z*v2.z );
+	float s1 = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+	if (n1*n2!=0){
+		angle = acos (s1/(n1*n2));
+		angle = angle * 180 / pi ;}
+	return angle;
+}
+
+VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is used to initialize the images
+    cAppliWithSetImage (argc-1,argv+1,0),		// it has to be used without the first argument (name of the command)
+	minAngle(10)
+{
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pat)")
+					<< EAMC(mOri,"Orientation"),
+		LArgMain()  << EAM(minAngle,"Angle",true,"Angle under which TieP will be rejected (Default = 10)")
+	);
+
+	// Initialize name manipulator & files
+	SplitDirAndFile(mDir,mPat,mFullName);
+
+	// Get the list of files from the directory and pattern
+	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+	mLFile = mICNM->StdGetListOfFile(mPat);
+	// If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
+	StdCorrecNameOrient(mOri,mDir);
+
+	// Get the name of tie points name using the key
+    std::string mKey = "NKS-Assoc-CplIm2Hom@@dat";
+    std::string aNameH ;
+
+
+	for (
+			  std::list<std::string>::iterator itS1=mLFile.begin();
+			  itS1!=mLFile.end();
+			  itS1++
+		)
+	 {			// Parcours liste d'image
+		VT_Img * mImg1 = new  VT_Img(*this,*itS1,mOri);
+		Pt3dr mCentre1 = mImg1->CentreOptique();
+		 
+		for (
+			  std::list<std::string>::iterator itS2=mLFile.begin();
+			  itS2!=mLFile.end();
+			  itS2++
+		)
+		{
+			std::string mPatHom = mDir + "Homol/Pastis" + *itS1 + "/" + *itS2 + ".dat";
+			cout << "Im1 = " << *itS1 << "\tIm2 = " <<*itS2 << endl;
+			 
+			if (FileExists(mPatHom.c_str()))
+			{
+				VT_Img * mImg2 = new  VT_Img(*this,*itS2,mOri);
+				Pt3dr mCentre2 = mImg2->CentreOptique();
+				aNameH =  mDir
+					   +  mICNM->Assoc1To2
+								(
+									mKey,
+									*itS1,
+									*itS2,
+									true
+								);
+				
+				ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);				 
+				 
+				for (
+					   ElPackHomologue::iterator iTH = aPack.begin();
+					   iTH != aPack.end();
+					   iTH++
+					 )
+				{	
+ 				    Pt2dr aP1 = iTH->P1();
+				    Pt2dr aP2 = iTH->P2();
+
+				    Pt3dr aTer = mImg1->mCam->PseudoInter(aP1,*(mImg2->mCam),aP2);
+				    float mAngle = AngleBetween3Pts(mCentre1,mCentre2,aTer);
+				   
+				    if (mAngle > minAngle )
+				    {
+					    aPair.first = mImg1;
+					    aPair.second = mImg2; 
+					    mMapH[aPair].Cple_Add(ElCplePtsHomologues(aP1,aP2)); 
+				    }
+				}
+			}
+			//else {cout << "   !! DOESN't ExiSTS !!\n";}
+		}
+	}
+	std::ostringstream myS;
+	myS << minAngle;
+	std::string aKey = "NKS-Assoc-CplIm2Hom@_" + myS.str() + "@dat";     // association key, here results will be saved in a folder "HomolSimul", as .dat files
+
+    for (tMapH::iterator itM=mMapH.begin(); itM!=mMapH.end() ; itM++)       // browse the dictionnary
+    {
+         VT_Img * aIm1 = itM->first.first;       // img1
+         VT_Img * aIm2 = itM->first.second;      // img2
+         std::string aNameH = mICNM->Assoc1To2(aKey,aIm1->mName,aIm2->mName,true);      // name of the file to save ("HomolSimul/Pastis....dat")
+         itM->second.StdPutInFile(aNameH);      // save pt_im1 & pt_im2 in that file
+         std::cout << aNameH << "\n";
+    }	
+}
+
+std::string VT_AppSelTieP::NameIm2NameOri(const std::string & aNameIm, const std::string & aOri) const
+{
+	return mICNM->Assoc1To1
+	(
+		"NKS-Assoc-Im2Orient@-"+aOri+"@",
+		aNameIm,
+		true
+	);
+}
+
+/********************************************************************/
+/*																  */
+/*		 VT_Img												 */
+/*																  */
+/********************************************************************/
+
+VT_Img::VT_Img(VT_AppSelTieP & anAppli,const std::string & aName, const std::string & aOri) :
+   mAppli  (anAppli),
+   mName   (aName)
+{
+	mNameOri  = mAppli.NameIm2NameOri(mName,aOri);
+	mCam	  = CamOrientGenFromFile(mNameOri,mAppli.ICNM());
+
+}
+
+Pt3dr VT_Img::CentreOptique()
+{
+	Pt3dr mCentreCam = mCam->VraiOpticalCenter();
+	return mCentreCam;
+}
+
+//Pt3dr VT_Img::2HomTo3D(
+
+
+
 /********************************************************************/
 /*																  */
 /*		 cCMP_Ima												 */
@@ -99,7 +300,7 @@ cCMP_Ima::cCMP_Ima(cCMP_Appli & anAppli,const std::string & aName, const std::st
 
 }
 
-Pt3dr cCMP_Ima::ManipImage()
+Pt3dr cCMP_Ima::CentreOptique()
 {
 	Pt3dr mCentreCam = mCam->VraiOpticalCenter();
 	return mCentreCam;
@@ -165,8 +366,8 @@ cCMP_Appli::cCMP_Appli(int argc, char** argv)
 		if (mIms1[i]->mName != mIms2[i]->mName) { cout << "!!!!!!!!! NOMS D'IMAGES INCOHÉRENTS !!!!!!!!!" << endl;}
 		else
 		{
-		   Pt3dr mCentre1 = mIms1[i]->ManipImage();
-		   Pt3dr mCentre2 = mIms2[i]->ManipImage();
+		   Pt3dr mCentre1 = mIms1[i]->CentreOptique();
+		   Pt3dr mCentre2 = mIms2[i]->CentreOptique();
 		   mDiffCentre = mCentre1 - mCentre2;
 		   cout << "Image : " << mIms1[i]->mName << " " << mDiffCentre << endl;
 		   mVDCentre.push_back(mDiffCentre);
@@ -796,72 +997,11 @@ int Idem_main(int argc, char** argv)
 	
 	return EXIT_SUCCESS;
 }
-	
+
 int SelTieP_main (int  argc, char** argv)
 {
-	/*
-	std::string aFullName, aOri, aDir, aPat, aNameOri;
-	float minAngle(10);
-	cInterfChantierNameManipulateur * aICNM();
-	std::list<std::string> aLFile;
-	CamStenope *	aCam;
+	VT_AppSelTieP anAppli(argc,argv);
 	
-	ElInitArgMain
-	(
-		argc,argv,
-		LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pat)")
-					<< EAMC(aOri,"Orientation"),
-		LArgMain()  << EAM(minAngle,"Angle",true,"Angle under which TieP will be rejected {Default = 10}")
-	);
-	
-	// Initialize name manipulator & files
-	SplitDirAndFile(aDir,aPat,aFullName);
-
-	// Get the list of files from the directory and pattern
-	aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-	aLFile = aICNM->StdGetListOfFile(aPat);
-	// If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
-	StdCorrecNameOrient(aOri,aDir);
-
-
-	Pt3dr aCentreCam = aCam->VraiOpticalCenter();
-	std::vector<Pt3dr> aLCentreCam;
-	for 
-	(
-		std::list<std::string>::iterator itS=aLFile.begin();
-		itS!=aLFile.end();
-		itS++
-	)
-	{
-		aNameOri = NameIm2NameOri(*itS,ICNM());
-		aCam  = CamOrientGenFromFile(aNameOri,ICNM());
-		Pt3dr aCentreCam = aCam->VraiOpticalCenter();
-		aLCentreCam.puh_back(aCentreCam);
-	}
-	
-	for 
-	(
-		int i=0;
-		i<aLFile.size()-1;
-		i++
-	)
-	{
-		for 
-		(
-			int j=i+1;
-			j<aLFile.size();
-			j++
-		)
-		{
-			//CAlculer angle
-			
-			//aLCentreCam[i]
-			
-			//Si angle < minAngle, on renomme le fichier de couples homol en .OLD
-			
-		}
-	}
-	*/
 	return EXIT_SUCCESS;
 }
 
