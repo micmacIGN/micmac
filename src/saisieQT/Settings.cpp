@@ -13,7 +13,7 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(paren
 
     _parameters = params;
 
-    list<string> languages = ListOfVal(eEsperanto,"e");
+    list<string> languages = ListOfVal(eEsperanto,"");
     list<string>::const_iterator it = languages.begin();
     for (; it != languages.end(); it++)
         _ui->comboBox->addItem(QString((*it).c_str()));
@@ -506,11 +506,11 @@ void cHelpDlg::on_okButton_clicked()
 string eToString(const eLANG &anObj)
 {
     if (anObj==eEnglish)
-       return  "eEnglish";
+       return  QObject::tr("English").toStdString();
     if (anObj==eFrench)
-       return  "eFrench";
+       return  QObject::tr("French").toStdString();
     if (anObj==eSpanish)
-       return  "eSpanish";
+       return  QObject::tr("Spanish").toStdString();
     /*if (anObj==eChinese)
        return  "eChinese";
     if (anObj==eArabic)
