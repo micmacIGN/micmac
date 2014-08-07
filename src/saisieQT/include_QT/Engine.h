@@ -163,7 +163,7 @@ public:
 
     int     nbGLData(){return (int)_vGLData.size();}
 
-    void    computeAvailableVRAM(const QStringList &filenames);
+    void    computeScaleFactor(const QStringList &filenames);
     bool    extGLIsSupported(const char *strExt);
     void    setGLMaxTextureSize(int size) { _glMaxTextSize = size; }
 
@@ -177,6 +177,7 @@ private:
     cParameters*        _params;
 
     int                 _glMaxTextSize;
+    float               _scaleFactor;
 };
 
 
