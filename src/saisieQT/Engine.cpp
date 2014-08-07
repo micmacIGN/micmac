@@ -230,7 +230,8 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():
     _Loader(new cLoader),
-    _Data(new cData)
+    _Data(new cData),
+    _scaleFactor(1.f)
 {}
 
 cEngine::~cEngine()
@@ -280,46 +281,10 @@ bool cEngine::extGLIsSupported(const char* strExt)
 
 void cEngine::loadImages(QStringList filenames, int* incre)
 {
-    int widthMax              = 0;
-    int heightMax             = 0;
-
-    for (int i=0;i<filenames.size();++i)
-    {
-        QSize imageSize = QImageReader(filenames[i]).size();
-
-        widthMax  = max(imageSize.width(),widthMax);
-        heightMax = max(imageSize.height(),heightMax);
-    }
-
-    //int maxImagesDraw = min(_params->getNbFen().x()*_params->getNbFen().y(),filenames.size());
-    int maxImagesByRow = min(_params->getNbFen().x(),filenames.size());
-    int maxImagesByCol = min(_params->getNbFen().y(),filenames.size());
-
-   // widthMax    *= maxImagesDraw;
-   // heightMax   *= maxImagesDraw;
-
-    widthMax    *= maxImagesByRow;
-    heightMax   *= maxImagesByCol;
-
-    float scaleFactor     = 1.f;
-
-    if ( widthMax > _glMaxTextSize || heightMax > _glMaxTextSize )
-    {
-        QSize totalSize(widthMax, heightMax);
-
-        totalSize.scale(QSize(_glMaxTextSize,_glMaxTextSize), Qt::KeepAspectRatio);
-
-        scaleFactor = ((float) totalSize.width()) / widthMax;
-
-        //cout << "scale factor = " << scaleFactor << endl;
-    }
-
-    //scaleFactor = min(scaleFactor,scaleFactorVRAM); // TODO A GERER
-
     for (int i=0;i<filenames.size();++i)
     {
         if (incre) *incre = 100.0f*(float)i/filenames.size();
-        loadImage(filenames[i], scaleFactor);
+        loadImage(filenames[i], _scaleFactor);
     }
 }
 
@@ -515,11 +480,11 @@ cGLData* cEngine::getGLData(int WidgetIndex)
         return NULL;
 }
 
-void cEngine::computeAvailableVRAM(QStringList const &filenames)
+void cEngine::computeScaleFactor(QStringList const &filenames)
 {
 
 #if ELISE_QT_VERSION == 5
-
+#ifdef COMPUTE_AVAILABLEVRAM
     if (QGLContext::currentContext())
     {
 
@@ -585,14 +550,55 @@ void cEngine::computeAvailableVRAM(QStringList const &filenames)
                 scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
             }
         }*/
-
-        //TODO _Engine->setVRAMscaleFactor(scaleFactorVRAM);
     }
     else
         cout << "No GLContext" << endl;
 
+#endif //COMPUTE_AVAILABLEVRAM
 #endif
 
+    int widthMax              = 0;
+    int heightMax             = 0;
+
+    for (int i=0;i<filenames.size();++i)
+    {
+        QSize imageSize = QImageReader(filenames[i]).size();
+
+        widthMax  = max(imageSize.width(),widthMax);
+        heightMax = max(imageSize.height(),heightMax);
+    }
+
+    //int maxImagesDraw = min(_params->getNbFen().x()*_params->getNbFen().y(),filenames.size());
+    int maxImagesByRow = min(_params->getNbFen().x(),filenames.size());
+    int maxImagesByCol = min(_params->getNbFen().y(),filenames.size());
+
+   // widthMax    *= maxImagesDraw;
+   // heightMax   *= maxImagesDraw;
+
+    widthMax    *= maxImagesByRow;
+    heightMax   *= maxImagesByCol;
+
+    if ( widthMax > _glMaxTextSize || heightMax > _glMaxTextSize )
+    {
+        QSize totalSize(widthMax, heightMax);
+
+        totalSize.scale(QSize(_glMaxTextSize,_glMaxTextSize), Qt::KeepAspectRatio);
+
+        _scaleFactor = ((float) totalSize.width()) / widthMax;
+
+        //cout << "scale factor = " << scaleFactor << endl;
+    }
+
+    //scaleFactor = min(scaleFactor,scaleFactorVRAM); // TODO A GERER
+
+    if (_scaleFactor != 1.f)
+    {
+        QString msg = "Rescaling images with " + QString::number(_scaleFactor,'f', 3) + " factor - tip: use smaller NbF";
+        QMessageBox* msgBox = new QMessageBox(QMessageBox::Warning, QObject::tr("GL_MAX_TEXTURE_SIZE exceeded"),  msg);
+        msgBox->setWindowFlags(Qt::WindowStaysOnTopHint);
+
+        msgBox->exec();
+    }
 }
 
 

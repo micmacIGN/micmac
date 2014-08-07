@@ -173,7 +173,7 @@ void SaisieQtWindow::loadPly(const QStringList& filenames)
 
 void SaisieQtWindow::loadImages(const QStringList& filenames)
 {
-    //_Engine->computeAvailableVRAM(filenames); //sorti car GLContext plus accessible dans loadImages
+    _Engine->computeScaleFactor(filenames); //sorti car GLContext plus accessible dans loadImages
 
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
