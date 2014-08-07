@@ -210,7 +210,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Digeo",Digeo_main," In development- Will compute tie points "));
        aRes.push_back(cMMCom("AperoChImSecMM",AperoChImMM_main," Select secondary images for MicMac",cArgLogCom(2)));
        aRes.push_back(cMMCom("Apero2PMVS",Apero2PMVS_main," Convert Orientation from Apero-Micmac workflow to PMVS format"));
-	   aRes.push_back(cMMCom("Apero2Meshlab", Apero2Meshlab_main, "Convert Orientation from Apero-Micmac workflow to a meshlab-compatible format"));
+       aRes.push_back(cMMCom("Apero2Meshlab", Apero2Meshlab_main, "Convert Orientation from Apero-Micmac workflow to a meshlab-compatible format"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
@@ -304,8 +304,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SysCoordPolyn",SysCoordPolyn_main," Tool for creating a polynomial coordinate system from a set of known pair of coordinate"));
 
        aRes.push_back(cMMCom("OldTapas",Tapas_main," Interface to Apero to compute external and internal orientations",cArgLogCom(3)));
-       aRes.push_back(cMMCom("Tapas",New_Tapas_main,"NEW version !! Compatible . Call \"OldTapas\" if problem sepcicific to this version",cArgLogCom(3)));
-       aRes.push_back(cMMCom("NewTapas",New_Tapas_main,"In dev, will replace Tapas while validated ",cArgLogCom(3)));
+       aRes.push_back(cMMCom("Tapas",New_Tapas_main,"NEW version !! Compatible . Call \"OldTapas\" if problem specific to this version",cArgLogCom(3)));
+       aRes.push_back(cMMCom("NewTapas",New_Tapas_main,"Replace OldTapas - now same as Tapas",cArgLogCom(3)));
 
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image"));

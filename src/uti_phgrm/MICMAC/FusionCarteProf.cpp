@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -79,8 +79,8 @@ class cElPile
             *this = aCel.ArgAux();
         }
         cElPile() :
-           mZ(0), 
-           mP(-1) 
+           mZ(0),
+           mP(-1)
         {
         }
 
@@ -197,7 +197,7 @@ Pt3dr VerifExp(const std::vector<cElPile> & aVPile,cElPile aP0,float aPixFact)
        aRes = aRes + Pt3dr(aVPile[aK].Z()*aVPile[aK].P(),aVPile[aK].P(),1.0) * aPds;
     }
     return aRes / aVPile.size();
-} 
+}
 
 Pt3dr  PdsSol(const std::vector<cElPile> & aVPile,const cElPile & aP0,float aPixFact)
 {
@@ -214,7 +214,7 @@ Pt3dr  PdsSol(const std::vector<cElPile> & aVPile,const cElPile & aP0,float aPix
        aRes = aRes  + aQ * aPds;
     }
     return aRes / aVPile.size();
- 
+
 }
 
 bool IsMaxLoc(const std::vector<cTmpPile> & aVPile,int aK,float anEc,int aStep,int aLim)
@@ -247,7 +247,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
         {
             aTmp[aK].SetPPrec(aTmp[aK-1],aZFact);
         }
-        
+
    }
    OneSensMoyTmpPile(aTmp);
 
@@ -274,7 +274,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
         if (LocBug)
         {
                 // Pt3dr aPSOL =  PdsSol(aVPile,aVPile[aK],aZFact);
-                std::cout << " OUT " <<  aTmp[aK].mZInit << " P0 " << aTmp[aK].mPds0  << " PI " << aTmp[aK].mPInit 
+                std::cout << " OUT " <<  aTmp[aK].mZInit << " P0 " << aTmp[aK].mPds0  << " PI " << aTmp[aK].mPInit
                           << " PIm " << (aTmp[aK].mPds0/aTmp[aK].mNb0)
                           << " MaxLoc " << IsMaxLoc(aTmp,aK,aPixFact) ;
                  if (aVPile[aK].Name()) std::cout << " N=" << *(aVPile[aK].Name()) ;
@@ -293,7 +293,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
            aRes.push_back (aPil);
        }
    }
-   
+
    cCmpPdsPile aCmp;
    std::sort(aRes.begin(),aRes.end(),aCmp);
 
@@ -397,7 +397,7 @@ template <class Type> class cFusionCarteProf
       //=================================================================
       // Interface pour utiliser la prog dyn
       //=================================================================
-         //-------- Pre-requis 
+         //-------- Pre-requis
             typedef  cElPile tArgCelTmp;
             typedef  cElPile tArgNappe;
 
@@ -405,7 +405,7 @@ template <class Type> class cFusionCarteProf
             typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
             typedef  cTplCelOptProgDyn<tArgCelTmp>  tCelOpt;
 
-         //-------- Pre-requis 
+         //-------- Pre-requis
            void DoConnexion
            (
                   const Pt2di & aPIn, const Pt2di & aPOut,
@@ -559,7 +559,7 @@ template <class Type> Tiff_Im cLoadedCP<Type>::FileMM1P(const std::string aPref)
     return Tiff_Im::StdConv(NameMM1P(aPref));
 }
 
-template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer) 
+template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
 {
    mBoxImCur =  R2I(aBoxTer.BoxImage(mAfM2CGlob));
    if (InterVide(mBoxImCur,mBoxImGlob))
@@ -602,7 +602,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
 
                Fonc_Num aFCor = (aF1 * aP1 + aF2*aP2 + aF3*aP3) / (aP1 + aP2 + aP3) ;
 
-               
+
 
 
                ELISE_COPY(mImCorrel.all_pts(),trans(aFCor,mBoxImCur._p0),mImCorrel.out());
@@ -706,7 +706,7 @@ template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const 
         }
     }
 
-    if (aSomPz>0) 
+    if (aSomPz>0)
        aSomZ /= aSomPz;
     else
        aSomPp =0;
@@ -714,7 +714,7 @@ template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const 
     return cElPile(aSomZ,aSomPp);
 }
 
-template <class Type> cLoadedCP<Type> *  cFusionCarteProf<Type>::VCLOfName(const std::string & aNameNuage) 
+template <class Type> cLoadedCP<Type> *  cFusionCarteProf<Type>::VCLOfName(const std::string & aNameNuage)
 {
     for (int aK=0 ; aK<int(mVCL.size()) ; aK++)
     {
@@ -752,11 +752,11 @@ template <class Type> const cElPile * cFusionCarteProf<Type>::BestElem(const std
            aBesK = aKp;
            aBestP= aPile[aKp].P();
         }
-        
+
     }
     return &(aPile[aBesK]);
 }
- 
+
 
 template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string & anId)
 {
@@ -776,7 +776,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
         ELISE_ASSERT(false,"No data in DoOneFusion");
     }
 
- 
+
     for (int aK=0 ; aK<int(aStrFus.size()) ; aK++)
     {
           mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK]));
@@ -814,16 +814,16 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
          mNuage.Image_Profondeur().Val().ResolutionAlti() = aSomResolAlti;
          mNuage.Image_Profondeur().Val().OrigineAlti() = aSomOriAlti;
-        
+
         // Creation du TFW
         {
             std::string aNameTFW = StdPrefix(mNameTif) + ".tfw";
             std::ofstream aFtfw(aNameTFW.c_str());
             aFtfw.precision(10);
-            
+
             ElAffin2D aAfM2C = Xml2EL(mNuage.Orientation().OrIntImaM2C());
-            
-            
+
+
             double resolutionX = 1./aAfM2C.I10().x;
             double resolutionY = 1./aAfM2C.I01().y;
             double origineX = -aAfM2C.I00().x * resolutionX;
@@ -831,13 +831,13 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
             aFtfw << resolutionX << "\n" << 0 << "\n";
             aFtfw << 0 << "\n" << resolutionY << "\n";
             aFtfw << origineX << "\n" << origineY << "\n";
-            
+
             //aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
             //aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
             //aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
             aFtfw.close();
         }
-        
+
     }
 
    mZIsInv = false;
@@ -848,7 +848,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     mIP->Image() = NameWithoutDir(mNameTif) ;
     mIP->Masq() =  NameWithoutDir(mNameMasq);
     mIP->Correl() =  NameWithoutDir(mNameCorrel);
-    
+
     mAfM2CGlob  = Xml2EL(mNuage.Orientation().OrIntImaM2C());
     mAfC2MGlob = mAfM2CGlob.inv();
     mSzGlob = mNuage.NbPixel();
@@ -904,7 +904,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
              if (mGenereMkF)
              {
-                  std::string aNewCom =   mCom 
+                  std::string aNewCom =   mCom
                                   + std::string(" InterneCalledByProcess=true")
                                   + std::string(" InterneSingleImage=") +  anId
                                   + std::string(" InterneSingleBox=") + ToString(aKI);
@@ -970,7 +970,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
 
    mVCL.clear();
-   
+
    for (int aK=0 ; aK<int(mVC.size()) ; aK++)
    {
        bool  aReload = mVC[aK]->ReLoad(aBoxTer);
@@ -987,7 +987,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    cProg2DOptimiser<cFusionCarteProf>  * aPrgD = 0;
    TIm2D<INT2,INT>  aTIm0(Pt2di(1,1));
    TIm2D<INT2,INT>  aTImNb(Pt2di(1,1));
-   
+
 
    if (mFPrgD)
    {
@@ -1004,7 +1004,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                {
                    Pt2dr aT0 = mAfC2MCur(Pt2dr(aQ0));
                    double aPds =  mVCL[aKI]->PdsLinear(aT0);
-                   if (aPds >0) 
+                   if (aPds >0)
                    {
                       aNbOk ++;
                    }
@@ -1015,7 +1015,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
       }
       aPrgD = new cProg2DOptimiser<cFusionCarteProf>(*this,aTIm0._the_im,aTImNb._the_im,0,1);
   }
-   
+
    if (ShowTime)
    {
       std::cout << " Init PrgD time= " << aChrono.uval() << "\n";
@@ -1054,7 +1054,7 @@ cLoadedCP<Type> * aLCP = VCLOfName("/media/data2/Munich/MTD-Nuage/Basculed-40_03
 // static       Tiff_Im aTF = Tiff_Im::StdConv("FusionZ1_NuageImProf_LeChantier_Etape_1_Correl.tif");
 
 ELISE_COPY(aLCP->ImCorrel().all_pts(),aLCP->ImCorrel().in(),aW.ogray());
-if (aCpt==-1) 
+if (aCpt==-1)
 {
    aQ0 = Pt2di(573,213);
 }
@@ -1247,7 +1247,7 @@ template <class Type> void cFusionCarteProf<Type>::DoCalc()
           DoOneFusion(mGenRes[aKS]);
        }
    }
-    
+
 }
 
 
@@ -1303,16 +1303,24 @@ template <class Type> cFusionCarteProf<Type>::cFusionCarteProf
 
 int FusionCarteProf_main(int argc,char ** argv)
 {
-  ELISE_ASSERT(argc>=2,"Not Enough args to FusionMNT.cpp");
-  MMD_InitArgcArgv(argc,argv);
+   /*if ((argc>=2)  && (std::string(argv[1])==std::string("-help")))
+   {
+       cout << "Mandatory unnamed args : \n";
+       cout << "   * string :: {XML file - see include/XML_MicMac/Fusion-MMByP-*.xml} \n";
+       cout << "Named args : \n";
+       cout << "  [Name=WorkDirPFM] string ::{}\n"
+   }*/
 
-  Tiff_Im::SetDefTileFile(50000);
+   ELISE_ASSERT(argc>=2,"Not Enough args to FusionCarteProf.cpp");
+   MMD_InitArgcArgv(argc,argv);
 
-  std::string aCom0 = MMBin() + "mm3d "+ MakeStrFromArgcARgv(argc,argv);
-  // std::cout << aCom0 << "\n"; getchar();
+   Tiff_Im::SetDefTileFile(50000);
+
+   std::string aCom0 = MMBin() + "mm3d "+ MakeStrFromArgcARgv(argc,argv);
+   // std::cout << aCom0 << "\n"; getchar();
 
 
-  cResultSubstAndStdGetFile<cParamFusionMNT> aP2
+   cResultSubstAndStdGetFile<cParamFusionMNT> aP2
                                            (
                                               argc-2,argv+2,
                                               argv[1],
@@ -1323,21 +1331,21 @@ int FusionCarteProf_main(int argc,char ** argv)
                                               "FileChantierNameDescripteur"
                                            );
 
-  cFusionCarteProf<float>  aFCP(aP2,aCom0);
-  return 0;
+   cFusionCarteProf<float>  aFCP(aP2,aCom0);
+   return 0;
 }
 
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1347,17 +1355,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
