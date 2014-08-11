@@ -109,16 +109,18 @@ class VT_AppSelTieP : public cAppliWithSetImage
         cInterfChantierNameManipulateur * ICNM() const {return mICNM;}
         const std::string & Dir() const {return mDir;}
 		std::string NameIm2NameOri(const std::string &, const std::string &) const;
-   // private :
+    private :
 
         std::string 					  mFullName, mOri, mDir, mPat, mNameOri;
-		double 							  minAngle;
+		double 							  minAngle, mLmin, mLmax, mLmoy;
+		bool 							  ShowStats;
 		cInterfChantierNameManipulateur * mICNM;
 		std::list<std::string> 			  mLFile;
 		CamStenope					    * aCam;
-		tPairIm 						  aPair;
+		tPairIm 						  aPair, aPair1, aPair2;
 		std::map<std::pair<VT_Img *,VT_Img *> ,ElPackHomologue> mMapH;
-		
+		std::map<std::pair<VT_Img *,VT_Img *> ,ElPackHomologue> mMapH_no;
+		std::map<std::pair<VT_Img *,VT_Img *> ,ElPackHomologue> mMapH_yes;
 };
 
 
@@ -129,14 +131,17 @@ class VT_AppSelTieP : public cAppliWithSetImage
 /********************************************************************/
 bool FileExists( const char * FileName )
 {
-    FILE* fp = NULL;
-    fp = fopen( FileName, "rb" );
-    if( fp != NULL )
-    {
-        fclose( fp );
-        return true;
-    }
+	#if (ELISE_unix)
+		FILE* fp = NULL;
+		fp = fopen( FileName, "rb" );
+		if( fp != NULL )
+		{
+			fclose( fp );
+			return true;
+		}
+	#endif
     return false;
+
 }
 
 float AngleBetween3Pts(Pt3dr pt1, Pt3dr pt2, Pt3dr ptCent)
@@ -154,16 +159,23 @@ float AngleBetween3Pts(Pt3dr pt1, Pt3dr pt2, Pt3dr ptCent)
 	return angle;
 }
 
+
 VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is used to initialize the images
     cAppliWithSetImage (argc-1,argv+1,0),		// it has to be used without the first argument (name of the command)
-	minAngle(10)
+	minAngle(10),
+	ShowStats(false)
 {
+	std::string homName("");
+	int NbVI(3);
 	ElInitArgMain
 	(
 		argc,argv,
 		LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pat)")
 					<< EAMC(mOri,"Orientation"),
 		LArgMain()  << EAM(minAngle,"Angle",true,"Angle under which TieP will be rejected (Default = 10)")
+					<< EAM(homName,"Homol",true,"Homol folder suffix")
+					<< EAM(NbVI,"NbVI",true,"Number of Visible Image required (Def = 3, not functional higher so far)")
+					<< EAM(ShowStats,"ShowStats",true,"Show statistics for TieP  selection based on angle")
 	);
 
 	// Initialize name manipulator & files
@@ -176,10 +188,8 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 	StdCorrecNameOrient(mOri,mDir);
 
 	// Get the name of tie points name using the key
-    std::string mKey = "NKS-Assoc-CplIm2Hom@@dat";
+    std::string mKey = "NKS-Assoc-CplIm2Hom@" + homName + "@dat";
     std::string aNameH ;
-
-
 	for (
 			  std::list<std::string>::iterator itS1=mLFile.begin();
 			  itS1!=mLFile.end();
@@ -188,7 +198,6 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 	 {			// Parcours liste d'image
 		VT_Img * mImg1 = new  VT_Img(*this,*itS1,mOri);
 		Pt3dr mCentre1 = mImg1->CentreOptique();
-		 
 		for (
 			  std::list<std::string>::iterator itS2=mLFile.begin();
 			  itS2!=mLFile.end();
@@ -196,10 +205,9 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 		)
 		{
 			std::string mPatHom = mDir + "Homol/Pastis" + *itS1 + "/" + *itS2 + ".dat";
-			cout << "Im1 = " << *itS1 << "\tIm2 = " <<*itS2 << endl;
-			 
 			if (FileExists(mPatHom.c_str()))
-			{
+			{				
+			//	cout << "Couple : " << *itS1 << " & " << *itS2 ; 
 				VT_Img * mImg2 = new  VT_Img(*this,*itS2,mOri);
 				Pt3dr mCentre2 = mImg2->CentreOptique();
 				aNameH =  mDir
@@ -211,8 +219,12 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 									true
 								);
 				
-				ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);				 
-				 
+				ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);
+				mLmin = 999;
+				mLmax = 0;
+				mLmoy = 0;
+				int cpt1 = 0;
+				int cpt2 = 0;
 				for (
 					   ElPackHomologue::iterator iTH = aPack.begin();
 					   iTH != aPack.end();
@@ -220,34 +232,219 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 					 )
 				{	
  				    Pt2dr aP1 = iTH->P1();
-				    Pt2dr aP2 = iTH->P2();
-
+				    Pt2dr aP2 = iTH->P2();				
+					aPair.first = mImg1;
+					aPair.second = mImg2; 
 				    Pt3dr aTer = mImg1->mCam->PseudoInter(aP1,*(mImg2->mCam),aP2);
 				    float mAngle = AngleBetween3Pts(mCentre1,mCentre2,aTer);
-				   
 				    if (mAngle > minAngle )
 				    {
-					    aPair.first = mImg1;
-					    aPair.second = mImg2; 
 					    mMapH[aPair].Cple_Add(ElCplePtsHomologues(aP1,aP2)); 
+					    cpt1++;
 				    }
+				    else if (mAngle <= minAngle )
+				    {
+					    mMapH_no[aPair].Cple_Add(ElCplePtsHomologues(aP1,aP2)); 
+					    cpt2++;
+					}
+					if (ShowStats)
+					{
+						if (mAngle < mLmin){mLmin = mAngle;}
+						if (mAngle > mLmax){mLmax = mAngle;}
+						mLmoy += mAngle;
+					}
+				}
+				if (ShowStats)
+				{
+					mLmoy = mLmoy / (cpt1 + cpt2);
+					cout << "\t" << cpt1 << " points > " << minAngle << "° on " << cpt1+cpt2 << " measures"
+						 << "\tMin = " << mLmin << " Max = " << mLmax << " Moy = "  << mLmoy  << endl;
 				}
 			}
 			//else {cout << "   !! DOESN't ExiSTS !!\n";}
 		}
 	}
+	
+	int cptr=0;
+	bool isIn=false;
+	if(NbVI>2)
+	{
+		for (tMapH::iterator itM1=mMapH_no.begin(); itM1!=mMapH_no.end() ; itM1++)
+		{		
+			VT_Img * aIm1 = itM1->first.first;
+			VT_Img * aIm2 = itM1->first.second;
+			for (tMapH::iterator itM2=mMapH_no.begin()	; itM2!=mMapH_no.end() ; itM2++)       // browse the dictionnary
+			{	
+				VT_Img * aIm3 = itM2->first.first;
+				VT_Img * aIm4 = itM2->first.second;
+				if ((aIm1->mName == aIm3->mName) && (aIm2->mName != aIm4->mName))
+				{
+					
+					cout << cptr << " : " << aIm1->mName << " & " << aIm2->mName << " & " << aIm3->mName << " & " << aIm4->mName << endl;
+					cptr++;
+					for (
+						ElPackHomologue::iterator iTH1 = itM1->second.begin();
+						iTH1 != itM1->second.end();
+						iTH1++
+					)
+					{
+						Pt2dr aP1 = iTH1->P1();
+						for (
+							ElPackHomologue::iterator iTH2 = itM2->second.begin();
+							iTH2 != itM2->second.end();
+							iTH2++
+						)
+						{							
+							Pt2dr aP3 = iTH2->P1();														
+							if ((aP1 == aP3))
+							{									
+								Pt2dr aP2 = iTH1->P2();									
+								Pt2dr aP4 = iTH2->P2();
+								aPair1.first = aIm1;
+								aPair1.second = aIm2; 
+								aPair2.first = aIm3;
+								aPair2.second = aIm4; 
+								isIn=false;
+								for (
+									ElPackHomologue::iterator iTH3 = mMapH_yes[aPair1].begin();
+									iTH3 != mMapH_yes[aPair1].end();
+									iTH3++
+								)
+								{	// Check if point already in
+									Pt2dr aPctrl1 = iTH3->P1();
+									if (aP1 == aPctrl1)
+									{
+										isIn=true;
+										iTH3 = mMapH_yes[aPair1].end();
+										iTH3--;
+									}
+								}
+								if (!isIn)
+								{								
+									for (
+										ElPackHomologue::iterator iTH4 = mMapH_yes[aPair2].begin();
+										iTH4 != mMapH_yes[aPair2].end();
+										iTH4++
+									)
+									{
+										Pt2dr aPctrl1 = iTH4->P1();
+										if (aP1 == aPctrl1)
+										{
+											isIn=true;
+											iTH4 = mMapH_yes[aPair2].end();
+											iTH4--;
+										}
+									}
+								}
+								if ((!isIn) && (aP1 == aP3))
+								{
+									if (NbVI == 3)
+									{	// Add 2 couples (3 images)										
+										mMapH_yes[aPair1].Cple_Add(ElCplePtsHomologues(aP1,aP2));
+										mMapH_yes[aPair2].Cple_Add(ElCplePtsHomologues(aP3,aP4)); 
+										iTH2 =  itM2->second.end();
+										iTH2--;
+									}
+									/*
+									else if (NbVI == 4)
+									{
+										for (tMapH::iterator itM3=mMapH_no.begin()	; itM3!=mMapH_no.end() ; itM3++)       // browse the dictionnary
+										{	
+											VT_Img * aIm5 = itM3->first.first;
+											VT_Img * aIm6 = itM3->first.second;
+											if ((aIm1->mName == aIm5->mName) && (aIm2->mName != aIm6->mName) && (aIm4->mName != aIm6->mName))
+											{
+												for (
+													ElPackHomologue::iterator iTH4 = itM3->second.begin();
+													iTH4 != itM3->second.end();
+													iTH4++
+												)
+												{							
+													Pt2dr aP5 = iTH4->P1();														
+													if (aP1 == aP5)
+													{																												
+														Pt2dr aP6 = iTH4->P2();	
+														tPairIm aPair3;
+														aPair3.first = aIm5;
+														aPair3.second = aIm6;
+														for (
+															ElPackHomologue::iterator iTH5 = mMapH_yes[aPair3].begin();
+															iTH5 != mMapH_yes[aPair3].end();
+															iTH5++
+														)
+														{	// Check if point already in
+															Pt2dr aPctrl1 = iTH5->P1();
+															if (aP1 == aPctrl1)
+															{
+																isIn=true;
+																iTH5 = mMapH_yes[aPair3].end();
+																iTH5--;
+															}
+														}
+														if (!isIn)
+														{	// Add 3 couples (4 images)
+															mMapH_yes[aPair1].Cple_Add(ElCplePtsHomologues(aP1,aP2));
+															mMapH_yes[aPair2].Cple_Add(ElCplePtsHomologues(aP3,aP4)); 
+															mMapH_yes[aPair3].Cple_Add(ElCplePtsHomologues(aP5,aP6)); 
+															iTH4 =  itM3->second.end();
+															iTH4--;
+														}
+													}
+												}			
+											}
+										}
+									}*/
+									else { cout << "***** ACHTUNG ***** NbVI == " << NbVI << " NbVI > 3 not taken into account so far... " << endl;}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+    for (tMapH::iterator itM=mMapH_yes.begin(); itM!=mMapH_yes.end() ; itM++)       
+    {		// merge
+        VT_Img * aIm1 = itM->first.first;       // img1
+        VT_Img * aIm2 = itM->first.second;      // img2
+        aPair.first = aIm1;
+		aPair.second = aIm2; 
+		for (
+			ElPackHomologue::iterator iTH5 = mMapH_yes[aPair].begin();
+			iTH5 != mMapH_yes[aPair].end();
+			iTH5++
+		)
+		{
+			Pt2dr aP1 = iTH5->P1();
+			Pt2dr aP2 = iTH5->P2();
+			mMapH[aPair].Cple_Add(ElCplePtsHomologues(aP1,aP2));
+		}
+    }
 	std::ostringstream myS;
 	myS << minAngle;
-	std::string aKey = "NKS-Assoc-CplIm2Hom@_" + myS.str() + "@dat";     // association key, here results will be saved in a folder "HomolSimul", as .dat files
-
+	
+	std::ostringstream myS2;
+	myS2 << NbVI;
+	std::string aKey = "NKS-Assoc-CplIm2Hom@Angle" + myS.str() + "NbVI" + myS2.str() +"@dat";
+    for (tMapH::iterator itM=mMapH.begin(); itM!=mMapH.end() ; itM++)       // browse the dictionnary
+    {	// write in file
+        VT_Img * aIm1 = itM->first.first;       // img1
+        VT_Img * aIm2 = itM->first.second;      // img2
+        std::string aNameH = mICNM->Assoc1To2(aKey,aIm1->mName,aIm2->mName,true);      
+        itM->second.StdPutInFile(aNameH);      // save pt_im1 & pt_im2 in that file
+        std::cout << aNameH << "\n";
+    }
+    /* aKey = "NKS-Assoc-CplIm2Hom@_" + myS.str() + "txt@txt";
     for (tMapH::iterator itM=mMapH.begin(); itM!=mMapH.end() ; itM++)       // browse the dictionnary
     {
-         VT_Img * aIm1 = itM->first.first;       // img1
-         VT_Img * aIm2 = itM->first.second;      // img2
-         std::string aNameH = mICNM->Assoc1To2(aKey,aIm1->mName,aIm2->mName,true);      // name of the file to save ("HomolSimul/Pastis....dat")
-         itM->second.StdPutInFile(aNameH);      // save pt_im1 & pt_im2 in that file
-         std::cout << aNameH << "\n";
-    }	
+        VT_Img * aIm1 = itM->first.first;       // img1
+        VT_Img * aIm2 = itM->first.second;      // img2
+        std::string aNameH = mICNM->Assoc1To2(aKey,aIm1->mName,aIm2->mName,true);      
+        itM->second.StdPutInFile(aNameH);      // save pt_im1 & pt_im2 in that file
+        std::cout << aNameH << "\n";
+    }	*/
+
 }
 
 std::string VT_AppSelTieP::NameIm2NameOri(const std::string & aNameIm, const std::string & aOri) const
