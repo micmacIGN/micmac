@@ -585,14 +585,22 @@ void SaisieQtWindow::on_actionAbout_triggered()
     QFont font("Courier New", 9, QFont::Normal);
 
     QMessageBox *msgBox = new QMessageBox(this);
-    msgBox->setText(QString(getBanniereMM3D().c_str()));
+
+	QString qStr(getBanniereMM3D().c_str());
+	#if (ELISE_windows)		
+        qStr.replace( "**", "  " );
+    #endif
+
+    msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
     msgBox->setFont(font);
 
     //trick to enlarge QMessageBox...
-    QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    QGridLayout* layout = (QGridLayout*)msgBox->layout();
-    layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+	#if (!ELISE_windows)
+		QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+		QGridLayout* layout = (QGridLayout*)msgBox->layout();
+		layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+	#endif
 
     msgBox->setWindowModality(Qt::NonModal);
     msgBox->show();
