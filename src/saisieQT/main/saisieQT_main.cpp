@@ -127,7 +127,7 @@ bool checkNamePt(QString text)
 {
     if (text.contains(".txt") && QFileInfo(text).isAbsolute())
     {
-        QMessageBox::critical(NULL, "Error", "Don't use an absolute path for point file name!");
+        QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Don't use an absolute path for point file name!"));
         return false;
     }
     return true;
