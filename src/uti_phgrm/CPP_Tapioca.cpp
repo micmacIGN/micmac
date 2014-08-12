@@ -772,7 +772,7 @@ int Graph_(int argc,char ** argv, const std::string &aArg="")
                 argc,argv,
 
                 LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)", eSAM_IsPatFile)
-                << EAMC(maxDimensionResize,"processing size of image  (for the greater dimension)", eSAM_None),
+                << EAMC(maxDimensionResize,"Processing size of image  (for the greater dimension)", eSAM_None),
 
                 LArgMain()  << EAM(nbThreads, "ByP", true, "By process")
                 << EAM(detectingTool, PASTIS_DETECT_ARGUMENT_NAME.c_str(), true, "executable used to detect keypoints")
