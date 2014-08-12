@@ -21,6 +21,12 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
     maskedImg._m_image = new QImage( aNameFile );
 
+    // TODO: message d'erreur (non bloquant)
+    // foo: Can not read scanlines from a tiled image.
+    // see QTBUG-12636 => QImage load error on tiff tiled with lzw compression https://bugreports.qt-project.org/browse/QTBUG-12636
+    // bug Qt non resolu
+    // work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
+
     float scaleFactor = maskedImg._loadedImageRescaleFactor;
     if ( scaleFactor != 1.f )
     {
