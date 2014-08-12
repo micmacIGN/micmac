@@ -40,6 +40,7 @@ cObject& cObject::operator =(const cObject& aB)
     {
         _name      = aB._name;
         _position  = aB._position;
+        _rotation  = aB._rotation;
 
         for (int iC = 0; iC < state_COUNT; ++iC)
             _color[iC]     = aB._color[iC];
@@ -753,13 +754,21 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _pointDiameter    = aP._pointDiameter;
         _selectionRadius  = aP._selectionRadius;
 
+        _bSelectedPoint   = aP._bSelectedPoint;
         _bShowLines       = aP._bShowLines;
         _bShowNames       = aP._bShowNames;
+
+        _dashes.clear();
+        for (int iC = 0; iC < aP._dashes.size(); ++iC)
+            _dashes.push_back(aP._dashes[iC]);
 
         _style            = aP._style;
         _defPtName        = aP._defPtName;
 
         _shiftStep        = aP._shiftStep;
+        _maxSz            = aP._maxSz;
+
+        _bNormalize       = aP._bNormalize;
     }
 
     return *this;
