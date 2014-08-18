@@ -23,7 +23,7 @@ void AnnArray::set( vector<DigeoPoint> &i_array, SIFT_ANN_SEARCH_MODE i_mode )
 		case SIFT_ANN_DESC_SEARCH:
 			// fills annArray for search based on descriptors
 			while ( iPoint-- )
-				( *itANN++ ) = ( itSift++ )->descriptors[0].second;
+				( *itANN++ ) = ( itSift++ )->descriptor(0);
 			return;
 		case SIFT_ANN_2D_SEARCH:
 			// fills annArray for search based on 2d coordinates
@@ -61,9 +61,9 @@ void AnnSearcher::setNbNeighbours( int i_nbNeighbours )
 
 void AnnSearcher::createTree( AnnArray &i_dataArray )
 {
-    clearTree();
+	clearTree();
 
-    int spaceSize = -1; // dimension of space
+	int spaceSize = -1; // dimension of space
 
 	switch ( i_dataArray.getSearchMode() )
 	{
@@ -77,8 +77,8 @@ void AnnSearcher::createTree( AnnArray &i_dataArray )
 	#ifdef _DEBUG
 		if ( i_dataArray.size()==0 ) cerr << "ERROR: AnnSearcher::createTree called with an empty array, cannot construct a tree" << endl;
 	#endif
-            
-    m_kdTree = new ANNkd_tree( i_dataArray.getANNpointArray(), i_dataArray.size(), spaceSize );
+
+	m_kdTree = new ANNkd_tree( i_dataArray.getANNpointArray(), i_dataArray.size(), spaceSize );
 }
 
 void AnnSearcher::search( ANNpoint i_point )
@@ -124,7 +124,7 @@ void match_lebris( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1, s
 
 	for ( iQuery=0; iQuery<nbQueries; iQuery++ )
 	{
-		anns.search( itQuery->descriptors[0].second );
+		anns.search( itQuery->descriptor(0) );
 
 		#ifdef _DEBUG
 			if ( neighIndices[0]==-1 || neighIndices[1]==-1 )
