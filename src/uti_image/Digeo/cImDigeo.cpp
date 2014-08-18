@@ -379,17 +379,6 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
        mVIms[aK]->SauvIm();
     }
 
-	/*
-	// __DEL
-	static int ii = 0;
-	for (int aK=0 ; aK< int(mVIms.size()) ; aK++)
-	{
-		stringstream ss;
-		ss << "output/gaussians/" << setw(2) << setfill('0') << ii++ << ".raw";
-		ELISE_ASSERT( mVIms[aK]->load_raw( ss.str() ), (string("LoadImageAndPyram::cannot load ")+ss.str()).c_str() );
-	}
-	*/
-
     for (int aKOct=0 ; aKOct<int(mOctaves.size()) ; aKOct++)
         mOctaves[aKOct]->PostPyram();
 

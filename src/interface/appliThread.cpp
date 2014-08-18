@@ -237,7 +237,7 @@ void PastisThread::run() {
 					QString img0 = imgTIF.section(".",0,-2);
 					//conversion en jpg avec convert
 					if (!QFile().exists(getParamMain()->getDossier()+img0+QString(".jpg"))) {
-						QString convertCallName = QString( g_externalToolHandler.get("convert").m_fullName.c_str() );
+						QString convertCallName = QString( g_externalToolHandler.get("convert").callName().c_str() );
 						QString commande = convertCallName+QString("convert %1%2.tif %1%2.jpg").arg(noBlank(getParamMain()->getDossier())).arg(img0);
 						if (execute(commande)!=0) {
 							cout << (QObject::tr("Fail to convert image %1 to JPG format.").arg(noBlank(getParamMain()->getDossier()+imgTIF)).toStdString()) << endl;

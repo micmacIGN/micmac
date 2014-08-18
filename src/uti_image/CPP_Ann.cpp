@@ -72,7 +72,8 @@ int Ann_main( int argc, char **argv )
 	vector<DigeoPoint> array0, array1;
 	if ( !ann_read_digeo_file( name0, array0, removeMin, removeMax, removeUnknown ) ) return EXIT_FAILURE;
 	if ( !ann_read_digeo_file( name1, array1, removeMin, removeMax, removeUnknown ) ) return EXIT_FAILURE;
-
+	const size_t nbPoints0 = array0.size(),
+	             nbPoints1 = array1.size();
 	match_lebris( array0, array1, matchedCoupleIndices );
 
 	if ( !matchedCoupleIndices.empty() )
@@ -88,7 +89,7 @@ int Ann_main( int argc, char **argv )
 	}
 	write_matches_ascii( output_name, array0, array1, matchedCoupleIndices );
 
-	cout << matchedCoupleIndices.size() << " matches" << endl;
+	cout << name0 << " : " << nbPoints0 << " points " << name1 << " : " << nbPoints1 << " points => " << matchedCoupleIndices.size() << " matches" << endl;
 
 	return EXIT_SUCCESS;
 }

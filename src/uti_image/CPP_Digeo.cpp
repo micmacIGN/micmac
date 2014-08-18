@@ -344,6 +344,8 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
   DigeoPoint p;
   const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
   double trueSamplingPace = anOct->Niv()*anOct->ImDigeo().Resol();
+  REAL8 angles[DIGEO_MAX_NB_ANGLES];
+  int nbAngles;
   
   for (int aKIm=0 ; aKIm<int(aVIm.size()) ; aKIm++)
   {
@@ -364,11 +366,13 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 				default: p.type=DigeoPoint::DETECT_UNKNOWN; break;
 				}
 				aVPC[i].mLocalScale = aVPC[i].mScale/trueSamplingPace;
-				p.nbAngles = orientate( imgGradient, aVPC[i], p.angles );
-				if ( p.nbAngles!=0 ){
-					for ( int iAngle=0; iAngle<p.nbAngles; iAngle++ ){
-						describe( imgGradient, aVPC[i], p.angles[iAngle], p.descriptors[iAngle] );
-						normalize_and_truncate( p.descriptors[iAngle] );
+				nbAngles = orientate( imgGradient, aVPC[i], angles );
+				if ( nbAngles!=0 ){
+					p.entries.resize(nbAngles);
+					for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
+						DigeoPoint::Entry &entry = p.entry(iAngle);
+						describe( imgGradient, aVPC[i], entry.angle, entry.descriptor );
+						normalize_and_truncate( entry.descriptor );
 					}
 					o_list.push_back( p );
 			   }

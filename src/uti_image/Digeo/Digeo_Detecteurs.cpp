@@ -39,8 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //#include "Digeo.h"
 
-#define __DEBUG_DIGEO
-
 /****************************************/
 /*                                      */
 /*           cTplImInMem                */
