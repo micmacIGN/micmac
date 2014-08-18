@@ -871,7 +871,6 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
                     m_GLData->glImage()._m_image->setGamma(1.f);
                     emit gammaChangedSgnl(1.f);
                 }
-
                 break;
             case Qt::Key_Plus:
                 if (m_bDisplayMode2D)
