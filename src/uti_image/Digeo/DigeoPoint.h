@@ -39,9 +39,9 @@ public:
 	REAL8      x, y,
 	           scale;
 	DetectType type;
-	int        nbAngles;
-	REAL8      angles[DIGEO_MAX_NB_ANGLES];
-	REAL8      descriptors[DIGEO_MAX_NB_ANGLES][DIGEO_DESCRIPTOR_SIZE];
+	std::vector<std::pair<REAL8,REAL8[DIGEO_DESCRIPTOR_SIZE]> > descriptors; // first is the angle, second is the descriptor itself
+	//REAL8      angles[DIGEO_MAX_NB_ANGLES];
+	//REAL8      descriptors[DIGEO_MAX_NB_ANGLES][DIGEO_DESCRIPTOR_SIZE];
 
 	static unsigned char sm_uchar_descriptor[DIGEO_DESCRIPTOR_SIZE];
 	static REAL8 sm_real8_descriptor[DIGEO_DESCRIPTOR_SIZE];

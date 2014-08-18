@@ -38,7 +38,7 @@ public:
 		onedge_threshold( default_onedge_threshold ),
 		no_descriptors( false ),
 		no_orientations( false ),
-		chunk_size( 2200 ){}
+		chunk_size( 1024 ){}
 };
 
 inline void verbose_func        ( const string &val, sift_parameters_t &p ){ p.verbose=true; }
