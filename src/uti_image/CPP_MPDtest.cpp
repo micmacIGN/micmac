@@ -371,17 +371,41 @@ extern void TestQR(int aN);
 extern void Test_DBL();
 
 
+void TestExportCam(int argc,char** argv)
+{
+    for (int aK=0 ; aK<argc ; aK++)
+       std::cout << "TestExportCam " << argv[aK] << "\n";
+
+    std::string aFullName;
+    std::string aNameTag = "OrientationConique";
+    std::string aNameCam;
+    std::string aNameDir;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullName,"File name", eSAM_IsPatFile),
+        LArgMain()  << EAM(aNameTag,"Tag",true,"Tag to get cam")
+
+    );
+
+
+    SplitDirAndFile(aNameDir,aNameCam,aFullName);
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
+
+    CamStenope * aCS =  CamOrientGenFromFile(aNameCam,anICNM);
+
+    std::cout << aFullName << "//" << aNameTag << " " << aCS->Focale() << "\n";
+
+    cOrientationConique anOC = aCS->StdExportCalibGlob(false);
+
+}
+
+
 int MPDtest_main (int argc,char** argv)
 {
-   Test_DBL();
-
-   while (1)
-   {
-      TestQR(2); getchar();
-      TestQR(3); getchar();
-      TestQR(4); getchar();
-      TestQR(5); getchar();
-   }
+  
+   TestExportCam(argc,argv);
 
 
    return 0;
