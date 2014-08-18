@@ -200,8 +200,7 @@ void check_pastis_tool( string &io_tool, const string &i_toolType )
         cerr << "Tapioca: ERROR: specified string \"" << io_tool << "\" for \"" << i_toolType << "\" tool is invalid (format is : tool[:arguments] )" << endl;
         ElEXIT( EXIT_FAILURE ,"check_pastis_tool");
     }
-    else
-    {
+    else{
         const ExternalToolItem &item = g_externalToolHandler.get( io_tool );
         if ( !item.isCallable() ){
             cerr << "Tapioca: ERROR: specified tool \"" << io_tool << "\" is needed by \"" << i_toolType << "\" but " << item.errorMessage() << endl;
@@ -221,9 +220,11 @@ void check_detect_and_match_tools( string &detectingTool, string &matchingTool, 
 
     InitDetectingTool( detectingTool );
     check_pastis_tool( detectingTool, PASTIS_DETECT_ARGUMENT_NAME );
+    cout << "--- using detecting tool : [" << detectingTool << ']' << endl;
 
     InitMatchingTool( matchingTool );
     check_pastis_tool( matchingTool, PASTIS_MATCH_ARGUMENT_NAME );
+    cout << "--- using matching tool : [" << matchingTool << ']' << endl;
 
     if ( ignoreMax||ignoreMin||ignoreUnknown ){
         if ( detectingTool.find( TheStrSiftPP )!=string::npos ){
@@ -714,7 +715,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
             iQuery;
     for ( iQuery=0; iQuery<nbTotalKeypoints; iQuery++ )
     {
-        search.search( query->descriptors[0] );
+        search.search( query->descriptors[0].second );
         iImageQuery 	= all_image_indices[iQuery];
         iImageNeighbour = all_image_indices[neighbours[1]];
 
