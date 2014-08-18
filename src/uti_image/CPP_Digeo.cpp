@@ -367,12 +367,12 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
 				}
 				aVPC[i].mLocalScale = aVPC[i].mScale/trueSamplingPace;
 				nbAngles = orientate( imgGradient, aVPC[i], angles );
-				p.descriptors.resize(nbAngles);
 				if ( nbAngles!=0 ){
+					p.entries.resize(nbAngles);
 					for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
-						pair<REAL8,REAL8[DIGEO_DESCRIPTOR_SIZE]> &descriptor = p.descriptors[iAngle];
-						describe( imgGradient, aVPC[i], descriptor.first, descriptor.second );
-						normalize_and_truncate( descriptor.second );
+						DigeoPoint::Entry &entry = p.entry(iAngle);
+						describe( imgGradient, aVPC[i], entry.angle, entry.descriptor );
+						normalize_and_truncate( entry.descriptor );
 					}
 					o_list.push_back( p );
 			   }

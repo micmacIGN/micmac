@@ -715,7 +715,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
             iQuery;
     for ( iQuery=0; iQuery<nbTotalKeypoints; iQuery++ )
     {
-        search.search( query->descriptors[0].second );
+        search.search( query->descriptor(0) );
         iImageQuery 	= all_image_indices[iQuery];
         iImageNeighbour = all_image_indices[neighbours[1]];
 
@@ -823,7 +823,6 @@ int Graph_(int argc,char ** argv, const std::string &aArg="")
         cout << "--------------------> DoDetectKeypoints" << endl;
 
         DoConstructGraph( outputFile, nbMaxPoints, minScaleThreshold, maxScaleThreshold, nbRequiredMatches, printGraph );
-
         /*
     check_detect_and_match_tools( detectingTool, matchingTool );
 
@@ -977,7 +976,7 @@ int Tapioca_main(int argc,char ** argv)
     }
     else if (TheType == Type[4])
     {
-        int aRes = Graph_(argc,argv,TheType);
+        int aRes = Graph_(argc,argv,TheType);        
         BanniereMM3D();
         return aRes;
     }

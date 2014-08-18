@@ -4,17 +4,17 @@
         <Symb> Im1=IMG_0034.CR2 </Symb>
         <Symb> NbNivByOct=3     </Symb>
 
-        <!--
+        
         <Symb> Resol=1            </Symb>
         <Symb> Sigma0=1.6         </Symb>
         <Symb> SigmaN=1           </Symb>
-        -->
         
         
+        <!--
         <Symb> Resol=0.5          </Symb>
         <Symb> Sigma0=1.269920842 </Symb>
         <Symb> SigmaN=0.5         </Symb>
-        
+        -->
 
         <Symb> OctaveMax=32      </Symb>
         <Symb> NivFloatIm=4          </Symb>
@@ -49,7 +49,7 @@
 		 </TypeNumeriqueOfNiv>
 	      -->
 	      <TypeNumeriqueOfNiv>
-		  <Type> eTN_float </Type>
+		  <Type> eTN_u_int2 </Type>
 		  <Niv> -2  </Niv>
 	      </TypeNumeriqueOfNiv>
 

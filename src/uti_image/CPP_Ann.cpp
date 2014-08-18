@@ -25,13 +25,6 @@ static inline bool ann_read_digeo_file( const string &i_filename, vector<DigeoPo
 		return false;
 	}
 
-	// __DEL
-	for ( size_t iPoint=0; iPoint<i_array.size(); iPoint++ ){
-		if ( i_array[iPoint].descriptors.capacity()!=i_array[iPoint].descriptors.size() ){
-			cerr << "-----------------------> " << i_array[iPoint].descriptors.capacity() << " != " << i_array[iPoint].descriptors.size() << endl;
-		}
-	}
-
 	if ( i_removeMin ) DigeoPoint::removePointsOfType( DigeoPoint::DETECT_LOCAL_MIN, i_array );
 	if ( i_removeMax ) DigeoPoint::removePointsOfType( DigeoPoint::DETECT_LOCAL_MAX, i_array );
 	if ( i_removeUnknown ) DigeoPoint::removePointsOfType( DigeoPoint::DETECT_UNKNOWN, i_array );
@@ -81,7 +74,6 @@ int Ann_main( int argc, char **argv )
 	if ( !ann_read_digeo_file( name1, array1, removeMin, removeMax, removeUnknown ) ) return EXIT_FAILURE;
 	const size_t nbPoints0 = array0.size(),
 	             nbPoints1 = array1.size();
-
 	match_lebris( array0, array1, matchedCoupleIndices );
 
 	if ( !matchedCoupleIndices.empty() )
