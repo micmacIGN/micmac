@@ -371,6 +371,65 @@ extern void TestQR(int aN);
 extern void Test_DBL();
 
 
+// cConvExplicite GlobMakeExplicite(eConventionsOrientation aConv);
+
+void TestInvAngles(eConventionsOrientation aEnumConv,ElMatrix<double>  aMat)
+{
+  bool     TrueRot = true;
+
+  cConvExplicite aCE = GlobMakeExplicite(aEnumConv);
+
+  double aCMul[3],aLMul[3];
+  aCE.ColMul().Val().to_tab(aCMul);
+  aCE.LigMul().Val().to_tab(aLMul);
+
+  int  aKTeta[3];
+  aCE.NumAxe().Val().to_tab(aKTeta);
+  ELISE_ASSERT(aKTeta[1]==1,"TestInvAngles usupported conv");
+  bool Inv= aKTeta[0] == 2;
+  std::cout << "INV " << Inv << " KTETA " << aKTeta[0] << " " << aKTeta[2] << "\n";
+
+
+  for (int aC=0 ; aC<3 ; aC++)
+  {
+      for (int aL=0 ; aL<3 ; aL++)
+      {
+          aMat(aC,aL) *= aCMul[aC] * aLMul[aL];
+      }
+  }
+
+  if ( !aCE.MatrSenC2M().Val())
+  {
+      if (TrueRot)
+         aMat.self_transpose();
+      else
+      {
+         aMat = gaussj(aMat);
+      }
+   }
+   double teta[3];
+   if (Inv)
+   {
+     AngleFromRot(gaussj(aMat),teta[0],teta[1],teta[2]);
+     teta[1] *= -1;
+     // teta[2] *= -1;
+   }
+   else
+   {
+     AngleFromRot(aMat,teta[0],teta[1],teta[2]);
+     teta[1] *= -1;
+     teta[2] *= -1;
+     ElSwap(teta[0],teta[2]);
+   }
+
+   for (int aK=0 ; aK<3 ; aK++)
+      teta[aK] = FromRadian(teta[aK],aCE.UniteAngles().Val());
+
+   std::cout << teta[0] << " " << teta[1] << " " << teta[2] << "\n";
+}
+
+
+
 void TestExportCam(int argc,char** argv)
 {
     for (int aK=0 ; aK<argc ; aK++)
@@ -398,6 +457,11 @@ void TestExportCam(int argc,char** argv)
     std::cout << aFullName << "//" << aNameTag << " " << aCS->Focale() << "\n";
 
     cOrientationConique anOC = aCS->StdExportCalibGlob(false);
+
+    TestInvAngles(eConvAngPhotoMDegre,aCS->Orient().Mat());
+    TestInvAngles(eConvApero_DistM2C,aCS->Orient().Mat());
+
+    MakeFileXML(anOC,aNameDir+"Test"+aNameCam);
 
 }
 
