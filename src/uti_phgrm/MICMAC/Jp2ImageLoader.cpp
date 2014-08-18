@@ -34,14 +34,14 @@
 JP2ImageLoader::JP2ImageLoader(std::string const &nomfic):
 m_Nomfic(nomfic)
 {
-    
+
     //std::cout << "constructeur : "<<nomfic<<std::endl;
     bool verbose = false;
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
     jp2_family_src          jp2_ultimate_src;
     kdu_codestream          codestream;
-    
+
     m_Input=&m_Source;
     //std::cout << "m_Input  : "<<m_Input<<std::endl;
     jp2_ultimate_src.open(nomfic.c_str());
@@ -52,13 +52,14 @@ m_Nomfic(nomfic)
     }
     m_Source.read_header();
     codestream.create(m_Input);
-    
-    // Ajout de code pour vérifier l'encodage avec/ou sans perte
+
+    // Ajout de code pour verifier l'encodage avec/ou sans perte
     kdu_params *root = codestream.access_siz();
     // les attributs Ckernels et Creversible sont dans le cluster 5
     int idx = 5;
     kdu_params * prms = root->access_cluster(idx);
-    bool reversible, trouveReversible,trouveKernel ;
+    bool reversible, trouveReversible,trouveKernel;
+    trouveReversible = trouveKernel = false;
     int kernels;
     if( prms != NULL)
     {
@@ -67,7 +68,7 @@ m_Nomfic(nomfic)
         trouveKernel = prms->get(Ckernels,0,0,kernels,false);
         if(verbose) std::cout <<" trouveKernel : " << trouveKernel << ",(0 = W9X7, 1 = W5X3) kernels = " << kernels << std::endl;
     }
-    
+
     // remplissage de metadonnees
     //TODO : ajouter les autres attributs , en fonction des besoins
     if(trouveReversible)
@@ -79,7 +80,7 @@ m_Nomfic(nomfic)
     {
         _reversible = false;
     }
-    
+
     if(trouveKernel)
     {
         if(kernels == Ckernels_W9X7  )
@@ -95,29 +96,29 @@ m_Nomfic(nomfic)
     {
         _CKernels_W9X7 = true;
     }
-    
+
     if ((_reversible!=false)||(_CKernels_W9X7!=true))
     {
         std::cout << "JP2 compresse sans perte: non utilisable avec MicMac!"<<std::endl;
         return;
     }
-    
+
     // fin des modifications
-    
-    
-    
-    
-    
+
+
+
+
+
     int num_components = codestream.get_num_components(true);
     if (verbose) std::cout << "Nombre de components : "<<num_components<<std::endl;
-    
+
     m_Nbc = codestream.get_num_components(true);
     m_BPS = codestream.get_bit_depth(0);
     m_S   = codestream.get_signed(0);
     kdu_dims dims;
     codestream.get_dims(0,dims);
     m_SzIm=std::complex<int>(dims.size.x,dims.size.y);
-    
+
     if (m_BPS == 8) m_Type = eUnsignedChar;
     else if (m_BPS == 16)
     {
@@ -126,7 +127,7 @@ m_Nomfic(nomfic)
     }
     else if (m_BPS == 4) m_Type = eFloat;
     else m_Type = eOther;
-    
+
     if (verbose)
     {
         for(int n=0;n<num_components;++n)
@@ -142,15 +143,15 @@ m_Nomfic(nomfic)
             std::cout << dims.access_pos()->get_x()<<" "<<dims.access_pos()->get_y()<<" : "<<dims.access_size()->get_x()<<" "<<dims.access_size()->get_y()<<std::endl;
         }
     }
-    
+
     if (verbose) std::cout << "Nombre deZoom dispo : "<<codestream.get_min_dwt_levels()<<std::endl;
-    
-    
+
+
     codestream.destroy();
     m_Input->close();
     if (jp2_ultimate_src.exists()) jp2_ultimate_src.close();
-    
-    
+
+
     if (verbose) std::cout << "Fin du constructeur"<<std::endl;
 }
 
@@ -169,19 +170,19 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
     if (verbose) std::cout << "LoadNCanaux en unsigned short"<<std::endl;
     int precision = 16;
     bool signe = false;
-    
+
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
     jp2_family_src          jp2_ultimate_src;
     kdu_codestream          codestream;
-    
+
     m_Input=&m_Source;
     jp2_ultimate_src.open(m_Nomfic.c_str());
     if (!m_Source.open(&jp2_ultimate_src)) return;
     m_Source.read_header();
     codestream.create(m_Input);
-    
-    
+
+
     //int dz = aDeZoom;
     int max_layers = 0;
     int discard_levels = 0;
@@ -197,7 +198,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
         //std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
     }
     //std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
-    
+
     int * precisions = new int[aVImages.size()];
     bool *is_signed = new bool[aVImages.size()];
     for(size_t i=0;i<aVImages.size();++i) precisions[i]=precision;
@@ -225,9 +226,9 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
     }
     int nb_canaux = dernier_canal-premier_canal+1;
     if (nb_canaux>(int)aVImages.size()) nb_canaux=aVImages.size();
-    
+
     codestream.apply_input_restrictions(premier_canal,nb_canaux,discard_levels,max_layers,&mdims,KDU_WANT_OUTPUT_COMPONENTS);
-    
+
     kdu_thread_env env, *env_ref=NULL;
     int n, num_components = codestream.get_num_components(true);
     kdu_dims *comp_dims = new kdu_dims[num_components];
@@ -236,9 +237,9 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
     int *stripe_heights = new int[num_components];
     int *sample_gaps = NULL;
     int *row_gaps = NULL;
-    
+
     kdu_int16 **stripe_bufs = new kdu_int16 *[num_components];
-    
+
     if (reDeZoom>0)
     {
         for(n=0;n<num_components;++n)
@@ -246,7 +247,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
             stripe_bufs[n] = new kdu_int16[comp_dims[n].size.x];
         }
     }
-    
+
     int env_dbuf_height = 0;
     //int preferred_min_stripe_height = 8;
     //int absolute_max_stripe_height = 1024;
@@ -265,14 +266,14 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
             for(int ll=1;ll<reDeZoom;++ll) decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
         }
     }
-    
+
     if (reDeZoom)
     {
         for(n=0;n<num_components;++n) delete[] stripe_bufs[n];
         delete[] sample_gaps;
         delete[] row_gaps;
     }
-    
+
     // Clean up
     decompressor.finish();
     if (env.exists())
@@ -300,15 +301,15 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
     bool verbose  = 0;
     if (verbose) std::cout << "LoadNCanaux en float "<<aDeZoom<<" - "<<aP0Im.real()<<" "<<aP0Im.imag()<<" - "<<aP0File.real()<<" "<<aP0File.imag()<<" - "<<aSz.real()<<" "<<aSz.imag()<<std::endl;
     bool avecDeZoom=false;
-    
+
     int precision = 16;
     bool signe = false;
-    
+
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
     jp2_family_src          jp2_ultimate_src;
     kdu_codestream          codestream;
-    
+
     m_Input=&m_Source;
     jp2_ultimate_src.open(m_Nomfic.c_str());
     if (!m_Source.open(&jp2_ultimate_src))
@@ -318,7 +319,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
     }
     m_Source.read_header();
     codestream.create(m_Input);
-    
+
     int dz = aDeZoom;
     int max_layers = 0;
     int discard_levels = 0;
@@ -338,7 +339,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
         if (verbose) std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
     }
     if (verbose) std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
-    
+
     int * precisions = new int[aVImages.size()];
     bool *is_signed = new bool[aVImages.size()];
     for(size_t i=0;i<aVImages.size();++i) precisions[i]=precision;
@@ -367,9 +368,9 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
     }
     int nb_canaux = dernier_canal-premier_canal+1;
     if (nb_canaux>(int)aVImages.size()) nb_canaux=aVImages.size();
-    
+
     codestream.apply_input_restrictions(premier_canal,nb_canaux,discard_levels,max_layers,&mdims,KDU_WANT_OUTPUT_COMPONENTS);
-    
+
     kdu_thread_env env, *env_ref=NULL;
     int n, num_components = codestream.get_num_components(true);
     kdu_dims *comp_dims = new kdu_dims[num_components];
@@ -378,16 +379,16 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
     int *stripe_heights = new int[num_components];
     int *sample_gaps = NULL;
     int *row_gaps = NULL;
-    
+
     kdu_int16 **stripe_bufs = new kdu_int16 *[num_components];
-    
+
     {
         for(n=0;n<num_components;++n)
         {
             stripe_bufs[n] = new kdu_int16[comp_dims[n].size.x];
         }
     }
-    
+
     std::vector<float> coef;
     float norm = 0.f;
     float d2 = (float)(reDeZoom-1.)/2.;
@@ -403,7 +404,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
         }
     }
     if (verbose) std::cout << "norm : "<<norm<<std::endl;
-    
+
     int env_dbuf_height = 0;
     //int preferred_min_stripe_height = 8;
     //int absolute_max_stripe_height = 1024;
@@ -418,7 +419,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
             for(int ll=0;ll<reDeZoom;++ll)
             {
                 decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
-                
+
                 for(n=0;n<num_components;++n)
                 {
                     float* pt_out = &(aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()]);
@@ -431,7 +432,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
                             (*pt_out)+=(float)(*pt_buf) * coef[cc+ll*reDeZoom];
                             ++pt_buf;
                         }
-                        
+
                         if (ll==(reDeZoom-1))
                         {
                             (*pt_out) /=(float)norm;
@@ -449,13 +450,13 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
                     aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()+c] = (float)((stripe_bufs[n][c]));
         }
     }
-    
+
     {
         for(n=0;n<num_components;++n) delete[] stripe_bufs[n];
         delete[] sample_gaps;
         delete[] row_gaps;
     }
-    
+
     // Clean up
     decompressor.finish();
     if (env.exists())
@@ -466,7 +467,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
     delete[] precisions;
     delete[] stripe_heights;
     delete[] stripe_bufs;
-    
+
     delete[] is_signed;
     delete[] comp_dims;
 }
@@ -485,19 +486,19 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > 
     bool verbose  = 0;
     if (verbose) std::cout << "LoadNCanaux en unsigned char"<<std::endl;
     int precision = 8;
-    
+
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
     jp2_family_src          jp2_ultimate_src;
     kdu_codestream          codestream;
-    
+
     m_Input=&m_Source;
     jp2_ultimate_src.open(m_Nomfic.c_str());
     if (!m_Source.open(&jp2_ultimate_src)) return;
     m_Source.read_header();
     codestream.create(m_Input);
-    
-    
+
+
     //int dz = aDeZoom;
     int max_layers = 0;
     int discard_levels = 0;
@@ -512,7 +513,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > 
         //dz = (1 << discard_levels);
         //std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
     }
-    
+
     int * precisions = new int[aVImages.size()];
     for(size_t i=0;i<aVImages.size();++i) precisions[i]=precision;
     kdu_dims dims,mdims;
@@ -536,9 +537,9 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > 
     }
     int nb_canaux = dernier_canal-premier_canal+1;
     if (nb_canaux>(int)aVImages.size()) nb_canaux=aVImages.size();
-    
+
     codestream.apply_input_restrictions(premier_canal,nb_canaux,discard_levels,max_layers,&mdims,KDU_WANT_OUTPUT_COMPONENTS);
-    
+
     kdu_thread_env env, *env_ref=NULL;
     int n, num_components = codestream.get_num_components(true);
     kdu_dims *comp_dims = new kdu_dims[num_components];
@@ -547,9 +548,9 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > 
     int *stripe_heights = new int[num_components];
     int *sample_gaps = NULL;
     int *row_gaps = NULL;
-    
+
     unsigned char **stripe_bufs = new unsigned char *[num_components];
-    
+
     if (reDeZoom>0)
     {
         for(n=0;n<num_components;++n)
@@ -557,45 +558,45 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > 
             stripe_bufs[n] = new unsigned char[comp_dims[n].size.x];
         }
     }
-    
+
     int env_dbuf_height = 0;
     //int preferred_min_stripe_height = 8;
     //int absolute_max_stripe_height = 1024;
     kdu_stripe_decompressor decompressor;
     decompressor.start(codestream,false,false,env_ref,NULL,env_dbuf_height);
-    for (n=0; n < num_components; n++) stripe_heights[n] = 1; 	
+    for (n=0; n < num_components; n++) stripe_heights[n] = 1;
     for(int l=0;l<aSz.imag();++l)
     {
         if (reDeZoom<=0) for(n=0;n<num_components;++n) stripe_bufs[n] = (unsigned char*)&(aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()]);
         decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions);
         if (reDeZoom>0)
-        { 
+        {
             for(n=0;n<num_components;++n)
                 for(int c=0;c<aSz.real();++c)
                     aVImages[n].mData[aP0Im.imag()+l][c] = stripe_bufs[n][c*reDeZoom];
             for(int ll=1;ll<reDeZoom;++ll) decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions);
         }
     }
-    
-    if (reDeZoom) 
+
+    if (reDeZoom)
     {
         for(n=0;n<num_components;++n) delete[] stripe_bufs[n];
         delete[] sample_gaps;
         delete[] row_gaps;
-    }	
-    
+    }
+
     // Clean up
     decompressor.finish();
     if (env.exists())
-        env.destroy(); 
-    codestream.destroy();	
+        env.destroy();
+    codestream.destroy();
     m_Input->close();
     if (jp2_ultimate_src.exists()) jp2_ultimate_src.close();
     delete[] precisions;
     delete[] stripe_heights;
     delete[] stripe_bufs;
     delete[] comp_dims;
-    
+
 }
 
 
