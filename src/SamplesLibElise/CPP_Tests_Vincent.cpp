@@ -49,6 +49,8 @@ class cCMP_Ima;
 class VT_Img;
 class cCMP_Appli;
 class VT_AppSelTieP;
+class VT_Ortho;
+class VT_Imagette;
 
 class cCMP_Ima
 {
@@ -123,6 +125,205 @@ class VT_AppSelTieP : public cAppliWithSetImage
 		std::map<std::pair<VT_Img *,VT_Img *> ,ElPackHomologue> mMapH_yes;
 };
 
+class VT_Ortho
+{
+	public :
+		VT_Ortho(int argc, char** argv);
+		vector <Box2di> MaKeBox (Pt2di mOrthoSz,Pt2di szBox);
+	private :
+		Pt2dr							  mOriginXY, mResoXY;
+		Pt2di							  mOrthoSz, szBox;
+		double			 				  mOriginZ, mResoZ;
+		vector <Box2di>  				  mLBox;
+		std::string 	 				  mOrtho, mDirOrtho, mDir, mOri, mPat, mPat2, mFullName;
+		cInterfChantierNameManipulateur * mICNM;
+		std::list<std::string> 			  mLFile;
+};
+
+class VT_Imagette
+{
+	public :
+		VT_Imagette(VT_Ortho & anAppli, Box2di & mDef, Tiff_Im & mOrthoImg, const std::string & aNameOut, Im2D_U_INT1  & aImR);
+	//private :
+		double		 mOriginX, mOriginY, mOriginZ, mResoX, mResoY, mResoZ;
+		Box2di 		 mDef;
+		Pt2di 		 mPtMaxOr;
+		Pt3dr 		 mPtMaxTer;
+		VT_Ortho &   mAppli;
+		std::string  mName;
+	
+};
+
+/********************************************************************/
+/*                                                                  */
+/*                      VT_Ortho	                                */
+/*                                                                  */
+/********************************************************************/
+VT_Ortho::VT_Ortho(int argc, char** argv):
+	szBox(50,50)
+{
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pat)")
+					<< EAMC(mOri,"Orientation")
+					<< EAMC(mOrtho,"Orthophotography"),
+		LArgMain()  << EAM(szBox,"SzBox",true,"Grid size (Default = [50,50])")
+	);
+
+	// Initialize name manipulator & files
+	SplitDirAndFile(mDir,mPat,mFullName);
+
+	// Get the list of files from the directory and pattern
+	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+	mLFile = mICNM->StdGetListOfFile(mPat);
+	// If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
+	StdCorrecNameOrient(mOri,mDir);
+
+	// Get the ortho parameters
+	SplitDirAndFile(mDirOrtho,mPat2,mOrtho);
+    std::string mMTDOrthoFile = mDirOrtho + "MTDOrtho.xml";
+    
+	// Charger les mesures images
+	cFileOriMnt mMTDOrtho=  StdGetFromPCP(mMTDOrthoFile,FileOriMnt);
+	mOriginXY = mMTDOrtho.OriginePlani();
+	mResoXY = mMTDOrtho.ResolutionPlani();
+	mOriginZ = mMTDOrtho.OrigineAlti();
+	mResoZ = mMTDOrtho.ResolutionAlti();
+	mOrthoSz = mMTDOrtho.NombrePixels();
+	
+	//Création des imagettes
+	mLBox = MaKeBox (mOrthoSz, szBox);
+	std::string aKey = mDirOrtho + "Tmp/";
+	ELISE_fp::MkDirRec(aKey);
+    
+    Tiff_Im mOrthoImg = Tiff_Im::StdConv(mOrtho);// (Tiff_Im::StdConvGen(mOrtho,1,true));
+    Im2D_U_INT1  I(mOrthoSz.x,mOrthoSz.y);
+    
+    ELISE_COPY
+    (
+       mOrthoImg.all_pts(),
+       mOrthoImg.in(),
+       I.out()
+    );
+ 
+ 
+ 
+	Disc_Pal  Pdisc = Disc_Pal::P8COL();
+	Gray_Pal  Pgr (30);
+	Circ_Pal  Pcirc = Circ_Pal::PCIRC6(30);
+	RGB_Pal   Prgb  (5,5,5);
+	Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+
+	// Drawing with Elise
+	Video_Display Ecr((char *) NULL);
+	Ecr.load(SOP);
+	Video_Win   W  (Ecr,SOP,Pt2di(50,50),Pt2di(500,500));
+	
+    std::string aNameOut = mDir + mDirOrtho + "Tmp/Vignette_TEST.tif";   
+    Tiff_Im  aTOut
+    (
+         aNameOut.c_str(),
+         mOrthoSz,
+         GenIm::u_int1,
+         Tiff_Im::No_Compr,
+         Tiff_Im::RGB
+    );
+    
+    ELISE_COPY
+    (
+        I.all_pts(),
+        I.in()[(FX-4000,FY)],
+        aTOut.out()
+    );
+    W.clik_in();
+    
+    
+    
+    
+    /*
+	std::ostringstream myS;
+	for (unsigned int i=0 ; i<mLBox.size() ; i++)
+	{
+		std::ostringstream myS;
+		myS << i;
+		std::string aNameOut = mDir + mDirOrtho + "Tmp/Vignette_" + myS.str() + ".tif";
+		
+		VT_Imagette * mImg1 = new  VT_Imagette(*this, mLBox[i], mOrthoImg, aNameOut, I);
+		cout << mImg1->mName << " créée !" << endl;
+	}*/
+}
+
+vector <Box2di> VT_Ortho::MaKeBox(Pt2di mOrthoSz, Pt2di szBox)
+{
+	vector <Box2di> boxList;
+	int largeur, longueur;
+	largeur = 1 + mOrthoSz.x/szBox.x;
+	longueur = 1 + mOrthoSz.y/szBox.y;
+	for (int i=0 ; i<largeur ; i++)
+	{
+		for (int j=0 ; j<longueur ; j++)
+		{
+			Pt2di basGauche, hautDroit;
+			basGauche.x = i*szBox.x;
+			basGauche.y = j*szBox.y;
+			if ((basGauche.x + szBox.x)>mOrthoSz.x){hautDroit.x = mOrthoSz.x;}
+			else{hautDroit.x = basGauche.x + szBox.x;}
+			if((basGauche.y + szBox.y)>mOrthoSz.y){hautDroit.y = mOrthoSz.y;}
+			else{hautDroit.y = basGauche.y + szBox.y;}
+			
+			boxList.push_back(Box2di (basGauche,hautDroit));
+		}
+	}
+	
+	return boxList;
+}
+
+/********************************************************************/
+/*                                                                  */
+/*                      VT_Imagettes                                */
+/*                                                                  */
+/********************************************************************/
+
+VT_Imagette::VT_Imagette(VT_Ortho & anAppli,Box2di & mDef, Tiff_Im & mOrthoImg, const std::string & aNameOut, Im2D_U_INT1  & I) :
+   mAppli  (anAppli),
+   mName   (aNameOut)
+{	
+	Pt2di mySz;
+	mySz.x = mDef._p1.x - mDef._p0.x;
+	mySz.y = mDef._p1.y - mDef._p0.y;
+	
+	Disc_Pal  Pdisc = Disc_Pal::P8COL();
+	Gray_Pal  Pgr (30);
+	Circ_Pal  Pcirc = Circ_Pal::PCIRC6(30);
+	RGB_Pal   Prgb  (5,5,5);
+	Elise_Set_Of_Palette SOP(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));
+
+	// Drawing with Elise
+	Video_Display Ecr((char *) NULL);
+	Ecr.load(SOP);
+	Video_Win   W  (Ecr,SOP,Pt2di(50,50),Pt2di(mySz.x,mySz.y));
+
+
+
+	Tiff_Im  aTOut
+    (
+         aNameOut.c_str(),
+         (mySz),
+         GenIm::u_int1,
+         Tiff_Im::No_Compr,
+         Tiff_Im::RGB
+    );
+    
+    ELISE_COPY
+    (
+        rectangle(mDef._p1,mDef._p0),
+		I.in(),
+        W.ogray()
+    );
+    W.clik_in();
+
+}
 
 /********************************************************************/
 /*                                                                  */
@@ -320,7 +521,7 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 									}
 								}
 								if (!isIn)
-								{								
+								{							
 									for (
 										ElPackHomologue::iterator iTH4 = mMapH_yes[aPair2].begin();
 										iTH4 != mMapH_yes[aPair2].end();
@@ -345,7 +546,7 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 										iTH2 =  itM2->second.end();
 										iTH2--;
 									}
-									/*
+									
 									else if (NbVI == 4)
 									{
 										for (tMapH::iterator itM3=mMapH_no.begin()	; itM3!=mMapH_no.end() ; itM3++)       // browse the dictionnary
@@ -355,30 +556,31 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 											if ((aIm1->mName == aIm5->mName) && (aIm2->mName != aIm6->mName) && (aIm4->mName != aIm6->mName))
 											{
 												for (
-													ElPackHomologue::iterator iTH4 = itM3->second.begin();
-													iTH4 != itM3->second.end();
-													iTH4++
+													ElPackHomologue::iterator iTH5 = itM3->second.begin();
+													iTH5 != itM3->second.end();
+													iTH5++
 												)
-												{							
-													Pt2dr aP5 = iTH4->P1();														
+												{
+													Pt2dr aP5 = iTH5->P1();
 													if (aP1 == aP5)
 													{																												
-														Pt2dr aP6 = iTH4->P2();	
+														Pt2dr aP6 = iTH5->P2();
 														tPairIm aPair3;
 														aPair3.first = aIm5;
 														aPair3.second = aIm6;
+														isIn=false;
 														for (
-															ElPackHomologue::iterator iTH5 = mMapH_yes[aPair3].begin();
-															iTH5 != mMapH_yes[aPair3].end();
-															iTH5++
+															ElPackHomologue::iterator iTH6 = mMapH_yes[aPair3].begin();
+															iTH6 != mMapH_yes[aPair3].end();
+															iTH6++
 														)
 														{	// Check if point already in
-															Pt2dr aPctrl1 = iTH5->P1();
+															Pt2dr aPctrl1 = iTH6->P1();
 															if (aP1 == aPctrl1)
 															{
 																isIn=true;
-																iTH5 = mMapH_yes[aPair3].end();
-																iTH5--;
+																iTH6 = mMapH_yes[aPair3].end();
+																iTH6--;
 															}
 														}
 														if (!isIn)
@@ -386,15 +588,15 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 															mMapH_yes[aPair1].Cple_Add(ElCplePtsHomologues(aP1,aP2));
 															mMapH_yes[aPair2].Cple_Add(ElCplePtsHomologues(aP3,aP4)); 
 															mMapH_yes[aPair3].Cple_Add(ElCplePtsHomologues(aP5,aP6)); 
-															iTH4 =  itM3->second.end();
-															iTH4--;
+															iTH5 =  itM3->second.end();
+															iTH5--;
 														}
 													}
 												}			
 											}
 										}
-									}*/
-									else { cout << "***** ACHTUNG ***** NbVI == " << NbVI << " NbVI > 3 not taken into account so far... " << endl;}
+									}
+									else { cout << "***** ACHTUNG ***** NbVI == " << NbVI << " NbVI >= 5 not taken into account so far... " << endl;}
 								}
 							}
 						}
@@ -1198,6 +1400,13 @@ int Idem_main(int argc, char** argv)
 int SelTieP_main (int  argc, char** argv)
 {
 	VT_AppSelTieP anAppli(argc,argv);
+	
+	return EXIT_SUCCESS;
+}
+
+int Ortho2TieP_main (int  argc, char** argv)
+{
+	VT_Ortho anAppli(argc,argv);
 	
 	return EXIT_SUCCESS;
 }

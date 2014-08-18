@@ -331,7 +331,7 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
    std::string aTmpOut = "Proj4Output.txt";
 
    std::string aCom =    std::string( std::string(SYS_CAT) + " " + aTmpIn + " | ")
-                       + g_externalToolHandler.get( std::string(Sens2GeoC ? "invproj" : "proj") ).callName() + ' '
+                       + g_externalToolHandler.get("proj").callName() + (Sens2GeoC?" -I ":" ")
                        + std::string(" -f %.7f ")
                        + mStr
                        + " > " 
