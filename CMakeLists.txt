@@ -555,12 +555,15 @@ ADD_SUBDIRECTORY(${ELISE_DIR})
 # INSTALLATION : Liste des exe et Dll necessaires sous windows
 if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
         configure_file( ${BinAuxWinDir}/convert.exe ${PROJECT_SOURCE_DIR}/binaire-aux/convert.exe COPYONLY )
+        configure_file( ${BinAuxWinDir}/vcomp100.dll ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
         configure_file( ${BinAuxWinDir}/exiftool.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiftool.exe COPYONLY )
         configure_file( ${BinAuxWinDir}/exiv2.exe ${PROJECT_SOURCE_DIR}/binaire-aux/exiv2.exe COPYONLY )
         configure_file( ${BinAuxWinDir}/libexpat.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libexpat.dll COPYONLY )
         configure_file( ${BinAuxWinDir}/libiconv2.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libiconv2.dll COPYONLY )
         configure_file( ${BinAuxWinDir}/libintl3.dll ${PROJECT_SOURCE_DIR}/binaire-aux/libintl3.dll COPYONLY )
         configure_file( ${BinAuxWinDir}/make.exe ${PROJECT_SOURCE_DIR}/binaire-aux/make.exe COPYONLY )
+        configure_file( ${BinAuxWinDir}/proj.exe ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
+        configure_file( ${BinAuxWinDir}/proj.dll ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
 endif()
 
 # Doxygen
