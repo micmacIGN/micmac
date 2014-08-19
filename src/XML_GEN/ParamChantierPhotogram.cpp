@@ -6297,6 +6297,8 @@ eExportOri  Str2eExportOri(const std::string & aName)
       return eEO_AMM;
    else if (aName=="eEO_WPK")
       return eEO_WPK;
+   else if (aName=="eEO_NbVals")
+      return eEO_NbVals;
   else
   {
       cout << aName << " is not a correct value for enum eExportOri\n" ;
@@ -6316,6 +6318,8 @@ std::string  eToString(const eExportOri & anObj)
       return  "eEO_AMM";
    if (anObj==eEO_WPK)
       return  "eEO_WPK";
+   if (anObj==eEO_NbVals)
+      return  "eEO_NbVals";
  std::cout << "Enum = eExportOri\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -6338,7 +6342,7 @@ void  BinaryUnDumpFromFile(eExportOri & anObj,ELISE_fp & aFp)
    anObj=(eExportOri) aIVal;
 }
 
-std::string  Mangling( eExportOri *) {return "E6A7558FCC2652A2FE3F";};
+std::string  Mangling( eExportOri *) {return "36AFC96E5EDC34C0FE3F";};
 
 
 Pt2dr & cCalibrationInterneGridDef::P0()

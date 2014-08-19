@@ -1480,12 +1480,82 @@ int Ori_Txt2Xml_main(int argc,char ** argv)
 //================================================
 //================================================
 
+
+Pt3dr TestInvAngles(eConventionsOrientation aEnumConv,ElMatrix<double>  aMat)
+{
+  bool     TrueRot = true;
+
+  cConvExplicite aCE = GlobMakeExplicite(aEnumConv);
+
+  double aCMul[3],aLMul[3];
+  aCE.ColMul().Val().to_tab(aCMul);
+  aCE.LigMul().Val().to_tab(aLMul);
+
+  int  aKTeta[3];
+  aCE.NumAxe().Val().to_tab(aKTeta);
+  ELISE_ASSERT(aKTeta[1]==1,"TestInvAngles usupported conv");
+  bool Inv= aKTeta[0] == 2;
+  std::cout << "INV " << Inv << " KTETA " << aKTeta[0] << " " << aKTeta[2] << "\n";
+
+
+  for (int aC=0 ; aC<3 ; aC++)
+  {
+      for (int aL=0 ; aL<3 ; aL++)
+      {
+          aMat(aC,aL) *= aCMul[aC] * aLMul[aL];
+      }
+  }
+
+  if ( !aCE.MatrSenC2M().Val())
+  {
+      if (TrueRot)
+         aMat.self_transpose();
+      else
+      {
+         aMat = gaussj(aMat);
+      }
+   }
+   double teta[3];
+   if (Inv)
+   {
+     AngleFromRot(gaussj(aMat),teta[0],teta[1],teta[2]);
+     teta[1] *= -1;
+     // teta[2] *= -1;
+   }
+   else
+   {
+     AngleFromRot(aMat,teta[0],teta[1],teta[2]);
+     teta[1] *= -1;
+     teta[2] *= -1;
+     ElSwap(teta[0],teta[2]);
+   }
+
+   for (int aK=0 ; aK<3 ; aK++)
+      teta[aK] = FromRadian(teta[aK],aCE.UniteAngles().Val());
+
+   // std::cout << teta[0] << " " << teta[1] << " " << teta[2] << "\n";
+   return Pt3dr( teta[0],teta[1], teta[2]);
+}
+
+/*
+    TestInvAngles(eConvAngPhotoMDegre,aCS->Orient().Mat());
+    TestInvAngles(eConvApero_DistM2C,aCS->Orient().Mat());
+
+    MakeFileXML(anOC,aNameDir+"Test"+aNameCam);
+*/
+
+
+
+
 int OriExport_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);
     std::string aFullName;
     std::string aRes;
     bool        AddFormat=false;
+    std::string aModeExport="WPK";
+    std::string aFormat ="N W P K X Y Z";
+    // eExportOri aModeEO = eEO_WPK;
 
     ElInitArgMain
     (
@@ -1493,17 +1563,47 @@ int OriExport_main(int argc,char ** argv)
         LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(aRes,"Results"),
         LArgMain()  << EAM(AddFormat,"AddF",true,"Add format as first line of header, def= false",eSAM_IsBool)
+                    <<  EAM(aModeExport,"ModeExp",true,"Mode export, def=WPK (Omega Phi Kapa)",eSAM_None,ListOfVal(eEO_NbVals,"eEO_"))
     );
 
-    cElemAppliSetFile aEASF(aFullName);
+    eExportOri aModeEO;
+    bool aModeH;
+    StdReadEnum(aModeH,aModeEO,"EO_"+aModeExport,eEO_NbVals);
 
-    for (int aK=0 ; aK<int(aEASF.mSetIm->size()) ; aK++)
+    eConventionsOrientation aCO = eConvAngPhotoMDegre;
+    if (aModeEO==eEO_WPK)
+       aCO = eConvAngPhotoMDegre;
+    else if (aModeH==eEO_AMM)
+       aCO = eConvApero_DistM2C;
+    else
     {
-        // const std::string & aNameIn = 
+        ELISE_ASSERT(false,"unsupported mode of conv or");
     }
 
 
-    BanniereMM3D();
+    if (!MMVisualMode)
+    {
+        FILE * aFP = FopenNN(aRes,"w","OriExport_main");
+        if (AddFormat) fprintf(aFP,"#F=%s\n",aFormat.c_str());
+
+        cElemAppliSetFile aEASF(aFullName);
+
+        for (int aK=0 ; aK<int(aEASF.mSetIm->size()) ; aK++)
+        {
+             const std::string & aNameCam =  (*aEASF.mSetIm)[aK];
+             std::string aNameIm = aEASF.mICNM->Assoc1To1("NKS-Assoc-Ori2ImGen",aNameCam,true);
+             CamStenope * aCS =  CamOrientGenFromFile(aNameCam,aEASF.mICNM);
+             // std::cout << "IM = " << aNameCam  << " " << aCS->Focale() << "\n";
+             Pt3dr aA = TestInvAngles(aCO,aCS->Orient().Mat());
+             Pt3dr aC = aCS->PseudoOpticalCenter();
+             fprintf(aFP,"%s %lf %lf %lf %lf %lf %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z);
+        }
+
+        fclose(aFP);
+
+
+        BanniereMM3D();
+    }
     return 0;
 }
 

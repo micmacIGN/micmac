@@ -2183,7 +2183,8 @@ typedef enum
 {
   eEO_MMM,
   eEO_AMM,
-  eEO_WPK
+  eEO_WPK,
+  eEO_NbVals
 } eExportOri;
 void xml_init(eExportOri & aVal,cElXMLTree * aTree);
 std::string  eToString(const eExportOri & aVal);
