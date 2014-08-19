@@ -1,0 +1,124 @@
+<!--
+   The simplest MicMac exemple
+-->
+
+<ParamMICMAC>
+
+  <DicoLoc>
+           <Symb>   PatternAllIm="XXXX"  </Symb>
+           <Symb>   Aero="XXXX"  </Symb>
+           <Symb>   ZInc="XXX"  </Symb>
+
+           <Symb>   ZoomTA="4"  </Symb>
+           <Symb>   Repere="NO-REPERE"  </Symb>
+           <Symb>   PenteMax="8.0"  </Symb>
+           <Symb>   SzW="1"  </Symb>
+  </DicoLoc>
+
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+             <ZIncCalc>   ${ZInc}  </ZIncCalc>
+      </IntervAltimetrie>
+      <Planimetrie>
+           <MasqueTerrain >
+                <FileBoxMasqIsBoxTer> BoxTer.xml</FileBoxMasqIsBoxTer>
+                <MT_Image > TA/TA_LeChantier_Masq.tif        </MT_Image>
+                <MT_Xml>    TA/Z_Num1_DeZoom${ZoomTA}_LeChantier.xml </MT_Xml>
+           </MasqueTerrain>
+      </Planimetrie>
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <ImPat>  ${PatternAllIm} </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> NKS-Assoc-Im2Orient@-${Aero}  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      ${SzW}             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   11               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   ${PenteMax}    </Px1PenteMax>
+                  <ArgMaskAuto >
+                         <ValDefCorrel >  0.15 </ValDefCorrel>
+                         <CostTrans >     1.0   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask>
+                         <Erod32Mask> 6        </Erod32Mask>
+                  </ArgMaskAuto>
+            </ModulationProgDyn>
+
+            
+        </EtapeMEC>
+	     
+        <EtapeMEC> 
+                 <ZPas>           1.0  </ZPas>
+                 <DeZoom >        64        </DeZoom> 
+        </EtapeMEC>
+
+        <EtapeMEC> <DeZoom >        64        </DeZoom> </EtapeMEC>
+        <EtapeMEC> <DeZoom >        32        </DeZoom> </EtapeMEC>
+
+        <EtapeMEC> <DeZoom >        16        </DeZoom> </EtapeMEC>
+        <EtapeMEC> <DeZoom >        8        </DeZoom> </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        4        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom>        2        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        1        </DeZoom> 
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+    <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
+<!--
+    <RepereCorrel> ReperePlanGlobal.xml </RepereCorrel>
+-->
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC>  Ter/  </TmpMEC>
+     <TmpResult>  Ter/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>  ${MMNbProc} </ByProcess>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
