@@ -123,3 +123,5 @@ MM-Error-*.txt
 include/general/CMake_defines.h
 TestOpenMM*
 include/XML_User
+binaire-aux/proj.exe
+binaire-aux/proj.dll
