@@ -25,6 +25,7 @@ EVOLUTIONS :
 
   * Modeles additionnels dans Tapas (AddPol et AddFour ) + les options dans NewTapas
   * GCPCtrl
+  * OriExport
 
 Torsion de bande : FAITS
 

@@ -1475,7 +1475,37 @@ int Ori_Txt2Xml_main(int argc,char ** argv)
     return 0;
 }
 
+//================================================
+//================================================
+//================================================
+//================================================
 
+int OriExport_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+    std::string aFullName;
+    std::string aRes;
+    bool        AddFormat=false;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
+                    << EAMC(aRes,"Results"),
+        LArgMain()  << EAM(AddFormat,"AddF",true,"Add format as first line of header, def= false",eSAM_IsBool)
+    );
+
+    cElemAppliSetFile aEASF(aFullName);
+
+    for (int aK=0 ; aK<int(aEASF.mSetIm->size()) ; aK++)
+    {
+        // const std::string & aNameIn = 
+    }
+
+
+    BanniereMM3D();
+    return 0;
+}
 
 
 

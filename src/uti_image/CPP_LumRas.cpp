@@ -235,7 +235,7 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
    if (mAppli.mKeyHom !="")
    {
        Pt2di aSzIn = anIm.sz();
-       std::string aNameH = mAppli.mICNM->Assoc1To2(mAppli.mKeyHom,mName,NameWithoutDir(mAppli.mNameImBase),true);
+       std::string aNameH = mAppli.mEASF.mICNM->Assoc1To2(mAppli.mKeyHom,mName,NameWithoutDir(mAppli.mNameImBase),true);
        std::cout << "SZ IM " << aSzIn << " " << mNameFull << " " << aNameH << "\n";
 
        ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);
@@ -331,7 +331,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
         mImMasq = Im2D_Bits<1>(mSz.x,mSz.y,1);
         if (EAMIsInit(&mPostMasq))
         {
-            CorrecNameMasq(mDir,NameWithoutDir(mNameImBase),mPostMasq);
+            CorrecNameMasq(mEASF.mDir,NameWithoutDir(mNameImBase),mPostMasq);
             std::string aNameMasq = StdPrefix(mNameImBase)+mPostMasq+".tif";
             Tiff_Im aTM(aNameMasq.c_str());
             ELISE_COPY(mImMasq.all_pts(),aTM.in(0),mImMasq.out());
@@ -345,12 +345,12 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
         for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
         {
             std::string aName = mVSoms[aK]->attr().mIma->mNameIm;
-            mVIm.push_back(new cImage_LumRas(mDir+aName,*this));
+            mVIm.push_back(new cImage_LumRas(mEASF.mDir+aName,*this));
             Fonc_Num aFShade = mVIm.back()->mImShade.in();
             aGlobSh = (aK==0) ? aFShade : Virgule(aGlobSh,aFShade);
         }
 
-       std::string aNameOut = mDir+ "LumRas_"+StdPrefix(mNameImBase) + ".tif";
+       std::string aNameOut = mEASF.mDir+ "LumRas_"+StdPrefix(mNameImBase) + ".tif";
        Tiff_Im TifTest
                (
                      aNameOut.c_str(),

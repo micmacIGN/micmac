@@ -606,6 +606,13 @@
            <eConvMatrixInpho>             </eConvMatrixInpho>
    </enum>
 
+   <!-- Version simplifiee de l'export Ori -->
+   <enum Name="eExportOri">
+          <eEO_MMM> </eEO_MMM>
+          <eEO_AMM> </eEO_AMM>
+          <eEO_WPK> </eEO_WPK>
+   </enum>
+
 
    <CalibrationInterneGridDef Nb="1" Class="true" ToReference="true">
          <P0 Nb="1" Type="Pt2dr"> </P0>

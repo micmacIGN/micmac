@@ -6289,6 +6289,57 @@ void  BinaryUnDumpFromFile(eConventionsOrientation & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eConventionsOrientation *) {return "D45887C8F44ACDAFFC3F";};
 
+eExportOri  Str2eExportOri(const std::string & aName)
+{
+   if (aName=="eEO_MMM")
+      return eEO_MMM;
+   else if (aName=="eEO_AMM")
+      return eEO_AMM;
+   else if (aName=="eEO_WPK")
+      return eEO_WPK;
+  else
+  {
+      cout << aName << " is not a correct value for enum eExportOri\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eExportOri) 0;
+}
+void xml_init(eExportOri & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eExportOri(aTree->Contenu());
+}
+std::string  eToString(const eExportOri & anObj)
+{
+   if (anObj==eEO_MMM)
+      return  "eEO_MMM";
+   if (anObj==eEO_AMM)
+      return  "eEO_AMM";
+   if (anObj==eEO_WPK)
+      return  "eEO_WPK";
+ std::cout << "Enum = eExportOri\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eExportOri & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eExportOri & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eExportOri & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eExportOri) aIVal;
+}
+
+std::string  Mangling( eExportOri *) {return "E6A7558FCC2652A2FE3F";};
+
 
 Pt2dr & cCalibrationInterneGridDef::P0()
 {
