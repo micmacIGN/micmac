@@ -2,11 +2,8 @@
 #define ENGINE_H
 
 
-#include "StdAfx.h"
-#include "HistoryManager.h"
 #include "cgldata.h"
 
-#include "Elise_QT.h"
 
 
 class ViewportParameters

@@ -3,7 +3,6 @@
 
 #include "Settings.h"
 #include "mmglu.h"
-#include "Elise_QT.h"
 
 #define QMaskedImage cMaskedImage<QImage>
 

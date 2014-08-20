@@ -1,7 +1,9 @@
 #ifndef __MATRIXMANAGER__
 #define __MATRIXMANAGER__
 
-#include "Engine.h"
+#include "StdAfx.h"
+#include "mmglu.h"
+#include "HistoryManager.h"
 
 //! View orientation
 enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
@@ -91,7 +93,7 @@ public:
     Pt3dr       centerScene() const;
     void        setCenterScene(const Pt3dr &centerScene);
 
-    void        MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);   
+    void        MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4], float *vec);
 
     void        handleRotation(QPointF clicPosMouse);
 
