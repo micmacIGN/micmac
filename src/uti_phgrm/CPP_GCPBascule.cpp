@@ -44,6 +44,36 @@ Header-MicMac-eLiSe-25/06/2007*/
 int NLDDegFlagX[6] ={0 ,1 ,0 ,2 ,1 ,0 };
 int NLDDegFlagY[6] ={0 ,0 ,1 ,0 ,1 ,2 };
 
+extern const char* NamePolQuadXY[6];
+// static const char *  PolXY[6] = {"1","X","Y","X2","XY","Y2"};
+
+int FlagOfDeg(const std::vector<std::string> & aDXY)
+{
+   int aRes = 0;
+   for (int aK=0 ; aK<int(aDXY.size()) ; aK++)
+   {
+       int aGot = -1;
+       for (int aP=0 ; aP<6 ; aP++)
+       {
+           if (aDXY[aK] == NamePolQuadXY[aP])
+           {
+              aGot= aP;
+           }
+       }
+       if (aGot >= 0)
+       {
+          aRes |= (1<<aGot);
+       }
+       else
+       {
+           std::cout << "For monom =" << aDXY[aK] << "\n";
+           ELISE_ASSERT(false,"Is no a valid monom");
+       }
+   }
+
+   return aRes;
+}
+
 int FlagOfDeg(const Pt3di & aDXY)
 {
    int aRes = 0;
@@ -77,9 +107,14 @@ int GCPBascule_main(int argc,char ** argv)
     bool NLDFTR = true;
 
     std::string aPatNLD;
+    std::vector<std::string> NLDDegX;  NLDDegX.push_back("1");  NLDDegX.push_back("X"); NLDDegX.push_back("Y");
+    std::vector<std::string> NLDDegY;  NLDDegY.push_back("1");  NLDDegY.push_back("X"); NLDDegY.push_back("Y");
+    std::vector<std::string> NLDDegZ;  NLDDegZ.push_back("1");  NLDDegZ.push_back("X"); NLDDegZ.push_back("X2");
+/*
     Pt3di NLDDegX(1,1,1);
     Pt3di NLDDegY(1,1,1);
     Pt3di NLDDegZ(2,0,2);
+*/
 
 
     ElInitArgMain
@@ -96,9 +131,9 @@ int GCPBascule_main(int argc,char ** argv)
                     <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
                     <<  EAM(ShowDetail,"ShowD",true,"Show details (def=false)", eSAM_IsBool)
                     <<  EAM(aPatNLD,"PatNLD",true,"Pattern for Non linear deformation, with aerial like geometry (def,unused)")
-                    <<  EAM(NLDDegX,"NLDegX",true,"Non Linear Degree X, when PatNLD, (Def =1,1,1)")
-                    <<  EAM(NLDDegY,"NLDegY",true,"Non Linear Degree Y, when PatNLD, (Def =1,1,1)")
-                    <<  EAM(NLDDegZ,"NLDegZ",true,"Non Linear Degree Z, when PatNLD, (Def =2,0,2)")
+                    <<  EAM(NLDDegX,"NLDegX",true,"Non Linear monoms for X, when PatNLD, (Def =[1,X,Y])")
+                    <<  EAM(NLDDegY,"NLDegY",true,"Non Linear monoms for Y, when PatNLD, (Def =[1,X,Y])")
+                    <<  EAM(NLDDegZ,"NLDegZ",true,"Non Linear monoms for Z, when PatNLD, (Def =[1,X,X2])")
                     <<  EAM(NLDFTR,"NLFR",true,"Non Linear : Force True Rot (Def=true)",eSAM_IsBool)
                     <<  EAM(NLDShow,"NLShow",true,"Non Linear : Show Details (Def=false)",eSAM_IsBool)
     );

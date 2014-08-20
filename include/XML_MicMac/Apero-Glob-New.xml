@@ -613,7 +613,7 @@
                        <IterationsCompensation>  <MultSLMEtape> 0.0031 </MultSLMEtape> </IterationsCompensation>
                        <IterationsCompensation>  <MultSLMEtape> 0.0017 </MultSLMEtape> </IterationsCompensation>
                        <IterationsCompensation>  <MultSLMEtape> 0.001 </MultSLMEtape> </IterationsCompensation>
-                       <IterationsCompensation>  <MultSLMEtape> 0.31 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
                    </#WHEN>
 
 
@@ -642,7 +642,7 @@
 
                    <#IF VTEST=${AffineAll}>
                         <MultSLMEtape> 1e-7 </MultSLMEtape>
-                        <MultSLMEtape>  0   </MultSLMEtape>
+                        <MultSLMEtape> 1e-9   </MultSLMEtape>
                    </#IF>
 
                    <IterationsCompensation> 

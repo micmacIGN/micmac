@@ -432,14 +432,14 @@ cModelQuadXY::cModelQuadXY(bool DoShow,const std::string & aName,int aFlagMasq) 
    if ( DoShow) Show();
 }
 
+const char * NamePolQuadXY[6] = {"1","X","Y","X2","XY","Y2"};
 void cModelQuadXY::Show()
 {
-    const char * Name[6] = {"1","X","Y","X2","XY","Y2"};
 
     std::cout << " MQ:" << mName << " [";
     for (int aK=0 ; aK<6 ; aK++)
         if (! Masqued(aK))
-           std::cout << Name[aK] << " ";
+           std::cout << NamePolQuadXY[aK] << " ";
     std::cout << "]\n";
 }
 
