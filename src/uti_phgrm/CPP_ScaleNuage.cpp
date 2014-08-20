@@ -61,7 +61,7 @@ int ScaleNuage_main(int argc,char ** argv)
                     << EAMC(aSc,"Scaling factor", eSAM_None),
     LArgMain()  << EAM(aSz,"Sz",true)
                     << EAM(aP0,"P0",true)
-                    << EAM(Old,"Old",true)
+                    << EAM(Old,"Old",true,"For full compatibility, def=false")
     );
 
     if(!MMVisualMode)

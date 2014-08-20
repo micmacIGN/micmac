@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1567]) = {
+const char * (theNameVar_ParamChantierPhotogram[1575]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -606,6 +606,14 @@ const char * (theNameVar_ParamChantierPhotogram[1567]) = {
 "\n",
 "                 <!-- Inpho Not Tested for angles -->\n",
 "           <eConvMatrixInpho>             </eConvMatrixInpho>\n",
+"   </enum>\n",
+"\n",
+"   <!-- Version simplifiee de l'export Ori -->\n",
+"   <enum Name=\"eExportOri\">\n",
+"          <eEO_MMM> </eEO_MMM>\n",
+"          <eEO_AMM> </eEO_AMM>\n",
+"          <eEO_WPK> </eEO_WPK>\n",
+"          <eEO_NbVals> </eEO_NbVals>\n",
 "   </enum>\n",
 "\n",
 "\n",

@@ -108,7 +108,7 @@ cAppliSimulTieP::cAppliSimulTieP(int argc, char** argv):    // cAppliWithSetImag
   ElInitArgMain
   (     // initialisation of the arguments
         argc,argv,
-        LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pattern)")        // EAMC = mandatory arguments
+        LArgMain()  << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)")        // EAMC = mandatory arguments
                     << EAMC(mOri,"Orientation")
                     << EAMC(mNameMnt,"Name of DSM"),
         LArgMain()  << EAM(mTiePNoise,"TPNoise",true,"Noise on Tie Points")    // EAM = optionnal argument
@@ -120,7 +120,7 @@ cAppliSimulTieP::cAppliSimulTieP(int argc, char** argv):    // cAppliWithSetImag
     {
         mVIms.push_back(new cIma_TieP(*this,*mVSoms[aKIm]));    // images loaded in a vector
     }
-    mMNT = cElNuage3DMaille::FromFileIm(mDir+mNameMnt); // loading the DSM
+    mMNT = cElNuage3DMaille::FromFileIm(mEASF.mDir+mNameMnt); // loading the DSM
 
     std::cout << "Sz Geom " << mMNT->SzGeom() << "\n";       // DSM size
 
@@ -186,7 +186,7 @@ cAppliSimulTieP::cAppliSimulTieP(int argc, char** argv):    // cAppliWithSetImag
     {
          cIma_TieP * aIm1 = itM->first.first;       // img1
          cIma_TieP * aIm2 = itM->first.second;      // img2
-         std::string aNameH = mICNM->Assoc1To2(aKey,aIm1->mNameIm,aIm2->mNameIm,true);      // name of the file to save ("HomolSimul/Pastis....dat")
+         std::string aNameH = mEASF.mICNM->Assoc1To2(aKey,aIm1->mNameIm,aIm2->mNameIm,true);      // name of the file to save ("HomolSimul/Pastis....dat")
          itM->second.StdPutInFile(aNameH);      // save pt_im1 & pt_im2 in that file
          std::cout << aNameH << "\n";
     }

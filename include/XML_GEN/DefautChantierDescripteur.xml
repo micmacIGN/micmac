@@ -282,21 +282,38 @@
 
   
 
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                  <PatternTransform> Orientation-(.*).xml  </PatternTransform>
+                   <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Direct>
+                  <PatternTransform> (.*)  </PatternTransform>
+                   <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Ori2ImGen </Key>
+    </KeyedNamesAssociations>
 
 
     <KeyedNamesAssociations>
     <IsParametrized>  true </IsParametrized>
-    <Calcs>
-        <Arrite>  1 1 </Arrite>
-        <Direct>
-            <PatternTransform> (.*) </PatternTransform>
-            <CalcName>  Ori#1/Orientation-$1.xml  </CalcName>
-    </Direct>
-    <Inverse>
-    <PatternTransform> Ori#1/Orientation-(.*).xml  </PatternTransform>
-                <CalcName>  $1  </CalcName>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/Orientation-$1.xml  </CalcName>
+             </Direct>
+             <Inverse>
+                  <PatternTransform> Ori#1/Orientation-(.*).xml  </PatternTransform>
+                   <CalcName>  $1  </CalcName>
              </Inverse>
         </Calcs>
+
+
         <Key>   NKS-Assoc-Im2Orient </Key>
 	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
     </KeyedNamesAssociations>

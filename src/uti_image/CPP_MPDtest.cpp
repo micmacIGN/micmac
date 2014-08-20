@@ -371,19 +371,12 @@ extern void TestQR(int aN);
 extern void Test_DBL();
 
 
+// cConvExplicite GlobMakeExplicite(eConventionsOrientation aConv);
+
+
 int MPDtest_main (int argc,char** argv)
 {
-   Test_DBL();
-
-   while (1)
-   {
-      TestQR(2); getchar();
-      TestQR(3); getchar();
-      TestQR(4); getchar();
-      TestQR(5); getchar();
-   }
-
-
+  
    return 0;
 
 }

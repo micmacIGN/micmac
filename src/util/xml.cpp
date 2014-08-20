@@ -234,11 +234,18 @@ eElXMLKindTree MergeForComp(eElXMLKindTree aKind)
 char fgetcNN(cVirtStream * aFp)
 {
 	int aC = aFp->my_getc();
+
 	if (aC==aFp->my_eof())
 	{
 		std::cout << "NAME=" << aFp->Name() << "\n";
 		ELISE_ASSERT(aC!=aFp->my_eof(),"Unexpected EOF in cElXMLToken");
 	}
+/*
+if (!isascii(aC))
+{
+   std::cout << "NON ASCII " << int(aC) << "\n";
+}
+*/
 	return aC;
 }
 
