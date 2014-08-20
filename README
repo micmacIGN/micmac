@@ -83,3 +83,4 @@ additionnal notes
 	You can append the full path of the "bin" directory to "PATH" environment variable to call Micmac commands from anywhere. However, it is not necessary to add the "binaire-aux" directory to the PATH variable.
 	For Linux / MacOSX, you have to append the path to the "lib" directory to "LD_LIBRARY_PATH" in .bashrc to be able to use QT tools. 
 Add the following line: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/micmac/lib/
+	For MacOSX, if you want to use QT tools with precompiled binaries available on logiciels.ign.fr, you need to install Qt libraries for Mac from http://http://download.qt-project.org/archive/qt/4.8/4.8.4/  qt-opensource-mac-4.8.4.dmg
