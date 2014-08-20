@@ -8,7 +8,6 @@
 #include <iostream>
 
 #include "3DObject.h"
-#include "Elise_QT.h"
 
 class GlVertex : public cObjectGL
 {
