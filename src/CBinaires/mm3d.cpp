@@ -189,13 +189,6 @@ public :
     }
 };
 
-int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
-
-
-int Init11Param_Main(int argc,char ** argv);
-int New_Tapas_main(int,char **);
-int GCPCtrl_main(int,char **);
-
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -235,6 +228,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GrapheHom",GrapheHom_main," Compute XML-Visibility graph from approximative orientation ",cArgLogCom(3)));
        aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
+       aRes.push_back(cMMCom("OriExport",OriExport_main," Export orientatio from XML to XML or TXT with specified convention",cArgLogCom(3)));
        aRes.push_back(cMMCom("XifGps2Xml",XifGps2Xml_main," Create MicMac-Xml struct from GPS embedded in EXIF",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
@@ -438,6 +432,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv);
 int  CheckOri_main(int argc,char ** argv);
 int  ResToTxt_main(int argc,char ** argv);
 int  SelTieP_main(int argc,char ** argv);
+int  Ortho2TieP_main(int argc,char ** argv);
 int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
@@ -459,6 +454,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
    aRes.push_back(cMMCom("ResToTxt",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
    aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favourable angles"));
+   aRes.push_back(cMMCom("Ortho2TieP",Ortho2TieP_main,"Select Tie Points from the orthophotography"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
    aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));

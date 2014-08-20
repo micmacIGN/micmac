@@ -25,6 +25,7 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
             <Symb>  NLFlagZ=63    </Symb>
             <Symb>  NLDForceTR=true    </Symb>
             <Symb>  NLDShow=false    </Symb>
+            <Symb>  ShowDetail=false    </Symb>
 
             <eSymb>  NotCPI=! ${CPI} </eSymb>
        </DicoLoc>
@@ -151,7 +152,7 @@ Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChanti
                                  </PondIm>
 
                                  <PtsShowDet>  .* </PtsShowDet>
-                                 <DetShow3D >   0 </DetShow3D>
+                                 <DetShow3D >   ${ShowDetail} </DetShow3D>
                                  <ShowMax> true </ShowMax>
                                  <ShowSom>  true</ShowSom>
                                  <ShowUnused> ${ShowUnused} </ShowUnused>

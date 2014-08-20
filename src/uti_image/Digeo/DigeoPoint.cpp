@@ -7,11 +7,32 @@ using namespace std;
 unsigned char DigeoPoint::sm_uchar_descriptor[DIGEO_DESCRIPTOR_SIZE];
 REAL8 DigeoPoint::sm_real8_descriptor[DIGEO_DESCRIPTOR_SIZE];
 
+void DigeoPoint::addDescriptor( REAL8 i_angle )
+{
+	entries.resize( entries.size()+1 );
+	entries.rbegin()->angle = i_angle;
+}
+
+void DigeoPoint::addDescriptor( REAL8 i_angle, const REAL8 *i_descriptor )
+{
+	addDescriptor( i_angle );
+	memcpy( entries.rbegin()->descriptor, i_descriptor, 8*DIGEO_DESCRIPTOR_SIZE );
+}
+
+void DigeoPoint::addDescriptor( const REAL8 *i_descriptor )
+{
+	addDescriptor( i_descriptor[0] );
+	memcpy( entries.rbegin()->descriptor, i_descriptor+1, 8*DIGEO_DESCRIPTOR_SIZE );
+}
+
 bool DigeoPoint::operator ==( const DigeoPoint &i_b ) const
 {
-	if ( x!=i_b.x || y!=i_b.y || scale!=i_b.scale || nbAngles!=i_b.nbAngles ) return false;
-	for ( int i=0; i<nbAngles; i++ )
-		if ( angles[i]!=i_b.angles[i] || memcmp( descriptors[i], i_b.descriptors[i], 8*DIGEO_DESCRIPTOR_SIZE )!=0 ) return false;
+	if ( x!=i_b.x || y!=i_b.y || scale!=i_b.scale || entries.size()!=i_b.entries.size() ) return false;
+	for ( size_t i=0; i<entries.size(); i++ ){
+		const Entry &descriptorA = entries[i],
+		            &descriptorB = i_b.entries[i];
+		if ( memcmp( descriptorA.all, descriptorB.all, 8*(DIGEO_DESCRIPTOR_SIZE+1) )!=0 ) return false;
+	}
 	return true;
 }
 
@@ -26,25 +47,25 @@ bool DigeoPoint::operator !=( const DigeoPoint &i_b ) const
 void DigeoPoint::write_v0( ostream &output ) const
 {
 	REAL4 float_values[4] = { (REAL4)x, (REAL4)y, (REAL4)scale, 0.f };
-	for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
-				
-		float_values[3] = (REAL4)angles[iAngle];
+	const size_t nbAngles = entries.size();
+	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ ){
+		float_values[3] = (REAL4)entries[iAngle].angle;
 		output.write( (char*)float_values, 4*4 );
 
 		// cast descriptor elements to unsigned char before writing
 		unsigned char *it_uchar = sm_uchar_descriptor;
-		const REAL8 *itReal = descriptors[iAngle];
+		const REAL8 *itReal = entries[iAngle].descriptor;
 		size_t i = DIGEO_DESCRIPTOR_SIZE;
 		while (i--) (*it_uchar++)=(unsigned char)( 512*(*itReal++) );
 
-		output.write( (char*)sm_uchar_descriptor, m_descriptorSize );
+		output.write( (char*)sm_uchar_descriptor, DIGEO_DESCRIPTOR_SIZE );
 	}
 }
 
 void DigeoPoint::write_v1( ostream &output, bool reverseByteOrder ) const
 {
 	REAL8 real8_values[] = { x, y, scale };
-	INT2 int2_values[] = { (INT2)type, (INT2)nbAngles };
+	INT2 int2_values[] = { (INT2)type, (INT2)entries.size() };
 	if ( reverseByteOrder ){
 		byte_inv_8( real8_values );   // x
 		byte_inv_8( real8_values+1 ); // y
@@ -55,12 +76,13 @@ void DigeoPoint::write_v1( ostream &output, bool reverseByteOrder ) const
 	output.write( (char*)real8_values, 3*8 );
 	output.write( (char*)int2_values, 2*2 );
 
+	const size_t nbAngles = entries.size();
 	REAL8 angle;
-	for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
-		angle = angles[iAngle];
+	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ ){
+		angle = entries[iAngle].angle;
 
 		// reverse byte order if necessary
-		const REAL8 *descriptor_to_write = descriptors[iAngle];
+		const REAL8 *descriptor_to_write = entries[iAngle].descriptor;
 		if ( reverseByteOrder ){
 			byte_inv_8( &angle );
 			memcpy( sm_real8_descriptor, descriptor_to_write, 8*DIGEO_DESCRIPTOR_SIZE );
@@ -81,20 +103,20 @@ void DigeoPoint::read_v0( std::istream &output )
 {
 	REAL4 float_values[4];
 	output.read( (char*)float_values, 4*4 );
-	
+
 	x = (REAL8)float_values[0];
 	y = (REAL8)float_values[1];
 	scale = (REAL8)float_values[2];
-	angles[0] = (REAL8)float_values[3];
+	entries.resize(1);
+	entries[0].angle = (REAL8)float_values[3]; // angle
 	// v0 format do not support different values for this fields
 	type = DETECT_UNKNOWN;
-	nbAngles = 1;
 
-	output.read( (char*)sm_uchar_descriptor, m_descriptorSize );
+	output.read( (char*)sm_uchar_descriptor, DIGEO_DESCRIPTOR_SIZE );
 
 	// cast descriptor elements to REAL4 after reading
 	unsigned char *it_uchar = sm_uchar_descriptor;
-	REAL8 *itReal = descriptors[0];
+	REAL8 *itReal = entries[0].descriptor;
 	size_t i = DIGEO_DESCRIPTOR_SIZE;
 	while (i--) (*itReal++)=( (REAL8)(*it_uchar++)/512 );
 }
@@ -119,23 +141,20 @@ void DigeoPoint::read_v1( std::istream &output, bool reverseByteOrder )
 	y        = (REAL8)real8_values[1];
 	scale    = (REAL8)real8_values[2];
 	type     = (DetectType)int2_values[0];
-	nbAngles = (int)int2_values[1];
+	entries.resize(int2_values[1]);
 
 	// read angle
-	REAL8 angle;
-	for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
+	const size_t nbAngles = entries.size();
+	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ ){
 		// read angle and descriptor
-		output.read( (char*)&angle, 8 );
-		output.read( (char*)descriptors[iAngle], 8*DIGEO_DESCRIPTOR_SIZE );
+		output.read( (char*)entries[iAngle].all, 8*(DIGEO_DESCRIPTOR_SIZE+1) );
 
 		// reverse byte order if necessary
 		if ( reverseByteOrder ){
-			byte_inv_8( angles+iAngle );
-			REAL8 *it = descriptors[iAngle];
-			int i = DIGEO_DESCRIPTOR_SIZE;
+			REAL8 *it = entries[iAngle].all;
+			int i = DIGEO_DESCRIPTOR_SIZE+1;
 			while (i--) byte_inv_8( it++ );
 		}
-		angles[iAngle] = angle;
 	}
 }
 
@@ -237,10 +256,10 @@ bool DigeoPoint::readDigeoFile( const string &i_filename, bool i_allowMultipleAn
 void writeDigeoFile_v0( std::ostream &stream, const vector<DigeoPoint> &i_list )
 {
 	// the true number of points in the old format is the number of angles
-	int nbAngles = 0;
+	size_t nbAngles = 0;
 	const DigeoPoint *it = i_list.data();
 	size_t i = i_list.size();
-	while ( i-- ) nbAngles += ( *it++ ).nbAngles;
+	while ( i-- ) nbAngles += ( *it++ ).nbAngles();
 	U_INT4 nbPoints = (U_INT4)nbAngles;
 	U_INT4 descriptorSize = (U_INT4)DIGEO_DESCRIPTOR_SIZE;
 
@@ -324,11 +343,9 @@ void DigeoPoint::uniqueToMultipleAngles( vector<DigeoPoint> &io_points )
 			#ifdef __DEBUG_DIGEO
 				ELISE_ASSERT( previous.nbAngles<DIGEO_MAX_NB_ANGLES, (string("readDigeoFile_v0: point has more than ")+ToString(DIGEO_MAX_NB_ANGLES)+" angles").c_str() );
 			#endif
-			if ( previous.nbAngles<DIGEO_MAX_NB_ANGLES ){
+			if ( previous.entries.size()<DIGEO_MAX_NB_ANGLES ){
 				// previous and current point are different only by their angle, we can aggregate them
-				previous.angles[previous.nbAngles] = current.angles[0];
-				memcpy( previous.descriptors[previous.nbAngles], current.descriptors[0], 8*DIGEO_DESCRIPTOR_SIZE );
-				previous.nbAngles++;
+				previous.addDescriptor( current.entries[0].all );
 				nbPoints--;
 			}
 		}
@@ -344,9 +361,9 @@ void DigeoPoint::uniqueToMultipleAngles( vector<DigeoPoint> &io_points )
 void DigeoPoint::multipleToUniqueAngle( vector<DigeoPoint> &io_points )
 {
 	DigeoPoint *itSrc = io_points.data();
-	unsigned int nbPoints = 0,
-	             iPoint = io_points.size();
-	while ( iPoint-- ) nbPoints += (*itSrc++).nbAngles;
+	size_t nbPoints = 0,
+	       iPoint = io_points.size();
+	while ( iPoint-- ) nbPoints += (*itSrc++).entries.size();
 
 	if ( nbPoints==io_points.size() ) return; // there is no multiple angle
 
@@ -355,14 +372,14 @@ void DigeoPoint::multipleToUniqueAngle( vector<DigeoPoint> &io_points )
 	itSrc = io_points.data();
 	DigeoPoint *itDst = res.data();
 	while ( iPoint-- ){
-		for ( int iAngle=0; iAngle<itSrc->nbAngles; iAngle++ ){
+		const size_t nbAngles = itSrc->entries.size();
+		for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ ){
 			itDst->x = itSrc->x;
 			itDst->y = itSrc->y;
 			itDst->scale = itSrc->scale;
 			itDst->type = itSrc->type;
-			itDst->nbAngles = 1;
-			itDst->angles[0] = itSrc->angles[iAngle];
-			memcpy( itDst->descriptors[0], itSrc->descriptors[iAngle], 8*DIGEO_DESCRIPTOR_SIZE );
+			itDst->entries.resize(1);
+			memcpy( itDst->entries[0].all, itSrc->entries[iAngle].all, 8*(DIGEO_DESCRIPTOR_SIZE+1) );
 			itDst++;
 		}
 		itSrc++;
@@ -384,12 +401,11 @@ void DigeoPoint::removePointsOfType( DetectType i_type, vector<DigeoPoint> &io_p
 	vector<DigeoPoint> res( io_points.size()-nbToRemove );
 	DigeoPoint *itDst = res.data();
 	itSrc = io_points.data();
-	iPoint = res.size();
+	iPoint = io_points.size();
 	while ( iPoint-- ){
-		if ( itSrc->type==i_type ) *itDst++ = *itSrc;
+		if ( itSrc->type!=i_type ) *itDst++ = *itSrc;
 		itSrc++;
 	}
-
 	io_points.swap( res );
 }
 
@@ -399,11 +415,12 @@ void DigeoPoint::removePointsOfType( DetectType i_type, vector<DigeoPoint> &io_p
 
 ostream & operator <<( ostream &s, const DigeoPoint &p )
 {
-	s << p.x << ',' << p.y << ' ' << p.scale << ' ' << p.nbAngles << endl;
-	for ( int i=0; i<p.nbAngles; i++ ){
-		s << '\t' << p.angles[i] << " :";
+	s << p.x << ',' << p.y << ' ' << p.scale << ' ' << p.nbAngles() << endl;
+	for ( size_t i=0; i<p.nbAngles(); i++ ){
+		s << '\t' << p.angle(i) << " :";
+		const REAL8 *it = p.descriptor(i);
 		for ( int j=0; j<DIGEO_DESCRIPTOR_SIZE; j++ )
-			s << ' ' << p.descriptors[i][j];
+			s << ' ' << it[j];
 		s << endl;
 	}
 	return s;

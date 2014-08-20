@@ -72,6 +72,7 @@ int GCPBascule_main(int argc,char ** argv)
     bool        ModeL1 = false;
     bool        CPI = false;
     bool ShowUnused = true;
+    bool ShowDetail = false;
     bool NLDShow = false;
     bool NLDFTR = true;
 
@@ -93,6 +94,7 @@ int GCPBascule_main(int argc,char ** argv)
                     <<  EAM(ModeL1,"L1",true,"L1 minimisation vs L2 (Def=false)", eSAM_IsBool)
                     <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
                     <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
+                    <<  EAM(ShowDetail,"ShowD",true,"Show details (def=false)", eSAM_IsBool)
                     <<  EAM(aPatNLD,"PatNLD",true,"Pattern for Non linear deformation, with aerial like geometry (def,unused)")
                     <<  EAM(NLDDegX,"NLDegX",true,"Non Linear Degree X, when PatNLD, (Def =1,1,1)")
                     <<  EAM(NLDDegY,"NLDegY",true,"Non Linear Degree Y, when PatNLD, (Def =1,1,1)")
@@ -123,6 +125,7 @@ int GCPBascule_main(int argc,char ** argv)
                     ;
 
     if (EAMIsInit(&ShowUnused)) aCom = aCom + " +ShowUnused=" + ToString(ShowUnused);
+    if (EAMIsInit(&ShowDetail)) aCom = aCom + " +ShowDetail=" + ToString(ShowDetail);
 
     if (ModeL1)
     {

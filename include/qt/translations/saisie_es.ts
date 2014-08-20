@@ -121,7 +121,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>vanished</source>
-        <translation>Desaparecido</translation>
+        <translation type="obsolete">Desaparecido</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/Tree.cpp" line="275"/>
@@ -208,32 +208,32 @@ Clic derecho: cercar el polígono</translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../../src/saisieQT/3DObject.cpp" line="1700"/>
+        <location filename="../../../src/saisieQT/3DObject.cpp" line="1709"/>
         <source>Move mode</source>
         <translation>Modo de desplazamiento</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/3DObject.cpp" line="1701"/>
+        <location filename="../../../src/saisieQT/3DObject.cpp" line="1710"/>
         <source>Left click: rotate viewpoint / Middle click: translate viewpoint</source>
         <translation>Clic izquierdo : rotar / clic medio : trasladar</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/3DObject.cpp" line="1705"/>
+        <location filename="../../../src/saisieQT/3DObject.cpp" line="1714"/>
         <source>Selection mode</source>
         <translation>Modo de selección</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/3DObject.cpp" line="1706"/>
+        <location filename="../../../src/saisieQT/3DObject.cpp" line="1715"/>
         <source>Left click: add contour point / Right click: close</source>
         <translation>Clic izquierdo : añadir un punto / clic derecho : cerrar la polilínea</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/3DObject.cpp" line="1707"/>
+        <location filename="../../../src/saisieQT/3DObject.cpp" line="1716"/>
         <source>Space: add / Suppr: delete</source>
         <translation>Espacio anadir / Suppr : eliminar</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/3DObject.cpp" line="1714"/>
+        <location filename="../../../src/saisieQT/3DObject.cpp" line="1723"/>
         <source>Drag &amp; drop files</source>
         <translation>Arrastrar y soltar archivos</translation>
     </message>
@@ -273,12 +273,12 @@ Clic derecho: cercar el polígono</translation>
         <translation>Español</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/Engine.cpp" line="140"/>
+        <location filename="../../../src/saisieQT/Engine.cpp" line="146"/>
         <source>Cannot load mask image</source>
         <translation>No puede cargar la imagen de máscara</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/Engine.cpp" line="597"/>
+        <location filename="../../../src/saisieQT/Engine.cpp" line="603"/>
         <source>GL_MAX_TEXTURE_SIZE exceeded</source>
         <translation>GL_MAX_TEXTURE_SIZE excedido</translation>
     </message>
@@ -531,7 +531,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>Save selection infos</source>
-        <translation>Guardar las informaciones de selección</translation>
+        <translation type="obsolete">Guardar las informaciones de selección</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/saisieQT_window.ui" line="770"/>
@@ -1014,7 +1014,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>Left clic</source>
-        <translation>Clic izquierdo</translation>
+        <translation type="obsolete">Clic izquierdo</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="520"/>
@@ -1023,7 +1023,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>Right clic</source>
-        <translation>Clic derecho</translation>
+        <translation type="obsolete">Clic derecho</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="522"/>
@@ -1058,7 +1058,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>add a vertex to polyline</source>
-        <translation>Anadir un vertice a la polilinea</translation>
+        <translation type="obsolete">Anadir un vertice a la polilinea</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="521"/>
@@ -1068,7 +1068,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>close polyline or delete nearest vertex</source>
-        <translation>Cercar la polilinea o suprimir el vertice mas cercano</translation>
+        <translation type="obsolete">Cercar la polilinea o suprimir el vertice mas cercano</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="523"/>
@@ -1077,15 +1077,15 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>delete polyline</source>
-        <translation>Supprimir la polilinea</translation>
+        <translation type="obsolete">Supprimir la polilinea</translation>
     </message>
     <message>
         <source>select inside polyline</source>
-        <translation>Seleccionar dentro de la polilínea</translation>
+        <translation type="obsolete">Seleccionar dentro de la polilínea</translation>
     </message>
     <message>
         <source>remove inside polyline</source>
-        <translation>supprimir dentro polilínea</translation>
+        <translation type="obsolete">supprimir dentro polilínea</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="532"/>
@@ -1100,7 +1100,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>insert vertex in polyline</source>
-        <translation>insertar vértice en polilínea</translation>
+        <translation type="obsolete">insertar vértice en polilínea</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="544"/>
@@ -1120,7 +1120,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>move selected polyline vertex</source>
-        <translation>mover vértice seleccionado</translation>
+        <translation type="obsolete">mover vértice seleccionado</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="548"/>
@@ -1164,7 +1164,7 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>reset</source>
-        <translation>reinicializar</translation>
+        <translation type="obsolete">reinicializar</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="561"/>
@@ -1197,101 +1197,101 @@ Clic derecho: cercar el polígono</translation>
         <translation>rehacer la última acción</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="723"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="731"/>
         <source>Open Cloud Files</source>
         <translation>Abrir archivos de nubes</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="723"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="731"/>
         <source>Files (*.ply)</source>
         <translation>Archivos (*.ply)</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="728"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="736"/>
         <source>Open Camera Files</source>
         <translation>Abrir archivos de camera</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="728"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="736"/>
         <source>Files (*.xml)</source>
         <translation>Archivos (*.xml)</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="733"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="741"/>
         <source>Open Image File</source>
         <translation>Abrir imagen</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="733"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="741"/>
         <source>File (*.*)</source>
         <translation>Archivo (*.*)</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="754"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="762"/>
         <source>Save mask Files</source>
         <translation>Guardar el archivo de máscara</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="754"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="762"/>
         <source>Files (*.*)</source>
         <translation>Archivos (*.*)</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="973"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="981"/>
         <source>&amp;%1 - %2</source>
         <translation>&amp;%1 - %2</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1036"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1044"/>
         <source>&amp;Mask edition</source>
         <translation>Edición de la &amp;máscara</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1037"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1045"/>
         <source>Add to mask</source>
         <translation>Anadir a la máscara</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1038"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1046"/>
         <source>Remove from mask</source>
         <translation>Eliminar de la máscara</translation>
     </message>
     <message>
         <source>H&amp;istory</source>
-        <translation>H&amp;istoria</translation>
+        <translation type="obsolete">H&amp;istoria</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1322"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1330"/>
         <source>Image position : </source>
         <translation>Posición : </translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1344"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1352"/>
         <source>Image name : </source>
         <translation>Nombre de la imagen : </translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1438"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1446"/>
         <source>Warning</source>
         <translation>Advertencia</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1438"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1446"/>
         <source>Save mask before closing?</source>
         <translation>Guardar la máscara antes de cerrar?</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1438"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1446"/>
         <source>&amp;Save</source>
         <translation>&amp;Guardar</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1438"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1446"/>
         <source>&amp;Close without saving</source>
         <translation>&amp;Cerrar sin guardar</translation>
     </message>
     <message>
-        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1438"/>
+        <location filename="../../../src/saisieQT/saisieQT_window.cpp" line="1446"/>
         <source>Ca&amp;ncel</source>
         <translation>Ca&amp;ncelar</translation>
     </message>
@@ -1305,19 +1305,19 @@ Clic derecho: cercar el polígono</translation>
     </message>
     <message>
         <source>Layout settings</source>
-        <translation>Disposición</translation>
+        <translation type="obsolete">Disposición</translation>
     </message>
     <message>
         <source>Window size:</source>
-        <translation>Tamaño de la ventana :</translation>
+        <translation type="obsolete">Tamaño de la ventana :</translation>
     </message>
     <message>
         <source>Window grid:</source>
-        <translation>Cuadrícula de la ventana :</translation>
+        <translation type="obsolete">Cuadrícula de la ventana :</translation>
     </message>
     <message>
         <source>x</source>
-        <translation>x</translation>
+        <translation type="obsolete">x</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/ui/Settings.ui" line="57"/>
@@ -1424,7 +1424,7 @@ Clic derecho: cercar el polígono</translation>
     <name>cHelpDlg</name>
     <message>
         <source>Shortcut</source>
-        <translation>Atajo</translation>
+        <translation type="obsolete">Atajo</translation>
     </message>
     <message>
         <location filename="../../../src/saisieQT/Settings.cpp" line="452"/>

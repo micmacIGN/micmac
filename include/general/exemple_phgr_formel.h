@@ -610,6 +610,7 @@ struct  cResiduP3Inc
     double             mSomPondEr;
     bool               mOKRP3I;
     double             mBSurH;
+    std::string        mMesPb;
 };
 
 
@@ -747,7 +748,8 @@ class cManipPt3TerInc
 		   const cNupletPtsHomologues & aNuple,
 	           const std::vector<double> &,
                    cParamPtProj &            aParam,
-                   std::vector<Pt3dr> *      aPAbs
+                   std::vector<Pt3dr> *      aPAbs,
+                   std::string *             mMes = 0
                );
 
 

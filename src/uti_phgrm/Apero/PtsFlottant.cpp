@@ -289,7 +289,31 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    {
       if (ShowUnUsed)
       {
-          std::cout << "NOT OK (UPL) FOR " << mName << "\n";
+          std::cout << "NOT OK (UPL) FOR " << mName ;
+          if (aRes.mMesPb !="")
+          {
+               std::cout << " , Reason  " << aRes.mMesPb ;
+          }
+          std::cout << "\n";
+
+          if (aShowDet && mHasGround && anObs.DetShow3D().Val())
+          {
+                for (int aK=0 ; aK<int(mCams.size()) ; aK++)
+                {
+                     std::cout << "   " << mCams[aK]->Name() ;
+                     if (mCams[aK]->RotIsInit())
+                     {
+                         Pt2dr aPIm =  mPts[aK];
+                         Pt2dr aPProj =   mCams[aK]->CurCam()->R3toF2(mPt);
+                         std::cout << "D=" << euclid(aPIm-aPProj) << " Im:" << aPIm << " Proj: " << aPProj;
+                     }
+                     else
+                     {
+                           std::cout << "   UnInit";
+                     }
+                     std::cout << "\n";
+                 }
+          }
       }
       return 0.0;
    }

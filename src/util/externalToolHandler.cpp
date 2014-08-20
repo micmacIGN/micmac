@@ -15,6 +15,17 @@ using namespace std;
 string g_externalToolItem_errors[] = { "cannot be found",
                                        "does not have execution rights (and process cannot grant them)" };
 
+// ExternalToolItem
+
+const std::string &ExternalToolItem::callName() const
+{
+	if ( !isCallable() ){
+		cerr << "ERROR: trying to call the external program ["  << m_shortName << "] but it " << errorMessage() << endl;
+		exit(-1);
+	}
+	return m_fullName;
+}
+
 // ExternalToolHandler
 
 ExternalToolHandler::ExternalToolHandler()
@@ -219,7 +230,7 @@ string printResult( const string &i_tool )
 
     if ( item.m_status==EXT_TOOL_NOT_FOUND ) return ( printLine+" NOT FOUND" );
 
-    printLine = printLine+" found ("+item.m_fullName+")";
+    printLine = printLine+" found ("+item.callName()+")";
     return printLine;
 }
 
