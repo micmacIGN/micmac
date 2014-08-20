@@ -9,8 +9,6 @@
 #include "Engine.h"
 #include "ContextMenu.h"
 
-#include "Elise_QT.h"
-
 class GLWidget : public QGLWidget
 {
     Q_OBJECT

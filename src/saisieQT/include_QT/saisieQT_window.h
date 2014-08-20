@@ -1,14 +1,9 @@
 #ifndef SAISIEQTWINDOW_H
 #define SAISIEQTWINDOW_H
 
-#include "StdAfx.h"
-
-#include "Engine.h"
 #include "GLWidgetSet.h"
 #include "Settings.h"
 #include "Tree.h"
-
-#include "Elise_QT.h"
 
 namespace Ui {
 class SaisieQtWindow;

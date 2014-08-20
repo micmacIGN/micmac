@@ -8,7 +8,6 @@
 
 #include "general/visual_mainwindow.h"
 
-#include "Elise_QT.h"
 
 using namespace std;
 
