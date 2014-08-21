@@ -1,5 +1,7 @@
 <!--
    The simplest MicMac exemple
+ mCom   =  mCom + " +DoAnam=true +IncidMax=" + ToString(mIncidMax);
+
 -->
 
 <ParamMICMAC>
@@ -12,6 +14,13 @@
            <Symb>   FileAnam=EmptyXML.xml  </Symb>
            <Symb>   FileZMoy=EmptyXML.xml  </Symb>
            <Symb>   KBestMasqNadir=-1  </Symb>
+
+          <Symb>  DoIncid=false </Symb>
+          <Symb>  DoAnam=false </Symb>
+          <Symb>  IncidMax=1.05 </Symb>
+          <Symb>  ParamAnam=XXXX </Symb>
+          <Symb>  ZMoy=0.0 </Symb>
+
   </DicoLoc>
 
 
@@ -19,8 +28,11 @@
 <!--  M2 : Describe the ground zone where the matching is to be done -->
 <Section_Terrain>    
       <IntervAltimetrie>
-             <ZIncCalc>   1.0  </ZIncCalc>
-             <IncludeFileLoc>  ${FileZMoy} </IncludeFileLoc>
+             <ZIncCalc>   0.01  </ZIncCalc>
+             <ZIncIsProp> true </ZIncIsProp>
+             <#WHEN VTEST=${DoIncid}>
+                   <ZMoyen> ${ZMoy}   </ZMoyen>
+             </#WHEN>
       </IntervAltimetrie>
       <Planimetrie>
       </Planimetrie>
@@ -71,8 +83,6 @@
    <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
    <RepereCorrel> ${Repere}    </RepereCorrel>
 
-   <IncludeFileLoc>  ${FileAnam} </IncludeFileLoc>
-
    <DoNothingBut>
 <!--
 -->
@@ -87,6 +97,20 @@
     <TAUseMasqNadirKBest>  ${KBestMasqNadir} </TAUseMasqNadirKBest>
     <OrthoTA> true </OrthoTA>
     <MakeImCptTA> true </MakeImCptTA>
+
+    <#WHEN VTEST=${DoIncid}>
+          <AnamorphoseGeometrieMNT>
+               <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+                <#WHEN VTEST=${DoAnam}>
+                   <AnamSurfaceAnalytique>
+                            <NameFile> ${ParamAnam}</NameFile>
+                            <Id> TheSurf </Id>
+                      </AnamSurfaceAnalytique>
+                      <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+                </#WHEN>
+          </AnamorphoseGeometrieMNT>
+    </#WHEN>
+
 
 
 

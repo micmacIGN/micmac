@@ -325,6 +325,7 @@
                     <!-- Liberer la focale qui est souvent assez fausse -->
                     <#WHEN VTEST=${LibFoc}>
                          <IterationsCompensation>
+
                               <SectionContraintes>
                                     <ContraintesCamerasInc>
                                         <Val> eLiberteFocale_1   </Val>
@@ -356,6 +357,12 @@
 
                     <#WHEN VTEST=${DoDR3}>
                          <IterationsCompensation>
+                              <SetRayMaxUtileCalib>
+                                   <Name > .*</Name>
+                                   <Ray > 0.90 </Ray>
+                                   <IsRelatifDiag > true </IsRelatifDiag>
+                                   <ApplyOnlyFE  > true </ApplyOnlyFE>
+                              </SetRayMaxUtileCalib>
                               <SectionContraintes>
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_DR3      </Val>
@@ -383,6 +390,12 @@
 
                     <#WHEN VTEST=${DoPolyn1}>
                          <IterationsCompensation>
+                              <SetRayMaxUtileCalib>
+                                   <Name > .*</Name>
+                                   <Ray > 0.95 </Ray>
+                                   <IsRelatifDiag > true </IsRelatifDiag>
+                                   <ApplyOnlyFE  > true </ApplyOnlyFE>
+                              </SetRayMaxUtileCalib>
                               <SectionContraintes>
                                     <ContraintesCamerasInc>
                                         <Val> eLiberte_Phgr_Std_Aff      </Val>

@@ -327,10 +327,12 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mShow      (false),
    mPb        (""),
    mAverNbPix (0.0),
-   mByEpi     (false)
+   mByEpi     (false),
+   mNbAlti    (0),
+   mSomAlti   (0.0)
 {
-   bool WithOri  = ((aFlag & TheFlagNoOri)==0);
-   if (argc< (WithOri ? 2 : 1 ) )
+   mWithOri  = ((aFlag & TheFlagNoOri)==0);
+   if (argc< (mWithOri ? 2 : 1 ) )
    {
       mPb = "Not Enough Arg in cAppliWithSetImage";
       return;
@@ -359,7 +361,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
        ELISE_ASSERT(false,"Empty pattern");
    }
 
-   if (WithOri)
+   if (mWithOri)
    {
        mOri = argv[1];
        mEASF.mICNM->CorrecNameOrient(mOri);
@@ -384,8 +386,28 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
 */
        Pt2di  aSz =  aNewIma->Tiff().sz();
        mAverNbPix += double(aSz.x) * double(aSz.y);
+
+       if (mWithOri)
+       {
+           if (aNewIma->mCam->AltisSolIsDef()) 
+           {
+                mSomAlti += aNewIma->mCam->GetAltiSol();
+                mNbAlti++;
+           }
+       }
    }
    mAverNbPix /= mEASF.mSetIm->size();
+}
+
+int cAppliWithSetImage::NbAlti() const
+{
+   return mNbAlti;
+}
+
+double cAppliWithSetImage::AltiMoy() const
+{
+    ELISE_ASSERT(mNbAlti!=0,"cAppliWithSetImage::AltiMoy => No Alti Init");
+    return mSomAlti / mNbAlti;
 }
 
 //  aSz * 2 ^ (LogDeZoom * 2) = mAverNbPix;
