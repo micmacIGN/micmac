@@ -342,7 +342,6 @@ bool FileExists( const char * FileName )
 		}
 	#endif
     return false;
-
 }
 
 float AngleBetween3Pts(Pt3dr pt1, Pt3dr pt2, Pt3dr ptCent)
@@ -818,33 +817,213 @@ int CheckOri_main(int argc, char** argv)
 Pt3dr SplitToPt3dr(string inS)
 {
 	inS=inS.substr(1,inS.size()-2); 	// delete [ & ]
+	std::string inS2(""), inS3(""), inS4(""), inS5("");
 	double rX,rY,rZ;
 	Pt3dr myPoint;
 	for (unsigned int i =0 ; i < inS.size() ; i++)
 	{
 		if (inS[i] == ',')
 		{
-			std::string inS2 = inS.substr(0,i);
+			inS2 = inS.substr(0,i);
 			rX = atof(inS2.c_str());
 			myPoint.x=rX;
-			inS=inS.substr(i+1,inS.size()-i-1);
+			inS3=inS.substr(i+1,inS.size()-i-1);
+			i=inS.size();
 		}
 	}
-	for (unsigned int i =0 ; i < inS.size() ; i++)
+	for (unsigned int i =0 ; i < inS3.size() ; i++)
 	{
-		if (inS[i] == ',')
+		if (inS3[i] == ',')
 		{
-			std::string inS2 = inS.substr(0,i);
-			rY = atof(inS2.c_str());
+			inS4 = inS3.substr(0,i);
+			rY = atof(inS4.c_str());
 			myPoint.y=rY;
-			inS=inS.substr(i+1,inS.size()-i-1);
-			rZ = atof(inS.c_str());
+			inS5=inS3.substr(i+1,inS3.size()-i-1);
+			rZ = atof(inS5.c_str());
 			myPoint.z=rZ;
 		}
 	}
 	
 	return myPoint;
 }
+
+
+
+
+
+/********************************************************************/
+/*												 				    */
+/*					 Quelques applis							    */
+/*																    */
+/********************************************************************/
+
+
+void DspVecDbl(vector <double> const& myVec){
+    for(unsigned int i=0;i<myVec.size();i++){
+        std::cout << std::fixed <<  myVec[i] << endl;
+    }
+}
+
+void DspVecInt(vector <int> const& myVec){
+    for(unsigned int i=0;i<myVec.size();i++){
+        std::cout << std::fixed <<  myVec[i] << endl;
+    }
+}
+
+void DspVecStr(vector <string> const& myVec){
+    for(unsigned int i=0;i<myVec.size();i++){
+        std::cout << std::fixed <<  myVec[i] << endl;
+    }
+}
+
+
+
+
+
+
+
+
+int NLD_main(int argc, char** argv)
+{
+	std::string mNameIn, mNameOut;
+	ElInitArgMain
+	(
+		argc,argv,
+		LArgMain()  << EAMC(mNameOut,"Name of the residuals file"),
+		LArgMain()  << EAM(mNameIn,"Out",true,"unsused")
+	);
+	
+	std::string aStr = "GCPBascule  \"60.*ARW\" Rel-19F15P7 BascNLD GCP.xml MesFinal-S2D.xml PatNLD=\"(2a|2b|5a|8b|11a|14b)\"";
+	std::vector <std::string> aList;	
+	string str = "[1";
+	string add1,add2,add3,add4,add5;
+	for (int i=0 ; i<2 ; i++){
+		if (i==0){add1 = "";}
+		else{add1=",X";}
+		for (int j=0 ; j<2 ; j++){
+			if (j==0){add2 ="";}
+			else{add2=",Y";}
+			for (int k=0;k<2;k++){
+				if (k==0){add3 = "";}
+				else{add3 = ",X2";}
+				for (int l=0 ; l<2 ; l++){
+					if (l==0){add4="";}
+					else{add4 = ",Y2";}
+					for (int m=0; m<2 ; m++){
+						if (m==0){add5 = "";}
+						else{add5 = ",XY";}
+						string str = "[1" + add1 + add2 + add3 + add4 + add5 + "]";
+						aList.push_back(str);}}}}}
+						
+	std::string mNameOut4="NLD.sh";
+	ofstream fout (mNameOut4.c_str(),ios::out);
+	for (unsigned int i=0 ; i<aList.size() ; i++)
+	{
+		fout << aStr << " NLDegX=[1,X,Y] NLDegY=[1,X,Y] NLDegZ=" << aList[i] <<  " NLFR=false NLShow=true | tee ./RTT/Res_" << aList[i] << std::endl;
+		fout << "mm3d TestLib RTT ./RTT/Res_" << aList[i] << "   Out=./RTT/" << aList[i] << std::endl;
+	}	
+	fout.close();	
+
+	VoidSystem("sh NLD.sh");
+	
+	std::string aR,tmp;
+	map <double,string> xList;
+	map <double,string> yList;
+	map <double,string> zList;
+	map <double,string> xyzList;
+	int l=0, m=0, n=0, o=0, p=0, q=0, r=0, s=0;
+	for (unsigned int i=0 ; i<aList.size() ; i++)
+	{
+		std::string aNm = "./RTT/" + aList[i];
+		ifstream fin (aNm.c_str());
+		while (fin >> aR)
+		{
+			if (aR == "X")
+			{
+				l++;
+			}
+			if (l != 0){l++;}
+			if (l == 4)
+			{
+				p++;
+				std::ostringstream myS;		// magouille pour différencier les clés associées au map
+				myS << p;					// (pour prendre en compte des configurations différentes 
+				aR+= "000" + myS.str();		// donnant des résultats identiques)
+				tmp = aList[i];
+				
+				xList[(atof(aR.c_str()))]=tmp;
+				l=0;
+			} 
+			if (aR == "Y")
+			{
+				m++;
+			}
+			if (m != 0){m++;}
+			if (m == 4)
+			{
+				q++;
+				std::ostringstream myS;
+				myS << q;
+				aR+= "000" + myS.str();
+				yList[(atof(aR.c_str()))]=tmp;
+				m=0;
+			}
+			if (aR == "Z")
+			{
+				n++;
+			}
+			if (n != 0){n++;}
+			if (n == 4)
+			{
+				r++;
+				std::ostringstream myS;
+				myS << r;
+				aR+= "000" + myS.str();
+				zList[(atof(aR.c_str()))]=tmp;
+				n=0;
+			}
+			if (aR == "XYZ")
+			{
+				o++;
+			}
+			if (o != 0){o++;}
+			if (o == 4)
+			{
+				s++;
+				std::ostringstream myS;
+				myS << s;
+				aR+= "000" + myS.str();
+				xyzList[(atof(aR.c_str()))]=tmp;
+				o=0;
+			}
+		}
+	}
+	ofstream fout2 (mNameOut.c_str(),ios::out);
+	fout2 << "xList.size() = " << xList.size() << endl << "yList.size() = " << yList.size() << endl << "zList.size() = " << zList.size() << endl;
+	map<double,string>::iterator itZ=zList.begin();
+	for (unsigned int i=1 ; i<(zList.size()) ; i++)
+	{
+		fout2 << i << "° résidus le plus faible en Z = " << itZ->first << " m pour la configuration : " << itZ->second << endl;
+		for (map<double,string>::iterator itXYZ=xyzList.begin(); itXYZ!=xyzList.end(); itXYZ++)
+		{
+			if (itXYZ->second == itZ->second)
+			{
+				fout2 << "\tRésidus normalisés = " << itXYZ->first << " m\n";
+				itXYZ=xyzList.end();
+			}
+		}
+		
+		itZ++;
+	}
+	
+	return EXIT_SUCCESS;
+}
+
+
+
+
+
+
 
 int ResToTxt_main(int argc, char** argv)
 {
@@ -860,10 +1039,11 @@ int ResToTxt_main(int argc, char** argv)
 	ifstream fin (mNameIn.c_str());
 	ofstream fout (mNameOut.c_str(),ios::out);
 	string 	 mRead;
-	int 	 i=0;
+	int 	 i=0, j=0;
 	double   rImMoy(0),
 			 rXmoy(0),
 			 rYmoy(0),
+			 rXYZ(0),
 			 rZmoy(0);
 	Pt3dr 	 ptRes, 
 			 ptPres;
@@ -874,7 +1054,11 @@ int ResToTxt_main(int argc, char** argv)
 	while (fin >> mRead){
 
 		if (mRead == "--NamePt"){i++;}
+		else if (mRead == "For"){i=0;}
+		else if (mRead == "Ctrl"){j++;}
 		if (i!=0){i++;}
+		if (j!=0){j++;}
+		
 		if (i==3){fout << mRead << " ";}	// Id
 		if (i==6)		// [rX,rY,rZ]
 		{
@@ -897,36 +1081,64 @@ int ResToTxt_main(int argc, char** argv)
 			fout << mRead << "\n";
 			rImMoyLs.push_back(atof(mRead.c_str()));
 		}
-		if (mRead == "For"){i=0;}
+		
+		if (j==3)
+		{
+			fout << mRead << " ";
+		}
+		if (j==5)
+		{
+			fout << mRead << " ";
+		}
+		if (j==6)
+		{				// [pX,pY,pZ]
+			ptRes = SplitToPt3dr (mRead.substr(2,mRead.size()-2));
+			ptResLs.push_back(ptRes);
+			fout << ptRes.x << " " << ptRes.y << " " << ptRes.z << "\n";
+			j=0;
+		}
 	}
 	
 	for (unsigned int i=0;i<ptResLs.size();i++)
 	{
-		rXmoy += fabs(ptResLs[i].x);
-		rYmoy += fabs(ptResLs[i].y);
-		rZmoy += fabs(ptResLs[i].z);
-		rImMoy += rImMoyLs[i];
+		ptRes = ptResLs[i];
+		rXmoy += fabs(ptRes.x);
+		rYmoy += fabs(ptRes.y);
+		rZmoy += fabs(ptRes.z);
+		rXYZ += sqrt(ptRes.x*ptRes.x + ptRes.y*ptRes.y + ptRes.z*ptRes.z);
+		if (rImMoyLs.size()>0)
+		{
+			rImMoy += rImMoyLs[i];
+		}
 	}
 	rXmoy = rXmoy/ptResLs.size();
 	rYmoy = rYmoy/ptResLs.size();
 	rZmoy = rZmoy/ptResLs.size();
-	double rXYZ = sqrt(rXmoy*rXmoy + rYmoy*rYmoy + rZmoy*rZmoy);
+	rXYZ = rXYZ/ptResLs.size();
 	rImMoy = rImMoy/ptResLs.size();
 	
 	fout << "\nMEAN ABSOLUTE ERROR :\n"
 		 << "X : " << rXmoy
 		 <<" m\nY : " << rYmoy
 		 <<" m\nZ : " << rZmoy
-		 <<" m\nXYZ : " << rXYZ
-		 <<" m\nImage : " << rImMoy << " pixel\n";
+		 <<" m\nXYZ : " << rXYZ ;
+		 if (rImMoyLs.size()>0)
+		 {
+			 fout <<" m\nImage : " << rImMoy ;
+		 }
+	fout << " pixel\n"; 
+	fout.close();
 		  
 	cout << "\nMEAN ABSOLUTE ERROR :\n"
 		 << "X : " << rXmoy
 		 <<" m\nY : " << rYmoy
 		 <<" m\nZ : " << rZmoy
-		 <<" m\nXYZ : " << rXYZ
-		 <<" m\nImage : " << rImMoy << " pixel\n";
-	fout.close();
+		 <<" m\nXYZ : " << rXYZ << " m";
+		 if (rImMoyLs.size()>0)
+		 {
+			 cout <<" m\nImage : " << rImMoy << " pixel" ;
+		 }
+		 cout << "\n";
    return EXIT_SUCCESS;
 }
 
@@ -1237,16 +1449,21 @@ int Idem_main(int argc, char** argv)
 	{
 		ofstream fout (aNameFileTxt.c_str(),ios::out);
 		fout << "Difference between altitude in xml file, and altitude in DEM (Id	 dZ)\n";
-	
-		WriteAppuis(ListOfDiffAppuis,fout);
+		if (ListOfDiffAppuis.size() > 0)
+		{
+			WriteAppuis(ListOfDiffAppuis,fout);
 		fout << "AVERAGE ERROR = " << moyenne1 << endl
 			 << "STANDARD DEVIATION = " << stdev1 << endl
 			 << "ERROR MAXIMUM = " << max1 << endl;
-	
-		WriteControl(ListOfDiffControl,fout);
-		fout << "AVERAGE ERROR = " << moyenne2 << endl
-			 << "STANDARD DEVIATION = " << stdev2 << endl
-			 << "ERROR MAXIMUM = " << max2 << endl;
+		}
+		
+		if (ListOfDiffControl.size() > 0)
+		{
+			WriteControl(ListOfDiffControl,fout);
+			fout << "AVERAGE ERROR = " << moyenne2 << endl
+				 << "STANDARD DEVIATION = " << stdev2 << endl
+				 << "ERROR MAXIMUM = " << max2 << endl;
+		}
 	}
 
 // Ecriture des résultats sur l'orthophoto (option)

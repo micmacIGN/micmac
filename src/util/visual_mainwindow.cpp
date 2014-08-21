@@ -30,6 +30,7 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     _SaisieWin(new SaisieQtWindow(BOX2D)),
     _showDialog(false)
 {
+    setWindowFlags(Qt::WindowStaysOnTopHint);
     //setAttribute( Qt::WA_DeleteOnClose );
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
