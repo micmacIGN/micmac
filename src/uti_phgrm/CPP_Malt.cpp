@@ -190,7 +190,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mCorMS        (false),
     mUseGpu       (false),
     mGenCubeCorrel (false),
-    mEZA           (true),
+    mEZA           (false),
     mMaxFlow       (false),
     mSzRec         (50)
 {
@@ -645,7 +645,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           else
           {
               mCom =    mCom
-                      +  std::string(" +FileAnam=") + "MM-Anam.xml"
+                      +  std::string(" +DoAnam=true +DoIncid=true ")
                       +  std::string(" +ParamAnam=") + mRep;
           }
       }
@@ -734,7 +734,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
       if (EAMIsInit(&mIncidMax))
-          mCom   =  mCom + " +DoAnam=true +IncidMax=" + ToString(mIncidMax);
+          mCom   =  mCom + " +DoIncid=true +IncidMax=" + ToString(mIncidMax);
 
       if (mEquiv.size() != 0)
       {

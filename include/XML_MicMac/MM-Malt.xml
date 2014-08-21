@@ -117,7 +117,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
     <Symb>  DoAnam=false </Symb>
-    <Symb>  IncidMax=false </Symb>
+    <Symb>  ParamAnam=XXXXX </Symb>
+    <Symb>  IncidMax=1.05 </Symb>
+    <Symb>  DoIncid=false </Symb>
 
 
     <eSymb>  NotZoom8="Neq 8 ${ZoomFinal}" </eSymb>
@@ -169,6 +171,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb> ModeOriIm=eGeomImageOri  </Symb>  
      <Symb> ModeOrientStd=${Conik}     </Symb>   
      <Symb> MSDense=true     </Symb>   
+
+     <Symb> SpecDirFaisc="false" </Symb>
+     <Symb> DirFaisX="XXXXX" </Symb>
+     <Symb> DirFaisY="XXXXX" </Symb>
+     <Symb> DirFaisZ="XXXXX" </Symb>
 
      <eSymb> UseMasqImGlobOrLoc= Or ${UseMasqPerIm} ${UseGlobMasqPerIm} </eSymb>
 
@@ -528,11 +535,21 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         </DoNothingBut>
     </#WHEN>
 
-    <#WHEN VTEST=${DoAnam}>
+
+    <#WHEN VTEST=${DoIncid}>
           <AnamorphoseGeometrieMNT>
-              <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+               <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+                <#WHEN VTEST=${DoAnam}>
+                   <AnamSurfaceAnalytique>
+                            <NameFile> ${ParamAnam}</NameFile>
+                            <Id> TheSurf </Id>
+                      </AnamSurfaceAnalytique>
+                      <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+                </#WHEN>
           </AnamorphoseGeometrieMNT>
     </#WHEN>
+
+
 
 <!--
     <RepereCorrel>  Repere.xml </RepereCorrel>
