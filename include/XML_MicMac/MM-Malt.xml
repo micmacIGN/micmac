@@ -518,6 +518,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 <!--  M4 : Specify the output geometry -->
 <Section_Results >
+
+    <#WHEN  VTEST=${SpecDirFaisc}>
+         <X_DirPlanInterFaisceau> ${DirFaisX} </X_DirPlanInterFaisceau>
+         <Y_DirPlanInterFaisceau> ${DirFaisY} </Y_DirPlanInterFaisceau>
+         <Z_DirPlanInterFaisceau> ${DirFaisZ} </Z_DirPlanInterFaisceau>
+    </#WHEN>
+
     <GeomMNT> ${Geom}  </GeomMNT> 
     <RepereCorrel>   ${Repere}  </RepereCorrel>
     <IncludeFileLoc>  ${FileAnam} </IncludeFileLoc>
