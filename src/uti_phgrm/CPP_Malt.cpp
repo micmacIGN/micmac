@@ -454,7 +454,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
       bool IsOrthoXCSte = false;
-      mRepIsAnam = (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte);
+      if (mType!=eGeomImage)
+      {
+          mRepIsAnam =   (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte);
+      }
       mUnAnam = mUnAnam && IsOrthoXCSte;
 
       if (mUnAnam)
@@ -638,16 +641,30 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (mRep!="")
       {
-          if (!mRepIsAnam)
-          {
-              mCom = mCom +  std::string(" +Repere=") + mRep;
-          }
-          else
-          {
-              mCom =    mCom
-                      +  std::string(" +DoAnam=true +DoIncid=true ")
-                      +  std::string(" +ParamAnam=") + mRep;
-          }
+         if (mType==eGeomImage)
+         {
+              cRepereCartesien aRC = StdGetFromPCP(mDir+mRep,RepereCartesien);
+               mCom =  mCom
+                       + std::string(" +SpecDirFaisc=true")
+                       + std::string(" +DirFaisX=") + ToString(-aRC.Oz().x)
+                       + std::string(" +DirFaisY=") + ToString(-aRC.Oz().y)
+                       + std::string(" +DirFaisZ=") + ToString(-aRC.Oz().z)
+                       + " "
+                     ;
+         }
+         else
+         {
+             if (!mRepIsAnam)
+             {
+                 mCom = mCom +  std::string(" +Repere=") + mRep;
+             }
+             else
+             {
+                 mCom =    mCom
+                         +  std::string(" +DoAnam=true +DoIncid=true ")
+                         +  std::string(" +ParamAnam=") + mRep;
+             }
+         }
       }
 
       if (!mAffineLast)
