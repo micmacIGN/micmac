@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1182]) = {
+const char * (theNameVar_SuperposImage[1184]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1073,6 +1073,7 @@ const char * (theNameVar_SuperposImage[1182]) = {
 "       <!-- Pour gerer le score pas toujours simple fonction de correlation -->\n",
 "       <SectionScoreQualite Nb=\"?\" UnionType=\"true\">\n",
 "           <ScoreMM1P Nb=\"?\">\n",
+"                 <MakeFileResult Nb=\"?\" Type=\"bool\" Def=\"false\"> </MakeFileResult>\n",
 "                 <PdsAR Nb=\"?\" Type=\"double\" Def=\"1.0\"> </PdsAR>\n",
 "\n",
 "                 <PdsDistor Nb=\"?\" Type=\"double\" Def=\"0.5\"> </PdsDistor>\n",
@@ -1132,6 +1133,7 @@ const char * (theNameVar_SuperposImage[1182]) = {
 "             <SzDalles Nb=\"?\" Type=\"int\" Def=\"2000\"> </SzDalles>\n",
 "             <RecouvrtDalles Nb=\"?\" Type=\"int\" Def=\"40\"> </RecouvrtDalles>\n",
 "             <ParalMkF Nb=\"?\" Type=\"std::string\"> </ParalMkF>\n",
+"             <ByProcess Nb=\"?\" Type=\"bool\" Def=\"false\"> </ByProcess>\n",
 "\n",
 "             <!-- Ne pas utiliser, usage interne a la paralellisation -->\n",
 "             <InterneCalledByProcess  Nb=\"?\" Type=\"bool\" Def=\"false\"> </InterneCalledByProcess>\n",

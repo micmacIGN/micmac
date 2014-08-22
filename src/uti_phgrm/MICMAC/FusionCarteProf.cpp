@@ -54,6 +54,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 static Pt2di LocPBug(234,55);
 static bool  LocBug=false;
 
+// Type est le type de stockage des cartes : apparemment sur des float par defaut
 template <class Type> class  cLoadedCP;        // Represente une carte de profondeur chargee
 template <class Type> class cFusionCarteProf;  // Represente l'appli globale
 
@@ -311,10 +312,6 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
 
 
 
-
-
-
-
 template <class Type> class  cLoadedCP
 {
     public :
@@ -332,7 +329,7 @@ template <class Type> class  cLoadedCP
         double   PdsLinear(const Pt2dr &) const;
 
         void  SetSz(const Pt2di & aSz);
-        bool  ReLoad(const Box2dr & aBoxTer) ;
+        bool  ReLoad(const Box2dr & aBoxTer,bool SauvImQual) ;
         const  cImage_Profondeur & IP() {return mIP;}
         const std::string & NameNuage() {return mNameNuage;}
         Im2D_U_INT1   ImCorrel() {return  mImCorrel;}
@@ -378,6 +375,7 @@ template <class Type> class  cLoadedCP
         Im2D_U_INT1        mImCorrel;
         TIm2D<U_INT1,INT>  mTImCorrel;
         bool               mZIsInv;
+        bool               mQualImSaved;
 
 
 };
@@ -523,7 +521,8 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
   mNameCorrel (mHasCorrel ? mDirNuage+mIP.Correl().Val() : ""),
   mImCorrel   (1,1),
   mTImCorrel  (mImCorrel),
-  mZIsInv     (false)
+  mZIsInv     (false),
+  mQualImSaved (false)
 
 {
 
@@ -559,7 +558,7 @@ template <class Type> Tiff_Im cLoadedCP<Type>::FileMM1P(const std::string aPref)
     return Tiff_Im::StdConv(NameMM1P(aPref));
 }
 
-template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
+template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer,bool SauvImQual)
 {
    mBoxImCur =  R2I(aBoxTer.BoxImage(mAfM2CGlob));
    if (InterVide(mBoxImCur,mBoxImGlob))
@@ -602,19 +601,22 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
 
                Fonc_Num aFCor = (aF1 * aP1 + aF2*aP2 + aF3*aP3) / (aP1 + aP2 + aP3) ;
 
-
-
-
                ELISE_COPY(mImCorrel.all_pts(),trans(aFCor,mBoxImCur._p0),mImCorrel.out());
-               std::cout << "HHHHH " << aSM1P.PdsAR().Val()  << " " << mNameIm << "\n";
-               std::cout << FileMM1P("Depth").sz() << "\n";
 
-               Tiff_Im::Create8BFromFonc
-               (
-                   NameMM1P("Quality"),
-                   FileMM1P("Mask").sz(),
-                   aFCor
-               );
+
+               if ((!mQualImSaved) && aSM1P.MakeFileResult().Val())
+               {
+                      mQualImSaved = true;
+                      std::cout << "HHHHH " << aSM1P.PdsAR().Val()  << " " << mNameIm  << " "<< aBoxTer._p0 <<  aBoxTer._p1 << "\n";
+                      std::cout << FileMM1P("Depth").sz() << "\n";
+
+                      Tiff_Im::Create8BFromFonc
+                      (
+                          NameMM1P("Quality"),
+                          FileMM1P("Mask").sz(),
+                          aFCor
+                      );
+               }
  // getchar();
                // Tiff
            }
@@ -973,7 +975,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
    for (int aK=0 ; aK<int(mVC.size()) ; aK++)
    {
-       bool  aReload = mVC[aK]->ReLoad(aBoxTer);
+       bool  aReload = mVC[aK]->ReLoad(aBoxTer,true);
        // std::cout << "RELOAD " <<  mVC[aK]->NameNuage() << " " << aReload << "\n";
        if (aReload)
           mVCL.push_back(mVC[aK]);
@@ -1267,7 +1269,7 @@ template <class Type> cFusionCarteProf<Type>::cFusionCarteProf
      mICNM         (aParam.mICNM),
      mGenRes       (GetStrFromGenStr(mICNM,mParam.GenereRes())),
      mCalledByMkf  (mParam.InterneCalledByProcess().Val()),
-     mDoByMkF      (mParam.ParalMkF().IsInit()),
+     mDoByMkF      (mParam.ParalMkF().IsInit() || mParam.ByProcess().Val()),
      mGenereMkF    ((!mCalledByMkf) && mDoByMkF)
 {
 // std::cout << "mCalledByMkf " << mCalledByMkf << "\n"; getchar();
@@ -1281,7 +1283,10 @@ template <class Type> cFusionCarteProf<Type>::cFusionCarteProf
 
     if (mGenereMkF)
     {
-        cEl_GPAO::DoComInParal(mListCom,mParam.ParalMkF().Val());
+        if (mParam.ByProcess().Val())
+           cEl_GPAO::DoComInSerie(mListCom);
+        else
+           cEl_GPAO::DoComInParal(mListCom,mParam.ParalMkF().Val());
     }
 /*
     if (mParam.ParalMkF().IsInit()  && (! mCalledByMkf))
