@@ -740,6 +740,7 @@ void SaisieQtWindow::on_actionLoad_camera_triggered()
 
 void SaisieQtWindow::on_actionLoad_image_triggered()
 {
+    setWindowFlags(Qt::WindowStaysOnTopHint);
     QString img_filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
 
     if (!img_filename.isEmpty())
