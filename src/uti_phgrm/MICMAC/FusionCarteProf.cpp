@@ -615,7 +615,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
                    FileMM1P("Mask").sz(),
                    aFCor
                );
- getchar();
+ // getchar();
                // Tiff
            }
        }

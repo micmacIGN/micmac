@@ -722,8 +722,8 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
            Im2D_Bits<1> aMassFR(anAR1.sz().x,anAR1.sz().y);
 
            TIm2D<REAL4,REAL8>  aTArRed(anArRed);
-           // cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSzR,0.5,mRegul);
-           cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSzR,0.5,mRegul);
+           cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSzR,0.5,mRegul);
+           // cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSzR,0.5,mRegul);
 
            Pt2di aP;
 

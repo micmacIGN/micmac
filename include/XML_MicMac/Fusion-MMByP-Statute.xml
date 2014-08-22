@@ -2,6 +2,10 @@
 mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml WorkDirPFM=/media/data1/Jeux-Tests/MedinetAbou/MTD-Image-IMG_0107.CR2/
 
 mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml WorkDirPFM=/home/marc/TMP/EPI/Pompei/MTD-Image-MVxxxx_MAP_7043.NEF/
+
+
+
+mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml  WorkDirPFM=/media/data2/Jeux-Test/Soldat-Temple-Hué/MTD-Image-IMGP7043.JPG/
 -->
 <ParamFusionMNT>
     <DicoLoc>
