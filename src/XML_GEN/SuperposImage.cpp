@@ -15302,6 +15302,17 @@ void xml_init(cSectionName & anObj,cElXMLTree * aTree)
 std::string  Mangling( cSectionName *) {return "5B912DF9925F0398FE3F";};
 
 
+cTplValGesInit< bool > & cScoreMM1P::MakeFileResult()
+{
+   return mMakeFileResult;
+}
+
+const cTplValGesInit< bool > & cScoreMM1P::MakeFileResult()const 
+{
+   return mMakeFileResult;
+}
+
+
 cTplValGesInit< double > & cScoreMM1P::PdsAR()
 {
    return mPdsAR;
@@ -15372,6 +15383,14 @@ void  BinaryUnDumpFromFile(cScoreMM1P & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.MakeFileResult().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.MakeFileResult().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.MakeFileResult().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.PdsAR().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.PdsAR().ValForcedForUnUmp(),aFp);
         }
@@ -15421,6 +15440,8 @@ void  BinaryUnDumpFromFile(cScoreMM1P & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cScoreMM1P & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.MakeFileResult().IsInit());
+    if (anObj.MakeFileResult().IsInit()) BinaryDumpInFile(aFp,anObj.MakeFileResult().Val());
     BinaryDumpInFile(aFp,anObj.PdsAR().IsInit());
     if (anObj.PdsAR().IsInit()) BinaryDumpInFile(aFp,anObj.PdsAR().Val());
     BinaryDumpInFile(aFp,anObj.PdsDistor().IsInit());
@@ -15439,6 +15460,8 @@ cElXMLTree * ToXMLTree(const cScoreMM1P & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ScoreMM1P",eXMLBranche);
+   if (anObj.MakeFileResult().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MakeFileResult"),anObj.MakeFileResult().Val())->ReTagThis("MakeFileResult"));
    if (anObj.PdsAR().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PdsAR"),anObj.PdsAR().Val())->ReTagThis("PdsAR"));
    if (anObj.PdsDistor().IsInit())
@@ -15461,6 +15484,8 @@ void xml_init(cScoreMM1P & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
+   xml_init(anObj.MakeFileResult(),aTree->Get("MakeFileResult",1),bool(false)); //tototo 
+
    xml_init(anObj.PdsAR(),aTree->Get("PdsAR",1),double(1.0)); //tototo 
 
    xml_init(anObj.PdsDistor(),aTree->Get("PdsDistor",1),double(0.5)); //tototo 
@@ -15474,7 +15499,18 @@ void xml_init(cScoreMM1P & anObj,cElXMLTree * aTree)
    xml_init(anObj.SeuilDisBord(),aTree->Get("SeuilDisBord",1),double(3.0)); //tototo 
 }
 
-std::string  Mangling( cScoreMM1P *) {return "FCD17D3525EC72C9FA3F";};
+std::string  Mangling( cScoreMM1P *) {return "E0AFC1629CC7EA80F93F";};
+
+
+cTplValGesInit< bool > & cSectionScoreQualite::MakeFileResult()
+{
+   return ScoreMM1P().Val().MakeFileResult();
+}
+
+const cTplValGesInit< bool > & cSectionScoreQualite::MakeFileResult()const 
+{
+   return ScoreMM1P().Val().MakeFileResult();
+}
 
 
 cTplValGesInit< double > & cSectionScoreQualite::PdsAR()
@@ -15590,7 +15626,7 @@ void xml_init(cSectionScoreQualite & anObj,cElXMLTree * aTree)
    xml_init(anObj.ScoreMM1P(),aTree->Get("ScoreMM1P",1)); //tototo 
 }
 
-std::string  Mangling( cSectionScoreQualite *) {return "FFC4E56D4ED82980FF3F";};
+std::string  Mangling( cSectionScoreQualite *) {return "FFCCF5B2999648F7FE3F";};
 
 
 cTplValGesInit< double > & cFMNtBySort::PercFusion()
@@ -16554,6 +16590,17 @@ const cTplValGesInit< std::string > & cSectionGestionChantier::ParalMkF()const
 }
 
 
+cTplValGesInit< bool > & cSectionGestionChantier::ByProcess()
+{
+   return mByProcess;
+}
+
+const cTplValGesInit< bool > & cSectionGestionChantier::ByProcess()const 
+{
+   return mByProcess;
+}
+
+
 cTplValGesInit< bool > & cSectionGestionChantier::InterneCalledByProcess()
 {
    return mInterneCalledByProcess;
@@ -16637,6 +16684,14 @@ void  BinaryUnDumpFromFile(cSectionGestionChantier & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.ByProcess().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ByProcess().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ByProcess().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.InterneCalledByProcess().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.InterneCalledByProcess().ValForcedForUnUmp(),aFp);
         }
@@ -16684,6 +16739,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionGestionChantier & anObj)
     if (anObj.RecouvrtDalles().IsInit()) BinaryDumpInFile(aFp,anObj.RecouvrtDalles().Val());
     BinaryDumpInFile(aFp,anObj.ParalMkF().IsInit());
     if (anObj.ParalMkF().IsInit()) BinaryDumpInFile(aFp,anObj.ParalMkF().Val());
+    BinaryDumpInFile(aFp,anObj.ByProcess().IsInit());
+    if (anObj.ByProcess().IsInit()) BinaryDumpInFile(aFp,anObj.ByProcess().Val());
     BinaryDumpInFile(aFp,anObj.InterneCalledByProcess().IsInit());
     if (anObj.InterneCalledByProcess().IsInit()) BinaryDumpInFile(aFp,anObj.InterneCalledByProcess().Val());
     BinaryDumpInFile(aFp,anObj.InterneSingleImage().IsInit());
@@ -16706,6 +16763,8 @@ cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
       aRes->AddFils(::ToXMLTree(std::string("RecouvrtDalles"),anObj.RecouvrtDalles().Val())->ReTagThis("RecouvrtDalles"));
    if (anObj.ParalMkF().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ParalMkF"),anObj.ParalMkF().Val())->ReTagThis("ParalMkF"));
+   if (anObj.ByProcess().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ByProcess"),anObj.ByProcess().Val())->ReTagThis("ByProcess"));
    if (anObj.InterneCalledByProcess().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("InterneCalledByProcess"),anObj.InterneCalledByProcess().Val())->ReTagThis("InterneCalledByProcess"));
    if (anObj.InterneSingleImage().IsInit())
@@ -16732,6 +16791,8 @@ void xml_init(cSectionGestionChantier & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ParalMkF(),aTree->Get("ParalMkF",1)); //tototo 
 
+   xml_init(anObj.ByProcess(),aTree->Get("ByProcess",1),bool(false)); //tototo 
+
    xml_init(anObj.InterneCalledByProcess(),aTree->Get("InterneCalledByProcess",1),bool(false)); //tototo 
 
    xml_init(anObj.InterneSingleImage(),aTree->Get("InterneSingleImage",1),std::string("")); //tototo 
@@ -16743,7 +16804,7 @@ void xml_init(cSectionGestionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.BoxTest(),aTree->Get("BoxTest",1)); //tototo 
 }
 
-std::string  Mangling( cSectionGestionChantier *) {return "CFD43789227DA8EBFE3F";};
+std::string  Mangling( cSectionGestionChantier *) {return "9CEFA3D91C2089A3FD3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamFusionMNT::DicoLoc()
@@ -16798,6 +16859,17 @@ cSectionName & cParamFusionMNT::SectionName()
 const cSectionName & cParamFusionMNT::SectionName()const 
 {
    return mSectionName;
+}
+
+
+cTplValGesInit< bool > & cParamFusionMNT::MakeFileResult()
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().MakeFileResult();
+}
+
+const cTplValGesInit< bool > & cParamFusionMNT::MakeFileResult()const 
+{
+   return SectionScoreQualite().Val().ScoreMM1P().Val().MakeFileResult();
 }
 
 
@@ -17153,6 +17225,17 @@ const cTplValGesInit< std::string > & cParamFusionMNT::ParalMkF()const
 }
 
 
+cTplValGesInit< bool > & cParamFusionMNT::ByProcess()
+{
+   return SectionGestionChantier().ByProcess();
+}
+
+const cTplValGesInit< bool > & cParamFusionMNT::ByProcess()const 
+{
+   return SectionGestionChantier().ByProcess();
+}
+
+
 cTplValGesInit< bool > & cParamFusionMNT::InterneCalledByProcess()
 {
    return SectionGestionChantier().InterneCalledByProcess();
@@ -17294,7 +17377,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionMNT *) {return "DBBCB8B4DF1C86A1FE3F";};
+std::string  Mangling( cParamFusionMNT *) {return "6DE3AD556FC81390FF3F";};
 
 
 double & cXmlAffinR2ToR::CoeffX()

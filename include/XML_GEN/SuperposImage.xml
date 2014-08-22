@@ -1071,6 +1071,7 @@
        <!-- Pour gerer le score pas toujours simple fonction de correlation -->
        <SectionScoreQualite Nb="?" UnionType="true">
            <ScoreMM1P Nb="?">
+                 <MakeFileResult Nb="?" Type="bool" Def="false"> </MakeFileResult>
                  <PdsAR Nb="?" Type="double" Def="1.0"> </PdsAR>
 
                  <PdsDistor Nb="?" Type="double" Def="0.5"> </PdsDistor>
@@ -1130,6 +1131,7 @@
              <SzDalles Nb="?" Type="int" Def="2000"> </SzDalles>
              <RecouvrtDalles Nb="?" Type="int" Def="40"> </RecouvrtDalles>
              <ParalMkF Nb="?" Type="std::string"> </ParalMkF>
+             <ByProcess Nb="?" Type="bool" Def="false"> </ByProcess>
 
              <!-- Ne pas utiliser, usage interne a la paralellisation -->
              <InterneCalledByProcess  Nb="?" Type="bool" Def="false"> </InterneCalledByProcess>

@@ -4644,6 +4644,9 @@ class cScoreMM1P
         friend void xml_init(cScoreMM1P & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & MakeFileResult();
+        const cTplValGesInit< bool > & MakeFileResult()const ;
+
         cTplValGesInit< double > & PdsAR();
         const cTplValGesInit< double > & PdsAR()const ;
 
@@ -4662,6 +4665,7 @@ class cScoreMM1P
         cTplValGesInit< double > & SeuilDisBord();
         const cTplValGesInit< double > & SeuilDisBord()const ;
     private:
+        cTplValGesInit< bool > mMakeFileResult;
         cTplValGesInit< double > mPdsAR;
         cTplValGesInit< double > mPdsDistor;
         cTplValGesInit< double > mAmplImDistor;
@@ -4684,6 +4688,9 @@ class cSectionScoreQualite
 
         friend void xml_init(cSectionScoreQualite & anObj,cElXMLTree * aTree);
 
+
+        cTplValGesInit< bool > & MakeFileResult();
+        const cTplValGesInit< bool > & MakeFileResult()const ;
 
         cTplValGesInit< double > & PdsAR();
         const cTplValGesInit< double > & PdsAR()const ;
@@ -5027,6 +5034,9 @@ class cSectionGestionChantier
         cTplValGesInit< std::string > & ParalMkF();
         const cTplValGesInit< std::string > & ParalMkF()const ;
 
+        cTplValGesInit< bool > & ByProcess();
+        const cTplValGesInit< bool > & ByProcess()const ;
+
         cTplValGesInit< bool > & InterneCalledByProcess();
         const cTplValGesInit< bool > & InterneCalledByProcess()const ;
 
@@ -5045,6 +5055,7 @@ class cSectionGestionChantier
         cTplValGesInit< int > mSzDalles;
         cTplValGesInit< int > mRecouvrtDalles;
         cTplValGesInit< std::string > mParalMkF;
+        cTplValGesInit< bool > mByProcess;
         cTplValGesInit< bool > mInterneCalledByProcess;
         cTplValGesInit< std::string > mInterneSingleImage;
         cTplValGesInit< int > mInterneSingleBox;
@@ -5084,6 +5095,9 @@ class cParamFusionMNT
 
         cSectionName & SectionName();
         const cSectionName & SectionName()const ;
+
+        cTplValGesInit< bool > & MakeFileResult();
+        const cTplValGesInit< bool > & MakeFileResult()const ;
 
         cTplValGesInit< double > & PdsAR();
         const cTplValGesInit< double > & PdsAR()const ;
@@ -5180,6 +5194,9 @@ class cParamFusionMNT
 
         cTplValGesInit< std::string > & ParalMkF();
         const cTplValGesInit< std::string > & ParalMkF()const ;
+
+        cTplValGesInit< bool > & ByProcess();
+        const cTplValGesInit< bool > & ByProcess()const ;
 
         cTplValGesInit< bool > & InterneCalledByProcess();
         const cTplValGesInit< bool > & InterneCalledByProcess()const ;
