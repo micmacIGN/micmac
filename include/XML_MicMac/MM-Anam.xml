@@ -1,0 +1,12 @@
+      <AnamorphoseGeometrieMNT>
+             <AnamSurfaceAnalytique>
+                   <NameFile> ${ParamAnam}</NameFile>
+                   <Id> TheSurf </Id>
+             </AnamSurfaceAnalytique>
+             <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+             <!-- Limite +ou- Pi/3 -->
+             <AnamLimAngleVisib>  1.05 </AnamLimAngleVisib>
+     </AnamorphoseGeometrieMNT>
+
+
+
