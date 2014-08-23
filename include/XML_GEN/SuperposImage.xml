@@ -529,6 +529,9 @@
            >
            </Orientation>
 
+          <!-- Devrait tjrs etre init, mais pb compatibilite anterieure -->
+           <RatioResolAltiPlani Nb="?" Type="double" Def="1.0"> </RatioResolAltiPlani>
+
 
           <!-- Parametre specifique a un mode calcul des points, non
               inclu dans l'orientation (qui ne decrit qu'un capteur)
@@ -1089,31 +1092,30 @@
        <ParamAlgoFusionMNT Nb="1">
            <FMNTSeuilCorrel Nb="1" Type="double"> </FMNTSeuilCorrel>
            <FMNTGammaCorrel Nb="1" Type="double"> </FMNTGammaCorrel>
-           <SpecAlgoFMNT Nb="1" UnionType="true">
-                <FMNtBySort Nb="?">
-                       <PercFusion Nb="?" Type="double" Def="50.0"> </PercFusion>
-                </FMNtBySort>
-                <FMNtByMaxEvid Nb="?">
-                       <SigmaPds  Type="double" Nb="1"> </SigmaPds>
-                       <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->
-                       <MaxDif Type="double" Nb="?" Def="1e9"> </MaxDif>
-                       <QuickExp Nb="?" Type="bool" Def="false"> </QuickExp>
-                       <FMNT_ProgDyn Nb="?">
-                            <Regul Nb="1" Type="double"> </Regul>
+           <SpecAlgoFMNT Nb="1">
+                <SigmaPds  Type="double" Nb="1"> </SigmaPds>
+                <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->
+                <SeuilMaxLoc Type="double" Nb="1"> </SeuilMaxLoc> <!-- Utilise pour selction MaxLoc -->
+                <SeuilCptOk Type="double" Nb="1"> </SeuilCptOk> <!-- Utilise pour Compteur Nb Image -->
+                <MaxDif Type="double" Nb="?" Def="1e9">  </MaxDif> <!-- Inutilise pour l'instant-->
+                <NBMaxMaxLoc Type="int" Nb="?" Def="5"> </NBMaxMaxLoc>
+
+                <QuickExp Nb="?" Type="bool" Def="false"> </QuickExp>
+                <FMNT_ProgDyn Nb="?">
+                       <Regul Nb="1" Type="double"> </Regul>
                             <!-- Le cout de regul pour dun delta Z = D est
                                  (sqrt(1 +D/S0) -1) * 2S0  ; c.a.d un cout concave, qui
                                  en 0 est nul et de pente 1
                              -->
-                            <Sigma0 Nb="1" Type="double"> </Sigma0>
-                            <NbDir Nb="1" Type="int"> </NbDir>
-                            <FMNT_GesNoVal Nb="?">
-                                <PenteMax Nb="1" Type="double"> </PenteMax>
+                       <Sigma0 Nb="1" Type="double"> </Sigma0>
+                       <NbDir Nb="1" Type="int"> </NbDir>
+                       <FMNT_GesNoVal Nb="?">
+                            <PenteMax Nb="1" Type="double"> </PenteMax>
                                 <!-- GainNoVal : proportion du gain max; Gain 0 privilegie le NoVal -->
-                                <GainNoVal Nb="1" Type="double"> </GainNoVal>
-                                <Trans Nb="1" Type="double"> </Trans>
-                            </FMNT_GesNoVal>
-                       </FMNT_ProgDyn>
-                </FMNtByMaxEvid>
+                            <GainNoVal Nb="1" Type="double"> </GainNoVal>
+                             <Trans Nb="1" Type="double"> </Trans>
+                        </FMNT_GesNoVal>
+                </FMNT_ProgDyn>
            </SpecAlgoFMNT>
        </ParamAlgoFusionMNT>
 

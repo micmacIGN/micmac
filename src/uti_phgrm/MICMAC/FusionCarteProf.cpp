@@ -48,6 +48,23 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                   */
 /*********************************************************************/
 
+// 5200.71341656884579
+
+//  Orientation-IMGP7043.JPG
+//                 <Centre>2.10219430796389961 -1.59390571262596681 -6.83295583978635435</Centre>
+//  Orientation-IMGP7042.JPG
+//                <Centre>2.20813991647144192 -0.622937523946268445 -7.29642287586240545</Centre>
+//  Orientation-IMGP7041.JPG
+//               <Centre>2.23797875030617188 0.257920861375460941 -7.46202393391516239</Centre>
+// Dist ->2  
+// 9.78319836420305178e-05  -> 1E-4
+
+// mResolPlaniReel
+
+
+
+//mResolPlaniReel 2 Equi 0.000195664
+//mResolPlaniReel 2 Equi 0.000195664
 
 
 
@@ -67,11 +84,11 @@ class fZPile;  // Functer : renvoie le Z
 class cElPile
 {
     public :
-        cElPile (double aZ,double aPds,double aPOwn= -1,const std::string * aName =  0) :
+        cElPile (double aZ,double aPds,double aCptr= -1,const cLoadedCP<float> * aLCP = 0) :
            mZ  (aZ),
            mP  (aPds),
-           mPOwn (aPOwn),
-           mName (aName)
+           mCPtr (aCptr),
+           mLCP  (aLCP)
         {
         }
 
@@ -81,48 +98,44 @@ class cElPile
         }
         cElPile() :
            mZ(0),
-           mP(-1)
+           mP(-1),
+           mLCP(0)
         {
         }
+/*
+*/
 
         const float & Z() const {return mZ;}
         const float & P() const {return mP;}
-        const float & POwn() const {return mPOwn;}
-        const std::string *  Name() const {return mName;}
+        const float & CPtr() const {return mCPtr;}
+        const cLoadedCP<float> *  LCP() const {return mLCP; }
     private :
         float mZ;   // C'est le Z "absolu" du nuage, corrige de l'offset et du pas, c'est a la sauvegarde qu'on le remet eventuellement au pas
         float mP;
-        float mPOwn;
-        const std::string * mName;
+        float mCPtr;
+        const cLoadedCP<float> * mLCP;
 };
 
 
-bool operator < (const cElPile & aP1, const cElPile & aP2) {return aP1.Z() < aP2.Z();}
-
-class cCmpPdsPile
-{
-   public :
-     bool operator()(const cElPile & aP1,const cElPile & aP2)
-     {
-          return aP1.P() > aP2.P();
-     }
-};
 
 
 class cTmpPile
 {
     public :
-        cTmpPile(float aZ,float aPds);
+        cTmpPile(int aK,float aZ,float aPds,const cLoadedCP<float> * aLCP);
         void SetPPrec(cTmpPile &,float aExpFact);
         // double Pds() {return mPds0 / mNb0;}
         double ZMoy() {return mPds0 ? (mZP0/mPds0) : 0 ;}
 
     // private :
+         int    mK;
+         double mCpteur;
          double mZInit;
          double mPInit;
          double mZP0;
          double mPds0;
          double mNb0;
+         const cLoadedCP<float> * mLCP;
 
          double mNewZPp;
          double mNewPdsp;
@@ -137,12 +150,28 @@ class cTmpPile
          bool   mSelected;
 };
 
-cTmpPile::cTmpPile(float aZ,float aPds) :
+bool operator < (const cElPile & aP1, const cElPile & aP2) {return aP1.Z() < aP2.Z();}
+class cCmpPdsPile
+{
+   public :
+     bool operator()(const cTmpPile & aP1,const cTmpPile & aP2)
+     {
+          return aP1.mPds0 > aP2.mPds0;
+     }
+};
+
+
+
+
+cTmpPile::cTmpPile(int aK,float aZ,float aPds,const cLoadedCP<float> * aLCP) :
+    mK     (aK),
+    mCpteur(0),
     mZInit (aZ),
     mPInit (aPds),
     mZP0   (aZ * aPds),
     mPds0  (aPds),
     mNb0   (1.0),
+    mLCP   (aLCP),
     mPPrec (-1),
     mPNext (-1),
     mSelected (false)
@@ -152,7 +181,10 @@ cTmpPile::cTmpPile(float aZ,float aPds) :
 void cTmpPile::SetPPrec(cTmpPile & aPrec,float aExpFact)
 {
     ELISE_ASSERT(mZInit>=aPrec.mZInit,"Ordre coherence in cTmpPile::SetPPrec");
-    double aPds = exp((aPrec.mZInit-mZInit)/aExpFact);
+
+
+    double aPds = (aPrec.mZInit-mZInit)/aExpFact;
+    aPds = exp(aPds);
     mPPrec  = aPds;
     aPrec.mPNext = aPds;
 }
@@ -224,7 +256,7 @@ bool IsMaxLoc(const std::vector<cTmpPile> & aVPile,int aK,float anEc,int aStep,i
    for (int aK1=aK+aStep ; (aK1!=aLim) ; aK1+=aStep)
    {
        cTmpPile aP1 = aVPile[aK1];
-       if (ElAbs(aP0.mZInit-aP0.mZInit) > anEc) return true;
+       if (ElAbs(aP0.mZInit-aP1.mZInit) > anEc) return true;
        if (aP0.mPds0 < aP1.mPds0) return false;
    }
    return true;
@@ -236,14 +268,41 @@ bool IsMaxLoc(const std::vector<cTmpPile> & aVPile,int aK,float anEc)
            && IsMaxLoc(aVPile,aK,anEc, 1,aVPile.size());
 }
 
-
-std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,float aPixFact)
+double PdsCptr(double aDZ,double aSeuil)
 {
+    double aRes = aDZ/aSeuil;
+    if (aRes<0.5) return 1;
+    if (aRes>1  ) return 0;
+    return  2* (1-aRes);
+
+    // return aDZ < aSeuil;
+    // return ElMax(0.0,1-ElSquare(aDZ/aSeuil));
+}
+
+void IncreCptr(const std::vector<cTmpPile> & aVPile,cTmpPile & aPile,int aK0,float aSeuil,int aStep,int aLim)
+{
+    while (1)
+    {
+        if (aK0 == aLim) return;
+        double aP = PdsCptr(ElAbs(aVPile[aK0].mZInit-aPile.mZInit),aSeuil);
+        if (aP<=0) return;
+        aPile.mCpteur  += aP;
+        aK0 += aStep;
+    }
+}
+
+std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,const cSpecAlgoFMNT & aFEv)
+{
+// std::cout << "AAA ComputeExpEv " << (aVPile.size()) << "\n";
+   float aZFact = (aFEv.SigmaPds()*aResolPlani) * sqrt(2.0);
+   double aSzML = aFEv.SeuilMaxLoc() * aResolPlani;
+   double aSCpt = aFEv.SeuilCptOk() * aResolPlani;
+
    std::vector<cTmpPile> aTmp;
-   float aZFact = (aPixFact*aResolPlani) * sqrt(2.0);
+
    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
    {
-        aTmp.push_back(cTmpPile(aVPile[aK].Z(),aVPile[aK].P()));
+        aTmp.push_back(cTmpPile(aK,aVPile[aK].Z(),aVPile[aK].P(),aVPile[aK].LCP()));
         if (aK>0)
         {
             aTmp[aK].SetPPrec(aTmp[aK-1],aZFact);
@@ -262,7 +321,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
             if (euclid (aDif)> 1e-3)
             {
                  std::cout << euclid (aDif) << aPTest << " " <<  aTmp[aK].mZInit << " " << aTmp[aK].mZP0 << " " << aTmp[aK].mPds0 ;
-                 if (aVPile[aK].Name()) std::cout << " N=" << *(aVPile[aK].Name()) ;
+                 if (aVPile[aK].LCP()) std::cout << " N=" << (aVPile[aK].LCP()) ;
                  std::cout  << "\n";
                  ELISE_ASSERT(false,"Coher in ComputeExpEv");
             }
@@ -277,34 +336,39 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
                 // Pt3dr aPSOL =  PdsSol(aVPile,aVPile[aK],aZFact);
                 std::cout << " OUT " <<  aTmp[aK].mZInit << " P0 " << aTmp[aK].mPds0  << " PI " << aTmp[aK].mPInit
                           << " PIm " << (aTmp[aK].mPds0/aTmp[aK].mNb0)
-                          << " MaxLoc " << IsMaxLoc(aTmp,aK,aPixFact) ;
-                 if (aVPile[aK].Name()) std::cout << " N=" << *(aVPile[aK].Name()) ;
+                          << " MaxLoc " << IsMaxLoc(aTmp,aK,aSzML)  << " SML " << aSzML;
+                 if (aVPile[aK].LCP()) std::cout << " N=" << (aVPile[aK].LCP()) ;
                  std::cout << "\n";
                               //  << " " << aTmp[aK].mNb0 << " SOL " <<  (aPSOL.x/aPSOL.y) << " " << aPSOL.y  << " " << aPSOL.z << "\n";
         }
    }
 
-   std::vector<cElPile> aRes;
+   std::vector<cTmpPile> aResTmp;
    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
    {
-       if (IsMaxLoc(aTmp,aK,aPixFact))
+       if (IsMaxLoc(aTmp,aK,aSzML))
        {
-           aTmp[aK].mSelected = true;
-           cElPile  aPil (aTmp[aK].ZMoy(),aTmp[aK].mPds0,aTmp[aK].mPds0/aTmp[aK].mNb0);
-           aRes.push_back (aPil);
+           aResTmp.push_back (aTmp[aK]);
        }
    }
 
    cCmpPdsPile aCmp;
-   std::sort(aRes.begin(),aRes.end(),aCmp);
+   std::sort(aResTmp.begin(),aResTmp.end(),aCmp);
+   while (int(aResTmp.size()) > aFEv.NBMaxMaxLoc().Val())  aResTmp.pop_back();
 
-
-   while (aRes.size() > 5)  aRes.pop_back();
-
-
-   if (LocBug)
+   for (int aI=0 ; aI<int(aResTmp.size()) ; aI++)
    {
-        std::cout << "ZFCAT " << aZFact << "\n";
+         IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK  ,aSCpt,-1,            -1);
+         IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK+1,aSCpt, 1,aResTmp.size());
+   }
+
+
+   
+   std::vector<cElPile> aRes;
+   for (int aK=0 ; aK<int(aResTmp.size()) ; aK++)
+   {
+       cElPile  aPil (aResTmp[aK].ZMoy(),aResTmp[aK].mPds0,aResTmp[aK].mCpteur,aResTmp[aK].mLCP);
+       aRes.push_back (aPil);
    }
 
    return aRes;
@@ -322,23 +386,38 @@ template <class Type> class  cLoadedCP
         //typedef  float  tNum;
         // typedef  double  tNBase;
 
-        cLoadedCP(cFusionCarteProf<Type> &, const std::string & anId,const std::string & aFus);
+        cLoadedCP(cFusionCarteProf<Type> &, const std::string & anId,const std::string & aFus,int aNum);
         const cXML_ParamNuage3DMaille & Nuage() {return mNuage;}
 
         cElPile  CreatePile(const Pt2dr &) const;
         double   PdsLinear(const Pt2dr &) const;
 
         void  SetSz(const Pt2di & aSz);
-        bool  ReLoad(const Box2dr & aBoxTer,bool SauvImQual) ;
+        bool  ReLoad(const Box2dr & aBoxTer);
         const  cImage_Profondeur & IP() {return mIP;}
         const std::string & NameNuage() {return mNameNuage;}
         Im2D_U_INT1   ImCorrel() {return  mImCorrel;}
 
-        std::string NameMM1P(const std::string aPref);
+        std::string NameMM1P(const std::string aPref) const;
+        std::string NameIm() const;
         Tiff_Im FileMM1P(const std::string aPref);
+        double ZOfP(const Pt2di & aP) const {return mTImCP.get(aP);}
 
     private :
+        double ToZAbs(double aZ) const
+        {
+           aZ = mIP.OrigineAlti() +  aZ * mIP.ResolutionAlti();
+if (0)
+{
+std::cout << " ZZZiiZ " << mZIsInv << " " << aZ << "\n";
+getchar();
+}
 
+           // if (mZIsInv) aZ= 1.0/aZ;
+           return aZ;
+        }
+
+        int                       mNum;
         cFusionCarteProf<Type>  & mFCP;
         const cParamFusionMNT & mParam;
         const cParamAlgoFusionMNT & mPAlg;
@@ -432,6 +511,7 @@ template <class Type> class cFusionCarteProf
 
 
          cLoadedCP<Type> *  VCLOfName(const std::string &) ;
+         bool InParal() const;
      private :
 
           std::vector<cElPile> ComputeEvidence(const std::vector<cElPile> & aPile,double aResolPlani);
@@ -447,17 +527,17 @@ template <class Type> class cFusionCarteProf
           cParamFusionMNT mParam;
           std::string     mCom;
           const cSpecAlgoFMNT & mSpecA;
-          const cFMNtBySort *    mFBySort;
-          const cFMNtByMaxEvid * mFByEv;
           const cFMNT_ProgDyn  * mFPrgD;
           const cFMNT_GesNoVal * mFNoVal;
-          double                 mSigmaP;
-          double                 mSigmaZ;
+          //double                 mSigmaP;
+          //double                 mSigmaZ;
           cInterfChantierNameManipulateur * mICNM;
           std::vector<std::string>          mGenRes;
-          bool                                    mCalledByMkf;
-          bool                                    mDoByMkF;
-          bool                                    mGenereMkF;
+          bool                                    mCalledBySubP;
+          bool                                    mInParal;
+          bool                                    mInSerialP;
+          bool                                    mBySubPr;
+          bool                                    mThrowSubPr;
           std::vector<cLoadedCP<Type> *>          mVC;
           std::vector<cLoadedCP<Type> *>          mVCL;
           cXML_ParamNuage3DMaille                 mNuage;
@@ -473,7 +553,8 @@ template <class Type> class cFusionCarteProf
           std::string                             mNameCorrel;
           bool                                    mZIsInv;
           std::list<std::string>                  mListCom;
-          double                                  mResolPlani;
+          double                                  mResolPlaniReel; // La vrai resol
+          double                                  mResolPlaniEquiAlt; // Celle qui est equivalente a l'alti
 };
 
 
@@ -483,7 +564,8 @@ template <class Type> class cFusionCarteProf
 /*                                                                    */
 /**********************************************************************/
 
-template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP, const std::string & anId,const std::string & aFus) :
+template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP, const std::string & anId,const std::string & aFus,int aNum) :
+  mNum     (aNum),
   mFCP     (aFCP),
   mParam   (aFCP.Param()),
   mPAlg    (mParam.ParamAlgoFusionMNT()),
@@ -548,17 +630,18 @@ template <class Type> void  cLoadedCP<Type>::SetSz(const Pt2di & aSz)
    }
 
 }
-template <class Type> std::string cLoadedCP<Type>::NameMM1P(const std::string aPref)
+template <class Type> std::string cLoadedCP<Type>::NameMM1P(const std::string aPref) const
 {
     return  mParam.WorkDirPFM().Val() + aPref + "-" +  mNameIm + ".tif";
 }
+template <class Type> std::string cLoadedCP<Type>::NameIm() const { return    mNameIm ; }
 
 template <class Type> Tiff_Im cLoadedCP<Type>::FileMM1P(const std::string aPref)
 {
     return Tiff_Im::StdConv(NameMM1P(aPref));
 }
 
-template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer,bool SauvImQual)
+template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
 {
    mBoxImCur =  R2I(aBoxTer.BoxImage(mAfM2CGlob));
    if (InterVide(mBoxImCur,mBoxImGlob))
@@ -604,7 +687,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer,bool 
                ELISE_COPY(mImCorrel.all_pts(),trans(aFCor,mBoxImCur._p0),mImCorrel.out());
 
 
-               if ((!mQualImSaved) && aSM1P.MakeFileResult().Val())
+               if ((!mQualImSaved) && aSM1P.MakeFileResult().Val() && (!mFCP.InParal()))
                {
                       mQualImSaved = true;
                       std::cout << "HHHHH " << aSM1P.PdsAR().Val()  << " " << mNameIm  << " "<< aBoxTer._p0 <<  aBoxTer._p1 << "\n";
@@ -664,14 +747,10 @@ template <class Type> cElPile  cLoadedCP<Type>::CreatePile(const Pt2dr & aPTer) 
    }
    if (aPds > 0)
    {
-       aZ = mIP.OrigineAlti() +  mTImCP.getprojR(aPIm) * mIP.ResolutionAlti();
-       if (mZIsInv)
-          aZ= 1.0/aZ;
+       aZ = ToZAbs(mTImCP.getprojR(aPIm));
    }
-   return cElPile(aZ,aPds,-1,&mNameCP);
+   return cElPile(aZ,aPds,-1,this);
 }
-/*
-*/
 
 
 
@@ -683,6 +762,7 @@ template <class Type> cElPile  cLoadedCP<Type>::CreatePile(const Pt2dr & aPTer) 
 
 template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const std::vector<cElPile> & aPile,const cElPile aP0,double aResolPlani)
 {
+/*
     double aSomPp = 0;
     double aSomPz = 0;
     double aSomZ = 0;
@@ -714,6 +794,9 @@ template <class Type> cElPile  cFusionCarteProf<Type>::ComputeOneEvidence(const 
        aSomPp =0;
 
     return cElPile(aSomZ,aSomPp);
+*/
+    ELISE_ASSERT(false,"No Use ::ComputeOneEvidence");
+    return  aPile[0];
 }
 
 template <class Type> cLoadedCP<Type> *  cFusionCarteProf<Type>::VCLOfName(const std::string & aNameNuage)
@@ -781,7 +864,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
     for (int aK=0 ; aK<int(aStrFus.size()) ; aK++)
     {
-          mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK]));
+          mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK],aK));
     }
 
     if (mParam.ModeleNuageResult().IsInit())
@@ -855,7 +938,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     mAfC2MGlob = mAfM2CGlob.inv();
     mSzGlob = mNuage.NbPixel();
 
-    if (! mCalledByMkf)
+    if (! mCalledBySubP)
     {
        bool IsModified;
        Im2D<tNum,tNBase> aITest(1,1);
@@ -904,7 +987,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
          for (int aKI=0 ; aKI<aDecoup.NbInterv() ; aKI++)
          {
 
-             if (mGenereMkF)
+             if (mBySubPr && (!mCalledBySubP))
              {
                   std::string aNewCom =   mCom
                                   + std::string(" InterneCalledByProcess=true")
@@ -914,7 +997,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
              }
              else
              {
-                 if ((!mCalledByMkf) || (mParam.InterneSingleBox().Val()==aKI))
+                 if ((!mCalledBySubP) || (mParam.InterneSingleBox().Val()==aKI))
                  {
                     DoOneBloc
                     (
@@ -935,10 +1018,11 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
    DeleteAndClear(mVC);
 }
 
+template <class Type> bool cFusionCarteProf<Type>::InParal() const {return mInParal;}
 
 template <class Type> double cFusionCarteProf<Type>::ToZSauv(double aZ) const
 {
-   if (mZIsInv) aZ = 1/aZ;
+   // if (mZIsInv) aZ = 1/aZ;
    return  (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
 }
 
@@ -951,7 +1035,20 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    mAfC2MCur = mAfM2CCur.inv();
 
 
-   mResolPlani = (euclid(mAfC2MCur.I10()) + euclid(mAfC2MCur.I01()))/2.0;
+   mResolPlaniReel = (euclid(mAfC2MCur.I10()) + euclid(mAfC2MCur.I01()))/2.0;
+   mResolPlaniEquiAlt = mResolPlaniReel * mNuage.RatioResolAltiPlani().Val();
+std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEquiAlt << "\n";
+/*
+   mRatioPlaniAlti = mResolPlani;
+   if (mNuage.ModeFaisceauxImage().IsInit())
+   {
+       if (mZIsInv)
+       {
+       }
+   }
+*/
+
+
    // std::cout << "  SCALE " << mResolPlani << "\n";
 
    mSzCur = aBoxIn.sz();
@@ -975,7 +1072,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
    for (int aK=0 ; aK<int(mVC.size()) ; aK++)
    {
-       bool  aReload = mVC[aK]->ReLoad(aBoxTer,true);
+       bool  aReload = mVC[aK]->ReLoad(aBoxTer);
        // std::cout << "RELOAD " <<  mVC[aK]->NameNuage() << " " << aReload << "\n";
        if (aReload)
           mVCL.push_back(mVC[aK]);
@@ -1047,28 +1144,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    {
         for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
         {
-if (false)
-{
-static int aCpt =-1; aCpt++;
-static       Video_Win aW = Video_Win::WStd(mSzCur,1.0);
 
-cLoadedCP<Type> * aLCP = VCLOfName("/media/data2/Munich/MTD-Nuage/Basculed-40_0314_PAN.tif-40_0315_PAN.tif.xml");
-// static       Tiff_Im aTF = Tiff_Im::StdConv("FusionZ1_NuageImProf_LeChantier_Etape_1_Correl.tif");
-
-ELISE_COPY(aLCP->ImCorrel().all_pts(),aLCP->ImCorrel().in(),aW.ogray());
-if (aCpt==-1)
-{
-   aQ0 = Pt2di(573,213);
-}
-else
-{
-   Clik aClk = aW.clik_in();
-   aQ0 = Pt2di(aClk._pt);
-}
-LocBug=true;
-}
-
-
+LocBug = (aQ0.x>= 420) && (aQ0.y>= 537) && (aQ0.x<=430) && (aQ0.y<= 547); //  aPCel.size()>=4;
             Pt2dr aT0 = mAfC2MCur(Pt2dr(aQ0));
             aPCel.clear();
             for (int aKI=0 ; aKI<int(mVCL.size()); aKI++)
@@ -1085,9 +1162,22 @@ LocBug=true;
             if (aPCel.size() >0)
             {
                 std::sort(aPCel.begin(),aPCel.end());
-                std::vector<cElPile> aVPile = ComputeExpEv(aPCel,mResolPlani,mSigmaP);
+                std::vector<cElPile> aVPile = ComputeExpEv(aPCel,mResolPlaniEquiAlt,mSpecA);
+
+if (LocBug)
+{
+for (int aK=0 ; aK<int(aPCel.size()) ; aK++)
+{
+    std::cout << aPCel[aK].LCP()->NameIm() << " " << aPCel[aK].LCP()->ZOfP(aQ0) << "\n";
+}
+for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
+{
+    std::cout << aVPile[aK].LCP()->NameIm()  << " " <<  aVPile[aK].CPtr() << "\n";
+}
+std::cout << "qqQqO : " << aQ0 << " "<<  mResolPlaniEquiAlt << " " << mSpecA.SigmaPds() << "\n"; getchar();
+}
                 aZ = aVPile[0].Z();
-                aP = aVPile[0].POwn();
+                aP = aVPile[0].CPtr();
 
                 aTImFus.oset(aQ0,(tNBase)aZ);
                 aTImCorrel.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aP*255)))));
@@ -1212,7 +1302,7 @@ template <class Type>   void cFusionCarteProf<Type>::DoConnexion
         {
             tCelOpt & anOut = aTabOuput[aZOut];
             const  cElPile & aPOut = anOut.ArgAux();
-            double aDZ = ElAbs(aPIn.Z()-aPOut.Z())/mResolPlani;
+            double aDZ = ElAbs(aPIn.Z()-aPOut.Z())/mResolPlaniEquiAlt;
             if ((mFNoVal==0) || (aDZ < mFNoVal->PenteMax()))
             {
                  double aCost = (sqrt(1+aDZ/aSig0)-1) * 2*aSig0 * mFPrgD->Regul();
@@ -1244,7 +1334,7 @@ template <class Type> void cFusionCarteProf<Type>::DoCalc()
 {
    for (int aKS=0 ; aKS<int(mGenRes.size()) ; aKS++)
    {
-       if ((!mCalledByMkf) || (mGenRes[aKS]==mParam.InterneSingleImage().Val()))
+       if ((!mCalledBySubP) || (mGenRes[aKS]==mParam.InterneSingleImage().Val()))
        {
           DoOneFusion(mGenRes[aKS]);
        }
@@ -1262,42 +1352,33 @@ template <class Type> cFusionCarteProf<Type>::cFusionCarteProf
      mParam        (*(aParam.mObj)),
      mCom          (aCom),
      mSpecA        (mParam.SpecAlgoFMNT()),
-     mFBySort      (mSpecA.FMNtBySort().PtrVal()),
-     mFByEv        (mSpecA.FMNtByMaxEvid().PtrVal()),
-     mFPrgD        (mFByEv ? mFByEv->FMNT_ProgDyn().PtrVal() : 0),
+     mFPrgD        (mSpecA.FMNT_ProgDyn().PtrVal() ),
      mFNoVal       (mFPrgD ? mFPrgD->FMNT_GesNoVal().PtrVal() : 0),
      mICNM         (aParam.mICNM),
      mGenRes       (GetStrFromGenStr(mICNM,mParam.GenereRes())),
-     mCalledByMkf  (mParam.InterneCalledByProcess().Val()),
-     mDoByMkF      (mParam.ParalMkF().IsInit() || mParam.ByProcess().Val()),
-     mGenereMkF    ((!mCalledByMkf) && mDoByMkF)
+     mCalledBySubP  (mParam.InterneCalledByProcess().Val()),
+     mInParal      (mParam.ParalMkF().IsInit()),
+     mInSerialP    (mParam.ByProcess().Val()),
+     mBySubPr      (mInParal || mInSerialP),
+     mThrowSubPr   ((!mCalledBySubP) && mBySubPr)
 {
-// std::cout << "mCalledByMkf " << mCalledByMkf << "\n"; getchar();
+/*
     if (mFByEv)
     {
           mSigmaP = mFByEv->SigmaPds();
           mSigmaZ =  mFByEv->SigmaZ().ValWithDef(mSigmaP);
     }
+*/
 
     DoCalc();
 
-    if (mGenereMkF)
+    if (mThrowSubPr)
     {
-        if (mParam.ByProcess().Val())
+        if (mInSerialP)
            cEl_GPAO::DoComInSerie(mListCom);
-        else
+        else if (mInParal)
            cEl_GPAO::DoComInParal(mListCom,mParam.ParalMkF().Val());
     }
-/*
-    if (mParam.ParalMkF().IsInit()  && (! mCalledByMkf))
-    {
-        DoMake();
-    }
-    else
-    {
-        DoCalc();
-    }
-*/
 }
 
 

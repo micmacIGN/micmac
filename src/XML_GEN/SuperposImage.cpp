@@ -6607,6 +6607,17 @@ const cOrientationConique & cXML_ParamNuage3DMaille::Orientation()const
 }
 
 
+cTplValGesInit< double > & cXML_ParamNuage3DMaille::RatioResolAltiPlani()
+{
+   return mRatioResolAltiPlani;
+}
+
+const cTplValGesInit< double > & cXML_ParamNuage3DMaille::RatioResolAltiPlani()const 
+{
+   return mRatioResolAltiPlani;
+}
+
+
 Pt3dr & cXML_ParamNuage3DMaille::DirFaisceaux()
 {
    return PM3D_ParamSpecifs().ModeFaisceauxImage().Val().DirFaisceaux();
@@ -6751,6 +6762,14 @@ void  BinaryUnDumpFromFile(cXML_ParamNuage3DMaille & anObj,ELISE_fp & aFp)
         else  anObj.Anam().SetNoInit();
   } ;
     BinaryUnDumpFromFile(anObj.Orientation(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.RatioResolAltiPlani().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RatioResolAltiPlani().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.RatioResolAltiPlani().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.PM3D_ParamSpecifs(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
@@ -6790,6 +6809,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXML_ParamNuage3DMaille & anObj)
     BinaryDumpInFile(aFp,anObj.Anam().IsInit());
     if (anObj.Anam().IsInit()) BinaryDumpInFile(aFp,anObj.Anam().Val());
     BinaryDumpInFile(aFp,anObj.Orientation());
+    BinaryDumpInFile(aFp,anObj.RatioResolAltiPlani().IsInit());
+    if (anObj.RatioResolAltiPlani().IsInit()) BinaryDumpInFile(aFp,anObj.RatioResolAltiPlani().Val());
     BinaryDumpInFile(aFp,anObj.PM3D_ParamSpecifs());
     BinaryDumpInFile(aFp,anObj.TolVerifNuage().IsInit());
     if (anObj.TolVerifNuage().IsInit()) BinaryDumpInFile(aFp,anObj.TolVerifNuage().Val());
@@ -6822,6 +6843,8 @@ cElXMLTree * ToXMLTree(const cXML_ParamNuage3DMaille & anObj)
    if (anObj.Anam().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Anam().Val())->ReTagThis("Anam"));
    aRes->AddFils(ToXMLTree(anObj.Orientation())->ReTagThis("Orientation"));
+   if (anObj.RatioResolAltiPlani().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("RatioResolAltiPlani"),anObj.RatioResolAltiPlani().Val())->ReTagThis("RatioResolAltiPlani"));
    aRes->AddFils(ToXMLTree(anObj.PM3D_ParamSpecifs())->ReTagThis("PM3D_ParamSpecifs"));
    if (anObj.TolVerifNuage().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("TolVerifNuage"),anObj.TolVerifNuage().Val())->ReTagThis("TolVerifNuage"));
@@ -6857,6 +6880,8 @@ void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Orientation(),aTree->Get("Orientation",1)); //tototo 
 
+   xml_init(anObj.RatioResolAltiPlani(),aTree->Get("RatioResolAltiPlani",1),double(1.0)); //tototo 
+
    xml_init(anObj.PM3D_ParamSpecifs(),aTree->Get("PM3D_ParamSpecifs",1)); //tototo 
 
    xml_init(anObj.TolVerifNuage(),aTree->Get("TolVerifNuage",1),double(1e-3)); //tototo 
@@ -6864,7 +6889,7 @@ void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree)
    xml_init(anObj.VerifNuage(),aTree->GetAll("VerifNuage",false,1));
 }
 
-std::string  Mangling( cXML_ParamNuage3DMaille *) {return "7AFB3BF04661E4D6FE3F";};
+std::string  Mangling( cXML_ParamNuage3DMaille *) {return "6AF63B8E2DAD69A2FE3F";};
 
 
 std::string & cMasqMesures::NameFile()
@@ -15629,56 +15654,6 @@ void xml_init(cSectionScoreQualite & anObj,cElXMLTree * aTree)
 std::string  Mangling( cSectionScoreQualite *) {return "FFCCF5B2999648F7FE3F";};
 
 
-cTplValGesInit< double > & cFMNtBySort::PercFusion()
-{
-   return mPercFusion;
-}
-
-const cTplValGesInit< double > & cFMNtBySort::PercFusion()const 
-{
-   return mPercFusion;
-}
-
-void  BinaryUnDumpFromFile(cFMNtBySort & anObj,ELISE_fp & aFp)
-{
-   { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.PercFusion().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.PercFusion().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.PercFusion().SetNoInit();
-  } ;
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const cFMNtBySort & anObj)
-{
-    BinaryDumpInFile(aFp,anObj.PercFusion().IsInit());
-    if (anObj.PercFusion().IsInit()) BinaryDumpInFile(aFp,anObj.PercFusion().Val());
-}
-
-cElXMLTree * ToXMLTree(const cFMNtBySort & anObj)
-{
-  XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FMNtBySort",eXMLBranche);
-   if (anObj.PercFusion().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("PercFusion"),anObj.PercFusion().Val())->ReTagThis("PercFusion"));
-  aRes->mGXml = anObj.mGXml;
-  XMLPopContext(anObj.mGXml);
-  return aRes;
-}
-
-void xml_init(cFMNtBySort & anObj,cElXMLTree * aTree)
-{
-   anObj.mGXml = aTree->mGXml;
-   if (aTree==0) return;
-
-   xml_init(anObj.PercFusion(),aTree->Get("PercFusion",1),double(50.0)); //tototo 
-}
-
-std::string  Mangling( cFMNtBySort *) {return "E55195ACAEFF2891FE3F";};
-
-
 double & cFMNT_GesNoVal::PenteMax()
 {
    return mPenteMax;
@@ -15883,138 +15858,171 @@ void xml_init(cFMNT_ProgDyn & anObj,cElXMLTree * aTree)
 std::string  Mangling( cFMNT_ProgDyn *) {return "E97359F97E4BCECEFD3F";};
 
 
-double & cFMNtByMaxEvid::SigmaPds()
+double & cSpecAlgoFMNT::SigmaPds()
 {
    return mSigmaPds;
 }
 
-const double & cFMNtByMaxEvid::SigmaPds()const 
+const double & cSpecAlgoFMNT::SigmaPds()const 
 {
    return mSigmaPds;
 }
 
 
-cTplValGesInit< double > & cFMNtByMaxEvid::SigmaZ()
+cTplValGesInit< double > & cSpecAlgoFMNT::SigmaZ()
 {
    return mSigmaZ;
 }
 
-const cTplValGesInit< double > & cFMNtByMaxEvid::SigmaZ()const 
+const cTplValGesInit< double > & cSpecAlgoFMNT::SigmaZ()const 
 {
    return mSigmaZ;
 }
 
 
-cTplValGesInit< double > & cFMNtByMaxEvid::MaxDif()
+double & cSpecAlgoFMNT::SeuilMaxLoc()
+{
+   return mSeuilMaxLoc;
+}
+
+const double & cSpecAlgoFMNT::SeuilMaxLoc()const 
+{
+   return mSeuilMaxLoc;
+}
+
+
+double & cSpecAlgoFMNT::SeuilCptOk()
+{
+   return mSeuilCptOk;
+}
+
+const double & cSpecAlgoFMNT::SeuilCptOk()const 
+{
+   return mSeuilCptOk;
+}
+
+
+cTplValGesInit< double > & cSpecAlgoFMNT::MaxDif()
 {
    return mMaxDif;
 }
 
-const cTplValGesInit< double > & cFMNtByMaxEvid::MaxDif()const 
+const cTplValGesInit< double > & cSpecAlgoFMNT::MaxDif()const 
 {
    return mMaxDif;
 }
 
 
-cTplValGesInit< bool > & cFMNtByMaxEvid::QuickExp()
+cTplValGesInit< int > & cSpecAlgoFMNT::NBMaxMaxLoc()
+{
+   return mNBMaxMaxLoc;
+}
+
+const cTplValGesInit< int > & cSpecAlgoFMNT::NBMaxMaxLoc()const 
+{
+   return mNBMaxMaxLoc;
+}
+
+
+cTplValGesInit< bool > & cSpecAlgoFMNT::QuickExp()
 {
    return mQuickExp;
 }
 
-const cTplValGesInit< bool > & cFMNtByMaxEvid::QuickExp()const 
+const cTplValGesInit< bool > & cSpecAlgoFMNT::QuickExp()const 
 {
    return mQuickExp;
 }
 
 
-double & cFMNtByMaxEvid::Regul()
+double & cSpecAlgoFMNT::Regul()
 {
    return FMNT_ProgDyn().Val().Regul();
 }
 
-const double & cFMNtByMaxEvid::Regul()const 
+const double & cSpecAlgoFMNT::Regul()const 
 {
    return FMNT_ProgDyn().Val().Regul();
 }
 
 
-double & cFMNtByMaxEvid::Sigma0()
+double & cSpecAlgoFMNT::Sigma0()
 {
    return FMNT_ProgDyn().Val().Sigma0();
 }
 
-const double & cFMNtByMaxEvid::Sigma0()const 
+const double & cSpecAlgoFMNT::Sigma0()const 
 {
    return FMNT_ProgDyn().Val().Sigma0();
 }
 
 
-int & cFMNtByMaxEvid::NbDir()
+int & cSpecAlgoFMNT::NbDir()
 {
    return FMNT_ProgDyn().Val().NbDir();
 }
 
-const int & cFMNtByMaxEvid::NbDir()const 
+const int & cSpecAlgoFMNT::NbDir()const 
 {
    return FMNT_ProgDyn().Val().NbDir();
 }
 
 
-double & cFMNtByMaxEvid::PenteMax()
+double & cSpecAlgoFMNT::PenteMax()
 {
    return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
 }
 
-const double & cFMNtByMaxEvid::PenteMax()const 
+const double & cSpecAlgoFMNT::PenteMax()const 
 {
    return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
 }
 
 
-double & cFMNtByMaxEvid::GainNoVal()
+double & cSpecAlgoFMNT::GainNoVal()
 {
    return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
 }
 
-const double & cFMNtByMaxEvid::GainNoVal()const 
+const double & cSpecAlgoFMNT::GainNoVal()const 
 {
    return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
 }
 
 
-double & cFMNtByMaxEvid::Trans()
+double & cSpecAlgoFMNT::Trans()
 {
    return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
 }
 
-const double & cFMNtByMaxEvid::Trans()const 
+const double & cSpecAlgoFMNT::Trans()const 
 {
    return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
 }
 
 
-cTplValGesInit< cFMNT_GesNoVal > & cFMNtByMaxEvid::FMNT_GesNoVal()
+cTplValGesInit< cFMNT_GesNoVal > & cSpecAlgoFMNT::FMNT_GesNoVal()
 {
    return FMNT_ProgDyn().Val().FMNT_GesNoVal();
 }
 
-const cTplValGesInit< cFMNT_GesNoVal > & cFMNtByMaxEvid::FMNT_GesNoVal()const 
+const cTplValGesInit< cFMNT_GesNoVal > & cSpecAlgoFMNT::FMNT_GesNoVal()const 
 {
    return FMNT_ProgDyn().Val().FMNT_GesNoVal();
 }
 
 
-cTplValGesInit< cFMNT_ProgDyn > & cFMNtByMaxEvid::FMNT_ProgDyn()
+cTplValGesInit< cFMNT_ProgDyn > & cSpecAlgoFMNT::FMNT_ProgDyn()
 {
    return mFMNT_ProgDyn;
 }
 
-const cTplValGesInit< cFMNT_ProgDyn > & cFMNtByMaxEvid::FMNT_ProgDyn()const 
+const cTplValGesInit< cFMNT_ProgDyn > & cSpecAlgoFMNT::FMNT_ProgDyn()const 
 {
    return mFMNT_ProgDyn;
 }
 
-void  BinaryUnDumpFromFile(cFMNtByMaxEvid & anObj,ELISE_fp & aFp)
+void  BinaryUnDumpFromFile(cSpecAlgoFMNT & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.SigmaPds(),aFp);
   { bool IsInit;
@@ -16025,6 +16033,8 @@ void  BinaryUnDumpFromFile(cFMNtByMaxEvid & anObj,ELISE_fp & aFp)
         }
         else  anObj.SigmaZ().SetNoInit();
   } ;
+    BinaryUnDumpFromFile(anObj.SeuilMaxLoc(),aFp);
+    BinaryUnDumpFromFile(anObj.SeuilCptOk(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -16032,6 +16042,14 @@ void  BinaryUnDumpFromFile(cFMNtByMaxEvid & anObj,ELISE_fp & aFp)
              BinaryUnDumpFromFile(anObj.MaxDif().ValForcedForUnUmp(),aFp);
         }
         else  anObj.MaxDif().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NBMaxMaxLoc().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NBMaxMaxLoc().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NBMaxMaxLoc().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
@@ -16051,256 +16069,40 @@ void  BinaryUnDumpFromFile(cFMNtByMaxEvid & anObj,ELISE_fp & aFp)
   } ;
 }
 
-void  BinaryDumpInFile(ELISE_fp & aFp,const cFMNtByMaxEvid & anObj)
+void  BinaryDumpInFile(ELISE_fp & aFp,const cSpecAlgoFMNT & anObj)
 {
     BinaryDumpInFile(aFp,anObj.SigmaPds());
     BinaryDumpInFile(aFp,anObj.SigmaZ().IsInit());
     if (anObj.SigmaZ().IsInit()) BinaryDumpInFile(aFp,anObj.SigmaZ().Val());
+    BinaryDumpInFile(aFp,anObj.SeuilMaxLoc());
+    BinaryDumpInFile(aFp,anObj.SeuilCptOk());
     BinaryDumpInFile(aFp,anObj.MaxDif().IsInit());
     if (anObj.MaxDif().IsInit()) BinaryDumpInFile(aFp,anObj.MaxDif().Val());
+    BinaryDumpInFile(aFp,anObj.NBMaxMaxLoc().IsInit());
+    if (anObj.NBMaxMaxLoc().IsInit()) BinaryDumpInFile(aFp,anObj.NBMaxMaxLoc().Val());
     BinaryDumpInFile(aFp,anObj.QuickExp().IsInit());
     if (anObj.QuickExp().IsInit()) BinaryDumpInFile(aFp,anObj.QuickExp().Val());
     BinaryDumpInFile(aFp,anObj.FMNT_ProgDyn().IsInit());
     if (anObj.FMNT_ProgDyn().IsInit()) BinaryDumpInFile(aFp,anObj.FMNT_ProgDyn().Val());
 }
 
-cElXMLTree * ToXMLTree(const cFMNtByMaxEvid & anObj)
-{
-  XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FMNtByMaxEvid",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("SigmaPds"),anObj.SigmaPds())->ReTagThis("SigmaPds"));
-   if (anObj.SigmaZ().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("SigmaZ"),anObj.SigmaZ().Val())->ReTagThis("SigmaZ"));
-   if (anObj.MaxDif().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("MaxDif"),anObj.MaxDif().Val())->ReTagThis("MaxDif"));
-   if (anObj.QuickExp().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("QuickExp"),anObj.QuickExp().Val())->ReTagThis("QuickExp"));
-   if (anObj.FMNT_ProgDyn().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.FMNT_ProgDyn().Val())->ReTagThis("FMNT_ProgDyn"));
-  aRes->mGXml = anObj.mGXml;
-  XMLPopContext(anObj.mGXml);
-  return aRes;
-}
-
-void xml_init(cFMNtByMaxEvid & anObj,cElXMLTree * aTree)
-{
-   anObj.mGXml = aTree->mGXml;
-   if (aTree==0) return;
-
-   xml_init(anObj.SigmaPds(),aTree->Get("SigmaPds",1)); //tototo 
-
-   xml_init(anObj.SigmaZ(),aTree->Get("SigmaZ",1)); //tototo 
-
-   xml_init(anObj.MaxDif(),aTree->Get("MaxDif",1),double(1e9)); //tototo 
-
-   xml_init(anObj.QuickExp(),aTree->Get("QuickExp",1),bool(false)); //tototo 
-
-   xml_init(anObj.FMNT_ProgDyn(),aTree->Get("FMNT_ProgDyn",1)); //tototo 
-}
-
-std::string  Mangling( cFMNtByMaxEvid *) {return "A0A4915A7050BCB2FB3F";};
-
-
-cTplValGesInit< double > & cSpecAlgoFMNT::PercFusion()
-{
-   return FMNtBySort().Val().PercFusion();
-}
-
-const cTplValGesInit< double > & cSpecAlgoFMNT::PercFusion()const 
-{
-   return FMNtBySort().Val().PercFusion();
-}
-
-
-cTplValGesInit< cFMNtBySort > & cSpecAlgoFMNT::FMNtBySort()
-{
-   return mFMNtBySort;
-}
-
-const cTplValGesInit< cFMNtBySort > & cSpecAlgoFMNT::FMNtBySort()const 
-{
-   return mFMNtBySort;
-}
-
-
-double & cSpecAlgoFMNT::SigmaPds()
-{
-   return FMNtByMaxEvid().Val().SigmaPds();
-}
-
-const double & cSpecAlgoFMNT::SigmaPds()const 
-{
-   return FMNtByMaxEvid().Val().SigmaPds();
-}
-
-
-cTplValGesInit< double > & cSpecAlgoFMNT::SigmaZ()
-{
-   return FMNtByMaxEvid().Val().SigmaZ();
-}
-
-const cTplValGesInit< double > & cSpecAlgoFMNT::SigmaZ()const 
-{
-   return FMNtByMaxEvid().Val().SigmaZ();
-}
-
-
-cTplValGesInit< double > & cSpecAlgoFMNT::MaxDif()
-{
-   return FMNtByMaxEvid().Val().MaxDif();
-}
-
-const cTplValGesInit< double > & cSpecAlgoFMNT::MaxDif()const 
-{
-   return FMNtByMaxEvid().Val().MaxDif();
-}
-
-
-cTplValGesInit< bool > & cSpecAlgoFMNT::QuickExp()
-{
-   return FMNtByMaxEvid().Val().QuickExp();
-}
-
-const cTplValGesInit< bool > & cSpecAlgoFMNT::QuickExp()const 
-{
-   return FMNtByMaxEvid().Val().QuickExp();
-}
-
-
-double & cSpecAlgoFMNT::Regul()
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
-}
-
-const double & cSpecAlgoFMNT::Regul()const 
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
-}
-
-
-double & cSpecAlgoFMNT::Sigma0()
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
-}
-
-const double & cSpecAlgoFMNT::Sigma0()const 
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
-}
-
-
-int & cSpecAlgoFMNT::NbDir()
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
-}
-
-const int & cSpecAlgoFMNT::NbDir()const 
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
-}
-
-
-double & cSpecAlgoFMNT::PenteMax()
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
-}
-
-const double & cSpecAlgoFMNT::PenteMax()const 
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
-}
-
-
-double & cSpecAlgoFMNT::GainNoVal()
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
-}
-
-const double & cSpecAlgoFMNT::GainNoVal()const 
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
-}
-
-
-double & cSpecAlgoFMNT::Trans()
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
-}
-
-const double & cSpecAlgoFMNT::Trans()const 
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
-}
-
-
-cTplValGesInit< cFMNT_GesNoVal > & cSpecAlgoFMNT::FMNT_GesNoVal()
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
-}
-
-const cTplValGesInit< cFMNT_GesNoVal > & cSpecAlgoFMNT::FMNT_GesNoVal()const 
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
-}
-
-
-cTplValGesInit< cFMNT_ProgDyn > & cSpecAlgoFMNT::FMNT_ProgDyn()
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn();
-}
-
-const cTplValGesInit< cFMNT_ProgDyn > & cSpecAlgoFMNT::FMNT_ProgDyn()const 
-{
-   return FMNtByMaxEvid().Val().FMNT_ProgDyn();
-}
-
-
-cTplValGesInit< cFMNtByMaxEvid > & cSpecAlgoFMNT::FMNtByMaxEvid()
-{
-   return mFMNtByMaxEvid;
-}
-
-const cTplValGesInit< cFMNtByMaxEvid > & cSpecAlgoFMNT::FMNtByMaxEvid()const 
-{
-   return mFMNtByMaxEvid;
-}
-
-void  BinaryUnDumpFromFile(cSpecAlgoFMNT & anObj,ELISE_fp & aFp)
-{
-   { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.FMNtBySort().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.FMNtBySort().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.FMNtBySort().SetNoInit();
-  } ;
-  { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.FMNtByMaxEvid().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.FMNtByMaxEvid().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.FMNtByMaxEvid().SetNoInit();
-  } ;
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const cSpecAlgoFMNT & anObj)
-{
-    BinaryDumpInFile(aFp,anObj.FMNtBySort().IsInit());
-    if (anObj.FMNtBySort().IsInit()) BinaryDumpInFile(aFp,anObj.FMNtBySort().Val());
-    BinaryDumpInFile(aFp,anObj.FMNtByMaxEvid().IsInit());
-    if (anObj.FMNtByMaxEvid().IsInit()) BinaryDumpInFile(aFp,anObj.FMNtByMaxEvid().Val());
-}
-
 cElXMLTree * ToXMLTree(const cSpecAlgoFMNT & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SpecAlgoFMNT",eXMLBranche);
-   if (anObj.FMNtBySort().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.FMNtBySort().Val())->ReTagThis("FMNtBySort"));
-   if (anObj.FMNtByMaxEvid().IsInit())
-      aRes->AddFils(ToXMLTree(anObj.FMNtByMaxEvid().Val())->ReTagThis("FMNtByMaxEvid"));
+   aRes->AddFils(::ToXMLTree(std::string("SigmaPds"),anObj.SigmaPds())->ReTagThis("SigmaPds"));
+   if (anObj.SigmaZ().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SigmaZ"),anObj.SigmaZ().Val())->ReTagThis("SigmaZ"));
+   aRes->AddFils(::ToXMLTree(std::string("SeuilMaxLoc"),anObj.SeuilMaxLoc())->ReTagThis("SeuilMaxLoc"));
+   aRes->AddFils(::ToXMLTree(std::string("SeuilCptOk"),anObj.SeuilCptOk())->ReTagThis("SeuilCptOk"));
+   if (anObj.MaxDif().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MaxDif"),anObj.MaxDif().Val())->ReTagThis("MaxDif"));
+   if (anObj.NBMaxMaxLoc().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NBMaxMaxLoc"),anObj.NBMaxMaxLoc().Val())->ReTagThis("NBMaxMaxLoc"));
+   if (anObj.QuickExp().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("QuickExp"),anObj.QuickExp().Val())->ReTagThis("QuickExp"));
+   if (anObj.FMNT_ProgDyn().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.FMNT_ProgDyn().Val())->ReTagThis("FMNT_ProgDyn"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -16311,12 +16113,24 @@ void xml_init(cSpecAlgoFMNT & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
-   xml_init(anObj.FMNtBySort(),aTree->Get("FMNtBySort",1)); //tototo 
+   xml_init(anObj.SigmaPds(),aTree->Get("SigmaPds",1)); //tototo 
 
-   xml_init(anObj.FMNtByMaxEvid(),aTree->Get("FMNtByMaxEvid",1)); //tototo 
+   xml_init(anObj.SigmaZ(),aTree->Get("SigmaZ",1)); //tototo 
+
+   xml_init(anObj.SeuilMaxLoc(),aTree->Get("SeuilMaxLoc",1)); //tototo 
+
+   xml_init(anObj.SeuilCptOk(),aTree->Get("SeuilCptOk",1)); //tototo 
+
+   xml_init(anObj.MaxDif(),aTree->Get("MaxDif",1),double(1e9)); //tototo 
+
+   xml_init(anObj.NBMaxMaxLoc(),aTree->Get("NBMaxMaxLoc",1),int(5)); //tototo 
+
+   xml_init(anObj.QuickExp(),aTree->Get("QuickExp",1),bool(false)); //tototo 
+
+   xml_init(anObj.FMNT_ProgDyn(),aTree->Get("FMNT_ProgDyn",1)); //tototo 
 }
 
-std::string  Mangling( cSpecAlgoFMNT *) {return "AFCCE7CB366E2186FF3F";};
+std::string  Mangling( cSpecAlgoFMNT *) {return "D24BCE900B6BECDFFE3F";};
 
 
 double & cParamAlgoFusionMNT::FMNTSeuilCorrel()
@@ -16341,168 +16155,168 @@ const double & cParamAlgoFusionMNT::FMNTGammaCorrel()const
 }
 
 
-cTplValGesInit< double > & cParamAlgoFusionMNT::PercFusion()
-{
-   return SpecAlgoFMNT().FMNtBySort().Val().PercFusion();
-}
-
-const cTplValGesInit< double > & cParamAlgoFusionMNT::PercFusion()const 
-{
-   return SpecAlgoFMNT().FMNtBySort().Val().PercFusion();
-}
-
-
-cTplValGesInit< cFMNtBySort > & cParamAlgoFusionMNT::FMNtBySort()
-{
-   return SpecAlgoFMNT().FMNtBySort();
-}
-
-const cTplValGesInit< cFMNtBySort > & cParamAlgoFusionMNT::FMNtBySort()const 
-{
-   return SpecAlgoFMNT().FMNtBySort();
-}
-
-
 double & cParamAlgoFusionMNT::SigmaPds()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaPds();
+   return SpecAlgoFMNT().SigmaPds();
 }
 
 const double & cParamAlgoFusionMNT::SigmaPds()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaPds();
+   return SpecAlgoFMNT().SigmaPds();
 }
 
 
 cTplValGesInit< double > & cParamAlgoFusionMNT::SigmaZ()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaZ();
+   return SpecAlgoFMNT().SigmaZ();
 }
 
 const cTplValGesInit< double > & cParamAlgoFusionMNT::SigmaZ()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaZ();
+   return SpecAlgoFMNT().SigmaZ();
+}
+
+
+double & cParamAlgoFusionMNT::SeuilMaxLoc()
+{
+   return SpecAlgoFMNT().SeuilMaxLoc();
+}
+
+const double & cParamAlgoFusionMNT::SeuilMaxLoc()const 
+{
+   return SpecAlgoFMNT().SeuilMaxLoc();
+}
+
+
+double & cParamAlgoFusionMNT::SeuilCptOk()
+{
+   return SpecAlgoFMNT().SeuilCptOk();
+}
+
+const double & cParamAlgoFusionMNT::SeuilCptOk()const 
+{
+   return SpecAlgoFMNT().SeuilCptOk();
 }
 
 
 cTplValGesInit< double > & cParamAlgoFusionMNT::MaxDif()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+   return SpecAlgoFMNT().MaxDif();
 }
 
 const cTplValGesInit< double > & cParamAlgoFusionMNT::MaxDif()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+   return SpecAlgoFMNT().MaxDif();
+}
+
+
+cTplValGesInit< int > & cParamAlgoFusionMNT::NBMaxMaxLoc()
+{
+   return SpecAlgoFMNT().NBMaxMaxLoc();
+}
+
+const cTplValGesInit< int > & cParamAlgoFusionMNT::NBMaxMaxLoc()const 
+{
+   return SpecAlgoFMNT().NBMaxMaxLoc();
 }
 
 
 cTplValGesInit< bool > & cParamAlgoFusionMNT::QuickExp()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().QuickExp();
+   return SpecAlgoFMNT().QuickExp();
 }
 
 const cTplValGesInit< bool > & cParamAlgoFusionMNT::QuickExp()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().QuickExp();
+   return SpecAlgoFMNT().QuickExp();
 }
 
 
 double & cParamAlgoFusionMNT::Regul()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().Regul();
 }
 
 const double & cParamAlgoFusionMNT::Regul()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().Regul();
 }
 
 
 double & cParamAlgoFusionMNT::Sigma0()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().Sigma0();
 }
 
 const double & cParamAlgoFusionMNT::Sigma0()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().Sigma0();
 }
 
 
 int & cParamAlgoFusionMNT::NbDir()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().NbDir();
 }
 
 const int & cParamAlgoFusionMNT::NbDir()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().NbDir();
 }
 
 
 double & cParamAlgoFusionMNT::PenteMax()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
 }
 
 const double & cParamAlgoFusionMNT::PenteMax()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
 }
 
 
 double & cParamAlgoFusionMNT::GainNoVal()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
 }
 
 const double & cParamAlgoFusionMNT::GainNoVal()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
 }
 
 
 double & cParamAlgoFusionMNT::Trans()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
 }
 
 const double & cParamAlgoFusionMNT::Trans()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
 }
 
 
 cTplValGesInit< cFMNT_GesNoVal > & cParamAlgoFusionMNT::FMNT_GesNoVal()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal();
 }
 
 const cTplValGesInit< cFMNT_GesNoVal > & cParamAlgoFusionMNT::FMNT_GesNoVal()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal();
 }
 
 
 cTplValGesInit< cFMNT_ProgDyn > & cParamAlgoFusionMNT::FMNT_ProgDyn()
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn();
+   return SpecAlgoFMNT().FMNT_ProgDyn();
 }
 
 const cTplValGesInit< cFMNT_ProgDyn > & cParamAlgoFusionMNT::FMNT_ProgDyn()const 
 {
-   return SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn();
-}
-
-
-cTplValGesInit< cFMNtByMaxEvid > & cParamAlgoFusionMNT::FMNtByMaxEvid()
-{
-   return SpecAlgoFMNT().FMNtByMaxEvid();
-}
-
-const cTplValGesInit< cFMNtByMaxEvid > & cParamAlgoFusionMNT::FMNtByMaxEvid()const 
-{
-   return SpecAlgoFMNT().FMNtByMaxEvid();
+   return SpecAlgoFMNT().FMNT_ProgDyn();
 }
 
 
@@ -16554,7 +16368,7 @@ void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SpecAlgoFMNT(),aTree->Get("SpecAlgoFMNT",1)); //tototo 
 }
 
-std::string  Mangling( cParamAlgoFusionMNT *) {return "ACE3CB912DF97195FF3F";};
+std::string  Mangling( cParamAlgoFusionMNT *) {return "268C2D70187CD8A0FD3F";};
 
 
 cTplValGesInit< int > & cSectionGestionChantier::SzDalles()
@@ -16983,168 +16797,168 @@ const double & cParamFusionMNT::FMNTGammaCorrel()const
 }
 
 
-cTplValGesInit< double > & cParamFusionMNT::PercFusion()
-{
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtBySort().Val().PercFusion();
-}
-
-const cTplValGesInit< double > & cParamFusionMNT::PercFusion()const 
-{
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtBySort().Val().PercFusion();
-}
-
-
-cTplValGesInit< cFMNtBySort > & cParamFusionMNT::FMNtBySort()
-{
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtBySort();
-}
-
-const cTplValGesInit< cFMNtBySort > & cParamFusionMNT::FMNtBySort()const 
-{
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtBySort();
-}
-
-
 double & cParamFusionMNT::SigmaPds()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaPds();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().SigmaPds();
 }
 
 const double & cParamFusionMNT::SigmaPds()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaPds();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().SigmaPds();
 }
 
 
 cTplValGesInit< double > & cParamFusionMNT::SigmaZ()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaZ();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().SigmaZ();
 }
 
 const cTplValGesInit< double > & cParamFusionMNT::SigmaZ()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().SigmaZ();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().SigmaZ();
+}
+
+
+double & cParamFusionMNT::SeuilMaxLoc()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().SeuilMaxLoc();
+}
+
+const double & cParamFusionMNT::SeuilMaxLoc()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().SeuilMaxLoc();
+}
+
+
+double & cParamFusionMNT::SeuilCptOk()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().SeuilCptOk();
+}
+
+const double & cParamFusionMNT::SeuilCptOk()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().SeuilCptOk();
 }
 
 
 cTplValGesInit< double > & cParamFusionMNT::MaxDif()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().MaxDif();
 }
 
 const cTplValGesInit< double > & cParamFusionMNT::MaxDif()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().MaxDif();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().MaxDif();
+}
+
+
+cTplValGesInit< int > & cParamFusionMNT::NBMaxMaxLoc()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().NBMaxMaxLoc();
+}
+
+const cTplValGesInit< int > & cParamFusionMNT::NBMaxMaxLoc()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().NBMaxMaxLoc();
 }
 
 
 cTplValGesInit< bool > & cParamFusionMNT::QuickExp()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().QuickExp();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().QuickExp();
 }
 
 const cTplValGesInit< bool > & cParamFusionMNT::QuickExp()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().QuickExp();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().QuickExp();
 }
 
 
 double & cParamFusionMNT::Regul()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().Regul();
 }
 
 const double & cParamFusionMNT::Regul()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Regul();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().Regul();
 }
 
 
 double & cParamFusionMNT::Sigma0()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().Sigma0();
 }
 
 const double & cParamFusionMNT::Sigma0()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().Sigma0();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().Sigma0();
 }
 
 
 int & cParamFusionMNT::NbDir()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().NbDir();
 }
 
 const int & cParamFusionMNT::NbDir()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().NbDir();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().NbDir();
 }
 
 
 double & cParamFusionMNT::PenteMax()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
 }
 
 const double & cParamFusionMNT::PenteMax()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().PenteMax();
 }
 
 
 double & cParamFusionMNT::GainNoVal()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
 }
 
 const double & cParamFusionMNT::GainNoVal()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
 }
 
 
 double & cParamFusionMNT::Trans()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
 }
 
 const double & cParamFusionMNT::Trans()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().Trans();
 }
 
 
 cTplValGesInit< cFMNT_GesNoVal > & cParamFusionMNT::FMNT_GesNoVal()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal();
 }
 
 const cTplValGesInit< cFMNT_GesNoVal > & cParamFusionMNT::FMNT_GesNoVal()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn().Val().FMNT_GesNoVal();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal();
 }
 
 
 cTplValGesInit< cFMNT_ProgDyn > & cParamFusionMNT::FMNT_ProgDyn()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn();
 }
 
 const cTplValGesInit< cFMNT_ProgDyn > & cParamFusionMNT::FMNT_ProgDyn()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid().Val().FMNT_ProgDyn();
-}
-
-
-cTplValGesInit< cFMNtByMaxEvid > & cParamFusionMNT::FMNtByMaxEvid()
-{
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid();
-}
-
-const cTplValGesInit< cFMNtByMaxEvid > & cParamFusionMNT::FMNtByMaxEvid()const 
-{
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNtByMaxEvid();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn();
 }
 
 
@@ -17377,7 +17191,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionMNT *) {return "6DE3AD556FC81390FF3F";};
+std::string  Mangling( cParamFusionMNT *) {return "DE4F00387EC394B2FF3F";};
 
 
 double & cXmlAffinR2ToR::CoeffX()

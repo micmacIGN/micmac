@@ -62,6 +62,7 @@ mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statu
 
       <SectionScoreQualite>
            <ScoreMM1P>
+                 <MakeFileResult> true </MakeFileResult>
                  <PdsAR> 1.0 </PdsAR>
 
                  <PdsDistor> 0.5 </PdsDistor>
@@ -79,18 +80,14 @@ mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statu
 
        <ParamAlgoFusionMNT>
            <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel>
-           <FMNTGammaCorrel > 4 </FMNTGammaCorrel>
+           <FMNTGammaCorrel > 1 </FMNTGammaCorrel>
            <SpecAlgoFMNT>
-<!--
-                <FMNtBySort>
-                       <PercFusion> 50.0 </PercFusion>
-                </FMNtBySort>
--->
-                <FMNtByMaxEvid>
-                       <SigmaPds> 5.0 </SigmaPds>
-                       <SigmaZ> 7.5  </SigmaZ>
-                       <MaxDif> 10  </MaxDif>
-                       <FMNT_ProgDyn>
+                 <SigmaPds> 5.0 </SigmaPds>
+                 <SeuilMaxLoc> 1  </SeuilMaxLoc>
+                 <SeuilCptOk>  2.0  </SeuilCptOk>
+                 <SigmaZ> 7.5  </SigmaZ> <!--  ???   -->
+                 <NBMaxMaxLoc> 3  </NBMaxMaxLoc>
+                 <FMNT_ProgDyn>
                             <Regul> 1.0 </Regul>
                             <Sigma0> 10.0 </Sigma0>
                             <NbDir>  7 </NbDir>
@@ -99,11 +96,7 @@ mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statu
                                 <GainNoVal> 0.5 </GainNoVal>
                                 <Trans>     3 </Trans>
                             </FMNT_GesNoVal>
-<!--
--->
-                       </FMNT_ProgDyn>
-
-                </FMNtByMaxEvid>
+                 </FMNT_ProgDyn>
            </SpecAlgoFMNT>
        </ParamAlgoFusionMNT>
 
@@ -121,6 +114,7 @@ mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statu
              <SzDalles >  1300 </SzDalles>
              <RecouvrtDalles> 150  </RecouvrtDalles>
 <!--
+             <ByProcess> true </ByProcess>
              <ParalMkF> MkFusion.txt </ParalMkF> 
 -->
              <WorkDirPFM> XXXX </WorkDirPFM>
