@@ -1130,7 +1130,7 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
                 {
                      int aNb = aTImNb.get(aQ0);
                      cTplCelNapPrgDyn<cElPile> * aTabP = aNap.Data()[aQ0.y][aQ0.x];
-                     aTabP[-1]=;
+                     aTabP[-1].ArgAux()= aPDef;
                      
                      if (aNb)
                      {
