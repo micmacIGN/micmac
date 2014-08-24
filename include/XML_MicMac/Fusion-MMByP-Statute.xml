@@ -4,8 +4,9 @@ mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statu
 mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml WorkDirPFM=/home/marc/TMP/EPI/Pompei/MTD-Image-MVxxxx_MAP_7043.NEF/
 
 
+/home/marc/MMM/culture3d/include/XML_MicMac
 
-mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml  WorkDirPFM=/media/data2/Jeux-Test/Soldat-Temple-Hué/MTD-Image-IMGP7043.JPG/
+mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml  WorkDirPFM=/home/marc/TMP/EPI/Soldat-Temple-Hué/MTD-Image-IMGP7043.JPG/
 -->
 <ParamFusionMNT>
     <DicoLoc>
@@ -86,15 +87,15 @@ mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statu
                  <SeuilMaxLoc> 1  </SeuilMaxLoc>
                  <SeuilCptOk>  2.0  </SeuilCptOk>
                  <SigmaZ> 7.5  </SigmaZ> <!--  ???   -->
-                 <NBMaxMaxLoc> 3  </NBMaxMaxLoc>
+                 <NBMaxMaxLoc> 6  </NBMaxMaxLoc>
                  <FMNT_ProgDyn>
-                            <Regul> 1.0 </Regul>
+                            <Regul> 0.0 </Regul>
                             <Sigma0> 10.0 </Sigma0>
                             <NbDir>  7 </NbDir>
                             <FMNT_GesNoVal>
-                                <PenteMax> 10 </PenteMax>
+                                <PenteMax> 1000 </PenteMax>
                                 <GainNoVal> 0.5 </GainNoVal>
-                                <Trans>     3 </Trans>
+                                <Trans>     2 </Trans>
                             </FMNT_GesNoVal>
                  </FMNT_ProgDyn>
            </SpecAlgoFMNT>
