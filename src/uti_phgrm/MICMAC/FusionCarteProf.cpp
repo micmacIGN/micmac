@@ -68,8 +68,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-static Pt2di LocPBug(234,55);
-static bool  LocBug=false;
+// static bool  LocBug=false;
 
 // Type est le type de stockage des cartes : apparemment sur des float par defaut
 template <class Type> class  cLoadedCP;        // Represente une carte de profondeur chargee
@@ -81,42 +80,57 @@ class fPPile;  // Functeur : renvoie le poids
 class fZPile;  // Functer : renvoie le Z
     //=================================
 
-class cElPile
+
+class cElPilePrgD
+{
+    public :
+        cElPilePrgD (double aZ) :
+           mZ  (aZ)
+        {
+        }
+        cElPilePrgD () :
+           mZ    (0)
+        {
+        }
+
+        void InitTmp(const cTplCelNapPrgDyn<cElPilePrgD> & aCel)
+        {
+            *this = aCel.ArgAux();
+        }
+
+
+        const float & Z() const {return mZ;}
+    private :
+        float mZ;   // C'est le Z "absolu" du nuage, corrige de l'offset et du pas, c'est a la sauvegarde qu'on le remet eventuellement au pas
+};
+
+class cElPile : public cElPilePrgD
 {
     public :
         cElPile (double aZ,double aPds,double aCptr= -1,const cLoadedCP<float> * aLCP = 0) :
-           mZ  (aZ),
+           cElPilePrgD(aZ),
            mP  (aPds),
            mCPtr (aCptr),
            mLCP  (aLCP)
         {
         }
 
-        void InitTmp(const cTplCelNapPrgDyn<cElPile> & aCel)
-        {
-            *this = aCel.ArgAux();
-        }
         cElPile() :
-           mZ(0),
+           cElPilePrgD(),
            mP(-1),
+           mCPtr (0),
            mLCP(0)
         {
         }
-/*
-*/
 
-        const float & Z() const {return mZ;}
         const float & P() const {return mP;}
         const float & CPtr() const {return mCPtr;}
         const cLoadedCP<float> *  LCP() const {return mLCP; }
     private :
-        float mZ;   // C'est le Z "absolu" du nuage, corrige de l'offset et du pas, c'est a la sauvegarde qu'on le remet eventuellement au pas
         float mP;
         float mCPtr;
         const cLoadedCP<float> * mLCP;
 };
-
-
 
 
 class cTmpPile
@@ -229,11 +243,18 @@ template <class Type> class  cLoadedCP
 };
 
 static const double MulCost = 1e3;
+static bool DebugActif = true;
 
 template <class Type> class cFusionCarteProf
 {
      public :
+        bool IsPBug(const Pt2di & aP)
+        {
+            //  return (aP==Pt2di(398,445)) ||  (aP==Pt2di(399,446));
+            return ((mDecal+aP)==Pt2di(404,460));
+        }
         int ToICost(double aCost) {return round_ni(MulCost * aCost);}
+        double ToRCost(int    aCost) {return aCost/ MulCost;}
 
         typedef  Type  tNum;
         typedef  typename El_CTypeTraits<tNum>::tBase  tNBase;
@@ -242,8 +263,8 @@ template <class Type> class cFusionCarteProf
       // Interface pour utiliser la prog dyn
       //=================================================================
          //-------- Pre-requis
-            typedef  cElPile tArgCelTmp;
-            typedef  cElPile tArgNappe;
+            typedef  cElPilePrgD tArgCelTmp;
+            typedef  cElPilePrgD tArgNappe;
 
          //-------- Pas pre-requis mais aide a la declaration
             typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
@@ -314,10 +335,12 @@ template <class Type> class cFusionCarteProf
           std::string                             mNameTif;
           std::string                             mNameMasq;
           std::string                             mNameCorrel;
+          std::string                             mNameCptr;
           bool                                    mZIsInv;
           std::list<std::string>                  mListCom;
           double                                  mResolPlaniReel; // La vrai resol
           double                                  mResolPlaniEquiAlt; // Celle qui est equivalente a l'alti
+          Pt2di                                   mDecal;
 };
 
 
@@ -490,7 +513,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
    }
    OneSensMoyTmpPile(aTmp);
 
-   if (LocBug)
+   if (false) // (LocBug)
    {
        for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
        {
@@ -510,7 +533,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
    OneSensMoyTmpPile(aTmp);
    for (int aK=0 ; aK<int(aVPile.size()) ; aK++)
    {
-        if (LocBug)
+        if (false) // (LocBug)
         {
                 // Pt3dr aPSOL =  PdsSol(aVPile,aVPile[aK],aZFact);
                 std::cout << " OUT " <<  aTmp[aK].mZInit << " P0 " << aTmp[aK].mPds0  << " PI " << aTmp[aK].mPInit
@@ -786,6 +809,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     std::cout << anId  << "=> " << mNameTif<< "\n";
     mNameMasq = StdPrefix(aNameNuage)+ "_Masq.tif";
     mNameCorrel = StdPrefix(aNameNuage)+ "_Correl.tif";
+    mNameCptr = StdPrefix(aNameNuage)+ "_Cptr.tif";
 
 
     std::vector<std::string> aStrFus = GetStrFromGenStrRel(mICNM,mParam.GenereInput(),anId);
@@ -890,6 +914,17 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
        Tiff_Im::CreateIfNeeded
        (
                IsModified,
+               mNameCptr,
+               mSzGlob,
+               GenIm::u_int1,
+               Tiff_Im::No_Compr,
+               Tiff_Im::BlackIsZero
+       );
+
+
+       Tiff_Im::CreateIfNeeded
+       (
+               IsModified,
                mNameCorrel,
                mSzGlob,
                GenIm::u_int1,
@@ -963,6 +998,7 @@ template <class Type> double cFusionCarteProf<Type>::ToZSauv(double aZ) const
 
 template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
+   mDecal = aBoxIn._p0;
    ElTimer aChrono;
    bool ShowTime = false;
    std::cout << "RESTE " << aKB <<   " BLOCS \n";
@@ -995,8 +1031,11 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
    TIm2DBits<1>       aTImMasq(aImMasq);
 
 
-   Im2D<tNum,tNBase>  aImCorrel(mSzCur.x,mSzCur.y);
-   TIm2D<tNum,tNBase> aTImCorrel(aImCorrel);
+   Im2D<U_INT1,INT>  aImCorrel(mSzCur.x,mSzCur.y);
+   TIm2D<U_INT1,INT> aTImCorrel(aImCorrel);
+
+   Im2D<U_INT1,INT>  aImCptr(mSzCur.x,mSzCur.y);
+   TIm2D<U_INT1,INT> aTImCptr(aImCptr);
 
 
    Box2di aBoxInLoc(Pt2di(0,0),mSzCur);
@@ -1081,15 +1120,11 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
                    aPCel.push_back(anEl);
                 }
             }
-            int Ok= 1;
-            double aZ=0;
-            double aP=0;
             aTIm0.oset(aQ0,-1);
             aTImNb.oset(aQ0,0);
-            aTImFus.oset(aQ0,0);
-            aTImCorrel.oset(aQ0,0);
    // TIm2D<INT2,INT>  aTIm0(mSzCur);
    // TIm2D<INT2,INT>  aTImNb(mSzCur);
+            bool isDebug = DebugActif && IsPBug(aQ0);
             if (aPCel.size() >0)
             {
                 std::sort(aPCel.begin(),aPCel.end());
@@ -1098,14 +1133,19 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
                 aLVP.push_back(aVPile);
                 aTImNb.oset(aQ0,aVPile.size());
                 
-
-                aZ = aVPile[0].Z();
-                aP = aVPile[0].P();
-
-                aTImFus.oset(aQ0,(tNBase)aZ);
-                aTImCorrel.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aP*255)))));
+                if (isDebug)
+                {
+                   std::cout << "PBUG " << aQ0   <<  " In:" << aPCel.size()  << " Out:" << aVPile.size() << "\n";
+                   for (int aK=0 ; aK<int( aPCel.size() ) ; aK++)
+                   {
+                        std::cout << "IN :: Corr " << aPCel[aK].P() << " " << ToZSauv( aPCel[aK].Z()) << "\n";
+                   }
+                   for (int aK=0 ; aK<int( aVPile.size() ) ; aK++)
+                   {
+                        std::cout << "Out :: Corr " << aVPile[aK].P() << " " << ToZSauv( aVPile[aK].Z()) << "\n";
+                   }
+                }
             }
-            aTImMasq.oset(aQ0,Ok);
         }
    }
 
@@ -1117,11 +1157,11 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
    if (1)
    {
        // 1- Remplir la nappe avec les cellules
-       double aDefPds = 0.5;
-       cElPile aPDef(0,aDefPds,0,0);
+       double aDefPds =   mFNoVal ?  mFNoVal->GainNoVal() :0.5  ;
+       cElPilePrgD aPDef(0);
        cProg2DOptimiser<cFusionCarteProf>  * aPrgD = new cProg2DOptimiser<cFusionCarteProf>(*this,aTIm0._the_im,aTImNb._the_im,0,1); // 0,1 => Rab et Mul
        {
-           cDynTplNappe3D<cTplCelNapPrgDyn<cElPile> > & aNap = aPrgD->Nappe();
+           cDynTplNappe3D<cTplCelNapPrgDyn<cElPilePrgD> > & aNap = aPrgD->Nappe();
            std::list<std::vector<cElPile> >::const_iterator anIt =  aLVP.begin();
 
            for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
@@ -1129,44 +1169,77 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
                 for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
                 {
                      int aNb = aTImNb.get(aQ0);
-                     cTplCelNapPrgDyn<cElPile> * aTabP = aNap.Data()[aQ0.y][aQ0.x];
+                     cTplCelNapPrgDyn<cElPilePrgD> * aTabP = aNap.Data()[aQ0.y][aQ0.x];
                      aTabP[-1].ArgAux()= aPDef;
-                     
+                     aTabP[-1].SetOwnCost(ToICost(aDefPds));
+                     bool isDebug = DebugActif && IsPBug(aQ0);
                      if (aNb)
                      {
                          ELISE_ASSERT(anIt!=aLVP.end(),"(1)Incoh in cFusionCarteProf");
                          const std::vector<cElPile> & aPil = (*anIt);
-                         for (int aZ=0 ; aZ<aNb ; aZ++)
-                             aTabP[aZ].ArgAux() = aPil[aZ];
+                         for (int aKz=0 ; aKz<aNb ; aKz++)
+                         {
+                             const cElPile& aPk = aPil[aKz];
+                             aTabP[aKz].ArgAux() = cElPilePrgD(aPk.Z());
+                             aTabP[aKz].SetOwnCost(ToICost(ElMax(0.0,ElMin(1.0,1.0-aPk.P()))));
+
+                             if (isDebug)
+                             {
+                                 std::cout << "Fill Pill, Kz " << aKz << " , Z " 
+                                           << aTabP[aKz].ArgAux().Z() 
+                                           <<  " CostInit " << ToICost(ElMax(0.0,ElMin(1.0,1.0-aPk.P())))
+                                           <<  " PrgdCost=" << ToRCost(aTabP[aKz].OwnCost()) << "\n";
+                             }
+                         }
                          anIt++;
                      }
                 }
            }
            ELISE_ASSERT(anIt==aLVP.end(),"(2) Incoh in cFusionCarteProf");
-           
+           // aLVP.clear();
        }
 
-std::cout << "INIT PRGD \n";
+std::cout << "INIT PRGD " << mDecal << " \n";
 
        aPrgD->DoOptim(mFPrgD->NbDir());
        std::cout << " Prg Dyn time= " << aChrono.uval()  << " Nb Dir " << mFPrgD->NbDir() << "\n";
        Im2D_INT2 aSol(mSzCur.x,mSzCur.y);
        INT2 ** aDSol = aSol.data();
        aPrgD->TranfereSol(aDSol);
+       std::list<std::vector<cElPile> >::const_iterator anIt =  aLVP.begin();
        for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
        {
             for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
             {
                 int aZ = aDSol[aQ0.y][aQ0.x];
                 tCelNap & aCol =  aPrgD->Nappe().Data()[aQ0.y][aQ0.x][aZ];
+
+                bool isDebug = DebugActif && IsPBug(aQ0);
+                if (isDebug)
+                {
+                    std::cout << "Sortie Kz " << aZ << " Z " <<  aCol.ArgAux().Z() << "\n";
+                }
+               
                 if (aZ>=0)
                 {
                    aTImFus.oset(aQ0,ToZSauv(aCol.ArgAux().Z()));
+                   aTImMasq.oset(aQ0,1);
+                   const cElPile & aPz = (*anIt)[aZ];
+                   aTImCorrel.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aPz.P()*255)))));
+                   aTImCptr.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aPz.CPtr()*20.0)))));
+
                 }
                 else
                 {
                      aTImMasq.oset(aQ0,0);
+                     aTImFus.oset(aQ0,0);
+                     aTImCorrel.oset(aQ0,0);
+                     aTImCptr.oset(aQ0,0);
                 }
+
+                int aNb = aTImNb.get(aQ0);
+                if (aNb)
+                   anIt++;
             }
        }
    }
@@ -1197,6 +1270,13 @@ std::cout << "INIT PRGD \n";
        Tiff_Im(mNameCorrel.c_str()).out()
    );
 
+   ELISE_COPY
+   (
+       rectangle(aBoxOut._p0,aBoxOut._p1),
+       trans(aImCptr.in(),-aBoxIn._p0),
+       Tiff_Im(mNameCptr.c_str()).out()
+   );
+
 
 
 
@@ -1217,7 +1297,7 @@ template <class Type>   void cFusionCarteProf<Type>::DoConexTrans
                                   ePrgSens aSens
                              )
 {
-    aCelOut.UpdateCostOneArc(aCelIn,aSens,(mFNoVal?mFNoVal->Trans():0));
+    aCelOut.UpdateCostOneArc(aCelIn,aSens,ToICost(mFNoVal?mFNoVal->Trans():0));
 }
 
 template <class Type>   void cFusionCarteProf<Type>::DoConnexion
@@ -1232,14 +1312,15 @@ template <class Type>   void cFusionCarteProf<Type>::DoConnexion
     for (int aZIn=0 ; aZIn<aInZMax ; aZIn++)
     {
         tCelOpt & anInp = aTabInput[aZIn];
-        const  cElPile & aPIn = anInp.ArgAux();
+        const  cElPilePrgD & aPIn = anInp.ArgAux();
         for (int aZOut=0 ; aZOut<aOutZMax ; aZOut++)
         {
             tCelOpt & anOut = aTabOuput[aZOut];
-            const  cElPile & aPOut = anOut.ArgAux();
+            const  cElPilePrgD & aPOut = anOut.ArgAux();
             double aDZ = ElAbs(aPIn.Z()-aPOut.Z())/mResolPlaniEquiAlt;
             if ((mFNoVal==0) || (aDZ < mFNoVal->PenteMax()))
             {
+            // Fonction concave, nulle et de derivee 1 en 0
                  double aCost = (sqrt(1+aDZ/aSig0)-1) * 2*aSig0 * mFPrgD->Regul();
                  anOut.UpdateCostOneArc(anInp,aSens,ToICost(aCost));
             }
