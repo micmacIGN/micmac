@@ -4,7 +4,7 @@
 #ifdef Int
 #undef Int
 #endif
-
+#endif
 
 class Dimap{
 public:
@@ -910,5 +910,4 @@ int Dimap2Grid_main(int argc, char **argv) {
 
     return EXIT_SUCCESS;
 }
-#endif
 
