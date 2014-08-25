@@ -31,9 +31,9 @@ class DigeoPoint
 public:
 	typedef enum
 	{
-		DETECT_UNKNOWN,
 		DETECT_LOCAL_MIN,
-		DETECT_LOCAL_MAX
+		DETECT_LOCAL_MAX,
+		DETECT_UNKNOWN // this one must stay the last type of the enum, new types must be added before
 	} DetectType;
 
 	typedef union{
@@ -53,6 +53,7 @@ public:
 
 	static unsigned char sm_uchar_descriptor[DIGEO_DESCRIPTOR_SIZE];
 	static REAL8 sm_real8_descriptor[DIGEO_DESCRIPTOR_SIZE];
+	static unsigned int nbDetectTypes;
 
 	inline DigeoPoint();
 
@@ -96,7 +97,7 @@ public:
 
 std::ostream & operator <<( std::ostream &s, const DigeoPoint &p );
 
-
+std::string DetectType_to_string( DigeoPoint::DetectType i_type );
 
 
 

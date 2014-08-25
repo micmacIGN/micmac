@@ -4,6 +4,24 @@
 
 using namespace std;
 
+#ifdef __ANN_SEARCHER_TIME
+	#include <sys/time.h>
+
+	double g_construct_tree_time = 0;
+	double g_query_time = 0;
+
+	typedef struct timeval timeval_t;
+	timeval_t g_chrono_start_time; 
+	void start_chrono(){ gettimeofday( &g_chrono_start_time, NULL ); }
+
+	double get_chrono_time()
+	{
+		timeval_t t;
+		gettimeofday( &t, NULL );
+		return (t.tv_sec-g_chrono_start_time.tv_sec)*1000.+(t.tv_usec-g_chrono_start_time.tv_usec)/1000.;
+	}
+#endif
+
 //
 // AnnArray class
 //
@@ -31,7 +49,7 @@ void AnnArray::set( vector<DigeoPoint> &i_array, SIFT_ANN_SEARCH_MODE i_mode )
 				( *itANN++ ) = &( ( itSift++ )->x );
 			return;
 		default:;
-			#ifdef _DEBUG
+			#ifdef __DEBUG_ANN_SEARCHER
 				cerr << "ERROR: SiftAnnArray::fillAnnArray: search mode is not handled" << endl;
 			#endif
 	}
@@ -61,6 +79,10 @@ void AnnSearcher::setNbNeighbours( int i_nbNeighbours )
 
 void AnnSearcher::createTree( AnnArray &i_dataArray )
 {
+	#ifdef __ANN_SEARCHER_TIME
+		start_chrono();
+	#endif
+
 	clearTree();
 
 	int spaceSize = -1; // dimension of space
@@ -70,25 +92,37 @@ void AnnSearcher::createTree( AnnArray &i_dataArray )
 		case SIFT_ANN_DESC_SEARCH: spaceSize=m_descriptorSize; break;
 		case SIFT_ANN_2D_SEARCH: spaceSize=2; break;
 		default:;
-			#ifdef _DEBUG
+			#ifdef __DEBUG_ANN_SEARCHER
 				cerr << "ERROR: AnnSearcher::createTree called with an unhandled search mode" << endl;
 			#endif
 	}
-	#ifdef _DEBUG
+	#ifdef __DEBUG_ANN_SEARCHER
 		if ( i_dataArray.size()==0 ) cerr << "ERROR: AnnSearcher::createTree called with an empty array, cannot construct a tree" << endl;
 	#endif
 
 	m_kdTree = new ANNkd_tree( i_dataArray.getANNpointArray(), i_dataArray.size(), spaceSize );
+
+	#ifdef __ANN_SEARCHER_TIME
+		g_construct_tree_time += get_chrono_time();
+	#endif
 }
 
 void AnnSearcher::search( ANNpoint i_point )
 {
+	#ifdef __ANN_SEARCHER_TIME
+		start_chrono();
+	#endif
+
 	if ( m_kdTree!=NULL )
 		//kdTree->annkSearch(
 		m_kdTree->annkPriSearch( i_point, m_nbNeighbours, m_neighboursIndices.data(), m_neighboursDistances.data(), m_errorBound );
-	#ifdef _DEBUG
+	#ifdef __DEBUG_ANN_SEARCHER
 	else
 		cerr << "ERROR: AnnSearcher::search trying to search in a null tree" << endl;
+	#endif
+
+	#ifdef __ANN_SEARCHER_TIME
+		g_query_time += get_chrono_time();
 	#endif
 }
 
@@ -126,12 +160,15 @@ void match_lebris( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1, s
 	{
 		anns.search( itQuery->descriptor(0) );
 
-		#ifdef _DEBUG
+		#ifdef __DEBUG_ANN_SEARCHER
 			if ( neighIndices[0]==-1 || neighIndices[1]==-1 )
 				 cerr << "Ann: match_lebris: invalid neighbour found " << neighIndices[0] << '(' << neighDistances[0] << ") " << neighIndices[1] << '(' << neighDistances[0] << ')' << endl;
+			if ( itQuery->type==i_array0[neighIndices[0]].type )
+				cerr << "WARNING: a point of type " << DetectType_to_string(itQuery->type) << " matched with a point of type " << DetectType_to_string(i_array0[neighIndices[0]].type) << endl;
 		#endif
-		
-		if ( neighDistances[0]<( R*neighDistances[1] ) )
+
+		if ( itQuery->type==i_array0[neighIndices[0]].type || // matchings of points of different types are discarded
+		     neighDistances[0]<( R*neighDistances[1] ) )
 			o_matchingCouples.push_back( V2I( neighIndices[0], iQuery ) );
 
 		itQuery++;
@@ -139,22 +176,21 @@ void match_lebris( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1, s
 }
 
 // print a list of matching points 2d coordinates
-bool write_matches_ascii( const std::string &i_filename, const vector<DigeoPoint> &i_array0, const vector<DigeoPoint> &i_array1, const list<V2I> &i_matchingCouples )
+bool write_matches_ascii( const std::string &i_filename, const vector<DigeoPoint> &i_array0, const vector<DigeoPoint> &i_array1, const list<V2I> &i_matchingCouples, bool i_appendToFile )
 {
-	ofstream f( i_filename.c_str() );
+	ofstream f( i_filename.c_str(), i_appendToFile?ios::out|ios::app:ios::out );
 	if ( !f ) return false;
 	f.precision(6);
-    list<V2I>::const_iterator itCouple = i_matchingCouples.begin();
-    const DigeoPoint *p0 = i_array0.data(),
-                     *q0 = i_array1.data(),
-                     *p, *q;
-    while ( itCouple!=i_matchingCouples.end() )
-    {
-        p = p0+itCouple->x;
-        q = q0+( itCouple++ )->y;
-        f << p->x << '\t' << p->y << '\t' << q->x << '\t' << q->y << endl;
-    }
-    return true;
+	list<V2I>::const_iterator itCouple = i_matchingCouples.begin();
+	const DigeoPoint *p0 = i_array0.data(),
+	                 *q0 = i_array1.data(),
+	                 *p, *q;
+	while ( itCouple!=i_matchingCouples.end() ){
+		p = p0+itCouple->x;
+		q = q0+( itCouple++ )->y;
+		f << p->x << '\t' << p->y << '\t' << q->x << '\t' << q->y << endl;
+	}
+	return true;
 }
 
 // unfold couples described in the i_matchedCoupleIndices list and split data in the two arrays io_array0, io_array1
@@ -228,8 +264,8 @@ void getNeighbours( vector<DigeoPoint> &i_array, vector<vector<ANNidx> > &o_neig
         anns.search( &itQuery->x );
 
         // fill a vector with query point nearest neighbours' indices
-        #ifdef _DEBUG
-			vector<int>::iterator neigh_end = ( *itQueryNeighbourhood ).end();
+        #ifdef __DEBUG_ANN_SEARCHER
+            vector<int>::iterator neigh_end = ( *itQueryNeighbourhood ).end();
         #endif
         itNeighbour = ( *itQueryNeighbourhood++ ).begin();
         for ( iNeighbour=0; iNeighbour<k; iNeighbour++ )
@@ -237,10 +273,12 @@ void getNeighbours( vector<DigeoPoint> &i_array, vector<vector<ANNidx> > &o_neig
             if ( neighIndices[iNeighbour]!=iQuery ) // do not add query point's index as a neighbour index
                 *itNeighbour++ = neighIndices[iNeighbour];
         }
-        #ifdef _DEBUG
+        /*
+        #ifdef __DEBUG_ANN_SEARCHER
             // check we ignored exactly one neighbour
             if ( itNeighbour!=neigh_end ) cerr << "Ann: WARN: getNeighbours : a point has not been found as its nearest neighbour or has been found more than once" << endl;
         #endif
+        */
 
         itQuery++;
     }
@@ -255,7 +293,7 @@ void neighbourFilter( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1
 
     if ( i_array0.size()==0 ) return;
 
-    #ifdef _DEBUG
+    #ifdef __DEBUG_ANN_SEARCHER
         if ( i_array0.size()!=i_array1.size() )
             cerr << "PROG_WARN : neighbourFilter: i_array0 and i_array1 are of different size" << endl;
     #endif
@@ -282,4 +320,44 @@ void neighbourFilter( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1
         if ( nbHomologueNeighbours>nbMinHomologueNeighbours )
             o_keptCouples.push_back( V2I( iCouple, iCouple ) );
     }
+}
+
+
+//-------------------------------------------------
+// DigeoTypedVectors methods
+//-------------------------------------------------
+
+DigeoTypedVectors::DigeoTypedVectors( const vector<DigeoPoint> &i_points ):
+	m_points( (int)DigeoPoint::DETECT_UNKNOWN+1 )
+{
+	// count the number of points of each type
+	vector<unsigned int> countTypes( DigeoPoint::nbDetectTypes, 0 );
+	const DigeoPoint *itSrc = i_points.data();
+	size_t iPoint = i_points.size();
+	while ( iPoint-- ) countTypes[(size_t)( *itSrc++ ).type]++;
+
+	// resize vectors
+	for ( size_t iType=0; iType<DigeoPoint::nbDetectTypes; iType++ ){
+		m_points[iType].resize( countTypes[iType] );
+		countTypes[iType] = 0;
+	}
+	
+	// copy points
+	itSrc = i_points.data();
+	iPoint = i_points.size();
+	while ( iPoint-- ){
+		const size_t iType = (size_t)itSrc->type;
+		m_points[iType][countTypes[iType]++] = *itSrc;
+		itSrc++;
+	}
+
+	#ifdef __DEBUG_ANN_SEARCHER
+		size_t total = m_points[0].size();
+		for ( size_t iType=1; iType<DigeoPoint::nbDetectTypes; iType++ )
+			total += m_points[iType].size();
+		if ( total!=i_points.size() ){
+			cerr << "DEBUG_ERROR: DigeoTypedVectors::DigeoTypedVectors: split is incorrect" << endl;
+			exit(1);
+		}
+	#endif
 }

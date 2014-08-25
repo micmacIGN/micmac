@@ -6,6 +6,7 @@ using namespace std;
 
 unsigned char DigeoPoint::sm_uchar_descriptor[DIGEO_DESCRIPTOR_SIZE];
 REAL8 DigeoPoint::sm_real8_descriptor[DIGEO_DESCRIPTOR_SIZE];
+unsigned int DigeoPoint::nbDetectTypes = (int)DigeoPoint::DETECT_UNKNOWN+1; // this is why DETECT_UNKNOWN must stay the last of the enum
 
 void DigeoPoint::addDescriptor( REAL8 i_angle )
 {
@@ -424,4 +425,14 @@ ostream & operator <<( ostream &s, const DigeoPoint &p )
 		s << endl;
 	}
 	return s;
+}
+
+string DetectType_to_string( DigeoPoint::DetectType i_type )
+{
+	switch ( i_type ){
+	case DigeoPoint::DETECT_LOCAL_MIN: return "DETECT_LOCAL_MIN";
+	case DigeoPoint::DETECT_LOCAL_MAX: return "DETECT_LOCAL_MAX";
+	case DigeoPoint::DETECT_UNKNOWN: return "DETECT_UNKNOWN";
+	}
+	return "<invalid>";
 }

@@ -1,6 +1,9 @@
 #ifndef __ANN_SEARCHER__
 #define __ANN_SEARCHER__
 
+//#define __DEBUG_ANN_SEARCHER
+//#define __ANN_SEARCHER_TIME
+
 #include <vector>
 #include <list>
 #include <string>
@@ -98,6 +101,15 @@ public:
     void search( ANNpoint i_point );
 };
 
+// split a vector of DigeoPoint into n vectors of DigeoPoints of the same type
+class DigeoTypedVectors
+{
+public:
+	std::vector<std::vector<DigeoPoint> > m_points;
+
+	DigeoTypedVectors( const std::vector<DigeoPoint> &i_points );
+};
+
 // try to match points of i_arrayQuery with points of i_arrayData
 // this function may change the search mode of i_arrayData
 void match_lebris( std::vector<DigeoPoint> &i_arrayData, std::vector<DigeoPoint> &i_arrayQuery, // arrays of points to be matched
@@ -105,7 +117,7 @@ void match_lebris( std::vector<DigeoPoint> &i_arrayData, std::vector<DigeoPoint>
                    double i_closenessRatio = SIFT_ANN_DEFAULT_CLOSENESS_RATIO,  	// a distance ratio to validate a matching
                    int i_nbMaxPriPoints    = SIFT_ANN_DEFAULT_MAX_PRI_POINTS ); 	// max number of point per search (with annkPriSearch)
 
-bool write_matches_ascii( const std::string &i_filename, const std::vector<DigeoPoint> &i_array0, const std::vector<DigeoPoint> &i_array1, const std::list<V2I> &i_matchingCouples );
+bool write_matches_ascii( const std::string &i_filename, const std::vector<DigeoPoint> &i_array0, const std::vector<DigeoPoint> &i_array1, const std::list<V2I> &i_matchingCouples, bool i_appendToFile=false );
 
 // unfold couples described in the i_matchedCoupleIndices list and split data in the two arrays io_array0, io_array1
 // after a call, arrays have the same size, and points with the same index are homologues
