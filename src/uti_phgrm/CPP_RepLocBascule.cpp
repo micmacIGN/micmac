@@ -65,7 +65,7 @@ int RepLocBascule_main(int argc,char ** argv)
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile )
                     << EAMC(AeroIn,"Input orientation", eSAM_IsExistDirOri)
-                    << EAMC(FileMesures,"Images measures xml file, set \"HOR\" if horizonatl line is wanted", eSAM_IsExistFile)
+                    << EAMC(FileMesures,"Images measures xml file, set \"HOR\" if horizonatl line is wanted, \"NONE\" if unused ", eSAM_IsExistFile)
                     << EAMC(RepereOut,"Output xml file", eSAM_IsOutputFile),
     LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true,"Are tie points in ascii mode ? (Def=false)")
@@ -74,6 +74,7 @@ int RepLocBascule_main(int argc,char ** argv)
 
     );
     P1P2Hor = (FileMesures=="HOR");
+    if (FileMesures=="NONE") FileMesures= "NoP1P2";
 
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );

@@ -12,6 +12,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _appMode(mode),
         _bSaved(false)
 {
+    setWindowFlags(Qt::WindowStaysOnTopHint); //macOS
+
     _ui->setupUi(this);
 
      _params->read();
@@ -586,8 +588,8 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
     QMessageBox *msgBox = new QMessageBox(this);
 
-	QString qStr(getBanniereMM3D().c_str());
-	#if (ELISE_windows)		
+    QString qStr(getBanniereMM3D().c_str());
+    #if (ELISE_windows)
         qStr.replace( "**", "  " );
     #endif
 
@@ -596,11 +598,11 @@ void SaisieQtWindow::on_actionAbout_triggered()
     msgBox->setFont(font);
 
     //trick to enlarge QMessageBox...
-	#if (!ELISE_windows)
-		QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-		QGridLayout* layout = (QGridLayout*)msgBox->layout();
-		layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
-	#endif
+    #if (!ELISE_windows)
+        QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+        QGridLayout* layout = (QGridLayout*)msgBox->layout();
+        layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+    #endif
 
     msgBox->setWindowModality(Qt::NonModal);
     msgBox->show();
@@ -738,6 +740,7 @@ void SaisieQtWindow::on_actionLoad_camera_triggered()
 
 void SaisieQtWindow::on_actionLoad_image_triggered()
 {
+    setWindowFlags(Qt::WindowStaysOnTopHint);
     QString img_filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
 
     if (!img_filename.isEmpty())

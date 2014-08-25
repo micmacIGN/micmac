@@ -1822,6 +1822,7 @@ void cEtapeMecComp::RemplitXMLNuage
              eModeExportNuage aMode
      ) const
 {
+    aNuage.RatioResolAltiPlani().SetVal(mGeomTer.RatioResAltiPlani());
     // Ce sera aux geometries qui ont un besoin de param specif de corriger
     aNuage.NoParamSpecif().SetVal("toto");
     aNuage.NbPixel() = mGeomTer.NbPixel();
