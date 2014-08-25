@@ -302,7 +302,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("NewTapas",New_Tapas_main,"Replace OldTapas - now same as Tapas",cArgLogCom(3)));
 
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
-       aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image"));
+       aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image",cArgLogCom(2,"../")));
        // aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
@@ -430,6 +430,7 @@ int ExoMCI_main(int argc, char** argv);
 int  ExoCorrelEpip_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
+int  NLD_main(int argc,char ** argv);
 int  ResToTxt_main(int argc,char ** argv);
 int  SelTieP_main(int argc,char ** argv);
 int  Ortho2TieP_main(int argc,char ** argv);
@@ -452,7 +453,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
-   aRes.push_back(cMMCom("ResToTxt",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
+   aRes.push_back(cMMCom("NLD",NLD_main,"test"));
+   aRes.push_back(cMMCom("RTT",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
    aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favourable angles"));
    aRes.push_back(cMMCom("Ortho2TieP",Ortho2TieP_main,"Select Tie Points from the orthophotography"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));

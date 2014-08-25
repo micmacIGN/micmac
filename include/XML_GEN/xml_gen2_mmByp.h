@@ -164,6 +164,7 @@ class cAppliWithSetImage
       std::string mDir;
       std::string mPat;
 */
+      bool        mWithOri;
       std::string mOri;
       std::string mKeyOri;
       cElemAppliSetFile mEASF;
@@ -177,10 +178,16 @@ class cAppliWithSetImage
       double       mAverNbPix;
 
 
+
       double       mTetaBande;
       bool         mByEpi;
 
+      int NbAlti() const;
+      double AltiMoy() const;
+
    private :
+      int   mNbAlti;
+      double mSomAlti;
 
 };
 

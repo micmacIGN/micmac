@@ -267,6 +267,13 @@ cElPlan3D RobustePlan3D
              double anEffort
           )
 {
+    if (aVPts.size() < 3)
+    {
+        std::cout << "NB POINT GOT : " << aVPts.size() << "\n";
+        ELISE_ASSERT(false,"Not enough  points in RobustePlan3D");
+    }
+
+
     int aNbTirage = sqrt(anEffort);
     int aNbPTest = ElMin(int(aVPts.size()),round_up(anEffort/aNbTirage));
     std::vector<int> aIndPts; GetNRandParmiQ(aIndPts,aNbPTest,aVPts.size());

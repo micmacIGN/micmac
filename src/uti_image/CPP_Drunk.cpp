@@ -171,7 +171,7 @@ int Drunk_main(int argc,char ** argv)
     {
         MMD_InitArgcArgv(argc,argv);
 
-        string aPattern,aOri;
+        string aFullPattern,aOri;
         string DirOut="DRUNK/";
         bool Talk=true;
 
@@ -179,13 +179,16 @@ int Drunk_main(int argc,char ** argv)
         ElInitArgMain
         (
             argc,argv,
-            LArgMain()  << EAMC(aPattern,"Images Pattern", eSAM_IsPatFile)
+            LArgMain()  << EAMC(aFullPattern,"Images Pattern", eSAM_IsPatFile)
                         << EAMC(aOri,"Orientation name", eSAM_IsExistDirOri),
             LArgMain()  << EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
                         << EAM(Talk,"Talk",true,"Turn on-off commentaries")
                     );
 
         //Processing the files
+		string aPattern, aDir;
+		SplitDirAndFile(aDir, aPattern, aFullPattern);
+		StdCorrecNameOrient(aOri, aDir);
         Drunk(aPattern,aOri,DirOut,Talk);
     }
 

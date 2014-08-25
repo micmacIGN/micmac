@@ -565,7 +565,9 @@ void cAppliMICMAC::MakeResultOfEtape(cEtapeMecComp & anEtape)
    }
 
     if (DoMTDNuage())
+    {
        anEtape.DoRemplitXMLNuage();
+    }
 }
 
 

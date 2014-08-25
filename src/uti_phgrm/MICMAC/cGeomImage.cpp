@@ -886,7 +886,7 @@ bool  cGeomImage::IntersectEmprTer
        double aS0 = surf_or_poly(*itP);
        if (aSomS && aS0)
        {
-           ELISE_ASSERT( (aSomS<0)==(aS0<0) , "Intersection d'emprises incoherente");
+           // ELISE_ASSERT( (aSomS<0)==(aS0<0) , "Intersection d'emprises incoherente");
        }
 
        aSomS += aS0;
@@ -1709,7 +1709,7 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
   {
 
       static Video_Win * aW = 0; 
-      //if (aW==0)  aW =  Video_Win::PtrWStd(Pt2di(700,500));
+      // if (aW==0)  aW =  Video_Win::PtrWStd(Pt2di(700,500));
 
       Pt2dr aSzImR1 = Pt2dr(mOri->Sz());
       Pt2di aSzR = round_up(aSzImR1/mAnDeZoomM);
@@ -1718,7 +1718,7 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
 
       double aEps = 1e-4 * mAnamSA->SignDZSensRayCam();
 
-      double aScalLim = cos(mAppli.AnamLimAngleVisib().Val());
+      double aScalLim = ElMax(0.0,cos(ElMax(0.0,ElMin(PI/2,mAppli.AnamLimAngleVisib().Val()))));
       Pt2dr  aP0Ter (1e20,1e20);
       Pt2dr  aP1Ter (-1e20,-1e20);
 
@@ -1768,12 +1768,13 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
               }
           }
       }
-      if (0) // (aW)
+      if (aW)
       {
           ELISE_COPY(aMi.all_pts(),aMi.in(),aW->odisc());
           // aW->draw_rect(aP0Ter/mAnDeZoomM,aP1Ter/mAnDeZoomM,aW->pdisc()(P8COL::red));
           std::cout << " Boxx " << aP0Ter << aP1Ter << "\n";
-          std::cout << "StatNormale " << (aNbOk) / double(aNbTot) << " " << aNbTot << "\n"; getchar();
+          std::cout << "StatNormale " << (aNbOk) / double(aNbTot) << " " << aNbTot << "\n"; 
+          getchar();
       }
 
       // Precaution anti inifini, pour eviter que sur des interection razante la boite soit 
@@ -1794,7 +1795,7 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
            Pt2dr aP2A(aP3A.x,aP3A.y);
 
            int aNb = 100;
-           double aMul = euclid(aMil*1.5);
+           double aMul = euclid(aMil*3.0);
 
 
            for (int aK=0 ; aK< aNb ; aK++)
@@ -1818,7 +1819,7 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
       }
 
 
-      if (0) // ( aW)
+      if ( aW)
       {
          std::cout << "BOX AFETR " <<  aP0Ter << " " << aP1Ter << "\n"; 
          ELISE_COPY(aW->all_pts(),P8COL::blue,aW->odisc());

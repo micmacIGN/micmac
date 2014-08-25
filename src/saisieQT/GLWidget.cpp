@@ -389,7 +389,8 @@ void GLWidget::setCursorShape(QPointF pos, QPointF mPos)
 {
     QCursor c = cursor();
 
-    if ( imageLoaded() && !polygon()->isLinear() && isPtInsideIm(pos) && (_widgetId >=0) )
+    if ((mPos.x() > 0) && (mPos.y() > 0) && (mPos.x() < vpWidth()) && (mPos.y() < vpHeight())
+    &&  imageLoaded() && !polygon()->isLinear() && isPtInsideIm(pos) && (_widgetId >=0) )
     {
         QPixmap cuCross(":/MM/Icons/images/cross_cursor.png");
 
