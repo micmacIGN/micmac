@@ -1,4 +1,4 @@
-﻿#include "saisieQT_window.h"
+#include "saisieQT_window.h"
 #include "ui_saisieQT_window.h"
 
 
@@ -411,33 +411,38 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
     shortcuts.push_back(tr("File Menu"));
     actions.push_back("");
+    
+    QString Ctrl = "Ctrl+";
+    #ifdef ELISE_Darwin
+        Ctrl="Cmd+";
+    #endif
 
     if (_appMode == MASK3D)
     {
-        shortcuts.push_back("Ctrl+P");
+        shortcuts.push_back(Ctrl + "P");
         actions.push_back(tr("open .ply files"));
-        shortcuts.push_back("Ctrl+C");
+        shortcuts.push_back(Ctrl + "C");
         actions.push_back(tr("open .xml camera files"));
     }
     if (_appMode <= MASK3D)
     {
-        shortcuts.push_back("Ctrl+O");
+        shortcuts.push_back(Ctrl + "O");
         actions.push_back(tr("open image file"));
         if (_appMode == MASK3D)
         {
-            shortcuts.push_back("Ctrl+E");
+            shortcuts.push_back(Ctrl + "E");
             actions.push_back(tr("save .xml selection infos"));
         }
-        shortcuts.push_back("Ctrl+S");
+        shortcuts.push_back(Ctrl + "+S");
         actions.push_back(tr("save mask file"));
-        shortcuts.push_back("Ctrl+Maj+S");
+        shortcuts.push_back(Ctrl + "Maj+S");
         actions.push_back(tr("save mask file as"));
-        shortcuts.push_back("Ctrl+X");
+        shortcuts.push_back(Ctrl + "X");
         actions.push_back(tr("close files"));
     }
-    shortcuts.push_back("Ctrl+T");
+    shortcuts.push_back(Ctrl + "T");
     actions.push_back(tr("settings"));
-    shortcuts.push_back("Ctrl+Q");
+    shortcuts.push_back(Ctrl + "Q");
     actions.push_back(tr("quit"));
 
     shortcuts.push_back("");
@@ -465,9 +470,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     actions.push_back(tr("show messages"));
     if (_appMode > MASK3D)
     {
-         shortcuts.push_back("Ctrl+N");
+         shortcuts.push_back(Ctrl + "N");
          actions.push_back(tr("show names"));
-         shortcuts.push_back("Ctrl+R");
+         shortcuts.push_back(Ctrl + "R");
          actions.push_back(tr("show refuted"));
     }
 
@@ -488,9 +493,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("zoom 200%"));
         shortcuts.push_back(tr("Key 1"));
         actions.push_back(tr("zoom 100%"));
-        shortcuts.push_back("Ctrl+2");
+        shortcuts.push_back(Ctrl + "2");
         actions.push_back(tr("zoom 50%"));
-        shortcuts.push_back("Ctrl+4");
+        shortcuts.push_back(Ctrl + "4");
         actions.push_back(tr("zoom 25%"));
     }
 
@@ -527,8 +532,8 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
 #ifdef ELISE_Darwin
     #if ELISE_QT_VERSION >= 5
-            shortcuts.push_back("Ctrl+U");
-            shortcuts.push_back("Ctrl+Y");
+            shortcuts.push_back("Cmd+U");
+            shortcuts.push_back("Cmd+Y");
             fillStringList(actions, _appMode);
     #else
             shortcuts.push_back(tr("Space bar"));
@@ -543,7 +548,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
         shortcuts.push_back(tr("Shift+drag"));
         actions.push_back(tr("insert vertex in polygon"));
-        shortcuts.push_back(tr("Ctrl+right click"));
+        shortcuts.push_back(Ctrl + tr("right click"));
         actions.push_back(tr("remove last vertex"));
         shortcuts.push_back(tr("Drag & drop"));
         actions.push_back(tr("move selected polygon vertex"));
@@ -553,13 +558,13 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("move selected vertex faster"));
         shortcuts.push_back(tr("Key W+drag"));
         actions.push_back(tr("move polygon"));
-        shortcuts.push_back("Ctrl+A");
+        shortcuts.push_back(Ctrl + "A");
         actions.push_back(tr("select all"));
-        shortcuts.push_back("Ctrl+D");
+        shortcuts.push_back(Ctrl + "D");
         actions.push_back(tr("select none"));
-        shortcuts.push_back("Ctrl+R");
+        shortcuts.push_back(Ctrl + "R");
         actions.push_back(tr("reset selection"));
-        shortcuts.push_back("Ctrl+I");
+        shortcuts.push_back(Ctrl + "I");
         actions.push_back(tr("invert selection"));
     }
     else
@@ -573,9 +578,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     }
     if (_appMode <= MASK3D) //TEMP: TODO corriger le undo Elise
     {
-        shortcuts.push_back("Ctrl+Z");
+        shortcuts.push_back(Ctrl +"Z");
         actions.push_back(tr("undo last action"));
-        shortcuts.push_back("Ctrl+Shift+Z");
+        shortcuts.push_back(Ctrl + "Shift+Z");
         actions.push_back(tr("redo last action"));
     }
 
@@ -589,10 +594,10 @@ void SaisieQtWindow::on_actionAbout_triggered()
     QMessageBox *msgBox = new QMessageBox(this);
 
     QString qStr(getBanniereMM3D().c_str());
-    #if (ELISE_windows)
+    #if (ELISE_windows || (defined ELISE_Darwin))
         qStr.replace( "**", "  " );
     #endif
-
+    
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
     msgBox->setFont(font);
@@ -1052,9 +1057,10 @@ void SaisieQtWindow::updateUI()
     _ui->actionAdd->setShortcut(Qt::Key_Space);
     _ui->actionRemove->setShortcut(Qt::Key_Delete);
     #ifdef ELISE_Darwin
-    #if(ELISE_QT_VERSION >= 5) //TODO: verifier avec QT5 - mettre a jour l'aide
+    #if(ELISE_QT_VERSION >= 5) 
         _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
         _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
+        _ui->actionSettings->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_B));
     #endif
     #endif
 }
