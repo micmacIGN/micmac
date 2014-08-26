@@ -35,13 +35,13 @@ public:
    inline VersionedFileHeader();
           VersionedFileHeader( VFH_Type i_type );
           VersionedFileHeader( VFH_Type i_type, uint32_t i_version, bool i_isMSBF );
-   
+
    inline bool     isMSBF() const;
    inline uint32_t version() const;
    inline uint32_t magicNumber() const;
-      
+
    bool read_raw( std::istream &io_stream );
-   bool read_known( VFH_Type i_type, std::istream &io_stream );
+   bool read_known( VFH_Type i_type, std::istream &io_stream ); // read the header of a known type, return false if the type is different
    bool read_unknown( std::istream &io_stream, VFH_Type &o_type );
    void write( std::ostream &io_stream ) const;
 };

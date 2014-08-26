@@ -6,25 +6,10 @@
 #include <list>
 #include <iostream>
 #include "general/sys_dep.h"
+#include "private/VersionedFileHeader.h"
 
-#define DIGEO_FILEFORMAT_MAGIC_NUMBER_LSBF 989008845ul
-#define DIGEO_FILEFORMAT_MAGIC_NUMBER_MSBF 3440636730ul
-#define DIGEO_FILEFORMAT_CURRENT_VERSION 1
 #define DIGEO_DESCRIPTOR_SIZE 128
 #define DIGEO_MAX_NB_ANGLES 4
-
-extern const U_INT4 digeo_fileformat_magic_number;
-extern const U_INT4 digeo_fileformat_current_version;
-
-typedef struct
-{
-	unsigned char byteOrder;
-	U_INT4        version;
-	U_INT4        nbPoints;
-	U_INT4        descriptorSize;
-
-	bool reverseByteOrder;
-} DigeoFileHeader;
 
 class DigeoPoint
 {
@@ -83,11 +68,13 @@ public:
 	void read_v1( std::istream &output, bool reverseByteOrder );
 
 	// read/write a list of Digeo points
-	static bool writeDigeoFile( const std::string &i_filename, const std::vector<DigeoPoint> &i_list, U_INT4 i_version=DIGEO_FILEFORMAT_CURRENT_VERSION, bool i_writeBigEndian=MSBF_PROCESSOR() );
-	static bool writeDigeoFile( const std::string &i_filename, const std::list<DigeoPoint> &i_list, U_INT4 i_version=DIGEO_FILEFORMAT_CURRENT_VERSION, bool i_writeBigEndian=MSBF_PROCESSOR() );
+	static bool writeDigeoFile( const std::string &i_filename, const std::vector<DigeoPoint> &i_list ); // use last version of the format and processor's byte order
+	static bool writeDigeoFile( const std::string &i_filename, const std::list<DigeoPoint> &i_list );
+	static bool writeDigeoFile( const std::string &i_filename, const std::vector<DigeoPoint> &i_list, U_INT4 i_version, bool i_writeBigEndian );
+	static bool writeDigeoFile( const std::string &i_filename, const std::list<DigeoPoint> &i_list, U_INT4 i_version, bool i_writeBigEndian );
 	// this reading function detects the fileformat and can be used with old siftpp_tgi files
 	// if o_header is not null, addressed variable is filled
-	static bool readDigeoFile( const std::string &i_filename, bool i_storeMultipleAngles, std::vector<DigeoPoint> &o_list, DigeoFileHeader *o_header=NULL );
+	static bool readDigeoFile( const std::string &i_filename, bool i_storeMultipleAngles, std::vector<DigeoPoint> &o_list, VersionedFileHeader *o_header=NULL );
 
 	static void multipleToUniqueAngle( std::vector<DigeoPoint> &io_points );
 	static void uniqueToMultipleAngles( std::vector<DigeoPoint> &io_points );
