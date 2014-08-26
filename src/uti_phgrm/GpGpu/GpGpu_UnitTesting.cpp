@@ -194,7 +194,7 @@ int Main_Test_Optimisation()
     h2O.SetNbLine(nbLines);
     d2O.SetNbLine(h2O.nbLines());
 
-    h2O.ReallocOutputIf(h2O.s_InitCostVol().GetSize());
+    h2O.ReallocOutputIf(h2O.s_InitCostVol().GetSize(),h2O.s_Index().GetSize());
 
     h2O.s_ForceCostVol(0).Fill(0);
 

@@ -589,7 +589,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + std::string(" +ZIncCalc=") + ToString(mZincCalc)
               + std::string(" +NbEtapeQuant=") + ToString(mNbEtapeQ)
               + std::string(" +DefCor=") + ToString(mDefCor)
-              + std::string(" +mCostTrans=") + ToString(mCostTrans)
+              + std::string(" +CostTrans=") + ToString(mCostTrans)
               + std::string(" +Geom=") + aNameGeom
               ;
 
