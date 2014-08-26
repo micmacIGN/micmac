@@ -39,13 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include    "GpGpu/GBV2_ProgDynOptimiseur.h"
 
-#define     MAT_TO_STREAM true
-#define     STREAM_TO_MAT false
-//#define     CLAMPDZ
-
-//#define SAVEPLY
-//#define DEFCOR
-
 Pt2di Px2Point(int * aPx) { return Pt2di(aPx[0],0); }
 bool IsPTest(const Pt2di & aP) {return aP == Pt2di(40,40);}
 
@@ -600,8 +593,10 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
             uint *finCo = costFinal1D.pData() + costInit1D.Pit(ptTer);
 
 
-            uint minCost = (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
-            FinalDefCor[make_uint2(ptTer.x,ptTer.y)] += (minCost == 0) ? 2 : minCost / mCostDefMasked;
+            uint defCorr = (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
+
+            FinalDefCor[make_uint2(ptTer.x,ptTer.y)] += defCorr;
+
 #ifdef OUTPUTDEFCOR
             if(idLine == iii)
             {
@@ -843,7 +838,21 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     {
 
         //printf("SAVEEEEEEEEEEEE PLY\n");
-        string aNameOut = "defCor.ply";
+
+        int random_file = 0;//rand()%100;
+
+
+        //int Number = 123;       // number to be converted to a string
+
+        string Result;          // string which will contain the result
+
+        ostringstream convert;   // stream used for the conversion
+
+        convert << random_file;      // insert the textual representation of 'Number' in the characters in the stream
+
+        Result = convert.str(); // set 'Result' to the contents of the stream
+
+        string aNameOut = "defCor_" + Result + ".ply";
 
         string mode = aBin ? "wb" : "w";
         aFP = FopenNN(aNameOut,mode,"MergePly");
@@ -898,32 +907,25 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                         //agreMin += aCost;
                         if (aCost<aCostMin)
                         {
+
                             aCostMin = aCost;
                             aPRXMin = aPRX;
                         }
                     }
                 }
-//                #ifdef DEFCOR
-//                    //DUMP_UINT(agreMin)
-//                    if(agreMin == 0)
-//                    {
-
-//                        IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] = 30;
-//                    }
-//                #endif
 
                 mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
             }
         }
 
-#ifdef DEFCOR
+#ifdef CUDA_DEFCOR
 
         //ushort defCor = mCostDefMasked;
         Rect zone(0,0,mSz.x,mSz.y);
 
 
 
-        uint    nonCorrel = nbDirection + nbDirection/2;
+//        uint    nonCorrel = (nbDirection*2)-1;
         uint2   pTer;
         uint    maxITSPI = 5;
         
@@ -933,9 +935,9 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
             {
 
                 int2 curPT  = make_int2(pTer);
-                uint cI     = IGpuOpt._FinalDefCor[pTer];
+                uint finalDefCor     = IGpuOpt._FinalDefCor[pTer];
 
-                if(cI > nonCorrel )
+                if(finalDefCor >= 1 )
                 {
                     bool findZ = false;
                     ushort  iteSpi   = 1;
@@ -991,7 +993,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     if (aBin)
                     {
                         //writePoint(aFP, aP, cI > clamp ? Pt3di(255,(float)255.f*(cI-clamp)/(10000-clamp),0) : aG);
-                        writePoint(aFP, aP, cI == 0 ? aG : aR);
+                        writePoint(aFP, aP, finalDefCor == 0  ? aG : aR);
     //                    writePoint(aFP, aPMax, aR);
     //                    writePoint(aFP, aPMin, aG);
                     }

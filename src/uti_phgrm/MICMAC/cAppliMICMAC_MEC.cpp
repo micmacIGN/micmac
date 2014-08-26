@@ -79,7 +79,7 @@ void cAppliMICMAC::DoAllMEC()
 {
 
 #if CUDA_ENABLED
-	
+    //srand ((uint)time(NULL));
     // Creation du contexte GPGPU
     //cudaDeviceProp deviceProp;
     // Obtention de l'identifiant de la carte la plus puissante
