@@ -76,7 +76,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             if (EAMIsInit(&aGama))
                 w.setGamma(aGama);
 
-            if(EAMIsInit(&aNameMasq));
+            if(EAMIsInit(&aNameMasq))
                 w.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
 
             w.resize(SzWP.x,SzWP.y);
