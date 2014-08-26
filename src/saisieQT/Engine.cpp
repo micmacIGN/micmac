@@ -223,7 +223,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
     #ifdef _DEBUG
         cout << "DirChantier : " << DirChantier << endl;
-        cout << "filename : "    << filename << endl;
+		cout << "filename : "    << aNameFile.toStdString() << endl;
     #endif
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
