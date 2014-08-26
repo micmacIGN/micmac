@@ -2,11 +2,12 @@
 
 int helpMessage(const QApplication &app, QString text)
 {
+    QString title = QObject::tr("Help for ") + app.applicationName();
 #ifdef WIN32
-    QMessageBox msgBox(QMessageBox::NoIcon, app.applicationName(), text, QMessageBox::Ok);
+    QMessageBox msgBox(QMessageBox::NoIcon, title, text, QMessageBox::Ok);
     return msgBox.exec();
 #else
-    printf("\n%s\n", app.applicationName().toStdString().c_str());
+    printf("\n%s\n", title.toStdString().c_str());
     printf("\n%s", text.toStdString().c_str());
     return 0;
 #endif
@@ -72,12 +73,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName("Culture3D");
     app.setApplicationName("QT graphical tools");
 
-    QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
-    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        app.setStyleSheet(file.readAll());
-        file.close();
-    }
+    setStyleSheet(app);
 
     QStringList cmdline_args = QCoreApplication::arguments();
 
@@ -131,7 +127,7 @@ bool checkNamePt(QString text)
 {
     if (text.contains(".txt") && QFileInfo(text).isAbsolute())
     {
-        QMessageBox::critical(NULL, "Error", "Don't use an absolute path for point file name!");
+        QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Don't use an absolute path for point file name!"));
         return false;
     }
     return true;
@@ -191,4 +187,22 @@ void loadTranslation(QApplication &app)
                                          "In: " + path);
         }
     }
+}
+
+void updateSettings(QSettings &settings, Pt2di aSzWin, Pt2di aNbFen, bool aForceGray)
+{
+    settings.beginGroup("MainWindow");
+    if (aSzWin.x > 0)
+        settings.setValue("size", QSize(aSzWin.x, aSzWin.y));
+    else if (!settings.contains("MainWindow/size"))
+    {
+        settings.setValue("size", QSize(800, 800));
+        aSzWin.x = aSzWin.y = 800;
+    }
+    settings.setValue("NbFen", QPoint(aNbFen.x, aNbFen.y));
+    settings.endGroup();
+
+    settings.beginGroup("Drawing settings");
+    settings.setValue("forceGray",     aForceGray  );
+    settings.endGroup();
 }

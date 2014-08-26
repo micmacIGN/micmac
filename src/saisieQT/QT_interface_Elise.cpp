@@ -247,6 +247,8 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
 void cQT_Interface::SetInvisRef(bool aVal)
 {
     mRefInvis = aVal;
+
+    emit dataChanged(true);  //pour update des widgets (raccourci Ctrl+R)
 }
 
 void cQT_Interface::close()
@@ -710,7 +712,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
 
         m_QTMainWindow->threeDWidget()->getGLData()->replaceCloud(_data->getCloud(0));
 
-        m_QTMainWindow->threeDWidget()->resetView(false,false,false,true);
+        m_QTMainWindow->threeDWidget()->resetView(false,false,false,false,true);
         m_QTMainWindow->option3DPreview();
     }
 }

@@ -46,6 +46,95 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#define __DEBUG_DIGEO_DOG_INPUT
 #define __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
 
+// __DEL
+
+bool save_pgm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height )
+{
+	ofstream f( i_filename.c_str(), ios::binary );
+	if ( !f ) return false;
+	f << "P5" << endl;
+	f << i_width << ' ' << i_height << endl;
+	f << 255 << endl;
+	f.write( (const char *)i_image, i_width*i_height );
+	return true;
+}
+
+template <class T>
+bool save_pgm( const string &i_filename, const T *i_image, unsigned int i_width, unsigned int i_height, T i_min, T i_max )
+{
+	unsigned int iPix = i_width*i_height;
+	unsigned char *img = new unsigned char[iPix];
+	unsigned char *itDst = img;
+	const double scale = 255./( (double)i_max-(double)i_min );
+	const double mind = (double)i_min;
+	while ( iPix-- ){
+		int v = (int)( ( (double)i_image[0]-mind )*scale+0.5 );
+		if ( v>255 )
+			v = 255;
+		else if ( v<0 )
+			v = 0;
+		itDst[0] = (unsigned char)v;
+		i_image++; itDst++;
+	}
+	bool res = save_pgm( i_filename, img, i_width, i_height );
+	delete [] img;
+	return res;
+}
+
+bool save_ppm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height )
+{
+	ofstream f( i_filename.c_str(), ios::binary );
+	if ( !f ) return false;
+	f << "P6" << endl;
+	f << i_width << ' ' << i_height << endl;
+	f << 255 << endl;
+	f.write( (const char *)i_image, 3*i_width*i_height );
+	return true;
+}
+
+bool load_ppm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height )
+{
+	o_image = NULL;
+	o_width = o_height = 0;
+	ifstream f( i_filename.c_str(), ios::binary );
+	if ( !f ) return false;
+	string str;
+	f >> str;
+	if ( str!="P6" ) return false;
+	f >> o_width;
+	f >> o_height;
+	int maxValue;
+	f >> maxValue;
+	f.get();
+	unsigned int nbBytes = 3*o_width*o_height;
+	o_image = new unsigned char[nbBytes];
+	f.read( (char *)o_image, nbBytes );
+	return true;
+}
+
+template <class T>
+bool save_ppm( const string &i_filename, const T *i_image, unsigned int i_width, unsigned int i_height, T i_min, T i_max )
+{
+	unsigned int iPix = i_width*i_height;
+	unsigned char *img = new unsigned char[3*iPix];
+	unsigned char *itDst = img;
+	const double scale = 255./( (double)i_max-(double)i_min );
+	const double mind = (double)i_min;
+	while ( iPix-- ){
+		int v = (int)( ( (double)i_image[0]-mind )*scale+0.5 );
+		if ( v>255 )
+			v = 255;
+		else if ( v<0 )
+			v = 0;
+		itDst[0] = itDst[1] = itDst[2] = (unsigned char)v;
+		i_image++; itDst+=3;
+	}
+	bool res = save_ppm( i_filename, img, i_width, i_height );
+	delete [] img;
+	return res;
+}
+
+
 /****************************************/
 /*                                      */
 /*             cTplImInMem               */
@@ -72,7 +161,8 @@ cTplImInMem<Type>::cTplImInMem
      // mOrigOct (0),
      mData   (0)
 {
-    ResizeImage(aSz); 
+    ResizeImage(aSz);
+    mNbShift =  mAppli.TypePyramide().PyramideGaussienne().Val().NbShift().Val();
 }
 
 template <class Type> void cTplImInMem<Type>::ResizeBasic(const Pt2di & aSz)
@@ -82,17 +172,14 @@ template <class Type> void cTplImInMem<Type>::ResizeBasic(const Pt2di & aSz)
    mSz = aSz;
    mData = mIm.data();
 
-   mN0 = -mSz.x-1,
-   mN1 = -mSz.x,
-   mN2 = -mSz.x+1,
-   mN3 = -1,
-   mN4 = 1,
-   mN5 = mSz.x-1,
-   mN6 = mSz.x,
+   mN0 = -mSz.x-1;
+   mN1 = -mSz.x;
+   mN2 = -mSz.x+1;
+   mN3 = -1;
+   mN4 = 1;
+   mN5 = mSz.x-1;
+   mN6 = mSz.x;
    mN7 = mSz.x+1;
-
-   // ELISE_COPY(mIm.all_pts(),1,mIm.out());
-// std::cout << "SZ = " << aSz << " " << (void *)mIm.data_lin() << "\n";
 }
 template <class Type> void cTplImInMem<Type>::ResizeImage(const Pt2di & aSz)
 {
@@ -123,90 +210,84 @@ template <class Type> bool cTplImInMem<Type>::InitRandom()
  
 template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
 {
-   ResizeOctave(aBox.sz());
-   ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
-      
-   if (
-	 mAppli.MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8)
-	 && type_im_integral(mType) 
-	 && (!signed_type_num(mType))
-      )
-   {
-      int aMinT,aMaxT;
-      min_max_type_num(mType,aMinT,aMaxT);
-      aMaxT = ElMin(aMaxT-1,1<<19);  // !!! LIES A NbShift ds PyramideGaussienne
-      tBase aMul = 0;
+	ResizeOctave(aBox.sz());
+	ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
 
-      if(mAppli.ValMaxForDyn().IsInit())
-      {
-	 tBase aMaxTm1 = aMaxT-1;
-	 aMul = round_ni(aMaxTm1/mAppli.ValMaxForDyn().Val()) ;
+	if ( mAppli.MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8) &&
+	     type_im_integral(mType) &&
+	     (!signed_type_num(mType) ) ){
+		int aMinT,aMaxT;
+		min_max_type_num(mType,aMinT,aMaxT);
+		aMaxT = ElMin(aMaxT-1,1<<19);  // !!! LIES A NbShift ds PyramideGaussienne
+		tBase aMul = 0;
 
-	 for (int aY=0 ; aY<mSz.y ; aY++)
-	 {
-	    Type * aL = mData[aY];
-	    for (int aX=0 ; aX<mSz.x ; aX++)
-	    aL[aX] = ElMin(aMaxTm1,tBase(aL[aX]*aMul));
-	 }
-	 std::cout << " Multiplieur in : " << aMul  << "\n";
-      }
-      else
-      {
-	 Type aMaxV = aMinT;
-	 for (int aY=0 ; aY<mSz.y ; aY++)
-	 {
-	    Type * aL = mData[aY];
-	    for (int aX=0 ; aX<mSz.x ; aX++)
-	    ElSetMax(aMaxV,aL[aX]);
-	 }
-	 aMul = (aMaxT-1) / aMaxV;
-	 if (mAppli.ShowTimes().Val())
-	 {
-	    std::cout << " Multiplieur in : " << aMul 
-	    << " MaxVal " << tBase(aMaxV )
-	    << " MaxType " << aMaxT 
-	    << "\n";
-	 }
-	 if (aMul > 1)
-	 {
-	    for (int aY=0 ; aY<mSz.y ; aY++)
-	    {
-	       Type * aL = mData[aY];
-	       for (int aX=0 ; aX<mSz.x ; aX++)
-	       aL[aX] *= aMul;
-	    }
-	    SauvIm("ReDyn_");
-	 }
-      }
+		if ( mAppli.ValMaxForDyn().IsInit() ){
+			tBase aMaxTm1 = aMaxT-1;
+			aMul = round_ni(aMaxTm1/mAppli.ValMaxForDyn().Val()) ;
 
-      mImGlob.SetDyn(aMul);
-      mImGlob.SetMaxValue( aMaxT-1 );
-   }
-   else
-   {
-      Type aMaxV = numeric_limits<Type>::min();
-      for (int aY=0 ; aY<mSz.y ; aY++)
-      {
-         Type * aL = mData[aY];
-         for (int aX=0 ; aX<mSz.x ; aX++)
-            ElSetMax(aMaxV,aL[aX]);
-      }
+			for (int aY=0 ; aY<mSz.y ; aY++){
+				Type * aL = mData[aY];
+				for (int aX=0 ; aX<mSz.x ; aX++)
+				aL[aX] = ElMin(aMaxTm1,tBase(aL[aX]*aMul));
+			}
+			std::cout << " Multiplieur in : " << aMul  << "\n";
+		}
+		else{
+			Type aMaxV = aMinT;
+			for (int aY=0 ; aY<mSz.y ; aY++){
+				Type * aL = mData[aY];
+				for (int aX=0 ; aX<mSz.x ; aX++)
+				ElSetMax(aMaxV,aL[aX]);
+			}
+			aMul = (aMaxT-1) / aMaxV;
+			if ( mAppli.ShowTimes().Val() )
+				std::cout << " Multiplieur in : " << aMul << " MaxVal " << tBase(aMaxV ) << " MaxType " << aMaxT << "\n";
+			if (aMul > 1){
+				for (int aY=0 ; aY<mSz.y ; aY++){
+					Type * aL = mData[aY];
+					for (int aX=0 ; aX<mSz.x ; aX++)
+						aL[aX] *= aMul;
+				}
+				SauvIm("ReDyn_");
+			}
+		}
 
-      #ifdef __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
-	 Type  mul = 1./255.;
-	 for (int aY=0 ; aY<mSz.y ; aY++)
-	 {
-	    Type * aL = mData[aY];
-	    for (int aX=0 ; aX<mSz.x ; aX++)
-	       aL[aX] *= mul;
-	 }	 
-	 mImGlob.SetDyn(mul);
-	 mImGlob.SetMaxValue( 1 );
-      #else
-	 mImGlob.SetDyn(1);
-	 mImGlob.SetMaxValue( (REAL8)aMaxV );	 
-      #endif
-   }
+		mImGlob.SetDyn(aMul);
+		mImGlob.SetMaxValue( aMaxT-1 );
+	}
+	else{
+		Type aMaxV = numeric_limits<Type>::min();
+		for (int aY=0 ; aY<mSz.y ; aY++){
+			Type * aL = mData[aY];
+			for (int aX=0 ; aX<mSz.x ; aX++)
+				ElSetMax(aMaxV,aL[aX]);
+		}
+
+		#ifdef __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
+			const Type  mul = (Type)1/(Type)( mAppli.ValMaxForDyn().IsInit()?mAppli.ValMaxForDyn().Val():mFileTheoricalMaxValue );
+			for (int aY=0 ; aY<mSz.y ; aY++){
+				Type * aL = mData[aY];
+				for (int aX=0 ; aX<mSz.x ; aX++)
+					aL[aX] *= mul;
+			}
+			mImGlob.SetDyn(mul);
+			mImGlob.SetMaxValue( 1 );
+		#else
+			mImGlob.SetDyn(1);
+			mImGlob.SetMaxValue( (REAL8)aMaxV );
+		#endif
+	}
+
+	if ( mAppli.doSaveTiles() ) save_ppm<Type>( mAppli.currentTileFullname()+".ppm", mData[0], mSz.x, mSz.y, (Type)0, (Type)mImGlob.GetMaxValue() );
+
+	const cTypePyramide & aTP = mAppli.TypePyramide();
+	if ( aTP.PyramideGaussienne().IsInit() ){
+		const double aSigmD = mImGlob.InitialDeltaSigma();
+		if ( aSigmD!=0. ){
+			Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
+			SetConvolSepXY( true, aSigmD, *this, aIKerD, mNbShift );
+		}
+	}
 
    if (mAppli.SectionTest().IsInit())
    {
@@ -296,8 +377,8 @@ void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
         itCurrentScale = mData[y];
         itNextScale = i_nextScale.mData[y];
         x = mSz.x;
-        while ( x-- )
-            ( *itDog++ ) = (tBase)( *itCurrentScale++ )-(tBase)( *itNextScale++ );
+        //while ( x-- ) ( *itDog++ )=(tBase)( *itCurrentScale++ )-(tBase)( *itNextScale++ );
+        while ( x-- ) ( *itDog++ )=(tBase)( *itNextScale++ )-(tBase)( *itCurrentScale++ );
     }
     
     #ifdef __DEBUG_DIGEO_DOG_OUTPUT
@@ -309,33 +390,80 @@ void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
     #endif
 }
 
+#ifdef __WITH_GAUSS_SEP_FILTER
+	bool load_raw( const string &i_filename, REAL *i_image, unsigned int i_width, unsigned int i_height )
+	{
+		ELISE_ASSERT( false, "save_raw(REAL*)");
+		return false;
+	}
+
+	bool load_raw( const string &i_filename, U_INT1 *i_image, unsigned int i_width, unsigned int i_height )
+	{
+		ELISE_ASSERT( false, "save_raw(REAL8*)");
+		return false;
+	}
+
+	bool load_raw( const string &i_filename, INT *i_image, unsigned int i_width, unsigned int i_height )
+	{
+		ELISE_ASSERT( false, "save_raw(REAL8*)");
+		return false;
+	}
+#endif
+
 template <class Type>
-void cTplImInMem<Type>::saveGaussians( const std::string &out_dir ) const
+bool load_raw( const string &i_filename, Type *o_image, unsigned int i_width, unsigned int i_height )
 {
-    RealImage1 img;
-    img.setFromArray( TIm().tx(), TIm().ty(), TIm().data_lin() );
+	ELISE_ASSERT( false, (string("save_raw ")+El_CTypeTraits<Type>::Name()).c_str() );
+	return false;
+}
 
-    if ( !ELISE_fp::IsDirectory(out_dir) )
-    {
-       cerr << "cTplImInMem::saveGaussians: creating output directory \"" << out_dir << "\"" << endl;
-       ELISE_fp::MkDir( out_dir );
-    }
-
-    stringstream ss;
-    ss << out_dir << "/gaussian_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct;
-    #ifdef __DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW
-      img.saveRaw( ss.str()+".raw" );
-    #endif
-    #ifdef __DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM
-      img.savePGM( ss.str()+".pgm", true );
-   #endif
+template <>
+bool load_raw( const string &i_filename, float *o_image, unsigned int i_width, unsigned int i_height )
+{
+	ifstream f( i_filename.c_str(), ios::binary );
+	if ( !f ) return false;
+	U_INT4 sz[2];
+	f.read( (char*)sz, 8 );
+	if ( sz[0]!=i_width || sz[1]!=i_height ) return false;
+	f.read( (char*)o_image, i_width*i_height*sizeof(float) );
+	return true;
 }
 
 template <class Type>
-void cTplImInMem<Type>::loadGaussians( const std::string &in_dir )
+bool cTplImInMem<Type>::load_raw( const string &i_filename )
 {
-    if ( !ELISE_fp::IsDirectory(in_dir) )
-        cerr << "cTplImInMem::loadGaussians: input directory \"" << in_dir << "\" does not exist" << endl;
+	return ::load_raw( i_filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty() );
+}
+
+template <>
+bool cTplImInMem<U_INT2>::saveGaussian_pgm( const std::string &i_filename ) const
+{
+	stringstream ss;
+	ss << i_filename << '_' << setfill('0') << setw(2) << mKInOct << ".pgm";
+	return ::save_pgm<U_INT2>( ss.str(), mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty(), 0, 65535 );
+}
+
+template <>
+bool cTplImInMem<REAL4>::saveGaussian_pgm( const std::string &i_filename ) const
+{
+	stringstream ss;
+	ss << i_filename << '_' << setfill('0') << setw(2) << mKInOct << ".pgm";
+	return ::save_pgm<REAL4>( ss.str(), mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty(), 0.f, 1.f );
+}
+
+template <>
+bool cTplImInMem<U_INT1>::saveGaussian_pgm( const std::string &i_filename ) const { return false; }
+
+template <>
+bool cTplImInMem<INT>::saveGaussian_pgm( const std::string &i_filename ) const { return false; }
+
+template <>
+bool cTplImInMem<REAL>::saveGaussian_pgm( const std::string &i_filename ) const { return false; }
+
+template <class Type>
+bool cTplImInMem<Type>::loadGaussian_raw( const std::string &in_dir )
+{
+    if ( !ELISE_fp::IsDirectory(in_dir) ) return false;
 
     RealImage1 img;
     stringstream ss;
@@ -343,6 +471,7 @@ void cTplImInMem<Type>::loadGaussians( const std::string &in_dir )
     if ( !img.loadRaw( ss.str() ) )
         cerr << "cTplImInMem::loadGaussians: failed to load \"" << ss.str() << "\"" << endl;
     img.toArray( TIm().data_lin() );
+    return true;
 }
 
 template <class Type>
@@ -560,7 +689,9 @@ cImInMem::cImInMem
     mMere             (0),
     mFille            (0),
     mKernelTot        (1,1.0),
-    mFirstSauv        (true)
+    mFirstSauv        (true),
+    mFileTheoricalMaxValue( (1<<aIGlob.TifF().bitpp())-1 ),
+    mUsed_points_map(NULL)
    #ifdef __DEBUG_DIGEO_STATS
       ,mCount_eTES_Uncalc(0),
        mCount_eTES_instable_unsolvable(0),
@@ -573,9 +704,9 @@ cImInMem::cImInMem
 {
     if ( aIGlob.Appli().mVerbose )
     {
-        cout << "\timage of index " << aKInOct << endl;
+        cout << "\tgaussian of index " << aKInOct << endl;
         cout << "\t\tresolution in octave = " << mResolOctaveBase << endl;
-        cout << "\t\tglobal resolution    = " << mImGlob.Sigma0()*mResolGlob*mResolOctaveBase << endl;
+        cout << "\t\tglobal resolution    = " << mResolOctaveBase*anOct.Niv()*mImGlob.Resol() << endl;
     }
 }
 
@@ -616,8 +747,7 @@ void cImInMem::SauvIm(const std::string & aAdd)
         loadGaussians( "gaussians_sift" );
     #endif
     
-   if (! mAppli.SauvPyram().IsInit())
-      return;
+   if ( ! mAppli.SauvPyram().IsInit()) return;
 
    const cTypePyramide & aTP = mAppli.TypePyramide();
    cSauvPyram aSP = mAppli.SauvPyram().Val();

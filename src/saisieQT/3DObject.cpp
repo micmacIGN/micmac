@@ -40,6 +40,7 @@ cObject& cObject::operator =(const cObject& aB)
     {
         _name      = aB._name;
         _position  = aB._position;
+        _rotation  = aB._rotation;
 
         for (int iC = 0; iC < state_COUNT; ++iC)
             _color[iC]     = aB._color[iC];
@@ -753,13 +754,21 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _pointDiameter    = aP._pointDiameter;
         _selectionRadius  = aP._selectionRadius;
 
+        _bSelectedPoint   = aP._bSelectedPoint;
         _bShowLines       = aP._bShowLines;
         _bShowNames       = aP._bShowNames;
+
+        _dashes.clear();
+        for (int iC = 0; iC < aP._dashes.size(); ++iC)
+            _dashes.push_back(aP._dashes[iC]);
 
         _style            = aP._style;
         _defPtName        = aP._defPtName;
 
         _shiftStep        = aP._shiftStep;
+        _maxSz            = aP._maxSz;
+
+        _bNormalize       = aP._bNormalize;
     }
 
     return *this;
@@ -799,50 +808,6 @@ void cPolygon::removeSelectedPoint()
     if (pointValid())
 
         removePoint(_idx);
-}
-
-int cPolygon::setNearestPointState(const QPointF &pos, int state)
-{
-    int idx = _idx;
-
-    findNearestPoint(pos, 400000.f);
-
-    if (pointValid())
-    {
-        point(_idx).setPointState(state);
-        point(_idx).setSelected(false);
-    }
-
-    _idx = -1;
-    _bSelectedPoint = false;
-
-    return idx;
-}
-
-int cPolygon::highlightNearestPoint(const QPointF &pos)
-{
-    findNearestPoint(pos, 400000.f);
-
-    if (pointValid())
-    {
-        point(_idx).switchHighlight();
-    }
-
-    return _idx;
-}
-
-int cPolygon::getNearestPointIndex(const QPointF &pos)
-{
-    findNearestPoint(pos, 400000.f);
-
-    return _idx;
-}
-
-QString cPolygon::getNearestPointName(const QPointF &pos)
-{
-    findNearestPoint(pos, 400000.f);
-
-    return getSelectedPointName();
 }
 
 QString cPolygon::getSelectedPointName()
@@ -1506,7 +1471,12 @@ void cImageGL::ImageToTexture(QImage *pImg)
 {
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
-    glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
+
+    if (pImg->format() == QImage::Format_Indexed8)
+        glTexImage2D( GL_TEXTURE_2D, 0, 3, pImg->width(), pImg->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, pImg->bits());
+    else
+        glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
+
     GLenum glErrorT = glGetError();
     if(glErrorT == GL_OUT_OF_MEMORY)
     {
@@ -1522,7 +1492,7 @@ void cImageGL::ImageToTexture(QImage *pImg)
 void cImageGL::deleteTexture()
 {
     if(_texture != GL_INVALID_LIST_ID)
-    glDeleteTextures(1,&_texture);
+        glDeleteTextures(1,&_texture);
     _texture = GL_INVALID_LIST_ID;
 }
 
@@ -1609,7 +1579,7 @@ void cMaskedImageGL::prepareTextures()
 void cMaskedImageGL::deleteTextures()
 {
     if(_m_mask)
-        _m_mask->deleteTexture();
+        _m_mask->deleteTexture(); //TODO segfault (undo)
     if(_m_image)
         _m_image->deleteTexture();
 }

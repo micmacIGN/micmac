@@ -57,7 +57,7 @@ void ContextMenu::createContextMenuActions()
 
 void ContextMenu::setPointState(int state)
 {
-    int idx = _polygon->setNearestPointState(_lastPosImage, state);
+    int idx = setNearestPointState(_lastPosImage, state);
 
     emit changeState(state, idx);
 }
@@ -75,7 +75,7 @@ void ContextMenu::changeImages(int mode)
         idx = -2;
         break;
     case eThisPoint:
-        idx = _polygon->getNearestPointIndex(_lastPosImage);
+        idx = getNearestPointIndex(_lastPosImage);
         break;
     case eRollWindows:
         //idx =
@@ -88,7 +88,7 @@ void ContextMenu::changeImages(int mode)
 
 void ContextMenu::highlight()
 {
-    int idx = _polygon->highlightNearestPoint(_lastPosImage);
+    int idx = highlightNearestPoint(_lastPosImage);
 
     emit changeState(NS_SaisiePts::eEPI_Highlight, idx);
 }
@@ -98,11 +98,53 @@ void ContextMenu::rename()
     QInputDialog* inputDialog = new QInputDialog();
     inputDialog->setOptions(QInputDialog::NoButtons);
 
-    QString oldName = _polygon->getNearestPointName(_lastPosImage);
+    QString oldName = getNearestPointName(_lastPosImage);
 
     QString newName = inputDialog->getText(NULL, tr("Rename"), tr("Point name:"), QLineEdit::Normal, oldName);
 
     if (!newName.isEmpty() && (newName != oldName))
 
         emit changeName(oldName, newName);
+}
+
+int ContextMenu::setNearestPointState(const QPointF &pos, int state)
+{
+    int idx = _polygon->getSelectedPointIndex();
+
+    _polygon->findNearestPoint(pos, 400000.f);
+
+    if (_polygon->pointValid())
+    {
+        _polygon->point(idx).setPointState(state);
+    }
+
+    _polygon->resetSelectedPoint();
+
+    return idx;
+}
+
+int ContextMenu::highlightNearestPoint(const QPointF &pos)
+{
+    _polygon->findNearestPoint(pos, 400000.f);
+
+    if (_polygon->pointValid())
+    {
+        _polygon->point(_polygon->getSelectedPointIndex()).switchHighlight();
+    }
+
+    return _polygon->getSelectedPointIndex();
+}
+
+int ContextMenu::getNearestPointIndex(const QPointF &pos)
+{
+    _polygon->findNearestPoint(pos, 400000.f);
+
+    return _polygon->getSelectedPointIndex();
+}
+
+QString ContextMenu::getNearestPointName(const QPointF &pos)
+{
+    _polygon->findNearestPoint(pos, 400000.f);
+
+    return _polygon->getSelectedPointName();
 }

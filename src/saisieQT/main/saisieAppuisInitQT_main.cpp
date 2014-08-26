@@ -33,11 +33,35 @@ int SaisiePts_main2(int argc,char ** argv)
    return 0;
 }
 
-
 int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 {
     app.setApplicationName("SaisieAppuisInitQT");
     app.setOrganizationName("Culture3D");
+
+    QStringList cmdline_args = QCoreApplication::arguments();
+
+    if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    {
+        QString help = "Mandatory unnamed args :\n"
+                 "* string :: {Full name (Dir+Pattern)}\n"
+                 "* string :: {Orientation ; NONE if not used}\n"
+                 "* string :: {Point name, or point file name}\n"
+                 "* string :: {Output}\n\n"
+                "Named args :\n"
+                "* [Name=SzW] Pt2di :: {Sz of window}\n"
+                "* [Name=NbF] Pt2di :: {Nb of sub window}\n"
+                "* [Name=NameAuto] string :: {Prefix for automatic point creation}\n"
+                //"* [Name=Pref2Add] string :: {Prefix to add during import (for bug correction ?)}\n"
+                "* [Name=ForceGray] bool :: {Force gray image, def=false}\n"
+                "* [Name=OriMode] string :: {Orientation type (GRID) (Def=Std)}\n"
+                "* [Name=ZMoy] REAL :: {Average Z, Mandatory in PB}\n"
+                "* [Name=ZInc] REAL :: {Incertitude on Z, Mandatory in PB}\n\n"
+
+                "Example:\nmm3d " + app.applicationName() + " IMG_558{0-9}[1].tif RadialBasic 100 measures.xml\n\n"
+                "NB: visual interface for argument edition available with command:\n\n mm3d v" + app.applicationName() + "\n\n";
+
+        return helpMessage(app, help);
+    }
 
     loadTranslation(app);
 
@@ -54,11 +78,17 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     string aFullName, aDir, aName, aNamePt, aNameOut;   //mandatory arguments
     string aNameOri, aModeOri, aNameAuto, aPrefix2Add;  //named args
+    aPrefix2Add = "";
+    bool aForceGray = false;
+
     settings.beginGroup("Misc");
     aNameAuto = settings.value("defPtName", QString("100")).toString().toStdString();
     settings.endGroup();
-    aPrefix2Add = "";
-    bool aForceGray = false;
+
+    settings.beginGroup("Drawing settings");
+    aForceGray = settings.value("forceGray", false       ).toBool();
+    settings.endGroup();
+
     double aZInc, aZMoy;
 
     if (argv[0][0] == 'v')
@@ -83,7 +113,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
              cVirtualInterface::ComputeNbFen(aNbFen, aNbW);
         }
 
-        initSettings(settings, aSzWin, aNbFen, settings.contains("MainWindow/size"));
+        updateSettings(settings, aSzWin, aNbFen, aForceGray);
 
         settings.beginGroup("Misc");
         settings.setValue("defPtName", QString(aNameAuto.c_str()));

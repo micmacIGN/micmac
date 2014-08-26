@@ -1,35 +1,35 @@
-   
-
-
 <ParamDigeo>
 
     <DicoLoc>
         <Symb> Im1=IMG_0034.CR2 </Symb>
         <Symb> NbNivByOct=3     </Symb>
-        <Symb> Resol=1.0        </Symb>
-        <Symb> Sigma0=1.60      </Symb>
-        <Symb> SigmaN=0.5       </Symb>
-        <Symb> OctaveMax=8      </Symb>
 
+        
+        <Symb> Resol=1            </Symb>
+        <Symb> Sigma0=1.6         </Symb>
+        <Symb> SigmaN=1           </Symb>
+        
+        
+        <!--
+        <Symb> Resol=0.5          </Symb>
+        <Symb> Sigma0=1.269920842 </Symb>
+        <Symb> SigmaN=0.5         </Symb>
+        -->
+
+        <Symb> OctaveMax=32      </Symb>
         <Symb> NivFloatIm=4          </Symb>
         <Symb> NivInFirstOct=0       </Symb>
         <Symb> Incremental=true      </Symb>
         <Symb> ExigeCodeCompile=true </Symb>
 
-        <Symb> Sauv=1             </Symb>
+        <Symb> Sauv=0             </Symb>
         <Symb> RatioGrad=0.05     </Symb>
 
         <eSymb> MaxDyn= ! ${Sauv} </eSymb>
-<!--
-        <eSymb> MaxDyn=false </eSymb>
--->
     </DicoLoc>
 
         <DigeoSectionImages>
            <ImageDigeo>
-              <!--
-
-              -->
               <KeyOrPat>  ${Im1} </KeyOrPat>
               <ResolInit>  ${Resol} </ResolInit>
 <!--
@@ -37,6 +37,7 @@
 -->
            </ImageDigeo>
            <PyramideImage>
+				  
 	      <!--
 		 <TypeNumeriqueOfNiv>
 			<Type> eTN_u_int2 </Type>
@@ -48,7 +49,7 @@
 		 </TypeNumeriqueOfNiv>
 	      -->
 	      <TypeNumeriqueOfNiv>
-		  <Type> eTN_float </Type>
+		  <Type> eTN_u_int2 </Type>
 		  <Niv> -2  </Niv>
 	      </TypeNumeriqueOfNiv>
 
@@ -115,6 +116,12 @@
 
              <VerifExtrema Nb="?" Type="bool" Def="false"></VerifExtrema>
 -->
+<!--
+             <DigeoTestOutput>
+                  <OutputGaussians> true </OutputGaussians>
+                  <OutputTiles> true </OutputTiles>
+             </DigeoTestOutput>
+-->
        </SectionTest>
 
         <SectionWorkSpace>
@@ -134,17 +141,17 @@
 -->
 
            <DigeoDecoupageCarac>
-                <SzDalle > 2200 </SzDalle>
-                <Bord>  50  </Bord>
+                <SzDalle > 2048 </SzDalle>
+                <Bord>  0  </Bord>
            </DigeoDecoupageCarac>
 <!--
 -->
 
-<!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait
-insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment -->
+            <!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait
+                 insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment
             <ExigeCodeCompile> ${ExigeCodeCompile} </ExigeCodeCompile>
-<!--
--->
+            -->
+            <GenereCodeConvol></GenereCodeConvol>
 
 
            <ShowTimes> 0 </ShowTimes>

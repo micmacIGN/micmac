@@ -1120,9 +1120,11 @@ bool OkReproj
      (  
           const std::vector<CamStenope *> &  aVCam,
           const std::vector<double> &  aVPds,
-          const Pt3dr &                aPTer
+          const Pt3dr &                aPTer,
+          int & aKP
     )
 {
+   aKP = -1;
    for (int aK=0 ; aK<int(aVCam.size()) ; aK++)
    {
        if (aVPds[aK] >0)
@@ -1131,6 +1133,7 @@ bool OkReproj
            Pt2dr aProj = aCam.R3toF2(aPTer);
            if (! aCam.IsInZoneUtile(aProj))
            {
+              aKP = aK;
               return false;
            }
         }
@@ -1149,7 +1152,8 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
            const cNupletPtsHomologues & aNuple,
            const std::vector<double> &  aVPds,
            cParamPtProj &            aParam,
-           std::vector<Pt3dr> *      aPAbs
+           std::vector<Pt3dr> *      aPAbs,
+           std::string *             aMesPb
        )
 {
 
@@ -1254,6 +1258,10 @@ if (0) // (MPD_MM())
       if (aParam.mBsH < aParam.mSeuilBsHRefut)
       {
          OKInter = false;
+         if (aMesPb)
+         {
+              *aMesPb= std::string("BSurH Insuf : ") + ToString(aParam.mBsH);
+         }
          return Pt3dr(0,0,0);
       }
    
@@ -1314,9 +1322,14 @@ if (0) // (MPD_MM())
       aParam.mBase = aParam.mBsH * aParam.mHaut;
 
 
-      if (! OkReproj(aVCC,aVPds,aRes))
+      int aKPb=-1;
+      if (! OkReproj(aVCC,aVPds,aRes,aKPb))
       {
          OKInter = false;
+         if (aMesPb)
+         {
+             *aMesPb = std::string("Mes Out of Im, for Im num : ") + ToString(aKPb);
+         }
 
          return Pt3dr(0,0,0);
       }
@@ -1324,6 +1337,11 @@ if (0) // (MPD_MM())
       if (!OK)
       {
          OKInter = false;
+         if (aMesPb)
+         {
+             *aMesPb = std::string("Intersection faisceau non definie ???");
+         }
+
          return Pt3dr(0,0,0);
          ELISE_ASSERT(OK,"Pb ElSeg3D::L2InterFaisceaux in cManipPt3TerInc::CalcPTerInterFaisceauCams ");
       }
@@ -1458,7 +1476,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               aNuple,
                               aVPdsIm,
                               mPPP,
-                              (WithApp ? &aVAppui : 0)
+                              (WithApp ? &aVAppui : 0),
+                              &mResidus.mMesPb
                          );
           mResidus.mBSurH  = mPPP.mBsH;
           if (BugNanFE)
@@ -1468,6 +1487,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
 
           if (!mResidus.mOKRP3I) 
           {
+// std::cout << "mResidus.mOKRP3I  "  << __LINE__ <<  " " << WithApp << "\n";
                return mResidus;
           }
        }

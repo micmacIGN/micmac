@@ -3,8 +3,6 @@
 
 #include "saisieQT_window.h"
 
-#include "Elise_QT.h"
-
 class SaisieQtWindow;
 
 class cQT_Interface  : public QObject, public cVirtualInterface
@@ -48,7 +46,7 @@ private:
 
     cAppli_SaisiePts*   AppliMetier(){ return  mAppli; }
 
-    //                  Tools cImage                        ///////////////////////////////////////////    
+    //                  Tools cImage                        ///////////////////////////////////////////
 
     int                 idCImage(int idGlWidget);
 

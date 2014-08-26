@@ -984,6 +984,19 @@ normalises en echelle et/ou en translation -->
                                         <NameRef Nb="1" Type="std::string"> </NameRef>   
                                    </BascOnAppuis>
                                    <ModeL2 Nb="?" Type="bool" Def="true"> </ModeL2>
+                                   <AerialDeformNonLin Nb="?" AccessorFils="false">
+                                         <!-- Notation X gd Axe, Y Petit Axe -->
+                                         <!-- Flag des polynome actif: Par ex pour Z
+                                              Z = a0 + a1 X + a2 Y + a3 XX + a4 XY + a5 YY
+                                              Si Z= F(X), a0a1a3 actif donc FlagZ= 11= 1 | 2 |8 
+                                         -->
+                                         <FlagX Nb="?" Type="int" Def="63"> </FlagX>
+                                         <FlagY Nb="?" Type="int" Def="63"> </FlagY>
+                                         <FlagZ Nb="?" Type="int" Def="63"> </FlagZ>
+                                         <ForceTrueRot Nb="?" Type="bool" Def="true"> </ForceTrueRot>
+                                         <PattEstim Nb="?" Type="std::string" Def=".*"> </PattEstim>
+                                         <Show Nb="?" Type="bool" Def="false"> </Show>
+                                   </AerialDeformNonLin>
                                </BasculeOnPoints>
 
                                <BasculeLiaisonOnPlan Nb="?">

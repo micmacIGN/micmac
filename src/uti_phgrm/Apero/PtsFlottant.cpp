@@ -126,7 +126,7 @@ void  cOneAppuisFlottant::Compile()
     for (int aK=0; aK<int(mCams.size()) ; aK++)
     {
         mNupl->PK(aK) = mPts[aK];
-	aVCF.push_back(mCams[aK]->CF());
+	aVCF.push_back(mCams[aK]->CamF());
 	mPdsIm.push_back(1.0);
         if (mIsDroite[aK])
             mNupl->SetDr(aK);
@@ -159,6 +159,44 @@ Pt3dr cOneAppuisFlottant::PInter() const
 
 double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO,std::string & aCamMaxErr)
 {
+   if (mAppli.SqueezeDOCOAC())
+   {
+      if (mHasGround)
+      {
+          int aNbCam =0;
+          double anErMax=-1;
+          int aKMax= -1;
+          for (int aK=0 ; aK<int(mCams.size()) ; aK++)
+          {
+              if (mCams[aK]->RotIsInit())
+              {
+                  aNbCam++;
+                  CamStenope * aCS = mCams[aK]->GetCamNonOrtho();
+                  Pt2dr aPProj = aCS->R3toF2(mPt);
+                  double aDist = euclid(aPProj,mPts[aK]);
+                  if (aDist>anErMax)
+                  {
+                      anErMax = aDist;
+                      aKMax = aK;
+                  }
+              }
+          }
+          if (aNbCam==0) return 0;
+          
+          if (aNbCam>=2)
+          {
+             // std::cout << "AxCAA " << mPt << PInter() << "\n";
+             Pt3dr aDif =  mPt - PInter();
+             std::cout << "Ctrl " << mName  << " GCP-Bundle, D=" <<  euclid(aDif) << " P=" << aDif<< "\n";
+          }
+          if (aKMax>=0)
+             aCamMaxErr =  mCams[aKMax]->Name();
+          return anErMax;
+      }
+      return 0;
+   }
+ 
+
    aCamMaxErr = "";
 
    bool aShowDet = AuMoinsUnMatch(anObs.PtsShowDet(),mName);
@@ -251,10 +289,35 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
    {
       if (ShowUnUsed)
       {
-          std::cout << "NOT OK (UPL) FOR " << mName << "\n";
+          std::cout << "NOT OK (UPL) FOR " << mName ;
+          if (aRes.mMesPb !="")
+          {
+               std::cout << " , Reason  " << aRes.mMesPb ;
+          }
+          std::cout << "\n";
+
+          if (aShowDet && mHasGround && anObs.DetShow3D().Val())
+          {
+                for (int aK=0 ; aK<int(mCams.size()) ; aK++)
+                {
+                     std::cout << "   " << mCams[aK]->Name() ;
+                     if (mCams[aK]->RotIsInit())
+                     {
+                         Pt2dr aPIm =  mPts[aK];
+                         Pt2dr aPProj =   mCams[aK]->CurCam()->R3toF2(mPt);
+                         std::cout << "D=" << euclid(aPIm-aPProj) << " Im:" << aPIm << " Proj: " << aPProj;
+                     }
+                     else
+                     {
+                           std::cout << "   UnInit";
+                     }
+                     std::cout << "\n";
+                 }
+          }
       }
       return 0.0;
    }
+
 
    if (aShowDet )
    {
@@ -587,13 +650,16 @@ void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
     {
        std::string aCam;
        double anErr = it1->second->AddObs(anObs,aSO,aCam);
-       anErrMoy += anErr;
-       aSomP ++;
-       if ((anErr >  anErrMax) && (aCam!=""))
+       if (aCam!="")
        {
+          anErrMoy += anErr;
+          aSomP ++;
+          if (anErr >  anErrMax) 
+          {
               anErrMax = anErr;
               aPFMax = it1->second;
               aCamMax = aCam;
+          }
        }
     }
     if (aPFMax)

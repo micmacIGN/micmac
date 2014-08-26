@@ -267,6 +267,13 @@ cElPlan3D RobustePlan3D
              double anEffort
           )
 {
+    if (aVPts.size() < 3)
+    {
+        std::cout << "NB POINT GOT : " << aVPts.size() << "\n";
+        ELISE_ASSERT(false,"Not enough  points in RobustePlan3D");
+    }
+
+
     int aNbTirage = sqrt(anEffort);
     int aNbPTest = ElMin(int(aVPts.size()),round_up(anEffort/aNbTirage));
     std::vector<int> aIndPts; GetNRandParmiQ(aIndPts,aNbPTest,aVPts.size());
@@ -293,46 +300,58 @@ cElPlan3D RobustePlan3D
             for (int aKInd=0 ; aKInd<int(aIndPts.size()) ; aKInd++)
             {
                 aVDist.push_back(ElAbs(scal(aNorm,aVPts[aIndPts[aKInd]]-aP0)));
-                double aScore = KthValProp(aVDist,aProp);
-                if (aScore < aBestDist)
-                {
+            }
+            double aScore = KthValProp(aVDist,aProp);
+            if (aScore < aBestDist)
+            {
                     aBestDist = aScore;
                     aRes = cElPlan3D(aP0,aP1,aP2);
-                }
             }
          // cElPlan3D aPTest(aVPts[aK1],aVPts[aK2],aVPts[aK3]);
          }
     }
-
-    double aDistMoy = aBestDist;
+    
+    double aDistMin=1e-10; // Juste anti plantage au cas ou seulement 3 pt
+    double aDistMoy = ElMax(aDistMin,aBestDist);
     for (int aTime=0  ; aTime <7 ; aTime++)
     {
         // std::cout << "RRRpplDMoy " << aDistMoy << "\n";
         std::vector<double> aPds;
         Pt3dr aP0 = aRes.P0();
         Pt3dr aNorm  = aRes.Norm();
+
         std::vector<double> aVPds;
         double aSomDist = 0;
         int    aNbDist = 0;
-        for (int aKP=0 ; aKP<int(aVPts.size()) ; aKP++)
+
+        double aSeuilDist = 5 * aDistMoy;
+        while (aNbDist<3)
         {
-             double aDist = ElAbs(scal(aNorm,aVPts[aKP]-aP0));
-             double aPds = 0;
-             if (aDist < 5 * aDistMoy)
-             {
-                 aPds = sqrt(1/(1+ElSquare(aDist/(2*aDistMoy))));
-                 aSomDist += aDist;
-                 aNbDist++;
-             }
-             if (aVPondInit)
-             {
-                  aPds *= (*aVPondInit)[aKP];
-             }
-             aVPds.push_back(aPds);
+            aVPds.clear();
+            aSomDist = 0;
+            aNbDist = 0;
+            for (int aKP=0 ; aKP<int(aVPts.size()) ; aKP++)
+            {
+                 double aDist = ElAbs(scal(aNorm,aVPts[aKP]-aP0));
+                 double aPds = 0;
+                 if (aDist < aSeuilDist)
+                 {
+                     aPds = sqrt(1/(1+ElSquare(aDist/(2*aDistMoy))));
+                     aSomDist += aDist;
+                     aNbDist++;
+                 }
+                 if (aVPondInit)
+                 {
+                      aPds *= (*aVPondInit)[aKP];
+                 }
+                 aVPds.push_back(aPds);
+            }
+            aSeuilDist *= 2;
         }
         aRes = cElPlan3D(aVPts,&aVPds);
 
-        aDistMoy = aSomDist / aNbDist;
+        
+        aDistMoy = ElMax(aDistMin,aSomDist/aNbDist);
 
     }
 

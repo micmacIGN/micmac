@@ -109,6 +109,21 @@ class cSubGrAWSI : public ElSubGraphe<cAttrSomAWSI,cAttrArcAWSI>
         Pt2dr pt(tSomAWSI & aS) {return PtOfSomAWSI(aS);}
 };
 
+class cElemAppliSetFile
+{
+    public :
+       cElemAppliSetFile();
+       cElemAppliSetFile(const std::string &);
+       void Init(const std::string &);
+
+
+       std::string mFullName;
+       std::string mDir;
+       std::string mPat;
+       cInterfChantierNameManipulateur * mICNM;
+       const cInterfChantierNameManipulateur::tSet * mSetIm;
+};
+
 
 class cAppliWithSetImage
 {
@@ -144,13 +159,17 @@ class cAppliWithSetImage
       bool        mSym;
       bool        mShow;
       std::string mPb;
+/*
       std::string mFullName;
       std::string mDir;
       std::string mPat;
+*/
+      bool        mWithOri;
       std::string mOri;
       std::string mKeyOri;
-      cInterfChantierNameManipulateur * mICNM;
-      const cInterfChantierNameManipulateur::tSet * mSetIm;
+      cElemAppliSetFile mEASF;
+      // cInterfChantierNameManipulateur * mICNM;
+      // const cInterfChantierNameManipulateur::tSet * mSetIm;
 
       std::map<std::string,tSomAWSI *> mDicIm;
       tGrAWSI  mGrIm;
@@ -159,10 +178,16 @@ class cAppliWithSetImage
       double       mAverNbPix;
 
 
+
       double       mTetaBande;
       bool         mByEpi;
 
+      int NbAlti() const;
+      double AltiMoy() const;
+
    private :
+      int   mNbAlti;
+      double mSomAlti;
 
 };
 

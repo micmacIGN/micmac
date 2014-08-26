@@ -2,7 +2,10 @@
 #include "ui_Settings.h"
 #include "ui_Help.h"
 
-cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent), _ui(new Ui::SettingsDialog), pageHidden(false)
+cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent)
+  , _ui(new Ui::SettingsDialog)
+  , pageHidden(false)
+  , lineItemHidden(false)
 {
     _ui->setupUi(this);
 
@@ -10,7 +13,7 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(paren
 
     _parameters = params;
 
-    list<string> languages = ListOfVal(eEsperanto,"e");
+    list<string> languages = ListOfVal(eEsperanto,"");
     list<string>::const_iterator it = languages.begin();
     for (; it != languages.end(); it++)
         _ui->comboBox->addItem(QString((*it).c_str()));
@@ -18,6 +21,10 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(paren
     refresh();
 
     setUpdatesEnabled(true);
+
+    //temp
+    _ui->forceGray_checkBox->setVisible(false);
+    _ui->forceGray_checkBox->setEnabled(false);
 }
 
 cSettingsDlg::~cSettingsDlg()
@@ -31,30 +38,6 @@ void cSettingsDlg::setParameters(cParameters &params)
         _parameters = new cParameters();
 
      _parameters = &params;
-}
-
-void cSettingsDlg::on_NBF_x_spinBox_valueChanged(int value)
-{
-    int y = _parameters->getNbFen().y();
-    _parameters->setNbFen(QPoint(value, y));
-}
-
-void cSettingsDlg::on_NBF_y_spinBox_valueChanged(int value)
-{
-    int x = _parameters->getNbFen().x();
-    _parameters->setNbFen(QPoint(x, value));
-}
-
-void cSettingsDlg::on_WindowWidth_spinBox_valueChanged(int value)
-{
-    int y = _parameters->getSzFen().height();
-    _parameters->setSzFen(QSize(value, y));
-}
-
-void cSettingsDlg::on_WindowHeight_spinBox_valueChanged(int value)
-{
-    int x = _parameters->getSzFen().width();
-    _parameters->setSzFen(QSize(x, value));
 }
 
 void cSettingsDlg::on_LineThickness_doubleSpinBox_valueChanged(double val)
@@ -76,6 +59,13 @@ void cSettingsDlg::on_GammaDoubleSpinBox_valueChanged(double val)
     _parameters->setGamma(val);
 
     emit gammaChanged((float)val);
+}
+
+void cSettingsDlg::on_forceGray_checkBox_toggled(bool val)
+{
+    _parameters->setForceGray(val);
+
+    emit forceGray(val);
 }
 
 void cSettingsDlg::on_showMasks_checkBox_toggled(bool val)
@@ -135,17 +125,38 @@ void cSettingsDlg::hidePage()
 {
     pageHidden = true;
 
-    _ui->toolBox->widget(3)->hide();
-    _ui->toolBox->removeItem(3);
+    //hide page 2 (point creation mode)
+    _ui->toolBox->widget(2)->hide();
+    _ui->toolBox->removeItem(2);
 
+    //hide items in page 2 (other display settings)
     for (int aK=0; aK<  _ui->gridLayout_3->columnCount();++aK)
     {
+        //zoom factor in zoom window
         QLayoutItem * item0 = _ui->gridLayout_3->itemAtPosition(0, aK);
         if (item0) deleteChildWidgets(item0);
 
+        //prefix for automatic point creation
         QLayoutItem * item1 = _ui->gridLayout_3->itemAtPosition(3, aK);
         if (item1) deleteChildWidgets(item1);
     }
+}
+
+void cSettingsDlg::hideSaisieMasqItems()
+{
+    lineItemHidden = true;
+
+    //hide item in page 1 (other display settings)
+    for (int aK=0; aK < _ui->gridLayout->columnCount();++aK)
+    {
+        //line thickness
+        QLayoutItem * item0 = _ui->gridLayout->itemAtPosition(0, aK);
+        if (item0) deleteChildWidgets(item0);
+    }
+
+    //temp: bug en mode SaisieAppuis
+    _ui->showMasks_checkBox->setVisible(false);
+    _ui->showMasks_checkBox->setCheckable(false);
 }
 
 void cSettingsDlg::uiShowMasks(bool aBool)
@@ -212,13 +223,7 @@ void cSettingsDlg::on_cancelButton_clicked()
 
 void cSettingsDlg::refresh()
 {
-    _ui->NBF_x_spinBox->setValue(_parameters->getNbFen().x());
-    _ui->NBF_y_spinBox->setValue(_parameters->getNbFen().y());
-
-    _ui->WindowWidth_spinBox->setValue( _parameters->getSzFen().width());
-    _ui->WindowHeight_spinBox->setValue(_parameters->getSzFen().height());
-
-    _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
+    if (!lineItemHidden) _ui->LineThickness_doubleSpinBox->setValue(_parameters->getLineThickness());
     _ui->PointDiameter_doubleSpinBox->setValue(_parameters->getPointDiameter());
     _ui->GammaDoubleSpinBox->setValue(_parameters->getGamma());
     _ui->showMasks_checkBox->setChecked(_parameters->getShowMasks());
@@ -273,10 +278,11 @@ cParameters::cParameters():
     _lineThickness(2.f),
     _pointDiameter(2.f),
     _gamma(1.f),
+    _forceGray(false),
     _showMasks(false),
     _zoomWindow(3.f),
     _ptName(QString("100")),
-    _postFix(QString("_mask")),
+    _postFix(QString("_Masq")),
     _radius(50),
     _eType(eNSM_Pts),
     _sz(5.f),
@@ -293,6 +299,7 @@ cParameters& cParameters::operator =(const cParameters &params)
     _lineThickness  = params._lineThickness;
     _pointDiameter  = params._pointDiameter;
     _gamma          = params._gamma;
+    _forceGray      = params._forceGray;
     _showMasks      = params._showMasks;
 
     _zoomWindow     = params._zoomWindow;
@@ -318,6 +325,7 @@ bool cParameters::operator!=(cParameters &p)
             (p._lineThickness  != _lineThickness) ||
             (p._pointDiameter  != _pointDiameter) ||
             (p._gamma          != _gamma) ||
+            (p._forceGray      != _forceGray) ||
             (p._showMasks      != _showMasks) ||
             (p._zoomWindow     != _zoomWindow) ||
             (p._ptName         != _ptName)  ||
@@ -359,6 +367,7 @@ void cParameters::read()
      setLineThickness(  settings.value("linethickness", 2.f     ).toFloat());
      setPointDiameter(  settings.value("pointdiameter",0.8f      ).toFloat());
      setGamma(          settings.value("gamma",1.f              ).toFloat());
+     setForceGray(      settings.value("forceGray", false       ).toBool());
      setShowMasks(      settings.value("showMasks", false       ).toBool());
      settings.endGroup();
 
@@ -395,6 +404,7 @@ void cParameters::write()
      settings.setValue("linethickness", QString::number(_lineThickness,'f',1)  );
      settings.setValue("pointdiameter", QString::number(_pointDiameter,'f',1)  );
      settings.setValue("gamma",         QString::number(_gamma        ,'f',1)  );
+     settings.setValue("forceGray",     _forceGray  );
      settings.setValue("showMasks",     _showMasks  );
      settings.endGroup();
 
@@ -438,7 +448,7 @@ void cHelpDlg::populateTableView(const QStringList &shortcuts, const QStringList
 {
     QStandardItemModel* model = new QStandardItemModel(shortcuts.size(), 2, this);
 
-    model->setHorizontalHeaderItem(0, new QStandardItem(tr("Shortcut")));
+    model->setHorizontalHeaderItem(0, new QStandardItem(""));
     model->setHorizontalHeaderItem(1, new QStandardItem(tr("Action")));
 
     _ui->tableView->setModel(model);
@@ -449,6 +459,13 @@ void cHelpDlg::populateTableView(const QStringList &shortcuts, const QStringList
     {
         QStandardItem *it0 = new QStandardItem(shortcuts[aK]);
         QStandardItem *it1 = new QStandardItem(actions[aK]);
+
+        if (actions[aK].isEmpty())
+        {
+            QFont theFont = it0->font();
+            theFont.setBold(true);
+            it0->setFont(theFont);
+        }
 
         it0->setFlags(it0->flags() & ~Qt::ItemIsEditable);
         it1->setFlags(it1->flags() & ~Qt::ItemIsEditable);
@@ -489,11 +506,11 @@ void cHelpDlg::on_okButton_clicked()
 string eToString(const eLANG &anObj)
 {
     if (anObj==eEnglish)
-       return  "eEnglish";
+       return  QObject::tr("English").toStdString();
     if (anObj==eFrench)
-       return  "eFrench";
+       return  QObject::tr("French").toStdString();
     if (anObj==eSpanish)
-       return  "eSpanish";
+       return  QObject::tr("Spanish").toStdString();
     /*if (anObj==eChinese)
        return  "eChinese";
     if (anObj==eArabic)

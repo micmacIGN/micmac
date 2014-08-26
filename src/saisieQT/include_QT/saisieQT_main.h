@@ -6,11 +6,12 @@
 
 #include "QT_interface_Elise.h"
 
-#include "Elise_QT.h"
+#include "general/visual_mainwindow.h"
+
 
 using namespace std;
 
-void initSettings(QSettings &settings, Pt2di aSzWin, Pt2di aNbFen, bool init);
+void updateSettings(QSettings &settings, Pt2di aSzWin, Pt2di aNbFen, bool aForceGray);
 
 extern void SaisieAppuisInit(int argc, char ** argv,
                              Pt2di &aSzW,

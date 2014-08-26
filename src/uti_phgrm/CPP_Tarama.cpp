@@ -53,7 +53,21 @@ void Banniere_Tarama()
  // std::cout << "*          M
 }
 
-int Tarama_main(int argc,char ** argv)
+class cAppliTarama : public cAppliWithSetImage
+{
+     public :
+         cAppliTarama(int argc,char ** argv);
+
+         int mResult;
+     private  :
+};
+
+
+
+
+
+cAppliTarama::cAppliTarama(int argc,char ** argv) :
+    cAppliWithSetImage(argc-1,argv+1,0)
 {
     NoInit = "XXXXXXXXXX";
 
@@ -67,6 +81,7 @@ int Tarama_main(int argc,char ** argv)
     std::string DirOut = "TA";
     double   aZMoy = 0;
     int    aKNadir = -1;
+    double aIncidMax = 1e5;
 
     ElInitArgMain
     (
@@ -79,6 +94,7 @@ int Tarama_main(int argc,char ** argv)
                     << EAM(DirOut,"Out",true,"Directory for output (Deg=TA)")
                     << EAM(aZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(aKNadir,"KNadir",true,"KBest image or Nadir (when exist)")
+                    << EAM(aIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
     );
 
     if (!MMVisualMode)
@@ -102,6 +118,12 @@ int Tarama_main(int argc,char ** argv)
                 + std::string(" +DirMEC=") + DirOut
                 ;
 
+        if (EAMIsInit(&aIncidMax))
+        {
+            aCom = aCom + " +DoIncid=true +IncidMax=" + ToString(aIncidMax) + " " + " +ZMoy=" + ToString(AltiMoy()) + " " ;
+;
+        }
+
         if (EAMIsInit(&aKNadir))
             aCom = aCom + " +KBestMasqNadir=" + ToString(aKNadir);
 
@@ -117,7 +139,8 @@ int Tarama_main(int argc,char ** argv)
             if (RepereIsAnam(aDir+Repere,IsOrthoXCste))
             {
                 aCom =    aCom
-                        +  std::string(" +FileAnam=") + "MM-Anam.xml"
+                        +  std::string(" +DoAnam=true ")
+                        +  std::string(" +DoIncid=true ")
                         +  std::string(" +ParamAnam=") + Repere;
             }
             else
@@ -127,13 +150,21 @@ int Tarama_main(int argc,char ** argv)
         }
 
         std::cout << "Com = " << aCom << "\n";
-        int aRes = system_call(aCom.c_str());
+        mResult = system_call(aCom.c_str());
 
-        return aRes;
     }
-    else return EXIT_SUCCESS;
+    else 
+    {
+       mResult = EXIT_SUCCESS;
+    }
 }
 
+int Tarama_main(int argc,char ** argv)
+{
+   cAppliTarama anAppli(argc,argv);
+
+   return  anAppli.mResult;
+}
 
 
 

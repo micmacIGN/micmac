@@ -10,6 +10,7 @@ set(uti_files_Src_Files
     ${UTI_FILES_DIR}/CPP_TestMTD.cpp
     ${UTI_FILES_DIR}/CPP_TestCmds.cpp
     ${UTI_FILES_DIR}/CPP_Apero2PMVS.cpp
+    ${UTI_FILES_DIR}/CPP_Apero2Meshlab.cpp
     ${UTI_FILES_DIR}/CPP_GenHeadTifTile.cpp
     ${UTI_FILES_DIR}/CPP_Ori2Xml.cpp
     ${UTI_FILES_DIR}/CPP_Prep4masq.cpp
@@ -20,6 +21,6 @@ set(uti_files_Src_Files
 SOURCE_GROUP(uti_files FILES ${uti_files_Src_Files})
 
 set(Elise_Src_Files
-	${Elise_Src_Files}
-	${uti_files_Src_Files}
+        ${Elise_Src_Files}
+        ${uti_files_Src_Files}
 )

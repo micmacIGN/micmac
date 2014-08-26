@@ -153,7 +153,8 @@ cPoseCam::cPoseCam
     mFidExist     (false),
     mLastEstimProfIsInit (false),
     mLasEstimtProf       (-1),
-    mCdtImSec            (0)
+    mCdtImSec            (0),
+    mCamNonOrtho         (0)
 {
     mPrec = this;
     mNext = this;
@@ -435,6 +436,7 @@ void cPoseCam::SetRattach(const std::string & aNameRat)
 
 void    cPoseCam::InitAvantCompens()
 {
+    AssertHasNotCamNonOrtho();
     if (PMoyIsInit())
     {
        mLasEstimtProf =   ProfMoyHarmonik();
@@ -447,8 +449,24 @@ void    cPoseCam::InitAvantCompens()
 
 const CamStenope *  cPoseCam::CurCam() const
 {
+   if (mCamNonOrtho) return mCamNonOrtho;
    return  mCF->CameraCourante() ;
 }
+CamStenope *  cPoseCam::NC_CurCam() 
+{
+   if (mCamNonOrtho) return mCamNonOrtho;
+   return  mCF->NC_CameraCourante() ;
+}
+
+
+
+
+CamStenope *  cPoseCam::DupCurCam() const 
+{
+   if (mCamNonOrtho) return mCamNonOrtho;
+   return  mCF->DuplicataCameraCourante() ;
+}
+
 
 void    cPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
 {
@@ -456,7 +474,7 @@ void    cPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
    aPds /= (mAppli.Param().LimSupBSurHPMoy().Val() - mAppli.Param().LimInfBSurHPMoy().Val());
    if (aPds<0) return;
 
-    const CamStenope * aCS = mCF->CameraCourante() ;
+    const CamStenope * aCS = CurCam() ;
     if (mTMasqH)
     {
       Pt2di aPIm =  round_ni(aCS->R3toF2(aP));
@@ -694,6 +712,7 @@ void  cPoseCam::AddLink(cPoseCam * aPC)
 
 void cPoseCam::SetCurRot(const ElRotation3D & aRot)
 {
+    AssertHasNotCamNonOrtho();
     mCF->SetCurRot(aRot);
 }
 
@@ -885,12 +904,16 @@ else
        );
    }
 
+    bool isAPC =  mAppli.Param().IsAperiCloud().Val();
+    bool initFromBD = false;
+
     if (mPCI->PosId().IsInit())
     {
          aRot =  ElRotation3D(Pt3dr(0,0,0),0,0,-PI);
     }
     else if(mPCI->PosFromBDOrient().IsInit())
     {
+        initFromBD = true;
 	const std::string & anId = mPCI->PosFromBDOrient().Val();
         aRot =mAppli.Orient(anId,mName);
 	cObserv1Im<cTypeEnglob_Orient>  &  anObs = mAppli.ObsOrient(anId,mName);
@@ -1309,6 +1332,7 @@ else
        ELISE_ASSERT(false,"cPoseCam::Alloc");
     }
 
+
 //GUIMBAL
 
     double aLMG = mAppli.Param().LimModeGL().Val();
@@ -1319,6 +1343,14 @@ else
     }
 
     mCF->SetCurRot(aRot);
+
+    if (isAPC)
+    {
+       CamStenope* aCS =    (mCalib->PIF().DupCurPIF());
+       aCS->SetOrientation(aRot.inv());
+       SetCamNonOrtho(aCS);
+       ELISE_ASSERT(initFromBD,"IsAperiCloud requires init from BD");
+    }
 
 
     if (aNZPl!="")
@@ -1487,7 +1519,7 @@ void cPoseCam::InitIm()
 
 bool cPoseCam::PtForIm(const Pt3dr & aPTer,const Pt2di & aRab,bool Add)
 {
-    const CamStenope * aCS = mCF->CameraCourante() ;
+    const CamStenope * aCS = CurCam() ;
     Pt2dr aPIm =  aCS->R3toF2(aPTer);
     
     Box2di aCurBIm(round_down(aPIm)-aRab,round_up(aPIm)+aRab);
@@ -1570,7 +1602,7 @@ void cPoseCam::CloseAndLoadIm(const Pt2di & aRab)
 
     {
        Pt2di aP0 = Sup(mBoxIm._p0-aRab,Pt2di(0,0));
-       Pt2di aP1 = Inf(mBoxIm._p1+aRab,mCF->CameraCourante()->Sz());
+       Pt2di aP1 = Inf(mBoxIm._p1+aRab,CurCam()->Sz());
        mBoxIm = Box2di(aP0,aP1);
     }
      
@@ -1594,7 +1626,7 @@ void cPoseCam::CloseAndLoadIm(const Pt2di & aRab)
     //   ACCESSEURS 
 
 cCalibCam * cPoseCam::Calib() { return mCalib;}
-cCameraFormelle * cPoseCam::CF() {return mCF;}
+cCameraFormelle * cPoseCam::CamF() {return mCF;}
 const  std::string & cPoseCam::Name() const {return mName;}
 double cPoseCam::AltiSol() const {return mAltiSol;}
 double cPoseCam::Profondeur() const {return mProfondeur;}
@@ -2168,6 +2200,32 @@ void cPoseCam::AddMajick(cMajickChek & aMC) const
 {
     aMC.Add(CurRot());
 }
+
+   //   CamNonOrtho 
+
+void  cPoseCam::SetCamNonOrtho(CamStenope * aCS)
+{
+    AssertHasNotCamNonOrtho();
+    mCamNonOrtho = aCS;
+}
+CamStenope *  cPoseCam::GetCamNonOrtho() const
+{
+   AssertHasCamNonOrtho();
+   return mCamNonOrtho;
+}
+bool cPoseCam::HasCamNonOrtho() const
+{
+   return mCamNonOrtho != 0;
+}
+void  cPoseCam::AssertHasCamNonOrtho() const
+{
+    ELISE_ASSERT(HasCamNonOrtho(),"Camera Non Ortho expected");
+}
+void  cPoseCam::AssertHasNotCamNonOrtho() const
+{
+    ELISE_ASSERT(! HasCamNonOrtho(),"Unexpected Camera Non Ortho");
+}
+
 
 
 

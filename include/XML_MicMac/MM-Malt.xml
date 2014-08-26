@@ -117,7 +117,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
     <Symb>  DoAnam=false </Symb>
-    <Symb>  IncidMax=false </Symb>
+    <Symb>  ParamAnam=XXXXX </Symb>
+    <Symb>  IncidMax=1.05 </Symb>
+    <Symb>  DoIncid=false </Symb>
 
 
     <eSymb>  NotZoom8="Neq 8 ${ZoomFinal}" </eSymb>
@@ -169,6 +171,11 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb> ModeOriIm=eGeomImageOri  </Symb>  
      <Symb> ModeOrientStd=${Conik}     </Symb>   
      <Symb> MSDense=true     </Symb>   
+
+     <Symb> SpecDirFaisc="false" </Symb>
+     <Symb> DirFaisX="XXXXX" </Symb>
+     <Symb> DirFaisY="XXXXX" </Symb>
+     <Symb> DirFaisZ="XXXXX" </Symb>
 
      <eSymb> UseMasqImGlobOrLoc= Or ${UseMasqPerIm} ${UseGlobMasqPerIm} </eSymb>
 
@@ -511,6 +518,13 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 <!--  M4 : Specify the output geometry -->
 <Section_Results >
+
+    <#WHEN  VTEST=${SpecDirFaisc}>
+         <X_DirPlanInterFaisceau> ${DirFaisX} </X_DirPlanInterFaisceau>
+         <Y_DirPlanInterFaisceau> ${DirFaisY} </Y_DirPlanInterFaisceau>
+         <Z_DirPlanInterFaisceau> ${DirFaisZ} </Z_DirPlanInterFaisceau>
+    </#WHEN>
+
     <GeomMNT> ${Geom}  </GeomMNT> 
     <RepereCorrel>   ${Repere}  </RepereCorrel>
     <IncludeFileLoc>  ${FileAnam} </IncludeFileLoc>
@@ -528,11 +542,21 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         </DoNothingBut>
     </#WHEN>
 
-    <#WHEN VTEST=${DoAnam}>
+
+    <#WHEN VTEST=${DoIncid}>
           <AnamorphoseGeometrieMNT>
-              <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+               <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+                <#WHEN VTEST=${DoAnam}>
+                   <AnamSurfaceAnalytique>
+                            <NameFile> ${ParamAnam}</NameFile>
+                            <Id> TheSurf </Id>
+                      </AnamSurfaceAnalytique>
+                      <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+                </#WHEN>
           </AnamorphoseGeometrieMNT>
     </#WHEN>
+
+
 
 <!--
     <RepereCorrel>  Repere.xml </RepereCorrel>

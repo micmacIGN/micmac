@@ -4,28 +4,26 @@
 
 using namespace std;
 
-typedef Siftator::SiftPoint SiftPoint;
-
 //
 // AnnArray class
 //
 
 // fills m_annArray with pointers to i_array's data
-void AnnArray::set( vector<SiftPoint> &i_array, SIFT_ANN_SEARCH_MODE i_mode )
+void AnnArray::set( vector<DigeoPoint> &i_array, SIFT_ANN_SEARCH_MODE i_mode )
 {
 	m_annArray.resize( i_array.size() );
 	m_searchMode = i_mode;
 	if ( i_array.size()==0 ) return;
     // array sizes are supposed to be equal
     ANNpoint  *itANN  = m_annArray.data();
-    SiftPoint *itSift = &i_array[0];
+    DigeoPoint *itSift = &i_array[0];
     size_t     iPoint = m_annArray.size();
     switch( i_mode )
     {
 		case SIFT_ANN_DESC_SEARCH:
 			// fills annArray for search based on descriptors
 			while ( iPoint-- )
-				( *itANN++ ) = ( itSift++ )->descriptor;
+				( *itANN++ ) = ( itSift++ )->descriptor(0);
 			return;
 		case SIFT_ANN_2D_SEARCH:
 			// fills annArray for search based on 2d coordinates
@@ -63,9 +61,9 @@ void AnnSearcher::setNbNeighbours( int i_nbNeighbours )
 
 void AnnSearcher::createTree( AnnArray &i_dataArray )
 {
-    clearTree();
+	clearTree();
 
-    int spaceSize = -1; // dimension of space
+	int spaceSize = -1; // dimension of space
 
 	switch ( i_dataArray.getSearchMode() )
 	{
@@ -79,8 +77,8 @@ void AnnSearcher::createTree( AnnArray &i_dataArray )
 	#ifdef _DEBUG
 		if ( i_dataArray.size()==0 ) cerr << "ERROR: AnnSearcher::createTree called with an empty array, cannot construct a tree" << endl;
 	#endif
-            
-    m_kdTree = new ANNkd_tree( i_dataArray.getANNpointArray(), i_dataArray.size(), spaceSize );
+
+	m_kdTree = new ANNkd_tree( i_dataArray.getANNpointArray(), i_dataArray.size(), spaceSize );
 }
 
 void AnnSearcher::search( ANNpoint i_point )
@@ -100,7 +98,7 @@ void AnnSearcher::search( ANNpoint i_point )
 
 // perform a matching between the points of the two lists
 // this function may change the search mode of i_arrayData
-void match_lebris( vector<SiftPoint> &i_array0, vector<SiftPoint> &i_array1, std::list<V2I> &o_matchingCouples,
+void match_lebris( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1, std::list<V2I> &o_matchingCouples,
                    double i_closenessRatio, int i_nbMaxPriPoints )
 {
     o_matchingCouples.clear();
@@ -120,13 +118,13 @@ void match_lebris( vector<SiftPoint> &i_array0, vector<SiftPoint> &i_array1, std
     const ANNidx *neighIndices   = anns.getNeighboursIndices();
     const ANNdist *neighDistances = anns.getNeighboursDistances();
 
-	SiftPoint *itQuery = &i_array1[0];
-	int        nbQueries = i_array1.size(),
-			   iQuery;
+	DigeoPoint *itQuery = &i_array1[0];
+	int         nbQueries = i_array1.size(),
+	            iQuery;
 
 	for ( iQuery=0; iQuery<nbQueries; iQuery++ )
 	{
-		anns.search( itQuery->descriptor );
+		anns.search( itQuery->descriptor(0) );
 
 		#ifdef _DEBUG
 			if ( neighIndices[0]==-1 || neighIndices[1]==-1 )
@@ -141,15 +139,15 @@ void match_lebris( vector<SiftPoint> &i_array0, vector<SiftPoint> &i_array1, std
 }
 
 // print a list of matching points 2d coordinates
-bool write_matches_ascii( const std::string &i_filename, const vector<SiftPoint> &i_array0, const vector<SiftPoint> &i_array1, const list<V2I> &i_matchingCouples )
+bool write_matches_ascii( const std::string &i_filename, const vector<DigeoPoint> &i_array0, const vector<DigeoPoint> &i_array1, const list<V2I> &i_matchingCouples )
 {
 	ofstream f( i_filename.c_str() );
 	if ( !f ) return false;
 	f.precision(6);
     list<V2I>::const_iterator itCouple = i_matchingCouples.begin();
-    const SiftPoint *p0 = i_array0.data(),
-                    *q0 = i_array1.data(),
-                    *p, *q;
+    const DigeoPoint *p0 = i_array0.data(),
+                     *q0 = i_array1.data(),
+                     *p, *q;
     while ( itCouple!=i_matchingCouples.end() )
     {
         p = p0+itCouple->x;
@@ -160,19 +158,19 @@ bool write_matches_ascii( const std::string &i_filename, const vector<SiftPoint>
 }
 
 // unfold couples described in the i_matchedCoupleIndices list and split data in the two arrays io_array0, io_array1
-void unfoldMatchingCouples( vector<SiftPoint> &io_array0, vector<SiftPoint> &io_array1, const list<V2I> &i_matchedCoupleIndices )
+void unfoldMatchingCouples( vector<DigeoPoint> &io_array0, vector<DigeoPoint> &io_array1, const list<V2I> &i_matchedCoupleIndices )
 {
-    static vector<SiftPoint> array0, array1;
+	static vector<DigeoPoint> array0, array1;
 
-    size_t iCouple = i_matchedCoupleIndices.size();
+	size_t iCouple = i_matchedCoupleIndices.size();
 	array0.resize( iCouple );
 	array1.resize( iCouple );
 	if ( iCouple==0 ) return;
-    list<V2I>::const_iterator itCouple = i_matchedCoupleIndices.begin();
-    const SiftPoint *p0 = io_array0.data(),
-					*q0 = io_array1.data();
-    SiftPoint *itArray0 = &array0[0],
-              *itArray1 = &array1[0];
+	list<V2I>::const_iterator itCouple = i_matchedCoupleIndices.begin();
+	const DigeoPoint *p0 = io_array0.data(),
+	                 *q0 = io_array1.data();
+	DigeoPoint *itArray0 = &array0[0],
+	           *itArray1 = &array1[0];
     while ( iCouple-- )
     {
         *itArray0++ = p0[itCouple->x];
@@ -206,7 +204,7 @@ static inline int _count_A_in_B( const vector<int> &A, const vector<int> &B)
 
 // returns a vector of the i_nbNeighbours nearest neighbours (euclidean distance)
 // this method may change the search mode
-void getNeighbours( vector<SiftPoint> &i_array, vector<vector<ANNidx> > &o_neighbourhood, int i_nbNeighbours )
+void getNeighbours( vector<DigeoPoint> &i_array, vector<vector<ANNidx> > &o_neighbourhood, int i_nbNeighbours )
 {
     vector<ANNidx> neighbours( i_nbNeighbours );
 
@@ -223,7 +221,7 @@ void getNeighbours( vector<SiftPoint> &i_array, vector<vector<ANNidx> > &o_neigh
     vector<int>::iterator           itNeighbour;
     int                             iNeighbour, iQuery;
     vector<vector<int> >::iterator  itQueryNeighbourhood = o_neighbourhood.begin();
-    SiftPoint 						*itQuery             = &i_array[0];
+    DigeoPoint                     *itQuery              = &i_array[0];
     int                             nbQueries            = i_array.size();
     for ( iQuery=0; iQuery<nbQueries; iQuery++ )
     {
@@ -251,7 +249,7 @@ void getNeighbours( vector<SiftPoint> &i_array, vector<vector<ANNidx> > &o_neigh
 // check if more than i_ratio of a point's neighbours are homologue to its homologue's neighbours
 // if not, both the point and its homologue are erased
 // this function may change i_array0 and/or i_array1 search mode
-void neighbourFilter( vector<SiftPoint> &i_array0, vector<SiftPoint> &i_array1, list<V2I> &o_keptCouples, double i_ratio )
+void neighbourFilter( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1, list<V2I> &o_keptCouples, double i_ratio )
 {
     o_keptCouples.clear();
 
@@ -263,7 +261,8 @@ void neighbourFilter( vector<SiftPoint> &i_array0, vector<SiftPoint> &i_array1, 
     #endif
 
     int nbCouples = i_array0.size();
-    vector<int> neighbours( SIFT_ANN_DEFAULT_NB_NEIGHBOURS );
+    //vector<int> neighbours( SIFT_ANN_DEFAULT_NB_NEIGHBOURS );
+	vector<int> neighbours( SIFT_ANN_DEFAULT_NB_NEIGHBOURS+1 ); // TODO : voir pourquoi un point n'est pas toujours dans ses 8 plus proches voisins
     vector<vector<int> > neighbours0( nbCouples, neighbours ),
                          neighbours1( nbCouples, neighbours );
     getNeighbours( i_array0, neighbours0, SIFT_ANN_DEFAULT_NB_NEIGHBOURS );

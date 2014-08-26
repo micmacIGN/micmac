@@ -1,14 +1,9 @@
 #ifndef SAISIEQTWINDOW_H
 #define SAISIEQTWINDOW_H
 
-#include "StdAfx.h"
-
-#include "Engine.h"
 #include "GLWidgetSet.h"
 #include "Settings.h"
 #include "Tree.h"
-
-#include "Elise_QT.h"
 
 namespace Ui {
 class SaisieQtWindow;
@@ -43,6 +38,10 @@ public:
     void setLayout(uint sy);
 
     void loadPly(const QStringList& filenames);
+
+    void loadImages(const QStringList& filenames);
+
+    void loadCameras(const QStringList& filenames);
 
     void setUI();
 
@@ -90,7 +89,7 @@ public slots:
 
     void zoomFactor(int aFactor);
 
-    void closeAll();
+    void closeAll(bool checkBeforeClose = true);
 
     void closeCurrentWidget();
 
@@ -109,6 +108,9 @@ public slots:
     void setGamma(float);
 
     cParameters* getParams() { return _params; }
+
+    void updateSaveActions();
+    void resetSavedState();
 
 signals:
 
@@ -183,6 +185,8 @@ protected slots:
     void on_actionSave_as_triggered();
     void on_actionSave_selection_triggered();
     void on_actionSettings_triggered();
+
+    void on_menuFile_triggered();
 
     //Help Menu
     void on_actionHelpShortcuts_triggered();

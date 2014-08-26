@@ -6,7 +6,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
     Pt2di SzWP = Pt2di(900,700);
     std::string aFullName ="";
-    std::string aPost("Masq");
+    std::string aPost("_Masq");
     std::string aNameMasq ="";
     std::string aAttr="";
     double aGama=1.0;
@@ -46,15 +46,15 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             QString help =  app.applicationName() +" [filename] [option=]\n\n"
                     "* [filename] string\t: open file (image or ply or camera xml)\n\n"
                     "Options\n\n"
-                    "* [Name=SzW] integer\t: set window width (default=800)\n"
+                    "* [Name=SzW] Pt2di\t: set window size (default=[900,700])\n"
                     "* [Name=Post] string\t: change postfix output file (default=_Masq)\n"
                     "* [Name=Name] string\t: set output filename (default=input+_Masq)\n"
                     "* [Name=Gama] REAL\t: apply gamma to image\n"
                     "* [Name=Attr] string\t: string to add to postfix\n\n"
-                    "Example: mm3d " + app.applicationName() + " IMG.tif SzW=1200 Name=PLAN Gama=1.5\n\n"
+                    "Example: mm3d " + app.applicationName() + " IMG.tif SzW=[1200,800] Name=PLAN Gama=1.5\n\n"
                     "NB: \n"
                     "1: "+ app.applicationName() + " can be run without any argument\n"
-                    "2: visual interface for argument edition available with v" + app.applicationName() + "\n\n";
+                    "2: visual interface for argument edition available with command: mm3d v" + app.applicationName() + "\n\n";
 
             return helpMessage(app, help);
         }
@@ -68,7 +68,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             if (EAMIsInit(&aPost))
                 w.setPostFix(QString(aPost.c_str()));
             else
-                w.setPostFix("Masq");
+                w.setPostFix("_Masq");
 
             if (EAMIsInit(&aAttr))
                 w.setPostFix(w.getPostFix() + QString(aAttr.c_str()));

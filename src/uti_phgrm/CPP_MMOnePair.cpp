@@ -350,7 +350,7 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 
    std::string aComPly =    MMBinFile(MM3DStr)
                           + " Nuage2Ply "
-                          + mDir+LocDirMec2Im(mNameIm1,mNameIm2) + "NuageImProf_Chantier-Ori_Etape_Last.xml "
+                          +  mEASF.mDir+LocDirMec2Im(mNameIm1,mNameIm2) + "NuageImProf_Chantier-Ori_Etape_Last.xml "
                           + " Attr=" + mNameIm1
                           + " RatioAttrCarte=" + ToString(mZoomF)
                           + " Scale=" + ToString(mScalePly)
@@ -429,7 +429,7 @@ void cAppliMMOnePair::BasculeEpip(bool MasterIs1)
                                             + aBlk + aNamInitA
                                             + aBlk + aNamInitB
                                             + aBlk + mNameOriInit
-                                            + aBlk + " Dir=" + mDir
+                                            + aBlk + " Dir=" +  mEASF.mDir
                        ;
 //  mm3d TestLib RIE MVxxxx_MAP_6937.NEF MVxxxx_MAP_6938.NEF Basc
 
@@ -443,10 +443,10 @@ void cAppliMMOnePair::BasculeGround(bool MasterIs1)
     std::string aNamInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
     std::string aNamInitB = MasterIs1 ? mNameIm2Init : mNameIm1Init;
 
-    std::string aDirMatch = mDir + LocDirMec2Im(aNamA,aNamB);
+    std::string aDirMatch =  mEASF.mDir + LocDirMec2Im(aNamA,aNamB);
     std::string aNuageIn =  aDirMatch          + std::string("NuageImProf_Chantier-Ori_Etape_Last.xml");
-    std::string aNuageGeom =    mDir +  mBascMTD;
-    std::string aNuageTarget = mDir +  DirOfFile(mBascMTD) + mBascDEST + aNamInitA + "-" + aNamInitB + ".xml";
+    std::string aNuageGeom =     mEASF.mDir +  mBascMTD;
+    std::string aNuageTarget =  mEASF.mDir +  DirOfFile(mBascMTD) + mBascDEST + aNamInitA + "-" + aNamInitB + ".xml";
 
     std::string aCom =   MMBinFile(MM3DStr) + " NuageBascule "
                            + aBlk + aNuageIn
@@ -477,8 +477,8 @@ void cAppliMMOnePair::BasculeGround(bool MasterIs1)
 
 void cAppliMMOnePair::SymetriseMasqReentrant()
 {
-    std::string aDir1 = mDir+LocDirMec2Im(mNameIm1,mNameIm2);
-    std::string aDir2 = mDir+LocDirMec2Im(mNameIm2,mNameIm1);
+    std::string aDir1 =  mEASF.mDir+LocDirMec2Im(mNameIm1,mNameIm2);
+    std::string aDir2 =  mEASF.mDir+LocDirMec2Im(mNameIm2,mNameIm1);
     std::string aNPx = NamePx(mStepEnd);
     std::string aNAM = NameAutoM(mStepEnd);
 
@@ -527,8 +527,8 @@ void cAppliMMOnePair::GenerateMTDEpip(bool MasterIs1)
     {
        bool IsLast = (aStep==mStepEnd);
        std::string aNameStep = IsLast ? "Last" : ToString(aStep);
-       std::string aNameIn =  mDir+LocDirMec2Im(aNamA,aNamB) + "NuageImProf_Chantier-Ori_Etape_"+ ToString(aStep) +".xml";
-       std::string aNameOut =  mDir+LocDirMec2Im(aNamA,aNamB) + "NuageImProf_Chantier-Ori_Etape_"+ aNameStep +".xml";
+       std::string aNameIn =   mEASF.mDir+LocDirMec2Im(aNamA,aNamB) + "NuageImProf_Chantier-Ori_Etape_"+ ToString(aStep) +".xml";
+       std::string aNameOut =   mEASF.mDir+LocDirMec2Im(aNamA,aNamB) + "NuageImProf_Chantier-Ori_Etape_"+ aNameStep +".xml";
 
        cXML_ParamNuage3DMaille aNuage =  StdGetFromSI(aNameIn,XML_ParamNuage3DMaille);
        aNuage.Image_Profondeur().Val().Image() = NamePx(aStep);
@@ -554,7 +554,7 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
      std::string aPref = "AR"+ std::string(MasterIs1? "1" : "2") + "-" + aNameInitA + "-" + aNameInitB;
 
      int aZoom = mVZoom[aStep];
-     std::string aName = mDir+LocDirMec2Im(mNameIm1,mNameIm2)+"Z_Num"+ToString(aStep)+"_DeZoom"+ToString(aZoom)+"_LeChantier.xml";
+     std::string aName =  mEASF.mDir+LocDirMec2Im(mNameIm1,mNameIm2)+"Z_Num"+ToString(aStep)+"_DeZoom"+ToString(aZoom)+"_LeChantier.xml";
      cFileOriMnt aFOM = StdGetFromPCP(aName,FileOriMnt);
      double aResol = aFOM.ResolutionAlti() / double ( aFOM.ResolutionPlani().x);
 
@@ -604,8 +604,8 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
            std::cout << "SauvMasqReentrant, M1=" << MasterIs1 << " S=" << aStep << " L=" << aLast << "\n";
            if (aLast)
            {
-               std::string aName = mDir + aPref + "_Glob.tif";
-               std::string aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
+               std::string aName =  mEASF.mDir + aPref + "_Glob.tif";
+               std::string aDest =  mEASF.mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
                std::cout << "    MMVVV " << aName << " => " << aDest << "\n";
            }
 
@@ -619,7 +619,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                                //   ("AutoMask_LeChantier_Num_" + ToString(aStep-1)+".tif")           :
                                mNameMasqFinal                                                    :
                                ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
-     aNameMasq =     mDir +  LocDirMec2Im(aNamA,aNamB) + aNameMasq;
+     aNameMasq =      mEASF.mDir +  LocDirMec2Im(aNamA,aNamB) + aNameMasq;
      std::string aNameNew = aPref + "_Masq1_Glob.tif";
      if (aLast)
      {
@@ -653,17 +653,17 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
      if (aLast)
      {
-           std::string aName = mDir + aPref + "_Glob.tif";
-           std::string aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
+           std::string aName =  mEASF.mDir + aPref + "_Glob.tif";
+           std::string aDest =  mEASF.mDir + LocDirMec2Im(aNamA,aNamB) + "Score-AR.tif";
 
 
            ELISE_fp::MvFile(aName,aDest);
 
-           aName = mDir + aPref + "_ImDistor_Glob.tif";
-           aDest = mDir + LocDirMec2Im(aNamA,aNamB) + "Distorsion.tif";
+           aName =  mEASF.mDir + aPref + "_ImDistor_Glob.tif";
+           aDest =  mEASF.mDir + LocDirMec2Im(aNamA,aNamB) + "Distorsion.tif";
            ELISE_fp::MvFile(aName,aDest);
 
-           ELISE_fp::RmFile(mDir + aPref + "*.tif");
+           ELISE_fp::RmFile( mEASF.mDir + aPref + "*.tif");
      }
 }
 
@@ -686,7 +686,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
      std::string aCom =     MMBinFile(MM3DStr)
                           + std::string(" MICMAC ")
                           +  XML_MM_File("MM-Epip.xml ")
-                          + " WorkDir="  + mDir
+                          + " WorkDir="  +  mEASF.mDir
                           + " +Im1="     + aNamA
                           + " +Im2="     + aNamB
                           + " +Zoom0="   + ToString(mZoom0)

@@ -21,12 +21,15 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
     maskedImg._m_image = new QImage( aNameFile );
 
-    bool rescaleImg = false;
+    // TODO: message d'erreur (non bloquant)
+    // foo: Can not read scanlines from a tiled image.
+    // see QTBUG-12636 => QImage load error on tiff tiled with lzw compression https://bugreports.qt-project.org/browse/QTBUG-12636
+    // bug Qt non resolu
+    // work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
+
     float scaleFactor = maskedImg._loadedImageRescaleFactor;
     if ( scaleFactor != 1.f )
     {
-        rescaleImg = true;
-
         QImageReader *reader = new QImageReader(aNameFile);
 
         QSize newSize = reader->size()*scaleFactor;
@@ -83,21 +86,27 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
     QFileInfo fi(aNameFile);
 
-    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif";
+    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif";
 
     maskedImg.setName(fi.fileName());
 
-    setFilenameOut(mask_filename);
+    loadMask(mask_filename, maskedImg);
+}
 
-    if (QFile::exists(mask_filename))
+void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> &maskedImg)
+{
+
+    setFilenameOut(aNameFile);
+
+    if (QFile::exists(aNameFile))
     {
         maskedImg._m_newMask = false;
 
-        if (rescaleImg)
+        if ( maskedImg._loadedImageRescaleFactor != 1.f )
         {
             maskedImg._m_mask = new QImage( maskedImg._m_image->size(), QImage::Format_Mono);
 
-            QImageReader *reader = new QImageReader(mask_filename);
+            QImageReader *reader = new QImageReader(aNameFile);
 
             reader->setScaledSize(maskedImg._m_image->size());
 
@@ -107,11 +116,11 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
         }
         else
         {
-            maskedImg._m_mask = new QImage( mask_filename );
+            maskedImg._m_mask = new QImage( aNameFile );
 
             if (maskedImg._m_mask->isNull())
             {
-                Tiff_Im imgMask( mask_filename.toStdString().c_str() );
+                Tiff_Im imgMask( aNameFile.toStdString().c_str() );
 
                 if( imgMask.can_elise_use() )
                 {
@@ -120,7 +129,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
                     delete maskedImg._m_mask;
                     maskedImg._m_mask = new QImage( w, h, QImage::Format_Mono);
-                    maskedImg._m_mask->fill(0);
+                    maskedImg._m_mask->fill(1);
 
                     Im2D_Bits<1> aOut(w,h,1);
                     ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
@@ -128,15 +137,13 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
                     for (int x=0;x< w;++x)
                         for (int y=0; y<h;++y)
                             if (aOut.get(x,y) == 1 )
-                                maskedImg._m_mask->setPixel(x,y,1);
+                                maskedImg._m_mask->setPixel(x,y,0);
 
-                    maskedImg._m_mask->invertPixels(QImage::InvertRgb);
                     *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
-
                 }
                 else
                 {
-                    QMessageBox::critical(NULL, "cLoader::loadMask","Cannot load mask image");
+                    QMessageBox::critical(NULL, "cLoader::loadMask",QObject::tr("Cannot load mask image"));
                 }
             }
             else
@@ -148,6 +155,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     }
     else
     {
+        //cout << "No mask found: " << aNameFile.toStdString().c_str() << endl;
         maskedImg._m_mask = new QImage(maskedImg._m_image->size(),QImage::Format_Mono);
         *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
         maskedImg._m_mask->fill(Qt::white);
@@ -178,11 +186,9 @@ void cLoader::checkGeoref(QString aNameFile, QMaskedImage &maskedImg)
     }
 }
 
-void cLoader::setFilenamesAndDir(const QStringList &strl)
+void cLoader::setFilenames(const QStringList &strl)
 {
     _FilenamesIn = strl;
-
-    setDir(strl);
 
     _FilenamesOut.clear();
 
@@ -210,38 +216,19 @@ void cLoader::setFilenameOut(QString str)
     _FilenamesOut.push_back(str);
 }
 
-void cLoader::setDir(const QStringList &list)
-{
-    QFileInfo fi(list[0]);
-
-    //set default working directory as first file subfolder
-    QDir Dir = fi.dir();
-    Dir.cdUp();
-
-    _Dir = Dir;
-}
-
-// File structure is assumed to be a typical Micmac workspace structure:
-// .ply files are in /MEC folder and orientations files in /Ori- folder
-// /MEC and /Ori- are in the main working directory (m_Dir)
-
 CamStenope* cLoader::loadCamera(QString aNameFile)
 {
-    string DirChantier = (_Dir.absolutePath()+ QDir::separator()).toStdString();
-    string filename    = aNameFile.toStdString();
+    QFileInfo fi(aNameFile);
+    string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
 
     #ifdef _DEBUG
         cout << "DirChantier : " << DirChantier << endl;
         cout << "filename : "    << filename << endl;
     #endif
 
-    QFileInfo fi(aNameFile);
-
-    _FilenamesOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_Masq.tif");
-
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
-    return CamOrientGenFromFile(filename.substr(DirChantier.size(),filename.size()),anICNM);
+    return CamOrientGenFromFile(fi.fileName().toStdString(),anICNM);
 }
 
 //****************************************
@@ -249,7 +236,8 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
 cEngine::cEngine():
     _Loader(new cLoader),
-    _Data(new cData)
+    _Data(new cData),
+    _scaleFactor(1.f)
 {}
 
 cEngine::~cEngine()
@@ -269,10 +257,11 @@ void cEngine::loadClouds(QStringList filenames, int* incre)
     _Data->computeBBox();
 }
 
-void cEngine::loadCameras(QStringList filenames)
+void cEngine::loadCameras(QStringList filenames, int *incre)
 {
     for (int i=0;i<filenames.size();++i)
     {
+         if (incre) *incre = 100.0f*(float)i/filenames.size();
         _Data->addCamera(_Loader->loadCamera(filenames[i]));
     }
 
@@ -296,108 +285,12 @@ bool cEngine::extGLIsSupported(const char* strExt)
 #endif
 }
 
-void cEngine::loadImages(QStringList filenames)
+void cEngine::loadImages(QStringList filenames, int* incre)
 {
-
-
-    int maxTexture;
-
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
-
-    int widthMax              = 0;
-    int heightMax             = 0;
-
-    //int sizeMemoryTexture_kb    = 0;
-
-
-    QString  sGLVendor((char*)glGetString(GL_VENDOR));
-
-    // GPU Model
-
-    int GPUModel = NOMODEL;
-
-    if ( sGLVendor.contains("AMD"))
-        GPUModel = AMD;
-    else if ( sGLVendor.contains("ATI"))
-        GPUModel = ATI;
-    else if ( sGLVendor.contains("NVIDIA"))
-        GPUModel = NVIDIA;
-    else if ( sGLVendor.contains("INTEL"))
-        GPUModel = INTEL;
-
-    GLint cur_avail_mem_kb      = 0;
-
-    switch (GPUModel) {
-    case NVIDIA:
-        if(extGLIsSupported("GL_NVX_gpu_memory_info"))
-        {
-            glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
-        }
-        break;
-    case ATI:
-        //TODO A RE TESTER
-        if(extGLIsSupported("GL_ATI_meminfo"))
-            glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
-        break;
-    case AMD:
-        if(extGLIsSupported("GL_ATI_meminfo"))
-            glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
-        break;
-    default:
-        cur_avail_mem_kb = 0;
-        break;
-    }
-
-    //printf("%s %d\n",sGLVendor.toStdString().c_str(),cur_avail_mem_kb/1024);
-
     for (int i=0;i<filenames.size();++i)
     {
-        QSize imageSize = QImageReader(filenames[i]).size();
-
-        widthMax  = max(imageSize.width(),widthMax);
-        heightMax = max(imageSize.height(),heightMax);
-
-        //sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
-    }
-
-    int maxImagesDraw = min(_params->getNbFen().x()*_params->getNbFen().y(),filenames.size());
-
-    widthMax    *= maxImagesDraw;
-    heightMax   *= maxImagesDraw;
-
-    //sizeMemoryTexture_kb = widthMax*heightMax*4/1024;
-
-    //cur_avail_mem_kb = 5 * 1024;
-
-    //float scaleFactorVRAM = 1.f;
-    // TODO delete texture car il y a un fuite dans la VRAM!!!
-
-//    if(cur_avail_mem_kb !=0)
-//    {
-//        // TODO GERER le MASK... car pas forcememt afficher
-//        sizeMemoryTexture_kb *= 2; // Image + masque
-//        if(sizeMemoryTexture_kb > cur_avail_mem_kb)
-//        {
-//            scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
-//        }
-//    }
-
-    float scaleFactor     = 1.f;
-
-    if ( widthMax > maxTexture || heightMax > maxTexture )
-    {
-        QSize totalSize(widthMax, heightMax);
-
-        totalSize.scale(QSize(maxTexture,maxTexture), Qt::KeepAspectRatio);
-
-        scaleFactor = ((float) totalSize.width()) / widthMax;
-    }
-
-    //scaleFactor = min(scaleFactor,scaleFactorVRAM); // TODO A GERER
-
-    for (int i=0;i<filenames.size();++i)
-    {
-        loadImage(filenames[i], scaleFactor);
+        if (incre) *incre = 100.0f*(float)i/filenames.size();
+        loadImage(filenames[i], _scaleFactor);
     }
 }
 
@@ -410,16 +303,22 @@ void  cEngine::loadImage(QString imgName, float scaleFactor)
     _Data->pushBackMaskedImage(maskedImg);
 }
 
-void cEngine::reloadImage(int appMode, int aK)
+/*void cEngine::reloadImage(int appMode, int aK)
 {
-    QString imgName = getFilenamesIn()[aK];
-
     QMaskedImage maskedImg(_params->getGamma());
 
-    _Loader->loadImage(imgName, maskedImg);
+    _Loader->loadImage(getFilenamesIn()[aK], maskedImg);
 
     if (aK < _Data->getNbImages())
         _Data->getMaskedImage(aK) = maskedImg;
+
+    reallocAndSetGLData(appMode, *_params, aK);
+}*/
+
+void cEngine::reloadMask(int appMode, int aK)
+{
+    if (aK < _Data->getNbImages())
+        _Loader->loadMask(getFilenamesOut()[aK], _Data->getMaskedImage(aK));
 
     reallocAndSetGLData(appMode, *_params, aK);
 }
@@ -481,9 +380,9 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     if (!isFirstAction)
         _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
 
-    QImage pMask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
+    QImage Mask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
 
-    if (!pMask.isNull())
+    if (!Mask.isNull())
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
@@ -491,18 +390,18 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 
         if (scaleFactor != 1.f)
         {
-            int width  = (int) ((float) pMask.width() / scaleFactor);
-            int height = (int) ((float) pMask.height() / scaleFactor);
+            int width  = (int) ((float) Mask.width() / scaleFactor);
+            int height = (int) ((float) Mask.height() / scaleFactor);
 
-            pMask = pMask.scaled(width, height,Qt::KeepAspectRatio);
+            Mask = Mask.scaled(width, height,Qt::KeepAspectRatio);
         }
 
-        pMask.save(aOut);
+        Mask.save(aOut);
 
         cFileOriMnt anOri;
 
         anOri.NameFileMnt()		= aOut.toStdString();
-        anOri.NombrePixels()	= Pt2di(pMask.width(),pMask.height());
+        anOri.NombrePixels()	= Pt2di(Mask.width(),Mask.height());
         anOri.OriginePlani()	= Pt2dr(0,0);
         anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
         anOri.OrigineAlti()		= 0.0;
@@ -510,10 +409,13 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
         anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
 
         MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
+
+        if (!isFirstAction)
+            _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
     }
     else
     {
-        QMessageBox::critical(NULL, "cEngine::doMaskImage","pMask is Null");
+        QMessageBox::critical(NULL, "cEngine::doMaskImage","Mask is Null");
     }
 }
 
@@ -582,6 +484,127 @@ cGLData* cEngine::getGLData(int WidgetIndex)
     }
     else
         return NULL;
+}
+
+void cEngine::computeScaleFactor(QStringList const &filenames)
+{
+
+#if ELISE_QT_VERSION == 5
+#ifdef COMPUTE_AVAILABLEVRAM
+    if (QGLContext::currentContext())
+    {
+
+        QString  sGLVendor((char*)glGetString(GL_VENDOR));
+
+        // GPU Model
+
+        int GPUModel = NOMODEL;
+
+        if ( sGLVendor.contains("AMD"))
+            GPUModel = AMD;
+        else if ( sGLVendor.contains("ATI"))
+            GPUModel = ATI;
+        else if ( sGLVendor.contains("NVIDIA"))
+            GPUModel = NVIDIA;
+        else if ( sGLVendor.contains("INTEL"))
+            GPUModel = INTEL;
+
+        GLint cur_avail_mem_kb      = 0;
+
+        switch (GPUModel)
+        {
+        case NVIDIA:
+            if(extGLIsSupported("GL_NVX_gpu_memory_info"))
+            {
+                glGetIntegerv(0x9049/*GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX*/,&cur_avail_mem_kb);
+            }
+            break;
+        case ATI: //TODO A RE TESTER
+        case AMD:
+            if(extGLIsSupported("GL_ATI_meminfo"))
+                glGetIntegerv(0x87FD/*GL_TEXTURE_FREE_MEMORY_ATI*/,&cur_avail_mem_kb);
+            break;
+        default:
+            cur_avail_mem_kb = 0;
+            break;
+        }
+
+        //cout << sGLVendor.toStdString().c_str() << " - current available memory " << cur_avail_mem_kb/1024 << " MB" << endl;
+
+        int sizeMemoryTexture_kb = 0;
+
+        for (int i=0;i<filenames.size();++i)
+        {
+            QSize imageSize = QImageReader(filenames[i]).size();
+
+            sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
+        }
+
+        //sizeMemoryTexture_kb = widthMax*heightMax*4/1024;
+
+        //cur_avail_mem_kb = 5 * 1024;
+
+        /*float scaleFactorVRAM = 1.f;
+        // TODO delete texture car il y a un fuite dans la VRAM!!!
+
+        if(cur_avail_mem_kb !=0)
+        {
+            // TODO GERER le MASK... car pas forcememt afficher
+            sizeMemoryTexture_kb *= 2; // Image + masque
+            if(sizeMemoryTexture_kb > cur_avail_mem_kb)
+            {
+                scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
+            }
+        }*/
+    }
+    else
+        cout << "No GLContext" << endl;
+
+#endif //COMPUTE_AVAILABLEVRAM
+#endif
+
+    int widthMax              = 0;
+    int heightMax             = 0;
+
+    for (int i=0;i<filenames.size();++i)
+    {
+        QSize imageSize = QImageReader(filenames[i]).size();
+
+        widthMax  = max(imageSize.width(),widthMax);
+        heightMax = max(imageSize.height(),heightMax);
+    }
+
+    //int maxImagesDraw = min(_params->getNbFen().x()*_params->getNbFen().y(),filenames.size());
+    int maxImagesByRow = min(_params->getNbFen().x(),filenames.size());
+    int maxImagesByCol = min(_params->getNbFen().y(),filenames.size());
+
+   // widthMax    *= maxImagesDraw;
+   // heightMax   *= maxImagesDraw;
+
+    widthMax    *= maxImagesByRow;
+    heightMax   *= maxImagesByCol;
+
+    if ( widthMax > _glMaxTextSize || heightMax > _glMaxTextSize )
+    {
+        QSize totalSize(widthMax, heightMax);
+
+        totalSize.scale(QSize(_glMaxTextSize,_glMaxTextSize), Qt::KeepAspectRatio);
+
+        _scaleFactor = ((float) totalSize.width()) / widthMax;
+
+        //cout << "scale factor = " << scaleFactor << endl;
+    }
+
+    //scaleFactor = min(scaleFactor,scaleFactorVRAM); // TODO A GERER
+
+    if (_scaleFactor != 1.f)
+    {
+        QString msg = "Rescaling images with " + QString::number(_scaleFactor,'f', 3) + " factor - tip: use smaller NbF";
+        QMessageBox* msgBox = new QMessageBox(QMessageBox::Warning, QObject::tr("GL_MAX_TEXTURE_SIZE exceeded"),  msg);
+        msgBox->setWindowFlags(Qt::WindowStaysOnTopHint);
+
+        msgBox->exec();
+    }
 }
 
 

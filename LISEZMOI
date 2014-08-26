@@ -77,8 +77,10 @@ le script, si vous vous trouvez dans le repertoire "Boudha" issu du fichier zip,
 	Il s'agit du meme exemple Boudha que dans la documentation. Editez les fichiers PLY a l'aide d'un viewer comme meshlab pour verifier que
 les resultats sont coherents.
 
-Note diverses
+Notes diverses
 
-	Si vous souhaiter ajouter le chemin du repertoire "bin" dans la variable d'environnement PATH afin de pouvoir utiliser les commandes de
-Micmac a partir de n'importe quel repertoire sans avoir a specifier son chemin, il n'est pas necessaire d'y ajouter le chemin du repertoire
+	Si vous souhaiter utiliser les commandes de Micmac a partir de n'importe quel repertoire sans avoir a specifier son chemin, il faut ajouter le chemin du repertoire "bin" dans la variable d'environnement PATH. Il n'est pas necessaire d'y ajouter le chemin du repertoire
 "binaire-aux".
+	Sous Linux / MacOS, pour utiliser les outils QT, ajouter le chemin du répertoire "lib" dans LD_LIBRARY_PATH, dans le fichier .bashrc comme suit: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/micmac/lib/
+	Sous MacOSX, si vous voulez utiliser les outils QT avec les binaires précompilés disponibles sur logiciels.ign.fr, vous devez installer les librairies Qt pour Mac depuis http://http://download.qt-project.org/archive/qt/4.8/4.8.4/  qt-opensource-mac-4.8.4.dmg
+

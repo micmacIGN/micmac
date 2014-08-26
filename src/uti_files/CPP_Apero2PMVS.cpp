@@ -203,7 +203,9 @@ int Apero2PMVS_main(int argc,char ** argv)
                     << EAMC(aOri,"Orientation name", eSAM_IsExistDirOri),
         LArgMain()
                 );
-
+	string aPattern, aDir;
+	SplitDirAndFile(aDir, aPattern, aFullPattern);
+	StdCorrecNameOrient(aOri, aDir);
     Apero2PMVS(aFullPattern,aOri);
 
     return EXIT_SUCCESS;

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1525]) = {
+const char * (theNameVar_ParamApero[1538]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -986,6 +986,19 @@ const char * (theNameVar_ParamApero[1525]) = {
 "                                        <NameRef Nb=\"1\" Type=\"std::string\"> </NameRef>   \n",
 "                                   </BascOnAppuis>\n",
 "                                   <ModeL2 Nb=\"?\" Type=\"bool\" Def=\"true\"> </ModeL2>\n",
+"                                   <AerialDeformNonLin Nb=\"?\" AccessorFils=\"false\">\n",
+"                                         <!-- Notation X gd Axe, Y Petit Axe -->\n",
+"                                         <!-- Flag des polynome actif: Par ex pour Z\n",
+"                                              Z = a0 + a1 X + a2 Y + a3 XX + a4 XY + a5 YY\n",
+"                                              Si Z= F(X), a0a1a3 actif donc FlagZ= 11= 1 | 2 |8 \n",
+"                                         -->\n",
+"                                         <FlagX Nb=\"?\" Type=\"int\" Def=\"63\"> </FlagX>\n",
+"                                         <FlagY Nb=\"?\" Type=\"int\" Def=\"63\"> </FlagY>\n",
+"                                         <FlagZ Nb=\"?\" Type=\"int\" Def=\"63\"> </FlagZ>\n",
+"                                         <ForceTrueRot Nb=\"?\" Type=\"bool\" Def=\"true\"> </ForceTrueRot>\n",
+"                                         <PattEstim Nb=\"?\" Type=\"std::string\" Def=\".*\"> </PattEstim>\n",
+"                                         <Show Nb=\"?\" Type=\"bool\" Def=\"false\"> </Show>\n",
+"                                   </AerialDeformNonLin>\n",
 "                               </BasculeOnPoints>\n",
 "\n",
 "                               <BasculeLiaisonOnPlan Nb=\"?\">\n",

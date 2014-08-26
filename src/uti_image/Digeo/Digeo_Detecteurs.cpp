@@ -39,15 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //#include "Digeo.h"
 
-#define __DEBUG_DIGEO
-
-
 /****************************************/
 /*                                      */
 /*           cTplImInMem                */
 /*                                      */
 /****************************************/
-
 
 template <class Type> typename cTplImInMem<Type>::tBase cTplImInMem<Type>::DOG(Type *** aC,const Pt3di& aP)
 {
@@ -120,96 +116,6 @@ template <class Type> void LsqAffineDiff
     for (int aDs = -1 ; aDs <= -1 ; aDs++)
     {
     }
-}
-
-
-template <class Type>
-eTypeExtreSift cTplImInMem<Type>::CalculateDiff_2d
-     (
-          tBase *prevDoG, // previous,
-          tBase *currDoG, // current
-          tBase *nextDoG, // and next DoG at coordinates anX, anY
-          int      anX,
-          int      anY,
-          int      aNiv
-     )
-{
-    mIx = anX;
-    mIy = anY;
-
-    mGX =  (currDoG[mN4]-currDoG[mN3])/2.0;
-    mGY =  (currDoG[mN6]-currDoG[mN1])/2.0;
-
-    mDxx = currDoG[mN4]+currDoG[mN3] - 2*currDoG[0];
-    mDyy = currDoG[mN6]+currDoG[mN1] - 2*currDoG[0];
-
-    mDxy = (currDoG[mN7]+currDoG[mN0]-currDoG[mN5]-currDoG[mN2])/4.0;
-
-    double aDelta = mDxx * mDyy - ElSquare(mDxy);
-
-    if ( aDelta<=numeric_limits<double>::epsilon() ) return eTES_instable_unsolvable;
-
-    mTrX = ( mDxy*mGY-mDyy*mGX )/aDelta;
-    mTrY = ( mDxy*mGX-mDxx*mGY )/aDelta;
-    mTrS = 0;
-
-    #ifdef __DEBUG_DIGEO
-       double e = numeric_limits<float>::epsilon();
-       double verif1 = mDxx*mTrX + mDxy*mTrY,
-	      verif2 = mDxy*mTrX + mDyy*mTrY,
-	      score1 = verif1+mGX,
-	      score2 = verif2+mGY;
-       if ( score1>e || score1<-e ){
-	  cerr << "DEBUG: verif1 = " << verif1 << " -dx = " << -mGX << " score = " << score1 << endl;
-	  exit( EXIT_FAILURE );
-       }
-       if ( score2>e || score2<-e ){
-	  cerr << "DEBUG: verif2 = " << verif2 << " -dy = " << -mGY << " score = " << score2 << endl;
-	  exit( EXIT_FAILURE );
-      }
-    #endif
-
-    int aDx = round_ni(mTrX);
-    int aDy = round_ni(mTrY);
-
-    if ((aDx!=0) || (aDy!=0))
-    {
-         if (aNiv>=3)
-         {
-            return eTES_instable_tooDeepRecurrency;
-         }
-
-         anX += aDx;
-         anY += aDy;
-
-         if (     (anX>=mBrd)
-              &&  (anX<mSz.x-mBrd)
-              &&  (anY>=mBrd)
-              &&  (anY<mSz.y-mBrd)
-            )
-         {
-             int offset = aDx+aDy*mSz.x;
-             return CalculateDiff_2d( prevDoG+offset, currDoG+offset, nextDoG+offset, anX, anY, aNiv+1 );
-         }
-         else
-            return eTES_instable_outOfImageBound;
-    }
-
-
-    double aTrace = mDxx + mDyy;
-    double aRatio = ElSquare(aTrace) / aDelta;
-
-    //if (ElSquare(mGX)+ElSquare(mGY)<mSeuilGrad)
-    double val = currDoG[0]+0.5*( mTrX*mGX+mTrY*mGY );
-    if ( val<0 ) val=-val;
-    if ( val<=(0.02/3)*mImGlob.GetMaxValue() )
-       return eTES_GradFaible;
-
-    //if (aRatio > mSeuilTr2Det)
-    if ( aRatio>=12.1*mImGlob.GetMaxValue()*mImGlob.GetMaxValue() )
-       return eTES_TropAllonge;
-
-   return eTES_Ok;
 }
 
 template <class Type> 
@@ -309,6 +215,204 @@ eTypeExtreSift cTplImInMem<Type>::CalculateDiff_old
    return eTES_Ok;
 }
 
+template <class Type>
+eTypeExtreSift cTplImInMem<Type>::CalculateDiff_2d
+     (
+          tBase *prevDoG, // previous,
+          tBase *currDoG, // current
+          tBase *nextDoG, // and next DoG at coordinates anX, anY
+          int      anX,
+          int      anY,
+          int      aNiv
+     )
+{
+    mIx = anX;
+    mIy = anY;
+
+    mGX =  (currDoG[mN4]-currDoG[mN3])/2.0;
+    mGY =  (currDoG[mN6]-currDoG[mN1])/2.0;
+
+    mDxx = currDoG[mN4]+currDoG[mN3] - 2*currDoG[0];
+    mDyy = currDoG[mN6]+currDoG[mN1] - 2*currDoG[0];
+
+    mDxy = (currDoG[mN7]+currDoG[mN0]-currDoG[mN5]-currDoG[mN2])/4.0;
+
+    double aDelta = mDxx * mDyy - ElSquare(mDxy);
+
+    if ( aDelta<=numeric_limits<double>::epsilon() ) return eTES_instable_unsolvable;
+
+    mTrX = ( mDxy*mGY-mDyy*mGX )/aDelta;
+    mTrY = ( mDxy*mGX-mDxx*mGY )/aDelta;
+    mTrS = 0;
+
+    #ifdef __DEBUG_DIGEO
+       double e = numeric_limits<float>::epsilon();
+       double verif1 = mDxx*mTrX + mDxy*mTrY,
+       verif2 = mDxy*mTrX + mDyy*mTrY,
+       score1 = verif1+mGX,
+       score2 = verif2+mGY;
+       if ( score1>e || score1<-e ){
+           cerr << "DEBUG: verif1 = " << verif1 << " -dx = " << -mGX << " score = " << score1 << endl;
+           exit( EXIT_FAILURE );
+       }
+       if ( score2>e || score2<-e ){
+           cerr << "DEBUG: verif2 = " << verif2 << " -dy = " << -mGY << " score = " << score2 << endl;
+           exit( EXIT_FAILURE );
+       }
+    #endif
+
+    int aDx = round_ni(mTrX);
+    int aDy = round_ni(mTrY);
+
+    if ((aDx!=0) || (aDy!=0))
+    {
+         if (aNiv>=3)
+         {
+            return eTES_instable_tooDeepRecurrency;
+         }
+
+         anX += aDx;
+         anY += aDy;
+
+         if (     (anX>=mBrd)
+              &&  (anX<mSz.x-mBrd)
+              &&  (anY>=mBrd)
+              &&  (anY<mSz.y-mBrd)
+            )
+         {
+             int offset = aDx+aDy*mSz.x;
+             return CalculateDiff_2d( prevDoG+offset, currDoG+offset, nextDoG+offset, anX, anY, aNiv+1 );
+         }
+         else
+            return eTES_instable_outOfImageBound;
+    }
+
+
+    double aTrace = mDxx + mDyy;
+    double aRatio = ElSquare(aTrace) / aDelta;
+
+    //if (ElSquare(mGX)+ElSquare(mGY)<mSeuilGrad)
+    double val = currDoG[0]+0.5*( mTrX*mGX+mTrY*mGY );
+    if ( val<0 ) val=-val;
+    if ( val<=(0.02/3)*mImGlob.GetMaxValue() )
+       return eTES_GradFaible;
+
+    //if (aRatio > mSeuilTr2Det)
+    if ( aRatio>=12.1*mImGlob.GetMaxValue()*mImGlob.GetMaxValue() )
+       return eTES_TropAllonge;
+
+   return eTES_Ok;
+}
+
+#include "../Sift/Gauss34.h"
+
+template <class Type>
+eTypeExtreSift cTplImInMem<Type>::CalculateDiff_3d
+     (
+          tBase *prevDoG, // previous,
+          tBase *currDoG, // current
+          tBase *nextDoG, // and next DoG at coordinates anX, anY
+          int      anX,
+          int      anY,
+          int      aNiv
+     )
+{
+    mIx = anX;
+    mIy = anY;
+
+    mGX =  ( currDoG[mN4]-currDoG[mN3] )/2.;
+    mGY =  ( currDoG[mN6]-currDoG[mN1] )/2.;
+    mGS =  ( nextDoG[0]-prevDoG[0] )/2.;
+    mDxx = currDoG[mN4]+currDoG[mN3]-2.*currDoG[0];
+    mDyy = currDoG[mN6]+currDoG[mN1]-2.*currDoG[0];
+    mDss = nextDoG[0]+prevDoG[0]-2.*currDoG[0];
+    mDxy = ( currDoG[mN7]+currDoG[mN0]-currDoG[mN5]-currDoG[mN2] )/4.;
+    mDxs = ( nextDoG[mN4]+prevDoG[mN3]-nextDoG[mN3]-prevDoG[mN4] )/4.;
+    mDys = ( nextDoG[mN6]+prevDoG[mN1]-nextDoG[mN1]-prevDoG[mN6] )/4.;
+
+    double m[12];
+    double b[3];
+    m[3]  = b[0] = -mGX;
+    m[7]  = b[1] = -mGY;
+    m[11] = b[2] = -mGS;
+    m[0]  = mDxx;
+    m[5]  = mDyy;
+    m[10] = mDss;
+    m[1] = m[4] = mDxy;
+    m[2] = m[8] = mDxs;
+    m[6] = m[9] = mDys;
+
+    int aDx, aDy;
+    //double aDelta = mDxx*( mDyy*mDss-ElSquare(mDys) ) - mDxy*( mDxy*mDss-mDys*mDxs ) + mDxs*( mDxy*mDys-mDxs*mDyy );
+    //if ( aDelta>numeric_limits<double>::epsilon() ){
+		 siftpp__gauss33_invert_b( m, b );
+		 mTrX = b[0];
+		 mTrY = b[1];
+		 mTrS = b[2];
+
+		 #ifdef __DEBUG_DIGEO
+			 double failed = false;
+			 double e = numeric_limits<float>::epsilon();
+			 double verif1 = mDxx*mTrX + mDxy*mTrY + mDxs*mTrS,
+					  verif2 = mDxy*mTrX + mDyy*mTrY + mDys*mTrS,
+					  verif3 = mDxs*mTrX + mDys*mTrY + mDss*mTrS,
+					  score1 = verif1+mGX,
+					  score2 = verif2+mGY,
+					  score3 = verif3+mGS;
+			 double aDelta = mDxx*( mDyy*mDss-ElSquare(mDys) ) - mDxy*( mDxy*mDss-mDys*mDxs ) + mDxs*( mDxy*mDys-mDxs*mDyy );
+			 if ( aDelta>e ){
+				 if ( score1>e || score1<-e ){ cerr << "DEBUG: verif1 = " << verif1 << " -dx = " << -mGX << " score = " << score1 << endl; failed=true; }
+				 if ( score2>e || score2<-e ){ cerr << "DEBUG: verif2 = " << verif2 << " -dy = " << -mGY << " score = " << score2 << endl; failed=true; }
+				 if ( score3>e || score3<-e ){ cerr << "DEBUG: verif3 = " << verif3 << " -ds = " << -mGS << " score = " << score3 << endl; failed=true; }
+				 if ( failed ) exit( EXIT_FAILURE );
+			 }
+		 #endif
+
+		 //int aDx = round_ni(mTrX);
+		 //int aDy = round_ni(mTrY);
+		 aDx = ( mTrX>0.6?1:0 );
+		 aDy = ( mTrY>0.6?1:0 );
+		 if ( mTrX<-0.6 ) aDx=-1;
+		 if ( mTrY<-0.6 ) aDy=-1;
+
+		if ( ( (aDx!=0) || (aDy!=0) ) && aNiv<4 ){
+			anX += aDx;
+			anY += aDy;
+			if ( ( anX>=mBrd ) && ( anX<mSz.x-mBrd ) &&
+				  ( anY>=mBrd ) && ( anY<mSz.y-mBrd ) ){
+				int offset = aDx+aDy*mSz.x;
+
+				unsigned char *used = mUsed_points_map+( anX+anY*mSz.x );
+				if ( *used!=0 ) return eTES_AlreadyComputed;
+				*used = 1;
+
+				return CalculateDiff_3d( prevDoG+offset, currDoG+offset, nextDoG+offset, anX, anY, aNiv+1 );
+			}
+			else
+				return eTES_instable_outOfImageBound;
+		}
+	//}
+	
+    const double deltaThreshold = 1.5;
+    if ( abs(mTrX)>=deltaThreshold || abs(mTrY)>=deltaThreshold || abs(mTrS)>=deltaThreshold ) return eTES_displacementTooBig;
+    
+    double aTrace = mDxx + mDyy;
+    double aRatio = ElSquare(aTrace)/( mDxx*mDyy-ElSquare(mDxy) );
+
+    //if (ElSquare(mGX)+ElSquare(mGY)<mSeuilGrad)
+    double val = currDoG[0]+0.5*( mTrX*mGX+mTrY*mGY+mTrS*mGS );
+
+    double s = (double)mKInOct+mTrS;
+    if ( s<0 || s>=(double)mOct.lastLevelIndex() ) return eTES_instable_outOfScaleBound;
+    
+    if ( val<0 ) val=-val;
+    if ( val<=(0.02/3)*mImGlob.GetMaxValue() ) return eTES_GradFaible;
+
+    //if (aRatio > mSeuilTr2Det)
+    if ( aRatio<0 || aRatio>=12.1*mImGlob.GetMaxValue()*mImGlob.GetMaxValue() ) return eTES_TropAllonge;
+
+   return eTES_Ok;
+}
 
 template <class Type> 
 void cTplImInMem<Type>::ExtractExtremaDOG
@@ -318,7 +422,14 @@ void cTplImInMem<Type>::ExtractExtremaDOG
           cTplImInMem<Type> & aNext
      )
 {
-    Type strengthThreshold = Type( (0.02/mOct.NbImOri())*mImGlob.GetMaxValue() );
+	// allocate the map of already used point
+	const int nbPix = mSz.x*mSz.y;
+	mUsed_points_map = new unsigned char[nbPix];
+	// the map is empty for now
+	memset( mUsed_points_map, 0, nbPix );
+
+    //Type strengthThreshold = Type( (0.02/mOct.NbImOri())*mImGlob.GetMaxValue() );
+    const Type strengthThreshold = 2./375.;
 
    double aRalm = aSC.RatioAllongMin().Val();
    mSeuilTr2Det = (aRalm+1)*(1+1/aRalm);
@@ -340,11 +451,13 @@ void cTplImInMem<Type>::ExtractExtremaDOG
     int aX1 = mSz.x-mBrd;
     for (int anY=mBrd ; anY<(mSz.y-mBrd) ; anY++)
     {
-        for (int anX = mBrd; anX<aX1 ; anX++)
+        for (int anX=mBrd; anX<aX1 ; anX++)
         {
-
+				unsigned char *used = mUsed_points_map+( anX+anY*mSz.x );
+				bool isAlreadyComputed = true;
+				if ( *used==0 ){ *used=1; isAlreadyComputed=false; }
+            
             mDogPC = *itDoG;
-            //bool isMax=false;
             bool isMin=false;
             mResDifSift = eTES_Uncalc;
 
@@ -382,8 +495,8 @@ void cTplImInMem<Type>::ExtractExtremaDOG
                  && ( mDogPC > itNextDoG[mN7] )
                )
             {
-                mResDifSift= CalculateDiff_2d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
-                //mResDifSift= CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
+                //mResDifSift = CalculateDiff_2d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
+                mResDifSift = CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX, anY, 0 );
             }
             else if ( doMin
 
@@ -420,17 +533,20 @@ void cTplImInMem<Type>::ExtractExtremaDOG
                    )
             {
                 isMin=true;
-                mResDifSift= CalculateDiff_2d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
-                //mResDifSift= CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
+                //mResDifSift = CalculateDiff_2d( itPrevDoG, itDoG, itNextDoG, anX,anY,0 );
+                mResDifSift = CalculateDiff_3d( itPrevDoG, itDoG, itNextDoG, anX,anY, 0 );
             }
 
+            if ( isAlreadyComputed ) mResDifSift = eTES_AlreadyComputed;
+            
             if (mResDifSift==eTES_Ok)
             {
                 Pt2dr aP(mIx+mTrX,mIy+mTrY);
-                if ( mOct.Pt2Sauv(aP) )
+                if ( mOct.Pt2Sauv(aP) ){
                     mVPtsCarac.push_back( cPtsCaracDigeo( aP,
-                                                          mOct.Niv()*pow( 2, ( mKInOct+mTrS )/mOct.NbImOri() ),
+                                                          mImGlob.Resol()*mOct.Niv()*mImGlob.Sigma0()*pow( 2, ( mKInOct+mTrS )/mOct.NbImOri() ),
                                                           isMin?eSiftMinDog:eSiftMaxDog ) );
+                }
             }
 
 	    #ifdef __DEBUG_DIGEO_STATS
@@ -445,11 +561,15 @@ void cTplImInMem<Type>::ExtractExtremaDOG
 		  case eTES_Ok: mCount_eTES_Ok++;
 	       }
 	    #endif
-	    
+
             itDoG++; itPrevDoG++; itNextDoG++;
         }
         itDoG+=brd_2; itPrevDoG+=brd_2; itNextDoG+=brd_2;
     }
+
+	// free the map of already used point
+	delete [] mUsed_points_map;
+	mUsed_points_map = NULL;
 }
 
 
@@ -698,18 +818,30 @@ void cTplImInMem<Type>::ExtractExtremaDOG_old
    }
 }
 
-template <> INT**    cTplImInMem<U_INT1>::theMDog = 0;
+string eTypeExtreSift_to_string( eTypeExtreSift i_enum )
+{
+	switch ( i_enum ){
+	case eTES_Uncalc: return "eTES_Uncalc";
+	case eTES_instable_unsolvable: return "eTES_instable_unsolvable";
+	case eTES_instable_tooDeepRecurrency: return "eTES_instable_tooDeepRecurrency";
+	case eTES_instable_outOfImageBound: return "eTES_instable_outOfImageBound";
+	case eTES_instable_outOfScaleBound: return "eTES_instable_outOfScaleBound";
+	case eTES_displacementTooBig: return "eTES_displacementTooBig";
+	case eTES_GradFaible: return "eTES_GradFaible";
+	case eTES_TropAllonge: return "eTES_TropAllonge";
+	case eTES_AlreadyComputed: return "eTES_AlreadyComputed";
+	case eTES_Ok: return "eTES_Ok";
+	}
+	return "eTES_unknown";
+}
+
 template <> INT**    cTplImInMem<U_INT2>::theMDog = 0;
-template <> INT**    cTplImInMem<INT>::theMDog = 0;
-template <> double** cTplImInMem<float>::theMDog = 0;
-template <> double** cTplImInMem<double>::theMDog = 0;
-
-
-//InstantiateClassTplDigeo(cTplImInMem)
-
-
-
-
+template <> double** cTplImInMem<REAL4>::theMDog = 0;
+#ifdef __WITH_GAUSS_SEP_FILTER
+template <> INT**    cTplImInMem<U_INT1>::theMDog = 0;
+	template <> INT**    cTplImInMem<INT>::theMDog = 0;
+	template <> double** cTplImInMem<double>::theMDog = 0;
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

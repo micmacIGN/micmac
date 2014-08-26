@@ -315,6 +315,16 @@ class cPoseCam
 {
      public :
 
+       // Fonction relative a une camera eventuellement non ortho,
+       // si active alors toute evolution est bloquee
+         void  SetCamNonOrtho(CamStenope *);
+         CamStenope *  GetCamNonOrtho() const;  // Erreur si != 0
+         bool HasCamNonOrtho() const;
+         void AssertHasCamNonOrtho() const;
+         void AssertHasNotCamNonOrtho() const;
+
+
+
          void AddMajick(cMajickChek &) const;
 
          bool IsId(const ElAffin2D & anAff) const;
@@ -360,13 +370,15 @@ class cPoseCam
                            );
 
          const CamStenope * CurCam() const;
+         CamStenope * NC_CurCam();
+         CamStenope * DupCurCam() const;
          void DoInitIfNow();
 
           cCalibCam * Calib();
 	  void SetContrainte(const cContraintesPoses &);
           void SetFigee();
           void SetDeFigee();
-	  cCameraFormelle * CF();
+	  cCameraFormelle * CamF();
 	  void ActiveContrainte(bool Stricte);
 	  const std::string & Name() const;
 	  double  AltiSol() const;
@@ -565,6 +577,7 @@ class cPoseCam
           bool                         mLastEstimProfIsInit;
           double                       mLasEstimtProf;
           cPoseCdtImSec *              mCdtImSec;
+          CamStenope *                 mCamNonOrtho;
 };
 
 
@@ -2000,6 +2013,7 @@ class cAppliApero : public NROptF1vND
 
 
        void CheckInit(const cLiaisonsInit * ,cPoseCam *);
+       bool SqueezeDOCOAC() const;  
     private :
 
        // Active uniquement si  mFileDebug != 0
@@ -2007,6 +2021,7 @@ class cAppliApero : public NROptF1vND
        void PosesAddMajick();
        void MajAddCoeffMatrix();  
 
+       void SetSqueezeDOCOAC();  
        void ClearAllCamPtsVu();
 
 
@@ -2391,6 +2406,8 @@ class cAppliApero : public NROptF1vND
         int                                    mCptIterCompens;
         bool                                   mHasEqDr;
         cStatObs                               mStatLastIter;
+             // flag utilise lorque l'on a utilise ori non ortho
+        int                                    mSqueezeDOCOAC;  
 };
 
 

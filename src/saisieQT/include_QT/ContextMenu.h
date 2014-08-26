@@ -21,7 +21,7 @@ public:
 
     void createContextMenuActions();
 
-    void setPolygon(cPolygon * poly){ _polygon = poly; } // TODO virer _polygon
+    void setPolygon(cPolygon * poly){ _polygon = poly; }
     void setPos(QPointF pt) { _lastPosImage = pt; }
 
     cPolygon    *_polygon;
@@ -37,6 +37,11 @@ public:
     QAction     *_noSaisie;
     QAction     *_highLight;
     QAction     *_rename;
+
+    int     setNearestPointState(const QPointF &pos, int state);
+    int     highlightNearestPoint(const QPointF &pos);
+    int     getNearestPointIndex(const QPointF &pos);
+    QString getNearestPointName(const QPointF &pos);
 
 signals:
 

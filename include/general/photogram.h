@@ -71,8 +71,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern bool NewBug;
 extern bool DoCheckResiduPhgrm;
-extern bool AcceptTrueRot;
-extern bool ForceTrueRot;
+extern bool AcceptFalseRot;
 
 // Definis dans phgr_formel.h
 class cSetEqFormelles;
@@ -1482,9 +1481,9 @@ class ElCamera : public cCapture3D
          static void ChangeSys
                      (
                             const std::vector<ElCamera *>& ,
-                            const cSysCoord & a1Source,
-                            const cSysCoord & a2Cible,
-                            bool ForceRot
+                            const cTransfo3D & aTr3D,
+                            bool ForceRot,
+                            bool AtGroundLevel
                      );
 
           // Pour compatibilite stricte avec ce qui etait fait avant

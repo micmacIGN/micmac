@@ -536,7 +536,8 @@ int Genere_Header_TiffFile_main(int argc,char ** argv);
 int TestSet_main(int argc,char ** argv);
 int TestMTD_main(int argc,char ** argv);
 int TestCmds_main(int argc,char ** argv);
-int Apero2PMVS_main(int argc,char ** argv);
+int Apero2PMVS_main(int argc, char ** argv);
+int Apero2Meshlab_main(int argc, char ** argv);
 int Ori2XML_main(int argc,char ** argv);
 int GenCode_main(int argc,char ** argv);
 int XifGps2Xml_main(int argc,char ** argv);
@@ -657,10 +658,17 @@ int  cod_main(int argc,char ** argv);
 int  vicod_main(int argc,char ** argv);
 int  genmail_main(int argc,char ** argv);
 int Ori_Txt2Xml_main(int argc,char ** argv);
+int OriExport_main(int argc,char ** argv);
 int GCP_Txt2Xml_main(int argc,char ** argv);
 int VideoVisage_main(int argc,char ** argv);
 int Poisson_main(int argc,char ** argv);
 int GrapheHom_main(int argc,char ** argv);
+
+int Init11Param_Main(int argc,char ** argv);
+int New_Tapas_main(int,char **);
+int GCPCtrl_main(int,char **);
+int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
+
 
 
 int RefineModel_main(int argc, char **argv);

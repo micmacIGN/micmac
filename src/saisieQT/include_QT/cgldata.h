@@ -7,7 +7,6 @@ class MatrixManager;
 
 #include "Data.h"
 #include "MatrixManager.h"
-#include "Elise_QT.h"
 
 class cGLData : public cObjectGL
 {
@@ -115,7 +114,7 @@ public:
 
     void        setOptionPolygons(cParameters aParams);
 
-    void        drawCenter();
+    void        drawCenter(bool white);
 
 private:
 

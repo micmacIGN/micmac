@@ -27,8 +27,10 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     QWidget(parent),
     mlastDir(aLastDir),
     mFirstArg(aFirstArg),
+    _SaisieWin(new SaisieQtWindow(BOX2D)),
     _showDialog(false)
 {
+    setWindowFlags(Qt::WindowStaysOnTopHint);
     //setAttribute( Qt::WA_DeleteOnClose );
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(this);
@@ -451,9 +453,7 @@ void visual_MainWindow::onSelectFilePressed(int aK)
 
     if (filename != NULL)
     {
-        string aDir, aNameFile;
-        SplitDirAndFile(aDir,aNameFile,filename.toStdString());
-        mlastDir = QString(aDir.c_str());
+        setLastDir(filename);
 
         vLineEdit[aK]->setText(filename);
         vLineEdit[aK]->setModified(true);
@@ -488,15 +488,20 @@ void visual_MainWindow::onSelectDirPressed(int aK)
     }
 }
 
+void visual_MainWindow::setLastDir(QString filename)
+{
+    string aDir, aNameFile;
+    SplitDirAndFile(aDir,aNameFile,filename.toStdString());
+    mlastDir = QString(aDir.c_str());
+}
+
 void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), mlastDir);
 
     if (filename != NULL)
     {
-        string aDir, aNameFile;
-        SplitDirAndFile(aDir,aNameFile,filename.toStdString());
-        mlastDir = QString(aDir.c_str());
+        setLastDir(filename);
 
         _SaisieWin->resize(800,600);
         _SaisieWin->move(200,200);

@@ -91,7 +91,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mMajChck           (),
    mCptIterCompens    (0),
    mHasEqDr           (false),
-   mStatLastIter      (false)
+   mStatLastIter      (false),
+   mSqueezeDOCOAC     (0)
 {
      setInputDirectory( mDC );
      std::string aNameFileDebug;
@@ -128,8 +129,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
 
      if (mParam.IsAperiCloud().Val())
      {
-         AcceptTrueRot = true;
-         ForceTrueRot = true;
+         AcceptFalseRot = true;
+         SetSqueezeDOCOAC();
      }
 
 
