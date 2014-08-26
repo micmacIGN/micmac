@@ -89,7 +89,7 @@ void AnnSearcher::createTree( AnnArray &i_dataArray )
 
 	switch ( i_dataArray.getSearchMode() )
 	{
-		case SIFT_ANN_DESC_SEARCH: spaceSize=m_descriptorSize; break;
+		case SIFT_ANN_DESC_SEARCH: spaceSize=SIFT_DESCRIPTOR_SIZE; break;
 		case SIFT_ANN_2D_SEARCH: spaceSize=2; break;
 		default:;
 			#ifdef __DEBUG_ANN_SEARCHER
