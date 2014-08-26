@@ -167,7 +167,7 @@ void match_lebris( vector<DigeoPoint> &i_array0, vector<DigeoPoint> &i_array1, s
 				cerr << "WARNING: a point of type " << DetectType_to_string(itQuery->type) << " matched with a point of type " << DetectType_to_string(i_array0[neighIndices[0]].type) << endl;
 		#endif
 
-		if ( itQuery->type==i_array0[neighIndices[0]].type || // matchings of points of different types are discarded
+		if ( itQuery->type==i_array0[neighIndices[0]].type && // matchings of points of different types are discarded
 		     neighDistances[0]<( R*neighDistances[1] ) )
 			o_matchingCouples.push_back( V2I( neighIndices[0], iQuery ) );
 
