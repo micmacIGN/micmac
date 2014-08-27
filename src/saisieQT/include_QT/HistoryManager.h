@@ -48,6 +48,7 @@ public:
 
     void   reset(){ _actionIdx = 0; _infos.clear(); }
 
+    void   load();
     void   save();
 
 private:
