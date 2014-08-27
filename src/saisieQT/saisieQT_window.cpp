@@ -229,6 +229,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             initData();
 
             currentWidget()->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[0]);
+            currentWidget()->getHistoryManager()->load();
 
             _appMode = MASK3D;
         }
@@ -411,7 +412,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
     shortcuts.push_back(tr("File Menu"));
     actions.push_back("");
-    
+
     QString Ctrl = "Ctrl+";
     #ifdef ELISE_Darwin
         Ctrl="Cmd+";
@@ -597,7 +598,7 @@ void SaisieQtWindow::on_actionAbout_triggered()
     #if (ELISE_windows || (defined ELISE_Darwin))
         qStr.replace( "**", "  " );
     #endif
-    
+
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
     msgBox->setFont(font);
@@ -1057,10 +1058,9 @@ void SaisieQtWindow::updateUI()
     _ui->actionAdd->setShortcut(Qt::Key_Space);
     _ui->actionRemove->setShortcut(Qt::Key_Delete);
     #ifdef ELISE_Darwin
-    #if(ELISE_QT_VERSION >= 5) 
+    #if(ELISE_QT_VERSION >= 5)
         _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
         _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
-        _ui->actionSettings->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_B));
     #endif
     #endif
 }

@@ -19,6 +19,76 @@ void HistoryManager::push_back(selectInfos &infos)
     _actionIdx++;
 }
 
+void HistoryManager::load()
+{
+    _infos.clear();
+
+    QFile file(_filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+    QDomDocument doc;
+    if (!doc.setContent(&file))
+    {
+        file.close();
+        return;
+    }
+    file.close();
+
+    QDomNode n = doc.firstChild(); //Node SelectionInfo
+
+    QDomNodeList nl = n.childNodes();
+
+    for (int aK=0; aK <nl.size();++aK)
+    {
+        n = nl.at(aK); //Node Item
+
+        QDomNodeList nl2 = n.childNodes();
+
+        selectInfos SInfo;
+        QVector<QPointF> pts;
+
+        for (int bK=0; bK <nl2.size();++bK)
+        {
+            QDomNode n2 = nl2.at(bK);
+
+            QDomElement e = n2.toElement();
+            QString name = e.tagName();
+            QDomText t = e.firstChild().toText();
+
+            if (!t.isNull())
+            {
+                QString data = t.data();
+                QStringList strList = data.split(" ");
+
+                if(name == "ModelViewMatrix")
+                {
+                    for (int cK=0; cK<strList.size();++cK)
+                        SInfo.mvmatrix[cK] = strList[cK].toFloat();
+                }
+                else if(name == "ProjMatrix")
+                {
+                    for (int cK=0; cK<strList.size();++cK)
+                        SInfo.projmatrix[cK] = strList[cK].toFloat();
+                }
+                else if(name == "glViewport")
+                {
+                    for (int cK=0; cK<strList.size();++cK)
+                        SInfo.glViewport[cK] = strList[cK].toFloat();
+                }
+                else if(name == "Pt")
+                {
+                    if (strList.size() == 2)
+                       pts.push_back(QPointF(strList[0].toFloat(),strList[1].toFloat()));
+                }
+                else if(name == "Mode")
+                    SInfo.selection_mode = data.toInt();
+            }
+        }
+        SInfo.poly = pts;
+        _infos.push_back(SInfo);
+    }
+}
+
 void HistoryManager::save()
 {
     //std::cout << "saving in " << _filename.toStdString().c_str() << std::endl;
@@ -28,7 +98,7 @@ void HistoryManager::save()
     QFile outFile(_filename);
     if (!outFile.open(QIODevice::WriteOnly)) return;
 
-    QDomElement SI = doc.createElement("SelectionInfos");
+    QDomElement SI = doc.createElement("SelectionInfo");
 
     QDomText t;
     for (int i = 0; i < _infos.size(); ++i)
@@ -48,7 +118,7 @@ void HistoryManager::save()
             text1 = QString::number(SInfo.mvmatrix[0], 'f');
             text2 = QString::number(SInfo.projmatrix[0], 'f');
 
-            for (int aK=0; aK < 16;++aK)
+            for (int aK=1; aK < 16;++aK)
             {
                 text1 += " " + QString::number(SInfo.mvmatrix[aK], 'f');
                 text2 += " " + QString::number(SInfo.projmatrix[aK], 'f');
