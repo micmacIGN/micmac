@@ -92,6 +92,11 @@ void MatrixManager::resetMatrixProjection(float x, float y)
     m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 }
 
+void MatrixManager::resetViewPort()
+{
+    glGetIntegerv (GL_VIEWPORT, getGLViewport());
+}
+
 void MatrixManager::translate(float tX, float tY, float tZ)
 {
     float inverMat[4][4];
@@ -122,7 +127,8 @@ void MatrixManager::setMatrices()
 void MatrixManager::importMatrices(selectInfos &infos)
 {
     for (int aK=0; aK<4; ++aK)
-        _glViewport[aK] = infos.glViewport[aK];
+         _glViewport[aK] = infos.glViewport[aK];
+
     for (int aK=0; aK<16; ++aK)
     {
         _mvMatrix[aK] = infos.mvmatrix[aK];
@@ -148,7 +154,7 @@ void MatrixManager::getProjection(QPointF &P2D, Pt3dr P)
     P2D = QPointF(xp,yp);
 }
 
-void MatrixManager::getInverseProjection(QPointF &P2D, float dist, Pt3dr P)
+void MatrixManager::getInverseProjection(Pt3dr &P, QPointF P2D, float dist)
 {
     GLdouble xp,yp,zp;
     mmUnProject(P2D.x(), P2D.y(), dist,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
@@ -196,7 +202,7 @@ void MatrixManager::resetTranslationMatrix(Pt3dr center)
     m_translationMatrix[2] = -center.z;
 }
 
-void MatrixManager::resetAllMatrix(Pt3d<double> center)
+void MatrixManager::resetAllMatrix(Pt3dr center)
 {
     _targetCamera.x = 0;
     _targetCamera.y = 0;
@@ -448,4 +454,28 @@ GLdouble MatrixManager::distance() const
 void MatrixManager::setDistance(const GLdouble &distance)
 {
     _distance = distance;
+}
+
+void testInfos(QString filename)
+{
+    HistoryManager *HM = new HistoryManager();
+    MatrixManager  *MM = new MatrixManager();
+
+    HM->load(filename);
+    QVector <selectInfos> vInfos = HM->getSelectInfos();
+
+    for (int aK=0; aK< vInfos.size();++aK)
+    {
+        selectInfos &Infos = vInfos[aK];
+        MM->importMatrices(Infos);
+
+        for (int bK=0;bK < Infos.poly.size();++bK)
+        {
+            QPointF pt = Infos.poly[bK];
+            Pt3dr pt3d;
+            MM->getInverseProjection(pt3d, pt, 0.f);
+
+            cout << pt3d.x  << " " << pt3d.y << " " << pt3d.z << endl;
+        }
+    }
 }
