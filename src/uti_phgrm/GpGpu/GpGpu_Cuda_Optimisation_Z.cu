@@ -375,6 +375,11 @@ void ReadLine_V02(
 
 
 #ifdef CUDA_DEFCOR
+                // NOTE DEFCOR
+                // LES PROBLEMES
+                    // les cellules dans la zone masquée
+                    // les cellules dont la valeur le coef de corrélation n'a pas été calculé -> 1.01234 --> 10123
+                    //  ces cellules contaminent les voisines en mode DEFCOR....
                 fCostMin = min(fCostMin, costInit + prevDefCor);
 #endif
 
