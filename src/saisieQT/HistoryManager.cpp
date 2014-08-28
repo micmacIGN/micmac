@@ -1,7 +1,8 @@
 #include "HistoryManager.h"
 
 HistoryManager::HistoryManager():
-    _actionIdx(0)
+    _actionIdx(0),
+    _initSize(0)
 {}
 
 void HistoryManager::push_back(selectInfos &infos)
@@ -19,9 +20,10 @@ void HistoryManager::push_back(selectInfos &infos)
     _actionIdx++;
 }
 
-void HistoryManager::load()
+void HistoryManager::load(QString filename)
 {
     _infos.clear();
+    _filename  = filename;
 
     QFile file(_filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
@@ -87,6 +89,8 @@ void HistoryManager::load()
         SInfo.poly = pts;
         _infos.push_back(SInfo);
     }
+    _initSize  = _infos.size();
+    _actionIdx = _infos.size();
 }
 
 void HistoryManager::save()

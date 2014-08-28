@@ -12,7 +12,9 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _appMode(mode),
         _bSaved(false)
 {
-    setWindowFlags(Qt::WindowStaysOnTopHint); //macOS
+    #ifdef ELISE_Darwin
+        setWindowFlags(Qt::WindowStaysOnTopHint);
+    #endif
 
     _ui->setupUi(this);
 
@@ -228,8 +230,9 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             loadPly(filenames);
             initData();
 
-            currentWidget()->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[0]);
-            currentWidget()->getHistoryManager()->load();
+            currentWidget()->getHistoryManager()->load(_Engine->getSelectionFilenamesOut()[0]);
+
+            //testInfos(_Engine->getSelectionFilenamesOut()[0]);
 
             _appMode = MASK3D;
         }
@@ -246,7 +249,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             if (_appMode <= MASK3D)
                 closeAll();
 
-            initData(); //TODO: ne pas détruire les polygones dans le closeAll
+            initData(); //TODO: ne pas detruire les polygones dans le closeAll
 
             if ((filenames.size() == 1) && (_appMode == MASK3D)) _appMode = MASK2D;
 
@@ -268,7 +271,12 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
                 getWidget(aK)->setParams(_params);
 
-                if (aK < filenames.size()) getWidget(aK)->getHistoryManager()->setFilename(_Engine->getSelectionFilenamesOut()[aK]);
+                if (getWidget(aK)->getHistoryManager()->size())
+                {
+                    getWidget(aK)->applyInfos();
+                    getWidget(aK)->getMatrixManager()->resetViewPort();
+                    _bSaved = false;
+                }
             }
         }
         else
@@ -843,7 +851,7 @@ void hideAction(QAction* action, bool show)
 
 void SaisieQtWindow::updateSaveActions()
 {
-    if (currentWidget()->getHistoryManager()->size() > 0)
+    if (currentWidget()->getHistoryManager()->sizeChanged())
     {
         if (_appMode == MASK3D)
         {
@@ -1450,7 +1458,7 @@ QAction* SaisieQtWindow::addCommandTools(QString nameCommand)
 
 int SaisieQtWindow::checkBeforeClose()
 {
-    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->size())
+    if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->sizeChanged() )
     {
         return QMessageBox::question(this, tr("Warning"), tr("Save mask before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
     }

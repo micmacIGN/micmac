@@ -75,6 +75,8 @@ public:
     //! Reset translation matrix
     void        resetTranslationMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
 
+    void        resetViewPort();
+
     void        resetAllMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
 
     void        setModelViewMatrix();
@@ -133,5 +135,7 @@ private:
     Pt3d<double> _targetCamera;
 
 };
+
+void testInfos(QString filename);
 
 #endif

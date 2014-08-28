@@ -36,8 +36,6 @@ public:
     //! Get the selection infos stack
     QVector <selectInfos> getSelectInfos(){ return _infos; }
 
-    void   setFilename(QString name){ _filename = name; }
-
     int    getActionIdx(){ return _actionIdx; }
 
     int    size() { return _infos.size(); }
@@ -48,8 +46,10 @@ public:
 
     void   reset(){ _actionIdx = 0; _infos.clear(); }
 
-    void   load();
+    void   load(QString filename);
     void   save();
+
+    bool   sizeChanged(){ return _infos.size() != _initSize; }
 
 private:
     //! selection infos stack
@@ -57,6 +57,9 @@ private:
 
     //! current action index
     int        _actionIdx;
+
+    //! initial number of actions loaded
+    int        _initSize;
 
     QString    _filename;
 };
