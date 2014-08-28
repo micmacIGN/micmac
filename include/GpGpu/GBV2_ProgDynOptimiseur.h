@@ -180,7 +180,7 @@ private :
 
     void copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt,  CuHostDaPo3D<ushort> &costInit1D, uint idBuf = 0);
 
-    void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, CuHostData3D<uint> &costFinal,uint idBuf = 0);
+    void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, CuHostData3D<uint> &costFinal, CuHostData3D<uint> &FinalDefCor, uint idBuf = 0);
 
 #endif
 
@@ -198,8 +198,8 @@ private :
     int                                mNbDir;
     double                             mPdsProgr;
 
-
-
+    int                                mCostDefMasked;
+    int                                mCostTransMaskNoMask;
 
 };
 }
