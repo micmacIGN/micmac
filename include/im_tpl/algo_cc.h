@@ -68,11 +68,16 @@ template <class T1,class T2,class Action> int OneZC
    {
       aIm1.oset(aPGerm,aV1Aff);
       aVCur->push_back(aPGerm);
+      aOnNewPt.OnNewPt(aPGerm);
    }
+   int aNbStep = 1;
 
    int aNbTot = 0;
    while (! aVCur->empty())
    {
+       aOnNewPt.OnNewStep();
+       if (aOnNewPt.StopCondStep())
+          return aNbTot;
        int aNbCur = aVCur->size(); 
        aNbTot += aNbCur;
 
@@ -93,6 +98,7 @@ template <class T1,class T2,class Action> int OneZC
 
        ElSwap(aVNext,aVCur);
        aVNext->clear();
+       aNbStep++;
    }
 
    return aNbTot;
@@ -101,7 +107,9 @@ template <class T1,class T2,class Action> int OneZC
 class cCC_NoActionOnNewPt
 {
     public :
+       void OnNewStep() {}
        void  OnNewPt(const Pt2di &) {}
+       bool  StopCondStep() {return false;}
 };
 
 template  <class Type>

@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // template <class Type> cFil
 
+
 /*********************************************************************/
 /*                                                                   */
 /*                       cFusionCarteProf                            */
@@ -243,7 +244,7 @@ template <class Type> class  cLoadedCP
 };
 
 static const double MulCost = 1e3;
-static bool DebugActif = true;
+static bool DebugActif = false;
 
 template <class Type> class cFusionCarteProf
 {
@@ -317,6 +318,7 @@ template <class Type> class cFusionCarteProf
           //double                 mSigmaZ;
           cInterfChantierNameManipulateur * mICNM;
           std::vector<std::string>          mGenRes;
+          std::string                             mNameNuageIn;
           bool                                    mCalledBySubP;
           bool                                    mInParal;
           bool                                    mInSerialP;
@@ -495,10 +497,15 @@ void IncreCptr(const std::vector<cTmpPile> & aVPile,cTmpPile & aPile,int aK0,flo
 
 std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aResolPlani,const cSpecAlgoFMNT & aFEv)
 {
-// std::cout << "AAA ComputeExpEv " << (aVPile.size()) << "\n";
+
+  static int aCpt=0; aCpt++;
+//   Bug= (aCpt ==3025);
+
+
    float aZFact = (aFEv.SigmaPds()*aResolPlani) * sqrt(2.0);
    double aSzML = aFEv.SeuilMaxLoc() * aResolPlani;
    double aSCpt = aFEv.SeuilCptOk() * aResolPlani;
+
 
    std::vector<cTmpPile> aTmp;
 
@@ -558,10 +565,12 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
    std::sort(aResTmp.begin(),aResTmp.end(),aCmp);
    while (int(aResTmp.size()) > aFEv.NBMaxMaxLoc().Val())  aResTmp.pop_back();
 
+
    for (int aI=0 ; aI<int(aResTmp.size()) ; aI++)
    {
          IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK  ,aSCpt,-1,            -1);
-         IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK+1,aSCpt, 1,aResTmp.size());
+         // IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK+1,aSCpt, 1,aResTmp.size());
+         IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK+1,aSCpt, 1,aTmp.size());
    }
 
 
@@ -572,6 +581,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
        cElPile  aPil (aResTmp[aK].ZMoy(),aResTmp[aK].mPds0,aResTmp[aK].mCpteur,aResTmp[aK].mLCP);
        aRes.push_back (aPil);
    }
+
 
    return aRes;
 }
@@ -714,8 +724,6 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
                if ((!mQualImSaved) && aSM1P.MakeFileResult().Val() && (!mFCP.InParal()))
                {
                       mQualImSaved = true;
-                      std::cout << "HHHHH " << aSM1P.PdsAR().Val()  << " " << mNameIm  << " "<< aBoxTer._p0 <<  aBoxTer._p1 << "\n";
-                      std::cout << FileMM1P("Depth").sz() << "\n";
 
                       Tiff_Im::Create8BFromFonc
                       (
@@ -826,12 +834,13 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
           mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK],aK));
     }
 
+    mNameNuageIn =   mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true);
     if (mParam.ModeleNuageResult().IsInit())
     {
        mNuage = StdGetObjFromFile<cXML_ParamNuage3DMaille>
                 (
                      //mParam.ModeleNuageResult().Val(),
-                      mICNM->Dir() + mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true),
+                     mICNM->Dir() + mNameNuageIn,
                      StdGetFileXMLSpec("SuperposImage.xml"),
                      "XML_ParamNuage3DMaille",
                      "XML_ParamNuage3DMaille"
@@ -881,8 +890,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
             //aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
             aFtfw.close();
         }
-
     }
+
 
    mZIsInv = false;
    if (mNuage.ModeFaisceauxImage().IsInit())
@@ -899,6 +908,11 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
     if (! mCalledBySubP)
     {
+       mNuage.Image_Profondeur().Val().Masq() = NameWithoutDir(mNameMasq);
+       mNuage.Image_Profondeur().Val().Image() = NameWithoutDir(mNameTif);
+       mNuage.Image_Profondeur().Val().Correl() = NameWithoutDir(mNameCorrel);
+       MakeFileXML(mNuage,mNameNuageIn);
+
        bool IsModified;
        Im2D<tNum,tNBase> aITest(1,1);
        Tiff_Im::CreateIfNeeded
@@ -996,6 +1010,9 @@ template <class Type> double cFusionCarteProf<Type>::ToZSauv(double aZ) const
    return  (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
 }
 
+extern Im2D_Bits<1>  FiltreDetecRegulProf(Im2D_REAL4 aImProf,Im2D_Bits<1> aIMasq);
+
+
 template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
    mDecal = aBoxIn._p0;
@@ -1008,7 +1025,6 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
    mResolPlaniReel = (euclid(mAfC2MCur.I10()) + euclid(mAfC2MCur.I01()))/2.0;
    mResolPlaniEquiAlt = mResolPlaniReel * mNuage.RatioResolAltiPlani().Val();
-std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEquiAlt << "\n";
 /*
    mRatioPlaniAlti = mResolPlani;
    if (mNuage.ModeFaisceauxImage().IsInit())
@@ -1054,7 +1070,6 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
    if (ShowTime)
    {
       // std::cout << "  " << mIP->OrigineAlti()
-      std::cout << "RRELOAD " << mVCL.size() << " on " << mVC.size() << " time= " << aChrono.uval() << "\n";
    }
 
    TIm2D<INT2,INT>  aTIm0(mSzCur);
@@ -1093,7 +1108,6 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
 
    if (ShowTime)
    {
-      std::cout << " Init PrgD time= " << aChrono.uval() << "\n";
    }
 
 
@@ -1199,8 +1213,6 @@ std::cout << "mResolPlaniReel " << mResolPlaniReel  << " Equi " << mResolPlaniEq
            // aLVP.clear();
        }
 
-std::cout << "INIT PRGD " << mDecal << " \n";
-
        aPrgD->DoOptim(mFPrgD->NbDir());
        std::cout << " Prg Dyn time= " << aChrono.uval()  << " Nb Dir " << mFPrgD->NbDir() << "\n";
        Im2D_INT2 aSol(mSzCur.x,mSzCur.y);
@@ -1242,6 +1254,11 @@ std::cout << "INIT PRGD " << mDecal << " \n";
                    anIt++;
             }
        }
+   }
+
+   if (1)
+   {
+       aImMasq = FiltreDetecRegulProf(aImFus,aImMasq);
    }
 
    if (ShowTime)

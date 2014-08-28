@@ -7,6 +7,9 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
 /home/marc/MMM/culture3d/include/XML_MicMac
 
 mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml  WorkDirPFM=/home/marc/TMP/EPI/Soldat-Temple-Hué/MTD-Image-IMGP7043.JPG/
+
+mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml  WorkDirPFM=/home/marc/TMP/EPI/EXO1-Fontaine/MTD-Image-CIMG_2489.JPG/
+
 -->
 <ParamFusionMNT>
     <DicoLoc>
