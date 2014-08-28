@@ -55,6 +55,7 @@ public:
     ViewportParameters* getParams()         { return &_vp_Params;      }
     HistoryManager*     getHistoryManager() { return &_historyManager; }
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
+    MatrixManager*      getMatrixManager()  { return &_matrixManager;  }
 
     void        setGLData(cGLData* aData, bool showMessage = true, bool showCams = true, bool doZoom = true, bool resetPoly = true);
     cGLData*    getGLData(){ return m_GLData; }

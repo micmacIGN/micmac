@@ -56,6 +56,9 @@ public:
     //! 3D point projection in viewport
     void        getProjection(QPointF &P2D, Pt3dr P);
 
+    //! projection from viewport to world coordinates
+    void        getInverseProjection(Pt3dr &P, QPointF P2D, float dist);
+
     //! Project a point from window to image
     QPointF     WindowToImage(const QPointF &winPt, float glOrthoZoom);
 
@@ -71,6 +74,8 @@ public:
 
     //! Reset translation matrix
     void        resetTranslationMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
+
+    void        resetViewPort();
 
     void        resetAllMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
 
@@ -101,10 +106,10 @@ public:
 
     void        applyAllTransformation(bool mode2D, QPoint pt, float zoom);
 
-    GLdouble rY() const;
-    void setRY(const GLdouble &rY);
+    GLdouble    rY() const;
+    void        setRY(const GLdouble &rY);
 
-    void setSceneTopo(const Pt3d<double> &centerScene, float diametre);
+    void        setSceneTopo(const Pt3d<double> &centerScene, float diametre);
 
     QPointF     screen2TransABall(QPointF ptScreen);
 
@@ -130,5 +135,7 @@ private:
     Pt3d<double> _targetCamera;
 
 };
+
+void testInfos(QString filename);
 
 #endif
