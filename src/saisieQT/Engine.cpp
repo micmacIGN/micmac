@@ -205,7 +205,7 @@ void cLoader::setFilenames(const QStringList &strl)
     {
         QFileInfo fi(_FilenamesIn[aK]);
 
-        _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfos.xml");
+        _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfo.xml");
     }
 }
 
