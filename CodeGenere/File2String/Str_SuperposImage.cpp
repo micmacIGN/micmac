@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1186]) = {
+const char * (theNameVar_SuperposImage[1198]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1053,6 +1053,17 @@ const char * (theNameVar_SuperposImage[1186]) = {
 "         <UseIt Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseIt> <!-- Pour anihilier dans EtapeMEC -->\n",
 "  </ParamGenereStrVois>\n",
 "\n",
+"\n",
+"  <ParamFiltreDetecRegulProf Nb=\"1\" Class=\"true\"   ToReference=\"true\">\n",
+"         <SzCC Nb=\"?\" Type=\"int\" Def=\"2\"> </SzCC>\n",
+"         <PondZ Nb=\"?\" Type=\"double\" Def=\"2.0\"> </PondZ>\n",
+"         <Pente Nb=\"?\" Type=\"double\" Def=\"0.5\"> </Pente>\n",
+"         <SeuilReg Nb=\"?\" Type=\"double\" Def=\"0.5\"> </SeuilReg>\n",
+"         <V4 Nb=\"?\" Type=\"bool\" Def=\"false\"> </V4>\n",
+"         <NbCCInit Nb=\"?\" Type=\"int\" Def=\"5\"> </NbCCInit>\n",
+"         <NameTest Nb=\"?\" Type=\"std::string\"> </NameTest>\n",
+"  </ParamFiltreDetecRegulProf>\n",
+"\n",
 "  <ParamFusionMNT  Nb=\"1\" Class=\"true\">\n",
 "       <DicoLoc  Nb=\"?\" RefType=\"ChantierDescripteur\"\n",
 "                         RefFile=\"ParamChantierPhotogram.xml\"\n",
@@ -1118,6 +1129,7 @@ const char * (theNameVar_SuperposImage[1186]) = {
 "                             <Trans Nb=\"1\" Type=\"double\"> </Trans>\n",
 "                        </FMNT_GesNoVal>\n",
 "                </FMNT_ProgDyn>\n",
+"                <ParamRegProf RefType=\"ParamFiltreDetecRegulProf\" Nb=\"?\"> </ParamRegProf>\n",
 "           </SpecAlgoFMNT>\n",
 "       </ParamAlgoFusionMNT>\n",
 "\n",
