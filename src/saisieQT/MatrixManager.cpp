@@ -36,7 +36,7 @@ void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei heigh
 }
 
 void MatrixManager::doProjection(QPointF point, float zoom)
-{    
+{
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glMultMatrixd(_projMatrix);
@@ -92,8 +92,13 @@ void MatrixManager::resetMatrixProjection(float x, float y)
     m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 }
 
+void MatrixManager::resetViewPort()
+{
+    glGetIntegerv (GL_VIEWPORT, getGLViewport());
+}
+
 void MatrixManager::translate(float tX, float tY, float tZ)
-{    
+{
     float inverMat[4][4];
 
     float translation[3];
@@ -122,7 +127,8 @@ void MatrixManager::setMatrices()
 void MatrixManager::importMatrices(selectInfos &infos)
 {
     for (int aK=0; aK<4; ++aK)
-        _glViewport[aK] = infos.glViewport[aK];
+         _glViewport[aK] = infos.glViewport[aK];
+
     for (int aK=0; aK<16; ++aK)
     {
         _mvMatrix[aK] = infos.mvmatrix[aK];
@@ -146,6 +152,15 @@ void MatrixManager::getProjection(QPointF &P2D, Pt3dr P)
     GLdouble xp,yp,zp;
     mmProject(P.x,P.y,P.z,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
     P2D = QPointF(xp,yp);
+}
+
+void MatrixManager::getInverseProjection(Pt3dr &P, QPointF P2D, float dist)
+{
+    GLdouble xp,yp,zp;
+    mmUnProject(P2D.x(), P2D.y(), dist,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+    P.x = xp;
+    P.y = yp;
+    P.z = zp;
 }
 
 QPointF MatrixManager::WindowToImage(QPointF const &winPt, float zoom)
@@ -187,7 +202,7 @@ void MatrixManager::resetTranslationMatrix(Pt3dr center)
     m_translationMatrix[2] = -center.z;
 }
 
-void MatrixManager::resetAllMatrix(Pt3d<double> center)
+void MatrixManager::resetAllMatrix(Pt3dr center)
 {
     _targetCamera.x = 0;
     _targetCamera.y = 0;
@@ -323,9 +338,9 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
 }
 
 void MatrixManager::setMatrixDrawViewPort()
-{    
+{
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();    
+    glLoadIdentity();
     glTranslatef(-1.f,-1.f,0.f);
     glScalef(2.f/(float)_glViewport[2],2.f/(float)_glViewport[3],1.f);
     glMatrixMode(GL_MODELVIEW);
@@ -364,7 +379,7 @@ void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
     {
         if((abs(ry)< 2.f*PI - PI/4.f))
 
-            _upY = -_upY;        
+            _upY = -_upY;
     }
 }
 
@@ -439,4 +454,28 @@ GLdouble MatrixManager::distance() const
 void MatrixManager::setDistance(const GLdouble &distance)
 {
     _distance = distance;
+}
+
+void testInfos(QString filename)
+{
+    HistoryManager *HM = new HistoryManager();
+    MatrixManager  *MM = new MatrixManager();
+
+    HM->load(filename);
+    QVector <selectInfos> vInfos = HM->getSelectInfos();
+
+    for (int aK=0; aK< vInfos.size();++aK)
+    {
+        selectInfos &Infos = vInfos[aK];
+        MM->importMatrices(Infos);
+
+        for (int bK=0;bK < Infos.poly.size();++bK)
+        {
+            QPointF pt = Infos.poly[bK];
+            Pt3dr pt3d;
+            MM->getInverseProjection(pt3d, pt, 0.f);
+
+            cout << pt3d.x  << " " << pt3d.y << " " << pt3d.z << endl;
+        }
+    }
 }

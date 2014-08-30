@@ -527,6 +527,8 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
    if ((argc>=2) && (argv[1][0] == 'v') && (argv[1]!=std::string("vic")))
    {
+       ELISE_ASSERT(ELISE_QT_VERSION > 0, std::string("Qt not installed, " + std::string(argv[1]) + " not available").c_str() );
+
        MMVisualMode = true;
        argv[1]++;
    }

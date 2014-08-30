@@ -295,7 +295,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq", eSAM_NoInit)
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ", eSAM_IsExistFileRP)
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
-                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)", eSAM_Normalize)
+                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)", eSAM_InternalUse)
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
@@ -329,7 +329,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           if (mModeOri=="GRID")     mFullModeOri= "eGeomImageGrille";
           else if (mModeOri=="RTO") mFullModeOri= "eGeomImageRTO";
           else  {ELISE_ASSERT(false,"Unknown mode ori");}
-
       }
 
 
