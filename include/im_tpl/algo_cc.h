@@ -64,7 +64,7 @@ template <class T1,class T2,class Action> int OneZC
    std::vector<Pt2di> * aVCur = &aVec1;
    std::vector<Pt2di> * aVNext = &aVec2;
 
-   if ((aIm1.get(aPGerm)==aV1Sel) && (aIm2.get(aPGerm)==aV2Sel))
+   if ((aIm1.get(aPGerm)==aV1Sel) && (aIm2.get(aPGerm)==aV2Sel) && aOnNewPt.ValidePt(aPGerm))
    {
       aIm1.oset(aPGerm,aV1Aff);
       aVCur->push_back(aPGerm);
@@ -87,7 +87,7 @@ template <class T1,class T2,class Action> int OneZC
            for (int aKv=0; aKv<aNbV ; aKv++)
            {
                  Pt2di aPV = aP+aTabV[aKv];
-                 if ((aIm1.get(aPV)==aV1Sel) && (aIm2.get(aPV)==aV2Sel))
+                 if ((aIm1.get(aPV)==aV1Sel) && (aIm2.get(aPV)==aV2Sel) && aOnNewPt.ValidePt(aPV))
                  {
                     aIm1.oset(aPV,aV1Aff);
                     aVNext->push_back(aPV);
@@ -110,6 +110,7 @@ class cCC_NoActionOnNewPt
        void OnNewStep() {}
        void  OnNewPt(const Pt2di &) {}
        bool  StopCondStep() {return false;}
+       bool ValidePt(const Pt2di &){return true;}
 };
 
 template  <class Type>

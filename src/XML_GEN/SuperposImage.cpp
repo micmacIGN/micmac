@@ -15245,6 +15245,206 @@ void xml_init(cParamGenereStrVois & anObj,cElXMLTree * aTree)
 std::string  Mangling( cParamGenereStrVois *) {return "5602F34AB62664E3FF3F";};
 
 
+cTplValGesInit< int > & cParamFiltreDetecRegulProf::SzCC()
+{
+   return mSzCC;
+}
+
+const cTplValGesInit< int > & cParamFiltreDetecRegulProf::SzCC()const 
+{
+   return mSzCC;
+}
+
+
+cTplValGesInit< double > & cParamFiltreDetecRegulProf::PondZ()
+{
+   return mPondZ;
+}
+
+const cTplValGesInit< double > & cParamFiltreDetecRegulProf::PondZ()const 
+{
+   return mPondZ;
+}
+
+
+cTplValGesInit< double > & cParamFiltreDetecRegulProf::Pente()
+{
+   return mPente;
+}
+
+const cTplValGesInit< double > & cParamFiltreDetecRegulProf::Pente()const 
+{
+   return mPente;
+}
+
+
+cTplValGesInit< double > & cParamFiltreDetecRegulProf::SeuilReg()
+{
+   return mSeuilReg;
+}
+
+const cTplValGesInit< double > & cParamFiltreDetecRegulProf::SeuilReg()const 
+{
+   return mSeuilReg;
+}
+
+
+cTplValGesInit< bool > & cParamFiltreDetecRegulProf::V4()
+{
+   return mV4;
+}
+
+const cTplValGesInit< bool > & cParamFiltreDetecRegulProf::V4()const 
+{
+   return mV4;
+}
+
+
+cTplValGesInit< int > & cParamFiltreDetecRegulProf::NbCCInit()
+{
+   return mNbCCInit;
+}
+
+const cTplValGesInit< int > & cParamFiltreDetecRegulProf::NbCCInit()const 
+{
+   return mNbCCInit;
+}
+
+
+cTplValGesInit< std::string > & cParamFiltreDetecRegulProf::NameTest()
+{
+   return mNameTest;
+}
+
+const cTplValGesInit< std::string > & cParamFiltreDetecRegulProf::NameTest()const 
+{
+   return mNameTest;
+}
+
+void  BinaryUnDumpFromFile(cParamFiltreDetecRegulProf & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SzCC().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzCC().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SzCC().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PondZ().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PondZ().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PondZ().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Pente().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Pente().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Pente().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SeuilReg().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SeuilReg().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SeuilReg().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.V4().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.V4().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.V4().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NbCCInit().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbCCInit().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbCCInit().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NameTest().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NameTest().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NameTest().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cParamFiltreDetecRegulProf & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.SzCC().IsInit());
+    if (anObj.SzCC().IsInit()) BinaryDumpInFile(aFp,anObj.SzCC().Val());
+    BinaryDumpInFile(aFp,anObj.PondZ().IsInit());
+    if (anObj.PondZ().IsInit()) BinaryDumpInFile(aFp,anObj.PondZ().Val());
+    BinaryDumpInFile(aFp,anObj.Pente().IsInit());
+    if (anObj.Pente().IsInit()) BinaryDumpInFile(aFp,anObj.Pente().Val());
+    BinaryDumpInFile(aFp,anObj.SeuilReg().IsInit());
+    if (anObj.SeuilReg().IsInit()) BinaryDumpInFile(aFp,anObj.SeuilReg().Val());
+    BinaryDumpInFile(aFp,anObj.V4().IsInit());
+    if (anObj.V4().IsInit()) BinaryDumpInFile(aFp,anObj.V4().Val());
+    BinaryDumpInFile(aFp,anObj.NbCCInit().IsInit());
+    if (anObj.NbCCInit().IsInit()) BinaryDumpInFile(aFp,anObj.NbCCInit().Val());
+    BinaryDumpInFile(aFp,anObj.NameTest().IsInit());
+    if (anObj.NameTest().IsInit()) BinaryDumpInFile(aFp,anObj.NameTest().Val());
+}
+
+cElXMLTree * ToXMLTree(const cParamFiltreDetecRegulProf & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamFiltreDetecRegulProf",eXMLBranche);
+   if (anObj.SzCC().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SzCC"),anObj.SzCC().Val())->ReTagThis("SzCC"));
+   if (anObj.PondZ().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PondZ"),anObj.PondZ().Val())->ReTagThis("PondZ"));
+   if (anObj.Pente().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Pente"),anObj.Pente().Val())->ReTagThis("Pente"));
+   if (anObj.SeuilReg().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilReg"),anObj.SeuilReg().Val())->ReTagThis("SeuilReg"));
+   if (anObj.V4().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("V4"),anObj.V4().Val())->ReTagThis("V4"));
+   if (anObj.NbCCInit().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbCCInit"),anObj.NbCCInit().Val())->ReTagThis("NbCCInit"));
+   if (anObj.NameTest().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NameTest"),anObj.NameTest().Val())->ReTagThis("NameTest"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cParamFiltreDetecRegulProf & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.SzCC(),aTree->Get("SzCC",1),int(2)); //tototo 
+
+   xml_init(anObj.PondZ(),aTree->Get("PondZ",1),double(2.0)); //tototo 
+
+   xml_init(anObj.Pente(),aTree->Get("Pente",1),double(0.5)); //tototo 
+
+   xml_init(anObj.SeuilReg(),aTree->Get("SeuilReg",1),double(0.5)); //tototo 
+
+   xml_init(anObj.V4(),aTree->Get("V4",1),bool(false)); //tototo 
+
+   xml_init(anObj.NbCCInit(),aTree->Get("NbCCInit",1),int(5)); //tototo 
+
+   xml_init(anObj.NameTest(),aTree->Get("NameTest",1)); //tototo 
+}
+
+std::string  Mangling( cParamFiltreDetecRegulProf *) {return "C0E06AF186A5CD90F8BF";};
+
+
 std::string & cSectionName::KeyNuage()
 {
    return mKeyNuage;
@@ -16022,6 +16222,17 @@ const cTplValGesInit< cFMNT_ProgDyn > & cSpecAlgoFMNT::FMNT_ProgDyn()const
    return mFMNT_ProgDyn;
 }
 
+
+cTplValGesInit< cParamFiltreDetecRegulProf > & cSpecAlgoFMNT::ParamRegProf()
+{
+   return mParamRegProf;
+}
+
+const cTplValGesInit< cParamFiltreDetecRegulProf > & cSpecAlgoFMNT::ParamRegProf()const 
+{
+   return mParamRegProf;
+}
+
 void  BinaryUnDumpFromFile(cSpecAlgoFMNT & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.SigmaPds(),aFp);
@@ -16067,6 +16278,14 @@ void  BinaryUnDumpFromFile(cSpecAlgoFMNT & anObj,ELISE_fp & aFp)
         }
         else  anObj.FMNT_ProgDyn().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ParamRegProf().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ParamRegProf().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ParamRegProf().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSpecAlgoFMNT & anObj)
@@ -16084,6 +16303,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSpecAlgoFMNT & anObj)
     if (anObj.QuickExp().IsInit()) BinaryDumpInFile(aFp,anObj.QuickExp().Val());
     BinaryDumpInFile(aFp,anObj.FMNT_ProgDyn().IsInit());
     if (anObj.FMNT_ProgDyn().IsInit()) BinaryDumpInFile(aFp,anObj.FMNT_ProgDyn().Val());
+    BinaryDumpInFile(aFp,anObj.ParamRegProf().IsInit());
+    if (anObj.ParamRegProf().IsInit()) BinaryDumpInFile(aFp,anObj.ParamRegProf().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSpecAlgoFMNT & anObj)
@@ -16103,6 +16324,8 @@ cElXMLTree * ToXMLTree(const cSpecAlgoFMNT & anObj)
       aRes->AddFils(::ToXMLTree(std::string("QuickExp"),anObj.QuickExp().Val())->ReTagThis("QuickExp"));
    if (anObj.FMNT_ProgDyn().IsInit())
       aRes->AddFils(ToXMLTree(anObj.FMNT_ProgDyn().Val())->ReTagThis("FMNT_ProgDyn"));
+   if (anObj.ParamRegProf().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ParamRegProf().Val())->ReTagThis("ParamRegProf"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -16128,9 +16351,11 @@ void xml_init(cSpecAlgoFMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.QuickExp(),aTree->Get("QuickExp",1),bool(false)); //tototo 
 
    xml_init(anObj.FMNT_ProgDyn(),aTree->Get("FMNT_ProgDyn",1)); //tototo 
+
+   xml_init(anObj.ParamRegProf(),aTree->Get("ParamRegProf",1)); //tototo 
 }
 
-std::string  Mangling( cSpecAlgoFMNT *) {return "D24BCE900B6BECDFFE3F";};
+std::string  Mangling( cSpecAlgoFMNT *) {return "D339F618E3AA70A0FEBF";};
 
 
 double & cParamAlgoFusionMNT::FMNTSeuilCorrel()
@@ -16320,6 +16545,17 @@ const cTplValGesInit< cFMNT_ProgDyn > & cParamAlgoFusionMNT::FMNT_ProgDyn()const
 }
 
 
+cTplValGesInit< cParamFiltreDetecRegulProf > & cParamAlgoFusionMNT::ParamRegProf()
+{
+   return SpecAlgoFMNT().ParamRegProf();
+}
+
+const cTplValGesInit< cParamFiltreDetecRegulProf > & cParamAlgoFusionMNT::ParamRegProf()const 
+{
+   return SpecAlgoFMNT().ParamRegProf();
+}
+
+
 cSpecAlgoFMNT & cParamAlgoFusionMNT::SpecAlgoFMNT()
 {
    return mSpecAlgoFMNT;
@@ -16368,7 +16604,7 @@ void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SpecAlgoFMNT(),aTree->Get("SpecAlgoFMNT",1)); //tototo 
 }
 
-std::string  Mangling( cParamAlgoFusionMNT *) {return "268C2D70187CD8A0FD3F";};
+std::string  Mangling( cParamAlgoFusionMNT *) {return "B5353EF1799702BAFE3F";};
 
 
 cTplValGesInit< int > & cSectionGestionChantier::SzDalles()
@@ -16962,6 +17198,17 @@ const cTplValGesInit< cFMNT_ProgDyn > & cParamFusionMNT::FMNT_ProgDyn()const
 }
 
 
+cTplValGesInit< cParamFiltreDetecRegulProf > & cParamFusionMNT::ParamRegProf()
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().ParamRegProf();
+}
+
+const cTplValGesInit< cParamFiltreDetecRegulProf > & cParamFusionMNT::ParamRegProf()const 
+{
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().ParamRegProf();
+}
+
+
 cSpecAlgoFMNT & cParamFusionMNT::SpecAlgoFMNT()
 {
    return ParamAlgoFusionMNT().SpecAlgoFMNT();
@@ -17191,7 +17438,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionMNT *) {return "DE4F00387EC394B2FF3F";};
+std::string  Mangling( cParamFusionMNT *) {return "17325776C8302987FF3F";};
 
 
 double & cXmlAffinR2ToR::CoeffX()

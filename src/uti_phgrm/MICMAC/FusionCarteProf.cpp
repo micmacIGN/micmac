@@ -1010,7 +1010,7 @@ template <class Type> double cFusionCarteProf<Type>::ToZSauv(double aZ) const
    return  (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
 }
 
-extern Im2D_Bits<1>  FiltreDetecRegulProf(Im2D_REAL4 aImProf,Im2D_Bits<1> aIMasq);
+extern Im2D_Bits<1>  FiltreDetecRegulProf(Im2D_REAL4 aImProf,Im2D_Bits<1> aIMasq,const cParamFiltreDetecRegulProf & aParam);
 
 
 template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2di & aBoxIn,const Box2di & aBoxOut)
@@ -1256,9 +1256,9 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
        }
    }
 
-   if (1)
+   if (mParam.ParamRegProf().IsInit())
    {
-       aImMasq = FiltreDetecRegulProf(aImFus,aImMasq);
+       aImMasq = FiltreDetecRegulProf(aImFus,aImMasq,mParam.ParamRegProf().Val());
    }
 
    if (ShowTime)

@@ -101,6 +101,7 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
                                 <Trans>     2 </Trans>
                             </FMNT_GesNoVal>
                  </FMNT_ProgDyn>
+                 <ParamRegProf> </ParamRegProf>
            </SpecAlgoFMNT>
        </ParamAlgoFusionMNT>
 
