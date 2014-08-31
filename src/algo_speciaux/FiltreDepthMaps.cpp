@@ -216,7 +216,6 @@ template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
                                         )
 {
    double aSeuilDif = 0.1;
-std::cout << "IInnnnnnnnnnnnnnnnnnnnn\n";
     TIm2D<REAL4,REAL8> aTPds(aImPds);
     Pt2di aSzOut = aImPds.sz();
     Im2D<tNum,tNBase> aIProf = aTProf._the_im;

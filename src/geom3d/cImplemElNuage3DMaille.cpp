@@ -370,8 +370,8 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
 	mProfC     = scal(mDirPl,mCentre);
 }
 
-extern Im2D_REAL4 ReduceImageProf(Im2D_REAL4 aImPds,Im2D_Bits<1>,Im2D_REAL4 aImProf,double aScale);
-extern Im2D_REAL4 ReduceImageProf(Im2D_REAL4 aImPds,Im2D_Bits<1>,Im2D_INT2 aImProf,double aScale);
+extern Im2D_REAL4 ReduceImageProf(Im2D_REAL4 aImPds,Im2D_Bits<1>,Im2D_REAL4 aImProf, const Box2dr &aBox,std::vector<cLayerNuage3DM*>  mAttrs);
+extern Im2D_REAL4 ReduceImageProf(Im2D_REAL4 aImPds,Im2D_Bits<1>,Im2D_INT2 aImProf,const Box2dr &aBox,std::vector<cLayerNuage3DM*>  mAttrs);
 
 
 template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>::V_ReScale
@@ -382,12 +382,17 @@ template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>:
                                         Im2D_REAL4 anImPds
                                     ) 
 {
+    // RatioResolAltiPlani();
+
+    // Im2DGen * anOld = this->mAttrs[0]->Im();
+
 
    Fonc_Num aFoncProf = this->ReScaleAndClip(this->mImDef.in(0)*this->mIm.in(0),aBox._p0,aScale)/Max(1e-5,anImPds.in());
 
    if (aScale !=1)
    {
-       ReduceImageProf(anImPds,this->mImDef,this->mIm,aScale);
+        // Im2D_REAL4 aRedProf = ReduceImageProf(anImPds,this->mImDef,this->mIm,aScale);
+        // aFoncProf = aRedProf.in();
    }
    return new cElN3D_EpipGen<float,double>
               (
