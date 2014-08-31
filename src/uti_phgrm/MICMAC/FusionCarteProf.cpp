@@ -1171,7 +1171,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    if (1)
    {
        // 1- Remplir la nappe avec les cellules
-       double aDefPds =   mFNoVal ?  mFNoVal->GainNoVal() :0.5  ;
+       double aDefPds =   mFNoVal ?  mFNoVal->CostNoVal() :0.5  ;
        cElPilePrgD aPDef(0);
        cProg2DOptimiser<cFusionCarteProf>  * aPrgD = new cProg2DOptimiser<cFusionCarteProf>(*this,aTIm0._the_im,aTImNb._the_im,0,1); // 0,1 => Rab et Mul
        {

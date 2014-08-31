@@ -1299,6 +1299,7 @@ template <class Type,class TyBase> int Im2D<Type,TyBase>::GetI(const Pt2di  &aP 
 template <class Type,class TyBase> double Im2D<Type,TyBase>::GetR(const Pt2di & aP) const
 {
    AssertInside(aP);
+// std::cout << "GetR " << double(data()[aP.y][aP.x]) << " " << aP << "\n";
    return data()[aP.y][aP.x];
 }
 

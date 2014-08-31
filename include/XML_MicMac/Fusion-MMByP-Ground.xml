@@ -51,31 +51,25 @@
 
        <ParamAlgoFusionMNT>
            <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel>
-           <FMNTGammaCorrel > 4 </FMNTGammaCorrel>
+           <FMNTGammaCorrel > 1 </FMNTGammaCorrel>
            <SpecAlgoFMNT>
-<!--
-                <FMNtBySort>
-                       <PercFusion> 50.0 </PercFusion>
-                </FMNtBySort>
--->
-                <FMNtByMaxEvid>
-                       <SigmaPds> 5.0 </SigmaPds>
-                       <SigmaZ> 7.5  </SigmaZ>
-                       <MaxDif> 10  </MaxDif>
-                       <FMNT_ProgDyn>
-                            <Regul> 1.0 </Regul>
+                 <SigmaPds> 5.0 </SigmaPds>
+                 <SeuilMaxLoc> 1  </SeuilMaxLoc>
+                 <SeuilCptOk>  2.0  </SeuilCptOk>
+                 <SigmaZ> 7.5  </SigmaZ> <!--  ???   -->
+                 <NBMaxMaxLoc> 6  </NBMaxMaxLoc>
+                 <FMNT_ProgDyn>
+                            <Regul> 0.0 </Regul>
                             <Sigma0> 10.0 </Sigma0>
                             <NbDir>  7 </NbDir>
                             <FMNT_GesNoVal>
-                                <PenteMax> 10 </PenteMax>
-                                <GainNoVal> 0.5 </GainNoVal>
-                                <Trans>     3 </Trans>
+                                <PenteMax> 10000 </PenteMax>
+                                <CostNoVal> 0.9 </CostNoVal>
+                                <Trans>     2 </Trans>
                             </FMNT_GesNoVal>
-<!--
--->
-                       </FMNT_ProgDyn>
+                 </FMNT_ProgDyn>
+                 <ParamRegProf> </ParamRegProf>
 
-                </FMNtByMaxEvid>
            </SpecAlgoFMNT>
        </ParamAlgoFusionMNT>
 

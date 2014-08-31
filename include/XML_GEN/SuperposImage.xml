@@ -1123,7 +1123,7 @@
                        <FMNT_GesNoVal Nb="?">
                             <PenteMax Nb="1" Type="double"> </PenteMax>
                                 <!-- GainNoVal : proportion du gain max; Gain 0 privilegie le NoVal -->
-                            <GainNoVal Nb="1" Type="double"> </GainNoVal>
+                            <CostNoVal Nb="1" Type="double"> </CostNoVal>
                              <Trans Nb="1" Type="double"> </Trans>
                         </FMNT_GesNoVal>
                 </FMNT_ProgDyn>

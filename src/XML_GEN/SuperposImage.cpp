@@ -15865,14 +15865,14 @@ const double & cFMNT_GesNoVal::PenteMax()const
 }
 
 
-double & cFMNT_GesNoVal::GainNoVal()
+double & cFMNT_GesNoVal::CostNoVal()
 {
-   return mGainNoVal;
+   return mCostNoVal;
 }
 
-const double & cFMNT_GesNoVal::GainNoVal()const 
+const double & cFMNT_GesNoVal::CostNoVal()const 
 {
-   return mGainNoVal;
+   return mCostNoVal;
 }
 
 
@@ -15889,14 +15889,14 @@ const double & cFMNT_GesNoVal::Trans()const
 void  BinaryUnDumpFromFile(cFMNT_GesNoVal & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.PenteMax(),aFp);
-    BinaryUnDumpFromFile(anObj.GainNoVal(),aFp);
+    BinaryUnDumpFromFile(anObj.CostNoVal(),aFp);
     BinaryUnDumpFromFile(anObj.Trans(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cFMNT_GesNoVal & anObj)
 {
     BinaryDumpInFile(aFp,anObj.PenteMax());
-    BinaryDumpInFile(aFp,anObj.GainNoVal());
+    BinaryDumpInFile(aFp,anObj.CostNoVal());
     BinaryDumpInFile(aFp,anObj.Trans());
 }
 
@@ -15905,7 +15905,7 @@ cElXMLTree * ToXMLTree(const cFMNT_GesNoVal & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FMNT_GesNoVal",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("PenteMax"),anObj.PenteMax())->ReTagThis("PenteMax"));
-   aRes->AddFils(::ToXMLTree(std::string("GainNoVal"),anObj.GainNoVal())->ReTagThis("GainNoVal"));
+   aRes->AddFils(::ToXMLTree(std::string("CostNoVal"),anObj.CostNoVal())->ReTagThis("CostNoVal"));
    aRes->AddFils(::ToXMLTree(std::string("Trans"),anObj.Trans())->ReTagThis("Trans"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -15919,12 +15919,12 @@ void xml_init(cFMNT_GesNoVal & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PenteMax(),aTree->Get("PenteMax",1)); //tototo 
 
-   xml_init(anObj.GainNoVal(),aTree->Get("GainNoVal",1)); //tototo 
+   xml_init(anObj.CostNoVal(),aTree->Get("CostNoVal",1)); //tototo 
 
    xml_init(anObj.Trans(),aTree->Get("Trans",1)); //tototo 
 }
 
-std::string  Mangling( cFMNT_GesNoVal *) {return "C8A95806CB9CBF90FF3F";};
+std::string  Mangling( cFMNT_GesNoVal *) {return "503C4A997C39D7ADFF3F";};
 
 
 double & cFMNT_ProgDyn::Regul()
@@ -15971,14 +15971,14 @@ const double & cFMNT_ProgDyn::PenteMax()const
 }
 
 
-double & cFMNT_ProgDyn::GainNoVal()
+double & cFMNT_ProgDyn::CostNoVal()
 {
-   return FMNT_GesNoVal().Val().GainNoVal();
+   return FMNT_GesNoVal().Val().CostNoVal();
 }
 
-const double & cFMNT_ProgDyn::GainNoVal()const 
+const double & cFMNT_ProgDyn::CostNoVal()const 
 {
-   return FMNT_GesNoVal().Val().GainNoVal();
+   return FMNT_GesNoVal().Val().CostNoVal();
 }
 
 
@@ -16055,7 +16055,7 @@ void xml_init(cFMNT_ProgDyn & anObj,cElXMLTree * aTree)
    xml_init(anObj.FMNT_GesNoVal(),aTree->Get("FMNT_GesNoVal",1)); //tototo 
 }
 
-std::string  Mangling( cFMNT_ProgDyn *) {return "E97359F97E4BCECEFD3F";};
+std::string  Mangling( cFMNT_ProgDyn *) {return "B6FDC4C5B4D7F9C1FE3F";};
 
 
 double & cSpecAlgoFMNT::SigmaPds()
@@ -16179,14 +16179,14 @@ const double & cSpecAlgoFMNT::PenteMax()const
 }
 
 
-double & cSpecAlgoFMNT::GainNoVal()
+double & cSpecAlgoFMNT::CostNoVal()
 {
-   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().CostNoVal();
 }
 
-const double & cSpecAlgoFMNT::GainNoVal()const 
+const double & cSpecAlgoFMNT::CostNoVal()const 
 {
-   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().CostNoVal();
 }
 
 
@@ -16355,7 +16355,7 @@ void xml_init(cSpecAlgoFMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.ParamRegProf(),aTree->Get("ParamRegProf",1)); //tototo 
 }
 
-std::string  Mangling( cSpecAlgoFMNT *) {return "D339F618E3AA70A0FEBF";};
+std::string  Mangling( cSpecAlgoFMNT *) {return "E05BB1244C2A88AEFC3F";};
 
 
 double & cParamAlgoFusionMNT::FMNTSeuilCorrel()
@@ -16501,14 +16501,14 @@ const double & cParamAlgoFusionMNT::PenteMax()const
 }
 
 
-double & cParamAlgoFusionMNT::GainNoVal()
+double & cParamAlgoFusionMNT::CostNoVal()
 {
-   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().CostNoVal();
 }
 
-const double & cParamAlgoFusionMNT::GainNoVal()const 
+const double & cParamAlgoFusionMNT::CostNoVal()const 
 {
-   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().CostNoVal();
 }
 
 
@@ -16604,7 +16604,7 @@ void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SpecAlgoFMNT(),aTree->Get("SpecAlgoFMNT",1)); //tototo 
 }
 
-std::string  Mangling( cParamAlgoFusionMNT *) {return "B5353EF1799702BAFE3F";};
+std::string  Mangling( cParamAlgoFusionMNT *) {return "7E33E6777BC045CFFE3F";};
 
 
 cTplValGesInit< int > & cSectionGestionChantier::SzDalles()
@@ -17154,14 +17154,14 @@ const double & cParamFusionMNT::PenteMax()const
 }
 
 
-double & cParamFusionMNT::GainNoVal()
+double & cParamFusionMNT::CostNoVal()
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().CostNoVal();
 }
 
-const double & cParamFusionMNT::GainNoVal()const 
+const double & cParamFusionMNT::CostNoVal()const 
 {
-   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().GainNoVal();
+   return ParamAlgoFusionMNT().SpecAlgoFMNT().FMNT_ProgDyn().Val().FMNT_GesNoVal().Val().CostNoVal();
 }
 
 
@@ -17438,7 +17438,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionMNT *) {return "17325776C8302987FF3F";};
+std::string  Mangling( cParamFusionMNT *) {return "EEFB3C27EDE371C7FE3F";};
 
 
 double & cXmlAffinR2ToR::CoeffX()

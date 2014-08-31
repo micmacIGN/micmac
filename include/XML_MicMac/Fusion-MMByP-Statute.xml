@@ -97,7 +97,7 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
                             <NbDir>  7 </NbDir>
                             <FMNT_GesNoVal>
                                 <PenteMax> 1000 </PenteMax>
-                                <GainNoVal> 0.5 </GainNoVal>
+                                <CostNoVal> 0.5 </CostNoVal>
                                 <Trans>     2 </Trans>
                             </FMNT_GesNoVal>
                  </FMNT_ProgDyn>

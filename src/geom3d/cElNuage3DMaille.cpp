@@ -1171,23 +1171,33 @@ cElNuage3DMaille * cElNuage3DMaille::ReScaleAndClip(Box2dr aBox,double aScale)
 {
     Pt2dr aTr = aBox._p0;
     Pt2dr aSz = aBox.sz();
+    Pt2di aSzI = round_up(aSz);
 
 // std::cout << "ReScaleAndClippppp " << aScale << aTr << aSz <<"\n";
     cXML_ParamNuage3DMaille aNewParam = CropAndSousEch(mParams,aTr,aScale,aSz);
 
-    Im2D_REAL4  aImPds(round_up(aSz.x),round_up(aSz.y));
-    ELISE_COPY
-    (
-         aImPds.all_pts(),
-         ReScaleAndClip(mImDef.in(0),aTr,aScale),
-         aImPds.out()
-    );
+    Im2D_REAL4  aImPds(aSzI.x,aSzI.y);
 
-    cElNuage3DMaille * aRes = V_ReScale(aBox,aScale,aNewParam,aImPds);
+    std::vector<Im2DGen*> aVNewAttr;
+    std::vector<Im2DGen*> aVOldAttr;
+    for (int aKA=0 ; aKA<int(mAttrs.size()) ; aKA++)
+    {
+        Im2DGen * anOld = mAttrs[aKA]->Im();
+        aVOldAttr.push_back(anOld);
+        aVNewAttr.push_back(anOld->ImOfSameType(aSzI));
+    }
+
+    cElNuage3DMaille * aRes = V_ReScale(aBox,aScale,aNewParam,aImPds,aVNewAttr,aVOldAttr);
+
+    for (int aKA=0 ; aKA<int(mAttrs.size()) ; aKA++)
+    {
+        aRes->mAttrs.push_back(new cLayerNuage3DM(aVNewAttr[aKA],mAttrs[aKA]->Name()));
+    }
+    aRes->mGrpAttr = mGrpAttr;
  
     aRes->VerifParams();
 
-
+/*
     for (int aKA=0 ; aKA<int(mAttrs.size()) ; aKA++)
     {
         Im2DGen * anOld = mAttrs[aKA]->Im();
@@ -1200,6 +1210,7 @@ cElNuage3DMaille * cElNuage3DMaille::ReScaleAndClip(Box2dr aBox,double aScale)
         aRes->mAttrs.push_back(new cLayerNuage3DM(aNew,mAttrs[aKA]->Name()));
     }
     aRes->mGrpAttr = mGrpAttr;
+*/
     
 
 

@@ -4789,14 +4789,14 @@ class cFMNT_GesNoVal
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
     private:
         double mPenteMax;
-        double mGainNoVal;
+        double mCostNoVal;
         double mTrans;
 };
 cElXMLTree * ToXMLTree(const cFMNT_GesNoVal &);
@@ -4827,8 +4827,8 @@ class cFMNT_ProgDyn
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
@@ -4890,8 +4890,8 @@ class cSpecAlgoFMNT
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
@@ -4970,8 +4970,8 @@ class cParamAlgoFusionMNT
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
@@ -5148,8 +5148,8 @@ class cParamFusionMNT
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;

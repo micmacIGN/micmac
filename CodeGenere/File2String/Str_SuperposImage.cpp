@@ -1125,7 +1125,7 @@ const char * (theNameVar_SuperposImage[1198]) = {
 "                       <FMNT_GesNoVal Nb=\"?\">\n",
 "                            <PenteMax Nb=\"1\" Type=\"double\"> </PenteMax>\n",
 "                                <!-- GainNoVal : proportion du gain max; Gain 0 privilegie le NoVal -->\n",
-"                            <GainNoVal Nb=\"1\" Type=\"double\"> </GainNoVal>\n",
+"                            <CostNoVal Nb=\"1\" Type=\"double\"> </CostNoVal>\n",
 "                             <Trans Nb=\"1\" Type=\"double\"> </Trans>\n",
 "                        </FMNT_GesNoVal>\n",
 "                </FMNT_ProgDyn>\n",
