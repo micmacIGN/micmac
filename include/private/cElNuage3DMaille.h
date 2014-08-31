@@ -471,7 +471,9 @@ class cElNuage3DMaille : public cCapture3D
                                         const Box2dr &Box,
                                         double aScale,
                                         const cXML_ParamNuage3DMaille &,
-                                        Im2D_REAL4 anImPds
+                                        Im2D_REAL4 anImPds,
+                                        std::vector<Im2DGen*> aVNew,
+                                        std::vector<Im2DGen*> aVOld
                                    ) = 0;
         virtual void V_Save(const std::string & aNameP) = 0;
 

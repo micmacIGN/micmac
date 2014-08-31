@@ -205,17 +205,23 @@ getchar();
 /*                      ReduceImageProf                                            */
 /*                                                                                 */
 /***********************************************************************************/
+static double aDistMax=0;
 
 template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
                                         (
-                                             Im2D_REAL4    aImPds,
+                                             double aDifStd ,
                                              TIm2DBits<1>  aTMasq,
                                              TIm2D<tNum,tNBase> aTProf, 
-                                             double aScale
-
+                                             const Box2dr &aBox,
+                                             double aScale,
+                                             Im2D_REAL4    aImPds,
+                                             std::vector<Im2DGen*>  aVNew,
+                                             std::vector<Im2DGen*> aVOld
                                         )
 {
-   double aSeuilDif = 0.1;
+    // double aDifStd = 0.5;
+    // std::cout << "TO CHANGE DIFF STDD  " << aDifStd << "\n";
+
     TIm2D<REAL4,REAL8> aTPds(aImPds);
     Pt2di aSzOut = aImPds.sz();
     Im2D<tNum,tNBase> aIProf = aTProf._the_im;
@@ -226,16 +232,9 @@ template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
     Im2D_Bits<1> aMasqTmpCC = ImMarqueurCC(aSzIn);
     TIm2DBits<1> aTMasqTmpCC(aMasqTmpCC);
 
+    aVNew.push_back(&aRes);
+    aVOld.push_back(&aIProf);
 
-    Im2D_Bits<1> aMasqTmpIn(aSzIn.x,aSzIn.y,0);
-    TIm2DBits<1> aTMIn(aMasqTmpIn);
-
-    if (aScale==1)
-    {
-        ELISE_COPY(aRes.all_pts(),aIProf.in(),aRes.out());
-
-        return aRes;
-    }
     int aSzCC = ElMax(3,round_up(aScale*2+1));
 
     Pt2di aPOut;
@@ -244,9 +243,10 @@ template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
         for (aPOut.y = 0 ; aPOut.y<aSzOut.y ; aPOut.y++)
         {
               aTPds.oset(aPOut,0.0);
-              Pt2dr aPRIn (aPOut.x*aScale,aPOut.y*aScale);
+              Pt2dr aPRIn (aPOut.x*aScale +aBox._p0.x,aPOut.y*aScale+aBox._p0.y);
               int aXInCentreI = ElMax(1,ElMin(aSzIn.x-2,round_ni(aPRIn.x)));
               int aYInCentreI = ElMax(1,ElMin(aSzIn.y-2,round_ni(aPRIn.y)));
+              Pt2di aPII(aXInCentreI,aYInCentreI);
 
               int aXI0 = ElMax(0,aXInCentreI-aSzCC);
               int aYI0 = ElMax(0,aYInCentreI-aSzCC);
@@ -268,127 +268,101 @@ template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
                        }
                   }
               }
-              if (aSomP>0)
+              Pt2di aNearest = aPII;
+              if ((aSomP>=ElSquare(aScale)) && (aTMasq.get(aNearest)))
               {
-                  // 1 calcul du pt le plus pres du barrycentre
-                  aBar = aBar / double(aSomP);
-                  double aDistMin = 1e9;
-                  Pt2di aNearest(-1,-1);
-                  for (aPIn.x=aXI0 ; aPIn.x<=aXI1 ; aPIn.x++)
-                  {
-                      for (aPIn.y=aYI0 ; aPIn.y<=aYI1 ; aPIn.y++)
-                      {
-                           if (aTMasq.get(aPIn))
-                           {
-                                double aDist = square_euclid(Pt2dr(aPIn)-aPRIn);
-                                if (aDist<aDistMin)
-                                {
-                                    aDist = aDistMin;
-                                    aNearest = aPIn;
-                                }
-                           }
-                      }
-                  }
                   cCCMaxAndBox  aCCParam(aSzCC,Box2di(Pt2di(aXI0,aYI0),Pt2di(aXI1,aYI1)));
                   OneZC(aNearest,true,aTMasqTmpCC,1,0,aTMasq,1,aCCParam);
 
-                  const std::vector<Pt2di> aVP = aCCParam.mVPts;
+                  std::vector<Pt2di> aVP = aCCParam.mVPts;
                   int aNbP = aVP.size();
 
                   for (int aKP=0 ; aKP<aNbP ; aKP++)
                   {
-                     aTMIn.oset(aVP[aKP],1);
                      aTMasqTmpCC.oset(aVP[aKP],1);
                   }
 
-                  Pt2di aPIn;
-                  std::vector<double> aVProf;
-                  std::vector<double> aVDif;
-                  for (aPIn.x=aXI0 ; aPIn.x<=aXI1 ; aPIn.x++)
-                  {
-                      for (aPIn.y=aYI0 ; aPIn.y<=aYI1 ; aPIn.y++)
-                      {
-                           if (aTMIn.get(aPIn))
-                           {
-                               double aProf = aTProf.get(aPIn);
-                               aVProf.push_back(aProf);
-
-                               Pt2di aPx = aPIn + Pt2di(1,0);
-                               if (aTMIn.get(aPx))
-                               {
-                                   aVDif.push_back(ElAbs(aProf-aTProf.get(aPx)));
-                               }
-                          
-                               Pt2di aPy = aPIn + Pt2di(0,1);
-                               if (aTMIn.get(aPy))
-                               {
-                                   aVDif.push_back(ElAbs(aProf-aTProf.get(aPy)));
-                               }
-                           }
-                      }
-                  }
                   double aProfRef = aTProf.get(aNearest);
-                  if (aVDif.size()>3)
-                  {
-                     double aDifStd = ElMax(MedianeSup(aVDif),aSeuilDif);
-                     double aSomPds = 0;
-                     double aSomProf = 0;
-                     for (int aKP=0 ; aKP< aNbP ; aKP++)
-                     {
-                         const Pt2di & aP = aVP[aKP];
-                         double aDist= euclid(aP-aNearest);
-                         double aProf =  aTProf.get(aP);
-                         double aDifNorm = ElAbs(aProf-aProfRef) /(aDifStd * (1+aDist/2.0));
-                         double aPdsProf = 1.0;
-                         if (aDifNorm<1)
-                         {
-                         }
-                         else if (aDifNorm<3)
-                         {
-                             aPdsProf = (3-aDifNorm) /2.0;
-                         }
-                         else
-                         {
-                             aPdsProf = 0;
-                         }
-                         double aDistNorm= ElMin(aDist/aScale,2.0);
-                         double aPdsDist = (1+cos(aDistNorm * (PI/2.0)));
 
-                         double aPds = aPdsDist * aPdsProf;
-                         aSomPds += aPds;
-                         aSomProf += aPds*aProf;
-                     }
-                     aTPds.oset(aPOut,1.0);
-                     aTRes.oset(aPOut,aSomProf/aSomPds);
-                  }
-                  else
-                  {
-                     aTPds.oset(aPOut,1.0);
-                     aTRes.oset(aPOut,aProfRef);
-                     // getchar();
-                  }
 
-                  for (int aKP=0 ; aKP<aNbP ; aKP++)
-                     aTMIn.oset(aVP[aKP],0);
+                  double aSomPds = 0;
+                  std::vector<double> aVPds;
+                  for (int aKP=0 ; aKP< aNbP ; aKP++)
+                  {
+                      const Pt2di & aP = aVP[aKP];
+                      double aDist= euclid(aP-aNearest);
+                      double aProf =  aTProf.get(aP);
+                      double aDifNorm = ElAbs(aProf-aProfRef) /(aDifStd * (1+aDist/2.0));
+                      double aPdsProf = 1.0;
+
+                      if (aDifNorm<1)
+                      {
+                      }
+                      else if (aDifNorm<3)
+                      {
+                         aPdsProf = (3-aDifNorm) /2.0;
+                      }
+                      else
+                      {
+                         aPdsProf = 0;
+                      }
+                  
+                      double aDistNorm= ElMin(aDist/aScale,2.0);
+                      double aPdsDist = (1+cos(aDistNorm * (PI/2.0)));
+
+                      double aPds = aPdsDist * aPdsProf;
+                      aSomPds += aPds;
+                      aVPds.push_back(aPds);
+                  }
+                  aTPds.oset(aPOut,1.0);
+
+                  for (int aKI=0 ; aKI <int(aVNew.size()) ; aKI++)
+                  {
+                      double aSomIP = 0;
+                      Im2DGen * aIOld = aVOld[aKI];
+                      for (int aKP=0 ; aKP< aNbP ; aKP++)
+                            aSomIP += aVPds[aKP] * aIOld->GetR(aVP[aKP]);
+                      aVNew[aKI]->SetR(aPOut,aSomIP/aSomPds);
+                  }
               }
-/*
-*/
         }
     }
 
-    std::cout << "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq " << aScale << aSzOut << aSzIn << "\n";
    
     return aRes;
 }
 
-Im2D_REAL4 ReduceImageProf(Im2D_REAL4 aImPds,Im2D_Bits<1> aIMasq,Im2D_REAL4 aImProf,double aScale)
+
+Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1> aIMasq,Im2D_REAL4 aImProf, const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld)
+
 {
-   return TplFReduceImageProf(aImPds,TIm2DBits<1>(aIMasq),TIm2D<REAL4,REAL8>(aImProf),aScale);
+   return TplFReduceImageProf(aDifStd,TIm2DBits<1>(aIMasq),TIm2D<REAL4,REAL8>(aImProf),aBox,aScale,aImPds,aVNew,aVOld);
 }
+
+
+
+Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1> aIMasq,Im2D_INT2 aImProf, const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld)
+
+{
+   return TplFReduceImageProf(aDifStd,TIm2DBits<1>(aIMasq),TIm2D<INT2,INT>(aImProf),aBox,aScale,aImPds,aVNew,aVOld);
+}
+
+
+
+/*
+
+Im2D_REAL4 ReduceImageProf(Im2D_Bits<1>,Im2D_REAL4 aImProf, const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld)
+
+{
+   return TplFReduceImageProf(TIm2DBits<1>(aIMasq),TIm2D<REAL4,REAL8>(aImProf),aBox,aScale,aVNew,aVOld);
+}
+
+
 Im2D_REAL4 ReduceImageProf(Im2D_REAL4 aImPds,Im2D_Bits<1> aIMasq,Im2D_INT2 aImProf,double aScale)
 {
    return TplFReduceImageProf(aImPds,TIm2DBits<1>(aIMasq),TIm2D<INT2,INT>(aImProf),aScale);
 }
+*/
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
