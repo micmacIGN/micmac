@@ -205,8 +205,6 @@ getchar();
 /*                      ReduceImageProf                                            */
 /*                                                                                 */
 /***********************************************************************************/
-static double aDistMax=0;
-
 template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
                                         (
                                              double aDifStd ,
