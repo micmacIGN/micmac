@@ -584,6 +584,8 @@ if ( ${BUILD_BENCH} )
    include(${PROJECT_SOURCE_DIR}/BenchElise/bench_mm3d/CMakeLists.txt)
 endif()
 
+IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+
 #------------------------------------------------------------------------------------
 #scripts de configuration et d'installation
 #------------------------------------------------------------------------------------
@@ -597,7 +599,7 @@ if(qt_version EQUAL 5)
 	get_target_property(QT_QTWIDGETS_LIBRARY    Qt5::Widgets		LOCATION_Release)
 	get_target_property(QT_QTXML_LIBRARY        Qt5::Xml            LOCATION_Release)
 	
-	set(QT_COCOA_PLUGIN "${QT_PLUGINS_DIR}/platforms/libqcocoa.dylib")
+	set(QT_COCOA_PLUGIN "platforms/libqcocoa.dylib")
 
 	get_filename_component(QT_QTCORE_LIBRARY ${QT_QTCORE_LIBRARY} PATH)
 	get_filename_component(QT_QTGUI_LIBRARY ${QT_QTGUI_LIBRARY} PATH)
@@ -609,11 +611,13 @@ if(qt_version EQUAL 5)
 	SET (QT_OLD_PREFIX "/work/build/______________________________PADDING______________________________/lib/")
 endif()
 
-
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_LIST_DIR}/setup/)
 
 configure_file (
   "${CMAKE_CURRENT_LIST_DIR}/config/MICMAC_MacOSXInstaller.sh.in"
    "${CMAKE_CURRENT_LIST_DIR}/setup/MICMAC_MacOSXInstaller.sh"
  )
+
+endif()
+
 

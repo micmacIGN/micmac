@@ -65,28 +65,18 @@ int main(int argc, char *argv[])
     
 #if defined(__APPLE__) || defined(__MACH__)
 	//mise a jour des variables d'environnement pour resources du bundle sous MacOSX
-	{
-		std::cout<<"[SaisieQT] START MacOSX"<<std::endl;
-        std::string exeName(argv[0]);		
-       
+	{       
         std::string aDir,aPat;
-        SplitDirAndFile(aDir,aPat,exeName);
-        
+        SplitDirAndFile(aDir,aPat,argv[0]);
+    
         std::string libraryPath(aDir);
-        libraryPath+="/Libraries/plugins";
+        libraryPath+="../../Libraries/plugins";
         
-		QStringList libraryPaths;
-		libraryPaths<<aDir.c_str();
-		libraryPaths<<libraryPath.c_str();
-		QCoreApplication::setLibraryPaths(libraryPaths);
+        QStringList libraryPaths;
+        libraryPaths<<aDir.c_str();
+        libraryPaths<<libraryPath.c_str();       
+        QCoreApplication::setLibraryPaths(libraryPaths);
 	}
-#elif defined (WIN32)
-	std::cout<<"[SaisieQT] START Windows"<<std::endl;
-#elif defined (__linux__)
-	std::cout<<"[SaisieQT] START Linux"<<std::endl;
-#else
-	std::cout<<"Failed to start application, OS not recognized"<<std::endl;
-	ELISE_ASSERT(false, "Failed to start application, OS not recognized");
 #endif
     
 
