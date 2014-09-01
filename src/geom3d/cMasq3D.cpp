@@ -39,28 +39,83 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 #include "StdAfx.h"
+#include "../saisieQT/include_QT/3DObject.h"
 
-class cMasq3DOrthoRaster
+/***************************************************************/
+/*                                                             */
+/*                     cMasqBooleen3D                          */
+/*                                                             */
+/***************************************************************/
+
+class cMasqBooleen3D
+{
+    public :
+        // virtual bool HasAnswer(const Pt3dr & aP) const = 0;
+        const SELECTION_MODE & ModeSel() const;
+    protected :
+        cMasqBooleen3D(SELECTION_MODE aMode); 
+        SELECTION_MODE mModeSel;
+};
+
+cMasqBooleen3D::cMasqBooleen3D(SELECTION_MODE aMode) :
+   mModeSel (aMode)
+{
+}
+
+/***************************************************************/
+/*                                                             */
+/*                     cMasq3DOrthoRaster                      */
+/*                                                             */
+/***************************************************************/
+
+class cMasq3DOrthoRaster : public cMasqBooleen3D
 {
      public :
-        static cMasq3DOrthoRaster ByPolyg3D(const std::vector<Pt3dr> aPolygone,double aNbPix);
-        cMasq3DOrthoRaster(Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq);
+        static cMasq3DOrthoRaster ByPolyg3D(SELECTION_MODE aModeSel,const std::vector<Pt3dr> aPolygone,double aNbPix);
+        cMasq3DOrthoRaster(SELECTION_MODE aSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq);
+
+        Pt2dr ToIm(const Pt3dr & aP3) const
+        {
+            return (Proj(mRE2P.ImAff(aP3))-mP0)  * mScale;
+        }
+        bool HasAnswer(const Pt3dr & aP) const 
+        {
+              return mTMasq.get(round_ni(ToIm(aP)),0);
+        }
+
+        void Test(const std::vector<Pt3dr> aPol3);
+        
      public :
         Pt2dr  mP0;
         double mScale;
         ElRotation3D mRE2P;
         Im2D_Bits<1> mMasq;
+        TIm2DBits<1> mTMasq;
 };
 
-cMasq3DOrthoRaster::cMasq3DOrthoRaster(Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq) :
+cMasq3DOrthoRaster::cMasq3DOrthoRaster(SELECTION_MODE aModeSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq) :
+     cMasqBooleen3D (aModeSel),
      mP0 (aP0),
      mScale (aScal),
      mRE2P (aE2P),
-     mMasq (aImMasq)
+     mMasq (aImMasq),
+     mTMasq (mMasq)
 {
 }
 
-cMasq3DOrthoRaster cMasq3DOrthoRaster::ByPolyg3D(const std::vector<Pt3dr> aPol3,double aNbPix)
+void cMasq3DOrthoRaster::Test(const std::vector<Pt3dr> aPol3)
+{
+    Video_Win *  aW = Video_Win::PtrWStd(mMasq.sz());
+    ELISE_COPY(aW->all_pts(),mMasq.in(),aW->odisc());
+
+    for (int aKP=0 ; aKP<int(aPol3.size()) ; aKP++)
+    {
+        Pt2dr aP2 = ToIm(aPol3[aKP]);
+        aW->draw_circle_loc(aP2,3.0,aW->pdisc()(P8COL::red));
+    }
+}
+
+cMasq3DOrthoRaster cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const std::vector<Pt3dr> aPol3,double aNbPix)
 {
 
     cElPlan3D aPlan(aPol3,0,0);
@@ -116,7 +171,8 @@ cMasq3DOrthoRaster cMasq3DOrthoRaster::ByPolyg3D(const std::vector<Pt3dr> aPol3,
     }
 
 
-    cMasq3DOrthoRaster aRes(aMin,aScal,aE2P,aMasq);
+    cMasq3DOrthoRaster aRes(aModeSel,aMin,aScal,aE2P,aMasq);
+    aRes.Test(aPol3);
     return aRes;
 }
 
@@ -124,16 +180,26 @@ cMasq3DOrthoRaster cMasq3DOrthoRaster::ByPolyg3D(const std::vector<Pt3dr> aPol3,
 #include "MatrixManager.h"
 void Test3dQT()
 {
-   QString filename = "/home/marc/TMP/EPI/Champs/AperiCloud_All2_selectionInfo.xml";
+   // QString filename = "/home/marc/TMP/EPI/Champs/AperiCloud_All2_selectionInfo.xml";
+   std::string Name = "/media/data2/Jeux-Test/Soldat-Temple-Hue/AperiCloud_AllRel_selectionInfo.xml";
+   QString filename = Name.c_str();
    HistoryManager *HM = new HistoryManager();
    MatrixManager *MM = new MatrixManager();
-   HM->load(filename);
+   bool Ok = HM->load(filename);
+   if (!Ok)
+   {
+       std::cout << "For File " << Name << "\n";
+       ELISE_ASSERT(false,"Cannot load for 3D mask");
+   }
    QVector <selectInfos> vInfos = HM->getSelectInfos();
+std::cout << "BBBBBBB " << vInfos.size() << "\n";
    for (int aK=0; aK< vInfos.size();++aK)
    {
+std::cout << "CCCCCC\n";
       selectInfos &Infos = vInfos[aK];
       MM->importMatrices(Infos);
       std::cout << "INFOS MODE " << Infos.selection_mode << "\n";
+      // SELECTION_MODE aS = (SELECTION_MODE) Infos.selection_mode;
       std::vector<Pt3dr> aVP3;
       for (int bK=0;bK < Infos.poly.size();++bK)
       {
@@ -149,7 +215,7 @@ void Test3dQT()
          
       }
 
-      cMasq3DOrthoRaster::ByPolyg3D(aVP3,300.0);
+      cMasq3DOrthoRaster::ByPolyg3D((SELECTION_MODE) Infos.selection_mode,aVP3,300.0);
    }
    getchar();
 }

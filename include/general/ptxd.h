@@ -803,8 +803,7 @@ Type Det(const Pt3d<Type> & p1,const Pt3d<Type> & p2,const Pt3d<Type> & p3)
 
 Pt3dr OneDirOrtho(const Pt3dr &);  // Vecteur unitaire
 
-template <class Type> Pt2d<Type> Proj(Pt3d<Type> aP) 
-{return Pt2d<Type>(aP.x,aP.y);}
+template <class Type> inline Pt2d<Type> Proj(Pt3d<Type> aP) {return Pt2d<Type>(aP.x,aP.y);}
 
 template <class Type> Pt2d<Type> ProjStenope(Pt3d<Type> aP) 
 {return Pt2d<Type>(aP.x,aP.y)/aP.z;}
