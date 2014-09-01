@@ -330,7 +330,8 @@ VT_Imagette::VT_Imagette(VT_Ortho & anAppli,Box2di & mDef, Tiff_Im & mOrthoImg, 
 /*                      VT_AppSelTieP                               */
 /*                                                                  */
 /********************************************************************/
-bool FileExists( const char * FileName )
+//NB + MD 2014/08/29 renamed with prefix 'Local' as function exists in GDAL
+bool LocalFileExists( const char * FileName )
 {
 	#if (ELISE_unix)
 		FILE* fp = NULL;
@@ -405,7 +406,7 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 		)
 		{
 			std::string mPatHom = mDir + "Homol/Pastis" + *itS1 + "/" + *itS2 + ".dat";
-			if (FileExists(mPatHom.c_str()))
+			if (LocalFileExists(mPatHom.c_str()))
 			{				
 			//	cout << "Couple : " << *itS1 << " & " << *itS2 ; 
 				VT_Img * mImg2 = new  VT_Img(*this,*itS2,mOri);
