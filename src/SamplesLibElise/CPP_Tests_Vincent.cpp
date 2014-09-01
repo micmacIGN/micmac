@@ -118,7 +118,7 @@ class VT_AppSelTieP : public cAppliWithSetImage
 		bool 							  ShowStats;
 		cInterfChantierNameManipulateur * mICNM;
 		std::list<std::string> 			  mLFile;
-		CamStenope					    * aCam;
+		//CamStenope					    * aCam;
 		tPairIm 						  aPair, aPair1, aPair2;
 		std::map<std::pair<VT_Img *,VT_Img *> ,ElPackHomologue> mMapH;
 		std::map<std::pair<VT_Img *,VT_Img *> ,ElPackHomologue> mMapH_no;
