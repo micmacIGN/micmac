@@ -510,7 +510,6 @@ private:
 
         QGLShaderProgram _program;
 
-        int     _matrixLocation;
         int     _texLocation  ;
         int     _gammaLocation;
 
