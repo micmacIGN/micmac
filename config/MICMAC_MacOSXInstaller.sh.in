@@ -28,13 +28,13 @@ then
 	mkdir $1/MicMac.app/Contents/MacOS/include/qt/translations
 	mkdir $1/MicMac.app/Contents/Frameworks
 	mkdir $1/MicMac.app/Contents/Libraries
-	mkdir $1/MicMac.app/Contents/Libraries/plugins
+	mkdir $1/MicMac.app/Contents/Libraries/PlugIns
 
-	#TODO echo "-- copie de l'icone de l'app"
+	echo "-- copie de l'icone de l'app"
 	cp ../data/ico/micmac.icns $1/MicMac.app/Contents/Resources
 
 	echo "-- creation du dictionnaire du bundle"
-	echo $PkgInfoContents >$1/MicMac.app/Contents/PkgInfo
+	#echo $PkgInfoContents >$1/MicMac.app/Contents/PkgInfo
 	
 	plistfile=$1/MicMac.app/Contents/Info.plist
 	echo '<?xml version="1.0" encoding="UTF-8"?>' >$plistfile
@@ -52,7 +52,7 @@ then
 	echo '  <key>CFBundleInfoDictionaryVersion</key>' >>$plistfile
 	echo '  <string>6.0</string>' >>$plistfile
 	echo '  <key>CFBundleName</key>' >>$plistfile
-	echo '  <string>MosAR-1.0.0</string>' >>$plistfile
+	echo '  <string>MicMac-1.0.0</string>' >>$plistfile
 	echo '  <key>CFBundleVersion</key>' >>$plistfile
 	echo '  <string>1.1</string>' >>$plistfile
 	echo '  <key>CFBundleGetInfoString</key>' >>$plistfile
@@ -71,7 +71,7 @@ then
 
 	echo "-- copie des executables de l'application"
 	cp ../bin/* 						$1/MicMac.app/Contents/MacOS/bin
-	
+	cp ../bin/mm3d 						$1/MicMac.app/Contents/MacOS/
 	
 	#echo "-- copie des librairies dynamiques (plugins Qt, Pq, odbc)"
 
@@ -90,9 +90,9 @@ then
 	
 	if [ "${qt_version}" == "5" ]
 	then
-		mkdir $1/MicMac.app/Contents/Libraries/plugins/platforms
-		cp -Rn ${QT_COCOA_PLUGIN}  		$1/MicMac.app/Contents/Libraries/plugins/platforms
-		cp -Rn ${CMAKE_PREFIX_PATH}/plugins/${QT_COCOA_PLUGIN}  		$1/MicMac.app/Contents/Libraries/plugins/platforms
+		mkdir $1/MicMac.app/Contents/Libraries/PlugIns/platforms
+		#cp -Rn ${QT_COCOA_PLUGIN}  		$1/MicMac.app/Contents/Libraries/PlugIns/platforms
+		cp -Rn ${CMAKE_PREFIX_PATH}/plugins/${QT_COCOA_PLUGIN}  		$1/MicMac.app/Contents/Libraries/PlugIns/platforms
 	fi
 
 	echo "-- suppression des versions debug des frameworks Qt"
@@ -161,7 +161,7 @@ then
 	
 	### copie des ressources qt
 	cp ../include/qt/translations/* $1/MicMac.app/Contents/MacOS/include/qt/translations/
-	cp ../include/qt/style.qss $1/MicMac.app/Contents/MacOS/include/qt/style.qss
+	cp ../include/qt/style.qss $1/MicMac.app/Contents/MacOS/include/qt/
 
 	echo "-- creation du lien symbolique vers /Applications"
 	ln -s /Applications $1/MicMac.app/.
