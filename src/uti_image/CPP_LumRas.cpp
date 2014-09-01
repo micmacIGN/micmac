@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-template <class Type> class cSomValCC
+template <class Type> class cSomValCC :  public cCC_NoActionOnNewPt
 {
     public :
       cSomValCC(Type & aIm) :
@@ -54,7 +54,7 @@ template <class Type> class cSomValCC
       double mSom;
 };
 
-template <class Type> class cMarqImCC
+template <class Type> class cMarqImCC : public cCC_NoActionOnNewPt
 {
     public :
       cMarqImCC(Type & aIm,int aVal) :
@@ -63,6 +63,7 @@ template <class Type> class cMarqImCC
       {
       }
       void  OnNewPt(const Pt2di &aPt) {  mIm.oset(aPt,mVal);}
+
 
 
       Type & mIm;
