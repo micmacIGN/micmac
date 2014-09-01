@@ -46,7 +46,7 @@ public:
 
     void   reset(){ _actionIdx = 0; _infos.clear(); }
 
-    void   load(QString filename);
+    bool   load(QString filename);  // MPD return un booleen,  true si Fichier existe && contient un bon xml
     void   save();
 
     bool   sizeChanged(){ return _infos.size() != _initSize; }
