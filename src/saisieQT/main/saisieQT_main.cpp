@@ -62,6 +62,23 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine,
 int main(int argc, char *argv[])
 {
 #endif
+    
+#if defined(__APPLE__) || defined(__MACH__)
+	//mise a jour des variables d'environnement pour resources du bundle sous MacOSX
+	{       
+        std::string aDir,aPat;
+        SplitDirAndFile(aDir,aPat,argv[0]);
+    
+        std::string libraryPath(aDir);
+        libraryPath+="../../Libraries/plugins";
+        
+        QStringList libraryPaths;
+        libraryPaths<<aDir.c_str();
+        libraryPaths<<libraryPath.c_str();       
+        QCoreApplication::setLibraryPaths(libraryPaths);
+	}
+#endif
+    
 
     QApplication app(argc, argv);
 

@@ -16,8 +16,6 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
 
 #define HANGLE (PI/24)
 
-class selectInfos;
-
 class MatrixManager
 {
 public:
