@@ -125,3 +125,4 @@ TestOpenMM*
 include/XML_User
 binaire-aux/proj.exe
 binaire-aux/proj.dll
+setup/MICMAC_MacOSXInstaller.sh
