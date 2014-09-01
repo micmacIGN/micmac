@@ -1687,7 +1687,7 @@ void cMessages2DGL::displayNewMessage(const QString &message, MessagePosition po
     m_messagesToDisplay.push_back(mess);
 }
 
-void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded)
+void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded, float zoom)
 {
     _bDrawMessages = show;
 
@@ -1700,7 +1700,7 @@ void cMessages2DGL::constructMessagesList(bool show, int mode, bool m_bDisplayMo
             if(m_bDisplayMode2D)
             {
                 displayNewMessage(QString(" "),LOWER_RIGHT_MESSAGE, Qt::lightGray);
-                displayNewMessage(QString(" "),LOWER_LEFT_MESSAGE, QColor("#ffa02f"));
+                displayNewMessage(QString::number(zoom*100,'f',1) + "%", LOWER_LEFT_MESSAGE, QColor("#ffa02f"));
             }
             else
             {
