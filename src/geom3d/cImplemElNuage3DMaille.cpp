@@ -290,7 +290,9 @@ template <class Type,class TBase>
                                         const Box2dr &Box,
                                         double aScale,
                                         const cXML_ParamNuage3DMaille &,
-                                        Im2D_REAL4 anImPds
+                                        Im2D_REAL4 anImPds,
+                                        std::vector<Im2DGen*> aVNew,
+                                        std::vector<Im2DGen*> aVOld
                                     ) ;
 
           double   ProfEuclidOfIndex(const tIndex2D & anI) const
@@ -370,24 +372,67 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
 	mProfC     = scal(mDirPl,mCentre);
 }
 
+extern Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1>,Im2D_REAL4 aImProf, const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld);
+extern Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1>,Im2D_INT2 aImProf,const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld);
+
+
+
 template <class Type,class TBase> cElNuage3DMaille * cElN3D_EpipGen<Type,TBase>::V_ReScale
                                     (
                                         const Box2dr &aBox,
                                         double aScale,
                                         const cXML_ParamNuage3DMaille & aNewParam,
-                                        Im2D_REAL4 anImPds
+                                        Im2D_REAL4 anImPds,
+                                        std::vector<Im2DGen*> aVNewAttr,
+                                        std::vector<Im2DGen*> aVOldAttr
                                     ) 
 {
-   return new cElN3D_EpipGen<float,double>
-              (
-                  this->mDir,
-                  aNewParam,
-                  anImPds.in(0) > 0.1,
-                  this->ReScaleAndClip(this->mImDef.in(0)*this->mIm.in(0),aBox._p0,aScale)/Max(1e-5,anImPds.in()),
-                  mProfIsZ,
-                  this->mEmptyData,
-                  false
-              );
+    // RatioResolAltiPlani();
+
+    // Im2DGen * anOld = this->mAttrs[0]->Im();
+
+
+   // Fonc_Num aFoncProf = this->ReScaleAndClip(this->mImDef.in(0)*this->mIm.in(0),aBox._p0,aScale)/Max(1e-5,anImPds.in());
+
+    /*
+       for (int aKA=0 ; aKA<int(mAttrs.size()) ; aKA++)
+       {
+            Im2DGen * anOld = this->mAttrs[aKA]->Im();
+            Im2DGen * aNew = anOld->ImOfSameType(Pt2di(aSz));
+
+            aRes->mAttrs.push_back(new cLayerNuage3DM(aNew,mAttrs[aKA]->Name()));
+        }
+        aRes->mGrpAttr = mGrpAttr;
+    */
+
+   double aDifStd = 0.5;
+   if (aNewParam.RatioResolAltiPlani().IsInit() && (aNewParam.Image_Profondeur().IsInit()))
+   {
+        ElAffin2D aAfM2C = Xml2EL(this->mParams.Orientation().OrIntImaM2C());
+        double aResol = (euclid(aAfM2C.I10()) + euclid(aAfM2C.I01()))/2.0;
+
+        aDifStd  = (1/aResol) * (1/this->mParams.Image_Profondeur().Val().ResolutionAlti())   * (this->mParams.RatioResolAltiPlani().Val()) ;
+        aDifStd *= 0.5;
+   }
+
+   Im2D_REAL4 aRedProf = ReduceImageProf(aDifStd,this->mImDef,this->mIm,aBox,aScale,anImPds,aVNewAttr,aVOldAttr);
+   Fonc_Num  aFoncProf = aRedProf.in();
+
+
+
+   cElN3D_EpipGen<float,double> * aRes = new cElN3D_EpipGen<float,double>
+                                             (
+                                                 this->mDir,
+                                                 aNewParam,
+                                                 anImPds.in(0) > 0.1,
+                                                 aFoncProf,
+                                                 //   this->ReScaleAndClip(this->mImDef.in(0)*this->mIm.in(0),aBox._p0,aScale)/Max(1e-5,anImPds.in()),
+                                                 mProfIsZ,
+                                                 this->mEmptyData,
+                                                 false
+                                             );
+
+   return aRes;
 }
 
 template <class Type,class TBase>  
