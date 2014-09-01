@@ -1,0 +1,64 @@
+<CreateOrtho>
+        <!-- Truc +ou- genreaux a ttes les applis -->
+        <DicoLoc >
+
+
+        </DicoLoc>
+        <WorkDir>  ThisDir  </WorkDir>
+
+        <SectionEntree>
+           <FileMNT>  MTDOrtho.xml  </FileMNT>
+<!--
+           <KeySetIm>  NKS-Set-OfPattern@Ort_(.*)\.tif </KeySetIm>
+-->
+           <KeySetIm>  NKS-Set-OfPattern@Ort_(.*)00(([4-9][0-9])|(3[5-9]))\.tif </KeySetIm>
+           <KeyAssocMetaData > NKS-Assoc-ChangPrefixAndExt@Ort_@tif@PC_@xml  </KeyAssocMetaData>
+           <KeyAssocNamePC >   NKS-Assoc-ChangPrefixAndExt@Ort_@tif@PC_@tif </KeyAssocNamePC>
+           <KeyAssocNameIncH>  NKS-Assoc-ChangPrefixAndExt@Ort_@tif@Incid_@tif </KeyAssocNameIncH>
+        </SectionEntree>
+
+        <SectionFiltrageIn>
+             <SzDilatPC >   1 </SzDilatPC>
+             <SzOuvPC >     2 </SzOuvPC>
+             <BoucheTrou>
+                <SeuilVisib > 50  </SeuilVisib>
+                <SeuilVisibBT > 10 </SeuilVisibBT>
+                <CoeffPondAngul > 3.14 </CoeffPondAngul>
+             </BoucheTrou>
+
+        </SectionFiltrageIn>
+
+        <SectionEgalisation>
+              <PeriodEchant >  50  </PeriodEchant>
+               <SzVois >  1  </SzVois>
+               <NameFileMesures >  MesuresEgales.dat </NameFileMesures>
+               <UseFileMesure > false </UseFileMesure>
+
+               <DegresEgalVois>  -1 -1  </DegresEgalVois>
+               <DegresEgalVois>  2 2  </DegresEgalVois>
+               <EgaliseSomCh> false </EgaliseSomCh>
+               <PdsRappelInit>  0.001 </PdsRappelInit>
+
+               <GlobRappInit>
+                    <DoGlob> true </DoGlob>
+                    <Degres>  -1 -1   </Degres>
+                    <Degres>  1 1 </Degres>
+               </GlobRappInit>
+
+               <PercCutAdjL1> 50.0 </PercCutAdjL1>
+               <CorrelThreshold> 0.6 </CorrelThreshold>
+
+
+        </SectionEgalisation>
+
+
+        <SectionSorties>
+           <SzDalle>    1000            </SzDalle>
+           <SzBrd>      100             </SzBrd>
+           <NameOrtho>  Ortho-NonEg-Test-Redr.tif </NameOrtho>
+           <NameLabels>  Label-Test-Redr.tif</NameLabels>
+        </SectionSorties>
+
+
+</CreateOrtho>
+
