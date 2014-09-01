@@ -639,7 +639,7 @@ public:
                                        MessagePosition pos = SCREEN_CENTER_MESSAGE,
                                        QColor color = Qt::white);
 
-    void constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded);
+    void constructMessagesList(bool show, int mode, bool m_bDisplayMode2D, bool dataloaded, float zoom);
 
     std::list<MessageToDisplay>::iterator GetLastMessage();
 

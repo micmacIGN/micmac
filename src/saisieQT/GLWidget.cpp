@@ -486,7 +486,8 @@ void GLWidget::setOption(QFlags<cGLData::Option> option, bool show)
 {
     if (hasDataLoaded()) m_GLData->setOption(option,show);
 
-    if( option & cGLData::OpShow_Mess) _messageManager.constructMessagesList(show, m_interactionMode, m_bDisplayMode2D, hasDataLoaded());
+    if( option & cGLData::OpShow_Mess)
+        _messageManager.constructMessagesList(show, m_interactionMode, m_bDisplayMode2D, hasDataLoaded(), getZoom());
 
     update();
 }

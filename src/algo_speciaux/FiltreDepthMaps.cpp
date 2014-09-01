@@ -69,13 +69,13 @@ class cCC_NbMaxIter : public  cCC_NoActionOnNewPt
 
 
        void OnNewStep() { mNbIter++;}
-       void  OnNewPt(const Pt2di & aP) 
+       void  OnNewPt(const Pt2di & aP)
        {
            mVPts.push_back(aP);
        }
        bool  StopCondStep() {return mNbIter>=mNbMaxIter;}
 
-    
+
        std::vector<Pt2di> mVPts;
        int                mNbIter;
        int                mNbMaxIter;
@@ -98,7 +98,7 @@ class cCCMaxAndBox : public  cCC_NbMaxIter
 
 template <class tNum,class tNBase>  Im2D_Bits<1> TplFiltreDetecRegulProf
                                         (
-                                             TIm2D<tNum,tNBase> aTProf, 
+                                             TIm2D<tNum,tNBase> aTProf,
                                              TIm2DBits<1>  aTMasq,
                                              const cParamFiltreDetecRegulProf & aParam
                                         )
@@ -159,7 +159,7 @@ template <class tNum,class tNBase>  Im2D_Bits<1> TplFiltreDetecRegulProf
     Im2D_Bits<1> aIResult(aSz.x,aSz.y);
     ELISE_COPY(aIResult.all_pts(),(aImDif.in()> aParam.SeuilReg().Val()) && (aIMasq.in()) , aIResult.out());
     return aIResult;
-    
+
 }
 
 Im2D_Bits<1>  FiltreDetecRegulProf(Im2D_REAL4 aImProf,Im2D_Bits<1> aIMasq,const cParamFiltreDetecRegulProf & aParam)
@@ -205,13 +205,13 @@ getchar();
 /*                      ReduceImageProf                                            */
 /*                                                                                 */
 /***********************************************************************************/
-static double aDistMax=0;
+//static double aDistMax=0;
 
 template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
                                         (
                                              double aDifStd ,
                                              TIm2DBits<1>  aTMasq,
-                                             TIm2D<tNum,tNBase> aTProf, 
+                                             TIm2D<tNum,tNBase> aTProf,
                                              const Box2dr &aBox,
                                              double aScale,
                                              Im2D_REAL4    aImPds,
@@ -306,7 +306,7 @@ template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
                       {
                          aPdsProf = 0;
                       }
-                  
+
                       double aDistNorm= ElMin(aDist/aScale,2.0);
                       double aPdsDist = (1+cos(aDistNorm * (PI/2.0)));
 
@@ -328,7 +328,7 @@ template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
         }
     }
 
-   
+
     return aRes;
 }
 
