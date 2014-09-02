@@ -124,7 +124,7 @@ void MatrixManager::setMatrices()
     glGetIntegerv(GL_VIEWPORT, _glViewport);
 }
 
-void MatrixManager::importMatrices(selectInfos &infos)
+void MatrixManager::importMatrices(const selectInfos &infos)
 {
     for (int aK=0; aK<4; ++aK)
          _glViewport[aK] = infos.glViewport[aK];
@@ -280,7 +280,7 @@ void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerSce
     }
 }
 
-void MatrixManager::SetArcBallCamera(float zoom)
+void MatrixManager::setArcBallCamera(float zoom)
 {
     setDistance(zoom);
     glOrthoZoom(zoom,zoom + 1.5f*_diameterScene);
@@ -352,7 +352,7 @@ void MatrixManager::applyAllTransformation(bool mode2D,QPoint pt,float zoom)
     if (mode2D)
         doProjection(pt, zoom);
     else
-        SetArcBallCamera(zoom);
+        setArcBallCamera(zoom);
 }
 
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
