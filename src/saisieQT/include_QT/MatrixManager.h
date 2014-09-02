@@ -134,6 +134,4 @@ private:
 
 };
 
-void testInfos(QString filename);
-
 #endif
