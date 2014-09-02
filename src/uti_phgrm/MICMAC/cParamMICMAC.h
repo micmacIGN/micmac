@@ -2053,10 +2053,14 @@ class cMMUseMasq3D
 
         cTplValGesInit< int > & Dilate();
         const cTplValGesInit< int > & Dilate()const ;
+
+        cTplValGesInit< std::string > & PrefixNuage();
+        const cTplValGesInit< std::string > & PrefixNuage()const ;
     private:
         std::string mNameMasq;
         cTplValGesInit< int > mZoomBegin;
         cTplValGesInit< int > mDilate;
+        cTplValGesInit< std::string > mPrefixNuage;
 };
 cElXMLTree * ToXMLTree(const cMMUseMasq3D &);
 
@@ -5918,6 +5922,9 @@ class cSection_WorkSpace
         cTplValGesInit< bool > & PurgeMECResultBefore();
         const cTplValGesInit< bool > & PurgeMECResultBefore()const ;
 
+        cTplValGesInit< std::string > & PreservedFile();
+        const cTplValGesInit< std::string > & PreservedFile()const ;
+
         cTplValGesInit< bool > & UseChantierNameDescripteur();
         const cTplValGesInit< bool > & UseChantierNameDescripteur()const ;
 
@@ -5972,6 +5979,7 @@ class cSection_WorkSpace
         cTplValGesInit< bool > mActivePurge;
         std::list< cPurgeFiles > mPurgeFiles;
         cTplValGesInit< bool > mPurgeMECResultBefore;
+        cTplValGesInit< std::string > mPreservedFile;
         cTplValGesInit< bool > mUseChantierNameDescripteur;
         cTplValGesInit< string > mFileChantierNameDescripteur;
         cTplValGesInit< cCmdMappeur > mMapMicMac;
@@ -6957,6 +6965,9 @@ class cParamMICMAC
 
         cTplValGesInit< bool > & PurgeMECResultBefore();
         const cTplValGesInit< bool > & PurgeMECResultBefore()const ;
+
+        cTplValGesInit< std::string > & PreservedFile();
+        const cTplValGesInit< std::string > & PreservedFile()const ;
 
         cTplValGesInit< bool > & UseChantierNameDescripteur();
         const cTplValGesInit< bool > & UseChantierNameDescripteur()const ;

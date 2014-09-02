@@ -6862,6 +6862,17 @@ const cTplValGesInit< int > & cMMUseMasq3D::Dilate()const
    return mDilate;
 }
 
+
+cTplValGesInit< std::string > & cMMUseMasq3D::PrefixNuage()
+{
+   return mPrefixNuage;
+}
+
+const cTplValGesInit< std::string > & cMMUseMasq3D::PrefixNuage()const 
+{
+   return mPrefixNuage;
+}
+
 void  BinaryUnDumpFromFile(cMMUseMasq3D & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameMasq(),aFp);
@@ -6881,6 +6892,14 @@ void  BinaryUnDumpFromFile(cMMUseMasq3D & anObj,ELISE_fp & aFp)
         }
         else  anObj.Dilate().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PrefixNuage().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PrefixNuage().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PrefixNuage().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMMUseMasq3D & anObj)
@@ -6890,6 +6909,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMMUseMasq3D & anObj)
     if (anObj.ZoomBegin().IsInit()) BinaryDumpInFile(aFp,anObj.ZoomBegin().Val());
     BinaryDumpInFile(aFp,anObj.Dilate().IsInit());
     if (anObj.Dilate().IsInit()) BinaryDumpInFile(aFp,anObj.Dilate().Val());
+    BinaryDumpInFile(aFp,anObj.PrefixNuage().IsInit());
+    if (anObj.PrefixNuage().IsInit()) BinaryDumpInFile(aFp,anObj.PrefixNuage().Val());
 }
 
 cElXMLTree * ToXMLTree(const cMMUseMasq3D & anObj)
@@ -6901,6 +6922,8 @@ cElXMLTree * ToXMLTree(const cMMUseMasq3D & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ZoomBegin"),anObj.ZoomBegin().Val())->ReTagThis("ZoomBegin"));
    if (anObj.Dilate().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Dilate"),anObj.Dilate().Val())->ReTagThis("Dilate"));
+   if (anObj.PrefixNuage().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PrefixNuage"),anObj.PrefixNuage().Val())->ReTagThis("PrefixNuage"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -6916,9 +6939,11 @@ void xml_init(cMMUseMasq3D & anObj,cElXMLTree * aTree)
    xml_init(anObj.ZoomBegin(),aTree->Get("ZoomBegin",1),int(16)); //tototo 
 
    xml_init(anObj.Dilate(),aTree->Get("Dilate",1),int(2)); //tototo 
+
+   xml_init(anObj.PrefixNuage(),aTree->Get("PrefixNuage",1)); //tototo 
 }
 
-std::string  Mangling( cMMUseMasq3D *) {return "A8894894483CC098FDBF";};
+std::string  Mangling( cMMUseMasq3D *) {return "A68920AD59E3C7CEFDBF";};
 
 
 Pt2di & cOneParamCMS::SzW()
@@ -19031,7 +19056,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "5CA3BDFB3711ABADFC3F";};
+std::string  Mangling( cSection_MEC *) {return "6F37BD38062F33C4FE3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -23037,6 +23062,17 @@ const cTplValGesInit< bool > & cSection_WorkSpace::PurgeMECResultBefore()const
 }
 
 
+cTplValGesInit< std::string > & cSection_WorkSpace::PreservedFile()
+{
+   return mPreservedFile;
+}
+
+const cTplValGesInit< std::string > & cSection_WorkSpace::PreservedFile()const 
+{
+   return mPreservedFile;
+}
+
+
 cTplValGesInit< bool > & cSection_WorkSpace::UseChantierNameDescripteur()
 {
    return mUseChantierNameDescripteur;
@@ -23382,6 +23418,14 @@ void  BinaryUnDumpFromFile(cSection_WorkSpace & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.PreservedFile().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PreservedFile().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PreservedFile().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.UseChantierNameDescripteur().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.UseChantierNameDescripteur().ValForcedForUnUmp(),aFp);
         }
@@ -23505,6 +23549,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSection_WorkSpace & anObj)
         BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.PurgeMECResultBefore().IsInit());
     if (anObj.PurgeMECResultBefore().IsInit()) BinaryDumpInFile(aFp,anObj.PurgeMECResultBefore().Val());
+    BinaryDumpInFile(aFp,anObj.PreservedFile().IsInit());
+    if (anObj.PreservedFile().IsInit()) BinaryDumpInFile(aFp,anObj.PreservedFile().Val());
     BinaryDumpInFile(aFp,anObj.UseChantierNameDescripteur().IsInit());
     if (anObj.UseChantierNameDescripteur().IsInit()) BinaryDumpInFile(aFp,anObj.UseChantierNameDescripteur().Val());
     BinaryDumpInFile(aFp,anObj.FileChantierNameDescripteur().IsInit());
@@ -23597,6 +23643,8 @@ cElXMLTree * ToXMLTree(const cSection_WorkSpace & anObj)
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("PurgeFiles"));
    if (anObj.PurgeMECResultBefore().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PurgeMECResultBefore"),anObj.PurgeMECResultBefore().Val())->ReTagThis("PurgeMECResultBefore"));
+   if (anObj.PreservedFile().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PreservedFile"),anObj.PreservedFile().Val())->ReTagThis("PreservedFile"));
    if (anObj.UseChantierNameDescripteur().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("UseChantierNameDescripteur"),anObj.UseChantierNameDescripteur().Val())->ReTagThis("UseChantierNameDescripteur"));
    if (anObj.FileChantierNameDescripteur().IsInit())
@@ -23691,6 +23739,8 @@ void xml_init(cSection_WorkSpace & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PurgeMECResultBefore(),aTree->Get("PurgeMECResultBefore",1),bool(false)); //tototo 
 
+   xml_init(anObj.PreservedFile(),aTree->Get("PreservedFile",1)); //tototo 
+
    xml_init(anObj.UseChantierNameDescripteur(),aTree->Get("UseChantierNameDescripteur",1),bool(false)); //tototo 
 
    xml_init(anObj.FileChantierNameDescripteur(),aTree->Get("FileChantierNameDescripteur",1)); //tototo 
@@ -23704,7 +23754,7 @@ void xml_init(cSection_WorkSpace & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeMasque(),aTree->Get("TypeMasque",1),eTypeNumerique(eTN_Bits1MSBF)); //tototo 
 }
 
-std::string  Mangling( cSection_WorkSpace *) {return "B42D6CB2165EB496FDBF";};
+std::string  Mangling( cSection_WorkSpace *) {return "CA0FEBB57A83BDB1FD3F";};
 
 
 std::string & cOneBatch::PatternSelImBatch()
@@ -27353,6 +27403,17 @@ const cTplValGesInit< bool > & cParamMICMAC::PurgeMECResultBefore()const
 }
 
 
+cTplValGesInit< std::string > & cParamMICMAC::PreservedFile()
+{
+   return Section_WorkSpace().PreservedFile();
+}
+
+const cTplValGesInit< std::string > & cParamMICMAC::PreservedFile()const 
+{
+   return Section_WorkSpace().PreservedFile();
+}
+
+
 cTplValGesInit< bool > & cParamMICMAC::UseChantierNameDescripteur()
 {
    return Section_WorkSpace().UseChantierNameDescripteur();
@@ -27884,6 +27945,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "C0BB3E4AEB0ED3A5FB3F";};
+std::string  Mangling( cParamMICMAC *) {return "586F6A9B9A7683BBFD3F";};
 
 // Quelque chose
