@@ -529,13 +529,42 @@ void cAppliMICMAC::MakeGenCorPxTransv(cEtapeMecComp & anEtape)
     MakeFileXML(aCTP,FullDirResult()+aNameXML);
 }
 
+const cMMUseMasq3D * cAppliMICMAC::Masq3DOfEtape(cEtapeMecComp & anEtape)
+{
+   if (! MMUseMasq3D().IsInit()) return 0;
+   const cMMUseMasq3D & aMasq =  MMUseMasq3D().Val();
+
+   if (anEtape.EtapeMEC().DeZoom() > aMasq.ZoomBegin().Val()) return 0;
+
+   return & aMasq;
+}
+
+void cAppliMICMAC::DoMasq3D(cEtapeMecComp & anEtape,const cMMUseMasq3D &)
+{
+   const cEtapeMEC &   anEM = anEtape.EtapeMEC();
+   Tiff_Im  aFM = anEtape.FileMaskAuto();
+
+   // mNameXMLNuage
+   // std::string aCom = 
+
+}
+
 void cAppliMICMAC::MakeResultOfEtape(cEtapeMecComp & anEtape)
 {
+
  
    MakeGenCorPxTransv(anEtape);
    std::list<string> mVProcess;
    const cEtapeMEC &   anEM = anEtape.EtapeMEC();
    
+   const cMMUseMasq3D * aMasq3D = Masq3DOfEtape(anEtape);
+   if (aMasq3D)
+   {
+       DoMasq3D(anEtape,*aMasq3D);
+   }
+
+
+
    MakeImagePx8Bits
    (
        mVProcess,anEtape,0,

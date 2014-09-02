@@ -898,6 +898,12 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <ValRef    Nb="?"  Type="double" Def="0.048"> </ValRef>
         </AdapteDynCov>
 
+        <MMUseMasq3D Nb="?" AccessorFils="false">
+             <NameMasq Nb="1" Type="std::string"> </NameMasq>
+             <ZoomBegin Nb="?" Def="16"  Type="int"> </ZoomBegin>
+             <Dilate Nb="?" Def="2"  Type="int"> </Dilate>
+        </MMUseMasq3D>
+
         <EtapeMEC Nb="+" DeltaPrec="1">
             <DeZoom  Nb="1" Type="int">                    </DeZoom>
 
