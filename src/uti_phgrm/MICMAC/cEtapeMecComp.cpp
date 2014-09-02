@@ -793,7 +793,7 @@ Tiff_Im  cEtapeMecComp::FileRes(GenIm::type_el aTypeEl,const std::string &  aPre
       aLArg = aLArg +  Arg_Tiff(Tiff_Im::AFileTiling(Pt2di(1000000,1000000)));
    }
    bool IsModified;
-   return Tiff_Im::CreateIfNeeded
+   Tiff_Im aRes = Tiff_Im::CreateIfNeeded
           (
               IsModified,
               NameFileRes(aPref),
@@ -803,6 +803,11 @@ Tiff_Im  cEtapeMecComp::FileRes(GenIm::type_el aTypeEl,const std::string &  aPre
               Tiff_Im::BlackIsZero,
               aLArg
           );
+
+   if (IsModified) 
+      ELISE_COPY(aRes.all_pts(),0,aRes.out());
+
+   return aRes;
 }
 
 Tiff_Im  cEtapeMecComp::FileCorrel() const
