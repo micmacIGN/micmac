@@ -902,6 +902,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <NameMasq Nb="1" Type="std::string"> </NameMasq>
              <ZoomBegin Nb="?" Def="16"  Type="int"> </ZoomBegin>
              <Dilate Nb="?" Def="2"  Type="int"> </Dilate>
+             <PrefixNuage Nb="?"  Type="std::string"> </PrefixNuage>
         </MMUseMasq3D>
 
         <EtapeMEC Nb="+" DeltaPrec="1">
@@ -1976,6 +1977,7 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
         </PurgeFiles>
 
         <PurgeMECResultBefore Nb="?" Type="bool" Def="false"> </PurgeMECResultBefore>
+        <PreservedFile Nb="?" Type="std::string"> </PreservedFile>
 
 	<UseChantierNameDescripteur Nb="?" Type="bool" Def="false"> </UseChantierNameDescripteur>
 	<FileChantierNameDescripteur Nb="?" Type="string"> </FileChantierNameDescripteur>

@@ -42,6 +42,7 @@ extern void  t(Im2DGen I,int,int);
 
 
 static const std::string PrefAutoM = "AutoMask_";
+static const std::string PrefMasq3d2d = "Mask3d2d_";
 
 /*************************************************/
 /*                                               */
@@ -819,6 +820,10 @@ Tiff_Im  cEtapeMecComp::FileMaskAuto() const
    return FileRes(GenIm::bits1_msbf,PrefAutoM,true);
 }
 
+Tiff_Im  cEtapeMecComp::FileMask3D2D() const
+{
+   return FileRes(GenIm::bits1_msbf,PrefMasq3d2d,true);
+}
 
 
 
@@ -1133,6 +1138,20 @@ Fonc_Num cEtapeMecComp::FoncMasqIn(bool ForceReinj)
           aFMAuto = dilat_32(aFMAuto,aNbErod);
       }
 
+      aFoncMasq =    aFoncMasq && aFMAuto;
+   }
+
+   if (mPrec && mAppli.Masq3DOfEtape(*mPrec))
+   {
+      Tiff_Im aTFM =   mPrec->FileMask3D2D();
+      double aRatio  = DeZoomTer() / double(mPrec->DeZoomTer());
+      Fonc_Num  aFMAuto = StdFoncChScale_Bilin (
+                               aTFM.in(0),
+                               Pt2dr(0,0),
+                               Pt2dr(aRatio,aRatio),
+                               Pt2dr(1,1)
+                          );
+      aFMAuto = aFMAuto > 0.5;
       aFoncMasq =    aFoncMasq && aFMAuto;
    }
 

@@ -2085,6 +2085,7 @@ class cEtapeMecComp
           const cEtiqBestImage *           EBI() const;
 
           Tiff_Im  FileMaskAuto() const;
+          Tiff_Im  FileMask3D2D() const;
           Tiff_Im  FileCorrel() const;
           Tiff_Im  FileRes( GenIm::type_el,const std::string &  aPref,bool NoTile=false) const;
           Tiff_Im  LastFileCorrelOK() const;
@@ -2825,6 +2826,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
                       private  cStateSimul
 {
      public :
+        const cMMUseMasq3D *   Masq3DOfEtape(cEtapeMecComp & anEtape);
 
          //int    MaxPrecision() const;
          void AddPrecisionOfArrondi(const cDecimal &, double aVal);
@@ -3175,7 +3177,6 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
         void MakeResultOfEtape(cEtapeMecComp &);
         void DoMasq3D(cEtapeMecComp & anEtape,const cMMUseMasq3D &);
-        const cMMUseMasq3D *   Masq3DOfEtape(cEtapeMecComp & anEtape);
 
 
         void MakeGenCorPxTransv(cEtapeMecComp &);

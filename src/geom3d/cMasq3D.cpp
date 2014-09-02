@@ -518,7 +518,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
    ELISE_COPY
    (
        aFileRes.all_pts(),
-       aFileRes.in() * dilat_32(aImMasq2D.in(0),2*aDilate),
+       dilat_32(aImMasq2D.in(0),2*aDilate),
        aFileRes.out()
    );
    return 1;

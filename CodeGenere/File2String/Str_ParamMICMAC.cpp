@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2090]) = {
+const char * (theNameVar_ParamMICMAC[2092]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -904,6 +904,7 @@ const char * (theNameVar_ParamMICMAC[2090]) = {
 "             <NameMasq Nb=\"1\" Type=\"std::string\"> </NameMasq>\n",
 "             <ZoomBegin Nb=\"?\" Def=\"16\"  Type=\"int\"> </ZoomBegin>\n",
 "             <Dilate Nb=\"?\" Def=\"2\"  Type=\"int\"> </Dilate>\n",
+"             <PrefixNuage Nb=\"?\"  Type=\"std::string\"> </PrefixNuage>\n",
 "        </MMUseMasq3D>\n",
 "\n",
 "        <EtapeMEC Nb=\"+\" DeltaPrec=\"1\">\n",
@@ -1978,6 +1979,7 @@ const char * (theNameVar_ParamMICMAC[2090]) = {
 "        </PurgeFiles>\n",
 "\n",
 "        <PurgeMECResultBefore Nb=\"?\" Type=\"bool\" Def=\"false\"> </PurgeMECResultBefore>\n",
+"        <PreservedFile Nb=\"?\" Type=\"std::string\"> </PreservedFile>\n",
 "\n",
 "	<UseChantierNameDescripteur Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseChantierNameDescripteur>\n",
 "	<FileChantierNameDescripteur Nb=\"?\" Type=\"string\"> </FileChantierNameDescripteur>\n",
