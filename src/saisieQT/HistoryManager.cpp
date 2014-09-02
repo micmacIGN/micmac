@@ -20,19 +20,22 @@ void HistoryManager::push_back(selectInfos &infos)
     _actionIdx++;
 }
 
-void HistoryManager::load(QString filename)
+bool HistoryManager::load(QString filename)
 {
     _infos.clear();
     _filename  = filename;
 
     QFile file(_filename);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return false;
+    }
 
     QDomDocument doc;
     if (!doc.setContent(&file))
     {
         file.close();
-        return;
+        return false;
     }
     file.close();
 
@@ -91,6 +94,7 @@ void HistoryManager::load(QString filename)
     }
     _initSize  = _infos.size();
     _actionIdx = _infos.size();
+    return true;
 }
 
 void HistoryManager::save()

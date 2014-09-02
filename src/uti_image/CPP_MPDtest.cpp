@@ -367,12 +367,13 @@ void TestRandomSetOfMesureSegDr()
 
 
 extern void TestFiltreRegul();
+extern void Test3dQT();
 
 
 
 int MPDtest_main (int argc,char** argv)
 {
-    TestFiltreRegul();
+   Test3dQT();
   
    return 0;
 
