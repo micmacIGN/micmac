@@ -1,4 +1,4 @@
-#include "HistoryManager.h"
+#include "MatrixManager.h"
 
 HistoryManager::HistoryManager():
     _actionIdx(0),
@@ -101,21 +101,28 @@ void HistoryManager::save()
 {
     //std::cout << "saving in " << _filename.toStdString().c_str() << std::endl;
 
-    QDomDocument doc;
-
     QFile outFile(_filename);
     if (!outFile.open(QIODevice::WriteOnly)) return;
 
-    QDomElement SI = doc.createElement("SelectionInfo");
+    QString pts3d_file = _filename.replace("selectionInfo", "polyg3d");
+
+    QFile ptsFile(pts3d_file);
+    if (!ptsFile.open(QIODevice::WriteOnly)) return;
+
+    QDomDocument doc, doc2;
+    QDomElement SI  = doc.createElement("SelectionInfo");
+    QDomElement SI2 = doc2.createElement("Polyg3D");
 
     QDomText t;
     for (int i = 0; i < _infos.size(); ++i)
     {
         QDomElement SII            = doc.createElement("Item");
+        QDomElement SIt            = doc2.createElement("Item");
         QDomElement mvMatrixElem   = doc.createElement("ModelViewMatrix");
         QDomElement ProjMatrixElem = doc.createElement("ProjMatrix");
         QDomElement glViewportElem = doc.createElement("glViewport");
         QDomElement Mode           = doc.createElement("Mode");
+        QDomElement Mode2          = doc2.createElement("Mode");
 
         const selectInfos &SInfo = _infos[i];
 
@@ -154,29 +161,51 @@ void HistoryManager::save()
             for (int aK=0; aK < pts.size(); ++aK)
             {
                 QDomElement Point    = doc.createElement("Pt");
-                QString str = QString::number(pts[aK].x(), 'f',1) + " "  + QString::number(pts[aK].y(), 'f',1);
+                QDomElement Pt3D     = doc.createElement("Pt");
+                QString str = QString::number(pts[aK].x(), 'f',1) + " " + QString::number(pts[aK].y(), 'f',1);
 
                 t = doc.createTextNode( str );
                 Point.appendChild(t);
                 SII.appendChild(Point);
+
+                //Export points 3D
+                Pt3dr pt3d;
+                MatrixManager *MM = new MatrixManager();
+                MM->importMatrices(SInfo);
+                MM->getInverseProjection(pt3d, pts[aK], 0.f);
+                str = QString::number(pt3d.x, 'f',1) + " " + QString::number(pt3d.y, 'f',1) + " " + QString::number(pt3d.z, 'f',1);
+                t = doc2.createTextNode( str );
+                Pt3D.appendChild(t);
+                SIt.appendChild(Pt3D);
             }
 
             t = doc.createTextNode(QString::number(SInfo.selection_mode));
             Mode.appendChild(t);
-
             SII.appendChild(Mode);
 
+            t = doc2.createTextNode(QString::number(SInfo.selection_mode));
+            Mode2.appendChild(t);
+            SIt.appendChild(Mode2);
+
             SI.appendChild(SII);
+            SI2.appendChild(SIt);
         }
         else
             std::cerr << "saveSelectInfos: null matrix";
     }
 
     doc.appendChild(SI);
+    doc2.appendChild(SI2);
 
     QTextStream content(&outFile);
+    content.flush();
     content << doc.toString();
     outFile.close();
+
+    QTextStream content2(&ptsFile);
+    content2.flush();
+    content2 << doc2.toString();
+    ptsFile.close();
 
 #ifdef _DEBUG
         printf ( "File saved in: %s\n", _filename.toStdString().c_str());
