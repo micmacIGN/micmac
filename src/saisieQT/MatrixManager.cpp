@@ -455,27 +455,3 @@ void MatrixManager::setDistance(const GLdouble &distance)
 {
     _distance = distance;
 }
-
-void testInfos(QString filename)
-{
-    HistoryManager *HM = new HistoryManager();
-    MatrixManager  *MM = new MatrixManager();
-
-    HM->load(filename);
-    QVector <selectInfos> vInfos = HM->getSelectInfos();
-
-    for (int aK=0; aK< vInfos.size();++aK)
-    {
-        selectInfos &Infos = vInfos[aK];
-        MM->importMatrices(Infos);
-
-        for (int bK=0;bK < Infos.poly.size();++bK)
-        {
-            QPointF pt = Infos.poly[bK];
-            Pt3dr pt3d;
-            MM->getInverseProjection(pt3d, pt, 0.f);
-
-            cout << pt3d.x  << " " << pt3d.y << " " << pt3d.z << endl;
-        }
-    }
-}
