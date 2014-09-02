@@ -424,7 +424,6 @@
     <addaction name="actionLoad_image"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
-    <addaction name="actionSave_selection"/>
     <addaction name="actionSave_masks"/>
     <addaction name="actionSave_as"/>
     <addaction name="actionClose_all"/>
@@ -854,7 +853,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Save masks</string>
+    <string>Save mask</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
