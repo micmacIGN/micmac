@@ -3174,6 +3174,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
         void MakeResultOfEtape(cEtapeMecComp &);
+        void DoMasq3D(cEtapeMecComp & anEtape,const cMMUseMasq3D &);
+        const cMMUseMasq3D *   Masq3DOfEtape(cEtapeMecComp & anEtape);
+
+
         void MakeGenCorPxTransv(cEtapeMecComp &);
 	void MakeExportAsModeleDist 
              (  const cGenereModeleRaster2Analytique,
