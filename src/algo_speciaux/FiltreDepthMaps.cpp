@@ -159,7 +159,7 @@ template <class tNum,class tNBase>  Im2D_Bits<1> TplFiltreDetecRegulProf
     Im2D_Bits<1> aIResult(aSz.x,aSz.y);
     ELISE_COPY(aIResult.all_pts(),(aImDif.in()> aParam.SeuilReg().Val()) && (aIMasq.in()) , aIResult.out());
     return aIResult;
-    
+
 }
 
 Im2D_Bits<1>  FiltreDetecRegulProf(Im2D_REAL4 aImProf,Im2D_Bits<1> aIMasq,const cParamFiltreDetecRegulProf & aParam)
@@ -205,6 +205,8 @@ getchar();
 /*                      ReduceImageProf                                            */
 /*                                                                                 */
 /***********************************************************************************/
+//static double aDistMax=0;
+
 template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
                                         (
                                              double aDifStd ,

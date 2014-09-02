@@ -275,7 +275,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 {
                     getWidget(aK)->applyInfos();
                     getWidget(aK)->getMatrixManager()->resetViewPort();
-                    _bSaved = false;
+                    //_bSaved = false;
                 }
             }
         }
@@ -362,11 +362,7 @@ void SaisieQtWindow::on_actionShow_cams_toggled(bool state)
 void SaisieQtWindow::on_actionShow_messages_toggled(bool state)
 {
     for (int aK = 0; aK < nbWidgets();++aK)
-    {
         getWidget(aK)->setOption(cGLData::OpShow_Mess,state);
-
-        getWidget(aK)->getMessageManager()->displayNewMessage(QString::number(getWidget(aK)->getZoom()*100,'f',1) + "%", LOWER_LEFT_MESSAGE, QColor("#ffa02f"));
-    }
 
     labelShowMode(state);
 }
