@@ -95,9 +95,10 @@ set(UnixBinPath
 
 set(qt_version 0)
 
-find_package(OpenGL REQUIRED)
-
 if (${WITH_QT5})
+
+        find_package(OpenGL REQUIRED)
+
 	find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
 	if (Qt5_FOUND)
            	message( STATUS "-----> Qt5 found" )
@@ -120,11 +121,10 @@ if (${WITH_QT5})
 		link_directories(${Qt5_LIBRARY_DIRS})
 
          elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
-            	set(QT5_ROOT_DIR "QT5_root_dir_NOTFOUND" CACHE FILEPATH "Qt5 root directory")
          	message("WARNING QT 5 not found")
-              	message("Set QT5_ROOT_DIR to qt root directory")
-          	message("   QT5_ROOT_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\")
-              	message("   QT5_ROOT_DIR --> /opt/Qt5.3.1/5.3/gcc_64")
+                message("Set Qt5_DIR to qt CMAKE directory")
+                message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
+                message("   Qt5_DIR --> /opt/Qt5.3.1/5.3/gcc_64/lib/cmake/Qt5")
 		SET(WITH_QT5 OFF)
         endif()
  endif()
