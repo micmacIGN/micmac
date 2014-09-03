@@ -575,7 +575,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
 #ifdef OUTPUTDEFCOR
         if(idLine == iii)
             DUMP_UINT(lenghtLine)
-      #endif
+#endif
 
         for (uint aK= 0 ; aK < lenghtLine; aK++)
         {
@@ -619,7 +619,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
     }
 #ifdef OUTPUTDEFCOR
    DUMP_LINE
-        #endif
+#endif
 
     //nvtxRangePop();
 
@@ -927,7 +927,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 //        uint    nonCorrel = (nbDirection*2)-1;
         uint2   pTer;
-        uint    maxITSPI = 5;
+        uint    maxITSPI = 8;
         
         for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
         {
@@ -943,6 +943,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     ushort  iteSpi   = 1;
 
                     int zMin    = 1e9;
+                    int zMax    = 0;
                     int zMoyen  = 0;
                     int pond    = 0;
 
@@ -960,6 +961,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                                 //if(mDataImRes[0][curPT.y][curPT.x] < mDataImRes[0][pTer.y][pTer.x])
                                 {
                                     zMin = min(zMin,mDataImRes[0][curPT.y][curPT.x]);
+                                    zMax = max(zMax,mDataImRes[0][curPT.y][curPT.x]);
                                     zMoyen += mDataImRes[0][curPT.y][curPT.x];
                                     pond++;
                                     findZ = true;
@@ -972,8 +974,10 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                         iteSpi++;
                     }
 
-                    mDataImRes[0][pTer.y][pTer.x] = zMin;
-                    //mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
+                    //mDataImRes[0][pTer.y][pTer.x] = zMax;
+                    //mDataImRes[0][pTer.y][pTer.x] = zMin;
+                    mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
+                    //IGpuOpt._FinalDefCor[pTer] = 0;
 
                 }
 
