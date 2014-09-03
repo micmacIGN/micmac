@@ -234,7 +234,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
-    return CamOrientGenFromFile(fi.fileName().toStdString(),anICNM);
+    return CamOrientGenFromFile(fi.fileName().toStdString(),anICNM, false);
 }
 
 //****************************************
@@ -256,9 +256,7 @@ cEngine::~cEngine()
 void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
-    {
         _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
-    }
 
     _Data->computeBBox();
 }
@@ -268,7 +266,14 @@ void cEngine::loadCameras(QStringList filenames, int *incre)
     for (int i=0;i<filenames.size();++i)
     {
          if (incre) *incre = 100.0f*(float)i/filenames.size();
-        _Data->addCamera(_Loader->loadCamera(filenames[i]));
+         CamStenope* cam = _Loader->loadCamera(filenames[i]);
+         if (cam)
+            _Data->addCamera(cam);
+         else
+         {
+             QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Bad file"));
+             return;
+         }
     }
 
     _Data->computeBBox();

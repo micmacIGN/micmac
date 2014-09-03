@@ -219,6 +219,22 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 QMessageBox::critical(this, tr("Error"), tr("File does not exist (or bad argument)"));
                 return;
             }
+            else
+            {
+                QString sufx = QFileInfo(filenames[i]).suffix();
+
+                bool formatIsSupported = false;
+                QList<QByteArray> list = QImageReader::supportedImageFormats();
+                QStringList slist;
+                for (int aK=0; aK< list.size();++aK) slist.push_back(QString(list[aK]));
+                if (slist.contains(sufx, Qt::CaseInsensitive))  formatIsSupported = true;
+
+                if ((sufx != "ply") && (sufx != "xml") && (formatIsSupported == false))
+                {
+                    QMessageBox::critical(this, tr("Error"), tr("File format not supported"));
+                    return;
+                }
+            }
         }
 
         _Engine->setFilenames(filenames);
