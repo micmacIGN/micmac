@@ -367,13 +367,18 @@ void TestRandomSetOfMesureSegDr()
 
 
 extern void TestFiltreRegul();
+#if (ELISE_QT_VERSION >= 4)
 extern void Test3dQT();
+#endif
 
 
 
 int MPDtest_main (int argc,char** argv)
 {
+#if (ELISE_QT_VERSION >= 4)
+
    Test3dQT();
+#endif
   
    return 0;
 
