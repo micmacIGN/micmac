@@ -688,7 +688,7 @@ void cAppliMICMAC::InitDirectories()
     mFullDirGeom =  mOutputDirectory + TmpGeom().Val();
     mFullDirResult =  mOutputDirectory + TmpResult().Val();
     
-
+    std::string aTmp = mOutputDirectory+ "Tmp-MM-Dir/";
     ELISE_fp::MkDir(mFullDirMEC);
     ELISE_fp::MkDir(mFullDirPyr);
     ELISE_fp::MkDir(mFullDirResult);
@@ -698,7 +698,11 @@ void cAppliMICMAC::InitDirectories()
 
    if (PurgeMECResultBefore().Val() &&  (!CalledByProcess().Val()))
    {
+       if (PreservedFile().IsInit())
+           System("mv " + mFullDirMEC + PreservedFile().Val() + " " + aTmp);
        ViderDir(mFullDirMEC);
+       if (PreservedFile().IsInit())
+           System("mv " + aTmp + PreservedFile().Val() + " " + mFullDirMEC);
        if (mFullDirResult != mFullDirMEC)
           ViderDir(mFullDirResult);
    }

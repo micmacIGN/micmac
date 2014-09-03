@@ -44,9 +44,9 @@ public:
 
     void   redo() { if (_actionIdx < _infos.size()) _actionIdx++; }
 
-    void   reset(){ _actionIdx = 0; _infos.clear(); }
+    void   reset(){ _actionIdx = 0; _initSize = 0; _infos.clear(); }
 
-    void   load(QString filename);
+    bool   load(QString filename);  //return true si Fichier existe && contient un bon xml
     void   save();
 
     bool   sizeChanged(){ return _infos.size() != _initSize; }

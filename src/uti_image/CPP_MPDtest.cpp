@@ -366,16 +366,14 @@ void TestRandomSetOfMesureSegDr()
 }
 
 
-extern void TestQR(int aN);
+extern void TestFiltreRegul();
+extern void Test3dQT();
 
-extern void Test_DBL();
-
-
-// cConvExplicite GlobMakeExplicite(eConventionsOrientation aConv);
 
 
 int MPDtest_main (int argc,char** argv)
 {
+   Test3dQT();
   
    return 0;
 

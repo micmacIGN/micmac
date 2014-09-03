@@ -133,10 +133,15 @@ class cAppliWithSetImage
       int  DeZoomOfSize(double ) const;
       void operator()(tSomAWSI*,tSomAWSI*,bool);   // Delaunay call back
    protected :
+  
       cAppliWithSetImage(int argc,char ** argv,int aFlag);
 
       void FilterImageIsolated();
       void Develop(bool EnGray,bool En16B);
+      bool MasterSelected(const std::string & aName) const;
+      bool MasterSelected(tSomAWSI* aSom) const;
+      bool CpleHasMasterSelected(tSomAWSI* aS1,tSomAWSI* aS2) const;
+
 
       static const int  TheFlagDev8BGray   = 1;
       static const int  TheFlagDev16BGray  = 2;
@@ -145,7 +150,7 @@ class cAppliWithSetImage
       tSomAWSI * ImOfName(const std::string & aName);
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
-      void AddCoupleMMImSec();
+      void AddCoupleMMImSec(bool ExeApero);
 
 
 
@@ -184,6 +189,8 @@ class cAppliWithSetImage
 
       int NbAlti() const;
       double AltiMoy() const;
+      cSetName *   mSetMasters;
+
 
    private :
       int   mNbAlti;

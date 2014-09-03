@@ -290,13 +290,12 @@ void cGLData::setGlobalCenter(Pt3d<double> aCenter)
     _pBbox->setPosition(aCenter);
     _pGrid->setPosition(aCenter);
 
-    for (int aK=0; aK < _vClouds.size();++aK)
-       _vClouds[aK]->setPosition(aCenter);
+   /* for (int aK=0; aK < _vClouds.size();++aK)
+       _vClouds[aK]->setPosition(aCenter);*/
 }
 
 bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 {
-    bool foundPosition = false;
     mm.setMatrices();
 
     int idx1 = -1;
@@ -335,11 +334,11 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
         Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
         setGlobalCenter(Pt);
-        mm.resetTranslationMatrix(Pt);
-        foundPosition = true;
+        mm.resetAllMatrix(Pt);
+        return true;
     }
 
-    return foundPosition;
+    return false;
 }
 
 void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)

@@ -61,6 +61,7 @@ int SupMntIm_main(int argc,char ** argv)
     int ShowSat = 0;
     int Grad = 0;
     double  CDN=0;
+    std::string aMasq;
 
     Pt3dr aCoulCDN(0,0,0);
 
@@ -79,7 +80,8 @@ int SupMntIm_main(int argc,char ** argv)
                     << EAM(ShowSat,"ShowSat",true)
                     << EAM(Grad,"Grad",true)
                     << EAM(CDN,"CDN",true, "Generate level curve?")
-                    << EAM(aCoulCDN,"CoulCDN",true)
+                    << EAM(aCoulCDN,"CoulCDN",true,"Interval between level curves")
+                    << EAM(aMasq,"Masq",true,"Masq of images")
     );
 
     if (!MMVisualMode)
@@ -123,7 +125,7 @@ int SupMntIm_main(int argc,char ** argv)
         Fonc_Num aRes =  its_to_rgb( Virgule
                                      (
                                          fGr,
-                                         Mnt.in() * DynCoul,
+                                         Mnt.in_proj() * DynCoul,
                                          Sat * 255 * ( aFin != NoVal)
                                          ));
 
@@ -137,9 +139,17 @@ int SupMntIm_main(int argc,char ** argv)
                                (
                                    fGr,
                                    0,
-                                   Mnt.in() * DynCoul
+                                   Mnt.in_proj() * DynCoul
                                    ));
 
+
+        if (EAMIsInit(&aMasq))
+        {
+             Tiff_Im aFileMasq  = Tiff_Im::StdConv(aMasq.c_str());
+             Symb_FNum aFoncMasq (aFileMasq.in_proj()!=0);
+
+              aRes = aFoncMasq *  aRes  + (1-aFoncMasq) * Virgule(150,150,90);
+        }
         ELISE_COPY
                 (
                     TifIm.all_pts(),

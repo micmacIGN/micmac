@@ -227,12 +227,13 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
         if (suffix == "ply")
         {
+            if ((_appMode == MASK2D) && (currentWidget()->hasDataLoaded()))
+                closeAll();
+
             loadPly(filenames);
             initData();
 
             currentWidget()->getHistoryManager()->load(_Engine->getSelectionFilenamesOut()[0]);
-
-            //testInfos(_Engine->getSelectionFilenamesOut()[0]);
 
             _appMode = MASK3D;
         }
@@ -246,8 +247,10 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         }
         else // LOAD IMAGE
         {
-            if (_appMode <= MASK3D)
+            if ((_appMode <= MASK3D) && (currentWidget()->hasDataLoaded()))
                 closeAll();
+
+            currentWidget()->getHistoryManager()->reset();
 
             initData(); //TODO: ne pas detruire les polygones dans le closeAll
 
@@ -275,7 +278,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 {
                     getWidget(aK)->applyInfos();
                     getWidget(aK)->getMatrixManager()->resetViewPort();
-                    _bSaved = false;
+                    //_bSaved = false;
                 }
             }
         }
@@ -362,11 +365,7 @@ void SaisieQtWindow::on_actionShow_cams_toggled(bool state)
 void SaisieQtWindow::on_actionShow_messages_toggled(bool state)
 {
     for (int aK = 0; aK < nbWidgets();++aK)
-    {
         getWidget(aK)->setOption(cGLData::OpShow_Mess,state);
-
-        getWidget(aK)->getMessageManager()->displayNewMessage(QString::number(getWidget(aK)->getZoom()*100,'f',1) + "%", LOWER_LEFT_MESSAGE, QColor("#ffa02f"));
-    }
 
     labelShowMode(state);
 }
@@ -432,20 +431,12 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("open .ply files"));
         shortcuts.push_back(Ctrl + "C");
         actions.push_back(tr("open .xml camera files"));
-    }
-    if (_appMode <= MASK3D)
-    {
         shortcuts.push_back(Ctrl + "O");
         actions.push_back(tr("open image file"));
-        if (_appMode == MASK3D)
-        {
-            shortcuts.push_back(Ctrl + "E");
-            actions.push_back(tr("save .xml selection infos"));
-        }
         shortcuts.push_back(Ctrl + "+S");
-        actions.push_back(tr("save mask file"));
+        actions.push_back(tr("save mask"));
         shortcuts.push_back(Ctrl + "Maj+S");
-        actions.push_back(tr("save mask file as"));
+        actions.push_back(tr("save file as"));
         shortcuts.push_back(Ctrl + "X");
         actions.push_back(tr("close files"));
     }
@@ -754,7 +745,9 @@ void SaisieQtWindow::on_actionLoad_camera_triggered()
 
 void SaisieQtWindow::on_actionLoad_image_triggered()
 {
+#ifdef ELISE_Darwin
     setWindowFlags(Qt::WindowStaysOnTopHint);
+#endif
     QString img_filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
 
     if (!img_filename.isEmpty())
@@ -770,7 +763,10 @@ void SaisieQtWindow::on_actionLoad_image_triggered()
 
 void SaisieQtWindow::on_actionSave_masks_triggered()
 {
-    _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+    if (_appMode == MASK2D)
+        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
+    else if(_appMode == MASK3D)
+        currentWidget()->getHistoryManager()->save();
     _bSaved = true;
 }
 
@@ -784,15 +780,8 @@ void SaisieQtWindow::on_actionSave_as_triggered()
 
         _Engine->setFilenameOut(fname);
 
-        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
-        _bSaved = true;
+        on_actionSave_masks_triggered();
     }
-}
-
-void SaisieQtWindow::on_actionSave_selection_triggered()
-{
-    currentWidget()->getHistoryManager()->save();
-    _bSaved = true;
 }
 
 void SaisieQtWindow::on_actionSettings_triggered()
@@ -853,46 +842,22 @@ void SaisieQtWindow::updateSaveActions()
 {
     if (currentWidget()->getHistoryManager()->sizeChanged())
     {
-        if (_appMode == MASK3D)
-        {
-            hideAction(_ui->actionSave_selection, true);
-            hideAction(_ui->actionSave_masks, false);
-            hideAction(_ui->actionSave_as, false);
-        }
-        else if (_appMode == MASK2D)
-        {
-            hideAction(_ui->actionSave_selection, false);
-            hideAction(_ui->actionSave_masks, true);
-            hideAction(_ui->actionSave_as, true);
-        }
+        hideAction(_ui->actionSave_masks, true);
+        hideAction(_ui->actionSave_as, true);
     }
-    else
+    else if ((_appMode == MASK3D) || (_appMode == MASK2D))
     {
-        if (_appMode == MASK3D)
-        {
-            _ui->actionSave_selection->setVisible(true);
-            _ui->actionSave_selection->setEnabled(false);
+        _ui->actionSave_masks->setVisible(true);
+        _ui->actionSave_masks->setEnabled(false);
 
-            hideAction(_ui->actionSave_masks, false);
-            hideAction(_ui->actionSave_as, false);
-        }
-        else if (_appMode == MASK2D)
-        {
-            hideAction(_ui->actionSave_selection, false);
-
-            _ui->actionSave_masks->setVisible(true);
-            _ui->actionSave_masks->setEnabled(false);
-
-            _ui->actionSave_as->setVisible(true);
-            _ui->actionSave_as->setEnabled(false);
-        }
+        _ui->actionSave_as->setVisible(true);
+        _ui->actionSave_as->setEnabled(false);
     }
 }
 
 void SaisieQtWindow::on_menuFile_triggered()
 {
     //mode saisieAppuisInit
-    hideAction(_ui->actionSave_selection, false);
     hideAction(_ui->actionSave_masks, false);
     hideAction(_ui->actionSave_as, false);
 
@@ -907,13 +872,9 @@ void SaisieQtWindow::closeAll(bool check)
 
         // 1 close without saving
         if (reply == 2) //cancel
-        {
             return;
-        }
         else if (reply == 0) // save
-        {
-            _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
-        }
+            on_actionSave_masks_triggered();
     }
 
     emit sCloseAll();
@@ -1061,7 +1022,10 @@ void SaisieQtWindow::updateUI()
         _ui->menuSelection->setTitle(tr("&Mask edition"));
         _ui->actionAdd->setText(tr("Add to mask"));
         _ui->actionRemove->setText(tr("Remove from mask"));
+        _ui->actionSave_masks->setText(tr("&Save mask"));
     }
+    else if (_appMode == MASK3D)
+        _ui->actionSave_masks->setText(tr("&Save selection info"));
 
     _ui->actionAdd->setShortcut(Qt::Key_Space);
     _ui->actionRemove->setShortcut(Qt::Key_Delete);
@@ -1282,9 +1246,7 @@ void SaisieQtWindow::closeEvent(QCloseEvent *event)
         return;
     }
     else if (reply == 0)
-    {
-        _Engine->saveMask(currentWidgetIdx(), currentWidget()->isFirstAction());
-    }
+        on_actionSave_masks_triggered();
 
     emit sgnClose();
 
@@ -1460,7 +1422,7 @@ int SaisieQtWindow::checkBeforeClose()
 {
     if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->sizeChanged() )
     {
-        return QMessageBox::question(this, tr("Warning"), tr("Save mask before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
+        return QMessageBox::question(this, tr("Warning"), tr("Save before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
     }
     else return -1;
 }
