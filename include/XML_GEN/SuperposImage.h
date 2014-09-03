@@ -4608,6 +4608,54 @@ std::string  Mangling( cParamGenereStrVois *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cParamFiltreDetecRegulProf
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cParamFiltreDetecRegulProf & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< int > & SzCC();
+        const cTplValGesInit< int > & SzCC()const ;
+
+        cTplValGesInit< double > & PondZ();
+        const cTplValGesInit< double > & PondZ()const ;
+
+        cTplValGesInit< double > & Pente();
+        const cTplValGesInit< double > & Pente()const ;
+
+        cTplValGesInit< double > & SeuilReg();
+        const cTplValGesInit< double > & SeuilReg()const ;
+
+        cTplValGesInit< bool > & V4();
+        const cTplValGesInit< bool > & V4()const ;
+
+        cTplValGesInit< int > & NbCCInit();
+        const cTplValGesInit< int > & NbCCInit()const ;
+
+        cTplValGesInit< std::string > & NameTest();
+        const cTplValGesInit< std::string > & NameTest()const ;
+    private:
+        cTplValGesInit< int > mSzCC;
+        cTplValGesInit< double > mPondZ;
+        cTplValGesInit< double > mPente;
+        cTplValGesInit< double > mSeuilReg;
+        cTplValGesInit< bool > mV4;
+        cTplValGesInit< int > mNbCCInit;
+        cTplValGesInit< std::string > mNameTest;
+};
+cElXMLTree * ToXMLTree(const cParamFiltreDetecRegulProf &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cParamFiltreDetecRegulProf &);
+
+void  BinaryUnDumpFromFile(cParamFiltreDetecRegulProf &,ELISE_fp &);
+
+std::string  Mangling( cParamFiltreDetecRegulProf *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSectionName
 {
     public:
@@ -4741,14 +4789,14 @@ class cFMNT_GesNoVal
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
     private:
         double mPenteMax;
-        double mGainNoVal;
+        double mCostNoVal;
         double mTrans;
 };
 cElXMLTree * ToXMLTree(const cFMNT_GesNoVal &);
@@ -4779,8 +4827,8 @@ class cFMNT_ProgDyn
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
@@ -4842,8 +4890,8 @@ class cSpecAlgoFMNT
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
@@ -4853,6 +4901,9 @@ class cSpecAlgoFMNT
 
         cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn();
         const cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn()const ;
+
+        cTplValGesInit< cParamFiltreDetecRegulProf > & ParamRegProf();
+        const cTplValGesInit< cParamFiltreDetecRegulProf > & ParamRegProf()const ;
     private:
         double mSigmaPds;
         cTplValGesInit< double > mSigmaZ;
@@ -4862,6 +4913,7 @@ class cSpecAlgoFMNT
         cTplValGesInit< int > mNBMaxMaxLoc;
         cTplValGesInit< bool > mQuickExp;
         cTplValGesInit< cFMNT_ProgDyn > mFMNT_ProgDyn;
+        cTplValGesInit< cParamFiltreDetecRegulProf > mParamRegProf;
 };
 cElXMLTree * ToXMLTree(const cSpecAlgoFMNT &);
 
@@ -4918,8 +4970,8 @@ class cParamAlgoFusionMNT
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
@@ -4929,6 +4981,9 @@ class cParamAlgoFusionMNT
 
         cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn();
         const cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn()const ;
+
+        cTplValGesInit< cParamFiltreDetecRegulProf > & ParamRegProf();
+        const cTplValGesInit< cParamFiltreDetecRegulProf > & ParamRegProf()const ;
 
         cSpecAlgoFMNT & SpecAlgoFMNT();
         const cSpecAlgoFMNT & SpecAlgoFMNT()const ;
@@ -5093,8 +5148,8 @@ class cParamFusionMNT
         double & PenteMax();
         const double & PenteMax()const ;
 
-        double & GainNoVal();
-        const double & GainNoVal()const ;
+        double & CostNoVal();
+        const double & CostNoVal()const ;
 
         double & Trans();
         const double & Trans()const ;
@@ -5104,6 +5159,9 @@ class cParamFusionMNT
 
         cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn();
         const cTplValGesInit< cFMNT_ProgDyn > & FMNT_ProgDyn()const ;
+
+        cTplValGesInit< cParamFiltreDetecRegulProf > & ParamRegProf();
+        const cTplValGesInit< cParamFiltreDetecRegulProf > & ParamRegProf()const ;
 
         cSpecAlgoFMNT & SpecAlgoFMNT();
         const cSpecAlgoFMNT & SpecAlgoFMNT()const ;

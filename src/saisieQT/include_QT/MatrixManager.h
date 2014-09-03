@@ -16,8 +16,6 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
 
 #define HANGLE (PI/24)
 
-class selectInfos;
-
 class MatrixManager
 {
 public:
@@ -50,7 +48,7 @@ public:
 
     void        rotateArcBall(float rX, float rY, float rZ, float factor);
 
-    void        importMatrices(selectInfos &infos);
+    void        importMatrices(const selectInfos &infos);
     void        exportMatrices(selectInfos &infos);
 
     //! 3D point projection in viewport
@@ -94,7 +92,7 @@ public:
     GLdouble    distance() const;
     void        setDistance(const GLdouble &distance);
 
-    void        SetArcBallCamera(float zoom);
+    void        setArcBallCamera(float zoom);
     Pt3dr       centerScene() const;
     void        setCenterScene(const Pt3dr &centerScene);
 
@@ -135,7 +133,5 @@ private:
     Pt3d<double> _targetCamera;
 
 };
-
-void testInfos(QString filename);
 
 #endif

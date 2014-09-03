@@ -370,6 +370,11 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     {
         for (int aStep=1 ; aStep<=mStepEnd ; aStep++)
         {
+           if ((aStep==1) && mCreateEpip)  // Mis ici pour Nuage2Ply
+           {
+              GenerateMTDEpip(true);
+              GenerateMTDEpip(false);
+           }
            if (! mDoOnlyMF)
            {
               MatchTwoWay(aStep,aStep+1);
@@ -392,11 +397,6 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 */
            }
 
-           if ((aStep==1) && mCreateEpip)  // Mis ici pour Nuage2Ply
-           {
-              GenerateMTDEpip(true);
-              GenerateMTDEpip(false);
-           }
         }
 
         if (mDoPly)
@@ -513,6 +513,7 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
 
 void cAppliMMOnePair::GenerateMTDEpip(bool MasterIs1)
 {
+for (int aK=0 ; aK<111 ; aK++) std::cout << "C'EST LA " << __FILE__ << " " << __LINE__ << "\n";
 
     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;

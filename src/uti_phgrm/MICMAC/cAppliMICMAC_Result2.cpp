@@ -529,13 +529,63 @@ void cAppliMICMAC::MakeGenCorPxTransv(cEtapeMecComp & anEtape)
     MakeFileXML(aCTP,FullDirResult()+aNameXML);
 }
 
+const cMMUseMasq3D * cAppliMICMAC::Masq3DOfEtape(cEtapeMecComp & anEtape)
+{
+   if (! MMUseMasq3D().IsInit()) return 0;
+   const cMMUseMasq3D & aMasq =  MMUseMasq3D().Val();
+
+   if (anEtape.EtapeMEC().DeZoom() > aMasq.ZoomBegin().Val()) return 0;
+
+   return & aMasq;
+}
+
+void cAppliMICMAC::DoMasq3D(cEtapeMecComp & anEtape,const cMMUseMasq3D & aMasq)
+{
+   // const cEtapeMEC &   anEM = anEtape.EtapeMEC();
+   Tiff_Im  aFM = anEtape.FileMask3D2D();
+   std::string aNameNuage =     aMasq.PrefixNuage().IsInit() ?
+                                (mFullDirMEC+ aMasq.PrefixNuage().Val() + "_Etape_" + ToString(anEtape.Num()) + ".xml") :
+                                anEtape.NameXMLNuage()  ;
+   std::string aCom = MM3dBinFile("TestLib") 
+                     + " Masq3Dto2D " 
+                     + aMasq.NameMasq() + std::string(" ")
+                     + aNameNuage  + std::string(" ")
+                     + aFM.name() ;
+
+/*
+std::cout << "aFM.name"  << aFM.name() << "##" << anEtape.NameXMLNuage()  << "\n";
+*/
+std::cout << aCom << "\n";
+getchar();
+
+   System(aCom);
+// getchar();
+
+
+// mm3d TestLib Masq3Dto2D AperiCloud_AllRel_selectionInfo.xml MTD-Image-IMGP7034.JPG/Fusion_NuageImProf_LeChantier_Etape_1.xml Test.tif 
+
+
+   // mNameXMLNuage
+   // std::string aCom = 
+
+}
+
 void cAppliMICMAC::MakeResultOfEtape(cEtapeMecComp & anEtape)
 {
+
  
    MakeGenCorPxTransv(anEtape);
    std::list<string> mVProcess;
    const cEtapeMEC &   anEM = anEtape.EtapeMEC();
    
+   const cMMUseMasq3D * aMasq3D = Masq3DOfEtape(anEtape);
+   if (aMasq3D)
+   {
+       DoMasq3D(anEtape,*aMasq3D);
+   }
+
+
+
    MakeImagePx8Bits
    (
        mVProcess,anEtape,0,

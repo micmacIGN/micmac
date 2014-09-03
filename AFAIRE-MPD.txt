@@ -26,6 +26,9 @@ EVOLUTIONS :
   * Modeles additionnels dans Tapas (AddPol et AddFour ) + les options dans NewTapas
   * GCPCtrl
   * OriExport
+  * Init11Param_Main
+
+  * Masq 3D + util
 
 Torsion de bande : FAITS
 
