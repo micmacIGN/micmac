@@ -47,7 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEBUG_SMART_POINTEUR 0
 #define DEBUG_DYN_CAST  0
-#define DEBUG_INTERNAL  1
+#define DEBUG_INTERNAL  0
 
 #if (DEBUG_DYN_CAST)
 #include <std/typeinfo.h>
