@@ -104,7 +104,9 @@ void HistoryManager::save()
     QFile outFile(_filename);
     if (!outFile.open(QIODevice::WriteOnly)) return;
 
+    QString tmp = _filename;
     QString pts3d_file = _filename.replace("selectionInfo", "polyg3d");
+    _filename = tmp;
 
     QFile ptsFile(pts3d_file);
     if (!ptsFile.open(QIODevice::WriteOnly)) return;
@@ -206,8 +208,4 @@ void HistoryManager::save()
     content2.flush();
     content2 << doc2.toString();
     ptsFile.close();
-
-#ifdef _DEBUG
-        printf ( "File saved in: %s\n", _filename.toStdString().c_str());
-#endif
 }

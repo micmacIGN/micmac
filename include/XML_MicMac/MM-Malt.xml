@@ -156,6 +156,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>  SzRec=50 </Symb>  <!-- Valeur par defaut actuel pour compatibilite -->
    <Symb>   AlgoMaxFlow=false </Symb>
 
+   <Symb> UseMasq3D=false </Symb>
+   <Symb> NameMasq3D=XXXX </Symb>
+
 <!--
 
     <Symb>  UseEqui=t=rue </Symb>
@@ -305,6 +308,14 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
       <PasIsInPixel>  ${PasInPixel} </PasIsInPixel>
       <NbMinImagesVisibles>  ${NbMinIV} </NbMinImagesVisibles>
       <ChantierFullImage1> ${FullIm1} </ChantierFullImage1>
+      <#WHEN VTEST=${UseMasq3D}>
+           <MMUseMasq3D>
+                <NameMasq> ${NameMasq3D} </NameMasq>
+                <ZoomBegin> 16 </ZoomBegin>
+                <Dilate> 2 </Dilate>
+           </MMUseMasq3D>
+      </#WHEN>
+
 
       <EtapeMEC>
              <DeZoom >  -1                      </DeZoom>

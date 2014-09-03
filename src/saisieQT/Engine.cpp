@@ -214,6 +214,12 @@ void cLoader::setFilenameOut(QString str)
     _FilenamesOut.clear();
 
     _FilenamesOut.push_back(str);
+
+    _SelectionOut.clear();
+
+    QFileInfo fi(str);
+
+    _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfo.xml");
 }
 
 CamStenope* cLoader::loadCamera(QString aNameFile)
@@ -425,7 +431,7 @@ void cEngine::saveBox2D(ushort idCur)
 
     for (int aK=0; aK < poly->size(); ++aK)
     {
-
+        //TODO
         //if (_FileOriMnt != NULL)
     }
 }
@@ -434,8 +440,6 @@ void cEngine::saveMask(ushort idCur, bool isFirstAction)
 {
     if (getData()->getNbImages())
         doMaskImage(idCur, isFirstAction);
-    else
-        do3DMasks();
 }
 
 void cEngine::unloadAll()
