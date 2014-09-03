@@ -505,7 +505,7 @@ IF (MSVC)
         if (${CUDA_ENABLED})
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
         else()
-            add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
+            add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo /LARGEADDRESSAWARE" )
             # la valeur par defaut Zm1000 genere une erreur sous windows XP
                         set(zm_value "/Zm200")
                         string( FIND "${CMAKE_CXX_FLAGS}" "/Zm1000" has_zm1000 )
