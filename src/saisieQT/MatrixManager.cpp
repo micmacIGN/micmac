@@ -36,7 +36,7 @@ void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei heigh
 }
 
 void MatrixManager::doProjection(QPointF point, float zoom)
-{    
+{
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glMultMatrixd(_projMatrix);
@@ -92,8 +92,13 @@ void MatrixManager::resetMatrixProjection(float x, float y)
     m_translationMatrix[0] = m_translationMatrix[1] = 0.f;
 }
 
+void MatrixManager::resetViewPort()
+{
+    glGetIntegerv (GL_VIEWPORT, getGLViewport());
+}
+
 void MatrixManager::translate(float tX, float tY, float tZ)
-{    
+{
     float inverMat[4][4];
 
     float translation[3];
@@ -119,10 +124,11 @@ void MatrixManager::setMatrices()
     glGetIntegerv(GL_VIEWPORT, _glViewport);
 }
 
-void MatrixManager::importMatrices(selectInfos &infos)
+void MatrixManager::importMatrices(const selectInfos &infos)
 {
     for (int aK=0; aK<4; ++aK)
-        _glViewport[aK] = infos.glViewport[aK];
+         _glViewport[aK] = infos.glViewport[aK];
+
     for (int aK=0; aK<16; ++aK)
     {
         _mvMatrix[aK] = infos.mvmatrix[aK];
@@ -146,6 +152,15 @@ void MatrixManager::getProjection(QPointF &P2D, Pt3dr P)
     GLdouble xp,yp,zp;
     mmProject(P.x,P.y,P.z,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
     P2D = QPointF(xp,yp);
+}
+
+void MatrixManager::getInverseProjection(Pt3dr &P, QPointF P2D, float dist)
+{
+    GLdouble xp,yp,zp;
+    mmUnProject(P2D.x(), P2D.y(), dist,_mvMatrix,_projMatrix,_glViewport,&xp,&yp,&zp);
+    P.x = xp;
+    P.y = yp;
+    P.z = zp;
 }
 
 QPointF MatrixManager::WindowToImage(QPointF const &winPt, float zoom)
@@ -187,7 +202,7 @@ void MatrixManager::resetTranslationMatrix(Pt3dr center)
     m_translationMatrix[2] = -center.z;
 }
 
-void MatrixManager::resetAllMatrix(Pt3d<double> center)
+void MatrixManager::resetAllMatrix(Pt3dr center)
 {
     _targetCamera.x = 0;
     _targetCamera.y = 0;
@@ -265,7 +280,7 @@ void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerSce
     }
 }
 
-void MatrixManager::SetArcBallCamera(float zoom)
+void MatrixManager::setArcBallCamera(float zoom)
 {
     setDistance(zoom);
     glOrthoZoom(zoom,zoom + 1.5f*_diameterScene);
@@ -323,9 +338,9 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
 }
 
 void MatrixManager::setMatrixDrawViewPort()
-{    
+{
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();    
+    glLoadIdentity();
     glTranslatef(-1.f,-1.f,0.f);
     glScalef(2.f/(float)_glViewport[2],2.f/(float)_glViewport[3],1.f);
     glMatrixMode(GL_MODELVIEW);
@@ -337,7 +352,7 @@ void MatrixManager::applyAllTransformation(bool mode2D,QPoint pt,float zoom)
     if (mode2D)
         doProjection(pt, zoom);
     else
-        SetArcBallCamera(zoom);
+        setArcBallCamera(zoom);
 }
 
 void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
@@ -364,7 +379,7 @@ void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
     {
         if((abs(ry)< 2.f*PI - PI/4.f))
 
-            _upY = -_upY;        
+            _upY = -_upY;
     }
 }
 

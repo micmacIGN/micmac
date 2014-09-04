@@ -142,6 +142,7 @@ class cAppliMalt
           bool        mMaxFlow;
           int         mSzRec;
           std::vector<std::string> mEquiv;
+          std::string mMasq3D;
 };
 
 
@@ -295,7 +296,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq", eSAM_NoInit)
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ", eSAM_IsExistFileRP)
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
-                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, its proportion ([0,0,1,1] mean full box)", eSAM_Normalize)
+                    << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)", eSAM_InternalUse)
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
@@ -304,6 +305,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO) if not XML frame camera", eSAM_NoInit)
                     << EAM(mMaxFlow,"MaxFlow",true,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower sometime better, Def=false ")
                     << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
+                    << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq")
                 );
 
     if (!MMVisualMode)
@@ -329,7 +331,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           if (mModeOri=="GRID")     mFullModeOri= "eGeomImageGrille";
           else if (mModeOri=="RTO") mFullModeOri= "eGeomImageRTO";
           else  {ELISE_ASSERT(false,"Unknown mode ori");}
-
       }
 
 
@@ -589,7 +590,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + std::string(" +ZIncCalc=") + ToString(mZincCalc)
               + std::string(" +NbEtapeQuant=") + ToString(mNbEtapeQ)
               + std::string(" +DefCor=") + ToString(mDefCor)
-              + std::string(" +mCostTrans=") + ToString(mCostTrans)
+              + std::string(" +CostTrans=") + ToString(mCostTrans)
               + std::string(" +Geom=") + aNameGeom
               ;
 
@@ -625,6 +626,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
                   ;
 
+     if (EAMIsInit(&mMasq3D))
+     {
+          mCom = mCom+ " +UseMasq3D=true +NameMasq3D=" + mMasq3D + " ";
+     }
 
 
       if (mImMaster != "")

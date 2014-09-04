@@ -440,6 +440,7 @@ int  Idem_main(int argc,char ** argv);
 
 int MakeOneXmlXifInfo_main(int argc,char ** argv);
 
+int Masq3Dto2D_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -490,6 +491,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an aproximate model "));
     aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
+    aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
@@ -527,6 +529,8 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
    if ((argc>=2) && (argv[1][0] == 'v') && (argv[1]!=std::string("vic")))
    {
+       ELISE_ASSERT(ELISE_QT_VERSION > 0, std::string("Qt not installed, " + std::string(argv[1]) + " not available").c_str() );
+
        MMVisualMode = true;
        argv[1]++;
    }

@@ -330,12 +330,21 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
 
    std::string aTmpOut = "Proj4Output.txt";
 
-   std::string aCom =    std::string( std::string(SYS_CAT) + " " + aTmpIn + " | ")
-                       + g_externalToolHandler.get("proj").callName() + (Sens2GeoC?" -I ":" ")
-                       + std::string(" -f %.7f ")
-                       + mStr
-                       + " > " 
-                       + aTmpOut;
+	#if ELISE_windows
+	   std::string aCom =  g_externalToolHandler.get("proj").callName() + (Sens2GeoC?" -I ":" ")
+						   + std::string(" -f %.7f ")
+						   + mStr
+						   + " " + aTmpIn
+						   + " > " 
+						   + aTmpOut;
+	#else
+	   std::string aCom =    std::string( std::string(SYS_CAT) + " " + aTmpIn + " | ")
+						   + g_externalToolHandler.get("proj").callName() + (Sens2GeoC?" -I ":" ")
+						   + std::string(" -f %.7f ")
+						   + mStr
+						   + " > " 
+						   + aTmpOut;
+	#endif
 
    VoidSystem(aCom.c_str());
 

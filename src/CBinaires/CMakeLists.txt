@@ -1,4 +1,5 @@
 add_executable(mm3d mm3d.cpp)
+
 target_link_libraries(mm3d elise ${X11_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ANN)
 
 if(${CUDA_ENABLED})

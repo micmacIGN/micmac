@@ -82,6 +82,8 @@ public:
 
     void setParams(cParameters *params);
 
+
+
 public slots:
 
     //! Try to load a list of files
@@ -183,7 +185,6 @@ protected slots:
     void on_actionLoad_image_triggered();
     void on_actionSave_masks_triggered();
     void on_actionSave_as_triggered();
-    void on_actionSave_selection_triggered();
     void on_actionSettings_triggered();
 
     void on_menuFile_triggered();

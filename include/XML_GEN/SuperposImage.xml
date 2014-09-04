@@ -1051,6 +1051,17 @@
          <UseIt Nb="?" Type="bool" Def="false"> </UseIt> <!-- Pour anihilier dans EtapeMEC -->
   </ParamGenereStrVois>
 
+
+  <ParamFiltreDetecRegulProf Nb="1" Class="true"   ToReference="true">
+         <SzCC Nb="?" Type="int" Def="2"> </SzCC>
+         <PondZ Nb="?" Type="double" Def="2.0"> </PondZ>
+         <Pente Nb="?" Type="double" Def="0.5"> </Pente>
+         <SeuilReg Nb="?" Type="double" Def="0.5"> </SeuilReg>
+         <V4 Nb="?" Type="bool" Def="false"> </V4>
+         <NbCCInit Nb="?" Type="int" Def="5"> </NbCCInit>
+         <NameTest Nb="?" Type="std::string"> </NameTest>
+  </ParamFiltreDetecRegulProf>
+
   <ParamFusionMNT  Nb="1" Class="true">
        <DicoLoc  Nb="?" RefType="ChantierDescripteur"
                          RefFile="ParamChantierPhotogram.xml"
@@ -1112,10 +1123,11 @@
                        <FMNT_GesNoVal Nb="?">
                             <PenteMax Nb="1" Type="double"> </PenteMax>
                                 <!-- GainNoVal : proportion du gain max; Gain 0 privilegie le NoVal -->
-                            <GainNoVal Nb="1" Type="double"> </GainNoVal>
+                            <CostNoVal Nb="1" Type="double"> </CostNoVal>
                              <Trans Nb="1" Type="double"> </Trans>
                         </FMNT_GesNoVal>
                 </FMNT_ProgDyn>
+                <ParamRegProf RefType="ParamFiltreDetecRegulProf" Nb="?"> </ParamRegProf>
            </SpecAlgoFMNT>
        </ParamAlgoFusionMNT>
 
