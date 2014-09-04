@@ -22,13 +22,14 @@ class GlCloud : public cObjectGL
 {
 public:
     GlCloud(){}
-    GlCloud(vector<GlVertex> const &);
+    GlCloud(vector<GlVertex> const &, int type=1);
 
     static GlCloud* loadPly(string,  int *incre = NULL);
 
     void    addVertex( const GlVertex & vertex);
     GlVertex& getVertex( uint );
     int     size();
+    int     type() { return _type; }
 
     void    clear();
 
@@ -41,6 +42,8 @@ private:
 
     QGLBuffer   _vertexbuffer;
     QGLBuffer   _vertexColor;
+
+    int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz)
 };
 
 

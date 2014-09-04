@@ -224,8 +224,8 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 QString sufx = QFileInfo(filenames[i]).suffix();
 
                 bool formatIsSupported = false;
-                QList<QByteArray> list = QImageReader::supportedImageFormats();
-                QStringList slist;
+                QStringList slist = QStringList("cr2")<<"arw"<<"crw"<<"dng"<<"mrw"<<"nef"<<"orf"<<"pef"<<"raf"<<"x3f"<<"rw2"; //main formats supported by ImageMagick
+                QList<QByteArray> list = QImageReader::supportedImageFormats(); //formats supported by QImage
                 for (int aK=0; aK< list.size();++aK) slist.push_back(QString(list[aK]));
                 if (slist.contains(sufx, Qt::CaseInsensitive))  formatIsSupported = true;
 
@@ -411,15 +411,12 @@ void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 
 void fillStringList(QStringList & actions, int appMode)
 {
-    if (appMode == MASK3D)
+    if ((appMode == MASK3D) || (appMode == MASK2D))
     {
         actions.push_back(QObject::tr("select inside polygon"));
         actions.push_back(QObject::tr("remove inside polygon"));
-    }
-    else if (appMode == MASK2D)
-    {
-        actions.push_back(QObject::tr("add to mask"));
-        actions.push_back(QObject::tr("remove from mask"));
+        actions.push_back(QObject::tr("select outside polygon"));
+        actions.push_back(QObject::tr("remove outside polygon"));
     }
 }
 
@@ -550,15 +547,21 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     #if ELISE_QT_VERSION >= 5
             shortcuts.push_back("Cmd+U");
             shortcuts.push_back("Cmd+Y");
+            shortcuts.push_back("Shift+U");
+            shortcuts.push_back("Shift+Y");
             fillStringList(actions, _appMode);
     #else
             shortcuts.push_back(tr("Space bar"));
             shortcuts.push_back(tr("Del"));
+            shortcuts.push_back(tr("Ctrl+Space bar"));
+            shortcuts.push_back(tr("Ctrl+Del"));
             fillStringList(actions, _appMode);
     #endif
 #else
         shortcuts.push_back(tr("Space bar"));
         shortcuts.push_back(tr("Del"));
+        shortcuts.push_back(tr("Ctrl+Space bar"));
+        shortcuts.push_back(tr("Ctrl+Del"));
         fillStringList(actions, _appMode);
 #endif
 
@@ -614,6 +617,8 @@ void SaisieQtWindow::on_actionAbout_triggered()
         qStr.replace( "**", "  " );
     #endif
 
+    qStr += "\n" + QApplication::applicationName() + tr(" was built with QT") + QString::number(ELISE_QT_VERSION) + tr(" and mercurial revision ") + QString(string(__HG_REV__).c_str());
+
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
     msgBox->setFont(font);
@@ -645,9 +650,14 @@ void SaisieQtWindow::moveEvent(QMoveEvent *)
     _params->setPosition(pos());
 }
 
-void SaisieQtWindow::on_actionAdd_triggered()
+void SaisieQtWindow::on_actionAdd_inside_triggered()
 {
-    currentWidget()->Select(ADD);
+    currentWidget()->Select(ADD_INSIDE);
+}
+
+void SaisieQtWindow::on_actionAdd_outside_triggered()
+{
+    currentWidget()->Select(ADD_OUTSIDE);
 }
 
 void SaisieQtWindow::on_actionSelect_none_triggered()
@@ -680,12 +690,17 @@ void SaisieQtWindow::on_actionReset_triggered()
     }
 }
 
-void SaisieQtWindow::on_actionRemove_triggered()
+void SaisieQtWindow::on_actionRemove_inside_triggered()
 {
     if (_appMode > MASK3D)
         currentWidget()->polygon()->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
     else
-        currentWidget()->Select(SUB);
+        currentWidget()->Select(SUB_INSIDE);
+}
+
+void SaisieQtWindow::on_actionRemove_outside_triggered()
+{
+    currentWidget()->Select(SUB_OUTSIDE);
 }
 
 void SaisieQtWindow::on_actionSetViewTop_triggered()
@@ -1023,32 +1038,41 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionShow_refuted, !isModeMask);
 
     //disable some actions
-    hideAction(_ui->actionAdd, isModeMask);
+    hideAction(_ui->actionAdd_inside, isModeMask);
+    hideAction(_ui->actionAdd_outside, isModeMask);
     hideAction(_ui->actionSelect_none, isModeMask);
     hideAction(_ui->actionInvertSelected, isModeMask);
     hideAction(_ui->actionSelectAll, isModeMask);
     hideAction(_ui->actionReset, isModeMask);
 
-    hideAction(_ui->actionRemove, isModeMask);
+    hideAction(_ui->actionRemove_inside, isModeMask);
+    hideAction(_ui->actionRemove_outside, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
 
     if (_appMode == MASK2D)
     {
         _ui->menuSelection->setTitle(tr("&Mask edition"));
-        _ui->actionAdd->setText(tr("Add to mask"));
-        _ui->actionRemove->setText(tr("Remove from mask"));
+        _ui->actionAdd_inside->setText(tr("Add inside to mask"));
+        _ui->actionRemove_inside->setText(tr("Remove inside from mask"));
+        _ui->actionAdd_outside->setText(tr("Add outside to mask"));
+        _ui->actionRemove_outside->setText(tr("Remove outside from mask"));
         _ui->actionSave_masks->setText(tr("&Save mask"));
     }
     else if (_appMode == MASK3D)
         _ui->actionSave_masks->setText(tr("&Save selection info"));
 
-    _ui->actionAdd->setShortcut(Qt::Key_Space);
-    _ui->actionRemove->setShortcut(Qt::Key_Delete);
+    _ui->actionAdd_inside->setShortcut(Qt::Key_Space);
+    _ui->actionRemove_inside->setShortcut(Qt::Key_Delete);
+    _ui->actionAdd_outside->setShortcut(QKeySequence(Qt::ControlModifier +Qt::Key_Space));
+    _ui->actionRemove_outside->setShortcut(QKeySequence(Qt::ControlModifier +Qt::Key_Delete));
+
     #ifdef ELISE_Darwin
     #if(ELISE_QT_VERSION >= 5)
-        _ui->actionRemove->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
-        _ui->actionAdd->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
+        _ui->actionRemove_inside->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
+        _ui->actionAdd_inside->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
+        _ui->actionRemove_inside->setShortcut(QKeySequence(Qt::ShiftModifier + Qt::Key_Y));
+        _ui->actionAdd_inside->setShortcut(QKeySequence(Qt::ShiftModifier + Qt::Key_U));
     #endif
     #endif
 }
