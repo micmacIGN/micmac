@@ -37,9 +37,12 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#if (ELISE_QT_VERSION >= 4)
+
 
 #include "StdAfx.h"
+
+#if (ELISE_QT_VERSION >= 4)
+
 #include "../saisieQT/include_QT/3DObject.h"
 
 class cMasqBin3D
