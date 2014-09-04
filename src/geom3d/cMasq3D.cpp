@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -38,7 +38,11 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
+
 #include "StdAfx.h"
+
+#if (ELISE_QT_VERSION >= 4)
+
 #include "../saisieQT/include_QT/3DObject.h"
 
 class cMasqBin3D
@@ -64,15 +68,17 @@ bool IsModeConst(SELECTION_MODE aMode)
 }
 bool IsModeAdditif(SELECTION_MODE aMode)
 {
-   return (aMode==ALL) || (aMode==ADD) ;
+   return (aMode==ALL) || (aMode==ADD_INSIDE) || (aMode==ADD_OUTSIDE) ;
 }
 
 SELECTION_MODE ModeInverse(SELECTION_MODE aMode)
 {
    switch (aMode)
    {
-        case  SUB : return ADD;
-        case  ADD : return SUB;
+        case  SUB_INSIDE : return ADD_INSIDE;
+        case  ADD_INSIDE : return SUB_INSIDE;
+        case  SUB_OUTSIDE : return ADD_OUTSIDE;
+        case  ADD_OUTSIDE : return SUB_OUTSIDE;
         case  ALL : return NONE;
         case  NONE : return ALL;
 
@@ -98,10 +104,10 @@ class cMasq3DPartiel
         virtual ~cMasq3DPartiel() ;
         void Invert();
     protected :
-        cMasq3DPartiel(SELECTION_MODE aMode); 
+        cMasq3DPartiel(SELECTION_MODE aMode);
         SELECTION_MODE mModeSel;
         bool           mAdditif;
-       
+
 };
 
 class cMasq3DConst : public cMasq3DPartiel
@@ -124,13 +130,13 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
         {
             return (Proj(mRE2P.ImAff(aP3))-mP0)  * mScale;
         }
-        bool HasAnswer(const Pt3dr & aP) const 
+        bool HasAnswer(const Pt3dr & aP) const
         {
               return mTMasq.get(round_ni(ToIm(aP)),0);
         }
 
         void Test(const std::vector<Pt3dr> aPol3);
-        
+
      public :
         Pt2dr  mP0;
         double mScale;
@@ -143,14 +149,14 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
 class cMasq3DEmpileMasqPart : public  cMasqBin3D
 {
      public :
-        
+
         virtual bool IsInMasq(const Pt3dr &) const ;
         virtual ~cMasq3DEmpileMasqPart();
         cMasq3DEmpileMasqPart(const std::vector<cMasq3DPartiel *> & aVM);
         static cMasq3DEmpileMasqPart * FromSaisieMasq3d(const std::string & aName);
      private  :
 
-         std::vector<cMasq3DPartiel *> mVM;  // Est inverse / au masque 
+         std::vector<cMasq3DPartiel *> mVM;  // Est inverse / au masque
 
 };
 
@@ -266,7 +272,7 @@ cMasq3DOrthoRaster * cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const
 
     Im2D_Bits<1> aMasq(aSzI.x,aSzI.y,0);
 
-    
+
     std::vector<Pt2di> aVP2I;
     for (int aKP=0 ; aKP<int(aVP2.size()); aKP++)
     {
@@ -277,7 +283,7 @@ cMasq3DOrthoRaster * cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const
     ELISE_COPY(polygone(ToListPt2di(aVP2I)),1,aMasq.out());
 
 
-    
+
 
     cMasq3DOrthoRaster * aRes = new cMasq3DOrthoRaster(aModeSel,aMin,aScal,aE2P,aMasq);
     // aRes.Test(aPol3);
@@ -294,18 +300,18 @@ cMasq3DEmpileMasqPart::~cMasq3DEmpileMasqPart()
 {
 }
 
-bool cMasq3DEmpileMasqPart::IsInMasq(const Pt3dr & aP) const 
+bool cMasq3DEmpileMasqPart::IsInMasq(const Pt3dr & aP) const
 {
    for (int aK=0 ; aK<int(mVM.size()) ; aK++)
    {
-      if (mVM[aK]->HasAnswer(aP)) 
+      if (mVM[aK]->HasAnswer(aP))
           return mVM[aK]->Additif();
    }
    ELISE_ASSERT(false,"cMasq3DEmpileMasqPart::IsInMasq");
    return false;
 }
 
-cMasq3DEmpileMasqPart::cMasq3DEmpileMasqPart(const std::vector<cMasq3DPartiel *> & aVM) 
+cMasq3DEmpileMasqPart::cMasq3DEmpileMasqPart(const std::vector<cMasq3DPartiel *> & aVM)
 {
    bool doInvert = false;
    bool HasConst = false;
@@ -321,7 +327,7 @@ cMasq3DEmpileMasqPart::cMasq3DEmpileMasqPart(const std::vector<cMasq3DPartiel *>
         else
         {
              mVM.push_back(aVM[aK]);
-             if (doInvert) 
+             if (doInvert)
                 mVM.back()->Invert();
              if (IsModeConst(aMode))
                 HasConst = true;
@@ -344,7 +350,7 @@ cMasq3DEmpileMasqPart::cMasq3DEmpileMasqPart(const std::vector<cMasq3DPartiel *>
 */
 
 /*
-bool cMasq3DEmpileMasqPart::IsInMasq(const Pt3dr & aP) const 
+bool cMasq3DEmpileMasqPart::IsInMasq(const Pt3dr & aP) const
 {
    for (int aK=mVM.size() -1 ; aK>=1 ; aK++)
    {
@@ -534,17 +540,17 @@ int Masq3Dto2D_main(int argc,char ** argv)
    return 1;
 }
 
-
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -554,17 +560,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

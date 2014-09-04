@@ -305,7 +305,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO) if not XML frame camera", eSAM_NoInit)
                     << EAM(mMaxFlow,"MaxFlow",true,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower sometime better, Def=false ")
                     << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
-                    << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq")
+                    << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq", eSAM_IsExistFile)
                 );
 
     if (!MMVisualMode)

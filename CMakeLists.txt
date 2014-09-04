@@ -95,72 +95,69 @@ set(UnixBinPath
 
 set(qt_version 0)
 
-if (${WITH_QT5})
+if(${WITH_QT5} OR ${WITH_QT4})
+	find_package(OpenGL REQUIRED)
 
-        find_package(OpenGL REQUIRED)
+	if ( OPENGL_FOUND )
+		message( STATUS "-----> OpenGL found" )
 
-	find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
-	if (Qt5_FOUND)
-           	message( STATUS "-----> Qt5 found" )
-              	set(qt_version 5)
-						
-		if(POLICY CMP0020)
-			cmake_policy(SET CMP0020 NEW)
+		if ( MSVC )
+				include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
+				# ajoute /lib a tous les repertoires contenant un SDK
+				foreach( sdk_dir ${WINDOWSSDK_DIRS} )
+						list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
+				endforeach()
+				set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
+				message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
 		endif()
 
-		set(QT_LIBRARIES 
-			${Qt5Core_LIBRARIES}
-			${Qt5Gui_LIBRARIES}
-			${Qt5Widgets_LIBRARIES}
-			${Qt5Xml_LIBRARIES}
-			${Qt5Concurrent_LIBRARIES}
-			${Qt5OpenGL_LIBRARIES}
-			${Qt5LinguistTools_LIBRARIES}
-		)
-		SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
-		link_directories(${Qt5_LIBRARY_DIRS})
+		if (${WITH_QT5})
+  
+			find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
+			if (Qt5_FOUND)
+           			message( STATUS "-----> Qt5 found" )
+              		set(qt_version 5)
+						
+				if(POLICY CMP0020)
+					cmake_policy(SET CMP0020 NEW)
+				endif()
 
-         elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
-         	message("WARNING QT 5 not found")
-                message("Set Qt5_DIR to qt CMAKE directory")
-                message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
-                message("   Qt5_DIR --> /opt/Qt5.3.1/5.3/gcc_64/lib/cmake/Qt5")
-		SET(WITH_QT5 OFF)
-        endif()
- endif()
+				set(QT_LIBRARIES 
+					${Qt5Core_LIBRARIES}
+					${Qt5Gui_LIBRARIES}
+					${Qt5Widgets_LIBRARIES}
+					${Qt5Xml_LIBRARIES}
+					${Qt5Concurrent_LIBRARIES}
+					${Qt5OpenGL_LIBRARIES}
+					${Qt5LinguistTools_LIBRARIES}
+				)
+				SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
+				link_directories(${Qt5_LIBRARY_DIRS})
+			elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
+         			message("WARNING QT 5 not found")
+					message("Set Qt5_DIR to qt CMAKE directory")
+					message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
+					message("   Qt5_DIR --> /opt/Qt5.3.1/5.3/gcc_64/lib/cmake/Qt5")					
+			endif()
 
-if (${WITH_QT4} AND NOT ${WITH_QT5})
+		elseif (${WITH_QT4})
 
-        find_package(OpenGL)
-        if ( OPENGL_FOUND )
-                message( STATUS "-----> OpenGL found" )
+            FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
+            if( QT4_FOUND )
+                    message( STATUS "-----> Qt4 found" )
+                    set(qt_version 4)
+            else()
+                message( "Qt not available, Qt graphical tools disabled" )
+                message( "**************************************************************************************************************************************" )
+				message( "If Qt is installed, please set QT_QMAKE_EXECUTABLE" )                  					
+				message( "**************************************************************************************************************************************" )
+			endif()
 
-                if ( MSVC )
-                        include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
-                        # ajoute /lib a tous les repertoires contenant un SDK
-                        foreach( sdk_dir ${WINDOWSSDK_DIRS} )
-                                list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
-                        endforeach()
-                        set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
-                        message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
-                endif()
-                
-             	FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
-              	if( QT4_FOUND )
-                     	message( STATUS "-----> Qt4 found" )
-                        	set(qt_version 4)
-               	else()
-                	message( "Qt not available, Qt graphical tools disabled" )
-                   	message( "**************************************************************************************************************************************" )
-                     	message( "If Qt is installed, please set QT_QMAKE_EXECUTABLE" )                  					
-			message( "**************************************************************************************************************************************" )
-                endif()
-        else()
+		endif()
+	else()
                 message( "OpenGL not available, Qt graphical tools disabled" )
-        endif()
+	endif()
 endif()
-
-
 
 if ( NOT ${qt_version} EQUAL 0 )
       message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
@@ -504,6 +501,7 @@ ENDIF()
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
 
+		set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE" )
         # Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
         if (${CUDA_ENABLED})
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )

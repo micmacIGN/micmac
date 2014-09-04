@@ -2105,13 +2105,18 @@ Tiff_Im  Tiff_Im::StdConvGen(const ElSTDNS string & Name,int aNbChan,bool Bits16
 
 static std::string NameAdapt(const std::string  &aFullName, const std::string & aPost,bool toMkDir)
 {
-   static std::string aDirAdd = ( isUsingSeparateDirectories() ?
-                                  MMTemporaryDirectory() :
-                                  std::string("Tmp-MM-Dir")+ELISE_CAR_DIR );
+   static std::string aDirAdd = std::string("Tmp-MM-Dir")+ELISE_CAR_DIR;
+
    std::string aDir,aNameOri;
    SplitDirAndFile(aDir,aNameOri,aFullName);
    if (toMkDir)
       ELISE_fp::MkDir(aDir+aDirAdd);
+
+   if ( isUsingSeparateDirectories() ){
+      aDir = MMTemporaryDirectory();
+      aDirAdd = "";
+   }
+
    return aDir+aDirAdd+aNameOri + aPost + ".tif";
 }
 

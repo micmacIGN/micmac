@@ -1048,9 +1048,11 @@ cTriangulFormelle * cSetEqFormelles::NewTriangulFormelleUnitaire(int aDim)
 
 
 void cTriangulFormelle::Test()
-{ 
-    All_Memo_counter MC_INIT;
-    stow_memory_counter(MC_INIT);
+{
+	#if (DEBUG_INTERNAL)
+		All_Memo_counter MC_INIT;
+		stow_memory_counter(MC_INIT);
+	#endif
 
     {
        cSetEqFormelles aSet;

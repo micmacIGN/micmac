@@ -380,7 +380,7 @@ void ReadLine_V02(
                     // les cellules dans la zone masquée
                     // les cellules dont la valeur le coef de corrélation n'a pas été calculé -> 1.01234 --> 10123
                     //  ces cellules contaminent les voisines en mode DEFCOR....
-                fCostMin = min(fCostMin, costInit + prevDefCor);
+                fCostMin = min(fCostMin, costInit + prevDefCor  + costTransDef );
 #endif
 
                 if(tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < sizeBuffer && tZ < sizeBuffer)
@@ -420,8 +420,12 @@ void ReadLine_V02(
 
 
 #ifdef CUDA_DEFCOR
-            uint defCor     = (prevDefCor <= prevMinCost) ? prevDefCor + defCorInit : prevMinCost + costTransDef + defCorInit;
+            //uint defCor     = (prevDefCor <= prevMinCost) ? prevDefCor + defCorInit : prevMinCost + costTransDef + defCorInit;
 
+            uint defCor     = min(prevDefCor + defCorInit,prevMinCost + costTransDef + defCorInit);
+
+            //uint defCor     =  defCorInit + (prevDefCor == prevMinCost ? costTransDef : 0);
+            
             defCor         -= prevMinCost;
 
             prevMinCost     = min(globMinFCost,defCor);
