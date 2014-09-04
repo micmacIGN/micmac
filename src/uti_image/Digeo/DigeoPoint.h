@@ -5,6 +5,8 @@
 #include <vector>
 #include <list>
 #include <iostream>
+#include <cstring>
+#include <cstdlib>
 #include "general/sys_dep.h"
 #include "private/VersionedFileHeader.h"
 
