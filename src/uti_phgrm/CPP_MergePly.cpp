@@ -265,7 +265,7 @@
         ElInitArgMain
         (
          argc,argv,
-                    LArgMain()	<< EAMC(aFullName, "Full Name (Dir+Pattern)", eSAM_IsPatFile),
+                    LArgMain()	<< EAMC(aFullName, "Full Name (Dir+Pattern)"),
          LArgMain()		<< EAM(aNameOut,"Out",true)
                         << EAM(aVCom,"Comments",true)
                         << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
@@ -416,15 +416,15 @@
             }
             else
             {
-                fprintf(aFP,"%.3f %.3f %.3f %.3f %.3f %.3f\n", glist[aK]->x, glist[aK]->y, glist[aK]->z, glist[aK]->nx, glist[aK]->ny, glist[aK]->nz);
+                fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n", glist[aK]->x, glist[aK]->y, glist[aK]->z, glist[aK]->nx, glist[aK]->ny, glist[aK]->nz);
             }
         }
 
         ElFclose(aFP);
 
-        if ( glist!=NULL )delete [] glist;
+        if ( glist!=NULL ) delete [] glist;
         if ( vlist!=NULL ) delete [] vlist;
-        if ( plist!=NULL )delete plist;
+        if ( plist!=NULL ) delete plist;
 
         return EXIT_SUCCESS;
     }
