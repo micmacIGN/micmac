@@ -137,6 +137,16 @@ set(Elise_Src_Files
         ${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
+if(CMAKE_COMPILER_IS_GNUCC)
+
+    execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+
+    if(GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
+      set_source_files_properties(${TIFF_DIR}/el_dcraw.c PROPERTIES COMPILE_FLAGS -Wno-aggressive-loop-optimizations)
+    endif()
+
+endif()
+
 set(libElise elise)
 
 set(SAISIE_DIR ${PROJECT_SOURCE_DIR}/src/saisieQT)

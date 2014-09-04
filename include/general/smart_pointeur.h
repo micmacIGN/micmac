@@ -175,23 +175,27 @@ void * std_dup(void * out,const void * in,INT sz_nb);
 char * std_ch_dup(const char * ch);
 
 
-
-//#define STD_NEW_TAB(nb,Type)\
-//((Type *) ADD_MEM_COUNT(MC_NTAB,(new Type [nb]),1))
+/*
+#define STD_NEW_TAB(nb,Type)\
+((Type *) ADD_MEM_COUNT(MC_NTAB,(new Type [nb]),1))
+*/
 #define STD_NEW_TAB(nb,Type)\
 ((Type *) ADD_MEM_COUNT( MC_NTAB, SAFE_ALLOC(Type,nb), 1 ))
 
 #define STD_DELETE_TAB(p)\
       ((void)SUB_MEM_COUNT(MC_NTAB,p,1) ,  (delete  [] (p)))
 
-
-//#define STD_NEW_TAB_DUP(val,Type,nb)\
-//((Type *) ADD_MEM_COUNT(MC_NTAB,std_dup(new Type [nb],val,sizeof(Type)*nb),1))
+/*
+#define STD_NEW_TAB_DUP(val,Type,nb)\
+((Type *) ADD_MEM_COUNT(MC_NTAB,std_dup(new Type [nb],val,sizeof(Type)*nb),1))
+*/
 #define STD_NEW_TAB_DUP(val,Type,nb)\
 ((Type *) ADD_MEM_COUNT(MC_NTAB,std_dup( SAFE_ALLOC(Type,nb),val,sizeof(Type)*nb),1))
 
-//#define STD_NEW_TAB_USER(nb,Type)\
-//((Type *) ADD_MEM_COUNT( MC_TAB_USER,new Type [nb],1) )
+/*
+#define STD_NEW_TAB_USER(nb,Type)\
+((Type *) ADD_MEM_COUNT( MC_TAB_USER,new Type [nb],1) )
+*/
 #define STD_NEW_TAB_USER(nb,Type)\
 ((Type *) ADD_MEM_COUNT( MC_TAB_USER, SAFE_ALLOC(Type,nb), 1 ) )
 
@@ -466,23 +470,35 @@ extern void delete_tab_matrice(void *** m,INT nb, const Pt2di p1,const Pt2di p2,
 #define NEW_TAB_MATRICE(nb,p1,p2,type)\
  ((type ***) alloc_tab_matrice((nb),(p1),(p2),sizeof(type)))
 
-//#define NEW_TAB(nb,Type)\
-//((Type *) ADD_MEM_COUNT(MC_NTAB,(new Type [nb]),1))
+/*
+#define NEW_TAB(nb,Type)\
+((Type *) ADD_MEM_COUNT(MC_NTAB,(new Type [nb]),1))
+*/
 #define NEW_TAB(nb,Type)\
 ((Type *) ADD_MEM_COUNT(MC_NTAB,SAFE_ALLOC(Type,nb),1))
 
-//#define NEW_ONE(Type)\
-//((Type *) ADD_MEM_COUNT(MC_NEW_ONE,(new Type),1))
+/*
+#define NEW_ONE(Type)\
+((Type *) ADD_MEM_COUNT(MC_NEW_ONE,(new Type),1))
+*/
 #define NEW_ONE(Type)\
 ((Type *) ADD_MEM_COUNT(MC_NEW_ONE,SAFE_ALLOC1(Type),1))
 
 #define CLASS_NEW_ONE(Type,Arg)\
 ((Type *) ADD_MEM_COUNT(MC_NEW_ONE,(new Type Arg),1))
-//#define CLASS_NEW_ONE(Type,Arg)\
-//((Type *) ADD_MEM_COUNT(MC_NEW_ONE,SAFE_ALLOC_ARG(Type,Arg),1))
+/*
+#define CLASS_NEW_ONE(Type,Arg)\
+((Type *) ADD_MEM_COUNT(MC_NEW_ONE,SAFE_ALLOC_ARG(Type,Arg),1))
+*/
 
-#define DELETE_TAB(p)  ((void)SUB_MEM_COUNT(MC_NTAB,p,1) ,  (delete  [] (p)))
-#define DELETE_ONE(p)      (SUB_MEM_COUNT(MC_NEW_ONE,p,1)  ,   (delete  (p)))
+#if (DEBUG_INTERNAL)
+    #define DELETE_TAB(p)  ((void)SUB_MEM_COUNT(MC_NTAB,p,1) ,  (delete  [] (p)))
+    #define DELETE_ONE(p)      (SUB_MEM_COUNT(MC_NEW_ONE,p,1)  ,   (delete  (p)))
+#else
+    #define DELETE_TAB(p)  delete  [] (p)
+    #define DELETE_ONE(p)  delete  (p)
+#endif
+
 #define DELETE_VECTOR(v,x) delete_vecteur((void *)(v),(x),sizeof(*(v)))
 #define DELETE_MATRICE(m,p1,p2)\
          delete_matrice((void **)(m),(p1),(p2),sizeof(**(m)))
@@ -526,7 +542,7 @@ template <class Type> Type * new_vecteur_init(INT x0,INT x1,Type v);
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -542,17 +558,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
