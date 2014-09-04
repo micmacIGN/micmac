@@ -617,7 +617,9 @@ void SaisieQtWindow::on_actionAbout_triggered()
         qStr.replace( "**", "  " );
     #endif
 
-    qStr += "\n" + QApplication::applicationName() + tr(" was built with QT") + QString::number(ELISE_QT_VERSION) + tr(" and mercurial revision ") + QString(string(__HG_REV__).c_str());
+    qStr += "\nApplication\t"           + QApplication::applicationName() +
+            tr("\nBuilt with\t\tQT ")   + QT_VERSION_STR + //QString::number(ELISE_QT_VERSION) +
+            tr("\nRevision\t\t")        + QString(string(__HG_REV__).c_str()) + "\n";
 
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());

@@ -352,44 +352,33 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.setPen(Qt::NoPen);
 
-    if(mode == ADD_INSIDE)
+    QPolygonF polyDraw(polyg.getVector());
+    QPainterPath path;
+
+    if(mode == ADD_INSIDE || mode == SUB_INSIDE)
+    {
+        path.addPolygon(polyDraw);
+    }
+    else if((mode == ADD_OUTSIDE || mode == SUB_OUTSIDE))
+    {
+        path.addRect(rect);
+        QPainterPath inner;
+        inner.addPolygon(polyDraw);
+        path = path.subtracted(inner);
+    }
+
+    if(mode == ADD_INSIDE || mode == ADD_OUTSIDE)
     {
         if (m_bFirstAction)
             p.fillRect(rect, Qt::white);
 
         p.setBrush(SBrush);
-        p.drawPolygon(polyg.getVector().data(),polyg.size());
+        p.drawPath(path);
     }
-    else if(mode == ADD_OUTSIDE)
-    {
-        if (m_bFirstAction)
-        {
-            p.fillRect(rect, Qt::black);
-
-            p.setBrush(NSBrush);
-            p.drawPolygon(polyg.getVector().data(),polyg.size());
-        }
-        else
-        {
-           //TODO
-        }
-    }
-    else if(mode == SUB_INSIDE)
+    else if(mode == SUB_INSIDE || mode == SUB_OUTSIDE)
     {
         p.setBrush(NSBrush);
-        p.drawPolygon(polyg.getVector().data(),polyg.size());
-    }
-    else if(mode == SUB_OUTSIDE)
-    {
-        if (m_bFirstAction)
-        {
-            p.setBrush(SBrush);
-            p.drawPolygon(polyg.getVector().data(),polyg.size());
-        }
-        else
-        {
-            //TODO
-        }
+        p.drawPath(path);
     }
     else if(mode == ALL)
 
