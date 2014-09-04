@@ -71,6 +71,11 @@ bool IsModeAdditif(SELECTION_MODE aMode)
    return (aMode==ALL) || (aMode==ADD_INSIDE) || (aMode==ADD_OUTSIDE) ;
 }
 
+bool IsModeOutside(SELECTION_MODE aMode)
+{
+   return  (aMode==ADD_OUTSIDE) ||  (aMode==SUB_OUTSIDE);
+}
+
 SELECTION_MODE ModeInverse(SELECTION_MODE aMode)
 {
    switch (aMode)
@@ -124,7 +129,7 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
      public :
         virtual ~cMasq3DOrthoRaster() ;
         static cMasq3DOrthoRaster * ByPolyg3D(SELECTION_MODE aModeSel,const std::vector<Pt3dr> aPolygone,double aNbPix);
-        cMasq3DOrthoRaster(SELECTION_MODE aSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq);
+        cMasq3DOrthoRaster(SELECTION_MODE aSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq,int aValOut);
 
         Pt2dr ToIm(const Pt3dr & aP3) const
         {
@@ -132,7 +137,7 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
         }
         bool HasAnswer(const Pt3dr & aP) const
         {
-              return mTMasq.get(round_ni(ToIm(aP)),0);
+              return mTMasq.get(round_ni(ToIm(aP)),mValOut);
         }
 
         void Test(const std::vector<Pt3dr> aPol3);
@@ -143,6 +148,7 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
         ElRotation3D mRE2P;
         Im2D_Bits<1> mMasq;
         TIm2DBits<1> mTMasq;
+        int mValOut;
 };
 
 
@@ -212,13 +218,14 @@ bool cMasq3DConst::HasAnswer(const Pt3dr & aP) const
 /***************************************************************/
 
 
-cMasq3DOrthoRaster::cMasq3DOrthoRaster(SELECTION_MODE aModeSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq) :
+cMasq3DOrthoRaster::cMasq3DOrthoRaster(SELECTION_MODE aModeSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq,int aValOut) :
      cMasq3DPartiel (aModeSel),
      mP0 (aP0),
      mScale (aScal),
      mRE2P (aE2P),
      mMasq (aImMasq),
-     mTMasq (mMasq)
+     mTMasq (mMasq),
+     mValOut (aValOut)
 {
 }
 
@@ -270,7 +277,8 @@ cMasq3DOrthoRaster * cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const
 
     Pt2di aSzI = round_up(aSzR*aScal);
 
-    Im2D_Bits<1> aMasq(aSzI.x,aSzI.y,0);
+    int aValOut = IsModeOutside( aModeSel) ?  1 : 0;
+    Im2D_Bits<1> aMasq(aSzI.x,aSzI.y,aValOut);
 
 
     std::vector<Pt2di> aVP2I;
@@ -280,13 +288,13 @@ cMasq3DOrthoRaster * cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const
     }
 // quick_poly
 
-    ELISE_COPY(polygone(ToListPt2di(aVP2I)),1,aMasq.out());
+    ELISE_COPY(polygone(ToListPt2di(aVP2I)),1-aValOut,aMasq.out());
 
 
 
 
-    cMasq3DOrthoRaster * aRes = new cMasq3DOrthoRaster(aModeSel,aMin,aScal,aE2P,aMasq);
-    // aRes.Test(aPol3);
+    cMasq3DOrthoRaster * aRes = new cMasq3DOrthoRaster(aModeSel,aMin,aScal,aE2P,aMasq,aValOut);
+     // aRes->Test(aPol3);
     return aRes;
 }
 
@@ -418,8 +426,10 @@ cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::strin
 
 void Test3dQT()
 {
-   std::string aNameMasq3D  = "/media/data2/Jeux-Test/Soldat-Temple-Hue/AperiCloud_AllRel_selectionInfo.xml";
-   std::string aNameNuage = "/media/data2/Jeux-Test/Soldat-Temple-Hue/MTD-Image-IMGP7048.JPG/Fusion_NuageImProf_LeChantier_Etape_1.xml";
+   std::string aDir = "/home/marc/TMP/EPI/Soldat-Temple-Hue/";
+   std::string aIma = "IMGP7048.JPG";
+   std::string aNameMasq3D  = aDir + "AperiCloud_CalPerIm_selectionInfo.xml";
+   std::string aNameNuage =  aDir + "MTD-Image-" + aIma + "/Fusion_NuageImProf_LeChantier_Etape_1.xml";
    std::string aNameSh= StdPrefix(aNameNuage) + "Shade.tif";
 
    cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d(aNameMasq3D);
