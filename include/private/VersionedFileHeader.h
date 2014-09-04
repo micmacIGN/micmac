@@ -8,6 +8,7 @@
 typedef enum{
    VFH_Digeo=0,
    VFH_TracePack,
+   VFH_PointMatch,
    VFH_Unknown // this one must stay at the end of the list
 } VFH_Type;
 

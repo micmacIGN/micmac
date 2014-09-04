@@ -11,6 +11,7 @@ versioned_file_header_t g_versioned_headers_list[] =
 {
    { 3440636730, 989008845, 1, "Digeo : points of interest" },
    { 1950933035, 736118900, 1, "TracePack" },
+   { 3156841558, 1452550588, 1, "Matched n-uple of points" },
    { 0, 0, 0, "unknown" } // designate the end of the list
 };
 
