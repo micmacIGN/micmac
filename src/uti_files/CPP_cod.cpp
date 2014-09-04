@@ -45,16 +45,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 Im1D_U_INT1 ImMajic()
 {
-   const char * majic = "krznp re9pjsuquk8peyk9mcnbwlmqopa6teyioptrenslohteapoiutegnm";
-   Im1D_U_INT1 res(strlen(majic));
+	static Im1D_U_INT1 res(1);
+	static bool First = true;
+	if (First)
+	{
+		First = false;
+		const char * majic = "krznp re9pjsuquk8peyk9mcnbwlmqopa6teyioptrenslohteapoiutegnm";
+		res = Im1D_U_INT1( strlen(majic) );
 
-
-   for (INT x = 0; x < res.tx(); x++)
-      res.data()[x] = majic[x];
-  return res;
+		for ( INT x=0; x<res.tx(); x++ )
+			res.data()[x] = majic[x];
+	}
+	return res;
 }
 
-Im1D_U_INT1 Majic = ImMajic();
+// Im1D_U_INT1 Majic = ImMajic();
 string PostCode("dcd");
 
 bool code_file(const char * name,bool coder,std::string * ResNewName=0)
@@ -93,10 +98,11 @@ bool code_file(const char * name,bool coder,std::string * ResNewName=0)
 
     INT NbOctet = sizeofile(name);
     Elise_File_Im  F(name, Pt2di(NbOctet,1),GenIm::u_int1);
+	Im1D_U_INT1 majic = ImMajic();
     ELISE_COPY
     (
            F.all_pts(),
-           F.in()^Majic.in()[FX%Majic.tx()],
+           F.in()^majic.in()[FX%majic.tx()],
            F.out()
     );
 

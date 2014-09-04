@@ -87,27 +87,88 @@ typedef  Memory_Counter  All_Memo_counter[NB_MEMO_COUNTER];
 void stow_memory_counter(All_Memo_counter &);
 void verif_memory_state(All_Memo_counter);
 
+#define __DEBUG_MEM
+#ifdef __DEBUG_MEM
+	template <class T>
+	T* __check_allocation( size_t nbObj )
+	{
+		T *res = NULL;
+		try{
+			res = new T [nbObj];
+		}
+		catch ( const std::bad_alloc & ){
+			cerr << "__check_allocation : bad_alloc: " << nbObj << " objects of type [" << typeid(T).name() << ']' << endl;
+			cerr.flush();
+			cin.get();
+			exit(EXIT_FAILURE);
+		}
+		catch ( const std::exception & ){
+			cerr << "__check_allocation : fuck ><" << endl;
+			cerr.flush();
+			exit(EXIT_FAILURE);
+		}
+		if ( res==NULL ){
+			cerr << "__check_allocation : NULL pointer" << endl;
+			cerr.flush();
+			exit(EXIT_FAILURE);
+		}
+		return res;
+	}
+	
+	template <class T>
+	T* __check_allocation1()
+	{
+		T *ptr = NULL;
+		try{
+			ptr = new T;
+		}
+		catch ( const std::bad_alloc & ){
+			cerr << "__check_allocation : bad_alloc" << endl;
+			cerr.flush();
+			exit(EXIT_FAILURE);
+		}
+		catch ( const std::exception & ){
+			cerr << "__check_allocation : fuck ><" << endl;
+			cerr.flush();
+			exit(EXIT_FAILURE);
+		}
+		if ( ptr==NULL ){
+			cerr << "__check_allocation : NULL pointer" << endl;
+			cerr.flush();
+			exit(EXIT_FAILURE);
+		}
+
+		return ptr;
+	}
+
+	#define SAFE_ALLOC(Type,sz) (__check_allocation<Type>(sz))
+	#define SAFE_ALLOC1(Type) (__check_allocation1<Type>())
+#else
+	#define SAFE_ALLOC(Type,sz) (new Type [sz])
+	#define SAFE_ALLOC1(Type) (new Type)
+#endif
 
 #define ADD_MEM_COUNT(MC,adr,sz) (MC.add_sub_oks(adr,sz,1))
 #define SUB_MEM_COUNT(MC,adr,sz) (MC.add_sub_oks(adr,sz,-1))
 
 #else   /*  DEBUG_INTERNAL */
-//  A class to allow some check-sum on memory alloc and desalloc
+	//  A class to allow some check-sum on memory alloc and desalloc
+	#define SAFE_ALLOC(Type,sz) (new Type [sz])
+	#define SAFE_ALLOC1(Type) (new Type)
 
+	#define MC_OKS
+	#define MC_CPTR
+	#define MC_NTAB
+	#define MC_NEW_ONE
+	#define MC_TAB_USER
 
-#define MC_OKS
-#define MC_CPTR
-#define MC_NTAB
-#define MC_NEW_ONE
-#define MC_TAB_USER
+	#define ADD_MEM_COUNT(MC,adr,sz) (adr)
+	#define ADD_MEM_COUNT2(MC,adr,sz) (adr)
+	#define SUB_MEM_COUNT(MC,adr,sz) (adr)
 
-#define ADD_MEM_COUNT(MC,adr,sz) (adr)
-#define SUB_MEM_COUNT(MC,adr,sz) (adr)
-
-typedef  void * All_Memo_counter;
-void stow_memory_counter(All_Memo_counter &);
-void verif_memory_state(All_Memo_counter);
-
+	typedef  void * All_Memo_counter;
+	void stow_memory_counter(All_Memo_counter &);
+	void verif_memory_state(All_Memo_counter);
 #endif /*  DEBUG_INTERNAL */
 
 void * std_dup(void * out,const void * in,INT sz_nb);
@@ -115,21 +176,25 @@ char * std_ch_dup(const char * ch);
 
 
 
+//#define STD_NEW_TAB(nb,Type)\
+//((Type *) ADD_MEM_COUNT(MC_NTAB,(new Type [nb]),1))
 #define STD_NEW_TAB(nb,Type)\
-((Type *) ADD_MEM_COUNT(MC_NTAB,(new Type [nb]),1))
-
+((Type *) ADD_MEM_COUNT( MC_NTAB, SAFE_ALLOC(Type,nb), 1 ))
 
 #define STD_DELETE_TAB(p)\
       ((void)SUB_MEM_COUNT(MC_NTAB,p,1) ,  (delete  [] (p)))
 
 
+//#define STD_NEW_TAB_DUP(val,Type,nb)\
+//((Type *) ADD_MEM_COUNT(MC_NTAB,std_dup(new Type [nb],val,sizeof(Type)*nb),1))
 #define STD_NEW_TAB_DUP(val,Type,nb)\
-((Type *) ADD_MEM_COUNT(MC_NTAB,std_dup(new Type [nb],val,sizeof(Type)*nb),1))
+((Type *) ADD_MEM_COUNT(MC_NTAB,std_dup( SAFE_ALLOC(Type,nb),val,sizeof(Type)*nb),1))
 
-
-
+//#define STD_NEW_TAB_USER(nb,Type)\
+//((Type *) ADD_MEM_COUNT( MC_TAB_USER,new Type [nb],1) )
 #define STD_NEW_TAB_USER(nb,Type)\
-((Type *) ADD_MEM_COUNT(MC_TAB_USER,(new Type [nb]),1))
+((Type *) ADD_MEM_COUNT( MC_TAB_USER, SAFE_ALLOC(Type,nb), 1 ) )
+
 
 #define STD_DELETE_TAB_USER(p)\
       ((void)SUB_MEM_COUNT(MC_TAB_USER,p,1) ,  (delete  [] (p)))
@@ -401,14 +466,20 @@ extern void delete_tab_matrice(void *** m,INT nb, const Pt2di p1,const Pt2di p2,
 #define NEW_TAB_MATRICE(nb,p1,p2,type)\
  ((type ***) alloc_tab_matrice((nb),(p1),(p2),sizeof(type)))
 
+//#define NEW_TAB(nb,Type)\
+//((Type *) ADD_MEM_COUNT(MC_NTAB,(new Type [nb]),1))
 #define NEW_TAB(nb,Type)\
-((Type *) ADD_MEM_COUNT(MC_NTAB,(new Type [nb]),1))
+((Type *) ADD_MEM_COUNT(MC_NTAB,SAFE_ALLOC(Type,nb),1))
 
+//#define NEW_ONE(Type)\
+//((Type *) ADD_MEM_COUNT(MC_NEW_ONE,(new Type),1))
 #define NEW_ONE(Type)\
-((Type *) ADD_MEM_COUNT(MC_NEW_ONE,(new Type),1))
+((Type *) ADD_MEM_COUNT(MC_NEW_ONE,SAFE_ALLOC1(Type),1))
 
 #define CLASS_NEW_ONE(Type,Arg)\
 ((Type *) ADD_MEM_COUNT(MC_NEW_ONE,(new Type Arg),1))
+//#define CLASS_NEW_ONE(Type,Arg)\
+//((Type *) ADD_MEM_COUNT(MC_NEW_ONE,SAFE_ALLOC_ARG(Type,Arg),1))
 
 #define DELETE_TAB(p)  ((void)SUB_MEM_COUNT(MC_NTAB,p,1) ,  (delete  [] (p)))
 #define DELETE_ONE(p)      (SUB_MEM_COUNT(MC_NEW_ONE,p,1)  ,   (delete  (p)))
