@@ -405,8 +405,10 @@
      <string>&amp;Selection</string>
     </property>
     <addaction name="actionToggleMode"/>
-    <addaction name="actionAdd"/>
-    <addaction name="actionRemove"/>
+    <addaction name="actionAdd_inside"/>
+    <addaction name="actionAdd_outside"/>
+    <addaction name="actionRemove_inside"/>
+    <addaction name="actionRemove_outside"/>
     <addaction name="actionSelectAll"/>
     <addaction name="actionSelect_none"/>
     <addaction name="actionReset"/>
@@ -734,9 +736,9 @@
     <string>F7</string>
    </property>
   </action>
-  <action name="actionAdd">
+  <action name="actionAdd_inside">
    <property name="text">
-    <string>Add to selection</string>
+    <string>Add inside polygon to selection</string>
    </property>
    <property name="toolTip">
     <string>Add points/pixels</string>
@@ -807,9 +809,9 @@
     <string>Ctrl+I</string>
    </property>
   </action>
-  <action name="actionRemove">
+  <action name="actionRemove_inside">
    <property name="text">
-    <string>Delete</string>
+    <string>Delete inside polygon</string>
    </property>
    <property name="toolTip">
     <string>Remove</string>
@@ -1059,6 +1061,22 @@
    </property>
    <property name="text">
     <string>Rule</string>
+   </property>
+  </action>
+  <action name="actionAdd_outside">
+   <property name="text">
+    <string>Add outside polygon to selection</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Space</string>
+   </property>
+  </action>
+  <action name="actionRemove_outside">
+   <property name="text">
+    <string>Delete outside polygon</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Del</string>
    </property>
   </action>
  </widget>
