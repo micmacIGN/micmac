@@ -95,7 +95,7 @@ void process_image( const RealImage1 &i_image, const sift_parameters_t &i_params
     list<RefinedPoint>::iterator itRefinedPoint;
     int nbAngles, iAngle;
     Real_ angles[m_maxNbAngles];
-    Real_ descriptor[m_descriptorSize];
+    Real_ descriptor[SIFT_DESCRIPTOR_SIZE];
     for ( int o=0; o<i_params.nb_octaves; o++  )
     {
 		if ( i_params.verbose ) cout << "\toctave " << o+i_params.first_octave << endl;
@@ -136,7 +136,7 @@ void process_image( const RealImage1 &i_image, const sift_parameters_t &i_params
                     siftPoint.y = itRefinedPoint->ry;
                     siftPoint.scale = itRefinedPoint->rs;
                     siftPoint.angle = angles[iAngle];
-                    memcpy( siftPoint.descriptor, descriptor, m_descriptorSize*sizeof( Real_ ) );
+                    memcpy( siftPoint.descriptor, descriptor, SIFT_DESCRIPTOR_SIZE*sizeof( Real_ ) );
 
                     o_siftPoints.push_back( siftPoint );
                 }
