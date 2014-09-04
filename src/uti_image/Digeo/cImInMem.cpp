@@ -210,7 +210,6 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 {
 	ResizeOctave(aBox.sz());
 	ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
-
 	if ( mAppli.MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8) &&
 	     type_im_integral(mType) &&
 	     (!signed_type_num(mType) ) ){
@@ -688,7 +687,7 @@ cImInMem::cImInMem
     mFille            (0),
     mKernelTot        (1,1.0),
     mFirstSauv        (true),
-    mFileTheoricalMaxValue( (1<<aIGlob.TifF().bitpp())-1 ),
+    mFileTheoricalMaxValue( (1<</*aIGlob.TifF().bitpp()*/aIGlob.bitpp())-1 ),
     mUsed_points_map(NULL)
    #ifdef __DEBUG_DIGEO_STATS
       ,mCount_eTES_Uncalc(0),

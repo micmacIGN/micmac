@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo.h"
 
+#include "../../uti_phgrm/MICMAC/Jp2ImageLoader.h"
+
+
 Video_Win * aW1Digeo;
 // Video_Win * aW2Digeo;
 // Video_Win * aW3Digeo;
@@ -82,6 +85,175 @@ Fonc_Num norm_grad(Fonc_Num f)
 }
 
 
+cInterfImageAbs* cInterfImageAbs::create(std::string const &aName)
+{
+#if defined (__USE_JP2__)
+	//on recupere l'extension
+	int placePoint = -1;
+	for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+	{
+		if (aName[l]=='.')
+		{
+			placePoint = l;
+		}
+	}
+	std::string ext = std::string("");
+	if (placePoint!=-1)
+	{
+		ext.assign(aName.begin()+placePoint+1,aName.end());
+	}
+	//std::cout << "Extension : "<<ext<<std::endl;
+	// on teste l'extension
+	if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+	{
+		return (cInterfImageAbs*) new cInterfImageLoader(aName);
+	}
+#endif
+	return (cInterfImageAbs*) new cInterfImageTiff(aName);		
+}
+
+cInterfImageTiff::cInterfImageTiff(std::string const &aName):mTifF(new Tiff_Im(Tiff_Im::StdConvGen(aName,1/*nb channels*/,true/*16-bits*/)))
+{
+	if (mTifF.get()==NULL)
+	{
+		std::cout << "[cInterfImageTiff]: Error for "<<aName<<std::endl;
+	}
+}
+
+double cInterfImageTiff::Som()const
+{
+	Pt2di aSz = mTifF->sz() - Pt2di(1,1);
+	double aSom;
+	ELISE_COPY
+	(
+	 rectangle(Pt2di(0,0),aSz),
+	 norm_grad(mTifF->in()),
+	 sigma(aSom)
+	 );
+	return aSom;
+}
+
+TIm2D<float,double>* cInterfImageTiff::cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const
+{
+	std::auto_ptr<TIm2D<float,double> > anTIm2D(new TIm2D<float,double>(SzCrop));
+	ELISE_COPY(anTIm2D->_the_im.all_pts(),trans(mTifF->in(),P0),anTIm2D->_the_im.out());
+	return anTIm2D.release();
+}
+
+TIm2D<U_INT1,INT>* cInterfImageTiff::cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const
+{
+	std::auto_ptr<TIm2D<U_INT1,INT> > anTIm2D(new TIm2D<U_INT1,INT>(SzCrop));
+	ELISE_COPY(anTIm2D->_the_im.all_pts(),trans(mTifF->in(),P0),anTIm2D->_the_im.out());
+	return anTIm2D.release();
+}
+
+cInterfImageLoader::cInterfImageLoader(std::string const &aName)
+{
+#if defined (__USE_JP2__)
+	mLoader.reset(new JP2ImageLoader(aName));
+#endif
+	if (mLoader.get()==NULL)
+	{
+		std::cout << "[cInterfImageLoader]: Error for "<<aName<<std::endl;
+	}		
+}
+
+int cInterfImageLoader::bitpp()const
+{
+	switch (mLoader->PreferedTypeOfResol(1)) {
+		case eUnsignedChar:
+			return 8;
+		case eSignedShort:
+		case eUnsignedShort:
+			return 16;
+		case eFloat:
+			return 32;
+		default:
+			break;
+	}
+	return 0;
+}
+
+GenIm::type_el cInterfImageLoader::type_el()const
+{
+	switch (mLoader->PreferedTypeOfResol(1)) {
+		case eUnsignedChar:
+			return GenIm::u_int1;
+		case eSignedShort:
+			return GenIm::int2;
+		case eUnsignedShort:
+			return GenIm::u_int2;
+		case eFloat:
+			return GenIm::real4;
+		default:
+			break;
+	}
+	return GenIm::no_type;
+}
+
+double cInterfImageLoader::Som()const
+{
+	double aSom=0;
+	int dl = 1000;
+	TIm2D<float,double> buffer(Pt2di(sz().x,dl+1));
+	for(int l=0;l<sz().y;l+=dl)
+	{
+		mLoader->LoadCanalCorrel(sLowLevelIm<float>
+								 (
+								  buffer._the_im.data_lin(),
+								  buffer._the_im.data(),
+								  Elise2Std(buffer.sz())
+								  ),
+								 1,//deZoom
+								 cInterfModuleImageLoader::tPInt(0,0),//aP0Im
+								 cInterfModuleImageLoader::tPInt(0,l),//aP0File
+								 cInterfModuleImageLoader::tPInt(buffer.sz().x,std::min(sz().y-l,buffer.sz().y)));
+		double aSomLin;
+		Pt2di aSz = buffer.sz() - Pt2di(1,1);
+		ELISE_COPY
+		(
+		 rectangle(Pt2di(0,0),aSz),
+		 norm_grad(buffer._the_im.in()),
+		 sigma(aSomLin)
+		 );
+		aSom+=aSomLin;
+	}
+	return aSom;
+}
+
+TIm2D<float,double>* cInterfImageLoader::cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const
+{
+	std::auto_ptr<TIm2D<float,double> > anTIm2D(new TIm2D<float, double>(SzCrop));
+	mLoader->LoadCanalCorrel(sLowLevelIm<float>
+							 (
+							  anTIm2D->_the_im.data_lin(),
+							  anTIm2D->_the_im.data(),
+							  Elise2Std(anTIm2D->sz())
+							  ),
+							 1,//deZoom
+							 cInterfModuleImageLoader::tPInt(0,0),//aP0Im
+							 cInterfModuleImageLoader::tPInt(P0.x,P0.y),//aP0File
+							 cInterfModuleImageLoader::tPInt(SzCrop.x,SzCrop.y));
+	return anTIm2D.release();
+}
+
+TIm2D<U_INT1,INT>* cInterfImageLoader::cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const
+{
+	std::auto_ptr<TIm2D<U_INT1,INT> > anTIm2D(new TIm2D<U_INT1,INT>(SzCrop));
+	mLoader->LoadCanalCorrel(sLowLevelIm<U_INT1>
+							 (
+							  anTIm2D->_the_im.data_lin(),
+							  anTIm2D->_the_im.data(),
+							  Elise2Std(anTIm2D->sz())
+							  ),
+							 1,//deZoom
+							 cInterfModuleImageLoader::tPInt(0,0),//aP0Im
+							 cInterfModuleImageLoader::tPInt(P0.x,P0.y),//aP0File
+							 cInterfModuleImageLoader::tPInt(SzCrop.x,SzCrop.y));
+	return anTIm2D.release();
+}
+
+
 
 
 /****************************************/
@@ -101,9 +273,10 @@ cImDigeo::cImDigeo
   mAppli       (anAppli),
   mIMD         (aIMD),
   mNum         (aNum),
-  mTifF        (new Tiff_Im(Tiff_Im::StdConvGen(mAppli.DC()+mName,1/*nb channels*/,true/*16-bits*/))),
+  //mTifF        (new Tiff_Im(Tiff_Im::StdConvGen(mAppli.DC()+mName,1/*nb channels*/,true/*16-bits*/))),
+  mInterfImage (cInterfImageAbs::create(mAppli.DC()+mName)),
   mResol       (aIMD.ResolInit().Val()),
-  mSzGlobR1    (mTifF->sz()),
+  mSzGlobR1    (/*mTifF->sz()*/mInterfImage->sz()),
   mBoxGlobR1   (Pt2di(0,0),mSzGlobR1),
   mBoxImR1     (Inf(mIMD.BoxImR1().ValWithDef(mBoxGlobR1),mBoxGlobR1)),
   mBoxImCalc   (round_ni(Pt2dr(mBoxImR1._p0)/mResol),round_ni(Pt2dr(mBoxImR1._p1)/mResol)),
@@ -135,11 +308,13 @@ cImDigeo::cImDigeo
    ELISE_ASSERT(! aIMD.PredicteurGeom().IsInit(),"Asservissement pas encore gere");
 
    Pt2di aSzIR1 = mBoxImR1.sz();
-   double aNbLoad  = (double(aSzIR1.x) * double(aSzIR1.y)  * mTifF->bitpp() ) /8.0;
+   double aNbLoad  = (double(aSzIR1.x) * double(aSzIR1.y)  * mInterfImage->bitpp() ) /8.0;
+	// ToDo ...
+	/*
    if (aNbLoad<aIMD.NbOctetLimitLoadImageOnce().Val())
    {
-      mFileInMem = Ptr_D2alloc_im2d(mTifF->type_el(),aSzIR1.x,aSzIR1.y);
-      ELISE_COPY
+      mFileInMem = Ptr_D2alloc_im2d(mInterfImage->type_el(),aSzIR1.x,aSzIR1.y);
+	   ELISE_COPY
       (
            mFileInMem->all_pts(),
            trans(mTifF->in(),mBoxImR1._p0),
@@ -149,15 +324,19 @@ cImDigeo::cImDigeo
       mGradMoy = sqrt(mFileInMem->MoyG2());
    }
    else
+	 */
    {
-        Pt2di aSz = mTifF->sz() - Pt2di(1,1);
-        double aSom;
-        ELISE_COPY
+	   //Pt2di aSz = mTifF->sz() - Pt2di(1,1);
+	   Pt2di aSz = mInterfImage->sz() - Pt2di(1,1);
+       double aSom = mInterfImage->Som();
+       /*
+	   ELISE_COPY
         (
               rectangle(Pt2di(0,0),aSz),
               norm_grad(mTifF->in()),
               sigma(aSom)
         );
+		*/
         aSom /= aSz.x * double(aSz.y);
         mG2MoyIsCalc= true;
         mGradMoy = sqrt(aSom);
@@ -191,12 +370,14 @@ cImDigeo::cImDigeo
    if ( mAppli.mVerbose ) cout << "initial convolution sigma : " << mInitialDeltaSigma << ( mInitialDeltaSigma==0.?"(no convolution)":"" ) << endl;
 }
 
+			  /*
 Tiff_Im cImDigeo::TifF()
 {
    ELISE_ASSERT(mTifF!=0,"cImDigeo::TifF");
    return *mTifF;
 }
-
+*/
+			  
 double cImDigeo::Resol() const
 {
    return mResol;
@@ -236,7 +417,8 @@ void cImDigeo::NotifUseBox(const Box2di & aBox)
 GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ,cModifGCC * aMGCC) const
 {
    if (aMGCC) return Xml2EL(aMGCC->TypeNum());
-   GenIm::type_el aRes = mTifF->type_el();
+   //GenIm::type_el aRes = mTifF->type_el();
+	GenIm::type_el aRes = mInterfImage->type_el();
    if  (! type_im_integral(aRes))  
    {
       return aRes;
@@ -340,11 +522,16 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
     for (int aK=0 ; aK<int(mOctaves.size()) ; aK++)
        mOctaves[aK]->SetBoxInOut(aBoxIn,aBoxOut);
+	
+	// On Crop l'image en mémoire
+	//std::auto_ptr<TIm2D<U_INT1,INT> > anTIm2D(mInterfImage->cropUInt1(mP0Cur,mSzCur));
+	std::auto_ptr<TIm2D<float,double> > anTIm2D(mInterfImage->cropReal4(mP0Cur,mSzCur));
+	Fonc_Num aF = anTIm2D->_the_im.in_proj();
+	
+    //Fonc_Num aF = mTifF->in_proj();
+    //if ( mFileInMem ) aF = trans( mFileInMem->in_proj(), -mBoxImR1._p0 );
 
-    Fonc_Num aF = mTifF->in_proj();
-    if ( mFileInMem ) aF = trans( mFileInMem->in_proj(), -mBoxImR1._p0 );
-
-    #ifdef __WITH_GAUSS_SEP_FILTER
+	#ifdef __WITH_GAUSS_SEP_FILTER
 		 if (aTP.PyramideGaussienne().IsInit())
 		 {
 			  double aSigma = Sigma0();
@@ -356,6 +543,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     Pt2dr aTrR = Pt2dr( aBoxIn._p0 )*mResol;
     Pt2dr aPSc = Pt2dr( mResol, mResol );
 
+	/*
     aF = (mResol==1.0)                             ?
          trans(aF,aBoxIn._p0)                      :
          (
@@ -364,8 +552,10 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
             StdFoncChScale(aF,aTrR,aPSc) 
          );
 
-    mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,mTifF->type_el());
-
+	 */
+	
+	//mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,GenIm::u_int1/*mInterfImage->type_el()*/);
+	mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,GenIm::real4/*mInterfImage->type_el()*/);
     double aTLoad = aChrono.uval();
     aChrono.reinit();
 
