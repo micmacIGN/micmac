@@ -501,6 +501,7 @@ ENDIF()
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
 
+		set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE" )
         # Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
         if (${CUDA_ENABLED})
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )

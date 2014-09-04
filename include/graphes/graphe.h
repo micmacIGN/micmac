@@ -384,13 +384,11 @@ template <class AttrSom,class AttrArc> class  ElSom
             void  flag_set_kth_true(INT k)      {_flag.set_kth_true(k);}
             void  flag_set_kth_false(INT k)     {_flag.set_kth_false(k);}
             void  flag_set_kth(INT k,bool val)  {_flag.set_kth(k,val);}
-
-       private  :
-
-            ~ElSom();
-            TArc * _remove_succ(TSom *);
-
+			
             ElSom() : _gr(0), _succ(0) {}
+            ~ElSom();
+       private  :
+            TArc * _remove_succ(TSom *);
 
             ElSom(TGraphe* gr,const AttrSom & attr,INT Num) ;
 
