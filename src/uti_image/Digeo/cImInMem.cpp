@@ -46,8 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#define __DEBUG_DIGEO_DOG_INPUT
 #define __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
 
-// __DEL
-
 bool save_pgm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height )
 {
 	ofstream f( i_filename.c_str(), ios::binary );
