@@ -39,6 +39,7 @@ static PlyProperty oriented_vert_props[] = {
 */
 GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 {
+    int type = 0;
     vector <GlVertex> ptList;
 
     PlyFile * thePlyFile;
@@ -83,6 +84,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
             {
             case 7:
                 {
+                    type = 2;
                     // setup for getting vertex elements
                     for (int j = 0; j < nprops ;++j)
                         ply_get_property (thePlyFile, elem_name, &colored_a_vert_props[j]);
@@ -121,6 +123,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 
                     if (!wNormales)
                     {
+                        type = 1;
                         for (int j = 0; j < nprops ;++j)
                             ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
 
@@ -141,6 +144,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                     }
                     else
                     {
+                        type = 3;
                         for (int j = 0; j < nprops ;++j)
                             ply_get_property (thePlyFile, elem_name, &oriented_vert_props[j]);
 
@@ -159,6 +163,10 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                             int Red   = (int) ((vertex->nx + 1.f)*122.5);
                             int Green = (int) ((vertex->ny + 1.f)*122.5);
                             int Blue  = (int) ((vertex->nz + 1.f)*122.5);
+
+                            /*if (Red > 255)   cout << "Red= " << Red << endl;
+                            if (Green > 255) cout << "Green= " << Green << endl;
+                            if (Blue >255)   cout << "Blue= " << Blue << endl;*/
 
                             ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor(Red, Green, Blue )));
                         }
@@ -203,7 +211,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 
     if(incre) *incre = 0;
 
-    return new GlCloud(ptList);
+    return new GlCloud(ptList, type);
 }
 
 void GlCloud::addVertex(const GlVertex &vertex)
@@ -219,7 +227,7 @@ int GlCloud::size()
 GlVertex& GlCloud::getVertex(uint nb_vert)
 {
     if (_vertices.size() > nb_vert)
-    {        
+    {
         return _vertices[nb_vert];
     }
     else
@@ -235,7 +243,8 @@ void GlCloud::clear()
     _vertices.clear();
 }
 
-GlCloud::GlCloud(vector<GlVertex> const & vVertex)
+GlCloud::GlCloud(vector<GlVertex> const & vVertex, int type):
+    _type(type)
 {
     for (uint aK=0; aK< vVertex.size(); aK++)
     {

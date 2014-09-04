@@ -417,7 +417,7 @@ void GLWidget::Select(int mode, bool saveInfos)
     {
         cPolygon polyg = *polygon();
 
-        if(mode == ADD || mode == SUB)
+        if(mode <= ADD_OUTSIDE)
         {
            if (polyg.size() == 0)
            {
@@ -433,7 +433,7 @@ void GLWidget::Select(int mode, bool saveInfos)
         else
             m_GLData->editCloudMask(mode,polyg,m_bFirstAction,_matrixManager);
 
-        if (mode == ADD || mode == SUB) m_bFirstAction = false;
+        if (mode <= ADD_OUTSIDE) m_bFirstAction = false;
 
         if (saveInfos) //  TODO ne marche pas avec le switch y/z
         {

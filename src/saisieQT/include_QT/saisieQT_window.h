@@ -170,12 +170,14 @@ protected slots:
     void on_actionZoom_fit_triggered();
 
     //Selection Menu
-    void on_actionAdd_triggered();
+    void on_actionAdd_inside_triggered();
+    void on_actionAdd_outside_triggered();
     void on_actionSelect_none_triggered();
     void on_actionInvertSelected_triggered();
     void on_actionSelectAll_triggered();
     void on_actionReset_triggered();
-    void on_actionRemove_triggered();
+    void on_actionRemove_inside_triggered();
+    void on_actionRemove_outside_triggered();
     void on_actionUndo_triggered(){ undo(); }
     void on_actionRedo_triggered(){ undo(false); }
 
