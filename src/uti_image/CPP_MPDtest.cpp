@@ -366,16 +366,19 @@ void TestRandomSetOfMesureSegDr()
 }
 
 
-extern void TestQR(int aN);
+extern void TestFiltreRegul();
+#if (ELISE_QT_VERSION >= 4)
+extern void Test3dQT();
+#endif
 
-extern void Test_DBL();
-
-
-// cConvExplicite GlobMakeExplicite(eConventionsOrientation aConv);
 
 
 int MPDtest_main (int argc,char** argv)
 {
+#if (ELISE_QT_VERSION >= 4)
+
+   Test3dQT();
+#endif
   
    return 0;
 

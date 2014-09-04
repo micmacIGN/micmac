@@ -3,6 +3,9 @@
 
 typedef unsigned char pixel;
 
+
+
+
 #define NOPAGLOCKMEM false
 #define WARPSIZE    32
 #define SIZERING    2
@@ -79,6 +82,11 @@ inline std::string className(const std::string& prettyFunction)
 
     return prettyFunction.substr(begin,end);
 }
+
+#ifdef CUDA_ENABLED
+    //#define CUDA_DEFCOR
+    //#define SAVEPLY
+#endif
 
 //
 #define __CLASS_NAME__ className(__PRETTY_FUNCTION__)

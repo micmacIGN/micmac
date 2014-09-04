@@ -1276,11 +1276,21 @@ void xml_init(bool  & aVal,cElXMLTree * aTree)
     }
 }
 
+void FuckQTReadFloat()
+{
+     setlocale(LC_ALL,"C");
+}
+
 void xml_init(double         & aVal,cElXMLTree * aTree)
 {
-     // setlocale(LC_ALL,"C");
+    FuckQTReadFloat();
 
    int aNb = sscanf(aTree->Contenu().c_str(),"%lf %s",&aVal,aBuf);
+   if (aNb!=1)
+   {
+        FuckQTReadFloat();
+        aNb = sscanf(aTree->Contenu().c_str(),"%lf %s",&aVal,aBuf);
+   }
    if (aNb!=1)
    {
       std::cout << "TAG = "<< aTree->ValTag()
@@ -1305,17 +1315,15 @@ void xml_init(int            & aVal,cElXMLTree * aTree)
 }
 void xml_init(Box2dr & aVal,cElXMLTree * aTree)
 {
-   int aNb = sscanf
-             (
-                aTree->Contenu().c_str(),
-                "%lf %lf %lf %lf %s",
-                &aVal._p0.x, &aVal._p0.y,
-                &aVal._p1.x, &aVal._p1.y,
-                aBuf
-             );
+   int aNb = sscanf ( aTree->Contenu().c_str(), "%lf %lf %lf %lf %s", &aVal._p0.x, &aVal._p0.y, &aVal._p1.x, &aVal._p1.y, aBuf);
 
-   aVal = Box2dr(aVal._p0,aVal._p1);
+   if (aNb!=4)
+   {
+       FuckQTReadFloat();
+       aNb = sscanf ( aTree->Contenu().c_str(), "%lf %lf %lf %lf %s", &aVal._p0.x, &aVal._p0.y, &aVal._p1.x, &aVal._p1.y, aBuf);
+   }
    ELISE_ASSERT(aNb==4,"Bad Nb Value in xml_init (double)");
+   aVal = Box2dr(aVal._p0,aVal._p1);
 }
 
 void xml_init(Box2di & aVal,cElXMLTree * aTree)
@@ -1337,6 +1345,12 @@ void xml_init(Box2di & aVal,cElXMLTree * aTree)
 void xml_init(Pt3dr & aP,cElXMLTree * aTree)
 {
    int aNb = sscanf(aTree->Contenu().c_str(),"%lf %lf %lf %s",&aP.x,&aP.y,&aP.z,aBuf);
+
+   if (aNb!=3)
+   {
+       FuckQTReadFloat();
+       aNb = sscanf(aTree->Contenu().c_str(),"%lf %lf %lf %s",&aP.x,&aP.y,&aP.z,aBuf);
+   }
    if (aNb!=3)
    {
        std::cout << "CONTENU=" << aTree->Contenu() << "\n";
@@ -1348,6 +1362,13 @@ void xml_init(Pt3dr & aP,cElXMLTree * aTree)
 void xml_init(Pt2dr & aP,cElXMLTree * aTree)
 {
    int aNb = sscanf(aTree->Contenu().c_str(),"%lf %lf %s",&aP.x,&aP.y,aBuf);
+
+   if (aNb!=2)
+   {
+       FuckQTReadFloat();
+       aNb = sscanf(aTree->Contenu().c_str(),"%lf %lf %s",&aP.x,&aP.y,aBuf);
+   }
+
    if (aNb!=2)
    {
       std::cout << "xml_init(Pt2dr..),"
@@ -1395,6 +1416,7 @@ void xml_init(cCpleString & aCple,cElXMLTree * aTree)
 
 void  xml_init(std::vector<double> & aV,cElXMLTree * aTree)
 {
+   FuckQTReadFloat();
    ElArgMain<std::vector<double> > anArg(aV,"toto",true);
    anArg.InitEAM(aTree->Contenu(),ElGramArgMain::StdGram);
 }
