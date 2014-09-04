@@ -352,18 +352,33 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.setPen(Qt::NoPen);
 
-    if(mode == ADD)
+    QPolygonF polyDraw(polyg.getVector());
+    QPainterPath path;
+
+    if(mode == ADD_INSIDE || mode == SUB_INSIDE)
+    {
+        path.addPolygon(polyDraw);
+    }
+    else if((mode == ADD_OUTSIDE || mode == SUB_OUTSIDE))
+    {
+        path.addRect(rect);
+        QPainterPath inner;
+        inner.addPolygon(polyDraw);
+        path = path.subtracted(inner);
+    }
+
+    if(mode == ADD_INSIDE || mode == ADD_OUTSIDE)
     {
         if (m_bFirstAction)
             p.fillRect(rect, Qt::white);
 
         p.setBrush(SBrush);
-        p.drawPolygon(polyg.getVector().data(),polyg.size());
+        p.drawPath(path);
     }
-    else if(mode == SUB)
+    else if(mode == SUB_INSIDE || mode == SUB_OUTSIDE)
     {
         p.setBrush(NSBrush);
-        p.drawPolygon(polyg.getVector().data(),polyg.size());
+        p.drawPath(path);
     }
     else if(mode == ALL)
 
@@ -375,7 +390,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 
     p.end();
 
-    if(mode == INVERT)
+    if (mode == INVERT)
         getMask()->invertPixels(QImage::InvertRgb);
 
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
@@ -406,7 +421,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
 
             switch (mode)
             {
-            case ADD:
+            case ADD_INSIDE:
                 mm.getProjection(P2D, Pt);
                 pointInside = polyg.isPointInsidePoly(P2D);
                 if (m_bFirstAction)
@@ -414,12 +429,28 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
                 else
                     P.setVisible(pointInside||P.isVisible());
                 break;
-            case SUB:
+            case ADD_OUTSIDE:
+                mm.getProjection(P2D, Pt);
+                pointInside = polyg.isPointInsidePoly(P2D);
+                if (m_bFirstAction)
+                    P.setVisible(!pointInside);
+                else
+                    P.setVisible(!pointInside||P.isVisible());
+                break;
+            case SUB_INSIDE:
                 if (P.isVisible())
                 {
                     mm.getProjection(P2D, Pt);
                     pointInside = polyg.isPointInsidePoly(P2D);
                     P.setVisible(!pointInside);
+                }
+                break;
+            case SUB_OUTSIDE:
+                if (P.isVisible())
+                {
+                    mm.getProjection(P2D, Pt);
+                    pointInside = polyg.isPointInsidePoly(P2D);
+                    P.setVisible(pointInside);
                 }
                 break;
             case INVERT:

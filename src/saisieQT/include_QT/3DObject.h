@@ -28,8 +28,10 @@ enum LINE_STYLE
 };
 
 //! Selection mode
-enum SELECTION_MODE { SUB,
-                      ADD,
+enum SELECTION_MODE { SUB_INSIDE,
+                      ADD_INSIDE,
+                      SUB_OUTSIDE,
+                      ADD_OUTSIDE,
                       INVERT,
                       ALL,
                       NONE

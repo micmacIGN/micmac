@@ -164,7 +164,7 @@ void HistoryManager::save()
             {
                 QDomElement Point    = doc.createElement("Pt");
                 QDomElement Pt3D     = doc.createElement("Pt");
-                QString str = QString::number(pts[aK].x(), 'f',1) + " " + QString::number(pts[aK].y(), 'f',1);
+                QString str = QString::number(pts[aK].x(), 'f',0) + " " + QString::number(pts[aK].y(), 'f',0);
 
                 t = doc.createTextNode( str );
                 Point.appendChild(t);
@@ -175,7 +175,7 @@ void HistoryManager::save()
                 MatrixManager *MM = new MatrixManager();
                 MM->importMatrices(SInfo);
                 MM->getInverseProjection(pt3d, pts[aK], 0.f);
-                str = QString::number(pt3d.x, 'f',1) + " " + QString::number(pt3d.y, 'f',1) + " " + QString::number(pt3d.z, 'f',1);
+                str = QString::number(pt3d.x, 'f') + " " + QString::number(pt3d.y, 'f') + " " + QString::number(pt3d.z, 'f');
                 t = doc2.createTextNode( str );
                 Pt3D.appendChild(t);
                 SIt.appendChild(Pt3D);
