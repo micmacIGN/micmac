@@ -161,10 +161,13 @@ cout << "sz_header "<< _sz_header << "\n";
      {
           _szx = fp.lsb_read_U_INT2();
           _szy = fp.lsb_read_U_INT2();
-          //INT nb_pl = fp.lsb_read_U_INT2(); // nb_plane
-          //ASSERT_INTERNAL(nb_pl==1,"incoherenc in bmp file");
+#if  (DEBUG_INTERNAL)
+          INT nb_pl = fp.lsb_read_U_INT2(); // nb_plane
+          ASSERT_INTERNAL(nb_pl==1,"incoherenc in bmp file");
+#else
+          fp.lsb_read_U_INT2();
+#endif
 
-          ASSERT_INTERNAL(fp.lsb_read_U_INT2()==1,"incoherenc in bmp file");
           _bits_pp = fp.lsb_read_U_INT2();
           _compr = Bmp_Im::no_compr;
 
