@@ -1,0 +1,293 @@
+<!-- 
+-->
+<ParamMICMAC>
+
+<DicoLoc>
+  <!-- Parametres invariants pour ce chantier -->
+	<Symb> Pref=Fr9130_ </Symb> 
+	<Symb> Post=_rgb.tif </Symb>
+	<Symb> ImPat=${Pref}.*${Post} </Symb>
+
+  <!-- Parametres "fondamentaux" a changer -->
+        <Symb> NumC=026~0774 </Symb>
+	<Symb> ZReg=0.05  </Symb>
+	<Symb> UsePC=true  </Symb>
+	<Symb> EBI=true  </Symb>  <!-- Etiq Best Image -->
+
+	<Symb> Interpol=eInterpolBiCub  </Symb>
+  <!-- Parametres de mise au point -->
+
+       <Symb> ClipIm=false  </Symb>
+
+
+  <!-- Parametres calcule -->
+	<Symb> ImMaster=${Pref}${NumC}${Post} </Symb>
+	<Symb> DirMEC=MEC-${NumC} </Symb>
+</DicoLoc>
+
+<Section_Terrain> 
+	<IntervAltimetrie>
+    	   <!-- Incertitude en Paralaxe -->
+           <ZIncCalc> 200.0 </ZIncCalc>
+	</IntervAltimetrie>
+     <Planimetrie> 
+    </Planimetrie>
+</Section_Terrain>
+
+
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue>
+   <GeomImages> eGeomImageOri </GeomImages> 
+   <Images>
+    	<Im1>   ${ImMaster} </Im1>
+    	<ImPat> ${ImPat} </ImPat>
+        <AutoSelectionneImSec>
+               <RecouvrMin> 0.4 </RecouvrMin>
+        </AutoSelectionneImSec>
+<!--
+-->
+   </Images>
+    
+    <NomsGeometrieImage>
+    	<PatternSel> (.*)\.tif </PatternSel>
+        <PatNameGeom> $1.ori   </PatNameGeom>
+    </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC>
+	<ChantierFullImage1> true </ChantierFullImage1>
+        <#WHEN VTEST=${ClipIm}>
+              <ProportionClipMEC> 0.1 0.1 0.4 0.4 </ProportionClipMEC>
+        </#WHEN>
+
+	<EtapeMEC>
+    	   <DeZoom> -1 </DeZoom>
+    	   <ModeInterpolation> ${Interpol} </ModeInterpolation>
+
+<!--
+	   <DynamiqueCorrel> eCoeffAngle </DynamiqueCorrel>
+-->
+	    <AggregCorr> eAggregMaxIm1Maitre </AggregCorr>
+		
+	    <!-- param correl -->
+	    <SzW> 1 </SzW>
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+	    <ZPas> 0.4 </ZPas>
+            <ZDilatAlti>  3  </ZDilatAlti>
+	    <ZDilatPlani> 3  </ZDilatPlani>
+	    <GenImagesCorrel> true </GenImagesCorrel>
+	    
+	
+            <!-- param regul -->
+	    <ZRegul> ${ZReg} </ZRegul>
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+
+	    <ModulationProgDyn Portee="Globale">
+               <EtapeProgDyn>
+            	   <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                   <NbDir> 7 </NbDir>
+               </EtapeProgDyn>
+               <Px1PenteMax> 1.0 </Px1PenteMax>
+               <ArgMaskAuto>
+            	   <ValDefCorrel> 0.5 </ValDefCorrel>
+                   <CostTrans> 2.0 </CostTrans>
+                   <ReInjectMask> false </ReInjectMask> 
+                   <#WHEN VTEST=${EBI}>
+                       <EtiqBestImage>
+                           <CostChangeEtiq> 0.1 </CostChangeEtiq>
+                           <SauvEtiq > true </SauvEtiq>
+                       </EtiqBestImage>
+                   </#WHEN>
+               </ArgMaskAuto>
+            </ModulationProgDyn>
+
+            <CorrelAdHoc>
+                 <TypeCAH>
+                     <GPU_Correl>
+                     </GPU_Correl>
+                  </TypeCAH>
+             </CorrelAdHoc>
+
+
+        </EtapeMEC>
+
+	<EtapeMEC> <DeZoom> 64 </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom> 32 </DeZoom> </EtapeMEC>	
+	<EtapeMEC> <DeZoom> 16 </DeZoom> </EtapeMEC>
+	<EtapeMEC> 
+              <DeZoom> 8 </DeZoom> 
+              <GenerePartiesCachees >
+                    <SeuilUsePC> 2 </SeuilUsePC>
+                    <ByMkF> true </ByMkF>
+              </GenerePartiesCachees>
+        </EtapeMEC>
+	<EtapeMEC> 
+              <DeZoom> 4 </DeZoom>         
+	      <AggregCorr Portee="Globale"> eAggregMoyMedIm1Maitre </AggregCorr>
+	      <ModulationProgDyn Portee="Globale">
+                    <EtapeProgDyn>
+            	        <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                        <NbDir> 7 </NbDir>
+                    </EtapeProgDyn>
+                    <Px1PenteMax> 1.0 </Px1PenteMax>
+                    <ArgMaskAuto>
+            	        <ValDefCorrel> 0.2 </ValDefCorrel>
+                        <CostTrans> 1.0 </CostTrans>
+                        <ReInjectMask> false </ReInjectMask> 
+                    </ArgMaskAuto>
+              </ModulationProgDyn>
+              <CorrelAdHoc Portee="Globale">
+                     <CorrelMultiScale>
+                            <ModeDense> true </ModeDense>
+                            <UseWAdapt> true </UseWAdapt>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+                     <TypeCAH>
+                            <GPU_Correl> </GPU_Correl>
+                     </TypeCAH>
+               </CorrelAdHoc>
+              <GenerePartiesCachees >
+                    <SeuilUsePC> 4 </SeuilUsePC>
+                    <ByMkF> true </ByMkF>
+              </GenerePartiesCachees>
+        </EtapeMEC>
+	<EtapeMEC> 
+              <DeZoom> 2 </DeZoom>         
+              <GenerePartiesCachees >
+                    <SeuilUsePC> 4 </SeuilUsePC>
+                    <ByMkF> true </ByMkF>
+              </GenerePartiesCachees>
+        </EtapeMEC>
+<!--
+               <CorrelAdHoc Portee="Globale">
+                     <CorrelMultiScale>
+                            <ModeDense> true </ModeDense>
+                            <UseWAdapt> true </UseWAdapt>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+                     <TypeCAH>
+                           <#IF VTEST=false>
+                                <MultiCorrelPonctuel>
+                                    <PdsCorrelStd  > 0.1 </PdsCorrelStd>
+                                    <PdsCorrelPonct> 0.9 </PdsCorrelPonct>
+                                    <DefCost>  0.1</DefCost> 
+                                </MultiCorrelPonctuel>
+                                <GPU_Correl> </GPU_Correl>
+                           </#IF>
+                     </TypeCAH>
+               </CorrelAdHoc>
+
+
+
+	<EtapeMEC> 
+              <DeZoom>  2                </DeZoom> 
+              <#WHEN VTEST=${UsePC}>
+                  <GenerePartiesCachees >
+                     <SeuilUsePC> 2 </SeuilUsePC>
+                     <ByMkF> true </ByMkF>
+                  </GenerePartiesCachees>
+              </#WHEN>
+         </EtapeMEC>
+
+        <#WHEN VTEST=${UsePC}>
+	   <EtapeMEC> 
+              <ZDilatAlti>  2  </ZDilatAlti>
+	      <ZDilatPlani> 1  </ZDilatPlani>
+              <DeZoom>  1                </DeZoom> 
+                  <GenerePartiesCachees >
+                     <SeuilUsePC> 3 </SeuilUsePC>
+                     <ByMkF> true </ByMkF>
+                  </GenerePartiesCachees>
+	   </EtapeMEC> 
+        </#WHEN>
+    
+	<EtapeMEC> 
+		<DeZoom> 1 </DeZoom> 
+        </EtapeMEC>
+
+	<EtapeMEC>
+		<DeZoom>  1  </DeZoom> 
+	        <ZPas>   1.0     </ZPas>
+            <AlgoRegul> eAlgoDequant </AlgoRegul>
+    </EtapeMEC>
+-->
+
+</Section_MEC>
+
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results>
+    <GeomMNT> eGeomMNTFaisceauIm1ZTerrain_Px1D </GeomMNT>
+    <DoMEC> true </DoMEC> 
+    <DoFDC> true </DoFDC>
+    <ZoomMakeTA> 32 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    
+</Section_Results>
+
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace>
+    <WorkDir> ThisDir </WorkDir> 
+    <TmpMEC> ${DirMEC}/ </TmpMEC>
+    <TmpResult> ${DirMEC}/ </TmpResult>
+    <TmpPyr> Pyram/ </TmpPyr>
+    <NomChantier> ${NumC} </NomChantier>
+
+    <ByProcess>  ${MMNbProc} </ByProcess>
+    <AvalaibleMemory> 1024 </AvalaibleMemory>
+    <SzDalleMin> 400 </SzDalleMin>
+    <SzDalleMax> 1000 </SzDalleMax>
+    <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+    <SzMinDecomposCalc> 10000 </SzMinDecomposCalc>
+</Section_WorkSpace>
+
+<Section_Vrac> 
+</Section_Vrac>
+
+</ParamMICMAC>
+
