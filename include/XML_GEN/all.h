@@ -110,7 +110,7 @@ extern const string temporarySubdirectory; // = "Tmp-MM-Dir/" (see src/photogram
 void setInputDirectory( const std::string &i_directory );
 bool isInputDirectorySet();
 std::string MMInputDirectory(); // is the directory containing base pictures (must be set by setInputDirectory before use)
-std::string MMTemporaryDirectory(); // equals MMUserEnvironment.LogDirectory or "./"+temporarySubdirectory if not set
+std::string MMTemporaryDirectory(); // equals MMUserEnvironment.OutputDirectory (or "./" if not set) + temporarySubdirectory 
 std::string MMOutputDirectory(); // equals MMUserEnvironment.OutputDirectory (if set) or MMInputDirectory (if set) or ./
 std::string MMLogDirectory(); // equals MMUserEnvironment.LogDirectory or ./ if not set
 
