@@ -442,7 +442,7 @@ void Test3dQT()
    getchar();
 }
 
-#endif
+
 
 
 /***************************************************************/
@@ -525,7 +525,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
    return 1;
 }
 
-
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
