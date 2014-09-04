@@ -141,6 +141,32 @@ class cInterfModuleImageLoader
       // Par defaut genere une erreurs, utilise pour compatibilite
       // avec d'anciens services tels que ValSpecNotImage
       virtual std::string  NameTiffImage() const;
+	
+	void exportPyramide(std::string const &nomfic, int ZoomI, int ZoomF)
+	{
+		for(int aDZ=ZoomI;aDZ<=ZoomF;aDZ*=2)
+		{
+			Pt2di sz = Std2Elise(Sz(aDZ));
+			TIm2D<REAL4,REAL8> anIm(sz);
+			LoadCanalCorrel
+			(
+			 sLowLevelIm<REAL4>
+			 (
+			  anIm._the_im.data_lin(),
+			  anIm._the_im.data(),
+			  Elise2Std(sz)
+			  ),
+			 aDZ,
+			 cInterfModuleImageLoader::tPInt(0,0),
+			 Elise2Std(Pt2di(0,0)),
+			 Elise2Std(anIm.sz())
+			 );
+			std::ostringstream oss;
+			oss << nomfic<< "_DeZoom_"<<aDZ<<".tif";
+			Tiff_Im imgout(oss.str().c_str(), anIm.sz(),GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+			ELISE_COPY(anIm._the_im.all_pts(),anIm._the_im.in(),imgout.out());
+		}
+	}
        
 
 

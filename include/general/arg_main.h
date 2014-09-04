@@ -705,6 +705,8 @@ int RefineModel_main(int argc, char **argv);
     int SaisieBascQT_main(int argc,char ** argv);
 #endif
     int Dimap2Grid_main(int argc, char **argv);
+	int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
+	int ServiceGeoSud_Ortho_main(int argc, char **argv);
 
 #endif // ElMemberTpl
 

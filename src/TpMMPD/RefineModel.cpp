@@ -815,6 +815,17 @@ public:
         b0 += sol(0,3);
         b1 += sol(0,4);
         b2 += sol(0,5);
+        
+		std::cout << "Solution mise a jour : "<<std::endl;
+		std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
+		std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+		
+		// On fait une mise à jour des Z
+		for(size_t i=0;i<vPtImgMaster.size();++i)
+		{
+			double err;
+			vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i]);
+		}		
 
         std::cout << "Solution mise a jour : "<<std::endl;
         std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
