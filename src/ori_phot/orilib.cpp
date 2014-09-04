@@ -113,8 +113,8 @@ void AdaptDist2PPaEqPPs(NS_ParamChantierPhotogram::cCalibDistortion & aCD)
             cCalibrationInterneUnif aCIU;
             aCIU.TypeModele() = eModele_Fraser_PPaEqPPs;
 
-	    std::vector<double> & aVParam = aCIU.Params();
-	    aVParam = aCIR.CoeffDist();
+        std::vector<double> & aVParam = aCIU.Params();
+        aVParam = aCIR.CoeffDist();
             while (aVParam.size() < 5)
                   aVParam.push_back(0);
 
@@ -186,7 +186,7 @@ typedef char (*Orilib_Interp)( unsigned char /*huge*/ *, int*, int*, double*, do
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
 int orsommet_de_pdv_terrain ( 	void* *phot,
-		  	double *xterrain, double *yterrain, double *zterrain )
+            double *xterrain, double *yterrain, double *zterrain )
 {
 int		status ;
 or_orientation	*ori ;
@@ -207,7 +207,7 @@ return status ;
 }
 /*----------------------------------------------------------------------------*/
 int orsommet_de_pdv_carto ( 	void * *phot,
-			double *xcarto, double *ycarto, double *zcarto )
+            double *xcarto, double *ycarto, double *zcarto )
 {
 int		status ;
 or_orientation	*ori ;
@@ -216,8 +216,8 @@ ori = (or_orientation *) *phot ;
 if ( ori != 0 )
   {
   status = orterrain_to_carte ( phot,
-		&((*ori).sommet[0]), &((*ori).sommet[1]), &((*ori).sommet[2]),
-		xcarto, ycarto, zcarto ) ;
+        &((*ori).sommet[0]), &((*ori).sommet[1]), &((*ori).sommet[2]),
+        xcarto, ycarto, zcarto ) ;
   }
 else
   {
@@ -238,13 +238,13 @@ if ( ori != 0 )
   {
   status = 1 ;
   Lamb_geo( (*ori).origine[0], (*ori).origine[1], (*ori).lambert,
-			&longitude , &latitude ) ;
-	longitude = longitude + orkMeridienDeParis ;
+            &longitude , &latitude ) ;
+    longitude = longitude + orkMeridienDeParis ;
 
-	orvecteur_soleil_terre ( &((*ori).annee), &((*ori).jour), &((*ori).mois),
-					&((*ori).heure), &((*ori).minute), &latitude, &longitude,
-				soleil ) ;
-	}
+    orvecteur_soleil_terre ( &((*ori).annee), &((*ori).jour), &((*ori).mois),
+                    &((*ori).heure), &((*ori).minute), &latitude, &longitude,
+                soleil ) ;
+    }
 else
   {
   status = 0 ;
@@ -306,20 +306,20 @@ return status ;
 /*----------------------------------------------------------------------------*/
  int orlit_orientation (const  char *fichier, void* *phot )
 /* La meme chose que image_orientation, mais sans gestion via la structure
-	image ; cette routine est donc principalement a usage externe au labo ;
-	Elle effectue une lecture in extenso (i.e. sans gestion de fenetrage)
-	du fichier passe en parametre (nom complet avec extension) */
+    image ; cette routine est donc principalement a usage externe au labo ;
+    Elle effectue une lecture in extenso (i.e. sans gestion de fenetrage)
+    du fichier passe en parametre (nom complet avec extension) */
 {
  int			status ;
  or_orientation 	*ori ;
 
  ori = (or_orientation *) *phot ;
  if ( ori != 0 )
-	 {
-	 status = 1 ;
-	 *phot = ori ;
-	/* lecture du fichier d'orientation */
-	 status = NEW_orlit_fic_orientation ( fichier, ori ) ;
+     {
+     status = 1 ;
+     *phot = ori ;
+    /* lecture du fichier d'orientation */
+     status = NEW_orlit_fic_orientation ( fichier, ori ) ;
     }
  else
     {
@@ -331,25 +331,25 @@ return status ;
 /*----------------------------------------------------------------------------*/
  int orlit_orientation_texte (const char *fichier, void* *phot ,bool QuickGrid)
 /* La meme chose que image_orientation, mais sans gestion via la structure
-	image ; cette routine est donc principalement a usage externe au labo ;
-	Elle effectue une lecture in extenso (i.e. sans gestion de fenetrage)
-	du fichier passe en parametre (nom complet avec extension) */
+    image ; cette routine est donc principalement a usage externe au labo ;
+    Elle effectue une lecture in extenso (i.e. sans gestion de fenetrage)
+    du fichier passe en parametre (nom complet avec extension) */
 {
  int			status ;
  or_orientation 	*ori ;
 
  ori = (or_orientation *) *phot ;
  if ( ori != 0 )
-	 {
-	 status = 1 ;
-	 *phot = (void*) ori ;
-	/* lecture du fichier d'orientation */
-	 status = orlit_fictexte_orientation ( fichier, ori,QuickGrid ) ;
-	 }
+     {
+     status = 1 ;
+     *phot = (void*) ori ;
+    /* lecture du fichier d'orientation */
+     status = orlit_fictexte_orientation ( fichier, ori,QuickGrid ) ;
+     }
  else
-	 {
-	 status = 0 ;
-	 }
+     {
+     status = 0 ;
+     }
 
  return status ;
 }
@@ -393,10 +393,10 @@ return status ;
 }
 /*----------------------------------------------------------------------------*/
  int orfenetrage_orientation ( void* *phot,
-			        double *left, double *top,
-				double *right, double *bottom,
-				double *hstep, double *vstep,
-				void* *photout )
+                    double *left, double *top,
+                double *right, double *bottom,
+                double *hstep, double *vstep,
+                void* *photout )
  /* gestion d'un fenetrage pour ajustement des parametres photogrammetriques */
  /* convention == (0,0) est le premier pixel */
 {
@@ -409,8 +409,8 @@ return status ;
 
  if ( ((*phot)==0) || ((*photout)==0) ) return 0 ;
 
-	/* transformations liees au fenetrage de l'image :
-	seuls la position du point principal,le pas et les grilles changent */
+    /* transformations liees au fenetrage de l'image :
+    seuls la position du point principal,le pas et les grilles changent */
  status = oralloc_orientation ( &phot_s ) ;
  if ( status != 1 ) return status ;
  ori0 = (or_orientation *) *phot ;
@@ -424,9 +424,9 @@ return status ;
  (*ori).ipp[1] = (*ori).ipp[1] * (*ori).pix[1] ;
 
  (*ori).ipp[0] = (*ori).ipp[0] -
-		 (*ori).pix[0] * (*left) ;
+         (*ori).pix[0] * (*left) ;
  (*ori).ipp[1] = (*ori).ipp[1] -
-		 (*ori).pix[1] * (*top) ;
+         (*ori).pix[1] * (*top) ;
  (*ori).pix[0] = (*ori).pix[0] * (*hstep) ;
  (*ori).pix[1] = (*ori).pix[1] * (*vstep) ;
 
@@ -442,18 +442,18 @@ return status ;
 
  /* fenetrage de la grille : on passe par une reprojection standard */
  orfenetrage_grille (  &((*ori0_s).gt2p), left, top, hstep, vstep,
-			&ns, &nl, &((*ori).gt2p)  ) ;
+            &ns, &nl, &((*ori).gt2p)  ) ;
  orfenetrage_grille (  &((*ori0_s).gp2t), left, top, hstep, vstep,
-			&ns, &nl, &((*ori).gp2t)  ) ;
+            &ns, &nl, &((*ori).gp2t)  ) ;
  status = orfree_orientation ( &phot_s ) ;
  return status ;
 }
 /*----------------------------------------------------------------------------*/
 void orfenetrage_grille ( or_grille *gr1 ,
-			   double *left, double *top,
-			   double *hstep, double *vstep,
-			   int *ins, int *inl,
-			   or_grille *gr2 )
+               double *left, double *top,
+               double *hstep, double *vstep,
+               int *ins, int *inl,
+               or_grille *gr2 )
 /* les deformation grille sont en pixels */
 {
 double			gpas ;
@@ -466,14 +466,14 @@ int			istat ;
 
 if ( (*gr1).pas > 0 )
     {
-	/* dimensions de la nouvelle grille */
+    /* dimensions de la nouvelle grille */
     ordim_grille ( ins, inl, &((*gr2).ns), &((*gr2).nl), &((*gr2).pas) ) ;
     gpas = _min (  (double)(*gr1).pas/(*hstep) , (double)(*gr1).pas/(*vstep)  ) ;
     (*gr2).pas = _max ( (*gr2).pas , (int)(gpas+0.5) ) ;
     (*gr2).ns = 1 + (*ins - 1 + (*gr2).pas - 1)/ (*gr2).pas ;
     (*gr2).nl = 1 + (*inl - 1 + (*gr2).pas - 1)/ (*gr2).pas ;
 
-	/* re-echantillonnage (calcul en coordonnees images) */
+    /* re-echantillonnage (calcul en coordonnees images) */
     x0 = *left ;
     y0 = *top ;
     dx = (double)(*gr2).pas * (*hstep) ;
@@ -484,29 +484,29 @@ if ( (*gr1).pas > 0 )
     for ( jj = 0 ; jj < (*gr2).nl ; jj++ )
         {
         xx = x0 ;
-    	for ( ii = 0 ; ii < (*gr2).ns ; ii++ )
-	    {
-	    xx1 = xx ; yy1 = yy ;
-	    istat = orcorrige_distortion ( &xx1, &yy1, gr1 ) ;
-	    if ( istat == 1 )
-	    	{
-	    	(*gr2).dx[ip] = (xx1-xx)/(*hstep) ;
-	    	(*gr2).dy[ip] = (yy1-yy)/(*vstep) ;
-	    	}
-	    else
-	    	{
-	    	(*gr2).dx[ip] = 0.0 ;
-	    	(*gr2).dy[ip] = 0.0 ;
-	    	}
-	    ip++ ;
-	    xx = xx + dx ;
-	    }
-    	yy = yy + dy ;
-    	}
+        for ( ii = 0 ; ii < (*gr2).ns ; ii++ )
+        {
+        xx1 = xx ; yy1 = yy ;
+        istat = orcorrige_distortion ( &xx1, &yy1, gr1 ) ;
+        if ( istat == 1 )
+            {
+            (*gr2).dx[ip] = (xx1-xx)/(*hstep) ;
+            (*gr2).dy[ip] = (yy1-yy)/(*vstep) ;
+            }
+        else
+            {
+            (*gr2).dx[ip] = 0.0 ;
+            (*gr2).dy[ip] = 0.0 ;
+            }
+        ip++ ;
+        xx = xx + dx ;
+        }
+        yy = yy + dy ;
+        }
     }
 else
-	 {
-	 }
+     {
+     }
 }
 /*----------------------------------------------------------------------------*/
  int oralloc_orientation ( void* *phot )
@@ -535,16 +535,16 @@ return status ;
 /*----------------------------------------------------------------------------*/
 #ifndef ENSEA
 void orAddFilmDistortions ( or_grille *gr, or_grille *igr,
-							 double IdealMarks[16], double RealMarks[16],
-							 int *NMarks )
+                             double IdealMarks[16], double RealMarks[16],
+                             int *NMarks )
 /*
 ATTENTION :
-	- la grille en entree est deja initialisee (on incremente les deformations) ;
-	- les reperes de fond de chambre sont situes dans une image d'origine (1,1)
-	- leurs coordonnees sont en pixels
+    - la grille en entree est deja initialisee (on incremente les deformations) ;
+    - les reperes de fond de chambre sont situes dans une image d'origine (1,1)
+    - leurs coordonnees sont en pixels
 
-	gr =  grille pour passage Terrain -> Photo
-	igr = grille pour passage Photo -> Terrain
+    gr =  grille pour passage Terrain -> Photo
+    igr = grille pour passage Photo -> Terrain
 */
 {
 double Coefs[8] ;
@@ -564,21 +564,21 @@ ig = 0 ;
 mdx = 0.0 ;
 mdy = 0.0 ;
 for ( il = 0 ; il < (*gr).pas*(*gr).nl ; il = il + (*gr).pas )
-	{
-	for ( is = 0 ; is < (*gr).pas*(*gr).ns ; is = is + (*gr).pas )
-		{
-		xyTheorique[0] =  (double)(is+1) ;
-		xyTheorique[1] =  (double)(il+1) ;
-		FDTransformPoint ( xyTheorique, teta, Coefs, xyFilm ) ;
-		dx = (xyFilm[0] - xyTheorique[0]) ;
-		if ( _abs(dx) > mdx ) mdx = _abs(dx) ;
-		dy = (xyFilm[1] - xyTheorique[1]) ;
-		if ( _abs(dy) > mdy ) mdy = _abs(dy) ;
-		(*gr).dx[ig] = (*gr).dx[ig] + dx ;
-		(*gr).dy[ig] = (*gr).dy[ig] + dy ;
-		ig++ ;
-		}
-	}
+    {
+    for ( is = 0 ; is < (*gr).pas*(*gr).ns ; is = is + (*gr).pas )
+        {
+        xyTheorique[0] =  (double)(is+1) ;
+        xyTheorique[1] =  (double)(il+1) ;
+        FDTransformPoint ( xyTheorique, teta, Coefs, xyFilm ) ;
+        dx = (xyFilm[0] - xyTheorique[0]) ;
+        if ( _abs(dx) > mdx ) mdx = _abs(dx) ;
+        dy = (xyFilm[1] - xyTheorique[1]) ;
+        if ( _abs(dy) > mdy ) mdy = _abs(dy) ;
+        (*gr).dx[ig] = (*gr).dx[ig] + dx ;
+        (*gr).dy[ig] = (*gr).dy[ig] + dy ;
+        ig++ ;
+        }
+    }
 
 
 
@@ -587,47 +587,47 @@ for ( il = 0 ; il < (*gr).pas*(*gr).nl ; il = il + (*gr).pas )
 FDBilinearTransform ( teta, RealMarks, IdealMarks, *NMarks, Coefs ) ;
 ig = 0 ;
 for ( il = 0 ; il < (*igr).pas*(*igr).nl ; il = il + (*igr).pas )
-	{
-	for ( is = 0 ; is < (*igr).pas*(*igr).ns ; is = is + (*igr).pas )
-		{
-		xyFilm[0] = (double) (is+1) ;
-		xyFilm[1] = (double) (il+1) ;
-		FDTransformPoint ( xyFilm, teta, Coefs, xyTheorique ) ;
-		(*igr).dx[ig] = (*igr).dx[ig] + (xyTheorique[0] - xyFilm[0]) ;
-		(*igr).dy[ig] = (*igr).dy[ig] + (xyTheorique[1] - xyFilm[1]) ;
-		ig++ ;
-		}
-	}
+    {
+    for ( is = 0 ; is < (*igr).pas*(*igr).ns ; is = is + (*igr).pas )
+        {
+        xyFilm[0] = (double) (is+1) ;
+        xyFilm[1] = (double) (il+1) ;
+        FDTransformPoint ( xyFilm, teta, Coefs, xyTheorique ) ;
+        (*igr).dx[ig] = (*igr).dx[ig] + (xyTheorique[0] - xyFilm[0]) ;
+        (*igr).dy[ig] = (*igr).dy[ig] + (xyTheorique[1] - xyFilm[1]) ;
+        ig++ ;
+        }
+    }
 
 /* Controle de la precision de la grille inverse */
 ddmax = 0.0 ;
 emq = 0.0 ;
 ig = 0 ;
 for ( il = 0 ; il < (*igr).pas*((*igr).nl-1) ; il = il + 50 )
-	{
-	yy = ((double) il) ;
-	for ( is = 0 ; is < (*igr).pas*((*igr).ns-1) ; is = is + 50 )
-		{
-		xx = ((double) is) ;
-		xx1 = xx ;
-		yy1 = yy ;
-	    istat = orcorrige_distortion ( &xx1, &yy1, igr ) ;
-		if ( istat == 1 )
-			{
-			xyFilm[0] = xx + 1.0 ;
-			xyFilm[1] = yy + 1.0 ;
-			FDTransformPoint ( xyFilm, teta, Coefs, xyTheorique ) ;
-	    	dd = (xyTheorique[0]-1.0-xx1)*(xyTheorique[0]-1.0-xx1) +
-			 	(xyTheorique[1]-1.0-yy1)*(xyTheorique[1]-1.0-yy1) ;
-	    	if ( dd > ddmax )
-				{
-				ddmax = dd ;
-				}
-	    	emq = emq + dd ;
-	    	ig++ ;
-			}
-	    }
-	}
+    {
+    yy = ((double) il) ;
+    for ( is = 0 ; is < (*igr).pas*((*igr).ns-1) ; is = is + 50 )
+        {
+        xx = ((double) is) ;
+        xx1 = xx ;
+        yy1 = yy ;
+        istat = orcorrige_distortion ( &xx1, &yy1, igr ) ;
+        if ( istat == 1 )
+            {
+            xyFilm[0] = xx + 1.0 ;
+            xyFilm[1] = yy + 1.0 ;
+            FDTransformPoint ( xyFilm, teta, Coefs, xyTheorique ) ;
+            dd = (xyTheorique[0]-1.0-xx1)*(xyTheorique[0]-1.0-xx1) +
+                (xyTheorique[1]-1.0-yy1)*(xyTheorique[1]-1.0-yy1) ;
+            if ( dd > ddmax )
+                {
+                ddmax = dd ;
+                }
+            emq = emq + dd ;
+            ig++ ;
+            }
+        }
+    }
 emq = sqrt(emq/(double)ig) ;
 ddmax = sqrt(ddmax) ;
 
@@ -641,21 +641,21 @@ ddmax = 0.0 ;
 emq = 0.0 ;
 ig = 0 ;
 for ( il = 0 ; il < (*gr).pas*(*gr).nl ; il = il + (*gr).pas )
-	{
-	yy = (double) il ;
-	for ( is = 0 ; is < (*gr).pas*(*gr).ns ; is = is + (*gr).pas )
-		{
-		xx = (double) is ;
-		xx1 = xx ;
-		yy1 = yy ;
-	    istat = orcorrige_distortion ( &xx1, &yy1, gr ) ;
-	    istat = orcorrige_distortion ( &xx1, &yy1, igr ) ;
-	    dd = (xx-xx1)*(xx-xx1) + (yy-yy1)*(yy-yy1) ;
-	    if ( dd > ddmax ) ddmax = dd ;
-	    emq = emq + dd ;
-	    ig++ ;
-	    }
-	}
+    {
+    yy = (double) il ;
+    for ( is = 0 ; is < (*gr).pas*(*gr).ns ; is = is + (*gr).pas )
+        {
+        xx = (double) is ;
+        xx1 = xx ;
+        yy1 = yy ;
+        istat = orcorrige_distortion ( &xx1, &yy1, gr ) ;
+        istat = orcorrige_distortion ( &xx1, &yy1, igr ) ;
+        dd = (xx-xx1)*(xx-xx1) + (yy-yy1)*(yy-yy1) ;
+        if ( dd > ddmax ) ddmax = dd ;
+        emq = emq + dd ;
+        ig++ ;
+        }
+    }
 emq = sqrt(emq/(double)ig) ;
 ddmax = sqrt(ddmax) ;
 
@@ -683,25 +683,25 @@ if ( (*gr).pas <= 0.0 ) return ;
 HH = (*ori).sommet[2] - (*ori).altisol ;
 pp = (*ori).focale ;
 coef = _refra1*HH*pp*(1.0 - _refra2*HH) ;		/* pour un resultat
-							   en m */
+                               en m */
 
 ig = 0 ;
 for ( il = 0 ; il < (*gr).pas*(*gr).nl ; il = il + (*gr).pas )
     {
-	 for ( is = 0 ; is < (*gr).pas*(*gr).ns ; is = is + (*gr).pas )
-	{
-	col = (*ori).pix[0]* ( (double)is - (*ori).ipp[0] ) ;
-	lig = (*ori).pix[1]* ( (double)il - (*ori).ipp[1] ) ;
-	rr = sqrt( col*col  + lig*lig ) ;
-	if ( rr > 1E-12 )
-	    {
-	    tt = rr / (*ori).focale ;
-		 dr = coef * tt * (1 + tt*tt ) ;
-	    (*gr).dx[ig] = (*gr).dx[ig] + dr * (col / rr) / (*ori).pix[0] ;
-	    (*gr).dy[ig] = (*gr).dy[ig] + dr * (lig / rr) / (*ori).pix[1] ;
-	    }
-	ig++ ;
-	}
+     for ( is = 0 ; is < (*gr).pas*(*gr).ns ; is = is + (*gr).pas )
+    {
+    col = (*ori).pix[0]* ( (double)is - (*ori).ipp[0] ) ;
+    lig = (*ori).pix[1]* ( (double)il - (*ori).ipp[1] ) ;
+    rr = sqrt( col*col  + lig*lig ) ;
+    if ( rr > 1E-12 )
+        {
+        tt = rr / (*ori).focale ;
+         dr = coef * tt * (1 + tt*tt ) ;
+        (*gr).dx[ig] = (*gr).dx[ig] + dr * (col / rr) / (*ori).pix[0] ;
+        (*gr).dy[ig] = (*gr).dy[ig] + dr * (lig / rr) / (*ori).pix[1] ;
+        }
+    ig++ ;
+    }
     }
 }
 /*----------------------------------------------------------------------------*/
@@ -719,8 +719,8 @@ double			dx, dy ;
 (*gout).nl = (*gin).nl ;
 
 for ( ig = 0 ; ig < ((*gin).nl * (*gin).ns) ; ig++ )
-	{ (*gout).dx[ig] = - (*gin).dx[ig] ;
-	  (*gout).dy[ig] = - (*gin).dy[ig] ; }
+    { (*gout).dx[ig] = - (*gin).dx[ig] ;
+      (*gout).dy[ig] = - (*gin).dy[ig] ; }
 
 if ( (*gin).pas <= 0.0 ) return ;
 
@@ -728,29 +728,29 @@ ig = 0 ;
 for ( il = 0 ; il < (*gin).pas*(*gin).nl ; il = il + (*gin).pas )
     {
     for ( is = 0 ; is < (*gin).pas*(*gin).ns ; is = is + (*gin).pas )
-	{
-	dx = 0.0 ;
-	dy = 0.0 ;
-	do  {
-	    (*gout).dx[ig] = (*gout).dx[ig] + dx ;
-	    (*gout).dy[ig] = (*gout).dy[ig] + dy ;
-	    col0 = (double)is + (*gout).dx[ig] ;
-	    lig0 = (double)il + (*gout).dy[ig] ;
-	    col = col0 ; lig = lig0 ;
-	    orcorrige_distortion( &col, &lig, gin ) ;
-       	    dx = (double)is - col ;
-	    dy = (double)il - lig ;
-	    } while ( 	(col != col0) && (lig != lig0) &&
-			( _abs( dx ) > 0.01 ) && ( _abs( dy ) > 1E-8 )	) ;
-	ig++ ;
-	}
+    {
+    dx = 0.0 ;
+    dy = 0.0 ;
+    do  {
+        (*gout).dx[ig] = (*gout).dx[ig] + dx ;
+        (*gout).dy[ig] = (*gout).dy[ig] + dy ;
+        col0 = (double)is + (*gout).dx[ig] ;
+        lig0 = (double)il + (*gout).dy[ig] ;
+        col = col0 ; lig = lig0 ;
+        orcorrige_distortion( &col, &lig, gin ) ;
+            dx = (double)is - col ;
+        dy = (double)il - lig ;
+        } while ( 	(col != col0) && (lig != lig0) &&
+            ( _abs( dx ) > 0.01 ) && ( _abs( dy ) > 1E-8 )	) ;
+    ig++ ;
+    }
     }
 }
 /*----------------------------------------------------------------------------*/
 void ordim_grille ( int *ins, int *inl, int *gns, int *gnl, int *gpas )
 {
 *gpas = _max ( (*ins -1 + _NS_GRILLE-2)/(_NS_GRILLE-1) ,
-	       (*inl -1 + _NS_GRILLE-2)/(_NS_GRILLE-1) ) ;
+           (*inl -1 + _NS_GRILLE-2)/(_NS_GRILLE-1) ) ;
 *gns = 1 + (*ins - 1 + *gpas - 1)/ *gpas ;
 *gnl = 1 + (*inl - 1 + *gpas - 1)/ *gpas ;
 if ( *gns > _NS_GRILLE ) Tjs_El_User.ElAssert (0,EEM0<< "BUG-Grille  (in orilib ?)" );
@@ -758,9 +758,9 @@ if ( *gnl > _NS_GRILLE ) Tjs_El_User.ElAssert (0,EEM0<< "BUG-Grille  (in orilib 
 }
 /*----------------------------------------------------------------------------*/
  int orinit_distortions ( char *chambre, int *refrac,
- 							double IdealMarks[8], double RealMarks[16],
-							int *NMarks,
- 							void* *phot )
+                            double IdealMarks[8], double RealMarks[16],
+                            int *NMarks,
+                            void* *phot )
 {
 /*
  * Les distortions de chambre ne sont pas traitees :
@@ -779,28 +779,28 @@ igr = &((*ori).gp2t) ;
 sprintf( (*ori).chambre, "%s", chambre ) ;
 
 ordim_grille ( &((*ori).ins), &((*ori).inl),
-		 &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
+         &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
 for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
-	 { (*gr).dx[ipg] = 0.0 ; (*gr).dy[ipg] = 0.0 ; }
+     { (*gr).dx[ipg] = 0.0 ; (*gr).dy[ipg] = 0.0 ; }
 
 
-	/* on traite d'abord la refraction */
+    /* on traite d'abord la refraction */
 if ( *refrac != 0 ) orgrille_refraction ( ori, gr ) ;
 
-	/* ensuite on ajoute les deformations dues a la chambre */
+    /* ensuite on ajoute les deformations dues a la chambre */
 
-	/* on calcule la grille inverse */
+    /* on calcule la grille inverse */
 orinverse_grille ( gr, igr ) ;
 
-	/* ensuite on ajoute les deformations Film (sur les deux grilles :
-		on ne passe pas par inverse_grille pour les deformations film sur gp2t
-		dans la mesure ou la formulation inverse est calculable  */
+    /* ensuite on ajoute les deformations Film (sur les deux grilles :
+        on ne passe pas par inverse_grille pour les deformations film sur gp2t
+        dans la mesure ou la formulation inverse est calculable  */
 if ( (IdealMarks != 0) && (RealMarks != 0) )
-	{
+    {
 #ifndef ENSEA
-	orAddFilmDistortions ( gr, igr, IdealMarks, RealMarks, NMarks ) ;
+    orAddFilmDistortions ( gr, igr, IdealMarks, RealMarks, NMarks ) ;
 #endif
-	}
+    }
 
 
 return 1 ;
@@ -831,8 +831,8 @@ for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
 }
 /*----------------------------------------------------------------------------*/
  int orterrain_to_photo (  void* *phot,
-		    const double *xx, const double *yy, const double *zz,
-		    double *colonne, double *ligne )
+            const double *xx, const double *yy, const double *zz,
+            double *colonne, double *ligne )
 {
  or_orientation		*ori ;
  double 		SM[3] ;
@@ -854,8 +854,8 @@ for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
 }
 /*----------------------------------------------------------------------------*/
  double orphotos_to_terrain(void* *phot1, double *col1, double *lig1,
-			     void* *phot2, double *col2, double *lig2,
-			     double *xx, double *yy, double *zz )
+                 void* *phot2, double *col2, double *lig2,
+                 double *xx, double *yy, double *zz )
 {
  or_orientation		*ori1, *ori2 ;
  double			m1[3], m2[3], S1S2[3] ;
@@ -867,8 +867,8 @@ for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
  ori1 = (or_orientation *) *phot1 ;
  ori2 = (or_orientation *) *phot2 ;
 
-	/* on resoud : lambda1 * m1S1 + S1S2 + lambda2 * S2m2 orthogonal
-	   aux deux vecteurs S1m1 et S2m2 */
+    /* on resoud : lambda1 * m1S1 + S1S2 + lambda2 * S2m2 orthogonal
+       aux deux vecteurs S1m1 et S2m2 */
 
  /* Coordonnees des points image dans le repere terrain */
  orSM ( phot1, col1, lig1, m1 ) ;			/* S1m1 */
@@ -879,8 +879,8 @@ for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
  S1S2[2] = (*ori2).sommet[2] - (*ori1).sommet[2] ;
 
  /* resolution du systeme :
-	aa lambda1 + bb lambda2 = dd
-	bb lambda1 + cc lambda2 = ee 		*/
+    aa lambda1 + bb lambda2 = dd
+    bb lambda1 + cc lambda2 = ee 		*/
  aa = _pscalaire( m1 , m1 ) ;
  bb = - _pscalaire( m1 , m2 ) ;
  cc = _pscalaire( m2 , m2 ) ;
@@ -889,7 +889,7 @@ for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
  det = (cc*aa) - (bb*bb) ;
  if ( det <= 0 )
     {
-	/* on ne peut pas intersecter deux rayons paralleles !! */
+    /* on ne peut pas intersecter deux rayons paralleles !! */
     return (-1.0) ;
     }
  lambda1 = ( (cc * dd) - (bb * ee) ) / det ;
@@ -930,8 +930,8 @@ for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
 }
 /*----------------------------------------------------------------------------*/
  int orcarte_to_terrain ( void* *phot,
-				double *cx, double *cy, double *cz,
-			   double *tx, double *ty, double *tz )
+                double *cx, double *cy, double *cz,
+               double *tx, double *ty, double *tz )
 /* D'apres les formules des routines de P.Julien (SUBPHOT) */
 {
  or_orientation		*ori ;
@@ -956,8 +956,8 @@ for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
 }
 /*----------------------------------------------------------------------------*/
  int orterrain_to_carte ( void* *phot,
-			   double *tx, double *ty, double *tz,
-				double *cx, double *cy, double *cz )
+               double *tx, double *ty, double *tz,
+                double *cx, double *cy, double *cz )
 /* D'apres les formules des routines de P.Julien (SUBPHOT) */
 {
  or_orientation		*ori ;
@@ -992,49 +992,49 @@ for ( ipg = 0 ; ipg < _NS_GRILLE*_NS_GRILLE ; ipg++ )
  status = 0 ;
  fp = ElFopen ( fic, "rb" ) ;
  if ( fp != 0 )
-	 {
-	 fori = (char *) ori ;
-	 nlu = (int) fread ( fori, sizeof(or_file_orientation), 1, fp ) ;
-	 status = _egaux( nlu , 1 ) ;
-	 nlu = (int) fread ( (char*) &gtaille, sizeof(int), 1, fp ) ;
-	 status = status & _egaux( nlu , 1 ) ;
+     {
+     fori = (char *) ori ;
+     nlu = (int) fread ( fori, sizeof(or_file_orientation), 1, fp ) ;
+     status = _egaux( nlu , 1 ) ;
+     nlu = (int) fread ( (char*) &gtaille, sizeof(int), 1, fp ) ;
+     status = status & _egaux( nlu , 1 ) ;
 
-	 if ( status == 1 )
-	{
-	/* controle de taille */
-	status = ( gtaille <= (_NS_GRILLE*_NS_GRILLE) ) ;
-	if ( status != 0 )
-		 {
-		 status = 1 ;
-		 gr = &((*ori).gt2p) ;
-			 nlu = (int) fread ( (char*) &((*gr).ns), sizeof(int), 1, fp ) ;
-			 status = _egaux( nlu , 1 ) ;
-			 nlu = (int) fread ( (char*) &((*gr).nl), sizeof(int), 1, fp ) ;
-			 status = status & _egaux( nlu , 1 ) ;
-		 status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
-			 nlu = (int) fread ( (char*) &((*gr).pas), sizeof(int), 1, fp ) ;
-			 status = status & _egaux( nlu , 1 ) ;
+     if ( status == 1 )
+    {
+    /* controle de taille */
+    status = ( gtaille <= (_NS_GRILLE*_NS_GRILLE) ) ;
+    if ( status != 0 )
+         {
+         status = 1 ;
+         gr = &((*ori).gt2p) ;
+             nlu = (int) fread ( (char*) &((*gr).ns), sizeof(int), 1, fp ) ;
+             status = _egaux( nlu , 1 ) ;
+             nlu = (int) fread ( (char*) &((*gr).nl), sizeof(int), 1, fp ) ;
+             status = status & _egaux( nlu , 1 ) ;
+         status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
+             nlu = (int) fread ( (char*) &((*gr).pas), sizeof(int), 1, fp ) ;
+             status = status & _egaux( nlu , 1 ) ;
 
-    	    nlu = (int) fread ( (char*) (*gr).dx, sizeof(double), gtaille, fp ) ;
-			 status = status & _egaux( nlu , gtaille ) ;
-    	    nlu = (int) fread ( (char*) (*gr).dy, sizeof(double), gtaille, fp ) ;
-    	    status = status & _egaux( nlu , gtaille ) ;
+            nlu = (int) fread ( (char*) (*gr).dx, sizeof(double), gtaille, fp ) ;
+             status = status & _egaux( nlu , gtaille ) ;
+            nlu = (int) fread ( (char*) (*gr).dy, sizeof(double), gtaille, fp ) ;
+            status = status & _egaux( nlu , gtaille ) ;
 
-	    gr = &((*ori).gp2t) ;
-    	    nlu = (int) fread ( (char*) &((*gr).ns), sizeof(int), 1, fp ) ;
-    	    status = status & _egaux( nlu , 1 ) ;
-    	    nlu = (int) fread ( (char*) &((*gr).nl), sizeof(int), 1, fp ) ;
-    	    status = status & _egaux( nlu , 1 ) ;
-	    status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
-    	    nlu = (int) fread ( (char*) &((*gr).pas), sizeof(int), 1, fp ) ;
-    	    status = status & _egaux( nlu , 1 ) ;
+        gr = &((*ori).gp2t) ;
+            nlu = (int) fread ( (char*) &((*gr).ns), sizeof(int), 1, fp ) ;
+            status = status & _egaux( nlu , 1 ) ;
+            nlu = (int) fread ( (char*) &((*gr).nl), sizeof(int), 1, fp ) ;
+            status = status & _egaux( nlu , 1 ) ;
+        status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
+            nlu = (int) fread ( (char*) &((*gr).pas), sizeof(int), 1, fp ) ;
+            status = status & _egaux( nlu , 1 ) ;
 
-    	    nlu = (int) fread ( (char*) (*gr).dx, sizeof(double), gtaille, fp ) ;
-    	    status = status & _egaux( nlu , gtaille ) ;
-    	    nlu = (int) fread ( (char*) (*gr).dy, sizeof(double), gtaille, fp ) ;
-    	    status = status & _egaux( nlu , gtaille ) ;
-	    }
-	}
+            nlu = (int) fread ( (char*) (*gr).dx, sizeof(double), gtaille, fp ) ;
+            status = status & _egaux( nlu , gtaille ) ;
+            nlu = (int) fread ( (char*) (*gr).dy, sizeof(double), gtaille, fp ) ;
+            status = status & _egaux( nlu , gtaille ) ;
+        }
+    }
     }
  ElFclose ( fp ) ;
  return status ;
@@ -1100,7 +1100,7 @@ void InitGrilleFromCam(or_orientation * ori,or_grille * aGr,const ElCamera & aCa
        for (INT anY=0 ; anY<=aNb  ; anY++)
        {
             Pt2dr aP  = Pt2dr(anX,anY) * aGr->pas;
-	    Pt2dr aQ = M2C ?  aCam.DistDirecte(aP): aCam.DistInverse(aP) ;
+        Pt2dr aQ = M2C ?  aCam.DistDirecte(aP): aCam.DistInverse(aP) ;
             aP =aQ-aP;
             INT ind = anX + anY * aGr->ns;
             aGr->dx[ind] = aP.x;
@@ -1155,10 +1155,10 @@ int orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool QuikcG
  status = 0 ;
  fp = ElFopen ( fic, "r" ) ;
  if (fp==0)
-	 cout << "FILE =" << fic << "\n";
+     cout << "FILE =" << fic << "\n";
  ELISE_ASSERT(fp!=0,"Cannot Open file in  orlit_fictexte_orientation");
  if ( fp != 0 )
-	 {
+     {
 
          char a[200];
          VoidFscanf ( fp, "%s", a);
@@ -1173,25 +1173,25 @@ std::cout << "??????????????????????? \n";
 #ifdef __16BITS__
  INTByte8               Lbuf[3] ;
          ori->InitNewParam();
-	 VoidFscanf ( fp, "%ld", &((*ori).distor) ) ;
+     VoidFscanf ( fp, "%ld", &((*ori).distor) ) ;
 
-	 VoidFscanf ( fp, "%ld", &((*ori).refraction) ) ;
+     VoidFscanf ( fp, "%ld", &((*ori).refraction) ) ;
 
-	 VoidFscanf ( fp, "%d %d %d %d %d %d %d %d",
-			&((*ori).chambre[0]), &((*ori).chambre[1]), &((*ori).chambre[2]),
-			&((*ori).chambre[3]), &((*ori).chambre[4]), &((*ori).chambre[5]),
-			&((*ori).chambre[6]), &((*ori).chambre[7])  ) ;
+     VoidFscanf ( fp, "%d %d %d %d %d %d %d %d",
+            &((*ori).chambre[0]), &((*ori).chambre[1]), &((*ori).chambre[2]),
+            &((*ori).chambre[3]), &((*ori).chambre[4]), &((*ori).chambre[5]),
+            &((*ori).chambre[6]), &((*ori).chambre[7])  ) ;
 
-	 VoidFscanf ( fp, "%ld %ld %ld %ld %ld %ld", &((*ori).jour), &((*ori).mois),
-		  &((*ori).annee),
-		  &((*ori).heure), &((*ori).minute), &((*ori).seconde) ) ;
+     VoidFscanf ( fp, "%ld %ld %ld %ld %ld %ld", &((*ori).jour), &((*ori).mois),
+          &((*ori).annee),
+          &((*ori).heure), &((*ori).minute), &((*ori).seconde) ) ;
 
-	 VoidFscanf ( fp,"%lld", &(Lbuf[0])  ) ;
-	 (*ori).altisol = ( (double) Lbuf[0] ) / 1000.0 ;
-	 (*ori).mProf =-1;
+     VoidFscanf ( fp,"%lld", &(Lbuf[0])  ) ;
+     (*ori).altisol = ( (double) Lbuf[0] ) / 1000.0 ;
+     (*ori).mProf =-1;
 
 
-	 VoidFscanf ( fp,"%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
+     VoidFscanf ( fp,"%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
     (*ori).origine[0] = ((double) Lbuf[0]) / 1000.0 ;
     (*ori).origine[1] = ((double) Lbuf[1]) / 1000.0 ;
 
@@ -1199,10 +1199,10 @@ std::cout << "??????????????????????? \n";
 
     VoidFscanf ( fp,"%lld %lld %lld", &(Lbuf[0]), &(Lbuf[1]), &(Lbuf[2]) ) ;
     (*ori).sommet[0] = ((double) Lbuf[0]) / 1000.0 ;
-	 (*ori).sommet[1] = ((double) Lbuf[1]) / 1000.0 ;
-	 (*ori).sommet[2] = ((double) Lbuf[2]) / 1000.0 ;
+     (*ori).sommet[1] = ((double) Lbuf[1]) / 1000.0 ;
+     (*ori).sommet[2] = ((double) Lbuf[2]) / 1000.0 ;
 
-	 VoidFscanf ( fp, "%lld", &(Lbuf[0]) ) ;
+     VoidFscanf ( fp, "%lld", &(Lbuf[0]) ) ;
     (*ori).focale = ((double) Lbuf[0]) / 1000.0 ;
 
     VoidFscanf ( fp, "%lld %lld %lld", &(Lbuf[0]), &(Lbuf[1]), &(Lbuf[2]) ) ;
@@ -1214,12 +1214,12 @@ std::cout << "??????????????????????? \n";
     VoidFscanf ( fp, "%lld %lld %lld", &(Lbuf[0]), &(Lbuf[1]), &(Lbuf[2]) ) ;
     (*ori).vj[0] = ((double) Lbuf[0]) / 1000000000.0 ;
     (*ori).vj[1] = ((double) Lbuf[1]) / 1000000000.0 ;
-	 (*ori).vj[2] = ((double) Lbuf[2]) / 1000000000.0 ;
+     (*ori).vj[2] = ((double) Lbuf[2]) / 1000000000.0 ;
 
     VoidFscanf ( fp, "%lld %lld %lld", &(Lbuf[0]), &(Lbuf[1]), &(Lbuf[2]) ) ;
     (*ori).vk[0] = ((double) Lbuf[0]) / 1000000000.0 ;
     (*ori).vk[1] = ((double) Lbuf[1]) / 1000000000.0 ;
-	 (*ori).vk[2] = ((double) Lbuf[2]) / 1000000000.0 ;
+     (*ori).vk[2] = ((double) Lbuf[2]) / 1000000000.0 ;
 
     VoidFscanf ( fp, "%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
     (*ori).pix[0] = ((double) Lbuf[0]) / 1000000.0 ;
@@ -1228,60 +1228,60 @@ std::cout << "??????????????????????? \n";
 
     VoidFscanf ( fp, "%ld %ld", &((*ori).ins), &((*ori).inl) ) ;
 
-	 VoidFscanf ( fp, "%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
+     VoidFscanf ( fp, "%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
     (*ori).ipp[0] = ((double) Lbuf[0]) / 1000.0 ;
-	 (*ori).ipp[1] = ((double) Lbuf[1]) / 1000.0 ;
+     (*ori).ipp[1] = ((double) Lbuf[1]) / 1000.0 ;
 
-	 VoidFscanf ( fp, "%ld", &gtaille ) ;
+     VoidFscanf ( fp, "%ld", &gtaille ) ;
 
-	 status = _superieur( (_NS_GRILLE*_NS_GRILLE) , gtaille ) ;
-	 if ( status == 1 )
-	{
-	gr = &((*ori).gt2p) ;
-	VoidFscanf ( fp, "%ld %ld %ld", &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
-	status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
-	for ( ii = 0 ; ii < gtaille ; ii++ )
-		 {
-			 VoidFscanf ( fp, "%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
-			 (*gr).dx[ii] = ((double) Lbuf[0]) / 1000000.0 ;
-			 (*gr).dy[ii] = ((double) Lbuf[1]) / 1000000.0 ;
-		 }
+     status = _superieur( (_NS_GRILLE*_NS_GRILLE) , gtaille ) ;
+     if ( status == 1 )
+    {
+    gr = &((*ori).gt2p) ;
+    VoidFscanf ( fp, "%ld %ld %ld", &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
+    status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
+    for ( ii = 0 ; ii < gtaille ; ii++ )
+         {
+             VoidFscanf ( fp, "%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
+             (*gr).dx[ii] = ((double) Lbuf[0]) / 1000000.0 ;
+             (*gr).dy[ii] = ((double) Lbuf[1]) / 1000000.0 ;
+         }
 
-	gr = &((*ori).gp2t) ;
-	VoidFscanf ( fp, "%ld %ld %ld", &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
-	status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
-	for ( ii = 0 ; ii < gtaille ; ii++ )
-		 {
-			 VoidFscanf ( fp, "%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
-			 (*gr).dx[ii] = ((double) Lbuf[0]) / 1000000.0 ;
-			 (*gr).dy[ii] = ((double) Lbuf[1]) / 1000000.0 ;
-		 }
-	}
+    gr = &((*ori).gp2t) ;
+    VoidFscanf ( fp, "%ld %ld %ld", &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
+    status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
+    for ( ii = 0 ; ii < gtaille ; ii++ )
+         {
+             VoidFscanf ( fp, "%lld %lld", &(Lbuf[0]), &(Lbuf[1]) ) ;
+             (*gr).dx[ii] = ((double) Lbuf[0]) / 1000000.0 ;
+             (*gr).dy[ii] = ((double) Lbuf[1]) / 1000000.0 ;
+         }
+    }
 #else
  double                 DLbuf[3] ;
          ori->InitNewParam();
-	 VoidFscanf ( fp, "%d", &((*ori).distor) ) ;
+     VoidFscanf ( fp, "%d", &((*ori).distor) ) ;
 
-	 VoidFscanf ( fp, "%d", &((*ori).refraction) ) ;
+     VoidFscanf ( fp, "%d", &((*ori).refraction) ) ;
 
 {
      /* MPD-MODIF */
          INT c[8],k;
-	 VoidFscanf ( fp, "%d %d %d %d %d %d %d %d",c,c+1,c+2,c+3,c+4,c+5,c+6,c+7);
+     VoidFscanf ( fp, "%d %d %d %d %d %d %d %d",c,c+1,c+2,c+3,c+4,c+5,c+6,c+7);
          for (k=0; k<8 ; k++) ori->chambre[k] = c[k];
 
 }
 
-	 VoidFscanf ( fp, "%d %d %d %d %d %d", &((*ori).jour), &((*ori).mois),
-		  &((*ori).annee),
-		  &((*ori).heure), &((*ori).minute), &((*ori).seconde) ) ;
+     VoidFscanf ( fp, "%d %d %d %d %d %d", &((*ori).jour), &((*ori).mois),
+          &((*ori).annee),
+          &((*ori).heure), &((*ori).minute), &((*ori).seconde) ) ;
 
-	 VoidFscanf ( fp,"%lf", &(DLbuf[0])  ) ;
-	 (*ori).altisol = ( (double) DLbuf[0] ) / 1000.0 ;
-	 (*ori).mProf =-1;
+     VoidFscanf ( fp,"%lf", &(DLbuf[0])  ) ;
+     (*ori).altisol = ( (double) DLbuf[0] ) / 1000.0 ;
+     (*ori).mProf =-1;
 
 
-	 VoidFscanf ( fp,"%lf  %lf ", &(DLbuf[0]), &(DLbuf[1]) ) ;
+     VoidFscanf ( fp,"%lf  %lf ", &(DLbuf[0]), &(DLbuf[1]) ) ;
     (*ori).origine[0] = ((double) DLbuf[0]) / 1000.0 ;
     (*ori).origine[1] = ((double) DLbuf[1]) / 1000.0 ;
 
@@ -1290,9 +1290,9 @@ std::cout << "??????????????????????? \n";
     VoidFscanf ( fp,"%lf %lf %lf", &(DLbuf[0]), &(DLbuf[1]), &(DLbuf[2]) ) ;
     (*ori).sommet[0] = ((double) DLbuf[0]) / 1000.0 +  (*ori).origine[0] ;
     (*ori).sommet[1] = ((double) DLbuf[1]) / 1000.0 + (*ori).origine[1];
-	 (*ori).sommet[2] = ((double) DLbuf[2]) / 1000.0 ;
+     (*ori).sommet[2] = ((double) DLbuf[2]) / 1000.0 ;
 
-	 VoidFscanf ( fp, "%lf", &(DLbuf[0]) ) ;
+     VoidFscanf ( fp, "%lf", &(DLbuf[0]) ) ;
     (*ori).focale = ((double) DLbuf[0]) / 1000.0 ;
 
     VoidFscanf ( fp, "%lf %lf %lf", &(DLbuf[0]), &(DLbuf[1]), &(DLbuf[2]) ) ;
@@ -1303,12 +1303,12 @@ std::cout << "??????????????????????? \n";
     VoidFscanf ( fp, "%lf %lf %lf", &(DLbuf[0]), &(DLbuf[1]), &(DLbuf[2]) ) ;
     (*ori).vj[0] = ((double) DLbuf[0]) / 1000000000.0 ;
     (*ori).vj[1] = ((double) DLbuf[1]) / 1000000000.0 ;
-	 (*ori).vj[2] = ((double) DLbuf[2]) / 1000000000.0 ;
+     (*ori).vj[2] = ((double) DLbuf[2]) / 1000000000.0 ;
 
     VoidFscanf ( fp, "%lf %lf %lf", &(DLbuf[0]), &(DLbuf[1]), &(DLbuf[2]) ) ;
     (*ori).vk[0] = ((double) DLbuf[0]) / 1000000000.0 ;
     (*ori).vk[1] = ((double) DLbuf[1]) / 1000000000.0 ;
-	 (*ori).vk[2] = ((double) DLbuf[2]) / 1000000000.0 ;
+     (*ori).vk[2] = ((double) DLbuf[2]) / 1000000000.0 ;
 
 
     VoidFscanf ( fp, "%lf %lf", &(DLbuf[0]), &(DLbuf[1]) ) ;
@@ -1325,8 +1325,8 @@ std::cout << "??????????????????????? \n";
     VoidFscanf ( fp, "%d %d", &((*ori).ins), &((*ori).inl) ) ;
 
     VoidFscanf ( fp, "%lf %lf ", &(DLbuf[0]), &(DLbuf[1]) ) ;
-	 (*ori).ipp[0] = ((double) DLbuf[0]) / 1000.0 ;
-	 (*ori).ipp[1] = ((double) DLbuf[1]) / 1000.0 ;
+     (*ori).ipp[0] = ((double) DLbuf[0]) / 1000.0 ;
+     (*ori).ipp[1] = ((double) DLbuf[1]) / 1000.0 ;
 
 
     if ((ori->distor == 2) || (ori->distor == 0))
@@ -1365,31 +1365,31 @@ std::cout << "??????????????????????? \n";
     else if (ori->distor ==1)
     {
 
-	 VoidFscanf ( fp, "%d", &gtaille ) ;
+     VoidFscanf ( fp, "%d", &gtaille ) ;
 
-	 status = _superieur( (_NS_GRILLE*_NS_GRILLE) , gtaille ) ;
-	 if ( status == 1 )
-	{
-	gr = &((*ori).gt2p) ;
-	VoidFscanf ( fp, "%d %d %d", &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
-	status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
-	for ( ii = 0 ; ii < gtaille ; ii++ )
-		 {
-			 VoidFscanf ( fp, "%lf %lf", &(DLbuf[0]), &(DLbuf[1]) ) ;
-			 (*gr).dx[ii] = ((double) DLbuf[0]) / 1000000.0 ;
-			 (*gr).dy[ii] = ((double) DLbuf[1]) / 1000000.0 ;
-		 }
+     status = _superieur( (_NS_GRILLE*_NS_GRILLE) , gtaille ) ;
+     if ( status == 1 )
+    {
+    gr = &((*ori).gt2p) ;
+    VoidFscanf ( fp, "%d %d %d", &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
+    status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
+    for ( ii = 0 ; ii < gtaille ; ii++ )
+         {
+             VoidFscanf ( fp, "%lf %lf", &(DLbuf[0]), &(DLbuf[1]) ) ;
+             (*gr).dx[ii] = ((double) DLbuf[0]) / 1000000.0 ;
+             (*gr).dy[ii] = ((double) DLbuf[1]) / 1000000.0 ;
+         }
 
-	gr = &((*ori).gp2t) ;
-	VoidFscanf ( fp, "%d %d %d", &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
-	status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
-	for ( ii = 0 ; ii < gtaille ; ii++ )
-		 {
-			 VoidFscanf ( fp, "%lf %lf", &(DLbuf[0]), &(DLbuf[1]) ) ;
-			 (*gr).dx[ii] = ((double) DLbuf[0]) / 1000000.0 ;
-			 (*gr).dy[ii] = ((double) DLbuf[1]) / 1000000.0 ;
-		 }
-	}
+    gr = &((*ori).gp2t) ;
+    VoidFscanf ( fp, "%d %d %d", &((*gr).ns), &((*gr).nl), &((*gr).pas) ) ;
+    status = status & _superieur( gtaille , ((*gr).ns*(*gr).nl) ) ;
+    for ( ii = 0 ; ii < gtaille ; ii++ )
+         {
+             VoidFscanf ( fp, "%lf %lf", &(DLbuf[0]), &(DLbuf[1]) ) ;
+             (*gr).dx[ii] = ((double) DLbuf[0]) / 1000000.0 ;
+             (*gr).dy[ii] = ((double) DLbuf[1]) / 1000000.0 ;
+         }
+    }
     }
 #endif
  }
@@ -1432,12 +1432,12 @@ int orecrit_fictexte_orientation (const  char *fic, or_orientation *ori )
     fprintf ( fp, "%ld\n", (*ori).distor ) ;
     fprintf ( fp, "%ld\n", (*ori).refraction ) ;
     fprintf ( fp, "%d %d %d %d %d %d %d %d\n",
-	     (*ori).chambre[0], (*ori).chambre[1], (*ori).chambre[2],
-	     (*ori).chambre[3], (*ori).chambre[4], (*ori).chambre[5],
-	     (*ori).chambre[6], (*ori).chambre[7]  ) ;
+         (*ori).chambre[0], (*ori).chambre[1], (*ori).chambre[2],
+         (*ori).chambre[3], (*ori).chambre[4], (*ori).chambre[5],
+         (*ori).chambre[6], (*ori).chambre[7]  ) ;
     fprintf ( fp, "%ld %ld %ld %ld %ld %ld\n", (*ori).jour, (*ori).mois,
-	     (*ori).annee,
-	     (*ori).heure, (*ori).minute, (*ori).seconde ) ;
+         (*ori).annee,
+         (*ori).heure, (*ori).minute, (*ori).seconde ) ;
 
     Lbuf[0] =  (INTByte8) ( (*ori).altisol * 1000.0 + 0.5 ) ;
     fprintf ( fp,"%lld\n", Lbuf[0] ) ;
@@ -1511,12 +1511,12 @@ int orecrit_fictexte_orientation (const  char *fic, or_orientation *ori )
     fprintf ( fp, "%d\n", (*ori).distor ) ;
     fprintf ( fp, "%d\n", (*ori).refraction ) ;
     fprintf ( fp, "%d %d %d %d %d %d %d %d\n",
-	     (*ori).chambre[0], (*ori).chambre[1], (*ori).chambre[2],
-	     (*ori).chambre[3], (*ori).chambre[4], (*ori).chambre[5],
-	     (*ori).chambre[6], (*ori).chambre[7]  ) ;
+         (*ori).chambre[0], (*ori).chambre[1], (*ori).chambre[2],
+         (*ori).chambre[3], (*ori).chambre[4], (*ori).chambre[5],
+         (*ori).chambre[6], (*ori).chambre[7]  ) ;
     fprintf ( fp, " %d %d %d %d %d %d\n", (*ori).jour, (*ori).mois,
-	     (*ori).annee,
-	     (*ori).heure, (*ori).minute, (*ori).seconde ) ;
+         (*ori).annee,
+         (*ori).heure, (*ori).minute, (*ori).seconde ) ;
 
     Lbuf[0] =  (INTByte8) ( (*ori).altisol * 1000.0 + 0.5 ) ;
     #if (ELISE_MinGW)
@@ -1662,38 +1662,38 @@ int orecrit_fictexte_orientation (const  char *fic, or_orientation *ori )
     necr = (int) fwrite ( (const char*) &gtaille, sizeof(int), 1, fp ) ;
     status = status & _egaux( necr , 1 ) ;
 
-	 if ( status == 1 )
-	{
-	    gr = &((*ori).gt2p) ;
-    	    necr = (int) fwrite ( (const char*) &((*gr).ns), sizeof(int), 1, fp ) ;
-    	    status = _egaux( necr , 1 ) ;
-			 necr = (int) fwrite ( (const char*) &((*gr).nl), sizeof(int), 1, fp ) ;
-    	    status = status & _egaux( necr , 1 ) ;
-    	    necr = (int) fwrite ( (const char*) &((*gr).pas), sizeof(int), 1, fp ) ;
-    	    status = status & _egaux( necr , 1 ) ;
+     if ( status == 1 )
+    {
+        gr = &((*ori).gt2p) ;
+            necr = (int) fwrite ( (const char*) &((*gr).ns), sizeof(int), 1, fp ) ;
+            status = _egaux( necr , 1 ) ;
+             necr = (int) fwrite ( (const char*) &((*gr).nl), sizeof(int), 1, fp ) ;
+            status = status & _egaux( necr , 1 ) ;
+            necr = (int) fwrite ( (const char*) &((*gr).pas), sizeof(int), 1, fp ) ;
+            status = status & _egaux( necr , 1 ) ;
 
-    	    necr = (int) fwrite ( (const char*) (*gr).dx, sizeof(double),
-			    gtaille, fp ) ;
-    	    status = status & _egaux( necr , gtaille ) ;
-    	    necr = (int) fwrite ( (const char*) (*gr).dy, sizeof(double),
-			    gtaille, fp ) ;
-    	    status = status & _egaux( necr , gtaille ) ;
+            necr = (int) fwrite ( (const char*) (*gr).dx, sizeof(double),
+                gtaille, fp ) ;
+            status = status & _egaux( necr , gtaille ) ;
+            necr = (int) fwrite ( (const char*) (*gr).dy, sizeof(double),
+                gtaille, fp ) ;
+            status = status & _egaux( necr , gtaille ) ;
 
-	    gr = &((*ori).gp2t) ;
-    	    necr = (int) fwrite ( (const char*) &((*gr).ns), sizeof(int), 1, fp ) ;
-    	    status = status & _egaux( necr , 1 ) ;
-    	    necr = (int) fwrite ( (const char*) &((*gr).nl), sizeof(int), 1, fp ) ;
-    	    status = status & _egaux( necr , 1 ) ;
-    	    necr = (int) fwrite ( (const char*) &((*gr)).pas, sizeof(int), 1, fp ) ;
-    	    status = status & _egaux( necr , 1 ) ;
+        gr = &((*ori).gp2t) ;
+            necr = (int) fwrite ( (const char*) &((*gr).ns), sizeof(int), 1, fp ) ;
+            status = status & _egaux( necr , 1 ) ;
+            necr = (int) fwrite ( (const char*) &((*gr).nl), sizeof(int), 1, fp ) ;
+            status = status & _egaux( necr , 1 ) ;
+            necr = (int) fwrite ( (const char*) &((*gr)).pas, sizeof(int), 1, fp ) ;
+            status = status & _egaux( necr , 1 ) ;
 
-    	    necr = (int) fwrite ( (const char*) (*gr).dx, sizeof(double),
-			    gtaille, fp ) ;
-			 status = status & _egaux( necr , gtaille ) ;
-    	    necr = (int) fwrite ( (const char*) (*gr).dy, sizeof(double),
-			    gtaille, fp ) ;
-    	    status = status & _egaux( necr , gtaille ) ;
-	}
+            necr = (int) fwrite ( (const char*) (*gr).dx, sizeof(double),
+                gtaille, fp ) ;
+             status = status & _egaux( necr , gtaille ) ;
+            necr = (int) fwrite ( (const char*) (*gr).dy, sizeof(double),
+                gtaille, fp ) ;
+            status = status & _egaux( necr , gtaille ) ;
+    }
     }
  ElFclose ( fp ) ;
  return status ;
@@ -1796,11 +1796,11 @@ void orSetDirK ( void* *phot, double *x, double *y,double * z)
  bb = ( lig - (*ori).ipp[1] ) * (*ori).pix[1] ;
 
  SM[0] = (*ori).focale * (*ori).vk[0] +
-	 aa * (*ori).vi[0] + bb * (*ori).vj[0] ;
+     aa * (*ori).vi[0] + bb * (*ori).vj[0] ;
  SM[1] = (*ori).focale * (*ori).vk[1] +
-	 aa * (*ori).vi[1] + bb * (*ori).vj[1] ;
+     aa * (*ori).vi[1] + bb * (*ori).vj[1] ;
  SM[2] = (*ori).focale * (*ori).vk[2] +
-	 aa * (*ori).vi[2] + bb * (*ori).vj[2] ;
+     aa * (*ori).vi[2] + bb * (*ori).vj[2] ;
 }
 
  void orPhoto_to_DirLoc ( void* *phot, double *colonne, double *ligne, double SM[3] )
@@ -1834,7 +1834,7 @@ void orSetDirK ( void* *phot, double *x, double *y,double * z)
 
 /*----------------------------------------------------------------------------*/
  void orinters_SM_photo ( void* *phot, double SM[3],
-			   double *colonne, double *ligne )
+               double *colonne, double *ligne )
 {
 or_orientation		*ori ;
 double			factx, facty ;
@@ -1870,7 +1870,7 @@ facty = facty / (*ori).pix[1] ;
 *colonne = (*ori).ipp[0] + factx * _pscalaire ( SM , (*ori).vi ) ;
 *ligne   = (*ori).ipp[1] + facty * _pscalaire ( SM , (*ori).vj ) ;
 
-	/* prise en compte des distortions */
+    /* prise en compte des distortions */
 if ( (*ori).distor != 0 )
     {
     // status = orcorrige_distortion( colonne, ligne, &((*ori).gt2p) ) ;
@@ -1879,7 +1879,7 @@ if ( (*ori).distor != 0 )
 }
 
 void orDirLoc_to_photo( void* *phot, double SM[3],
-			double *colonne, double *ligne )
+            double *colonne, double *ligne )
 {
 or_orientation		*ori ;
 double			factx, facty ;
@@ -1897,7 +1897,7 @@ facty = facty / (*ori).pix[1] ;
 *ligne   = (*ori).ipp[1] + facty * SM[1];
 
 
-	/* prise en compte des distortions */
+    /* prise en compte des distortions */
 if ( (*ori).distor != 0 )
     {
     // status = orcorrige_distortion( colonne, ligne, &((*ori).gt2p) ) ;
@@ -1911,8 +1911,8 @@ if ( (*ori).distor != 0 )
 
 /*----------------------------------------------------------------------------*/
  int orphoto_et_z_to_terrain ( void* *phot,
-				 const double *col0, const double *lig0, const double *zz,
-				 double *xterre, double *yterre )
+                 const double *col0, const double *lig0, const double *zz,
+                 double *xterre, double *yterre )
 {
 or_orientation		*ori ;
 double 			SM[3] ;
@@ -1960,11 +1960,11 @@ static inline Pt2dr PP(void* *phot)
 }
 
 int orphoto1_et_prof2_to_terrain ( void* *phot1,
-				 const double *col1,
+                 const double *col1,
                                  const double *lig1,
                                  void* *phot2,
                                  const double *prof2,
-				 double *xterre,
+                 double *xterre,
                                  double *yterre ,
                                  double *zterre
                                )
@@ -1983,10 +1983,10 @@ int orphoto1_et_prof2_to_terrain ( void* *phot1,
 }
 
 int orphoto_et_prof_to_terrain ( void* *phot,
-				 const double *col,
+                 const double *col,
                                  const double *lig,
                                  const double *prof,
-				 double *xterre,
+                 double *xterre,
                                  double *yterre ,
                                  double *zterre
                                )
@@ -2022,8 +2022,8 @@ int  or_prof(  void* *phot,
 
 /*----------------------------------------------------------------------------*/
  int orphoto_et_zCarte_to_terrain ( void* *phot,
-				 double *col0, double *lig0, double *zz,
-				 double *xterre, double *yterre, double *zterre )
+                 double *col0, double *lig0, double *zz,
+                 double *xterre, double *yterre, double *zterre )
 {
 /*
 Si Z est donnee en carto, on fait une resolution approchee
@@ -2062,7 +2062,7 @@ zcarto = zcarto + lambda * SM[2] ;
 
 /* on renvoie les coord terrain */
 orcarte_to_terrain ( phot, &xcarto, &ycarto, &zcarto,
-					  xterre, yterre, zterre ) ;
+                      xterre, yterre, zterre ) ;
 return 1 ;
 }
 /*----------------------------------------------------------------------------*/
@@ -2071,11 +2071,11 @@ return 1 ;
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
  int orminmax_paral ( 	void* *epi1, void* *epi2,
-		       	double *zmin, double *zmax,
-		       	double *paralmin, double *paralmax )
+                double *zmin, double *zmax,
+                double *paralmin, double *paralmax )
 {
 /* renvoie les valeurs de paralaxes min et max en fonction de zmin et zmax ;
-	valable uniquement pour les images epipolaires */
+    valable uniquement pour les images epipolaires */
 
 /* on cherche les quatre coins de epi1 et on regarde la paralaxe */
 or_orientation 		*or1 ;
@@ -2091,7 +2091,7 @@ y0 = 0.0 ;
 x1 = (double) ((*or1).ins-1) ;
 y1 = (double) ((*or1).inl-1) ;
 
-		/* paralmax sur zmin */
+        /* paralmax sur zmin */
 orphoto_et_zCarte_to_terrain ( epi1, &x0, &y0, zmin, &MM[0], &MM[1], &MM[2] ) ;
 istat = orterrain_to_photo ( epi2, &MM[0], &MM[1], &MM[2], &cc, &ll ) ;
 *paralmax = cc-x0 ;
@@ -2109,7 +2109,7 @@ istat = orterrain_to_photo ( epi2, &MM[0], &MM[1], &MM[2], &cc, &ll ) ;
 *paralmax = _max( *paralmax , cc-x0 ) ;
 
 
-		/* paralmin sur zmax */
+        /* paralmin sur zmax */
 orphoto_et_zCarte_to_terrain ( epi1, &x0, &y0, zmax, &MM[0], &MM[1], &MM[2] ) ;
 istat = orterrain_to_photo ( epi2, &MM[0], &MM[1], &MM[2], &cc, &ll ) ;
 *paralmin = cc-x0 ;
@@ -2217,7 +2217,7 @@ return 1 ;
 }
 /*----------------------------------------------------------------------------*/
  int orrepere_3D_image ( void* *phot, double coin[3],
-			    double uu[3], double vv[3] )
+                double uu[3], double vv[3] )
 {
 or_orientation 		*ph ;
 double			SM[3] ;
@@ -2247,11 +2247,11 @@ return 1 ;
 
 
 int orprojette_image (
-	void* *phot, unsigned char /*huge*/ *idata,
-	int *ins, int *inl,
-	void* *epipo,
+    void* *phot, unsigned char /*huge*/ *idata,
+    int *ins, int *inl,
+    void* *epipo,
         Orilib_Interp,
-	unsigned char /*huge*/ *odata, int *ons, int *onl )
+    unsigned char /*huge*/ *odata, int *ons, int *onl )
 {
 or_orientation 		*ph, *epi ;
 int			istat ;
@@ -2273,31 +2273,31 @@ ip = 0 ;
 for ( il = 0 ; il < *onl ; il++ )
     {
     for ( is = 0 ; is < *ons ; is++ )
-	{
-	phcc = (double) is ;
-	phll = (double) il ;
-	istat = orphoto_et_z_to_terrain ( epipo , &phcc, &phll, &zz,
-					   &xx, &yy ) ;
-	if ( istat == 1 ) istat = orterrain_to_photo ( phot, &xx, &yy, &zz,
-							&phcc, &phll ) ;
-	if ( istat != 1 ) return istat ;
+    {
+    phcc = (double) is ;
+    phll = (double) il ;
+    istat = orphoto_et_z_to_terrain ( epipo , &phcc, &phll, &zz,
+                       &xx, &yy ) ;
+    if ( istat == 1 ) istat = orterrain_to_photo ( phot, &xx, &yy, &zz,
+                            &phcc, &phll ) ;
+    if ( istat != 1 ) return istat ;
 /*	odata[ip] = interpolation ( idata, ins, inl, &phcc, &phll ) ;*/
 /*	if (il % 10 == 0 && is % 10 == 0) cout << phcc << " " << phll << endl ;*/
-	if (ip<40000) odata[ip] = idata[ (int)(phcc) + (int)(phll) * (* ins)] ;
-	ip++ ;
-	}
+    if (ip<40000) odata[ip] = idata[ (int)(phcc) + (int)(phll) * (* ins)] ;
+    ip++ ;
+    }
     }
 return istat ;
 }
 /*----------------------------------------------------------------------------*/
  int orprojette_epipolaire (
-	void* *phot,
-	unsigned char *idata,
-	int *ins, int *inl,
-	void* *epipo,
-	unsigned char (*interpolation)( unsigned char*, int*, int*,
-	double*, double* ),
-	unsigned char *odata, int *ons, int *onl )
+    void* *phot,
+    unsigned char *idata,
+    int *ins, int *inl,
+    void* *epipo,
+    unsigned char (*interpolation)( unsigned char*, int*, int*,
+    double*, double* ),
+    unsigned char *odata, int *ons, int *onl )
 {
 or_orientation 		*ph, *epi ;
 int			istat ;
@@ -2324,20 +2324,20 @@ zz0 = xyz0[2] ;
 /* re-echantillonnage */
 ip = 0 ;
 for ( il = 0 ; il < *onl ; il++ )
-	 {
+     {
     xx = xx0 ;
     yy = yy0 ;
     zz = zz0 ;
-	 for ( is = 0 ; is < *ons ; is++ )
-	{
-	istat = orterrain_to_photo ( phot, &xx, &yy, &zz, &phcc, &phll ) ;
-	if ( istat != 1 ) return istat ;
-	odata[ip] = interpolation ( idata, ins, inl, &phcc, &phll ) ;
-	ip++ ;
-	xx = xx + dcol[0] ;
-	yy = yy + dcol[1] ;
-	zz = zz + dcol[2] ;
-	}
+     for ( is = 0 ; is < *ons ; is++ )
+    {
+    istat = orterrain_to_photo ( phot, &xx, &yy, &zz, &phcc, &phll ) ;
+    if ( istat != 1 ) return istat ;
+    odata[ip] = interpolation ( idata, ins, inl, &phcc, &phll ) ;
+    ip++ ;
+    xx = xx + dcol[0] ;
+    yy = yy + dcol[1] ;
+    zz = zz + dcol[2] ;
+    }
     xx0 = xx0 + dlig[0] ;
     yy0 = yy0 + dlig[1] ;
     zz0 = zz0 + dlig[2] ;
@@ -2346,11 +2346,11 @@ return istat ;
 }
 /*----------------------------------------------------------------------------*/
  int ororient_epipolaires ( 	void* *phot1, void* *phot2,
-				double *col0, double *lig0,
-				double *col1, double *lig1,
-				double *zmin, double *zmax,
-				void* *epiphot1, void* *epiphot2,
-				int *ns, int *nl )
+                double *col0, double *lig0,
+                double *col1, double *lig1,
+                double *zmin, double *zmax,
+                void* *epiphot1, void* *epiphot2,
+                int *ns, int *nl )
 /* > on positionne le plan epipolaire a l'altitude (zmin+zmax)/2 pour le point
   central de la zone designee sur l'image gauche
    > remplit_orient_epipolaire definit le plan epipolaire (focale, orientation)
@@ -2378,38 +2378,38 @@ if ( (epi1 != 0) && (epi2 != 0) && (ori1 != 0) && (ori2 != 0) )
     status = 1 ;
     /* repere epipolaire */
     orrepere_epipolaire ( (*ori1).sommet, (*ori2).sommet,
-					  vi, vj, vk ) ;
+                      vi, vj, vk ) ;
 
     /* point de passage */
     ccentre = (*col0 + *col1) / 2.0 ;
-	 lcentre = (*lig0 + *lig1) / 2.0 ;
+     lcentre = (*lig0 + *lig1) / 2.0 ;
     hcentre = (*zmin + *zmax) / 2.0 ;
     orphoto_et_zCarte_to_terrain ( phot1, &ccentre, &lcentre, &hcentre,
-				&MM[0], &MM[1], &MM[2] ) ;
+                &MM[0], &MM[1], &MM[2] ) ;
 
     /*resolution*/
     pas = orbest_resol ( phot1, phot2, zmin ) ;
 
-		/*===============================*/
-			/* gauche */
+        /*===============================*/
+            /* gauche */
     /* definition du plan epipolaire */
     *epiphot1 = (void*) epi1 ;
     orremplit_orient_epipolaire ( phot1, MM, vi, vj, vk, &pas, epiphot1 ) ;
 
     /* position de l'origine de l'image */
     oremprise_epipo_gauche (  phot1, col0, lig0, col1, lig1, zmin, zmax,
-			       epiphot1 ) ;
+                   epiphot1 ) ;
     *ns = (*epi1).ins ;
     *nl = (*epi1).inl ;
 
-		/*===============================*/
-			/* droite */
+        /*===============================*/
+            /* droite */
 
-	 *epiphot2 = (void*) epi2 ;
+     *epiphot2 = (void*) epi2 ;
     orremplit_orient_epipolaire ( phot2, MM, vi, vj, vk, &pas, epiphot2 ) ;
 
     /* position de l'origine de l'image */
-	 oremprise_epipo_droite ( epiphot1, epiphot2 ) ;
+     oremprise_epipo_droite ( epiphot1, epiphot2 ) ;
 
     }
 
@@ -2543,10 +2543,10 @@ return pas ;
 }
 /*----------------------------------------------------------------------------*/
 void orremplit_orient_epipolaire ( void* *phot,
-					 double MM[3], double vi[3],
-					 double vj[3], double vk[3],
-					 double *pas,
-					 void* *epiphot )
+                     double MM[3], double vi[3],
+                     double vj[3], double vk[3],
+                     double *pas,
+                     void* *epiphot )
 {
 or_orientation		*ori, *epi ;
 double			SM[3] ;
@@ -2623,9 +2623,9 @@ xx = (*epi1).ipp[0] + ( _pscalaire ( S1S2 , (*epi1).vi ) / (*epi1).pix[0] ) ;
 }
 /*----------------------------------------------------------------------------*/
 void oremprise_epipo_gauche ( void* *phot, double *ph_c0, double *ph_l0,
-			      double *ph_c1, double *ph_l1,
-			      double *zmin, double *zmax,
-			      void* *epiphot )
+                  double *ph_c1, double *ph_l1,
+                  double *zmin, double *zmax,
+                  void* *epiphot )
 {
 or_orientation		*epi ;
 double			cc[8],ll[8] ;
@@ -2686,7 +2686,7 @@ for ( ii = 1 ; ii < 8 ; ii++ )
 }
 /*----------------------------------------------------------------------------*/
  void orrepere_epipolaire ( double S1[3], double S2[3],
-			     double vi[3], double vj[3], double vk[3] )
+                 double vi[3], double vj[3], double vk[3] )
 {
 double			inorme, jnorme ;
 
@@ -2740,13 +2740,13 @@ if ( *photo == 0 ) return 0 ;
 
 Tjs_El_User.ElAssert(0,EEM0<< "Utilisation de oraltitude_sol sans initialisation...");
 /*return ( (*ori).altisol ) ;*/
-	return 0;
+    return 0;
 }
 /*----------------------------------------------------------------------------*/
 int oremprise_carte ( void* *photo, double *zmin, double* zmax,
-			int* marge,
-			double *xmin, double *ymin,
-			double *xmax, double *ymax )
+            int* marge,
+            double *xmin, double *ymin,
+            double *xmax, double *ymax )
 {
 or_orientation 		*ori ;
 double			zz ;
@@ -2766,7 +2766,7 @@ col = 0.0 - *marge ;
 lig = 0.0 - *marge ;
 zz = *zmin ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, &zz,
-										&MM[0], &MM[1], &MM[2] ) ;
+                                        &MM[0], &MM[1], &MM[2] ) ;
 if ( istat != 1 ) return istat ;
 istat = orterrain_to_carte ( photo,&MM[0],&MM[1],&MM[2],&cx,&cy,&cz ) ;
 if ( istat != 1 ) return istat ;
@@ -2774,7 +2774,7 @@ if ( istat != 1 ) return istat ;
 *xmax = cx ; *ymax = cy ;
 zz = *zmax ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, &zz,
-										&MM[0], &MM[1], &MM[2] ) ;
+                                        &MM[0], &MM[1], &MM[2] ) ;
 if ( istat != 1 ) return istat ;
 istat = orterrain_to_carte ( photo,&MM[0],&MM[1],&MM[2],&cx,&cy,&cz ) ;
 if ( istat != 1 ) return istat ;
@@ -2785,7 +2785,7 @@ col = (double)(ns-1) + *marge ;
 lig = 0.0 - *marge ;
 zz = *zmin ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, &zz,
-										&MM[0], &MM[1], &MM[2] ) ;
+                                        &MM[0], &MM[1], &MM[2] ) ;
 if ( istat != 1 ) return istat ;
 istat = orterrain_to_carte ( photo,&MM[0],&MM[1],&MM[2],&cx,&cy,&cz ) ;
 if ( istat != 1 ) return istat ;
@@ -2793,7 +2793,7 @@ if ( istat != 1 ) return istat ;
 *xmax = _max ( *xmax , cx ) ; *ymax = _max ( *ymax , cy ) ;
 zz = *zmax ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, &zz,
-										&MM[0], &MM[1], &MM[2] ) ;
+                                        &MM[0], &MM[1], &MM[2] ) ;
 if ( istat != 1 ) return istat ;
 istat = orterrain_to_carte ( photo,&MM[0],&MM[1],&MM[2],&cx,&cy,&cz ) ;
 if ( istat != 1 ) return istat ;
@@ -2804,7 +2804,7 @@ col = (double)(ns-1) + *marge ;
 lig = (double)(nl-1) + *marge ;
 zz = *zmin ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, &zz,
-										&MM[0], &MM[1], &MM[2] ) ;
+                                        &MM[0], &MM[1], &MM[2] ) ;
 if ( istat != 1 ) return istat ;
 istat = orterrain_to_carte ( photo,&MM[0],&MM[1],&MM[2],&cx,&cy,&cz ) ;
 if ( istat != 1 ) return istat ;
@@ -2812,7 +2812,7 @@ if ( istat != 1 ) return istat ;
 *xmax = _max ( *xmax , cx ) ; *ymax = _max ( *ymax , cy ) ;
 zz = *zmax ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, &zz,
-										&MM[0], &MM[1], &MM[2] ) ;
+                                        &MM[0], &MM[1], &MM[2] ) ;
 if ( istat != 1 ) return istat ;
 istat = orterrain_to_carte ( photo,&MM[0],&MM[1],&MM[2],&cx,&cy,&cz ) ;
 if ( istat != 1 ) return istat ;
@@ -2823,7 +2823,7 @@ col = 0.0 - *marge ;
 lig = (double)(nl-1) + *marge;
 zz = *zmin ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, &zz,
-										&MM[0], &MM[1], &MM[2] ) ;
+                                        &MM[0], &MM[1], &MM[2] ) ;
 if ( istat != 1 ) return istat ;
 istat = orterrain_to_carte ( photo,&MM[0],&MM[1],&MM[2],&cx,&cy,&cz ) ;
 if ( istat != 1 ) return istat ;
@@ -2831,7 +2831,7 @@ if ( istat != 1 ) return istat ;
 *xmax = _max ( *xmax , cx ) ; *ymax = _max ( *ymax , cy ) ;
 zz = *zmax ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, &zz,
-										&MM[0], &MM[1], &MM[2] ) ;
+                                        &MM[0], &MM[1], &MM[2] ) ;
 if ( istat != 1 ) return istat ;
 istat = orterrain_to_carte ( photo,&MM[0],&MM[1],&MM[2],&cx,&cy,&cz ) ;
 if ( istat != 1 ) return istat ;
@@ -2847,9 +2847,9 @@ return 1 ;
 }
 /*----------------------------------------------------------------------------*/
 int oremprise_terrain ( void* *photo, double *zmin, double* zmax,
-			int* marge,
-			double *xmin, double *ymin,
-			double *xmax, double *ymax )
+            int* marge,
+            double *xmin, double *ymin,
+            double *xmax, double *ymax )
 {
 or_orientation 		*ori ;
 double			zz ;
@@ -2867,12 +2867,12 @@ nl = (*ori).inl ;
 col = 0.0 - *marge ;
 lig = 0.0 - *marge ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, zmin,
-										&tx, &ty, &zz ) ;
+                                        &tx, &ty, &zz ) ;
 if ( istat != 1 ) return istat ;
 *xmin = tx ; *ymin = ty ;
 *xmax = tx ; *ymax = ty ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, zmax,
-										&tx, &ty, &zz ) ;
+                                        &tx, &ty, &zz ) ;
 if ( istat != 1 ) return istat ;
 *xmin = _min ( *xmin , tx ) ; *ymin = _min ( *ymin , ty ) ;
 *xmax = _max ( *xmax , tx ) ; *ymax = _max ( *ymax , ty ) ;
@@ -2880,12 +2880,12 @@ if ( istat != 1 ) return istat ;
 col = (double)(ns-1) + *marge ;
 lig = 0.0 - *marge ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, zmin,
-										&tx, &ty, &zz ) ;
+                                        &tx, &ty, &zz ) ;
 if ( istat != 1 ) return istat ;
 *xmin = _min ( *xmin , tx ) ; *ymin = _min ( *ymin , ty ) ;
 *xmax = _max ( *xmax , tx ) ; *ymax = _max ( *ymax , ty ) ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, zmax,
-										&tx, &ty, &zz ) ;
+                                        &tx, &ty, &zz ) ;
 if ( istat != 1 ) return istat ;
 *xmin = _min ( *xmin , tx ) ; *ymin = _min ( *ymin , ty ) ;
 *xmax = _max ( *xmax , tx ) ; *ymax = _max ( *ymax , ty ) ;
@@ -2893,12 +2893,12 @@ if ( istat != 1 ) return istat ;
 col = (double)(ns-1) + *marge ;
 lig = (double)(nl-1) + *marge ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, zmin,
-										&tx, &ty, &zz ) ;
+                                        &tx, &ty, &zz ) ;
 if ( istat != 1 ) return istat ;
 *xmin = _min ( *xmin , tx ) ; *ymin = _min ( *ymin , ty ) ;
 *xmax = _max ( *xmax , tx ) ; *ymax = _max ( *ymax , ty ) ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, zmax,
-										&tx, &ty,&zz ) ;
+                                        &tx, &ty,&zz ) ;
 if ( istat != 1 ) return istat ;
 *xmin = _min ( *xmin , tx ) ; *ymin = _min ( *ymin , ty ) ;
 *xmax = _max ( *xmax , tx ) ; *ymax = _max ( *ymax , ty ) ;
@@ -2906,12 +2906,12 @@ if ( istat != 1 ) return istat ;
 col = 0.0 - *marge ;
 lig = (double)(nl-1) + *marge;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, zmin,
-										&tx, &ty, &zz ) ;
+                                        &tx, &ty, &zz ) ;
 if ( istat != 1 ) return istat ;
 *xmin = _min ( *xmin , tx ) ; *ymin = _min ( *ymin , ty ) ;
 *xmax = _max ( *xmax , tx ) ; *ymax = _max ( *ymax , ty ) ;
 istat = orphoto_et_zCarte_to_terrain ( photo, &col, &lig, zmax,
-										&tx, &ty,&zz ) ;
+                                        &tx, &ty,&zz ) ;
 if ( istat != 1 ) return istat ;
 *xmin = _min ( *xmin , tx ) ; *ymin = _min ( *ymin , ty ) ;
 *xmax = _max ( *xmax , tx ) ; *ymax = _max ( *ymax , ty ) ;
@@ -2925,11 +2925,11 @@ return 1 ;
 }
 /*----------------------------------------------------------------------------*/
 int oremprise_photo_carte ( void* *photo,
-							 double *xmin, double *ymin,
-							 double *xmax, double *ymax,
-							 double *zmin, double *zmax,
-							 double *cmin, double *lmin,
-							 double *cmax, double *lmax )
+                             double *xmin, double *ymin,
+                             double *xmax, double *ymax,
+                             double *zmin, double *zmax,
+                             double *cmin, double *lmin,
+                             double *cmax, double *lmax )
 {
 double		xt, yt, zt ;
 double		col, lig ;
@@ -3008,8 +3008,8 @@ return (0) ;
 }
 /*----------------------------------------------------------------------------*/
 int oremprise_photo_epipolaire ( void* *epi, void* *photo,
-								 double *cmin, double *lmin,
-								 double *cmax, double *lmax )
+                                 double *cmin, double *lmin,
+                                 double *cmax, double *lmax )
 {
 or_orientation		*orip, *orie ;
 double		SM[3] ;
@@ -3019,8 +3019,8 @@ if ( (epi ==0)||(photo==0) ) return 0 ;
 orip= (or_orientation *) *photo ;
 orie= (or_orientation *) *epi ;
 if ( ( _abs ( (*orip).sommet[0] - (*orie).sommet[0] ) > 0.00001 ) ||
-	 ( _abs ( (*orip).sommet[1] - (*orie).sommet[1] ) > 0.00001 ) ||
-	 ( _abs ( (*orip).sommet[2] - (*orie).sommet[2] ) > 0.00001 )  ) return 0 ;
+     ( _abs ( (*orip).sommet[1] - (*orie).sommet[1] ) > 0.00001 ) ||
+     ( _abs ( (*orip).sommet[2] - (*orie).sommet[2] ) > 0.00001 )  ) return 0 ;
 
 col = 0.0 ;
 lig = 0.0 ;
@@ -3076,86 +3076,86 @@ cConvExplicite MakeExplicite(eConventionsOrientation aConv)
           case eConvApero_DistM2C :
           case eConvApero_DistC2M :
           {
-	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
-	     aRes.DistSenC2M() = (aConv==eConvApero_DistC2M);
+         aRes.SensYVideo() = ConvIsSensVideo(aConv);
+         aRes.DistSenC2M() = (aConv==eConvApero_DistC2M);
              aRes.MatrSenC2M() = true;
-	     aRes.ColMul() = Pt3dr(1,1,1);
-	     aRes.LigMul() = Pt3dr(1,1,1);
+         aRes.ColMul() = Pt3dr(1,1,1);
+         aRes.LigMul() = Pt3dr(1,1,1);
              aRes.UniteAngles() = eUniteAngleDegre;
-	     aRes.NumAxe() = Pt3di(2,1,0);
-	     aRes.SensCardan() = true;
-	     aRes.Convention().SetVal(aConv);
+         aRes.NumAxe() = Pt3di(2,1,0);
+         aRes.SensCardan() = true;
+         aRes.Convention().SetVal(aConv);
           }
           break;
           case eConvOriLib :
           {
-	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
-	     aRes.DistSenC2M() = false;
+         aRes.SensYVideo() = ConvIsSensVideo(aConv);
+         aRes.DistSenC2M() = false;
              aRes.MatrSenC2M() = true;
-	     aRes.ColMul() = Pt3dr(1,1,1);
-	     aRes.LigMul() = Pt3dr(1,1,1);
+         aRes.ColMul() = Pt3dr(1,1,1);
+         aRes.LigMul() = Pt3dr(1,1,1);
              aRes.UniteAngles() = eUniteAngleDegre;
-	     aRes.NumAxe() = Pt3di(0,1,2);
-	     aRes.SensCardan() = true;
-	     aRes.Convention().SetVal(eConvOriLib);
+         aRes.NumAxe() = Pt3di(0,1,2);
+         aRes.SensCardan() = true;
+         aRes.Convention().SetVal(eConvOriLib);
           }
           break;
 
           case eConvMatrPoivillier_E :
           {
-	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
-	     aRes.DistSenC2M() = false;
+         aRes.SensYVideo() = ConvIsSensVideo(aConv);
+         aRes.DistSenC2M() = false;
              aRes.MatrSenC2M() = false;
-	     aRes.ColMul() = Pt3dr(1,-1,-1);
-	     aRes.LigMul() = Pt3dr(1,1,1);
+         aRes.ColMul() = Pt3dr(1,-1,-1);
+         aRes.LigMul() = Pt3dr(1,1,1);
              aRes.UniteAngles() = eUniteAngleDegre;
-	     aRes.NumAxe() = Pt3di(0,1,2);
-	     aRes.SensCardan() = true;
-	     aRes.Convention().SetVal(eConvMatrPoivillier_E);
+         aRes.NumAxe() = Pt3di(0,1,2);
+         aRes.SensCardan() = true;
+         aRes.Convention().SetVal(eConvMatrPoivillier_E);
           }
           break;
 
           case eConvAngErdas :
           case eConvAngErdas_Grade :
           {
-	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
-	     aRes.DistSenC2M() = false;
+         aRes.SensYVideo() = ConvIsSensVideo(aConv);
+         aRes.DistSenC2M() = false;
              aRes.MatrSenC2M() = false;
-	     aRes.ColMul() = Pt3dr(1,-1,-1);
-	     aRes.LigMul() = Pt3dr(1,1,1);
+         aRes.ColMul() = Pt3dr(1,-1,-1);
+         aRes.LigMul() = Pt3dr(1,1,1);
              aRes.UniteAngles() = (aConv==eConvAngErdas_Grade) ? eUniteAngleGrade : eUniteAngleDegre;
-	     aRes.NumAxe() = Pt3di(0,1,2);
-	     aRes.SensCardan() = true;
-	     aRes.Convention().SetVal(aConv);
+         aRes.NumAxe() = Pt3di(0,1,2);
+         aRes.SensCardan() = true;
+         aRes.Convention().SetVal(aConv);
           }
           break;
 
           case eConvAngPhotoMDegre :
           case eConvAngPhotoMGrade :
           {
-	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
-	     aRes.DistSenC2M() = false;
+         aRes.SensYVideo() = ConvIsSensVideo(aConv);
+         aRes.DistSenC2M() = false;
              aRes.MatrSenC2M() = true;
-	     aRes.ColMul() = Pt3dr(1,-1,-1);
-	     aRes.LigMul() = Pt3dr(1,1,1);
+         aRes.ColMul() = Pt3dr(1,-1,-1);
+         aRes.LigMul() = Pt3dr(1,1,1);
              aRes.UniteAngles() =  (aConv==eConvAngPhotoMGrade) ? eUniteAngleGrade : eUniteAngleDegre;
-	     aRes.NumAxe() = Pt3di(0,1,2);
-	     aRes.SensCardan() = true;
-	     aRes.Convention().SetVal(aConv);
+         aRes.NumAxe() = Pt3di(0,1,2);
+         aRes.SensCardan() = true;
+         aRes.Convention().SetVal(aConv);
           }
           break;
 
           case eConvMatrixInpho :
           {
-	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
-	     aRes.DistSenC2M() = false;
+         aRes.SensYVideo() = ConvIsSensVideo(aConv);
+         aRes.DistSenC2M() = false;
              aRes.MatrSenC2M() = false;
-	     aRes.ColMul() = Pt3dr(1,-1,-1);
-	     aRes.LigMul() = Pt3dr(1,1,1);
+         aRes.ColMul() = Pt3dr(1,-1,-1);
+         aRes.LigMul() = Pt3dr(1,1,1);
              aRes.UniteAngles() =  eUniteAngleUnknown;
-	     aRes.NumAxe() = Pt3di(0,1,2);
-	     aRes.SensCardan() = true;
-	     aRes.Convention().SetVal(aConv);
+         aRes.NumAxe() = Pt3di(0,1,2);
+         aRes.SensCardan() = true;
+         aRes.Convention().SetVal(aConv);
           }
           break;
 
@@ -3165,15 +3165,15 @@ cConvExplicite MakeExplicite(eConventionsOrientation aConv)
 
           case eConvAngLPSDegre :
           {
-	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
-	     aRes.DistSenC2M() = false;
+         aRes.SensYVideo() = ConvIsSensVideo(aConv);
+         aRes.DistSenC2M() = false;
              aRes.MatrSenC2M() = true;
-	     aRes.ColMul() = Pt3dr(1,-1,-1);
-	     aRes.LigMul() = Pt3dr(1,1,1);
+         aRes.ColMul() = Pt3dr(1,-1,-1);
+         aRes.LigMul() = Pt3dr(1,1,1);
              aRes.UniteAngles() =  eUniteAngleDegre;
-	     aRes.NumAxe() = Pt3di(1,0,2);
-	     aRes.SensCardan() = true;
-	     aRes.Convention().SetVal(aConv);
+         aRes.NumAxe() = Pt3di(1,0,2);
+         aRes.SensCardan() = true;
+         aRes.Convention().SetVal(aConv);
           }
           break;
 
@@ -3194,18 +3194,18 @@ cConvExplicite MakeExplicite(eConventionsOrientation aConv)
           case eConvAngErdas :
           case eConvAngErdas_Grade :
           {
-	     aRes.SensYVideo() = ConvIsSensVideo(aConv);
-	     aRes.DistSenC2M() = false;
+         aRes.SensYVideo() = ConvIsSensVideo(aConv);
+         aRes.DistSenC2M() = false;
              aRes.MatrSenC2M() = true;
   std::cout << "AAAAAAAAAAAA ERDAS \n";
              aRes.MatrSenC2M() = false;
-	     aRes.ColMul() = Pt3dr(1,-1,-1);
-	     aRes.LigMul() = Pt3dr(1,1,1);
+         aRes.ColMul() = Pt3dr(1,-1,-1);
+         aRes.LigMul() = Pt3dr(1,1,1);
              aRes.UniteAngles() = (aConv==eConvAngErdas_Grade) ? eUniteAngleGrade : eUniteAngleDegre;
-	     aRes.NumAxe() = Pt3di(0,1,2);
-	     aRes.SensCardan() = true;
-	     // aRes.SensCardan() = false;
-	     aRes.Convention().SetVal(aConv);
+         aRes.NumAxe() = Pt3di(0,1,2);
+         aRes.SensCardan() = true;
+         // aRes.SensCardan() = false;
+         aRes.Convention().SetVal(aConv);
           }
           break;
 
@@ -3234,65 +3234,65 @@ class cDistFromCIC
 {
        public :
           cDistFromCIC
-	  (
+      (
                  const cCalibrationInternConique & aCIC,
                  const cConvExplicite *  aArgConv,
-		 bool  RequireC2M
+         bool  RequireC2M
           );
 
            Pt2dr CorrY(Pt2dr aP)
            {
                  return  mConv.SensYVideo().Val() ? aP  : Pt2dr(aP.x,mCIC.SzIm().y-aP.y);
            }
-	   CamStenope * Cam();
-	   cCamStenopeBilin * CamBilin();
+       CamStenope * Cam();
+       cCamStenopeBilin * CamBilin();
 
-	   cCamStenopeDistRadPol *  CamDRad();
-	   cCamStenopeModStdPhpgr * CamPhgrStd();
-	   cCam_Ebner *             CamEbner();
+       cCamStenopeDistRadPol *  CamDRad();
+       cCamStenopeModStdPhpgr * CamPhgrStd();
+       cCam_Ebner *             CamEbner();
            cCam_DRad_PPaEqPPs *     CamDRad_PPaEqPPs();
            cCam_Fraser_PPaEqPPs *   CamFraser_PPaEqPPs();
-	   cCam_DCBrown *           CamDCBrown();
-	   cCam_Polyn2 *            CamPolyn2();
-	   cCam_Polyn3 *            CamPolyn3();
-	   cCam_Polyn4 *            CamPolyn4();
-	   cCam_Polyn5 *            CamPolyn5();
-	   cCamera_Param_Unif_Gen * CamUnif();
+       cCam_DCBrown *           CamDCBrown();
+       cCam_Polyn2 *            CamPolyn2();
+       cCam_Polyn3 *            CamPolyn3();
+       cCam_Polyn4 *            CamPolyn4();
+       cCam_Polyn5 *            CamPolyn5();
+       cCamera_Param_Unif_Gen * CamUnif();
 
-	   cCam_RadFour7x2 *             Cam_RadFour7x2();
-	   cCam_RadFour11x2 *            Cam_RadFour11x2();
-	   cCam_RadFour15x2 *            Cam_RadFour15x2();
-	   cCam_RadFour19x2 *            Cam_RadFour19x2();
+       cCam_RadFour7x2 *             Cam_RadFour7x2();
+       cCam_RadFour11x2 *            Cam_RadFour11x2();
+       cCam_RadFour15x2 *            Cam_RadFour15x2();
+       cCam_RadFour19x2 *            Cam_RadFour19x2();
 
-	   CamStenopeIdeale *             CamSI();
+       CamStenopeIdeale *             CamSI();
 
        private :
-	   ElDistRadiale_PolynImpair  DRP(const cCalibrationInternConique & aCIC,const cCalibrationInterneRadiale &,bool C2M);
+       ElDistRadiale_PolynImpair  DRP(const cCalibrationInternConique & aCIC,const cCalibrationInterneRadiale &,bool C2M);
 
-	   CamStenope              * mCam;
-	   cCamStenopeBilin        * mCamBilin;
-	   cCamStenopeModStdPhpgr  * mCamPS;
-	   cCamStenopeDistRadPol   * mCamDR;
+       CamStenope              * mCam;
+       cCamStenopeBilin        * mCamBilin;
+       cCamStenopeModStdPhpgr  * mCamPS;
+       cCamStenopeDistRadPol   * mCamDR;
            CamStenopeIdeale        * mCamSI;
-	   cCam_Ebner *              mCamEb;
-	   cCam_RadFour7x2 *         mCam_RadFour7x2;
-	   cCam_RadFour11x2 *        mCam_RadFour11x2;
-	   cCam_RadFour15x2 *        mCam_RadFour15x2;
-	   cCam_RadFour19x2 *        mCam_RadFour19x2;
+       cCam_Ebner *              mCamEb;
+       cCam_RadFour7x2 *         mCam_RadFour7x2;
+       cCam_RadFour11x2 *        mCam_RadFour11x2;
+       cCam_RadFour15x2 *        mCam_RadFour15x2;
+       cCam_RadFour19x2 *        mCam_RadFour19x2;
            cCam_DRad_PPaEqPPs *      mCamDR_PPas;
            cCam_Fraser_PPaEqPPs *    mCamFras_PPas;
-	   cCam_DCBrown *            mCamDCB;
-	   cCam_Polyn2 *             mCamPolyn2;
-	   cCam_Polyn3 *             mCamPolyn3;
-	   cCam_Polyn4 *             mCamPolyn4;
-	   cCam_Polyn5 *             mCamPolyn5;
-	   cCam_Polyn6 *             mCamPolyn6;
-	   cCam_Polyn7 *             mCamPolyn7;
-	   cCamLin_FishEye_10_5_5 *     mCamLinFE_10_5_5;
-	   cCamEquiSol_FishEye_10_5_5 *     mCamEquiSolFE_10_5_5;
+       cCam_DCBrown *            mCamDCB;
+       cCam_Polyn2 *             mCamPolyn2;
+       cCam_Polyn3 *             mCamPolyn3;
+       cCam_Polyn4 *             mCamPolyn4;
+       cCam_Polyn5 *             mCamPolyn5;
+       cCam_Polyn6 *             mCamPolyn6;
+       cCam_Polyn7 *             mCamPolyn7;
+       cCamLin_FishEye_10_5_5 *     mCamLinFE_10_5_5;
+       cCamEquiSol_FishEye_10_5_5 *     mCamEquiSolFE_10_5_5;
            cCamStenopeGrid *         mCamGrid;
 
-	   cCalibrationInternConique   mCIC;
+       cCalibrationInternConique   mCIC;
            cConvExplicite              mConv;
 };
 
@@ -3501,14 +3501,14 @@ cDistFromCIC::cDistFromCIC
     if (anArgConv)
     {
         mConv = *  anArgConv;
-	if (aCIC.KnownConv().IsInit())
-	{
+    if (aCIC.KnownConv().IsInit())
+    {
             ELISE_ASSERT
-	    (
-	         aCIC.KnownConv().Val() == anArgConv->Convention().Val(),
-		 "Incoherernce between conventions"
-	    );
-	}
+        (
+             aCIC.KnownConv().Val() == anArgConv->Convention().Val(),
+         "Incoherernce between conventions"
+        );
+    }
     }
     else
     {
@@ -3518,7 +3518,7 @@ cDistFromCIC::cDistFromCIC
               "Aucune convention specifiee"
           );
 
-	  mConv = MakeExplicite(aCIC.KnownConv().Val());
+      mConv = MakeExplicite(aCIC.KnownConv().Val());
     }
     bool aC2M = mConv.DistSenC2M().Val();
 
@@ -3578,14 +3578,14 @@ cDistFromCIC::cDistFromCIC
        {
            const cCalibrationInterneRadiale & aCIR = aCD.ModRad().Val();
            mCamDR = new cCamStenopeDistRadPol
-	                (
-			     aKC2M,
-		             aCIC.F(),
-		             aCIC.PP(),
+                    (
+                 aKC2M,
+                     aCIC.F(),
+                     aCIC.PP(),
                              DRP(aCIC,aCIR,aC2M),
                              aCIC.ParamAF()
-		        );
-	   mCam = mCamDR;
+                );
+       mCam = mCamDR;
        }
        else if (aCD.ModPhgrStd().IsInit())
        {
@@ -3593,28 +3593,28 @@ cDistFromCIC::cDistFromCIC
            const cCalibrationInterneRadiale & aCIR = aCIPS.RadialePart();
 
                cDistModStdPhpgr aDPS(DRP(aCIC,aCIR,aC2M));
-	       double aSign = 1 ;
-	       aDPS.P1() = aSign * aCIPS.P1().Val();
-	       aDPS.P2() = aSign * aCIPS.P2().Val();
-	       aDPS.b1() = aSign * aCIPS.b1().Val();
-	       aDPS.b2() = aSign * aCIPS.b2().Val();
+           double aSign = 1 ;
+           aDPS.P1() = aSign * aCIPS.P1().Val();
+           aDPS.P2() = aSign * aCIPS.P2().Val();
+           aDPS.b1() = aSign * aCIPS.b1().Val();
+           aDPS.b2() = aSign * aCIPS.b2().Val();
 
-	       mCamPS = new cCamStenopeModStdPhpgr(aKC2M,aCIC.F(),aCIC.PP(),aDPS,aCIC.ParamAF());
-	       mCam = mCamPS;
+           mCamPS = new cCamStenopeModStdPhpgr(aKC2M,aCIC.F(),aCIC.PP(),aDPS,aCIC.ParamAF());
+           mCam = mCamPS;
        }
        else if (aCD.ModUnif().IsInit())
        {
            const cCalibrationInterneUnif & aCIU = aCD.ModUnif().Val();
            eModelesCalibUnif aTypeModele = aCIU.TypeModele();
-	   switch (aTypeModele)
-	   {
- 
-	       case eModeleRadFour7x2 :
-	       case eModeleRadFour11x2 :
-	       case eModeleRadFour15x2 :
-	       case eModeleRadFour19x2 :
+       switch (aTypeModele)
+       {
+
+           case eModeleRadFour7x2 :
+           case eModeleRadFour11x2 :
+           case eModeleRadFour15x2 :
+           case eModeleRadFour19x2 :
                {
-	            std::vector<double> aVE = aCIU.Etats();
+                std::vector<double> aVE = aCIU.Etats();
                     Pt2dr aSzIm  = Pt2dr(aCIC.SzIm())/2.0;
                     if (aVE.size()==0) aVE.push_back(euclid(aSzIm));
                     if (aVE.size()==1) aVE.push_back(aSzIm.x);
@@ -3678,17 +3678,17 @@ cDistFromCIC::cDistFromCIC
                     }
 
                }
-	       break;
+           break;
 
-	       case eModeleEbner :
-	       {
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		    {
-		       // Chez Ebner le param B est la base en repere image, on lui donne
-		       // pour valeur par defaut ce qu'elle vaut en rec 60%
-		       aVE.push_back(0.4 *ElMin(aCIC.SzIm().x,aCIC.SzIm().y));
-		    }
+           case eModeleEbner :
+           {
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+            {
+               // Chez Ebner le param B est la base en repere image, on lui donne
+               // pour valeur par defaut ce qu'elle vaut en rec 60%
+               aVE.push_back(0.4 *ElMin(aCIC.SzIm().x,aCIC.SzIm().y));
+            }
                     mCamEb = new cCam_Ebner
                                  (
                                      aKC2M,
@@ -3699,17 +3699,17 @@ cDistFromCIC::cDistFromCIC
                                      &aCIU.Params(),
                                      &aVE
                                   );
-		    mCam = mCamEb;
+            mCam = mCamEb;
                }
-	       break;
+           break;
 
-	       case eModele_DRad_PPaEqPPs :
-	       {
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		    {
-		       aVE.push_back(aCIC.F());
-		    }
+           case eModele_DRad_PPaEqPPs :
+           {
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+            {
+               aVE.push_back(aCIC.F());
+            }
                     mCamDR_PPas = new cCam_DRad_PPaEqPPs
                                  (
                                      aKC2M,
@@ -3720,17 +3720,17 @@ cDistFromCIC::cDistFromCIC
                                      &aCIU.Params(),
                                      &aVE
                                   );
-		    mCam = mCamDR_PPas;
+            mCam = mCamDR_PPas;
                }
-	       break;
+           break;
 
-	       case eModele_Fraser_PPaEqPPs :
-	       {
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		    {
-		       aVE.push_back(aCIC.F());
-		    }
+           case eModele_Fraser_PPaEqPPs :
+           {
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+            {
+               aVE.push_back(aCIC.F());
+            }
                     mCamFras_PPas = new cCam_Fraser_PPaEqPPs
                                  (
                                      aKC2M,
@@ -3741,20 +3741,20 @@ cDistFromCIC::cDistFromCIC
                                      &aCIU.Params(),
                                      &aVE
                                   );
-		    mCam = mCamFras_PPas;
+            mCam = mCamFras_PPas;
                }
-	       break;
+           break;
 
 
 
            // cCam_Fraser_PPaEqPPs *    mCamFras_PPas;
            // cCam_Fraser_PPaEqPPs *   CamFraser_PPaEqPPs();
 
-	       case eModeleDCBrown :
-	       {
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		       aVE.push_back(aCIC.F());
+           case eModeleDCBrown :
+           {
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+               aVE.push_back(aCIC.F());
                     mCamDCB = new cCam_DCBrown
                                   (
                                       aKC2M,
@@ -3765,17 +3765,17 @@ cDistFromCIC::cDistFromCIC
                                       &aCIU.Params(),
                                       &aVE
                                    );
-		    mCam = mCamDCB;
+            mCam = mCamDCB;
                }
-	       break;
+           break;
 
-	       case eModelePolyDeg2 :
+           case eModelePolyDeg2 :
                {
 /*
 std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCalibrationInternConique & aCIC)
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		       aVE.push_back(aCIC.F());
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+               aVE.push_back(aCIC.F());
 */
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
                     mCamPolyn2 = new cCam_Polyn2
@@ -3787,16 +3787,16 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
                                            &aCIU.Params(),
                                            &aVE
                                      );
-		    mCam = mCamPolyn2;
+            mCam = mCamPolyn2;
                };
-	       break;
+           break;
 
-	       case eModelePolyDeg3 :
+           case eModelePolyDeg3 :
                {
 /*
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		       aVE.push_back(aCIC.F());
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+               aVE.push_back(aCIC.F());
 */
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
                     mCamPolyn3 = new cCam_Polyn3
@@ -3809,16 +3809,16 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
                                           &aCIU.Params(),
                                           &aVE
                                      );
-		    mCam = mCamPolyn3;
+            mCam = mCamPolyn3;
                };
-	       break;
+           break;
 
-	       case eModelePolyDeg4 :
+           case eModelePolyDeg4 :
                {
 /*
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		       aVE.push_back(aCIC.F());
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+               aVE.push_back(aCIC.F());
 */
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
                     mCamPolyn4 = new cCam_Polyn4
@@ -3830,16 +3830,16 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
                                           &aCIU.Params(),
                                           &aVE
                                      );
-		    mCam = mCamPolyn4;
+            mCam = mCamPolyn4;
                };
-	       break;
+           break;
 
-	       case eModelePolyDeg5 :
+           case eModelePolyDeg5 :
                {
 /*
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		       aVE.push_back(aCIC.F());
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+               aVE.push_back(aCIC.F());
 */
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
                     mCamPolyn5 = new cCam_Polyn5
@@ -3852,16 +3852,16 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
                                           &aCIU.Params(),
                                           &aVE
                                      );
-		    mCam = mCamPolyn5;
+            mCam = mCamPolyn5;
                };
-	       break;
+           break;
 
-	       case eModelePolyDeg6 :
+           case eModelePolyDeg6 :
                {
 /*
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		       aVE.push_back(aCIC.F());
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+               aVE.push_back(aCIC.F());
 */
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
                     mCamPolyn6 = new cCam_Polyn6
@@ -3874,16 +3874,16 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
                                           &aCIU.Params(),
                                           &aVE
                                      );
-		    mCam = mCamPolyn6;
+            mCam = mCamPolyn6;
                };
-	       break;
+           break;
 
-	       case eModelePolyDeg7 :
+           case eModelePolyDeg7 :
                {
 /*
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		       aVE.push_back(aCIC.F());
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+               aVE.push_back(aCIC.F());
 */
                     std::vector<double> aVE = StdEtat_F_PP(aCIU,aCIC);
                     mCamPolyn7 = new cCam_Polyn7
@@ -3896,17 +3896,17 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
                                           &aCIU.Params(),
                                           &aVE
                                      );
-		    mCam = mCamPolyn7;
+            mCam = mCamPolyn7;
                };
-	       break;
+           break;
 
 
-	       case eModele_FishEye_10_5_5 :
-	       case eModele_EquiSolid_FishEye_10_5_5 :
+           case eModele_FishEye_10_5_5 :
+           case eModele_EquiSolid_FishEye_10_5_5 :
                {
-	            std::vector<double> aVE = aCIU.Etats();
-		    if (aVE.empty())
-		       aVE.push_back(aCIC.F());
+                std::vector<double> aVE = aCIU.Etats();
+            if (aVE.empty())
+               aVE.push_back(aCIC.F());
                     std::vector<double> aPar = aCIU.Params();
                     if (aPar.empty())
                     {
@@ -3925,7 +3925,7 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
                                                    &aPar,
                                                    &aVE
                                                );
-		        mCam = mCamLinFE_10_5_5;
+                mCam = mCamLinFE_10_5_5;
                     }
                     else
                     {
@@ -3939,19 +3939,19 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
                                                    &aPar,
                                                    &aVE
                                                );
-		        mCam = mCamEquiSolFE_10_5_5;
+                mCam = mCamEquiSolFE_10_5_5;
                     }
                };
-	       break;
+           break;
 
 
 
                default :
-	       {
+           {
                     ELISE_ASSERT(false,"Do not handle Model Polynomiale");
-	       }
+           }
 
-	   }
+       }
 
        }
        else if (aCD.ModGrid().IsInit())
@@ -3985,7 +3985,7 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
        if (aKD != (aNbD-1))
        {
            aV2D.push_back(&(mCam->Dist()));
-	   aVDisDirect.push_back(!aKC2M);
+       aVDisDirect.push_back(!aKC2M);
        }
     }
 
@@ -4073,10 +4073,10 @@ ElMatrix<double>   Std_RAff_C2M
       {
           double aTeta = ToRadian(aVTeta[aK],aConv.UniteAngles().Val());
           ElMatrix<double> aDM = ElMatrix<double>::Rotation3D(aTeta,aKTeta[aK]);
-	  if (aConv.SensCardan().Val())
+      if (aConv.SensCardan().Val())
              aM = aM * aDM;
           else
-	     aM = aDM * aM;
+         aM = aDM * aM;
       }
    }
    else if (aRVect.CodageSymbolique().IsInit())
@@ -4123,8 +4123,8 @@ ElMatrix<double>   Std_RAff_C2M
 ElRotation3D  Std_RAff_C2M
               (
                  const cOrientationExterneRigide & aCE,
-	         const cConvExplicite            & aConv
-	     )
+             const cConvExplicite            & aConv
+         )
 {
   bool TrueRot;
   ElMatrix<double> aM =  Std_RAff_C2M(aCE.ParamRotation(),aConv,TrueRot);
@@ -4166,10 +4166,10 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
    cOrientationConique anOC = StdGetObjFromFile<cOrientationConique>
                              (
                                  fic,
-				 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-				 "OrientationConique",
-				 "OrientationConique"
-			     );
+                 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                 "OrientationConique",
+                 "OrientationConique"
+                 );
    AssertOrIntImaIsId(anOC);
    ori->mOC= new cOrientationConique(anOC);
 
@@ -4230,13 +4230,13 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
            double aDDiscr = ElMin(aDMinGrid,euclid(anOI.SzIm())/aNbGrid);
           ori->mCorrDistM2C = new cDbleGrid
                          (
-		              true,
-		              aBoxMonde._p0 - aRab,
+                      true,
+                      aBoxMonde._p0 - aRab,
                               aBoxMonde._p1 + aRab,
-			      Pt2dr(aDDiscr,aDDiscr),
+                  Pt2dr(aDDiscr,aDDiscr),
                                aDFC  ,// aC2.mDistC2M,
-			      "toto"
-		         );
+                  "toto"
+                 );
      }
      else
      {
@@ -4259,26 +4259,26 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
       int aKPts=0;
       for
       (
-	    std::list<cMesureAppuis>::const_iterator itA=aV.Appuis().begin();
-	    itA != aV.Appuis().end();
-	    itA++
+        std::list<cMesureAppuis>::const_iterator itA=aV.Appuis().begin();
+        itA != aV.Appuis().end();
+        itA++
       )
       {
-	     Pt2dr aPIm1 = aDF.CorrY(itA->Im());
-	     Pt3dr aPTer = itA->Ter();
-	     Pt2dr aPIm2 = aCam->R3toF2(aPTer);
-	     Pt2dr aPIm3 = aCamOri.R3toF2(aPTer);
+         Pt2dr aPIm1 = aDF.CorrY(itA->Im());
+         Pt3dr aPTer = itA->Ter();
+         Pt2dr aPIm2 = aCam->R3toF2(aPTer);
+         Pt2dr aPIm3 = aCamOri.R3toF2(aPTer);
 
              double aD12 = euclid(aPIm1,aPIm2);
              double aD23 = euclid(aPIm3,aPIm2);
-	     if (  (aD12>aV.Tol()) ||  (aD23 > aSeuilVerifGrid))
-	     {
-	        std::cout << "For File =" << fic  << " KPT = " << aKPts<< "\n";
-	        std::cout << "Dist =" << aD12 << " " << aD23 << "\n";
-	        std::cout << aPIm1 << aPIm2 << aPIm3 << "\n";
-	        std::cout << (aPIm1-Pt2dr(round_down(aPIm1)))
+         if (  (aD12>aV.Tol()) ||  (aD23 > aSeuilVerifGrid))
+         {
+            std::cout << "For File =" << fic  << " KPT = " << aKPts<< "\n";
+            std::cout << "Dist =" << aD12 << " " << aD23 << "\n";
+            std::cout << aPIm1 << aPIm2 << aPIm3 << "\n";
+            std::cout << (aPIm1-Pt2dr(round_down(aPIm1)))
                           << (aPIm2-Pt2dr(round_down(aPIm2)))
-			  << (aPTer-Pt3dr(round_down(aPTer))) << "\n";
+              << (aPTer-Pt3dr(round_down(aPTer))) << "\n";
                 Pt3dr A = aCam->R3toL3(aPTer);
                 Pt2dr B = aCam->R3toC2(aPTer);
                 Pt2dr C = aCam->DistDirecte(B);
@@ -4312,55 +4312,55 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
                 }
 
                 ELISE_ASSERT
-	        (
-	            false,
-		    "Pb in verif orient (XML_orlit_fictexte_orientation)"
-	        );
-	     }
+            (
+                false,
+            "Pb in verif orient (XML_orlit_fictexte_orientation)"
+            );
+         }
              aKPts++;
       }
 
 #if (0)
       if (aV.IsTest().Val())
       {
-	   double aDMin;
+       double aDMin;
            ElRotation3D aRMin = aCam.CombinatoireOFPA(1000,aLAp,&aDMin);
-	   std::cout << "---------- DMIN = " << aDMin << "\n";
-	   aCam.SetOrientation(aRMin);
-	   std::cout << "CO : " <<  aCam.CentreOptique() << "\n";
+       std::cout << "---------- DMIN = " << aDMin << "\n";
+       aCam.SetOrientation(aRMin);
+       std::cout << "CO : " <<  aCam.CentreOptique() << "\n";
            ElRotation3D anOR2 = aCam.Orient();
-	   std::cout << anOR2.IRecVect(Pt3dr(1,0,0)) << "\n";
-	   std::cout << anOR2.IRecVect(Pt3dr(0,1,0)) << "\n";
-	   std::cout << anOR2.IRecVect(Pt3dr(0,0,1)) << "\n";
-	   Pt3dr aC = anOR2.IRecAff(Pt3dr(0,0,0));
-	   std::cout.precision(10);
-	   std::cout <<"C = " <<  aC << "\n";
-	   std::cout.precision(6);
-	   double aF = 180.0/PI;
-	   std::cout << "Teta = "
-	             <<  anOR2.teta01() * aF << " "
-	             <<  anOR2.teta02() * aF << " "
-	             <<  anOR2.teta12() * aF << "\n";
+       std::cout << anOR2.IRecVect(Pt3dr(1,0,0)) << "\n";
+       std::cout << anOR2.IRecVect(Pt3dr(0,1,0)) << "\n";
+       std::cout << anOR2.IRecVect(Pt3dr(0,0,1)) << "\n";
+       Pt3dr aC = anOR2.IRecAff(Pt3dr(0,0,0));
+       std::cout.precision(10);
+       std::cout <<"C = " <<  aC << "\n";
+       std::cout.precision(6);
+       double aF = 180.0/PI;
+       std::cout << "Teta = "
+                 <<  anOR2.teta01() * aF << " "
+                 <<  anOR2.teta02() * aF << " "
+                 <<  anOR2.teta12() * aF << "\n";
 
            for
            (
-	         std::list<cMesureAppuis>::const_iterator itA=aV.Appuis().begin();
-	         itA != aV.Appuis().end();
-	         itA++
+             std::list<cMesureAppuis>::const_iterator itA=aV.Appuis().begin();
+             itA != aV.Appuis().end();
+             itA++
            )
            {
-	     Pt2dr aPIm = aC2.CorrY(itA->Im());
+         Pt2dr aPIm = aC2.CorrY(itA->Im());
              aPIm = aC2.mDistC2M.Direct(aPIm);
 
-	     Pt2dr  aPImV = aCam.R3toF2(itA->Ter());
-	     double aD = euclid(aPImV,aPIm);
-	     if (aV.ShowMes().Val())
-	     {
+         Pt2dr  aPImV = aCam.R3toF2(itA->Ter());
+         double aD = euclid(aPImV,aPIm);
+         if (aV.ShowMes().Val())
+         {
                  std::cout << "Dist[" << itA->Num().Val()  << "]=" << aD
-		           << " dif=" << (aPImV-aPIm)<<  " P = " << aPImV << "\n";
+                   << " dif=" << (aPImV-aPIm)<<  " P = " << aPImV << "\n";
              }
-	   }
-	   e-xit(-1);
+       }
+       e-xit(-1);
       }
 #endif
    }
@@ -4380,8 +4380,8 @@ bool ConvIsSensVideo(eConventionsOrientation aConv)
 
 cCamera_Param_Unif_Gen *  Std_Cal_Unif
                           (
-	                         const cCalibrationInternConique & aCIC,
-			         eConventionsOrientation            aKnownC
+                             const cCalibrationInternConique & aCIC,
+                     eConventionsOrientation            aKnownC
                           )
 {
     cConvExplicite aConv = MakeExplicite(aKnownC);
@@ -4398,8 +4398,8 @@ cCamera_Param_Unif_Gen *  Std_Cal_Unif
 
 cCamStenopeBilin *  Std_Cal_Bilin
                           (
-	                         const cCalibrationInternConique & aCIC,
-			         eConventionsOrientation            aKnownC
+                             const cCalibrationInternConique & aCIC,
+                     eConventionsOrientation            aKnownC
                           )
 {
     cConvExplicite aConv = MakeExplicite(aKnownC);
@@ -4426,7 +4426,7 @@ cCamStenopeBilin *  Std_Cal_Bilin
 
 cCamStenopeDistRadPol * Std_Cal_DRad_C2M
              (
-	            const cCalibrationInternConique & aCIC,
+                const cCalibrationInternConique & aCIC,
                     eConventionsOrientation            aKnownC
              )
 {
@@ -4446,7 +4446,7 @@ cCamStenopeDistRadPol * Std_Cal_DRad_C2M
 
 cCamStenopeModStdPhpgr  *Std_Cal_PS_C2M
              (
-	            const cCalibrationInternConique & aCIC,
+                const cCalibrationInternConique & aCIC,
                     eConventionsOrientation            aKnownC
              )
 {
@@ -4463,7 +4463,7 @@ cCamStenopeModStdPhpgr  *Std_Cal_PS_C2M
 
 CamStenope * Std_Cal_From_CIC
              (
-	           const cCalibrationInternConique & aCIC
+               const cCalibrationInternConique & aCIC
              )
 {
     eConventionsOrientation aKC = aCIC.KnownConv().ValWithDef(eConvApero_DistC2M);
@@ -4478,7 +4478,7 @@ CamStenope * Std_Cal_From_CIC
     return aRes;
 }
 
-CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantierNameManipulateur * anICNM)
+CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantierNameManipulateur * anICNM, bool throwAssert)
 {
    std::string aFullFileName;
    if ( isUsingSeparateDirectories() )
@@ -4492,16 +4492,19 @@ CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantier
 
     cElXMLTree * aF2 = aTree.Get("OrientationConique");
     if (aF2) return Cam_Gen_From_File(aFullFileName,"OrientationConique",anICNM)->CS();
-    
-   std::cout << "For name " << aNameFile << "\n";
-   ELISE_ASSERT(false,"Cannot Get Orientation from File");
+
+   if (throwAssert)
+   {
+        std::cout << "For name " << aNameFile << "\n";
+        ELISE_ASSERT(false,"Cannot Get Orientation from File");
+   }
    return 0;
 }
 
 
 CamStenope * Std_Cal_From_File
              (
-	           const std::string & aNameFile,
+               const std::string & aNameFile,
                    const std::string &  aNameTag
              )
 {
@@ -4529,14 +4532,14 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
           (aTPC==eProjGrid) == (anOC.ModuleOrientationFile().IsInit()),
           "ModuleOrientationFile must be init IF and ONLY IF TypeProj equals ProjGrid"
    );
-   
+
    if (aTPC == eProjGrid)
    {
            std::cout << "Chargement de : "<<anOC.ModuleOrientationFile().Val().NameFileOri()<<std::endl;
            cAffinitePlane orIntImaM2C = anOC.OrIntImaM2C().Val();
            aRes = new cCameraModuleOrientation(new OrientationGrille(anOC.ModuleOrientationFile().Val().NameFileOri()),anOC.Interne().Val().SzIm(),Xml2EL(orIntImaM2C));
            std::cout << "Fin du chargement de la grille"<<std::endl;
-	   return aRes;
+       return aRes;
    }
    else if (anOC.TypeProj().ValWithDef(eProjStenope) == eProjStenope)
    {
@@ -4547,7 +4550,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
            cAffinitePlane orIntImaM2C = anOC.OrIntImaM2C().Val();
            aRes = new cCameraModuleOrientation(new OrientationGrille(anOC.OrientationFile().Val().NameFileOri()),anOC.Interne().Val().SzIm(),Xml2EL(orIntImaM2C));
            std::cout << "Fin du chargement de la grille"<<std::endl;
-	   return aRes;
+       return aRes;
        }
 */
       if (anOC.Interne().IsInit())
@@ -4580,7 +4583,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 
           if (anICNM)
           {
-				 string outputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():anICNM->Dir() );
+                 string outputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():anICNM->Dir() );
              if (anOC.RelativeNameFI().Val())
              {
                 std::string aNewName = outputDirectory+aName;
@@ -4618,7 +4621,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
                     if (ELISE_fp::exist_file(aNameTested))
                        aNameCalib = aNameTested;
               }
-         
+
                aCIC =
                                    StdGetObjFromFile<cCalibrationInternConique>
                                    (
@@ -4673,7 +4676,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 
    aRes->SetScanImaM2C(AffCur(anOC));
 
-   if (anOC.ZoneUtileInPixel().ValWithDef(false)) 
+   if (anOC.ZoneUtileInPixel().ValWithDef(false))
       aRes->SetZoneUtilInPixel(true);
 
    eConventionsOrientation aConvEnum = eConvApero_DistM2C;
@@ -4790,8 +4793,8 @@ ElCamera * Cam_Gen_From_File
 ElRotation3D  Std_RAff_C2M
               (
                  const cOrientationExterneRigide & aCE,
-		 eConventionsOrientation aConv
-	      )
+         eConventionsOrientation aConv
+          )
 {
    cConvExplicite  aConvOri =MakeExplicite(aConv);
 
@@ -4801,7 +4804,7 @@ ElRotation3D  Std_RAff_C2M
 cOrientationExterneRigide From_Std_RAff_C2M
                           (
                                const ElRotation3D & aRC2M,
-			       bool aModeMatr
+                   bool aModeMatr
                           )
 {
    // std::cout << "  TruuuuueRot = " << aRC2M.IsTrueRot() << "\n";
@@ -4838,11 +4841,11 @@ cOrientationExterneRigide From_Std_RAff_C2M
       aRes.ParamRotation().CodageAngulaire().SetVal
       (
           Pt3dr
-	  (
-	     aRC2M.teta01() * unRadInDegre,
-	     -aRC2M.teta02() * unRadInDegre,
-	     aRC2M.teta12() * unRadInDegre
-	  )
+      (
+         aRC2M.teta01() * unRadInDegre,
+         -aRC2M.teta02() * unRadInDegre,
+         aRC2M.teta12() * unRadInDegre
+      )
       );
    }
    aRes.KnownConv().SetVal(eConvApero_DistM2C);
@@ -4888,8 +4891,8 @@ cConvExplicite GlobMakeExplicite(eConventionsOrientation aConv)
 ElRotation3D  GlobStd_RAff_C2M
               (
                  const cOrientationExterneRigide & aCE,
-	         const cConvExplicite            & aConv
-	     )
+             const cConvExplicite            & aConv
+         )
 {
    return ELISE_ORILIB::Std_RAff_C2M(aCE,aConv);
 }
@@ -4903,7 +4906,7 @@ cConvExplicite GlobMakeExplicite(const cConvOri & aConv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -4919,17 +4922,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
