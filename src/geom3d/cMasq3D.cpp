@@ -484,6 +484,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
     std::string aNameMasq3D;
     std::string aNameNuage;
     std::string aNameRes;
+    std::string aNameMasq="";
 
     bool AcceptNew2d=false;
     int aDilate=2;
@@ -495,11 +496,20 @@ int Masq3Dto2D_main(int argc,char ** argv)
                     << EAMC(aNameNuage,"Name of Raster Nuage")
                     << EAMC(aNameRes,"Name of Resulting 2D masq"),
         LArgMain()  << EAM(AcceptNew2d,"OkNew2d",true, "Accept New 2D Image, Def=false")
-                     << EAM(aDilate,"Dilate",true, "Dilatation of masq")
+                    << EAM(aDilate,"Dilate",true, "Dilatation of masq")
+                    << EAM(aNameMasq,"MasqNuage",true, "Masq of Nuage if dif of XML File")
     );
 
    cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d(aNameMasq3D);
-   cElNuage3DMaille * aNuage = cElNuage3DMaille::FromFileIm(aNameNuage);
+
+   cXML_ParamNuage3DMaille aXmlPN = StdGetFromSI(aNameNuage,XML_ParamNuage3DMaille);
+   cElNuage3DMaille * aNuage = cElNuage3DMaille::FromParam
+                               (
+                                    aXmlPN,
+                                    DirOfFile(aNameNuage),
+                                    aNameMasq,
+                                    1.0
+                               );
 
    if (! ELISE_fp::exist_file(aNameRes))
    {

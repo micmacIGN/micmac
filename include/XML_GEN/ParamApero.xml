@@ -1485,6 +1485,8 @@ normalises en echelle et/ou en translation -->
                                <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
                                <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
                                <CardMaxSub Nb="?" Type="int" Def="6"> </CardMaxSub>
+                 <!-- Pls c'est faible plus il y aura d'image dans la best sol,  Score=Cover - NbIm *PenalNbIm -->
+                               <PenalNbIm Nb="?" Type="double" Def="0.3"> </PenalNbIm>
                                <NbMin Nb="1" Type="int"> </NbMin>
                                <IdBdl Nb="1" Type="std::string"> </IdBdl>
                                <NbMinPtsHom  Nb="?" Type="int" Def="15"> </NbMinPtsHom>
