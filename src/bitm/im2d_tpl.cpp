@@ -715,6 +715,7 @@ template <class Type,class TyBase>
    INT nb_in = set_to_dilate->nb();
    INT nb_out = 0;
    //INT szb_out = set_dilated->pck_sz_buf();
+    set_dilated->pck_sz_buf();
 
    INT * x_neigh = neigh[0];
    INT * y_neigh = neigh[1];
