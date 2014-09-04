@@ -27,7 +27,7 @@ extern const Real_ default_onedge_threshold;
 #define default_onedge_threshold   10.
 
 #define m_maxNbAngles        4
-#define m_descriptorSize     128
+#define SIFT_DESCRIPTOR_SIZE     128
 
 #define m_smin                -1
 #define m_sigman              .5
@@ -48,7 +48,7 @@ public:
         Real_ x, y;
         Real_ scale;
         Real_ angle;
-        Real_ descriptor[m_descriptorSize];
+        Real_ descriptor[SIFT_DESCRIPTOR_SIZE];
     } SiftPoint;
 private:
     // soft-coded parameters
@@ -116,14 +116,14 @@ public:
 
         int orientations( RefinedPoint &i_p, Real_ o_angles[m_maxNbAngles] );
 
-        // o_descritpor must be of size m_descriptorSize
+        // o_descritpor must be of size SIFT_DESCRIPTOR_SIZE
         void descriptor( RefinedPoint &i_p, Real_ i_angle, Real_ *o_descriptor );
 
     // static methods
-    // o_descritpor must be of size m_descriptorSize]
+    // o_descritpor must be of size SIFT_DESCRIPTOR_SIZE]
     static void normalizeDescriptor( Real_ *o_descriptor );
 
-    // o_descritpor must be of size m_descriptorSize]
+    // o_descritpor must be of size SIFT_DESCRIPTOR_SIZE]
     static void truncateDescriptor( Real_ *o_descriptor );
 
     void print_parameters( std::ostream &o ) const;
@@ -202,11 +202,11 @@ inline void Siftator::write_SiftPoint_binary_legacy( std::ostream &output, const
 	float_value = (float)p.y; output.write( (char*)&float_value, sizeof( float ) );
 	float_value = (float)p.scale; output.write( (char*)&float_value, sizeof( float ) );
 	float_value = (float)p.angle; output.write( (char*)&float_value, sizeof( float ) );
-	static unsigned char uchar_desc[m_descriptorSize];
-	int i=m_descriptorSize; const Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
+	static unsigned char uchar_desc[SIFT_DESCRIPTOR_SIZE];
+	int i=SIFT_DESCRIPTOR_SIZE; const Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
 	while (i--)
 		(*it_uchar++)=(unsigned char)( 512*(*itReal++) );
-    output.write( (char*)uchar_desc, m_descriptorSize );
+    output.write( (char*)uchar_desc, SIFT_DESCRIPTOR_SIZE );
 }
 
 // same format as siftpp_tgi (not endian-wise)
@@ -220,9 +220,9 @@ inline void Siftator::read_SiftPoint_binary_legacy( std::istream &output, Siftat
 	p.y 	= (Real_)float_values[1];
 	p.scale = (Real_)float_values[2];
 	p.angle = (Real_)float_values[3];
-	static unsigned char uchar_desc[m_descriptorSize];
-    output.read( (char*)uchar_desc, m_descriptorSize );
-	int i=m_descriptorSize; Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
+	static unsigned char uchar_desc[SIFT_DESCRIPTOR_SIZE];
+    output.read( (char*)uchar_desc, SIFT_DESCRIPTOR_SIZE );
+	int i=SIFT_DESCRIPTOR_SIZE; Real_ *itReal=p.descriptor; unsigned char *it_uchar=uchar_desc;
 	while (i--) (*itReal++)=( (Real_)(*it_uchar++)/512 );
 }
 
