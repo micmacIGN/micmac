@@ -10,7 +10,6 @@
 #define NS_ParamChantierPhotogram
 #define ELISE_ORILIB
 
-
 // #define NOMINMAX
 // #include "vld.h"
 
@@ -41,6 +40,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <sys/stat.h>
+#include <assert.h>
 #ifndef _WIN32
 	#include <unistd.h>
 	#include <errno.h>

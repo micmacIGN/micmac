@@ -376,7 +376,7 @@ OrientationRTO::OrientationRTO(std::string const &nom):ModuleOrientation(nom)
       if (aFP==0)
       {
          std::cout << "CANNOT OPEN:" << nom << "\n";
-	 assert(false);
+         assert(false);
       }
       ElFclose(aFP);
   }
