@@ -73,7 +73,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_AFocal_GL__PTInc_M2CDRad5.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_AFocal_PProjInc_M2CDRad5.cpp"
 
+
+//=======================  cEqObsBaseGPS ========================
+
+#include "../../CodeGenere/photogram/cEqObsBaseGPS.cpp"
+
 //=======================  Droite ========================
+
 
 
 

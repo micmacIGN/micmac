@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1540]) = {
+const char * (theNameVar_ParamApero[1546]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -540,6 +540,11 @@ const char * (theNameVar_ParamApero[1540]) = {
 "              \n",
 "\n",
 "\n",
+"              <GpsOffset Nb=\"*\">\n",
+"                  <ValInit Nb=\"1\" Type=\"Pt3dr\"> </ValInit>\n",
+"                  <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
+"              </GpsOffset>\n",
+"\n",
 "              <CalibrationCameraInc Nb=\"*\">\n",
 "	           <Name Nb=\"1\" Type=\"std::string\"> </Name>\n",
 "                   <ConvCal Nb=\"?\"  Type=\"eConventionsOrientation\" Def=\"eConvApero_DistM2C\" > </ConvCal>\n",
@@ -617,6 +622,7 @@ const char * (theNameVar_ParamApero[1540]) = {
 "                    <!-- S'il existe une base de donnees de centre de rattachement, typiquement\n",
 "                         du GPS embarque -->\n",
 "                   <IdBDCentre Nb=\"?\" Type=\"std::string\"> </IdBDCentre>\n",
+"                   <IdOffsetGPS  Nb=\"?\" Type=\"std::string\"> </IdOffsetGPS>\n",
 "\n",
 "                   <!-- Si on veut avoir une initialisation progressive, mettre a false -->\n",
 "                   <InitNow Nb=\"?\" Type=\"bool\" Def=\"true\"> </InitNow>\n",

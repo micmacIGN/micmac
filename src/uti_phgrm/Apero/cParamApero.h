@@ -1334,6 +1334,31 @@ std::string  Mangling( cSectionBDD_Observation *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cGpsOffset
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cGpsOffset & anObj,cElXMLTree * aTree);
+
+
+        Pt3dr & ValInit();
+        const Pt3dr & ValInit()const ;
+
+        std::string & Id();
+        const std::string & Id()const ;
+    private:
+        Pt3dr mValInit;
+        std::string mId;
+};
+cElXMLTree * ToXMLTree(const cGpsOffset &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGpsOffset &);
+
+void  BinaryUnDumpFromFile(cGpsOffset &,ELISE_fp &);
+
+std::string  Mangling( cGpsOffset *);
+
 class cCalibAutomNoDist
 {
     public:
@@ -2018,6 +2043,9 @@ class cPoseCameraInc
         cTplValGesInit< std::string > & IdBDCentre();
         const cTplValGesInit< std::string > & IdBDCentre()const ;
 
+        cTplValGesInit< std::string > & IdOffsetGPS();
+        const cTplValGesInit< std::string > & IdOffsetGPS()const ;
+
         cTplValGesInit< bool > & InitNow();
         const cTplValGesInit< bool > & InitNow()const ;
 
@@ -2173,6 +2201,7 @@ class cPoseCameraInc
     private:
         cTplValGesInit< cSetOrientationInterne > mOrInterne;
         cTplValGesInit< std::string > mIdBDCentre;
+        cTplValGesInit< std::string > mIdOffsetGPS;
         cTplValGesInit< bool > mInitNow;
         cTplValGesInit< double > mProfSceneImage;
         cTplValGesInit< std::string > mDirectory;
@@ -2361,6 +2390,9 @@ class cSectionInconnues
         cTplValGesInit< bool > & SauvePMoyenOnlyWithMasq();
         const cTplValGesInit< bool > & SauvePMoyenOnlyWithMasq()const ;
 
+        std::list< cGpsOffset > & GpsOffset();
+        const std::list< cGpsOffset > & GpsOffset()const ;
+
         std::list< cCalibrationCameraInc > & CalibrationCameraInc();
         const std::list< cCalibrationCameraInc > & CalibrationCameraInc()const ;
 
@@ -2389,6 +2421,7 @@ class cSectionInconnues
         cTplValGesInit< bool > mAutoriseToujoursUneSeuleLiaison;
         cTplValGesInit< cMapName2Name > mMapMaskHom;
         cTplValGesInit< bool > mSauvePMoyenOnlyWithMasq;
+        std::list< cGpsOffset > mGpsOffset;
         std::list< cCalibrationCameraInc > mCalibrationCameraInc;
         cTplValGesInit< int > mSeuilL1EstimMatrEss;
         std::list< cBlockCamera > mBlockCamera;
@@ -5943,6 +5976,9 @@ class cParamApero
 
         cTplValGesInit< bool > & SauvePMoyenOnlyWithMasq();
         const cTplValGesInit< bool > & SauvePMoyenOnlyWithMasq()const ;
+
+        std::list< cGpsOffset > & GpsOffset();
+        const std::list< cGpsOffset > & GpsOffset()const ;
 
         std::list< cCalibrationCameraInc > & CalibrationCameraInc();
         const std::list< cCalibrationCameraInc > & CalibrationCameraInc()const ;

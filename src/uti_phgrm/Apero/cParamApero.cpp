@@ -4439,6 +4439,63 @@ void xml_init(cSectionBDD_Observation & anObj,cElXMLTree * aTree)
 std::string  Mangling( cSectionBDD_Observation *) {return "62AC719242F50C8FFE3F";};
 
 
+Pt3dr & cGpsOffset::ValInit()
+{
+   return mValInit;
+}
+
+const Pt3dr & cGpsOffset::ValInit()const 
+{
+   return mValInit;
+}
+
+
+std::string & cGpsOffset::Id()
+{
+   return mId;
+}
+
+const std::string & cGpsOffset::Id()const 
+{
+   return mId;
+}
+
+void  BinaryUnDumpFromFile(cGpsOffset & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ValInit(),aFp);
+    BinaryUnDumpFromFile(anObj.Id(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cGpsOffset & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ValInit());
+    BinaryDumpInFile(aFp,anObj.Id());
+}
+
+cElXMLTree * ToXMLTree(const cGpsOffset & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GpsOffset",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("ValInit"),anObj.ValInit())->ReTagThis("ValInit"));
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cGpsOffset & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ValInit(),aTree->Get("ValInit",1)); //tototo 
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+}
+
+std::string  Mangling( cGpsOffset *) {return "A45F607E47168E8BFD3F";};
+
+
 eTypeCalibAutom & cCalibAutomNoDist::TypeDist()
 {
    return mTypeDist;
@@ -6910,6 +6967,17 @@ const cTplValGesInit< std::string > & cPoseCameraInc::IdBDCentre()const
 }
 
 
+cTplValGesInit< std::string > & cPoseCameraInc::IdOffsetGPS()
+{
+   return mIdOffsetGPS;
+}
+
+const cTplValGesInit< std::string > & cPoseCameraInc::IdOffsetGPS()const 
+{
+   return mIdOffsetGPS;
+}
+
+
 cTplValGesInit< bool > & cPoseCameraInc::InitNow()
 {
    return mInitNow;
@@ -7491,6 +7559,14 @@ void  BinaryUnDumpFromFile(cPoseCameraInc & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.IdOffsetGPS().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.IdOffsetGPS().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.IdOffsetGPS().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.InitNow().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.InitNow().ValForcedForUnUmp(),aFp);
         }
@@ -7667,6 +7743,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPoseCameraInc & anObj)
     if (anObj.OrInterne().IsInit()) BinaryDumpInFile(aFp,anObj.OrInterne().Val());
     BinaryDumpInFile(aFp,anObj.IdBDCentre().IsInit());
     if (anObj.IdBDCentre().IsInit()) BinaryDumpInFile(aFp,anObj.IdBDCentre().Val());
+    BinaryDumpInFile(aFp,anObj.IdOffsetGPS().IsInit());
+    if (anObj.IdOffsetGPS().IsInit()) BinaryDumpInFile(aFp,anObj.IdOffsetGPS().Val());
     BinaryDumpInFile(aFp,anObj.InitNow().IsInit());
     if (anObj.InitNow().IsInit()) BinaryDumpInFile(aFp,anObj.InitNow().Val());
     BinaryDumpInFile(aFp,anObj.ProfSceneImage().IsInit());
@@ -7725,6 +7803,8 @@ cElXMLTree * ToXMLTree(const cPoseCameraInc & anObj)
       aRes->AddFils(ToXMLTree(anObj.OrInterne().Val())->ReTagThis("OrInterne"));
    if (anObj.IdBDCentre().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("IdBDCentre"),anObj.IdBDCentre().Val())->ReTagThis("IdBDCentre"));
+   if (anObj.IdOffsetGPS().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IdOffsetGPS"),anObj.IdOffsetGPS().Val())->ReTagThis("IdOffsetGPS"));
    if (anObj.InitNow().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("InitNow"),anObj.InitNow().Val())->ReTagThis("InitNow"));
    if (anObj.ProfSceneImage().IsInit())
@@ -7787,6 +7867,8 @@ void xml_init(cPoseCameraInc & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.IdBDCentre(),aTree->Get("IdBDCentre",1)); //tototo 
 
+   xml_init(anObj.IdOffsetGPS(),aTree->Get("IdOffsetGPS",1)); //tototo 
+
    xml_init(anObj.InitNow(),aTree->Get("InitNow",1),bool(true)); //tototo 
 
    xml_init(anObj.ProfSceneImage(),aTree->Get("ProfSceneImage",1)); //tototo 
@@ -7834,7 +7916,7 @@ void xml_init(cPoseCameraInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.PosValueInit(),aTree->Get("PosValueInit",1)); //tototo 
 }
 
-std::string  Mangling( cPoseCameraInc *) {return "3DC71246F1A812C6FE3F";};
+std::string  Mangling( cPoseCameraInc *) {return "940693E34B423091FE3F";};
 
 
 std::string & cGroupeDePose::KeyPose2Grp()
@@ -8263,6 +8345,17 @@ const cTplValGesInit< bool > & cSectionInconnues::SauvePMoyenOnlyWithMasq()const
 }
 
 
+std::list< cGpsOffset > & cSectionInconnues::GpsOffset()
+{
+   return mGpsOffset;
+}
+
+const std::list< cGpsOffset > & cSectionInconnues::GpsOffset()const 
+{
+   return mGpsOffset;
+}
+
+
 std::list< cCalibrationCameraInc > & cSectionInconnues::CalibrationCameraInc()
 {
    return mCalibrationCameraInc;
@@ -8388,6 +8481,15 @@ void  BinaryUnDumpFromFile(cSectionInconnues & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
         {
+             cGpsOffset aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.GpsOffset().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
              cCalibrationCameraInc aVal;
               BinaryUnDumpFromFile(aVal,aFp);
               anObj.CalibrationCameraInc().push_back(aVal);
@@ -8466,6 +8568,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionInconnues & anObj)
     if (anObj.MapMaskHom().IsInit()) BinaryDumpInFile(aFp,anObj.MapMaskHom().Val());
     BinaryDumpInFile(aFp,anObj.SauvePMoyenOnlyWithMasq().IsInit());
     if (anObj.SauvePMoyenOnlyWithMasq().IsInit()) BinaryDumpInFile(aFp,anObj.SauvePMoyenOnlyWithMasq().Val());
+    BinaryDumpInFile(aFp,(int)anObj.GpsOffset().size());
+    for(  std::list< cGpsOffset >::const_iterator iT=anObj.GpsOffset().begin();
+         iT!=anObj.GpsOffset().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,(int)anObj.CalibrationCameraInc().size());
     for(  std::list< cCalibrationCameraInc >::const_iterator iT=anObj.CalibrationCameraInc().begin();
          iT!=anObj.CalibrationCameraInc().end();
@@ -8520,6 +8628,12 @@ cElXMLTree * ToXMLTree(const cSectionInconnues & anObj)
       aRes->AddFils(ToXMLTree(anObj.MapMaskHom().Val())->ReTagThis("MapMaskHom"));
    if (anObj.SauvePMoyenOnlyWithMasq().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SauvePMoyenOnlyWithMasq"),anObj.SauvePMoyenOnlyWithMasq().Val())->ReTagThis("SauvePMoyenOnlyWithMasq"));
+  for
+  (       std::list< cGpsOffset >::const_iterator it=anObj.GpsOffset().begin();
+      it !=anObj.GpsOffset().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("GpsOffset"));
   for
   (       std::list< cCalibrationCameraInc >::const_iterator it=anObj.CalibrationCameraInc().begin();
       it !=anObj.CalibrationCameraInc().end();
@@ -8578,6 +8692,8 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.SauvePMoyenOnlyWithMasq(),aTree->Get("SauvePMoyenOnlyWithMasq",1),bool(true)); //tototo 
 
+   xml_init(anObj.GpsOffset(),aTree->GetAll("GpsOffset",false,1));
+
    xml_init(anObj.CalibrationCameraInc(),aTree->GetAll("CalibrationCameraInc",false,1));
 
    xml_init(anObj.SeuilL1EstimMatrEss(),aTree->Get("SeuilL1EstimMatrEss",1),int(150)); //tototo 
@@ -8595,7 +8711,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "3B257B47079087E9FE3F";};
+std::string  Mangling( cSectionInconnues *) {return "F33E0771DAAD5BA6FF3F";};
 
 
 double & cTimeLinkage::DeltaMax()
@@ -22057,6 +22173,17 @@ const cTplValGesInit< bool > & cParamApero::SauvePMoyenOnlyWithMasq()const
 }
 
 
+std::list< cGpsOffset > & cParamApero::GpsOffset()
+{
+   return SectionInconnues().GpsOffset();
+}
+
+const std::list< cGpsOffset > & cParamApero::GpsOffset()const 
+{
+   return SectionInconnues().GpsOffset();
+}
+
+
 std::list< cCalibrationCameraInc > & cParamApero::CalibrationCameraInc()
 {
    return SectionInconnues().CalibrationCameraInc();
@@ -22746,6 +22873,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "721F0D4E263708DEFD3F";};
+std::string  Mangling( cParamApero *) {return "E7A7701478A90989FF3F";};
 
 // };

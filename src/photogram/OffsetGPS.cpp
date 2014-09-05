@@ -41,11 +41,189 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+class cEqOffsetGPS;
 
-class cEqOffsetGPS
+/* L'equation est
+
+      C + R * B =  GPS   + Err  (Eq1)
+
+   Avec :
+
+       C = centre de la camera   - inconnue
+       R = matrice rotation      - inconnue
+       B = base                  - inconnue
+       GPS = mesure GPS          - obervation
+       Err = erreur (non geree ici, modelisee dans la ponderation);
+    
+*/
+
+
+/*****************************************************************/
+/*                                                               */
+/*               cBaseGPS                                        */
+/*                                                               */
+/*****************************************************************/
+
+
+cBaseGPS::cBaseGPS  (cSetEqFormelles & aSet,const Pt3dr & aV0) :
+     cElemEqFormelle (aSet,false),
+     mV0             (aV0),
+     mBaseInc        (mSet.Alloc().NewPt3(mV0))
 {
-};
+}
 
+Pt3d<Fonc_Num> cBaseGPS::BaseInc() {return mBaseInc;}
+const Pt3dr &  cBaseGPS::ValueBase() const {return mV0;}
+
+/*****************************************************************/
+/*                                                               */
+/*               cEqOffsetGPS                                    */
+/*                                                               */
+/*****************************************************************/
+
+extern bool AllowUnsortedVarIn_SetMappingCur;
+
+
+
+cEqOffsetGPS::cEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS & aBase,bool doGenCode) :
+    mSet  (aRF.Set()),
+    mRot  (&aRF),
+    mBase (&aBase),
+    mGPS  ("GPS"),
+    mNameType ("cEqObsBaseGPS"),
+    mResidu   (mRot->C2M(mBase->BaseInc())- mGPS.PtF()),
+    mFoncEqResidu (0)
+{
+    AllowUnsortedVarIn_SetMappingCur = true;
+    ELISE_ASSERT
+    (
+         mRot->Set()==mBase->Set(),
+         "cEqOffsetGPS Rotation & Base do no belong to same set of unknown"
+    );
+
+     mRot->IncInterv().SetName("Orient");
+     mBase->IncInterv().SetName("Base");
+
+
+     mLInterv.AddInterv(mRot->IncInterv());
+     mLInterv.AddInterv(mBase->IncInterv());
+
+     if (doGenCode)
+     {
+         GenCode();
+     }
+
+     mFoncEqResidu = cElCompiledFonc::AllocFromName(mNameType);
+     ELISE_ASSERT(mFoncEqResidu!=0,"Cannot allocate cEqObsBaseGPS");
+     mFoncEqResidu->SetMappingCur(mLInterv,mSet);
+
+     mGPS.InitAdr(*mFoncEqResidu);
+     mSet->AddFonct(mFoncEqResidu);
+}
+
+
+void cEqOffsetGPS::GenCode()
+{
+   // Un objet de type equation peux gerer plusieurs equation;
+    // il faut passer par un vecteur
+    std::vector<Fonc_Num> aV;
+    aV.push_back(mResidu.x);
+    aV.push_back(mResidu.y);
+    aV.push_back(mResidu.z);
+
+    cElCompileFN::DoEverything
+    (
+        DIRECTORY_GENCODE_FORMEL,  // Directory ou est localise le code genere
+        mNameType,  // donne les noms de fichier .cpp et .h ainsi que les nom de classe
+        aV,  // expressions formelles 
+        mLInterv  // intervalle de reference
+    );
+}
+
+
+Pt3dr  cEqOffsetGPS::AddObs(const Pt3dr & aGPS,const Pt3dr & aPds)
+{
+     mGPS.SetEtat(aGPS);
+     std::vector<double> aVPds;
+     aVPds.push_back(aPds.x);
+     aVPds.push_back(aPds.y);
+     aVPds.push_back(aPds.z);
+
+     const std::vector<REAL> & aResidu =  mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false);
+
+     return Pt3dr(aResidu.at(0),aResidu.at(1),aResidu.at(2));
+}
+
+Pt3dr  cEqOffsetGPS::Residu(const Pt3dr & aGPS)
+{
+     mGPS.SetEtat(aGPS);
+     const std::vector<REAL> & aResidu =  mSet->VResiduSigne(mFoncEqResidu);
+     return Pt3dr(aResidu.at(0),aResidu.at(1),aResidu.at(2));
+}
+
+
+
+
+cRotationFormelle * cEqOffsetGPS::RF()
+{
+   return mRot;
+}
+cBaseGPS * cEqOffsetGPS::Base()
+{
+   return mBase;
+}
+
+
+/*****************************************************************/
+/*                                                               */
+/*               cSetEqFormelles                                 */
+/*                                                               */
+/*****************************************************************/
+
+cBaseGPS *  cSetEqFormelles::NewBaseGPS(const Pt3dr & aV0)
+{
+    AssertUnClosed();
+
+    cBaseGPS *aRes = new cBaseGPS(*this,aV0);
+
+    aRes->CloseEEF(); // OBLIG : indique a la base cElemEqFormelle que toutes les inconnue ont ete allouees
+                      // et que la base peut allouer un certain nombre d'objets utilitaire (genre Fctr de rappel)
+
+    AddObj2Kill(aRes);
+    return aRes;
+}
+
+cEqOffsetGPS * cSetEqFormelles::NewEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS  &aBase,bool Code2Gen)
+{
+   ELISE_ASSERT(this==aRF.Set(),"NewEqOffsetGPS multiple set");
+   cEqOffsetGPS * aRes = new cEqOffsetGPS(aRF,aBase,Code2Gen);
+
+   AddObj2Kill(aRes);
+   return aRes;
+}
+
+cEqOffsetGPS * cSetEqFormelles::NewEqOffsetGPS(cCameraFormelle & aCam,cBaseGPS  &aBase)
+{
+    return NewEqOffsetGPS(aCam.RF(),aBase);
+}
+
+//               cEqOffsetGPS * NewEqOffsetGPS(cCameraFormelle & aRF,cBaseGPS  &aBase);
+
+
+void GenerateCodeEqOffsetGPS()
+{
+     cSetEqFormelles aSet;
+
+     ElRotation3D aRot(Pt3dr(0,0,0),0,0,0);
+     cRotationFormelle * aRF = aSet.NewRotation (cNameSpaceEqF::eRotLibre,aRot);
+
+     cBaseGPS * aBase = aSet.NewBaseGPS(Pt3dr(0,0,0));
+     aSet.NewEqOffsetGPS(*aRF,*aBase,true);
+}
+
+
+
+// cEqOffsetGPS::cEqOffsetGPS(cRotationFormelle & aRF,Pt3d<Fonc_Num>  &aBase)
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

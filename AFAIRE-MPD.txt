@@ -29,6 +29,7 @@ EVOLUTIONS :
   * Init11Param_Main
 
   * Masq 3D + util
+  * Gestion du bras de levier en GPS
 
 Torsion de bande : FAITS
 

@@ -266,6 +266,17 @@ void cAppliApero::DoAMD()
 
 
    }
+   for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
+   {
+       cPoseCam * aPose = mVecPose[aKP];
+       cEqOffsetGPS * anEqOffs = aPose->EqOffsetGPS();
+       if (anEqOffs)
+       {
+            cBaseGPS * aBase =  anEqOffs->Base();
+            cRotationFormelle *  aRF = anEqOffs->RF();
+            mAMD->AddArc(aBase->IncInterv().NumBlocAlloc(),aRF->IncInterv().NumBlocAlloc(),true);
+       }
+   }
 
 /*
    for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
@@ -482,6 +493,8 @@ void cAppliApero::PreCompile()
     InitHasEqDr();
 
     InitLayers();
+    InitOffsGps();
+
     InitCalibCam();
 
     PreCompilePose();
@@ -730,6 +743,16 @@ cSurfParam * cAppliApero::AddPlan
     return aRes;
 }
 
+
+cAperoOffsetGPS *  cAppliApero::OffsetNNOfName(const std::string & aName)
+{
+   std::map<std::string,cAperoOffsetGPS *>::iterator anIt = mDicoOffGPS.find(aName);
+
+   ELISE_ASSERT (anIt!= mDicoOffGPS.end(),"cAperoOffsetGPS::OffsetNNOfName");
+
+   return anIt->second;
+   
+}
 
 cBdAppuisFlottant *  cAppliApero::BAF_FromName(const std::string & aName,bool CanCreate,bool SVP)
 {

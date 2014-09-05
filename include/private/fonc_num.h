@@ -56,6 +56,9 @@ icste : with this method, a Fonc_Num_Computed indicate id it is an integer const
 
 *************************************************************************************/
 
+
+std::vector<double> MakeVec1(const double & aD);
+
 class Arg_Fonc_Num_Comp;
 
 class Fonc_Num_Computed : public Mcheck
@@ -144,10 +147,32 @@ class cElCompiledFonc
                    cSetEqFormelles & aSet,
                    bool EnPtsCur
               );
+	 void SVD_And_AddEqSysSurResol
+              (
+                   bool isCstr,
+                   const std::vector<INT> & aVInd,
+                   const std::vector<double> & aVPds,
+                   REAL *       Pts,
+                   cGenSysSurResol & aSys,
+                   cSetEqFormelles & aSet,
+                   bool EnPtsCur
+              );
+
+
+
 	 void Std_AddEqSysSurResol
               (
                    bool   isCstr,
                    REAL aPds,
+                   REAL *       Pts,
+                   cGenSysSurResol & aSys,
+                   cSetEqFormelles & aSet,
+                   bool EnPtsCur
+              );
+	 void Std_AddEqSysSurResol
+              (
+                   bool   isCstr,
+                   const std::vector<double> & aVPds,
                    REAL *       Pts,
                    cGenSysSurResol & aSys,
                    cSetEqFormelles & aSet,

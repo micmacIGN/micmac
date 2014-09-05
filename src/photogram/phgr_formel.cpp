@@ -468,7 +468,7 @@ cSetEqFormelles::~cSetEqFormelles()
     delete &mDicRot;
 }
 
-void cSetEqFormelles:: AddObj2Kill(cObjFormel2Destroy * anObj)
+void cSetEqFormelles::AddObj2Kill(cObjFormel2Destroy * anObj)
 {
      mLobj2Kill.push_back(anObj);
 }
@@ -952,7 +952,7 @@ const std::vector<REAL> & cSetEqFormelles::AddEqIndexeToSys
 const std::vector<REAL> & cSetEqFormelles::VAddEqFonctToSys
      (
                   cElCompiledFonc * aFonct,
-                  REAL aPds,
+                  const std::vector<double> & aVPds,
                   bool WithDerSec
      )
 {
@@ -963,7 +963,7 @@ if (1)
    aFonct->Std_AddEqSysSurResol
    (
         false,
-        aPds,
+        aVPds,
         mAlloc.ValsVar(),
         *mSys,
         *this,
@@ -973,6 +973,16 @@ if (1)
      const std::vector<REAL> & aRes = aFonct->Vals();
 
      return aRes;
+}
+
+const std::vector<REAL> & cSetEqFormelles::VAddEqFonctToSys
+     (
+                  cElCompiledFonc * aFonct,
+                  REAL aPds,
+                  bool WithDerSec
+     )
+{
+    return VAddEqFonctToSys(aFonct,MakeVec1(aPds),WithDerSec);
 }
 
 REAL cSetEqFormelles::AddEqFonctToSys

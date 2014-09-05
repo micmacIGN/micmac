@@ -773,6 +773,53 @@ Pt3dr CalcPTerIFC_Robuste
       );
 
 
+
+class cBaseGPS : public cElemEqFormelle,
+                 public cObjFormel2Destroy
+{
+    public :
+        friend class cSetEqFormelles;
+
+        cBaseGPS  (cSetEqFormelles & aSet,const Pt3dr & aV0);
+        Pt3d<Fonc_Num> BaseInc();
+        const Pt3dr &  ValueBase() const;
+    private  :
+        cBaseGPS(const cBaseGPS&); // N.I.
+
+        Pt3dr              mV0;
+        Pt3d<Fonc_Num>     mBaseInc;
+
+};
+
+class cEqOffsetGPS  : public cNameSpaceEqF,
+                      public cObjFormel2Destroy
+
+{
+    public :
+         cEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS  &aBase,bool doGenCode);
+         void GenCode();
+         Pt3dr  AddObs(const Pt3dr & aGPS,const Pt3dr & aPds);
+         Pt3dr  Residu(const Pt3dr & aGPS);
+         cBaseGPS * Base();
+         cRotationFormelle * RF();
+
+    private :
+        cEqOffsetGPS(const cEqOffsetGPS&); // N.I.
+
+         cSetEqFormelles *    mSet;
+         cRotationFormelle *  mRot;
+         cBaseGPS          *  mBase;
+         cP3d_Etat_PhgrF      mGPS;
+// Definit le nom des fichier ou sera genere le code (et les classe generee)
+         std::string          mNameType;
+         Pt3d<Fonc_Num>       mResidu;   // Residu formel de Eq1
+         cIncListInterv       mLInterv;
+         cElCompiledFonc *    mFoncEqResidu;
+
+};
+
+
+
 /****************************************************/
 /*                                                  */
 /*   Paquet de classe utilisees pour effectuer      */

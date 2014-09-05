@@ -154,6 +154,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqCorLI_Multi_1_DRPts2_NonNorm.h"
 #include "../../CodeGenere/photogram/cEqCorLI_Multi_1_DRPts3_NonNorm.h"
 
+//=======================  cEqObsBaseGPS ========================
+
+#include "../../CodeGenere/photogram/cEqObsBaseGPS.h"
+
 //=======================  Droite ========================
 
 #include "../../CodeGenere/photogram/cEqAppui_Droite_GL__PTInc_M2CNoVar.h"
@@ -619,6 +623,7 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqAppui_Droite_NoDist__PProjInc_M2CDRad_PPaEqPPs",cEqAppui_Droite_NoDist__PProjInc_M2CDRad_PPaEqPPs::Alloc);
 
 
+     AddEntry("cEqObsBaseGPS",cEqObsBaseGPS::Alloc);
 
 
      FULL_NEW_ADD_ENTRY(Fraser_PPaEqPPs)

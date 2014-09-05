@@ -49,9 +49,20 @@ typedef std::list<cPoseCameraInc> tLP;
 
 void cAppliApero::InitInconnues()
 {
+    // InitOffsGps();
     InitPoses();
     InitSurf();
     InitBlockCameras();
+}
+
+
+void cAppliApero::InitOffsGps()
+{
+    for (std::list<cGpsOffset>::iterator itO=mParam.GpsOffset().begin() ; itO!=mParam.GpsOffset().end() ;itO++)
+    {
+        ELISE_ASSERT(!DicBoolFind(mDicoOffGPS,itO->Id()),"Mutiple Base with same name");
+        mDicoOffGPS[itO->Id()] = new cAperoOffsetGPS(*itO,*this);
+    }
 }
 
         //  Calibs    

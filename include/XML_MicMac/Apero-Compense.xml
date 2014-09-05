@@ -37,6 +37,7 @@
            <Symb>  WithCenter=false </Symb>
            <Symb>  BDDC=XXXX </Symb>
            <Symb>  SigmGPS=XXXX </Symb>
+           <Symb>  SigmGPSAlti=XXXX </Symb>
 
            <Symb>  CPI=false </Symb>
            <Symb>  CPIInput=false </Symb>
@@ -56,6 +57,13 @@
            <Symb>  NbMinIterFin=4 </Symb>
            <Symb>  NbMaxIterFin=4 </Symb>
            <Symb>  SeuilEvolIterFin=1e50 </Symb>
+
+
+           <Symb>  WithLA=false </Symb>
+           <Symb>  LaX=0 </Symb>
+           <Symb>  LaY=0 </Symb>
+           <Symb>  LaZ=0 </Symb>
+
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -91,6 +99,13 @@
        </SectionBDD_Observation>
 
        <SectionInconnues>
+             <#WHEN VTEST=${WithLA}>
+                  <GpsOffset>
+                       <ValInit> ${LaX} ${LaY} ${LaZ} </ValInit>
+                       <Id>  TheIdLA </Id>
+                   </GpsOffset>
+             </#WHEN>
+
              <CalibrationCameraInc>
                 <Name> GenerateKC-Others   </Name>
                 <CalValueInit>
@@ -123,6 +138,9 @@
                    <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
                    <#WHEN  VTEST=${WithCenter}>
                          <IdBDCentre> Id-Centre </IdBDCentre>
+                   </#WHEN>
+                   <#WHEN VTEST=${WithLA}>
+                         <IdOffsetGPS>  TheIdLA </IdOffsetGPS>
                    </#WHEN>
                    
                    <PosValueInit>
@@ -288,6 +306,11 @@
                                           <Show> eNSM_Indiv     </Show>
                                           <ModePonderation> ePondL2 </ModePonderation>
                                    </Pond>
+                                   <PondAlti>
+                                          <EcartMesureIndiv>  ${SigmGPSAlti}  </EcartMesureIndiv>
+                                          <Show> eNSM_Indiv     </Show>
+                                          <ModePonderation> ePondL2 </ModePonderation>
+                                   </PondAlti>
                               </ObsCentrePDV>
                           </#WHEN>
 

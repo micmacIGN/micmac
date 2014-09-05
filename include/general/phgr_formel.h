@@ -158,6 +158,10 @@ class cSolBasculeRig;
 class cPIF_Bilin;
 
 
+class cEqOffsetGPS;
+class cBaseGPS;
+
+
 //   Il n'avait pas ete prevu de renumeroter les intervales. Quand le besoin
 //   est apparu, pour la resolution des systemes par cholesky creux, on a gere
 //   ca par une double numerotation :
@@ -661,6 +665,10 @@ class cSetEqFormelles : public cNameSpaceEqF
 
 	       cParamIntrinsequeFormel * NewParamIntrNoDist(bool isDC2M,CamStenope * aCamInit,bool ParamVar=true);
 
+               cBaseGPS * NewBaseGPS(const Pt3dr & aV0);
+               cEqOffsetGPS * NewEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS  &aBase,bool Code2Gen = false);
+               cEqOffsetGPS * NewEqOffsetGPS(cCameraFormelle & aRF,cBaseGPS  &aBase);
+
 	       cRotationFormelle * NewRotation
                                    (
                                         eModeContrRot,
@@ -799,9 +807,18 @@ class cSetEqFormelles : public cNameSpaceEqF
 	  const std::vector<REAL> & VAddEqFonctToSys
                (
                   cElCompiledFonc * aFonct,
+                  const std::vector<double> & aVPds,
+                  bool WithDerSec
+               );
+	  const std::vector<REAL> & VAddEqFonctToSys
+               (
+                  cElCompiledFonc * aFonct,
                   REAL aPds,
                   bool WithDerSec
                );
+
+
+
           REAL AddEqFonctToSys
                (
                   cElCompiledFonc * aFonct,

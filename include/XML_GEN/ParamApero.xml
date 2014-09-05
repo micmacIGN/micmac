@@ -538,6 +538,11 @@
               
 
 
+              <GpsOffset Nb="*">
+                  <ValInit Nb="1" Type="Pt3dr"> </ValInit>
+                  <Id Nb="1" Type="std::string"> </Id>
+              </GpsOffset>
+
               <CalibrationCameraInc Nb="*">
 	           <Name Nb="1" Type="std::string"> </Name>
                    <ConvCal Nb="?"  Type="eConventionsOrientation" Def="eConvApero_DistM2C" > </ConvCal>
@@ -615,6 +620,7 @@
                     <!-- S'il existe une base de donnees de centre de rattachement, typiquement
                          du GPS embarque -->
                    <IdBDCentre Nb="?" Type="std::string"> </IdBDCentre>
+                   <IdOffsetGPS  Nb="?" Type="std::string"> </IdOffsetGPS>
 
                    <!-- Si on veut avoir une initialisation progressive, mettre a false -->
                    <InitNow Nb="?" Type="bool" Def="true"> </InitNow>

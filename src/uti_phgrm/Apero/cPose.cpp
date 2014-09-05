@@ -154,7 +154,8 @@ cPoseCam::cPoseCam
     mLastEstimProfIsInit (false),
     mLasEstimtProf       (-1),
     mCdtImSec            (0),
-    mCamNonOrtho         (0)
+    mCamNonOrtho         (0),
+    mEqOffsetGPS         (0)
 {
     mPrec = this;
     mNext = this;
@@ -184,6 +185,17 @@ cPoseCam::cPoseCam
 
    mOrIntC2M = mOrIntM2C.inv();
    InitAvantCompens();
+
+   if (aPCI.IdOffsetGPS().IsInit())
+   {
+       cAperoOffsetGPS * anOfs = mAppli.OffsetNNOfName(aPCI.IdOffsetGPS().Val());
+       mEqOffsetGPS =  mAppli.SetEq().NewEqOffsetGPS(*mCF,*(anOfs->BaseUnk()));
+   }
+}
+
+cEqOffsetGPS *   cPoseCam::EqOffsetGPS()
+{
+   return mEqOffsetGPS;
 }
 
 int cPoseCam::NumCreate() const
@@ -1772,6 +1784,18 @@ Pt3dr  cPoseCam::AddObsCentre
       )
 {
    ELISE_ASSERT(DoAddObsCentre(anObs),"cPoseCam::AddObsCentre");
+
+   if (mEqOffsetGPS)
+   {
+       Pt3dr aResidu = mEqOffsetGPS->Residu(mObsCentre.mCentre);
+       std::cout << "Lever Arm, Cam: " << mName << " Residual " << aResidu  << " LA: " <<  mEqOffsetGPS->Base()->ValueBase() << "\n";
+       double aPdsP  = aPondPlani.PdsOfError(euclid(Pt2dr(aResidu.x,aResidu.y))/sqrt(2.));
+       double aPdsZ  = aPondAlti.PdsOfError(ElAbs(aResidu.z));
+       return mEqOffsetGPS->AddObs(mObsCentre.mCentre,Pt3dr(aPdsP,aPdsP,aPdsZ));
+   }
+
+
+
    Pt3dr aC0 = CurRot().ImAff(Pt3dr(0,0,0));
    Pt3dr aDif = aC0 - mObsCentre.mCentre;
    Pt2dr aDifPlani(aDif.x,aDif.y);

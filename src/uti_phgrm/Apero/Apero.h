@@ -153,6 +153,18 @@ class cRelEquivPose
 void CompleteSurfParam();
 
 
+class cAperoOffsetGPS
+{
+     public :
+          cAperoOffsetGPS(const cGpsOffset &,cAppliApero &);
+          const cGpsOffset & ParamCreate() const;
+          cBaseGPS *         BaseUnk();
+     private :
+          cAppliApero & mAppli;
+          cGpsOffset    mParam;
+          cBaseGPS *    mBaseUnk;
+};
+
 class cCalibCam
 {
      public :
@@ -470,6 +482,7 @@ class cPoseCam
           void ResetPtsVu();
           void AddPtsVu(const Pt3dr &);
           const std::vector<Pt3dr> & PtsVu() const;
+          cEqOffsetGPS *   EqOffsetGPS();
      private  :
 
           void AssertHasObsCentre() const;
@@ -578,6 +591,7 @@ class cPoseCam
           double                       mLasEstimtProf;
           cPoseCdtImSec *              mCdtImSec;
           CamStenope *                 mCamNonOrtho;
+          cEqOffsetGPS *               mEqOffsetGPS;
 };
 
 
@@ -1668,6 +1682,7 @@ class cPonderateur
     |                     ->  systeme formel global, depend de 1.2 pour initialisation
     |
     |      |  InitCalibCam()
+    |      |  InitOffsGps()
     |      |  InitPoses()
     |      |  InitPlans()
     |
@@ -2014,6 +2029,7 @@ class cAppliApero : public NROptF1vND
 
        void CheckInit(const cLiaisonsInit * ,cPoseCam *);
        bool SqueezeDOCOAC() const;  
+       cAperoOffsetGPS *  OffsetNNOfName(const std::string &);
     private :
 
        // Active uniquement si  mFileDebug != 0
@@ -2105,6 +2121,7 @@ class cAppliApero : public NROptF1vND
 
 	void InitInconnues();
 	void InitCalibCam();
+	void InitOffsGps();
 	void InitPoses();
 	void InitSurf();
 
@@ -2397,6 +2414,7 @@ class cAppliApero : public NROptF1vND
 
         std::map<std::string,cRelEquivPose *>   mRels;
         std::map<std::string,cImplemBlockCam *> mBlockCams;
+        std::map<std::string,cAperoOffsetGPS *> mDicoOffGPS;
         int                                     mNumSauvAuto;
 
          

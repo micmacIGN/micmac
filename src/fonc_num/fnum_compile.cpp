@@ -42,6 +42,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+std::vector<double> MakeVec1(const double & aVal)
+{
+    std::vector<double>  aRes;
+    aRes.push_back(aVal);
+    return aRes;
+}
+
+
 // dlopen etc ....
 
 int cSsBloc::theCptGlob = 0;
@@ -918,7 +926,6 @@ REAL TestMulMat(INT aNbTime, INT aNbVar)
     return aChrono.uval();
 }
 
-
 void cElCompiledFonc::SVD_And_AddEqSysSurResol
      (
          bool isCstr,
@@ -930,6 +937,23 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
 	 bool EnPtsCur
      )
 {
+   SVD_And_AddEqSysSurResol(isCstr,aVIndInit,MakeVec1(aPds),Pts, aSys,aSet,EnPtsCur);
+}
+
+
+void cElCompiledFonc::SVD_And_AddEqSysSurResol
+     (
+         bool isCstr,
+         const std::vector<INT> & aVIndInit,
+	 const std::vector<double> & aVPds,
+	 REAL *       Pts,
+         cGenSysSurResol & aSys,
+         cSetEqFormelles & aSet,
+	 bool EnPtsCur
+     )
+{
+  int aSzPds = aVPds.size();
+  ELISE_ASSERT((aSzPds==1) || (aSzPds==mDimOut),"Taille Pds incohe in cElCompiledFonc::SVD_And_AddEqSysSurResol");
 
   if (INT(aVIndInit.size())!=mNbCompVar)
   {
@@ -967,6 +991,7 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
    {
        for (INT aD= 0 ; aD < mDimOut ; aD++)
        {
+            double aPdsCur = aVPds[ElMin(aD,aSzPds-1)]; 
             aVInd.clear();
             aDer.clear();
             REAL aB = -mVal[aD];
@@ -1011,18 +1036,34 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
             }
             else
             {
-               aSys.GSSR_AddNewEquation_Indexe( &mBlocs,
-												&(mCompDer[aD][0]),
-												aVIndInit.size(),
-												aVInd,
-												aPds,
-												( ( aDer.size()==0 )?NULL:&(aDer[0]) ),
-												aB );
+               aSys.GSSR_AddNewEquation_Indexe
+               ( 
+                       &mBlocs,
+		       &(mCompDer[aD][0]),
+                       aVIndInit.size(),
+                       aVInd,
+                       aPdsCur,
+                       ( ( aDer.size()==0 )?NULL:&(aDer[0]) ),
+                       aB 
+                );
             }
        }
    }
 }
 
+void cElCompiledFonc::Std_AddEqSysSurResol
+     (
+         bool isCstr,
+	 const std::vector<double> & aVPds,
+	 REAL *       Pts,
+         cGenSysSurResol & aSys,
+         cSetEqFormelles & aSet,
+	 bool EnPtsCur
+     )
+
+{
+    SVD_And_AddEqSysSurResol(isCstr,mMapComp2Real,aVPds,Pts,aSys,aSet,EnPtsCur);
+}
 
 void cElCompiledFonc::Std_AddEqSysSurResol
      (
@@ -1033,10 +1074,10 @@ void cElCompiledFonc::Std_AddEqSysSurResol
          cSetEqFormelles & aSet,
 	 bool EnPtsCur
      )
-
 {
-    SVD_And_AddEqSysSurResol(isCstr,mMapComp2Real,aPds,Pts,aSys,aSet,EnPtsCur);
+   return Std_AddEqSysSurResol(isCstr,MakeVec1(aPds),Pts,aSys,aSet,EnPtsCur);
 }
+
 
 
 void cElCompiledFonc::AddContrainteEqSSR

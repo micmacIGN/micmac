@@ -630,6 +630,23 @@ void GenCodeRigiditeBlock()
    aBlock.GenCode();
 }
 
+/***********************************************************/
+/*                                                         */
+/*   BRAS DE LEVIER                                        */
+/*                                                         */
+/***********************************************************/
+
+cAperoOffsetGPS::cAperoOffsetGPS(const cGpsOffset & aParam,cAppliApero & anAppli) :
+    mAppli (anAppli),
+    mParam (aParam),
+    mBaseUnk (mAppli.SetEq().NewBaseGPS(mParam.ValInit()))
+{
+}
+
+
+const cGpsOffset & cAperoOffsetGPS::ParamCreate() const {return mParam;}
+cBaseGPS *         cAperoOffsetGPS::BaseUnk()           {return mBaseUnk;}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
