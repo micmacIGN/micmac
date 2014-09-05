@@ -1342,7 +1342,7 @@ void cAppliMMByPair::DoFusionGround()
 
 void cAppliMMByPair::DoFusionStatue()
 {
-   bool Test = false;
+   //bool Test = false;
    if (1)
    {
        std::list<std::string> aLCom;
