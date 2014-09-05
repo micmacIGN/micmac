@@ -410,7 +410,7 @@ int TP2GCP(std::string const &aNameFileMNT,
 			{
 				// version avec crop
 				std::vector<Pt2dr> vCoordImage;
-				double cmin,cmax,lmin,lmax;
+                double cmin = 0 ,cmax = 0 ,lmin = 0,lmax = 0;
 				for(int dy=-SzW;dy<=SzW;++dy)
 				{
 					for(int dx=-SzW;dx<=SzW;++dx)
@@ -638,7 +638,7 @@ int Ortho(std::string const &aNameFileMNT,
     ElAffin2D oriIntImaM2C;
 	std::auto_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
 	
-	bool verbose=true;
+//	bool verbose=true;
 	
 	// Recherche l'emprise de l'ortho a calculer
 
@@ -709,7 +709,7 @@ int Ortho(std::string const &aNameFileMNT,
 			Pmnt.y = (Pterr.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
 			Pterr.z = aMntImg->getr(Pmnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
 			// Position dans l'image
-			Pt2dr Pimg = aCamera->R3toF2(Pterr);
+//			Pt2dr Pimg = aCamera->R3toF2(Pterr);
 			double radio = img->getr(Pt2dr(c,l),NoData);
 			anTIm2D.oset(Portho,(int)radio);
 		}
