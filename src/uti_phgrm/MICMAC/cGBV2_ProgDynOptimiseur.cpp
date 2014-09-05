@@ -485,19 +485,32 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
             const Box2di &  aBox = aMat.Box();
             Pt2di aPRX;
 
-
+             uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
 //            for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
 //            {
                 for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
                 {
+
                     tCost & aCF = aMat[aPRX].CostFinal();
-                    if (mModeAgr==ePrgDAgrSomme) // Mode somme
+                    //if (mModeAgr==ePrgDAgrSomme) // Mode somme
                     {
                         aCF /= mNbDir;
+
                     }
+
+                    #ifdef CUDA_DEFCOR
+                    if(aMat[aPRX].GetCostInit() == 20000)
+                        IGpuOpt._FinalDefCor[ui2Ter] = 0;
+                    #endif
+
                     aMat[aPRX].SetCostInit(aCF);
                     aCF = 0;
                 }
+
+#ifdef CUDA_DEFCOR
+
+                        IGpuOpt._FinalDefCor[ui2Ter] /= mNbDir;
+#endif
 //            }
         }
     }
@@ -914,6 +927,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     }
                 }
 
+#ifdef CUDA_DEFCOR
+                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
+
+                IGpuOpt._FinalDefCor[ui2Ter] = IGpuOpt._FinalDefCor[ui2Ter] < aCostMin  ? 1 : 0;
+#endif
                 mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
             }
         }
@@ -927,7 +945,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 //        uint    nonCorrel = (nbDirection*2)-1;
         uint2   pTer;
-        uint    maxITSPI = 8;
+        uint    maxITSPI = 4;
         
         for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
         {
@@ -937,7 +955,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                 int2 curPT  = make_int2(pTer);
                 uint finalDefCor     = IGpuOpt._FinalDefCor[pTer];
 
-                if(finalDefCor >= 1 )
+                if(finalDefCor > 0 )
                 {
                     bool findZ = false;
                     ushort  iteSpi   = 1;

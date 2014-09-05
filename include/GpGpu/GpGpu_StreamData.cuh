@@ -165,6 +165,10 @@ public:
 
     void                __device__  AddValue(int id, T value);
 
+    template<bool sens> __device__ void SetOrAddValue(int id, T value);
+
+    template<bool sens> __device__ void SetOrAddValue(int id, T setValue,T addValue);
+
     //long int                __device__  GetGiD(){return _idG;}
 
     template<bool sens> __device__  void reverse();
@@ -208,6 +212,25 @@ void SimpleStream<T>::AddValue(int id, T value)
 {
     _globalStream[id] += value;
 }
+
+template<class T> template<bool sens> __device__
+void SimpleStream<T>::SetOrAddValue(int id, T value)
+{
+    if(sens)
+        SetValue(id,value);
+    else
+        AddValue(id,value);
+}
+
+template<class T> template<bool sens> __device__
+void SimpleStream<T>::SetOrAddValue(int id, T setValue, T addValue)
+{
+    if(sens)
+        SetValue(id,setValue);
+    else
+        AddValue(id,addValue);
+}
+
 
 template<class T> __device__
 void SimpleStream<T>::output()
