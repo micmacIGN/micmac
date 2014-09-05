@@ -46,6 +46,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                         */
 /*******************************************/
 
+std::string ExtractDigit(const std::string & aName,const std::string &  aDef)
+{
+     std::string   aNum;
+     for (const char * aC=aName.c_str() ; *aC ; aC++)
+     {
+          if (isdigit(*aC))
+          {
+                        aNum += *aC;
+          }
+     }
+     if (aNum=="") aNum = aDef;
+     return aNum;
+}
 
 
 void PutPt(FILE * aFP,const Pt3dr & aP,bool aModeBin,bool aDouble)
@@ -243,17 +256,8 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
             }
 
             {
-                std::string   aName = StdPrefixGen(aPC->Name());
-                std::string   aNum;
                 cElBitmFont & aFont =  cElBitmFont::BasicFont_10x8();
-                for (const char * aC=aName.c_str() ; *aC ; aC++)
-                {
-                    if (isdigit(*aC))
-                    {
-                        aNum += *aC;
-                    }
-                }
-                if (aNum=="") aNum ="00000";
+                std::string   aNum = ExtractDigit(StdPrefixGen(aPC->Name()),"0000");
 
                 const char * aC = aNum.c_str();
 

@@ -900,10 +900,14 @@ const Pack_Of_Pts * Linear_Gray_Level_Shading_Comp::values(const Pack_Of_Pts * p
       _in[_nb] = 1e40;
 
 
-//      INT verif_nb = compute_rec(0,-1);
-//      ASSERT_INTERNAL(verif_nb==_nb,"incoherence in gray level shading");
+ #if (DEBUG_INTERNAL)
+     INT verif_nb = compute_rec(0,-1);
+     ASSERT_INTERNAL(verif_nb==_nb,"incoherence in gray level shading");
+#else
+      compute_rec(0,-1);
+#endif
 
-      ASSERT_INTERNAL(compute_rec(0,-1)==_nb,"incoherence in gray level shading");
+      // ASSERT_INTERNAL(compute_rec(0,-1)==_nb,"incoherence in gray level shading");
 
 
       REAL fact_corr = fact / _corr_dir;

@@ -46,6 +46,7 @@ set(Photogram_Src_Files
 	${PHOTOGR_DIR}/transfo_xml_phgr2.cpp
 	${PHOTOGR_DIR}/cEq12Param.cpp
 	${PHOTOGR_DIR}/cCameraBilin.cpp
+	${PHOTOGR_DIR}/OffsetGPS.cpp
 )
 
 SOURCE_GROUP(Photogram FILES ${Photogram_Src_Files})

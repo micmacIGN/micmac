@@ -19929,6 +19929,17 @@ const cTplValGesInit< int > & cChoixImSec::CardMaxSub()const
 }
 
 
+cTplValGesInit< double > & cChoixImSec::PenalNbIm()
+{
+   return mPenalNbIm;
+}
+
+const cTplValGesInit< double > & cChoixImSec::PenalNbIm()const 
+{
+   return mPenalNbIm;
+}
+
+
 int & cChoixImSec::NbMin()
 {
    return mNbMin;
@@ -20079,6 +20090,14 @@ void  BinaryUnDumpFromFile(cChoixImSec & anObj,ELISE_fp & aFp)
         }
         else  anObj.CardMaxSub().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PenalNbIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PenalNbIm().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PenalNbIm().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.NbMin(),aFp);
     BinaryUnDumpFromFile(anObj.IdBdl(),aFp);
   { bool IsInit;
@@ -20170,6 +20189,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cChoixImSec & anObj)
     if (anObj.PatternSel().IsInit()) BinaryDumpInFile(aFp,anObj.PatternSel().Val());
     BinaryDumpInFile(aFp,anObj.CardMaxSub().IsInit());
     if (anObj.CardMaxSub().IsInit()) BinaryDumpInFile(aFp,anObj.CardMaxSub().Val());
+    BinaryDumpInFile(aFp,anObj.PenalNbIm().IsInit());
+    if (anObj.PenalNbIm().IsInit()) BinaryDumpInFile(aFp,anObj.PenalNbIm().Val());
     BinaryDumpInFile(aFp,anObj.NbMin());
     BinaryDumpInFile(aFp,anObj.IdBdl());
     BinaryDumpInFile(aFp,anObj.NbMinPtsHom().IsInit());
@@ -20203,6 +20224,8 @@ cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PatternSel"),anObj.PatternSel().Val())->ReTagThis("PatternSel"));
    if (anObj.CardMaxSub().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("CardMaxSub"),anObj.CardMaxSub().Val())->ReTagThis("CardMaxSub"));
+   if (anObj.PenalNbIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PenalNbIm"),anObj.PenalNbIm().Val())->ReTagThis("PenalNbIm"));
    aRes->AddFils(::ToXMLTree(std::string("NbMin"),anObj.NbMin())->ReTagThis("NbMin"));
    aRes->AddFils(::ToXMLTree(std::string("IdBdl"),anObj.IdBdl())->ReTagThis("IdBdl"));
    if (anObj.NbMinPtsHom().IsInit())
@@ -20241,6 +20264,8 @@ void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.CardMaxSub(),aTree->Get("CardMaxSub",1),int(6)); //tototo 
 
+   xml_init(anObj.PenalNbIm(),aTree->Get("PenalNbIm",1),double(0.3)); //tototo 
+
    xml_init(anObj.NbMin(),aTree->Get("NbMin",1)); //tototo 
 
    xml_init(anObj.IdBdl(),aTree->Get("IdBdl",1)); //tototo 
@@ -20266,7 +20291,7 @@ void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbSetPreSelAng(),aTree->Get("NbSetPreSelAng",1),int(5)); //tototo 
 }
 
-std::string  Mangling( cChoixImSec *) {return "4E276574D71DCA89FCBF";};
+std::string  Mangling( cChoixImSec *) {return "BEDB3F34A2BC6C96FF3F";};
 
 
 std::string & cChoixImMM::KeyAssoc()
@@ -20299,6 +20324,17 @@ cTplValGesInit< int > & cChoixImMM::CardMaxSub()
 const cTplValGesInit< int > & cChoixImMM::CardMaxSub()const 
 {
    return ChoixImSec().CardMaxSub();
+}
+
+
+cTplValGesInit< double > & cChoixImMM::PenalNbIm()
+{
+   return ChoixImSec().PenalNbIm();
+}
+
+const cTplValGesInit< double > & cChoixImMM::PenalNbIm()const 
+{
+   return ChoixImSec().PenalNbIm();
 }
 
 
@@ -20472,7 +20508,7 @@ void xml_init(cChoixImMM & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImSec(),aTree->Get("ChoixImSec",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImMM *) {return "44EED45AE49E59F7FC3F";};
+std::string  Mangling( cChoixImMM *) {return "B076D15C59D76B9FFE3F";};
 
 
 std::list< cExportCalib > & cSectionExport::ExportCalib()
@@ -20626,6 +20662,17 @@ cTplValGesInit< int > & cSectionExport::CardMaxSub()
 const cTplValGesInit< int > & cSectionExport::CardMaxSub()const 
 {
    return ChoixImMM().Val().ChoixImSec().CardMaxSub();
+}
+
+
+cTplValGesInit< double > & cSectionExport::PenalNbIm()
+{
+   return ChoixImMM().Val().ChoixImSec().PenalNbIm();
+}
+
+const cTplValGesInit< double > & cSectionExport::PenalNbIm()const 
+{
+   return ChoixImMM().Val().ChoixImSec().PenalNbIm();
 }
 
 
@@ -21063,7 +21110,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImMM(),aTree->Get("ChoixImMM",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "4A9B91FF0E52E2C7FD3F";};
+std::string  Mangling( cSectionExport *) {return "F06FBFE0D21155B9FC3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -21407,6 +21454,17 @@ const cTplValGesInit< int > & cEtapeCompensation::CardMaxSub()const
 }
 
 
+cTplValGesInit< double > & cEtapeCompensation::PenalNbIm()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().PenalNbIm();
+}
+
+const cTplValGesInit< double > & cEtapeCompensation::PenalNbIm()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().PenalNbIm();
+}
+
+
 int & cEtapeCompensation::NbMin()
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbMin();
@@ -21706,7 +21764,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "8A8ADA558C434EB8FF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "A64D92D86D1C85C3FF3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -21765,7 +21823,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "7C9202DB2EF2EAFAFC3F";};
+std::string  Mangling( cSectionCompensation *) {return "BA1F5F6FD60DBDE4FD3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -22688,6 +22746,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "FF72E873795E05DAFE3F";};
+std::string  Mangling( cParamApero *) {return "721F0D4E263708DEFD3F";};
 
 // };

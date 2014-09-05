@@ -65,8 +65,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_DIGEO_H_
 
 #include "StdAfx.h"
+//#include <memory>
+//#include <cctype>
+
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
+
+#include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
+
 
 //#define __DEBUG_DIGEO_STATS
 //#define __DEBUG_DIGEO
@@ -608,6 +614,75 @@ template <class Type> class cTplOctDig  : public cOctaveDigeo
         cTplOctDig(const cTplOctDig<Type> &);  // N.I.
 };
 
+void  calc_norm_grad
+(
+ double ** out,
+ double *** in,
+ const Simple_OPBuf_Gen & arg
+ );
+
+Fonc_Num norm_grad(Fonc_Num f);
+
+
+class cInterfImageAbs
+{
+public:
+	static cInterfImageAbs* create(std::string const &aName);	
+	
+	virtual Pt2di sz()const=0;
+	virtual int bitpp()const=0;
+	virtual GenIm::type_el type_el()const=0;
+	virtual double Som()const=0;
+	virtual TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const=0;
+	virtual TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const=0;
+
+};
+
+class cInterfImageTiff:public cInterfImageAbs
+{
+private:
+	std::auto_ptr<Tiff_Im> mTifF;
+public:
+	cInterfImageTiff(std::string const &aName);
+	
+	~cInterfImageTiff()
+	{}
+	Pt2di sz()const
+	{
+		return mTifF->sz();
+	}
+	int bitpp()const
+	{
+		return mTifF->bitpp();
+	}
+	GenIm::type_el type_el()const
+	{
+		return mTifF->type_el();
+	}
+	
+	double Som()const;
+	TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const;
+	TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const;
+};
+
+class cInterfImageLoader:public cInterfImageAbs
+{
+private:
+	std::auto_ptr<cInterfModuleImageLoader> mLoader; 
+public:
+	cInterfImageLoader(std::string const &aName);
+	~cInterfImageLoader()
+	{}
+	Pt2di sz()const
+	{
+		return Std2Elise(mLoader->Sz(1));
+	}
+	int bitpp()const;
+	GenIm::type_el type_el()const;
+	double Som()const;
+	TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const;
+	TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const;
+};
 
 
 class cImDigeo
@@ -659,7 +734,9 @@ class cImDigeo
        double SigmaN() const;
        double InitialDeltaSigma() const;
 
-       Tiff_Im TifF();
+	// Modif Greg pour le support JP2
+	//Tiff_Im TifF();
+	int bitpp()const{return mInterfImage->bitpp();}
      private :
 
 
@@ -672,8 +749,9 @@ class cImDigeo
         const cImageDigeo &           mIMD;
         int                           mNum;
         std::vector<cImInMem *>       mVIms;
-        Tiff_Im *                     mTifF;
-        double                        mResol;
+//        Tiff_Im *                     mTifF;
+	cInterfImageAbs *             mInterfImage;
+		double                        mResol;
 
         Pt2di                         mSzGlobR1;
         Box2di                        mBoxGlobR1;

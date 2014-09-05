@@ -644,7 +644,7 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
 
 
  const cTplValGesInit< cModuleImageLoader > &  aMIL = aGIC->ModuleImageLoader();
- cInterfModuleImageLoader * aRes = 0;
+	cInterfModuleImageLoader * aRes = 0;
  if ( ! aMIL.IsInit())
  {
 	 //on recupere l'extension
@@ -665,32 +665,26 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
 	 
 #if defined (__USE_JP2__)
 	// on teste l'extension
-	if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+	if ((ext==std::string("jp2")) || 
+		(ext==std::string("JP2")) || 
+		(ext==std::string("Jp2")))
 	{
-		std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
 		aRes = new JP2ImageLoader(DirImagesInit()+aName);
 	}
-	else 
-	{
-		aRes = new cStdTiffModuleImageLoader(*this,aName);
-	}
-#elif defined (__USE_IMAGEIGN__)
+#endif
+#if defined (__USE_IMAGEIGN__)
 	 // on teste l'extension
-	 if (  boost::algorithm::iequals(ext,std::string("jp2"))  || boost::algorithm::iequals(ext,std::string("ecw")) || boost::algorithm::iequals(ext,std::string("jpg")) 
-		 || boost::algorithm::iequals(ext,std::string("dmr")) || boost::algorithm::iequals(ext,std::string("dmr")) || boost::algorithm::iequals(ext,std::string("bil")))
+	 if ((aRes==NULL) && (boost::algorithm::iequals(ext,std::string("jp2"))|| 
+						 boost::algorithm::iequals(ext,std::string("ecw")) || 
+						 boost::algorithm::iequals(ext,std::string("jpg")) || 
+						 boost::algorithm::iequals(ext,std::string("dmr")) || 
+						 boost::algorithm::iequals(ext,std::string("bil"))))
 	 {
-		 std::cout<<"Format "<<ext<<" lu avec IgnSocleImageLoader"<<std::endl;
 		 aRes = new IgnSocleImageLoader(DirImagesInit()+aName);
 	 }
-	 else 
-	 {
-		  std::cout<<"Format "<<ext<<" lu avec cStdTiffModuleImageLoader"<<std::endl;
-		 aRes = new cStdTiffModuleImageLoader(*this,aName);
-	 }				
-	
-#else
-    aRes = new cStdTiffModuleImageLoader(*this,aName);
 #endif
+    if (aRes==NULL)
+		aRes = new cStdTiffModuleImageLoader(*this,aName);
  }
  else
  {

@@ -171,6 +171,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
               <ProportionClipMEC> ${X0Clip}  ${Y0Clip}  ${X1Clip}  ${Y1Clip} </ProportionClipMEC>
               <ClipMecIsProp> false </ClipMecIsProp>
         </#WHEN>
+<!--
         <#WHEN VTEST="false">
            <MMUseMasq3D>
                 <NameMasq> AperiCloud_AllRel_selectionInfo.xml </NameMasq>
@@ -179,6 +180,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                 <PrefixNuage> NuageImProf_Chantier-Ori </PrefixNuage>
            </MMUseMasq3D>
          </#WHEN>
+-->
 
 
 	<EtapeMEC>
@@ -498,7 +500,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
          <TmpPyr> Pyram/ </TmpPyr>
     </#IF>
     <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
+<!--
     <PreservedFile> NuageImProf_Chantier-Ori*xml </PreservedFile>
+-->
 
     <ByProcess>  ${NbProc} </ByProcess>
 <!--

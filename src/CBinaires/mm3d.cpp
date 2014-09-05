@@ -491,8 +491,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an aproximate model "));
     aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
-
-#if ELISE_QT_VERSION >= 4
+    aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
+    aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));
+#if (ELISE_QT_VERSION >= 4)
     aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 #endif
     cCmpMMCom CmpMMCom;

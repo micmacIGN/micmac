@@ -51,6 +51,7 @@ int ScaleNuage_main(int argc,char ** argv)
     Pt2dr  aP0(0,0);
     Pt2dr  aSz(-1,-1);
     bool   Old=false;
+    bool   InDirLoc = true;
 
 
     ElInitArgMain
@@ -62,6 +63,7 @@ int ScaleNuage_main(int argc,char ** argv)
     LArgMain()  << EAM(aSz,"Sz",true)
                     << EAM(aP0,"P0",true)
                     << EAM(Old,"Old",true,"For full compatibility, def=false")
+                    << EAM(InDirLoc,"InDirLoc",true,"Add input directory to output , def=true")
     );
 
     if(!MMVisualMode)
@@ -79,6 +81,7 @@ int ScaleNuage_main(int argc,char ** argv)
     }
     else
     {
+        std::string aDirBase =   InDirLoc ? DirOfFile(aNameNuage) : "";
         cXML_ParamNuage3DMaille aXML =   StdGetObjFromFile<cXML_ParamNuage3DMaille>
                                          (
                                                aNameNuage,
@@ -92,7 +95,7 @@ int ScaleNuage_main(int argc,char ** argv)
          }
          cXML_ParamNuage3DMaille aNewXML = CropAndSousEch(aXML,aP0,aSc,aSz);
 
-         std::string aNameNewMasq = DirOfFile(aNameNuage) + aNameOut+ "_Masq.tif";
+         std::string aNameNewMasq = aDirBase + aNameOut+ "_Masq.tif";
          aNewXML.Image_Profondeur().Val().Masq() =  NameWithoutDir(aNameNewMasq);
          Tiff_Im aFileMasq
                  (
@@ -114,7 +117,7 @@ int ScaleNuage_main(int argc,char ** argv)
 
          std::string aNameProfIn = DirOfFile(aNameNuage) +aXML.Image_Profondeur().Val().Image();
          Tiff_Im aFileProfIn(aNameProfIn.c_str());
-         std::string aNameNewProf = DirOfFile(aNameNuage) + aNameOut+ "_Prof.tif";
+         std::string aNameNewProf = aDirBase + aNameOut+ "_Prof.tif";
          aNewXML.Image_Profondeur().Val().Image() =  NameWithoutDir(aNameNewProf);
          Tiff_Im aFileProf
                  (
@@ -133,7 +136,7 @@ int ScaleNuage_main(int argc,char ** argv)
              aFileProf.out()
          );
 
-         MakeFileXML(aNewXML,DirOfFile(aNameNuage) + aNameOut+".xml");
+         MakeFileXML(aNewXML,aDirBase + aNameOut+".xml");
 
     }
 /*

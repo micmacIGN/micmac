@@ -14,7 +14,6 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
             <Symb>  PatternAllIm=XXXX  </Symb>
             <Symb>  Ext=XXXX  </Symb>
             <Symb>  SeuilP3d=1.5  </Symb>
-            <Symb>  TetaOpt=0.17   </Symb>
             <Symb>  PatternExport=.*   </Symb>
             <Symb>  CalPerIm=false   </Symb>
 
@@ -23,6 +22,8 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
             <Symb>  FocMax=1000000 </Symb>
             <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
 
+            <Symb>  PenalNbIm=0.3333   </Symb>
+            <Symb>  TetaOpt=0.17   </Symb>  <!-- 10 degre, why not -->
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -130,9 +131,10 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                                <IdBdl > Id_Pastis_Hom </IdBdl>
                                <NbMinPtsHom > 15 </NbMinPtsHom>
                                <TetaMinPreSel> 0.025</TetaMinPreSel>
-                               <TetaOpt > 0.17 </TetaOpt>
+                               <TetaOpt > ${TetaOpt} </TetaOpt>
                                <TetaMaxPreSel> 0.8 </TetaMaxPreSel>
                                <NbMaxPresel>  15</NbMaxPresel>
+                               <PenalNbIm> ${PenalNbIm} </PenalNbIm>
                           </ChoixImSec>
                      </ChoixImMM>
                      <ExportNuage>

@@ -267,7 +267,7 @@ CONFIGURE_FILE (
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 
 # Utiliser le driver Kakadu pour gerer les images JP2OOO
-IF(${WITH_KAKADU} AND NOT ${WITH_IGN_IMAGE})
+IF(${WITH_KAKADU})
         if(KAKADU_NO_FIND)
                 # to use when FindKAKAKDU.cmake does not exist (KAKADU_DIR must be set)
                 set( KAKADU_LIBRARY_DIRS "${KAKADU_DIR}/lib" )

@@ -384,6 +384,8 @@ int MPDtest_main (int argc,char** argv)
 
 }
 
+auto_ptr<char> toto;
+
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007

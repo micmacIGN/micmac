@@ -58,6 +58,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     std::vector<string> aVCom;
     int aBin  = 1;
     std::string aMask;
+    double aSeuilMask=1;
 
     int DoPly = 1;
     int DoXYZ = 0;
@@ -86,6 +87,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(aVCom,"Comments",true,"Commentary to add in the ply file (Def=None)", eSAM_NoInit )
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
                     << EAM(aMask,"Mask",true,"Supplementary mask image", eSAM_IsExistFile)
+                    << EAM(aSeuilMask,"SeuilMask", true, "Theshold for supplementary mask")
                     << EAM(aDyn,"Dyn",true,"Dynamic of attribute")
                     << EAM(DoPly,"DoPly",true,"Do Ply, def = true")
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
@@ -109,7 +111,14 @@ int Nuage2Ply_main(int argc,char ** argv)
     if (aNameOut=="")
       aNameOut = StdPrefix(aNameNuage) + ".ply";
 
-    cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage,"XML_ParamNuage3DMaille",aMask,aExagZ);
+    cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage,"XML_ParamNuage3DMaille","",aExagZ);
+    if (aMask !="")
+    {
+         Im2D_Bits<1> aMaskN= aNuage->ImDef();
+         Tiff_Im aMaskSup(aMask.c_str());
+         ELISE_COPY(aMaskN.all_pts(),aMaskSup.in() >= aSeuilMask, aMaskN.out());
+    }
+
     if (aSz.x <0)
         aSz = Pt2dr(aNuage->SzUnique());
 

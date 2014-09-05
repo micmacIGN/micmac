@@ -18,6 +18,8 @@
 	#define __TRACE_SYSTEM__
 #endif
 
+#include <memory>
+#include <cctype>
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
