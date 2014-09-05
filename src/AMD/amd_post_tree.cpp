@@ -30,7 +30,7 @@ GLOBAL Int AMD_post_tree
 				 * if node i is the kth node of the reordered
 				 * tree. */
     Int Stack [ ]		/* workspace of size nn */
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     , Int nn			/* nodes are in the range 0..nn-1. */
 #endif
 )
@@ -104,7 +104,7 @@ GLOBAL Int AMD_post_tree
 	    ASSERT (k <= nn) ;
 	}
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 	AMD_DEBUG1 (("\nStack:")) ;
 	for (h = head ; h >= 0 ; h--)
 	{

@@ -109,7 +109,7 @@ GLOBAL void AMD_preprocess
 	}
     }
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     ASSERT (AMD_valid (n, n, Rp, Ri) == AMD_OK) ;
     for (j = 0 ; j < n ; j++)
     {

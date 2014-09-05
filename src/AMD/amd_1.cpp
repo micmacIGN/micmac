@@ -81,7 +81,7 @@ GLOBAL void AMD_1
      * least size-n elbow room is enforced. */
     ASSERT (iwlen >= pfree + n) ;
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     for (p = 0 ; p < iwlen ; p++) Iw [p] = EMPTY ;
 #endif
 
@@ -166,7 +166,7 @@ GLOBAL void AMD_1
 	}
     }
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     for (j = 0 ; j < n-1 ; j++) ASSERT (Sp [j] == Pe [j+1]) ;
     ASSERT (Sp [n-1] == pfree) ;
 #endif

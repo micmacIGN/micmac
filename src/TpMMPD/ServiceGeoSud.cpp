@@ -410,7 +410,7 @@ int TP2GCP(std::string const &aNameFileMNT,
 			{
 				// version avec crop
 				std::vector<Pt2dr> vCoordImage;
-				double cmin,cmax,lmin,lmax;
+                double cmin = 0 ,cmax = 0 ,lmin = 0,lmax = 0;
 				for(int dy=-SzW;dy<=SzW;++dy)
 				{
 					for(int dx=-SzW;dx<=SzW;++dx)
@@ -442,8 +442,8 @@ int TP2GCP(std::string const &aNameFileMNT,
 						}
 					}
 				}
-				Pt2di PminCrop((int)round(cmin-1.),(int)round(lmin-1.));
-				Pt2di SzCrop((int)round(cmax-PminCrop.x+2),(int)round(lmax-PminCrop.y+2));
+				Pt2di PminCrop((int)round_ni(cmin-1.),(int)round_ni(lmin-1.));
+				Pt2di SzCrop((int)round_ni(cmax-PminCrop.x+2),(int)round_ni(lmax-PminCrop.y+2));
 				//std::cout << "Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
 				std::auto_ptr<TIm2D<U_INT1,INT4> > cropImg(createTIm2DFromFile<U_INT1,INT4>(aNameFileImage,PminCrop,SzCrop));
 				if (cropImg.get()==NULL)
@@ -638,7 +638,7 @@ int Ortho(std::string const &aNameFileMNT,
     ElAffin2D oriIntImaM2C;
 	std::auto_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
 	
-	bool verbose=true;
+//	bool verbose=true;
 	
 	// Recherche l'emprise de l'ortho a calculer
 
@@ -687,8 +687,8 @@ int Ortho(std::string const &aNameFileMNT,
 			ymax = Pterr.y;
 	}
 	std::cout << "Emprise Terrain de l'image : "<<xmin<<" "<<ymin<<" "<<xmax<<" "<<ymax<<std::endl;
-	Pt2dr P0Ortho(round(xmin),round(ymin));
-	Pt2di SzOrtho((int)round((xmax-xmin)/resolution),(int)round((ymax-ymin)/resolution));
+	Pt2dr P0Ortho(round_ni(xmin),round_ni(ymin));
+	Pt2di SzOrtho((int)round_ni((xmax-xmin)/resolution),(int)round_ni((ymax-ymin)/resolution));
 	std::cout << "Ortho : "<<P0Ortho.x<<" "<<P0Ortho.y<<" / "<<SzOrtho.x<<" "<<SzOrtho.y<<std::endl;
 	
 	// Creation de l'image
@@ -709,7 +709,7 @@ int Ortho(std::string const &aNameFileMNT,
 			Pmnt.y = (Pterr.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
 			Pterr.z = aMntImg->getr(Pmnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
 			// Position dans l'image
-			Pt2dr Pimg = aCamera->R3toF2(Pterr);
+//			Pt2dr Pimg = aCamera->R3toF2(Pterr);
 			double radio = img->getr(Pt2dr(c,l),NoData);
 			anTIm2D.oset(Portho,(int)radio);
 		}

@@ -307,10 +307,13 @@ cImDigeo::cImDigeo
    //Provisoire
    ELISE_ASSERT(! aIMD.PredicteurGeom().IsInit(),"Asservissement pas encore gere");
 
-   Pt2di aSzIR1 = mBoxImR1.sz();
-   double aNbLoad  = (double(aSzIR1.x) * double(aSzIR1.y)  * mInterfImage->bitpp() ) /8.0;
+   //Pt2di aSzIR1 = mBoxImR1.sz();
+
+   mInterfImage->bitpp();
 	// ToDo ...
+
 	/*
+   double aNbLoad  = (double(aSzIR1.x) * double(aSzIR1.y)  * mInterfImage->bitpp() ) /8.0;
    if (aNbLoad<aIMD.NbOctetLimitLoadImageOnce().Val())
    {
       mFileInMem = Ptr_D2alloc_im2d(mInterfImage->type_el(),aSzIR1.x,aSzIR1.y);
@@ -539,11 +542,11 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 			  aF = GaussSepFilter(aF,aSigma,1e-3);
 		 }
     #endif
-    
+    /*
     Pt2dr aTrR = Pt2dr( aBoxIn._p0 )*mResol;
     Pt2dr aPSc = Pt2dr( mResol, mResol );
 
-	/*
+
     aF = (mResol==1.0)                             ?
          trans(aF,aBoxIn._p0)                      :
          (
@@ -709,7 +712,7 @@ double cImDigeo::GradMoyCorrecDyn() const
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -725,17 +728,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
