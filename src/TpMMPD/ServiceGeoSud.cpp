@@ -442,8 +442,8 @@ int TP2GCP(std::string const &aNameFileMNT,
 						}
 					}
 				}
-				Pt2di PminCrop((int)round(cmin-1.),(int)round(lmin-1.));
-				Pt2di SzCrop((int)round(cmax-PminCrop.x+2),(int)round(lmax-PminCrop.y+2));
+				Pt2di PminCrop((int)round_ni(cmin-1.),(int)round_ni(lmin-1.));
+				Pt2di SzCrop((int)round_ni(cmax-PminCrop.x+2),(int)round_ni(lmax-PminCrop.y+2));
 				//std::cout << "Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
 				std::auto_ptr<TIm2D<U_INT1,INT4> > cropImg(createTIm2DFromFile<U_INT1,INT4>(aNameFileImage,PminCrop,SzCrop));
 				if (cropImg.get()==NULL)
@@ -687,8 +687,8 @@ int Ortho(std::string const &aNameFileMNT,
 			ymax = Pterr.y;
 	}
 	std::cout << "Emprise Terrain de l'image : "<<xmin<<" "<<ymin<<" "<<xmax<<" "<<ymax<<std::endl;
-	Pt2dr P0Ortho(round(xmin),round(ymin));
-	Pt2di SzOrtho((int)round((xmax-xmin)/resolution),(int)round((ymax-ymin)/resolution));
+	Pt2dr P0Ortho(round_ni(xmin),round_ni(ymin));
+	Pt2di SzOrtho((int)round_ni((xmax-xmin)/resolution),(int)round_ni((ymax-ymin)/resolution));
 	std::cout << "Ortho : "<<P0Ortho.x<<" "<<P0Ortho.y<<" / "<<SzOrtho.x<<" "<<SzOrtho.y<<std::endl;
 	
 	// Creation de l'image
