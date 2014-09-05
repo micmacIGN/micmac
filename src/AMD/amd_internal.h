@@ -29,13 +29,13 @@
  */
 
 /* ========================================================================= */
-/* === NDEBUG ============================================================== */
+/* === NDEBUG_AMD ========================================================== */
 /* ========================================================================= */
 
 /*
  * Turning on debugging takes some work (see below).   If you do not edit this
  * file, then debugging is always turned off, regardless of whether or not
- * -DNDEBUG is specified in your compiler options.
+ * -DNDEBUG_AMD is specified in your compiler options.
  *
  * If AMD is being compiled as a mexFunction, then MATLAB_MEX_FILE is defined,
  * and mxAssert is used instead of assert.  If debugging is not enabled, no
@@ -49,14 +49,11 @@
     lines ensure that debugging is turned off.
 */
 
-
-#ifndef NDEBUG
-#define NDEBUG
-#endif
+#define NDEBUG_AMD
 
 /*
     To enable debugging, uncomment the following line:
-#undef NDEBUG
+#undef NDEBUG_AMD
 */
 
 /* ------------------------------------------------------------------------- */
@@ -66,7 +63,7 @@
 /* from stdlib.h:  size_t, malloc, free, realloc, and calloc */
 #include <stdlib.h>
 
-#if !defined(NPRINT) || !defined(NDEBUG)
+#if !defined(NPRINT) || !defined(NDEBUG_AMD)
 /* from stdio.h:  printf.  Not included if NPRINT is defined at compile time.
  * Fopen and fscanf are used when debugging. */
 #include <stdio.h>
@@ -271,7 +268,7 @@ GLOBAL Int AMD_post_tree
     const Int Sibling [ ],
     Int Order [ ],
     Int Stack [ ]
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     , Int nn
 #endif
 ) ;
@@ -291,62 +288,62 @@ GLOBAL void AMD_preprocess
 /* debugging definitions */
 /* ------------------------------------------------------------------------- */
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 
-/* from assert.h:  assert macro */
-#include <assert.h>
+	/* from assert.h:  assert macro */
+	#include <assert.h>
 
-#ifndef EXTERN
-#define EXTERN extern
-#endif
+	#ifndef EXTERN
+		#define EXTERN extern
+	#endif
 
-EXTERN Int AMD_debug ;
+	EXTERN Int AMD_debug ;
 
-GLOBAL void AMD_debug_init ( char *s ) ;
+	GLOBAL void AMD_debug_init ( char *s ) ;
 
-GLOBAL void AMD_dump
-(
-    Int n,
-    Int Pe [ ],
-    Int Iw [ ],
-    Int Len [ ],
-    Int iwlen,
-    Int pfree,
-    Int Nv [ ],
-    Int Next [ ],
-    Int Last [ ],
-    Int Head [ ],
-    Int Elen [ ],
-    Int Degree [ ],
-    Int W [ ],
-    Int nel
-) ;
+	GLOBAL void AMD_dump
+	(
+		 Int n,
+		 Int Pe [ ],
+		 Int Iw [ ],
+		 Int Len [ ],
+		 Int iwlen,
+		 Int pfree,
+		 Int Nv [ ],
+		 Int Next [ ],
+		 Int Last [ ],
+		 Int Head [ ],
+		 Int Elen [ ],
+		 Int Degree [ ],
+		 Int W [ ],
+		 Int nel
+	) ;
 
-#ifdef ASSERT
-#undef ASSERT
-#endif
+	#ifdef ASSERT
+		#undef ASSERT
+	#endif
 
-/* Use mxAssert if AMD is compiled into a mexFunction */
-#ifdef MATLAB_MEX_FILE
-#define ASSERT(expression) (mxAssert ((expression), ""))
+	/* Use mxAssert if AMD is compiled into a mexFunction */
+	#ifdef MATLAB_MEX_FILE
+		#define ASSERT(expression) (mxAssert ((expression), ""))
+	#else
+		#define ASSERT(expression) (assert (expression))
+	#endif
+
+	#define AMD_DEBUG0(params) { PRINTF (params) ; }
+	#define AMD_DEBUG1(params) { if (AMD_debug >= 1) PRINTF (params) ; }
+	#define AMD_DEBUG2(params) { if (AMD_debug >= 2) PRINTF (params) ; }
+	#define AMD_DEBUG3(params) { if (AMD_debug >= 3) PRINTF (params) ; }
+	#define AMD_DEBUG4(params) { if (AMD_debug >= 4) PRINTF (params) ; }
+
 #else
-#define ASSERT(expression) (assert (expression))
-#endif
 
-#define AMD_DEBUG0(params) { PRINTF (params) ; }
-#define AMD_DEBUG1(params) { if (AMD_debug >= 1) PRINTF (params) ; }
-#define AMD_DEBUG2(params) { if (AMD_debug >= 2) PRINTF (params) ; }
-#define AMD_DEBUG3(params) { if (AMD_debug >= 3) PRINTF (params) ; }
-#define AMD_DEBUG4(params) { if (AMD_debug >= 4) PRINTF (params) ; }
-
-#else
-
-/* no debugging */
-#define ASSERT(expression)
-#define AMD_DEBUG0(params)
-#define AMD_DEBUG1(params)
-#define AMD_DEBUG2(params)
-#define AMD_DEBUG3(params)
-#define AMD_DEBUG4(params)
+	/* no debugging */
+	#define ASSERT(expression)
+	#define AMD_DEBUG0(params)
+	#define AMD_DEBUG1(params)
+	#define AMD_DEBUG2(params)
+	#define AMD_DEBUG3(params)
+	#define AMD_DEBUG4(params)
 
 #endif

@@ -378,8 +378,7 @@ OrientationRTO::OrientationRTO(std::string const &nom):ModuleOrientation(nom)
          std::cout << "CANNOT OPEN:" << nom << "\n";
          assert(false);
       }
-      else
-         ElFclose(aFP);
+      ElFclose(aFP);
   }
   MinImageX = 0;
   MinImageY = 0;

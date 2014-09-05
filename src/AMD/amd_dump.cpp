@@ -9,7 +9,7 @@
 /* web: http://www.cise.ufl.edu/research/sparse/amd                          */
 /* ------------------------------------------------------------------------- */
 
-/* Debugging routines for AMD.  Not used if NDEBUG is not defined at compile-
+/* Debugging routines for AMD.  Not used if NDEBUG_AMD is not defined at compile-
  * time (the default).  See comments in amd_internal.h on how to enable
  * debugging.  Not user-callable.
  */
@@ -17,7 +17,7 @@
 #include "StdAfx.h"
 
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 
 /* This global variable is present only when debugging */
 GLOBAL Int AMD_debug = -999 ;		/* default is no debug printing */
