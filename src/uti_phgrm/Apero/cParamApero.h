@@ -5434,6 +5434,9 @@ class cChoixImSec
         cTplValGesInit< int > & CardMaxSub();
         const cTplValGesInit< int > & CardMaxSub()const ;
 
+        cTplValGesInit< double > & PenalNbIm();
+        const cTplValGesInit< double > & PenalNbIm()const ;
+
         int & NbMin();
         const int & NbMin()const ;
 
@@ -5473,6 +5476,7 @@ class cChoixImSec
         std::string mKeyAssoc;
         cTplValGesInit< std::string > mPatternSel;
         cTplValGesInit< int > mCardMaxSub;
+        cTplValGesInit< double > mPenalNbIm;
         int mNbMin;
         std::string mIdBdl;
         cTplValGesInit< int > mNbMinPtsHom;
@@ -5510,6 +5514,9 @@ class cChoixImMM
 
         cTplValGesInit< int > & CardMaxSub();
         const cTplValGesInit< int > & CardMaxSub()const ;
+
+        cTplValGesInit< double > & PenalNbIm();
+        const cTplValGesInit< double > & PenalNbIm()const ;
 
         int & NbMin();
         const int & NbMin()const ;
@@ -5609,6 +5616,9 @@ class cSectionExport
 
         cTplValGesInit< int > & CardMaxSub();
         const cTplValGesInit< int > & CardMaxSub()const ;
+
+        cTplValGesInit< double > & PenalNbIm();
+        const cTplValGesInit< double > & PenalNbIm()const ;
 
         int & NbMin();
         const int & NbMin()const ;
@@ -5773,6 +5783,9 @@ class cEtapeCompensation
 
         cTplValGesInit< int > & CardMaxSub();
         const cTplValGesInit< int > & CardMaxSub()const ;
+
+        cTplValGesInit< double > & PenalNbIm();
+        const cTplValGesInit< double > & PenalNbIm()const ;
 
         int & NbMin();
         const int & NbMin()const ;

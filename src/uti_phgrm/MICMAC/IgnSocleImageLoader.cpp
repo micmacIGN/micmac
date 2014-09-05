@@ -24,7 +24,7 @@ tPInt            aSz\
 )\
 {\
 	bool verbose = 0;\
-	if (verbose) std::cout<<"[IgnSocleImageLoader::LoadNCanaux] START"<<std::endl;\
+	if (verbose) std::cout<<"[IgnSocleImageLoader::LoadNCanaux] START "<<std::endl;\
 	if (verbose) std::cout<<"[IgnSocleImageLoader::LoadNCanaux] lecture de ("<<aSz.real()<<", "<<aSz.imag()<<\
 			") pixels dans "<<boost::filesystem::path(m_Nomfic).stem()<<" a dezoom "<<aDeZoom<<" a partir de ("<<aP0File.real()<<", "<<aP0File.imag()<<") et on le colle dans le buffer a ("<<aP0Im.real()<<", "<<aP0Im.imag()<<") "<<std::endl;\
 	ign::image::io::ImageInput img(m_Nomfic);\
@@ -69,7 +69,7 @@ template <class Type,class TyBase> Im2D<Type,TyBase>::~Im2D()
 {
 }
 
-	
+
 	///
 	///
 	///
@@ -77,10 +77,18 @@ template <class Type,class TyBase> Im2D<Type,TyBase>::~Im2D()
 		m_Nomfic(nomfic)
 	{
 		
+		std::cout << "=========================================="<<std::endl;
+		std::cout << "ATTENTION l'utilisation ne pas utiliser le socle pour lire les images dans MicMac"<<std::endl;
+		std::cout << "Pb avec la qualite des sous ech a cause du driver Jp2KAK de GDAL"<<std::endl;
+		std::cout << "les sous ech sont fait sur 8 bits si l'image d'origine est sur 8bits!"<<std::endl;
+		std::cout << "=========================================="<<std::endl;
+		
+		IGN_THROW_EXCEPTION("[IgnSocleImageLoader::IgnSocleImageLoader -- Bug connu, ne pas utiliser le socle pour la lecture des images Jp2]");
+		
 		ign::image::io::ImageInput img(nomfic);
 		if (!img.isValid())
 		{
-			std::cout<<"image invalide pour le socle IGN"<<std::endl;
+			std::cout<<"image invalide pour le socle IGN : "<<nomfic<<std::endl;
 		}
 		m_Nbc = img.numBands();
 		
@@ -110,6 +118,35 @@ template <class Type,class TyBase> Im2D<Type,TyBase>::~Im2D()
 		{
 			m_Type = eFloat;
 		}
+		
+		
+		// Debug Greg
+		// On exporte la pyramide d'image pour controler les sous ech
+		/*
+		for(int aDZ=4;aDZ<=32;aDZ*=2)
+		{
+			Pt2di sz = Std2Elise(Sz(aDZ));
+			TIm2D<REAL4,REAL8> anIm(sz);
+			LoadCanalCorrel
+			(
+			 sLowLevelIm<REAL4>
+			 (
+			  anIm._the_im.data_lin(),
+			  anIm._the_im.data(),
+			  Elise2Std(sz)
+			  ),
+			 aDZ,
+			 cInterfModuleImageLoader::tPInt(0,0),
+			 Elise2Std(Pt2di(0,0)),
+			 Elise2Std(anIm.sz())
+			 );
+			std::ostringstream oss;
+			oss << nomfic<< "_debug_IgSocle_"<<aDZ<<".tif";
+			Tiff_Im imgout(oss.str().c_str(), anIm.sz(),GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+			ELISE_COPY(anIm._the_im.all_pts(),anIm._the_im.in(),imgout.out());
+		}
+		 */
+		// Fin Debug Greg
 	}	
 	
 	///

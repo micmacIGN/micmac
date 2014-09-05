@@ -48,6 +48,8 @@ int AperoChImMM_main(int argc,char ** argv)
     std::string aPatternExport=".*";
     bool ExpTxt=0;
     bool CalPerIm=0;
+    double aPenalPerIm = 0.333;
+    double aTetaOpt = 0.17;
 
     Pt2dr aFocs;
 
@@ -63,6 +65,8 @@ int AperoChImMM_main(int argc,char ** argv)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=False)", eSAM_IsBool)
                     << EAM(aPatternExport,"PatExp",true,"Pattern to limit export (Def=.* , i.e. all are exported)", eSAM_IsBool)
                     << EAM(aFocs,"Focs",true,"Interval of Focal")
+                    << EAM(aPenalPerIm,"PenPerIm",true,"Penality per image, to limite size, def = 0.3")
+                    << EAM(aTetaOpt,"TetaOpt",true,"Optimal angle of stereoscopy, in radian, def=0.17 (+or- 10 degree)")
     );
 
 
@@ -93,6 +97,8 @@ int AperoChImMM_main(int argc,char ** argv)
                        + std::string(" +AeroIn=-") + AeroIn
                        + std::string(" +Out=-") + Out
                        + std::string(" +PatternExport=") + QUOTE(aPatternExport) + std::string(" ")
+                       + std::string(" +PenalNbIm=") + ToString(aPenalPerIm) + std::string(" ")
+                       + std::string(" +TetaOpt=") + ToString(aTetaOpt) + std::string(" ")
                     ;
     if (EAMIsInit(&CalPerIm))
          aCom =  aCom + " +CalPerIm=" +ToString(CalPerIm);

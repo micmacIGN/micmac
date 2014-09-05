@@ -71,6 +71,11 @@ bool IsModeAdditif(SELECTION_MODE aMode)
    return (aMode==ALL) || (aMode==ADD_INSIDE) || (aMode==ADD_OUTSIDE) ;
 }
 
+bool IsModeOutside(SELECTION_MODE aMode)
+{
+   return  (aMode==ADD_OUTSIDE) ||  (aMode==SUB_OUTSIDE);
+}
+
 SELECTION_MODE ModeInverse(SELECTION_MODE aMode)
 {
    switch (aMode)
@@ -124,7 +129,7 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
      public :
         virtual ~cMasq3DOrthoRaster() ;
         static cMasq3DOrthoRaster * ByPolyg3D(SELECTION_MODE aModeSel,const std::vector<Pt3dr> aPolygone,double aNbPix);
-        cMasq3DOrthoRaster(SELECTION_MODE aSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq);
+        cMasq3DOrthoRaster(SELECTION_MODE aSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq,int aValOut);
 
         Pt2dr ToIm(const Pt3dr & aP3) const
         {
@@ -132,7 +137,7 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
         }
         bool HasAnswer(const Pt3dr & aP) const
         {
-              return mTMasq.get(round_ni(ToIm(aP)),0);
+              return mTMasq.get(round_ni(ToIm(aP)),mValOut);
         }
 
         void Test(const std::vector<Pt3dr> aPol3);
@@ -143,6 +148,7 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
         ElRotation3D mRE2P;
         Im2D_Bits<1> mMasq;
         TIm2DBits<1> mTMasq;
+        int mValOut;
 };
 
 
@@ -212,13 +218,14 @@ bool cMasq3DConst::HasAnswer(const Pt3dr & aP) const
 /***************************************************************/
 
 
-cMasq3DOrthoRaster::cMasq3DOrthoRaster(SELECTION_MODE aModeSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq) :
+cMasq3DOrthoRaster::cMasq3DOrthoRaster(SELECTION_MODE aModeSel,Pt2dr aP0,double aScal,ElRotation3D aE2P,Im2D_Bits<1> aImMasq,int aValOut) :
      cMasq3DPartiel (aModeSel),
      mP0 (aP0),
      mScale (aScal),
      mRE2P (aE2P),
      mMasq (aImMasq),
-     mTMasq (mMasq)
+     mTMasq (mMasq),
+     mValOut (aValOut)
 {
 }
 
@@ -270,7 +277,8 @@ cMasq3DOrthoRaster * cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const
 
     Pt2di aSzI = round_up(aSzR*aScal);
 
-    Im2D_Bits<1> aMasq(aSzI.x,aSzI.y,0);
+    int aValOut = IsModeOutside( aModeSel) ?  1 : 0;
+    Im2D_Bits<1> aMasq(aSzI.x,aSzI.y,aValOut);
 
 
     std::vector<Pt2di> aVP2I;
@@ -280,13 +288,13 @@ cMasq3DOrthoRaster * cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const
     }
 // quick_poly
 
-    ELISE_COPY(polygone(ToListPt2di(aVP2I)),1,aMasq.out());
+    ELISE_COPY(polygone(ToListPt2di(aVP2I)),1-aValOut,aMasq.out());
 
 
 
 
-    cMasq3DOrthoRaster * aRes = new cMasq3DOrthoRaster(aModeSel,aMin,aScal,aE2P,aMasq);
-    // aRes.Test(aPol3);
+    cMasq3DOrthoRaster * aRes = new cMasq3DOrthoRaster(aModeSel,aMin,aScal,aE2P,aMasq,aValOut);
+     // aRes->Test(aPol3);
     return aRes;
 }
 
@@ -418,8 +426,10 @@ cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::strin
 
 void Test3dQT()
 {
-   std::string aNameMasq3D  = "/media/data2/Jeux-Test/Soldat-Temple-Hue/AperiCloud_AllRel_selectionInfo.xml";
-   std::string aNameNuage = "/media/data2/Jeux-Test/Soldat-Temple-Hue/MTD-Image-IMGP7048.JPG/Fusion_NuageImProf_LeChantier_Etape_1.xml";
+   std::string aDir = "/home/marc/TMP/EPI/Soldat-Temple-Hue/";
+   std::string aIma = "IMGP7048.JPG";
+   std::string aNameMasq3D  = aDir + "AperiCloud_CalPerIm_selectionInfo.xml";
+   std::string aNameNuage =  aDir + "MTD-Image-" + aIma + "/Fusion_NuageImProf_LeChantier_Etape_1.xml";
    std::string aNameSh= StdPrefix(aNameNuage) + "Shade.tif";
 
    cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d(aNameMasq3D);
@@ -490,6 +500,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
     std::string aNameMasq3D;
     std::string aNameNuage;
     std::string aNameRes;
+    std::string aNameMasq="";
 
     bool AcceptNew2d=false;
     int aDilate=2;
@@ -501,11 +512,20 @@ int Masq3Dto2D_main(int argc,char ** argv)
                     << EAMC(aNameNuage,"Name of Raster Nuage")
                     << EAMC(aNameRes,"Name of Resulting 2D masq"),
         LArgMain()  << EAM(AcceptNew2d,"OkNew2d",true, "Accept New 2D Image, Def=false")
-                     << EAM(aDilate,"Dilate",true, "Dilatation of masq")
+                    << EAM(aDilate,"Dilate",true, "Dilatation of masq")
+                    << EAM(aNameMasq,"MasqNuage",true, "Masq of Nuage if dif of XML File")
     );
 
    cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d(aNameMasq3D);
-   cElNuage3DMaille * aNuage = cElNuage3DMaille::FromFileIm(aNameNuage);
+
+   cXML_ParamNuage3DMaille aXmlPN = StdGetFromSI(aNameNuage,XML_ParamNuage3DMaille);
+   cElNuage3DMaille * aNuage = cElNuage3DMaille::FromParam
+                               (
+                                    aXmlPN,
+                                    DirOfFile(aNameNuage),
+                                    aNameMasq,
+                                    1.0
+                               );
 
    if (! ELISE_fp::exist_file(aNameRes))
    {
@@ -534,7 +554,7 @@ int Masq3Dto2D_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -550,17 +570,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

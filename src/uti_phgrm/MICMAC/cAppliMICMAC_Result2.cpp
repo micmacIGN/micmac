@@ -555,8 +555,8 @@ void cAppliMICMAC::DoMasq3D(cEtapeMecComp & anEtape,const cMMUseMasq3D & aMasq)
 /*
 std::cout << "aFM.name"  << aFM.name() << "##" << anEtape.NameXMLNuage()  << "\n";
 */
-std::cout << aCom << "\n";
-getchar();
+//  std::cout << aCom << "\n";
+//  getchar();
 
    System(aCom);
 // getchar();

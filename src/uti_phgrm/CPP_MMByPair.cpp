@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+extern double DynCptrFusDepthMap;
+
 
 
 
@@ -130,6 +132,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mDoRIE;      // Do Reech Inv Epip
       int          mTimes;
       bool         mDebugCreatE;
+      std::string  mMasq3D;
 };
 
 /*****************************************************************/
@@ -335,6 +338,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mAverNbPix (0.0),
    mByEpi     (false),
    mSetMasters(0),
+   mCalPerIm  (false),
    mNbAlti    (0),
    mSomAlti   (0.0)
 {
@@ -522,6 +526,10 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero)
                          + aBlank + QUOTE(mEASF.mFullName)
                          + aBlank + mOri;
 
+      if (mCalPerIm)
+      {
+         aCom = aCom + " CalPerIm=true ";
+      }
       if (ExApero)
          System(aCom);
 
@@ -896,9 +904,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mStrQualOr    ("Low"),
     mHasVeget     (false),
     mSkyBackGround(true),
-    mDoPlyMM1P    (true),
+    mDoPlyMM1P    (false),
     mScalePlyMM1P (3),
-    mScalePlyFus  (2),
+    mScalePlyFus  (-1),
     mDoOMF        (false),
     mRIEInParal   (false),
     mDoRIE        (true),
@@ -923,11 +931,13 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      }
      else if (mType==eStatue)
      {
-        mStrQualOr = "Low";
+        //mStrQualOr = "Low";
+        mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
         mAddMMImSec = true;
         mHasVeget = false;
         mSkyBackGround = true;
         mDoRIE = true;
+        mZoomF = 4;
      }
      else if (mType==eTestIGN)
      {
@@ -964,7 +974,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low with statue)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
                     << EAM(mDoPlyMM1P,"DoPlyMM1P",true,"Do ply after MM1P, def=false")
                     << EAM(mScalePlyMM1P,"ScalePlyMM1P",true,"Down Scale of ply after MM1P Def=3")
-                    << EAM(mScalePlyFus,"ScalePlyFus",true,"Down Scale of ply after Fus, Def=2 (<0 if unused)")
+                    << EAM(mScalePlyFus,"ScalePlyFus",true,"Down Scale of ply after Fus, Def=-1 (<0 if unused)")
                     << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mTimes,"TimesExe",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip", eSAM_InternalUse)
@@ -972,6 +982,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mHasVeget,"HasVeg",true,"Scene contains vegetation (Def=true on Ground)")
                     << EAM(mSkyBackGround,"HasSBG",true,"Scene has sky (or homogeneous) background (Def=false on Ground)")
                     << EAM(mMasterImages,"Masters",true,"If specified, only pair containing a master will be selected")
+                    << EAM(mMasq3D,"Masq3D",true,"If specified the 3D masq")
+                    << EAM(mCalPerIm,"CalPerIm",true,"true id Calib per Im were used, def=false")
   );
 
   if (!MMVisualMode)
@@ -1154,6 +1166,8 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " HasSBG=" + ToString(mSkyBackGround)
                       ;
 
+     if (EAMIsInit(&mMasq3D)) aMatchCom = aMatchCom + " Masq3D=" +mMasq3D + " ";
+
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
 
@@ -1328,6 +1342,8 @@ void cAppliMMByPair::DoFusionGround()
 
 void cAppliMMByPair::DoFusionStatue()
 {
+   bool Test = false;
+   if (1)
    {
        std::list<std::string> aLCom;
        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
@@ -1343,8 +1359,13 @@ void cAppliMMByPair::DoFusionStatue()
        }
        cEl_GPAO::DoComInParal(aLCom);
    }
+   else
+   {
+       for(int aK=0 ; aK<20 ; aK++) std::cout << "SKIPP (tmp) MergeDepthMap , enter to go on\n";
+       getchar();
+   }
 
-   if (mScalePlyFus>0)
+   if (EAMIsInit(&mScalePlyFus) && (mScalePlyFus > 0))
    {
 
        std::list<std::string> aLComPly;
@@ -1355,11 +1376,40 @@ void cAppliMMByPair::DoFusionStatue()
                                + " Attr=" +   mEASF.mDir+(*anITS).attr().mIma->mNameIm
                                + " Scale=" + ToString(mScalePlyFus)
                                + " Out=" + DirMTDImage(*anITS) + "Fus"+(*anITS).attr().mIma->mNameIm + ".ply"
+                               +  " SeuilMask=" + ToString(DynCptrFusDepthMap*1.99)
+                               +  " Mask=" + DirMTDImage(*anITS) +"Fusion_NuageImProf_LeChantier_Etape_1_Cptr.tif"
                            ;
              aLComPly.push_back(aCom);
              std::cout << aCom << "\n";
        }
+       // if (Test) getchar();
        cEl_GPAO::DoComInParal(aLComPly);
+   }
+
+   double aFactRed = 3.0;
+   {
+       ELISE_fp::MkDir(mEASF.mDir+"Fusion-0/");
+       std::list<std::string> aLComRed;
+       for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+       {
+            std::string aCom1 =      MMBinFile(MM3DStr) + " ScaleNuage  "
+                               + DirMTDImage(*anITS) + "Fusion_NuageImProf_LeChantier_Etape_1.xml "
+                               + "Fusion-0/NuageRed" + (*anITS).attr().mIma->mNameIm 
+                               + " " + ToString(aFactRed)
+                               + " InDirLoc=false";
+                           ;
+
+            std::string aCom2 =  MMBinFile(MM3DStr) + " ScaleIm  "
+                               + DirMTDImage(*anITS) + "Fusion_NuageImProf_LeChantier_Etape_1_Cptr.tif "
+                               + " " + ToString(aFactRed)
+                               + " Out=Fusion-0/CptRed" + (*anITS).attr().mIma->mNameIm  + ".tif "
+                           ;
+
+             aLComRed.push_back(aCom1);
+             aLComRed.push_back(aCom2);
+             // std::cout << aCom2 << "\n";
+       }
+       cEl_GPAO::DoComInParal(aLComRed);
    }
 
 

@@ -39,6 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "FusionNuage.h"
 
+std::string cAppliFusionNuage::NameFileInput(const std::string & aNameIm,const std::string aPost)
+{
+   return mDir + "Fusion-0/NuageRed" + aPost ;
+}
+
 
 cAppliFusionNuage::cAppliFusionNuage
 (

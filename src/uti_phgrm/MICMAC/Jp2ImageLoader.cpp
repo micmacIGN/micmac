@@ -34,8 +34,6 @@
 JP2ImageLoader::JP2ImageLoader(std::string const &nomfic):
 m_Nomfic(nomfic)
 {
-
-    //std::cout << "constructeur : "<<nomfic<<std::endl;
     bool verbose = false;
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
@@ -43,7 +41,6 @@ m_Nomfic(nomfic)
     kdu_codestream          codestream;
 
     m_Input=&m_Source;
-    //std::cout << "m_Input  : "<<m_Input<<std::endl;
     jp2_ultimate_src.open(nomfic.c_str());
     if (!m_Source.open(&jp2_ultimate_src))
     {
@@ -105,10 +102,6 @@ m_Nomfic(nomfic)
 
     // fin des modifications
 
-
-
-
-
     int num_components = codestream.get_num_components(true);
     if (verbose) std::cout << "Nombre de components : "<<num_components<<std::endl;
 
@@ -153,6 +146,13 @@ m_Nomfic(nomfic)
 
 
     if (verbose) std::cout << "Fin du constructeur"<<std::endl;
+	
+	
+	// Debug Greg
+	// On exporte la pyramide d'image pour controler les sous ech
+	//exportPyramide(nomfic,1,32);
+	// Fin Debug Greg
+	
 }
 
 ///
@@ -170,6 +170,9 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
     if (verbose) std::cout << "LoadNCanaux en unsigned short"<<std::endl;
     int precision = 16;
     bool signe = false;
+	
+	// si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
+	bool corrDyn =  (m_Type == eUnsignedChar);
 
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
@@ -199,10 +202,6 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
     }
     //std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
 
-    int * precisions = new int[aVImages.size()];
-    bool *is_signed = new bool[aVImages.size()];
-    for(size_t i=0;i<aVImages.size();++i) precisions[i]=precision;
-    for(size_t i=0;i<aVImages.size();++i) is_signed[i]=signe;
     kdu_dims dims,mdims;
     // Position de l'origine en coord fichier (cad plein resolution)
     dims.pos=kdu_coords(aP0File.real()*aDeZoom,aP0File.imag()*aDeZoom);
@@ -231,6 +230,12 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
 
     kdu_thread_env env, *env_ref=NULL;
     int n, num_components = codestream.get_num_components(true);
+	
+	int * precisions = new int[num_components];
+    bool *is_signed = new bool[num_components];
+    for(size_t i=0;i<num_components;++i) precisions[i]=precision;
+    for(size_t i=0;i<num_components;++i) is_signed[i]=signe;
+	
     kdu_dims *comp_dims = new kdu_dims[num_components];
     for (n=0; n < num_components; n++)
         codestream.get_dims(n,comp_dims[n],true);
@@ -258,6 +263,17 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
     {
         if (reDeZoom<=0) for(n=0;n<num_components;++n) stripe_bufs[n] = (short*)&(aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()]);
         decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
+		
+		// Par defaut Kakadu adapte la dynamique des valeurs en sortie a la precision demande
+		// donc si l'image d'origine est sur 8 bits, il faut corriger la dynamique
+		if (corrDyn)
+		{
+			for(n=0;n<num_components;++n)
+                for(int c=0;c<aSz.real();++c)
+                    aVImages[n].mData[aP0Im.imag()+l][c] /= 256;
+		}
+		
+		
         if (reDeZoom>0)
         {
             for(n=0;n<num_components;++n)
@@ -298,13 +314,17 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
                                  tPInt            aSz
                                  )
 {
-    bool verbose  = 0;
+    bool verbose  = false;
     if (verbose) std::cout << "LoadNCanaux en float "<<aDeZoom<<" - "<<aP0Im.real()<<" "<<aP0Im.imag()<<" - "<<aP0File.real()<<" "<<aP0File.imag()<<" - "<<aSz.real()<<" "<<aSz.imag()<<std::endl;
-    bool avecDeZoom=false;
-
     int precision = 16;
     bool signe = false;
-
+	
+	// si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
+	float dyn = 1.;
+	if (m_Type == eUnsignedChar) 
+		dyn = 1./256.;
+	
+	// si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
     jp2_family_src          jp2_ultimate_src;
@@ -320,30 +340,22 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
     m_Source.read_header();
     codestream.create(m_Input);
 
-    int dz = aDeZoom;
+    //int dz = aDeZoom;
     int max_layers = 0;
     int discard_levels = 0;
     while(((1 << discard_levels) & aDeZoom)==0) ++discard_levels;
     if (verbose) std::cout << "discard_levels : "<<discard_levels<<std::endl;
-    int minDwtLevels = 0;
-    if (avecDeZoom)
-        minDwtLevels = std::max<int>(0,std::min<int>(codestream.get_min_dwt_levels(),discard_levels-1));
-    else
-        minDwtLevels = codestream.get_min_dwt_levels();
+    int minDwtLevels = codestream.get_min_dwt_levels();
     int reDeZoom = 0;
     if (discard_levels>minDwtLevels)
     {
         reDeZoom = (1<<(discard_levels-minDwtLevels));
         discard_levels=minDwtLevels;
-        dz = (1 << discard_levels);
-        if (verbose) std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
+        //dz = (1 << discard_levels);
+        //if (verbose) std::cout << "On fait un dz "<<dz<<" puis on fera un ssech "<<reDeZoom<<std::endl;
     }
     if (verbose) std::cout << "reDeZoom : "<<reDeZoom<<std::endl;
 
-    int * precisions = new int[aVImages.size()];
-    bool *is_signed = new bool[aVImages.size()];
-    for(size_t i=0;i<aVImages.size();++i) precisions[i]=precision;
-    for(size_t i=0;i<aVImages.size();++i) is_signed[i]=signe;
     kdu_dims dims,mdims;
     // Position de l'origine en coord fichier (cad plein resolution)
     dims.pos=kdu_coords(aP0File.real()*aDeZoom,aP0File.imag()*aDeZoom);
@@ -373,6 +385,12 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
 
     kdu_thread_env env, *env_ref=NULL;
     int n, num_components = codestream.get_num_components(true);
+	
+	int * precisions = new int[num_components];
+    bool *is_signed = new bool[num_components];
+    for(size_t i=0;i<num_components;++i) precisions[i]=precision;
+    for(size_t i=0;i<num_components;++i) is_signed[i]=signe;
+	
     kdu_dims *comp_dims = new kdu_dims[num_components];
     for (n=0; n < num_components; n++)
         codestream.get_dims(n,comp_dims[n],true);
@@ -385,7 +403,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
     {
         for(n=0;n<num_components;++n)
         {
-            stripe_bufs[n] = new kdu_int16[comp_dims[n].size.x];
+            stripe_bufs[n] = new kdu_int16 [comp_dims[n].size.x];
         }
     }
 
@@ -423,7 +441,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
                 for(n=0;n<num_components;++n)
                 {
                     float* pt_out = &(aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()]);
-                    kdu_int16* pt_buf = &(stripe_bufs[n][0]);
+                    kdu_uint16* pt_buf = (kdu_uint16*)&(stripe_bufs[n][0]);
                     for(int c=0;c<aSz.real();++c)
                     {
                         if (ll==0) (*pt_out) = 0;
@@ -435,7 +453,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
 
                         if (ll==(reDeZoom-1))
                         {
-                            (*pt_out) /=(float)norm;
+                            (*pt_out) = (*pt_out) / (float)norm * dyn;
                         }
                         ++pt_out;
                     }
@@ -444,10 +462,10 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
         }
         else
         {
-            decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions);
+            decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
             for(n=0;n<num_components;++n)
                 for(int c=0;c<aSz.real();++c)
-                    aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()+c] = (float)((stripe_bufs[n][c]));
+                    aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()+c] = (float)(((unsigned short*)(stripe_bufs[n]))[c]) * dyn;
         }
     }
 

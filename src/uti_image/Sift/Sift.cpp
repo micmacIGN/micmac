@@ -537,11 +537,11 @@ int Siftator::orientations( RefinedPoint &i_p, Real_ o_angles[m_maxNbAngles] )
     return nbAngles;
 }
 
-// o_descritpor must be of size m_descriptorSize
+// o_descritpor must be of size SIFT_DESCRIPTOR_SIZE
 void Siftator::normalizeDescriptor( Real_ *o_descriptors )
 {
     Real_  norm   = 0;
-    int   i      = m_descriptorSize;
+    int   i      = SIFT_DESCRIPTOR_SIZE;
     Real_ *itDesc = o_descriptors;
     while ( i-- ){
         norm += ( *itDesc )*( *itDesc );
@@ -553,7 +553,7 @@ void Siftator::normalizeDescriptor( Real_ *o_descriptors )
         norm = std::numeric_limits<Real_>::epsilon()+fast_maths::fast_sqrt( norm );
     #endif
 
-    i      = m_descriptorSize;
+    i      = SIFT_DESCRIPTOR_SIZE;
     itDesc = o_descriptors;
     while ( i-- ){
         *itDesc = ( *itDesc )/norm;
@@ -561,10 +561,10 @@ void Siftator::normalizeDescriptor( Real_ *o_descriptors )
     }
 }
 
-// o_descritpor must be of size m_descriptorSize]
+// o_descritpor must be of size SIFT_DESCRIPTOR_SIZE]
 void Siftator::truncateDescriptor( Real_ *o_descriptors )
 {
-    int   i      = m_descriptorSize;
+    int   i      = SIFT_DESCRIPTOR_SIZE;
     Real_ *itDesc = o_descriptors;
     while ( i-- ){
         if ( ( *itDesc )>m_descriptorTreshold )
@@ -573,7 +573,7 @@ void Siftator::truncateDescriptor( Real_ *o_descriptors )
     }
 }
 
-// o_descritpor must be of size m_descriptorSize]
+// o_descritpor must be of size SIFT_DESCRIPTOR_SIZE]
 void Siftator::descriptor( RefinedPoint &i_p, Real_ i_angle, Real_ *o_descriptor )
 {
     // keypoint fractional geometry
@@ -613,7 +613,7 @@ void Siftator::descriptor( RefinedPoint &i_p, Real_ i_angle, Real_ *o_descriptor
         }
     #endif
 
-    std::fill( o_descriptor, o_descriptor+m_descriptorSize, 0 ) ;
+    std::fill( o_descriptor, o_descriptor+SIFT_DESCRIPTOR_SIZE, 0 ) ;
 
     /* Center the scale space and the descriptor on the current keypoint.
     * Note that dpt is pointing to the bin of center (SBP/2,SBP/2,0).
@@ -720,7 +720,7 @@ bool write_siftPoint_list( const string &i_filename, const list<SiftPoint> &i_li
     if ( !f ) return false;
 
     uint32_t nbPoints  = i_list.size(),
-			 dimension = m_descriptorSize;
+			 dimension = SIFT_DESCRIPTOR_SIZE;
     f.write( (char*)&nbPoints, 4 );
     f.write( (char*)&dimension, 4 );
     list<SiftPoint>::const_iterator it = i_list.begin();
@@ -742,8 +742,8 @@ bool read_siftPoint_list( const string &i_filename, vector<SiftPoint> &o_list )
     f.read( (char*)&dimension, 4 );
 
     o_list.resize( nbPoints );
-    if ( dimension!=m_descriptorSize ){
-		cerr << "ERROR: read_siftPoint_list " << i_filename << ": descriptor's dimension is " << dimension << " and should be " << m_descriptorSize << endl;
+    if ( dimension!=SIFT_DESCRIPTOR_SIZE ){
+		cerr << "ERROR: read_siftPoint_list " << i_filename << ": descriptor's dimension is " << dimension << " and should be " << SIFT_DESCRIPTOR_SIZE << endl;
 		return false;
 	}
 	if ( nbPoints==0 ) return true;

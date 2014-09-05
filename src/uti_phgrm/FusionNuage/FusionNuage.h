@@ -145,6 +145,7 @@ class cParamFuNu
 class cAppliFusionNuage
 {
     public :
+       std::string NameFileInput(const std::string & aNameIm,const std::string aPost);
        cAppliFusionNuage
        (
             const cParamFuNu & aParam,

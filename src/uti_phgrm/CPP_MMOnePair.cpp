@@ -105,6 +105,7 @@ class cMMOnePair
       const std::string mNameMasqFinal;
       bool              mHasVeget;
       bool              mSkyBackgGound;
+      std::string       mMasq3D;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -192,6 +193,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)", eSAM_InternalUse)
                     << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
                     << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
+                    << EAM(mMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
   );
 
   mNoOri = (mNameOriInit=="NONE");
@@ -359,7 +361,6 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
 
    if (mDebugCreatE)
       return;
-// std::cout << aComPly << "\n"; getchar();
 
 
     if (false)
@@ -370,20 +371,23 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     {
         for (int aStep=1 ; aStep<=mStepEnd ; aStep++)
         {
+           if (! mDoOnlyMF)
+           {
+              MatchTwoWay(aStep,aStep+1);
+           }
            if ((aStep==1) && mCreateEpip)  // Mis ici pour Nuage2Ply
            {
               GenerateMTDEpip(true);
               GenerateMTDEpip(false);
            }
-           if (! mDoOnlyMF)
-           {
-              MatchTwoWay(aStep,aStep+1);
-           }
+
+
+
            int aDeZoom = mVZoom[aStep];
 
            if (     mDoMR
                  && ((aDeZoom!= mZoomF) || (aStep==mStepEnd))
-                 && (aDeZoom<=8)
+                 && (aDeZoom<=16)
                  && ((!mDoOnlyMF) || (aStep==mStepEnd))
               )
            {
@@ -513,8 +517,6 @@ void cAppliMMOnePair::SymetriseMasqReentrant()
 
 void cAppliMMOnePair::GenerateMTDEpip(bool MasterIs1)
 {
-for (int aK=0 ; aK<111 ; aK++) std::cout << "C'EST LA " << __FILE__ << " " << __LINE__ << "\n";
-
     std::string aNamA = MasterIs1 ? mNameIm1 : mNameIm2;
     std::string aNamB = MasterIs1 ? mNameIm2 : mNameIm1;
     std::string aNameInitA = MasterIs1 ? mNameIm1Init : mNameIm2Init;
@@ -541,8 +543,14 @@ for (int aK=0 ; aK<111 ; aK++) std::cout << "C'EST LA " << __FILE__ << " " << __
        {
             aNuage.Image_Profondeur().Val().Correl().SetVal("Score-AR.tif");
        }
+       else 
+            aNuage.Image_Profondeur().Val().Correl().SetNoInit();
 
        MakeFileXML(aNuage,aNameOut);
+       if (IsLast)
+       {
+            MakeFileXML(aNuage,aNameIn);
+       }
 
     }
 }
@@ -622,6 +630,27 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                                ("Masq_LeChantier_DeZoom" + ToString(mVZoom[aStep+1]) +  ".tif")  ;
      aNameMasq =      mEASF.mDir +  LocDirMec2Im(aNamA,aNamB) + aNameMasq;
      std::string aNameNew = aPref + "_Masq1_Glob.tif";
+
+
+    
+
+     if (EAMIsInit(&mMasq3D))
+     {
+          std::string aNameNuage =   mEASF.mDir+LocDirMec2Im(aNamA,aNamB) + "NuageImProf_Chantier-Ori_Etape_"+ ToString(aStep) +".xml";
+          std::string aCom =   MM3dBinFile("TestLib")
+                           + " Masq3Dto2D "
+                           + mMasq3D + std::string(" ")
+                           + aNameNuage  + std::string(" ")
+                           + aNameNew
+                           + " MasqNuage=" + aNameNew;
+
+// std::cout << "AVANT ################\n";
+// std::cout << aCom << "\n";
+          System(aCom);
+// std::cout << "APRES ################\n";
+     }
+
+
      if (aLast)
      {
            ELISE_fp::CpFile(aNameNew,aNameMasq);
@@ -639,7 +668,6 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
         int aZoomCur = mVZoom[aStep];
         int aZoomNext = mVZoom[aStep+1];
         double aRatio = aZoomNext / double(aZoomCur);
-// std::cout << "RRRRRrrrrrrrrrrrrrr " << aRatio << "\n"; getchar();
 
         aFonc = StdFoncChScale_Bilin(aFonc,Pt2dr(0,0),Pt2dr(aRatio,aRatio));
      }

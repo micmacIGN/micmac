@@ -400,6 +400,9 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
 /*                                                 */
 /***************************************************/
 
+extern std::string ExtractDigit(const std::string & aName,const std::string &  aDef);
+
+
 bool ShowACISec = false;
 #define TetaMaxOccup 1.5
 #define NbOccup      50
@@ -706,6 +709,9 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
      }
 
 
+    double aBestScoreGlob = -10;
+    cOneSolImageSec aBestSol;
+    
     // ON TESTE LES SUBSET 
     int aMaxCard = ElMin(aNbImAct,aCIM.CardMaxSub().Val()); 
     for (int aCard=1 ; aCard<=aMaxCard  ; aCard++)
@@ -782,7 +788,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
              std::cout  << "==================================\n";
 
          std::vector<int> aBestSet = aSubSub[aVSetPond[aKBestSet].mKS];
-         double aScore = aBestGain  - aCard /20.0;
+         double aScore = aBestGain  - aCard  * aCIM.PenalNbIm().Val();
          // double aBestGain = aVSetPond[0].mGain;
          if (ShowACISec)
          {
@@ -804,6 +810,11 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
          aSol.Coverage() =  aBestGain;
          aSol.Score() =  aScore;
          aISM.Sols().push_back(aSol);
+         if (aScore > aBestScoreGlob)
+         {
+              aBestScoreGlob = aScore;
+              aBestSol = aSol;
+         }
     }
 
 
@@ -839,7 +850,14 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
 
    std::string aName = mDC + mICNM->Assoc1To1(aCIM.KeyAssoc(),aPC0->Name(),true);
    MakeFileXML(aISM,aName);
-   std::cout << "DONE " << aPC0->Name() << "\n";
+   std::cout << "Chx : " << aPC0->Name()  << " Nb:" <<  aBestSol.Images().size() ;
+   int aCpt=0;
+   for (std::list<std::string>::iterator itS=aBestSol.Images().begin(); itS!=aBestSol.Images().end() ; itS++)
+   {
+       std::cout << ((aCpt==0) ? " [" : "|") <<  ExtractDigit(*itS,"XXXX") ;
+       aCpt++;
+   }
+   std::cout << "] Cov:" << aBestSol.Coverage()  << "\n";
 }
 
 

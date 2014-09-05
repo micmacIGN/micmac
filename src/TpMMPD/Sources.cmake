@@ -8,6 +8,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ExoMM_SimulTieP.cpp
 	${TDPPMD_DIR}/RefineModel.cpp
 	${TDPPMD_DIR}/Dimap2Grid.cpp
+	${TDPPMD_DIR}/ServiceGeoSud.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

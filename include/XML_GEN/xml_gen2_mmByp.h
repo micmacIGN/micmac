@@ -190,6 +190,7 @@ class cAppliWithSetImage
       int NbAlti() const;
       double AltiMoy() const;
       cSetName *   mSetMasters;
+      bool mCalPerIm;
 
 
    private :

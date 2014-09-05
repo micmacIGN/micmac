@@ -72,6 +72,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 // static bool  LocBug=false;
 
 // Type est le type de stockage des cartes : apparemment sur des float par defaut
+
+double DynCptrFusDepthMap=10;
+
 template <class Type> class  cLoadedCP;        // Represente une carte de profondeur chargee
 template <class Type> class cFusionCarteProf;  // Represente l'appli globale
 
@@ -1238,7 +1241,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                    aTImMasq.oset(aQ0,1);
                    const cElPile & aPz = (*anIt)[aZ];
                    aTImCorrel.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aPz.P()*255)))));
-                   aTImCptr.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aPz.CPtr()*20.0)))));
+                   aTImCptr.oset(aQ0,ElMax(0,ElMin(255,(round_ni(aPz.CPtr()*DynCptrFusDepthMap )))));
 
                 }
                 else

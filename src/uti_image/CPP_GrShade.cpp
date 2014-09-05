@@ -294,6 +294,7 @@ int GrShade_main(int argc,char ** argv)
                          | (pW ? (pW->ogray()<<(Gr)) : Output::onul())
                      );
                   }
+
                }
                aSTot  = SPds;
             }

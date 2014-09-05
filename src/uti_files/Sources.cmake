@@ -16,6 +16,7 @@ set(uti_files_Src_Files
     ${UTI_FILES_DIR}/CPP_Prep4masq.cpp
     ${UTI_FILES_DIR}/CPP_GenCode.cpp
     ${UTI_FILES_DIR}/CPP_Xml2Dmp.cpp
+    ${UTI_FILES_DIR}/VersionedFileHeader.cpp
 )
 
 SOURCE_GROUP(uti_files FILES ${uti_files_Src_Files})
