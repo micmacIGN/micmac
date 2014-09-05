@@ -820,10 +820,10 @@ public:
 		std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
 		std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
 		
-		// On fait une mise Ã  jour des Z
+		// On fait une mise Ã  jour des Z
 		for(size_t i=0;i<vPtImgMaster.size();++i)
 		{
-			double err;
+//			double err;
 			vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i]);
 		}		
 
