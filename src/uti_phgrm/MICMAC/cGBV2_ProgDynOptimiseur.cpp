@@ -484,8 +484,9 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
             const Box2di &  aBox = aMat.Box();
             Pt2di aPRX;
-
+#ifdef CUDA_DEFCOR
              uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
+#endif
 //            for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
 //            {
                 for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
