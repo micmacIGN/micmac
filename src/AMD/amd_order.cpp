@@ -33,7 +33,7 @@ GLOBAL Int AMD_order
     size_t nzaat, slen ;
     double mem = 0 ;
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     AMD_debug_init ("amd") ;
 #endif
 

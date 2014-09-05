@@ -624,7 +624,7 @@ GLOBAL void AMD_2
 	Degree [i] = Len [i] ;
     }
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     AMD_DEBUG1 (("\n======Nel "ID" initial\n", nel)) ;
     AMD_dump (n, Pe, Iw, Len, iwlen, pfree, Nv, Next, Last,
 		Head, Elen, Degree, W, -1) ;
@@ -701,7 +701,7 @@ GLOBAL void AMD_2
     while (nel < n)
     {
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 	AMD_DEBUG1 (("\n======Nel "ID"\n", nel)) ;
 	if (AMD_debug >= 2)
 	{
@@ -1000,7 +1000,7 @@ GLOBAL void AMD_2
 	/* FLIP (Elen (me)) is now the degree of pivot (including
 	 * diagonal part). */
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 	AMD_DEBUG2 (("New element structure: length= "ID"\n", pme2-pme1+1)) ;
 	for (pme = pme1 ; pme <= pme2 ; pme++) AMD_DEBUG3 ((" "ID"", Iw[pme]));
 	AMD_DEBUG3 (("\n")) ;
@@ -1544,7 +1544,7 @@ GLOBAL void AMD_2
 	    nms_ldl += (s + lnzme)/2 ;
 	}
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 	AMD_DEBUG2 (("finalize done nel "ID" n "ID"\n   ::::\n", nel, n)) ;
 	for (pme = Pe [me] ; pme <= Pe [me] + Len [me] - 1 ; pme++)
 	{
@@ -1648,7 +1648,7 @@ GLOBAL void AMD_2
 /* Now the parent of j is Pe [j], or EMPTY if j is a root.  Elen [e] > 0
  * is the size of element e.  Elen [i] is EMPTY for unordered variable i. */
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     AMD_DEBUG2 (("\nTree:\n")) ;
     for (i = 0 ; i < n ; i++)
     {

@@ -59,7 +59,7 @@ GLOBAL void AMD_postorder
 	}
     }
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
     {
 	Int nels, ff, nchild ;
 	AMD_DEBUG1 (("\n\n================================ AMD_postorder:\n"));
@@ -105,7 +105,7 @@ GLOBAL void AMD_postorder
 	if (Nv [i] > 0 && Child [i] != EMPTY)
 	{
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 	    Int nchild ;
 	    AMD_DEBUG1 (("Before partial sort, element "ID"\n", i)) ;
 	    nchild = 0 ;
@@ -166,7 +166,7 @@ GLOBAL void AMD_postorder
 		Sibling [fprev] = bigf ;
 	    }
 
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 	    AMD_DEBUG1 (("After partial sort, element "ID"\n", i)) ;
 	    for (f = Child [i] ; f != EMPTY ; f = Sibling [f])
 	    {
@@ -198,7 +198,7 @@ GLOBAL void AMD_postorder
 	{
 	    AMD_DEBUG1 (("Root of assembly tree "ID"\n", i)) ;
 	    k = AMD_post_tree (i, k, Child, Sibling, Order, Stack
-#ifndef NDEBUG
+#ifndef NDEBUG_AMD
 		, nn
 #endif
 		) ;
