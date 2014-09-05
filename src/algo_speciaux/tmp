@@ -1,0 +1,32 @@
+void init_var();
+void PIREMATR()  ;
+void ECRICOMP()   ;
+void ECRIBOOL() ;
+void ECRICHEM();
+void ALGOHONGR()  ;
+void LECTURE() ;
+void ALGO1() ;
+void ALGO2()   ;
+void ALGO3() ;
+void VERIF();
+void INIMAT();
+void LECMATRI() ;
+void ECRIMAT()  ;
+void INITECGRA();
+void CHEMOPT() ;
+void MODIAFFE();
+void AFFECOPT1();
+void LECAFFPRO()  ;
+void GENEAUTO();
+void INIREC();
+void AUGRECOBL();
+void COMPLREC() ;
+void RANGNONCOU();
+void MINICOL() ;
+void INIADD();
+void MINIGLOB();
+void NOUVZERIND();
+void MAJMATRI();
+void MAJREC() ;
+
+
