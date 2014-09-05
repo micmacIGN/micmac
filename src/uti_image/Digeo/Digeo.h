@@ -65,6 +65,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_DIGEO_H_
 
 #include "StdAfx.h"
+//#include <memory>
+//#include <cctype>
+
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
 
