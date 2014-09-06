@@ -590,6 +590,7 @@ std::vector<char *>  	ElInitArgMain
     )
 {
     setlocale(LC_ALL,"C");
+    MMD_InitArgcArgv( argc,argv);
 
     std::vector<char *> aRes;
 

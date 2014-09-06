@@ -37,71 +37,124 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+
 #include "MergeCloud.h"
 
 
-cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
-   cAppliWithSetImage(argc-1,argv+1,0)
+class cCalcPlan : public cCC_NoActionOnNewPt
 {
-   std::string aPat,anOri;
-   ElInitArgMain
-   (
-        argc,argv,
-        LArgMain()  << EAMC(aPat,"Full Directory (Dir+Pattern)",eSAM_IsPatFile)
-                    << EAMC(anOri,"Orientation ", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(mFileParam,"XMLParam",true,"File Param, def = XML_MicMac/DefMergeCloud.xml")
-   );
+    public  :
+       cCalcPlan(int aNbMaxStep,L2SysSurResol & aSys,const cRawNuage & aRN);
 
-   if (! EAMIsInit(&mFileParam))
+       void OnNewStep() { mNbStep++;}
+       void  OnNewPt(const Pt2di & aP) 
+       {
+             mVPts.push_back(aP);
+             Pt3dr aP3 = mRN->GetPt(aP);
+             mVP3.push_back(aP3);
+             
+       }
+       bool  StopCondStep() {return mNbStep>mNbMaxStep;}
+       bool ValidePt(const Pt2di &){return true;}
+
+    // public :
+       L2SysSurResol * mSys;
+       const cRawNuage * mRN;
+       int mNbStep;
+       int mNbMaxStep;
+       std::vector<Pt2di> mVPts;
+       std::vector<Pt3dr> mVP3;
+};
+
+cCalcPlan::cCalcPlan(int aNbMaxStep,L2SysSurResol & aSys,const cRawNuage & aRN) :
+   mSys       (&aSys),
+   mRN        (&aRN),
+   mNbStep    (0),
+   mNbMaxStep (aNbMaxStep)
+{
+    mSys->Reset();
+}
+ 
+
+
+
+cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
+   mAppli     (anAppli),
+   mIma       (anIma),
+   mStdN      (cElNuage3DMaille::FromFileIm(mAppli->NameFileInput(anIma,".xml"))),
+   mImCptr    (Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
+   mTCptr     (mImCptr),
+   mSz        (mImCptr.sz()),
+   mImIncid   (mSz.x,mSz.y),
+   mTIncid    (mImIncid)
+{
+   
+bool pAramV4 = false;
+int  pAramDistCC = 3;
+double pAramDynAngul = 100.0;
+   
+   double aSeuilNbPts = 2 * (1+2*pAramDistCC);
+   cRawNuage   aRN = mStdN->GetRaw();
+   Pt2di aP0;
+   TIm2DBits<1> aTDef(mStdN->ImDef());
+
+   Im2D_Bits<1> aMasqTmp = ImMarqueurCC(mSz);
+   TIm2DBits<1> aTMasqTmp(aMasqTmp);
+
+   L2SysSurResol aSys(3);
+
+   // CamStenope * aCam = mStdN->Cam();
+   // Pt3dr aC0 = aCam->PseudoOpticalCenter();
+
+
+   for (aP0.x=0 ; aP0.x<mSz.x ; aP0.x++)
    {
-         mFileParam = Basic_XML_MM_File("DefMergeCloud.xml");
+       for (aP0.y=0 ; aP0.y<mSz.y ; aP0.y++)
+       {
+            double Angle = 1.5;
+            if (aTDef.get(aP0))
+            {
+                cCalcPlan  aCalcPl(pAramDistCC,aSys,aRN);
+                int aNb = OneZC(aP0,pAramV4,aTMasqTmp,1,0,aTDef,1,aCalcPl);
+                ResetMarqueur(aTMasqTmp,aCalcPl.mVPts);
+                if (aNb >= aSeuilNbPts)
+                {
+                    cElPlan3D aPlan(aCalcPl.mVP3,0);
+                    // ElSeg3D aSeg(aC0,mStdN->GetPt(aP0));
+                    ElSeg3D aSeg =  mStdN->FaisceauFromIndex(Pt2dr(aP0));
+                    double aScal = scal(aPlan.Norm(),aSeg.TgNormee());
+                    if (aScal<0) aScal = - aScal;
+                    Angle = acos(ElMin(1.0,ElMax(-1.0,aScal)));
+                }
+            }
+            mTIncid.oset(aP0,ElMin(255,ElMax(0,round_ni(Angle*pAramDynAngul))));
+       }
    }
 
-   mParam = StdGetFromSI(mFileParam,ParamFusionNuage);
 
-   std::cout << "TAUX REC = " << mParam.TauxRecMin().Val() <<  "\n";
-
-
-
-   for (int aKS=0 ; aKS<int(mVSoms.size()) ; aKS++)
+   if (1)
    {
-        cImaMM * anIma = mVSoms[aKS]->attr().mIma;
-        cASAMG * anAttrSom = 0;
+      double aZoom = 1;
+      static Video_Win * aW = Video_Win::PtrWStd(round_ni(Pt2dr(mSz)*aZoom),true,Pt2dr(aZoom,aZoom));
+      Fonc_Num f = mImIncid.in_proj();
+      ELISE_COPY
+      (
+             mImIncid.all_pts(),
+             Virgule(f,f,f),
+             aW->orgb()
+      );
+      ELISE_COPY
+      (
+             mImIncid.all_pts(),
+             nflag_close_sym(flag_front4(f<0.7*pAramDynAngul)),
+             aW->out_graph(Line_St(aW->pdisc()(P8COL::red)))
+      );
 
-        std::string aNameNuXml = NameFileInput(anIma,".xml");
-        // Possible aucun nuage si peu de voisins et mauvaise config epip
-        if (ELISE_fp::exist_file(aNameNuXml))
-        {
-            anAttrSom = new cASAMG(this,anIma);
-        }
 
-        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << "\n";
+      aW->clik_in();
    }
+   std::cout  << "SssSSzzzzz :: " << mSz << "\n"; 
 }
-
-const std::string cAppliMergeCloud::TheNameSubdir = "Fusion-0";
-
-std::string cAppliMergeCloud::NameFileInput(const std::string & aNameIm,const std::string aPost)
-{
-   return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
-}
-
-std::string cAppliMergeCloud::NameFileInput(cImaMM * anIma,const std::string aPost)
-{
-    return NameFileInput(anIma->mNameIm,aPost);
-}
-
-//========================================================================================
-
-
-int CPP_AppliMergeCloud(int argc,char ** argv)
-{
-    cAppliMergeCloud anAppli(argc,argv);
-
-
-    return EXIT_SUCCESS;
-}
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

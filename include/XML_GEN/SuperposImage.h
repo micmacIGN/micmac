@@ -5256,24 +5256,12 @@ class cParamFusionNuage
         friend void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< std::string > & WorkDirPFN();
-        const cTplValGesInit< std::string > & WorkDirPFN()const ;
-
-        std::string & PatIm();
-        const std::string & PatIm()const ;
-
-        std::string & Ori();
-        const std::string & Ori()const ;
-
         cTplValGesInit< double > & TauxRecMin();
         const cTplValGesInit< double > & TauxRecMin()const ;
 
         cGrapheRecouvrt & GrapheRecouvrt();
         const cGrapheRecouvrt & GrapheRecouvrt()const ;
     private:
-        cTplValGesInit< std::string > mWorkDirPFN;
-        std::string mPatIm;
-        std::string mOri;
         cGrapheRecouvrt mGrapheRecouvrt;
 };
 cElXMLTree * ToXMLTree(const cParamFusionNuage &);

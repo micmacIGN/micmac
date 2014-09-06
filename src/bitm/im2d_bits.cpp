@@ -49,6 +49,11 @@ Im2D_Bits<1> ImMarqueurCC(Pt2di aSz)
    return aMasq;
 }
 
+void ResetMarqueur(TIm2DBits<1> & aMarq,const std::vector<Pt2di> & aVPts)
+{
+   for (int aKP=int(aVPts.size()) -1 ; aKP>=0 ;aKP--)
+     aMarq.oset(aVPts[aKP],1);
+}
 
 
 template <const INT nbb,const bool msbf>  INT

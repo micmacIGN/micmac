@@ -57,9 +57,12 @@ class cASAMG
    private :
      cAppliMergeCloud *   mAppli;
      cImaMM *             mIma;
-     cElNuage3DMaille *     mStdN;
-     Im2D_U_INT1            mImCptr;
-
+     cElNuage3DMaille *   mStdN;
+     Im2D_U_INT1          mImCptr;
+     TIm2D<U_INT1,INT>    mTCptr;
+     Pt2di                mSz;
+     Im2D_U_INT1          mImIncid;
+     TIm2D<U_INT1,INT>    mTIncid;
 };
 
 
@@ -68,14 +71,17 @@ class cAppliMergeCloud : public cAppliWithSetImage
 {
     public :
        std::string NameFileInput(const std::string & aNameIm,const std::string aPost);
+       std::string NameFileInput(cImaMM *,const std::string aPost);
        cAppliMergeCloud
        (
             int argc,
             char ** argv
        );
-       const std::string & Dir() const;
     private :
        static const std::string TheNameSubdir;
+
+       std::string mFileParam;
+       cParamFusionNuage mParam;
 };
 
 

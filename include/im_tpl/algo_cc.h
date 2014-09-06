@@ -43,6 +43,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_IM_ALGO_CC
 
 Im2D_Bits<1> ImMarqueurCC(Pt2di aSz);
+void ResetMarqueur(TIm2DBits<1> & aMarq,const std::vector<Pt2di> & aVPts);
+
 
 
 // Mais en aValAff les composante connexe de coul=aValSelec de taille < aSeuilCard
@@ -75,11 +77,11 @@ template <class T1,class T2,class Action> int OneZC
    int aNbTot = 0;
    while (! aVCur->empty())
    {
+       int aNbCur = aVCur->size(); 
+       aNbTot += aNbCur;
        aOnNewPt.OnNewStep();
        if (aOnNewPt.StopCondStep())
           return aNbTot;
-       int aNbCur = aVCur->size(); 
-       aNbTot += aNbCur;
 
        for (int aKp=0 ; aKp<aNbCur ; aKp++)
        {
