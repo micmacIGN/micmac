@@ -719,6 +719,61 @@ bool GeomCompatForte(cElNuage3DMaille * aN1,cElNuage3DMaille *aN2)
 }
 
 
+cRawNuage::cRawNuage(Pt2di aSz) :
+   mImX   (aSz.x,aSz.y),
+   mTX     (mImX),
+   mImY   (aSz.x,aSz.y),
+   mTY     (mImY),
+   mImZ   (aSz.x,aSz.y),
+   mTZ     (mImZ)
+{
+}
+
+Im2D_REAL4 cRawNuage::ImX() {return mImX;}
+Im2D_REAL4 cRawNuage::ImY() {return mImY;}
+Im2D_REAL4 cRawNuage::ImZ() {return mImZ;}
+
+void cRawNuage::SetPt(const  Pt2di & anI,const Pt3dr & aP)
+{
+   mTX.oset(anI,aP.x);
+   mTY.oset(anI,aP.y);
+   mTZ.oset(anI,aP.z);
+}
+
+Pt3dr  cRawNuage::GetPt(const Pt2di & anI) const
+{
+   return Pt3dr
+          (
+              mTX.get(anI),
+              mTY.get(anI),
+              mTZ.get(anI)
+          );
+}
+
+cRawNuage   cElNuage3DMaille::GetRaw() const
+{
+   Pt2di aSz = SzUnique();
+   cRawNuage aRes(aSz);
+
+   Pt2di aP0;
+   for (aP0.x=0 ; aP0.x<aSz.x ; aP0.x++)
+   {
+       for (aP0.y=0 ; aP0.y<aSz.y ; aP0.y++)
+       {
+            if (IndexHasContenu(aP0))
+            {
+                aRes.SetPt(aP0,PtOfIndex(aP0));
+            }
+            else
+            {
+                aRes.SetPt(aP0,Pt3dr(0,0,0));
+            }
+       }
+   }
+
+   return aRes;
+}
+
 
 
 

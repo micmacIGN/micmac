@@ -392,7 +392,12 @@ static std::string CurrentProgramFullName;
 static std::string CurrentProgramSubcommand = "unknown";
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
+    static bool First=true;
+    if (!First) return;
+    First = false;
+
     AnalyseContextCom(argc,argv);
+    MemoArg(argc,argv);
 
     if (((aNbMin >=0) && (argc < aNbMin)) && (!MMVisualMode))
     {

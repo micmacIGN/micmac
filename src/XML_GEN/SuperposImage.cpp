@@ -17491,39 +17491,6 @@ void xml_init(cGrapheRecouvrt & anObj,cElXMLTree * aTree)
 std::string  Mangling( cGrapheRecouvrt *) {return "1E8521BB20C938DAFDBF";};
 
 
-cTplValGesInit< std::string > & cParamFusionNuage::WorkDirPFN()
-{
-   return mWorkDirPFN;
-}
-
-const cTplValGesInit< std::string > & cParamFusionNuage::WorkDirPFN()const 
-{
-   return mWorkDirPFN;
-}
-
-
-std::string & cParamFusionNuage::PatIm()
-{
-   return mPatIm;
-}
-
-const std::string & cParamFusionNuage::PatIm()const 
-{
-   return mPatIm;
-}
-
-
-std::string & cParamFusionNuage::Ori()
-{
-   return mOri;
-}
-
-const std::string & cParamFusionNuage::Ori()const 
-{
-   return mOri;
-}
-
-
 cTplValGesInit< double > & cParamFusionNuage::TauxRecMin()
 {
    return GrapheRecouvrt().TauxRecMin();
@@ -17547,25 +17514,11 @@ const cGrapheRecouvrt & cParamFusionNuage::GrapheRecouvrt()const
 
 void  BinaryUnDumpFromFile(cParamFusionNuage & anObj,ELISE_fp & aFp)
 {
-   { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.WorkDirPFN().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.WorkDirPFN().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.WorkDirPFN().SetNoInit();
-  } ;
-    BinaryUnDumpFromFile(anObj.PatIm(),aFp);
-    BinaryUnDumpFromFile(anObj.Ori(),aFp);
-    BinaryUnDumpFromFile(anObj.GrapheRecouvrt(),aFp);
+     BinaryUnDumpFromFile(anObj.GrapheRecouvrt(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cParamFusionNuage & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.WorkDirPFN().IsInit());
-    if (anObj.WorkDirPFN().IsInit()) BinaryDumpInFile(aFp,anObj.WorkDirPFN().Val());
-    BinaryDumpInFile(aFp,anObj.PatIm());
-    BinaryDumpInFile(aFp,anObj.Ori());
     BinaryDumpInFile(aFp,anObj.GrapheRecouvrt());
 }
 
@@ -17573,10 +17526,6 @@ cElXMLTree * ToXMLTree(const cParamFusionNuage & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamFusionNuage",eXMLBranche);
-   if (anObj.WorkDirPFN().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("WorkDirPFN"),anObj.WorkDirPFN().Val())->ReTagThis("WorkDirPFN"));
-   aRes->AddFils(::ToXMLTree(std::string("PatIm"),anObj.PatIm())->ReTagThis("PatIm"));
-   aRes->AddFils(::ToXMLTree(std::string("Ori"),anObj.Ori())->ReTagThis("Ori"));
    aRes->AddFils(ToXMLTree(anObj.GrapheRecouvrt())->ReTagThis("GrapheRecouvrt"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -17588,16 +17537,10 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
-   xml_init(anObj.WorkDirPFN(),aTree->Get("WorkDirPFN",1)); //tototo 
-
-   xml_init(anObj.PatIm(),aTree->Get("PatIm",1)); //tototo 
-
-   xml_init(anObj.Ori(),aTree->Get("Ori",1)); //tototo 
-
    xml_init(anObj.GrapheRecouvrt(),aTree->Get("GrapheRecouvrt",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionNuage *) {return "F2C332728F994BBAFF3F";};
+std::string  Mangling( cParamFusionNuage *) {return "C7057C33C533C188FF3F";};
 
 
 double & cXmlAffinR2ToR::CoeffX()

@@ -190,6 +190,8 @@ public :
 };
 
 
+
+
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -442,6 +444,7 @@ int MakeOneXmlXifInfo_main(int argc,char ** argv);
 
 int Masq3Dto2D_main(int argc,char ** argv);
 
+int CPP_AppliMergeCloud(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -496,6 +499,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 #if (ELISE_QT_VERSION >= 4)
     aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 #endif
+    aRes.push_back(cMMCom("MergeCloud",CPP_AppliMergeCloud,"Tool for merging overlapping depth maps from different view points"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 

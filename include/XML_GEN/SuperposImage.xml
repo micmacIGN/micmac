@@ -1159,12 +1159,9 @@
   </ParamFusionMNT>
 
   <ParamFusionNuage  Nb="1" Class="true">
-             <WorkDirPFN Nb="?" Type="std::string"> </WorkDirPFN>
-             <PatIm Nb="1" Type="std::string"> </PatIm>
-             <Ori Nb="1" Type="std::string"> </Ori>
-             <GrapheRecouvrt Nb="1"> 
-                  <TauxRecMin Nb="?" Type="double" Def="0.1"> </TauxRecMin>
-            </GrapheRecouvrt>
+      <GrapheRecouvrt Nb="1"> 
+             <TauxRecMin Nb="?" Type="double" Def="0.1"> </TauxRecMin>
+      </GrapheRecouvrt>
   </ParamFusionNuage>
 
   <!-- Pourra servir pour construire des affinite, homographie ... -->

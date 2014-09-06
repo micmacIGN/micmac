@@ -345,6 +345,13 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mWithOri  = ((aFlag & TheFlagNoOri)==0);
    if (argc< (mWithOri ? 2 : 1 ) )
    {
+      if (( aFlag & TheFlagAcceptProblem) == 0)
+      {
+           std::cout << "NbArgs=" << argc << "\n";
+           for (int aK=0 ; aK<argc ; aK++)
+               std::cout << "ARG[" << aK << "]=" << argv[aK] << "\n";
+           ELISE_ASSERT(false,"Not Enough Arg in cAppliWithSetImage");
+      }
       mPb = "Not Enough Arg in cAppliWithSetImage";
       return;
    }
@@ -1402,7 +1409,7 @@ void cAppliMMByPair::DoFusionStatue()
             std::string aCom2 =  MMBinFile(MM3DStr) + " ScaleIm  "
                                + DirMTDImage(*anITS) + "Fusion_NuageImProf_LeChantier_Etape_1_Cptr.tif "
                                + " " + ToString(aFactRed)
-                               + " Out=Fusion-0/CptRed" + (*anITS).attr().mIma->mNameIm  + ".tif "
+                               + " Out=Fusion-0/NuageRed" + (*anITS).attr().mIma->mNameIm  + "CptRed.tif "
                            ;
 
              aLComRed.push_back(aCom1);
