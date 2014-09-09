@@ -152,7 +152,7 @@ class cArgMpDCRaw : public cAppliBatch
 
        int                           mSwapRB;
        std::string                   mNameOutSpec;
-       bool                          mUseFF;
+       bool                          mUseFF=true;
 
 };
 
