@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1204]) = {
+const char * (theNameVar_SuperposImage[1211]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1161,9 +1161,16 @@ const char * (theNameVar_SuperposImage[1204]) = {
 "  </ParamFusionMNT>\n",
 "\n",
 "  <ParamFusionNuage  Nb=\"1\" Class=\"true\">\n",
+"      <SzVisu  Nb=\"?\" Type=\"Pt2di\"> </SzVisu>\n",
 "      <GrapheRecouvrt Nb=\"1\"> \n",
 "             <TauxRecMin Nb=\"?\" Type=\"double\" Def=\"0.1\"> </TauxRecMin>\n",
 "      </GrapheRecouvrt>\n",
+"      <ImageVariations Nb=\"1\">\n",
+"           <V4Vois Nb=\"1\" Type=\"bool\"> </V4Vois>\n",
+"           <DistVois Nb=\"1\" Type=\"int\"> </DistVois>\n",
+"           <DynAngul Nb=\"1\" Type=\"double\"> </DynAngul>\n",
+"           <SeuilStrictVarIma Nb=\"1\" Type=\"double\"> </SeuilStrictVarIma>\n",
+"      </ImageVariations>\n",
 "  </ParamFusionNuage>\n",
 "\n",
 "  <!-- Pourra servir pour construire des affinite, homographie ... -->\n",

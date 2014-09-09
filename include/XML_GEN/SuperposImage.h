@@ -5248,6 +5248,42 @@ std::string  Mangling( cGrapheRecouvrt *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cImageVariations
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cImageVariations & anObj,cElXMLTree * aTree);
+
+
+        bool & V4Vois();
+        const bool & V4Vois()const ;
+
+        int & DistVois();
+        const int & DistVois()const ;
+
+        double & DynAngul();
+        const double & DynAngul()const ;
+
+        double & SeuilStrictVarIma();
+        const double & SeuilStrictVarIma()const ;
+    private:
+        bool mV4Vois;
+        int mDistVois;
+        double mDynAngul;
+        double mSeuilStrictVarIma;
+};
+cElXMLTree * ToXMLTree(const cImageVariations &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cImageVariations &);
+
+void  BinaryUnDumpFromFile(cImageVariations &,ELISE_fp &);
+
+std::string  Mangling( cImageVariations *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cParamFusionNuage
 {
     public:
@@ -5256,13 +5292,33 @@ class cParamFusionNuage
         friend void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< Pt2di > & SzVisu();
+        const cTplValGesInit< Pt2di > & SzVisu()const ;
+
         cTplValGesInit< double > & TauxRecMin();
         const cTplValGesInit< double > & TauxRecMin()const ;
 
         cGrapheRecouvrt & GrapheRecouvrt();
         const cGrapheRecouvrt & GrapheRecouvrt()const ;
+
+        bool & V4Vois();
+        const bool & V4Vois()const ;
+
+        int & DistVois();
+        const int & DistVois()const ;
+
+        double & DynAngul();
+        const double & DynAngul()const ;
+
+        double & SeuilStrictVarIma();
+        const double & SeuilStrictVarIma()const ;
+
+        cImageVariations & ImageVariations();
+        const cImageVariations & ImageVariations()const ;
     private:
+        cTplValGesInit< Pt2di > mSzVisu;
         cGrapheRecouvrt mGrapheRecouvrt;
+        cImageVariations mImageVariations;
 };
 cElXMLTree * ToXMLTree(const cParamFusionNuage &);
 

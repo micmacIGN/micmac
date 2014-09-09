@@ -41,7 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
-   cAppliWithSetImage(argc-1,argv+1,0)
+   cAppliWithSetImage(argc-1,argv+1,0),
+   mTheWinIm         (0)
 {
    std::string aPat,anOri;
    ElInitArgMain
@@ -59,13 +60,11 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 
    mParam = StdGetFromSI(mFileParam,ParamFusionNuage);
 
-   std::cout << "TAUX REC = " << mParam.TauxRecMin().Val() <<  "\n";
+   // ===  Creation des nuages 
 
-
-
-   for (int aKS=0 ; aKS<int(mVSoms.size()) ; aKS++)
+   for (int aKS=0 ; aKS<int(cAppliWithSetImage::mVSoms.size()) ; aKS++)
    {
-        cImaMM * anIma = mVSoms[aKS]->attr().mIma;
+        cImaMM * anIma = cAppliWithSetImage::mVSoms[aKS]->attr().mIma;
         cASAMG * anAttrSom = 0;
 
         std::string aNameNuXml = NameFileInput(anIma,".xml");
@@ -73,10 +72,98 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
         if (ELISE_fp::exist_file(aNameNuXml))
         {
             anAttrSom = new cASAMG(this,anIma);
+            mVAttr.push_back(anAttrSom);
+            tMCSom &  aSom = mGr.new_som(anAttrSom);
+            mDicSom[anIma->mNameIm] = & aSom;
+            mVSoms.push_back(&aSom);
         }
 
         std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << "\n";
    }
+   if (pAramTestDif() && (mVSoms.size()==2))
+   {
+        mVAttr[0]->TestDifProf(*(mVAttr[1]));
+   }
+
+   // ===  Creation des couples
+
+            // Couple d'homologues
+   std::string aKSH = "NKS-Set-Homol@@"+ pAramExtHom();
+   std::string aKAH = "NKS-Assoc-CplIm2Hom@@"+ pAramExtHom();
+
+   std::vector<tMCArc *> aVArcNew;
+   const cInterfChantierNameManipulateur::tSet * aSetHom = ICNM()->Get(aKSH);
+   for (int aKH=0 ; aKH<int(aSetHom->size()) ; aKH++)
+   {
+       const std::string & aNameFile = (*aSetHom)[aKH];
+       std::string aFullNF = Dir() + aNameFile;
+       if (sizeofile(aFullNF.c_str()) > pAramSizeMinFileHom())
+       {
+           std::pair<std::string,std::string> aPair = ICNM()->Assoc2To1(aKAH,aNameFile,false);
+           tMCSom * aS1 = SomOfName(aPair.first);
+           tMCSom * aS2 = SomOfName(aPair.second);
+           if ((aS1!=0) && (aS2!=0) && (sizeofile(aNameFile.c_str())>pAramSizeMinFileHom()))
+           {
+              tMCArc *  anArc = TestAddNewarc(aS1,aS2);
+              if (anArc)
+                 aVArcNew.push_back(anArc);
+           }
+       }
+   }
+
+}
+
+
+tMCArc * cAppliMergeCloud::TestAddNewarc(tMCSom * aS1,tMCSom *aS2)
+{
+   if (aS1 > aS2) ElSwap(aS1,aS2);
+
+   tMCPairS aPair(aS1,aS2);
+
+   if (mTestedPairs.find(aPair) != mTestedPairs.end())
+      return 0; // Deja fait
+   mTestedPairs.insert(aPair) ;  // plus a faire
+
+   cASAMG * anA1 = aS1->attr() ;
+   cASAMG * anA2 = aS2->attr() ;
+
+   double aR1On2 = anA1->LowRecouvrt(*anA2);
+   double aR2On1 = anA2->LowRecouvrt(*anA1);
+
+   if ((aR1On2< pAramSeuilRecouvr()) && (aR2On1 <pAramSeuilRecouvr()))
+      return 0;
+
+
+   if (1)
+   {
+       std::cout << "AddArc: " << anA1->IMM()->mNameIm << " " 
+                               << anA2->IMM()->mNameIm 
+                               << " Rec: " << aR1On2 << "/" << aR2On1 << "\n";
+   }
+
+   return 0;
+}
+
+
+
+Video_Win *  cAppliMergeCloud::TheWinIm(Pt2di aSzIm)
+{
+   if (! mParam.SzVisu().IsInit())
+     return 0;
+
+   if (mTheWinIm==0)
+   {
+       Pt2di aSzW = mParam.SzVisu().Val();
+       double aRx = aSzW.x / double(aSzIm.x);
+       double aRy = aSzW.y / double(aSzIm.y);
+       mRatioW = ElMin(aRx,aRy);
+       aSzW = round_ni(Pt2dr(aSzIm)*mRatioW);
+
+       mTheWinIm = Video_Win::PtrWStd(aSzW,true,Pt2dr(mRatioW,mRatioW));
+       std::cout << "RATIOW " << mRatioW << "\n";
+   }
+
+   return mTheWinIm;
 }
 
 const std::string cAppliMergeCloud::TheNameSubdir = "Fusion-0";
@@ -91,6 +178,16 @@ std::string cAppliMergeCloud::NameFileInput(cImaMM * anIma,const std::string aPo
     return NameFileInput(anIma->mNameIm,aPost);
 }
 
+
+tMCSom * cAppliMergeCloud::SomOfName(const std::string & aName)
+{
+   std::map<std::string,tMCSom *>::iterator it = mDicSom.find(aName);
+
+   if (it==mDicSom.end()) return 0;
+   return it->second;
+}
+
+
 //========================================================================================
 
 
@@ -102,6 +199,19 @@ int CPP_AppliMergeCloud(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+
+/***************************************************************************/
+/***************************************************************************/
+/***                                                                     ***/
+/***                         GRAPHE                                      ***/
+/***                                                                     ***/
+/***************************************************************************/
+/***************************************************************************/
+
+c3AMG::c3AMG(c3AMGS * aSym) :
+   mSym (aSym)
+{
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

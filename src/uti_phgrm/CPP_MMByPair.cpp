@@ -450,6 +450,11 @@ void cAppliWithSetImage::FilterImageIsolated()
    }
 }
 
+cInterfChantierNameManipulateur * cAppliWithSetImage::ICNM() 
+{
+   return mEASF.mICNM;
+}
+
 
 const std::string & cAppliWithSetImage::Dir() const
 {

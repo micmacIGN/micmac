@@ -17491,6 +17491,106 @@ void xml_init(cGrapheRecouvrt & anObj,cElXMLTree * aTree)
 std::string  Mangling( cGrapheRecouvrt *) {return "1E8521BB20C938DAFDBF";};
 
 
+bool & cImageVariations::V4Vois()
+{
+   return mV4Vois;
+}
+
+const bool & cImageVariations::V4Vois()const 
+{
+   return mV4Vois;
+}
+
+
+int & cImageVariations::DistVois()
+{
+   return mDistVois;
+}
+
+const int & cImageVariations::DistVois()const 
+{
+   return mDistVois;
+}
+
+
+double & cImageVariations::DynAngul()
+{
+   return mDynAngul;
+}
+
+const double & cImageVariations::DynAngul()const 
+{
+   return mDynAngul;
+}
+
+
+double & cImageVariations::SeuilStrictVarIma()
+{
+   return mSeuilStrictVarIma;
+}
+
+const double & cImageVariations::SeuilStrictVarIma()const 
+{
+   return mSeuilStrictVarIma;
+}
+
+void  BinaryUnDumpFromFile(cImageVariations & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.V4Vois(),aFp);
+    BinaryUnDumpFromFile(anObj.DistVois(),aFp);
+    BinaryUnDumpFromFile(anObj.DynAngul(),aFp);
+    BinaryUnDumpFromFile(anObj.SeuilStrictVarIma(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cImageVariations & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.V4Vois());
+    BinaryDumpInFile(aFp,anObj.DistVois());
+    BinaryDumpInFile(aFp,anObj.DynAngul());
+    BinaryDumpInFile(aFp,anObj.SeuilStrictVarIma());
+}
+
+cElXMLTree * ToXMLTree(const cImageVariations & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ImageVariations",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("V4Vois"),anObj.V4Vois())->ReTagThis("V4Vois"));
+   aRes->AddFils(::ToXMLTree(std::string("DistVois"),anObj.DistVois())->ReTagThis("DistVois"));
+   aRes->AddFils(::ToXMLTree(std::string("DynAngul"),anObj.DynAngul())->ReTagThis("DynAngul"));
+   aRes->AddFils(::ToXMLTree(std::string("SeuilStrictVarIma"),anObj.SeuilStrictVarIma())->ReTagThis("SeuilStrictVarIma"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cImageVariations & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.V4Vois(),aTree->Get("V4Vois",1)); //tototo 
+
+   xml_init(anObj.DistVois(),aTree->Get("DistVois",1)); //tototo 
+
+   xml_init(anObj.DynAngul(),aTree->Get("DynAngul",1)); //tototo 
+
+   xml_init(anObj.SeuilStrictVarIma(),aTree->Get("SeuilStrictVarIma",1)); //tototo 
+}
+
+std::string  Mangling( cImageVariations *) {return "027A10F782622E84FF3F";};
+
+
+cTplValGesInit< Pt2di > & cParamFusionNuage::SzVisu()
+{
+   return mSzVisu;
+}
+
+const cTplValGesInit< Pt2di > & cParamFusionNuage::SzVisu()const 
+{
+   return mSzVisu;
+}
+
+
 cTplValGesInit< double > & cParamFusionNuage::TauxRecMin()
 {
    return GrapheRecouvrt().TauxRecMin();
@@ -17512,21 +17612,91 @@ const cGrapheRecouvrt & cParamFusionNuage::GrapheRecouvrt()const
    return mGrapheRecouvrt;
 }
 
+
+bool & cParamFusionNuage::V4Vois()
+{
+   return ImageVariations().V4Vois();
+}
+
+const bool & cParamFusionNuage::V4Vois()const 
+{
+   return ImageVariations().V4Vois();
+}
+
+
+int & cParamFusionNuage::DistVois()
+{
+   return ImageVariations().DistVois();
+}
+
+const int & cParamFusionNuage::DistVois()const 
+{
+   return ImageVariations().DistVois();
+}
+
+
+double & cParamFusionNuage::DynAngul()
+{
+   return ImageVariations().DynAngul();
+}
+
+const double & cParamFusionNuage::DynAngul()const 
+{
+   return ImageVariations().DynAngul();
+}
+
+
+double & cParamFusionNuage::SeuilStrictVarIma()
+{
+   return ImageVariations().SeuilStrictVarIma();
+}
+
+const double & cParamFusionNuage::SeuilStrictVarIma()const 
+{
+   return ImageVariations().SeuilStrictVarIma();
+}
+
+
+cImageVariations & cParamFusionNuage::ImageVariations()
+{
+   return mImageVariations;
+}
+
+const cImageVariations & cParamFusionNuage::ImageVariations()const 
+{
+   return mImageVariations;
+}
+
 void  BinaryUnDumpFromFile(cParamFusionNuage & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.GrapheRecouvrt(),aFp);
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SzVisu().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzVisu().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SzVisu().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.GrapheRecouvrt(),aFp);
+    BinaryUnDumpFromFile(anObj.ImageVariations(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cParamFusionNuage & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.SzVisu().IsInit());
+    if (anObj.SzVisu().IsInit()) BinaryDumpInFile(aFp,anObj.SzVisu().Val());
     BinaryDumpInFile(aFp,anObj.GrapheRecouvrt());
+    BinaryDumpInFile(aFp,anObj.ImageVariations());
 }
 
 cElXMLTree * ToXMLTree(const cParamFusionNuage & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamFusionNuage",eXMLBranche);
+   if (anObj.SzVisu().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SzVisu"),anObj.SzVisu().Val())->ReTagThis("SzVisu"));
    aRes->AddFils(ToXMLTree(anObj.GrapheRecouvrt())->ReTagThis("GrapheRecouvrt"));
+   aRes->AddFils(ToXMLTree(anObj.ImageVariations())->ReTagThis("ImageVariations"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -17537,10 +17707,14 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
+   xml_init(anObj.SzVisu(),aTree->Get("SzVisu",1)); //tototo 
+
    xml_init(anObj.GrapheRecouvrt(),aTree->Get("GrapheRecouvrt",1)); //tototo 
+
+   xml_init(anObj.ImageVariations(),aTree->Get("ImageVariations",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionNuage *) {return "C7057C33C533C188FF3F";};
+std::string  Mangling( cParamFusionNuage *) {return "CDB31463A1FD7BF9FE3F";};
 
 
 double & cXmlAffinR2ToR::CoeffX()

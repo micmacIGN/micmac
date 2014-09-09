@@ -136,6 +136,11 @@ int ScaleNuage_main(int argc,char ** argv)
              aFileProf.out()
          );
 
+         if ( aNewXML.Image_Profondeur().IsInit())
+         {
+           aNewXML.Image_Profondeur().Val().Correl().SetNoInit();
+         }
+
          MakeFileXML(aNewXML,aDirBase + aNameOut+".xml");
 
     }

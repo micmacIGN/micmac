@@ -156,6 +156,8 @@ class cParamModifGeomMTDNuage
         bool   mDequant;
 };
 
+double DynProfInPixel(const cXML_ParamNuage3DMaille &);
+
 class cElNuage3DMaille : public cCapture3D
 {
      public :
@@ -213,6 +215,10 @@ class cElNuage3DMaille : public cCapture3D
    //  Acces aux donnees 
 
                  // NUAGE  =>  TERRAIN
+
+        // Si le nuage vient d'un appariement, a combien de pixel de 
+        // decalage est equivalent 1 offset de profondeur
+        double DynProfInPixel() const;
 
         Pt3dr PtOfIndex(const tIndex2D & aP) const ;
         Pt3dr PtOfIndexInterpol(const Pt2dr & aP) const;  // [2]

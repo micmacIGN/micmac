@@ -47,22 +47,94 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 class cAppliMergeCloud;
 class cASAMG; // Attribut Sommet cAppliMergeCloud
+class cResumNuage; // Classe pour representer un nuage rapidement
+
+class c3AMG; // Attribut ARC cAppliMergeCloud
+class c3AMGS; // c3AMG sym
+
+typedef ElSom<cASAMG*,c3AMG*>  tMCSom;
+typedef ElArc<cASAMG*,c3AMG*>  tMCArc;
+typedef ElGraphe<cASAMG*,c3AMG*>  tMCGr;
+typedef ElSubGraphe<cASAMG*,c3AMG*>  tMCSubGr;
+typedef cSubGrFlagArc<tMCSubGr>  tMCSubGrFA;
+typedef std::pair<tMCSom *,tMCSom *> tMCPairS;
+
+class cResumNuage
+{
+    public :
+        void Reset(int aReserve);
+        int mNbSom;
+        std::vector<INT2> mVX;
+        std::vector<INT2> mVY;
+        std::vector<INT2> mVNb;
+ 
+        Pt2di PK(const int & aK) const {return Pt2di(mVX[aK],mVY[aK]);}
+        
+};
 
 
+class c3AMGS
+{
+   public :
+};
+class c3AMG
+{
+   public :
+      c3AMG(c3AMGS *);
+   private :
+      c3AMGS * mSym;
+};
 
 class cASAMG
 {
    public :
       cASAMG(cAppliMergeCloud *,cImaMM *);
+      void MakeVoisinInit();
+
+      double LowRecouvrt(const cASAMG &) const;
+      double Recouvrt(const cASAMG &,const cResumNuage &) const;
+      void TestDifProf(const cASAMG & aNE) const;
+
+      cImaMM *     IMM(); 
+
    private :
+     void MakeVec3D(std::vector<Pt3dr> & aVPts,const cResumNuage &) const;
+     double Recouvrt(const cASAMG &,const cResumNuage &,const std::vector<Pt3dr> & aVPts) const;
+
+     double QualityProjOnMe(const std::vector<Pt3dr> &,const cResumNuage &) const;
+     double QualityProjOnOther(const cASAMG &,const Pt3dr &) const;
+     double QualityProjOnMe(const Pt3dr &) const;
+     double SignedDifProf(const Pt3dr &) const;
+
+
+     inline double DynAng() const ;
+     inline bool   CCV4()   const ;
+     inline int    CCDist() const ;
+     inline int    SeuimNbPtsCCDist() const ;
+
+     void ComputeIncid();
+     void ComputeIncidAngle3D();
+     void ComputeIncidGradProf();
+     void ComputeSubset(int aNbPts,cResumNuage &);
+     
+
      cAppliMergeCloud *   mAppli;
      cImaMM *             mIma;
      cElNuage3DMaille *   mStdN;
+     Im2D_Bits<1>         mMasqN;
+     TIm2DBits<1>         mTMasqN;
+
      Im2D_U_INT1          mImCptr;
      TIm2D<U_INT1,INT>    mTCptr;
      Pt2di                mSz;
      Im2D_U_INT1          mImIncid;
      TIm2D<U_INT1,INT>    mTIncid;
+     double               mSSIma;
+
+     std::vector<cASAMG *>  mBestNeigh;
+     std::vector<cASAMG *>  mAllNeigh;
+
+     cResumNuage            mLowRN;  // Basse resolution pour la topologie
 };
 
 
@@ -77,13 +149,40 @@ class cAppliMergeCloud : public cAppliWithSetImage
             int argc,
             char ** argv
        );
+       const cParamFusionNuage & Param() {return mParam;}
+       Video_Win *   TheWinIm(Pt2di aSz);
+
+       tMCSom * SomOfName(const std::string & aName);
+       tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
     private :
        static const std::string TheNameSubdir;
 
        std::string mFileParam;
        cParamFusionNuage mParam;
+       Video_Win *       mTheWinIm;
+       double            mRatioW;
+
+       std::vector<cASAMG *>           mVAttr;
+       std::vector<tMCSom *>           mVSoms;
+       std::map<std::string,tMCSom *>  mDicSom;
+       tMCGr                           mGr;
+       std::set<tMCPairS>              mTestedPairs;
 };
 
+   //==============================================================================
+
+double cASAMG::DynAng() const {return mAppli->Param().ImageVariations().DynAngul();}
+bool   cASAMG::CCV4()   const {return mAppli->Param().ImageVariations().V4Vois();}
+int    cASAMG::CCDist() const {return mAppli->Param().ImageVariations().DistVois();}
+int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
+
+
+inline const std::string pAramExtHom () {return "dat";}
+inline int pAramSizeMinFileHom() {return 20;}
+inline int pAramNbPointLRN() {return 1000;}
+inline bool pAramTestDif() {return false;}
+inline bool pAramSeuilDifProf() {return 1.0;}
+inline double pAramSeuilRecouvr() {return 0.01;}
 
 #endif // _ELISE_MERGE_CLOUD
 

@@ -179,6 +179,7 @@ int Campari_main(int argc,char ** argv)
         if (EAMIsInit(&EmGPS))
         {
             ELISE_ASSERT((EmGPS.size()>=2) && (EmGPS.size()<=3) ,"Mandatory part of EmGPS requires 2 arguments");
+            StdCorrecNameOrient(EmGPS[0],aDir);
             double aGpsU = RequireFromString<double>(EmGPS[1],"GCP-Ground uncertainty");
             double aGpsAlti = aGpsU;
             if (EmGPS.size()>=3) 

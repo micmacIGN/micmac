@@ -1159,9 +1159,16 @@
   </ParamFusionMNT>
 
   <ParamFusionNuage  Nb="1" Class="true">
+      <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
       <GrapheRecouvrt Nb="1"> 
              <TauxRecMin Nb="?" Type="double" Def="0.1"> </TauxRecMin>
       </GrapheRecouvrt>
+      <ImageVariations Nb="1">
+           <V4Vois Nb="1" Type="bool"> </V4Vois>
+           <DistVois Nb="1" Type="int"> </DistVois>
+           <DynAngul Nb="1" Type="double"> </DynAngul>
+           <SeuilStrictVarIma Nb="1" Type="double"> </SeuilStrictVarIma>
+      </ImageVariations>
   </ParamFusionNuage>
 
   <!-- Pourra servir pour construire des affinite, homographie ... -->

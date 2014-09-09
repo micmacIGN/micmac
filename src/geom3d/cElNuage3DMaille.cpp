@@ -1864,6 +1864,22 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 /*
 */
 
+double DynProfInPixel(const cXML_ParamNuage3DMaille & aNuage)
+{
+   ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().OrIntImaM2C());
+   ElAffin2D aC2M = aM2C.inv();
+
+   double aSzPixel = (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
+
+   return (aSzPixel * aNuage.RatioResolAltiPlani().Val()) / (aNuage.Image_Profondeur().Val().ResolutionAlti());
+
+}
+
+double cElNuage3DMaille::DynProfInPixel() const
+{
+   return ::DynProfInPixel(Params());
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

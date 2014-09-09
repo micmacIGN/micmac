@@ -1027,6 +1027,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
 
    mResolPlaniReel = (euclid(mAfC2MCur.I10()) + euclid(mAfC2MCur.I01()))/2.0;
+
+//  std::cout << "mResolPlaniReelmResolPlaniReel " << mResolPlaniReel << "\n";
    mResolPlaniEquiAlt = mResolPlaniReel * mNuage.RatioResolAltiPlani().Val();
 /*
    mRatioPlaniAlti = mResolPlani;
