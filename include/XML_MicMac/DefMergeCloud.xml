@@ -1,0 +1,16 @@
+<ParamFusionNuage>
+      <SzVisu> 1200 800  </SzVisu>
+<!--
+-->
+      <GrapheRecouvrt>
+           <TauxRecMin> 0.1 </TauxRecMin>
+      </GrapheRecouvrt>
+      <ImageVariations>
+           <V4Vois > false </V4Vois>
+           <DistVois> 3  </DistVois>
+           <DynAngul>  100 </DynAngul>
+           <SeuilStrictVarIma>  0.33 </SeuilStrictVarIma>
+      </ImageVariations>
+ </ParamFusionNuage>
+
+
