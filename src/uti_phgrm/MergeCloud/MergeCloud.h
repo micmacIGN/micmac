@@ -58,6 +58,7 @@ typedef ElGraphe<cASAMG*,c3AMG*>  tMCGr;
 typedef ElSubGraphe<cASAMG*,c3AMG*>  tMCSubGr;
 typedef cSubGrFlagArc<tMCSubGr>  tMCSubGrFA;
 typedef std::pair<tMCSom *,tMCSom *> tMCPairS;
+typedef ElArcIterator<cASAMG*,c3AMG*> tArcIter;
 
 class cResumNuage
 {
@@ -80,9 +81,10 @@ class c3AMGS
 class c3AMG
 {
    public :
-      c3AMG(c3AMGS *);
+      c3AMG(c3AMGS *,double aRec);
    private :
       c3AMGS * mSym;
+      double   mRec;
 };
 
 class cASAMG
@@ -152,9 +154,12 @@ class cAppliMergeCloud : public cAppliWithSetImage
        const cParamFusionNuage & Param() {return mParam;}
        Video_Win *   TheWinIm(Pt2di aSz);
 
-       tMCSom * SomOfName(const std::string & aName);
-       tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
+       
     private :
+       tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
+       tMCSom * SomOfName(const std::string & aName);
+       void AddVoisVois(std::vector<tMCArc *> & aVArc,tMCSom&,tMCSom&);
+
        static const std::string TheNameSubdir;
 
        std::string mFileParam;
@@ -166,6 +171,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        std::vector<tMCSom *>           mVSoms;
        std::map<std::string,tMCSom *>  mDicSom;
        tMCGr                           mGr;
+       tMCSubGr                        mSubGrAll;
        std::set<tMCPairS>              mTestedPairs;
 };
 
@@ -178,7 +184,7 @@ int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
 
 
 inline const std::string pAramExtHom () {return "dat";}
-inline int pAramSizeMinFileHom() {return 20;}
+inline int pAramSizeMinFileHom() {return 1000;}
 inline int pAramNbPointLRN() {return 1000;}
 inline bool pAramTestDif() {return false;}
 inline bool pAramSeuilDifProf() {return 1.0;}

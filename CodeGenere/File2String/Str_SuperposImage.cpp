@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1211]) = {
+const char * (theNameVar_SuperposImage[1218]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1161,9 +1161,16 @@ const char * (theNameVar_SuperposImage[1211]) = {
 "  </ParamFusionMNT>\n",
 "\n",
 "  <ParamFusionNuage  Nb=\"1\" Class=\"true\">\n",
-"      <SzVisu  Nb=\"?\" Type=\"Pt2di\"> </SzVisu>\n",
+"      <PFNMiseAuPoint Nb=\"1\">\n",
+"            <SzVisu  Nb=\"?\" Type=\"Pt2di\"> </SzVisu>\n",
+"            <TestImageDif Nb=\"?\" Type=\"bool\" Def=\"false\"></TestImageDif>\n",
+"      </PFNMiseAuPoint>\n",
 "      <GrapheRecouvrt Nb=\"1\"> \n",
-"             <TauxRecMin Nb=\"?\" Type=\"double\" Def=\"0.1\"> </TauxRecMin>\n",
+"             <TauxRecMin Nb=\"1\" Type=\"double\"> </TauxRecMin>\n",
+"             <ExtHom Nb=\"?\" Type=\"std::string\" Def=\"dat\"> </ExtHom>\n",
+"             <MinSzFilHom Nb=\"?\" Type=\"int\" Def=\"1000\"> </MinSzFilHom>\n",
+"             <RecSeuilDistProf Nb=\"?\" Type=\"double\" Def=\"1.0\"> </RecSeuilDistProf>\n",
+"             <NbPtsLowResume Nb=\"1\" Type=\"int\"> </NbPtsLowResume>\n",
 "      </GrapheRecouvrt>\n",
 "      <ImageVariations Nb=\"1\">\n",
 "           <V4Vois Nb=\"1\" Type=\"bool\"> </V4Vois>\n",

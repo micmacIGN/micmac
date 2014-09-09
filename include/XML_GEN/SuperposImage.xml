@@ -1159,9 +1159,16 @@
   </ParamFusionMNT>
 
   <ParamFusionNuage  Nb="1" Class="true">
-      <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
+      <PFNMiseAuPoint Nb="1">
+            <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
+            <TestImageDif Nb="?" Type="bool" Def="false"></TestImageDif>
+      </PFNMiseAuPoint>
       <GrapheRecouvrt Nb="1"> 
-             <TauxRecMin Nb="?" Type="double" Def="0.1"> </TauxRecMin>
+             <TauxRecMin Nb="1" Type="double"> </TauxRecMin>
+             <ExtHom Nb="?" Type="std::string" Def="dat"> </ExtHom>
+             <MinSzFilHom Nb="?" Type="int" Def="1000"> </MinSzFilHom>
+             <RecSeuilDistProf Nb="?" Type="double" Def="1.0"> </RecSeuilDistProf>
+             <NbPtsLowResume Nb="1" Type="int"> </NbPtsLowResume>
       </GrapheRecouvrt>
       <ImageVariations Nb="1">
            <V4Vois Nb="1" Type="bool"> </V4Vois>

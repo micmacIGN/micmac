@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "MergeCloud.h"
 
+#if (0)
 
 cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    cAppliWithSetImage(argc-1,argv+1,0),
@@ -247,6 +248,7 @@ c3AMG::c3AMG(c3AMGS * aSym,double aRec) :
    mRec (aRec)
 {
 }
+#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

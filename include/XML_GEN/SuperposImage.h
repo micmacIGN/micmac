@@ -5224,6 +5224,34 @@ std::string  Mangling( cParamFusionMNT *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cPFNMiseAuPoint
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cPFNMiseAuPoint & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< Pt2di > & SzVisu();
+        const cTplValGesInit< Pt2di > & SzVisu()const ;
+
+        cTplValGesInit< bool > & TestImageDif();
+        const cTplValGesInit< bool > & TestImageDif()const ;
+    private:
+        cTplValGesInit< Pt2di > mSzVisu;
+        cTplValGesInit< bool > mTestImageDif;
+};
+cElXMLTree * ToXMLTree(const cPFNMiseAuPoint &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPFNMiseAuPoint &);
+
+void  BinaryUnDumpFromFile(cPFNMiseAuPoint &,ELISE_fp &);
+
+std::string  Mangling( cPFNMiseAuPoint *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cGrapheRecouvrt
 {
     public:
@@ -5232,10 +5260,26 @@ class cGrapheRecouvrt
         friend void xml_init(cGrapheRecouvrt & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< double > & TauxRecMin();
-        const cTplValGesInit< double > & TauxRecMin()const ;
+        double & TauxRecMin();
+        const double & TauxRecMin()const ;
+
+        cTplValGesInit< std::string > & ExtHom();
+        const cTplValGesInit< std::string > & ExtHom()const ;
+
+        cTplValGesInit< int > & MinSzFilHom();
+        const cTplValGesInit< int > & MinSzFilHom()const ;
+
+        cTplValGesInit< double > & RecSeuilDistProf();
+        const cTplValGesInit< double > & RecSeuilDistProf()const ;
+
+        int & NbPtsLowResume();
+        const int & NbPtsLowResume()const ;
     private:
-        cTplValGesInit< double > mTauxRecMin;
+        double mTauxRecMin;
+        cTplValGesInit< std::string > mExtHom;
+        cTplValGesInit< int > mMinSzFilHom;
+        cTplValGesInit< double > mRecSeuilDistProf;
+        int mNbPtsLowResume;
 };
 cElXMLTree * ToXMLTree(const cGrapheRecouvrt &);
 
@@ -5295,8 +5339,26 @@ class cParamFusionNuage
         cTplValGesInit< Pt2di > & SzVisu();
         const cTplValGesInit< Pt2di > & SzVisu()const ;
 
-        cTplValGesInit< double > & TauxRecMin();
-        const cTplValGesInit< double > & TauxRecMin()const ;
+        cTplValGesInit< bool > & TestImageDif();
+        const cTplValGesInit< bool > & TestImageDif()const ;
+
+        cPFNMiseAuPoint & PFNMiseAuPoint();
+        const cPFNMiseAuPoint & PFNMiseAuPoint()const ;
+
+        double & TauxRecMin();
+        const double & TauxRecMin()const ;
+
+        cTplValGesInit< std::string > & ExtHom();
+        const cTplValGesInit< std::string > & ExtHom()const ;
+
+        cTplValGesInit< int > & MinSzFilHom();
+        const cTplValGesInit< int > & MinSzFilHom()const ;
+
+        cTplValGesInit< double > & RecSeuilDistProf();
+        const cTplValGesInit< double > & RecSeuilDistProf()const ;
+
+        int & NbPtsLowResume();
+        const int & NbPtsLowResume()const ;
 
         cGrapheRecouvrt & GrapheRecouvrt();
         const cGrapheRecouvrt & GrapheRecouvrt()const ;
@@ -5316,7 +5378,7 @@ class cParamFusionNuage
         cImageVariations & ImageVariations();
         const cImageVariations & ImageVariations()const ;
     private:
-        cTplValGesInit< Pt2di > mSzVisu;
+        cPFNMiseAuPoint mPFNMiseAuPoint;
         cGrapheRecouvrt mGrapheRecouvrt;
         cImageVariations mImageVariations;
 };
