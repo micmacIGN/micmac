@@ -100,6 +100,14 @@
         <ShortName> ND90VIDEO  </ShortName>
    </CameraEntry>
    
+ <!-- Nikon Compact -->  
+ 
+   <CameraEntry>
+        <Name>  NIKON CORPORATION COOLPIX A </Name>
+        <SzCaptMm>   15.7 23.6 </SzCaptMm>
+        <ShortName> NKCA  </ShortName>
+   </CameraEntry>
+   
 <!-- Ricoh -->
 
    <CameraEntry>
