@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "MergeCloud.h"
 
+extern std::string ExtractDigit(const std::string & aName,const std::string &  aDef);
+
 
 void  cAppliMergeCloud::CreateGrapheConx()
 {
@@ -79,12 +81,61 @@ void  cAppliMergeCloud::CreateGrapheConx()
        aVAddCur = aVAddNew;
    }
 
+   // Calcul des voisins proches (contenu dans Apero ChImSec)
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
-       std::cout << mVSoms[aK]->attr()->IMM()->mNameIm << " " << mVSoms[aK]->nb_succ(mSubGrAll) << "\n";
+       tMCSom * aS1 =  mVSoms[aK];
+       const cOneSolImageSec &   aSol = aS1->attr()->SolOfCostPerIm(pAramCostPerImISOM());
+
+       for 
+       (
+           std::list<std::string>::const_iterator itS=aSol.Images().begin();
+           itS !=aSol.Images().end();
+           itS++
+       )
+       {
+            tMCSom *  aS2 = SomOfName(*itS);
+            if (aS2)
+            {
+                tMCArc * anArc = mGr.arc_s1s2(*aS1,*aS2);
+                if (anArc)
+                {
+                   // anArc->sym_flag_set_kth_true(mFlagCloseN);
+                   anArc->flag_set_kth_true(mFlagCloseN);
+                   aS1->attr()->AddCloseVois(aS2->attr());
+                }
+                // std::cout << "AAAaA  :" << anArc << "\n";
+            }
+       }
    }
 
+   // Na pas effacer, permet de voir le graphe des close image en cas de doute
+   if (1)
+   {
+       for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+       {
+           tMCSom * aS1 =  mVSoms[aK];
+           std::cout << aS1->attr()->IMM()->mNameIm 
+                     << " All: " << aS1->nb_succ(mSubGrAll) 
+                     << " Closed: " << aS1->nb_succ(mSubGrCloseN) ;
+
+            std::cout << " ";
+            for (tArcIter itA = aS1->begin(mSubGrCloseN) ; itA.go_on() ; itA++)
+            {
+                const std::string & aN2 = (*itA).s2().attr()->IMM()->mNameIm;
+                std::cout << ExtractDigit(StdPrefixGen(aN2),"0000") << " ";
+
+            }
+            std::cout << "\n";
+       }
+   }
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+       mVSoms[aK]->attr()->TestImCoher();
 }
+
+
+
+
 
 void  cAppliMergeCloud::AddVoisVois(std::vector<tMCArc *> & aVArc,tMCSom& aS1,tMCSom& aS2)
 {

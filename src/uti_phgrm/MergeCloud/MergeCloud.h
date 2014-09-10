@@ -98,6 +98,13 @@ class cASAMG
       void TestDifProf(const cASAMG & aNE) const;
 
       cImaMM *     IMM(); 
+      const cOneSolImageSec &  SolOfCostPerIm(double aCost);
+      const cImSecOfMaster &  ISOM() const;
+
+      void AddCloseVois(cASAMG *);
+
+      void TestImCoher();
+
 
    private :
      void MakeVec3D(std::vector<Pt3dr> & aVPts,const cResumNuage &) const;
@@ -107,6 +114,8 @@ class cASAMG
      double QualityProjOnOther(const cASAMG &,const Pt3dr &) const;
      double QualityProjOnMe(const Pt3dr &) const;
      double SignedDifProf(const Pt3dr &) const;
+     double DifProf2Gain(double aDif) const;
+
 
 
      inline double DynAng() const ;
@@ -133,10 +142,10 @@ class cASAMG
      TIm2D<U_INT1,INT>    mTIncid;
      double               mSSIma;
 
-     std::vector<cASAMG *>  mBestNeigh;
-     std::vector<cASAMG *>  mAllNeigh;
+     std::vector<cASAMG *>  mCloseNeigh;
 
      cResumNuage            mLowRN;  // Basse resolution pour la topologie
+     cImSecOfMaster         mISOM;
 };
 
 
@@ -173,7 +182,9 @@ class cAppliMergeCloud : public cAppliWithSetImage
        std::vector<tMCSom *>           mVSoms;
        std::map<std::string,tMCSom *>  mDicSom;
        tMCGr                           mGr;
+       int                             mFlagCloseN;
        tMCSubGr                        mSubGrAll;
+       tMCSubGrFA                      mSubGrCloseN;
        std::set<tMCPairS>              mTestedPairs;
 };
 
@@ -185,6 +196,7 @@ int    cASAMG::CCDist() const {return mAppli->Param().ImageVariations().DistVois
 int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
 
 
+inline double pAramCostPerImISOM() {return 0.2;}
 
 #endif // _ELISE_MERGE_CLOUD
 

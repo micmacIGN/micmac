@@ -130,6 +130,8 @@ class cAppliWithSetImage
    public :
       CamStenope * CamOfName(const std::string & aName);
       const std::string & Dir() const;
+      const std::string & Ori() const;
+      bool HasOri() const;
       cInterfChantierNameManipulateur * ICNM() ;
       int  DeZoomOfSize(double ) const;
       void operator()(tSomAWSI*,tSomAWSI*,bool);   // Delaunay call back

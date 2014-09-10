@@ -93,6 +93,11 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         <eSymb> CensusEff= * ${Census} ${DoEpi} </eSymb>
         <eSymb> NotEpi= ! ${DoEpi} </eSymb>
        
+
+         <Symb> HUGEDilateALTI=7    </Symb>
+         <Symb> HUGEDilatePLANI=5   </Symb>
+         <Symb> BigDilateALTI=5     </Symb>
+         <Symb> BigDilatePLANI=4    </Symb>
 </DicoLoc>
 
 <Section_Terrain> 
@@ -304,6 +309,17 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
         </EtapeMEC>
 
+<!--
+            <#WHEN VTEST=${DoEpi}>
+                <Px1DilatAlti>  3  </Px1DilatAlti>
+	        <Px1DilatPlani> 3  </Px1DilatPlani>
+            </#WHEN>
+            <#WHEN VTEST=${NotEpi}>
+                <ZDilatAlti>  3  </ZDilatAlti>
+	        <ZDilatPlani> 3  </ZDilatPlani>
+            </#WHEN>
+-->
+
 	<EtapeMEC> 
                   <DeZoom> ${Zoom0} </DeZoom> 
                   <#IF VTEST=${DoEpi}>
@@ -313,25 +329,41 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         </EtapeMEC>	
 	<EtapeMEC> 
                  <DeZoom> ${Zoom0} </DeZoom> 
-                  <#WHEN VTEST=${DoEpi}>
-                       <Px1DilatAlti>  5  </Px1DilatAlti>
-	               <Px1DilatPlani> 3  </Px1DilatPlani>
-                  </#WHEN>
-                  <#WHEN VTEST=${NotEpi}>
-                       <ZDilatAlti>  5  </ZDilatAlti>
-	               <ZDilatPlani> 3  </ZDilatPlani>
-                  </#WHEN>
+                 <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+	             <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+                 </#WHEN>
+                 <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+                 </#WHEN>
         </EtapeMEC>	
 
         <#WHEN VTEST=${WZ64}>
 	    <EtapeMEC> 
                   <DeZoom> 64 </DeZoom> 
+                 <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+	             <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+                 </#WHEN>
+                 <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+                 </#WHEN>
             </EtapeMEC>	
         </#WHEN>
 
         <#WHEN VTEST=${WZ32}>
 	    <EtapeMEC> 
-                  <DeZoom> 32 </DeZoom> 
+                 <DeZoom> 32 </DeZoom> 
+                 <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+	             <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+                 </#WHEN>
+                 <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+                 </#WHEN>
             </EtapeMEC>	
         </#WHEN>
 
@@ -339,12 +371,20 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         <#WHEN VTEST=${WZ16}>
 	    <EtapeMEC> 
                   <DeZoom> 16 </DeZoom> 
-            </EtapeMEC>
+            </EtapeMEC>	
         </#WHEN>
 
         <#WHEN VTEST=${WZ8}>
 	   <EtapeMEC> 
               <DeZoom> 8 </DeZoom> 
+              <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+	             <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+               </#WHEN>
+               <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+               </#WHEN>
            </EtapeMEC>
         </#WHEN>
 

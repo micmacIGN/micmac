@@ -56,7 +56,8 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mSz        (mImCptr.sz()),
    mImIncid   (mSz.x,mSz.y),
    mTIncid    (mImIncid),
-   mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma())
+   mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma()),
+   mISOM      (StdGetISOM(anAppli->ICNM(),anIma->mNameIm,anAppli->Ori()))
 {
    // ComputeIncidAngle3D();
    ComputeIncidGradProf();
@@ -89,6 +90,38 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
 }
 
 cImaMM * cASAMG::IMM() {return  mIma;}
+
+const cImSecOfMaster &  cASAMG::ISOM() const
+{
+   return mISOM;
+}
+
+void  cASAMG::AddCloseVois(cASAMG * anA)
+{
+   mCloseNeigh.push_back(anA);
+}
+
+const cOneSolImageSec &  cASAMG::SolOfCostPerIm(double aCostPerIm)
+{
+   double aBestGain = -1e10;
+   const cOneSolImageSec * aSol=0;
+   for 
+   (
+        std::list<cOneSolImageSec>::const_iterator itS=mISOM.Sols().begin() ;
+        itS !=mISOM.Sols().end() ;
+        itS++
+   )
+   {
+       double aGain = itS->Coverage() - aCostPerIm*itS ->Images().size();
+       if (aGain > aBestGain)
+       {
+           aBestGain = aGain;
+           aSol = &(*itS);
+       }
+   }
+   return *aSol;
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

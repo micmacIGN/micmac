@@ -42,7 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    cAppliWithSetImage(argc-1,argv+1,0),
-   mTheWinIm         (0)
+   mTheWinIm         (0),
+   mFlagCloseN       (mGr.alloc_flag_arc()),
+   mSubGrCloseN      (mSubGrAll,mFlagCloseN)
 {
    std::string aPat,anOri;
    ElInitArgMain
