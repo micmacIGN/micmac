@@ -1625,7 +1625,7 @@ void cAppliMICMAC::DoGPU_Correl
                     double cost = (double)tCost[rSiTer * abs(anZ - (int)z0)];
 
 #ifdef CUDA_DEFCOR
-                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : 2.0);
+                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : 6.0);
 #else
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
 #endif
