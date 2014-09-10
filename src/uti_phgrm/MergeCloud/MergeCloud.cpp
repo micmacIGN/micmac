@@ -60,6 +60,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 
    mParam = StdGetFromSI(mFileParam,ParamFusionNuage);
 
+
    // ===  Creation des nuages 
 
    for (int aKS=0 ; aKS<int(cAppliWithSetImage::mVSoms.size()) ; aKS++)
@@ -80,102 +81,13 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 
         std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << "\n";
    }
-   if (pAramTestDif() && (mVSoms.size()==2))
+   if (mParam.TestImageDif().Val() && (mVSoms.size()==2))
    {
         mVAttr[0]->TestDifProf(*(mVAttr[1]));
    }
-
-   // ===  Creation des couples
-
-            // Couple d'homologues
-   std::string aKSH = "NKS-Set-Homol@@"+ pAramExtHom();
-   std::string aKAH = "NKS-Assoc-CplIm2Hom@@"+ pAramExtHom();
-
-   std::vector<tMCArc *> aVAddCur;
-   const cInterfChantierNameManipulateur::tSet * aSetHom = ICNM()->Get(aKSH);
-   for (int aKH=0 ; aKH<int(aSetHom->size()) ; aKH++)
-   {
-       const std::string & aNameFile = (*aSetHom)[aKH];
-       std::string aFullNF = Dir() + aNameFile;
-       if (sizeofile(aFullNF.c_str()) > pAramSizeMinFileHom())
-       {
-           std::pair<std::string,std::string> aPair = ICNM()->Assoc2To1(aKAH,aNameFile,false);
-           tMCSom * aS1 = SomOfName(aPair.first);
-           tMCSom * aS2 = SomOfName(aPair.second);
-           if ((aS1!=0) && (aS2!=0) && (sizeofile(aNameFile.c_str())>pAramSizeMinFileHom()))
-           {
-              tMCArc *  anArc = TestAddNewarc(aS1,aS2);
-              if (anArc)
-                 aVAddCur.push_back(anArc);
-           }
-       }
-   }
-            // Ajout recursif des voisin
-   while (! aVAddCur.empty())
-   {
-       std::cout << "ADD " << aVAddCur.size() << "\n";
-       std::vector<tMCArc *> aVAddNew;
-       for (int aK=0 ; aK<int(aVAddCur.size()) ; aK++)
-       {
-           tMCArc & anArc = *(aVAddCur[aK]);
-           AddVoisVois(aVAddNew,anArc.s1(),anArc.s2());
-           AddVoisVois(aVAddNew,anArc.s2(),anArc.s1());
-       }
-       aVAddCur = aVAddNew;
-   }
-
-}
-
-void  cAppliMergeCloud::AddVoisVois(std::vector<tMCArc *> & aVArc,tMCSom& aS1,tMCSom& aS2)
-{
-    for (tArcIter itA = aS2.begin(mSubGrAll) ; itA.go_on() ; itA++)
-    {
-       tMCArc * anArc = TestAddNewarc(&aS1,&(itA->s2()));
-       if (anArc) 
-          aVArc.push_back(anArc);
-    }
-}
-
-tMCArc * cAppliMergeCloud::TestAddNewarc(tMCSom * aS1,tMCSom *aS2)
-{
-   if (aS1 == aS2) return 0;
-   if (aS1 > aS2) ElSwap(aS1,aS2);
-
-   tMCPairS aPair(aS1,aS2);
-
-   if (mTestedPairs.find(aPair) != mTestedPairs.end())
-      return 0; // Deja fait
-   mTestedPairs.insert(aPair) ;  // plus a faire
-
-   cASAMG * anA1 = aS1->attr() ;
-   cASAMG * anA2 = aS2->attr() ;
-
-   double aR1On2 = anA1->LowRecouvrt(*anA2);
-   double aR2On1 = anA2->LowRecouvrt(*anA1);
-
-   if ((aR1On2< pAramSeuilRecouvr()) && (aR2On1 <pAramSeuilRecouvr()))
-      return 0;
+   CreateGrapheConx();
 
 
-   if (0)
-   {
-       std::cout << "AddArc: " << anA1->IMM()->mNameIm << " " 
-                               << anA2->IMM()->mNameIm 
-                               << " Rec: " << aR1On2 << "/" << aR2On1 << "\n";
-   }
-   ELISE_ASSERT
-   (
-      mGr.arc_s1s2(*aS1,*aS2)==0,
-      "Incoherence in cAppliMergeCloud::TestAddNewarc"
-   );
-
-   c3AMGS *  anAs = new c3AMGS;
-   c3AMG  * anA12 = new c3AMG(anAs,aR1On2);
-   c3AMG  * anA21 = new c3AMG(anAs,aR2On1);
-   
-   tMCArc & anArc = mGr.add_arc(*aS1,*aS2,anA12,anA21);
-
-   return & anArc;
 }
 
 

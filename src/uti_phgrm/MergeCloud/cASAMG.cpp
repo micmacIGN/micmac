@@ -64,7 +64,7 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    
    Video_Win * aW = mAppli->TheWinIm(mSz);
 
-   ComputeSubset(pAramNbPointLRN(),mLowRN);
+   ComputeSubset(mAppli->Param().NbPtsLowResume(),mLowRN);
 
    if (0 && aW)
    {

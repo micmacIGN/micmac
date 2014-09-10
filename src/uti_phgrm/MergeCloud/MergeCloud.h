@@ -159,6 +159,8 @@ class cAppliMergeCloud : public cAppliWithSetImage
        tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
        tMCSom * SomOfName(const std::string & aName);
        void AddVoisVois(std::vector<tMCArc *> & aVArc,tMCSom&,tMCSom&);
+       void CreateGrapheConx();
+
 
        static const std::string TheNameSubdir;
 
@@ -183,12 +185,6 @@ int    cASAMG::CCDist() const {return mAppli->Param().ImageVariations().DistVois
 int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
 
 
-inline const std::string pAramExtHom () {return "dat";}
-inline int pAramSizeMinFileHom() {return 1000;}
-inline int pAramNbPointLRN() {return 1000;}
-inline bool pAramTestDif() {return false;}
-inline bool pAramSeuilDifProf() {return 1.0;}
-inline double pAramSeuilRecouvr() {return 0.01;}
 
 #endif // _ELISE_MERGE_CLOUD
 

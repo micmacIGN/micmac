@@ -176,7 +176,7 @@ double cASAMG::SignedDifProf(const Pt3dr & aPE) const
 
 double cASAMG::QualityProjOnMe(const Pt3dr & aPE) const
 {
-    double aDif = ElAbs(SignedDifProf(aPE)) / pAramSeuilDifProf();
+    double aDif = ElAbs(SignedDifProf(aPE)) / mAppli->Param().RecSeuilDistProf().Val();
     return ElMin(1.0,ElMax(0.0,2.0-aDif));
 }
 
