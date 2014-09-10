@@ -39,58 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "MergeCloud.h"
 
-#if (0)
 
-cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
-   cAppliWithSetImage(argc-1,argv+1,0),
-   mTheWinIm         (0)
+void  cAppliMergeCloud::CreateGrapheConx()
 {
-   std::string aPat,anOri;
-   ElInitArgMain
-   (
-        argc,argv,
-        LArgMain()  << EAMC(aPat,"Full Directory (Dir+Pattern)",eSAM_IsPatFile)
-                    << EAMC(anOri,"Orientation ", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(mFileParam,"XMLParam",true,"File Param, def = XML_MicMac/DefMergeCloud.xml")
-   );
-
-   if (! EAMIsInit(&mFileParam))
-   {
-         mFileParam = Basic_XML_MM_File("DefMergeCloud.xml");
-   }
-
-   mParam = StdGetFromSI(mFileParam,ParamFusionNuage);
-
-   // ===  Creation des nuages 
-
-   for (int aKS=0 ; aKS<int(cAppliWithSetImage::mVSoms.size()) ; aKS++)
-   {
-        cImaMM * anIma = cAppliWithSetImage::mVSoms[aKS]->attr().mIma;
-        cASAMG * anAttrSom = 0;
-
-        std::string aNameNuXml = NameFileInput(anIma,".xml");
-        // Possible aucun nuage si peu de voisins et mauvaise config epip
-        if (ELISE_fp::exist_file(aNameNuXml))
-        {
-            anAttrSom = new cASAMG(this,anIma);
-            mVAttr.push_back(anAttrSom);
-            tMCSom &  aSom = mGr.new_som(anAttrSom);
-            mDicSom[anIma->mNameIm] = & aSom;
-            mVSoms.push_back(&aSom);
-        }
-
-        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << "\n";
-   }
-   if (pAramTestDif() && (mVSoms.size()==2))
-   {
-        mVAttr[0]->TestDifProf(*(mVAttr[1]));
-   }
-
-   // ===  Creation des couples
-
             // Couple d'homologues
-   std::string aKSH = "NKS-Set-Homol@@"+ pAramExtHom();
-   std::string aKAH = "NKS-Assoc-CplIm2Hom@@"+ pAramExtHom();
+   std::string aKSH = "NKS-Set-Homol@@"+ mParam.ExtHom().Val();
+   std::string aKAH = "NKS-Assoc-CplIm2Hom@@"+ mParam.ExtHom().Val();
 
    std::vector<tMCArc *> aVAddCur;
    const cInterfChantierNameManipulateur::tSet * aSetHom = ICNM()->Get(aKSH);
@@ -98,12 +52,12 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    {
        const std::string & aNameFile = (*aSetHom)[aKH];
        std::string aFullNF = Dir() + aNameFile;
-       if (sizeofile(aFullNF.c_str()) > pAramSizeMinFileHom())
+       if (sizeofile(aFullNF.c_str()) > mParam.MinSzFilHom().Val())
        {
            std::pair<std::string,std::string> aPair = ICNM()->Assoc2To1(aKAH,aNameFile,false);
            tMCSom * aS1 = SomOfName(aPair.first);
            tMCSom * aS2 = SomOfName(aPair.second);
-           if ((aS1!=0) && (aS2!=0) && (sizeofile(aNameFile.c_str())>pAramSizeMinFileHom()))
+           if ((aS1!=0) && (aS2!=0) && (sizeofile(aNameFile.c_str())>mParam.MinSzFilHom().Val()))
            {
               tMCArc *  anArc = TestAddNewarc(aS1,aS2);
               if (anArc)
@@ -123,6 +77,11 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
            AddVoisVois(aVAddNew,anArc.s2(),anArc.s1());
        }
        aVAddCur = aVAddNew;
+   }
+
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+       std::cout << mVSoms[aK]->attr()->IMM()->mNameIm << " " << mVSoms[aK]->nb_succ(mSubGrAll) << "\n";
    }
 
 }
@@ -154,7 +113,7 @@ tMCArc * cAppliMergeCloud::TestAddNewarc(tMCSom * aS1,tMCSom *aS2)
    double aR1On2 = anA1->LowRecouvrt(*anA2);
    double aR2On1 = anA2->LowRecouvrt(*anA1);
 
-   if ((aR1On2< pAramSeuilRecouvr()) && (aR2On1 <pAramSeuilRecouvr()))
+   if ((aR1On2< mParam.TauxRecMin()) && (aR2On1 <mParam.TauxRecMin()))
       return 0;
 
 
@@ -181,74 +140,6 @@ tMCArc * cAppliMergeCloud::TestAddNewarc(tMCSom * aS1,tMCSom *aS2)
 
 
 
-Video_Win *  cAppliMergeCloud::TheWinIm(Pt2di aSzIm)
-{
-   if (! mParam.SzVisu().IsInit())
-     return 0;
-
-   if (mTheWinIm==0)
-   {
-       Pt2di aSzW = mParam.SzVisu().Val();
-       double aRx = aSzW.x / double(aSzIm.x);
-       double aRy = aSzW.y / double(aSzIm.y);
-       mRatioW = ElMin(aRx,aRy);
-       aSzW = round_ni(Pt2dr(aSzIm)*mRatioW);
-
-       mTheWinIm = Video_Win::PtrWStd(aSzW,true,Pt2dr(mRatioW,mRatioW));
-       std::cout << "RATIOW " << mRatioW << "\n";
-   }
-
-   return mTheWinIm;
-}
-
-const std::string cAppliMergeCloud::TheNameSubdir = "Fusion-0";
-
-std::string cAppliMergeCloud::NameFileInput(const std::string & aNameIm,const std::string aPost)
-{
-   return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
-}
-
-std::string cAppliMergeCloud::NameFileInput(cImaMM * anIma,const std::string aPost)
-{
-    return NameFileInput(anIma->mNameIm,aPost);
-}
-
-
-tMCSom * cAppliMergeCloud::SomOfName(const std::string & aName)
-{
-   std::map<std::string,tMCSom *>::iterator it = mDicSom.find(aName);
-
-   if (it==mDicSom.end()) return 0;
-   return it->second;
-}
-
-
-//========================================================================================
-
-
-int CPP_AppliMergeCloud(int argc,char ** argv)
-{
-    cAppliMergeCloud anAppli(argc,argv);
-
-
-    return EXIT_SUCCESS;
-}
-
-
-/***************************************************************************/
-/***************************************************************************/
-/***                                                                     ***/
-/***                         GRAPHE                                      ***/
-/***                                                                     ***/
-/***************************************************************************/
-/***************************************************************************/
-
-c3AMG::c3AMG(c3AMGS * aSym,double aRec) :
-   mSym (aSym),
-   mRec (aRec)
-{
-}
-#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
