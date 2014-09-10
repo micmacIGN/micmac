@@ -47,6 +47,7 @@ int MMInitialModel_main(int argc,char ** argv)
     std::string  ImSec;
     bool         Visu = false;
     bool         DoPly = false;
+    bool         DoMatch = true;
 
     int aZoom = 8;
     bool aDo2Z = true;
@@ -64,6 +65,7 @@ int MMInitialModel_main(int argc,char ** argv)
                     << EAM(aZoom,"Zoom",true,"Zoom of computed models (Def=8)")
                     << EAM(aReducePly,"ReduceExp",true,"Down scaling of cloud , XML and ply (Def=3)")
                     << EAM(aDo2Z,"Do2Z",true,"Excute a first step at 2*Zoom (Def=true)", eSAM_IsBool)
+                    << EAM(DoMatch,"DoMatch",true,"Do \"classical\" MicMac at end (Def=true)", eSAM_IsBool)
     );
 
     #if (ELISE_windows)
@@ -101,6 +103,7 @@ int MMInitialModel_main(int argc,char ** argv)
                               + std::string(" +Ori=-") + AeroIn
                               + std::string(" +ImSec=-") + ImSec
                               + " +DoPly=" + ToString(DoPly) + " "
+                              + " +DoMatch=" + ToString(DoMatch) + " "
                     ;
 
           if (Visu)

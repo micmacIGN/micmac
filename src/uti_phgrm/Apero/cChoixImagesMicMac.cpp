@@ -854,7 +854,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
    int aCpt=0;
    for (std::list<std::string>::iterator itS=aBestSol.Images().begin(); itS!=aBestSol.Images().end() ; itS++)
    {
-       std::cout << ((aCpt==0) ? " [" : "|") <<  ExtractDigit(*itS,"XXXX") ;
+       std::cout << ((aCpt==0) ? " [" : "|") <<  ExtractDigit(StdPrefixGen(*itS),"XXXX") ;
        aCpt++;
    }
    std::cout << "] Cov:" << aBestSol.Coverage()  << "\n";

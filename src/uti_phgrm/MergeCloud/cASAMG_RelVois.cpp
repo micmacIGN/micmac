@@ -52,7 +52,7 @@ void cResumNuage::Reset(int aReserve)
 
 void cASAMG::ComputeSubset(int aNbPts,cResumNuage & aRN)
 {
-   Video_Win * aW = mAppli->TheWinIm(mSz);
+   Video_Win * aW =   mAppli->TheWinIm(mSz);
 
    double aSzCel = sqrt(double(mSz.x*mSz.y)/aNbPts);
    Pt2di aNb2C = round_up(Pt2dr(mSz)/aSzCel);
@@ -174,10 +174,19 @@ double cASAMG::SignedDifProf(const Pt3dr & aPE) const
    return 1000;
 }
 
+double cASAMG::DifProf2Gain(double aDif) const
+{
+    aDif = ElAbs(aDif/mAppli->Param().RecSeuilDistProf().Val());
+    return ElMin(1.0,ElMax(0.0,2.0-aDif));
+}
+
 double cASAMG::QualityProjOnMe(const Pt3dr & aPE) const
 {
+    return DifProf2Gain(SignedDifProf(aPE));
+/*
     double aDif = ElAbs(SignedDifProf(aPE)) / mAppli->Param().RecSeuilDistProf().Val();
     return ElMin(1.0,ElMax(0.0,2.0-aDif));
+*/
 }
 
 void cASAMG::MakeVec3D(std::vector<Pt3dr> & aVPts,const cResumNuage & aRN) const
@@ -241,7 +250,53 @@ void cASAMG::TestDifProf(const cASAMG & aNE) const
 
 }
 
+void cASAMG::TestImCoher() 
+{
+    ElTimer aChrono;
+    const   std::vector<cASAMG *> & aVN = mCloseNeigh;
 
+    int aNbIm = aVN.size();
+    Im2D_REAL4 aImDif(mSz.x,mSz.y,1000);
+    TIm2D<REAL4,REAL8> aTDif(aImDif);
+    Pt2di aP;
+
+    for (aP.x=0 ; aP.x<mSz.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<mSz.y ; aP.y++)
+        {
+             if (mTMasqN.get(aP))
+             {
+                 Pt3dr aPE = mStdN->PtOfIndex(aP);
+                 double aSom=0;
+                 for (int aK=0 ; aK<aNbIm ; aK++)
+                 {
+                     aSom += aVN[aK]->QualityProjOnMe(aPE);
+                 }
+                 aTDif.oset(aP,aSom);
+             }
+        }
+    }
+
+   
+    Video_Win * aW = mAppli->TheWinIm(mSz);
+    if (aW)
+    {
+        std::cout << "For " << mIma->mNameIm << " time " << aChrono.uval() << "\n";
+        ELISE_COPY
+        (
+             aImDif.all_pts(),
+             Min(255,aImDif.in() * (255.0/aNbIm)),
+             aW->ogray()
+        );
+        ELISE_COPY
+        (
+             select(aImDif.all_pts(),!mMasqN.in()),
+             P8COL::yellow,
+             aW->odisc()
+        );
+       aW->clik_in();
+    }
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

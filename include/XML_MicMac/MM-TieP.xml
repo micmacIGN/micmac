@@ -22,6 +22,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
 <ParamMICMAC>
 <DicoLoc>
+   <Symb> DoMatch=true     </Symb>
+
    <Symb> Ori="-All"     </Symb>
    <Symb> Zoom=8     </Symb>
    <Symb> Im1=IMG_0018.JPG </Symb>
@@ -42,7 +44,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
    <Symb> ImTextPly=${Im1}_Scaled_${ZVE}.tif </Symb>
    <Symb> ImSec=${Ori} </Symb>
-   <eSymb> EtapeFin=   ?  ${Do2Z} 4 3  </eSymb>
+
+   
+   <eSymb> EtapeFinMatch=   ?  ${Do2Z} 4 3  </eSymb>
+   <eSymb> EtapeFinSift=   ?  ${Do2Z}  2 1  </eSymb>
+   <eSymb> EtapeFin=   ?  ${DoMatch} ${EtapeFinMatch} ${EtapeFinSift}  </eSymb>
 
 
     <Symb> SeuilSCor=0.65 </Symb>
@@ -225,7 +231,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                  </CorrelAdHoc>
         </EtapeMEC>
 
-        <EtapeMEC> 
+        <#WHEN  VTEST=${DoMatch}>
+            <EtapeMEC> 
                  <DeZoom >        ${Zoom}       </DeZoom> 
                  <ModeInterpolation Portee="Globale"> eInterpolBiCub </ModeInterpolation>
                  <AlgoRegul Portee="Globale">  eAlgo2PrgDyn </AlgoRegul>
@@ -247,9 +254,9 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                            <GPU_Correl> </GPU_Correl>
                      </TypeCAH>
                  </CorrelAdHoc>
-        </EtapeMEC>
+            </EtapeMEC>
 
-        <EtapeMEC> 
+            <EtapeMEC> 
                  <DeZoom >        ${Zoom}   </DeZoom> 
                  <AlgoRegul>  eAlgoDequant  </AlgoRegul>
                  <ZPas>       1             </ZPas>
@@ -258,13 +265,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                      <Offset> 0  </Offset>
                      <SeuilMasqExport> 0.02 </SeuilMasqExport> 
                      <Name> BSH-${Im1}.tif </Name>
-<!--
-                     <NameNuage> RN${Im1}  </NameNuage>
--->
                      <NameNuage> ${ThisDir}${DirMEC}/RN${Im1}  </NameNuage>
                      <ScaleNuage> ${ReduceExp}  </ScaleNuage>
                 </DoImageBSurH>
-        </EtapeMEC> 
+            </EtapeMEC> 
+        </#WHEN>
 
 
 <!--

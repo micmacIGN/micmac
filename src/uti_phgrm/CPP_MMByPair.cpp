@@ -417,6 +417,16 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mAverNbPix /= mEASF.mSetIm->size();
 }
 
+bool cAppliWithSetImage::HasOri() const
+{
+   return mWithOri;
+}
+
+const std::string & cAppliWithSetImage::Ori() const
+{
+   return mOri;
+}
+
 
 int cAppliWithSetImage::NbAlti() const
 {

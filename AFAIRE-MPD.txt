@@ -328,7 +328,21 @@ Appel depuis ChSys :
    ElCamera::ChangeSys
 
 
+=====================================================
+
+Pour eviter les trous restants dans MMByP (par ex le boule de la fontaine dans exo forca) :
+
+   - on lance le calcule MMInitialModele en :
+       - mode non match
+       - on clip avec le masq 3D
+       - on filtre les point par le filtre qui enlever les points fuyants
+       - on bascule dans chaque geomn un certain nombre de voisin, ne prenant les min-max
+
+   - grace a cette enveloppe; on peut lancer a assez haut resolution de MMByP ?
+
   
+
+
 
 
 
