@@ -359,6 +359,9 @@ void ReadLine_V02(
             const ushort dZ     = count(indexZ); // creer buffer de count
             ushort       z      = 0;
             globMinFCost        = max_cost;
+            #ifdef CUDA_DEFCOR
+            bool           mask = false;
+            #endif
 
             while( z < dZ)
             {                
@@ -371,12 +374,26 @@ void ReadLine_V02(
                 }
 
                 uint fCostMin           = max_cost;
-                const ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+                ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+
+
                 const ushort tZ         = z + p.stid<sens>();
                 const short  Z          = ((sens) ? tZ + indexZ.x : indexZ.y - tZ - 1);
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z - 1);
+
 #ifdef CUDA_DEFCOR
-                BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);
+                if(costInit < 20000)
+                {
+
+                    BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);
+                }
+                else
+                {
+                    costInit = 65535;
+                    mask = true;
+                    BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);
+                    //GetConeZ(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
+                }
 #else
                 GetConeZ(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
 #endif
@@ -394,8 +411,8 @@ void ReadLine_V02(
                     // les cellules dans la zone masquée
                     // les cellules dont la valeur le coef de corrélation n'a pas été calculé -> 1.01234 --> 10123
                     //  ces cellules contaminent les voisines en mode DEFCOR....
-
-               fCostMin = min(fCostMin, costInit + prevDefCor  + costTransDef );
+                if(!mask)
+                    fCostMin = min(fCostMin, costInit + prevDefCor  + costTransDef );
 #endif
 
                 if(tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < sizeBuffer && tZ < sizeBuffer)

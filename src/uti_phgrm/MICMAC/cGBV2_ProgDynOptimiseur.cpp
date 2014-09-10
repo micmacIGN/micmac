@@ -500,8 +500,8 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
                     }
 
                     #ifdef CUDA_DEFCOR
-                    if(aMat[aPRX].GetCostInit() == 20000)
-                        IGpuOpt._FinalDefCor[ui2Ter] = 0;
+//                    if(aMat[aPRX].GetCostInit() >= 20000)
+//                        IGpuOpt._FinalDefCor[ui2Ter] = 0;
                     #endif
 
                     aMat[aPRX].SetCostInit(aCF);
@@ -903,6 +903,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
     {
         Pt2di aPTer;
+        #ifdef CUDA_DEFCOR
+        float qualiMAx = 0;
+        float qualiMin = 1e9;
+        #endif
+
         for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
         {
             for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
@@ -913,7 +918,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                 Pt2di aPRXMin;
                 tCost   aCostMin = tCost(1e9);
                // tCost   agreMin  = 0;
-                for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
+                //for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
                 {
                     for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
                     {
@@ -931,7 +936,16 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 #ifdef CUDA_DEFCOR
                 uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
 
-                IGpuOpt._FinalDefCor[ui2Ter] = IGpuOpt._FinalDefCor[ui2Ter] < aCostMin  ? 1 : 0;
+                //IGpuOpt._FinalDefCor[ui2Ter] = (float)((float)IGpuOpt._FinalDefCor[ui2Ter]/(float)aCostMin)*10000.f;
+
+                float defCOf        = IGpuOpt._FinalDefCor[ui2Ter];
+                float costMinf      = aCostMin;
+                float qualityCorre  = defCOf / costMinf * 10000.0f;
+
+                IGpuOpt._FinalDefCor[ui2Ter] = qualityCorre;
+                qualiMAx = max(qualiMAx,qualityCorre);
+                qualiMin = max(qualiMin,qualityCorre);
+
 #endif
                 mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
             }
@@ -941,32 +955,35 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
         //ushort defCor = mCostDefMasked;
         Rect zone(0,0,mSz.x,mSz.y);
-
-
-
-//        uint    nonCorrel = (nbDirection*2)-1;
         uint2   pTer;
-        uint    maxITSPI = 4;
-        
+       uint    maxITSPI = 16;
+
         for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
         {
             for (pTer.x=0 ; pTer.x<(uint)mSz.x ; pTer.x++)
             {
 
                 int2 curPT  = make_int2(pTer);
+                int2 findPT = make_int2(pTer);;
                 uint finalDefCor     = IGpuOpt._FinalDefCor[pTer];
 
-                if(finalDefCor > 0 )
-                {
-                    bool findZ = false;
-                    ushort  iteSpi   = 1;
+                uint minCOR = 10000;
 
+                if(finalDefCor <= minCOR )
+                {
                     int zMin    = 1e9;
+                    bool findZ  = false;
+
+                    ushort  iteSpi   = 1;
+                    //int zFind   = 1e9;
                     int zMax    = 0;
                     int zMoyen  = 0;
                     int pond    = 0;
+                    //int minPond = 8;
+                    int3 moy            = make_int3(0,0,0);
+                    std::vector<int3>   ptsOk;
 
-                    while(!findZ || iteSpi < maxITSPI )
+                    while((!findZ || iteSpi < maxITSPI) &&  (iteSpi < 64)/*|| pond < 32*/)
                     {
                         bool pair   = (iteSpi % 2) == 0;
                         int vec     = (float)iteSpi/2.f + 0.5f;
@@ -975,7 +992,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                                               
                         for (int i = 0; i < vec; ++i,curPT += tr)
                         {
-                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] == 0)
+                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] > ((float)minCOR*3))
                             {
                                 //if(mDataImRes[0][curPT.y][curPT.x] < mDataImRes[0][pTer.y][pTer.x])
                                 {
@@ -983,9 +1000,24 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                                     zMax = max(zMax,mDataImRes[0][curPT.y][curPT.x]);
                                     zMoyen += mDataImRes[0][curPT.y][curPT.x];
                                     pond++;
-                                    findZ = true;
-                                    if(iteSpi >= maxITSPI )
-                                        break;
+
+                                    int3 ptOK = make_int3(curPT.x,curPT.y,mDataImRes[0][curPT.y][curPT.x]);
+                                    ptsOk.push_back(ptOK);
+                                    moy += ptOK;
+
+//                                    moy.x += curPT.x;
+//                                    moy.y += curPT.y;
+//                                    moy.z += mDataImRes[0][curPT.y][curPT.x];
+
+                                    if(!findZ)
+                                    {
+                                        findPT = curPT;
+                                        //zFind  = zMin;
+                                        findZ = true;
+                                    }
+
+//                                    if(iteSpi >= maxITSPI )
+//                                        break;
                                 }
                             }
                         }
@@ -993,9 +1025,48 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                         iteSpi++;
                     }
 
+//                    float xx   = (float)moy.x/pond;
+//                    float yy   = (float)moy.y/pond;
+//                    float zz   = (float)moy.z/pond;
+//                    float cov1 = 0;
+//                    float var1 = 0;
+//                    float cov2 = 0;
+//                    float var2 = 0;
+
+//                    for (int i = 0; i < pond; ++i)
+//                    {
+//                        cov1 += (float)((float)ptsOk[i].x-xx)*((float)ptsOk[i].z-zz);
+//                        var1 += (float)((float)ptsOk[i].x-xx)*((float)ptsOk[i].x-xx);
+
+//                        cov2 += (float)((float)ptsOk[i].y-yy)*((float)ptsOk[i].z-zz);
+//                        var2 += (float)((float)ptsOk[i].y-yy)*((float)ptsOk[i].y-yy);
+//                    }
+
+//                    cov1 /= pond;
+//                    var1 /= pond;
+//                    cov2 /= pond;
+//                    var2 /= pond;
+
+//                    float b1 = cov1 / var1;
+//                    float b0 = zz - b1 * xx;
+
+//                    float zCalx = b1*(float)pTer.x + b0;
+
+//                    float b1y = cov2 / var2;
+//                    float b0y = zz - b1y * yy;
+
+//                    float zCaly = b1y*(float)pTer.y + b0y;
+
+//                    float zCalMoy = (zCaly + zCalx)/2.f;
+
                     //mDataImRes[0][pTer.y][pTer.x] = zMax;
-                    //mDataImRes[0][pTer.y][pTer.x] = zMin;
-                    mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
+                    if(findZ)
+                    {
+                        mDataImRes[0][pTer.y][pTer.x] = zMin;
+ //                   mDataImRes[0][pTer.y][pTer.x] = zCalMoy;
+                    //mDataImRes[0][pTer.y][pTer.x] = 0;
+                        //mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
+                    }
                     //IGpuOpt._FinalDefCor[pTer] = 0;
 
                 }
@@ -1010,13 +1081,21 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     Pt3di aW(255,255,255);
                     Pt3di aR(255,0,0);
                     Pt3di aG(0,255,0);
-
-
+                    Pt3di aB(0,0,255);
 
                     if (aBin)
                     {
                         //writePoint(aFP, aP, cI > clamp ? Pt3di(255,(float)255.f*(cI-clamp)/(10000-clamp),0) : aG);
-                        writePoint(aFP, aP, finalDefCor == 0  ? aG : aR);
+                        //writePoint(aFP, aP, Pt3di(255,(float)255.f*(finalDefCor/10000 ),0));
+
+                        //writePoint(aFP, aP, finalDefCor == 0 ? aG : aR);
+
+                        float colorll = (float)256 - (float)256.f*(finalDefCor)/(qualiMAx);
+
+                        writePoint(aFP, aP, finalDefCor > minCOR  ? Pt3di(256 - colorll,colorll,0) : aB);
+
+
+                        //writePoint(aFP, aP, finalDefCor > 10000 ? finalDefCor -  : aR);
     //                    writePoint(aFP, aPMax, aR);
     //                    writePoint(aFP, aPMin, aG);
                     }
