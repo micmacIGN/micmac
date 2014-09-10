@@ -39,7 +39,7 @@ struct CuHostDaPo3D
     {
         _data1D.ReallocIf(_size);        
 #ifdef CUDA_DEFCOR
-        _data1D.Fill(20000);
+        _data1D.Fill(60000);
 #endif
 
     }
