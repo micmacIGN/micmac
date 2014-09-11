@@ -550,8 +550,11 @@ void cTplImInMem<Type>::SetConvolSepXY
    cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>
                              (
                                 aKerXY, aNbShitXY,
+                                /*
                                 mAppli.FileGGC_H(),
                                 mAppli.FileGGC_Cpp(),
+                                */
+                                NULL, NULL,
                                 aSigma, Increm
                              );
 
@@ -582,7 +585,7 @@ void cTplImInMem<Type>::SetConvolSepXY
     double aTY = aChrono.uval();
     aChrono.reinit();
 
-    if (mAppli.ShowTimes().Val() > 100)
+    if (mAppli.Params().ShowTimes().Val() > 100)
     {
          std::cout << "Time convol , X : " << aTX << " , Y : " << aTY <<   " SzK " << aKerXY.tx() << "\n";
     }
@@ -623,7 +626,7 @@ void TestConvol()
 
 template <class Type> Im1D<typename El_CTypeTraits<Type>::tBase,typename El_CTypeTraits<Type>::tBase> cTplImInMem<Type>::ImGaussianKernel(double aSigma)
 {
-   const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
+   const cPyramideGaussienne aPG = mAppli.Params().TypePyramide().PyramideGaussienne().Val();
    return ImageGaussianKernel<typename El_CTypeTraits<Type>::tBase>
           (
               aSigma,
@@ -637,8 +640,6 @@ template <class Type> Im1D<typename El_CTypeTraits<Type>::tBase,typename El_CTyp
 template <class Type> 
 void cTplImInMem<Type>::ReduceGaussienne()
 {
-    const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
- 
     if (mKInOct==0)
     {
          // cTplOctDig<Type>* anOcUp = mTOct.OctUp();
@@ -660,13 +661,7 @@ void cTplImInMem<Type>::ReduceGaussienne()
 
     //==============================================
 
-
-    bool isIncrem = aPG.ConvolIncrem().Val();
-    if (mAppli.ModifGCC())
-       isIncrem = mAppli.ModifGCC()->ConvolIncrem();
-
-
-    if (! isIncrem)
+    if ( !mAppli.doIncrementalConvolution() )
     {
        Im1D<tBase,tBase> aIKerTotD =  ImGaussianKernel(mResolOctaveBase);
        SetConvolSepXY(false,mResolOctaveBase,*(mTOct.TypedFirstImage()),aIKerTotD,mNbShift);

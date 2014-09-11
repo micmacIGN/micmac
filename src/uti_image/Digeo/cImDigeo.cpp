@@ -269,12 +269,12 @@ cImDigeo::cImDigeo
    const std::string & aName,
    cAppliDigeo &       anAppli
 ) :
-  mName        (aName),
+  mFullname    (aName),
   mAppli       (anAppli),
   mIMD         (aIMD),
   mNum         (aNum),
   //mTifF        (new Tiff_Im(Tiff_Im::StdConvGen(mAppli.DC()+mName,1/*nb channels*/,true/*16-bits*/))),
-  mInterfImage (cInterfImageAbs::create(mAppli.DC()+mName)),
+  mInterfImage ( cInterfImageAbs::create(mFullname) ),
   mResol       (aIMD.ResolInit().Val()),
   mSzGlobR1    (/*mTifF->sz()*/mInterfImage->sz()),
   mBoxGlobR1   (Pt2di(0,0),mSzGlobR1),
@@ -286,10 +286,12 @@ cImDigeo::cImDigeo
   mG2MoyIsCalc (false),
   mDyn         (1.0),
   mFileInMem   (0),
-  mSigma0      ( anAppli.Sigma0().Val() ),
-  mSigmaN      ( anAppli.SigmaN().Val() )
+  mSigma0      ( anAppli.Params().Sigma0().Val() ),
+  mSigmaN      ( anAppli.Params().SigmaN().Val() )
 {
-    const cTypePyramide & aTP = mAppli.TypePyramide();
+	SplitDirAndFile( mDirectory, mBasename, mFullname );
+
+    const cTypePyramide & aTP = mAppli.Params().TypePyramide();
     if (aTP.NivPyramBasique().IsInit())
        mNiv = aTP.NivPyramBasique().Val();
     else if (aTP.PyramideGaussienne().IsInit())
@@ -361,7 +363,7 @@ cImDigeo::cImDigeo
        {
           ELISE_ASSERT
           (
-             ! mAppli.DigeoDecoupageCarac().IsInit(),
+             ! mAppli.Params().DigeoDecoupageCarac().IsInit(),
              "Decoupage+Multimage => Asservissement requis"
           );
           
@@ -432,8 +434,8 @@ GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ,cModifGCC * aMGCC) const
    int aDZMax = -10000000;
    for 
    (
-       std::list<cTypeNumeriqueOfNiv>::const_iterator itP=mAppli.TypeNumeriqueOfNiv().begin();
-       itP!=mAppli.TypeNumeriqueOfNiv().end();
+       std::list<cTypeNumeriqueOfNiv>::const_iterator itP=mAppli.Params().TypeNumeriqueOfNiv().begin();
+       itP!=mAppli.Params().TypeNumeriqueOfNiv().end();
        itP++
    )
    {
@@ -449,7 +451,7 @@ GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ,cModifGCC * aMGCC) const
 
 void cImDigeo::AllocImages()
 {
-   cModifGCC * aMGCC = mAppli.ModifGCC();
+   cModifGCC * aMGCC = NULL;
    Pt2di aSz = mSzMax;	
    int aNivDZ = 0;
 
@@ -460,7 +462,7 @@ void cImDigeo::AllocImages()
                                 aLastOct->AllocDown(TypeOfDeZoom(aDz,aMGCC),*this,aDz,aSz)       :
                                 cOctaveDigeo::AllocTop(TypeOfDeZoom(aDz,aMGCC),*this,aDz,aSz)       ;
        mOctaves.push_back(anOct);
-       const cTypePyramide & aTP = mAppli.TypePyramide();
+       const cTypePyramide & aTP = mAppli.Params().TypePyramide();
        if (aTP.NivPyramBasique().IsInit())
        {
           // mVIms.push_back(cImInMem::Alloc (*this,aSz,TypeOfDeZoom(aDz), *anOct, 1.0));
@@ -515,7 +517,7 @@ bool cImDigeo::PtResolCalcSauv(const Pt2dr & aP)
 
 void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
-    const cTypePyramide & aTP = mAppli.TypePyramide();
+    const cTypePyramide & aTP = mAppli.Params().TypePyramide();
 
     mBoxCurIn = aBoxIn;
     mBoxCurOut = aBoxOut;
@@ -578,7 +580,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     double aTPyram = aChrono.uval();
     aChrono.reinit();
 
-    if ( mAppli.ShowTimes().Val() ) std::cout << "Time,  load : " << aTLoad << " ; Pyram : " << aTPyram << "\n";
+    if ( mAppli.Params().ShowTimes().Val() ) std::cout << "Time,  load : " << aTLoad << " ; Pyram : " << aTPyram << "\n";
 }
 
 void cImDigeo::DoExtract()
@@ -599,14 +601,14 @@ void cImDigeo::DoExtract()
 
     DoSiftExtract();
 
-    if (mAppli.ShowTimes().Val())
+    if (mAppli.Params().ShowTimes().Val())
     {
         std::cout << "Time,  Extrema : " << aChrono.uval() << "\n";
     }
 
     if (mVisu)
     {
-       mVisu->Save(mName);
+       mVisu->Save(mBasename);
        delete mVisu;
        mVisu = 0;
     }
@@ -695,8 +697,10 @@ void cImDigeo::SetMaxValue(REAL8 i_maxValue)
 const Pt2di& cImDigeo::SzCur() const {return mSzCur;}
 const Pt2di& cImDigeo::P0Cur() const {return mP0Cur;}
 
+const std::string  & cImDigeo::Fullname() const { return mFullname; }
+const std::string  & cImDigeo::Directory() const { return mDirectory; }
+const std::string  & cImDigeo::Basename() const { return mBasename; }
 
-const std::string  &  cImDigeo::Name() const {return mName;}
 cAppliDigeo &  cImDigeo::Appli() {return mAppli;}
 const cImageDigeo &  cImDigeo::IMD() {return mIMD;}
 cVisuCaracDigeo  *   cImDigeo::CurVisu() {return mVisu;}

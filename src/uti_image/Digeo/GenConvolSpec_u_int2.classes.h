@@ -362,3 +362,167 @@ class cConvolSpec_U_INT2_Num13 : public cConvolSpec<U_INT2>
 		cConvolSpec_U_INT2_Num13(INT * aFilter):cConvolSpec<U_INT2>(aFilter-(-5),-5,5,15,false){}
 };
 
+class cConvolSpec_U_INT2_Num14 : public cConvolSpec<U_INT2>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(U_INT2 * Out,U_INT2 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  16384
+				              +   3*(In[-8]+In[8])
+				              +   17*(In[-7]+In[7])
+				              +   84*(In[-6]+In[6])
+				              +   315*(In[-5]+In[5])
+				              +   933*(In[-4]+In[4])
+				              +   2169*(In[-3]+In[3])
+				              +   3963*(In[-2]+In[2])
+				              +   5690*(In[-1]+In[1])
+				              +   6420*(In[0])
+				            )>>15;
+				In++;
+			}
+		}
+
+		cConvolSpec_U_INT2_Num14(INT * aFilter):cConvolSpec<U_INT2>(aFilter-(-8),-8,8,15,false){}
+};
+
+class cConvolSpec_U_INT2_Num15 : public cConvolSpec<U_INT2>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(U_INT2 * Out,U_INT2 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  16384
+				              +   3*(In[-10]+In[10])
+				              +   10*(In[-9]+In[9])
+				              +   38*(In[-8]+In[8])
+				              +   120*(In[-7]+In[7])
+				              +   325*(In[-6]+In[6])
+				              +   755*(In[-5]+In[5])
+				              +   1503*(In[-4]+In[4])
+				              +   2569*(In[-3]+In[3])
+				              +   3766*(In[-2]+In[2])
+				              +   4738*(In[-1]+In[1])
+				              +   5114*(In[0])
+				            )>>15;
+				In++;
+			}
+		}
+
+		cConvolSpec_U_INT2_Num15(INT * aFilter):cConvolSpec<U_INT2>(aFilter-(-10),-10,10,15,false){}
+};
+
+class cConvolSpec_U_INT2_Num16 : public cConvolSpec<U_INT2>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(U_INT2 * Out,U_INT2 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  16384
+				              +   4*(In[-12]+In[12])
+				              +   12*(In[-11]+In[11])
+				              +   32*(In[-10]+In[10])
+				              +   80*(In[-9]+In[9])
+				              +   183*(In[-8]+In[8])
+				              +   379*(In[-7]+In[7])
+				              +   712*(In[-6]+In[6])
+				              +   1212*(In[-5]+In[5])
+				              +   1875*(In[-4]+In[4])
+				              +   2631*(In[-3]+In[3])
+				              +   3352*(In[-2]+In[2])
+				              +   3877*(In[-1]+In[1])
+				              +   4070*(In[0])
+				            )>>15;
+				In++;
+			}
+		}
+
+		cConvolSpec_U_INT2_Num16(INT * aFilter):cConvolSpec<U_INT2>(aFilter-(-12),-12,12,15,false){}
+};
+
+class cConvolSpec_U_INT2_Num17 : public cConvolSpec<U_INT2>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(U_INT2 * Out,U_INT2 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  16384
+				              +   3*(In[-15]+In[15])
+				              +   8*(In[-14]+In[14])
+				              +   18*(In[-13]+In[13])
+				              +   39*(In[-12]+In[12])
+				              +   80*(In[-11]+In[11])
+				              +   152*(In[-10]+In[10])
+				              +   271*(In[-9]+In[9])
+				              +   456*(In[-8]+In[8])
+				              +   722*(In[-7]+In[7])
+				              +   1075*(In[-6]+In[6])
+				              +   1505*(In[-5]+In[5])
+				              +   1982*(In[-4]+In[4])
+				              +   2456*(In[-3]+In[3])
+				              +   2862*(In[-2]+In[2])
+				              +   3137*(In[-1]+In[1])
+				              +   3236*(In[0])
+				            )>>15;
+				In++;
+			}
+		}
+
+		cConvolSpec_U_INT2_Num17(INT * aFilter):cConvolSpec<U_INT2>(aFilter-(-15),-15,15,15,false){}
+};
+
+class cConvolSpec_U_INT2_Num18 : public cConvolSpec<U_INT2>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(U_INT2 * Out,U_INT2 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  16384
+				              +   2*(In[-19]+In[19])
+				              +   5*(In[-18]+In[18])
+				              +   10*(In[-17]+In[17])
+				              +   18*(In[-16]+In[16])
+				              +   33*(In[-15]+In[15])
+				              +   58*(In[-14]+In[14])
+				              +   98*(In[-13]+In[13])
+				              +   159*(In[-12]+In[12])
+				              +   248*(In[-11]+In[11])
+				              +   372*(In[-10]+In[10])
+				              +   538*(In[-9]+In[9])
+				              +   746*(In[-8]+In[8])
+				              +   997*(In[-7]+In[7])
+				              +   1282*(In[-6]+In[6])
+				              +   1586*(In[-5]+In[5])
+				              +   1887*(In[-4]+In[4])
+				              +   2160*(In[-3]+In[3])
+				              +   2379*(In[-2]+In[2])
+				              +   2521*(In[-1]+In[1])
+				              +   2570*(In[0])
+				            )>>15;
+				In++;
+			}
+		}
+
+		cConvolSpec_U_INT2_Num18(INT * aFilter):cConvolSpec<U_INT2>(aFilter-(-19),-19,19,15,false){}
+};
+

@@ -699,7 +699,9 @@ class cImDigeo
         // Est ce que le point a la resolution de calcul doit etre sauve
         bool PtResolCalcSauv(const Pt2dr & aP);
         // void ComputeCarac();
-        const std::string  &  Name() const;
+        const std::string  &  Fullname() const;
+        const std::string  &  Directory() const;
+        const std::string  &  Basename() const;
         cAppliDigeo &  Appli();
         const Box2di & BoxImCalc() const;
 
@@ -744,7 +746,9 @@ class cImDigeo
 
         GenIm::type_el  TypeOfDeZoom(int aDZ,cModifGCC *) const;
 
-        std::string                   mName;
+        std::string                   mFullname;
+        std::string                   mBasename;
+        std::string                   mDirectory;
         cAppliDigeo &                 mAppli;
         const cImageDigeo &           mIMD;
         int                           mNum;
@@ -854,7 +858,7 @@ class cVisuCaracDigeo
 };
 
 
-class cAppliDigeo : public cParamDigeo
+class cAppliDigeo
 {
     public : 
        friend cAppliDigeo * DigeoCPP
@@ -862,6 +866,8 @@ class cAppliDigeo : public cParamDigeo
                     const std::string & aFullNameIm,
                     const cParamAppliDigeo  aParam
               );
+
+       cAppliDigeo( const string &i_imageFilename );
 
        cAppliDigeo
        ( 
@@ -871,9 +877,10 @@ class cAppliDigeo : public cParamDigeo
               bool                                   IsLastGCC
 
        );
+       
+       ~cAppliDigeo();
 
         void DoAll();
-        const std::string & DC() const;
         cInterfChantierNameManipulateur * ICNM();
         void DoOneInterv(int aK,bool DoExtract);
         void LoadOneInterv(int aKB);
@@ -881,12 +888,16 @@ class cAppliDigeo : public cParamDigeo
         Box2di getInterv( int aKB ) const;
         string getConvolutionClassesFilename( string i_type );
         string getConvolutionInstantiationsFilename( string i_type );
-
+        const cParamDigeo & Params() const;
+        cParamDigeo & Params();
+       /*
        FILE *  FileGGC_H();
        FILE *  FileGGC_Cpp();
+       const std::string & DC() const;
+       cModifGCC *      ModifGCC() const;
+       */
        bool    MultiBloc() const;
 
-       cModifGCC *      ModifGCC() const;
 
        cImDigeo & SingleImage();
        cSiftCarac *  RequireSiftCarac();
@@ -902,6 +913,7 @@ class cAppliDigeo : public cParamDigeo
        bool doSaveGaussians() const;
        bool doSaveTiles() const;
        int currentBoxIndex() const;
+       bool doIncrementalConvolution() const;
 
     private :
        void InitAllImage();
@@ -911,19 +923,23 @@ class cAppliDigeo : public cParamDigeo
        void AllocImages();
        void processImageName();
        void processTestSection();
+       void loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename, const string &i_imageFullname );
 
-       std::string                       mDC;
-       cInterfChantierNameManipulateur * mICNM;
+       cParamDigeo                     * mParamDigeo;
        std::vector<cImDigeo *>           mVIms;
 
-       cAppliDigeo *                     mMaster;
+       cInterfChantierNameManipulateur * mICNM;
+/*
        cModifGCC *                       mModifGCC;
        bool                              mLastGCC;
+       cAppliDigeo *                     mMaster;
        FILE *                            mFileGGC_H;
        FILE *                            mFileGGC_Cpp;
+*/
        cDecoupageInterv2D                mDecoupInt;
        Box2di                            mBoxIn;
        Box2di                            mBoxOut;
+       bool                              mDoIncrementalConvolution;
 
        cSiftCarac *                      mSiftCarac;
        string                            mImagePath;
@@ -976,7 +992,6 @@ template <> inline void cAppliDigeo::upNbSlowConvolutionsUsed<REAL4>() { mNbSlow
 class cParamAppliDigeo
 {
     public :
-
         double   mSigma0;
         double   mResolInit;  // 0.5 means -1 with usual Sift++ convention ; 1.0 means 0 ....
         int      mOctaveMax;

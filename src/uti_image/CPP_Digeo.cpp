@@ -464,16 +464,18 @@ int Digeo_main( int argc, char **argv )
 		cerr << "Digeo: usage : mm3d Digeo input_filename -o output_filename" << endl;
 		return EXIT_FAILURE;
 	}
+
 	std::string inputName  = argv[1];
 	std::string outputName = argv[3];
 
-    cParamAppliDigeo aParam;
-    cAppliDigeo * anAD = DigeoCPP(inputName,aParam);
-    cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
+	cAppliDigeo appli( inputName );
+	cAppliDigeo *anAD = &appli;
+
+	cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
 
     if ( anAD->mVerbose ){
        cout << "number of tiles : " << anAD->NbInterv() << endl;
-       cout << "margin : " << anAD->DigeoDecoupageCarac().Val().Bord() << endl;
+       cout << "margin : " << anAD->Params().DigeoDecoupageCarac().Val().Bord() << endl;
     }
 
     list<DigeoPoint> total_list;

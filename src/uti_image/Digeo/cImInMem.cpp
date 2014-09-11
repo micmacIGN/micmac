@@ -160,7 +160,7 @@ cTplImInMem<Type>::cTplImInMem
      mData   (0)
 {
     ResizeImage(aSz);
-    mNbShift =  mAppli.TypePyramide().PyramideGaussienne().Val().NbShift().Val();
+    mNbShift =  mAppli.Params().TypePyramide().PyramideGaussienne().Val().NbShift().Val();
 }
 
 template <class Type> void cTplImInMem<Type>::ResizeBasic(const Pt2di & aSz)
@@ -187,9 +187,9 @@ template <class Type> void cTplImInMem<Type>::ResizeImage(const Pt2di & aSz)
 
 template <class Type> bool cTplImInMem<Type>::InitRandom()
 {
-   if (! mAppli.SectionTest().IsInit())
+   if (! mAppli.Params().SectionTest().IsInit())
       return false;
-   const cSectionTest & aST = mAppli.SectionTest().Val();
+   const cSectionTest & aST = mAppli.Params().SectionTest().Val();
    if (! aST.GenereAllRandom().IsInit())
       return false;
 
@@ -210,7 +210,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 {
 	ResizeOctave(aBox.sz());
 	ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
-	if ( mAppli.MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8) &&
+	if ( mAppli.Params().MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8) &&
 	     type_im_integral(mType) &&
 	     (!signed_type_num(mType) ) ){
 		int aMinT,aMaxT;
@@ -218,9 +218,9 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 		aMaxT = ElMin(aMaxT-1,1<<19);  // !!! LIES A NbShift ds PyramideGaussienne
 		tBase aMul = 0;
 
-		if ( mAppli.ValMaxForDyn().IsInit() ){
+		if ( mAppli.Params().ValMaxForDyn().IsInit() ){
 			tBase aMaxTm1 = aMaxT-1;
-			aMul = round_ni(aMaxTm1/mAppli.ValMaxForDyn().Val()) ;
+			aMul = round_ni(aMaxTm1/mAppli.Params().ValMaxForDyn().Val()) ;
 
 			for (int aY=0 ; aY<mSz.y ; aY++){
 				Type * aL = mData[aY];
@@ -237,7 +237,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 				ElSetMax(aMaxV,aL[aX]);
 			}
 			aMul = (aMaxT-1) / aMaxV;
-			if ( mAppli.ShowTimes().Val() )
+			if ( mAppli.Params().ShowTimes().Val() )
 				std::cout << " Multiplieur in : " << aMul << " MaxVal " << tBase(aMaxV ) << " MaxType " << aMaxT << "\n";
 			if (aMul > 1){
 				for (int aY=0 ; aY<mSz.y ; aY++){
@@ -261,7 +261,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 		}
 
 		#ifdef __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
-			const Type  mul = (Type)1/(Type)( mAppli.ValMaxForDyn().IsInit()?mAppli.ValMaxForDyn().Val():mFileTheoricalMaxValue );
+			const Type  mul = (Type)1/(Type)( mAppli.Params().ValMaxForDyn().IsInit()?mAppli.Params().ValMaxForDyn().Val():mFileTheoricalMaxValue );
 			for (int aY=0 ; aY<mSz.y ; aY++){
 				Type * aL = mData[aY];
 				for (int aX=0 ; aX<mSz.x ; aX++)
@@ -277,7 +277,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 
 	if ( mAppli.doSaveTiles() ) save_ppm<Type>( mAppli.currentTileFullname()+".ppm", mData[0], mSz.x, mSz.y, (Type)0, (Type)mImGlob.GetMaxValue() );
 
-	const cTypePyramide & aTP = mAppli.TypePyramide();
+	const cTypePyramide & aTP = mAppli.Params().TypePyramide();
 	if ( aTP.PyramideGaussienne().IsInit() ){
 		const double aSigmD = mImGlob.InitialDeltaSigma();
 		if ( aSigmD!=0. ){
@@ -286,9 +286,9 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 		}
 	}
 
-   if (mAppli.SectionTest().IsInit())
+   if (mAppli.Params().SectionTest().IsInit())
    {
-      const cSectionTest & aST = mAppli.SectionTest().Val();
+      const cSectionTest & aST = mAppli.Params().SectionTest().Val();
       if (aST.GenereRandomRect().IsInit())
       {
          cGenereRandomRect aGRR = aST.GenereRandomRect().Val();
@@ -744,11 +744,11 @@ void cImInMem::SauvIm(const std::string & aAdd)
         loadGaussians( "gaussians_sift" );
     #endif
     
-   if ( ! mAppli.SauvPyram().IsInit()) return;
+   if ( ! mAppli.Params().SauvPyram().IsInit()) return;
 
-   const cTypePyramide & aTP = mAppli.TypePyramide();
-   cSauvPyram aSP = mAppli.SauvPyram().Val();
-   std::string aDir =  mAppli.DC() + aSP.Dir().Val();
+   const cTypePyramide & aTP = mAppli.Params().TypePyramide();
+   cSauvPyram aSP = mAppli.Params().SauvPyram().Val();
+   std::string aDir =  /*mAppli.DC() + */aSP.Dir().Val();
    ELISE_fp::MkDirSvp(aDir);
 
    std::string aNRes = ToString(mResolGlob);
@@ -762,7 +762,7 @@ void cImInMem::SauvIm(const std::string & aAdd)
                          + mAppli.ICNM()->Assoc1To2
                            (
                                 aSP.Key().Val(),
-                                mImGlob.Name(),
+                                mImGlob.Basename(),
                                 aNRes,
                                 true
                            );
