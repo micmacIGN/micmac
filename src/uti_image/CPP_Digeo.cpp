@@ -433,7 +433,7 @@ bool generate_convolution_code( cAppliDigeo &i_appli )
 	if ( i_appli.nbSlowConvolutionsUsed<T>()==0 ) return true;
 
 	const string typeName = El_CTypeTraits<T>::Name();
-	if ( i_appli.mVerbose ) cout << "WARNING: " << i_appli.nbSlowConvolutionsUsed<T>() << " slow convolutions of type " << typeName << " have been used" << endl;
+	if ( i_appli.isVerbose() ) cout << "WARNING: " << i_appli.nbSlowConvolutionsUsed<T>() << " slow convolutions of type " << typeName << " have been used" << endl;
 
 	string lowerTypeName = El_CTypeTraits<T>::Name();
 	for ( size_t i=0; i<lowerTypeName.length(); i++ ) lowerTypeName[i] = ::tolower(lowerTypeName[i]);
@@ -454,7 +454,7 @@ bool generate_convolution_code( cAppliDigeo &i_appli )
 		cout << "WARNING: generated convolution couldn't be saved to " << instantiationsFilename << endl;
 		return false;
 	}
-	if ( i_appli.mVerbose ) cout << "convolution code has been generated for type " << typeName << ", compile again to improve speed with the same parameters" << endl;
+	if ( i_appli.isVerbose() ) cout << "convolution code has been generated for type " << typeName << ", compile again to improve speed with the same parameters" << endl;
 	return true;
 }
 
@@ -468,25 +468,25 @@ int Digeo_main( int argc, char **argv )
 	std::string inputName  = argv[1];
 	std::string outputName = argv[3];
 
-	cAppliDigeo appli( inputName );
-	cAppliDigeo *anAD = &appli;
+	cAppliDigeo appli;
 
-	cImDigeo &  anImD = anAD->SingleImage(); // Ici on ne mape qu'une seule image à la fois
+	appli.loadImage( inputName );
+	cImDigeo &  anImD = appli.SingleImage(); // Ici on ne mape qu'une seule image à la fois
 
-    if ( anAD->mVerbose ){
-       cout << "number of tiles : " << anAD->NbInterv() << endl;
-       cout << "margin : " << anAD->Params().DigeoDecoupageCarac().Val().Bord() << endl;
+    if ( appli.isVerbose() ){
+       cout << "number of tiles : " << appli.NbInterv() << endl;
+       cout << "margin : " << appli.Params().DigeoDecoupageCarac().Val().Bord() << endl;
     }
 
     list<DigeoPoint> total_list;
-    for (int aKBox = 0 ; aKBox<anAD->NbInterv() ; aKBox++)
+    for (int aKBox = 0 ; aKBox<appli.NbInterv() ; aKBox++)
     {
-        anAD->LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
-        Box2di box = anAD->getInterv( aKBox );
+        appli.LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
+        Box2di box = appli.getInterv( aKBox );
         box._p0.x *= anImD.Resol();
         box._p0.y *= anImD.Resol();
 
-        if ( anAD->mVerbose ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
+        if ( appli.isVerbose() ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
 
         const std::vector<cOctaveDigeo *> & aVOct = anImD.Octaves();
         
@@ -499,54 +499,15 @@ int Digeo_main( int argc, char **argv )
 
 				anOct.DoAllExtract();
 
-				if ( anAD->doSaveGaussians() ) anOct.saveGaussians( anAD->outputGaussiansDirectory(), anAD->currentTileBasename() );
-
-				#ifdef __DEBUG_DIGEO_STATS
-					if ( anAD->mVerbose && ( anOct.VIms().size()!=0 ) )
-					{
-						size_t iImg = anOct.VIms().size(),
-								 countRefined     = 0,
-								 countUncalc      = 0,
-								 countInstable    = 0,
-								 countInstable2   = 0,
-								 countInstable3   = 0,
-								 countGradFaible  = 0,
-								 countTropAllonge = 0,
-								 countOk          = 0,
-								 countExtrema;
-						cImInMem *const *itImg = &( anOct.VIms()[0] );
-						while ( iImg-- ){
-							countRefined     += ( *itImg )->VPtsCarac().size();
-							countUncalc      += ( *itImg )->mCount_eTES_Uncalc;
-							countInstable    += ( *itImg )->mCount_eTES_instable_unsolvable;
-							countInstable2   += ( *itImg )->mCount_eTES_instable_tooDeepRecurrency;
-							countInstable3   += ( *itImg )->mCount_eTES_instable_outOfImageBound;
-							countGradFaible  += ( *itImg )->mCount_eTES_GradFaible;
-							countTropAllonge += ( *itImg )->mCount_eTES_TropAllonge;
-							countOk          += ( *itImg )->mCount_eTES_Ok;
-							itImg++;
-						}
-						countExtrema = countInstable+countInstable2+countInstable3+countGradFaible+countTropAllonge+countOk;
-						cout << "\t\textrema detected                    \t" << countExtrema << endl;
-						cout << "\t\tafter refinement and on-edge removal\t" << countRefined << endl;
-						cout << "\t\t------------------------------------" << endl;
-						cout << "\t\teTES_Uncalc                       \t" << countUncalc << endl;
-						cout << "\t\teTES_instable_unsolvable          \t" << countInstable << endl;
-						cout << "\t\teTES_instable_tooDeepRecurrency   \t" << countInstable2 << endl;
-						cout << "\t\teTES_instable_outOfImageBound     \t" << countInstable3 << endl;
-						cout << "\t\teTES_GradFaible                   \t" << countGradFaible << endl;
-						cout << "\t\teTES_TropAllonge                  \t" << countTropAllonge << endl;
-						cout << "\t\teTES_Ok                           \t" << countOk << endl;
-					}
-				#endif
+				if ( appli.doSaveGaussians() ) anOct.saveGaussians( appli.outputGaussiansDirectory(), appli.currentTileBasename() );
 
 				if ( aUI2_Oct!=0 ) orientate_and_describe_all<U_INT2,INT>(aUI2_Oct, total_list);
 				else if ( aR4_Oct!=0 ) orientate_and_describe_all<REAL4,REAL8>(aR4_Oct, total_list);
 				else ELISE_ASSERT( false, ( string("octave ")+ToString(aKo)+" of unknown type" ).c_str() );
 
 				size_t nbOctavePoints = total_list.size()-nbPointsBeforeOctave;
-				if ( anAD->doSaveTiles() ){
-					const string ppmFilename = anAD->currentTileFullname()+".ppm";
+				if ( appli.doSaveTiles() ){
+					const string ppmFilename = appli.currentTileFullname()+".ppm";
 					ELISE_ASSERT( plot_tile_points( ppmFilename, total_list, nbOctavePoints, (double)1./anImD.Resol() ), (string("cannot load tile's ppm file [")+ppmFilename+"]").c_str() );
 				}
 
@@ -555,41 +516,18 @@ int Digeo_main( int argc, char **argv )
         }
 
         size_t nbTilePoints = total_list.size()-nbPointsBeforeTile;
-        if ( anAD->mVerbose ) cout << "\t" << nbTilePoints << " points" << endl;
+        if ( appli.isVerbose() ) cout << "\t" << nbTilePoints << " points" << endl;
     }
 
-    generate_convolution_code<U_INT2>( *anAD );
-    generate_convolution_code<REAL4>( *anAD );
+	if ( appli.Params().GenereCodeConvol().IsInit() ){
+		generate_convolution_code<U_INT2>( appli );
+		generate_convolution_code<REAL4>( appli );
+	}
+	else if ( appli.isVerbose() && ( appli.nbSlowConvolutionsUsed<U_INT2>() || appli.nbSlowConvolutionsUsed<REAL4>() ) )
+		cout << "skipping convolution code generation" << endl;
 
     cout << total_list.size() << " points" << endl;
     if ( !DigeoPoint::writeDigeoFile( outputName, total_list ) ) cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
-
-    #ifdef __DEBUG_DIGEO
-		// __DEL
-		list<DigeoPoint>::const_iterator itPoint = total_list.begin();
-		unsigned int nbMin=0, nbMax=0, nbUnknown=0, nb1Angle=0, nb2Angles=0, nb3Angles=0, nb4Angles=0;
-		while ( itPoint!=total_list.end() ){
-			if ( itPoint->type==DigeoPoint::DETECT_LOCAL_MIN ) nbMin++;
-			if ( itPoint->type==DigeoPoint::DETECT_LOCAL_MAX ) nbMax++;
-			if ( itPoint->type==DigeoPoint::DETECT_UNKNOWN ) nbUnknown++;
-			switch ( itPoint->nbAngles ){
-			case 1: nb1Angle++; break;
-			case 2: nb2Angles++; break;
-			case 3: nb3Angles++; break;
-			case 4: nb4Angles++; break;
-			}
-			itPoint++;
-		}
-		cout << "nbMin = " << nbMin << endl;
-		cout << "nbMax = " << nbMax << endl;
-		cout << "nbUnknown = " << nbUnknown << endl;
-		cout << "nb1Angle = " << nb1Angle << endl;
-		cout << "nb2Angles = " << nb2Angles << endl;
-		cout << "nb3Angles = " << nb3Angles << endl;
-		cout << "nb4Angles = " << nb4Angles << endl;
-		cout << "total min/max = " << nbMin+nbMax+nbUnknown << endl;
-		cout << "total nbAngles = " << nb1Angle+nb2Angles+nb3Angles+nb4Angles << endl;
-    #endif
 
     return EXIT_SUCCESS;
 }

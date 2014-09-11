@@ -45,111 +45,22 @@ void  BinaryUnDumpFromFile(eReducDemiImage &,ELISE_fp &);
 
 typedef enum
 {
-  eTest12345_A,
-  eTest12345_B,
-  eTest12345_C
-} eTest12345;
-void xml_init(eTest12345 & aVal,cElXMLTree * aTree);
-std::string  eToString(const eTest12345 & aVal);
+  eRefine2D,
+  eRefine3D,
+  eRefineNone
+} ePointRefinement;
+void xml_init(ePointRefinement & aVal,cElXMLTree * aTree);
+std::string  eToString(const ePointRefinement & aVal);
 
-eTest12345  Str2eTest12345(const std::string & aName);
+ePointRefinement  Str2ePointRefinement(const std::string & aName);
 
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTest12345 & anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const ePointRefinement & anObj);
 
-void  BinaryDumpInFile(ELISE_fp &,const eTest12345 &);
+void  BinaryDumpInFile(ELISE_fp &,const ePointRefinement &);
 
-std::string  Mangling( eTest12345 *);
+std::string  Mangling( ePointRefinement *);
 
-void  BinaryUnDumpFromFile(eTest12345 &,ELISE_fp &);
-
-class cParamExtractCaracIm
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cParamExtractCaracIm & anObj,cElXMLTree * aTree);
-
-
-        cTplValGesInit< int > & SzMinImDeZoom();
-        const cTplValGesInit< int > & SzMinImDeZoom()const ;
-    private:
-        cTplValGesInit< int > mSzMinImDeZoom;
-};
-cElXMLTree * ToXMLTree(const cParamExtractCaracIm &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cParamExtractCaracIm &);
-
-void  BinaryUnDumpFromFile(cParamExtractCaracIm &,ELISE_fp &);
-
-std::string  Mangling( cParamExtractCaracIm *);
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
-class cParamVisuCarac
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cParamVisuCarac & anObj,cElXMLTree * aTree);
-
-
-        cTplValGesInit< int > & DynGray();
-        const cTplValGesInit< int > & DynGray()const ;
-
-        std::string & Dir();
-        const std::string & Dir()const ;
-
-        cTplValGesInit< int > & Zoom();
-        const cTplValGesInit< int > & Zoom()const ;
-
-        double & Dyn();
-        const double & Dyn()const ;
-
-        cTplValGesInit< std::string > & Prefix();
-        const cTplValGesInit< std::string > & Prefix()const ;
-
-        cTplValGesInit< bool > & ShowCaracEchec();
-        const cTplValGesInit< bool > & ShowCaracEchec()const ;
-    private:
-        cTplValGesInit< int > mDynGray;
-        std::string mDir;
-        cTplValGesInit< int > mZoom;
-        double mDyn;
-        cTplValGesInit< std::string > mPrefix;
-        cTplValGesInit< bool > mShowCaracEchec;
-};
-cElXMLTree * ToXMLTree(const cParamVisuCarac &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cParamVisuCarac &);
-
-void  BinaryUnDumpFromFile(cParamVisuCarac &,ELISE_fp &);
-
-std::string  Mangling( cParamVisuCarac *);
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
-class cPredicteurGeom
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cPredicteurGeom & anObj,cElXMLTree * aTree);
-
-
-        cTplValGesInit< std::string > & Unused();
-        const cTplValGesInit< std::string > & Unused()const ;
-    private:
-        cTplValGesInit< std::string > mUnused;
-};
-cElXMLTree * ToXMLTree(const cPredicteurGeom &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cPredicteurGeom &);
-
-void  BinaryUnDumpFromFile(cPredicteurGeom &,ELISE_fp &);
-
-std::string  Mangling( cPredicteurGeom *);
+void  BinaryUnDumpFromFile(ePointRefinement &,ELISE_fp &);
 
 class cImageDigeo
 {
@@ -159,36 +70,13 @@ class cImageDigeo
         friend void xml_init(cImageDigeo & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< cParamVisuCarac > & VisuCarac();
-        const cTplValGesInit< cParamVisuCarac > & VisuCarac()const ;
-
-        std::string & KeyOrPat();
-        const std::string & KeyOrPat()const ;
-
-        cTplValGesInit< std::string > & KeyCalcCalib();
-        const cTplValGesInit< std::string > & KeyCalcCalib()const ;
-
-        cTplValGesInit< Box2di > & BoxImR1();
-        const cTplValGesInit< Box2di > & BoxImR1()const ;
-
         cTplValGesInit< double > & ResolInit();
         const cTplValGesInit< double > & ResolInit()const ;
-
-        cTplValGesInit< std::string > & Unused();
-        const cTplValGesInit< std::string > & Unused()const ;
-
-        cTplValGesInit< cPredicteurGeom > & PredicteurGeom();
-        const cTplValGesInit< cPredicteurGeom > & PredicteurGeom()const ;
 
         cTplValGesInit< double > & NbOctetLimitLoadImageOnce();
         const cTplValGesInit< double > & NbOctetLimitLoadImageOnce()const ;
     private:
-        cTplValGesInit< cParamVisuCarac > mVisuCarac;
-        std::string mKeyOrPat;
-        cTplValGesInit< std::string > mKeyCalcCalib;
-        cTplValGesInit< Box2di > mBoxImR1;
         cTplValGesInit< double > mResolInit;
-        cTplValGesInit< cPredicteurGeom > mPredicteurGeom;
         cTplValGesInit< double > mNbOctetLimitLoadImageOnce;
 };
 cElXMLTree * ToXMLTree(const cImageDigeo &);
@@ -427,8 +315,14 @@ class cDigeoSectionImages
         friend void xml_init(cDigeoSectionImages & anObj,cElXMLTree * aTree);
 
 
-        std::list< cImageDigeo > & ImageDigeo();
-        const std::list< cImageDigeo > & ImageDigeo()const ;
+        cTplValGesInit< double > & ResolInit();
+        const cTplValGesInit< double > & ResolInit()const ;
+
+        cTplValGesInit< double > & NbOctetLimitLoadImageOnce();
+        const cTplValGesInit< double > & NbOctetLimitLoadImageOnce()const ;
+
+        cImageDigeo & ImageDigeo();
+        const cImageDigeo & ImageDigeo()const ;
 
         std::list< cTypeNumeriqueOfNiv > & TypeNumeriqueOfNiv();
         const std::list< cTypeNumeriqueOfNiv > & TypeNumeriqueOfNiv()const ;
@@ -487,7 +381,7 @@ class cDigeoSectionImages
         cPyramideImage & PyramideImage();
         const cPyramideImage & PyramideImage()const ;
     private:
-        std::list< cImageDigeo > mImageDigeo;
+        cImageDigeo mImageDigeo;
         cPyramideImage mPyramideImage;
 };
 cElXMLTree * ToXMLTree(const cDigeoSectionImages &);
@@ -565,12 +459,16 @@ class cSiftCarac
 
         cTplValGesInit< double > & RatioGrad();
         const cTplValGesInit< double > & RatioGrad()const ;
+
+        cTplValGesInit< ePointRefinement > & RefinementMethod();
+        const cTplValGesInit< ePointRefinement > & RefinementMethod()const ;
     private:
         cTplValGesInit< bool > mDoMax;
         cTplValGesInit< bool > mDoMin;
         cTplValGesInit< int > mNivEstimGradMoy;
         cTplValGesInit< double > mRatioAllongMin;
         cTplValGesInit< double > mRatioGrad;
+        cTplValGesInit< ePointRefinement > mRefinementMethod;
 };
 cElXMLTree * ToXMLTree(const cSiftCarac &);
 
@@ -612,6 +510,9 @@ class cSectionCaracImages
         cTplValGesInit< double > & RatioGrad();
         const cTplValGesInit< double > & RatioGrad()const ;
 
+        cTplValGesInit< ePointRefinement > & RefinementMethod();
+        const cTplValGesInit< ePointRefinement > & RefinementMethod()const ;
+
         cTplValGesInit< cSiftCarac > & SiftCarac();
         const cTplValGesInit< cSiftCarac > & SiftCarac()const ;
     private:
@@ -630,77 +531,6 @@ std::string  Mangling( cSectionCaracImages *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cGenereRandomRect
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cGenereRandomRect & anObj,cElXMLTree * aTree);
-
-
-        int & NbRect();
-        const int & NbRect()const ;
-
-        int & SzRect();
-        const int & SzRect()const ;
-    private:
-        int mNbRect;
-        int mSzRect;
-};
-cElXMLTree * ToXMLTree(const cGenereRandomRect &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cGenereRandomRect &);
-
-void  BinaryUnDumpFromFile(cGenereRandomRect &,ELISE_fp &);
-
-std::string  Mangling( cGenereRandomRect *);
-
-class cGenereCarroyage
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cGenereCarroyage & anObj,cElXMLTree * aTree);
-
-
-        int & PerX();
-        const int & PerX()const ;
-
-        int & PerY();
-        const int & PerY()const ;
-    private:
-        int mPerX;
-        int mPerY;
-};
-cElXMLTree * ToXMLTree(const cGenereCarroyage &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cGenereCarroyage &);
-
-void  BinaryUnDumpFromFile(cGenereCarroyage &,ELISE_fp &);
-
-std::string  Mangling( cGenereCarroyage *);
-
-class cGenereAllRandom
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cGenereAllRandom & anObj,cElXMLTree * aTree);
-
-
-        int & SzFilter();
-        const int & SzFilter()const ;
-    private:
-        int mSzFilter;
-};
-cElXMLTree * ToXMLTree(const cGenereAllRandom &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cGenereAllRandom &);
-
-void  BinaryUnDumpFromFile(cGenereAllRandom &,ELISE_fp &);
-
-std::string  Mangling( cGenereAllRandom *);
-
 class cDigeoTestOutput
 {
     public:
@@ -742,30 +572,6 @@ class cSectionTest
         friend void xml_init(cSectionTest & anObj,cElXMLTree * aTree);
 
 
-        int & NbRect();
-        const int & NbRect()const ;
-
-        int & SzRect();
-        const int & SzRect()const ;
-
-        cTplValGesInit< cGenereRandomRect > & GenereRandomRect();
-        const cTplValGesInit< cGenereRandomRect > & GenereRandomRect()const ;
-
-        int & PerX();
-        const int & PerX()const ;
-
-        int & PerY();
-        const int & PerY()const ;
-
-        cTplValGesInit< cGenereCarroyage > & GenereCarroyage();
-        const cTplValGesInit< cGenereCarroyage > & GenereCarroyage()const ;
-
-        int & SzFilter();
-        const int & SzFilter()const ;
-
-        cTplValGesInit< cGenereAllRandom > & GenereAllRandom();
-        const cTplValGesInit< cGenereAllRandom > & GenereAllRandom()const ;
-
         cTplValGesInit< bool > & VerifExtrema();
         const cTplValGesInit< bool > & VerifExtrema()const ;
 
@@ -784,9 +590,6 @@ class cSectionTest
         cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput();
         const cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput()const ;
     private:
-        cTplValGesInit< cGenereRandomRect > mGenereRandomRect;
-        cTplValGesInit< cGenereCarroyage > mGenereCarroyage;
-        cTplValGesInit< cGenereAllRandom > mGenereAllRandom;
         cTplValGesInit< bool > mVerifExtrema;
         cTplValGesInit< cDigeoTestOutput > mDigeoTestOutput;
 };
@@ -867,35 +670,6 @@ void  BinaryUnDumpFromFile(cDigeoDecoupageCarac &,ELISE_fp &);
 
 std::string  Mangling( cDigeoDecoupageCarac *);
 
-class cModifGCC
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cModifGCC & anObj,cElXMLTree * aTree);
-
-
-        int & NbByOctave();
-        const int & NbByOctave()const ;
-
-        bool & ConvolIncrem();
-        const bool & ConvolIncrem()const ;
-
-        eTypeNumerique & TypeNum();
-        const eTypeNumerique & TypeNum()const ;
-    private:
-        int mNbByOctave;
-        bool mConvolIncrem;
-        eTypeNumerique mTypeNum;
-};
-cElXMLTree * ToXMLTree(const cModifGCC &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cModifGCC &);
-
-void  BinaryUnDumpFromFile(cModifGCC &,ELISE_fp &);
-
-std::string  Mangling( cModifGCC *);
-
 class cGenereCodeConvol
 {
     public:
@@ -909,13 +683,9 @@ class cGenereCodeConvol
 
         cTplValGesInit< std::string > & FileBaseCodeConvol();
         const cTplValGesInit< std::string > & FileBaseCodeConvol()const ;
-
-        std::vector< cModifGCC > & ModifGCC();
-        const std::vector< cModifGCC > & ModifGCC()const ;
     private:
         cTplValGesInit< std::string > mDirectoryCodeConvol;
         cTplValGesInit< std::string > mFileBaseCodeConvol;
-        std::vector< cModifGCC > mModifGCC;
 };
 cElXMLTree * ToXMLTree(const cGenereCodeConvol &);
 
@@ -925,31 +695,6 @@ void  BinaryUnDumpFromFile(cGenereCodeConvol &,ELISE_fp &);
 
 std::string  Mangling( cGenereCodeConvol *);
 
-class cFenVisu
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cFenVisu & anObj,cElXMLTree * aTree);
-
-
-        std::string & Name();
-        const std::string & Name()const ;
-
-        Pt2di & Sz();
-        const Pt2di & Sz()const ;
-    private:
-        std::string mName;
-        Pt2di mSz;
-};
-cElXMLTree * ToXMLTree(const cFenVisu &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cFenVisu &);
-
-void  BinaryUnDumpFromFile(cFenVisu &,ELISE_fp &);
-
-std::string  Mangling( cFenVisu *);
-
 class cSectionWorkSpace
 {
     public:
@@ -957,9 +702,6 @@ class cSectionWorkSpace
 
         friend void xml_init(cSectionWorkSpace & anObj,cElXMLTree * aTree);
 
-
-        cTplValGesInit< std::string > & DirectoryChantier();
-        const cTplValGesInit< std::string > & DirectoryChantier()const ;
 
         cTplValGesInit< std::string > & Dir();
         const cTplValGesInit< std::string > & Dir()const ;
@@ -1000,17 +742,11 @@ class cSectionWorkSpace
         cTplValGesInit< std::string > & FileBaseCodeConvol();
         const cTplValGesInit< std::string > & FileBaseCodeConvol()const ;
 
-        std::vector< cModifGCC > & ModifGCC();
-        const std::vector< cModifGCC > & ModifGCC()const ;
-
         cTplValGesInit< cGenereCodeConvol > & GenereCodeConvol();
         const cTplValGesInit< cGenereCodeConvol > & GenereCodeConvol()const ;
 
         cTplValGesInit< int > & ShowTimes();
         const cTplValGesInit< int > & ShowTimes()const ;
-
-        std::list< cFenVisu > & FenVisu();
-        const std::list< cFenVisu > & FenVisu()const ;
 
         cTplValGesInit< bool > & ShowConvolSpec();
         const cTplValGesInit< bool > & ShowConvolSpec()const ;
@@ -1018,13 +754,11 @@ class cSectionWorkSpace
         cTplValGesInit< bool > & Verbose();
         const cTplValGesInit< bool > & Verbose()const ;
     private:
-        cTplValGesInit< std::string > mDirectoryChantier;
         cTplValGesInit< cSauvPyram > mSauvPyram;
         cTplValGesInit< cDigeoDecoupageCarac > mDigeoDecoupageCarac;
         cTplValGesInit< bool > mExigeCodeCompile;
         cTplValGesInit< cGenereCodeConvol > mGenereCodeConvol;
         cTplValGesInit< int > mShowTimes;
-        std::list< cFenVisu > mFenVisu;
         cTplValGesInit< bool > mShowConvolSpec;
         cTplValGesInit< bool > mVerbose;
 };
@@ -1050,8 +784,14 @@ class cParamDigeo
         cTplValGesInit< cChantierDescripteur > & DicoLoc();
         const cTplValGesInit< cChantierDescripteur > & DicoLoc()const ;
 
-        std::list< cImageDigeo > & ImageDigeo();
-        const std::list< cImageDigeo > & ImageDigeo()const ;
+        cTplValGesInit< double > & ResolInit();
+        const cTplValGesInit< double > & ResolInit()const ;
+
+        cTplValGesInit< double > & NbOctetLimitLoadImageOnce();
+        const cTplValGesInit< double > & NbOctetLimitLoadImageOnce()const ;
+
+        cImageDigeo & ImageDigeo();
+        const cImageDigeo & ImageDigeo()const ;
 
         std::list< cTypeNumeriqueOfNiv > & TypeNumeriqueOfNiv();
         const std::list< cTypeNumeriqueOfNiv > & TypeNumeriqueOfNiv()const ;
@@ -1137,35 +877,14 @@ class cParamDigeo
         cTplValGesInit< double > & RatioGrad();
         const cTplValGesInit< double > & RatioGrad()const ;
 
+        cTplValGesInit< ePointRefinement > & RefinementMethod();
+        const cTplValGesInit< ePointRefinement > & RefinementMethod()const ;
+
         cTplValGesInit< cSiftCarac > & SiftCarac();
         const cTplValGesInit< cSiftCarac > & SiftCarac()const ;
 
         cSectionCaracImages & SectionCaracImages();
         const cSectionCaracImages & SectionCaracImages()const ;
-
-        int & NbRect();
-        const int & NbRect()const ;
-
-        int & SzRect();
-        const int & SzRect()const ;
-
-        cTplValGesInit< cGenereRandomRect > & GenereRandomRect();
-        const cTplValGesInit< cGenereRandomRect > & GenereRandomRect()const ;
-
-        int & PerX();
-        const int & PerX()const ;
-
-        int & PerY();
-        const int & PerY()const ;
-
-        cTplValGesInit< cGenereCarroyage > & GenereCarroyage();
-        const cTplValGesInit< cGenereCarroyage > & GenereCarroyage()const ;
-
-        int & SzFilter();
-        const int & SzFilter()const ;
-
-        cTplValGesInit< cGenereAllRandom > & GenereAllRandom();
-        const cTplValGesInit< cGenereAllRandom > & GenereAllRandom()const ;
 
         cTplValGesInit< bool > & VerifExtrema();
         const cTplValGesInit< bool > & VerifExtrema()const ;
@@ -1187,9 +906,6 @@ class cParamDigeo
 
         cTplValGesInit< cSectionTest > & SectionTest();
         const cTplValGesInit< cSectionTest > & SectionTest()const ;
-
-        cTplValGesInit< std::string > & DirectoryChantier();
-        const cTplValGesInit< std::string > & DirectoryChantier()const ;
 
         cTplValGesInit< std::string > & Dir();
         const cTplValGesInit< std::string > & Dir()const ;
@@ -1230,17 +946,11 @@ class cParamDigeo
         cTplValGesInit< std::string > & FileBaseCodeConvol();
         const cTplValGesInit< std::string > & FileBaseCodeConvol()const ;
 
-        std::vector< cModifGCC > & ModifGCC();
-        const std::vector< cModifGCC > & ModifGCC()const ;
-
         cTplValGesInit< cGenereCodeConvol > & GenereCodeConvol();
         const cTplValGesInit< cGenereCodeConvol > & GenereCodeConvol()const ;
 
         cTplValGesInit< int > & ShowTimes();
         const cTplValGesInit< int > & ShowTimes()const ;
-
-        std::list< cFenVisu > & FenVisu();
-        const std::list< cFenVisu > & FenVisu()const ;
 
         cTplValGesInit< bool > & ShowConvolSpec();
         const cTplValGesInit< bool > & ShowConvolSpec()const ;

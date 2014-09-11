@@ -73,8 +73,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
 
-
-//#define __DEBUG_DIGEO_STATS
 //#define __DEBUG_DIGEO
 
 //  cRotationFormelle::AddRappOnCentre
@@ -131,7 +129,6 @@ class cImDigeo;
 template <class Type> class cConvolSpec;
 
 class cAppliDigeo;
-class cVisuCaracDigeo;
 const int PackTranspo = 4;
 class cParamAppliDigeo;
 class cPtsCaracDigeo;
@@ -151,7 +148,7 @@ typedef enum
   eTES_Ok
 } eTypeExtreSift;
 
-string eTypeExtreSift_to_string( eTypeExtreSift i_enum );
+string eToString( const eTypeExtreSift &i_enum );
 
 class cPtsCaracDigeo
 {
@@ -309,15 +306,6 @@ class cImInMem
         cImInMem(const cImInMem &);  // N.I.
      public:
 			virtual bool load_raw( const string &i_filename ){ return true; }
-	 #ifdef __DEBUG_DIGEO_STATS
-	    unsigned int mCount_eTES_Uncalc,
-			 mCount_eTES_instable_unsolvable,
-			 mCount_eTES_instable_tooDeepRecurrency,
-			 mCount_eTES_instable_outOfImageBound,
-			 mCount_eTES_GradFaible,
-			 mCount_eTES_TropAllonge,
-			 mCount_eTES_Ok;
-	 #endif
 };
 
 
@@ -348,7 +336,6 @@ template <class Type> class cTplImInMem : public cImInMem
         //const tTIm  & TIm() const {return TIm;}
         tIm  TIm() const {return mIm;}
         void LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el) ;
-        bool InitRandom();
 
         void VMakeReduce_121(cImInMem &);
         void VMakeReduce_010(cImInMem &);
@@ -371,22 +358,13 @@ template <class Type> class cTplImInMem : public cImInMem
                    cTplImInMem<Type> & aPrec,
                    cTplImInMem<Type> & aNext
              );
-
-        void ExtractExtremaDOG_old
-             (
-                   const cSiftCarac & aSC,
-                   cTplImInMem<Type> & aPrec,
-                   cTplImInMem<Type> & aNext1,
-                   cTplImInMem<Type> & aNext2
-             );
          static void MakeClassConvolSpec(bool Increm,double aSigma,FILE *,FILE *,tBase* aFilter,int aDeb,int aFin,int aNbShit); 
      private :
 
         void ResizeBasic(const Pt2di & aSz);
-        eTypeExtreSift CalculateDiff_old(Type***aC,int anX,int anY,int aNiv);
+        eTypeExtreSift CalculateDiff_none( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
         eTypeExtreSift CalculateDiff_2d( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
         eTypeExtreSift CalculateDiff_3d( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
-
 /*
         SetConvolBordX :
  
@@ -503,6 +481,8 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
           eTypeExtreSift    mResDifSift;
           int               mNbExtre;
           int               mNbExtreOK;
+
+          eTypeExtreSift (cTplImInMem<Type>::*mCalculateDiff)( tBase *prevDoG, tBase *currDoG, tBase *nextDoG, int anX, int anY, int aNiv );
 };
 
 
@@ -717,7 +697,6 @@ class cImDigeo
        void DoExtract();
        const cImageDigeo &  IMD();  // La structure XML !!!
        double Resol() const;
-       cVisuCaracDigeo  *  CurVisu();
        cOctaveDigeo & GetOctOfDZ(int aDZ); 
        cOctaveDigeo * SVPGetOctOfDZ(int aDZ); 
 
@@ -744,7 +723,7 @@ class cImDigeo
 
         void DoSiftExtract();
 
-        GenIm::type_el  TypeOfDeZoom(int aDZ,cModifGCC *) const;
+        GenIm::type_el  TypeOfDeZoom(int aDZ) const;
 
         std::string                   mFullname;
         std::string                   mBasename;
@@ -769,7 +748,6 @@ class cImDigeo
         std::vector<cOctaveDigeo *>   mOctaves;
         Pt2di                         mSzMax;
         int                           mNiv;
-        cVisuCaracDigeo  *  mVisu;
 
         bool                         mG2MoyIsCalc;
         double                       mGradMoy;
@@ -828,35 +806,8 @@ template <class Type> class cConvolSpec
 };
 
 // include compiled kernels
-//#include "GenConvolSpec.h"
 #include "GenConvolSpec_u_int2.classes.h"
 #include "GenConvolSpec_real4.classes.h"
-
-class cVisuCaracDigeo
-{
-     public :
-        cVisuCaracDigeo(cAppliDigeo &,Pt2di aSz,int aZ,Fonc_Num aF,const cParamVisuCarac &); 
-        void Save(const std::string&);
-        void SetPtsCarac 
-             (
-                 const Pt2dr & aP,
-                 bool aMax,
-                 double aSigma,
-                 int  aIndSigma,
-                 eTypeExtreSift
-                 
-             );
-     private :
-        cAppliDigeo &      mAppli;
-        Pt2di              mSz1;
-        int                mZ;
-        Pt2di              mSzZ;
-        Im2D_U_INT1        mIm;
-        TIm2D<U_INT1,INT>  mTIm;
-        const cParamVisuCarac & mParam;
-        int          mDynG;
-};
-
 
 class cAppliDigeo
 {
@@ -867,17 +818,7 @@ class cAppliDigeo
                     const cParamAppliDigeo  aParam
               );
 
-       cAppliDigeo( const string &i_imageFilename );
-
-       cAppliDigeo
-       ( 
-              cResultSubstAndStdGetFile<cParamDigeo> aParam,
-              cAppliDigeo *                          aMaterAppli,
-              cModifGCC *                            aModif,
-              bool                                   IsLastGCC
-
-       );
-       
+       cAppliDigeo();
        ~cAppliDigeo();
 
         void DoAll();
@@ -890,14 +831,8 @@ class cAppliDigeo
         string getConvolutionInstantiationsFilename( string i_type );
         const cParamDigeo & Params() const;
         cParamDigeo & Params();
-       /*
-       FILE *  FileGGC_H();
-       FILE *  FileGGC_Cpp();
-       const std::string & DC() const;
-       cModifGCC *      ModifGCC() const;
-       */
-       bool    MultiBloc() const;
-
+       bool MultiBloc() const;
+       void loadImage( const string &i_filename );
 
        cImDigeo & SingleImage();
        cSiftCarac *  RequireSiftCarac();
@@ -914,28 +849,22 @@ class cAppliDigeo
        bool doSaveTiles() const;
        int currentBoxIndex() const;
        bool doIncrementalConvolution() const;
-
+       bool isVerbose() const;
+       ePointRefinement refinementMethod() const;
     private :
        void InitAllImage();
        void DoAllInterv();
        static void InitConvolSpec();
        template <class T> inline static void __InitConvolSpec(){}
        void AllocImages();
-       void processImageName();
+       void processImageName( const string &i_imageFullname );
        void processTestSection();
-       void loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename, const string &i_imageFullname );
+       void loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename );
 
        cParamDigeo                     * mParamDigeo;
        std::vector<cImDigeo *>           mVIms;
 
        cInterfChantierNameManipulateur * mICNM;
-/*
-       cModifGCC *                       mModifGCC;
-       bool                              mLastGCC;
-       cAppliDigeo *                     mMaster;
-       FILE *                            mFileGGC_H;
-       FILE *                            mFileGGC_Cpp;
-*/
        cDecoupageInterv2D                mDecoupInt;
        Box2di                            mBoxIn;
        Box2di                            mBoxOut;
@@ -954,8 +883,9 @@ class cAppliDigeo
        unsigned int                      mNbSlowConvolutionsUsed_uint2;
        unsigned int                      mNbSlowConvolutionsUsed_real4;
        string                            mConvolutionCodeFileBase;
+       bool                              mVerbose;
+       ePointRefinement                  mRefinementMethod;
     public:
-       bool mVerbose;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
@@ -971,20 +901,9 @@ template <> inline unsigned int cAppliDigeo::nbSlowConvolutionsUsed<REAL4>() con
 template <> inline void cAppliDigeo::upNbSlowConvolutionsUsed<U_INT2>() { mNbSlowConvolutionsUsed_uint2++; }
 template <> inline void cAppliDigeo::upNbSlowConvolutionsUsed<REAL4>() { mNbSlowConvolutionsUsed_real4++; }
 
-//#define __WITH_GAUSS_SEP_FILTER
-
-#ifdef __WITH_GAUSS_SEP_FILTER
-	#define InstantiateClassTplDigeo(aClass)\
-	template  class aClass<U_INT2>;\
-	template  class aClass<REAL4>;\
-	template  class aClass<U_INT1>;\
-	template  class aClass<REAL8>;\
-	template  class aClass<INT>;
-#else
-	#define InstantiateClassTplDigeo(aClass)\
-	template  class aClass<U_INT2>;\
-	template  class aClass<REAL4>;
-#endif
+#define InstantiateClassTplDigeo(aClass)\
+template  class aClass<U_INT2>;\
+template  class aClass<REAL4>;
 
 // =========================  INTERFACE EXTERNE ======================
 
