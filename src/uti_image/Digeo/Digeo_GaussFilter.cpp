@@ -396,18 +396,6 @@ template <class Type,class tBase> cConvolSpec<Type> *  GaussCS(double aSigma,int
           );
 }
 
-#ifdef __WITH_GAUSS_SEP_FILTER
-	cConvolSpec<INT>*   IGausCS(double aSigma,double anEpsilon)
-	{
-		 return GaussCS<int,int>(aSigma,15,anEpsilon,10);
-	}
-
-	cConvolSpec<double>*  RGausCS(double aSigma,double anEpsilon)
-	{
-		 return GaussCS<double,double>(aSigma,0,anEpsilon,10);
-	}
-#endif
-
 /****************************************/
 /*                                      */
 /*             cTplImInMem              */
@@ -545,32 +533,13 @@ void cTplImInMem<Type>::SetConvolSepXY
      )
 {
    ELISE_ASSERT(mSz==aImIn.mSz,"Size im diff in ::SetConvolSepXY");
-   //bool aGCC = mAppli.GenereCodeConvol().IsInit();
 
    cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>
                              (
                                 aKerXY, aNbShitXY,
-                                /*
-                                mAppli.FileGGC_H(),
-                                mAppli.FileGGC_Cpp(),
-                                */
                                 NULL, NULL,
                                 aSigma, Increm
                              );
-
-    /*
-    if (mAppli.ShowConvolSpec().Val())
-       std::cout << "CS = " << aCS << "\n";
-    if (mAppli.ExigeCodeCompile().Val() )
-    {
-       //  std::cout << "CODE-COMPILED " << aCS->IsCompiled() << "\n";
-       if (!aCS->IsCompiled()) 
-       {
-          std::cout << "For Sigma = " <<  aSigma << " Increm " << Increm << "\n";
-          ELISE_ASSERT(false,"cannot find code compiled\n");
-       }
-    }
-    */
 
     if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
 

@@ -109,7 +109,7 @@ cInterfImageAbs* cInterfImageAbs::create(std::string const &aName)
 		return (cInterfImageAbs*) new cInterfImageLoader(aName);
 	}
 #endif
-	return (cInterfImageAbs*) new cInterfImageTiff(aName);		
+	return (cInterfImageAbs*) new cInterfImageTiff(aName);
 }
 
 cInterfImageTiff::cInterfImageTiff(std::string const &aName):mTifF(new Tiff_Im(Tiff_Im::StdConvGen(aName,1/*nb channels*/,true/*16-bits*/)))
@@ -278,11 +278,10 @@ cImDigeo::cImDigeo
   mResol       (aIMD.ResolInit().Val()),
   mSzGlobR1    (/*mTifF->sz()*/mInterfImage->sz()),
   mBoxGlobR1   (Pt2di(0,0),mSzGlobR1),
-  mBoxImR1     (Inf(mIMD.BoxImR1().ValWithDef(mBoxGlobR1),mBoxGlobR1)),
+  mBoxImR1     (Inf(mBoxGlobR1,mBoxGlobR1)),
   mBoxImCalc   (round_ni(Pt2dr(mBoxImR1._p0)/mResol),round_ni(Pt2dr(mBoxImR1._p1)/mResol)),
   mSzMax       (0,0),
   mNiv         (0),
-  mVisu        (0),
   mG2MoyIsCalc (false),
   mDyn         (1.0),
   mFileInMem   (0),
@@ -299,17 +298,12 @@ cImDigeo::cImDigeo
     else
  	ELISE_ASSERT(false,"cImDigeo::AllocImages PyramideImage");
 
-    if ( Appli().mVerbose )
+    if ( Appli().isVerbose() )
     {
         cout << "resol0 : " << mResol << endl;
         cout << "sigmaN : " << SigmaN() << endl;
         cout << "sigma0 : " << Sigma0() << endl;
     }
-
-   //Provisoire
-   ELISE_ASSERT(! aIMD.PredicteurGeom().IsInit(),"Asservissement pas encore gere");
-
-   //Pt2di aSzIR1 = mBoxImR1.sz();
 
    mInterfImage->bitpp();
 	// ToDo ...
@@ -347,32 +341,9 @@ cImDigeo::cImDigeo
         mGradMoy = sqrt(aSom);
    }
 
-   // Verification de coherence
-   if (aNum==0)
-   {
-        ELISE_ASSERT(! aIMD.PredicteurGeom().IsInit(),"Asservissement sur image maitresse ?? ");
-   }
-   else
-   {
-       if ( aIMD.PredicteurGeom().IsInit())
-       {
-          //Provisoire
-          ELISE_ASSERT(!aIMD.BoxImR1().IsInit()," Asservissement et Box Im sec => redondant ?");
-       }
-       else
-       {
-          ELISE_ASSERT
-          (
-             ! mAppli.Params().DigeoDecoupageCarac().IsInit(),
-             "Decoupage+Multimage => Asservissement requis"
-          );
-          
-       }
-   }
-
    // compute gaussians' standard-deviation
    mInitialDeltaSigma = sqrt( ElSquare(mSigma0)-ElSquare(SigmaN()) );
-   if ( mAppli.mVerbose ) cout << "initial convolution sigma : " << mInitialDeltaSigma << ( mInitialDeltaSigma==0.?"(no convolution)":"" ) << endl;
+   if ( mAppli.isVerbose() ) cout << "initial convolution sigma : " << mInitialDeltaSigma << ( mInitialDeltaSigma==0.?"(no convolution)":"" ) << endl;
 }
 
 			  /*
@@ -405,31 +376,15 @@ double cImDigeo::SigmaN() const { return mSigmaN; }
 
 double cImDigeo::InitialDeltaSigma() const { return mInitialDeltaSigma; }
 
-void cImDigeo::NotifUseBox(const Box2di & aBox)
+void cImDigeo::NotifUseBox(const Box2di & aBox) { mSzMax.SetSup( aBox.sz() ); }
+
+GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ) const
 {
-  if (mIMD.PredicteurGeom().IsInit())
-  {
-       ELISE_ASSERT(false,"NotifUseBox :: Asservissement pas encore gere");
-  }
-  else
-  {
-      mSzMax.SetSup(aBox.sz());
-  }
-}
-
-
-
-GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ,cModifGCC * aMGCC) const
-{
-   if (aMGCC) return Xml2EL(aMGCC->TypeNum());
    //GenIm::type_el aRes = mTifF->type_el();
 	GenIm::type_el aRes = mInterfImage->type_el();
-   if  (! type_im_integral(aRes))  
-   {
-      return aRes;
-   }
-   if (aRes==GenIm::int4)
-      return GenIm::real8;
+	if ( !type_im_integral(aRes) ) return aRes;
+
+   if ( aRes==GenIm::int4 ) return GenIm::real8;
 
    int aDZMax = -10000000;
    for 
@@ -451,16 +406,15 @@ GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ,cModifGCC * aMGCC) const
 
 void cImDigeo::AllocImages()
 {
-   cModifGCC * aMGCC = NULL;
-   Pt2di aSz = mSzMax;	
+   Pt2di aSz = mSzMax;
    int aNivDZ = 0;
 
    cOctaveDigeo * aLastOct = 0;
    for (int aDz = 1 ; aDz <=mNiv ; aDz*=2)
    {
        cOctaveDigeo * anOct =   aLastOct                                                   ?
-                                aLastOct->AllocDown(TypeOfDeZoom(aDz,aMGCC),*this,aDz,aSz)       :
-                                cOctaveDigeo::AllocTop(TypeOfDeZoom(aDz,aMGCC),*this,aDz,aSz)       ;
+                                aLastOct->AllocDown(TypeOfDeZoom(aDz),*this,aDz,aSz)       :
+                                cOctaveDigeo::AllocTop(TypeOfDeZoom(aDz),*this,aDz,aSz)       ;
        mOctaves.push_back(anOct);
        const cTypePyramide & aTP = mAppli.Params().TypePyramide();
        if (aTP.NivPyramBasique().IsInit())
@@ -474,15 +428,13 @@ void cImDigeo::AllocImages()
        {
             const cPyramideGaussienne &  aPG = aTP.PyramideGaussienne().Val();
             int aNbIm = aPG.NbByOctave().Val();
-            if (aMGCC) aNbIm = aMGCC->NbByOctave();
             if (aPG.NbInLastOctave().IsInit() && (aDz*2>mNiv)) aNbIm = aPG.NbInLastOctave().Val();
             int aK0 = 0;
             if (aDz==1) aK0 = aPG.IndexFreqInFirstOctave().Val();
             anOct->SetNbImOri(aNbIm);
 
-
-            if ( mAppli.mVerbose ){
-                cout << "octave " << mOctaves.size()-1 << " (" << type_elToString( TypeOfDeZoom( aDz, NULL ) ) << ")" << endl;
+            if ( mAppli.isVerbose() ){
+                cout << "octave " << mOctaves.size()-1 << " (" << type_elToString( TypeOfDeZoom( aDz ) ) << ")" << endl;
                 cout << "\tsampling pace    = " << aDz << endl;
                 cout << "\tnumber of levels = " << aNbIm << endl;
             }
@@ -494,16 +446,14 @@ void cImDigeo::AllocImages()
             }
                 
        }
-       aSz = (aSz+Pt2di(1,1)) /2 ;
+       aSz = ( aSz+Pt2di(1,1) )/2;
        aNivDZ++;
 
        aLastOct = anOct;
    }
 
    for (int aK=1 ; aK<int(mVIms.size()) ; aK++)
-   {
       mVIms[aK]->SetMere(mVIms[aK-1]);
-   }
 }
 
 bool cImDigeo::PtResolCalcSauv(const Pt2dr & aP)
@@ -536,14 +486,6 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     //Fonc_Num aF = mTifF->in_proj();
     //if ( mFileInMem ) aF = trans( mFileInMem->in_proj(), -mBoxImR1._p0 );
 
-	#ifdef __WITH_GAUSS_SEP_FILTER
-		 if (aTP.PyramideGaussienne().IsInit())
-		 {
-			  double aSigma = Sigma0();
-			  aSigma = sqrt(ElMax(0.0,ElSquare(aSigma)-ElSquare(1/mResol)));
-			  aF = GaussSepFilter(aF,aSigma,1e-3);
-		 }
-    #endif
     /*
     Pt2dr aTrR = Pt2dr( aBoxIn._p0 )*mResol;
     Pt2dr aPSc = Pt2dr( mResol, mResol );
@@ -580,23 +522,11 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     double aTPyram = aChrono.uval();
     aChrono.reinit();
 
-    if ( mAppli.Params().ShowTimes().Val() ) std::cout << "Time,  load : " << aTLoad << " ; Pyram : " << aTPyram << "\n";
+    if ( mAppli.Params().ShowTimes().Val() ) std::cout << "Time,  load : " << aTLoad << " ; Pyram : " << aTPyram << endl;
 }
 
 void cImDigeo::DoExtract()
 {
-    if (mIMD.VisuCarac().IsInit())
-    {
-        const cParamVisuCarac & aPVC = mIMD.VisuCarac().Val();
-        mVisu = new cVisuCaracDigeo
-                    (
-                       mAppli,
-                       mSzCur,
-                       aPVC.Zoom().Val(),
-                       mOctaves[0]->FirstImage()->Im().in_proj() * aPVC.Dyn(),
-                       aPVC
-                    );
-    }
     ElTimer aChrono;
 
     DoSiftExtract();
@@ -604,13 +534,6 @@ void cImDigeo::DoExtract()
     if (mAppli.Params().ShowTimes().Val())
     {
         std::cout << "Time,  Extrema : " << aChrono.uval() << "\n";
-    }
-
-    if (mVisu)
-    {
-       mVisu->Save(mBasename);
-       delete mVisu;
-       mVisu = 0;
     }
 }
 
@@ -703,7 +626,6 @@ const std::string  & cImDigeo::Basename() const { return mBasename; }
 
 cAppliDigeo &  cImDigeo::Appli() {return mAppli;}
 const cImageDigeo &  cImDigeo::IMD() {return mIMD;}
-cVisuCaracDigeo  *   cImDigeo::CurVisu() {return mVisu;}
 
 double cImDigeo::GradMoyCorrecDyn() const 
 {

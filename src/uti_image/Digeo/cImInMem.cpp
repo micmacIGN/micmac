@@ -157,10 +157,16 @@ cTplImInMem<Type>::cTplImInMem
      mTMere (0),
      mTFille (0),
      // mOrigOct (0),
-     mData   (0)
+     mData   (0),
+     mCalculateDiff(NULL)
 {
-    ResizeImage(aSz);
-    mNbShift =  mAppli.Params().TypePyramide().PyramideGaussienne().Val().NbShift().Val();
+	ResizeImage(aSz);
+	mNbShift =  mAppli.Params().TypePyramide().PyramideGaussienne().Val().NbShift().Val();
+	switch ( mAppli.refinementMethod() ){
+	case eRefine3D: mCalculateDiff = &cTplImInMem<Type>::CalculateDiff_3d; break;
+	case eRefine2D: mCalculateDiff = &cTplImInMem<Type>::CalculateDiff_2d; break;
+	case eRefineNone: mCalculateDiff = &cTplImInMem<Type>::CalculateDiff_none; break;
+	}
 }
 
 template <class Type> void cTplImInMem<Type>::ResizeBasic(const Pt2di & aSz)
@@ -183,27 +189,6 @@ template <class Type> void cTplImInMem<Type>::ResizeImage(const Pt2di & aSz)
 {
     ResizeBasic(aSz+Pt2di(PackTranspo,0));
     ResizeBasic(aSz);
-}
-
-template <class Type> bool cTplImInMem<Type>::InitRandom()
-{
-   if (! mAppli.Params().SectionTest().IsInit())
-      return false;
-   const cSectionTest & aST = mAppli.Params().SectionTest().Val();
-   if (! aST.GenereAllRandom().IsInit())
-      return false;
-
-
-    const cGenereAllRandom & aGAR = aST.GenereAllRandom().Val();
-
-   ELISE_COPY
-   (
-      mIm.all_pts(),
-      255*(gauss_noise_1(aGAR.SzFilter())>0),
-      mIm.out()
-   );
-
-   return true;
 }
  
 template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
@@ -285,35 +270,6 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 			SetConvolSepXY( true, aSigmD, *this, aIKerD, mNbShift );
 		}
 	}
-
-   if (mAppli.Params().SectionTest().IsInit())
-   {
-      const cSectionTest & aST = mAppli.Params().SectionTest().Val();
-      if (aST.GenereRandomRect().IsInit())
-      {
-         cGenereRandomRect aGRR = aST.GenereRandomRect().Val();
-         ELISE_COPY(mIm.all_pts(),0, mIm.out());
-         for (int aK= 0 ; aK < aGRR.NbRect() ; aK++)
-         {
-             Pt2di aP = round_ni(aBox.RandomlyGenereInside()) - aBox._p0;
-             int aL = 1 +NRrandom3(aGRR.SzRect());
-             int aH = 1 +NRrandom3(aGRR.SzRect());
-             ELISE_COPY
-             (
-                   rectangle(aP-Pt2di(aL,aH),aP+Pt2di(aL,aH)),
-                   255*NRrandom3(),
-                   mIm.out()
-             );
-         }
-      }
-      if (aST.GenereCarroyage().IsInit())
-      {
-         cGenereCarroyage aGC = aST.GenereCarroyage().Val();
-         ELISE_COPY(mIm.all_pts(),255*((FX/aGC.PerX()+FY/aGC.PerY())%2), mIm.out());
-      }
-
-      InitRandom();
-   }
 }
 
 template <class Type> Im2DGen cTplImInMem<Type>::Im(){ return TIm(); }
@@ -386,26 +342,6 @@ void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
         loadDoG( "dog_sift" );
     #endif
 }
-
-#ifdef __WITH_GAUSS_SEP_FILTER
-	bool load_raw( const string &i_filename, REAL *i_image, unsigned int i_width, unsigned int i_height )
-	{
-		ELISE_ASSERT( false, "save_raw(REAL*)");
-		return false;
-	}
-
-	bool load_raw( const string &i_filename, U_INT1 *i_image, unsigned int i_width, unsigned int i_height )
-	{
-		ELISE_ASSERT( false, "save_raw(REAL8*)");
-		return false;
-	}
-
-	bool load_raw( const string &i_filename, INT *i_image, unsigned int i_width, unsigned int i_height )
-	{
-		ELISE_ASSERT( false, "save_raw(REAL8*)");
-		return false;
-	}
-#endif
 
 template <class Type>
 bool load_raw( const string &i_filename, Type *o_image, unsigned int i_width, unsigned int i_height )
@@ -657,7 +593,6 @@ InstantiateClassTplDigeo(cTplImInMem)
 
 
 
-
 /****************************************/
 /*                                      */
 /*             cImInMem                 */
@@ -689,17 +624,8 @@ cImInMem::cImInMem
     mFirstSauv        (true),
     mFileTheoricalMaxValue( (1<</*aIGlob.TifF().bitpp()*/aIGlob.bitpp())-1 ),
     mUsed_points_map(NULL)
-   #ifdef __DEBUG_DIGEO_STATS
-      ,mCount_eTES_Uncalc(0),
-       mCount_eTES_instable_unsolvable(0),
-       mCount_eTES_instable_tooDeepRecurrency(0),
-       mCount_eTES_instable_outOfImageBound(0),
-       mCount_eTES_GradFaible(0),
-       mCount_eTES_TropAllonge(0),
-       mCount_eTES_Ok(0)
-   #endif
 {
-    if ( aIGlob.Appli().mVerbose )
+    if ( aIGlob.Appli().isVerbose() )
     {
         cout << "\tgaussian of index " << aKInOct << endl;
         cout << "\t\tresolution in octave = " << mResolOctaveBase << endl;

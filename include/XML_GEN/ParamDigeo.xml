@@ -18,8 +18,8 @@
 	</Verbatim>
 
 	<enum Name="eTypeTopolPt">
-		<eTtpSommet>     </eTtpSommet>  
-		<eTtpCuvette>    </eTtpCuvette> 
+		<eTtpSommet>     </eTtpSommet>
+		<eTtpCuvette>    </eTtpCuvette>
 		<eTtpCol>        </eTtpCol>
 		<eTtpCorner>      </eTtpCorner>
 		<eSiftMaxDog>     </eSiftMaxDog>
@@ -32,51 +32,25 @@
 		<eRDI_11>     </eRDI_11>  
 	</enum>
 
-	<enum Name="eTest12345">
-		<eTest12345_A>     </eTest12345_A>  
-		<eTest12345_B>     </eTest12345_B>  
-		<eTest12345_C>     </eTest12345_C>  
+	<enum Name="ePointRefinement">
+		<eRefine2D>     </eRefine2D>
+		<eRefine3D>     </eRefine3D>
+		<eRefineNone>     </eRefineNone>
 	</enum>
-
-	<ParamExtractCaracIm  Nb="1" Class="true" ToReference="true">
-		<SzMinImDeZoom Nb="?" Type="int" Def="500">  </SzMinImDeZoom>
-	</ParamExtractCaracIm>
-
-	<ParamVisuCarac  Nb="1" Class="true" ToReference="true" AccessorFils="false">
-		<!-- Nombre de niveau gris alloues a  la visualisation en gris -->
-		<DynGray Nb="?" Type="int" Def="128">  </DynGray>
-		<Dir Nb="1" Type="std::string"> </Dir>
-		<Zoom Nb="?" Def="1" Type="int"> </Zoom>
-		<Dyn Nb="1"  Type="double"> </Dyn>
-		<Prefix Nb="?" Type="std::string" Def="VisuCarac_"></Prefix>
-		<ShowCaracEchec Nb="?" Def="false" Type="bool"></ShowCaracEchec>
-	</ParamVisuCarac>
 
 	<ParamDigeo  Nb="1" Class="true">
 		<DicoLoc Nb="?" RefType="ChantierDescripteur" RefFile="ParamChantierPhotogram.xml">
 		</DicoLoc>
 
 		<DigeoSectionImages Nb="1">
-			<ImageDigeo Nb="*">
-				<VisuCarac Nb="?"  RefType="ParamVisuCarac" > </VisuCarac>
-
-				<KeyOrPat Nb="1" Type="std::string"> </KeyOrPat>
-				<!-- Pas utilise pour l'instant, sans doute prevu pour modele geometrique -->
-				<KeyCalcCalib Nb="?" Type="std::string"> </KeyCalcCalib>
-				<!-- La BoxImR1 est donnee / a la resol 1 -->
-				<BoxImR1 Nb="?" Type="Box2di">  </BoxImR1>
+			<ImageDigeo Nb="1">
 				<!-- ResolInit=0.5 signifie des images deux fois plus grandes -->
 				<ResolInit Nb="?" Type="double" Def="1.0"> </ResolInit>
 
-				<!-- Pour l'instant pas utilise, mais pour pouvoir commencer
-				a organiser la structure -->
-				<PredicteurGeom Nb="?" UnionType="true">
-					<Unused Nb="?" Type="std::string"> </Unused> 
-				</PredicteurGeom>
 				<!-- Si la taille mémoire de l'image est inférieure a ce seuil, le fichier est lu en 1 bloc-->
 				<NbOctetLimitLoadImageOnce Nb="?" Type="double" Def="1e8"> </NbOctetLimitLoadImageOnce>
 			</ImageDigeo>
-			
+
 			<PyramideImage Nb="1">
 				<TypeNumeriqueOfNiv Nb="*">
 					<Type  Nb="1"  Type="eTypeNumerique"> </Type>
@@ -85,8 +59,8 @@
 
 				<!-- En maximisant la dynamique compatible avec le type d'image,
 				permet d'avoir une plus grande precision; Def = true pour (u_)?int[12] -->
-
 				<MaximDyn Nb="?" Type="bool"> </MaximDyn>
+
 				<!-- Parfois l'image contient des valeurs "parasites" qui 
 				rendent inoperante la MaximDyn, si c'est le cas on peut fixer un 
 				max theorique (par ex 1<<12) en cam Dyn
@@ -97,6 +71,7 @@
 
 				<TypePyramide Nb="1" UnionType="true">
 					<NivPyramBasique Nb="?" Type="int"> </NivPyramBasique>
+
 					<PyramideGaussienne  Nb="?">
 						<NbByOctave Def="3" Nb="?"  Type="int"> </NbByOctave>
 
@@ -121,9 +96,11 @@
 						- sinon erreur
 						-->
 						<ConvolFirstImage Nb="?" Type="double" Def="-1"> </ConvolFirstImage>
-						<EpsilonGauss Nb="?" Type="double" Def="1e-3"> </EpsilonGauss>
-						<NbShift  Nb="?" Type="int" Def="15"> </NbShift>
+
+						<EpsilonGauss Nb="?" Type="double" Def="1e-3"> </EpsilonGauss> <!-- résidu maximal du noyau de convolution -->
+						<NbShift  Nb="?" Type="int" Def="15"> </NbShift> <!-- 2^NbShift = norme du noyau de convolution -->
 						<SurEchIntegralGauss Nb="?" Type="int" Def="10"> </SurEchIntegralGauss>
+						<!-- est-ce que la convolution est réalisée à partir de l'image de base (plus précis) ou de l'image précédente (plus rapide) ? -->
 						<ConvolIncrem Nb="?" Type="bool" Def="true"> </ConvolIncrem>
 					</PyramideGaussienne>
 				</TypePyramide>
@@ -131,8 +108,7 @@
 		</DigeoSectionImages>
 
 		<SectionCaracImages Nb="1">
-			<!-- Juste pour pouvoir eventuellement squeezer en amont tout le calcul
-			-->
+			<!-- Juste pour pouvoir eventuellement squeezer en amont tout le calcul -->
 			<ComputeCarac Nb="1" Type="bool"> </ComputeCarac>
 			<CaracTopo Nb="?">
 				<OneCarac Nb="*">
@@ -147,6 +123,7 @@
 				<!-- 8 Correspond a peu pres a la valeur 10 de Tr 2 / det de Lowe -->
 				<RatioAllongMin Nb="?" Def="8.0" Type="double"> </RatioAllongMin>
 				<RatioGrad Nb="?" Def="0.01" Type="double"> </RatioGrad>
+				<RefinementMethod Nb="?" Type="ePointRefinement" Def="eRefine3D"> </RefinementMethod>
 			</SiftCarac>
 		</SectionCaracImages>
 
@@ -155,22 +132,8 @@
 		-->
 
 		<SectionTest Nb="?">
-			<GenereRandomRect Nb="?">
-				<NbRect Nb="1" Type="int"></NbRect>
-				<SzRect Nb="1" Type="int"></SzRect>
-			</GenereRandomRect>
-			
-			<GenereCarroyage Nb="?">
-				<PerX Nb="1" Type="int"></PerX>
-				<PerY Nb="1" Type="int"></PerY>
-			</GenereCarroyage>
-			
-			<GenereAllRandom Nb="?">
-				<SzFilter Nb="1" Type="int"> </SzFilter>  
-			</GenereAllRandom>
-			
 			<VerifExtrema Nb="?" Type="bool" Def="false"></VerifExtrema>
-			
+
 			<DigeoTestOutput Nb="?">
 				<OutputGaussians Nb="?" Type="bool" Def="false"></OutputGaussians>
 				<OutputGaussiansDirectory Nb="?" Type="std::string" Def="gaussians"></OutputGaussiansDirectory>
@@ -180,8 +143,6 @@
 		</SectionTest>
 
 		<SectionWorkSpace Nb="1">
-			<DirectoryChantier Nb="?"  Type="std::string" Def="">  </DirectoryChantier>
-			
 			<SauvPyram Nb="?">
 				<Dir Nb="?" Type="std::string" Def=""> </Dir>
 				<Glob Nb="?" Type="bool" Def="true"> </Glob>
@@ -200,23 +161,13 @@
 			<!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait
 			insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment -->
 			<ExigeCodeCompile Nb="?" Type="bool" Def="true"></ExigeCodeCompile>
-			
+
 			<GenereCodeConvol Nb="?">
 				<DirectoryCodeConvol Nb="?" Type="std::string" Def="src/uti_image/Digeo/"> </DirectoryCodeConvol>
 				<FileBaseCodeConvol Nb="?" Type="std::string" Def="GenConvolSpec"> </FileBaseCodeConvol>
-				<ModifGCC Nb="*"  Container="std::vector">
-					<NbByOctave Nb="1" Type="int"> </NbByOctave>
-					<ConvolIncrem Nb="1" Type="bool"> </ConvolIncrem>
-					<TypeNum Nb="1" Type="eTypeNumerique"> </TypeNum>
-				</ModifGCC>
 			</GenereCodeConvol>
 
 			<ShowTimes Nb="?" Type="int" Def="0"> </ShowTimes>
-
-			<FenVisu Nb="*">
-				<Name Nb="1" Type="std::string"> </Name>
-				<Sz  Nb="1" Type="Pt2di"> </Sz>
-			</FenVisu>
 
 			<!-- Pas de raison, hors mis au point/test, de changer cette val -->
 			<ShowConvolSpec Nb="?" Type="bool" Def="false"> </ShowConvolSpec>

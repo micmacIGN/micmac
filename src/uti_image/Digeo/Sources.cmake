@@ -6,8 +6,8 @@ set(uti_image_Digeo_Src_Files
     ${UTI_IMAGE_DIGEO_DIR}/cImDigeo.cpp
     ${UTI_IMAGE_DIGEO_DIR}/cImInMem.cpp
     ${UTI_IMAGE_DIGEO_DIR}/cOctaveDigeo.cpp
-    ${UTI_IMAGE_DIGEO_DIR}/cVisuCarac.cpp
     ${UTI_IMAGE_DIGEO_DIR}/Digeo.cpp
+#    ${UTI_IMAGE_DIGEO_DIR}/cVisuCarac.cpp
 #    ${UTI_IMAGE_DIGEO_DIR}/Digeo_Detecteurs.cpp
 #    ${UTI_IMAGE_DIGEO_DIR}/Digeo_GaussFilter.cpp
 #    ${UTI_IMAGE_DIGEO_DIR}/Digeo_Pyram.cpp

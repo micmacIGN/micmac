@@ -176,19 +176,6 @@ Fonc_Num LinearSepFilter
 
 }
 
-#ifdef __WITH_GAUSS_SEP_FILTER
-	Fonc_Num GaussSepFilter(Fonc_Num   aFonc,double aSigma,double anEpsilon)
-	{
-		if (aSigma==0) return aFonc;
-		return LinearSepFilter
-				 (
-					  aFonc,
-					  IGausCS(aSigma,anEpsilon),
-					  RGausCS(aSigma,anEpsilon)
-				 );
-	}
-#endif
-
 /****************************************/
 /*                                      */
 /*           cConvolSpec                */
@@ -512,11 +499,6 @@ bool cConvolSpec<Type>::generate_instantiations( const string &i_filename )
 
 template <> std::vector<cConvolSpec<U_INT2> *>  cConvolSpec<U_INT2>::theVec(0);
 template <> std::vector<cConvolSpec<REAL4> *>  cConvolSpec<REAL4>::theVec(0);
-#ifdef __WITH_GAUSS_SEP_FILTER
-	template <> std::vector<cConvolSpec<U_INT1> *>  cConvolSpec<U_INT1>::theVec(0);
-	template <> std::vector<cConvolSpec<REAL> *>  cConvolSpec<REAL>::theVec(0);
-	template <> std::vector<cConvolSpec<INT> *>  cConvolSpec<INT>::theVec(0);
-#endif
 
 InstantiateClassTplDigeo(cConvolSpec)
 

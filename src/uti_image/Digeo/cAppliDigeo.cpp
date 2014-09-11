@@ -47,21 +47,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern const char * theNameVar_ParamDigeo[];
 
-void cAppliDigeo::loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename, const string &i_imageFullname )
+void cAppliDigeo::loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename )
 {
-	string imageDirectory, imageBasename;
-	SplitDirAndFile( imageDirectory, imageBasename, i_imageFullname );
-
 	AddEntryStringifie( "include/XML_GEN/ParamDigeo.xml", theNameVar_ParamDigeo, true );
 
 	// construct parameters structure from template and parameters files
-	vector<char *> args;
-	args.push_back( strdup( ( string( "+Im1=" )+imageBasename ).c_str() ) );
-	args.push_back( strdup( ( string( "DirectoryChantier=" )+imageDirectory ).c_str() ) );
-
 	cResultSubstAndStdGetFile<cParamDigeo> aP2 
 	                                       (
-	                                           args.size(), args.data(),     // int argc,char **argv
+	                                           0, NULL,                      // int argc,char **argv
 	                                           i_parametersFilename,         // const std::string & aNameFileObj
 	                                           i_templateFilename,           // const std::string & aNameFileSpecif
 	                                           "ParamDigeo",                 // const std::string & aNameTagObj
@@ -70,35 +63,29 @@ void cAppliDigeo::loadParametersFromFile( const string &i_templateFilename, cons
 	                                           "FileChantierNameDescripteur" // const std::string & aNameTagFDC
 	                                       );
 
-	// free strings duplicates
-	for ( size_t i=0; i<args.size(); i++ ) 
-		free( args[i] );
-
 	mParamDigeo = aP2.mObj;
 	mICNM = aP2.mICNM;
 
 	return ;
 }
  
-cAppliDigeo::cAppliDigeo( const string &i_imageFilename ):
+cAppliDigeo::cAppliDigeo():
 	mParamDigeo  (NULL),
 	mICNM        (NULL),
 	mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
 	mDoIncrementalConvolution( true ),
 	mSiftCarac   (NULL),
 	mNbSlowConvolutionsUsed_uint2(0),
-	mNbSlowConvolutionsUsed_real4(0)
+	mNbSlowConvolutionsUsed_real4(0),
+	mRefinementMethod(eRefine3D)
 {
-	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), Basic_XML_MM_File( "Digeo-Parameters.xml" ), i_imageFilename );
-	//mParamDigeo = new cParamDigeo( *(aParam.mObj) );
+	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), Basic_XML_MM_File( "Digeo-Parameters.xml" ) );
+
 	mSiftCarac = Params().SiftCarac().PtrVal();
 	mVerbose = Params().Verbose().Val();
 	if ( Params().ConvolIncrem().IsInit() ) mDoIncrementalConvolution = Params().ConvolIncrem().Val();
+	if ( Params().SiftCarac().IsInit() && Params().SiftCarac().Val().RefinementMethod().IsInit() ) mRefinementMethod = Params().SiftCarac().Val().RefinementMethod().Val();
 
-	AllocImages();
-	InitAllImage();
-
-	processImageName();
 	processTestSection();
 	InitConvolSpec();
 
@@ -106,42 +93,9 @@ cAppliDigeo::cAppliDigeo( const string &i_imageFilename ):
 		const cGenereCodeConvol &genereCodeConvol = Params().GenereCodeConvol().Val();
 		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
 	}
-}
 
-cAppliDigeo::cAppliDigeo
-( 
-   cResultSubstAndStdGetFile<cParamDigeo> aParam,
-   cAppliDigeo *                          aMaterAppli,
-   cModifGCC *                            aModif,
-   bool                                   IsLastGCC
-
-) :
-    mParamDigeo  (NULL),
-    mICNM        (aParam.mICNM),/*
-    mDC          (aParam.mDC),
-    mMaster      (aMaterAppli),
-    mModifGCC    (aModif),
-    mLastGCC     (IsLastGCC),
-    mFileGGC_H   (aMaterAppli ? aMaterAppli->mFileGGC_H : 0),
-    mFileGGC_Cpp (aMaterAppli ? aMaterAppli->mFileGGC_Cpp : 0),*/
-    mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
-    mDoIncrementalConvolution( true ),
-    mSiftCarac   (NULL),
-    mNbSlowConvolutionsUsed_uint2(0),
-    mNbSlowConvolutionsUsed_real4(0)
-{
-	mParamDigeo = new cParamDigeo( *(aParam.mObj) );
-	mSiftCarac = Params().SiftCarac().PtrVal();
-	mVerbose = Params().Verbose().Val();
-	if ( Params().ConvolIncrem().IsInit() ) mDoIncrementalConvolution = Params().ConvolIncrem().Val();
-
-   processImageName();
-   processTestSection();
-   InitConvolSpec();
-
-	if ( Params().GenereCodeConvol().IsInit() ){
-		const cGenereCodeConvol &genereCodeConvol = Params().GenereCodeConvol().Val();
-		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
+	if ( isVerbose() ){
+		cout << "refinement: " << eToString( mRefinementMethod ) << endl;
 	}
 }
 
@@ -166,26 +120,16 @@ cSiftCarac * cAppliDigeo::RequireSiftCarac()
    return mSiftCarac;
 }
 
+void cAppliDigeo::loadImage( const string &i_filename )
+{
+	processImageName( i_filename );
+	AllocImages();
+	InitAllImage();
+}
+
 void cAppliDigeo::AllocImages()
 {
-   for 
-   (
-       std::list<cImageDigeo>::const_iterator itI=Params().ImageDigeo().begin();
-       itI!=Params().ImageDigeo().end();
-       itI++
-   )
-   {
-       std::list<std::string> aLS = mICNM->StdGetListOfFile(itI->KeyOrPat());
-       for 
-       (
-            std::list<std::string>::const_iterator itS=aLS.begin();
-            itS!=aLS.end();
-            itS++
-       )
-       {
-           mVIms.push_back(new cImDigeo(mVIms.size(),*itI,mICNM->Dir()+(*itS),*this));
-       }
-   }
+	mVIms.push_back( new cImDigeo( mVIms.size(), Params().DigeoSectionImages().ImageDigeo(), imageFullname(), *this ) );
 }
 
 cImDigeo & cAppliDigeo::SingleImage()
@@ -204,31 +148,6 @@ bool cAppliDigeo::MultiBloc() const
 void cAppliDigeo::InitAllImage()
 {
 	if ( !Params().ComputeCarac() ) return;
-
-	/*
-  if (GenereCodeConvol().IsInit() && (mFileGGC_H ==0))
-  {
-      cGenereCodeConvol & aGCC = GenereCodeConvol().Val();
-      std::string aName = aGCC.File().Val();
-      std::string aDir = aGCC.Dir().Val();
-      mFileGGC_H = FopenNN(MMDir()+aDir+aName+".h","w","cAppliDigeo::DoCarac");
-      mFileGGC_Cpp = FopenNN(MMDir()+aDir+aName+".cpp","w","cAppliDigeo::DoCarac");
-
-      fprintf(mFileGGC_H,"#include \"Digeo.h\"\n\n");
-      // fprintf(mFileGGC_H,"namespace NS_ParamDigeo {\n");
-
-
-      fprintf(mFileGGC_Cpp,"#include \"%s.h\"\n\n",aName.c_str());
-      // fprintf(mFileGGC_Cpp,"namespace NS_ParamDigeo {\n");
-      fprintf(mFileGGC_Cpp,"void cAppliDigeo::InitConvolSpec()\n");
-      fprintf(mFileGGC_Cpp,"{\n");
-      fprintf(mFileGGC_Cpp,"    static bool theFirst = true;\n");
-      fprintf(mFileGGC_Cpp,"    if (! theFirst) return;\n");
-      fprintf(mFileGGC_Cpp,"    theFirst = false;\n");
-      fprintf(mFileGGC_Cpp,"\n");
-
-  }
-	*/
 
   Box2di aBox = mVIms[0]->BoxImCalc();
   Pt2di aSzGlob = aBox.sz();
@@ -251,20 +170,6 @@ void cAppliDigeo::InitAllImage()
       }
       mVIms[aKI]->AllocImages();
   }
-
-
-	/*
-  if (GenereCodeConvol().IsInit() &&  mLastGCC)
-  {
-       DoAllInterv();
-      // fprintf(mFileGGC_H,"}\n");
-      ElFclose(mFileGGC_H);
-
-      fprintf(mFileGGC_Cpp,"}\n");
-      // fprintf(mFileGGC_Cpp,"}\n");
-      ElFclose(mFileGGC_Cpp);
-  }
-  */
 }
 
 void cAppliDigeo::DoAllInterv()
@@ -304,7 +209,7 @@ Box2di cAppliDigeo::getInterv( int aKB ) const { return mDecoupInt.KthIntervIn(a
 
 void cAppliDigeo::DoAll()
 {
-     AllocImages();
+     //AllocImages();
      ELISE_ASSERT(mVIms.size(),"NoImage selected !!");
      InitAllImage();
      DoAllInterv();
@@ -318,26 +223,6 @@ void cAppliDigeo::DoAll()
 
 
 cInterfChantierNameManipulateur * cAppliDigeo::ICNM() {return mICNM;}
-
-/*
-const std::string & cAppliDigeo::DC() const { return mDC; }
-* 
-FILE *  cAppliDigeo::FileGGC_H()
-{
-   return mFileGGC_H;
-}
-
-FILE *  cAppliDigeo::FileGGC_Cpp()
-{
-   return mFileGGC_Cpp;
-}
-
-cModifGCC * cAppliDigeo::ModifGCC() const 
-{ 
-   return mModifGCC; 
-}
-*/
-
 
 string cAppliDigeo::imageFullname() const { return mImageFullname; }
 
@@ -353,13 +238,15 @@ int cAppliDigeo::currentBoxIndex() const { return mCurrentBoxIndex; }
 
 bool cAppliDigeo::doIncrementalConvolution() const { return mDoIncrementalConvolution; }
 
-void cAppliDigeo::processImageName()
+bool cAppliDigeo::isVerbose() const { return mVerbose; }
+
+ePointRefinement cAppliDigeo::refinementMethod() const { return mRefinementMethod; }
+
+void cAppliDigeo::processImageName( const string &i_imageFullname )
 {
-	#ifdef __DEBUG_DIGEO
-		ELISE_ASSERT( ImageDigeo().size()==1, ( string("setImageFullname: only one file can be processed at a time (nb ImageDigeo = ")+ToString((int)ImageDigeo().size()) ).c_str() );
-	#endif
-	for ( std::list<cImageDigeo>::const_iterator itI=Params().ImageDigeo().begin(); itI!=Params().ImageDigeo().end(); itI++ ) 
-		mImageFullname = mICNM->Dir()+itI->KeyOrPat();
+	ELISE_ASSERT( ELISE_fp::exist_file(i_imageFullname), ( string("processImageName: image to process do not exist [")+i_imageFullname+"]" ).c_str() );
+
+	mImageFullname = i_imageFullname;
 	SplitDirAndFile( mImagePath, mImageBasename, mImageFullname );
 }
 
