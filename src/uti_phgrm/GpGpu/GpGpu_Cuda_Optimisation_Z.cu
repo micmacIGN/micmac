@@ -341,7 +341,13 @@ void ReadLine_V02(
     // p.seg.id = 1 au premier passage, car simple copie des initcost
 
     #ifdef CUDA_DEFCOR
-    uint         prevDefCor   = p.costTransDefMask + p.costDefMask;
+    //////////////////////////////////////////////////
+    /// TODO!!!! : quel doit etre prevDefCor p.costTransDefMask + p.costDefMask ou p.costDefMask
+    /////////////////////////////////////////////////
+    uint         prevDefCor   =/* p.costTransDefMask + */p.costDefMask;
+    const ushort idGline = p.line.id + p.seg.id;
+
+    streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor);
     #endif
 
     uint         prevMinCost  = 0;
@@ -408,17 +414,13 @@ void ReadLine_V02(
 #endif
 
                 if(tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < p.sizeBuffer && tZ < p.sizeBuffer)
-                {
-
-                    //const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
+                {                    
 
                     fCostMin                    -= prevMinCost;
                     minCost[p.tid]               = fCostMin;
                     S_FCost[!p.Id_Buf][sgn(tZ)]  = fCostMin;
 
-                    streamFCost.SetOrAddValue<sens>(sgn(p.ID_Bf_Icost),fCostMin,fCostMin - costInit);
-
-                    //streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);
+                    streamFCost.SetOrAddValue<sens>(sgn(p.ID_Bf_Icost),fCostMin,fCostMin - costInit);                    
                 }
                 else
                     minCost[p.tid] = max_cost;
@@ -439,28 +441,16 @@ void ReadLine_V02(
 
             }
 
-
 #ifdef CUDA_DEFCOR
-//            uint defCor     = (prevDefCor <= prevMinCost) ? prevDefCor + defCorInit : prevMinCost + costTransDef + defCorInit;
 
-            uint defCor     = min(prevDefCor + p.costDefMask,prevMinCost + p.costTransDefMask + p.costDefMask) ;
-
-            //uint defCor     =  defCorInit + (prevDefCor == prevMinCost ? costTransDef : 0);
-            
-            defCor         -= prevMinCost;
-
-            prevMinCost     = min(globMinFCost,defCor);
-
-            prevDefCor      = defCor;
+            prevDefCor  = min(prevDefCor,prevMinCost + p.costTransDefMask )+ p.costDefMask - prevMinCost;
+            prevMinCost = min(globMinFCost,prevDefCor);
 
             if(p.tid == 0)
             {
                 const ushort idGline = p.line.id + p.seg.id;
 
-                if(sens)
-                    streamDefCor.SetValue(idGline,prevDefCor);
-                else
-                    streamDefCor.AddValue(p.line.lenght  - idGline,prevDefCor);
+                streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor);
 
             }
 #else
