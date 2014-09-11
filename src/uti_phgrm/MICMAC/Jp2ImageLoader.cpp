@@ -233,8 +233,8 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
 	
 	int * precisions = new int[num_components];
     bool *is_signed = new bool[num_components];
-    for(size_t i=0;i<num_components;++i) precisions[i]=precision;
-    for(size_t i=0;i<num_components;++i) is_signed[i]=signe;
+    for(size_t i=0;(int)i<num_components;++i) precisions[i]=precision;
+    for(size_t i=0;(int)i<num_components;++i) is_signed[i]=signe;
 	
     kdu_dims *comp_dims = new kdu_dims[num_components];
     for (n=0; n < num_components; n++)
@@ -388,8 +388,8 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
 	
 	int * precisions = new int[num_components];
     bool *is_signed = new bool[num_components];
-    for(size_t i=0;i<num_components;++i) precisions[i]=precision;
-    for(size_t i=0;i<num_components;++i) is_signed[i]=signe;
+    for(size_t i=0;(int)i<num_components;++i) precisions[i]=precision;
+    for(size_t i=0;(int)i<num_components;++i) is_signed[i]=signe;
 	
     kdu_dims *comp_dims = new kdu_dims[num_components];
     for (n=0; n < num_components; n++)
