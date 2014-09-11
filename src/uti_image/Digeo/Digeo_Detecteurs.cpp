@@ -595,8 +595,8 @@ void cTplImInMem<Type>::ExtractExtremaDOG_old
 
    cVisuCaracDigeo * aVCD = mImGlob.CurVisu();
    Type *** aC = mTOct.Cube() + mKInOct;
-   bool aVerifExtrema =     mAppli.SectionTest().IsInit()
-                        &&  mAppli.SectionTest().Val().VerifExtrema().Val();
+   bool aVerifExtrema =     mAppli.Params().SectionTest().IsInit()
+                        &&  mAppli.Params().SectionTest().Val().VerifExtrema().Val();
 
    if (aVerifExtrema)
    {

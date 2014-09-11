@@ -99,7 +99,7 @@ void cVisuCaracDigeo::Save(const std::string& aName)
 
   Disc_Pal aPal(&(aVCol[0]),aVCol.size());
 
-  std::string aDir =  mAppli.DC() + mParam.Dir()  ;
+  std::string aDir =  /*mAppli.DC() + */mParam.Dir()  ;
   ELISE_fp::MkDirSvp(aDir);
   std::string aFullName = aDir+mParam.Prefix().Val()+ aName;
 

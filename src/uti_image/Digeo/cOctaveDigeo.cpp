@@ -324,7 +324,7 @@ bool cOctaveDigeo::OkForSift(int aK) const
   return     (aK>=1) 
           && (aK+2<int(mVIms.size()))
           && mAppli.SiftCarac()
-          && mAppli.PyramideGaussienne().IsInit();
+          && mAppli.Params().PyramideGaussienne().IsInit();
 }
 
 

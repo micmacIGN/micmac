@@ -45,7 +45,69 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                      */
 /****************************************/
 
+extern const char * theNameVar_ParamDigeo[];
+
+void cAppliDigeo::loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename, const string &i_imageFullname )
+{
+	string imageDirectory, imageBasename;
+	SplitDirAndFile( imageDirectory, imageBasename, i_imageFullname );
+
+	AddEntryStringifie( "include/XML_GEN/ParamDigeo.xml", theNameVar_ParamDigeo, true );
+
+	// construct parameters structure from template and parameters files
+	vector<char *> args;
+	args.push_back( strdup( ( string( "+Im1=" )+imageBasename ).c_str() ) );
+	args.push_back( strdup( ( string( "DirectoryChantier=" )+imageDirectory ).c_str() ) );
+
+	cResultSubstAndStdGetFile<cParamDigeo> aP2 
+	                                       (
+	                                           args.size(), args.data(),     // int argc,char **argv
+	                                           i_parametersFilename,         // const std::string & aNameFileObj
+	                                           i_templateFilename,           // const std::string & aNameFileSpecif
+	                                           "ParamDigeo",                 // const std::string & aNameTagObj
+	                                           "ParamDigeo",                 // const std::string & aNameTagType
+	                                           "DirectoryChantier",          // const std::string & aNameTagDirectory
+	                                           "FileChantierNameDescripteur" // const std::string & aNameTagFDC
+	                                       );
+
+	// free strings duplicates
+	for ( size_t i=0; i<args.size(); i++ ) 
+		free( args[i] );
+
+	mParamDigeo = aP2.mObj;
+	mICNM = aP2.mICNM;
+
+	return ;
+}
  
+cAppliDigeo::cAppliDigeo( const string &i_imageFilename ):
+	mParamDigeo  (NULL),
+	mICNM        (NULL),
+	mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
+	mDoIncrementalConvolution( true ),
+	mSiftCarac   (NULL),
+	mNbSlowConvolutionsUsed_uint2(0),
+	mNbSlowConvolutionsUsed_real4(0)
+{
+	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), Basic_XML_MM_File( "Digeo-Parameters.xml" ), i_imageFilename );
+	//mParamDigeo = new cParamDigeo( *(aParam.mObj) );
+	mSiftCarac = Params().SiftCarac().PtrVal();
+	mVerbose = Params().Verbose().Val();
+	if ( Params().ConvolIncrem().IsInit() ) mDoIncrementalConvolution = Params().ConvolIncrem().Val();
+
+	AllocImages();
+	InitAllImage();
+
+	processImageName();
+	processTestSection();
+	InitConvolSpec();
+
+	if ( Params().GenereCodeConvol().IsInit() ){
+		const cGenereCodeConvol &genereCodeConvol = Params().GenereCodeConvol().Val();
+		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
+	}
+}
+
 cAppliDigeo::cAppliDigeo
 ( 
    cResultSubstAndStdGetFile<cParamDigeo> aParam,
@@ -54,29 +116,44 @@ cAppliDigeo::cAppliDigeo
    bool                                   IsLastGCC
 
 ) :
-    cParamDigeo  (*(aParam.mObj)),
+    mParamDigeo  (NULL),
+    mICNM        (aParam.mICNM),/*
     mDC          (aParam.mDC),
-    mICNM        (aParam.mICNM),
     mMaster      (aMaterAppli),
     mModifGCC    (aModif),
     mLastGCC     (IsLastGCC),
     mFileGGC_H   (aMaterAppli ? aMaterAppli->mFileGGC_H : 0),
-    mFileGGC_Cpp (aMaterAppli ? aMaterAppli->mFileGGC_Cpp : 0),
+    mFileGGC_Cpp (aMaterAppli ? aMaterAppli->mFileGGC_Cpp : 0),*/
     mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
-    mSiftCarac   (cParamDigeo::SiftCarac().PtrVal()),
+    mDoIncrementalConvolution( true ),
+    mSiftCarac   (NULL),
     mNbSlowConvolutionsUsed_uint2(0),
-    mNbSlowConvolutionsUsed_real4(0),
-    mVerbose     ( Verbose().Val() )
+    mNbSlowConvolutionsUsed_real4(0)
 {
+	mParamDigeo = new cParamDigeo( *(aParam.mObj) );
+	mSiftCarac = Params().SiftCarac().PtrVal();
+	mVerbose = Params().Verbose().Val();
+	if ( Params().ConvolIncrem().IsInit() ) mDoIncrementalConvolution = Params().ConvolIncrem().Val();
+
    processImageName();
    processTestSection();
    InitConvolSpec();
 
-	if ( GenereCodeConvol().IsInit() ){
-		const cGenereCodeConvol &genereCodeConvol = GenereCodeConvol().Val();
+	if ( Params().GenereCodeConvol().IsInit() ){
+		const cGenereCodeConvol &genereCodeConvol = Params().GenereCodeConvol().Val();
 		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
 	}
 }
+
+cAppliDigeo::~cAppliDigeo()
+{
+	if ( mParamDigeo!=NULL ) delete mParamDigeo;
+	if ( mICNM!=NULL ) delete mICNM;
+}
+
+const cParamDigeo & cAppliDigeo::Params() const { return *mParamDigeo; }
+
+cParamDigeo & cAppliDigeo::Params() { return *mParamDigeo; }
 
 cSiftCarac * cAppliDigeo::SiftCarac()
 {
@@ -93,8 +170,8 @@ void cAppliDigeo::AllocImages()
 {
    for 
    (
-       std::list<cImageDigeo>::const_iterator itI=ImageDigeo().begin();
-       itI!=ImageDigeo().end();
+       std::list<cImageDigeo>::const_iterator itI=Params().ImageDigeo().begin();
+       itI!=Params().ImageDigeo().end();
        itI++
    )
    {
@@ -106,7 +183,7 @@ void cAppliDigeo::AllocImages()
             itS++
        )
        {
-           mVIms.push_back(new cImDigeo(mVIms.size(),*itI,*itS,*this));
+           mVIms.push_back(new cImDigeo(mVIms.size(),*itI,mICNM->Dir()+(*itS),*this));
        }
    }
 }
@@ -119,15 +196,14 @@ cImDigeo & cAppliDigeo::SingleImage()
 
 bool cAppliDigeo::MultiBloc() const
 {
-  return DigeoDecoupageCarac().IsInit();
+  return Params().DigeoDecoupageCarac().IsInit();
 }
 
 
 
 void cAppliDigeo::InitAllImage()
 {
-  if (! ComputeCarac())
-      return;
+	if ( !Params().ComputeCarac() ) return;
 
 	/*
   if (GenereCodeConvol().IsInit() && (mFileGGC_H ==0))
@@ -158,10 +234,10 @@ void cAppliDigeo::InitAllImage()
   Pt2di aSzGlob = aBox.sz();
   int    aBrd=0;
   int    aSzMax = aSzGlob.x + aSzGlob.y;
-  if (DigeoDecoupageCarac().IsInit())
+  if ( Params().DigeoDecoupageCarac().IsInit() )
   {
-     aBrd = DigeoDecoupageCarac().Val().Bord();
-     aSzMax = DigeoDecoupageCarac().Val().SzDalle();
+     aBrd = Params().DigeoDecoupageCarac().Val().Bord();
+     aSzMax = Params().DigeoDecoupageCarac().Val().SzDalle();
   }
 
   mDecoupInt = cDecoupageInterv2D (aBox,Pt2di(aSzMax,aSzMax),Box2di(aBrd));
@@ -240,11 +316,12 @@ void cAppliDigeo::DoAll()
         //   ACCESSEURS BASIQUES
 
 
-const std::string & cAppliDigeo::DC() const { return mDC; }
 
 cInterfChantierNameManipulateur * cAppliDigeo::ICNM() {return mICNM;}
 
-
+/*
+const std::string & cAppliDigeo::DC() const { return mDC; }
+* 
 FILE *  cAppliDigeo::FileGGC_H()
 {
    return mFileGGC_H;
@@ -255,11 +332,12 @@ FILE *  cAppliDigeo::FileGGC_Cpp()
    return mFileGGC_Cpp;
 }
 
-
 cModifGCC * cAppliDigeo::ModifGCC() const 
 { 
    return mModifGCC; 
 }
+*/
+
 
 string cAppliDigeo::imageFullname() const { return mImageFullname; }
 
@@ -273,14 +351,16 @@ bool cAppliDigeo::doSaveTiles() const { return mDoSaveGaussians; }
 
 int cAppliDigeo::currentBoxIndex() const { return mCurrentBoxIndex; }
 
+bool cAppliDigeo::doIncrementalConvolution() const { return mDoIncrementalConvolution; }
+
 void cAppliDigeo::processImageName()
 {
-   #ifdef __DEBUG_DIGEO
+	#ifdef __DEBUG_DIGEO
 		ELISE_ASSERT( ImageDigeo().size()==1, ( string("setImageFullname: only one file can be processed at a time (nb ImageDigeo = ")+ToString((int)ImageDigeo().size()) ).c_str() );
 	#endif
-   for ( std::list<cImageDigeo>::const_iterator itI=ImageDigeo().begin(); itI!=ImageDigeo().end(); itI++ ) 
-		mImageFullname = itI->KeyOrPat();
-	SplitDirAndFile( mImagePath, mImageBasename, mImageFullname );	
+	for ( std::list<cImageDigeo>::const_iterator itI=Params().ImageDigeo().begin(); itI!=Params().ImageDigeo().end(); itI++ ) 
+		mImageFullname = mICNM->Dir()+itI->KeyOrPat();
+	SplitDirAndFile( mImagePath, mImageBasename, mImageFullname );
 }
 
 string cAppliDigeo::outputTileBasename( int i_iTile ) const
@@ -309,7 +389,7 @@ void removeEndingSlash( string &i_str )
 
 void cAppliDigeo::processTestSection()
 {
-	const cSectionTest *mSectionTest = ( SectionTest().IsInit()?&SectionTest().Val():NULL );
+	const cSectionTest *mSectionTest = ( Params().SectionTest().IsInit()?&Params().SectionTest().Val():NULL );
 	mDoSaveGaussians = mDoSaveTiles = false;
 	if ( mSectionTest!=NULL && mSectionTest->DigeoTestOutput().IsInit() ){
 		const cDigeoTestOutput &testOutput = mSectionTest->DigeoTestOutput().Val();
