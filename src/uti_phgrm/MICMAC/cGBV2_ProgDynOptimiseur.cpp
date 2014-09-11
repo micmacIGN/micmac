@@ -1061,6 +1061,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     //mDataImRes[0][pTer.y][pTer.x] = zMax;
                     if(findZ)
                     {
+                       //////////////////////////////////////////////////
+                       /// TODO!!!! : costinit a defcor si minimum !!!!
+                       /////////////////////////////////////////////////
+
+
                        mDataImRes[0][pTer.y][pTer.x] = zMin;
                        //IGpuOpt._FinalDefCor[pTer] = 30000;
  //                   mDataImRes[0][pTer.y][pTer.x] = zCalMoy;
