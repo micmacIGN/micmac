@@ -32,13 +32,26 @@ struct p_ReadLine
     float  ZRegul;
     float  ZRegul_Quad;
 
-    __device__ p_ReadLine(ushort t,ushort ipente,float zReg,float zRegQuad):
+
+#ifdef CUDA_DEFCOR
+    const ushort costDefMask;
+    const ushort costTransDefMask;
+#endif
+
+    const ushort sizeBuffer;
+
+    __device__ p_ReadLine(ushort t,ushort ipente,float zReg,float zRegQuad,ushort pCostDefMask, ushort pCostTransDefMask,ushort pSizebuffer):
         Id_Buf(false),
         tid(t),
         itid(WARPSIZE - t - 1),
         pente(ipente),
         ZRegul(zReg),
-        ZRegul_Quad(zRegQuad)
+        ZRegul_Quad(zRegQuad),
+#ifdef CUDA_DEFCOR
+        costDefMask(pCostDefMask),
+        costTransDefMask(pCostTransDefMask),
+#endif
+        sizeBuffer(pSizebuffer)
     {
         line.id = 0;
         seg.id  = 1;
