@@ -219,7 +219,7 @@ class cMMTP
 {
     public :
       cMMTP(const Box2di & aBox,cAppliMICMAC &);
-      void  ConputeEnveloppe(const cComputeAndExportEnveloppe &);
+      void  ConputeEnveloppe(const cComputeAndExportEnveloppe &,const cXML_ParamNuage3DMaille & aCurNuage);
 /*
       bool IsInMasq3D(int anX,int anY,int aZ)
       {
@@ -268,6 +268,9 @@ class cMMTP
        Im2D_REAL4 ImOrtho(cGPU_LoadedImGeom *);
 
     private :
+        Tiff_Im FileEnv(const std::string & ,bool Bin); // Si pas  Bin int2
+        void DoOneEnv(Im2D_REAL4 anEnvRed,bool isMax,const cXML_ParamNuage3DMaille & aTargetNuage,const cXML_ParamNuage3DMaille & aCurNuage);
+
         cAppliMICMAC &    mAppli;
         Pt2di             mP0Tiep;
         Pt2di             mP1Tiep;
@@ -287,8 +290,30 @@ class cMMTP
         TIm2DBits<1>    mTImMasquageInput;   
         cMasqBin3D *       mMasq3D;
         cElNuage3DMaille * mNuage3D;
+        std::string mNameTargetEnv;
+        double mZoomTargetEnv;
+        Pt2di mSzTargetEnv;
 
+        int mDilatPlani;
+        int mDilatAlti;
+        Fonc_Num fChCo;
+        Fonc_Num fMasq;
+        Fonc_Num fMasqBin;
 };
+
+Tiff_Im  cMMTP::FileEnv(const std::string & aPost,bool Bin) // Si pas  Bin int2
+{
+   std::string aNameRes  = DirOfFile(mNameTargetEnv) + "Env_DeZoom" + ToString( mAppli.CurEtape()->DeZoomTer()) + "_" + aPost + ".tif";
+   return Tiff_Im
+          (
+               aNameRes.c_str(),
+               mSzTargetEnv,
+               Bin ? GenIm::bits1_msbf : GenIm::real4,
+               Tiff_Im::No_Compr,
+               Tiff_Im::BlackIsZero
+          );
+}
+
 
 Im2D_REAL4 cMMTP::ImOrtho(cGPU_LoadedImGeom * aGLI)
 {
@@ -341,36 +366,54 @@ cMMTP::cMMTP(const Box2di & aBox,cAppliMICMAC & anAppli) :
 
 extern Im2D_REAL4 ProlongByCont (Im2D_Bits<1> & aMasqRes, Im2D_Bits<1> aIMasq, Im2D_INT2 aInput, INT aNbProl,double aDistAdd,double DMaxAdd);
 
-double    pAramSizeProlResol1()        {return 50;}
-double    pAramSizeProlResolCur()      {return 5;}
-double pAramSsEchFiler()            {return 3.0;}
-int    pAramSzFilter()              {return 7;}
-double    pAramPropMaxMin()         {return 0.9;}
-double    pAramProlDistAdd()        {return 0.25;}
-double    pAramProlDistMaxAdd()     {return 5.0;}
-
-int pAramZoomFinal() {return 8;}
-
-
-
-void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe &)
+void cMMTP::DoOneEnv(Im2D_REAL4 anEnvRed,bool isMax,const cXML_ParamNuage3DMaille & aTargetNuage,const cXML_ParamNuage3DMaille & aCurNuage)
 {
-   std::string  aNameTarget = mAppli.WorkDir() + TheDIRMergTiepForEPI() + "-" +  mAppli.PDV1()->Name() + "/NuageImProf_LeChantier_Etape_1.xml";
+    const cImage_Profondeur & ipIn = aCurNuage.Image_Profondeur().Val();
+    const cImage_Profondeur & ipOut = aTargetNuage.Image_Profondeur().Val();
 
-  std::cout << aNameTarget << "\n"; getchar();
+    int aSign  = isMax ? 1 : - 1;
+    int aDefVal = -(aSign * 32000);
+
+    Symb_FNum sMasq  (fMasq);
+    Symb_FNum sMasqFin ( fMasqBin);
+    Fonc_Num aRes =   sMasqFin * (anEnvRed.in(aDefVal)[fChCo] / Max(sMasq,1e-5))  + (1-sMasqFin) * (aDefVal);
+    aRes = aRes + mDilatAlti * aSign;
+    aRes  =  isMax ? rect_max(aRes,mDilatPlani)  : rect_min(aRes,mDilatPlani);
+    aRes = aRes*  ipIn.ResolutionAlti() +ipIn.OrigineAlti();
+    aRes = (aRes-ipOut.OrigineAlti()) / ipOut.ResolutionAlti() ;
+
+    std::cout << "RSOLE IN -OUT "<< ipIn.ResolutionAlti() << " " << ipOut.ResolutionAlti() << "\n";
+
+    Tiff_Im  aFileRes = FileEnv(isMax?"Max":"Min",false);
+    ELISE_COPY(aFileRes.all_pts(),aRes * fMasqBin,aFileRes.out());
+}
 
 
-   int aZoomTer = mAppli.CurEtape()->DeZoomTer();
+void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXML_ParamNuage3DMaille & aCurNuage)
+{
+   mNameTargetEnv = mAppli.WorkDir() + TheDIRMergTiepForEPI() + "-" +  mAppli.PDV1()->Name() + "/NuageImProf_LeChantier_Etape_1.xml";
+
+   mNameTargetEnv = aCAEE.NuageExport().ValWithDef(mNameTargetEnv);
+   cXML_ParamNuage3DMaille aTargetNuage = StdGetFromSI(mNameTargetEnv,XML_ParamNuage3DMaille);
+   mZoomTargetEnv = aTargetNuage.SsResolRef().Val();
+   mSzTargetEnv =  aTargetNuage.NbPixel();
+   
+   double aZoomRel = mAppli.CurEtape()->DeZoomTer()/mZoomTargetEnv;
+
+   ELISE_ASSERT(mP0Tiep==Pt2di(0,0),"Too lazy to handle box maping");
+
+
    double aPasPx =  mAppli.CurEtape()->GeomTer().PasPxRel0();
 //=============== READ PARAMS  ====================
-   double  aStepSsEch = pAramSsEchFiler();
-   int     aSzFiltrer = pAramSzFilter();
-   double  aProp = pAramPropMaxMin();
+   double  aStepSsEch = aCAEE.SsEchFilter().Val();
+   int     aSzFiltrer = aCAEE.SzFilter().Val();
+   double  aProp = aCAEE.ParamPropFilter().Val();
 
-   int     aDistProl = round_up(  ElMax(pAramSizeProlResolCur(),pAramSizeProlResol1() /double (aZoomTer)) /aStepSsEch);
-   double  aDistCum =  (pAramProlDistMaxAdd()  / (aPasPx*  aZoomTer));
-   double aDistAdd =   (pAramProlDistAdd() * aStepSsEch )  / (aPasPx);
+   int     aDistProl = round_up(  ElMax(aCAEE.ProlResolCur().Val(),aCAEE.ProlResolCible().Val()/aZoomRel) /aStepSsEch);
+   double  aDistCum =  (aCAEE.ProlDistAddMax().Val()  / (aPasPx*  aZoomRel));
+   double aDistAdd =   (aCAEE.ProlDistAdd().Val()*aStepSsEch )  / (aPasPx);
 
+   std::cout << "DIST CUM " << aDistCum << " DADD " << aDistAdd << "\n";
 
 
 //===================================
@@ -456,6 +499,7 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe &)
     Im2D_Bits<1> aNewM(1,1);
     Im2D_REAL4  aNewMax = ProlongByCont (aNewM,aMasqRed,aPMaxRed._the_im,aDistProl,aDistAdd,aDistCum);
     Im2D_REAL4  aNewMin = ProlongByCont (aNewM,aMasqRed,aPMinRed._the_im,aDistProl,-aDistAdd,aDistCum);
+    ELISE_COPY(select(aNewM.all_pts(),!aNewM.in()),0,aNewMax.out()|aNewMin.out());
 
 /*
     std::cout <<  ":ConputeEnveloppe   IN " << aNbIn << " ;; Out " << aNbOut << " TimeF " << aChrono.uval() << "\n";
@@ -466,10 +510,44 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe &)
     Im2D_REAL4  aNewMax = ProlongByCont (aNewM,aMasqRed,aPMaxRed._the_im,20 );
 */
     // Tiff_Im::Create8BFromFonc("TDifProl.tif",aSzRed,mod(Iconv(aNewMin.in()-aNewMax.in()),256));
-    Tiff_Im::Create8BFromFonc("TDifProl.tif",aSzRed,Max(0,Min(255,Iconv(aNewMax.in()-aNewMin.in()))));
+//     Tiff_Im::Create8BFromFonc("TDifProl.tif",aSzRed,Max(0,Min(255,Iconv(aNewMax.in()-aNewMin.in()))));
+    fChCo = Virgule(FX,FY)/ (aStepSsEch * aZoomRel);
+    fMasq = aNewM.in(0)[fChCo];
+    fMasqBin = fMasq>0.5;
 
-    std::cout << " DCUM " << aDistCum << "\n";
-    std::cout << "DONE MASQ\n"; getchar();
+    Tiff_Im  aFileMasq = FileEnv("Masq",true);
+    ELISE_COPY(aFileMasq.all_pts(),fMasqBin,aFileMasq.out());
+
+    mDilatPlani = ElMax(aCAEE.DilatPlaniCible().Val(),round_up(aCAEE.DilatPlaniCur().Val()*aZoomRel));
+    mDilatAlti  = ElMax(aCAEE.DilatAltiCible ().Val(),round_up(aCAEE.DilatPlaniCur().Val()*aZoomRel));
+    
+    DoOneEnv(aNewMax,true ,aTargetNuage,aCurNuage);
+    DoOneEnv(aNewMin,false,aTargetNuage,aCurNuage);
+
+
+/*
+    Symb_FNum sMasq  (fMasq);
+    Symb_FNum sMasqFin ( fMasqBin);
+    Fonc_Num aFMax =   sMasqFin * (aNewMax.in(-32000)[fChCo] / Max(sMasq,1e-5))  + (1-sMasqFin) * (-32000);
+    aFMax =  rect_max(aFMax + mDilatAlti,mDilatPlani) * fMasqBin;
+    Tiff_Im  aFileMax = FileEnv("Max",false);
+    ELISE_COPY(aFileMax.all_pts(),aFMax,aFileMax.out());
+*/
+
+#ifdef ELISE_X11
+   if (TheWTiePCor)
+   {
+       TheWTiePCor->clik_in();
+       // ELISE_COPY(TheWTiePCor->all_pts(),255*fMasq,TheWTiePCor->ogray());
+       // ELISE_COPY(aNewMax.all_pts(),aNewMax.in(),TheWTiePCor->ocirc());
+       // ELISE_COPY(TheWTiePCor->all_pts(),aFMax,TheWTiePCor->ocirc());
+/*
+       ELISE_COPY(aNewMax.all_pts(),aNewMax.in(),TheWTiePCor->ocirc());
+       ELISE_COPY(aNewM.all_pts(),aNewM.in(),TheWTiePCor->odisc());
+*/
+       
+   }
+#endif
 }
              
 
@@ -897,7 +975,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    const cComputeAndExportEnveloppe * aCAEE = aMATP.ComputeAndExportEnveloppe().PtrVal();
    if (aCAEE)
    {
-       mMMTP->ConputeEnveloppe(*aCAEE);
+       mMMTP->ConputeEnveloppe(*aCAEE,aXmlN);
        if (aCAEE->EndAfter().Val()) return;
    }
 
@@ -960,6 +1038,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    ELISE_COPY(aIL.all_pts(),aF,aIL.out());
 
  
+#ifdef ELISE_X11
    if (TheWTiePCor)
    {
         ELISE_COPY
@@ -974,22 +1053,19 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
         ELISE_COPY(select(aIL.all_pts(),mMMTP->ImMasqFinal().in()),5,TheWTiePCor->odisc());
         // getchar();
    }
-
+#endif
 
    Im2D_INT2   anIpRes = mMMTP->ImProf();
 
    switch(aMATP.ImPaintResult().Val())
    {
         case eImpaintL2 :
-std::cout << "AAAAAAAAAAAAAAAa\n";
              anIpRes = ImpaintL2(mMMTP->ImMasqInit(),aIL,anIpRes,16);
         break;
         case eImpaintMNT :
-std::cout << "BBBBBBBB\n";
              ComplKLipsParLBas(mMMTP->ImMasqInit(),aIL,anIpRes,aMATP.ParamIPMnt().Val());
         break;
         default :
-std::cout << "CCCCCCC\n";
         break;
    }
 

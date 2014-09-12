@@ -38,6 +38,96 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+extern const std::string TheDIRMergTiepForEPI();
+
+
+class cAppli_Enveloppe_Main : public  cAppliWithSetImage
+{
+    public :
+       cAppli_Enveloppe_Main(int argc,char ** argv);
+       std::string NameFile(const std::string & aPost ,int aZoom)
+       {
+           std::string aStrZoom = (aZoom >=0) ? ("Env_DeZoom"+ToString(aZoom )) : "Fusion";
+           return  Dir() + TheDIRMergTiepForEPI() + "-" +   mNameIm + "/" + aStrZoom + "_" + aPost + ".tif";
+
+       }
+    private :
+      int mZoom0;
+      int mZoomEnd;
+      std::string mNameIm;
+};
+
+
+cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
+   cAppliWithSetImage(argc-1,argv+1,0),
+   mNameIm (mVSoms[0]->attr().mIma->mNameIm)
+{
+   ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
+   std::string Masq3D;
+   std::string aPat,anOri;
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aPat,"Full Directory (Dir+Pattern)",eSAM_IsPatFile)
+                    << EAMC(anOri,"Orientation ", eSAM_IsExistDirOri)
+                    << EAMC(mZoom0,"Zoom lowest resol ", eSAM_IsExistDirOri)
+                    << EAMC(mZoomEnd,"Zoom largest resol ", eSAM_IsExistDirOri),
+        LArgMain()  << EAM(Masq3D,"Masq3D",true,"Masq3D pour filtrer")
+   );
+
+   Im2D_REAL4 aEnvMax(1,1);
+   Im2D_REAL4 aEnvMin(1,1);
+   for (int aZoom = mZoom0 ; aZoom >= mZoomEnd ; aZoom /= 2)
+   {
+          std::string aCom =    MM3dBinFile("MMInitialModel ")
+                              + mEASF.mFullName + " "
+                              + Ori() 
+                              + std::string(" DoMatch=false  Do2Z=false   ExportEnv=true  Zoom=")
+                              +  ToString(aZoom);
+          if (EAMIsInit(&Masq3D)) aCom = aCom + " Masq3D=" + Masq3D;
+
+          System(aCom);
+          std::string aNameMax = NameFile("Max",aZoom);
+          std::string aNameMin = NameFile("Min",aZoom);
+
+          if (aZoom==mZoom0)
+          {
+              aEnvMax = Im2D_REAL4::FromFileStd(aNameMax);
+              aEnvMin = Im2D_REAL4::FromFileStd(aNameMin);
+          }
+          else
+          {
+               ELISE_COPY
+               (
+                  aEnvMax.all_pts(),
+                  Max(aEnvMax.in(),Tiff_Im(aNameMax.c_str()).in()),
+                  aEnvMax.out()
+               );
+               ELISE_COPY
+               (
+                  aEnvMin.all_pts(),
+                  Min(aEnvMin.in(),Tiff_Im(aNameMin.c_str()).in()),
+                  aEnvMin.out()
+               );
+          }
+   }
+   Tiff_Im::CreateFromIm(aEnvMax, NameFile("Max",-1));
+   Tiff_Im::CreateFromIm(aEnvMin, NameFile("Min",-1));
+
+
+}
+
+int MMEnveloppe_Main(int argc,char ** argv)
+{
+   cAppli_Enveloppe_Main(argc,argv);
+   return 1;
+}
+
+
+
+  //=========================================
+
 int MMInitialModel_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);

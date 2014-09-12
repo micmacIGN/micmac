@@ -225,6 +225,10 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                             </#WHEN>
                             <#WHEN  VTEST=${ExportEnv}>
                                 <ComputeAndExportEnveloppe>
+                                      <ProlResolCible>  25  </ProlResolCible>
+                                      <ProlResolCur> 10 </ProlResolCur>
+                                      <ProlDistAdd> 0.25</ProlDistAdd>
+                                      <ProlDistAddMax> 3.0 </ProlDistAddMax>
                                 </ComputeAndExportEnveloppe>
                             </#WHEN>
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>

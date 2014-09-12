@@ -341,6 +341,15 @@ Pour eviter les trous restants dans MMByP (par ex le boule de la fontaine dans e
    - grace a cette enveloppe; on peut lancer a assez haut resolution de MMByP ?
 
   
+=====================================================
+
+Colab ML :
+
+  * basic synergie du pipeline
+  * utiliser ML comme interface graphique (saisie masq3D, saisie graphe camera,remove camera ...)
+  * getting money together in europe presenting a global coherent pipeline
+  * using meshlab alignment tools
+  * correction radiometrique/ aspect visuel ; ombrage rasant ....
 
 
 
