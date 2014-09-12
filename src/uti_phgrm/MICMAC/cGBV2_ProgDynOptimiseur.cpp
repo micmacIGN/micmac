@@ -510,7 +510,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 
 #ifdef CUDA_DEFCOR
 
-                        IGpuOpt._FinalDefCor[ui2Ter] /= mNbDir;
+                    IGpuOpt._FinalDefCor[ui2Ter] /= mNbDir;
 #endif
 //            }
         }
@@ -844,7 +844,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 
 #ifdef SAVEPLY
-    bool deZoom = mEtape.EtapeMEC().DeZoom() == 32;
+    bool deZoom = mEtape.EtapeMEC().DeZoom() == 128;
     FILE * aFP = NULL;
     bool aBin= true;
     if(deZoom)
@@ -982,7 +982,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     int3 moy            = make_int3(0,0,0);
                     std::vector<int3>   ptsOk;
 
-                    while((!findZ || iteSpi < maxITSPI /*|| pond < 8*/ ) &&  (iteSpi < 512)  /*|| pond < 32*/)
+                    while((!findZ || iteSpi < maxITSPI /*|| pond < 8 */) &&  (iteSpi < 512) )
                     {
                         bool pair   = (iteSpi % 2) == 0;
                         int vec     = (float)iteSpi/2.f + 0.5f;
@@ -1056,21 +1056,22 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 //                    float zCaly = b1y*(float)pTer.y + b0y;
 
-//                    float zCalMoy = (zCaly + zCalx)/2.f;
+                    //                    float zCalMoy = (zCaly + zCalx)/2.f;
 
-                    //mDataImRes[0][pTer.y][pTer.x] = zMax;
+                    //
                     if(findZ)
                     {
-                       //////////////////////////////////////////////////
-                       /// TODO!!!! : costinit a defcor si minimum !!!!
-                       /////////////////////////////////////////////////
+                        //////////////////////////////////////////////////
+                        /// TODO!!!! : costinit a defcor si minimum !!!!
+                        /////////////////////////////////////////////////
+                        //mDataImRes[0][pTer.y][pTer.x] = zMax;
 
+                        mDataImRes[0][pTer.y][pTer.x] = zMin;
 
-                       mDataImRes[0][pTer.y][pTer.x] = zMin;
-                       //IGpuOpt._FinalDefCor[pTer] = 30000;
- //                   mDataImRes[0][pTer.y][pTer.x] = zCalMoy;
-                    //mDataImRes[0][pTer.y][pTer.x] = 0;
- //                       mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
+                        //IGpuOpt._FinalDefCor[pTer] = 30000;
+                        //mDataImRes[0][pTer.y][pTer.x] = zCalMoy;
+                        //mDataImRes[0][pTer.y][pTer.x] = 0;
+                        // mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
                     }
                     //IGpuOpt._FinalDefCor[pTer] = 0;
 
