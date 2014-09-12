@@ -184,6 +184,55 @@ int Nuage2Ply_main(int argc,char ** argv)
 }
 
 
+int PlySphere_main(int argc,char ** argv)
+{
+    Pt3dr aC; 
+    Pt3di aCoul(255,0,0); 
+    double aRay;
+    int aNbPts=5;
+    std::string Out="Sphere.ply";
+
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aC,"Center of sphere")
+                    << EAMC(aRay,"Ray of sphere"),
+        LArgMain()  << EAM(aNbPts,"NbPts",true,"Number of Pts / direc (Def=5, give 1000 points)")
+    );
+
+    std::vector<Pt3di> aVCol;
+    std::vector<Pt3dr> aVpt;
+    for (int anX=-aNbPts; anX<=aNbPts ; anX++)
+    {
+       for (int anY=-aNbPts; anY<=aNbPts ; anY++)
+       {
+          for (int aZ=-aNbPts; aZ<=aNbPts ; aZ++)
+          {
+               Pt3dr aP(anX,anY,aZ);
+               aP = aP * (aRay/aNbPts);
+               if (euclid(aP) <= aRay)
+               {
+                  aVpt.push_back(aC+aP);
+                  aVCol.push_back(aCoul);
+               }
+          }
+       }
+    }
+    std::list<std::string> aVCom;
+    std::vector<const cElNuage3DMaille *> aVNuage;
+    cElNuage3DMaille::PlyPutFile
+    (
+          Out,
+          aVCom,
+          aVNuage,
+          &aVpt,
+          &aVCol,
+          true
+    );
+
+    return 1;
+}
 
 
 

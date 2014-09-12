@@ -3664,6 +3664,12 @@ class cAppliMICMAC  : public   cParamMICMAC,
          cMakeMaskImNadir         * mMakeMaskImNadir;
 
          int     mMaxPrecision;
+ 
+     public :
+       // Pour debug MM TieP
+         cMasqBin3D *      mGLOBMasq3D;
+         cElNuage3DMaille* mGLOBNuage;
+
 };
 
 std::string  StdNameFromCple

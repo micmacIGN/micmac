@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+const std::string TheDIRMergTiepForEPI(){return  "Merge-TieP-ForEpi";}
 
 
 extern double DynCptrFusDepthMap;
@@ -89,6 +90,7 @@ class cAppliMMByPair : public cAppliWithSetImage
 
       void DoMDTGround();
       void DoMDTRIE();
+      void DoMDTRIE(bool TiePM0);
       void DoMDT();
 
       void DoCorrelAndBasculeStd();
@@ -129,7 +131,9 @@ class cAppliMMByPair : public cAppliWithSetImage
       double       mScalePlyFus;
       bool         mDoOMF;
       bool         mRIEInParal;  // Pour debuguer en l'inhibant,
-      bool         mDoRIE;      // Do Reech Inv Epip
+      bool         mRIE2Do;      // Do Reech Inv Epip
+      bool         mExeRIE;      // Do Reech Inv Epip
+      bool         mDoTiePM0;      // Do model initial wih MMTieP ..
       int          mTimes;
       bool         mDebugCreatE;
       std::string  mMasq3D;
@@ -931,7 +935,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mScalePlyFus  (-1),
     mDoOMF        (false),
     mRIEInParal   (false),
-    mDoRIE        (true),
+    mRIE2Do       (true),
+    mExeRIE       (true),
+    mDoTiePM0     (false),
     mTimes        (1),
     mDebugCreatE  (false)
 
@@ -949,7 +955,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         mHasVeget = true;
         mSkyBackGround = false;
         mDelaunay = true;
-        mDoRIE = false;
+        mRIE2Do = false;
      }
      else if (mType==eStatue)
      {
@@ -958,14 +964,15 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         mAddMMImSec = true;
         mHasVeget = false;
         mSkyBackGround = true;
-        mDoRIE = true;
+        mRIE2Do = true;
         mZoomF = 4;
+        mDoTiePM0 = true;
      }
      else if (mType==eTestIGN)
      {
         mStrQualOr = "High";
         mDelaunay = true;
-        mDoRIE = true;
+        mRIE2Do = true;
      }
   }
 
@@ -1010,10 +1017,12 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
 
   if (!MMVisualMode)
   {
+      mExeRIE = mRIE2Do;
+      
       if (EAMIsInit(&mMasterImages))
          mSetMasters =  mEASF.mICNM->KeyOrPatSelector(mMasterImages);
       if (! BoolFind(mDo,'R'))
-         mDoRIE = false;
+         mExeRIE = false;
 
       StdCorrecNameOrient(mOri,DirOfFile(mEASF.mFullName));
 
@@ -1193,7 +1202,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
      if (mType == eGround)
        aMatchCom = aMatchCom + " BascMTD=MTD-Nuage/NuageImProf_LeChantier_Etape_1.xml ";
 
-     if (  mDoRIE && mRIEInParal)
+     if (  mExeRIE && mRIEInParal)
      {
        aMatchCom = aMatchCom + " RIE=true ";
      }
@@ -1450,25 +1459,40 @@ void cAppliMMByPair::DoFusion()
 
 void cAppliMMByPair::DoMDT()
 {
-  if (mDoRIE)  DoMDTRIE();
+  if (mRIE2Do)  DoMDTRIE();
   if (mType==eGround)  DoMDTGround();
 }
 
-void cAppliMMByPair::DoMDTRIE()
+
+void cAppliMMByPair::DoMDTRIE(bool ForTieP)
 {
+std::cout << "DANS oMDTRIE " << ForTieP << "\n";
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
-        cImaMM & anIm = *((*anITS).attr().mIma);
-        std::string aCom =     MMBinFile("MICMAC")
-                            +  XML_MM_File("MM-GenMTDFusionImage.xml")
-                            +  std::string(" WorkDir=") + mEASF.mDir          + aBlank
-                            +  std::string(" +Ori=") + mOri + aBlank
-                            +  std::string(" +Zoom=")  + ToString(mZoomF)  + aBlank
-                            +  " +Im1=" +  anIm.mNameIm + aBlank
-                            +  " +PattVois=" +  PatternOfVois(*anITS,true)  + aBlank
-                       ;
-         System(aCom);
+            int aZoom = ForTieP ? mZoom0 : mZoomF;
+
+            cImaMM & anIm = *((*anITS).attr().mIma);
+            std::string aCom =     MMBinFile("MICMAC")
+                                +  XML_MM_File("MM-GenMTDFusionImage.xml")
+                                +  std::string(" WorkDir=") + mEASF.mDir          + aBlank
+                                +  std::string(" +Ori=") + mOri + aBlank
+                                +  std::string(" +Zoom=")  + ToString(aZoom)  + aBlank
+                                +  " +Im1=" +  anIm.mNameIm + aBlank
+                                +  " +PattVois=" +  PatternOfVois(*anITS,true)  + aBlank
+                           ;
+             if (ForTieP) aCom = aCom + " +PrefixDIR=" + TheDIRMergTiepForEPI();
+             System(aCom);
+std::cout << "CccccOmm " << aCom << "\n";
    }
+}
+void cAppliMMByPair::DoMDTRIE()
+{
+    DoMDTRIE(false);
+
+    if (mDoTiePM0) 
+    {
+       DoMDTRIE(true);
+    }
 }
 
 void cAppliMMByPair::DoMDTGround()
@@ -1542,6 +1566,7 @@ int cAppliMMByPair::Exe()
        {
           DoPyram();
        }
+
        if (BoolFind(mDo,'M') )
        {
           DoMDT();
@@ -1558,7 +1583,7 @@ int cAppliMMByPair::Exe()
           }
        }
 
-       if ( BoolFind(mDo,'R') &&  (!mDebugCreatE) &&  (!mRIEInParal) && mDoRIE)
+       if ( BoolFind(mDo,'R') &&  (!mDebugCreatE) &&  (!mRIEInParal) && mExeRIE)
        {
              DoReechantEpipInv();
        }

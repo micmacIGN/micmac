@@ -97,6 +97,8 @@ Pt2di TAB_9_NEIGH[9] =
           Pt2di( 0, 0) 
       };
 
+int  PdsGaussl9NEIGH[9] = { 2,1,2,1,2,1,2,1,4 };
+
 
 
 Pt2di TAB_8_NEIGH[16] =
