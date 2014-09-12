@@ -45,18 +45,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../saisieQT/include_QT/3DObject.h"
 
-class cMasqBin3D
-{
-     public :
-        virtual bool IsInMasq(const Pt3dr &) const = 0;
-        virtual ~cMasqBin3D();
-        static cMasqBin3D * FromSaisieMasq3d(const std::string & aName);
-
-        Im2D_Bits<1>  Mas2DPointInMasq3D(const cElNuage3DMaille &);
-
-     private :
-};
-
 
 bool IsModeGlobal(SELECTION_MODE aMode)
 {
@@ -137,6 +125,7 @@ class cMasq3DOrthoRaster : public cMasq3DPartiel
         }
         bool HasAnswer(const Pt3dr & aP) const
         {
+// std::cout << "HASSSss " << aP << " " << ToIm(aP) << "\n";
               return mTMasq.get(round_ni(ToIm(aP)),mValOut);
         }
 
@@ -312,6 +301,7 @@ bool cMasq3DEmpileMasqPart::IsInMasq(const Pt3dr & aP) const
 {
    for (int aK=0 ; aK<int(mVM.size()) ; aK++)
    {
+// std::cout << "EMPILEmmm " << mVM[aK]->HasAnswer(aP)  << " " << mVM[aK]->Additif() << "\n";
       if (mVM[aK]->HasAnswer(aP))
           return mVM[aK]->Additif();
    }
@@ -426,6 +416,12 @@ cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::strin
 
 void Test3dQT()
 {
+   Pt3dr aP(-2.15598,-2.57071,-8.58421);
+   cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d("/home/marc/TMP/EPI/EXO1-Fontaine/AperiCloud_All_selectionInfo.xml");
+
+   std::cout << "MASQ BIN " << aM3D->IsInMasq(aP) << "\n";
+
+/*
    std::string aDir = "/home/marc/TMP/EPI/Soldat-Temple-Hue/";
    std::string aIma = "IMGP7048.JPG";
    std::string aNameMasq3D  = aDir + "AperiCloud_CalPerIm_selectionInfo.xml";
@@ -455,6 +451,7 @@ void Test3dQT()
        aW->orgb()
    );
    getchar();
+*/
 }
 
 
@@ -494,6 +491,10 @@ Im2D_Bits<1>  cMasqBin3D::Mas2DPointInMasq3D(const cElNuage3DMaille & aNuage)
     return aRes;
 }
 
+cMasqBin3D  *cMasqBin3D::FromSaisieMasq3d(const std::string & aName)
+{
+   return cMasq3DEmpileMasqPart::FromSaisieMasq3d(aName);
+}
 
 int Masq3Dto2D_main(int argc,char ** argv)
 {
