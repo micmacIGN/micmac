@@ -349,6 +349,134 @@ Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1> aIMasq,Im2D_INT2 aImProf,
 
 
 
+extern int  PdsGaussl9NEIGH[9];
+
+template <class tNum,class tNBase>  Im2D_REAL4   TplProlongByCont
+                                           (
+                                                Im2D_Bits<1>  &aMasqResul,
+                                                Im2D_Bits<1> aIMasq,
+                                                Im2D<tNum,tNBase> aInput,
+                                                INT aNbProl,
+                                                double aDistAdd,
+                                                double aDistMaxAdd
+                                            )
+{
+    Pt2di aSz = aIMasq.sz();
+    ELISE_ASSERT(aSz==aInput.sz(),"Incohe sz in ProlongByCont");
+
+
+    TIm2D<REAL4,REAL8> aTRes(aSz);
+    Im2D_Bits<2> aMasqCalc(aSz.x,aSz.y);
+
+    ELISE_COPY(aIMasq.all_pts(),aIMasq.in(),aMasqCalc.out());
+    ELISE_COPY(aMasqCalc.border(1),2,aMasqCalc.out());
+    ELISE_COPY(aInput.all_pts(),aInput.in(),aTRes._the_im.out());
+
+    TIm2DBits<2> aTMC(aMasqCalc);
+
+    // Recupere la frontiere
+    std::vector<Pt2di>  aVCur;
+
+    {
+       Pt2di aP;
+       for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
+       {
+           for (aP.y=0 ; aP.y<aSz.y ; aP.y++)
+           {
+               if (aTMC.get(aP) == 0)
+               {
+                    bool Got = false;
+                    for (int aKV=0 ; aKV<4 ; aKV++)
+                    {
+                        if (aTMC.get(aP+TAB_4_NEIGH[aKV]) == 1)
+                           Got = true;
+                    }
+                    if (Got)
+                    {
+                       aVCur.push_back(aP);
+                    }
+               }
+           }
+       }
+    }
+
+    double aDCum = 0;
+    while ((aNbProl>0)  && (!aVCur.empty()))
+    {
+         // Calcul la moyenne
+         for (int aTime=0 ; aTime<5 ; aTime++)
+         {
+             std::vector<float> aVNewVals;
+             for (int aKP=0 ; aKP<int(aVCur.size()) ; aKP++)
+             {
+                 double aSom = 0;
+                 int    aNbV = 0;
+                 Pt2di aP = aVCur[aKP];
+                 for (int aKV=0 ; aKV<9 ; aKV++)
+                 {
+                     Pt2di aVois = aP+TAB_9_NEIGH[aKV];
+                     if (aTMC.get(aVois)==1)
+                     {
+                        int aPds = PdsGaussl9NEIGH[aKV];
+                        aSom +=  aTRes.get(aVois) * aPds;
+                        aNbV += aPds;
+                     }
+                 }
+                 ELISE_ASSERT(aNbV!=0,"Incoh vois in ProlongByCont");
+                 aVNewVals.push_back(aSom/aNbV);
+// if (Bug) std::cout << "P0  " << aP << " : " <<  aSom/aNbV << "\n\n";
+             }
+             for (int aKP=0 ; aKP<int(aVCur.size()) ; aKP++)
+             {
+                 Pt2di aP = aVCur[aKP];
+                 aTRes.oset(aP,aVNewVals[aKP]+aDistAdd);
+                 aTMC.oset(aP,1);  // apres la 1ere itere les dernier point sont inclus
+             }
+         }
+
+         // Prochaine frontiere
+         std::vector<Pt2di> aVNewGen;
+         for (int aKP=0 ; aKP<int(aVCur.size()) ; aKP++)
+         {
+              for (int aKV=0 ; aKV<4 ; aKV++)
+              {
+                  Pt2di aVois = aVCur[aKP] + TAB_4_NEIGH[aKV];
+                  if (aTMC.get(aVois) == 0)
+                  {
+                     aVNewGen.push_back(aVois);
+                     aTMC.oset(aVois,1);
+                  }
+              }
+         }
+         for (int aKP=0 ; aKP<int(aVNewGen.size()) ; aKP++)
+             aTMC.oset(aVNewGen[aKP],0);
+         aNbProl--;
+         aVCur = aVNewGen;
+         aDCum += ElAbs(aDistAdd);
+         if (aDCum> aDistMaxAdd) aDistAdd = 0;
+    }
+
+    aMasqResul =  Im2D_Bits<1>(aSz.x,aSz.y);
+    ELISE_COPY(aMasqResul.all_pts(),aMasqCalc.in()==1,aMasqResul.out());
+    ELISE_COPY(aMasqResul.border(1),0,aMasqResul.out());
+    return aTRes._the_im;
+}
+
+Im2D_REAL4 ProlongByCont
+     (
+          Im2D_Bits<1> & aMasqRes,
+          Im2D_Bits<1> aIMasq,
+          Im2D_INT2 aInput,
+          INT aNbProl,
+          double aDistAdd,
+          double aDistMaxAdd
+     )   
+{
+     return TplProlongByCont(aMasqRes,aIMasq,aInput,aNbProl,aDistAdd,aDistMaxAdd);
+}
+
+
+
 /*
 
 Im2D_REAL4 ReduceImageProf(Im2D_Bits<1>,Im2D_REAL4 aImProf, const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld)

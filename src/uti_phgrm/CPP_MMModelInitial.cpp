@@ -46,12 +46,14 @@ int MMInitialModel_main(int argc,char ** argv)
     std::string  AeroIn;
     std::string  ImSec;
     bool         Visu = false;
+    bool         ExportEnv = false;
     bool         DoPly = false;
     bool         DoMatch = true;
 
     int aZoom = 8;
     bool aDo2Z = true;
     double aReducePly=3.0;
+    std::string aMasq3D;
 
 
     ElInitArgMain
@@ -66,6 +68,8 @@ int MMInitialModel_main(int argc,char ** argv)
                     << EAM(aReducePly,"ReduceExp",true,"Down scaling of cloud , XML and ply (Def=3)")
                     << EAM(aDo2Z,"Do2Z",true,"Excute a first step at 2*Zoom (Def=true)", eSAM_IsBool)
                     << EAM(DoMatch,"DoMatch",true,"Do \"classical\" MicMac at end (Def=true)", eSAM_IsBool)
+                    << EAM(aMasq3D,"Masq3D",true,"3D masq when exist (Def=true)", eSAM_IsBool)
+                    << EAM(ExportEnv,"ExportEnv",true,"Export Max Min surfaces (Def=false)", eSAM_IsBool)
     );
 
     #if (ELISE_windows)
@@ -106,17 +110,22 @@ int MMInitialModel_main(int argc,char ** argv)
                               + " +DoMatch=" + ToString(DoMatch) + " "
                     ;
 
+          if (ExportEnv)
+              aCom = aCom + " +ExportEnv=true";
+
           if (Visu)
               aCom = aCom + " +Visu=" + ToString(Visu) + " ";
 
           if (EAMIsInit(&aZoom))
-             aCom = aCom + " +Zoom=" + ToString(aZoom);
+             aCom = aCom + " +Zoom=" + ToString(aZoom) + " ";
 
           if (EAMIsInit(&aDo2Z))
-             aCom = aCom + " +Do2Z=" + ToString(aDo2Z);
+             aCom = aCom + " +Do2Z=" + ToString(aDo2Z) + " ";
 
           if (EAMIsInit(&aReducePly))
-             aCom = aCom + " +ReduceExp=" + ToString(aReducePly);
+             aCom = aCom + " +ReduceExp=" + ToString(aReducePly) + " ";
+          if (EAMIsInit(&aMasq3D))
+             aCom = aCom + " +UseMasq3D=true +FileMasq3D=" + aMasq3D + " ";
           std::cout << "Com = " << aCom << "\n";
           aLCom.push_back(aCom);
   }

@@ -55,8 +55,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
     <Symb> SeuilMedCor=0.8  </Symb>
     <Symb> SeuilMCor=3.0  </Symb>
 
-</DicoLoc>
+    <Symb> UseMasq3D=false  </Symb>
+    <Symb> ExportEnv=false  </Symb>
+    <Symb> FileMasq3D=XXXX  </Symb>
 
+</DicoLoc>
 
 <Section_Terrain>  
       <IntervAltimetrie>
@@ -170,6 +173,9 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <TypeCAH>
                         <MasqueAutoByTieP>
+                            <#WHEN  VTEST=${UseMasq3D}>
+                                  <Masq3D> ${FileMasq3D}       </Masq3D>
+                            </#WHEN>
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
@@ -214,6 +220,13 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <TypeCAH>
                         <MasqueAutoByTieP>
+                            <#WHEN  VTEST=${UseMasq3D}>
+                                  <Masq3D> ${FileMasq3D}       </Masq3D>
+                            </#WHEN>
+                            <#WHEN  VTEST=${ExportEnv}>
+                                <ComputeAndExportEnveloppe>
+                                </ComputeAndExportEnveloppe>
+                            </#WHEN>
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>

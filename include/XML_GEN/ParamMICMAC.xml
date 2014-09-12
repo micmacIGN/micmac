@@ -995,9 +995,34 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         </Correl_NC_Robuste>
 
                         <MasqueAutoByTieP Nb="?" AccessorFils="false"> 
+                            <!-- Si true, s'arrete apres avoir rechecher les point qui correlent bien sans chercher a boucher les trous -->
+                            <ComputeAndExportEnveloppe Nb="?">
+
+                                   <EndAfter Nb="?" Type="bool" Def="true"> </EndAfter>
+                                   <NuageExport Nb="?" Type="std::string"> </NuageExport>
+                                   <SsEchFilter Type="double" Nb="?" Def="3.0"> </SsEchFilter>
+                                   <SzFilter    Type="int" Nb="?" Def="7"> </SzFilter>
+                                   <ParamPropFilter    Type="double" Nb="?" Def="0.9"> </ParamPropFilter>
+
+                                   <ProlResolCible Type="double" Nb="?" Def="100">   </ProlResolCible>
+                                   <ProlResolCur  Type="double" Nb="?" Def="10"> </ProlResolCur>
+                                   <ProlDistAdd Type="double" Nb="?" Def="0.25"> </ProlDistAdd>
+                                   <ProlDistAddMax Nb="?" Type="double" Def="5.0"> </ProlDistAddMax>
+
+                                   <DilatAltiCible Nb="?" Type="int" Def="5"> </DilatAltiCible>
+                                   <DilatPlaniCible Nb="?" Type="int" Def="5"> </DilatPlaniCible>
+                                   <DilatPlaniCur Nb="?" Type="int" Def="2"> </DilatPlaniCur>
+                                   <DilatAltiCur Nb="?" Type="int" Def="2"> </DilatAltiCur>
+                            </ComputeAndExportEnveloppe>
+
+                            <BasicOneIter Type="bool" Def="true" Nb="?"> </BasicOneIter>
+                            <Masq3D Nb="?" Type="std::string">        </Masq3D>
+                            <ParamFiltreRegProf RefType="ParamFiltreDetecRegulProf" Nb="?"  RefFile="SuperposImage.xml"> </ParamFiltreRegProf>
+
                             <GlobFilePt3D  Nb="?" Type="std::string"> </GlobFilePt3D>
                             <KeyImFilePt3D  Nb="1" Type="std::string"> </KeyImFilePt3D>
                             <DeltaZ Nb="1" Type="int"> </DeltaZ>
+<!-- Attention, ce sont distance Correl = (2-D) /2.0 , donc D>0.6 equiv correl < 0.7 -->
                             <SeuilSomCostCorrel Nb="1" Type="double"> </SeuilSomCostCorrel>
                             <SeuilMaxCostCorrel Nb="1" Type="double"> </SeuilMaxCostCorrel>
                             <SeuilMedCostCorrel Nb="1" Type="double"> </SeuilMedCostCorrel>

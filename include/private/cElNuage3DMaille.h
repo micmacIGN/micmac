@@ -749,6 +749,21 @@ Fonc_Num Pix2Pix(const cXML_ParamNuage3DMaille &Out,const cXML_ParamNuage3DMaill
 ;
 
 
+
+class cMasqBin3D
+{
+     public :
+        virtual bool IsInMasq(const Pt3dr &) const = 0;
+        virtual ~cMasqBin3D();
+        static cMasqBin3D * FromSaisieMasq3d(const std::string & aName);
+
+        Im2D_Bits<1>  Mas2DPointInMasq3D(const cElNuage3DMaille &);
+
+     private :
+};
+
+
+
 #endif // _ELISE_NUAGE_3D_MAILLE_
 
 

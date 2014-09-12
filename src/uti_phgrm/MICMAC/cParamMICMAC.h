@@ -2394,6 +2394,75 @@ void  BinaryUnDumpFromFile(cCorrel_NC_Robuste &,ELISE_fp &);
 
 std::string  Mangling( cCorrel_NC_Robuste *);
 
+class cComputeAndExportEnveloppe
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cComputeAndExportEnveloppe & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< bool > & EndAfter();
+        const cTplValGesInit< bool > & EndAfter()const ;
+
+        cTplValGesInit< std::string > & NuageExport();
+        const cTplValGesInit< std::string > & NuageExport()const ;
+
+        cTplValGesInit< double > & SsEchFilter();
+        const cTplValGesInit< double > & SsEchFilter()const ;
+
+        cTplValGesInit< int > & SzFilter();
+        const cTplValGesInit< int > & SzFilter()const ;
+
+        cTplValGesInit< double > & ParamPropFilter();
+        const cTplValGesInit< double > & ParamPropFilter()const ;
+
+        cTplValGesInit< double > & ProlResolCible();
+        const cTplValGesInit< double > & ProlResolCible()const ;
+
+        cTplValGesInit< double > & ProlResolCur();
+        const cTplValGesInit< double > & ProlResolCur()const ;
+
+        cTplValGesInit< double > & ProlDistAdd();
+        const cTplValGesInit< double > & ProlDistAdd()const ;
+
+        cTplValGesInit< double > & ProlDistAddMax();
+        const cTplValGesInit< double > & ProlDistAddMax()const ;
+
+        cTplValGesInit< int > & DilatAltiCible();
+        const cTplValGesInit< int > & DilatAltiCible()const ;
+
+        cTplValGesInit< int > & DilatPlaniCible();
+        const cTplValGesInit< int > & DilatPlaniCible()const ;
+
+        cTplValGesInit< int > & DilatPlaniCur();
+        const cTplValGesInit< int > & DilatPlaniCur()const ;
+
+        cTplValGesInit< int > & DilatAltiCur();
+        const cTplValGesInit< int > & DilatAltiCur()const ;
+    private:
+        cTplValGesInit< bool > mEndAfter;
+        cTplValGesInit< std::string > mNuageExport;
+        cTplValGesInit< double > mSsEchFilter;
+        cTplValGesInit< int > mSzFilter;
+        cTplValGesInit< double > mParamPropFilter;
+        cTplValGesInit< double > mProlResolCible;
+        cTplValGesInit< double > mProlResolCur;
+        cTplValGesInit< double > mProlDistAdd;
+        cTplValGesInit< double > mProlDistAddMax;
+        cTplValGesInit< int > mDilatAltiCible;
+        cTplValGesInit< int > mDilatPlaniCible;
+        cTplValGesInit< int > mDilatPlaniCur;
+        cTplValGesInit< int > mDilatAltiCur;
+};
+cElXMLTree * ToXMLTree(const cComputeAndExportEnveloppe &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cComputeAndExportEnveloppe &);
+
+void  BinaryUnDumpFromFile(cComputeAndExportEnveloppe &,ELISE_fp &);
+
+std::string  Mangling( cComputeAndExportEnveloppe *);
+
 class cTiePMasqIm
 {
     public:
@@ -2426,6 +2495,57 @@ class cMasqueAutoByTieP
 
         friend void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree);
 
+
+        cTplValGesInit< bool > & EndAfter();
+        const cTplValGesInit< bool > & EndAfter()const ;
+
+        cTplValGesInit< std::string > & NuageExport();
+        const cTplValGesInit< std::string > & NuageExport()const ;
+
+        cTplValGesInit< double > & SsEchFilter();
+        const cTplValGesInit< double > & SsEchFilter()const ;
+
+        cTplValGesInit< int > & SzFilter();
+        const cTplValGesInit< int > & SzFilter()const ;
+
+        cTplValGesInit< double > & ParamPropFilter();
+        const cTplValGesInit< double > & ParamPropFilter()const ;
+
+        cTplValGesInit< double > & ProlResolCible();
+        const cTplValGesInit< double > & ProlResolCible()const ;
+
+        cTplValGesInit< double > & ProlResolCur();
+        const cTplValGesInit< double > & ProlResolCur()const ;
+
+        cTplValGesInit< double > & ProlDistAdd();
+        const cTplValGesInit< double > & ProlDistAdd()const ;
+
+        cTplValGesInit< double > & ProlDistAddMax();
+        const cTplValGesInit< double > & ProlDistAddMax()const ;
+
+        cTplValGesInit< int > & DilatAltiCible();
+        const cTplValGesInit< int > & DilatAltiCible()const ;
+
+        cTplValGesInit< int > & DilatPlaniCible();
+        const cTplValGesInit< int > & DilatPlaniCible()const ;
+
+        cTplValGesInit< int > & DilatPlaniCur();
+        const cTplValGesInit< int > & DilatPlaniCur()const ;
+
+        cTplValGesInit< int > & DilatAltiCur();
+        const cTplValGesInit< int > & DilatAltiCur()const ;
+
+        cTplValGesInit< cComputeAndExportEnveloppe > & ComputeAndExportEnveloppe();
+        const cTplValGesInit< cComputeAndExportEnveloppe > & ComputeAndExportEnveloppe()const ;
+
+        cTplValGesInit< bool > & BasicOneIter();
+        const cTplValGesInit< bool > & BasicOneIter()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
+
+        cTplValGesInit< cParamFiltreDetecRegulProf > & ParamFiltreRegProf();
+        const cTplValGesInit< cParamFiltreDetecRegulProf > & ParamFiltreRegProf()const ;
 
         cTplValGesInit< std::string > & GlobFilePt3D();
         const cTplValGesInit< std::string > & GlobFilePt3D()const ;
@@ -2466,6 +2586,10 @@ class cMasqueAutoByTieP
         cTplValGesInit< bool > & DoImageLabel();
         const cTplValGesInit< bool > & DoImageLabel()const ;
     private:
+        cTplValGesInit< cComputeAndExportEnveloppe > mComputeAndExportEnveloppe;
+        cTplValGesInit< bool > mBasicOneIter;
+        cTplValGesInit< std::string > mMasq3D;
+        cTplValGesInit< cParamFiltreDetecRegulProf > mParamFiltreRegProf;
         cTplValGesInit< std::string > mGlobFilePt3D;
         std::string mKeyImFilePt3D;
         int mDeltaZ;
