@@ -374,20 +374,19 @@ void ReadLine_V02(
                 }
 
                 uint    fCostMin        = max_cost;
-                ushort  costInit        = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+                uint  costInit        = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
                 const ushort tZ         = z + p.stid<sens>();
                 const short  Z          = ((sens) ? tZ + indexZ.x : indexZ.y - tZ - 1);
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z - 1);
 
 #ifdef CUDA_DEFCOR
-                if(costInit < 20000)
+                if(costInit < 55000)
                 {
-
                     BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);
                 }
                 else
                 {                  
-                    costInit = 65500;
+                    costInit = 500000;
                     mask = true;
                     BasicComputeIntervaleDelta(ConeZ,Z,0,p.prev_Dz);
                     //GetConeZ(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
@@ -411,6 +410,8 @@ void ReadLine_V02(
                     //  ces cellules contaminent les voisines en mode DEFCOR....
                 if(!mask)
                     fCostMin = min(fCostMin, costInit + prevDefCor  + p.costTransDefMask );
+                else
+                    fCostMin = min(fCostMin, 20*costInit + prevDefCor  + p.costTransDefMask );
 #endif
 
                 if(tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < p.sizeBuffer && tZ < p.sizeBuffer)
