@@ -323,10 +323,7 @@ void ReadLine_V02(
                 short2     *S_Bf_Index,
                 ushort     *ST_Bf_ICost,
                 uint       *S_FCost[2],
-                p_ReadLine &p,
-                ushort costDefMask,
-                ushort costTransDefMask,
-                ushort sizeBuffer
+                p_ReadLine &p
 )
 {
 
@@ -344,9 +341,13 @@ void ReadLine_V02(
     // p.seg.id = 1 au premier passage, car simple copie des initcost
 
     #ifdef CUDA_DEFCOR
-    const ushort costTransDef = 20000;//costTransDefMask;//costTransDefMask;
-    const ushort defCorInit   = costDefMask;    
-    uint         prevDefCor   = costTransDef + defCorInit;
+    //////////////////////////////////////////////////
+    /// TODO!!!! : quel doit etre prevDefCor p.costTransDefMask + p.costDefMask ou p.costDefMask
+    /////////////////////////////////////////////////
+    uint         prevDefCor   =/* p.costTransDefMask + */p.costDefMask;
+    const ushort idGline = p.line.id + p.seg.id;
+
+    streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor);
     #endif
 
     uint         prevMinCost  = 0;
@@ -359,24 +360,21 @@ void ReadLine_V02(
             const ushort dZ     = count(indexZ); // creer buffer de count
             ushort       z      = 0;
             globMinFCost        = max_cost;
-            #ifdef CUDA_DEFCOR
+#ifdef CUDA_DEFCOR
             bool           mask = false;
-            #endif
-
+#endif
             while( z < dZ)
             {                
                 // Lecture du stream si le buffer est vide | TODO VERIFIER si > ou >=
-                if(p.ID_Bf_Icost >= sizeBuffer)
+                if(p.ID_Bf_Icost >= p.sizeBuffer)
                 {
                     streamICost.read<sens>(ST_Bf_ICost);    //  Lecture des couts correlations
                     streamFCost.incre<sens>();              //  Pointage sur la sortie
                     p.ID_Bf_Icost = 0;                      //  Pointage la première valeur du buffer des couts correlations
                 }
 
-                uint fCostMin           = max_cost;
-                ushort costInit   = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
-
-
+                uint    fCostMin        = max_cost;
+                ushort  costInit        = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
                 const ushort tZ         = z + p.stid<sens>();
                 const short  Z          = ((sens) ? tZ + indexZ.x : indexZ.y - tZ - 1);
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z - 1);
@@ -388,10 +386,10 @@ void ReadLine_V02(
                     BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);
                 }
                 else
-                {
-                    costInit = 65535;
+                {                  
+                    costInit = 65500;
                     mask = true;
-                    BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);
+                    BasicComputeIntervaleDelta(ConeZ,Z,0,p.prev_Dz);
                     //GetConeZ(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
                 }
 #else
@@ -399,7 +397,7 @@ void ReadLine_V02(
 #endif
                 uint* prevFCost = S_FCost[p.Id_Buf] + sgn(pitPrZ);
 
-                ConeZ.y = min(sizeBuffer - pitPrZ,ConeZ.y );
+                ConeZ.y = min(p.sizeBuffer - pitPrZ,ConeZ.y );
 
                 for (short i = ConeZ.x; i <= ConeZ.y; ++i)
                     fCostMin = min(fCostMin, costInit + prevFCost[i] + abs((int)i)*regulZ);
@@ -412,26 +410,17 @@ void ReadLine_V02(
                     // les cellules dont la valeur le coef de corrélation n'a pas été calculé -> 1.01234 --> 10123
                     //  ces cellules contaminent les voisines en mode DEFCOR....
                 if(!mask)
-                    fCostMin = min(fCostMin, costInit + prevDefCor  + costTransDef );
+                    fCostMin = min(fCostMin, costInit + prevDefCor  + p.costTransDefMask );
 #endif
 
-                if(tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < sizeBuffer && tZ < sizeBuffer)
-                {
-
-                    //const uint fcost =  fCostMin + (sens ? 0 : (streamFCost.GetValue(sgn(p.ID_Bf_Icost)) - costInit));
+                if(tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < p.sizeBuffer && tZ < p.sizeBuffer)
+                {                    
 
                     fCostMin                    -= prevMinCost;
                     minCost[p.tid]               = fCostMin;
                     S_FCost[!p.Id_Buf][sgn(tZ)]  = fCostMin;
 
-                    streamFCost.SetOrAddValue<sens>(sgn(p.ID_Bf_Icost),fCostMin,fCostMin - costInit);
-
-//                    if(sens)
-//                        streamFCost.SetValue(sgn(p.ID_Bf_Icost),fCostMin);
-//                    else
-//                        streamFCost.AddValue(sgn(p.ID_Bf_Icost),fCostMin - costInit);
-
-                    //streamFCost.SetValue(sgn(p.ID_Bf_Icost),costInit);
+                    streamFCost.SetOrAddValue<sens>(sgn(p.ID_Bf_Icost),fCostMin,fCostMin - costInit);                    
                 }
                 else
                     minCost[p.tid] = max_cost;
@@ -448,36 +437,21 @@ void ReadLine_V02(
 
                 const ushort pIdCost = p.ID_Bf_Icost;
                 p.ID_Bf_Icost       += min(dZ - z           , WARPSIZE);
-                z                   += min(sizeBuffer-pIdCost , WARPSIZE);
+                z                   += min(p.sizeBuffer-pIdCost , WARPSIZE);
 
             }
 
-
 #ifdef CUDA_DEFCOR
-//            uint defCor     = (prevDefCor <= prevMinCost) ? prevDefCor + defCorInit : prevMinCost + costTransDef + defCorInit;
 
-            uint defCor     = min(prevDefCor + defCorInit,prevMinCost + costTransDef + defCorInit);
-
-            //uint defCor     =  defCorInit + (prevDefCor == prevMinCost ? costTransDef : 0);
-            
-            defCor         -= prevMinCost;
-
-            prevMinCost     = min(globMinFCost,defCor);
-
-            prevDefCor      = defCor;
+            prevDefCor  = min(prevDefCor,prevMinCost + p.costTransDefMask )+ p.costDefMask - prevMinCost;
+            prevMinCost = min(globMinFCost,prevDefCor);
 
             if(p.tid == 0)
             {
                 const ushort idGline = p.line.id + p.seg.id;
 
-                if(sens)
-                    streamDefCor.SetValue(idGline,prevDefCor);
-                else
-                    streamDefCor.AddValue(p.line.lenght  - idGline,prevDefCor);
-//                if(sens)
-//                    streamDefCor.SetValue(idGline,prevDefCor == prevMinCost ? 1 : 0);
-//                else
-//                    streamDefCor.AddValue(p.line.lenght  - idGline,prevDefCor == prevMinCost ? 1 : 0);
+                streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor);
+
             }
 #else
             prevMinCost = globMinFCost;
@@ -523,7 +497,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, ui
     uint*     pit_Id       = (uint*)    &S_BuffIndex[WARPSIZE];
     uint*     pit_Stream   = pit_Id + 1;
 
-    p_ReadLine p(threadIdx.x,penteMax,zReg,zRegQuad);
+    p_ReadLine p(threadIdx.x,penteMax,zReg,zRegQuad,costDefMask,costTransDefMask,sizeBuffer);
 
     uint*    S_BuffFCost[2] = {S_BuffFCost0 + WARPSIZE,S_BuffFCost1 + WARPSIZE};
     ushort*  S_BuffICost    = S_BuffICost0 + WARPSIZE + p.tid;
@@ -560,7 +534,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, ui
         streamFCost.SetValue(i,S_BuffICost[i]);
     }
 
-    ReadLine_V02<eAVANT>(streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex,S_BuffICost,S_BuffFCost,p, costDefMask, costTransDefMask, sizeBuffer);
+    ReadLine_V02<eAVANT>(streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex,S_BuffICost,S_BuffFCost,p);
 
     streamIndex.ReverseIncre<eARRIERE>();
     streamFCost.incre<eAVANT>();
@@ -587,7 +561,7 @@ void Run_V02(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, ui
     for (ushort i = 0; i < sizeBuffer; i+=WARPSIZE)
         locFCost[-i] = S_BuffICost[-i];
 
-    ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p, costDefMask, costTransDefMask,sizeBuffer);
+    ReadLine_V02<eARRIERE>( streamIndex,streamFCost,streamICost,streamDefCor,S_BuffIndex + WARPSIZE - 1,S_BuffICost,S_BuffFCost,p);
 }
 
 extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O)

@@ -800,8 +800,8 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
    {
        mCostTransMaskNoMask = 20000;
        mCostDefMasked       = 8000;
+   }    
 
-   }
     //=================
     double aVPentes[theDimPxMax];
 
@@ -815,7 +815,6 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
     aVPentes[0] = aPenteMax;
     aVPentes[1] = 10;
-
 
     for (int aKP=0 ; aKP<mNbPx ; aKP++)
     {
@@ -845,7 +844,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 
 #ifdef SAVEPLY
-    bool deZoom = mEtape.EtapeMEC().DeZoom() == 128;
+    bool deZoom = mEtape.EtapeMEC().DeZoom() == 32;
     FILE * aFP = NULL;
     bool aBin= true;
     if(deZoom)
@@ -853,7 +852,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
         //printf("SAVEEEEEEEEEEEE PLY\n");
 
-        int random_file = 0;//rand()%100;
+        int random_file = rand()%100;
 
 
         //int Number = 123;       // number to be converted to a string
@@ -956,7 +955,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         //ushort defCor = mCostDefMasked;
         Rect zone(0,0,mSz.x,mSz.y);
         uint2   pTer;
-       uint    maxITSPI = 16;
+       uint    maxITSPI = 32;
 
         for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
         {
@@ -983,7 +982,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     int3 moy            = make_int3(0,0,0);
                     std::vector<int3>   ptsOk;
 
-                    while((!findZ || iteSpi < maxITSPI) &&  (iteSpi < 64)/*|| pond < 32*/)
+                    while((!findZ || iteSpi < maxITSPI /*|| pond < 8*/ ) &&  (iteSpi < 512)  /*|| pond < 32*/)
                     {
                         bool pair   = (iteSpi % 2) == 0;
                         int vec     = (float)iteSpi/2.f + 0.5f;
@@ -992,7 +991,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                                               
                         for (int i = 0; i < vec; ++i,curPT += tr)
                         {
-                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] > ((float)minCOR*3))
+                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] >= ((float)minCOR*3.0f))
                             {
                                 //if(mDataImRes[0][curPT.y][curPT.x] < mDataImRes[0][pTer.y][pTer.x])
                                 {
@@ -1062,10 +1061,16 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     //mDataImRes[0][pTer.y][pTer.x] = zMax;
                     if(findZ)
                     {
-                        mDataImRes[0][pTer.y][pTer.x] = zMin;
+                       //////////////////////////////////////////////////
+                       /// TODO!!!! : costinit a defcor si minimum !!!!
+                       /////////////////////////////////////////////////
+
+
+                       mDataImRes[0][pTer.y][pTer.x] = zMin;
+                       //IGpuOpt._FinalDefCor[pTer] = 30000;
  //                   mDataImRes[0][pTer.y][pTer.x] = zCalMoy;
                     //mDataImRes[0][pTer.y][pTer.x] = 0;
-                        //mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
+ //                       mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
                     }
                     //IGpuOpt._FinalDefCor[pTer] = 0;
 
