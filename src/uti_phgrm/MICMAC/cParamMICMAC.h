@@ -2496,6 +2496,9 @@ class cMasqueAutoByTieP
         friend void xml_init(cMasqueAutoByTieP & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< cParamFiltreDepthByPrgDyn > & FilterPrgDyn();
+        const cTplValGesInit< cParamFiltreDepthByPrgDyn > & FilterPrgDyn()const ;
+
         cTplValGesInit< bool > & EndAfter();
         const cTplValGesInit< bool > & EndAfter()const ;
 
@@ -2586,6 +2589,7 @@ class cMasqueAutoByTieP
         cTplValGesInit< bool > & DoImageLabel();
         const cTplValGesInit< bool > & DoImageLabel()const ;
     private:
+        cTplValGesInit< cParamFiltreDepthByPrgDyn > mFilterPrgDyn;
         cTplValGesInit< cComputeAndExportEnveloppe > mComputeAndExportEnveloppe;
         cTplValGesInit< bool > mBasicOneIter;
         cTplValGesInit< std::string > mMasq3D;

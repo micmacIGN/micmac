@@ -59,10 +59,13 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 
 
 cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
-   cAppliWithSetImage(argc-1,argv+1,0),
-   mNameIm (mVSoms[0]->attr().mIma->mNameIm)
+   cAppliWithSetImage(argc-1,argv+1,0)
 {
-   ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
+   if (!mModeHelp)
+   {
+       mNameIm = mVSoms[0]->attr().mIma->mNameIm;
+       ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
+   }
    std::string Masq3D;
    std::string aPat,anOri;
 

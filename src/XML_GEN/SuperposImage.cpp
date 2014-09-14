@@ -17931,6 +17931,172 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cParamFusionNuage *) {return "3ECDC482AA9973E0FD3F";};
 
 
+cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::CostNonAff()
+{
+   return mCostNonAff;
+}
+
+const cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::CostNonAff()const 
+{
+   return mCostNonAff;
+}
+
+
+cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::CostTrans()
+{
+   return mCostTrans;
+}
+
+const cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::CostTrans()const 
+{
+   return mCostTrans;
+}
+
+
+cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::CostRegul()
+{
+   return mCostRegul;
+}
+
+const cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::CostRegul()const 
+{
+   return mCostRegul;
+}
+
+
+double & cParamFiltreDepthByPrgDyn::StepZ()
+{
+   return mStepZ;
+}
+
+const double & cParamFiltreDepthByPrgDyn::StepZ()const 
+{
+   return mStepZ;
+}
+
+
+cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::DzMax()
+{
+   return mDzMax;
+}
+
+const cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::DzMax()const 
+{
+   return mDzMax;
+}
+
+
+cTplValGesInit< int > & cParamFiltreDepthByPrgDyn::NbDir()
+{
+   return mNbDir;
+}
+
+const cTplValGesInit< int > & cParamFiltreDepthByPrgDyn::NbDir()const 
+{
+   return mNbDir;
+}
+
+void  BinaryUnDumpFromFile(cParamFiltreDepthByPrgDyn & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CostNonAff().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CostNonAff().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CostNonAff().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CostTrans().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CostTrans().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CostTrans().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CostRegul().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CostRegul().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CostRegul().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.StepZ(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DzMax().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DzMax().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DzMax().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NbDir().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbDir().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbDir().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cParamFiltreDepthByPrgDyn & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.CostNonAff().IsInit());
+    if (anObj.CostNonAff().IsInit()) BinaryDumpInFile(aFp,anObj.CostNonAff().Val());
+    BinaryDumpInFile(aFp,anObj.CostTrans().IsInit());
+    if (anObj.CostTrans().IsInit()) BinaryDumpInFile(aFp,anObj.CostTrans().Val());
+    BinaryDumpInFile(aFp,anObj.CostRegul().IsInit());
+    if (anObj.CostRegul().IsInit()) BinaryDumpInFile(aFp,anObj.CostRegul().Val());
+    BinaryDumpInFile(aFp,anObj.StepZ());
+    BinaryDumpInFile(aFp,anObj.DzMax().IsInit());
+    if (anObj.DzMax().IsInit()) BinaryDumpInFile(aFp,anObj.DzMax().Val());
+    BinaryDumpInFile(aFp,anObj.NbDir().IsInit());
+    if (anObj.NbDir().IsInit()) BinaryDumpInFile(aFp,anObj.NbDir().Val());
+}
+
+cElXMLTree * ToXMLTree(const cParamFiltreDepthByPrgDyn & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamFiltreDepthByPrgDyn",eXMLBranche);
+   if (anObj.CostNonAff().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CostNonAff"),anObj.CostNonAff().Val())->ReTagThis("CostNonAff"));
+   if (anObj.CostTrans().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CostTrans"),anObj.CostTrans().Val())->ReTagThis("CostTrans"));
+   if (anObj.CostRegul().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CostRegul"),anObj.CostRegul().Val())->ReTagThis("CostRegul"));
+   aRes->AddFils(::ToXMLTree(std::string("StepZ"),anObj.StepZ())->ReTagThis("StepZ"));
+   if (anObj.DzMax().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DzMax"),anObj.DzMax().Val())->ReTagThis("DzMax"));
+   if (anObj.NbDir().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbDir"),anObj.NbDir().Val())->ReTagThis("NbDir"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cParamFiltreDepthByPrgDyn & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.CostNonAff(),aTree->Get("CostNonAff",1),double(0.5)); //tototo 
+
+   xml_init(anObj.CostTrans(),aTree->Get("CostTrans",1),double(10)); //tototo 
+
+   xml_init(anObj.CostRegul(),aTree->Get("CostRegul",1),double(0.3)); //tototo 
+
+   xml_init(anObj.StepZ(),aTree->Get("StepZ",1)); //tototo 
+
+   xml_init(anObj.DzMax(),aTree->Get("DzMax",1),double(10.0)); //tototo 
+
+   xml_init(anObj.NbDir(),aTree->Get("NbDir",1),int(9)); //tototo 
+}
+
+std::string  Mangling( cParamFiltreDepthByPrgDyn *) {return "61359054E88AC6A8FE3F";};
+
+
 double & cXmlAffinR2ToR::CoeffX()
 {
    return mCoeffX;

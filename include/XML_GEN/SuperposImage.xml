@@ -1178,6 +1178,17 @@
       </ImageVariations>
   </ParamFusionNuage>
 
+
+   <ParamFiltreDepthByPrgDyn Nb="1" Class="true" ToReference="true">
+        <CostNonAff Nb="?" Type="double" Def="0.5">   </CostNonAff>
+        <CostTrans Nb="?" Type="double" Def="10">     </CostTrans>
+        <CostRegul Nb="?" Type="double" Def="0.3">    </CostRegul>
+        <StepZ     Nb="1" Type="double">              </StepZ>
+        <DzMax     Nb="?" Type="double" Def="10.0">   </DzMax>
+        <NbDir     Nb="?" Type="int" Def="9">         </NbDir>
+   </ParamFiltreDepthByPrgDyn>
+
+
   <!-- Pourra servir pour construire des affinite, homographie ... -->
 
   <XmlAffinR2ToR  Nb="1" Class="true"  ToReference="true">

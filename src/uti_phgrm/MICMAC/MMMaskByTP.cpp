@@ -55,7 +55,7 @@ extern Im2D_Bits<1>  TestLabel(Im2D_INT2 aILabel,INT aLabelOut);
 
 static Video_Win *  TheWTiePCor = 0;
 static double       TheScaleW = 1.0;
-static Pt2di TheMaxSzW(1000,800);
+static Pt2di TheMaxSzW(1600,1200);
 
 void ShowPoint(Pt2dr aP,int aCoul,int aModeCoul,int aRab=0)
 {
@@ -215,17 +215,20 @@ class cHeap_CTP_Cmp
 
 cHeap_CTP_Cmp    TheCmpCTP;
 
+
 class cMMTP
 {
     public :
       cMMTP(const Box2di & aBox,cAppliMICMAC &);
       void  ConputeEnveloppe(const cComputeAndExportEnveloppe &,const cXML_ParamNuage3DMaille & aCurNuage);
-/*
-      bool IsInMasq3D(int anX,int anY,int aZ)
-      {
-            return mMasq3D->IsInMasq(IndexAndProfPixel2Euclid(Pt2dr(aXIm,aYIm),aZIm));
-      }
-*/
+      // Dequantifie et bouche, calcul les "petits"  trous et les bouches
+      void ContAndBoucheTrou();
+      void MaskProgDyn(const cParamFiltreDepthByPrgDyn & aParam);
+      void MaskRegulMaj(const cParamFiltreDetecRegulProf & aParam);
+      void FreeCel();
+
+      // Transform les rsultat du heap n tableua de prof et de masque
+      void  ExportResultInit();
       bool Inside(const int & anX,const int & anY,const int & aZ)
       {
          return     (anX>=mP0Tiep.x) 
@@ -257,15 +260,14 @@ class cMMTP
          return mHeapCTP.pop(aCPtr);
       }
       int NbInHeap() {return mHeapCTP.nb();}
-      void DoMasqAndProfInit(const cMasqueAutoByTieP & aMATP);
 
        Im2D_Bits<1> ImMasquageInput() {return   mImMasquageInput;}
-       Im2D_Bits<1> ImMasqFinal() {return mImMasqFinal;}
+       //Im2D_Bits<1> ImMasqFinal() {return mImMasqFinal;}
        Im2D_Bits<1> ImMasqInit() {return mImMasqInit;}
-       Im2D_INT2    ImProf() {return mImProf;}
-       bool InMasqFinal(const Pt2di & aP) const {return  (mTImMasqFinal.get(aP) == 1) ? true : false ;}
+       Im2D_Bits<1> ImMasqFinal() {return mImMasqFinal;}
+       Im2D_INT2    ImProfInit() {return mImProf;}
 
-       Im2D_REAL4 ImOrtho(cGPU_LoadedImGeom *);
+       Im2D_REAL4   ImProfFinal() {return  mContBT;}   // image dequant et trous bouches
 
     private :
         Tiff_Im FileEnv(const std::string & ,bool Bin); // Si pas  Bin int2
@@ -280,14 +282,21 @@ class cMMTP
 
         Im2D_INT2       mImProf;
         TIm2D<INT2,INT> mTImProf;
-        Im2D_Bits<1>    mImMasqInit;
+        Im2D_Bits<1>    mImMasqInit;   // Result de la propgation par "heap"
         TIm2DBits<1>    mTImMasqInit;   
-        Im2D_Bits<1>    mImMasqFinal;
+
+        Im2D_U_INT1        mImLabel;  // 0 => Rien, 1= > OK, 2=> trou bouche
+        TIm2D<U_INT1,INT>  mTLab;
+        Im2D_REAL4         mContBT;   // image dequant et trous bouches
+        TIm2D<REAL4,REAL>  mTCBT;
+
+        Im2D_Bits<1>    mImMasquageInput;   // eventuel masq de contrainte initial
+        TIm2DBits<1>    mTImMasquageInput;   
+
+
+        Im2D_Bits<1>    mImMasqFinal;   // resultat final si post filtrage
         TIm2DBits<1>    mTImMasqFinal;   
 
-
-        Im2D_Bits<1>    mImMasquageInput;
-        TIm2DBits<1>    mTImMasquageInput;   
         cMasqBin3D *       mMasq3D;
         cElNuage3DMaille * mNuage3D;
         std::string mNameTargetEnv;
@@ -315,25 +324,8 @@ Tiff_Im  cMMTP::FileEnv(const std::string & aPost,bool Bin) // Si pas  Bin int2
 }
 
 
-Im2D_REAL4 cMMTP::ImOrtho(cGPU_LoadedImGeom * aGLI)
-{
-   Im2D_REAL4 aIRes(mSzTiep.x,mSzTiep.y,0.0);
-   TIm2D<REAL4,REAL8> aTRes(aIRes);
-   Pt2di aP;
-   for (aP.x=mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
-   {
-       for (aP.y=mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
-       {
-           Pt2di aPIm = aP-mP0Tiep;
-           if (mTImMasqFinal.get(aPIm))
-           {
-               aTRes.oset(aPIm,aGLI->GetValOfDisc(aP.x,aP.y,mTImProf.get(aPIm)));
-           }
-       }
-   }
-
-   return aIRes;
-}
+/*
+*/
 
 cMMTP::cMMTP(const Box2di & aBox,cAppliMICMAC & anAppli) : 
    mAppli            (anAppli),
@@ -345,10 +337,14 @@ cMMTP::cMMTP(const Box2di & aBox,cAppliMICMAC & anAppli) :
    mTImProf          (mImProf),
    mImMasqInit       (mSzTiep.x,mSzTiep.y,1),
    mTImMasqInit      (mImMasqInit),
-   mImMasqFinal      (mSzTiep.x,mSzTiep.y),
-   mTImMasqFinal     (mImMasqFinal),
+   mImLabel          (mSzTiep.x,mSzTiep.y),
+   mTLab             (mImLabel),
+   mContBT           (mSzTiep.x,mSzTiep.y),
+   mTCBT             (mContBT),
    mImMasquageInput  (mSzTiep.x,mSzTiep.y,1),
    mTImMasquageInput (mImMasquageInput),
+   mImMasqFinal      (mSzTiep.x,mSzTiep.y,1),
+   mTImMasqFinal     (mImMasqFinal),
    mMasq3D           (0),
    mNuage3D          (0)
 {
@@ -363,6 +359,18 @@ cMMTP::cMMTP(const Box2di & aBox,cAppliMICMAC & anAppli) :
    }
 
 }
+
+void cMMTP::FreeCel()
+{
+   for (int anY = mP0Tiep.y ; anY<mP1Tiep.y ; anY++)
+   {
+       delete [] (mTabCTP[anY] + mP0Tiep.x);
+   }
+   delete mTabCTP;
+   mTabCTP = 0;
+}
+
+
 
 extern Im2D_REAL4 ProlongByCont (Im2D_Bits<1> & aMasqRes, Im2D_Bits<1> aIMasq, Im2D_INT2 aInput, INT aNbProl,double aDistAdd,double DMaxAdd);
 
@@ -388,9 +396,42 @@ void cMMTP::DoOneEnv(Im2D_REAL4 anEnvRed,bool isMax,const cXML_ParamNuage3DMaill
     ELISE_COPY(aFileRes.all_pts(),aRes * fMasqBin,aFileRes.out());
 }
 
+void  cMMTP::ExportResultInit()
+{
+   int aNbIn = 0;
+   int aNbOut = 0;
+   Pt2di aP;
+
+   for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
+   {
+        for (aP.x = mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
+        {
+            cCelTiep & aCel =  Cel(aP);
+            Pt2di aPIm = aP - mP0Tiep;
+            if (aCel.IsSet())
+            {
+                 int aZ = aCel.Pt().z;
+                 aNbIn++;
+                 if (mMasq3D && (! mMasq3D->IsInMasq(mNuage3D->IndexAndProfPixel2Euclid(Pt2dr(aPIm),aZ))))
+                 {
+                    aNbOut++;
+                 }
+                 mTImProf.oset(aPIm,aZ);
+                 mTImMasqInit.oset(aPIm,1);
+            }
+            else
+            {
+                mTImProf.oset(aPIm,0);
+                mTImMasqInit.oset(aPIm,0);
+            }
+        }
+    }
+}
+
 
 void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXML_ParamNuage3DMaille & aCurNuage)
 {
+
    mNameTargetEnv = mAppli.WorkDir() + TheDIRMergTiepForEPI() + "-" +  mAppli.PDV1()->Name() + "/NuageImProf_LeChantier_Etape_1.xml";
 
    mNameTargetEnv = aCAEE.NuageExport().ValWithDef(mNameTargetEnv);
@@ -418,37 +459,7 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
 
 //===================================
 
-   int aNbIn = 0;
-   int aNbOut = 0;
-   Pt2di aP;
-
-   for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
-   {
-        for (aP.x = mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
-        {
-            cCelTiep & aCel =  Cel(aP);
-            Pt2di aPIm = aP - mP0Tiep;
-            if (aCel.IsSet())
-            {
-                 int aZ = aCel.Pt().z;
-                 aNbIn++;
-                 if (! mMasq3D->IsInMasq(mNuage3D->IndexAndProfPixel2Euclid(Pt2dr(aPIm),aZ)))
-                 {
-                    aNbOut++;
-                 }
-                 mTImProf.oset(aPIm,aZ);
-                 mTImMasqInit.oset(aPIm,1);
-            }
-            else
-            {
-                mTImProf.oset(aPIm,0);
-                mTImMasqInit.oset(aPIm,0);
-            }
-        }
-    }
     ElTimer aChrono;
-
-
 
     int     aSeuilNbV = 2 * (1+2*aSzFiltrer); // Au moins une bande de 2 pixel pour inferer qqch
     Pt2di aSzRed = round_up(Pt2dr(mSzTiep)/aStepSsEch);
@@ -501,16 +512,6 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
     Im2D_REAL4  aNewMin = ProlongByCont (aNewM,aMasqRed,aPMinRed._the_im,aDistProl,-aDistAdd,aDistCum);
     ELISE_COPY(select(aNewM.all_pts(),!aNewM.in()),0,aNewMax.out()|aNewMin.out());
 
-/*
-    std::cout <<  ":ConputeEnveloppe   IN " << aNbIn << " ;; Out " << aNbOut << " TimeF " << aChrono.uval() << "\n";
-    
-    Tiff_Im::Create8BFromFonc("TMax.tif",aSzRed,mod(aPMaxRed._the_im.in(),256));
-    Tiff_Im::Create8BFromFonc("TMin.tif",aSzRed,mod(aPMinRed._the_im.in(),256));
-
-    Im2D_REAL4  aNewMax = ProlongByCont (aNewM,aMasqRed,aPMaxRed._the_im,20 );
-*/
-    // Tiff_Im::Create8BFromFonc("TDifProl.tif",aSzRed,mod(Iconv(aNewMin.in()-aNewMax.in()),256));
-//     Tiff_Im::Create8BFromFonc("TDifProl.tif",aSzRed,Max(0,Min(255,Iconv(aNewMax.in()-aNewMin.in()))));
     fChCo = Virgule(FX,FY)/ (aStepSsEch * aZoomRel);
     fMasq = aNewM.in(0)[fChCo];
     fMasqBin = fMasq>0.5;
@@ -525,113 +526,244 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
     DoOneEnv(aNewMin,false,aTargetNuage,aCurNuage);
 
 
-/*
-    Symb_FNum sMasq  (fMasq);
-    Symb_FNum sMasqFin ( fMasqBin);
-    Fonc_Num aFMax =   sMasqFin * (aNewMax.in(-32000)[fChCo] / Max(sMasq,1e-5))  + (1-sMasqFin) * (-32000);
-    aFMax =  rect_max(aFMax + mDilatAlti,mDilatPlani) * fMasqBin;
-    Tiff_Im  aFileMax = FileEnv("Max",false);
-    ELISE_COPY(aFileMax.all_pts(),aFMax,aFileMax.out());
-*/
 
 #ifdef ELISE_X11
    if (TheWTiePCor)
    {
        TheWTiePCor->clik_in();
-       // ELISE_COPY(TheWTiePCor->all_pts(),255*fMasq,TheWTiePCor->ogray());
-       // ELISE_COPY(aNewMax.all_pts(),aNewMax.in(),TheWTiePCor->ocirc());
-       // ELISE_COPY(TheWTiePCor->all_pts(),aFMax,TheWTiePCor->ocirc());
-/*
-       ELISE_COPY(aNewMax.all_pts(),aNewMax.in(),TheWTiePCor->ocirc());
-       ELISE_COPY(aNewM.all_pts(),aNewM.in(),TheWTiePCor->odisc());
-*/
-       
    }
 #endif
 }
              
 
-
-
-void cMMTP::DoMasqAndProfInit(const cMasqueAutoByTieP & aMATP)
+void cMMTP::ContAndBoucheTrou()
 {
-   Pt2di aP;
-   for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
-   {
-        for (aP.x = mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
-        {
-            cCelTiep & aCel =  Cel(aP);
-            Pt2di aPIm = aP - mP0Tiep;
-            mTImMasqInit.oset(aPIm,aCel.IsSet());
-            mTImProf.oset(aPIm,aCel.Pt().z);
-        }
-   }
+   // 1- Quelques fitre morpho de base, pour calculer les points eligibles au bouche-trou
+   int aLabelOut = 0;
+   int aLabelIn = 1;
+   int aLabelClose = 2;
+   int aLabelFront = 3;
+   int aDist32Close = 4;
+   ELISE_COPY(mImMasqInit.all_pts(),mImMasqInit.in(),mImLabel.out());
+   ELISE_COPY(mImLabel.border(2),aLabelOut,mImLabel.out());
 
+      // 1.1 calcul des point dans le fermeture
    ELISE_COPY
    (
-       mImMasqInit.all_pts(),
-       close_32(mImMasqInit.in(0),18),
-       mImMasqFinal.out()
+          select
+          (
+             mImLabel.all_pts(),
+             close_32(mImLabel.in(0),aDist32Close) && (mImLabel.in()==aLabelOut)
+          ),
+          aLabelClose,
+          mImLabel.out()
    );
+   ELISE_COPY(mImLabel.border(2),aLabelOut,mImLabel.out());
 
-   for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
-   {
-        for (aP.x = mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
-        {
-            Pt2di aPIm = aP - mP0Tiep;
-            if ((mTImMasqFinal.get(aPIm) && (!mTImMasqInit.get(aPIm))))
+
+      // 1.2 erosion de ces points
+   Neighbourhood V4 = Neighbourhood::v4();
+   Neighbourhood V8 = Neighbourhood::v8();
+   Neigh_Rel aRelV4(V4);
+
+   Liste_Pts_U_INT2 aLFront(2);
+   ELISE_COPY
+   (
+          select
+          (
+             mImLabel.all_pts(),
+             (mImLabel.in(0)==aLabelClose) &&  (aRelV4.red_max(mImLabel.in(0)==aLabelOut))
+          ),
+          aLabelFront,
+          mImLabel.out() | aLFront
+    );
+    for (int aK=0 ; aK<5 ; aK++)
+    {
+        Liste_Pts_U_INT2 aLNew(2);
+        ELISE_COPY
+        (
+               dilate
+               (
+                  aLFront.all_pts(),
+                  mImLabel.neigh_test_and_set(Neighbourhood::v4(),2,3,20)
+               ),
+               3,
+               aLNew
+         );
+         aLFront = aLNew;
+    }
+    ELISE_COPY(select(mImLabel.all_pts(),mImLabel.in()==3),0,mImLabel.out());
+
+    // Au cas ou on ferait un export premature
+    ELISE_COPY(mImMasqFinal.all_pts(),mImLabel.in()!=0,mImMasqFinal.out());
+
+   // 2- Dequantifiication, adaptee au image a trou
+
+       Im2D_REAL4 aProfCont(mSzTiep.x,mSzTiep.y);
+       {
+           Im2D_INT2 aPPV = BouchePPV(mImProf,mImLabel.in()==1);
+
+           ElImplemDequantifier aDeq(mSzTiep);
+           aDeq.DoDequantif(mSzTiep,aPPV.in());
+           ELISE_COPY(aProfCont.all_pts(),aDeq.ImDeqReelle(),aProfCont.out());
+
+           ELISE_COPY(select(aProfCont.all_pts(),mImLabel.in()!=1),0,aProfCont.out());
+       }
+
+       
+    //Im2D_REAL4 aImInterp(mSzTiep.x,mSzTiep.y);
+    TIm2D<REAL4,REAL8> aTInterp(mContBT);
+
+   // 3- Bouchage "fin" des trour par moinde L2
+          // 3.1 Valeur initial
+
+                 // Filtrage gaussien
+    Fonc_Num aFMasq = (mImLabel.in(0)==1);
+    Fonc_Num aFProf = (aProfCont.in(0) * aFMasq);
+    for (int aK=0 ; aK<3 ; aK++)
+    {
+          aFMasq = rect_som(aFMasq,1) /9.0;
+          aFProf = rect_som(aFProf,1) /9.0;
+    }
+
+    ELISE_COPY
+    (
+         mContBT.all_pts(),
+         aFProf / Max(aFMasq,1e-9),
+         mContBT.out()
+    );
+                 // On remet la valeur init au point ayant un valeur propre
+    ELISE_COPY
+    (
+         select(mContBT.all_pts(),mImLabel.in()==1),
+         aProfCont.in(),
+         mContBT.out()
+    );
+  
+  
+       // 3.2 Iteration pour regulariser les points interpoles
+    {
+         std::vector<Pt2di> aVInterp;
+         {
+            Pt2di aP;
+            for (aP.x=0 ; aP.x<mSzTiep.x ; aP.x++)
             {
-                cCelTiep & aCel =  Cel(aP);
-                aCel.InitCel();
+                for (aP.y=0 ; aP.y<mSzTiep.y ; aP.y++)
+                {
+                   if (mTLab.get(aP)==aLabelClose)
+                     aVInterp.push_back(aP);
+                }
             }
-        }
-   }
+         }
 
-   if (1)
-      ShowMasq(mImMasqFinal);
+         for (int aKIter=0 ; aKIter<20 ; aKIter++)
+         {
+              std::vector<double> aVVals;
+              for (int aKP=0 ; aKP<int(aVInterp.size()) ; aKP++)
+              {
+                   double aSom=0;
+                   double aSomPds = 0;
+                   Pt2di aPK = aVInterp[aKP];
+                   for (int aKV=0 ; aKV<9 ; aKV++)
+                   {
+                         Pt2di aVois = aPK+TAB_9_NEIGH[aKV];
+                         if (mTLab.get(aVois)!=0)
+                         {
+                             int aPds = PdsGaussl9NEIGH[aKV];
+                             aSom +=  aTInterp.get(aVois) * aPds;
+                             aSomPds += aPds;
+                         }
+                   }
+                   ELISE_ASSERT(aSomPds!=0,"Assert P!=0");
+                   aVVals.push_back(aSom/aSomPds);
+              }
+              for (int aKP=0 ; aKP<int(aVInterp.size()) ; aKP++)
+              {
+                 aTInterp.oset(aVInterp[aKP],aVVals[aKP]);
+              }
+         }
+    }
+    
+/*
+*/
 
-   Liste_Pts_INT4 aL(2);
-   ELISE_COPY
-   (
-       select
-       (
-             mImMasqInit.all_pts(),
-             mImMasqInit.in() & (!erod_d4(mImMasqInit.in(0),1))
-       ),
-       P8COL::red,
-       Output(aL) 
-   );
-   Im2D_INT4 anIP = aL.image();
-   int aNbP  = anIP.tx();
-   int * aTX =  anIP.data()[0];
-   int * aTY =  anIP.data()[1];
+#ifdef ELISE_X11
+           if(1 && TheWTiePCor)
+           {
 
-   std::cout << "NNbbbb  " << aL.card()  << " " << anIP.tx() << "\n";
-
-   for (int aKP=0 ; aKP<aNbP; aKP++)
-   {
-      int aXIm = aTX[aKP];
-      int aYIm = aTY[aKP];
-      int aZIm = mTImProf.get(Pt2di(aXIm,aYIm));
-
-      mAppli.MakeDerivAllGLI(aXIm,aYIm,aZIm);
-      cCelTiep & aCel =  Cel(aXIm,aYIm);
-      MajOrAdd(aCel);
-   }
-   mAppli.OneIterFinaleMATP(aMATP,true);
-
-   for (aP.y = mP0Tiep.y ; aP.y<mP1Tiep.y ; aP.y++)
-   {
-        for (aP.x = mP0Tiep.x ; aP.x<mP1Tiep.x ; aP.x++)
-        {
-            cCelTiep & aCel =  Cel(aP);
-            Pt2di aPIm = aP - mP0Tiep;
-            mTImProf.oset(aPIm,aCel.Pt().z);
-        }
-   }
-
-
+              ELISE_COPY
+              (
+                   mImLabel.all_pts(),
+                   mContBT.in()*7,
+                   TheWTiePCor->ocirc()
+              );
+              ELISE_COPY
+              (
+                  mImLabel.all_pts(),
+                  nflag_close_sym(flag_front4(mImLabel.in(0)==1)),
+                  TheWTiePCor->out_graph(Line_St(TheWTiePCor->pdisc()(P8COL::black)))
+              );
+              // TheWTiePCor->clik_in();
+           }
+#endif
 }
+
+void cMMTP::MaskRegulMaj(const cParamFiltreDetecRegulProf & aParam)
+{
+   double aPasPx =  mAppli.CurEtape()->GeomTer().PasPxRel0();
+   Im2D_REAL4 anIm(mSzTiep.x,mSzTiep.y);
+   ELISE_COPY(anIm.all_pts(),mImProf.in()*aPasPx,anIm.out());
+    
+   Im2D_Bits<1>   aNewMasq = FiltreDetecRegulProf(anIm,mImMasqInit,aParam);
+
+#ifdef ELISE_X11
+    if(TheWTiePCor)
+    {
+           std::cout << "SHOW FiltreDetecRegulProf\n";
+           ELISE_COPY(mImLabel.all_pts(),mImMasqInit.in(),TheWTiePCor->odisc());
+           ELISE_COPY
+           (
+                 select(mImLabel.all_pts(),aNewMasq.in()),
+                 P8COL::green,
+                 TheWTiePCor->odisc()
+           );
+           TheWTiePCor->clik_in();
+    }
+#endif
+   mImMasqInit = aNewMasq;
+}
+
+
+void cMMTP::MaskProgDyn(const cParamFiltreDepthByPrgDyn & aParam)
+{
+    std::cout << "BEGIN MASK PRGD\n";
+    mImMasqFinal = FiltrageDepthByProgDyn(mContBT,mImLabel,aParam);
+    std::cout << "END MASK PRGD\n";
+    
+#ifdef ELISE_X11
+    if(TheWTiePCor)
+    {
+           ELISE_COPY(mImLabel.all_pts(),mImLabel.in(),TheWTiePCor->odisc());
+           ELISE_COPY
+           (
+                 select(mImLabel.all_pts(),mImMasqFinal.in() && (mImLabel.in()==1)),
+                 P8COL::green,
+                 TheWTiePCor->odisc()
+           );
+           ELISE_COPY
+           (
+                 select(mImLabel.all_pts(),mImMasqFinal.in() && (mImLabel.in()==2)),
+                 P8COL::blue,
+                 TheWTiePCor->odisc()
+           );
+           TheWTiePCor->clik_in();
+    }
+#endif
+}
+
+
+
+
 
 class cResCorTP
 {
@@ -758,20 +890,10 @@ void cAppliMICMAC::CTPAddCell(const cMasqueAutoByTieP & aMATP,int anX,int anY,in
 
     aCptR[0] ++;
 
-bool Pb = false && ((anX==247) && (anY==259)) ;// || ((anX==374) && (anY==234));
-if (Pb)
-{
-    std::cout << "Pb " << mMMTP->Inside(anX,anY,aZ) 
-              << " Masq "<< mGLOBMasq3D->IsInMasq(mGLOBNuage->IndexAndProfPixel2Euclid(Pt2dr(anX,anY),aZ))
-              << " Pt " << mGLOBNuage->IndexAndProfPixel2Euclid(Pt2dr(anX,anY),aZ)
-              << "\n";
-}
    if (!mMMTP->Inside(anX,anY,aZ))
      return;
    aCptR[1] ++;
 
-   if (Final && (! mMMTP->InMasqFinal(Pt2di(anX,anY))))
-      return;
    aCptR[2] ++;
 
    cCelTiep & aCel =  mMMTP->Cel(anX,anY);
@@ -792,7 +914,6 @@ if (Pb)
             || (aCost.CMax() > aMATP.SeuilMaxCostCorrel()) 
             || (aCost.CMed() > aMATP.SeuilMedCostCorrel()) 
          )
-         && (! Final)
       )
    {
       return ;
@@ -817,6 +938,8 @@ if (Pb)
   }
 #endif
 }
+
+
 
 /********************************************************************/
 /********************************************************************/
@@ -894,7 +1017,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    if (aMATP.Visu().Val())
    {
        Pt2dr aSzW = Pt2dr(aBox.sz());
-       TheScaleW = ElMin(1.0,ElMin(TheMaxSzW.x/aSzW.x,TheMaxSzW.y/aSzW.y));
+       TheScaleW = ElMin(1000.0,ElMin(TheMaxSzW.x/aSzW.x,TheMaxSzW.y/aSzW.y));  // Pour l'instant on accepts Zoom>1 , donc => 1000
 
        // TheScaleW = 0.635;
        aSzW = aSzW * TheScaleW;
@@ -946,6 +1069,13 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
    {
        cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
+       if (aMasq3D)
+       {
+           mMMTP->SetMasq3D(aMasq3D,aNuage);
+           mGLOBMasq3D = aMasq3D;
+           mGLOBNuage = aNuage;
+       }
+
        for (int aK=0 ; aK<int(mTP3d->size()) ; aK++)
        {
            Pt3dr aPE = (*mTP3d)[aK];
@@ -961,17 +1091,13 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
 
            ShowPoint(Pt2dr(aXIm,aYIm),P8COL::red,0);
        }
-       if (aMasq3D)
-       {
-           mMMTP->SetMasq3D(aMasq3D,aNuage);
-           mGLOBMasq3D = aMasq3D;
-           mGLOBNuage = aNuage;
-       }
    }
 
 
 
    OneIterFinaleMATP(aMATP,false);
+   mMMTP->ExportResultInit();
+   mMMTP->FreeCel();
    const cComputeAndExportEnveloppe * aCAEE = aMATP.ComputeAndExportEnveloppe().PtrVal();
    if (aCAEE)
    {
@@ -980,140 +1106,32 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    }
 
 
-   // std::cout << "TIME CorTP " << aChrono.uval() << "\n";
-   std::cout << " XML " << aXmlN.Image_Profondeur().Val().Image() << "\n";
+   if (aMATP.ParamFiltreRegProf().IsInit())
+      mMMTP->MaskRegulMaj(aMATP.ParamFiltreRegProf().Val());
 
-   mMMTP->DoMasqAndProfInit(aMATP);
+   mMMTP->ContAndBoucheTrou();
 
-/*
-{
-    Im2D_INT2 anIm = anIpRes;
-    Pt2di aSz = anIm.sz();
-    Pt2di aP;
-    int aNbIn = 0;
-    int aNbOut = 0;
-    for (aP.x=0 ; aP.x <aSz.x ; aP.x++)
-    {
-        for (aP.y=0 ; aP.y <aSz.y ; aP.y++)
-        {
-            INT aZ= anIm.GetI(aP);
-            if (aTIL.get(aP))
-            {
-               aNbIn++;
-               if (! mGLOBMasq3D->IsInMasq(mGLOBNuage->IndexAndProfPixel2Euclid(Pt2dr(aP),aZ)))
-               {
-                  aNbOut++;
-                  //std::cout << "OUUTttt CCCCC " << aP << "\n";
-               }
-            }
-        }
-    }
-    std::cout <<  "FINN IN " << aNbIn << " ;; Out " << aNbOut << "\n";
-}
-*/
-
-
-   if (aMATP.DoImageLabel().Val())
-   {
-        Tiff_Im::Create8BFromFonc
-        (
-             FullDirMEC() + "LabelTieP_Num_" + ToString(mCurEtape->Num()) + ".tif",
-             mMMTP->ImProf().sz(),
-             mMMTP->ImProf().in()%256
-        );
-   }
-
-   Im2D_Bits<1>  aIL =  TestLabel(mMMTP->ImProf(),cCelTiep::TheNoZ);
-   TIm2DBits<1>  aTIL(aIL);
-
-   // Filtrage final
-   Fonc_Num aF = aIL.in(0);
-   int aSzM =2 ;
-   for (int aK=0 ; aK<3 ;aK++)
-       aF = rect_som(aF,aSzM) / ElSquare(1.0+2*aSzM);
-   aF = aF>0.5;
-
-   aF =  close_32(aF,18);
-
-   ELISE_COPY(aIL.all_pts(),aF,aIL.out());
-
- 
-#ifdef ELISE_X11
-   if (TheWTiePCor)
-   {
-        ELISE_COPY
-        (
-              aIL.all_pts(),
-              Virgule(aIL.in(),mMMTP->ImMasqInit().in(),0)*255,
-              TheWTiePCor->orgb()
-        );
-
-        std::cout << "DONE MASQ !! \n";
-        // getchar();
-        ELISE_COPY(select(aIL.all_pts(),mMMTP->ImMasqFinal().in()),5,TheWTiePCor->odisc());
-        // getchar();
-   }
-#endif
-
-   Im2D_INT2   anIpRes = mMMTP->ImProf();
-
-   switch(aMATP.ImPaintResult().Val())
-   {
-        case eImpaintL2 :
-             anIpRes = ImpaintL2(mMMTP->ImMasqInit(),aIL,anIpRes,16);
-        break;
-        case eImpaintMNT :
-             ComplKLipsParLBas(mMMTP->ImMasqInit(),aIL,anIpRes,aMATP.ParamIPMnt().Val());
-        break;
-        default :
-        break;
-   }
+   if (aMATP.FilterPrgDyn().IsInit())
+      mMMTP->MaskProgDyn(aMATP.FilterPrgDyn().Val());
 
 
 
-{
-    Im2D_INT2 anIm = anIpRes;
-    Pt2di aSz = anIm.sz();
-    Pt2di aP;
-    int aNbIn = 0;
-    int aNbOut = 0;
-    for (aP.x=0 ; aP.x <aSz.x ; aP.x++)
-    {
-        for (aP.y=0 ; aP.y <aSz.y ; aP.y++)
-        {
-            INT aZ= anIm.GetI(aP);
-            if (aTIL.get(aP))
-            {
-               aNbIn++;
-               if (! mGLOBMasq3D->IsInMasq(mGLOBNuage->IndexAndProfPixel2Euclid(Pt2dr(aP),aZ)))
-               {
-                  aNbOut++;
-                  //std::cout << "OUUTttt CCCCC " << aP << "\n";
-               }
-            }
-        }
-    }
-    std::cout <<  "FINN IN " << aNbIn << " ;; Out " << aNbOut << "\n";
-}
+   // A CONSERVER , SAUV FINAL ...:
 
-
-//  ==================  SAUVEGARDE DES DONNEES POU FAITE UN NUAGE ====================
-
-   // std::string aNameMasq = FullDirMEC() +aXmlN.Image_Profondeur().Val().Masq();
    std::string aNameMasq =  NameImageMasqOfResol(mCurEtape->DeZoomTer());
-   ELISE_COPY(aIL.all_pts(), aIL.in(), Tiff_Im(aNameMasq.c_str()).out());
 
+   Im2D_Bits<1> aImMasq0 = mMMTP->ImMasqFinal();
+   ELISE_COPY(aImMasq0.all_pts(), aImMasq0.in(), Tiff_Im(aNameMasq.c_str()).out());
    
    std::string aNameImage = FullDirMEC() +aXmlN.Image_Profondeur().Val().Image();
-   ELISE_COPY(select(anIpRes.all_pts(),anIpRes.in()==cCelTiep::TheNoZ),0,anIpRes.out());
-   ELISE_COPY ( anIpRes.all_pts(), anIpRes.in(), Tiff_Im(aNameImage.c_str()).out());
+   // Pour forcer le resultat flotant 
+   Tiff_Im::CreateFromIm(mMMTP->ImProfFinal(),aNameImage.c_str());
+/*
+   ELISE_COPY(aImProf.all_pts(), aImProf.in(), Tiff_Im(aNameImage.c_str()).out());
 
-{
-   int aVMax,aVMin;
-   ELISE_COPY ( anIpRes.all_pts(), anIpRes.in(), VMax(aVMax)|VMin(aVMin));
-   std::cout << "MaxMin " << aVMax << " :: " << aVMin << "\n";
-}
-   //cElNuage3DMaille * aNuage = ;
+       Im2D_REAL4   ImProfFinal() {return  mContBT;}   // image dequant et trous bouches
+*/
+
 
 }
 

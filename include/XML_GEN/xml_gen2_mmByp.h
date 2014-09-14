@@ -195,6 +195,7 @@ class cAppliWithSetImage
       double AltiMoy() const;
       cSetName *   mSetMasters;
       bool mCalPerIm;
+      bool mModeHelp;
 
 
    private :

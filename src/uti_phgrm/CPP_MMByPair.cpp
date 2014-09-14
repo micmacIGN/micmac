@@ -117,7 +117,6 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mSkipCorDone;
       eTypeMMByP   mType;
       std::string  mStrType;
-      bool         mModeHelp;
       bool         mByMM1P;
       // bool         mByEpi;
       Box2di       mBoxOfImage;
@@ -343,9 +342,18 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mByEpi     (false),
    mSetMasters(0),
    mCalPerIm  (false),
+   mModeHelp  (false),
    mNbAlti    (0),
    mSomAlti   (0.0)
 {
+   for (int aK=0 ; aK<argc; aK++)
+   {
+      if (std::string(argv[aK]) == std::string("-help"))
+      {
+         mModeHelp = true;
+         return;
+      }
+   }
    mWithOri  = ((aFlag & TheFlagNoOri)==0);
    if (argc< (mWithOri ? 2 : 1 ) )
    {
@@ -942,7 +950,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDebugCreatE  (false)
 
 {
-  if (argc>=2)
+std::cout << "AAAAAAAAAAAAAAaa " << mModeHelp  << "\n";
+  if ((argc>=2) && (!mModeHelp))
   {
      ELISE_ASSERT(argc >= 2,"Not enough arg");
      mStrType = argv[1];
