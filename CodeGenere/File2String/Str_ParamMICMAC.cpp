@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2117]) = {
+const char * (theNameVar_ParamMICMAC[2118]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -997,6 +997,7 @@ const char * (theNameVar_ParamMICMAC[2117]) = {
 "                        </Correl_NC_Robuste>\n",
 "\n",
 "                        <MasqueAutoByTieP Nb=\"?\" AccessorFils=\"false\"> \n",
+"                            <FilterPrgDyn Nb=\"?\" RefType=\"ParamFiltreDepthByPrgDyn\"  RefFile=\"SuperposImage.xml\"> </FilterPrgDyn>\n",
 "                            <!-- Si true, s'arrete apres avoir rechecher les point qui correlent bien sans chercher a boucher les trous -->\n",
 "                            <ComputeAndExportEnveloppe Nb=\"?\">\n",
 "\n",
@@ -1006,10 +1007,10 @@ const char * (theNameVar_ParamMICMAC[2117]) = {
 "                                   <SzFilter    Type=\"int\" Nb=\"?\" Def=\"7\"> </SzFilter>\n",
 "                                   <ParamPropFilter    Type=\"double\" Nb=\"?\" Def=\"0.9\"> </ParamPropFilter>\n",
 "\n",
-"                                   <ProlResolCible Type=\"double\" Nb=\"?\" Def=\"100\">   </ProlResolCible>\n",
+"                                   <ProlResolCible Type=\"double\" Nb=\"?\" Def=\"25\">   </ProlResolCible>\n",
 "                                   <ProlResolCur  Type=\"double\" Nb=\"?\" Def=\"10\"> </ProlResolCur>\n",
 "                                   <ProlDistAdd Type=\"double\" Nb=\"?\" Def=\"0.25\"> </ProlDistAdd>\n",
-"                                   <ProlDistAddMax Nb=\"?\" Type=\"double\" Def=\"5.0\"> </ProlDistAddMax>\n",
+"                                   <ProlDistAddMax Nb=\"?\" Type=\"double\" Def=\"3.0\"> </ProlDistAddMax>\n",
 "\n",
 "                                   <DilatAltiCible Nb=\"?\" Type=\"int\" Def=\"5\"> </DilatAltiCible>\n",
 "                                   <DilatPlaniCible Nb=\"?\" Type=\"int\" Def=\"5\"> </DilatPlaniCible>\n",

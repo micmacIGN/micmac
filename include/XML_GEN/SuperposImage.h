@@ -5393,6 +5393,50 @@ std::string  Mangling( cParamFusionNuage *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cParamFiltreDepthByPrgDyn
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cParamFiltreDepthByPrgDyn & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & CostNonAff();
+        const cTplValGesInit< double > & CostNonAff()const ;
+
+        cTplValGesInit< double > & CostTrans();
+        const cTplValGesInit< double > & CostTrans()const ;
+
+        cTplValGesInit< double > & CostRegul();
+        const cTplValGesInit< double > & CostRegul()const ;
+
+        double & StepZ();
+        const double & StepZ()const ;
+
+        cTplValGesInit< double > & DzMax();
+        const cTplValGesInit< double > & DzMax()const ;
+
+        cTplValGesInit< int > & NbDir();
+        const cTplValGesInit< int > & NbDir()const ;
+    private:
+        cTplValGesInit< double > mCostNonAff;
+        cTplValGesInit< double > mCostTrans;
+        cTplValGesInit< double > mCostRegul;
+        double mStepZ;
+        cTplValGesInit< double > mDzMax;
+        cTplValGesInit< int > mNbDir;
+};
+cElXMLTree * ToXMLTree(const cParamFiltreDepthByPrgDyn &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cParamFiltreDepthByPrgDyn &);
+
+void  BinaryUnDumpFromFile(cParamFiltreDepthByPrgDyn &,ELISE_fp &);
+
+std::string  Mangling( cParamFiltreDepthByPrgDyn *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlAffinR2ToR
 {
     public:

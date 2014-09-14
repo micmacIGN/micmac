@@ -995,6 +995,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         </Correl_NC_Robuste>
 
                         <MasqueAutoByTieP Nb="?" AccessorFils="false"> 
+                            <FilterPrgDyn Nb="?" RefType="ParamFiltreDepthByPrgDyn"  RefFile="SuperposImage.xml"> </FilterPrgDyn>
                             <!-- Si true, s'arrete apres avoir rechecher les point qui correlent bien sans chercher a boucher les trous -->
                             <ComputeAndExportEnveloppe Nb="?">
 
