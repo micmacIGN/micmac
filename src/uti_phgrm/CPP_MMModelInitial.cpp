@@ -40,32 +40,38 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern const std::string TheDIRMergTiepForEPI();
 
+std::string DirFusMMInit() {return "Fusion-MMMI/";}
 
 class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 {
     public :
        cAppli_Enveloppe_Main(int argc,char ** argv);
-       std::string NameFile(const std::string & aPost ,int aZoom)
+       std::string NameFileLoc(const std::string & aPost ,int aZoom)
        {
-           std::string aStrZoom = (aZoom >=0) ? ("Env_DeZoom"+ToString(aZoom )) : "Fusion";
+           std::string aStrZoom =  std::string("Env_DeZoom") +ToString(aZoom );
            return  Dir() + TheDIRMergTiepForEPI() + "-" +   mNameIm + "/" + aStrZoom + "_" + aPost + ".tif";
+
+       }
+
+       std::string NameFileGlob(const std::string & aPref) { return  aPref + mNameIm + ".tif"; }
+       std::string NameFileGlobWithDir(const std::string & aPref)
+       {
+           return  Dir() + DirFusMMInit() + NameFileGlob(aPref);
 
        }
     private :
       int mZoom0;
       int mZoomEnd;
       std::string mNameIm;
+      bool mCalledByP;
 };
 
 
+
 cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
-   cAppliWithSetImage(argc-1,argv+1,0)
+   cAppliWithSetImage(argc-1,argv+1,0),
+   mCalledByP (false)
 {
-   if (!mModeHelp)
-   {
-       mNameIm = mVSoms[0]->attr().mIma->mNameIm;
-       ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
-   }
    std::string Masq3D;
    std::string aPat,anOri;
 
@@ -77,27 +83,57 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAMC(mZoom0,"Zoom lowest resol ", eSAM_IsExistDirOri)
                     << EAMC(mZoomEnd,"Zoom largest resol ", eSAM_IsExistDirOri),
         LArgMain()  << EAM(Masq3D,"Masq3D",true,"Masq3D pour filtrer")
+                    << EAM(mCalledByP,"InternalCalledByP",true)
    );
 
-   Im2D_REAL4 aEnvMax(1,1);
-   Im2D_REAL4 aEnvMin(1,1);
+   if (! (mCalledByP))
+   {
+       ELISE_fp::MkDir(Dir() + DirFusMMInit() );
+       std::list<std::string>  aLCom = ExpandCommand(3,"InternalCalledByP=true");
+
+       for (std::list<std::string>::iterator itS=aLCom.begin() ; itS!=aLCom.end() ; itS++)
+           std::cout << *itS << "\n";
+
+       return;
+   }
+
+
+   if (!mModeHelp)
+   {
+       ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
+       mNameIm = mVSoms[0]->attr().mIma->mNameIm;
+   }
+
+
+
+   Im2D_REAL4   aEnvMax(1,1);
+   Im2D_REAL4   aEnvMin(1,1);
+   Im2D_U_INT1  aMasqEnv(1,1);
    for (int aZoom = mZoom0 ; aZoom >= mZoomEnd ; aZoom /= 2)
    {
           std::string aCom =    MM3dBinFile("MMInitialModel ")
                               + mEASF.mFullName + " "
                               + Ori() 
                               + std::string(" DoMatch=false  Do2Z=false   ExportEnv=true  Zoom=")
-                              +  ToString(aZoom);
+                              + ToString(aZoom);
           if (EAMIsInit(&Masq3D)) aCom = aCom + " Masq3D=" + Masq3D;
 
           System(aCom);
-          std::string aNameMax = NameFile("Max",aZoom);
-          std::string aNameMin = NameFile("Min",aZoom);
+          std::string aNameMax = NameFileLoc("Max",aZoom);
+          std::string aNameMin = NameFileLoc("Min",aZoom);
+          std::string aNameMasq = NameFileLoc("Masq",aZoom);
 
           if (aZoom==mZoom0)
           {
               aEnvMax = Im2D_REAL4::FromFileStd(aNameMax);
               aEnvMin = Im2D_REAL4::FromFileStd(aNameMin);
+
+//std::cout << "AAAAAAAA \n" ; getchar();
+              aMasqEnv = Im2D_U_INT1::FromFileStd(aNameMasq);
+//std::cout << "BBBBBB \n" ; getchar();
+
+ //Tiff_Im::CreateFromIm(aMasqEnv,"Test.tif");getchar();
+
           }
           else
           {
@@ -113,12 +149,17 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                   Min(aEnvMin.in(),Tiff_Im(aNameMin.c_str()).in()),
                   aEnvMin.out()
                );
+               ELISE_COPY
+               (
+                  aMasqEnv.all_pts(),
+                  aMasqEnv.in() || Tiff_Im(aNameMasq.c_str()).in(),
+                  aMasqEnv.out()
+               );
           }
    }
-   Tiff_Im::CreateFromIm(aEnvMax, NameFile("Max",-1));
-   Tiff_Im::CreateFromIm(aEnvMin, NameFile("Min",-1));
-
-
+   Tiff_Im::CreateFromIm(aEnvMax, NameFileGlobWithDir("Fusion-Max"));
+   Tiff_Im::CreateFromIm(aEnvMin, NameFileGlobWithDir("Fusion-Min"));
+   Tiff_Im::CreateFromFonc(NameFileGlobWithDir("Fusion-Masq"),aMasqEnv.sz(),aMasqEnv.in(),GenIm::bits1_msbf);
 }
 
 int MMEnveloppe_Main(int argc,char ** argv)

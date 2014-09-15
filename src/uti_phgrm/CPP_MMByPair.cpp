@@ -429,6 +429,15 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mAverNbPix /= mEASF.mSetIm->size();
 }
 
+std::list<std::string> cAppliWithSetImage::ExpandCommand(int aNumPat,std::string ArgSup)
+{
+    std::list<std::string> aRes;
+    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+       aRes.push_back(SubstArgcArvGlob(aNumPat,mVSoms[aK]->attr().mIma->mNameIm) + " " + ArgSup);
+    return aRes;
+}
+
+
 bool cAppliWithSetImage::HasOri() const
 {
    return mWithOri;
@@ -611,7 +620,6 @@ void cAppliWithSetImage::ComputeStripPair(int aDif)
 
                     if (OK)
                     {
- /// std::cout << "MMByP " << anI1.mNameIm << " " << anI2.mNameIm << "\n";
                         AddPair(&(*itS1),&(*itS2));
                     }
                }
@@ -668,7 +676,6 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
 
        Pt2dr aRatio =  aCpleE->RatioExp();
        double aSeuil = 1.8;
-       // std::cout << "RRR " << anI1->mNameIm << " " << anI2->mNameIm << " " << aCple.RatioExp() << "\n";
        if ((aRatio.x>aSeuil) || (aRatio.y>aSeuil))
            return;
 
@@ -950,7 +957,6 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDebugCreatE  (false)
 
 {
-std::cout << "AAAAAAAAAAAAAAaa " << mModeHelp  << "\n";
   if ((argc>=2) && (!mModeHelp))
   {
      ELISE_ASSERT(argc >= 2,"Not enough arg");

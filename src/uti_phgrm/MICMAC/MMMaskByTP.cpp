@@ -373,6 +373,7 @@ void cMMTP::FreeCel()
 
 
 extern Im2D_REAL4 ProlongByCont (Im2D_Bits<1> & aMasqRes, Im2D_Bits<1> aIMasq, Im2D_INT2 aInput, INT aNbProl,double aDistAdd,double DMaxAdd);
+extern Im2D_REAL4 ProlongByCont (Im2D_Bits<1> & aMasqRes, Im2D_Bits<1> aIMasq, Im2D_REAL4 aInput, INT aNbProl,double aDistAdd,double DMaxAdd);
 
 void cMMTP::DoOneEnv(Im2D_REAL4 anEnvRed,bool isMax,const cXML_ParamNuage3DMaille & aTargetNuage,const cXML_ParamNuage3DMaille & aCurNuage)
 {
@@ -466,9 +467,14 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
 
     Im2D_Bits<1>    aMasqRed(aSzRed.x,aSzRed.y,0);
     TIm2DBits<1>    aTMR(aMasqRed);
+/*
     TIm2D<INT2,INT> aPMaxRed(aSzRed);
     TIm2D<INT2,INT> aPMinRed(aSzRed);
+*/
+    TIm2D<REAL4,REAL> aPMaxRed(aSzRed);
+    TIm2D<REAL4,REAL> aPMinRed(aSzRed);
 
+    // Calcul du filtre de reduction
     Pt2di aPRed;
     for (aPRed.y = 0 ; aPRed.y<aSzRed.y ; aPRed.y++)
     {
@@ -479,20 +485,21 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
              int anX1 = ElMin(mSzTiep.x-1,aPR1.x+aSzFiltrer);
              int anY0 = ElMax(0,aPR1.y-aSzFiltrer);
              int anY1 = ElMin(mSzTiep.y-1,aPR1.y+aSzFiltrer);
-             std::vector<int> aVVals;
+             std::vector<REAL> aVVals;
              Pt2di aVoisR1;
              for (aVoisR1.x=anX0 ; aVoisR1.x<=anX1 ; aVoisR1.x++)
              {
                   for (aVoisR1.y=anY0 ; aVoisR1.y<=anY1 ; aVoisR1.y++)
                   {
                      if (mTImMasqInit.get(aVoisR1))
-                        aVVals.push_back( mTImProf.get(aVoisR1));
+                        aVVals.push_back( mTCBT.get(aVoisR1));
+                        // aVVals.push_back( mTImProf.get(aVoisR1));
                   }
              }
              if (int(aVVals.size()) >= aSeuilNbV)
              {
-                  int aVMax = KthValProp(aVVals,aProp);
-                  int aVMin = KthValProp(aVVals,1-aProp);
+                  REAL4 aVMax = KthValProp(aVVals,aProp);
+                  REAL4 aVMin = KthValProp(aVVals,1-aProp);
                   aPMaxRed.oset(aPRed,aVMax);
                   aPMinRed.oset(aPRed,aVMin);
                   aTMR.oset(aPRed,1);
@@ -1099,6 +1106,15 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    mMMTP->ExportResultInit();
    mMMTP->FreeCel();
    const cComputeAndExportEnveloppe * aCAEE = aMATP.ComputeAndExportEnveloppe().PtrVal();
+
+
+   if (aMATP.ParamFiltreRegProf().IsInit())
+      mMMTP->MaskRegulMaj(aMATP.ParamFiltreRegProf().Val());
+   mMMTP->ContAndBoucheTrou();
+   if (aMATP.FilterPrgDyn().IsInit())
+      mMMTP->MaskProgDyn(aMATP.FilterPrgDyn().Val());
+
+
    if (aCAEE)
    {
        mMMTP->ConputeEnveloppe(*aCAEE,aXmlN);
@@ -1106,13 +1122,13 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    }
 
 
+/*
    if (aMATP.ParamFiltreRegProf().IsInit())
       mMMTP->MaskRegulMaj(aMATP.ParamFiltreRegProf().Val());
-
    mMMTP->ContAndBoucheTrou();
-
    if (aMATP.FilterPrgDyn().IsInit())
       mMMTP->MaskProgDyn(aMATP.FilterPrgDyn().Val());
+*/
 
 
 

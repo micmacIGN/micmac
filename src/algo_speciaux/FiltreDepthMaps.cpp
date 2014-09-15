@@ -657,6 +657,19 @@ Im2D_REAL4 ProlongByCont
      return TplProlongByCont(aMasqRes,aIMasq,aInput,aNbProl,aDistAdd,aDistMaxAdd);
 }
 
+Im2D_REAL4 ProlongByCont
+     (
+          Im2D_Bits<1> & aMasqRes,
+          Im2D_Bits<1> aIMasq,
+          Im2D_REAL4 aInput,
+          INT aNbProl,
+          double aDistAdd,
+          double aDistMaxAdd
+     )   
+{
+     return TplProlongByCont(aMasqRes,aIMasq,aInput,aNbProl,aDistAdd,aDistMaxAdd);
+}
+
 
 
 
