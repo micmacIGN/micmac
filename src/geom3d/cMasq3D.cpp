@@ -551,6 +551,12 @@ int Masq3Dto2D_main(int argc,char ** argv)
    return 1;
 }
 
+#else
+cMasqBin3D  *cMasqBin3D::FromSaisieMasq3d(const std::string & aName)
+{
+   ELISE_ASSERT(false,"No QT, no FromSaisieMasq3d");
+   return 0;
+}
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
