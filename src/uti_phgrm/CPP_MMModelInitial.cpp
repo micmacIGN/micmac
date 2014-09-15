@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+
 extern const std::string TheDIRMergTiepForEPI();
 
 std::string DirFusMMInit() {return "Fusion-MMMI/";}
@@ -49,20 +50,22 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
        std::string NameFileLoc(const std::string & aPost ,int aZoom)
        {
            std::string aStrZoom =  std::string("Env_DeZoom") +ToString(aZoom );
-           return  Dir() + TheDIRMergTiepForEPI() + "-" +   mNameIm + "/" + aStrZoom + "_" + aPost + ".tif";
+           return  mDirMerge  + aStrZoom + "_" + aPost + ".tif";
 
        }
 
-       std::string NameFileGlob(const std::string & aPref) { return  aPref + mNameIm + ".tif"; }
-       std::string NameFileGlobWithDir(const std::string & aPref)
+       std::string NameFileGlob(const std::string & aPref,const std::string & aPost="tif") { return  aPref + mNameIm + "." +aPost; }
+       std::string NameFileGlobWithDir(const std::string & aPref,const std::string & aPost="tif")
        {
-           return  Dir() + DirFusMMInit() + NameFileGlob(aPref);
+           return  Dir() + DirFusMMInit() + NameFileGlob(aPref,aPost);
 
        }
     private :
       int mZoom0;
       int mZoomEnd;
       std::string mNameIm;
+      std::string mDirMatch;
+      std::string mDirMerge;
       bool mCalledByP;
 };
 
@@ -98,11 +101,10 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    }
 
 
-   if (!mModeHelp)
-   {
-       ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
-       mNameIm = mVSoms[0]->attr().mIma->mNameIm;
-   }
+   ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
+   mNameIm = mVSoms[0]->attr().mIma->mNameIm;
+   mDirMatch  = Dir() + "Masq-TieP-" + mNameIm  + "/";
+   mDirMerge  = Dir() + TheDIRMergTiepForEPI() + "-" +   mNameIm + "/";
 
 
 
@@ -157,9 +159,26 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                );
           }
    }
-   Tiff_Im::CreateFromIm(aEnvMax, NameFileGlobWithDir("Fusion-Max"));
-   Tiff_Im::CreateFromIm(aEnvMin, NameFileGlobWithDir("Fusion-Min"));
-   Tiff_Im::CreateFromFonc(NameFileGlobWithDir("Fusion-Masq"),aMasqEnv.sz(),aMasqEnv.in(),GenIm::bits1_msbf);
+   const std::string FusMax  = "Fusion-Max";
+   const std::string FusMin  = "Fusion-Min";
+   const std::string FusMasq = "Fusion-Masq";
+
+   Tiff_Im::CreateFromIm(aEnvMax, NameFileGlobWithDir(FusMax));
+   Tiff_Im::CreateFromIm(aEnvMin, NameFileGlobWithDir(FusMin));
+   Tiff_Im::CreateFromFonc(NameFileGlobWithDir(FusMasq),aMasqEnv.sz(),aMasqEnv.in(),GenIm::bits1_msbf);
+
+   
+   std::string aNameXMLIn =  mDirMerge + "NuageImProf_LeChantier_Etape_1.xml";
+
+   cXML_ParamNuage3DMaille aXMLParam = StdGetFromSI(aNameXMLIn,XML_ParamNuage3DMaille);
+   cImage_Profondeur & anIp = aXMLParam.Image_Profondeur().Val();
+   anIp.Correl().SetNoInit();
+   anIp.Masq() = NameFileGlob(FusMasq);
+
+   anIp.Image() = NameFileGlob(FusMax);
+   MakeFileXML(aXMLParam,NameFileGlobWithDir("Nuage"+FusMax,"xml"));
+   anIp.Image() = NameFileGlob(FusMin);
+   MakeFileXML(aXMLParam,NameFileGlobWithDir("Nuage"+FusMin,"xml"));
 }
 
 int MMEnveloppe_Main(int argc,char ** argv)
@@ -267,6 +286,7 @@ int MMInitialModel_main(int argc,char ** argv)
   cEl_GPAO::DoComInParal(aLCom,"MkMMInit");
  // int aRes = system_call(aCom.c_str());
 
+   // int i; DoNothingButRemoveWarningUnused(i);
 
    return 0;
 }

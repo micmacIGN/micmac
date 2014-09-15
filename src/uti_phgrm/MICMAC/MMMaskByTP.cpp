@@ -271,7 +271,7 @@ class cMMTP
 
     private :
         Tiff_Im FileEnv(const std::string & ,bool Bin); // Si pas  Bin int2
-        void DoOneEnv(Im2D_REAL4 anEnvRed,bool isMax,const cXML_ParamNuage3DMaille & aTargetNuage,const cXML_ParamNuage3DMaille & aCurNuage);
+        void DoOneEnv(bool IsProfOrig,Im2D_REAL4 anEnvRed,bool isMax,const cXML_ParamNuage3DMaille & aTargetNuage,const cXML_ParamNuage3DMaille & aCurNuage);
 
         cAppliMICMAC &    mAppli;
         Pt2di             mP0Tiep;
@@ -375,25 +375,35 @@ void cMMTP::FreeCel()
 extern Im2D_REAL4 ProlongByCont (Im2D_Bits<1> & aMasqRes, Im2D_Bits<1> aIMasq, Im2D_INT2 aInput, INT aNbProl,double aDistAdd,double DMaxAdd);
 extern Im2D_REAL4 ProlongByCont (Im2D_Bits<1> & aMasqRes, Im2D_Bits<1> aIMasq, Im2D_REAL4 aInput, INT aNbProl,double aDistAdd,double DMaxAdd);
 
-void cMMTP::DoOneEnv(Im2D_REAL4 anEnvRed,bool isMax,const cXML_ParamNuage3DMaille & aTargetNuage,const cXML_ParamNuage3DMaille & aCurNuage)
+void cMMTP::DoOneEnv(bool IsProfOrig,Im2D_REAL4 anEnvRed,bool isMax,const cXML_ParamNuage3DMaille & aTargetNuage,const cXML_ParamNuage3DMaille & aCurNuage)
 {
+if (IsProfOrig)
+{
+ELISE_COPY(mContBT.all_pts(),10*mContBT.in(),TheWTiePCor->ocirc()); std::cout << "XXXX " << __LINE__ << "\n"; getchar();
+ELISE_COPY(anEnvRed.all_pts(),10*anEnvRed.in(),TheWTiePCor->ocirc()); std::cout << "XXXX " << __LINE__ << "\n"; getchar();
+ELISE_COPY(anEnvRed.all_pts(),fMasq,TheWTiePCor->odisc()); std::cout << "XXXX " << __LINE__ << "\n"; getchar();
+}
+
     const cImage_Profondeur & ipIn = aCurNuage.Image_Profondeur().Val();
     const cImage_Profondeur & ipOut = aTargetNuage.Image_Profondeur().Val();
 
-    int aSign  = isMax ? 1 : - 1;
+    int aSign  = IsProfOrig ? 0 : (isMax ? 1 : - 1);
     int aDefVal = -(aSign * 32000);
 
     Symb_FNum sMasq  (fMasq);
     Symb_FNum sMasqFin ( fMasqBin);
     Fonc_Num aRes =   sMasqFin * (anEnvRed.in(aDefVal)[fChCo] / Max(sMasq,1e-5))  + (1-sMasqFin) * (aDefVal);
-    aRes = aRes + mDilatAlti * aSign;
-    aRes  =  isMax ? rect_max(aRes,mDilatPlani)  : rect_min(aRes,mDilatPlani);
+    if (! IsProfOrig)
+    {
+        aRes = aRes + mDilatAlti * aSign;
+        aRes  =  isMax ? rect_max(aRes,mDilatPlani)  : rect_min(aRes,mDilatPlani);
+    }
     aRes = aRes*  ipIn.ResolutionAlti() +ipIn.OrigineAlti();
     aRes = (aRes-ipOut.OrigineAlti()) / ipOut.ResolutionAlti() ;
 
     std::cout << "RSOLE IN -OUT "<< ipIn.ResolutionAlti() << " " << ipOut.ResolutionAlti() << "\n";
 
-    Tiff_Im  aFileRes = FileEnv(isMax?"Max":"Min",false);
+    Tiff_Im  aFileRes = FileEnv(IsProfOrig ? "Prof" : (isMax?"Max":"Min"),false);
     ELISE_COPY(aFileRes.all_pts(),aRes * fMasqBin,aFileRes.out());
 }
 
@@ -512,7 +522,7 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
              }
         }
     }
-    Tiff_Im::Create8BFromFonc("TDifInit.tif",aSzRed,Max(0,Min(255,Iconv(aPMaxRed._the_im.in()-aPMinRed._the_im.in()))));
+    //Tiff_Im::Create8BFromFonc("TDifInit.tif",aSzRed,Max(0,Min(255,Iconv(aPMaxRed._the_im.in()-aPMinRed._the_im.in()))));
 
     Im2D_Bits<1> aNewM(1,1);
     Im2D_REAL4  aNewMax = ProlongByCont (aNewM,aMasqRed,aPMaxRed._the_im,aDistProl,aDistAdd,aDistCum);
@@ -529,10 +539,16 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
     mDilatPlani = ElMax(aCAEE.DilatPlaniCible().Val(),round_up(aCAEE.DilatPlaniCur().Val()*aZoomRel));
     mDilatAlti  = ElMax(aCAEE.DilatAltiCible ().Val(),round_up(aCAEE.DilatPlaniCur().Val()*aZoomRel));
     
-    DoOneEnv(aNewMax,true ,aTargetNuage,aCurNuage);
-    DoOneEnv(aNewMin,false,aTargetNuage,aCurNuage);
+    DoOneEnv(false,aNewMax,true ,aTargetNuage,aCurNuage);
+    DoOneEnv(false,aNewMin,false,aTargetNuage,aCurNuage);
 
 
+/*
+    fChCo = Virgule(FX,FY)/ aZoomRel;
+    fMasq = aNewM.in(0)[fChCo];
+    fMasqBin = fMasq>0.5;
+    DoOneEnv(true,mContBT,false,aTargetNuage,aCurNuage);
+*/
 
 #ifdef ELISE_X11
    if (TheWTiePCor)
@@ -545,12 +561,15 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
 
 void cMMTP::ContAndBoucheTrou()
 {
+   int aDist32Close = 6;
+   int aNbErod = 6;
+
    // 1- Quelques fitre morpho de base, pour calculer les points eligibles au bouche-trou
    int aLabelOut = 0;
    int aLabelIn = 1;
    int aLabelClose = 2;
    int aLabelFront = 3;
-   int aDist32Close = 4;
+
    ELISE_COPY(mImMasqInit.all_pts(),mImMasqInit.in(),mImLabel.out());
    ELISE_COPY(mImLabel.border(2),aLabelOut,mImLabel.out());
 
@@ -584,7 +603,7 @@ void cMMTP::ContAndBoucheTrou()
           aLabelFront,
           mImLabel.out() | aLFront
     );
-    for (int aK=0 ; aK<5 ; aK++)
+    for (int aK=0 ; aK<aNbErod ; aK++)
     {
         Liste_Pts_U_INT2 aLNew(2);
         ELISE_COPY
