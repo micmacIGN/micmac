@@ -17,6 +17,9 @@
 	#define __TRACE_SYSTEM__
 #endif
 
+template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }
+
+
 #include <memory>
 #include <cctype>
 #include <algorithm>
