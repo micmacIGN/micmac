@@ -135,6 +135,9 @@ class cAppliWithSetImage
       cInterfChantierNameManipulateur * ICNM() ;
       int  DeZoomOfSize(double ) const;
       void operator()(tSomAWSI*,tSomAWSI*,bool);   // Delaunay call back
+
+    // Remplace la commande argc-argc par N command avec les image indiv, aNumPat est necessaire car peut varier (TestLib ou non)
+      std::list<std::string> ExpandCommand(int aNumPat,std::string ArgSup);
    protected :
   
       cAppliWithSetImage(int argc,char ** argv,int aFlag);

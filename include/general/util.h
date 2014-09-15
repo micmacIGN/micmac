@@ -53,6 +53,8 @@ extern void mem_raz(void *,tFileOffset);
 
 extern int MemoArgc;
 extern char ** MemoArgv;
+extern std::string SubstArgcArvGlob(int aKSubst,std::string aSubst);
+
 
 std::string GetUnikId();
 std::string Dir2Write();
