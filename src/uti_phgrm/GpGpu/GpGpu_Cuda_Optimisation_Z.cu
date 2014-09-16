@@ -380,16 +380,13 @@ void ReadLine_V02(
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z - 1);
 
 #ifdef CUDA_DEFCOR
-                if(costInit < 55000)
-                {
-                    BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);
-                }
+                if(costInit < 55000)                
+                    BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);                
                 else
                 {                  
                     costInit = 500000;
                     mask = true;
-                    BasicComputeIntervaleDelta(ConeZ,Z,0,p.prev_Dz);
-                    //GetConeZ(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
+                    BasicComputeIntervaleDelta(ConeZ,Z,0,p.prev_Dz);                    
                 }
 #else
                 GetConeZ(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
@@ -425,7 +422,6 @@ void ReadLine_V02(
                 }
                 else
                     minCost[p.tid] = max_cost;
-
 
                 //if(!sens) // recherche du cout minimum
                 {

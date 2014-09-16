@@ -952,19 +952,18 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 #ifdef CUDA_DEFCOR
 
-        //ushort defCor = mCostDefMasked;
+
         Rect zone(0,0,mSz.x,mSz.y);
         uint2   pTer;
-       uint    maxITSPI = 32;
+        uint    maxITSPI = 32;
 
         for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
         {
             for (pTer.x=0 ; pTer.x<(uint)mSz.x ; pTer.x++)
             {
 
-                int2 curPT  = make_int2(pTer);
-                int2 findPT = make_int2(pTer);;
-                uint finalDefCor     = IGpuOpt._FinalDefCor[pTer];
+                int2 curPT          = make_int2(pTer);
+                uint finalDefCor    = IGpuOpt._FinalDefCor[pTer];
 
                 uint minCOR = 10000;
 
@@ -974,106 +973,38 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     bool findZ  = false;
 
                     ushort  iteSpi   = 1;
-                    //int zFind   = 1e9;
                     int zMax    = 0;
                     int zMoyen  = 0;
                     int pond    = 0;
-                    //int minPond = 8;
-                    int3 moy            = make_int3(0,0,0);
-                    std::vector<int3>   ptsOk;
 
-                    while((!findZ || iteSpi < maxITSPI /*|| pond < 8 */) &&  (iteSpi < 512) )
+                    while((!findZ || iteSpi < maxITSPI) && (iteSpi < 512) )
                     {
                         bool pair   = (iteSpi % 2) == 0;
                         int vec     = (float)iteSpi/2.f + 0.5f;
                         int sign    = (vec % 2) == 0 ? 1 : -1;
                         int2 tr     = make_int2(sign * pair,sign * !pair);
-                                              
+
                         for (int i = 0; i < vec; ++i,curPT += tr)
                         {
                             if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] >= ((float)minCOR*3.0f))
                             {
-                                //if(mDataImRes[0][curPT.y][curPT.x] < mDataImRes[0][pTer.y][pTer.x])
-                                {
-                                    zMin = min(zMin,mDataImRes[0][curPT.y][curPT.x]);
-                                    zMax = max(zMax,mDataImRes[0][curPT.y][curPT.x]);
-                                    zMoyen += mDataImRes[0][curPT.y][curPT.x];
-                                    pond++;
+                                zMin = min(zMin,mDataImRes[0][curPT.y][curPT.x]);
+                                zMax = max(zMax,mDataImRes[0][curPT.y][curPT.x]);
+                                zMoyen += mDataImRes[0][curPT.y][curPT.x];
+                                pond++;
 
-                                    int3 ptOK = make_int3(curPT.x,curPT.y,mDataImRes[0][curPT.y][curPT.x]);
-                                    ptsOk.push_back(ptOK);
-                                    moy += ptOK;
-
-//                                    moy.x += curPT.x;
-//                                    moy.y += curPT.y;
-//                                    moy.z += mDataImRes[0][curPT.y][curPT.x];
-
-                                    if(!findZ)
-                                    {
-                                        findPT = curPT;
-                                        //zFind  = zMin;
-                                        findZ = true;
-                                    }
-
-//                                    if(iteSpi >= maxITSPI )
-//                                        break;
-                                }
+                                if(!findZ)
+                                    findZ  = true;
                             }
                         }
 
                         iteSpi++;
                     }
 
-//                    float xx   = (float)moy.x/pond;
-//                    float yy   = (float)moy.y/pond;
-//                    float zz   = (float)moy.z/pond;
-//                    float cov1 = 0;
-//                    float var1 = 0;
-//                    float cov2 = 0;
-//                    float var2 = 0;
-
-//                    for (int i = 0; i < pond; ++i)
-//                    {
-//                        cov1 += (float)((float)ptsOk[i].x-xx)*((float)ptsOk[i].z-zz);
-//                        var1 += (float)((float)ptsOk[i].x-xx)*((float)ptsOk[i].x-xx);
-
-//                        cov2 += (float)((float)ptsOk[i].y-yy)*((float)ptsOk[i].z-zz);
-//                        var2 += (float)((float)ptsOk[i].y-yy)*((float)ptsOk[i].y-yy);
-//                    }
-
-//                    cov1 /= pond;
-//                    var1 /= pond;
-//                    cov2 /= pond;
-//                    var2 /= pond;
-
-//                    float b1 = cov1 / var1;
-//                    float b0 = zz - b1 * xx;
-
-//                    float zCalx = b1*(float)pTer.x + b0;
-
-//                    float b1y = cov2 / var2;
-//                    float b0y = zz - b1y * yy;
-
-//                    float zCaly = b1y*(float)pTer.y + b0y;
-
-                    //                    float zCalMoy = (zCaly + zCalx)/2.f;
-
-                    //
-                    if(findZ)
-                    {
-                        //////////////////////////////////////////////////
-                        /// TODO!!!! : costinit a defcor si minimum !!!!
-                        /////////////////////////////////////////////////
-                        //mDataImRes[0][pTer.y][pTer.x] = zMax;
-
+                    if(findZ) /// TODO!!!! : costinit a defcor si minimum !!!!
                         mDataImRes[0][pTer.y][pTer.x] = zMin;
-
                         //IGpuOpt._FinalDefCor[pTer] = 30000;
-                        //mDataImRes[0][pTer.y][pTer.x] = zCalMoy;
-                        //mDataImRes[0][pTer.y][pTer.x] = 0;
                         // mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
-                    }
-                    //IGpuOpt._FinalDefCor[pTer] = 0;
 
                 }
 
