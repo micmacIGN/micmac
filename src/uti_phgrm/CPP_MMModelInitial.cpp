@@ -47,10 +47,9 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 {
     public :
        cAppli_Enveloppe_Main(int argc,char ** argv);
-       std::string NameFileLoc(const std::string & aPost ,int aZoom)
+       std::string NameFileLoc(const std::string & aPref ,int aZoom)
        {
-           std::string aStrZoom =  std::string("Env_DeZoom") +ToString(aZoom );
-           return  mDirMerge  + aStrZoom + "_" + aPost + ".tif";
+           return  mDirMerge  + aPref +  "_DeZoom" + ToString(aZoom ) + ".tif";
 
        }
 
@@ -60,6 +59,7 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
            return  Dir() + DirFusMMInit() + NameFileGlob(aPref,aPost);
 
        }
+      void DownScaleNuage(const std::string &);
     private :
       int mZoom0;
       int mZoomEnd;
@@ -67,13 +67,15 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
       std::string mDirMatch;
       std::string mDirMerge;
       bool mCalledByP;
+      double mScaleNuage;
 };
 
 
 
 cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    cAppliWithSetImage(argc-1,argv+1,0),
-   mCalledByP (false)
+   mCalledByP (false),
+   mScaleNuage (1)
 {
    std::string Masq3D;
    std::string aPat,anOri;
@@ -87,6 +89,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAMC(mZoomEnd,"Zoom largest resol ", eSAM_IsExistDirOri),
         LArgMain()  << EAM(Masq3D,"Masq3D",true,"Masq3D pour filtrer")
                     << EAM(mCalledByP,"InternalCalledByP",true)
+                    << EAM(mScaleNuage,"DownScale",true)
    );
 
    if (! (mCalledByP))
@@ -111,6 +114,15 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    Im2D_REAL4   aEnvMax(1,1);
    Im2D_REAL4   aEnvMin(1,1);
    Im2D_U_INT1  aMasqEnv(1,1);
+
+   Im2D_REAL4   aDepthMerg(1,1);
+   Im2D_U_INT1  aMasqMerge(1,1);
+
+
+   int aCpt = 0;
+   for (int aZoom = mZoom0 ; aZoom >= mZoomEnd ; aZoom /= 2)
+       aCpt++;
+
    for (int aZoom = mZoom0 ; aZoom >= mZoomEnd ; aZoom /= 2)
    {
           std::string aCom =    MM3dBinFile("MMInitialModel ")
@@ -121,21 +133,20 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
           if (EAMIsInit(&Masq3D)) aCom = aCom + " Masq3D=" + Masq3D;
 
           System(aCom);
-          std::string aNameMax = NameFileLoc("Max",aZoom);
-          std::string aNameMin = NameFileLoc("Min",aZoom);
-          std::string aNameMasq = NameFileLoc("Masq",aZoom);
+          std::string aNameMax = NameFileLoc("EnvMax",aZoom);
+          std::string aNameMin = NameFileLoc("EnvMin",aZoom);
+          std::string aNameMasqEnv = NameFileLoc("EnvMasq",aZoom);
 
+          std::string aNameMerge = NameFileLoc("Depth",aZoom);
+          std::string aNameMasqMerge = NameFileLoc("Masq",aZoom);
           if (aZoom==mZoom0)
           {
               aEnvMax = Im2D_REAL4::FromFileStd(aNameMax);
               aEnvMin = Im2D_REAL4::FromFileStd(aNameMin);
-
-//std::cout << "AAAAAAAA \n" ; getchar();
-              aMasqEnv = Im2D_U_INT1::FromFileStd(aNameMasq);
-//std::cout << "BBBBBB \n" ; getchar();
-
- //Tiff_Im::CreateFromIm(aMasqEnv,"Test.tif");getchar();
-
+              aMasqEnv = Im2D_U_INT1::FromFileStd(aNameMasqEnv);
+            
+              aDepthMerg = Im2D_REAL4::FromFileStd(aNameMerge);
+              aMasqMerge = Im2D_U_INT1::FromFileStd(aNameMasqMerge);
           }
           else
           {
@@ -154,18 +165,32 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                ELISE_COPY
                (
                   aMasqEnv.all_pts(),
-                  aMasqEnv.in() || Tiff_Im(aNameMasq.c_str()).in(),
+                  aMasqEnv.in() || Tiff_Im(aNameMasqEnv.c_str()).in(),
                   aMasqEnv.out()
                );
+
+
+              Im2D_REAL4 aDepth= Im2D_REAL4::FromFileStd(aNameMerge);
+              Im2D_U_INT1 aMasq= Im2D_U_INT1::FromFileStd(aNameMasqMerge);
+              ELISE_COPY(select(aMasq.all_pts(),aMasq.in()),aDepth.in(),aDepthMerg.out());
+              ELISE_COPY(select(aMasq.all_pts(),aMasq.in()),aCpt,aMasqMerge.out());
           }
+          aCpt--;
    }
    const std::string FusMax  = "Fusion-Max";
    const std::string FusMin  = "Fusion-Min";
-   const std::string FusMasq = "Fusion-Masq";
+   const std::string FusEnvMasq = "Fusion-EnvMasq";
+   const std::string FusDepth   = "Fusion-Depth";
+   const std::string FusMasqD   = "Fusion-Masq";
 
    Tiff_Im::CreateFromIm(aEnvMax, NameFileGlobWithDir(FusMax));
    Tiff_Im::CreateFromIm(aEnvMin, NameFileGlobWithDir(FusMin));
-   Tiff_Im::CreateFromFonc(NameFileGlobWithDir(FusMasq),aMasqEnv.sz(),aMasqEnv.in(),GenIm::bits1_msbf);
+   Tiff_Im::CreateFromFonc(NameFileGlobWithDir(FusEnvMasq),aMasqEnv.sz(),aMasqEnv.in(),GenIm::bits1_msbf);
+
+
+   Tiff_Im::CreateFromIm(aDepthMerg,NameFileGlobWithDir(FusDepth));
+   Tiff_Im::CreateFromIm(aMasqMerge,NameFileGlobWithDir(FusMasqD));
+
 
    
    std::string aNameXMLIn =  mDirMerge + "NuageImProf_LeChantier_Etape_1.xml";
@@ -173,12 +198,35 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    cXML_ParamNuage3DMaille aXMLParam = StdGetFromSI(aNameXMLIn,XML_ParamNuage3DMaille);
    cImage_Profondeur & anIp = aXMLParam.Image_Profondeur().Val();
    anIp.Correl().SetNoInit();
-   anIp.Masq() = NameFileGlob(FusMasq);
+   anIp.Masq() = NameFileGlob(FusEnvMasq);
+
+   std::string aNameNuageEnvMax =  NameFileGlobWithDir("Nuage"+FusMax,"xml");
+   std::string aNameNuageEnvMin =  NameFileGlobWithDir("Nuage"+FusMin,"xml");
+   std::string aNameNuageProf =    NameFileGlobWithDir("Nuage"+FusDepth,"xml");
 
    anIp.Image() = NameFileGlob(FusMax);
-   MakeFileXML(aXMLParam,NameFileGlobWithDir("Nuage"+FusMax,"xml"));
+   MakeFileXML(aXMLParam,aNameNuageEnvMax);
    anIp.Image() = NameFileGlob(FusMin);
-   MakeFileXML(aXMLParam,NameFileGlobWithDir("Nuage"+FusMin,"xml"));
+   MakeFileXML(aXMLParam,aNameNuageEnvMin);
+
+
+   anIp.Masq() = NameFileGlob(FusMasqD);
+   anIp.Image() = NameFileGlob(FusDepth);
+   MakeFileXML(aXMLParam,aNameNuageProf);
+
+   if (mScaleNuage!=1.0)
+   {
+      DownScaleNuage(aNameNuageEnvMax);
+      DownScaleNuage(aNameNuageEnvMin);
+      DownScaleNuage(aNameNuageProf);
+   }
+
+}
+
+void cAppli_Enveloppe_Main::DownScaleNuage(const std::string & aNN)
+{
+    std::string aCom =  MM3dBinFile("ScaleNuage") + "  " + aNN  + " DownScale_" + NameWithoutDir(aNN) + " " + ToString(mScaleNuage);
+    System(aCom);
 }
 
 int MMEnveloppe_Main(int argc,char ** argv)
