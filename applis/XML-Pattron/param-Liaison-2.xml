@@ -1,0 +1,295 @@
+<!-- 
+      Parametrage pour les points de liaison pour une triangulation.
+   Il s'agit de l'etape 0, elle doit etre suivie de 1, 2 et 3.
+   Cette etape 0 ne va que jusqu'a la resolution 16 et les 
+   les orientation exportees ne laisse libre que le cap.
+
+       Ce fichier a ete mis au point pour un vol drone heliporte.
+   Les valeus suivie d'un "#" en commentaire doivent etre modifiee
+   pour utilisation sur d'autre mission (terrestre, aerien ...)
+
+   #N : indique une modification numerique, une fois les valeurs 
+   fixees pour un type de chantier, il n'est pas necessaire de les
+   modifier pour un autre.
+
+   #S : indique une modification de nom;
+-->
+<ParamMICMAC>
+<Section_Terrain>  
+
+    <!--   Px1IncCalc : l'incertitude est liee au terrain elle est en metre,
+          ici 10 m c'est bcp pour un helico a 30 m.
+
+          Px2IncCalc : en pixel, c'est lie au defaut de mise en place
+     -->
+    
+    <EstimPxPrefZ2Prof> false </EstimPxPrefZ2Prof>
+
+    <IntervParalaxe>
+        <Px1IncCalc>   ### </Px1IncCalc>    <!--#N-->
+        <Px1PropProf>   ###  </Px1PropProf>    <!--#N-->
+        <Px2IncCalc>   ### </Px2IncCalc>   <!--#N-->
+    </IntervParalaxe>
+
+    <Planimetrie>
+    </Planimetrie>
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue >
+     <SingulariteInCorresp_I1I2> false </SingulariteInCorresp_I1I2>
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  <!-- Ici a change a chaque couple !! -->
+          <Im1 > ###  </Im1>  <!--#S-->
+          <Im2 > ###  </Im2>  <!--#S-->
+     </Images>
+     <NomsGeometrieImage>
+            <UseIt Id="NGI-Prec-1">    false            </UseIt>
+            <AddNumToNameGeom> true          </AddNumToNameGeom>
+            <PatternSel>    (.*)\.tif@0  </PatternSel>
+            <PatternNameIm1Im2>
+                    (.*)\.tif@(.*)\.tif
+            </PatternNameIm1Im2>
+            <PatNameGeom>   OriRelStep1_$1_For_$2.xml </PatNameGeom>
+     </NomsGeometrieImage>
+     <NomsGeometrieImage>
+            <UseIt Id="NGI-Prec-2">    false            </UseIt>
+            <AddNumToNameGeom> true          </AddNumToNameGeom>
+            <PatternSel>    (.*)\.tif@1  </PatternSel>
+            <PatternNameIm1Im2>
+                   (.*)\.tif@(.*)\.tif
+            </PatternNameIm1Im2>
+            <PatNameGeom>   OriRelStep1_$2_On_$1.xml </PatNameGeom>
+     </NomsGeometrieImage>
+     <NomsGeometrieImage>
+          <UseIt Id="NGI-Ori">       false        </UseIt>
+          <FCND_Mode_GeomIm>
+                <FCND_GeomCalc> OrInit  </FCND_GeomCalc>  <!-- Def : Im2Calib -->
+          </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+        <EchantillonagePtsInterets >
+             <FreqEchantPtsI Id="FEPI"> 4 </FreqEchantPtsI>
+             <ModeEchantPtsI> eModeEchantPtsIntByComandeExterne </ModeEchantPtsI>
+	     <KeyCommandeExterneInteret> PortoCalcInteret </KeyCommandeExterneInteret>
+             <SzVAutoCorrel>  2 </SzVAutoCorrel>
+             <EstmBrAutoCorrel> 5 </EstmBrAutoCorrel>
+             <SeuilLambdaAutoCorrel>    0.05 </SeuilLambdaAutoCorrel>
+             <SeuilEcartTypeAutoCorrel> 2    </SeuilEcartTypeAutoCorrel>
+             <RepartExclusion>          0.3  </RepartExclusion>
+             <RepartEvitement>          0.7  </RepartEvitement>
+        </EchantillonagePtsInterets>
+
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+
+	<EtapeMEC>
+           <DeZoom >  -1             </DeZoom>
+            <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
+            <AggregCorr> eAggregSymetrique </AggregCorr>
+            <SzW Id="SzW">       1               </SzW>
+            <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+            <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+
+            <Px1Regul>  0.1     </Px1Regul>
+            <Px1Pas>    0.5     </Px1Pas>
+            <Px1DilatAlti> 2  </Px1DilatAlti>
+            <Px1DilatPlani>2  </Px1DilatPlani>
+            <Px1DilatPlaniPropPtsInt>  1.5  </Px1DilatPlaniPropPtsInt>
+            <Px2DilatPlaniPropPtsInt>  1.5  </Px2DilatPlaniPropPtsInt>
+
+
+            <Px2Regul>   0.5     </Px2Regul>
+            <Px2Pas >    0.1     </Px2Pas>
+            <Px2DilatAlti>  1  </Px2DilatAlti>
+            <Px2DilatPlani> 1  </Px2DilatPlani>
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+            <Gen8Bits_Px1> true </Gen8Bits_Px1>
+            <Gen8Bits_Px2> true </Gen8Bits_Px2>
+            <Dyn8Bits_Px2> 0.2  </Dyn8Bits_Px2>
+
+
+            <CoxRoy8Cnx> false </CoxRoy8Cnx>
+            <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   6               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   10.0    </Px1PenteMax>
+                  <Px2PenteMax>   0.1    </Px2PenteMax>
+            </ModulationProgDyn>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+	</EtapeMEC>
+
+        <EtapeMEC>
+            <DeZoom >  32                </DeZoom>
+            <Px1DilatAlti  > 3  </Px1DilatAlti>
+            <Px1DilatPlani > 2  </Px1DilatPlani>
+            <Px2DilatAlti  > 1  </Px2DilatAlti>
+            <Px2DilatPlani > 1  </Px2DilatPlani>
+        </EtapeMEC>
+        <EtapeMEC>
+            <DeZoom >  32                </DeZoom>
+            <Px1DilatAlti  > 0  </Px1DilatAlti>
+            <Px1DilatPlani > 0  </Px1DilatPlani>
+            <Px2DilatAlti  > 2  </Px2DilatAlti>
+            <Px2DilatPlani > 2  </Px2DilatPlani>
+            <!-- <AlgoRegul>  eAlgoCoxRoy </AlgoRegul> -->
+            <SsResolOptim> 3 </SsResolOptim>
+        </EtapeMEC>
+
+        <EtapeMEC>
+            <DeZoom >  16       </DeZoom>
+            <Px1DilatAlti  > 3  </Px1DilatAlti>
+            <Px1DilatPlani > 2  </Px1DilatPlani>
+            <Px2DilatAlti  > 1  </Px2DilatAlti>
+            <Px2DilatPlani > 1  </Px2DilatPlani>
+        </EtapeMEC>
+        <EtapeMEC>
+            <DeZoom >  16       </DeZoom>
+            <Px1DilatAlti  > 0  </Px1DilatAlti>
+            <Px1DilatPlani > 0  </Px1DilatPlani>
+            <Px2DilatAlti  > 2  </Px2DilatAlti>
+            <Px2DilatPlani > 2  </Px2DilatPlani>
+            <!-- <AlgoRegul>  eAlgoCoxRoy </AlgoRegul> -->
+            <SsResolOptim> 3 </SsResolOptim>
+        </EtapeMEC>
+
+        <EtapeMEC>
+            <DeZoom >  8       </DeZoom>
+            <Px1DilatAlti  > 3  </Px1DilatAlti>
+            <Px1DilatPlani > 2  </Px1DilatPlani>
+            <Px2DilatAlti  > 0  </Px2DilatAlti>
+            <Px2DilatPlani > 0  </Px2DilatPlani>
+        </EtapeMEC>
+        <EtapeMEC>
+            <DeZoom >  8       </DeZoom>
+            <Px1DilatAlti  > 0  </Px1DilatAlti>
+            <Px1DilatPlani > 0  </Px1DilatPlani>
+            <Px2DilatAlti  > 2  </Px2DilatAlti>
+            <Px2DilatPlani > 2  </Px2DilatPlani>
+            <!-- <AlgoRegul>  eAlgoCoxRoy </AlgoRegul> -->
+            <SsResolOptim> 3 </SsResolOptim>
+        </EtapeMEC>
+
+        <EtapeMEC>
+            <DeZoom >  4       </DeZoom>
+            <Px1DilatAlti  > 3  </Px1DilatAlti>
+            <Px1DilatPlani > 2  </Px1DilatPlani>
+            <Px2DilatAlti  > 0  </Px2DilatAlti>
+            <Px2DilatPlani > 0  </Px2DilatPlani>
+        </EtapeMEC>
+        <EtapeMEC>
+            <DeZoom >  4       </DeZoom>
+            <Px1DilatAlti  > 0  </Px1DilatAlti>
+            <Px1DilatPlani > 0  </Px1DilatPlani>
+            <Px2DilatAlti  > 2  </Px2DilatAlti>
+            <Px2DilatPlani > 2  </Px2DilatPlani>
+            <!-- <AlgoRegul>  eAlgoCoxRoy </AlgoRegul> -->
+            <AlgoRegul>  eAlgoCoxRoy </AlgoRegul>
+            <SsResolOptim> 3 </SsResolOptim>
+            <ModelesAnalytiques>
+                <OneModeleAnalytique>
+                   <AutomSelExportOri>
+                        (.*)\.tif@(.*)\.tif
+                   </AutomSelExportOri>
+                   <AutomNamesExportOri1>
+                           OriRelStep2_$1_For_$2.xml
+                   </AutomNamesExportOri1>
+                   <AutomNamesExportOri2>
+                           OriRelStep2_$2_On_$1.xml
+                   </AutomNamesExportOri2>
+                   <AutomNamesExportHomXml>
+                           MicMac-PL2-$1_$2.xml
+                   </AutomNamesExportHomXml>
+
+                   <SigmaPixPdsExport> -1 </SigmaPixPdsExport>
+                   <L1CalcOri>       true </L1CalcOri>
+                   <FiltreByCorrel>  true </FiltreByCorrel>
+                   <SeuilFiltreCorrel> 0.2 </SeuilFiltreCorrel>
+                   <PasCalcul Id="PCPI">>  10        </PasCalcul>
+                   <TypeModele> eTMA_Ori    </TypeModele>
+                   <MakeExport>  true       </MakeExport>
+		   <ReCalclCorrelMultiEchelle>
+                          <Seuil> 0.5  </Seuil>
+                          <UseIt Id="RME"> false </UseIt>
+                          <ScaleSzW>  1 1 </ScaleSzW>
+                          <ScaleSzW>  2 1 </ScaleSzW>
+                          <ScaleSzW>  4 1 </ScaleSzW>
+                          <ScaleSzW>  8 1 </ScaleSzW>
+                          <ScaleSzW>  16 1 </ScaleSzW>
+                          <AgregMin> true </AgregMin>
+                    </ReCalclCorrelMultiEchelle>
+                </OneModeleAnalytique>
+              </ModelesAnalytiques>
+      </EtapeMEC>
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+    <X_DirPlanInterFaisceau> 0  </X_DirPlanInterFaisceau>
+    <Y_DirPlanInterFaisceau> 0  </Y_DirPlanInterFaisceau>
+    <Z_DirPlanInterFaisceau> 0  </Z_DirPlanInterFaisceau>
+
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px2D </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <FiltragePointHomInImage > -20 </FiltragePointHomInImage>
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <!-- Work Dir, emplacement du chantier -->
+     <!-- <WorkDir > /home/pierrot/Data/TestNewMEC/T1/ </WorkDir> -->
+     <WorkDir > ### </WorkDir> 
+     <TmpMEC >    Tmp-Micmac-LIAISON/ </TmpMEC>
+     <TmpPyr >    Tmp-Pyr-Micmac-LIAISON/  </TmpPyr>
+     <TmpGeom >   Tmp-Micmac-LIAISON/  </TmpGeom> 
+     <TmpResult > Tmp-Micmac-LIAISON/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  300 </SzDalleMin>
+     <SzDalleMax>  20000  </SzDalleMax>
+     <SzRecouvrtDalles> 35 </SzRecouvrtDalles>
+     <ByProcess> 2 </ByProcess>
+
+     <CalcNomChantier>     <!--#S-->
+              <PatternSelChantier > 
+                          (.*)\.tif@(.*)\.tif
+              </PatternSelChantier>
+              <PatNameChantier > 
+                  ChantierHelico2_$1-$2_ 
+              </PatNameChantier> 
+              <!-- <PatNameGeom > [$1]-[$2]-[$3]-[$4]  </PatNameGeom> -->
+              <SeparateurChantier > @  </SeparateurChantier>
+     </CalcNomChantier>
+      <UseChantierNameDescripteur> true </UseChantierNameDescripteur> 
+</Section_WorkSpace>
+
+<Section_Vrac> 
+     <WithMessage> false </WithMessage>
+</Section_Vrac>
+
+</ParamMICMAC>
+
