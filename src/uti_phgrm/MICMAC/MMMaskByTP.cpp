@@ -1089,6 +1089,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    mTP3d = StdNuage3DFromFile(WorkDir()+aNamePts);
 
    cMasqBin3D * aMasq3D = 0;
+#if (ELISE_QT_VERSION >= 4)
    if (aMATP.Masq3D().IsInit())
    {
          aMasq3D  = cMasqBin3D::FromSaisieMasq3d(WorkDir()+aMATP.Masq3D().Val());
@@ -1101,7 +1102,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
          }
          *mTP3d = aNewVec;
    }
-
+#endif
 
    std::cout << "== cAppliMICMAC::DoMasqueAutoByTieP " << aBox._p0 << " " << aBox._p1 << " Nb=" << mTP3d->size() << "\n"; 
    std::cout << " =NB Im " << mVLI.size() << "\n";
