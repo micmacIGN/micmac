@@ -583,7 +583,7 @@ void cMMTP::ContAndBoucheTrou()
 
    // 1- Quelques fitre morpho de base, pour calculer les points eligibles au bouche-trou
    int aLabelOut = 0;
-   int aLabelIn = 1;
+   //int aLabelIn = 1;
    int aLabelClose = 2;
    int aLabelFront = 3;
 
