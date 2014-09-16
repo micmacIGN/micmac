@@ -445,6 +445,7 @@ int MakeOneXmlXifInfo_main(int argc,char ** argv);
 int Masq3Dto2D_main(int argc,char ** argv);
 
 int CPP_AppliMergeCloud(int argc,char ** argv);
+int MMEnveloppe_Main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -501,6 +502,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 #endif
     aRes.push_back(cMMCom("MergeCloud",CPP_AppliMergeCloud,"Tool for merging overlapping depth maps from different view points"));
+    aRes.push_back(cMMCom("MMEnvlop",MMEnveloppe_Main,"Compute initial enveloppe surface for MMEpi "));
     aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);

@@ -341,8 +341,49 @@ Pour eviter les trous restants dans MMByP (par ex le boule de la fontaine dans e
    - grace a cette enveloppe; on peut lancer a assez haut resolution de MMByP ?
 
   
+=====================================================
+
+Colab ML :
+
+  * basic synergie du pipeline
+  * utiliser ML comme interface graphique (saisie masq3D, saisie graphe camera,remove camera ...)
+  * getting money together in europe presenting a global coherent pipeline
+  * using meshlab alignment tools
+  * correction radiometrique/ aspect visuel ; ombrage rasant ....
+
+=====================================================
+
+Program semaine codage MicMac :
+
+-A- 1 Journee  "prise en main ", objectif :
+
+     *  creer un nouvelle commande, passage d'argument a des commandes, aux fichier XML;
+     *  lire-ecrire du XML, 
+     *  manipulation des camera (extrinseque intrinseque)
+
+=> Exo : conversion d'un modele de camera a un autre (exemple on a du Fraser , on veut du RadialStd en minisant les erreurs);
+Démarche :
+    - avec la caméra d'entrée on crée des points d'appuis dense;
+    - on lance une commande Apero  qui permet d'optimser la caméra de sortie:
+
+Cette journee permet de se remettre dans le bain, l'essentiel de la "théorie" a déjà été vu
+dans les exercices.
 
 
+-B-  1 a 2 Jours : pour apprendre a rajouter une observation dans le moteur de compensation;
+
+    Exemple d'un bloc de camera rigid
+
+-C- (en option suivant avancee de B) : apprendre a manipuler la strutcture de carte de profondeur representant un nuage de point;
+
+    Exo : basculement d'une carte sur l'autre a partir de point de liasons;
+
+
+-D- Apprendre a modifier le noyau de mise en correspondance :
+
+    Exo : a definir.
+
+    
 
 
 

@@ -372,8 +372,10 @@ template <class Type,class TBase>  cElN3D_EpipGen<Type,TBase>::cElN3D_EpipGen
 	mProfC     = scal(mDirPl,mCentre);
 }
 
+/*
 extern Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1>,Im2D_REAL4 aImProf, const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld);
 extern Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1>,Im2D_INT2 aImProf,const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld);
+*/
 
 
 

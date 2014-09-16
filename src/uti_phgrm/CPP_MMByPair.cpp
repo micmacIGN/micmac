@@ -117,7 +117,6 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mSkipCorDone;
       eTypeMMByP   mType;
       std::string  mStrType;
-      bool         mModeHelp;
       bool         mByMM1P;
       // bool         mByEpi;
       Box2di       mBoxOfImage;
@@ -343,9 +342,18 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    mByEpi     (false),
    mSetMasters(0),
    mCalPerIm  (false),
+   mModeHelp  (false),
    mNbAlti    (0),
    mSomAlti   (0.0)
 {
+   for (int aK=0 ; aK<argc; aK++)
+   {
+      if (std::string(argv[aK]) == std::string("-help"))
+      {
+         mModeHelp = true;
+         return;
+      }
+   }
    mWithOri  = ((aFlag & TheFlagNoOri)==0);
    if (argc< (mWithOri ? 2 : 1 ) )
    {
@@ -420,6 +428,15 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    }
    mAverNbPix /= mEASF.mSetIm->size();
 }
+
+std::list<std::string> cAppliWithSetImage::ExpandCommand(int aNumPat,std::string ArgSup)
+{
+    std::list<std::string> aRes;
+    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+       aRes.push_back(SubstArgcArvGlob(aNumPat,mVSoms[aK]->attr().mIma->mNameIm) + " " + ArgSup);
+    return aRes;
+}
+
 
 bool cAppliWithSetImage::HasOri() const
 {
@@ -603,7 +620,6 @@ void cAppliWithSetImage::ComputeStripPair(int aDif)
 
                     if (OK)
                     {
- /// std::cout << "MMByP " << anI1.mNameIm << " " << anI2.mNameIm << "\n";
                         AddPair(&(*itS1),&(*itS2));
                     }
                }
@@ -660,7 +676,6 @@ void cAppliWithSetImage::AddPair(tSomAWSI * aS1,tSomAWSI * aS2)
 
        Pt2dr aRatio =  aCpleE->RatioExp();
        double aSeuil = 1.8;
-       // std::cout << "RRR " << anI1->mNameIm << " " << anI2->mNameIm << " " << aCple.RatioExp() << "\n";
        if ((aRatio.x>aSeuil) || (aRatio.y>aSeuil))
            return;
 
@@ -942,7 +957,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDebugCreatE  (false)
 
 {
-  if (argc>=2)
+  if ((argc>=2) && (!mModeHelp))
   {
      ELISE_ASSERT(argc >= 2,"Not enough arg");
      mStrType = argv[1];

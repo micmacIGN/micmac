@@ -995,6 +995,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         </Correl_NC_Robuste>
 
                         <MasqueAutoByTieP Nb="?" AccessorFils="false"> 
+                            <FilterPrgDyn Nb="?" RefType="ParamFiltreDepthByPrgDyn"  RefFile="SuperposImage.xml"> </FilterPrgDyn>
                             <!-- Si true, s'arrete apres avoir rechecher les point qui correlent bien sans chercher a boucher les trous -->
                             <ComputeAndExportEnveloppe Nb="?">
 
@@ -1004,10 +1005,10 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                                    <SzFilter    Type="int" Nb="?" Def="7"> </SzFilter>
                                    <ParamPropFilter    Type="double" Nb="?" Def="0.9"> </ParamPropFilter>
 
-                                   <ProlResolCible Type="double" Nb="?" Def="100">   </ProlResolCible>
+                                   <ProlResolCible Type="double" Nb="?" Def="25">   </ProlResolCible>
                                    <ProlResolCur  Type="double" Nb="?" Def="10"> </ProlResolCur>
                                    <ProlDistAdd Type="double" Nb="?" Def="0.25"> </ProlDistAdd>
-                                   <ProlDistAddMax Nb="?" Type="double" Def="5.0"> </ProlDistAddMax>
+                                   <ProlDistAddMax Nb="?" Type="double" Def="3.0"> </ProlDistAddMax>
 
                                    <DilatAltiCible Nb="?" Type="int" Def="5"> </DilatAltiCible>
                                    <DilatPlaniCible Nb="?" Type="int" Def="5"> </DilatPlaniCible>

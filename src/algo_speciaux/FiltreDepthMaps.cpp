@@ -52,6 +52,189 @@ void f()
 #include "hassan/reechantillonnage.h"
 
 
+class cElemFDBPD
+{
+     public :
+        cElemFDBPD(bool isInside) :
+            mInside  (isInside)
+        {
+        }
+        cElemFDBPD() :
+            mInside  (false)
+        {
+        }
+
+        void InitTmp(const cTplCelNapPrgDyn<cElemFDBPD> & aCel)
+        {
+            *this = aCel.ArgAux();
+        }
+
+
+        U_INT1  mInside;
+    
+};
+
+class cFiltrageDepthByProgDyn
+{
+     public :
+        typedef  cElemFDBPD tArgCelTmp;
+        typedef  cElemFDBPD tArgNappe;
+        typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
+        typedef  cTplCelOptProgDyn<tArgCelTmp>  tCelOpt;
+
+
+        // aImLab => 0 Out, 1 In, 2 Interpole (donc + favorable a devenir un trou)
+
+        cFiltrageDepthByProgDyn(Im2D_REAL4 aImDepth,Im2D_U_INT1 aImLab,const cParamFiltreDepthByPrgDyn & aParam);
+
+        void DoConnexion
+           (
+                  const Pt2di & aPIn, const Pt2di & aPOut,
+                  ePrgSens aSens,int aRab,int aMul,
+                  tCelOpt*Input,int aInZMin,int aInZMax,
+                  tCelOpt*Ouput,int aOutZMin,int aOutZMax
+           );
+       void GlobInitDir(cProg2DOptimiser<cFiltrageDepthByProgDyn> &) {}
+       Im2D_Bits<1> Result() const {return mResult;}
+     private : 
+
+
+        static const double MulCost = 1e1;
+        int ToICost(double aCost) {return round_ni(MulCost * aCost);}
+        double ToRCost(int    aCost) {return aCost/ MulCost;}
+
+
+        Pt2di              mSz;
+        Im2D_U_INT1        mImLabel;  // 0 => Rien, 1= > OK, 2=> trou bouche
+        TIm2D<U_INT1,INT>  mTLab;
+        Im2D_REAL4         mImDepth;   // image dequant et trous bouches
+        TIm2D<REAL4,REAL>  mTDetph;
+        // Cout de reference 1 pour etre non affecte, 0 pour etre conserve
+        double             mParamCostNonAf;
+        double             mParamCostTrans;
+        double             mParamCostRegul;
+        double             mPasDZ;  // Pour simplifier le parametrage compte tenu du fait que la dynamique est tres variable
+        double             mMaxDZ;  // Au dela d'une certain valeur ajoute pas en irreg
+        int                mNbDir;
+        Im2D_Bits<1>       mResult;
+};
+
+void cFiltrageDepthByProgDyn::DoConnexion
+     (
+                  const Pt2di & aPIn, const Pt2di & aPOut,
+                  ePrgSens aSens,int aRab,int aMul,
+                  tCelOpt*aTabInput,int aInZMin,int aInZMax,
+                  tCelOpt*aTabOuput,int aOutZMin,int aOutZMax
+     )
+{
+    int aLabIn = mTLab.get(aPIn);
+    int aLabOut = mTLab.get(aPOut);
+
+    bool WithUndef = (aLabIn==0) || (aLabOut==0) ; // Aucune communication avec le reste des que un outside
+
+    for (int aZIn=0 ; aZIn<aInZMax ; aZIn++)
+    {
+        tCelOpt & anInp = aTabInput[aZIn];
+        const  tArgCelTmp & aCelIn = anInp.ArgAux();
+        for (int aZOut=0 ; aZOut<aOutZMax ; aZOut++)
+        {
+            tCelOpt & anOut = aTabOuput[aZOut];
+            const  tArgCelTmp & aCelOut = anOut.ArgAux();
+            double aCost = 0.0;
+            if (!WithUndef)
+            {
+                 if (aCelIn.mInside != aCelOut.mInside)
+                    aCost = mParamCostTrans;
+                 else if (aCelIn.mInside  && aCelOut.mInside)
+                 {
+                    double aDZ = ElAbs(mTDetph.get(aPIn)-mTDetph.get(aPOut)) * mPasDZ ;
+                    // Fonction concave, derivee nulle en zero,  assympote en mMaxDZ
+                    // aDZ =  (sqrt(1+aDZ/mMaxDZ)-1) * 2*mMaxDZ ;
+                    aDZ =  (mMaxDZ * aDZ) / (mMaxDZ + aDZ);
+                    aCost =  mParamCostRegul * aDZ;
+                 }
+            }
+            anOut.UpdateCostOneArc(anInp,aSens,ToICost(aCost));
+/*
+            double aDZ = ElAbs(aPIn.Z()-aPOut.Z())/mResolPlaniEquiAlt;
+            if ((mFNoVal==0) || (aDZ < mFNoVal->PenteMax()))
+            {
+            // Fonction concave, nulle et de derivee 1 en 0
+                 double aCost = (sqrt(1+aDZ/aSig0)-1) * 2*aSig0 * mFPrgD->Regul();
+                 anOut.UpdateCostOneArc(anInp,aSens,ToICost(aCost));
+            }
+*/
+        }
+    }
+
+}
+
+
+
+cFiltrageDepthByProgDyn::cFiltrageDepthByProgDyn(Im2D_REAL4 aImDepth,Im2D_U_INT1 aImLab,const cParamFiltreDepthByPrgDyn & aParam) :
+    mSz               (aImLab.sz()),
+    mImLabel          (aImLab),
+    mTLab             (mImLabel),
+    mImDepth          (aImDepth),
+    mTDetph           (mImDepth),
+    mParamCostNonAf   (aParam.CostNonAff().Val()),
+    mParamCostTrans   (aParam.CostTrans().Val()),
+    mParamCostRegul   (aParam.CostRegul().Val()),
+    mPasDZ            (aParam.StepZ()),
+    mMaxDZ            (aParam.DzMax().Val()),
+    mNbDir            (aParam.NbDir().Val()),
+    mResult           (mSz.x,mSz.y)
+{
+   Im2D_INT2 aImMin(mSz.x,mSz.y,0);
+   Im2D_INT2 aImMax(mSz.x,mSz.y);  
+   ELISE_COPY(aImMax.all_pts(),1+(mImLabel.in()!=0),aImMax.out());
+
+   cProg2DOptimiser<cFiltrageDepthByProgDyn>  * aPrgD = new cProg2DOptimiser<cFiltrageDepthByProgDyn>(*this,aImMin,aImMax,0,1); // 0,1 =>
+
+   cDynTplNappe3D<cTplCelNapPrgDyn<cElemFDBPD> > & aNap = aPrgD->Nappe();
+
+
+   Pt2di aP;
+   for (aP.x=0 ; aP.x<mSz.x ; aP.x++)
+   {
+       for (aP.y=0 ; aP.y<mSz.y ; aP.y++)
+       {
+           int aLab = mTLab.get(aP);
+           cTplCelNapPrgDyn<cElemFDBPD> * aTabP = aNap.Data()[aP.y][aP.x];
+
+           if (aLab==0)
+           {
+                aTabP[0].ArgAux() = cElemFDBPD(false);
+                aTabP[0].SetOwnCost(ToICost(0));
+           }
+           else
+           {
+                // Cout 1.0 arbitraire  pour etre refute
+                aTabP[0].ArgAux() = cElemFDBPD(false);
+                aTabP[0].SetOwnCost(ToICost( (aLab==2) ? mParamCostNonAf : 1.0));
+
+                // Cout 0 pour etre garde
+                aTabP[1].ArgAux() = cElemFDBPD(true);
+                aTabP[1].SetOwnCost(ToICost(0));
+           }
+         
+       }
+   }
+   aPrgD->DoOptim(mNbDir);
+   Im2D_INT2 aSol(mSz.x,mSz.y);
+   aPrgD->TranfereSol(aSol.data());
+
+   ELISE_COPY(mResult.all_pts(),aSol.in() && (mImLabel.in()!=0) ,mResult.out());
+}
+
+Im2D_Bits<1>    FiltrageDepthByProgDyn(Im2D_REAL4 aImDepth,Im2D_U_INT1 aImLab,const cParamFiltreDepthByPrgDyn & aParam)
+{
+     cFiltrageDepthByProgDyn aFilter(aImDepth,aImLab,aParam);
+
+     return aFilter.Result();
+}
+
+
 /***********************************************************************************/
 /*                                                                                 */
 /*                      FiltreDetecRegulProf                                       */
@@ -349,7 +532,6 @@ Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1> aIMasq,Im2D_INT2 aImProf,
 
 
 
-extern int  PdsGaussl9NEIGH[9];
 
 template <class tNum,class tNBase>  Im2D_REAL4   TplProlongByCont
                                            (
@@ -474,6 +656,21 @@ Im2D_REAL4 ProlongByCont
 {
      return TplProlongByCont(aMasqRes,aIMasq,aInput,aNbProl,aDistAdd,aDistMaxAdd);
 }
+
+Im2D_REAL4 ProlongByCont
+     (
+          Im2D_Bits<1> & aMasqRes,
+          Im2D_Bits<1> aIMasq,
+          Im2D_REAL4 aInput,
+          INT aNbProl,
+          double aDistAdd,
+          double aDistMaxAdd
+     )   
+{
+     return TplProlongByCont(aMasqRes,aIMasq,aInput,aNbProl,aDistAdd,aDistMaxAdd);
+}
+
+
 
 
 

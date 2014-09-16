@@ -369,6 +369,18 @@ class cResProj32
 
 cResProj32 Projection32(Fonc_Num aF,Pt2di aSz);
 
+//  Filtrage divers adapte aux carte de profondeur :
+
+class cParamFiltreDepthByPrgDyn;
+Im2D_Bits<1>    FiltrageDepthByProgDyn(Im2D_REAL4 aImDepth,Im2D_U_INT1 aImLab,const cParamFiltreDepthByPrgDyn & aParam);
+
+class cParamFiltreDetecRegulProf;
+extern Im2D_Bits<1>  FiltreDetecRegulProf(Im2D_REAL4 aImProf,Im2D_Bits<1> aIMasq,const cParamFiltreDetecRegulProf & aParam);
+
+Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1> aIMasq,Im2D_REAL4 aImProf, const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld);
+Im2D_REAL4 ReduceImageProf(double aDifStd,Im2D_Bits<1> aIMasq,Im2D_INT2 aImProf, const Box2dr &aBox,double aScale,Im2D_REAL4 aImPds,std::vector<Im2DGen*>  aVNew,std::vector<Im2DGen*> aVOld);
+
+
 
 #endif // _ELISE_GENERAL_MORPHO_H
 

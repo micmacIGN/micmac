@@ -58,6 +58,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
     <Symb> UseMasq3D=false  </Symb>
     <Symb> ExportEnv=false  </Symb>
     <Symb> FileMasq3D=XXXX  </Symb>
+    <Symb> ZPasCalc=0.5  </Symb>
 
 </DicoLoc>
 
@@ -111,7 +112,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
              <GenImagesCorrel > true </GenImagesCorrel>
 
-             <ZPas>        0.5  </ZPas>
+             <ZPas>   ${ZPasCalc} </ZPas>
              <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
 
 	     <ZDilatAlti>  4    </ZDilatAlti>
@@ -176,6 +177,9 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                             <#WHEN  VTEST=${UseMasq3D}>
                                   <Masq3D> ${FileMasq3D}       </Masq3D>
                             </#WHEN>
+                            <FilterPrgDyn> 
+                                   <StepZ>   ${ZPasCalc}   </StepZ>
+                            </FilterPrgDyn>
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
@@ -220,11 +224,26 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <TypeCAH>
                         <MasqueAutoByTieP>
+                            <FilterPrgDyn> 
+                                   <StepZ>   ${ZPasCalc}   </StepZ>
+                            </FilterPrgDyn>
+                            <ParamFiltreRegProf> 
+                                 <SzCC>  4 </SzCC>
+                                 <PondZ>  1.0 </PondZ>
+                                 <Pente> 0.25 </Pente>
+                                 <NbCCInit> 10 </NbCCInit>
+                            </ParamFiltreRegProf>
+
                             <#WHEN  VTEST=${UseMasq3D}>
                                   <Masq3D> ${FileMasq3D}       </Masq3D>
                             </#WHEN>
                             <#WHEN  VTEST=${ExportEnv}>
                                 <ComputeAndExportEnveloppe>
+                                      <EndAfter> false </EndAfter>
+                                      <ProlResolCible>  25  </ProlResolCible>
+                                      <ProlResolCur> 10 </ProlResolCur>
+                                      <ProlDistAdd> 0.25</ProlDistAdd>
+                                      <ProlDistAddMax> 3.0 </ProlDistAddMax>
                                 </ComputeAndExportEnveloppe>
                             </#WHEN>
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
