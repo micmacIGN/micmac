@@ -1612,9 +1612,8 @@ void cEtapeMecComp::SauvProjImage
 
       if (aBoxOut._p0 != Pt2di(0,0))
       {
-          SleepProcess(2);
+          SleepProcess(3);
       }
-
 
       Tiff_Im aTF = Tiff_Im::CreateIfNeeded
                     (

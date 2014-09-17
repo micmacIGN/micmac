@@ -248,6 +248,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     InitDefValFromType();
 
     Box2dr aBoxClip, aBoxTerrain;
+    double aResolTerrain;
 
     bool mModePB = false;
     std::string mModeOri;
@@ -298,6 +299,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
+                    << EAM(aResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)")
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)", eSAM_InternalUse)
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
@@ -732,6 +734,11 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
       }
 
+      if (EAMIsInit(&aResolTerrain))
+      {
+          mCom  =    mCom + " +UseResolTerrain=true "
+                  +  std::string(" +ResolTerrain=") + ToString(aResolTerrain);
+      }
       if (EAMIsInit(&aBoxTerrain))
       {
           mCom  =    mCom + " +UseBoxTerrain=true "
