@@ -9,8 +9,6 @@
 
 #include "GpGpu/GpGpu_Data.h"
 
-extern "C" void Launch(uint* value);
-
 template< class T >
 ///
 /// \brief The CSimpleJobCpuGpu class
