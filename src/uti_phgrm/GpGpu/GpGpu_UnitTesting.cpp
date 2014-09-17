@@ -1,8 +1,5 @@
 #include "GpGpu/GpGpu.h"
 
-
-//extern "C" void OptimisationOneDirectionZ_V02(Data2Optimiz<CuDeviceData3D> &d2O);
-
 int Main_UnitTest_Realloc()
 {
     printf("Main_UnitTest_Realloc - START\n");
@@ -206,7 +203,7 @@ int Main_Test_Optimisation()
 
     h2O.s_InitCostVol().OutputValues();
 
-    OptimisationOneDirectionZ_V02(d2O);
+    Gpu_OptimisationOneDirection(d2O);
 
     d2O.CopyDevicetoHost(h2O);
 

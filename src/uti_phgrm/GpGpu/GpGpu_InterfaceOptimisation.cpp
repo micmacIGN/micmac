@@ -18,26 +18,6 @@ void InterfOptimizGpGpu::Dealloc()
     _poInitCost.Dealloc();
 }
 
-void InterfOptimizGpGpu::oneDirOptGpGpu()
-{
-    _D_data2Opt.SetNbLine(_H_data2Opt.NBlines());
-
-    _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize(),_H_data2Opt.s_Index().GetSize());
-
-    _D_data2Opt.ReallocIf(_H_data2Opt);
-
-    //      Transfert des données vers le device                            ---------------		-
-    _D_data2Opt.CopyHostToDevice(_H_data2Opt);
-
-    //      Kernel optimisation                                             ---------------     -
-    OptimisationOneDirection(_D_data2Opt);
-
-    getLastCudaError("kernelOptiOneDirection failed");
-
-    //      Copie des couts de passage forcé du device vers le host         ---------------     -
-    _D_data2Opt.CopyDevicetoHost(_H_data2Opt);
-
-}
 
 void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,float zReg,float zRegQuad, ushort costDefMask,ushort costDefMaskTrans)
 {
@@ -77,7 +57,7 @@ void InterfOptimizGpGpu::optimisation()
     SetPreComp(true);
 
     //      Kernel optimisation                                             ---------------     -
-    OptimisationOneDirectionZ_V02(_D_data2Opt);
+    Gpu_OptimisationOneDirection(_D_data2Opt);
 
     //      Copie des couts de passage forcé du device vers le host         ---------------     -
     _D_data2Opt.CopyDevicetoHost(_H_data2Opt,GetIdBuf());
@@ -88,33 +68,23 @@ void InterfOptimizGpGpu::oneCompute()
     //cout << "START OPTI :" << boost::this_thread::get_id() << endl;
 
     while(!GetCompute())
-    {
-        //printf("WAIT COMPUTE CORREL...\n");
+
         boost::this_thread::sleep(boost::posix_time::microsec(1));
-    }
+
 
     SetCompute(false);
 
     optimisation();
 
     while(GetDataToCopy());
-//    {
-//        printf("WAIT DATA COPY CORREL...\n");
 //        boost::this_thread::sleep(boost::posix_time::microsec(5));
-//    }
 
-
-    //IncProgress();
     SwitchIdBuffer();
 
     SetDataToCopy(true);
 
     SetCompute(true);
 
-    //cout << "END OPTI   :" << boost::this_thread::get_id() << endl;
-
-
-    //printf("END oneCompute\n");
 }
 
 void InterfOptimizGpGpu::threadCompute()
