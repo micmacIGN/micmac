@@ -5,13 +5,7 @@
 #include "GpGpu/GpGpu_MultiThreadingCpu.h"
 #include "GpGpu/GpGpu_eLiSe.h"
 
-template <class T>
-void LaunchKernel();
-
-extern "C" void Launch(uint* value);
-extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
-extern "C" void OptimisationOneDirectionZ_V01(DEVC_Data2Opti  &d2O);
-extern "C" void OptimisationOneDirectionZ_V02(DEVC_Data2Opti  &d2O);
+extern "C" void Gpu_OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 
 template <class T>
 struct CuHostDaPo3D
@@ -57,15 +51,12 @@ struct CuHostDaPo3D
     {
         ushort dZ   = abs(count(ptZ));
         _ptZ[pt]    = ptZ;
-        _dZ[pt]     = dZ; // PREDEFCOR : _dZ[pt]+1 reserved cell
+        _dZ[pt]     = dZ;
 
-    // ATTENTION : Nappe Dynamique!! _maxDz
-    // NAPPEMAX
-        if(_maxDz < dZ)
-        {
+        // NAPPEMAX
+        if(_maxDz < dZ) // Calcul de la taille de la Nappe Max pour le calcul Gpu
             _maxDz = iDivUp32(dZ) * WARPSIZE;
-            //DUMP_INT(_maxDz)
-        }
+
         _pit[pt]    = _size;
         _size      += dZ;
     }
@@ -79,8 +70,6 @@ struct CuHostDaPo3D
     {
         return _pit[toUi2(pt)];
     }
-
-
 
     short2                  PtZ(uint2 pt)
     {
@@ -160,10 +149,7 @@ public:
     /// \brief oneDirOptGpGpu
     ///
 
-    ///
-    /// \brief oneDirOptGpGpu
-    ///
-    void            oneDirOptGpGpu();
+
 
     ///
     /// \brief ReallocParam
