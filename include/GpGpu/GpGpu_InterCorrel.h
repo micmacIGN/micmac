@@ -71,9 +71,6 @@ public:
 
   bool              NoMasked;
 
-
-  void         simpleJob();
-
 private:
 
   void              CorrelationGpGpu(ushort idBuf = 0 , const int s = 0);
@@ -82,9 +79,7 @@ private:
 
   cudaStream_t*		GetStream(int stream);
 
-  void              threadCompute();
-
-  void              oneCompute();
+  void              simpleWork();
 
   cudaStream_t      _stream[NSTREAM];
 

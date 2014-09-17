@@ -10,8 +10,6 @@ GpGpuInterfaceCorrel::GpGpuInterfaceCorrel():
     for (int s = 0;s<NSTREAM;s++)
         checkCudaErrors( cudaStreamCreate(GetStream(s)));
 
-    //CreateJob();
-
     freezeCompute();
 }
 
@@ -77,11 +75,6 @@ void GpGpuInterfaceCorrel::BasicCorrelation()
     // Indique que la copie est terminée pour le thread de calcul des projections
     SetPreComp(true);
 
-    // COPIE Les parametres à Virer!!
-    //CopyParamTodevice(_param[GetIdBuf()]);
-
-    //Param(GetIdBuf()).CopyParamToDevice();
-
     // Lancement du calcul de correlation
     CorrelationGpGpu(GetIdBuf());
 
@@ -103,62 +96,9 @@ cudaStream_t* GpGpuInterfaceCorrel::GetStream( int stream )
     return &(_stream[stream]);
 }
 
-void GpGpuInterfaceCorrel::simpleJob()
+void GpGpuInterfaceCorrel::simpleWork()
 {
-    boost::thread tOpti(&GpGpuInterfaceCorrel::oneCompute,this);
-    tOpti.detach();
-}
-
-void GpGpuInterfaceCorrel::oneCompute()
-{
-    //uint interZ = Param(GetIdBuf()).ZCInter;
-
-//    cout << "START CORREL :" << boost::this_thread::get_id() << endl;
-
-
-    while(!GetCompute())
-    {
-        //printf("WAIT COMPUTE OPTIM...\n");
-        boost::this_thread::sleep(boost::posix_time::microsec(1));
-    }
-
-    SetCompute(false);
-
     BasicCorrelation();
-
-    while(GetDataToCopy());
-//    {
-//        printf("WAIT DATA COPY OPTIM...\n");
-//        boost::this_thread::sleep(boost::posix_time::microsec(5));
-//    }
-
-    SwitchIdBuffer();
-    SetDataToCopy(true);
-
-    SetCompute(true);
-    //cout << "END CORREL   :" << boost::this_thread::get_id() << endl;
-
-}
-
-void GpGpuInterfaceCorrel::threadCompute()
-{
-    ResetIdBuffer();
-    while (true)
-    {
-        if (GetCompute())
-        {
-
-
-            // TEMP : TENTATIVE DE DEBUGAGE THREAD
-            //while(Param(GetIdBuf()).invPC.nbImages > 4096)
-            while(!Param(GetIdBuf()).HdPc.sizeCachAll)
-                boost::this_thread::sleep(boost::posix_time::microsec(1));
-
-            oneCompute();
-        }
-        else
-            boost::this_thread::sleep(boost::posix_time::microsec(1));
-    }
 }
 
 void GpGpuInterfaceCorrel::freezeCompute()
@@ -196,8 +136,7 @@ void GpGpuInterfaceCorrel::SetTexturesAreLoaded(bool load)
 
 void GpGpuInterfaceCorrel::CorrelationGpGpu(ushort idBuf,const int s )
 {
-    LaunchKernelCorrelation(s, *(GetStream(s)),_param[idBuf], _data2Cor);
-    //LaunchKernelCorrelationZ(s,_param[idBuf],_data2Cor);
+    LaunchKernelCorrelation(s, *(GetStream(s)),_param[idBuf], _data2Cor);    
 }
 
 void GpGpuInterfaceCorrel::MultiCorrelationGpGpu(ushort idBuf, const int s)

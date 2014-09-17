@@ -63,48 +63,9 @@ void InterfOptimizGpGpu::optimisation()
     _D_data2Opt.CopyDevicetoHost(_H_data2Opt,GetIdBuf());
 }
 
-void InterfOptimizGpGpu::oneCompute()
+void InterfOptimizGpGpu::simpleWork()
 {
-    //cout << "START OPTI :" << boost::this_thread::get_id() << endl;
-
-    while(!GetCompute())
-
-        boost::this_thread::sleep(boost::posix_time::microsec(1));
-
-
-    SetCompute(false);
-
     optimisation();
-
-    while(GetDataToCopy());
-//        boost::this_thread::sleep(boost::posix_time::microsec(5));
-
-    SwitchIdBuffer();
-
-    SetDataToCopy(true);
-
-    SetCompute(true);
-
-}
-
-void InterfOptimizGpGpu::threadCompute()
-{   
-    while(true)
-    {
-        if(GetCompute() /*&& !_H_data2Opt.nbLines()*/)
-        {
-
-            // TEMP : TENTATIVE DE DEBUGAGE THREAD
-            while(!_H_data2Opt.nbLines())
-                boost::this_thread::sleep(boost::posix_time::microsec(1));
-
-            SetCompute(false);
-
-            oneCompute();
-        }
-        else
-            boost::this_thread::sleep(boost::posix_time::microsec(1));
-    }
 }
 
 void InterfOptimizGpGpu::freezeCompute()
@@ -112,17 +73,9 @@ void InterfOptimizGpGpu::freezeCompute()
     _H_data2Opt.setNbLines(0);
     _D_data2Opt.setNbLines(0);
 
-//    _preFinalCost1D
-//    _poInitCost
-
     SetDataToCopy(false);
     SetCompute(false);
     SetPreComp(false);
 }
 
-void InterfOptimizGpGpu::simpleJob()
-{
-    boost::thread tOpti(&InterfOptimizGpGpu::oneCompute,this);
-    tOpti.detach();
-    //detached
-}
+

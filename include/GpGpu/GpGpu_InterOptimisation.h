@@ -137,25 +137,12 @@ public:
     /// \return
     ///
     HOST_Data2Opti& HData2Opt(){ return _H_data2Opt;}
-
     DEVC_Data2Opti& DData2Opt(){ return _D_data2Opt;}
 
     ///
     /// \brief Dealloc
     ///
     void            Dealloc();
-
-    ///
-    /// \brief oneDirOptGpGpu
-    ///
-
-
-
-    ///
-    /// \brief ReallocParam
-    /// \param size
-    ///
-    //void            Prepare(uint x,uint y);
 
     void            Prepare(uint x, uint y, ushort penteMax, ushort NBDir, float zReg, float zRegQuad, ushort costDefMask,ushort costDefMaskTrans);
 
@@ -164,18 +151,15 @@ public:
     ///
     void            freezeCompute();
 
-    void            simpleJob();
-
     CuHostData3D<uint>      _preFinalCost1D;
     CuHostData3D<uint>      _FinalDefCor;
-
     CuHostDaPo3D<ushort>    _poInitCost;
 
-    void oneCompute();
-    void optimisation();
+    void            optimisation();
+
 private:
 
-    void            threadCompute();
+    void            simpleWork();
 
     HOST_Data2Opti  _H_data2Opt;
     DEVC_Data2Opti  _D_data2Opt;
