@@ -22,8 +22,8 @@
                  <Arrite>  1 1 </Arrite>
                  <Direct>
                        <PatternTransform> (.*) </PatternTransform>
-                       <CalcName> Teta.tif </CalcName>
                        <CalcName> Rho.tif </CalcName>
+                       <CalcName> Teta.tif </CalcName>
                  </Direct>
              </Calcs>
              <Key>   KeyCsteRhoTeta </Key>
