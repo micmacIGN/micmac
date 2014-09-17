@@ -557,19 +557,29 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
 
     Fonc_Num  aFMasqBin;
     Fonc_Num fChCo = Virgule(FX,FY)/ aZoomRel;
+
+std::cout  << "ZRRRR  " << aZoomRel <<  " 1/Z " << (1/aZoomRel) << "\n";
+// Tiff_Im::CreateFromIm(mContBT,DirOfFile(mNameTargetEnv)+"CONTBT.tif");
+
+
     Fonc_Num aFoncProf = FoncChCoordWithMasq(mContBT.in(0),mImMasqFinal.in(0),fChCo,0,aFMasqBin);
     aFoncProf = ::AdaptDynOut(aFoncProf,aTargetNuage,aCurNuage);
 
     Tiff_Im aFileProf = FileEnv("Depth",false);
     ELISE_COPY(aFileProf.all_pts(),aFoncProf,aFileProf.out());
 
-    Tiff_Im aFileMasq = FileEnv("Masq",false);
+    Tiff_Im aFileMasq = FileEnv("Masq",true);
     ELISE_COPY(aFileMasq.all_pts(),aFMasqBin,aFileMasq.out());
 
 
 #ifdef ELISE_X11
-   if (TheWTiePCor)
+   if (0 && TheWTiePCor)
    {
+       ELISE_COPY(TheWTiePCor->all_pts(),aFMasqBin,TheWTiePCor->odisc());
+       std::cout << "AAAAAAAAAAAAAAAAAAAAa\n";
+       TheWTiePCor->clik_in();
+       ELISE_COPY(TheWTiePCor->all_pts(),aFileMasq.in(),TheWTiePCor->odisc());
+       std::cout << "bbBBbbBBBBBBBbbb\n";
        TheWTiePCor->clik_in();
    }
 #endif
@@ -630,19 +640,19 @@ void cMMTP::ContAndBoucheTrou()
                   aLFront.all_pts(),
                   mImLabel.neigh_test_and_set(Neighbourhood::v4(),2,3,20)
                ),
-               3,
+               aLabelFront,
                aLNew
          );
          aLFront = aLNew;
     }
-    ELISE_COPY(select(mImLabel.all_pts(),mImLabel.in()==3),0,mImLabel.out());
+    ELISE_COPY(select(mImLabel.all_pts(),mImLabel.in()==aLabelFront),0,mImLabel.out());
 
     // Au cas ou on ferait un export premature
     ELISE_COPY(mImMasqFinal.all_pts(),mImLabel.in()!=0,mImMasqFinal.out());
 
    // 2- Dequantifiication, adaptee au image a trou
 
-       Im2D_REAL4 aProfCont(mSzTiep.x,mSzTiep.y);
+       Im2D_REAL4 aProfCont(mSzTiep.x,mSzTiep.y,0.0);
        {
            Im2D_INT2 aPPV = BouchePPV(mImProf,mImLabel.in()==1);
 
@@ -682,6 +692,15 @@ void cMMTP::ContAndBoucheTrou()
          aProfCont.in(),
          mContBT.out()
     );
+             // Et rien en dehors de l'image
+    ELISE_COPY
+    (
+         select(mContBT.all_pts(),mImLabel.in()==0),
+         0,
+         mContBT.out()
+    );
+  
+  
   
   
        // 3.2 Iteration pour regulariser les points interpoles
@@ -731,7 +750,7 @@ void cMMTP::ContAndBoucheTrou()
 */
 
 #ifdef ELISE_X11
-           if(1 && TheWTiePCor)
+           if(0 && TheWTiePCor)
            {
 
               ELISE_COPY
@@ -740,13 +759,30 @@ void cMMTP::ContAndBoucheTrou()
                    mContBT.in()*7,
                    TheWTiePCor->ocirc()
               );
+              TheWTiePCor->clik_in();
+              
               ELISE_COPY
               (
                   mImLabel.all_pts(),
                   nflag_close_sym(flag_front4(mImLabel.in(0)==1)),
                   TheWTiePCor->out_graph(Line_St(TheWTiePCor->pdisc()(P8COL::black)))
               );
-              // TheWTiePCor->clik_in();
+              TheWTiePCor->clik_in();
+
+              ELISE_COPY
+              (
+                  mImLabel.all_pts(),
+                  mImLabel.in(0),
+                  TheWTiePCor->odisc()
+              );
+              TheWTiePCor->clik_in();
+              ELISE_COPY
+              (
+                  mImLabel.all_pts(),
+                  mImMasqFinal.in(0),
+                  TheWTiePCor->odisc()
+              );
+              TheWTiePCor->clik_in();
            }
 #endif
 }
