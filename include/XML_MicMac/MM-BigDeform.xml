@@ -133,7 +133,7 @@ par le correlateur
             <Px1Pas>        0.5  </Px1Pas>
             <Px2Pas>        0.5   </Px2Pas>
             <GenerateProjectionInImages>
-                <NumsImageDontApply> 1 </NumsImageDontApply>
+                <NumsImageDontApply> 0 </NumsImageDontApply>
                 <FCND_CalcProj> KeyCsteRhoTeta </FCND_CalcProj>
                 <SubsXY> true </SubsXY>
                 <Polar> true</Polar>
