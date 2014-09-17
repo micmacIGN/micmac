@@ -59,7 +59,8 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
            return  Dir() + DirFusMMInit() + NameFileGlob(aPref,aPost);
 
        }
-      void DownScaleNuage(const std::string &);
+      void DownScaleNuage(const std::string &,bool IsProf);
+      void MakePly(const std::string &);
     private :
       int mZoom0;
       int mZoomEnd;
@@ -68,6 +69,9 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
       std::string mDirMerge;
       bool mCalledByP;
       double mScaleNuage;
+      bool mShowCom;
+      bool mDoPly;
+      bool mDoPlyDS;
 };
 
 
@@ -75,7 +79,10 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    cAppliWithSetImage(argc-1,argv+1,0),
    mCalledByP (false),
-   mScaleNuage (1)
+   mScaleNuage (1),
+   mShowCom    (false),
+   mDoPly      (false),
+   mDoPlyDS    (false)
 {
    std::string Masq3D;
    std::string aPat,anOri;
@@ -89,7 +96,10 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAMC(mZoomEnd,"Zoom largest resol ", eSAM_IsExistDirOri),
         LArgMain()  << EAM(Masq3D,"Masq3D",true,"Masq3D pour filtrer")
                     << EAM(mCalledByP,"InternalCalledByP",true)
-                    << EAM(mScaleNuage,"DownScale",true)
+                    << EAM(mScaleNuage,"DownScale",true,"Create downscale cloud also")
+                    << EAM(mShowCom,"ShowC",true,"Show commande (tuning)")
+                    << EAM(mDoPly,"DoPly",true,"Do Ply")
+                    << EAM(mDoPlyDS,"DoPlyDS",true,"Do Ply down scaled")
    );
 
    if (! (mCalledByP))
@@ -100,6 +110,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
        for (std::list<std::string>::iterator itS=aLCom.begin() ; itS!=aLCom.end() ; itS++)
            std::cout << *itS << "\n";
 
+       cEl_GPAO::DoComInParal(aLCom);
        return;
    }
 
@@ -176,6 +187,12 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
               ELISE_COPY(select(aMasq.all_pts(),aMasq.in()),aCpt,aMasqMerge.out());
           }
           aCpt--;
+
+          if (mShowCom)
+          {
+             std::cout << "COM= " << aCom << "\n";
+             getchar();
+          }
    }
    const std::string FusMax  = "Fusion-Max";
    const std::string FusMin  = "Fusion-Min";
@@ -213,20 +230,31 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    anIp.Masq() = NameFileGlob(FusMasqD);
    anIp.Image() = NameFileGlob(FusDepth);
    MakeFileXML(aXMLParam,aNameNuageProf);
+   if (mDoPly)
+      MakePly(aNameNuageProf);
 
    if (mScaleNuage!=1.0)
    {
-      DownScaleNuage(aNameNuageEnvMax);
-      DownScaleNuage(aNameNuageEnvMin);
-      DownScaleNuage(aNameNuageProf);
+      DownScaleNuage(aNameNuageEnvMax,false);
+      DownScaleNuage(aNameNuageEnvMin,false);
+      DownScaleNuage(aNameNuageProf,true);
    }
 
 }
 
-void cAppli_Enveloppe_Main::DownScaleNuage(const std::string & aNN)
+void  cAppli_Enveloppe_Main::MakePly(const std::string & aNN)
 {
-    std::string aCom =  MM3dBinFile("ScaleNuage") + "  " + aNN  + " DownScale_" + NameWithoutDir(aNN) + " " + ToString(mScaleNuage);
+    std::string aCom =  MM3dBinFile("Nuage2Ply") + "  " + aNN  ;
     System(aCom);
+}
+
+void cAppli_Enveloppe_Main::DownScaleNuage(const std::string & aNN,bool IsProf)
+{
+   
+    std::string aCom =  MM3dBinFile("ScaleNuage") + "  " + aNN  + " DownScale_" + StdPrefix(NameWithoutDir(aNN)) + " " + ToString(mScaleNuage);
+    System(aCom);
+    if (mDoPlyDS && IsProf)
+       MakePly(DirOfFile(aNN)+ "DownScale_" + NameWithoutDir(aNN) );
 }
 
 int MMEnveloppe_Main(int argc,char ** argv)
