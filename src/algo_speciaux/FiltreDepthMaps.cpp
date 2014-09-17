@@ -51,6 +51,7 @@ void f()
 #include "StdAfx.h"
 #include "hassan/reechantillonnage.h"
 
+static const double MulCost = 1e1;
 
 class cElemFDBPD
 {
@@ -99,7 +100,6 @@ class cFiltrageDepthByProgDyn
      private : 
 
 
-        static const double MulCost = 1e1;
         int ToICost(double aCost) {return round_ni(MulCost * aCost);}
         double ToRCost(int    aCost) {return aCost/ MulCost;}
 
