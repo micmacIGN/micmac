@@ -13,9 +13,8 @@ set(uti_phgrm_GpGpu_Src_Files
 	 #${UTI_PHGRM_GPGPU_DIR}/GpGpuTextureTools.cu
 )
 
-set(uti_phgrm_Opt_GpGpu_Src_Files
+set(uti_phgrm_Opt_GpGpu_Src_Files        
         ${UTI_PHGRM_GPGPU_DIR}/GpGpu_Cuda_Optimisation.cu
-        ${UTI_PHGRM_GPGPU_DIR}/GpGpu_Cuda_Optimisation_Z.cu
         ${UTI_PHGRM_GPGPU_DIR}/GpGpu_InterfaceOptimisation.cpp
 )
 
