@@ -197,8 +197,3 @@ endif()
 if ( NOT ${qt_version} EQUAL 0)
     ADD_SUBDIRECTORY(saisieQT)
 endif()
-
-if (WITH_MM3dSat)
-    ADD_SUBDIRECTORY(mm3dSat)
-endif()
-
