@@ -229,7 +229,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
     #ifdef _DEBUG
         cout << "DirChantier : " << DirChantier << endl;
-		cout << "filename : "    << aNameFile.toStdString() << endl;
+        cout << "filename : "    << aNameFile.toStdString() << endl;
     #endif
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
@@ -267,13 +267,7 @@ void cEngine::loadCameras(QStringList filenames, int *incre)
     {
          if (incre) *incre = 100.0f*(float)i/filenames.size();
          CamStenope* cam = _Loader->loadCamera(filenames[i]);
-         if (cam)
-            _Data->addCamera(cam);
-         else
-         {
-             QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Bad file"));
-             return;
-         }
+         if (cam) _Data->addCamera(cam);
     }
 
     _Data->computeBBox();
