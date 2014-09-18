@@ -160,7 +160,7 @@ if(${CUDA_ENABLED})
 
     cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_tomoc} ${HEADERS_nomoc} ${saisie_ui} OPTIONS ${GENCODE_SM})
 
-    target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY})
+    target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY} ${OPENCL_LIBRARY})
 
 else()
 

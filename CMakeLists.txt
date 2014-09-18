@@ -37,6 +37,8 @@ OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
 
+OPTION(WITH_OPENCL  "Utilisation d'OpenCL" OFF )
+
 # Multi thread Poisson avec OpenMP
 OPTION(WITH_OPEN_MP "use OpenMP" OFF )
 
@@ -181,12 +183,12 @@ if (${CUDA_ENABLED})
         INCLUDE(FindCUDA)
 
         if(CUDA_FOUND)
-		
-			SET(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
-			SET(Cuda_Sample_path_Windows_XP "$ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
-			SET(Cuda_Sample_path_Apple "/Developer/NVIDIA/CUDA-${CUDA_VERSION}/samples/")
-			SET(Cuda_Sample_path_Linux "${CUDA_TOOLKIT_ROOT_DIR}/samples")
-			
+
+            SET(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
+            SET(Cuda_Sample_path_Windows_XP "$ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
+            SET(Cuda_Sample_path_Apple "/Developer/NVIDIA/CUDA-${CUDA_VERSION}/samples/")
+            SET(Cuda_Sample_path_Linux "${CUDA_TOOLKIT_ROOT_DIR}/samples")
+
             FIND_PATH(
                         CUDA_SAMPLE_DIR
                         NAMES
@@ -194,7 +196,7 @@ if (${CUDA_ENABLED})
                         PATHS
                             ${Cuda_Sample_path_Linux}
                             ${Cuda_Sample_path_Windows_VISTA_7_8}
-							${Cuda_Sample_path_Windows_XP}
+                            ${Cuda_Sample_path_Windows_XP}
                             ${Cuda_Sample_path_Windows_Apple}
                      )
 
