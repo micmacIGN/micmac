@@ -52,6 +52,12 @@ else()
 
 endif()
 
+if(${WITH_OPENCL})
+    set(OPENCL_ENABLED 1)
+else()
+    set(OPENCL_ENABLED  0)
+endif()
+
 
 if(${WITH_OPEN_MP})
     set(OPM_ENABLED 1)

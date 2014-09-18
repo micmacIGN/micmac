@@ -3,9 +3,6 @@
 
 typedef unsigned char pixel;
 
-
-
-
 #define NOPAGLOCKMEM false
 #define WARPSIZE    32
 #define SIZERING    2
