@@ -37,11 +37,11 @@ public:
 
     void setLayout(uint sy);
 
-    void loadPly(const QStringList& filenames);
+    bool loadPly(const QStringList& filenames);
 
-    void loadImages(const QStringList& filenames);
+    bool loadImages(const QStringList& filenames);
 
-    void loadCameras(const QStringList& filenames);
+    bool loadCameras(const QStringList& filenames);
 
     void setUI();
 

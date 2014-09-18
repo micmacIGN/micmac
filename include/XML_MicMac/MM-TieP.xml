@@ -224,6 +224,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <TypeCAH>
                         <MasqueAutoByTieP>
+<!--
                             <FilterPrgDyn> 
                                    <StepZ>   ${ZPasCalc}   </StepZ>
                             </FilterPrgDyn>
@@ -233,13 +234,14 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                  <Pente> 0.25 </Pente>
                                  <NbCCInit> 10 </NbCCInit>
                             </ParamFiltreRegProf>
+-->
 
                             <#WHEN  VTEST=${UseMasq3D}>
                                   <Masq3D> ${FileMasq3D}       </Masq3D>
                             </#WHEN>
                             <#WHEN  VTEST=${ExportEnv}>
                                 <ComputeAndExportEnveloppe>
-                                      <EndAfter> false </EndAfter>
+                                      <EndAfter> true </EndAfter>
                                       <ProlResolCible>  25  </ProlResolCible>
                                       <ProlResolCur> 10 </ProlResolCur>
                                       <ProlDistAdd> 0.25</ProlDistAdd>

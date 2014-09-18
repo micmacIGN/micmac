@@ -140,8 +140,12 @@ void SaisieQtWindow::progression()
 
 void SaisieQtWindow::runProgressDialog(QFuture<void> future)
 {
+    bool bShowMsgs = _ui->actionShow_messages->isChecked();
+    on_actionShow_messages_toggled(false);
+
     _FutureWatcher.setFuture(future);
     _ProgressDialog->setWindowModality(Qt::WindowModal);
+    _ProgressDialog->setCancelButton(NULL);
 
     float szFactor = 1.f;
     if (_params->getFullScreen())
@@ -158,9 +162,10 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> future)
     _ProgressDialog->exec();
 
     future.waitForFinished();
+    on_actionShow_messages_toggled(bShowMsgs);
 }
 
-void SaisieQtWindow::loadPly(const QStringList& filenames)
+bool SaisieQtWindow::loadPly(const QStringList& filenames)
 {
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
@@ -173,9 +178,11 @@ void SaisieQtWindow::loadPly(const QStringList& filenames)
     disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
     delete _incre;
     delete timer_test;
+
+    return true;
 }
 
-void SaisieQtWindow::loadImages(const QStringList& filenames)
+bool SaisieQtWindow::loadImages(const QStringList& filenames)
 {
     _Engine->computeScaleFactor(filenames); //sorti car GLContext plus accessible dans loadImages
 
@@ -191,10 +198,22 @@ void SaisieQtWindow::loadImages(const QStringList& filenames)
     disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
     delete _incre;
     delete timer_test;
+
+    return true;
 }
 
-void SaisieQtWindow::loadCameras(const QStringList& filenames)
+bool SaisieQtWindow::loadCameras(const QStringList& filenames)
 {
+    cLoader *tmp = new cLoader();
+    for (int i=0;i<filenames.size();++i)
+    {
+         if (!tmp->loadCamera(filenames[i]))
+         {
+             QMessageBox::critical(this, tr("Error"), tr("Bad file: ") + filenames[i]);
+             return false;
+         }
+    }
+
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
     connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -206,6 +225,8 @@ void SaisieQtWindow::loadCameras(const QStringList& filenames)
     disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
     delete _incre;
     delete timer_test;
+
+    return true;
 }
 
 void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
@@ -237,6 +258,8 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             }
         }
 
+        bool loadOK = false;
+
         _Engine->setFilenames(filenames);
 
         QString suffix = QFileInfo(filenames[0]).suffix();  //TODO: separer la stringlist si differents types de fichiers
@@ -246,20 +269,26 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             if ((_appMode == MASK2D) && (currentWidget()->hasDataLoaded()))
                 closeAll();
 
-            loadPly(filenames);
-            initData();
+            loadOK = loadPly(filenames);
+            if (loadOK)
+            {
+                initData();
 
-            currentWidget()->getHistoryManager()->load(_Engine->getSelectionFilenamesOut()[0]);
+                currentWidget()->getHistoryManager()->load(_Engine->getSelectionFilenamesOut()[0]);
 
-            _appMode = MASK3D;
+                _appMode = MASK3D;
+            }
         }
         else if (suffix == "xml")
         {
-            loadCameras(filenames);
+            loadOK = loadCameras(filenames);
 
-            _ui->actionShow_cams->setChecked(true);
+            if (loadOK)
+            {
+                _ui->actionShow_cams->setChecked(true);
 
-            _appMode = MASK3D;
+                _appMode = MASK3D;
+            }
         }
         else // LOAD IMAGE
         {
@@ -278,34 +307,37 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             _Engine->setGLMaxTextureSize(maxTexture);
 
-            loadImages(filenames);
+            loadOK = loadImages(filenames);
         }
 
-        _Engine->allocAndSetGLData(_appMode, *_params);
-
-        if (setGLData)
+        if (loadOK)
         {
-            for (int aK = 0; aK < nbWidgets();++aK)
-            {
-                getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
-                getWidget(aK)->setParams(_params);
+            _Engine->allocAndSetGLData(_appMode, *_params);
 
-                if (getWidget(aK)->getHistoryManager()->size())
+            if (setGLData)
+            {
+                for (int aK = 0; aK < nbWidgets();++aK)
                 {
-                    getWidget(aK)->applyInfos();
-                    getWidget(aK)->getMatrixManager()->resetViewPort();
-                    //_bSaved = false;
+                    getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
+                    getWidget(aK)->setParams(_params);
+
+                    if (getWidget(aK)->getHistoryManager()->size())
+                    {
+                        getWidget(aK)->applyInfos();
+                        getWidget(aK)->getMatrixManager()->resetViewPort();
+                        //_bSaved = false;
+                    }
                 }
             }
+            else
+                emit imagesAdded(-4, false);
+
+            for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
+
+            updateUI();
+
+            _ui->actionClose_all->setEnabled(true);
         }
-        else
-            emit imagesAdded(-4, false);
-
-        for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
-
-        updateUI();
-
-        _ui->actionClose_all->setEnabled(true);
     }
 }
 

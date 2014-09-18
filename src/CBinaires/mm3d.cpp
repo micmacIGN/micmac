@@ -366,11 +366,11 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 #endif
        aRes.push_back(cMMCom("TestLib",SampleLibElise_main," To call the program illustrating the library"));
-       aRes.push_back(cMMCom("FieldDep3d",ChamVec3D_main," To export results of matching as 3D deplacement"));
+       aRes.push_back(cMMCom("FieldDep3d",ChamVec3D_main," To export results of matching as 3D shifting"));
        aRes.push_back(cMMCom("SupMntIm",SupMntIm_main," Tool for superposition of Mnt Im & level curve"));
 
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
-       aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo "));
+       aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo"));
    }
 
    cCmpMMCom CmpMMCom;
