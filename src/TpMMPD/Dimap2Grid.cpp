@@ -1,19 +1,8 @@
 #include "StdAfx.h"
 
-#if (ELISE_QT_VERSION >= 4)
-#ifdef Int
-#undef Int
-#endif
-#endif
-
 class Dimap{
 public:
-    Dimap(std::string const &nomFile)
-    {
-        lireDimapFile(nomFile);
-    }
-
-    void lireDimapFile(std::string const &nomFile);
+    Dimap(std::string const &nomFile);
 
     Pt2dr direct(Pt2dr Pimg, double altitude)const;
 
@@ -353,9 +342,9 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                        std::vector<double> vRefineCoef, bool refine)const
 {
     double firstSamp = first_col;
-    double firstLine= first_row;
-    double lastSamp = last_col;
-    double lastLine = last_row;
+    double firstLine = first_row;
+    double lastSamp  = last_col;
+    double lastLine  = last_row;
 
     //Direct nbr Lignes et colonnes + step last ligne et colonne
     int nbLine, nbSamp;
@@ -601,7 +590,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
  }
 
 //Lecture du fichier DIMAP
-void Dimap::lireDimapFile(std::string const &nomFile)
+Dimap::Dimap(std::string const &nomFile)
 {
     direct_samp_num_coef.clear();
     direct_samp_den_coef.clear();
@@ -615,112 +604,111 @@ void Dimap::lireDimapFile(std::string const &nomFile)
 
     cElXMLTree tree(nomFile.c_str());
 
- {
-    std::list<cElXMLTree*> noeuds=tree.GetAll(std::string("Direct_Model"));
-    std::list<cElXMLTree*>::iterator it_grid,fin_grid=noeuds.end();
-
-
-    std::string coefSampN="SAMP_NUM_COEFF";
-    std::string coefSampD="SAMP_DEN_COEFF";
-    std::string coefLineN="LINE_NUM_COEFF";
-    std::string coefLineD="LINE_DEN_COEFF";
-    for (int c=1; c<21;c++)
     {
-        std::stringstream ss;
-        ss<<"_"<<c;
-        coefSampN.append(ss.str());
-        coefSampD.append(ss.str());
-        coefLineN.append(ss.str());
-        coefLineD.append(ss.str());
+        std::list<cElXMLTree*> noeuds=tree.GetAll(std::string("Direct_Model"));
+        std::list<cElXMLTree*>::iterator it_grid,fin_grid=noeuds.end();
+
+
+        std::string coefSampN="SAMP_NUM_COEFF";
+        std::string coefSampD="SAMP_DEN_COEFF";
+        std::string coefLineN="LINE_NUM_COEFF";
+        std::string coefLineD="LINE_DEN_COEFF";
+
+        for (int c=1; c<21;c++)
+        {
+            std::stringstream ss;
+            ss<<"_"<<c;
+            coefSampN.append(ss.str());
+            coefSampD.append(ss.str());
+            coefLineN.append(ss.str());
+            coefLineD.append(ss.str());
+            for(it_grid=noeuds.begin();it_grid!=fin_grid;++it_grid)
+            {
+                double value;
+                std::istringstream buffer((*it_grid)->GetUnique(coefSampN.c_str())->GetUniqueVal());
+                buffer >> value;
+                direct_samp_num_coef.push_back(value);
+                std::istringstream buffer2((*it_grid)->GetUnique(coefSampD.c_str())->GetUniqueVal());
+                buffer2 >> value;
+                direct_samp_den_coef.push_back(value);
+                std::istringstream buffer3((*it_grid)->GetUnique(coefLineN.c_str())->GetUniqueVal());
+                buffer3 >> value;
+                direct_line_num_coef.push_back(value);
+                std::istringstream buffer4((*it_grid)->GetUnique(coefLineD.c_str())->GetUniqueVal());
+                buffer4 >> value;
+                direct_line_den_coef.push_back(value);
+            }
+            coefSampN=coefSampN.substr(0,14);
+            coefSampD=coefSampD.substr(0,14);
+            coefLineN=coefLineN.substr(0,14);
+            coefLineD=coefLineD.substr(0,14);
+        }
         for(it_grid=noeuds.begin();it_grid!=fin_grid;++it_grid)
         {
-            double value;
-            std::istringstream buffer((*it_grid)->GetUnique(coefSampN.c_str())->GetUniqueVal());
-            buffer >> value;
-            direct_samp_num_coef.push_back(value);
-            std::istringstream buffer2((*it_grid)->GetUnique(coefSampD.c_str())->GetUniqueVal());
-            buffer2 >> value;
-            direct_samp_den_coef.push_back(value);
-            std::istringstream buffer3((*it_grid)->GetUnique(coefLineN.c_str())->GetUniqueVal());
-            buffer3 >> value;
-             direct_line_num_coef.push_back(value);
-            std::istringstream buffer4((*it_grid)->GetUnique(coefLineD.c_str())->GetUniqueVal());
-            buffer4 >> value;
-            direct_line_den_coef.push_back(value);
+            std::istringstream buffer((*it_grid)->GetUnique("ERR_BIAS_X")->GetUniqueVal());
+            buffer >> dirErrBiasX;
+            std::istringstream bufferb((*it_grid)->GetUnique("ERR_BIAS_Y")->GetUniqueVal());
+            bufferb >> dirErrBiasY;
         }
-        coefSampN=coefSampN.substr(0,14);
-        coefSampD=coefSampD.substr(0,14);
-        coefLineN=coefLineN.substr(0,14);
-        coefLineD=coefLineD.substr(0,14);
-
     }
-     for(it_grid=noeuds.begin();it_grid!=fin_grid;++it_grid)
-     {
-         std::istringstream buffer((*it_grid)->GetUnique("ERR_BIAS_X")->GetUniqueVal());
-         buffer >> dirErrBiasX;
-         std::istringstream bufferb((*it_grid)->GetUnique("ERR_BIAS_Y")->GetUniqueVal());
-         bufferb >> dirErrBiasY;
-     }
- }
 
-
- {
-    std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model"));
-    std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
-
-    std::string coefSampN="SAMP_NUM_COEFF";
-    std::string coefSampD="SAMP_DEN_COEFF";
-    std::string coefLineN="LINE_NUM_COEFF";
-    std::string coefLineD="LINE_DEN_COEFF";
-    for (int c=1; c<21;c++)
     {
-        double value;
-        std::stringstream ss;
-        ss<<"_"<<c;
-        coefSampN.append(ss.str());
-        coefSampD.append(ss.str());
-        coefLineN.append(ss.str());
-        coefLineD.append(ss.str());
+        std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model"));
+        std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
+
+        std::string coefSampN="SAMP_NUM_COEFF";
+        std::string coefSampD="SAMP_DEN_COEFF";
+        std::string coefLineN="LINE_NUM_COEFF";
+        std::string coefLineD="LINE_DEN_COEFF";
+
+        for (int c=1; c<21;c++)
+        {
+            double value;
+            std::stringstream ss;
+            ss<<"_"<<c;
+            coefSampN.append(ss.str());
+            coefSampD.append(ss.str());
+            coefLineN.append(ss.str());
+            coefLineD.append(ss.str());
+            for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
+            {
+                std::istringstream bufferInd((*it_gridInd)->GetUnique(coefSampN.c_str())->GetUniqueVal());
+                bufferInd >> value;
+                indirect_samp_num_coef.push_back(value);
+                std::istringstream bufferInd2((*it_gridInd)->GetUnique(coefSampD.c_str())->GetUniqueVal());
+                bufferInd2 >> value;
+                indirect_samp_den_coef.push_back(value);
+                std::istringstream bufferInd3((*it_gridInd)->GetUnique(coefLineN.c_str())->GetUniqueVal());
+                bufferInd3 >> value;
+                indirect_line_num_coef.push_back(value);
+                std::istringstream bufferInd4((*it_gridInd)->GetUnique(coefLineD.c_str())->GetUniqueVal());
+                bufferInd4 >> value;
+                indirect_line_den_coef.push_back(value);
+            }
+            coefSampN=coefSampN.substr(0,14);
+            coefSampD=coefSampD.substr(0,14);
+            coefLineN=coefLineN.substr(0,14);
+            coefLineD=coefLineD.substr(0,14);
+        }
         for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
         {
-            std::istringstream bufferInd((*it_gridInd)->GetUnique(coefSampN.c_str())->GetUniqueVal());
-            bufferInd >> value;
-            indirect_samp_num_coef.push_back(value);
-            std::istringstream bufferInd2((*it_gridInd)->GetUnique(coefSampD.c_str())->GetUniqueVal());
-            bufferInd2 >> value;
-            indirect_samp_den_coef.push_back(value);
-            std::istringstream bufferInd3((*it_gridInd)->GetUnique(coefLineN.c_str())->GetUniqueVal());
-            bufferInd3 >> value;
-            indirect_line_num_coef.push_back(value);
-            std::istringstream bufferInd4((*it_gridInd)->GetUnique(coefLineD.c_str())->GetUniqueVal());
-            bufferInd4 >> value;
-            indirect_line_den_coef.push_back(value);
+            std::istringstream buffer((*it_gridInd)->GetUnique("ERR_BIAS_ROW")->GetUniqueVal());
+            buffer >> indirErrBiasRow;
+            std::istringstream bufferb((*it_gridInd)->GetUnique("ERR_BIAS_COL")->GetUniqueVal());
+            bufferb >> indirErrBiasCol;
         }
-        coefSampN=coefSampN.substr(0,14);
-        coefSampD=coefSampD.substr(0,14);
-        coefLineN=coefLineN.substr(0,14);
-        coefLineD=coefLineD.substr(0,14);
     }
-     for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
-     {
-         std::istringstream buffer((*it_gridInd)->GetUnique("ERR_BIAS_ROW")->GetUniqueVal());
-         buffer >> indirErrBiasRow;
-        std::istringstream bufferb((*it_gridInd)->GetUnique("ERR_BIAS_COL")->GetUniqueVal());
-         bufferb >> indirErrBiasCol;
-     }
-  }
 
-
-  {
+    {
         std::list<cElXMLTree*> noeudsRFM=tree.GetAll(std::string("RFM_Validity"));
         std::list<cElXMLTree*>::iterator it_gridRFM,fin_gridRFM=noeudsRFM.end();
 
-    {
-        std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Direct_Model_Validity_Domain"));
-        std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
+        {
+            std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Direct_Model_Validity_Domain"));
+            std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
 
 
-        for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
+            for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
             {
                 std::istringstream bufferInd((*it_gridInd)->GetUnique("FIRST_ROW")->GetUniqueVal());
                 bufferInd >> first_row;
@@ -731,50 +719,49 @@ void Dimap::lireDimapFile(std::string const &nomFile)
                 std::istringstream bufferInd4((*it_gridInd)->GetUnique("LAST_COL")->GetUniqueVal());
                 bufferInd4 >> last_col;
             }
-    }
+        }
 
 
-    {
-        std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model_Validity_Domain"));
-        std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
-
-        for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
         {
-            std::istringstream bufferInd((*it_gridInd)->GetUnique("FIRST_LON")->GetUniqueVal());
-            bufferInd >> first_lon;
-            std::istringstream bufferInd2((*it_gridInd)->GetUnique("FIRST_LAT")->GetUniqueVal());
-            bufferInd2 >> first_lat;
-            std::istringstream bufferInd3((*it_gridInd)->GetUnique("LAST_LON")->GetUniqueVal());
-            bufferInd3 >> last_lon;
-            std::istringstream bufferInd4((*it_gridInd)->GetUnique("LAST_LAT")->GetUniqueVal());
-            bufferInd4 >> last_lat;
+            std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model_Validity_Domain"));
+            std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
+
+            for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
+            {
+                std::istringstream bufferInd((*it_gridInd)->GetUnique("FIRST_LON")->GetUniqueVal());
+                bufferInd >> first_lon;
+                std::istringstream bufferInd2((*it_gridInd)->GetUnique("FIRST_LAT")->GetUniqueVal());
+                bufferInd2 >> first_lat;
+                std::istringstream bufferInd3((*it_gridInd)->GetUnique("LAST_LON")->GetUniqueVal());
+                bufferInd3 >> last_lon;
+                std::istringstream bufferInd4((*it_gridInd)->GetUnique("LAST_LAT")->GetUniqueVal());
+                bufferInd4 >> last_lat;
+            }
+        }
+        for(it_gridRFM=noeudsRFM.begin();it_gridRFM!=fin_gridRFM;++it_gridRFM)
+        {
+            std::istringstream buffer((*it_gridRFM)->GetUnique("LONG_SCALE")->GetUniqueVal());
+            buffer>> long_scale;
+            std::istringstream buffer2((*it_gridRFM)->GetUnique("LONG_OFF")->GetUniqueVal());
+            buffer2 >> long_off;
+            std::istringstream buffer3((*it_gridRFM)->GetUnique("LAT_SCALE")->GetUniqueVal());
+            buffer3 >> lat_scale;
+            std::istringstream buffer4((*it_gridRFM)->GetUnique("LAT_OFF")->GetUniqueVal());
+            buffer4 >> lat_off;
+            std::istringstream buffer5((*it_gridRFM)->GetUnique("HEIGHT_SCALE")->GetUniqueVal());
+            buffer5 >> height_scale;
+            std::istringstream buffer6((*it_gridRFM)->GetUnique("HEIGHT_OFF")->GetUniqueVal());
+            buffer6 >> height_off;
+            std::istringstream buffer7((*it_gridRFM)->GetUnique("SAMP_SCALE")->GetUniqueVal());
+            buffer7 >> samp_scale;
+            std::istringstream buffer8((*it_gridRFM)->GetUnique("SAMP_OFF")->GetUniqueVal());
+            buffer8 >> samp_off;
+            std::istringstream buffer9((*it_gridRFM)->GetUnique("LINE_SCALE")->GetUniqueVal());
+            buffer9 >> line_scale;
+            std::istringstream buffer10((*it_gridRFM)->GetUnique("LINE_OFF")->GetUniqueVal());
+            buffer10 >> line_off;
         }
     }
-      for(it_gridRFM=noeudsRFM.begin();it_gridRFM!=fin_gridRFM;++it_gridRFM)
-      {
-          std::istringstream buffer((*it_gridRFM)->GetUnique("LONG_SCALE")->GetUniqueVal());
-          buffer>> long_scale;
-          std::istringstream buffer2((*it_gridRFM)->GetUnique("LONG_OFF")->GetUniqueVal());
-          buffer2 >> long_off;
-          std::istringstream buffer3((*it_gridRFM)->GetUnique("LAT_SCALE")->GetUniqueVal());
-          buffer3 >> lat_scale;
-          std::istringstream buffer4((*it_gridRFM)->GetUnique("LAT_OFF")->GetUniqueVal());
-          buffer4 >> lat_off;
-          std::istringstream buffer5((*it_gridRFM)->GetUnique("HEIGHT_SCALE")->GetUniqueVal());
-          buffer5 >> height_scale;
-          std::istringstream buffer6((*it_gridRFM)->GetUnique("HEIGHT_OFF")->GetUniqueVal());
-          buffer6 >> height_off;
-          std::istringstream buffer7((*it_gridRFM)->GetUnique("SAMP_SCALE")->GetUniqueVal());
-          buffer7 >> samp_scale;
-          std::istringstream buffer8((*it_gridRFM)->GetUnique("SAMP_OFF")->GetUniqueVal());
-          buffer8 >> samp_off;
-          std::istringstream buffer9((*it_gridRFM)->GetUnique("LINE_SCALE")->GetUniqueVal());
-          buffer9 >> line_scale;
-          std::istringstream buffer10((*it_gridRFM)->GetUnique("LINE_OFF")->GetUniqueVal());
-          buffer10 >> line_off;
-      }
- }
-
 }
 
 
@@ -875,7 +862,7 @@ int Dimap2Grid_main(int argc, char **argv) {
 
 
 
-    //Test si le modele est affiné pour l'apelation du fichier de sortie
+    //Test si le modele est affiné pour l'appellation du fichier de sortie
     bool refine=false;
     double noRefine[]={0,1,0,0,0,1};
 
