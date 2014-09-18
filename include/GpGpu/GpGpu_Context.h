@@ -45,7 +45,7 @@ void CGpGpuContext<CUDASDK>::createContext() {
     // Obtention des proprietes de la carte
     checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
     // Affichage des proprietes de la carte
-    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+    //printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
 }
 
 template <> inline
