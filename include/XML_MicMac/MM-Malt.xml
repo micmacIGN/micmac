@@ -159,6 +159,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb> UseMasq3D=false </Symb>
    <Symb> NameMasq3D=XXXX </Symb>
 
+   <Symb> UseResolTerrain=false </Symb>
+   <Symb> ResolTerrain=0 </Symb>
 <!--
 
     <Symb>  UseEqui=t=rue </Symb>
@@ -200,6 +202,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
        </IntervSpecialZInv>
 
       <Planimetrie>
+           <#WHEN VTEST=${UseResolTerrain}>
+                  <ResolutionTerrain> ${ResolTerrain} </ResolutionTerrain>
+           </#WHEN>
            <IncludeFileLoc>  ${FileMasqT} </IncludeFileLoc>
            <FilterEstimTerrain> ${ImMNT} </FilterEstimTerrain>
 		   
