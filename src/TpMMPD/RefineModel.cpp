@@ -23,28 +23,32 @@ protected:
     double b1;
     double b2;
 
-    // Tie Points in the Maser Image (in pixel)
+    // Tie Points in the Master Image (in pixel)
     std::vector<Pt2dr> vPtImgMaster;
-    // Tie Points in the Maser Image (in pixel)
+    // Tie Points in the Slave Image (in pixel)
     std::vector<Pt2dr> vPtImgSlave;
-    // Tie Points altitude (Ã  estimer)
+    // Tie Points altitude (to estimate)
     std::vector<double> vZ;
     double zMoy;
+
+    //for estimation
+    ElMatrix<double> _N;
+    ElMatrix<double> _Y;
 
 public:
 
     double getZ(Pt2dr const &ptImgMaster,
              Pt2dr const &ptImgSlave,
-             double zIni)const
+             double zIni,
+             double dZ = 0.1) const
     {
         double z = zIni;
-        double dZ = 0.1;
-        Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,z);
-        double d = D.x*D.x + D.y*D.y;
-        Pt2dr D1 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ);
-        double d1 = D1.x*D1.x + D1.y*D1.y;
-        Pt2dr D2 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ);
-        double d2 = D2.x*D2.x + D2.y*D2.y;
+        Pt2dr D   = compute2DGroundDifference(ptImgMaster,ptImgSlave,z);
+        double d  = square_euclid(D);
+        Pt2dr D1  = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ);
+        double d1 = square_euclid(D1);
+        Pt2dr D2  = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ);
+        double d2 = square_euclid(D2);
         if (d1<d2)
         {
             while(d1<d)
@@ -52,16 +56,17 @@ public:
                 d = d1;
                 z = z-dZ;
                 D1 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ);
-                d1 = D1.x*D1.x + D1.y*D1.y;
+                d1 = square_euclid(D1);
             }
         }
-        else {
+        else
+        {
             while(d2<d)
             {
                 d = d2;
                 z = z+dZ;
                 D2 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ);
-                d2 = D2.x*D2.x + D2.y*D2.y;
+                d2 = square_euclid(D2);
             }
         }
         return z;
@@ -70,7 +75,7 @@ public:
     RefineModelAbs(std::string const &aNameFileGridMaster,
                    std::string const &aNameFileGridSlave,
                    std::string const &aNamefileTiePoints,
-                   double Zmoy):masterCamera(NULL),slaveCamera(NULL),a0(0),a1(1),a2(0),b0(0),b1(0),b2(1),zMoy(Zmoy)
+                   double Zmoy):masterCamera(NULL),slaveCamera(NULL),a0(0),a1(1),a2(0),b0(0),b1(0),b2(1),zMoy(Zmoy),_N(1,1,0.),_Y(1,1,0.)
     {
         // Loading the GRID file
         ElAffin2D oriIntImaM2C;
@@ -82,6 +87,7 @@ public:
         // avec une estimation approximative de l'altitude
 
         std::ifstream fic(aNamefileTiePoints.c_str());
+        int rPts_nb = 0; //rejected points number
         while(fic.good())
         {
             Pt2dr P1,P2;
@@ -91,10 +97,11 @@ public:
                 double z = getZ(P1,P2,zMoy);
                 std::cout << "z = "<<z<<std::endl;
                 Pt2dr D = compute2DGroundDifference(P1,P2,z);
-                double dist = std::sqrt(D.x*D.x+D.y*D.y);
-                if (dist>10.)
+
+                if (square_euclid(D)>100.)
                 {
-                    std::cout << "On a un point trop loin : "<<D.x<<" "<<D.y<<std::endl;
+                    rPts_nb++;
+                    std::cout << "On a un point trop loin : "<< D.x << " " << D.y << std::endl;
                 }
                 else
                 {
@@ -104,13 +111,14 @@ public:
                 }
             }
         }
-        std::cout << "Number of tie points : "<<vPtImgMaster.size()<<std::endl;
+        std::cout << "Number of rejected points : "<< rPts_nb << std::endl;
+        std::cout << "Number of tie points : "<< vPtImgMaster.size() << std::endl;
     }
 
 
 
-    // compute the difference between the Ground Points for a given TiePoints
-    // and a given set of parametes (Z and affinity)
+    // compute the difference between the Ground Points for a given Tie Point
+    // and a given set of parameters (Z and affinity)
     Pt2dr compute2DGroundDifference(Pt2dr const &ptImgMaster,
                                     Pt2dr const &ptImgSlave,
                                     double aZ,
@@ -127,6 +135,7 @@ public:
         Pt3dr ptTerSlave = slaveCamera->ImEtProf2Terrain(ptImgSlaveC,aZ);
         return Pt2dr(ptTerMaster.x - ptTerSlave.x,ptTerMaster.y - ptTerSlave.y);
     }
+
     Pt2dr compute2DGroundDifference(Pt2dr const &ptImgMaster,
                                     Pt2dr const &ptImgSlave,
                                     double aZ)const
@@ -143,9 +152,60 @@ public:
             Pt2dr const &ptImgSlave  = vPtImgSlave[i];
             // ecart constate
             Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,vZ[i]);
-            sumRes += D.x*D.x + D.y*D.y;
+            sumRes += square_euclid(D);
         }
         return sumRes;
+    }
+
+    void updateParams(ElMatrix <double> const &sol)
+    {
+        std::cout << "Solution ini : "<<std::endl;
+        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
+        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+
+        a0 += sol(0,0);
+        a1 += sol(0,1);
+        a2 += sol(0,2);
+        b0 += sol(0,3);
+        b1 += sol(0,4);
+        b2 += sol(0,5);
+
+        std::cout << "Solution mise a jour : "<<std::endl;
+        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
+        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+    }
+
+    void printMatrix(ElMatrix <double> const & mat)
+    {
+        std::cout << "-------------------------"<<std::endl;
+        for(int i=0;i<mat.Sz().x;++i)
+        {
+            for(int j=0;j<mat.Sz().y;++j)
+                std::cout << mat(i,j) <<" ";
+
+            std::cout << std::endl;
+        }
+        std::cout << "-------------------------"<<std::endl;
+    }
+
+    bool launchNewIter(double iniRMS, int numObs)
+    {
+        double curRMS = std::sqrt(sumRes()/numObs);
+
+        if (curRMS>iniRMS)
+        {
+            std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
+            std::cout << "Pas d'amelioration de la solution: fin"<<std::endl;
+            return false;
+        }
+
+        //ecriture dans un fichier des coefficients en vue d'affiner la grille
+
+        std::ofstream fic("refine/refineCoef.txt");
+        fic << std::setprecision(15);
+        fic << a0 <<" "<< a1 <<" "<< a2 <<" "<< b0 <<" "<< b1 <<" "<< b2 <<" "<<std::endl;
+        std::cout << "RMS_after = " << curRMS << std::endl;
+        return true;
     }
 
     virtual void solve()=0;
@@ -165,16 +225,12 @@ public:
 // Implementation utilisant la suppression des inconnues auxiliaires (les Z)
 class RefineModel:public RefineModelAbs
 {
-private:
-    //pour estimation
-    ElMatrix<double> _N;
-    ElMatrix<double> _Y;
 
 public:
     RefineModel(std::string const &aNameFileGridMaster,
                 std::string const &aNameFileGridSlave,
                 std::string const &aNamefileTiePoints,
-                double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy),_N(7,7,0.),_Y(1,7,0.)
+                double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
     {
     }
 
@@ -231,98 +287,22 @@ public:
         _N(0,0) = 1.;
 
         std::cout << "Matrice _N:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<_N.Sz().x;++i)
-        {
-
-            for(int j=0;j<_N.Sz().y;++j)
-            {
-                std::cout << _N(i,j) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        printMatrix(_N);
 
         std::cout << "Matrice _Y:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<_Y.Sz().x;++i)
-        {
-
-            for(int j=0;j<_Y.Sz().y;++j)
-            {
-                std::cout << _Y(i,j) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
-
+        printMatrix(_Y);
 
         ElMatrix<double> inv = gaussj(_N);
         std::cout << "Matrice inv:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<inv.Sz().x;++i)
-        {
-
-            for(int j=0;j<inv.Sz().y;++j)
-            {
-                std::cout << inv(i,j) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
-
+        printMatrix(inv);
         ElMatrix<double> sol = inv*_Y;
 
         std::cout << "Matrice sol:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<sol.Sz().x;++i)
-        {
-
-            for(int j=0;j<sol.Sz().y;++j)
-            {
-                std::cout << sol(i,j) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        printMatrix(sol);
 
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        std::cout << "Solution ini : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
-
-        /*
-        a0 -= sol(0,1);
-        a1 -= sol(0,2);
-        a2 -= sol(0,3);
-        b0 -= sol(0,4);
-        b1 -= sol(0,5);
-        b2 -= sol(0,6);
-
-
-        // On fait une mise Ã  jour des Z
-        for(size_t i=0;i<vPtImgMaster.size();++i)
-        {
-            double err;
-            vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i]);
-        }
-
-
-        std::cout << "Solution mise a jour : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
-         */
-        a0 += sol(0,1);
-        a1 += sol(0,2);
-        a2 += sol(0,3);
-        b0 += sol(0,4);
-        b1 += sol(0,5);
-        b2 += sol(0,6);
-
-        std::cout << "Solution mise a jour : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+        updateParams(sol);
 
         //estimation des Z
         /*
@@ -454,28 +434,8 @@ public:
         addObs(6,sigmaMat,		1.-b2);
         */
         solve();
-        double curRMS = std::sqrt(sumRes()/numObs);
 
-
-        if (curRMS>iniRMS)
-        {
-            std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
-            std::cout << "Pas d'amelioration de la solution: fin"<<std::endl;
-            return false;
-        }
-
-        std::cout << a0 << " " << a1 << " " << a2 << " " << b0 << " " << b1 << " " << b2 << std::endl;
-        //ecriture dans un fichier des coefficients en vue d'afiner la grille
-
-        int res = system ("mkdir refine");
-        //ELISE_ASSERT(res == EXIT_SUCCESS, "Error in file creation") ;
-        if (res == 0) std::cout<<"folder refine already exists"<<std::endl;
-
-        std::ofstream fic("refine/refineCoef.txt");
-        fic << std::setprecision(15);
-        fic << a0 <<" "<< a1 <<" "<< a2 <<" "<< b0 <<" "<< b1 <<" "<< b2 <<" "<<std::endl;
-        std::cout << "RMS_after = " << curRMS << std::endl;
-        return true;
+        return launchNewIter(iniRMS, numObs);
     }
 
 
@@ -487,15 +447,12 @@ public:
 // Implementation basique (sans supression des inconnues auxiliaires)
 class RefineModelBasic: public RefineModelAbs
 {
-private:
-    //pour estimation
-    ElMatrix<double> _N;
-    ElMatrix<double> _Y;
+
 public:
     RefineModelBasic(std::string const &aNameFileGridMaster,
                 std::string const &aNameFileGridSlave,
                 std::string const &aNamefileTiePoints,
-                double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy),_N(1,1,0.),_Y(1,1,0.)
+                double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
     {
     }
 
@@ -504,91 +461,22 @@ public:
         /*
         std::cout << "solve"<<std::endl;
         std::cout << "Matrice _N:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<_N.Sz().y;++i)
-        {
-
-            for(int j=0;j<_N.Sz().x;++j)
-            {
-                std::cout << _N(j,i) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        printMatrix(_N);
         std::cout << "Matrice _Y:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<_Y.Sz().y;++i)
-        {
-
-            for(int j=0;j<_Y.Sz().x;++j)
-            {
-                std::cout << _Y(j,i) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        printMatrix(_Y);
         */
         ElMatrix<double> AtA = _N.transpose() * _N;
-        /*
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<AtA.Sz().y;++i)
-        {
-
-            for(int j=0;j<AtA.Sz().x;++j)
-            {
-                std::cout << AtA(j,i) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
-        */
+        //printMatrix(AtA);
         ElMatrix<double> AtB = _N.transpose() * _Y;
-        /*
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<AtB.Sz().y;++i)
-        {
-
-            for(int j=0;j<AtB.Sz().x;++j)
-            {
-                std::cout << AtB(j,i) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
-        */
+        //printMatrix(AtB);
         ElMatrix<double> sol = gaussj(AtA) * AtB;
         /*
         std::cout << "Matrice sol:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<sol.Sz().x;++i)
-        {
-
-            for(int j=0;j<sol.Sz().y;++j)
-            {
-                std::cout << sol(i,j) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        printMatrix(sol);
         */
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        std::cout << "Solution ini : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
-
-
-        a0 += sol(0,0);
-        a1 += sol(0,1);
-        a2 += sol(0,2);
-        b0 += sol(0,3);
-        b1 += sol(0,4);
-        b2 += sol(0,5);
-
-        std::cout << "Solution mise a jour : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
-
+        updateParams(sol);
 
         //mise a jour des Z
         for(size_t i=0;i<vPtImgMaster.size();++i)
@@ -686,28 +574,7 @@ public:
 
         solve();
 
-        double curRMS = std::sqrt(sumRes()/numObs);
-
-        if (curRMS>iniRMS)
-        {
-            std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
-            std::cout << "Pas d'amelioration de la solution: fin"<<std::endl;
-            return false;
-        }
-
-
-        std::cout << a0 << " " << a1 << " " << a2 << " " << b0 << " " << b1 << " " << b2 << std::endl;
-        //ecriture dans un fichier des coefficients en vue d'afiner la grille
-
-        int res = system ("mkdir refine");
-        //ELISE_ASSERT(res == EXIT_SUCCESS, "Error in file creation") ;
-        if (res == 0) std::cout<<"folder refine already exists"<<std::endl;
-
-        std::ofstream fic("refine/refineCoef.txt");
-        fic << std::setprecision(15);
-        fic << a0 <<" "<< a1 <<" "<< a2 <<" "<< b0 <<" "<< b1 <<" "<< b2 <<" "<<std::endl;
-        std::cout << "RMS_after = " << curRMS << std::endl;
-        return true;
+        return launchNewIter(iniRMS, numObs);
     }
 
     ~RefineModelBasic()
@@ -715,18 +582,15 @@ public:
     }
 };
 
-// Implementation basique (sans supression des inconnues auxiliaires)
+// Implementation basique (sans suppression des inconnues auxiliaires)
 class RefineModelBasicSansZ: public RefineModelAbs
 {
-private:
-    //pour estimation
-    ElMatrix<double> _N;
-    ElMatrix<double> _Y;
+
 public:
     RefineModelBasicSansZ(std::string const &aNameFileGridMaster,
                      std::string const &aNameFileGridSlave,
                      std::string const &aNamefileTiePoints,
-                     double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy),_N(1,1,0.),_Y(1,1,0.)
+                     double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
     {
     }
 
@@ -735,101 +599,31 @@ public:
         /*
          std::cout << "solve"<<std::endl;
          std::cout << "Matrice _N:"<<std::endl;
-         std::cout << "-------------------------"<<std::endl;
-         for(int i=0;i<_N.Sz().y;++i)
-         {
-
-         for(int j=0;j<_N.Sz().x;++j)
-         {
-         std::cout << _N(j,i) <<" ";
-         }
-         std::cout << std::endl;
-         }
-         std::cout << "-------------------------"<<std::endl;
+         printMatrix(_N);
          std::cout << "Matrice _Y:"<<std::endl;
-         std::cout << "-------------------------"<<std::endl;
-         for(int i=0;i<_Y.Sz().y;++i)
-         {
-
-         for(int j=0;j<_Y.Sz().x;++j)
-         {
-         std::cout << _Y(j,i) <<" ";
-         }
-         std::cout << std::endl;
-         }
-         std::cout << "-------------------------"<<std::endl;
+         printMatrix(_Y);
          */
         ElMatrix<double> AtA = _N.transpose() * _N;
-        /*
-         std::cout << "-------------------------"<<std::endl;
-         for(int i=0;i<AtA.Sz().y;++i)
-         {
+        // printMatrix(AtA);
 
-         for(int j=0;j<AtA.Sz().x;++j)
-         {
-         std::cout << AtA(j,i) <<" ";
-         }
-         std::cout << std::endl;
-         }
-         std::cout << "-------------------------"<<std::endl;
-         */
         ElMatrix<double> AtB = _N.transpose() * _Y;
-        /*
-         std::cout << "-------------------------"<<std::endl;
-         for(int i=0;i<AtB.Sz().y;++i)
-         {
-
-         for(int j=0;j<AtB.Sz().x;++j)
-         {
-         std::cout << AtB(j,i) <<" ";
-         }
-         std::cout << std::endl;
-         }
-         std::cout << "-------------------------"<<std::endl;
-         */
+        //printMatrix(AtB);
         ElMatrix<double> sol = gaussj(AtA) * AtB;
         /*
          std::cout << "Matrice sol:"<<std::endl;
-         std::cout << "-------------------------"<<std::endl;
-         for(int i=0;i<sol.Sz().x;++i)
-         {
-
-         for(int j=0;j<sol.Sz().y;++j)
-         {
-         std::cout << sol(i,j) <<" ";
-         }
-         std::cout << std::endl;
-         }
-         std::cout << "-------------------------"<<std::endl;
+         printMatrix(sol);
          */
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        std::cout << "Solution ini : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+        updateParams(sol);
 
-
-        a0 += sol(0,0);
-        a1 += sol(0,1);
-        a2 += sol(0,2);
-        b0 += sol(0,3);
-        b1 += sol(0,4);
-        b2 += sol(0,5);
-        
-		std::cout << "Solution mise a jour : "<<std::endl;
-		std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-		std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
-		
-		// On fait une mise Ã  jour des Z
-		for(size_t i=0;i<vPtImgMaster.size();++i)
-		{
+        // On fait une mise a jour des Z
+        for(size_t i=0;i<vPtImgMaster.size();++i)
+        {
 //			double err;
-			vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i]);
-		}		
-
-        std::cout << "Solution mise a jour : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+            vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i]);
+           // vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i], 0.01); => legere amelioration
+        }
     }
 
 
@@ -920,28 +714,7 @@ public:
 
         solve();
 
-        double curRMS = std::sqrt(sumRes()/numObs);
-
-        if (curRMS>iniRMS)
-        {
-            std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
-            std::cout << "Pas d'amelioration de la solution: fin"<<std::endl;
-            return false;
-        }
-
-
-        std::cout << a0 << " " << a1 << " " << a2 << " " << b0 << " " << b1 << " " << b2 << std::endl;
-        //ecriture dans un fichier des coefficients en vue d'afiner la grille
-
-        int res = system ("mkdir refine");
-        //ELISE_ASSERT(res == EXIT_SUCCESS, "Error in file creation") ;
-        if (res == 0) std::cout<<"folder refine already exists"<<std::endl;
-
-        std::ofstream fic("refine/refineCoef.txt");
-        fic << std::setprecision(15);
-        fic << a0 <<" "<< a1 <<" "<< a2 <<" "<< b0 <<" "<< b1 <<" "<< b2 <<" "<<std::endl;
-        std::cout << "RMS_after = " << curRMS << std::endl;
-        return true;
+        return launchNewIter(iniRMS, numObs);
     }
 
     ~RefineModelBasicSansZ()
@@ -953,15 +726,12 @@ public:
 // Implementation basique simplifiee (uniquement la translation, pas d'estimation des 4 autres parametres)
 class RefineModelTransBasic:public RefineModelAbs
 {
-private:
-    //pour estimation
-    ElMatrix<double> _N;
-    ElMatrix<double> _Y;
+
 public:
     RefineModelTransBasic(std::string const &aNameFileGridMaster,
                      std::string const &aNameFileGridSlave,
                      std::string const &aNamefileTiePoints,
-                     double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy),_N(1,1,0.),_Y(1,1,0.)
+                     double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
     {
     }
 
@@ -969,70 +739,19 @@ public:
     {
         std::cout << "solve"<<std::endl;
         std::cout << "Matrice _N:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<_N.Sz().y;++i)
-        {
-
-            for(int j=0;j<_N.Sz().x;++j)
-            {
-                std::cout << _N(j,i) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        printMatrix(_N);
         std::cout << "Matrice _Y:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<_Y.Sz().y;++i)
-        {
+        printMatrix(_Y);
 
-            for(int j=0;j<_Y.Sz().x;++j)
-            {
-                std::cout << _Y(j,i) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
-
-         ElMatrix<double> AtA = _N.transpose() * _N;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<AtA.Sz().y;++i)
-        {
-
-            for(int j=0;j<AtA.Sz().x;++j)
-            {
-                std::cout << AtA(j,i) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        ElMatrix<double> AtA = _N.transpose() * _N;
+        printMatrix(AtA);
 
         ElMatrix<double> AtB = _N.transpose() * _Y;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<AtB.Sz().y;++i)
-        {
-
-            for(int j=0;j<AtB.Sz().x;++j)
-            {
-                std::cout << AtB(j,i) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        printMatrix(AtB);
 
         ElMatrix<double> sol = gaussj(AtA) * AtB;
 
-        std::cout << "Matrice sol:"<<std::endl;
-        std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<sol.Sz().x;++i)
-        {
-
-            for(int j=0;j<sol.Sz().y;++j)
-            {
-                std::cout << sol(i,j) <<" ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << "-------------------------"<<std::endl;
+        printMatrix(sol);
 
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
@@ -1133,27 +852,7 @@ public:
 
         solve();
 
-        double curRMS = std::sqrt(sumRes()/numObs);
-
-        if (curRMS>iniRMS)
-        {
-            std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
-            std::cout << "Pas d'amelioration de la solution: fin"<<std::endl;
-            return false;
-        }
-
-        std::cout << a0 << " " << a1 << " " << a2 << " " << b0 << " " << b1 << " " << b2 << std::endl;
-        //ecriture dans un fichier des coefficients en vue d'afiner la grille
-
-        int res = system ("mkdir refine");
-        //ELISE_ASSERT(res == EXIT_SUCCESS, "Error in file creation") ;
-        if (res == 0) std::cout<<"folder refine already exists"<<std::endl;
-
-        std::ofstream fic("refine/refineCoef.txt");
-        fic << std::setprecision(15);
-        fic << a0 <<" "<< a1 <<" "<< a2 <<" "<< b0 <<" "<< b1 <<" "<< b2 <<" "<<std::endl;
-        std::cout << "RMS_after = " << curRMS << std::endl;
-        return true;
+        return launchNewIter(iniRMS, numObs);
     }
 
 
@@ -1163,29 +862,26 @@ public:
 };
 
 
-int RefineModel_main(int argc, char **argv) {
-    std::string aNameFileGridMaster;// fichier GRID image maitre
-    std::string aNameFileGridSlave;// fichier GRID image secondaire
-    std::string aNameFileTiePoints;// fichier de points de liaison
-    double aZMoy;//the average altitude of the TiePoints
+int RefineModel_main(int argc, char **argv)
+{
+    std::string aNameFileGridMaster; // fichier GRID image maitre
+    std::string aNameFileGridSlave;  // fichier GRID image secondaire
+    std::string aNameFileTiePoints;  // fichier de points de liaison
+    double aZMoy;                    // the average altitude of the TiePoints
 
     ElInitArgMain
     (
-     argc, argv,
-     LArgMain() << EAMC(aNameFileGridMaster,"master image GRID")
-     << EAMC(aNameFileGridSlave,"slave image GRID")
-     << EAMC(aNameFileTiePoints,"Tie Points")
-     << EAMC(aZMoy,"average altitude of the TiePoints")
-     ,
-     LArgMain()
-     );
+         argc, argv,
+         LArgMain() << EAMC(aNameFileGridMaster,"master image GRID")
+                    << EAMC(aNameFileGridSlave,"slave image GRID")
+                    << EAMC(aNameFileTiePoints,"Tie Points")
+                    << EAMC(aZMoy,"average altitude of the TiePoints"),
+         LArgMain()
+    );
+
+    ELISE_fp::MkDirSvp("refine");
 
     RefineModelBasicSansZ model(aNameFileGridMaster,aNameFileGridSlave,aNameFileTiePoints,aZMoy);
-
-    model.computeObservationMatrix();
-    model.computeObservationMatrix();
-    model.computeObservationMatrix();
-
 
     bool ok=true;
     for(size_t iter = 0; (iter < 100) & ok; iter++)
@@ -1193,7 +889,6 @@ int RefineModel_main(int argc, char **argv) {
         std::cout <<"iter="<<iter<<std::endl;
         ok = model.computeObservationMatrix();
     }
-
 
     return EXIT_SUCCESS;
 }
