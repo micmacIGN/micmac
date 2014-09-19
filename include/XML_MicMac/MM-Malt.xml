@@ -184,6 +184,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
      <eSymb> UseMasqImGlobOrLoc= Or ${UseMasqPerIm} ${UseGlobMasqPerIm} </eSymb>
 
+     <eSymb> InParal= Neq 0 ${NbProc} </eSymb>
+
+
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -591,7 +594,10 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <TmpMEC>    ${DirMEC}  </TmpMEC>
      <TmpResult> ${DirMEC}  </TmpResult>
      <TmpPyr>    Pyram/  </TmpPyr>
+<!--
      <ByProcess>   ${MMNbProc}  </ByProcess>
+-->
+     <ByProcess>   ${NbProc}  </ByProcess>
      <NomChantier> ${Chantier} </NomChantier>
 
      <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
