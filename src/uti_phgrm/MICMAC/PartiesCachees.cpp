@@ -92,7 +92,7 @@ class cMicMacZbuf : public cZBuffer
                const Pt2di &         aTrGT,   // Translation entre la BOX GT et ImZ,ImMasq
                const cGeomDiscFPx&,
                cPriseDeVue & aPdv,
-               Im2D_INT2  aImZInit,
+               Im2D_REAL4   aImZInit,
                Im2D_Bits<1> aImMasq
          );
          void Inspect();
@@ -148,7 +148,7 @@ cMicMacZbuf::cMicMacZbuf
       const Pt2di &         aTrGT,
       const cGeomDiscFPx& aGeomTer,
       cPriseDeVue & aPdv,
-      Im2D_INT2  aImZInit,
+      Im2D_REAL4   aImZInit,
       Im2D_Bits<1> aImMasq
 ) :
   cZBuffer
@@ -176,7 +176,7 @@ cMicMacZbuf::cMicMacZbuf
   {
      ElImplemDequantifier aDeq(mImTer.sz());
      aDeq.SetTraitSpecialCuv(false);
-     aDeq.DoDequantif(mImTer.sz(), mImTer.in(),true);
+     aDeq.DoDequantif(mImTer.sz(), round_ni(mImTer.in()),true);
      ELISE_COPY
      (
           mImTer.all_pts(),
@@ -389,7 +389,7 @@ void cAppliMICMAC::MakePartiesCachees
 
 
 
-   cGeomDiscFPx   aGT = mCurEtape->GeomTer();
+   cGeomDiscFPx   aGT = mCurEtape->GeomTerFinal();
    aGT.SetClipInit();
    Box2dr aBoxGlob(aGT.P0(), aGT.P1());
 
@@ -434,7 +434,7 @@ void cAppliMICMAC::MakePartiesCachees
    Pt2di aP0 = aB._p0;
    Pt2di aP1 = aB._p1;
 
-   Im2D_INT2 aImZ(1,1);
+   Im2D_REAL4 aImZ(1,1);
    Im2D_Bits<1>  aImMasq(1,1);
 
    if (FullIm)
@@ -456,8 +456,8 @@ void cAppliMICMAC::MakePartiesCachees
       aGT.SetClip(aP0,aP1);
       Pt2di aSzIm = aP1- aP0;
 
-      aImZ = Im2D_INT2(aSzIm.x,aSzIm.y);
-      TIm2D<INT2,INT> aTImZ(aImZ);
+      aImZ = Im2D_REAL4(aSzIm.x,aSzIm.y);
+      TIm2D<REAL4,REAL8> aTImZ(aImZ);
       aImMasq = Im2D_Bits<1>(aSzIm.x,aSzIm.y,0);
       Tiff_Im aTFM = FileMasqOfResol(mCurEtape->DeZoomTer());
 
@@ -580,7 +580,7 @@ void cAppliMICMAC::MakePartiesCachees
 
       if ((!FullIm) && (aNewSz.x>0) &&  (aNewSz.y>0))
       {
-          Im2D_INT2 aNewImZ(aNewSz.x,aNewSz.y);
+          Im2D_REAL4 aNewImZ(aNewSz.x,aNewSz.y);
           Im2D_Bits<1>  aNewImMasq(aNewSz.x,aNewSz.y);
 
           ELISE_COPY
@@ -996,6 +996,21 @@ void cAppliMICMAC::MakeOrtho
                 bool aOK;
                 Pt3dr aPTer = aZB.ProjReelle(aPM,aOK);
 
+/*
+if (aPO==aSzT/2)
+{
+for (int aY=0 ; aY<=1 ; aY++)
+{
+  bool ok;
+  Pt2di p0 = aPO + Pt2di(0,aY*2);
+  Pt2dr pm = aAfPOL2PML(Pt2dr(p0));
+  Pt3dr pt = aZB.ProjReelle(pm,ok);
+std::cout << "ORTHO ====== " << p0  << pm << pt  << " " << aZB.ZBrutOfXY(round_ni(pm))  << "\n"; 
+}
+getchar();
+}
+*/
+
                 if (aOK)
                 {
                     Pt2dr aPIm = ToIm(aPTer,aTrIm,aScIm,aP0Out);
@@ -1161,7 +1176,7 @@ void cAppliMICMAC::GetIntervZ(const Box2di & aBox,double & aZMin,double & aZMax,
 
   aZMoy = aSomMZ / aSomM;
 
-  const cGeomDiscFPx &  aGT = mCurEtape->GeomTer();
+  cGeomDiscFPx  aGT = mCurEtape->GeomTerFinal();
   aGT.PxDisc2PxReel(&aZMin,&aZMin);
   aGT.PxDisc2PxReel(&aZMax,&aZMax);
   aGT.PxDisc2PxReel(&aZMoy,&aZMoy);

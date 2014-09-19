@@ -300,6 +300,7 @@ cEtapeMecComp::cEtapeMecComp
   mUseWAdapt         (false),
   mNameXMLNuage      ("")
 {
+// std::cout << "XPPOOOOOORRT ZZZZzzz Aaabs  " << mIsExportZAbs << "\n"; getchar();
 
      if (mIsExportZAbs)
      {
@@ -1028,6 +1029,15 @@ const cGeomDiscFPx &  cEtapeMecComp::GeomTer() const
    return mGeomTer;
 }
 
+cGeomDiscFPx  cEtapeMecComp::GeomTerFinal() const
+{
+   cGeomDiscFPx aRes = mGeomTer;
+   if(mIsExportZAbs) 
+     aRes.SetZIsAbs();
+
+   return aRes;
+}
+
 cGeomDiscFPx &  cEtapeMecComp::GeomTer() 
 {
    return mGeomTer;
@@ -1291,10 +1301,21 @@ if (0)
    return aNbPx;
 }
 
+void TestGeomTer(const cGeomDiscFPx & aGT,const std::string & aMessage)
+{
+   double aZ0 =   0;
+   double aZ1 = 100;
+   aGT.PxDisc2PxReel(&aZ0,&aZ0);
+   aGT.PxDisc2PxReel(&aZ1,&aZ1);
+   std::cout << aMessage  << aZ0 << " " << aZ1 << "\n";
+}
+
+
 
 void cEtapeMecComp::RemplitOri(cFileOriMnt & aFOM) const
 {
    mGeomTer.RemplitOri(aFOM,mIsExportZAbs);
+
    if (mFilesPx.size())
       mFilesPx[0]->RemplitOri(aFOM);
    aFOM.NameFileMasque().SetVal(mAppli.NameImageMasqOfResol(mEtape.DeZoom()));

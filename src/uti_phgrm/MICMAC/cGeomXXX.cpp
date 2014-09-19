@@ -997,6 +997,15 @@ void cGeomDiscFPx::PxReel2PxDisc(REAL * aPxD,const double * aPxR) const
     }
 }
 
+void cGeomDiscFPx::SetZIsAbs() 
+{
+    for (int aD=0 ; aD<mDimPx ; aD++)
+    {
+        mV0Px[aD] = 0;
+        mStepAbs[aD] = 1;
+    }
+}
+
 
 const REAL *  cGeomDiscFPx::EcPxZone() const
 {
