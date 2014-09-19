@@ -31,6 +31,8 @@ EVOLUTIONS :
   * Masq 3D + util
   * Gestion du bras de levier en GPS
 
+  * => AFAIRE : Bug Ortho ESA
+
 Torsion de bande : FAITS
 
   1- Supprimer les fichiers inclus dans Apero-Glob (New) pour faciliter maintenance et evol
