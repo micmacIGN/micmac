@@ -1179,6 +1179,19 @@
   </ParamFusionNuage>
 
 
+  <CWWSImage Nb="1" Class="true" ToReference="true">
+      <NameIm Nb="1" Type="std::string"> </NameIm>
+      <CWWSIVois Nb="*">
+            <NameVois Nb="1" Type="std::string"> </NameVois>
+      </CWWSIVois>
+  </CWWSImage>
+
+   <ChantierAppliWithSetImage Nb="1" Class="true" ToReference="true">
+       <Images Nb="*" RefType="CWWSImage"> </Images>
+   </ChantierAppliWithSetImage>
+
+
+
    <ParamFiltreDepthByPrgDyn Nb="1" Class="true" ToReference="true">
         <CostNonAff Nb="?" Type="double" Def="0.5">   </CostNonAff>
         <CostTrans Nb="?" Type="double" Def="10">     </CostTrans>

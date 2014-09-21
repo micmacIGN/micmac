@@ -421,15 +421,6 @@ cAppliMICMAC::cAppliMICMAC
    InitDirectories();
    InitAnamSA();
    InitImages();
-/*
-   {
-        if (! CalledByProcess().Val())
-           mGPRed2 = new cEl_GPAO;
-std::cout << "BEGIN TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
-        TestReducIm(128);
-std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
-   }
-*/
    InitMemPart();
    ELISE_ASSERT(mNbPDV>=2,"Moins de 2 images selectionnees !!");
 
@@ -521,13 +512,6 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
            MakeFileFDC();
     }
 
-/*
-    {
-        if (! CalledByProcess().Val())
-           mGPRed2 = new cEl_GPAO;
-        TestReducIm(128);
-    }
-*/
 
     if (    (! CalledByProcess().Val())
          && (Use_MM_EtatAvancement().Val())
@@ -2156,7 +2140,8 @@ void cAppliMICMAC::TestReducIm(int aDZ)
 
     if (mGPRed2)
     {
-       mGPRed2->ExeParal(mFullDirMEC + "MkRed2MM",-1);
+       // GetUnikId : sinon pb avec le nouveau launchmake ...
+       mGPRed2->ExeParal(mFullDirMEC + "MkRed2MM" + GetUnikId() ,-1);
     }
 
 

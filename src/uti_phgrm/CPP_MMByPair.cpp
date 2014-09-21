@@ -321,6 +321,11 @@ void cElemAppliSetFile::Init(const std::string & aFullName)
    mSetIm = mICNM->Get(mPat);
 }
 
+const cInterfChantierNameManipulateur::tSet * cElemAppliSetFile::SetIm()
+{
+    return mSetIm;
+}
+
 /*****************************************************************/
 /*                                                               */
 /*                      cAppliWithSetImage                       */
@@ -329,15 +334,19 @@ void cElemAppliSetFile::Init(const std::string & aFullName)
 
 static std::string aBlank(" ");
 
+
 void cAppliWithSetImage::Develop(bool EnGray,bool Cons16B)
 {
-    Paral_Tiff_Dev(mEASF.mDir,*mEASF.mSetIm,(EnGray?1:3),Cons16B);
+    Paral_Tiff_Dev(mEASF.mDir,*mEASF.SetIm(),(EnGray?1:3),Cons16B);
 }
 
-cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
+const std::string cAppliWithSetImage::TheMMByPairNameCAWSI =  "MMByPairCAWSI.xml";
+
+cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI)  :
    mSym       (true),
    mShow      (false),
    mPb        (""),
+   mWithCAWSI (aNameCAWSI!=""),
    mAverNbPix (0.0),
    mByEpi     (false),
    mSetMasters(0),
@@ -370,6 +379,13 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
 
 
    mEASF.Init(argv[0]);
+
+   if (mWithCAWSI)
+   {
+      cChantierAppliWithSetImage aCAWSI = StdGetFromSI(Dir()+aNameCAWSI,ChantierAppliWithSetImage);
+      for (std::list<cCWWSImage>::iterator it=aCAWSI.Images().begin(); it!=aCAWSI.Images().end() ;it++)
+          mDicWSI[it->NameIm()] = *it;
+   }
 /*
    mFullName = argv[0];
 #if (ELISE_windows)
@@ -385,7 +401,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    if (aFlag & TheFlagDev8BGray) Develop(true,false);
 
 
-   if (mEASF.mSetIm->size()==0)
+   if (mEASF.SetIm()->size()==0)
    {
        std::cout << "For Pat= [" << mEASF.mPat << "]\n";
        ELISE_ASSERT(false,"Empty pattern");
@@ -403,37 +419,73 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag)  :
    }
    mKeyOri =  "NKS-Assoc-Im2Orient@-" + mOri;
 
-   for (int aKV=0 ; aKV<int(mEASF.mSetIm->size()) ; aKV++)
+   int aNbImGot = 0;
+   for (int aKV=0 ; aKV<int(mEASF.SetIm()->size()) ; aKV++)
    {
-       const std::string & aName = (*mEASF.mSetIm)[aKV];
-       cImaMM * aNewIma = new cImaMM(aName,*this);
-       tSomAWSI & aSom = mGrIm.new_som(cAttrSomAWSI(aNewIma));
-       mVSoms.push_back(&aSom);
-       mDicIm[aName] = & aSom;
+       const std::string & aName = (*mEASF.SetIm())[aKV];
+       if (CAWSI_AcceptIm(aName))
+       {
+           aNbImGot++;
+           cImaMM * aNewIma = new cImaMM(aName,*this);
+           tSomAWSI & aSom = mGrIm.new_som(cAttrSomAWSI(aNewIma));
+           mVSoms.push_back(&aSom);
+           mDicIm[aName] = & aSom;
 /*
        mImages.push_back(new cImaMM(aName,*this));
        mDicIm[aName] = mImages.back();
 */
-       Pt2di  aSz =  aNewIma->Tiff().sz();
-       mAverNbPix += double(aSz.x) * double(aSz.y);
+           Pt2di  aSz =  aNewIma->Tiff().sz();
+           mAverNbPix += double(aSz.x) * double(aSz.y);
 
-       if (mWithOri)
-       {
-           if (aNewIma->mCam->AltisSolIsDef())
+           if (mWithOri)
            {
-                mSomAlti += aNewIma->mCam->GetAltiSol();
-                mNbAlti++;
+               if (aNewIma->mCam->AltisSolIsDef())
+               {
+                    mSomAlti += aNewIma->mCam->GetAltiSol();
+                    mNbAlti++;
+               }
            }
        }
+       
    }
-   mAverNbPix /= mEASF.mSetIm->size();
+   ELISE_ASSERT(aNbImGot!=0,"No image in Appli With Set Image");
+   mAverNbPix /= aNbImGot;
 }
 
-std::list<std::string> cAppliWithSetImage::ExpandCommand(int aNumPat,std::string ArgSup)
+bool  cAppliWithSetImage::CAWSI_AcceptIm(const std::string & aName) const
 {
-    std::list<std::string> aRes;
+   return (!mWithCAWSI) || (DicBoolFind(mDicWSI,aName));
+}
+
+
+void cAppliWithSetImage::SaveCAWSI(const std::string & aName) 
+{
+   cChantierAppliWithSetImage aCAWSI;
+   for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+   {
+       cCWWSImage aWSI;
+       aWSI.NameIm() = (*anITS).attr().mIma->mNameIm;
+       for (tItAAWSI itA=(*anITS).begin(mSubGrAll) ; itA.go_on() ; itA++)
+       {
+           cCWWSIVois  aV;
+           aV.NameVois() = (*itA).s2().attr().mIma->mNameIm;
+           aWSI.CWWSIVois().push_back(aV);
+       }
+       aCAWSI.Images().push_back(aWSI);
+   }
+   MakeFileXML(aCAWSI,Dir()+aName);
+}
+
+
+std::list<std::pair<std::string,std::string> > cAppliWithSetImage::ExpandCommand(int aNumPat,std::string ArgSup)
+{
+    std::list<std::pair<std::string,std::string> >  aRes;
     for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
-       aRes.push_back(SubstArgcArvGlob(aNumPat,mVSoms[aK]->attr().mIma->mNameIm) + " " + ArgSup);
+    {
+       std::string aNIm = mVSoms[aK]->attr().mIma->mNameIm;
+       std::string aNCom = SubstArgcArvGlob(aNumPat,aNIm) + " " + ArgSup;
+       aRes.push_back(std::pair<std::string,std::string>(aNCom,aNIm));
+    }
     return aRes;
 }
 
@@ -471,14 +523,23 @@ int  cAppliWithSetImage::DeZoomOfSize(double aSz) const
 
 void cAppliWithSetImage::FilterImageIsolated()
 {
-   std::vector<cImaMM *> aRes;
+   std::vector<tSomAWSI *> aRes;
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
        if ((*anITS).nb_succ(mSubGrAll) ==0)
        {
+           //std::map<std::string,tSomAWSI *>::iterator itS = mDicIm.find((*anITS).attr().mIma->mNameIm);
+           //ELISE_ASSERT(itS!=mDicIm.end(),"Incoherence in cAppliWithSetImage::FilterImageIsolated");
+           int aNbEr = mDicIm.erase((*anITS).attr().mIma->mNameIm);
+           ELISE_ASSERT(aNbEr==1,"Incoherence in cAppliWithSetImage::FilterImageIsolated");
            (*anITS).remove();
        }
+       else
+       {
+           aRes.push_back(&(*anITS));
+       }
    }
+   mVSoms = aRes;
 }
 
 cInterfChantierNameManipulateur * cAppliWithSetImage::ICNM() 
@@ -576,9 +637,9 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero)
       if (ExApero)
          System(aCom);
 
-      for (int aKI=0 ; aKI<int(mEASF.mSetIm->size()) ; aKI++)
+      for (int aKI=0 ; aKI<int(mVSoms.size()) ; aKI++)
       {
-          const std::string & aName1 = (*mEASF.mSetIm)[aKI];
+          const std::string & aName1 = mVSoms[aKI]->attr().mIma->mNameIm;
           cImSecOfMaster aISOM = StdGetISOM(mEASF.mICNM,aName1,mOri);
           const std::list<std::string > *  aLIm = GetBestImSec(aISOM,-1,-1,10000,true);
           if (aLIm)
@@ -1067,6 +1128,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       FilterImageIsolated();
 
       mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
+
+      SaveCAWSI(TheMMByPairNameCAWSI);
   }
 }
 
@@ -1481,7 +1544,6 @@ void cAppliMMByPair::DoMDT()
 
 void cAppliMMByPair::DoMDTRIE(bool ForTieP)
 {
-std::cout << "DANS oMDTRIE " << ForTieP << "\n";
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
             int aZoom = ForTieP ? mZoom0 : mZoomF;
@@ -1497,7 +1559,6 @@ std::cout << "DANS oMDTRIE " << ForTieP << "\n";
                            ;
              if (ForTieP) aCom = aCom + " +PrefixDIR=" + TheDIRMergTiepForEPI();
              System(aCom);
-std::cout << "CccccOmm " << aCom << "\n";
    }
 }
 void cAppliMMByPair::DoMDTRIE()
