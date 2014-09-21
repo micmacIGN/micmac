@@ -202,6 +202,12 @@ int mm_getpid()
 #endif
 }
 
+const std::string & mm_getstrpid()
+{
+    static std::string aRes = ToString(mm_getpid());
+    return aRes;
+}
+
 void MemoArg(int argc,char** argv)
 {
     AnalyseContextCom(argc,argv);

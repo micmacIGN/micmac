@@ -17931,6 +17931,181 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cParamFusionNuage *) {return "3ECDC482AA9973E0FD3F";};
 
 
+std::string & cCWWSIVois::NameVois()
+{
+   return mNameVois;
+}
+
+const std::string & cCWWSIVois::NameVois()const 
+{
+   return mNameVois;
+}
+
+void  BinaryUnDumpFromFile(cCWWSIVois & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameVois(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCWWSIVois & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameVois());
+}
+
+cElXMLTree * ToXMLTree(const cCWWSIVois & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CWWSIVois",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameVois"),anObj.NameVois())->ReTagThis("NameVois"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cCWWSIVois & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.NameVois(),aTree->Get("NameVois",1)); //tototo 
+}
+
+std::string  Mangling( cCWWSIVois *) {return "73BC11D215BACDD6FCBF";};
+
+
+std::string & cCWWSImage::NameIm()
+{
+   return mNameIm;
+}
+
+const std::string & cCWWSImage::NameIm()const 
+{
+   return mNameIm;
+}
+
+
+std::list< cCWWSIVois > & cCWWSImage::CWWSIVois()
+{
+   return mCWWSIVois;
+}
+
+const std::list< cCWWSIVois > & cCWWSImage::CWWSIVois()const 
+{
+   return mCWWSIVois;
+}
+
+void  BinaryUnDumpFromFile(cCWWSImage & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameIm(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cCWWSIVois aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.CWWSIVois().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cCWWSImage & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameIm());
+    BinaryDumpInFile(aFp,(int)anObj.CWWSIVois().size());
+    for(  std::list< cCWWSIVois >::const_iterator iT=anObj.CWWSIVois().begin();
+         iT!=anObj.CWWSIVois().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cCWWSImage & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CWWSImage",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
+  for
+  (       std::list< cCWWSIVois >::const_iterator it=anObj.CWWSIVois().begin();
+      it !=anObj.CWWSIVois().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("CWWSIVois"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cCWWSImage & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
+
+   xml_init(anObj.CWWSIVois(),aTree->GetAll("CWWSIVois",false,1));
+}
+
+std::string  Mangling( cCWWSImage *) {return "F5F6E51ED7F89DC9FE3F";};
+
+
+std::list< cCWWSImage > & cChantierAppliWithSetImage::Images()
+{
+   return mImages;
+}
+
+const std::list< cCWWSImage > & cChantierAppliWithSetImage::Images()const 
+{
+   return mImages;
+}
+
+void  BinaryUnDumpFromFile(cChantierAppliWithSetImage & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cCWWSImage aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Images().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cChantierAppliWithSetImage & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Images().size());
+    for(  std::list< cCWWSImage >::const_iterator iT=anObj.Images().begin();
+         iT!=anObj.Images().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cChantierAppliWithSetImage & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ChantierAppliWithSetImage",eXMLBranche);
+  for
+  (       std::list< cCWWSImage >::const_iterator it=anObj.Images().begin();
+      it !=anObj.Images().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Images"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cChantierAppliWithSetImage & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Images(),aTree->GetAll("Images",false,1));
+}
+
+std::string  Mangling( cChantierAppliWithSetImage *) {return "0AC12C3BEC51D588FE3F";};
+
+
 cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::CostNonAff()
 {
    return mCostNonAff;

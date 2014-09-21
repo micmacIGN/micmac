@@ -121,6 +121,8 @@ class cElemAppliSetFile
        std::string mDir;
        std::string mPat;
        cInterfChantierNameManipulateur * mICNM;
+       const cInterfChantierNameManipulateur::tSet * SetIm();
+    private :
        const cInterfChantierNameManipulateur::tSet * mSetIm;
 };
 
@@ -137,11 +139,15 @@ class cAppliWithSetImage
       void operator()(tSomAWSI*,tSomAWSI*,bool);   // Delaunay call back
 
     // Remplace la commande argc-argc par N command avec les image indiv, aNumPat est necessaire car peut varier (TestLib ou non)
-      std::list<std::string> ExpandCommand(int aNumPat,std::string ArgSup);
+      std::list<std::pair<std::string,std::string> > ExpandCommand(int aNumPat,std::string ArgSup);
    protected :
   
-      cAppliWithSetImage(int argc,char ** argv,int aFlag);
+      cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI="");
 
+      void SaveCAWSI(const std::string & aName) ;
+      bool CAWSI_AcceptIm(const std::string & aName) const;
+      bool CAWSI_AcceptCpleIm(const std::string & aN1,const std::string &  aN2) const;
+      
       void FilterImageIsolated();
       void Develop(bool EnGray,bool En16B);
       bool MasterSelected(const std::string & aName) const;
@@ -186,6 +192,9 @@ class cAppliWithSetImage
       std::map<std::string,tSomAWSI *> mDicIm;
       tGrAWSI  mGrIm;
       std::vector<tSomAWSI*> mVSoms;
+      bool                             mWithCAWSI;
+      std::map<std::string,cCWWSImage> mDicWSI;
+
       cSubGrAWSI   mSubGrAll;
       double       mAverNbPix;
 
@@ -199,6 +208,8 @@ class cAppliWithSetImage
       cSetName *   mSetMasters;
       bool mCalPerIm;
       bool mModeHelp;
+
+      static const std::string TheMMByPairNameCAWSI;
 
 
    private :

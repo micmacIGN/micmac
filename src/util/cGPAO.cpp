@@ -70,6 +70,8 @@ std::string GetUnikId()
           + "_" + ToString(Round(aTSec,1,1e-3))
           + "_" + ToString(Round(aTSec,1e-3,1e-6));
 }
+const std::string & mm_getstrpid();
+
 
 /*********************************************************/
 /*                                                       */
@@ -120,11 +122,11 @@ std::string Dir2Write()
     {
         First = false;
 
-        aRes = "./Tmp-MM-Dir/TestOpenMMmmmm";
+        aRes = "./Tmp-MM-Dir/TestOpenMMmmmm" + mm_getstrpid();
         if (TestFileOpen(aRes))
            return "./Tmp-MM-Dir/";
 
-        aRes = "./TestOpenMMmmmm";
+        aRes = "./TestOpenMMmmmm" + mm_getstrpid();
         if (TestFileOpen(aRes))
            return "./";
 
@@ -132,13 +134,13 @@ std::string Dir2Write()
         {
             std::string aDir,aName;
             SplitDirAndFile(aDir,aName,MemoArgv[aK]);
-            aRes = aDir + "TestOpenMMmmmm";
+            aRes = aDir + "TestOpenMMmmmm" + mm_getstrpid();
             if (TestFileOpen(aRes))
                return aDir;
         }
 
 
-        aRes = MMDir() + "TestOpenMMmmmm";
+        aRes = MMDir() + "TestOpenMMmmmm"+mm_getstrpid();
         if (TestFileOpen(aRes))
            return MMDir();
 
