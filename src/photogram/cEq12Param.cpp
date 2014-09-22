@@ -1,0 +1,306 @@
+/*Header-MicMac-eLiSe-25/06/2007
+
+    MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
+    eLiSe  : ELements of an Image Software Environnement
+
+    www.micmac.ign.fr
+
+
+    Copyright : Institut Geographique National
+    Author : Marc Pierrot Deseilligny
+    Contributors : Gregoire Maillet, Didier Boldo.
+
+[1] M. Pierrot-Deseilligny, N. Paparoditis.
+    "A multiresolution and optimization-based image matching approach:
+    An application to surface reconstruction from SPOT5-HRS stereo imagery."
+    In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
+    (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
+
+[2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
+    d'images, adapte au contexte geograhique" to appears in
+    Bulletin d'information de l'Institut Geographique National, 2007.
+
+Francais :
+
+   MicMac est un logiciel de mise en correspondance d'image adapte
+   au contexte de recherche en information geographique. Il s'appuie sur
+   la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
+   licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
+
+
+English :
+
+    MicMac is an open source software specialized in image matching
+    for research in geographic information. MicMac is built on the
+    eLiSe image library. MicMac is governed by the  "Cecill-B licence".
+    See below and http://www.cecill.info.
+
+Header-MicMac-eLiSe-25/06/2007*/
+
+#define NoTemplateOperatorVirgule
+#define NoSimpleTemplateOperatorVirgule
+
+
+#include "StdAfx.h"
+
+
+
+/*   
+    0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
+    0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
+*/
+
+
+cEq12Parametre::cEq12Parametre() :
+       mSys         (12,true),
+       mIndFixArb   (10),
+       mValueFixArb (-1)
+{
+}
+
+void cEq12Parametre::AddObs(const Pt3dr & aPGround,const Pt2dr & aPPhgr,const double&  aPds)
+{
+  mVPG.push_back(aPGround);
+  mVPPhgr.push_back(aPPhgr);
+  mVPds.push_back(aPds);
+}
+
+
+std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho()
+{
+   std::pair<ElMatrix<double>,Pt3dr> aPair = ComputeNonOrtho();
+
+   std::pair<ElMatrix<double>,ElMatrix<double> > aRQ = RQDecomp(gaussj(aPair.first));
+   ElMatrix<double> aR = aRQ.first;
+   ElMatrix<double> aQ = aRQ.second;
+
+   double aC= aR(2,2);
+
+   for (int anX=0 ; anX<3; anX++)
+   {
+      for (int anY=0 ; anY<3; anY++)
+      {
+           aR(anX,anY) /= aC;
+      }
+   }
+
+/*
+   std::cout << "ComputeOrthoComputeOrtho C=" << aC << "\n";
+   for (int anY=0 ; anY<3; anY++)
+   {
+      for (int anX=0 ; anX<3; anX++)
+      {
+           std::cout << aR(anX,anY)  << " " ;
+      }
+      std::cout <<  " \n" ;
+   }
+   getchar();
+*/
+
+   //return std::pair<ElMatrix<double>,ElRotation3D> (aR,ElRotation3D(aPair.second,aQ,true));
+   return std::pair<ElMatrix<double>,ElRotation3D> (aR,ElRotation3D(aPair.second,aQ.transpose(),true));
+   
+}
+
+
+
+std::pair<ElMatrix<double>,Pt3dr> cEq12Parametre::ComputeNonOrtho()
+{
+    mSys.GSSR_Reset(false);
+
+    // Pour limiter les erreurs numériques, on se remet sur des coordonnees centrees
+    Pt3dr aMoyP(0,0,0);
+    double aSomPds = 0;
+    for (int aK=0 ; aK <int(mVPG.size()) ; aK++)
+    {
+       aMoyP = aMoyP + mVPG[aK] * mVPds[aK];
+       aSomPds += mVPds[aK];
+    }
+    aMoyP = aMoyP / aSomPds;
+
+
+    for (int aK=0 ; aK <int(mVPG.size()) ; aK++)
+    {
+         ComputeOneObs(mVPG[aK]-aMoyP,mVPPhgr[aK],mVPds[aK]);
+    }
+
+
+    ElMatrix<double> aMat(3,3);
+    Pt3dr aC;
+
+    bool aOk;
+    Im1D_REAL8  aISol = mSys.GSSR_Solve(&aOk);
+    double * aDS = aISol.data();
+
+    // Tout est a un facteur pres, on normalise pour que la matrice 3x3 soit de norme L2
+    // (a permis de tester pour les rotations pure si OK ...)
+    double aSomL2=0;
+    for (int aK=0 ; aK<12 ; aK+=4)
+    {
+        aSomL2 += Square(aDS[aK]) + Square(aDS[aK+1])  + Square(aDS[aK+2]) ;
+    }
+    aSomL2 = sqrt(aSomL2/3);
+    for (int aK=0 ; aK<12 ; aK++)
+    {
+        aDS[aK  ] /= aSomL2;
+    }
+
+
+    // Le centre est le point ou les trois terme sont nul (et les deux ratio indetermines)
+    Pt3dr aPInc(-aDS[3],-aDS[7],-aDS[11]);
+    for (int aKy=0 ; aKy<3 ; aKy++)
+    {
+        for (int aKx=0 ; aKx<3 ; aKx++)
+        {
+            aMat(aKx,aKy) = aDS[aKx+4*aKy];
+        }
+    }
+    aC = gaussj(aMat) * aPInc + aMoyP;
+/*
+    ELISE_COPY(rectangle(0,9),Square(aISol.in()),sigma(aSomL2));
+    ELISE_COPY(rectangle(0,9),aISol.in() * sqrt(3/aSomL2),aISol.out());
+*/
+
+
+/*   
+    0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
+    0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
+*/
+
+    return std::pair<ElMatrix<double>,Pt3dr> (gaussj(aMat),aC);
+}
+
+
+/*   
+    0 = (p0 x + p1 y + p2 z + p3) - I (p8 x + p9 y + p10 z + p11)
+    0 = (p4 x + p5 y + p6 z + p7) - J (p8 x + p9 y + p10 z + p11)
+*/
+void cEq12Parametre::ComputeOneObs(const Pt3dr & aPG,const Pt2dr & aPPhgr,const double&  aPds)
+{
+    double aC[12];
+  
+    aC[0] = aPG.x;
+    aC[1] = aPG.y;
+    aC[2] = aPG.z;
+    aC[3] = 1;
+    for (int aK=0 ; aK<4 ; aK++)
+    {
+       aC[aK+4] = 0.0;
+       aC[aK+8] = -aC[aK] * aPPhgr.x;
+    }
+    mSys.GSSR_AddNewEquation(aPds,aC,0.0,(double *)0);
+
+    for (int aK=0 ; aK<4 ; aK++)
+    {
+       aC[aK+4] = aC[aK];
+       aC[aK+8] = -aC[aK] * aPPhgr.y;
+       aC[aK] = 0;
+    }
+    mSys.GSSR_AddNewEquation(aPds,aC,0.0,(double *)0);
+
+    for (int aK=0 ; aK<12 ; aK++)
+        aC[aK] = (aK==mIndFixArb);
+    mSys.GSSR_AddNewEquation(aPds,aC,mValueFixArb,(double *)0);
+}
+
+static std::string aTCS_PrefGen="TmpChSysCo";
+void AffinePose(ElCamera & aCam,const std::vector<Pt2dr> & aVIm,const std::vector<Pt3dr> & aVPts)
+{
+
+    std::string aNameCam =  aCam.IdCam() ;
+    std::string aDirOriTmp = "-"+aTCS_PrefGen;
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::Glob();
+    ELISE_ASSERT(aICNM!=0,"ICNM Null in AffinePose");
+    std::string aDir = aICNM->Dir();
+    std::string aKeyOriTmp =  "NKS-Assoc-Im2Orient@"+aDirOriTmp;
+    std::string aNameOriTmp = aDir+aICNM->Assoc1To1(aKeyOriTmp,aNameCam,true);
+    cOrientationConique anOC =  aCam.StdExportCalibGlob(false);
+    MakeFileXML(anOC,aNameOriTmp);
+                
+    cSetOfMesureAppuisFlottants aS2D;
+    aS2D.MesureAppuiFlottant1Im().push_back(cMesureAppuiFlottant1Im());
+    cMesureAppuiFlottant1Im  & aMAF = aS2D.MesureAppuiFlottant1Im().back();
+    aMAF.NameIm() = aNameCam;
+
+    cDicoAppuisFlottant aDic;
+
+    for (int aK=0 ; aK<int(aVIm.size()) ; aK++)
+    {
+        cOneMesureAF1I aOM;
+        aOM.NamePt() = "Pt-"+ToString(aK);
+        aOM.PtIm() = aVIm[aK];
+        aMAF.OneMesureAF1I().push_back(aOM);
+
+        cOneAppuisDAF  anAp;
+        anAp.Pt() = aVPts[aK];
+        anAp.NamePt() = aOM.NamePt() ;
+        anAp.Incertitude() = Pt3dr(1,1,1);
+        aDic.OneAppuisDAF().push_back(anAp);
+    }
+    std::string aName2D = aDir+aTCS_PrefGen+ aNameCam + "-S2D.xml";
+    std::string aName3D = aDir+aTCS_PrefGen+ aNameCam + "-S3D.xml";
+    MakeFileXML(aS2D,aName2D);
+    MakeFileXML(aDic,aName3D);
+
+    std::string aCom =    MM3dBinFile_quotes( "Apero" )
+                        + XML_MM_File("Apero-Optim-ChSysCo-Rot.xml")
+                        + " DirectoryChantier=" +  aDir
+                        + " +Im=" + aNameCam;
+
+    System(aCom.c_str());
+
+
+    std::string aKeyOriTmpOut =  "NKS-Assoc-Im2Orient@"+aDirOriTmp +"-OUT";
+    std::string aNameOriTmpOut = aDir+aICNM->Assoc1To1(aKeyOriTmpOut,aNameCam,true);
+    ElCamera * aCamOut =  CamOrientGenFromFile(aNameOriTmpOut,aICNM);
+
+    aCam.SetOrientation(aCamOut->Orient());
+
+    ELISE_fp::RmFile(aName2D);
+    ELISE_fp::RmFile(aName3D);
+
+
+    ELISE_fp::PurgeDir(aDir+"Ori-TmpChSysCo/",true);
+    ELISE_fp::PurgeDir(aDir+"Ori-TmpChSysCo-OUT/",true);
+
+
+    // getchar();
+}
+
+
+
+
+
+/*Footer-MicMac-eLiSe-25/06/2007
+
+Ce logiciel est un programme informatique servant �  la mise en
+correspondances d'images pour la reconstruction du relief.
+
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+respectant les principes de diffusion des logiciels libres. Vous pouvez
+utiliser, modifier et/ou redistribuer ce programme sous les conditions
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+sur le site "http://www.cecill.info".
+
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
+
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+termes.
+Footer-MicMac-eLiSe-25/06/2007*/
