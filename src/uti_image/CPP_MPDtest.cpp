@@ -365,6 +365,131 @@ void TestRandomSetOfMesureSegDr()
     exit(0);
 }
 
+Fonc_Num IsHomog(Im2D_REAL4 anIm, int aSzKernelH, double aPertPerPix)
+{
+    Fonc_Num aFMax = rect_max(anIm.in_proj(),aSzKernelH);
+    Fonc_Num aFMin = rect_min(anIm.in_proj(),aSzKernelH);
+    Fonc_Num aFHom =  aFMin > (1- aPertPerPix * aSzKernelH) * aFMax;
+
+    return rect_max(aFHom,aSzKernelH);
+}
+
+void FiltreRemoveSky(Im2D_REAL4 anIm)
+{
+    double aPropZonec = 0.001;
+    int aSzKernelH= 5;
+    double aPertPerPix = 0.005;
+
+    Pt2di aSz = anIm.sz();
+    int aSeuilNbPts = round_up(aSz.x*aSz.y*aPropZonec);
+
+    Fonc_Num FHGlob =     IsHomog(anIm,aSzKernelH,aPertPerPix);
+
+    Im2D_U_INT1 aImLabel(aSz.x,aSz.y);
+    TIm2D<U_INT1,INT> aTLab(aImLabel);
+    ELISE_COPY(aImLabel.all_pts(),FHGlob,aImLabel.out());
+
+
+    FiltrageCardCC(true,aTLab,1,2,aSeuilNbPts);
+    // Ici 1 sont les pixel "tres" homogenes 
+
+
+
+    double aVMax; 
+    ELISE_COPY(anIm.all_pts(),anIm.in(),VMax(aVMax));
+    Video_Win * aW = Video_Win::PtrWStd(aSz);
+    ELISE_COPY(anIm.all_pts(),anIm.in() * (255.0/aVMax),aW->ogray());
+    std::cout << "VMAX " << aVMax << "\n";
+
+
+
+    
+    ELISE_COPY
+    (
+          aW->all_pts(),
+          nflag_close_sym(flag_front8(aImLabel.in_proj()==1)),
+          aW->out_graph(Line_St(aW->pdisc()(P8COL::red)))
+    );
+    ELISE_COPY
+    (
+          aW->all_pts(),
+          nflag_close_sym(flag_front8(aImLabel.in_proj()==2)),
+          aW->out_graph(Line_St(aW->pdisc()(P8COL::green)))
+    );
+
+
+    aW->clik_in();
+
+}
+
+
+
+void FiltreRemoveSky(const std::string & aNameIm)
+{
+    std::cout << "NameIm= " << aNameIm << "\n";
+    Im2D_REAL4 anIm = Im2D_REAL4::FromFileStd(aNameIm);
+    FiltreRemoveSky(anIm);
+}
+
+
+
+Fonc_Num FMoy(Im2D_REAL4 anIm,Pt2di aSzVois,int aNBIter)
+{
+    Fonc_Num aRes = anIm.in_proj();
+    for (int aK=0 ; aK< aNBIter ; aK++)
+       aRes = rect_som(aRes,aSzVois) / ((1+2*aSzVois.x)*(1+2*aSzVois.y));
+
+    Symb_FNum aF0 (anIm.in());
+    return Abs(aRes-aF0) /Max(1e-4,aF0);
+}
+
+void FiltreRemoveFlou(Im2D_REAL4 anIm)
+{
+    
+    Fonc_Num aFDif0 =  Max(  FMoy(anIm,Pt2di(2,2),3),
+                             FMoy(anIm,Pt2di(4,4),3),
+                             FMoy(anIm,Pt2di(1,2),3),
+                             FMoy(anIm,Pt2di(2,1),3)
+                           );
+
+    Fonc_Num aFDif1 =  Max(    FMoy(anIm,Pt2di(1,1),1),
+                               FMoy(anIm,Pt2di(8,8),3),
+                               FMoy(anIm,Pt2di(1,4),3),
+                               FMoy(anIm,Pt2di(4,1),3)
+                           );
+
+    Fonc_Num aFDif = Max(aFDif0,aFDif1);
+
+    Pt2di aSz = anIm.sz();
+
+    double aVMax; 
+    ELISE_COPY(anIm.all_pts(),anIm.in(),VMax(aVMax));
+    Video_Win * aW = Video_Win::PtrWStd(aSz);
+    ELISE_COPY(anIm.all_pts(),anIm.in() * (255.0/aVMax),aW->ogray());
+    std::cout << "VMAX " << aVMax << "\n";
+
+
+    ELISE_COPY
+    (
+        anIm.all_pts(),
+        Min(255,1000*aFDif),
+        aW->ogray()
+    );
+                         
+    aW->clik_in();
+}
+
+
+void FiltreRemoveFlou(const std::string & aNameIm)
+{
+    std::cout << "NameIm= " << aNameIm << "\n";
+    Im2D_REAL4 anIm = Im2D_REAL4::FromFileStd(aNameIm);
+    FiltreRemoveFlou(anIm);
+}
+
+
+
+
 
 extern void TestFiltreRegul();
 #if (ELISE_QT_VERSION >= 4)
@@ -375,9 +500,10 @@ extern void Test3dQT();
 
 int MPDtest_main (int argc,char** argv)
 {
+    //FiltreRemoveSky(argv[1]);
+    FiltreRemoveFlou(argv[1]);
 #if (ELISE_QT_VERSION >= 4)
 
-   Test3dQT();
 #endif
   
    return 0;

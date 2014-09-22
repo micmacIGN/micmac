@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2118]) = {
+const char * (theNameVar_ParamMICMAC[2124]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1017,6 +1017,12 @@ const char * (theNameVar_ParamMICMAC[2118]) = {
 "                                   <DilatPlaniCur Nb=\"?\" Type=\"int\" Def=\"2\"> </DilatPlaniCur>\n",
 "                                   <DilatAltiCur Nb=\"?\" Type=\"int\" Def=\"2\"> </DilatAltiCur>\n",
 "                            </ComputeAndExportEnveloppe>\n",
+"                            <!-- Filtre permettant de supprimer le ciel (sans nuage ...) en virant les zones tres homogenes -->\n",
+"                            <mmtpFilterSky Nb=\"?\">\n",
+"                                <PertPerPix Type=\"double\" Nb=\"?\" Def=\"0.005\"> </PertPerPix>\n",
+"                                <SzKernelHom Type=\"int\" Nb=\"?\" Def=\"5\"> </SzKernelHom>\n",
+"                                <PropZonec  Type=\"double\" Nb=\"?\" Def=\"0.001\"> </PropZonec>\n",
+"                            </mmtpFilterSky>\n",
 "\n",
 "                            <BasicOneIter Type=\"bool\" Def=\"true\" Nb=\"?\"> </BasicOneIter>\n",
 "                            <Masq3D Nb=\"?\" Type=\"std::string\">        </Masq3D>\n",

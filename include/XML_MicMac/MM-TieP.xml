@@ -79,7 +79,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
           <Im1> ${Im1} </Im1>
          <ImSecCalcApero>
                <Key> NKS-Assoc-ImSec@${ImSec} </Key>
-               <NbMin>  2 </NbMin>
+               <NbMin>  1 </NbMin>
                <NbMax>  4 </NbMax>
                <OnEmpty> eOEISA_exit </OnEmpty>
           </ImSecCalcApero>
@@ -248,6 +248,12 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                                       <ProlDistAddMax> 3.0 </ProlDistAddMax>
                                 </ComputeAndExportEnveloppe>
                             </#WHEN>
+                            <mmtpFilterSky>
+                                <PertPerPix>   0.005    </PertPerPix>
+                                <SzKernelHom>  5        </SzKernelHom>
+                                <PropZonec>    0.001     </PropZonec>
+                            </mmtpFilterSky>
+
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>

@@ -38,6 +38,40 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+/*    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
+ non max et voisin du vide
+*/
+void FiltreMasqMultiResolMMI(const std::string & aNameMasq)
+{
+
+    Im2D_U_INT1 anImInit = Im2D_U_INT1::FromFileStd(aNameMasq);
+    Pt2di aSz = anImInit.sz();
+
+    Im2D_U_INT1 anImEtiq(aSz.x,aSz.y);
+    ELISE_COPY(anImInit.all_pts(),Min(2,anImInit.in()),anImEtiq.out());
+
+    ELISE_COPY(anImEtiq.border(1),0,anImEtiq.out());
+
+
+    Neighbourhood aNV4=Neighbourhood::v4();
+    Neigh_Rel     aNrV4 (aNV4);
+
+    ELISE_COPY
+    (
+           conc
+           (
+               select(select(anImEtiq.all_pts(),anImEtiq.in()==2),aNrV4.red_sum(anImEtiq.in()==0)),
+               anImEtiq.neigh_test_and_set(aNV4,2,3,256)
+           ),
+           3,
+           Output::onul()
+    );
+    ELISE_COPY(select(anImEtiq.all_pts(),anImEtiq.in()==3),0,anImInit.out());
+    ELISE_COPY(anImInit.all_pts(),anImInit.in(),Tiff_Im(aNameMasq.c_str()).out());
+}
+
+
+
 
 extern const std::string TheDIRMergTiepForEPI();
 
@@ -222,7 +256,9 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
 
 
    Tiff_Im::CreateFromIm(aDepthMerg,NameFileGlobWithDir(FusDepth));
-   Tiff_Im::CreateFromIm(aMasqMerge,NameFileGlobWithDir(FusMasqD));
+   std::string aNameMasqD = NameFileGlobWithDir(FusMasqD);
+   Tiff_Im::CreateFromIm(aMasqMerge,aNameMasqD);
+   FiltreMasqMultiResolMMI(aNameMasqD);
 
 
    

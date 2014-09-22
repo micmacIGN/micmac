@@ -1015,6 +1015,12 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                                    <DilatPlaniCur Nb="?" Type="int" Def="2"> </DilatPlaniCur>
                                    <DilatAltiCur Nb="?" Type="int" Def="2"> </DilatAltiCur>
                             </ComputeAndExportEnveloppe>
+                            <!-- Filtre permettant de supprimer le ciel (sans nuage ...) en virant les zones tres homogenes -->
+                            <mmtpFilterSky Nb="?">
+                                <PertPerPix Type="double" Nb="?" Def="0.005"> </PertPerPix>
+                                <SzKernelHom Type="int" Nb="?" Def="5"> </SzKernelHom>
+                                <PropZonec  Type="double" Nb="?" Def="0.001"> </PropZonec>
+                            </mmtpFilterSky>
 
                             <BasicOneIter Type="bool" Def="true" Nb="?"> </BasicOneIter>
                             <Masq3D Nb="?" Type="std::string">        </Masq3D>

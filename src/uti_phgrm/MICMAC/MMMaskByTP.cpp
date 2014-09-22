@@ -1071,6 +1071,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    ElTimer aChrono;
    mMMTP = new cMMTP(aBox,*this);
 
+    // Si il faut repartir d'un masque initial calcule a un de zool anterieur
     if (aMATP.TiePMasqIm().IsInit())
     {
        int aDZ = aMATP.TiePMasqIm().Val().DeZoomRel();
@@ -1091,8 +1092,17 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        );
     }
 
+    if (aMATP.mmtpFilterSky().IsInit())
+    {
+         Im2D_REAL4 * anIm = mPDV1->LoadedIm().FirstFloatIm();
+         ELISE_ASSERT(anIm!=0,"Incohe in mmtpFilterSky");
+         Video_Win * aW = Video_Win::PtrWStd(anIm->sz());
+         ELISE_COPY(anIm->all_pts(),anIm->in(), aW->ocirc());
+         std::cout << "AAAAAAAAAAAAAAAAAaaaSkkkkkkYYyyyyy\n"; getchar();
+          
+    }
 
-#ifdef ELISE_X11
+ #ifdef ELISE_X11
    if (aMATP.Visu().Val())
    {
        Pt2dr aSzW = Pt2dr(aBox.sz());

@@ -2463,6 +2463,35 @@ void  BinaryUnDumpFromFile(cComputeAndExportEnveloppe &,ELISE_fp &);
 
 std::string  Mangling( cComputeAndExportEnveloppe *);
 
+class cmmtpFilterSky
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cmmtpFilterSky & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & PertPerPix();
+        const cTplValGesInit< double > & PertPerPix()const ;
+
+        cTplValGesInit< int > & SzKernelHom();
+        const cTplValGesInit< int > & SzKernelHom()const ;
+
+        cTplValGesInit< double > & PropZonec();
+        const cTplValGesInit< double > & PropZonec()const ;
+    private:
+        cTplValGesInit< double > mPertPerPix;
+        cTplValGesInit< int > mSzKernelHom;
+        cTplValGesInit< double > mPropZonec;
+};
+cElXMLTree * ToXMLTree(const cmmtpFilterSky &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cmmtpFilterSky &);
+
+void  BinaryUnDumpFromFile(cmmtpFilterSky &,ELISE_fp &);
+
+std::string  Mangling( cmmtpFilterSky *);
+
 class cTiePMasqIm
 {
     public:
@@ -2541,6 +2570,18 @@ class cMasqueAutoByTieP
         cTplValGesInit< cComputeAndExportEnveloppe > & ComputeAndExportEnveloppe();
         const cTplValGesInit< cComputeAndExportEnveloppe > & ComputeAndExportEnveloppe()const ;
 
+        cTplValGesInit< double > & PertPerPix();
+        const cTplValGesInit< double > & PertPerPix()const ;
+
+        cTplValGesInit< int > & SzKernelHom();
+        const cTplValGesInit< int > & SzKernelHom()const ;
+
+        cTplValGesInit< double > & PropZonec();
+        const cTplValGesInit< double > & PropZonec()const ;
+
+        cTplValGesInit< cmmtpFilterSky > & mmtpFilterSky();
+        const cTplValGesInit< cmmtpFilterSky > & mmtpFilterSky()const ;
+
         cTplValGesInit< bool > & BasicOneIter();
         const cTplValGesInit< bool > & BasicOneIter()const ;
 
@@ -2591,6 +2632,7 @@ class cMasqueAutoByTieP
     private:
         cTplValGesInit< cParamFiltreDepthByPrgDyn > mFilterPrgDyn;
         cTplValGesInit< cComputeAndExportEnveloppe > mComputeAndExportEnveloppe;
+        cTplValGesInit< cmmtpFilterSky > mmmtpFilterSky;
         cTplValGesInit< bool > mBasicOneIter;
         cTplValGesInit< std::string > mMasq3D;
         cTplValGesInit< cParamFiltreDetecRegulProf > mParamFiltreRegProf;
