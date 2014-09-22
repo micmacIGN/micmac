@@ -9,7 +9,7 @@ SData2Correl::SData2Correl():
     _d_volumeCost[0].SetName("_d_volumeCost");
     _d_volumeCach[0].SetName("_d_volumeCach");
     _d_volumeNIOk[0].SetName("_d_volumeNIOk");
-    _dt_GlobalMask.CData2D::SetName("_dt_GlobalMask");
+    _dt_GlobalMask.DecoratorImage<CUDASDK>::SetName("_dt_GlobalMask");
     _dt_LayeredImages.CData3D::SetName("_dt_LayeredImages");
     _dt_LayeredProjection->CData3D::SetName("_dt_LayeredProjection");
 
@@ -46,7 +46,7 @@ void SData2Correl::MallocInfo()
     _d_volumeCost[0].MallocInfo();
     _d_volumeCach[0].MallocInfo();
     _d_volumeNIOk[0].MallocInfo();
-    _dt_GlobalMask.CData2D::MallocInfo();
+    _dt_GlobalMask.DecoratorImage<CUDASDK>::MallocInfo();
     _dt_LayeredImages.CData3D::MallocInfo();
     _dt_LayeredProjection[0].CData3D::MallocInfo();
 }
@@ -132,8 +132,9 @@ void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
 {   
 	#ifdef  NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2B51);
-	#endif
-    _dt_GlobalMask.CData2D::ReallocIfDim(dimMask);
+    #endif
+    //  TODO Verifier si le ReallocIfDim fonctionne.... s'il ne redimmension pas a chaque fois!!!
+    _dt_GlobalMask.DecoratorImage<CUDASDK>::ReallocIfDim(dimMask,1);
     _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
 	#ifdef  NVTOOLS
