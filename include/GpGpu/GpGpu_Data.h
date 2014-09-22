@@ -725,16 +725,18 @@ protected:
         return true;
     }
 
-
     /// \brief  renvoie le tableau cuda contenant les valeurs de l'image
     cudaArray*	GetCudaArray()
     {
         return pData();
     }
 
-    bool        abDealloc()
+
+    bool    abDealloc()
     {
-        printf("DEALLOC CUDA Array\n");
+
+        struct2D::SetMaxSize(0);
+        struct2D::SetMaxDimension();
         return (cudaFreeArray( GetCudaArray()) == cudaSuccess) ? true : false;
     }
 
@@ -749,7 +751,8 @@ class DecoratorImage<OPENCLSDK>
 {
 public:
 
-    bool        Dealloc(){
+    bool        Dealloc()
+    {
 
         return abDealloc();
     }
@@ -803,18 +806,7 @@ public:
         return DecoratorImage<CUDASDK>::ErrorOutput(cudaMemcpyToArray(DecoratorImage<CUDASDK>::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),__FUNCTION__);
     }
 
-    /// \brief Initialise les valeurs de l image a val
-    /// \param val : Valeur d initialisation
-    bool	Memset(int val){return DecoratorImage<CUDASDK>::Memset(val);}
-
 protected:
-
-    bool    abDealloc(){
-
-        struct2D::SetMaxSize(0);
-        struct2D::SetMaxDimension();
-
-        return DecoratorImage<CUDASDK>::abDealloc();}
 
     bool    abMalloc()
     {
@@ -822,7 +814,6 @@ protected:
         cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>();
         return DecoratorImage<CUDASDK>::ErrorOutput(cudaMallocArray(DecoratorImage<CUDASDK>::ppData(),&channelDesc,DecoratorImage<CUDASDK>::GetDimension().x,DecoratorImage<CUDASDK>::GetDimension().y),__FUNCTION__);
     }
-
 
     uint	Sizeof(){ return DecoratorImage<CUDASDK>::GetSize() * sizeof(T);}
 
@@ -855,10 +846,6 @@ class ImageGpGpu<T,OPENCLSDK> : public CData2D<cl_mem>, public DecoratorImage<OP
         return err == CL_SUCCESS;
     }
 
-    /// \brief Initialise les valeurs de l image a val
-    /// \param val : Valeur d initialisation
-    bool	Memset(int val){return DecoratorImage<OPENCLSDK>::Memset(val);}
-
 protected:
 
     bool    abDealloc(){
@@ -883,15 +870,13 @@ protected:
 
     uint	Sizeof(){ return CData2D::GetSize() * sizeof(T);}
 
-
 private:
 
     T*		_ClassData;
 
 };
 
-template <class T, int sdkgpu>
-class ImageLayeredGpGpu : public CData3D<T>, public DecoratorImage<sdkgpu>{};
+template <class T, int sdkgpu> class ImageLayeredGpGpu {};
 
 /// \class ImageLayeredCuda
 /// \brief Cette classe est une pile d'image 2D directement liable a une texture GpGpu
@@ -911,20 +896,20 @@ public:
         CData3D::ClassTemplate(CData3D::ClassTemplate() + " " + CData3D::StringClass<T>(_ClassData));
     }
 
-    /// \brief Initialise les valeurs des images a val
-    /// \param val : Valeur d initialisation
-    bool	Memset(int val){return DecoratorImage<CUDASDK>::Memset(val);}
-
     /// \brief Copie des valeurs des images avec un tableau 3D de valeur du Host
     /// \param data : Donnees cible a copier
-    bool	copyHostToDevice(T* data){
+    bool	copyHostToDevice(T* data)
+    {
+
         cudaMemcpy3DParms	p = CudaMemcpy3DParms(data,cudaMemcpyHostToDevice);
 
         return CData3D::ErrorOutput(cudaMemcpy3D(&p),__FUNCTION__) ;
+
     }
     /// \brief Copie des valeurs des images vers un tableau 3D du Host
     /// \param data : tableau de destination
-    bool	copyDeviceToDevice(T* data){
+    bool	copyDeviceToDevice(T* data)
+    {
         cudaMemcpy3DParms	p = CudaMemcpy3DParms(data,cudaMemcpyDeviceToDevice);
 
         return CData3D::ErrorOutput(cudaMemcpy3D(&p),__FUNCTION__) ;
@@ -940,14 +925,6 @@ public:
 
 
 protected:
-
-    bool    abDealloc(){
-
-        struct2D::SetMaxSize(0);
-        struct2D::SetMaxDimension();
-
-        return DecoratorImage<CUDASDK>::abDealloc();
-    }
 
     bool    abMalloc()
     {
