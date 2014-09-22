@@ -500,7 +500,7 @@ extern void Test3dQT();
 
 int MPDtest_main (int argc,char** argv)
 {
-    //FiltreRemoveSky(argv[1]);
+    FiltreRemoveSky(argv[1]);
     FiltreRemoveFlou(argv[1]);
 #if (ELISE_QT_VERSION >= 4)
 

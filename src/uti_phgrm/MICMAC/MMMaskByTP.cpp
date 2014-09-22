@@ -1092,7 +1092,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        );
     }
 
-    if (aMATP.mmtpFilterSky().IsInit())
+    if (0 && aMATP.mmtpFilterSky().IsInit())
     {
          Im2D_REAL4 * anIm = mPDV1->LoadedIm().FirstFloatIm();
          ELISE_ASSERT(anIm!=0,"Incohe in mmtpFilterSky");
