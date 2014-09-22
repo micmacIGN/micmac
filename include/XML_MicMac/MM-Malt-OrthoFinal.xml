@@ -1,5 +1,7 @@
                <GenerePartiesCachees >
-                    <ByMkF> ${MkFPC} </ByMkF>
+                    <#WHEN VTEST=${InParal}>
+                        <ByMkF> ${MkFPC} </ByMkF>
+                    </#WHEN>
                     <SeuilUsePC> 3 </SeuilUsePC>
                     <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirOrthoF}@PC_ </KeyCalcPC>
                     <PatternApply>  ${ImOrtho}</PatternApply>

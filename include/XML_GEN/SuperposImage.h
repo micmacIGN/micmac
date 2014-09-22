@@ -5393,6 +5393,82 @@ std::string  Mangling( cParamFusionNuage *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cCWWSIVois
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCWWSIVois & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameVois();
+        const std::string & NameVois()const ;
+    private:
+        std::string mNameVois;
+};
+cElXMLTree * ToXMLTree(const cCWWSIVois &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCWWSIVois &);
+
+void  BinaryUnDumpFromFile(cCWWSIVois &,ELISE_fp &);
+
+std::string  Mangling( cCWWSIVois *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cCWWSImage
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCWWSImage & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        std::list< cCWWSIVois > & CWWSIVois();
+        const std::list< cCWWSIVois > & CWWSIVois()const ;
+    private:
+        std::string mNameIm;
+        std::list< cCWWSIVois > mCWWSIVois;
+};
+cElXMLTree * ToXMLTree(const cCWWSImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCWWSImage &);
+
+void  BinaryUnDumpFromFile(cCWWSImage &,ELISE_fp &);
+
+std::string  Mangling( cCWWSImage *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cChantierAppliWithSetImage
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cChantierAppliWithSetImage & anObj,cElXMLTree * aTree);
+
+
+        std::list< cCWWSImage > & Images();
+        const std::list< cCWWSImage > & Images()const ;
+    private:
+        std::list< cCWWSImage > mImages;
+};
+cElXMLTree * ToXMLTree(const cChantierAppliWithSetImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cChantierAppliWithSetImage &);
+
+void  BinaryUnDumpFromFile(cChantierAppliWithSetImage &,ELISE_fp &);
+
+std::string  Mangling( cChantierAppliWithSetImage *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cParamFiltreDepthByPrgDyn
 {
     public:

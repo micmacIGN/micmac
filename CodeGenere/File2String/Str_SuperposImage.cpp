@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1229]) = {
+const char * (theNameVar_SuperposImage[1242]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1179,6 +1179,19 @@ const char * (theNameVar_SuperposImage[1229]) = {
 "           <SeuilStrictVarIma Nb=\"1\" Type=\"double\"> </SeuilStrictVarIma>\n",
 "      </ImageVariations>\n",
 "  </ParamFusionNuage>\n",
+"\n",
+"\n",
+"  <CWWSImage Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"      <NameIm Nb=\"1\" Type=\"std::string\"> </NameIm>\n",
+"      <CWWSIVois Nb=\"*\">\n",
+"            <NameVois Nb=\"1\" Type=\"std::string\"> </NameVois>\n",
+"      </CWWSIVois>\n",
+"  </CWWSImage>\n",
+"\n",
+"   <ChantierAppliWithSetImage Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"       <Images Nb=\"*\" RefType=\"CWWSImage\"> </Images>\n",
+"   </ChantierAppliWithSetImage>\n",
+"\n",
 "\n",
 "\n",
 "   <ParamFiltreDepthByPrgDyn Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
