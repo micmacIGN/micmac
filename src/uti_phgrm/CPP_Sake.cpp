@@ -157,7 +157,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAMC(mOriFileExtension,"Orientation file extension (Def=GRI)", eSAM_IsExistDirOri),
     LArgMain()
               << EAM(mModeOri,"ModeOri", true, "Orientation type (GRID or RTO; Def=GRID)", eSAM_NoInit)
-              << EAM(mMastIm,"MasterIm",true,"Master image is mandatory if the correlation mode geometry is GeomIm", eSAM_IsExistFileRP)
+              //<< EAM(mMastIm,"MasterIm",true,"Master image is mandatory if the correlation mode geometry is GeomIm", eSAM_IsExistFileRP)
               << EAM(mMaskIm,"Mask",true,"Mask file")
               << EAM(mSzW,"SzW",true,"Correlation window size (Def=2, equiv 5x5)")
               << EAM(mZMoy,"ZMoy",true,"Average value of Z (Def=1000.0)")
@@ -181,9 +181,6 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 #endif
   SplitDirAndFile(mDir,mImgs,mImPat);
 
-  //~ std::cout<<"##### working directory: "<<mDir<<" #####"<<std::endl;
-  //~ std::cout<<"##### images: " << mImgs<<" #####"<<std::endl;
-  //~ std::cout<<"##### image pattern: "<<mImPat<<" #####"<<std::endl;
 
   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
   mSetIm = mICNM->Get(mImgs);
@@ -227,8 +224,6 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
     ELISE_ASSERT(false, "Value for ZoomF too high");
   }
 
-  //~ std::cout<<"##### execute instruction: "<<mExe<<" #####"<<std::endl;
-  //~ std::cout<<"##### orientation file's extension: "<< mOriFileExtension<<" #####"<<std::endl;
 
   ELISE_ASSERT(EAMIsInit(&mModeOri), "ModeOri not given (mandatory param)");
   ELISE_ASSERT(EAMIsInit(&mZMoy), "ZMoy not given (mandatory param)");
@@ -240,44 +235,39 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mInstruct = mInstruct + std::string(" +ModeGeomIm=") + mModeGeomIm;
 
   mModeGeomMnt="eGeomMNTEuclid";
-  if (mStrCorrelGeomType=="eGeomIm")
-  {
-    if (mMastIm!="")
-    {
-      mModeGeomMnt="eGeomMNTFaisceauIm1ZTerrain_Px1D";
-      //std::cout<<"StdPrefix(mMastIm): "<< StdPrefix(mMastIm) << std::endl;
-      if (! EAMIsInit(&mDirMEC))   mDirMEC = "MM-Sake-Img-" + StdPrefix(mMastIm) +ELISE_CAR_DIR;
-      //std::cout<<"mDirMEC GeomIm: **: "<<mDirMEC<<"**"<<std::endl;
-
-      mInstruct =  mInstruct + std::string(" +UseMasterIm=true")
-                             + std::string(" +MasterIm=") + mMastIm;
-    }
-    else ELISE_ASSERT(false,"Master image not given (MasterIm is mandatory if GeomIm)");
-  }
+  //~ if (mStrCorrelGeomType=="GeomIm")
+  //~ {
+    //~ if (mMastIm!="")
+    //~ {
+      //~ mModeGeomMnt="eGeomMNTFaisceauIm1ZTerrain_Px1D";
+      //~ if (! EAMIsInit(&mDirMEC))   mDirMEC = "MM-Sake-Img-" + StdPrefix(mMastIm) +ELISE_CAR_DIR;
+//~
+      //~ mInstruct =  mInstruct + std::string(" +UseMasterIm=true")
+                             //~ + std::string(" +MasterIm=") + mMastIm;
+    //~ }
+    //~ else ELISE_ASSERT(false,"Master image not given (MasterIm is mandatory if GeomIm)");
+  //~ }
 
   mInstruct = mInstruct + std::string(" +ModeGeomMNT=") + mModeGeomMnt;
 
-  //~ std::cout << "DirMec: " << mDirMEC <<std::endl;
 
   mInstruct = mInstruct + std::string(" +DirMEC=") + mDirMEC;
 
-  //~ if (mStrCorrelGeomType=="OrthoIm")
-  //~ {
-    //~ mInstruct = mInstruct + std::string(" +CalcOrtho=true");
-    //~ mInstruct = mInstruct + std::string(" +DirOrtho=") + mDirOrtho;
-    //~ std::cout<< "DirOrtho: *" << mDirOrtho << "*"<<std::endl;
-  //~ }
+  if (mStrCorrelGeomType=="OrthoIm")
+  {
+    mInstruct = mInstruct + std::string(" +CalcOrtho=true");
+    mInstruct = mInstruct + std::string(" +DirOrtho=") + mDirOrtho;
+    std::cout<< "DirOrtho: *" << mDirOrtho << "*"<<std::endl;
+  }
 
   if (EAMIsInit(&mMaskIm))
   {
     std::string aNameMask;
 
-    ELISE_ASSERT(mDir==DirOfFile(mMaskIm),"Mask image not in working directory!!!");
-    SplitDirAndFile(mDir,aNameMask,mMaskIm);
-    if (IsPostfixed(aNameMask)) aNameMask = StdPrefixGen(aNameMask);
-    //~ std::cout<<"##### mask's directory: "<<mDir<<" #####"<<std::endl;
-    //~ std::cout<<"##### mask's full path (dir+name) : "<<mMaskIm<<" #####"<<std::endl;
-    //~ std::cout<<"##### mask's filename (without postfix): "<<aNameMask<<" #####"<<std::endl;
+    ELISE_ASSERT(mDir==DirOfFile(mMaskIm),"Mask image not in working directory!!!"); //mDir: mask's directory
+    SplitDirAndFile(mDir,aNameMask,mMaskIm); //mMaskIm: mask's full path (dir+name)
+    if (IsPostfixed(aNameMask)) aNameMask = StdPrefixGen(aNameMask); //aNameMask: mask's filename without postfix
+
 
     mInstruct =  mInstruct + " +UseMask=true"
               + std::string(" +Mask=")  + aNameMask;
@@ -302,7 +292,6 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   }
 
   mNbStepsMEC = 1 + round_ni(log2(mZoomI/mZoomF)) +1; // number of MEC steps (if no duplicate of zoom)
-  //~ std::cout << "** Number of MEC steps: "<< mNbStepsMEC << "**" << std::endl;
 
   mInstruct = mInstruct + std::string(" +CalcMEC=") + (mCalcMEC ? "true" : "false")
                         + std::string(" +EZA=") + (mEZA ? "true" : "false")
@@ -326,8 +315,6 @@ int cAppliSake::Exe()
 {
   if (!mExe) return 0;
   int aRes = TopSystem(mInstruct.c_str());
-  //~ std::cout<<"///// aRes:"<<aRes<<std::endl;
-  //~ std::cout<<"///// Instruction: "<<mInstruct.c_str()<<std::endl;
   if (!MMVisualMode) ShowParamVal();
   return aRes;
 }
