@@ -77,7 +77,7 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 
 
 cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
-   cAppliWithSetImage(argc-1,argv+1,0),
+   cAppliWithSetImage(argc-1,argv+1,0,TheMMByPairNameCAWSI),
    mCalledByP (false),
    mScaleNuage (1),
    mShowCom    (false),
@@ -105,10 +105,25 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    if (! (mCalledByP))
    {
        ELISE_fp::MkDir(Dir() + DirFusMMInit() );
-       std::list<std::string>  aLCom = ExpandCommand(3,"InternalCalledByP=true");
+       std::list<std::pair<std::string,std::string> >  aLPair = ExpandCommand(3,"InternalCalledByP=true");
 
-       for (std::list<std::string>::iterator itS=aLCom.begin() ; itS!=aLCom.end() ; itS++)
-           std::cout << *itS << "\n";
+       std::list<std::string>  aLCom ;
+       std::list<std::string>  aNameIs ;
+
+       for (std::list<std::pair<std::string,std::string> >::iterator itS=aLPair.begin() ; itS!=aLPair.end() ; itS++)
+       {
+           const std::string & aCom = itS->first;
+           const std::string & aNameIm = itS->second;
+           if (1)
+           {
+              std::cout << aCom<< "\n";
+              aLCom.push_back(aCom);
+           }
+           else
+           {
+              aNameIs.push_back(aNameIm);
+           }
+       }
 
        cEl_GPAO::DoComInParal(aLCom);
        return;
@@ -158,6 +173,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
             
               aDepthMerg = Im2D_REAL4::FromFileStd(aNameMerge);
               aMasqMerge = Im2D_U_INT1::FromFileStd(aNameMasqMerge);
+              ELISE_COPY(aMasqMerge.all_pts(),aMasqMerge.in()*aCpt,aMasqMerge.out());
           }
           else
           {
@@ -359,7 +375,8 @@ int MMInitialModel_main(int argc,char ** argv)
           aLCom.push_back(aCom);
   }
 
-  cEl_GPAO::DoComInParal(aLCom,"MkMMInit");
+  cEl_GPAO::DoComInParal(aLCom);
+  // cEl_GPAO::DoComInParal(aLCom,"MkMMInit");
  // int aRes = system_call(aCom.c_str());
 
    // int i; DoNothingButRemoveWarningUnused(i);

@@ -865,6 +865,8 @@ class cGeomDiscFPx : public  cGeomDiscR2
      public :
        // defini dans GeomXXX.cpp
 
+         void SetZIsAbs();
+
          double  CorrectDerivee() const;
 
          cGeomDiscFPx(cAppliMICMAC &);
@@ -2042,6 +2044,8 @@ class cEtapeMecComp
           int   DeZoomTer() const;
           int   DeZoomIm() const;
           const cGeomDiscFPx &  GeomTer() const;
+  // GeomTerFina tient compte de l'eventuel ExportZAbs qui a ete rajoute a posteriori
+          cGeomDiscFPx   GeomTerFinal() const;
           cGeomDiscFPx &  GeomTer() ;
 
           void Show() const;  // Debug/ MaP
@@ -3758,6 +3762,8 @@ template <class TypeEl,class tBase> cInterpolateurIm2D<TypeEl>  * InterpoleOfEta
 
 void GenTFW(const cFileOriMnt & aFOM,const std::string & aName);
 
+
+void TestGeomTer(const cFileOriMnt & aFOM,const std::string & aMessage);
 
 
 

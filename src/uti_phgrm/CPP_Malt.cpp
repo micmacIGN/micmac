@@ -253,6 +253,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     bool mModePB = false;
     std::string mModeOri;
 
+    int aNbProc = NbProcSys();
+
 
     ElInitArgMain
     (
@@ -308,6 +310,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mMaxFlow,"MaxFlow",true,"Use MaxFlow(MinCut) instead of 2D ProgDyn (SGM), slower sometime better, Def=false ")
                     << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                     << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq", eSAM_IsExistFile)
+                    << EAM(aNbProc,"NbProc",true,"Nb Proc Used")
                 );
 
     if (!MMVisualMode)
@@ -546,6 +549,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               +  std::string(" +Ori=") + mOri
               +  std::string(" +ResolRelOrhto=") + ToString(1/(mResolOrtho*mZoomFinal))
               +  std::string(" +DirTA=") + mDirTA
+              +  std::string(" +NbProc=") + ToString(aNbProc)
               ;
 
 

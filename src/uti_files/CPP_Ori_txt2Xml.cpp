@@ -1588,9 +1588,9 @@ int OriExport_main(int argc,char ** argv)
 
         cElemAppliSetFile aEASF(aFullName);
 
-        for (int aK=0 ; aK<int(aEASF.mSetIm->size()) ; aK++)
+        for (int aK=0 ; aK<int(aEASF.SetIm()->size()) ; aK++)
         {
-             const std::string & aNameCam =  (*aEASF.mSetIm)[aK];
+             const std::string & aNameCam =  (*aEASF.SetIm())[aK];
              std::string aNameIm = aEASF.mICNM->Assoc1To1("NKS-Assoc-Ori2ImGen",aNameCam,true);
              CamStenope * aCS =  CamOrientGenFromFile(aNameCam,aEASF.mICNM);
              // std::cout << "IM = " << aNameCam  << " " << aCS->Focale() << "\n";
