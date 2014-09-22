@@ -2,6 +2,7 @@
 #define GPGPU_DATA_H
 
 #include "GpGpu/GpGpu_Object.h"
+#include "GpGpu/GpGpu_Context.h"
 #include "GpGpu/GpGpu_Tools.h"
 
 #define TPL_T template<class T>
@@ -13,7 +14,7 @@ class CData : public CGObject
 {
 
     friend class    DecoratorImageCuda;
-    template<class M> friend class    DecoratorDeviceData;
+    template<class M,int sdkGPU> friend class    DecoratorDeviceData;
 
 public:
 
@@ -66,10 +67,18 @@ protected:
     /// \param      fonctionName : nom de la fonction ou se trouve l erreur
     virtual bool	ErrorOutput(cudaError_t err,const char* fonctionName);
 
+    cl_mem          clMem() const{return _clMem;}
+
+    void            setClMem(const cl_mem &clMem){_clMem = clMem;}
+
 private:
 
     uint            _memoryOc;
+
     T*              _data;
+
+    cl_mem          _clMem;
+
     uint            _sizeofMalloc;
 
     /// \brief      Suppression de memoire alloue
@@ -494,25 +503,46 @@ TPL_T bool CuHostData3D<T>::abMalloc()
     return true;
 }
 
+template<class T, int gpsdk = CUDASDK> class DecoratorDeviceData{};
+
 template<class T>
-class DecoratorDeviceData
+class DecoratorDeviceData<T,CUDASDK>
 {
 public:
 
-    bool    CopyDevicetoHost(T* hostData){return _dD->ErrorOutput(cudaMemcpy( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost),__FUNCTION__);}
+    bool    CopyDevicetoHost(T* hostData)
+    {
+        return _dD->ErrorOutput(cudaMemcpy( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost),__FUNCTION__);
+    }
 
-    bool    Memset( int val ){  return _dD->ErrorOutput(cudaMemset( _dD->pData(), val, _dD->Sizeof()),__FUNCTION__);}
+    bool    Memset( int val )
+    {
+
+        return _dD->ErrorOutput(cudaMemset( _dD->pData(), val, _dD->Sizeof()),__FUNCTION__);
+    }
 
     ///     \brief  Copie asynchrone de toutes les valeurs du tableau dans un tableau du host
     ///     \param  hostData : tableau destination
     ///     \param stream : flux cuda de gestion des appels asynchrone
-    bool    CopyDevicetoHostASync( T* hostData, cudaStream_t stream ){return _dD->ErrorOutput(cudaMemcpyAsync ( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost, stream),__FUNCTION__);}
+    bool    CopyDevicetoHostASync( T* hostData, cudaStream_t stream )
+    {
+
+        return _dD->ErrorOutput(cudaMemcpyAsync ( hostData, _dD->pData(), _dD->Sizeof(), cudaMemcpyDeviceToHost, stream),__FUNCTION__);
+
+    }
 
     /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
     /// \param  hostData : tableau cible
-    bool    CopyHostToDevice(T *hostData){ return _dD->ErrorOutput(cudaMemcpy( _dD->pData(),hostData, _dD->Sizeof(), cudaMemcpyHostToDevice),__FUNCTION__);}
+    bool    CopyHostToDevice(T *hostData)
+    {
 
-    bool    MemsetAsync(int val, cudaStream_t stream){return  _dD->ErrorOutput(cudaMemsetAsync(_dD->pData(), val, _dD->Sizeof(), stream ),__FUNCTION__); }
+        return _dD->ErrorOutput(cudaMemcpy( _dD->pData(),hostData, _dD->Sizeof(), cudaMemcpyHostToDevice),__FUNCTION__);
+    }
+
+    bool    MemsetAsync(int val, cudaStream_t stream)
+    {
+        return  _dD->ErrorOutput(cudaMemsetAsync(_dD->pData(), val, _dD->Sizeof(), stream ),__FUNCTION__);
+    }
 
 protected:
 
@@ -527,16 +557,65 @@ private:
     CData<T>* _dD;
 };
 
-/// \class CuDeviceData2D
-/// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
-template <class T>
-class CuDeviceData2D : public CData2D<T>, public DecoratorDeviceData<T>
+template<class T>
+class DecoratorDeviceData<T,OPENCLSDK>
 {
 public:
 
-    CuDeviceData2D():DecoratorDeviceData<T>((CData2D<T>*)this){}
+    bool    CopyDevicetoHost(T* hostData)
+    {
 
-    bool        Memset(int val){return DecoratorDeviceData<T>::Memset(val);}
+        return clEnqueueReadBuffer(CGpGpuContext<OPENCLSDK>::commandQueue(),_dD->clMem(),CL_FALSE,0,_dD->Sizeof(),hostData,0,NULL,NULL) == CL_SUCCESS;
+    }
+
+    bool    Memset( int val ){
+
+#if     CL_VERSION_1_2 == 1
+        const cl_int pat = val;
+        return clEnqueueFillBuffer(CGpGpuContext<OPENCLSDK>::commandQueue(),_dD->clMem(),&pat, sizeof(cl_uint), 0, _dD->Sizeof(), 0, NULL, NULL);) == CL_SUCCESS;
+#elif   CL_VERSION_1_1 == 1
+        // A implemeter
+        // 2 alternatives
+        //  * write buffer  ....
+        //  * kernel        ....
+        return false;
+#endif
+
+    }
+
+    /// \brief  Copie toutes les valeurs d un tableau dans la structure de donnee de la classe (dans la memoire globale GPU)
+    /// \param  hostData : tableau cible
+    bool    CopyHostToDevice(T *hostData){     return clEnqueueWriteBuffer(CGpGpuContext<OPENCLSDK>::commandQueue(),_dD->clMem(),CL_FALSE,0,_dD->Sizeof(),hostData,0,NULL,NULL) == CL_SUCCESS;}
+
+protected:
+
+    DecoratorDeviceData(CData<T> *dataDevice):_dD(dataDevice){}
+
+    bool    dabDealloc(){ return clReleaseMemObject(_dD->clMem()) == CL_SUCCESS;}
+
+    bool    dabMalloc()
+    {
+        cl_int errorCode = -1;
+        _dD->setClMem(clCreateBuffer(CGpGpuContext<OPENCLSDK>::contextOpenCL(),CL_MEM_READ_WRITE,_dD->Sizeof(),NULL,&errorCode));
+        return errorCode == CL_SUCCESS;
+    }
+
+private:
+
+    CData<T>* _dD;
+};
+
+
+/// \class CuDeviceData2D
+/// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
+template <class T>
+class CuDeviceData2D : public CData2D<T>, public DecoratorDeviceData<T,CUDASDK>
+{
+public:
+
+    CuDeviceData2D():DecoratorDeviceData<T,CUDASDK>((CData2D<T>*)this){}
+
+    bool        Memset(int val){return DecoratorDeviceData<T,CUDASDK>::Memset(val);}
 
 protected:
 
@@ -545,32 +624,32 @@ protected:
         struct2D::SetMaxSize(0);
         struct2D::SetMaxDimension();
 
-        return DecoratorDeviceData<T>::dabDealloc();
+        return DecoratorDeviceData<T,CUDASDK>::dabDealloc();
 
     }
 
-    bool        abMalloc(){return DecoratorDeviceData<T>::dabMalloc();}
+    bool        abMalloc(){return DecoratorDeviceData<T,CUDASDK>::dabMalloc();}
 
 };
 
 /// \class CuDeviceData3D
 /// \brief Structure 3d de données instanciées dans la mémoire globale vidéo
 template <class T>
-class CuDeviceData3D : public CData3D<T>, public DecoratorDeviceData<T>
+class CuDeviceData3D : public CData3D<T>, public DecoratorDeviceData<T,CUDASDK>
 {
 public:
 
-    CuDeviceData3D():DecoratorDeviceData<T>(this){init("No Name");}
+    CuDeviceData3D():DecoratorDeviceData<T,CUDASDK>(this){init("No Name");}
 
-    CuDeviceData3D(uint2 dim,uint l, string name = "NoName"):DecoratorDeviceData<T>(this) { init(name,dim,l);}
+    CuDeviceData3D(uint2 dim,uint l, string name = "NoName"):DecoratorDeviceData<T,CUDASDK>(this) { init(name,dim,l);}
 
-    CuDeviceData3D(uint dim, string name = "NoName"):DecoratorDeviceData<T>(this){init(name,make_uint2(dim,1),1);}
+    CuDeviceData3D(uint dim, string name = "NoName"):DecoratorDeviceData<T,CUDASDK>(this){init(name,make_uint2(dim,1),1);}
 
     /// \brief Initialise toutes les valeurs du tableau a val
     /// \param val : valeur d initialisation
-    bool        Memset(int val){return DecoratorDeviceData<T>::Memset(val);}
+    bool        Memset(int val){return DecoratorDeviceData<T,CUDASDK>::Memset(val);}
 
-    bool        CopyDevicetoHost(CuHostData3D<T> &hostData){return  DecoratorDeviceData<T>::CopyDevicetoHost(hostData.pData());}
+    bool        CopyDevicetoHost(CuHostData3D<T> &hostData){return  DecoratorDeviceData<T,CUDASDK>::CopyDevicetoHost(hostData.pData());}
 
 protected:
 
@@ -578,11 +657,11 @@ protected:
 
         struct2D::SetMaxSize(0);
         struct2D::SetMaxDimension();
-        return DecoratorDeviceData<T>::dabDealloc();
+        return DecoratorDeviceData<T,CUDASDK>::dabDealloc();
 
     }
 
-    bool        abMalloc(){return DecoratorDeviceData<T>::dabMalloc();}
+    bool        abMalloc(){return DecoratorDeviceData<T,CUDASDK>::dabMalloc();}
 
 private:
 
@@ -598,30 +677,64 @@ TPL_T void CuDeviceData3D<T>::init(string name, uint2 dim, uint l)
         CData3D<T>::Malloc(dim,l);
 }
 
+template<int gpusdk = CUDASDK>
+class DecoratorImage{};
+
+
 /// \class  AImageCuda
 /// \brief Decorateur pour imageCuda
-class DecoratorImageCuda
+template<>
+class DecoratorImage<CUDASDK>
 {
 public:
 
     /// \brief  Lie l image a une texture Gpu
     /// \param  texRef : reference de la texture a lier
-    bool		bindTexture(textureReference& texRef);
+    bool		bindTexture(textureReference& texRef)
+    {
+        _textureReference = &texRef;
 
-    bool        UnbindDealloc();
+        cudaChannelFormatDesc desc;
+
+        bool bCha	= !cudaGetChannelDesc(&desc, GetCudaArray());
+        bool bBind	= !cudaBindTextureToArray(&texRef,GetCudaArray(),&desc);
+
+        return bCha && bBind;
+    }
+
+    bool        UnbindDealloc(){
+
+        if(_textureReference) cudaUnbindTexture(_textureReference);
+
+        _textureReference = NULL;
+
+        return _dataCudaArray->Dealloc();;
+    }
 
 protected:
 
-    DecoratorImageCuda(CData<cudaArray>*   dataCudaArray);
+    DecoratorImage(CData<cudaArray> *dataCudaArray):
+        _dataCudaArray(dataCudaArray){}
 
     /// \brief  Initialisation de toutes les valeurs du tableau a val
     /// \param  val : valeur d initialisation
-    bool		Memset(int val);
+    bool		Memset(int val)
+    {
+        std::cout << "PAS DE MEMSET POUR CUDA ARRAY" << "\n";
+        return true;
+    }
+
 
     /// \brief  renvoie le tableau cuda contenant les valeurs de l'image
-    cudaArray*	GetCudaArray();
+    cudaArray*	GetCudaArray()
+    {
+        return _dataCudaArray->pData();
+    }
 
-    bool        abDealloc() ;
+    bool        abDealloc(){
+        return (cudaFreeArray( GetCudaArray()) == cudaSuccess) ? true : false;
+    }
+
 
 private:
 
@@ -631,10 +744,115 @@ private:
 
 };
 
+template<>
+class DecoratorImage<OPENCLSDK>
+{
+public:
+
+    bool        Dealloc(){
+
+        return abDealloc();
+    }
+
+protected:
+
+    DecoratorImage(CData<cl_mem> *buffer):
+        _buffer(buffer){}
+
+    /// \brief  Initialisation de toutes les valeurs du tableau a val
+    /// \param  val : valeur d initialisation
+    bool		Memset(int val)
+    {
+        std::cout << "PAS DE MEMSET POUR OPENCL" << "\n";
+        return true;
+    }
+
+    bool        abDealloc()
+    {
+        cl_mem* buf = _buffer->pData();
+
+        return clReleaseMemObject(*buf) == CL_SUCCESS;
+
+    }
+
+
+private:
+
+    CData<cl_mem>*      _buffer;
+
+};
+
+template <class T,int SDKGPU> class ImageGpGpu : public CData2D<T>, public DecoratorImage<SDKGPU>
+{};
+
+template <class T>
+class ImageGpGpu<T,CUDASDK> : public CData2D<cudaArray>, public DecoratorImage<CUDASDK>
+{};
+
+
+template <class T>
+class ImageGpGpu<T,OPENCLSDK> : public CData2D<cl_mem>, public DecoratorImage<OPENCLSDK>
+{
+    ImageGpGpu():
+        DecoratorImage<OPENCLSDK>(this)
+    {
+        CData2D::SetType("Image OpenCL");
+        CData2D::ClassTemplate(CData2D::ClassTemplate() + " " + CData2D::StringClass<T>(_ClassData));
+    }
+
+    /// \brief Initialise les valeurs de l image avec un tableau de valeur du Host
+    /// \param data : Donnees cible a copier
+    bool	copyHostToDevice(T* data)
+    {
+        cl_mem* image = CData2D<cl_mem>::pData();
+
+        size_t origin[] = {0,0,0}; // Defines the offset in pixels in the image from where to write.
+        size_t region[] = {struct2D::GetDimension().x, struct2D::GetDimension().y, 1}; // Size of object to be transferred
+
+        cl_int err = clEnqueueWriteImage(CGpGpuContext<OPENCLSDK>::contextOpenCL(), *image, CL_TRUE, origin, region,0,0, data, 0, NULL,NULL);
+
+        return err == CL_SUCCESS;
+    }
+
+    /// \brief Initialise les valeurs de l image a val
+    /// \param val : Valeur d initialisation
+    bool	Memset(int val){return DecoratorImage<OPENCLSDK>::Memset(val);}
+
+protected:
+
+    bool    abDealloc(){
+
+        struct2D::SetMaxSize(0);
+        struct2D::SetMaxDimension();
+
+        return DecoratorImage<OPENCLSDK>::abDealloc();}
+
+    bool    abMalloc(){
+
+        cl_image_format img_fmt;
+        img_fmt.image_channel_order = CL_RGBA; // --> en fonction de je ne sait quoi!!!
+        img_fmt.image_channel_data_type = CL_FLOAT; // --> en fonction de T
+        cl_int err;
+        cl_mem *image = new cl_mem;
+        CData2D<cl_mem>::SetPData(image);
+
+        *image = clCreateImage2D(CGpGpuContext<OPENCLSDK>::contextOpenCL(), CL_MEM_READ_ONLY, &img_fmt, struct2D::GetDimension().x, struct2D::GetDimension().y, 0, 0, &err);
+        return err == CL_SUCCESS;
+    }
+
+    uint	Sizeof(){ return CData2D::GetSize() * sizeof(T);}
+
+
+private:
+
+    T*		_ClassData;
+
+};
+
 /// \class  ImageCuda
 /// \brief Cette classe est une image 2D directement liable a une texture GpGpu
 template <class T>
-class ImageCuda : public CData2D<cudaArray>, public DecoratorImageCuda
+class ImageCuda : public CData2D<cudaArray>, public DecoratorImage<CUDASDK>
 {
 public:
 
@@ -645,7 +863,7 @@ public:
     bool	copyHostToDevice(T* data);
     /// \brief Initialise les valeurs de l image a val
     /// \param val : Valeur d initialisation
-    bool	Memset(int val){return DecoratorImageCuda::Memset(val);}    
+    bool	Memset(int val){return DecoratorImage<CUDASDK>::Memset(val);}
 
 protected:
 
@@ -654,7 +872,7 @@ protected:
         struct2D::SetMaxSize(0);
         struct2D::SetMaxDimension();
 
-        return DecoratorImageCuda::abDealloc();}
+        return DecoratorImage<CUDASDK>::abDealloc();}
 
     bool    abMalloc();
 
@@ -667,9 +885,9 @@ private:
 };
 
 TPL_T ImageCuda<T>::ImageCuda():
-    DecoratorImageCuda(this)
+    DecoratorImage<CUDASDK>(this)
 {
-    CData2D::SetType("ImageLayeredCuda");
+    CData2D::SetType("ImageCuda");
     CData2D::ClassTemplate(CData2D::ClassTemplate() + " " + CData2D::StringClass<T>(_ClassData));
 }
 
@@ -684,10 +902,11 @@ TPL_T bool ImageCuda<T>::abMalloc()
     return CData2D::ErrorOutput(cudaMallocArray(CData2D::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),__FUNCTION__);
 }
 
+
 /// \class ImageLayeredCuda
 /// \brief Cette classe est une pile d'image 2D directement liable a une texture GpGpu
 template <class T>
-class ImageLayeredCuda : public CData3D<cudaArray>, public DecoratorImageCuda
+class ImageLayeredCuda : public CData3D<cudaArray>, public DecoratorImage<CUDASDK>
 {
 public:
 
@@ -695,7 +914,7 @@ public:
 
     /// \brief Initialise les valeurs des images a val
     /// \param val : Valeur d initialisation
-    bool	Memset(int val){return DecoratorImageCuda::Memset(val);}
+    bool	Memset(int val){return DecoratorImage<CUDASDK>::Memset(val);}
 
     /// \brief Copie des valeurs des images avec un tableau 3D de valeur du Host
     /// \param data : Donnees cible a copier
@@ -715,7 +934,7 @@ protected:
         struct2D::SetMaxSize(0);
         struct2D::SetMaxDimension();
 
-        return DecoratorImageCuda::abDealloc();
+        return DecoratorImage<CUDASDK>::abDealloc();
     }
 
     bool    abMalloc();
@@ -732,7 +951,7 @@ private:
 };
 
 TPL_T ImageLayeredCuda<T>::ImageLayeredCuda():
-    DecoratorImageCuda(this)
+    DecoratorImage<CUDASDK>(this)
 {
 
 #ifndef _WIN32

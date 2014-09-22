@@ -113,6 +113,13 @@
        <ePCR_2SinAtgtS2>   </ePCR_2SinAtgtS2>
    </enum>
 
+   <enum Name="eTypeSake">
+       <eGeomTer>    </eGeomTer>
+<!--  <eGeomIm>     </eGeomIm> -->
+       <eOrthoIm>    </eOrthoIm>
+       <eNbTypeVals> </eNbTypeVals>
+   </enum>
+
    <enum Name="eModeGeomMNT">
            <eGeomMNTCarto >       </eGeomMNTCarto>
            <eGeomMNTEuclid >      </eGeomMNTEuclid>
@@ -734,7 +741,7 @@
              <ModPhgrStd Nb="?" RefType="CalibrationInternePghrStd"> </ModPhgrStd>
              <ModUnif Nb="?"   RefType="CalibrationInterneUnif">    </ModUnif>
              <ModGrid Nb="?"   RefType="CalibrationInterneGrid">    </ModGrid>
-               
+
               <!-- Mode Grille deformable -->
              <ModGridDef Nb="?"   RefType="CalibrationInterneGridDef">    </ModGridDef>
         </CalibDistortion>

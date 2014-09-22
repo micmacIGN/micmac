@@ -1,7 +1,10 @@
 #ifndef GPGPU_CONTEXT_H
 #define GPGPU_CONTEXT_H
 
-#include "StdAfx.h"
+//#include "StdAfx.h"
+#include <list>
+#include <map>
+#include "GpGpu_eLiSe.h"
 
 #ifdef __APPLE__
 #include "OpenCL/opencl.h"
@@ -24,9 +27,15 @@ public:
 
     void deleteContext(){}
 
+    static cl_context contextOpenCL(){return NULL;}
+
+    static cl_command_queue commandQueue(){return NULL;}
+
 private:
 
-    cl_context _contextOpenCL;
+    static cl_context           _contextOpenCL;
+    static cl_command_queue     _commandQueue;
+
 };
 
 template <> inline
@@ -100,7 +109,25 @@ void CGpGpuContext<OPENCLSDK>::deleteContext()
     clReleaseContext(_contextOpenCL);
 }
 
+template <> inline
+cl_context CGpGpuContext<OPENCLSDK>::contextOpenCL()
+{
+    return _contextOpenCL;
+}
+
+template <> inline
+cl_command_queue CGpGpuContext<OPENCLSDK>::commandQueue()
+{
+return _commandQueue;
+}
+
+
 #endif // GPGPU_CONTEXT_H
+
+
+
+
+
 
 
 

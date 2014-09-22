@@ -660,6 +660,57 @@ void  BinaryUnDumpFromFile(eTypePreCondRad & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eTypePreCondRad *) {return "F35D0134295568AAFE3F";};
 
+eTypeSake  Str2eTypeSake(const std::string & aName)
+{
+   if (aName=="eGeomTer")
+      return eGeomTer;
+   else if (aName=="eOrthoIm")
+      return eOrthoIm;
+   else if (aName=="eNbTypeVals")
+      return eNbTypeVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeSake\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeSake) 0;
+}
+void xml_init(eTypeSake & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeSake(aTree->Contenu());
+}
+std::string  eToString(const eTypeSake & anObj)
+{
+   if (anObj==eGeomTer)
+      return  "eGeomTer";
+   if (anObj==eOrthoIm)
+      return  "eOrthoIm";
+   if (anObj==eNbTypeVals)
+      return  "eNbTypeVals";
+ std::cout << "Enum = eTypeSake\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeSake & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeSake & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeSake & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeSake) aIVal;
+}
+
+std::string  Mangling( eTypeSake *) {return "0785B3254B2591AEFE3F";};
+
 eModeGeomMNT  Str2eModeGeomMNT(const std::string & aName)
 {
    if (aName=="eGeomMNTCarto")
