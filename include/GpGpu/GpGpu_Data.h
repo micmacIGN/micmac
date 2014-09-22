@@ -271,6 +271,8 @@ public:
 
     bool            ReallocIfDim(uint2 dim,uint l);
 
+
+
     T&              operator[](uint2 pt);
 
     T&              operator[](uint3 pt);
@@ -684,7 +686,7 @@ class DecoratorImage{};
 /// \class  AImageCuda
 /// \brief Decorateur pour imageCuda
 template<>
-class DecoratorImage<CUDASDK>
+class DecoratorImage<CUDASDK> : public CData3D<cudaArray>
 {
 public:
 
@@ -708,13 +710,12 @@ public:
 
         _textureReference = NULL;
 
-        return _dataCudaArray->Dealloc();;
+        return CData3D<cudaArray>::Dealloc();
     }
 
 protected:
 
-    DecoratorImage(CData<cudaArray> *dataCudaArray):
-        _dataCudaArray(dataCudaArray){}
+    DecoratorImage(){}
 
     /// \brief  Initialisation de toutes les valeurs du tableau a val
     /// \param  val : valeur d initialisation
@@ -728,17 +729,16 @@ protected:
     /// \brief  renvoie le tableau cuda contenant les valeurs de l'image
     cudaArray*	GetCudaArray()
     {
-        return _dataCudaArray->pData();
+        return pData();
     }
 
-    bool        abDealloc(){
+    bool        abDealloc()
+    {
+        printf("DEALLOC CUDA Array\n");
         return (cudaFreeArray( GetCudaArray()) == cudaSuccess) ? true : false;
     }
 
-
 private:
-
-    CData<cudaArray>*   _dataCudaArray;
 
     textureReference*   _textureReference;
 
@@ -782,28 +782,25 @@ private:
 
 };
 
-template <class T,int SDKGPU> class MetaDecorator// : public CData2D<T>, public DecoratorImage<SDKGPU>
-{};
 
-template <class T,int SDKGPU> class ImageGpGpu// : public CData2D<T>, public DecoratorImage<SDKGPU>
+template <class T,int SDKGPU> class ImageGpGpu
 {};
 
 template <class T>
-class ImageGpGpu<T,CUDASDK> : public CData2D<cudaArray>, public DecoratorImage<CUDASDK>
+class ImageGpGpu<T,CUDASDK> : public DecoratorImage<CUDASDK>
 {
 public:
 
-    ImageGpGpu<T,CUDASDK> ():
-        DecoratorImage<CUDASDK>(this)
+    ImageGpGpu<T,CUDASDK> ()
     {
-        CData2D::SetType("ImageCuda");
-        CData2D::ClassTemplate(CData2D::ClassTemplate() + " " + CData2D::StringClass<T>(_ClassData));
+        DecoratorImage<CUDASDK>::SetType("ImageCuda");
+        DecoratorImage<CUDASDK>::ClassTemplate(DecoratorImage<CUDASDK>::ClassTemplate() + " " + DecoratorImage<CUDASDK>::StringClass<T>(_ClassData));
     }
 
     /// \brief Initialise les valeurs de l image avec un tableau de valeur du Host
     /// \param data : Donnees cible a copier
     bool	copyHostToDevice(T* data){
-        return CData2D::ErrorOutput(cudaMemcpyToArray(CData2D::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),__FUNCTION__);
+        return DecoratorImage<CUDASDK>::ErrorOutput(cudaMemcpyToArray(DecoratorImage<CUDASDK>::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),__FUNCTION__);
     }
 
     /// \brief Initialise les valeurs de l image a val
@@ -821,12 +818,13 @@ protected:
 
     bool    abMalloc()
     {
+
         cudaChannelFormatDesc channelDesc =  cudaCreateChannelDesc<T>();
-        return CData2D::ErrorOutput(cudaMallocArray(CData2D::ppData(),&channelDesc,struct2D::GetDimension().x,struct2D::GetDimension().y),__FUNCTION__);
+        return DecoratorImage<CUDASDK>::ErrorOutput(cudaMallocArray(DecoratorImage<CUDASDK>::ppData(),&channelDesc,DecoratorImage<CUDASDK>::GetDimension().x,DecoratorImage<CUDASDK>::GetDimension().y),__FUNCTION__);
     }
 
 
-    uint	Sizeof(){ return CData2D::GetSize() * sizeof(T);}
+    uint	Sizeof(){ return DecoratorImage<CUDASDK>::GetSize() * sizeof(T);}
 
 private:
 
@@ -898,13 +896,12 @@ class ImageLayeredGpGpu : public CData3D<T>, public DecoratorImage<sdkgpu>{};
 /// \class ImageLayeredCuda
 /// \brief Cette classe est une pile d'image 2D directement liable a une texture GpGpu
 template <class T>
-class ImageLayeredGpGpu <T, CUDASDK> : public CData3D<cudaArray>, public DecoratorImage<CUDASDK>
+class ImageLayeredGpGpu <T, CUDASDK> :  public DecoratorImage<CUDASDK>
 {
 
 public:
 
-    ImageLayeredGpGpu():
-        DecoratorImage<CUDASDK>(this)
+    ImageLayeredGpGpu()
     {
 
     #ifndef _WIN32
@@ -952,7 +949,8 @@ protected:
         return DecoratorImage<CUDASDK>::abDealloc();
     }
 
-    bool    abMalloc(){
+    bool    abMalloc()
+    {
 
         cudaChannelFormatDesc channelDesc =	cudaCreateChannelDesc<T>();
 
