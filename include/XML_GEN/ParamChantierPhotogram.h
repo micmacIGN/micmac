@@ -239,6 +239,25 @@ void  BinaryUnDumpFromFile(eTypePreCondRad &,ELISE_fp &);
 
 typedef enum
 {
+  eGeomTer,
+  eOrthoIm,
+  eNbTypeVals
+} eTypeSake;
+void xml_init(eTypeSake & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeSake & aVal);
+
+eTypeSake  Str2eTypeSake(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeSake & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeSake &);
+
+std::string  Mangling( eTypeSake *);
+
+void  BinaryUnDumpFromFile(eTypeSake &,ELISE_fp &);
+
+typedef enum
+{
   eGeomMNTCarto,
   eGeomMNTEuclid,
   eGeomMNTFaisceauIm1PrCh_Px1D,
