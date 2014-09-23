@@ -320,11 +320,22 @@ TPL_T bool CData3D<T>::ReallocIf(uint dim1D)
 
 TPL_T inline bool CData3D<T>::ReallocIfDim(uint2 dim,uint l)
 {
-    if( oI(struct2DLayered::GetMaxDimension(),dim) || l > struct2DLayered::GetNbLayer())
-        return CData3D<T>::Realloc(dim,l);    
-    else
-        CData3D<T>::SetDimension(dim,l);
 
+//    DUMP_UINT2(dim)
+//    DUMP_UINT2(struct2DLayered::GetMaxDimension())
+//            DUMP_UINT(l)
+//            DUMP_UINT(struct2DLayered::GetNbLayer())
+    if( oI(struct2DLayered::GetMaxDimension(),dim) || l > struct2DLayered::GetNbLayer())
+    {
+//        printf("REALLOC :\n");
+
+        return CData3D<T>::Realloc(dim,l);
+    }
+    else
+    {
+//        printf("SET DIMENSION :\n");
+        CData3D<T>::SetDimension(dim,l);
+    }
     return true;
 }
 
@@ -559,6 +570,7 @@ private:
     CData<T>* _dD;
 };
 
+#if OPENCL_ENABLED
 template<class T>
 class DecoratorDeviceData<T,OPENCLSDK>
 {
@@ -606,7 +618,7 @@ private:
 
     CData<T>* _dD;
 };
-
+#endif
 
 /// \class CuDeviceData2D
 /// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
@@ -746,6 +758,7 @@ private:
 
 };
 
+#if OPENCL_ENABLED
 template<>
 class DecoratorImage<OPENCLSDK>
 {
@@ -753,7 +766,6 @@ public:
 
     bool        Dealloc()
     {
-
         return abDealloc();
     }
 
@@ -775,16 +787,14 @@ protected:
         cl_mem* buf = _buffer->pData();
 
         return clReleaseMemObject(*buf) == CL_SUCCESS;
-
     }
-
 
 private:
 
     CData<cl_mem>*      _buffer;
 
 };
-
+#endif
 
 template <class T,int SDKGPU> class ImageGpGpu
 {};
@@ -806,6 +816,11 @@ public:
         return DecoratorImage<CUDASDK>::ErrorOutput(cudaMemcpyToArray(DecoratorImage<CUDASDK>::pData(), 0, 0, data, sizeof(T)*size(GetDimension()), cudaMemcpyHostToDevice),__FUNCTION__);
     }
 
+    void SetNameImage(string name)
+    {
+        DecoratorImage<CUDASDK>::SetName(name);
+    }
+
 protected:
 
     bool    abMalloc()
@@ -822,6 +837,7 @@ private:
     T*		_ClassData;
 };
 
+#if OPENCL_ENABLED
 template <class T>
 class ImageGpGpu<T,OPENCLSDK> : public CData2D<cl_mem>, public DecoratorImage<OPENCLSDK>
 {
@@ -875,6 +891,7 @@ private:
     T*		_ClassData;
 
 };
+#endif
 
 template <class T, int sdkgpu> class ImageLayeredGpGpu {};
 
@@ -956,7 +973,8 @@ private:
         return p;
     }
 
-    cudaExtent        CudaExtent(){
+    cudaExtent  CudaExtent()
+    {
         return make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
     }
 };
