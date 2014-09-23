@@ -1,0 +1,142 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+    PatCouloir="img_(2789|279[0-9]|2800|283[4-9]|284[0-2])_MpDcraw8B_GR.tif"
+>
+   <ParamApero>
+
+<!-- Raccord : 2787 (plafond)
+
+    PB = 2789-2800
+         
+         2834 2842
+-->
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_Orient>
+                  <Id>  IdOrFinale </Id>
+                  <KeySet>   Key-Set-OrFinale       </KeySet>
+                  <KeyAssoc> Key-Assoc-Im2OrFinale  </KeyAssoc>
+             </BDD_Orient>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>    Orient/AutoCalib2Villesavin-Cannon15.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^${PatternAllIm} </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosFromBDOrient> IdOrFinale </PosFromBDOrient>
+                   </PosValueInit>
+                   <PatternRefuteur> ${PatCouloir} </PatternRefuteur>
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^${PatCouloir} </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosId> toto </PosId>
+                   </PosValueInit>
+              </PoseCameraInc>
+<!--
+-->
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+		    <SectionObservations>
+		    </SectionObservations>
+
+                   <SectionExport>
+
+                       <ExportMesuresFromCarteProf>
+                          <Cartes2Export>
+                              <Im1> img_2787_MpDcraw8B_GR.tif </Im1>
+                              <Nuage> GeoI/NuageImProf_Geom1-Im-2787_Etape_6.xml </Nuage>
+                              <ImN> img_2786_MpDcraw8B_GR.tif </ImN>
+                              <ImN> img_2788_MpDcraw8B_GR.tif </ImN>
+                              <FilterIm2> ${PatCouloir}  </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                          <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                          <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                          <LiaisonModeAdd> true </LiaisonModeAdd>
+                       </ExportMesuresFromCarteProf>
+
+                       <ExportMesuresFromCarteProf>
+                          <Cartes2Export>
+                              <Im1> img_2787_MpDcraw8B_GR.tif </Im1>
+                              <Nuage> GeoI/NuageImProf_Geom3-Im-2787_Etape_6.xml </Nuage>
+                              <ImN> img_2786_MpDcraw8B_GR.tif </ImN>
+                              <ImN> img_2788_MpDcraw8B_GR.tif </ImN>
+                              <FilterIm2> ${PatCouloir}  </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                          <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                          <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                          <LiaisonModeAdd> true </LiaisonModeAdd>
+                       </ExportMesuresFromCarteProf>
+
+                       <ExportMesuresFromCarteProf>
+                          <Cartes2Export>
+                              <Im1> img_2785_MpDcraw8B_GR.tif </Im1>
+                              <Nuage> GeoI/NuageImProf_Geom2-Im-2785_Etape_6.xml </Nuage>
+                              <ImN> img_2784_MpDcraw8B_GR.tif </ImN>
+                              <ImN> img_2786_MpDcraw8B_GR.tif </ImN>
+                              <FilterIm2> ${PatCouloir}  </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                          <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                          <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                       </ExportMesuresFromCarteProf>
+
+                       <ExportMesuresFromCarteProf>
+                          <Cartes2Export>
+                              <Im1> img_2833_MpDcraw8B_GR.tif </Im1>
+                              <Nuage> GeoI/NuageImProf_Geom1-Im-2833_Etape_6.xml </Nuage>
+                              <ImN> img_2831_MpDcraw8B_GR.tif </ImN>
+                              <ImN> img_2832_MpDcraw8B_GR.tif </ImN>
+                              <FilterIm2> ${PatCouloir}  </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                          <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                          <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                       </ExportMesuresFromCarteProf>
+
+                   </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
