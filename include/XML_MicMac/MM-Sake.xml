@@ -103,7 +103,6 @@
   <Section_MEC>
     <#WHEN VTEST=${UseClip}>
       <ProportionClipMEC >  ${X0Clip} ${Y0Clip} ${X1Clip} ${Y1Clip} </ProportionClipMEC>
-      <ClipMecIsProp > false </ClipMecIsProp>
     </#WHEN>
     <EtapeMEC>
       <DeZoom>-1</DeZoom>
