@@ -8,8 +8,9 @@ SData2Correl::SData2Correl():
 {
     _d_volumeCost[0].SetName("_d_volumeCost");
     _d_volumeCach[0].SetName("_d_volumeCach");
-    _d_volumeNIOk[0].SetName("_d_volumeNIOk");
-    _dt_GlobalMask.DecoratorImage<CUDASDK>::SetName("_dt_GlobalMask");
+    _d_volumeNIOk[0].SetName("_d_volumeNIOk");    
+    _dt_GlobalMask.SetNameImage("_dt_GlobalMask");
+
     _dt_LayeredImages.CData3D::SetName("_dt_LayeredImages");
     _dt_LayeredProjection->CData3D::SetName("_dt_LayeredProjection");
 
@@ -148,8 +149,10 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF292CB0);
 	#endif
 
-    _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.invPC.nbImages * param.ZCInter);
 
+//    printf("STart Realloc _dt_LayeredProjection\n");
+    _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.invPC.nbImages * param.ZCInter);
+//    printf("START Realloc _dt_LayeredProjection\n");
 
     // Gestion des bords d'images
     _dRect.ReallocIfDim(make_uint2(1,1),param.invPC.nbImages * param.ZCInter);
