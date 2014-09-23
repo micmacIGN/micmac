@@ -520,7 +520,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 }
 #if CUDA_ENABLED
 
-void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, uint idBuf)
+void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, uint idBuf)
 {
 
     //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
@@ -539,8 +539,8 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
             Pt2di ptTer = (Pt2di)(*aVPt)[aK];
 
 #ifndef CLAMPDZ
-            ushort dZ   = costInit1D.DZ(ptTer);
-            index[aK]   = costInit1D.PtZ(ptTer);
+            ushort dZ   = mCellCost.DZ(ptTer);
+            index[aK]   = mCellCost.PtZ(ptTer);
 #else
             ushort dZ   = min(costInit1D.DZ(ptTer),costInit1D._maxDz);
 
@@ -554,7 +554,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
 
             ushort* desrCostInit = d2Opt.s_InitCostVol().pData()+idStrm;
 
-            memcpy(desrCostInit,costInit1D[ptTer],dZ * sizeof(ushort));
+            memcpy(desrCostInit,mCellCost[ptTer],dZ * sizeof(ushort));
 
             pitStrm += dZ;
         }
@@ -567,7 +567,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
 
 //#define OUTPUTDEFCOR
 
-void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, CuHostDaPo3D<ushort> &costInit1D, CuHostData3D<uint> &costFinal1D,CuHostData3D<uint> &FinalDefCor, uint idBuf)
+void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal1D,CuHostData3D<uint> &FinalDefCor, uint idBuf)
 {
     //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
 
@@ -596,7 +596,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
 
             Pt2di ptTer = (Pt2di)(*aVPt)[aK];
             #ifndef CLAMPDZ
-            ushort dZ   = costInit1D.DZ(ptTer);
+            ushort dZ   = mCellCost.DZ(ptTer);
             #else
             ushort dZ   =  min(costInit1D.DZ(ptTer),costInit1D._maxDz);
             #endif
@@ -604,7 +604,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
             // position dans le stream cout force....
             uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
             uint *forCo = d2Opt.s_ForceCostVol(idBuf).pData() + idStrm; // TODO A verifier car devrait deja calculer dans les parametres...
-            uint *finCo = costFinal1D.pData() + costInit1D.Pit(ptTer);
+            uint *finCo = costFinal1D.pData() + mCellCost.Pit(ptTer);
 
 
             uint defCorr = (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
