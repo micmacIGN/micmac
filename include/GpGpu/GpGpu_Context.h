@@ -5,6 +5,7 @@
 #include <list>
 #include <map>
 #include "GpGpu_eLiSe.h"
+#include "GpGpu_BuildOptions.h"
 
 #ifdef __APPLE__
 #include "OpenCL/opencl.h"
@@ -57,6 +58,16 @@ void CGpGpuContext<CUDASDK>::createContext() {
     //printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
 }
 
+
+template <> inline
+void CGpGpuContext<CUDASDK>::deleteContext()
+{
+
+    checkCudaErrors( cudaDeviceReset() );
+}
+
+#if OPENCL_ENABLED
+
 template <> inline
 void CGpGpuContext<OPENCLSDK>::createContext() {
 
@@ -96,12 +107,6 @@ void CGpGpuContext<OPENCLSDK>::createContext() {
     }
 }
 
-template <> inline
-void CGpGpuContext<CUDASDK>::deleteContext()
-{
-
-    checkCudaErrors( cudaDeviceReset() );
-}
 
 template <> inline
 void CGpGpuContext<OPENCLSDK>::deleteContext()
@@ -120,7 +125,7 @@ cl_command_queue CGpGpuContext<OPENCLSDK>::commandQueue()
 {
 return _commandQueue;
 }
-
+#endif
 
 #endif // GPGPU_CONTEXT_H
 
