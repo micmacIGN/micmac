@@ -134,43 +134,6 @@ void cASAMG::ComputeIncidGradProf()
 }
 
 
-// Pre requis , en plus de cCC_NoActionOnNewPt    
-//    Sz()
-//    OkPtParse(aP) => different de ValidePt qui peut etre contextuel en fonction du germe
-//    OnBeginNexGerm(aP);
-//    bool V4()
-
-/*
-template <class TAction> ParseZonec(TAction & anAct)
-{
-    Pt2di aSz = anAct.Sz();
-
-    Im2D_Bits<1> aMarqueur(aSz.x,aSz.y,0);
-    Im2DBits<1>  aTMarq(aMarqueur);
-    Pt2di aP;
-    for (aP.x=1 ; aP.x<(aSz.x-1) ; aP.x++)
-    {
-        for (aP.y=1 ; aP.y<(aSz.y-1) ; aP.y++)
-        {
-              if (anAct.OkPtParse(aP))
-                 aTMarq.oset(P,1);
-        }
-    }
-
-    for (aP.x=1 ; aP.x<(aSz.x-1) ; aP.x++)
-    {
-        for (aP.y=1 ; aP.y<(aSz.y-1) ; aP.y++)
-        {
-             if (aTMarq.get(aP))
-             {
-                 anAct.OnBeginNexGerm(aP);
-                 OneZC(aP,aTMarq,anAct.V4(),1,0
-                 anAct.OnBeginEndGerm(aP);
-             } 
-        }
-    }
-}
-*/
 
 
 //===================== INCIDEENCE EN EUCLIDIEN =========================
@@ -234,11 +197,10 @@ void cASAMG::ComputeIncidAngle3D()
 
 //===================== INCIDEENCE KLIPSCHITZ =========================
 
-
 Fonc_Num NFoncDilatCond(Fonc_Num f2Dil,Fonc_Num fCond,bool aV4,int aNb);
 
 
-void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel)
+void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel,Im2D_Bits<1> aRes)
 {
    double aDynPix = mStdN->DynProfInPixel();
 
@@ -255,6 +217,50 @@ void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel)
    // 0 Out,  1 Ok,  2 Ok mais pentre forte, 3 voisin de 2, 4 retracte
    ELISE_COPY(aImLabel.all_pts(),fMasq + (aImOmbr.in()>0),aImLabel.out());
    ELISE_COPY(aImLabel.border(1),0,aImLabel.out());
+
+   Im2D_Bits<1> aMarq = ImMarqueurCC(mSz);
+   TIm2DBits<1> aTMarq (aMarq);
+
+
+    // Supprime les CC de point "rouge" (=2) touchant du 0 et < 20 pts
+
+    Pt2di aP;
+    for (aP.x=1 ; aP.x<(mSz.x-1) ; aP.x++)
+    {
+        for (aP.y=1 ; aP.y<(mSz.y-1) ; aP.y++)
+        {
+            if (aTLab.get(aP)==2)
+            {
+                cCC_GetVPt aCC;
+                OneZC(aP,true,aTMarq,1,0,aTLab,2,aCC);
+
+                int aNbZ = aCC.mVPts.size();
+                bool ToSupr = (aNbZ < 20);
+
+                for (int aKP=0; ToSupr && (aKP<aNbZ) ; aKP++)
+                {
+                    Pt2di aQ = aCC.mVPts[aKP];
+                    for (int aKV=0 ; aKV<4 ; aKV++)
+                    {
+                         if (aTLab.get(aQ+TAB_4_NEIGH[aKV])==0)
+                         {
+                             ToSupr= false;
+                         }
+                    }
+                }
+                if (ToSupr) 
+                {
+                    for (int aKP=0;  aKP<int(aNbZ) ; aKP++)
+                    {
+                        aTLab.oset(aCC.mVPts[aKP],1);
+                    }
+                }
+            }
+        }
+    }
+
+
+
    ELISE_COPY
    (
          select(aImLabel.all_pts(),NFoncDilatCond(aImLabel.in(0)==2,aImLabel.in(0)==1,true,2)&&(aImLabel.in()==1)),
@@ -267,61 +273,9 @@ void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel)
          4,
          aImLabel.out()
    );
-   // FiltrageCardCC(true,aTLab
 
-   Im2D_Bits<1> aRes(mSz.x,mSz.y);
    ELISE_COPY(aImLabel.all_pts(),(aImLabel.in()==2) || (aImLabel.in()==3),aRes.out());
 
-   // ELISE_COPY(
-
-
-   if (1)
-   {
-       Video_Win * aW = mAppli->TheWinIm(mSz);
-       if (aW)
-       {
-/*
-           ELISE_COPY
-           (
-                mImIncid.all_pts(),
-                Min(255,100.0*  Virgule(aOmbrInv,aOmbrStd,aOmbrStd)),
-                aW->orgb()
-           );
-           aW->clik_in();
-*/
-
-           ELISE_COPY
-           (
-                aImLabel.all_pts(),
-                aImLabel.in(),
-                aW->odisc()
-           );
-           aW->clik_in();
-
-           ELISE_COPY
-           (
-                aImLabel.all_pts(),
-                fMasq + aRes.in(),
-                aW->odisc()
-           );
-           aW->clik_in();
-
-
-       }
-   }
-
-   ELISE_COPY
-   (
-        mImIncid.all_pts(),
-        Min(255,100.0*  aOmbrInv),
-        mImIncid.out()
-   );
-
-/*
-   ELISE_COPY(mImIncid.all_pts(),0,mImIncid.out());
-   Im2D_Bits<1> aMasq(mSz.x,mSz.y);
-   ELISE_COPY(aMasq.all_pts(),fMasq,aMasq.out());
-*/
 }
 /*
 

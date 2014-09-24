@@ -126,7 +126,7 @@ class cASAMG
      void ComputeIncid();
      void ComputeIncidAngle3D();
      void ComputeIncidGradProf();
-     void ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPix);
+     void ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPix,Im2D_Bits<1>);
      void ComputeIncidKLip(Im2D_Bits<1> ,bool Inf,double aStep,int aSzVois);
 
      void ComputeSubset(int aNbPts,cResumNuage &);
@@ -143,6 +143,12 @@ class cASAMG
      Pt2di                mSz;
      Im2D_U_INT1          mImIncid;
      TIm2D<U_INT1,INT>    mTIncid;
+
+     Im2D_Bits<1>         mMasqHigh;
+     TIm2DBits<1>         mTMPH;
+     Im2D_Bits<1>         mMasqPLow;
+     TIm2DBits<1>         mTMPL;
+
      double               mSSIma;
 
      std::vector<cASAMG *>  mCloseNeigh;
@@ -200,7 +206,7 @@ int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
 
 
 inline double pAramCostPerImISOM() {return 0.2;}
-inline bool   pAramVisuProf() {return true;}
+inline bool   pAramVisuProf() {return false;}
 inline double pAramPenteRefutInitInPixel() {return 1/2.0;}
 
 #endif // _ELISE_MERGE_CLOUD
