@@ -56,6 +56,10 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mSz        (mStdN->SzUnique()),
    mImIncid   (mSz.x,mSz.y),
    mTIncid    (mImIncid),
+   mMasqHigh  (mSz.x,mSz.y),
+   mTMPH      (mMasqHigh),
+   mMasqPLow  (mSz.x,mSz.y),
+   mTMPL      (mMasqPLow),
    mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma()),
    mISOM      (StdGetISOM(anAppli->ICNM(),anIma->mNameIm,anAppli->Ori()))
 {
@@ -64,8 +68,9 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    // Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
 
    // ComputeIncidAngle3D();
-   ComputeIncidKLip(mMasqN.in_proj(),pAramPenteRefutInitInPixel());
-   ComputeIncidKLip(mMasqN.in_proj(),pAramPenteRefutInitInPixel()*2);
+   ComputeIncidGradProf();
+   ComputeIncidKLip(mMasqN.in_proj(),pAramPenteRefutInitInPixel(),mMasqHigh);
+   ComputeIncidKLip(mMasqN.in_proj(),pAramPenteRefutInitInPixel()*2,mMasqPLow);
    
    
    Video_Win * aW = mAppli->TheWinIm(mSz);
@@ -76,21 +81,19 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    {
       aW->set_title(mIma->mNameIm.c_str());
 
-      Fonc_Num f = mImIncid.in_proj();
       ELISE_COPY
       (
              mImIncid.all_pts(),
-             Virgule(f,f,f),
+             Virgule
+             (
+                  mImIncid.in(),
+                  mImIncid.in() *  ! mMasqHigh.in(),
+                  mImIncid.in() *  ! mMasqPLow.in()
+             ),
              aW->orgb()
       );
-      ELISE_COPY
-      (
-             mImIncid.all_pts(),
-             nflag_close_sym(flag_front4(f<mSSIma*DynAng())),
-             aW->out_graph(Line_St(aW->pdisc()(P8COL::red)))
-      );
 
-      aW->clik_in();
+       aW->clik_in();
    }
 }
 
