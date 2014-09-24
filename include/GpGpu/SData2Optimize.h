@@ -102,7 +102,11 @@ struct p_ReadLine
 
 };
 
+
 template<template<class T> class U, uint NBUFFER = 1 >
+///
+/// \brief The Data2Optimiz struct
+///
 struct Data2Optimiz
 {
 public:
@@ -111,6 +115,9 @@ public:
 
     ~Data2Optimiz();
 
+    ///
+    /// \brief Dealloc
+    ///
     void Dealloc();
 
     void ReallocParam(uint size);
@@ -420,14 +427,6 @@ void Data2Optimiz<U,NBUFFER>::setCostTransMaskNoMask(const ushort &CostTransMask
 {
     _CostTransMaskNoMask = CostTransMaskNoMask;
 }
-
-
-
-
-
-
-
-
 
 #endif //__DATA2OPTIMIZ_H__
 
