@@ -240,8 +240,6 @@ Fonc_Num NFoncDilatCond(Fonc_Num f2Dil,Fonc_Num fCond,bool aV4,int aNb);
 
 void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel)
 {
-std::cout << "cASAMG::ComputeIncidKLip  " << mImIncid.sz() << " " << (mStdN->DynProfInPixel()) << "\n";
-
    double aDynPix = mStdN->DynProfInPixel();
 
    Fonc_Num  aOmbrStd = OmbrageKL( mStdN->ImProf()->in_proj()/aDynPix,fMasq,aPenteInPixel,2);
@@ -254,10 +252,25 @@ std::cout << "cASAMG::ComputeIncidKLip  " << mImIncid.sz() << " " << (mStdN->Dyn
    Im2D_U_INT1 aImOmbr(mSz.x,mSz.y);
    ELISE_COPY(aImOmbr.all_pts(),Min(255,round_ni(aOmbrGlob*aDynStore)),aImOmbr.out());
 
-   // 0 Out,  1 Ok,  2 Ok mais pentre forte
+   // 0 Out,  1 Ok,  2 Ok mais pentre forte, 3 voisin de 2, 4 retracte
    ELISE_COPY(aImLabel.all_pts(),fMasq + (aImOmbr.in()>0),aImLabel.out());
    ELISE_COPY(aImLabel.border(1),0,aImLabel.out());
-   ELISE_COPY(select(aImLabel.all_pts(),NFoncDilatCond(aImLabel.in(0)==2,aImLabel.in(0)==1,true,5)&&(aImLabel.in()==1)),P8COL::blue,aImLabel.out());
+   ELISE_COPY
+   (
+         select(aImLabel.all_pts(),NFoncDilatCond(aImLabel.in(0)==2,aImLabel.in(0)==1,true,2)&&(aImLabel.in()==1)),
+         3,
+         aImLabel.out()
+   );
+   ELISE_COPY
+   (
+         select(aImLabel.all_pts(),NFoncDilatCond(aImLabel.in(0)==1,aImLabel.in(0)==3,true,4)&&(aImLabel.in()==3)),
+         4,
+         aImLabel.out()
+   );
+   // FiltrageCardCC(true,aTLab
+
+   Im2D_Bits<1> aRes(mSz.x,mSz.y);
+   ELISE_COPY(aImLabel.all_pts(),(aImLabel.in()==2) || (aImLabel.in()==3),aRes.out());
 
    // ELISE_COPY(
 
@@ -276,13 +289,24 @@ std::cout << "cASAMG::ComputeIncidKLip  " << mImIncid.sz() << " " << (mStdN->Dyn
            );
            aW->clik_in();
 */
+
            ELISE_COPY
            (
-                mImIncid.all_pts(),
+                aImLabel.all_pts(),
                 aImLabel.in(),
                 aW->odisc()
            );
            aW->clik_in();
+
+           ELISE_COPY
+           (
+                aImLabel.all_pts(),
+                fMasq + aRes.in(),
+                aW->odisc()
+           );
+           aW->clik_in();
+
+
        }
    }
 
