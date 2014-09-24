@@ -168,7 +168,7 @@ template <class T> class cVectOfSMV
                 INT2 * aBoxXMax,
                 INT2 * aBoxYMax,
                 const T & aVinit,
-                CuHostDaPo3D<ushort>    &poInitCost,
+                sMatrixCellCost<ushort>    &poInitCost,
                 uint2                   &ptTer
         )
         {
@@ -236,7 +236,7 @@ template <class T> class cMatrOfSMV
               INT2 ** aBoxXMax,
               INT2 ** aBoxYMax,
               const T & aVinit,
-              CuHostDaPo3D<ushort>    &poInitCost
+              sMatrixCellCost<ushort>    &poInitCost
         )
         {
             mMatrInit = new cVectOfSMV<T>   [aBox.hauteur()];

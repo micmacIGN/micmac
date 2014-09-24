@@ -339,7 +339,6 @@ TPL_T inline bool CData3D<T>::ReallocIfDim(uint2 dim,uint l)
     return true;
 }
 
-
 TPL_T inline bool CData3D<T>::ReallocIf(uint2 dim, uint l)
 {
     //if( size(dim) * l * sizeof(T) > CData3D<T>::GetSizeofMalloc())
@@ -695,7 +694,7 @@ template<int gpusdk = CUDASDK>
 class DecoratorImage{};
 
 
-/// \class  AImageCuda
+/// \class DecoratorImage
 /// \brief Decorateur pour imageCuda
 template<>
 class DecoratorImage<CUDASDK> : public CData3D<cudaArray>
@@ -895,7 +894,7 @@ private:
 
 template <class T, int sdkgpu> class ImageLayeredGpGpu {};
 
-/// \class ImageLayeredCuda
+/// \class ImageLayeredGpGpu
 /// \brief Cette classe est une pile d'image 2D directement liable a une texture GpGpu
 template <class T>
 class ImageLayeredGpGpu <T, CUDASDK> :  public DecoratorImage<CUDASDK>
