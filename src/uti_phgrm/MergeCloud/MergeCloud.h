@@ -126,6 +126,9 @@ class cASAMG
      void ComputeIncid();
      void ComputeIncidAngle3D();
      void ComputeIncidGradProf();
+     void ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPix);
+     void ComputeIncidKLip(Im2D_Bits<1> ,bool Inf,double aStep,int aSzVois);
+
      void ComputeSubset(int aNbPts,cResumNuage &);
      
 
@@ -197,6 +200,8 @@ int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
 
 
 inline double pAramCostPerImISOM() {return 0.2;}
+inline bool   pAramVisuProf() {return true;}
+inline double pAramPenteRefutInitInPixel() {return 1/2.0;}
 
 #endif // _ELISE_MERGE_CLOUD
 

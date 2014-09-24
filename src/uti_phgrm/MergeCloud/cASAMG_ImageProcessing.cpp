@@ -134,6 +134,44 @@ void cASAMG::ComputeIncidGradProf()
 }
 
 
+// Pre requis , en plus de cCC_NoActionOnNewPt    
+//    Sz()
+//    OkPtParse(aP) => different de ValidePt qui peut etre contextuel en fonction du germe
+//    OnBeginNexGerm(aP);
+//    bool V4()
+
+/*
+template <class TAction> ParseZonec(TAction & anAct)
+{
+    Pt2di aSz = anAct.Sz();
+
+    Im2D_Bits<1> aMarqueur(aSz.x,aSz.y,0);
+    Im2DBits<1>  aTMarq(aMarqueur);
+    Pt2di aP;
+    for (aP.x=1 ; aP.x<(aSz.x-1) ; aP.x++)
+    {
+        for (aP.y=1 ; aP.y<(aSz.y-1) ; aP.y++)
+        {
+              if (anAct.OkPtParse(aP))
+                 aTMarq.oset(P,1);
+        }
+    }
+
+    for (aP.x=1 ; aP.x<(aSz.x-1) ; aP.x++)
+    {
+        for (aP.y=1 ; aP.y<(aSz.y-1) ; aP.y++)
+        {
+             if (aTMarq.get(aP))
+             {
+                 anAct.OnBeginNexGerm(aP);
+                 OneZC(aP,aTMarq,anAct.V4(),1,0
+                 anAct.OnBeginEndGerm(aP);
+             } 
+        }
+    }
+}
+*/
+
 
 //===================== INCIDEENCE EN EUCLIDIEN =========================
 
@@ -193,6 +231,111 @@ void cASAMG::ComputeIncidAngle3D()
        }
    }
 }
+
+//===================== INCIDEENCE KLIPSCHITZ =========================
+
+
+Fonc_Num NFoncDilatCond(Fonc_Num f2Dil,Fonc_Num fCond,bool aV4,int aNb);
+
+
+void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel)
+{
+std::cout << "cASAMG::ComputeIncidKLip  " << mImIncid.sz() << " " << (mStdN->DynProfInPixel()) << "\n";
+
+   double aDynPix = mStdN->DynProfInPixel();
+
+   Fonc_Num  aOmbrStd = OmbrageKL( mStdN->ImProf()->in_proj()/aDynPix,fMasq,aPenteInPixel,2);
+   Fonc_Num  aOmbrInv = OmbrageKL(-mStdN->ImProf()->in_proj()/aDynPix,fMasq,aPenteInPixel,1);
+   Fonc_Num aOmbrGlob = Max(aOmbrInv,aOmbrStd);
+
+   double aDynStore = 20.0;
+   Im2D_U_INT1 aImLabel(mSz.x,mSz.y);
+   TIm2D<U_INT1,INT> aTLab(aImLabel);
+   Im2D_U_INT1 aImOmbr(mSz.x,mSz.y);
+   ELISE_COPY(aImOmbr.all_pts(),Min(255,round_ni(aOmbrGlob*aDynStore)),aImOmbr.out());
+
+   // 0 Out,  1 Ok,  2 Ok mais pentre forte
+   ELISE_COPY(aImLabel.all_pts(),fMasq + (aImOmbr.in()>0),aImLabel.out());
+   ELISE_COPY(aImLabel.border(1),0,aImLabel.out());
+   ELISE_COPY(select(aImLabel.all_pts(),NFoncDilatCond(aImLabel.in(0)==2,aImLabel.in(0)==1,true,5)&&(aImLabel.in()==1)),P8COL::blue,aImLabel.out());
+
+   // ELISE_COPY(
+
+
+   if (1)
+   {
+       Video_Win * aW = mAppli->TheWinIm(mSz);
+       if (aW)
+       {
+/*
+           ELISE_COPY
+           (
+                mImIncid.all_pts(),
+                Min(255,100.0*  Virgule(aOmbrInv,aOmbrStd,aOmbrStd)),
+                aW->orgb()
+           );
+           aW->clik_in();
+*/
+           ELISE_COPY
+           (
+                mImIncid.all_pts(),
+                aImLabel.in(),
+                aW->odisc()
+           );
+           aW->clik_in();
+       }
+   }
+
+   ELISE_COPY
+   (
+        mImIncid.all_pts(),
+        Min(255,100.0*  aOmbrInv),
+        mImIncid.out()
+   );
+
+/*
+   ELISE_COPY(mImIncid.all_pts(),0,mImIncid.out());
+   Im2D_Bits<1> aMasq(mSz.x,mSz.y);
+   ELISE_COPY(aMasq.all_pts(),fMasq,aMasq.out());
+*/
+}
+/*
+
+void cASAMG::ComputeIncidKLip(Im2D_Bits<1> aMasq,bool Inf,double aStep,int aSzVois)
+{
+   TIm2DBits<1> aTM(aMasq);
+   Im2DGen * aImProf = mStdN->ImProf();
+   int aSign = Inf ? 1 : -1;
+
+   Pt2di aP0;
+   for (aP0.x=0 ; aP0.x<mSz.x ; aP0.x++)
+   {
+       int aX0= ElMax(0,aP0.x-aSzVois);
+       int aX1= ElMin(mSz.x-1,aP0.x+aSzVois);
+       for (aP0.y=0 ; aP0.y<mSz.y ; aP0.y++)
+       {
+           if (aTM.get(aP0))
+           {
+              double aProf0 = aImProf->GetR(aP0);
+              int aY0= ElMax(0,aP0.y-aSzVois);
+              int aY1= ElMin(mSz.y-1,aP0.y+aSzVois);
+
+              Pt2di aPV;
+              for (aPV.x=aX0 ; aPV.x<=aX1 ; aPV.x++)
+              {
+                  for (aPV.y=aY0 ; aPV.y<=aY1 ; aPV.y++)
+                  {
+                      if (aTM.get(aPV))
+                      {
+                          double  aProf = aProf0 + aSign * euclid(
+                      }
+                  }
+              }
+           }
+       }
+   }
+}
+*/
 
 
 

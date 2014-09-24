@@ -34,6 +34,12 @@
          <eMBF_First >     </eMBF_First>
     </enum>
 
+    <enum Name="eModeMergeCloud">
+         <eMMC_Envlop >  </eMMC_Envlop>  
+         <eMMC_Epi >     </eMMC_Epi>
+    </enum>
+
+
 
 
     <LutConvertion  Nb="1"  Class="true" ToReference="true">
@@ -1159,6 +1165,7 @@
   </ParamFusionMNT>
 
   <ParamFusionNuage  Nb="1" Class="true">
+      <ModeMerge Nb="1" Type="eModeMergeCloud"> </ModeMerge>
       <PFNMiseAuPoint Nb="1">
             <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
             <TestImageDif Nb="?" Type="bool" Def="false"></TestImageDif>

@@ -97,6 +97,53 @@ void  BinaryUnDumpFromFile(eModeBoxFusion & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eModeBoxFusion *) {return "E4601E61E16B99AAFCBF";};
 
+eModeMergeCloud  Str2eModeMergeCloud(const std::string & aName)
+{
+   if (aName=="eMMC_Envlop")
+      return eMMC_Envlop;
+   else if (aName=="eMMC_Epi")
+      return eMMC_Epi;
+  else
+  {
+      cout << aName << " is not a correct value for enum eModeMergeCloud\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eModeMergeCloud) 0;
+}
+void xml_init(eModeMergeCloud & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eModeMergeCloud(aTree->Contenu());
+}
+std::string  eToString(const eModeMergeCloud & anObj)
+{
+   if (anObj==eMMC_Envlop)
+      return  "eMMC_Envlop";
+   if (anObj==eMMC_Epi)
+      return  "eMMC_Epi";
+ std::cout << "Enum = eModeMergeCloud\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeMergeCloud & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eModeMergeCloud & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eModeMergeCloud & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eModeMergeCloud) aIVal;
+}
+
+std::string  Mangling( eModeMergeCloud *) {return "C855F650848FBEDEFB3F";};
+
 
 int & cIntervLutConvertion::NivIn()
 {
@@ -17737,6 +17784,17 @@ void xml_init(cImageVariations & anObj,cElXMLTree * aTree)
 std::string  Mangling( cImageVariations *) {return "027A10F782622E84FF3F";};
 
 
+eModeMergeCloud & cParamFusionNuage::ModeMerge()
+{
+   return mModeMerge;
+}
+
+const eModeMergeCloud & cParamFusionNuage::ModeMerge()const 
+{
+   return mModeMerge;
+}
+
+
 cTplValGesInit< Pt2di > & cParamFusionNuage::SzVisu()
 {
    return PFNMiseAuPoint().SzVisu();
@@ -17892,13 +17950,15 @@ const cImageVariations & cParamFusionNuage::ImageVariations()const
 
 void  BinaryUnDumpFromFile(cParamFusionNuage & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.PFNMiseAuPoint(),aFp);
+     BinaryUnDumpFromFile(anObj.ModeMerge(),aFp);
+    BinaryUnDumpFromFile(anObj.PFNMiseAuPoint(),aFp);
     BinaryUnDumpFromFile(anObj.GrapheRecouvrt(),aFp);
     BinaryUnDumpFromFile(anObj.ImageVariations(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cParamFusionNuage & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.ModeMerge());
     BinaryDumpInFile(aFp,anObj.PFNMiseAuPoint());
     BinaryDumpInFile(aFp,anObj.GrapheRecouvrt());
     BinaryDumpInFile(aFp,anObj.ImageVariations());
@@ -17908,6 +17968,7 @@ cElXMLTree * ToXMLTree(const cParamFusionNuage & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamFusionNuage",eXMLBranche);
+   aRes->AddFils(ToXMLTree(std::string("ModeMerge"),anObj.ModeMerge())->ReTagThis("ModeMerge"));
    aRes->AddFils(ToXMLTree(anObj.PFNMiseAuPoint())->ReTagThis("PFNMiseAuPoint"));
    aRes->AddFils(ToXMLTree(anObj.GrapheRecouvrt())->ReTagThis("GrapheRecouvrt"));
    aRes->AddFils(ToXMLTree(anObj.ImageVariations())->ReTagThis("ImageVariations"));
@@ -17921,6 +17982,8 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
+   xml_init(anObj.ModeMerge(),aTree->Get("ModeMerge",1)); //tototo 
+
    xml_init(anObj.PFNMiseAuPoint(),aTree->Get("PFNMiseAuPoint",1)); //tototo 
 
    xml_init(anObj.GrapheRecouvrt(),aTree->Get("GrapheRecouvrt",1)); //tototo 
@@ -17928,7 +17991,7 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.ImageVariations(),aTree->Get("ImageVariations",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionNuage *) {return "3ECDC482AA9973E0FD3F";};
+std::string  Mangling( cParamFusionNuage *) {return "87FA66EDB4E8F18BFE3F";};
 
 
 std::string & cCWWSIVois::NameVois()

@@ -461,8 +461,11 @@ extern void Test3dQT();
 
 int MPDtest_main (int argc,char** argv)
 {
+   ELISE_COPY(rectangle(Pt2di(0,0),Pt2di(10,0)),OmbrageKL(FX,FY,1.0,4),Output::onul());
+/*
     ELISE_ASSERT(argc==3,"MPDtest_main");
     FiltreRemoveFlou(argv[1],argv[2]);
+*/
     // std::cout << "ARC " << argv[1] << " " << argv[2] << "\n";
 #if (ELISE_QT_VERSION >= 4)
 

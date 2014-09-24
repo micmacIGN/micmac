@@ -51,23 +51,28 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mStdN      (cElNuage3DMaille::FromFileIm(mAppli->NameFileInput(anIma,".xml"))),
    mMasqN     (mStdN->ImDef()),
    mTMasqN    (mMasqN),
-   mImCptr    (Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
+   mImCptr    (1,1),
    mTCptr     (mImCptr),
-   mSz        (mImCptr.sz()),
+   mSz        (mStdN->SzUnique()),
    mImIncid   (mSz.x,mSz.y),
    mTIncid    (mImIncid),
    mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma()),
    mISOM      (StdGetISOM(anAppli->ICNM(),anIma->mNameIm,anAppli->Ori()))
 {
+// std::cout << "AAAAAAAAAAAAAAAAAAaa\n"; getchar();
+   // mImCptr  => Non pertinent en mode envlop, a voir si reactiver en mode epi
+   // Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
+
    // ComputeIncidAngle3D();
-   ComputeIncidGradProf();
+   ComputeIncidKLip(mMasqN.in_proj(),pAramPenteRefutInitInPixel());
+   ComputeIncidKLip(mMasqN.in_proj(),pAramPenteRefutInitInPixel()*2);
    
    
    Video_Win * aW = mAppli->TheWinIm(mSz);
 
    ComputeSubset(mAppli->Param().NbPtsLowResume(),mLowRN);
 
-   if (0 && aW)
+   if (pAramVisuProf() && aW)
    {
       aW->set_title(mIma->mNameIm.c_str());
 

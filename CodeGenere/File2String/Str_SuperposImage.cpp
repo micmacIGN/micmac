@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1242]) = {
+const char * (theNameVar_SuperposImage[1249]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -35,6 +35,12 @@ const char * (theNameVar_SuperposImage[1242]) = {
 "         <eMBF_Inter >     </eMBF_Inter>\n",
 "         <eMBF_First >     </eMBF_First>\n",
 "    </enum>\n",
+"\n",
+"    <enum Name=\"eModeMergeCloud\">\n",
+"         <eMMC_Envlop >  </eMMC_Envlop>  \n",
+"         <eMMC_Epi >     </eMMC_Epi>\n",
+"    </enum>\n",
+"\n",
 "\n",
 "\n",
 "\n",
@@ -1161,6 +1167,7 @@ const char * (theNameVar_SuperposImage[1242]) = {
 "  </ParamFusionMNT>\n",
 "\n",
 "  <ParamFusionNuage  Nb=\"1\" Class=\"true\">\n",
+"      <ModeMerge Nb=\"1\" Type=\"eModeMergeCloud\"> </ModeMerge>\n",
 "      <PFNMiseAuPoint Nb=\"1\">\n",
 "            <SzVisu  Nb=\"?\" Type=\"Pt2di\"> </SzVisu>\n",
 "            <TestImageDif Nb=\"?\" Type=\"bool\" Def=\"false\"></TestImageDif>\n",
