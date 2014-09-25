@@ -261,20 +261,33 @@ cImaMM::cImaMM(const std::string & aName,cAppliWithSetImage & anAppli) :
    mC3         (mCam->PseudoOpticalCenter()),
    mC2         (mC3.x,mC3.y),
    mAppli      (anAppli),
-   mPtrTiff    (0)
+   mPtrTiffStd    (0),
+   mPtrTiff8BGr   (0),
+   mPtrTiff8BCoul (0),
+   mPtrTiff16BGr  (0)
 {
 }
 
-Tiff_Im  &   cImaMM::Tiff()
+Tiff_Im  &   cImaMM::TiffStd()
 {
-    if (mPtrTiff==0)
+    if (mPtrTiffStd==0)
     {
         std::string aFullName =  mAppli.Dir() + mNameIm;
-        mPtrTiff = new Tiff_Im(Tiff_Im::UnivConvStd(aFullName.c_str()));
+        mPtrTiffStd = new Tiff_Im(Tiff_Im::UnivConvStd(aFullName.c_str()));
     }
-    return *mPtrTiff;
+    return *mPtrTiffStd;
 }
 
+
+Tiff_Im  &   cImaMM::Tiff16BGr()
+{
+    if (mPtrTiff16BGr==0)
+    {
+        std::string aFullName =  mAppli.Dir() + mNameIm;
+        mPtrTiff16BGr = new Tiff_Im(Tiff_Im::StdConvGen(aFullName.c_str(),1,true));
+    }
+    return *mPtrTiff16BGr;
+}
 
 
 /*****************************************************************/
@@ -401,6 +414,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
    if (aFlag & TheFlagDev8BGray) Develop(true,false);
 
 
+
    if (mEASF.SetIm()->size()==0)
    {
        std::cout << "For Pat= [" << mEASF.mPat << "]\n";
@@ -434,7 +448,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
        mImages.push_back(new cImaMM(aName,*this));
        mDicIm[aName] = mImages.back();
 */
-           Pt2di  aSz =  aNewIma->Tiff().sz();
+           Pt2di  aSz =  aNewIma->Tiff16BGr().sz();
            mAverNbPix += double(aSz.x) * double(aSz.y);
 
            if (mWithOri)
@@ -1592,7 +1606,7 @@ void cAppliMMByPair::DoMDTGround()
         else
         {
            cImaMM * anIma = ImOfName(mImageOfBox)->attr().mIma;
-           aBox = Box2di(Pt2di(0,0),anIma->Tiff().sz());
+           aBox = Box2di(Pt2di(0,0),anIma->Tiff16BGr().sz());
         }
         aCom =   aCom
                   + " +WithBox=true"

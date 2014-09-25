@@ -5,6 +5,10 @@
       <PFNMiseAuPoint>
           <SzVisu> 1200 800  </SzVisu>
           <TestImageDif> false </TestImageDif>
+          <VisuGrad> true </VisuGrad>
+          <VisuLowPts > false</VisuLowPts>
+          <VisuImageCoh> true</VisuImageCoh>
+
       </PFNMiseAuPoint>
 <!--
 -->
@@ -19,7 +23,9 @@
            <V4Vois > false </V4Vois>
            <DistVois> 3  </DistVois>
            <DynAngul>  100 </DynAngul>
+           <ComputeIncid>  true </ComputeIncid>
            <SeuilStrictVarIma>  0.33 </SeuilStrictVarIma>
+           <PenteRefutInitInPixel>  0.5</PenteRefutInitInPixel>
       </ImageVariations>
  </ParamFusionNuage>
 

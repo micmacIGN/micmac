@@ -205,6 +205,7 @@ int    cASAMG::CCDist() const {return mAppli->Param().ImageVariations().DistVois
 int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
 
 
+// inline bool pAramComputeIncid() {return false;}
 
 #endif // _ELISE_MERGE_CLOUD
 

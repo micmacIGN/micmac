@@ -5258,10 +5258,18 @@ class cPFNMiseAuPoint
 
         cTplValGesInit< bool > & VisuGrad();
         const cTplValGesInit< bool > & VisuGrad()const ;
+
+        cTplValGesInit< bool > & VisuLowPts();
+        const cTplValGesInit< bool > & VisuLowPts()const ;
+
+        cTplValGesInit< bool > & VisuImageCoh();
+        const cTplValGesInit< bool > & VisuImageCoh()const ;
     private:
         cTplValGesInit< Pt2di > mSzVisu;
         cTplValGesInit< bool > mTestImageDif;
         cTplValGesInit< bool > mVisuGrad;
+        cTplValGesInit< bool > mVisuLowPts;
+        cTplValGesInit< bool > mVisuImageCoh;
 };
 cElXMLTree * ToXMLTree(const cPFNMiseAuPoint &);
 
@@ -5340,12 +5348,16 @@ class cImageVariations
 
         cTplValGesInit< double > & PenteRefutInitInPixel();
         const cTplValGesInit< double > & PenteRefutInitInPixel()const ;
+
+        cTplValGesInit< bool > & ComputeIncid();
+        const cTplValGesInit< bool > & ComputeIncid()const ;
     private:
         bool mV4Vois;
         int mDistVois;
         double mDynAngul;
         double mSeuilStrictVarIma;
         cTplValGesInit< double > mPenteRefutInitInPixel;
+        cTplValGesInit< bool > mComputeIncid;
 };
 cElXMLTree * ToXMLTree(const cImageVariations &);
 
@@ -5377,6 +5389,12 @@ class cParamFusionNuage
 
         cTplValGesInit< bool > & VisuGrad();
         const cTplValGesInit< bool > & VisuGrad()const ;
+
+        cTplValGesInit< bool > & VisuLowPts();
+        const cTplValGesInit< bool > & VisuLowPts()const ;
+
+        cTplValGesInit< bool > & VisuImageCoh();
+        const cTplValGesInit< bool > & VisuImageCoh()const ;
 
         cPFNMiseAuPoint & PFNMiseAuPoint();
         const cPFNMiseAuPoint & PFNMiseAuPoint()const ;
@@ -5416,6 +5434,9 @@ class cParamFusionNuage
 
         cTplValGesInit< double > & PenteRefutInitInPixel();
         const cTplValGesInit< double > & PenteRefutInitInPixel()const ;
+
+        cTplValGesInit< bool > & ComputeIncid();
+        const cTplValGesInit< bool > & ComputeIncid()const ;
 
         cImageVariations & ImageVariations();
         const cImageVariations & ImageVariations()const ;
