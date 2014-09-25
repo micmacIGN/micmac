@@ -1171,6 +1171,8 @@
             <!-- Visualise les diff de prof par couple -->
             <TestImageDif Nb="?" Type="bool" Def="false"></TestImageDif>
             <VisuGrad Nb="?" Type="bool"  Def="false"></VisuGrad>
+            <VisuLowPts Nb="?" Type="bool"  Def="false"></VisuLowPts>
+            <VisuImageCoh Nb="?" Type="bool"  Def="false"></VisuImageCoh>
       </PFNMiseAuPoint>
       <GrapheRecouvrt Nb="1"> 
              <TauxRecMin Nb="1" Type="double"> </TauxRecMin>
@@ -1186,6 +1188,7 @@
            <DynAngul Nb="1" Type="double"> </DynAngul>
            <SeuilStrictVarIma Nb="1" Type="double"> </SeuilStrictVarIma>
            <PenteRefutInitInPixel Nb="?" Type="double" Def="0.5"> </PenteRefutInitInPixel>
+           <ComputeIncid Nb="?" Type="bool" Def="true"> </ComputeIncid>
       </ImageVariations>
   </ParamFusionNuage>
 

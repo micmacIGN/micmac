@@ -52,7 +52,7 @@ void cResumNuage::Reset(int aReserve)
 
 void cASAMG::ComputeSubset(int aNbPts,cResumNuage & aRN)
 {
-   Video_Win * aW =   mAppli->TheWinIm(mSz);
+   Video_Win * aW = mAppli->Param().VisuLowPts().Val() ?   mAppli->TheWinIm(mSz) : 0;
 
    double aSzCel = sqrt(double(mSz.x*mSz.y)/aNbPts);
    Pt2di aNb2C = round_up(Pt2dr(mSz)/aSzCel);
@@ -151,7 +151,7 @@ void cASAMG::ComputeSubset(int aNbPts,cResumNuage & aRN)
 
    if (aW)   
    {
-       // aW->clik_in();
+       //  aW->clik_in();
    }
 }
 
@@ -278,15 +278,17 @@ void cASAMG::TestImCoher()
     }
 
    
-    Video_Win * aW = mAppli->TheWinIm(mSz);
+    Video_Win * aW =  mAppli->Param().VisuImageCoh().Val() ? mAppli->TheWinIm(mSz) : 0 ;
     if (aW)
     {
-        std::cout << "For " << mIma->mNameIm << " time " << aChrono.uval() << "\n";
+        aW->set_title(mIma->mNameIm.c_str());
+        std::cout << "For " << mIma->mNameIm << " time " << aChrono.uval() << " NbIm " << aNbIm << "\n";
+        Fonc_Num fGray = Min(255,aImDif.in() * (255.0/aNbIm));
         ELISE_COPY
         (
              aImDif.all_pts(),
-             Min(255,aImDif.in() * (255.0/aNbIm)),
-             aW->ogray()
+             fGray * Virgule(1,!mMasqHigh.in(),!mMasqPLow.in()),
+             aW->orgb()
         );
         ELISE_COPY
         (

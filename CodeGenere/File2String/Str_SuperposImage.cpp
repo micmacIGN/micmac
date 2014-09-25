@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1253]) = {
+const char * (theNameVar_SuperposImage[1256]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1173,6 +1173,8 @@ const char * (theNameVar_SuperposImage[1253]) = {
 "            <!-- Visualise les diff de prof par couple -->\n",
 "            <TestImageDif Nb=\"?\" Type=\"bool\" Def=\"false\"></TestImageDif>\n",
 "            <VisuGrad Nb=\"?\" Type=\"bool\"  Def=\"false\"></VisuGrad>\n",
+"            <VisuLowPts Nb=\"?\" Type=\"bool\"  Def=\"false\"></VisuLowPts>\n",
+"            <VisuImageCoh Nb=\"?\" Type=\"bool\"  Def=\"false\"></VisuImageCoh>\n",
 "      </PFNMiseAuPoint>\n",
 "      <GrapheRecouvrt Nb=\"1\"> \n",
 "             <TauxRecMin Nb=\"1\" Type=\"double\"> </TauxRecMin>\n",
@@ -1188,6 +1190,7 @@ const char * (theNameVar_SuperposImage[1253]) = {
 "           <DynAngul Nb=\"1\" Type=\"double\"> </DynAngul>\n",
 "           <SeuilStrictVarIma Nb=\"1\" Type=\"double\"> </SeuilStrictVarIma>\n",
 "           <PenteRefutInitInPixel Nb=\"?\" Type=\"double\" Def=\"0.5\"> </PenteRefutInitInPixel>\n",
+"           <ComputeIncid Nb=\"?\" Type=\"bool\" Def=\"true\"> </ComputeIncid>\n",
 "      </ImageVariations>\n",
 "  </ParamFusionNuage>\n",
 "\n",

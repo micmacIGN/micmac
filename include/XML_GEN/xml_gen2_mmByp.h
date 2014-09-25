@@ -91,10 +91,16 @@ class cImaMM
        CamStenope * mCam;
        Pt3dr        mC3;
        Pt2dr        mC2;
-       Tiff_Im  &   Tiff();
+       Tiff_Im  &   TiffStd();
+       Tiff_Im  &   Tiff8BGr();
+       Tiff_Im  &   Tiff8BCoul();
+       Tiff_Im  &   Tiff16BGr();
     private :
        cAppliWithSetImage &  mAppli;
-       Tiff_Im  *            mPtrTiff;
+       Tiff_Im  *            mPtrTiffStd;
+       Tiff_Im  *            mPtrTiff8BGr;
+       Tiff_Im  *            mPtrTiff8BCoul;
+       Tiff_Im  *            mPtrTiff16BGr;
 
 };
 
