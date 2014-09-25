@@ -5,6 +5,10 @@
 #include "GpGpu/GpGpu_Context.h"
 #include "GpGpu/GpGpu_Tools.h"
 
+/** @addtogroup GpGpuDoc */
+/*@{*/
+
+
 #define TPL_T template<class T>
 
 /// \class CData
@@ -37,7 +41,7 @@ public:
     /// \brief      Renvoie le pointeur des donnees
     T*              pData(){ return _data; }
 
-    /// \brief      Sortie consolle de l allocation memoire globale Gpu
+    /// \brief      Sortie console de l allocation memoire globale Gpu
 
     void            MallocInfo();
 
@@ -977,5 +981,7 @@ private:
         return make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
     }
 };
+
+/*@}*/
 
 #endif //GPGPU_DATA_H

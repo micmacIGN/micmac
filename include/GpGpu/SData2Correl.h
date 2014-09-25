@@ -86,19 +86,32 @@ private:
     CuHostData3D<float>         _hVolumeCost[2];
     CuHostData3D<float2>        _hVolumeProj;
 
+    // TODO il semblerait qu'un uint2 suffirai....
+    ///
+    /// \brief _hRect   HOST     gestion des bords d'images
+    ///
     CuHostData3D<Rect>          _hRect;
+    ///
+    /// \brief _dRect   Device   gestion des bords d'images
+    ///
     CuDeviceData3D<Rect>        _dRect;
 
+    ///
+    /// \brief _hClassEqui HOST     gestion des classes d'images
+    ///
     CuHostData3D<ushort2>       _hClassEqui;
+    ///
+    /// \brief _dClassEqui DEVICE    gestion des classes d'images
+    ///
     CuDeviceData3D<ushort2>     _dClassEqui;
 
     CuDeviceData3D<float>       _d_volumeCost[NSTREAM];	// volume des couts
     CuDeviceData3D<float>       _d_volumeCach[NSTREAM];	// volume des calculs intermédiaires
     CuDeviceData3D<uint>        _d_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
 
-    ImageGpGpu<pixel,CUDASDK>   _dt_GlobalMask;
-    ImageLayeredGpGpu<float,CUDASDK>     _dt_LayeredImages;
-    ImageLayeredGpGpu<float2,CUDASDK>    _dt_LayeredProjection[NSTREAM];
+    ImageGpGpu<pixel,CUDASDK>           _dt_GlobalMask;
+    ImageLayeredGpGpu<float,CUDASDK>    _dt_LayeredImages;
+    ImageLayeredGpGpu<float2,CUDASDK>   _dt_LayeredProjection[NSTREAM];
 
     textureReference&           _texMaskGlobal;
     textureReference&           _texImages;

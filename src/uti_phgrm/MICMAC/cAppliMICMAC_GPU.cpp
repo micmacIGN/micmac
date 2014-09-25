@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
+/** @addtogroup GpGpuDoc */
+/*@{*/
 
     template <class Type,class TBase>
     Type ** ImDec
@@ -1519,6 +1521,13 @@ void cAppliMICMAC::DoGPU_Correl
 }
 
 #ifdef  CUDA_ENABLED
+
+///
+/// \brief cAppliMICMAC::Tabul_Projection Pré-calcul des projections des points terrains dans chaque images
+/// \param Z        Z initiale
+/// \param interZ   interval de Z à pré-calculé
+/// \param idBuf    id buffer de pré-calcul
+///
     void cAppliMICMAC::Tabul_Projection(int Z, uint &interZ, ushort idBuf)
     {
 #ifdef  NVTOOLS
@@ -1528,13 +1537,12 @@ void cAppliMICMAC::DoGPU_Correl
 
         Rect    zone        = IMmGg.Param(idBuf).RDTer();           // Zone Terrain dilaté
         uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;    // Sample
-        float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
-        Rect    *pTabRect   = IMmGg.Data().HostRect();
+        float2  *pTabProj   = IMmGg.Data().HostVolumeProj();        // Pointeur sur le buffer des projections
+        Rect    *pTabRect   = IMmGg.Data().HostRect();              // Pointeur sur le buffer des zones de projections
         uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
-        uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
-        uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
-//        int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
-//        int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
+        uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain sous-echantilloné
+        uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain sous-echantilloné
+
         int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
         OMP_NT1
@@ -1542,49 +1550,37 @@ void cAppliMICMAC::DoGPU_Correl
         {
             int rZ = abs(Z - anZ) * mNbIm;
             OMP_NT2
-            for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
+            for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )                     // Mise en calque des projections pour chaque image
             {
-                Rect*   pRect   = pTabRect +  rZ  + aKIm;
-                float2* pTproj  = pTabProj + (rZ  + aKIm )* sizSTabProj;
+                Rect*   pZoneImg    = pTabRect +  rZ  + aKIm;               // Buffer des zones images
+                float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
 
-                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
+                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);                // Obtention de l'image aKIm
                 const cGeomImage*	aGeom	= aGLI.Geom();
-                //int2 an = make_int2(0);
 
-                int2 an = zone.pt0;
+                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul
+                int2 sampTer    = make_int2(0,0);                           // Point retenu
                 Rect re(MAXIRECT);
+                const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
 
-                const double aZReel	= DequantZ(anZ);			// Dequantification  de X, Y et Z
-                for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain
-                {
-                    for (an.x = zone.pt0.x; an.x < anB.x ; an.x += sample)
+                for (pTer.y = zone.pt0.y; pTer.y < anB.y; pTer.y += sample, sampTer.y++, sampTer.x = 0)	// Ballayage du terrain
+
+                    for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, sampTer.x++)
                     {
-                       // if ( /*aSE(an,0) && */aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
-                        {
-
- //                           int2 t  = (an - zone.pt0);
-                            int2 r	= (an - zone.pt0)/sample; // TODO Simplifier calcul
-                            int iD	=  to1D(r,dimSTabProj);
-// 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
-
-                            Pt2dr aPTer	= DequantPlani(an.x,an.y);
-                            Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image
 
 
-                           // if (aGLI.IsOk( aPIm.x, aPIm.y ))
-                            {
+                        Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
+                        Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
 
-                                pTproj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
-                            }
-                        }
+                        buf_proj[to1D(sampTer,dimSTabProj)]		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
+
                     }
-                }
 
 
                 re.pt1.x = aGLI.getSizeImage().x - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
-                re.pt1.y = aGLI.getSizeImage().y - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
+                re.pt1.y = aGLI.getSizeImage().y - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.y;
 
-                *pRect = re;
+                *pZoneImg = re;
 
             }
         }
@@ -1627,6 +1623,7 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef CUDA_DEFCOR
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : 6.0);
 #else
+                    // TODO WARNING les couts init sont stockés dans un ushort mais des couts semblent sup à ushortmax!!!!
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
 #endif
                 }
@@ -1634,7 +1631,7 @@ void cAppliMICMAC::DoGPU_Correl
         }
 
 #ifdef  NVTOOLS
-			nvtxRangePop();
+            nvtxRangePop();
 #endif
 
     }
@@ -1899,7 +1896,7 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
 }
 
 
-
+/*@}*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
