@@ -34,6 +34,12 @@
          <eMBF_First >     </eMBF_First>
     </enum>
 
+    <enum Name="eModeMergeCloud">
+         <eMMC_Envlop >  </eMMC_Envlop>  
+         <eMMC_Epi >     </eMMC_Epi>
+    </enum>
+
+
 
 
     <LutConvertion  Nb="1"  Class="true" ToReference="true">
@@ -1159,9 +1165,12 @@
   </ParamFusionMNT>
 
   <ParamFusionNuage  Nb="1" Class="true">
+      <ModeMerge Nb="1" Type="eModeMergeCloud"> </ModeMerge>
       <PFNMiseAuPoint Nb="1">
             <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
+            <!-- Visualise les diff de prof par couple -->
             <TestImageDif Nb="?" Type="bool" Def="false"></TestImageDif>
+            <VisuGrad Nb="?" Type="bool"  Def="false"></VisuGrad>
       </PFNMiseAuPoint>
       <GrapheRecouvrt Nb="1"> 
              <TauxRecMin Nb="1" Type="double"> </TauxRecMin>
@@ -1169,12 +1178,14 @@
              <MinSzFilHom Nb="?" Type="int" Def="1000"> </MinSzFilHom>
              <RecSeuilDistProf Nb="?" Type="double" Def="1.0"> </RecSeuilDistProf>
              <NbPtsLowResume Nb="1" Type="int"> </NbPtsLowResume>
+             <CostPerImISOM Nb="?" Type="double" Def="0.2"> </CostPerImISOM>
       </GrapheRecouvrt>
       <ImageVariations Nb="1">
            <V4Vois Nb="1" Type="bool"> </V4Vois>
            <DistVois Nb="1" Type="int"> </DistVois>
            <DynAngul Nb="1" Type="double"> </DynAngul>
            <SeuilStrictVarIma Nb="1" Type="double"> </SeuilStrictVarIma>
+           <PenteRefutInitInPixel Nb="?" Type="double" Def="0.5"> </PenteRefutInitInPixel>
       </ImageVariations>
   </ParamFusionNuage>
 

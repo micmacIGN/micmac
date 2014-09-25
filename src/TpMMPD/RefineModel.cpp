@@ -1,12 +1,12 @@
 #include "StdAfx.h"
 #include "../uti_phgrm/MICMAC/cCameraModuleOrientation.h"
 
-/** Developpemet based on
+/** Development based on
  CARTOSAT-1 DEM EXTRACTION CAPABILITY STUDY OVER SALON AREA
- R. Gachet & P. Favé
+ R. Gachet & P. Fave
  */
 
-// Classe abstraite pour les methodes partagees par les differentes versions
+//! Abstract class for shared methods
 class RefineModelAbs
 {
 protected:
@@ -23,24 +23,46 @@ protected:
     double b1;
     double b2;
 
-    // Tie Points in the Master Image (in pixel)
+    ///
+    /// \brief Tie Points in the Master Image (in pixel)
+    ///
     std::vector<Pt2dr> vPtImgMaster;
-    // Tie Points in the Slave Image (in pixel)
+    ///
+    /// \brief Tie Points in the Slave Image (in pixel)
+    ///
     std::vector<Pt2dr> vPtImgSlave;
-    // Tie Points altitude (to estimate)
+    ///
+    /// \brief Tie Points altitude (to estimate)
+    ///
     std::vector<double> vZ;
+    ///
+    /// \brief zMoy Ground mean altitude
+    ///
     double zMoy;
 
-    //for estimation
+    ///
+    /// \brief normal matrix for least squares estimation
+    ///
     ElMatrix<double> _N;
+    ///
+    /// \brief matrix for least squares estimation
+    ///
     ElMatrix<double> _Y;
 
 public:
 
+    ///
+    /// \brief Z estimation (iterative: 2D ground distance minimization)
+    /// \param ptImgMaster tie-point from master image
+    /// \param ptImgSlave  tie-point from slave image
+    /// \param zIni init altitude
+    /// \param dZ shift on altitude
+    /// \return Z altitude of tie-point
+    ///
     double getZ(Pt2dr const &ptImgMaster,
-             Pt2dr const &ptImgSlave,
-             double zIni,
-             double dZ = 0.1) const
+                Pt2dr const &ptImgSlave,
+                double zIni,
+                double dZ = 0.1) const
     {
         double z = zIni;
         Pt2dr D   = compute2DGroundDifference(ptImgMaster,ptImgSlave,z);
@@ -72,6 +94,13 @@ public:
         return z;
     }
 
+    ///
+    /// \brief constructor (loads GRID files, tie-points and filter ti-points on 2D ground difference)
+    /// \param aNameFileGridMaster Grid file for master image
+    /// \param aNameFileGridSlave Grid file for slave image
+    /// \param aNamefileTiePoints Tie-points file
+    /// \param Zmoy ground mean altitude
+    ///
     RefineModelAbs(std::string const &aNameFileGridMaster,
                    std::string const &aNameFileGridSlave,
                    std::string const &aNamefileTiePoints,
@@ -83,8 +112,7 @@ public:
         masterCamera = new cCameraModuleOrientation(new OrientationGrille(aNameFileGridMaster),Sz,oriIntImaM2C);
         slaveCamera  = new cCameraModuleOrientation(new OrientationGrille(aNameFileGridSlave),Sz,oriIntImaM2C);
 
-        // Loading the Tie Points
-        // avec une estimation approximative de l'altitude
+        // Loading the Tie Points with altitude approximate estimation
 
         std::ifstream fic(aNamefileTiePoints.c_str());
         int rPts_nb = 0; //rejected points number
@@ -101,7 +129,7 @@ public:
                 if (square_euclid(D)>100.)
                 {
                     rPts_nb++;
-                    std::cout << "On a un point trop loin : "<< D.x << " " << D.y << std::endl;
+                    std::cout << "Point with 2D ground difference > 10 : "<< D.x << " " << D.y << " - rejected" << std::endl;
                 }
                 else
                 {
@@ -115,10 +143,19 @@ public:
         std::cout << "Number of tie points : "<< vPtImgMaster.size() << std::endl;
     }
 
-
-
-    // compute the difference between the Ground Points for a given Tie Point
-    // and a given set of parameters (Z and affinity)
+    ///
+    /// \brief compute the difference between the Ground Points for a given Tie Point and a given set of parameters (Z and affinity)
+    /// \param ptImgMaster tie-point from master image
+    /// \param ptImgSlave tie-point from slave image
+    /// \param aZ   ground altitude
+    /// \param aA0  affinity parameter
+    /// \param aA1  affinity parameter
+    /// \param aA2  affinity parameter
+    /// \param aB0  affinity parameter
+    /// \param aB1  affinity parameter
+    /// \param aB2  affinity parameter
+    /// \return Pt2Dr 2D difference between ground points
+    ///
     Pt2dr compute2DGroundDifference(Pt2dr const &ptImgMaster,
                                     Pt2dr const &ptImgSlave,
                                     double aZ,
@@ -143,6 +180,10 @@ public:
         return compute2DGroundDifference(ptImgMaster,ptImgSlave,aZ,a0,a1,a2,b0,b1,b2);
     }
 
+    ///
+    /// \brief 2D ground distance sum for all tie points (to compute RMS)
+    /// \return sum of residuals
+    ///
     double sumRes()
     {
         double sumRes = 0.;
@@ -157,9 +198,13 @@ public:
         return sumRes;
     }
 
+    ///
+    /// \brief update affinity parameters
+    /// \param sol unknowns matrix
+    ///
     void updateParams(ElMatrix <double> const &sol)
     {
-        std::cout << "Solution ini : "<<std::endl;
+        std::cout << "Init solution: "<<std::endl;
         std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
         std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
 
@@ -170,11 +215,15 @@ public:
         b1 += sol(0,4);
         b2 += sol(0,5);
 
-        std::cout << "Solution mise a jour : "<<std::endl;
+        std::cout << "Updated solution: "<<std::endl;
         std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
         std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
     }
 
+    ///
+    /// \brief debug matrix
+    /// \param mat matrix to write
+    ///
     void printMatrix(ElMatrix <double> const & mat)
     {
         std::cout << "-------------------------"<<std::endl;
@@ -188,6 +237,12 @@ public:
         std::cout << "-------------------------"<<std::endl;
     }
 
+    ///
+    /// \brief check if a new iteration should be run and write result file (at the step before exiting loop)
+    /// \param iniRMS rms before system solve
+    /// \param numObs system number of observations
+    /// \return
+    ///
     bool launchNewIter(double iniRMS, int numObs)
     {
         double curRMS = std::sqrt(sumRes()/numObs);
@@ -195,7 +250,7 @@ public:
         if (curRMS>iniRMS)
         {
             std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
-            std::cout << "Pas d'amelioration de la solution: fin"<<std::endl;
+            std::cout << "No improve: end"<<std::endl;
             return false;
         }
 
@@ -208,9 +263,15 @@ public:
         return true;
     }
 
+    ///
+    /// \brief estimates affinity parameters
+    ///
     virtual void solve()=0;
 
-    // compute the observation matrix for one iteration
+    ///
+    /// \brief computes the observation matrix for one iteration
+    /// \return boolean stating if system is solved (need new iteration)
+    ///
     virtual bool computeObservationMatrix()=0;
 
     virtual ~RefineModelAbs()
@@ -222,7 +283,7 @@ public:
     }
 };
 
-// Implementation utilisant la suppression des inconnues auxiliaires (les Z)
+//! Implementation utilisant la suppression des inconnues auxiliaires (les Z)
 class RefineModel:public RefineModelAbs
 {
 
@@ -234,10 +295,16 @@ public:
     {
     }
 
+    ///
+    /// \brief add an observation to system
+    /// \param obs observation matrix
+    /// \param p weighting
+    /// \param res residual
+    ///
     void addObs(const ElMatrix<double> &obs, const double p, const double res)
     {
         //construction iterative de la matrice normale
-        _N += (obs.transpose()*obs)*p;  //il existe certainement une norme ou une façon plus elegante de l'écrire ...
+        _N += (obs.transpose()*obs)*p;  //il existe certainement une norme ou une facon plus elegante de l'ecrire ...
         //idem pour Y
         _Y += obs.transpose()*res*p;
 
@@ -276,28 +343,22 @@ public:
         _Y(0,0) = 0.;
     }
 
-    void addObs(const size_t index, const double p, const double res)
-    {
-        _N(index,index) += p;
-        _Y(0,index)		+= res*p;
-    }
-
     void solve()
     {
         _N(0,0) = 1.;
 
-        std::cout << "Matrice _N:"<<std::endl;
+        std::cout << "Matrix _N:"<<std::endl;
         printMatrix(_N);
 
-        std::cout << "Matrice _Y:"<<std::endl;
+        std::cout << "Matrix _Y:"<<std::endl;
         printMatrix(_Y);
 
         ElMatrix<double> inv = gaussj(_N);
-        std::cout << "Matrice inv:"<<std::endl;
+        std::cout << "Matrix inv:"<<std::endl;
         printMatrix(inv);
         ElMatrix<double> sol = inv*_Y;
 
-        std::cout << "Matrice sol:"<<std::endl;
+        std::cout << "Matrix sol:"<<std::endl;
         printMatrix(sol);
 
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
@@ -335,19 +396,18 @@ public:
             std::cout << vZ[i] << std::endl;
         }
         std::cout << "SumDZ = " << sumDZ << std::endl;
-         */
+        */
     }
-
 
     // compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
-        // Remise a zero des matrice
+        // Remise a zero des matrices
         _N = ElMatrix<double>(7,7,0.);
         _Y = ElMatrix<double>(1,7,0.);
 
-        size_t numUnk = _N.Sz().x;
-        size_t numObs = 2*vPtImgMaster.size() + numUnk;  //Nombre d'observations (dont stabilisation des inconnues)
+        size_t numUnk = _N.Sz().x;                       // Nombre d'inconnues
+        size_t numObs = 2*vPtImgMaster.size() + numUnk;  // Nombre d'observations (dont stabilisation des inconnues)
 
         double iniRMS = std::sqrt(sumRes()/numObs);
 
@@ -361,7 +421,6 @@ public:
         double dB1 = 0.01;
         double dB2 = 0.01;
 
-
         //Ponderation
         double sigmaDelta = 1.; //m
         /*bool   weightByRes = false;
@@ -369,8 +428,6 @@ public:
         double sigmaTransX = 1.; //pix
         double sigmaTransY = 1.;  //pix
         double sigmaMat = 1./std::pow(0.001,2); //sans unite
-
-
         double sigmaMatA1 = 1./std::pow(0.0001,2);*/
 
         //pour chaque obs (ligne), y compris les eq de stabilisation
@@ -386,12 +443,12 @@ public:
             //a remplir avec derivees partielles ...
 
             // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2);
+            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
 
             //todo : strategie d'elimination d'observations / ou ponderation
 
             // estimation des derivees partielles
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)  * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ,a0,a1,a2,b0,b1,b2)-D);
+            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ,a0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
             Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
@@ -444,7 +501,7 @@ public:
     }
 };
 
-// Implementation basique (sans supression des inconnues auxiliaires)
+//! Implementation basique (sans suppression des inconnues auxiliaires)
 class RefineModelBasic: public RefineModelAbs
 {
 
@@ -487,15 +544,14 @@ public:
 
     }
 
-
-    // compute the observation matrix for one iteration
+    //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
         int numObs = 2*vZ.size();
         double iniRMS = std::sqrt(sumRes()/numObs);
         std::cout << "RMS_ini = " << iniRMS << std::endl;
 
-        double dZ = 0.5;
+        double dZ  = 0.5;
         double dA0 = 0.5;
         double dA1 = 0.01;
         double dA2 = 0.01;
@@ -521,7 +577,7 @@ public:
             //todo : strategie d'elimination d'observations / ou ponderation
 
             // estimation des derivees partielles
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)  *  (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+dZ,a0,a1,a2,b0,b1,b2) -D);
+            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+dZ,a0,a1,a2,b0,b1,b2) -D);
             Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
             Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
@@ -570,7 +626,7 @@ public:
             _N(5,2*vZ.size()+5) = 1 * pdt;
             _Y(0,2*vZ.size()+5) = (1-b2) * pdt;
         }
-        std::cout << "avant le solve"<<std::endl;
+        std::cout << "before solve"<<std::endl;
 
         solve();
 
@@ -582,7 +638,7 @@ public:
     }
 };
 
-// Implementation basique (sans suppression des inconnues auxiliaires)
+//! Implementation basique (sans suppression des inconnues auxiliaires)
 class RefineModelBasicSansZ: public RefineModelAbs
 {
 
@@ -617,17 +673,15 @@ public:
 
         updateParams(sol);
 
-        // On fait une mise a jour des Z
+        // Z update
         for(size_t i=0;i<vPtImgMaster.size();++i)
         {
-//			double err;
             vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i]);
            // vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i], 0.01); => legere amelioration
         }
     }
 
-
-    // compute the observation matrix for one iteration
+    //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
         int numObs = 2*vZ.size();
@@ -654,8 +708,8 @@ public:
             double const Z = vZ[i];
 
             // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2);
-            double ecart2 = D.x*D.x + D.y*D.y;
+            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
+            double ecart2 = square_euclid(D);
 
             double pdt = 1./sqrt(1. + ecart2);
 
@@ -710,7 +764,7 @@ public:
             _Y(0,2*vZ.size()+5) = (1-b2) * pdt;
         }
          */
-        std::cout << "avant le solve"<<std::endl;
+        std::cout << "before solve"<<std::endl;
 
         solve();
 
@@ -722,8 +776,7 @@ public:
     }
 };
 
-
-// Implementation basique simplifiee (uniquement la translation, pas d'estimation des 4 autres parametres)
+//! Implementation basique simplifiee (uniquement la translation, pas d'estimation des 4 autres parametres)
 class RefineModelTransBasic:public RefineModelAbs
 {
 
@@ -759,26 +812,23 @@ public:
         std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
         std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
 
-
-        a0 -= sol(0,0);
+        a0 -= sol(0,0);     //pourquoi -= ???
         b0 -= sol(0,1);
 
         std::cout << "Solution mise a jour : "<<std::endl;
         std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
         std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
 
-
         //mise a jour des Z
         for(size_t i=0;i<vPtImgMaster.size();++i)
         {
-            vZ[i] -= sol(0,2+i);
+            vZ[i] -= sol(0,2+i); //pourquoi -= ???
             std::cout << vZ[i] << std::endl;
         }
 
     }
 
-
-    // compute the observation matrix for one iteration
+    //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
         int numObs = 2*vZ.size();
@@ -797,7 +847,6 @@ public:
         double sigmaTransY = 1./std::pow(0.05,0.2);  //pix
         double sigmaMat = 1./std::pow(0.001,2); //sans unite*/
 
-
         _N = ElMatrix<double>(2+vZ.size(),2*vZ.size()+3,0.);
         _Y = ElMatrix<double>(1,2*vZ.size()+3,0.);
 
@@ -811,12 +860,12 @@ public:
             double const Z = vZ[i];
 
             // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2);
+            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
 
             //todo : strategie d'elimination d'observations / ou ponderation
 
             // estimation des derivees partielles
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)  * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ,a0,a1,a2,b0,b1,b2)-D);
+            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+ dZ,a0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
 
@@ -848,7 +897,7 @@ public:
             }
             _Y(0,2*vZ.size()+2) = zMoy-altiMoyenne/vZ.size();
         }
-        std::cout << "avant le solve"<<std::endl;
+        std::cout << "before solve"<<std::endl;
 
         solve();
 
@@ -860,7 +909,6 @@ public:
     {
     }
 };
-
 
 int RefineModel_main(int argc, char **argv)
 {

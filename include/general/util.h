@@ -596,6 +596,9 @@ ElSTDNS string StdPrefix (const ElSTDNS string &,char = '.');
 ElSTDNS string StdPrefixGen (const ElSTDNS string &,char = '.');
 std::string NameWithoutDir(const std::string &);
 
+std::string ExtractDigit(const std::string & aName,const std::string &  aDef);
+
+
 bool IsPrefix(const char * aPref,const char *aStr);
 
 

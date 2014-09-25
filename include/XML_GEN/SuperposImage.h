@@ -42,6 +42,24 @@ std::string  Mangling( eModeBoxFusion *);
 
 void  BinaryUnDumpFromFile(eModeBoxFusion &,ELISE_fp &);
 
+typedef enum
+{
+  eMMC_Envlop,
+  eMMC_Epi
+} eModeMergeCloud;
+void xml_init(eModeMergeCloud & aVal,cElXMLTree * aTree);
+std::string  eToString(const eModeMergeCloud & aVal);
+
+eModeMergeCloud  Str2eModeMergeCloud(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeMergeCloud & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eModeMergeCloud &);
+
+std::string  Mangling( eModeMergeCloud *);
+
+void  BinaryUnDumpFromFile(eModeMergeCloud &,ELISE_fp &);
+
 class cIntervLutConvertion
 {
     public:
@@ -5237,9 +5255,13 @@ class cPFNMiseAuPoint
 
         cTplValGesInit< bool > & TestImageDif();
         const cTplValGesInit< bool > & TestImageDif()const ;
+
+        cTplValGesInit< bool > & VisuGrad();
+        const cTplValGesInit< bool > & VisuGrad()const ;
     private:
         cTplValGesInit< Pt2di > mSzVisu;
         cTplValGesInit< bool > mTestImageDif;
+        cTplValGesInit< bool > mVisuGrad;
 };
 cElXMLTree * ToXMLTree(const cPFNMiseAuPoint &);
 
@@ -5274,12 +5296,16 @@ class cGrapheRecouvrt
 
         int & NbPtsLowResume();
         const int & NbPtsLowResume()const ;
+
+        cTplValGesInit< double > & CostPerImISOM();
+        const cTplValGesInit< double > & CostPerImISOM()const ;
     private:
         double mTauxRecMin;
         cTplValGesInit< std::string > mExtHom;
         cTplValGesInit< int > mMinSzFilHom;
         cTplValGesInit< double > mRecSeuilDistProf;
         int mNbPtsLowResume;
+        cTplValGesInit< double > mCostPerImISOM;
 };
 cElXMLTree * ToXMLTree(const cGrapheRecouvrt &);
 
@@ -5311,11 +5337,15 @@ class cImageVariations
 
         double & SeuilStrictVarIma();
         const double & SeuilStrictVarIma()const ;
+
+        cTplValGesInit< double > & PenteRefutInitInPixel();
+        const cTplValGesInit< double > & PenteRefutInitInPixel()const ;
     private:
         bool mV4Vois;
         int mDistVois;
         double mDynAngul;
         double mSeuilStrictVarIma;
+        cTplValGesInit< double > mPenteRefutInitInPixel;
 };
 cElXMLTree * ToXMLTree(const cImageVariations &);
 
@@ -5336,11 +5366,17 @@ class cParamFusionNuage
         friend void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree);
 
 
+        eModeMergeCloud & ModeMerge();
+        const eModeMergeCloud & ModeMerge()const ;
+
         cTplValGesInit< Pt2di > & SzVisu();
         const cTplValGesInit< Pt2di > & SzVisu()const ;
 
         cTplValGesInit< bool > & TestImageDif();
         const cTplValGesInit< bool > & TestImageDif()const ;
+
+        cTplValGesInit< bool > & VisuGrad();
+        const cTplValGesInit< bool > & VisuGrad()const ;
 
         cPFNMiseAuPoint & PFNMiseAuPoint();
         const cPFNMiseAuPoint & PFNMiseAuPoint()const ;
@@ -5360,6 +5396,9 @@ class cParamFusionNuage
         int & NbPtsLowResume();
         const int & NbPtsLowResume()const ;
 
+        cTplValGesInit< double > & CostPerImISOM();
+        const cTplValGesInit< double > & CostPerImISOM()const ;
+
         cGrapheRecouvrt & GrapheRecouvrt();
         const cGrapheRecouvrt & GrapheRecouvrt()const ;
 
@@ -5375,9 +5414,13 @@ class cParamFusionNuage
         double & SeuilStrictVarIma();
         const double & SeuilStrictVarIma()const ;
 
+        cTplValGesInit< double > & PenteRefutInitInPixel();
+        const cTplValGesInit< double > & PenteRefutInitInPixel()const ;
+
         cImageVariations & ImageVariations();
         const cImageVariations & ImageVariations()const ;
     private:
+        eModeMergeCloud mModeMerge;
         cPFNMiseAuPoint mPFNMiseAuPoint;
         cGrapheRecouvrt mGrapheRecouvrt;
         cImageVariations mImageVariations;

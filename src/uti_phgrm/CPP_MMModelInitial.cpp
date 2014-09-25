@@ -130,7 +130,7 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
 extern const std::string TheDIRMergTiepForEPI();
 
-std::string DirFusMMInit() {return "Fusion-MMMI/";}
+const std::string  DirFusMMInit() {return "Fusion-MMMI/";}
 
 class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 {
