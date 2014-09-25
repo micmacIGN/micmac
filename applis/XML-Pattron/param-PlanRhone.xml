@@ -1,0 +1,212 @@
+<ParamMICMAC>
+<Section_Terrain>
+  <IntervAltimetrie>
+    <MNT_Init>
+      <MNT_Init_Image>CropBDAlti_MNE_892-6247.TIF</MNT_Init_Image>
+      <MNT_Init_Xml>CropBDAlti_MNE_892-6247.XML</MNT_Init_Xml>
+    </MNT_Init>
+    <ZIncCalc>80</ZIncCalc>
+  </IntervAltimetrie>
+  <Planimetrie>
+    <!-- 
+    <BoxTerrain>892400.000000 6247400.000000 892500.000000 6247500.000000</BoxTerrain>
+    -->
+    <BoxTerrain>892200.000000 6247300.000000 892700.000000 6247800.000000</BoxTerrain> 
+    <MasqueTerrain><MT_Image>MasqueTerrain_MNE_892-6247.TIF</MT_Image><MT_Xml>MasqueTerrain_MNE_892-6247.XML</MT_Xml></MasqueTerrain>
+    <ResolutionTerrain>0.100000</ResolutionTerrain>
+  </Planimetrie>
+</Section_Terrain>
+<Section_PriseDeVue>
+   <ClassEquivalenceImage>
+        <MapN2NByAutom>
+            <OneAutomMapN2N >
+                  <MatchPattern>  Fr9130_([0-9]{3})~([0-9]{4})_rgb.tif </MatchPattern>
+                  <Result>  $1 </Result>
+            </OneAutomMapN2N>
+        </MapN2NByAutom>
+   </ClassEquivalenceImage>
+  <GeomImages> eGeomImageRTO </GeomImages>
+  <Images>
+    <ImPat>Fr9130_024~0499_rgb.tif</ImPat>
+    <ImPat>Fr9130_024~0500_rgb.tif</ImPat>
+    <ImPat>Fr9130_024~0501_rgb.tif</ImPat>
+    <ImPat>Fr9130_024~0502_rgb.tif</ImPat>
+    <ImPat>Fr9130_024~0503_rgb.tif</ImPat>
+    <ImPat>Fr9130_025~0637_rgb.tif</ImPat>
+    <ImPat>Fr9130_025~0638_rgb.tif</ImPat>
+    <ImPat>Fr9130_025~0639_rgb.tif</ImPat>
+    <ImPat>Fr9130_025~0640_rgb.tif</ImPat>
+    <ImPat>Fr9130_025~0641_rgb.tif</ImPat>
+    <ImPat>Fr9130_025~0642_rgb.tif</ImPat>
+    <ImPat>Fr9130_025~0643_rgb.tif</ImPat>
+    <ImPat>Fr9130_025~0644_rgb.tif</ImPat>
+    <ImPat>Fr9130_026~0774_rgb.tif</ImPat>
+    <ImPat>Fr9130_026~0775_rgb.tif</ImPat>
+    <ImPat>Fr9130_026~0776_rgb.tif</ImPat>
+    <ImPat>Fr9130_026~0777_rgb.tif</ImPat>
+    <ImPat>Fr9130_026~0778_rgb.tif</ImPat>
+    <ImPat>Fr9130_026~0779_rgb.tif</ImPat>
+    <ImPat>Fr9130_026~0780_rgb.tif</ImPat>
+    <ImPat>Fr9130_026~0781_rgb.tif</ImPat>
+    <ImPat>Fr9130_027~0913_rgb.tif</ImPat>
+    <ImPat>Fr9130_027~0914_rgb.tif</ImPat>
+    <ImPat>Fr9130_027~0915_rgb.tif</ImPat>
+    <ImPat>Fr9130_027~0916_rgb.tif</ImPat>
+    <ImPat>Fr9130_027~0917_rgb.tif</ImPat>
+    <ImPat>Fr9130_027~0918_rgb.tif</ImPat>
+    <ImPat>Fr9130_027~0919_rgb.tif</ImPat>
+    <ImPat>Fr9130_027~0920_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1052_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1053_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1054_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1055_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1056_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1057_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1058_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1059_rgb.tif</ImPat>
+    <ImPat>Fr9130_028~1060_rgb.tif</ImPat>
+    <ImPat>Fr9130_029~1260_rgb.tif</ImPat>
+    <ImPat>Fr9130_029~1261_rgb.tif</ImPat>
+    <ImPat>Fr9130_029~1262_rgb.tif</ImPat>
+    <ImPat>Fr9130_029~1263_rgb.tif</ImPat>
+    <ImPat>Fr9130_029~1264_rgb.tif</ImPat>
+    <ImPat>Fr9130_029~1265_rgb.tif</ImPat>
+    <ImPat>Fr9130_029~1266_rgb.tif</ImPat>
+    <ImPat>Fr9130_029~1267_rgb.tif</ImPat>
+    <ImPat>Fr9130_030~1336_rgb.tif</ImPat>
+    <ImPat>Fr9130_030~1337_rgb.tif</ImPat>
+    <ImPat>Fr9130_030~1338_rgb.tif</ImPat>
+    <ImPat>Fr9130_030~1339_rgb.tif</ImPat>
+    <ImPat>Fr9130_030~1340_rgb.tif</ImPat>
+    <ImPat>Fr9130_030~1341_rgb.tif</ImPat>
+    <ImPat>Fr9130_030~1342_rgb.tif</ImPat>
+    <ImPat>Fr9130_031~1543_rgb.tif</ImPat>
+    <ImPat>Fr9130_031~1544_rgb.tif</ImPat>
+  </Images>
+<!--
+  <MasqImageIn>
+    <OneMasqueImage>
+      <PatternSel>(.*).tif</PatternSel>
+      <NomMasq>masque-marseille.tif</NomMasq>
+    </OneMasqueImage>
+  </MasqImageIn>
+-->
+  <NomsGeometrieImage><PatternSel>(.*).tif</PatternSel><PatNameGeom>$1.RTO</PatNameGeom></NomsGeometrieImage>
+</Section_PriseDeVue>
+<Section_MEC>
+<TypePyramImage><Resol >2</Resol><TypeEl >eFloat32Bits</TypeEl></TypePyramImage>
+  <NbMinImagesVisibles>2</NbMinImagesVisibles>
+  <EtapeMEC>
+    <DeZoom>-1</DeZoom>
+      <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
+      <AggregCorr> eAggregSymetrique </AggregCorr>
+      <SzW>1</SzW>
+      <CoxRoy8Cnx>true</CoxRoy8Cnx>
+      <CoxRoyUChar>false</CoxRoyUChar>
+
+      <AlgoRegul>eAlgo2PrgDyn</AlgoRegul>
+
+      <Gen8Bits_Px1> true </Gen8Bits_Px1>
+      <GenImagesCorrel> true </GenImagesCorrel>
+
+
+      <ModulationProgDyn Portee="Globale">
+            <EtapeProgDyn>
+                  <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                  <NbDir>   10               </NbDir>
+            </EtapeProgDyn>
+            <Px1PenteMax>   100.0    </Px1PenteMax>
+      </ModulationProgDyn>
+
+ 
+      <ModeInterpolation>eInterpolBiLin</ModeInterpolation>
+
+      <ZRegul>0.050000</ZRegul>
+      <ZPas>1.000000</ZPas>
+      <ZDilatAlti>4</ZDilatAlti>
+      <ZDilatPlani>4</ZDilatPlani>
+      <AttenRelatifSeuilZ> 0.2 </AttenRelatifSeuilZ>
+
+      <MasqOfEtape>
+         <PatternApply>  .* </PatternApply>
+         <RectInclus> 3000 100 10824 7580 </RectInclus>
+      </MasqOfEtape>
+
+
+  </EtapeMEC>
+
+<EtapeMEC>
+  <DeZoom>32</DeZoom>
+    <SeuilAttenZRegul> 15 </SeuilAttenZRegul>
+</EtapeMEC>
+
+<EtapeMEC>
+  <DeZoom>16</DeZoom>
+  <ZDilatAlti>12</ZDilatAlti>
+  <ZDilatPlani>8</ZDilatPlani>
+  <SeuilAttenZRegul> 10 </SeuilAttenZRegul>
+</EtapeMEC>
+
+
+<EtapeMEC>
+  <DeZoom>8</DeZoom>
+    <ZDilatAlti>10</ZDilatAlti>
+    <ZDilatPlani>6</ZDilatPlani>
+    <GenerePartiesCachees>
+              <SeuilUsePC> 10 </SeuilUsePC>
+    </GenerePartiesCachees>
+     <SeuilAttenZRegul> 5 </SeuilAttenZRegul>
+</EtapeMEC>
+
+<EtapeMEC>
+  <DeZoom>4</DeZoom>
+    <ZDilatAlti>6</ZDilatAlti>
+    <ZDilatPlani>5</ZDilatPlani>
+    <GenerePartiesCachees>
+              <SeuilUsePC> 15 </SeuilUsePC>
+    </GenerePartiesCachees>
+     <SeuilAttenZRegul Portee="Globale"> 3 </SeuilAttenZRegul>
+</EtapeMEC>
+
+<EtapeMEC>
+  <DeZoom>2</DeZoom>
+   <GenerePartiesCachees>
+              <SeuilUsePC> 20 </SeuilUsePC>
+   </GenerePartiesCachees>
+</EtapeMEC>
+
+<EtapeMEC>
+  <DeZoom>1</DeZoom>
+  <ZDilatAlti>3</ZDilatAlti>
+  <ZDilatPlani>4</ZDilatPlani>
+   <GenerePartiesCachees>
+         <SeuilUsePC> 20 </SeuilUsePC>
+   </GenerePartiesCachees>
+</EtapeMEC>
+
+<EtapeMEC>
+  <DeZoom>1</DeZoom>
+  <ZDilatAlti>2</ZDilatAlti>
+  <ZDilatPlani>2</ZDilatPlani>
+  <MasqOfEtape>
+      <PatternApply>  .* </PatternApply>
+  </MasqOfEtape>
+</EtapeMEC>
+
+</Section_MEC>
+<Section_Results><GeomMNT>eGeomMNTEuclid</GeomMNT><DoMEC>true</DoMEC><ZoomMakeTA>32</ZoomMakeTA></Section_Results>
+<Section_WorkSpace>
+  <WorkDir>/media/PLAN_RHONE/Marseille/MNE_892-6247/</WorkDir>
+  <TmpMEC>MEC8bits/</TmpMEC>
+  <TmpPyr>Pyram/</TmpPyr>
+  <TmpResult>Results8bits/</TmpResult>
+  <NomChantier>MNE_892-6247</NomChantier>
+  <AvalaibleMemory>128</AvalaibleMemory>
+  <SzDalleMin>100</SzDalleMin>
+  <SzDalleMax>900</SzDalleMax>
+  <SzRecouvrtDalles>20</SzRecouvrtDalles>
+  <ByProcess>2</ByProcess>
+</Section_WorkSpace>
+<Section_Vrac><WithMessage>true</WithMessage></Section_Vrac>
+</ParamMICMAC>
+
