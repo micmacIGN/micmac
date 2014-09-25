@@ -1,25 +1,66 @@
 #include "StdAfx.h"
 
+//! Classe pour la conversion de fichier DIMAP en fichier Grid
 class Dimap
 {
 public:
-    Dimap(std::string const &nomFile);
+    ///
+    /// \brief lecture du fichier DIMAP
+    /// \param filename nom du fichier DIMAP
+    ///
+    Dimap(std::string const &filename);
 
-    //transformation des coordonnées d?un point image en point terrain
+    ///
+    /// \brief transformation des coordonnées d'un point image en point terrain
+    /// \param Pimg point image
+    /// \param altitude altitude terrain
+    /// \return point terrain
+    ///
     Pt2dr direct(Pt2dr Pimg, double altitude)const;
 
-    //transformation des coordonnées d?un point terrain en point image
+    ///
+    /// \brief transformation des coordonnées d'un point terrain en point image
+    /// \param Pgeo point terrain
+    /// \param altitude altitude terrain
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    /// \param rowCrop ligne du coin haut gauche pour croper
+    /// \param sampCrop colonne du coin haut gauche pour croper
+    /// \return
+    ///
     Pt2dr indirect(Pt2dr Pgeo, double altitude,std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const;
 
-    //Conversion de coordonnées géographiques d?un point en coordonnées cartographiques
-    //utilise proj4
-    //targetSyst : système de projection cible, par defaut targetSyst="+init=IGNF:LAMB93"
+    ///
+    /// \brief Conversion de coordonnées géographiques d'un point en coordonnées cartographiques
+    /// \param Pgeo coordonnées géoégraphiques
+    /// \param targetSyst système de projection cible, par defaut targetSyst="+init=IGNF:LAMB93"
+    /// \return
+    ///
     Pt2dr ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const;
 
-    //Application de l'affinité à la grille au point Pimg
+    ///
+    /// \brief Application de l'affinité à la grille au point Pimg
+    /// \param Pimg point image
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    /// \param rowCrop ligne du coin haut gauche pour croper
+    /// \param sampCrop colonne du coin haut gauche pour croper
+    /// \return
+    ///
     Pt2dr ptRefined(Pt2dr Pimg,std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const;
 
-    //determination des sommets de la grille en coordonnées image en fonction du pas (en pixels) puis conversion en coordonnées géographiques
+    ///
+    /// \brief détermination des sommets de la grille en coordonnées image en fonction du pas (en pixels) puis conversion en coordonnées géographiques
+    /// \param ulcSamp colonne du coin supérieur gauche de la grille en coordonnées image
+    /// \param ulcLine ligne du coin supérieur gauche de la grille en coordonnées image
+    /// \param stepPixel pas en pixels pour la grille en coordonnées image
+    /// \param nbSamp nombre de colonnes de la grille en coordonnées image
+    /// \param nbLine nombre de lignes de la grille en coordonnées image
+    /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+    /// \param vPtCarto vecteur de structures de points Pt2dr qui contient les sommets de la grille directe (pour l'ensemble des « layers »)
+    /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    /// \param rowCrop ligne du coin supérieur gauche de l'image - pour crop
+    /// \param sampCrop colonne du coin supérieur gauche de l'image - pour crop
+    ///
     void createDirectGrid(double ulcSamp, double ulcLine,
                           double stepPixel,
                           int nbSamp, int  nbLine,
@@ -27,7 +68,20 @@ public:
                           std::vector<Pt2dr> &vPtCarto, std::string targetSyst,
                           std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const;
 
-    //calcul des sommets de la grille en coordonnées terrain (cartographiques) en fonction du pas puis conversion en coordonnées géographiques et enfin image
+    ///
+    /// \brief calcul des sommets de la grille en coordonnées terrain (cartographiques) en fonction du pas puis conversion en coordonnées géographiques et enfin image
+    /// \param ulcX longitude du coin supérieur gauche de la grille en coordonnées cartographiques
+    /// \param ulcY latitude du coin supérieur gauche de la grille en coordonnées cartographiques
+    /// \param nbrSamp nombre de colonnes de la grille en coordonnées cartographiques
+    /// \param nbrLine nombre de lignes de la grille en coordonnées cartographiques
+    /// \param stepCarto pas en mètres pour la grille en coordonnées cartographiques
+    /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+    /// \param vPtImg vecteur de sommets de la grille inverse (pour l'ensemble des « layers »)
+    /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    /// \param rowCrop ligne du coin supérieur gauche de l'image - pour crop
+    /// \param sampCrop colonne du coin supérieur gauche de l'image - pour crop
+    ///
     void createIndirectGrid(double ulcX, double ulcY,
                             int nbrSamp, int nbrLine,
                             double stepCarto,
@@ -35,14 +89,27 @@ public:
                             std::vector<Pt2dr> &vPtImg, std::string targetSyst,
                             std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const;
 
-    //creation du fichier XML et calculs intermediaires
+    ///
+    /// \brief creation du fichier XML et calculs intermediaires
+    /// \param nomGrid nom du fichier Grid en sortie
+    /// \param nomImage nom de l'image concernée
+    /// \param stepPixel pas en pixels pour la grille en coordonnées image
+    /// \param stepCarto pas en mètres pour la grille en coordonnées cartographiques
+    /// \param rowCrop ligne du coin supérieur gauche de l'image - pour crop
+    /// \param sampCrop colonne du coin supérieur gauche de l'image - pour crop
+    /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+    /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    ///
     void createGrid(std::string const &nomGrid, std::string const &nomImage,
                     double stepPixel, double stepCarto,
                     double rowCrop, double sampCrop,
                     std::vector<double> vAltitude, std::string targetSyst,
                     std::vector<double> vRefineCoef)const;
 
-    //infos fichier DIMAP
+    ///
+    /// \brief infos fichier DIMAP
+    ///
     void info()
     {
         std::cout << "Dimap info:"<<std::endl;
@@ -59,7 +126,11 @@ public:
         std::cout << "==========================================================="<<std::endl;
     }
 
-    //effacement des fichiers relatifs a la creation des grilles ssi le modele n'est pas affine
+    ///
+    /// \brief effacement des fichiers relatifs à la creation des grilles ssi le modèle n'est pas affiné
+    /// \param nomGrid nom du fichier Grid en sortie
+    /// \param refine la grille est-elle affinée
+    ///
     void clearing(std::string const &nomGrid, bool refine)
     {
         if (refine == false)
@@ -82,14 +153,37 @@ public:
         if (ifstream(refGridGRC2.c_str())) ELISE_fp::RmFile(refGridGRC2.c_str());
     }
 
+    ///
+    /// \brief vecteur des 20 coefficients du numérateur de la fonction de calcul de la longitude par transformation  RFM directe
+    ///
     std::vector<double> direct_samp_num_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du dénominateur de la fonction de calcul de la longitude par transformation  RFM directe
+    ///
     std::vector<double> direct_samp_den_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du numérateur de la fonction de calcul de la latitude par transformation  RFM directe
+    ///
     std::vector<double> direct_line_num_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du dénominateur de la fonction de calcul de la latitude par transformation  RFM directe
+    ///
     std::vector<double> direct_line_den_coef;
-
+    ///
+    /// \brief vecteur des 20 coefficients du numérateur de la fonction de calcul de la colonne par transformation  RFM indirecte
+    ///
     std::vector<double> indirect_samp_num_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du dénominateur de la fonction de calcul de la colonne par transformation  RFM indirecte
+    ///
     std::vector<double> indirect_samp_den_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du numérateur de la fonction de calcul de la ligne par transformation  RFM indirecte
+    ///
     std::vector<double> indirect_line_num_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du dénominateur de la fonction de calcul de la ligne par transformation  RFM indirecte
+    ///
     std::vector<double> indirect_line_den_coef;
 
     double indirErrBiasRow;
@@ -97,26 +191,78 @@ public:
     double dirErrBiasX;
     double dirErrBiasY;
 
+    ///
+    /// \brief ligne minimale du domaine de validité de la transformation directe (RFM) issue du fichier DIMAP
+    ///
     double first_row;
+    ///
+    /// \brief colonne minimale du domaine de validité de la transformation directe (RFM) issue du fichier DIMAP
+    ///
     double first_col;
+    ///
+    /// \brief ligne maximale du domaine de validité de la transformation directe (RFM) issue du fichier DIMAP
+    ///
     double last_row;
+    ///
+    /// \brief colonne maximale du domaine de validité de la transformation directe (RFM) issue du fichier DIMAP
+    ///
     double last_col;
+    ///
+    /// \brief longitude minimale du domaine de validité de la transformation indirecte (RFM) issue du fichier DIMAP
+    ///
     double first_lon;
+    ///
+    /// \brief latitude minimale du domaine de validité de la transformation indirecte (RFM) issue du fichier DIMAP
+    ///
     double first_lat;
+    ///
+    /// \brief longitude maximale du domaine de validité de la transformation indirecte (RFM) issue du fichier DIMAP
+    ///
     double last_lon;
+    ///
+    /// \brief latitude maximale du domaine de validité de la transformation indirecte (RFM) issue du fichier DIMAP
+    ///
     double last_lat;
-
+    ///
+    /// \brief facteur d'échelle de la longitude (géographique) issu du fichier Dimap
+    ///
     double long_scale;
+    ///
+    /// \brief offset de la longitude (géographique) issu du fichier DIMAP
+    ///
     double long_off;
+    ///
+    /// \brief acteur d'échelle de la latitude (géographique) issu du fichier Dimap
+    ///
     double lat_scale;
+    ///
+    /// \brief offset de la latitude (géographique) issu du fichier DIMAP
+    ///
     double lat_off;
-
+    ///
+    /// \brief facteur d'échelle de la colonne (coordonnées image) issu du fichier DIMAP
+    ///
     double samp_scale;
+    ///
+    /// \brief offset de la colonne (coordonnées image) issu du fichier DIMAP
+    ///
     double samp_off;
+    ///
+    /// \brief facteur d'échelle de la ligne (coordonnées image)  issu du fichier DIMAP
+    ///
     double line_scale;
+    ///
+    /// \brief offset de la ligne (coordonnées image)  issu du fichier DIMAP
+    ///
     double line_off;
 
+    ///
+    /// \brief facteur d'échelle de l'altitude issu du fichier DIMAP
+    ///
     double height_scale;
+    ///
+    /// \brief offset de l'altitude issu du fichier DIMAP
+    ///
     double height_off;
 
 };
@@ -588,7 +734,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
  }
 
 //Lecture du fichier DIMAP
-Dimap::Dimap(std::string const &nomFile)
+Dimap::Dimap(std::string const &filename)
 {
     direct_samp_num_coef.clear();
     direct_samp_den_coef.clear();
@@ -600,7 +746,7 @@ Dimap::Dimap(std::string const &nomFile)
     indirect_line_num_coef.clear();
     indirect_line_den_coef.clear();
 
-    cElXMLTree tree(nomFile.c_str());
+    cElXMLTree tree(filename.c_str());
 
     {
         std::list<cElXMLTree*> noeuds=tree.GetAll(std::string("Direct_Model"));
