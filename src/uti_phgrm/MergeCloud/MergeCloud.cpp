@@ -71,6 +71,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
         cASAMG * anAttrSom = 0;
 
         std::string aNameNuXml = NameFileInput(anIma,".xml");
+std::cout << "aNameNuXml " << aNameNuXml << "\n";
         // Possible aucun nuage si peu de voisins et mauvaise config epip
         if (ELISE_fp::exist_file(aNameNuXml))
         {
@@ -115,10 +116,22 @@ Video_Win *  cAppliMergeCloud::TheWinIm(Pt2di aSzIm)
 }
 
 const std::string cAppliMergeCloud::TheNameSubdir = "Fusion-0";
+extern const  std::string  DirFusMMInit();
 
 std::string cAppliMergeCloud::NameFileInput(const std::string & aNameIm,const std::string aPost)
 {
-   return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
+   switch (mParam.ModeMerge())
+   {
+       case eMMC_Epi :
+            return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
+       case eMMC_Envlop :
+            std::string aPref = "Depth";
+//std::cout << Dir() << "\n";
+//std::cout << DirFusMMInit() << "\n";
+            return Dir() +  DirFusMMInit() +  "DownScale_NuageFusion-"+ aPref + aNameIm + aPost;
+   }
+   ELISE_ASSERT(false,"cAppliMergeCloud::NameFileInput");
+   return "";
 }
 
 std::string cAppliMergeCloud::NameFileInput(cImaMM * anIma,const std::string aPost)

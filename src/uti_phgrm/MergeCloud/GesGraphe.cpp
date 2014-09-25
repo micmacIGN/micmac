@@ -39,9 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "MergeCloud.h"
 
-extern std::string ExtractDigit(const std::string & aName,const std::string &  aDef);
-
-
 void  cAppliMergeCloud::CreateGrapheConx()
 {
             // Couple d'homologues
@@ -85,7 +82,7 @@ void  cAppliMergeCloud::CreateGrapheConx()
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
        tMCSom * aS1 =  mVSoms[aK];
-       const cOneSolImageSec &   aSol = aS1->attr()->SolOfCostPerIm(pAramCostPerImISOM());
+       const cOneSolImageSec &   aSol = aS1->attr()->SolOfCostPerIm(mParam.CostPerImISOM().Val());
 
        for 
        (
