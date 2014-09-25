@@ -1,0 +1,17 @@
+                      <FixeOrientPlane>
+                              <ModeFOP>
+                                  <HorFOP>
+                                     <VecFOH>
+                                        <Pt>   ${X1RC}  ${Y1RC} </Pt>
+                                        <Im>   ${ImP1P2} </Im>
+                                     </VecFOH>
+                                     <VecFOH>
+                                        <Pt>  ${X2RC}  ${Y2RC}  </Pt>
+                                        <Im>    ${ImP1P2} </Im>
+                                     </VecFOH>
+                                  </HorFOP>
+                              </ModeFOP>
+                              <Vecteur>   ${XAxeRC}  ${YAxeRC} </Vecteur>
+                          </FixeOrientPlane>
+
+
