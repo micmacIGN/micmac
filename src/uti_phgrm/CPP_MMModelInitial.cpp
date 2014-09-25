@@ -41,33 +41,88 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
  non max et voisin du vide
 */
-void FiltreMasqMultiResolMMI(const std::string & aNameMasq)
+void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 {
 
-    Im2D_U_INT1 anImInit = Im2D_U_INT1::FromFileStd(aNameMasq);
+    // Im2D_U_INT1 anImInit = Im2D_U_INT1::FromFileStd(aNameMasq);
     Pt2di aSz = anImInit.sz();
+    double aCostRegul = 1.0;
+    double aCostTrans = 10.0;
 
-    Im2D_U_INT1 anImEtiq(aSz.x,aSz.y);
-    ELISE_COPY(anImInit.all_pts(),Min(2,anImInit.in()),anImEtiq.out());
+    //    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
+    //  non max et voisin du vide
+    {
+         Im2D_U_INT1 anImEtiq(aSz.x,aSz.y);
+         ELISE_COPY(anImInit.all_pts(),Min(2,anImInit.in()),anImEtiq.out());
 
-    ELISE_COPY(anImEtiq.border(1),0,anImEtiq.out());
+         ELISE_COPY(anImEtiq.border(1),0,anImEtiq.out());
 
 
-    Neighbourhood aNV4=Neighbourhood::v4();
-    Neigh_Rel     aNrV4 (aNV4);
+         Neighbourhood aNV4=Neighbourhood::v4();
+         Neigh_Rel     aNrV4 (aNV4);
 
-    ELISE_COPY
-    (
+         ELISE_COPY
+         (
+              conc
+              (
+                  select(select(anImEtiq.all_pts(),anImEtiq.in()==2),aNrV4.red_sum(anImEtiq.in()==0)),
+                  anImEtiq.neigh_test_and_set(aNV4,2,3,256)
+              ),
+              3,
+              Output::onul()
+         );
+         ELISE_COPY(select(anImEtiq.all_pts(),anImEtiq.in()==3),0,anImInit.out());
+    }
+
+
+    // Filtrage des irregularite par prog dyn
+
+    {
+        Im2D_U_INT1 aImMasq(aSz.x,aSz.y);
+        ELISE_COPY(aImMasq.all_pts(),anImInit.in()!=0,aImMasq.out());
+        ELISE_COPY(aImMasq.border(1),0,aImMasq.out());
+
+ 
+        cParamFiltreDepthByPrgDyn aParam =  StdGetFromSI(Basic_XML_MM_File("DefFiltrPrgDyn.xml"),ParamFiltreDepthByPrgDyn);
+        aParam.CostTrans() = aCostTrans;
+        aParam.CostRegul() = aCostRegul;
+        Im2D_Bits<1>  aNewMasq =  FiltrageDepthByProgDyn(aImDepth,aImMasq,aParam);
+
+        // 2 est la couleur de validation
+        ELISE_COPY
+        (
+             select(aNewMasq.all_pts(),aNewMasq.in()),
+             2,
+             aImMasq.out()
+        );
+
+
+        // suprime les ttes petites CC
+        TIm2D<U_INT1,INT> aTMasq(aImMasq);
+        FiltrageCardCC(false,aTMasq,2,0,100);
+
+        //  supprime toute les CC de 1 (= avec fortes variation) voisine de 0
+        Neighbourhood aNV4=Neighbourhood::v4();
+        Neigh_Rel     aNrV4 (aNV4);
+
+        ELISE_COPY
+        (
            conc
            (
-               select(select(anImEtiq.all_pts(),anImEtiq.in()==2),aNrV4.red_sum(anImEtiq.in()==0)),
-               anImEtiq.neigh_test_and_set(aNV4,2,3,256)
+               select(select(aImMasq.all_pts(),aImMasq.in()==1),aNrV4.red_sum(aImMasq.in()==0)),
+               aImMasq.neigh_test_and_set(aNV4,1,0,256)
            ),
            3,
            Output::onul()
-    );
-    ELISE_COPY(select(anImEtiq.all_pts(),anImEtiq.in()==3),0,anImInit.out());
-    ELISE_COPY(anImInit.all_pts(),anImInit.in(),Tiff_Im(aNameMasq.c_str()).out());
+        );
+
+
+         ELISE_COPY(select(aImMasq.all_pts(),aImMasq.in()==0),0,anImInit.out());
+
+    }
+
+
+    // ELISE_COPY(anImInit.all_pts(),anImInit.in(),Tiff_Im(aNameMasq.c_str()).out());
 }
 
 
@@ -75,7 +130,7 @@ void FiltreMasqMultiResolMMI(const std::string & aNameMasq)
 
 extern const std::string TheDIRMergTiepForEPI();
 
-std::string DirFusMMInit() {return "Fusion-MMMI/";}
+const std::string  DirFusMMInit() {return "Fusion-MMMI/";}
 
 class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 {
@@ -255,10 +310,9 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    Tiff_Im::CreateFromFonc(NameFileGlobWithDir(FusEnvMasq),aMasqEnv.sz(),aMasqEnv.in(),GenIm::bits1_msbf);
 
 
+   FiltreMasqMultiResolMMI(aDepthMerg,aMasqMerge);
    Tiff_Im::CreateFromIm(aDepthMerg,NameFileGlobWithDir(FusDepth));
-   std::string aNameMasqD = NameFileGlobWithDir(FusMasqD);
-   Tiff_Im::CreateFromIm(aMasqMerge,aNameMasqD);
-   FiltreMasqMultiResolMMI(aNameMasqD);
+   Tiff_Im::CreateFromIm(aMasqMerge,NameFileGlobWithDir(FusMasqD));
 
 
    

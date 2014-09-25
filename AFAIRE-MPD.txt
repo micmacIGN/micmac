@@ -385,6 +385,8 @@ dans les exercices.
 
     Exo : a definir.
 
+-E- Utiliser la librairie sous forme fonctionnelle, ajouter un filtre compile
+
     
 
 
