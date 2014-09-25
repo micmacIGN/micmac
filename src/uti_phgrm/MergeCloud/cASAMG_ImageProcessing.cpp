@@ -197,8 +197,6 @@ void cASAMG::ComputeIncidAngle3D()
 
 //===================== INCIDEENCE KLIPSCHITZ =========================
 
-Fonc_Num NFoncDilatCond(Fonc_Num f2Dil,Fonc_Num fCond,bool aV4,int aNb);
-
 
 void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel,Im2D_Bits<1> aRes)
 {

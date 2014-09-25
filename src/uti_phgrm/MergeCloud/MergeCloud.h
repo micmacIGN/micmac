@@ -205,9 +205,6 @@ int    cASAMG::CCDist() const {return mAppli->Param().ImageVariations().DistVois
 int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
 
 
-inline double pAramCostPerImISOM() {return 0.2;}
-inline bool   pAramVisuProf() {return false;}
-inline double pAramPenteRefutInitInPixel() {return 1/2.0;}
 
 #endif // _ELISE_MERGE_CLOUD
 
