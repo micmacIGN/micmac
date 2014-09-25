@@ -67,8 +67,12 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    // mImCptr  => Non pertinent en mode envlop, a voir si reactiver en mode epi
    // Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
 
-   // ComputeIncidAngle3D();
-   ComputeIncidGradProf();
+   bool doComputeIncid = mAppli->Param().ComputeIncid().Val();
+   if (doComputeIncid)
+   {
+       ComputeIncidGradProf();
+    // ComputeIncidAngle3D();
+   }
    double aPente = mAppli->Param().PenteRefutInitInPixel().Val();
    ComputeIncidKLip(mMasqN.in_proj(),aPente,mMasqHigh);
    ComputeIncidKLip(mMasqN.in_proj(),aPente*2,mMasqPLow);
@@ -82,8 +86,10 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    {
       aW->set_title(mIma->mNameIm.c_str());
 
-      ELISE_COPY
-      (
+      if (doComputeIncid)
+      {
+         ELISE_COPY
+         (
              mImIncid.all_pts(),
              Virgule
              (
@@ -92,7 +98,14 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
                   mImIncid.in() *  ! mMasqPLow.in()
              ),
              aW->orgb()
-      );
+         );
+      }
+      else
+      {
+         ELISE_COPY (mMasqN.all_pts(),mMasqN.in(),aW->odisc());
+         ELISE_COPY (select(mMasqN.all_pts(),mMasqHigh.in()),P8COL::red,aW->odisc());
+         ELISE_COPY (select(mMasqN.all_pts(),mMasqPLow.in()),P8COL::blue,aW->odisc());
+      }
 
        aW->clik_in();
    }
