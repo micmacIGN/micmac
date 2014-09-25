@@ -69,7 +69,7 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
 
    // ComputeIncidAngle3D();
    ComputeIncidGradProf();
-   double aPente = mParam.PenteRefutInitInPixel().Val();
+   double aPente = mAppli->Param().PenteRefutInitInPixel().Val();
    ComputeIncidKLip(mMasqN.in_proj(),aPente,mMasqHigh);
    ComputeIncidKLip(mMasqN.in_proj(),aPente*2,mMasqPLow);
    
@@ -78,7 +78,7 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
 
    ComputeSubset(mAppli->Param().NbPtsLowResume(),mLowRN);
 
-   if (mParam.VisuGrad().Val() && aW)
+   if (mAppli->Param().VisuGrad().Val() && aW)
    {
       aW->set_title(mIma->mNameIm.c_str());
 
