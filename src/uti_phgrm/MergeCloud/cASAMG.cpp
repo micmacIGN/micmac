@@ -69,15 +69,16 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
 
    // ComputeIncidAngle3D();
    ComputeIncidGradProf();
-   ComputeIncidKLip(mMasqN.in_proj(),pAramPenteRefutInitInPixel(),mMasqHigh);
-   ComputeIncidKLip(mMasqN.in_proj(),pAramPenteRefutInitInPixel()*2,mMasqPLow);
+   double aPente = mParam.PenteRefutInitInPixel().Val();
+   ComputeIncidKLip(mMasqN.in_proj(),aPente,mMasqHigh);
+   ComputeIncidKLip(mMasqN.in_proj(),aPente*2,mMasqPLow);
    
    
    Video_Win * aW = mAppli->TheWinIm(mSz);
 
    ComputeSubset(mAppli->Param().NbPtsLowResume(),mLowRN);
 
-   if (pAramVisuProf() && aW)
+   if (mParam.VisuGrad().Val() && aW)
    {
       aW->set_title(mIma->mNameIm.c_str());
 

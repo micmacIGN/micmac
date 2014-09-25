@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1249]) = {
+const char * (theNameVar_SuperposImage[1253]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1170,7 +1170,9 @@ const char * (theNameVar_SuperposImage[1249]) = {
 "      <ModeMerge Nb=\"1\" Type=\"eModeMergeCloud\"> </ModeMerge>\n",
 "      <PFNMiseAuPoint Nb=\"1\">\n",
 "            <SzVisu  Nb=\"?\" Type=\"Pt2di\"> </SzVisu>\n",
+"            <!-- Visualise les diff de prof par couple -->\n",
 "            <TestImageDif Nb=\"?\" Type=\"bool\" Def=\"false\"></TestImageDif>\n",
+"            <VisuGrad Nb=\"?\" Type=\"bool\"  Def=\"false\"></VisuGrad>\n",
 "      </PFNMiseAuPoint>\n",
 "      <GrapheRecouvrt Nb=\"1\"> \n",
 "             <TauxRecMin Nb=\"1\" Type=\"double\"> </TauxRecMin>\n",
@@ -1178,12 +1180,14 @@ const char * (theNameVar_SuperposImage[1249]) = {
 "             <MinSzFilHom Nb=\"?\" Type=\"int\" Def=\"1000\"> </MinSzFilHom>\n",
 "             <RecSeuilDistProf Nb=\"?\" Type=\"double\" Def=\"1.0\"> </RecSeuilDistProf>\n",
 "             <NbPtsLowResume Nb=\"1\" Type=\"int\"> </NbPtsLowResume>\n",
+"             <CostPerImISOM Nb=\"?\" Type=\"double\" Def=\"0.2\"> </CostPerImISOM>\n",
 "      </GrapheRecouvrt>\n",
 "      <ImageVariations Nb=\"1\">\n",
 "           <V4Vois Nb=\"1\" Type=\"bool\"> </V4Vois>\n",
 "           <DistVois Nb=\"1\" Type=\"int\"> </DistVois>\n",
 "           <DynAngul Nb=\"1\" Type=\"double\"> </DynAngul>\n",
 "           <SeuilStrictVarIma Nb=\"1\" Type=\"double\"> </SeuilStrictVarIma>\n",
+"           <PenteRefutInitInPixel Nb=\"?\" Type=\"double\" Def=\"0.5\"> </PenteRefutInitInPixel>\n",
 "      </ImageVariations>\n",
 "  </ParamFusionNuage>\n",
 "\n",
