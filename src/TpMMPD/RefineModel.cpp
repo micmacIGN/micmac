@@ -95,7 +95,7 @@ public:
     }
 
     ///
-    /// \brief constructor (loads GRID files, tie-points and filter ti-points on 2D ground difference)
+    /// \brief constructor (loads GRID files, tie-points and filter tie-points on 2D ground difference)
     /// \param aNameFileGridMaster Grid file for master image
     /// \param aNameFileGridSlave Grid file for slave image
     /// \param aNamefileTiePoints Tie-points file

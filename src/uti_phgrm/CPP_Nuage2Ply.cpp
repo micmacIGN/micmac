@@ -91,7 +91,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(aDyn,"Dyn",true,"Dynamic of attribute")
                     << EAM(DoPly,"DoPly",true,"Do Ply, def = true")
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
-                    << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usuable for Poisson)")
+                    << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usable for Poisson)")
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true, "Do mesh (Def=false)")
@@ -186,8 +186,8 @@ int Nuage2Ply_main(int argc,char ** argv)
 
 int PlySphere_main(int argc,char ** argv)
 {
-    Pt3dr aC; 
-    Pt3di aCoul(255,0,0); 
+    Pt3dr aC;
+    Pt3di aCoul(255,0,0);
     double aRay;
     int aNbPts=5;
     std::string Out="Sphere.ply";
