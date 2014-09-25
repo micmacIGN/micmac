@@ -115,6 +115,25 @@ class cCC_NoActionOnNewPt
        bool ValidePt(const Pt2di &){return true;}
 };
 
+
+
+class cCC_GetVPt : public  cCC_NoActionOnNewPt
+{
+   public  :
+       cCC_GetVPt() 
+       {
+       }
+
+       void  OnNewPt(const Pt2di & aP)
+       {
+           mVPts.push_back(aP);
+       }
+
+
+       std::vector<Pt2di> mVPts;
+};
+
+
 template  <class Type>
           void    FiltrageCardCC(bool V4,Type & aTIm,int aValSelec,int aValAff,int aSeuilCard)
 {

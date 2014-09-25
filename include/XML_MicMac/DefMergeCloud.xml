@@ -1,4 +1,7 @@
 <ParamFusionNuage>
+
+      <ModeMerge> eMMC_Envlop </ModeMerge>
+
       <PFNMiseAuPoint>
           <SzVisu> 1200 800  </SzVisu>
           <TestImageDif> false </TestImageDif>
@@ -11,7 +14,6 @@
            <MinSzFilHom>  500 </MinSzFilHom>
            <RecSeuilDistProf>  1.0</RecSeuilDistProf>
            <NbPtsLowResume> 2000  </NbPtsLowResume>
-
       </GrapheRecouvrt>
       <ImageVariations>
            <V4Vois > false </V4Vois>

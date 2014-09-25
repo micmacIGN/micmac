@@ -8,16 +8,19 @@
 extern "C" void Gpu_OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 
 template <class T>
-struct CuHostDaPo3D
+///
+/// \brief The CuHostDaPo3D struct
+/// Structure 1D des couts de corélation
+struct sMatrixCellCost
 {
-    CuHostData3D<T>         _data1D;
+    CuHostData3D<T>         _CostInit1D;
     CuHostData3D<short2>    _ptZ;
     CuHostData3D<ushort>    _dZ;
     CuHostData3D<uint>      _pit;
     uint                    _size;
     ushort                  _maxDz;
 
-    CuHostDaPo3D():
+    sMatrixCellCost():
         _maxDz(NAPPEMAX) // ATTENTION : NAPPE Dynamique
     {}
 
@@ -31,7 +34,7 @@ struct CuHostDaPo3D
 
     void                    ReallocData()
     {
-        _data1D.ReallocIf(_size);        
+        _CostInit1D.ReallocIf(_size);
 #ifdef CUDA_DEFCOR
         _data1D.Fill(60000);
 #endif
@@ -40,7 +43,7 @@ struct CuHostDaPo3D
 
     void                    Dealloc()
     {
-        _data1D.Dealloc();
+        _CostInit1D.Dealloc();
 
         _ptZ.Dealloc();
         _dZ.Dealloc();
@@ -103,18 +106,18 @@ struct CuHostDaPo3D
 
     T*                      operator[](uint2 pt)
     {
-        return _data1D.pData() + _pit[pt];
+        return _CostInit1D.pData() + _pit[pt];
     }
 
     T*                      operator[](Pt2di pt)
     {
-        return _data1D.pData() + _pit[toUi2(pt)];
+        return _CostInit1D.pData() + _pit[toUi2(pt)];
     }
 
     T&                      operator[](int3 pt)
     {
         uint2 ptTer = make_uint2(pt.x,pt.y);
-        return *(_data1D.pData() + _pit[ptTer] - _ptZ[ptTer].x + pt.z);
+        return *(_CostInit1D.pData() + _pit[ptTer] - _ptZ[ptTer].x + pt.z);
     }
 };
 
@@ -153,7 +156,7 @@ public:
 
     CuHostData3D<uint>      _preFinalCost1D;
     CuHostData3D<uint>      _FinalDefCor;
-    CuHostDaPo3D<ushort>    _poInitCost;
+    sMatrixCellCost<ushort>    _poInitCost;
 
     void            optimisation();
 

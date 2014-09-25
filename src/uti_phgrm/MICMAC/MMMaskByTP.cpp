@@ -1059,6 +1059,15 @@ void  cAppliMICMAC::OneIterFinaleMATP(const cMasqueAutoByTieP & aMATP,bool Final
    std::cout << "END ITER FINAL " << mMMTP->NbInHeap() << " FINAL " << Final << "\n";
 }
 
+Fonc_Num FoncHomog(Im2D_REAL4 anIm, int aSzKernelH, double aPertPerPix)
+{
+    Fonc_Num aFMax = rect_max(anIm.in_proj(),aSzKernelH);
+    Fonc_Num aFMin = rect_min(anIm.in_proj(),aSzKernelH);
+    Fonc_Num aFHom =  aFMin > (1- aPertPerPix * aSzKernelH) * aFMax;
+
+    return rect_max(aFHom,aSzKernelH);
+}
+
 
 
 
@@ -1092,13 +1101,29 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        );
     }
 
-    if (0 && aMATP.mmtpFilterSky().IsInit())
+    if (aMATP.mmtpFilterSky().IsInit())
     {
          Im2D_REAL4 * anIm = mPDV1->LoadedIm().FirstFloatIm();
          ELISE_ASSERT(anIm!=0,"Incohe in mmtpFilterSky");
+         Pt2di aSz = anIm->sz();
+
+         const cmmtpFilterSky & aFS = aMATP.mmtpFilterSky().Val();
+         int aSeuilNbPts = round_ni(aSz.x*aSz.y*aFS.PropZonec().Val());
+
+         Im2D_U_INT1 aImLabel(aSz.x,aSz.y);
+         TIm2D<U_INT1,INT> aTLab(aImLabel);
+
+         Fonc_Num FHGlob = FoncHomog(*anIm,aFS.SzKernelHom().Val(),aFS.PertPerPix().Val());
+         ELISE_COPY(aImLabel.all_pts(),FHGlob,aImLabel.out());
+         FiltrageCardCC(true,aTLab,1,2,aSeuilNbPts);
+
+         Im2D_Bits<1> aNewM = mMMTP->ImMasquageInput();
+         ELISE_COPY(select(aImLabel.all_pts(),aImLabel.in()==1),0,aNewM.out());
+/*
          Video_Win * aW = Video_Win::PtrWStd(anIm->sz());
-         ELISE_COPY(anIm->all_pts(),anIm->in(), aW->ocirc());
+         ELISE_COPY(anIm->all_pts(),aImLabel.in(), aW->odisc());
          std::cout << "AAAAAAAAAAAAAAAAAaaaSkkkkkkYYyyyyy\n"; getchar();
+*/
           
     }
 
@@ -1188,6 +1213,13 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    OneIterFinaleMATP(aMATP,false);
    mMMTP->ExportResultInit();
    mMMTP->FreeCel();
+ #ifdef ELISE_X11
+   if (TheWTiePCor)
+   {
+       std::cout << "End croissance \n";
+       TheWTiePCor->clik_in();
+   }
+ #endif
    const cComputeAndExportEnveloppe * aCAEE = aMATP.ComputeAndExportEnveloppe().PtrVal();
 
 

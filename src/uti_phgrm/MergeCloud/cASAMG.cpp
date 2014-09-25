@@ -51,41 +51,50 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mStdN      (cElNuage3DMaille::FromFileIm(mAppli->NameFileInput(anIma,".xml"))),
    mMasqN     (mStdN->ImDef()),
    mTMasqN    (mMasqN),
-   mImCptr    (Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
+   mImCptr    (1,1),
    mTCptr     (mImCptr),
-   mSz        (mImCptr.sz()),
+   mSz        (mStdN->SzUnique()),
    mImIncid   (mSz.x,mSz.y),
    mTIncid    (mImIncid),
+   mMasqHigh  (mSz.x,mSz.y),
+   mTMPH      (mMasqHigh),
+   mMasqPLow  (mSz.x,mSz.y),
+   mTMPL      (mMasqPLow),
    mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma()),
    mISOM      (StdGetISOM(anAppli->ICNM(),anIma->mNameIm,anAppli->Ori()))
 {
+// std::cout << "AAAAAAAAAAAAAAAAAAaa\n"; getchar();
+   // mImCptr  => Non pertinent en mode envlop, a voir si reactiver en mode epi
+   // Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
+
    // ComputeIncidAngle3D();
    ComputeIncidGradProf();
+   double aPente = mAppli->Param().PenteRefutInitInPixel().Val();
+   ComputeIncidKLip(mMasqN.in_proj(),aPente,mMasqHigh);
+   ComputeIncidKLip(mMasqN.in_proj(),aPente*2,mMasqPLow);
    
    
    Video_Win * aW = mAppli->TheWinIm(mSz);
 
    ComputeSubset(mAppli->Param().NbPtsLowResume(),mLowRN);
 
-   if (0 && aW)
+   if (mAppli->Param().VisuGrad().Val() && aW)
    {
       aW->set_title(mIma->mNameIm.c_str());
 
-      Fonc_Num f = mImIncid.in_proj();
       ELISE_COPY
       (
              mImIncid.all_pts(),
-             Virgule(f,f,f),
+             Virgule
+             (
+                  mImIncid.in(),
+                  mImIncid.in() *  ! mMasqHigh.in(),
+                  mImIncid.in() *  ! mMasqPLow.in()
+             ),
              aW->orgb()
       );
-      ELISE_COPY
-      (
-             mImIncid.all_pts(),
-             nflag_close_sym(flag_front4(f<mSSIma*DynAng())),
-             aW->out_graph(Line_St(aW->pdisc()(P8COL::red)))
-      );
 
-      aW->clik_in();
+       aW->clik_in();
    }
 }
 

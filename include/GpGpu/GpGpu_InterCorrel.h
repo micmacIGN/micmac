@@ -49,6 +49,12 @@ public:
 
   void          signalComputeCorrel(uint dZ);
 
+  ///
+  /// \brief InitCorrelJob initialise le job
+  /// \param Zmin z minimum
+  /// \param Zmax z minimum
+  /// \return
+  ///
   uint          InitCorrelJob(int Zmin, int Zmax);
 
   void          freezeCompute();

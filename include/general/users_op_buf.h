@@ -400,6 +400,11 @@ template <class  Tout,class Tin> class Simple_OPBuf1 : public Simple_OPBuf_Gen
 		// valeur pour contourner un Warning de Visual 6
        virtual void  calc_buf (Tout ** output,Tin *** input);
 
+       // Necessaire si l'objet doit allouer des ressource temporaire dont la taille depend
+       // du rectangle d'application (contexte compile). Par defaut renvoie this, ce qui
+       // ne pose pas de pb de desallocation (verifie que l'objet est detruit une seule fois
+       // si methode non definie et deux fois sinon, voir ex cOmbrageKL
+
        virtual Simple_OPBuf1<Tout,Tin> * dup_comp();
        virtual ~Simple_OPBuf1();
 
