@@ -5,13 +5,11 @@
       <PFNMiseAuPoint>
           <SzVisu> 1200 800  </SzVisu>
           <TestImageDif> false </TestImageDif>
-          <VisuGrad> true </VisuGrad>
+          <VisuGrad> false </VisuGrad>
           <VisuLowPts > false</VisuLowPts>
           <VisuImageCoh> true</VisuImageCoh>
 
       </PFNMiseAuPoint>
-<!--
--->
       <GrapheRecouvrt>
            <TauxRecMin> 0.1 </TauxRecMin>
            <ExtHom > dat </ExtHom>
@@ -23,7 +21,7 @@
            <V4Vois > false </V4Vois>
            <DistVois> 3  </DistVois>
            <DynAngul>  100 </DynAngul>
-           <ComputeIncid>  true </ComputeIncid>
+           <ComputeIncid>  false </ComputeIncid>
            <SeuilStrictVarIma>  0.33 </SeuilStrictVarIma>
            <PenteRefutInitInPixel>  0.5</PenteRefutInitInPixel>
       </ImageVariations>

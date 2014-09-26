@@ -43,6 +43,29 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+inline int pAramDistDilateBord() {return 2;}
+//
+//
+//
+
+
+typedef enum
+{
+  eQC_Out=0,
+  eQC_ZeroCohBrd=1,
+  eQC_ZeroCoh=2,
+  eQC_ZeroCohImMul=3,  // Si appariement vient d'au moins 3 imaes (ie 2 voisin)
+  eQC_GradFort=4,
+  eQC_GradFaible=5,
+  eQC_Bord=6,
+  eQC_Coh1=7,
+  eQC_Coh2=8,
+  eQC_Coh3=9,
+  eQC_NonAff=100
+} eQualCloud;
+
+
+
 //================== HEADER du HEADER ====================
 
 class cAppliMergeCloud;
@@ -105,6 +128,8 @@ class cASAMG
 
       void TestImCoher();
 
+      void InspectQual();
+
 
    private :
      void MakeVec3D(std::vector<Pt3dr> & aVPts,const cResumNuage &) const;
@@ -126,8 +151,7 @@ class cASAMG
      void ComputeIncid();
      void ComputeIncidAngle3D();
      void ComputeIncidGradProf();
-     void ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPix,Im2D_Bits<1>);
-     void ComputeIncidKLip(Im2D_Bits<1> ,bool Inf,double aStep,int aSzVois);
+     void ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPix,int aNumQual);
 
      void ComputeSubset(int aNbPts,cResumNuage &);
      
@@ -144,10 +168,8 @@ class cASAMG
      Im2D_U_INT1          mImIncid;
      TIm2D<U_INT1,INT>    mTIncid;
 
-     Im2D_Bits<1>         mMasqHigh;
-     TIm2DBits<1>         mTMPH;
-     Im2D_Bits<1>         mMasqPLow;
-     TIm2DBits<1>         mTMPL;
+     Im2D_U_INT1          mImQuality;
+     TIm2D<U_INT1,INT>    mTQual;
 
      double               mSSIma;
 
@@ -171,6 +193,8 @@ class cAppliMergeCloud : public cAppliWithSetImage
        );
        const cParamFusionNuage & Param() {return mParam;}
        Video_Win *   TheWinIm(Pt2di aSz);
+
+       int BestQual() {return eQC_Coh3;}
 
        
     private :
@@ -203,6 +227,7 @@ double cASAMG::DynAng() const {return mAppli->Param().ImageVariations().DynAngul
 bool   cASAMG::CCV4()   const {return mAppli->Param().ImageVariations().V4Vois();}
 int    cASAMG::CCDist() const {return mAppli->Param().ImageVariations().DistVois();}
 int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
+
 
 
 // inline bool pAramComputeIncid() {return false;}

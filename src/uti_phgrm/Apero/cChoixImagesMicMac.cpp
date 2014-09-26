@@ -631,7 +631,9 @@ class cSetCdtCIMS
 
 void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
 {
+   double aPenal = aCIM.PenalNbIm().Val();
    cImSecOfMaster aISM;
+   aISM.UsedPenal().SetVal(aPenal);
    aISM.Master() = aPC0->Name();
    aISM.ISOM_AllVois().SetVal(cISOM_AllVois());
    cISOM_AllVois &  aILV = aISM.ISOM_AllVois().Val();
@@ -788,7 +790,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
              std::cout  << "==================================\n";
 
          std::vector<int> aBestSet = aSubSub[aVSetPond[aKBestSet].mKS];
-         double aScore = aBestGain  - aCard  * aCIM.PenalNbIm().Val();
+         double aScore = aBestGain  - aCard  * aPenal;
          // double aBestGain = aVSetPond[0].mGain;
          if (ShowACISec)
          {

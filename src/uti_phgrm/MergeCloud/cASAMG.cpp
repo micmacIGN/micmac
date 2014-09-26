@@ -56,15 +56,14 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mSz        (mStdN->SzUnique()),
    mImIncid   (mSz.x,mSz.y),
    mTIncid    (mImIncid),
-   mMasqHigh  (mSz.x,mSz.y),
-   mTMPH      (mMasqHigh),
-   mMasqPLow  (mSz.x,mSz.y),
-   mTMPL      (mMasqPLow),
+   mImQuality (mSz.x,mSz.y,eQC_Out),
+   mTQual     (mImQuality),
    mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma()),
    mISOM      (StdGetISOM(anAppli->ICNM(),anIma->mNameIm,anAppli->Ori()))
 {
+// std::cout << "ISSOMMM "  << mISOM.Sols().size() << " " << anIma->mNameIm << "\n";
 // std::cout << "AAAAAAAAAAAAAAAAAAaa\n"; getchar();
-   // mImCptr  => Non pertinent en mode envlop, a voir si reactiver en mode epi
+   // mImCptr  => Non perti,0nent en mode envlop, a voir si reactiver en mode epi
    // Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
 
    bool doComputeIncid = mAppli->Param().ComputeIncid().Val();
@@ -74,15 +73,28 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
     // ComputeIncidAngle3D();
    }
    double aPente = mAppli->Param().PenteRefutInitInPixel().Val();
-   ComputeIncidKLip(mMasqN.in_proj(),aPente,mMasqHigh);
-   ComputeIncidKLip(mMasqN.in_proj(),aPente*2,mMasqPLow);
+
+   ELISE_COPY(select(mImQuality.all_pts(),mMasqN.in()),eQC_NonAff,mImQuality.out());
+// InspectQual();
+   ComputeIncidKLip(mMasqN.in_proj(),aPente   , eQC_GradFaible);
+   ComputeIncidKLip(mMasqN.in_proj(),aPente*2 , eQC_GradFort);
+   ELISE_COPY
+   (
+       select
+       (
+            mMasqN.all_pts(),
+            (mImQuality.in()==mAppli->BestQual()) && dilat_32(mMasqN.in_proj()==0,2*pAramDistDilateBord())
+       ),
+       eQC_Bord,
+       mImQuality.out()
+   );
    
    
-   Video_Win * aW = mAppli->TheWinIm(mSz);
+   Video_Win * aW = mAppli->Param().VisuGrad().Val() ? mAppli->TheWinIm(mSz) : 0;
 
    ComputeSubset(mAppli->Param().NbPtsLowResume(),mLowRN);
 
-   if (mAppli->Param().VisuGrad().Val() && aW)
+   if (aW)
    {
       aW->set_title(mIma->mNameIm.c_str());
 
@@ -91,25 +103,53 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
          ELISE_COPY
          (
              mImIncid.all_pts(),
-             Virgule
-             (
-                  mImIncid.in(),
-                  mImIncid.in() *  ! mMasqHigh.in(),
-                  mImIncid.in() *  ! mMasqPLow.in()
-             ),
-             aW->orgb()
+             mImIncid.in(),
+             aW->ogray()
          );
+         aW->clik_in();
       }
       else
       {
-         ELISE_COPY (mMasqN.all_pts(),mMasqN.in(),aW->odisc());
-         ELISE_COPY (select(mMasqN.all_pts(),mMasqHigh.in()),P8COL::red,aW->odisc());
-         ELISE_COPY (select(mMasqN.all_pts(),mMasqPLow.in()),P8COL::blue,aW->odisc());
+         InspectQual();
       }
-
-       aW->clik_in();
    }
 }
+
+void cASAMG::InspectQual()
+{
+     Video_Win * aW = mAppli->TheWinIm(mSz);
+     if (! aW) return;
+     ELISE_COPY 
+     (
+          mImQuality.all_pts(),
+          Min(255,mImQuality.in() * (255.0/mAppli->BestQual())),
+          aW->ogray()
+     );
+     ELISE_COPY 
+     (
+          select(mImQuality.all_pts(),mImQuality.in()==eQC_NonAff),
+          P8COL::yellow,
+          aW->odisc()
+     );
+
+     bool Cont = true;
+
+     while (Cont)
+     {
+         Clik  aClk =  aW->clik_in();
+         if (aClk._b==1)
+         {
+             std::cout << "Qual= " << mTQual.get(round_ni(aClk._pt),-1) << aClk._pt << "\n";
+         }
+         else
+         {
+            Cont = false;
+         }
+     }
+}
+
+
+
 
 cImaMM * cASAMG::IMM() {return  mIma;}
 

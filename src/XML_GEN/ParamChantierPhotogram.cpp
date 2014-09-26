@@ -19910,6 +19910,17 @@ void xml_init(cISOM_AllVois & anObj,cElXMLTree * aTree)
 std::string  Mangling( cISOM_AllVois *) {return "23C5E225E88EDFD3FE3F";};
 
 
+cTplValGesInit< double > & cImSecOfMaster::UsedPenal()
+{
+   return mUsedPenal;
+}
+
+const cTplValGesInit< double > & cImSecOfMaster::UsedPenal()const 
+{
+   return mUsedPenal;
+}
+
+
 std::string & cImSecOfMaster::Master()
 {
    return mMaster;
@@ -19944,7 +19955,15 @@ const cTplValGesInit< cISOM_AllVois > & cImSecOfMaster::ISOM_AllVois()const
 
 void  BinaryUnDumpFromFile(cImSecOfMaster & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Master(),aFp);
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.UsedPenal().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UsedPenal().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.UsedPenal().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.Master(),aFp);
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -19966,6 +19985,8 @@ void  BinaryUnDumpFromFile(cImSecOfMaster & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cImSecOfMaster & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.UsedPenal().IsInit());
+    if (anObj.UsedPenal().IsInit()) BinaryDumpInFile(aFp,anObj.UsedPenal().Val());
     BinaryDumpInFile(aFp,anObj.Master());
     BinaryDumpInFile(aFp,(int)anObj.Sols().size());
     for(  std::list< cOneSolImageSec >::const_iterator iT=anObj.Sols().begin();
@@ -19981,6 +20002,8 @@ cElXMLTree * ToXMLTree(const cImSecOfMaster & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ImSecOfMaster",eXMLBranche);
+   if (anObj.UsedPenal().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UsedPenal"),anObj.UsedPenal().Val())->ReTagThis("UsedPenal"));
    aRes->AddFils(::ToXMLTree(std::string("Master"),anObj.Master())->ReTagThis("Master"));
   for
   (       std::list< cOneSolImageSec >::const_iterator it=anObj.Sols().begin();
@@ -20000,6 +20023,8 @@ void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
+   xml_init(anObj.UsedPenal(),aTree->Get("UsedPenal",1),double(0.333)); //tototo 
+
    xml_init(anObj.Master(),aTree->Get("Master",1)); //tototo 
 
    xml_init(anObj.Sols(),aTree->GetAll("Sols",false,1));
@@ -20007,7 +20032,7 @@ void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree)
    xml_init(anObj.ISOM_AllVois(),aTree->Get("ISOM_AllVois",1)); //tototo 
 }
 
-std::string  Mangling( cImSecOfMaster *) {return "E0CF21D70AAA4AE0FE3F";};
+std::string  Mangling( cImSecOfMaster *) {return "4EEAC0D315E068DAFF3F";};
 
 
 std::string & cParamOrientSHC::IdGrp()
