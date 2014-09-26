@@ -12,6 +12,7 @@
 #include <iostream>
 #include <limits>
 
+using namespace std;
 
 #include "GpGpu/GpGpu_BuildOptions.h"
 

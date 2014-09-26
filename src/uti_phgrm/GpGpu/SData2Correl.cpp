@@ -43,7 +43,7 @@ SData2Correl::~SData2Correl()
 void SData2Correl::MallocInfo()
 {
     std::cout << "Malloc Info GpGpu\n";
-    GpGpuTools::OutputInfoGpuMemory();
+    CGpGpuContext<CUDASDK>::OutputInfoGpuMemory();
     _d_volumeCost[0].MallocInfo();
     _d_volumeCach[0].MallocInfo();
     _d_volumeNIOk[0].MallocInfo();
