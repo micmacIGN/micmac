@@ -617,10 +617,9 @@ protected:
 
         cl_int errorCode = -1;
         _dD->setClMem(clCreateBuffer(CGpGpuContext<OPENCLSDK>::contextOpenCL(),CL_MEM_READ_WRITE,_dD->Sizeof(),NULL,&errorCode));
-        if(errorCode == CL_SUCCESS)
-            printf("OPENCL MALLOC CL_SUCCESS\n");
-        else
-            printf("OPENCL MALLOC ERROR %d\n",errorCode);
+
+        errorOpencl(errorCode,"malloc buffer");
+
         return errorCode == CL_SUCCESS;
     }
 
