@@ -4,46 +4,74 @@
 #include "CL/cl.h"
 #endif
 
-#include <vector>
-#include <stdio.h>
+#include "GpGpu/GpGpu_CommonHeader.h"
+#include "GpGpu/GpGpu_Object.h"
+#include "GpGpu/GpGpu_Data.h"
+#include "GpGpu/GpGpu_Context.h"
+
+#include <cstdarg>
+template <>
+
+cl_context  CGpGpuContext<OPENCLSDK>::_contextOpenCL = 0;
+
+template <>
+cl_command_queue  CGpGpuContext<OPENCLSDK>::_commandQueue = 0;
+
+template <>
+cl_kernel   CGpGpuContext<OPENCLSDK>::_kernel = 0;
+
+
+void simple_printf(const char* fmt...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    while (*fmt != '\0') {
+        if (*fmt == 'd') {
+            int i = va_arg(args, int);
+            std::cout << i << '\n';
+        } else if (*fmt == 'c') {
+            // note automatic conversion to integral type
+            int c = va_arg(args, int);
+            std::cout << static_cast<char>(c) << '\n';
+        } else if (*fmt == 'f') {
+            double d = va_arg(args, double);
+            std::cout << d << '\n';
+        }
+        ++fmt;
+    }
+
+    va_end(args);
+}
+
+
+
 
 int main()
 {
 
-    cl_uint platformIdCount = 0;
-    clGetPlatformIDs (0, NULL, &platformIdCount);
+    CGpGpuContext<OPENCLSDK>::createContext();
 
-    std::vector<cl_platform_id> platformIds (platformIdCount);
-    clGetPlatformIDs (platformIdCount, platformIds.data (), NULL);
+    CuDeviceData2DOPENCL<int> buffer;
+    CuHostData3D<int> bufferHost;
 
-    cl_uint deviceIdCount = 0;
-    clGetDeviceIDs (platformIds [0], CL_DEVICE_TYPE_ALL, 0, NULL,
-    &deviceIdCount);
+    uint2 sizeBuff = make_uint2(5,1);
+    buffer.Malloc(sizeBuff);
+    bufferHost.Malloc(sizeBuff,1);
 
-    std::vector<cl_device_id> deviceIds (deviceIdCount);
-    clGetDeviceIDs (platformIds [0], CL_DEVICE_TYPE_ALL, deviceIdCount,
-    deviceIds.data (), NULL);
+    CGpGpuContext<OPENCLSDK>::createKernel("/home/gchoqueux/cuda-workspace/micmac/micmac-src/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cl");
 
-    const cl_context_properties contextProperties [] =
-    {
-    CL_CONTEXT_PLATFORM,
-    reinterpret_cast<cl_context_properties> (platformIds [0]),
-    0, 0
-    };
+    CGpGpuContext<OPENCLSDK>::addKernelArg(buffer);
 
-    cl_int error;
+    CGpGpuContext<OPENCLSDK>::launchKernel();
 
-    /*cl_context context =*/ clCreateContext (
-    contextProperties, deviceIdCount,
-    deviceIds.data (), NULL,
-    NULL, &error);
+    buffer.CopyDevicetoHost(bufferHost.pData());
 
-    if(error == CL_SUCCESS)
-    {
-        printf("CONTEXT OPENCL OK\n");
-        printf("platform Id Count %d\n",platformIdCount);
-        printf("device Id Count %d\n",deviceIdCount);
-    }
+    bufferHost.OutputValues();
+
+    CGpGpuContext<OPENCLSDK>::deleteContext();
+
+    //simple_printf("dcff", 3, 'a', 1.999, 42.5);
 
     return 0;
 
