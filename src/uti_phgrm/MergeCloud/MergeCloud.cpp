@@ -42,10 +42,24 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    cAppliWithSetImage(argc-1,argv+1,0),
-   mTheWinIm         (0),
-   mFlagCloseN       (mGr.alloc_flag_arc()),
-   mSubGrCloseN      (mSubGrAll,mFlagCloseN)
+   mTheWinIm        (0),
+   mFlagCloseN      (mGr.alloc_flag_arc()),
+   mSubGrCloseN      (mSubGrAll,mFlagCloseN),
+   mGlobMaxNivH     (-1),
+   mImGainOfQual    (BestQual() +1),
+   mDataGainOfQual  (mImGainOfQual.data())
 {
+   mDataGainOfQual[eQC_Out] = 0;
+   mDataGainOfQual[eQC_ZeroCohBrd] = 1/32.0;
+   mDataGainOfQual[eQC_ZeroCoh] = 1/16.0;
+   mDataGainOfQual[eQC_ZeroCohImMul] = 1/8.0;
+   mDataGainOfQual[eQC_GradFort] = 1/4.0;
+   mDataGainOfQual[eQC_GradFaible] = 1/3.0;
+   mDataGainOfQual[eQC_Bord] =  1/2.0;
+   mDataGainOfQual[eQC_Coh1] =  1.0;
+   mDataGainOfQual[eQC_Coh2] =  2.0;
+   mDataGainOfQual[eQC_Coh3] =  4.0;
+   
    std::string aPat,anOri;
    ElInitArgMain
    (
@@ -71,7 +85,6 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
         cASAMG * anAttrSom = 0;
 
         std::string aNameNuXml = NameFileInput(anIma,".xml");
-std::cout << "aNameNuXml " << aNameNuXml << "\n";
         // Possible aucun nuage si peu de voisins et mauvaise config epip
         if (ELISE_fp::exist_file(aNameNuXml))
         {
@@ -84,15 +97,58 @@ std::cout << "aNameNuXml " << aNameNuXml << "\n";
 
         std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << "\n";
    }
+
+   // Mise au point
    if (mParam.TestImageDif().Val() && (mVSoms.size()==2))
    {
         mVAttr[0]->TestDifProf(*(mVAttr[1]));
    }
+   // Calcul connexion
    CreateGrapheConx();
 
 
+   // Calcul image de quality
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+       mVSoms[aK]->attr()->TestImCoher();
+       ElSetMax(mGlobMaxNivH,mVSoms[aK]->attr()->MaxNivH());
+   }
+
+   std::cout << "MAX NIV GLOB " << mGlobMaxNivH << "\n";
+
+   for (mCurNiv=mGlobMaxNivH ; mCurNiv>=eQC_Coh1 ; mCurNiv--)
+   {
+       OneStepSelection();
+       std::cout << "END NIV " << mCurNiv << "\n"; getchar();
+   }
 }
 
+void cAppliMergeCloud::OneStepSelection()
+{
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+         mVSoms[aK]->attr()->InitNewStep(mCurNiv);
+   }
+
+   bool Cont = true;
+   while (Cont)
+   {
+      for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+      {
+          if ( mVSoms[aK]->attr()->IsCurSelectable())
+          {
+          }
+      }
+   }
+
+
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+         mVSoms[aK]->attr()->FinishNewStep(mCurNiv);
+   }
+
+
+}
 
 
 Video_Win *  cAppliMergeCloud::TheWinIm(Pt2di aSzIm)
@@ -147,6 +203,11 @@ tMCSom * cAppliMergeCloud::SomOfName(const std::string & aName)
 
    if (it==mDicSom.end()) return 0;
    return it->second;
+}
+
+REAL8 *    cAppliMergeCloud::GainQual()
+{
+    return mDataGainOfQual;
 }
 
 

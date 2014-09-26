@@ -58,6 +58,9 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mTIncid    (mImIncid),
    mImQuality (mSz.x,mSz.y,eQC_Out),
    mTQual     (mImQuality),
+   mHisto     (mAppli->BestQual()+1,0),
+   mDH        (mHisto.data()),
+   mMaxNivH   (-1),
    mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma()),
    mISOM      (StdGetISOM(anAppli->ICNM(),anIma->mNameIm,anAppli->Ori()))
 {
@@ -148,6 +151,8 @@ void cASAMG::InspectQual()
      }
 }
 
+
+INT cASAMG::MaxNivH() const {return mMaxNivH;}
 
 
 

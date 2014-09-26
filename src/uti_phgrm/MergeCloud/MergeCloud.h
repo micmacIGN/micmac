@@ -129,6 +129,12 @@ class cASAMG
       void TestImCoher();
 
       void InspectQual();
+      INT   MaxNivH() const;
+
+
+      void InitNewStep(int aNiv);
+      void FinishNewStep(int aNiv);
+      bool IsCurSelectable() const;
 
 
    private :
@@ -170,6 +176,12 @@ class cASAMG
 
      Im2D_U_INT1          mImQuality;
      TIm2D<U_INT1,INT>    mTQual;
+     Im1D<INT4,INT>       mHisto;
+     INT *                mDH;
+     INT                  mMaxNivH;
+     INT                  mNbNivH;
+     double               mQualOfNiv;
+     int                  mNbOfNiv;
 
      double               mSSIma;
 
@@ -195,6 +207,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        Video_Win *   TheWinIm(Pt2di aSz);
 
        int BestQual() {return eQC_Coh3;}
+       REAL8 *    GainQual();
 
        
     private :
@@ -202,6 +215,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        tMCSom * SomOfName(const std::string & aName);
        void AddVoisVois(std::vector<tMCArc *> & aVArc,tMCSom&,tMCSom&);
        void CreateGrapheConx();
+       void OneStepSelection();
 
 
        static const std::string TheNameSubdir;
@@ -219,6 +233,11 @@ class cAppliMergeCloud : public cAppliWithSetImage
        tMCSubGr                        mSubGrAll;
        tMCSubGrFA                      mSubGrCloseN;
        std::set<tMCPairS>              mTestedPairs;
+       INT                             mGlobMaxNivH;
+       INT                             mCurNiv;
+       Im1D_REAL8                      mImGainOfQual;
+       REAL8 *                         mDataGainOfQual;
+       double                          mRecouvrTot;
 };
 
    //==============================================================================

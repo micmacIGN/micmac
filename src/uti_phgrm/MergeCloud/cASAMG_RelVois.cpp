@@ -313,7 +313,20 @@ void cASAMG::TestImCoher()
             );
         }
     }
+    ELISE_COPY
+    (
+           mImQuality.all_pts().chc(mImQuality.in()),
+           1,
+           mHisto.histo()
+    );
 
+    for (int aK=0 ; aK<mHisto.tx() ; aK++)
+    {
+        if (mDH[aK])
+        {
+           mMaxNivH = aK;
+        }
+    }
 
    
     Video_Win * aW =  mAppli->Param().VisuImageCoh().Val() ? mAppli->TheWinIm(mSz) : 0 ;
@@ -323,7 +336,10 @@ void cASAMG::TestImCoher()
         std::cout << "For " << mIma->mNameIm << " time " << aChrono.uval() << " NbIm " << aNbIm << "\n";
         Fonc_Num fGray = Min(255,aImDif.in() * (255.0/aNbIm));
 
+        for (int aK=0 ; aK<mHisto.tx() ; aK++)
+            std::cout << "H[" << aK << "]= " << mHisto.data()[aK] << "\n";
         InspectQual();
+        
     }
 }
 
