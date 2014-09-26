@@ -102,14 +102,14 @@ const char *GpGpuTools::conca(const char *texte, int t)
     return sValS.str().c_str();
 }
 
-void GpGpuTools::OutputInfoGpuMemory()
-{
-	size_t free;  
-	size_t total;  
-    checkCudaErrors( cudaMemGetInfo(&free, &total));
-    cout << "Memoire video       : " << (float)free / pow(2.0f,20) << " / " << (float)total / pow(2.0f,20) << "Mo" << endl;
-}
-
+//void GpGpuTools::OutputInfoGpuMemory()
+//{
+//	size_t free;
+//	size_t total;
+//    checkCudaErrors( cudaMemGetInfo(&free, &total));
+//    cout << "Memoire video       : " << (float)free / pow(2.0f,20) << " / " << (float)total / pow(2.0f,20) << "Mo" << endl;
+//}
+/*
 void GpGpuTools::check_Cuda()
 {
     cout << "CUDA build enabled\n";
@@ -165,4 +165,4 @@ void GpGpuTools::check_Cuda()
 		printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
 
 	}
-}
+}*/

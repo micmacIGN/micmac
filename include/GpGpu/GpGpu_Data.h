@@ -48,6 +48,7 @@ public:
     /// \brief      Obtenir une valeur aleatoire comprise entre min et max
     static T        GetRandomValue(T min, T max);
 
+    cl_mem         clMem() const{return _clMem;}
 protected:
 
     /// \brief      Renvoie la taille de la memoire alloue
@@ -71,7 +72,7 @@ protected:
     /// \param      fonctionName : nom de la fonction ou se trouve l erreur
     virtual bool	ErrorOutput(cudaError_t err,const char* fonctionName);
 
-    cl_mem          clMem() const{return _clMem;}
+
 
     void            setClMem(const cl_mem &clMem){_clMem = clMem;}
 
@@ -119,7 +120,8 @@ TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
         std::cout << "Memoire allouee     : " << _memoryOc / pow(2.0,20) << " Mo | " << _memoryOc / pow(2.0,10) << " ko | " << _memoryOc  << " octets \n";
         std::cout << "Taille des donnees  : " << CData<T>::GetSizeofMalloc()  / pow(2.0,20) << " Mo | " << CData<T>::GetSizeofMalloc()  / pow(2.0,10) << " ko | " << CData<T>::GetSizeofMalloc() << " octets \n";
         checkCudaErrors( err );
-        GpGpuTools::OutputInfoGpuMemory();
+        // TODO ... gerer pour OPENCL....peut à mettre ailleurs
+        CGpGpuContext<CUDASDK>::OutputInfoGpuMemory();
         std::cout << "--------------------------------------------------------------------------------------\n";
         exit(1);
         return false;
@@ -612,8 +614,13 @@ protected:
 
     bool    dabMalloc()
     {
+
         cl_int errorCode = -1;
         _dD->setClMem(clCreateBuffer(CGpGpuContext<OPENCLSDK>::contextOpenCL(),CL_MEM_READ_WRITE,_dD->Sizeof(),NULL,&errorCode));
+        if(errorCode == CL_SUCCESS)
+            printf("OPENCL MALLOC CL_SUCCESS\n");
+        else
+            printf("OPENCL MALLOC ERROR %d\n",errorCode);
         return errorCode == CL_SUCCESS;
     }
 
@@ -625,6 +632,8 @@ private:
 
 /// \class CuDeviceData2D
 /// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
+///
+// TODO mettre CData2D<T> dans DecoratorDeviceData<T,CUDASDK>
 template <class T>
 class CuDeviceData2D : public CData2D<T>, public DecoratorDeviceData<T,CUDASDK>
 {
@@ -646,6 +655,30 @@ protected:
     }
 
     bool        abMalloc(){return DecoratorDeviceData<T,CUDASDK>::dabMalloc();}
+
+};
+
+template <class T>
+class CuDeviceData2DOPENCL : public CData2D<T>, public DecoratorDeviceData<T,OPENCLSDK>
+{
+public:
+
+    CuDeviceData2DOPENCL():DecoratorDeviceData<T,OPENCLSDK>((CData2D<T>*)this){}
+
+    bool        Memset(int val){return DecoratorDeviceData<T,OPENCLSDK>::Memset(val);}
+
+protected:
+
+    bool        abDealloc(){
+
+        struct2D::SetMaxSize(0);
+        struct2D::SetMaxDimension();
+
+        return DecoratorDeviceData<T,OPENCLSDK>::dabDealloc();
+
+    }
+
+    bool        abMalloc(){return DecoratorDeviceData<T,OPENCLSDK>::dabMalloc();}
 
 };
 
