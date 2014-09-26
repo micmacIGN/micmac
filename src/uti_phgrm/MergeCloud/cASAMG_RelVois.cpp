@@ -277,6 +277,44 @@ void cASAMG::TestImCoher()
         }
     }
 
+    for (int aNbRec = 3 ; aNbRec>=0 ; aNbRec --)
+    {
+        Fonc_Num aFInside = aImDif.in(-1) > (aNbRec-0.25);
+        if (aNbRec>0)
+        {
+            ELISE_COPY
+            (
+                 select(mImQuality.all_pts(),aFInside && (mImQuality.in()==eQC_NonAff)),
+                 eQC_Coh1+(aNbRec-1),
+                 mImQuality.out()
+            );
+
+        }
+        else
+        {
+            Im2D_Bits<1>   aImLQ(mSz.x,mSz.y);
+            ELISE_COPY(aImLQ.all_pts(),aFInside,aImLQ.out());
+
+            ELISE_COPY
+            (
+                 select(mImQuality.all_pts(), aImLQ.in() && (mImQuality.in()==eQC_NonAff)),
+                 eQC_ZeroCohImMul,
+                 mImQuality.out()
+            );
+            ELISE_COPY
+            (
+                 select
+                 (
+                     mImQuality.all_pts(),
+                     aImLQ.in()&&( mImQuality.in()>=eQC_GradFort) && ( mImQuality.in()<=eQC_Bord)
+                 ),
+                 eQC_ZeroCohBrd,
+                 mImQuality.out()
+            );
+        }
+    }
+
+
    
     Video_Win * aW =  mAppli->Param().VisuImageCoh().Val() ? mAppli->TheWinIm(mSz) : 0 ;
     if (aW)
@@ -284,19 +322,8 @@ void cASAMG::TestImCoher()
         aW->set_title(mIma->mNameIm.c_str());
         std::cout << "For " << mIma->mNameIm << " time " << aChrono.uval() << " NbIm " << aNbIm << "\n";
         Fonc_Num fGray = Min(255,aImDif.in() * (255.0/aNbIm));
-        ELISE_COPY
-        (
-             aImDif.all_pts(),
-             fGray * Virgule(1,!mMasqHigh.in(),!mMasqPLow.in()),
-             aW->orgb()
-        );
-        ELISE_COPY
-        (
-             select(aImDif.all_pts(),!mMasqN.in()),
-             P8COL::yellow,
-             aW->odisc()
-        );
-       aW->clik_in();
+
+        InspectQual();
     }
 }
 

@@ -109,6 +109,7 @@ Video_Win *  cAppliMergeCloud::TheWinIm(Pt2di aSzIm)
        aSzW = round_ni(Pt2dr(aSzIm)*mRatioW);
 
        mTheWinIm = Video_Win::PtrWStd(aSzW,true,Pt2dr(mRatioW,mRatioW));
+       mTheWinIm->set_cl_coord(Pt2dr(0,0),Pt2dr(mRatioW,mRatioW));
        std::cout << "RATIOW " << mRatioW << "\n";
    }
 

@@ -198,7 +198,7 @@ void cASAMG::ComputeIncidAngle3D()
 //===================== INCIDEENCE KLIPSCHITZ =========================
 
 
-void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel,Im2D_Bits<1> aRes)
+void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel,int aNumQual)
 {
    double aDynPix = mStdN->DynProfInPixel();
 
@@ -272,7 +272,12 @@ void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel,Im2D_Bits<1> a
          aImLabel.out()
    );
 
-   ELISE_COPY(aImLabel.all_pts(),(aImLabel.in()==2) || (aImLabel.in()==3),aRes.out());
+   ELISE_COPY
+   (
+       select(aImLabel.all_pts(),(aImLabel.in()==2)||(aImLabel.in()==3)),
+       aNumQual,
+       mImQuality.out()
+   );
 
 }
 /*

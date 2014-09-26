@@ -6353,6 +6353,9 @@ class cImSecOfMaster
         friend void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< double > & UsedPenal();
+        const cTplValGesInit< double > & UsedPenal()const ;
+
         std::string & Master();
         const std::string & Master()const ;
 
@@ -6362,6 +6365,7 @@ class cImSecOfMaster
         cTplValGesInit< cISOM_AllVois > & ISOM_AllVois();
         const cTplValGesInit< cISOM_AllVois > & ISOM_AllVois()const ;
     private:
+        cTplValGesInit< double > mUsedPenal;
         std::string mMaster;
         std::list< cOneSolImageSec > mSols;
         cTplValGesInit< cISOM_AllVois > mISOM_AllVois;

@@ -1487,6 +1487,7 @@
     </OneSolImageSec>
 
     <ImSecOfMaster  Nb="1" Class="true" ToReference="true">
+          <UsedPenal Nb="?" Type="double" Def="0.333"> </UsedPenal>
           <Master Nb="1" Type="std::string"> </Master>
           <Sols Nb="*" RefType="OneSolImageSec"> </Sols>
           <ISOM_AllVois Nb="?" AccessorFils="false">
