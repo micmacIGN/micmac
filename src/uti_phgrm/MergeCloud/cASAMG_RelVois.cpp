@@ -279,19 +279,31 @@ void cASAMG::TestImCoher()
 
     for (int aNbRec = 3 ; aNbRec>=0 ; aNbRec --)
     {
-        Fonc_Num aFInside = aImDif.in(-1) > (aNbRec-0.25);
+        double aSeuil = aNbRec-0.25;
+        Fonc_Num aFInside = aImDif.in(-1) > aSeuil;
         if (aNbRec>0)
         {
+            eQualCloud aQual = eQC_Coh1;
+            if (aNbRec==2) aQual = eQC_Coh2;
+            if (aNbRec==3) aQual = eQC_Coh3;
+            // Pour ceux qui ont ete valide (aNbRec> 0.75) et non bord ou autre chose ont leur met la bonne valeur
             ELISE_COPY
             (
                  select(mImQuality.all_pts(),aFInside && (mImQuality.in()==eQC_NonAff)),
-                 eQC_Coh1+(aNbRec-1),
+                 aQual,
                  mImQuality.out()
             );
 
+            ELISE_COPY
+            (
+                 select(mImQuality.all_pts(),aFInside && (mImQuality.in()==eQC_GradFaibleC1) && (erod_32(mMasqN.in_proj(),2*pAramDistDilateBord()))),
+                 eQC_GradFaibleC2,
+                 mImQuality.out()
+            );
         }
         else
         {
+            aFInside =  aImDif.in(-1) <= (aSeuil+1);
             Im2D_Bits<1>   aImLQ(mSz.x,mSz.y);
             ELISE_COPY(aImLQ.all_pts(),aFInside,aImLQ.out());
 
@@ -311,14 +323,12 @@ void cASAMG::TestImCoher()
                  eQC_ZeroCohBrd,
                  mImQuality.out()
             );
+/*
+*/
         }
     }
-    ELISE_COPY
-    (
-           mImQuality.all_pts().chc(mImQuality.in()),
-           1,
-           mHisto.histo()
-    );
+    ELISE_COPY(mImQuality.border(1),eQC_Out,mImQuality.out());
+    InitGlobHisto();
 
     for (int aK=0 ; aK<mHisto.tx() ; aK++)
     {
@@ -338,7 +348,7 @@ void cASAMG::TestImCoher()
 
         for (int aK=0 ; aK<mHisto.tx() ; aK++)
             std::cout << "H[" << aK << "]= " << mHisto.data()[aK] << "\n";
-        InspectQual();
+        InspectQual(true);
         
     }
 }

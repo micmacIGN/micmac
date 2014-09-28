@@ -46,19 +46,28 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mFlagCloseN      (mGr.alloc_flag_arc()),
    mSubGrCloseN      (mSubGrAll,mFlagCloseN),
    mGlobMaxNivH     (-1),
+   mVStatNivs       (MaxValQualTheo() +2),
+/*
    mImGainOfQual    (BestQual() +1),
-   mDataGainOfQual  (mImGainOfQual.data())
+   mDataGainOfQual  (mImGainOfQual.data()),
+   mNbImOfNiv       (BestQual() +1,0),
+   mDataNION        (mNbImOfNiv.data()),
+   mCumNbImOfNiv    (BestQual() +2,0),
+   mDataCNION       (mCumNbImOfNiv.data()),
+*/
+   mNbImSelected    (0)
 {
-   mDataGainOfQual[eQC_Out] = 0;
-   mDataGainOfQual[eQC_ZeroCohBrd] = 1/32.0;
-   mDataGainOfQual[eQC_ZeroCoh] = 1/16.0;
-   mDataGainOfQual[eQC_ZeroCohImMul] = 1/8.0;
-   mDataGainOfQual[eQC_GradFort] = 1/4.0;
-   mDataGainOfQual[eQC_GradFaible] = 1/3.0;
-   mDataGainOfQual[eQC_Bord] =  1/2.0;
-   mDataGainOfQual[eQC_Coh1] =  1.0;
-   mDataGainOfQual[eQC_Coh2] =  2.0;
-   mDataGainOfQual[eQC_Coh3] =  4.0;
+   mVStatNivs[eQC_Out].mGofQ          = 0;
+   mVStatNivs[eQC_ZeroCohBrd].mGofQ   = 1/32.0;
+   mVStatNivs[eQC_ZeroCoh].mGofQ      = 1/16.0;
+   mVStatNivs[eQC_ZeroCohImMul].mGofQ = 1/8.0;
+   mVStatNivs[eQC_GradFort].mGofQ     = 1/4.0;
+   mVStatNivs[eQC_GradFaibleC1].mGofQ = 1/3.0;
+   mVStatNivs[eQC_Bord].mGofQ         =  1/2.0;
+   mVStatNivs[eQC_Coh1].mGofQ         =  1.0;
+   mVStatNivs[eQC_GradFaibleC2].mGofQ =  1.0;
+   mVStatNivs[eQC_Coh2].mGofQ         =  2.0;
+   mVStatNivs[eQC_Coh3].mGofQ         =  4.0;
    
    std::string aPat,anOri;
    ElInitArgMain
@@ -107,19 +116,62 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    CreateGrapheConx();
 
 
-   // Calcul image de quality
+   // Calcul image de quality + Stats
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
        mVSoms[aK]->attr()->TestImCoher();
-       ElSetMax(mGlobMaxNivH,mVSoms[aK]->attr()->MaxNivH());
+       int aNiv = mVSoms[aK]->attr()->MaxNivH();
+       mVStatNivs[aNiv].mNbIm ++;
+       mVStatNivs[aNiv].mRecTot ++;
+
+       ElSetMax(mGlobMaxNivH,aNiv);
+   }
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+       tMCSom * aS1 =  mVSoms[aK];
+       int aNiv1 =  aS1->attr()->MaxNivH();
+       for (tArcIter itA = aS1->begin(mSubGrAll) ; itA.go_on() ; itA++)
+       {
+            int aNiv2 =  (*itA).s2().attr()->MaxNivH();
+            int aNiv = ElMin(aNiv1,aNiv2);
+            double aRec = (*itA).attr()->Rec();
+            mVStatNivs[aNiv].mRecTot += aRec;
+       }
    }
 
-   std::cout << "MAX NIV GLOB " << mGlobMaxNivH << "\n";
 
-   for (mCurNiv=mGlobMaxNivH ; mCurNiv>=eQC_Coh1 ; mCurNiv--)
+
+   for (int aQ = MaxValQualTheo() ; aQ>=0 ; aQ--)
    {
+       cStatNiv * aSN = VData(mVStatNivs) + aQ;
+       cStatNiv * aNSN = aSN+1;
+       aSN->mCumNbIm  = aSN->mNbIm   + aNSN->mCumNbIm;
+       aSN->mCumRecT  = aSN->mRecTot + aNSN->mCumRecT;
+       if (aSN->mCumNbIm)
+       {
+           aSN->mRecMoy =   aSN->mCumRecT / aSN->mCumNbIm;
+           aSN->mNbImPourRec =  aSN->mCumNbIm /  aSN->mRecMoy;
+       }
+   }
+
+   if (1)
+   {
+       for (int aQ=0 ; aQ<=MaxValQualTheo() +1 ; aQ++)
+       {
+           cStatNiv * aSN = VData(mVStatNivs) + aQ;
+           std::cout << "Nb Im With Qual >= " << aQ << " = " <<  aSN->mNbImPourRec  << " NbCum " << aSN->mCumNbIm << " \n";
+       }
+       std::cout << "MAX NIV GLOB " << mGlobMaxNivH << "\n";
+   }
+   
+
+
+   for (mCurNivSelSom=mGlobMaxNivH ; mCurNivSelSom>=ElMin(eQC_Coh1,eQC_GradFaibleC2) ; mCurNivSelSom--)
+   {
+       std::cout << "BEGIN NIV " << mCurNivSelSom << "\n"; 
+       mCurNivElim = ElMin(mCurNivSelSom,int(eQC_Coh2));
        OneStepSelection();
-       std::cout << "END NIV " << mCurNiv << "\n"; getchar();
+       std::cout << "END NIV " << mCurNivSelSom << "\n"; getchar();
    }
 }
 
@@ -127,27 +179,73 @@ void cAppliMergeCloud::OneStepSelection()
 {
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
-         mVSoms[aK]->attr()->InitNewStep(mCurNiv);
+         mVSoms[aK]->attr()->InitNewStep(mCurNivElim);
    }
+   int aNbImMin = round_up(3*mVStatNivs[mCurNivSelSom].mNbImPourRec);
+   std::cout << "NB IM MIN " << aNbImMin  << "\n";
 
    bool Cont = true;
    while (Cont)
    {
+      tMCSom * aBestSom = 0;
+      double aBestQual = 0;
       for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
       {
-          if ( mVSoms[aK]->attr()->IsCurSelectable())
+          tMCSom *  aSom =  mVSoms[aK];
+          if (      ( aSom->attr()->IsCurSelectable())
+                &&  ( aSom->attr()->NivSelected() != mCurNivSelSom)
+                &&  (aSom->attr()->MaxNivH() >=mCurNivSelSom)
+             )
           {
+             double aQual = aSom->attr()->QualOfNiv();
+             if (aSom->attr()->NivSelected() > mCurNivSelSom) 
+             {
+                  aQual = 1000 * aQual + 1e8;
+             }
+             if (aBestQual<aQual)
+             {
+                  aBestQual = aQual;
+                  aBestSom = aSom;
+             }
           }
+      }
+      if (aBestSom)
+      {
+           cASAMG * aBestA = aBestSom->attr();
+           double aRatio = aBestA->NbOfNiv() / double( aBestA->NbTot());
+           std::cout << "SOM GOT " << aBestA->IMM()->mNameIm << " R=" <<   aRatio << "\n";
+
+           //
+           if (! aBestA->IsSelected())
+           {
+               double aSeuil = (mNbImSelected>aNbImMin)  ? pAramHighRatioSelectIm() : pAramLowRatioSelectIm() ;
+               Cont = aRatio > aSeuil;
+           }
+
+           if (Cont)
+           {
+               if (! aBestA->IsSelected())
+                  mNbImSelected++;
+               aBestA->SetSelected(mCurNivSelSom,mCurNivElim,aBestSom);
+               std::cout << "One Image Selected " << aBestA->NivSelected() << "\n"; getchar();
+           }
+
+      }
+      else
+      {
+           Cont = false;
+      }
+      if (! Cont)
+      {
+           std::cout << " DONE ONE ITER \n";
+           getchar();
       }
    }
 
-
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
-         mVSoms[aK]->attr()->FinishNewStep(mCurNiv);
+         mVSoms[aK]->attr()->FinishNewStep(mCurNivElim);
    }
-
-
 }
 
 
@@ -175,14 +273,14 @@ Video_Win *  cAppliMergeCloud::TheWinIm(Pt2di aSzIm)
 const std::string cAppliMergeCloud::TheNameSubdir = "Fusion-0";
 extern const  std::string  DirFusMMInit();
 
-std::string cAppliMergeCloud::NameFileInput(const std::string & aNameIm,const std::string aPost)
+std::string cAppliMergeCloud::NameFileInput(const std::string & aNameIm,const std::string & aPost,const std::string & aPrefIn)
 {
    switch (mParam.ModeMerge())
    {
        case eMMC_Epi :
             return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
        case eMMC_Envlop :
-            std::string aPref = "Depth";
+            std::string aPref = (aPrefIn=="" )? "Depth" : aPrefIn;
 //std::cout << Dir() << "\n";
 //std::cout << DirFusMMInit() << "\n";
             return Dir() +  DirFusMMInit() +  "DownScale_NuageFusion-"+ aPref + aNameIm + aPost;
@@ -191,9 +289,9 @@ std::string cAppliMergeCloud::NameFileInput(const std::string & aNameIm,const st
    return "";
 }
 
-std::string cAppliMergeCloud::NameFileInput(cImaMM * anIma,const std::string aPost)
+std::string cAppliMergeCloud::NameFileInput(cImaMM * anIma,const std::string & aPost,const std::string & aPref)
 {
-    return NameFileInput(anIma->mNameIm,aPost);
+    return NameFileInput(anIma->mNameIm,aPost,aPref);
 }
 
 
@@ -205,10 +303,16 @@ tMCSom * cAppliMergeCloud::SomOfName(const std::string & aName)
    return it->second;
 }
 
-REAL8 *    cAppliMergeCloud::GainQual()
+REAL8    cAppliMergeCloud::GainQual(int aNiv) const
 {
-    return mDataGainOfQual;
+    return mVStatNivs[aNiv].mGofQ;
 }
+
+tMCSubGr &   cAppliMergeCloud::SubGrAll()
+{
+   return mSubGrAll;
+}
+
 
 
 //========================================================================================
@@ -230,6 +334,7 @@ int CPP_AppliMergeCloud(int argc,char ** argv)
 /***                                                                     ***/
 /***************************************************************************/
 /***************************************************************************/
+/*
 
 c3AMG::c3AMG(c3AMGS * aSym,double aRec) :
    mSym (aSym),
@@ -237,6 +342,8 @@ c3AMG::c3AMG(c3AMGS * aSym,double aRec) :
 {
 }
 
+const double & c3AMG::Rec() const { return mRec; }
+*/
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -128,9 +128,9 @@ void  cAppliMergeCloud::CreateGrapheConx()
        }
    }
 
-   double aRecMoy = mRecouvrTot /  mVSoms.size();
-   double aNbImMoy = mVSoms.size() / aRecMoy;  // En Fait NbIm^2 /mRecouvrTot
-   std::cout  << "REC TOT " << mRecouvrTot << " RMoy " << aRecMoy << " NbIm " << aNbImMoy << "\n";
+   mRecMoy = mRecouvrTot /  mVSoms.size();
+   mNbImMoy = mVSoms.size() / mRecMoy;  // En Fait NbIm^2 /mRecouvrTot
+   std::cout  << "REC TOT " << mRecouvrTot << " RMoy " << mRecMoy << " NbIm " << mNbImMoy << "\n";
 }
 
 

@@ -40,6 +40,20 @@
     </enum>
 
 
+    <enum Name="eQualCloud">
+         <eQC_Out >            </eQC_Out>  
+         <eQC_ZeroCohBrd >     </eQC_ZeroCohBrd>
+         <eQC_ZeroCoh >        </eQC_ZeroCoh>
+         <eQC_ZeroCohImMul >   </eQC_ZeroCohImMul>
+         <eQC_GradFort >       </eQC_GradFort>
+         <eQC_GradFaibleC1 >   </eQC_GradFaibleC1>
+         <eQC_Bord >           </eQC_Bord>
+         <eQC_Coh1 >           </eQC_Coh1>
+         <eQC_GradFaibleC2 >   </eQC_GradFaibleC2>
+         <eQC_Coh2 >           </eQC_Coh2>
+         <eQC_Coh3 >           </eQC_Coh3>
+         <eQC_NonAff >         </eQC_NonAff>
+    </enum>
 
 
     <LutConvertion  Nb="1"  Class="true" ToReference="true">

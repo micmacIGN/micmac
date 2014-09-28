@@ -5505,6 +5505,9 @@ class cChoixImSec
 
         cTplValGesInit< int > & NbSetPreSelAng();
         const cTplValGesInit< int > & NbSetPreSelAng()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
     private:
         std::string mKeyAssoc;
         cTplValGesInit< std::string > mPatternSel;
@@ -5522,6 +5525,7 @@ class cChoixImSec
         cTplValGesInit< double > mTeta2Max;
         cTplValGesInit< int > mNbMaxPresel;
         cTplValGesInit< int > mNbSetPreSelAng;
+        cTplValGesInit< std::string > mMasq3D;
 };
 cElXMLTree * ToXMLTree(const cChoixImSec &);
 
@@ -5586,6 +5590,9 @@ class cChoixImMM
 
         cTplValGesInit< int > & NbSetPreSelAng();
         const cTplValGesInit< int > & NbSetPreSelAng()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;
@@ -5688,6 +5695,9 @@ class cSectionExport
 
         cTplValGesInit< int > & NbSetPreSelAng();
         const cTplValGesInit< int > & NbSetPreSelAng()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;
@@ -5855,6 +5865,9 @@ class cEtapeCompensation
 
         cTplValGesInit< int > & NbSetPreSelAng();
         const cTplValGesInit< int > & NbSetPreSelAng()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;

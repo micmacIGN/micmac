@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1256]) = {
+const char * (theNameVar_SuperposImage[1270]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -42,6 +42,20 @@ const char * (theNameVar_SuperposImage[1256]) = {
 "    </enum>\n",
 "\n",
 "\n",
+"    <enum Name=\"eQualCloud\">\n",
+"         <eQC_Out >            </eQC_Out>  \n",
+"         <eQC_ZeroCohBrd >     </eQC_ZeroCohBrd>\n",
+"         <eQC_ZeroCoh >        </eQC_ZeroCoh>\n",
+"         <eQC_ZeroCohImMul >   </eQC_ZeroCohImMul>\n",
+"         <eQC_GradFort >       </eQC_GradFort>\n",
+"         <eQC_GradFaibleC1 >   </eQC_GradFaibleC1>\n",
+"         <eQC_Bord >           </eQC_Bord>\n",
+"         <eQC_Coh1 >           </eQC_Coh1>\n",
+"         <eQC_GradFaibleC2 >   </eQC_GradFaibleC2>\n",
+"         <eQC_Coh2 >           </eQC_Coh2>\n",
+"         <eQC_Coh3 >           </eQC_Coh3>\n",
+"         <eQC_NonAff >         </eQC_NonAff>\n",
+"    </enum>\n",
 "\n",
 "\n",
 "    <LutConvertion  Nb=\"1\"  Class=\"true\" ToReference=\"true\">\n",

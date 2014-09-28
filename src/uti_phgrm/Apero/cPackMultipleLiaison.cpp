@@ -745,7 +745,7 @@ int  cObsLiaisonMultiple::IndOfCam(const cPoseCam * aCam) const
 }
 
 
-Pt3dr cObsLiaisonMultiple::CentreNuage() const
+Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D) const
 {
   std::vector<double> aVPds;
 
@@ -759,8 +759,11 @@ Pt3dr cObsLiaisonMultiple::CentreNuage() const
       if (anOPM.MemPds() >0)
       {
            Pt3dr aPI = anOPM.QuickInter(aVPds);
-           aPMoy = aPMoy+ anOPM.P0();
-           aVProf.push_back(aCS.ProfondeurDeChamps(aPI));
+           if ((aMasq3D==0) || (aMasq3D->IsInMasq(aPI)))
+           {
+              aPMoy = aPMoy+ anOPM.P0();
+              aVProf.push_back(aCS.ProfondeurDeChamps(aPI));
+           }
       }
   }
 

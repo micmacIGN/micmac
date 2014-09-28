@@ -20187,6 +20187,17 @@ const cTplValGesInit< int > & cChoixImSec::NbSetPreSelAng()const
    return mNbSetPreSelAng;
 }
 
+
+cTplValGesInit< std::string > & cChoixImSec::Masq3D()
+{
+   return mMasq3D;
+}
+
+const cTplValGesInit< std::string > & cChoixImSec::Masq3D()const 
+{
+   return mMasq3D;
+}
+
 void  BinaryUnDumpFromFile(cChoixImSec & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.KeyAssoc(),aFp);
@@ -20296,6 +20307,14 @@ void  BinaryUnDumpFromFile(cChoixImSec & anObj,ELISE_fp & aFp)
         }
         else  anObj.NbSetPreSelAng().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Masq3D().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Masq3D().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Masq3D().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cChoixImSec & anObj)
@@ -20329,6 +20348,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cChoixImSec & anObj)
     if (anObj.NbMaxPresel().IsInit()) BinaryDumpInFile(aFp,anObj.NbMaxPresel().Val());
     BinaryDumpInFile(aFp,anObj.NbSetPreSelAng().IsInit());
     if (anObj.NbSetPreSelAng().IsInit()) BinaryDumpInFile(aFp,anObj.NbSetPreSelAng().Val());
+    BinaryDumpInFile(aFp,anObj.Masq3D().IsInit());
+    if (anObj.Masq3D().IsInit()) BinaryDumpInFile(aFp,anObj.Masq3D().Val());
 }
 
 cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
@@ -20364,6 +20385,8 @@ cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
       aRes->AddFils(::ToXMLTree(std::string("NbMaxPresel"),anObj.NbMaxPresel().Val())->ReTagThis("NbMaxPresel"));
    if (anObj.NbSetPreSelAng().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbSetPreSelAng"),anObj.NbSetPreSelAng().Val())->ReTagThis("NbSetPreSelAng"));
+   if (anObj.Masq3D().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Masq3D"),anObj.Masq3D().Val())->ReTagThis("Masq3D"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -20405,9 +20428,11 @@ void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbMaxPresel(),aTree->Get("NbMaxPresel",1),int(10)); //tototo 
 
    xml_init(anObj.NbSetPreSelAng(),aTree->Get("NbSetPreSelAng",1),int(5)); //tototo 
+
+   xml_init(anObj.Masq3D(),aTree->Get("Masq3D",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImSec *) {return "BEDB3F34A2BC6C96FF3F";};
+std::string  Mangling( cChoixImSec *) {return "1ABED958E5A2FAC5FD3F";};
 
 
 std::string & cChoixImMM::KeyAssoc()
@@ -20586,6 +20611,17 @@ const cTplValGesInit< int > & cChoixImMM::NbSetPreSelAng()const
 }
 
 
+cTplValGesInit< std::string > & cChoixImMM::Masq3D()
+{
+   return ChoixImSec().Masq3D();
+}
+
+const cTplValGesInit< std::string > & cChoixImMM::Masq3D()const 
+{
+   return ChoixImSec().Masq3D();
+}
+
+
 cChoixImSec & cChoixImMM::ChoixImSec()
 {
    return mChoixImSec;
@@ -20624,7 +20660,7 @@ void xml_init(cChoixImMM & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImSec(),aTree->Get("ChoixImSec",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImMM *) {return "B076D15C59D76B9FFE3F";};
+std::string  Mangling( cChoixImMM *) {return "0867CB130B4287BCF9BF";};
 
 
 std::list< cExportCalib > & cSectionExport::ExportCalib()
@@ -20921,6 +20957,17 @@ cTplValGesInit< int > & cSectionExport::NbSetPreSelAng()
 const cTplValGesInit< int > & cSectionExport::NbSetPreSelAng()const 
 {
    return ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
+}
+
+
+cTplValGesInit< std::string > & cSectionExport::Masq3D()
+{
+   return ChoixImMM().Val().ChoixImSec().Masq3D();
+}
+
+const cTplValGesInit< std::string > & cSectionExport::Masq3D()const 
+{
+   return ChoixImMM().Val().ChoixImSec().Masq3D();
 }
 
 
@@ -21226,7 +21273,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImMM(),aTree->Get("ChoixImMM",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "F06FBFE0D21155B9FC3F";};
+std::string  Mangling( cSectionExport *) {return "F9D043BCE8FE1D90FE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -21713,6 +21760,17 @@ const cTplValGesInit< int > & cEtapeCompensation::NbSetPreSelAng()const
 }
 
 
+cTplValGesInit< std::string > & cEtapeCompensation::Masq3D()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().Masq3D();
+}
+
+const cTplValGesInit< std::string > & cEtapeCompensation::Masq3D()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().Masq3D();
+}
+
+
 cChoixImSec & cEtapeCompensation::ChoixImSec()
 {
    return SectionExport().Val().ChoixImMM().Val().ChoixImSec();
@@ -21880,7 +21938,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "A64D92D86D1C85C3FF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "DCF7CF2E0C3DBEFAFE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -21939,7 +21997,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "BA1F5F6FD60DBDE4FD3F";};
+std::string  Mangling( cSectionCompensation *) {return "F5A52463DDD94A8DFE3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -22873,6 +22931,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "E7A7701478A90989FF3F";};
+std::string  Mangling( cParamApero *) {return "91903FC5B86110A3FF3F";};
 
 // };

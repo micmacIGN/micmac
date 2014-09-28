@@ -1510,6 +1510,8 @@ normalises en echelle et/ou en translation -->
                             
                                <NbMaxPresel Nb="?" Type="int" Def="10"> </NbMaxPresel>
                                <NbSetPreSelAng Nb="?" Type="int" Def="5"> </NbSetPreSelAng>
+
+                               <Masq3D Nb="?" Type="std::string"> </Masq3D>
                           </ChoixImSec>
                      </ChoixImMM>
 
