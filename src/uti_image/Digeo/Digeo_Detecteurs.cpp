@@ -461,9 +461,9 @@ void cTplImInMem<Type>::ExtractExtremaDOG
             {
                 Pt2dr aP(mIx+mTrX,mIy+mTrY);
                 if ( mOct.Pt2Sauv(aP) ){
-                    mVPtsCarac.push_back( cPtsCaracDigeo( aP,
-                                                          mImGlob.Resol()*mOct.Niv()*mImGlob.Sigma0()*pow( 2, ( mKInOct+mTrS )/mOct.NbImOri() ),
-                                                          isMin?eSiftMinDog:eSiftMaxDog ) );
+                    mFeaturePoints.push_back( cPtsCaracDigeo( aP,
+                                                              mImGlob.Resol()*mOct.Niv()*mImGlob.Sigma0()*pow( 2, ( mKInOct+mTrS )/mOct.NbImOri() ),
+                                                              isMin?eSiftMinDog:eSiftMaxDog ) );
                 }
             }
 
@@ -496,6 +496,11 @@ string eToString( const eTypeExtreSift &i_enum )
    return "";
 }
 
+/*
+InstantiateFunctionTplDigeo(REAL4,REAL8)
+InstantiateFunctionTplDigeo(U_INT2,INT)
+
+*/
 template <> INT**    cTplImInMem<U_INT2>::theMDog = 0;
 template <> double** cTplImInMem<REAL4>::theMDog = 0;
 

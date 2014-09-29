@@ -4,15 +4,15 @@
 		<Symb> Im1=IMG_0034.CR2 </Symb>
 		<Symb> NbNivByOct=3     </Symb>
 
+		<!--
 		<Symb> Resol=1            </Symb>
 		<Symb> Sigma0=1.6         </Symb>
 		<Symb> SigmaN=1           </Symb>
+		-->
 
-		<!--
 		<Symb> Resol=0.5          </Symb>
 		<Symb> Sigma0=1.269920842 </Symb>
 		<Symb> SigmaN=0.5         </Symb>
-		-->
 
 		<Symb> OctaveMax=32      </Symb>
 		<Symb> NivFloatIm=4          </Symb>
@@ -88,12 +88,15 @@
 	des tests de perfomances ou de bon fonctionnement
 	-->
 	<SectionTest>
-		<!--
+
 		<DigeoTestOutput>
-			<OutputGaussians> true </OutputGaussians>
 			<OutputTiles> true </OutputTiles>
+			<!--
+			<OutputGaussians> true </OutputGaussians>
+			<OutputGradients> true </OutputGradients>
+			-->
+			<SuppressTiles> false </SuppressTiles>
 		</DigeoTestOutput>
-		-->
 	</SectionTest>
 
 	<SectionWorkSpace>
@@ -107,7 +110,7 @@
 		</#WHEN>
 
 	<DigeoDecoupageCarac>
-		<SzDalle > 2048 </SzDalle>
+		<SzDalle> 2048 </SzDalle>
 		<Bord>  0  </Bord>
 	</DigeoDecoupageCarac>
 

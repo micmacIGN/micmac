@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[184]) = {
+const char * (theNameVar_ParamDigeo[189]) = {
 "<GenCpp>\n",
 "	<Verbatim  File=\".h\">\n",
 "	#ifndef Define_NotDigeo\n",
@@ -141,6 +141,11 @@ const char * (theNameVar_ParamDigeo[184]) = {
 "				<OutputGaussiansDirectory Nb=\"?\" Type=\"std::string\" Def=\"gaussians\"></OutputGaussiansDirectory>\n",
 "				<OutputTiles Nb=\"?\" Type=\"bool\" Def=\"false\"></OutputTiles>\n",
 "				<OutputTilesDirectory Nb=\"?\" Type=\"std::string\" Def=\"tiles\"></OutputTilesDirectory>\n",
+"				<OutputGradients Nb=\"?\" Type=\"bool\" Def=\"false\"></OutputGradients>\n",
+"				<OutputGradientsNormDirectory Nb=\"?\" Type=\"std::string\" Def=\"gradients/norm\"></OutputGradientsNormDirectory>\n",
+"				<OutputGradientsAngleDirectory Nb=\"?\" Type=\"std::string\" Def=\"gradients/angle\"></OutputGradientsAngleDirectory>\n",
+"				<MergeTiles Nb=\"?\" Type=\"bool\" Def=\"true\"> </MergeTiles> <!-- this option modifies OutputGaussians, OutputTiles, OutputGradient -->\n",
+"				<SuppressTiles Nb=\"?\" Type=\"bool\" Def=\"true\"> </SuppressTiles> <!-- tiles are not suppressed if MergeTiles is not true --> \n",
 "			</DigeoTestOutput>\n",
 "		</SectionTest>\n",
 "\n",

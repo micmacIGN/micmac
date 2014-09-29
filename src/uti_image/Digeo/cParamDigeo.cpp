@@ -1842,6 +1842,61 @@ const cTplValGesInit< std::string > & cDigeoTestOutput::OutputTilesDirectory()co
    return mOutputTilesDirectory;
 }
 
+
+cTplValGesInit< bool > & cDigeoTestOutput::OutputGradients()
+{
+   return mOutputGradients;
+}
+
+const cTplValGesInit< bool > & cDigeoTestOutput::OutputGradients()const 
+{
+   return mOutputGradients;
+}
+
+
+cTplValGesInit< std::string > & cDigeoTestOutput::OutputGradientsNormDirectory()
+{
+   return mOutputGradientsNormDirectory;
+}
+
+const cTplValGesInit< std::string > & cDigeoTestOutput::OutputGradientsNormDirectory()const 
+{
+   return mOutputGradientsNormDirectory;
+}
+
+
+cTplValGesInit< std::string > & cDigeoTestOutput::OutputGradientsAngleDirectory()
+{
+   return mOutputGradientsAngleDirectory;
+}
+
+const cTplValGesInit< std::string > & cDigeoTestOutput::OutputGradientsAngleDirectory()const 
+{
+   return mOutputGradientsAngleDirectory;
+}
+
+
+cTplValGesInit< bool > & cDigeoTestOutput::MergeTiles()
+{
+   return mMergeTiles;
+}
+
+const cTplValGesInit< bool > & cDigeoTestOutput::MergeTiles()const 
+{
+   return mMergeTiles;
+}
+
+
+cTplValGesInit< bool > & cDigeoTestOutput::SuppressTiles()
+{
+   return mSuppressTiles;
+}
+
+const cTplValGesInit< bool > & cDigeoTestOutput::SuppressTiles()const 
+{
+   return mSuppressTiles;
+}
+
 void  BinaryUnDumpFromFile(cDigeoTestOutput & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -1876,6 +1931,46 @@ void  BinaryUnDumpFromFile(cDigeoTestOutput & anObj,ELISE_fp & aFp)
         }
         else  anObj.OutputTilesDirectory().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OutputGradients().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OutputGradients().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OutputGradients().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OutputGradientsNormDirectory().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OutputGradientsNormDirectory().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OutputGradientsNormDirectory().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OutputGradientsAngleDirectory().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OutputGradientsAngleDirectory().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OutputGradientsAngleDirectory().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.MergeTiles().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.MergeTiles().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.MergeTiles().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SuppressTiles().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SuppressTiles().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SuppressTiles().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cDigeoTestOutput & anObj)
@@ -1888,6 +1983,16 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cDigeoTestOutput & anObj)
     if (anObj.OutputTiles().IsInit()) BinaryDumpInFile(aFp,anObj.OutputTiles().Val());
     BinaryDumpInFile(aFp,anObj.OutputTilesDirectory().IsInit());
     if (anObj.OutputTilesDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.OutputTilesDirectory().Val());
+    BinaryDumpInFile(aFp,anObj.OutputGradients().IsInit());
+    if (anObj.OutputGradients().IsInit()) BinaryDumpInFile(aFp,anObj.OutputGradients().Val());
+    BinaryDumpInFile(aFp,anObj.OutputGradientsNormDirectory().IsInit());
+    if (anObj.OutputGradientsNormDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.OutputGradientsNormDirectory().Val());
+    BinaryDumpInFile(aFp,anObj.OutputGradientsAngleDirectory().IsInit());
+    if (anObj.OutputGradientsAngleDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.OutputGradientsAngleDirectory().Val());
+    BinaryDumpInFile(aFp,anObj.MergeTiles().IsInit());
+    if (anObj.MergeTiles().IsInit()) BinaryDumpInFile(aFp,anObj.MergeTiles().Val());
+    BinaryDumpInFile(aFp,anObj.SuppressTiles().IsInit());
+    if (anObj.SuppressTiles().IsInit()) BinaryDumpInFile(aFp,anObj.SuppressTiles().Val());
 }
 
 cElXMLTree * ToXMLTree(const cDigeoTestOutput & anObj)
@@ -1902,6 +2007,16 @@ cElXMLTree * ToXMLTree(const cDigeoTestOutput & anObj)
       aRes->AddFils(::ToXMLTree(std::string("OutputTiles"),anObj.OutputTiles().Val())->ReTagThis("OutputTiles"));
    if (anObj.OutputTilesDirectory().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("OutputTilesDirectory"),anObj.OutputTilesDirectory().Val())->ReTagThis("OutputTilesDirectory"));
+   if (anObj.OutputGradients().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OutputGradients"),anObj.OutputGradients().Val())->ReTagThis("OutputGradients"));
+   if (anObj.OutputGradientsNormDirectory().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OutputGradientsNormDirectory"),anObj.OutputGradientsNormDirectory().Val())->ReTagThis("OutputGradientsNormDirectory"));
+   if (anObj.OutputGradientsAngleDirectory().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OutputGradientsAngleDirectory"),anObj.OutputGradientsAngleDirectory().Val())->ReTagThis("OutputGradientsAngleDirectory"));
+   if (anObj.MergeTiles().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MergeTiles"),anObj.MergeTiles().Val())->ReTagThis("MergeTiles"));
+   if (anObj.SuppressTiles().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SuppressTiles"),anObj.SuppressTiles().Val())->ReTagThis("SuppressTiles"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -1919,9 +2034,19 @@ void xml_init(cDigeoTestOutput & anObj,cElXMLTree * aTree)
    xml_init(anObj.OutputTiles(),aTree->Get("OutputTiles",1),bool(false)); //tototo 
 
    xml_init(anObj.OutputTilesDirectory(),aTree->Get("OutputTilesDirectory",1),std::string("tiles")); //tototo 
+
+   xml_init(anObj.OutputGradients(),aTree->Get("OutputGradients",1),bool(false)); //tototo 
+
+   xml_init(anObj.OutputGradientsNormDirectory(),aTree->Get("OutputGradientsNormDirectory",1),std::string("gradients/norm")); //tototo 
+
+   xml_init(anObj.OutputGradientsAngleDirectory(),aTree->Get("OutputGradientsAngleDirectory",1),std::string("gradients/angle")); //tototo 
+
+   xml_init(anObj.MergeTiles(),aTree->Get("MergeTiles",1),bool(true)); //tototo 
+
+   xml_init(anObj.SuppressTiles(),aTree->Get("SuppressTiles",1),bool(true)); //tototo 
 }
 
-std::string  Mangling( cDigeoTestOutput *) {return "6CF21521D2DB7BB6FE3F";};
+std::string  Mangling( cDigeoTestOutput *) {return "D17210BDD808649BFE3F";};
 
 
 cTplValGesInit< bool > & cSectionTest::VerifExtrema()
@@ -1976,6 +2101,61 @@ cTplValGesInit< std::string > & cSectionTest::OutputTilesDirectory()
 const cTplValGesInit< std::string > & cSectionTest::OutputTilesDirectory()const 
 {
    return DigeoTestOutput().Val().OutputTilesDirectory();
+}
+
+
+cTplValGesInit< bool > & cSectionTest::OutputGradients()
+{
+   return DigeoTestOutput().Val().OutputGradients();
+}
+
+const cTplValGesInit< bool > & cSectionTest::OutputGradients()const 
+{
+   return DigeoTestOutput().Val().OutputGradients();
+}
+
+
+cTplValGesInit< std::string > & cSectionTest::OutputGradientsNormDirectory()
+{
+   return DigeoTestOutput().Val().OutputGradientsNormDirectory();
+}
+
+const cTplValGesInit< std::string > & cSectionTest::OutputGradientsNormDirectory()const 
+{
+   return DigeoTestOutput().Val().OutputGradientsNormDirectory();
+}
+
+
+cTplValGesInit< std::string > & cSectionTest::OutputGradientsAngleDirectory()
+{
+   return DigeoTestOutput().Val().OutputGradientsAngleDirectory();
+}
+
+const cTplValGesInit< std::string > & cSectionTest::OutputGradientsAngleDirectory()const 
+{
+   return DigeoTestOutput().Val().OutputGradientsAngleDirectory();
+}
+
+
+cTplValGesInit< bool > & cSectionTest::MergeTiles()
+{
+   return DigeoTestOutput().Val().MergeTiles();
+}
+
+const cTplValGesInit< bool > & cSectionTest::MergeTiles()const 
+{
+   return DigeoTestOutput().Val().MergeTiles();
+}
+
+
+cTplValGesInit< bool > & cSectionTest::SuppressTiles()
+{
+   return DigeoTestOutput().Val().SuppressTiles();
+}
+
+const cTplValGesInit< bool > & cSectionTest::SuppressTiles()const 
+{
+   return DigeoTestOutput().Val().SuppressTiles();
 }
 
 
@@ -2040,7 +2220,7 @@ void xml_init(cSectionTest & anObj,cElXMLTree * aTree)
    xml_init(anObj.DigeoTestOutput(),aTree->Get("DigeoTestOutput",1)); //tototo 
 }
 
-std::string  Mangling( cSectionTest *) {return "F1E5ED5919183188FF3F";};
+std::string  Mangling( cSectionTest *) {return "D2BC043367302DC4FE3F";};
 
 
 cTplValGesInit< std::string > & cSauvPyram::Dir()
@@ -3100,6 +3280,61 @@ const cTplValGesInit< std::string > & cParamDigeo::OutputTilesDirectory()const
 }
 
 
+cTplValGesInit< bool > & cParamDigeo::OutputGradients()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGradients();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::OutputGradients()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGradients();
+}
+
+
+cTplValGesInit< std::string > & cParamDigeo::OutputGradientsNormDirectory()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGradientsNormDirectory();
+}
+
+const cTplValGesInit< std::string > & cParamDigeo::OutputGradientsNormDirectory()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGradientsNormDirectory();
+}
+
+
+cTplValGesInit< std::string > & cParamDigeo::OutputGradientsAngleDirectory()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGradientsAngleDirectory();
+}
+
+const cTplValGesInit< std::string > & cParamDigeo::OutputGradientsAngleDirectory()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().OutputGradientsAngleDirectory();
+}
+
+
+cTplValGesInit< bool > & cParamDigeo::MergeTiles()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().MergeTiles();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::MergeTiles()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().MergeTiles();
+}
+
+
+cTplValGesInit< bool > & cParamDigeo::SuppressTiles()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().SuppressTiles();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::SuppressTiles()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().SuppressTiles();
+}
+
+
 cTplValGesInit< cDigeoTestOutput > & cParamDigeo::DigeoTestOutput()
 {
    return SectionTest().Val().DigeoTestOutput();
@@ -3385,5 +3620,5 @@ void xml_init(cParamDigeo & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionWorkSpace(),aTree->Get("SectionWorkSpace",1)); //tototo 
 }
 
-std::string  Mangling( cParamDigeo *) {return "53E0B81AE397DEA7FD3F";};
+std::string  Mangling( cParamDigeo *) {return "DAE09124B5EB54D9FD3F";};
 

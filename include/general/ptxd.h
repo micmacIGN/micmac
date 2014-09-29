@@ -1112,6 +1112,7 @@ class cDecoupageInterv2D
 	  Pt2di   SzMaxOut() const;
 	  Pt2di   SzMaxIn (const Box2di   & aSzBord) const;
 	  Pt2di   SzMaxIn () const;
+	  int NbX() const;
       private :
           cDecoupageInterv1D mDecX;
           cDecoupageInterv1D mDecY;

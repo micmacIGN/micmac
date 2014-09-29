@@ -39,156 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo/Digeo.h"
 
-#ifndef M_PI
-	#define M_PI 3.14159265358979323846
-#endif
-
-#define DIGEO_ORIENTATION_NB_BINS 36
-#define DIGEO_ORIENTATION_NB_MAX_ANGLES 4
-#define DIGEO_ORIENTATION_WINDOW_FACTOR 1.5
-#define DIGEO_DESCRIBE_NBO 8
-#define DIGEO_DESCRIBE_NBP 4
-#define DIGEO_DESCRIBE_MAGNIFY 3.
-#define DIGEO_DESCRIBE_THRESHOLD 0.2
-
 // fait le boulot pour une octave quand ses points d'intéret ont été calculés
 // ajoute les points à o_list (on passe la même liste à toutes les octaves)
 template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Type> * anOct, list<DigeoPoint> &o_list);
 
-// calcul le gradient d'une image, le résultat est forcément en REAL4, peut-être faut-il la templatiser
-// le gradient fait le double de la largeur de l'image source car il contient deux valeurs pour un pixel (la norme puis l'orientation du gradient)
-template <class tData, class tComp>
-void gradient( const Im2D<tData,tComp> &i_image, Im2D<REAL4,REAL8> &o_gradient );
-
-// calcul les angles d'orientation pour un point (au plus DIGEO_NB_MAX_ANGLES angles)
-int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 o_angles[DIGEO_ORIENTATION_NB_MAX_ANGLES] );
-
 // calcul le descripteur d'un point
 void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_angle, REAL8 *o_descriptor );
-
-// = normalizeDescriptor + truncateDescriptor + normalizeDescriptor
-void normalize_and_truncate( REAL8 *io_descriptor );
-
-void normalizeDescriptor( REAL8 *io_descriptor );
-// tronque à DIGEO_DESCRIBE_THRESHOLD
-void truncateDescriptor( REAL8 *io_descriptor );
-
-//----------
-
-template <class tData, class tComp>
-void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient )
-{
-    o_gradient.Resize( Pt2di( i_image.sz().x*2, i_image.sz().y ) );
-
-	const REAL8 coef = REAL8(0.5)/i_maxValue;
-    const int c1 = -i_image.sz().x;
-    int offset = i_image.sz().x+1;
-    const tData *src = i_image.data_lin()+offset;
-    REAL4 *dst = o_gradient.data_lin()+2*offset;
-    REAL8 gx, gy, theta;
-    int width_2 = i_image.sz().x-2,
-        y = i_image.sz().y-2,
-        x;
-    while ( y-- )
-    {
-        x = width_2;
-        while ( x-- )
-        {
-            gx = ( REAL8 )( coef*( REAL8(src[1])-REAL8(src[-1]) ) );
-            gy = ( REAL8 )( coef*( REAL8(src[i_image.sz().x])-REAL8(src[c1]) ) );
-            dst[0] = (REAL4)std::sqrt( gx*gx+gy*gy );
-
-            theta = std::fmod( REAL8( std::atan2( gy, gx ) ), REAL8( 2*M_PI ) );
-            if ( theta<0 ) theta+=2*M_PI;
-            dst[1] = (REAL4)theta;
-
-            src++; dst+=2;
-        }
-        src+=2; dst+=4;
-    }
-}
-
-// return the number of possible orientations (cannot be greater than DIGEO_NB_MAX_ANGLES)
-int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 o_angles[DIGEO_ORIENTATION_NB_MAX_ANGLES] )
-{
-	static REAL8 histo[DIGEO_ORIENTATION_NB_BINS];
-
-	int xi = ((int) (i_p.mPt.x+0.5)) ;
-	int yi = ((int) (i_p.mPt.y+0.5)) ;
-	const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mLocalScale;
-	const int W = (int)ceil( 3*sigmaw );
-
-    // fill the SIFT histogram
-	const INT width  = i_gradient.sz().x/2,
-			  height = i_gradient.sz().y;
-    REAL8 dx, dy, r2,
-          wgt, mod, ang;
-    int   offset;
-    const REAL4 *p = i_gradient.data_lin()+( xi+yi*width )*2;    
-    std::fill( histo, histo+DIGEO_ORIENTATION_NB_BINS, 0 );
-    for ( int ys=std::max( -W, 1-yi ); ys<=std::min( W, height-2-yi ); ys++ )
-    {
-        for ( int xs=std::max( -W, 1-xi ); xs<=std::min( W, width-2-xi ); xs++ )
-        {
-            dx = xi+xs-i_p.mPt.x;
-            dy = yi+ys-i_p.mPt.y;
-            r2 = dx*dx+dy*dy ;
-
-            // limit to a circular window
-            if ( r2>=W*W+0.5 ) continue;
-    
-            wgt    = ::exp( -r2/( 2*sigmaw*sigmaw ) );
-            offset = ( xs+ys*width )*2;
-            mod    = p[offset];
-            ang    = p[offset+1];
-            int bin = (int) floor( DIGEO_ORIENTATION_NB_BINS*ang/( 2*M_PI ) ) ;
-            histo[bin] += mod*wgt ;
-
-        }
-    }
-    
-    REAL8 prev;
-    // smooth histogram
-    // mean of a bin and its two neighbour values (x6)
-    REAL8 *itHisto,
-           first, mean;
-    int iHisto,
-        iIter = 6;
-    while ( iIter-- )
-    {
-        itHisto = histo;
-        iHisto  = DIGEO_ORIENTATION_NB_BINS-2;
-        first = prev = *itHisto;
-        *itHisto = ( histo[DIGEO_ORIENTATION_NB_BINS-1]+( *itHisto )+itHisto[1] )/3.; itHisto++;
-        while ( iHisto-- ){
-            mean = ( prev+(*itHisto)+itHisto[1] )/3.;
-            prev = *itHisto;
-            *itHisto++ = mean;
-        }
-        *itHisto = ( prev+( *itHisto )+first )/3.; itHisto++;
-    }
-
-    // find histogram's peaks
-    // peaks are values > 80% of histoMax and > to both its neighbours
-    REAL8 histoMax = 0.8*( *std::max_element( histo, histo+DIGEO_ORIENTATION_NB_BINS ) ),
-          v, next, di;
-    int nbAngles = 0;
-    for ( int i=0; i<DIGEO_ORIENTATION_NB_BINS; i++ )
-    {
-        v    = histo[i];
-        prev = histo[ ( i==0 )?DIGEO_ORIENTATION_NB_BINS-1:i-1 ];
-        next = histo[ ( i==( DIGEO_ORIENTATION_NB_BINS-1 ) )?0:i+1 ];
-        if ( ( v>histoMax ) && ( v>prev ) && ( v>next ) )
-        {
-            // we found a peak
-            // compute angle by quadratic interpolation
-            di = -0.5*( next-prev )/( next+prev-2*v ) ;
-            o_angles[nbAngles++] = 2*M_PI*( i+di+0.5 )/DIGEO_ORIENTATION_NB_BINS;
-            if ( nbAngles==DIGEO_ORIENTATION_NB_MAX_ANGLES ) return DIGEO_ORIENTATION_NB_MAX_ANGLES;
-        }
-    }
-    return nbAngles;
-}
 
 #define atd(dbinx,dbiny,dbint) *(dp + (dbint)*binto + (dbiny)*binyo + (dbinx)*binxo)
 
@@ -209,14 +65,14 @@ void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
     const int binto = 1 ;
     const int binyo = DIGEO_DESCRIBE_NBO*DIGEO_DESCRIBE_NBP;
     const int binxo = DIGEO_DESCRIBE_NBO;
-	
+
 	std::fill( o_descriptor, o_descriptor+DIGEO_DESCRIPTOR_SIZE, 0 ) ;
 
     /* Center the scale space and the descriptor on the current keypoint.
     * Note that dpt is pointing to the bin of center (SBP/2,SBP/2,0).
     */
 	const INT width  = i_gradient.sz().x/2,
-			  height = i_gradient.sz().y;
+	      height = i_gradient.sz().y;
     const REAL4 *p = i_gradient.data_lin()+( xi+yi*width )*2;
     REAL8 *dp = o_descriptor+( DIGEO_DESCRIBE_NBP/2 )*( binyo+binxo );
 
@@ -300,44 +156,6 @@ void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i
     }
 }
 
-void normalizeDescriptor( REAL8 *io_descriptor )
-{
-    REAL8 norm    = 0;
-    int   i       = DIGEO_DESCRIPTOR_SIZE;
-    REAL8 *itDesc = io_descriptor;
-    while ( i-- ){
-        norm += ( *itDesc )*( *itDesc );
-        itDesc++;
-    }
-    
-    norm = std::sqrt( norm )+std::numeric_limits<REAL8>::epsilon();
-
-    i      = DIGEO_DESCRIPTOR_SIZE;
-    itDesc = io_descriptor;
-    while ( i-- ){
-        *itDesc = ( *itDesc )/norm;
-        itDesc++;
-    }
-}
-
-void truncateDescriptor( REAL8 *io_descriptor )
-{
-    int    i      = DIGEO_DESCRIPTOR_SIZE;
-    REAL8 *itDesc = io_descriptor;
-    while ( i-- ){
-        if ( ( *itDesc )>DIGEO_DESCRIBE_THRESHOLD )
-            ( *itDesc )=DIGEO_DESCRIBE_THRESHOLD;
-        itDesc++;
-    }
-}
-
-void normalize_and_truncate( REAL8 *io_descriptor )
-{
-	normalizeDescriptor( io_descriptor );
-	truncateDescriptor( io_descriptor );
-	normalizeDescriptor( io_descriptor );
-}
-
 template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Type> * anOct, list<DigeoPoint> &o_list)
 {
   Im2D<REAL4,REAL8> imgGradient;
@@ -346,17 +164,18 @@ template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Typ
   double trueSamplingPace = anOct->Niv()*anOct->ImDigeo().Resol();
   REAL8 angles[DIGEO_MAX_NB_ANGLES];
   int nbAngles;
-  
+
   for (int aKIm=0 ; aKIm<int(aVIm.size()) ; aKIm++)
   {
        cTplImInMem<Type> & anIm = *(aVIm[aKIm]);
        Im2D<Type,tBase> aTIm = anIm.TIm();
 
 		p.scale = anIm.ScaleInit();
-		std::vector<cPtsCaracDigeo> &  aVPC = anIm.VPtsCarac();
+		std::vector<cPtsCaracDigeo> &  aVPC = anIm.featurePoints();
 		if ( aVPC.size()!=0 )
 		{
 			gradient( aTIm, anOct->GetMaxValue(), imgGradient );
+
 			for ( unsigned int i=0; i<aVPC.size(); i++ ){
 				p.x = aVPC[i].mPt.x*trueSamplingPace;
 				p.y = aVPC[i].mPt.y*trueSamplingPace;
@@ -460,6 +279,8 @@ bool generate_convolution_code( cAppliDigeo &i_appli )
 
 int Digeo_main( int argc, char **argv )
 {
+	ElTimer chrono;
+
 	if ( argc!=4 ){
 		cerr << "Digeo: usage : mm3d Digeo input_filename -o output_filename" << endl;
 		return EXIT_FAILURE;
@@ -468,13 +289,16 @@ int Digeo_main( int argc, char **argv )
 	std::string inputName  = argv[1];
 	std::string outputName = argv[3];
 
+	ElTimer paramChrono;
 	cAppliDigeo appli;
+	double paramTime = paramChrono.uval();
 
 	appli.loadImage( inputName );
-	cImDigeo &  anImD = appli.SingleImage(); // Ici on ne mape qu'une seule image à la fois
+	cImDigeo &image = appli.getImage();
 
     if ( appli.isVerbose() ){
        cout << "number of tiles : " << appli.NbInterv() << endl;
+       cout << "tile size : " << appli.Params().DigeoDecoupageCarac().Val().SzDalle() << endl;
        cout << "margin : " << appli.Params().DigeoDecoupageCarac().Val().Bord() << endl;
     }
 
@@ -483,12 +307,15 @@ int Digeo_main( int argc, char **argv )
     {
         appli.LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
         Box2di box = appli.getInterv( aKBox );
-        box._p0.x *= anImD.Resol();
-        box._p0.y *= anImD.Resol();
+        if ( appli.isVerbose() ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
+        box._p0.x *= image.Resol();
+        box._p0.y *= image.Resol();
 
+        image.detect();
+/*
         if ( appli.isVerbose() ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
 
-        const std::vector<cOctaveDigeo *> & aVOct = anImD.Octaves();
+        const std::vector<cOctaveDigeo *> & aVOct = image.Octaves();
         
         size_t nbPointsBeforeTile = total_list.size();
         for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++){
@@ -497,7 +324,7 @@ int Digeo_main( int argc, char **argv )
 				cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
 				cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
 
-				anOct.DoAllExtract();
+				//anOct.DoAllExtract();
 
 				if ( appli.doSaveGaussians() ) anOct.saveGaussians( appli.outputGaussiansDirectory(), appli.currentTileBasename() );
 
@@ -508,16 +335,27 @@ int Digeo_main( int argc, char **argv )
 				size_t nbOctavePoints = total_list.size()-nbPointsBeforeOctave;
 				if ( appli.doSaveTiles() ){
 					const string ppmFilename = appli.currentTileFullname()+".ppm";
-					ELISE_ASSERT( plot_tile_points( ppmFilename, total_list, nbOctavePoints, (double)1./anImD.Resol() ), (string("cannot load tile's ppm file [")+ppmFilename+"]").c_str() );
+					ELISE_ASSERT( plot_tile_points( ppmFilename, total_list, nbOctavePoints, (double)1./image.Resol() ), (string("cannot load tile's ppm file [")+ppmFilename+"]").c_str() );
 				}
 
 				// translate tile-based coordinates to full image coordinates
 				translate_points( total_list, nbOctavePoints, box._p0 );
         }
-
         size_t nbTilePoints = total_list.size()-nbPointsBeforeTile;
         if ( appli.isVerbose() ) cout << "\t" << nbTilePoints << " points" << endl;
+*/
+			/*
+			image.orientate();
+			image.describe();
+			*/
+			image.orientateAndDescribe();
+			size_t nbTilePoints = image.addAllPoints( total_list );
+			translate_points( total_list, nbTilePoints, box._p0 );
+
+			if ( appli.isVerbose() ) cout << "\t" << nbTilePoints << " points" << endl;
     }
+
+	if ( appli.doReconstructOutputs() ) appli.reconstructFullOutputImages();
 
 	if ( appli.Params().GenereCodeConvol().IsInit() ){
 		generate_convolution_code<U_INT2>( appli );
@@ -526,8 +364,26 @@ int Digeo_main( int argc, char **argv )
 	else if ( appli.isVerbose() && ( appli.nbSlowConvolutionsUsed<U_INT2>() || appli.nbSlowConvolutionsUsed<REAL4>() ) )
 		cout << "skipping convolution code generation" << endl;
 
+	ElTimer chronoSave;
     cout << total_list.size() << " points" << endl;
     if ( !DigeoPoint::writeDigeoFile( outputName, total_list ) ) cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
+    double saveTime = chronoSave.uval();
+    
+	if ( appli.showTimes() ){
+		cImDigeo &image = appli.getImage();
+		cout << "Total time = " << chrono.uval()
+		     << " (" << image.loadTime()+image.pyramidTime()+image.detectTime()+image.gradientTime()+image.orientateTime()+image.describeTime()+saveTime+paramTime << ")"
+		     << " ; param load : " << paramTime
+		     << " ; image load : " << image.loadTime()
+		     << " ; Pyram : " << image.pyramidTime()
+		     << " ; Detect : " << image.detectTime()
+		     << " ; Gradient : " << image.gradientTime()
+		     << " ; Orientate : " << image.orientateTime()
+		     << " ; Describe : " << image.describeTime()
+		     << " ; save : " << saveTime << endl;
+	}
+
+	cout << "nb computed gradient = " << appli.nbComputedGradients() << endl;
 
     return EXIT_SUCCESS;
 }
