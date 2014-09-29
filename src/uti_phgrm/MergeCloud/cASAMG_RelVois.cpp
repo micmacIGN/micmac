@@ -52,7 +52,7 @@ void cResumNuage::Reset(int aReserve)
 
 void cASAMG::ComputeSubset(int aNbPts,cResumNuage & aRN)
 {
-   Video_Win * aW = mAppli->Param().VisuLowPts().Val() ?   mAppli->TheWinIm(mSz) : 0;
+   Video_Win * aW = mAppli->Param().VisuLowPts().Val() ?   TheWinIm() : 0;
 
    double aSzCel = sqrt(double(mSz.x*mSz.y)/aNbPts);
    Pt2di aNb2C = round_up(Pt2dr(mSz)/aSzCel);
@@ -236,7 +236,7 @@ void cASAMG::TestDifProf(const cASAMG & aNE) const
              }
         }
     }
-    Video_Win * aW = mAppli->TheWinIm(mSz);
+    Video_Win * aW = TheWinIm();
     if (aW)
     {
        ELISE_COPY
@@ -296,7 +296,13 @@ void cASAMG::TestImCoher()
 
             ELISE_COPY
             (
-                 select(mImQuality.all_pts(),aFInside && (mImQuality.in()==eQC_GradFaibleC1) && (erod_32(mMasqN.in_proj(),2*pAramDistDilateBord()))),
+                 select
+                 (
+                      mImQuality.all_pts(),
+                         aFInside 
+                      && (mImQuality.in()==eQC_GradFaibleC1) 
+                      && (erod_32(mMasqN.in_proj(),2*mPrm.DilateBord().Val()))
+                 ),
                  eQC_GradFaibleC2,
                  mImQuality.out()
             );
@@ -339,7 +345,7 @@ void cASAMG::TestImCoher()
     }
 
    
-    Video_Win * aW =  mAppli->Param().VisuImageCoh().Val() ? mAppli->TheWinIm(mSz) : 0 ;
+    Video_Win * aW =  mAppli->Param().VisuImageCoh().Val() ? TheWinIm() : 0 ;
     if (aW)
     {
         aW->set_title(mIma->mNameIm.c_str());

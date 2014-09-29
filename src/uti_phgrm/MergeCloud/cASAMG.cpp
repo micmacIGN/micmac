@@ -47,6 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mAppli     (anAppli),
+   mPrm       (anAppli->Param()),
    mIma       (anIma),
    mStdN      (cElNuage3DMaille::FromFileIm(mAppli->NameFileInput(anIma,".xml"))),
    mMasqN     (mStdN->ImDef()),
@@ -72,7 +73,8 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mMaxNivH   (-1),
    mSSIma     (mStdN->DynProfInPixel() *  mAppli->Param().ImageVariations().SeuilStrictVarIma()),
    mISOM      (StdGetISOM(anAppli->ICNM(),anIma->mNameIm,anAppli->Ori())),
-   mNivSelected  (-1)
+   mNivSelected  (-1),
+   mIsMAP        (mAppli->IsInImageMAP(this))
 {
 // std::cout << "ISSOMMM "  << mISOM.Sols().size() << " " << anIma->mNameIm << "\n";
 // std::cout << "AAAAAAAAAAAAAAAAAAaa\n"; getchar();
@@ -98,7 +100,7 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
        select
        (
             mMasqN.all_pts(),
-            (mImQuality.in()==eQC_NonAff) && dilat_32(mMasqN.in_proj()==0,2*pAramDistDilateBord())
+            (mImQuality.in()==eQC_NonAff) && dilat_32(mMasqN.in_proj()==0,2*mPrm.DilateBord().Val())
        ),
        eQC_Bord,
        mImQuality.out()
@@ -109,7 +111,7 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    ComputeSubset(mAppli->Param().NbPtsLowResume(),mLowRN);
 
    {
-       Video_Win * aW = mAppli->Param().VisuGrad().Val() ? mAppli->TheWinIm(mSz) : 0;
+       Video_Win * aW = mAppli->Param().VisuGrad().Val() ? TheWinIm() : 0;
        if (aW)
        {
           aW->set_title(mIma->mNameIm.c_str());
@@ -189,7 +191,7 @@ const int cASAMG::theNbValCompr = 16;
 
 void  cASAMG::InspectEnv()
 {
-    Video_Win * aW = pAramVisuEnv() ? mAppli->TheWinIm(mSz) : 0;
+    Video_Win * aW = mPrm.VisuEnv().Val() ? TheWinIm() : 0;
     if (! aW) return;
     ELISE_COPY
     (
@@ -210,7 +212,7 @@ void  cASAMG::InspectEnv()
 
 void cASAMG::InspectQual(bool WithClik)
 {
-     Video_Win * aW = mAppli->TheWinIm(mSz);
+     Video_Win * aW = TheWinIm();
      if (! aW) return;
 
      aW->set_title(mIma->mNameIm.c_str());
@@ -254,6 +256,9 @@ INT cASAMG::MaxNivH() const {return mMaxNivH;}
 double cASAMG::QualOfNiv() const {return mQualOfNiv;}
 int cASAMG::NbOfNiv() const {return mNbOfNiv;}
 int cASAMG::NbTot() const {return mNbTot;}
+bool  cASAMG::IsImageMAP() const {return mIsMAP;}
+Pt2di cASAMG::Sz() const {return mSz;}
+Video_Win *  cASAMG::TheWinIm() const {return mAppli->TheWinIm(this);}
 
 
 
@@ -294,6 +299,25 @@ const cOneSolImageSec &  cASAMG::SolOfCostPerIm(double aCostPerIm)
        }
    }
    return *aSol;
+}
+
+void  cASAMG::ExportMiseAuPoint()
+{
+    if (! IsSelected()) return;
+    cXML_ParamNuage3DMaille aParam = mStdN->Params();
+
+    std::string aNameMasq = mAppli->NameFileInput(mIma,"_Masq.tif","Test");
+    std::string aNameLab = mAppli->NameFileInput(mIma,"_Label.tif","Test");
+    std::string aNameXML = mAppli->NameFileInput(mIma,".xml","Test");
+    Tiff_Im::Create8BFromFonc(aNameMasq,mImLabFin.sz(),mImLabFin.in()==eLFMaster);
+    Tiff_Im::Create8BFromFonc(aNameLab,mImLabFin.sz(),mImLabFin.in());
+
+    aParam.Image_Profondeur().Val().Masq() = NameWithoutDir(aNameMasq);
+    MakeFileXML(aParam,aNameXML);
+
+    std::string aCom =  MM3dBinFile("Nuage2Ply") + "  " + aNameXML  ;
+    System(aCom);
+
 }
 
 

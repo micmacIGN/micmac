@@ -43,14 +43,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-inline int  pAramDistDilateBord() {return 3;}
-inline bool pAramVisuSelect() {return false;}
-inline bool pAramVisuElim() {return false;}
-inline bool pAramVisuEnv() {return false;}
+inline double pAramSurBookingIm() {return 5.0;}
+/*
 inline double pAramElimDirectInterior() {return 10.0;}
-
-inline double pAramLowRatioSelectIm() {return 0.01;}
+inline double pAramLowRatioSelectIm() {return 0.001;}
 inline double pAramHighRatioSelectIm() {return 0.05;}
+*/
 //
 //
 //
@@ -151,8 +149,12 @@ class cASAMG
       // Valeur >0 si dedans,  <0 dehors, quantifie l'interiorite
       double  InterioriteEnvlop(const Pt2di & aP,double aProfTest,double & aDeltaProf) const;
 
+      void ExportMiseAuPoint();
  
+      bool  IsImageMAP() const;
 
+      Video_Win *   TheWinIm() const;
+      Pt2di         Sz() const;
 
    private :
      void MakeVec3D(std::vector<Pt3dr> & aVPts,const cResumNuage &) const;
@@ -184,6 +186,7 @@ class cASAMG
      
 
      cAppliMergeCloud *   mAppli;
+     const cParamFusionNuage & mPrm;
      cImaMM *             mIma;
      cElNuage3DMaille *   mStdN;
      Im2D_Bits<1>         mMasqN;
@@ -234,6 +237,7 @@ class cASAMG
      cResumNuage            mLowRN;  // Basse resolution pour la topologie
      cImSecOfMaster         mISOM;
      int                    mNivSelected;
+     bool                   mIsMAP;
 
      static const int theNbValCompr;
 };
@@ -266,13 +270,14 @@ class cAppliMergeCloud : public cAppliWithSetImage
             char ** argv
        );
        const cParamFusionNuage & Param() {return mParam;}
-       Video_Win *   TheWinIm(Pt2di aSz);
+       Video_Win *   TheWinIm(const cASAMG *);
 
        static int MaxValQualTheo() {return eQC_Coh3;}
        REAL8    GainQual(int aNiv) const;
 
        tMCSubGr &  SubGrAll();
 
+       bool IsInImageMAP(cASAMG*);
        
     private :
        tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
@@ -313,6 +318,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        double                          mRecMoy;
        double                          mNbImMoy;
        int                             mNbImSelected;
+       cElRegex *                      mPatMAP;
 };
 
    //==============================================================================
