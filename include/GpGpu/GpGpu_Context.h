@@ -45,19 +45,22 @@ public:
 
     static  void check_Cuda(){}
 
-    static  void createKernel(string file){}
+    static  void createKernel(string file,string kernelName){}
 
     static  void launchKernel(){}
 
     template<class T>
     static  void addKernelArg(CData<T> &arg){}
 
+    template<class T>
+    static  void addKernelArg(T &arg){}
+
 private:
 
     static cl_context           _contextOpenCL;
     static cl_command_queue     _commandQueue;
     static cl_kernel            _kernel;
-
+    static unsigned short       _nbArg;
 
 };
 
@@ -238,7 +241,7 @@ cl_kernel CGpGpuContext<OPENCLSDK>::kernel()
 }
 
 template <> inline
-void CGpGpuContext<OPENCLSDK>::createKernel(string fileName)
+void CGpGpuContext<OPENCLSDK>::createKernel(string fileName,string kernelName)
 {
     cl_int error = -1;
 
@@ -246,8 +249,8 @@ void CGpGpuContext<OPENCLSDK>::createKernel(string fileName)
 
     std::string prog(std::istreambuf_iterator<char>(file),(std::istreambuf_iterator<char>()));
 
-//    if(file.is_open())
-//        printf("%s\n",prog.c_str());
+    if(file.is_open())
+        printf("%s\n",prog.c_str());
 
 
 
@@ -259,7 +262,7 @@ void CGpGpuContext<OPENCLSDK>::createKernel(string fileName)
 
     errorOpencl(clBuildProgram(program,0,NULL,NULL,NULL,NULL),"Build");
 
-    _kernel = clCreateKernel(program,"hello",&error);
+    _kernel = clCreateKernel(program,kernelName.c_str(),&error);
 
     errorOpencl(error,"Kernel");
 
@@ -290,9 +293,25 @@ void CGpGpuContext<OPENCLSDK>::addKernelArg(CData<T> &arg)
     cl_mem memBuffer = arg.clMem();
     //cl_kernel kernel;
 
-    error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),0,sizeof(memBuffer),&memBuffer);
+    error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(memBuffer),&memBuffer);
 
     errorOpencl(error,"Kernel Arg");
+
+    _nbArg++;
+
+}
+
+template <>
+template <class T> inline
+void CGpGpuContext<OPENCLSDK>::addKernelArg(T &arg)
+{
+    cl_int error = -1;
+
+    error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(T),&arg);
+
+    errorOpencl(error,"Kernel Arg");
+
+    _nbArg++;
 
 }
 
