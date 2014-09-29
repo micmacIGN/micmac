@@ -139,6 +139,11 @@
 				<OutputGaussiansDirectory Nb="?" Type="std::string" Def="gaussians"></OutputGaussiansDirectory>
 				<OutputTiles Nb="?" Type="bool" Def="false"></OutputTiles>
 				<OutputTilesDirectory Nb="?" Type="std::string" Def="tiles"></OutputTilesDirectory>
+				<OutputGradients Nb="?" Type="bool" Def="false"></OutputGradients>
+				<OutputGradientsNormDirectory Nb="?" Type="std::string" Def="gradients/norm"></OutputGradientsNormDirectory>
+				<OutputGradientsAngleDirectory Nb="?" Type="std::string" Def="gradients/angle"></OutputGradientsAngleDirectory>
+				<MergeTiles Nb="?" Type="bool" Def="true"> </MergeTiles> <!-- this option modifies OutputGaussians, OutputTiles, OutputGradient -->
+				<SuppressTiles Nb="?" Type="bool" Def="true"> </SuppressTiles> <!-- tiles are not suppressed if MergeTiles is not true --> 
 			</DigeoTestOutput>
 		</SectionTest>
 

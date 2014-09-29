@@ -68,10 +68,23 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#include <memory>
 //#include <cctype>
 
+#define __DEBUG_DIGEO
+
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
 
 #include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
+
+#define DIGEO_ORIENTATION_NB_BINS 36
+#define DIGEO_ORIENTATION_WINDOW_FACTOR 1.5
+#define DIGEO_DESCRIBE_NBO 8
+#define DIGEO_DESCRIBE_NBP 4
+#define DIGEO_DESCRIBE_MAGNIFY 3.
+#define DIGEO_DESCRIBE_THRESHOLD 0.2
+
+#ifndef M_PI
+	#define M_PI 3.14159265358979323846
+#endif
 
 //#define __DEBUG_DIGEO
 
@@ -268,11 +281,34 @@ class cImInMem
          double ScaleInOct() const;
          double ScaleInit()  const;
 
-         std::vector<cPtsCaracDigeo> & 	     VPtsCarac();
-         const std::vector<cPtsCaracDigeo> & VPtsCarac() const;
+         std::vector<cPtsCaracDigeo> & featurePoints();
+         const std::vector<cPtsCaracDigeo> & featurePoints() const;
 
-         virtual bool saveGaussian_pgm( const std::string &i_directory ) const = 0;
+         std::vector<DigeoPoint> & orientedPoints();
+         const std::vector<DigeoPoint> & orientedPoints() const;
+
+         virtual bool saveGaussian_pgm() const = 0;
          virtual bool loadGaussian_raw( const std::string &i_directory ) = 0;
+         virtual bool saveGaussian() const = 0;
+
+         virtual const Im2D<REAL4,REAL8> & getGradient() = 0;
+
+         void orientate();
+         void describe();
+
+         double orientateTime() const;
+         double describeTime() const;
+
+         string getTiledOutputBasename( int i_tile ) const;
+         string getTiledOutputBasename() const;
+         string getReconstructedOutputBasename() const;
+         
+         string getTiledGradientNormOutputName( int i_tile ) const;
+         string getTiledGradientNormOutputName() const;
+         string getTiledGradientAngleOutputName( int i_tile ) const;
+         string getTiledGradientAngleOutputName() const;
+         
+         bool reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const;
      protected :
 
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
@@ -289,9 +325,13 @@ class cImInMem
          cImInMem *       mMere;
          cImInMem *       mFille;
 
+         double           mOrientateTime;
+         double           mDescribeTime;
+
          Im1D_REAL8 mKernelTot;  // Noyaux le reliant a l'image de base de l'octave
          bool mFirstSauv;
-         std::vector<cPtsCaracDigeo> mVPtsCarac;
+         std::vector<cPtsCaracDigeo> mFeaturePoints;
+         std::vector<DigeoPoint> mOrientedPoints;
 
          // indices of the 8 neighbours of a point
          // mN0 mN1 mN2
@@ -342,7 +382,7 @@ template <class Type> class cTplImInMem : public cImInMem
         void VMakeReduce_11(cImInMem &);
         void ResizeImage(const Pt2di & aSz);
         double CalcGrad2Moy();
-        Im2DGen Im() ;
+        Im2DGen Im();
         tBase * DoG();
         void  SetMereSameDZ(cTplImInMem<Type> *);
         // void  SetOrigOct(cTplImInMem<Type> *);
@@ -434,13 +474,15 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          bool  SupDOG(Type *** aC,const Pt3di& aP1,const Pt3di& aP2);
          tBase DOG(Type *** aC,const Pt3di& aP1);
 
-         bool saveGaussian_pgm( const std::string &i_directory ) const;
+         bool saveGaussian_pgm() const;
          bool loadGaussian_raw( const std::string &i_directory );
+         bool saveGaussian() const;
 
          void saveDoG( const std::string &i_directory ) const;
          void loadDoG( const std::string &i_directory );
          
 			bool load_raw( const string &i_filename );
+			const Im2D<REAL4,REAL8> & getGradient();
 
          cTplOctDig<Type> & mTOct;
          tIm    mIm;
@@ -451,7 +493,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          Type **    mData;
          tBase      mDogPC;  // Dif of Gauss du pixel courrant
 
-         std::vector<tBase> mDoG;	 
+         std::vector<tBase> mDoG;
      private :
           cTplImInMem(const cTplImInMem<Type> &);  // N.I.
           void ExploiteExtrem(int anX,int anY);
@@ -534,11 +576,25 @@ class cOctaveDigeo
         Pt2dr  ToPtImCalc(const Pt2dr& aP0) const;  // Renvoie dans l'image sur/sous-resolue
         Pt2dr  ToPtImR1(const Pt2dr& aP0) const;  // Renvoie les coordonnees dans l'image initiale
 
+        double trueSamplingPace() const;
         REAL8 GetMaxValue() const;
+        
         bool saveGaussians( string i_directory, const string &i_basename ) const;
+
+        void orientate();
+
+        void describe();
+        
+        double describeTime() const;
+        double detectTime() const;
+        double orientateTime() const;
+        
+        string getTiledOutputBasename() const;
+        string getTiledOutputBasename( int i_tile ) const;
+        string getReconstructedOutputBasename() const;
     protected :
         static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
-       
+
         cOctaveDigeo(cOctaveDigeo * OctUp,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
 
 
@@ -554,6 +610,10 @@ class cOctaveDigeo
         Box2di                   mBoxImCalc;
         Box2dr                   mBoxCurIn;
         Box2di                   mBoxCurOut;
+        double                   mDetectTime;
+        double                   mTrueSamplingPace;
+        double                   mDescribeTime;
+        double                   mOrientateTime;
      private :
         cOctaveDigeo(const cOctaveDigeo &);  // N.I.
 };
@@ -596,10 +656,10 @@ template <class Type> class cTplOctDig  : public cOctaveDigeo
 
 void  calc_norm_grad
 (
- double ** out,
- double *** in,
- const Simple_OPBuf_Gen & arg
- );
+	double ** out,
+	double *** in,
+	const Simple_OPBuf_Gen & arg
+);
 
 Fonc_Num norm_grad(Fonc_Num f);
 
@@ -607,61 +667,70 @@ Fonc_Num norm_grad(Fonc_Num f);
 class cInterfImageAbs
 {
 public:
-	static cInterfImageAbs* create(std::string const &aName);	
-	
-	virtual Pt2di sz()const=0;
-	virtual int bitpp()const=0;
-	virtual GenIm::type_el type_el()const=0;
-	virtual double Som()const=0;
-	virtual TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const=0;
-	virtual TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const=0;
+	static cInterfImageAbs* create( std::string const &aName, unsigned int aMaxLoadAll );
 
+	virtual Pt2di sz() const = 0;
+	virtual int bitpp() const = 0;
+	virtual GenIm::type_el type_el() const = 0;
+	virtual double Som() const = 0;
+	virtual TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop) const = 0;
+	virtual TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop) const = 0;
+	virtual Im2DGen * fullImage() = 0;
+	virtual Im2DGen getWindow( Pt2di const &P0, Pt2di windowSize ) = 0;
 };
 
 class cInterfImageTiff:public cInterfImageAbs
 {
 private:
-	std::auto_ptr<Tiff_Im> mTifF;
+	std::auto_ptr<Tiff_Im> mTiff;
+	std::auto_ptr<Im2DGen> mFullImage;
+	std::auto_ptr<Im2DGen> mWindow;
+
 public:
-	cInterfImageTiff(std::string const &aName);
-	
-	~cInterfImageTiff()
-	{}
-	Pt2di sz()const
-	{
-		return mTifF->sz();
-	}
-	int bitpp()const
-	{
-		return mTifF->bitpp();
-	}
-	GenIm::type_el type_el()const
-	{
-		return mTifF->type_el();
-	}
-	
+	cInterfImageTiff( std::string const &aName, unsigned int aMaxLoadAll );
+
+	Pt2di sz() const { return mTiff->sz(); }
+
+	int bitpp()const { return mTiff->bitpp(); }
+
+	GenIm::type_el type_el() const { return mTiff->type_el(); }
+
+	Im2DGen * fullImage(){ return mFullImage.get(); }
+
 	double Som()const;
-	TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const;
-	TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const;
+
+	TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop) const { ELISE_ASSERT(false,"cInterfImageTiff::cropReal4"); return NULL; }
+
+	TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop) const { ELISE_ASSERT(false,"cInterfImageTiff::cropUInt1"); return NULL; }
+
+	Im2DGen getWindow( Pt2di const &P0, Pt2di windowSize );
 };
 
 class cInterfImageLoader:public cInterfImageAbs
 {
 private:
-	std::auto_ptr<cInterfModuleImageLoader> mLoader; 
+	std::auto_ptr<cInterfModuleImageLoader> mLoader;
+	auto_ptr<Im2D<REAL4,REAL> > mFullImage;
+	Im2D<REAL4,REAL> mWindow;
+
 public:
-	cInterfImageLoader(std::string const &aName);
-	~cInterfImageLoader()
-	{}
-	Pt2di sz()const
-	{
-		return Std2Elise(mLoader->Sz(1));
-	}
-	int bitpp()const;
-	GenIm::type_el type_el()const;
-	double Som()const;
-	TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const;
-	TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const;
+	cInterfImageLoader( std::string const &aName, unsigned int aMaxLoadAll );
+
+	Pt2di sz() const { return Std2Elise(mLoader->Sz(1)); }
+
+	int bitpp() const;
+
+	GenIm::type_el type_el() const;
+
+	Im2DGen * fullImage(){ return (Im2DGen*)&mFullImage; }
+
+	double Som() const;
+
+	TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop) const;
+
+	TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop) const;
+
+	Im2DGen getWindow( Pt2di const &P0, Pt2di windowSize );
 };
 
 
@@ -685,16 +754,29 @@ class cImDigeo
         cAppliDigeo &  Appli();
         const Box2di & BoxImCalc() const;
 
- // Pour pouvoir se dimentionner au "pire" des cas, chaque image est
- // d'abord notifiee de l'existence d'une box
+        // Pour pouvoir se dimentionner au "pire" des cas, chaque image est
+        // d'abord notifiee de l'existence d'une box
         void NotifUseBox(const Box2di &);
         void AllocImages();
         void LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut);
         void DoCalcGradMoy(int aDZ);
 
+        void saveGaussians() const;
+        double pyramidTime() const;
 
+        void detect();
+        double detectTime() const;
 
-       void DoExtract();
+        void computeGradients();
+
+        void orientate();
+        double orientateTime() const;
+
+        void describe();
+        double describeTime() const;
+        
+        void orientateAndDescribe();
+
        const cImageDigeo &  IMD();  // La structure XML !!!
        double Resol() const;
        cOctaveDigeo & GetOctOfDZ(int aDZ); 
@@ -710,17 +792,25 @@ class cImDigeo
        double GradMoyCorrecDyn() const;
        const Box2di &   BoxCurIn ();
        const Box2di &   BoxCurOut ();
-       const std::vector<cOctaveDigeo *> &   Octaves() const;
+       const std::vector<cOctaveDigeo *> & Octaves() const;
        double Sigma0() const;
        double SigmaN() const;
        double InitialDeltaSigma() const;
 
+       size_t addAllPoints( list<DigeoPoint> &o_allPoints ) const;
+
 	// Modif Greg pour le support JP2
 	//Tiff_Im TifF();
 	int bitpp()const{return mInterfImage->bitpp();}
+
+        double loadTime() const;
+        double gradientTime() const;
+
+        template <class DataType,class ComputeType>
+        const Im2D<REAL4,REAL8> & getGradient( const Im2D<DataType,ComputeType> &i_src, REAL8 i_srcMaxValue );
+        void retriveAllPoints( list<DigeoPoint> &o_allPoints ) const;
+        bool reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const;
      private :
-
-
         void DoSiftExtract();
 
         GenIm::type_el  TypeOfDeZoom(int aDZ) const;
@@ -752,14 +842,22 @@ class cImDigeo
         bool                         mG2MoyIsCalc;
         double                       mGradMoy;
         double                       mDyn;
-		REAL8			  			 mMaxValue; // valeur max d'un pixel, utilisée pour la normalisation du gradient
+        REAL8                        mMaxValue; // valeur max d'un pixel, utilisée pour la normalisation du gradient
         Im2DGen *                    mFileInMem;
         double                       mSigma0; // sigma of the first level of each octave (in the octave's space)
         double                       mSigmaN; // nominal sigma value of source image
         double                       mInitialDeltaSigma;
+        double                       mLoadTime;
+        double                       mPyramidTime;
+        double                       mDetectTime;
+        double                       mOrientateTime;
+        double                       mDescribeTime;
+        Im2D<REAL4,REAL8>            mGradient;
+        void *                       mGradientSource;
+        REAL8                        mGradientMaxValue;
+        double                       mGradientTime;
      private :
         cImDigeo(const cImDigeo &);  // N.I.
-        
 };
 
 template <class Type> class cConvolSpec
@@ -770,7 +868,6 @@ template <class Type> class cConvolSpec
         virtual void Convol(Type * Out,Type * In,int aK0,int aK1) ;
 
         virtual void ConvolCol(Type * Out,Type **In,int aX0,int aX1,int anYIn) ;
-
 
         static cConvolSpec<Type> * GetExisting(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
         static cConvolSpec<Type> * GetOrCreate(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
@@ -789,7 +886,6 @@ template <class Type> class cConvolSpec
         bool Match(tBase *  aDFilter,int aDebX,int aFinX,int  aNbShitX,bool ForGC);
         static std::vector<cConvolSpec<Type> *>   theVec;
         
-
         int mNbShift;
         int mDeb;
         int mFin;
@@ -821,9 +917,8 @@ class cAppliDigeo
        cAppliDigeo();
        ~cAppliDigeo();
 
-        void DoAll();
         cInterfChantierNameManipulateur * ICNM();
-        void DoOneInterv(int aK,bool DoExtract);
+        void DoOneInterv( int aK );
         void LoadOneInterv(int aKB);
         int  NbInterv() const;
         Box2di getInterv( int aKB ) const;
@@ -834,26 +929,42 @@ class cAppliDigeo
        bool MultiBloc() const;
        void loadImage( const string &i_filename );
 
-       cImDigeo & SingleImage();
        cSiftCarac *  RequireSiftCarac();
        cSiftCarac *  SiftCarac();
        template <class T> unsigned int nbSlowConvolutionsUsed() const { return 0; }
        template <class T> void upNbSlowConvolutionsUsed(){}
        string imageFullname() const;
+       
        string outputGaussiansDirectory() const;
        string outputTilesDirectory() const;
-       string outputTileBasename( int i_iTile ) const;
-       string currentTileBasename() const;
-       string currentTileFullname() const;
+       string outputGradientsNormDirectory() const;
+       string outputGradientsAngleDirectory() const;
+
+       string outputTiledBasename( int i_iTile ) const;
+       string currentTiledBasename() const;
+       string currentTiledFullname() const;
+       
        bool doSaveGaussians() const;
        bool doSaveTiles() const;
+       bool doSaveGradients() const;
+
+       bool doReconstructOutputs() const;
+       bool doSuppressTiledOutputs() const;
+
+       double loadAllImageLimit() const;
+
        int currentBoxIndex() const;
        bool doIncrementalConvolution() const;
        bool isVerbose() const;
        ePointRefinement refinementMethod() const;
+       bool showTimes() const;
+       cImDigeo & getImage();
+       const cImDigeo & getImage() const;
+       void reconstructFullOutputImages() const;
+       void upNbComputedGradients();
+       int nbComputedGradients() const;
     private :
        void InitAllImage();
-       void DoAllInterv();
        static void InitConvolSpec();
        template <class T> inline static void __InitConvolSpec(){}
        void AllocImages();
@@ -862,7 +973,7 @@ class cAppliDigeo
        void loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename );
 
        cParamDigeo                     * mParamDigeo;
-       std::vector<cImDigeo *>           mVIms;
+       cImDigeo *                        mImage;
 
        cInterfChantierNameManipulateur * mICNM;
        cDecoupageInterv2D                mDecoupInt;
@@ -874,23 +985,60 @@ class cAppliDigeo
        string                            mImagePath;
        string                            mImageBasename;
        string                            mImageFullname;
-       string                            mOutputGaussiansDirectory;
+       string                            mOutputGradientsNormDirectory;
+       string                            mOutputGradientsAngleDirectory;
        string                            mOutputTilesDirectory;
+       string                            mOutputGaussiansDirectory;
        cSectionTest *                    mSectionTest;
        bool                              mDoSaveGaussians;
        bool                              mDoSaveTiles;
+       bool                              mDoSaveGradients;
        int                               mCurrentBoxIndex;
        unsigned int                      mNbSlowConvolutionsUsed_uint2;
        unsigned int                      mNbSlowConvolutionsUsed_real4;
        string                            mConvolutionCodeFileBase;
        bool                              mVerbose;
        ePointRefinement                  mRefinementMethod;
+       bool                              mShowTimes;
+       bool                              mReconstructOutputs;
+       bool                              mSuppressTiledOutputs;
+       int                               mNbComputedGradients;
+       double                            mLoadAllImageLimit;
     public:
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
 
 };
+
+// compute an image's gradient
+// result image is twice as wide as the source image because there is two REAL4 value for each pixel, the magnitude and the angle
+template <class tData, class tComp>
+void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+
+// compute orientation's angle of a point (at most DIGEO_NB_MAX_ANGLES angles)
+int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, REAL8 o_angles[DIGEO_MAX_NB_ANGLES] );
+
+// = normalizeDescriptor + truncateDescriptor + normalizeDescriptor
+void normalize_and_truncate( REAL8 *io_descriptor );
+
+void normalizeDescriptor( REAL8 *io_descriptor );
+
+// truncate to DIGEO_DESCRIBE_THRESHOLD
+void truncateDescriptor( REAL8 *io_descriptor );
+
+bool save_pgm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height );
+
+bool load_pgm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height );
+
+bool save_ppm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height );
+
+bool load_ppm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height );
+
+bool read_pgm_header( const string &i_filename, unsigned int &o_width, unsigned int &o_height, unsigned int &o_maxValue, string &o_format );
+
+void drawWindow( unsigned char *io_dst, unsigned int i_dstW, unsigned int i_dstH, unsigned int i_nbChannels,
+                 unsigned int i_offsetX, unsigned int i_offsetY, const unsigned char *i_src, unsigned int i_srcW, unsigned int i_srcH );
 
 #include "GenConvolSpec_u_int2.instantiations.h"
 #include "GenConvolSpec_real4.instantiations.h"
@@ -904,6 +1052,9 @@ template <> inline void cAppliDigeo::upNbSlowConvolutionsUsed<REAL4>() { mNbSlow
 #define InstantiateClassTplDigeo(aClass)\
 template  class aClass<U_INT2>;\
 template  class aClass<REAL4>;
+
+#define InstantiateFunctionTplDigeo(DataType,ComputeType)\
+template <> void gradient<DataType,ComputeType>( const Im2D<DataType,ComputeType> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
 
 // =========================  INTERFACE EXTERNE ======================
 

@@ -550,11 +550,31 @@ class cDigeoTestOutput
 
         cTplValGesInit< std::string > & OutputTilesDirectory();
         const cTplValGesInit< std::string > & OutputTilesDirectory()const ;
+
+        cTplValGesInit< bool > & OutputGradients();
+        const cTplValGesInit< bool > & OutputGradients()const ;
+
+        cTplValGesInit< std::string > & OutputGradientsNormDirectory();
+        const cTplValGesInit< std::string > & OutputGradientsNormDirectory()const ;
+
+        cTplValGesInit< std::string > & OutputGradientsAngleDirectory();
+        const cTplValGesInit< std::string > & OutputGradientsAngleDirectory()const ;
+
+        cTplValGesInit< bool > & MergeTiles();
+        const cTplValGesInit< bool > & MergeTiles()const ;
+
+        cTplValGesInit< bool > & SuppressTiles();
+        const cTplValGesInit< bool > & SuppressTiles()const ;
     private:
         cTplValGesInit< bool > mOutputGaussians;
         cTplValGesInit< std::string > mOutputGaussiansDirectory;
         cTplValGesInit< bool > mOutputTiles;
         cTplValGesInit< std::string > mOutputTilesDirectory;
+        cTplValGesInit< bool > mOutputGradients;
+        cTplValGesInit< std::string > mOutputGradientsNormDirectory;
+        cTplValGesInit< std::string > mOutputGradientsAngleDirectory;
+        cTplValGesInit< bool > mMergeTiles;
+        cTplValGesInit< bool > mSuppressTiles;
 };
 cElXMLTree * ToXMLTree(const cDigeoTestOutput &);
 
@@ -586,6 +606,21 @@ class cSectionTest
 
         cTplValGesInit< std::string > & OutputTilesDirectory();
         const cTplValGesInit< std::string > & OutputTilesDirectory()const ;
+
+        cTplValGesInit< bool > & OutputGradients();
+        const cTplValGesInit< bool > & OutputGradients()const ;
+
+        cTplValGesInit< std::string > & OutputGradientsNormDirectory();
+        const cTplValGesInit< std::string > & OutputGradientsNormDirectory()const ;
+
+        cTplValGesInit< std::string > & OutputGradientsAngleDirectory();
+        const cTplValGesInit< std::string > & OutputGradientsAngleDirectory()const ;
+
+        cTplValGesInit< bool > & MergeTiles();
+        const cTplValGesInit< bool > & MergeTiles()const ;
+
+        cTplValGesInit< bool > & SuppressTiles();
+        const cTplValGesInit< bool > & SuppressTiles()const ;
 
         cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput();
         const cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput()const ;
@@ -900,6 +935,21 @@ class cParamDigeo
 
         cTplValGesInit< std::string > & OutputTilesDirectory();
         const cTplValGesInit< std::string > & OutputTilesDirectory()const ;
+
+        cTplValGesInit< bool > & OutputGradients();
+        const cTplValGesInit< bool > & OutputGradients()const ;
+
+        cTplValGesInit< std::string > & OutputGradientsNormDirectory();
+        const cTplValGesInit< std::string > & OutputGradientsNormDirectory()const ;
+
+        cTplValGesInit< std::string > & OutputGradientsAngleDirectory();
+        const cTplValGesInit< std::string > & OutputGradientsAngleDirectory()const ;
+
+        cTplValGesInit< bool > & MergeTiles();
+        const cTplValGesInit< bool > & MergeTiles()const ;
+
+        cTplValGesInit< bool > & SuppressTiles();
+        const cTplValGesInit< bool > & SuppressTiles()const ;
 
         cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput();
         const cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput()const ;

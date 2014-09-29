@@ -71,13 +71,16 @@ void cAppliDigeo::loadParametersFromFile( const string &i_templateFilename, cons
  
 cAppliDigeo::cAppliDigeo():
 	mParamDigeo  (NULL),
+	mImage       (NULL),
 	mICNM        (NULL),
 	mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
 	mDoIncrementalConvolution( true ),
 	mSiftCarac   (NULL),
 	mNbSlowConvolutionsUsed_uint2(0),
 	mNbSlowConvolutionsUsed_real4(0),
-	mRefinementMethod(eRefine3D)
+	mRefinementMethod(eRefine3D),
+	mShowTimes(false),
+	mNbComputedGradients(0)
 {
 	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), Basic_XML_MM_File( "Digeo-Parameters.xml" ) );
 
@@ -85,18 +88,18 @@ cAppliDigeo::cAppliDigeo():
 	mVerbose = Params().Verbose().Val();
 	if ( Params().ConvolIncrem().IsInit() ) mDoIncrementalConvolution = Params().ConvolIncrem().Val();
 	if ( Params().SiftCarac().IsInit() && Params().SiftCarac().Val().RefinementMethod().IsInit() ) mRefinementMethod = Params().SiftCarac().Val().RefinementMethod().Val();
+	if ( Params().ShowTimes().IsInit() && Params().ShowTimes().Val() ) mShowTimes = true;
 
 	processTestSection();
 	InitConvolSpec();
 
-	if ( Params().GenereCodeConvol().IsInit() ){
+	if ( Params().GenereCodeConvol().IsInit() )
+	{
 		const cGenereCodeConvol &genereCodeConvol = Params().GenereCodeConvol().Val();
 		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
 	}
 
-	if ( isVerbose() ){
-		cout << "refinement: " << eToString( mRefinementMethod ) << endl;
-	}
+	if ( isVerbose() ) cout << "refinement: " << eToString( mRefinementMethod ) << endl;
 }
 
 cAppliDigeo::~cAppliDigeo()
@@ -104,6 +107,10 @@ cAppliDigeo::~cAppliDigeo()
 	if ( mParamDigeo!=NULL ) delete mParamDigeo;
 	if ( mICNM!=NULL ) delete mICNM;
 }
+
+void cAppliDigeo::upNbComputedGradients() { mNbComputedGradients++; }
+
+int cAppliDigeo::nbComputedGradients() const { return mNbComputedGradients; }
 
 const cParamDigeo & cAppliDigeo::Params() const { return *mParamDigeo; }
 
@@ -129,13 +136,8 @@ void cAppliDigeo::loadImage( const string &i_filename )
 
 void cAppliDigeo::AllocImages()
 {
-	mVIms.push_back( new cImDigeo( mVIms.size(), Params().DigeoSectionImages().ImageDigeo(), imageFullname(), *this ) );
-}
-
-cImDigeo & cAppliDigeo::SingleImage()
-{
-    ELISE_ASSERT(mVIms.size()==1,"cAppliDigeo::SingleImage");
-    return *(mVIms[0]);
+	ELISE_ASSERT( mImage==NULL, "cAppliDigeo::AllocImages: image already allocated" );
+	mImage = new cImDigeo( 0, Params().DigeoSectionImages().ImageDigeo(), imageFullname(), *this );
 }
 
 bool cAppliDigeo::MultiBloc() const
@@ -149,7 +151,8 @@ void cAppliDigeo::InitAllImage()
 {
 	if ( !Params().ComputeCarac() ) return;
 
-  Box2di aBox = mVIms[0]->BoxImCalc();
+	cImDigeo &image = getImage();
+  Box2di aBox = image.BoxImCalc();
   Pt2di aSzGlob = aBox.sz();
   int    aBrd=0;
   int    aSzMax = aSzGlob.x + aSzGlob.y;
@@ -159,61 +162,35 @@ void cAppliDigeo::InitAllImage()
      aSzMax = Params().DigeoDecoupageCarac().Val().SzDalle();
   }
 
+	// __DEL
+	cout << "cDecoupageInterv2D : aBox = " << aBox._p0 << ' ' << aBox.sz() << " aSzMax = " << aSzMax << " aBrd = " << aBrd << endl;
   mDecoupInt = cDecoupageInterv2D (aBox,Pt2di(aSzMax,aSzMax),Box2di(aBrd));
 
   // Les images s'itialisent en fonction de la Box
-  for (int aKI=0 ; aKI<int(mVIms.size()) ; aKI++)
-  {
-      for (int aKB=0; aKB<mDecoupInt.NbInterv() ; aKB++)
-      {
-          mVIms[aKI]->NotifUseBox(mDecoupInt.KthIntervIn(aKB));
-      }
-      mVIms[aKI]->AllocImages();
-  }
+	for (int aKB=0; aKB<mDecoupInt.NbInterv() ; aKB++)
+		image.NotifUseBox(mDecoupInt.KthIntervIn(aKB));
+	image.AllocImages();
 }
-
-void cAppliDigeo::DoAllInterv()
-{
-   for (int aKB=0; aKB<mDecoupInt.NbInterv() ; aKB++)
-   {
-         std::cout << "Boxes to do " << mDecoupInt.NbInterv()  - aKB << "\n";
-         DoOneInterv(aKB,true);
-   }
-}
-
 
 int cAppliDigeo::NbInterv() const
 {
    return mDecoupInt.NbInterv();
 }
 
-void cAppliDigeo::DoOneInterv(int aKB,bool DoExtract)
+void cAppliDigeo::DoOneInterv( int aKB )
 {
-   mBoxIn = mDecoupInt.KthIntervIn(aKB);
-   mBoxOut = mDecoupInt.KthIntervOut(aKB);
-   for (size_t aKI=0 ; aKI<mVIms.size() ; aKI++)
-   {
-          mVIms[aKI]->LoadImageAndPyram(mBoxIn,mBoxOut);
-          if ( DoExtract ) mVIms[aKI]->DoExtract();
-   }
+	mBoxIn = mDecoupInt.KthIntervIn(aKB);
+	mBoxOut = mDecoupInt.KthIntervOut(aKB);
+	getImage().LoadImageAndPyram(mBoxIn,mBoxOut);
 }
 
 void cAppliDigeo::LoadOneInterv(int aKB)
 {
     mCurrentBoxIndex = aKB;
-    if ( doSaveTiles() ) ELISE_fp::MkDir( outputTilesDirectory() );
-    DoOneInterv(aKB,false);
+    DoOneInterv(aKB);
 }
 
 Box2di cAppliDigeo::getInterv( int aKB ) const { return mDecoupInt.KthIntervIn(aKB); }
-
-void cAppliDigeo::DoAll()
-{
-     //AllocImages();
-     ELISE_ASSERT(mVIms.size(),"NoImage selected !!");
-     InitAllImage();
-     DoAllInterv();
-}
 
      // cOctaveDigeo & GetOctOfDZ(int aDZ);
 
@@ -230,9 +207,19 @@ string cAppliDigeo::outputGaussiansDirectory() const { return mOutputGaussiansDi
 
 string cAppliDigeo::outputTilesDirectory() const { return mOutputTilesDirectory; }
 
+string cAppliDigeo::outputGradientsNormDirectory() const { return mOutputGradientsNormDirectory; }
+
+string cAppliDigeo::outputGradientsAngleDirectory() const { return mOutputGradientsAngleDirectory; }
+
 bool cAppliDigeo::doSaveGaussians() const { return mDoSaveGaussians; }
 
-bool cAppliDigeo::doSaveTiles() const { return mDoSaveGaussians; }
+bool cAppliDigeo::doSaveTiles() const { return mDoSaveTiles; }
+
+bool cAppliDigeo::doSaveGradients() const { return mDoSaveGradients; }
+
+bool cAppliDigeo::doReconstructOutputs() const { return mReconstructOutputs; }
+
+bool cAppliDigeo::doSuppressTiledOutputs() const { return mSuppressTiledOutputs; }
 
 int cAppliDigeo::currentBoxIndex() const { return mCurrentBoxIndex; }
 
@@ -242,6 +229,10 @@ bool cAppliDigeo::isVerbose() const { return mVerbose; }
 
 ePointRefinement cAppliDigeo::refinementMethod() const { return mRefinementMethod; }
 
+bool cAppliDigeo::showTimes() const { return mShowTimes; }
+
+double cAppliDigeo::loadAllImageLimit() const { return mLoadAllImageLimit; }
+
 void cAppliDigeo::processImageName( const string &i_imageFullname )
 {
 	ELISE_ASSERT( ELISE_fp::exist_file(i_imageFullname), ( string("processImageName: image to process do not exist [")+i_imageFullname+"]" ).c_str() );
@@ -250,46 +241,80 @@ void cAppliDigeo::processImageName( const string &i_imageFullname )
 	SplitDirAndFile( mImagePath, mImageBasename, mImageFullname );
 }
 
-string cAppliDigeo::outputTileBasename( int i_iTile ) const
+cImDigeo & cAppliDigeo::getImage()
+{
+	ELISE_ASSERT( mImage!=NULL, "cAppliDigeo::getImage: image is not allocated" );
+	return *mImage;
+}
+
+const cImDigeo & cAppliDigeo::getImage() const
+{
+	ELISE_ASSERT( mImage!=NULL, "cAppliDigeo::getImage: image is not allocated" );
+	return *mImage;
+}
+
+string cAppliDigeo::outputTiledBasename( int i_iTile ) const
 {
 	stringstream ss;
 	ss << mImageBasename << "_tile" << setfill('0') << setw(3) << i_iTile;
 	return ss.str();
 }
 
-string cAppliDigeo::currentTileBasename() const
+string cAppliDigeo::currentTiledBasename() const
 {
-	return outputTileBasename( currentBoxIndex() );
+	return outputTiledBasename( currentBoxIndex() );
 }
 
-string cAppliDigeo::currentTileFullname() const
+string cAppliDigeo::currentTiledFullname() const
 {
-	return outputTilesDirectory()+"/"+currentTileBasename();
+	return outputTilesDirectory()+"/"+currentTiledBasename();
 }
 
-void removeEndingSlash( string &i_str )
+static void removeEndingSlash( string &i_str )
 {
 	if ( i_str.length()==0 ) return;
 	const char c = *i_str.rbegin();
 	if ( c=='/' || c=='\\' ) i_str.resize(i_str.length()-1);
 }
 
+static void processOutputPath( string &i_path )
+{
+	removeEndingSlash( i_path );
+	if ( i_path.length()==0 )
+		i_path="./";
+	else{
+		i_path.append("/");
+		ELISE_fp::MkDirRec( i_path );
+	}
+}
+
 void cAppliDigeo::processTestSection()
 {
 	const cSectionTest *mSectionTest = ( Params().SectionTest().IsInit()?&Params().SectionTest().Val():NULL );
-	mDoSaveGaussians = mDoSaveTiles = false;
+	mDoSaveGaussians = mDoSaveTiles = mDoSaveGradients = mReconstructOutputs = mSuppressTiledOutputs = false;
 	if ( mSectionTest!=NULL && mSectionTest->DigeoTestOutput().IsInit() ){
 		const cDigeoTestOutput &testOutput = mSectionTest->DigeoTestOutput().Val();
 		if ( testOutput.OutputGaussians().IsInit() && testOutput.OutputGaussians().Val() ){
 			mDoSaveGaussians = true;
 			mOutputGaussiansDirectory = testOutput.OutputGaussiansDirectory().ValWithDef("");
-			removeEndingSlash( mOutputGaussiansDirectory );
+			processOutputPath( mOutputGaussiansDirectory );
 		}
 		if ( testOutput.OutputTiles().IsInit() && mSectionTest->OutputTiles().Val() ){
 			mDoSaveTiles = true;
 			mOutputTilesDirectory = testOutput.OutputTilesDirectory().ValWithDef("");
-			removeEndingSlash( mOutputTilesDirectory );
+			processOutputPath( mOutputTilesDirectory );
 		}
+		if ( testOutput.OutputGradients().IsInit() && mSectionTest->OutputGradients().Val() ){
+			mDoSaveGradients = true;
+			mOutputGradientsAngleDirectory = testOutput.OutputGradientsAngleDirectory().ValWithDef("");
+			processOutputPath( mOutputGradientsAngleDirectory );
+			mOutputGradientsNormDirectory = testOutput.OutputGradientsNormDirectory().ValWithDef("");
+			processOutputPath( mOutputGradientsNormDirectory );
+		}
+		if ( testOutput.MergeTiles().IsInit() && testOutput.MergeTiles().Val() )
+			mReconstructOutputs = true;
+		if ( testOutput.SuppressTiles().IsInit() && testOutput.SuppressTiles().Val() )
+			mSuppressTiledOutputs = true;
 	}
 }
 
@@ -307,6 +332,29 @@ string cAppliDigeo::getConvolutionClassesFilename( string i_type )
 string cAppliDigeo::getConvolutionInstantiationsFilename( string i_type )
 {
 	return mConvolutionCodeFileBase+i_type+".instantiations.h";
+}
+
+void cAppliDigeo::reconstructFullOutputImages() const
+{
+	if ( doSaveGaussians() )
+	{
+		ELISE_ASSERT( getImage().reconstructFromTiles( outputGaussiansDirectory(), ".gaussian.pgm", mDecoupInt.NbX() ),
+		              "cAppliDigeo::reconstructFullOutputImages: gaussian image failed" );
+	}
+
+	if ( doSaveTiles() )
+	{
+		ELISE_ASSERT( getImage().Octaves()[0]->FirstImage()->reconstructFromTiles( outputTilesDirectory(), ".ppm", mDecoupInt.NbX() ),
+		              "cAppliDigeo::reconstructFullOutputImages: tiled image failed" );
+	}
+
+	if ( doSaveGradients() )
+	{
+		ELISE_ASSERT( getImage().reconstructFromTiles( outputGradientsNormDirectory(), ".gradient.norm.pgm", mDecoupInt.NbX() ),
+		              "cAppliDigeo::reconstructFullOutputImages: gradient norm image failed" );
+		ELISE_ASSERT( getImage().reconstructFromTiles( outputGradientsAngleDirectory(), ".gradient.angle.pgm", mDecoupInt.NbX() ),
+		              "cAppliDigeo::reconstructFullOutputImages: gradient angle image failed" );
+	}
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -79,6 +79,26 @@ bool save_pgm( const string &i_filename, const T *i_image, unsigned int i_width,
 	return res;
 }
 
+template <class T>
+bool save_pgm( const string &i_filename, const T *i_image, unsigned int i_width, unsigned int i_height, double i_scale )
+{
+	unsigned int iPix = i_width*i_height;
+	unsigned char *img = new unsigned char[iPix];
+	unsigned char *itDst = img;
+	while ( iPix-- ){
+		int v = round_ni( (double)i_image[0]*i_scale );
+		if ( v>255 )
+			v = 255;
+		else if ( v<0 )
+			v = 0;
+		itDst[0] = (unsigned char)v;
+		i_image++; itDst++;
+	}
+	bool res = save_pgm( i_filename, img, i_width, i_height );
+	delete [] img;
+	return res;
+}
+
 bool save_ppm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height )
 {
 	ofstream f( i_filename.c_str(), ios::binary );
@@ -87,6 +107,31 @@ bool save_ppm( const string &i_filename, unsigned char *i_image, unsigned int i_
 	f << i_width << ' ' << i_height << endl;
 	f << 255 << endl;
 	f.write( (const char *)i_image, 3*i_width*i_height );
+
+	#ifdef __DEBUG_DIGEO
+		if ( f.bad() ) cerr << "save_ppm: cannot read " << 3*i_width*i_height << " bytes" << endl;
+	#endif
+
+	return true;
+}
+
+bool load_pgm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height )
+{
+	o_image = NULL;
+	o_width = o_height = 0;
+	ifstream f( i_filename.c_str(), ios::binary );
+	if ( !f ) return false;
+	string str;
+	f >> str;
+	if ( str!="P5" ) return false;
+	f >> o_width;
+	f >> o_height;
+	int maxValue;
+	f >> maxValue;
+	f.get();
+	unsigned int nbBytes = o_width*o_height;
+	o_image = new unsigned char[nbBytes];
+	f.read( (char *)o_image, nbBytes );
 	return true;
 }
 
@@ -135,7 +180,7 @@ bool save_ppm( const string &i_filename, const T *i_image, unsigned int i_width,
 
 /****************************************/
 /*                                      */
-/*             cTplImInMem               */
+/*             cTplImInMem              */
 /*                                      */
 /****************************************/
 
@@ -185,6 +230,7 @@ template <class Type> void cTplImInMem<Type>::ResizeBasic(const Pt2di & aSz)
    mN6 = mSz.x;
    mN7 = mSz.x+1;
 }
+
 template <class Type> void cTplImInMem<Type>::ResizeImage(const Pt2di & aSz)
 {
     ResizeBasic(aSz+Pt2di(PackTranspo,0));
@@ -195,37 +241,47 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 {
 	ResizeOctave(aBox.sz());
 	ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
+
+	if ( mAppli.doSaveTiles() ) save_ppm<Type>( mAppli.outputTilesDirectory()+getTiledOutputBasename()+".ppm", mData[0], mSz.x, mSz.y, (Type)0, 255 );
+
 	if ( mAppli.Params().MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8) &&
 	     type_im_integral(mType) &&
-	     (!signed_type_num(mType) ) ){
+	     (!signed_type_num(mType) ) )
+	{
 		int aMinT,aMaxT;
 		min_max_type_num(mType,aMinT,aMaxT);
 		aMaxT = ElMin(aMaxT-1,1<<19);  // !!! LIES A NbShift ds PyramideGaussienne
 		tBase aMul = 0;
 
-		if ( mAppli.Params().ValMaxForDyn().IsInit() ){
+		if ( mAppli.Params().ValMaxForDyn().IsInit() )
+		{
 			tBase aMaxTm1 = aMaxT-1;
-			aMul = round_ni(aMaxTm1/mAppli.Params().ValMaxForDyn().Val()) ;
+			aMul = round_ni(aMaxTm1/mAppli.Params().ValMaxForDyn().Val());
 
-			for (int aY=0 ; aY<mSz.y ; aY++){
+			for (int aY=0 ; aY<mSz.y ; aY++)
+			{
 				Type * aL = mData[aY];
 				for (int aX=0 ; aX<mSz.x ; aX++)
-				aL[aX] = ElMin(aMaxTm1,tBase(aL[aX]*aMul));
+					aL[aX] = ElMin(aMaxTm1,tBase(aL[aX]*aMul));
 			}
-			std::cout << " Multiplieur in : " << aMul  << "\n";
+			std::cout << "\tMultiplieur in : " << aMul  << "\n";
 		}
-		else{
+		else
+		{
 			Type aMaxV = aMinT;
-			for (int aY=0 ; aY<mSz.y ; aY++){
+			for (int aY=0 ; aY<mSz.y ; aY++)
+			{
 				Type * aL = mData[aY];
 				for (int aX=0 ; aX<mSz.x ; aX++)
-				ElSetMax(aMaxV,aL[aX]);
+					ElSetMax(aMaxV,aL[aX]);
 			}
 			aMul = (aMaxT-1) / aMaxV;
 			if ( mAppli.Params().ShowTimes().Val() )
-				std::cout << " Multiplieur in : " << aMul << " MaxVal " << tBase(aMaxV ) << " MaxType " << aMaxT << "\n";
-			if (aMul > 1){
-				for (int aY=0 ; aY<mSz.y ; aY++){
+				std::cout << "\tMultiplieur in : " << aMul << " MaxVal " << tBase(aMaxV ) << " MaxType " << aMaxT << "\n";
+			if (aMul > 1)
+			{
+				for (int aY=0 ; aY<mSz.y ; aY++)
+				{
 					Type * aL = mData[aY];
 					for (int aX=0 ; aX<mSz.x ; aX++)
 						aL[aX] *= aMul;
@@ -239,7 +295,8 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 	}
 	else{
 		Type aMaxV = numeric_limits<Type>::min();
-		for (int aY=0 ; aY<mSz.y ; aY++){
+		for (int aY=0 ; aY<mSz.y ; aY++)
+		{
 			Type * aL = mData[aY];
 			for (int aX=0 ; aX<mSz.x ; aX++)
 				ElSetMax(aMaxV,aL[aX]);
@@ -247,7 +304,8 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 
 		#ifdef __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
 			const Type  mul = (Type)1/(Type)( mAppli.Params().ValMaxForDyn().IsInit()?mAppli.Params().ValMaxForDyn().Val():mFileTheoricalMaxValue );
-			for (int aY=0 ; aY<mSz.y ; aY++){
+			for (int aY=0 ; aY<mSz.y ; aY++)
+			{
 				Type * aL = mData[aY];
 				for (int aX=0 ; aX<mSz.x ; aX++)
 					aL[aX] *= mul;
@@ -260,12 +318,12 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 		#endif
 	}
 
-	if ( mAppli.doSaveTiles() ) save_ppm<Type>( mAppli.currentTileFullname()+".ppm", mData[0], mSz.x, mSz.y, (Type)0, (Type)mImGlob.GetMaxValue() );
-
 	const cTypePyramide & aTP = mAppli.Params().TypePyramide();
-	if ( aTP.PyramideGaussienne().IsInit() ){
+	if ( aTP.PyramideGaussienne().IsInit() )
+	{
 		const double aSigmD = mImGlob.InitialDeltaSigma();
-		if ( aSigmD!=0. ){
+		if ( aSigmD!=0. )
+		{
 			Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
 			SetConvolSepXY( true, aSigmD, *this, aIKerD, mNbShift );
 		}
@@ -369,29 +427,30 @@ bool cTplImInMem<Type>::load_raw( const string &i_filename )
 }
 
 template <>
-bool cTplImInMem<U_INT2>::saveGaussian_pgm( const std::string &i_filename ) const
+bool cTplImInMem<U_INT2>::saveGaussian_pgm() const
 {
-	stringstream ss;
-	ss << i_filename << '_' << setfill('0') << setw(2) << mKInOct << ".pgm";
-	return ::save_pgm<U_INT2>( ss.str(), mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty(), 0, 65535 );
+	const string filename = mAppli.outputGaussiansDirectory()+getTiledOutputBasename()+".gaussian.pgm";
+	return ::save_pgm<U_INT2>( filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty(), 1./mImGlob.GetDyn() );
 }
 
 template <>
-bool cTplImInMem<REAL4>::saveGaussian_pgm( const std::string &i_filename ) const
+bool cTplImInMem<REAL4>::saveGaussian_pgm() const
 {
-	stringstream ss;
-	ss << i_filename << '_' << setfill('0') << setw(2) << mKInOct << ".pgm";
-	return ::save_pgm<REAL4>( ss.str(), mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty(), 0.f, 1.f );
+	const string filename = mAppli.outputGaussiansDirectory()+getTiledOutputBasename()+".gaussian.pgm";
+	return ::save_pgm<REAL4>( filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty(), 1./mImGlob.GetDyn() );
 }
 
 template <>
-bool cTplImInMem<U_INT1>::saveGaussian_pgm( const std::string &i_filename ) const { return false; }
+bool cTplImInMem<U_INT1>::saveGaussian_pgm() const { return false; }
 
 template <>
-bool cTplImInMem<INT>::saveGaussian_pgm( const std::string &i_filename ) const { return false; }
+bool cTplImInMem<INT>::saveGaussian_pgm() const { return false; }
 
 template <>
-bool cTplImInMem<REAL>::saveGaussian_pgm( const std::string &i_filename ) const { return false; }
+bool cTplImInMem<REAL>::saveGaussian_pgm() const { return false; }
+
+template <class Type>
+bool cTplImInMem<Type>::saveGaussian() const { return saveGaussian_pgm(); }
 
 template <class Type>
 bool cTplImInMem<Type>::loadGaussian_raw( const std::string &in_dir )
@@ -591,8 +650,6 @@ InstantiateClassTplDigeo(cTplImInMem)
 
 
 
-
-
 /****************************************/
 /*                                      */
 /*             cImInMem                 */
@@ -747,8 +804,11 @@ void cImInMem::SauvIm(const std::string & aAdd)
 
     // ACCESSOR 
 
-std::vector<cPtsCaracDigeo> &  cImInMem::VPtsCarac() {return mVPtsCarac;}
-const std::vector<cPtsCaracDigeo> &  cImInMem::VPtsCarac() const {return mVPtsCarac;}
+vector<cPtsCaracDigeo>       & cImInMem::featurePoints()       { return mFeaturePoints; }
+const vector<cPtsCaracDigeo> & cImInMem::featurePoints() const { return mFeaturePoints; }
+
+vector<DigeoPoint>       & cImInMem::orientedPoints()       { return mOrientedPoints; }
+const vector<DigeoPoint> & cImInMem::orientedPoints() const { return mOrientedPoints; }
 
 GenIm::type_el  cImInMem::TypeEl() const { return mType; }
 Pt2di cImInMem::Sz() const {return mSz;}
@@ -757,7 +817,458 @@ double cImInMem::ROct() const {return mResolOctaveBase;}
 cImInMem *  cImInMem::Mere() {return mMere;}
 cOctaveDigeo &  cImInMem::Oct() {return mOct;}
 
+bool save_gradient( const Im2D<REAL4, REAL8> &i_gradient, const int i_offset, const string &i_filename )
+{
+	unsigned int iPix = i_gradient.tx()*i_gradient.ty()/2;
+	REAL4 *channel = new REAL4[iPix];
 
+	// retrieve min/max
+	REAL4 minv = numeric_limits<REAL4>::max(),
+	      maxv = -numeric_limits<REAL4>::max();
+	const REAL4 *itPix = i_gradient.data_lin();
+	REAL4 *itChan = channel;
+	while ( iPix-- ){
+		REAL4 v = itPix[i_offset];
+		if ( v<minv ) minv=v;
+		if ( v>maxv ) maxv=v;
+
+		*itChan++ = itPix[i_offset];
+		itPix += 2;
+	}
+
+	if ( !save_pgm( i_filename, channel, (unsigned int)i_gradient.tx()/2, (unsigned int)i_gradient.ty(), minv, maxv ) ) return false;
+
+	delete [] channel;
+	return true;
+}
+
+template <class tData, class tComp>
+void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient )
+{
+    o_gradient.Resize( Pt2di( i_image.tx()*2, i_image.ty() ) );
+
+    const REAL8 coef = REAL8(0.5)/i_maxValue;
+    const int c1 = -i_image.sz().x;
+    int offset = i_image.sz().x+1;
+    const tData *src = i_image.data_lin()+offset;
+    REAL4 *dst = o_gradient.data_lin()+2*offset;
+    REAL8 gx, gy, theta;
+    int width_2 = i_image.sz().x-2,
+        y = i_image.sz().y-2,
+        x;
+    while ( y-- )
+    {
+        x = width_2;
+        while ( x-- )
+        {
+            gx = ( REAL8 )( coef*( REAL8(src[1])-REAL8(src[-1]) ) );
+            gy = ( REAL8 )( coef*( REAL8(src[i_image.sz().x])-REAL8(src[c1]) ) );
+            dst[0] = (REAL4)std::sqrt( gx*gx+gy*gy );
+
+            theta = std::fmod( REAL8( std::atan2( gy, gx ) ), REAL8( 2*M_PI ) );
+            if ( theta<0 ) theta+=2*M_PI;
+            dst[1] = (REAL4)theta;
+
+            src++; dst+=2;
+        }
+        src+=2; dst+=4;
+    }
+}
+
+template void gradient<REAL4,REAL8>( const Im2D<REAL4,REAL8> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+template void gradient<U_INT2,INT>( const Im2D<U_INT2,INT> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+
+string cImInMem::getTiledOutputBasename( int i_tile ) const
+{
+	stringstream ss;
+	ss << mOct.getTiledOutputBasename(i_tile) << '_' << setfill('0') << setw(2) << mKInOct;
+	return ss.str();
+}
+
+string cImInMem::getTiledOutputBasename() const { return getTiledOutputBasename(mAppli.currentBoxIndex()); }
+
+string cImInMem::getReconstructedOutputBasename() const
+{
+	stringstream ss;
+	ss << mOct.getReconstructedOutputBasename() << '_' << setfill('0') << setw(2) << mKInOct;
+	return ss.str();
+}
+
+string cImInMem::getTiledGradientNormOutputName( int i_tile ) const { return mAppli.outputGradientsNormDirectory()+getTiledOutputBasename(i_tile)+".gradient.norm.pgm"; }
+string cImInMem::getTiledGradientNormOutputName() const { return getTiledGradientNormOutputName( mAppli.currentBoxIndex() ); }
+
+string cImInMem::getTiledGradientAngleOutputName( int i_tile ) const { return mAppli.outputGradientsAngleDirectory()+getTiledOutputBasename(i_tile)+".gradient.angle.pgm"; }
+string cImInMem::getTiledGradientAngleOutputName() const { return getTiledGradientAngleOutputName( mAppli.currentBoxIndex() ); }
+
+template <class Type>
+const Im2D<REAL4,REAL8> & cTplImInMem<Type>::getGradient() { return mImGlob.getGradient( TIm(), mOct.GetMaxValue() ); }
+
+// return the number of possible orientations (at most DIGEO_NB_MAX_ANGLES)
+int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, REAL8 o_angles[DIGEO_MAX_NB_ANGLES] )
+{
+	static REAL8 histo[DIGEO_ORIENTATION_NB_BINS];
+
+	int xi = ((int) (i_p.mPt.x+0.5)) ;
+	int yi = ((int) (i_p.mPt.y+0.5)) ;
+	const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mLocalScale;
+	const int W = (int)ceil( 3*sigmaw );
+
+	// fill the SIFT histogram
+	const INT width  = i_gradient.sz().x/2,
+	          height = i_gradient.sz().y;
+    REAL8 dx, dy, r2,
+          wgt, mod, ang;
+    int   offset;
+    const REAL4 *p = i_gradient.data_lin()+( xi+yi*width )*2;    
+    std::fill( histo, histo+DIGEO_ORIENTATION_NB_BINS, 0 );
+    for ( int ys=std::max( -W, 1-yi ); ys<=std::min( W, height-2-yi ); ys++ )
+    {
+        for ( int xs=std::max( -W, 1-xi ); xs<=std::min( W, width-2-xi ); xs++ )
+        {
+            dx = xi+xs-i_p.mPt.x;
+            dy = yi+ys-i_p.mPt.y;
+            r2 = dx*dx+dy*dy;
+
+            // limit to a circular window
+            if ( r2>=W*W+0.5 ) continue;
+
+            wgt    = ::exp( -r2/( 2*sigmaw*sigmaw ) );
+            offset = ( xs+ys*width )*2;
+            mod    = p[offset];
+            ang    = p[offset+1];
+            int bin = (int) floor( DIGEO_ORIENTATION_NB_BINS*ang/( 2*M_PI ) );
+            histo[bin] += mod*wgt;
+        }
+    }
+
+    REAL8 prev;
+    // smooth histogram
+    // mean of a bin and its two neighbour values (x6)
+    REAL8 *itHisto,
+           first, mean;
+    int iHisto,
+        iIter = 6;
+    while ( iIter-- )
+    {
+        itHisto = histo;
+        iHisto  = DIGEO_ORIENTATION_NB_BINS-2;
+        first = prev = *itHisto;
+        *itHisto = ( histo[DIGEO_ORIENTATION_NB_BINS-1]+( *itHisto )+itHisto[1] )/3.; itHisto++;
+        while ( iHisto-- ){
+            mean = ( prev+(*itHisto)+itHisto[1] )/3.;
+            prev = *itHisto;
+            *itHisto++ = mean;
+        }
+        *itHisto = ( prev+( *itHisto )+first )/3.; itHisto++;
+    }
+
+    // find histogram's peaks
+    // peaks are values > 80% of histoMax and > to both its neighbours
+    REAL8 histoMax = 0.8*( *std::max_element( histo, histo+DIGEO_ORIENTATION_NB_BINS ) ),
+          v, next, di;
+    int nbAngles = 0;
+    for ( int i=0; i<DIGEO_ORIENTATION_NB_BINS; i++ )
+    {
+        v    = histo[i];
+        prev = histo[ ( i==0 )?DIGEO_ORIENTATION_NB_BINS-1:i-1 ];
+        next = histo[ ( i==( DIGEO_ORIENTATION_NB_BINS-1 ) )?0:i+1 ];
+        if ( ( v>histoMax ) && ( v>prev ) && ( v>next ) )
+        {
+            // we found a peak
+            // compute angle by quadratic interpolation
+            di = -0.5*( next-prev )/( next+prev-2*v ) ;
+            o_angles[nbAngles++] = 2*M_PI*( i+di+0.5 )/DIGEO_ORIENTATION_NB_BINS;
+            if ( nbAngles==DIGEO_MAX_NB_ANGLES ) return DIGEO_MAX_NB_ANGLES;
+        }
+    }
+    return nbAngles;
+}
+
+void cImInMem::orientate()
+{
+	const Im2D<REAL4,REAL8> &srcGradient = getGradient();
+
+	ElTimer chrono;
+	mOrientedPoints.resize( mFeaturePoints.size() );
+	double octaveTrueSamplingPace = mOct.trueSamplingPace();
+	REAL8 angles[DIGEO_MAX_NB_ANGLES];
+	int nbAngles;
+	size_t nbSkipped = 0;
+
+	const cPtsCaracDigeo *itSrc = mFeaturePoints.data();
+	DigeoPoint *itDst = mOrientedPoints.data();
+	size_t iFeature = mFeaturePoints.size();
+	while ( iFeature-- ){
+		const cPtsCaracDigeo &srcPoint = *itSrc++;
+
+		nbAngles = ::orientate( srcGradient, srcPoint, angles );
+
+		if ( nbAngles!=0 ){
+			DigeoPoint &dstPoint = *itDst++;
+			dstPoint.x = srcPoint.mPt.x*octaveTrueSamplingPace;
+			dstPoint.y = srcPoint.mPt.y*octaveTrueSamplingPace;
+			dstPoint.scale = srcPoint.mScale;
+			switch ( srcPoint.mType ){
+			case eSiftMaxDog: dstPoint.type=DigeoPoint::DETECT_LOCAL_MAX; break;
+			case eSiftMinDog: dstPoint.type=DigeoPoint::DETECT_LOCAL_MIN; break;
+			default: dstPoint.type=DigeoPoint::DETECT_UNKNOWN; break;
+			}
+
+			dstPoint.entries.resize( (size_t)nbAngles );
+			for ( int iAngle=0; iAngle<nbAngles; iAngle++ )
+				dstPoint.entries[iAngle].angle = angles[iAngle];
+		}
+		else
+			nbSkipped++;
+	}
+	mOrientedPoints.resize( mOrientedPoints.size()-nbSkipped );
+
+	mOrientateTime = chrono.uval();
+}
+
+//double cImDigeo::detectTime() const { return mDetectTime; }
+
+double cImInMem::orientateTime() const { return mOrientateTime; }
+
+double cImInMem::describeTime() const { return mDescribeTime; }
+
+
+
+
+#define atd(dbinx,dbiny,dbint) *(dp + (dbint)*binto + (dbiny)*binyo + (dbinx)*binxo)
+
+// o_descritpor must be of size DIGEO_DESCRIPTOR_SIZE
+void describe( const Im2D<REAL4,REAL8> &i_gradient, REAL8 i_x, REAL8 i_y, REAL8 i_localScale, REAL8 i_angle, REAL8 *o_descriptor )
+{
+	REAL8 st0 = sinf( i_angle ),
+	      ct0 = cosf( i_angle );
+
+	int xi = int( i_x+0.5 );
+	int yi = int( i_y+0.5 );
+
+	const REAL8 SBP = DIGEO_DESCRIBE_MAGNIFY*i_localScale;
+	const int  W   = (int)ceil( sqrt( 2.0 )*SBP*( DIGEO_DESCRIBE_NBP+1 )/2.0+0.5 );
+
+	/* Offsets to move in the descriptor. */
+	/* Use Lowe's convention. */
+	const int binto = 1 ;
+	const int binyo = DIGEO_DESCRIBE_NBO*DIGEO_DESCRIBE_NBP;
+	const int binxo = DIGEO_DESCRIBE_NBO;
+
+	std::fill( o_descriptor, o_descriptor+DIGEO_DESCRIPTOR_SIZE, 0 ) ;
+
+    /* Center the scale space and the descriptor on the current keypoint.
+    * Note that dpt is pointing to the bin of center (SBP/2,SBP/2,0).
+    */
+	const INT width  = i_gradient.sz().x/2,
+	      height = i_gradient.sz().y;
+	const REAL4 *p = i_gradient.data_lin()+( xi+yi*width )*2;
+	REAL8 *dp = o_descriptor+( DIGEO_DESCRIBE_NBP/2 )*( binyo+binxo );
+
+	#define atd(dbinx,dbiny,dbint) *(dp + (dbint)*binto + (dbiny)*binyo + (dbinx)*binxo)
+
+	/*
+	* Process pixels in the intersection of the image rectangle
+	* (1,1)-(M-1,N-1) and the keypoint bounding box.
+	*/
+	const REAL8 wsigma = DIGEO_DESCRIBE_NBP/2 ;
+	int  offset;
+	REAL8 mod, angle, theta,
+	      dx, dy,
+	      nx, ny, nt;
+    int  binx, biny, bint;
+    REAL8 rbinx, rbiny, rbint;
+    int dbinx, dbiny, dbint;
+    REAL weight, win;
+    for ( int dyi=std::max( -W, 1-yi ); dyi<=std::min( W, height-2-yi ); dyi++ )
+    {
+        for ( int dxi=std::max( -W, 1-xi ); dxi<=std::min( W, width-2-xi ); dxi++ )
+        {
+            // retrieve
+            offset = ( dxi+dyi*width )*2;
+            mod    = p[ offset ];
+            angle  = p[ offset+1 ];
+
+            theta  = -angle+i_angle;
+            if ( theta>=0 )
+                theta = std::fmod( theta, REAL8( 2*M_PI ) );
+            else
+                theta = 2*M_PI+std::fmod( theta, REAL8( 2*M_PI ) );
+
+            // fractional displacement
+            dx = xi+dxi-i_x;
+            dy = yi+dyi-i_y;
+
+            // get the displacement normalized w.r.t. the keypoint
+            // orientation and extension.
+            nx = ( ct0*dx + st0*dy )/SBP ;
+            ny = ( -st0*dx + ct0*dy )/SBP ;
+            nt = DIGEO_DESCRIBE_NBO*theta/( 2*M_PI ) ;
+
+            // Get the gaussian weight of the sample. The gaussian window
+            // has a standard deviation equal to NBP/2. Note that dx and dy
+            // are in the normalized frame, so that -NBP/2 <= dx <= NBP/2.
+             win = std::exp( -( nx*nx+ny*ny )/( 2.0*wsigma*wsigma ) );
+
+            // The sample will be distributed in 8 adjacent bins.
+            // We start from the ``lower-left'' bin.
+            binx = std::floor( nx-0.5 );
+            biny = std::floor( ny-0.5 );
+            bint = std::floor( nt );
+            rbinx = nx-( binx+0.5 );
+            rbiny = ny-( biny+0.5 );
+            rbint = nt-bint;
+
+            // Distribute the current sample into the 8 adjacent bins
+            for ( dbinx=0; dbinx<2; dbinx++ )
+            {
+                for ( dbiny=0; dbiny<2; dbiny++ )
+                {
+                    for ( dbint=0; dbint<2; dbint++ )
+                    {
+                        if ( ( ( binx+dbinx ) >= ( -(DIGEO_DESCRIBE_NBP/2)   ) ) &&
+                             ( ( binx+dbinx ) <  ( DIGEO_DESCRIBE_NBP/2      ) ) &&
+                             ( ( biny+dbiny ) >= ( -( DIGEO_DESCRIBE_NBP/2 ) ) ) &&
+                             ( ( biny+dbiny ) <  ( DIGEO_DESCRIBE_NBP/2      ) ) )
+                        {
+                            weight = win*mod
+                                    *std::fabs( 1-dbinx-rbinx )
+                                    *std::fabs( 1-dbiny-rbiny )
+                                    *std::fabs( 1-dbint-rbint );
+
+                            atd( binx+dbinx, biny+dbiny, ( bint+dbint )%DIGEO_DESCRIBE_NBO ) += weight ;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void normalizeDescriptor( REAL8 *io_descriptor )
+{
+    REAL8 norm    = 0;
+    int   i       = DIGEO_DESCRIPTOR_SIZE;
+    REAL8 *itDesc = io_descriptor;
+    while ( i-- ){
+        norm += ( *itDesc )*( *itDesc );
+        itDesc++;
+    }
+    
+    norm = std::sqrt( norm )+std::numeric_limits<REAL8>::epsilon();
+
+    i      = DIGEO_DESCRIPTOR_SIZE;
+    itDesc = io_descriptor;
+    while ( i-- ){
+        *itDesc = ( *itDesc )/norm;
+        itDesc++;
+    }
+}
+
+void truncateDescriptor( REAL8 *io_descriptor )
+{
+    int    i      = DIGEO_DESCRIPTOR_SIZE;
+    REAL8 *itDesc = io_descriptor;
+    while ( i-- ){
+        if ( ( *itDesc )>DIGEO_DESCRIBE_THRESHOLD )
+            ( *itDesc )=DIGEO_DESCRIBE_THRESHOLD;
+        itDesc++;
+    }
+}
+
+void normalize_and_truncate( REAL8 *io_descriptor )
+{
+	normalizeDescriptor( io_descriptor );
+	truncateDescriptor( io_descriptor );
+	normalizeDescriptor( io_descriptor );
+}
+
+void cImInMem::describe()
+{
+	const Im2D<REAL4,REAL8> &srcGradient = getGradient();
+	ElTimer chrono;
+	double octaveTrueSamplingPace = mOct.trueSamplingPace();
+
+	DigeoPoint *itPoint = mOrientedPoints.data();
+	size_t iPoint = mOrientedPoints.size();
+	while ( iPoint-- ){
+		DigeoPoint &p = *itPoint++;
+		for ( size_t iAngle=0; iAngle<p.entries.size(); iAngle++ ){
+			DigeoPoint::Entry &entry = p.entry(iAngle);
+			::describe( srcGradient, p.x, p.y, p.scale/octaveTrueSamplingPace, entry.angle, entry.descriptor );
+			normalize_and_truncate( entry.descriptor );
+		}
+	}
+	mDescribeTime = chrono.uval();
+}
+
+bool cImInMem::reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const
+{
+	int nbTiles = mAppli.NbInterv();
+	int gridHeight = nbTiles/i_gridWidth;
+
+	ELISE_ASSERT( (nbTiles%i_gridWidth)==0, "cImDigeo::reconstructFromTiles incorrect grid width" );
+
+	unsigned int fullW = 0, fullH = 0;
+	unsigned int w, h, maxv;
+	unsigned int nbChannels = 1;
+	string format;
+
+	// retrive full image size
+	if ( !read_pgm_header( i_directory+getTiledOutputBasename(0)+i_postfix, fullW, fullH, maxv, format ) ){
+		cout << "cannot read [" << i_directory+getTiledOutputBasename(0)+i_postfix << "]" << endl;
+		return false;
+	}
+	if ( format=="P6" ) nbChannels=3;
+
+	for ( int iTile=1; iTile<i_gridWidth; iTile++ )
+	{
+		string tileFilename = i_directory+getTiledOutputBasename(iTile)+i_postfix;
+		ELISE_ASSERT( read_pgm_header( tileFilename, w, h, maxv, format ), (string("cImDigeo::reconstructFromTiles cannot read pgm header from [")+tileFilename+"]").c_str() );
+		fullW += w;
+	}
+	for ( int iTile=1; iTile<gridHeight; iTile++ )
+	{
+		string tileFilename = i_directory+getTiledOutputBasename(iTile)+i_postfix;
+		ELISE_ASSERT( read_pgm_header( tileFilename, w, h, maxv, format ), (string("cImDigeo::reconstructFromTiles cannot read pgm header from [")+tileFilename+"]").c_str() );
+		fullH += h;
+	}
+
+	unsigned char *data = new unsigned char[fullW*fullH*nbChannels];
+	unsigned int offsetY = 0;
+	for ( int iTileY=0; iTileY<gridHeight; iTileY++ )
+	{
+		unsigned int offsetX = 0;
+		for ( int iTileX=0; iTileX<i_gridWidth; iTileX++ )
+		{
+			const string &windowFilename = i_directory+getTiledOutputBasename(iTileX+iTileY*i_gridWidth)+i_postfix;
+			unsigned char *window = NULL;
+			if ( nbChannels==1 )
+				load_pgm( windowFilename, window, w, h );
+			else
+				load_ppm( windowFilename, window, w, h );
+
+			drawWindow( data, fullW, fullH, nbChannels, offsetX, offsetY, window, w, h );
+			delete [] window;
+			offsetX += w;
+			if ( mAppli.doSuppressTiledOutputs() ) ELISE_fp::RmFile( windowFilename );
+		}
+		offsetY += h;
+	}
+
+	const string outputName = i_directory+getReconstructedOutputBasename()+i_postfix;
+	if ( nbChannels==1 )
+	{
+		if ( !save_pgm( outputName, data, fullW, fullH  ) ) return false;
+	}
+	else
+	{
+		if ( !save_ppm( outputName, data, fullW, fullH ) ) return false;
+	}
+	delete [] data;
+
+	return true;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
