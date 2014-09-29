@@ -1,0 +1,33 @@
+#
+#     !!!   MAKE FILE POUR LES  GENERER LES CPP A PARTIR DES XML
+#     POUR LE RESTE VOIR CMAKE
+#
+CodeGenere/File2String/cParamXMLNew0.cpp : include/XML_GEN/ParamXMLNew0.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamXMLNew0.xml 3 CodeGenere/File2String/cParamXMLNew0
+src/XML_GEN/ParamChantierPhotogram.cpp :  include/XML_GEN/ParamChantierPhotogram.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamChantierPhotogram.xml 1
+CodeGenere/File2String/Str_DefautChantierDescripteur.cpp : include/XML_GEN/DefautChantierDescripteur.xml
+	bin/GenXML2Cpp  include/XML_GEN/DefautChantierDescripteur.xml 0
+CodeGenere/File2String/Str_SuperposImage.cpp : include/XML_GEN/SuperposImage.xml
+	bin/GenXML2Cpp  include/XML_GEN/SuperposImage.xml 1
+CodeGenere/File2String/Str_ParamMICMAC.cpp : include/XML_GEN/ParamMICMAC.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamMICMAC.xml 2 src/uti_phgrm/MICMAC/cParamMICMAC
+CodeGenere/File2String/Str_ParamApero.cpp : include/XML_GEN/ParamApero.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamApero.xml 2 src/uti_phgrm/Apero/cParamApero
+src/uti_phgrm/SaisiePts/cParamSaisiePts.cpp : include/XML_GEN/ParamSaisiePts.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamSaisiePts.xml 3 src/uti_phgrm/SaisiePts/cParamSaisiePts
+src/uti_phgrm/CASA/cParamCasa.cpp : include/XML_GEN/ParamCasa.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamCasa.xml 3 src/uti_phgrm/CASA/cParamCasa
+CodeGenere/File2String/Str_ParamDigeo.cpp : include/XML_GEN/ParamDigeo.xml
+	bin/GenXML2Cpp  include/XML_GEN/ParamDigeo.xml 2 src/uti_image/Digeo/cParamDigeo
+all: src/XML_GEN/ParamChantierPhotogram.cpp\
+     CodeGenere/File2String/cParamXMLNew0.cpp\
+     CodeGenere/File2String/Str_DefautChantierDescripteur.cpp\
+     CodeGenere/File2String/Str_ParamChantierPhotogram.cpp\
+     CodeGenere/File2String/Str_SuperposImage.cpp\
+     CodeGenere/File2String/Str_ParamMICMAC.cpp\
+     CodeGenere/File2String/Str_ParamApero.cpp\
+     src/uti_phgrm/SaisiePts/cParamSaisiePts.cpp\
+     src/uti_phgrm/CASA/cParamCasa.cpp\
+     CodeGenere/File2String/Str_ParamDigeo.cpp
+
