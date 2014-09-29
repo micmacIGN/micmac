@@ -53,11 +53,12 @@ int main()
     buffer.Malloc(sizeBuff);
     bufferHost.Malloc(sizeBuff,1);
 
-    int factor = 5;
+    int factor = 100;
 
-    CGpGpuContext<OPENCLSDK>::createKernel("/home/gchoqueux/cuda-workspace/micmac/micmac-src/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cl","kMultTab");
+    CGpGpuContext<OPENCLSDK>::createKernel("../../micmac-src/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cl","kMultTab");
+    //CGpGpuContext<OPENCLSDK>::addKernelArgBuffer(buffer);
     CGpGpuContext<OPENCLSDK>::addKernelArg(buffer);
-    //CGpGpuContext<OPENCLSDK>::addKernelArg(factor);
+    CGpGpuContext<OPENCLSDK>::addKernelArg(factor);
     CGpGpuContext<OPENCLSDK>::launchKernel();
 
     buffer.CopyDevicetoHost(bufferHost.pData());

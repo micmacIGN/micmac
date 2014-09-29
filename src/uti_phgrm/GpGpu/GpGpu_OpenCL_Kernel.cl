@@ -2,8 +2,8 @@
 
 __constant int hw[] = {1,2,5,6,8};
 
-__kernel void kMultTab(__global int * out)
+__kernel void kMultTab(__global int * out,  int t)
 {
     size_t tid = get_global_id(0);
-    out[tid] = factor*hw[tid];
+    out[tid] = t*hw[tid]+20;
 }
