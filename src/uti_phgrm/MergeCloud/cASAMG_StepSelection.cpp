@@ -136,7 +136,7 @@ void cASAMG::SetSelected(int aNivSel,int aNivElim,tMCSom * aSom)
             }
         }
     }
-    Video_Win * aW = pAramVisuSelect() ?  mAppli->TheWinIm(mSz) : 0;
+    Video_Win * aW = mAppli->Param().VisuSelect().Val() ?  TheWinIm() : 0;
     if (aW)
     {
         InspectQual(false);
@@ -161,7 +161,7 @@ void cASAMG::SetSelected(int aNivSel,int aNivElim,tMCSom * aSom)
           aS2.attr()->InitNewStep(aNivElim);
           double aQOut = aS2.attr()->mQualOfNiv;
           double aNbOut = aS2.attr()->mNbOfNiv;
-          if (pAramVisuSelect())
+          if (mAppli->Param().VisuSelect().Val())
           {
               std::cout << aS2.attr()->mIma->mNameIm << " IN " << aQIn << " "<< aNbIn << " Out " << aQOut << " " << aNbOut << "\n";
           }
@@ -185,7 +185,7 @@ void cASAMG::DoOneTri(const Pt2di & aP0,const Pt2di & aP1,const Pt2di & aP2,cons
    double aDP00;
    double anInt00 = InterioriteEnvlop(Pt2di(round_ni(aQ0.x),round_ni(aQ0.y)),aQ0.z,aDP00);
 
-   if (anInt00<  -pAramElimDirectInterior())
+   if (anInt00<  -mAppli->Param().ElimDirectInterior().Val())
        return;
 
    Pt3dr aQ1 = aNuage.GetPt(aP1);
@@ -290,7 +290,7 @@ void cASAMG::ProjectElim(cASAMG * aN2,Im2D_Bits<1> aMasq2Sel,const cRawNuage & a
         }
     }
 
-    Video_Win * aW = pAramVisuElim() ?  mAppli->TheWinIm(mSz) : 0;
+    Video_Win * aW = mAppli->Param().VisuElim().Val() ?  TheWinIm() : 0;
     if (aW)
     {
         aN2->InspectQual(false);

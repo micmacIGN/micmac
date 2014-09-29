@@ -17629,6 +17629,50 @@ const cTplValGesInit< bool > & cPFNMiseAuPoint::VisuImageCoh()const
    return mVisuImageCoh;
 }
 
+
+cTplValGesInit< bool > & cPFNMiseAuPoint::VisuSelect()
+{
+   return mVisuSelect;
+}
+
+const cTplValGesInit< bool > & cPFNMiseAuPoint::VisuSelect()const 
+{
+   return mVisuSelect;
+}
+
+
+cTplValGesInit< bool > & cPFNMiseAuPoint::VisuEnv()
+{
+   return mVisuEnv;
+}
+
+const cTplValGesInit< bool > & cPFNMiseAuPoint::VisuEnv()const 
+{
+   return mVisuEnv;
+}
+
+
+cTplValGesInit< bool > & cPFNMiseAuPoint::VisuElim()
+{
+   return mVisuElim;
+}
+
+const cTplValGesInit< bool > & cPFNMiseAuPoint::VisuElim()const 
+{
+   return mVisuElim;
+}
+
+
+cTplValGesInit< std::string > & cPFNMiseAuPoint::ImageMiseAuPoint()
+{
+   return mImageMiseAuPoint;
+}
+
+const cTplValGesInit< std::string > & cPFNMiseAuPoint::ImageMiseAuPoint()const 
+{
+   return mImageMiseAuPoint;
+}
+
 void  BinaryUnDumpFromFile(cPFNMiseAuPoint & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -17671,6 +17715,38 @@ void  BinaryUnDumpFromFile(cPFNMiseAuPoint & anObj,ELISE_fp & aFp)
         }
         else  anObj.VisuImageCoh().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.VisuSelect().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.VisuSelect().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.VisuSelect().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.VisuEnv().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.VisuEnv().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.VisuEnv().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.VisuElim().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.VisuElim().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.VisuElim().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ImageMiseAuPoint().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ImageMiseAuPoint().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ImageMiseAuPoint().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cPFNMiseAuPoint & anObj)
@@ -17685,6 +17761,14 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPFNMiseAuPoint & anObj)
     if (anObj.VisuLowPts().IsInit()) BinaryDumpInFile(aFp,anObj.VisuLowPts().Val());
     BinaryDumpInFile(aFp,anObj.VisuImageCoh().IsInit());
     if (anObj.VisuImageCoh().IsInit()) BinaryDumpInFile(aFp,anObj.VisuImageCoh().Val());
+    BinaryDumpInFile(aFp,anObj.VisuSelect().IsInit());
+    if (anObj.VisuSelect().IsInit()) BinaryDumpInFile(aFp,anObj.VisuSelect().Val());
+    BinaryDumpInFile(aFp,anObj.VisuEnv().IsInit());
+    if (anObj.VisuEnv().IsInit()) BinaryDumpInFile(aFp,anObj.VisuEnv().Val());
+    BinaryDumpInFile(aFp,anObj.VisuElim().IsInit());
+    if (anObj.VisuElim().IsInit()) BinaryDumpInFile(aFp,anObj.VisuElim().Val());
+    BinaryDumpInFile(aFp,anObj.ImageMiseAuPoint().IsInit());
+    if (anObj.ImageMiseAuPoint().IsInit()) BinaryDumpInFile(aFp,anObj.ImageMiseAuPoint().Val());
 }
 
 cElXMLTree * ToXMLTree(const cPFNMiseAuPoint & anObj)
@@ -17701,6 +17785,14 @@ cElXMLTree * ToXMLTree(const cPFNMiseAuPoint & anObj)
       aRes->AddFils(::ToXMLTree(std::string("VisuLowPts"),anObj.VisuLowPts().Val())->ReTagThis("VisuLowPts"));
    if (anObj.VisuImageCoh().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("VisuImageCoh"),anObj.VisuImageCoh().Val())->ReTagThis("VisuImageCoh"));
+   if (anObj.VisuSelect().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("VisuSelect"),anObj.VisuSelect().Val())->ReTagThis("VisuSelect"));
+   if (anObj.VisuEnv().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("VisuEnv"),anObj.VisuEnv().Val())->ReTagThis("VisuEnv"));
+   if (anObj.VisuElim().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("VisuElim"),anObj.VisuElim().Val())->ReTagThis("VisuElim"));
+   if (anObj.ImageMiseAuPoint().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ImageMiseAuPoint"),anObj.ImageMiseAuPoint().Val())->ReTagThis("ImageMiseAuPoint"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -17720,9 +17812,17 @@ void xml_init(cPFNMiseAuPoint & anObj,cElXMLTree * aTree)
    xml_init(anObj.VisuLowPts(),aTree->Get("VisuLowPts",1),bool(false)); //tototo 
 
    xml_init(anObj.VisuImageCoh(),aTree->Get("VisuImageCoh",1),bool(false)); //tototo 
+
+   xml_init(anObj.VisuSelect(),aTree->Get("VisuSelect",1),bool(false)); //tototo 
+
+   xml_init(anObj.VisuEnv(),aTree->Get("VisuEnv",1),bool(false)); //tototo 
+
+   xml_init(anObj.VisuElim(),aTree->Get("VisuElim",1),bool(false)); //tototo 
+
+   xml_init(anObj.ImageMiseAuPoint(),aTree->Get("ImageMiseAuPoint",1)); //tototo 
 }
 
-std::string  Mangling( cPFNMiseAuPoint *) {return "9B73A04AD7555CDAFE3F";};
+std::string  Mangling( cPFNMiseAuPoint *) {return "16F4085FD55825ACFF3F";};
 
 
 double & cGrapheRecouvrt::TauxRecMin()
@@ -17947,6 +18047,17 @@ const cTplValGesInit< bool > & cImageVariations::ComputeIncid()const
    return mComputeIncid;
 }
 
+
+cTplValGesInit< int > & cImageVariations::DilateBord()
+{
+   return mDilateBord;
+}
+
+const cTplValGesInit< int > & cImageVariations::DilateBord()const 
+{
+   return mDilateBord;
+}
+
 void  BinaryUnDumpFromFile(cImageVariations & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.V4Vois(),aFp);
@@ -17969,6 +18080,14 @@ void  BinaryUnDumpFromFile(cImageVariations & anObj,ELISE_fp & aFp)
         }
         else  anObj.ComputeIncid().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DilateBord().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DilateBord().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DilateBord().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cImageVariations & anObj)
@@ -17981,6 +18100,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cImageVariations & anObj)
     if (anObj.PenteRefutInitInPixel().IsInit()) BinaryDumpInFile(aFp,anObj.PenteRefutInitInPixel().Val());
     BinaryDumpInFile(aFp,anObj.ComputeIncid().IsInit());
     if (anObj.ComputeIncid().IsInit()) BinaryDumpInFile(aFp,anObj.ComputeIncid().Val());
+    BinaryDumpInFile(aFp,anObj.DilateBord().IsInit());
+    if (anObj.DilateBord().IsInit()) BinaryDumpInFile(aFp,anObj.DilateBord().Val());
 }
 
 cElXMLTree * ToXMLTree(const cImageVariations & anObj)
@@ -17995,6 +18116,8 @@ cElXMLTree * ToXMLTree(const cImageVariations & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PenteRefutInitInPixel"),anObj.PenteRefutInitInPixel().Val())->ReTagThis("PenteRefutInitInPixel"));
    if (anObj.ComputeIncid().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ComputeIncid"),anObj.ComputeIncid().Val())->ReTagThis("ComputeIncid"));
+   if (anObj.DilateBord().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DilateBord"),anObj.DilateBord().Val())->ReTagThis("DilateBord"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -18016,9 +18139,111 @@ void xml_init(cImageVariations & anObj,cElXMLTree * aTree)
    xml_init(anObj.PenteRefutInitInPixel(),aTree->Get("PenteRefutInitInPixel",1),double(0.5)); //tototo 
 
    xml_init(anObj.ComputeIncid(),aTree->Get("ComputeIncid",1),bool(true)); //tototo 
+
+   xml_init(anObj.DilateBord(),aTree->Get("DilateBord",1),int(3)); //tototo 
 }
 
-std::string  Mangling( cImageVariations *) {return "58B2DD2C99196682FBBF";};
+std::string  Mangling( cImageVariations *) {return "C069AE658E2625DBFE3F";};
+
+
+cTplValGesInit< double > & cPFM_Selection::ElimDirectInterior()
+{
+   return mElimDirectInterior;
+}
+
+const cTplValGesInit< double > & cPFM_Selection::ElimDirectInterior()const 
+{
+   return mElimDirectInterior;
+}
+
+
+cTplValGesInit< double > & cPFM_Selection::LowRatioSelectIm()
+{
+   return mLowRatioSelectIm;
+}
+
+const cTplValGesInit< double > & cPFM_Selection::LowRatioSelectIm()const 
+{
+   return mLowRatioSelectIm;
+}
+
+
+cTplValGesInit< double > & cPFM_Selection::HighRatioSelectIm()
+{
+   return mHighRatioSelectIm;
+}
+
+const cTplValGesInit< double > & cPFM_Selection::HighRatioSelectIm()const 
+{
+   return mHighRatioSelectIm;
+}
+
+void  BinaryUnDumpFromFile(cPFM_Selection & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ElimDirectInterior().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ElimDirectInterior().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ElimDirectInterior().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.LowRatioSelectIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.LowRatioSelectIm().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.LowRatioSelectIm().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.HighRatioSelectIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.HighRatioSelectIm().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.HighRatioSelectIm().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cPFM_Selection & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ElimDirectInterior().IsInit());
+    if (anObj.ElimDirectInterior().IsInit()) BinaryDumpInFile(aFp,anObj.ElimDirectInterior().Val());
+    BinaryDumpInFile(aFp,anObj.LowRatioSelectIm().IsInit());
+    if (anObj.LowRatioSelectIm().IsInit()) BinaryDumpInFile(aFp,anObj.LowRatioSelectIm().Val());
+    BinaryDumpInFile(aFp,anObj.HighRatioSelectIm().IsInit());
+    if (anObj.HighRatioSelectIm().IsInit()) BinaryDumpInFile(aFp,anObj.HighRatioSelectIm().Val());
+}
+
+cElXMLTree * ToXMLTree(const cPFM_Selection & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"PFM_Selection",eXMLBranche);
+   if (anObj.ElimDirectInterior().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ElimDirectInterior"),anObj.ElimDirectInterior().Val())->ReTagThis("ElimDirectInterior"));
+   if (anObj.LowRatioSelectIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("LowRatioSelectIm"),anObj.LowRatioSelectIm().Val())->ReTagThis("LowRatioSelectIm"));
+   if (anObj.HighRatioSelectIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("HighRatioSelectIm"),anObj.HighRatioSelectIm().Val())->ReTagThis("HighRatioSelectIm"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cPFM_Selection & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ElimDirectInterior(),aTree->Get("ElimDirectInterior",1),double(10.0)); //tototo 
+
+   xml_init(anObj.LowRatioSelectIm(),aTree->Get("LowRatioSelectIm",1),double(0.001)); //tototo 
+
+   xml_init(anObj.HighRatioSelectIm(),aTree->Get("HighRatioSelectIm",1),double(0.05)); //tototo 
+}
+
+std::string  Mangling( cPFM_Selection *) {return "BA977451F612C9E6FCBF";};
 
 
 eModeMergeCloud & cParamFusionNuage::ModeMerge()
@@ -18084,6 +18309,50 @@ cTplValGesInit< bool > & cParamFusionNuage::VisuImageCoh()
 const cTplValGesInit< bool > & cParamFusionNuage::VisuImageCoh()const 
 {
    return PFNMiseAuPoint().VisuImageCoh();
+}
+
+
+cTplValGesInit< bool > & cParamFusionNuage::VisuSelect()
+{
+   return PFNMiseAuPoint().VisuSelect();
+}
+
+const cTplValGesInit< bool > & cParamFusionNuage::VisuSelect()const 
+{
+   return PFNMiseAuPoint().VisuSelect();
+}
+
+
+cTplValGesInit< bool > & cParamFusionNuage::VisuEnv()
+{
+   return PFNMiseAuPoint().VisuEnv();
+}
+
+const cTplValGesInit< bool > & cParamFusionNuage::VisuEnv()const 
+{
+   return PFNMiseAuPoint().VisuEnv();
+}
+
+
+cTplValGesInit< bool > & cParamFusionNuage::VisuElim()
+{
+   return PFNMiseAuPoint().VisuElim();
+}
+
+const cTplValGesInit< bool > & cParamFusionNuage::VisuElim()const 
+{
+   return PFNMiseAuPoint().VisuElim();
+}
+
+
+cTplValGesInit< std::string > & cParamFusionNuage::ImageMiseAuPoint()
+{
+   return PFNMiseAuPoint().ImageMiseAuPoint();
+}
+
+const cTplValGesInit< std::string > & cParamFusionNuage::ImageMiseAuPoint()const 
+{
+   return PFNMiseAuPoint().ImageMiseAuPoint();
 }
 
 
@@ -18241,6 +18510,17 @@ const cTplValGesInit< bool > & cParamFusionNuage::ComputeIncid()const
 }
 
 
+cTplValGesInit< int > & cParamFusionNuage::DilateBord()
+{
+   return ImageVariations().DilateBord();
+}
+
+const cTplValGesInit< int > & cParamFusionNuage::DilateBord()const 
+{
+   return ImageVariations().DilateBord();
+}
+
+
 cImageVariations & cParamFusionNuage::ImageVariations()
 {
    return mImageVariations;
@@ -18251,12 +18531,57 @@ const cImageVariations & cParamFusionNuage::ImageVariations()const
    return mImageVariations;
 }
 
+
+cTplValGesInit< double > & cParamFusionNuage::ElimDirectInterior()
+{
+   return PFM_Selection().ElimDirectInterior();
+}
+
+const cTplValGesInit< double > & cParamFusionNuage::ElimDirectInterior()const 
+{
+   return PFM_Selection().ElimDirectInterior();
+}
+
+
+cTplValGesInit< double > & cParamFusionNuage::LowRatioSelectIm()
+{
+   return PFM_Selection().LowRatioSelectIm();
+}
+
+const cTplValGesInit< double > & cParamFusionNuage::LowRatioSelectIm()const 
+{
+   return PFM_Selection().LowRatioSelectIm();
+}
+
+
+cTplValGesInit< double > & cParamFusionNuage::HighRatioSelectIm()
+{
+   return PFM_Selection().HighRatioSelectIm();
+}
+
+const cTplValGesInit< double > & cParamFusionNuage::HighRatioSelectIm()const 
+{
+   return PFM_Selection().HighRatioSelectIm();
+}
+
+
+cPFM_Selection & cParamFusionNuage::PFM_Selection()
+{
+   return mPFM_Selection;
+}
+
+const cPFM_Selection & cParamFusionNuage::PFM_Selection()const 
+{
+   return mPFM_Selection;
+}
+
 void  BinaryUnDumpFromFile(cParamFusionNuage & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.ModeMerge(),aFp);
     BinaryUnDumpFromFile(anObj.PFNMiseAuPoint(),aFp);
     BinaryUnDumpFromFile(anObj.GrapheRecouvrt(),aFp);
     BinaryUnDumpFromFile(anObj.ImageVariations(),aFp);
+    BinaryUnDumpFromFile(anObj.PFM_Selection(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cParamFusionNuage & anObj)
@@ -18265,6 +18590,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cParamFusionNuage & anObj)
     BinaryDumpInFile(aFp,anObj.PFNMiseAuPoint());
     BinaryDumpInFile(aFp,anObj.GrapheRecouvrt());
     BinaryDumpInFile(aFp,anObj.ImageVariations());
+    BinaryDumpInFile(aFp,anObj.PFM_Selection());
 }
 
 cElXMLTree * ToXMLTree(const cParamFusionNuage & anObj)
@@ -18275,6 +18601,7 @@ cElXMLTree * ToXMLTree(const cParamFusionNuage & anObj)
    aRes->AddFils(ToXMLTree(anObj.PFNMiseAuPoint())->ReTagThis("PFNMiseAuPoint"));
    aRes->AddFils(ToXMLTree(anObj.GrapheRecouvrt())->ReTagThis("GrapheRecouvrt"));
    aRes->AddFils(ToXMLTree(anObj.ImageVariations())->ReTagThis("ImageVariations"));
+   aRes->AddFils(ToXMLTree(anObj.PFM_Selection())->ReTagThis("PFM_Selection"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -18292,9 +18619,11 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.GrapheRecouvrt(),aTree->Get("GrapheRecouvrt",1)); //tototo 
 
    xml_init(anObj.ImageVariations(),aTree->Get("ImageVariations",1)); //tototo 
+
+   xml_init(anObj.PFM_Selection(),aTree->Get("PFM_Selection",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionNuage *) {return "4AF5B93ECA9C7FB1FCBF";};
+std::string  Mangling( cParamFusionNuage *) {return "40E234F51AAE18A3FC3F";};
 
 
 std::string & cCWWSIVois::NameVois()

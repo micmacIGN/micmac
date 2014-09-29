@@ -57,6 +57,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 */
    mNbImSelected    (0)
 {
+std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
    mVStatNivs[eQC_Out].mGofQ          = 0;
    mVStatNivs[eQC_ZeroCohBrd].mGofQ   = 1/32.0;
    mVStatNivs[eQC_ZeroCoh].mGofQ      = 1/16.0;
@@ -85,6 +86,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 
    mParam = StdGetFromSI(mFileParam,ParamFusionNuage);
 
+   mPatMAP  = new cElRegex (mParam.ImageMiseAuPoint().ValWithDef(".*"),10);
 
    // ===  Creation des nuages 
 
@@ -104,7 +106,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
             mVSoms.push_back(&aSom);
         }
 
-        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << "\n";
+        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << IsInImageMAP(anAttrSom) << "\n";
    }
 
    // Mise au point
@@ -166,12 +168,23 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    
 
 
-   for (mCurNivSelSom=mGlobMaxNivH ; mCurNivSelSom>=ElMin(eQC_Coh1,eQC_GradFaibleC2) ; mCurNivSelSom--)
+   int aNivMin = ElMin(eQC_Coh1,eQC_GradFaibleC2);
+   if (mParam.ModeMerge() ==eMMC_Envlop)
    {
-       std::cout << "BEGIN NIV " << mCurNivSelSom << "\n"; 
+      aNivMin=eQC_GradFaibleC1;
+   }
+   for (mCurNivSelSom=mGlobMaxNivH ; mCurNivSelSom>=aNivMin ; mCurNivSelSom--)
+   {
+       std::cout << "BEGIN NIV " <<  mCurNivSelSom << " " << eToString(eQualCloud(mCurNivSelSom)) << "\n"; 
        mCurNivElim = ElMin(mCurNivSelSom,int(eQC_Coh2));
        OneStepSelection();
-       std::cout << "END NIV " << mCurNivSelSom << "\n"; getchar();
+       std::cout << "END NIV " << mCurNivSelSom << "\n"; 
+   }
+
+   // Export Ply
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+         mVSoms[aK]->attr()->ExportMiseAuPoint();
    }
 }
 
@@ -181,7 +194,7 @@ void cAppliMergeCloud::OneStepSelection()
    {
          mVSoms[aK]->attr()->InitNewStep(mCurNivElim);
    }
-   int aNbImMin = round_up(3*mVStatNivs[mCurNivSelSom].mNbImPourRec);
+   int aNbImMin = round_up(pAramSurBookingIm()*mVStatNivs[mCurNivSelSom].mNbImPourRec);
    std::cout << "NB IM MIN " << aNbImMin  << "\n";
 
    bool Cont = true;
@@ -213,12 +226,12 @@ void cAppliMergeCloud::OneStepSelection()
       {
            cASAMG * aBestA = aBestSom->attr();
            double aRatio = aBestA->NbOfNiv() / double( aBestA->NbTot());
-           std::cout << "SOM GOT " << aBestA->IMM()->mNameIm << " R=" <<   aRatio << "\n";
+           std::cout << "SOM GOT " << aBestA->IMM()->mNameIm << " New=" << aBestA->IsSelected() << " R=" <<   aRatio << "\n";
 
            //
            if (! aBestA->IsSelected())
            {
-               double aSeuil = (mNbImSelected>aNbImMin)  ? pAramHighRatioSelectIm() : pAramLowRatioSelectIm() ;
+               double aSeuil = (mNbImSelected>aNbImMin)  ? mParam.HighRatioSelectIm().Val() : mParam.LowRatioSelectIm().Val() ;
                Cont = aRatio > aSeuil;
            }
 
@@ -227,7 +240,7 @@ void cAppliMergeCloud::OneStepSelection()
                if (! aBestA->IsSelected())
                   mNbImSelected++;
                aBestA->SetSelected(mCurNivSelSom,mCurNivElim,aBestSom);
-               std::cout << "One Image Selected " << aBestA->NivSelected() << "\n"; getchar();
+               // std::cout << "One Image Selected " << aBestA->NivSelected() << "\n"; getchar();
            }
 
       }
@@ -237,8 +250,6 @@ void cAppliMergeCloud::OneStepSelection()
       }
       if (! Cont)
       {
-           std::cout << " DONE ONE ITER \n";
-           getchar();
       }
    }
 
@@ -248,14 +259,21 @@ void cAppliMergeCloud::OneStepSelection()
    }
 }
 
-
-Video_Win *  cAppliMergeCloud::TheWinIm(Pt2di aSzIm)
+bool cAppliMergeCloud::IsInImageMAP(cASAMG* anAS)
 {
-   if (! mParam.SzVisu().IsInit())
+   return mPatMAP->Match(anAS->IMM()->mNameIm);
+}
+
+
+
+Video_Win *  cAppliMergeCloud::TheWinIm(const cASAMG * anAS)
+{
+   if ((! mParam.SzVisu().IsInit()) || (! anAS->IsImageMAP()))
      return 0;
 
    if (mTheWinIm==0)
    {
+       Pt2di aSzIm = anAS->Sz();
        Pt2di aSzW = mParam.SzVisu().Val();
        double aRx = aSzW.x / double(aSzIm.x);
        double aRy = aSzW.y / double(aSzIm.y);
