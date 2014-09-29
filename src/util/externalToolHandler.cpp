@@ -258,7 +258,7 @@ int CheckDependencies_main(int argc,char ** argv)
 	#endif
 
 	#if defined CUDA_ENABLED
-		GpGpuTools::check_Cuda();
+        CGpGpuContext<CUDASDK>::check_Cuda();
 	#endif
 
     cout << printResult( "make" ) << endl;

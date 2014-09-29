@@ -43,26 +43,26 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-inline int pAramDistDilateBord() {return 2;}
-//
-//
-//
+inline int  pAramDistDilateBord() {return 3;}
+inline bool pAramVisuSelect() {return false;}
+inline bool pAramVisuElim() {return false;}
+inline bool pAramVisuEnv() {return false;}
+inline double pAramElimDirectInterior() {return 10.0;}
 
+inline double pAramLowRatioSelectIm() {return 0.01;}
+inline double pAramHighRatioSelectIm() {return 0.05;}
+//
+//
+//
 
 typedef enum
 {
-  eQC_Out=0,
-  eQC_ZeroCohBrd=1,
-  eQC_ZeroCoh=2,
-  eQC_ZeroCohImMul=3,  // Si appariement vient d'au moins 3 imaes (ie 2 voisin)
-  eQC_GradFort=4,
-  eQC_GradFaible=5,
-  eQC_Bord=6,
-  eQC_Coh1=7,
-  eQC_Coh2=8,
-  eQC_Coh3=9,
-  eQC_NonAff=100
-} eQualCloud;
+  eLFNoAff,
+  eLFMaster,
+  eLFMasked
+  // Warn si on change le nb de label : stocke pour l'instant sur des 2 bits
+  //  eLFTmp
+} eLabelFinaux;
 
 
 
@@ -105,6 +105,7 @@ class c3AMG
 {
    public :
       c3AMG(c3AMGS *,double aRec);
+      const double & Rec() const;
    private :
       c3AMGS * mSym;
       double   mRec;
@@ -128,7 +129,29 @@ class cASAMG
 
       void TestImCoher();
 
-      void InspectQual();
+      void InspectQual(bool WithClik);
+      void InspectEnv();
+      INT   MaxNivH() const;
+      double QualOfNiv() const;
+      int    NbOfNiv() const;
+      int    NbTot() const;
+
+
+      void InitNewStep(int aNiv);
+      void FinishNewStep(int aNiv);
+      bool IsCurSelectable() const;
+      bool IsSelected() const;
+      int  NivSelected() const;
+
+      void SetSelected(int aNivSel,int aNivElim,tMCSom * aSom);
+      void InitGlobHisto();
+      inline void SuppressPix(const Pt2di &, const int & aLab);
+
+
+      // Valeur >0 si dedans,  <0 dehors, quantifie l'interiorite
+      double  InterioriteEnvlop(const Pt2di & aP,double aProfTest,double & aDeltaProf) const;
+
+ 
 
 
    private :
@@ -140,6 +163,10 @@ class cASAMG
      double QualityProjOnMe(const Pt3dr &) const;
      double SignedDifProf(const Pt3dr &) const;
      double DifProf2Gain(double aDif) const;
+
+     void ProjectElim(cASAMG *,Im2D_Bits<1> aMasq,const cRawNuage & aNuage);
+     void DoOneTri(const Pt2di & aP0,const Pt2di & aP1,const Pt2di & P2,const cRawNuage &aNuage,const cRawNuage & aMasterNuage);
+
 
 
 
@@ -161,6 +188,7 @@ class cASAMG
      cElNuage3DMaille *   mStdN;
      Im2D_Bits<1>         mMasqN;
      TIm2DBits<1>         mTMasqN;
+     Im2DGen *            mImProf;
 
      Im2D_U_INT1          mImCptr;
      TIm2D<U_INT1,INT>    mTCptr;
@@ -168,8 +196,36 @@ class cASAMG
      Im2D_U_INT1          mImIncid;
      TIm2D<U_INT1,INT>    mTIncid;
 
-     Im2D_U_INT1          mImQuality;
-     TIm2D<U_INT1,INT>    mTQual;
+     Im2D_Bits<4>         mImQuality;
+     TIm2DBits<4>         mTQual;
+
+     Im2D_Bits<2>         mImLabFin;
+     TIm2DBits<2>         mTLabFin;
+
+     Im2D_Bits<4>         mImEnvSup;
+     TIm2DBits<4>         mTEnvSup;
+     Im2D_Bits<4>         mImEnvInf;
+     TIm2DBits<4>         mTEnvInf;
+     Im1D_INT4            mLutDecEnv;
+     INT4 *               mDLDE;
+
+
+
+     // Im2D_U_INT1          mImQuality;
+     // TIm2D<U_INT1,INT>    mTQual;
+
+     // Im2D_U_INT1          mImQuality;
+     // TIm2D<U_INT1,INT>    mTQual;
+
+
+
+     Im1D<INT4,INT>       mHisto;
+     INT *                mDH;
+     INT                  mMaxNivH;
+     INT                  mNbNivH;
+     double               mQualOfNiv;
+     int                  mNbOfNiv;
+     int                  mNbTot;
 
      double               mSSIma;
 
@@ -177,15 +233,33 @@ class cASAMG
 
      cResumNuage            mLowRN;  // Basse resolution pour la topologie
      cImSecOfMaster         mISOM;
+     int                    mNivSelected;
+
+     static const int theNbValCompr;
 };
 
 
 //==================================================
+
+class cStatNiv
+{
+    public :
+        cStatNiv();
+
+        double  mGofQ;
+        double  mRecTot;
+        double  mCumRecT;
+        double  mRecMoy;
+        double  mNbImPourRec;
+        int     mNbIm;
+        int     mCumNbIm;
+};
+
 class cAppliMergeCloud : public cAppliWithSetImage
 {
     public :
-       std::string NameFileInput(const std::string & aNameIm,const std::string aPost);
-       std::string NameFileInput(cImaMM *,const std::string aPost);
+       std::string NameFileInput(const std::string & aNameIm,const std::string & aPost,const std::string & aPref="");
+       std::string NameFileInput(cImaMM *,const std::string & aPost,const std::string & aPref="");
        cAppliMergeCloud
        (
             int argc,
@@ -194,7 +268,10 @@ class cAppliMergeCloud : public cAppliWithSetImage
        const cParamFusionNuage & Param() {return mParam;}
        Video_Win *   TheWinIm(Pt2di aSz);
 
-       int BestQual() {return eQC_Coh3;}
+       static int MaxValQualTheo() {return eQC_Coh3;}
+       REAL8    GainQual(int aNiv) const;
+
+       tMCSubGr &  SubGrAll();
 
        
     private :
@@ -202,6 +279,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        tMCSom * SomOfName(const std::string & aName);
        void AddVoisVois(std::vector<tMCArc *> & aVArc,tMCSom&,tMCSom&);
        void CreateGrapheConx();
+       void OneStepSelection();
 
 
        static const std::string TheNameSubdir;
@@ -219,6 +297,22 @@ class cAppliMergeCloud : public cAppliWithSetImage
        tMCSubGr                        mSubGrAll;
        tMCSubGrFA                      mSubGrCloseN;
        std::set<tMCPairS>              mTestedPairs;
+       INT                             mGlobMaxNivH;
+       INT                             mCurNivSelSom;
+       INT                             mCurNivElim;
+       std::vector<cStatNiv>           mVStatNivs;
+/*
+       Im1D_REAL8                      mImGainOfQual;
+       REAL8 *                         mDataGainOfQual;
+       Im1D_INT4                       mNbImOfNiv;
+       INT *                           mDataNION;
+       Im1D_INT4                       mCumNbImOfNiv;
+       INT *                           mDataCNION;
+*/
+       double                          mRecouvrTot;
+       double                          mRecMoy;
+       double                          mNbImMoy;
+       int                             mNbImSelected;
 };
 
    //==============================================================================

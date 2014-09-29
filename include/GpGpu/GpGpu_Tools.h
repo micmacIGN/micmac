@@ -112,12 +112,12 @@ public:
     static const char* 	conca(const char* texte, int t = 0);
 
     ///	\brief			Affiche les parametres GpGpu de correlation multi-images
-    static void			OutputInfoGpuMemory();
+    //static void			OutputInfoGpuMemory();
 
     ///	\brief			(X)
     static void			OutputGpu();
 
-	static void			check_Cuda();
+    //static void			check_Cuda();
 
 	#ifdef  NVTOOLS
     static void			NvtxR_Push(const char* message, int32_t color);

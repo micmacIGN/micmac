@@ -144,6 +144,93 @@ void  BinaryUnDumpFromFile(eModeMergeCloud & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eModeMergeCloud *) {return "C855F650848FBEDEFB3F";};
 
+eQualCloud  Str2eQualCloud(const std::string & aName)
+{
+   if (aName=="eQC_Out")
+      return eQC_Out;
+   else if (aName=="eQC_ZeroCohBrd")
+      return eQC_ZeroCohBrd;
+   else if (aName=="eQC_ZeroCoh")
+      return eQC_ZeroCoh;
+   else if (aName=="eQC_ZeroCohImMul")
+      return eQC_ZeroCohImMul;
+   else if (aName=="eQC_GradFort")
+      return eQC_GradFort;
+   else if (aName=="eQC_GradFaibleC1")
+      return eQC_GradFaibleC1;
+   else if (aName=="eQC_Bord")
+      return eQC_Bord;
+   else if (aName=="eQC_Coh1")
+      return eQC_Coh1;
+   else if (aName=="eQC_GradFaibleC2")
+      return eQC_GradFaibleC2;
+   else if (aName=="eQC_Coh2")
+      return eQC_Coh2;
+   else if (aName=="eQC_Coh3")
+      return eQC_Coh3;
+   else if (aName=="eQC_NonAff")
+      return eQC_NonAff;
+  else
+  {
+      cout << aName << " is not a correct value for enum eQualCloud\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eQualCloud) 0;
+}
+void xml_init(eQualCloud & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eQualCloud(aTree->Contenu());
+}
+std::string  eToString(const eQualCloud & anObj)
+{
+   if (anObj==eQC_Out)
+      return  "eQC_Out";
+   if (anObj==eQC_ZeroCohBrd)
+      return  "eQC_ZeroCohBrd";
+   if (anObj==eQC_ZeroCoh)
+      return  "eQC_ZeroCoh";
+   if (anObj==eQC_ZeroCohImMul)
+      return  "eQC_ZeroCohImMul";
+   if (anObj==eQC_GradFort)
+      return  "eQC_GradFort";
+   if (anObj==eQC_GradFaibleC1)
+      return  "eQC_GradFaibleC1";
+   if (anObj==eQC_Bord)
+      return  "eQC_Bord";
+   if (anObj==eQC_Coh1)
+      return  "eQC_Coh1";
+   if (anObj==eQC_GradFaibleC2)
+      return  "eQC_GradFaibleC2";
+   if (anObj==eQC_Coh2)
+      return  "eQC_Coh2";
+   if (anObj==eQC_Coh3)
+      return  "eQC_Coh3";
+   if (anObj==eQC_NonAff)
+      return  "eQC_NonAff";
+ std::cout << "Enum = eQualCloud\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eQualCloud & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eQualCloud & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eQualCloud & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eQualCloud) aIVal;
+}
+
+std::string  Mangling( eQualCloud *) {return "BEDA324F1CB997F9FD3F";};
+
 
 int & cIntervLutConvertion::NivIn()
 {
