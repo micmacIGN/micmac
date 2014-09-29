@@ -24,6 +24,8 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
 
             <Symb>  PenalNbIm=0.3333   </Symb>
             <Symb>  TetaOpt=0.17   </Symb>  <!-- 10 degre, why not -->
+            <Symb>  UseMasq3D=false   </Symb>  <!-- 10 degre, why not -->
+            <Symb>  Masq3D=XXXX   </Symb>  <!-- 10 degre, why not -->
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -135,6 +137,9 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                                <TetaMaxPreSel> 0.8 </TetaMaxPreSel>
                                <NbMaxPresel>  15</NbMaxPresel>
                                <PenalNbIm> ${PenalNbIm} </PenalNbIm>
+                               <#WHEN VTEST=${UseMasq3D}>
+                                    <Masq3D> ${Masq3D} </Masq3D>
+                               </#WHEN>
                           </ChoixImSec>
                      </ChoixImMM>
                      <ExportNuage>

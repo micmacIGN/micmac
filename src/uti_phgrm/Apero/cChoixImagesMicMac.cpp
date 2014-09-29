@@ -629,7 +629,7 @@ class cSetCdtCIMS
 /*                                                 */
 /***************************************************/
 
-void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
+void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cMasqBin3D * aMasq3D)
 {
    double aPenal = aCIM.PenalNbIm().Val();
    cImSecOfMaster aISM;
@@ -642,7 +642,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
        std::cout << " ************ " << aPC0->Name() << " ***********\n";
    int aNbPose = mVecPose.size();
    cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale (aCIM.IdBdl(),aPC0->Name());
-   cPCICentr aPCIC(aPC0,anOLM->CentreNuage());
+   cPCICentr aPCIC(aPC0,anOLM->CentreNuage(aMasq3D));
 
    // Initialisation a partir du centre nuage
    for(int aKP=0 ; aKP<aNbPose ;aKP++)
@@ -661,9 +661,20 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
         {
            cOneCombinMult * anOCM = aPMul.OCM();
            const std::vector<cPoseCam *> & aVP = anOCM->VP();
-           for (int aKPos=1 ; aKPos<int(aVP.size()) ;aKPos++)
+           bool Ok = true;
+           if (aMasq3D)
            {
-               aVP[aKPos]->CdtImSec()->mNbPts++;
+              std::vector<double> aVPds;
+              Pt3dr aPI = aPMul.QuickInter(aVPds);
+              Ok =  aMasq3D->IsInMasq(aPI);
+           }
+
+           if (Ok)
+           {
+              for (int aKPos=1 ; aKPos<int(aVP.size()) ;aKPos++)
+              {
+                  aVP[aKPos]->CdtImSec()->mNbPts++;
+              }
            }
         }
    }
@@ -869,13 +880,16 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0)
 void cAppliApero::ExportImMM(const cChoixImMM & aCIM)
 {
     cSetName *  aSelector = mICNM->KeyOrPatSelector(aCIM.PatternSel());
+    cMasqBin3D * aMasq3D = 0;
+    if (aCIM.Masq3D().IsInit())
+       aMasq3D= cMasqBin3D::FromSaisieMasq3d(DC()+aCIM.Masq3D().Val());
 
     for(int aKP=0 ; aKP<int(mVecPose.size()) ;aKP++)
     {
        cPoseCam* aPC = mVecPose[aKP];
        if (aSelector->IsSetIn(aPC->Name()))
        {
-           ExportImSecMM(aCIM,aPC);
+           ExportImSecMM(aCIM,aPC,aMasq3D);
        }
     }
 }

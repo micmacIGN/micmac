@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void  cAppliMergeCloud::CreateGrapheConx()
 {
+   mRecouvrTot  =  mVSoms.size();  // Recouvrement total
             // Couple d'homologues
    std::string aKSH = "NKS-Set-Homol@@"+ mParam.ExtHom().Val();
    std::string aKAH = "NKS-Assoc-CplIm2Hom@@"+ mParam.ExtHom().Val();
@@ -126,8 +127,10 @@ void  cAppliMergeCloud::CreateGrapheConx()
             std::cout << "\n";
        }
    }
-   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
-       mVSoms[aK]->attr()->TestImCoher();
+
+   mRecMoy = mRecouvrTot /  mVSoms.size();
+   mNbImMoy = mVSoms.size() / mRecMoy;  // En Fait NbIm^2 /mRecouvrTot
+   std::cout  << "REC TOT " << mRecouvrTot << " RMoy " << mRecMoy << " NbIm " << mNbImMoy << "\n";
 }
 
 
@@ -160,6 +163,8 @@ tMCArc * cAppliMergeCloud::TestAddNewarc(tMCSom * aS1,tMCSom *aS2)
 
    double aR1On2 = anA1->LowRecouvrt(*anA2);
    double aR2On1 = anA2->LowRecouvrt(*anA1);
+
+   mRecouvrTot += aR1On2 + aR2On1;
 
    if ((aR1On2< mParam.TauxRecMin()) && (aR2On1 <mParam.TauxRecMin()))
       return 0;

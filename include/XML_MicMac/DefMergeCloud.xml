@@ -7,15 +7,15 @@
           <TestImageDif> false </TestImageDif>
           <VisuGrad> false </VisuGrad>
           <VisuLowPts > false</VisuLowPts>
-          <VisuImageCoh> true</VisuImageCoh>
-
+          <VisuImageCoh> false </VisuImageCoh>
       </PFNMiseAuPoint>
       <GrapheRecouvrt>
-           <TauxRecMin> 0.1 </TauxRecMin>
+           <TauxRecMin> 0.01 </TauxRecMin>
            <ExtHom > dat </ExtHom>
            <MinSzFilHom>  500 </MinSzFilHom>
            <RecSeuilDistProf>  1.0</RecSeuilDistProf>
            <NbPtsLowResume> 2000  </NbPtsLowResume>
+           <CostPerImISOM> 0.12 </CostPerImISOM>
       </GrapheRecouvrt>
       <ImageVariations>
            <V4Vois > false </V4Vois>

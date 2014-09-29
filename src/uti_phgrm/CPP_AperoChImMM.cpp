@@ -50,6 +50,7 @@ int AperoChImMM_main(int argc,char ** argv)
     bool CalPerIm=0;
     double aPenalPerIm = 0.333;
     double aTetaOpt = 0.17;
+    std::string aMasq3D;
 
     Pt2dr aFocs;
 
@@ -67,6 +68,7 @@ int AperoChImMM_main(int argc,char ** argv)
                     << EAM(aFocs,"Focs",true,"Interval of Focal")
                     << EAM(aPenalPerIm,"PenPerIm",true,"Penality per image, to limite size, def = 0.3")
                     << EAM(aTetaOpt,"TetaOpt",true,"Optimal angle of stereoscopy, in radian, def=0.17 (+or- 10 degree)")
+                    << EAM(aMasq3D,"Masq3D",true,"Masq3D for tie points selection")
     );
 
 
@@ -107,6 +109,11 @@ int AperoChImMM_main(int argc,char ** argv)
     if (EAMIsInit(&aFocs))
     {
        aCom = aCom + " +FocMin=" + ToString(aFocs.x) + " +FocMax=" + ToString(aFocs.y);
+    }
+
+    if (EAMIsInit(&aMasq3D))
+    {
+        aCom = aCom + " +UseMasq3D=true +Masq3D=" + aMasq3D;
     }
 
    std::cout << "Com = " << aCom << "\n";

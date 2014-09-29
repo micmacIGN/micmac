@@ -60,6 +60,34 @@ std::string  Mangling( eModeMergeCloud *);
 
 void  BinaryUnDumpFromFile(eModeMergeCloud &,ELISE_fp &);
 
+typedef enum
+{
+  eQC_Out,
+  eQC_ZeroCohBrd,
+  eQC_ZeroCoh,
+  eQC_ZeroCohImMul,
+  eQC_GradFort,
+  eQC_GradFaibleC1,
+  eQC_Bord,
+  eQC_Coh1,
+  eQC_GradFaibleC2,
+  eQC_Coh2,
+  eQC_Coh3,
+  eQC_NonAff
+} eQualCloud;
+void xml_init(eQualCloud & aVal,cElXMLTree * aTree);
+std::string  eToString(const eQualCloud & aVal);
+
+eQualCloud  Str2eQualCloud(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eQualCloud & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eQualCloud &);
+
+std::string  Mangling( eQualCloud *);
+
+void  BinaryUnDumpFromFile(eQualCloud &,ELISE_fp &);
+
 class cIntervLutConvertion
 {
     public:
