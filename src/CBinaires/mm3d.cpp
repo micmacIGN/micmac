@@ -230,7 +230,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GrapheHom",GrapheHom_main," Compute XML-Visibility graph from approximative orientation ",cArgLogCom(3)));
        aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
-       aRes.push_back(cMMCom("OriExport",OriExport_main," Export orientatio from XML to XML or TXT with specified convention",cArgLogCom(3)));
+       aRes.push_back(cMMCom("OriExport",OriExport_main," Export orientation from XML to XML or TXT with specified convention",cArgLogCom(3)));
        aRes.push_back(cMMCom("XifGps2Xml",XifGps2Xml_main," Create MicMac-Xml struct from GPS embedded in EXIF",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));

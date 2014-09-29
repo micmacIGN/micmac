@@ -6,14 +6,52 @@
  R. Gachet & P. Fave
  */
 
-//! Abstract class for shared methods
-class RefineModelAbs
-{
-protected:
-    ElCamera* masterCamera;
-    ElCamera* slaveCamera;
 
-    // the 6 parameters of affinity (for the slave image)
+class AffCamera
+{
+ public:
+    AffCamera(string aFilename):a0(0),a1(1),a2(0),b0(0),b1(0),b2(1)
+    {
+        // Loading the GRID file
+        ElAffin2D oriIntImaM2C;
+        Pt2di Sz(10000,10000);
+        mCamera =  new cCameraModuleOrientation(new OrientationGrille(aFilename),Sz,oriIntImaM2C);
+    }
+
+    ///
+    /// \brief Tie Points (in pixel)
+    ///
+    std::vector<Pt2dr> vPtImg;
+
+    ///
+    /// \brief update affinity parameters
+    /// \param sol unknowns matrix
+    ///
+    void updateParams(ElMatrix <double> const &sol)
+    {
+        std::cout << "Init solution: "<<std::endl;
+        printParams();
+
+        a0 += sol(0,0);
+        a1 += sol(0,1);
+        a2 += sol(0,2);
+        b0 += sol(0,3);
+        b1 += sol(0,4);
+        b2 += sol(0,5);
+
+        std::cout << "Updated solution: "<<std::endl;
+        printParams();
+    }
+
+    void printParams()
+    {
+        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
+        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+    }
+
+    ElCamera* Camera() { return mCamera; }
+
+    // the 6 parameters of affinity
     // colc = a0 + a1 * col + a2 * lig
     // ligc = b0 + b1 * col + b2 * lig
     double a0;
@@ -23,16 +61,20 @@ protected:
     double b1;
     double b2;
 
+protected:
+
+    ElCamera* mCamera;
+};
+
+//! Abstract class for shared methods
+class RefineModelAbs
+{
+protected:
+    AffCamera* master;
+    AffCamera* slave;
+
     ///
-    /// \brief Tie Points in the Master Image (in pixel)
-    ///
-    std::vector<Pt2dr> vPtImgMaster;
-    ///
-    /// \brief Tie Points in the Slave Image (in pixel)
-    ///
-    std::vector<Pt2dr> vPtImgSlave;
-    ///
-    /// \brief Tie Points altitude (to estimate)
+    /// \brief Points altitude (to estimate)
     ///
     std::vector<double> vZ;
     ///
@@ -65,11 +107,11 @@ public:
                 double dZ = 0.1) const
     {
         double z = zIni;
-        Pt2dr D   = compute2DGroundDifference(ptImgMaster,ptImgSlave,z);
+        Pt2dr D   = compute2DGroundDifference(ptImgMaster,ptImgSlave,z, slave);
         double d  = square_euclid(D);
-        Pt2dr D1  = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ);
+        Pt2dr D1  = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ, slave);
         double d1 = square_euclid(D1);
-        Pt2dr D2  = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ);
+        Pt2dr D2  = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ, slave);
         double d2 = square_euclid(D2);
         if (d1<d2)
         {
@@ -77,7 +119,7 @@ public:
             {
                 d = d1;
                 z = z-dZ;
-                D1 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ);
+                D1 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ, slave);
                 d1 = square_euclid(D1);
             }
         }
@@ -87,7 +129,7 @@ public:
             {
                 d = d2;
                 z = z+dZ;
-                D2 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ);
+                D2 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ, slave);
                 d2 = square_euclid(D2);
             }
         }
@@ -104,13 +146,11 @@ public:
     RefineModelAbs(std::string const &aNameFileGridMaster,
                    std::string const &aNameFileGridSlave,
                    std::string const &aNamefileTiePoints,
-                   double Zmoy):masterCamera(NULL),slaveCamera(NULL),a0(0),a1(1),a2(0),b0(0),b1(0),b2(1),zMoy(Zmoy),_N(1,1,0.),_Y(1,1,0.)
+                   double Zmoy):master(NULL),slave(NULL),zMoy(Zmoy),_N(1,1,0.),_Y(1,1,0.)
     {
         // Loading the GRID file
-        ElAffin2D oriIntImaM2C;
-        Pt2di Sz(10000,10000);
-        masterCamera = new cCameraModuleOrientation(new OrientationGrille(aNameFileGridMaster),Sz,oriIntImaM2C);
-        slaveCamera  = new cCameraModuleOrientation(new OrientationGrille(aNameFileGridSlave),Sz,oriIntImaM2C);
+        master = new AffCamera(aNameFileGridMaster);
+        slave  = new AffCamera(aNameFileGridSlave);
 
         // Loading the Tie Points with altitude approximate estimation
 
@@ -124,7 +164,7 @@ public:
             {
                 double z = getZ(P1,P2,zMoy);
                 std::cout << "z = "<<z<<std::endl;
-                Pt2dr D = compute2DGroundDifference(P1,P2,z);
+                Pt2dr D = compute2DGroundDifference(P1,P2,z,slave);
 
                 if (square_euclid(D)>100.)
                 {
@@ -133,14 +173,14 @@ public:
                 }
                 else
                 {
-                    vPtImgMaster.push_back(P1);
-                    vPtImgSlave.push_back(P2);
+                    master->vPtImg.push_back(P1);
+                    slave->vPtImg.push_back(P2);
                     vZ.push_back(z);
                 }
             }
         }
         std::cout << "Number of rejected points : "<< rPts_nb << std::endl;
-        std::cout << "Number of tie points : "<< vPtImgMaster.size() << std::endl;
+        std::cout << "Number of tie points : "<< master->vPtImg.size() << std::endl;
     }
 
     ///
@@ -166,18 +206,18 @@ public:
                                     double aB1,
                                     double aB2)const
     {
-        Pt3dr ptTerMaster = masterCamera->ImEtProf2Terrain(ptImgMaster,aZ);
+        Pt3dr ptTerMaster = master->Camera()->ImEtProf2Terrain(ptImgMaster,aZ);
         Pt2dr ptImgSlaveC(aA0 + aA1 * ptImgSlave.x + aA2 * ptImgSlave.y,
                           aB0 + aB1 * ptImgSlave.x + aB2 * ptImgSlave.y);
-        Pt3dr ptTerSlave = slaveCamera->ImEtProf2Terrain(ptImgSlaveC,aZ);
+        Pt3dr ptTerSlave = slave->Camera()->ImEtProf2Terrain(ptImgSlaveC,aZ);
         return Pt2dr(ptTerMaster.x - ptTerSlave.x,ptTerMaster.y - ptTerSlave.y);
     }
 
     Pt2dr compute2DGroundDifference(Pt2dr const &ptImgMaster,
                                     Pt2dr const &ptImgSlave,
-                                    double aZ)const
+                                    double aZ, AffCamera* cam)const
     {
-        return compute2DGroundDifference(ptImgMaster,ptImgSlave,aZ,a0,a1,a2,b0,b1,b2);
+        return compute2DGroundDifference(ptImgMaster,ptImgSlave,aZ,cam->a0,cam->a1,cam->a2,cam->b0,cam->b1,cam->b2);
     }
 
     ///
@@ -187,38 +227,18 @@ public:
     double sumRes()
     {
         double sumRes = 0.;
-        for(size_t i=0;i<vPtImgMaster.size();++i)
+        for(size_t i=0;i<master->vPtImg.size();++i)
         {
-            Pt2dr const &ptImgMaster = vPtImgMaster[i];
-            Pt2dr const &ptImgSlave  = vPtImgSlave[i];
+            Pt2dr const &ptImgMaster = master->vPtImg[i];
+            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
             // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,vZ[i]);
+            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,vZ[i], slave);
             sumRes += square_euclid(D);
         }
         return sumRes;
     }
 
-    ///
-    /// \brief update affinity parameters
-    /// \param sol unknowns matrix
-    ///
-    void updateParams(ElMatrix <double> const &sol)
-    {
-        std::cout << "Init solution: "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
 
-        a0 += sol(0,0);
-        a1 += sol(0,1);
-        a2 += sol(0,2);
-        b0 += sol(0,3);
-        b1 += sol(0,4);
-        b2 += sol(0,5);
-
-        std::cout << "Updated solution: "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
-    }
 
     ///
     /// \brief debug matrix
@@ -258,7 +278,7 @@ public:
 
         std::ofstream fic("refine/refineCoef.txt");
         fic << std::setprecision(15);
-        fic << a0 <<" "<< a1 <<" "<< a2 <<" "<< b0 <<" "<< b1 <<" "<< b2 <<" "<<std::endl;
+        fic << slave->a0 <<" "<< slave->a1 <<" "<< slave->a2 <<" "<< slave->b0 <<" "<< slave->b1 <<" "<< slave->b2 <<" "<<std::endl;
         std::cout << "RMS_after = " << curRMS << std::endl;
         return true;
     }
@@ -276,10 +296,10 @@ public:
 
     virtual ~RefineModelAbs()
     {
-        if (masterCamera)
-            delete masterCamera;
-        if (slaveCamera)
-            delete slaveCamera;
+        if (master)
+            delete master;
+        if (slave)
+            delete slave;
     }
 };
 
@@ -363,7 +383,7 @@ public:
 
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        updateParams(sol);
+        slave->updateParams(sol);
 
         //estimation des Z
         /*
@@ -407,7 +427,7 @@ public:
         _Y = ElMatrix<double>(1,7,0.);
 
         size_t numUnk = _N.Sz().x;                       // Nombre d'inconnues
-        size_t numObs = 2*vPtImgMaster.size() + numUnk;  // Nombre d'observations (dont stabilisation des inconnues)
+        size_t numObs = 2*master->vPtImg.size() + numUnk;  // Nombre d'observations (dont stabilisation des inconnues)
 
         double iniRMS = std::sqrt(sumRes()/numObs);
 
@@ -433,22 +453,29 @@ public:
         //pour chaque obs (ligne), y compris les eq de stabilisation
         //for( toutes les obs )
 
-        for(size_t i=0;i<vPtImgMaster.size();++i)
+        for(size_t i=0;i<master->vPtImg.size();++i)
         {
-            Pt2dr const &ptImgMaster = vPtImgMaster[i];
-            Pt2dr const &ptImgSlave  = vPtImgSlave[i];
+            Pt2dr const &ptImgMaster = master->vPtImg[i];
+            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
             double const Z = vZ[i];
 
             ElMatrix<double> obs(numUnk,1,0.);
             //a remplir avec derivees partielles ...
 
             // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
+            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z, slave);
 
             //todo : strategie d'elimination d'observations / ou ponderation
 
             // estimation des derivees partielles
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ,a0,a1,a2,b0,b1,b2)-D);
+            double a0 = slave->a0;
+            double a1 = slave->a1;
+            double a2 = slave->a2;
+            double b0 = slave->b0;
+            double b1 = slave->b1;
+            double b2 = slave->b2;
+
+            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ,slave)-D);
             Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
             Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
@@ -533,10 +560,10 @@ public:
         */
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        updateParams(sol);
+        slave->updateParams(sol);
 
         //mise a jour des Z
-        for(size_t i=0;i<vPtImgMaster.size();++i)
+        for(size_t i=0;i<master->vPtImg.size();++i)
         {
             vZ[i] += sol(0,6+i);
             std::cout << vZ[i] << std::endl;
@@ -564,20 +591,27 @@ public:
 
         //pour chaque obs (ligne), y compris les eq de stabilisation
         //for( toutes les obs )
-        for(size_t i=0;i<vPtImgMaster.size();++i)
+        for(size_t i=0;i<master->vPtImg.size();++i)
         {
             //std::cout << "i = "<<i<<std::endl;
-            Pt2dr const &ptImgMaster = vPtImgMaster[i];
-            Pt2dr const &ptImgSlave  = vPtImgSlave[i];
+            Pt2dr const &ptImgMaster = master->vPtImg[i];
+            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
             double const Z = vZ[i];
 
             // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2);
+            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,slave);
 
             //todo : strategie d'elimination d'observations / ou ponderation
 
             // estimation des derivees partielles
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+dZ,a0,a1,a2,b0,b1,b2) -D);
+            double a0 = slave->a0;
+            double a1 = slave->a1;
+            double a2 = slave->a2;
+            double b0 = slave->b0;
+            double b1 = slave->b1;
+            double b2 = slave->b2;
+
+            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+dZ, slave) -D);
             Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
             Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
@@ -609,22 +643,22 @@ public:
             double pdt = vZ.size();
             // A0 proche de 0
             _N(0,2*vZ.size()) = 1 * pdt;
-            _Y(0,2*vZ.size()) = (0-a0) * pdt;
+            _Y(0,2*vZ.size()) = (0-slave->a0) * pdt;
             // A1 proche de 1
             _N(1,2*vZ.size()+1) = 1 * pdt;
-            _Y(0,2*vZ.size()+1) = (1-a1) * pdt;
+            _Y(0,2*vZ.size()+1) = (1-slave->a1) * pdt;
             // A2 proche de 0
             _N(2,2*vZ.size()+2) = 1 * pdt;
-            _Y(0,2*vZ.size()+2) = (0-a2) * pdt;
+            _Y(0,2*vZ.size()+2) = (0-slave->a2) * pdt;
             // B0 proche de 0
             _N(3,2*vZ.size()+3) = 1 * pdt;
-            _Y(0,2*vZ.size()+3) = (0-b0) * pdt;
+            _Y(0,2*vZ.size()+3) = (0-slave->b0) * pdt;
             // B1 proche de 0
             _N(4,2*vZ.size()+4) = 1 * pdt;
-            _Y(0,2*vZ.size()+4) = (0-b1) * pdt;
+            _Y(0,2*vZ.size()+4) = (0-slave->b1) * pdt;
             // B2 proche de 1
             _N(5,2*vZ.size()+5) = 1 * pdt;
-            _Y(0,2*vZ.size()+5) = (1-b2) * pdt;
+            _Y(0,2*vZ.size()+5) = (1-slave->b2) * pdt;
         }
         std::cout << "before solve"<<std::endl;
 
@@ -671,12 +705,12 @@ public:
          */
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        updateParams(sol);
+        slave->updateParams(sol);
 
         // Z update
-        for(size_t i=0;i<vPtImgMaster.size();++i)
+        for(size_t i=0;i<master->vPtImg.size();++i)
         {
-            vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i]);
+            vZ[i] = getZ(master->vPtImg[i],slave->vPtImg[i],vZ[i]);
            // vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i], 0.01); => legere amelioration
         }
     }
@@ -700,15 +734,15 @@ public:
 
         //pour chaque obs (ligne), y compris les eq de stabilisation
         //for( toutes les obs )
-        for(size_t i=0;i<vPtImgMaster.size();++i)
+        for(size_t i=0;i<master->vPtImg.size();++i)
         {
             //std::cout << "i = "<<i<<std::endl;
-            Pt2dr const &ptImgMaster = vPtImgMaster[i];
-            Pt2dr const &ptImgSlave  = vPtImgSlave[i];
+            Pt2dr const &ptImgMaster = master->vPtImg[i];
+            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
             double const Z = vZ[i];
 
             // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
+            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z, slave);
             double ecart2 = square_euclid(D);
 
             double pdt = 1./sqrt(1. + ecart2);
@@ -716,6 +750,13 @@ public:
             //todo : strategie d'elimination d'observations / ou ponderation
 
             // estimation des derivees partielles
+            double a0 = slave->a0;
+            double a1 = slave->a1;
+            double a2 = slave->a2;
+            double b0 = slave->b0;
+            double b1 = slave->b1;
+            double b2 = slave->b2;
+
             Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
             Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
@@ -809,18 +850,16 @@ public:
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
         std::cout << "Solution ini : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+        slave->printParams();
 
-        a0 -= sol(0,0);     //pourquoi -= ???
-        b0 -= sol(0,1);
+        slave->a0 -= sol(0,0);     //pourquoi -= ???
+        slave->b0 -= sol(0,1);
 
         std::cout << "Solution mise a jour : "<<std::endl;
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+        slave->printParams();
 
         //mise a jour des Z
-        for(size_t i=0;i<vPtImgMaster.size();++i)
+        for(size_t i=0;i<master->vPtImg.size();++i)
         {
             vZ[i] -= sol(0,2+i); //pourquoi -= ???
             std::cout << vZ[i] << std::endl;
@@ -852,20 +891,28 @@ public:
 
         //pour chaque obs (ligne), y compris les eq de stabilisation
         //for( toutes les obs )
-        for(size_t i=0;i<vPtImgMaster.size();++i)
+        for(size_t i=0;i<master->vPtImg.size();++i)
         {
             std::cout << "i = "<<i<<std::endl;
-            Pt2dr const &ptImgMaster = vPtImgMaster[i];
-            Pt2dr const &ptImgSlave  = vPtImgSlave[i];
+            Pt2dr const &ptImgMaster = master->vPtImg[i];
+            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
             double const Z = vZ[i];
 
             // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
+            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z, slave);
 
             //todo : strategie d'elimination d'observations / ou ponderation
 
             // estimation des derivees partielles
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+ dZ,a0,a1,a2,b0,b1,b2)-D);
+
+            double a0 = slave->a0;
+            double a1 = slave->a1;
+            double a2 = slave->a2;
+            double b0 = slave->b0;
+            double b1 = slave->b1;
+            double b2 = slave->b2;
+
+            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+ dZ,slave)-D);
             Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
             Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
 
@@ -884,10 +931,10 @@ public:
         {
             // A0 proche de 0
             _N(0,2*vZ.size()) = 1;
-            _Y(0,2*vZ.size()) = 0-a0;
+            _Y(0,2*vZ.size()) = 0-slave->a0;
             // B0 proche de 0
             _N(1,2*vZ.size()+1) = 1;
-            _Y(0,2*vZ.size()+1) = 0-b0;
+            _Y(0,2*vZ.size()+1) = 0-slave->b0;
             // Moyenne alti
             double altiMoyenne = 0.;
             for(size_t i=0;i<vZ.size();++i)
@@ -940,4 +987,7 @@ int RefineModel_main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+
+
+
 
