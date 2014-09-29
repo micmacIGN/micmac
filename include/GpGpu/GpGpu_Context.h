@@ -14,10 +14,20 @@
 
 template<class T> class CData;
 
+#ifdef OPENCL_ENABLED
 #ifdef __APPLE__
 #include "OpenCL/opencl.h"
 #else
 #include "CL/cl.h"
+#endif
+
+void errorOpencl(cl_int error,string erName)
+{
+    if(error ==CL_SUCCESS)
+        printf("Success create %s\n",erName.c_str());
+    else
+        printf("Error create %s = %d\n",erName.c_str(),error);
+}
 #endif
 
 enum GPGPUSDK {  CUDASDK
@@ -31,7 +41,7 @@ public:
 
     CGpGpuContext(){}
 
-    static void createContext(){}
+    static void createContext();
 
     static void deleteContext(){}
 
@@ -49,13 +59,28 @@ public:
 
     static  void launchKernel(){}
 
-    template<class T>
-    static  void addKernelArg(CData<T> &arg){}
+    template< class T, template< class O > class U >
+    static  void addKernelArg( U<T> &arg);
+//    {
+
+//        cl_int error = -1;
+
+//        cl_mem memBuffer = arg.clMem();
+
+//        error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(memBuffer),&memBuffer);
+
+//        errorOpencl(error,"Kernel Arg buffer");
+
+//        _nbArg++;
+//    }
 
     template<class T>
-    static  void addKernelArg(T &arg){}
+    static  void addKernelArg(T &arg);
 
 private:
+
+    template<class T>
+    static  void addKernelArgSDK( CData<T> &arg){}
 
     static cl_context           _contextOpenCL;
     static cl_command_queue     _commandQueue;
@@ -63,6 +88,10 @@ private:
     static unsigned short       _nbArg;
 
 };
+
+
+template<int gpusdk>
+void CGpGpuContext<gpusdk>::createContext(){}
 
 template <> inline
 void CGpGpuContext<CUDASDK>::OutputInfoGpuMemory()
@@ -162,13 +191,6 @@ void CGpGpuContext<CUDASDK>::deleteContext()
 }
 
 #if OPENCL_ENABLED
-void errorOpencl(cl_int error,string erName)
-{
-    if(error ==CL_SUCCESS)
-        printf("Success create %s\n",erName.c_str());
-    else
-        printf("Error create %s = %d\n",erName.c_str(),error);
-}
 
 
 template <> inline
@@ -249,8 +271,8 @@ void CGpGpuContext<OPENCLSDK>::createKernel(string fileName,string kernelName)
 
     std::string prog(std::istreambuf_iterator<char>(file),(std::istreambuf_iterator<char>()));
 
-    if(file.is_open())
-        printf("%s\n",prog.c_str());
+//    if(file.is_open())
+//        printf("%s\n",prog.c_str());
 
 
 
@@ -268,8 +290,6 @@ void CGpGpuContext<OPENCLSDK>::createKernel(string fileName,string kernelName)
 
 }
 
-
-
 template <> inline
 void CGpGpuContext<OPENCLSDK>::launchKernel()
 {
@@ -286,25 +306,9 @@ void CGpGpuContext<OPENCLSDK>::launchKernel()
 
 template <>
 template <class T> inline
-void CGpGpuContext<OPENCLSDK>::addKernelArg(CData<T> &arg)
-{
-    cl_int error = -1;
-
-    cl_mem memBuffer = arg.clMem();
-    //cl_kernel kernel;
-
-    error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(memBuffer),&memBuffer);
-
-    errorOpencl(error,"Kernel Arg");
-
-    _nbArg++;
-
-}
-
-template <>
-template <class T> inline
 void CGpGpuContext<OPENCLSDK>::addKernelArg(T &arg)
 {
+
     cl_int error = -1;
 
     error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(T),&arg);
@@ -312,6 +316,31 @@ void CGpGpuContext<OPENCLSDK>::addKernelArg(T &arg)
     errorOpencl(error,"Kernel Arg");
 
     _nbArg++;
+
+}
+
+template <int gpusdk>
+template <class T , template<class O> class U>
+void CGpGpuContext<gpusdk>::addKernelArg(U<T> &arg)
+{
+
+
+    addKernelArgSDK(arg);
+
+    _nbArg++;
+}
+
+template<>
+template <class T> inline
+void CGpGpuContext<OPENCLSDK>::addKernelArgSDK( CData<T> &arg)
+{
+    cl_int error = -1;
+
+    cl_mem memBuffer = arg.clMem();
+
+    error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(memBuffer),&memBuffer);
+
+    errorOpencl(error,"Kernel Arg OPENCL buffer");
 
 }
 
