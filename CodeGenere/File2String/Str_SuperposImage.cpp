@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1270]) = {
+const char * (theNameVar_SuperposImage[1280]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1189,6 +1189,10 @@ const char * (theNameVar_SuperposImage[1270]) = {
 "            <VisuGrad Nb=\"?\" Type=\"bool\"  Def=\"false\"></VisuGrad>\n",
 "            <VisuLowPts Nb=\"?\" Type=\"bool\"  Def=\"false\"></VisuLowPts>\n",
 "            <VisuImageCoh Nb=\"?\" Type=\"bool\"  Def=\"false\"></VisuImageCoh>\n",
+"            <VisuSelect  Nb=\"?\" Type=\"bool\"  Def=\"false\"> </VisuSelect> <!-- Visualise la construction des points selectionnes -->\n",
+"            <VisuEnv  Nb=\"?\" Type=\"bool\"  Def=\"false\"> </VisuEnv> <!-- Visualise les enveloppes -->\n",
+"            <VisuElim  Nb=\"?\" Type=\"bool\"  Def=\"false\"> </VisuElim> <!-- Visualise chaque elimination -->\n",
+"            <ImageMiseAuPoint Nb=\"?\" Type=\"std::string\"> </ImageMiseAuPoint> <!-- Images pour lesquelles on active la visu -->\n",
 "      </PFNMiseAuPoint>\n",
 "      <GrapheRecouvrt Nb=\"1\"> \n",
 "             <TauxRecMin Nb=\"1\" Type=\"double\"> </TauxRecMin>\n",
@@ -1205,7 +1209,13 @@ const char * (theNameVar_SuperposImage[1270]) = {
 "           <SeuilStrictVarIma Nb=\"1\" Type=\"double\"> </SeuilStrictVarIma>\n",
 "           <PenteRefutInitInPixel Nb=\"?\" Type=\"double\" Def=\"0.5\"> </PenteRefutInitInPixel>\n",
 "           <ComputeIncid Nb=\"?\" Type=\"bool\" Def=\"true\"> </ComputeIncid>\n",
+"           <DilateBord Nb=\"?\" Type=\"int\" Def=\"3\"> </DilateBord>\n",
 "      </ImageVariations>\n",
+"      <PFM_Selection Nb=\"1\">\n",
+"            <ElimDirectInterior Nb=\"?\" Type=\"double\" Def=\"10.0\"> </ElimDirectInterior>\n",
+"            <LowRatioSelectIm Nb=\"?\" Type=\"double\" Def=\"0.001\"> </LowRatioSelectIm>\n",
+"            <HighRatioSelectIm Nb=\"?\" Type=\"double\" Def=\"0.05\"> </HighRatioSelectIm>\n",
+"      </PFM_Selection>\n",
 "  </ParamFusionNuage>\n",
 "\n",
 "\n",

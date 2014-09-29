@@ -8,6 +8,9 @@
           <VisuGrad> false </VisuGrad>
           <VisuLowPts > false</VisuLowPts>
           <VisuImageCoh> false </VisuImageCoh>
+          <ImageMiseAuPoint> IMGP704[7-9].JPG </ImageMiseAuPoint> 
+<!--
+-->
       </PFNMiseAuPoint>
       <GrapheRecouvrt>
            <TauxRecMin> 0.01 </TauxRecMin>
@@ -25,6 +28,12 @@
            <SeuilStrictVarIma>  0.33 </SeuilStrictVarIma>
            <PenteRefutInitInPixel>  0.5</PenteRefutInitInPixel>
       </ImageVariations>
+      <PFM_Selection>
+            <ElimDirectInterior> 10.0   </ElimDirectInterior>
+            <LowRatioSelectIm>   0.001  </LowRatioSelectIm>
+            <HighRatioSelectIm>  0.05   </HighRatioSelectIm>
+      </PFM_Selection>
+
  </ParamFusionNuage>
 
 
