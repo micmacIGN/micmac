@@ -95,6 +95,7 @@ std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
         cImaMM * anIma = cAppliWithSetImage::mVSoms[aKS]->attr().mIma;
         cASAMG * anAttrSom = 0;
 
+        bool InMAP = false;
         std::string aNameNuXml = NameFileInput(anIma,".xml");
         // Possible aucun nuage si peu de voisins et mauvaise config epip
         if (ELISE_fp::exist_file(aNameNuXml))
@@ -104,9 +105,10 @@ std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
             tMCSom &  aSom = mGr.new_som(anAttrSom);
             mDicSom[anIma->mNameIm] = & aSom;
             mVSoms.push_back(&aSom);
+            InMAP = IsInImageMAP(anAttrSom) ;
         }
 
-        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << IsInImageMAP(anAttrSom) << "\n";
+        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << InMAP << "\n";
    }
 
    // Mise au point
