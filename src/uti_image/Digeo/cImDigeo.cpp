@@ -117,6 +117,7 @@ cInterfImageTiff::cInterfImageTiff( std::string const &aName, unsigned int aMaxS
 
 	Tiff_Im &tiff = *mTiff.get();
 	const Pt2di sz = tiff.sz();
+
 	if ( (unsigned int)sz.x*(unsigned int)sz.y<aMaxSizeForFullLoad )
 	{
 		mFullImage.reset( Ptr_D2alloc_im2d( tiff.type_el(), sz.x, sz.y ) );
@@ -162,11 +163,12 @@ cInterfImageLoader::cInterfImageLoader( std::string const &aName, unsigned int a
 
 	cInterfModuleImageLoader &loader = *mLoader.get();
 
-	ELISE_ASSERT( loader.PreferedTypeOfResol(1)==eUnsignedChar, "cInterfImageLoader::cInterfImageLoader: " );
+	ELISE_ASSERT( loader.PreferedTypeOfResol(1)==eUnsignedChar, "cInterfImageLoader::cInterfImageLoader: only one-channel uint8 jpeg2000 images are handled" );
 
 	const JP2ImageLoader::tPInt &sz = loader.Sz(1);
 	if ( (unsigned int)( sz.real()*sz.imag() )<aMaxSizeForFullLoad )
 	{
+		/*
 		// load all image in memory
 		mFullImage.reset( new Im2D<REAL4,REAL>( sz.real(), sz.imag() ) );
 		loader.LoadCanalCorrel(
@@ -174,6 +176,17 @@ cInterfImageLoader::cInterfImageLoader( std::string const &aName, unsigned int a
 				mFullImage->data_lin(),
 				mFullImage->data(),
 				sz ),
+			1, //deZoom
+			cInterfModuleImageLoader::tPInt(0,0), //aP0Im
+			cInterfModuleImageLoader::tPInt(0,0), //aP0File
+			sz );
+		*/
+		mFullImage.reset( new Im2D<U_INT1,INT>( sz.real(), sz.imag() ) );
+		vector<sLowLevelIm<U_INT1> > lowLevelIms;
+		lowLevelIms.push_back( sLowLevelIm<U_INT1>( mFullImage->data_lin(), mFullImage->data(), sz ) );
+		loader.LoadNCanaux(
+			lowLevelIms,
+			0, // flags
 			1, //deZoom
 			cInterfModuleImageLoader::tPInt(0,0), //aP0Im
 			cInterfModuleImageLoader::tPInt(0,0), //aP0File
@@ -215,6 +228,7 @@ GenIm::type_el cInterfImageLoader::type_el()const
 	return GenIm::no_type;
 }
 
+/*
 double cInterfImageLoader::Som()const
 {
 	double aSom=0;
@@ -243,22 +257,54 @@ double cInterfImageLoader::Som()const
 	}
 	return aSom;
 }
+*/
+
+double cInterfImageLoader::Som()const
+{
+	double aSom=0;
+	int dl = 1000;
+	Im2D<U_INT1,INT> buffer( sz().x, dl+1 );
+	vector<sLowLevelIm<U_INT1> > lowLevelIms;
+	lowLevelIms.push_back( sLowLevelIm<U_INT1>( buffer.data_lin(), buffer.data(), Elise2Std(buffer.sz()) ) );
+	for(int l=0;l<sz().y;l+=dl)
+	{
+		int bufferHeight = std::min( sz().y-l, buffer.sz().y );
+		if ( buffer.ty()!=bufferHeight ) buffer.Resize( Pt2di(buffer.tx(),bufferHeight) );
+		mLoader->LoadNCanaux(
+			lowLevelIms,
+			0, // flags
+			1, //deZoom
+			cInterfModuleImageLoader::tPInt(0,0), //aP0Im
+			cInterfModuleImageLoader::tPInt(0,l), //aP0File
+			cInterfModuleImageLoader::tPInt( buffer.tx(), buffer.ty() ) );
+		double aSomLin;
+		Pt2di aSz = buffer.sz() - Pt2di(1,1);
+		ELISE_COPY
+		(
+			rectangle(Pt2di(0,0),aSz),
+			norm_grad(buffer.in_proj()),
+			sigma(aSomLin)
+		);
+		aSom += aSomLin;
+	}
+	return aSom;
+}
 
 Im2DGen cInterfImageLoader::getWindow( Pt2di const &P0, Pt2di windowSize )
 {
 	mWindow.Resize(windowSize);
 
-	if ( mFullImage.get()==NULL )
+	if ( mFullImage.get()!=NULL )
 		ELISE_COPY( mWindow.all_pts(), trans( mFullImage->in(), P0 ), mWindow.out() );
 	else
 	{
 		// no image is loaded in memory, get window from file
 		const cInterfModuleImageLoader::tPInt sz = Elise2Std(windowSize);
-		mLoader->LoadCanalCorrel(
-			sLowLevelIm<float>(
-				mWindow.data_lin(),
-				mWindow.data(),
-				sz ),
+		vector<sLowLevelIm<U_INT1> > lowLevelIms;
+		lowLevelIms.push_back( sLowLevelIm<U_INT1>( mWindow.data_lin(), mWindow.data(), sz ) );
+		mLoader->LoadNCanaux(
+			lowLevelIms,
+			0, // flags
 			1, //deZoom
 			cInterfModuleImageLoader::tPInt(0,0), //aP0Im
 			Elise2Std(P0), //aP0File
@@ -284,6 +330,7 @@ TIm2D<float,double>* cInterfImageLoader::cropReal4(Pt2di const &P0, Pt2di const 
 	return anTIm2D.release();
 }
 
+/*
 TIm2D<U_INT1,INT>* cInterfImageLoader::cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const
 {
 	std::auto_ptr<TIm2D<U_INT1,INT> > anTIm2D(new TIm2D<U_INT1,INT>(SzCrop));
@@ -298,7 +345,22 @@ TIm2D<U_INT1,INT>* cInterfImageLoader::cropUInt1(Pt2di const &P0, Pt2di const &S
 		cInterfModuleImageLoader::tPInt(SzCrop.x,SzCrop.y) );
 	return anTIm2D.release();
 }
+*/
 
+TIm2D<U_INT1,INT>* cInterfImageLoader::cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const
+{
+	std::auto_ptr<TIm2D<U_INT1,INT> > anTIm2D(new TIm2D<U_INT1,INT>(SzCrop));
+	vector<sLowLevelIm<U_INT1> > lowLevelIms;
+	lowLevelIms.push_back( sLowLevelIm<U_INT1>( anTIm2D->_the_im.data_lin(), anTIm2D->_the_im.data(), Elise2Std(anTIm2D->sz()) ) );
+	mLoader->LoadNCanaux(
+		lowLevelIms,
+		0, // flags
+		1, // deZoom
+		cInterfModuleImageLoader::tPInt(0,0), // aP0Im
+		cInterfModuleImageLoader::tPInt(P0.x,P0.y), // aP0File
+		cInterfModuleImageLoader::tPInt(SzCrop.x,SzCrop.y) );
+	return anTIm2D.release();
+}
 
 
 
@@ -694,6 +756,9 @@ void cImDigeo::orientateAndDescribe()
 	for ( size_t i=0; i<mVIms.size(); i++ )
 	{
 		cImInMem &image = *mVIms[i];
+
+		//if ( image.featurePoints().size()==0 ) continue;
+
 		image.orientate();
 		mOrientateTime += image.orientateTime();
 		image.describe();

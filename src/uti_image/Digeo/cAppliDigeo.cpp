@@ -89,6 +89,7 @@ cAppliDigeo::cAppliDigeo():
 	if ( Params().ConvolIncrem().IsInit() ) mDoIncrementalConvolution = Params().ConvolIncrem().Val();
 	if ( Params().SiftCarac().IsInit() && Params().SiftCarac().Val().RefinementMethod().IsInit() ) mRefinementMethod = Params().SiftCarac().Val().RefinementMethod().Val();
 	if ( Params().ShowTimes().IsInit() && Params().ShowTimes().Val() ) mShowTimes = true;
+	if ( Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().IsInit() && Params().ShowTimes().Val() ) mLoadAllImageLimit = Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().Val();
 
 	processTestSection();
 	InitConvolSpec();
@@ -162,8 +163,6 @@ void cAppliDigeo::InitAllImage()
      aSzMax = Params().DigeoDecoupageCarac().Val().SzDalle();
   }
 
-	// __DEL
-	cout << "cDecoupageInterv2D : aBox = " << aBox._p0 << ' ' << aBox.sz() << " aSzMax = " << aSzMax << " aBrd = " << aBrd << endl;
   mDecoupInt = cDecoupageInterv2D (aBox,Pt2di(aSzMax,aSzMax),Box2di(aBrd));
 
   // Les images s'itialisent en fonction de la Box
