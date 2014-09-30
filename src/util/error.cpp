@@ -52,7 +52,7 @@ void throwError(std::string err)
 {
     message_copy_where_error();
 
-    ShowArgs();
+    // ShowArgs(); A voir comment moduler, mais pour  l'instant ca complique l lecteure des messages ... MPD
 
     ncout() << err;
 
