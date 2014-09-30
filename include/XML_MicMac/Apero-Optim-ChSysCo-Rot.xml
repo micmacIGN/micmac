@@ -1,0 +1,137 @@
+<!--
+Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Optim-ChSysCo-Rot.xml DirectoryChantier=/home/marc/TMP/XL/ +Im=FD84x015_00107.tif
+
+/home/marc/TMP/XL/
+-->
+<Global>
+   <ParamApero>
+
+      <DicoLoc>
+            <Symb>  Prefix=TmpChSysCo  </Symb>
+            <Symb>  AeroIn=-${Prefix} </Symb>
+            <Symb>  NameCam=Ori-${Prefix}/Orientation-${Im}.xml </Symb>
+
+            <Symb>  AeroOut=${AeroIn}-OUT </Symb>
+            <Symb>  ShowUnused=true  </Symb>
+            <Symb>  CPI=false    </Symb>
+
+            <eSymb>  NotCPI=! ${CPI} </eSymb>
+       </DicoLoc>
+
+       <ShowSection>
+            <ShowMes > false </ShowMes>
+        </ShowSection>
+
+
+
+       <SectionBDD_Observation>
+            <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+            </BDD_Orient>
+            <BDD_ObsAppuisFlottant >
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  TmpChSysCo${Im}-S2D.xml </KeySetOrPat>
+                  <AcceptNoGround>  true </AcceptNoGround>
+            </BDD_ObsAppuisFlottant>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+            <CalibrationCameraInc>
+                   <Name> The-Key-Cal   </Name>
+                   <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ${NameCam} </NameFile>
+                               <NameTag> Interne</NameTag>
+                              <AutorizeNonExisting > false </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+             </CalibrationCameraInc>
+
+
+             <PoseCameraInc>
+	           <PatternName>    ${Im}   </PatternName>
+	           <CalcNameCalib>  The-Key-Cal </CalcNameCalib>
+
+                   <PosValueInit>
+                       <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+             <PointFlottantInc>
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  TmpChSysCo${Im}-S3D.xml   </KeySetOrPat>
+             </PointFlottantInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXXX </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+                   <IterationsCompensation>
+                       <SectionContraintes>
+                             <ContraintesCamerasInc>
+                                 <Val> eAllParamFiges  </Val>
+                             </ContraintesCamerasInc>
+                       </SectionContraintes>
+                    </IterationsCompensation>
+
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                        <ObsAppuisFlottant>
+                                 <NameRef> Id-Appui </NameRef>
+                                 <PondIm>
+                                          <EcartMesureIndiv>  10 </EcartMesureIndiv>
+<!--
+                                          <Show> eNSM_Paquet     </Show>
+                                          <NbMax>   100    </NbMax>
+                                          <ModePonderation>  eL1Secured </ModePonderation>
+                                          <SigmaPond> 20.0 </SigmaPond>
+-->
+                                 </PondIm>
+
+<!--
+                                 <PtsShowDet>  .* </PtsShowDet>
+                                 <DetShow3D >   0 </DetShow3D>
+                                 <ShowMax> true </ShowMax>
+                                 <ShowSom>  true</ShowSom>
+                                 <ShowUnused> ${ShowUnused} </ShowUnused>
+-->
+                           </ObsAppuisFlottant>
+
+		    </SectionObservations>
+
+                    <SectionExport>
+                         <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                          </ExportPose>
+                    </SectionExport>
+
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
