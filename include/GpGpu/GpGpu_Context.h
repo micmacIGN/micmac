@@ -61,18 +61,6 @@ public:
 
     template< class T, template< class O > class U >
     static  void addKernelArg( U<T> &arg);
-//    {
-
-//        cl_int error = -1;
-
-//        cl_mem memBuffer = arg.clMem();
-
-//        error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(memBuffer),&memBuffer);
-
-//        errorOpencl(error,"Kernel Arg buffer");
-
-//        _nbArg++;
-//    }
 
     template<class T>
     static  void addKernelArg(T &arg);
@@ -323,8 +311,6 @@ template <int gpusdk>
 template <class T , template<class O> class U>
 void CGpGpuContext<gpusdk>::addKernelArg(U<T> &arg)
 {
-
-
     addKernelArgSDK(arg);
 
     _nbArg++;
