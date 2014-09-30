@@ -52,7 +52,7 @@ void Casa_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
-int CASA_main(int argc,char ** argv)
+int CASALL_main(int argc,char ** argv)
 {
   // cAppliApero * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
 
@@ -66,20 +66,55 @@ int CASA_main(int argc,char ** argv)
 
    cResultSubstAndStdGetFile<cParamCasa> aP2
                                           (
-                                              0,0,
-                                      argv[1],
-                                  StdGetFileXMLSpec("ParamCasa.xml"),
-                                  "ParamCasa",
-                                  "ParamCasa",
+                                              argc-2,argv+2,
+                                              argv[1],
+                                              StdGetFileXMLSpec("ParamCasa.xml"),
+                                              "ParamCasa",
+                                              "ParamCasa",
                                               "DirectoryChantier",
                                               "FileChantierNameDescripteur"
                                           );
 
    cAppli_Casa   anAppli (aP2);
 
-   Casa_Banniere();
    return 0;
 }
+int CASA_main(int argc,char ** argv)
+{
+    std::string aNameN1;
+    std::string aNameN2;
+    std::string aNameN3;
+    std::string Out="TheCyl.xml";
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameN1,"Name of Cloud"),
+        LArgMain()  << EAM(Out,"Out",true,"Name of result (Def=TheCyl.xml)")
+                    <<  EAM(aNameN2,"N2",true,"Name of optional second cloud")
+                    <<  EAM(aNameN3,"N3",true,"Name of optional second cloud")
+     );
+
+     std::string aCom =   MM3dBinFile(" TestLib CASALL ")
+                       + XML_MM_File("ParamCasa.xml")
+                       + " +Out=" + Out
+                       + " +N1=" + aNameN1;
+
+     if (EAMIsInit(&aNameN2))
+        aCom = aCom + " +UseN2=true +N2=" + aNameN2;
+
+     if (EAMIsInit(&aNameN3))
+        aCom = aCom + " +UseN3=true +N3=" + aNameN3;
+
+
+     System(aCom);
+
+     Casa_Banniere();
+
+     return 1;
+}
+/*
+*/
 
 
 
