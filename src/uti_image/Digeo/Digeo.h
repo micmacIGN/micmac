@@ -710,8 +710,8 @@ class cInterfImageLoader:public cInterfImageAbs
 {
 private:
 	std::auto_ptr<cInterfModuleImageLoader> mLoader;
-	auto_ptr<Im2D<REAL4,REAL> > mFullImage;
-	Im2D<REAL4,REAL> mWindow;
+	auto_ptr<Im2D<U_INT1,INT> > mFullImage;
+	Im2D<U_INT1,INT> mWindow;
 
 public:
 	cInterfImageLoader( std::string const &aName, unsigned int aMaxLoadAll );
@@ -722,7 +722,7 @@ public:
 
 	GenIm::type_el type_el() const;
 
-	Im2DGen * fullImage(){ return (Im2DGen*)&mFullImage; }
+	Im2DGen * fullImage(){ return (Im2DGen*)mFullImage.get(); }
 
 	double Som() const;
 

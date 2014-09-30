@@ -332,7 +332,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 
 template <class Type> Im2DGen cTplImInMem<Type>::Im(){ return TIm(); }
 
-template <class Type> typename cTplImInMem<Type>::tBase * cTplImInMem<Type>::DoG(){ return ( mDoG.size()==0?NULL:&mDoG[0] ); }
+template <class Type> typename cTplImInMem<Type>::tBase * cTplImInMem<Type>::DoG(){ return ( mDoG.size()==0?NULL:mDoG.data() ); }
 
 /*
 template <class Type>  void  cTplImInMem<Type>::SetOrigOct(cTplImInMem<Type> * anOrig)
@@ -378,8 +378,7 @@ template <class Type>
 void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
 {
     mDoG.resize( mSz.x*mSz.y );
-    if ( mDoG.size()==0 ) return;
-    tBase *itDog = &mDoG[0];
+    tBase *itDog = mDoG.data();
     Type  *itCurrentScale,
           *itNextScale;
     int x, y;
@@ -1185,6 +1184,8 @@ void normalize_and_truncate( REAL8 *io_descriptor )
 
 void cImInMem::describe()
 {
+	//if ( mKInOct!=0 && mKInOct<= )
+	
 	const Im2D<REAL4,REAL8> &srcGradient = getGradient();
 	ElTimer chrono;
 	double octaveTrueSamplingPace = mOct.trueSamplingPace();
