@@ -1203,8 +1203,8 @@ Fonc_Num MedianBySort(Fonc_Num f,INT NbMed)
 /*********************************************************************/
 
 // Normalement valent false, mais pour tester le mecanisme ~ et dup ...
-#define DupcOmbrageKL  FALSE
-#define TestDupAndKill FALSE
+#define DupcOmbrageKL  0
+#define TestDupAndKill 0
 
 class cOmbrageKL  : public Simple_OPBuf1<double,double>
 {
