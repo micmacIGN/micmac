@@ -618,7 +618,7 @@ protected:
         cl_int errorCode = -1;
         _dD->setClMem(clCreateBuffer(CGpGpuContext<OPENCLSDK>::contextOpenCL(),CL_MEM_READ_WRITE,_dD->Sizeof(),NULL,&errorCode));
 
-        errorOpencl(errorCode,"malloc buffer");
+        CGpGpuContext<OPENCLSDK>::errorOpencl(errorCode,"malloc buffer");
 
         return errorCode == CL_SUCCESS;
     }

@@ -20,14 +20,6 @@ template<class T> class CData;
 #else
 #include "CL/cl.h"
 #endif
-
-void errorOpencl(cl_int error,string erName)
-{
-    if(error ==CL_SUCCESS)
-        printf("Success create %s\n",erName.c_str());
-    else
-        printf("Error create %s = %d\n",erName.c_str(),error);
-}
 #endif
 
 enum GPGPUSDK {  CUDASDK
@@ -64,8 +56,18 @@ public:
 
     template<class T>
     static  void addKernelArg(T &arg);
-
+#ifdef OPENCL_ENABLED
+	static void errorOpencl(cl_int error,string erName)
+	{
+		if(error ==CL_SUCCESS)
+			printf("Success create %s\n",erName.c_str());
+		else
+			printf("Error create %s = %d\n",erName.c_str(),error);
+	}
+#endif
 private:
+
+
 
     template<class T>
     static  void addKernelArgSDK( CData<T> &arg){}

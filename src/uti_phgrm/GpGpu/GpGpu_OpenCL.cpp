@@ -54,9 +54,12 @@ int main()
     bufferHost.Malloc(sizeBuff,1);
 
     int factor = 100;
-
-    CGpGpuContext<OPENCLSDK>::createKernel("../../micmac-src/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cl","kMultTab");
-    //CGpGpuContext<OPENCLSDK>::addKernelArgBuffer(buffer);
+#ifdef _WIN32
+	CGpGpuContext<OPENCLSDK>::createKernel("D:\\MicMac\\src\\uti_phgrm\\GpGpu\\GpGpu_OpenCL_Kernel.cl","kMultTab");    
+#else
+	CGpGpuContext<OPENCLSDK>::createKernel("../../micmac-src/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cl","kMultTab");
+#endif
+    
     CGpGpuContext<OPENCLSDK>::addKernelArg(buffer);
     CGpGpuContext<OPENCLSDK>::addKernelArg(factor);
     CGpGpuContext<OPENCLSDK>::launchKernel();

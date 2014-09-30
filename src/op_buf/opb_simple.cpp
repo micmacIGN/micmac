@@ -1203,9 +1203,8 @@ Fonc_Num MedianBySort(Fonc_Num f,INT NbMed)
 /*********************************************************************/
 
 // Normalement valent false, mais pour tester le mecanisme ~ et dup ...
-#define DupcOmbrageKL  false
-#define TestDupAndKill false
-
+#define DupcOmbrageKL  FALSE
+#define TestDupAndKill FALSE
 
 class cOmbrageKL  : public Simple_OPBuf1<double,double>
 {
@@ -1215,12 +1214,12 @@ class cOmbrageKL  : public Simple_OPBuf1<double,double>
    private :
         void  calc_buf(double ** output,double *** input);
 
-#if DupcOmbrageKL
-        Simple_OPBuf1<double,double> * dup_comp() {return new cOmbrageKL(mPente,mNbV);}
+#if DupcOmbrageKL		
+		Simple_OPBuf1<double,double> * dup_comp() {return new cOmbrageKL(mPente,mNbV);}
 #endif
 
-#if TestDupAndKill
-        ~cOmbrageKL()
+#if TestDupAndKill 
+        ~cOmbrageKL() 
         {
               std::cout << "KILL==cOmbrageKL\n"; getchar();
         }

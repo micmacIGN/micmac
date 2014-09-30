@@ -142,6 +142,7 @@ if(${WITH_OPENCL})
                     CL/cl.h OpenCL/cl.h
             PATHS
                     $ENV{AMDAPPSDKROOT}/include
+					$ENV{CUDA_PATH}/include
                     $ENV{INTELOCLSDKROOT}/include
                     $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/inc
                     ${CUDA_TOOLKIT_INCLUDE}
@@ -154,6 +155,7 @@ if(${WITH_OPENCL})
                     $ENV{AMDAPPSDKROOT}/lib/x86
                     $ENV{INTELOCLSDKROOT}/lib/x86
                     $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/lib/Win32
+					$ENV{CUDA_PATH}//lib/Win32
                     # Legacy Stream SDK
                     $ENV{ATISTREAMSDKROOT}/lib/x86)
     ELSEIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -163,6 +165,7 @@ if(${WITH_OPENCL})
                     $ENV{AMDAPPSDKROOT}/lib/x86_64
                     $ENV{INTELOCLSDKROOT}/lib/x64
                     $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/lib/x64
+					$ENV{CUDA_PATH}//lib/x64
                     # Legacy stream SDK
                     $ENV{ATISTREAMSDKROOT}/lib/x86_64)
     ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 4)
