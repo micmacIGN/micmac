@@ -143,7 +143,10 @@
 				<OutputGradientsNormDirectory Nb="?" Type="std::string" Def="gradients/norm"></OutputGradientsNormDirectory>
 				<OutputGradientsAngleDirectory Nb="?" Type="std::string" Def="gradients/angle"></OutputGradientsAngleDirectory>
 				<MergeTiles Nb="?" Type="bool" Def="true"> </MergeTiles> <!-- this option modifies OutputGaussians, OutputTiles, OutputGradient -->
-				<SuppressTiles Nb="?" Type="bool" Def="true"> </SuppressTiles> <!-- tiles are not suppressed if MergeTiles is not true --> 
+				<SuppressTiles Nb="?" Type="bool" Def="true"> </SuppressTiles> <!-- tiles are not suppressed if MergeTiles is not true -->
+				<!-- There is no need to compute gradient if there's no point to orientate or describe.
+				     With this option, the gradient is computed nonetheless. It may be useful for saving it or for time comparison -->
+				<ForceGradientComputation Nb="?" Type="bool" Def="false"></ForceGradientComputation>
 			</DigeoTestOutput>
 		</SectionTest>
 

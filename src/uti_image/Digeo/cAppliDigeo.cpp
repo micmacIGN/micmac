@@ -80,7 +80,9 @@ cAppliDigeo::cAppliDigeo():
 	mNbSlowConvolutionsUsed_real4(0),
 	mRefinementMethod(eRefine3D),
 	mShowTimes(false),
-	mNbComputedGradients(0)
+	mNbComputedGradients(0),
+	mNbLevels(1),
+	mDoForceGradientComputation(false)
 {
 	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), Basic_XML_MM_File( "Digeo-Parameters.xml" ) );
 
@@ -90,9 +92,14 @@ cAppliDigeo::cAppliDigeo():
 	if ( Params().SiftCarac().IsInit() && Params().SiftCarac().Val().RefinementMethod().IsInit() ) mRefinementMethod = Params().SiftCarac().Val().RefinementMethod().Val();
 	if ( Params().ShowTimes().IsInit() && Params().ShowTimes().Val() ) mShowTimes = true;
 	if ( Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().IsInit() && Params().ShowTimes().Val() ) mLoadAllImageLimit = Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().Val();
+	if ( Params().TypePyramide().PyramideGaussienne().IsInit() ) mNbLevels = Params().TypePyramide().PyramideGaussienne().Val().NbByOctave().Val();
 
 	processTestSection();
 	InitConvolSpec();
+
+	// __DEL
+	cout << "nb levels : " << mNbLevels << endl;
+	cout << "force gradient output : " << (doForceGradientComputation()?"true":"false") << endl;
 
 	if ( Params().GenereCodeConvol().IsInit() )
 	{
@@ -108,6 +115,8 @@ cAppliDigeo::~cAppliDigeo()
 	if ( mParamDigeo!=NULL ) delete mParamDigeo;
 	if ( mICNM!=NULL ) delete mICNM;
 }
+
+int cAppliDigeo::nbLevels() const { return mNbLevels; }
 
 void cAppliDigeo::upNbComputedGradients() { mNbComputedGradients++; }
 
@@ -220,6 +229,8 @@ bool cAppliDigeo::doReconstructOutputs() const { return mReconstructOutputs; }
 
 bool cAppliDigeo::doSuppressTiledOutputs() const { return mSuppressTiledOutputs; }
 
+bool cAppliDigeo::doForceGradientComputation() const { return mDoForceGradientComputation; }
+
 int cAppliDigeo::currentBoxIndex() const { return mCurrentBoxIndex; }
 
 bool cAppliDigeo::doIncrementalConvolution() const { return mDoIncrementalConvolution; }
@@ -314,6 +325,8 @@ void cAppliDigeo::processTestSection()
 			mReconstructOutputs = true;
 		if ( testOutput.SuppressTiles().IsInit() && testOutput.SuppressTiles().Val() )
 			mSuppressTiledOutputs = true;
+		if ( testOutput.ForceGradientComputation().IsInit() && testOutput.ForceGradientComputation().Val() )
+			mDoForceGradientComputation = true;
 	}
 }
 

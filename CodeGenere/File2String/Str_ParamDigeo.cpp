@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[189]) = {
+const char * (theNameVar_ParamDigeo[192]) = {
 "<GenCpp>\n",
 "	<Verbatim  File=\".h\">\n",
 "	#ifndef Define_NotDigeo\n",
@@ -145,7 +145,10 @@ const char * (theNameVar_ParamDigeo[189]) = {
 "				<OutputGradientsNormDirectory Nb=\"?\" Type=\"std::string\" Def=\"gradients/norm\"></OutputGradientsNormDirectory>\n",
 "				<OutputGradientsAngleDirectory Nb=\"?\" Type=\"std::string\" Def=\"gradients/angle\"></OutputGradientsAngleDirectory>\n",
 "				<MergeTiles Nb=\"?\" Type=\"bool\" Def=\"true\"> </MergeTiles> <!-- this option modifies OutputGaussians, OutputTiles, OutputGradient -->\n",
-"				<SuppressTiles Nb=\"?\" Type=\"bool\" Def=\"true\"> </SuppressTiles> <!-- tiles are not suppressed if MergeTiles is not true --> \n",
+"				<SuppressTiles Nb=\"?\" Type=\"bool\" Def=\"true\"> </SuppressTiles> <!-- tiles are not suppressed if MergeTiles is not true -->\n",
+"				<!-- There is no need to compute gradient if there's no point to orientate or describe.\n",
+"				     With this option, the gradient is computed nonetheless. It may be useful for saving it or for time comparison -->\n",
+"				<ForceGradientComputation Nb=\"?\" Type=\"bool\" Def=\"false\"></ForceGradientComputation>\n",
 "			</DigeoTestOutput>\n",
 "		</SectionTest>\n",
 "\n",

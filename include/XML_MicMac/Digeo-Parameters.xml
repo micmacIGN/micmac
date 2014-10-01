@@ -87,17 +87,18 @@
 	<!-- Cette section gère les fonctionnalites permettant de faire
 	des tests de perfomances ou de bon fonctionnement
 	-->
-	<SectionTest>
-
-		<DigeoTestOutput>
-			<OutputTiles> true </OutputTiles>
+	
 			<!--
+	<SectionTest>
+		<DigeoTestOutput>
 			<OutputGaussians> true </OutputGaussians>
 			<OutputGradients> true </OutputGradients>
-			-->
+			<OutputTiles> true </OutputTiles>
 			<SuppressTiles> false </SuppressTiles>
+			<ForceGradientComputation> true </ForceGradientComputation>
 		</DigeoTestOutput>
 	</SectionTest>
+			-->
 
 	<SectionWorkSpace>
 		<#WHEN VTEST=${Sauv}>
