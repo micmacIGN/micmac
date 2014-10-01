@@ -11,21 +11,22 @@
 
 #include <cstdarg>
 
-static std::vector<void*> stArgs;
+static std::vector<void*>   stArgs;
+static cudaContext          sCCuda;
+static openClContext        sCOpenCl;
 
 #if OPENCL_ENABLED
-template <> cl_context          CGpGpuContext<OPENCLSDK>::_contextOpenCL    = 0;
-template <> cl_command_queue    CGpGpuContext<OPENCLSDK>::_commandQueue     = 0;
-template <> cl_kernel           CGpGpuContext<OPENCLSDK>::_kernel           = 0;
-template <> cl_context          CGpGpuContext<CUDASDK>::_contextOpenCL    = 0;
-template <> cl_command_queue    CGpGpuContext<CUDASDK>::_commandQueue     = 0;
-template <> cl_kernel           CGpGpuContext<CUDASDK>::_kernel           = 0;
+cl_context                      openClContext::_contextOpenCL  = 0;
+cl_command_queue                openClContext::_commandQueue   = 0;
+cl_kernel                       openClContext::_kernel         = 0;
+template <> cudaContext         CGpGpuContext<cudaContext>::_sContext          = sCCuda;
+template <> openClContext       CGpGpuContext<openClContext>::_sContext        = sCOpenCl;
+template <> unsigned short      vGpuContext<OPENCL_CONTEXT>::_nbArg            = 0;
+template <> std::vector<void*>  vGpuContext<OPENCL_CONTEXT>::_kernelArgs       = stArgs;
 #endif
 
-template <> unsigned short      CGpGpuContext<CUDASDK>::_nbArg            = 0;
-template <> std::vector<void*>  CGpGpuContext<CUDASDK>::_kernelArgs = stArgs;
-template <> unsigned short      CGpGpuContext<OPENCLSDK>::_nbArg            = 0;
-template <> std::vector<void*>  CGpGpuContext<OPENCLSDK>::_kernelArgs = stArgs;
+template <> unsigned short      vGpuContext<CUDA_CONTEXT>::_nbArg      = 0;
+template <> std::vector<void*>  vGpuContext<CUDA_CONTEXT>::_kernelArgs = stArgs;
 
 extern void kMultTab();
 
@@ -52,10 +53,10 @@ void simple_printf(const char* fmt...)
     va_end(args);
 }
 
-template<int gpgskd>
+template<class context>
 void main_SDK()
 {
-    CGpGpuContext<gpgskd>::createContext();
+    CGpGpuContext<context>::createContext();
 #if OPENCL_ENABLED
     CuDeviceData2DOPENCL<int> buffer;
 #endif
@@ -66,9 +67,9 @@ void main_SDK()
     uint2 sizeBuff = make_uint2(5,1);
 
 #if OPENCL_ENABLED
-    if(gpgskd == OPENCLSDK)
+    if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT )
         buffer.Malloc(sizeBuff);
-    else if(gpgskd == CUDASDK)
+    else if(CGpGpuContext<context>::typeContext() == CUDA_CONTEXT)
         if(bufferc.Malloc(sizeBuff))
             printf("Success buffer device malloc DUDA\n");
 #else
@@ -79,30 +80,30 @@ void main_SDK()
 
     int factor = 100;
 #ifdef _WIN32
-    CGpGpuContext<gpgskd>::createKernel("D:\\MicMac\\src\\uti_phgrm\\GpGpu\\GpGpu_OpenCL_Kernel.cu","kMultTab");
+    CGpGpuContext<context>::createKernel("D:\\MicMac\\src\\uti_phgrm\\GpGpu\\GpGpu_OpenCL_Kernel.cu","kMultTab");
 #else
-    CGpGpuContext<gpgskd>::createKernel("../src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu","kMultTab");
+    CGpGpuContext<context>::createKernel("../src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu","kMultTab");
 #endif
 
 #if OPENCL_ENABLED
-    if(gpgskd == OPENCLSDK)        
-        CGpGpuContext<gpgskd>::addKernelArg(buffer);
-    else if (gpgskd == CUDASDK)
-        CGpGpuContext<gpgskd>::addKernelArg(bufferc);
+    if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT)
+        CGpGpuContext<context>::addKernelArg(buffer);
+    else if (CGpGpuContext<context>::typeContext() == CUDA_CONTEXT)
+        CGpGpuContext<context>::addKernelArg(bufferc);
 #else
     CGpGpuContext<gpgskd>::addKernelArg(bufferc);
 #endif
 
-    CGpGpuContext<gpgskd>::addKernelArg(factor);
+    CGpGpuContext<context>::addKernelArg(factor);
 
-    CGpGpuContext<gpgskd>::launchKernel();
+    CGpGpuContext<context>::launchKernel();
 
 
 
 #if OPENCL_ENABLED
-    if(gpgskd == OPENCLSDK)
+    if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT)
         buffer.CopyDevicetoHost(bufferHost.pData());
-    else if (gpgskd == CUDASDK)
+    else if (CGpGpuContext<context>::typeContext() == CUDA_CONTEXT)
         bufferc.CopyDevicetoHost(bufferHost.pData());
 #else
     bufferc.CopyDevicetoHost(bufferHost.pData());
@@ -111,14 +112,16 @@ void main_SDK()
 
     bufferHost.OutputValues();
 
-    CGpGpuContext<gpgskd>::deleteContext();
+    CGpGpuContext<context>::deleteContext();
+
+    CGpGpuContext<context>::check_Cuda();
 }
 
 int main()
 {
 #if OPENCL_ENABLED
-    main_SDK<OPENCLSDK>();
+    main_SDK<openClContext>();
 #endif
-    main_SDK<CUDASDK>();
+    main_SDK<cudaContext>();
     return 0;
 }
