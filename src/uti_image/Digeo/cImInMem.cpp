@@ -676,6 +676,8 @@ cImInMem::cImInMem
     mIndexSigma       (IndexSigma),
     mMere             (0),
     mFille            (0),
+    mOrientateTime    (0.),
+    mDescribeTime     (0.),
     mKernelTot        (1,1.0),
     mFirstSauv        (true),
     mFileTheoricalMaxValue( (1<</*aIGlob.TifF().bitpp()*/aIGlob.bitpp())-1 ),
@@ -918,7 +920,8 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, R
     REAL8 dx, dy, r2,
           wgt, mod, ang;
     int   offset;
-    const REAL4 *p = i_gradient.data_lin()+( xi+yi*width )*2;    
+    const REAL4 *p = i_gradient.data_lin()+( xi+yi*width )*2;
+
     std::fill( histo, histo+DIGEO_ORIENTATION_NB_BINS, 0 );
     for ( int ys=std::max( -W, 1-yi ); ys<=std::min( W, height-2-yi ); ys++ )
     {
@@ -935,7 +938,8 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, R
             offset = ( xs+ys*width )*2;
             mod    = p[offset];
             ang    = p[offset+1];
-            int bin = (int) floor( DIGEO_ORIENTATION_NB_BINS*ang/( 2*M_PI ) );
+
+            int bin = (int)floor( DIGEO_ORIENTATION_NB_BINS*ang/( 2*M_PI ) );
             histo[bin] += mod*wgt;
         }
     }
@@ -953,7 +957,8 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, R
         iHisto  = DIGEO_ORIENTATION_NB_BINS-2;
         first = prev = *itHisto;
         *itHisto = ( histo[DIGEO_ORIENTATION_NB_BINS-1]+( *itHisto )+itHisto[1] )/3.; itHisto++;
-        while ( iHisto-- ){
+        while ( iHisto-- )
+        {
             mean = ( prev+(*itHisto)+itHisto[1] )/3.;
             prev = *itHisto;
             *itHisto++ = mean;
@@ -968,14 +973,14 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, R
     int nbAngles = 0;
     for ( int i=0; i<DIGEO_ORIENTATION_NB_BINS; i++ )
     {
-        v    = histo[i];
+        v = histo[i];
         prev = histo[ ( i==0 )?DIGEO_ORIENTATION_NB_BINS-1:i-1 ];
         next = histo[ ( i==( DIGEO_ORIENTATION_NB_BINS-1 ) )?0:i+1 ];
         if ( ( v>histoMax ) && ( v>prev ) && ( v>next ) )
         {
             // we found a peak
             // compute angle by quadratic interpolation
-            di = -0.5*( next-prev )/( next+prev-2*v ) ;
+            di = -0.5*( next-prev )/( next+prev-2*v );
             o_angles[nbAngles++] = 2*M_PI*( i+di+0.5 )/DIGEO_ORIENTATION_NB_BINS;
             if ( nbAngles==DIGEO_MAX_NB_ANGLES ) return DIGEO_MAX_NB_ANGLES;
         }
@@ -985,6 +990,13 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, R
 
 void cImInMem::orientate()
 {
+	mOrientedPoints.clear();
+	if ( mKInOct<1 || mKInOct>mAppli.nbLevels() || ( !mAppli.doForceGradientComputation() && mFeaturePoints.size()==0 ) )
+	{
+		mOrientateTime = 0.;
+		return;
+	}
+
 	const Im2D<REAL4,REAL8> &srcGradient = getGradient();
 
 	ElTimer chrono;
@@ -999,15 +1011,15 @@ void cImInMem::orientate()
 	size_t iFeature = mFeaturePoints.size();
 	while ( iFeature-- ){
 		const cPtsCaracDigeo &srcPoint = *itSrc++;
-
 		nbAngles = ::orientate( srcGradient, srcPoint, angles );
-
-		if ( nbAngles!=0 ){
+		if ( nbAngles!=0 )
+		{
 			DigeoPoint &dstPoint = *itDst++;
 			dstPoint.x = srcPoint.mPt.x*octaveTrueSamplingPace;
 			dstPoint.y = srcPoint.mPt.y*octaveTrueSamplingPace;
 			dstPoint.scale = srcPoint.mScale;
-			switch ( srcPoint.mType ){
+			switch ( srcPoint.mType )
+			{
 			case eSiftMaxDog: dstPoint.type=DigeoPoint::DETECT_LOCAL_MAX; break;
 			case eSiftMinDog: dstPoint.type=DigeoPoint::DETECT_LOCAL_MIN; break;
 			default: dstPoint.type=DigeoPoint::DETECT_UNKNOWN; break;
@@ -1021,7 +1033,6 @@ void cImInMem::orientate()
 			nbSkipped++;
 	}
 	mOrientedPoints.resize( mOrientedPoints.size()-nbSkipped );
-
 	mOrientateTime = chrono.uval();
 }
 
@@ -1184,8 +1195,8 @@ void normalize_and_truncate( REAL8 *io_descriptor )
 
 void cImInMem::describe()
 {
-	//if ( mKInOct!=0 && mKInOct<= )
-	
+	if ( mKInOct<1 || mKInOct>mAppli.nbLevels() || ( !mAppli.doForceGradientComputation() && mOrientedPoints.size()==0 ) ) return;
+
 	const Im2D<REAL4,REAL8> &srcGradient = getGradient();
 	ElTimer chrono;
 	double octaveTrueSamplingPace = mOct.trueSamplingPace();

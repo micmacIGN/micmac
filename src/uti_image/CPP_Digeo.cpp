@@ -312,6 +312,8 @@ int Digeo_main( int argc, char **argv )
         box._p0.y *= image.Resol();
 
         image.detect();
+
+        if ( appli.isVerbose() ) cout << "\t" << image.getNbFeaturePoints() << " feature points" << endl;
 /*
         if ( appli.isVerbose() ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
 
@@ -357,7 +359,8 @@ int Digeo_main( int argc, char **argv )
 
 	if ( appli.doReconstructOutputs() ) appli.reconstructFullOutputImages();
 
-	if ( appli.Params().GenereCodeConvol().IsInit() ){
+	if ( appli.Params().GenereCodeConvol().IsInit() )
+	{
 		generate_convolution_code<U_INT2>( appli );
 		generate_convolution_code<REAL4>( appli );
 	}
@@ -365,11 +368,12 @@ int Digeo_main( int argc, char **argv )
 		cout << "skipping convolution code generation" << endl;
 
 	ElTimer chronoSave;
-    cout << total_list.size() << " points" << endl;
-    if ( !DigeoPoint::writeDigeoFile( outputName, total_list ) ) cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
-    double saveTime = chronoSave.uval();
-    
-	if ( appli.showTimes() ){
+	cout << total_list.size() << " points" << endl;
+	if ( !DigeoPoint::writeDigeoFile( outputName, total_list ) ) cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
+	double saveTime = chronoSave.uval();
+
+	if ( appli.showTimes() )
+	{
 		cImDigeo &image = appli.getImage();
 		cout << "Total time = " << chrono.uval()
 		     << " (" << image.loadTime()+image.pyramidTime()+image.detectTime()+image.gradientTime()+image.orientateTime()+image.describeTime()+saveTime+paramTime << ")"

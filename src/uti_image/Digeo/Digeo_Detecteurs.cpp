@@ -461,9 +461,8 @@ void cTplImInMem<Type>::ExtractExtremaDOG
             {
                 Pt2dr aP(mIx+mTrX,mIy+mTrY);
                 if ( mOct.Pt2Sauv(aP) ){
-                    mFeaturePoints.push_back( cPtsCaracDigeo( aP,
-                                                              mImGlob.Resol()*mOct.Niv()*mImGlob.Sigma0()*pow( 2, ( mKInOct+mTrS )/mOct.NbImOri() ),
-                                                              isMin?eSiftMinDog:eSiftMaxDog ) );
+                    double localScale = mImGlob.Sigma0()*pow( 2, ( mKInOct+mTrS )/mOct.NbImOri() );
+                    mFeaturePoints.push_back( cPtsCaracDigeo( aP, mOct.trueSamplingPace()*localScale, localScale, ( isMin?eSiftMinDog:eSiftMaxDog ) ) );
                 }
             }
 

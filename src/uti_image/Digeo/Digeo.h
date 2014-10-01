@@ -166,7 +166,7 @@ string eToString( const eTypeExtreSift &i_enum );
 class cPtsCaracDigeo
 {
     public :
-       cPtsCaracDigeo(const Pt2dr & aP, double aScale, eTypeTopolPt aType);
+       cPtsCaracDigeo(const Pt2dr & aP, double aScale, double aLocalScale, eTypeTopolPt aType);
        Pt2dr         mPt;
        eTypeTopolPt  mType;
        double        mScale;
@@ -245,7 +245,6 @@ Fonc_Num GaussSepFilter(Fonc_Num   aFonc,double aSigma,double anEpsilon);
 class cImInMem
 {
      public :
-
          GenIm::type_el  TypeEl() const;
          int  RGlob() const;
          double ROct() const;
@@ -480,9 +479,9 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
 
          void saveDoG( const std::string &i_directory ) const;
          void loadDoG( const std::string &i_directory );
-         
-			bool load_raw( const string &i_filename );
-			const Im2D<REAL4,REAL8> & getGradient();
+
+         bool load_raw( const string &i_filename );
+         const Im2D<REAL4,REAL8> & getGradient();
 
          cTplOctDig<Type> & mTOct;
          tIm    mIm;
@@ -798,6 +797,7 @@ class cImDigeo
        double InitialDeltaSigma() const;
 
        size_t addAllPoints( list<DigeoPoint> &o_allPoints ) const;
+       unsigned int getNbFeaturePoints() const;
 
 	// Modif Greg pour le support JP2
 	//Tiff_Im TifF();
@@ -950,6 +950,7 @@ class cAppliDigeo
 
        bool doReconstructOutputs() const;
        bool doSuppressTiledOutputs() const;
+       bool doForceGradientComputation() const;
 
        double loadAllImageLimit() const;
 
@@ -963,6 +964,7 @@ class cAppliDigeo
        void reconstructFullOutputImages() const;
        void upNbComputedGradients();
        int nbComputedGradients() const;
+       int nbLevels() const;
     private :
        void InitAllImage();
        static void InitConvolSpec();
@@ -1004,6 +1006,8 @@ class cAppliDigeo
        bool                              mSuppressTiledOutputs;
        int                               mNbComputedGradients;
        double                            mLoadAllImageLimit;
+       int                               mNbLevels;
+       bool                              mDoForceGradientComputation;
     public:
 
      private :

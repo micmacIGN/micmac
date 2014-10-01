@@ -174,7 +174,6 @@ cTplImInMem<Type> * cTplOctDig<Type>::AllocTypedIm(double aResolOctaveBase,int a
 	return aRes;
 }
 
-
 template <class Type>
 void cTplOctDig<Type>::PostPyram() 
 {
@@ -194,10 +193,8 @@ Type *** cTplOctDig<Type>::Cube(){ return mCube; }
 template <class Type>
 cImInMem * cTplOctDig<Type>::FirstImage() { return TypedFirstImage(); }
 
-
 template <class Type>
 cTplImInMem<Type> * cTplOctDig<Type>::TypedFirstImage() { return mVTplIms[0]; }
-
 
 template <class Type>  cTplOctDig<U_INT2> * cTplOctDig<Type>::U_Int2_This()
 {
@@ -211,7 +208,7 @@ template <class Type>  cTplOctDig<REAL4> * cTplOctDig<Type>::REAL4_This()
    return NULL;
 }
 
-template <class Type> const std::vector<cTplImInMem<Type> *> &  cTplOctDig<Type>::VTplIms() const {return mVTplIms;}
+template <class Type> const std::vector<cTplImInMem<Type> *> &  cTplOctDig<Type>::VTplIms() const { return mVTplIms; }
 
 // INSTANTIATION FORCEE
 

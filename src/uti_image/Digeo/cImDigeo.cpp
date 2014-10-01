@@ -505,12 +505,12 @@ void cImDigeo::AllocImages()
        const cTypePyramide & aTP = mAppli.Params().TypePyramide();
        if (aTP.NivPyramBasique().IsInit())
        {
-          // mVIms.push_back(cImInMem::Alloc (*this,aSz,TypeOfDeZoom(aDz), *anOct, 1.0));
- // C'est l'image Bas qui servira
- //         mVIms.push_back(anOct->AllocIm(1.0,0));
- 
+            // mVIms.push_back(cImInMem::Alloc (*this,aSz,TypeOfDeZoom(aDz), *anOct, 1.0));
+            // C'est l'image Bas qui servira
+            //         mVIms.push_back(anOct->AllocIm(1.0,0));
+             ELISE_ASSERT( false, "cImDigeo::AllocImages: PyramBasique not implemented" );
        }
-       else if (aTP.PyramideGaussienne().IsInit())
+       else if ( aTP.PyramideGaussienne().IsInit() )
        {
             const cPyramideGaussienne &  aPG = aTP.PyramideGaussienne().Val();
             int aNbIm = aPG.NbByOctave().Val();
@@ -530,7 +530,6 @@ void cImDigeo::AllocImages()
                 //mVIms.push_back(cImInMem::Alloc (*this,aSz,TypeOfDeZoom(aDz), *anOct,aSigma));
                 mVIms.push_back((anOct->AllocIm(aSigma,aK,aNivDZ*aNbIm+(aK-aK0))));
             }
-                
        }
        aSz = ( aSz+Pt2di(1,1) )/2;
        aNivDZ++;
@@ -898,6 +897,18 @@ bool cImDigeo::reconstructFromTiles( const string &i_directory, const string &i_
 	}
 
 	return true;
+}
+
+unsigned int cImDigeo::getNbFeaturePoints() const
+{
+	unsigned int nbTotalFeaturePoints = 0;
+	for ( size_t iImage=0; iImage<mVIms.size(); iImage++ )
+	{
+		// process first image
+		const cImInMem &image = *mVIms[iImage];
+		nbTotalFeaturePoints += image.featurePoints().size();
+	}
+	return nbTotalFeaturePoints;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007
