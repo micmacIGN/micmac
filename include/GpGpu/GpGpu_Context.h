@@ -25,11 +25,42 @@ template<class T> class CData;
 
 extern void kMultTab();
 
-enum GPGPUSDK {  CUDASDK
-                ,OPENCLSDK
-              };
+enum GPGPUCONTEXT
+{
+    CUDA_CONTEXT,
+    OPENCL_CONTEXT
+};
 
-template<int GPUSDK>
+template<int typecontext>
+class vGpuContext
+{
+public:
+    int typeContext()
+    {
+        return typecontext;
+    }
+    static unsigned short       _nbArg;
+    static std::vector<void*>   _kernelArgs;
+};
+
+class cudaContext : public vGpuContext<CUDA_CONTEXT>
+{
+
+};
+
+#ifdef OPENCL_ENABLED
+class openClContext : public vGpuContext<OPENCL_CONTEXT>
+{
+public:
+
+    static cl_context           _contextOpenCL;
+    static cl_command_queue     _commandQueue;
+    static cl_kernel            _kernel;
+};
+#endif
+
+
+template<class context>
 class CGpGpuContext
 {
 public:
@@ -39,8 +70,6 @@ public:
     static void createContext();
 
     static void deleteContext(){}
-
-
 
     static  void OutputInfoGpuMemory(){}
 
@@ -76,32 +105,28 @@ public:
     static  void* arg(int id)
     {
 
-        return _kernelArgs[id];
+        return _sContext._kernelArgs[id];
+    }
+
+    static int typeContext()
+    {
+        return _sContext.typeContext();
     }
 
 private:
 
     template<class T>
     static  void addKernelArgSDK( CData<T> &arg){}
-    #ifdef OPENCL_ENABLED
-    static cl_context           _contextOpenCL;
-    static cl_command_queue     _commandQueue;
-    static cl_kernel            _kernel;
-    #endif
-    static unsigned short       _nbArg;
 
-    //static std::vector<std::string> _kernelsName;
-
-    static std::vector<void*>   _kernelArgs;
-
+    static  context             _sContext;
 };
 
 
-template<int gpusdk>
-void CGpGpuContext<gpusdk>::createContext(){}
+template<class context>
+void CGpGpuContext<context>::createContext(){}
 
 template <> inline
-void CGpGpuContext<CUDASDK>::OutputInfoGpuMemory()
+void CGpGpuContext<cudaContext>::OutputInfoGpuMemory()
 {
     size_t free;
     size_t total;
@@ -110,38 +135,41 @@ void CGpGpuContext<CUDASDK>::OutputInfoGpuMemory()
 }
 
 template <> inline
-void CGpGpuContext<CUDASDK>::check_Cuda()
+void CGpGpuContext<cudaContext>::check_Cuda()
 {
-    cout << "CUDA build enabled\n";
+    cout << "Cuda runtime version ";
 
-//    int apiVersion = 0;
+    int apiVersion = 0;
 
-//    cudaRuntimeGetVersion(&apiVersion);
+    cudaRuntimeGetVersion(&apiVersion);
 
-            //DUMP_INT(apiVersion)
+//    DUMP_INT(apiVersion)
 
-//	switch (__CUDA_API_VERSION)
-//	{
-//	case 0x3000:
-//		cout << "3.0";
-//		break;
-//	case 0x3020:
-//		cout << "3.2";
-//		break;
-//	case 0x4000:
-//		cout << "4.0";
-//		break;
-//	case 0x5000:
-//		cout << "5.0";
-//		break;
-//	case 0x5050:
-//		cout << "5.5";
-//		break;
-//	case 0x6000:
-//		cout << "6.0";
-//		break;
-//	}
-//	cout << endl;
+    switch(apiVersion)
+    {
+        case 3000:
+            cout << "3.0";
+            break;
+        case 3020:
+            cout << "3.2";
+            break;
+        case 4000:
+            cout << "4.0";
+            break;
+        case 5000:
+            cout << "5.0";
+            break;
+        case 5050:
+            cout << "5.5";
+            break;
+        case 6000:
+            cout << "6.0";
+            break;
+        case 6050:
+            cout << "6.5";
+            break;
+    }
+    cout << endl;
 
     int device_count = 0;
 
@@ -169,7 +197,7 @@ void CGpGpuContext<CUDASDK>::check_Cuda()
 
 
 template <> inline
-void CGpGpuContext<CUDASDK>::createContext() {
+void CGpGpuContext<cudaContext>::createContext() {
 
     //srand ((uint)time(NULL));
     // Creation du contexte GPGPU
@@ -191,7 +219,7 @@ void CGpGpuContext<CUDASDK>::createContext() {
 
 
 template <> inline
-void CGpGpuContext<CUDASDK>::deleteContext()
+void CGpGpuContext<cudaContext>::deleteContext()
 {
     checkCudaErrors( cudaDeviceReset() );
 }
@@ -200,7 +228,7 @@ void CGpGpuContext<CUDASDK>::deleteContext()
 
 
 template <> inline
-void CGpGpuContext<OPENCLSDK>::createContext() {
+void CGpGpuContext<openClContext>::createContext() {
 
     cl_uint platformIdCount = 0;
     clGetPlatformIDs (0, NULL, &platformIdCount);
@@ -225,7 +253,7 @@ void CGpGpuContext<OPENCLSDK>::createContext() {
 
     cl_int error;
 
-    _contextOpenCL = clCreateContext (
+    openClContext::_contextOpenCL = clCreateContext (
                 contextProperties, deviceIdCount,
                 deviceIds.data (), NULL,
                 NULL, &error);
@@ -237,39 +265,39 @@ void CGpGpuContext<OPENCLSDK>::createContext() {
         printf("device Id Count %d\n",deviceIdCount);
     }
 
-    _commandQueue = clCreateCommandQueue(_contextOpenCL,deviceIds[0], 0, &error);
+    openClContext::_commandQueue = clCreateCommandQueue(openClContext::_contextOpenCL,deviceIds[0], 0, &error);
 
     errorOpencl(error,"CommandQueue");
 
 }
 
 template <> inline
-void CGpGpuContext<OPENCLSDK>::deleteContext()
+void CGpGpuContext<openClContext>::deleteContext()
 {
-    if(clReleaseContext(_contextOpenCL) == CL_SUCCESS)
+    if(clReleaseContext(openClContext::_contextOpenCL) == CL_SUCCESS)
         printf("CONTEXT OPENCL RELEASE\n");
 }
 
 template <> inline
-cl_context CGpGpuContext<OPENCLSDK>::contextOpenCL()
+cl_context CGpGpuContext<openClContext>::contextOpenCL()
 {
-    return _contextOpenCL;
+    return openClContext::_contextOpenCL;
 }
 
 template <> inline
-cl_command_queue CGpGpuContext<OPENCLSDK>::commandQueue()
+cl_command_queue CGpGpuContext<openClContext>::commandQueue()
 {
-    return _commandQueue;
+    return openClContext::_commandQueue;
 }
 
 template <> inline
-cl_kernel CGpGpuContext<OPENCLSDK>::kernel()
+cl_kernel CGpGpuContext<openClContext>::kernel()
 {
-    return _kernel;
+    return openClContext::_kernel;
 }
 
 template <> inline
-void CGpGpuContext<OPENCLSDK>::createKernel(string fileName,string kernelName)
+void CGpGpuContext<openClContext>::createKernel(string fileName,string kernelName)
 {
     cl_int error = -1;
 
@@ -311,14 +339,14 @@ void CGpGpuContext<OPENCLSDK>::createKernel(string fileName,string kernelName)
 
     errorOpencl(clBuildProgram(program,0,NULL,NULL,NULL,NULL),"Build");
 
-    _kernel = clCreateKernel(program,kernelName.c_str(),&error);
+    openClContext::_kernel = clCreateKernel(program,kernelName.c_str(),&error);
 
     errorOpencl(error,"Kernel");
 
 }
 
 template <> inline
-void CGpGpuContext<OPENCLSDK>::launchKernel()
+void CGpGpuContext<openClContext>::launchKernel()
 {
 
     cl_int error = -1;
@@ -326,35 +354,35 @@ void CGpGpuContext<OPENCLSDK>::launchKernel()
     size_t global_item_size = 5;
     size_t local_item_size  = 1;
 
-    error  = clEnqueueNDRangeKernel(_commandQueue,_kernel,1,NULL,&global_item_size,&local_item_size,0,NULL,NULL);
+    error  = clEnqueueNDRangeKernel(openClContext::_commandQueue,openClContext::_kernel,1,NULL,&global_item_size,&local_item_size,0,NULL,NULL);
     errorOpencl(error,"Enqueue");
 
 }
 
 template <>
 template <class T> inline
-void CGpGpuContext<OPENCLSDK>::addKernelArg(T &arg)
+void CGpGpuContext<openClContext>::addKernelArg(T &arg)
 {
 
     cl_int error = -1;
 
-    error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(T),&arg);
+    error = clSetKernelArg(CGpGpuContext<openClContext>::kernel(),(cl_uint)_sContext._nbArg,sizeof(T),&arg);
 
     errorOpencl(error,"Kernel Arg");
 
-    _nbArg++;
+    _sContext._nbArg++;
 
 }
 
 template<>
 template <class T> inline
-void CGpGpuContext<OPENCLSDK>::addKernelArgSDK( CData<T> &arg)
+void CGpGpuContext<openClContext>::addKernelArgSDK( CData<T> &arg)
 {
     cl_int error = -1;
 
     cl_mem memBuffer = arg.clMem();
 
-    error = clSetKernelArg(CGpGpuContext<OPENCLSDK>::kernel(),(cl_uint)_nbArg,sizeof(memBuffer),&memBuffer);
+    error = clSetKernelArg(CGpGpuContext<openClContext>::kernel(),(cl_uint)_sContext._nbArg,sizeof(memBuffer),&memBuffer);
 
     errorOpencl(error,"Kernel Arg OPENCL buffer");
 
@@ -364,40 +392,40 @@ void CGpGpuContext<OPENCLSDK>::addKernelArgSDK( CData<T> &arg)
 
 template<>
 template <class T> inline
-void CGpGpuContext<CUDASDK>::addKernelArgSDK( CData<T> &arg)
+void CGpGpuContext<cudaContext>::addKernelArgSDK( CData<T> &arg)
 {
-    printf("Add cuda kernel argument buffer : %d\n",_nbArg);
+    printf("Add cuda kernel argument buffer : %d\n",_sContext._nbArg);
 
-    _kernelArgs.push_back((void*)&arg);
+    _sContext._kernelArgs.push_back((void*)&arg);
 }
 
 template <> inline
-void CGpGpuContext<CUDASDK>::launchKernel()
+void CGpGpuContext<cudaContext>::launchKernel()
 {
     kMultTab();
 }
 template <>
 template <class T> inline
-void CGpGpuContext<CUDASDK>::addKernelArg(T &arg)
+void CGpGpuContext<cudaContext>::addKernelArg(T &arg)
 {
 
-    printf("Add cuda kernel argument : %d\n",_nbArg);
+    printf("Add cuda kernel argument : %d\n",_sContext._nbArg);
 
     T* p = &arg;
 
-    _kernelArgs.push_back((void*)p);
+    _sContext._kernelArgs.push_back((void*)p);
 
-    _nbArg++;
+    _sContext._nbArg++;
 
 }
 
-template <int gpusdk>
+template <class context>
 template <class T , template<class O> class U>
-void CGpGpuContext<gpusdk>::addKernelArg(U<T> &arg)
+void CGpGpuContext<context>::addKernelArg(U<T> &arg)
 {
     addKernelArgSDK(arg);
 
-    _nbArg++;
+    _sContext._nbArg++;
 }
 
 #endif // GPGPU_CONTEXT_H

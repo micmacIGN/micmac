@@ -78,7 +78,7 @@ void cAppliMICMAC::DoAllMEC()
 
 #if CUDA_ENABLED
 
-    CGpGpuContext<CUDASDK> gpgpuContext;
+    CGpGpuContext<cudaContext> gpgpuContext;
     gpgpuContext.createContext();
 
 #endif

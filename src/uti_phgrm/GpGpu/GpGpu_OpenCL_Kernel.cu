@@ -21,8 +21,8 @@ extern void kMultTab()
     dim3	threads( 5, 1, 1);
     dim3	blocks(1, 1, 1);
 
-    int* buffer     = ((CData<int>*)CGpGpuContext<CUDASDK>::arg(0))->pData();
-    int* pFactor    = ((int*)CGpGpuContext<CUDASDK>::arg(1));
+    int* buffer     = ((CData<int>*)CGpGpuContext<cudaContext>::arg(0))->pData();
+    int* pFactor    = ((int*)CGpGpuContext<cudaContext>::arg(1));
 
     kMultTab<<<blocks, threads>>>(buffer,*pFactor);
     getLastCudaError("kMultTab kernel failed");

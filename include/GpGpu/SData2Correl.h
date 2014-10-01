@@ -109,9 +109,9 @@ private:
     CuDeviceData3D<float>       _d_volumeCach[NSTREAM];	// volume des calculs intermédiaires
     CuDeviceData3D<uint>        _d_volumeNIOk[NSTREAM];	// nombre d'image correct pour une vignette
 
-    ImageGpGpu<pixel,CUDASDK>           _dt_GlobalMask;
-    ImageLayeredGpGpu<float,CUDASDK>    _dt_LayeredImages;
-    ImageLayeredGpGpu<float2,CUDASDK>   _dt_LayeredProjection[NSTREAM];
+    ImageGpGpu<pixel,cudaContext>           _dt_GlobalMask;
+    ImageLayeredGpGpu<float,cudaContext>    _dt_LayeredImages;
+    ImageLayeredGpGpu<float2,cudaContext>   _dt_LayeredProjection[NSTREAM];
 
     textureReference&           _texMaskGlobal;
     textureReference&           _texImages;

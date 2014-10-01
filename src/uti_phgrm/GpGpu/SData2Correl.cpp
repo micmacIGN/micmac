@@ -43,11 +43,11 @@ SData2Correl::~SData2Correl()
 void SData2Correl::MallocInfo()
 {
     std::cout << "Malloc Info GpGpu\n";
-    CGpGpuContext<CUDASDK>::OutputInfoGpuMemory();
+    CGpGpuContext<cudaContext>::OutputInfoGpuMemory();
     _d_volumeCost[0].MallocInfo();
     _d_volumeCach[0].MallocInfo();
     _d_volumeNIOk[0].MallocInfo();
-    _dt_GlobalMask.DecoratorImage<CUDASDK>::MallocInfo();
+    _dt_GlobalMask.DecoratorImage<cudaContext>::MallocInfo();
     _dt_LayeredImages.CData3D::MallocInfo();
     _dt_LayeredProjection[0].CData3D::MallocInfo();
 }
@@ -135,7 +135,7 @@ void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2B51);
     #endif
     //  TODO Verifier si le ReallocIfDim fonctionne.... s'il ne redimmension pas a chaque fois!!!
-    _dt_GlobalMask.DecoratorImage<CUDASDK>::ReallocIfDim(dimMask,1);
+    _dt_GlobalMask.DecoratorImage<cudaContext>::ReallocIfDim(dimMask,1);
     _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
 	#ifdef  NVTOOLS
