@@ -6,6 +6,7 @@
 #include <map>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "GpGpu_CommonHeader.h"
 #include "GpGpu_eLiSe.h"
@@ -22,6 +23,8 @@ template<class T> class CData;
 #endif
 #endif
 
+extern void kMultTab();
+
 enum GPGPUSDK {  CUDASDK
                 ,OPENCLSDK
               };
@@ -37,11 +40,7 @@ public:
 
     static void deleteContext(){}
 
-    static cl_context contextOpenCL(){return NULL;}
 
-    static cl_command_queue commandQueue(){return NULL;}
-
-    static cl_kernel kernel(){return NULL;}
 
     static  void OutputInfoGpuMemory(){}
 
@@ -55,9 +54,17 @@ public:
     static  void addKernelArg( U<T> &arg);
 
     template<class T>
-    static  void addKernelArg(T &arg);
+    static  void addKernelArg(T &arg){}
+
 #ifdef OPENCL_ENABLED
-	static void errorOpencl(cl_int error,string erName)
+
+    static cl_context contextOpenCL(){return NULL;}
+
+    static cl_command_queue commandQueue(){return NULL;}
+
+    static cl_kernel kernel(){return NULL;}
+
+    static void errorOpencl(cl_int error,string erName)
 	{
 		if(error ==CL_SUCCESS)
 			printf("Success create %s\n",erName.c_str());
@@ -65,17 +72,27 @@ public:
 			printf("Error create %s = %d\n",erName.c_str(),error);
 	}
 #endif
+
+    static  void* arg(int id)
+    {
+
+        return _kernelArgs[id];
+    }
+
 private:
-
-
 
     template<class T>
     static  void addKernelArgSDK( CData<T> &arg){}
-
+    #ifdef OPENCL_ENABLED
     static cl_context           _contextOpenCL;
     static cl_command_queue     _commandQueue;
     static cl_kernel            _kernel;
+    #endif
     static unsigned short       _nbArg;
+
+    //static std::vector<std::string> _kernelsName;
+
+    static std::vector<void*>   _kernelArgs;
 
 };
 
@@ -154,15 +171,15 @@ void CGpGpuContext<CUDASDK>::check_Cuda()
 template <> inline
 void CGpGpuContext<CUDASDK>::createContext() {
 
-
-
     //srand ((uint)time(NULL));
     // Creation du contexte GPGPU
     cudaDeviceProp deviceProp;
     // Obtention de l'identifiant de la carte la plus puissante
     int devID = gpuGetMaxGflopsDeviceId();
 
-    ELISE_ASSERT(devID == 0 , "NO GRAPHIC CARD FOR USE CUDA");
+    //ELISE_ASSERT(devID == 0 , "NO GRAPHIC CARD FOR USE CUDA");
+    if(devID != 0 )
+        printf("NO GRAPHIC CARD FOR USE CUDA\n");
 
     // Initialisation du contexte
     checkCudaErrors(cudaSetDevice(devID));
@@ -176,7 +193,6 @@ void CGpGpuContext<CUDASDK>::createContext() {
 template <> inline
 void CGpGpuContext<CUDASDK>::deleteContext()
 {
-
     checkCudaErrors( cudaDeviceReset() );
 }
 
@@ -257,14 +273,35 @@ void CGpGpuContext<OPENCLSDK>::createKernel(string fileName,string kernelName)
 {
     cl_int error = -1;
 
-    std::ifstream file(fileName.c_str());
+    char buffer[1024];
+    char* path_end;
 
-    std::string prog(std::istreambuf_iterator<char>(file),(std::istreambuf_iterator<char>()));
+    if (readlink ("/proc/self/exe", buffer, sizeof(buffer)) <= 0)
+        return ;
 
-//    if(file.is_open())
-//        printf("%s\n",prog.c_str());
+    path_end = strrchr (buffer, '/');
+    if (path_end == NULL)
+        return ;
 
+    ++path_end;
 
+    *path_end = '\0';
+
+    std::string binPath(buffer);
+
+    fileName = binPath + fileName;
+
+    std::ifstream   file(fileName.c_str());
+    std::string     prog(std::istreambuf_iterator<char>(file),(std::istreambuf_iterator<char>()));
+    std::string     fileNameDefine = binPath + "../src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel_Define.cl";
+
+    std::ifstream   fileDefine(fileNameDefine .c_str());
+    std::string     progDefine(std::istreambuf_iterator<char>(fileDefine),(std::istreambuf_iterator<char>()));
+
+    prog = progDefine + "//"  + prog;
+
+    //    if(file.is_open())
+    //        printf("%s\n",prog.c_str());
 
     const char* sourceProg = prog.c_str();
     size_t sourceSize[] = {strlen(prog.c_str())};
@@ -309,15 +346,6 @@ void CGpGpuContext<OPENCLSDK>::addKernelArg(T &arg)
 
 }
 
-template <int gpusdk>
-template <class T , template<class O> class U>
-void CGpGpuContext<gpusdk>::addKernelArg(U<T> &arg)
-{
-    addKernelArgSDK(arg);
-
-    _nbArg++;
-}
-
 template<>
 template <class T> inline
 void CGpGpuContext<OPENCLSDK>::addKernelArgSDK( CData<T> &arg)
@@ -333,6 +361,44 @@ void CGpGpuContext<OPENCLSDK>::addKernelArgSDK( CData<T> &arg)
 }
 
 #endif
+
+template<>
+template <class T> inline
+void CGpGpuContext<CUDASDK>::addKernelArgSDK( CData<T> &arg)
+{
+    printf("Add cuda kernel argument buffer : %d\n",_nbArg);
+
+    _kernelArgs.push_back((void*)&arg);
+}
+
+template <> inline
+void CGpGpuContext<CUDASDK>::launchKernel()
+{
+    kMultTab();
+}
+template <>
+template <class T> inline
+void CGpGpuContext<CUDASDK>::addKernelArg(T &arg)
+{
+
+    printf("Add cuda kernel argument : %d\n",_nbArg);
+
+    T* p = &arg;
+
+    _kernelArgs.push_back((void*)p);
+
+    _nbArg++;
+
+}
+
+template <int gpusdk>
+template <class T , template<class O> class U>
+void CGpGpuContext<gpusdk>::addKernelArg(U<T> &arg)
+{
+    addKernelArgSDK(arg);
+
+    _nbArg++;
+}
 
 #endif // GPGPU_CONTEXT_H
 

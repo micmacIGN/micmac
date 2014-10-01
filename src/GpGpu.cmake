@@ -192,13 +192,49 @@ if(${WITH_OPENCL})
       OPENCL_LIBRARY
       )
 
+if(NOT CUDA_ENABLED)
     set(filesopencl
 
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
                     "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
+
         )
 
     add_executable(TestOpenCL ${filesopencl})
+
     target_link_libraries(TestOpenCL ${libStatGpGpuTools} ${OPENCL_LIBRARY})
+
+    INSTALL(TARGETS TestOpenCL RUNTIME DESTINATION ${Install_Dir})
+    message("OPENCL TEST")
+else()
+    set(filesCUDA
+
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_CUDA_Define.cu"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+        )
+
+    cuda_add_executable(TestCUDA ${filesCUDA})
+
+    target_link_libraries(TestCUDA ${libStatGpGpuTools} ${OPENCL_LIBRARY})
+
+    INSTALL(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
+
+endif()
+
+else()
+    set(filesCUDA
+
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_CUDA_Define.cu"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+        )
+
+    cuda_add_executable(TestCUDA ${filesCUDA})
+
+    target_link_libraries(TestCUDA ${libStatGpGpuTools} )
+
+    INSTALL(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
 endif()
 
 #////////////////////////////

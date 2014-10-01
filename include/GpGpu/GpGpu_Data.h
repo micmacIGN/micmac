@@ -48,7 +48,9 @@ public:
     /// \brief      Obtenir une valeur aleatoire comprise entre min et max
     static T        GetRandomValue(T min, T max);
 
-    cl_mem         clMem() const{return _clMem;}
+#if OPENCL_ENABLED
+    cl_mem          clMem() const{return _clMem;}
+#endif
 protected:
 
     /// \brief      Renvoie la taille de la memoire alloue
@@ -73,17 +75,18 @@ protected:
     virtual bool	ErrorOutput(cudaError_t err,const char* fonctionName);
 
 
-
+#if OPENCL_ENABLED
     void            setClMem(const cl_mem &clMem){_clMem = clMem;}
+#endif
 
 private:
 
     uint            _memoryOc;
 
     T*              _data;
-
+#if OPENCL_ENABLED
     cl_mem          _clMem;
-
+#endif
     uint            _sizeofMalloc;
 
     /// \brief      Suppression de memoire alloue
