@@ -53,6 +53,13 @@ void simple_printf(const char* fmt...)
     va_end(args);
 }
 
+
+#ifdef _WIN32
+   #define PATHOPENCLFILE "D:\\MicMac\\src\\uti_phgrm\\GpGpu\\GpGpu_OpenCL_Kernel.cu"
+#else
+   #define PATHOPENCLFILE "../src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+#endif
+
 template<class context>
 void main_SDK()
 {
@@ -79,11 +86,8 @@ void main_SDK()
     bufferHost.Malloc(sizeBuff,1);
 
     int factor = 100;
-#ifdef _WIN32
-    CGpGpuContext<context>::createKernel("D:\\MicMac\\src\\uti_phgrm\\GpGpu\\GpGpu_OpenCL_Kernel.cu","kMultTab");
-#else
-    CGpGpuContext<context>::createKernel("../src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu","kMultTab");
-#endif
+
+    CGpGpuContext<context>::createKernel(PATHOPENCLFILE,"kMultTab");
 
 #if OPENCL_ENABLED
     if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT)
@@ -101,10 +105,17 @@ void main_SDK()
 
 
 #if OPENCL_ENABLED
-    if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT)
-        buffer.CopyDevicetoHost(bufferHost.pData());
+    if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT)    
+    {
+        buffer.CopyDevicetoHost(bufferHost.pData());        
+        buffer.Dealloc();
+    }
     else if (CGpGpuContext<context>::typeContext() == CUDA_CONTEXT)
+    {
         bufferc.CopyDevicetoHost(bufferHost.pData());
+        bufferc.Dealloc();
+    }
+
 #else
     bufferc.CopyDevicetoHost(bufferHost.pData());
 #endif
