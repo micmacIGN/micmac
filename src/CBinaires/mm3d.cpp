@@ -73,6 +73,8 @@ FILE * FileLogMM3d(const std::string & aDir)
     // return  FopenNN(aDir+"mm3d-LogFile.txt","a+","Log File");
     std::string aName = aDir+"mm3d-LogFile.txt";
     FILE * aRes = 0;
+    int aCpt = 0;
+    int aCptMax = 20;
     while (aRes==0)
     {
         aRes = fopen(aName.c_str(),"a+");
@@ -81,9 +83,11 @@ FILE * FileLogMM3d(const std::string & aDir)
              int aModulo = 1000;
              int aPId = mm_getpid();
 
-             double aTimeSleep = (aPId%aModulo) / double(aModulo);
+             double aTimeSleep = ((aPId%aModulo) *  ((aCpt+1) /double(aCptMax)))  / double(aModulo * 20.0);
              SleepProcess (aTimeSleep);
         }
+        aCpt++;
+        ELISE_ASSERT(aCpt<aCptMax,"Too max test in FileLogMM3d");
     }
     return aRes;
 }
