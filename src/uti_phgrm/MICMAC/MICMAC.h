@@ -3771,6 +3771,14 @@ void GenTFW(const cFileOriMnt & aFOM,const std::string & aName);
 
 void TestGeomTer(const cFileOriMnt & aFOM,const std::string & aMessage);
 
+// Fonction extern pour appel depuis CPU ou GPU
+void CombleTrouPrgDyn (
+         const cModulationProgDyn & aPrgD,
+         Im2D_Bits<1>  aMaskCalc,
+         Im2D_Bits<1>  aMaskTer,
+         Im2D_INT2     aImZ
+     );
+
 
 
 #endif //  _ELISE_MICMAC_ALL_H_
