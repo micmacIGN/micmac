@@ -594,7 +594,7 @@ public:
 
 #if     CL_VERSION_1_2 == 1
         const cl_int pat = val;
-        return clEnqueueFillBuffer(CGpGpuContext<openClContext>::commandQueue(),_dD->clMem(),&pat, sizeof(cl_uint), 0, _dD->Sizeof(), 0, NULL, NULL);) == CL_SUCCESS;
+        return clEnqueueFillBuffer(CGpGpuContext<openClContext>::commandQueue(),_dD->clMem(),&pat, sizeof(cl_uint), 0, _dD->Sizeof(), 0, NULL, NULL) == CL_SUCCESS;
 #elif   CL_VERSION_1_1 == 1
         // A implemeter
         // 2 alternatives
@@ -699,7 +699,7 @@ public:
 
     /// \brief Initialise toutes les valeurs du tableau a val
     /// \param val : valeur d initialisation
-    bool        Memset(int val){return DecoratorDeviceData<T,cudaContext>::Memset(val);}
+    bool        Memset(int val){return DecoratorDeviceData<T,CUDASDK>::Memset(val);}
 
     bool        CopyDevicetoHost(CuHostData3D<T> &hostData){return  DecoratorDeviceData<T,cudaContext>::CopyDevicetoHost(hostData.pData());}
 
