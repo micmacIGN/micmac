@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+extern const std::string & DefXifOrientation();
 namespace NS_MpDcraw
 {
 
@@ -288,6 +289,20 @@ const double & cArgMpDCRaw::Offset() const
   return mOfs;
 }
 
+int ExtractAngleFromRot(const std::string & aSA)
+{
+    if (aSA==DefXifOrientation()) return 0;
+    static cElRegex anAutom("(Horizontal|Rotate)[ ]+([0-9]*)[ ]+(CW|).*",15);
+
+    if (! anAutom.Match(aSA)) return 0;
+
+
+   double aVal =  anAutom.VNumKIemeExprPar(2);
+
+   return round_ni(aVal);
+}
+
+
 
 void  cArgMpDCRaw::DevJpg()
 {
@@ -317,7 +332,16 @@ void  cArgMpDCRaw::DevJpg()
 
 
     Tiff_Im aFTmp(aTmp.c_str());
+    cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
 
+    // Gestion de l'autorotation 
+    if (0) // Pour ne pas polluer le commit ...
+    {
+         int anA = ExtractAngleFromRot( aMDP.Orientation());
+         int anACam = ExtractAngleFromRot(aMDP.CameraOrientation());
+
+         std::cout << "ANGLES " << anA << " " << anACam  <<  " " <<   aMDP.Orientation() << "\n";
+    }
 
     std::string aRes = NameRes(CurF1(),"","");
 /*
@@ -340,7 +364,6 @@ void  cArgMpDCRaw::DevJpg()
                 ArgMTD()
             );
 
-     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
      Fonc_Num aFRes = aFTmp.in() / FlatField(aMDP,aFullNJPG);
 
      if (En8B)
