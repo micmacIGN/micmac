@@ -10,12 +10,21 @@
 class AffCamera
 {
  public:
-    AffCamera(string aFilename):a0(0),a1(1),a2(0),b0(0),b1(0),b2(1)
+    AffCamera(string aFilename)
     {
         // Loading the GRID file
         ElAffin2D oriIntImaM2C;
         Pt2di Sz(10000,10000);
         mCamera =  new cCameraModuleOrientation(new OrientationGrille(aFilename),Sz,oriIntImaM2C);
+        filename = aFilename;
+
+        //Affinity parameters
+        vP.push_back(0);
+        vP.push_back(1);
+        vP.push_back(0);
+        vP.push_back(0);
+        vP.push_back(0);
+        vP.push_back(1);
     }
 
     ///
@@ -27,17 +36,13 @@ class AffCamera
     /// \brief update affinity parameters
     /// \param sol unknowns matrix
     ///
-    void updateParams(ElMatrix <double> const &sol)
+    void updateParams(ElMatrix <double> const &sol, int bK)
     {
         std::cout << "Init solution: "<<std::endl;
         printParams();
 
-        a0 += sol(0,0);
-        a1 += sol(0,1);
-        a2 += sol(0,2);
-        b0 += sol(0,3);
-        b1 += sol(0,4);
-        b2 += sol(0,5);
+        for (size_t aK=0; aK< vP.size(); aK++)
+            vP[aK] += sol(0,aK + bK*vP.size());
 
         std::cout << "Updated solution: "<<std::endl;
         printParams();
@@ -45,8 +50,9 @@ class AffCamera
 
     void printParams()
     {
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+        for (size_t aK=0; aK< vP.size(); aK++)
+            std::cout << vP[aK] <<" ";
+        std::cout << std::endl;
     }
 
     ElCamera* Camera() { return mCamera; }
@@ -54,134 +60,48 @@ class AffCamera
     // the 6 parameters of affinity
     // colc = a0 + a1 * col + a2 * lig
     // ligc = b0 + b1 * col + b2 * lig
-    double a0;
+    // to do: remplacer par un std::vector
+    /*double a0;
     double a1;
     double a2;
     double b0;
     double b1;
-    double b2;
+    double b2;*/
+    std::vector <double> vP;
+
+    ///
+    /// \brief image filename
+    ///
+    std::string filename;
+
+    ~AffCamera()
+    {
+        if (mCamera)
+            delete mCamera;
+    }
 
 protected:
 
     ElCamera* mCamera;
 };
 
-//! Abstract class for shared methods
-class RefineModelAbs
+class CameraPair
 {
-protected:
+public:
+    CameraPair(AffCamera* aMaster, AffCamera* aSlave, std::string aName):master(aMaster), slave(aSlave), name(aName){}
+
     AffCamera* master;
     AffCamera* slave;
+
+    ///
+    /// \brief name (without extension): img1_img2, used to read tie-points file img1_img2.dat and to store coefficient file refine/im1_img2.txt
+    ///
+    std::string name;
 
     ///
     /// \brief Points altitude (to estimate)
     ///
     std::vector<double> vZ;
-    ///
-    /// \brief zMoy Ground mean altitude
-    ///
-    double zMoy;
-
-    ///
-    /// \brief normal matrix for least squares estimation
-    ///
-    ElMatrix<double> _N;
-    ///
-    /// \brief matrix for least squares estimation
-    ///
-    ElMatrix<double> _Y;
-
-public:
-
-    ///
-    /// \brief Z estimation (iterative: 2D ground distance minimization)
-    /// \param ptImgMaster tie-point from master image
-    /// \param ptImgSlave  tie-point from slave image
-    /// \param zIni init altitude
-    /// \param dZ shift on altitude
-    /// \return Z altitude of tie-point
-    ///
-    double getZ(Pt2dr const &ptImgMaster,
-                Pt2dr const &ptImgSlave,
-                double zIni,
-                double dZ = 0.1) const
-    {
-        double z = zIni;
-        Pt2dr D   = compute2DGroundDifference(ptImgMaster,ptImgSlave,z, slave);
-        double d  = square_euclid(D);
-        Pt2dr D1  = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ, slave);
-        double d1 = square_euclid(D1);
-        Pt2dr D2  = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ, slave);
-        double d2 = square_euclid(D2);
-        if (d1<d2)
-        {
-            while(d1<d)
-            {
-                d = d1;
-                z = z-dZ;
-                D1 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z-dZ, slave);
-                d1 = square_euclid(D1);
-            }
-        }
-        else
-        {
-            while(d2<d)
-            {
-                d = d2;
-                z = z+dZ;
-                D2 = compute2DGroundDifference(ptImgMaster,ptImgSlave,z+dZ, slave);
-                d2 = square_euclid(D2);
-            }
-        }
-        return z;
-    }
-
-    ///
-    /// \brief constructor (loads GRID files, tie-points and filter tie-points on 2D ground difference)
-    /// \param aNameFileGridMaster Grid file for master image
-    /// \param aNameFileGridSlave Grid file for slave image
-    /// \param aNamefileTiePoints Tie-points file
-    /// \param Zmoy ground mean altitude
-    ///
-    RefineModelAbs(std::string const &aNameFileGridMaster,
-                   std::string const &aNameFileGridSlave,
-                   std::string const &aNamefileTiePoints,
-                   double Zmoy):master(NULL),slave(NULL),zMoy(Zmoy),_N(1,1,0.),_Y(1,1,0.)
-    {
-        // Loading the GRID file
-        master = new AffCamera(aNameFileGridMaster);
-        slave  = new AffCamera(aNameFileGridSlave);
-
-        // Loading the Tie Points with altitude approximate estimation
-
-        std::ifstream fic(aNamefileTiePoints.c_str());
-        int rPts_nb = 0; //rejected points number
-        while(fic.good())
-        {
-            Pt2dr P1,P2;
-            fic >> P1.x >> P1.y >> P2.x >> P2.y;
-            if (fic.good())
-            {
-                double z = getZ(P1,P2,zMoy);
-                std::cout << "z = "<<z<<std::endl;
-                Pt2dr D = compute2DGroundDifference(P1,P2,z,slave);
-
-                if (square_euclid(D)>100.)
-                {
-                    rPts_nb++;
-                    std::cout << "Point with 2D ground difference > 10 : "<< D.x << " " << D.y << " - rejected" << std::endl;
-                }
-                else
-                {
-                    master->vPtImg.push_back(P1);
-                    slave->vPtImg.push_back(P2);
-                    vZ.push_back(z);
-                }
-            }
-        }
-        std::cout << "Number of rejected points : "<< rPts_nb << std::endl;
-        std::cout << "Number of tie points : "<< master->vPtImg.size() << std::endl;
-    }
 
     ///
     /// \brief compute the difference between the Ground Points for a given Tie Point and a given set of parameters (Z and affinity)
@@ -215,9 +135,196 @@ public:
 
     Pt2dr compute2DGroundDifference(Pt2dr const &ptImgMaster,
                                     Pt2dr const &ptImgSlave,
-                                    double aZ, AffCamera* cam)const
+                                    double aZ)const
     {
-        return compute2DGroundDifference(ptImgMaster,ptImgSlave,aZ,cam->a0,cam->a1,cam->a2,cam->b0,cam->b1,cam->b2);
+        return compute2DGroundDifference(ptImgMaster,ptImgSlave,aZ,slave->vP[0],slave->vP[1],slave->vP[2],slave->vP[3],slave->vP[4],slave->vP[5]);
+    }
+
+    ///
+    /// \brief Z estimation
+    /// \param ptImgMaster tie-point from master image
+    /// \param ptImgSlave  tie-point from slave image
+    /// \return Z altitude of tie-point
+    ///
+    double getZ(Pt2dr const &ptImgMaster,
+                Pt2dr const &ptImgSlave) const
+    {
+        return master->Camera()->PseudoInter(ptImgMaster,*slave->Camera(),ptImgSlave).z;
+    }
+
+    ~CameraPair()
+    {
+        if (master)
+            delete master;
+        if (slave)
+            delete slave;
+    }
+};
+
+//! Abstract class for shared methods
+class RefineModelAbs
+{
+protected:
+    std::vector <CameraPair*> vCamPair;
+    size_t mNbPair;
+
+    ///
+    /// \brief normal matrix for least squares estimation
+    ///
+    ElMatrix<double> _N;
+    ///
+    /// \brief matrix for least squares estimation
+    ///
+    ElMatrix<double> _Y;
+
+public:
+
+    AffCamera* master(int aK) { return vCamPair[aK]->master;  }
+    AffCamera* slave(int aK)  { return vCamPair[aK]->slave;   }
+    std::vector<double> vZ(int aK) { return vCamPair[aK]->vZ; }
+
+    ///
+    /// \brief constructor (loads GRID files, tie-points and filter tie-points on 2D ground difference)
+    /// \param aNameFileGridMaster Grid file for master image
+    /// \param aNameFileGridSlave Grid file for slave image
+    /// \param aNamefileTiePoints Tie-points file
+    ///
+    RefineModelAbs(std::string const &aFullDir):mNbPair(0),_N(1,1,0.),_Y(1,1,0.)
+    {
+        string aDir, aPat;
+        SplitDirAndFile(aDir,aPat,aFullDir);
+
+        list<string> aVFiles = RegexListFileMatch(aDir, aPat, 1, false);
+        list<string>::iterator itr = aVFiles.begin();
+        for(;itr != aVFiles.end(); itr++)
+        {
+            std::string aNameFileGridMaster = *itr;
+
+            list<string>::iterator it = itr; it++;
+            for(;it != aVFiles.end(); it++)
+            {
+                std::string aNameFileGridSlave = *it;
+
+                std::string filename = StdPrefixGen(aNameFileGridMaster)+ "_" + StdPrefixGen(aNameFileGridSlave);
+                std::string aNameFileTiePoints = filename +".dat";
+
+                if ( !ELISE_fp::exist_file(aNameFileTiePoints) )
+                    std::cout << "file missing: " << aNameFileTiePoints << endl;
+
+                // Loading the GRID file
+                CameraPair *CamPair = new CameraPair(new AffCamera(aNameFileGridMaster), new AffCamera(aNameFileGridSlave), filename);
+
+                // Loading the Tie Points with altitude approximate estimation
+
+                std::ifstream fic(aNameFileTiePoints.c_str());
+                int rPts_nb = 0; //rejected points number
+                while(fic.good())
+                {
+                    Pt2dr P1,P2;
+                    fic >> P1.x >> P1.y >> P2.x >> P2.y;
+                    //std::cout << "P1 = "<<P1.x<<" " <<P1.y << std::endl;
+                    //std::cout << "P2 = "<<P2.x<<" " <<P2.y << std::endl;
+                    if (fic.good())
+                    {
+                        double z = CamPair->getZ(P1,P2);
+                        //std::cout << "z = "<<z<<std::endl;
+                        Pt2dr D = CamPair->compute2DGroundDifference(P1,P2,z);
+
+                        if (square_euclid(D)>100.)
+                        {
+                            rPts_nb++;
+                            std::cout << "Point with 2D ground difference > 10 : "<< D.x << " " << D.y << " - rejected" << std::endl;
+                        }
+                        else
+                        {
+                            CamPair->master->vPtImg.push_back(P1);
+                            CamPair->slave->vPtImg.push_back(P2);
+                            CamPair->vZ.push_back(z);
+                        }
+                    }
+                }
+                std::cout << "Number of rejected points : "<< rPts_nb << std::endl;
+                std::cout << "Number of tie points : "<< CamPair->master->vPtImg.size() << std::endl;
+
+                if (CamPair->master->vPtImg.size())
+                {
+                    vCamPair.push_back(CamPair);
+                    mNbPair++;
+                }
+                else
+                    std::cout << "Error in RefineModelAbs: no tie-points" << std::endl;
+            }
+        }
+
+        if (mNbPair > 1)
+        {
+            //recherche des points multiples
+            for (size_t aK=0; aK < mNbPair; aK++)
+            {
+                CameraPair* CPair = vCamPair[aK];
+                for(size_t bK=0; bK < CPair->master->vPtImg.size() ; ++bK)
+                {
+                    Pt2dr pt = CPair->master->vPtImg[bK];
+
+                    for(size_t cK=aK+1; cK < mNbPair; ++cK)
+                    {
+                        CameraPair* CPair2 = vCamPair[cK];
+
+                        if ((CPair2->master->filename) == (CPair->master->filename))
+                        {
+                            for(size_t dK=0; dK < CPair2->master->vPtImg.size() ; ++dK)
+                            {
+                                if (pt == CPair2->master->vPtImg[dK])
+                                {
+                                    std::cout << "multiple point found" << std::endl;
+                                }
+                            }
+                        }
+                        else if ((CPair2->slave->filename) == (CPair->master->filename))
+                        {
+                            for(size_t dK=0; dK < CPair2->slave->vPtImg.size() ; ++dK)
+                            {
+                                if (pt == CPair2->slave->vPtImg[dK])
+                                {
+                                    std::cout << "multiple point found" << std::endl;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for(size_t bK=0; bK < CPair->slave->vPtImg.size() ; ++bK)
+                {
+                    Pt2dr pt = CPair->slave->vPtImg[bK];
+
+                    for(size_t cK=aK+1; cK < mNbPair; ++cK)
+                    {
+                        CameraPair* CPair2 = vCamPair[cK];
+
+                        if ((CPair2->master->filename) == (CPair->slave->filename))
+                        {
+                            for(size_t dK=0; dK < CPair2->master->vPtImg.size() ; ++dK)
+                            {
+                                if (pt == CPair2->master->vPtImg[dK])
+                                {
+                                    std::cout << "multiple point found" << std::endl;
+                                }
+                            }
+                        }
+                        else if ((CPair2->slave->filename) == (CPair->slave->filename))
+                        {
+                            for(size_t dK=0; dK < CPair2->slave->vPtImg.size() ; ++dK)
+                            {
+                                if (pt == CPair2->slave->vPtImg[dK])
+                                {
+                                    std::cout << "multiple point found" << std::endl;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     ///
@@ -227,18 +334,19 @@ public:
     double sumRes()
     {
         double sumRes = 0.;
-        for(size_t i=0;i<master->vPtImg.size();++i)
+        for (size_t aK=0; aK < vCamPair.size();++aK)
         {
-            Pt2dr const &ptImgMaster = master->vPtImg[i];
-            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
-            // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,vZ[i], slave);
-            sumRes += square_euclid(D);
+            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
+            {
+                Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
+                Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
+                // ecart constate
+                Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,vZ(aK)[i]);
+                sumRes += square_euclid(D);
+            }
         }
         return sumRes;
     }
-
-
 
     ///
     /// \brief debug matrix
@@ -276,9 +384,12 @@ public:
 
         //ecriture dans un fichier des coefficients en vue d'affiner la grille
 
-        std::ofstream fic("refine/refineCoef.txt");
-        fic << std::setprecision(15);
-        fic << slave->a0 <<" "<< slave->a1 <<" "<< slave->a2 <<" "<< slave->b0 <<" "<< slave->b1 <<" "<< slave->b2 <<" "<<std::endl;
+        for (size_t aK=0; aK < mNbPair;++aK)
+        {
+            std::ofstream fic(("refine/" + vCamPair[aK]->name + ".txt").c_str());
+            fic << std::setprecision(15);
+            fic << slave(aK)->vP[0] <<" "<< slave(aK)->vP[1] <<" "<< slave(aK)->vP[2] <<" "<< slave(aK)->vP[3] <<" "<< slave(aK)->vP[4] <<" "<< slave(aK)->vP[5] <<" "<<std::endl;
+        }
         std::cout << "RMS_after = " << curRMS << std::endl;
         return true;
     }
@@ -294,13 +405,7 @@ public:
     ///
     virtual bool computeObservationMatrix()=0;
 
-    virtual ~RefineModelAbs()
-    {
-        if (master)
-            delete master;
-        if (slave)
-            delete slave;
-    }
+    virtual ~RefineModelAbs(){}
 };
 
 //! Implementation utilisant la suppression des inconnues auxiliaires (les Z)
@@ -308,10 +413,7 @@ class RefineModel:public RefineModelAbs
 {
 
 public:
-    RefineModel(std::string const &aNameFileGridMaster,
-                std::string const &aNameFileGridSlave,
-                std::string const &aNamefileTiePoints,
-                double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
+    RefineModel(std::string const &aPat):RefineModelAbs(aPat)
     {
     }
 
@@ -383,7 +485,10 @@ public:
 
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        slave->updateParams(sol);
+        for (size_t aK=0 ; aK < mNbPair ; ++aK)
+        {
+            slave(aK)->updateParams(sol, aK);
+        }
 
         //estimation des Z
         /*
@@ -422,12 +527,15 @@ public:
     // compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
-        // Remise a zero des matrices
-        _N = ElMatrix<double>(7,7,0.);
-        _Y = ElMatrix<double>(1,7,0.);
+        size_t numUnk = 7;                       // Nombre d'inconnues par couple de caméras
 
-        size_t numUnk = _N.Sz().x;                       // Nombre d'inconnues
-        size_t numObs = 2*master->vPtImg.size() + numUnk;  // Nombre d'observations (dont stabilisation des inconnues)
+        // Remise a zero des matrices
+        _N = ElMatrix<double>(numUnk*mNbPair,numUnk*mNbPair,0.);
+        _Y = ElMatrix<double>(1,numUnk*mNbPair,0.);
+
+        size_t cpt=0;
+        for (size_t aK=0; aK < mNbPair; aK++) cpt +=  master(aK)->vPtImg.size();
+        size_t numObs = 2*cpt + numUnk;  // Nombre d'observations (dont stabilisation des inconnues)
 
         double iniRMS = std::sqrt(sumRes()/numObs);
 
@@ -453,60 +561,63 @@ public:
         //pour chaque obs (ligne), y compris les eq de stabilisation
         //for( toutes les obs )
 
-        for(size_t i=0;i<master->vPtImg.size();++i)
+        for (size_t aK=0; aK < mNbPair; aK++)
         {
-            Pt2dr const &ptImgMaster = master->vPtImg[i];
-            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
-            double const Z = vZ[i];
+            for(size_t i=0;i< master(aK)->vPtImg.size();++i)
+            {
+                Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
+                Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
+                double const Z = vZ(aK)[i];
 
-            ElMatrix<double> obs(numUnk,1,0.);
-            //a remplir avec derivees partielles ...
+                ElMatrix<double> obs(numUnk,1,0.);
+                //a remplir avec derivees partielles ...
 
-            // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z, slave);
+                // ecart constate
+                Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
 
-            //todo : strategie d'elimination d'observations / ou ponderation
+                //todo : strategie d'elimination d'observations / ou ponderation
 
-            // estimation des derivees partielles
-            double a0 = slave->a0;
-            double a1 = slave->a1;
-            double a2 = slave->a2;
-            double b0 = slave->b0;
-            double b1 = slave->b1;
-            double b2 = slave->b2;
+                // estimation des derivees partielles
+                double a0 = slave(aK)->vP[0];
+                double a1 = slave(aK)->vP[1];
+                double a2 = slave(aK)->vP[2];
+                double b0 = slave(aK)->vP[3];
+                double b1 = slave(aK)->vP[4];
+                double b2 = slave(aK)->vP[5];
 
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ,slave)-D);
-            Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
-            Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
-            Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
-            Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
-            Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1+dB1,b2)-D);
-            Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2+dB2)-D);
+                Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ)-D);
+                Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
+                Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
+                Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
+                Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
+                Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1+dB1,b2)-D);
+                Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2+dB2)-D);
 
-            obs(0,0) = vdZ.x;
-            obs(1,0) = vdA0.x;
-            obs(2,0) = vdA1.x;
-            obs(3,0) = vdA2.x;
-            obs(4,0) = vdB0.x;
-            obs(5,0) = vdB1.x;
-            obs(6,0) = vdB2.x;
+                obs(0+numUnk*aK,0) = vdZ.x;
+                obs(1+numUnk*aK,0) = vdA0.x;
+                obs(2+numUnk*aK,0) = vdA1.x;
+                obs(3+numUnk*aK,0) = vdA2.x;
+                obs(4+numUnk*aK,0) = vdB0.x;
+                obs(5+numUnk*aK,0) = vdB1.x;
+                obs(6+numUnk*aK,0) = vdB2.x;
 
-            addObs(obs,sigmaDelta,0.-D.x);
-            //ajout
-            //if((D.x<2)&&(D.y<2)) {addObs(obs,1/std::sqrt(1+D.x*D.x),D.x);}
-            //fin ajout
-            obs(0,0) = vdZ.y;
-            obs(1,0) = vdA0.y;
-            obs(2,0) = vdA1.y;
-            obs(3,0) = vdA2.y;
-            obs(4,0) = vdB0.y;
-            obs(5,0) = vdB1.y;
-            obs(6,0) = vdB2.y;
+                addObs(obs,sigmaDelta,0.-D.x);
+                //ajout
+                //if((D.x<2)&&(D.y<2)) {addObs(obs,1/std::sqrt(1+D.x*D.x),D.x);}
+                //fin ajout
+                obs(0+numUnk*aK,0) = vdZ.y;
+                obs(1+numUnk*aK,0) = vdA0.y;
+                obs(2+numUnk*aK,0) = vdA1.y;
+                obs(3+numUnk*aK,0) = vdA2.y;
+                obs(4+numUnk*aK,0) = vdB0.y;
+                obs(5+numUnk*aK,0) = vdB1.y;
+                obs(6+numUnk*aK,0) = vdB2.y;
 
-            addObs(obs,sigmaDelta,0.-D.y);
-            //ajout
-            //if((D.x<2)&&(D.y<2)) {addObs(obs,1/std::sqrt(1+D.y*D.y),D.y);}
-            //fin ajout
+                addObs(obs,sigmaDelta,0.-D.y);
+                //ajout
+                //if((D.x<2)&&(D.y<2)) {addObs(obs,1/std::sqrt(1+D.y*D.y),D.y);}
+                //fin ajout
+            }
         }
         //stabilisation
         /*
@@ -533,10 +644,7 @@ class RefineModelBasic: public RefineModelAbs
 {
 
 public:
-    RefineModelBasic(std::string const &aNameFileGridMaster,
-                std::string const &aNameFileGridSlave,
-                std::string const &aNamefileTiePoints,
-                double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
+    RefineModelBasic(std::string const &aPat):RefineModelAbs(aPat)
     {
     }
 
@@ -560,13 +668,17 @@ public:
         */
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        slave->updateParams(sol);
-
-        //mise a jour des Z
-        for(size_t i=0;i<master->vPtImg.size();++i)
+        for (size_t aK=0; aK < mNbPair; aK++)
         {
-            vZ[i] += sol(0,6+i);
-            std::cout << vZ[i] << std::endl;
+            slave(aK)->updateParams(sol, aK);
+
+            //mise a jour des Z
+                //TODO: lien entre les point de liaisons et les points 3D
+            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
+            {
+                vZ(aK)[i] += sol(0,6*mNbPair+i);
+                std::cout << vZ(aK)[i] << std::endl;
+            }
         }
 
     }
@@ -574,7 +686,9 @@ public:
     //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
-        int numObs = 2*vZ.size();
+        int cpt = 0;
+        for (size_t aK=0; aK < mNbPair; aK++) cpt += vCamPair[aK]->vZ.size();
+        int numObs = 2*cpt;
         double iniRMS = std::sqrt(sumRes()/numObs);
         std::cout << "RMS_ini = " << iniRMS << std::endl;
 
@@ -586,79 +700,82 @@ public:
         double dB1 = 0.01;
         double dB2 = 0.01;
 
-        _N = ElMatrix<double>(6+vZ.size(),2*vZ.size()+6,0.);
-        _Y = ElMatrix<double>(1,2*vZ.size()+6,0.);
+        _N = ElMatrix<double>(6+cpt,numObs+6,0.);
+        _Y = ElMatrix<double>(1,numObs+6,0.);
 
         //pour chaque obs (ligne), y compris les eq de stabilisation
         //for( toutes les obs )
-        for(size_t i=0;i<master->vPtImg.size();++i)
+        for (size_t aK=0; aK < mNbPair; aK++)
         {
-            //std::cout << "i = "<<i<<std::endl;
-            Pt2dr const &ptImgMaster = master->vPtImg[i];
-            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
-            double const Z = vZ[i];
+            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
+            {
+                //std::cout << "i = "<<i<<std::endl;
+                Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
+                Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
+                double const Z = vZ(aK)[i];
 
-            // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,slave);
+                // ecart constate
+                Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
 
-            //todo : strategie d'elimination d'observations / ou ponderation
+                //todo : strategie d'elimination d'observations / ou ponderation
 
-            // estimation des derivees partielles
-            double a0 = slave->a0;
-            double a1 = slave->a1;
-            double a2 = slave->a2;
-            double b0 = slave->b0;
-            double b1 = slave->b1;
-            double b2 = slave->b2;
+                // estimation des derivees partielles
+                double a0 = slave(aK)->vP[0];
+                double a1 = slave(aK)->vP[1];
+                double a2 = slave(aK)->vP[2];
+                double b0 = slave(aK)->vP[3];
+                double b1 = slave(aK)->vP[4];
+                double b2 = slave(aK)->vP[5];
 
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+dZ, slave) -D);
-            Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
-            Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
-            Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
-            Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
-            Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1+dB1,b2)-D);
-            Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2+dB2)-D);
+                Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+dZ) -D);
+                Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
+                Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
+                Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
+                Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
+                Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1+dB1,b2)-D);
+                Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2+dB2)-D);
 
-            _N(0,2*i) = vdA0.x;
-            _N(1,2*i) = vdA1.x;
-            _N(2,2*i) = vdA2.x;
-            _N(3,2*i) = vdB0.x;
-            _N(4,2*i) = vdB1.x;
-            _N(5,2*i) = vdB2.x;
-            _N(6+i,2*i) = vdZ.x;
+                _N(0,2*i) = vdA0.x;
+                _N(1,2*i) = vdA1.x;
+                _N(2,2*i) = vdA2.x;
+                _N(3,2*i) = vdB0.x;
+                _N(4,2*i) = vdB1.x;
+                _N(5,2*i) = vdB2.x;
+                _N(6+i,2*i) = vdZ.x;
 
-            _N(0,2*i+1) = vdA0.y;
-            _N(1,2*i+1) = vdA1.y;
-            _N(2,2*i+1) = vdA2.y;
-            _N(3,2*i+1) = vdB0.y;
-            _N(4,2*i+1) = vdB1.y;
-            _N(5,2*i+1) = vdB2.y;
-            _N(6+i,2*i+1) = vdZ.y;
+                _N(0,2*i+1) = vdA0.y;
+                _N(1,2*i+1) = vdA1.y;
+                _N(2,2*i+1) = vdA2.y;
+                _N(3,2*i+1) = vdB0.y;
+                _N(4,2*i+1) = vdB1.y;
+                _N(5,2*i+1) = vdB2.y;
+                _N(6+i,2*i+1) = vdZ.y;
 
-            _Y(0,2*i) = -D.x;
-            _Y(0,2*i+1) = -D.y;
-        }
-        // Equation de stabilisation
-        {
-            double pdt = vZ.size();
-            // A0 proche de 0
-            _N(0,2*vZ.size()) = 1 * pdt;
-            _Y(0,2*vZ.size()) = (0-slave->a0) * pdt;
-            // A1 proche de 1
-            _N(1,2*vZ.size()+1) = 1 * pdt;
-            _Y(0,2*vZ.size()+1) = (1-slave->a1) * pdt;
-            // A2 proche de 0
-            _N(2,2*vZ.size()+2) = 1 * pdt;
-            _Y(0,2*vZ.size()+2) = (0-slave->a2) * pdt;
-            // B0 proche de 0
-            _N(3,2*vZ.size()+3) = 1 * pdt;
-            _Y(0,2*vZ.size()+3) = (0-slave->b0) * pdt;
-            // B1 proche de 0
-            _N(4,2*vZ.size()+4) = 1 * pdt;
-            _Y(0,2*vZ.size()+4) = (0-slave->b1) * pdt;
-            // B2 proche de 1
-            _N(5,2*vZ.size()+5) = 1 * pdt;
-            _Y(0,2*vZ.size()+5) = (1-slave->b2) * pdt;
+                _Y(0,2*i) = -D.x;
+                _Y(0,2*i+1) = -D.y;
+            }
+            // Equation de stabilisation
+            {
+                double pdt = cpt;
+                // A0 proche de 0
+                _N(0,numObs) = 1 * pdt;
+                _Y(0,numObs) = (0-slave(aK)->vP[0]) * pdt;
+                // A1 proche de 1
+                _N(1,numObs+1) = 1 * pdt;
+                _Y(0,numObs+1) = (1-slave(aK)->vP[1]) * pdt;
+                // A2 proche de 0
+                _N(2,numObs+2) = 1 * pdt;
+                _Y(0,numObs+2) = (0-slave(aK)->vP[2]) * pdt;
+                // B0 proche de 0
+                _N(3,numObs+3) = 1 * pdt;
+                _Y(0,numObs+3) = (0-slave(aK)->vP[3]) * pdt;
+                // B1 proche de 0
+                _N(4,numObs+4) = 1 * pdt;
+                _Y(0,numObs+4) = (0-slave(aK)->vP[4]) * pdt;
+                // B2 proche de 1
+                _N(5,numObs+5) = 1 * pdt;
+                _Y(0,numObs+5) = (1-slave(aK)->vP[5]) * pdt;
+            }
         }
         std::cout << "before solve"<<std::endl;
 
@@ -672,15 +789,13 @@ public:
     }
 };
 
+
 //! Implementation basique (sans suppression des inconnues auxiliaires)
 class RefineModelBasicSansZ: public RefineModelAbs
 {
 
 public:
-    RefineModelBasicSansZ(std::string const &aNameFileGridMaster,
-                     std::string const &aNameFileGridSlave,
-                     std::string const &aNamefileTiePoints,
-                     double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
+    RefineModelBasicSansZ(std::string const &aPattern):RefineModelAbs(aPattern)
     {
     }
 
@@ -705,20 +820,25 @@ public:
          */
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        slave->updateParams(sol);
+        for (size_t aK=0; aK < mNbPair; aK++)
+        {
+            slave(aK)->updateParams(sol, aK);
 
         // Z update
-        for(size_t i=0;i<master->vPtImg.size();++i)
-        {
-            vZ[i] = getZ(master->vPtImg[i],slave->vPtImg[i],vZ[i]);
-           // vZ[i] = getZ(vPtImgMaster[i],vPtImgSlave[i],vZ[i], 0.01); => legere amelioration
+            //TODO points triples...
+            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
+            {
+                vZ(aK)[i] = vCamPair[aK]->getZ(master(aK)->vPtImg[i],slave(aK)->vPtImg[i]);
+            }
         }
     }
 
     //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
-        int numObs = 2*vZ.size();
+        int cpt = 0;
+        for (size_t aK=0; aK < mNbPair; aK++) cpt += vCamPair[aK]->vZ.size();
+        int numObs = 2*cpt;
         double iniRMS = std::sqrt(sumRes()/numObs);
         std::cout << "RMS_ini = " << iniRMS << std::endl;
 
@@ -729,82 +849,85 @@ public:
         double dB1 = 0.01;
         double dB2 = 0.01;
 
-        _N = ElMatrix<double>(6,2*vZ.size()/*+6*/,0.);
-        _Y = ElMatrix<double>(1,2*vZ.size()/*+6*/,0.);
+        _N = ElMatrix<double>(6, numObs/*+6*/,0.);
+        _Y = ElMatrix<double>(1, numObs/*+6*/,0.);
 
         //pour chaque obs (ligne), y compris les eq de stabilisation
         //for( toutes les obs )
-        for(size_t i=0;i<master->vPtImg.size();++i)
+        for (size_t aK=0; aK < mNbPair; aK++)
         {
-            //std::cout << "i = "<<i<<std::endl;
-            Pt2dr const &ptImgMaster = master->vPtImg[i];
-            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
-            double const Z = vZ[i];
+            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
+            {
+                //std::cout << "i = "<<i<<std::endl;
+                Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
+                Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
+                double const Z = vZ(aK)[i];
 
-            // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z, slave);
-            double ecart2 = square_euclid(D);
+                // ecart constate
+                Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
+                double ecart2 = square_euclid(D);
 
-            double pdt = 1./sqrt(1. + ecart2);
+                double pdt = 1./sqrt(1. + ecart2);
 
-            //todo : strategie d'elimination d'observations / ou ponderation
+                //todo : strategie d'elimination d'observations / ou ponderation
 
-            // estimation des derivees partielles
-            double a0 = slave->a0;
-            double a1 = slave->a1;
-            double a2 = slave->a2;
-            double b0 = slave->b0;
-            double b1 = slave->b1;
-            double b2 = slave->b2;
+                // estimation des derivees partielles
+                double a0 = slave(aK)->vP[0];
+                double a1 = slave(aK)->vP[1];
+                double a2 = slave(aK)->vP[2];
+                double b0 = slave(aK)->vP[3];
+                double b1 = slave(aK)->vP[4];
+                double b2 = slave(aK)->vP[5];
 
-            Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
-            Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
-            Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
-            Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
-            Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1+dB1,b2)-D);
-            Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2+dB2)-D);
+                Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
+                Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
+                Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
+                Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
+                Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1+dB1,b2)-D);
+                Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2+dB2)-D);
 
-            _N(0,2*i) = pdt * vdA0.x;
-            _N(1,2*i) = pdt * vdA1.x;
-            _N(2,2*i) = pdt * vdA2.x;
-            _N(3,2*i) = pdt * vdB0.x;
-            _N(4,2*i) = pdt * vdB1.x;
-            _N(5,2*i) = pdt * vdB2.x;
+                _N(0,2*i) = pdt * vdA0.x;
+                _N(1,2*i) = pdt * vdA1.x;
+                _N(2,2*i) = pdt * vdA2.x;
+                _N(3,2*i) = pdt * vdB0.x;
+                _N(4,2*i) = pdt * vdB1.x;
+                _N(5,2*i) = pdt * vdB2.x;
 
-            _N(0,2*i+1) = pdt * vdA0.y;
-            _N(1,2*i+1) = pdt * vdA1.y;
-            _N(2,2*i+1) = pdt * vdA2.y;
-            _N(3,2*i+1) = pdt * vdB0.y;
-            _N(4,2*i+1) = pdt * vdB1.y;
-            _N(5,2*i+1) = pdt * vdB2.y;
+                _N(0,2*i+1) = pdt * vdA0.y;
+                _N(1,2*i+1) = pdt * vdA1.y;
+                _N(2,2*i+1) = pdt * vdA2.y;
+                _N(3,2*i+1) = pdt * vdB0.y;
+                _N(4,2*i+1) = pdt * vdB1.y;
+                _N(5,2*i+1) = pdt * vdB2.y;
 
-            _Y(0,2*i)   = pdt * (0.-D.x);
-            _Y(0,2*i+1) = pdt * (0.-D.y);
+                _Y(0,2*i)   = pdt * (0.-D.x);
+                _Y(0,2*i+1) = pdt * (0.-D.y);
+            }
+            // Equation de stabilisation
+            /*
+            {
+                double pdt = vZ.size()/100.;
+                // A0 proche de 0
+                _N(0,numObs) = 1 * pdt;
+                _Y(0,numObs) = (0-a0) * pdt;
+                // A1 proche de 1
+                _N(1,numObs+1) = 1 * pdt;
+                _Y(0,numObs+1) = (1-a1) * pdt;
+                // A2 proche de 0
+                _N(2,numObs+2) = 1 * pdt;
+                _Y(0,numObs+2) = (0-a2) * pdt;
+                // B0 proche de 0
+                _N(3,numObs+3) = 1 * pdt;
+                _Y(0,numObs+3) = (0-b0) * pdt;
+                // B1 proche de 0
+                _N(4,numObs+4) = 1 * pdt;
+                _Y(0,numObs+4) = (0-b1) * pdt;
+                // B2 proche de 1
+                _N(5,numObs+5) = 1 * pdt;
+                _Y(0,numObs+5) = (1-b2) * pdt;
+            }
+             */
         }
-        // Equation de stabilisation
-        /*
-        {
-            double pdt = vZ.size()/100.;
-            // A0 proche de 0
-            _N(0,2*vZ.size()) = 1 * pdt;
-            _Y(0,2*vZ.size()) = (0-a0) * pdt;
-            // A1 proche de 1
-            _N(1,2*vZ.size()+1) = 1 * pdt;
-            _Y(0,2*vZ.size()+1) = (1-a1) * pdt;
-            // A2 proche de 0
-            _N(2,2*vZ.size()+2) = 1 * pdt;
-            _Y(0,2*vZ.size()+2) = (0-a2) * pdt;
-            // B0 proche de 0
-            _N(3,2*vZ.size()+3) = 1 * pdt;
-            _Y(0,2*vZ.size()+3) = (0-b0) * pdt;
-            // B1 proche de 0
-            _N(4,2*vZ.size()+4) = 1 * pdt;
-            _Y(0,2*vZ.size()+4) = (0-b1) * pdt;
-            // B2 proche de 1
-            _N(5,2*vZ.size()+5) = 1 * pdt;
-            _Y(0,2*vZ.size()+5) = (1-b2) * pdt;
-        }
-         */
         std::cout << "before solve"<<std::endl;
 
         solve();
@@ -820,12 +943,11 @@ public:
 //! Implementation basique simplifiee (uniquement la translation, pas d'estimation des 4 autres parametres)
 class RefineModelTransBasic:public RefineModelAbs
 {
+    double zMoy;
 
 public:
-    RefineModelTransBasic(std::string const &aNameFileGridMaster,
-                     std::string const &aNameFileGridSlave,
-                     std::string const &aNamefileTiePoints,
-                     double Zmoy):RefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
+    RefineModelTransBasic(std::string const &aPat,
+                     double Zmoy):RefineModelAbs(aPat), zMoy(Zmoy)
     {
     }
 
@@ -849,20 +971,24 @@ public:
 
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
-        std::cout << "Solution ini : "<<std::endl;
-        slave->printParams();
-
-        slave->a0 -= sol(0,0);     //pourquoi -= ???
-        slave->b0 -= sol(0,1);
-
-        std::cout << "Solution mise a jour : "<<std::endl;
-        slave->printParams();
-
-        //mise a jour des Z
-        for(size_t i=0;i<master->vPtImg.size();++i)
+        for (size_t aK=0; aK < mNbPair; aK++)
         {
-            vZ[i] -= sol(0,2+i); //pourquoi -= ???
-            std::cout << vZ[i] << std::endl;
+            std::cout << "Solution ini : "<<std::endl;
+            slave(aK)->printParams();
+
+            slave(aK)->vP[0] -= sol(0,0);     //pourquoi -= ???
+            slave(aK)->vP[3] -= sol(0,1);
+
+            std::cout << "Solution mise a jour : "<<std::endl;
+            slave(aK)->printParams();
+
+            //mise a jour des Z
+            //TODO
+            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
+            {
+                vZ(aK)[i] -= sol(0,2+i); //pourquoi -= ???
+                std::cout << vZ(aK)[i] << std::endl;
+            }
         }
 
     }
@@ -870,7 +996,9 @@ public:
     //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
-        int numObs = 2*vZ.size();
+        size_t cpt = 0;
+        for (size_t aK=0; aK < mNbPair; aK++) cpt += vCamPair[aK]->vZ.size();
+        int numObs = 2*cpt;
         double iniRMS = std::sqrt(sumRes()/numObs);
         std::cout << "RMS_ini = " << iniRMS << std::endl;
 
@@ -886,63 +1014,66 @@ public:
         double sigmaTransY = 1./std::pow(0.05,0.2);  //pix
         double sigmaMat = 1./std::pow(0.001,2); //sans unite*/
 
-        _N = ElMatrix<double>(2+vZ.size(),2*vZ.size()+3,0.);
-        _Y = ElMatrix<double>(1,2*vZ.size()+3,0.);
+        _N = ElMatrix<double>(2+cpt,2*cpt+3,0.);
+        _Y = ElMatrix<double>(1,2*cpt+3,0.);
 
         //pour chaque obs (ligne), y compris les eq de stabilisation
         //for( toutes les obs )
-        for(size_t i=0;i<master->vPtImg.size();++i)
+        for (size_t aK=0; aK < mNbPair; aK++)
         {
-            std::cout << "i = "<<i<<std::endl;
-            Pt2dr const &ptImgMaster = master->vPtImg[i];
-            Pt2dr const &ptImgSlave  = slave->vPtImg[i];
-            double const Z = vZ[i];
-
-            // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z, slave);
-
-            //todo : strategie d'elimination d'observations / ou ponderation
-
-            // estimation des derivees partielles
-
-            double a0 = slave->a0;
-            double a1 = slave->a1;
-            double a2 = slave->a2;
-            double b0 = slave->b0;
-            double b1 = slave->b1;
-            double b2 = slave->b2;
-
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+ dZ,slave)-D);
-            Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
-            Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
-
-            _N(0,2*i) = vdA0.x;
-            _N(1,2*i) = vdB0.x;
-            _N(2+i,2*i) = vdZ.x;
-
-            _N(0,2*i+1) = vdA0.y;
-            _N(1,2*i+1) = vdB0.y;
-            _N(2+i,2*i+1) = vdZ.y;
-
-            _Y(0,2*i) = D.x;
-            _Y(0,2*i+1) = D.y;
-        }
-        // Equation de stabilisation
-        {
-            // A0 proche de 0
-            _N(0,2*vZ.size()) = 1;
-            _Y(0,2*vZ.size()) = 0-slave->a0;
-            // B0 proche de 0
-            _N(1,2*vZ.size()+1) = 1;
-            _Y(0,2*vZ.size()+1) = 0-slave->b0;
-            // Moyenne alti
-            double altiMoyenne = 0.;
-            for(size_t i=0;i<vZ.size();++i)
+            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
             {
-                _N(2+i,2*vZ.size()+2)=1;
-                altiMoyenne += vZ[i];
+                std::cout << "i = "<<i<<std::endl;
+                Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
+                Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
+                double const Z = vZ(aK)[i];
+
+                // ecart constate
+                Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
+
+                //todo : strategie d'elimination d'observations / ou ponderation
+
+                // estimation des derivees partielles
+
+                double a0 = slave(aK)->vP[0];
+                double a1 = slave(aK)->vP[1];
+                double a2 = slave(aK)->vP[2];
+                double b0 = slave(aK)->vP[3];
+                double b1 = slave(aK)->vP[4];
+                double b2 = slave(aK)->vP[5];
+
+                Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+ dZ)-D);
+                Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
+                Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
+
+                _N(0,2*i) = vdA0.x;
+                _N(1,2*i) = vdB0.x;
+                _N(2+i,2*i) = vdZ.x;
+
+                _N(0,2*i+1) = vdA0.y;
+                _N(1,2*i+1) = vdB0.y;
+                _N(2+i,2*i+1) = vdZ.y;
+
+                _Y(0,2*i) = D.x;
+                _Y(0,2*i+1) = D.y;
             }
-            _Y(0,2*vZ.size()+2) = zMoy-altiMoyenne/vZ.size();
+            // Equation de stabilisation
+            {
+                // A0 proche de 0
+                _N(0,2*cpt) = 1;
+                _Y(0,2*cpt) = 0-slave(aK)->vP[0];
+                // B0 proche de 0
+                _N(1,2*cpt+1) = 1;
+                _Y(0,2*cpt+1) = 0-slave(aK)->vP[3];
+                // Moyenne alti
+                double altiMoyenne = 0.;
+                for(size_t i=0;i<cpt;++i)
+                {
+                    _N(2+i,2*cpt+2)=1;
+                    altiMoyenne += vZ(aK)[i];
+                }
+                _Y(0,2*cpt+2) = zMoy-altiMoyenne/cpt;
+            }
         }
         std::cout << "before solve"<<std::endl;
 
@@ -959,24 +1090,18 @@ public:
 
 int RefineModel_main(int argc, char **argv)
 {
-    std::string aNameFileGridMaster; // fichier GRID image maitre
-    std::string aNameFileGridSlave;  // fichier GRID image secondaire
-    std::string aNameFileTiePoints;  // fichier de points de liaison
-    double aZMoy;                    // the average altitude of the TiePoints
+    std::string aPat; // GRID files pattern
 
     ElInitArgMain
     (
          argc, argv,
-         LArgMain() << EAMC(aNameFileGridMaster,"master image GRID")
-                    << EAMC(aNameFileGridSlave,"slave image GRID")
-                    << EAMC(aNameFileTiePoints,"Tie Points")
-                    << EAMC(aZMoy,"average altitude of the TiePoints"),
+         LArgMain() << EAMC(aPat,"GRID files pattern"),
          LArgMain()
     );
 
     ELISE_fp::MkDirSvp("refine");
 
-    RefineModelBasicSansZ model(aNameFileGridMaster,aNameFileGridSlave,aNameFileTiePoints,aZMoy);
+    RefineModelBasicSansZ model(aPat);
 
     bool ok=true;
     for(size_t iter = 0; (iter < 100) & ok; iter++)
@@ -987,7 +1112,3 @@ int RefineModel_main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
-
-
-
-
