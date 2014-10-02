@@ -283,7 +283,9 @@ void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
     _d_volumeNIOk[nStream].ReallocIf(param.HdPc.dimTer,     param.ZCInter * param.invPC.nbClass);
 }
 
-void SData2Correl::MemsetHostVolumeProj(uint iDef)
+void SData2Correl::MemsetHostVolumeProj(int iDef)
 {
     _hVolumeProj.Memset(iDef);
+    // TODO MASQIMAGE
+    //_hVolumeProj.Fill(make_float2(-80000000,-80000000));
 }

@@ -37,7 +37,7 @@ public:
 
     void    SetGlobalMask( pixel* dataMask, uint2 dimMask );
 
-    void    MemsetHostVolumeProj(uint iDef);
+    void    MemsetHostVolumeProj(int iDef);
 
     float*  HostVolumeCost(uint id);
 

@@ -131,7 +131,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
   //if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptHTer - invPc.rayVig.x ,make_uint2(zoneImage.pt0)))
       //return;
 
-  if ( oI( ptProj - invPc.rayVig.x-1, 0) | ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x || ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y)
+  if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y))
       return;
   // FIN AJOUT 2014
 
@@ -157,6 +157,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
           const float val = cImg[pt.x];	// Valeur de l'image
 
           //if (val ==  invPc.floatDefault) return;
+          //if (val < 0 ) return;// TODO MASQIMAGE
           aSV  += val;          // Somme des valeurs de l'image cte
           aSVV += (val*val);	// Somme des carrés des vals image cte
       }

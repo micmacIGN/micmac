@@ -781,20 +781,12 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
    double aRegul    =  mCostRegul[0];
    double aRegul_Quad = 0.0;
 
-
    if(aModul.ArgMaskAuto().IsInit())
    {
        const cArgMaskAuto & anAMA  = aModul.ArgMaskAuto().Val();
        //AmplifKL = anAMA.AmplKLPostTr().Val();
        mCostDefMasked = CostR2I(mAppli.CurCorrelToCout(anAMA.ValDefCorrel()));
-
-//       DUMP_INT(mCostDefMasked)
-
-               // std::cout << "COST DEF MASKE " << mAppli.CurCorrelToCout(anAMA.ValDefCorrel()) << " " << mCostDefMasked << "\n";
-               mCostTransMaskNoMask = CostR2I(anAMA.CostTrans());
-
-//       DUMP_FLOAT((float)anAMA.CostTrans())
-//               DUMP_INT(mCostTransMaskNoMask)
+       mCostTransMaskNoMask = CostR2I(anAMA.CostTrans());
    }
    else
    {
@@ -807,8 +799,6 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
     mCostRegul[0] = aRegul;
     mCostRegul[1] = 0;
-
-    //printf("mCostRegul %f-----------------\n",mCostRegul[0]);
 
     mCostRegul_Quad[0] = aRegul_Quad;
     mCostRegul_Quad[1] = 0 ;
@@ -878,8 +868,6 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
         fprintf(aFP,"comment author: Gerald\n");
         fprintf(aFP,"comment object: Nappe\n");
-
-
 
         //fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y*3);
         fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y);
