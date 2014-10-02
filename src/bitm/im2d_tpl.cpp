@@ -2085,7 +2085,7 @@ GenIm alloc_im1d(GenIm::type_el type_el,int tx,void * data)
 
 
        elise_internal_error
-                ("unknow type in alloc_im1d\n",__FILE__,__LINE__);
+                ("unknown type in alloc_im1d\n",__FILE__,__LINE__);
        return Im1D<U_INT1,INT> (-1234);
 }
 
@@ -2109,7 +2109,7 @@ Im2DGen * Ptr_D2alloc_im2d(GenIm::type_el type_el,int tx,int ty)
 
 
        elise_internal_error
-                ("unknow type in alloc_im1d\n",__FILE__,__LINE__);
+                ("unknown type in alloc_im1d\n",__FILE__,__LINE__);
        return new Im2D<U_INT1,INT> (-12,-34);
 }
 
@@ -2134,7 +2134,7 @@ Im2DGen D2alloc_im2d(GenIm::type_el type_el,int tx,int ty)
 
 
        elise_internal_error
-                ("unknow type in alloc_im1d\n",__FILE__,__LINE__);
+                ("unknown type in alloc_im1d\n",__FILE__,__LINE__);
        return Im2D<U_INT1,INT> (-12,-34);
 }
 
@@ -2167,7 +2167,7 @@ GenIm alloc_im2d(GenIm::type_el type_el,int tx,int ty,void * aDL)
 
 
        elise_internal_error
-                ("unknow type in alloc_im1d\n",__FILE__,__LINE__);
+                ("unknown type in alloc_im1d\n",__FILE__,__LINE__);
        return Im1D<U_INT1,INT> (-1234);
 }
 
@@ -2199,7 +2199,7 @@ bool type_im_integral(GenIm::type_el type_el)
             default :;
       }
       elise_internal_error
-         ("unknow type in type_im_integral\n",__FILE__,__LINE__);
+         ("unknown type in type_im_integral\n",__FILE__,__LINE__);
       return false;
 }
 
@@ -2293,7 +2293,7 @@ bool signed_type_num(GenIm::type_el type_el)
             default :;
       }
       elise_internal_error
-         ("float or unknow type in signed_type_num\n",__FILE__,__LINE__);
+         ("float or unknown type in signed_type_num\n",__FILE__,__LINE__);
       return false;
 }
 
