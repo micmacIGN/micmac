@@ -36,7 +36,7 @@ struct sMatrixCellCost
     {
         _CostInit1D.ReallocIf(_size);
 #ifdef CUDA_DEFCOR
-        _data1D.Fill(60000);
+        _CostInit1D.Fill(60000);
 #endif
 
     }
