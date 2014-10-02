@@ -351,6 +351,7 @@ int Digeo_main( int argc, char **argv )
 			image.describe();
 			*/
 			image.orientateAndDescribe();
+			image.plotPoints();
 			size_t nbTilePoints = image.addAllPoints( total_list );
 			translate_points( total_list, nbTilePoints, box._p0 );
 

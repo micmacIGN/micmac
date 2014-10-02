@@ -88,17 +88,18 @@
 	des tests de perfomances ou de bon fonctionnement
 	-->
 	
-			<!--
 	<SectionTest>
 		<DigeoTestOutput>
+			<!--
 			<OutputGaussians> true </OutputGaussians>
 			<OutputGradients> true </OutputGradients>
+			-->
 			<OutputTiles> true </OutputTiles>
 			<SuppressTiles> false </SuppressTiles>
 			<ForceGradientComputation> true </ForceGradientComputation>
+			<PlotPointsOnTiles> true </PlotPointsOnTiles>
 		</DigeoTestOutput>
 	</SectionTest>
-			-->
 
 	<SectionWorkSpace>
 		<#WHEN VTEST=${Sauv}>

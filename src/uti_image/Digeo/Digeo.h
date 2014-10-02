@@ -308,8 +308,8 @@ class cImInMem
          string getTiledGradientAngleOutputName() const;
          
          bool reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const;
-     protected :
 
+     protected :
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
          cAppliDigeo &    mAppli;
          cImDigeo &       mImGlob;
@@ -810,6 +810,9 @@ class cImDigeo
         const Im2D<REAL4,REAL8> & getGradient( const Im2D<DataType,ComputeType> &i_src, REAL8 i_srcMaxValue );
         void retriveAllPoints( list<DigeoPoint> &o_allPoints ) const;
         bool reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const;
+        void plotPoints() const;
+        string getReconstructedTilesFullname() const;
+
      private :
         void DoSiftExtract();
 
@@ -942,7 +945,8 @@ class cAppliDigeo
 
        string outputTiledBasename( int i_iTile ) const;
        string currentTiledBasename() const;
-       string currentTiledFullname() const;
+       string currentTiledOutputFullname() const;
+       string tiledOutputFullname( int i_iTile ) const;
        
        bool doSaveGaussians() const;
        bool doSaveTiles() const;
@@ -951,6 +955,7 @@ class cAppliDigeo
        bool doReconstructOutputs() const;
        bool doSuppressTiledOutputs() const;
        bool doForceGradientComputation() const;
+       bool doPlotPoints() const;
 
        double loadAllImageLimit() const;
 
@@ -1008,6 +1013,7 @@ class cAppliDigeo
        double                            mLoadAllImageLimit;
        int                               mNbLevels;
        bool                              mDoForceGradientComputation;
+       bool                              mDoPlotPoints;
     public:
 
      private :
@@ -1043,6 +1049,8 @@ bool read_pgm_header( const string &i_filename, unsigned int &o_width, unsigned 
 
 void drawWindow( unsigned char *io_dst, unsigned int i_dstW, unsigned int i_dstH, unsigned int i_nbChannels,
                  unsigned int i_offsetX, unsigned int i_offsetY, const unsigned char *i_src, unsigned int i_srcW, unsigned int i_srcH );
+
+void save_tiff( const string &i_filename, Im2DGen i_img, bool i_rgb=false );
 
 #include "GenConvolSpec_u_int2.instantiations.h"
 #include "GenConvolSpec_real4.instantiations.h"

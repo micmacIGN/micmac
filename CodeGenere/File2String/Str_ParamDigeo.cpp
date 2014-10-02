@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[192]) = {
+const char * (theNameVar_ParamDigeo[194]) = {
 "<GenCpp>\n",
 "	<Verbatim  File=\".h\">\n",
 "	#ifndef Define_NotDigeo\n",
@@ -149,6 +149,8 @@ const char * (theNameVar_ParamDigeo[192]) = {
 "				<!-- There is no need to compute gradient if there's no point to orientate or describe.\n",
 "				     With this option, the gradient is computed nonetheless. It may be useful for saving it or for time comparison -->\n",
 "				<ForceGradientComputation Nb=\"?\" Type=\"bool\" Def=\"false\"></ForceGradientComputation>\n",
+"				<!-- plots final points on tiles, this option is useless if OutputTiles is false -->\n",
+"				<PlotPointsOnTiles Nb=\"?\" Type=\"bool\" Def=\"false\"></PlotPointsOnTiles>\n",
 "			</DigeoTestOutput>\n",
 "		</SectionTest>\n",
 "\n",

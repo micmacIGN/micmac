@@ -1908,6 +1908,17 @@ const cTplValGesInit< bool > & cDigeoTestOutput::ForceGradientComputation()const
    return mForceGradientComputation;
 }
 
+
+cTplValGesInit< bool > & cDigeoTestOutput::PlotPointsOnTiles()
+{
+   return mPlotPointsOnTiles;
+}
+
+const cTplValGesInit< bool > & cDigeoTestOutput::PlotPointsOnTiles()const 
+{
+   return mPlotPointsOnTiles;
+}
+
 void  BinaryUnDumpFromFile(cDigeoTestOutput & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -1990,6 +2001,14 @@ void  BinaryUnDumpFromFile(cDigeoTestOutput & anObj,ELISE_fp & aFp)
         }
         else  anObj.ForceGradientComputation().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PlotPointsOnTiles().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PlotPointsOnTiles().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PlotPointsOnTiles().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cDigeoTestOutput & anObj)
@@ -2014,6 +2033,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cDigeoTestOutput & anObj)
     if (anObj.SuppressTiles().IsInit()) BinaryDumpInFile(aFp,anObj.SuppressTiles().Val());
     BinaryDumpInFile(aFp,anObj.ForceGradientComputation().IsInit());
     if (anObj.ForceGradientComputation().IsInit()) BinaryDumpInFile(aFp,anObj.ForceGradientComputation().Val());
+    BinaryDumpInFile(aFp,anObj.PlotPointsOnTiles().IsInit());
+    if (anObj.PlotPointsOnTiles().IsInit()) BinaryDumpInFile(aFp,anObj.PlotPointsOnTiles().Val());
 }
 
 cElXMLTree * ToXMLTree(const cDigeoTestOutput & anObj)
@@ -2040,6 +2061,8 @@ cElXMLTree * ToXMLTree(const cDigeoTestOutput & anObj)
       aRes->AddFils(::ToXMLTree(std::string("SuppressTiles"),anObj.SuppressTiles().Val())->ReTagThis("SuppressTiles"));
    if (anObj.ForceGradientComputation().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ForceGradientComputation"),anObj.ForceGradientComputation().Val())->ReTagThis("ForceGradientComputation"));
+   if (anObj.PlotPointsOnTiles().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PlotPointsOnTiles"),anObj.PlotPointsOnTiles().Val())->ReTagThis("PlotPointsOnTiles"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -2069,9 +2092,11 @@ void xml_init(cDigeoTestOutput & anObj,cElXMLTree * aTree)
    xml_init(anObj.SuppressTiles(),aTree->Get("SuppressTiles",1),bool(true)); //tototo 
 
    xml_init(anObj.ForceGradientComputation(),aTree->Get("ForceGradientComputation",1),bool(false)); //tototo 
+
+   xml_init(anObj.PlotPointsOnTiles(),aTree->Get("PlotPointsOnTiles",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cDigeoTestOutput *) {return "1A1657187AEAAA94FE3F";};
+std::string  Mangling( cDigeoTestOutput *) {return "0AD5A4017937C19BFF3F";};
 
 
 cTplValGesInit< bool > & cSectionTest::VerifExtrema()
@@ -2195,6 +2220,17 @@ const cTplValGesInit< bool > & cSectionTest::ForceGradientComputation()const
 }
 
 
+cTplValGesInit< bool > & cSectionTest::PlotPointsOnTiles()
+{
+   return DigeoTestOutput().Val().PlotPointsOnTiles();
+}
+
+const cTplValGesInit< bool > & cSectionTest::PlotPointsOnTiles()const 
+{
+   return DigeoTestOutput().Val().PlotPointsOnTiles();
+}
+
+
 cTplValGesInit< cDigeoTestOutput > & cSectionTest::DigeoTestOutput()
 {
    return mDigeoTestOutput;
@@ -2256,7 +2292,7 @@ void xml_init(cSectionTest & anObj,cElXMLTree * aTree)
    xml_init(anObj.DigeoTestOutput(),aTree->Get("DigeoTestOutput",1)); //tototo 
 }
 
-std::string  Mangling( cSectionTest *) {return "D5CF96DEF30F5CEFFD3F";};
+std::string  Mangling( cSectionTest *) {return "FF9861347DF7D3A5FE3F";};
 
 
 cTplValGesInit< std::string > & cSauvPyram::Dir()
@@ -3382,6 +3418,17 @@ const cTplValGesInit< bool > & cParamDigeo::ForceGradientComputation()const
 }
 
 
+cTplValGesInit< bool > & cParamDigeo::PlotPointsOnTiles()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().PlotPointsOnTiles();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::PlotPointsOnTiles()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().PlotPointsOnTiles();
+}
+
+
 cTplValGesInit< cDigeoTestOutput > & cParamDigeo::DigeoTestOutput()
 {
    return SectionTest().Val().DigeoTestOutput();
@@ -3667,5 +3714,5 @@ void xml_init(cParamDigeo & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionWorkSpace(),aTree->Get("SectionWorkSpace",1)); //tototo 
 }
 
-std::string  Mangling( cParamDigeo *) {return "6CC33A05C2BAE1CCFE3F";};
+std::string  Mangling( cParamDigeo *) {return "6691D13540DC5981FE3F";};
 
