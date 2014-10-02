@@ -1572,7 +1572,8 @@ void cAppliMICMAC::DoGPU_Correl
                         Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
                         Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
 
-                        buf_proj[to1D(sampTer,dimSTabProj)]		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
+                        //if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
+                            buf_proj[to1D(sampTer,dimSTabProj)]		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
 
                     }
 
