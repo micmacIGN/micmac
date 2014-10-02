@@ -82,7 +82,8 @@ cAppliDigeo::cAppliDigeo():
 	mShowTimes(false),
 	mNbComputedGradients(0),
 	mNbLevels(1),
-	mDoForceGradientComputation(false)
+	mDoForceGradientComputation(false),
+	mDoPlotPoints(false)
 {
 	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), Basic_XML_MM_File( "Digeo-Parameters.xml" ) );
 
@@ -99,7 +100,7 @@ cAppliDigeo::cAppliDigeo():
 
 	// __DEL
 	cout << "nb levels : " << mNbLevels << endl;
-	cout << "force gradient output : " << (doForceGradientComputation()?"true":"false") << endl;
+	cout << "force gradient computation : " << (doForceGradientComputation()?"true":"false") << endl;
 
 	if ( Params().GenereCodeConvol().IsInit() )
 	{
@@ -231,6 +232,8 @@ bool cAppliDigeo::doSuppressTiledOutputs() const { return mSuppressTiledOutputs;
 
 bool cAppliDigeo::doForceGradientComputation() const { return mDoForceGradientComputation; }
 
+bool cAppliDigeo::doPlotPoints() const { return mDoPlotPoints; }
+
 int cAppliDigeo::currentBoxIndex() const { return mCurrentBoxIndex; }
 
 bool cAppliDigeo::doIncrementalConvolution() const { return mDoIncrementalConvolution; }
@@ -275,9 +278,11 @@ string cAppliDigeo::currentTiledBasename() const
 	return outputTiledBasename( currentBoxIndex() );
 }
 
-string cAppliDigeo::currentTiledFullname() const
+string cAppliDigeo::tiledOutputFullname( int i_iTile ) const { return outputTilesDirectory()+"/"+outputTiledBasename(i_iTile)+".tif"; }
+
+string cAppliDigeo::currentTiledOutputFullname() const
 {
-	return outputTilesDirectory()+"/"+currentTiledBasename();
+	return tiledOutputFullname( currentBoxIndex() );
 }
 
 static void removeEndingSlash( string &i_str )
@@ -327,6 +332,8 @@ void cAppliDigeo::processTestSection()
 			mSuppressTiledOutputs = true;
 		if ( testOutput.ForceGradientComputation().IsInit() && testOutput.ForceGradientComputation().Val() )
 			mDoForceGradientComputation = true;
+		if ( doSaveTiles() && testOutput.PlotPointsOnTiles().IsInit() && testOutput.PlotPointsOnTiles().Val() )
+			mDoPlotPoints = true;
 	}
 }
 

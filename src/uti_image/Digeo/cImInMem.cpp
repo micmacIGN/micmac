@@ -242,8 +242,6 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 	ResizeOctave(aBox.sz());
 	ELISE_COPY(mIm.all_pts(), aFonc, mIm.out());
 
-	if ( mAppli.doSaveTiles() ) save_ppm<Type>( mAppli.outputTilesDirectory()+getTiledOutputBasename()+".ppm", mData[0], mSz.x, mSz.y, (Type)0, 255 );
-
 	if ( mAppli.Params().MaximDyn().ValWithDef(nbb_type_num(aTypeFile)<=8) &&
 	     type_im_integral(mType) &&
 	     (!signed_type_num(mType) ) )
@@ -1214,6 +1212,13 @@ void cImInMem::describe()
 	mDescribeTime = chrono.uval();
 }
 
+static string __inconsistent_nb_channels_msg( const string &i_filename, int i_nbChannels, int i_expectedNbChannels )
+{
+	stringstream ss;
+	ss << "cImInMem::reconstructFromTiles: inconsistent number of channels for file [" << i_filename << "] : " << i_nbChannels << " expecting " << i_expectedNbChannels;
+	return ss.str();
+}
+
 bool cImInMem::reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const
 {
 	int nbTiles = mAppli.NbInterv();
@@ -1221,66 +1226,69 @@ bool cImInMem::reconstructFromTiles( const string &i_directory, const string &i_
 
 	ELISE_ASSERT( (nbTiles%i_gridWidth)==0, "cImDigeo::reconstructFromTiles incorrect grid width" );
 
-	unsigned int fullW = 0, fullH = 0;
-	unsigned int w, h, maxv;
-	unsigned int nbChannels = 1;
-	string format;
+	int fullW = 0, fullH = 0;
+	int nbChannels = 1;
 
 	// retrive full image size
-	if ( !read_pgm_header( i_directory+getTiledOutputBasename(0)+i_postfix, fullW, fullH, maxv, format ) ){
-		cout << "cannot read [" << i_directory+getTiledOutputBasename(0)+i_postfix << "]" << endl;
-		return false;
+	{
+		string tileFilename = mAppli.tiledOutputFullname(0);
+		Tiff_Im tiff( tileFilename.c_str() );
+		nbChannels = tiff.nb_chan();
+		ELISE_ASSERT( nbChannels==3, __inconsistent_nb_channels_msg( tileFilename, nbChannels, 3 ).c_str() );
+		fullW = tiff.sz().x;
+		fullH = tiff.sz().y;
 	}
-	if ( format=="P6" ) nbChannels=3;
-
 	for ( int iTile=1; iTile<i_gridWidth; iTile++ )
 	{
-		string tileFilename = i_directory+getTiledOutputBasename(iTile)+i_postfix;
-		ELISE_ASSERT( read_pgm_header( tileFilename, w, h, maxv, format ), (string("cImDigeo::reconstructFromTiles cannot read pgm header from [")+tileFilename+"]").c_str() );
-		fullW += w;
+		string tileFilename = mAppli.tiledOutputFullname(iTile); //i_directory+getTiledOutputBasename(iTile)+i_postfix;
+		Tiff_Im tiff( tileFilename.c_str() );
+		ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
+		fullW += tiff.sz().x;
 	}
 	for ( int iTile=1; iTile<gridHeight; iTile++ )
 	{
-		string tileFilename = i_directory+getTiledOutputBasename(iTile)+i_postfix;
-		ELISE_ASSERT( read_pgm_header( tileFilename, w, h, maxv, format ), (string("cImDigeo::reconstructFromTiles cannot read pgm header from [")+tileFilename+"]").c_str() );
-		fullH += h;
+		string tileFilename = mAppli.tiledOutputFullname(iTile*i_gridWidth);
+		Tiff_Im tiff( tileFilename.c_str() );
+		ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
+		fullH += tiff.sz().y;
 	}
 
-	unsigned char *data = new unsigned char[fullW*fullH*nbChannels];
-	unsigned int offsetY = 0;
+	Tiff_Im fullTiff(
+				mImGlob.getReconstructedTilesFullname().c_str(),
+				Pt2di(fullW,fullH),
+				GenIm::u_int1,
+				Tiff_Im::No_Compr,
+				Tiff_Im::RGB,
+				Tiff_Im::Empty_ARG );
+	int offsetY = 0;
+	int h = 0;
 	for ( int iTileY=0; iTileY<gridHeight; iTileY++ )
 	{
-		unsigned int offsetX = 0;
+		int offsetX = 0;
 		for ( int iTileX=0; iTileX<i_gridWidth; iTileX++ )
 		{
-			const string &windowFilename = i_directory+getTiledOutputBasename(iTileX+iTileY*i_gridWidth)+i_postfix;
-			unsigned char *window = NULL;
-			if ( nbChannels==1 )
-				load_pgm( windowFilename, window, w, h );
-			else
-				load_ppm( windowFilename, window, w, h );
+			string tileFilename = mAppli.tiledOutputFullname(iTileX+iTileY*i_gridWidth);
+			Tiff_Im tiff( tileFilename.c_str() );
 
-			drawWindow( data, fullW, fullH, nbChannels, offsetX, offsetY, window, w, h );
-			delete [] window;
-			offsetX += w;
-			if ( mAppli.doSuppressTiledOutputs() ) ELISE_fp::RmFile( windowFilename );
+			ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
+
+			ELISE_COPY
+			(
+				rectangle( Pt2di(offsetX,offsetY), Pt2di(offsetX,offsetY)+tiff.sz() ),
+				trans( tiff.in(), Pt2di(-offsetX,-offsetY) ),
+				fullTiff.out()
+			);
+
+			offsetX += tiff.sz().x;
+			if ( mAppli.doSuppressTiledOutputs() ) ELISE_fp::RmFile( tileFilename );
+			h = tiff.sz().y;
 		}
 		offsetY += h;
 	}
 
-	const string outputName = i_directory+getReconstructedOutputBasename()+i_postfix;
-	if ( nbChannels==1 )
-	{
-		if ( !save_pgm( outputName, data, fullW, fullH  ) ) return false;
-	}
-	else
-	{
-		if ( !save_ppm( outputName, data, fullW, fullH ) ) return false;
-	}
-	delete [] data;
-
 	return true;
 }
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -147,6 +147,8 @@
 				<!-- There is no need to compute gradient if there's no point to orientate or describe.
 				     With this option, the gradient is computed nonetheless. It may be useful for saving it or for time comparison -->
 				<ForceGradientComputation Nb="?" Type="bool" Def="false"></ForceGradientComputation>
+				<!-- plots final points on tiles, this option is useless if OutputTiles is false -->
+				<PlotPointsOnTiles Nb="?" Type="bool" Def="false"></PlotPointsOnTiles>
 			</DigeoTestOutput>
 		</SectionTest>
 

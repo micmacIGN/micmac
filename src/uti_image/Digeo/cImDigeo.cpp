@@ -549,6 +549,23 @@ bool cImDigeo::PtResolCalcSauv(const Pt2dr & aP)
           && (aP.y <mBoxCurOut._p1.y) ;
 }
 
+void save_tiff( const string &i_filename, Im2DGen i_img, bool i_rgb )
+{
+	//if ( ELISE_fp::exist_file( i_filename ) ) ELISE_fp::RmFile( i_filename );
+	ELISE_COPY
+	(
+		i_img.all_pts(),
+		i_rgb ? Virgule(i_img.in(),i_img.in(),i_img.in()) : i_img.in(),
+		Tiff_Im(
+			i_filename.c_str(),
+			i_img.sz(),
+			GenIm::u_int1,
+			Tiff_Im::No_Compr,
+			i_rgb ? Tiff_Im::RGB : Tiff_Im::BlackIsZero,
+			Tiff_Im::Empty_ARG ).out()
+	);
+}
+
 void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
     const cTypePyramide & aTP = mAppli.Params().TypePyramide();
@@ -563,6 +580,8 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
        mOctaves[aK]->SetBoxInOut(aBoxIn,aBoxOut);
 
     Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur );
+
+	if ( mAppli.doSaveTiles() ) save_tiff( mAppli.currentTiledOutputFullname(), window, true );
 
     Fonc_Num aF = window.in_proj();
     
@@ -909,6 +928,54 @@ unsigned int cImDigeo::getNbFeaturePoints() const
 		nbTotalFeaturePoints += image.featurePoints().size();
 	}
 	return nbTotalFeaturePoints;
+}
+
+string cImDigeo::getReconstructedTilesFullname() const { return mAppli.outputTilesDirectory()+Basename()+".merged.tif"; }
+
+void cImDigeo::plotPoints() const
+{
+	if ( !mAppli.doPlotPoints() ) return;
+
+	const string tileFilename = mAppli.currentTiledOutputFullname();
+	Tiff_Im tiff( tileFilename.c_str() );
+
+	ELISE_ASSERT( tiff.nb_chan()==3, (string("cImDigeo::plotPoints: file [")+tileFilename+"] should be in RGB colorspace").c_str() );
+	ELISE_ASSERT( tiff.type_el()==GenIm::u_int1, (string("cImDigeo::plotPoints: file [")+tileFilename+"] should of type uint8").c_str() );
+
+	vector<Im2DGen*> channels = tiff.ReadVecOfIm();
+	U_INT1 *green = ( (Im2D<U_INT1,INT>*)channels[1] )->data_lin();
+	int width = tiff.sz().x, height = tiff.sz().y;
+	for ( size_t iImage=0; iImage<mVIms.size(); iImage++ )
+	{
+		const vector<DigeoPoint> &points = mVIms[iImage]->orientedPoints();
+		const DigeoPoint *itPoint = points.data();
+		size_t iPoint = points.size();
+		while ( iPoint-- )
+		{
+			int x = round_ni( itPoint->x );
+			int y = round_ni( ( itPoint++ )->y );
+			if ( x>=0 && x<width && y>=0 && y<height )
+				green[ x+y*width ] = 255;
+			else
+				cerr << ELISE_RED_WARNING << "cImDigeo::plotPoints: a point is outside the tile : " << x << ',' << y << endl;
+		}
+	}
+
+	ELISE_COPY
+	(
+		channels[0]->all_pts(),
+		Virgule( channels[0]->in(), channels[1]->in(), channels[2]->in() ),
+		Tiff_Im(
+			tileFilename.c_str(),
+			channels[0]->sz(),
+			GenIm::u_int1,
+			Tiff_Im::No_Compr,
+			Tiff_Im::RGB,
+			Tiff_Im::Empty_ARG ).out()
+	);
+
+	for ( int iChannel=0; iChannel<tiff.nb_chan(); iChannel++ )
+		delete channels[iChannel];
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

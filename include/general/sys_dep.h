@@ -376,6 +376,13 @@ typedef REAL8  tSysCho ;
 int NumHgRev();
 
 
+#if ELISE_unix
+	#define ELISE_RED_ERROR "\033[1;31mERROR: \033[0m"
+	#define ELISE_RED_WARNING "\033[1;31mWARNING: \033[0m"
+#else
+	#define ELISE_RED_ERROR "ERROR: "
+	#define ELISE_RED_WARNING "WARNING: "
+#endif
 
 #endif /* ! _ELISE_SYS_DEP_H */
 
