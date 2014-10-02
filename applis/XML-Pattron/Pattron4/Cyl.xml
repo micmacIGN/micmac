@@ -1,0 +1,12 @@
+<XmlModeleSurfaceComplexe>
+     <XmlOneSurfaceAnalytique>
+          <XmlDescriptionAnalytique>
+               <Cyl>
+                    <P0>1.5545847961820709 -0.727865712179918134 -2.07426675832394025</P0>
+                    <P1>1.4565020902510879 -1.71905454422749848 -1.98524719855525911</P1>
+                    <POnCyl>1.80840105456120259 -1.25957590424769594 -7.7149396636623484</POnCyl>
+               </Cyl>
+          </XmlDescriptionAnalytique>
+          <Id>Plafond</Id>
+     </XmlOneSurfaceAnalytique>
+</XmlModeleSurfaceComplexe>
