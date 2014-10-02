@@ -1,7 +1,7 @@
 #ifndef HASH_INCLUDED
 #define HASH_INCLUDED
 
-    #if (defined ELISE_Darwin) && (defined __clang__) && (__clang_major__==5)
+    #if (defined ELISE_Darwin) && (defined __clang__) && (__clang_major__>=5)
         #include <unordered_map>
         #define hash_map std::unordered_map
     #elif (ELISE_windows)

@@ -10,15 +10,11 @@
 #include "GpGpu/GpGpu_Context.h"
 
 #include <cstdarg>
-template <>
 
-cl_context  CGpGpuContext<OPENCLSDK>::_contextOpenCL = 0;
-
-template <>
-cl_command_queue  CGpGpuContext<OPENCLSDK>::_commandQueue = 0;
-
-template <>
-cl_kernel   CGpGpuContext<OPENCLSDK>::_kernel = 0;
+template <> cl_context          CGpGpuContext<OPENCLSDK>::_contextOpenCL    = 0;
+template <> cl_command_queue    CGpGpuContext<OPENCLSDK>::_commandQueue     = 0;
+template <> cl_kernel           CGpGpuContext<OPENCLSDK>::_kernel           = 0;
+template <> unsigned short      CGpGpuContext<OPENCLSDK>::_nbArg            = 0;
 
 
 void simple_printf(const char* fmt...)
@@ -45,8 +41,6 @@ void simple_printf(const char* fmt...)
 }
 
 
-
-
 int main()
 {
 
@@ -59,10 +53,15 @@ int main()
     buffer.Malloc(sizeBuff);
     bufferHost.Malloc(sizeBuff,1);
 
-    CGpGpuContext<OPENCLSDK>::createKernel("/home/gchoqueux/cuda-workspace/micmac/micmac-src/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cl");
-
+    int factor = 100;
+#ifdef _WIN32
+	CGpGpuContext<OPENCLSDK>::createKernel("D:\\MicMac\\src\\uti_phgrm\\GpGpu\\GpGpu_OpenCL_Kernel.cl","kMultTab");    
+#else
+	CGpGpuContext<OPENCLSDK>::createKernel("../../micmac-src/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cl","kMultTab");
+#endif
+    
     CGpGpuContext<OPENCLSDK>::addKernelArg(buffer);
-
+    CGpGpuContext<OPENCLSDK>::addKernelArg(factor);
     CGpGpuContext<OPENCLSDK>::launchKernel();
 
     buffer.CopyDevicetoHost(bufferHost.pData());

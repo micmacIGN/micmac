@@ -5292,12 +5292,28 @@ class cPFNMiseAuPoint
 
         cTplValGesInit< bool > & VisuImageCoh();
         const cTplValGesInit< bool > & VisuImageCoh()const ;
+
+        cTplValGesInit< bool > & VisuSelect();
+        const cTplValGesInit< bool > & VisuSelect()const ;
+
+        cTplValGesInit< bool > & VisuEnv();
+        const cTplValGesInit< bool > & VisuEnv()const ;
+
+        cTplValGesInit< bool > & VisuElim();
+        const cTplValGesInit< bool > & VisuElim()const ;
+
+        cTplValGesInit< std::string > & ImageMiseAuPoint();
+        const cTplValGesInit< std::string > & ImageMiseAuPoint()const ;
     private:
         cTplValGesInit< Pt2di > mSzVisu;
         cTplValGesInit< bool > mTestImageDif;
         cTplValGesInit< bool > mVisuGrad;
         cTplValGesInit< bool > mVisuLowPts;
         cTplValGesInit< bool > mVisuImageCoh;
+        cTplValGesInit< bool > mVisuSelect;
+        cTplValGesInit< bool > mVisuEnv;
+        cTplValGesInit< bool > mVisuElim;
+        cTplValGesInit< std::string > mImageMiseAuPoint;
 };
 cElXMLTree * ToXMLTree(const cPFNMiseAuPoint &);
 
@@ -5379,6 +5395,9 @@ class cImageVariations
 
         cTplValGesInit< bool > & ComputeIncid();
         const cTplValGesInit< bool > & ComputeIncid()const ;
+
+        cTplValGesInit< int > & DilateBord();
+        const cTplValGesInit< int > & DilateBord()const ;
     private:
         bool mV4Vois;
         int mDistVois;
@@ -5386,6 +5405,7 @@ class cImageVariations
         double mSeuilStrictVarIma;
         cTplValGesInit< double > mPenteRefutInitInPixel;
         cTplValGesInit< bool > mComputeIncid;
+        cTplValGesInit< int > mDilateBord;
 };
 cElXMLTree * ToXMLTree(const cImageVariations &);
 
@@ -5394,6 +5414,38 @@ void  BinaryDumpInFile(ELISE_fp &,const cImageVariations &);
 void  BinaryUnDumpFromFile(cImageVariations &,ELISE_fp &);
 
 std::string  Mangling( cImageVariations *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cPFM_Selection
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cPFM_Selection & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & ElimDirectInterior();
+        const cTplValGesInit< double > & ElimDirectInterior()const ;
+
+        cTplValGesInit< double > & LowRatioSelectIm();
+        const cTplValGesInit< double > & LowRatioSelectIm()const ;
+
+        cTplValGesInit< double > & HighRatioSelectIm();
+        const cTplValGesInit< double > & HighRatioSelectIm()const ;
+    private:
+        cTplValGesInit< double > mElimDirectInterior;
+        cTplValGesInit< double > mLowRatioSelectIm;
+        cTplValGesInit< double > mHighRatioSelectIm;
+};
+cElXMLTree * ToXMLTree(const cPFM_Selection &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPFM_Selection &);
+
+void  BinaryUnDumpFromFile(cPFM_Selection &,ELISE_fp &);
+
+std::string  Mangling( cPFM_Selection *);
 
 /******************************************************/
 /******************************************************/
@@ -5423,6 +5475,18 @@ class cParamFusionNuage
 
         cTplValGesInit< bool > & VisuImageCoh();
         const cTplValGesInit< bool > & VisuImageCoh()const ;
+
+        cTplValGesInit< bool > & VisuSelect();
+        const cTplValGesInit< bool > & VisuSelect()const ;
+
+        cTplValGesInit< bool > & VisuEnv();
+        const cTplValGesInit< bool > & VisuEnv()const ;
+
+        cTplValGesInit< bool > & VisuElim();
+        const cTplValGesInit< bool > & VisuElim()const ;
+
+        cTplValGesInit< std::string > & ImageMiseAuPoint();
+        const cTplValGesInit< std::string > & ImageMiseAuPoint()const ;
 
         cPFNMiseAuPoint & PFNMiseAuPoint();
         const cPFNMiseAuPoint & PFNMiseAuPoint()const ;
@@ -5466,13 +5530,29 @@ class cParamFusionNuage
         cTplValGesInit< bool > & ComputeIncid();
         const cTplValGesInit< bool > & ComputeIncid()const ;
 
+        cTplValGesInit< int > & DilateBord();
+        const cTplValGesInit< int > & DilateBord()const ;
+
         cImageVariations & ImageVariations();
         const cImageVariations & ImageVariations()const ;
+
+        cTplValGesInit< double > & ElimDirectInterior();
+        const cTplValGesInit< double > & ElimDirectInterior()const ;
+
+        cTplValGesInit< double > & LowRatioSelectIm();
+        const cTplValGesInit< double > & LowRatioSelectIm()const ;
+
+        cTplValGesInit< double > & HighRatioSelectIm();
+        const cTplValGesInit< double > & HighRatioSelectIm()const ;
+
+        cPFM_Selection & PFM_Selection();
+        const cPFM_Selection & PFM_Selection()const ;
     private:
         eModeMergeCloud mModeMerge;
         cPFNMiseAuPoint mPFNMiseAuPoint;
         cGrapheRecouvrt mGrapheRecouvrt;
         cImageVariations mImageVariations;
+        cPFM_Selection mPFM_Selection;
 };
 cElXMLTree * ToXMLTree(const cParamFusionNuage &);
 
