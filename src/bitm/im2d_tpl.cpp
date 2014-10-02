@@ -1029,6 +1029,12 @@ Im2DGen  * Im2DGen::ImOfSameType(const Pt2di & aSz) const
    return new Im2D_U_INT1(0,0);
 }
 
+Im2DGen  * Im2DGen:: ImRotate(int aRot ) const
+{
+   ELISE_ASSERT(false,"no Im2DGen::ImOfSameType");
+   return new Im2D_U_INT1(0,0);
+}
+
 
 
 bool  Im2DGen::Inside(const Pt2di & aP) const
@@ -1351,6 +1357,48 @@ Im2DGen*   Im2D<Type,TyBase>::ImOfSameType(const Pt2di & aSz) const
    return new Im2D<Type,TyBase>(aSz.x,aSz.y,TyBase(0));
 }
 
+template <class Type,class TyBase>
+Im2DGen*   Im2D<Type,TyBase>::ImRotate(int aIndexRot) const
+{
+    Pt2di aRot = Pt2di(1,0);
+    for (int aK=0 ; aK<aIndexRot ; aK++)
+    {
+         aRot = aRot * Pt2di(0,1);
+    }
+
+    Pt2di aP0(1e9,1e9),aP1(-1e9,-1e9);
+    Box2di aBox(Pt2di(0,0),Pt2di(tx(),ty()));
+
+    Pt2di aCoins[4];
+    aBox.Corners(aCoins);
+    for (int aK=0; aK<4; aK++)
+    {
+        aP0 = Inf(aP0,aCoins[aK]*aRot);
+        aP1 = Sup(aP1,aCoins[aK]*aRot);
+    }
+    // Out  = In * aRot -aP0
+    // In = (Out+aP0) / aRot
+    Pt2di aSzOut = aP1 -aP0;
+
+    Im2D<Type,TyBase>* aRes = new  Im2D<Type,TyBase>(aSzOut.x,aSzOut.y);
+
+    Type ** aDIn = data();
+    Type ** aDOut = aRes->data();
+
+    Pt2di aPout;
+    for (aPout.y=0 ; aPout.y <aSzOut.y; aPout.y++)
+    {
+        for (aPout.x=0 ; aPout.x <aSzOut.x; aPout.x++)
+        {
+             Pt2di aPIn = (aPout+aP0)/ aRot;
+             aDOut[aPout.y][aPout.x] = aDIn[aPIn.y][aPIn.x];
+        }
+    }
+
+
+
+   return aRes;
+}
 
 
 template <class Type,class TyBase> Type * Im2D<Type,TyBase>::data_lin()
