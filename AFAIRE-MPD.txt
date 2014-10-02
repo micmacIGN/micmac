@@ -1,6 +1,3 @@
-Ajouter  Masq3D dans AperoChImSec ....
-
-
 
 BUG sur Tapioca Boudha 
 
@@ -395,26 +392,12 @@ dans les exercices.
 
 ======================================================
 
-Merge Cloud :
-
-    - calculer les Zones Connexe admissible, pour chaque zone :
-          * la zone d'influence  = point en cohe > 2
-          * le score = Somme F(Coh)  ^ 2
-                  F(Coh)  => 0 si < 2 ; (Coh-1)  ^ 2 sinon
-    - tant que  existe zone > 10% taille image
-
-         * choisir la zonec la plus prio
-         * l'effacer des autres
-         * remettre a jour les prio
+Apres Merge Cloud :
 
 
+-1- OPtion quick : match image multi correl, dans masq 3D, avec masq / image.
 
-
-
-
-
-
-
+   Avantage : super rapide et basique.
 
 
 

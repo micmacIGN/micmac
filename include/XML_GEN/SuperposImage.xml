@@ -1187,6 +1187,10 @@
             <VisuGrad Nb="?" Type="bool"  Def="false"></VisuGrad>
             <VisuLowPts Nb="?" Type="bool"  Def="false"></VisuLowPts>
             <VisuImageCoh Nb="?" Type="bool"  Def="false"></VisuImageCoh>
+            <VisuSelect  Nb="?" Type="bool"  Def="false"> </VisuSelect> <!-- Visualise la construction des points selectionnes -->
+            <VisuEnv  Nb="?" Type="bool"  Def="false"> </VisuEnv> <!-- Visualise les enveloppes -->
+            <VisuElim  Nb="?" Type="bool"  Def="false"> </VisuElim> <!-- Visualise chaque elimination -->
+            <ImageMiseAuPoint Nb="?" Type="std::string"> </ImageMiseAuPoint> <!-- Images pour lesquelles on active la visu -->
       </PFNMiseAuPoint>
       <GrapheRecouvrt Nb="1"> 
              <TauxRecMin Nb="1" Type="double"> </TauxRecMin>
@@ -1203,7 +1207,13 @@
            <SeuilStrictVarIma Nb="1" Type="double"> </SeuilStrictVarIma>
            <PenteRefutInitInPixel Nb="?" Type="double" Def="0.5"> </PenteRefutInitInPixel>
            <ComputeIncid Nb="?" Type="bool" Def="true"> </ComputeIncid>
+           <DilateBord Nb="?" Type="int" Def="3"> </DilateBord>
       </ImageVariations>
+      <PFM_Selection Nb="1">
+            <ElimDirectInterior Nb="?" Type="double" Def="10.0"> </ElimDirectInterior>
+            <LowRatioSelectIm Nb="?" Type="double" Def="0.001"> </LowRatioSelectIm>
+            <HighRatioSelectIm Nb="?" Type="double" Def="0.05"> </HighRatioSelectIm>
+      </PFM_Selection>
   </ParamFusionNuage>
 
 
