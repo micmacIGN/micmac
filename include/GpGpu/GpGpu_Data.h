@@ -114,7 +114,7 @@ TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
     if (err != cudaSuccess)
     {
         std::cout << "--------------------------------------------------------------------------------------\n";
-        std::cout << "Erreur Cuda         : " <<  fonctionName  << "() | Object " + CGObject::Id() << "\n";        
+        std::cout << "Erreur Cuda         : " <<  fonctionName  << "() | Object " + CGObject::Id() << "\n";
         OutputInfo();
         std::cout << "Pointeur de donnees : " << CData<T>::pData()  << "\n";
         std::cout << "Memoire allouee     : " << _memoryOc / pow(2.0,20) << " Mo | " << _memoryOc / pow(2.0,10) << " ko | " << _memoryOc  << " octets \n";
@@ -591,7 +591,7 @@ public:
 
 #if     CL_VERSION_1_2 == 1
         const cl_int pat = val;
-        return clEnqueueFillBuffer(CGpGpuContext<OPENCLSDK>::commandQueue(),_dD->clMem(),&pat, sizeof(cl_uint), 0, _dD->Sizeof(), 0, NULL, NULL);) == CL_SUCCESS;
+        return clEnqueueFillBuffer(CGpGpuContext<OPENCLSDK>::commandQueue(),_dD->clMem(),&pat, sizeof(cl_uint), 0, _dD->Sizeof(), 0, NULL, NULL) == CL_SUCCESS;
 #elif   CL_VERSION_1_1 == 1
         // A implemeter
         // 2 alternatives
