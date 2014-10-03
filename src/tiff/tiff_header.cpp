@@ -788,6 +788,8 @@ cMetaDataPhoto  DATA_Tiff_Ifd::MDP()
                 mExifTiff_ShutterSpeed,
                 mExifTiff_Aperture,
                 mExifTiff_IsoSpeed,
+                "",
+                "",
                 ""
            );
 }

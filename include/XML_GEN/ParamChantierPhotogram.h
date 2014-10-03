@@ -4832,6 +4832,12 @@ class cXmlXifInfo
 
         cTplValGesInit< cXmlDate > & Date();
         const cTplValGesInit< cXmlDate > & Date()const ;
+
+        cTplValGesInit< std::string > & Orientation();
+        const cTplValGesInit< std::string > & Orientation()const ;
+
+        cTplValGesInit< std::string > & CameraOrientation();
+        const cTplValGesInit< std::string > & CameraOrientation()const ;
     private:
         int mHGRev;
         cTplValGesInit< double > mFocMM;
@@ -4846,6 +4852,8 @@ class cXmlXifInfo
         cTplValGesInit< std::string > mCam;
         cTplValGesInit< std::string > mBayPat;
         cTplValGesInit< cXmlDate > mDate;
+        cTplValGesInit< std::string > mOrientation;
+        cTplValGesInit< std::string > mCameraOrientation;
 };
 cElXMLTree * ToXMLTree(const cXmlXifInfo &);
 

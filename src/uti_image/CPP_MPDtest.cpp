@@ -461,7 +461,14 @@ extern void Test3dQT();
 
 int MPDtest_main (int argc,char** argv)
 {
-   ELISE_COPY(rectangle(Pt2di(0,0),Pt2di(10,0)),OmbrageKL(FX,FY,1.0,4),Output::onul());
+
+   Im2D_U_INT1 aIm = Im2D_U_INT1::FromFileStd("/home/marc/TMP/AutoRot/JPG/SM5.JPG");
+   for (int aK = 1 ; aK<4 ; aK++)
+   {
+       Im2DGen *aIR = aIm.ImRotate(aK);
+       Tiff_Im::CreateFromIm(*aIR,"Test"+ToString(aK) + ".tif");
+   }
+   
 /*
     ELISE_ASSERT(argc==3,"MPDtest_main");
     FiltreRemoveFlou(argv[1],argv[2]);

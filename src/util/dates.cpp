@@ -49,7 +49,13 @@ int NumHgRev()
    return aRes;
 }
 
-static const std::string HRevXif = "3293";
+static const std::string HRevXif = "4227";
+
+const std::string & DefXifOrientation() 
+{
+   static std::string aRes="";
+   return aRes;
+}
 
 /**************************************************************/
 /*                                                            */
@@ -99,6 +105,9 @@ cXmlXifInfo MDT2Xml(const cMetaDataPhoto & aMTD)
       aRes.Cam().SetVal(aCam);
 
    aRes.BayPat().SetVal(aMTD.BayPat());
+
+    if (aMTD.Orientation() != DefXifOrientation()) aRes.Orientation().SetVal(aMTD.Orientation());
+    if (aMTD.CameraOrientation() != DefXifOrientation()) aRes.CameraOrientation().SetVal(aMTD.CameraOrientation());
 
    return aRes;
 }
@@ -803,9 +812,12 @@ cMetaDataPhoto::cMetaDataPhoto
 	double aExpTime,
 	double aDiaph,
 	double anIsoSpeed,
-	const std::string & aBayPat
+	const std::string & aBayPat,
+        const std::string & anOrientation, 
+        const std::string & aCameraOrientation
+
 	) :
-mNameIm    (aNameIm),
+        mNameIm    (aNameIm),
 	mTifSzIm   (-1,-1),
 	mXifSzIm   (aXifSzIm),
 	mCam       (aCam),
@@ -823,7 +835,9 @@ mNameIm    (aNameIm),
         mGPSLat        (0.0),
         mGPSLon        (0.0),
         mHasGPSAlt     (false),
-        mGPSAlt        (0.0)
+        mGPSAlt        (0.0),
+        mOrientation   (anOrientation),
+        mCameraOrientation   (aCameraOrientation)
 {
 	if (mBayPat=="") 
 		mBayPat = DEFBayPatt;
@@ -843,6 +857,8 @@ mNameIm    (aNameIm),
 	}
 }
 
+const std::string & cMetaDataPhoto::Orientation() const {return mOrientation;}
+const std::string & cMetaDataPhoto::CameraOrientation() const {return mCameraOrientation;}
 const std::string & cMetaDataPhoto::BayPat() const {return mBayPat;}
 
 // template <class Type> void GccUse(const Type & ) {}
@@ -1170,7 +1186,10 @@ private  :
 		const std::string & aStrGPSLat,
 		const std::string & aStrGPSLong,
 		const std::string & aStrGPSAlt,
-		const std::string & aStrBayPattern
+		const std::string & aStrBayPattern,
+		const std::string & aStrOrientation,
+		const std::string & aStrCameraOrientation
+               
 		) :
 	mStrExe             (aStrExe + " "),
 		mStrLangE           (STRLANG+ mStrExe),
@@ -1190,7 +1209,10 @@ private  :
 		mAutomGPSAlt        (new cElRegex(aStrGPSAlt,15)),
 		mHasGPS             ((aStrGPSLat!="") && (aStrGPSLong!="") && (aStrGPSAlt!="")),
 		mAutomBayerPattern   (new cElRegex(aStrBayPattern,15)),
-		mHasBayPattern       (aStrBayPattern!="")
+		mHasBayPattern       (aStrBayPattern!=""),
+                mOrientation            (new cElRegex(aStrOrientation,15)),
+                mCameraOrientation      (new cElRegex(aStrCameraOrientation,15)),
+                mHasOrientation         ((aStrOrientation!="") && (aStrCameraOrientation!=""))
 	{
 	}
 
@@ -1215,6 +1237,9 @@ private  :
 	bool                mHasGPS;
 	cElRegex *          mAutomBayerPattern;
 	bool                mHasBayPattern;
+        cElRegex *          mOrientation;
+        cElRegex *          mCameraOrientation;
+        bool                mHasOrientation;
 
 };
 
@@ -1307,7 +1332,9 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
                            aSFR->Focalmm().ValWithDef(-1),
                            aSFR->FocalEqui35().ValWithDef(-1),
                            -1,-1,-1,
-                           aSFR->BayPat().ValWithDef("")
+                           aSFR->BayPat().ValWithDef(""),
+                           "",
+                           ""
                       );
 
         }
@@ -1347,6 +1374,9 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 
 	bool GotBayPattern = false;
 	std::string  BayPatt = DEFBayPatt;
+
+        std::string aOrientation = DefXifOrientation();
+        std::string aCameraOrientation = DefXifOrientation();
 
 	for (int aKX=0 ; aKX<int(aV.size()) ; aKX++)
 	{
@@ -1433,6 +1463,17 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 		}
 
 
+                if (aXifDec.mHasOrientation)
+                {
+                      std::string aOri = GetStringFromLineExprReg(aXifDec.mOrientation, aXifDec.mFileTxt,"","$1",&aNbMatch);
+                      if (aNbMatch == 1)
+                         aOrientation = aOri;
+                      aOri = GetStringFromLineExprReg(aXifDec.mCameraOrientation, aXifDec.mFileTxt,"","$1",&aNbMatch);
+                      if (aNbMatch == 1)
+                         aCameraOrientation = aOri;
+                }
+
+
 
 		if (1)
 		{
@@ -1440,7 +1481,7 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 		}
 	}
 
-	cMetaDataPhoto  aRes (aNameIm,aSz,aCam,aDate,aFocal,aF35,anExpo,anOuv,anISO,BayPatt);
+	cMetaDataPhoto  aRes (aNameIm,aSz,aCam,aDate,aFocal,aF35,anExpo,anOuv,anISO,BayPatt,aOrientation,aCameraOrientation);
 
         if (GotGPSLat && GotGPSLong)
            aRes.SetGPSLatLon(aLat,aLong);
@@ -1482,7 +1523,9 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			"",
 			"",
 			"",
-			"Filter pattern: ([RGB])([RGB])([RGB])([RGB]).*"
+			"Filter pattern: ([RGB])([RGB])([RGB])([RGB]).*",
+                        "",
+                        ""
 			)
 			);
 		
@@ -1505,7 +1548,9 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			"",
 			"",
 			"",
-			""
+			"",
+                        "",
+                        ""
 			)
 			);
 
@@ -1528,7 +1573,9 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			"GPS Latitude *: ([0-9]*\\.?[0-9]*) deg ([0-9]*\\.?[0-9]*)\' ([0-9]*\\.?[0-9]*)\" ([SN])",
 			"GPS Longitude *: ([0-9]*\\.?[0-9]*) deg ([0-9]*\\.?[0-9]*)\' ([0-9]*\\.?[0-9]*)\" ([EW])",
 			"GPS Altitude *: ([0-9]*\\.?[0-9]*).*",
-			"CFA Pattern                     : \\[([RGB]).*\\,([RGB]).*\\]\\[([RGB]).*\\,([RGB]).*\\]"
+			"CFA Pattern                     : \\[([RGB]).*\\,([RGB]).*\\]\\[([RGB]).*\\,([RGB]).*\\]",
+                        "Orientation [ ]+:[ ]+([HR].*)",
+                        "Camera Orientation [ ]+:[ ]+([HR].*)"
 			)
 			);
 	}
@@ -1564,7 +1611,9 @@ cMetaDataPhoto cMetaDataPhoto::CreateNewExiv2(const std::string & aNameFile) // 
                               aXml.ExpTime().ValWithDef(-1),           // double aExpTime,
                               aXml.Diaph().ValWithDef(-1),             // double aDiaph,
                               aXml.IsoSpeed().ValWithDef(-1),          // double anIsoSpeed,
-                              aXml.BayPat().ValWithDef(DEFBayPatt)     // const std::string & aBayPat  DEFBayPatt
+                              aXml.BayPat().ValWithDef(DEFBayPatt),    // const std::string & aBayPat  DEFBayPatt
+                              aXml.Orientation().ValWithDef(DefXifOrientation()),
+                              aXml.CameraOrientation().ValWithDef(DefXifOrientation())
                           );
 
 
@@ -1769,7 +1818,7 @@ cMetaDataPhoto  MDP_Survey_FromString(const std::string & aCh)
 		aH
 		);
 
-	cMetaDataPhoto aMDP("Unknown Image",Pt2di(0,0),"Unknown Cam",aD,1.0,1.0,0,0,0,DEFBayPatt);
+	cMetaDataPhoto aMDP("Unknown Image",Pt2di(0,0),"Unknown Cam",aD,1.0,1.0,0,0,0,DEFBayPatt,"","");
 	Pt3dr aTetas
 		(
 		cElRegex::AutomSurvey()->VNumKIemeExprPar(8),

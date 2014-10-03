@@ -453,6 +453,7 @@ class Im2DGen : public GenIm,
       virtual void PutData(FILE * aFP,const Pt2di & anI,bool aModeBin) const;
 
       virtual Im2DGen * ImOfSameType(const Pt2di & aSz) const;
+      virtual Im2DGen * ImRotate(int aRot ) const;  // aRot = (1,0) , (0,1), (-1,0), (0,-1)
 
 
        Box2di BoxDef() const ;
@@ -547,6 +548,7 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       INT     GetI(const Pt2di &) const ;
       double  GetR(const Pt2di &) const ;
       Im2DGen  *ImOfSameType(const Pt2di & aSz) const;
+      Im2DGen * ImRotate(int aRot ) const;  
       Type **   data();
       Type **   data() const;
       Type *    data_lin();
