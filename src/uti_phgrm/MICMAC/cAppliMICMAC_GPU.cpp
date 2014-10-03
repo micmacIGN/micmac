@@ -684,30 +684,36 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
             {
                 IMmGg.SetTexturesAreLoaded(true);
 
-                pixel *maskGlobal = new pixel[size(IMmGg.DimTerrainGlob())];
+                uint sizeTerGlob  = size(IMmGg.DimTerrainGlob());
 
-                OMP_NT1
-                        for (uint anY = 0 ; anY <  IMmGg.DimTerrainGlob().y ; anY++)
-                        OMP_NT2
-                        for (uint anX = 0 ; anX < IMmGg.DimTerrainGlob().x ; anX++)
-                {
-                    uint idMask		= IMmGg.DimTerrainGlob().x * anY + anX ;
-                    if(IsInTer(anX,anY))
+                pixel *maskGlobal   = new pixel[sizeTerGlob];
+                pixel *maskIML      = new pixel[sizeTerGlob*mNbIm];
+                uint   idMask		=  0;
+
+                for (uint anY = 0 ; anY <  IMmGg.DimTerrainGlob().y ; anY++,idMask += IMmGg.DimTerrainGlob().x)
+                    for (uint anX = 0 ; anX < IMmGg.DimTerrainGlob().x ; anX++)
                     {
-                        maskGlobal[idMask] = 1 ;
-                        IMmGg.NoMasked = true;
+                        uint xId = idMask + anX;
+                        if(IsInTer(anX,anY))
+                        {
+                            maskGlobal[xId] = 1 ;
+                            IMmGg.NoMasked = true;
+                        }
+                        else
+                            maskGlobal[xId] = 0 ;
+
+                        for (int aKIm=0 ; aKIm<mNbIm ; aKIm++,xId+=sizeTerGlob)
+                            maskIML[xId] = (*(mVLI[aKIm])).IsVisible(anX,anY) ? 255 : 0 ;
+
                     }
-                    else
-                        maskGlobal[idMask] = 0 ;
-                }
-
-                if(IMmGg.NoMasked)
-                    IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
-
-                delete[] maskGlobal;
 
                 if(IMmGg.NoMasked)
                 {
+                    // set textures masques images
+                    IMmGg.Data().SetMaskImages(maskIML,IMmGg.DimTerrainGlob(),mNbIm);
+
+                    // set texture masque terrain
+                    IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
                     float*	fdataImg1D	= NULL;
                     uint2	dimImgMax	= make_uint2(0,0);
 
@@ -759,20 +765,24 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                         //------------------------------------------------------------------------
                         /*
-
                         std::string nameFile(GpGpuTools::conca("image_0",aKIm));
 
                         nameFile+=".pgm";
 
                         float* pImage = fdataImg1D + size(dimImgMax) * aKIm;
 
+                        pixel* pImage = maskIML;
+
                         float min = GpGpuTools::getMinArray(pImage,dimImgMax);
 
                         float* dImage =  GpGpuTools::AddArray(pImage,dimImgMax,-min);
 
                         GpGpuTools::Array1DtoImageFile(dImage,nameFile.c_str(),dimImgMax,1.f/(GpGpuTools::getMaxArray(dImage,dimImgMax)));
+
+
                         //GpGpuTools::Array1DtoImageFile(dImage,nameFile.c_str(),dimImgMax,1.f/(65536.f));
                         //GpGpuTools::Array1DtoImageFile(pImage,nameFile.c_str(),dimImgMax,1.f/(2048.f));
+                        GpGpuTools::Array1DtoImageFile(maskIML,nameFile.c_str(),IMmGg.DimTerrainGlob());
 
                         if(!aKIm)
                         {
@@ -783,20 +793,28 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                         */
                         //------------------------------------------------------------------------
 
-                    }
+                    }                                        
 
+                    // Copy Images to device (in layered textures)
                     if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
                         IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
 
+                    // Delete buffer image temporaire
                     if (fdataImg1D != NULL) delete[] fdataImg1D;
 
+                    // Initialisation des paramètres
                     IMmGg.SetParameter(mNbIm, make_ushort2(toUi2(mCurSzV0)), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT,nbCLass);
 
                 }
 
+                // delete buffers
+                delete[] maskGlobal;
+                delete[] maskIML;
+
+
             }
 
-
+            //
             IMmGg.MaskVolumeBlock().clear();
 
             if(IMmGg.NoMasked)

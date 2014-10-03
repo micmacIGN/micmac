@@ -2,6 +2,7 @@
 
 SData2Correl::SData2Correl():
     _texMaskGlobal(getMaskGlobal()),
+    _TexMaskImages(getTexL_MaskImages()),
     _texImages(getImage()),
     _texProjections_00(getProjection(0)),
     _texProjections_01(getProjection(1))
@@ -12,6 +13,7 @@ SData2Correl::SData2Correl():
     _dt_GlobalMask.SetNameImage("_dt_GlobalMask");
 
     _dt_LayeredImages.CData3D::SetName("_dt_LayeredImages");
+    _dt_LayeredMaskImages.CData3D::SetName("_dt_LayeredMaskImages");
     _dt_LayeredProjection->CData3D::SetName("_dt_LayeredProjection");
 
     // Parametres texture des projections
@@ -24,7 +26,7 @@ SData2Correl::SData2Correl():
     _texMaskGlobal.addressMode[0]	= cudaAddressModeBorder;
     _texMaskGlobal.addressMode[1]	= cudaAddressModeBorder;
     _texMaskGlobal.filterMode       = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
-    _texMaskGlobal.normalized       = false;
+    _texMaskGlobal.normalized       = false;   
 
     for (int i = 0; i < SIZERING; ++i)
     {
@@ -49,6 +51,7 @@ void SData2Correl::MallocInfo()
     _d_volumeNIOk[0].MallocInfo();
     _dt_GlobalMask.DecoratorImage<cudaContext>::MallocInfo();
     _dt_LayeredImages.CData3D::MallocInfo();
+    _dt_LayeredMaskImages.CData3D::MallocInfo();
     _dt_LayeredProjection[0].CData3D::MallocInfo();
 }
 
@@ -97,6 +100,7 @@ void SData2Correl::DeallocDeviceData()
 
     _dt_GlobalMask.Dealloc();
     _dt_LayeredImages.Dealloc();
+    _dt_LayeredMaskImages.Dealloc();
 
     _dRect.Dealloc();
 
@@ -124,6 +128,20 @@ void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
     _dt_LayeredImages.CData3D::ReallocIfDim(dimImage,nbLayer);
     _dt_LayeredImages.copyHostToDevice(dataImage);
     _dt_LayeredImages.bindTexture(_texImages);
+#ifdef  NVTOOLS
+    nvtxRangePop();
+#endif
+}
+
+void SData2Correl::SetMaskImages(pixel *dataMaskImages, uint2 dimMaskImage, int nbLayer)
+{
+#ifdef  NVTOOLS
+    GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A22B5);
+#endif
+    // Images vers Textures Gpu
+    _dt_LayeredMaskImages.CData3D::ReallocIfDim(dimMaskImage,nbLayer);
+    _dt_LayeredMaskImages.copyHostToDevice(dataMaskImages);
+    _dt_LayeredMaskImages.bindTexture(_TexMaskImages);
 #ifdef  NVTOOLS
     nvtxRangePop();
 #endif

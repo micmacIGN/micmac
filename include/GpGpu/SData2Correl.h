@@ -7,6 +7,7 @@ extern "C" textureReference&    getMaskGlobal();
 extern "C" textureReference&	getMask();
 extern "C" textureReference&	getImage();
 extern "C" textureReference&	getProjection(int TexSel);
+extern "C" textureReference&    getTexL_MaskImages();
 
 #define SYNC    false
 #define ASYNC   true
@@ -75,6 +76,8 @@ public:
 
     ushort2 *DeviClassEqui();
 
+    void    SetMaskImages(pixel *dataMaskImages, uint2 dimMaskImage, int nbLayer);
+
 private:
 
     void    ReallocDeviceData(int nStream, pCorGpu param);
@@ -111,9 +114,11 @@ private:
 
     ImageGpGpu<pixel,cudaContext>           _dt_GlobalMask;
     ImageLayeredGpGpu<float,cudaContext>    _dt_LayeredImages;
+    ImageLayeredGpGpu<pixel,cudaContext>    _dt_LayeredMaskImages;
     ImageLayeredGpGpu<float2,cudaContext>   _dt_LayeredProjection[NSTREAM];
 
     textureReference&           _texMaskGlobal;
+    textureReference&           _TexMaskImages;
     textureReference&           _texImages;
     textureReference&           _texProjections_00;
     textureReference&           _texProjections_01;

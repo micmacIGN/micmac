@@ -2634,6 +2634,8 @@ class   cGPU_LoadedImGeom
            AssertOneImage();
            return mLinDIm[0];
       }
+      U_INT1 ** ImPC()      {return mImPC;}
+      U_INT1**  ImMasq()    {return mImMasq;}
       float *** VDataIm()   {return mDataIm;}
       float **  VLinDIm()   {return mLinDIm;}
       double  PdsMS() const;

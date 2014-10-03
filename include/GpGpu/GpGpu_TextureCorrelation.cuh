@@ -15,8 +15,12 @@ TexFloat2Layered							TexL_Proj_05;
 TexFloat2Layered							TexL_Proj_06;
 TexFloat2Layered							TexL_Proj_07;
 texture< pixel,	cudaTextureType2D >         TexS_MaskGlobal;
+texture< pixel,	cudaTextureType2DLayered >	TexL_MaskImages;
+
 
 extern "C" textureReference& getMaskGlobal(){return TexS_MaskGlobal;}
+
+extern "C" textureReference& getTexL_MaskImages(){return TexL_MaskImages;}
 
 #define INTERPOLA LINEARINTER
 
