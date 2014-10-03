@@ -499,11 +499,6 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 
                     }
 
-                    #ifdef CUDA_DEFCOR
-//                    if(aMat[aPRX].GetCostInit() >= 20000)
-//                        IGpuOpt._FinalDefCor[ui2Ter] = 0;
-                    #endif
-
                     aMat[aPRX].SetCostInit(aCF);
                     aCF = 0;
                 }
@@ -893,6 +888,10 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         #ifdef CUDA_DEFCOR
         float qualiMAx = 0;
         float qualiMin = 1e9;
+
+        mMaskCalcDone = true;
+        mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
+        TIm2DBits<1>    aTMask(mMaskCalc);
         #endif
 
         for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
@@ -921,9 +920,16 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                 }
 
 #ifdef CUDA_DEFCOR
-                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
 
-                //IGpuOpt._FinalDefCor[ui2Ter] = (float)((float)IGpuOpt._FinalDefCor[ui2Ter]/(float)aCostMin)*10000.f;
+                /* CUDA_DEFCOR Officiel
+                {
+                    tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
+                    bool NoVal  = defCOf <  aCostMin;
+                    aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
+                }
+                */
+
+                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
 
                 float defCOf        = IGpuOpt._FinalDefCor[ui2Ter];
                 float costMinf      = aCostMin;
@@ -940,6 +946,10 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 #ifdef CUDA_DEFCOR
 
+        /* officiel COMBLE TROU
+        if (mHasMask)
+        CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
+        */
 
         Rect zone(0,0,mSz.x,mSz.y);
         uint2   pTer;
@@ -998,6 +1008,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 #ifdef SAVEPLY
 
+        uint2 pTer;
+
+        for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
+
+                   for (pTer.x=0 ; pTer.x<(uint)mSz.x ; pTer.x++)
                 if(deZoom)
                 {
                     Pt3dr aP(float(pTer.x),float(pTer.y),float(mDataImRes[0][pTer.y][pTer.x]));
