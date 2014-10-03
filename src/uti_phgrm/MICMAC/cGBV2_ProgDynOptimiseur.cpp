@@ -889,9 +889,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         float qualiMAx = 0;
         float qualiMin = 1e9;
 
+        /* officiel COMBLE TROU
         mMaskCalcDone = true;
         mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
         TIm2DBits<1>    aTMask(mMaskCalc);
+        */
         #endif
 
         for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
@@ -1008,40 +1010,37 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 #ifdef SAVEPLY
 
-        uint2 pTer;
+        //uint2 pTer;
 
-        for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
+        if(deZoom)
+        {
+            Pt3dr aP(float(pTer.x),float(pTer.y),float(mDataImRes[0][pTer.y][pTer.x]));
+            //Pt3dr aPMax(float(pTer.x),float(pTer.y),float(aBox._p1.x));
+            //Pt3dr aPMin(float(pTer.x),float(pTer.y),float(aBox._p0.x));
+            Pt3di aW(255,255,255);
+            Pt3di aR(255,0,0);
+            Pt3di aG(0,255,0);
+            Pt3di aB(0,0,255);
 
-                   for (pTer.x=0 ; pTer.x<(uint)mSz.x ; pTer.x++)
-                if(deZoom)
-                {
-                    Pt3dr aP(float(pTer.x),float(pTer.y),float(mDataImRes[0][pTer.y][pTer.x]));
-                    //Pt3dr aPMax(float(pTer.x),float(pTer.y),float(aBox._p1.x));
-                    //Pt3dr aPMin(float(pTer.x),float(pTer.y),float(aBox._p0.x));
-                    Pt3di aW(255,255,255);
-                    Pt3di aR(255,0,0);
-                    Pt3di aG(0,255,0);
-                    Pt3di aB(0,0,255);
+            if (aBin)
+            {
+                //writePoint(aFP, aP, cI > clamp ? Pt3di(255,(float)255.f*(cI-clamp)/(10000-clamp),0) : aG);
+                //writePoint(aFP, aP, Pt3di(255,(float)255.f*(finalDefCor/10000 ),0));
 
-                    if (aBin)
-                    {
-                        //writePoint(aFP, aP, cI > clamp ? Pt3di(255,(float)255.f*(cI-clamp)/(10000-clamp),0) : aG);
-                        //writePoint(aFP, aP, Pt3di(255,(float)255.f*(finalDefCor/10000 ),0));
+                //writePoint(aFP, aP, finalDefCor == 0 ? aG : aR);
 
-                        //writePoint(aFP, aP, finalDefCor == 0 ? aG : aR);
+                float colorll = (float)256 - (float)256.f*(finalDefCor)/(qualiMAx);
 
-                        float colorll = (float)256 - (float)256.f*(finalDefCor)/(qualiMAx);
-
-                        writePoint(aFP, aP, finalDefCor > minCOR  ? Pt3di(256 - colorll,colorll,0) : aB);
+                writePoint(aFP, aP, finalDefCor > minCOR  ? Pt3di(256 - colorll,colorll,0) : aB);
 
 
-                        //writePoint(aFP, aP, finalDefCor > 10000 ? finalDefCor -  : aR);
-    //                    writePoint(aFP, aPMax, aR);
-    //                    writePoint(aFP, aPMin, aG);
-                    }
-                    else
-                        fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aW.x,aW.y,aW.z);
-                }
+                //writePoint(aFP, aP, finalDefCor > 10000 ? finalDefCor -  : aR);
+                //                    writePoint(aFP, aPMax, aR);
+                //                    writePoint(aFP, aPMin, aG);
+            }
+            else
+                fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aW.x,aW.y,aW.z);
+        }
 #endif
             }
 

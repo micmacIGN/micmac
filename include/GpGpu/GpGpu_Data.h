@@ -699,7 +699,7 @@ public:
 
     /// \brief Initialise toutes les valeurs du tableau a val
     /// \param val : valeur d initialisation
-    bool        Memset(int val){return DecoratorDeviceData<T,CUDASDK>::Memset(val);}
+    bool        Memset(int val){return DecoratorDeviceData<T,cudaContext>::Memset(val);}
 
     bool        CopyDevicetoHost(CuHostData3D<T> &hostData){return  DecoratorDeviceData<T,cudaContext>::CopyDevicetoHost(hostData.pData());}
 
