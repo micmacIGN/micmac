@@ -343,7 +343,7 @@ void  cArgMpDCRaw::DevJpg()
     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
 
     // Gestion de l'autorotation 
-    if (1) // Pour ne pas polluer le commit ...
+    if (0) // Pour ne pas polluer le commit ...
     {
          bool Ok,OkCam;
          int anA = ExtractAngleFromRot( aMDP.Orientation(),Ok);
