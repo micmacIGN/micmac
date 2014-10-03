@@ -1254,6 +1254,8 @@
         <Cam Nb="?" Type="std::string">    </Cam>
         <BayPat Nb="?" Type="std::string">    </BayPat>
         <Date Nb="?" RefType="XmlDate">    </Date>
+        <Orientation Nb="?"  Type="std::string"> </Orientation>
+        <CameraOrientation Nb="?"  Type="std::string"> </CameraOrientation>
     </XmlXifInfo>
 
 

@@ -14943,6 +14943,28 @@ const cTplValGesInit< cXmlDate > & cXmlXifInfo::Date()const
    return mDate;
 }
 
+
+cTplValGesInit< std::string > & cXmlXifInfo::Orientation()
+{
+   return mOrientation;
+}
+
+const cTplValGesInit< std::string > & cXmlXifInfo::Orientation()const 
+{
+   return mOrientation;
+}
+
+
+cTplValGesInit< std::string > & cXmlXifInfo::CameraOrientation()
+{
+   return mCameraOrientation;
+}
+
+const cTplValGesInit< std::string > & cXmlXifInfo::CameraOrientation()const 
+{
+   return mCameraOrientation;
+}
+
 void  BinaryUnDumpFromFile(cXmlXifInfo & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.HGRev(),aFp);
@@ -15042,6 +15064,22 @@ void  BinaryUnDumpFromFile(cXmlXifInfo & anObj,ELISE_fp & aFp)
         }
         else  anObj.Date().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Orientation().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Orientation().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Orientation().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CameraOrientation().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CameraOrientation().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CameraOrientation().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlXifInfo & anObj)
@@ -15071,6 +15109,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlXifInfo & anObj)
     if (anObj.BayPat().IsInit()) BinaryDumpInFile(aFp,anObj.BayPat().Val());
     BinaryDumpInFile(aFp,anObj.Date().IsInit());
     if (anObj.Date().IsInit()) BinaryDumpInFile(aFp,anObj.Date().Val());
+    BinaryDumpInFile(aFp,anObj.Orientation().IsInit());
+    if (anObj.Orientation().IsInit()) BinaryDumpInFile(aFp,anObj.Orientation().Val());
+    BinaryDumpInFile(aFp,anObj.CameraOrientation().IsInit());
+    if (anObj.CameraOrientation().IsInit()) BinaryDumpInFile(aFp,anObj.CameraOrientation().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXmlXifInfo & anObj)
@@ -15102,6 +15144,10 @@ cElXMLTree * ToXMLTree(const cXmlXifInfo & anObj)
       aRes->AddFils(::ToXMLTree(std::string("BayPat"),anObj.BayPat().Val())->ReTagThis("BayPat"));
    if (anObj.Date().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Date().Val())->ReTagThis("Date"));
+   if (anObj.Orientation().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Orientation"),anObj.Orientation().Val())->ReTagThis("Orientation"));
+   if (anObj.CameraOrientation().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CameraOrientation"),anObj.CameraOrientation().Val())->ReTagThis("CameraOrientation"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -15137,9 +15183,13 @@ void xml_init(cXmlXifInfo & anObj,cElXMLTree * aTree)
    xml_init(anObj.BayPat(),aTree->Get("BayPat",1)); //tototo 
 
    xml_init(anObj.Date(),aTree->Get("Date",1)); //tototo 
+
+   xml_init(anObj.Orientation(),aTree->Get("Orientation",1)); //tototo 
+
+   xml_init(anObj.CameraOrientation(),aTree->Get("CameraOrientation",1)); //tototo 
 }
 
-std::string  Mangling( cXmlXifInfo *) {return "BA321A9AE6FC6B9CFE3F";};
+std::string  Mangling( cXmlXifInfo *) {return "6AE1E440E99210A9FE3F";};
 
 
 std::string & cCameraEntry::Name()

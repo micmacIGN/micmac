@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+extern const std::string & DefXifOrientation();
 namespace NS_MpDcraw
 {
 
@@ -288,6 +289,28 @@ const double & cArgMpDCRaw::Offset() const
   return mOfs;
 }
 
+int ExtractAngleFromRot(const std::string & aSA,bool & Ok)
+{
+   Ok = false;
+   if (aSA==DefXifOrientation()) return 0;
+   static cElRegex anAutomH("Horizontal.*",15);
+   if (anAutomH.Match(aSA))
+   {
+       Ok = true;
+       return 0;
+   }
+   static cElRegex anAutom("Rotate[ ]+(90|180|270)[ ]+(CW|).*",15);
+
+   if (! anAutom.Match(aSA)) return 0;
+
+
+   Ok = true;
+   double aVal =  anAutom.VNumKIemeExprPar(1);
+
+   return round_ni(aVal);
+}
+
+
 
 void  cArgMpDCRaw::DevJpg()
 {
@@ -317,7 +340,38 @@ void  cArgMpDCRaw::DevJpg()
 
 
     Tiff_Im aFTmp(aTmp.c_str());
+    cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
 
+    // Gestion de l'autorotation 
+    if (1) // Pour ne pas polluer le commit ...
+    {
+         bool Ok,OkCam;
+         int anA = ExtractAngleFromRot( aMDP.Orientation(),Ok);
+         int anACam = ExtractAngleFromRot(aMDP.CameraOrientation(),OkCam);
+
+
+         if (Ok && OkCam)
+         {
+             if ((anA!=anACam) && (anA==0))
+             { 
+                 int aDA = anACam - anA;
+                 if (aDA<0) aDA += 360;
+                 // Im2DGen aImIn = aFTmp.ReadIm();
+                 std::vector<Im2DGen *>  aV = aFTmp.ReadVecOfIm();
+                 Im2DGen * aImOut = aV[0]->ImRotate(4-aDA/90);
+// std::cout << "HHHHH " << aV[0]->sz() << aImOut->sz() << "\n";
+                 ELISE_fp::RmFile(aTmp);
+                 Tiff_Im::CreateFromIm(*aImOut,aTmp);
+                 aFTmp = Tiff_Im(aTmp.c_str());
+                 // Tiff_Im::CreateFromIm(*aImOut,"toto.tif");
+/*
+                 Pt2di aSz = aFTmp.sz();
+
+                 std::cout << "ANGLES " << anA << " " << anACam  <<  " " <<   aMDP.Orientation() << "\n";
+*/
+             }
+         }
+    }
 
     std::string aRes = NameRes(CurF1(),"","");
 /*
@@ -340,7 +394,6 @@ void  cArgMpDCRaw::DevJpg()
                 ArgMTD()
             );
 
-     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
      Fonc_Num aFRes = aFTmp.in() / FlatField(aMDP,aFullNJPG);
 
      if (En8B)

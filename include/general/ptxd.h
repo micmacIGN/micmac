@@ -1173,11 +1173,14 @@ class cMetaDataPhoto
                 Pt2di aSzIm,
                 const std::string & aCam,
                 cElDate mDate,double aFocMm,double Foc35,double aExpTime,
-                double aDiaph,double anIsoSpeed,const std::string & aBayPat
+                double aDiaph,double anIsoSpeed,const std::string & aBayPat,
+                const std::string & anOrientation, const std::string & aCameraOrientation
          );
          cMetaDataPhoto();
          const std::string  & BayPat() const;
          bool & FocForced();
+         const std::string & Orientation() const;
+         const std::string & CameraOrientation() const;
    private :
         static cMetaDataPhoto  CreateNewExiv2(const std::string &);
 
@@ -1217,6 +1220,8 @@ class cMetaDataPhoto
          double  mGPSLon;
          bool    mHasGPSAlt;
          double  mGPSAlt;
+         std::string mOrientation;
+         std::string mCameraOrientation;
 
 };
 // cCameraEntry *  CamOfName(const std::string & aName);
