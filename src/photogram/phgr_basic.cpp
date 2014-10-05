@@ -1459,7 +1459,6 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     _orient (Pt3dr(0,0,0),0,0,0),
     mSz        (-1,-1),
     mSzPixel   (-1,-1),
-    mZoneUtilInPixel (false),
     mDIsDirect (! isDistC2M),
     mTypeProj  (aTP),
     // mAltisSolIsDef (false),
@@ -1482,14 +1481,10 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     UndefAltisSol();
 }
 
-void  ElCamera::SetZoneUtilInPixel(bool aZUP )
-{
-  mZoneUtilInPixel = aZUP;
-}
 
 bool  ElCamera::GetZoneUtilInPixel() const
 {
-    return mZoneUtilInPixel;
+    return ! mScanned;
 }
 
 
@@ -1541,13 +1536,13 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
    // car IsZoneUtil est en mm
 
   // std::cout << "AAAAAA " << aPF0 << " " << mZoneUtilInPixel << "\n";
-   if ( (!mZoneUtilInPixel) && ( ! IsInZoneUtile(aPF0))) return false;
+   if ( (!GetZoneUtilInPixel()) && ( ! IsInZoneUtile(aPF0))) return false;
 
    Pt2dr aPF1 = DComplM2C(aPF0);
 
    // MPD le 17/06/2014 : je ne comprend plus le [1], qui fait planter les camera ortho
    // a priori la zone utile se juge a la fin
-   if (mZoneUtilInPixel && ( ! IsInZoneUtile(aPF1))) return false;
+   if (GetZoneUtilInPixel() && ( ! IsInZoneUtile(aPF1))) return false;
 
 
    Pt2dr aI0Again = DistInverse(aPF1);
@@ -1584,9 +1579,10 @@ const bool &   ElCamera::IsScanned() const
 {
     return mScanned;
 }
-bool &   ElCamera::IsScanned()
+
+void ElCamera::SetScanned(bool mIsSC )
 {
-    return mScanned;
+    mScanned = mIsSC;
 }
 
 
@@ -2946,8 +2942,7 @@ cOrientationConique  ElCamera::ExportCalibGlob
    anOC.OrIntImaM2C().SetVal(El2Xml(mScanOrImaM2C));
    anOC.TypeProj().SetVal(El2Xml(mTypeProj));
 
-   if (mZoneUtilInPixel)
-      anOC.ZoneUtileInPixel().SetVal(true);
+   anOC.ZoneUtileInPixel().SetVal(GetZoneUtilInPixel());
 
    if (aNbVerif || aNbVeridDet)
    {

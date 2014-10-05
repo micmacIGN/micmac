@@ -1367,7 +1367,7 @@ Im2DGen*   Im2D<Type,TyBase>::ImRotate(int aIndexRot) const
     }
 
     Pt2di aP0(1e9,1e9),aP1(-1e9,-1e9);
-    Box2di aBox(Pt2di(0,0),Pt2di(tx(),ty()));
+    Box2di aBox(Pt2di(0,0),Pt2di(tx()-1,ty()-1));
 
     Pt2di aCoins[4];
     aBox.Corners(aCoins);
@@ -1378,7 +1378,7 @@ Im2DGen*   Im2D<Type,TyBase>::ImRotate(int aIndexRot) const
     }
     // Out  = In * aRot -aP0
     // In = (Out+aP0) / aRot
-    Pt2di aSzOut = aP1 -aP0;
+    Pt2di aSzOut = aP1 -aP0 + Pt2di(1,1);
 
     Im2D<Type,TyBase>* aRes = new  Im2D<Type,TyBase>(aSzOut.x,aSzOut.y);
 

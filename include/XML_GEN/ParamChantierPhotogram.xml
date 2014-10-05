@@ -1497,6 +1497,7 @@
                     <Name Type="std::string" Nb="1"> </Name>
                     <Angle Type="double" Nb="1"> </Angle>
                     <Nb Type="double" Nb="1"> </Nb>
+                    <RatioVis Type="double" Nb="?"> </RatioVis>  <!-- ? Pour compat -->
                </ISOM_Vois>
           </ISOM_AllVois>
     </ImSecOfMaster>

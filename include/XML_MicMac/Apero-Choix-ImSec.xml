@@ -136,6 +136,7 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                                <TetaOpt > ${TetaOpt} </TetaOpt>
                                <TetaMaxPreSel> 0.8 </TetaMaxPreSel>
                                <NbMaxPresel>  15</NbMaxPresel>
+                               <NbTestPrecis>  15</NbTestPrecis>
                                <PenalNbIm> ${PenalNbIm} </PenalNbIm>
                                <#WHEN VTEST=${UseMasq3D}>
                                     <Masq3D> ${Masq3D} </Masq3D>

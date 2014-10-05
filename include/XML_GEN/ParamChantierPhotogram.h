@@ -6316,10 +6316,14 @@ class cISOM_Vois
 
         double & Nb();
         const double & Nb()const ;
+
+        cTplValGesInit< double > & RatioVis();
+        const cTplValGesInit< double > & RatioVis()const ;
     private:
         std::string mName;
         double mAngle;
         double mNb;
+        cTplValGesInit< double > mRatioVis;
 };
 cElXMLTree * ToXMLTree(const cISOM_Vois &);
 
