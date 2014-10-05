@@ -56,7 +56,7 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
      mCons16Bits (1),
      m8BitAdapt  (0),
      mDyn        (0),
-     mGamma      (1.0),
+     mGammaCorrec      (1.0),
      mEpsLog     (0.3),
      mGB         (0),
      mCB         (0),
@@ -93,7 +93,7 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
           anArg,
           LArgMain() << EAM(mCons16Bits,"16B",true)
                      << EAM(m8BitAdapt,"8BA",true)
-                     << EAM(mGamma,"Gamma",true)
+                     << EAM(mGammaCorrec,"Gamma",true)
                      << EAM(mEpsLog,"EpsLog",true)
                      << EAM(mDyn,"Dyn",true)
                  << EAM(mSplit,"Split",true)
@@ -131,6 +131,8 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
                      << EAM(mNameOutSpec,"NameOut",true)
                      << EAM(mUseFF,"UseFF",true)
      );
+
+
 
 
      if (mImRef!="")
@@ -310,6 +312,8 @@ int ExtractAngleFromRot(const std::string & aSA,bool & Ok)
    return round_ni(aVal);
 }
 
+Fonc_Num GamCor(const cArgMpDCRaw & anArg,Fonc_Num aF,const std::string & aNameFile);
+
 
 
 void  cArgMpDCRaw::DevJpg()
@@ -343,7 +347,7 @@ void  cArgMpDCRaw::DevJpg()
     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
 
     // Gestion de l'autorotation 
-    if (0) // Pour ne pas polluer le commit ...
+    if (1) // Pour ne pas polluer le commit ...
     {
          bool Ok,OkCam;
          int anA = ExtractAngleFromRot( aMDP.Orientation(),Ok);
@@ -396,6 +400,7 @@ void  cArgMpDCRaw::DevJpg()
 
      Fonc_Num aFRes = aFTmp.in() / FlatField(aMDP,aFullNJPG);
 
+     aFRes = GamCor(*this,aFRes,aFullNJPG);
      if (En8B)
         aFRes = Min(255,aFRes);
 
@@ -513,7 +518,23 @@ double cArgMpDCRaw::Dyn() const
    return mDyn;
 }
 
-double cArgMpDCRaw::Gamma() const { return mGamma; }
+double cArgMpDCRaw::Gamma( const std::string& aNameIm) const 
+{ 
+   if (! EAMIsInit(const_cast<void *>((void *)&mGammaCorrec)))
+   {
+         if (!  mCons16Bits)
+         {
+              std::string aNameGama = ICNM()->Assoc1To1("NKS-Assoc-STD-Gama8Bits",aNameIm,true);
+              double aRes;
+              FromString(aRes,aNameGama);
+              return aRes;
+         }
+   }
+
+    return mGammaCorrec; 
+}
+
+
 double cArgMpDCRaw::EpsLog() const { return mEpsLog; }
 
 bool cArgMpDCRaw::Cons16B() const

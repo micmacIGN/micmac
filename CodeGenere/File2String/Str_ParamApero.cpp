@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1548]) = {
+const char * (theNameVar_ParamApero[1551]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1511,8 +1511,11 @@ const char * (theNameVar_ParamApero[1548]) = {
 "                               <Teta2Max Nb=\"?\" Type=\"double\" Def=\"1.1\"> </Teta2Max>\n",
 "                            \n",
 "                               <NbMaxPresel Nb=\"?\" Type=\"int\" Def=\"10\"> </NbMaxPresel>\n",
-"                               <NbSetPreSelAng Nb=\"?\" Type=\"int\" Def=\"5\"> </NbSetPreSelAng>\n",
+"                               <NbTestPrecis Nb=\"?\" Type=\"int\" Def=\"10\"> </NbTestPrecis>\n",
+"                               <!-- <NbSetPreSelAng Nb=\"?\" Type=\"int\" Def=\"5\"> </NbSetPreSelAng> -->\n",
 "\n",
+"                               <NbCellOccAng Nb=\"?\" Type=\"int\" Def=\"50\"> </NbCellOccAng>\n",
+"                               <NbCaseIm Nb=\"?\" Type=\"int\" Def=\"10\"> </NbCaseIm>\n",
 "                               <Masq3D Nb=\"?\" Type=\"std::string\"> </Masq3D>\n",
 "                          </ChoixImSec>\n",
 "                     </ChoixImMM>\n",

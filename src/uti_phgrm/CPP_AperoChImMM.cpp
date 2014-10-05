@@ -48,7 +48,7 @@ int AperoChImMM_main(int argc,char ** argv)
     std::string aPatternExport=".*";
     bool ExpTxt=0;
     bool CalPerIm=0;
-    double aPenalPerIm = 0.333;
+    double aPenalPerIm = 0.20;
     double aTetaOpt = 0.17;
     std::string aMasq3D;
 

@@ -712,6 +712,18 @@ int Sake_main(int argc,char ** argv);
   int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
   int ServiceGeoSud_Ortho_main(int argc, char **argv);
 
+
+
+
+void Paral_Tiff_Dev
+    (
+         const std::string & aDir,
+         const std::vector<std::string> & aLFile,
+         int                            aNbChan,
+         bool                           Cons16B
+    );
+
+
 #endif // ElMemberTpl
 
 #endif // _ELISE_GENERAL_ARG_MAIN_H

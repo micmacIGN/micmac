@@ -167,6 +167,8 @@ class cAppliWithSetImage
       static const int  TheFlagAcceptProblem  = 8;  // ERREUR DE DEBUTANT FlagNoOri=3 !!!!
 
       tSomAWSI * ImOfName(const std::string & aName);
+      bool ImIsKnown(const std::string & aName) const;
+
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
       void AddCoupleMMImSec(bool ExeApero);

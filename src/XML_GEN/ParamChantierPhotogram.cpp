@@ -19860,11 +19860,30 @@ const double & cISOM_Vois::Nb()const
    return mNb;
 }
 
+
+cTplValGesInit< double > & cISOM_Vois::RatioVis()
+{
+   return mRatioVis;
+}
+
+const cTplValGesInit< double > & cISOM_Vois::RatioVis()const 
+{
+   return mRatioVis;
+}
+
 void  BinaryUnDumpFromFile(cISOM_Vois & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Name(),aFp);
     BinaryUnDumpFromFile(anObj.Angle(),aFp);
     BinaryUnDumpFromFile(anObj.Nb(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.RatioVis().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RatioVis().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.RatioVis().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cISOM_Vois & anObj)
@@ -19872,6 +19891,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cISOM_Vois & anObj)
     BinaryDumpInFile(aFp,anObj.Name());
     BinaryDumpInFile(aFp,anObj.Angle());
     BinaryDumpInFile(aFp,anObj.Nb());
+    BinaryDumpInFile(aFp,anObj.RatioVis().IsInit());
+    if (anObj.RatioVis().IsInit()) BinaryDumpInFile(aFp,anObj.RatioVis().Val());
 }
 
 cElXMLTree * ToXMLTree(const cISOM_Vois & anObj)
@@ -19881,6 +19902,8 @@ cElXMLTree * ToXMLTree(const cISOM_Vois & anObj)
    aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
    aRes->AddFils(::ToXMLTree(std::string("Angle"),anObj.Angle())->ReTagThis("Angle"));
    aRes->AddFils(::ToXMLTree(std::string("Nb"),anObj.Nb())->ReTagThis("Nb"));
+   if (anObj.RatioVis().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("RatioVis"),anObj.RatioVis().Val())->ReTagThis("RatioVis"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -19896,9 +19919,11 @@ void xml_init(cISOM_Vois & anObj,cElXMLTree * aTree)
    xml_init(anObj.Angle(),aTree->Get("Angle",1)); //tototo 
 
    xml_init(anObj.Nb(),aTree->Get("Nb",1)); //tototo 
+
+   xml_init(anObj.RatioVis(),aTree->Get("RatioVis",1)); //tototo 
 }
 
-std::string  Mangling( cISOM_Vois *) {return "F1447E0A24AD088AFF3F";};
+std::string  Mangling( cISOM_Vois *) {return "1C5857083702A7CDFD3F";};
 
 
 std::list< cISOM_Vois > & cISOM_AllVois::ISOM_Vois()
@@ -19957,7 +19982,7 @@ void xml_init(cISOM_AllVois & anObj,cElXMLTree * aTree)
    xml_init(anObj.ISOM_Vois(),aTree->GetAll("ISOM_Vois",false,1));
 }
 
-std::string  Mangling( cISOM_AllVois *) {return "23C5E225E88EDFD3FE3F";};
+std::string  Mangling( cISOM_AllVois *) {return "285F177773D702B8FF3F";};
 
 
 cTplValGesInit< double > & cImSecOfMaster::UsedPenal()
@@ -20082,7 +20107,7 @@ void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree)
    xml_init(anObj.ISOM_AllVois(),aTree->Get("ISOM_AllVois",1)); //tototo 
 }
 
-std::string  Mangling( cImSecOfMaster *) {return "4EEAC0D315E068DAFF3F";};
+std::string  Mangling( cImSecOfMaster *) {return "04DB5168C8BC39ABFF3F";};
 
 
 std::string & cParamOrientSHC::IdGrp()
