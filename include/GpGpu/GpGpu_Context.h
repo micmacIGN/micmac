@@ -225,8 +225,6 @@ void CGpGpuContext<cudaContext>::deleteContext()
 }
 
 #if OPENCL_ENABLED
-
-
 template <> inline
 void CGpGpuContext<openClContext>::createContext() {
 

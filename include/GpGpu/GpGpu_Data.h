@@ -660,6 +660,7 @@ protected:
 
 };
 
+#if OPENCL_ENABLED
 template <class T>
 class CuDeviceData2DOPENCL : public CData2D<T>, public DecoratorDeviceData<T,openClContext>
 {
@@ -683,6 +684,7 @@ protected:
     bool        abMalloc(){return DecoratorDeviceData<T,openClContext>::dabMalloc();}
 
 };
+#endif
 
 /// \class CuDeviceData3D
 /// \brief Structure 3d de données instanciées dans la mémoire globale vidéo
