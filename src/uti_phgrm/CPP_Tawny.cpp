@@ -90,6 +90,9 @@ int Tawny_main(int argc,char ** argv)
         replace( aDir.begin(), aDir.end(), '\\', '/' );
 #endif
 
+        if ( (!aDir.empty()) && (*aDir.rbegin() != '/') )
+            aDir.append("/");
+
         if (! EAMIsInit(&mDeqXY))
             mDeqXY = Pt2di(mDeq,mDeq);
 
