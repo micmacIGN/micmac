@@ -1509,8 +1509,11 @@ normalises en echelle et/ou en translation -->
                                <Teta2Max Nb="?" Type="double" Def="1.1"> </Teta2Max>
                             
                                <NbMaxPresel Nb="?" Type="int" Def="10"> </NbMaxPresel>
-                               <NbSetPreSelAng Nb="?" Type="int" Def="5"> </NbSetPreSelAng>
+                               <NbTestPrecis Nb="?" Type="int" Def="10"> </NbTestPrecis>
+                               <!-- <NbSetPreSelAng Nb="?" Type="int" Def="5"> </NbSetPreSelAng> -->
 
+                               <NbCellOccAng Nb="?" Type="int" Def="50"> </NbCellOccAng>
+                               <NbCaseIm Nb="?" Type="int" Def="10"> </NbCaseIm>
                                <Masq3D Nb="?" Type="std::string"> </Masq3D>
                           </ChoixImSec>
                      </ChoixImMM>

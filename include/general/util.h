@@ -1260,6 +1260,7 @@ class cAppliBatch
          const std::string  & DirTmp() const;
          const std::string  & DirSauv() const;
      cInterfChantierNameManipulateur * ICNM();
+     cInterfChantierNameManipulateur * ICNM() const;
 
      bool NivPurgeIsInit();
      void SetNivPurge(eNivPurge  );

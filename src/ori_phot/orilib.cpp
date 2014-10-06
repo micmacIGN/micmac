@@ -4023,7 +4023,7 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
     {
         mCam->SetParamGrid(aCIC.ParamForGrid().Val());
     }
-    mCam->IsScanned() = aCIC.ScannedAnalogik().ValWithDef(false);
+    mCam->SetScanned(aCIC.ScannedAnalogik().ValWithDef(false));
 }
 
 
@@ -4676,8 +4676,10 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 
    aRes->SetScanImaM2C(AffCur(anOC));
 
-   if (anOC.ZoneUtileInPixel().ValWithDef(false))
-      aRes->SetZoneUtilInPixel(true);
+// mCam->IsScanned() 
+//    if (anOC.ZoneUtileInPixel().ValWithDef(true))
+  // aRes->SetZoneUtilInPixel(anOC.ZoneUtileInPixel().ValWithDef(aRes->IsScanned()));
+
 
    eConventionsOrientation aConvEnum = eConvApero_DistM2C;
    aConvEnum = anOC.ConvOri().KnownConv().ValWithDef(aConvEnum);

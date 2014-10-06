@@ -5503,8 +5503,14 @@ class cChoixImSec
         cTplValGesInit< int > & NbMaxPresel();
         const cTplValGesInit< int > & NbMaxPresel()const ;
 
-        cTplValGesInit< int > & NbSetPreSelAng();
-        const cTplValGesInit< int > & NbSetPreSelAng()const ;
+        cTplValGesInit< int > & NbTestPrecis();
+        const cTplValGesInit< int > & NbTestPrecis()const ;
+
+        cTplValGesInit< int > & NbCellOccAng();
+        const cTplValGesInit< int > & NbCellOccAng()const ;
+
+        cTplValGesInit< int > & NbCaseIm();
+        const cTplValGesInit< int > & NbCaseIm()const ;
 
         cTplValGesInit< std::string > & Masq3D();
         const cTplValGesInit< std::string > & Masq3D()const ;
@@ -5524,7 +5530,9 @@ class cChoixImSec
         cTplValGesInit< double > mTeta2Min;
         cTplValGesInit< double > mTeta2Max;
         cTplValGesInit< int > mNbMaxPresel;
-        cTplValGesInit< int > mNbSetPreSelAng;
+        cTplValGesInit< int > mNbTestPrecis;
+        cTplValGesInit< int > mNbCellOccAng;
+        cTplValGesInit< int > mNbCaseIm;
         cTplValGesInit< std::string > mMasq3D;
 };
 cElXMLTree * ToXMLTree(const cChoixImSec &);
@@ -5588,8 +5596,14 @@ class cChoixImMM
         cTplValGesInit< int > & NbMaxPresel();
         const cTplValGesInit< int > & NbMaxPresel()const ;
 
-        cTplValGesInit< int > & NbSetPreSelAng();
-        const cTplValGesInit< int > & NbSetPreSelAng()const ;
+        cTplValGesInit< int > & NbTestPrecis();
+        const cTplValGesInit< int > & NbTestPrecis()const ;
+
+        cTplValGesInit< int > & NbCellOccAng();
+        const cTplValGesInit< int > & NbCellOccAng()const ;
+
+        cTplValGesInit< int > & NbCaseIm();
+        const cTplValGesInit< int > & NbCaseIm()const ;
 
         cTplValGesInit< std::string > & Masq3D();
         const cTplValGesInit< std::string > & Masq3D()const ;
@@ -5693,8 +5707,14 @@ class cSectionExport
         cTplValGesInit< int > & NbMaxPresel();
         const cTplValGesInit< int > & NbMaxPresel()const ;
 
-        cTplValGesInit< int > & NbSetPreSelAng();
-        const cTplValGesInit< int > & NbSetPreSelAng()const ;
+        cTplValGesInit< int > & NbTestPrecis();
+        const cTplValGesInit< int > & NbTestPrecis()const ;
+
+        cTplValGesInit< int > & NbCellOccAng();
+        const cTplValGesInit< int > & NbCellOccAng()const ;
+
+        cTplValGesInit< int > & NbCaseIm();
+        const cTplValGesInit< int > & NbCaseIm()const ;
 
         cTplValGesInit< std::string > & Masq3D();
         const cTplValGesInit< std::string > & Masq3D()const ;
@@ -5863,8 +5883,14 @@ class cEtapeCompensation
         cTplValGesInit< int > & NbMaxPresel();
         const cTplValGesInit< int > & NbMaxPresel()const ;
 
-        cTplValGesInit< int > & NbSetPreSelAng();
-        const cTplValGesInit< int > & NbSetPreSelAng()const ;
+        cTplValGesInit< int > & NbTestPrecis();
+        const cTplValGesInit< int > & NbTestPrecis()const ;
+
+        cTplValGesInit< int > & NbCellOccAng();
+        const cTplValGesInit< int > & NbCellOccAng()const ;
+
+        cTplValGesInit< int > & NbCaseIm();
+        const cTplValGesInit< int > & NbCaseIm()const ;
 
         cTplValGesInit< std::string > & Masq3D();
         const cTplValGesInit< std::string > & Masq3D()const ;

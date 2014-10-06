@@ -20177,14 +20177,36 @@ const cTplValGesInit< int > & cChoixImSec::NbMaxPresel()const
 }
 
 
-cTplValGesInit< int > & cChoixImSec::NbSetPreSelAng()
+cTplValGesInit< int > & cChoixImSec::NbTestPrecis()
 {
-   return mNbSetPreSelAng;
+   return mNbTestPrecis;
 }
 
-const cTplValGesInit< int > & cChoixImSec::NbSetPreSelAng()const 
+const cTplValGesInit< int > & cChoixImSec::NbTestPrecis()const 
 {
-   return mNbSetPreSelAng;
+   return mNbTestPrecis;
+}
+
+
+cTplValGesInit< int > & cChoixImSec::NbCellOccAng()
+{
+   return mNbCellOccAng;
+}
+
+const cTplValGesInit< int > & cChoixImSec::NbCellOccAng()const 
+{
+   return mNbCellOccAng;
+}
+
+
+cTplValGesInit< int > & cChoixImSec::NbCaseIm()
+{
+   return mNbCaseIm;
+}
+
+const cTplValGesInit< int > & cChoixImSec::NbCaseIm()const 
+{
+   return mNbCaseIm;
 }
 
 
@@ -20302,10 +20324,26 @@ void  BinaryUnDumpFromFile(cChoixImSec & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.NbSetPreSelAng().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.NbSetPreSelAng().ValForcedForUnUmp(),aFp);
+             anObj.NbTestPrecis().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbTestPrecis().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.NbSetPreSelAng().SetNoInit();
+        else  anObj.NbTestPrecis().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NbCellOccAng().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbCellOccAng().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbCellOccAng().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NbCaseIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NbCaseIm().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NbCaseIm().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
@@ -20346,8 +20384,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cChoixImSec & anObj)
     if (anObj.Teta2Max().IsInit()) BinaryDumpInFile(aFp,anObj.Teta2Max().Val());
     BinaryDumpInFile(aFp,anObj.NbMaxPresel().IsInit());
     if (anObj.NbMaxPresel().IsInit()) BinaryDumpInFile(aFp,anObj.NbMaxPresel().Val());
-    BinaryDumpInFile(aFp,anObj.NbSetPreSelAng().IsInit());
-    if (anObj.NbSetPreSelAng().IsInit()) BinaryDumpInFile(aFp,anObj.NbSetPreSelAng().Val());
+    BinaryDumpInFile(aFp,anObj.NbTestPrecis().IsInit());
+    if (anObj.NbTestPrecis().IsInit()) BinaryDumpInFile(aFp,anObj.NbTestPrecis().Val());
+    BinaryDumpInFile(aFp,anObj.NbCellOccAng().IsInit());
+    if (anObj.NbCellOccAng().IsInit()) BinaryDumpInFile(aFp,anObj.NbCellOccAng().Val());
+    BinaryDumpInFile(aFp,anObj.NbCaseIm().IsInit());
+    if (anObj.NbCaseIm().IsInit()) BinaryDumpInFile(aFp,anObj.NbCaseIm().Val());
     BinaryDumpInFile(aFp,anObj.Masq3D().IsInit());
     if (anObj.Masq3D().IsInit()) BinaryDumpInFile(aFp,anObj.Masq3D().Val());
 }
@@ -20383,8 +20425,12 @@ cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Teta2Max"),anObj.Teta2Max().Val())->ReTagThis("Teta2Max"));
    if (anObj.NbMaxPresel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbMaxPresel"),anObj.NbMaxPresel().Val())->ReTagThis("NbMaxPresel"));
-   if (anObj.NbSetPreSelAng().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("NbSetPreSelAng"),anObj.NbSetPreSelAng().Val())->ReTagThis("NbSetPreSelAng"));
+   if (anObj.NbTestPrecis().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbTestPrecis"),anObj.NbTestPrecis().Val())->ReTagThis("NbTestPrecis"));
+   if (anObj.NbCellOccAng().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbCellOccAng"),anObj.NbCellOccAng().Val())->ReTagThis("NbCellOccAng"));
+   if (anObj.NbCaseIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NbCaseIm"),anObj.NbCaseIm().Val())->ReTagThis("NbCaseIm"));
    if (anObj.Masq3D().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Masq3D"),anObj.Masq3D().Val())->ReTagThis("Masq3D"));
   aRes->mGXml = anObj.mGXml;
@@ -20427,12 +20473,16 @@ void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NbMaxPresel(),aTree->Get("NbMaxPresel",1),int(10)); //tototo 
 
-   xml_init(anObj.NbSetPreSelAng(),aTree->Get("NbSetPreSelAng",1),int(5)); //tototo 
+   xml_init(anObj.NbTestPrecis(),aTree->Get("NbTestPrecis",1),int(10)); //tototo 
+
+   xml_init(anObj.NbCellOccAng(),aTree->Get("NbCellOccAng",1),int(50)); //tototo 
+
+   xml_init(anObj.NbCaseIm(),aTree->Get("NbCaseIm",1),int(10)); //tototo 
 
    xml_init(anObj.Masq3D(),aTree->Get("Masq3D",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImSec *) {return "1ABED958E5A2FAC5FD3F";};
+std::string  Mangling( cChoixImSec *) {return "B8BF064D7BFB859EFE3F";};
 
 
 std::string & cChoixImMM::KeyAssoc()
@@ -20600,14 +20650,36 @@ const cTplValGesInit< int > & cChoixImMM::NbMaxPresel()const
 }
 
 
-cTplValGesInit< int > & cChoixImMM::NbSetPreSelAng()
+cTplValGesInit< int > & cChoixImMM::NbTestPrecis()
 {
-   return ChoixImSec().NbSetPreSelAng();
+   return ChoixImSec().NbTestPrecis();
 }
 
-const cTplValGesInit< int > & cChoixImMM::NbSetPreSelAng()const 
+const cTplValGesInit< int > & cChoixImMM::NbTestPrecis()const 
 {
-   return ChoixImSec().NbSetPreSelAng();
+   return ChoixImSec().NbTestPrecis();
+}
+
+
+cTplValGesInit< int > & cChoixImMM::NbCellOccAng()
+{
+   return ChoixImSec().NbCellOccAng();
+}
+
+const cTplValGesInit< int > & cChoixImMM::NbCellOccAng()const 
+{
+   return ChoixImSec().NbCellOccAng();
+}
+
+
+cTplValGesInit< int > & cChoixImMM::NbCaseIm()
+{
+   return ChoixImSec().NbCaseIm();
+}
+
+const cTplValGesInit< int > & cChoixImMM::NbCaseIm()const 
+{
+   return ChoixImSec().NbCaseIm();
 }
 
 
@@ -20660,7 +20732,7 @@ void xml_init(cChoixImMM & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImSec(),aTree->Get("ChoixImSec",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImMM *) {return "0867CB130B4287BCF9BF";};
+std::string  Mangling( cChoixImMM *) {return "D02CD6D50C6A7BB7F83F";};
 
 
 std::list< cExportCalib > & cSectionExport::ExportCalib()
@@ -20949,14 +21021,36 @@ const cTplValGesInit< int > & cSectionExport::NbMaxPresel()const
 }
 
 
-cTplValGesInit< int > & cSectionExport::NbSetPreSelAng()
+cTplValGesInit< int > & cSectionExport::NbTestPrecis()
 {
-   return ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
+   return ChoixImMM().Val().ChoixImSec().NbTestPrecis();
 }
 
-const cTplValGesInit< int > & cSectionExport::NbSetPreSelAng()const 
+const cTplValGesInit< int > & cSectionExport::NbTestPrecis()const 
 {
-   return ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
+   return ChoixImMM().Val().ChoixImSec().NbTestPrecis();
+}
+
+
+cTplValGesInit< int > & cSectionExport::NbCellOccAng()
+{
+   return ChoixImMM().Val().ChoixImSec().NbCellOccAng();
+}
+
+const cTplValGesInit< int > & cSectionExport::NbCellOccAng()const 
+{
+   return ChoixImMM().Val().ChoixImSec().NbCellOccAng();
+}
+
+
+cTplValGesInit< int > & cSectionExport::NbCaseIm()
+{
+   return ChoixImMM().Val().ChoixImSec().NbCaseIm();
+}
+
+const cTplValGesInit< int > & cSectionExport::NbCaseIm()const 
+{
+   return ChoixImMM().Val().ChoixImSec().NbCaseIm();
 }
 
 
@@ -21273,7 +21367,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ChoixImMM(),aTree->Get("ChoixImMM",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "F9D043BCE8FE1D90FE3F";};
+std::string  Mangling( cSectionExport *) {return "3E9D5BDBA274BF85FE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -21749,14 +21843,36 @@ const cTplValGesInit< int > & cEtapeCompensation::NbMaxPresel()const
 }
 
 
-cTplValGesInit< int > & cEtapeCompensation::NbSetPreSelAng()
+cTplValGesInit< int > & cEtapeCompensation::NbTestPrecis()
 {
-   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbTestPrecis();
 }
 
-const cTplValGesInit< int > & cEtapeCompensation::NbSetPreSelAng()const 
+const cTplValGesInit< int > & cEtapeCompensation::NbTestPrecis()const 
 {
-   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbSetPreSelAng();
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbTestPrecis();
+}
+
+
+cTplValGesInit< int > & cEtapeCompensation::NbCellOccAng()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbCellOccAng();
+}
+
+const cTplValGesInit< int > & cEtapeCompensation::NbCellOccAng()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbCellOccAng();
+}
+
+
+cTplValGesInit< int > & cEtapeCompensation::NbCaseIm()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbCaseIm();
+}
+
+const cTplValGesInit< int > & cEtapeCompensation::NbCaseIm()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().NbCaseIm();
 }
 
 
@@ -21938,7 +22054,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "DCF7CF2E0C3DBEFAFE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "9ABFA343F9CCBD89FF3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -21997,7 +22113,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "F5A52463DDD94A8DFE3F";};
+std::string  Mangling( cSectionCompensation *) {return "56FD8B120C64F08CFE3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -22931,6 +23047,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "91903FC5B86110A3FF3F";};
+std::string  Mangling( cParamApero *) {return "7E66D800929880F0FD3F";};
 
 // };

@@ -1057,6 +1057,7 @@ std::string cAppliBatch::ComCommune() const
 const std::string & cAppliBatch::CurF1() const {return mCurF1;}
 const std::string & cAppliBatch::CurF2() const {return mCurF2;}
 cInterfChantierNameManipulateur * cAppliBatch::ICNM() {return mICNM;}
+cInterfChantierNameManipulateur * cAppliBatch::ICNM() const {return mICNM;}
 const std::string & cAppliBatch::DirChantier() const {return mDirChantier;}
 const std::string & cAppliBatch::DirTmp() const {return mDirTmp;}
 const std::string & cAppliBatch::DirSauv() const {return mDirSauv;}
