@@ -1,8 +1,10 @@
 #include "GpGpu/GpGpu_ParamCorrelation.cuh"
+#if	CUBICUBIC
+#include "../src/uti_phgrm/GpGpu/bicubic/cubicTex2D.cu"
+#endif
 #include "GpGpu/GpGpu_TextureTools.cuh"
 #include "GpGpu/GpGpu_TextureCorrelation.cuh"
 #include "GpGpu/SData2Correl.h"
-
 
 /// \file       GpGpuCudaCorrelation.cu
 /// \brief      Kernel

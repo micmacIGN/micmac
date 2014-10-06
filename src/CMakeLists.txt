@@ -114,11 +114,6 @@ foreach(source_file ${IncFiles})
         source_group("${includeTree}" FILES ${source_file})
 endforeach(source_file)
 
-if(${CUDA_ENABLED})
-         file(GLOB_RECURSE IncFilesGpGpu ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
-         list(REMOVE_ITEM IncFiles ${IncFilesGpGpu})
-endif()
-
 # OPTION BUILD : En tetes precompiles visual studio
 
 enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
