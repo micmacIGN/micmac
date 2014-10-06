@@ -1,0 +1,272 @@
+<!-- 
+      Parametrage pour les points de liaison pour une triangulation.
+   Il s'agit de l'etape 0, elle doit etre suivie de 1, 2 et 3.
+   Cette etape 0 ne va que jusqu'a la resolution 16 et les 
+   les orientation exportees ne laisse libre que le cap.
+
+       Ce fichier a ete mis au point pour un vol drone heliporte.
+   Les valeus suivie d'un "#" en commentaire doivent etre modifiee
+   pour utilisation sur d'autre mission (terrestre, aerien ...)
+
+   #N : indique une modification numerique, une fois les valeurs 
+   fixees pour un type de chantier, il n'est pas necessaire de les
+   modifier pour un autre.
+
+   #S : indique une modification de nom;
+-->
+<ParamMICMAC 
+      Subst="@$#1"
+      NameDecl="@$#1"
+
+      Foc="@005"
+      NumImC="@1098"
+      NumImVois="@((109[8-9])|(110[0-2]))"
+
+      SzW="@2"
+      ZRegul="@0.1"
+      DynExport="@1.0"
+      Scale="@2"
+
+      Dyn="@1.0"
+
+      PrefImMast="F${Foc}_${PrefixImages}${NumImC}"
+      ImMast="${PrefImMast}${PostfixImagesDebay}"
+>
+<Section_Terrain>  
+
+    <!--   Px1IncCalc : l'incertitude est liee au terrain elle est en metre,
+          ici 10 m c'est bcp pour un helico a 30 m.
+
+          Px2IncCalc : en pixel, c'est lie au defaut de mise en place
+     -->
+    
+    <IntervAltimetrie>
+        <ZIncCalc> 0   </ZIncCalc>    <!-- metres -->
+    </IntervAltimetrie>
+
+    <Planimetrie>
+          <MasqueTerrain >
+                  <MT_Image> ${ImMast}_Masq.tif    </MT_Image>
+                  <MT_Xml>   ${ImMast}_Masq.xml </MT_Xml>
+          </MasqueTerrain>
+
+    </Planimetrie>
+     <IntervSpecialZInv >
+             <MulZMin> 0.3 </MulZMin>
+             <MulZMax> 5  </MulZMax>
+    </IntervSpecialZInv>
+
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <Im1 >    ${ImMast}.tif  </Im1>  
+          <ImPat >  ^F${Foc}_${PrefixImages}${NumImVois}${PostfixImagesDebay}.tif </ImPat>  
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  KeyStd-Assoc-Im2Orient@-Glob </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<ChantierFullImage1>  true </ChantierFullImage1>
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+<!--
+         <IncludeFile> ${ThisDir}test.xml </IncludeFile>
+-->
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+	    <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
+	    <AggregCorr> eAggregSymetrique </AggregCorr>
+
+            <SzW >       ${SzW}               </SzW>
+            <ZRegul>     ${ZRegul}  </ZRegul>
+
+
+	    <!--
+	    <TypeWCorr> eWInCorrelRectSpec </TypeWCorr>
+	    <NbIterFenSpec> 4 </NbIterFenSpec>
+	    -->
+
+	    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+	    <!--
+	    <AlgoRegul>  eAlgoCoxRoy </AlgoRegul>
+	    -->
+            <CoxRoy8Cnx> true </CoxRoy8Cnx>
+            <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+<!--
+-->
+
+	    <!-- <ZRegul_Quad> 0.1 </ZRegul_Quad>  -->
+	    <ZPas>   0.5     </ZPas>
+            <ZDilatAlti>  3  </ZDilatAlti>
+	    <ZDilatPlani> 4  </ZDilatPlani>
+
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+            <!--  <Gen8Bits_Px1> true </Gen8Bits_Px1> -->
+
+            <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   10               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   5.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+	</EtapeMEC>
+
+	<EtapeMEC>
+            <DeZoom >  64    </DeZoom>
+        </EtapeMEC>
+	<EtapeMEC>
+            <DeZoom >  32    </DeZoom>
+        </EtapeMEC>
+
+
+	<EtapeMEC> 
+                <DeZoom >  16                </DeZoom> 
+        </EtapeMEC>
+	<EtapeMEC> 
+                <DeZoom >  8                </DeZoom> 
+        </EtapeMEC>
+	<EtapeMEC> 
+                <DeZoom >  4                </DeZoom> 
+        </EtapeMEC>
+	<EtapeMEC> 
+                <DeZoom >  4                </DeZoom> 
+                <ZPas>   1.0     </ZPas>
+               <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC>
+
+
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC > GeoI-${NumImC}/ </TmpMEC>
+     <TmpPyr > Pyram/ </TmpPyr>
+     <TmpResult > GeoI-${NumImC}/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  1000  </SzDalleMax>
+     <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+     <ByProcess> 3 </ByProcess>
+     <NomChantier> Geom-Im </NomChantier>
+     <FirstEtapeMEC> 0 </FirstEtapeMEC>
+
+     <MapMicMac>
+         <ActivateCmdMap> true </ActivateCmdMap>
+         <ModeCmdMapeur>
+             <CM_One> toto </CM_One>
+         </ModeCmdMapeur>
+
+<!--
+  NumImC="@8320"
+      NumImVois="@832[1-4]"
+
+
+      NumImC="@8331"
+      NumImVois="@833[0-4]"
+
+      NumImC="@8340"
+      NumImVois="@((8339)|(834[0-3]))"
+
+      NumImC="@8348"
+      NumImVois="@((834[7_9])|(835[1-2]))"
+-->
+
+<!--
+      NumImC="@1098"
+      NumImVois="@((109[8-9])|(110[0-2]))"
+         <CMVA>  
+               <NV> NumImC "0294" </NV> <NV> NumImVois "029[4-8]" </NV>
+         </CMVA>
+-->
+
+<!--
+-->
+         <CMVA>  
+               <NV> NumImC "1098" </NV> <NV> NumImVois "((109[8-9])|(110[0-2]))" </NV>
+         </CMVA>
+         <CMVA>  
+               <NV> NumImC "1106" </NV> <NV> NumImVois "((110[6-9])|(111[0-0]))" </NV>
+         </CMVA>
+         <CMVA>  
+               <NV> NumImC "1113" </NV> <NV> NumImVois "((111[3-7]))" </NV>
+         </CMVA>
+         <CMVA>  
+               <NV> NumImC "1120" </NV> <NV> NumImVois "((112[0-4]))" </NV>
+         </CMVA>
+
+    </MapMicMac>
+   <PostProcess>
+
+        <OneCmdPar>
+
+              <OneCmdSer>  echo ${ThisDir}</OneCmdSer>
+<!--
+              <OneCmdSer>  bin/GrShade   ${ThisDir}GeoI/Z_Num8_DeZoom1_Geom2-Im-${NumImC}.tif  Mask=Masq_Geom2-Im-${NumImC}_DeZoom1.tif ModeOmbre=IgnE</OneCmdSer>
+-->
+<!--
+              <OneCmdSer>  bin/Nuage2Ply ${ThisDir}GeoI/NuageImProf_Geom${NumOr}-Im-${NumImC}_Etape_8.xml  Attr=${ThisDir}${PrefImMast}_MpDcraw8B_CR.tif Scale=${Scale} Mask=${ThisDir}${ImMast}_MasqPly.tif  Dyn=${Dyn}</OneCmdSer>
+-->
+<!--
+-->
+<!--
+           
+-->
+
+        </OneCmdPar>
+   </PostProcess>
+<!--
+-->
+
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+</Section_Vrac>
+
+</ParamMICMAC>
+
