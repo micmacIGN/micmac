@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_DefautChantierDescripteur[2680]) = {
+const char * (theNameVar_DefautChantierDescripteur[2684]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",
 "      Un exemple avec utilisation des fonctionnalites arithmetique\n",
@@ -617,6 +617,10 @@ const char * (theNameVar_DefautChantierDescripteur[2680]) = {
 "             </Calcs>\n",
 "             <Key>   NKS-Assoc-STD-FOC </Key>\n",
 "    </KeyedNamesAssociations>\n",
+"\n",
+"\n",
+"\n",
+"\n",
 "\n",
 "    <KeyedNamesAssociations>\n",
 "            <Calcs>\n",

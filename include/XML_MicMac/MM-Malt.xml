@@ -483,8 +483,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                                        <Pds> 0.5 </Pds>
                                   </OneParamCMS>
                                   <OneParamCMS>
-                                       <SzW> 2 2 </SzW>
-                                       <Sigma> 1.0 </Sigma>
+                                       <SzW> 4 4 </SzW>
+                                       <Sigma> 2.0 </Sigma>
                                        <Pds> 0.25 </Pds>
                                   </OneParamCMS>
                            </CorrelMultiScale>

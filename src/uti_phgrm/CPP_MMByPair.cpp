@@ -661,7 +661,8 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero)
              for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
              {
                  const std::string & aName2 = *itN;
-                 AddPair(ImOfName(aName1),ImOfName(aName2));
+                 if( ImIsKnown(aName1) && ImIsKnown(aName2))
+                    AddPair(ImOfName(aName1),ImOfName(aName2));
              }
           }
       }
@@ -786,12 +787,18 @@ void cAppliWithSetImage::DoPyram()
     System(aCom);
 }
 
+bool cAppliWithSetImage::ImIsKnown(const std::string & aName) const
+{
+     return DicBoolFind(mDicIm,aName);
+}
+
+
 tSomAWSI * cAppliWithSetImage::ImOfName(const std::string & aName)
 {
     tSomAWSI * aRes = mDicIm[aName];
     if (aRes==0)
     {
-       std::cout << "For name = " << aName << "\n";
+       std::cout << "For name = " << aName  << " DicoSize =" << mDicIm.size()<< "\n";
        ELISE_ASSERT(false,"Cannot get image");
     }
     return aRes;

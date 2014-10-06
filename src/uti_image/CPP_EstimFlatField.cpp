@@ -81,7 +81,14 @@ int EstimFlatField_main(int argc,char ** argv)
     cTplValGesInit<std::string> aTplN;
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::StdAlloc(0,0,aDir,aTplN);
 
+    MakeXmlXifInfo(aFullDir,aICNM);
+
+
     std::list<std::string> aLName = aICNM->StdGetListOfFile(aPat);
+    Paral_Tiff_Dev(aDir,std::vector<std::string> (aLName.begin(),aLName.end()),1,false);
+
+
+
     Pt2di aSzIm(-1,-1);
     double aNbPix=-1;
     Im2D_REAL4  aImIn(1,1);
