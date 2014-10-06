@@ -133,6 +133,9 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
     IGpuOpt._preFinalCost1D.ReallocIf(IGpuOpt._poInitCost.Size());
     IGpuOpt._FinalDefCor.ReallocIf(IGpuOpt._poInitCost._dZ.GetDimension());
     IGpuOpt._poInitCost.ReallocData();
+#ifdef CUDA_DEFCOR
+    IGpuOpt._poInitCost.fillCostInit(60000);
+#endif
 #endif
 }
 
