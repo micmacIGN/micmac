@@ -28,6 +28,12 @@ SData2Correl::SData2Correl():
     _texMaskGlobal.filterMode       = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
     _texMaskGlobal.normalized       = false;   
 
+    _TexMaskImages.addressMode[0]	= cudaAddressModeBorder;
+    _TexMaskImages.addressMode[1]	= cudaAddressModeBorder;
+    _TexMaskImages.filterMode       = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
+    _TexMaskImages.normalized       = false;
+
+
     for (int i = 0; i < SIZERING; ++i)
     {
         _hVolumeCost[i].SetName("_hVolumeCost_0",i);
@@ -89,6 +95,7 @@ void SData2Correl::DeallocDeviceData()
 {
     checkCudaErrors( cudaUnbindTexture(&_texImages) );    
     checkCudaErrors( cudaUnbindTexture(&_texMaskGlobal) );
+    checkCudaErrors( cudaUnbindTexture(&_TexMaskImages) );
 
     for (int s = 0;s<NSTREAM;s++)
     {
