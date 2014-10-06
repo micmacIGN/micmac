@@ -12,10 +12,10 @@
 #include <cstdarg>
 
 static std::vector<void*>   stArgs;
-static cudaContext          sCCuda;
-static openClContext        sCOpenCl;
+//static cudaContext          sCCuda;
 
 #if OPENCL_ENABLED
+static openClContext        sCOpenCl;
 cl_context                      openClContext::_contextOpenCL  = 0;
 cl_command_queue                openClContext::_commandQueue   = 0;
 cl_kernel                       openClContext::_kernel         = 0;
@@ -95,7 +95,7 @@ void main_SDK()
     else if (CGpGpuContext<context>::typeContext() == CUDA_CONTEXT)
         CGpGpuContext<context>::addKernelArg(bufferc);
 #else
-    CGpGpuContext<gpgskd>::addKernelArg(bufferc);
+    CGpGpuContext<context>::addKernelArg(bufferc);
 #endif
 
     CGpGpuContext<context>::addKernelArg(factor);
