@@ -95,7 +95,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 // DEBUT AJOUT 2014
   const Rect  zoneImage = pRect[blockIdx.z];
 
-  uint pitZ,modZ,piCa;
+  uint pitZ,idImg,piCa;
 
   if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.pt1.x || ptProj.y >= (float)zoneImage.pt1.y /*oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))*/) // retirer le 9 decembre 2013 à verifier
   {
@@ -108,9 +108,9 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
       piCa  = pitZ * invPc.nbImages;
 
-      modZ  = blockIdx.z - piCa;
+      idImg  = blockIdx.z - piCa; // ID image courante
 
-      cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,modZ);
+      cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,idImg);
 
   }
 
@@ -137,7 +137,11 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   // INCORRECT !!! TODO
   // COM 6 mars 2014
-  if(tex2D(TexS_MaskGlobal, ptTer.x + HdPc.rTer.pt0.x , ptTer.y + HdPc.rTer.pt0.y) == 0) return;
+  int2 coorTer = ptTer + HdPc.rTer.pt0;
+  if(tex2D(TexS_MaskGlobal, coorTer.x, coorTer.y) == 0) return;
+
+  if(tex2DLayered(TexL_MaskImages, coorTer.x, coorTer.y,idImg) == 0) return;
+
 
   const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
   const short2 c1	= make_short2(threadIdx) + invPc.rayVig;
@@ -175,7 +179,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   const uint pitchCachY = ptTer.y * invPc.dimVig.y ;
 
-  const ushort iCla = ClassEqui[modZ].x;
+  const ushort iCla = ClassEqui[idImg].x;
 
   const ushort pCla = ClassEqui[iCla].y; 
 

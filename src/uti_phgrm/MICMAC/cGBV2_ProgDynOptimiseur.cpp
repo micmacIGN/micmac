@@ -977,7 +977,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     int zMoyen  = 0;
                     int pond    = 0;
 
-                    while((!findZ || iteSpi < maxITSPI) && (iteSpi < 512) )
+                    while((!findZ || iteSpi < maxITSPI) && (iteSpi < 32) )
                     {
                         bool pair   = (iteSpi % 2) == 0;
                         int vec     = (float)iteSpi/2.f + 0.5f;
