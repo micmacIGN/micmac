@@ -35,10 +35,12 @@ struct sMatrixCellCost
     void                    ReallocData()
     {
         _CostInit1D.ReallocIf(_size);
-#ifdef CUDA_DEFCOR
-        _CostInit1D.Fill(60000);
-#endif
 
+    }
+
+    void                    fillCostInit(ushort val)
+    {
+        _CostInit1D.Fill(val);
     }
 
     void                    Dealloc()
