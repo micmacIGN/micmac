@@ -89,11 +89,13 @@ int CASA_main(int argc,char ** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aNameN1,"Name of Cloud"),
+        LArgMain()  << EAMC(aNameN1,"Name of Cloud", eSAM_IsExistFile),
         LArgMain()  << EAM(Out,"Out",true,"Name of result (Def=TheCyl.xml)")
-                    <<  EAM(aNameN2,"N2",true,"Name of optional second cloud")
-                    <<  EAM(aNameN3,"N3",true,"Name of optional second cloud")
+                    <<  EAM(aNameN2,"N2",true,"Name of optional second cloud", eSAM_IsExistFile)
+                    <<  EAM(aNameN3,"N3",true,"Name of optional second cloud", eSAM_IsExistFile)
      );
+
+     if (MMVisualMode) return EXIT_SUCCESS;
 
      std::string aCom =   MM3dBinFile(" TestLib CASALL ")
                        + XML_MM_File("ParamCasa.xml")
