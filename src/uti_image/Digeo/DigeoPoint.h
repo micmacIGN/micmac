@@ -10,6 +10,8 @@
 #include "general/sys_dep.h"
 #include "private/VersionedFileHeader.h"
 
+//#define __DEBUG_DIGEO_POINT
+
 #define DIGEO_DESCRIPTOR_SIZE 128
 #define DIGEO_MAX_NB_ANGLES 4
 
@@ -82,6 +84,11 @@ public:
 	static void uniqueToMultipleAngles( std::vector<DigeoPoint> &io_points );
 
 	static void removePointsOfType( DetectType i_type, std::vector<DigeoPoint> &io_points );
+
+	void removeDuplicatedEntries();
+
+	// remove duplicated points and duplicated entries for the same point
+	static void removeDuplicates( std::vector<DigeoPoint> &io_points, int i_gridSize=100 );
 };
 
 std::ostream & operator <<( std::ostream &s, const DigeoPoint &p );
@@ -102,7 +109,7 @@ inline size_t DigeoPoint::nbAngles() const { return entries.size(); }
 inline REAL8 DigeoPoint::angle( size_t i_index ) const
 {
 	#ifdef __DEBUG_DIGEO
-		ELISE_ASSERT( i_index<entries.size(), ( string("angle: index out of range : ")+ToString(i_index)+" >= "+ToString(entries.size()) ).c_str() );
+		if ( i_index>=entries.size() ){ std::cerr << "angle: index out of range : " << i_index << " >= " << entries.size() << std::endl; exit(EXIT_FAILURE); }
 	#endif
 	return entries[i_index].angle;
 }
@@ -110,7 +117,7 @@ inline REAL8 DigeoPoint::angle( size_t i_index ) const
 inline void DigeoPoint::setAngle( size_t i_index, REAL8 i_angle )
 {
 	#ifdef __DEBUG_DIGEO
-		ELISE_ASSERT( i_index<entries.size(), ( string("setAngle: index out of range : ")+ToString(i_index)+" >= "+ToString(entries.size()) ).c_str() );
+		if ( i_index>=entries.size() ){ std::cerr << "setAngle: index out of range : " << i_index << " >= " << entries.size() << std::endl; exit(EXIT_FAILURE); }
 	#endif
 	entries[i_index].angle = i_angle;
 }
@@ -118,7 +125,7 @@ inline void DigeoPoint::setAngle( size_t i_index, REAL8 i_angle )
 inline const DigeoPoint::Entry & DigeoPoint::entry( size_t i_index ) const
 {
 	#ifdef __DEBUG_DIGEO
-		ELISE_ASSERT( i_index<entries.size(), ( string("entry const: index out of range : ")+ToString(i_index)+" >= "+ToString(entries.size()) ).c_str() );
+		if ( i_index>=entries.size() ){ std::cerr << "entry const: index out of range : " << i_index << " >= " << entries.size() << std::endl; exit(EXIT_FAILURE); }
 	#endif
 	return entries[i_index];
 }
@@ -126,7 +133,7 @@ inline const DigeoPoint::Entry & DigeoPoint::entry( size_t i_index ) const
 inline DigeoPoint::Entry & DigeoPoint::entry( size_t i_index )
 {
 	#ifdef __DEBUG_DIGEO
-		ELISE_ASSERT( i_index<entries.size(), ( string("entry: index out of range : ")+ToString(i_index)+" >= "+ToString(entries.size()) ).c_str() );
+		if ( i_index>=entries.size() ){ std::cerr << "entry: index out of range : " << i_index << " >= " << entries.size() << std::endl; exit(EXIT_FAILURE); }
 	#endif
 	return entries[i_index];
 }
@@ -134,7 +141,7 @@ inline DigeoPoint::Entry & DigeoPoint::entry( size_t i_index )
 inline void DigeoPoint::setDescriptor( size_t i_index, const REAL8 *i_descriptor )
 {
 	#ifdef __DEBUG_DIGEO
-		ELISE_ASSERT( i_index<entries.size(), ( string("setDescriptor: index out of range : ")+ToString(i_index)+" >= "+ToString(entries.size()) ).c_str() );
+		if ( i_index>=entries.size() ){ std::cerr << "setDescriptor: index out of range : " << i_index << " >= " << entries.size() << std::endl; exit(EXIT_FAILURE); }
 	#endif
 	memcpy( entries[i_index].descriptor, i_descriptor, 8*DIGEO_DESCRIPTOR_SIZE );
 }
@@ -142,7 +149,7 @@ inline void DigeoPoint::setDescriptor( size_t i_index, const REAL8 *i_descriptor
 inline const REAL8 * DigeoPoint::descriptor( size_t i_index ) const
 {
 	#ifdef __DEBUG_DIGEO
-		ELISE_ASSERT( i_index<entries.size(), ( string("descriptor const: index out of range : ")+ToString(i_index)+" >= "+ToString(entries.size()) ).c_str() );
+		if ( i_index>=entries.size() ){ std::cerr << "descriptor const: index out of range : " << i_index << " >= " << entries.size() << std::endl; exit(EXIT_FAILURE); }
 	#endif
 	return entries[i_index].descriptor;
 }
@@ -150,7 +157,7 @@ inline const REAL8 * DigeoPoint::descriptor( size_t i_index ) const
 inline REAL8 * DigeoPoint::descriptor( size_t i_index )
 {
 	#ifdef __DEBUG_DIGEO
-		ELISE_ASSERT( i_index<entries.size(), ( string("descriptor: index out of range : ")+ToString(i_index)+" >= "+ToString(entries.size()) ).c_str() );
+		if ( i_index>=entries.size() ){ std::cerr << "descriptor: index out of range : " << i_index << " >= " << entries.size() << std::endl; exit(EXIT_FAILURE); }
 	#endif
 	return entries[i_index].descriptor;
 }
