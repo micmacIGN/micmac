@@ -137,14 +137,14 @@ void connectCellsLine(
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z - 1);
 
 #ifdef CUDA_DEFCOR
-                if(costInit < 55000)                
+                //if(costInit < 55000)
                     BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);                
-                else
-                {                  
-                    costInit = 500000;
-                    mask = true;
-                    BasicComputeIntervaleDelta(ConeZ,Z,0,p.prev_Dz);                    
-                }
+//                else
+//                {
+//                    costInit = 500000;
+//                    mask = true;
+//                    BasicComputeIntervaleDelta(ConeZ,Z,0,p.prev_Dz);
+//                }
 #else
                 GetConeZ(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
 #endif
@@ -154,8 +154,6 @@ void connectCellsLine(
 
                 for (short i = ConeZ.x; i <= ConeZ.y; ++i)
                     fCostMin = min(fCostMin, costInit + prevFCost[i] + abs((int)i)*regulZ);
-
-
 #ifdef CUDA_DEFCOR
                 // NOTE DEFCOR
                 // LES PROBLEMES
@@ -163,7 +161,8 @@ void connectCellsLine(
                     // les cellules dont la valeur le coef de corrélation n'a pas été calculé -> 1.01234 --> 10123
                     //  ces cellules contaminent les voisines en mode DEFCOR....
 
-                fCostMin = min(fCostMin, (mask ? 20*costInit : costInit) + prevDefCor  + p.costTransDefMask );
+                //fCostMin = min(fCostMin, (mask ? 20*costInit : costInit) + prevDefCor  + p.costTransDefMask );
+                fCostMin = min(fCostMin, costInit + prevDefCor  + p.costTransDefMask );
 
 #endif
 
