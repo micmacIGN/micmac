@@ -133,6 +133,9 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
     IGpuOpt._preFinalCost1D.ReallocIf(IGpuOpt._poInitCost.Size());
     IGpuOpt._FinalDefCor.ReallocIf(IGpuOpt._poInitCost._dZ.GetDimension());
     IGpuOpt._poInitCost.ReallocData();
+#ifdef CUDA_DEFCOR
+    IGpuOpt._poInitCost.fillCostInit(10123);
+#endif
 #endif
 }
 
@@ -886,14 +889,14 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     {
         Pt2di aPTer;
         #ifdef CUDA_DEFCOR
-        float qualiMAx = 0;
-        float qualiMin = 1e9;
+//        float qualiMAx = 0;
+//        float qualiMin = 1e9;
 
-        /* officiel COMBLE TROU
+        /* officiel COMBLE TROU*/
         mMaskCalcDone = true;
         mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
         TIm2DBits<1>    aTMask(mMaskCalc);
-        */
+
         #endif
 
         for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
@@ -923,36 +926,39 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 #ifdef CUDA_DEFCOR
 
-                /* CUDA_DEFCOR Officiel
-                {
+                /* CUDA_DEFCOR Officiel*/
+                //{
                     tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
-                    bool NoVal  = defCOf <  aCostMin;
+                    bool NoVal  = 3*defCOf <  aCostMin;
                     aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
-                }
-                */
+//                }
 
-                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
 
-                float defCOf        = IGpuOpt._FinalDefCor[ui2Ter];
-                float costMinf      = aCostMin;
-                float qualityCorre  = defCOf / costMinf * 10000.0f;
+//                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
 
-                IGpuOpt._FinalDefCor[ui2Ter] = qualityCorre;
-                qualiMAx = max(qualiMAx,qualityCorre);
-                qualiMin = max(qualiMin,qualityCorre);
+//                float defCOf        = IGpuOpt._FinalDefCor[ui2Ter];
+//                float costMinf      = aCostMin;
+//                float qualityCorre  = defCOf / costMinf * 10000.0f;
+
+//                IGpuOpt._FinalDefCor[ui2Ter] = qualityCorre;
+//                qualiMAx = max(qualiMAx,qualityCorre);
+//                qualiMin = max(qualiMin,qualityCorre);
 
 #endif
-                mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+
+                    mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+
             }
         }
 
 #ifdef CUDA_DEFCOR
 
-        /* officiel COMBLE TROU
-        if (mHasMask)
-        CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
-        */
+        /* officiel COMBLE TROU */
 
+        //if (mHasMask)
+        CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
+
+/*
         Rect zone(0,0,mSz.x,mSz.y);
         uint2   pTer;
         uint    maxITSPI = 32;
@@ -1045,7 +1051,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
             }
 
         }
-
+*/
  #endif
     }
 //nvtxRangePop();

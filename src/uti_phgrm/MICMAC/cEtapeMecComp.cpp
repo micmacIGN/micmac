@@ -548,12 +548,10 @@ cEtapeMecComp::cEtapeMecComp
       }
 
 
-      if ((mNum !=0) && (mEtape.AlgoRegul().Val()==eAlgo2PrgDyn))
+      if ((mNum !=0) && (mEtape.AlgoRegul().Val()==eAlgo2PrgDyn || mEtape.AlgoRegul().Val()==eAlgoTestGPU))
       {
           bool NewPrgDynOblig = false;
           bool NewPrgDynInterdit = false;
-
-
 
           const cTplValGesInit< cModulationProgDyn > &  aTplModul =  mEtape.ModulationProgDyn();
           if ( aTplModul.IsInit())

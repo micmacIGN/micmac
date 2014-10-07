@@ -481,9 +481,14 @@ void visual_MainWindow::onSelectDirPressed(int aK)
 
     if (aDir != NULL)
     {
-        mlastDir = "../" + aDir;
+        QString dirName = QDir(aDir).dirName();
 
-        vLineEdit[aK]->setText(QDir(aDir).dirName());
+        if (!dirName.isEmpty() && (dirName.right(1) != "/"))
+           dirName.append("/");
+
+        mlastDir = "../" + dirName;
+
+        vLineEdit[aK]->setText(dirName);
         vLineEdit[aK]->setModified(true);
     }
 }
