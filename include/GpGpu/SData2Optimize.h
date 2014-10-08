@@ -28,6 +28,7 @@ struct p_ReadLine
     const ushort    tid;
     const ushort    itid;
     short2 prev_Dz;
+    ushort prevDefCor;
     ushort pente;
     float  ZRegul;
     float  ZRegul_Quad;
@@ -84,10 +85,12 @@ struct p_ReadLine
         }
     }
 
-    __device__ inline void reverse(short2 *buffindex,ushort sizeBuff)
+    __device__ inline void reverse(short3 *buffindex,ushort sizeBuff)
     {
         seg.id        = seg.lenght - 1;
-        prev_Dz       = buffindex[seg.id];
+        short3 tp     = buffindex[seg.id];
+        prev_Dz       = make_short2(tp.x,tp.y);
+        prevDefCor    = tp.z;
         seg.id        = WARPSIZE  - seg.id;
         seg.lenght    = WARPSIZE;
         line.id       = 0;
@@ -145,7 +148,7 @@ public:
     uint NBlines(){return _nbLines;}
 
     ushort*     pInitCost(){    return  _s_InitCostVol.pData();}
-    short2*     pIndex(){       return  _s_Index.pData();}
+    short3*     pIndex(){       return  _s_Index.pData();}
     uint*       pDefCor(){      return  _s_DefCor[0].pData();}
     uint*       pForceCostVol(){return  _s_ForceCostVol[0].pData();}
     uint3*      pParam(){       return  _param[0].pData();}
@@ -160,7 +163,7 @@ public:
 
     U<uint3>    param(ushort i) const;
 
-    U<short2>   s_Index() const;
+    U<short3>   s_Index() const;
 
     U<uint>     &s_ForceCostVol(ushort i);
 
@@ -187,7 +190,7 @@ private:
     U<uint3>     _param[NBUFFER];
     U<ushort>    _s_InitCostVol;
     U<uint>      _s_ForceCostVol[NBUFFER];
-    U<short2>    _s_Index;
+    U<short3>    _s_Index;
     U<uint>      _s_DefCor[NBUFFER];
 
     uint         _nbLines;
@@ -355,7 +358,7 @@ U<uint3> Data2Optimiz<U,NBUFFER>::param(ushort i) const
 }
 
 TEMPLATE_D2OPTI
-U<short2> Data2Optimiz<U,NBUFFER>::s_Index() const
+U<short3> Data2Optimiz<U,NBUFFER>::s_Index() const
 {
     return _s_Index;
 }

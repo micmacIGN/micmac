@@ -73,18 +73,18 @@ inline __device__ uint minR(uint *sMin, uint &globalMin){ // TODO attention ajou
 
 template<bool sens> __device__
 void connectCellsLine(
-                SimpleStream<short2>    &streamIndex,
+                SimpleStream<short3>    &streamIndex,
                 SimpleStream<uint>      &streamFCost,
                 SimpleStream<ushort>    &streamICost,
                 SimpleStream<uint>      &streamDefCor,
-                short2     *S_Bf_Index,
+                short3     *S_Bf_Index,
                 ushort     *ST_Bf_ICost,
                 uint       *S_FCost[2],
                 p_ReadLine &p
 )
 {
 
-    short2* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
+    short3* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
 
     __shared__ uint minCost[WARPSIZE];
     short2  ConeZ;
@@ -101,7 +101,7 @@ void connectCellsLine(
     //////////////////////////////////////////////////
     /// TODO!!!! : quel doit etre prevDefCor p.costTransDefMask + p.costDefMask ou p.costDefMask
     /////////////////////////////////////////////////
-    uint         prevDefCor   =/* p.costTransDefMask + */p.costDefMask;
+    uint         prevDefCor   =/* p.costTransDefMask + */p.prevDefCor;
     const ushort idGline = p.line.id + p.seg.id;
 
     streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor);
@@ -113,13 +113,13 @@ void connectCellsLine(
     {
         while(p.seg.id < p.seg.lenght)
         {
-            const short2 indexZ = S_Bf_Index[sgn(p.seg.id)];
-            const ushort dZ     = count(indexZ); // creer buffer de count
-            ushort       z      = 0;
-            globMinFCost        = max_cost;
-#ifdef CUDA_DEFCOR
-            bool           mask = false;
-#endif
+            const short3 dTer       = S_Bf_Index[sgn(p.seg.id)];
+            const short2 indexZ     = make_short2(dTer.x,dTer.y);
+            const ushort cDefCor    = dTer.z;
+            const ushort dZ         = count(indexZ); // creer buffer de count
+            ushort       z          = 0;
+            globMinFCost            = max_cost;
+
             while( z < dZ)
             {                
                 // Lecture du stream si le buffer est vide | TODO VERIFIER si > ou >=
@@ -131,20 +131,17 @@ void connectCellsLine(
                 }
 
                 uint    fCostMin        = max_cost;
-                uint  costInit        = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+#ifdef CUDA_DEFCOR
+                uint    costInit        = (cDefCor == 0) ? 500000 : ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+#else
+                uint    costInit        = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+#endif
                 const ushort tZ         = z + p.stid<sens>();
                 const short  Z          = ((sens) ? tZ + indexZ.x : indexZ.y - tZ - 1);
                 const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z - 1);
 
 #ifdef CUDA_DEFCOR
-                //if(costInit < 55000)
-                    BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);                
-//                else
-//                {
-//                    costInit = 500000;
-//                    mask = true;
-//                    BasicComputeIntervaleDelta(ConeZ,Z,0,p.prev_Dz);
-//                }
+                BasicComputeIntervaleDelta(ConeZ,Z,p.pente,p.prev_Dz);
 #else
                 GetConeZ(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
 #endif
@@ -152,7 +149,7 @@ void connectCellsLine(
 
                 ConeZ.y = min(p.sizeBuffer - pitPrZ,ConeZ.y );
 
-                for (short i = ConeZ.x; i <= ConeZ.y; ++i)
+                for (short i = ConeZ.x; i <= ConeZ.y; ++i) //--> TO DO cette etape n'est pas necessaire si nous sommes en dehors du masque Ter
                     fCostMin = min(fCostMin, costInit + prevFCost[i] + abs((int)i)*regulZ);
 #ifdef CUDA_DEFCOR
                 // NOTE DEFCOR
@@ -160,10 +157,7 @@ void connectCellsLine(
                     // les cellules dans la zone masquée
                     // les cellules dont la valeur le coef de corrélation n'a pas été calculé -> 1.01234 --> 10123
                     //  ces cellules contaminent les voisines en mode DEFCOR....
-
-                //fCostMin = min(fCostMin, (mask ? 20*costInit : costInit) + prevDefCor  + p.costTransDefMask );
                 fCostMin = min(fCostMin, costInit + prevDefCor  + p.costTransDefMask );
-
 #endif
 
                 if(tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < p.sizeBuffer && tZ < p.sizeBuffer)
@@ -181,22 +175,20 @@ void connectCellsLine(
                 minR(minCost,globMinFCost); // TODO verifier cette fonction elle peut lancer trop de fois..... Attentioncd ,inline en attendant
 
                 const ushort pIdCost = p.ID_Bf_Icost;
-                p.ID_Bf_Icost       += min(dZ - z           , WARPSIZE);
+                p.ID_Bf_Icost       += min(dZ - z               , WARPSIZE);
                 z                   += min(p.sizeBuffer-pIdCost , WARPSIZE);
 
             }
 
 #ifdef CUDA_DEFCOR
 
-            prevDefCor  = min(prevDefCor,prevMinCost + p.costTransDefMask )+ p.costDefMask - prevMinCost;
+            prevDefCor  = min(prevDefCor,prevMinCost + p.costTransDefMask ) + cDefCor - prevMinCost;
             prevMinCost = min(globMinFCost,prevDefCor);
 
             if(p.tid == 0)
             {
                 const ushort idGline = p.line.id + p.seg.id;
-
-                streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor);
-
+                streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor,prevDefCor-cDefCor);
             }
 #else
             prevMinCost = globMinFCost;
@@ -230,7 +222,7 @@ void connectCellsLine(
 // TODO Passer les parametres en variable constante !!!!!!!!!!!
 
 template<class T> __global__
-void Kernel_OptimisationOneDirection(ushort* g_ICost, short2* g_Index, uint* g_FCost, uint* g_DefCor, uint3* g_RecStrParam, uint penteMax, float zReg,float zRegQuad, ushort costDefMask,ushort costTransDefMask,ushort sizeBuffer)
+void Kernel_OptimisationOneDirection(ushort* g_ICost, short3* g_Index, uint* g_FCost, uint* g_DefCor, uint3* g_RecStrParam, uint penteMax, float zReg,float zRegQuad, ushort costDefMask,ushort costTransDefMask,ushort sizeBuffer)
 {
 
     extern __shared__ float sharedMemory[];
@@ -238,7 +230,7 @@ void Kernel_OptimisationOneDirection(ushort* g_ICost, short2* g_Index, uint* g_F
     ushort*   S_BuffICost0 = (ushort*)  sharedMemory;
     uint*     S_BuffFCost0 = (uint*)    &S_BuffICost0[sizeBuffer + 2*WARPSIZE];
     uint*     S_BuffFCost1 = (uint*)    &S_BuffFCost0[sizeBuffer + 2*WARPSIZE];
-    short2*   S_BuffIndex  = (short2*)  &S_BuffFCost1[sizeBuffer + 2*WARPSIZE];
+    short3*   S_BuffIndex  = (short3*)  &S_BuffFCost1[sizeBuffer + 2*WARPSIZE];
     uint*     pit_Id       = (uint*)    &S_BuffIndex[WARPSIZE];
     uint*     pit_Stream   = pit_Id + 1;
 
@@ -260,7 +252,7 @@ void Kernel_OptimisationOneDirection(ushort* g_ICost, short2* g_Index, uint* g_F
 
     SimpleStream<ushort>    streamICost(    g_ICost     + *pit_Stream   ,sizeBuffer);
     SimpleStream<uint>      streamFCost(    g_FCost     + *pit_Stream   ,sizeBuffer);
-    SimpleStream<short2>    streamIndex(    g_Index     + *pit_Id       ,WARPSIZE);
+    SimpleStream<short3>    streamIndex(    g_Index     + *pit_Id       ,WARPSIZE);
     SimpleStream<uint>      streamDefCor(   g_DefCor    + *pit_Id       ,WARPSIZE);
 
    if(p.tid == 0)
@@ -270,7 +262,8 @@ void Kernel_OptimisationOneDirection(ushort* g_ICost, short2* g_Index, uint* g_F
     streamICost.read<eAVANT>(S_BuffICost);
     streamIndex.read<eAVANT>(S_BuffIndex + p.tid);
 
-    p.prev_Dz       = S_BuffIndex[0];
+    p.prev_Dz       = make_short2(S_BuffIndex[0].x,S_BuffIndex[0].y);
+    p.prevDefCor    = S_BuffIndex[0].z;
     p.ID_Bf_Icost   = count(p.prev_Dz);
 
     for (ushort i = 0; i < p.ID_Bf_Icost - p.tid; i+=WARPSIZE)
@@ -311,18 +304,14 @@ void Kernel_OptimisationOneDirection(ushort* g_ICost, short2* g_Index, uint* g_F
 
 extern "C" void Gpu_OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
 {
-    uint deltaMax   = d2O.penteMax();
-    float zReg      = (float)d2O.zReg();
-    float zRegQuad  = d2O.zRegQuad();
-    ushort costDefMask = d2O.CostDefMasked();
-    ushort costTransDefMask = d2O.CostTransMaskNoMask();
-
-//    DUMP_FLOAT(zReg);
-//    DUMP_FLOAT(zRegQuad);
+    uint    deltaMax         = d2O.penteMax();
+    float   zReg             = (float)d2O.zReg();
+    float   zRegQuad         = d2O.zRegQuad();
+    ushort  costDefMask      = d2O.CostDefMasked();
+    ushort  costTransDefMask = d2O.CostTransMaskNoMask();
 
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O.NBlines(),1,1);
-
 
     ushort sizeBuff = d2O.DzMax();  //NAPPEMAX;
     ushort cacheLin = sizeBuff + 2 * WARPSIZE;
@@ -333,7 +322,7 @@ extern "C" void Gpu_OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
             cacheLin * sizeof(ushort)   + // S_BuffICost0
             cacheLin * sizeof(uint)     + // S_BuffFCost0
             cacheLin * sizeof(uint)     + // S_BuffFCost1
-            WARPSIZE * sizeof(short2)   + // S_BuffIndex
+            WARPSIZE * sizeof(short3)   + // S_BuffIndex
           //  WARPSIZE * sizeof(uint)     + // S_BuffDefCor
             sizeof(uint)                + // pit_Id
             sizeof(uint);                 // pit_Stream

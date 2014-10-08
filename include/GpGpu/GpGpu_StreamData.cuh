@@ -175,7 +175,12 @@ public:
 
     void                __device__  output();
 
+
+
 private:
+
+    template<class S>
+    void   __device__  copyThread(T* p1, S* p2);
 
     T*      _globalStream;
     //long int    _idG;
@@ -264,6 +269,34 @@ void SimpleStream<T>::readFrom(S *sharedBuffer,uint delta)
 
     for(ushort i = 0; i < _sizeBuffer; i += WARPSIZE)
         *(sharedBuffer + sgn(i)) = *(gLocal+sgn(i));
+}
+
+
+template<class T>
+template<class S> __device__
+void SimpleStream<T>::copyThread(T* p1,S* p2)
+{
+    *p2 = *p1;
+}
+
+template<>
+template<> __device__ inline
+void SimpleStream<ushort2>::copyThread(ushort2* p1,uint* p2)
+{
+    *p2 = (*p1).x;
+}
+
+template<>
+template<bool sens,class S> __device__
+void SimpleStream<ushort2>::readFrom(S *sharedBuffer,uint delta)
+{
+    T* gLocal = _globalStream + sgn(delta);
+
+    for(ushort i = 0; i < _sizeBuffer; i += WARPSIZE)
+
+           copyThread(gLocal+sgn(i),sharedBuffer + sgn(i));
+
+
 }
 
 template<class T> template<bool sens> __device__
