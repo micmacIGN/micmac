@@ -155,6 +155,7 @@ class cASAMG
 
       Video_Win *   TheWinIm() const;
       Pt2di         Sz() const;
+      double Resol() const;
 
    private :
      void MakeVec3D(std::vector<Pt3dr> & aVPts,const cResumNuage &) const;
@@ -189,6 +190,7 @@ class cASAMG
      const cParamFusionNuage & mPrm;
      cImaMM *             mIma;
      cElNuage3DMaille *   mStdN;
+     double               mResol;
      Im2D_Bits<1>         mMasqN;
      TIm2DBits<1>         mTMasqN;
      Im2DGen *            mImProf;
