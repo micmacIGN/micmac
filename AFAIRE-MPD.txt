@@ -33,7 +33,7 @@ EVOLUTIONS :
   * Gestion du bras de levier en GPS
 
   *  Bug Ortho ESA
-  * => A FAIRE : Correction autom auto rotation sur jpg
+  * Correction autom auto rotation sur jpg
 
 Torsion de bande : FAITS
 

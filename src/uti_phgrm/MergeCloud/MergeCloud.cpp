@@ -40,6 +40,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "MergeCloud.h"
 
 
+class cCmpResolMCSPOM
+{
+    public :
+       bool operator ()(const tMCSom * aS1,const tMCSom * aS2) {return aS1->attr()->Resol() < aS2->attr()->Resol();}
+};
+
 cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    cAppliWithSetImage(argc-1,argv+1,0),
    mTheWinIm        (0),
@@ -110,6 +116,8 @@ std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
 
         std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << InMAP << "\n";
    }
+   cCmpResolMCSPOM aCmp;
+   std::sort(mVSoms.begin(),mVSoms.end(),aCmp);
 
    // Mise au point
    if (mParam.TestImageDif().Val() && (mVSoms.size()==2))
@@ -123,6 +131,7 @@ std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
    // Calcul image de quality + Stats
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
+       std::cout << mVSoms[aK]->attr()->IMM()->mNameIm << " Resol=" <<  mVSoms[aK]->attr()->Resol() << "\n";
        mVSoms[aK]->attr()->TestImCoher();
        int aNiv = mVSoms[aK]->attr()->MaxNivH();
        mVStatNivs[aNiv].mNbIm ++;
