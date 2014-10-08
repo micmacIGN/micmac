@@ -50,6 +50,7 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mPrm       (anAppli->Param()),
    mIma       (anIma),
    mStdN      (cElNuage3DMaille::FromFileIm(mAppli->NameFileInput(anIma,".xml"))),
+   mResol     (mStdN->ResolSolGlob()),
    mMasqN     (mStdN->ImDef()),
    mTMasqN    (mMasqN),
    mImProf    (mStdN->ImProf()),
@@ -80,6 +81,7 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
 // std::cout << "AAAAAAAAAAAAAAAAAAaa\n"; getchar();
    // mImCptr  => Non perti,0nent en mode envlop, a voir si reactiver en mode epi
    // Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
+
 
    bool doComputeIncid = mAppli->Param().ComputeIncid().Val();
    if (doComputeIncid)
@@ -259,6 +261,7 @@ int cASAMG::NbTot() const {return mNbTot;}
 bool  cASAMG::IsImageMAP() const {return mIsMAP;}
 Pt2di cASAMG::Sz() const {return mSz;}
 Video_Win *  cASAMG::TheWinIm() const {return mAppli->TheWinIm(this);}
+double cASAMG::Resol() const {return mResol;}
 
 
 

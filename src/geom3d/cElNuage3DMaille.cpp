@@ -360,23 +360,26 @@ double cElNuage3DMaille::ResolSolGlob() const
    AssertNoEmptyData();
    if (! mResolGlobCalc)
    {
-      int aNb = 20;
-      Pt2di aDec = mSzData/ aNb;
       double aSomRes = 0.0;
       double aSomPds = 0.0;
 
-      Pt2di aP;
-      for (aP.x =0 ; aP.x<mSzData.x ; aP.x+=aDec.x)
+      for (int aNb=20 ; (aNb<1000) && (aSomPds<100) ; aNb = round_ni(aNb*1.2))
       {
-          for (aP.y =0 ; aP.y<mSzData.y ; aP.y+=aDec.y)
+          Pt2di aDec = mSzData/ aNb;
+          Pt2di aP;
+          for (aP.x =0 ; aP.x<mSzData.x ; aP.x+=aDec.x)
           {
-               if (IndexHasContenu(aP))
-               {
-                    aSomPds++;
-                    aSomRes += ResolSolOfPt(PtOfIndex(aP));
-               }
+              for (aP.y =0 ; aP.y<mSzData.y ; aP.y+=aDec.y)
+              {
+                   if (IndexHasContenu(aP))
+                   {
+                        aSomPds++;
+                        aSomRes += ResolSolOfPt(PtOfIndex(aP));
+                   }
+              }
           }
       }
+
       mResolGlobCalc = true;
       ELISE_ASSERT(aSomPds!=0.0,"cElNuage3DMaille::ResolSolGlob");
       mResolGlob = aSomRes / aSomPds;
