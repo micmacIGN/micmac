@@ -63,7 +63,7 @@ protected:
     /// \brief      Init le pointeur des donnees
     void            SetPData(T *p){ _data = p;}
 
-    virtual bool    abDealloc(){ return false;}
+    virtual bool    abDealloc(){ return false;} // TODO pour le rendre completement virtuelle il faut reimplementer les destructeurs...
 
     virtual bool    abMalloc(){ return false;}
 
@@ -135,6 +135,7 @@ TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
 TPL_T CData<T>::CData():
     _memoryOc(0),
     _data(NULL),
+    _clMem(NULL),
     _sizeofMalloc(0)
 {
     CGObject::ClassTemplate(CGObject::StringClass<T>(pData()));
@@ -159,7 +160,11 @@ TPL_T bool CData<T>::Dealloc()
     bool op = false;
     SubMemoryOc(GetSizeofMalloc());
     SetSizeofMalloc(0);
+#ifdef OPENCL_ENABLED
+    if (!isNULL() || _clMem!=NULL) op = abDealloc();
+#else
     if (!isNULL()) op = abDealloc();
+#endif
     dataNULL();
     return op;
 }
@@ -613,7 +618,14 @@ protected:
 
     DecoratorDeviceData(CData<T> *dataDevice):_dD(dataDevice){}
 
-    bool    dabDealloc(){ return clReleaseMemObject(_dD->clMem()) == CL_SUCCESS;}
+    bool    dabDealloc(){
+        cl_int errorCode = clReleaseMemObject(_dD->clMem());
+
+        CGpGpuContext<openClContext>::errorOpencl(errorCode,"Dealloc buffer");
+
+        return  errorCode == CL_SUCCESS;
+
+    }
 
     bool    dabMalloc()
     {
@@ -673,6 +685,7 @@ public:
 protected:
 
     bool        abDealloc(){
+
 
         struct2D::SetMaxSize(0);
         struct2D::SetMaxDimension();
