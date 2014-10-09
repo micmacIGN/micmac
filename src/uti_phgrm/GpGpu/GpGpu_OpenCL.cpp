@@ -12,9 +12,10 @@
 #include <cstdarg>
 
 static std::vector<void*>   stArgs;
-static cudaContext          sCCuda;
+
 
 #if OPENCL_ENABLED
+static cudaContext          sCCuda;
 static openClContext        sCOpenCl;
 cl_context                      openClContext::_contextOpenCL  = 0;
 cl_command_queue                openClContext::_commandQueue   = 0;
