@@ -12,7 +12,7 @@
 #include <cstdarg>
 
 static std::vector<void*>   stArgs;
-//static cudaContext          sCCuda;
+static cudaContext          sCCuda;
 
 #if OPENCL_ENABLED
 static openClContext        sCOpenCl;

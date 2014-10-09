@@ -302,8 +302,10 @@ void CGpGpuContext<openClContext>::createKernel(string fileName,string kernelNam
     char buffer[1024];
     char* path_end;
 
+#ifndef _WIN32
     if (readlink ("/proc/self/exe", buffer, sizeof(buffer)) <= 0)
         return ;
+#endif
 
     path_end = strrchr (buffer, '/');
     if (path_end == NULL)
