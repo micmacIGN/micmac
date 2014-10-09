@@ -65,62 +65,30 @@ template<class context>
 void main_SDK()
 {
     CGpGpuContext<context>::createContext();
-#if OPENCL_ENABLED
-    CuDeviceData2DOPENCL<int> buffer;
-#endif
-    CuDeviceData2D<int> bufferc;
+
+    CuDeviceData2D<int,context> buffer;
 
     CuHostData3D<int> bufferHost;
 
     uint2 sizeBuff = make_uint2(5,1);
 
-#if OPENCL_ENABLED
-    if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT )
-        buffer.Malloc(sizeBuff);
-    else if(CGpGpuContext<context>::typeContext() == CUDA_CONTEXT)
-        if(bufferc.Malloc(sizeBuff))
-            printf("Success buffer device malloc DUDA\n");
-#else
-    bufferc.Malloc(sizeBuff);
-#endif
-
+    buffer.Malloc(sizeBuff);
     bufferHost.Malloc(sizeBuff,1);
 
     int factor = 100;
 
     CGpGpuContext<context>::createKernel(PATHOPENCLFILE,"kMultTab");
 
-#if OPENCL_ENABLED
-    if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT)
-        CGpGpuContext<context>::addKernelArg(buffer);
-    else if (CGpGpuContext<context>::typeContext() == CUDA_CONTEXT)
-        CGpGpuContext<context>::addKernelArg(bufferc);
-#else
-    CGpGpuContext<context>::addKernelArg(bufferc);
-#endif
+
+    CGpGpuContext<context>::addKernelArg(buffer);
+
 
     CGpGpuContext<context>::addKernelArg(factor);
 
     CGpGpuContext<context>::launchKernel();
 
-
-
-#if OPENCL_ENABLED
-    if(CGpGpuContext<context>::typeContext() == OPENCL_CONTEXT)    
-    {
-        buffer.CopyDevicetoHost(bufferHost.pData());        
-        buffer.Dealloc();
-    }
-    else if (CGpGpuContext<context>::typeContext() == CUDA_CONTEXT)
-    {
-        bufferc.CopyDevicetoHost(bufferHost.pData());
-        bufferc.Dealloc();
-    }
-
-#else
-    bufferc.CopyDevicetoHost(bufferHost.pData());
-#endif
-
+    buffer.CopyDevicetoHost(bufferHost.pData());
+    buffer.Dealloc();
 
     bufferHost.OutputValues();
 
