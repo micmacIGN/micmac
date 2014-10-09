@@ -101,13 +101,15 @@ void connectCellsLine(
     //////////////////////////////////////////////////
     /// TODO!!!! : quel doit etre prevDefCor p.costTransDefMask + p.costDefMask ou p.costDefMask
     /////////////////////////////////////////////////
-    uint         prevDefCor   =/* p.costTransDefMask + */p.prevDefCor;
+    uint         prevDefCor   =/* p.costTransDefMask + */p.prevDefCor; // TODO Voir la valeur à mettre!!!
     const ushort idGline = p.line.id + p.seg.id;
 
     streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor);
+    uint         prevMinCostCells    = 0; // TODO cette valeur doit etre determiner
     #endif
 
-    uint         prevMinCost  = 0;
+    uint         prevMinCost         = 0;
+
 
     while(lined)
     {
@@ -115,7 +117,10 @@ void connectCellsLine(
         {
             const short3 dTer       = S_Bf_Index[sgn(p.seg.id)];
             const short2 indexZ     = make_short2(dTer.x,dTer.y);
+#ifdef CUDA_DEFCOR
             const ushort cDefCor    = dTer.z;
+            const bool   maskTer    = cDefCor == 0;
+#endif
             const ushort dZ         = count(indexZ); // creer buffer de count
             ushort       z          = 0;
             globMinFCost            = max_cost;
@@ -132,7 +137,7 @@ void connectCellsLine(
 
                 uint    fCostMin        = max_cost;
 #ifdef CUDA_DEFCOR
-                uint    costInit        = (cDefCor == 0) ? 500000 : ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
+                uint    costInit        = maskTer ? 500000 : ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
 #else
                 uint    costInit        = ST_Bf_ICost[sgn(p.ID_Bf_Icost)];
 #endif
@@ -157,7 +162,8 @@ void connectCellsLine(
                     // les cellules dans la zone masquée
                     // les cellules dont la valeur le coef de corrélation n'a pas été calculé -> 1.01234 --> 10123
                     //  ces cellules contaminent les voisines en mode DEFCOR....
-                fCostMin = min(fCostMin, costInit + prevDefCor  + p.costTransDefMask );
+                if(!maskTer) // OkOut
+                    fCostMin = min(fCostMin, costInit + prevDefCor  + p.costTransDefMask );
 #endif
 
                 if(tZ < dZ && p.ID_Bf_Icost +  p.stid<sens>() < p.sizeBuffer && tZ < p.sizeBuffer)
@@ -182,14 +188,27 @@ void connectCellsLine(
 
 #ifdef CUDA_DEFCOR
 
-            prevDefCor  = min(prevDefCor,prevMinCost + p.costTransDefMask ) + cDefCor - prevMinCost;
+            uint defCor = prevDefCor + cDefCor;
+
+            if(p.prevDefCor != 0)
+                defCor = min(defCor,cDefCor + prevMinCostCells + p.costTransDefMask);
+
+
+            prevDefCor = defCor - prevMinCost;
+                //prevDefCor  = min(prevDefCor,prevMinCost + p.costTransDefMask ) + cDefCor - prevMinCost;
+
+            prevMinCostCells = globMinFCost;
+
             prevMinCost = min(globMinFCost,prevDefCor);
 
+            p.prevDefCor = cDefCor;
             if(p.tid == 0)
             {
                 const ushort idGline = p.line.id + p.seg.id;
                 streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor,prevDefCor-cDefCor);
             }
+
+
 #else
             prevMinCost = globMinFCost;
 #endif
@@ -313,7 +332,7 @@ extern "C" void Gpu_OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
     dim3 Threads(WARPSIZE,1,1);
     dim3 Blocks(d2O.NBlines(),1,1);
 
-    ushort sizeBuff = d2O.DzMax();  //NAPPEMAX;
+    ushort sizeBuff = min(d2O.DzMax(),4096);  //NAPPEMAX;
     ushort cacheLin = sizeBuff + 2 * WARPSIZE;
 
 
@@ -347,9 +366,11 @@ extern "C" void Gpu_OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
 
     if (cudaSuccess != err)
     {        
-        printf("Error CUDA Gpu_OptimisationOneDirection");
+        printf("Error CUDA Gpu_OptimisationOneDirection\n");
         printf("%s",cudaGetErrorString(err));
-
+        DUMP_UINT(d2O.NBlines());
+        DUMP_UINT(sizeSharedMemory);
+        DUMP_UINT(d2O.DzMax());
     }
 
     getLastCudaError("TestkernelOptiOneDirection failed");
