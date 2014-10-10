@@ -130,13 +130,15 @@ bool CGpGpuContext<context>::errorGpGpu(int tErr,string erName, string gpuCon)
         printf("Error %s %s \t: %d\n",erName.c_str(),gpuCon.c_str(),tErr);
         return false;
     }
-#ifdef DEBUG_GPGPU
+
     else
     {
+#ifdef DEBUG_GPGPU
         printf("Success %s \t: %s\n",gpuCon.c_str(),erName.c_str());
+#endif
         return true;
     }
-#endif
+
 }
 
 template<class context>
