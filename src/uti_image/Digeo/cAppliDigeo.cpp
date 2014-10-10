@@ -76,6 +76,7 @@ cAppliDigeo::cAppliDigeo():
 	mDecoupInt   (cDecoupageInterv2D::SimpleDec(Pt2di(10,10),10,0)),
 	mDoIncrementalConvolution( true ),
 	mSiftCarac   (NULL),
+	mExpressionIntegerDictionnary( new map<string,int>() ),
 	mNbSlowConvolutionsUsed_uint2(0),
 	mNbSlowConvolutionsUsed_real4(0),
 	mRefinementMethod(eRefine3D),
@@ -98,23 +99,27 @@ cAppliDigeo::cAppliDigeo():
 	processTestSection();
 	InitConvolSpec();
 
-	// __DEL
-	cout << "nb levels : " << mNbLevels << endl;
-	cout << "force gradient computation : " << (doForceGradientComputation()?"true":"false") << endl;
-
 	if ( Params().GenereCodeConvol().IsInit() )
 	{
 		const cGenereCodeConvol &genereCodeConvol = Params().GenereCodeConvol().Val();
 		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
 	}
 
-	if ( isVerbose() ) cout << "refinement: " << eToString( mRefinementMethod ) << endl;
+	if ( isVerbose() )
+	{
+		cout << "saving tiles : " << (doSaveTiles()?"yes":"no") << endl;
+		cout << "saving gaussians : " << (doSaveGaussians()?"yes":"no") << endl;
+		cout << "saving gradients : " << (doSaveGradients()?"yes":"no") << endl;
+		cout << "force gradient computation : " << (doForceGradientComputation()?"yes":"no") << endl;
+		cout << "refinement: " << eToString( mRefinementMethod ) << endl;
+	}
 }
 
 cAppliDigeo::~cAppliDigeo()
 {
 	if ( mParamDigeo!=NULL ) delete mParamDigeo;
 	if ( mICNM!=NULL ) delete mICNM;
+	if ( mExpressionIntegerDictionnary!=NULL ) delete mExpressionIntegerDictionnary;
 }
 
 int cAppliDigeo::nbLevels() const { return mNbLevels; }
@@ -155,8 +160,6 @@ bool cAppliDigeo::MultiBloc() const
 {
   return Params().DigeoDecoupageCarac().IsInit();
 }
-
-
 
 void cAppliDigeo::InitAllImage()
 {
@@ -201,12 +204,7 @@ void cAppliDigeo::LoadOneInterv(int aKB)
 
 Box2di cAppliDigeo::getInterv( int aKB ) const { return mDecoupInt.KthIntervIn(aKB); }
 
-     // cOctaveDigeo & GetOctOfDZ(int aDZ);
-
-
         //   ACCESSEURS BASIQUES
-
-
 
 cInterfChantierNameManipulateur * cAppliDigeo::ICNM() {return mICNM;}
 
@@ -226,7 +224,7 @@ bool cAppliDigeo::doSaveTiles() const { return mDoSaveTiles; }
 
 bool cAppliDigeo::doSaveGradients() const { return mDoSaveGradients; }
 
-bool cAppliDigeo::doReconstructOutputs() const { return mReconstructOutputs; }
+bool cAppliDigeo::doMergeOutputs() const { return mMergeOutputs; }
 
 bool cAppliDigeo::doSuppressTiledOutputs() const { return mSuppressTiledOutputs; }
 
@@ -252,6 +250,8 @@ void cAppliDigeo::processImageName( const string &i_imageFullname )
 
 	mImageFullname = i_imageFullname;
 	SplitDirAndFile( mImagePath, mImageBasename, mImageFullname );
+
+	expressions_partial_completion();
 }
 
 cImDigeo & cAppliDigeo::getImage()
@@ -266,25 +266,6 @@ const cImDigeo & cAppliDigeo::getImage() const
 	return *mImage;
 }
 
-string cAppliDigeo::outputTiledBasename( int i_iTile ) const
-{
-	stringstream ss;
-	ss << mImageBasename << "_tile" << setfill('0') << setw(3) << i_iTile;
-	return ss.str();
-}
-
-string cAppliDigeo::currentTiledBasename() const
-{
-	return outputTiledBasename( currentBoxIndex() );
-}
-
-string cAppliDigeo::tiledOutputFullname( int i_iTile ) const { return outputTilesDirectory()+"/"+outputTiledBasename(i_iTile)+".tif"; }
-
-string cAppliDigeo::currentTiledOutputFullname() const
-{
-	return tiledOutputFullname( currentBoxIndex() );
-}
-
 static void removeEndingSlash( string &i_str )
 {
 	if ( i_str.length()==0 ) return;
@@ -292,48 +273,201 @@ static void removeEndingSlash( string &i_str )
 	if ( c=='/' || c=='\\' ) i_str.resize(i_str.length()-1);
 }
 
-static void processOutputPath( string &i_path )
+static void normalizeOutputPath( string &i_path, bool i_doCreateDirectory )
 {
 	removeEndingSlash( i_path );
 	if ( i_path.length()==0 )
 		i_path="./";
-	else{
+	else
+	{
 		i_path.append("/");
-		ELISE_fp::MkDirRec( i_path );
+		if ( i_doCreateDirectory ) ELISE_fp::MkDirRec( i_path );
+	}
+}
+
+static void check_expression_has_variables( const Expression &i_e, const list<string> &i_variables, const Expression *i_motherExpression=NULL )
+{
+	if ( i_e.isValid() && i_e.hasVariables(i_variables) ) return;
+
+	if ( !i_e.isValid() )
+	{
+		stringstream ss;
+		ss << "expression [" << i_e.toString() << "] is invalid";
+		ELISE_ASSERT( false, ss.str().c_str() );
+	}
+
+	stringstream ss;
+	ss << "expression [" << i_e.toString() << "]";
+	if ( i_motherExpression!=NULL ) ss << ", build from [" << i_motherExpression->toString() << "],";
+	ss << " is missing variable" << (i_variables.size()<2?'\0':'s');
+	list<string>::const_iterator it = i_variables.begin();
+	while ( it!=i_variables.end() )
+	{
+		if ( !i_e.hasVariable(*it) ) ss << " [" << (*it) << ']';
+		it++;
+	}
+
+	ELISE_ASSERT( false, ss.str().c_str() );
+}
+
+void cAppliDigeo::expressions_partial_completion()
+{
+	map<string,string> dico;
+	dico["outputTilesDirectory"] = mOutputTilesDirectory;
+	dico["outputGaussiansDirectory"] = mOutputGaussiansDirectory;
+	dico["outputGradientsAngleDirectory"] = mOutputGradientsAngleDirectory;
+	dico["outputGradientsNormDirectory"] = mOutputGradientsNormDirectory;
+	dico["imageBasename"] = mImageBasename;
+
+	if ( !doSaveTiles() && !doMergeOutputs() && !doSaveGaussians() && !doSaveGradients() ) return;
+
+	list<string> neededVariables_merge;
+	neededVariables_merge.push_back("dz");
+	neededVariables_merge.push_back("iLevel");
+	list<string> neededVariables_tiled;
+	neededVariables_tiled.push_back("iTile");
+
+	if ( doSaveTiles() )
+	{
+		mTiledOutput_expr = mTiledOutput_base_expr;
+		mTiledOutput_expr.replace(dico);
+
+		check_expression_has_variables( mTiledOutput_expr, neededVariables_tiled, &mTiledOutput_base_expr );
+
+		if ( doMergeOutputs() )
+		{
+			mMergedOutput_expr = mMergedOutput_base_expr;
+			mMergedOutput_expr.replace(dico);
+		}
+	}
+
+	neededVariables_tiled.insert( neededVariables_tiled.end(), neededVariables_merge.begin(), neededVariables_merge.end() );
+
+	if ( doSaveGaussians() )
+	{
+		mTiledOutputGaussian_expr = mTiledOutputGaussian_base_expr;
+		mTiledOutputGaussian_expr.replace(dico);
+
+		// check expression has the mandatory variables (see processTestSection() for more variable checking)
+		check_expression_has_variables( mTiledOutputGaussian_expr, neededVariables_tiled, &mTiledOutputGaussian_base_expr );
+
+		if ( doMergeOutputs() )
+		{
+			mMergedOutputGaussian_expr = mMergedOutputGaussian_base_expr;
+			mMergedOutputGaussian_expr.replace(dico);
+
+			check_expression_has_variables( mMergedOutputGaussian_expr, neededVariables_merge, &mMergedOutputGaussian_base_expr );
+		}
+	}
+
+	if ( doSaveGradients() )
+	{
+		mTiledOutputGradientNorm_expr = mTiledOutputGradientNorm_base_expr;
+		mTiledOutputGradientNorm_expr.replace(dico);
+		mTiledOutputGradientAngle_expr = mTiledOutputGradientAngle_base_expr;
+		mTiledOutputGradientAngle_expr.replace(dico);
+
+		check_expression_has_variables( mTiledOutputGradientNorm_expr, neededVariables_tiled, &mTiledOutputGradientNorm_base_expr );
+		check_expression_has_variables( mTiledOutputGradientAngle_expr, neededVariables_tiled, &mTiledOutputGradientAngle_base_expr );
+
+		if ( doMergeOutputs() )
+		{
+			mMergedOutputGradientNorm_expr = mMergedOutputGradientNorm_base_expr;
+			mMergedOutputGradientNorm_expr.replace(dico);
+			mMergedOutputGradientAngle_expr = mMergedOutputGradientAngle_base_expr;
+			mMergedOutputGradientAngle_expr.replace(dico);
+
+			check_expression_has_variables( mMergedOutputGradientNorm_expr, neededVariables_merge, &mMergedOutputGradientNorm_base_expr );
+			check_expression_has_variables( mMergedOutputGradientAngle_expr, neededVariables_merge, &mMergedOutputGradientAngle_base_expr );
+		}
 	}
 }
 
 void cAppliDigeo::processTestSection()
 {
 	const cSectionTest *mSectionTest = ( Params().SectionTest().IsInit()?&Params().SectionTest().Val():NULL );
-	mDoSaveGaussians = mDoSaveTiles = mDoSaveGradients = mReconstructOutputs = mSuppressTiledOutputs = false;
-	if ( mSectionTest!=NULL && mSectionTest->DigeoTestOutput().IsInit() ){
+	mDoSaveGaussians = mDoSaveTiles = mDoSaveGradients = mMergeOutputs = mSuppressTiledOutputs = false;
+
+	// process DigeoTestOutput
+	if ( mSectionTest!=NULL && mSectionTest->DigeoTestOutput().IsInit() )
+	{
 		const cDigeoTestOutput &testOutput = mSectionTest->DigeoTestOutput().Val();
-		if ( testOutput.OutputGaussians().IsInit() && testOutput.OutputGaussians().Val() ){
-			mDoSaveGaussians = true;
-			mOutputGaussiansDirectory = testOutput.OutputGaussiansDirectory().ValWithDef("");
-			processOutputPath( mOutputGaussiansDirectory );
-		}
-		if ( testOutput.OutputTiles().IsInit() && mSectionTest->OutputTiles().Val() ){
+
+		// process output of original tiles images
+		if ( testOutput.OutputTiles().IsInit() && mSectionTest->OutputTiles().Val() )
+		{
 			mDoSaveTiles = true;
-			mOutputTilesDirectory = testOutput.OutputTilesDirectory().ValWithDef("");
-			processOutputPath( mOutputTilesDirectory );
+			mOutputTilesDirectory = testOutput.OutputTilesDirectory().Val();
+			normalizeOutputPath( mOutputTilesDirectory, true );
+
+			// TODO: use a XML parameter for these expressions
+			mTiledOutput_base_expr = "${outputTilesDirectory}${imageBasename}_tile${iTile:3}.tif";
+			mMergedOutput_base_expr = "${outputTilesDirectory}${imageBasename}_merged.tif";
+
+			// check expression has the mandatory variables (see expressions_partial_completion() for more variable checking)
+			list<string> neededVariables;
+			neededVariables.push_back("outputTilesDirectory");
+			neededVariables.push_back("imageBasename");
+			check_expression_has_variables( mTiledOutput_base_expr, neededVariables, NULL );
+			check_expression_has_variables( mMergedOutput_base_expr, neededVariables, NULL );
 		}
-		if ( testOutput.OutputGradients().IsInit() && mSectionTest->OutputGradients().Val() ){
-			mDoSaveGradients = true;
-			mOutputGradientsAngleDirectory = testOutput.OutputGradientsAngleDirectory().ValWithDef("");
-			processOutputPath( mOutputGradientsAngleDirectory );
-			mOutputGradientsNormDirectory = testOutput.OutputGradientsNormDirectory().ValWithDef("");
-			processOutputPath( mOutputGradientsNormDirectory );
-		}
-		if ( testOutput.MergeTiles().IsInit() && testOutput.MergeTiles().Val() )
-			mReconstructOutputs = true;
-		if ( testOutput.SuppressTiles().IsInit() && testOutput.SuppressTiles().Val() )
-			mSuppressTiledOutputs = true;
-		if ( testOutput.ForceGradientComputation().IsInit() && testOutput.ForceGradientComputation().Val() )
-			mDoForceGradientComputation = true;
 		if ( doSaveTiles() && testOutput.PlotPointsOnTiles().IsInit() && testOutput.PlotPointsOnTiles().Val() )
 			mDoPlotPoints = true;
+
+		// process output of gaussian images
+		if ( testOutput.OutputGaussians().IsInit() && testOutput.OutputGaussians().Val() )
+		{
+			mDoSaveGaussians = true;
+			mOutputGaussiansDirectory = testOutput.OutputGaussiansDirectory().Val();
+			normalizeOutputPath( mOutputGaussiansDirectory, true ); 
+
+			// TODO: use a XML parameter for these expressions
+			mTiledOutputGaussian_base_expr = "${outputGaussiansDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gaussian.tif";
+			mMergedOutputGaussian_base_expr = "${outputGaussiansDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gaussian.tif";
+
+			// check expression has the mandatory variables (see expressions_partial_completion() for more variable checking)
+			list<string> neededVariables;
+			neededVariables.push_back("outputGaussiansDirectory");
+			neededVariables.push_back("imageBasename");
+			check_expression_has_variables( mTiledOutputGaussian_base_expr, neededVariables, NULL );
+			check_expression_has_variables( mMergedOutputGaussian_base_expr, neededVariables, NULL );
+		}
+
+		// process output of gradient images
+		if ( testOutput.OutputGradients().IsInit() && testOutput.OutputGradients().Val() )
+		{
+			mDoSaveGradients = true;
+			mOutputGradientsAngleDirectory = testOutput.OutputGradientsAngleDirectory().Val();
+			normalizeOutputPath( mOutputGradientsAngleDirectory, true );
+			mOutputGradientsNormDirectory = testOutput.OutputGradientsNormDirectory().Val();
+			normalizeOutputPath( mOutputGradientsNormDirectory, true );
+
+			// TODO: use a XML parameter for these expressions
+			mTiledOutputGradientNorm_base_expr = "${outputGradientsNormDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gradient.norm.tif";
+			mMergedOutputGradientNorm_base_expr = "${outputGradientsNormDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gradient.norm.tif";
+			mTiledOutputGradientAngle_base_expr = "${outputGradientsAngleDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gradient.angle.tif";
+			mMergedOutputGradientAngle_base_expr = "${outputGradientsAngleDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gradient.angle.tif";
+
+			// check expression has the mandatory variables (see expressions_partial_completion() for more variable checking)
+			list<string> neededVariables;
+			neededVariables.push_back("outputGradientsNormDirectory");
+			neededVariables.push_back("imageBasename");
+			check_expression_has_variables( mTiledOutputGradientNorm_base_expr, neededVariables, NULL );
+			check_expression_has_variables( mMergedOutputGradientNorm_base_expr, neededVariables, NULL );
+			neededVariables.pop_front();
+			neededVariables.push_back("outputGradientsAngleDirectory");
+			check_expression_has_variables( mTiledOutputGradientAngle_base_expr, neededVariables, NULL );
+			check_expression_has_variables( mMergedOutputGradientAngle_base_expr, neededVariables, NULL );
+		}
+
+		if ( testOutput.MergeTiles().IsInit() && testOutput.MergeTiles().Val() )
+			mMergeOutputs = true;
+
+		if ( testOutput.SuppressTiles().IsInit() && testOutput.SuppressTiles().Val() )
+			mSuppressTiledOutputs = true;
+
+		if ( testOutput.ForceGradientComputation().IsInit() && testOutput.ForceGradientComputation().Val() )
+			mDoForceGradientComputation = true;
 	}
 }
 
@@ -353,28 +487,53 @@ string cAppliDigeo::getConvolutionInstantiationsFilename( string i_type )
 	return mConvolutionCodeFileBase+i_type+".instantiations.h";
 }
 
-void cAppliDigeo::reconstructFullOutputImages() const
+void cAppliDigeo::mergeOutputs() const
 {
-	if ( doSaveGaussians() )
-	{
-		ELISE_ASSERT( getImage().reconstructFromTiles( outputGaussiansDirectory(), ".gaussian.pgm", mDecoupInt.NbX() ),
-		              "cAppliDigeo::reconstructFullOutputImages: gaussian image failed" );
-	}
-
 	if ( doSaveTiles() )
 	{
-		ELISE_ASSERT( getImage().Octaves()[0]->FirstImage()->reconstructFromTiles( outputTilesDirectory(), ".ppm", mDecoupInt.NbX() ),
-		              "cAppliDigeo::reconstructFullOutputImages: tiled image failed" );
+		if ( isVerbose() ) cout << "merging raw tiles" << endl;
+		mImage->Octaves()[0]->FirstImage()->mergeTiles( mTiledOutput_expr, mDecoupInt, mMergedOutput_expr );
+	}
+
+	if ( doSaveGaussians() )
+	{
+		if ( isVerbose() ) cout << "merging gaussian tiles" << endl;
+		mImage->mergeTiles( mTiledOutputGaussian_expr, 0, nbLevels()+2, mDecoupInt, mMergedOutputGaussian_expr );
 	}
 
 	if ( doSaveGradients() )
 	{
-		ELISE_ASSERT( getImage().reconstructFromTiles( outputGradientsNormDirectory(), ".gradient.norm.pgm", mDecoupInt.NbX() ),
-		              "cAppliDigeo::reconstructFullOutputImages: gradient norm image failed" );
-		ELISE_ASSERT( getImage().reconstructFromTiles( outputGradientsAngleDirectory(), ".gradient.angle.pgm", mDecoupInt.NbX() ),
-		              "cAppliDigeo::reconstructFullOutputImages: gradient angle image failed" );
+		if ( isVerbose() ) cout << "merging gradient tiles" << endl;
+		mImage->mergeTiles( mTiledOutputGradientAngle_expr, 0, nbLevels()-1, mDecoupInt, mMergedOutputGradientAngle_expr );
+		mImage->mergeTiles( mTiledOutputGradientNorm_expr, 0, nbLevels()-1, mDecoupInt, mMergedOutputGradientNorm_expr );
 	}
 }
+
+const map<string,int> & cAppliDigeo::dictionnary_tile_dz_level( int i_tile, int i_dz, int i_level ) const
+{
+	(*mExpressionIntegerDictionnary)["iTile"] = i_tile;
+	(*mExpressionIntegerDictionnary)["dz"] = i_dz;
+	(*mExpressionIntegerDictionnary)["iLevel"] = i_level;
+	return *mExpressionIntegerDictionnary;
+}
+       
+string cAppliDigeo::getValue_iTile_dz_iLevel( const Expression &e, int iTile, int dz, int iLevel ) const { return e.value( dictionnary_tile_dz_level( iTile, dz, iLevel ) ); }
+
+string cAppliDigeo::getValue_dz_iLevel( const Expression &e, int dz, int iLevel ) const { return e.value( dictionnary_tile_dz_level( 0, dz, iLevel ) ); }
+
+string cAppliDigeo::getValue_iTile( const Expression &e, int iTile ) const { return e.value( dictionnary_tile_dz_level( iTile, 0, 0 ) ); }
+
+const Expression & cAppliDigeo::tiledOutputExpression() const { return mTiledOutput_expr; }
+const Expression & cAppliDigeo::mergedOutputExpression() const { return mMergedOutput_expr; }
+
+const Expression & cAppliDigeo::tiledOutputGaussianExpression() const { return mTiledOutputGaussian_expr; }
+const Expression & cAppliDigeo::mergedOutputGaussianExpression() const { return mMergedOutputGaussian_expr; }
+
+const Expression & cAppliDigeo::tiledOutputGradientNormExpression() const { return mTiledOutputGradientNorm_expr; }
+const Expression & cAppliDigeo::mergedOutputGradientNormExpression() const { return mMergedOutputGradientNorm_expr; }
+
+const Expression & cAppliDigeo::tiledOutputGradientAngleExpression() const { return mTiledOutputGradientAngle_expr; }
+const Expression & cAppliDigeo::mergedOutputGradientAngleExpression() const { return mMergedOutputGradientAngle_expr; }
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

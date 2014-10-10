@@ -581,7 +581,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
     Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur );
 
-	if ( mAppli.doSaveTiles() ) save_tiff( mAppli.currentTiledOutputFullname(), window, true );
+	if ( mAppli.doSaveTiles() ) save_tiff( mAppli.getValue_iTile( mAppli.tiledOutputExpression(), mAppli.currentBoxIndex() ), window, true );
 
     Fonc_Num aF = window.in_proj();
     
@@ -767,27 +767,82 @@ void cImDigeo::describe()
 	}
 }
 
-bool save_gradient( const Im2D<REAL4, REAL8> &i_gradient, const int i_offset, const string &i_filename );
+void get_channel_min_max( const REAL4 *i_channel, int i_width, int i_height, int i_nbChannels, const int i_iChannel, REAL4 &o_min, REAL4 &o_max )
+{
+	unsigned int iPix = i_width*i_height;
+
+	if ( iPix==0 ) return;
+
+	const REAL4 *itPix = i_channel+i_iChannel;
+	o_min = o_max = *itPix;
+	while ( iPix-- )
+	{
+		REAL4 v = *itPix;
+		if ( v<o_min ) o_min=v;
+		if ( v>o_max ) o_max=v;
+		itPix += i_nbChannels;
+	}
+}
+
+void channel_to_Im2D( const REAL4 *i_channel, int i_width, int i_height, int i_nbChannels, const int i_iChannel, REAL4 i_min, REAL4 i_max, Im2D<REAL4,REAL> &o_im2d )
+{
+	o_im2d.Resize( Pt2di(i_width,i_height) );
+	unsigned int iPix = i_width*i_height;
+
+	if ( iPix==0 ) return;
+
+	const REAL4 *itSrc = i_channel+i_iChannel;
+	REAL4 *itDst = o_im2d.data_lin();
+	REAL4 scale = 255./(i_max-i_min);
+	while ( iPix-- )
+	{
+		*itDst++ = scale*( (*itSrc)-i_min );
+		itSrc += i_nbChannels;
+	}
+}
+
+void save_gradient_component( const Im2D<REAL4, REAL8> &i_gradient, const int i_iComponent, const string &i_filename )
+{
+	REAL4 minv = 0., maxv = 0.;
+	get_channel_min_max( i_gradient.data_lin(), i_gradient.tx()/2, i_gradient.ty(), 2, i_iComponent, minv, maxv );
+	Im2D<REAL4, REAL> imgToSave;
+	channel_to_Im2D( i_gradient.data_lin(), i_gradient.tx()/2, i_gradient.ty(), 2, i_iComponent, minv, maxv, imgToSave );
+
+	ELISE_COPY
+	(
+		imgToSave.all_pts(),
+		round_ni( imgToSave.in() ),
+		Tiff_Im(
+			i_filename.c_str(),
+			imgToSave.sz(),
+			GenIm::u_int1,
+			Tiff_Im::No_Compr,
+			Tiff_Im::BlackIsZero,
+			Tiff_Im::Empty_ARG ).out()
+	);
+}
 
 void cImDigeo::orientateAndDescribe()
 {
-	for ( size_t i=0; i<mVIms.size(); i++ )
+	for ( size_t iOctave=0; iOctave<mOctaves.size(); iOctave++ )
 	{
-		cImInMem &image = *mVIms[i];
+		vector<cImInMem*> &images = mOctaves[iOctave]->VIms();
 
-		//if ( image.featurePoints().size()==0 ) continue;
+		for ( size_t iLevel=1; iLevel<images.size()-2; iLevel++ )
+		{
+			cImInMem &image = *images[iLevel];
 
-		image.orientate();
-		mOrientateTime += image.orientateTime();
-		image.describe();
-		mOrientateTime += image.describeTime();
+			image.orientate();
+			mOrientateTime += image.orientateTime();
+			image.describe();
+			mOrientateTime += image.describeTime();
 
-		if ( mAppli.doSaveGradients() ){
-			const Im2D<REAL4,REAL8> &gradient = image.getGradient();
-			const string gradientBasename = image.getTiledOutputBasename()+".gradient";
-			ELISE_ASSERT( save_gradient( gradient, 0, mAppli.outputGradientsNormDirectory()+gradientBasename+".norm.pgm" ) &&
-							  save_gradient( gradient, 1, mAppli.outputGradientsAngleDirectory()+gradientBasename+".angle.pgm" ),
-							  "cTplImInMem<Type>::getGradient: failed to save gradient images" );
+			if ( mAppli.doSaveGradients() )
+			{
+				const Im2D<REAL4,REAL8> &gradient = image.getGradient();
+				save_gradient_component( gradient, 0, image.getValue_iTile_dz_iLevel( mAppli.tiledOutputGradientNormExpression(), -1 ) );
+				save_gradient_component( gradient, 1, image.getValue_iTile_dz_iLevel( mAppli.tiledOutputGradientAngleExpression(), -1 ) );
+			}
 		}
 	}
 }
@@ -864,60 +919,6 @@ void drawWindow( unsigned char *io_dst, unsigned int i_dstW, unsigned int i_dstH
 	}
 }
 
-bool cImDigeo::reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const
-{
-	int nbTiles = mAppli.NbInterv();
-	int gridHeight = nbTiles/i_gridWidth;
-
-	ELISE_ASSERT( (nbTiles%i_gridWidth)==0, "cImDigeo::reconstructFromTiles incorrect grid width" );
-
-	unsigned int fullW = 0, fullH = 0;
-	unsigned int w, h, maxv;
-	string format;
-	for ( size_t iImage=0; iImage<mVIms.size(); iImage++ )
-	{
-		// process first image
-		cImInMem &image = *mVIms[iImage];
-
-		// retrive full image size
-		if ( !read_pgm_header( i_directory+image.getTiledOutputBasename(0)+i_postfix, fullW, fullH, maxv, format ) ) return false;
-		for ( int iTile=1; iTile<i_gridWidth; iTile++ )
-		{
-			string tileFilename = i_directory+image.getTiledOutputBasename(iTile)+i_postfix;
-			ELISE_ASSERT( read_pgm_header( tileFilename, w, h, maxv, format ), (string("cImDigeo::reconstructFromTiles cannot read pgm header from [")+tileFilename+"]").c_str() );
-			fullW += w;
-		}
-		for ( int iTile=1; iTile<gridHeight; iTile++ )
-		{
-			string tileFilename = i_directory+image.getTiledOutputBasename(iTile)+i_postfix;
-			ELISE_ASSERT( read_pgm_header( tileFilename, w, h, maxv, format ), (string("cImDigeo::reconstructFromTiles cannot read pgm header from [")+tileFilename+"]").c_str() );
-			fullH += h;
-		}
-
-		unsigned char *data = new unsigned char[fullW*fullH];
-		unsigned int offsetY = 0;
-		for ( int iTileY=0; iTileY<gridHeight; iTileY++ )
-		{
-			unsigned int offsetX = 0;
-			for ( int iTileX=0; iTileX<i_gridWidth; iTileX++ )
-			{
-				const string &windowFilename = i_directory+image.getTiledOutputBasename(iTileX+iTileY*i_gridWidth)+i_postfix;
-				unsigned char *window = NULL;
-				load_pgm( windowFilename, window, w, h );
-				drawWindow( data, fullW, fullH, 1, offsetX, offsetY, window, w, h );
-				delete [] window;
-				offsetX += w;
-				if ( mAppli.doSuppressTiledOutputs() ) ELISE_fp::RmFile( windowFilename );
-			}
-			offsetY += h;
-		}
-		save_pgm( i_directory+image.getReconstructedOutputBasename()+i_postfix, data, fullW, fullH  );
-		delete [] data;
-	}
-
-	return true;
-}
-
 unsigned int cImDigeo::getNbFeaturePoints() const
 {
 	unsigned int nbTotalFeaturePoints = 0;
@@ -930,13 +931,9 @@ unsigned int cImDigeo::getNbFeaturePoints() const
 	return nbTotalFeaturePoints;
 }
 
-string cImDigeo::getReconstructedTilesFullname() const { return mAppli.outputTilesDirectory()+Basename()+".merged.tif"; }
-
 void cImDigeo::plotPoints() const
 {
-	if ( !mAppli.doPlotPoints() ) return;
-
-	const string tileFilename = mAppli.currentTiledOutputFullname();
+	const string tileFilename = mAppli.getValue_iTile( mAppli.tiledOutputExpression(), mAppli.currentBoxIndex() );
 	Tiff_Im tiff( tileFilename.c_str() );
 
 	ELISE_ASSERT( tiff.nb_chan()==3, (string("cImDigeo::plotPoints: file [")+tileFilename+"] should be in RGB colorspace").c_str() );
@@ -976,6 +973,93 @@ void cImDigeo::plotPoints() const
 
 	for ( int iChannel=0; iChannel<tiff.nb_chan(); iChannel++ )
 		delete channels[iChannel];
+}
+
+
+bool cImDigeo::mergeTiles( const Expression &i_inputExpression, int i_minLevel, int i_maxLevel, const cDecoupageInterv2D &i_tiles,
+                           const Expression &i_outputExpression, int i_iLevelOffset ) const
+{
+	// retrieve all input filenames
+	for ( size_t iImage=0; iImage<mVIms.size(); iImage++ )
+	{
+		const cImInMem &image= *mVIms[iImage];
+		if ( image.level()<i_minLevel || image.level()>i_maxLevel ) continue;
+		image.mergeTiles( i_inputExpression, i_tiles, i_outputExpression, i_iLevelOffset );
+	}
+
+	/*
+	int nbTiles = mAppli.NbInterv();
+	int gridHeight = nbTiles/i_gridWidth;
+
+	ELISE_ASSERT( (nbTiles%i_gridWidth)==0, "cImDigeo::LoadImageAndPyram incorrect grid width" );
+
+	unsigned int fullW = 0, fullH = 0;
+	string format;
+	for ( size_t iImage=0; iImage<mVIms.size(); iImage++ )
+	{
+		// process first image
+		cImInMem &image = *mVIms[iImage];
+		int nbChannels;
+
+		// retrive full image size
+		{
+			string tileFilename = image.getTiledGaussianOutputFullname(0);
+			Tiff_Im tiff( tileFilename.c_str() );
+			nbChannels = tiff.nb_chan();
+			ELISE_ASSERT( nbChannels==3, __inconsistent_nb_channels_msg( tileFilename, nbChannels, 1 ).c_str() );
+			fullW = tiff.sz().x;
+			fullH = tiff.sz().y;
+		}
+		for ( int iTile=1; iTile<i_gridWidth; iTile++ )
+		{
+			string tileFilename = image.getTiledGaussianOutputFullname(iTile); //i_directory+getTiledOutputBasename(iTile)+i_postfix;
+			Tiff_Im tiff( tileFilename.c_str() );
+			ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
+			fullW += tiff.sz().x;
+		}
+		for ( int iTile=1; iTile<gridHeight; iTile++ )
+		{
+			string tileFilename = image.getTiledGaussianOutputFullname(iTile*i_gridWidth);
+			Tiff_Im tiff( tileFilename.c_str() );
+			ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
+			fullH += tiff.sz().y;
+		}
+
+		Tiff_Im fullTiff(
+					getReconstructedTilesFullname().c_str(),
+					Pt2di(fullW,fullH),
+					GenIm::u_int1,
+					Tiff_Im::No_Compr,
+					Tiff_Im::BlackIsZero,
+					Tiff_Im::Empty_ARG );
+		int offsetY = 0;
+		int h = 0;
+		for ( int iTileY=0; iTileY<gridHeight; iTileY++ )
+		{
+			int offsetX = 0;
+			for ( int iTileX=0; iTileX<i_gridWidth; iTileX++ )
+			{
+				string tileFilename = image.getTiledGaussianOutputFullname(iTileX+iTileY*i_gridWidth);
+				Tiff_Im tiff( tileFilename.c_str() );
+
+				ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
+
+				ELISE_COPY
+				(
+					rectangle( Pt2di(offsetX,offsetY), Pt2di(offsetX,offsetY)+tiff.sz() ),
+					trans( tiff.in(), Pt2di(-offsetX,-offsetY) ),
+					fullTiff.out()
+				);
+
+				offsetX += tiff.sz().x;
+				if ( mAppli.doSuppressTiledOutputs() ) ELISE_fp::RmFile( tileFilename );
+				h = tiff.sz().y;
+			}
+			offsetY += h;
+		}
+	}
+	*/
+	return true;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

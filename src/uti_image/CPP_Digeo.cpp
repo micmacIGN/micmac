@@ -314,51 +314,18 @@ int Digeo_main( int argc, char **argv )
         image.detect();
 
         if ( appli.isVerbose() ) cout << "\t" << image.getNbFeaturePoints() << " feature points" << endl;
-/*
-        if ( appli.isVerbose() ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
 
-        const std::vector<cOctaveDigeo *> & aVOct = image.Octaves();
-        
-        size_t nbPointsBeforeTile = total_list.size();
-        for (int aKo=0 ; aKo<int(aVOct.size()) ; aKo++){
-				unsigned int nbPointsBeforeOctave = total_list.size();
-				cOctaveDigeo & anOct = *( aVOct[aKo] );
-				cTplOctDig<U_INT2> * aUI2_Oct = anOct.U_Int2_This();  // entre aUI2_OctaUI2_Oct et  aR4_Oct
-				cTplOctDig<REAL4> * aR4_Oct = anOct.REAL4_This();     // un et un seul doit etre != 0
+        image.orientateAndDescribe();
 
-				//anOct.DoAllExtract();
+        if ( appli.doPlotPoints() ) image.plotPoints();
 
-				if ( appli.doSaveGaussians() ) anOct.saveGaussians( appli.outputGaussiansDirectory(), appli.currentTileBasename() );
+        size_t nbTilePoints = image.addAllPoints( total_list );
+        translate_points( total_list, nbTilePoints, box._p0 );
 
-				if ( aUI2_Oct!=0 ) orientate_and_describe_all<U_INT2,INT>(aUI2_Oct, total_list);
-				else if ( aR4_Oct!=0 ) orientate_and_describe_all<REAL4,REAL8>(aR4_Oct, total_list);
-				else ELISE_ASSERT( false, ( string("octave ")+ToString(aKo)+" of unknown type" ).c_str() );
-
-				size_t nbOctavePoints = total_list.size()-nbPointsBeforeOctave;
-				if ( appli.doSaveTiles() ){
-					const string ppmFilename = appli.currentTileFullname()+".ppm";
-					ELISE_ASSERT( plot_tile_points( ppmFilename, total_list, nbOctavePoints, (double)1./image.Resol() ), (string("cannot load tile's ppm file [")+ppmFilename+"]").c_str() );
-				}
-
-				// translate tile-based coordinates to full image coordinates
-				translate_points( total_list, nbOctavePoints, box._p0 );
-        }
-        size_t nbTilePoints = total_list.size()-nbPointsBeforeTile;
         if ( appli.isVerbose() ) cout << "\t" << nbTilePoints << " points" << endl;
-*/
-			/*
-			image.orientate();
-			image.describe();
-			*/
-			image.orientateAndDescribe();
-			image.plotPoints();
-			size_t nbTilePoints = image.addAllPoints( total_list );
-			translate_points( total_list, nbTilePoints, box._p0 );
-
-			if ( appli.isVerbose() ) cout << "\t" << nbTilePoints << " points" << endl;
     }
 
-	if ( appli.doReconstructOutputs() ) appli.reconstructFullOutputImages();
+	if ( appli.doMergeOutputs() ) appli.mergeOutputs();
 
 	if ( appli.Params().GenereCodeConvol().IsInit() )
 	{
@@ -390,7 +357,7 @@ int Digeo_main( int argc, char **argv )
 
 	cout << "nb computed gradient = " << appli.nbComputedGradients() << endl;
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 
