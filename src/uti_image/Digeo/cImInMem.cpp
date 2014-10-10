@@ -388,79 +388,14 @@ void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
         //while ( x-- ) ( *itDog++ )=(tBase)( *itCurrentScale++ )-(tBase)( *itNextScale++ );
         while ( x-- ) ( *itDog++ )=(tBase)( *itNextScale++ )-(tBase)( *itCurrentScale++ );
     }
-    
-    #ifdef __DEBUG_DIGEO_DOG_OUTPUT
-        saveDoG( "dog_digeo" );
-    #endif
-
-    #ifdef __DEBUG_DIGEO_DOG_INPUT
-        loadDoG( "dog_sift" );
-    #endif
 }
 
 template <class Type>
-bool load_raw( const string &i_filename, Type *o_image, unsigned int i_width, unsigned int i_height )
+void cTplImInMem<Type>::saveGaussian()
 {
-	ELISE_ASSERT( false, (string("save_raw ")+El_CTypeTraits<Type>::Name()).c_str() );
-	return false;
-}
-
-template <>
-bool load_raw( const string &i_filename, float *o_image, unsigned int i_width, unsigned int i_height )
-{
-	ifstream f( i_filename.c_str(), ios::binary );
-	if ( !f ) return false;
-	U_INT4 sz[2];
-	f.read( (char*)sz, 8 );
-	if ( sz[0]!=i_width || sz[1]!=i_height ) return false;
-	f.read( (char*)o_image, i_width*i_height*sizeof(float) );
-	return true;
-}
-
-template <class Type>
-bool cTplImInMem<Type>::load_raw( const string &i_filename )
-{
-	return ::load_raw( i_filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty() );
-}
-
-template <>
-bool cTplImInMem<U_INT2>::saveGaussian_pgm() const
-{
-	const string filename = mAppli.outputGaussiansDirectory()+getTiledOutputBasename()+".gaussian.pgm";
-	return ::save_pgm<U_INT2>( filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty(), 1./mImGlob.GetDyn() );
-}
-
-template <>
-bool cTplImInMem<REAL4>::saveGaussian_pgm() const
-{
-	const string filename = mAppli.outputGaussiansDirectory()+getTiledOutputBasename()+".gaussian.pgm";
-	return ::save_pgm<REAL4>( filename, mIm.data_lin(), (unsigned int)mIm.tx(), (unsigned int)mIm.ty(), 1./mImGlob.GetDyn() );
-}
-
-template <>
-bool cTplImInMem<U_INT1>::saveGaussian_pgm() const { return false; }
-
-template <>
-bool cTplImInMem<INT>::saveGaussian_pgm() const { return false; }
-
-template <>
-bool cTplImInMem<REAL>::saveGaussian_pgm() const { return false; }
-
-template <class Type>
-bool cTplImInMem<Type>::saveGaussian() const { return saveGaussian_pgm(); }
-
-template <class Type>
-bool cTplImInMem<Type>::loadGaussian_raw( const std::string &in_dir )
-{
-    if ( !ELISE_fp::IsDirectory(in_dir) ) return false;
-
-    RealImage1 img;
-    stringstream ss;
-    ss << in_dir << "/gaussian_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct << ".raw";
-    if ( !img.loadRaw( ss.str() ) )
-        cerr << "cTplImInMem::loadGaussians: failed to load \"" << ss.str() << "\"" << endl;
-    img.toArray( TIm().data_lin() );
-    return true;
+	Im2D<U_INT1,INT> outImg( mIm.tx(), mIm.ty() );
+	ELISE_COPY( mIm.all_pts(), round_ni(mIm.in()/mImGlob.GetDyn()), outImg.out() );
+	save_tiff( getValue_iTile_dz_iLevel( mAppli.tiledOutputGaussianExpression() ), outImg );
 }
 
 template <class Type>
@@ -482,8 +417,6 @@ void cTplImInMem<Type>::saveDoG( const string &out_dir ) const
 template <class Type>
 void cTplImInMem<Type>::loadDoG( const string &in_dir )
 {
-
-
     if ( !ELISE_fp::IsDirectory(in_dir) )
         cerr << "cTplImInMem::loadDoG: input directory \"" << in_dir << "\" does not exist" << endl;
 
@@ -637,6 +570,16 @@ void cTplImInMem <Type>::MakeClassConvolSpec
     fprintf(aFileCpp,"   }\n");
 }
 
+string cImInMem::getValue_iTile_dz_iLevel( const Expression &e, int iLevelOffset ) const
+{
+	return mAppli.getValue_iTile_dz_iLevel( e, mAppli.currentBoxIndex(), mOct.Niv(), mKInOct+iLevelOffset );
+}
+
+string cImInMem::getValue_dz_iLevel( const Expression &e, int iLevelOffset ) const
+{
+	return mAppli.getValue_dz_iLevel( e, mOct.Niv(), mKInOct+iLevelOffset );
+}
+
 #include "Digeo_GaussFilter.cpp"
 #include "Digeo_Detecteurs.cpp"
 #include "Digeo_Pyram.cpp"
@@ -705,7 +648,7 @@ double cImInMem::ScaleInit() const
     return ScaleInOct() * mOct.Niv();
 }
 
-
+int cImInMem::level() const { return mKInOct; }
 
 void cImInMem::SetMere(cImInMem * aMere)
 {
@@ -717,15 +660,7 @@ void cImInMem::SetMere(cImInMem * aMere)
 
 
 void cImInMem::SauvIm(const std::string & aAdd)
-{
-    #if defined(__DEBUG_DIGEO_GAUSSIANS_OUTPUT_RAW) || defined(__DEBUG_DIGEO_GAUSSIANS_OUTPUT_PGM)
-        saveGaussians( "gaussians_digeo" );
-    #endif
-
-    #ifdef __DEBUG_DIGEO_GAUSSIANS_INPUT
-        loadGaussians( "gaussians_sift" );
-    #endif
-    
+{    
    if ( ! mAppli.Params().SauvPyram().IsInit()) return;
 
    const cTypePyramide & aTP = mAppli.Params().TypePyramide();
@@ -816,31 +751,6 @@ double cImInMem::ROct() const {return mResolOctaveBase;}
 cImInMem *  cImInMem::Mere() {return mMere;}
 cOctaveDigeo &  cImInMem::Oct() {return mOct;}
 
-bool save_gradient( const Im2D<REAL4, REAL8> &i_gradient, const int i_offset, const string &i_filename )
-{
-	unsigned int iPix = i_gradient.tx()*i_gradient.ty()/2;
-	REAL4 *channel = new REAL4[iPix];
-
-	// retrieve min/max
-	REAL4 minv = numeric_limits<REAL4>::max(),
-	      maxv = -numeric_limits<REAL4>::max();
-	const REAL4 *itPix = i_gradient.data_lin();
-	REAL4 *itChan = channel;
-	while ( iPix-- ){
-		REAL4 v = itPix[i_offset];
-		if ( v<minv ) minv=v;
-		if ( v>maxv ) maxv=v;
-
-		*itChan++ = itPix[i_offset];
-		itPix += 2;
-	}
-
-	if ( !save_pgm( i_filename, channel, (unsigned int)i_gradient.tx()/2, (unsigned int)i_gradient.ty(), minv, maxv ) ) return false;
-
-	delete [] channel;
-	return true;
-}
-
 template <class tData, class tComp>
 void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient )
 {
@@ -876,28 +786,6 @@ void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,RE
 
 template void gradient<REAL4,REAL8>( const Im2D<REAL4,REAL8> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
 template void gradient<U_INT2,INT>( const Im2D<U_INT2,INT> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
-
-string cImInMem::getTiledOutputBasename( int i_tile ) const
-{
-	stringstream ss;
-	ss << mOct.getTiledOutputBasename(i_tile) << '_' << setfill('0') << setw(2) << mKInOct;
-	return ss.str();
-}
-
-string cImInMem::getTiledOutputBasename() const { return getTiledOutputBasename(mAppli.currentBoxIndex()); }
-
-string cImInMem::getReconstructedOutputBasename() const
-{
-	stringstream ss;
-	ss << mOct.getReconstructedOutputBasename() << '_' << setfill('0') << setw(2) << mKInOct;
-	return ss.str();
-}
-
-string cImInMem::getTiledGradientNormOutputName( int i_tile ) const { return mAppli.outputGradientsNormDirectory()+getTiledOutputBasename(i_tile)+".gradient.norm.pgm"; }
-string cImInMem::getTiledGradientNormOutputName() const { return getTiledGradientNormOutputName( mAppli.currentBoxIndex() ); }
-
-string cImInMem::getTiledGradientAngleOutputName( int i_tile ) const { return mAppli.outputGradientsAngleDirectory()+getTiledOutputBasename(i_tile)+".gradient.angle.pgm"; }
-string cImInMem::getTiledGradientAngleOutputName() const { return getTiledGradientAngleOutputName( mAppli.currentBoxIndex() ); }
 
 template <class Type>
 const Im2D<REAL4,REAL8> & cTplImInMem<Type>::getGradient() { return mImGlob.getGradient( TIm(), mOct.GetMaxValue() ); }
@@ -989,7 +877,7 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, R
 void cImInMem::orientate()
 {
 	mOrientedPoints.clear();
-	if ( mKInOct<1 || mKInOct>mAppli.nbLevels() || ( !mAppli.doForceGradientComputation() && mFeaturePoints.size()==0 ) )
+	if ( !mAppli.doForceGradientComputation() && mFeaturePoints.size()==0 )
 	{
 		mOrientateTime = 0.;
 		return;
@@ -1193,7 +1081,7 @@ void normalize_and_truncate( REAL8 *io_descriptor )
 
 void cImInMem::describe()
 {
-	if ( mKInOct<1 || mKInOct>mAppli.nbLevels() || ( !mAppli.doForceGradientComputation() && mOrientedPoints.size()==0 ) ) return;
+	if ( !mAppli.doForceGradientComputation() && mOrientedPoints.size()==0 ) return;
 
 	const Im2D<REAL4,REAL8> &srcGradient = getGradient();
 	ElTimer chrono;
@@ -1201,7 +1089,8 @@ void cImInMem::describe()
 
 	DigeoPoint *itPoint = mOrientedPoints.data();
 	size_t iPoint = mOrientedPoints.size();
-	while ( iPoint-- ){
+	while ( iPoint-- )
+	{
 		DigeoPoint &p = *itPoint++;
 		for ( size_t iAngle=0; iAngle<p.entries.size(); iAngle++ ){
 			DigeoPoint::Entry &entry = p.entry(iAngle);
@@ -1212,65 +1101,68 @@ void cImInMem::describe()
 	mDescribeTime = chrono.uval();
 }
 
-static string __inconsistent_nb_channels_msg( const string &i_filename, int i_nbChannels, int i_expectedNbChannels )
+static void __inconsistent_nb_channels_msg( const string &i_filename, int i_nbChannels, int i_expectedNbChannels )
 {
+	if ( i_nbChannels==i_expectedNbChannels ) return;
 	stringstream ss;
-	ss << "cImInMem::reconstructFromTiles: inconsistent number of channels for file [" << i_filename << "] : " << i_nbChannels << " expecting " << i_expectedNbChannels;
-	return ss.str();
+	ss << "cImInMem::mergeTiles: inconsistent number of channels for file [" << i_filename << "] : " << i_nbChannels << " channels, expecting " << i_expectedNbChannels;
+	ELISE_ASSERT( false, ss.str().c_str() );
 }
 
-bool cImInMem::reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const
+bool cImInMem::mergeTiles( const Expression &i_inputExpression, const cDecoupageInterv2D &i_tiles, const Expression &i_outputExpression, int i_iLevelOffset ) const
 {
-	int nbTiles = mAppli.NbInterv();
-	int gridHeight = nbTiles/i_gridWidth;
+	// grid has grid_nx columns and grid_ny lines of images, grid_n = grid_nx*grid_ny
+	const int grid_n  = i_tiles.NbInterv(),
+	          grid_nx = i_tiles.NbX(),
+	          grid_ny = grid_n/grid_nx;
 
-	ELISE_ASSERT( (nbTiles%i_gridWidth)==0, "cImDigeo::reconstructFromTiles incorrect grid width" );
+	if ( grid_n==0 ) return true;
 
-	int fullW = 0, fullH = 0;
-	int nbChannels = 1;
+	// retrieve all filenames
+	vector<string> filenames(grid_n);
+	for ( int iTile=0; iTile<grid_n; iTile++ )
+		filenames[iTile] = mAppli.getValue_iTile_dz_iLevel( i_inputExpression, iTile, mOct.Niv(), mKInOct+i_iLevelOffset );
 
-	// retrive full image size
+	// retrieve full image size
+	int fullWidth, fullHeight, nbChannels;
 	{
-		string tileFilename = mAppli.tiledOutputFullname(0);
-		Tiff_Im tiff( tileFilename.c_str() );
+		Tiff_Im tiff( filenames[0].c_str() );
 		nbChannels = tiff.nb_chan();
-		ELISE_ASSERT( nbChannels==3, __inconsistent_nb_channels_msg( tileFilename, nbChannels, 3 ).c_str() );
-		fullW = tiff.sz().x;
-		fullH = tiff.sz().y;
+		fullWidth  = tiff.sz().x;
+		fullHeight = tiff.sz().y;
 	}
-	for ( int iTile=1; iTile<i_gridWidth; iTile++ )
+	for ( int iTile=1; iTile<grid_nx; iTile++ )
 	{
-		string tileFilename = mAppli.tiledOutputFullname(iTile); //i_directory+getTiledOutputBasename(iTile)+i_postfix;
-		Tiff_Im tiff( tileFilename.c_str() );
-		ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
-		fullW += tiff.sz().x;
+		Tiff_Im tiff( filenames[iTile].c_str() );
+		__inconsistent_nb_channels_msg( filenames[iTile], tiff.nb_chan(), nbChannels );
+		fullWidth += tiff.sz().x;
 	}
-	for ( int iTile=1; iTile<gridHeight; iTile++ )
+	for ( int yTile=1; yTile<grid_ny; yTile++ )
 	{
-		string tileFilename = mAppli.tiledOutputFullname(iTile*i_gridWidth);
-		Tiff_Im tiff( tileFilename.c_str() );
-		ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
-		fullH += tiff.sz().y;
+		const int iTile = yTile*grid_nx; 
+		Tiff_Im tiff( filenames[iTile].c_str() );
+		__inconsistent_nb_channels_msg( filenames[iTile], tiff.nb_chan(), nbChannels );
+		fullHeight += tiff.sz().y;
 	}
 
 	Tiff_Im fullTiff(
-				mImGlob.getReconstructedTilesFullname().c_str(),
-				Pt2di(fullW,fullH),
+				mAppli.getValue_iTile_dz_iLevel( i_outputExpression, 0, mOct.Niv(), mKInOct+i_iLevelOffset ).c_str(),
+				Pt2di(fullWidth,fullHeight),
 				GenIm::u_int1,
 				Tiff_Im::No_Compr,
-				Tiff_Im::RGB,
+				nbChannels==1 ? Tiff_Im::BlackIsZero : Tiff_Im::RGB,
 				Tiff_Im::Empty_ARG );
 	int offsetY = 0;
 	int h = 0;
-	for ( int iTileY=0; iTileY<gridHeight; iTileY++ )
+	for ( int iTileY=0; iTileY<grid_ny; iTileY++ )
 	{
 		int offsetX = 0;
-		for ( int iTileX=0; iTileX<i_gridWidth; iTileX++ )
+		for ( int iTileX=0; iTileX<grid_nx; iTileX++ )
 		{
-			string tileFilename = mAppli.tiledOutputFullname(iTileX+iTileY*i_gridWidth);
+			const string &tileFilename = filenames[iTileX+iTileY*grid_nx];
 			Tiff_Im tiff( tileFilename.c_str() );
 
-			ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
+			__inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels );
 
 			ELISE_COPY
 			(
@@ -1278,17 +1170,16 @@ bool cImInMem::reconstructFromTiles( const string &i_directory, const string &i_
 				trans( tiff.in(), Pt2di(-offsetX,-offsetY) ),
 				fullTiff.out()
 			);
-
 			offsetX += tiff.sz().x;
-			if ( mAppli.doSuppressTiledOutputs() ) ELISE_fp::RmFile( tileFilename );
 			h = tiff.sz().y;
+
+			if ( mAppli.doSuppressTiledOutputs() ) ELISE_fp::RmFile( tileFilename );
 		}
 		offsetY += h;
 	}
 
 	return true;
 }
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

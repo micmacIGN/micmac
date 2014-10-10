@@ -177,6 +177,8 @@ cTplImInMem<Type> * cTplOctDig<Type>::AllocTypedIm(double aResolOctaveBase,int a
 template <class Type>
 void cTplOctDig<Type>::PostPyram() 
 {
+	if ( mVTplIms.size()==0 ) return;
+
 	for ( size_t aKIm=0; aKIm<mVTplIms.size(); aKIm++ )
 		mVDatas.push_back(mVTplIms[aKIm]->TIm().data());
 
@@ -276,7 +278,9 @@ void cOctaveDigeo::SetNbImOri(int aNbImOri)
    mLastLevelIndex = aNbImOri+2;
 }
 
-const std::vector<cImInMem *> &  cOctaveDigeo::VIms() { return mVIms; }
+const std::vector<cImInMem *> &  cOctaveDigeo::VIms() const { return mVIms; }
+
+std::vector<cImInMem *> &  cOctaveDigeo::VIms() { return mVIms; }
 
 bool cOctaveDigeo::OkForSift(int aK) const
 {
@@ -339,25 +343,6 @@ cOctaveDigeo * cOctaveDigeo::AllocTop
 }
 
 const cImDigeo & cOctaveDigeo::ImDigeo() const { return mIm; }
-
-string cOctaveDigeo::getTiledOutputBasename( int i_tile ) const
-{
-	stringstream ss;
-	ss << mAppli.outputTiledBasename(i_tile) << "_DZ"  << setw(3) << setfill('0') << Niv();
-	return ss.str();
-}
-
-string cOctaveDigeo::getReconstructedOutputBasename() const
-{
-	stringstream ss;
-	ss << mIm.Basename() << "_DZ"  << setw(3) << setfill('0') << Niv();
-	return ss.str();
-}
-
-string cOctaveDigeo::getTiledOutputBasename() const
-{
-	return getTiledOutputBasename( mAppli.currentBoxIndex() );
-}
 
 double cOctaveDigeo::detectTime() const { return mDetectTime; }
 

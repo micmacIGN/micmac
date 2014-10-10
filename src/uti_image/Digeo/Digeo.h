@@ -72,6 +72,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
+#include "Expression.h"
 
 #include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
 
@@ -286,9 +287,7 @@ class cImInMem
          std::vector<DigeoPoint> & orientedPoints();
          const std::vector<DigeoPoint> & orientedPoints() const;
 
-         virtual bool saveGaussian_pgm() const = 0;
-         virtual bool loadGaussian_raw( const std::string &i_directory ) = 0;
-         virtual bool saveGaussian() const = 0;
+         virtual void saveGaussian() = 0;
 
          virtual const Im2D<REAL4,REAL8> & getGradient() = 0;
 
@@ -298,16 +297,18 @@ class cImInMem
          double orientateTime() const;
          double describeTime() const;
 
-         string getTiledOutputBasename( int i_tile ) const;
-         string getTiledOutputBasename() const;
-         string getReconstructedOutputBasename() const;
-         
-         string getTiledGradientNormOutputName( int i_tile ) const;
-         string getTiledGradientNormOutputName() const;
-         string getTiledGradientAngleOutputName( int i_tile ) const;
-         string getTiledGradientAngleOutputName() const;
-         
-         bool reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const;
+         // return the value of the expression e with variables :
+         //    iTile  = image's currentBoxIndex()
+         //    dz     = image's octave Niv()
+         //    iLevel = image's KInOct+iLevelOffset (offset is useful because gaussians, DoG and gradient do not use the same level index)
+         string getValue_iTile_dz_iLevel( const Expression &e, int iLevelOffset=0 ) const;
+
+         // same thing as above but without iTile
+         string getValue_dz_iLevel( const Expression &e, int iLevelOffset=0 ) const;
+
+         int level() const;
+
+         bool mergeTiles( const Expression &i_inputExpression, const cDecoupageInterv2D &i_tiles, const Expression &i_outputExpression, int i_iLevelOffset=0 ) const;
 
      protected :
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
@@ -317,7 +318,7 @@ class cImInMem
          Pt2di            mSz;
          GenIm::type_el   mType;
          int              mResolGlob;
-         double           mResolOctaveBase;  // Le sigma / a la premier image del'octave
+         double           mResolOctaveBase;  // Le sigma / a la premier image de l'octave
          int              mKInOct;
          int              mIndexSigma;
          int              mNbShift;
@@ -343,8 +344,6 @@ class cImInMem
          unsigned char *mUsed_points_map;
      private :
         cImInMem(const cImInMem &);  // N.I.
-     public:
-			virtual bool load_raw( const string &i_filename ){ return true; }
 };
 
 
@@ -387,6 +386,7 @@ template <class Type> class cTplImInMem : public cImInMem
         // void  SetOrigOct(cTplImInMem<Type> *);
         // void MakeConvolInit(double aSigm );
         void ReduceGaussienne();
+        void saveGaussian();
 
         // compute the difference of gaussians between this scale and the next
         void computeDoG( const cTplImInMem<Type> &i_nextScale );
@@ -473,14 +473,9 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          bool  SupDOG(Type *** aC,const Pt3di& aP1,const Pt3di& aP2);
          tBase DOG(Type *** aC,const Pt3di& aP1);
 
-         bool saveGaussian_pgm() const;
-         bool loadGaussian_raw( const std::string &i_directory );
-         bool saveGaussian() const;
-
          void saveDoG( const std::string &i_directory ) const;
          void loadDoG( const std::string &i_directory );
 
-         bool load_raw( const string &i_filename );
          const Im2D<REAL4,REAL8> & getGradient();
 
          cTplOctDig<Type> & mTOct;
@@ -566,7 +561,9 @@ class cOctaveDigeo
 
         void SetBoxInOut(const Box2di & aBoxIn,const Box2di & aBoxOut);
         cOctaveDigeo *  OctUp();
-        const std::vector<cImInMem *> &  VIms();
+        
+        const std::vector<cImInMem *> & VIms() const;
+              std::vector<cImInMem *> & VIms();
 
         virtual cTplOctDig<U_INT2> * U_Int2_This() = 0;
         virtual cTplOctDig<REAL4> *  REAL4_This() = 0;
@@ -587,10 +584,7 @@ class cOctaveDigeo
         double describeTime() const;
         double detectTime() const;
         double orientateTime() const;
-        
-        string getTiledOutputBasename() const;
-        string getTiledOutputBasename( int i_tile ) const;
-        string getReconstructedOutputBasename() const;
+
     protected :
         static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
 
@@ -809,9 +803,10 @@ class cImDigeo
         template <class DataType,class ComputeType>
         const Im2D<REAL4,REAL8> & getGradient( const Im2D<DataType,ComputeType> &i_src, REAL8 i_srcMaxValue );
         void retriveAllPoints( list<DigeoPoint> &o_allPoints ) const;
-        bool reconstructFromTiles( const string &i_directory, const string &i_postfix, int i_gridWidth ) const;
         void plotPoints() const;
-        string getReconstructedTilesFullname() const;
+
+        bool mergeTiles( const Expression &i_inputExpression, int i_minLevel, int i_maxLevel, const cDecoupageInterv2D &i_tiles,
+                         const Expression &i_outputExpression, int i_iLevelOffset=0 ) const;
 
      private :
         void DoSiftExtract();
@@ -910,13 +905,7 @@ template <class Type> class cConvolSpec
 
 class cAppliDigeo
 {
-    public : 
-       friend cAppliDigeo * DigeoCPP
-              (
-                    const std::string & aFullNameIm,
-                    const cParamAppliDigeo  aParam
-              );
-
+    public:
        cAppliDigeo();
        ~cAppliDigeo();
 
@@ -937,22 +926,20 @@ class cAppliDigeo
        template <class T> unsigned int nbSlowConvolutionsUsed() const { return 0; }
        template <class T> void upNbSlowConvolutionsUsed(){}
        string imageFullname() const;
-       
+
        string outputGaussiansDirectory() const;
        string outputTilesDirectory() const;
        string outputGradientsNormDirectory() const;
        string outputGradientsAngleDirectory() const;
 
-       string outputTiledBasename( int i_iTile ) const;
-       string currentTiledBasename() const;
-       string currentTiledOutputFullname() const;
-       string tiledOutputFullname( int i_iTile ) const;
-       
+       string outputTiledFilename( int i_iTile ) const;
+       string currentOutputTiledFilename() const;
+
        bool doSaveGaussians() const;
        bool doSaveTiles() const;
        bool doSaveGradients() const;
 
-       bool doReconstructOutputs() const;
+       bool doMergeOutputs() const;
        bool doSuppressTiledOutputs() const;
        bool doForceGradientComputation() const;
        bool doPlotPoints() const;
@@ -966,10 +953,27 @@ class cAppliDigeo
        bool showTimes() const;
        cImDigeo & getImage();
        const cImDigeo & getImage() const;
-       void reconstructFullOutputImages() const;
+       void mergeOutputs() const;
        void upNbComputedGradients();
        int nbComputedGradients() const;
        int nbLevels() const;
+
+       string getValue_iTile_dz_iLevel( const Expression &e, int iTile, int dz, int iLevel ) const;
+       string getValue_dz_iLevel( const Expression &e, int dz, int iLevel ) const;
+       string getValue_iTile( const Expression &e, int iTile ) const;
+
+       const Expression & tiledOutputExpression() const;
+       const Expression & mergedOutputExpression() const;
+
+       const Expression & tiledOutputGaussianExpression() const;
+       const Expression & mergedOutputGaussianExpression() const;
+
+       const Expression & tiledOutputGradientNormExpression() const;
+       const Expression & mergedOutputGradientNormExpression() const;
+
+       const Expression & tiledOutputGradientAngleExpression() const;
+       const Expression & mergedOutputGradientAngleExpression() const;
+
     private :
        void InitAllImage();
        static void InitConvolSpec();
@@ -978,6 +982,11 @@ class cAppliDigeo
        void processImageName( const string &i_imageFullname );
        void processTestSection();
        void loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename );
+
+       // replace variables depending of XML parameters and input image name
+       void expressions_partial_completion();
+
+       const map<string,int> & dictionnary_tile_dz_level( int i_tile, int i_dz, int i_level ) const;
 
        cParamDigeo                     * mParamDigeo;
        cImDigeo *                        mImage;
@@ -992,10 +1001,24 @@ class cAppliDigeo
        string                            mImagePath;
        string                            mImageBasename;
        string                            mImageFullname;
-       string                            mOutputGradientsNormDirectory;
-       string                            mOutputGradientsAngleDirectory;
+
+       // DigeoTestOutput directories
        string                            mOutputTilesDirectory;
        string                            mOutputGaussiansDirectory;
+       string                            mOutputGradientsNormDirectory;
+       string                            mOutputGradientsAngleDirectory;
+
+       // Expressions to compute output filenames
+       Expression                        mTiledOutput_base_expr, mMergedOutput_base_expr, // depends of variables outputTilesDirectory and imageBasename
+                                         mTiledOutput_expr, mMergedOutput_expr;
+       Expression                        mTiledOutputGaussian_base_expr, mMergedOutputGaussian_base_expr, // depends of variables outputGaussiansDirectory and imageBasename
+                                         mTiledOutputGaussian_expr, mMergedOutputGaussian_expr; // depends of variables iTile, dz and iLevel
+       Expression                        mTiledOutputGradientNorm_base_expr, mMergedOutputGradientNorm_base_expr, // depends of variables outputGradientsNormDirectory and imageBasename
+                                         mTiledOutputGradientNorm_expr, mMergedOutputGradientNorm_expr; // depends of variables iTile, dz and iLevel
+       Expression                        mTiledOutputGradientAngle_base_expr, mMergedOutputGradientAngle_base_expr, // depends of variables outputGradientsAngleDirectory and imageBasename
+                                         mTiledOutputGradientAngle_expr, mMergedOutputGradientAngle_expr; // depends of variables iTile, dz and iLevel
+       map<string,int>                   *mExpressionIntegerDictionnary;
+
        cSectionTest *                    mSectionTest;
        bool                              mDoSaveGaussians;
        bool                              mDoSaveTiles;
@@ -1007,7 +1030,7 @@ class cAppliDigeo
        bool                              mVerbose;
        ePointRefinement                  mRefinementMethod;
        bool                              mShowTimes;
-       bool                              mReconstructOutputs;
+       bool                              mMergeOutputs;
        bool                              mSuppressTiledOutputs;
        int                               mNbComputedGradients;
        double                            mLoadAllImageLimit;

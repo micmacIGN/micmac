@@ -87,17 +87,18 @@
 	<!-- Cette section gère les fonctionnalites permettant de faire
 	des tests de perfomances ou de bon fonctionnement
 	-->
-	
+
 	<SectionTest>
 		<DigeoTestOutput>
 			<!--
+			<MergeTiles> false </MergeTiles>
+			<SuppressTiles> false </SuppressTiles>
+			-->
+			<PlotPointsOnTiles> true </PlotPointsOnTiles>
+			<OutputTiles> true </OutputTiles>
 			<OutputGaussians> true </OutputGaussians>
 			<OutputGradients> true </OutputGradients>
-			-->
-			<OutputTiles> true </OutputTiles>
-			<SuppressTiles> false </SuppressTiles>
 			<ForceGradientComputation> true </ForceGradientComputation>
-			<PlotPointsOnTiles> true </PlotPointsOnTiles>
 		</DigeoTestOutput>
 	</SectionTest>
 
@@ -120,6 +121,7 @@
 	insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment
 	<ExigeCodeCompile> ${ExigeCodeCompile} </ExigeCodeCompile>
 	-->
+
 	<GenereCodeConvol></GenereCodeConvol>
 
 	<ShowTimes> 1 </ShowTimes>
