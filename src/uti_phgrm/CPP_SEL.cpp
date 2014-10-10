@@ -112,6 +112,7 @@ int SEL_main(int argc,char ** argv)
     int aRedr=0;
     std::string aFilter="";
     bool aRedrL1 = false;
+    bool ModeEpip = false;
 
     std::string aKeyCompl="Cple2HomAp";
     ElInitArgMain
@@ -126,6 +127,7 @@ int SEL_main(int argc,char ** argv)
                       << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT MMD",eSAM_None,ListOfVal(eTS_NbVals,"eTS_"))
                       << EAM(aKeyCompl,"KCpl",true)
                       << EAM(aSzW,"SzW",true)
+                      << EAM(ModeEpip,"ModeEpip",true,"If mode epip, the y displacement are forced to 0")
     );
 
     if (!MMVisualMode)
@@ -139,6 +141,7 @@ int SEL_main(int argc,char ** argv)
                            + " %Im2=" + aN2
                            + " %SL_XSzW=" + ToString(aSzW.x)
                            + " %SL_YSzW=" + ToString(aSzW.y)
+                           + " %SL_Epip=" + ToString(ModeEpip)
                          ;
 
         if (aRedr)

@@ -353,6 +353,17 @@ void  cArgMpDCRaw::DevJpg()
          int anA = ExtractAngleFromRot( aMDP.Orientation(),Ok);
          int anACam = ExtractAngleFromRot(aMDP.CameraOrientation(),OkCam);
 
+         if (! OkCam)
+         {
+             Pt2di aSz = aFTmp.sz();
+             // On fait l'hypothese que image prise par un droitier en position standard , 
+             // la haut de l'image doit aller a droite
+             if (aSz.y > aSz.x) 
+             {
+                 anACam = 270;
+                 OkCam = true;
+             }
+         }
 
          if (Ok && OkCam)
          {
