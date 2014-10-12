@@ -61,6 +61,7 @@ typedef enum
   eGround,
   eStatue,
   eTestIGN,
+  eQuickMac,
   eNbTypeMMByP
 } eTypeMMByP;
 void xml_init(eTypeMMByP & aVal,cElXMLTree * aTree);

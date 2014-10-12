@@ -127,10 +127,11 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
 
 
-
-extern const std::string TheDIRMergTiepForEPI();
-
 const std::string  DirFusMMInit() {return "Fusion-MMMI/";}
+const std::string TheRaffineQuickMac() {return "Match-QM";}
+const std::string TheRaffineQuickMac(const std::string & aName) {return TheRaffineQuickMac() + aName + "/";}
+
+
 
 class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 {
@@ -161,6 +162,7 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
       bool mShowCom;
       bool mDoPly;
       bool mDoPlyDS;
+      bool mAutoPurge;
 };
 
 
@@ -171,7 +173,8 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    mScaleNuage (1),
    mShowCom    (false),
    mDoPly      (false),
-   mDoPlyDS    (false)
+   mDoPlyDS    (false),
+   mAutoPurge  (true)
 {
    std::string Masq3D;
    std::string aPat,anOri;
@@ -189,6 +192,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAM(mShowCom,"ShowC",true,"Show commande (tuning)")
                     << EAM(mDoPly,"DoPly",true,"Do Ply")
                     << EAM(mDoPlyDS,"DoPlyDS",true,"Do Ply down scaled")
+                    << EAM(mAutoPurge,"AutoPurge",true,"Automaticaly purge unnecessary temp file (def=true)")
    );
 
    if (! (mCalledByP))
@@ -299,11 +303,11 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
              getchar();
           }
    }
-   const std::string FusMax  = "Fusion-Max";
-   const std::string FusMin  = "Fusion-Min";
-   const std::string FusEnvMasq = "Fusion-EnvMasq";
-   const std::string FusDepth   = "Fusion-Depth";
-   const std::string FusMasqD   = "Fusion-Masq";
+   const std::string FusMax  = "NuageFusion-Max";
+   const std::string FusMin  = "NuageFusion-Min";
+   const std::string FusEnvMasq = "NuageFusion-EnvMasq";
+   const std::string FusDepth   = "NuageFusion-Depth";
+   const std::string FusMasqD   = "NuageFusion-Masq";
 
    Tiff_Im::CreateFromIm(aEnvMax, NameFileGlobWithDir(FusMax));
    Tiff_Im::CreateFromIm(aEnvMin, NameFileGlobWithDir(FusMin));
@@ -323,9 +327,9 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    anIp.Correl().SetNoInit();
    anIp.Masq() = NameFileGlob(FusEnvMasq);
 
-   std::string aNameNuageEnvMax =  NameFileGlobWithDir("Nuage"+FusMax,"xml");
-   std::string aNameNuageEnvMin =  NameFileGlobWithDir("Nuage"+FusMin,"xml");
-   std::string aNameNuageProf =    NameFileGlobWithDir("Nuage"+FusDepth,"xml");
+   std::string aNameNuageEnvMax =  NameFileGlobWithDir(FusMax,"xml");
+   std::string aNameNuageEnvMin =  NameFileGlobWithDir(FusMin,"xml");
+   std::string aNameNuageProf =    NameFileGlobWithDir(FusDepth,"xml");
 
    anIp.Image() = NameFileGlob(FusMax);
    MakeFileXML(aXMLParam,aNameNuageEnvMax);
@@ -346,6 +350,21 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
       DownScaleNuage(aNameNuageProf,true);
    }
 
+
+   std::string aDirExp = Dir()+TheRaffineQuickMac(mNameIm);
+   ELISE_fp::MkDirSvp(aDirExp);
+   ELISE_fp::CpFile
+   (
+        mDirMerge + "Z_Num1_DeZoom" + ToString(mZoomEnd) + "_LeChantier.xml",
+        aDirExp + "MasqTerrain.xml"
+   );
+
+   
+   if (mAutoPurge)
+   {
+       ELISE_fp::PurgeDir(Dir()+mDirMatch,true);
+       ELISE_fp::PurgeDir(Dir()+mDirMerge,true);
+   }
 }
 
 void  cAppli_Enveloppe_Main::MakePly(const std::string & aNN)

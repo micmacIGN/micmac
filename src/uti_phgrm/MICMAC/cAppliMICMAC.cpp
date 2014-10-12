@@ -664,6 +664,8 @@ void ViderDir(const std::string & aDir)
      ELISE_fp::PurgeDir(aDir);
 }
 
+// void MvDir2Dir(cInterfChantierNameManipulateur * aICN,std::string & aPat,
+
 void cAppliMICMAC::InitDirectories()
 {
     if (!TmpPyr().IsInit())
@@ -684,11 +686,32 @@ void cAppliMICMAC::InitDirectories()
 
    if (PurgeMECResultBefore().Val() &&  (!CalledByProcess().Val()))
    {
+       const std::vector<std::string> * aSetPres = 0;
        if (PreservedFile().IsInit())
-           System("mv " + mFullDirMEC + PreservedFile().Val() + " " + aTmp);
+       {
+          cInterfChantierNameManipulateur * aICD =  cInterfChantierNameManipulateur::BasicAlloc(mFullDirMEC);
+          aSetPres = aICD->Get(PreservedFile().Val());
+          std::cout  << "aSETPRES " << aSetPres->size() << "\n";
+       }
+
+       if (aSetPres)
+       {
+           for (int aK=0 ; aK<int(aSetPres->size()) ; aK++)
+           {
+               ELISE_fp::MvFile(mFullDirMEC+(*aSetPres)[aK],aTmp);
+           }
+       }
+
        ViderDir(mFullDirMEC);
-       if (PreservedFile().IsInit())
-           System("mv " + aTmp + PreservedFile().Val() + " " + mFullDirMEC);
+
+       if (aSetPres)
+       {
+           for (int aK=0 ; aK<int(aSetPres->size()) ; aK++)
+           {
+               ELISE_fp::MvFile(aTmp+(*aSetPres)[aK],mFullDirMEC);
+           }
+       }
+
        if (mFullDirResult != mFullDirMEC)
           ViderDir(mFullDirResult);
    }
