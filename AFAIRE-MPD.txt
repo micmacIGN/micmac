@@ -1,4 +1,6 @@
+Merge Cloud : => PRISE EN COMPTE DE LA RESOLUTION , pour l'instant pas fait
 
+=================================
 BUG sur Tapioca Boudha 
 
 
@@ -89,8 +91,6 @@ Bascule en relvet ds l'espace
 
 Recherche auto : faire les cible en coins (UAV/Turin) :
                   
-
-
 
 
 

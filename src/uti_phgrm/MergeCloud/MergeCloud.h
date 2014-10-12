@@ -57,7 +57,8 @@ typedef enum
 {
   eLFNoAff,
   eLFMaster,
-  eLFMasked
+  eLFMasked,
+  eLFBorder
   // Warn si on change le nb de label : stocke pour l'instant sur des 2 bits
   //  eLFTmp
 } eLabelFinaux;
@@ -264,8 +265,11 @@ class cStatNiv
 class cAppliMergeCloud : public cAppliWithSetImage
 {
     public :
-       std::string NameFileInput(const std::string & aNameIm,const std::string & aPost,const std::string & aPref="");
-       std::string NameFileInput(cImaMM *,const std::string & aPost,const std::string & aPref="");
+       std::string NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPref="");
+       std::string NameFileInput(bool DownScale,cImaMM *,const std::string & aPost,const std::string & aPref="");
+
+
+
        cAppliMergeCloud
        (
             int argc,

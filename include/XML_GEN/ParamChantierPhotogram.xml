@@ -49,6 +49,7 @@
        <eGround>         </eGround>
        <eStatue>         </eStatue>
        <eTestIGN>        </eTestIGN>
+       <eQuickMac>       </eQuickMac>
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>
 

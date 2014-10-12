@@ -105,7 +105,7 @@ class cMMOnePair
       const std::string mNameMasqFinal;
       bool              mHasVeget;
       bool              mSkyBackgGound;
-      std::string       mMasq3D;
+      // std::string       mMasq3D;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -193,7 +193,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)", eSAM_InternalUse)
                     << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
                     << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
-                    << EAM(mMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
+                    // << EAM(mMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
   );
 
   mNoOri = (mNameOriInit=="NONE");

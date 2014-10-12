@@ -102,7 +102,7 @@ std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
         cASAMG * anAttrSom = 0;
 
         bool InMAP = false;
-        std::string aNameNuXml = NameFileInput(anIma,".xml");
+        std::string aNameNuXml = NameFileInput(true,anIma,".xml");
         // Possible aucun nuage si peu de voisins et mauvaise config epip
         if (ELISE_fp::exist_file(aNameNuXml))
         {
@@ -213,6 +213,8 @@ void cAppliMergeCloud::OneStepSelection()
    {
       tMCSom * aBestSom = 0;
       double aBestQual = 0;
+
+      // On recherche la meilleure image
       for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
       {
           tMCSom *  aSom =  mVSoms[aK];
@@ -222,6 +224,7 @@ void cAppliMergeCloud::OneStepSelection()
              )
           {
              double aQual = aSom->attr()->QualOfNiv();
+             // On rajoute quoiqu'il arrive les images déja selectionne
              if (aSom->attr()->NivSelected() > mCurNivSelSom) 
              {
                   aQual = 1000 * aQual + 1e8;
@@ -300,9 +303,8 @@ Video_Win *  cAppliMergeCloud::TheWinIm(const cASAMG * anAS)
 }
 
 const std::string cAppliMergeCloud::TheNameSubdir = "Fusion-0";
-extern const  std::string  DirFusMMInit();
 
-std::string cAppliMergeCloud::NameFileInput(const std::string & aNameIm,const std::string & aPost,const std::string & aPrefIn)
+std::string cAppliMergeCloud::NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPrefIn)
 {
    switch (mParam.ModeMerge())
    {
@@ -310,17 +312,16 @@ std::string cAppliMergeCloud::NameFileInput(const std::string & aNameIm,const st
             return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
        case eMMC_Envlop :
             std::string aPref = (aPrefIn=="" )? "Depth" : aPrefIn;
-//std::cout << Dir() << "\n";
-//std::cout << DirFusMMInit() << "\n";
-            return Dir() +  DirFusMMInit() +  "DownScale_NuageFusion-"+ aPref + aNameIm + aPost;
+            std::string PrefGlob =  DownScale ? "DownScale_NuageFusion-" : "NuageFusion-";
+            return Dir() +  DirFusMMInit() +  PrefGlob + aPref + aNameIm + aPost;
    }
    ELISE_ASSERT(false,"cAppliMergeCloud::NameFileInput");
    return "";
 }
 
-std::string cAppliMergeCloud::NameFileInput(cImaMM * anIma,const std::string & aPost,const std::string & aPref)
+std::string cAppliMergeCloud::NameFileInput(bool DownScale,cImaMM * anIma,const std::string & aPost,const std::string & aPref)
 {
-    return NameFileInput(anIma->mNameIm,aPost,aPref);
+    return NameFileInput(DownScale,anIma->mNameIm,aPost,aPref);
 }
 
 
