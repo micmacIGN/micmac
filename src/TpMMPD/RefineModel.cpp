@@ -4,8 +4,7 @@
 /** Development based on
  CARTOSAT-1 DEM EXTRACTION CAPABILITY STUDY OVER SALON AREA
  R. Gachet & P. Fave
- */
-
+**/
 
 class AffCamera
 {
@@ -31,6 +30,11 @@ class AffCamera
     /// \brief Tie Points (in pixel)
     ///
     std::vector<Pt2dr> vPtImg;
+
+    ///
+    /// \brief Index in vObs (TiePoint list in RefineModelAbs)
+    ///
+    std::vector<int> vIdx;
 
     ///
     /// \brief update affinity parameters
@@ -60,7 +64,6 @@ class AffCamera
     // the 6 parameters of affinity
     // colc = a0 + a1 * col + a2 * lig
     // ligc = b0 + b1 * col + b2 * lig
-    // to do: remplacer par un std::vector
     /*double a0;
     double a1;
     double a2;
@@ -124,7 +127,7 @@ public:
                                     double aA2,
                                     double aB0,
                                     double aB1,
-                                    double aB2)const
+                                    double aB2) const
     {
         Pt3dr ptTerMaster = master->Camera()->ImEtProf2Terrain(ptImgMaster,aZ);
         Pt2dr ptImgSlaveC(aA0 + aA1 * ptImgSlave.x + aA2 * ptImgSlave.y,
@@ -135,7 +138,7 @@ public:
 
     Pt2dr compute2DGroundDifference(Pt2dr const &ptImgMaster,
                                     Pt2dr const &ptImgSlave,
-                                    double aZ)const
+                                    double aZ) const
     {
         return compute2DGroundDifference(ptImgMaster,ptImgSlave,aZ,slave->vP[0],slave->vP[1],slave->vP[2],slave->vP[3],slave->vP[4],slave->vP[5]);
     }
@@ -161,12 +164,58 @@ public:
     }
 };
 
+class TiePoint
+{
+public:
+    TiePoint(){}
+
+    std::vector <std::pair < AffCamera*, int> > vCameras;  //list of cameras where point is visible, and index in AffCamera vPts
+
+    double getZ();
+};
+
+double TiePoint::getZ()
+{
+    if (vCameras.size() == 2)
+    {
+        AffCamera* cam1 = vCameras[0].first;
+        AffCamera* cam2 = vCameras[1].first;
+
+        int idx1 = vCameras[0].second;
+        int idx2 = vCameras[1].second;
+
+        Pt2dr P1 = cam1->vPtImg[idx1];
+        Pt2dr P2 = cam2->vPtImg[idx2];
+
+        return cam1->Camera()->PseudoInter(P1,*cam2->Camera(),P2).z;
+    }
+    else
+    {
+        std::vector<ElSeg3D>  aVS;
+        for ( size_t aK=0; aK < vCameras.size(); aK++ )
+        {
+            AffCamera* aCam = vCameras[aK].first;
+            int idx = vCameras[aK].second;
+
+            Pt2dr aPN = aCam->vPtImg[idx];
+
+            aVS.push_back(aCam->Camera()->F2toRayonR3(aPN));
+        }
+
+        Pt3dr aPInt = ElSeg3D::L2InterFaisceaux(0,aVS);
+
+        return aPInt.z;   //A VERIFIER
+    }
+}
+
 //! Abstract class for shared methods
 class RefineModelAbs
 {
 protected:
     std::vector <CameraPair*> vCamPair;
     size_t mNbPair;
+
+    std::vector <TiePoint*> vObs;
 
     ///
     /// \brief normal matrix for least squares estimation
@@ -181,6 +230,7 @@ public:
 
     AffCamera* master(int aK) { return vCamPair[aK]->master;  }
     AffCamera* slave(int aK)  { return vCamPair[aK]->slave;   }
+    //todo: a remplacer
     std::vector<double> vZ(int aK) { return vCamPair[aK]->vZ; }
 
     ///
@@ -239,7 +289,12 @@ public:
                         {
                             CamPair->master->vPtImg.push_back(P1);
                             CamPair->slave->vPtImg.push_back(P2);
+                            //todo: a supprimer
                             CamPair->vZ.push_back(z);
+
+                            //remplissage en attendant de connaitre l'index
+                            CamPair->master->vIdx.push_back(0);
+                            CamPair->slave->vIdx.push_back(0);
                         }
                     }
                 }
@@ -261,41 +316,71 @@ public:
             //recherche des points multiples
             for (size_t aK=0; aK < mNbPair; aK++)
             {
+                int nbObs = vObs.size();
+
                 CameraPair* CPair = vCamPair[aK];
+
                 for(size_t bK=0; bK < CPair->master->vPtImg.size() ; ++bK)
                 {
                     Pt2dr pt = CPair->master->vPtImg[bK];
 
+                    TiePoint* tp = new TiePoint();
+                    tp->vCameras.push_back(std::pair <AffCamera*, int > (CPair->master, bK) );
+
+                    bool found = false;
                     for(size_t cK=aK+1; cK < mNbPair; ++cK)
                     {
                         CameraPair* CPair2 = vCamPair[cK];
 
-                        if ((CPair2->master->filename) == (CPair->master->filename))
+                        if ((CPair2->master->filename) == (CPair->slave->filename))
                         {
                             for(size_t dK=0; dK < CPair2->master->vPtImg.size() ; ++dK)
                             {
                                 if (pt == CPair2->master->vPtImg[dK])
                                 {
                                     std::cout << "multiple point found" << std::endl;
+
+                                    tp->vCameras.push_back(std::pair <AffCamera*, int > (CPair2->master, dK) );
+
+                                    CPair2->master->vIdx[dK] = vObs.size() +1;
+
+                                    found = true;
                                 }
                             }
                         }
-                        else if ((CPair2->slave->filename) == (CPair->master->filename))
+                        else if ((CPair2->slave->filename) == (CPair->slave->filename))
                         {
                             for(size_t dK=0; dK < CPair2->slave->vPtImg.size() ; ++dK)
                             {
                                 if (pt == CPair2->slave->vPtImg[dK])
                                 {
                                     std::cout << "multiple point found" << std::endl;
+
+                                    tp->vCameras.push_back(std::pair <AffCamera*, int > (CPair2->slave, dK) );
+
+                                    CPair2->slave->vIdx[dK] = vObs.size() +1;
+
+                                    found = true;
                                 }
                             }
                         }
+                    }
+
+                    if (found)
+                    {
+                        vObs.push_back(tp);
+
+                        CPair->master->vIdx[bK] = vObs.size();
                     }
                 }
 
                 for(size_t bK=0; bK < CPair->slave->vPtImg.size() ; ++bK)
                 {
                     Pt2dr pt = CPair->slave->vPtImg[bK];
+
+                    TiePoint* tp = vObs[nbObs + bK];
+
+                    bool found = false;
 
                     for(size_t cK=aK+1; cK < mNbPair; ++cK)
                     {
@@ -308,6 +393,12 @@ public:
                                 if (pt == CPair2->master->vPtImg[dK])
                                 {
                                     std::cout << "multiple point found" << std::endl;
+
+                                    tp->vCameras.push_back(std::pair <AffCamera*, int > (CPair2->master, dK) );
+
+                                    CPair2->master->vIdx[dK] = vObs.size() +1;
+
+                                    found = true;
                                 }
                             }
                         }
@@ -318,11 +409,38 @@ public:
                                 if (pt == CPair2->slave->vPtImg[dK])
                                 {
                                     std::cout << "multiple point found" << std::endl;
+
+                                    tp->vCameras.push_back(std::pair <AffCamera*, int > (CPair2->slave, dK) );
+
+                                    CPair2->slave->vIdx[dK] = vObs.size() +1;
+
+                                    found = true;
                                 }
                             }
                         }
                     }
+
+                    if (found)
+                    {
+                        vObs.push_back(tp);
+
+                        CPair->slave->vIdx[bK] = vObs.size();
+                    }
                 }
+            }
+        }
+        else
+        {
+            CameraPair *CamPair = vCamPair[0];
+
+            for (size_t aK=0; aK < CamPair->master->vPtImg.size();++aK)
+            {
+                TiePoint* tp = new TiePoint();
+
+                tp->vCameras.push_back(std::pair <AffCamera*, int > (CamPair->master, aK) );
+                tp->vCameras.push_back(std::pair <AffCamera*, int > (CamPair->slave, aK) );
+
+                vObs.push_back(tp);
             }
         }
     }
@@ -567,7 +685,7 @@ public:
             {
                 Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
                 Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
-                double const Z = vZ(aK)[i];
+                double const Z = vZ(aK)[i]; //todo: a remplacer
 
                 ElMatrix<double> obs(numUnk,1,0.);
                 //a remplir avec derivees partielles ...
@@ -676,7 +794,7 @@ public:
                 //TODO: lien entre les point de liaisons et les points 3D
             for(size_t i=0;i<master(aK)->vPtImg.size();++i)
             {
-                vZ(aK)[i] += sol(0,6*mNbPair+i);
+                vZ(aK)[i] += sol(0,6*mNbPair+i); //todo: a remplacer
                 std::cout << vZ(aK)[i] << std::endl;
             }
         }
@@ -712,7 +830,7 @@ public:
                 //std::cout << "i = "<<i<<std::endl;
                 Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
                 Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
-                double const Z = vZ(aK)[i];
+                double const Z = vZ(aK)[i]; //todo: a remplacer
 
                 // ecart constate
                 Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
@@ -826,10 +944,10 @@ public:
 
         // Z update
             //TODO points triples...
-            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
+           /* for(size_t i=0;i<master(aK)->vPtImg.size();++i)
             {
                 vZ(aK)[i] = vCamPair[aK]->getZ(master(aK)->vPtImg[i],slave(aK)->vPtImg[i]);
-            }
+            }*/
         }
     }
 
@@ -861,7 +979,7 @@ public:
                 //std::cout << "i = "<<i<<std::endl;
                 Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
                 Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
-                double const Z = vZ(aK)[i];
+                double const Z = vZ(aK)[i]; //todo: a remplacer
 
                 // ecart constate
                 Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
@@ -1026,7 +1144,7 @@ public:
                 std::cout << "i = "<<i<<std::endl;
                 Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
                 Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
-                double const Z = vZ(aK)[i];
+                double const Z = vZ(aK)[i]; //todo: a remplacer
 
                 // ecart constate
                 Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
@@ -1070,7 +1188,7 @@ public:
                 for(size_t i=0;i<cpt;++i)
                 {
                     _N(2+i,2*cpt+2)=1;
-                    altiMoyenne += vZ(aK)[i];
+                    altiMoyenne += vZ(aK)[i]; //todo: a remplacer
                 }
                 _Y(0,2*cpt+2) = zMoy-altiMoyenne/cpt;
             }
@@ -1109,6 +1227,57 @@ int RefineModel_main(int argc, char **argv)
         std::cout <<"iter="<<iter<<std::endl;
         ok = model.computeObservationMatrix();
     }
+
+    return EXIT_SUCCESS;
+}
+
+int AddAffinity_main(int argc, char **argv)
+{
+    std::string aNameFile; // tie-points file
+    bool addNoise = false;
+
+    ElInitArgMain
+    (
+         argc, argv,
+         LArgMain() << EAMC(aNameFile,"tie-points file"),
+         LArgMain() << EAM(addNoise, "Noise", true, "Add noise (def=false)" )
+    );
+
+    std::vector <DigeoPoint> aList;
+    DigeoPoint::readDigeoFile(aNameFile, true, aList);
+    //TODO: handle versions
+
+    std::cout << "pts nb: " << aList.size() << endl;
+
+    double A0, A1, A2, B0, B1, B2;
+    A0 = 0.1f;
+    A1 = 0.999999985;
+    A2 = -0.000174533;
+    B0 = 0.05;
+    B1 = 0.000174533;
+    B2 = 0.999999985;
+
+    for (size_t aK = 0 ; aK< aList.size(); aK++)
+    {
+        DigeoPoint pt = aList[aK];
+
+        //std::cout << "pt avt " << pt.x << " " << pt.y << std::endl;
+        Pt2dr ptt(A0 + A1 * pt.x + A2 * pt.y, B0 + B1 * pt.x + B2 * pt.y);
+
+        if (addNoise)
+        {
+            Pt2dr aNoise(NRrandC(),NRrandC());
+            ptt += aNoise;
+        }
+
+        //std::cout << "pt apr " << ptt.x << " " << ptt.y << endl;
+
+        aList[aK].x = ptt.x;
+        aList[aK].y = ptt.y;
+    }
+
+    std::string aOut = StdPrefixGen(aNameFile)+ "_transf.dat";
+    DigeoPoint::writeDigeoFile(aOut, aList, 0, true);
 
     return EXIT_SUCCESS;
 }
