@@ -49,7 +49,8 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    mAppli     (anAppli),
    mPrm       (anAppli->Param()),
    mIma       (anIma),
-   mStdN      (cElNuage3DMaille::FromFileIm(mAppli->NameFileInput(anIma,".xml"))),
+   mStdN      (cElNuage3DMaille::FromFileIm(mAppli->NameFileInput(true,anIma,".xml"))),
+   mResol     (mStdN->ResolSolGlob()),
    mMasqN     (mStdN->ImDef()),
    mTMasqN    (mMasqN),
    mImProf    (mStdN->ImProf()),
@@ -80,6 +81,7 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
 // std::cout << "AAAAAAAAAAAAAAAAAAaa\n"; getchar();
    // mImCptr  => Non perti,0nent en mode envlop, a voir si reactiver en mode epi
    // Im2D_U_INT1::FromFileStd(mAppli->NameFileInput(anIma,"CptRed.tif"))),
+
 
    bool doComputeIncid = mAppli->Param().ComputeIncid().Val();
    if (doComputeIncid)
@@ -138,8 +140,8 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
        Im2D_REAL4 aNoCompEnvInf(mSz.x,mSz.y);
        if (mAppli->Param().ModeMerge() == eMMC_Envlop)
        {
-           std::string aNameEnvSup = mAppli->NameFileInput(mIma,"_Prof.tif","Max");
-           std::string aNameEnvInf = mAppli->NameFileInput(mIma,"_Prof.tif","Min");
+           std::string aNameEnvSup = mAppli->NameFileInput(true,mIma,"_Prof.tif","Max");
+           std::string aNameEnvInf = mAppli->NameFileInput(true,mIma,"_Prof.tif","Min");
            ELISE_COPY (aNoCompEnvSup.all_pts(),Tiff_Im(aNameEnvSup.c_str()).in(0),aNoCompEnvSup.out());
            ELISE_COPY (aNoCompEnvInf.all_pts(),Tiff_Im(aNameEnvInf.c_str()).in(0),aNoCompEnvInf.out());
              
@@ -259,6 +261,7 @@ int cASAMG::NbTot() const {return mNbTot;}
 bool  cASAMG::IsImageMAP() const {return mIsMAP;}
 Pt2di cASAMG::Sz() const {return mSz;}
 Video_Win *  cASAMG::TheWinIm() const {return mAppli->TheWinIm(this);}
+double cASAMG::Resol() const {return mResol;}
 
 
 
@@ -304,11 +307,47 @@ const cOneSolImageSec &  cASAMG::SolOfCostPerIm(double aCostPerIm)
 void  cASAMG::ExportMiseAuPoint()
 {
     if (! IsSelected()) return;
+
+    // On genere les export a sous resol (surtout pour visualisation tempo)
     cXML_ParamNuage3DMaille aParam = mStdN->Params();
 
-    std::string aNameMasq = mAppli->NameFileInput(mIma,"_Masq.tif","Test");
-    std::string aNameLab = mAppli->NameFileInput(mIma,"_Label.tif","Test");
-    std::string aNameXML = mAppli->NameFileInput(mIma,".xml","Test");
+    Fonc_Num  aFOK = NFoncDilatCond
+                     (
+                         mImLabFin.in(eLFNoAff) == eLFMaster,
+                         mImLabFin.in(eLFNoAff) != eLFNoAff,
+                         true,
+                         3
+                      );
+   aFOK = NFoncDilatCond
+                     (
+                         aFOK,
+                         mImLabFin.in(eLFNoAff) != eLFNoAff,
+                         false,
+                         2
+                      );
+
+
+
+
+    ELISE_COPY
+    (
+        select(mImLabFin.all_pts(),aFOK &&  mImLabFin.in()==eLFMasked),
+        eLFBorder,
+        mImLabFin.out()
+    );
+    Im2D_U_INT1  aMasqBrd(mSz.x,mSz.y);
+    TIm2D<U_INT1,INT>  aTMB(aMasqBrd);
+    ELISE_COPY
+    (
+         aMasqBrd.all_pts(),
+         (mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder),
+         aMasqBrd.out()
+    );
+
+    std::string aNameMasq = mAppli->NameFileInput(true,mIma,"_Masq.tif","Test");
+    std::string aNameLab = mAppli->NameFileInput(true,mIma,"_Label.tif","Test");
+    std::string aNameXML = mAppli->NameFileInput(true,mIma,".xml","Test");
+    // Tiff_Im::Create8BFromFonc(aNameMasq,mImLabFin.sz(),(mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder));
     Tiff_Im::Create8BFromFonc(aNameMasq,mImLabFin.sz(),mImLabFin.in()==eLFMaster);
     Tiff_Im::Create8BFromFonc(aNameLab,mImLabFin.sz(),mImLabFin.in());
 
@@ -318,6 +357,54 @@ void  cASAMG::ExportMiseAuPoint()
     std::string aCom =  MM3dBinFile("Nuage2Ply") + "  " + aNameXML  ;
     System(aCom);
 
+    
+    // On genere les export a pleine resolution,
+    
+    std::string aDirExp = mAppli->Dir()+TheRaffineQuickMac(mIma->mNameIm);
+    // ELISE_fp::MkDirSvp(aDirExp);
+
+    std::string aNameXMLFull = mAppli->NameFileInput(false,mIma,".xml","Depth");
+    std::string aNameMasqFull = mAppli->NameFileInput(false,mIma,".tif","Masq");
+    Tiff_Im aFMasqFull(aNameMasqFull.c_str());
+    Pt2di aSzFull = aFMasqFull.sz();
+    cXML_ParamNuage3DMaille aNuageFull = StdGetFromSI(aNameXMLFull,XML_ParamNuage3DMaille);
+    double aFullRes = aNuageFull.SsResolRef().Val();
+    double aDSRes   = mStdN->Params().SsResolRef().Val();
+
+    double aRR = aDSRes / aFullRes;
+
+    
+    Im2D_Bits<1> aMasqBrdFull(aSzFull.x,aSzFull.y);
+    TIm2DBits<1> aTMBF(aMasqBrdFull);
+    Pt2di aP;
+    for (aP.x=0 ; aP.x<aSzFull.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSzFull.y ; aP.y++)
+        {
+             Pt2dr aPR = Pt2dr(aP) / aRR;
+             aTMBF.oset(aP,aTMB.getr(aPR,0)>=0.5);
+        }
+    }
+    
+    std::cout << "RRRR " << aRR <<  " " << aNameMasqFull << " " << aSzFull<<  "\n";
+    std::string aNameNewM =  aDirExp + "MasqTerrain.tif";
+
+    Tiff_Im   aNewMasq
+              (
+                  aNameNewM.c_str(),
+                  aSzFull,
+                  GenIm::bits1_msbf,
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::BlackIsZero
+              );
+     ELISE_COPY(aNewMasq.all_pts(),aMasqBrdFull.in() && aFMasqFull.in() , aNewMasq.out());
+
+
+     ELISE_fp::CpFile
+     (
+         mAppli->NameFileInput(false,mIma,".tif","Depth"),
+         aDirExp+"MNT0Terrain.tif"
+     );
 }
 
 

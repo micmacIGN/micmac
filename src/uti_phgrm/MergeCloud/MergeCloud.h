@@ -57,7 +57,8 @@ typedef enum
 {
   eLFNoAff,
   eLFMaster,
-  eLFMasked
+  eLFMasked,
+  eLFBorder
   // Warn si on change le nb de label : stocke pour l'instant sur des 2 bits
   //  eLFTmp
 } eLabelFinaux;
@@ -155,6 +156,7 @@ class cASAMG
 
       Video_Win *   TheWinIm() const;
       Pt2di         Sz() const;
+      double Resol() const;
 
    private :
      void MakeVec3D(std::vector<Pt3dr> & aVPts,const cResumNuage &) const;
@@ -189,6 +191,7 @@ class cASAMG
      const cParamFusionNuage & mPrm;
      cImaMM *             mIma;
      cElNuage3DMaille *   mStdN;
+     double               mResol;
      Im2D_Bits<1>         mMasqN;
      TIm2DBits<1>         mTMasqN;
      Im2DGen *            mImProf;
@@ -262,8 +265,11 @@ class cStatNiv
 class cAppliMergeCloud : public cAppliWithSetImage
 {
     public :
-       std::string NameFileInput(const std::string & aNameIm,const std::string & aPost,const std::string & aPref="");
-       std::string NameFileInput(cImaMM *,const std::string & aPost,const std::string & aPref="");
+       std::string NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPref="");
+       std::string NameFileInput(bool DownScale,cImaMM *,const std::string & aPost,const std::string & aPref="");
+
+
+
        cAppliMergeCloud
        (
             int argc,

@@ -79,8 +79,8 @@ public:
 
     static  void launchKernel(){}
 
-    template< class T, template< class O > class U >
-    static  void addKernelArg( U<T> &arg);
+    template< class T, template< class O, class G > class U >
+    static  void addKernelArg( U<T,context> &arg);
 
     template<class T>
     static  void addKernelArg(T &arg){}
@@ -302,8 +302,10 @@ void CGpGpuContext<openClContext>::createKernel(string fileName,string kernelNam
     char buffer[1024];
     char* path_end;
 
+#ifndef _WIN32
     if (readlink ("/proc/self/exe", buffer, sizeof(buffer)) <= 0)
         return ;
+#endif
 
     path_end = strrchr (buffer, '/');
     if (path_end == NULL)
@@ -418,8 +420,8 @@ void CGpGpuContext<cudaContext>::addKernelArg(T &arg)
 }
 
 template <class context>
-template <class T , template<class O> class U>
-void CGpGpuContext<context>::addKernelArg(U<T> &arg)
+template <class T , template< class O, class G > class U>
+void CGpGpuContext<context>::addKernelArg(U <T,context > &arg)
 {
     addKernelArgSDK(arg);
 

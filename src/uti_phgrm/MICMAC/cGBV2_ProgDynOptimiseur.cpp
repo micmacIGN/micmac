@@ -133,6 +133,9 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
     IGpuOpt._preFinalCost1D.ReallocIf(IGpuOpt._poInitCost.Size());
     IGpuOpt._FinalDefCor.ReallocIf(IGpuOpt._poInitCost._dZ.GetDimension());
     IGpuOpt._poInitCost.ReallocData();
+#ifdef CUDA_DEFCOR
+    IGpuOpt._poInitCost.fillCostInit(10123);
+#endif
 #endif
 }
 
@@ -477,6 +480,8 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     //GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
     Pt2di aPTer;
 
+    // --> TODO Cette etape peut etre  mise dans la partie cuda
+
     for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
     {
         for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
@@ -527,7 +532,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
     {
         uint    pitStrm = 0;
         uint    lLine   = aVPt->size();
-        short2* index   = d2Opt.s_Index().pData() + d2Opt.param(idBuf)[idLine].y;
+        short3* index   = d2Opt.s_Index().pData() + d2Opt.param(idBuf)[idLine].y;
 
         for (uint aK= 0 ; aK < lLine; aK++)
         {
@@ -656,6 +661,16 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
     IGpuOpt.Prepare(mSz.x,mSz.y,aPenteMax,aNbDir,mCostRegul[0],mCostRegul[1],mCostDefMasked,mCostTransMaskNoMask);
 
+    TIm2DBits<1> aTMask(mLTCur->ImMasqTer());
+
+    Pt2di aPTer;
+    sMatrixCellCost<ushort> &mCellCost = IGpuOpt._poInitCost;
+
+    for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
+        for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
+            if(aTMask.get(aPTer))
+                mCellCost.setDefCor(make_uint2(aPTer.x,aPTer.y),mCostDefMasked);
+
     int     aKDir       = 0;
     int     aKPreDir    = 0;
     bool    idPreCo     = false;
@@ -739,7 +754,8 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
             uint2 ptTer     = make_uint2(aK,line);
 
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[ptd];
-            short2 ptZ      = IGpuOpt._poInitCost.PtZ(ptTer);
+            short3  pDe      = IGpuOpt._poInitCost.PtZ(ptTer);
+            short2 ptZ      = make_short2(pDe.x,pDe.y);
             uint* finalCost = IGpuOpt._preFinalCost1D.pData() + IGpuOpt._poInitCost.Pit(ptTer) - ptZ.x ;
 
             for ( int aPx = ptZ.x ; aPx < ptZ.y ; aPx++)
@@ -886,14 +902,14 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     {
         Pt2di aPTer;
         #ifdef CUDA_DEFCOR
-        float qualiMAx = 0;
-        float qualiMin = 1e9;
+//        float qualiMAx = 0;
+//        float qualiMin = 1e9;
 
-        /* officiel COMBLE TROU
+        /* officiel COMBLE TROU*/
         mMaskCalcDone = true;
         mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
         TIm2DBits<1>    aTMask(mMaskCalc);
-        */
+
         #endif
 
         for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
@@ -922,37 +938,45 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                 }
 
 #ifdef CUDA_DEFCOR
+/* CUDA_DEFCOR Officiel*/
+                //                {
+                tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
+                bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
+                aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
+                //                }
 
-                /* CUDA_DEFCOR Officiel
+                int aCorI = CostI2CorExport(aCostMin);
+                if(!mLTCur->IsInMasq(aPTer))
                 {
-                    tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
-                    bool NoVal  = defCOf <  aCostMin;
-                    aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
+                    aCorI = 0;
                 }
-                */
 
-                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
+                aImCor.SetI(aPTer,aCorI);
 
-                float defCOf        = IGpuOpt._FinalDefCor[ui2Ter];
-                float costMinf      = aCostMin;
-                float qualityCorre  = defCOf / costMinf * 10000.0f;
+//                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
 
-                IGpuOpt._FinalDefCor[ui2Ter] = qualityCorre;
-                qualiMAx = max(qualiMAx,qualityCorre);
-                qualiMin = max(qualiMin,qualityCorre);
+//                float costMinf      = aCostMin;
+//                float qualityCorre  = defCOf / costMinf * 10000.0f;
+
+//                IGpuOpt._FinalDefCor[ui2Ter] = qualityCorre;
+//                qualiMAx = max(qualiMAx,qualityCorre);
+//                qualiMin = max(qualiMin,qualityCorre);
 
 #endif
-                mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+
+                    mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+
             }
         }
 
 #ifdef CUDA_DEFCOR
 
-        /* officiel COMBLE TROU
-        if (mHasMask)
-        CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
-        */
+        /* officiel COMBLE TROU */
 
+        //if (mHasMask)
+        CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
+
+/*
         Rect zone(0,0,mSz.x,mSz.y);
         uint2   pTer;
         uint    maxITSPI = 32;
@@ -977,7 +1001,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     int zMoyen  = 0;
                     int pond    = 0;
 
-                    while((!findZ || iteSpi < maxITSPI) && (iteSpi < 32) )
+                    while((!findZ || iteSpi < maxITSPI) && (iteSpi < maxITSPI) )
                     {
                         bool pair   = (iteSpi % 2) == 0;
                         int vec     = (float)iteSpi/2.f + 0.5f;
@@ -1045,7 +1069,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
             }
 
         }
-
+*/
  #endif
     }
 //nvtxRangePop();

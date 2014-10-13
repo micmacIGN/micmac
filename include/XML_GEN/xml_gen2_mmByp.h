@@ -43,6 +43,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur * aICNM);
 
+const std::string  DirFusMMInit();
+const std::string TheDIRMergTiepForEPI();
+const std::string TheRaffineQuickMac();
+const std::string TheRaffineQuickMac(const std::string &);
 
 
 class cImaMM;
@@ -216,6 +220,7 @@ class cAppliWithSetImage
       cSetName *   mSetMasters;
       bool mCalPerIm;
       bool mModeHelp;
+      std::string  mMasq3D;
 
       static const std::string TheMMByPairNameCAWSI;
 

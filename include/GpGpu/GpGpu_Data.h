@@ -63,7 +63,7 @@ protected:
     /// \brief      Init le pointeur des donnees
     void            SetPData(T *p){ _data = p;}
 
-    virtual bool    abDealloc(){ return false;}
+    virtual bool    abDealloc(){ return false;} // TODO pour le rendre completement virtuelle il faut reimplementer les destructeurs...
 
     virtual bool    abMalloc(){ return false;}
 
@@ -135,6 +135,9 @@ TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
 TPL_T CData<T>::CData():
     _memoryOc(0),
     _data(NULL),
+#ifdef OPENCL_ENABLED
+    _clMem(NULL),
+#endif
     _sizeofMalloc(0)
 {
     CGObject::ClassTemplate(CGObject::StringClass<T>(pData()));
@@ -159,7 +162,13 @@ TPL_T bool CData<T>::Dealloc()
     bool op = false;
     SubMemoryOc(GetSizeofMalloc());
     SetSizeofMalloc(0);
+#ifdef OPENCL_ENABLED
+    if (!isNULL() || _clMem!=NULL) op = abDealloc();
+    _clMem = NULL;
+#else
     if (!isNULL()) op = abDealloc();
+
+#endif
     dataNULL();
     return op;
 }
@@ -579,6 +588,7 @@ private:
 };
 
 #if OPENCL_ENABLED
+
 template<class T>
 class DecoratorDeviceData<T,openClContext>
 {
@@ -613,7 +623,14 @@ protected:
 
     DecoratorDeviceData(CData<T> *dataDevice):_dD(dataDevice){}
 
-    bool    dabDealloc(){ return clReleaseMemObject(_dD->clMem()) == CL_SUCCESS;}
+    bool    dabDealloc(){
+        cl_int errorCode = clReleaseMemObject(_dD->clMem());
+
+        CGpGpuContext<openClContext>::errorOpencl(errorCode,"Dealloc buffer");
+
+        return  errorCode == CL_SUCCESS;
+
+    }
 
     bool    dabMalloc()
     {
@@ -630,20 +647,21 @@ private:
 
     CData<T>* _dD;
 };
+
 #endif
 
 /// \class CuDeviceData2D
 /// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
 ///
 // TODO mettre CData2D<T> dans DecoratorDeviceData<T,cudaContext>
-template <class T>
-class CuDeviceData2D : public CData2D<T>, public DecoratorDeviceData<T,cudaContext>
+template <class T, class gpsdk = cudaContext >
+class CuDeviceData2D : public CData2D<T>, public DecoratorDeviceData<T,gpsdk>
 {
 public:
 
-    CuDeviceData2D():DecoratorDeviceData<T,cudaContext>((CData2D<T>*)this){}
+    CuDeviceData2D():DecoratorDeviceData<T,gpsdk>((CData2D<T>*)this){}
 
-    bool        Memset(int val){return DecoratorDeviceData<T,cudaContext>::Memset(val);}
+    bool        Memset(int val){return DecoratorDeviceData<T,gpsdk>::Memset(val);}
 
 protected:
 
@@ -652,39 +670,14 @@ protected:
         struct2D::SetMaxSize(0);
         struct2D::SetMaxDimension();
 
-        return DecoratorDeviceData<T,cudaContext>::dabDealloc();
+        return DecoratorDeviceData<T,gpsdk>::dabDealloc();
 
     }
 
-    bool        abMalloc(){return DecoratorDeviceData<T,cudaContext>::dabMalloc();}
+    bool        abMalloc(){return DecoratorDeviceData<T,gpsdk>::dabMalloc();}
 
 };
 
-#if OPENCL_ENABLED
-template <class T>
-class CuDeviceData2DOPENCL : public CData2D<T>, public DecoratorDeviceData<T,openClContext>
-{
-public:
-
-    CuDeviceData2DOPENCL():DecoratorDeviceData<T,openClContext>((CData2D<T>*)this){}
-
-    bool        Memset(int val){return DecoratorDeviceData<T,openClContext>::Memset(val);}
-
-protected:
-
-    bool        abDealloc(){
-
-        struct2D::SetMaxSize(0);
-        struct2D::SetMaxDimension();
-
-        return DecoratorDeviceData<T,openClContext>::dabDealloc();
-
-    }
-
-    bool        abMalloc(){return DecoratorDeviceData<T,openClContext>::dabMalloc();}
-
-};
-#endif
 
 /// \class CuDeviceData3D
 /// \brief Structure 3d de données instanciées dans la mémoire globale vidéo

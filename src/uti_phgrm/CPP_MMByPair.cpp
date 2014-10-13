@@ -89,7 +89,6 @@ class cAppliMMByPair : public cAppliWithSetImage
 
 
       void DoMDTGround();
-      void DoMDTRIE();
       void DoMDTRIE(bool TiePM0);
       void DoMDT();
 
@@ -135,7 +134,6 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mDoTiePM0;      // Do model initial wih MMTieP ..
       int          mTimes;
       bool         mDebugCreatE;
-      std::string  mMasq3D;
 };
 
 /*****************************************************************/
@@ -648,6 +646,10 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero)
       {
          aCom = aCom + " CalPerIm=true ";
       }
+      if (EAMIsInit(&mMasq3D)) 
+      {
+           aCom = aCom  + " Masq3D=" + mMasq3D;
+      }
       if (ExApero)
          System(aCom);
 
@@ -1056,12 +1058,21 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      }
      else if (mType==eStatue)
      {
-        //mStrQualOr = "Low";
         mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
         mAddMMImSec = true;
         mHasVeget = false;
         mSkyBackGround = true;
         mRIE2Do = true;
+        mZoomF = 4;
+     }
+     else if (mType==eQuickMac)
+     {
+        mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
+        mAddMMImSec = true;
+        mHasVeget = false;
+        mSkyBackGround = true;
+        mRIE2Do = false;
+        mZoom0 = 4;
         mZoomF = 4;
         mDoTiePM0 = true;
      }
@@ -1131,7 +1142,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
 
       if (mModeHelp)
           StdEXIT(0);
-      if (! EAMIsInit(&mZoom0))
+      if ((! EAMIsInit(&mZoom0))  && (mType!=eQuickMac))
          mZoom0 =  DeZoomOfSize(7e4);
       VerifAWSI();
 
@@ -1558,7 +1569,14 @@ void cAppliMMByPair::DoFusion()
 
 void cAppliMMByPair::DoMDT()
 {
-  if (mRIE2Do)  DoMDTRIE();
+  if (mRIE2Do) 
+  {
+      DoMDTRIE(false);
+  }
+  if (mDoTiePM0) 
+  {
+     DoMDTRIE(true);
+  }
   if (mType==eGround)  DoMDTGround();
 }
 
@@ -1581,15 +1599,6 @@ void cAppliMMByPair::DoMDTRIE(bool ForTieP)
              if (ForTieP) aCom = aCom + " +PrefixDIR=" + TheDIRMergTiepForEPI();
              System(aCom);
    }
-}
-void cAppliMMByPair::DoMDTRIE()
-{
-    DoMDTRIE(false);
-
-    if (mDoTiePM0) 
-    {
-       DoMDTRIE(true);
-    }
 }
 
 void cAppliMMByPair::DoMDTGround()

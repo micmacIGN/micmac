@@ -1,6 +1,7 @@
 #ifndef GPGPU_DEFINES_H
 #define GPGPU_DEFINES_H
 
+#include "GpGpu_BuildOptions.h"
 typedef unsigned char pixel;
 
 #define NOPAGLOCKMEM false

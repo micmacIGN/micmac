@@ -14,7 +14,7 @@ template <class T>
 struct sMatrixCellCost
 {
     CuHostData3D<T>         _CostInit1D;
-    CuHostData3D<short2>    _ptZ;
+    CuHostData3D<short3>    _ptZ;
     CuHostData3D<ushort>    _dZ;
     CuHostData3D<uint>      _pit;
     uint                    _size;
@@ -35,10 +35,12 @@ struct sMatrixCellCost
     void                    ReallocData()
     {
         _CostInit1D.ReallocIf(_size);
-#ifdef CUDA_DEFCOR
-        _CostInit1D.Fill(60000);
-#endif
 
+    }
+
+    void                    fillCostInit(ushort val)
+    {
+        _CostInit1D.Fill(val);
     }
 
     void                    Dealloc()
@@ -53,7 +55,7 @@ struct sMatrixCellCost
     void PointIncre(uint2 pt,short2 ptZ)
     {
         ushort dZ   = abs(count(ptZ));
-        _ptZ[pt]    = ptZ;
+        _ptZ[pt]    = make_short3(ptZ.x,ptZ.y,0);
         _dZ[pt]     = dZ;
 
         // NAPPEMAX
@@ -62,6 +64,11 @@ struct sMatrixCellCost
 
         _pit[pt]    = _size;
         _size      += dZ;
+    }
+
+    void                    setDefCor(uint2 pt,short defCor)
+    {
+        _ptZ[pt].z    = defCor;
     }
 
     uint                    Pit(uint2 pt)
@@ -74,12 +81,12 @@ struct sMatrixCellCost
         return _pit[toUi2(pt)];
     }
 
-    short2                  PtZ(uint2 pt)
+    short3                  PtZ(uint2 pt)
     {
         return _ptZ[pt];
     }
 
-    short2                  PtZ(Pt2di pt)
+    short3                  PtZ(Pt2di pt)
     {
         return _ptZ[toUi2(pt)];
     }
