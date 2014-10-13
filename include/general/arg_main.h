@@ -672,6 +672,7 @@ int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
 
 int RefineModel_main(int argc, char **argv);
+int AddAffinity_main(int argc, char **argv);
 
 int Sake_main(int argc,char ** argv);
 
