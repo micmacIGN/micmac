@@ -154,7 +154,7 @@ void InvY(std::list<Appar23> &,Pt2dr aSzIm,bool InvX=false);
 
 // extern bool BugSolveCstr;
 // extern bool BugCstr;
-extern bool BugFE; // pour debuguer les pb de non inversabilite des dist fortes
+extern bool BugFE; // pour debuguer les pb de non inversibilite des dist fortes
 extern bool BugAZL; // pour debuguer les pb d'AZL
 extern bool BugGL; // pour debuguer les pb de Guimbal Lock
 
@@ -193,7 +193,7 @@ class cNupletPtsHomologues
         void AssertD2() const;
         std::vector<Pt2dr> mPts;
         REAL  mPds;
-  // Gestion super ba-niveau avec des flag de bits pour etre compatible avec la structure physique faite
+  // Gestion super bas-niveau avec des flag de bits pour etre compatible avec la structure physique faite
   // quand on ne contenait que des points ....
         int   mFlagDr;
         void AssertIsValideFlagDr(int aK) const;
@@ -234,7 +234,7 @@ enum eModeleCamera
 class cResolvAmbiBase
 {
      public :
-     // Les orientation sont des orientations tq R.ImAff(0) est le centre optique  , Cam->Monde
+     // Les orientations sont des orientations tq R.ImAff(0) est le centre optique, Cam->Monde
         cResolvAmbiBase
     (
          const ElRotation3D &  aR0,   // Orientation connue completement
@@ -258,7 +258,7 @@ class cResolvAmbiBase
 std::vector<Pt3dr> * StdNuage3DFromFile(const std::string &);
 
 
-// Representation des points homologues commes images, utiles lorsqu'ils
+// Representation des points homologues comme images, utiles lorsqu'ils
 // sont denses et + ou - regulierement espaces avec une image maitresse
 
 class cElImPackHom
@@ -338,7 +338,7 @@ class ElPackHomologue : public cPackNupletsHom
          tCont::iterator  NearestIter(Pt2dr aP,bool P1 = true);
 
 
-        // utilise pour parametrer l'ajustement  dans FitDistPolynomiale
+        // utilise pour parametrer l'ajustement dans FitDistPolynomiale
         // Par defaut resoud aux moindre L1, l'aspect virtuel permet
         // de definir une classe ayant exactement le meme
         // comportement
@@ -1408,7 +1408,7 @@ class cCorrRefracAPost
 };
 
 
-//  Classe qui permet de manipuler de manière via une interfae uniforme un image,
+//  Classe qui permet de manipuler de manière via une interface uniforme une image,
 // ou un nuage de point
 class cCapture3D
 {
@@ -1597,10 +1597,10 @@ class ElCamera : public cCapture3D
           REAL EcProj ( const ElSTDNS list<Appar23> & P23);
 
           // Differentielle de l'application globale
-                // par a un point
+                // par rapport a un point
           void  DiffR3F2(ElMatrix<REAL> &,Pt3dr) const;
           ElMatrix<REAL>  DiffR3F2(Pt3dr) const;
-                // par aux params
+                // par rapport aux params
           void  DiffR3F2Param(ElMatrix<REAL> &,Pt3dr) const;
           ElMatrix<REAL>  DiffR3F2Param(Pt3dr) const;
 
@@ -1629,7 +1629,7 @@ class ElCamera : public cCapture3D
       void  SetRayonUtile(double aRay,int aNbDisc);
 
         // La Box utile tient compte d'une eventuelle  affinite
-        // elle peut tres bien avoir des coord negative
+        // elle peut tres bien avoir des coord negatives
            Box2dr BoxUtile() const;
 
           void HeritComplAndSz(const ElCamera &);
@@ -1702,7 +1702,7 @@ class ElCamera : public cCapture3D
          void RestoreScaneOri(const tOrIntIma &);
     protected :
 
-         // Ces deux similitude permettent d'implanter le crop-scale-rotate
+         // Ces deux similitudes permettent d'implanter le crop-scale-rotate
          // peut-etre a remplacer un jour par une ElAffin2D; sans changer
          // l'interface
          //
@@ -1743,9 +1743,9 @@ class ElCamera : public cCapture3D
      // qui approxime la partie non lineaire de la distorsion, si !=0 elle
      // est exprimee dans le sens M->C , 0 signifie identite
      //
-     // Elle est utilisee notamment parce que les distorsion "compliquee"
-     // peuvent etre exprimee comme la composition d'une distorsion
-     // grille a faible distorsition de la  distorsion de "pre-conditionnement"
+     // Elle est utilisee notamment parce que les distorsions "compliquees"
+     // peuvent etre exprimees comme la composition d'une distorsion
+     // grille a faible distorsion de la distorsion de "pre-conditionnement"
    protected :
      bool             mDIsDirect;
    public :
@@ -3136,7 +3136,7 @@ class cDistorBilin :   public ElDistortion22_Gen
           void GetDebInterval(int & aX0,const int & aSzGrd,const double & aCoordGr) const;
           //  tel que aCoordGr soit le barry de (aX0,aX0+1) avec (aPdsX0,1-aPdsX0)  et 0<= aX0 < aSzGr, aX0 entier
           void GetDebIntervalAndPds(int & aX0,double & aPdsX0,const int & aSzGrd,const double & aCoordGr) const;
-          //  A partir d'un points en coordonnees grille retourne le coin bas-gauche et le poids 
+          //  A partir d'un points en coordonnees grille retourne le coin bas-gauche et le poids
           void GetParamCorner(Pt2di & aCornerBG,Pt2dr & aPdsBG,const Pt2dr & aCoorGr) const;
           void InitEtatFromCorner(const Pt2dr & aCoorGr) const;
 
