@@ -114,16 +114,13 @@ TPL_T void CData<T>::MallocInfo()
 
 TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
 {
-    if (err != cudaSuccess)
+    if (!CGpGpuContext<cudaContext>::errorDump(err,fonctionName))
     {
-        std::cout << "--------------------------------------------------------------------------------------\n";
-        std::cout << "Erreur Cuda         : " <<  fonctionName  << "() | Object " + CGObject::Id() << "\n";        
+        std::cout << "Object " + CGObject::Id() << "\n";
         OutputInfo();
         std::cout << "Pointeur de donnees : " << CData<T>::pData()  << "\n";
         std::cout << "Memoire allouee     : " << _memoryOc / pow(2.0,20) << " Mo | " << _memoryOc / pow(2.0,10) << " ko | " << _memoryOc  << " octets \n";
         std::cout << "Taille des donnees  : " << CData<T>::GetSizeofMalloc()  / pow(2.0,20) << " Mo | " << CData<T>::GetSizeofMalloc()  / pow(2.0,10) << " ko | " << CData<T>::GetSizeofMalloc() << " octets \n";
-        checkCudaErrors( err );
-        // TODO ... gerer pour OPENCL....peut à mettre ailleurs
         CGpGpuContext<cudaContext>::OutputInfoGpuMemory();
         std::cout << "--------------------------------------------------------------------------------------\n";
         exit(1);
@@ -626,7 +623,7 @@ protected:
     bool    dabDealloc(){
         cl_int errorCode = clReleaseMemObject(_dD->clMem());
 
-        CGpGpuContext<openClContext>::errorOpencl(errorCode,"Dealloc buffer");
+        CGpGpuContext<openClContext>::errorDump(errorCode,"Dealloc buffer");
 
         return  errorCode == CL_SUCCESS;
 
@@ -638,7 +635,7 @@ protected:
         cl_int errorCode = -1;
         _dD->setClMem(clCreateBuffer(CGpGpuContext<openClContext>::contextOpenCL(),CL_MEM_READ_WRITE,_dD->Sizeof(),NULL,&errorCode));
 
-        CGpGpuContext<openClContext>::errorOpencl(errorCode,"malloc buffer");
+        CGpGpuContext<openClContext>::errorDump(errorCode,"malloc buffer");
 
         return errorCode == CL_SUCCESS;
     }

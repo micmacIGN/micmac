@@ -241,7 +241,7 @@ void connectCellsLine(
 // TODO Passer les parametres en variable constante !!!!!!!!!!!
 
 template<class T> __global__
-void Kernel_OptimisationOneDirection(ushort* g_ICost, short3* g_Index, uint* g_FCost, uint* g_DefCor, uint3* g_RecStrParam, uint penteMax, float zReg,float zRegQuad, ushort costDefMask,ushort costTransDefMask,ushort sizeBuffer)
+void Kernel_OptimisationOneDirection(ushort* g_ICost, short3* g_Index, uint* g_FCost, uint* g_DefCor, uint3* g_RecStrParam, ushort penteMax, float zReg,float zRegQuad, ushort costDefMask,ushort costTransDefMask,ushort sizeBuffer)
 {
 
     extern __shared__ float sharedMemory[];
@@ -323,7 +323,7 @@ void Kernel_OptimisationOneDirection(ushort* g_ICost, short3* g_Index, uint* g_F
 
 extern "C" void Gpu_OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
 {
-    uint    deltaMax         = d2O.penteMax();
+    ushort  deltaMax         = d2O.penteMax();
     float   zReg             = (float)d2O.zReg();
     float   zRegQuad         = d2O.zRegQuad();
     ushort  costDefMask      = d2O.CostDefMasked();
