@@ -46,138 +46,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#define __DEBUG_DIGEO_DOG_INPUT
 #define __DEBUG_DIGEO_NORMALIZE_FLOAT_OCTAVE
 
-bool save_pgm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height )
-{
-	ofstream f( i_filename.c_str(), ios::binary );
-	if ( !f ) return false;
-	f << "P5" << endl;
-	f << i_width << ' ' << i_height << endl;
-	f << 255 << endl;
-	f.write( (const char *)i_image, i_width*i_height );
-	return true;
-}
-
-template <class T>
-bool save_pgm( const string &i_filename, const T *i_image, unsigned int i_width, unsigned int i_height, T i_min, T i_max )
-{
-	unsigned int iPix = i_width*i_height;
-	unsigned char *img = new unsigned char[iPix];
-	unsigned char *itDst = img;
-	const double scale = 255./( (double)i_max-(double)i_min );
-	const double mind = (double)i_min;
-	while ( iPix-- ){
-		int v = (int)( ( (double)i_image[0]-mind )*scale+0.5 );
-		if ( v>255 )
-			v = 255;
-		else if ( v<0 )
-			v = 0;
-		itDst[0] = (unsigned char)v;
-		i_image++; itDst++;
-	}
-	bool res = save_pgm( i_filename, img, i_width, i_height );
-	delete [] img;
-	return res;
-}
-
-template <class T>
-bool save_pgm( const string &i_filename, const T *i_image, unsigned int i_width, unsigned int i_height, double i_scale )
-{
-	unsigned int iPix = i_width*i_height;
-	unsigned char *img = new unsigned char[iPix];
-	unsigned char *itDst = img;
-	while ( iPix-- ){
-		int v = round_ni( (double)i_image[0]*i_scale );
-		if ( v>255 )
-			v = 255;
-		else if ( v<0 )
-			v = 0;
-		itDst[0] = (unsigned char)v;
-		i_image++; itDst++;
-	}
-	bool res = save_pgm( i_filename, img, i_width, i_height );
-	delete [] img;
-	return res;
-}
-
-bool save_ppm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height )
-{
-	ofstream f( i_filename.c_str(), ios::binary );
-	if ( !f ) return false;
-	f << "P6" << endl;
-	f << i_width << ' ' << i_height << endl;
-	f << 255 << endl;
-	f.write( (const char *)i_image, 3*i_width*i_height );
-
-	#ifdef __DEBUG_DIGEO
-		if ( f.bad() ) cerr << "save_ppm: cannot read " << 3*i_width*i_height << " bytes" << endl;
-	#endif
-
-	return true;
-}
-
-bool load_pgm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height )
-{
-	o_image = NULL;
-	o_width = o_height = 0;
-	ifstream f( i_filename.c_str(), ios::binary );
-	if ( !f ) return false;
-	string str;
-	f >> str;
-	if ( str!="P5" ) return false;
-	f >> o_width;
-	f >> o_height;
-	int maxValue;
-	f >> maxValue;
-	f.get();
-	unsigned int nbBytes = o_width*o_height;
-	o_image = new unsigned char[nbBytes];
-	f.read( (char *)o_image, nbBytes );
-	return true;
-}
-
-bool load_ppm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height )
-{
-	o_image = NULL;
-	o_width = o_height = 0;
-	ifstream f( i_filename.c_str(), ios::binary );
-	if ( !f ) return false;
-	string str;
-	f >> str;
-	if ( str!="P6" ) return false;
-	f >> o_width;
-	f >> o_height;
-	int maxValue;
-	f >> maxValue;
-	f.get();
-	unsigned int nbBytes = 3*o_width*o_height;
-	o_image = new unsigned char[nbBytes];
-	f.read( (char *)o_image, nbBytes );
-	return true;
-}
-
-template <class T>
-bool save_ppm( const string &i_filename, const T *i_image, unsigned int i_width, unsigned int i_height, T i_min, T i_max )
-{
-	unsigned int iPix = i_width*i_height;
-	unsigned char *img = new unsigned char[3*iPix];
-	unsigned char *itDst = img;
-	const double scale = 255./( (double)i_max-(double)i_min );
-	const double mind = (double)i_min;
-	while ( iPix-- ){
-		int v = (int)( ( (double)i_image[0]-mind )*scale+0.5 );
-		if ( v>255 )
-			v = 255;
-		else if ( v<0 )
-			v = 0;
-		itDst[0] = itDst[1] = itDst[2] = (unsigned char)v;
-		i_image++; itDst+=3;
-	}
-	bool res = save_ppm( i_filename, img, i_width, i_height );
-	delete [] img;
-	return res;
-}
-
-
 /****************************************/
 /*                                      */
 /*             cTplImInMem              */
@@ -919,7 +787,7 @@ void cImInMem::orientate()
 	}
 	mOrientedPoints.resize( mOrientedPoints.size()-nbSkipped );
 
-	mAppli.times()->stop(DIGEO_TIME_ORIENTATE);
+	mAppli.times()->stop("orientate");
 }
 
 #define atd(dbinx,dbiny,dbint) *(dp + (dbint)*binto + (dbiny)*binyo + (dbinx)*binxo)
@@ -1091,7 +959,7 @@ void cImInMem::describe()
 		}
 	}
 
-	mAppli.times()->stop(DIGEO_TIME_DESCRIBE);
+	mAppli.times()->stop("describe");
 }
 
 static void __inconsistent_nb_channels_msg( const string &i_filename, int i_nbChannels, int i_expectedNbChannels )

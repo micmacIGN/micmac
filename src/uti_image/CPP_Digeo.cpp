@@ -216,36 +216,6 @@ void translate_points( list<DigeoPoint> &io_points, size_t i_nbPoints, const Pt2
 	}
 }
 
-extern bool load_ppm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height );
-extern bool save_ppm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height );
-
-// load i_ppmFilename, a ppm image, plot the last i_nbPoints in the list and save the image
-// add i_v to the coordinates of the i_nbPoints last points of io_points
-bool plot_tile_points( const string &i_ppmFilename, const list<DigeoPoint> &i_points, unsigned int i_nbPoints, double i_scale )
-{
-	unsigned char *image;
-	unsigned int width, height;
-	if ( !load_ppm( i_ppmFilename, image, width, height ) ) return false;
-
-	list<DigeoPoint>::const_reverse_iterator itPoint = i_points.rbegin();
-	while ( i_nbPoints-- ){
-		int x = (int)( ( i_scale*itPoint->x )+0.5 ),
-			 y = (int)( ( i_scale*itPoint->y )+0.5 );
-		#ifdef __DEBUG_DIGEO
-			if ( x<0 || x>=(int)width || y<0 || y>=(int)height ){
-				cerr << "plot_tile_points: point " << x << ',' << y << " out of range, image size is " << width << 'x' << height << endl;
-				exit(EXIT_FAILURE);
-			}
-		#endif
-		unsigned char *pix = image+3*( x+y*width );
-		pix[2] = 255;
-		itPoint++;
-	}
-	bool res = save_ppm( i_ppmFilename, image, width, height );
-	delete [] image;
-	return res;
-}
-
 template <class T>
 bool generate_convolution_code( cAppliDigeo &i_appli )
 {
@@ -293,7 +263,7 @@ int Digeo_main( int argc, char **argv )
 	cAppliDigeo appli;
 	appli.times()->start();
 	appli.loadImage( inputName );
-	appli.times()->stop(DIGEO_TIME_STRUCTURE);
+	appli.times()->stop("pyramid structure");
 
 	cImDigeo &image = appli.getImage();
 
@@ -307,6 +277,9 @@ int Digeo_main( int argc, char **argv )
     for (int aKBox = 0 ; aKBox<appli.NbInterv() ; aKBox++)
     {
         appli.LoadOneInterv(aKBox);  // Calcul et memorise la pyramide gaussienne
+
+        if ( !appli.doComputeCarac() ) continue;
+
         Box2di box = appli.getInterv( aKBox );
         if ( appli.isVerbose() ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
         box._p0.x *= image.Resol();

@@ -11,50 +11,24 @@ inline Times::~Times(){}
 // methods of class NoTimes
 //----------------------------------------------------------------------
 
-#ifdef __DEBUG_TIMES
-	NoTimes::NoTimes():mIsStarted(false){}
+double NoTimes::stop( const char *i_name ){ return 0.; }
 
-	NoTimes::~NoTimes()
-	{
-		if ( mIsStarted )
-			__elise_debug_error( "NoTimes::~NoTimes: destructing started NoTimes" );
-	}
+void NoTimes::start(){}
 
-	void NoTimes::start()
-	{
-		if ( mIsStarted )
-			__elise_debug_error( "NoTimes::start: starting an already started NoTimes" );
-		mIsStarted = true;
-	}
-
-	double NoTimes::stop( const char *i_name )
-	{
-		if ( !mIsStarted )
-			__elise_debug_error( "NoTimes::stop: stopping a NoTimes that is not started" );
-		mIsStarted = false;
-		return 0.;
-	}
-#else
-	double NoTimes::stop( const char *i_name ){ return 0.; }
-	void NoTimes::start(){}
-#endif
-
-void NoTimes::reset(){}
-
-double NoTimes::get( const std::string &i_name ) const { return 0.; }
+void NoTimes::clear(){}
 
 
 //----------------------------------------------------------------------
-// methods of class NoTimes
+// methods of class MapTimes::Record
 //----------------------------------------------------------------------
 
-MapTimes::MapTimes(){}
+MapTimes::Record::Record(){}
 
-void MapTimes::reset() { mRecords.clear(); }
 
-void MapTimes::start()
-{
-	mTimer.reinit();
-}
+//----------------------------------------------------------------------
+// methods of class MapTimes
+//----------------------------------------------------------------------
 
-const std::map<std::string,double> & MapTimes::getAllTimes() const { return mRecords; }
+void MapTimes::clear() { mRecords.clear(); }
+
+double MapTimes::totalTime() const { return mRecords.begin()->totalTime(); }

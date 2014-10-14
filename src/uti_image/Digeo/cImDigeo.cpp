@@ -593,7 +593,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 	//mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,GenIm::u_int1/*mInterfImage->type_el()*/);
 	mOctaves[0]->FirstImage()->LoadFile(aF,mBoxCurOut,GenIm::real4/*mInterfImage->type_el()*/);
 
-	double aTLoad = mAppli.times()->stop(DIGEO_TIME_LOAD);
+	double aTLoad = mAppli.times()->stop("tile loading");
 
 	if ( mAppli.doSaveTiles() )
 	{
@@ -602,10 +602,14 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 		mAppli.times()->stop(DIGEO_TIME_OUTPUTS);
 	}
 
+	if ( !mAppli.doComputeCarac() ) return;
+
 	mAppli.times()->start();
 
-    for (int aK=0 ; aK< int(mVIms.size()) ; aK++){
-       if ( aK>0 ){
+    for (int aK=0 ; aK< int(mVIms.size()) ; aK++)
+    {
+       if ( aK>0 )
+       {
           if (aTP.NivPyramBasique().IsInit())
              mVIms[aK]->VMakeReduce_121( *(mVIms[aK-1]) );
           else if ( aTP.PyramideGaussienne().IsInit() )
@@ -617,7 +621,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     for (int aKOct=0 ; aKOct<int(mOctaves.size()) ; aKOct++)
         mOctaves[aKOct]->PostPyram();
 
-    double aTPyram = mAppli.times()->stop(DIGEO_TIME_PYRAMID);
+    double aTPyram = mAppli.times()->stop("pyramid computation");
 
 	if ( mAppli.doShowTimes() ) std::cout << "\tTime,  load : " << aTLoad << " ; Pyram : " << aTPyram << endl;
 
@@ -711,7 +715,7 @@ void cImDigeo::detect()
 	mAppli.times()->start();
 	for ( size_t iOctave=0; iOctave<mOctaves.size(); iOctave++ )
 		mOctaves[iOctave]->DoAllExtract();
-	mAppli.times()->stop(DIGEO_TIME_DETECT);
+	mAppli.times()->stop("point detection");
 }
 
 template <class DataType,class ComputeType>
@@ -727,7 +731,7 @@ const Im2D<REAL4,REAL8> & cImDigeo::getGradient( const Im2D<DataType,ComputeType
 		gradient<DataType,ComputeType>( i_src, i_srcMaxValue, mGradient );
 		mAppli.upNbComputedGradients();
 
-		mAppli.times()->stop(DIGEO_TIME_GRADIENT);
+		mAppli.times()->stop("gradient");
 	}
 	return mGradient;
 }
@@ -948,7 +952,7 @@ void cImDigeo::plotPoints() const
 	for ( int iChannel=0; iChannel<tiff.nb_chan(); iChannel++ )
 		delete channels[iChannel];
 
-	mAppli.times()->stop(DIGEO_TIME_PLOT_POINTS);
+	mAppli.times()->stop("points plotting");
 }
 
 

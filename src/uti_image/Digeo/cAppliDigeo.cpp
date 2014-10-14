@@ -107,6 +107,7 @@ cAppliDigeo::cAppliDigeo():
 		mNbLevels = Params().TypePyramide().PyramideGaussienne().Val().NbByOctave().Val();
 	if ( Params().GenereCodeConvol().IsInit() )
 		mDoGenerateConvolutionCode = true;
+	mDoComputeCarac = Params().ComputeCarac();
 
 	processTestSection();
 	InitConvolSpec();
@@ -128,7 +129,7 @@ cAppliDigeo::cAppliDigeo():
 		cout << "refinement: " << eToString(mRefinementMethod) << endl;
 	}
 
-	times->stop(DIGEO_TIME_APPLI_CONSTRUCTION);
+	times->stop("appli construction");
 	if ( !doShowTimes() ) delete times;
 }
 
@@ -181,9 +182,7 @@ bool cAppliDigeo::MultiBloc() const
 
 void cAppliDigeo::InitAllImage()
 {
-	if ( !Params().ComputeCarac() ) return;
-
-	cImDigeo &image = getImage();
+  cImDigeo &image = getImage();
   Box2di aBox = image.BoxImCalc();
   Pt2di aSzGlob = aBox.sz();
   int    aBrd=0;
@@ -261,6 +260,8 @@ bool cAppliDigeo::isVerbose() const { return mVerbose; }
 ePointRefinement cAppliDigeo::refinementMethod() const { return mRefinementMethod; }
 
 bool cAppliDigeo::doShowTimes() const { return mShowTimes; }
+
+bool cAppliDigeo::doComputeCarac() const { return mDoComputeCarac; }
 
 double cAppliDigeo::loadAllImageLimit() const { return mLoadAllImageLimit; }
 
@@ -535,7 +536,7 @@ void cAppliDigeo::mergeOutputs() const
 		mImage->mergeTiles( mTiledOutputGradientNorm_expr, 0, nbLevels()-1, mDecoupInt, mMergedOutputGradientNorm_expr );
 	}
 
-	times()->stop(DIGEO_TIME_MERGE_TILES);
+	times()->stop("tiles merging");
 }
 
 const map<string,int> & cAppliDigeo::dictionnary_tile_dz_level( int i_tile, int i_dz, int i_level ) const

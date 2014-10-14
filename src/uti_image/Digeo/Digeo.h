@@ -88,17 +88,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define M_PI 3.14159265358979323846
 #endif
 
-#define DIGEO_TIME_APPLI_CONSTRUCTION "appli_construction"
-#define DIGEO_TIME_STRUCTURE "structure"
-#define DIGEO_TIME_LOAD "load"
-#define DIGEO_TIME_PYRAMID "pyramid"
-#define DIGEO_TIME_DETECT "detect"
-#define DIGEO_TIME_GRADIENT "gradient"
-#define DIGEO_TIME_ORIENTATE "orientate"
-#define DIGEO_TIME_DESCRIBE "describe"
 #define DIGEO_TIME_OUTPUTS "outputs"
-#define DIGEO_TIME_MERGE_TILES "merge_tiles"
-#define DIGEO_TIME_PLOT_POINTS "plot_points"
 
 //#define __DEBUG_DIGEO
 
@@ -924,6 +914,7 @@ class cAppliDigeo
        bool doPlotPoints() const;
        bool doGenerateConvolutionCode() const;
        bool doShowTimes() const;
+       bool doComputeCarac() const;
 
        double loadAllImageLimit() const;
 
@@ -1019,6 +1010,7 @@ class cAppliDigeo
        bool                              mDoForceGradientComputation;
        bool                              mDoPlotPoints;
        bool                              mDoGenerateConvolutionCode;
+       bool                              mDoComputeCarac;
        Times                           * mTimes;
 
      private :
@@ -1041,16 +1033,6 @@ void normalizeDescriptor( REAL8 *io_descriptor );
 
 // truncate to DIGEO_DESCRIBE_THRESHOLD
 void truncateDescriptor( REAL8 *io_descriptor );
-
-bool save_pgm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height );
-
-bool load_pgm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height );
-
-bool save_ppm( const string &i_filename, unsigned char *i_image, unsigned int i_width, unsigned int i_height );
-
-bool load_ppm( const string &i_filename, unsigned char *&o_image, unsigned int &o_width, unsigned int &o_height );
-
-bool read_pgm_header( const string &i_filename, unsigned int &o_width, unsigned int &o_height, unsigned int &o_maxValue, string &o_format );
 
 void drawWindow( unsigned char *io_dst, unsigned int i_dstW, unsigned int i_dstH, unsigned int i_nbChannels,
                  unsigned int i_offsetX, unsigned int i_offsetY, const unsigned char *i_src, unsigned int i_srcW, unsigned int i_srcH );

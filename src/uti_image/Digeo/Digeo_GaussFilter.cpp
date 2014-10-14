@@ -534,6 +534,8 @@ void cTplImInMem<Type>::SetConvolSepXY
 {
    ELISE_ASSERT(mSz==aImIn.mSz,"Size im diff in ::SetConvolSepXY");
 
+	mAppli.times()->start();
+
    cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>
                              (
                                 aKerXY, aNbShitXY,
@@ -543,21 +545,10 @@ void cTplImInMem<Type>::SetConvolSepXY
 
     if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
 
-    ElTimer aChrono;
     SetConvolSepX(aImIn,aNbShitXY,aCS);
-    
-    double aTX = aChrono.uval();
-    aChrono.reinit();
-
     SelfSetConvolSepY(aNbShitXY,aCS);
 
-    double aTY = aChrono.uval();
-    aChrono.reinit();
-
-    if (mAppli.Params().ShowTimes().Val() > 100)
-    {
-         std::cout << "Time convol , X : " << aTX << " , Y : " << aTY <<   " SzK " << aKerXY.tx() << "\n";
-    }
+    mAppli.times()->stop("gaussian convolution");
 }
 
 
