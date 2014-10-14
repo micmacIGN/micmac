@@ -232,7 +232,6 @@ cOctaveDigeo::cOctaveDigeo(cOctaveDigeo * anOctUp,GenIm::type_el aType,cImDigeo 
    mSzMax    (aSzMax),
    mNbImOri  (-1),
    mBoxImCalc  (mIm.BoxImCalc()._p0/mNiv,mIm.BoxImCalc()._p1/mNiv),
-   mDetectTime(0.),
    mTrueSamplingPace( aNiv*anIm.Resol() )
 {
 }
@@ -299,10 +298,8 @@ void cOctaveDigeo::DoAllExtract(int aK)
 
 void cOctaveDigeo::DoAllExtract()
 {
-	ElTimer chrono;
 	for (int aKIm=0 ; aKIm<int(mVIms.size()) ; aKIm++)
 		DoAllExtract(aKIm);
-	mDetectTime = chrono.uval();
 }
 
 REAL8 cOctaveDigeo::GetMaxValue() const{ return mIm.GetMaxValue(); }
@@ -344,29 +341,6 @@ cOctaveDigeo * cOctaveDigeo::AllocTop
 
 const cImDigeo & cOctaveDigeo::ImDigeo() const { return mIm; }
 
-double cOctaveDigeo::detectTime() const { return mDetectTime; }
-
-double cOctaveDigeo::orientateTime() const { return mOrientateTime; }
-
-double cOctaveDigeo::describeTime() const { return mDescribeTime; }
-
-void cOctaveDigeo::orientate()
-{
-	mOrientateTime = 0;
-	for ( size_t i=0; i<mVIms.size(); i++ ){
-		mVIms[i]->orientate();
-		mOrientateTime += mVIms[i]->orientateTime();
-	}
-}
-
-void cOctaveDigeo::describe()
-{
-	mDescribeTime = 0;
-	for ( size_t i=0; i<mVIms.size(); i++ ){
-		mVIms[i]->describe();
-		mDescribeTime += mVIms[i]->describeTime();
-	}
-}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

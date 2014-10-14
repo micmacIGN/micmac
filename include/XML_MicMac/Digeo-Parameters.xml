@@ -42,7 +42,7 @@
 			</TypeNumeriqueOfNiv>
 			-->
 			<TypeNumeriqueOfNiv>
-				<Type> eTN_u_int2 </Type>
+				<Type> eTN_float </Type>
 				<Niv> -2  </Niv>
 			</TypeNumeriqueOfNiv>
 			<MaximDyn > ${MaxDyn} </MaximDyn>
@@ -91,14 +91,14 @@
 	<SectionTest>
 		<DigeoTestOutput>
 			<!--
-			<MergeTiles> false </MergeTiles>
-			<SuppressTiles> false </SuppressTiles>
-			-->
 			<PlotPointsOnTiles> true </PlotPointsOnTiles>
+			<ForceGradientComputation> true </ForceGradientComputation>
+			<MergeTiles> false </MergeTiles>
 			<OutputTiles> true </OutputTiles>
 			<OutputGaussians> true </OutputGaussians>
 			<OutputGradients> true </OutputGradients>
-			<ForceGradientComputation> true </ForceGradientComputation>
+			<SuppressTiles> false </SuppressTiles>
+			-->
 		</DigeoTestOutput>
 	</SectionTest>
 
