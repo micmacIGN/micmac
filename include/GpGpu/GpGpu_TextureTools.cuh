@@ -52,6 +52,19 @@ __device__ float h1(float a)
 	return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
 }
 
+// filter 4 values using cubic splines
+template<class T>
+__device__
+T cubicFilter(float x, T c0, T c1, T c2, T c3)
+{
+    T r;
+    r = c0 * w0(x);
+    r += c1 * w1(x);
+    r += c2 * w2(x);
+    r += c3 * w3(x);
+    return r;
+}
+
 template<class T>
 inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaReadModeElementType> t, uint2 pt, short sample, short layer)
 {
@@ -77,6 +90,50 @@ inline __device__ T tex2DLayeredPt(texture<T, cudaTextureType2DLayered, cudaRead
 	return tex2DLayeredPt(t, make_float2(pt), dim, layer);
 }
 */
+
+
+// slow but precise bicubic lookup using 16 texture lookups
+template<class T, class R>  // return type, texture type
+__device__
+R tex2DBicubic(const texture<T, 2, cudaReadModeNormalizedFloat> texref, float x, float y)
+{
+    x -= 0.5f;
+    y -= 0.5f;
+    float px = floor(x);
+    float py = floor(y);
+    float fx = x - px;
+    float fy = y - py;
+
+    return cubicFilter<R>(fy,
+                          cubicFilter<R>(fx, tex2D(texref, px-1, py-1), tex2D(texref, px, py-1), tex2D(texref, px+1, py-1), tex2D(texref, px+2,py-1)),
+                          cubicFilter<R>(fx, tex2D(texref, px-1, py),   tex2D(texref, px, py),   tex2D(texref, px+1, py),   tex2D(texref, px+2, py)),
+                          cubicFilter<R>(fx, tex2D(texref, px-1, py+1), tex2D(texref, px, py+1), tex2D(texref, px+1, py+1), tex2D(texref, px+2, py+1)),
+                          cubicFilter<R>(fx, tex2D(texref, px-1, py+2), tex2D(texref, px, py+2), tex2D(texref, px+1, py+2), tex2D(texref, px+2, py+2))
+                          );
+}
+
+// slow but precise bicubic lookup using 16 texture lookups
+template<class T, class R>  // return type, texture type
+__device__
+R tex2DBicubicLayered(const texture<T, cudaTextureType2DLayered, cudaReadModeElementType> texref, float x, float y,int layer)
+{
+
+    x -= 0.5f;
+    y -= 0.5f;
+
+
+    float px = floor(x);
+    float py = floor(y);
+    float fx = x - px;
+    float fy = y - py;
+
+    return cubicFilter<R>(fy,
+                          cubicFilter<R>(fx, tex2DLayered(texref, px-1, py-1,layer), tex2DLayered(texref, px, py-1,layer), tex2DLayered(texref, px+1, py-1,layer), tex2DLayered(texref, px+2,py-1,layer)),
+                          cubicFilter<R>(fx, tex2DLayered(texref, px-1, py,layer),   tex2DLayered(texref, px, py,layer),   tex2DLayered(texref, px+1, py,layer),   tex2DLayered(texref, px+2, py,layer)),
+                          cubicFilter<R>(fx, tex2DLayered(texref, px-1, py+1,layer), tex2DLayered(texref, px, py+1,layer), tex2DLayered(texref, px+1, py+1,layer), tex2DLayered(texref, px+2, py+1,layer)),
+                          cubicFilter<R>(fx, tex2DLayered(texref, px-1, py+2,layer), tex2DLayered(texref, px, py+2,layer), tex2DLayered(texref, px+1, py+2,layer), tex2DLayered(texref, px+2, py+2,layer))
+                          );
+}
 
 // fast bicubic texture lookup using 4 bilinear lookups
 // assumes texture is set to non-normalized coordinates, point sampling
