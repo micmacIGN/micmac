@@ -659,6 +659,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
     ushort aPenteMax = (ushort)mEtape.EtapeMEC().ModulationProgDyn().Val().Px1PenteMax().Val();
 
+    float penteMax = (float) aPenteMax/mEtape.KPx(0).ComputedPas();
     IGpuOpt.Prepare(mSz.x,mSz.y,aPenteMax,aNbDir,mCostRegul[0],mCostRegul[1],mCostDefMasked,mCostTransMaskNoMask);
 
     TIm2DBits<1> aTMask(mLTCur->ImMasqTer());
@@ -696,7 +697,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
             while ((aVPt = mLMR.Next()))
             {
-                uint lenghtLine = (uint)(aVPt->size()); // PREDEFCOR :  Pas de changement
+                uint lenghtLine = (uint)(aVPt->size());
 
                 IGpuOpt.HData2Opt().SetParamLine(idLine,pitStream,pitIdStream,lenghtLine,idPreCo);
 
@@ -723,6 +724,13 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
             //nvtxRangePop();
 
             IGpuOpt.HData2Opt().SetNbLine(idLine);
+
+            double  mDMoyDir = average_euclid_line_seed(aDirI);
+
+            int aJump    = round_ni(penteMax*mDMoyDir);
+            int mMaxJumpDir  = ElMax(1,aJump);
+
+            IGpuOpt.HData2Opt().setPenteMax(mMaxJumpDir);
 
             IGpuOpt.HData2Opt().ReallocInputIf(pitStream + IGpuOpt._poInitCost._maxDz,pitIdStream + WARPSIZE);
 

@@ -47,6 +47,8 @@ void InterfOptimizGpGpu::optimisation()
 {
     _D_data2Opt.SetNbLine(_H_data2Opt.nbLines());
 
+    _D_data2Opt.setPenteMax(_H_data2Opt.penteMax());
+
     _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize(),_H_data2Opt.s_Index().GetSize(),GetIdBuf());
 
     _D_data2Opt.ReallocIf(_H_data2Opt);

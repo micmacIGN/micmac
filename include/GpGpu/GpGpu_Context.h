@@ -85,7 +85,12 @@ public:
     template<class T>
     static  void addKernelArg(T &arg){}
 
+    static bool errorDump(int tErr, string erName);
+
 #ifdef OPENCL_ENABLED
+
+
+
 
     static cl_context contextOpenCL(){return NULL;}
 
@@ -93,13 +98,6 @@ public:
 
     static cl_kernel kernel(){return NULL;}
 
-    static void errorOpencl(cl_int error,string erName)
-	{
-		if(error ==CL_SUCCESS)
-			printf("Success create %s\n",erName.c_str());
-		else
-			printf("Error create %s = %d\n",erName.c_str(),error);
-	}
 #endif
 
     static  void* arg(int id)
@@ -119,8 +117,50 @@ private:
     static  void addKernelArgSDK( CData<T> &arg){}
 
     static  context             _sContext;
+
+    static  bool                errorGpGpu(int tErr,string erName, string gpuCon);
 };
 
+
+template<class context>
+bool CGpGpuContext<context>::errorGpGpu(int tErr,string erName, string gpuCon)
+{
+    if(tErr != 0)
+    {
+        printf("Error %s %s \t: %d\n",erName.c_str(),gpuCon.c_str(),tErr);
+        return false;
+    }
+
+    else
+    {
+#ifdef DEBUG_GPGPU
+        printf("Success %s \t: %s\n",gpuCon.c_str(),erName.c_str());
+#endif
+        return true;
+    }
+
+}
+
+template<class context>
+bool CGpGpuContext<context>::errorDump(int tErr,string erName)
+{
+    return errorGpGpu(tErr,erName,"GpGpu");
+}
+
+template<> inline
+bool CGpGpuContext<cudaContext>::errorDump(int tErr,string erName)
+{
+    string sErrorCuda(!tErr ? "" : _cudaGetErrorEnum((cudaError_t)tErr));
+    return errorGpGpu(tErr,sErrorCuda + " " + erName,"Cuda");
+}
+
+#ifdef OPENCL_ENABLED
+template<> inline
+bool CGpGpuContext<openClContext>::errorDump(int tErr,string erName)
+{
+    return errorGpGpu(tErr,erName,"openCl");
+}
+#endif
 
 template<class context>
 void CGpGpuContext<context>::createContext(){}
@@ -143,33 +183,10 @@ void CGpGpuContext<cudaContext>::check_Cuda()
 
     cudaRuntimeGetVersion(&apiVersion);
 
-//    DUMP_INT(apiVersion)
+    int majVersion_CUDA = apiVersion/1000;
+    int minVersion_CUDA = (apiVersion - majVersion_CUDA*1000)/10;
 
-    switch(apiVersion)
-    {
-        case 3000:
-            cout << "3.0";
-            break;
-        case 3020:
-            cout << "3.2";
-            break;
-        case 4000:
-            cout << "4.0";
-            break;
-        case 5000:
-            cout << "5.0";
-            break;
-        case 5050:
-            cout << "5.5";
-            break;
-        case 6000:
-            cout << "6.0";
-            break;
-        case 6050:
-            cout << "6.5";
-            break;
-    }
-    cout << endl;
+    printf("%d.%d\n",majVersion_CUDA,minVersion_CUDA);
 
     int device_count = 0;
 
@@ -265,7 +282,7 @@ void CGpGpuContext<openClContext>::createContext() {
 
     openClContext::_commandQueue = clCreateCommandQueue(openClContext::_contextOpenCL,deviceIds[0], 0, &error);
 
-    errorOpencl(error,"CommandQueue");
+    errorDump(error,"CommandQueue");
 
 }
 
@@ -335,13 +352,13 @@ void CGpGpuContext<openClContext>::createKernel(string fileName,string kernelNam
     size_t sourceSize[] = {strlen(prog.c_str())};
     cl_program program = clCreateProgramWithSource(contextOpenCL(),1,&sourceProg,sourceSize,&error);
 
-    errorOpencl(error,"Program");
+    errorDump(error,"Program");
 
-    errorOpencl(clBuildProgram(program,0,NULL,NULL,NULL,NULL),"Build");
+    errorDump(clBuildProgram(program,0,NULL,NULL,NULL,NULL),"Build");
 
     openClContext::_kernel = clCreateKernel(program,kernelName.c_str(),&error);
 
-    errorOpencl(error,"Kernel");
+    errorDump(error,"Kernel");
 
 }
 
@@ -355,7 +372,7 @@ void CGpGpuContext<openClContext>::launchKernel()
     size_t local_item_size  = 1;
 
     error  = clEnqueueNDRangeKernel(openClContext::_commandQueue,openClContext::_kernel,1,NULL,&global_item_size,&local_item_size,0,NULL,NULL);
-    errorOpencl(error,"Enqueue");
+    errorDump(error,"Enqueue");
 
 }
 
@@ -368,7 +385,7 @@ void CGpGpuContext<openClContext>::addKernelArg(T &arg)
 
     error = clSetKernelArg(CGpGpuContext<openClContext>::kernel(),(cl_uint)_sContext._nbArg,sizeof(T),&arg);
 
-    errorOpencl(error,"Kernel Arg");
+    errorDump(error,"Kernel Arg");
 
     _sContext._nbArg++;
 
@@ -384,7 +401,7 @@ void CGpGpuContext<openClContext>::addKernelArgSDK( CData<T> &arg)
 
     error = clSetKernelArg(CGpGpuContext<openClContext>::kernel(),(cl_uint)_sContext._nbArg,sizeof(memBuffer),&memBuffer);
 
-    errorOpencl(error,"Kernel Arg OPENCL buffer");
+    errorDump(error,"Kernel Arg buffer");
 
 }
 
