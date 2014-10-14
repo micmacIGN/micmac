@@ -15,6 +15,7 @@ set(uti_image_Digeo_Src_Files
 #    ${UTI_IMAGE_DIGEO_DIR}/TestDigeoExt.cpp
     ${UTI_IMAGE_DIGEO_DIR}/DigeoPoint.cpp
     ${UTI_IMAGE_DIGEO_DIR}/Expression.cpp
+    ${UTI_IMAGE_DIGEO_DIR}/Times.cpp
 )
 
 
