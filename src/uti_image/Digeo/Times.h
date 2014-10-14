@@ -6,42 +6,54 @@
 class Times
 {
 public:
-	virtual void reset() = 0;
+	virtual void clear() = 0;
 	virtual void start() = 0;
 	virtual double stop( const char *i_name ) = 0;
-	virtual double get( const std::string &i_name ) const = 0;
 	virtual ~Times();
 };
 
 class NoTimes : public Times
 {
 public:
-	#ifdef __DEBUG_TIMES
-		bool mIsStarted;
-
-		inline NoTimes();
-		inline ~NoTimes();
-	#endif
-
-	inline void reset();
+	inline void clear();
 	inline void start();
 	inline double stop( const char *i_name );
-	inline double get( const std::string &i_name ) const;
 };
 
 class MapTimes : public Times
 {
-public:
-	ElTimer            mTimer;
-	map<string,double> mRecords;
+private:
+	class Record;
 
-	inline MapTimes();
-	inline void reset(); // reset all times (clear the map)
-	inline void start();
-	double stop( const char *i_name );  // stop time and add it to the record of name i_name
-	double get( const std::string &i_name ) const;
-	inline const std::map<std::string,double> & getAllTimes() const;
-	double totalTime() const;
+	typedef list<Record>::iterator ItRecord;
+
+	class Record
+	{
+	public:
+		string         mName;
+		double         mTime;
+		ElTimer        mTimer;
+		list<ItRecord> mSubRecords;
+		ItRecord       mFather;
+
+		inline Record();
+		double totalTime() const;
+		void printTimes( const string &i_prefix, ostream &io_ostream ) const;
+	};
+
+
+	// return i_list.end() if a record of that name does not exist
+	static list<ItRecord>::iterator getRecord( const string &i_name, list<ItRecord> &i_list );
+
+	list<Record> mRecords;
+	ItRecord     mCurrent;
+
+public:
+	MapTimes();
+	inline void clear();
+	void start();
+	double stop( const char *i_name );
+	inline double totalTime() const;
 	void printTimes( const std::string &i_prefix=std::string(), std::ostream &io_ostream=std::cout ) const;
 };
 

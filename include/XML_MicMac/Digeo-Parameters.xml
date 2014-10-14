@@ -92,13 +92,13 @@
 		<DigeoTestOutput>
 			<!--
 			<PlotPointsOnTiles> true </PlotPointsOnTiles>
-			<ForceGradientComputation> true </ForceGradientComputation>
-			<MergeTiles> false </MergeTiles>
-			<OutputTiles> true </OutputTiles>
 			<OutputGaussians> true </OutputGaussians>
 			<OutputGradients> true </OutputGradients>
 			<SuppressTiles> false </SuppressTiles>
+			<MergeTiles> false </MergeTiles>
+			<OutputTiles> true </OutputTiles>
 			-->
+			<ForceGradientComputation> true </ForceGradientComputation>
 		</DigeoTestOutput>
 	</SectionTest>
 
