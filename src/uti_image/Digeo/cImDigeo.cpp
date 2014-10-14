@@ -436,8 +436,6 @@ cImDigeo::cImDigeo
    // compute gaussians' standard-deviation
    mInitialDeltaSigma = sqrt( ElSquare(mSigma0)-ElSquare(SigmaN()) );
    if ( mAppli.isVerbose() ) cout << "initial convolution sigma : " << mInitialDeltaSigma << ( mInitialDeltaSigma==0.?"(no convolution)":"" ) << endl;
-
-   mLoadTime = mPyramidTime = mDetectTime = mGradientTime = mOrientateTime = mDescribeTime = 0.;
 }
 
 double cImDigeo::Resol() const
@@ -572,7 +570,9 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
     mBoxCurIn = aBoxIn;
     mBoxCurOut = Box2di( aBoxIn._p0/mResol, aBoxIn._p1/mResol );
-    ElTimer aChrono;
+
+    mAppli.times()->start();
+
     mSzCur = aBoxIn.sz();
     mP0Cur = aBoxIn._p0;
 
@@ -581,10 +581,8 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
     Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur );
 
-	if ( mAppli.doSaveTiles() ) save_tiff( mAppli.getValue_iTile( mAppli.tiledOutputExpression(), mAppli.currentBoxIndex() ), window, true );
-
     Fonc_Num aF = window.in_proj();
-    
+
     if ( mResol!=1. )
     {
          aF = (mResol < 1) ?
@@ -594,8 +592,17 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
 	//mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,GenIm::u_int1/*mInterfImage->type_el()*/);
 	mOctaves[0]->FirstImage()->LoadFile(aF,mBoxCurOut,GenIm::real4/*mInterfImage->type_el()*/);
-    double aTLoad = aChrono.uval();
-    aChrono.reinit();
+
+	double aTLoad = mAppli.times()->stop(DIGEO_TIME_LOAD);
+
+	if ( mAppli.doSaveTiles() )
+	{
+		mAppli.times()->start();
+		save_tiff( mAppli.getValue_iTile( mAppli.tiledOutputExpression(), mAppli.currentBoxIndex() ), window, true );
+		mAppli.times()->stop(DIGEO_TIME_OUTPUTS);
+	}
+
+	mAppli.times()->start();
 
     for (int aK=0 ; aK< int(mVIms.size()) ; aK++){
        if ( aK>0 ){
@@ -610,14 +617,9 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     for (int aKOct=0 ; aKOct<int(mOctaves.size()) ; aKOct++)
         mOctaves[aKOct]->PostPyram();
 
-    double aTPyram = aChrono.uval();
-    aChrono.reinit();
+    double aTPyram = mAppli.times()->stop(DIGEO_TIME_PYRAMID);
 
-	if ( mAppli.showTimes() ){
-		std::cout << "\tTime,  load : " << aTLoad << " ; Pyram : " << aTPyram << endl;
-		mLoadTime += aTLoad;
-		mPyramidTime += aTPyram;
-	}
+	if ( mAppli.doShowTimes() ) std::cout << "\tTime,  load : " << aTLoad << " ; Pyram : " << aTPyram << endl;
 
 	if ( mAppli.doSaveGaussians() ) saveGaussians();
 }
@@ -704,24 +706,12 @@ double cImDigeo::GradMoyCorrecDyn() const
    return mGradMoy * mDyn;
 }
 
-double cImDigeo::loadTime() const { return mLoadTime; }
-
-double cImDigeo::pyramidTime() const { return mPyramidTime; }
-
-double cImDigeo::detectTime() const { return mDetectTime; }
-
-double cImDigeo::gradientTime() const { return mGradientTime; }
-
-double cImDigeo::orientateTime() const { return mOrientateTime; }
-
-double cImDigeo::describeTime() const { return mDescribeTime; }
-
 void cImDigeo::detect()
 {
-	for ( size_t iOctave=0; iOctave<mOctaves.size(); iOctave++ ){
+	mAppli.times()->start();
+	for ( size_t iOctave=0; iOctave<mOctaves.size(); iOctave++ )
 		mOctaves[iOctave]->DoAllExtract();
-		mDetectTime += mOctaves[iOctave]->detectTime();
-	}
+	mAppli.times()->stop(DIGEO_TIME_DETECT);
 }
 
 template <class DataType,class ComputeType>
@@ -729,43 +719,21 @@ const Im2D<REAL4,REAL8> & cImDigeo::getGradient( const Im2D<DataType,ComputeType
 {
 	if ( mGradientSource!=(void*)i_src.data_lin() || mGradientMaxValue!=i_srcMaxValue  )
 	{
+		mAppli.times()->start();
+
 		mGradientSource = (void*)i_src.data_lin();
 		mGradientMaxValue = i_srcMaxValue;
 		ElTimer chrono;
 		gradient<DataType,ComputeType>( i_src, i_srcMaxValue, mGradient );
-		mGradientTime += chrono.uval();
 		mAppli.upNbComputedGradients();
+
+		mAppli.times()->stop(DIGEO_TIME_GRADIENT);
 	}
 	return mGradient;
 }
 
 template const Im2D<REAL4,REAL8> & cImDigeo::getGradient<REAL4,REAL8>( const Im2D<REAL4,REAL8> &i_image, REAL8 i_maxValue );
 template const Im2D<REAL4,REAL8> & cImDigeo::getGradient<U_INT2,INT>( const Im2D<U_INT2,INT> &i_image, REAL8 i_maxValue );
-
-
-void cImDigeo::orientate()
-{
-	cOctaveDigeo **itOctave = mOctaves.data();
-	size_t iOctave = mOctaves.size();
-	while ( iOctave-- )
-	{
-		cOctaveDigeo &octave = **itOctave++;
-		octave.orientate();
-		mOrientateTime += octave.orientateTime();
-	}
-}
-
-void cImDigeo::describe()
-{
-	cOctaveDigeo **itOctave = mOctaves.data();
-	size_t iOctave = mOctaves.size();
-	while ( iOctave-- )
-	{
-		cOctaveDigeo &octave = **itOctave++;
-		octave.describe();
-		mDescribeTime += octave.describeTime();
-	}
-}
 
 void get_channel_min_max( const REAL4 *i_channel, int i_width, int i_height, int i_nbChannels, const int i_iChannel, REAL4 &o_min, REAL4 &o_max )
 {
@@ -833,15 +801,17 @@ void cImDigeo::orientateAndDescribe()
 			cImInMem &image = *images[iLevel];
 
 			image.orientate();
-			mOrientateTime += image.orientateTime();
 			image.describe();
-			mOrientateTime += image.describeTime();
 
 			if ( mAppli.doSaveGradients() )
 			{
+				mAppli.times()->start();
+
 				const Im2D<REAL4,REAL8> &gradient = image.getGradient();
 				save_gradient_component( gradient, 0, image.getValue_iTile_dz_iLevel( mAppli.tiledOutputGradientNormExpression(), -1 ) );
 				save_gradient_component( gradient, 1, image.getValue_iTile_dz_iLevel( mAppli.tiledOutputGradientAngleExpression(), -1 ) );
+
+				mAppli.times()->stop(DIGEO_TIME_OUTPUTS);
 			}
 		}
 	}
@@ -849,8 +819,10 @@ void cImDigeo::orientateAndDescribe()
 
 void cImDigeo::saveGaussians() const
 {
+	mAppli.times()->start();
 	for ( size_t i=0; i<mVIms.size(); i++ )
 		mVIms[i]->saveGaussian();
+	mAppli.times()->stop(DIGEO_TIME_OUTPUTS);
 }
 
 size_t cImDigeo::addAllPoints( list<DigeoPoint> &o_allPoints ) const
@@ -933,6 +905,8 @@ unsigned int cImDigeo::getNbFeaturePoints() const
 
 void cImDigeo::plotPoints() const
 {
+	mAppli.times()->start();
+
 	const string tileFilename = mAppli.getValue_iTile( mAppli.tiledOutputExpression(), mAppli.currentBoxIndex() );
 	Tiff_Im tiff( tileFilename.c_str() );
 
@@ -973,6 +947,8 @@ void cImDigeo::plotPoints() const
 
 	for ( int iChannel=0; iChannel<tiff.nb_chan(); iChannel++ )
 		delete channels[iChannel];
+
+	mAppli.times()->stop(DIGEO_TIME_PLOT_POINTS);
 }
 
 
@@ -982,83 +958,10 @@ bool cImDigeo::mergeTiles( const Expression &i_inputExpression, int i_minLevel, 
 	// retrieve all input filenames
 	for ( size_t iImage=0; iImage<mVIms.size(); iImage++ )
 	{
-		const cImInMem &image= *mVIms[iImage];
+		cImInMem &image= *mVIms[iImage];
 		if ( image.level()<i_minLevel || image.level()>i_maxLevel ) continue;
 		image.mergeTiles( i_inputExpression, i_tiles, i_outputExpression, i_iLevelOffset );
 	}
-
-	/*
-	int nbTiles = mAppli.NbInterv();
-	int gridHeight = nbTiles/i_gridWidth;
-
-	ELISE_ASSERT( (nbTiles%i_gridWidth)==0, "cImDigeo::LoadImageAndPyram incorrect grid width" );
-
-	unsigned int fullW = 0, fullH = 0;
-	string format;
-	for ( size_t iImage=0; iImage<mVIms.size(); iImage++ )
-	{
-		// process first image
-		cImInMem &image = *mVIms[iImage];
-		int nbChannels;
-
-		// retrive full image size
-		{
-			string tileFilename = image.getTiledGaussianOutputFullname(0);
-			Tiff_Im tiff( tileFilename.c_str() );
-			nbChannels = tiff.nb_chan();
-			ELISE_ASSERT( nbChannels==3, __inconsistent_nb_channels_msg( tileFilename, nbChannels, 1 ).c_str() );
-			fullW = tiff.sz().x;
-			fullH = tiff.sz().y;
-		}
-		for ( int iTile=1; iTile<i_gridWidth; iTile++ )
-		{
-			string tileFilename = image.getTiledGaussianOutputFullname(iTile); //i_directory+getTiledOutputBasename(iTile)+i_postfix;
-			Tiff_Im tiff( tileFilename.c_str() );
-			ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
-			fullW += tiff.sz().x;
-		}
-		for ( int iTile=1; iTile<gridHeight; iTile++ )
-		{
-			string tileFilename = image.getTiledGaussianOutputFullname(iTile*i_gridWidth);
-			Tiff_Im tiff( tileFilename.c_str() );
-			ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
-			fullH += tiff.sz().y;
-		}
-
-		Tiff_Im fullTiff(
-					getReconstructedTilesFullname().c_str(),
-					Pt2di(fullW,fullH),
-					GenIm::u_int1,
-					Tiff_Im::No_Compr,
-					Tiff_Im::BlackIsZero,
-					Tiff_Im::Empty_ARG );
-		int offsetY = 0;
-		int h = 0;
-		for ( int iTileY=0; iTileY<gridHeight; iTileY++ )
-		{
-			int offsetX = 0;
-			for ( int iTileX=0; iTileX<i_gridWidth; iTileX++ )
-			{
-				string tileFilename = image.getTiledGaussianOutputFullname(iTileX+iTileY*i_gridWidth);
-				Tiff_Im tiff( tileFilename.c_str() );
-
-				ELISE_ASSERT( tiff.nb_chan()==nbChannels, __inconsistent_nb_channels_msg( tileFilename, tiff.nb_chan(), nbChannels ).c_str() );
-
-				ELISE_COPY
-				(
-					rectangle( Pt2di(offsetX,offsetY), Pt2di(offsetX,offsetY)+tiff.sz() ),
-					trans( tiff.in(), Pt2di(-offsetX,-offsetY) ),
-					fullTiff.out()
-				);
-
-				offsetX += tiff.sz().x;
-				if ( mAppli.doSuppressTiledOutputs() ) ELISE_fp::RmFile( tileFilename );
-				h = tiff.sz().y;
-			}
-			offsetY += h;
-		}
-	}
-	*/
 	return true;
 }
 
