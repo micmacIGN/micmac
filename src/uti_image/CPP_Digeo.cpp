@@ -281,7 +281,8 @@ int Digeo_main( int argc, char **argv )
 {
 	ElTimer chrono;
 
-	if ( argc!=4 ){
+	if ( argc!=4 )
+	{
 		cerr << "Digeo: usage : mm3d Digeo input_filename -o output_filename" << endl;
 		return EXIT_FAILURE;
 	}
@@ -289,11 +290,11 @@ int Digeo_main( int argc, char **argv )
 	std::string inputName  = argv[1];
 	std::string outputName = argv[3];
 
-	ElTimer paramChrono;
 	cAppliDigeo appli;
-	double paramTime = paramChrono.uval();
-
+	appli.times()->start();
 	appli.loadImage( inputName );
+	appli.times()->stop(DIGEO_TIME_STRUCTURE);
+
 	cImDigeo &image = appli.getImage();
 
     if ( appli.isVerbose() ){
@@ -325,14 +326,14 @@ int Digeo_main( int argc, char **argv )
         if ( appli.isVerbose() ) cout << "\t" << nbTilePoints << " points" << endl;
     }
 
-	if ( appli.doMergeOutputs() ) appli.mergeOutputs();
+	appli.mergeOutputs();
 
-	if ( appli.Params().GenereCodeConvol().IsInit() )
+	if ( appli.doGenerateConvolutionCode() )
 	{
 		generate_convolution_code<U_INT2>( appli );
 		generate_convolution_code<REAL4>( appli );
 	}
-	else if ( appli.isVerbose() && ( appli.nbSlowConvolutionsUsed<U_INT2>() || appli.nbSlowConvolutionsUsed<REAL4>() ) )
+	else if ( appli.isVerbose() && ( appli.nbSlowConvolutionsUsed<U_INT2>()!=0 || appli.nbSlowConvolutionsUsed<REAL4>()!=0 ) )
 		cout << "skipping convolution code generation" << endl;
 
 	ElTimer chronoSave;
@@ -340,19 +341,14 @@ int Digeo_main( int argc, char **argv )
 	if ( !DigeoPoint::writeDigeoFile( outputName, total_list ) ) cerr << "Digeo: ERROR: unable to save points to file " << outputName << endl;
 	double saveTime = chronoSave.uval();
 
-	if ( appli.showTimes() )
+	if ( appli.doShowTimes() )
 	{
-		cImDigeo &image = appli.getImage();
-		cout << "Total time = " << chrono.uval()
-		     << " (" << image.loadTime()+image.pyramidTime()+image.detectTime()+image.gradientTime()+image.orientateTime()+image.describeTime()+saveTime+paramTime << ")"
-		     << " ; param load : " << paramTime
-		     << " ; image load : " << image.loadTime()
-		     << " ; Pyram : " << image.pyramidTime()
-		     << " ; Detect : " << image.detectTime()
-		     << " ; Gradient : " << image.gradientTime()
-		     << " ; Orientate : " << image.orientateTime()
-		     << " ; Describe : " << image.describeTime()
-		     << " ; save : " << saveTime << endl;
+		MapTimes *times = (MapTimes*)appli.times();
+		double totalMonitoredTime = saveTime+times->totalTime();
+
+		cout << "Total time = " << chrono.uval() << " (" << totalMonitoredTime << ")" << endl;
+		times->printTimes( "\t" );
+		cout << "\tsave :" << saveTime << endl;
 	}
 
 	cout << "nb computed gradient = " << appli.nbComputedGradients() << endl;

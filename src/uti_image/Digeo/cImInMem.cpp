@@ -619,6 +619,7 @@ cImInMem::cImInMem
     mFille            (0),
     mOrientateTime    (0.),
     mDescribeTime     (0.),
+    mMergeTilesTime   (0.),
     mKernelTot        (1,1.0),
     mFirstSauv        (true),
     mFileTheoricalMaxValue( (1<</*aIGlob.TifF().bitpp()*/aIGlob.bitpp())-1 ),
@@ -878,14 +879,12 @@ void cImInMem::orientate()
 {
 	mOrientedPoints.clear();
 	if ( !mAppli.doForceGradientComputation() && mFeaturePoints.size()==0 )
-	{
-		mOrientateTime = 0.;
 		return;
-	}
 
 	const Im2D<REAL4,REAL8> &srcGradient = getGradient();
 
-	ElTimer chrono;
+	mAppli.times()->start();
+
 	mOrientedPoints.resize( mFeaturePoints.size() );
 	double octaveTrueSamplingPace = mOct.trueSamplingPace();
 	REAL8 angles[DIGEO_MAX_NB_ANGLES];
@@ -919,17 +918,9 @@ void cImInMem::orientate()
 			nbSkipped++;
 	}
 	mOrientedPoints.resize( mOrientedPoints.size()-nbSkipped );
-	mOrientateTime = chrono.uval();
+
+	mAppli.times()->stop(DIGEO_TIME_ORIENTATE);
 }
-
-//double cImDigeo::detectTime() const { return mDetectTime; }
-
-double cImInMem::orientateTime() const { return mOrientateTime; }
-
-double cImInMem::describeTime() const { return mDescribeTime; }
-
-
-
 
 #define atd(dbinx,dbiny,dbint) *(dp + (dbint)*binto + (dbiny)*binyo + (dbinx)*binxo)
 
@@ -1084,9 +1075,10 @@ void cImInMem::describe()
 	if ( !mAppli.doForceGradientComputation() && mOrientedPoints.size()==0 ) return;
 
 	const Im2D<REAL4,REAL8> &srcGradient = getGradient();
-	ElTimer chrono;
-	double octaveTrueSamplingPace = mOct.trueSamplingPace();
 
+	mAppli.times()->start();
+
+	double octaveTrueSamplingPace = mOct.trueSamplingPace();
 	DigeoPoint *itPoint = mOrientedPoints.data();
 	size_t iPoint = mOrientedPoints.size();
 	while ( iPoint-- )
@@ -1098,7 +1090,8 @@ void cImInMem::describe()
 			normalize_and_truncate( entry.descriptor );
 		}
 	}
-	mDescribeTime = chrono.uval();
+
+	mAppli.times()->stop(DIGEO_TIME_DESCRIBE);
 }
 
 static void __inconsistent_nb_channels_msg( const string &i_filename, int i_nbChannels, int i_expectedNbChannels )
@@ -1109,14 +1102,16 @@ static void __inconsistent_nb_channels_msg( const string &i_filename, int i_nbCh
 	ELISE_ASSERT( false, ss.str().c_str() );
 }
 
-bool cImInMem::mergeTiles( const Expression &i_inputExpression, const cDecoupageInterv2D &i_tiles, const Expression &i_outputExpression, int i_iLevelOffset ) const
+void cImInMem::mergeTiles( const Expression &i_inputExpression, const cDecoupageInterv2D &i_tiles, const Expression &i_outputExpression, int i_iLevelOffset )
 {
+	ElTimer chrono;
+
 	// grid has grid_nx columns and grid_ny lines of images, grid_n = grid_nx*grid_ny
 	const int grid_n  = i_tiles.NbInterv(),
 	          grid_nx = i_tiles.NbX(),
 	          grid_ny = grid_n/grid_nx;
 
-	if ( grid_n==0 ) return true;
+	if ( grid_n==0 ) return;
 
 	// retrieve all filenames
 	vector<string> filenames(grid_n);
@@ -1178,7 +1173,7 @@ bool cImInMem::mergeTiles( const Expression &i_inputExpression, const cDecoupage
 		offsetY += h;
 	}
 
-	return true;
+	mMergeTilesTime += chrono.uval();
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

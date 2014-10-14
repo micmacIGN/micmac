@@ -73,6 +73,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
 #include "Expression.h"
+#include "Times.h"
 
 #include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
 
@@ -86,6 +87,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef M_PI
 	#define M_PI 3.14159265358979323846
 #endif
+
+#define DIGEO_TIME_APPLI_CONSTRUCTION "appli_construction"
+#define DIGEO_TIME_STRUCTURE "structure"
+#define DIGEO_TIME_LOAD "load"
+#define DIGEO_TIME_PYRAMID "pyramid"
+#define DIGEO_TIME_DETECT "detect"
+#define DIGEO_TIME_GRADIENT "gradient"
+#define DIGEO_TIME_ORIENTATE "orientate"
+#define DIGEO_TIME_DESCRIBE "describe"
+#define DIGEO_TIME_OUTPUTS "outputs"
+#define DIGEO_TIME_MERGE_TILES "merge_tiles"
+#define DIGEO_TIME_PLOT_POINTS "plot_points"
 
 //#define __DEBUG_DIGEO
 
@@ -294,9 +307,6 @@ class cImInMem
          void orientate();
          void describe();
 
-         double orientateTime() const;
-         double describeTime() const;
-
          // return the value of the expression e with variables :
          //    iTile  = image's currentBoxIndex()
          //    dz     = image's octave Niv()
@@ -308,7 +318,7 @@ class cImInMem
 
          int level() const;
 
-         bool mergeTiles( const Expression &i_inputExpression, const cDecoupageInterv2D &i_tiles, const Expression &i_outputExpression, int i_iLevelOffset=0 ) const;
+         void mergeTiles( const Expression &i_inputExpression, const cDecoupageInterv2D &i_tiles, const Expression &i_outputExpression, int i_iLevelOffset=0 );
 
      protected :
          cImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cOctaveDigeo &,double aResolOctaveBase,int aKInOct,int IndexSigma);
@@ -327,6 +337,7 @@ class cImInMem
 
          double           mOrientateTime;
          double           mDescribeTime;
+         double           mMergeTilesTime;
 
          Im1D_REAL8 mKernelTot;  // Noyaux le reliant a l'image de base de l'octave
          bool mFirstSauv;
@@ -577,14 +588,6 @@ class cOctaveDigeo
         
         bool saveGaussians( string i_directory, const string &i_basename ) const;
 
-        void orientate();
-
-        void describe();
-        
-        double describeTime() const;
-        double detectTime() const;
-        double orientateTime() const;
-
     protected :
         static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
 
@@ -603,10 +606,7 @@ class cOctaveDigeo
         Box2di                   mBoxImCalc;
         Box2dr                   mBoxCurIn;
         Box2di                   mBoxCurOut;
-        double                   mDetectTime;
         double                   mTrueSamplingPace;
-        double                   mDescribeTime;
-        double                   mOrientateTime;
      private :
         cOctaveDigeo(const cOctaveDigeo &);  // N.I.
 };
@@ -755,19 +755,8 @@ class cImDigeo
         void DoCalcGradMoy(int aDZ);
 
         void saveGaussians() const;
-        double pyramidTime() const;
 
         void detect();
-        double detectTime() const;
-
-        void computeGradients();
-
-        void orientate();
-        double orientateTime() const;
-
-        void describe();
-        double describeTime() const;
-        
         void orientateAndDescribe();
 
        const cImageDigeo &  IMD();  // La structure XML !!!
@@ -797,9 +786,6 @@ class cImDigeo
 	//Tiff_Im TifF();
 	int bitpp()const{return mInterfImage->bitpp();}
 
-        double loadTime() const;
-        double gradientTime() const;
-
         template <class DataType,class ComputeType>
         const Im2D<REAL4,REAL8> & getGradient( const Im2D<DataType,ComputeType> &i_src, REAL8 i_srcMaxValue );
         void retriveAllPoints( list<DigeoPoint> &o_allPoints ) const;
@@ -807,7 +793,6 @@ class cImDigeo
 
         bool mergeTiles( const Expression &i_inputExpression, int i_minLevel, int i_maxLevel, const cDecoupageInterv2D &i_tiles,
                          const Expression &i_outputExpression, int i_iLevelOffset=0 ) const;
-
      private :
         void DoSiftExtract();
 
@@ -845,15 +830,9 @@ class cImDigeo
         double                       mSigma0; // sigma of the first level of each octave (in the octave's space)
         double                       mSigmaN; // nominal sigma value of source image
         double                       mInitialDeltaSigma;
-        double                       mLoadTime;
-        double                       mPyramidTime;
-        double                       mDetectTime;
-        double                       mOrientateTime;
-        double                       mDescribeTime;
         Im2D<REAL4,REAL8>            mGradient;
         void *                       mGradientSource;
         REAL8                        mGradientMaxValue;
-        double                       mGradientTime;
      private :
         cImDigeo(const cImDigeo &);  // N.I.
 };
@@ -943,6 +922,8 @@ class cAppliDigeo
        bool doSuppressTiledOutputs() const;
        bool doForceGradientComputation() const;
        bool doPlotPoints() const;
+       bool doGenerateConvolutionCode() const;
+       bool doShowTimes() const;
 
        double loadAllImageLimit() const;
 
@@ -950,13 +931,13 @@ class cAppliDigeo
        bool doIncrementalConvolution() const;
        bool isVerbose() const;
        ePointRefinement refinementMethod() const;
-       bool showTimes() const;
        cImDigeo & getImage();
        const cImDigeo & getImage() const;
        void mergeOutputs() const;
        void upNbComputedGradients();
        int nbComputedGradients() const;
        int nbLevels() const;
+       Times * const times() const; 
 
        string getValue_iTile_dz_iLevel( const Expression &e, int iTile, int dz, int iLevel ) const;
        string getValue_dz_iLevel( const Expression &e, int dz, int iLevel ) const;
@@ -1037,7 +1018,8 @@ class cAppliDigeo
        int                               mNbLevels;
        bool                              mDoForceGradientComputation;
        bool                              mDoPlotPoints;
-    public:
+       bool                              mDoGenerateConvolutionCode;
+       Times                           * mTimes;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.

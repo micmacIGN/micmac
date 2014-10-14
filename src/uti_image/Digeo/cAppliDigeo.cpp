@@ -84,17 +84,29 @@ cAppliDigeo::cAppliDigeo():
 	mNbComputedGradients(0),
 	mNbLevels(1),
 	mDoForceGradientComputation(false),
-	mDoPlotPoints(false)
+	mDoPlotPoints(false),
+	mDoGenerateConvolutionCode(true),
+	mTimes( NULL )
 {
+	MapTimes *times = new MapTimes;
+	times->start();
+
 	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), Basic_XML_MM_File( "Digeo-Parameters.xml" ) );
 
 	mSiftCarac = Params().SiftCarac().PtrVal();
 	mVerbose = Params().Verbose().Val();
-	if ( Params().ConvolIncrem().IsInit() ) mDoIncrementalConvolution = Params().ConvolIncrem().Val();
-	if ( Params().SiftCarac().IsInit() && Params().SiftCarac().Val().RefinementMethod().IsInit() ) mRefinementMethod = Params().SiftCarac().Val().RefinementMethod().Val();
-	if ( Params().ShowTimes().IsInit() && Params().ShowTimes().Val() ) mShowTimes = true;
-	if ( Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().IsInit() && Params().ShowTimes().Val() ) mLoadAllImageLimit = Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().Val();
-	if ( Params().TypePyramide().PyramideGaussienne().IsInit() ) mNbLevels = Params().TypePyramide().PyramideGaussienne().Val().NbByOctave().Val();
+	if ( Params().ConvolIncrem().IsInit() )
+		mDoIncrementalConvolution = Params().ConvolIncrem().Val();
+	if ( Params().SiftCarac().IsInit() && Params().SiftCarac().Val().RefinementMethod().IsInit() )
+		mRefinementMethod = Params().SiftCarac().Val().RefinementMethod().Val();
+	if ( Params().ShowTimes().IsInit() && Params().ShowTimes().Val() )
+		mShowTimes = true;
+	if ( Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().IsInit() && Params().ShowTimes().Val() )
+		mLoadAllImageLimit = Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().Val();
+	if ( Params().TypePyramide().PyramideGaussienne().IsInit() )
+		mNbLevels = Params().TypePyramide().PyramideGaussienne().Val().NbByOctave().Val();
+	if ( Params().GenereCodeConvol().IsInit() )
+		mDoGenerateConvolutionCode = true;
 
 	processTestSection();
 	InitConvolSpec();
@@ -105,14 +117,19 @@ cAppliDigeo::cAppliDigeo():
 		mConvolutionCodeFileBase = MMDir() + genereCodeConvol.DirectoryCodeConvol().Val() + genereCodeConvol.FileBaseCodeConvol().Val() + "_";
 	}
 
+	mTimes = ( doShowTimes() ? times : (Times*)new NoTimes );
+
 	if ( isVerbose() )
 	{
 		cout << "saving tiles : " << (doSaveTiles()?"yes":"no") << endl;
 		cout << "saving gaussians : " << (doSaveGaussians()?"yes":"no") << endl;
 		cout << "saving gradients : " << (doSaveGradients()?"yes":"no") << endl;
 		cout << "force gradient computation : " << (doForceGradientComputation()?"yes":"no") << endl;
-		cout << "refinement: " << eToString( mRefinementMethod ) << endl;
+		cout << "refinement: " << eToString(mRefinementMethod) << endl;
 	}
+
+	times->stop(DIGEO_TIME_APPLI_CONSTRUCTION);
+	if ( !doShowTimes() ) delete times;
 }
 
 cAppliDigeo::~cAppliDigeo()
@@ -120,6 +137,7 @@ cAppliDigeo::~cAppliDigeo()
 	if ( mParamDigeo!=NULL ) delete mParamDigeo;
 	if ( mICNM!=NULL ) delete mICNM;
 	if ( mExpressionIntegerDictionnary!=NULL ) delete mExpressionIntegerDictionnary;
+	if ( mTimes!=NULL ) delete mTimes;
 }
 
 int cAppliDigeo::nbLevels() const { return mNbLevels; }
@@ -232,6 +250,8 @@ bool cAppliDigeo::doForceGradientComputation() const { return mDoForceGradientCo
 
 bool cAppliDigeo::doPlotPoints() const { return mDoPlotPoints; }
 
+bool cAppliDigeo::doGenerateConvolutionCode() const { return mDoGenerateConvolutionCode; }
+
 int cAppliDigeo::currentBoxIndex() const { return mCurrentBoxIndex; }
 
 bool cAppliDigeo::doIncrementalConvolution() const { return mDoIncrementalConvolution; }
@@ -240,9 +260,11 @@ bool cAppliDigeo::isVerbose() const { return mVerbose; }
 
 ePointRefinement cAppliDigeo::refinementMethod() const { return mRefinementMethod; }
 
-bool cAppliDigeo::showTimes() const { return mShowTimes; }
+bool cAppliDigeo::doShowTimes() const { return mShowTimes; }
 
 double cAppliDigeo::loadAllImageLimit() const { return mLoadAllImageLimit; }
+
+Times * const cAppliDigeo::times() const { return mTimes; }
 
 void cAppliDigeo::processImageName( const string &i_imageFullname )
 {
@@ -460,7 +482,8 @@ void cAppliDigeo::processTestSection()
 			check_expression_has_variables( mMergedOutputGradientAngle_base_expr, neededVariables, NULL );
 		}
 
-		if ( testOutput.MergeTiles().IsInit() && testOutput.MergeTiles().Val() )
+		if ( testOutput.MergeTiles().IsInit() && testOutput.MergeTiles().Val() &&
+		     ( mDoSaveTiles || mDoSaveGaussians || mDoSaveGradients ) )
 			mMergeOutputs = true;
 
 		if ( testOutput.SuppressTiles().IsInit() && testOutput.SuppressTiles().Val() )
@@ -489,6 +512,10 @@ string cAppliDigeo::getConvolutionInstantiationsFilename( string i_type )
 
 void cAppliDigeo::mergeOutputs() const
 {
+	if ( !doMergeOutputs() ) return;
+
+	times()->start();
+
 	if ( doSaveTiles() )
 	{
 		if ( isVerbose() ) cout << "merging raw tiles" << endl;
@@ -507,6 +534,8 @@ void cAppliDigeo::mergeOutputs() const
 		mImage->mergeTiles( mTiledOutputGradientAngle_expr, 0, nbLevels()-1, mDecoupInt, mMergedOutputGradientAngle_expr );
 		mImage->mergeTiles( mTiledOutputGradientNorm_expr, 0, nbLevels()-1, mDecoupInt, mMergedOutputGradientNorm_expr );
 	}
+
+	times()->stop(DIGEO_TIME_MERGE_TILES);
 }
 
 const map<string,int> & cAppliDigeo::dictionnary_tile_dz_level( int i_tile, int i_dz, int i_level ) const
