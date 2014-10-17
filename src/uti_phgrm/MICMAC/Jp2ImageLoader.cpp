@@ -113,12 +113,12 @@ m_Nomfic(nomfic)
     m_SzIm=std::complex<int>(dims.size.x,dims.size.y);
 
     if (m_BPS == 8) m_Type = eUnsignedChar;
-    else if (m_BPS == 16)
+    else if ((m_BPS == 12)||(m_BPS == 16))
     {
         if (m_S) m_Type = eSignedShort;
         else m_Type = eUnsignedShort;
     }
-    else if (m_BPS == 4) m_Type = eFloat;
+    else if (m_BPS == 32) m_Type = eFloat;
     else m_Type = eOther;
 
     if (verbose)
@@ -146,13 +146,13 @@ m_Nomfic(nomfic)
 
 
     if (verbose) std::cout << "Fin du constructeur"<<std::endl;
-	
-	
-	// Debug Greg
-	// On exporte la pyramide d'image pour controler les sous ech
-	//exportPyramide(nomfic,1,32);
-	// Fin Debug Greg
-	
+
+
+    // Debug Greg
+    // On exporte la pyramide d'image pour controler les sous ech
+    //exportPyramide(nomfic,1,32);
+    // Fin Debug Greg
+
 }
 
 ///
@@ -170,9 +170,9 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
     if (verbose) std::cout << "LoadNCanaux en unsigned short"<<std::endl;
     int precision = 16;
     bool signe = false;
-	
-	// si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
-	bool corrDyn =  (m_Type == eUnsignedChar);
+
+    // si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
+    bool corrDyn =  (m_Type == eUnsignedChar);
 
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
@@ -230,12 +230,12 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
 
     kdu_thread_env env, *env_ref=NULL;
     int n, num_components = codestream.get_num_components(true);
-	
-	int * precisions = new int[num_components];
+
+    int * precisions = new int[num_components];
     bool *is_signed = new bool[num_components];
     for(size_t i=0;(int)i<num_components;++i) precisions[i]=precision;
     for(size_t i=0;(int)i<num_components;++i) is_signed[i]=signe;
-	
+
     kdu_dims *comp_dims = new kdu_dims[num_components];
     for (n=0; n < num_components; n++)
         codestream.get_dims(n,comp_dims[n],true);
@@ -263,17 +263,17 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
     {
         if (reDeZoom<=0) for(n=0;n<num_components;++n) stripe_bufs[n] = (short*)&(aVImages[n].mData[aP0Im.imag()+l][aP0Im.real()]);
         decompressor.pull_stripe(stripe_bufs,stripe_heights,sample_gaps,row_gaps,precisions,is_signed);
-		
-		// Par defaut Kakadu adapte la dynamique des valeurs en sortie a la precision demande
-		// donc si l'image d'origine est sur 8 bits, il faut corriger la dynamique
-		if (corrDyn)
-		{
-			for(n=0;n<num_components;++n)
+
+        // Par defaut Kakadu adapte la dynamique des valeurs en sortie a la precision demande
+        // donc si l'image d'origine est sur 8 bits, il faut corriger la dynamique
+        if (corrDyn)
+        {
+            for(n=0;n<num_components;++n)
                 for(int c=0;c<aSz.real();++c)
                     aVImages[n].mData[aP0Im.imag()+l][c] /= 256;
-		}
-		
-		
+        }
+
+
         if (reDeZoom>0)
         {
             for(n=0;n<num_components;++n)
@@ -318,13 +318,13 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
     if (verbose) std::cout << "LoadNCanaux en float "<<aDeZoom<<" - "<<aP0Im.real()<<" "<<aP0Im.imag()<<" - "<<aP0File.real()<<" "<<aP0File.imag()<<" - "<<aSz.real()<<" "<<aSz.imag()<<std::endl;
     int precision = 16;
     bool signe = false;
-	
-	// si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
-	float dyn = 1.;
-	if (m_Type == eUnsignedChar) 
-		dyn = 1./256.;
-	
-	// si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
+
+    // si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
+    float dyn = 1.;
+    if (m_Type == eUnsignedChar)
+        dyn = 1./256.;
+
+    // si l'image d'origine est sur 8 bits il faudra corriger la dynamique en sortie
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
     jp2_family_src          jp2_ultimate_src;
@@ -385,12 +385,12 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
 
     kdu_thread_env env, *env_ref=NULL;
     int n, num_components = codestream.get_num_components(true);
-	
-	int * precisions = new int[num_components];
+
+    int * precisions = new int[num_components];
     bool *is_signed = new bool[num_components];
     for(size_t i=0;(int)i<num_components;++i) precisions[i]=precision;
     for(size_t i=0;(int)i<num_components;++i) is_signed[i]=signe;
-	
+
     kdu_dims *comp_dims = new kdu_dims[num_components];
     for (n=0; n < num_components; n++)
         codestream.get_dims(n,comp_dims[n],true);
