@@ -1,0 +1,150 @@
+<ParamApero>
+       <DicoLoc>
+           <KeyedNamesAssociations>
+                 <Calcs>
+                    <Arrite>  1 1 </Arrite>
+                    <Direct>
+                        <PatternTransform> (.*) </PatternTransform>
+                        <CalcName>  Auto-Cal$1.xml  </CalcName>
+                     </Direct>
+                 </Calcs>
+                 <Key> Assoc-CalFinale  </Key>
+           </KeyedNamesAssociations>
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Pastis_Hom  </Id>
+                 <KeySet> All-Bin-PastisHom   </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Bin-PastisHom    </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+            <BDD_PtsLiaisons>
+                  <Id>    Std_Hom  </Id>
+                  <KeySet>  All-StdHom </KeySet>
+                  <KeyAssoc>  StdHom   </KeyAssoc>
+             </BDD_PtsLiaisons>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> Pentax28 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   DRadFinalePentax28mm.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^sg1l6346_MpDcraw8B_GB.tif  </PatternName>
+	           <CalcNameCalib>  Pentax28 </CalcNameCalib>
+	           <PosValueInit>
+                          <PoseInitFromReperePlan>   <!--  Voir [PIFRP]-->
+                                <OnZonePlane> ThePlafondPlan   </OnZonePlane>
+                                <IdBD > Std_Hom </IdBD>
+                                <NameCam> sg1l6342_MpDcraw8B_GB.tif    </NameCam>
+
+                                <Ap1  >
+                                    <Im>   100    100     </Im>
+                                    <Ter>   0.1   -0.1    -1 </Ter>
+                                </Ap1>
+                                <Ap2  >
+                                    <Im>   3000   100  </Im>
+                                    <Ter>   3     -0.1   -1 </Ter>
+                                </Ap2>
+                                <Ap3  >
+                                    <Im>   100    2000    </Im>
+                                    <Ter>  0.1     -2   -1  </Ter>
+                                </Ap3>
+                          </PoseInitFromReperePlan>
+                   </PosValueInit>
+
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName> sg1l634(2|3|4|5)_MpDcraw8B_GB.tif    </PatternName>
+	           <CalcNameCalib>  Pentax28 </CalcNameCalib>
+
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+
+		   <PosValueInit>
+		        <PoseFromLiaisons>
+                             <LiaisonsInit>
+                                 <NameCam> 0   </NameCam>
+				 <IdBD> Pastis_Hom  </IdBD>
+                             </LiaisonsInit>
+		        </PoseFromLiaisons>
+		   </PosValueInit>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> /mnt/data/Archi/Monastier/28/ </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		          </ContraintesCamerasInc>
+
+		          <ContraintesPoses>
+			     <NamePose>   0 </NamePose>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>
+
+		          <ContraintesPoses>
+			     <NamePose>   1     </NamePose>
+			     <Val>      ePoseBaseNormee   </Val>
+			     <PoseRattachement>   0 </PoseRattachement>
+		          </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                 </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc> OrInit </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                         <ExportCalib>
+                             <PatternSel> .* </PatternSel>
+                             <KeyAssoc> Assoc-CalFinale </KeyAssoc>
+                        </ExportCalib>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+</ParamApero>
+
