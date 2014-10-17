@@ -40,7 +40,6 @@ inline __device__ uint minR(uint *sMin, uint &globalMin){ // TODO attention ajou
     ushort  thread2;
     uint    temp;
     //
-
     int nTotalThreads = WARPSIZE;	// Total number of threads, rounded up to the next power of two
 
     while(nTotalThreads > 1)
