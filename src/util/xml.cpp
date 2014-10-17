@@ -87,6 +87,8 @@ class cOpPolI
 
 };
 
+static double FLog2(const std::vector<double> & aV) { return log2(aV[0]);}
+static double FRoundNI(const std::vector<double> & aV) { return round_ni(aV[0]);}
 static double FTrue(const std::vector<double> & aV) { return 1; }
 static double FFalse(const std::vector<double> & aV) { return 0; }
 static double FNot(const std::vector<double> & aV) { return aV[0]==0; }
@@ -131,6 +133,8 @@ const std::vector<cOpPolI> & OpPolI()
        aRes.push_back(cOpPolI(2,"-",FMoins));
        aRes.push_back(cOpPolI(2,"Eq",FEq));
        aRes.push_back(cOpPolI(2,"Neq",FNotEq));
+       aRes.push_back(cOpPolI(1,"Log2",FLog2));
+       aRes.push_back(cOpPolI(1,"Int",FRoundNI));
    }
    return aRes;
 }
