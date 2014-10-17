@@ -1,10 +1,10 @@
 #ifndef HASH_INCLUDED
 #define HASH_INCLUDED
 
-    #if (defined ELISE_Darwin) && (defined __clang__) && (__clang_major__>=5)
+    #if (defined __APPLE__) && (defined __clang__) && (__clang_major__>=5)
         #include <unordered_map>
         #define hash_map std::unordered_map
-    #elif (ELISE_windows)
+    #elif _WIN32
         #ifndef __GNUC__
             #include <hash_map>
              using stdext::hash_map;
