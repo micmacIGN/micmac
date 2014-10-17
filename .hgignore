@@ -97,5 +97,5 @@ include/XML_User
 binaire-aux/proj.exe
 binaire-aux/proj.dll
 setup/MICMAC_MacOSXInstaller.sh
-binaire-aux/BIN_AUX_WIN32/PoissonRecon.exe
-binaire-aux/BIN_AUX_WIN32/SurfaceTrimmer.exe
+binaire-aux/SurfaceTrimmer.exe
+binaire-aux/PoissonRecon.exe
