@@ -35,7 +35,7 @@ OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF )
 OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
 
 # construire les binaires Poisson
-OPTION(BUILD_POISSON "Build Poisson binaries" ON )
+OPTION(BUILD_POISSON "Build Poisson binaries" OFF )
 
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )

@@ -140,7 +140,7 @@ public:
         std::vector< SquareEdgeIndices > eTable;
         std::vector< SquareFaceIndices > fTable;
         int cCount , eCount , fCount , nodeOffset , nodeCount;
-        SliceTableData( void ){ fCount , eCount = cCount = 0; }
+        SliceTableData( void ){ fCount = 0; eCount = cCount = 0; }
         ~SliceTableData( void ){ clear(); }
         void clear( void ) { cTable.clear() , eTable.clear() , fTable.clear() , fCount = eCount = cCount = 0; }
         SquareCornerIndices& cornerIndices( const TreeOctNode* node );
@@ -164,7 +164,7 @@ public:
         std::vector< SquareCornerIndices > eTable;
         std::vector< SquareEdgeIndices > fTable;
         int fCount , eCount , nodeOffset , nodeCount;
-        XSliceTableData( void ){ fCount , eCount = 0; }
+        XSliceTableData( void ){ fCount = 0; eCount = 0; }
         ~XSliceTableData( void ){ clear(); }
         void clear( void ) { fTable.clear() , eTable.clear() , fCount = eCount = 0; }
         SquareCornerIndices& edgeIndices( const TreeOctNode* node );
