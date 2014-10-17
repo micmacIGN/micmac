@@ -318,7 +318,11 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
     #include <Psapi.h>
     #include <process.h>
 #endif // _WIN32
-#include "poisson/Poisson.h"
+#include "../CodeExterne/Poisson/include/PlyFile.h"
+
+#ifndef INT
+	#define INT int
+#endif
 
 #include "../src/uti_image/Ann/AnnSearcher.h"
 #include "../src/uti_image/Digeo/DigeoPoint.h"
