@@ -116,7 +116,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     {
          Im2D_Bits<1> aMaskN= aNuage->ImDef();
          Tiff_Im aMaskSup(aMask.c_str());
-         ELISE_COPY(aMaskN.all_pts(),aMaskSup.in() >= aSeuilMask, aMaskN.out());
+         ELISE_COPY(aMaskN.all_pts(),(aMaskSup.in(0) >= aSeuilMask) && aMaskN.in(), aMaskN.out());
     }
 
     if (aSz.x <0)

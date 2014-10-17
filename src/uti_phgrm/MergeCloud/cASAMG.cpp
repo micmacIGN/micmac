@@ -304,9 +304,40 @@ const cOneSolImageSec &  cASAMG::SolOfCostPerIm(double aCostPerIm)
    return *aSol;
 }
 
-void  cASAMG::ExportMiseAuPoint()
+
+//   MasqInterp(mSz,aSzFull    ,aDSRes / aFullRes,(mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder),0.5)
+static Im2D_Bits<1> MasqInterp(Pt2di aSzIn,Pt2di aSzOut,double aScale,Fonc_Num aFonc,double aSeuil)
 {
-    if (! IsSelected()) return;
+    Im2D_U_INT1  aMasqBrd(aSzIn.x,aSzIn.y);
+    TIm2D<U_INT1,INT>  aTMB(aMasqBrd);
+    ELISE_COPY
+    (
+         aMasqBrd.all_pts(),
+         aFonc,
+         aMasqBrd.out()
+    );
+
+    
+    Im2D_Bits<1> aMasqBrdFull(aSzOut.x,aSzOut.y);
+    TIm2DBits<1> aTMBF(aMasqBrdFull);
+    Pt2di aP;
+    for (aP.x=0 ; aP.x<aSzOut.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSzOut.y ; aP.y++)
+        {
+             Pt2dr aPR = Pt2dr(aP) / aScale;
+             aTMBF.oset(aP,aTMB.getr(aPR,0)>=aSeuil);
+        }
+    }
+
+    return aMasqBrdFull;
+}
+
+
+std::string  cASAMG::ExportMiseAuPoint()
+{
+    int aZoomF = 2;
+    if (! IsSelected()) return"";
 
     // On genere les export a sous resol (surtout pour visualisation tempo)
     cXML_ParamNuage3DMaille aParam = mStdN->Params();
@@ -327,22 +358,13 @@ void  cASAMG::ExportMiseAuPoint()
                       );
 
 
-
-
     ELISE_COPY
     (
         select(mImLabFin.all_pts(),aFOK &&  mImLabFin.in()==eLFMasked),
         eLFBorder,
         mImLabFin.out()
     );
-    Im2D_U_INT1  aMasqBrd(mSz.x,mSz.y);
-    TIm2D<U_INT1,INT>  aTMB(aMasqBrd);
-    ELISE_COPY
-    (
-         aMasqBrd.all_pts(),
-         (mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder),
-         aMasqBrd.out()
-    );
+
 
     std::string aNameMasq = mAppli->NameFileInput(true,mIma,"_Masq.tif","Test");
     std::string aNameLab = mAppli->NameFileInput(true,mIma,"_Label.tif","Test");
@@ -354,8 +376,15 @@ void  cASAMG::ExportMiseAuPoint()
     aParam.Image_Profondeur().Val().Masq() = NameWithoutDir(aNameMasq);
     MakeFileXML(aParam,aNameXML);
 
-    std::string aCom =  MM3dBinFile("Nuage2Ply") + "  " + aNameXML  ;
-    System(aCom);
+    std::string aComPly =  MM3dBinFile("Nuage2Ply") + "  " + aNameXML;
+    System(aComPly);
+
+
+
+    /*
+    if (mAppli->DoPlyCoul())
+       aComPly = aComPly  + " Attr=" + mIma->mNameIm;
+     */
 
     
     // On genere les export a pleine resolution,
@@ -368,10 +397,37 @@ void  cASAMG::ExportMiseAuPoint()
     Tiff_Im aFMasqFull(aNameMasqFull.c_str());
     Pt2di aSzFull = aFMasqFull.sz();
     cXML_ParamNuage3DMaille aNuageFull = StdGetFromSI(aNameXMLFull,XML_ParamNuage3DMaille);
+
     double aFullRes = aNuageFull.SsResolRef().Val();
     double aDSRes   = mStdN->Params().SsResolRef().Val();
 
+    Fonc_Num FBorder = (mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder);
+    Im2D_Bits<1>  aMasqBrdFull = MasqInterp(mSz,aSzFull,aDSRes/aFullRes,FBorder,0.5);
+
+    Fonc_Num FoncFin = (mImLabFin.in()==eLFMaster);
+    double aResolFin = aDSRes/ aZoomF;
+    Pt2di  aSzFin = round_up(Pt2dr(mSz)*aResolFin);
+    Im2D_Bits<1>  aMasqFin = MasqInterp(mSz,aSzFin,aResolFin,FoncFin,1/3.0);
+    std::string aNameMasqFin =  aDirExp + "MasqFinal.tif";
+    Tiff_Im   aTiffMasqFin
+              (
+                  aNameMasqFin.c_str(),
+                  aSzFin,
+                  GenIm::bits1_msbf,
+                  Tiff_Im::No_Compr,
+                  Tiff_Im::BlackIsZero
+              );
+     ELISE_COPY(aTiffMasqFin.all_pts(),aMasqFin.in() , aTiffMasqFin.out());
+/*
     double aRR = aDSRes / aFullRes;
+    Im2D_U_INT1  aMasqBrd(mSz.x,mSz.y);
+    TIm2D<U_INT1,INT>  aTMB(aMasqBrd);
+    ELISE_COPY
+    (
+         aMasqBrd.all_pts(),
+         (mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder),
+         aMasqBrd.out()
+    );
 
     
     Im2D_Bits<1> aMasqBrdFull(aSzFull.x,aSzFull.y);
@@ -385,8 +441,9 @@ void  cASAMG::ExportMiseAuPoint()
              aTMBF.oset(aP,aTMB.getr(aPR,0)>=0.5);
         }
     }
+*/
     
-    std::cout << "RRRR " << aRR <<  " " << aNameMasqFull << " " << aSzFull<<  "\n";
+    std::cout << "RRRR " << aDSRes / aFullRes  <<  " " << aNameMasqFull << " " << aSzFull<<  "\n";
     std::string aNameNewM =  aDirExp + "MasqTerrain.tif";
 
     Tiff_Im   aNewMasq
@@ -405,6 +462,16 @@ void  cASAMG::ExportMiseAuPoint()
          mAppli->NameFileInput(false,mIma,".tif","Depth"),
          aDirExp+"MNT0Terrain.tif"
      );
+
+    std::string aComMM  =    MM3dBinFile("MICMAC") 
+                          +  XML_MM_File("MatchQM.xml")
+                          + " +Im1=" + mIma->mNameIm
+                          + " +Ori=" + mAppli->Ori()
+                          + " WorkDir=" + mAppli->Dir()
+                          + " +Zoom0="  + ToString(round_ni(aFullRes))
+                          + " +ZoomF="  + ToString(aZoomF);
+
+     return aComMM;
 }
 
 
