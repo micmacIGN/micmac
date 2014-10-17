@@ -77,20 +77,10 @@ protected:
 class CameraPair
 {
 public:
-    CameraPair(AffCamera* aMaster, AffCamera* aSlave, std::string aName):master(aMaster), slave(aSlave), name(aName){}
+    CameraPair(AffCamera* aMaster, AffCamera* aSlave):master(aMaster), slave(aSlave){}
 
     AffCamera* master;
     AffCamera* slave;
-
-    ///
-    /// \brief name (without extension): img1_img2, used to read tie-points file img1_img2.dat and to store coefficient file refine/im1_img2.txt
-    ///
-    std::string name;
-
-    ///
-    /// \brief Points altitude (to estimate)
-    ///
-    std::vector<double> vZ;
 
     ///
     /// \brief compute the difference between the Ground Points for a given Tie Point and a given set of parameters (Z and affinity)
@@ -129,18 +119,6 @@ public:
         return compute2DGroundDifference(ptImgMaster,ptImgSlave,aZ,slave->vP[0],slave->vP[1],slave->vP[2],slave->vP[3],slave->vP[4],slave->vP[5]);
     }
 
-    ///
-    /// \brief Z estimation
-    /// \param ptImgMaster tie-point from master image
-    /// \param ptImgSlave  tie-point from slave image
-    /// \return Z altitude of tie-point
-    ///
-    double getZ(Pt2dr const &ptImgMaster,
-                Pt2dr const &ptImgSlave) const
-    {
-        return master->Camera()->PseudoInter(ptImgMaster,*slave->Camera(),ptImgSlave).z;
-    }
-
     ~CameraPair()
     {
         if (master)
@@ -163,7 +141,7 @@ class TiePoint
 public:
     TiePoint(std::map <int, AffCamera *> *aMap): valid(true), pMapCam(aMap){}
 
-    Pt3dr  getCoord();
+    Pt3dr getCoord();
 
     Pt2dr computeImageDifference(ImageMeasure const& aPt,
                                  double aA0,
@@ -197,7 +175,7 @@ Pt3dr TiePoint::getCoord()
         Pt2dr P2 = vImgMeasure[1].ptImg;
 
         return cam1->Camera()->PseudoInter(P1,*cam2->Camera(),P2);
-     }
+    }
     else
     {
         std::vector<ElSeg3D>  aVS;
@@ -312,7 +290,7 @@ public:
                 mapCameras.insert(std::pair <int,AffCamera*>(mapCameras.size(), Cam1));
                 mapCameras.insert(std::pair <int,AffCamera*>(mapCameras.size(), Cam2));
 
-                CameraPair *CamPair = new CameraPair(Cam1, Cam2, filename);
+                CameraPair *CamPair = new CameraPair(Cam1, Cam2);
 
                 // Loading the Tie Points with altitude approximate estimation
 
@@ -327,7 +305,7 @@ public:
                     //std::cout << "P2 = "<<P2.x<<" " <<P2.y << std::endl;
                     if (fic.good())
                     {
-                        double z = CamPair->getZ(P1,P2);
+                        double z = Cam1->Camera()->PseudoInter(P1,*Cam2->Camera(),P2).z;
                         //std::cout << "z = "<<z<<std::endl;
                         Pt2dr D = CamPair->compute2DGroundDifference(P1,P2,z);
 
