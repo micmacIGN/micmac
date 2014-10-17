@@ -694,11 +694,16 @@ void cAppliMICMAC::InitDirectories()
           std::cout  << "aSETPRES " << aSetPres->size() << "\n";
        }
 
+       std::vector<std::string> aVTMP;
+       std::string anUId =  GetUnikId();
        if (aSetPres)
        {
            for (int aK=0 ; aK<int(aSetPres->size()) ; aK++)
            {
-               ELISE_fp::MvFile(mFullDirMEC+(*aSetPres)[aK],aTmp);
+               std::string  aNameIm = (*aSetPres)[aK];
+               std::string aFileTmp = aTmp + anUId + aNameIm;
+               ELISE_fp::MvFile(mFullDirMEC+aNameIm,aFileTmp);
+               aVTMP.push_back(aFileTmp);
            }
        }
 
@@ -708,7 +713,8 @@ void cAppliMICMAC::InitDirectories()
        {
            for (int aK=0 ; aK<int(aSetPres->size()) ; aK++)
            {
-               ELISE_fp::MvFile(aTmp+(*aSetPres)[aK],mFullDirMEC);
+               ELISE_fp::MvFile(aVTMP[aK],mFullDirMEC+(*aSetPres)[aK]);
+
            }
        }
 

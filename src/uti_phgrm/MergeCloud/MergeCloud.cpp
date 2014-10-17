@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "MergeCloud.h"
 
+std::string DirQMPLy () {return "QM-Ply/";}
 
 class cCmpResolMCSPOM
 {
@@ -61,9 +62,12 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mCumNbImOfNiv    (BestQual() +2,0),
    mDataCNION       (mCumNbImOfNiv.data()),
 */
-   mNbImSelected    (0)
+   mNbImSelected    (0),
+   mDoPly           (true),
+   mDoPlyCoul         (false)
 {
-std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
+   ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
+
    mVStatNivs[eQC_Out].mGofQ          = 0;
    mVStatNivs[eQC_ZeroCohBrd].mGofQ   = 1/32.0;
    mVStatNivs[eQC_ZeroCoh].mGofQ      = 1/16.0;
@@ -83,6 +87,8 @@ std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
         LArgMain()  << EAMC(aPat,"Full Directory (Dir+Pattern)",eSAM_IsPatFile)
                     << EAMC(anOri,"Orientation ", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mFileParam,"XMLParam",true,"File Param, def = XML_MicMac/DefMergeCloud.xml")
+                    << EAM(mDoPly,"DoPly",true,"Generate Ply of selected files (Def=true)")
+                    << EAM(mDoPlyCoul,"PlyCoul",true,"Generated ply are in coul (Def=false)")
    );
 
    if (! EAMIsInit(&mFileParam))
@@ -193,10 +199,19 @@ std::cout << "PPPppaaat " << mParam.ImageMiseAuPoint().ValWithDef(".*") << "\n";
    }
 
    // Export Ply
+   std::list<std::string> aLComPly;
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
-         mVSoms[aK]->attr()->ExportMiseAuPoint();
+        std::string aCom = mVSoms[aK]->attr()->ExportMiseAuPoint();
+        if (aCom!="")
+        {
+           aLComPly.push_back(aCom);
+           std::cout << "COM= " << aCom << "\n";
+           // getchar();
+           // System(aCom);
+        }
    }
+   cEl_GPAO::DoComInParal(aLComPly);
 }
 
 void cAppliMergeCloud::OneStepSelection()
@@ -343,6 +358,10 @@ tMCSubGr &   cAppliMergeCloud::SubGrAll()
    return mSubGrAll;
 }
 
+bool  cAppliMergeCloud::DoPlyCoul() const
+{
+   return mDoPlyCoul;
+}
 
 
 //========================================================================================

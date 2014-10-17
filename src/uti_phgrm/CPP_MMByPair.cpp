@@ -1135,7 +1135,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       StdCorrecNameOrient(mOri,DirOfFile(mEASF.mFullName));
 
 
-      mByEpi = mByMM1P;
+      mByEpi = mByMM1P && (mType!=eQuickMac);
 
       mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
 
