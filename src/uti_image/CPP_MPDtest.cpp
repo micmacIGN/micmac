@@ -458,16 +458,54 @@ extern void Test3dQT();
 #endif
 
 
+extern Fonc_Num sobel(Fonc_Num f);
+
+
+void TestNtt(const std::string &aName)
+{
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aName,1,true);
+
+    Pt2di aSz = aTF.sz();
+    Im2D_REAL4 aI0(aSz.x,aSz.y);
+    ELISE_COPY( aTF.all_pts(),aTF.in(),aI0.out());
+
+    Video_Win * aW=0;
+    // aW = Video_Win::PtrWStd(aSz);
+
+    if (aW)
+    {
+        ELISE_COPY(aW->all_pts(),Min(255,aI0.in()/256.0),aW->ogray());
+        aW->clik_in();
+    }
+  
+    Fonc_Num aF1 = sobel(aI0.in_proj());
+
+    Fonc_Num aF2 = aI0.in_proj();
+    for (int aK=0 ; aK<3 ; aK++)
+        aF2 = rect_som(aF2,1) / 9.0;
+    aF2 = sobel(aF2);
+
+    if (aW)
+    {
+        ELISE_COPY(aW->all_pts(),Min(255, 200 * (aF1/Max(aF2,1e-7))),aW->ogray());
+        aW->clik_in();
+    }
+
+    double aSF1,aSF2,aSomPts;
+    ELISE_COPY(aI0.all_pts(),Virgule(aF1,aF2,1.0),Virgule(sigma(aSF1),sigma(aSF2),sigma(aSomPts)));
+
+    std::cout << "Indice " << aSF1 / aSF2 << "\n";
+  
+}
+
+
 
 int MPDtest_main (int argc,char** argv)
 {
 
-   Im2D_U_INT1 aIm = Im2D_U_INT1::FromFileStd("/home/marc/TMP/AutoRot/JPG/SM5.JPG");
-   for (int aK = 1 ; aK<4 ; aK++)
-   {
-       Im2DGen *aIR = aIm.ImRotate(aK);
-       Tiff_Im::CreateFromIm(*aIR,"Test"+ToString(aK) + ".tif");
-   }
+   TestNtt(argv[1]);
+   for (int aK=0 ; aK<argc ; aK++)
+      std::cout << argv[aK] << "\n";
    
 /*
     ELISE_ASSERT(argc==3,"MPDtest_main");
