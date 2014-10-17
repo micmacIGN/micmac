@@ -8,14 +8,14 @@ are permitted provided that the following conditions are met:
 Redistributions of source code must retain the above copyright notice, this list of
 conditions and the following disclaimer. Redistributions in binary form must reproduce
 the above copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the distribution. 
+in the documentation and/or other materials provided with the distribution.
 
 Neither the name of the Johns Hopkins University nor the names of its contributors
 may be used to endorse or promote products derived from this software without specific
-prior written permission. 
+prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO THE IMPLIED WARRANTIES 
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO THE IMPLIED WARRANTIES
 OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
 SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
@@ -38,74 +38,74 @@ int strcasecmp(char* c1,char* c2);
 
 class cmdLineReadable{
 public:
-	bool set;
-	char* name;
-	cmdLineReadable(const char* name);
-	virtual ~cmdLineReadable(void);
-	virtual int read(char** argv,int argc);
-	virtual void writeValue(char* str);
+    bool set;
+    char* name;
+    cmdLineReadable(const char* name);
+    virtual ~cmdLineReadable(void);
+    virtual int read(char** argv,int argc);
+    virtual void writeValue(char* str);
 };
 
 class cmdLineInt : public cmdLineReadable {
 public:
-	int value;
-	cmdLineInt(const char* name);
-	cmdLineInt(const char* name,const int& v);
-	int read(char** argv,int argc);
-	void writeValue(char* str);
+    int value;
+    cmdLineInt(const char* name);
+    cmdLineInt(const char* name,const int& v);
+    int read(char** argv,int argc);
+    void writeValue(char* str);
 };
 template<int Dim>
 class cmdLineIntArray : public cmdLineReadable {
 public:
-	int values[Dim];
-	cmdLineIntArray(const char* name);
-	cmdLineIntArray(const char* name,const int v[Dim]);
-	int read(char** argv,int argc);
-	void writeValue(char* str);
+    int values[Dim];
+    cmdLineIntArray(const char* name);
+    cmdLineIntArray(const char* name,const int v[Dim]);
+    int read(char** argv,int argc);
+    void writeValue(char* str);
 };
 
 class cmdLineFloat : public cmdLineReadable {
 public:
-	float value;
-	cmdLineFloat(const char* name);
-	cmdLineFloat(const char* name,const float& f);
-	int read(char** argv,int argc);
-	void writeValue(char* str);
+    float value;
+    cmdLineFloat(const char* name);
+    cmdLineFloat(const char* name,const float& f);
+    int read(char** argv,int argc);
+    void writeValue(char* str);
 };
 template<int Dim>
 class cmdLineFloatArray : public cmdLineReadable {
 public:
-	float values[Dim];
-	cmdLineFloatArray(const char* name);
-	cmdLineFloatArray(const char* name,const float f[Dim]);
-	int read(char** argv,int argc);
-	void writeValue(char* str);
+    float values[Dim];
+    cmdLineFloatArray(const char* name);
+    cmdLineFloatArray(const char* name,const float f[Dim]);
+    int read(char** argv,int argc);
+    void writeValue(char* str);
 };
 class cmdLineString : public cmdLineReadable {
 public:
-	char* value;
-	cmdLineString(const char* name);
-	~cmdLineString();
-	int read(char** argv,int argc);
-	void writeValue(char* str);
+    char* value;
+    cmdLineString(const char* name);
+    ~cmdLineString();
+    int read(char** argv,int argc);
+    void writeValue(char* str);
 };
 class cmdLineStrings : public cmdLineReadable {
-	int Dim;
+    int Dim;
 public:
-	char** values;
-	cmdLineStrings(const char* name,int Dim);
-	~cmdLineStrings(void);
-	int read(char** argv,int argc);
-	void writeValue(char* str);
+    char** values;
+    cmdLineStrings(const char* name,int Dim);
+    ~cmdLineStrings(void);
+    int read(char** argv,int argc);
+    void writeValue(char* str);
 };
 template<int Dim>
 class cmdLineStringArray : public cmdLineReadable {
 public:
-	char* values[Dim];
-	cmdLineStringArray(const char* name);
-	~cmdLineStringArray();
-	int read(char** argv,int argc);
-	void writeValue(char* str);
+    char* values[Dim];
+    cmdLineStringArray(const char* name);
+    ~cmdLineStringArray();
+    int read(char** argv,int argc);
+    void writeValue(char* str);
 };
 
 // This reads the arguments in argc, matches them against "names" and sets
@@ -116,5 +116,5 @@ char* GetFileExtension(char* fileName);
 char* GetLocalFileName(char* fileName);
 char** ReadWords(const char* fileName,int& cnt);
 
-#include "CmdLineParser.inl"
+#include "../src/CmdLineParser.inl"
 #endif // CMD_LINE_PARSER_INCLUDED
