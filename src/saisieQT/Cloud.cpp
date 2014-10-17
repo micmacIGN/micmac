@@ -1,5 +1,25 @@
 ﻿#include "Cloud.h"
 
+typedef struct sVertex
+{
+    float x,y,z;             /* the usual 3-space position of a vertex */
+} sVertex;
+typedef struct sPlyOrientedVertex
+{
+    float x, y, z, nx, ny, nz;
+} sPlyOrientedVertex;
+typedef struct sPlyColoredVertex
+{
+    float x, y, z;
+    unsigned char red, green, blue;
+} sPlyColoredVertex;
+
+typedef struct sPlyColoredVertexWithAlpha
+{
+    float x, y, z;
+    unsigned char red, green, blue, alpha;
+} sPlyColoredVertexWithAlpha;
+
 static PlyProperty vert_props[] = {
     {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
     {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
