@@ -1,29 +1,29 @@
 #ifndef HASH_INCLUDED
 #define HASH_INCLUDED
-#ifdef WIN32
-#include <hash_map>
-using stdext::hash_map;
-#else // !WIN32
-#include <ext/hash_map>
-using namespace __gnu_cxx;
 
-namespace __gnu_cxx
-{
-  template<> struct hash<long long> {
-    size_t operator()(long long __x) const { return __x; }
-  };
-  template<> struct hash<const long long> {
-    size_t operator()(const long long __x) const { return __x; }
-  };
-  
-  
-  template<> struct hash<unsigned long long> {
-    size_t operator()(unsigned long long __x) const { return __x; }
-  };
-  template<> struct hash<const unsigned long long> {
-    size_t operator()(const unsigned long long __x) const { return __x; }
-  };
-}
-#endif // WIN32
+    #if (defined ELISE_Darwin) && (defined __clang__) && (__clang_major__>=5)
+        #include <unordered_map>
+        #define hash_map std::unordered_map
+    #elif (ELISE_windows)
+        #ifndef __GNUC__
+            #include <hash_map>
+             using stdext::hash_map;
+        #else
+            #if __GNUC__ < 3
+                    #include <hash_map>
+            #else
+                    #include <ext/hash_map>
+                    #if __GNUC_MINOR__ == 0
+                            using namespace std;       // GCC 3.0
+                    #else
+                            using namespace __gnu_cxx; // GCC >= 3.1
+                    #endif
+            #endif
+        #endif
+    #else // !WIN32
+        #include <tr1/unordered_map>
+        #define hash_map std::tr1::unordered_map
+    #endif // WIN32
 #endif // HASH_INCLUDED
+
 
