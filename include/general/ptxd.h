@@ -626,7 +626,13 @@ inline Pt2dr vunit(Pt2dr p)
    return vunit(p,d);
 }
 
+/*
 inline Pt2dr barry(REAL pds1,const Pt2dr & p1,const Pt2dr & p2 )
+{
+     return p1*pds1  + p2*(1-pds1);
+}
+*/
+template <class TPds,class TVal> inline TVal barry(TPds pds1,const TVal & p1,const TVal & p2 )
 {
      return p1*pds1  + p2*(1-pds1);
 }
