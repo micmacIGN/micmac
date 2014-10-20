@@ -101,7 +101,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.pt1.x || ptProj.y >= (float)zoneImage.pt1.y /*oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))*/) // retirer le 9 decembre 2013 à verifier
   {
-      cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = -1.f;
+      //cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = -1.f;
       return;
   }// FIN AJOUT 2014
   else

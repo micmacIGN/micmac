@@ -1,6 +1,8 @@
 #ifndef GPGPU_TEXTURETOOLS_CUH
 #define GPGPU_TEXTURETOOLS_CUH
 
+#include "GpGpu_Defines.h"
+
 // w0, w1, w2, and w3 are the four cubic B-spline basis functions
 __host__ __device__
 	float w0(float a)
@@ -126,6 +128,7 @@ R tex2DBicubicLayered(const texture<T, cudaTextureType2DLayered> texref, float x
     float py = floor(y);
     float fx = x - px;
     float fy = y - py;
+
 
     return cubicFilter<R>(fy,
                           cubicFilter<R>(fx, tex2DLayered(texref, px-1, py-1,layer), tex2DLayered(texref, px, py-1,layer), tex2DLayered(texref, px+1, py-1,layer), tex2DLayered(texref, px+2,py-1,layer)),

@@ -22,7 +22,7 @@ extern "C" textureReference& getMaskGlobal(){return TexS_MaskGlobal;}
 
 extern "C" textureReference& getTexL_MaskImages(){return TexL_MaskImages;}
 
-#define INTERPOLA BICUBIC
+#define INTERPOLA LINEARINTER
 
 template<int TexSel> __device__ __host__ TexFloat2Layered TexFloat2L();
 
@@ -42,8 +42,8 @@ inline __device__ float GetImageValue(float2 ptProj, uint mZ)
 #elif	INTERPOLA == LINEARINTER
 	return tex2DLayeredPt( TexL_Images, ptProj, mZ);
 #elif	INTERPOLA == BICUBIC
-//    return tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, mZ);
-return tex2DBicubicLayered<float,float>(TexL_Images, ptProj.x, ptProj.y, mZ);
+    return tex2DFastBicubic<float,float>(TexL_Images, ptProj.x, ptProj.y, mZ);
+//return tex2DBicubicLayered<float,float>(TexL_Images, ptProj.x, ptProj.y, mZ);
 
 #endif
 }
