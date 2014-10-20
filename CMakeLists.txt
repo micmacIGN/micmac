@@ -32,7 +32,10 @@ OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF )
 
 # construire l'interface graphique
-OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
+OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
+
+# construire les binaires Poisson
+OPTION(BUILD_POISSON "Build Poisson binaries" OFF )
 
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
@@ -541,6 +544,8 @@ set(ELISE_DIR src)
 
 # CONSTRUCTION : Librairie ANN
 include(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/CMakeLists.txt)
+# CONSTRUCTION : Librairie POISSON
+include(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/CMakeLists.txt)
 # CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)

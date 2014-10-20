@@ -478,8 +478,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (mZoomInit!=-1)
       {
-          int TabZI[4] ={128,64,32,16};
-          VerifIn(mZoomInit,TabZI,4,"Zoom Init");
+          int TabZI[6] ={128,64,32,16,8,4};
+          VerifIn(mZoomInit,TabZI,6,"Zoom Init");
       }
       else
       {

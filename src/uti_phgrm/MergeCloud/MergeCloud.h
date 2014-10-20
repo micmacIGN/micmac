@@ -150,7 +150,7 @@ class cASAMG
       // Valeur >0 si dedans,  <0 dehors, quantifie l'interiorite
       double  InterioriteEnvlop(const Pt2di & aP,double aProfTest,double & aDeltaProf) const;
 
-      void ExportMiseAuPoint();
+      std::string ExportMiseAuPoint();
  
       bool  IsImageMAP() const;
 
@@ -284,6 +284,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        tMCSubGr &  SubGrAll();
 
        bool IsInImageMAP(cASAMG*);
+       bool DoPlyCoul() const;
        
     private :
        tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
@@ -325,6 +326,8 @@ class cAppliMergeCloud : public cAppliWithSetImage
        double                          mNbImMoy;
        int                             mNbImSelected;
        cElRegex *                      mPatMAP;
+       bool                            mDoPly;
+       bool                            mDoPlyCoul;
 };
 
    //==============================================================================

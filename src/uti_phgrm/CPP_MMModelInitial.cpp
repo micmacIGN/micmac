@@ -174,7 +174,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    mShowCom    (false),
    mDoPly      (false),
    mDoPlyDS    (false),
-   mAutoPurge  (true)
+   mAutoPurge  (false)
 {
    std::string Masq3D;
    std::string aPat,anOri;
