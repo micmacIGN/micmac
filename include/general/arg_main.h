@@ -554,6 +554,10 @@ int GenXML2Cpp_main(int argc,char ** argv);
 int GrShade_main(int argc,char ** argv);
 int LumRas_main(int argc,char ** argv);
 
+int DevOneImPtsCarVideo_main(int argc,char ** argv);
+int Devideo_main(int argc,char ** argv);
+
+
 
 
 int CoherEpi_main(int argc,char ** argv);
@@ -661,7 +665,7 @@ int Ori_Txt2Xml_main(int argc,char ** argv);
 int OriExport_main(int argc,char ** argv);
 int GCP_Txt2Xml_main(int argc,char ** argv);
 int VideoVisage_main(int argc,char ** argv);
-int Poisson_main(int argc,char ** argv);
+//int Poisson_main(int argc,char ** argv);
 int GrapheHom_main(int argc,char ** argv);
 
 int Init11Param_Main(int argc,char ** argv);

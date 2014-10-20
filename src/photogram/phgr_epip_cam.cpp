@@ -655,7 +655,7 @@ template <class Type,class TypeBase>
       Fonc_Num aFK = aVOut.back()._the_im.in();
       aFOut = (aKC==0) ? aFK : Virgule(aFOut,aFK);
    }
-   ELISE_COPY(rectangle(Pt2di(0,0),aSzIn),trans(aTIn.in(),aBoxIn._p0),aOutInit);
+   ELISE_COPY(rectangle(Pt2di(0,0),aSzIn),trans(aTIn.in_proj(),aBoxIn._p0),aOutInit);
 
 
 

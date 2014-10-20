@@ -1,8 +1,10 @@
-Depot de qq codes externe, que je ne compte pas (forcement) integre
-mais dont je compte m'inspirer. :
+Depot de qqs codes externes, que je ne compte pas (forcement) integrer
+mais dont je compte m'inspirer :
 
-   - Siftpp (pour sepcif complete de sift )
-   - flann (a intergrer peut etre)
+   - Siftpp (pour specif complete de sift )
+   - flann (a integrer peut etre)
+   
+   - Poisson (pour le calcul de maillage)
 
 
 

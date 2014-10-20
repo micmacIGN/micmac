@@ -43,7 +43,7 @@ set(UTI_FILES_DIR "uti_files")
 set(UTI_IMAGE_DIR "uti_image")
 set(UTI_PHGRM_DIR "uti_phgrm")
 set(UTI_ETAPOLY_DIR "EtalonnagePolygone")
-set(POISSON_DIR "poisson")
+set(POISSON_DIR ${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/)
 
 INCLUDE (${AMD_DIR}/Sources.cmake)
 INCLUDE (${HASSA_DIR}/Sources.cmake)
