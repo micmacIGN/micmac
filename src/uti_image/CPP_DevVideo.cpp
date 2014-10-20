@@ -144,6 +144,8 @@ class cAppliDevideo
         cAppliDevideo(int argc,char ** argv);
         const std::string & Dir() {return mEASF.mDir;}
         std::string CalcName(const std::string & aName,const std::string aNew);
+
+        std::string  NamePtsSift( cOneImageVideo * anOIV);
     private :
         std::string NamePat(const std::string & aPref) const;
         int PivotAPriori(int aKI) { return round_ni((aKI*(mNbPres-1))/mNbInterv);}
@@ -206,20 +208,22 @@ void cLinkImV::TestLoad(cOneImageVideo * aSom)
 
 // =============  cOneImageVideo ===================================
 
+
 cOneImageVideo::cOneImageVideo(const std::string & aNameIm,cAppliDevideo * anAppli,int anTimeNum) :
    mAppli       (anAppli),
    mNameInit    (aNameIm),
    mNameOk      (mAppli->CalcName(aNameIm,"Ok")),
    mNameNl      (mAppli->CalcName(aNameIm,"Nl")),
-   mNamePtsSift (mAppli->Dir()+  "Pastis/LBPp"+ mNameOk  + ".dat"),
+   // mNamePtsSift (mAppli->Dir()+  "Pastis/LBPp"+ mNameOk  + ".dat"),
    mIsMaxLoc    (true),
    mPressel     (true),
    mTimeNum     (anTimeNum),
    mSzSift      (0)
 {
-    // std::cout << mNameInit   << "  " << mNameIm << "\n";
+    // std::cout << mNameInit   << "  " << mNameOk << "\n";
     if (mNameInit!= mNameOk)
        ELISE_fp::MvFile(anAppli->Dir()+mNameInit,anAppli->Dir()+mNameOk);
+   mNamePtsSift =mAppli->NamePtsSift(this);
 }
 
 void cOneImageVideo::InitSzLinks()
@@ -400,6 +404,10 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     mVName = mEASF.mICNM->Get(mMMPatImDev);
     ELISE_fp::MkDir(Dir()+"Pastis/");
 
+
+    Paral_Tiff_Dev(Dir(),*mVName,1,false);
+
+
     bool AllSiftDone = true;
     for (int aK=0 ; aK<int(mVName->size()) ; aK++)
     {
@@ -548,6 +556,24 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     std::cout << "NBOK=" << mVImsPressel.size() << "\n";
 
 }
+
+
+extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename );
+
+std::string  cAppliDevideo::NamePtsSift( cOneImageVideo * anOIV)
+{
+   std::string aNameOk = anOIV->NameOk();
+   if (mParamSzSift!=-1)
+   {
+        std::string aTest;
+        getPastisGrayscaleFilename(Dir(),aNameOk,mParamSzSift,aTest);
+        aNameOk = NameWithoutDir(aTest);
+   }
+
+   return Dir()+  "Pastis/LBPp"+ aNameOk  + ".dat";
+}
+/*
+*/
 
 void cAppliDevideo::ComputeChemOpt(int aS0,int aS1)
 {

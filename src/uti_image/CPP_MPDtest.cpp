@@ -499,13 +499,26 @@ void TestNtt(const std::string &aName)
 }
 
 
+extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename );
+extern void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName );
+
 
 int MPDtest_main (int argc,char** argv)
 {
-
-   TestNtt(argv[1]);
    for (int aK=0 ; aK<argc ; aK++)
       std::cout << argv[aK] << "\n";
+
+   std::string aDir,aFile;
+
+   SplitDirAndFile(aDir,aFile,argv[1]);
+
+   for (int aResol = -1 ; aResol <2000 ; aResol +=500)
+   {
+       std::string aTest;
+       getPastisGrayscaleFilename(aDir,aFile,aResol,aTest);
+       std::cout << "RESS " << aResol << " => " << aTest << "\n";
+   }
+
    
 /*
     ELISE_ASSERT(argc==3,"MPDtest_main");
