@@ -14,7 +14,7 @@
 // #include "vld.h"
 
 #if (  __VERBOSE__>1 )
-	#define __TRACE_SYSTEM__
+    #define __TRACE_SYSTEM__
 #endif
 
 template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }
@@ -45,8 +45,8 @@ template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }
 #include <sys/stat.h>
 #include <assert.h>
 #ifndef _WIN32
-	#include <unistd.h>
-	#include <errno.h>
+    #include <unistd.h>
+    #include <errno.h>
 #endif
 
 extern bool BugDG;
@@ -54,32 +54,32 @@ extern bool BugDG;
 #define ELISE_INSERT_CODE_GEN 1
 
 #ifndef ELISE_unix
-	#ifdef _WIN32
-		#define USE_NOYAU 0
-		#define ELISE_unix 0
-		#define ELISE_windows 1
-		#define ELISE_MacOs 0
-		#define ELISE_POSIX 0
-		#if __MINGW__
-			#define ELISE_MinGW 1
-		#else
-			#define ELISE_MinGW 0
-		#endif
-	#elif __APPLE__
-		#define USE_NOYAU 0
-		#define ELISE_unix 0
-		#define ELISE_MacOs 1
-		#define ELISE_windows 0
-		#define ELISE_MinGW 0
-		#define ELISE_POSIX 1
-	#else
-		#define USE_NOYAU 0
-		#define ELISE_unix 1
-		#define ELISE_MacOs 0
-		#define ELISE_windows 0
-		#define ELISE_MinGW 0
-		#define ELISE_POSIX 1
-	#endif
+    #ifdef _WIN32
+        #define USE_NOYAU 0
+        #define ELISE_unix 0
+        #define ELISE_windows 1
+        #define ELISE_MacOs 0
+        #define ELISE_POSIX 0
+        #if __MINGW__
+            #define ELISE_MinGW 1
+        #else
+            #define ELISE_MinGW 0
+        #endif
+    #elif __APPLE__
+        #define USE_NOYAU 0
+        #define ELISE_unix 0
+        #define ELISE_MacOs 1
+        #define ELISE_windows 0
+        #define ELISE_MinGW 0
+        #define ELISE_POSIX 1
+    #else
+        #define USE_NOYAU 0
+        #define ELISE_unix 1
+        #define ELISE_MacOs 0
+        #define ELISE_windows 0
+        #define ELISE_MinGW 0
+        #define ELISE_POSIX 1
+    #endif
 #endif
 
 //  =================
@@ -135,7 +135,7 @@ using namespace std;
 #include "general/phgr_san.h"
 #include "general/hassan_arrangt.h"
 #include "general/complex.h"
-
+#include "general/ply_struct.h"
 
 
 //  ==== AJOUT  =====
@@ -195,13 +195,13 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 // ---------
 
 #if (ELISE_POSIX)
-	#include <grp.h>
-	#include <pwd.h>
+    #include <grp.h>
+    #include <pwd.h>
 #endif
 
 #ifdef MATLAB_MEX_FILE
-	#include "mex.h"
-	#include "matrix.h"
+    #include "mex.h"
+    #include "matrix.h"
 #endif
 
 
@@ -286,32 +286,32 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "private/externalToolHandler.h"
 
 #ifdef ETA_POLYGON
-	#include "../src/EtalonnagePolygone/lib/all_etal.h"
-	#include "../src/EtalonnagePolygone/lib/pointe.h"
+    #include "../src/EtalonnagePolygone/lib/all_etal.h"
+    #include "../src/EtalonnagePolygone/lib/pointe.h"
 #endif
 
 #if (ELISE_windows)
     #ifdef INT
         #undef INT
     #endif
-	#ifndef NOMINMAX
-		#define NOMINMAX
-	#endif
-	#if (ELISE_MinGW)
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #if (ELISE_MinGW)
         #ifndef _WIN32_WINNT
             #define _WIN32_WINNT 0x0500 // this is for windows 2000 and higher
         #endif
-	#endif
+    #endif
 
-	#if (ELISE_MinGW)
-		#include <x86intrin.h>
-	#else
-		#include <intrin.h>
-	#endif
+    #if (ELISE_MinGW)
+        #include <x86intrin.h>
+    #else
+        #include <intrin.h>
+    #endif
 
 #ifndef __GNUC__
-	#pragma intrinsic(_InterlockedOr)
-	#pragma intrinsic(_InterlockedCompareExchange64)
+    #pragma intrinsic(_InterlockedOr)
+    #pragma intrinsic(_InterlockedCompareExchange64)
 #endif
     #include <Windows.h>
 
@@ -321,7 +321,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "../CodeExterne/Poisson/include/PlyFile.h"
 
 #ifndef INT
-	#define INT int
+    #define INT int
 #endif
 
 #include "../src/uti_image/Ann/AnnSearcher.h"

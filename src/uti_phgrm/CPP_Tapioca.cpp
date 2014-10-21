@@ -158,24 +158,31 @@ void DoDevelopp(int aSz1,int aSz2)
 }
 
 
-void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
+void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
 {
     if ( i_resolution<=0 )
     {
-        o_grayscaleFilename = NameFileStd( aDir+i_baseName, 1, false, true, false );
+        o_grayscaleFilename = NameFileStd( aParamDir+i_baseName, 1, false, true, false );
         return;
     }
 
-    Tiff_Im aFileInit = Tiff_Im::StdConvGen( aDir+i_baseName, 1, false );
+    Tiff_Im aFileInit = Tiff_Im::StdConvGen( aParamDir+i_baseName, 1, false );
     Pt2di 	imageSize = aFileInit.sz();
 
     double scaleFactor = double( i_resolution ) / double( ElMax( imageSize.x, imageSize.y ) );
     double round_ = 10;
     int    round_scaleFactor = round_ni( ( 1/scaleFactor )*round_ );
 
-    o_grayscaleFilename = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
+    o_grayscaleFilename = ( isUsingSeparateDirectories()?MMOutputDirectory():aParamDir ) + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
             + std::string("_Teta0_") + StdPrefixGen( i_baseName ) + ".tif";
 }
+
+
+void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
+{
+    getPastisGrayscaleFilename(aDir,i_baseName,i_resolution,o_grayscaleFilename);
+}
+
 
 void InitDetectingTool( std::string & detectingTool )
 {
