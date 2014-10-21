@@ -228,7 +228,15 @@
 
 #else
 
-    //#include "poisson/ply.h"
+    typedef struct sVertex
+    {
+        float x,y,z;             /* the usual 3-space position of a vertex */
+    } sVertex;
+
+    typedef struct sPlyOrientedVertex
+    {
+        float x, y, z, nx, ny, nz;
+    } sPlyOrientedVertex;
 
     #if (0)
     // MPD : PB de linj et doublon avec : poisson/plyfile.cpp
