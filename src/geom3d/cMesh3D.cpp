@@ -206,23 +206,6 @@ cEdge cMesh::getEdge(unsigned int idx) const
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-typedef struct sVertex
-{
-    float x,y,z;             /* the usual 3-space position of a vertex */
-} sVertex;
-
-typedef struct sFace {
-    unsigned char nverts;    /* number of vertex indices in list */
-    int *verts;              /* vertex index list */
-} sFace;
-
-typedef struct PlyFace
-{
-    unsigned char nr_vertices;
-    int *vertices;
-    int segment;
-} PlyFace;
-
 static PlyProperty face_props[] =
 {
     { "vertex_indices" , PLY_INT , PLY_INT , offsetof(PlyFace,vertices) , 1 , PLY_UCHAR, PLY_UCHAR , offsetof(PlyFace,nr_vertices) },
