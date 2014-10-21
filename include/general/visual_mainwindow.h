@@ -138,7 +138,7 @@ protected:
 
     int                 _curIdx;
 
-    bool                _showDialog; //do we show "Job done" at the end of process"
+    bool                _showDialog; //do we show "Job done" at the end of process
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);

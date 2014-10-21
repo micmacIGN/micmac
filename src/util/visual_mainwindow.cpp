@@ -398,6 +398,8 @@ void visual_MainWindow::onRunCommandPressed()
         cout << "VisualMM - Com = " << aCom << endl;
         hide();
 
+        if (_SaisieWin) _SaisieWin->close();
+
         ::System(aCom);
 
         if (_showDialog)

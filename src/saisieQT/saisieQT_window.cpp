@@ -245,14 +245,14 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 QString sufx = QFileInfo(filenames[i]).suffix();
 
                 bool formatIsSupported = false;
-                QStringList slist = QStringList("cr2")<<"arw"<<"crw"<<"dng"<<"mrw"<<"nef"<<"orf"<<"pef"<<"raf"<<"x3f"<<"rw2"; //main formats supported by ImageMagick
+                QStringList slist = QStringList("cr2")<<"arw"<<"crw"<<"dng"<<"mrw"<<"nef"<<"orf"<<"pef"<<"raf"<<"x3f"<<"rw2"<<"tif"; //main formats supported by ImageMagick
                 QList<QByteArray> list = QImageReader::supportedImageFormats(); //formats supported by QImage
                 for (int aK=0; aK< list.size();++aK) slist.push_back(QString(list[aK]));
                 if (slist.contains(sufx, Qt::CaseInsensitive))  formatIsSupported = true;
 
                 if ((sufx != "ply") && (sufx != "xml") && (formatIsSupported == false))
                 {
-                    QMessageBox::critical(this, tr("Error"), tr("File format not supported"));
+                    QMessageBox::critical(this, tr("Error"), tr("File format not supported: ") + sufx);
                     return;
                 }
             }
