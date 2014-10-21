@@ -1563,6 +1563,7 @@ void cAppliMICMAC::DoGPU_Correl
 
         int2	anB			= zone.pt0 +  dimSTabProj * sample;
 
+
         OMP_NT1
         for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
@@ -1608,6 +1609,72 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  NVTOOLS
         nvtxRangePop();
 #endif
+    }
+
+
+    void cAppliMICMAC::Tabul_Images(int Z, uint &interZ, ushort idBuf)
+    {
+
+        CuHostData3D<float> hoValuesImages;
+
+        Rect    zone        = IMmGg.Param(idBuf).RTer();           // Zone Terrain dilaté
+        zone.out();
+        cout << endl;
+
+        uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
+        uint	sizSTabProj	= size(dimTabProj);					// Taille de la zone terrain sous-echantilloné
+
+        int2	anB			= zone.pt0 +  dimTabProj;
+
+
+        DUMP_INT2(anB)
+        DUMP_INT2(dimTabProj)
+                DUMP_INT2(IMmGg.Param(idBuf).RDTer().dimension())
+        DUMP_INT2(IMmGg.Param(idBuf).RTer().dimension())
+
+                IMmGg.Param(idBuf).RTer().out();
+                cout << endl;
+
+        hoValuesImages.Malloc(dimTabProj,IMmGg.Param(idBuf).invPC.nbImages*interZ);
+        float  *pBufVimg   = hoValuesImages.pData();        // Pointeur sur le buffer des projections
+
+        cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
+
+        for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
+        {
+            int rZ = abs(Z - anZ) * mNbIm;
+
+            for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )                     // Mise en calque des projections pour chaque image
+            {
+
+                float* buf_ValImages     = pBufVimg + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
+
+                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);                // Obtention de l'image aKIm
+                const cGeomImage*	aGeom	= aGLI.Geom();
+
+                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul
+                int2 sampTer    = make_int2(0,0);                           // Point retenu
+                const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
+
+                for (pTer.y = zone.pt0.y; pTer.y < anB.y; pTer.y ++, sampTer.y++, sampTer.x = 0)	// Ballayage du terrain
+
+                    for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x ++, sampTer.x++)
+                    {
+
+                        Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
+                        Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
+
+                        if (aGLI.IsOk( aPIm.x, aPIm.y ))
+                            buf_ValImages[to1D(sampTer,dimTabProj)]		= anInt->GetVal(aGLI.DataIm0(),aPIm); // affectation dans le
+                        else
+                            buf_ValImages[to1D(sampTer,dimTabProj)]		= -1;
+                    }
+            }
+        }
+
+
+        hoValuesImages.OutputValues(0,XY,Rect(0,0,20,hoValuesImages.GetDimension().y),6);
+        hoValuesImages.Dealloc();
     }
 
     void cAppliMICMAC::setVolumeCost( int z0, int z1,ushort idBuf)
@@ -1699,8 +1766,9 @@ void cAppliMICMAC::DoGPU_Correl
                     IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
 
                     IMmGg.ReallocHostData(Mask.Dz,idPreBuf);
-
+                    //Tabul_Images(anZProjection, Mask.Dz,idPreBuf);
                     Tabul_Projection( anZProjection, Mask.Dz,idPreBuf);
+
 
                     //IMmGg.signalComputeCorrel(Mask.Dz);
                     IMmGg.SetPreComp(false);
