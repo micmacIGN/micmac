@@ -494,8 +494,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("VCE",VisuCoupeEpip_main,"Visualization of epipolar pair (cut)  "));
    aRes.push_back(cMMCom("RIE",ReechInvEpip_main,"Visualization of epipolar pair (cut)  "));
 
-   aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercice for multi correlation in image geometry  "));
-   aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercice for correlation in epipolar "));
+   aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercise for multi correlation in image geometry  "));
+   aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar "));
    aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
 
 
@@ -508,6 +508,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
 
     aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an approximate model "));
+    aRes.push_back(cMMCom("Refine",NewRefineModel_main,"Refine an approximate model "));
     aRes.push_back(cMMCom("AddAffinity",AddAffinity_main,"Add an affinity, tuning"));
     aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
     aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
