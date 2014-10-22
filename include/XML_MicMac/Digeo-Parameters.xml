@@ -29,6 +29,9 @@
 	<DigeoSectionImages>
 		<ImageDigeo>
 			<ResolInit>  ${Resol} </ResolInit>
+			<!--
+			<NbOctetLimitLoadImageOnce> 1000 </NbOctetLimitLoadImageOnce>
+			-->
 		</ImageDigeo>
 		<PyramideImage>
 			<!--
@@ -42,7 +45,7 @@
 			</TypeNumeriqueOfNiv>
 			-->
 			<TypeNumeriqueOfNiv>
-				<Type> eTN_float </Type>
+				<Type> eTN_u_int2 </Type>
 				<Niv> -2  </Niv>
 			</TypeNumeriqueOfNiv>
 			<MaximDyn > ${MaxDyn} </MaximDyn>
@@ -50,7 +53,11 @@
 			<ValMaxForDyn Nb="?" Type="double"> </ValMaxForDyn>
 			-->
 
-			<ReducDemiImage>  eRDI_121 </ReducDemiImage>
+			<!--
+			<ReducDemiImage> eRDI_11 </ReducDemiImage>
+			<ReducDemiImage> eRDI_121 </ReducDemiImage>
+			-->
+			<ReducDemiImage> eRDI_010 </ReducDemiImage>
 
 			<TypePyramide>
 				<PyramideGaussienne>
@@ -92,13 +99,14 @@
 		<DigeoTestOutput>
 			<!--
 			<PlotPointsOnTiles> true </PlotPointsOnTiles>
-			<OutputGaussians> true </OutputGaussians>
 			<OutputGradients> true </OutputGradients>
+			<OutputTiles> true </OutputTiles>
+			<ForceGradientComputation> true </ForceGradientComputation>
+			<OutputGaussians> true </OutputGaussians>
+			<OutputGaussiansDirectory> gaussians_ref </OutputGaussiansDirectory>
 			<SuppressTiles> false </SuppressTiles>
 			<MergeTiles> false </MergeTiles>
-			<OutputTiles> true </OutputTiles>
 			-->
-			<ForceGradientComputation> true </ForceGradientComputation>
 		</DigeoTestOutput>
 	</SectionTest>
 
@@ -113,7 +121,7 @@
 		</#WHEN>
 
 	<DigeoDecoupageCarac>
-		<SzDalle> 2048 </SzDalle>
+		<SzDalle> 1024 </SzDalle>
 		<Bord>  0  </Bord>
 	</DigeoDecoupageCarac>
 

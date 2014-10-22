@@ -474,9 +474,6 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          bool  SupDOG(Type *** aC,const Pt3di& aP1,const Pt3di& aP2);
          tBase DOG(Type *** aC,const Pt3di& aP1);
 
-         void saveDoG( const std::string &i_directory ) const;
-         void loadDoG( const std::string &i_directory );
-
          const Im2D<REAL4,REAL8> & getGradient();
 
          cTplOctDig<Type> & mTOct;
@@ -660,6 +657,7 @@ public:
 	virtual TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop) const = 0;
 	virtual Im2DGen * fullImage() = 0;
 	virtual Im2DGen getWindow( Pt2di const &P0, Pt2di windowSize ) = 0;
+	Im2DGen getWindow( Pt2di P0, const Pt2di &windowSize, int askedMargin, int &o_marginX, int &o_marginY );
 };
 
 class cInterfImageTiff:public cInterfImageAbs
@@ -1090,6 +1088,26 @@ cAppliDigeo * DigeoCPP
                     const cParamAppliDigeo  aParam
               );
 
+
+template <class tData, class tBase>
+inline bool save_raw( const Im2D<tData,tBase> &i_img, const string &i_filename )
+{
+	ofstream f( i_filename.c_str(), ios::binary );
+
+	if ( !f ) return false;
+
+	const U_INT4 magic_number = 3287682487;
+	U_INT4 w    = (U_INT4)i_img.tx(),
+	       h    = (U_INT4)i_img.ty(),
+	       type = (U_INT4)i_img.TypeEl();
+	f.write( (const char*)&magic_number, 4 );
+	f.write( (const char*)&w, 4 );
+	f.write( (const char*)&h, 4 );
+	f.write( (const char*)&type, 4 );
+	f.write( (const char*)i_img.data_lin(), w*h*sizeof(tData) );
+
+	return true;
+}
 
 
 
