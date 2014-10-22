@@ -61,7 +61,7 @@ class cMCI_Ima
        void EstimateStep(cMCI_Ima *);
 
        void  DrawFaisceaucReproj(cMCI_Ima & aMas,const Pt2dr & aP);
-       Video_Win *  W() {return mW;};
+       Video_Win *  W() {return mW;}
        void InitMemImOrtho(cMCI_Ima *);
 
        void CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster);
@@ -99,7 +99,7 @@ class cMCI_Appli
 
         Pt2dr ClikInMaster();
 
-        // Function to make basic test on geometry, seize a point in one image 
+        // Function to make basic test on geometry, seize a point in one image
         // and show its projection in others
         void TestProj();
         void InitGeom();
@@ -210,7 +210,7 @@ void cMCI_Ima::TestManipImage()
             mIm.out() | mW->ogray()
           );
 
-          // Show in window the negative value, 
+          // Show in window the negative value,
           // 255 is the constant function (a,b,...) -> 255
           //  "-" is an operator on funtion
           //  f1-f2  :  (a,b,...) -> f1(a,b..) -f2(a,b...)
@@ -224,17 +224,17 @@ void cMCI_Ima::TestManipImage()
           mW->clik_in();
 
          // Use the [] operator which is compositon of function
-         // Use the Virgule operator which result is concatenation 
+         // Use the Virgule operator which result is concatenation
          // FX and FY predefined function, return coordinates of point
          //  FX    (a,b,...) -> a
          //  FY    (a,b,...) -> b
          // Virgule(FY,FX)  (a,b,...) -> (b,a)
          //  This call show the negative of the mirror image on a disc
-	ELISE_COPY
+    ELISE_COPY
          (
             disc(Pt2dr(200,200),150),
             255-mIm.in()[Virgule(FY,FX)],
-            // 
+            //
              mW->ogray()
           );
           std::cout << "SHOW NEGATIVE+MIRROR in Functionnal way\n";
@@ -303,7 +303,7 @@ void cMCI_Ima::TestManipImage()
 
          std::cout << "5 iteration average, pixel manipulation\n";
          mW->clik_in();
- 
+
 }
 
 // For a given depth, compute the rectified image in the geometry of
@@ -312,10 +312,10 @@ void cMCI_Ima::TestManipImage()
 
 void cMCI_Ima::CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster)
 {
- 
+
     TIm2D<U_INT1,INT> aTIm(mIm);  // Initial image
     TIm2D<U_INT1,INT> aTImOrtho(mImOrtho); // image resampled in Master geometry
- 
+
     // Step of the grid
     int aSsEch = 10;
     Pt2di aSzR = aMaster->mSz/ aSsEch;
@@ -390,15 +390,15 @@ Fonc_Num  cMCI_Ima::FCorrel(cMCI_Ima *aMaster)
     Fonc_Num aS11 = rect_som(Square(aF1),aSzW) / aNbW - Square(aS1); // (E^2(I1) -E(I1^2))
     Fonc_Num aS22 = rect_som(Square(aF2),aSzW) / aNbW - Square(aS2); // E(I1^2))*(E^2(I2) -E(I2^2))
 
-   // Corr(I1,I2) : aS11 and aS22 should be >=0 , Take care of null 
+   // Corr(I1,I2) : aS11 and aS22 should be >=0 , Take care of null
    // and negative value, possible because of numerical errors
-    Fonc_Num aRes = aS12 / sqrt(Max(1e-5,aS11*aS22)); 
+    Fonc_Num aRes = aS12 / sqrt(Max(1e-5,aS11*aS22));
 
 
     return aRes;
 }
 
-// Optimized computation of correlation using the Symb_FNum, who avoid 
+// Optimized computation of correlation using the Symb_FNum, which avoid
 // multiple computation of the same values
 Fonc_Num  cMCI_Ima::FQuickCorrel(cMCI_Ima * aMaster)
 {
@@ -407,7 +407,7 @@ Fonc_Num  cMCI_Ima::FQuickCorrel(cMCI_Ima * aMaster)
    Symb_FNum aS1 (mImOrtho.in_proj());
    Symb_FNum aS2 (aMaster->mImOrtho.in_proj());
 
-   Symb_FNum  aSom = 
+   Symb_FNum  aSom =
 rect_som(Virgule(aS1,aS2,aS1*aS2,Square(aS1),Square(aS2)),aSzW);
 
    Symb_FNum aSum1  (aSom.kth_proj(0) / aNbW);
@@ -416,7 +416,7 @@ rect_som(Virgule(aS1,aS2,aS1*aS2,Square(aS1),Square(aS2)),aSzW);
    Symb_FNum aSum11  (aSom.kth_proj(3)  / aNbW -Square(aSum1));
    Symb_FNum aSum22   (aSom.kth_proj(4)  / aNbW - Square(aSum2)) ;
 
-    Fonc_Num aRes = aSum12 / sqrt(Max(1e-5,aSum11*aSum22)); 
+    Fonc_Num aRes = aSum12 / sqrt(Max(1e-5,aSum11*aSum22));
 
 
     return aRes;
@@ -455,10 +455,10 @@ void  cMCI_Ima::DrawFaisceaucReproj(cMCI_Ima & aMas,const Pt2dr & aP)
         mW->draw_seg(aVProj[aK],aVProj[aK+1],mW->pdisc()(P8COL::red));
 }
 
-//  Each image add its own contribution to the estimation of average depth
+//  Each image adds its own contribution to the estimation of average depth
 // and steps that correspond to a displacement of 1 pixel
 //
-//  Thie estimation is done using the tie points resulting from Tapioca
+//  This estimation is done using the tie points resulting from Tapioca
 
 void cMCI_Ima::EstimateStep(cMCI_Ima * aMas)
 {
@@ -475,7 +475,7 @@ void cMCI_Ima::EstimateStep(cMCI_Ima * aMas)
    // Load the tie points
    ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);
 
-   // Axe of master camera in ground geometry
+   // Axis of master camera in ground geometry
    Pt3dr aDirK = aMas->mCam->DirK();
    for
    (
@@ -520,8 +520,8 @@ void cMCI_Ima::EstimateStep(cMCI_Ima * aMas)
        // D(1/x) = D(x) / x2
        double aDeltaInv = aDelta1Pix / ElSquare(aProf2);
        // std::cout << "Firts Ecart " << aDelta1Pix << " "<< aDeltaInv  << "\n";
-      
-       // accumulate for averaging, invert prof and step in invert prof 
+
+       // accumulate for averaging, invert prof and step in invert prof
        mAppli.AddEchInv(1/aProf2,aDeltaInv);
    }
 }
@@ -569,7 +569,7 @@ cMCI_Appli::cMCI_Appli(int argc, char** argv):
               )
      {
            cMCI_Ima * aNewIm = new  cMCI_Ima(*this,*itS);
-           
+
            mIms.push_back(aNewIm);
            if (*itS==mNameMast)
            {
@@ -767,7 +767,7 @@ int ExoMCI_0_main(int argc, char** argv)
    return EXIT_SUCCESS;
 }
 
-// In this exercice, some computation can be made in 3 mode for illustrationb
+// In this exercise, some computation can be made in 3 modes for illustrationb
 typedef enum
 {
    eMCEM_Func =0,  // Functionnal mode with ELISE_COPY
@@ -782,7 +782,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
     int aPxMax= 199;
     int aSzW = 5;
 
-    int aImode=0;    
+    int aImode=0;
 
     ElInitArgMain
     (
@@ -804,7 +804,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
     // Tempory images
 
     // Image of best score, initialized to "infinity" value
-    Im2D_REAL4  aIScoreMin(aSz1.x,aSz1.y,1e10);      
+    Im2D_REAL4  aIScoreMin(aSz1.x,aSz1.y,1e10);
     Im2D_REAL4  aIScore(aSz1.x,aSz1.y);   // Image of current score
     Im2D_INT2   aIPaxOpt(aSz1.x,aSz1.y);  // Image giving the best paralax
 
@@ -824,28 +824,28 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
 
     for (int aPax = -aPxMax ; aPax <=aPxMax ; aPax++)
     {
-        // Excact limit of domain, used for non functionnal mode to avoid
+        // Exact limit of domain, used for non functionnal mode to avoid
         // acces out of image domains
 
-	int aX0 = aSzW+ElMax(0,-aPax);
+    int aX0 = aSzW+ElMax(0,-aPax);
         int aX1 = ElMin(aSz2.x+ElMin(0,-aPax),aSz1.x)-aSzW ;
         int aY0 = aSzW;
         int aY1 = ElMin(aSz1.y,aSz2.y) - aSzW;
 
         std::cout << "PAX tested " << aPax << "\n";
-        // Function of image translated 
+        // Function of image translated
         Fonc_Num aI2Tr = trans(aI2.in_proj(),Pt2di(aPax,0));
 
         // Compute the similarity by sum of differences on a square window
         // of size [-aSzW,aSzW] x [-aSzW,aSzW]
 
-        // Do 4 time the same computation using different "programming style"
+        // Do 4 times the same computation using different "programming style"
         // just for didactic purpose
 
 
         switch (aMode)
         {
-            // Using "high level" functionnal mode 
+            // Using "high level" functionnal mode
             case eMCEM_Func :
                ELISE_COPY
                (
@@ -868,12 +868,12 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
                       for (aV.x = -aSzW ; aV.x<=aSzW ; aV.x++)
                       {
                          for (aV.y = -aSzW ; aV.y<=aSzW ; aV.y++)
-                         { 
+                         {
 // get proj : "safe" access to images, if pixel is outside image, return
 // the value of nearest pixel inside
                             int aV1 = aTI1.getproj(aP+aV);
                             int aV2 = aTI2.getproj(aP+aV+Pt2di(aPax,0));
-			    aSomDif += ElAbs(aV1-aV2);
+                aSomDif += ElAbs(aV1-aV2);
                          }
                       }
                       aTScore.oset(aP,aSomDif);
@@ -896,13 +896,13 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
                       for (aV.x = -aSzW ; aV.x<=aSzW ; aV.x++)
                       {
                          for (aV.y = -aSzW ; aV.y<=aSzW ; aV.y++)
-                         { 
+                         {
                             Pt2di aQ1 = aP+aV;
                             Pt2di aQ2 = aP+aV+Pt2di(aPax,0);
-                           
+
                             int aV1 = aDI1[aQ1.y][aQ1.x];
                             int aV2 = aDI2[aQ2.y][aQ2.x];
-			    aSomDif += ElAbs(aV1-aV2);
+                aSomDif += ElAbs(aV1-aV2);
                          }
                       }
                       aTScore.oset(aP,aSomDif);
@@ -915,7 +915,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
             case eMCEM_Raw1D :
             {
                Pt2di aP;
-	
+
                for (aP.x = aX0 ; aP.x<aX1 ; aP.x++)
                {
                   for (aP.y = aY0 ; aP.y<aY1 ; aP.y++)
@@ -924,12 +924,12 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
                       for (int aDy = -aSzW ; aDy<=aSzW ; aDy++)
                       {
                          U_INT1 * aL1 =  aDI1[aP.y+aDy] -aSzW + aP.x;
-			 U_INT1 * aL2 =  aDI2[aP.y+aDy] -aSzW + aPax+ aP.x;
+             U_INT1 * aL2 =  aDI2[aP.y+aDy] -aSzW + aPax+ aP.x;
 
                          U_INT1 * aL1Sup  =  aL1 + 2 * aSzW+1;
                          while (aL1 != aL1Sup)
-                         { 
-			    aSomDif += ElAbs(*(aL1++) -  *(aL2++));
+                         {
+                aSomDif += ElAbs(*(aL1++) -  *(aL2++));
                          }
                       }
                       aTScore.oset(aP,aSomDif);
@@ -940,7 +940,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
 
 
         }
-        // Save the paralx and score for pixel that increase the quality of
+        // Save the paralax and score for pixel that increase the quality of
         // matching
 
         if (aMode == eMCEM_Func)
@@ -954,7 +954,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
         }
         else
         {
-   	    Pt2di aP;
+        Pt2di aP;
             for (aP.x = aX0 ; aP.x<aX1 ; aP.x++)
             {
                 for (aP.y = aY0 ; aP.y<aY1 ; aP.y++)
@@ -968,7 +968,7 @@ int  ExoCorrelEpip_main(int argc,char ** argv)
             }
         }
     }
- 
+
     ELISE_COPY
     (
         aIPaxOpt.all_pts(),
