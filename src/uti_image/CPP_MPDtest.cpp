@@ -461,7 +461,7 @@ extern void Test3dQT();
 extern Fonc_Num sobel(Fonc_Num f);
 
 
-void TestNtt(const std::string &aName)
+void SobelTestNtt(const std::string &aName)
 {
     Tiff_Im aTF = Tiff_Im::StdConvGen(aName,1,true);
 
@@ -498,6 +498,59 @@ void TestNtt(const std::string &aName)
   
 }
 
+void TestNtt(const std::string &aName)
+{
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aName,1,true);
+
+    Pt2di aSz = aTF.sz();
+    Im2D_REAL4 aI0(aSz.x,aSz.y);
+    ELISE_COPY( aTF.all_pts(),aTF.in(),aI0.out());
+
+    int aWSz=2;
+
+    TIm2D<REAL4,REAL8> aTIm(aI0);
+
+     double aSomGlob=0.0;
+     double aNbGlob=0.0;
+
+     for (int aKdx=-aWSz ; aKdx<=aWSz ; aKdx+=aWSz)
+     {
+         printf("## ");
+         for (int aKdy=-aWSz ; aKdy<=aWSz ; aKdy+=aWSz)
+         {
+             int aDx = aKdx;
+             int aDy = aKdy;
+             Pt2di aDep(aDx,aDy);
+             Pt2di aP;
+             RMat_Inertie aMat;
+             for (aP.x = aWSz ; aP.x<aSz.x-aWSz ; aP.x++)
+             {
+                 for (aP.y=aWSz ; aP.y<aSz.y-aWSz ; aP.y++)
+                 {
+// std::cout << aP << aDep << aP+aDep << aSz << "\n";
+                      aMat.add_pt_en_place(aTIm.get(aP),aTIm.get(aP+aDep));
+                 }
+             }
+             double aC = aMat.correlation();
+             aC = 1-aC;
+             if (dist8(aDep) == aWSz)
+             {
+                aSomGlob += aC;
+                aNbGlob ++;
+             }
+             printf(" %4d",round_ni(10000*(aC)));
+         }
+         printf("\n");
+     }
+     aSomGlob /= aNbGlob;
+     std::cout  <<  " G:" << aSomGlob << "\n";
+     printf("\n\n");
+  
+}
+
+
+
+
 
 extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename );
 extern void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName );
@@ -505,6 +558,8 @@ extern void getKeypointFilename( const string &i_basename, int i_resolution, str
 
 int MPDtest_main (int argc,char** argv)
 {
+   TestNtt(argv[1]);
+/*
    for (int aK=0 ; aK<argc ; aK++)
       std::cout << argv[aK] << "\n";
 
@@ -518,6 +573,7 @@ int MPDtest_main (int argc,char** argv)
        getPastisGrayscaleFilename(aDir,aFile,aResol,aTest);
        std::cout << "RESS " << aResol << " => " << aTest << "\n";
    }
+*/
 
    
 /*
