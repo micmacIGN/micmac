@@ -266,36 +266,6 @@ void cTplImInMem<Type>::saveGaussian()
 	save_tiff( getValue_iTile_dz_iLevel( mAppli.tiledOutputGaussianExpression() ), outImg );
 }
 
-template <class Type>
-void cTplImInMem<Type>::saveDoG( const string &out_dir ) const
-{
-    if ( !ELISE_fp::IsDirectory(out_dir) )
-    {
-       cerr << "cTplImInMem::saveDoG: creating output directory \"" << out_dir << "\"" << endl;
-       ELISE_fp::MkDir( out_dir );
-    }
-
-    RealImage1 img( mSz.x, mSz.y, mDoG );
-    stringstream ss;
-    ss << out_dir << "/dog_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct;
-    img.saveRaw( ss.str()+".raw" );
-    img.savePGM( ss.str()+".pgm", true );
-}
-
-template <class Type>
-void cTplImInMem<Type>::loadDoG( const string &in_dir )
-{
-    if ( !ELISE_fp::IsDirectory(in_dir) )
-        cerr << "cTplImInMem::loadDoG: input directory \"" << in_dir << "\" does not exist" << endl;
-
-    RealImage1 img;
-    stringstream ss;
-    ss << in_dir << "/dog_" << setfill('0') << setw(2) << mOct.Niv() << '_' << mKInOct << ".raw";
-
-    if ( !img.loadRaw( ss.str() ) )
-        cerr << "cTplImInMem::loadDoG: failed to load \"" << ss.str() << "\"" << endl;
-    img.toVector( mDoG );
-}
 
 /****************************************/
 /*                                      */

@@ -122,11 +122,12 @@ cAppliDigeo::cAppliDigeo():
 
 	if ( isVerbose() )
 	{
-		cout << "saving tiles : " << (doSaveTiles()?"yes":"no") << endl;
-		cout << "saving gaussians : " << (doSaveGaussians()?"yes":"no") << endl;
-		cout << "saving gradients : " << (doSaveGradients()?"yes":"no") << endl;
+		cout << "saving tiles               : " << (doSaveTiles()?"yes":"no") << endl;
+		cout << "saving gaussians           : " << (doSaveGaussians()?"yes":"no") << endl;
+		cout << "saving gradients           : " << (doSaveGradients()?"yes":"no") << endl;
 		cout << "force gradient computation : " << (doForceGradientComputation()?"yes":"no") << endl;
-		cout << "refinement: " << eToString(mRefinementMethod) << endl;
+		cout << "refinement                 : " << eToString(mRefinementMethod) << endl;
+		cout << "downsampling               : " << eToString(Params().ReducDemiImage().Val()) << endl;
 	}
 
 	times->stop("appli construction");

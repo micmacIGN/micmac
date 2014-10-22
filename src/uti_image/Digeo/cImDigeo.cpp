@@ -142,6 +142,27 @@ double cInterfImageTiff::Som()const
 	return aSom;
 }
 
+Im2DGen cInterfImageAbs::getWindow( Pt2di P0, const Pt2di &windowSize, int askedMargin, int &o_marginX, int &o_marginY )
+{
+	#ifdef __DEBUG_DIGEO
+		Pt2di _p1 = P0+windowSize;
+		if ( P0.x<0 ) __elise_debug_error( "cInterfImageAbs::getWindow: P0.x = " << P0.x << " <0" );
+		if ( _p1.x>sz().x ) __elise_debug_error( "cInterfImageAbs::getWindow: _p1.x = " << _p1.x << " > i_src.sz().x = " << sz() );
+		if ( P0.y<0 ) __elise_debug_error( "cInterfImageAbs::getWindow: P0.y = " << P0.y << " <0" );
+		if ( _p1.y>sz().y ) __elise_debug_error( "cInterfImageAbs::getWindow: _p1.y = " << _p1.y << " > i_src.sz().y = " << sz() );
+	#endif
+
+	Pt2di p0( P0.x-askedMargin, P0.y-askedMargin );
+	Pt2di p1( P0.x+windowSize.x+askedMargin, P0.y+windowSize.y+askedMargin );
+	o_marginX = o_marginY = askedMargin;
+	if ( p0.x<0 ){ o_marginX+=p0.x; p0.x=0; }
+	if ( p0.y<0 ){ o_marginY+=p0.y; p0.y=0; }
+	if ( p1.x>sz().x ) p1.x = sz().x;
+	if ( p1.y>sz().y ) p1.y = sz().y;
+
+	return getWindow( p0, p1-p0 );
+}
+
 Im2DGen cInterfImageTiff::getWindow( Pt2di const &P0, Pt2di windowSize )
 {
 	Fonc_Num fn = mTiff->in_proj();
@@ -397,7 +418,7 @@ cImDigeo::cImDigeo
   mSigmaN      ( anAppli.Params().SigmaN().Val() ),
   mGradientSource(NULL)
 {
-	mBoxImCalc = Box2di( Pt2di(0,0), Pt2di( mInterfImage->sz().x, mInterfImage->sz().y ) ),
+	mBoxImCalc = Box2di( Pt2di(0,0), Pt2di( mInterfImage->sz().x, mInterfImage->sz().y ) );
 
 	SplitDirAndFile( mDirectory, mBasename, mFullname );
 
@@ -576,19 +597,30 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     mSzCur = aBoxIn.sz();
     mP0Cur = aBoxIn._p0;
 
+    Pt2di p0( mP0Cur.x-1, mP0Cur.y-1 ),
+          p1( p0.x+mSzCur.x-1, p0.y+mSzCur.y-1 );
+
+    int fullW = mInterfImage->sz().x, fullH = mInterfImage->sz().y;
+    if ( p0.x<0 ) p0.x=0;
+    if ( p0.y<0 ) p0.y=0;
+    if ( p1.x>fullW ) p1.x=fullW;
+    if ( p1.y>fullH ) p1.y=fullH;
+
     for ( size_t aK=0 ; aK<mOctaves.size(); aK++ )
        mOctaves[aK]->SetBoxInOut(aBoxIn,aBoxOut);
 
-    Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur );
+	Fonc_Num aF;
 
-    Fonc_Num aF = window.in_proj();
+	if ( mResol==1. )
+		aF = mInterfImage->getWindow( mP0Cur, mSzCur ).in_proj();
+	else
+	{
+		ELISE_ASSERT( mResol<=1, "cImDigeo::LoadImageAndPyram: starting with an octave >1 is not handled yet" );
 
-    if ( mResol!=1. )
-    {
-         aF = (mResol < 1) ?
-              StdFoncChScale_Bilin( aF, Pt2dr(0.,0.), Pt2dr(mResol,mResol) ) :
-              StdFoncChScale( aF, Pt2dr(0.,0.), Pt2dr(mResol,mResol) );
-    };
+		int marginX, marginY;
+		Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur, 1, marginX, marginY ); // 1 = askedMargin
+		aF = StdFoncChScale_Bilin( window.in_proj(), Pt2dr( (REAL)marginX,(REAL)marginY ), Pt2dr(mResol,mResol) );
+	};
 
 	//mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,GenIm::u_int1/*mInterfImage->type_el()*/);
 	mOctaves[0]->FirstImage()->LoadFile(aF,mBoxCurOut,GenIm::real4/*mInterfImage->type_el()*/);
@@ -598,6 +630,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 	if ( mAppli.doSaveTiles() )
 	{
 		mAppli.times()->start();
+		Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur );
 		save_tiff( mAppli.getValue_iTile( mAppli.tiledOutputExpression(), mAppli.currentBoxIndex() ), window, true );
 		mAppli.times()->stop(DIGEO_TIME_OUTPUTS);
 	}

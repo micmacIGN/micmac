@@ -303,12 +303,6 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
    return aSom;
 }
 
-//#define __DEBUG_OUTPUT_KERNELS
-
-#ifdef __DEBUG_OUTPUT_KERNELS
-	string __kernel_output_filename = "kernels.raw";
-#endif
-
 template <class Type> Im1D<Type,Type> ImageGaussianKernel ( double aSigma, int aNbShift, double anEpsilon, int aSurEch )
 {
 	#ifdef __DEBUG_OUTPUT_KERNELS
@@ -609,13 +603,14 @@ void cTplImInMem<Type>::ReduceGaussienne()
          {
               // cTplImInMem<Type> *  aMere = anOcUp->TypedGetImOfSigma(2.0);
               cImInMem *  aMere = anOcUp->GetImOfSigma(2.0);
+
               VMakeReduce_010(*aMere);
+              //MakeReduce( *aMere, mAppli.Params().ReducDemiImage().Val() );
          }
          else
          {
              ELISE_ASSERT(false,"::ReduceGaussienne No OctUp");
          }
-
          return;
     }
 
@@ -627,8 +622,6 @@ void cTplImInMem<Type>::ReduceGaussienne()
        SetConvolSepXY(false,mResolOctaveBase,*(mTOct.TypedFirstImage()),aIKerTotD,mNbShift);
        return;
     }
-
-
 
     double aSigmD =  sqrt(ElSquare(mResolOctaveBase) - ElSquare(mTMere->mResolOctaveBase));
     Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
