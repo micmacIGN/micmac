@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1587]) = {
+const char * (theNameVar_ParamChantierPhotogram[1596]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1259,7 +1259,16 @@ const char * (theNameVar_ParamChantierPhotogram[1587]) = {
 "        <Date Nb=\"?\" RefType=\"XmlDate\">    </Date>\n",
 "        <Orientation Nb=\"?\"  Type=\"std::string\"> </Orientation>\n",
 "        <CameraOrientation Nb=\"?\"  Type=\"std::string\"> </CameraOrientation>\n",
+"        <NbBits Nb=\"?\"  Type=\"int\"> </NbBits>\n",
 "    </XmlXifInfo>\n",
+"\n",
+"    <!-- Pour memoriser les meta donnees calculees, tel que indic de nettete -->\n",
+"    <MTDImCalc Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"        <MIC_IndicAutoCorrel Nb=\"*\">\n",
+"             <AutoC Nb=\"1\" Type=\"double\"> </AutoC> \n",
+"             <SzCalc Nb=\"1\" Type=\"double\"> </SzCalc> \n",
+"        </MIC_IndicAutoCorrel>\n",
+"    </MTDImCalc>\n",
 "\n",
 "\n",
 "\n",

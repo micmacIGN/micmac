@@ -790,7 +790,8 @@ cMetaDataPhoto  DATA_Tiff_Ifd::MDP()
                 mExifTiff_IsoSpeed,
                 "",
                 "",
-                ""
+                "",
+                _bits_p_chanel[0]
            );
 }
 
@@ -2178,6 +2179,13 @@ std::string NameFileStd
    bool isTiff = Tiff_Im::IsTiff(aFullNameOri.c_str(),true);
    int aNbChanIn = -1;
    bool Bits16 = RequireBits16 && (!IsPostfixedJPG(aFullNameOri));
+
+   cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNameOri);
+   int aNbbMDP = aMDP.NbBits(true);
+   if ((aNbbMDP>0) && (aNbbMDP<=8))
+   {
+       Bits16 = false;
+   }
    bool Conv16to8=false;
 
    if (isTiff || aRawTiff )

@@ -52,6 +52,91 @@ class cAppliDevideo;
 
 
 
+//=================================================
+
+/*
+cMTDImCalc GetMTDImCalc(const std::string & aNameIm);
+const cMIC_IndicAutoCorrel * GetIndicAutoCorrel(const cMTDImCalc & aMTD,int aSzW);
+std::string NameMTDImCalc(const std::string & aFullName);
+*/
+
+double  AutoCorrel(const std::string &aName,int aWSz)
+{
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aName,1,true);
+
+    Pt2di aSz = aTF.sz();
+    Im2D_REAL4 aI0(aSz.x,aSz.y);
+    ELISE_COPY( aTF.all_pts(),aTF.in(),aI0.out());
+
+
+    TIm2D<REAL4,REAL8> aTIm(aI0);
+
+     double aSomGlob=0.0;
+     double aNbGlob=0.0;
+
+     for (int aKdx=-aWSz ; aKdx<=aWSz ; aKdx+=aWSz)
+     {
+         for (int aKdy=-aWSz ; aKdy<=aWSz ; aKdy+=aWSz)
+         {
+             int aDx = aKdx;
+             int aDy = aKdy;
+             Pt2di aDep(aDx,aDy);
+             if (dist8(aDep) == aWSz)
+             {
+                Pt2di aP;
+                RMat_Inertie aMat;
+                for (aP.x = aWSz ; aP.x<aSz.x-aWSz ; aP.x++)
+                {
+                    for (aP.y=aWSz ; aP.y<aSz.y-aWSz ; aP.y++)
+                    {
+                      aMat.add_pt_en_place(aTIm.get(aP),aTIm.get(aP+aDep));
+                    }
+                }
+                double aC = aMat.correlation();
+                aC = 1-aC;
+                aSomGlob += aC;
+                aNbGlob ++;
+             }
+         }
+     }
+     return  aSomGlob / aNbGlob;
+}
+
+
+
+
+int  CalcAutoCorrel_main(int argc,char ** argv)
+{
+    int          aSzW=2;
+    std::string  aNameIm;
+    ElInitArgMain
+    (
+           argc,argv,
+           LArgMain() << EAMC(aNameIm,"Name Im", eSAM_IsPatFile) ,
+           LArgMain() << EAM(aSzW,"SzW", true,"SzW Auto Correl")
+    );
+
+    cMTDImCalc aMTD = GetMTDImCalc(aNameIm);
+    const cMIC_IndicAutoCorrel *  aIAC = GetIndicAutoCorrel(aMTD,aSzW);
+
+    if (aIAC==0)
+    {
+        cMIC_IndicAutoCorrel aNewIAC;
+        aNewIAC.AutoC() = AutoCorrel(aNameIm,aSzW);
+        aNewIAC.SzCalc() = aSzW;
+        aMTD.MIC_IndicAutoCorrel().push_back(aNewIAC);
+        std::string aNameXml = NameMTDImCalc(aNameIm);
+        MakeFileXML(aMTD,aNameXml);
+
+    }
+    
+    return EXIT_SUCCESS;
+}
+
+
+
+//=================================================
+
 
 static const int  TheSzDecoup = 300; // Taille de decoupe pour limiter taille et temps de Fenetre de temps
 static const double ThePropRechPiv = 0.08; 
@@ -396,16 +481,35 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     mStdJump = mRateVideoInit/mTargetRate;
 
     mEASF.Init(mFullName);
+    ELISE_fp::MkDir(Dir()+"Tmp-MM-Dir/");
+
     
     mMMPatImDev = NamePat("Ok|Nl");
+    MakeXmlXifInfo(mMMPatImDev,mEASF.mICNM);
+    std::cout << "   Devideo :: Done XmlXif \n";
     mMMPatImOk = NamePat("Ok");
 
     mAutoMM =  new cElRegex(mMMPatImDev,10);
     mVName = mEASF.mICNM->Get(mMMPatImDev);
-    ELISE_fp::MkDir(Dir()+"Pastis/");
+    // ELISE_fp::MkDir(Dir()+"Pastis/");
 
 
-    Paral_Tiff_Dev(Dir(),*mVName,1,false);
+    Paral_Tiff_Dev(Dir(),*mVName,1,true);
+    
+    std::cout << "   Devideo :: Done Dev \n";
+    {
+        std::list<std::string> aLComAC;
+        for (int aKN=0 ; aKN<int(mVName->size()) ; aKN++)
+        {
+             std::string aCom = MM3dBinFile("TestLib") + "CalcAutoCorrel " + (*mVName)[aKN];
+             aLComAC.push_back(aCom);
+             // std::cout << aCom << "\n";
+             // getchar();
+        }
+        cEl_GPAO::DoComInParal(aLComAC);
+    }
+    std::cout << "   Devideo :: Done AutoCorr \n";
+return;
 
 
     bool AllSiftDone = true;
