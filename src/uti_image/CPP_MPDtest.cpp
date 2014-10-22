@@ -527,7 +527,6 @@ void TestNtt(const std::string &aName)
              {
                  for (aP.y=aWSz ; aP.y<aSz.y-aWSz ; aP.y++)
                  {
-// std::cout << aP << aDep << aP+aDep << aSz << "\n";
                       aMat.add_pt_en_place(aTIm.get(aP),aTIm.get(aP+aDep));
                  }
              }

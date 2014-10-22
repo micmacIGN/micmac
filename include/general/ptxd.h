@@ -1149,6 +1149,7 @@ class cMetaDataPhoto
         double FocMm(bool Svp=false) const;
         double Foc35(bool Svp=false) const;
         double  FocPix() const;
+        int NbBits(bool Svp=false) const;
 
         double ExpTime(bool Svp=false) const;
         double Diaph(bool Svp=false) const;
@@ -1180,7 +1181,8 @@ class cMetaDataPhoto
                 const std::string & aCam,
                 cElDate mDate,double aFocMm,double Foc35,double aExpTime,
                 double aDiaph,double anIsoSpeed,const std::string & aBayPat,
-                const std::string & anOrientation, const std::string & aCameraOrientation
+                const std::string & anOrientation, const std::string & aCameraOrientation,
+                int aNbBits
          );
          cMetaDataPhoto();
          const std::string  & BayPat() const;
@@ -1228,6 +1230,7 @@ class cMetaDataPhoto
          double  mGPSAlt;
          std::string mOrientation;
          std::string mCameraOrientation;
+         int         mNbBits;  // Par defaut initialisee a -1
 
 };
 // cCameraEntry *  CamOfName(const std::string & aName);
@@ -1402,6 +1405,14 @@ namespace std
 {
 bool operator < (const Pt3di & aP1,const Pt3di & aP2);
 };
+
+
+class cMTDImCalc;
+class cMIC_IndicAutoCorrel;
+
+cMTDImCalc GetMTDImCalc(const std::string & aNameIm);
+const cMIC_IndicAutoCorrel * GetIndicAutoCorrel(const cMTDImCalc & aMTD,int aSzW);
+std::string NameMTDImCalc(const std::string & aFullName);
 
 
 #endif //  _ELISE_INCLUDE_GENERAL_PTXD_H_

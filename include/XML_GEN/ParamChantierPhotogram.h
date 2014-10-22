@@ -4839,6 +4839,9 @@ class cXmlXifInfo
 
         cTplValGesInit< std::string > & CameraOrientation();
         const cTplValGesInit< std::string > & CameraOrientation()const ;
+
+        cTplValGesInit< int > & NbBits();
+        const cTplValGesInit< int > & NbBits()const ;
     private:
         int mHGRev;
         cTplValGesInit< double > mFocMM;
@@ -4855,6 +4858,7 @@ class cXmlXifInfo
         cTplValGesInit< cXmlDate > mDate;
         cTplValGesInit< std::string > mOrientation;
         cTplValGesInit< std::string > mCameraOrientation;
+        cTplValGesInit< int > mNbBits;
 };
 cElXMLTree * ToXMLTree(const cXmlXifInfo &);
 
@@ -4863,6 +4867,58 @@ void  BinaryDumpInFile(ELISE_fp &,const cXmlXifInfo &);
 void  BinaryUnDumpFromFile(cXmlXifInfo &,ELISE_fp &);
 
 std::string  Mangling( cXmlXifInfo *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cMIC_IndicAutoCorrel
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMIC_IndicAutoCorrel & anObj,cElXMLTree * aTree);
+
+
+        double & AutoC();
+        const double & AutoC()const ;
+
+        double & SzCalc();
+        const double & SzCalc()const ;
+    private:
+        double mAutoC;
+        double mSzCalc;
+};
+cElXMLTree * ToXMLTree(const cMIC_IndicAutoCorrel &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMIC_IndicAutoCorrel &);
+
+void  BinaryUnDumpFromFile(cMIC_IndicAutoCorrel &,ELISE_fp &);
+
+std::string  Mangling( cMIC_IndicAutoCorrel *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cMTDImCalc
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMTDImCalc & anObj,cElXMLTree * aTree);
+
+
+        std::list< cMIC_IndicAutoCorrel > & MIC_IndicAutoCorrel();
+        const std::list< cMIC_IndicAutoCorrel > & MIC_IndicAutoCorrel()const ;
+    private:
+        std::list< cMIC_IndicAutoCorrel > mMIC_IndicAutoCorrel;
+};
+cElXMLTree * ToXMLTree(const cMTDImCalc &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMTDImCalc &);
+
+void  BinaryUnDumpFromFile(cMTDImCalc &,ELISE_fp &);
+
+std::string  Mangling( cMTDImCalc *);
 
 /******************************************************/
 /******************************************************/

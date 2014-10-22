@@ -717,6 +717,8 @@ int Sake_main(int argc,char ** argv);
   int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
   int ServiceGeoSud_Ortho_main(int argc, char **argv);
 
+int  CalcAutoCorrel_main(int argc,char ** argv);
+
 
 
 

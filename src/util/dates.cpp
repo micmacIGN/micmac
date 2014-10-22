@@ -106,6 +106,9 @@ cXmlXifInfo MDT2Xml(const cMetaDataPhoto & aMTD)
 
    aRes.BayPat().SetVal(aMTD.BayPat());
 
+   if (aMTD.NbBits(true) >0) 
+      aRes.NbBits().SetVal(aMTD.NbBits());
+
     if (aMTD.Orientation() != DefXifOrientation()) aRes.Orientation().SetVal(aMTD.Orientation());
     if (aMTD.CameraOrientation() != DefXifOrientation()) aRes.CameraOrientation().SetVal(aMTD.CameraOrientation());
 
@@ -814,8 +817,8 @@ cMetaDataPhoto::cMetaDataPhoto
 	double anIsoSpeed,
 	const std::string & aBayPat,
         const std::string & anOrientation, 
-        const std::string & aCameraOrientation
-
+        const std::string & aCameraOrientation,
+        int aNbBits
 	) :
         mNameIm    (aNameIm),
 	mTifSzIm   (-1,-1),
@@ -837,7 +840,8 @@ cMetaDataPhoto::cMetaDataPhoto
         mHasGPSAlt     (false),
         mGPSAlt        (0.0),
         mOrientation   (anOrientation),
-        mCameraOrientation   (aCameraOrientation)
+        mCameraOrientation   (aCameraOrientation),
+        mNbBits              (aNbBits)
 {
 	if (mBayPat=="") 
 		mBayPat = DEFBayPatt;
@@ -951,6 +955,14 @@ double  cMetaDataPhoto::FocMm(bool Svp) const
 	ELISE_ASSERT(Svp || (mFocMm>0) ,"cMetaDataPhoto::Foc");
 	return mFocMm; 
 }
+
+int cMetaDataPhoto::NbBits(bool Svp) const
+{
+	ELISE_ASSERT(Svp || (mNbBits>0) ,"cMetaDataPhoto::Foc");
+	return mNbBits; 
+}
+
+
 double  cMetaDataPhoto::Foc35(bool Svp) const 
 { 
 	ELISE_ASSERT(Svp || (mFoc35>0) ,"cMetaDataPhoto::Foc35 UnInit");
@@ -1188,7 +1200,8 @@ private  :
 		const std::string & aStrGPSAlt,
 		const std::string & aStrBayPattern,
 		const std::string & aStrOrientation,
-		const std::string & aStrCameraOrientation
+		const std::string & aStrCameraOrientation,
+		const std::string & aStrNbBits
                
 		) :
 	mStrExe             (aStrExe + " "),
@@ -1212,7 +1225,9 @@ private  :
 		mHasBayPattern       (aStrBayPattern!=""),
                 mOrientation            (new cElRegex(aStrOrientation,15)),
                 mCameraOrientation      (new cElRegex(aStrCameraOrientation,15)),
-                mHasOrientation         ((aStrOrientation!="") && (aStrCameraOrientation!=""))
+                mHasOrientation         ((aStrOrientation!="") && (aStrCameraOrientation!="")),
+                mNbBits                  (new cElRegex(aStrNbBits,15)),
+                mHasNbBits               (aStrNbBits!="")
 	{
 	}
 
@@ -1240,6 +1255,8 @@ private  :
         cElRegex *          mOrientation;
         cElRegex *          mCameraOrientation;
         bool                mHasOrientation;
+        cElRegex *          mNbBits;
+        bool                mHasNbBits;
 
 };
 
@@ -1334,7 +1351,8 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
                            -1,-1,-1,
                            aSFR->BayPat().ValWithDef(""),
                            "",
-                           ""
+                           "",
+                           aSFR->NbBitsParPixel()
                       );
 
         }
@@ -1371,6 +1389,9 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 
 	bool GotSz = false;
 	Pt2di aSz(-1,-1);
+
+        double aNbBits=-1;
+        bool aGotNbBits=false;
 
 	bool GotBayPattern = false;
 	std::string  BayPatt = DEFBayPatt;
@@ -1473,6 +1494,10 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
                          aCameraOrientation = aOri;
                 }
 
+                if (aXifDec.mHasNbBits && (!aGotNbBits))
+                {
+		     aXifDec.GetOneDouble(aXifDec.mNbBits, aGotNbBits,aNbBits);
+                }
 
 
 		if (1)
@@ -1481,7 +1506,7 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 		}
 	}
 
-	cMetaDataPhoto  aRes (aNameIm,aSz,aCam,aDate,aFocal,aF35,anExpo,anOuv,anISO,BayPatt,aOrientation,aCameraOrientation);
+	cMetaDataPhoto  aRes (aNameIm,aSz,aCam,aDate,aFocal,aF35,anExpo,anOuv,anISO,BayPatt,aOrientation,aCameraOrientation,aNbBits);
 
         if (GotGPSLat && GotGPSLong)
            aRes.SetGPSLatLon(aLat,aLong);
@@ -1525,6 +1550,7 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			"",
 			"Filter pattern: ([RGB])([RGB])([RGB])([RGB]).*",
                         "",
+                        "",
                         ""
 			)
 			);
@@ -1549,6 +1575,7 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			"",
 			"",
 			"",
+                        "",
                         "",
                         ""
 			)
@@ -1575,7 +1602,8 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			"GPS Altitude *: ([0-9]*\\.?[0-9]*).*",
 			"CFA Pattern                     : \\[([RGB]).*\\,([RGB]).*\\]\\[([RGB]).*\\,([RGB]).*\\]",
                         "Orientation [ ]+:[ ]+([HR].*)",
-                        "Camera Orientation [ ]+:[ ]+([HR].*)"
+                        "Camera Orientation [ ]+:[ ]+([HR].*)",
+                        "Bit Depth   *: *([0-9]*)"
 			)
 			);
 	}
@@ -1613,7 +1641,8 @@ cMetaDataPhoto cMetaDataPhoto::CreateNewExiv2(const std::string & aNameFile) // 
                               aXml.IsoSpeed().ValWithDef(-1),          // double anIsoSpeed,
                               aXml.BayPat().ValWithDef(DEFBayPatt),    // const std::string & aBayPat  DEFBayPatt
                               aXml.Orientation().ValWithDef(DefXifOrientation()),
-                              aXml.CameraOrientation().ValWithDef(DefXifOrientation())
+                              aXml.CameraOrientation().ValWithDef(DefXifOrientation()),
+                              aXml.NbBits().ValWithDef(-1)
                           );
 
 
@@ -1818,7 +1847,7 @@ cMetaDataPhoto  MDP_Survey_FromString(const std::string & aCh)
 		aH
 		);
 
-	cMetaDataPhoto aMDP("Unknown Image",Pt2di(0,0),"Unknown Cam",aD,1.0,1.0,0,0,0,DEFBayPatt,"","");
+	cMetaDataPhoto aMDP("Unknown Image",Pt2di(0,0),"Unknown Cam",aD,1.0,1.0,0,0,0,DEFBayPatt,"","",-1);
 	Pt3dr aTetas
 		(
 		cElRegex::AutomSurvey()->VNumKIemeExprPar(8),
@@ -1944,6 +1973,43 @@ std::vector<cLine_N_XYZ_WPK> cLine_N_XYZ_WPK::FromFile
 		}
 	}
 	return aRes;
+}
+
+//  MTDImCalc
+
+std::string NameMTDImCalc(const std::string & aFullName)
+{
+   std::string aDir,aName;
+   SplitDirAndFile(aDir,aName,aFullName);
+   
+   return aDir + "Tmp-MM-Dir/CalcMDT-" + aName + ".xml";
+}
+
+cMTDImCalc GetMTDImCalc(const std::string & aNameIm)
+{
+   std::string aNameXml = NameMTDImCalc(aNameIm);
+   if ( ! ELISE_fp::exist_file(aNameXml))
+   {
+        cMTDImCalc aMTD;
+        MakeFileXML(aMTD,aNameXml);
+   }
+ 
+   return StdGetFromPCP(aNameXml,MTDImCalc);
+}
+
+const cMIC_IndicAutoCorrel * GetIndicAutoCorrel(const cMTDImCalc & aMTD,int aSzW)
+{
+   for 
+   (
+        std::list<cMIC_IndicAutoCorrel>::const_iterator itIAC = aMTD.MIC_IndicAutoCorrel().begin();
+        itIAC != aMTD.MIC_IndicAutoCorrel().end();
+        itIAC++
+   )
+   {
+      if (itIAC->SzCalc() == aSzW) 
+         return &(*itIAC);
+   }
+   return 0;
 }
 
 
