@@ -1033,7 +1033,15 @@ public:
     void addObs(const ElMatrix<double> &obs, const double p, const double res)
     {
         //construction iterative de la matrice normale
-        _N += (obs.transpose()*obs)*p;  //il existe certainement une norme ou une facon plus elegante de l'ecrire ...
+        cout << "add to N" << endl;
+ElMatrix<double> tr = obs.transpose();
+cout << "l x c : " << tr.Sz().x << " " << tr.Sz().y << endl;
+cout << "l x c : " << obs.Sz().x << " " << obs.Sz().y << endl;
+ElMatrix<double> M = obs.transpose()*obs*p;
+cout << "ok" << endl;
+        //_N += (obs.transpose()*obs)*p;  //il existe certainement une norme ou une facon plus elegante de l'ecrire ...
+_N += (obs.transpose()*obs)*p;  //il existe certainement une norme ou une facon plus elegante de l'ecrire ...
+        cout << "add to Y" << endl;
         //idem pour Y
         _Y += obs.transpose()*res*p;
     }
