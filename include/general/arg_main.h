@@ -674,7 +674,7 @@ int GCPCtrl_main(int,char **);
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
 
-
+int NewRefineModel_main(int argc, char **argv);
 int RefineModel_main(int argc, char **argv);
 int AddAffinity_main(int argc, char **argv);
 

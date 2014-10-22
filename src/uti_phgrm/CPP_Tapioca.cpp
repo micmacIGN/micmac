@@ -268,7 +268,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Size of High Resolution Images"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(ByP,"ByP",true,"By process")
-                << EAM(PostFix,"PostFix",false, "Add post fix in directory")
+                << EAM(PostFix,"PostFix",false, "Add postfix in directory")
                 << EAM(aNbMinPt,"NbMinPt",true,"Minimum number of points")
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                 << EAM(aPat2,"Pat2",true, "Second pattern", eSAM_IsPatFile)
@@ -343,7 +343,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
                             << EAMC(aFullRes,"Size of image"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",false, "Add post fix in directory")
+                << EAM(PostFix,"PostFix",false, "Add postfix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(aPat2,"Pat2",true,"Second pattern", eSAM_IsPatFile)
 
@@ -397,7 +397,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Image size")
                             << EAMC(aNbAdj,"Number of adjacent images to look for"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",false,"Add post fix in directory")
+                << EAM(PostFix,"PostFix",false,"Add postfix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
@@ -421,7 +421,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
             ELISE_ASSERT
                     (
                         false,
-                        "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
+                        "Probable inversion of Resol and Adjacence (use ForceAdSupResol if that's what you mean)"
                         );
 
         }
@@ -462,7 +462,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"XML-File of pair", eSAM_IsExistFile)
                             << EAMC(aFullRes,"Resolution",eSAM_None),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",false,"Add post fix in directory")
+                << EAM(PostFix,"PostFix",false,"Add postfix in directory")
                 << EAM(ByP,"ByP",true,"By process")
 
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
@@ -780,7 +780,7 @@ int Graph_(int argc,char ** argv, const std::string &aArg="")
                 argc,argv,
 
                 LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)", eSAM_IsPatFile)
-                << EAMC(maxDimensionResize,"Processing size of image  (for the greater dimension)", eSAM_None),
+                << EAMC(maxDimensionResize,"Processing size of image (for the greater dimension)", eSAM_None),
 
                 LArgMain()  << EAM(nbThreads, "ByP", true, "By process")
                 << EAM(detectingTool, PASTIS_DETECT_ARGUMENT_NAME.c_str(), true, "executable used to detect keypoints")
@@ -839,7 +839,7 @@ int Graph_(int argc,char ** argv, const std::string &aArg="")
         ELISE_ASSERT
         (
              false,
-             "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
+             "Probable inversion of Resol and Adjacence (use ForceAdSupResol if that's what you mean)"
         );
 
     }
@@ -985,7 +985,7 @@ int Tapioca_main(int argc,char ** argv)
     }
     else if (TheType == Type[4])
     {
-        int aRes = Graph_(argc,argv,TheType);        
+        int aRes = Graph_(argc,argv,TheType);
         BanniereMM3D();
         return aRes;
     }
