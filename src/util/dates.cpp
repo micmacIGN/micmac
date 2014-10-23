@@ -2011,6 +2011,12 @@ const cMIC_IndicAutoCorrel * GetIndicAutoCorrel(const cMTDImCalc & aMTD,int aSzW
    }
    return 0;
 }
+double GetAutoCorrel(const cMTDImCalc & aMTD,int aSzW)
+{
+    const cMIC_IndicAutoCorrel * aIAC = GetIndicAutoCorrel(aMTD,aSzW);
+    ELISE_ASSERT(aIAC!=0,"GetAutoCorrel");
+    return aIAC->AutoC();
+}
 
 
 

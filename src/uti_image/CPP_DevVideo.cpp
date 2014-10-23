@@ -184,7 +184,6 @@ class cOneImageVideo
         int   SzSift() const;
         int   TimeNum() const;
         int   DifTime(const cOneImageVideo &) const;
-        bool DescripteurSiftDone();
         cAppliDevideo *  Appli();
         void InitSzLinks();
 
@@ -207,7 +206,8 @@ class cOneImageVideo
         bool             mPressel;
         int              mTimeNum;
         int              mPresselNum;
-        int              mSzSift;
+        double           mAutoCor;
+        double           mPdsAutoCor;
         std::vector<cLinkImV>     mPreds;
         std::vector<cSolChemOptImV>  mSols;
 };
@@ -293,22 +293,28 @@ void cLinkImV::TestLoad(cOneImageVideo * aSom)
 
 // =============  cOneImageVideo ===================================
 
+double GetAutoCorrel(const cMTDImCalc & aMTD,int aSzW);
+
 
 cOneImageVideo::cOneImageVideo(const std::string & aNameIm,cAppliDevideo * anAppli,int anTimeNum) :
    mAppli       (anAppli),
    mNameInit    (aNameIm),
    mNameOk      (mAppli->CalcName(aNameIm,"Ok")),
    mNameNl      (mAppli->CalcName(aNameIm,"Nl")),
-   // mNamePtsSift (mAppli->Dir()+  "Pastis/LBPp"+ mNameOk  + ".dat"),
    mIsMaxLoc    (true),
    mPressel     (true),
    mTimeNum     (anTimeNum),
-   mSzSift      (0)
+   mAutoCor     (-1)
 {
     // std::cout << mNameInit   << "  " << mNameOk << "\n";
     if (mNameInit!= mNameOk)
        ELISE_fp::MvFile(anAppli->Dir()+mNameInit,anAppli->Dir()+mNameOk);
-   mNamePtsSift =mAppli->NamePtsSift(this);
+    cMTDImCalc  aMDTI = GetMTDImCalc(anAppli->Dir()+mNameOk);
+    mAutoCor = GetAutoCorrel(aMDTI,2);
+
+    std::cout << mNameOk << " " << mAutoCor << "\n";
+    
+   // mNamePtsSift =mAppli->NamePtsSift(this);
 }
 
 void cOneImageVideo::InitSzLinks()
@@ -319,37 +325,25 @@ void cOneImageVideo::InitSzLinks()
     }
 }
 
-bool cOneImageVideo::DescripteurSiftDone()
-{
-    TestInitSift();
-    return mSzSift>0;
-}
-
-void cOneImageVideo::TestInitSift()
-{
-   if (mSzSift<=0) mSzSift =  sizeofile(mNamePtsSift.c_str());
-}
 
 void cOneImageVideo::LoadPts()
 {
-    TestInitSift();
-    ELISE_ASSERT(mSzSift>0,"cOneImageVideo::LoadPts");
+    ELISE_ASSERT(false,"cOneImageVideo::LoadPts");
 }
 
 void  cOneImageVideo::Show()
 {
-    std::cout << (mIsMaxLoc? "###" : (mPressel ? "ooo" : "---")) << mNameOk << " Time:" << mTimeNum << " SzS:" << mSzSift << "\n";
+    std::cout << (mIsMaxLoc? "###" : (mPressel ? "ooo" : "---")) << mNameOk << " Time:" << mTimeNum << " C:" << mAutoCor << "\n";
 }
 
 void  cOneImageVideo::UpDateMaxLoc(cOneImageVideo & anOIV)
 {
-    if (mSzSift < anOIV.mSzSift)  mIsMaxLoc = false;
-    if (mSzSift > anOIV.mSzSift)  anOIV.mIsMaxLoc = false;
+    if (mPdsAutoCor < anOIV.mPdsAutoCor)  mIsMaxLoc = false;
+    if (mPdsAutoCor > anOIV.mPdsAutoCor)  anOIV.mIsMaxLoc = false;
 }
 
 bool cOneImageVideo::Pressel() const {return mPressel;}
 bool cOneImageVideo::IsMaxLoc() const {return mIsMaxLoc;}
-int cOneImageVideo::SzSift() const {return mSzSift;}
 int cOneImageVideo::TimeNum() const {return mTimeNum;}
 cAppliDevideo *cOneImageVideo::Appli() {return mAppli;}
 
@@ -509,19 +503,16 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
         cEl_GPAO::DoComInParal(aLComAC);
     }
     std::cout << "   Devideo :: Done AutoCorr \n";
-return;
 
 
-    bool AllSiftDone = true;
     for (int aK=0 ; aK<int(mVName->size()) ; aK++)
     {
         mVIms.push_back(new cOneImageVideo((*mVName)[aK],this,aK));
-        if (! mVIms.back()->DescripteurSiftDone())
-           AllSiftDone = false;
         // MisOneSift = MisOneSift || mVIms.back()->MisSift();
         // std::string aNamePts = mVIms.back()->NameDigeo();
     }
-    std::cout << "    Devideo  :: images loaded , AllSif = " << AllSiftDone << "\n";
+return;
+#if (0)
 
     std::string aComTapioca = MM3dBinFile("Tapioca") + " Line " + QUOTE(mMMPatImOk) +  mStrSzS + " 1 ";
     if (! AllSiftDone)
@@ -658,6 +649,8 @@ return;
 
     std::cout << "NB Im = " << mVName->size() << " Presel " << mVImsPressel.size() << " JMP=" << mStdJump << "\n";
     std::cout << "NBOK=" << mVImsPressel.size() << "\n";
+
+#endif
 
 }
 
