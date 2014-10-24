@@ -139,7 +139,7 @@ int  CalcAutoCorrel_main(int argc,char ** argv)
 
 
 static const int  TheSzDecoup = 300; // Taille de decoupe pour limiter taille et temps de Fenetre de temps
-static const double ThePropRechPiv = 0.08; 
+static const double ThePropRechPiv = 0.1; 
 
 
 
@@ -193,7 +193,7 @@ class cOneImageVideo
         int  PresselNum() const;
         void InitChemOpt();
         void ClearSol();
-        void UpdateCheminOpt(int aS0);
+        void UpdateCheminOpt(int aS0,const std::vector<cOneImageVideo*> &);
         const cSolChemOptImV & SolOfLength(int aNbL);
         void ShowSols();
         void LoadAutoCorrel();
@@ -455,8 +455,28 @@ void cOneImageVideo::ClearSol()
     mSols.clear();
 }
 
-void cOneImageVideo::UpdateCheminOpt(int aS0)
+void cOneImageVideo::UpdateCheminOpt(int aS0,const std::vector<cOneImageVideo*> & aVIV)
 {
+    for (int aS=aS0 ; aS< mTimeNum ; aS++)
+    {
+        const cOneImageVideo & aPred = *(aVIV[aS]);
+        double aGainArc = mNormAC +  aPred.mNormAC;
+        for (int aKSolP=0 ; aKSolP<int(aPred.mSols.size())  ; aKSolP++)
+        {
+            while (int(mSols.size()) <= (aKSolP+1)) 
+            {
+                mSols.push_back(cSolChemOptImV(1e30));
+            }
+            double aNewCost = aGainArc + aPred.mSols[aKSolP].mCost;
+            cSolChemOptImV & aCurSol = mSols[aKSolP+1];
+            if (aNewCost < aCurSol.mCost)
+            {
+                     aCurSol.mCost = aNewCost;
+                     aCurSol.mIndPred =  aS;
+            }
+        }
+    }
+/*
     for (int aKL=0 ; aKL<int(mPreds.size()) ; aKL++)
     {
         const cLinkImV & aLnk = mPreds[aKL];
@@ -481,6 +501,7 @@ void cOneImageVideo::UpdateCheminOpt(int aS0)
             }
         }
     }
+*/
 }
 
 const cSolChemOptImV &  cOneImageVideo::SolOfLength(int aNbL)
@@ -553,6 +574,8 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     mMMPatImOk = NamePat("Ok");
 
     mAutoMM =  new cElRegex(mMMPatImDev,10);
+
+    // Calcul des noms dans l'intervalle
     {
         const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImDev);
         int aK0 = ElMax(0,mMinMax.x);
@@ -564,7 +587,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     }
     
     
-    // ELISE_fp::MkDir(Dir()+"Pastis/");
+    // developpement des images
 
     Paral_Tiff_Dev(Dir(),mVName,1,true);
     std::cout << "   Devideo :: Done Dev \n";
@@ -576,6 +599,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     }
 
 
+    // calcul des parametres d'autocorrelation
     {
         std::list<std::string> aLComAC;
         for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
@@ -590,15 +614,61 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     std::cout << "   Devideo :: Done AutoCorr \n";
 
 
+    // lecture de ces parametres
     for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
     {
         mVIms[aK]->LoadAutoCorrel();
     }
 
 
-    for (int aK=0 ; aK<int(mVName.size()) ; aK++)
+    // Calcul d'un score relatif (pour quil ait une influence equilibree sur tout le chemin)
+    for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
     {
          mVIms[aK]->CalcScoreAutoCorrel(mVIms,round_up(5*mStdJump));
+    }
+
+    mVImsPressel = mVIms;  // On reste +ou- compatible avec l'idee de presselection meme si abandonnee pour l'instant
+    mNbPres = mVImsPressel.size();
+
+    // ============= Decoupage en intervalle ===
+    std::vector<int> vPivot;
+    mNbInterv = round_up((mNbPres-1) / double(TheSzDecoup));
+    vPivot.push_back(PivotAPriori(0));
+    for (int aKI=1 ; aKI< mNbInterv ; aKI++)
+    {
+        int aPivPrec = PivotAPriori(aKI-1);
+        int aPiv  = PivotAPriori(aKI);
+        int aPivNext = PivotAPriori(aKI+1);
+        
+        int aPiv0 =  round_ni(barry(ThePropRechPiv,aPivPrec,aPiv));
+        int aPiv1 =  ElMax(aPiv+1,round_ni(barry(ThePropRechPiv,aPivNext,aPiv)));
+        int aPivMax = -1;
+        double aScoreMax=-1;
+        for (int aPiv=aPiv0  ; aPiv<=aPiv1 ; aPiv++)
+        {
+             double aScore =  mVImsPressel[aPiv]->AutoCorrel();
+             if (aScore>aScoreMax)
+             {
+                aScoreMax = aScore;
+                aPivMax = aPiv;
+             }
+        }
+        // std::cout << " PvMax " << aPivMax << " Smx=" << aScoreMax << " in [" << aPiv0 << "," << aPiv1 << "]\n";
+        ELISE_ASSERT(aScoreMax>=0,"Incohen in find Piv (DIV command)");
+        vPivot.push_back(aPivMax);
+
+        std::cout << "PIV=" << aPivMax  << " In [" << aPiv0 << " - " << aPiv1 << "]" << "\n";
+
+    }
+    vPivot.push_back(PivotAPriori(mNbInterv));
+
+
+    // ============= optimisation dans chaque intervalle === 
+
+    for (int aK=1 ; aK<= mNbInterv ; aK++)
+    {
+       ComputeChemOpt(vPivot[aK-1],vPivot[aK]);
+       std::cout << "Interv " << vPivot[aK-1] << " " << vPivot[aK] << "\n";
     }
 
 
@@ -699,36 +769,6 @@ return;
 
     std::cout << "    Devideo  :: sz sift link done \n";
 
-    // ============= Decoupage en intervalle ===
-    std::vector<int> vPivot;
-    mNbInterv = round_up((mNbPres-1) / double(TheSzDecoup));
-    vPivot.push_back(PivotAPriori(0));
-    for (int aKI=1 ; aKI< mNbInterv ; aKI++)
-    {
-        int aPivPrec = PivotAPriori(aKI-1);
-        int aPiv  = PivotAPriori(aKI);
-        int aPivNext = PivotAPriori(aKI+1);
-        
-        int aPiv0 =  round_ni(barry(ThePropRechPiv,aPivPrec,aPiv));
-        int aPiv1 =  ElMax(aPiv+1,round_ni(barry(ThePropRechPiv,aPivNext,aPiv)));
-        int aPivMax = -1;
-        int aScoreMax=-1;
-        for (int aPiv=aPiv0  ; aPiv<=aPiv1 ; aPiv++)
-        {
-             int aScore =  mVImsPressel[aPiv]->SzSift();
-             if (aScore>aScoreMax)
-             {
-                aScoreMax = aScore;
-                aPivMax = aPiv;
-             }
-        }
-        // std::cout << " PvMax " << aPivMax << " Smx=" << aScoreMax << " in [" << aPiv0 << "," << aPiv1 << "]\n";
-        ELISE_ASSERT(aScoreMax>=0,"Incohen in find Piv (DIV command)");
-        vPivot.push_back(aPivMax);
-
-    }
-    vPivot.push_back(PivotAPriori(mNbInterv));
-
     // ============= optimisation dans chaque intervalle === 
 
     for (int aK=1 ; aK<= mNbInterv ; aK++)
@@ -767,9 +807,11 @@ void cAppliDevideo::ComputeChemOpt(int aS0,int aS1)
 {
     mVImsPressel[aS0]->InitChemOpt();
 
+    int aJumpMax = round_up(2*mStdJump);
     for (int aS=aS0+1 ; aS<=aS1 ; aS++)
     {
-        mVImsPressel[aS]->UpdateCheminOpt(aS0);
+        int aSPrec = ElMax(aS0,aS-aJumpMax);
+        mVImsPressel[aS]->UpdateCheminOpt(aSPrec,mVImsPressel);
     }
 
     int aSom = aS1;
