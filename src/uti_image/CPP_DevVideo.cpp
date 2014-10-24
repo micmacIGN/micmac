@@ -173,7 +173,7 @@ class cOneImageVideo
     public :
         cOneImageVideo(const std::string & aNameIm,cAppliDevideo *,int aK);
         cLinkImV AddPredd(cOneImageVideo *);
-        void CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> &);
+        void CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> &,int aSzW);
 
         const std::string & NameOk()    const {return mNameOk;}
         void LoadPts();
@@ -182,7 +182,8 @@ class cOneImageVideo
         bool  Pressel() const;
         void  SetNotOk() ;
         bool  IsMaxLoc() const;
-        int   SzSift() const;
+        double   AutoCorrel() const;
+        double   PdsAutoCor() const;
         int   TimeNum() const;
         int   DifTime(const cOneImageVideo &) const;
         cAppliDevideo *  Appli();
@@ -209,20 +210,12 @@ class cOneImageVideo
         int              mTimeNum;
         int              mPresselNum;
         double           mAutoCor;
+        double           mNormAC;
         double           mPdsAutoCor;
         std::vector<cLinkImV>     mPreds;
         std::vector<cSolChemOptImV>  mSols;
 };
 
-class cCmpOIV_SzSift
-{
-    public :
-       bool operator() (cOneImageVideo * anOIV1 ,cOneImageVideo * anOIV2)
-       {
-           return anOIV1->SzSift() < anOIV2->SzSift();
-       }
- 
-};
 
 
 class cAppliDevideo
@@ -324,30 +317,63 @@ void cOneImageVideo::LoadAutoCorrel()
     
    // mNamePtsSift =mAppli->NamePtsSift(this);
 
-void cOneImageVideo::CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> & aVOIV)
+class cCmpIVPtrOnAC
 {
-      int aSzW = 100;
+    public :
+        bool operator () (const cOneImageVideo * aV1,const cOneImageVideo *aV2)
+        {
+           return aV1->AutoCorrel() < aV2->AutoCorrel();
+        }
+};
+
+class cGetACOnVPtr
+{
+    public :
+       double operator()(const cOneImageVideo * aV) const {return aV->AutoCorrel();}
+       typedef double tValue;
+};
+class cGetPdsOnVPtr
+{
+    public :
+       double operator()(const cOneImageVideo * aV) const {return aV->PdsAutoCor();}
+       typedef double tValue;
+};
+
+
+
+void cOneImageVideo::CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> & aVOIV,int aSzW)
+{
       int aK0 = ElMax(0,mTimeNum-aSzW);
-      int aK1 = ElMax(mTimeNum+1-aSzW,int(aVOIV.size()));
+      int aK1 = ElMin(mTimeNum+1+aSzW,int(aVOIV.size()));
 
-      int aNb = aK1 - aK0;
-
-      std::vector<double>  aVAC;
+      std::vector<cOneImageVideo*> aSV;
+      double aSomPds = 0;
       for (int aK=aK0 ; aK<aK1 ; aK++)
       {
-          aVAC.push_back(aVOIV[aK]->mAutoCor);
+          double aPds = ElAbs(aSzW+1 -ElAbs(mTimeNum-aK)) / double(aSzW+1);
+          aVOIV[aK]->mPdsAutoCor = aPds;
+          aSomPds += aPds;
+          aSV.push_back(aVOIV[aK]);
       }
-      double aVMed = MedianeSup(aVAC);
+      cCmpIVPtrOnAC aCmp;
+      std::sort(aSV.begin(),aSV.end(),aCmp);
+
+      cGetACOnVPtr aGetVal;
+      cGetPdsOnVPtr aGetPds;
+      double aVMed = GenValPdsPercentile(aSV,50.0,aGetVal,aGetPds,aSomPds);
+
       double aEcartMoy = 0.0;
       for (int aK=aK0 ; aK<aK1 ; aK++)
       {
-           aEcartMoy += ElAbs(aVOIV[aK]->mAutoCor-aVMed);
+           aEcartMoy += ElAbs(aVOIV[aK]->mAutoCor-aVMed) * aVOIV[aK]->mPdsAutoCor;
       }
-      aEcartMoy /= aNb;
+      aEcartMoy /= aSomPds;
       
-      mPdsAutoCor = (mAutoCor-aVMed)/aEcartMoy;
+      mNormAC = (mAutoCor-aVMed)/aEcartMoy;
 
-      std::cout << mNameOk << " " << mAutoCor << " " << mPdsAutoCor << "\n";
+/*
+*/
+      std::cout << mNameOk << " " << mAutoCor << " Med " << aVMed  << " NAC " << mNormAC << "\n";
 }
 
 
@@ -362,6 +388,7 @@ void cOneImageVideo::InitSzLinks()
 }
 
 
+
 void cOneImageVideo::LoadPts()
 {
     ELISE_ASSERT(false,"cOneImageVideo::LoadPts");
@@ -374,14 +401,16 @@ void  cOneImageVideo::Show()
 
 void  cOneImageVideo::UpDateMaxLoc(cOneImageVideo & anOIV)
 {
-    if (mPdsAutoCor < anOIV.mPdsAutoCor)  mIsMaxLoc = false;
-    if (mPdsAutoCor > anOIV.mPdsAutoCor)  anOIV.mIsMaxLoc = false;
+    if (mNormAC < anOIV.mNormAC)  mIsMaxLoc = false;
+    if (mNormAC > anOIV.mNormAC)  anOIV.mIsMaxLoc = false;
 }
 
 bool cOneImageVideo::Pressel() const {return mPressel;}
 bool cOneImageVideo::IsMaxLoc() const {return mIsMaxLoc;}
 int cOneImageVideo::TimeNum() const {return mTimeNum;}
 cAppliDevideo *cOneImageVideo::Appli() {return mAppli;}
+double cOneImageVideo::AutoCorrel() const {return mAutoCor;}
+double cOneImageVideo::PdsAutoCor() const {return mPdsAutoCor;}
 
 
 void cOneImageVideo::SetPresselNum(int aK)
@@ -569,7 +598,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
 
     for (int aK=0 ; aK<int(mVName.size()) ; aK++)
     {
-         mVIms[aK]->CalcScoreAutoCorrel(mVIms);
+         mVIms[aK]->CalcScoreAutoCorrel(mVIms,round_up(5*mStdJump));
     }
 
 
