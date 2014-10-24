@@ -173,6 +173,7 @@ class cOneImageVideo
     public :
         cOneImageVideo(const std::string & aNameIm,cAppliDevideo *,int aK);
         cLinkImV AddPredd(cOneImageVideo *);
+        void CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> &);
 
         const std::string & NameOk()    const {return mNameOk;}
         void LoadPts();
@@ -194,6 +195,7 @@ class cOneImageVideo
         void UpdateCheminOpt(int aS0);
         const cSolChemOptImV & SolOfLength(int aNbL);
         void ShowSols();
+        void LoadAutoCorrel();
     private :
         void  TestInitSift();
 
@@ -242,7 +244,7 @@ class cAppliDevideo
         std::string mMMPatImDev;
         std::string mMMPatImOk;
         cElRegex *  mAutoMM;
-        const std::vector<std::string> * mVName;
+        std::vector<std::string>   mVName;
         std::vector<cOneImageVideo*>      mVIms;
         std::vector<cOneImageVideo*>      mVImsPressel;
         int                               mNbPres;
@@ -252,6 +254,8 @@ class cAppliDevideo
         int         mParamSzSift;
         std::string mStrSzS;
         int         mNbInterv;
+        std::string mPatNumber;
+        Pt2di       mMinMax;
 };
 
 
@@ -309,13 +313,45 @@ cOneImageVideo::cOneImageVideo(const std::string & aNameIm,cAppliDevideo * anApp
     // std::cout << mNameInit   << "  " << mNameOk << "\n";
     if (mNameInit!= mNameOk)
        ELISE_fp::MvFile(anAppli->Dir()+mNameInit,anAppli->Dir()+mNameOk);
-    cMTDImCalc  aMDTI = GetMTDImCalc(anAppli->Dir()+mNameOk);
-    mAutoCor = GetAutoCorrel(aMDTI,2);
+}
 
-    std::cout << mNameOk << " " << mAutoCor << "\n";
+void cOneImageVideo::LoadAutoCorrel()
+{
+    cMTDImCalc  aMDTI = GetMTDImCalc(mAppli->Dir()+mNameOk);
+    mAutoCor = GetAutoCorrel(aMDTI,2);
+}
+
     
    // mNamePtsSift =mAppli->NamePtsSift(this);
+
+void cOneImageVideo::CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> & aVOIV)
+{
+      int aSzW = 100;
+      int aK0 = ElMax(0,mTimeNum-aSzW);
+      int aK1 = ElMax(mTimeNum+1-aSzW,int(aVOIV.size()));
+
+      int aNb = aK1 - aK0;
+
+      std::vector<double>  aVAC;
+      for (int aK=aK0 ; aK<aK1 ; aK++)
+      {
+          aVAC.push_back(aVOIV[aK]->mAutoCor);
+      }
+      double aVMed = MedianeSup(aVAC);
+      double aEcartMoy = 0.0;
+      for (int aK=aK0 ; aK<aK1 ; aK++)
+      {
+           aEcartMoy += ElAbs(aVOIV[aK]->mAutoCor-aVMed);
+      }
+      aEcartMoy /= aNb;
+      
+      mPdsAutoCor = (mAutoCor-aVMed)/aEcartMoy;
+
+      std::cout << mNameOk << " " << mAutoCor << " " << mPdsAutoCor << "\n";
 }
+
+
+
 
 void cOneImageVideo::InitSzLinks()
 {
@@ -458,7 +494,9 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
      mPostfix        ("png"),
      mTargetRate     (4.0),
      mRateVideoInit  (24.0),
-     mParamSzSift    (-1)
+     mParamSzSift    (-1),
+     mPatNumber      ("[0-9]{5}"),
+     mMinMax         (0,100000000)
 {
 
 
@@ -469,6 +507,8 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
            LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile) ,
            LArgMain() << EAM(mTargetRate,"Rate",true,"Rate final Def=4")
                       << EAM(mParamSzSift,"ParamSzSift",true,"Parameter used for sift devlopment, def=-1 (Highest)")
+                      << EAM(mPatNumber,"PatNumber",true,"Pat number (reduce number for test)")
+                      << EAM(mMinMax,"MinMax",true,"Min Max numbers (reduce number for test)")
     );
 
     mStrSzS = " " + ToString(mParamSzSift) + " ";
@@ -484,18 +524,34 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     mMMPatImOk = NamePat("Ok");
 
     mAutoMM =  new cElRegex(mMMPatImDev,10);
-    mVName = mEASF.mICNM->Get(mMMPatImDev);
+    {
+        const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImDev);
+        int aK0 = ElMax(0,mMinMax.x);
+        int aK1 = ElMin(int(aVN->size()),mMinMax.y);
+        for (int aK=aK0; aK<aK1 ;aK++)
+        {
+            mVName.push_back((*aVN)[aK]);
+        }
+    }
+    
+    
     // ELISE_fp::MkDir(Dir()+"Pastis/");
 
-
-    Paral_Tiff_Dev(Dir(),*mVName,1,true);
-    
+    Paral_Tiff_Dev(Dir(),mVName,1,true);
     std::cout << "   Devideo :: Done Dev \n";
+
+
+    for (int aK=0 ; aK<int(mVName.size()) ; aK++)
+    {
+        mVIms.push_back(new cOneImageVideo(mVName[aK],this,aK));
+    }
+
+
     {
         std::list<std::string> aLComAC;
-        for (int aKN=0 ; aKN<int(mVName->size()) ; aKN++)
+        for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
         {
-             std::string aCom = MM3dBinFile("TestLib") + "CalcAutoCorrel " + (*mVName)[aKN];
+             std::string aCom = MM3dBinFile("TestLib") + "CalcAutoCorrel " + mVIms[aK]->NameOk();
              aLComAC.push_back(aCom);
              // std::cout << aCom << "\n";
              // getchar();
@@ -505,12 +561,18 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     std::cout << "   Devideo :: Done AutoCorr \n";
 
 
-    for (int aK=0 ; aK<int(mVName->size()) ; aK++)
+    for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
     {
-        mVIms.push_back(new cOneImageVideo((*mVName)[aK],this,aK));
-        // MisOneSift = MisOneSift || mVIms.back()->MisSift();
-        // std::string aNamePts = mVIms.back()->NameDigeo();
+        mVIms[aK]->LoadAutoCorrel();
     }
+
+
+    for (int aK=0 ; aK<int(mVName.size()) ; aK++)
+    {
+         mVIms[aK]->CalcScoreAutoCorrel(mVIms);
+    }
+
+
 return;
 #if (0)
 
@@ -647,7 +709,7 @@ return;
     }
 
 
-    std::cout << "NB Im = " << mVName->size() << " Presel " << mVImsPressel.size() << " JMP=" << mStdJump << "\n";
+    std::cout << "NB Im = " << mVName.size() << " Presel " << mVImsPressel.size() << " JMP=" << mStdJump << "\n";
     std::cout << "NBOK=" << mVImsPressel.size() << "\n";
 
 #endif
@@ -702,9 +764,8 @@ void cAppliDevideo::ComputeChemOpt(int aS0,int aS1)
 
 std::string  cAppliDevideo::NamePat(const std::string & aPref) const
 {
-   std::string aPatNumber = "[0-9]{5}";
    // aPatNumber = "0(0[0-9]|12[0-9]{2}";
-   return  "("+ mPrefix + aPatNumber + "_)(" + aPref   + ")(\\." + mPostfix+")";
+   return  "("+ mPrefix + mPatNumber + "_)(" + aPref   + ")(\\." + mPostfix+")";
 }
 
 std::string cAppliDevideo::CalcName(const std::string & aName,const std::string aNew)
