@@ -2116,6 +2116,7 @@ No_ElFp_Undump(aType)\
 STD_MANGL(aType)
 
 
+No_ElFp_DumpUndump(BoolSubst)
 No_ElFp_DumpUndump(IntSubst)
 No_ElFp_DumpUndump(DoubleSubst)
 No_ElFp_DumpUndump(Pt2diSubst)

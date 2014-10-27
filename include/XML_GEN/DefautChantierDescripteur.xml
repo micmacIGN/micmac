@@ -758,6 +758,7 @@
                 <KeySets>  #1   </KeySets>
                 <DeltaMax > 10000  </DeltaMax>
                 <DeltaMin > -10000 </DeltaMin>
+                <Circ>       false  </Circ>
 
                 <Filtre>
                      <FiltreByRelSsEch>
@@ -780,6 +781,7 @@
                      <KeySets>  #1   </KeySets>
                      <DeltaMin > -10000 </DeltaMin>
                      <DeltaMax > 10000  </DeltaMax>
+                     <Circ>       false  </Circ>
                  </ByAdjacence>
             </Sets>
             <Key  > NKS-Rel-AllCpleOfPattern </Key>
@@ -793,6 +795,7 @@
                      <KeySets>  #2   </KeySets>
                      <DeltaMin > -10000 </DeltaMin>
                      <DeltaMax > 10000  </DeltaMax>
+                     <Circ>       false  </Circ>
                  </ByAdjacence>
             </Sets>
             <Key  > NKS-Rel-AllCpleOf2Pat </Key>
@@ -806,6 +809,7 @@
                      <KeySets>  #1   </KeySets>
                      <DeltaMin >  -#2 </DeltaMin>
                      <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       false  </Circ>
                  </ByAdjacence>
             </Sets>
             <Key  > NKS-Rel-ChantierLineaire </Key>
@@ -830,6 +834,34 @@
                  <NameFileIn> #1 </NameFileIn>
             </Sets>
             <Key  > NKS-Rel-ByFile </Key>
+    </KeyedSetsORels>
+
+    <!-- NKS-Rel-LinGen@Pat@Resol@@Sample1@Sample2 -->
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                 </ByAdjacence>
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                     <Sampling> #4  </Sampling>
+                 </ByAdjacence>
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                     <Sampling> #5  </Sampling>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > NKS-Rel-LinSampled </Key>
     </KeyedSetsORels>
 
 

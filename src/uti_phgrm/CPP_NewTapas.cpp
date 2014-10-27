@@ -375,7 +375,9 @@ int Tapas_main(int argc,char ** argv)
     std::string  aPoseFigee="";
     bool Debug = false;
     bool AffineAll = true;
+    double EcartMaxFin=5.0;
 
+    std::vector<std::string> aImMinMax;
 
     ElInitArgMain
     (
@@ -410,6 +412,8 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     << EAM(AffineAll,"RefineAll",true,"More refinement at all step, safer and more accurate, but slower, def=true")
+                    << EAM(aImMinMax,"ImMinMax",true,"Image min and max (may avoid tricky pattern ...)")
+                    << EAM(EcartMaxFin,"EcMax",true,"Final threshold for residual, def = 5.0 ")
     );
 
 
@@ -507,6 +511,16 @@ int Tapas_main(int argc,char ** argv)
             aCom = aCom + std::string(" +SetHom=") + aSetHom;
         }
 
+        if (EAMIsInit(&EcartMaxFin))
+        {
+            aCom = aCom + " +EcartMaxFin=" + ToString(EcartMaxFin);
+        }
+
+        if (EAMIsInit(&aImMinMax))
+        {
+            ELISE_ASSERT(aImMinMax.size()==2,"ImMinMax size mut be 2");
+            aCom = aCom + std::string(" +UseFilterIm=true +ImMin=") + aImMinMax[0]  + " +ImMax=" +  aImMinMax[1];
+        }
 
 
         if (ModeleAdditional)

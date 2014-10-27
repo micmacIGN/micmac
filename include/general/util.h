@@ -1530,6 +1530,7 @@ template <class Type> class TypeSubst
           std::string    mStrTag;
 };
 
+typedef TypeSubst<bool>    BoolSubst;
 typedef TypeSubst<int>     IntSubst;
 typedef TypeSubst<double>  DoubleSubst;
 

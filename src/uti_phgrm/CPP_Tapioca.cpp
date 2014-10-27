@@ -383,12 +383,16 @@ int All(int argc,char ** argv, const std::string &aArg="")
     return 0;
 }
 
+// Variant de tapioca adatee au lignes resserrees type video
+
+
 int Line(int argc,char ** argv, const std::string &aArg="")
 {
     int  aNbAdj = 5;
     bool ForceAdj = false;
     int isCirc = 0;
     string detectingTool, matchingTool, ignoreMinMaxStr;
+    std::vector<int> aLineJump;
 
     ElInitArgMain
             (
@@ -397,6 +401,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Image size")
                             << EAMC(aNbAdj,"Number of adjacent images to look for"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
+                << EAM(aLineJump,"Jump",false,"Densification by jump ")
                 << EAM(PostFix,"PostFix",false,"Add postfix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
@@ -430,10 +435,24 @@ int Line(int argc,char ** argv, const std::string &aArg="")
         DoDevelopp(-1,aFullRes);
 
         std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
+        std::string aGenExt = std::string("@") +  aPat+ std::string("@")+ToString(aNbAdj);
+        if (EAMIsInit(&aLineJump))
+        {
+               ELISE_ASSERT(aLineJump.size()<=2,"aLineJump")
+               if (aLineJump.size()==0) aLineJump.push_back(2);
+               if (aLineJump.size()==1) aLineJump.push_back(ElSquare(aLineJump.back()));
+
+               aRel = "NKS-Rel-LinSampled" + aGenExt + "@" + ToString(isCirc) + "@" +ToString(aLineJump[0])+ "@" + ToString(aLineJump[1]);
+        }
+        else
+        {
+           aRel = aRel + aGenExt;
+        }
 
         std::string aSFR =  BinPastis
                 +  aDir + std::string(" ")
-                +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
+                // +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
+                +  QUOTE(aRel) + std::string(" ")
                 +  ToString(aFullRes) + std::string(" ")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
