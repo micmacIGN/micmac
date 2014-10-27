@@ -13879,6 +13879,17 @@ const cTplValGesInit< IntSubst > & cByAdjacence::DeltaMin()const
 }
 
 
+cTplValGesInit< IntSubst > & cByAdjacence::Sampling()
+{
+   return mSampling;
+}
+
+const cTplValGesInit< IntSubst > & cByAdjacence::Sampling()const 
+{
+   return mSampling;
+}
+
+
 cTplValGesInit< cFiltreDeRelationOrient > & cByAdjacence::Filtre()
 {
    return mFiltre;
@@ -13901,12 +13912,12 @@ const cTplValGesInit< bool > & cByAdjacence::Sym()const
 }
 
 
-cTplValGesInit< bool > & cByAdjacence::Circ()
+cTplValGesInit< BoolSubst > & cByAdjacence::Circ()
 {
    return mCirc;
 }
 
-const cTplValGesInit< bool > & cByAdjacence::Circ()const 
+const cTplValGesInit< BoolSubst > & cByAdjacence::Circ()const 
 {
    return mCirc;
 }
@@ -13937,6 +13948,14 @@ void  BinaryUnDumpFromFile(cByAdjacence & anObj,ELISE_fp & aFp)
              BinaryUnDumpFromFile(anObj.DeltaMin().ValForcedForUnUmp(),aFp);
         }
         else  anObj.DeltaMin().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Sampling().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Sampling().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Sampling().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
@@ -13976,6 +13995,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cByAdjacence & anObj)
     if (anObj.DeltaMax().IsInit()) BinaryDumpInFile(aFp,anObj.DeltaMax().Val());
     BinaryDumpInFile(aFp,anObj.DeltaMin().IsInit());
     if (anObj.DeltaMin().IsInit()) BinaryDumpInFile(aFp,anObj.DeltaMin().Val());
+    BinaryDumpInFile(aFp,anObj.Sampling().IsInit());
+    if (anObj.Sampling().IsInit()) BinaryDumpInFile(aFp,anObj.Sampling().Val());
     BinaryDumpInFile(aFp,anObj.Filtre().IsInit());
     if (anObj.Filtre().IsInit()) BinaryDumpInFile(aFp,anObj.Filtre().Val());
     BinaryDumpInFile(aFp,anObj.Sym().IsInit());
@@ -13998,6 +14019,8 @@ cElXMLTree * ToXMLTree(const cByAdjacence & anObj)
       aRes->AddFils(::ToXMLTree(std::string("DeltaMax"),anObj.DeltaMax().Val())->ReTagThis("DeltaMax"));
    if (anObj.DeltaMin().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DeltaMin"),anObj.DeltaMin().Val())->ReTagThis("DeltaMin"));
+   if (anObj.Sampling().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Sampling"),anObj.Sampling().Val())->ReTagThis("Sampling"));
    if (anObj.Filtre().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Filtre().Val())->ReTagThis("Filtre"));
    if (anObj.Sym().IsInit())
@@ -14020,14 +14043,16 @@ void xml_init(cByAdjacence & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.DeltaMin(),aTree->Get("DeltaMin",1)); //tototo 
 
+   xml_init(anObj.Sampling(),aTree->Get("Sampling",1)); //tototo 
+
    xml_init(anObj.Filtre(),aTree->Get("Filtre",1)); //tototo 
 
    xml_init(anObj.Sym(),aTree->Get("Sym",1),bool(true)); //tototo 
 
-   xml_init(anObj.Circ(),aTree->Get("Circ",1),bool(false)); //tototo 
+   xml_init(anObj.Circ(),aTree->Get("Circ",1),BoolSubst(false)); //tototo 
 }
 
-std::string  Mangling( cByAdjacence *) {return "5BC4D9CBED77D184FF3F";};
+std::string  Mangling( cByAdjacence *) {return "647695CB034E6081FD3F";};
 
 
 std::list< std::string > & cNameRelDescriptor::NameFileIn()
@@ -14306,7 +14331,7 @@ void xml_init(cNameRelDescriptor & anObj,cElXMLTree * aTree)
    xml_init(anObj.CplesExcl(),aTree->GetAll("CplesExcl",false,1));
 }
 
-std::string  Mangling( cNameRelDescriptor *) {return "EC0BE9AA1F55F380FF3F";};
+std::string  Mangling( cNameRelDescriptor *) {return "FC4385429EFB18D9FE3F";};
 
 
 std::string & cExeRequired::Exe()
@@ -16839,7 +16864,7 @@ void xml_init(cKeyedSetsORels & anObj,cElXMLTree * aTree)
    xml_init(anObj.Key(),aTree->Get("Key",1)); //tototo 
 }
 
-std::string  Mangling( cKeyedSetsORels *) {return "BA288C9CA5111BEAFD3F";};
+std::string  Mangling( cKeyedSetsORels *) {return "94EAA75A1B4DAAD7FD3F";};
 
 
 cImMatrixStructuration & cKeyedMatrixStruct::Matrix()
@@ -17453,7 +17478,7 @@ void xml_init(cChantierDescripteur & anObj,cElXMLTree * aTree)
    xml_init(anObj.FilesDatas(),aTree->GetAll("FilesDatas",false,1));
 }
 
-std::string  Mangling( cChantierDescripteur *) {return "609F05915A5FD8EFFA3F";};
+std::string  Mangling( cChantierDescripteur *) {return "B4DB80A91580D2C8FDBF";};
 
 
 int & cXML_Date::year()

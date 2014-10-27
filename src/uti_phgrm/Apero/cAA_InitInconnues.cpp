@@ -117,6 +117,7 @@ cCompileAOI::cCompileAOI(const cOptimizeAfterInit & anOAI)
 void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 {
     //  Initialisation des inconnues d'orientation
+std::cout << "EEEEEEEEEEEEEEEEeeeeee\n";
 
     const tLP & aLP = mParam.PoseCameraInc();
     for ( tLP::const_iterator itP = aLP.begin(); itP!=aLP.end() ; itP++)
@@ -147,6 +148,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 
                std::list<std::string > aLName2Add = mICNM->StdGetListOfFile(*itPat,1);
 
+std::cout << "cAppliApero::CompileInitPoseGen " << aLName2Add.size() << "\n";
               
 	      if (aLName2Add.empty())
 	      {
@@ -206,7 +208,10 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 
             aLName.clear();
             aLName.push_back(aBestN);
+std::cout <<  "BBBBestN " << aBestN << "\n";
         }
+
+std::cout << "FFFFF " << aLName.size() << "\n";
 
 
         if (itP->AddAllNameConnectedBy().IsInit())
@@ -294,6 +299,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
         }
 
 
+std::cout << "GGGGGG " << aLName.size() << "\n";
 
 
 
@@ -339,6 +345,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
            aLName = aNewL;
         }
 
+std::cout << "HHHHHH " << aLName.size() << "\n";
         if (isPrecComp)
         {
            cCompileAOI * aCAOI =  

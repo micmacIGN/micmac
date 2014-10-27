@@ -323,6 +323,20 @@ bool TransFormArgKey
             aRes = true;
     }
 
+    if (aAdj.Sampling().IsInit())
+    {
+        if (TransFormArgKey(aAdj.Sampling().Val(),AMMNoArg,aVParam))
+            aRes = true;
+    }
+
+    if (aAdj.Circ().IsInit())
+    {
+        if (TransFormArgKey(aAdj.Circ().Val(),AMMNoArg,aVParam))
+            aRes = true;
+    }
+
+
+
     if (aAdj.Filtre().IsInit())
     {
         if (TransFormArgKey(aAdj.Filtre().Val(),AMMNoArg,aVParam))
@@ -2827,7 +2841,7 @@ aKeyOrFile         :
 
 
 
-    void cStdChantierRel::AddAllCpleKeySet
+void cStdChantierRel::AddAllCpleKeySet
         (
         const std::string & aKeyA,
         const std::string & aKeyB,
@@ -2837,16 +2851,37 @@ aKeyOrFile         :
         // const cTplValGesInit<cFiltreDeRelationOrient> & aTplF,
         // cComputeFiltreRelSsEch *  & aFSsEch,
         bool aSym,
-        bool IsCirc
+        bool IsCirc,
+        int aSampling
         )
-    {
+{
+       if (aSampling<=0) return;
 
         const std::vector<std::string> * aSetA= mICNM.Get(aKeyA);
         const std::vector<std::string> * aSetB= mICNM.Get(aKeyB);
+        bool SameSet = (aSetA==aSetB);
+
+        std::vector<std::string> aSampleA,aSampleB;
+        if (aSampling!=1)
+        {
+            for (int aK=0 ; aK<int(aSetA->size()) ; aK+=aSampling) 
+                aSampleA.push_back((*aSetA)[aK]);
+            aSetA= & aSampleA;
+            if (SameSet)
+            {
+                aSetB= & aSampleA;
+            }
+            else
+            {
+                for (int aK=0 ; aK<int(aSetB->size()) ; aK+=aSampling) 
+                    aSampleB.push_back((*aSetB)[aK]);
+                aSetB= & aSampleB;
+            }
+        }
 
         if (IsCirc)
         {
-            if (aSetA != aSetB)
+            if (! SameSet)
             {
                 std::cout << "SETS : " << aKeyA << " & " << aKeyB << "\n";
                 ELISE_ASSERT
@@ -2903,54 +2938,13 @@ aKeyOrFile         :
             {
                 int aKB = aVKB[aKKB];
 
-                if  ((aKA != aKB) || (aSetA != aSetB))
+                if  ((aKA != aKB) || (! SameSet))
                 {
                     const std::string & aNB = (*aSetB)[aKB];
-                    /*
-                    bool Ok =  true;
-                    if (aPF && aPF->KeyEquiv().IsInit() && Ok)
-                    {
-                    const std::string & aKey = aPF->KeyEquiv().Val();
-                    Ok =      Ok
-                    && (      mICNM.Assoc1To1(aKey,aNA,true)
-                    ==  mICNM.Assoc1To1(aKey,aNB,true)
-                    );
-                    }
-
-                    if (aPF && aPF->FiltreEmprise().IsInit() && Ok)
-                    {
-                    const cFiltreEmprise & aFE = aPF->FiltreEmprise().Val();
-                    const std::string & aKO = aFE.KeyOri();
-                    std::string aNameOriA = mICNM.Dir() + mICNM.Assoc1To1(aKO,aNA,true);
-                    std::string aNameOriB = mICNM.Dir() + mICNM.Assoc1To1(aKO,aNB,true);
-
-                    ElCamera *  aCamA = Cam_Gen_From_File(aNameOriA,aFE.Tag().Val(),aFE.MemoFile().Val(),true);
-                    ElCamera *  aCamB = Cam_Gen_From_File(aNameOriB,aFE.Tag().Val(),aFE.MemoFile().Val(),true);
-
-                    Ok = Ok && (aCamA->RatioInterSol(*aCamB)> aFE.RatioMin());
-                    }
-
-                    if (aPF && aPF->FiltreAdjMatrix().IsInit() && Ok)
-                    {
-                    const std::string & aKM = aPF->FiltreAdjMatrix().Val();
-                    cResBoxMatr aRA = mICNM.GetBoxOfMatr(aKM,aNA).Val();
-                    cResBoxMatr aRB = mICNM.GetBoxOfMatr(aKM,aNB).Val();
-
-                    Pt2di aMaxEc = aPF->EcartFiltreMatr().Val();
-                    Pt2di anEc = aRA.mId-aRB.mId;
-
-                    if ((ElAbs(anEc.x)>aMaxEc.x) || (ElAbs(anEc.y)>aMaxEc.y))
-                    Ok =  false;
-                    }
-                    if (Ok && (aFSsEch !=0))
-                    {
-                    Ok = aFSsEch->OkCple(aNA,aNB);
-                    }
-                    */
                     if (aCFO.OK_CFOR(aNA,aNB))
                     {
                         Add(cCpleString(aNA,aNB));
-                        if ((aSetA != aSetB) &&(aSym))
+                        if ((! SameSet) &&(aSym))
                         {
                             Add(cCpleString(aNB,aNA));
                         }
@@ -2958,7 +2952,7 @@ aKeyOrFile         :
                 }
             }
         }
-    }
+}
 
 
     void cStdChantierRel::Add(const cCpleString & aCpl)
@@ -3238,16 +3232,20 @@ aKeyOrFile         :
 
             const std::string & aKeyA= itA->KeySets()[0];
             const std::string & aKeyB= itA->KeySets().back();
+            int aSampling = 1;
+            if (itA->Sampling().IsInit()) 
+               aSampling =itA->Sampling().Val().Val();
 
             if ( isUsingSeparateDirectories() ) mICNM.setDir( oldDirectory );
-            AddAllCpleKeySet
-                (
-                aKeyA, aKeyB,
-                aDeltaMin, aDeltaMax,
-                aCFO,
-                itA->Sym().Val(),
-                itA->Circ().Val()
-                );
+               AddAllCpleKeySet
+               (
+                    aKeyA, aKeyB,
+                    aDeltaMin, aDeltaMax,
+                    aCFO,
+                    itA->Sym().Val(),
+                    itA->Circ().Val().Val(),
+                    aSampling
+               );
         }
 
         ComputeFiltrageSpatial();

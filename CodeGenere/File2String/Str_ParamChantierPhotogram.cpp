@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1596]) = {
+const char * (theNameVar_ParamChantierPhotogram[1600]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1198,6 +1198,10 @@ const char * (theNameVar_ParamChantierPhotogram[1596]) = {
 "             <DeltaMax Nb=\"?\"  Type=\"IntSubst\" Def=\"10000000\">  </DeltaMax>\n",
 "             <!--  Def = 0 si 1 Keyset et -10000 sinon-->\n",
 "             <DeltaMin Nb=\"?\"  Type=\"IntSubst\">  </DeltaMin>\n",
+"\n",
+"             <!-- Si donnee et >0, retient que 1 valeur ts les Sampling, si <=0 retient rien , 1 sans effet-->\n",
+"             <Sampling Nb=\"?\"  Type=\"IntSubst\">  </Sampling>\n",
+"\n",
 "             <!-- Si donne ne conserve que les couple auquel\n",
 "             KeyEquiv associe la meme valeur\n",
 "             -->\n",
@@ -1205,7 +1209,7 @@ const char * (theNameVar_ParamChantierPhotogram[1596]) = {
 "\n",
 "               <!-- Symetrique qd + de 2 ensemble ? -->\n",
 "              <Sym    Nb=\"?\" Type=\"bool\" Def=\"true\"></Sym>\n",
-"              <Circ   Nb=\"?\" Type=\"bool\" Def=\"false\"></Circ>\n",
+"              <Circ   Nb=\"?\" Type=\"BoolSubst\" Def=\"false\"></Circ>\n",
 "       </ByAdjacence>\n",
 "\n",
 "       <CplesExcl Nb=\"*\"  Type=\"cCpleString\"> </CplesExcl>\n",

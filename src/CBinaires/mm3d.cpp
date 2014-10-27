@@ -195,6 +195,8 @@ public :
 
 
 
+extern int Liquor_main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -382,6 +384,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
        aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo"));
        aRes.push_back(cMMCom("DIV",Devideo_main,"Developpement d'Images Video (require ffmpeg)"));
+       aRes.push_back(cMMCom("Liquor",Liquor_main,"Orientation specialized for linear acquisition"));
    }
 
    cCmpMMCom CmpMMCom;

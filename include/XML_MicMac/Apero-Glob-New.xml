@@ -50,11 +50,16 @@
                <Symb>  DoCD=true    </Symb>
                <Symb>  SetHom=""   </Symb>
 
+               <Symb>  UseFilterIm=false   </Symb>
+               <Symb>  ImMin=XXXX   </Symb>
+               <Symb>  ImMax=XXXX   </Symb>
 
                <Symb>  LibFoc=XXXX    </Symb>
                <Symb>  LibPP=XXXX    </Symb>
                <Symb>  LibCD=XXXX    </Symb>
                <Symb>  LibDec=XXXX    </Symb>
+
+               <Symb>  EcartMaxFin=5.0    </Symb>
     
                <Symb>  HasModeleAdd=false  </Symb>
                <Symb>  ModeleAdditionnel=XXXXX  </Symb>
@@ -144,6 +149,13 @@
 
               <PoseCameraInc>
 	           <PatternName>  ${SetIm}    </PatternName>
+                   <#WHEN VTEST=${UseFilterIm}>
+                      <Filter>
+                           <Min> ${ImMin} </Min>
+                           <Max> ${ImMax}</Max>
+                      </Filter>
+                   </#WHEN>
+
 	           <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
                    <InitNow> false </InitNow>
                    <MEP_SPEC_MST>
@@ -640,7 +652,7 @@
                                  <NbMax>   100    </NbMax>
 				 <ModePonderation>  eL1Secured </ModePonderation>
 				 <SigmaPond> 2.0 </SigmaPond>
-				 <EcartMax> 5.0 </EcartMax>
+				 <EcartMax> ${EcartMaxFin} </EcartMax>
                               </Pond>
                           </ObsLiaisons>
                           <TxtRapDetaille>
@@ -687,7 +699,7 @@
                                  <NbMax>   100    </NbMax>
 				 <ModePonderation>  eL1Secured </ModePonderation>
 				 <SigmaPond> 2.0 </SigmaPond>
-				 <EcartMax> 5.0 </EcartMax>
+				 <EcartMax> ${EcartMaxFin} </EcartMax>
                               </Pond>
                           </ObsLiaisons>
                           <TxtRapDetaille>

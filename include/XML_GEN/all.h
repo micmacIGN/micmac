@@ -692,7 +692,8 @@ class cStdChantierRel
                     // const cTplValGesInit<cFiltreDeRelationOrient> &,
                     // cComputeFiltreRelSsEch * & aFSsEch,
                     bool aSym,
-                    bool IsCirc
+                    bool IsCirc,
+                    int aSampling=1  // <=0  vide ,  1 no sampling, >1 => sampling
              );
 
 

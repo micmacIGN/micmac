@@ -40,7 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
-class cLinkImV;
 class cSolChemOptImV;
 class cOneImageVideo;
 class cAppliDevideo;
@@ -148,17 +147,6 @@ int DevOneImPtsCarVideo_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-class cLinkImV
-{
-    public :
-        cLinkImV(cOneImageVideo* aSom,cOneImageVideo * aPred);
-        void InitSzSift();
-
-        cOneImageVideo * mPred;
-        std::string      mNameSift;
-        int              mSzSift;
-
-};
 
 class cSolChemOptImV
 {
@@ -172,30 +160,25 @@ class cOneImageVideo
 {
     public :
         cOneImageVideo(const std::string & aNameIm,cAppliDevideo *,int aK);
-        cLinkImV AddPredd(cOneImageVideo *);
         void CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> &,int aSzW);
 
         const std::string & NameOk()    const {return mNameOk;}
-        void LoadPts();
-        void  UpDateMaxLoc(cOneImageVideo & anOIV);
         void  Show();
         bool  Pressel() const;
-        void  SetNotOk() ;
+        void  InitOk() ;
         bool  IsMaxLoc() const;
         double   AutoCorrel() const;
         double   PdsAutoCor() const;
         int   TimeNum() const;
         int   DifTime(const cOneImageVideo &) const;
         cAppliDevideo *  Appli();
-        void InitSzLinks();
 
-        void SetPresselNum(int aK);
+        void SetLongPred(int aK);
         int  PresselNum() const;
         void InitChemOpt();
         void ClearSol();
-        void UpdateCheminOpt(int aS0,const std::vector<cOneImageVideo*> &);
+        void UpdateCheminOpt(int aS0,int aS1,const std::vector<cOneImageVideo*> &,double aStdJ);
         const cSolChemOptImV & SolOfLength(int aNbL);
-        void ShowSols();
         void LoadAutoCorrel();
     private :
         void  TestInitSift();
@@ -205,14 +188,12 @@ class cOneImageVideo
         std::string      mNameOk;
         std::string      mNameNl;
         std::string      mNamePtsSift;
-        bool             mIsMaxLoc;
-        bool             mPressel;
+        bool             mOkFin;            // => selection finale
+        int              mLongPred;    // => longueur du chemin
         int              mTimeNum;
-        int              mPresselNum;
         double           mAutoCor;
         double           mNormAC;
         double           mPdsAutoCor;
-        std::vector<cLinkImV>     mPreds;
         std::vector<cSolChemOptImV>  mSols;
 };
 
@@ -228,7 +209,7 @@ class cAppliDevideo
         std::string  NamePtsSift( cOneImageVideo * anOIV);
     private :
         std::string NamePat(const std::string & aPref) const;
-        int PivotAPriori(int aKI) { return round_ni((aKI*(mNbPres-1))/mNbInterv);}
+        int PivotAPriori(int aKI) { return round_ni((aKI*(mNbIm-1))/mNbInterv);}
         void ComputeChemOpt(int aS0,int aS1);
         std::string mFullName;
         cElemAppliSetFile mEASF;
@@ -239,8 +220,7 @@ class cAppliDevideo
         cElRegex *  mAutoMM;
         std::vector<std::string>   mVName;
         std::vector<cOneImageVideo*>      mVIms;
-        std::vector<cOneImageVideo*>      mVImsPressel;
-        int                               mNbPres;
+        int                               mNbIm;
         double      mTargetRate;
         double      mRateVideoInit;
         double      mStdJump;
@@ -248,6 +228,7 @@ class cAppliDevideo
         std::string mStrSzS;
         int         mNbInterv;
         std::string mPatNumber;
+        std::string mNumVid;
         Pt2di       mMinMax;
 };
 
@@ -261,33 +242,6 @@ cSolChemOptImV::cSolChemOptImV(double aCost) :
 }
 
 
-// =============  cLinkImV ===================================
-
-cLinkImV::cLinkImV(cOneImageVideo * aSom,cOneImageVideo *  aPred) :
-    mPred      (aPred),
-    mNameSift  (aPred->Appli()->Dir() + "Homol/Pastis" + aSom->NameOk() + "/"+aPred->NameOk() + ".dat"),
-    mSzSift    (sizeofile(mNameSift.c_str()))
-{
-   // std::cout << mSzSift << " => " << mNameSift << "\n";
-}
-
-
-void cLinkImV::InitSzSift()
-{
-   if (mSzSift<=0)
-   {
-        mSzSift = sizeofile(mNameSift.c_str());
-        // std::cout << mNameSift << " => " << mSzSift << "\n";
-   }
-}
-
-/*
-void cLinkImV::TestLoad(cOneImageVideo * aSom)
-{
-    if 
-}
-*/
-
 // =============  cOneImageVideo ===================================
 
 double GetAutoCorrel(const cMTDImCalc & aMTD,int aSzW);
@@ -298,8 +252,8 @@ cOneImageVideo::cOneImageVideo(const std::string & aNameIm,cAppliDevideo * anApp
    mNameInit    (aNameIm),
    mNameOk      (mAppli->CalcName(aNameIm,"Ok")),
    mNameNl      (mAppli->CalcName(aNameIm,"Nl")),
-   mIsMaxLoc    (true),
-   mPressel     (true),
+   mOkFin       (true),
+   mLongPred    (-1),
    mTimeNum     (anTimeNum),
    mAutoCor     (-1)
 {
@@ -371,64 +325,40 @@ void cOneImageVideo::CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> & a
       
       mNormAC = (mAutoCor-aVMed)/aEcartMoy;
 
-/*
-*/
       std::cout << mNameOk << " " << mAutoCor << " Med " << aVMed  << " NAC " << mNormAC << "\n";
 }
 
 
 
 
-void cOneImageVideo::InitSzLinks()
-{
-    for (int aKL=0 ; aKL<int(mPreds.size()) ; aKL++)
-    {
-        mPreds[aKL].InitSzSift();
-    }
-}
-
-
-
-void cOneImageVideo::LoadPts()
-{
-    ELISE_ASSERT(false,"cOneImageVideo::LoadPts");
-}
 
 void  cOneImageVideo::Show()
 {
-    std::cout << (mIsMaxLoc? "###" : (mPressel ? "ooo" : "---")) << mNameOk << " Time:" << mTimeNum << " C:" << mAutoCor << "\n";
+    std::cout << (mOkFin? "###" :  "---") << mNameOk << " Time:" << mTimeNum << " C:" << mAutoCor  <<  " N:" << mNormAC << "\n";
 }
 
-void  cOneImageVideo::UpDateMaxLoc(cOneImageVideo & anOIV)
-{
-    if (mNormAC < anOIV.mNormAC)  mIsMaxLoc = false;
-    if (mNormAC > anOIV.mNormAC)  anOIV.mIsMaxLoc = false;
-}
 
-bool cOneImageVideo::Pressel() const {return mPressel;}
-bool cOneImageVideo::IsMaxLoc() const {return mIsMaxLoc;}
 int cOneImageVideo::TimeNum() const {return mTimeNum;}
 cAppliDevideo *cOneImageVideo::Appli() {return mAppli;}
 double cOneImageVideo::AutoCorrel() const {return mAutoCor;}
 double cOneImageVideo::PdsAutoCor() const {return mPdsAutoCor;}
 
 
-void cOneImageVideo::SetPresselNum(int aK)
+
+void cOneImageVideo::SetLongPred(int aL) 
 {
-   mPresselNum = aK;
+    mLongPred = aL;
 }
 
-int  cOneImageVideo::PresselNum() const
+void cOneImageVideo::InitOk() 
 {
-   return mPresselNum;
+   if (mLongPred<0)
+   {
+      ELISE_fp::MvFile(mAppli->Dir()+mNameOk,mAppli->Dir()+mNameNl);
+      mOkFin=false;
+   }
 }
 
-
-void cOneImageVideo::SetNotOk() 
-{
-   ELISE_fp::MvFile(mAppli->Dir()+mNameOk,mAppli->Dir()+mNameNl);
-   mPressel=false;
-}
 
 int cOneImageVideo::DifTime(const cOneImageVideo & anOIV) const
 {
@@ -438,11 +368,6 @@ int cOneImageVideo::DifTime(const cOneImageVideo & anOIV) const
 
      // Lie au calcul du chemin opt
 
-cLinkImV  cOneImageVideo::AddPredd(cOneImageVideo * aPred)
-{
-     mPreds.push_back(cLinkImV(this,aPred));
-     return mPreds.back();
-}
 
 
 void cOneImageVideo::InitChemOpt()
@@ -455,53 +380,29 @@ void cOneImageVideo::ClearSol()
     mSols.clear();
 }
 
-void cOneImageVideo::UpdateCheminOpt(int aS0,const std::vector<cOneImageVideo*> & aVIV)
+void cOneImageVideo::UpdateCheminOpt(int aS0,int aS1,const std::vector<cOneImageVideo*> & aVIV,double aStdJ)
 {
-    for (int aS=aS0 ; aS< mTimeNum ; aS++)
+    for (int aS=aS0 ; aS< aS1 ; aS++)
     {
         const cOneImageVideo & aPred = *(aVIV[aS]);
-        double aGainArc = mNormAC +  aPred.mNormAC;
+        double aDeltaL = ElAbs(ElAbs(aS-mTimeNum)-aStdJ) / aStdJ;
+
+        double aGainArc = mNormAC +  aPred.mNormAC - (aDeltaL + 2*ElSquare(aDeltaL)) * 1.0;
         for (int aKSolP=0 ; aKSolP<int(aPred.mSols.size())  ; aKSolP++)
         {
             while (int(mSols.size()) <= (aKSolP+1)) 
             {
-                mSols.push_back(cSolChemOptImV(1e30));
+                mSols.push_back(cSolChemOptImV(-1e30));
             }
             double aNewCost = aGainArc + aPred.mSols[aKSolP].mCost;
             cSolChemOptImV & aCurSol = mSols[aKSolP+1];
-            if (aNewCost < aCurSol.mCost)
+            if (aNewCost > aCurSol.mCost)
             {
                      aCurSol.mCost = aNewCost;
                      aCurSol.mIndPred =  aS;
             }
         }
     }
-/*
-    for (int aKL=0 ; aKL<int(mPreds.size()) ; aKL++)
-    {
-        const cLinkImV & aLnk = mPreds[aKL];
-        double aCostLnk = 1e4 / (1.0+aLnk.mSzSift);
-        const cOneImageVideo * aPred = aLnk.mPred;
-        if (aPred->PresselNum() >= aS0)
-        {
-            for (int aKSolP=0 ; aKSolP<int(aPred->mSols.size())  ; aKSolP++)
-            {
-                const cSolChemOptImV & aSolPred = aPred->mSols[aKSolP];
-                while (int(mSols.size()) <= (aKSolP+1)) 
-                {
-                    mSols.push_back(cSolChemOptImV(1e30));
-                }
-                cSolChemOptImV & aCurSol = mSols[aKSolP+1];
-                double aNewCost  = aCostLnk + aSolPred.mCost;
-                if (aNewCost < aCurSol.mCost)
-                {
-                     aCurSol.mCost = aNewCost;
-                     aCurSol.mIndPred =  aPred->PresselNum() ;
-                }
-            }
-        }
-    }
-*/
 }
 
 const cSolChemOptImV &  cOneImageVideo::SolOfLength(int aNbL)
@@ -529,23 +430,15 @@ const cSolChemOptImV &  cOneImageVideo::SolOfLength(int aNbL)
     return  mSols[aNbL];
 }
 
-void cOneImageVideo::ShowSols()
-{
-    for (int aK=0 ; aK<int(mSols.size()) ; aK++)
-    {
-        std::cout << mSols[aK].mIndPred << "\n";
-    }
-}
 
 // =============  cAppliDevideo ===================================
 
 cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
-     mPrefix         ("Im"),
+     mPrefix         ("Im_"),
      mPostfix        ("png"),
      mTargetRate     (4.0),
      mRateVideoInit  (24.0),
      mParamSzSift    (-1),
-     mPatNumber      ("[0-9]{5}"),
      mMinMax         (0,100000000)
 {
 
@@ -556,28 +449,57 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
            argc,argv,
            LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile) ,
            LArgMain() << EAM(mTargetRate,"Rate",true,"Rate final Def=4")
+                      << EAM(mNumVid,"NumVid",true,"Num of video, def = 00 ")
                       << EAM(mParamSzSift,"ParamSzSift",true,"Parameter used for sift devlopment, def=-1 (Highest)")
                       << EAM(mPatNumber,"PatNumber",true,"Pat number (reduce number for test)")
                       << EAM(mMinMax,"MinMax",true,"Min Max numbers (reduce number for test)")
     );
 
+   
+    mEASF.Init(mFullName);
+    if (!EAMIsInit(&mNumVid)) 
+    {
+        mNumVid = ExtractDigit(StdPrefix(mEASF.mPat),"0000");
+    }
+
+    if (!EAMIsInit(&mPatNumber)) 
+    {
+        mPatNumber = mNumVid +"_" + "[0-9]{5}";
+    }
+
     mStrSzS = " " + ToString(mParamSzSift) + " ";
     mStdJump = mRateVideoInit/mTargetRate;
 
-    mEASF.Init(mFullName);
     ELISE_fp::MkDir(Dir()+"Tmp-MM-Dir/");
 
     
     mMMPatImDev = NamePat("Ok|Nl");
-    MakeXmlXifInfo(mMMPatImDev,mEASF.mICNM);
-    std::cout << "   Devideo :: Done XmlXif \n";
+    mAutoMM =  new cElRegex(mMMPatImDev,10);
     mMMPatImOk = NamePat("Ok");
 
-    mAutoMM =  new cElRegex(mMMPatImDev,10);
+
+//    *** std::cout << mMMPatImDev << " " << mMMPatImOk << "\n"; getchar();
+    {
+        const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImDev);
+        for (int aK=0 ; aK<int(aVN->size()) ; aK++)
+        {
+            std::string aNInit = (*aVN)[aK];
+            std::string aNOk = CalcName(aNInit,"Ok");
+            if (aNInit!= aNOk)
+            {
+               ELISE_fp::MvFile(Dir()+aNInit,Dir()+aNOk);
+            }
+        }
+    }
+
+
+    MakeXmlXifInfo(mMMPatImOk,mEASF.mICNM);
+    std::cout << "   Devideo :: Done XmlXif \n";
+
 
     // Calcul des noms dans l'intervalle
     {
-        const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImDev);
+        const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImOk);
         int aK0 = ElMax(0,mMinMax.x);
         int aK1 = ElMin(int(aVN->size()),mMinMax.y);
         for (int aK=aK0; aK<aK1 ;aK++)
@@ -589,14 +511,14 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     
     // developpement des images
 
-    Paral_Tiff_Dev(Dir(),mVName,1,true);
-    std::cout << "   Devideo :: Done Dev \n";
-
-
     for (int aK=0 ; aK<int(mVName.size()) ; aK++)
     {
         mVIms.push_back(new cOneImageVideo(mVName[aK],this,aK));
     }
+    mNbIm = mVIms.size();
+
+    Paral_Tiff_Dev(Dir(),mVName,1,true);
+    std::cout << "   Devideo :: Done Dev \n";
 
 
     // calcul des parametres d'autocorrelation
@@ -627,12 +549,10 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
          mVIms[aK]->CalcScoreAutoCorrel(mVIms,round_up(5*mStdJump));
     }
 
-    mVImsPressel = mVIms;  // On reste +ou- compatible avec l'idee de presselection meme si abandonnee pour l'instant
-    mNbPres = mVImsPressel.size();
 
     // ============= Decoupage en intervalle ===
     std::vector<int> vPivot;
-    mNbInterv = round_up((mNbPres-1) / double(TheSzDecoup));
+    mNbInterv = round_up((mNbIm-1) / double(TheSzDecoup));
     vPivot.push_back(PivotAPriori(0));
     for (int aKI=1 ; aKI< mNbInterv ; aKI++)
     {
@@ -646,7 +566,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
         double aScoreMax=-1;
         for (int aPiv=aPiv0  ; aPiv<=aPiv1 ; aPiv++)
         {
-             double aScore =  mVImsPressel[aPiv]->AutoCorrel();
+             double aScore =  mVIms[aPiv]->AutoCorrel();
              if (aScore>aScoreMax)
              {
                 aScoreMax = aScore;
@@ -665,124 +585,18 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
 
     // ============= optimisation dans chaque intervalle === 
 
+    mVIms[0]->SetLongPred(0);
     for (int aK=1 ; aK<= mNbInterv ; aK++)
     {
        ComputeChemOpt(vPivot[aK-1],vPivot[aK]);
        std::cout << "Interv " << vPivot[aK-1] << " " << vPivot[aK] << "\n";
     }
 
-
-return;
-#if (0)
-
-    std::string aComTapioca = MM3dBinFile("Tapioca") + " Line " + QUOTE(mMMPatImOk) +  mStrSzS + " 1 ";
-    if (! AllSiftDone)
-       System(aComTapioca);
-
-
-    // Calcule sz sift et init max loc
     for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
     {
-        mVIms[aK]->LoadPts();
+       mVIms[aK]->InitOk();
+       mVIms[aK]->Show();
     }
-    for (int aK=1 ; aK<int(mVIms.size()) ; aK++)
-    {
-        mVIms[aK-1]->UpDateMaxLoc(*(mVIms[aK]));
-         
-    }
-
-    std::cout << "    Devideo  :: sift desc size done \n";
-
-    //  Supression des pts en commencant par le  - de pts sift
-
-    std::vector<cOneImageVideo*>  aVSort =  mVIms;
-    cCmpOIV_SzSift aCmp;
-    std::sort(aVSort.begin(),aVSort.end(),aCmp);
-
-    for (int aKS=0 ; aKS<int(aVSort.size()) ; aKS++)
-    {
-         int aK= aVSort[aKS]->TimeNum();
-         int aKP = aK+1;
-         while ((aKP<int(mVIms.size()) && (!mVIms[aKP]->Pressel()))) aKP++;
-         int aKM = aK-1;
-         while ((aKM>=0) && (!mVIms[aKM]->Pressel())) aKM--;
-         if ((aKP-aKM) <= mStdJump/2.0) 
-         {
-            aVSort[aKS]->SetNotOk();
-         }
-    }
-
-    mVImsPressel.clear();
-    for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
-    {
-         if (mVIms[aK]->Pressel())
-         {
-            mVIms[aK]->SetPresselNum(mVImsPressel.size());
-            mVImsPressel.push_back(mVIms[aK]);
-         }
-    }
-    mNbPres = mVImsPressel.size();
-    std::cout << "    Devideo  :: pre selected images done \n";
-    // === Calcul du graphe ====
-
-    int aJumpMax = round_up(mStdJump * 2);
-    cSauvegardeNamedRel aSNR;
-    for (int aK1=0 ; aK1<mNbPres ; aK1++)
-    {
-         // Interval ]aK1 , aK2 [
-         int aK2 = aK1+1;
-         while (    (aK2<int(mVImsPressel.size()))  
-                 && (  
-                            (aK2<=aK1+1)
-                       ||   (mVImsPressel[aK1]->DifTime(*(mVImsPressel[aK2])) < aJumpMax)
-                    )
-                )
-         {
-               cLinkImV aLnk = mVImsPressel[aK2]->AddPredd(mVImsPressel[aK1]);
-               if (aLnk.mSzSift <=0)
-               {
-                  cCpleString aCple(mVImsPressel[aK2]->NameOk(),mVImsPressel[aK1]->NameOk());
-                  aSNR.Cple().push_back(aCple);
-               }
-               aK2++;
-         }
-         // Pour etre sur interval non vide
-         // std::cout << aK1 << " => " << aK2 << " ;" ;   
-         //  printf("%3d => %3d ",aK1,aK2); mVImsPressel[aK1]->Show();
-    }
-    // calcul des points sifts sur le graphe
-    if (! aSNR.Cple().empty())
-    {
-         std::string aNameGraph = Dir()+"GrapDIV.xml";
-         MakeFileXML(aSNR,aNameGraph);
-         std::string aComTapioca = MM3dBinFile("Tapioca") + " File " + aNameGraph +  mStrSzS;
-         System(aComTapioca);
-         for (int aK=0 ; aK<mNbPres ; aK++)
-         {
-             mVImsPressel[aK]->InitSzLinks();
-         }
-         ELISE_fp::RmFile(aNameGraph);
-    }
-    else
-    {
-    }
-
-    std::cout << "    Devideo  :: sz sift link done \n";
-
-    // ============= optimisation dans chaque intervalle === 
-
-    for (int aK=1 ; aK<= mNbInterv ; aK++)
-    {
-       ComputeChemOpt(vPivot[aK-1],vPivot[aK]);
-       std::cout << "Interv " << vPivot[aK-1] << " " << vPivot[aK] << "\n";
-    }
-
-
-    std::cout << "NB Im = " << mVName.size() << " Presel " << mVImsPressel.size() << " JMP=" << mStdJump << "\n";
-    std::cout << "NBOK=" << mVImsPressel.size() << "\n";
-
-#endif
-
 }
 
 
@@ -805,21 +619,25 @@ std::string  cAppliDevideo::NamePtsSift( cOneImageVideo * anOIV)
 
 void cAppliDevideo::ComputeChemOpt(int aS0,int aS1)
 {
-    mVImsPressel[aS0]->InitChemOpt();
+    mVIms[aS0]->InitChemOpt();
 
-    int aJumpMax = round_up(2*mStdJump);
+    int aJumpMax = round_up(2.0*mStdJump);
+    int aJumpMin = round_down(0.5*mStdJump);
     for (int aS=aS0+1 ; aS<=aS1 ; aS++)
     {
-        int aSPrec = ElMax(aS0,aS-aJumpMax);
-        mVImsPressel[aS]->UpdateCheminOpt(aSPrec,mVImsPressel);
+        int aSDeb = ElMax(aS0,aS-aJumpMax);
+        int aSEnd = ElMax(aSDeb+1,aS-aJumpMin);
+        mVIms[aS]->UpdateCheminOpt(aSDeb,aSEnd,mVIms,mStdJump);
     }
 
     int aSom = aS1;
-    int aNbL = round_up((mVImsPressel[aS1]->DifTime(*mVImsPressel[aS0])) / mStdJump) ;
+    int aNbL = round_up((mVIms[aS1]->DifTime(*mVIms[aS0])) / mStdJump) ;
     while (aSom!=aS0)
     {
-         std::cout << "CCCCC " << aSom  << " nbl " << aNbL << "\n";
-         const cSolChemOptImV & aSol = mVImsPressel[aSom]->SolOfLength(aNbL);
+         const cSolChemOptImV & aSol = mVIms[aSom]->SolOfLength(aNbL);
+
+         mVIms[aSom]->SetLongPred(aSom-aSol.mIndPred);
+         std::cout << "CCCCC " << aSom  << " Leng " << aSom-aSol.mIndPred << "\n";
          aSom = aSol.mIndPred;
          aNbL--;
     }
@@ -829,7 +647,7 @@ void cAppliDevideo::ComputeChemOpt(int aS0,int aS1)
 
     for (int aS=aS0 ; aS<=aS1 ; aS++)
     {
-        mVImsPressel[aS]->ClearSol();
+        mVIms[aS]->ClearSol();
     }
 }
 

@@ -4524,21 +4524,25 @@ class cByAdjacence
         cTplValGesInit< IntSubst > & DeltaMin();
         const cTplValGesInit< IntSubst > & DeltaMin()const ;
 
+        cTplValGesInit< IntSubst > & Sampling();
+        const cTplValGesInit< IntSubst > & Sampling()const ;
+
         cTplValGesInit< cFiltreDeRelationOrient > & Filtre();
         const cTplValGesInit< cFiltreDeRelationOrient > & Filtre()const ;
 
         cTplValGesInit< bool > & Sym();
         const cTplValGesInit< bool > & Sym()const ;
 
-        cTplValGesInit< bool > & Circ();
-        const cTplValGesInit< bool > & Circ()const ;
+        cTplValGesInit< BoolSubst > & Circ();
+        const cTplValGesInit< BoolSubst > & Circ()const ;
     private:
         std::vector< std::string > mKeySets;
         cTplValGesInit< IntSubst > mDeltaMax;
         cTplValGesInit< IntSubst > mDeltaMin;
+        cTplValGesInit< IntSubst > mSampling;
         cTplValGesInit< cFiltreDeRelationOrient > mFiltre;
         cTplValGesInit< bool > mSym;
-        cTplValGesInit< bool > mCirc;
+        cTplValGesInit< BoolSubst > mCirc;
 };
 cElXMLTree * ToXMLTree(const cByAdjacence &);
 

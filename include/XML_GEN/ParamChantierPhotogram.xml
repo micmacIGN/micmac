@@ -1196,6 +1196,10 @@
              <DeltaMax Nb="?"  Type="IntSubst" Def="10000000">  </DeltaMax>
              <!--  Def = 0 si 1 Keyset et -10000 sinon-->
              <DeltaMin Nb="?"  Type="IntSubst">  </DeltaMin>
+
+             <!-- Si donnee et >0, retient que 1 valeur ts les Sampling, si <=0 retient rien , 1 sans effet-->
+             <Sampling Nb="?"  Type="IntSubst">  </Sampling>
+
              <!-- Si donne ne conserve que les couple auquel
              KeyEquiv associe la meme valeur
              -->
@@ -1203,7 +1207,7 @@
 
                <!-- Symetrique qd + de 2 ensemble ? -->
               <Sym    Nb="?" Type="bool" Def="true"></Sym>
-              <Circ   Nb="?" Type="bool" Def="false"></Circ>
+              <Circ   Nb="?" Type="BoolSubst" Def="false"></Circ>
        </ByAdjacence>
 
        <CplesExcl Nb="*"  Type="cCpleString"> </CplesExcl>

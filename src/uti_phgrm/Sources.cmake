@@ -129,6 +129,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_HomFilterMasq.cpp
     ${UTI_PHGRM_DIR}/CPP_InitCamFromAppuis.cpp
     ${UTI_PHGRM_DIR}/CPP_Sake.cpp
+    ${UTI_PHGRM_DIR}/CPP_Liquor.cpp
 )
 
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})

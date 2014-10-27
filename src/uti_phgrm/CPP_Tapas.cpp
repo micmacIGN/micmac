@@ -139,8 +139,6 @@ const char * Modele[NbModele] = {
 
 
 std::string eModAutom;
-int aDegRadMax = 100;
-int aDegGenMax = 100;
 std::string FileLibere;
 double PropDiag = -1.0;
 
@@ -264,9 +262,6 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         LocDRadMaxUSer = 3 + (aKModele-11) * 2;
         LocDegGen = 1;
         LocLibDec = false;
-
-        aDegRadMax =  3 + (aKModele-11) * 2;
-        aDegGenMax = 2;
     }
     else
     {
@@ -283,11 +278,6 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 
     FileLibere = "Param-"+aModParam+".xml";
 }
-/*
-bool GlobLibFoc=true;
-int  GlobDRadMaxUSer = 100;
-int  GlobDegGen = 100;
-*/
 
 
 int Tapas_main(int argc,char ** argv)
@@ -456,11 +446,7 @@ int Tapas_main(int argc,char ** argv)
         }
 
 
-        if (EAMIsInit(&GlobDRadMaxUSer))
-           aDegRadMax = GlobDRadMaxUSer;
-
-        if (aDegRadMax<100)
-           aCom = aCom +  std::string(" +DegRadMax=") + ToString(aDegRadMax) + std::string(" ");
+        aCom = aCom +  std::string(" +DegRadMax=") + ToString(GlobDRadMaxUSer) + std::string(" ");
 
 
         if (EAMIsInit(&GlobLibAff) && (!GlobLibAff))
