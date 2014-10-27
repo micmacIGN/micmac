@@ -650,7 +650,6 @@ private:
 /// \class CuDeviceData2D
 /// \brief Cette classe est un tableau de donnee 2D situee dans memoire globale de la carte video
 ///
-// TODO mettre CData2D<T> dans DecoratorDeviceData<T,cudaContext>
 template <class T, class gpsdk = cudaContext >
 class CuDeviceData2D : public CData2D<T>, public DecoratorDeviceData<T,gpsdk>
 {
