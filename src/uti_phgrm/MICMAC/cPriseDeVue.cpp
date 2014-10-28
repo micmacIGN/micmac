@@ -491,8 +491,10 @@ ElPackHomologue cPriseDeVue::ReadPackHom(const cPriseDeVue * aPDV2) const
 
 CamStenope * cPriseDeVue::GetOri() const
 {
-
    std::string aNG = mAppli.FullDirGeom()+NameGeom();
+
+	if ( isUsingSeparateDirectories() ) aNG = NameGeom();
+
    CamStenope * aRes = CamStenope::StdCamFromFile(true,aNG.c_str(),mAppli.ICNM());
    mAppli.AnalyseOri(aRes);
    return aRes;
