@@ -2,16 +2,16 @@
 
 #define FACTOR 4
 
-__GPU_CONSTANT  int hw[] = {1,2,5,6,8};
+__GPU_CONSTANT  int hw[] = {1,2,5,6,9};
+
 
 __GPU_KERNEL void kMultTab(__GPU_GLOBAL int * out,  int t)
 {
     size_t tid = __GPU_THREADX;
 
-#ifdef CUDA_ENABLED
-   // printf("%d\n",hw[tid]);
-#endif
-    out[tid] = FACTOR*t*hw[tid]+20;
+    int2 dd = make_int2(50,20);
+
+    out[tid] = FACTOR*t*hw[tid] + dd.x;
 }
 
 
