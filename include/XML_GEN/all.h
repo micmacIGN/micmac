@@ -906,6 +906,7 @@ class  cSetName
           const cSetNameDescriptor & SND() const;
           cInterfChantierNameManipulateur * ICNM();
           string Dir() const { return mDir; }
+          void setDir( const string &i_directory ) { mDir = i_directory; }
       private :
           void CompileDef();
 
@@ -924,8 +925,9 @@ class cDicoSetNC : public cInterfChantierSetNC
 {
      public :
          void Add(const tKey &,cSetName *);
-     bool SetHasKey(const tKey & aKey)  const;
-     cDicoSetNC();
+         bool SetHasKey(const tKey & aKey)  const;
+         cDicoSetNC();
+         void assign( const tKey &,cSetName * );
      private :
          std::map<tKey,cSetName *> mDico;
          const tSet *  Get(const tKey &);
