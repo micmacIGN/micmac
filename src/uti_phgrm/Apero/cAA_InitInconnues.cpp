@@ -117,7 +117,6 @@ cCompileAOI::cCompileAOI(const cOptimizeAfterInit & anOAI)
 void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 {
     //  Initialisation des inconnues d'orientation
-std::cout << "EEEEEEEEEEEEEEEEeeeeee\n";
 
     const tLP & aLP = mParam.PoseCameraInc();
     for ( tLP::const_iterator itP = aLP.begin(); itP!=aLP.end() ; itP++)
@@ -148,7 +147,6 @@ std::cout << "EEEEEEEEEEEEEEEEeeeeee\n";
 
                std::list<std::string > aLName2Add = mICNM->StdGetListOfFile(*itPat,1);
 
-std::cout << "cAppliApero::CompileInitPoseGen " << aLName2Add.size() << "\n";
               
 	      if (aLName2Add.empty())
 	      {
@@ -187,7 +185,6 @@ std::cout << "cAppliApero::CompileInitPoseGen " << aLName2Add.size() << "\n";
                   {
                         std::string aNamePack = mDC+ICNM()->Assoc1To2(aKA,*it1,*it2,true);
                         double aNb = sizeofile(aNamePack.c_str());
- // std::cout << *it1 << " " << *it2 <<  " ===== " << aNb << "\n";
                         mCpt[*it1] += aNb;
                         mCpt[*it2] +=aNb;
                   }
@@ -208,10 +205,8 @@ std::cout << "cAppliApero::CompileInitPoseGen " << aLName2Add.size() << "\n";
 
             aLName.clear();
             aLName.push_back(aBestN);
-std::cout <<  "BBBBestN " << aBestN << "\n";
         }
 
-std::cout << "FFFFF " << aLName.size() << "\n";
 
 
         if (itP->AddAllNameConnectedBy().IsInit())
@@ -251,7 +246,6 @@ std::cout << "FFFFF " << aLName.size() << "\n";
                      {
                              aNewL.push_back(*aNewN);
                      }
-// std::cout << *aNewN << " " << isNew << "\n";
                   }
                 }
             }
@@ -299,7 +293,6 @@ std::cout << "FFFFF " << aLName.size() << "\n";
         }
 
 
-std::cout << "GGGGGG " << aLName.size() << "\n";
 
 
 
@@ -345,7 +338,6 @@ std::cout << "GGGGGG " << aLName.size() << "\n";
            aLName = aNewL;
         }
 
-std::cout << "HHHHHH " << aLName.size() << "\n";
         if (isPrecComp)
         {
            cCompileAOI * aCAOI =  
@@ -447,12 +439,9 @@ std::cout << "HHHHHH " << aLName.size() << "\n";
                          itL++
                       )
                       {
-//std::cout << "AAAAAA \n";
 
-//std::cout << "NNN  " << aPC->CalNameFromL(*itL);
 
                             cPoseCam * aPC2 = PoseFromName(aPC->CalNameFromL(*itL));
-// std::cout << "BBBB \n";
                             aPC->UpdateHeriteProf2Init(*aPC2);
                       }
                   }

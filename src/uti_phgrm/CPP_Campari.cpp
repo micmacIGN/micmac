@@ -97,6 +97,7 @@ int Campari_main(int argc,char ** argv)
     bool DetailAppuis = false;
     double Viscos = 1.0;
     bool ExpTxt = false;
+    std::vector<std::string> aImMinMax;
 
     Pt3dr aGpsLA;
 
@@ -120,6 +121,7 @@ int Campari_main(int argc,char ** argv)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity in Levenberg-Marquardt like resolution (Def=1.0)")
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
+                    << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoir tricky pat")
 
     );
 
@@ -132,6 +134,16 @@ int Campari_main(int argc,char ** argv)
         SplitDirAndFile(aDir,aPat,aFullDir);
         StdCorrecNameOrient(AeroIn,aDir);
 
+        Pt2dr Focales(0,100000);
+        std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
+        std::string aSetIm = "NKS-Set-OfPatternAndFoc" + aParamPatFocSetIm;
+
+
+        if (EAMIsInit(&aImMinMax))
+        {
+            ELISE_ASSERT(aImMinMax.size()==2,"Bad size in vect");
+            aSetIm =  "NKS-Set-OfPatternAndFocAndInterv" + aParamPatFocSetIm + "@" + aImMinMax[0] + "@" + aImMinMax[1];
+        }
 
 
 
@@ -139,7 +151,7 @@ int Campari_main(int argc,char ** argv)
        std::string aCom =     MM3dBinFile_quotes( "Apero" )
                            +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
                            +  std::string(" DirectoryChantier=") + aDir + " "
-                           +  std::string(" +SetIm=") + QUOTE(aPat) + " "
+                           +  std::string(" +SetIm=") + QUOTE(aSetIm) + " "
                            +  std::string(" +AeroIn=-") + AeroIn + " "
                            +  std::string(" +AeroOut=-") + AeroOut + " "
                           ;

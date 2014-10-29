@@ -15,10 +15,15 @@
                <Symb>  IntrLVM=0.1 </Symb>
                <Symb>  RayFEInit=0.85 </Symb>
                <Symb>  CalibIn="ABC" </Symb>
+               <Symb>  InitCamSpecif=false </Symb>
+               <Symb>  InitCamBDD=false </Symb>
+               <Symb>  InitCamCenter=true </Symb>
 
+<!--
                <Symb>  FocMin=0 </Symb>
                <Symb>  FocMax=10000 </Symb>
                <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
+-->
 
                <Symb>  SetImInit="XXXX" </Symb>
 
@@ -86,8 +91,8 @@
 
                <eSymb> WithNoPoseFigee=! ${WithPoseFigee} </eSymb>
                <eSymb> IntrLVM1000=* 1000 ${IntrLVM} </eSymb>
-
                <eSymb>  AffineAll=! ${Fast}  </eSymb>
+               <eSymb>  NbMax0=? ${Fast} 3 10  </eSymb>
 
        </DicoLoc>
 
@@ -145,7 +150,45 @@
               </CalibrationCameraInc>
 
 
+<!--
               <IncludeFileLoc>  ${FileCamInit} </IncludeFileLoc>
+-->
+              <#WHEN VTEST=${InitCamCenter}>
+                   <PoseCameraInc>
+                          <PatternName>   ${SetIm}   </PatternName>
+                          <AutomGetImC>   Id_Pastis_Hom       </AutomGetImC>
+                          <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                          <PosValueInit>
+                              <PosId> ### </PosId>
+                          </PosValueInit>
+                   </PoseCameraInc>
+              </#WHEN>
+              <#WHEN VTEST=${InitCamSpecif}>
+                   <PoseCameraInc>
+                         <PatternName>   ${SetImInit}   </PatternName>
+                         <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                         <PosValueInit>
+                             <PosId> ### </PosId>
+                         </PosValueInit>
+                    </PoseCameraInc>
+              </#WHEN>
+              <#WHEN VTEST=${InitCamBDD}>
+                   <PoseCameraInc>
+                         <PatternName>    ${SetIm} </PatternName>
+                         <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                         <Filter>
+                             <KeyExistingFile>
+                                 <KeyAssoc> NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+                                 <RequireExist> true </RequireExist>
+                                 <RequireForAll>  true</RequireForAll>
+                            </KeyExistingFile>
+                         </Filter>
+                         <PosValueInit>
+                             <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                         </PosValueInit>
+                   </PoseCameraInc>
+              </#WHEN>
+
 
               <PoseCameraInc>
 	           <PatternName>  ${SetIm}    </PatternName>
@@ -262,7 +305,7 @@
                     <IterationsCompensation> 
                         <CtrlTimeCompens>
                               <NbMin > 2 </NbMin>
-                              <NbMax>  10       </NbMax>
+                              <NbMax>  ${NbMax0}       </NbMax>
                               <SeuilEvolMoy > 1e-5  </SeuilEvolMoy>
                         </CtrlTimeCompens>
                     </IterationsCompensation>

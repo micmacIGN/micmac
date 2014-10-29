@@ -71,8 +71,11 @@ class cIntervLiquor
          int Begin() const  {return mBegin;}
          int End()   const  {return mEnd;}
          std::string  NameOri() const {return "Liquor_" + ToString(mNum);}
+         std::string  NameMerge() const {return "MergeLiq_" + ToString(mNum);}
          void SetF1(cIntervLiquor * aIL) {mF1=aIL;}
          void SetF2(cIntervLiquor * aIL) {mF2=aIL;}
+         cIntervLiquor * F1() {return mF1;}
+         cIntervLiquor * F2() {return mF2;}
 
      private :
          static int      TheCpt;
@@ -97,6 +100,8 @@ class cAppliLiquor
     private :
         cIntervLiquor * SplitRecInterv(int aDeb,int aEnd,int aProf);
         std::string ComTerm(const  cIntervLiquor&) const;
+        void DoComTerm();
+        void DoComRec(int aLevel);
 
 
         std::string mFullName;
@@ -155,7 +160,38 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
     StdCorrecNameOrient(mCalib,Dir());
 
 
-   SplitRecInterv(0,mNbIm,0);
+    SplitRecInterv(0,mNbIm,0);
+    DoComTerm();
+
+    DoComRec(mInterv.size()-2);
+}
+
+
+void  cAppliLiquor::DoComRec(int aLevel)
+{
+   std::list<std::string> aLComMerge;
+   for 
+   (
+        std::list<cIntervLiquor*>::iterator II=mInterv[aLevel].begin();
+        II!=mInterv[aLevel].end();
+        II++
+   )
+   {
+        cIntervLiquor & anIL = **II;
+        std::string aComMerge =    MM3dBinFile("Morito")
+                                + "Ori-"+ anIL.F1()->NameOri() + std::string("/Orientation.*xml ")
+                                + "Ori-"+ anIL.F2()->NameOri() + std::string("/Orientation.*xml ")
+                                +  anIL.NameMerge();
+
+         aLComMerge.push_back(aComMerge);
+   }
+   // cEl_GPAO::DoComInParal(aLComMerge);
+}
+
+
+void cAppliLiquor::DoComTerm()
+{
+   std::list<std::string> aLComInit;
    for 
    (
         std::list<cIntervLiquor*>::iterator II=mInterv.back().begin();
@@ -163,8 +199,11 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
         II++
    )
    {
-        std::cout << ComTerm(**II) << "\n";
+        std::string aCom = ComTerm(**II) ;
+        aLComInit.push_back(aCom);
+        std::cout << aCom << "\n";
    }
+   // cEl_GPAO::DoComInParal(aLComInit);
 }
 
 
@@ -202,6 +241,7 @@ std::string cAppliLiquor::ComTerm(const  cIntervLiquor& anIL) const
    
    std::string aN1  = (*mVNames)[anIL.Begin()];
    std::string aN2  = (*mVNames)[anIL.End()-1];
+   std::string aNMil  = (*mVNames)[(anIL.End()+anIL.Begin())/2];
    std::string aOut = anIL.NameOri();
 
 
@@ -210,7 +250,9 @@ std::string cAppliLiquor::ComTerm(const  cIntervLiquor& anIL) const
                       + mFullName
                       + std::string(" InCal=" + mCalib)
                       + std::string(" ImMinMax=[" +aN1+ "," + aN2 + "] ")
+                      + std::string(" ImInit=" +aNMil + " ")
                       + std::string(" Out=" + aOut + " ")
+                      + std::string(" RefineAll=false ")
                       ;
 
    return aCom;

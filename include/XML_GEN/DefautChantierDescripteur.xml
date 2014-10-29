@@ -184,6 +184,22 @@
           <Key> NKS-Set-OfPatternAndInterv </Key>
     </KeyedSetsOfNames>
 
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets>
+               <PatternAccepteur> #1  </PatternAccepteur>
+               <Filter>
+                     <FocMm> #2 #3 </FocMm>
+                     <Min> #4 </Min>
+                     <Max> #5 </Max>
+               </Filter>
+          </Sets>
+          <Key> NKS-Set-OfPatternAndFocAndInterv </Key>
+    </KeyedSetsOfNames>
+
+
+
     <KeyedSetsOfNames>
            <IsParametrized>  true </IsParametrized>
            <Sets>

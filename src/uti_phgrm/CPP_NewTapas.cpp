@@ -350,7 +350,7 @@ int Tapas_main(int argc,char ** argv)
     std::string ImInit  = NoInit;
     int   aVitesseInit=2;
     int   aDecentre = -1;
-    Pt2dr Focales(-1,-1);
+    Pt2dr Focales(0,100000);
     Pt2dr aPPDec(-1,-1);
     std::string SauvAutom="";
     std::string aSetHom="";
@@ -473,13 +473,21 @@ int Tapas_main(int argc,char ** argv)
 
        std::string aNameFileApero = "Apero-Glob-New.xml" ;
 
+       std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
+       std::string aSetIm = "NKS-Set-OfPatternAndFoc" + aParamPatFocSetIm;
 
-
+        if (EAMIsInit(&aImMinMax))
+        {
+            ELISE_ASSERT(aImMinMax.size()==2,"ImMinMax size mut be 2");
+            aSetIm =  "NKS-Set-OfPatternAndFocAndInterv" + aParamPatFocSetIm + "@" + aImMinMax[0] + "@" + aImMinMax[1];
+        }
+    
 
        std::string aCom =     MM3dBinFile_quotes( "Apero" )
                            + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+ aNameFileApero ) + " "
                            + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                            + std::string(" ") + QUOTE(std::string("+PatternAllIm=") + aPat) + std::string(" ")
+                           + std::string(" ") + QUOTE(std::string("+SetIm=") + aSetIm) + std::string(" ")
                            //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")
                            + std::string(" +AeroOut=-") + AeroOut
                            + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
@@ -516,11 +524,6 @@ int Tapas_main(int argc,char ** argv)
             aCom = aCom + " +EcartMaxFin=" + ToString(EcartMaxFin);
         }
 
-        if (EAMIsInit(&aImMinMax))
-        {
-            ELISE_ASSERT(aImMinMax.size()==2,"ImMinMax size mut be 2");
-            aCom = aCom + std::string(" +UseFilterIm=true +ImMin=") + aImMinMax[0]  + " +ImMax=" +  aImMinMax[1];
-        }
 
 
         if (ModeleAdditional)
@@ -548,20 +551,19 @@ int Tapas_main(int argc,char ** argv)
        if (ImInit!=NoInit)
        {
              aCom =   aCom + " +SetImInit="+ImInit;
-             aCom = aCom + " +FileCamInit=InitCamSpecified.xml";
+             //aCom = aCom + " +FileCamInit=InitCamSpecified.xml";
+             aCom = aCom + " +InitCamSpecif=true +InitCamCenter=false";
              ELISE_ASSERT(AeroIn==NoInit,"Incoherence AeroIn/ImInit");
        }
        if (SauvAutom!="")
          aCom =   aCom + " +SauvAutom="+SauvAutom;
 
        if (AeroIn!= NoInit)
-          aCom =   aCom
-                 + " +FileCamInit=InitCamBDD.xml" ;
+       {
+          aCom =   aCom + " +InitCamBDD=true +InitCamCenter=false";
+                 // + " +FileCamInit=InitCamBDD.xml" ;
+       }
 
-       if (Focales.x>=0)
-          aCom =   aCom
-                 + " +FocMin=" + ToString(Focales.x)
-                 + " +FocMax=" + ToString(Focales.y);
 
        if (aPPDec.x>=0)
            aCom =   aCom + " +xPRelPP=" + ToString(aPPDec.x);
