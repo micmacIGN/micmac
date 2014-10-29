@@ -1161,7 +1161,7 @@ std::string GenerateId()
 
 std::string GenerateNameUnique(const std::string & aNF,const std::string &Post)
 {
-	return "XXXX_" +  NameWithoutDir(aNF) + "_" + GenerateId()  + "_" + Post;
+	return "XXXX_" +  NameWithoutDir(aNF) + "_" + ToString(mm_getpid()) + '_' + GenerateId()  + "_" + Post;
 }
 
 
