@@ -6,6 +6,8 @@
  R. Gachet & P. Fave
 **/
 
+
+
 class AffCamera
 {
  public:
@@ -31,7 +33,7 @@ class AffCamera
     ///
     void updateParams(ElMatrix <double> const &sol)
     {
-        std::cout << "Init solution: "<<std::endl;
+        std::cout << "Init solution of cam " << mIndex <<std::endl;
         printParams();
 
         for (size_t aK=0; aK< vP.size(); aK++)
@@ -103,18 +105,19 @@ public:
 
     Pt3dr getCoord();
 
-    Pt2dr computeImageDifference(int index,  //index in vImgMeasure
-                                 double aA0,
-                                 double aA1,
-                                 double aA2,
-                                 double aB0,
-                                 double aB1,
-                                 double aB2);
-
     Pt2dr computeImageDifference(int index,
                                    double X,
                                    double Y,
                                    double Z,
+                                   double aA0,
+                                   double aA1,
+                                   double aA2,
+                                   double aB0,
+                                   double aB1,
+                                   double aB2);
+
+    Pt2dr computeImageDifference(int index,
+                                   Pt3dr pt,
                                    double aA0,
                                    double aA1,
                                    double aA2,
@@ -168,24 +171,6 @@ Pt3dr TiePoint::getCoord()
     }
 }
 
-Pt2dr TiePoint::computeImageDifference(int index, double aA0, double aA1, double aA2, double aB0, double aB1, double aB2)
-{
-    ImageMeasure* aMes = &vImgMeasure[index];
-
-    Pt2dr ptImg = aMes->ptImg;
-
-    map<int, AffCamera *>::const_iterator iter;
-    iter = pMapCam->find(aMes->idx);
-    AffCamera* cam = iter->second;
-
-    Pt2dr ptImgC(aA0 + aA1 * ptImg.x + aA2 * ptImg.y,
-                 aB0 + aB1 * ptImg.x + aB2 * ptImg.y);
-
-    Pt2dr proj = cam->Camera()->R3toF2(getCoord());
-
-    return ptImgC - proj;
-}
-
 Pt2dr TiePoint::computeImageDifference(int index,
                                        double X, double Y, double Z,
                                        double aA0, double aA1, double aA2, double aB0, double aB1, double aB2)
@@ -202,6 +187,26 @@ Pt2dr TiePoint::computeImageDifference(int index,
                  aB0 + aB1 * ptImg.x + aB2 * ptImg.y);
 
     Pt2dr proj = cam->Camera()->R3toF2(Pt3dr(X, Y, Z));
+
+    return ptImgC - proj;
+}
+
+Pt2dr TiePoint::computeImageDifference(int index,
+                                       Pt3dr pt,
+                                       double aA0, double aA1, double aA2, double aB0, double aB1, double aB2)
+{
+    ImageMeasure* aMes = &vImgMeasure[index];
+
+    Pt2dr ptImg = aMes->ptImg;
+
+    map<int, AffCamera *>::const_iterator iter;
+    iter = pMapCam->find(aMes->idx);
+    AffCamera* cam = iter->second;
+
+    Pt2dr ptImgC(aA0 + aA1 * ptImg.x + aA2 * ptImg.y,
+                 aB0 + aB1 * ptImg.x + aB2 * ptImg.y);
+
+    Pt2dr proj = cam->Camera()->R3toF2(pt);
 
     return ptImgC - proj;
 }
@@ -248,15 +253,20 @@ protected:
     ///
     ElMatrix<double> _Y;
 
+    size_t numUnk;
+
+    bool verbose;
+
 public:
 
+    std::vector <TiePoint*> getObs() { return vObs; }
     ///
     /// \brief constructor (loads GRID files, tie-points and filter tie-points on 2D ground difference)
     /// \param aNameFileGridMaster Grid file for master image
     /// \param aNameFileGridSlave Grid file for slave image
     /// \param aNamefileTiePoints Tie-points file
     ///
-    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.)
+    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.),numUnk(6), verbose(false)
     {
         string aDir, aPat;
         SplitDirAndFile(aDir,aPat,aFullDir);
@@ -310,7 +320,7 @@ public:
                                 if (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 100.)
                                 {
                                     rPts_nb++;
-                                    std::cout << "Couple with 2D ground difference > 10 rejected" << std::endl;
+                                    //std::cout << "Couple with 2D ground difference > 10 rejected" << std::endl;
                                 }
                                 else
                                 {
@@ -381,10 +391,13 @@ public:
     ///
     double sumRes(int &nbMes) //TODO: verifier qu'on fait la bonne somme
     {
+        nbMes = 0;
         double sumRes = 0.;
 
+        //pour chaque point de liaison
         for (size_t aK=0; aK < vObs.size();++aK)
         {
+            //pour chaque image ou le point de liaison est vu
             for(size_t i=0;i<vObs[aK]->vImgMeasure.size();++i)
             {
                 Pt2dr D = vObs[aK]->computeImageDifference(i);
@@ -402,10 +415,10 @@ public:
     void printMatrix(ElMatrix <double> const & mat)
     {
         std::cout << "-------------------------"<<std::endl;
-        for(int i=0;i<mat.Sz().x;++i)
+        for(int j=0;j<mat.Sz().y;++j)
         {
-            for(int j=0;j<mat.Sz().y;++j)
-                std::cout << mat(i,j) <<" ";
+            for(int i=0;i<mat.Sz().x;++i)
+                std::cout << mat(i,j) << " ";
 
             std::cout << std::endl;
         }
@@ -425,18 +438,20 @@ public:
 
         if (numObs)
         {
+            std::cout << "RMS_init = " << iniRMS << std::endl;
+
             double curRMS = std::sqrt(res/numObs);
 
-            if (curRMS>iniRMS)
+           /* if (curRMS>=iniRMS)
             {
                 std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
                 std::cout << "No improve: end"<<std::endl;
                 return false;
-            }
+            }*/
 
             //ecriture dans un fichier des coefficients en vue d'affiner la grille
             //consommateur en temps => todo: stocker les parametres de l'iteration n-1
-            map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
+          /*  map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
             for (size_t aK=0; iter != mapCameras.end();++iter, ++aK)
             {
                 AffCamera* cam = iter->second;
@@ -444,7 +459,7 @@ public:
                 std::ofstream fic(("refine/" + name + ".txt").c_str());
                 fic << std::setprecision(15);
                 fic << cam->vP[0] <<" "<< cam->vP[1] <<" "<< cam->vP[2] <<" "<< cam->vP[3] <<" "<< cam->vP[4] <<" "<< cam->vP[5] <<" "<<std::endl;
-            }
+            }*/
             std::cout << "RMS_after = " << curRMS << std::endl;
             return true;
         }
@@ -483,540 +498,6 @@ public:
     int nObs() { return vObs.size(); }
 };
 
-#ifdef tata
-
-//! Implementation utilisant la suppression des inconnues auxiliaires (les Z)
-class RefineModel:public RefineModelAbs
-{
-
-public:
-    RefineModel(std::string const &aPat):RefineModelAbs(aPat)
-    {
-    }
-
-    ///
-    /// \brief add an observation to system
-    /// \param obs observation matrix
-    /// \param p weighting
-    /// \param res residual
-    ///
-    void addObs(const ElMatrix<double> &obs, const double p, const double res)
-    {
-        //construction iterative de la matrice normale
-        _N += (obs.transpose()*obs)*p;  //il existe certainement une norme ou une facon plus elegante de l'ecrire ...
-        //idem pour Y
-        _Y += obs.transpose()*res*p;
-
-        //on elimine la premiere inconnue
-        //a00Z + SUM(a0k.Xk) = b0;
-        //ai0Z + SUM(aik.Xk) = bi; ...
-
-        double piv = _N(0,0);
-        //todo si pivot trop petit ... !
-
-        //std::cout << "piv = "<<piv<<std::endl;
-
-        const size_t numUnk = _N.Sz().x;
-
-        //pour les autres lignes
-        for(size_t line = 1;line < numUnk; line++)
-        {
-            double pivotLine = _N(0,line);
-
-            if (pivotLine == 0.) continue;
-
-            for(size_t col = 1; col < numUnk; col++)
-                _N(col,line) -= _N(col,0)*pivotLine/piv;
-
-            //meme principe pour le vecteur Y
-            _Y(0,line) -= _Y(0,0)*pivotLine/piv;
-        }
-
-        //un peu de nettoyage : 1ere ligne
-        for(size_t col = 0; col < numUnk; col++)
-            _N(col,0) = 0.;
-
-        for(size_t line = 1;line < numUnk; line++)
-            _N(0,line) = 0.;
-
-        _Y(0,0) = 0.;
-    }
-
-    void solve()
-    {
-        _N(0,0) = 1.;
-
-        std::cout << "Matrix _N:"<<std::endl;
-        printMatrix(_N);
-
-        std::cout << "Matrix _Y:"<<std::endl;
-        printMatrix(_Y);
-
-        ElMatrix<double> inv = gaussj(_N);
-        std::cout << "Matrix inv:"<<std::endl;
-        printMatrix(inv);
-        ElMatrix<double> sol = inv*_Y;
-
-        std::cout << "Matrix sol:"<<std::endl;
-        printMatrix(sol);
-
-        //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
-
-        map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
-        for (; iter != mapCameras.end() ; ++iter)
-        {
-            iter->second->updateParams(sol);
-        }
-
-        //estimation des Z
-        /*
-        double dZ = 0.5, sumDZ=0.;
-        for(size_t i=0;i<vPtImgMaster.size();++i)
-        {
-            Pt2dr const &ptImgMaster = vPtImgMaster[i];
-            Pt2dr const &ptImgSlave  = vPtImgSlave[i];
-            double const Z = vZ[i];
-
-            // ecart constate
-            Pt2dr D = compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2);
-
-            Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)  * (compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ,a0,a1,a2,b0,b1,b2)-D);
-
-            ElMatrix<double> mZ(1,2,0.);
-            mZ(0,0) = vdZ.x;
-            mZ(0,1) = vdZ.y;
-            ElMatrix<double> NZ = mZ.transpose()*mZ;
-            ElMatrix<double> resZ(1,2,0.);
-            resZ(0,0) = -D.x;
-            resZ(0,1) = -D.y;
-            ElMatrix<double> YZ = mZ.transpose()*resZ;
-
-            double deltaZ = YZ(0,0)/NZ(0,0);
-
-            vZ[i] += deltaZ;
-            sumDZ += deltaZ;
-
-            std::cout << vZ[i] << std::endl;
-        }
-        std::cout << "SumDZ = " << sumDZ << std::endl;
-        */
-    }
-
-    // compute the observation matrix for one iteration
-    bool computeObservationMatrix()
-    {
-        size_t numUnk = 7;                       // Nombre d'inconnues par caméra
-
-        // Remise a zero des matrices
-        _N = ElMatrix<double>(numUnk*mNbPair,numUnk*mNbPair,0.);
-        _Y = ElMatrix<double>(1,numUnk*mNbPair,0.);
-
-        size_t cpt=0;
-        for (size_t aK=0; aK < mNbPair; aK++) cpt +=  master(aK)->vPtImg.size();
-        size_t numObs = 2*cpt + numUnk;  // Nombre d'observations (dont stabilisation des inconnues)
-
-        double iniRMS = std::sqrt(sumRes()/numObs);
-
-        std::cout << "RMS_ini = " << iniRMS << std::endl;
-
-        double dZ =  0.5;
-        double dA0 = 0.5;
-        double dA1 = 0.01;
-        double dA2 = 0.01;
-        double dB0 = 0.5;
-        double dB1 = 0.01;
-        double dB2 = 0.01;
-
-        //Ponderation
-        double sigmaDelta = 1.; //m
-        /*bool   weightByRes = false;
-        //Ponderation stabilisation
-        double sigmaTransX = 1.; //pix
-        double sigmaTransY = 1.;  //pix
-        double sigmaMat = 1./std::pow(0.001,2); //sans unite
-        double sigmaMatA1 = 1./std::pow(0.0001,2);*/
-
-        //pour chaque obs (ligne), y compris les eq de stabilisation
-        //for( toutes les obs )
-
-        for (size_t aK=0; aK < mNbPair; aK++)
-        {vObs[aK]->vImgMeasure.size()
-            for(size_t i=0;i< master(aK)->vPtImg.size();++i)
-            {
-                Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
-                Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
-                double const Z = vZ(aK)[i]; //todo: a remplacer
-
-                ElMatrix<double> obs(numUnk,1,0.);
-                //a remplir avec derivees partielles ...
-
-                // ecart constate
-                Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
-
-                //todo : strategie d'elimination d'observations / ou ponderation
-
-                // estimation des derivees partielles
-                double a0 = slave(aK)->vP[0];
-                double a1 = slave(aK)->vP[1];
-                double a2 = slave(aK)->vP[2];
-                double b0 = slave(aK)->vP[3];
-                double b1 = slave(aK)->vP[4];
-                double b2 = slave(aK)->vP[5];
-
-                Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z + dZ)-D);
-                Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
-                Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
-                Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
-                Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
-                Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1+dB1,b2)-D);
-                Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2+dB2)-D);
-
-                obs(0+numUnk*aK,0) = vdZ.x;
-                obs(1+numUnk*aK,0) = vdA0.x;
-                obs(2+numUnk*aK,0) = vdA1.x;
-                obs(3+numUnk*aK,0) = vdA2.x;
-                obs(4+numUnk*aK,0) = vdB0.x;
-                obs(5+numUnk*aK,0) = vdB1.x;
-                obs(6+numUnk*aK,0) = vdB2.x;
-
-                addObs(obs,sigmaDelta,0.-D.x);
-                //ajout
-                //if((D.x<2)&&(D.y<2)) {addObs(obs,1/std::sqrt(1+D.x*D.x),D.x);}
-                //fin ajout
-                obs(0+numUnk*aK,0) = vdZ.y;
-                obs(1+numUnk*aK,0) = vdA0.y;
-                obs(2+numUnk*aK,0) = vdA1.y;
-                obs(3+numUnk*aK,0) = vdA2.y;
-                obs(4+numUnk*aK,0) = vdB0.y;
-                obs(5+numUnk*aK,0) = vdB1.y;
-                obs(6+numUnk*aK,0) = vdB2.y;
-
-                addObs(obs,sigmaDelta,0.-D.y);
-                //ajout
-                //if((D.x<2)&&(D.y<2)) {addObs(obs,1/std::sqrt(1+D.y*D.y),D.y);}
-                //fin ajout
-            }
-        }
-        //stabilisation
-        /*
-        addObs(1,sigmaTransX,   0.-a0);
-        addObs(2,sigmaMat,		1.-a1);
-        addObs(3,sigmaMat,      0.-a2);
-        addObs(4,sigmaTransY,   0.-b0);
-        addObs(5,sigmaMat,      0.-b1);
-        addObs(6,sigmaMat,		1.-b2);
-        */
-        solve();
-
-        return launchNewIter(iniRMS, numObs);
-    }
-
-
-    ~RefineModel()
-    {
-    }
-};
-
-//! Implementation basique (sans suppression des inconnues auxiliaires)
-class RefineModelBasic: public RefineModelAbs
-{
-
-public:
-    RefineModelBasic(std::string const &aPat):RefineModelAbs(aPat)
-    {
-    }
-
-    void solve()
-    {
-        /*
-        std::cout << "solve"<<std::endl;
-        std::cout << "Matrice _N:"<<std::endl;
-        printMatrix(_N);
-        std::cout << "Matrice _Y:"<<std::endl;
-        printMatrix(_Y);
-        */
-        ElMatrix<double> AtA = _N.transpose() * _N;
-        //printMatrix(AtA);
-        ElMatrix<double> AtB = _N.transpose() * _Y;
-        //printMatrix(AtB);
-        ElMatrix<double> sol = gaussj(AtA) * AtB;
-        /*
-        std::cout << "Matrice sol:"<<std::endl;
-        printMatrix(sol);
-        */
-        //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
-
-        for (size_t aK=0; aK < mNbPair; aK++)
-        {
-            slave(aK)->updateParams(sol, aK);
-
-            //mise a jour des Z
-                //TODO: lien entre les point de liaisons et les points 3D
-            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
-            {
-                vZ(aK)[i] += sol(0,6*mNbPair+i); //todo: a remplacer
-                std::cout << vZ(aK)[i] << std::endl;
-            }
-        }
-
-    }
-
-    //! compute the observation matrix for one iteration
-    bool computeObservationMatrix()
-    {
-        int cpt = 0;
-        for (size_t aK=0; aK < mNbPair; aK++) cpt += vCamPair[aK]->vZ.size();
-        int numObs = 2*cpt;
-        double iniRMS = std::sqrt(sumRes()/numObs);
-        std::cout << "RMS_ini = " << iniRMS << std::endl;
-
-        double dZ  = 0.5;
-        double dA0 = 0.5;
-        double dA1 = 0.01;
-        double dA2 = 0.01;
-        double dB0 = 0.5;
-        double dB1 = 0.01;
-        double dB2 = 0.01;
-
-        _N = ElMatrix<double>(6+cpt,numObs+6,0.);
-        _Y = ElMatrix<double>(1,numObs+6,0.);
-
-        //pour chaque obs (ligne), y compris les eq de stabilisation
-        //for( toutes les obs )
-        for (size_t aK=0; aK < mNbPair; aK++)
-        {
-            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
-            {
-                //std::cout << "i = "<<i<<std::endl;
-                Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
-                Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
-                double const Z = vZ(aK)[i]; //todo: a remplacer
-
-                // ecart constate
-                Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
-
-                //todo : strategie d'elimination d'observations / ou ponderation
-
-                // estimation des derivees partielles
-                double a0 = slave(aK)->vP[0];
-                double a1 = slave(aK)->vP[1];
-                double a2 = slave(aK)->vP[2];
-                double b0 = slave(aK)->vP[3];
-                double b1 = slave(aK)->vP[4];
-                double b2 = slave(aK)->vP[5];
-
-                Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+dZ) -D);
-                Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
-                Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1+dA1,a2,b0,b1,b2)-D);
-                Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2+dA2,b0,b1,b2)-D);
-                Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
-                Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1+dB1,b2)-D);
-                Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0,b1,b2+dB2)-D);
-
-                _N(0,2*i) = vdA0.x;
-                _N(1,2*i) = vdA1.x;
-                _N(2,2*i) = vdA2.x;
-                _N(3,2*i) = vdB0.x;
-                _N(4,2*i) = vdB1.x;
-                _N(5,2*i) = vdB2.x;
-                _N(6+i,2*i) = vdZ.x;
-
-                _N(0,2*i+1) = vdA0.y;
-                _N(1,2*i+1) = vdA1.y;
-                _N(2,2*i+1) = vdA2.y;
-                _N(3,2*i+1) = vdB0.y;
-                _N(4,2*i+1) = vdB1.y;
-                _N(5,2*i+1) = vdB2.y;
-                _N(6+i,2*i+1) = vdZ.y;
-
-                _Y(0,2*i) = -D.x;
-                _Y(0,2*i+1) = -D.y;
-            }
-            // Equation de stabilisation
-            {
-                double pdt = cpt;
-                // A0 proche de 0
-                _N(0,numObs) = 1 * pdt;
-                _Y(0,numObs) = (0-slave(aK)->vP[0]) * pdt;
-                // A1 proche de 1
-                _N(1,numObs+1) = 1 * pdt;
-                _Y(0,numObs+1) = (1-slave(aK)->vP[1]) * pdt;
-                // A2 proche de 0
-                _N(2,numObs+2) = 1 * pdt;
-                _Y(0,numObs+2) = (0-slave(aK)->vP[2]) * pdt;
-                // B0 proche de 0
-                _N(3,numObs+3) = 1 * pdt;
-                _Y(0,numObs+3) = (0-slave(aK)->vP[3]) * pdt;
-                // B1 proche de 0
-                _N(4,numObs+4) = 1 * pdt;
-                _Y(0,numObs+4) = (0-slave(aK)->vP[4]) * pdt;
-                // B2 proche de 1
-                _N(5,numObs+5) = 1 * pdt;
-                _Y(0,numObs+5) = (1-slave(aK)->vP[5]) * pdt;
-            }
-        }
-        std::cout << "before solve"<<std::endl;
-
-        solve();
-
-        return launchNewIter(iniRMS, numObs);
-    }
-
-    ~RefineModelBasic()
-    {
-    }
-};
-
-
-//! Implementation basique simplifiee (uniquement la translation, pas d'estimation des 4 autres parametres)
-class RefineModelTransBasic:public RefineModelAbs
-{
-    double zMoy;
-
-public:
-    RefineModelTransBasic(std::string const &aPat,
-                     double Zmoy):RefineModelAbs(aPat), zMoy(Zmoy)
-    {
-    }
-
-    void solve()
-    {
-        std::cout << "solve"<<std::endl;
-        std::cout << "Matrice _N:"<<std::endl;
-        printMatrix(_N);
-        std::cout << "Matrice _Y:"<<std::endl;
-        printMatrix(_Y);
-
-        ElMatrix<double> AtA = _N.transpose() * _N;
-        printMatrix(AtA);
-
-        ElMatrix<double> AtB = _N.transpose() * _Y;
-        printMatrix(AtB);
-
-        ElMatrix<double> sol = gaussj(AtA) * AtB;
-
-        printMatrix(sol);
-
-        //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
-
-        for (size_t aK=0; aK < mNbPair; aK++)
-        {
-            std::cout << "Solution ini : "<<std::endl;
-            slave(aK)->printParams();
-
-            slave(aK)->vP[0] -= sol(0,0);     //pourquoi -= ???
-            slave(aK)->vP[3] -= sol(0,1);
-
-            std::cout << "Solution mise a jour : "<<std::endl;
-            slave(aK)->printParams();
-
-            //mise a jour des Z
-            //TODO
-            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
-            {
-                vZ(aK)[i] -= sol(0,2+i); //pourquoi -= ???
-                std::cout << vZ(aK)[i] << std::endl;
-            }
-        }
-
-    }
-
-    //! compute the observation matrix for one iteration
-    bool computeObservationMatrix()
-    {
-        size_t cpt = 0;
-        for (size_t aK=0; aK < mNbPair; aK++) cpt += vCamPair[aK]->vZ.size();
-        int numObs = 2*cpt;
-        double iniRMS = std::sqrt(sumRes()/numObs);
-        std::cout << "RMS_ini = " << iniRMS << std::endl;
-
-        double dZ = 1;//0.5;
-        double dA0 = 1;//0.5;
-        double dB0 = 1;//0.5;
-
-        //Ponderation
-        /*double sigmaDelta = 1./std::pow(1.,2); //m
-        bool   weightByRes = false;
-        //Ponderation stabilisation
-        double sigmaTransX = 1./std::pow(1.,2); //pix
-        double sigmaTransY = 1./std::pow(0.05,0.2);  //pix
-        double sigmaMat = 1./std::pow(0.001,2); //sans unite*/
-
-        _N = ElMatrix<double>(2+cpt,2*cpt+3,0.);
-        _Y = ElMatrix<double>(1,2*cpt+3,0.);
-
-        //pour chaque obs (ligne), y compris les eq de stabilisation
-        //for( toutes les obs )
-        for (size_t aK=0; aK < mNbPair; aK++)
-        {
-            for(size_t i=0;i<master(aK)->vPtImg.size();++i)
-            {
-                std::cout << "i = "<<i<<std::endl;
-                Pt2dr const &ptImgMaster = master(aK)->vPtImg[i];
-                Pt2dr const &ptImgSlave  = slave(aK)->vPtImg[i];
-                double const Z = vZ(aK)[i]; //todo: a remplacer
-
-                // ecart constate
-                Pt2dr D = vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z);
-
-                //todo : strategie d'elimination d'observations / ou ponderation
-
-                // estimation des derivees partielles
-
-                double a0 = slave(aK)->vP[0];
-                double a1 = slave(aK)->vP[1];
-                double a2 = slave(aK)->vP[2];
-                double b0 = slave(aK)->vP[3];
-                double b1 = slave(aK)->vP[4];
-                double b2 = slave(aK)->vP[5];
-
-                Pt2dr vdZ  = Pt2dr(1./dZ,1./dZ)   * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z+ dZ)-D);
-                Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0+dA0,a1,a2,b0,b1,b2)-D);
-                Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (vCamPair[aK]->compute2DGroundDifference(ptImgMaster,ptImgSlave,Z,a0,a1,a2,b0+dB0,b1,b2)-D);
-
-                _N(0,2*i) = vdA0.x;
-                _N(1,2*i) = vdB0.x;
-                _N(2+i,2*i) = vdZ.x;
-
-                _N(0,2*i+1) = vdA0.y;
-                _N(1,2*i+1) = vdB0.y;
-                _N(2+i,2*i+1) = vdZ.y;
-
-                _Y(0,2*i) = D.x;
-                _Y(0,2*i+1) = D.y;
-            }
-            // Equation de stabilisation
-            {
-                // A0 proche de 0
-                _N(0,2*cpt) = 1;
-                _Y(0,2*cpt) = 0-slave(aK)->vP[0];
-                // B0 proche de 0
-                _N(1,2*cpt+1) = 1;
-                _Y(0,2*cpt+1) = 0-slave(aK)->vP[3];
-                // Moyenne alti
-                double altiMoyenne = 0.;
-                for(size_t i=0;i<cpt;++i)
-                {
-                    _N(2+i,2*cpt+2)=1;
-                    altiMoyenne += vZ(aK)[i]; //todo: a remplacer
-                }
-                _Y(0,2*cpt+2) = zMoy-altiMoyenne/cpt;
-            }
-        }
-        std::cout << "before solve"<<std::endl;
-
-        solve();
-
-        return launchNewIter(iniRMS, numObs);
-    }
-
-
-    ~RefineModelTransBasic()
-    {
-    }
-};
-
-#endif
 
 //! Implementation basique (sans suppression des inconnues auxiliaires)
 class RefineModelGlobal: public RefineModelAbs
@@ -1029,30 +510,256 @@ public:
 
     void addObs(int pos, const ElMatrix<double> &obs, const ElMatrix<double> &ccc, const double p, const double res)
     {
-        //construction iterative de la matrice normale
-        _N += (obs.transpose()*obs)*p;  //il existe certainement une norme ou une facon plus elegante de l'ecrire ...
-        cout << "add to Y" << endl;
-        //idem pour Y
-        _Y += obs.transpose()*res*p;
+        double pdt = 1./(p*p);
+
+        ElMatrix <double> C  = ccc.transpose()*ccc*pdt;  //1 - ajouter en 0,0
+        ElMatrix <double> C1 = ccc.transpose()*obs*pdt;  //2 - 0,(pos-1)*6+3  + sa transposee en (pos-1)*6+3,0
+        ElMatrix <double> N1 = obs.transpose()*obs*pdt;  //3 - en (pos-1)*6+3, idem
+
+        //1 - Ajout de C en (0,0) de _N
+        for (int aK=0; aK < C.Sz().x; aK++)
+            for (int bK=0; bK < C.Sz().y; bK++)
+                _N(aK,bK) += C(aK,bK);
+
+        //2 - Ajout de C1 et C1t
+
+        cout << "cam->mIndex : " << pos << endl;
+
+        if (pos > 0)
+        {
+            if (verbose)
+            {
+            cout << "C1 : " << endl;
+            printMatrix(C1);
+            }
+            for (int aK=0; aK < C1.Sz().x; aK++)
+                for (int bK=0; bK < C1.Sz().y; bK++)
+                    _N( (pos-1)*numUnk+3 + aK, bK) += C1(aK,bK);
+
+            //cout << "2 : "  << endl;
+            ElMatrix <double> C1t = C1.transpose();
+
+            if (verbose)
+            {
+            cout << "C1t : " << endl;
+            printMatrix(C1t);
+            }
+
+            for (int aK=0; aK < C1t.Sz().x; aK++)
+                for (int bK=0; bK < C1t.Sz().y; bK++)
+                    _N(aK, (pos-1)*numUnk+3+ bK) += C1t(aK,bK);
+
+            //cout << "3 : "  << endl;
+
+            //3 - Ajout de N1
+
+            if (verbose)
+            {
+            cout << "N1 : " << endl;
+            printMatrix(N1);
+            }
+
+            for(int aK=0; aK < N1.Sz().x; aK++)
+                for (int bK=0; bK < N1.Sz().y; bK++)
+                    _N((pos-1)*numUnk+3+aK, (pos-1)*numUnk+3 + bK) += N1(aK,bK);
+        }
+
+        //pour Y
+        ElMatrix <double> Y1 = obs.transpose()*res*pdt;
+        ElMatrix <double> C2 = ccc.transpose()*res*pdt;
+
+        for (int aK=0; aK<C2.Sz().y;++aK)
+            _Y(0,aK) += C2(0,aK);
+
+        //cout << "5 : "  << endl;
+
+        for (int aK=0; aK<Y1.Sz().y;++aK)
+            _Y(0,aK+3) += Y1(0,aK);
+
+        if (verbose)
+        {
+            std::cout << "NNNNNN****************" << endl;
+            printMatrix(_N);
+            std::cout << "\nYYYYYY****************" << endl;
+            printMatrix(_Y);
+        }
+    }
+
+    void addObsStabil(int pos, const ElMatrix<double> &obs, const double p, const double res)
+    {
+        //if (pos==0) return;
+
+        double pdt = 1./(p*p);
+        ElMatrix <double> N1 = obs.transpose()*obs*pdt;  //3 - en (pos-1)*6+3, idem
+
+        //2 - Ajout de C1 et C1t
+
+        cout << "cam->mIndex : " << pos << endl;
+
+        if (pos > 0)
+        {
+            //3 - Ajout de N1
+
+            for(int aK=0; aK < N1.Sz().x; aK++)
+                for (int bK=0; bK < N1.Sz().y; bK++)
+                    _N((pos-1)*numUnk+3+aK, (pos-1)*numUnk+3 + bK) += N1(aK,bK);
+        }
+
+        //pour Y
+        ElMatrix <double> Y1 = obs.transpose()*res*pdt;
+
+        for (int aK=0; aK<Y1.Sz().y;++aK)
+            _Y(0,aK+3) += Y1(0,aK);
+
+        if (verbose)
+        {
+        /*std::cout << "NNNNNN****************" << endl;
+        printMatrix(_N);*/
+        std::cout << "\nYYYYYY****************" << endl;
+        printMatrix(_Y);
+        }
+    }
+
+    void solveFirstGroup(std::vector<int> const &vpos)
+    {
+        cout << "solveFirstGroup : "  << endl;
+
+        //matrice 3,3 pivot, l'inverser -> c-1 ElSubMat(0,0,3,3)
+        ElMatrix <double> C = _N.sub_mat(0,0,3,3);
+
+        if (verbose)
+        {
+        cout << "matrice C :"<< endl;
+        printMatrix(C);
+        }
+        ElMatrix <double> Cinv = gaussj(C);
+
+        if (verbose)
+        {
+        cout << "matrice Cinv :"<< endl;
+        printMatrix(Cinv);
+        }
+
+        //matrice 3,1 pivotY, > Y0 ElSubMat(0,0,3,1)
+        ElMatrix <double> Y0 = _Y.sub_mat(0,0,1,3);
+
+        if (verbose)
+        {
+        cout << "Y0 : "  << endl;
+        printMatrix(Y0);
+        }
+        //pour ligne k : extraire ElSubMat(0,k*6+3,6,3) = Dk :
+        //si = 0 rien, ligne suivante
+        //sinon, extraire de Y sub(0,6*k..,6,1) puis Y -= Dk*C-1*Y0
+        //       extraire pour tout col dans vPos sub(ligne k,vPos[k],6,6) puis N -= Dk*C-1*N(0,vPos[k],3,6)
+
+        for (size_t k =0; k < vpos.size(); ++k)
+        {
+            ElMatrix <double> Dk = _N.sub_mat(0, (vpos[k]-1)*numUnk+3, 3, numUnk);
+
+            ElMatrix <double> M2 = Dk*Cinv*Y0;
+
+            if (verbose)
+            {
+            cout << "M2 : "  << endl;
+            printMatrix(M2);
+            }
+
+            //Y -= Dk*C-1*Y0
+            for (int bK=0; bK < M2.Sz().y; bK++)
+                _Y(0, (vpos[k]-1)*numUnk+3+bK) -= M2(0,bK);
+
+            if (verbose)
+            {
+            cout << "Dk : "  << endl;
+
+            printMatrix(Dk);
+
+            cout << "Cinv : "  << endl;
+
+            printMatrix(Cinv);
+            }
+
+            for (size_t k2 =0; k2 < vpos.size(); ++k2)
+            {
+                ElMatrix <double> Dk2 = _N.sub_mat((vpos[k2]-1)*numUnk+3,0,numUnk,3);
+
+                /*cout << "Dk2 : "  << endl;
+
+                printMatrix(Dk2);*/
+
+
+                ElMatrix <double> N2 = Dk*Cinv*Dk2;
+
+                /*cout << "N2 : "  << endl;
+
+                printMatrix(N2);*/
+
+                // N -= Dk*C-1*N(0,vPos[k],3,6)
+                for(int aK=0; aK < N2.Sz().x; aK++)
+                    for (int bK=0; bK < N2.Sz().y; bK++)
+                        _N((vpos[k2]-1)*numUnk+3+aK, (vpos[k]-1)*numUnk+3+bK) -= N2(aK, bK);
+            }
+        }
+
+
+        //RAZ des 1eres lignes et colonnes (3)
+        for(int aK=0; aK<_N.Sz().x;++aK)
+        {
+            for(int bK=0;bK <3;++bK)
+                _N(aK,bK)=0;
+        }
+
+        for(int aK=0; aK<_N.Sz().y;++aK)
+        {
+            for(int bK=0;bK <3;++bK)
+                _N(bK,aK)=0;
+        }
+
+        for (int aK=0; aK<3;aK++)
+            _Y(0,aK) = 0;
+
+        if (verbose)
+        {
+            /*std::cout << "NNNNNN****************" << endl;
+            printMatrix(_N);*/
+            std::cout << "\nYYYYYY****************" << endl;
+            printMatrix(_Y);
+        }
     }
 
     void solve()
     {
-        ElMatrix<double> inv = gaussj(_N);
-        std::cout << "Matrix inv:"<<std::endl;
-        printMatrix(inv);
-        ElMatrix<double> sol = inv*_Y;
+        if (verbose) printMatrix(_N);
 
-        /*
-         std::cout << "Matrice sol:"<<std::endl;
-         printMatrix(sol);
-         */
+        ElMatrix<double> Nsub = _N.sub_mat(3,3,_N.Sz().x-3, _N.Sz().y-3 );
+        ElMatrix<double> Ysub = _Y.sub_mat(0,3,1, _Y.Sz().y-3 );
+
+        ElMatrix<double> inv = gaussj(Nsub);
+        if (verbose)
+        {
+            std::cout << "Matrix inv:"<<std::endl;
+            printMatrix(inv);
+        }
+        ElMatrix<double> sol = inv*Ysub;
+
+        if (verbose)
+        {
+            std::cout << "Matrice sol:"<<std::endl;
+            printMatrix(sol);
+        }
+
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
+        int aK =0;
         map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
+        iter++; //don't use first image
         for (; iter != mapCameras.end();++iter)
         {
-            iter->second->updateParams(sol);
+            ElMatrix <double> solSub = sol.sub_mat(0,aK,1,numUnk);
+            iter->second->updateParams(solSub);
+
+            aK += numUnk;
         }
 
         //TODO
@@ -1064,16 +771,13 @@ public:
     //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
-        size_t numUnk = 6;
-        size_t numCam = mapCameras.size();
-
-        int numObs = 0;
+        int numObs;
         double res = sumRes(numObs);
         cout << "res= " << res << " numObs= " << numObs << endl;
         if (numObs)
         {
             double iniRMS = std::sqrt(res/numObs);
-            std::cout << "RMS_ini = " << iniRMS << std::endl;
+            //std::cout << "RMS_ini = " << iniRMS << std::endl;
 
             double dA0 = 0.5;
             double dA1 = 0.01;
@@ -1081,12 +785,14 @@ public:
             double dB0 = 0.5;
             double dB1 = 0.01;
             double dB2 = 0.01;
-            double dX = 1.;
-            double dY = 1.;
-            double dZ = 1.;
+            double dX = 0.1;
+            double dY = 0.1;
+            double dZ = 0.1;
 
-            _N = ElMatrix<double>(3+numUnk*(numCam-1), 3+numUnk*(numCam-1),0.);
-            _Y = ElMatrix<double>(1, 3+numUnk*(numCam-1),0.);
+            int matSz = 3+numUnk*(mapCameras.size()-1);
+
+            _N = ElMatrix<double>(matSz, matSz);
+            _Y = ElMatrix<double>(1, matSz);
 
             //pour chaque point de liaison
             for (size_t aK=0; aK < vObs.size(); aK++)
@@ -1094,6 +800,7 @@ public:
                 TiePoint* aTP = vObs[aK];
 
                 std::vector <ImageMeasure> vMes = aTP->vImgMeasure;
+                std::vector <int> vPos;
 
                 //pour chaque image où le point de liaison est vu
                 for(size_t bK=0; bK < vMes.size();++bK)
@@ -1101,17 +808,19 @@ public:
                     Pt2dr D = aTP->computeImageDifference(bK);
                     double ecart2 = square_euclid(D);
 
-                    double pdt = 1./sqrt(1. + ecart2);
+                    double pdt = 1.; //1./sqrt(1. + ecart2);
 
                     //todo : strategie d'elimination d'observations / ou ponderation
 
-                    ElMatrix<double> obs(numUnk,1,0.);
-                    ElMatrix<double> ccc(3,1,0.);
+                    ElMatrix<double> obs(numUnk,1);
+                    ElMatrix<double> ccc(3,1);
 
                     // estimation des derivees partielles
                     map<int, AffCamera *>::iterator iter;
                     iter = mapCameras.find(vMes[bK].idx);
                     AffCamera* cam = iter->second;
+
+                    if (cam->mIndex > 0) vPos.push_back(cam->mIndex);
 
                     double a0 = cam->vP[0];
                     double a1 = cam->vP[1];
@@ -1120,50 +829,78 @@ public:
                     double b1 = cam->vP[4];
                     double b2 = cam->vP[5];
 
-                    double X = aTP->getCoord().x;
-                    double Y = aTP->getCoord().y;
-                    double Z = aTP->getCoord().z;
+                    Pt3dr pt = aTP->getCoord();
 
-                    Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aTP->computeImageDifference(bK,a0+dA0,a1,a2,b0,b1,b2)-D);
-                    Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (aTP->computeImageDifference(bK,a0,a1+dA1,a2,b0,b1,b2)-D);
-                    Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (aTP->computeImageDifference(bK,a0,a1,a2+dA2,b0,b1,b2)-D);
-                    Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (aTP->computeImageDifference(bK,a0,a1,a2,b0+dB0,b1,b2)-D);
-                    Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (aTP->computeImageDifference(bK,a0,a1,a2,b0,b1+dB1,b2)-D);
-                    Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (aTP->computeImageDifference(bK,a0,a1,a2,b0,b1,b2+dB2)-D);
+                    Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aTP->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (aTP->computeImageDifference(bK,pt,a0,a1+dA1,a2,b0,b1,b2)-D);
+                    Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (aTP->computeImageDifference(bK,pt,a0,a1,a2+dA2,b0,b1,b2)-D);
+                    Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0+dB0,b1,b2)-D);
+                    Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0,b1+dB1,b2)-D);
+                    Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0,b1,b2+dB2)-D);
 
-                    Pt2dr vdX = Pt2dr(1./dX,1./dX) * (aTP->computeImageDifference(bK,X+dX, Y, Z,a0,a1,a2,b0,b1,b2+dB2)-D);
-                    Pt2dr vdY = Pt2dr(1./dY,1./dY) * (aTP->computeImageDifference(bK,X, Y+dY, Z,a0,a1,a2,b0,b1,b2+dB2)-D);
-                    Pt2dr vdZ = Pt2dr(1./dZ,1./dZ) * (aTP->computeImageDifference(bK,X, Y, Z+dZ,a0,a1,a2,b0,b1,b2+dB2)-D);
+                    Pt2dr vdX = Pt2dr(1./dX,1./dX) * (aTP->computeImageDifference(bK,pt.x+dX, pt.y, pt.z,a0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdY = Pt2dr(1./dY,1./dY) * (aTP->computeImageDifference(bK,pt.x, pt.y+dY, pt.z,a0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdZ = Pt2dr(1./dZ,1./dZ) * (aTP->computeImageDifference(bK,pt.x, pt.y, pt.z+dZ,a0,a1,a2,b0,b1,b2)-D);
 
-                    obs(0,0) = vdA0.x;
-                    obs(1,0) = vdA1.x;
-                    obs(2,0) = vdA2.x;
-                    obs(3,0) = vdB0.x;
-                    obs(4,0) = vdB1.x;
-                    obs(5,0) = vdB2.x;
+                    if (cam->mIndex!=0)
+                    {
+                       // obs(0,0) = vdA0.x;
+                        obs(1,0) = vdA1.x;
+                        //obs(2,0) = vdA2.x;
+                        //obs(3,0) = vdB0.x;
+                        //obs(4,0) = vdB1.x;
+                        //obs(5,0) = vdB2.x;
+                    }
 
                     ccc(0,0) = vdX.x;
                     ccc(1,0) = vdY.x;
                     ccc(2,0) = vdZ.x;
 
-                    addObs(cam->mIndex, obs, ccc, pdt,0.-D.x);
-                    //ajout
-                    //if((D.x<2)&&(D.y<2)) {addObs(obs,1/std::sqrt(1+D.x*D.x),D.x);}
-                    //fin ajout
-                    obs(0,0) = vdA0.y;
-                    obs(1,0) = vdA1.y;
-                    obs(2,0) = vdA2.y;
-                    obs(3,0) = vdB0.y;
-                    obs(4,0) = vdB1.y;
-                    obs(5,0) = vdB2.y;
+                   // addObs(cam->mIndex, obs, ccc, pdt,0.-D.x);
+                    addObs(cam->mIndex, obs, ccc, pdt,-D.x);
+
+                    if (cam->mIndex !=0)
+                    {
+                        //obs(0,0) = vdA0.y;
+                        obs(1,0) = vdA1.y;
+                        //obs(2,0) = vdA2.y;
+                        //obs(3,0) = vdB0.y;
+                        //obs(4,0) = vdB1.y;
+                        //obs(5,0) = vdB2.y;
+                    }
 
                     ccc(0,0) = vdX.y;
                     ccc(1,0) = vdY.y;
                     ccc(2,0) = vdZ.y;
 
-                    addObs(cam->mIndex, obs, ccc, pdt,0.-D.y);
+                    //addObs(cam->mIndex, obs, ccc, pdt,0.-D.y);
+                    addObs(cam->mIndex, obs, ccc, pdt,-D.y);
+                }
+
+                solveFirstGroup(vPos);
+            }
+
+            map<int, AffCamera *>::iterator iter= mapCameras.begin();
+            for(; iter!=mapCameras.end();++iter)
+            {
+                AffCamera* cam = iter->second;
+
+                for (size_t aK=0; aK < numUnk;aK++)
+                {
+                    ElMatrix <double> AB (numUnk, 1);
+                    AB(aK,0) = 1.;
+
+                    double sig = 1.;
+                    if ((aK==0) || (aK==3)) sig = 0.1;  //pix
+                        else sig = 1e-4;
+
+                    if ((aK==1) || (aK==5))
+                        addObsStabil(cam->mIndex, AB, sig, 1. - cam->vP[aK]);
+                    else
+                        addObsStabil(cam->mIndex, AB, sig, 0. - cam->vP[aK]);
                 }
             }
+
             std::cout << "before solve"<<std::endl;
 
             solve();
@@ -1185,23 +922,53 @@ public:
 int NewRefineModel_main(int argc, char **argv)
 {
     std::string aPat; // GRID files pattern
+    bool exportResidus = false;
 
     ElInitArgMain
     (
          argc, argv,
          LArgMain() << EAMC(aPat,"GRID files pattern"),
-         LArgMain()
+         LArgMain() << EAM(exportResidus,"Export residuals",true)
     );
 
     ELISE_fp::MkDirSvp("refine");
 
     RefineModelGlobal model(aPat);
 
-    bool ok= (model.nObs() > 3);
-    for(size_t iter = 0; (iter < 100) & ok; iter++)
+    bool ok = (model.nObs() > 3);
+    for(size_t iter = 0; (iter < 1) & ok; iter++)
     {
         std::cout <<"iter="<<iter<<std::endl;
         ok = model.computeObservationMatrix();
+    }
+
+    //Sortie residus
+
+    if (exportResidus)
+    {
+        std::ofstream ficRes("refine/residus.txt");
+        std::ofstream ficGlb("refine/residusGlob.txt");
+        ficRes << std::setprecision(15);
+        ficGlb << std::setprecision(15);
+
+        std::vector <TiePoint*> vTP = model.getObs();
+        for (size_t aK=0; aK < vTP.size();++aK)
+        {
+            TiePoint* TP = vTP[aK];
+
+            double sumRes = 0.;
+            for(size_t i=0;i<TP->vImgMeasure.size();++i)
+            {
+                Pt2dr D = TP->computeImageDifference(i);
+
+                ficRes << aK <<" "<< TP->vImgMeasure[i].idx <<" "<< TP->vImgMeasure[i].ptImg.x <<" "<< TP->vImgMeasure[i].ptImg.y <<" "<< D.x <<" "<< D.y <<" "<<std::endl;
+
+                sumRes += square_euclid(D);
+            }
+
+            Pt3dr PT = TP->getCoord();
+            ficGlb << aK <<" "<< PT.x << " " << PT.y << " " << PT.z << " "<< sumRes << " " << std::sqrt(sumRes /TP->vImgMeasure.size()) << endl;
+        }
     }
 
     return EXIT_SUCCESS;
@@ -1735,4 +1502,5 @@ int RefineModel_main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
+
 
