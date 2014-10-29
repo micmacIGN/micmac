@@ -754,8 +754,6 @@ void cAppliApero::BasculePoints
    }
 
 
-// std::cout << "--------------BBBBBBBBBBBBBBBB\n";
-
 
    bool OkBasc=false;
    if (aKC!=-1)
