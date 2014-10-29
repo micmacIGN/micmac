@@ -197,10 +197,8 @@ void cAppliApero::AddObservationsCentres(const std::list<cObsCentrePDV> & aL,boo
         for (int aKPose=0 ; aKPose<int(mVecPose.size()) ; aKPose++)
         {
             cPoseCam * aPC = mVecPose[aKPose];
-// std::cout << "BBBBB " << aPC->RotIsInit()  << " " <<  aPC->DoAddObsCentre(anObs) << "\n";
             if (aPC->RotIsInit() && aPC->DoAddObsCentre(anObs))
             {
-// std::cout << "CCCCCCC\n";
                  aPC->AddObsCentre(anObs,aPdsPlani,aPdsAlti,aSO);
             }
         }
