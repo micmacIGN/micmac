@@ -164,7 +164,7 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
     SplitRecInterv(0,mNbIm,0);
     DoComTerm();
 
-    for (int aLevel=mInterv.size()-2 ;  aLevel>=0 ;  aLevel++)
+    for (int aLevel=mInterv.size()-2 ;  aLevel>=0 ;  aLevel--)
     {
          DoComRec(aLevel);
     }
@@ -207,6 +207,10 @@ void  cAppliLiquor::DoComRec(int aLevel)
                                 +  StrImMinMax(anIL)
                                 +  " SigmaTieP=2.0 ";
 
+        if (aLevel==0)
+        {
+              // aComComp = aComComp + " AllFree=true ";
+        }
         // std::cout << aComComp << "\n";
         aLComComp.push_back(aComComp);
    }
@@ -286,6 +290,7 @@ std::string cAppliLiquor::ComTerm(const  cIntervLiquor& anIL) const
                       + std::string(" ImInit=" +aNMil + " ")
                       + std::string(" Out=" + aOut + " ")
                       + std::string(" RefineAll=false ")
+                      + std::string(" SauvAutom=NONE ")
                       ;
 
    return aCom;

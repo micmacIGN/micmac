@@ -379,6 +379,7 @@ int Tapas_main(int argc,char ** argv)
 
     std::vector<std::string> aImMinMax;
 
+
     ElInitArgMain
     (
         argc,argv,
@@ -395,7 +396,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aPPDec,"PPRel",true, "Principal point shift")
                     << EAM(aDecentre,"Decentre",true, "Principal point is shifted (Def=false)")
                     << EAM(PropDiag,"PropDiag",true, "Hemi-spherik fisheye diameter to diagonal ratio")
-                    << EAM(SauvAutom,"SauvAutom",true, "Save intermediary results to", eSAM_IsOutputFile)
+                    << EAM(SauvAutom,"SauvAutom",true, "Save intermediary results to, Set NONE if dont want any", eSAM_IsOutputFile)
                     << EAM(ImInit,"ImInit",true, "Force first image", eSAM_IsExistFile)
                     << EAM(MOI,"MOI",true,"MOI", eSAM_IsBool)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ",eSAM_InternalUse)
@@ -556,7 +557,12 @@ int Tapas_main(int argc,char ** argv)
              ELISE_ASSERT(AeroIn==NoInit,"Incoherence AeroIn/ImInit");
        }
        if (SauvAutom!="")
-         aCom =   aCom + " +SauvAutom="+SauvAutom;
+       {
+         if (SauvAutom=="NONE")
+            aCom =   aCom + " +DoSauvAutom=false";
+         else
+            aCom =   aCom + " +SauvAutom="+SauvAutom;
+       }
 
        if (AeroIn!= NoInit)
        {

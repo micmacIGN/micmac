@@ -2180,11 +2180,17 @@ std::string NameFileStd
    int aNbChanIn = -1;
    bool Bits16 = RequireBits16 && (!IsPostfixedJPG(aFullNameOri));
 
-   cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNameOri);
-   int aNbbMDP = aMDP.NbBits(true);
-   if ((aNbbMDP>0) && (aNbbMDP<=8))
+   if (isTiff)  // Si fichier tiff , le Bits16 sera calcule plus tard
    {
-       Bits16 = false;
+   }
+   else
+   {
+       cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNameOri);
+       int aNbbMDP = aMDP.NbBits(true);
+       if ((aNbbMDP>0) && (aNbbMDP<=8))
+       {
+           Bits16 = false;
+       }
    }
    bool Conv16to8=false;
 

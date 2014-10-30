@@ -288,12 +288,6 @@ cNChannel cNChannel::Std(const cArgMpDCRaw & anArg,const std::string & aNameFile
     if (TraitBasic)
        Options = "" ;
 
-    /*
-    std::string aNameCom =    MMBin() 
-                           + std::string("ElDcraw -c -t 0 ") + Options
-                           + std::string(M16B?" -4 ":"") 
-                           + ToStrBlkCorr(aNameFile) + " > " + aNameTmp;
-    */
     if (aSFR)
     {
        aNameTmp = aNameFile;
