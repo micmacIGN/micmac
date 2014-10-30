@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "Sat.h"
 #include "../uti_phgrm/MICMAC/cCameraModuleOrientation.h"
 
 /** Development based on
@@ -60,7 +60,7 @@ class AffCamera
     Pt2dr apply(Pt2dr const &ptImg2)
     {
         return Pt2dr(vP[0] + vP[1] * ptImg2.x + vP[2] * ptImg2.y,
-                  vP[3] + vP[4] * ptImg2.x + vP[5] * ptImg2.y);
+                     vP[3] + vP[4] * ptImg2.x + vP[5] * ptImg2.y);
     }
 
     ///
@@ -95,8 +95,7 @@ double compute2DGroundDifference(Pt2dr const &ptImg1,
     double z = Cam1->Camera()->PseudoInter(ptImg1,*Cam2->Camera(),ptImg2).z;
 
     Pt3dr ptTer1 = Cam1->Camera()->ImEtProf2Terrain(ptImg1,z);
-    Pt2dr ptImg2C(Cam2->vP[0] + Cam2->vP[1] * ptImg2.x + Cam2->vP[2] * ptImg2.y,
-                  Cam2->vP[3] + Cam2->vP[4] * ptImg2.x + Cam2->vP[5] * ptImg2.y);
+    Pt2dr ptImg2C(Cam2->apply(ptImg2));
     Pt3dr ptTer2 = Cam2->Camera()->ImEtProf2Terrain(ptImg2C,z);
 
     return square_euclid(Pt2dr(ptTer1.x - ptTer2.x,ptTer1.y - ptTer2.y));
@@ -121,17 +120,6 @@ public:
     Pt3dr getCoord();
 
     Pt2dr computeImageDifference(int index,
-                                   double X,
-                                   double Y,
-                                   double Z,
-                                   double aA0,
-                                   double aA1,
-                                   double aA2,
-                                   double aB0,
-                                   double aB1,
-                                   double aB2);
-
-    Pt2dr computeImageDifference(int index,
                                    Pt3dr pt,
                                    double aA0,
                                    double aA1,
@@ -140,7 +128,7 @@ public:
                                    double aB1,
                                    double aB2);
 
-    Pt2dr computeImageDifference(int index);
+    Pt2dr computeImageDifference(int index, Pt3dr pt);
 
     std::vector <ImageMeasure> vImgMeasure;
 
@@ -176,7 +164,7 @@ Pt3dr TiePoint::getCoord()
             {
                 AffCamera* aCam = iter->second;
 
-                Pt2dr aPN = vImgMeasure[aK].ptImg;
+                Pt2dr aPN = aCam->apply(vImgMeasure[aK].ptImg);
 
                 aVS.push_back(aCam->Camera()->F2toRayonR3(aPN));
             }
@@ -184,26 +172,6 @@ Pt3dr TiePoint::getCoord()
 
         return ElSeg3D::L2InterFaisceaux(0,aVS);
     }
-}
-
-Pt2dr TiePoint::computeImageDifference(int index,
-                                       double X, double Y, double Z,
-                                       double aA0, double aA1, double aA2, double aB0, double aB1, double aB2)
-{
-    ImageMeasure* aMes = &vImgMeasure[index];
-
-    Pt2dr ptImg = aMes->ptImg;
-
-    map<int, AffCamera *>::const_iterator iter;
-    iter = pMapCam->find(aMes->idx);
-    AffCamera* cam = iter->second;
-
-    Pt2dr ptImgC(aA0 + aA1 * ptImg.x + aA2 * ptImg.y,
-                 aB0 + aB1 * ptImg.x + aB2 * ptImg.y);
-
-    Pt2dr proj = cam->Camera()->R3toF2(Pt3dr(X, Y, Z));
-
-    return ptImgC - proj;
 }
 
 Pt2dr TiePoint::computeImageDifference(int index,
@@ -226,7 +194,7 @@ Pt2dr TiePoint::computeImageDifference(int index,
     return ptImgC - proj;
 }
 
-Pt2dr TiePoint::computeImageDifference(int index)
+Pt2dr TiePoint::computeImageDifference(int index, Pt3dr pt)
 {
     ImageMeasure* aMes = &vImgMeasure[index];
 
@@ -236,17 +204,9 @@ Pt2dr TiePoint::computeImageDifference(int index)
     iter = pMapCam->find(aMes->idx);
     AffCamera* cam = iter->second;
 
-    double aA0 = cam->vP[0];
-    double aA1 = cam->vP[1];
-    double aA2 = cam->vP[2];
-    double aB0 = cam->vP[3];
-    double aB1 = cam->vP[4];
-    double aB2 = cam->vP[5];
+    Pt2dr ptImgC = cam->apply(ptImg);
 
-    Pt2dr ptImgC(aA0 + aA1 * ptImg.x + aA2 * ptImg.y,
-                 aB0 + aB1 * ptImg.x + aB2 * ptImg.y);
-
-    Pt2dr proj = cam->Camera()->R3toF2(getCoord());
+    Pt2dr proj = cam->Camera()->R3toF2(pt);
 
     return ptImgC - proj;
 }
@@ -272,6 +232,8 @@ protected:
 
     bool _verbose;
 
+    int iteration;
+
 public:
 
     std::vector <TiePoint*> getObs() { return vObs; }
@@ -281,7 +243,7 @@ public:
     /// \param aNameFileGridSlave Grid file for slave image
     /// \param aNamefileTiePoints Tie-points file
     ///
-    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.),numUnk(6), _verbose(false)
+    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.),numUnk(6), _verbose(false), iteration(0)
     {
         string aDir, aPat;
         SplitDirAndFile(aDir,aPat,aFullDir);
@@ -396,10 +358,10 @@ public:
     }
 
     ///
-    /// \brief 2D ground distance sum for all tie points (to compute RMS)
+    /// \brief image distance sum for all tie points (to compute RMS)
     /// \return sum of residuals (square distance - to avoid using sqrt (faster) )
     ///
-    double sumRes(int &nbMes) //TODO: verifier qu'on fait la bonne somme
+    double sumRes(int &nbMes)
     {
         nbMes = 0;
         double sumRes = 0.;
@@ -407,10 +369,13 @@ public:
         //pour chaque point de liaison
         for (size_t aK=0; aK < nObs();++aK)
         {
+            TiePoint* TP = vObs[aK];
+            Pt3dr PT = TP->getCoord();
+
             //pour chaque image ou le point de liaison est vu
-            for(size_t i=0;i<vObs[aK]->vImgMeasure.size();++i, ++nbMes)
+            for(size_t i=0;i<TP->vImgMeasure.size();++i, ++nbMes)
             {
-                Pt2dr D = vObs[aK]->computeImageDifference(i);
+                Pt2dr D = TP->computeImageDifference(i, PT);
                 sumRes += square_euclid(D);
             }
         }
@@ -452,12 +417,12 @@ public:
 
             double curRMS = std::sqrt(res/numObs);
 
-           /* if (curRMS>=iniRMS)
+            if (curRMS>=iniRMS)
             {
                 std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
-                std::cout << "No improve: end"<<std::endl;
+                std::cout << "No improve: end at iteration "<< iteration <<std::endl;
                 return false;
-            }*/
+            }
 
             //ecriture dans un fichier des coefficients en vue d'affiner la grille
             //consommateur en temps => todo: stocker les parametres de l'iteration n-1
@@ -471,6 +436,7 @@ public:
                 fic << cam->vP[0] <<" "<< cam->vP[1] <<" "<< cam->vP[2] <<" "<< cam->vP[3] <<" "<< cam->vP[4] <<" "<< cam->vP[5] <<" "<<std::endl;
             }*/
             std::cout << "RMS_after = " << curRMS << std::endl;
+            iteration++;
             return true;
         }
         else
@@ -509,14 +475,22 @@ public:
 };
 
 
-//! Implementation basique (sans suppression des inconnues auxiliaires)
+//!
 class RefineModelGlobal: public RefineModelAbs
 {
-    std::string aNameMNT;
 
 public:
-    RefineModelGlobal(std::string const &aPattern, std::string const &aNameMnt = ""):RefineModelAbs(aPattern), aNameMNT(aNameMnt)
+    RefineModelGlobal(std::string const &aPattern, std::string const &aNameFileMNT = ""):RefineModelAbs(aPattern)
     {
+        if ((aNameFileMNT != "") && (ELISE_fp::exist_file(aNameFileMNT)))
+        {
+            // Chargement du MNT
+            _MntOri = StdGetFromPCP(aNameFileMNT,FileOriMnt);
+            std::cout << "DTM size : "<<_MntOri.NombrePixels().x<<" "<<_MntOri.NombrePixels().y<<std::endl;
+            std::auto_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
+            _MntImg = Img;
+            if (_MntImg.get()==NULL) cerr << "Error in "<< _MntOri.NameFileMnt() <<std::endl;
+        }
     }
 
     void addObs(int pos, const ElMatrix<double> &obs, const ElMatrix<double> &ccc, const double p, const double res)
@@ -573,6 +547,32 @@ public:
         if (pos > 0)
         for (int aK=0; aK<Y1.Sz().y;++aK)
             _Y(0,(pos-1)*numUnk+3+aK) += Y1(0,aK);
+
+        if (verbose)
+        {
+            printMatrix(_N, "_N");
+            printMatrix(_Y, "_Y");
+        }
+    }
+
+    void addObs(const ElMatrix<double> &ccc, const double p, const double res)
+    {
+        bool verbose = false;
+
+        double pdt = 1./(p*p);
+
+        ElMatrix <double> C  = ccc.transpose()*ccc*pdt;  //1 - ajouter en 0,0
+
+        //1 - Ajout de C en (0,0) de _N
+        for (int aK=0; aK < C.Sz().x; aK++)
+            for (int bK=0; bK < C.Sz().y; bK++)
+                _N(aK,bK) += C(aK,bK);
+
+        //pour Y
+        ElMatrix <double> C2 = ccc.transpose()*res*pdt;
+
+        for (int aK=0; aK<C2.Sz().y;++aK)
+            _Y(0,aK) += C2(0,aK);
 
         if (verbose)
         {
@@ -747,16 +747,15 @@ public:
 
         //TODO
         // 3D coord update
-
-        int numObs;
-        double res = sumRes(numObs);
-        cout << "res= " << res << " numObs= " << numObs << endl;
-
     }
 
     //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
+        std::cout <<"iter="<<iteration<<std::endl;
+
+        double NoData = -9999.;
+
         int numObs;
         double res = sumRes(numObs);
         cout << "res= " << res << " numObs= " << numObs << endl;
@@ -797,12 +796,12 @@ public:
                 std::vector <ImageMeasure> vMes = aTP->vImgMeasure;
                 std::vector <int> vPos;
 
-                 Pt3dr pt = aTP->getCoord();
+                Pt3dr pt = aTP->getCoord();
 
                 //pour chaque image où le point de liaison est vu
                 for(size_t bK=0; bK < vMes.size();++bK)
                 {
-                    Pt2dr D = aTP->computeImageDifference(bK);
+                    Pt2dr D = aTP->computeImageDifference(bK, pt);
                     double ecart2 = square_euclid(D);
 
                     double pdt = 1.; //1./sqrt(1. + ecart2);
@@ -826,8 +825,6 @@ public:
                     double b1 = cam->vP[4];
                     double b2 = cam->vP[5];
 
-
-
                     Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aTP->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
                     Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (aTP->computeImageDifference(bK,pt,a0,a1+dA1,a2,b0,b1,b2)-D);
                     Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (aTP->computeImageDifference(bK,pt,a0,a1,a2+dA2,b0,b1,b2)-D);
@@ -835,19 +832,19 @@ public:
                     Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0,b1+dB1,b2)-D);
                     Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0,b1,b2+dB2)-D);
 
-                    Pt2dr vdX = Pt2dr(1./dX,1./dX) * (aTP->computeImageDifference(bK,pt.x+dX, pt.y, pt.z,a0,a1,a2,b0,b1,b2)-D);
-                    Pt2dr vdY = Pt2dr(1./dY,1./dY) * (aTP->computeImageDifference(bK,pt.x, pt.y+dY, pt.z,a0,a1,a2,b0,b1,b2)-D);
-                    Pt2dr vdZ = Pt2dr(1./dZ,1./dZ) * (aTP->computeImageDifference(bK,pt.x, pt.y, pt.z+dZ,a0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdX = Pt2dr(1./dX,1./dX) * (aTP->computeImageDifference(bK,Pt3dr(pt.x+dX, pt.y, pt.z),a0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdY = Pt2dr(1./dY,1./dY) * (aTP->computeImageDifference(bK,Pt3dr(pt.x, pt.y+dY, pt.z),a0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdZ = Pt2dr(1./dZ,1./dZ) * (aTP->computeImageDifference(bK,Pt3dr(pt.x, pt.y, pt.z+dZ),a0,a1,a2,b0,b1,b2)-D);
 
                     if (cam->mIndex !=0)
                     {
 
-                        obs(0,0) = vdA0.x;
+                        //obs(0,0) = vdA0.x;
                         obs(1,0) = vdA1.x;
                         obs(2,0) = vdA2.x;
-                        obs(3,0) = vdB0.x;
-                        obs(4,0) = vdB1.x;
 
+                        //obs(3,0) = vdB0.x;
+                        obs(4,0) = vdB1.x;
                         obs(5,0) = vdB2.x;
 
                     }
@@ -865,12 +862,12 @@ public:
                     if (cam->mIndex !=0)
                     {
 
-                        obs(0,0) = vdA0.y;
+                        //obs(0,0) = vdA0.y;
                         obs(1,0) = vdA1.y;
                         obs(2,0) = vdA2.y;
-                        obs(3,0) = vdB0.y;
-                        obs(4,0) = vdB1.y;
 
+                        //obs(3,0) = vdB0.y;
+                        obs(4,0) = vdB1.y;
                         obs(5,0) = vdB2.y;
 
                     }
@@ -882,20 +879,33 @@ public:
                     addObs(cam->mIndex, obs, ccc, pdt,-D.y);
                 }
 
-
-
-
                 solveFirstGroup(vPos);
 
                 //Contrainte en Z
-
-                if ((aNameMNT != "") && (ELISE_fp::exist_file(aNameMNT)))
+                if (_MntImg.get()!=NULL)
                 {
+                    Pt2dr ptMnt(pt.x, pt.y);
+                    double zMnt = _MntImg->getr(ptMnt,NoData)*_MntOri.ResolutionAlti() + _MntOri.OrigineAlti();
 
+                    if (zMnt == NoData)
+                        std::cout << "Pas d'altitude trouvee pour le point : "<< pt.x<< " " << pt.y << std::endl;
+                    else
+                    {
+                        double res = -pt.z + zMnt;
+
+                        ElMatrix<double> ccd(3,1);
+                        ccd(0,0) = 0;
+                        ccd(1,0) = 0;
+                        ccd(2,0) = 1;
+
+                        double sigma = 20.;
+
+                        addObs(ccd, sigma, res);
+                    }
                 }
             }
 
-       /*     map<int, AffCamera *>::iterator iter= mapCameras.begin();
+            map<int, AffCamera *>::iterator iter= mapCameras.begin();
             for(; iter!=mapCameras.end();++iter)
             {
                 AffCamera* cam = iter->second;
@@ -909,13 +919,16 @@ public:
                     if ((aK==0) || (aK==3)) sig = 0.1;  //pix
                         else sig = 1e-4;
 
-                    if ((aK==1) || (aK==5))
-                        addObsStabil(cam->mIndex, AB, sig, 1. - cam->vP[aK]);
-                    else
+                    /*if ((aK==1) || (aK==5))
+                        addObsStabil(cam->mIndex, AB, sig, 1. - cam->vP[aK]);*/
+                    /*else
+                        addObsStabil(cam->mIndex, AB, sig, 0. - cam->vP[aK]);*/
+
+                     if ((aK==0) || (aK==3))
                         addObsStabil(cam->mIndex, AB, sig, 0. - cam->vP[aK]);
                 }
             }
-            */
+
             std::cout << "before solve"<<std::endl;
 
             solve();
@@ -932,19 +945,23 @@ public:
     ~RefineModelGlobal()
     {
     }
+
+private:
+    std::auto_ptr<TIm2D<REAL4,REAL8> > _MntImg;
+    cFileOriMnt                        _MntOri;
 };
 
 int NewRefineModel_main(int argc, char **argv)
 {
     std::string aPat; // GRID files pattern
-    std::string aNameMNT=""; //MNT file
+    std::string aNameMNT=""; //DTM file
     bool exportResidus = false;
 
     ElInitArgMain
     (
          argc, argv,
          LArgMain() << EAMC(aPat,"GRID files pattern"),
-         LArgMain() << EAM(aNameMNT,"MNT file",true)
+         LArgMain() << EAM(aNameMNT,"DTM file",true)
                     << EAM(exportResidus,"Export residuals",true)
     );
 
@@ -954,12 +971,7 @@ int NewRefineModel_main(int argc, char **argv)
 
     bool ok = (model.nObs() > 3);
     for(size_t iter = 0; (iter < 10) & ok; iter++)
-    {
-        std::cout <<"iter="<<iter<<std::endl;
         ok = model.computeObservationMatrix();
-    }
-
-    //Sortie residus
 
     if (exportResidus)
     {
@@ -973,17 +985,18 @@ int NewRefineModel_main(int argc, char **argv)
         {
             TiePoint* TP = vTP[aK];
 
+            Pt3dr PT = TP->getCoord();
+
             double sumRes = 0.;
             for(size_t i=0;i<TP->vImgMeasure.size();++i)
             {
-                Pt2dr D = TP->computeImageDifference(i);
+                Pt2dr D = TP->computeImageDifference(i, PT);
 
                 ficRes << aK <<" "<< TP->vImgMeasure[i].idx <<" "<< TP->vImgMeasure[i].ptImg.x <<" "<< TP->vImgMeasure[i].ptImg.y <<" "<< D.x <<" "<< D.y <<" "<<std::endl;
 
                 sumRes += square_euclid(D);
             }
 
-            Pt3dr PT = TP->getCoord();
             ficGlb << aK <<" "<< PT.x << " " << PT.y << " " << PT.z << " "<< sumRes << " " << std::sqrt(sumRes /TP->vImgMeasure.size()) << endl;
         }
     }
