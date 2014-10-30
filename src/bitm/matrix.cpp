@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -43,21 +43,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 #if (ELISE_windows)&&(!ELISE_MinGW)
-	// disable "potential divide by 0" warning in method void ElMatrix::SetColSchmidtOrthog(INT NbIter)
-	#pragma warning( disable : 4723 )
+    // disable "potential divide by 0" warning in method void ElMatrix::SetColSchmidtOrthog(INT NbIter)
+    #pragma warning( disable : 4723 )
 #endif
 
-static int cos(const int &) 
+static int cos(const int &)
 {
        ELISE_ASSERT (false,"::cos(const int&)");
        return 0;
 }
-static int sin(const int &) 
+static int sin(const int &)
 {
        ELISE_ASSERT (false,"::sin(const int&)");
        return 0;
 }
-static int sqrt(const int &) 
+static int sqrt(const int &)
 {
        ELISE_ASSERT (false,"::sqrt(const int&)");
        return 0;
@@ -86,7 +86,7 @@ template <class Type>
 }
 
 
-template <class Type>  
+template <class Type>
          void ElMatrix<Type>::init(INT TX,INT TY)
 {
    mTMx = _tx = TX;
@@ -96,14 +96,14 @@ template <class Type>
         _data[y] = STD_NEW_TAB_USER(_tx,Type);
 }
 
-template <class Type>  
+template <class Type>
          bool ElMatrix<Type>::same_size(const ElMatrix<Type> & m2) const
 {
     return (_tx==m2._tx)  && (_ty==m2._ty) ;
 }
 
 
-template <class Type>  
+template <class Type>
          void ElMatrix<Type>::dup_data(const ElMatrix<Type> & m2)
 {
     ELISE_ASSERT(same_size(m2),"Diff size in ElMatrix::dup_data");
@@ -112,8 +112,8 @@ template <class Type>
             _data[y][x] = m2._data[y][x];
 }
 
-template <class Type>  
-         ElMatrix<Type>::ElMatrix(INT tx,INT ty,Type v) 
+template <class Type>
+         ElMatrix<Type>::ElMatrix(INT tx,INT ty,Type v)
 {
     init(tx,ty);
     for (int y=0; y<_ty; y++)
@@ -121,7 +121,7 @@ template <class Type>
             _data[y][x] = v;
 }
 
-template <class Type>  
+template <class Type>
          ElMatrix<Type>::ElMatrix(INT tx,bool init_id)
 {
 
@@ -151,13 +151,13 @@ template <class Type> void ElMatrix<Type>::set_to_size(INT TX,INT TY)
        init(TX,TY);
     }
 }
-template <class Type> 
+template <class Type>
          void ElMatrix<Type>::set_to_size(const ElMatrix<Type> & m2)
 {
      set_to_size(m2._tx,m2._ty);
 }
 
-template <class Type> ElMatrix<Type> & 
+template <class Type> ElMatrix<Type> &
                       ElMatrix<Type>::operator = (const ElMatrix<Type> & m2)
 {
     if (this == &m2)
@@ -183,7 +183,7 @@ template <class Type>  ElMatrix<Type>::~ElMatrix()
     un_init();
 }
 
-template <class Type> 
+template <class Type>
          void ElMatrix<Type>::SetLine(INT NL,const Type *vals)
 {
     ELISE_ASSERT((NL>=0)&&(NL<_ty),"Bad Line in ElMatrix<Type>::SetLine");
@@ -192,7 +192,7 @@ template <class Type>
         l[x] = vals[x];
 }
 
-template <class Type> 
+template <class Type>
          void ElMatrix<Type>::GetLine(INT NL,Type *vals) const
 {
     ELISE_ASSERT((NL>=0)&&(NL<_ty),"Bad Line in ElMatrix<Type>::SetLine");
@@ -259,7 +259,7 @@ template  ElMatrix<Fonc_Num> ToMatForm(const  ElMatrix<INT> &);
 /*                                                           */
 /*************************************************************/
 
-template <class Type>  
+template <class Type>
           Type  ** ElMatrix<Type>::data()
 {
     return _data;
@@ -349,8 +349,8 @@ REAL EcartInv(const ElMatrix<REAL>& m1,const ElMatrix<REAL>& m2)
 
 
 
-template <class Type>  
-          ElMatrix<Type>   ElMatrix<Type>::operator * 
+template <class Type>
+          ElMatrix<Type>   ElMatrix<Type>::operator *
                               (const ElMatrix<Type> & m2) const
 {
     ElMatrix<Type> res (m2._tx,_ty);
@@ -372,7 +372,7 @@ template <class Type>  void  ElMatrix<Type>::mul
 }
 
 
-template <class Type>  
+template <class Type>
           ElMatrix<Type>   ElMatrix<Type>::operator *(const Type & v) const
 {
     ElMatrix<Type> res (_tx,_ty);
@@ -386,8 +386,8 @@ template <class Type>  void   ElMatrix<Type>::operator *=(const Type & v)
 }
 
 
-template <class Type> ElMatrix<Type> 
-                      operator *(const Type & v,const ElMatrix<Type>& m) 
+template <class Type> ElMatrix<Type>
+                      operator *(const Type & v,const ElMatrix<Type>& m)
 {
     ElMatrix<Type> res (m.tx(),m.ty());
     res.mul(m,v);
@@ -416,13 +416,13 @@ template <class Type>  void  ElMatrix<Type>::add
 
 template <class Type>  void  ElMatrix<Type>::operator +=
                               (const ElMatrix<Type> & m1)
-{ 
+{
      this->add(*this,m1);
 }
 
 
-template <class Type>  
-          ElMatrix<Type>   ElMatrix<Type>::operator + 
+template <class Type>
+          ElMatrix<Type>   ElMatrix<Type>::operator +
                               (const ElMatrix<Type> & m2) const
 {
     ElMatrix<Type> res (_tx,_ty);
@@ -451,7 +451,7 @@ template <class Type>  void  ElMatrix<Type>::sub
 }
 
 
-template <class Type>  
+template <class Type>
           ElMatrix<Type>   ElMatrix<Type>::operator -
                               (const ElMatrix<Type> & m2) const
 {
@@ -466,33 +466,33 @@ template <class Type> Pt2d<Type> mul32
     ELISE_ASSERT(M.tx()==3&&M.ty()==2,"Wrong size in  ElMatrix * Pt3d");
     return Pt2d<Type>
            (
-               M(0,0)*p.x + M(1,0)*p.y +  M(2,0)*p.z , 
-               M(0,1)*p.x + M(1,1)*p.y +  M(2,1)*p.z 
+               M(0,0)*p.x + M(1,0)*p.y +  M(2,0)*p.z ,
+               M(0,1)*p.x + M(1,1)*p.y +  M(2,1)*p.z
            );
 }
 
 
 
-template <class Type> Pt2d<Type> operator * 
+template <class Type> Pt2d<Type> operator *
          (const ElMatrix<Type> & M,const Pt2d<Type> &p)
 {
     ELISE_ASSERT(M.tx()==2&&M.ty()==2,"Wrong size in  ElMatrix<Type> * Pt2d");
     return Pt2d<Type>
            (
-               M(0,0)*p.x + M(1,0)*p.y, 
-               M(0,1)*p.x + M(1,1)*p.y 
+               M(0,0)*p.x + M(1,0)*p.y,
+               M(0,1)*p.x + M(1,1)*p.y
            );
 }
 
 
-template <class Type> Pt3d<Type> operator * 
-         (const ElMatrix<Type> & M,const Pt3d<Type> & p)   
+template <class Type> Pt3d<Type> operator *
+         (const ElMatrix<Type> & M,const Pt3d<Type> & p)
 {
     ELISE_ASSERT(M.tx()==3&&M.ty()==3,"Wrong size in  ElMatrix * Pt3d");
     return Pt3d<Type>
            (
-               M(0,0)*p.x + M(1,0)*p.y +  M(2,0)*p.z , 
-               M(0,1)*p.x + M(1,1)*p.y +  M(2,1)*p.z , 
+               M(0,0)*p.x + M(1,0)*p.y +  M(2,0)*p.z ,
+               M(0,1)*p.x + M(1,1)*p.y +  M(2,1)*p.z ,
                M(0,2)*p.x + M(1,2)*p.y +  M(2,2)*p.z
            );
 }
@@ -565,7 +565,7 @@ template <class Type> void SetLig (ElMatrix<Type> & M,INT lig,Pt2d<Type>  p)
 
 
 
-template <class Type>  
+template <class Type>
          ElMatrix<Type> MatFromCol
             (Pt3d<Type> P0,Pt3d<Type> P1,Pt3d<Type> P2)
 {
@@ -573,17 +573,17 @@ template <class Type>
      SetCol(Res,0,P0);
      SetCol(Res,1,P1);
      SetCol(Res,2,P2);
-    
+
      return Res;
 }
 
-template <class Type>  
+template <class Type>
          ElMatrix<Type> MatFromCol (Pt2d<Type> P0,Pt2d<Type> P1)
 {
      ElMatrix<Type> Res(2,2);
      SetCol(Res,0,P0);
      SetCol(Res,1,P1);
-    
+
      return Res;
 }
 
@@ -596,7 +596,7 @@ ElMatrix<REAL> MatFromImageBase
                (
                      Pt3d<REAL> C0   ,Pt3d<REAL> C1   ,Pt3d<REAL> C2,
                      Pt3d<REAL> ImC0 ,Pt3d<REAL> ImC1 ,Pt3d<REAL> ImC2
-               )        
+               )
 {
     return MatFromCol(ImC0,ImC1,ImC2) * gaussj(MatFromCol(C0,C1,C2));
 }
@@ -668,7 +668,7 @@ template <class Type>  ElMatrix<Type>  ElMatrix<Type>::transpose() const
 }
 
 
-template <class Type>  
+template <class Type>
           Type  ElMatrix<Type>::L2(const ElMatrix<Type> & m2) const
 {
     Type res =0;
@@ -678,7 +678,7 @@ template <class Type>
     return res;
 }
 
-template <class Type>  
+template <class Type>
           Type  ElMatrix<Type>::scal(const ElMatrix<Type> & m2) const
 {
     Type res =0;
@@ -710,12 +710,12 @@ template <class Type> Type  ElMatrix<Type>::Det() const
       return _data[0][0] *  _data[1][1] - _data[1][0] *  _data[0][1] ;
 
    if (_tx == 3)
-      return 
-              _data[0][0] * (_data[1][1] *  _data[2][2] - _data[1][2] *  _data[2][1]) 
-            - _data[1][0] * (_data[0][1] *  _data[2][2] - _data[0][2] *  _data[2][1]) 
+      return
+              _data[0][0] * (_data[1][1] *  _data[2][2] - _data[1][2] *  _data[2][1])
+            - _data[1][0] * (_data[0][1] *  _data[2][2] - _data[0][2] *  _data[2][1])
             + _data[2][0] * (_data[0][1] *  _data[1][2] - _data[0][2] *  _data[1][1]) ;
 
-  
+
    ELISE_ASSERT(false,"ElMatrix Det , dim >3");
    return 244;
 
@@ -762,8 +762,33 @@ template <class Type>  ElMatrix<Type> ElMatrix<Type>::transposition(INT aN,INT a
    return aRes;
 }
 
+template <class Type>
+ElMatrix<Type> ElMatrix<Type>::sub_mat(INT aCol, INT aLig, INT aNbCol, INT aNbLig) const
+{
+   ELISE_ASSERT(aCol<_tx,"aCol out of bound");
+   ELISE_ASSERT(aLig<_ty,"aLig out of bound");
+   ELISE_ASSERT(aNbCol<=_tx,"aNbCol out of bound");
+   ELISE_ASSERT(aNbLig<=_ty,"aNbLig out of bound");
 
-template <class Type>  ElMatrix<Type> 
+   ElMatrix<Type> aRes(aNbCol, aNbLig);
+
+   int aK=0;
+   int bK=0;
+   for (INT y=aLig; y< aLig+aNbLig ; y++, bK++)
+   {
+       aK=0;
+       for (INT x=aCol; x< aCol+aNbCol ; x++, aK++)
+       {
+           //std::cout << "aK, bK : " << aK << "  " << bK << endl;
+           //std::cout << "x, y : " << x << "  " << y << endl;
+           aRes(aK,bK) = (*this)(x,y);
+       }
+   }
+
+   return aRes;
+}
+
+template <class Type>  ElMatrix<Type>
      ElMatrix<Type>::ExtensionId (INT ExtAvant,INT ExtApres) const
 {
    ELISE_ASSERT(_tx==_ty,"Not a Square Mat in Det");
@@ -772,7 +797,7 @@ template <class Type>  ElMatrix<Type>
 
    for (INT y=0; y< _tx ; y++)
        for (INT x=0; x< _tx ; x++)
-           aRes(x+ ExtAvant,y+ ExtAvant) = (*this)(x,y);    
+           aRes(x+ ExtAvant,y+ ExtAvant) = (*this)(x,y);
 
    return aRes;
 }
@@ -784,7 +809,7 @@ template <class Type>  ElMatrix<Type>
 /*                                                           */
 /*************************************************************/
 
-template <class Type>  
+template <class Type>
          ElMatrix<Type>   ElMatrix<Type>::Rotation(INT sz,Type teta,INT k1,INT k2)
 {
 //std::cout << "K1K2 " << k1 << " " << k2 << "\n";
@@ -804,7 +829,7 @@ template <class Type>
    return Rotation(3,teta,(aNumAxeInv+1)%3,(aNumAxeInv+2)%3);
 }
 
-template <class Type>  
+template <class Type>
          ElMatrix<Type>   ElMatrix<Type>::DerRotation
                           (INT sz,Type teta,INT k1,INT k2)
 {
@@ -817,7 +842,7 @@ template <class Type>
      return res;
 }
 
-template <class Type> ElMatrix<Type>   
+template <class Type> ElMatrix<Type>
          ElMatrix<Type>::Rotation
          (
              Pt3d<Type> aImI,
@@ -851,13 +876,13 @@ template <class Type>
            }
            switch (*aC)
            {
-               case 'i' : case 'I' : case 'x' : case 'X' : 
+               case 'i' : case 'I' : case 'x' : case 'X' :
                    aV[aK].x = aSign;
                break;
-               case 'j' : case 'J' : case 'y' : case 'Y' : 
+               case 'j' : case 'J' : case 'y' : case 'Y' :
                    aV[aK].y = aSign;
                break;
-               case 'k' : case 'K' : case 'z' : case 'Z' : 
+               case 'k' : case 'K' : case 'z' : case 'Z' :
                    aV[aK].z = aSign;
                break;
 
@@ -887,38 +912,38 @@ template <class Type>
 }
 
 
-template <class Type>  
+template <class Type>
        ElMatrix<Type>   ElMatrix<Type>::Rotation(Type teta01,Type teta02,Type teta12)
 {
-    return 
+    return
               Rotation(3,teta01,0,1)
             * Rotation(3,teta02,0,2)
             * Rotation(3,teta12,1,2) ;
 }
 
-template <class Type>  
+template <class Type>
        ElMatrix<Type>   ElMatrix<Type>::DDteta01
                         (Type teta01,Type teta02,Type teta12)
 {
-    return 
+    return
               DerRotation(3,teta01,0,1)
             * Rotation(3,teta02,0,2)
             * Rotation(3,teta12,1,2) ;
 }
-template <class Type>  
+template <class Type>
        ElMatrix<Type>   ElMatrix<Type>::DDteta02
                         (Type teta01,Type teta02,Type teta12)
 {
-    return 
+    return
               Rotation(3,teta01,0,1)
             * DerRotation(3,teta02,0,2)
             * Rotation(3,teta12,1,2) ;
 }
-template <class Type>  
+template <class Type>
        ElMatrix<Type>   ElMatrix<Type>::DDteta12
                         (Type teta01,Type teta02,Type teta12)
 {
-    return 
+    return
               Rotation(3,teta01,0,1)
             * Rotation(3,teta02,0,2)
             * DerRotation(3,teta12,1,2) ;
@@ -1051,13 +1076,13 @@ template <class Type> void ElMatrix<Type>::SetColSchmidtOrthog(INT NbIter)
             }
             Type N = (Type)sqrt(NormC(x));
 
-			for(INT y =0; y< _ty ; y++)
-				_data[y][x] = _data[y][x]/N;
+            for(INT y =0; y< _ty ; y++)
+                _data[y][x] = _data[y][x]/N;
         }
     }
 }
 
-template <class Type> 
+template <class Type>
          ElMatrix<Type> ElMatrix<Type>::ColSchmidtOrthog(INT iter) const
 {
    ElMatrix<Type> res (*this);
@@ -1195,10 +1220,10 @@ template  bool   self_gaussj_svp(ElMatrix<REAL16> & m);
 
 /*void F()
 {
-	ElMatrix<REAL> M(2,2);
-	M = gaussj(M);
-	self_gaussj(M);
-	self_gaussj_svp(M);
+    ElMatrix<REAL> M(2,2);
+    M = gaussj(M);
+    self_gaussj(M);
+    self_gaussj_svp(M);
 }*/
 
 /*************************************************************/
@@ -1265,7 +1290,7 @@ template <class Type>  void  TplElRotation3D<Type>::AssertTrueRot() const
 }
 
 
-template <class Type>   TplElRotation3D<Type> &  
+template <class Type>   TplElRotation3D<Type> &
                         TplElRotation3D<Type>::operator = (const  TplElRotation3D<Type> & aR2)
 {
    if (this == & aR2)
@@ -1286,14 +1311,14 @@ template <>  TplElRotation3D<REAL> TplElRotation3D<REAL>::inv() const
    return ElRotation3D ( -(_InvM*_tr), _InvM,mTrueRot);
 }
 
-template <> TplElRotation3D<Fonc_Num> TplElRotation3D<Fonc_Num>::inv() const 
+template <> TplElRotation3D<Fonc_Num> TplElRotation3D<Fonc_Num>::inv() const
 {
    return TplElRotation3D<Fonc_Num>( -(_InvM*_tr),-_teta12,-_teta02,-_teta01);
 }
 
 
 
-template <class Type>  TplElRotation3D<Type> 
+template <class Type>  TplElRotation3D<Type>
                        TplElRotation3D<Type>::operator *(const TplElRotation3D<Type> & R2) const
 {
    return TplElRotation3D<Type>
@@ -1356,7 +1381,7 @@ InstantieId(REAL)
 
 /*
 
-         Pt3dr operator()(Pt3dr);              
+         Pt3dr operator()(Pt3dr);
 
 */
 
@@ -1384,25 +1409,25 @@ void ComplBaseParLeHaut(ElMatrix<REAL> &aM,INT NbLigneOk)
     for (INT IndL = aM.ty()-NbLigneOk-1; IndL>=0 ;  IndL--)
     {
          INT xMinMax = -1;
-	 REAL aCosMinMax = 2.0;
-	 for (INT x =0 ; x<aM.tx() ; x++)
-	 {
-		 REAL aCosMax = -1.0;
-		 for (int y=IndL+1; y<aM.ty() ; y++)
-		 {
+     REAL aCosMinMax = 2.0;
+     for (INT x =0 ; x<aM.tx() ; x++)
+     {
+         REAL aCosMax = -1.0;
+         for (int y=IndL+1; y<aM.ty() ; y++)
+         {
                       REAL aCos = aM(x,y)/mNormCBPH(0,y);
                       ElSetMax(aCosMax,ElAbs(aCos));
-		 }
-		 ELISE_ASSERT(aCosMax>=0,"ComplBaseParLeHaut");
-		 if (aCosMax < aCosMinMax)
-		 {
-			 aCosMinMax = aCosMax;
-			 xMinMax  =x ;
-		 }
-	 }
-	 ELISE_ASSERT(xMinMax!=-1,"ComplBaseParLeHaut");
-	 for (INT x =0 ; x<aM.tx() ; x++)
-		 aM(x,IndL) = (x==xMinMax);
+         }
+         ELISE_ASSERT(aCosMax>=0,"ComplBaseParLeHaut");
+         if (aCosMax < aCosMinMax)
+         {
+             aCosMinMax = aCosMax;
+             xMinMax  =x ;
+         }
+     }
+     ELISE_ASSERT(xMinMax!=-1,"ComplBaseParLeHaut");
+     for (INT x =0 ; x<aM.tx() ; x++)
+         aM(x,IndL) = (x==xMinMax);
     }
 }
 
@@ -1471,13 +1496,13 @@ cRepereCartesien cChCoCart::El2Xml() const
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1487,17 +1512,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
