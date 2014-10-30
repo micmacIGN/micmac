@@ -11,7 +11,7 @@
 class AffCamera
 {
  public:
-    AffCamera(string aFilename, int index): filename (aFilename), mIndex(index)
+    AffCamera(string aFilename, int index, bool activate=false): filename (aFilename), mIndex(index), activated(activate)
     {
         // Loading the GRID file
         ElAffin2D oriIntImaM2C;
@@ -70,9 +70,15 @@ class AffCamera
             delete mCamera;
     }
 
+    void activate(bool aVal) { activated = aVal; }
+    bool isActivated() { return activated; }
+
 protected:
 
     ElCamera* mCamera;
+
+    bool activated; //should this camera be estimated
+
 };
 
 double compute2DGroundDifference(Pt2dr const &ptImg1,
@@ -333,7 +339,7 @@ public:
 
                                     //algo brute force (à améliorer)
                                     bool found = false;
-                                    for (size_t aK=0; aK < vObs.size(); ++aK)
+                                    for (size_t aK=0; aK < nObs(); ++aK)
                                     {
                                         TiePoint* TP = vObs[aK];
                                         for (size_t bK=0; bK < TP->vImgMeasure.size(); bK++)
@@ -363,7 +369,7 @@ public:
 
                                         vObs.push_back(TP);
 
-                                        //std::cout << "vObs size : " << vObs.size() << std::endl;
+                                        //std::cout << "vObs size : " << nObs() << std::endl;
                                     }
                                 }
                             }
@@ -393,7 +399,7 @@ public:
         double sumRes = 0.;
 
         //pour chaque point de liaison
-        for (size_t aK=0; aK < vObs.size();++aK)
+        for (size_t aK=0; aK < nObs();++aK)
         {
             //pour chaque image ou le point de liaison est vu
             for(size_t i=0;i<vObs[aK]->vImgMeasure.size();++i, ++nbMes)
@@ -488,21 +494,22 @@ public:
         {
             if (it->second->filename == aFilename) return it->second;
         }
-        AffCamera* Cam1 = new AffCamera(aFilename, mapCameras.size());
+        AffCamera* Cam1 = new AffCamera(aFilename, mapCameras.size(), mapCameras.size()!=0);
         mapCameras.insert(std::pair <int,AffCamera*>(mapCameras.size(), Cam1));
         return Cam1;
     }
 
-    int nObs() { return vObs.size(); }
+    size_t nObs() { return vObs.size(); }
 };
 
 
 //! Implementation basique (sans suppression des inconnues auxiliaires)
 class RefineModelGlobal: public RefineModelAbs
 {
+    std::string aNameMNT;
 
 public:
-    RefineModelGlobal(std::string const &aPattern):RefineModelAbs(aPattern)
+    RefineModelGlobal(std::string const &aPattern, std::string const &aNameMnt = ""):RefineModelAbs(aPattern), aNameMNT(aNameMnt)
     {
     }
 
@@ -729,13 +736,22 @@ public:
             double dY = 0.1;
             double dZ = 0.1;
 
-            int matSz = 3+numUnk*(mapCameras.size()-1);
+            //Get number of cameras to estimate
+            int nbCam = 0;
+            map<int, AffCamera *>::const_iterator it=mapCameras.begin();
+            for(;it !=mapCameras.end();++it)
+                if (it->second->isActivated()) nbCam++;
+
+            std::cout << "Nb cam to estimate : " << nbCam << std::endl;
+
+            //Init matrix
+            int matSz = 3+numUnk*nbCam;
 
             _N = ElMatrix<double>(matSz, matSz);
             _Y = ElMatrix<double>(1, matSz);
 
             //pour chaque point de liaison
-            for (size_t aK=0; aK < vObs.size(); aK++)
+            for (size_t aK=0; aK < nObs(); aK++)
             {
                 TiePoint* aTP = vObs[aK];
 
@@ -820,6 +836,13 @@ public:
                 }
 
                 solveFirstGroup(vPos);
+
+                //Contrainte en Z
+
+                if ((aNameMNT != "") && (ELISE_fp::exist_file(aNameMNT)))
+                {
+
+                }
             }
 
             map<int, AffCamera *>::iterator iter= mapCameras.begin();
@@ -864,18 +887,20 @@ public:
 int NewRefineModel_main(int argc, char **argv)
 {
     std::string aPat; // GRID files pattern
+    std::string aNameMNT=""; //MNT file
     bool exportResidus = false;
 
     ElInitArgMain
     (
          argc, argv,
          LArgMain() << EAMC(aPat,"GRID files pattern"),
-         LArgMain() << EAM(exportResidus,"Export residuals",true)
+         LArgMain() << EAM(aNameMNT,"MNT file",true)
+                    << EAM(exportResidus,"Export residuals",true)
     );
 
     ELISE_fp::MkDirSvp("refine");
 
-    RefineModelGlobal model(aPat);
+    RefineModelGlobal model(aPat, aNameMNT);
 
     bool ok = (model.nObs() > 3);
     for(size_t iter = 0; (iter < 1) & ok; iter++)
