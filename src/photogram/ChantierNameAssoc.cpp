@@ -1111,6 +1111,17 @@ std::string XML_MM_File(const std::string & aFile)
     {
     }
 
+	void cDicoSetNC::assign(const tKey & aKey,cSetName * aSet)
+	{
+		if ( isUsingSeparateDirectories() )
+		{
+			if ( aKey.find("NKS-Set-Orient")!=string::npos )
+			{
+				aSet->setDir( MMOutputDirectory() );
+			}
+		}
+		mDico[aKey] = aSet;
+	}
 
     void cDicoSetNC::Add(const tKey & aKey,cSetName * aSet)
     {
@@ -1156,8 +1167,7 @@ std::string XML_MM_File(const std::string & aFile)
         cSetNameDescriptor & aSND = * new cSetNameDescriptor(anIt->second->SND());
         TransFormArgKey(aSND,false,aVParams);
         cSetName *aSet = new cSetName(anIt->second->ICNM(),aSND);
-        mDico[aKey] = aSet;
-
+        assign( aKey, aSet );
 
         return aSet;
     }
@@ -3355,7 +3365,9 @@ void cStdChantierRel::AddAllCpleKeySet
         mRTr_R2I   (Pt2dr(0,0),Pt2dr(1,0))
     {
         std::string aNameInit = aDir+aName;
+        if ( isUsingSeparateDirectories() && !ELISE_fp::exist_file(aNameInit) ) aNameInit = MMInputDirectory()+aName;
         mFullNameFinal = aNameInit;
+
         Tiff_Im aFileInit = PastisTif(aNameInit);
         mSzIm = aFileInit.sz();
 
