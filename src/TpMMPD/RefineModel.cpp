@@ -90,8 +90,11 @@ double compute2DGroundDifference(Pt2dr const &ptImg1,
     return square_euclid(Pt2dr(ptTer1.x - ptTer2.x,ptTer1.y - ptTer2.y));
 }
 
-struct ImageMeasure
+class ImageMeasure
 {
+public:
+    ImageMeasure(Pt2dr pt, int id):ptImg(pt),idx(id){}
+
     Pt2dr ptImg;  // image coordinates (in pixel)
     int   idx;    // index of AffCamera
 
@@ -266,7 +269,7 @@ public:
     /// \param aNameFileGridSlave Grid file for slave image
     /// \param aNamefileTiePoints Tie-points file
     ///
-    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.),numUnk(6), verbose(false)
+    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.),numUnk(6), verbose(true)
     {
         string aDir, aPat;
         SplitDirAndFile(aDir,aPat,aFullDir);
@@ -325,13 +328,8 @@ public:
                                 else
                                 {
                                     TP_nb++;
-                                    ImageMeasure imMes1, imMes2;
-
-                                    imMes1.ptImg = P1;
-                                    imMes2.ptImg = P2;
-
-                                    imMes1.idx = Cam1->mIndex;
-                                    imMes2.idx = Cam2->mIndex;
+                                    ImageMeasure imMes1(P1,Cam1->mIndex);
+                                    ImageMeasure imMes2(P2,Cam2->mIndex);
 
                                     //algo brute force (à améliorer)
                                     bool found = false;
@@ -343,13 +341,13 @@ public:
                                             ImageMeasure *imMes3 = &TP->vImgMeasure[bK];
                                             if ((imMes3->idx != Cam1->mIndex) && (imMes3->ptImg == P1))
                                             {
-                                                TP->vImgMeasure.push_back(imMes2);
+                                                TP->vImgMeasure.push_back(imMes1);
                                                 std::cout << "multiple point: " << P1.x << " " << P1.y << " found in " << imMes3->idx << " and " << imMes1.idx << std::endl;
                                                 found = true;
                                             }
                                             else if ((imMes3->idx != Cam2->mIndex) && (imMes3->ptImg == P2))
                                             {
-                                                TP->vImgMeasure.push_back(imMes1);
+                                                TP->vImgMeasure.push_back(imMes2);
                                                 std::cout << "multiple point: " << P2.x << " " << P2.y << " found in " << imMes3->idx << " and " << imMes2.idx << std::endl;
                                                 found = true;
                                             }
@@ -398,11 +396,10 @@ public:
         for (size_t aK=0; aK < vObs.size();++aK)
         {
             //pour chaque image ou le point de liaison est vu
-            for(size_t i=0;i<vObs[aK]->vImgMeasure.size();++i)
+            for(size_t i=0;i<vObs[aK]->vImgMeasure.size();++i, ++nbMes)
             {
                 Pt2dr D = vObs[aK]->computeImageDifference(i);
                 sumRes += square_euclid(D);
-                nbMes++;
             }
         }
         return sumRes;
@@ -412,9 +409,10 @@ public:
     /// \brief debug matrix
     /// \param mat matrix to write
     ///
-    void printMatrix(ElMatrix <double> const & mat)
+    void printMatrix(ElMatrix <double> const & mat, std::string name="")
     {
         std::cout << "-------------------------"<<std::endl;
+        std::cout << "Matrix " << name << " : " << std::endl;
         for(int j=0;j<mat.Sz().y;++j)
         {
             for(int i=0;i<mat.Sz().x;++i)
@@ -490,7 +488,7 @@ public:
         {
             if (it->second->filename == aFilename) return it->second;
         }
-        AffCamera* Cam1  = new AffCamera(aFilename, mapCameras.size());
+        AffCamera* Cam1 = new AffCamera(aFilename, mapCameras.size());
         mapCameras.insert(std::pair <int,AffCamera*>(mapCameras.size(), Cam1));
         return Cam1;
     }
@@ -523,41 +521,27 @@ public:
 
         //2 - Ajout de C1 et C1t
 
-        cout << "cam->mIndex : " << pos << endl;
+        if (verbose) cout << "cam->mIndex : " << pos << endl;
 
         if (pos > 0)
         {
-            if (verbose)
-            {
-            cout << "C1 : " << endl;
-            printMatrix(C1);
-            }
+            if (verbose)  printMatrix(C1, "C1");
+
             for (int aK=0; aK < C1.Sz().x; aK++)
                 for (int bK=0; bK < C1.Sz().y; bK++)
                     _N( (pos-1)*numUnk+3 + aK, bK) += C1(aK,bK);
 
-            //cout << "2 : "  << endl;
             ElMatrix <double> C1t = C1.transpose();
 
-            if (verbose)
-            {
-            cout << "C1t : " << endl;
-            printMatrix(C1t);
-            }
+            if (verbose)  printMatrix(C1t, "C1t");
 
             for (int aK=0; aK < C1t.Sz().x; aK++)
                 for (int bK=0; bK < C1t.Sz().y; bK++)
                     _N(aK, (pos-1)*numUnk+3+ bK) += C1t(aK,bK);
 
-            //cout << "3 : "  << endl;
-
             //3 - Ajout de N1
 
-            if (verbose)
-            {
-            cout << "N1 : " << endl;
-            printMatrix(N1);
-            }
+            if (verbose)  printMatrix(N1, "N1");
 
             for(int aK=0; aK < N1.Sz().x; aK++)
                 for (int bK=0; bK < N1.Sz().y; bK++)
@@ -571,35 +555,26 @@ public:
         for (int aK=0; aK<C2.Sz().y;++aK)
             _Y(0,aK) += C2(0,aK);
 
-        //cout << "5 : "  << endl;
-
         for (int aK=0; aK<Y1.Sz().y;++aK)
             _Y(0,aK+3) += Y1(0,aK);
 
         if (verbose)
         {
-            std::cout << "NNNNNN****************" << endl;
-            printMatrix(_N);
-            std::cout << "\nYYYYYY****************" << endl;
-            printMatrix(_Y);
+            printMatrix(_N, "_N");
+            printMatrix(_Y, "_Y");
         }
     }
 
     void addObsStabil(int pos, const ElMatrix<double> &obs, const double p, const double res)
     {
-        //if (pos==0) return;
-
         double pdt = 1./(p*p);
+
         ElMatrix <double> N1 = obs.transpose()*obs*pdt;  //3 - en (pos-1)*6+3, idem
 
-        //2 - Ajout de C1 et C1t
-
-        cout << "cam->mIndex : " << pos << endl;
+        if (verbose) cout << "cam->mIndex : " << pos << endl;
 
         if (pos > 0)
         {
-            //3 - Ajout de N1
-
             for(int aK=0; aK < N1.Sz().x; aK++)
                 for (int bK=0; bK < N1.Sz().y; bK++)
                     _N((pos-1)*numUnk+3+aK, (pos-1)*numUnk+3 + bK) += N1(aK,bK);
@@ -608,46 +583,34 @@ public:
         //pour Y
         ElMatrix <double> Y1 = obs.transpose()*res*pdt;
 
-        for (int aK=0; aK<Y1.Sz().y;++aK)
+        for (int aK=0; aK< Y1.Sz().y;++aK)
             _Y(0,aK+3) += Y1(0,aK);
 
         if (verbose)
         {
-        /*std::cout << "NNNNNN****************" << endl;
-        printMatrix(_N);*/
-        std::cout << "\nYYYYYY****************" << endl;
-        printMatrix(_Y);
+            printMatrix(_N, "_N");
+            printMatrix(_Y, "_Y");
         }
     }
 
     void solveFirstGroup(std::vector<int> const &vpos)
     {
-        cout << "solveFirstGroup : "  << endl;
+        if (verbose) cout << "solveFirstGroup : "  << endl;
 
         //matrice 3,3 pivot, l'inverser -> c-1 ElSubMat(0,0,3,3)
         ElMatrix <double> C = _N.sub_mat(0,0,3,3);
 
-        if (verbose)
-        {
-        cout << "matrice C :"<< endl;
-        printMatrix(C);
-        }
+        if (verbose)   printMatrix(C, "C");
+
         ElMatrix <double> Cinv = gaussj(C);
 
-        if (verbose)
-        {
-        cout << "matrice Cinv :"<< endl;
-        printMatrix(Cinv);
-        }
+        if (verbose)   printMatrix(Cinv, "Cinv");
 
         //matrice 3,1 pivotY, > Y0 ElSubMat(0,0,3,1)
         ElMatrix <double> Y0 = _Y.sub_mat(0,0,1,3);
 
-        if (verbose)
-        {
-        cout << "Y0 : "  << endl;
-        printMatrix(Y0);
-        }
+        if (verbose)   printMatrix(Y0, "Y0");
+
         //pour ligne k : extraire ElSubMat(0,k*6+3,6,3) = Dk :
         //si = 0 rien, ligne suivante
         //sinon, extraire de Y sub(0,6*k..,6,1) puis Y -= Dk*C-1*Y0
@@ -659,11 +622,7 @@ public:
 
             ElMatrix <double> M2 = Dk*Cinv*Y0;
 
-            if (verbose)
-            {
-            cout << "M2 : "  << endl;
-            printMatrix(M2);
-            }
+            if (verbose)   printMatrix(M2, "M2");
 
             //Y -= Dk*C-1*Y0
             for (int bK=0; bK < M2.Sz().y; bK++)
@@ -671,29 +630,20 @@ public:
 
             if (verbose)
             {
-            cout << "Dk : "  << endl;
+                printMatrix(Dk, "Dk");
 
-            printMatrix(Dk);
-
-            cout << "Cinv : "  << endl;
-
-            printMatrix(Cinv);
+                printMatrix(Cinv, "Cinv");
             }
 
             for (size_t k2 =0; k2 < vpos.size(); ++k2)
             {
                 ElMatrix <double> Dk2 = _N.sub_mat((vpos[k2]-1)*numUnk+3,0,numUnk,3);
 
-                /*cout << "Dk2 : "  << endl;
-
-                printMatrix(Dk2);*/
-
+                //printMatrix(Dk2, "Dk2");
 
                 ElMatrix <double> N2 = Dk*Cinv*Dk2;
 
-                /*cout << "N2 : "  << endl;
-
-                printMatrix(N2);*/
+                //printMatrix(N2, "N2");
 
                 // N -= Dk*C-1*N(0,vPos[k],3,6)
                 for(int aK=0; aK < N2.Sz().x; aK++)
@@ -701,7 +651,6 @@ public:
                         _N((vpos[k2]-1)*numUnk+3+aK, (vpos[k]-1)*numUnk+3+bK) -= N2(aK, bK);
             }
         }
-
 
         //RAZ des 1eres lignes et colonnes (3)
         for(int aK=0; aK<_N.Sz().x;++aK)
@@ -716,15 +665,13 @@ public:
                 _N(bK,aK)=0;
         }
 
-        for (int aK=0; aK<3;aK++)
+        for (int aK=0; aK<3;++aK)
             _Y(0,aK) = 0;
 
         if (verbose)
         {
-            /*std::cout << "NNNNNN****************" << endl;
-            printMatrix(_N);*/
-            std::cout << "\nYYYYYY****************" << endl;
-            printMatrix(_Y);
+            printMatrix(_N, "_N");
+            printMatrix(_Y, "_Y");
         }
     }
 
@@ -736,18 +683,11 @@ public:
         ElMatrix<double> Ysub = _Y.sub_mat(0,3,1, _Y.Sz().y-3 );
 
         ElMatrix<double> inv = gaussj(Nsub);
-        if (verbose)
-        {
-            std::cout << "Matrix inv:"<<std::endl;
-            printMatrix(inv);
-        }
+        if (verbose)  printMatrix(inv, "inv");
+
         ElMatrix<double> sol = inv*Ysub;
 
-        if (verbose)
-        {
-            std::cout << "Matrice sol:"<<std::endl;
-            printMatrix(sol);
-        }
+        if (verbose) printMatrix(sol, "sol");
 
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
@@ -842,38 +782,40 @@ public:
                     Pt2dr vdY = Pt2dr(1./dY,1./dY) * (aTP->computeImageDifference(bK,pt.x, pt.y+dY, pt.z,a0,a1,a2,b0,b1,b2)-D);
                     Pt2dr vdZ = Pt2dr(1./dZ,1./dZ) * (aTP->computeImageDifference(bK,pt.x, pt.y, pt.z+dZ,a0,a1,a2,b0,b1,b2)-D);
 
-                    if (cam->mIndex!=0)
+                    if (cam->mIndex !=0)
                     {
-                       // obs(0,0) = vdA0.x;
+                        obs(0,0) = vdA0.x;
                         obs(1,0) = vdA1.x;
-                        //obs(2,0) = vdA2.x;
-                        //obs(3,0) = vdB0.x;
-                        //obs(4,0) = vdB1.x;
-                        //obs(5,0) = vdB2.x;
+                        obs(2,0) = vdA2.x;
+                        obs(3,0) = vdB0.x;
+                        obs(4,0) = vdB1.x;
+                        obs(5,0) = vdB2.x;
                     }
 
                     ccc(0,0) = vdX.x;
                     ccc(1,0) = vdY.x;
                     ccc(2,0) = vdZ.x;
 
-                   // addObs(cam->mIndex, obs, ccc, pdt,0.-D.x);
                     addObs(cam->mIndex, obs, ccc, pdt,-D.x);
+
+                    //RAZ (sécu)
+                    for (size_t cK=0; cK <numUnk;++cK) obs(cK,0) = 0.;
+                    for (int cK=0; cK<3;++cK) ccc(cK,0) = 0.;
 
                     if (cam->mIndex !=0)
                     {
-                        //obs(0,0) = vdA0.y;
+                        obs(0,0) = vdA0.y;
                         obs(1,0) = vdA1.y;
-                        //obs(2,0) = vdA2.y;
-                        //obs(3,0) = vdB0.y;
-                        //obs(4,0) = vdB1.y;
-                        //obs(5,0) = vdB2.y;
+                        obs(2,0) = vdA2.y;
+                        obs(3,0) = vdB0.y;
+                        obs(4,0) = vdB1.y;
+                        obs(5,0) = vdB2.y;
                     }
 
                     ccc(0,0) = vdX.y;
                     ccc(1,0) = vdY.y;
                     ccc(2,0) = vdZ.y;
 
-                    //addObs(cam->mIndex, obs, ccc, pdt,0.-D.y);
                     addObs(cam->mIndex, obs, ccc, pdt,-D.y);
                 }
 
