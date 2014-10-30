@@ -57,6 +57,12 @@ class AffCamera
     // rowc = vP[3] + vP[4] * col + vP[5] * lig
     std::vector <double> vP;
 
+    Pt2dr apply(Pt2dr const &ptImg2)
+    {
+        return Pt2dr(vP[0] + vP[1] * ptImg2.x + vP[2] * ptImg2.y,
+                  vP[3] + vP[4] * ptImg2.x + vP[5] * ptImg2.y);
+    }
+
     ///
     /// \brief image filename
     ///
@@ -148,8 +154,8 @@ Pt3dr TiePoint::getCoord()
         AffCamera* cam1 = iter1->second;
         AffCamera* cam2 = iter2->second;
 
-        Pt2dr P1 = vImgMeasure[0].ptImg;
-        Pt2dr P2 = vImgMeasure[1].ptImg;
+        Pt2dr P1 = cam1->apply(vImgMeasure[0].ptImg);
+        Pt2dr P2 = cam2->apply(vImgMeasure[1].ptImg);
 
         return cam1->Camera()->PseudoInter(P1,*cam2->Camera(),P2);
     }
@@ -258,7 +264,7 @@ protected:
 
     size_t numUnk;
 
-    bool verbose;
+    bool _verbose;
 
 public:
 
@@ -269,7 +275,7 @@ public:
     /// \param aNameFileGridSlave Grid file for slave image
     /// \param aNamefileTiePoints Tie-points file
     ///
-    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.),numUnk(6), verbose(true)
+    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.),numUnk(6), _verbose(false)
     {
         string aDir, aPat;
         SplitDirAndFile(aDir,aPat,aFullDir);
@@ -508,6 +514,8 @@ public:
 
     void addObs(int pos, const ElMatrix<double> &obs, const ElMatrix<double> &ccc, const double p, const double res)
     {
+        bool verbose = false;
+
         double pdt = 1./(p*p);
 
         ElMatrix <double> C  = ccc.transpose()*ccc*pdt;  //1 - ajouter en 0,0
@@ -555,8 +563,9 @@ public:
         for (int aK=0; aK<C2.Sz().y;++aK)
             _Y(0,aK) += C2(0,aK);
 
+        if (pos > 0)
         for (int aK=0; aK<Y1.Sz().y;++aK)
-            _Y(0,aK+3) += Y1(0,aK);
+            _Y(0,(pos-1)*numUnk+3+aK) += Y1(0,aK);
 
         if (verbose)
         {
@@ -567,6 +576,8 @@ public:
 
     void addObsStabil(int pos, const ElMatrix<double> &obs, const double p, const double res)
     {
+        bool verbose = false;
+
         double pdt = 1./(p*p);
 
         ElMatrix <double> N1 = obs.transpose()*obs*pdt;  //3 - en (pos-1)*6+3, idem
@@ -583,8 +594,9 @@ public:
         //pour Y
         ElMatrix <double> Y1 = obs.transpose()*res*pdt;
 
+        if (pos > 0)
         for (int aK=0; aK< Y1.Sz().y;++aK)
-            _Y(0,aK+3) += Y1(0,aK);
+            _Y(0,(pos-1)*numUnk+3+aK) += Y1(0,aK);
 
         if (verbose)
         {
@@ -595,6 +607,8 @@ public:
 
     void solveFirstGroup(std::vector<int> const &vpos)
     {
+        bool verbose = false;
+
         if (verbose) cout << "solveFirstGroup : "  << endl;
 
         //matrice 3,3 pivot, l'inverser -> c-1 ElSubMat(0,0,3,3)
@@ -677,6 +691,8 @@ public:
 
     void solve()
     {
+        bool verbose = true;
+
         if (verbose) printMatrix(_N);
 
         ElMatrix<double> Nsub = _N.sub_mat(3,3,_N.Sz().x-3, _N.Sz().y-3 );
@@ -691,6 +707,18 @@ public:
 
         //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
 
+
+
+        //for (size_t aK=0; aK < vObs.size(); aK++)
+        for (size_t aK=0; aK < 10; aK++)
+        {
+             TiePoint* aTP = vObs[aK];
+             std::cout << aTP->getCoord().z << std::endl;
+        }
+
+
+
+
         int aK =0;
         map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
         iter++; //don't use first image
@@ -702,9 +730,20 @@ public:
             aK += numUnk;
         }
 
+
+
+        for (size_t aK=0; aK < 10; aK++)
+        {
+             TiePoint* aTP = vObs[aK];
+             std::cout << aTP->getCoord().z << std::endl;
+        }
+
         //TODO
         // 3D coord update
 
+        int numObs;
+        double res = sumRes(numObs);
+        cout << "res= " << res << " numObs= " << numObs << endl;
 
     }
 
@@ -742,6 +781,8 @@ public:
                 std::vector <ImageMeasure> vMes = aTP->vImgMeasure;
                 std::vector <int> vPos;
 
+                 Pt3dr pt = aTP->getCoord();
+
                 //pour chaque image où le point de liaison est vu
                 for(size_t bK=0; bK < vMes.size();++bK)
                 {
@@ -769,7 +810,7 @@ public:
                     double b1 = cam->vP[4];
                     double b2 = cam->vP[5];
 
-                    Pt3dr pt = aTP->getCoord();
+
 
                     Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aTP->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
                     Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (aTP->computeImageDifference(bK,pt,a0,a1+dA1,a2,b0,b1,b2)-D);
@@ -784,12 +825,15 @@ public:
 
                     if (cam->mIndex !=0)
                     {
+
                         obs(0,0) = vdA0.x;
                         obs(1,0) = vdA1.x;
                         obs(2,0) = vdA2.x;
                         obs(3,0) = vdB0.x;
                         obs(4,0) = vdB1.x;
+
                         obs(5,0) = vdB2.x;
+
                     }
 
                     ccc(0,0) = vdX.x;
@@ -804,12 +848,15 @@ public:
 
                     if (cam->mIndex !=0)
                     {
+
                         obs(0,0) = vdA0.y;
                         obs(1,0) = vdA1.y;
                         obs(2,0) = vdA2.y;
                         obs(3,0) = vdB0.y;
                         obs(4,0) = vdB1.y;
+
                         obs(5,0) = vdB2.y;
+
                     }
 
                     ccc(0,0) = vdX.y;
@@ -819,10 +866,13 @@ public:
                     addObs(cam->mIndex, obs, ccc, pdt,-D.y);
                 }
 
+
+
+
                 solveFirstGroup(vPos);
             }
 
-            map<int, AffCamera *>::iterator iter= mapCameras.begin();
+       /*     map<int, AffCamera *>::iterator iter= mapCameras.begin();
             for(; iter!=mapCameras.end();++iter)
             {
                 AffCamera* cam = iter->second;
@@ -842,7 +892,7 @@ public:
                         addObsStabil(cam->mIndex, AB, sig, 0. - cam->vP[aK]);
                 }
             }
-
+            */
             std::cout << "before solve"<<std::endl;
 
             solve();
@@ -878,7 +928,7 @@ int NewRefineModel_main(int argc, char **argv)
     RefineModelGlobal model(aPat);
 
     bool ok = (model.nObs() > 3);
-    for(size_t iter = 0; (iter < 1) & ok; iter++)
+    for(size_t iter = 0; (iter < 10) & ok; iter++)
     {
         std::cout <<"iter="<<iter<<std::endl;
         ok = model.computeObservationMatrix();
