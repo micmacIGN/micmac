@@ -542,7 +542,7 @@ cObserv1Im<TypeEngl>::cObserv1Im
    mPose   (0),
    mCF     (0),
    mVals(NULL)
-{	
+{
 	// NO_WARN
 	mVals = new typename TypeEngl::tObj(TypeEngl::CreateFromXML(anAppli,aNamePack,anArg,*this) );
 
@@ -779,33 +779,31 @@ cPackObserv1Im<TypeEngl,TGlob>::cPackObserv1Im
 
     anAppli.COUT() << "Pack Obs " << anArg.KeySet() << " NB " << aVName->size() << "\n";
 
-    if (1)
-    {
-        for (int aK=0;aK<int(aVName->size());aK++)
-        {
-	    std::string aNamePack = (*aVName)[aK];
-
-	    std::string aNameIm  = mAppli.ICNM()->Assoc1To1(anArg.KeyAssoc(),aNamePack,false);
-            if ( mAppli.NamePoseIsKnown(aNameIm))
-	    {
-
-	        cObserv1Im<TypeEngl> * anObs= new  cObserv1Im<TypeEngl>(anAppli,anAppli.DC()+aNamePack,aNameIm,anArg);
-                Add(anObs);
-            }
-            else
-            {
-                 static bool first = true;
-                 if (first)
-                    std::cout << "WARN, For Existing file =" << aNamePack << " Im=" << aNameIm << " is not loaded\n";
-                 first = false;
-                // ELISE_ASSERT(false,"Cannot find image for pack appuis");
-            }
-        }
-    }
-    else
-    {
-        // On rajoutera ici le cas ou fichier contient N Pack
-    }
+	if (1)
+	{
+		const string baseDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():anAppli.DC() );
+		for (int aK=0;aK<int(aVName->size());aK++)
+		{
+			std::string aNamePack = (*aVName)[aK];
+			std::string aNameIm  = mAppli.ICNM()->Assoc1To1(anArg.KeyAssoc(),aNamePack,false);
+			if ( mAppli.NamePoseIsKnown(aNameIm))
+			{
+				cObserv1Im<TypeEngl> * anObs= new  cObserv1Im<TypeEngl>(anAppli,baseDirectory+aNamePack,aNameIm,anArg);
+				Add(anObs);
+			}
+			else
+			{
+				static bool first = true;
+				if (first) std::cout << "WARN, For Existing file =" << aNamePack << " Im=" << aNameIm << " is not loaded\n";
+				first = false;
+				// ELISE_ASSERT(false,"Cannot find image for pack appuis");
+			}
+		}
+	}
+	else
+	{
+		// On rajoutera ici le cas ou fichier contient N Pack
+	}
 }
 
 template <class TypeEngl,class TGlob> 

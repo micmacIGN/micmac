@@ -239,7 +239,7 @@ void MkFMapCmd
        aNbProc = NbProcSys();
 
     if (FileMk=="") 
-       FileMk = Dir2Write() + "MkStdMM" + GetUnikId();
+       FileMk = ( isUsingSeparateDirectories()?MMTemporaryDirectory():Dir2Write() ) + "MkStdMM" + GetUnikId();
        // FileMk = MMDir() + "MkStdMM" + GetUnikId();
 
 
