@@ -51,6 +51,8 @@ int AperoChImMM_main(int argc,char ** argv)
     double aPenalPerIm = 0.20;
     double aTetaOpt = 0.17;
     std::string aMasq3D;
+    std::vector<int>  mVecDep;
+    bool OnlyVecDep=false;
 
     Pt2dr aFocs;
 
@@ -69,12 +71,23 @@ int AperoChImMM_main(int argc,char ** argv)
                     << EAM(aPenalPerIm,"PenPerIm",true,"Penality per image, to limite size, def = 0.3")
                     << EAM(aTetaOpt,"TetaOpt",true,"Optimal angle of stereoscopy, in radian, def=0.17 (+or- 10 degree)")
                     << EAM(aMasq3D,"Masq3D",true,"Masq3D for tie points selection")
+                    << EAM(mVecDep,"VecDep",true,"Fixed Vec of deplacement (adapted to video like acquisition) ")
+                    << EAM(OnlyVecDep,"OnlyVecDep",true,"Only vec dep (internal purpose) ")
     );
 
 
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
     #endif
+
+   SplitDirAndFile(aDir,aPat,aFullDir);
+   StdCorrecNameOrient(AeroIn,aDir);
+
+    if (! EAMIsInit(&Out))
+       Out = AeroIn;
+
+
+
 
     string aXmlName="Apero-Choix-ImSec.xml";
 /*
@@ -83,13 +96,6 @@ int AperoChImMM_main(int argc,char ** argv)
         aXmlName="Apero-Choix-ImSec-PerIm.xml";
     }
 */
-
-    SplitDirAndFile(aDir,aPat,aFullDir);
-   StdCorrecNameOrient(AeroIn,aDir);
-
-    if (! EAMIsInit(&Out))
-       Out = AeroIn;
-
 
     std::string aCom =   MM3dBinFile("Apero")
                        + XML_MM_File(aXmlName)
@@ -116,9 +122,39 @@ int AperoChImMM_main(int argc,char ** argv)
         aCom = aCom + " +UseMasq3D=true +Masq3D=" + aMasq3D;
     }
 
+   int aRes = EXIT_SUCCESS;
    std::cout << "Com = " << aCom << "\n";
-   int aRes = system_call(aCom.c_str());
+   if (!OnlyVecDep)
+   {
+         aRes = system_call(aCom.c_str());
+   }
 
+    if (EAMIsInit(&mVecDep))
+    {
+         cElemAppliSetFile anEASF(aFullDir);
+         const std::vector<std::string> & aVN = *(anEASF.SetIm());
+
+         for (int aK=0 ; aK<int(aVN.size()) ; aK++)
+         {
+              cImSecOfMaster aISOM;
+              aISOM.Master() = aVN[aK];
+              aISOM.UsedPenal() = 1;
+              cOneSolImageSec aSol;
+              aSol.Coverage() = 1.0;
+              aSol.Score() = 1.0;
+              for (int aKV =0 ; aKV<int(mVecDep.size()) ; aKV++)
+              {
+                  int aV = aK + mVecDep[aKV];
+                  if ((aV>=0) && (aV<int(aVN.size())))
+                  {
+                     aSol.Images().push_back(aVN[aV]);
+                  }
+              }
+              aISOM.Sols().push_back(aSol);
+              std::string aName = anEASF.mICNM->Assoc1To1("NKS-Assoc-ImSec@-"+Out,aVN[aK],true);
+              MakeFileXML(aISOM,aName);
+         }
+    }
 
    return aRes;
 }

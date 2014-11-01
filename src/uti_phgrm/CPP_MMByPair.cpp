@@ -214,8 +214,10 @@ cAttrSomAWSI::cAttrSomAWSI() :
   mIma (0)
 {
 }
-cAttrSomAWSI::cAttrSomAWSI(cImaMM* anIma) :
-  mIma (anIma)
+cAttrSomAWSI::cAttrSomAWSI(cImaMM* anIma,int aNumGlob,int aNumAccepted) :
+  mIma         (anIma),
+  mNumGlob     (aNumGlob),
+  mNumAccepted (aNumAccepted)
 {
 }
 cAttrArcAWSI::cAttrArcAWSI() :
@@ -437,9 +439,8 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
        const std::string & aName = (*mEASF.SetIm())[aKV];
        if (CAWSI_AcceptIm(aName))
        {
-           aNbImGot++;
            cImaMM * aNewIma = new cImaMM(aName,*this);
-           tSomAWSI & aSom = mGrIm.new_som(cAttrSomAWSI(aNewIma));
+           tSomAWSI & aSom = mGrIm.new_som(cAttrSomAWSI(aNewIma,aKV,aNbImGot));
            mVSoms.push_back(&aSom);
            mDicIm[aName] = & aSom;
 /*
@@ -457,6 +458,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
                     mNbAlti++;
                }
            }
+           aNbImGot++;
        }
        
    }

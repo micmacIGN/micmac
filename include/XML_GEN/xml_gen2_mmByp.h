@@ -57,8 +57,10 @@ class cAttrSomAWSI
 {
     public :
         cAttrSomAWSI();
-        cAttrSomAWSI(cImaMM*);
+        cAttrSomAWSI(cImaMM*,int aNumGlob,int aNumAccepted);
         cImaMM* mIma;
+        int     mNumGlob;
+        int     mNumAccepted;
 };
 
 class cAttrArcAWSI
