@@ -548,7 +548,7 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       INT     GetI(const Pt2di &) const ;
       double  GetR(const Pt2di &) const ;
       Im2DGen  *ImOfSameType(const Pt2di & aSz) const;
-      Im2DGen * ImRotate(int aRot ) const;  
+      Im2DGen * ImRotate(int aRot ) const;
       Type **   data();
       Type **   data() const;
       Type *    data_lin();
@@ -1006,8 +1006,8 @@ template <class Type>  class ElMatrix
           ElMatrix<Type> & operator = (const ElMatrix<Type> &);
           ~ElMatrix();
 
-
-      ElMatrix<Type> ExtensionId(INT ExtAvant,INT ExtApres) const;
+          ElMatrix<Type> sub_mat(INT aCol, INT aLig, INT aNbCol, INT aNbLig) const;
+          ElMatrix<Type> ExtensionId(INT ExtAvant,INT ExtApres) const;
 
           void set_to_size(INT TX,INT TY);
           void set_to_size(const ElMatrix<Type> & m2);
