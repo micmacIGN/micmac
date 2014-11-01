@@ -241,7 +241,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
        aRes.push_back(cMMCom("GenCode",GenCode_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
-       aRes.push_back(cMMCom("LumRas",LumRas_main," Compute image mixign with raking light",cArgLogCom(2)));
+       aRes.push_back(cMMCom("LumRas",LumRas_main," Compute image mixing with raking light",cArgLogCom(2)));
 
 
        aRes.push_back(cMMCom("StackFlatField",EstimFlatField_main,"Basic Flat Field estimation by image stacking"));
