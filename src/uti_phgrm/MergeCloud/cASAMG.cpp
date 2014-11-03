@@ -305,7 +305,6 @@ const cOneSolImageSec &  cASAMG::SolOfCostPerIm(double aCostPerIm)
 }
 
 
-//   MasqInterp(mSz,aSzFull    ,aDSRes / aFullRes,(mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder),0.5)
  Im2D_Bits<1> MasqInterp(Pt2di aSzIn,Pt2di aSzOut,double aScale,Fonc_Num aFonc,double aSeuil)
 {
     Im2D_U_INT1  aMasqBrd(aSzIn.x,aSzIn.y);
@@ -357,12 +356,15 @@ std::string  cASAMG::ExportMiseAuPoint()
                       );
 
 
-    ELISE_COPY
-    (
-        select(mImLabFin.all_pts(),aFOK &&  mImLabFin.in()==eLFMasked),
-        eLFBorder,
-        mImLabFin.out()
-    );
+    if (0)
+    {
+       ELISE_COPY
+       (
+           select(mImLabFin.all_pts(),aFOK &&  mImLabFin.in()==eLFMasked),
+           eLFBorder,
+           mImLabFin.out()
+       );
+    }
 
 
     std::string aNameMasq = mAppli->NameFileInput(true,mIma,"_Masq.tif","Test");
@@ -376,6 +378,10 @@ std::string  cASAMG::ExportMiseAuPoint()
     MakeFileXML(aParam,aNameXML);
 
     std::string aComPly =  MM3dBinFile("Nuage2Ply") + "  " + aNameXML;
+    if (mAppli->DoPlyCoul())
+    {
+       aComPly = aComPly + " Attr=" + mIma->mNameIm + " RatioAttrCarte=" + ToString(mStdN->Params().SsResolRef().Val());
+    }
 
 
     return aComPly;

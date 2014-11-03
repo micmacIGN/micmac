@@ -29,6 +29,7 @@
 
    <Symb>  ImMNT=".*" </Symb>
    <Symb>  ImOrtho=".*" </Symb>
+   <Symb>  InParal=true </Symb>
 
 
 </DicoLoc>

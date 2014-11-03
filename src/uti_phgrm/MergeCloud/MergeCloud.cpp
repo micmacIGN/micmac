@@ -190,6 +190,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    {
       aNivMin=eQC_GradFaibleC1;
    }
+   aNivMin = eQC_GradFaibleC2;
    for (mCurNivSelSom=mGlobMaxNivH ; mCurNivSelSom>=aNivMin ; mCurNivSelSom--)
    {
        std::cout << "BEGIN NIV " <<  mCurNivSelSom << " " << eToString(eQualCloud(mCurNivSelSom)) << "\n"; 

@@ -1330,7 +1330,8 @@ void cElNuage3DMaille::AddAttrFromFile
     }
     aF = Tronque(aTEl,aF);
 
-    ELISE_COPY(aTF.all_pts(),aF,anOutGlog);
+    // ELISE_COPY(aTF.all_pts(),aF,anOutGlog);
+    ELISE_COPY(rectangle(Pt2di(0,0),mSzData),aF,anOutGlog);
 }
 
 const std::vector<cLayerNuage3DM *> &  cElNuage3DMaille::Attrs() const

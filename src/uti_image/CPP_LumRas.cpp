@@ -180,25 +180,6 @@ Fonc_Num  cImage_LumRas::MoyGlobImage(Fonc_Num aF)
    return aVS[0] / aVS[1];
 }
 
-/*
-Fonc_Num  cImage_LumRas::MoyByCC(Fonc_Num aF)
-{
-   Im2D_Bits<1> aIM = mAppli.mImMasq;
-   Pt2di aSz  = aIM.Sz();
-
-   Im2D_Bits<1> aIMarq(aSz.x,aSz.y,1);
-   ELISE_COPY(
-
-   Pt2di aP0;
-   for (aP0.x =0 ; aP0.x < aSz.x; aP0.x++)
-   {
-       for (aP0.y =0 ; aP0.y < aSz.y; aP0.y++)
-       {
-       }
-   }
-}
-*/
-
 
 Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Im2D_U_INT2 anIm)
 {
@@ -308,8 +289,8 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
      ElInitArgMain
      (
            argc,argv,
-                 LArgMain() << EAM(mNameImBase, "Image name",  true, "Image name", eSAM_IsExistFile)
-                            << EAM(mPatImRas, "Image pattern", true, "Pattern", eSAM_IsPatFile) ,
+           LArgMain() << EAM(mNameImBase, "Image name",  true, "Image name", eSAM_IsExistFile)
+                      << EAM(mPatImRas, "Image pattern", true, "Pattern", eSAM_IsPatFile) ,
            LArgMain() << EAM(mPostMasq,"Masq",true,"Mask for computation", eSAM_NoInit)
                       << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]", eSAM_NoInit)
     );

@@ -433,13 +433,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         </#WHEN>
 
 
-<!--
-        <IncludeFileLoc>  ${FileZ64} </IncludeFileLoc>
-        <IncludeFileLoc>  ${FileZ32} </IncludeFileLoc>
-        <IncludeFileLoc>  ${FileZ16PC} </IncludeFileLoc>
--->
-
-
 
         <#WHEN VTEST=${AddZoom8}>
             <EtapeMEC> 
@@ -463,10 +456,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                         <GenerePartiesCachees >
                              <SeuilUsePC> 4 </SeuilUsePC>
                              <ByMkF> true </ByMkF>
-<!--
-                             <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirQO}@PC_ </KeyCalcPC>
-                             <IncludeFileLoc>  ${FileOthoQ} </IncludeFileLoc>
--->
                         </GenerePartiesCachees>
                    </#WHEN>
                    <#WHEN VTEST=${CorMS}>
