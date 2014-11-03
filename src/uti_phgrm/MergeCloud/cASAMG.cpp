@@ -306,7 +306,7 @@ const cOneSolImageSec &  cASAMG::SolOfCostPerIm(double aCostPerIm)
 
 
 //   MasqInterp(mSz,aSzFull    ,aDSRes / aFullRes,(mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder),0.5)
-static Im2D_Bits<1> MasqInterp(Pt2di aSzIn,Pt2di aSzOut,double aScale,Fonc_Num aFonc,double aSeuil)
+ Im2D_Bits<1> MasqInterp(Pt2di aSzIn,Pt2di aSzOut,double aScale,Fonc_Num aFonc,double aSeuil)
 {
     Im2D_U_INT1  aMasqBrd(aSzIn.x,aSzIn.y);
     TIm2D<U_INT1,INT>  aTMB(aMasqBrd);
@@ -336,7 +336,6 @@ static Im2D_Bits<1> MasqInterp(Pt2di aSzIn,Pt2di aSzOut,double aScale,Fonc_Num a
 
 std::string  cASAMG::ExportMiseAuPoint()
 {
-    int aZoomF = 2;
     if (! IsSelected()) return"";
 
     // On genere les export a sous resol (surtout pour visualisation tempo)
@@ -377,14 +376,13 @@ std::string  cASAMG::ExportMiseAuPoint()
     MakeFileXML(aParam,aNameXML);
 
     std::string aComPly =  MM3dBinFile("Nuage2Ply") + "  " + aNameXML;
+
+
+    return aComPly;
+
+/*
     System(aComPly);
-
-
-
-    /*
-    if (mAppli->DoPlyCoul())
-       aComPly = aComPly  + " Attr=" + mIma->mNameIm;
-     */
+    int aZoomF = 2;
 
     
     // On genere les export a pleine resolution,
@@ -418,30 +416,6 @@ std::string  cASAMG::ExportMiseAuPoint()
                   Tiff_Im::BlackIsZero
               );
      ELISE_COPY(aTiffMasqFin.all_pts(),aMasqFin.in() , aTiffMasqFin.out());
-/*
-    double aRR = aDSRes / aFullRes;
-    Im2D_U_INT1  aMasqBrd(mSz.x,mSz.y);
-    TIm2D<U_INT1,INT>  aTMB(aMasqBrd);
-    ELISE_COPY
-    (
-         aMasqBrd.all_pts(),
-         (mImLabFin.in()==eLFMaster)||(mImLabFin.in()==eLFBorder),
-         aMasqBrd.out()
-    );
-
-    
-    Im2D_Bits<1> aMasqBrdFull(aSzFull.x,aSzFull.y);
-    TIm2DBits<1> aTMBF(aMasqBrdFull);
-    Pt2di aP;
-    for (aP.x=0 ; aP.x<aSzFull.x ; aP.x++)
-    {
-        for (aP.y=0 ; aP.y<aSzFull.y ; aP.y++)
-        {
-             Pt2dr aPR = Pt2dr(aP) / aRR;
-             aTMBF.oset(aP,aTMB.getr(aPR,0)>=0.5);
-        }
-    }
-*/
     
     std::cout << "RRRR " << aDSRes / aFullRes  <<  " " << aNameMasqFull << " " << aSzFull<<  "\n";
     std::string aNameNewM =  aDirExp + "MasqTerrain.tif";
@@ -472,6 +446,7 @@ std::string  cASAMG::ExportMiseAuPoint()
                           + " +ZoomF="  + ToString(aZoomF);
 
      return aComMM;
+*/
 }
 
 

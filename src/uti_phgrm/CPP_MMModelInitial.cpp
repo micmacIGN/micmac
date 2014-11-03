@@ -154,6 +154,7 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
     private :
       int mZoom0;
       int mZoomEnd;
+      int mJmp;
       std::string mNameIm;
       std::string mDirMatch;
       std::string mDirMerge;
@@ -169,7 +170,8 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 
 cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    cAppliWithSetImage(argc-1,argv+1,0,TheMMByPairNameCAWSI),
-   mCalledByP (false),
+   mJmp        (1),
+   mCalledByP  (false),
    mScaleNuage (1),
    mShowCom    (false),
    mDoPly      (false),
@@ -193,6 +195,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAM(mDoPly,"DoPly",true,"Do Ply")
                     << EAM(mDoPlyDS,"DoPlyDS",true,"Do Ply down scaled")
                     << EAM(mAutoPurge,"AutoPurge",true,"Automaticaly purge unnecessary temp file (def=true)")
+                    << EAM(mJmp,"Jump",true,"Will compute only image Mod Jump==0 , def=1 (all images)")
    );
 
    if (! (mCalledByP))
@@ -207,7 +210,15 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
        {
            const std::string & aCom = itS->first;
            const std::string & aNameIm = itS->second;
-           if (1)
+           bool aDoIt = true;
+           
+           if (mJmp>1)
+           {
+              tSomAWSI * aSom = ImOfName(aNameIm);
+              aDoIt = ((aSom->attr().mNumAccepted%mJmp)==0);
+           }
+
+           if (aDoIt)
            {
               std::cout << aCom<< "\n";
               aLCom.push_back(aCom);
