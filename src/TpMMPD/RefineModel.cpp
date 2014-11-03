@@ -264,92 +264,100 @@ public:
                 AffCamera* Cam2 = findCamera(aDir + aNameFileGrid2);
 
                 // Loading the Tie Points
-                std::string aNameFileTiePoints = aDir + StdPrefixGen(aNameFileGrid1)+ "_" + StdPrefixGen(aNameFileGrid2) +".txt"; //.dat
+                std::string aNameWithoutExt  = aDir + StdPrefixGen(aNameFileGrid1)+ "_" + StdPrefixGen(aNameFileGrid2);
+                std::string aNameFileTiePoints = aNameWithoutExt +".dat";
 
                 if ( !ELISE_fp::exist_file(aNameFileTiePoints) )
-                    std::cout << "file missing: " << aNameFileTiePoints << endl;
-                else
                 {
-                    std::ifstream fic(aNameFileTiePoints.c_str());
+                    aNameFileTiePoints = aNameWithoutExt + ".txt";
 
-                    if (fic.good())
+                    if ( !ELISE_fp::exist_file(aNameFileTiePoints) )
                     {
-                        std::cout << "reading: " << aNameFileTiePoints << endl;
+                        std::cout << "file missing: " << aNameWithoutExt << endl;
+                    }
+                    else
+                    {
+                        std::ifstream fic(aNameFileTiePoints.c_str());
 
-                        int rPts_nb = 0; //rejected points number
-                        int TP_nb = 0;   //tie-points number
-
-                        string line;
-
-                        while ( getline (fic,line) )
+                        if (fic.good())
                         {
-                            //cout << line << std::endl;
-                            istringstream iss(line);
+                            std::cout << "reading: " << aNameFileTiePoints << endl;
 
-                            Pt2dr P1,P2;
-                            iss >> P1.x >> P1.y >> P2.x >> P2.y;
+                            int rPts_nb = 0; //rejected points number
+                            int TP_nb = 0;   //tie-points number
 
-                            if ((P1 != Pt2dr(0,0)) && (P2 != Pt2dr(0,0)))
+                            string line;
+
+                            while ( getline (fic,line) )
                             {
-                                //std::cout << "P1 = "<<P1.x<<" " <<P1.y << std::endl;
-                                //std::cout << "P2 = "<<P2.x<<" " <<P2.y << std::endl;
+                                //cout << line << std::endl;
+                                istringstream iss(line);
 
-                                if (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 100.)
-                                {
-                                    rPts_nb++;
-                                    //std::cout << "Couple with 2D ground difference > 10 rejected" << std::endl;
-                                }
-                                else
-                                {
-                                    TP_nb++;
-                                    ImageMeasure imMes1(P1,Cam1->mIndex);
-                                    ImageMeasure imMes2(P2,Cam2->mIndex);
+                                Pt2dr P1,P2;
+                                iss >> P1.x >> P1.y >> P2.x >> P2.y;
 
-                                    //algo brute force (à améliorer)
-                                    bool found = false;
-                                    for (size_t aK=0; aK < nObs(); ++aK)
+                                if ((P1 != Pt2dr(0,0)) && (P2 != Pt2dr(0,0)))
+                                {
+                                    //std::cout << "P1 = "<<P1.x<<" " <<P1.y << std::endl;
+                                    //std::cout << "P2 = "<<P2.x<<" " <<P2.y << std::endl;
+
+                                    if (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 100.)
                                     {
-                                        TiePoint* TP = vObs[aK];
-                                        for (size_t bK=0; bK < TP->vImgMeasure.size(); bK++)
+                                        rPts_nb++;
+                                        //std::cout << "Couple with 2D ground difference > 10 rejected" << std::endl;
+                                    }
+                                    else
+                                    {
+                                        TP_nb++;
+                                        ImageMeasure imMes1(P1,Cam1->mIndex);
+                                        ImageMeasure imMes2(P2,Cam2->mIndex);
+
+                                        //algo brute force (à améliorer)
+                                        bool found = false;
+                                        for (size_t aK=0; aK < nObs(); ++aK)
                                         {
-                                            ImageMeasure *imMes3 = &TP->vImgMeasure[bK];
-                                            if ((imMes3->idx != Cam1->mIndex) && (imMes3->ptImg == P1))
+                                            TiePoint* TP = vObs[aK];
+                                            for (size_t bK=0; bK < TP->vImgMeasure.size(); bK++)
                                             {
-                                                TP->vImgMeasure.push_back(imMes1);
-                                                std::cout << "multiple point: " << P1.x << " " << P1.y << " found in " << imMes3->idx << " and " << imMes1.idx << std::endl;
-                                                found = true;
-                                            }
-                                            else if ((imMes3->idx != Cam2->mIndex) && (imMes3->ptImg == P2))
-                                            {
-                                                TP->vImgMeasure.push_back(imMes2);
-                                                std::cout << "multiple point: " << P2.x << " " << P2.y << " found in " << imMes3->idx << " and " << imMes2.idx << std::endl;
-                                                found = true;
+                                                ImageMeasure *imMes3 = &TP->vImgMeasure[bK];
+                                                if ((imMes3->idx != Cam1->mIndex) && (imMes3->ptImg == P1))
+                                                {
+                                                    TP->vImgMeasure.push_back(imMes1);
+                                                    std::cout << "multiple point: " << P1.x << " " << P1.y << " found in " << imMes3->idx << " and " << imMes1.idx << std::endl;
+                                                    found = true;
+                                                }
+                                                else if ((imMes3->idx != Cam2->mIndex) && (imMes3->ptImg == P2))
+                                                {
+                                                    TP->vImgMeasure.push_back(imMes2);
+                                                    std::cout << "multiple point: " << P2.x << " " << P2.y << " found in " << imMes3->idx << " and " << imMes2.idx << std::endl;
+                                                    found = true;
+                                                }
                                             }
                                         }
-                                    }
 
-                                    if (!found)
-                                    {
-                                        TiePoint *TP = new TiePoint(&mapCameras);
+                                        if (!found)
+                                        {
+                                            TiePoint *TP = new TiePoint(&mapCameras);
 
-                                        TP->vImgMeasure.push_back(imMes1);
-                                        TP->vImgMeasure.push_back(imMes2);
+                                            TP->vImgMeasure.push_back(imMes1);
+                                            TP->vImgMeasure.push_back(imMes2);
 
-                                        vObs.push_back(TP);
+                                            vObs.push_back(TP);
 
-                                        //std::cout << "vObs size : " << nObs() << std::endl;
+                                            //std::cout << "vObs size : " << nObs() << std::endl;
+                                        }
                                     }
                                 }
                             }
-                        }
-                        std::cout << "Number of rejected points: "<< rPts_nb << std::endl;
-                        std::cout << "Number of tie points: "<< TP_nb << std::endl;
+                            std::cout << "Number of rejected points: "<< rPts_nb << std::endl;
+                            std::cout << "Number of tie points: "<< TP_nb << std::endl;
 
-                        if (TP_nb ==0)
-                            std::cout << "Error in RefineModelAbs: no tie-points" << std::endl;
+                            if (TP_nb ==0)
+                                std::cout << "Error in RefineModelAbs: no tie-points" << std::endl;
+                        }
+                        else
+                            std::cout << "Error reading file" << aNameFileTiePoints << endl;
                     }
-                    else
-                        std::cout << "Error reading file" << aNameFileTiePoints << endl;
                 }
             }
         }
@@ -426,7 +434,7 @@ public:
 
             //ecriture dans un fichier des coefficients en vue d'affiner la grille
             //consommateur en temps => todo: stocker les parametres de l'iteration n-1
-          /*  map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
+            map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
             for (size_t aK=0; iter != mapCameras.end();++iter, ++aK)
             {
                 AffCamera* cam = iter->second;
@@ -434,7 +442,7 @@ public:
                 std::ofstream fic(("refine/" + name + ".txt").c_str());
                 fic << std::setprecision(15);
                 fic << cam->vP[0] <<" "<< cam->vP[1] <<" "<< cam->vP[2] <<" "<< cam->vP[3] <<" "<< cam->vP[4] <<" "<< cam->vP[5] <<" "<<std::endl;
-            }*/
+            }
             std::cout << "RMS_after = " << curRMS << std::endl;
             iteration++;
             return true;
@@ -825,10 +833,10 @@ public:
                     double b1 = cam->vP[4];
                     double b2 = cam->vP[5];
 
-                    Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aTP->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
+                    //Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aTP->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
                     Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (aTP->computeImageDifference(bK,pt,a0,a1+dA1,a2,b0,b1,b2)-D);
                     Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (aTP->computeImageDifference(bK,pt,a0,a1,a2+dA2,b0,b1,b2)-D);
-                    Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0+dB0,b1,b2)-D);
+                    //Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0+dB0,b1,b2)-D);
                     Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0,b1+dB1,b2)-D);
                     Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0,b1,b2+dB2)-D);
 
@@ -854,10 +862,6 @@ public:
                     ccc(2,0) = vdZ.x;
 
                     addObs(cam->mIndex, obs, ccc, pdt,-D.x);
-
-                    //RAZ (sécu)
-                    for (size_t cK=0; cK <numUnk;++cK) obs(cK,0) = 0.;
-                    for (int cK=0; cK<3;++cK) ccc(cK,0) = 0.;
 
                     if (cam->mIndex !=0)
                     {
