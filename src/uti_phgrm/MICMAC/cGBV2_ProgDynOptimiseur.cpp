@@ -959,7 +959,8 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     aCorI = 0;
                 }
 
-                aImCor.SetI(aPTer,aCorI);
+                if(aImCor.Im2D<U_INT1,INT>::Inside(aPTer))
+                    aImCor.SetI(aPTer,aCorI);
 
 //                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
 
