@@ -241,10 +241,7 @@ bool visual_MainWindow::getSpinBoxValue(string &aAdd, cInputs* aIn, int aK, stri
     ss << val;
     aAdd += ss.str() + endingCar;
 
-    if ( aIn->Arg().IsDefaultValue<int>(val) )
-        return true;
-    else
-        return false;
+    return aIn->Arg().IsDefaultValue<int>(val);
 }
 
 bool visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK, string endingCar)
@@ -255,10 +252,7 @@ bool visual_MainWindow::getDoubleSpinBoxValue(string &aAdd, cInputs* aIn, int aK
     ss << val;
     aAdd += ss.str() + endingCar;
 
-    if ( aIn->Arg().IsDefaultValue<double>(val) )
-        return true;
-    else
-        return false;
+    return  aIn->Arg().IsDefaultValue<double>(val);
 }
 
 void visual_MainWindow::saveSettings()
@@ -531,15 +525,15 @@ void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
         if(aIn->Type() == eIT_DoubleSpinBox)
         {
             connect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(double)));
-            connect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
-            connect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
+            connect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
+            connect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
             connect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(double)));
         }
         else if (aIn->Type() == eIT_SpinBox)
         {
             connect(this,SIGNAL(newX0Position(int)),(QSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(int)));
-            connect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(int)));
-            connect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
+            connect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(int)));
+            connect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
             connect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(int)));
         }
     }
@@ -552,15 +546,28 @@ void visual_MainWindow::_adjustSize(int)
 
 void visual_MainWindow::onRectanglePositionChanged(QVector<QPointF> points)
 {
-    emit newX0Position((int) points[0].x());
-    emit newY0Position((int) points[0].y());
-    emit newX1Position((int) points[2].x());
-    emit newY1Position((int) points[2].y());
+    QPointF minPt(1e9,1e9);
+    QPointF maxPt(0,0);
 
-    emit newX0Position(points[0].x());
-    emit newY0Position(points[0].y());
-    emit newX1Position(points[2].x());
-    emit newY1Position(points[2].y());
+    for (int i = 0; i < points.size(); ++i) {
+
+        QPointF pt = points[i];
+
+        if(pt.x()<minPt.x())minPt.setX(pt.x());
+        if(pt.y()<minPt.y())minPt.setY(pt.y());
+        if(pt.x()>maxPt.x())maxPt.setX(pt.x());
+        if(pt.y()>maxPt.y())maxPt.setY(pt.y());
+    }
+
+    emit newX0Position((int) minPt.x());
+    emit newY0Position((int) minPt.y());
+    emit newX1Position((int) maxPt.x());
+    emit newY1Position((int) maxPt.y());
+
+    emit newX0Position(minPt.x());
+    emit newY0Position(minPt.y());
+    emit newX1Position(maxPt.x());
+    emit newY1Position(maxPt.y());
 }
 
 void visual_MainWindow::onSaisieQtWindowClosed()
@@ -570,15 +577,15 @@ void visual_MainWindow::onSaisieQtWindowClosed()
     if(aIn->Type() == eIT_DoubleSpinBox)
     {
         disconnect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(double)));
-        disconnect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
-        disconnect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
+        disconnect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
+        disconnect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
         disconnect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(double)));
     }
     else if (aIn->Type() == eIT_SpinBox)
     {
         disconnect(this,SIGNAL(newX0Position(int)),(QSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(int)));
-        disconnect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(int)));
-        disconnect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
+        disconnect(this,SIGNAL(newY0Position(int)),(QSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(int)));
+        disconnect(this,SIGNAL(newX1Position(int)),(QSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(int)));
         disconnect(this,SIGNAL(newY1Position(int)),(QSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(int)));
     }
 }
@@ -799,8 +806,8 @@ void visual_MainWindow::add_4d_SpinBox(QGridLayout *layout, QWidget *parent, int
     }
 
     ((QDoubleSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(0) );
-    ((QDoubleSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(1) );
-    ((QDoubleSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
+    ((QDoubleSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(0) );
+    ((QDoubleSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).x(1) );
     ((QDoubleSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2dr>())).y(1) );
 
     add_saisieButton(layout, aK, aArg.IsToNormalize());
@@ -877,8 +884,8 @@ void visual_MainWindow::add_4i_SpinBox(QGridLayout *layout, QWidget *parent, int
     }
 
     ((QSpinBox*)(vWidgets[0].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(0) );
-    ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(1) );
-    ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
+    ((QSpinBox*)(vWidgets[1].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(0) );
+    ((QSpinBox*)(vWidgets[2].second))->setValue( (*(aArg.DefaultValue<Box2di>())).x(1) );
     ((QSpinBox*)(vWidgets[3].second))->setValue( (*(aArg.DefaultValue<Box2di>())).y(1) );
 
     add_saisieButton(layout, aK, aArg.IsToNormalize());
