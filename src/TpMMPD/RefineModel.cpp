@@ -965,8 +965,8 @@ int NewRefineModel_main(int argc, char **argv)
     (
          argc, argv,
          LArgMain() << EAMC(aPat,"GRID files pattern"),
-         LArgMain() << EAM(aNameMNT,"DTM file",true)
-                    << EAM(exportResidus,"Export residuals",true)
+         LArgMain() << EAM(aNameMNT,"DTM",true, "DTM file")
+                    << EAM(exportResidus,"ExpRes",true, "Export residuals (def=false)")
     );
 
     ELISE_fp::MkDirSvp("refine");
