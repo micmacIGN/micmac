@@ -948,7 +948,7 @@ int Tapioca_main(int argc,char ** argv)
         SplitDirAndFile(aDir,aPat,aFullDir);
 
 
-        if ( isUsingSeparateDirectories )
+        if ( isUsingSeparateDirectories() )
             ELISE_fp::MkDirSvp( MMTemporaryDirectory() );
         else
             ELISE_fp::MkDirSvp( aDir+"Tmp-MM-Dir/");
