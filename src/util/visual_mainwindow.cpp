@@ -28,7 +28,8 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     mlastDir(aLastDir),
     mFirstArg(aFirstArg),
     _SaisieWin(new SaisieQtWindow(BOX2D)),
-    _showDialog(false)
+    _showDialog(false),
+    _bMaltGeomImg(false)
 {
     setWindowFlags(Qt::WindowStaysOnTopHint);
     //setAttribute( Qt::WA_DeleteOnClose );
@@ -66,7 +67,6 @@ visual_MainWindow::visual_MainWindow(vector<cMMSpecArg> & aVAM,
     RunGridLayout->addWidget(runCommandButton, 1, 2);
     verticalLayout->insertLayout(1, RunGridLayout);
 
-
     connect(runCommandButton,SIGNAL(clicked()),this,SLOT(onRunCommandPressed()));
     connect(showPromptDialog,SIGNAL(stateChanged(int)),this,SLOT(setShowDialog(int)));
 
@@ -85,17 +85,15 @@ visual_MainWindow::~visual_MainWindow()
 
 void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &aVAO)
 {
-    bool bGeomImg = false;
-
     for (int aK=0; aK < (int) aVAM.size(); aK++)
     {
         cMMSpecArg arg = aVAM[aK];
 
-        if (( arg.Type() == AMBT_string ) && (*(arg.DefaultValue<string>()) == "GeomImage")) bGeomImg = true;
-        if (bGeomImg) break;
+        if (( arg.Type() == AMBT_string ) && (*(arg.DefaultValue<string>()) == "GeomImage")) _bMaltGeomImg = true;
+        if (_bMaltGeomImg) break;
     }
 
-    if (bGeomImg)
+    if (_bMaltGeomImg)
     {
         int idx = -1;
         for (int aK=0; aK < (int) aVAO.size(); aK++)
@@ -116,7 +114,7 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
         }
     }
 
-    //Remove arg for internal use
+    //Remove arg with flag "for internal use"
     bool bHasBox2D = false;
     for (int aK=0; aK < (int) aVAO.size(); aK++)
     {
@@ -382,7 +380,7 @@ void visual_MainWindow::onRunCommandPressed()
 
         if (!aAdd.empty())
         {
-            if (aIn->IsOpt()) aCom += aIn->Arg().NameArg()+ "=" + aAdd + " ";
+            if (aIn->IsOpt()) aCom += aIn->Arg().NameArg() + "=" + aAdd + " ";
             else aCom += aAdd + " ";
         }
     }
@@ -498,7 +496,25 @@ void visual_MainWindow::setLastDir(QString filename)
 
 void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), mlastDir);
+    QString filename;
+
+    if (_bMaltGeomImg)
+    {
+        for (unsigned int aK=0;aK<vInputs.size();aK++)
+        {
+            cInputs* aIn = vInputs[aK];
+
+            if ((aIn->Type() == eIT_LineEdit) && (aIn->Arg().NameArg() == "Master") )
+            {
+                QLineEdit* lEdit = (QLineEdit*) aIn->Widgets()[0].second;
+
+                filename = mlastDir + lEdit->text().simplified();
+            }
+        }
+    }
+
+    if (filename.isEmpty() || (!QFile(filename).exists()))
+         filename = QFileDialog::getOpenFileName(this, tr("Open file"), mlastDir);
 
     if (filename != NULL)
     {
@@ -680,6 +696,13 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
             aLineEdit->setEnabled(false);
             aLineEdit->setStyleSheet("QLineEdit{background: lightgrey;}");
         }
+
+        if (aArg.IsPatFile())
+        {
+            string aDir, aFile;
+            SplitDirAndFile(aDir,aFile,val);
+            mlastDir = QString(aDir.c_str());
+        }
     }
 
     if (!aArg.IsOutputFile() && !aArg.IsOutputDirOri())
@@ -708,7 +731,6 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFileRPPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
-
     }
 
     vLineEdit.push_back(aLineEdit);
