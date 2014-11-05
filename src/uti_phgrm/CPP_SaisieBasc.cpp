@@ -113,8 +113,11 @@ Antipasti xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
 */
 
 
+//   aMode =0 => SaisieLin
+//   aMode =1 => SaisieCyl
+//
 
-int SaisieBasc_main(int argc,char ** argv)
+int SaisieBasc_main_Gen(int argc,char ** argv,int aMode)
 {
   Pt2di aSzW(800,800);
   Pt2di aNbFen(-1,-1);
@@ -132,7 +135,9 @@ int SaisieBasc_main(int argc,char ** argv)
                       +  std::string(" +SzWx=") + ToString(aSzW.x)
                       +  std::string(" +SzWy=") + ToString(aSzW.y)
                       +  std::string(" +NbFx=") + ToString(aNbFen.x)
-                      +  std::string(" +NbFy=") + ToString(aNbFen.y);
+                      +  std::string(" +NbFy=") + ToString(aNbFen.y)
+                      +  std::string(" +Mode=") + ToString(aMode)
+                      ;
 
   if(!MMVisualMode)
   {
@@ -150,6 +155,15 @@ int SaisieBasc_main(int argc,char ** argv)
   return 0;
 }
 
+int SaisieBasc_main(int argc,char ** argv)
+{
+    return SaisieBasc_main_Gen(argc,argv,0);
+}
+
+int SaisieCyl_main(int argc,char ** argv)
+{
+    return SaisieBasc_main_Gen(argc,argv,1);
+}
 
 #endif
 

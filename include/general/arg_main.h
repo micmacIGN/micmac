@@ -690,6 +690,7 @@ int Sake_main(int argc,char ** argv);
     int SaisieAppuisInit_main(int argc,char ** argv);
     int SaisieAppuisPredic_main(int argc,char ** argv);
     int SaisieBasc_main(int argc,char ** argv);
+    int SaisieCyl_main(int argc,char ** argv);
     int SaisieMasq_main(int argc,char ** argv);
     int SaisiePts_main(int argc,char ** argv);
     int SEL_main(int argc,char ** argv);

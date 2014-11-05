@@ -134,6 +134,7 @@ class cInterfSurfaceAnalytique
 
          // Rnvoie rei:q
          cTplValGesInit<Pt3dr> InterDemiDroiteVisible(const ElSeg3D &,double aZ0) const ;
+         cTplValGesInit<Pt3dr> PImageToSurf0(const cCapture3D & aCap,const Pt2dr & aPIm) const;
 
          // Si SurfExt, on selectionne les rayons rentantrant
          Pt3dr BestInterDemiDroiteVisible(const ElSeg3D &,double aZ0) const ;

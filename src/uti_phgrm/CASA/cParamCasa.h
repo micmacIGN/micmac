@@ -72,9 +72,17 @@ class cSectionEstimSurf
 
         cTplValGesInit< int > & NbRansac();
         const cTplValGesInit< int > & NbRansac()const ;
+
+        cTplValGesInit< std::string > & OriPts();
+        const cTplValGesInit< std::string > & OriPts()const ;
+
+        cTplValGesInit< std::string > & PtsSurf();
+        const cTplValGesInit< std::string > & PtsSurf()const ;
     private:
         eTypeSurfaceAnalytique mTypeSurf;
         cTplValGesInit< int > mNbRansac;
+        cTplValGesInit< std::string > mOriPts;
+        cTplValGesInit< std::string > mPtsSurf;
 };
 cElXMLTree * ToXMLTree(const cSectionEstimSurf &);
 
@@ -115,6 +123,12 @@ class cSectionInitModele
 
         cTplValGesInit< int > & NbRansac();
         const cTplValGesInit< int > & NbRansac()const ;
+
+        cTplValGesInit< std::string > & OriPts();
+        const cTplValGesInit< std::string > & OriPts()const ;
+
+        cTplValGesInit< std::string > & PtsSurf();
+        const cTplValGesInit< std::string > & PtsSurf()const ;
 
         cSectionEstimSurf & SectionEstimSurf();
         const cSectionEstimSurf & SectionEstimSurf()const ;

@@ -145,16 +145,18 @@ void cAppli_Casa::OneEtapeCompense(const cCasaEtapeCompensation & anEtape)
          mSetEq.SolveResetUpdate();
      }
 
+
      if (anEtape.Export().IsInit())
      {
          cXmlModeleSurfaceComplexe aXmlModele;
          for (int aK=0 ; aK<int(mVSC.size()) ; aK++)
          {
-             const cInterfSurfaceAnalytique & aSurf = mVSC[aK]->mISAF->CurSurf();
+             const cInterfSurfaceAnalytique * aSurf =  &(mVSC[aK]->mISAF->CurSurf());
+             aSurf =  UsePts(aSurf);
              cXmlOneSurfaceAnalytique aXmlSurf;
-             aXmlSurf.XmlDescriptionAnalytique() = aSurf.Xml();
+             aXmlSurf.XmlDescriptionAnalytique() = aSurf->Xml();
              aXmlSurf.Id() = mVSC[aK]->mName;
-             aXmlSurf.VueDeLExterieur() = mVSC[aK]->IsFaceExterne(aSurf,mParam.PercCoherenceOrientation().Val());
+             aXmlSurf.VueDeLExterieur() = mVSC[aK]->IsFaceExterne(*aSurf,mParam.PercCoherenceOrientation().Val());
              aXmlModele.XmlOneSurfaceAnalytique().push_back(aXmlSurf);
          }
          MakeFileXML

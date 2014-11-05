@@ -52,6 +52,7 @@ cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
      mICNM    (aP2.mICNM),
      mDC      (aP2.mDC),
      mSetEq   (cNameSpaceEqF::eSysPlein),
+     mSAN     (0),
      mBestCyl (0)
 {
     for 
@@ -75,11 +76,37 @@ cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
         EstimSurf(*aSurf,itIM->SectionEstimSurf());
     }
 
-     mSetEq.SetClosed();
+    mSetEq.SetClosed();
 
     Compense(mParam.CasaSectionCompensation());
+
 }
 
+
+const cInterfSurfaceAnalytique *  cAppli_Casa::UsePts(const cInterfSurfaceAnalytique * aSurf)
+{
+   ELISE_ASSERT(mParam.SectionInitModele().size()==1,"cAppli_Casa::UsePts multiple sec");
+   const cSectionInitModele & aSIM = *(mParam.SectionInitModele().begin());
+   if (!(aSIM.PtsSurf().IsInit() && aSIM.OriPts().IsInit()))
+     return aSurf;
+
+   cSetOfMesureAppuisFlottants aSMAF = StdGetFromPCP(mDC + aSIM.PtsSurf().Val(),SetOfMesureAppuisFlottants);
+   std::string anOri = aSIM.OriPts().Val();
+   StdCorrecNameOrient(anOri,mDC);
+
+   for 
+   (
+      std::list<cMesureAppuiFlottant1Im>::iterator itM = aSMAF.MesureAppuiFlottant1Im().begin();
+      itM  != aSMAF.MesureAppuiFlottant1Im().end();
+      itM++
+   )
+   {
+         std::string aNameCam = mDC + mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+anOri,itM->NameIm(),true);
+         CamStenope * aCS =CamOrientGenFromFile(aNameCam,mICNM);
+   }
+
+   return aSurf;
+}
 
 
 

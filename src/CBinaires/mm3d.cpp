@@ -355,6 +355,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SaisieAppuisInit",SaisieAppuisInit_main," Interactive tool for initial capture of GCP",cArgLogCom(2)));
        aRes.push_back(cMMCom("SaisieAppuisPredic",SaisieAppuisPredic_main," Interactive tool for assisted capture of GCP"));
        aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main," Interactive tool to capture information on the scene"));
+       aRes.push_back(cMMCom("SaisieCyl",SaisieCyl_main," Interactive tool to capture information on the scene for cylinders"));
        aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main," Interactive tool to capture masq"));
        aRes.push_back(cMMCom("SaisiePts",SaisiePts_main," Tool to capture GCP (low level, not recommanded)"));
        aRes.push_back(cMMCom("SEL",SEL_main," Tool to visualise tie points"));
