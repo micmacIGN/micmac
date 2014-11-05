@@ -45,6 +45,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //ggg();
 
+// Test push 
+
 cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
      mParam   (*aP2.mObj),
      mICNM    (aP2.mICNM),
