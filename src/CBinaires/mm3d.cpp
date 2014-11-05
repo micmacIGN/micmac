@@ -249,7 +249,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Gri2Bin",Gri2Bin_main," Do some stuff"));
        aRes.push_back(cMMCom("MakeGrid",MakeGrid_main," Generate orientations in a grid format"));
        aRes.push_back(cMMCom("Malt",Malt_main," Simplified matching (interface to MicMac)",cArgLogCom(3)));
-       aRes.push_back(cMMCom("CASA",CASA_main," Analytic Surface Estimation"));
+       aRes.push_back(cMMCom("CASA",CASA_main," Analytic Surface Estimation",cArgLogCom(2)));
 
 
 
