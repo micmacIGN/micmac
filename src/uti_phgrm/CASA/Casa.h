@@ -140,6 +140,8 @@ class cAppli_Casa
          void Compense(const cCasaSectionCompensation &);
          void OneEtapeCompense(const cCasaEtapeCompensation &);
 
+         const cInterfSurfaceAnalytique * UsePts(const cInterfSurfaceAnalytique *);
+         void UsePtsCyl();
 
 
          void EstimeCylindreRevolution
@@ -165,6 +167,7 @@ class cAppli_Casa
 
 
 
+         cInterfSurfaceAnalytique *       mSAN;
         // Peut prendre une des formes suivantes
         cCylindreRevolution *             mBestCyl;
 };

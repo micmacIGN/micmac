@@ -308,6 +308,13 @@ bool cInterfSurfaceAnalytique::IsVueExt() const
 {
    return mIsVueExt;
 }
+
+
+cTplValGesInit<Pt3dr> cInterfSurfaceAnalytique::PImageToSurf0
+                      (const cCapture3D & aCap,const Pt2dr & aPIm) const
+{
+    return  InterDemiDroiteVisible(aCap.Capteur2RayTer(aPIm),0);
+}
      /*****************************************/
      /*                                       */
      /*   cCylindreRevolution                 */
