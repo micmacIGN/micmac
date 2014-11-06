@@ -1706,12 +1706,8 @@ void cAppliMICMAC::DoGPU_Correl
                 {
                     double cost = (double)tCost[rSiTer * abs(anZ - (int)z0)];
 
-#ifdef CUDA_DEFCOR
-                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
-#else
                     // TODO WARNING les couts init sont stockés dans un ushort mais des couts semblent sup à ushortmax!!!!
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
-#endif
                 }
             }
         }
