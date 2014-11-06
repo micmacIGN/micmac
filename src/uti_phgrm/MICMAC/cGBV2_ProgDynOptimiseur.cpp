@@ -133,9 +133,7 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
     IGpuOpt._preFinalCost1D.ReallocIf(IGpuOpt._poInitCost.Size());
     IGpuOpt._FinalDefCor.ReallocIf(IGpuOpt._poInitCost._dZ.GetDimension());
     IGpuOpt._poInitCost.ReallocData();
-#ifdef CUDA_DEFCOR
     IGpuOpt._poInitCost.fillCostInit(10123);
-#endif
 #endif
 }
 
@@ -489,11 +487,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
             tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
             const Box2di &  aBox = aMat.Box();
             Pt2di aPRX;
-#ifdef CUDA_DEFCOR
-             uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
-#endif
-//            for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
-//            {
+
                 for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
                 {
 
@@ -503,16 +497,14 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
                         aCF /= mNbDir;
 
                     }
-
                     aMat[aPRX].SetCostInit(aCF);
                     aCF = 0;
                 }
 
-#ifdef CUDA_DEFCOR
-
-                    IGpuOpt._FinalDefCor[ui2Ter] /= mNbDir;
-#endif
-//            }
+                #ifdef CUDA_ENBLED
+						 if(mHasMaskAuto)
+							  IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
+					#endif
         }
     }
     //nvtxRangePop();
@@ -660,7 +652,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     ushort aPenteMax = (ushort)mEtape.EtapeMEC().ModulationProgDyn().Val().Px1PenteMax().Val();
 
     float penteMax = (float) aPenteMax/mEtape.KPx(0).ComputedPas();
-    IGpuOpt.Prepare(mSz.x,mSz.y,aPenteMax,aNbDir,mCostRegul[0],mCostRegul[1],mCostDefMasked,mCostTransMaskNoMask);
+    IGpuOpt.Prepare(mSz.x,mSz.y,aPenteMax,aNbDir,mCostRegul[0],mCostRegul[1],mCostDefMasked,mCostTransMaskNoMask,mHasMaskAuto);
 
     TIm2DBits<1> aTMask(mLTCur->ImMasqTer());
 
@@ -800,7 +792,9 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
    double aRegul    =  mCostRegul[0];
    double aRegul_Quad = 0.0;
 
-   if(aModul.ArgMaskAuto().IsInit())
+   mHasMaskAuto = aModul.ArgMaskAuto().IsInit();
+
+   if(mHasMaskAuto)
    {
        const cArgMaskAuto & anAMA  = aModul.ArgMaskAuto().Val();
        //AmplifKL = anAMA.AmplKLPostTr().Val();
@@ -909,16 +903,14 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
     {
         Pt2di aPTer;
-        #ifdef CUDA_DEFCOR
-//        float qualiMAx = 0;
-//        float qualiMin = 1e9;
 
-        /* officiel COMBLE TROU*/
-        mMaskCalcDone = true;
-        mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
+        if(mHasMaskAuto)
+        {
+            mMaskCalcDone = true;
+            mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
+        }
+
         TIm2DBits<1>    aTMask(mMaskCalc);
-
-        #endif
 
         for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
         {
@@ -945,45 +937,36 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     }
                 }
 
-#ifdef CUDA_DEFCOR
-/* CUDA_DEFCOR Officiel*/
-                //                {
-                tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
-                bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
-                aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
-                //                }
-
-                int aCorI = CostI2CorExport(aCostMin);
-                if(!mLTCur->IsInMasq(aPTer))
+                #ifdef CUDA_ENABLED
+                if(mHasMaskAuto)
                 {
-                    aCorI = 0;
+                    /* CUDA_DEFCOR Officiel*/
+                    
+                    tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
+                    bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
+                    aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
+
+
+                    int aCorI = CostI2CorExport(aCostMin);
+                    if(!mLTCur->IsInMasq(aPTer))
+                    {
+                        aCorI = 0;
+                    }
+
+                    if(aImCor.Im2D<U_INT1,INT>::Inside(aPTer))
+                        aImCor.SetI(aPTer,aCorI);
+
                 }
+                #endif
 
-                if(aImCor.Im2D<U_INT1,INT>::Inside(aPTer))
-                    aImCor.SetI(aPTer,aCorI);
-
-//                uint2 ui2Ter = make_uint2(aPTer.x,aPTer.y);
-
-//                float costMinf      = aCostMin;
-//                float qualityCorre  = defCOf / costMinf * 10000.0f;
-
-//                IGpuOpt._FinalDefCor[ui2Ter] = qualityCorre;
-//                qualiMAx = max(qualiMAx,qualityCorre);
-//                qualiMin = max(qualiMin,qualityCorre);
-
-#endif
-
-                    mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+                mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
 
             }
         }
 
-#ifdef CUDA_DEFCOR
-
         /* officiel COMBLE TROU */
-
-        //if (mHasMask)
-        CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
+        if (mHasMaskAuto)
+            CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
 
 /*
         Rect zone(0,0,mSz.x,mSz.y);
@@ -1079,7 +1062,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
         }
 */
- #endif
+
     }
 //nvtxRangePop();
 
