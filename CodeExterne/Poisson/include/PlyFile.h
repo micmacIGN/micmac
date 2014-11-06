@@ -35,17 +35,16 @@
 
 
 #ifndef WIN32
-#define _strdup strdup
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+#endif //WIN32
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <string.h>
+#include <string>
 
 #define PLY_ASCII         1      /* ascii PLY file */
 #define PLY_BINARY_BE     2      /* binary PLY file, big endian */
@@ -184,7 +183,7 @@ extern char *my_alloc();
 #endif
 
 
-/*** delcaration of routines ***/
+/*** declaration of routines ***/
 
 extern PlyFile *ply_write(FILE *, int, const char **, int);
 extern PlyFile *ply_open_for_writing(char *, int, const char **, int, float *);
@@ -215,7 +214,9 @@ extern void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
 
 extern int equal_strings(const char *, const char *);
 
+#ifndef WIN32
 #ifdef __cplusplus
 }
+#endif
 #endif
 #endif // PLY_FILE_INCLUDED
