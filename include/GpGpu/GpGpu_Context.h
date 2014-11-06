@@ -1,6 +1,9 @@
 #ifndef GPGPU_CONTEXT_H
 #define GPGPU_CONTEXT_H
 
+/** @addtogroup GpGpuDoc */
+/*@{*/
+
 //#include "StdAfx.h"
 #include <list>
 #include <map>
@@ -59,7 +62,8 @@ public:
 };
 #endif
 
-
+/// \class CGpGpuContext
+/// \brief le context GpGpu, OpenCl ou Cuda
 template<class context>
 class CGpGpuContext
 {
@@ -67,35 +71,71 @@ public:
 
     CGpGpuContext(){}
 
+    /// \brief créer le context en fonction de < class context > du template
+    ///  si context = cudaContext alors un context cuda est créé
+    ///  si context = openClContext alors un context openCl est créé
     static void createContext();
 
+    /// \brief deleteContext Détruit le context créé
     static void deleteContext(){}
 
+    /// \brief Sortie console de la memoire du device
     static  void OutputInfoGpuMemory(){}
 
+    /// \brief Sortie console de la version Cuda utilisé dans cette compilation du logiciel
     static  void check_Cuda(){}
 
+    /// \brief createKernel Créé le kernel OpenCL
+    /// \param file Nom du fichier contenant le kernel OpenCL
+    /// \param kernelName Non du kernel attaché
     static  void createKernel(string file,string kernelName){}
 
+    ///
+    /// \brief Lance le kernel OpenCL crér
+    ///
     static  void launchKernel(){}
 
+
     template< class T, template< class O, class G > class U >
+    ///
+    /// \brief Ajoute un buffer pour le kernel OpenCL
+    /// \param arg Buffer du kernel OpenCL
+    ///
     static  void addKernelArg( U<T,context> &arg);
 
     template<class T>
+    ///
+    /// \brief Ajoute un argument pour le kernel OpenCL
+    /// \param arg Argument du kernel OpenCL
+    ///
     static  void addKernelArg(T &arg){}
 
+    ///
+    /// \brief Sortie console de l'erreur GpGpu
+    /// \param tErr Type d'erreur
+    /// \param erName
+    /// \return
+    ///
     static bool errorDump(int tErr, string erName);
 
 #ifdef OPENCL_ENABLED
 
-
-
-
+    ///
+    /// \brief
+    /// \return le context OpenCL
+    ///
     static cl_context contextOpenCL(){return NULL;}
 
+    ///
+    /// \brief commandQueue
+    /// \return le queue de commande OpenCL
+    ///
     static cl_command_queue commandQueue(){return NULL;}
 
+    ///
+    /// \brief kernel
+    /// \return le kernel courant
+    ///
     static cl_kernel kernel(){return NULL;}
 
 #endif
@@ -444,6 +484,8 @@ void CGpGpuContext<context>::addKernelArg(U <T,context > &arg)
 
     _sContext._nbArg++;
 }
+
+/*@}*/
 
 #endif // GPGPU_CONTEXT_H
 
