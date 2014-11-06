@@ -82,7 +82,6 @@ inline std::string className(const std::string& prettyFunction)
 }
 
 #ifdef CUDA_ENABLED
-//    #define CUDA_DEFCOR
 //    #define SAVEPLY
 //      #define DEBUG_GPGPU
 #endif

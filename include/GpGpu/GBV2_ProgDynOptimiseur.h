@@ -198,6 +198,7 @@ private :
     int                                mNbDir;
     double                             mPdsProgr;
 
+    bool                               mHasMaskAuto;
     int                                mCostDefMasked;
     int                                mCostTransMaskNoMask;
 
