@@ -501,8 +501,10 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
                     aCF = 0;
                 }
 
-                if(mHasMaskAuto)
-                    IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
+                #ifdef CUDA_ENBLED
+						 if(mHasMaskAuto)
+							  IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
+					#endif
         }
     }
     //nvtxRangePop();
@@ -935,10 +937,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                     }
                 }
 
+                #ifdef CUDA_ENABLED
                 if(mHasMaskAuto)
                 {
                     /* CUDA_DEFCOR Officiel*/
-
+                    
                     tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
                     bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
                     aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
@@ -954,6 +957,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                         aImCor.SetI(aPTer,aCorI);
 
                 }
+                #endif
 
                 mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
 
