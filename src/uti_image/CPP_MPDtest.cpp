@@ -551,103 +551,7 @@ void TestNtt(const std::string &aName)
 }
 
 
-template <class Type> GetValPercOfHisto
-                      (
-                            const std::vector<Type> aVH&,
-                            double aPerc
-                      )
-{
-    std::vector<int> aVInd;
-    int aNbV= aVH.size();
-    for (int aK=0 ; aK<aNbV ; aK++)
-       aVInd.push_back(aK);
-}
 
-
-void TestLoemi(const std::string &aName)
-{
-    double aGama = 0.55;
-    std::cout << "IM = " << aName << "\n";
-    Im2D_REAL4 anIm0 =  Im2D_REAL4::FromFileStd(aName);
-    Pt2di aSz = anIm0.sz();
-    Im2D_REAL4 anImEg(aSz.x,aSz.y);
-    std::cout << " Loaded\n";
-    ELISE_COPY(anIm0.all_pts(),pow(anIm0.in(),1/aGama),anImEg.out());
-    std::cout << " unluted\n";
-
-    double aMaxDif= 100;
-    double aStep =  1;
-    int aNbNiv = aMaxDif / aStep;
-
-    Im1D_INT4   aH(1+2*aNbNiv,0);
-    Fonc_Num aFDif = anImEg.in() -trans(anImEg.in_proj(),Pt2di(0,-1));
-    aFDif = round_ni(aFDif /aStep);
-    aFDif = Max(0,Min(2*aNbNiv,aFDif +aNbNiv));
-    ELISE_COPY(select(anImEg.all_pts(),FY%2).chc(aFDif),1,aH.histo());
-    std::cout << " histoed\n";
-
-    std::vector<int> aVH;
-    for (int aK=0 ; aK<=2*aNbNiv ; aK++)
-       aVH.push_back(aH.data()[aK]);
-    double aVMed = ValPercentile(aVH,0.5) - aNbNiv;
-
-    std::cout << "VMED = " << aVMed << "\n";
-
-
-    if (1)
-    {
-       {
-           Pt2dr aSzMax(1200,800);
-           double aRatio  = ElMin(aSz.x/aSzMax.x, aSz.y/aSzMax.y);
-           Pt2di aSzW = Pt2di(Pt2dr(aSz)/aRatio);
-           Video_Win aWIm = Video_Win::WStd(aSzW,1.0);
-           Im2D_U_INT1 aImD0(aSz.x,aSz.y);
-           // ELISE_COPY(aImD0.all_pts(),aImD0.out());
-
-           // ELISE_COPY(aWIm.all_pts(),StdFoncChScale(anIm0.in_proj(),Pt2dr(0,0),Pt2dr(aRatio,aRatio)),aWIm.ogray());
-           
-           ELISE_COPY
-           (
-                aWIm.all_pts(),
-                StdFoncChScale(anIm0.in_proj(),Pt2dr(0,0),Pt2dr(aRatio,aRatio)),
-                aWIm.ogray()
-           );
-           
-       }
-
-
-       std::cout << " H0 " << aH.data()[aNbNiv] << "\n";
-       Pt2di SZ = Pt2di(1+2*aNbNiv,200) * 3;
-       Video_Win aW = Video_Win::WStd(SZ,1.0);
-       Disc_Pal  Pdisc =aW.pdisc();
-
-       Plot_1d  Plot1
-                (
-                        aW,
-                        Line_St(Pdisc(P8COL::green),3),
-                        Line_St(Pdisc(P8COL::black),2),
-                        Interval(-aNbNiv,aNbNiv),
-                           NewlArgPl1d(PlBox(Pt2dr(3,3),Pt2dr(SZ)-Pt2dr(3,3)))
-                        + Arg_Opt_Plot1d(PlScaleY(1.0))
-                        + Arg_Opt_Plot1d(PlBoxSty(Pdisc(P8COL::blue),3))
-                        + Arg_Opt_Plot1d(PlClipY(true))
-                        + Arg_Opt_Plot1d(PlModePl(Plots::draw_fill_box))
-                        + Arg_Opt_Plot1d(PlClearSty(Pdisc(P8COL::white)))
-                        + Arg_Opt_Plot1d(PlotFilSty(Pdisc(P8COL::red)))
-                   );
-       Plot1.clear();
-
-       int aVMax;
-       ELISE_COPY(aH.interior(1),aH.in(),VMax(aVMax));
-       // ELISE_COPY(Plot1.all_pts(),FX,Plot1.out());
-       ELISE_COPY(Plot1.all_pts(),trans(aH.in(0), aNbNiv)*(100.0/aVMax),Plot1.out());
-       Plot1.show_axes();
-       Plot1.show_box();
-       aW.clik_in();
-
-    }
-}
- 
 
 
 
@@ -659,7 +563,6 @@ extern void getKeypointFilename( const string &i_basename, int i_resolution, str
 
 int MPDtest_main (int argc,char** argv)
 {
-   TestLoemi(argv[1]);
 /*
    for (int aK=0 ; aK<argc ; aK++)
       std::cout << argv[aK] << "\n";

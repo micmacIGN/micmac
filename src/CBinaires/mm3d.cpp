@@ -463,6 +463,9 @@ int CPP_AppliMergeCloud(int argc,char ** argv);
 int MMEnveloppe_Main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
 int CASALL_main(int argc,char ** argv);
+int CCL_main (int argc,char** argv);
+
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -525,6 +528,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
     aRes.push_back(cMMCom("CASALL",CASALL_main,"Compute Analytic Surface Automatically  low level"));
     aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Stoe Auto Correlation (if not already done)"));
+
+    aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
+
+
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
