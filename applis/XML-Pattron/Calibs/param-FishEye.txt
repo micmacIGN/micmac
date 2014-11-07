@@ -1,0 +1,59 @@
+# |============================================|
+# |                                            |
+# |   PARAMETRES OBLIGATOIRES                  |
+# |                                            |
+# |============================================|
+#
+#  NOMS ET EMPLACEMENT DE FICHIERS
+#
+Directory=ThisDir
+ByP=2
+#Directory=/Dos/souchon/pva2009/syst2_80/CamerasAP/Rouge/
+NameCamera=Canon-Fisheye-15
+UsePointeManuelInit=Only
+UsePointeManuelDRad=Only
+#NameCamera=Syst2_09_80_Rouge
+#  36 / 5634 = 6.39 Mic
+#  100 / 6.39 = 15649
+#ModeC2M=0
+#
+#
+IncFormeInit=0.5
+DistConfDrad=15.0
+IncFormeDrad=0.5
+#
+# img_0069_MpDcraw8B_GR.tif
+#
+PrefixeNomImage=GR-DSC_
+PostfixeNomImage=.tif
+ListeImagesInit=[8320,8321,8322]
+PatternImage=832[0-2]
+#CiblesRejetees=[114,441,841,1131,1141]
+#CiblesRejetees=[153,415,841,1131,1141]
+#CiblesRejetees=[1131,1141,153,841,441,415,442]
+#
+SeuilCorrel=0.8
+#
+FocaleInit=1360
+#CibDirU=[0,1,0]
+#CibDirV=[0,0,1]
+#
+#
+# |============================================|
+# |                                            |
+# |   PARAMETRES AYANT DES VALEUR PAR DEFAUT   |
+# |                                            |
+# |============================================|
+#  NOM DES FICHIERS DECRIVANT LE POLYGONE
+#
+#PolygoneDirectory=/media/MYPASSPORT/Calib/References/Salle-Matis/
+PolygoneDirectory=/data/Calib-Nikon/Ref/
+NamePointePolygone=PointeIm.txt
+NameImPolygone=Im81-Redr.tif
+NameCible3DPolygone=Poly3D.xml
+#
+Zoom=-1
+#
+FenetreInit=127
+#
+#

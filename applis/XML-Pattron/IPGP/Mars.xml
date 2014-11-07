@@ -1,0 +1,360 @@
+<!--
+
+Parametre pour correl sur Mars :
+
+  - redressement
+  - 2 dim assymetrique
+  - correl  alternee
+ 
+
+-->
+
+<ParamMICMAC>
+    <Section_Terrain>  
+	<IntervParalaxe>
+			<!-- Incertitude en Paralaxe -->
+             <Px1IncCalc>   400.0  </Px1IncCalc> 
+             <Px2IncCalc>   20.0  </Px2IncCalc>  
+
+             <Px1Moy >  0.0     </Px1Moy>
+             <Px2Moy >  0.0   </Px2Moy>
+
+    	</IntervParalaxe>
+        
+         <Planimetrie>
+         </Planimetrie>
+    </Section_Terrain>
+<!-- 
+ ************************************************************* 
+     Parametres lies a la prise de vue, independamment de son exploitation
+par le correlateur
+-->
+    <Section_PriseDeVue>
+        <GeomImages> eGeomImage_Epip </GeomImages> 
+        <Images>
+            <Im1>masterSubset_3000.tif</Im1>
+            <Im2>slaveSubset_3000.tif</Im2>       
+        </Images>
+    </Section_PriseDeVue>    
+    <Section_MEC>
+        <ChantierFullImage1> true </ChantierFullImage1>
+        <EtapeMEC>
+            <DeZoom > -1 </DeZoom> <!-- le seul fils obligatoire a toutes les etapes-->
+            <SzW> 2 </SzW> <!-- la taille de la fenetre de correlation -->
+
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+            <DynamiqueCorrel> eCoeffAngle </DynamiqueCorrel>  <!-- fonction de correlation peut etre eCoeffCorrelStd -->
+            <AggregCorr> eAggregSymetrique </AggregCorr>
+
+
+            <Gen8Bits_Px1>  true  </Gen8Bits_Px1>
+            <Gen8Bits_Px2>  true  </Gen8Bits_Px2>
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+
+            
+            <ModulationProgDyn Portee="Globale">
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 50 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+            </ModulationProgDyn>
+
+            <!--<ModeInterpolation> eInterpolMPD </ModeInterpolation> -->
+            <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+            
+            <Px1DilatAlti>  2    </Px1DilatAlti>
+            <Px1DilatPlani> 2    </Px1DilatPlani>
+            <Px2DilatAlti>  2    </Px2DilatAlti>
+            <Px2DilatPlani> 2    </Px2DilatPlani>
+            <Px1Regul>  0.05    </Px1Regul>
+            <Px2Regul>  2.00    </Px2Regul>	
+        </EtapeMEC>
+
+
+        <EtapeMEC> 
+            <DeZoom > 64 </DeZoom> 
+            <Px1Pas>        1  </Px1Pas> 
+            <Px2Pas>        1  </Px2Pas>
+        </EtapeMEC>
+        <EtapeMEC> 
+            <DeZoom > 64 </DeZoom> 
+            <Px1Pas Portee="Globale">        0.5  </Px1Pas> 
+            <Px2Pas Portee="Globale">        0.5  </Px2Pas>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+            <DeZoom > 32 </DeZoom> 
+        </EtapeMEC>
+
+
+        <EtapeMEC> 
+            <DeZoom > 16 </DeZoom> 
+            <Px2DilatAlti>  0    </Px2DilatAlti>
+            <Px2DilatPlani> 0    </Px2DilatPlani>
+        </EtapeMEC>
+        <EtapeMEC> 
+            <DeZoom > 16 </DeZoom> 
+            <Px1DilatAlti>  0    </Px1DilatAlti>
+            <Px1DilatPlani> 0    </Px1DilatPlani>
+        </EtapeMEC>
+        <EtapeMEC> 
+            <DeZoom > 16 </DeZoom> 
+            <Px1DilatAlti>  0    </Px1DilatAlti>
+            <Px1DilatPlani> 0    </Px1DilatPlani>
+            <Px2Pas>        0.25  </Px2Pas>
+        </EtapeMEC>
+        <EtapeMEC> 
+            <DeZoom > 16 </DeZoom> 
+            <Px1DilatAlti>  0    </Px1DilatAlti>
+            <Px1DilatPlani> 0    </Px1DilatPlani>
+            <Px2Pas Portee="Globale">        0.125  </Px2Pas>
+        </EtapeMEC>
+
+
+        <EtapeMEC> 
+            <DeZoom > 8 </DeZoom> 
+            <Px2DilatAlti>  0    </Px2DilatAlti>
+            <Px2DilatPlani> 0    </Px2DilatPlani>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+                    <ArgMaskAuto >
+                         <ValDefCorrel >  0.5 </ValDefCorrel>
+                         <CostTrans >     6.0   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask>
+
+                         <Erod32Mask> 12        </Erod32Mask>
+                         <SzOpen32> 2 </SzOpen32>
+                        <SeuilZC> 2000 </SeuilZC>
+                  </ArgMaskAuto>
+            </ModulationProgDyn>
+        </EtapeMEC>
+        <EtapeMEC> 
+            <DeZoom > 8 </DeZoom> 
+            <Px1DilatAlti>  0    </Px1DilatAlti>
+            <Px1DilatPlani> 0    </Px1DilatPlani>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+            </ModulationProgDyn>
+            <SsResolOptim> 3 </SsResolOptim>
+        </EtapeMEC>
+
+
+        <EtapeMEC> 
+            <DeZoom > 4 </DeZoom> 
+            <Px2DilatAlti>  0    </Px2DilatAlti>
+            <Px2DilatPlani> 0    </Px2DilatPlani>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+                    <ArgMaskAuto >
+                         <ValDefCorrel >  0.5 </ValDefCorrel>
+                         <CostTrans >     6.0   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask>
+
+                         <Erod32Mask> 12        </Erod32Mask>
+                         <SzOpen32> 2 </SzOpen32>
+                        <SeuilZC> 2000 </SeuilZC>
+                  </ArgMaskAuto>
+            </ModulationProgDyn>
+        </EtapeMEC>
+        <EtapeMEC> 
+            <DeZoom > 4 </DeZoom> 
+            <Px1DilatAlti>  0    </Px1DilatAlti>
+            <Px1DilatPlani> 0    </Px1DilatPlani>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+            </ModulationProgDyn>
+            <SsResolOptim> 5 </SsResolOptim>
+           <PostFiltragePx>
+                  <OneFitragePx>
+                        <TypeFiltrage> eFiltrageMedian   </TypeFiltrage>
+                        <SzFiltrage>  0          </SzFiltrage>
+                        <SzFiltrNonAd   > 2 </SzFiltrNonAd>
+                        <PxApply >   eApplyPx2     </PxApply>
+                        <NbIteration > 2 </NbIteration>
+                  </OneFitragePx>
+            </PostFiltragePx>
+        </EtapeMEC>
+
+
+
+        <EtapeMEC> 
+           <DeZoom > 2 </DeZoom> 
+           <Px2RedrPx  Portee="Globale">    true   </Px2RedrPx>
+           <Px2DeqRedr  Portee="Globale">   true   </Px2DeqRedr> 
+           <Px1RedrPx  Portee="Globale">    true   </Px1RedrPx>
+           <Px1DeqRedr  Portee="Globale">   true   </Px1DeqRedr> 
+           <RedrNbIterMed  Portee="Globale">2 </RedrNbIterMed> 
+           <RedrSzMed  Portee="Globale"> 2 </RedrSzMed>  
+           <RedrNbIterMoy  Portee="Globale"> 3</RedrNbIterMoy> 
+           <RedrSzMoy  Portee="Globale"> 3 </RedrSzMoy>       
+           <SzW Portee="Globale">   3 </SzW>
+            <Px2DilatAlti>  0    </Px2DilatAlti>
+            <Px2DilatPlani> 0    </Px2DilatPlani>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+                    <ArgMaskAuto >
+                         <ValDefCorrel >  0.5 </ValDefCorrel>
+                         <CostTrans >     6.0   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask>
+
+                         <Erod32Mask> 12        </Erod32Mask>
+                         <SzOpen32> 2 </SzOpen32>
+                        <SeuilZC> 2000 </SeuilZC>
+                  </ArgMaskAuto>
+            </ModulationProgDyn>
+        </EtapeMEC>
+        <EtapeMEC> 
+            <DeZoom > 2 </DeZoom> 
+            <Px1DilatAlti>  0    </Px1DilatAlti>
+            <Px1DilatPlani> 0    </Px1DilatPlani>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+            </ModulationProgDyn>
+           <PostFiltragePx>
+                  <OneFitragePx>
+                        <TypeFiltrage> eFiltrageMedian   </TypeFiltrage>
+                        <SzFiltrage>  0          </SzFiltrage>
+                        <SzFiltrNonAd   > 2 </SzFiltrNonAd>
+                        <PxApply >   eApplyPx2     </PxApply>
+                        <NbIteration > 2 </NbIteration>
+                  </OneFitragePx>
+            </PostFiltragePx>
+            <SsResolOptim> 8 </SsResolOptim>
+        </EtapeMEC>
+
+
+        <EtapeMEC> 
+            <SzW Portee="Globale">   4 </SzW>
+            <DeZoom > 1 </DeZoom> 
+            <Px2DilatAlti>  0    </Px2DilatAlti>
+            <Px2DilatPlani> 0    </Px2DilatPlani>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+                    <ArgMaskAuto >
+                         <ValDefCorrel >  0.2 </ValDefCorrel>
+                         <CostTrans >     6.0   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask>
+                         <Erod32Mask> 0        </Erod32Mask>
+                         <SzOpen32> 2 </SzOpen32>
+                        <SeuilZC> 8000 </SeuilZC>
+                  </ArgMaskAuto>
+            </ModulationProgDyn>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+            <DeZoom > 1 </DeZoom> 
+            <Px1DilatAlti>  0    </Px1DilatAlti>
+            <Px1DilatPlani> 0    </Px1DilatPlani>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+            </ModulationProgDyn>
+           <PostFiltragePx>
+                  <OneFitragePx>
+                        <TypeFiltrage> eFiltrageMedian   </TypeFiltrage>
+                        <SzFiltrage>  0          </SzFiltrage>
+                        <SzFiltrNonAd   > 2 </SzFiltrNonAd>
+                        <PxApply >   eApplyPx2     </PxApply>
+                        <NbIteration > 2 </NbIteration>
+                  </OneFitragePx>
+            </PostFiltragePx>
+            <SsResolOptim> 8 </SsResolOptim>
+        </EtapeMEC>
+
+
+        <EtapeMEC> 
+            <DeZoom > 1 </DeZoom> 
+            <Px2DilatAlti>  0    </Px2DilatAlti>
+            <Px2DilatPlani> 0    </Px2DilatPlani>
+            <Px1Pas>  0.25       </Px1Pas>
+            <ModulationProgDyn>
+	            <EtapeProgDyn>
+		            <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+		            <NbDir>      8     </NbDir>
+	            </EtapeProgDyn>
+                    <Px1PenteMax > 10 </Px1PenteMax>
+                    <Px2PenteMax > 0.1 </Px2PenteMax>
+                    <ArgMaskAuto >
+                         <ValDefCorrel >  0.2 </ValDefCorrel>
+                         <CostTrans >     6.0   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask>
+                         <SzOpen32> 2 </SzOpen32>
+                        <SeuilZC> 8000 </SeuilZC>
+                  </ArgMaskAuto>
+            </ModulationProgDyn>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+            <DeZoom > 1 </DeZoom> 
+           <Px2RedrPx  Portee="Globale">    false   </Px2RedrPx>
+           <Px1RedrPx  Portee="Globale">    false   </Px1RedrPx>
+            <AlgoRegul> eAlgoDequant </AlgoRegul>
+            <Px1Pas>  1.0       </Px1Pas>
+            <Px2Pas>  1.0       </Px2Pas>
+        </EtapeMEC>
+
+
+ 
+    </Section_MEC>
+    
+    <Section_Results >
+    	<GeomMNT> eGeomPxBiDim </GeomMNT> 
+    </Section_Results>
+    
+   <Section_WorkSpace >
+	<!--<NomChantier>SW16</NomChantier>-->
+	<WorkDir >  ThisDir </WorkDir> 
+    	<TmpMEC>  MEC2/  </TmpMEC>
+     	<TmpResult>  MEC2/  </TmpResult>
+     	<TmpPyr>    Pyram4/  </TmpPyr>
+     	<ByProcess>  ${MMNbProc} </ByProcess>
+        <SzRecouvrtDalles> 200 </SzRecouvrtDalles>
+     </Section_WorkSpace>
+	
+    <Section_Vrac> </Section_Vrac>
+
+        
+
+</ParamMICMAC>
