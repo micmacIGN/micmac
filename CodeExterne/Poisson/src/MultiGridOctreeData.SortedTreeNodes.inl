@@ -288,7 +288,6 @@ void SortedTreeNodes::setXSliceTableData( XSliceTableData& sData , int depth , i
         int d , off[3];
         node->depthAndOffset( d , off );
         // Process the edges
-        int o=2;
         for( int x=0 ; x<2 ; x++ ) for( int y=0 ; y<2 ; y++ )
         {
             int fc = Square::CornerIndex( x , y );

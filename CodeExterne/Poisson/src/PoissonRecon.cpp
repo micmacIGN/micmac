@@ -467,8 +467,8 @@ int main( int argc , char* argv[] )
         HANDLE cur_thread=GetCurrentThread();
         FILETIME tcreat, texit, tkernel, tuser;
         if( GetThreadTimes( cur_thread , &tcreat , &texit , &tkernel , &tuser ) )
-            printf( "Time (Wall/User/Kernel): %.2f / %.2f / %.2f\n" , Time()-t , to_seconds( tuser ) , to_seconds( tkernel ) );
-        else printf( "Time: %.2f\n" , Time()-t );
+            printf( "Time (Wall/User/Kernel): %.2f / %.2f / %.2f\n" , PTime()-t , to_seconds( tuser ) , to_seconds( tkernel ) );
+        else printf( "Time: %.2f\n" , PTime()-t );
         HANDLE h = GetCurrentProcess();
         PROCESS_MEMORY_COUNTERS pmc;
         if( GetProcessMemoryInfo( h , &pmc , sizeof(pmc) ) ) printf( "Peak Memory (MB): %d\n" , pmc.PeakWorkingSetSize>>20 );
