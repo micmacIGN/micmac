@@ -57,6 +57,18 @@ void DumpOutput2( char* str , const char* format , ... );
 #pragma message ( "[WARNING] Setting default full depth to " XSTR(DEFAULT_FULL_DEPTH) )
 #endif // DEFAULT_FULL_DEPTH
 
+#if defined(_WIN32) || defined(_WIN64)
+	#define strcasecmp _stricmp 
+	#define strncasecmp _strnicmp
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic ignored "-Wunused-variable"
+	#pragma GCC diagnostic ignored "-Wunused-result"
+#endif
+
+
 #include <stdarg.h>
 char* outputFile=NULL;
 int echoStdout=0;
@@ -476,3 +488,10 @@ int main( int argc , char* argv[] )
 #endif // _WIN32
     return EXIT_SUCCESS;
 }
+
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic pop
+	#endif
+#endif
