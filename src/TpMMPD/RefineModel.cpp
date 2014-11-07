@@ -763,10 +763,10 @@ public:
             double iniRMS = std::sqrt(res/numObs);
             //std::cout << "RMS_ini = " << iniRMS << std::endl;
 
-            double dA0 = 0.5;
+           // double dA0 = 0.5;
             double dA1 = 0.01;
             double dA2 = 0.01;
-            double dB0 = 0.5;
+           // double dB0 = 0.5;
             double dB1 = 0.01;
             double dB2 = 0.01;
             double dX = 0.1;
@@ -801,7 +801,7 @@ public:
                 for(size_t bK=0; bK < vMes.size();++bK)
                 {
                     Pt2dr D = aTP->computeImageDifference(bK, pt);
-                    double ecart2 = square_euclid(D);
+                   // double ecart2 = square_euclid(D);
 
                     double pdt = 1.; //1./sqrt(1. + ecart2);
 
@@ -965,7 +965,7 @@ int NewRefineModel_main(int argc, char **argv)
     RefineModelGlobal model(aPat, aNameMNT);
 
     bool ok = (model.nObs() > 3);
-    for(size_t iter = 0; (iter < 10) & ok; iter++)
+    for(size_t iter = 0; (iter < 100) & ok; iter++)
         ok = model.computeObservationMatrix();
 
     if (exportResidus)
