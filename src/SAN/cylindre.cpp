@@ -416,7 +416,36 @@ cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::m
         Pt3dr aBottom  =  itBottom->second;
         double aScal = aTop.y - aBottom.y;
         if (aScal<0)
+        {
            aSeg  = ElSeg3D(mP0,mP0-mW);
+        }
+    }
+
+    std::map<std::string,Pt3dr>::const_iterator itRight =    aDic.find("Right");
+    std::map<std::string,Pt3dr>::const_iterator itLeft = aDic.find("Left");
+
+    if ((itRight!=aDic.end())|| (itLeft!=aDic.end()))
+    {
+         double aPer = 2*PI*mRay;
+         double aPerInf = aPer * 0.9;
+
+         Pt3dr aPRight =   (itRight!=aDic.end())                            ?
+                           itRight->second                                  :
+                           (itLeft->second  + Pt3dr( aPerInf,0,0))          ;
+               //-------------------------------------------------------------------
+         Pt3dr aPLeft  =   (itLeft!=aDic.end())                             ?
+                           itLeft->second                                   :
+                           (itRight->second + Pt3dr(-aPerInf,0,0))          ;
+
+         cCylindreRevolution aNewCyl(IsVueExt(),aSeg,aP0OnCyl);
+         aPRight = aNewCyl.E2UVL(UVL2E(aPRight));
+         aPLeft  = aNewCyl.E2UVL(UVL2E(aPLeft));
+         while (aPRight.x>(aPLeft.x+aPer))  aPRight.x -= aPer;
+         while (aPRight.x<=aPLeft.x) aPRight.x += aPer;
+
+         // if (aSignInv) aPLeft.x +=aPer;
+
+         aP0OnCyl = aNewCyl.UVL2E((aPRight+aPLeft)/2.0);
     }
 
     return new cCylindreRevolution (IsVueExt(),aSeg,aP0OnCyl);
