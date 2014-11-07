@@ -124,7 +124,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
     return;
 
 
-  /// Faux mais fait le job! en limite d'image
+  // Faux mais fait le job! en limite d'image
   if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y))
       return;
 
