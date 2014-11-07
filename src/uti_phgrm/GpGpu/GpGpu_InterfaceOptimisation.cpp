@@ -19,7 +19,7 @@ void InterfOptimizGpGpu::Dealloc()
 }
 
 
-void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,float zReg,float zRegQuad, ushort costDefMask,ushort costDefMaskTrans)
+void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,float zReg,float zRegQuad, ushort costDefMask,ushort costDefMaskTrans, bool hasMaskAuto)
 {
     uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
 
@@ -38,6 +38,8 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,f
     _D_data2Opt.setZRegQuad(zRegQuad);
     _D_data2Opt.setCostDefMasked(costDefMask);
     _D_data2Opt.setCostTransMaskNoMask(costDefMaskTrans);
+    _D_data2Opt.setHasMaskAuto(hasMaskAuto);
+
     _FinalDefCor.Fill(0);
     _preFinalCost1D.Fill(0);
 
