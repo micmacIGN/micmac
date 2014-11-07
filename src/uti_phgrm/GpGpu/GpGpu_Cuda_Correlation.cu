@@ -131,7 +131,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
   // Point terrain global
   int2 coorTer = ptTer + HdPc.rTer.pt0;
 
-  //if(tex2D(TexS_MaskGlobal, coorTer.x, coorTer.y) == 0) return;
+  if(tex2D(TexS_MaskGlobal, coorTer.x, coorTer.y) == 0) return;
 
   if(tex2DLayered(TexL_MaskImages, coorTer.x, coorTer.y,idImg) == 0) return;
 
