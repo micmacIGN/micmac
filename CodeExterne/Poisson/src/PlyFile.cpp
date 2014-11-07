@@ -32,8 +32,13 @@
 
 */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
-#include "../include/PlyFile.h"
+#include <string.h>
+#include "Ply.h"
+#include <iostream>
+#include <sstream>
 
 const char *type_names[] = {
     "invalid",
@@ -99,10 +104,10 @@ static int types_checked = 0;
 int equal_strings(const char *, const char *);
 
 /* find an element in a plyfile's list */
-PlyElement *find_element(PlyFile *, char *);
+PlyElement *find_element(PlyFile *, const char *);
 
 /* find a property in an element's list */
-PlyProperty *find_property(PlyElement *, char *, int *);
+PlyProperty *find_property(PlyElement *, const string &, int *);
 
 /* write to a file the word describing a PLY file data type */
 void write_scalar_type (FILE *, int);
@@ -314,7 +319,8 @@ void ply_describe_element(
     elem->store_prop = (char *) myalloc (sizeof (char) * nprops);
 
     for (i = 0; i < nprops; i++) {
-        prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+        //prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+        prop = new(PlyProperty);
         elem->props[i] = prop;
         elem->store_prop[i] = NAMED_PROP;
         copy_property (prop, &prop_list[i]);
@@ -333,7 +339,7 @@ Describe a property of an element.
 
 void ply_describe_property(
                            PlyFile *plyfile,
-                           char *elem_name,
+                           const char *elem_name,
                            PlyProperty *prop
                            )
 {
@@ -365,7 +371,8 @@ void ply_describe_property(
 
     /* copy the new property */
 
-    elem_prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+    //elem_prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+    elem_prop = new(PlyProperty);
     elem->props[elem->nprops - 1] = elem_prop;
     elem->store_prop[elem->nprops - 1] = NAMED_PROP;
     copy_property (elem_prop, prop);
@@ -415,7 +422,8 @@ void ply_describe_other_properties(
     /* copy the other properties */
 
     for (i = 0; i < other->nprops; i++) {
-        prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+        //prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+        prop = new(PlyProperty);
         copy_property (prop, other->props[i]);
         elem->props[elem->nprops] = prop;
         elem->store_prop[elem->nprops] = OTHER_PROP;
@@ -439,7 +447,7 @@ State how many of a given element will be written.
 
 void ply_element_count(
                        PlyFile *plyfile,
-                       char *elem_name,
+                       const char *elem_name,
                        int nelems
                        )
 {
@@ -514,12 +522,12 @@ void ply_header_complete(PlyFile *plyfile)
                 write_scalar_type (fp, prop->count_external);
                 fprintf (fp, " ");
                 write_scalar_type (fp, prop->external_type);
-                fprintf (fp, " %s\n", prop->name);
+                fprintf (fp, " %s\n", prop->name.c_str());
             }
             else {
                 fprintf (fp, "property ");
                 write_scalar_type (fp, prop->external_type);
-                fprintf (fp, " %s\n", prop->name);
+                fprintf (fp, " %s\n", prop->name.c_str());
             }
         }
     }
@@ -537,7 +545,7 @@ before a call to the routine ply_put_element().
  elem_name - name of element we're talking about
 ******************************************************************************/
 
-void ply_put_element_setup(PlyFile *plyfile, char *elem_name)
+void ply_put_element_setup(PlyFile *plyfile, const char *elem_name)
 {
     PlyElement *elem;
 
@@ -765,7 +773,6 @@ Specify a comment that will be written in the header.
      plyfile->other_elems = NULL;
 
      /* read and parse the file's header */
-
      words = get_words (plyfile->fp, &nwords, &orig_line);
      if (!words || !equal_strings (words[0], "ply"))
      {
@@ -879,7 +886,6 @@ Open a polygon file for reading.
           return (NULL);
 
       /* create the PlyFile data structure */
-
       plyfile = ply_read (fp, nelems, elem_names);
 
       /* determine the file type and version */
@@ -930,7 +936,8 @@ Open a polygon file for reading.
       /* make a copy of the element's property list */
       prop_list = (PlyProperty **) myalloc (sizeof (PlyProperty *) * elem->nprops);
       for (i = 0; i < elem->nprops; i++) {
-          prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+          //prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+          prop = new(PlyProperty);
           copy_property (prop, elem->props[i]);
           prop_list[i] = prop;
       }
@@ -974,7 +981,7 @@ Open a polygon file for reading.
           prop = find_property (elem, prop_list[i].name, &index);
           if (prop == NULL) {
               fprintf (stderr, "Warning:  Can't find property '%s' in element '%s'\n",
-                  prop_list[i].name, elem_name);
+                  prop_list[i].name.c_str(), elem_name);
               continue;
           }
 
@@ -1214,7 +1221,8 @@ Open a polygon file for reading.
       for (i = 0; i < elem->nprops; i++) {
           if (elem->store_prop[i])
               continue;
-          prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+          //prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+          prop = new(PlyProperty);
           copy_property (prop, elem->props[i]);
           other->props[nprops] = prop;
           nprops++;
@@ -1294,7 +1302,7 @@ Open a polygon file for reading.
       other->elem_count = elem_count;
 
       /* save name of element */
-      other->elem_name = _strdup (elem_name);
+      other->elem_name = elem_name;
 
       /* create a list to hold all the current elements */
       other->other_data = (OtherData **)
@@ -1351,7 +1359,7 @@ Open a polygon file for reading.
           other = &(other_elems->other_list[i]);
           elem = (PlyElement *) myalloc (sizeof (PlyElement));
           plyfile->elems[plyfile->nelems++] = elem;
-          elem->name = _strdup (other->elem_name);
+          elem->name = other->elem_name;
           elem->num = other->elem_count;
           elem->nprops = 0;
           ply_describe_other_properties (plyfile, other->other_props,
@@ -1476,7 +1484,7 @@ Open a polygon file for reading.
     returns the element, or NULL if not found
   ******************************************************************************/
 
-  PlyElement *find_element(PlyFile *plyfile, char *element)
+  PlyElement *find_element(PlyFile *plyfile, const char *element)
   {
       int i;
 
@@ -1500,12 +1508,12 @@ Open a polygon file for reading.
     returns a pointer to the property, or NULL if not found
   ******************************************************************************/
 
-  PlyProperty *find_property(PlyElement *elem, char *prop_name, int *index)
+  PlyProperty *find_property(PlyElement *elem, const string &prop_name, int *index)
   {
       int i;
 
       for (i = 0; i < elem->nprops; i++)
-          if (equal_strings (prop_name, elem->props[i]->name)) {
+          if (prop_name == elem->props[i]->name) {
               *index = i;
               return (elem->props[i]);
           }
@@ -2450,9 +2458,13 @@ Read an element from a binary file.
       case PLY_FLOAT_32:
       case PLY_DOUBLE:
       case PLY_FLOAT_64:
-          *double_val = atof (word);
+      {
+          *double_val = 0.0f;
+          std::istringstream istr(word);
+          istr >> *double_val;  //*double_val = atof (word); //atof sensitive to systems where locale defines comma as decimal separator
           *int_val = (int) *double_val;
           *uint_val = (unsigned int) *double_val;
+      }
           break;
 
       default:
@@ -2611,17 +2623,18 @@ Read an element from a binary file.
 
       /* create the new property */
 
-      prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+      //prop = (PlyProperty *) myalloc (sizeof (PlyProperty));
+      prop = new(PlyProperty);
 
       if (equal_strings (words[1], "list")) {       /* is a list */
           prop->count_external = get_prop_type (words[2]);
           prop->external_type = get_prop_type (words[3]);
-          prop->name = _strdup (words[4]);
+          prop->name = string (words[4]);
           prop->is_list = 1;
       }
       else {                                        /* not a list */
           prop->external_type = get_prop_type (words[1]);
-          prop->name = _strdup (words[2]);
+          prop->name = string (words[2]);
           prop->is_list = 0;
       }
 
@@ -2688,7 +2701,7 @@ Read an element from a binary file.
 
   void copy_property(PlyProperty *dest, PlyProperty *src)
   {
-      dest->name = _strdup (src->name);
+      dest->name = src->name;
       dest->external_type = src->external_type;
       dest->internal_type = src->internal_type;
       dest->offset = src->offset;
