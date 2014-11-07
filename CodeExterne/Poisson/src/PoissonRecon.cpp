@@ -57,6 +57,12 @@ void DumpOutput2( char* str , const char* format , ... );
 #pragma message ( "[WARNING] Setting default full depth to " XSTR(DEFAULT_FULL_DEPTH) )
 #endif // DEFAULT_FULL_DEPTH
 
+#ifndef ELISE_Darwin
+    #pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
 #include <stdarg.h>
 char* outputFile=NULL;
 int echoStdout=0;
@@ -476,3 +482,7 @@ int main( int argc , char* argv[] )
 #endif // _WIN32
     return EXIT_SUCCESS;
 }
+
+#ifndef ELISE_Darwin
+    #pragma GCC diagnostic pop
+#endif

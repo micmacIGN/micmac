@@ -29,6 +29,10 @@ DAMAGE.
 #include <float.h>
 #include <string.h>
 
+#ifndef ELISE_Darwin
+    #pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 ///////////////////
 //  SparseMatrix //
@@ -1130,15 +1134,24 @@ int SparseMatrix<T>::SolveGS( const SparseMatrix<T>& M , const Vector<T2>& diago
 #undef ITERATE
     return M.rows;
 }
+
 template<class T>
 template<class T2>
 int SparseMatrix<T>::SolveGS( const std::vector< std::vector< int > >& mcIndices , const SparseMatrix<T>& M , const Vector<T2>& diagonal , const Vector<T2>& b , Vector<T2>& x , bool forward , int threads , int offset )
 {
     int sum=0;
 #ifdef _WIN32
-#define SetOMPParallel __pragma( omp parallel for num_threads( threads ) )
+#ifdef USE_OPEN_MP
+    #define SetOMPParallel __pragma( omp parallel for num_threads( threads ) )
+#else
+    #define SetOMPParallel
+#endif
 #else // !_WIN32
-#define SetOMPParallel _Pragma( "omp parallel for num_threads( threads )" )
+#ifdef USE_OPEN_MP
+    #define SetOMPParallel _Pragma( "omp parallel for num_threads( threads )" )
+#else
+    #define SetOMPParallel
+#endif
 #endif // _WIN32
 #if ZERO_TESTING_JACOBI
 #define ITERATE( indices )                                                        \
@@ -1211,7 +1224,9 @@ int SparseMatrix<T>::SolveGS( const std::vector< std::vector< int > >& mcIndices
         const std::vector< int >& _mcIndices = mcIndices[j];
         sum += int( _mcIndices.size() );
         {
-#pragma omp parallel for num_threads( threads )
+#ifdef USE_OPEN_MP
+    #pragma omp parallel for num_threads( threads )
+#endif
             for( int k=0 ; k<int( _mcIndices.size() ) ; k++ )
             {
                 int jj = _mcIndices[k];
@@ -1306,9 +1321,17 @@ int SparseSymmetricMatrix<T>::SolveGS( const std::vector< std::vector< int > >& 
     M.Multiply( x , Mx , scratch );
     dx.SetZero();
 #ifdef _WIN32
-#define SetOMPParallel __pragma( omp parallel for num_threads( scratch.threads() ) )
+#ifdef USE_OPEN_MP
+    #define SetOMPParallel __pragma( omp parallel for num_threads( scratch.threads() ) )
+#else
+    #define SetOMPParallel
+#endif
 #else // !_WIN32
-#define SetOMPParallel _Pragma( "omp parallel for num_threads( scratch.threads() )" )
+#ifdef USE_OPEN_MP
+    #define SetOMPParallel _Pragma( "omp parallel for num_threads( scratch.threads() )" )
+#else
+    #define SetOMPParallel
+#endif
 #endif // _WIN32
 #if ZERO_TESTING_JACOBI
 #define ITERATE( indices )                                                        \
@@ -1421,3 +1444,7 @@ void SparseSymmetricMatrix< T >::getDiagonal( Vector< T2 >& diagonal , int threa
         diagonal[i] = d * T2(2);
     }
 }
+
+#ifndef ELISE_Darwin
+    #pragma GCC diagnostic pop
+#endif

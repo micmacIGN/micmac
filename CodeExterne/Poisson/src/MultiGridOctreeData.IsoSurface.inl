@@ -31,7 +31,12 @@ DAMAGE.
 #include "MemoryUsage.h"
 #include "MAT.h"
 
-
+#ifndef ELISE_Darwin
+    #pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wreturn-type"
+#pragma GCC diagnostic ignored "-Wparentheses"
 
 template< class Real >
 template< class Vertex >
@@ -1167,3 +1172,7 @@ int Octree< Real >::AddIsoPolygons( CoredMeshData< Vertex >& mesh , std::vector<
     }
     return (int)polygon.size()-2;
 }
+
+#ifndef ELISE_Darwin
+    #pragma GCC diagnostic pop
+#endif
