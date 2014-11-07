@@ -501,10 +501,10 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
                     aCF = 0;
                 }
 
-                #ifdef CUDA_ENBLED
+                #ifdef CUDA_ENABLED
 						 if(mHasMaskAuto)
 							  IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
-					#endif
+                #endif
         }
     }
     //nvtxRangePop();
