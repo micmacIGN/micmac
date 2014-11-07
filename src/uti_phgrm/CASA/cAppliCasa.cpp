@@ -94,18 +94,37 @@ const cInterfSurfaceAnalytique *  cAppli_Casa::UsePts(const cInterfSurfaceAnalyt
    std::string anOri = aSIM.OriPts().Val();
    StdCorrecNameOrient(anOri,mDC);
 
+   std::map<std::string,Pt3dr> aDico;
+
    for 
    (
-      std::list<cMesureAppuiFlottant1Im>::iterator itM = aSMAF.MesureAppuiFlottant1Im().begin();
+      std::list<cMesureAppuiFlottant1Im>::const_iterator itM = aSMAF.MesureAppuiFlottant1Im().begin();
       itM  != aSMAF.MesureAppuiFlottant1Im().end();
       itM++
    )
    {
          std::string aNameCam = mDC + mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+anOri,itM->NameIm(),true);
          CamStenope * aCS =CamOrientGenFromFile(aNameCam,mICNM);
+         for 
+         (
+             std::list<cOneMesureAF1I>::const_iterator itO=itM->OneMesureAF1I().begin();
+             itO != itM->OneMesureAF1I().end();
+             itO++
+         )
+         {
+             cTplValGesInit<Pt3dr> aPTer = aSurf->PImageToSurf0(*aCS,itO->PtIm());
+             if (aPTer.IsInit())
+             {
+                 // Pt3dr aPLoc = aPTer.Val();
+                 // Pt3dr aPEucl = aSurf->UVL2E(aPLoc);
+// std::cout << "cAppli_Casa::UsePts " << itO->NamePt() << " " << itO->PtIm() << aPTer.Val() << "\n";
+                 aDico[itO->NamePt()] = aPTer.Val();
+             }
+         }
    }
+   
 
-   return aSurf;
+   return aSurf->ChangeRepDictPts(aDico);
 }
 
 

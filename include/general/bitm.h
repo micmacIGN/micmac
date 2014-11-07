@@ -497,6 +497,7 @@ class Im2D_NoDataLin{};
 template <class Type,class TyBase> class Im2D : public Im2DGen
 {
    public :
+
       ElMatrix<REAL>  ToMatrix() const;
       typedef Type   tElem;
       typedef TyBase tBase;
@@ -559,8 +560,11 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       virtual  GenIm::type_el TypeEl() const ;
       void raz();
       void dup (Im2D<Type,TyBase> to_dup);
+      Im2D<Type,TyBase> dup ();
+      REAL  som_rect();
       REAL  som_rect(Pt2dr p0,Pt2dr p1,REAL def=0.0);
       REAL  moy_rect(Pt2dr p0,Pt2dr p1,REAL def=0.0);
+      Im2D<Type,TyBase>  ToSom1();
 
           Im2D<Type,TyBase> Reech(REAL aZoom);
 

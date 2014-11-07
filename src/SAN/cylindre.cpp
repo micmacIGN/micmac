@@ -211,6 +211,13 @@ Pt3dr cInterfSurfaceAnalytique::FromOrLoc(const Pt3dr & aP) const
 }
 
 
+cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::ChangeRepDictPts(const std::map<std::string,Pt3dr> &) const
+{
+    ELISE_ASSERT(false,"cInterfSurfaceAnalytique::ChangeRepDictPts");
+    return 0;
+}
+
+
 
 
 /*
@@ -388,6 +395,35 @@ std::vector<cInterSurfSegDroite>  cCylindreRevolution::InterDroite(const ElSeg3D
 
    return aRes;
 }
+
+cInterfSurfaceAnalytique * cCylindreRevolution::ChangeRepDictPts(const std::map<std::string,Pt3dr> & aDic) const
+{
+    return CR_ChangeRepDictPts(aDic);
+}
+
+
+cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::map<std::string,Pt3dr> & aDic) const
+{
+    ElSeg3D aSeg(mP0,mP0+mW);
+    Pt3dr  aP0OnCyl =  POnCylInit() ;
+
+    std::map<std::string,Pt3dr>::const_iterator itTop =    aDic.find("Top");
+    std::map<std::string,Pt3dr>::const_iterator itBottom = aDic.find("Bottom");
+
+    if ((itTop!=aDic.end()) && (itBottom!=aDic.end()))
+    {
+        Pt3dr aTop  =     itTop->second;
+        Pt3dr aBottom  =  itBottom->second;
+        double aScal = aTop.y - aBottom.y;
+        if (aScal<0)
+           aSeg  = ElSeg3D(mP0,mP0-mW);
+    }
+
+    return new cCylindreRevolution (IsVueExt(),aSeg,aP0OnCyl);
+}
+
+
+
 
 /*
 Pt3dr cCylindreRevolution::SegAndL(const ElSeg3D & aSeg,double aZ0,int & aNbVraiSol) const 

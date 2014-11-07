@@ -59,20 +59,37 @@ class cCorCamL : public cAppliWithSetImage
    public :
 
        cCorCamL(int argc,char** argv);
+   private :
 
+       float compr( float v );
+       float decompr( float v );
        void DoOne(const std::string & aName);
 
        std::string mFullName;
        double mGama;
        double mDif;
        bool   mVisu;
+       int    mFilter;
 };
+
+
+float cCorCamL::compr( float v ) {
+        if( v < 1024 ) return (v+4)/8;
+        if( v < 2048 ) return (v+8)/16+64;
+        return (v+16)/32+128;
+}
+float cCorCamL::decompr( float v ) {
+        if( v < 128 ) return v*8;
+        if( v < 192 ) return (v-64)*16;
+        return (v-128)*32;
+}
 
 cCorCamL::cCorCamL(int argc,char** argv) :
    cAppliWithSetImage(argc-1,argv+1,TheFlagNoOri),
    mGama             (0.55),
    mDif              (0),
-   mVisu             (false)
+   mVisu             (false),
+   mFilter           (0)
 {
   ElInitArgMain
   (
@@ -81,6 +98,7 @@ cCorCamL::cCorCamL(int argc,char** argv) :
         LArgMain()  << EAM(mGama,"Gama",true,"Gama correc to invert, Def=0.55")
                     << EAM(mDif,"Dif",true,"Out Orientation, if unspecified : calc")
                     << EAM(mVisu,"Visu",true,"Visualisation, Def=false")
+                    << EAM(mFilter,"Filter",true,"0=None(Def) , 1=Filter Y, 2=Filter XY")
    );
 
    const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
@@ -99,11 +117,29 @@ cCorCamL::cCorCamL(int argc,char** argv) :
 
 void cCorCamL::DoOne(const std::string & aName)
 {
+    bool ThomLut=true;
 
     Im2D_REAL4 anIm0 =  Im2D_REAL4::FromFileStd(aName);
+    TIm2D<REAL4,REAL8> aTIm0(anIm0);
     Pt2di aSz = anIm0.sz();
     Im2D_REAL4 anImEg(aSz.x,aSz.y);
-    ELISE_COPY(anIm0.all_pts(),pow(anIm0.in(),1/mGama),anImEg.out());
+    TIm2D<REAL4,REAL8> aTImEq(anImEg);
+
+    if (ThomLut)
+    {
+        Pt2di aP;
+        for (aP.x=0; aP.x<aSz.x; aP.x++)
+        {
+           for (aP.y=0; aP.y<aSz.y; aP.y++)
+           {
+               aTImEq.oset(aP,decompr(aTIm0.get(aP)));
+           }
+        }
+    }
+    else
+    {
+       ELISE_COPY(anIm0.all_pts(),pow(anIm0.in(),1/mGama),anImEg.out());
+    }
 
     double aMaxDif= 100;
     double aStep =  1;
@@ -179,6 +215,7 @@ void cCorCamL::DoOne(const std::string & aName)
 
     }
 
+    // corrige de la valeur une ligne /2 
     int aParite=0;
     if (mDif>0)
     {
@@ -188,7 +225,44 @@ void cCorCamL::DoOne(const std::string & aName)
     {
        ELISE_COPY(select(anImEg.all_pts(),(FY%2)==(1-aParite)),anImEg.in()-mDif,anImEg.out());
     }
-    ELISE_COPY(anImEg.all_pts(),pow(anImEg.in(), mGama),anIm0.out());
+
+    // Fait un eventuel filtrage pour supprimer les residu d'artefact
+
+    if (mFilter)
+    {
+        std::string aStrFitl = (mFilter == 1) ? "1 2 1 2 4 2 1 2 1" : "0 1 0 0 2 0 0 1 0";
+        Im2D_REAL8 aFiltr(3,3,aStrFitl.c_str());
+        aFiltr = aFiltr.ToSom1();
+        ELISE_COPY(anImEg.all_pts(),som_masq(anImEg.in_proj(),aFiltr),anImEg.out());
+        
+/*
+        
+        Fonc_Num som_masq
+         (
+            Fonc_Num f,
+            Im2D_REAL8 filtr,
+            Pt2di dec = som_masq_Centered
+          );
+*/
+
+    }
+
+    //  Re compression
+    if (ThomLut)
+    {
+        Pt2di aP;
+        for (aP.x=0; aP.x<aSz.x; aP.x++)
+        {
+           for (aP.y=0; aP.y<aSz.y; aP.y++)
+           {
+               aTIm0.oset(aP,compr(aTImEq.get(aP)));
+           }
+        }
+    }
+    else
+    {
+       ELISE_COPY(anImEg.all_pts(),pow(anImEg.in(), mGama),anIm0.out());
+    }
 
     Tiff_Im::Create8BFromFonc("Eq_"+aName,aSz,anIm0.in());
 }

@@ -117,6 +117,9 @@ class cInterfSurfaceAnalytique
         virtual bool OrthoLocIsXCste() const ; // Si vrai les ligne F(X,Y,Z0) = F(Y,Z0), la desanamorphose est automatique
 
 
+        // Defaut return 0
+         virtual cInterfSurfaceAnalytique * ChangeRepDictPts(const std::map<std::string,Pt3dr> &) const;
+
 
          static cInterfSurfaceAnalytique * FromXml(const cXmlOneSurfaceAnalytique &);
 
@@ -210,6 +213,9 @@ class cCylindreRevolution : public cInterfSurfaceAnalytique
               const ElSeg3D & aSeg,
               const Pt3dr & aPOnCyl
         );
+
+         cInterfSurfaceAnalytique * ChangeRepDictPts(const std::map<std::string,Pt3dr> &) const;
+         cCylindreRevolution *      CR_ChangeRepDictPts(const std::map<std::string,Pt3dr> &) const;
 
         static cCylindreRevolution WithRayFixed
                     (
