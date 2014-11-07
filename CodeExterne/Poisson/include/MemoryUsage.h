@@ -29,6 +29,11 @@ DAMAGE.
 #ifndef MEMORY_USAGE_INCLUDED
 #define MEMORY_USAGE_INCLUDED
 
+#ifndef ELISE_Darwin
+    #pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 #if (ELISE_windows)
     class MemoryInfo{
     public:
@@ -189,5 +194,9 @@ DAMAGE.
         };
     #endif // !__APPLE__
 #endif // WIN32
+
+#ifndef ELISE_Darwin
+    #pragma GCC diagnostic pop
+#endif
 
 #endif // MEMORY_USAGE_INCLUDE
