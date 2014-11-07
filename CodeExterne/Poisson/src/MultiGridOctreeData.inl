@@ -40,6 +40,14 @@ const double MATRIX_ENTRY_EPSILON = 0;
 const double EPSILON              = 1e-6;
 const double ROUND_EPS            = 1e-5;
 
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic ignored "-Wunused-variable"
+	#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
 
 
 //////////////////
@@ -156,7 +164,7 @@ Real Octree< Real >::SplatOrientedPoint( ConstPointer( Real ) kernelDensityWeigh
     double dx;
     Point3D<Real> n;
     TreeOctNode* temp;
-    int cnt=0;
+    //int cnt=0;
     double width;
     Point3D< Real > myCenter;
     Real myWidth;
@@ -2701,3 +2709,10 @@ long long VertexData::EdgeIndex( const TreeOctNode* node , int eIndex , int maxD
     };
     return (long long)(idx[0]) | (long long)(idx[1])<<VERTEX_COORDINATE_SHIFT | (long long)(idx[2])<<(2*VERTEX_COORDINATE_SHIFT);
 }
+
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic pop
+	#endif
+#endif
