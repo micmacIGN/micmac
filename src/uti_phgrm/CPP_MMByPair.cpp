@@ -491,15 +491,19 @@ void cAppliWithSetImage::SaveCAWSI(const std::string & aName)
 }
 
 
-std::list<std::pair<std::string,std::string> > cAppliWithSetImage::ExpandCommand(int aNumPat,std::string ArgSup)
+std::list<std::pair<std::string,std::string> > cAppliWithSetImage::ExpandCommand(int aNumPat,std::string ArgSup,bool Exe)
 {
+    std::list<std::string> aLCom;
     std::list<std::pair<std::string,std::string> >  aRes;
     for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
     {
        std::string aNIm = mVSoms[aK]->attr().mIma->mNameIm;
        std::string aNCom = SubstArgcArvGlob(aNumPat,aNIm) + " " + ArgSup;
        aRes.push_back(std::pair<std::string,std::string>(aNCom,aNIm));
+       aLCom.push_back(aNCom);
     }
+    if (Exe)
+       cEl_GPAO::DoComInParal(aLCom);
     return aRes;
 }
 
@@ -586,9 +590,13 @@ CamStenope * cAppliWithSetImage::CamOfName(const std::string & aNameIm)
       anOC.Interne().Val().SzIm() = round_ni(aSz);
       anOC.Interne().Val().CalibDistortion()[0].ModRad().Val().CDist() =  aSz/2.0;
 
-      MakeFileXML(anOC,Basic_XML_MM_File("TmpCam.xml"));
+      std::string aName = Basic_XML_MM_File("TmpCam"+ GetUnikId() +".xml");
+      MakeFileXML(anOC,aName);
       // return Std_Cal_From_File(Basic_XML_MM_File("TmpCam.xml"));
-      return CamOrientGenFromFile(Basic_XML_MM_File("TmpCam.xml"),0);
+      CamStenope * aRes =  CamOrientGenFromFile(aName,0);
+      ELISE_fp::RmFile(aName);
+
+      return aRes;
 
 
      // return ;

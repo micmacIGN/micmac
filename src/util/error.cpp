@@ -183,8 +183,8 @@ std::string ElEM::mes_el() const
 
     switch(_type)
     {
-        case _int    : mes += _data.i     ; break;
-        case _real   : mes += _data.r     ; break;
+        case _int    : mes += ToString(_data.i)     ; break;
+        case _real   : mes += ToString(_data.r)     ; break;
         case _string : mes += _data.s     ; break;
         case _pt_pck :  _data.pack->show_kth(_data_2.i);
                         break;
@@ -195,7 +195,7 @@ std::string ElEM::mes_el() const
               for (INT i  = 0 ; i <_data_2.i; i++)
               {
                   if (i) mes +=  " x ";
-                  mes += _data.Pi[i];
+                  mes += ToString(_data.Pi[i]);
               }
 
               mes += "]";
@@ -209,7 +209,7 @@ std::string ElEM::mes_el() const
               for (INT i  = 0 ; i <_data_2.i; i++)
               {
                   if (i) mes +=  " x ";
-                  mes += _data.Pr[i];
+                  mes += ToString(_data.Pr[i]);
               }
 
               mes += "]";
