@@ -124,14 +124,14 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
     return;
 
 
-  /// !!!!!!!!!!!!!!!!
+  /// Faux mais fait le job! en limite d'image
   if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y))
       return;
 
   // Point terrain global
   int2 coorTer = ptTer + HdPc.rTer.pt0;
 
-  if(tex2D(TexS_MaskGlobal, coorTer.x, coorTer.y) == 0) return;
+  //if(tex2D(TexS_MaskGlobal, coorTer.x, coorTer.y) == 0) return;
 
   if(tex2DLayered(TexL_MaskImages, coorTer.x, coorTer.y,idImg) == 0) return;
 
@@ -145,17 +145,14 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
   #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
   for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
   {
-        //const int pic = pt.y*BLOCKDIM;
-        float* cImg    = cacheImg +  pt.y*BLOCKDIM;
+
+      float* cImg    = cacheImg +  pt.y*BLOCKDIM;
       #pragma unroll
       for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
-          const float val = cImg[pt.x];	// Valeur de l'image
-
-          //if (val ==  invPc.floatDefault) return;
-          //if (val < 0 ) return;// TODO MASQIMAGE
-          aSV  += val;          // Somme des valeurs de l'image cte
-          aSVV += (val*val);	// Somme des carrés des vals image cte
+          const float val = cImg[pt.x];     // Valeur de l'image
+          aSV  += val;                      // Somme des valeurs de l'image cte
+          aSVV += (val*val);                // Somme des carrés des vals image cte
       }
   }
 
