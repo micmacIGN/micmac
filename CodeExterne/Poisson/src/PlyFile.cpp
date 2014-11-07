@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "Ply.h"
+#include "../include/Ply.h"
 #include <iostream>
 #include <sstream>
 

@@ -227,7 +227,7 @@
     }
 
 #else
-
+    #include "../../CodeExterne/Poisson/include/PlyFile.h"
     #if (0)
     // MPD : PB de linj et doublon avec : poisson/plyfile.cpp
     const char *elem_names[] = { /* list of the kinds of elements in the user's object */
