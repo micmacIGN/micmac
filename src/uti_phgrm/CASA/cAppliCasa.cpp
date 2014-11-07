@@ -47,10 +47,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // Test push
 
-#ifndef ELISE_Darwin
-    #pragma GCC diagnostic push
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
-#pragma GCC diagnostic ignored "-Wunused-variable"
 
 cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
      mParam   (*aP2.mObj),
@@ -113,8 +116,11 @@ const cInterfSurfaceAnalytique *  cAppli_Casa::UsePts(const cInterfSurfaceAnalyt
    return aSurf;
 }
 
-#ifndef ELISE_Darwin
-    #pragma GCC diagnostic pop
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic pop
+	#endif
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007

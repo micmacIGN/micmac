@@ -29,10 +29,14 @@ DAMAGE.
 #include <float.h>
 #include <string.h>
 
-#ifndef ELISE_Darwin
-    #pragma GCC diagnostic push
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
-#pragma GCC diagnostic ignored "-Wunused-variable"
+
 
 ///////////////////
 //  SparseMatrix //
@@ -1445,6 +1449,9 @@ void SparseSymmetricMatrix< T >::getDiagonal( Vector< T2 >& diagonal , int threa
     }
 }
 
-#ifndef ELISE_Darwin
-    #pragma GCC diagnostic pop
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic pop
+	#endif
 #endif

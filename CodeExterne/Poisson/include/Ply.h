@@ -232,6 +232,7 @@ template<> inline int PLYType<        float  >( void ){ return PLY_FLOAT ; }
 template<> inline int PLYType<        double >( void ){ return PLY_DOUBLE; }
 template< class Real > inline int PLYType( void ){ fprintf( stderr , "[ERROR] Unrecognized type\n" ) , exit( 0 ); }
 
+
 typedef struct PlyFace
 {
     unsigned char nr_vertices;
