@@ -188,6 +188,9 @@ cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::FromXml
    if (aDA.OrthoCyl().IsInit())
       return new cProjOrthoCylindrique(cProjOrthoCylindrique::FromXml(aDS,aDA.OrthoCyl().Val()));
 
+   if (aDA.Tore().IsInit())
+      return new cProjTore(cProjTore::FromXml(aDS,aDA.Tore().Val()));
+
    ELISE_ASSERT(false,"cInterfSurfaceAnalytique::FromXml");
    return 0;
 }
@@ -402,9 +405,15 @@ cInterfSurfaceAnalytique * cCylindreRevolution::ChangeRepDictPts(const std::map<
 }
 
 
+ElSeg3D  cCylindreRevolution::Axe() const
+{
+   return ElSeg3D(mP0,mP0+mW);
+}
+
+
 cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::map<std::string,Pt3dr> & aDic) const
 {
-    ElSeg3D aSeg(mP0,mP0+mW);
+    ElSeg3D aSeg = Axe();
     Pt3dr  aP0OnCyl =  POnCylInit() ;
 
     std::map<std::string,Pt3dr>::const_iterator itTop =    aDic.find("Top");

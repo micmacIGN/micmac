@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1280]) = {
+const char * (theNameVar_SuperposImage[1288]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -447,6 +447,13 @@ const char * (theNameVar_SuperposImage[1280]) = {
 "         <POnCyl  Nb=\"1\" Type=\"Pt3dr\"> </POnCyl>\n",
 "    </XmlCylindreRevolution>\n",
 "\n",
+"    <XmlToreRevol   Nb=\"1\"  Class=\"true\" ToReference=\"true\">\n",
+"        <!-- P0-P1 , deux points sur la droite -->\n",
+"         <Cyl Nb=\"1\" RefType=\"XmlCylindreRevolution\"> </Cyl>\n",
+"         <POriTore  Nb=\"1\" Type=\"Pt3dr\"> </POriTore>\n",
+"    </XmlToreRevol>\n",
+"\n",
+"\n",
 "     <XmlOrthoCyl  Nb=\"1\"  Class=\"true\" ToReference=\"true\">\n",
 "          <Repere Nb=\"1\" RefType=\"RepereCartesien\"  RefFile=\"ParamChantierPhotogram.xml\"> </Repere>\n",
 "          <P0 Nb=\"1\" Type=\"Pt3dr\"> </P0>\n",
@@ -456,7 +463,8 @@ const char * (theNameVar_SuperposImage[1280]) = {
 "\n",
 "     <XmlDescriptionAnalytique Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "               <Cyl Nb=\"?\" RefType=\"XmlCylindreRevolution\"> </Cyl>\n",
-"               <OrthoCyl Nb=\"?\" RefType=\"XmlOrthoCyl\"> </OrthoCyl>\n",
+"               <OrthoCyl Nb=\"?\" RefType=\"XmlOrthoCyl\">      </OrthoCyl>\n",
+"               <Tore Nb=\"?\" RefType=\"XmlToreRevol\">         </Tore>\n",
 "     </XmlDescriptionAnalytique>\n",
 "      <XmlOneSurfaceAnalytique Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "            <XmlDescriptionAnalytique Nb=\"1\" UnionType=\"true\" RefType=\"XmlDescriptionAnalytique\"> </XmlDescriptionAnalytique>\n",
