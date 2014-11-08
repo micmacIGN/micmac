@@ -194,6 +194,8 @@ public :
 };
 
 
+int Donuts_main(int argc,char **argv);
+
 
 
 
@@ -386,6 +388,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("DIV",Devideo_main,"Developpement d'Images Video (require ffmpeg)"));
        aRes.push_back(cMMCom("Liquor",Liquor_main,"Orientation specialized for linear acquisition"));
        aRes.push_back(cMMCom("Morito",Morito_main,"Mergeset of  Orientaion with common valures"));
+       aRes.push_back(cMMCom("Donuts",Donuts_main,"Cyl to Torus (Donuts like)"));
    }
 
    cCmpMMCom CmpMMCom;

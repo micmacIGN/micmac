@@ -61,6 +61,9 @@ class cCorCamL : public cAppliWithSetImage
        cCorCamL(int argc,char** argv);
    private :
 
+       Im2D_REAL4 ImUnCompr(Im2D_REAL4);
+       Im2D_REAL4 ImCompr(Im2D_REAL4);
+
        float compr( float v );
        float decompr( float v );
        void DoOne(const std::string & aName);
@@ -70,6 +73,8 @@ class cCorCamL : public cAppliWithSetImage
        double mDif;
        bool   mVisu;
        int    mFilter;
+       bool   mThomLut;
+       bool   mCalibFF;
 };
 
 
@@ -89,7 +94,9 @@ cCorCamL::cCorCamL(int argc,char** argv) :
    mGama             (0.55),
    mDif              (0),
    mVisu             (false),
-   mFilter           (0)
+   mFilter           (0),
+   mThomLut          (true),
+   mCalibFF          (false)
 {
   ElInitArgMain
   (
@@ -99,6 +106,7 @@ cCorCamL::cCorCamL(int argc,char** argv) :
                     << EAM(mDif,"Dif",true,"Out Orientation, if unspecified : calc")
                     << EAM(mVisu,"Visu",true,"Visualisation, Def=false")
                     << EAM(mFilter,"Filter",true,"0=None(Def) , 1=Filter Y, 2=Filter XY")
+                    << EAM(mCalibFF,"Calib",true,"Calib Variation")
    );
 
    const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
@@ -107,25 +115,20 @@ cCorCamL::cCorCamL(int argc,char** argv) :
    {
       DoOne((*aSetIm)[0]);
    }
-   else if (aSetIm->size() >1)
+   else if (aSetIm->size()>1)
    {
-        ExpandCommand(3,"",true);
+       ExpandCommand(3,"",true);
    }
 }
 
-
-
-void cCorCamL::DoOne(const std::string & aName)
+Im2D_REAL4 cCorCamL::ImUnCompr(Im2D_REAL4 anIm0)
 {
-    bool ThomLut=true;
-
-    Im2D_REAL4 anIm0 =  Im2D_REAL4::FromFileStd(aName);
     TIm2D<REAL4,REAL8> aTIm0(anIm0);
     Pt2di aSz = anIm0.sz();
     Im2D_REAL4 anImEg(aSz.x,aSz.y);
     TIm2D<REAL4,REAL8> aTImEq(anImEg);
 
-    if (ThomLut)
+    if (mThomLut)
     {
         Pt2di aP;
         for (aP.x=0; aP.x<aSz.x; aP.x++)
@@ -140,25 +143,63 @@ void cCorCamL::DoOne(const std::string & aName)
     {
        ELISE_COPY(anIm0.all_pts(),pow(anIm0.in(),1/mGama),anImEg.out());
     }
+    return anImEg;
+}
+
+
+void cCorCamL::DoOne(const std::string & aName)
+{
+    // bool ThomLut=true;
+
+    Im2D_REAL4 anIm0 =  Im2D_REAL4::FromFileStd(aName);
+    TIm2D<REAL4,REAL8> aTIm0(anIm0);
+    Pt2di aSz = anIm0.sz();
+    Im2D_REAL4 anImEg = ImUnCompr(anIm0);
+    TIm2D<REAL4,REAL8> aTImEq(anImEg);
 
     double aMaxDif= 100;
     double aStep =  1;
     int aNbNiv = aMaxDif / aStep;
-
     Im1D_INT4   aH(1+2*aNbNiv,0);
-    Fonc_Num aFDif = anImEg.in() -trans(anImEg.in_proj(),Pt2di(0,-1));
-    aFDif = round_ni(aFDif /aStep);
-    aFDif = Max(0,Min(2*aNbNiv,aFDif +aNbNiv));
-    ELISE_COPY(select(anImEg.all_pts(),FY%2).chc(aFDif),1,aH.histo());
 
-    if (! EAMIsInit(&mDif))
+
+    Im2D_REAL4 aImDelta(1,1) ;
+    TIm2D<REAL4,REAL8> aTImDelta(aImDelta);
+    if (mCalibFF) 
     {
-       std::vector<int> aVH;
-       for (int aK=0 ; aK<=2*aNbNiv ; aK++)
-          aVH.push_back(aH.data()[aK]);
-       mDif = GetValPercOfHisto(aVH,50) - aNbNiv;
+        aImDelta.Resize(aSz);
+        aTImDelta = TIm2D<REAL4,REAL8>(aImDelta);
+        Pt2di aP;
+        for (aP.x=0; aP.x<aSz.x; aP.x++)
+        {
+           for (aP.y=1; aP.y<aSz.y; aP.y++)
+           {
+               double aDelta = aTImEq.get(aP) - aTImEq.get(aP+Pt2di(0,-1));
+               if ((aP.y%2)==0) aDelta *= -1;
+               aTImDelta.oset(aP,aDelta);
+           }
+           aTImDelta.oset(Pt2di(aP.x,0),aTImDelta.get(Pt2di(aP.x,1)));
+        }
+        ELISE_COPY(aImDelta.all_pts(),MedianBySort(aImDelta.in_proj(),1),aImDelta.out());
+    }
 
-       std::cout << aName <<  " : DifMed  = " << mDif << "\n";
+    {
+
+
+        Fonc_Num aFDif = anImEg.in() -trans(anImEg.in_proj(),Pt2di(0,-1));
+        aFDif = round_ni(aFDif /aStep);
+        aFDif = Max(0,Min(2*aNbNiv,aFDif +aNbNiv));
+        ELISE_COPY(select(anImEg.all_pts(),FY%2).chc(aFDif),1,aH.histo());
+
+        if (! EAMIsInit(&mDif))
+        {
+           std::vector<int> aVH;
+           for (int aK=0 ; aK<=2*aNbNiv ; aK++)
+              aVH.push_back(aH.data()[aK]);
+           mDif = GetValPercOfHisto(aVH,50) - aNbNiv;
+
+           std::cout << aName <<  " : DifMed  = " << mDif << "\n";
+        }
     }
 
 
@@ -180,6 +221,16 @@ void cCorCamL::DoOne(const std::string & aName)
                 StdFoncChScale(anIm0.in_proj(),Pt2dr(0,0),Pt2dr(aRatio,aRatio)),
                 aWIm.ogray()
            );
+
+           if (mCalibFF)
+           {
+              ELISE_COPY
+              (
+                aWIm.all_pts(),
+                Max(0,Min(255,(StdFoncChScale(64+ (aImDelta.in_proj()/mDif)*128,Pt2dr(0,0),Pt2dr(aRatio,aRatio))))),
+                aWIm.ogray()
+              );
+           }
            
        }
 
@@ -248,7 +299,7 @@ void cCorCamL::DoOne(const std::string & aName)
     }
 
     //  Re compression
-    if (ThomLut)
+    if (mThomLut)
     {
         Pt2di aP;
         for (aP.x=0; aP.x<aSz.x; aP.x++)

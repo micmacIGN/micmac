@@ -43,8 +43,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cCylindreRevolution;
 class cCylindreRevolFormel;
 class cInterfSurfaceAnalytique ;
+class cProjOrthoCylindrique;
+class cProjTore;
 
 
+  class cXmlToreRevol;
   class cXmlOrthoCyl;
   class cXmlCylindreRevolution;
   class cXmlDescriptionAnalytique;
@@ -205,6 +208,9 @@ class cCylindreRevolution : public cInterfSurfaceAnalytique
 {
       public :
 
+        // UVL  = Teta *Ray,   Z   ,   R-R0
+
+         friend class cProjTore;
      // aPOnCyl fixe a la fois le rayon et le premier axe
      // du plan Ortho, origine des angles
         cCylindreRevolution
@@ -242,6 +248,7 @@ class cCylindreRevolution : public cInterfSurfaceAnalytique
          const Pt3dr & W() const;
          const Pt3dr & U() const;
          double  Ray() const;
+         ElSeg3D Axe() const;
 
          Pt3dr  PluckerDir();
          Pt3dr  PluckerOrigine();
@@ -297,6 +304,45 @@ class cCylindreRevolFormel  : public cInterfSurfAn_Formelle
         double    mTolFctrOrtho;
 };
 
+class cProjTore : public cInterfSurfaceAnalytique
+{
+     public :
+        cProjTore(const cCylindreRevolution & aCyl,const Pt3dr & aPEuclDiamTor);
+   //   Euclidien <=> Torique
+        Pt3dr E2UVL(const Pt3dr & aP) const;
+        Pt3dr UVL2E(const Pt3dr & aP) const;
+   // Fonction virtuelle generale , cree un objet multi type
+        cXmlDescriptionAnalytique Xml() const;
+   // Fonction specifique
+        cXmlToreRevol  XmlTore() const;
+// En pratique identique a OrthoLocIsXCste 
+// En theorie plus general, indique qu'il doit se desanamorphoser ...
+        bool HasOrthoLoc() const ;  
+        bool OrthoLocIsXCste() const ; // Si vrai les ligne F(X,Y,Z0) = F(Y,Z0), la desanamorphose est automatique
+
+// Utilise dans la desanamorphose selon les ligne "verticale"  , 
+        Pt3dr ToOrLoc(const Pt3dr & aP) const ; // Def Err fatale
+        Pt3dr FromOrLoc(const Pt3dr & aP) const ; // Def Err fatale
+
+        // Defaut return 0
+         static cProjTore  FromXml(const cXmlOneSurfaceAnalytique &,const cXmlToreRevol &);
+// Pour gerer d'eventuels pb de topologie, a la faculte de modifier la boite
+         void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const ;
+         std::vector<cInterSurfSegDroite>  InterDroite(const ElSeg3D &,double aZ0) const ;
+
+         // X'  ,  Y'*D/(D-Z') , Z'
+         // UVL         <----->             X'Y'Z'          <----->   XYZ 
+         // Torique                         Cylindrique     Abs                                
+         //                                              => mRToE =>
+      private :
+         inline Pt3dr Cyl2Tore(const Pt3dr &) const;
+         inline Pt3dr Tore2Cyl(const Pt3dr &) const;
+
+         cCylindreRevolution    mCyl;
+         Pt3dr                  mDiamEucl;
+         Pt3dr                  mDiamCyl;
+         bool                   mAngulCorr;
+};
 
 class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
 {
@@ -334,10 +380,6 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
         Pt3dr ToOrLoc(const Pt3dr & aP) const ; // Def Err fatale
         Pt3dr FromOrLoc(const Pt3dr & aP) const ; // Def Err fatale
 
-
-
-         // static cInterfSurfaceAnalytique * FromXml(const cXmlOneSurfaceAnalytique &);
-
      private :
          inline Pt3dr Loc2Abs(const Pt3dr &) const;
          inline Pt3dr Ab2Loc(const Pt3dr &) const;
@@ -348,6 +390,7 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
          // UVL         <----->             X'Y'Z'          <----->   XYZ 
          // Cylindrique                     Local                     Abs                                
          //                                              => mRToE =>
+
          cChCoCart  mL2A;
          cChCoCart  mA2L;
          ElSeg3D    mSegAbs;

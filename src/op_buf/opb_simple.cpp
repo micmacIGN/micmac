@@ -1165,19 +1165,20 @@ template <class Type> void CalcMedianBySort
        Type ** Im = in[d];
        std::vector<Type> Vals;
 
-       INT aK = ((arg.dx1()- arg.dx0() +1) * (arg.dy1()- arg.dy0() +1)) / 2;
+       // INT aK = ((arg.dx1()- arg.dx0() +1) * (arg.dy1()- arg.dy0() +1)) / 2;
 
 
 
        for (INT x=arg.x0() ;  x<arg.x1() ; x++)
        {
-      Vals.clear();
+          Vals.clear();
 
-      for (INT dx =  arg.dx0() ; dx <= arg.dx1() ; dx++)
-          for (INT dy =  arg.dy0() ; dy <= arg.dy1() ; dy++)
-              Vals.push_back(Im[dy][x+dx]);
-      std::sort(Vals.begin(),Vals.end());
-          res[x] = Vals[aK];
+          for (INT dx =  arg.dx0() ; dx <= arg.dx1() ; dx++)
+              for (INT dy =  arg.dy0() ; dy <= arg.dy1() ; dy++)
+                  Vals.push_back(Im[dy][x+dx]);
+          Type aMed = MedianeSup(Vals);
+          res[x] = aMed;
+
        }
    }
 }
