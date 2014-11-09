@@ -194,9 +194,6 @@ public :
 };
 
 
-int Donuts_main(int argc,char **argv);
-
-
 
 
 const std::vector<cMMCom> & getAvailableCommands()

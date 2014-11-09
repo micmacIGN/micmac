@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+bool ShowTore = false;
 
 
      /*****************************************/
@@ -54,6 +55,8 @@ cProjTore::cProjTore(const cCylindreRevolution & aCyl,const Pt3dr & aPEuclInitDi
     mCyl (aCyl),
     mAngulCorr (true)
 {
+
+
     Pt3dr aDiamCyl =  mCyl.E2UVL(aPEuclInitDiamTor);
     aDiamCyl.x = 0;                     // On met le teta a 0 : alligne sur POnCyl
     mDiamEucl =  mCyl.UVL2E(aDiamCyl);
@@ -62,7 +65,13 @@ cProjTore::cProjTore(const cCylindreRevolution & aCyl,const Pt3dr & aPEuclInitDi
 
     mCyl = cCylindreRevolution(IsVueExt(),mCyl.Axe(),anEuclPOnCyl);
 
-    mDiamCyl = mCyl.UVL2E(mDiamEucl);
+    mDiamCyl = mCyl.E2UVL(mDiamEucl);
+
+    if (ShowTore) 
+    {
+       std::cout << " DiamEuclInit " << aPEuclInitDiamTor << " " << mDiamEucl << "\n";
+       std::cout << " P0 " << mCyl.P0() << "\n";
+    }
 }
 
 //  =========================  COORDONNEE =========================
@@ -159,6 +168,15 @@ cProjTore  cProjTore::FromXml(const cXmlOneSurfaceAnalytique & aXmlSA,const cXml
            );
 }
 
+cXmlModeleSurfaceComplexe  cProjTore::SimpleXml(const std::string & anIdAux) const
+{
+    cXmlModeleSurfaceComplexe aRes = cInterfSurfaceAnalytique::SimpleXml("TheSurf");
+    cXmlModeleSurfaceComplexe aRCyl = mCyl.SimpleXml("TheSurfAux");
+
+    aRes.XmlOneSurfaceAnalytique().push_back(*(aRCyl.XmlOneSurfaceAnalytique().begin()));
+
+    return aRes;
+}
 
 //  =================== Creation d'un tore =============================
 
@@ -173,11 +191,15 @@ class cAppliDonuts : cAppliWithSetImage
           std::string   mOri;
           std::string   mNameCyl;
           std::string   mOut;
+          bool          mShow;
+          bool          mCheck;
 };
 
 
 cAppliDonuts::cAppliDonuts(int argc,char **argv) :
-     cAppliWithSetImage(argc-1,argv+1,0)
+     cAppliWithSetImage(argc-1,argv+1,0),
+     mShow  (false),
+     mCheck (false)
 {
      ElInitArgMain
      (
@@ -186,7 +208,10 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
                       << EAMC(mOri,"Orientation Dir")
                       << EAMC(mNameCyl,"Name of XML cylinder"),
            LArgMain() << EAM(mOut,"Out",true,"Out Put, Def = Tore_{NameCyl}")
+                      << EAM(mShow,"Show",true,"Show details")
+                      << EAM(mCheck,"Check",true,"Show details")
     );
+    ShowTore = mShow;
 
     if (!EAMIsInit(&mOut))
       mOut = "Tore_"+ mNameCyl;
@@ -214,19 +239,88 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
          aVTeta.push_back(aPCyl.x);
          aVZ.push_back(aPCyl.y);
          aVRho.push_back(aPCyl.z);
+         if (mShow)
+            std::cout  << aPCyl << "Teta " << aPCyl.x / aCyl.Ray() << " Z " << aPCyl.y << " Rho " << aPCyl.z + aCyl.Ray() << "\n";
     }
-    double aTeta = MedianeSup(aVTeta);
-    double aZ = MedianeSup(aVZ);
-    double aRho = MedianeSup(aVRho);
+    double aTetaMed = MedianeSup(aVTeta);
+    double aZMed = MedianeSup(aVZ);
+    double aRhoMed = MedianeSup(aVRho);
 
-    Pt3dr aPCyl (aTeta,aZ,aRho);
+    Pt3dr aDiamCyl (aTetaMed,aZMed,aRhoMed);
     // std::cout << "P In Coord Cyl " << aPCyl << "\n";
-    Pt3dr  aPEucl = aCyl.UVL2E(aPCyl);
+    Pt3dr  aDiamEucl = aCyl.UVL2E(aDiamCyl);
 
-    cProjTore aTore(aCyl,aPEucl);
+    cProjTore aToreFin(aCyl,aDiamEucl);
+    MakeFileXML(aToreFin.SimpleXml("TheSurfAux"),mOut);
+
+    double IndQual = 0;
+    int   aNbNonInter =0;
+    if (mCheck)
+    {
+        cXmlModeleSurfaceComplexe aModele = StdGetFromSI(mOut,XmlModeleSurfaceComplexe);
+        // cInterfSurfaceAnalytique & aTore =  aToreFin;
+        cXmlOneSurfaceAnalytique aXSA  = *(aModele.XmlOneSurfaceAnalytique().begin());
+
+        cInterfSurfaceAnalytique & aISA =  *(cInterfSurfaceAnalytique::FromXml(aXSA));
+        for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+        {
+             CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;
+             Pt3dr aPE = aCS->ImEtProf2Terrain(Pt2dr(aCS->Sz())/2.0,aRhoMed);
+             Pt3dr aPC = aISA.E2UVL(aPE);
+             Pt3dr aPE2 = aISA.UVL2E(aPC);
+
+             double aEps= 1e-5;
+             Pt3dr aP0 (aPC.x,0,0);  // Le syste est Orthonorme sur le cyl au niveau du diam
+             Pt3dr aGradT = (aISA.UVL2E(aP0+Pt3dr(aEps,0,0))-aISA.UVL2E(aP0+Pt3dr(-aEps,0,0)))/(2*aEps);
+             Pt3dr aGradZ = (aISA.UVL2E(aP0+Pt3dr(0,aEps,0))-aISA.UVL2E(aP0+Pt3dr(0,-aEps,0)))/(2*aEps);
+             Pt3dr aGradR = (aISA.UVL2E(aP0+Pt3dr(0,0,aEps))-aISA.UVL2E(aP0+Pt3dr(0,0,-aEps))) /(2*aEps);
+
+             ElMatrix<double> aP = MatFromCol(aGradT,aGradZ,aGradR);
+             aP = aP * aP.transpose() - ElMatrix<double>(3,true);
+             double aMixte = scal(aGradT,aGradZ^aGradR);
+
+
+             double EcartInv = euclid(aPE-aPE2);  // Test que les systeme sont inverse
+             double EcartON = aP.L2();            // Test que le system est orthorme en R=0
+             double EcartDir =  ElAbs(aMixte-1);  // Test que le systeme est direct
+
+
+/*
+             std::cout << " Tor[C] " << aISA.E2UVL(aCS->PseudoOpticalCenter()) 
+                       << " Cyl[C] " << aCyl.E2UVL(aCS->PseudoOpticalCenter())
+                       << "\n";
+*/
+
+             std::cout 
+                       << "E2U o U2E: " << EcartInv  
+                       << " Rot;" << EcartON        
+                        << " Dir " << EcartDir     
+                       ;
+
+             ElSeg3D aSeg = aCS->Capteur2RayTer(aCS->Sz()/2.0);
+             cTplValGesInit<Pt3dr> aTplPTer = aISA.InterDemiDroiteVisible(aSeg,0);
+             if (aTplPTer.IsInit())
+             {
+                   Pt3dr aPTerE = aTplPTer.Val();
+                   std::cout << " GGGG " << aPTerE;
+             }
+             else
+             {
+
+                std::cout  << " Int XXXXXX ";
+                aNbNonInter++;
+             }
+             std::cout 
+                       << "\n";
+
+             IndQual = ElMax(IndQual,EcartInv + EcartON + EcartDir);
+        }
+        std::cout << "=============================================\n";
+        std::cout << "   Qual = " << IndQual  << "\n";
+        std::cout << "   NonInter = " << aNbNonInter  << "\n";
+    }
+
     
-    cXmlDescriptionAnalytique aXmlDA = aTore.Xml();
-    MakeFileXML(aXmlDA,mOut);
 }
 
 int Donuts_main(int argc,char **argv)

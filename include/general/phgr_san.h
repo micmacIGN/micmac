@@ -111,6 +111,7 @@ class cInterfSurfaceAnalytique
          virtual Pt3dr E2UVL(const Pt3dr & aP) const = 0;
          virtual Pt3dr UVL2E(const Pt3dr & aP) const = 0;
          virtual cXmlDescriptionAnalytique Xml() const=0;
+         virtual cXmlModeleSurfaceComplexe SimpleXml(const std::string &Id) const;
 
 
         virtual bool HasOrthoLoc() const = 0;  // Apparement identique en pratique a OrthoLocIsXCste ?
@@ -118,6 +119,7 @@ class cInterfSurfaceAnalytique
         virtual Pt3dr ToOrLoc(const Pt3dr & aP) const ; // Def Err fatale
         virtual Pt3dr FromOrLoc(const Pt3dr & aP) const ; // Def Err fatale
         virtual bool OrthoLocIsXCste() const ; // Si vrai les ligne F(X,Y,Z0) = F(Y,Z0), la desanamorphose est automatique
+        virtual bool IsAnamXCsteOfCart() const ; // Vrai pour Orthocyl faux pour les autres
 
 
         // Defaut return 0
@@ -330,6 +332,7 @@ class cProjTore : public cInterfSurfaceAnalytique
          void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const ;
          std::vector<cInterSurfSegDroite>  InterDroite(const ElSeg3D &,double aZ0) const ;
 
+         cXmlModeleSurfaceComplexe SimpleXml(const std::string &Id) const;
          // X'  ,  Y'*D/(D-Z') , Z'
          // UVL         <----->             X'Y'Z'          <----->   XYZ 
          // Torique                         Cylindrique     Abs                                
@@ -376,6 +379,7 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
                                          const cXmlOrthoCyl&
                                     );
         bool OrthoLocIsXCste() const ;
+        bool IsAnamXCsteOfCart() const ; // Vrai pour Orthocyl faux pour les autres
         bool HasOrthoLoc() const ;
         Pt3dr ToOrLoc(const Pt3dr & aP) const ; // Def Err fatale
         Pt3dr FromOrLoc(const Pt3dr & aP) const ; // Def Err fatale

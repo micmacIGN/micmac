@@ -460,9 +460,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
       bool IsOrthoXCSte = false;
+      bool IsAnamXCsteOfCart = false;
       if (mType!=eGeomImage)
       {
-          mRepIsAnam =   (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte);
+          mRepIsAnam =   (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte,IsAnamXCsteOfCart);
       }
       mUnAnam = mUnAnam && IsOrthoXCSte;
 
@@ -800,10 +801,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +Repere=") + mRep
                   +  std::string(" +DirOrthoF=") +  "Ortho-UnAnam-" + mDirMEC
                   ;
+          if (! IsAnamXCsteOfCart) mComOA = mComOA + " +UseRepere=false +UseAnam=true ";
 
           if (mImMNT !="") mComOA   =  mComOA + std::string(" +ImMNT=")   + mImMNT;
           if (mImOrtho !="") mComOA =  mComOA + std::string(" +ImOrtho=") + mImOrtho;
           std::cout << "\n\n" << mComOA << "\n";
+// std::cout << "GEETTCHAR\n"; getchar();
       }
   }
 }
