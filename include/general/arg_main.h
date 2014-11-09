@@ -595,6 +595,7 @@ int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
 int Campari_main(int argc,char ** argv);
 int CASA_main(int argc,char ** argv);
+int Donuts_main(int argc,char **argv);
 int MMTestOrient_main(int argc,char ** argv);
 int MMHomCorOri_main(int argc,char ** argv);
 int ChgSysCo_main(int argc,char ** argv);

@@ -222,6 +222,18 @@ cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::ChangeRepDictPts(const std:
 
 
 
+cXmlModeleSurfaceComplexe cInterfSurfaceAnalytique::SimpleXml(const std::string & Id) const
+{
+   cXmlModeleSurfaceComplexe aRes;
+   cXmlOneSurfaceAnalytique aSAN;
+   aSAN.XmlDescriptionAnalytique() = Xml();
+   aSAN.Id() = Id;
+   aSAN.VueDeLExterieur() = mIsVueExt;
+   aRes.XmlOneSurfaceAnalytique().push_back(aSAN);
+   return aRes;
+}
+
+
 
 /*
 std::vector<cInterSurfSegDroite>  cInterfSurfaceAnalytique::InterDroite(const ElSeg3D &,double aZ0) const 
@@ -325,6 +337,9 @@ cTplValGesInit<Pt3dr> cInterfSurfaceAnalytique::PImageToSurf0
 {
     return  InterDemiDroiteVisible(aCap.Capteur2RayTer(aPIm),0);
 }
+
+
+bool cInterfSurfaceAnalytique::IsAnamXCsteOfCart() const { return false; }
      /*****************************************/
      /*                                       */
      /*   cCylindreRevolution                 */

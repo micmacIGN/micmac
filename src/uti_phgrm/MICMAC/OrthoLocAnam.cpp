@@ -200,12 +200,19 @@ void cAppliMICMAC::MakeRedrLocAnamSA()
           }
        }
 
+
        // En fait le seul cas que l'on sache gerer est le cylindre
        if (anOC)
        {
           DoExp = true;
           aNuageFinal.Anam().SetNoInit();
           aNuageFinal.RepereGlob().SetVal(anOC->Repere());
+       }
+       else if (mAnaGeomMNT)
+       {
+            cXmlModeleSurfaceComplexe aModele= StdGetFromSI(mNameAnamSA,XmlModeleSurfaceComplexe);
+            aNuageFinal.Anam() = SFromId(aModele,"TheSurfAux");
+            DoExp = true;
        }
 
        if (DoExp)
@@ -219,6 +226,8 @@ void cAppliMICMAC::MakeRedrLocAnamSA()
           MakeFileXML(aNuageFinal,FullDirResult() +aNNRed);
        }
     }
+
+// std::cout << "AAAAAAAAAbbGGgg " << aRLA.NameOriGlob() << "\n"; getchar();
 
     int  aZoom = mCurEtape->DeZoomTer();
     cFileOriMnt aFomR1 =  aFOMFinale;

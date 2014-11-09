@@ -1389,7 +1389,7 @@ std::string StdNameGeomCalib(const std::string & aFullName);
 void  DC_Add(const cMMCameraDataBase & aDB);
 
 
-bool RepereIsAnam(const std::string &,bool &IsOrthXCSte);
+bool RepereIsAnam(const std::string &,bool &IsOrthXCSte,bool & IsAnamXCsteOfCart); // OrthoCyl est un cas 
 
 cConvExplicite GlobMakeExplicite(eConventionsOrientation aConv);
 ElRotation3D  GlobStd_RAff_C2M
