@@ -801,8 +801,11 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
      LArgMain()
      );
     
-    
+#if defined (__USE_JP2__) 
     std::auto_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aFullName));
+#else
+	std::auto_ptr<cInterfModuleImageLoader> aRes(NULL);
+#endif
     if (!aRes.get())
     {
         return 1;
