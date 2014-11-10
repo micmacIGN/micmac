@@ -151,6 +151,11 @@ class cInterfSurfaceAnalytique
          cInterfSurfaceAnalytique(bool isVueExt);
          bool IsVueExt() const;
          int SignDZSensRayCam()const;
+ 
+        // Rappiecage pour pouvoir dynamiquemnt inhiber l'anamorphose vertical sans toucher au reste
+         void SetUnusedAnamXCSte();
+     protected :
+         bool mUnUseAnamXCSte;
      private :
          cTplValGesInit<Pt3dr> InterDemiDroiteVisible(bool Force,const ElSeg3D &,double aZ0) const ;
          bool mIsVueExt;

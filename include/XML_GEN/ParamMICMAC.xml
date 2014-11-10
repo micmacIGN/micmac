@@ -1825,6 +1825,8 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                peut relacher cette contrainte ?
           -->
          <AnamorphoseGeometrieMNT Nb="?">
+             <!-- Pour gerer le desanamorphose des ortho .... -->
+             <UnUseAnamXCste Nb="?" Def="false" Type="bool"> </UnUseAnamXCste>
              <AnamSurfaceAnalytique Nb="?">
                    <NameFile Nb="1" Type="std::string"> </NameFile>
                    <Id Nb="1" Type="std::string"> </Id>

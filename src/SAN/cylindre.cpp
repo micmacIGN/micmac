@@ -315,10 +315,16 @@ cInterfSurfaceAnalytique::~cInterfSurfaceAnalytique()
 }
 
 cInterfSurfaceAnalytique::cInterfSurfaceAnalytique(bool isVueExt) :
+   mUnUseAnamXCSte (false),
    mIsVueExt (isVueExt)
 {
 }
 
+
+void cInterfSurfaceAnalytique::SetUnusedAnamXCSte()
+{
+   mUnUseAnamXCSte = true;
+}
 
 int cInterfSurfaceAnalytique::SignDZSensRayCam()const
 {

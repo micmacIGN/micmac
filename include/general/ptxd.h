@@ -1074,6 +1074,10 @@ Box2dr  I2R(const Box2di &);
 Box2di  R2I(const Box2dr &);   // Par round_ni
 Box2di  R2ISup(const Box2dr &);   // Par down et sup
 
+ostream & operator << (ostream & ofs,const Box2di  &aBox);
+ostream & operator << (ostream & ofs,const Box2dr  &aBox);
+
+
 
 void AdaptParamCopyTrans(INT& X0src,INT& X0dest,INT& NB,INT NbSrc,INT NbDest);
 

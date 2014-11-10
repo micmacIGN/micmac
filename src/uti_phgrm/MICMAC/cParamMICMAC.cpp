@@ -21522,6 +21522,17 @@ void xml_init(cMakeMaskImNadir & anObj,cElXMLTree * aTree)
 std::string  Mangling( cMakeMaskImNadir *) {return "0025D4BBC4A14F83FCBF";};
 
 
+cTplValGesInit< bool > & cAnamorphoseGeometrieMNT::UnUseAnamXCste()
+{
+   return mUnUseAnamXCste;
+}
+
+const cTplValGesInit< bool > & cAnamorphoseGeometrieMNT::UnUseAnamXCste()const 
+{
+   return mUnUseAnamXCste;
+}
+
+
 std::string & cAnamorphoseGeometrieMNT::NameFile()
 {
    return AnamSurfaceAnalytique().Val().NameFile();
@@ -21658,6 +21669,14 @@ void  BinaryUnDumpFromFile(cAnamorphoseGeometrieMNT & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.UnUseAnamXCste().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UnUseAnamXCste().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.UnUseAnamXCste().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.AnamSurfaceAnalytique().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.AnamSurfaceAnalytique().ValForcedForUnUmp(),aFp);
         }
@@ -21691,6 +21710,8 @@ void  BinaryUnDumpFromFile(cAnamorphoseGeometrieMNT & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cAnamorphoseGeometrieMNT & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.UnUseAnamXCste().IsInit());
+    if (anObj.UnUseAnamXCste().IsInit()) BinaryDumpInFile(aFp,anObj.UnUseAnamXCste().Val());
     BinaryDumpInFile(aFp,anObj.AnamSurfaceAnalytique().IsInit());
     if (anObj.AnamSurfaceAnalytique().IsInit()) BinaryDumpInFile(aFp,anObj.AnamSurfaceAnalytique().Val());
     BinaryDumpInFile(aFp,anObj.AnamDeZoomMasq().IsInit());
@@ -21705,6 +21726,8 @@ cElXMLTree * ToXMLTree(const cAnamorphoseGeometrieMNT & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"AnamorphoseGeometrieMNT",eXMLBranche);
+   if (anObj.UnUseAnamXCste().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UnUseAnamXCste"),anObj.UnUseAnamXCste().Val())->ReTagThis("UnUseAnamXCste"));
    if (anObj.AnamSurfaceAnalytique().IsInit())
       aRes->AddFils(ToXMLTree(anObj.AnamSurfaceAnalytique().Val())->ReTagThis("AnamSurfaceAnalytique"));
    if (anObj.AnamDeZoomMasq().IsInit())
@@ -21723,6 +21746,8 @@ void xml_init(cAnamorphoseGeometrieMNT & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
+   xml_init(anObj.UnUseAnamXCste(),aTree->Get("UnUseAnamXCste",1),bool(false)); //tototo 
+
    xml_init(anObj.AnamSurfaceAnalytique(),aTree->Get("AnamSurfaceAnalytique",1)); //tototo 
 
    xml_init(anObj.AnamDeZoomMasq(),aTree->Get("AnamDeZoomMasq",1),int(16)); //tototo 
@@ -21732,7 +21757,7 @@ void xml_init(cAnamorphoseGeometrieMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.MakeMaskImNadir(),aTree->Get("MakeMaskImNadir",1)); //tototo 
 }
 
-std::string  Mangling( cAnamorphoseGeometrieMNT *) {return "A26EDDF350846BF1FD3F";};
+std::string  Mangling( cAnamorphoseGeometrieMNT *) {return "683ECB3AC5AC49F2FBBF";};
 
 
 cElRegex_Ptr & cColorimetriesCanaux::CanalSelector()
@@ -22344,6 +22369,17 @@ cTplValGesInit< bool > & cSection_Results::Prio2OwnAltisolForEmprise()
 const cTplValGesInit< bool > & cSection_Results::Prio2OwnAltisolForEmprise()const 
 {
    return mPrio2OwnAltisolForEmprise;
+}
+
+
+cTplValGesInit< bool > & cSection_Results::UnUseAnamXCste()
+{
+   return AnamorphoseGeometrieMNT().Val().UnUseAnamXCste();
+}
+
+const cTplValGesInit< bool > & cSection_Results::UnUseAnamXCste()const 
+{
+   return AnamorphoseGeometrieMNT().Val().UnUseAnamXCste();
 }
 
 
@@ -23267,7 +23303,7 @@ void xml_init(cSection_Results & anObj,cElXMLTree * aTree)
    xml_init(anObj.SuperpositionImages(),aTree->Get("SuperpositionImages",1)); //tototo 
 }
 
-std::string  Mangling( cSection_Results *) {return "74139960120243DBFE3F";};
+std::string  Mangling( cSection_Results *) {return "86EE4C352287FAF3FD3F";};
 
 
 std::string & cCalcNomChantier::PatternSelChantier()
@@ -27266,6 +27302,17 @@ const cTplValGesInit< bool > & cParamMICMAC::Prio2OwnAltisolForEmprise()const
 }
 
 
+cTplValGesInit< bool > & cParamMICMAC::UnUseAnamXCste()
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().UnUseAnamXCste();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::UnUseAnamXCste()const 
+{
+   return Section_Results().AnamorphoseGeometrieMNT().Val().UnUseAnamXCste();
+}
+
+
 std::string & cParamMICMAC::NameFile()
 {
    return Section_Results().AnamorphoseGeometrieMNT().Val().AnamSurfaceAnalytique().Val().NameFile();
@@ -28721,6 +28768,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "EC5375A5F65B45ADFC3F";};
+std::string  Mangling( cParamMICMAC *) {return "E66B11DAE945F9CAFDBF";};
 
 // Quelque chose

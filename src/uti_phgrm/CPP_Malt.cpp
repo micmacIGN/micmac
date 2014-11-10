@@ -105,6 +105,7 @@ class cAppliMalt
           bool        mRepIsAnam;
           std::string mCom;
           std::string mComOA;
+          std::string mComTaramaOA;
           std::string mDirTA;
           bool        mPurge;
           bool        mMkFPC;
@@ -150,8 +151,14 @@ int cAppliMalt::Exe()
 {
     if (! mExe) return 0;
     int aRes = TopSystem(mCom.c_str());
+    if ((aRes==0) && ( mComTaramaOA !=""))
+    {
+        aRes = TopSystem(mComTaramaOA.c_str());
+    }
     if ((aRes==0) && ( mComOA !=""))
+    {
         aRes = TopSystem(mComOA.c_str());
+    }
     if (!MMVisualMode) ShowParam();
     return aRes;
 }
@@ -549,7 +556,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               +  std::string(" +ZoomFinal=") + ToString(mZoomFinal)
               +  std::string(" +Ori=") + mOri
               +  std::string(" +ResolRelOrhto=") + ToString(1/(mResolOrtho*mZoomFinal))
-              +  std::string(" +DirTA=") + mDirTA
+              //   ==    +  std::string(" +DirTA=") + mDirTA
               +  std::string(" +NbProc=") + ToString(aNbProc)
               ;
 
@@ -561,6 +568,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       mCom =              MM3dBinFile_quotes("MICMAC")
               +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )
               + anArgCommuns
+              +  std::string(" +DirTA=") + mDirTA
 
               /*
                               +  std::string(" +DirTA=") + mDirTA
@@ -795,7 +803,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
           mComOA =  MMDir() +"bin"+ELISE_CAR_DIR+"MICMAC "
                   + MMDir() +"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+aFileOAM // MM-Malt.xml
-                  + anArgCommuns;
+                  + anArgCommuns
+                  +  std::string(" +DirTA=TA-UnAnam") ;
 
           mComOA =        mComOA
                   +  std::string(" +Repere=") + mRep
@@ -806,6 +815,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           if (mImMNT !="") mComOA   =  mComOA + std::string(" +ImMNT=")   + mImMNT;
           if (mImOrtho !="") mComOA =  mComOA + std::string(" +ImOrtho=") + mImOrtho;
           std::cout << "\n\n" << mComOA << "\n";
+
+           mComTaramaOA =     MMBinFile("Tarama") + " " 
+                           +  mFullName           + " "
+                           +  mOri                + " "
+                           + std::string(" Zoom=16 ")
+                           + std::string(" Out=TA-UnAnam ")
+                           + " Repere=" + mRep
+                           + std::string(" UnUseAXC=true");
+
 // std::cout << "GEETTCHAR\n"; getchar();
       }
   }

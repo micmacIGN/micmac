@@ -560,7 +560,7 @@ Box2dr cGeomImage::BoxImageOfBox
 
 std::string cGeomImage::NameMasqAnamSA(const std::string & aPost) const
 {
-   return mAppli.FullDirMEC() + "Anam_" + StdPrefix(mPDV.Name())+aPost;
+   return mAppli.FullDirMEC() + "Anam_" +  mAppli.NameChantier() + "_" + StdPrefix(mPDV.Name())+aPost;
 }
 
 
@@ -576,6 +576,8 @@ Box2dr cGeomImage::EmpriseTerrain
             double aRab
        )  const
 {
+
+
     if (mUseTerMasqAnam)
       return mAnamSAPMasq.BoxTer();
 

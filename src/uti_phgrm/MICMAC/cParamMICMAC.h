@@ -5526,6 +5526,9 @@ class cAnamorphoseGeometrieMNT
         friend void xml_init(cAnamorphoseGeometrieMNT & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & UnUseAnamXCste();
+        const cTplValGesInit< bool > & UnUseAnamXCste()const ;
+
         std::string & NameFile();
         const std::string & NameFile()const ;
 
@@ -5562,6 +5565,7 @@ class cAnamorphoseGeometrieMNT
         cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir();
         const cTplValGesInit< cMakeMaskImNadir > & MakeMaskImNadir()const ;
     private:
+        cTplValGesInit< bool > mUnUseAnamXCste;
         cTplValGesInit< cAnamSurfaceAnalytique > mAnamSurfaceAnalytique;
         cTplValGesInit< int > mAnamDeZoomMasq;
         cTplValGesInit< double > mAnamLimAngleVisib;
@@ -5740,6 +5744,9 @@ class cSection_Results
 
         cTplValGesInit< bool > & Prio2OwnAltisolForEmprise();
         const cTplValGesInit< bool > & Prio2OwnAltisolForEmprise()const ;
+
+        cTplValGesInit< bool > & UnUseAnamXCste();
+        const cTplValGesInit< bool > & UnUseAnamXCste()const ;
 
         std::string & NameFile();
         const std::string & NameFile()const ;
@@ -6886,6 +6893,9 @@ class cParamMICMAC
 
         cTplValGesInit< bool > & Prio2OwnAltisolForEmprise();
         const cTplValGesInit< bool > & Prio2OwnAltisolForEmprise()const ;
+
+        cTplValGesInit< bool > & UnUseAnamXCste();
+        const cTplValGesInit< bool > & UnUseAnamXCste()const ;
 
         std::string & NameFile();
         const std::string & NameFile()const ;

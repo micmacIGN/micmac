@@ -331,6 +331,7 @@ Box2di  BoxTer2Disc
           );
 }
 
+
 void cAppliMICMAC::MakePartiesCachees
                    (
                        cPriseDeVue & aPdv,
@@ -375,7 +376,6 @@ void cAppliMICMAC::MakePartiesCachees
 
    std::string   anEntete = NamePC(true,aGPC,mCurEtape,aPdv);
 
-   std::cout << "ENTETE =" << anEntete << "\n";
    if (aGPC.DoOnlyWhenNew().Val())
    {
        if (ELISE_fp::exist_file(anEntete+".tif"))
@@ -392,6 +392,7 @@ void cAppliMICMAC::MakePartiesCachees
    cGeomDiscFPx   aGT = mCurEtape->GeomTerFinal();
    aGT.SetClipInit();
    Box2dr aBoxGlob(aGT.P0(), aGT.P1());
+
 
    cMetaDataPartiesCachees aMetaData;
    aMetaData.Done() = false;
@@ -414,7 +415,7 @@ void cAppliMICMAC::MakePartiesCachees
       GetIntervZ(aB,aZMin,aZMax,aZMoy);
       aBoxTer =  aPdv.Geom().EmpriseTerrain(&aZMin,&aZMax,0.0);
    }
-  
+
 
     if (InterVide(aBoxGlob,aBoxTer))
     {
@@ -446,7 +447,7 @@ void cAppliMICMAC::MakePartiesCachees
 
     // On va calculer le masque des points terrain qui sont dans le masque terrain
     // initial et dont la projection au Z calcule est dans l'image 
-    // Eventuellement on adpate la boite pour la reduire
+    // Eventuellement on adapte la boite pour la reduire
    
 
 
@@ -624,7 +625,6 @@ void cAppliMICMAC::MakePartiesCachees
    cDecoupageInterv2D  aDI2d(Box2di(aP0Glob,aP1Glob),Pt2di(aMaxSz,aMaxSz),Box2di(-aPBord,aPBord));
 
 
-
    std::string aStrEnt = anEntete+".tif";
    Tiff_Im  aTifPC
             (
@@ -696,7 +696,6 @@ void cAppliMICMAC::MakePartiesCachees
            }
 
            anOriOrtho.ResolutionPlani() = Pt2dr(aRx,aRy)*aResRelOrtho;
-
 
            if (aMOPI.PixelTerrainPhase().IsInit())
            {
@@ -916,6 +915,7 @@ void cAppliMICMAC::MakeOrtho
        return;
     }
     Tiff_Im aFIn = Tiff_Im::StdConvGen(aNameIn.c_str(),aMOPI.NbChan().Val(),false);
+
     int aDzTer = mCurEtape->DeZoomTer();
 
     int aNbC = aFIn.nb_chan();
@@ -995,21 +995,6 @@ void cAppliMICMAC::MakeOrtho
                 Pt2dr aPM  = aAfPOL2PML(Pt2dr(aPO));
                 bool aOK;
                 Pt3dr aPTer = aZB.ProjReelle(aPM,aOK);
-
-/*
-if (aPO==aSzT/2)
-{
-for (int aY=0 ; aY<=1 ; aY++)
-{
-  bool ok;
-  Pt2di p0 = aPO + Pt2di(0,aY*2);
-  Pt2dr pm = aAfPOL2PML(Pt2dr(p0));
-  Pt3dr pt = aZB.ProjReelle(pm,ok);
-std::cout << "ORTHO ====== " << p0  << pm << pt  << " " << aZB.ZBrutOfXY(round_ni(pm))  << "\n"; 
-}
-getchar();
-}
-*/
 
                 if (aOK)
                 {
@@ -1272,10 +1257,7 @@ void cAppliMICMAC::MakePartiesCachees()
              aCpt++;
           }
      }
-     // getchar();
    }
-  
-
 }
 
 

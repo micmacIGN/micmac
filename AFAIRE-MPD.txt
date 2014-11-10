@@ -442,11 +442,23 @@ Interaction :
 L'inconvénient est que la masque 3D intervient en milieu de processus. Même en pratique il est dommage de s'en priver (pertes de beaucoup de temps et baisse de qualité) on peut envisager de le rendre optionnel, et de réfléchir à plus long terme sur des options de calcul automatique (forcément un peu aléatoire).
 
     
------------USECASE 2- l'ortho-photo ----------
+-----------USECASE 2- l'ortho-photo de facade ----------
 
 Synopsis : A partir d'une prise terrestre, générer une ortho photo de facade. Adapter au cas du déroulé cylindrique.
 
+Interaction :
+   * donnée de redressement (masque, ligne, etc ...)
+   * ou point d'appuis;
 
+
+-----------USECASE 3-  Mise en valeur de bas relief ----------
+
+Genre "de la Vaissière" ou "Roger Jacques".
+
+Interaction :
+
+    * donnée de redressement (masque)
+    * paramètre de contraste
 
 
 

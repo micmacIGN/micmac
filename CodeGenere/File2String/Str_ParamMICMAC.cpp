@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2124]) = {
+const char * (theNameVar_ParamMICMAC[2126]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1827,6 +1827,8 @@ const char * (theNameVar_ParamMICMAC[2124]) = {
 "               peut relacher cette contrainte ?\n",
 "          -->\n",
 "         <AnamorphoseGeometrieMNT Nb=\"?\">\n",
+"             <!-- Pour gerer le desanamorphose des ortho .... -->\n",
+"             <UnUseAnamXCste Nb=\"?\" Def=\"false\" Type=\"bool\"> </UnUseAnamXCste>\n",
 "             <AnamSurfaceAnalytique Nb=\"?\">\n",
 "                   <NameFile Nb=\"1\" Type=\"std::string\"> </NameFile>\n",
 "                   <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",

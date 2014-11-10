@@ -89,6 +89,8 @@ cProjTore::cProjTore(const cCylindreRevolution & aCyl,const Pt3dr & aPEuclInitDi
 
 Pt3dr cProjTore::Cyl2Tore(const Pt3dr & aP) const // Loc2Cyl
 {
+   if (mUnUseAnamXCSte) return aP;
+
    double  A = aP.y ;  // le Z avec origine sur le diam du tore
    double  B = mDiamCyl.z-aP.z  ;
 
@@ -105,6 +107,7 @@ Pt3dr cProjTore::E2UVL(const Pt3dr & aP) const { return Cyl2Tore(mCyl.E2UVL(aP))
 
 Pt3dr cProjTore::Tore2Cyl(const Pt3dr  & aP) const  // :Cyl2Loc : ToOrLoc
 {
+   if (mUnUseAnamXCSte) return aP;
    double aV = aP.y / mDiamCyl.z;
    if (mAngulCorr)
       aV = tan(aV);
