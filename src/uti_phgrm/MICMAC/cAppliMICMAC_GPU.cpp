@@ -724,10 +724,13 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     ushort2* hClassEqui = IMmGg.Data().HostClassEqui();
 
+                    // Parcourt de toutes les images pour les classes
                     for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                     {
+                        // image et orientation
                         cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 
+                        // classe d'équivalence
                         hClassEqui[aKIm].x = aGLI.PDV()->NumEquiv();
 
 
@@ -739,11 +742,11 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                         hClassEqui[hClassEqui[aKIm].x].y = pitImage;
 
-                        //printf("Image : %d, Classe : %d, NB classe %d, pit : %d\n",aKIm,hClassEqui[aKIm].x,nbCLass,hClassEqui[hClassEqui[aKIm].x].y);
+
                         dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
                     }
 
-                    // Pour chaque image
+                    // Pour chaque image nous copions les valeurs dans une structure preparatoire pour les envoyés au GPU
                     for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                     {
                         // Obtention de l'image courante
@@ -815,6 +818,8 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
             }
 
             //
+            // Génération de volumes, où le calcul est nécessaire.
+
             IMmGg.MaskVolumeBlock().clear();
 
             if(IMmGg.NoMasked)
@@ -857,6 +862,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                             ElSetMin(mZMinGlob,mZ.x);
                             ElSetMax(mZMaxGlob,mZ.y);
 
+                            // Pour chaque Z du volume, nous determinons le rectangle minimum
                             for (int i = 0; i < dZ; ++i)
                             {
                                 Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
@@ -876,6 +882,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                 uint Dz = abs(mZMaxGlob-mZMinGlob);
 
+                // Pour chaque intervalle Z INTERZ, nous constituons une box
                 if(vCellules.size() > 0)
                 {
                     uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
@@ -899,6 +906,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     }
                 }
+
             }
 
         }
