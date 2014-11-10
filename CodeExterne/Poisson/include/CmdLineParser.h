@@ -32,12 +32,8 @@ DAMAGE.
 #include <string.h>
 
 
-#if (ELISE_MinGW)
-    #include <strings.h>
-#else
-    #if (ELISE_windows)
-        int strcasecmp(char* c1,char* c2);
-    #endif
+#ifdef WIN32
+int strcasecmp(char* c1,char* c2);
 #endif
 
 class cmdLineReadable{

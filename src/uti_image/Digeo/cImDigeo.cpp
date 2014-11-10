@@ -193,10 +193,11 @@ GenIm::type_el cInterfImageLoader::type_el()const
 
 double cInterfImageLoader::Som()const
 {
+    std::cout << "cInterfImageLoader::Som"<<std::endl;
 	double aSom=0;
-	int dl = 1000;
+    int dl = 100;
 	TIm2D<float,double> buffer(Pt2di(sz().x,dl+1));
-	for(int l=0;l<sz().y;l+=dl)
+	for(int l=0;l</*sz().y*/dl;l+=dl)
 	{
 		mLoader->LoadCanalCorrel(sLowLevelIm<float>
 								 (
@@ -217,6 +218,7 @@ double cInterfImageLoader::Som()const
 		 sigma(aSomLin)
 		 );
 		aSom+=aSomLin;
+        std::cout << "l = "<<l<<" aSom : "<<aSom<<std::endl;
 	}
 	return aSom;
 }
@@ -343,6 +345,8 @@ cImDigeo::cImDigeo
         aSom /= aSz.x * double(aSz.y);
         mG2MoyIsCalc= true;
         mGradMoy = sqrt(aSom);
+       
+       std::cout << "mGradMoy : "<<mGradMoy<<std::endl;
    }
 
    // Verification de coherence

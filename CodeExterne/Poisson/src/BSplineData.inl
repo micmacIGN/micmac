@@ -57,7 +57,7 @@ template< int Degree > inline bool LeftOverlap( unsigned int depth , int offset 
 template< int Degree > inline bool RightOverlap( unsigned int depth , int offset )
 {
     offset <<= 1;
-    //int r = 1<<(depth+1);
+    int r = 1<<(depth+1);
     if( Degree & 1 ) return (offset > 2-1-Degree) && (offset < 2+1+Degree );
     else             return (offset > 2-2-Degree) && (offset < 2+  Degree );
 }

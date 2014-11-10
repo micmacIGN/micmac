@@ -209,6 +209,9 @@ bool  cProjOrthoCylindrique::OrthoLocIsXCste() const
     return true;
 }
 
+bool cProjOrthoCylindrique::IsAnamXCsteOfCart() const { return true; }
+
+
 
 //         Pt3dr FromOrLoc(const Pt3dr & aP) const ; // Def Err fatale
 

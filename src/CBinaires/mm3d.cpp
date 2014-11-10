@@ -196,7 +196,6 @@ public :
 
 
 
-
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -386,6 +385,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("DIV",Devideo_main,"Developpement d'Images Video (require ffmpeg)"));
        aRes.push_back(cMMCom("Liquor",Liquor_main,"Orientation specialized for linear acquisition"));
        aRes.push_back(cMMCom("Morito",Morito_main,"Mergeset of  Orientaion with common valures"));
+       aRes.push_back(cMMCom("Donuts",Donuts_main,"Cyl to Torus (Donuts like)"));
    }
 
    cCmpMMCom CmpMMCom;
@@ -463,7 +463,7 @@ int CPP_AppliMergeCloud(int argc,char ** argv);
 int MMEnveloppe_Main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
 int CASALL_main(int argc,char ** argv);
-
+int CCL_main (int argc,char** argv);
 
 
 
@@ -520,6 +520,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
     aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
     aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));
+    aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
+    aRes.push_back(cMMCom("Surf",ServiceGeoSud_Surf_main,""));
 #if (ELISE_QT_VERSION >= 4)
     aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 #endif

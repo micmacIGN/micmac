@@ -1,5 +1,4 @@
 ﻿#include "Cloud.h"
-#include "../../CodeExterne/Poisson/include/PlyFile.h"
 
 static PlyProperty vert_props[] = {
     {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
@@ -38,7 +37,6 @@ static PlyProperty oriented_vert_props[] = {
 /*!
     Read a ply file, store the point cloud
 */
-
 GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 {
     int type = 0;

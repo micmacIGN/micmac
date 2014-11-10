@@ -595,6 +595,7 @@ int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
 int Campari_main(int argc,char ** argv);
 int CASA_main(int argc,char ** argv);
+int Donuts_main(int argc,char **argv);
 int MMTestOrient_main(int argc,char ** argv);
 int MMHomCorOri_main(int argc,char ** argv);
 int ChgSysCo_main(int argc,char ** argv);
@@ -721,9 +722,10 @@ int Sake_main(int argc,char ** argv);
     int Dimap2Grid_main(int argc, char **argv);
   int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
   int ServiceGeoSud_Ortho_main(int argc, char **argv);
+  int ServiceGeoSud_GeoSud_main(int argc, char **argv);
+  int ServiceGeoSud_Surf_main(int argc, char **argv);
 
 int  CalcAutoCorrel_main(int argc,char ** argv);
-int  CCL_main(int argc,char ** argv);
 
 
 

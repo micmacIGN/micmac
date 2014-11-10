@@ -27,15 +27,6 @@ DAMAGE.
 */
 
 #include <float.h>
-#include <string.h>
-
-#ifdef WIN32
-#else
-	#ifndef __APPLE__
-		#pragma GCC diagnostic push
-	#endif
-	#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
 
 
 ///////////////////
@@ -207,6 +198,14 @@ void SparseMatrix<T>::SetZero()
 }
 
 template<class T>
+void SparseMatrix<T>::SetIdentity()
+{
+    SetZero();
+    for(int ij=0; ij < Min( this->Rows(), this->Columns() ); ij++)
+        (*this)(ij,ij) = T(1);
+}
+
+template<class T>
 SparseMatrix<T> SparseMatrix<T>::operator * (const T& V) const
 {
     SparseMatrix<T> M(*this);
@@ -217,8 +216,27 @@ SparseMatrix<T> SparseMatrix<T>::operator * (const T& V) const
 template<class T>
 SparseMatrix<T>& SparseMatrix<T>::operator *= (const T& V)
 {
-    for( int i=0 ; i<rows ; i++ ) for( int ii=0 ; ii<rowSizes[i] ; i++ ) m_ppElements[i][ii].Value *= V;
+    for (int i=0; i<this->Rows(); i++)
+    {
+        for(int ii=0;ii<m_ppElements[i].size();i++){m_ppElements[i][ii].Value*=V;}
+    }
     return *this;
+}
+
+template<class T>
+SparseMatrix<T> SparseMatrix<T>::Multiply( const SparseMatrix<T>& M ) const
+{
+    SparseMatrix<T> R( this->Rows(), M.Columns() );
+    for(int i=0; i<R.Rows(); i++){
+        for(int ii=0;ii<m_ppElements[i].size();ii++){
+            int N=m_ppElements[i][ii].N;
+            T Value=m_ppElements[i][ii].Value;
+            for(int jj=0;jj<M.m_ppElements[N].size();jj++){
+                R(i,M.m_ppElements[N][jj].N) += Value * M.m_ppElements[N][jj].Value;
+            }
+        }
+    }
+    return R;
 }
 
 template<class T>
@@ -255,11 +273,32 @@ void SparseMatrix<T>::Multiply( const Vector<T2>& In , Vector<T2>& Out , int thr
 }
 
 template<class T>
+SparseMatrix<T> SparseMatrix<T>::operator * (const SparseMatrix<T>& M) const
+{
+    return Multiply(M);
+}
+template<class T>
 template<class T2>
 Vector<T2> SparseMatrix<T>::operator * (const Vector<T2>& V) const
 {
     return Multiply(V);
 }
+
+/*
+template<class T>
+SparseMatrix<T> SparseMatrix<T>::Transpose() const
+{
+    SparseMatrix<T> M( Columns(), Rows() );
+
+    for (int i=0; i<Rows(); i++)
+    {
+        for(int ii=0;ii<m_ppElements[i].size();ii++){
+            M(m_ppElements[i][ii].N,i) = m_ppElements[i][ii].Value;
+        }
+    }
+    return M;
+}
+*/
 
 template<class T>
 template<class T2>
@@ -528,7 +567,7 @@ void SparseSymmetricMatrix<T>::Multiply( const Vector<T2>& In , Vector<T2>& Out 
         for( int t=0 ; t<threads ; t++ ) _out += OutScratch[t][i];
     }
 }
-#if (ELISE_windows)&&(!ELISE_MinGW)
+#ifdef WIN32
 #ifndef _AtomicIncrement_
 #define _AtomicIncrement_
 #include <WinBase.h>
@@ -676,9 +715,7 @@ int SparseSymmetricMatrix< T >::SolveCGAtomic( const SparseSymmetricMatrix< T >&
         int eCount = 0;
         for( int i=0 ; i<A.rows ; i++ ) eCount += A.rowSizes[i];
         partition[0] = 0;
-#ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads )
-#endif
+#pragma omp parallel for num_threads( threads )
         for( int t=0 ; t<threads ; t++ )
         {
             int _eCount = 0;
@@ -699,17 +736,13 @@ int SparseSymmetricMatrix< T >::SolveCGAtomic( const SparseSymmetricMatrix< T >&
         MultiplyAtomic( A , x , temp , threads , &partition[0] );
         MultiplyAtomic( A , temp , r , threads , &partition[0] );
         MultiplyAtomic( A , b , temp , threads , &partition[0] );
-#ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
+#pragma omp parallel for num_threads( threads ) schedule( static )
         for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] = temp[i] - _r[i];
     }
     else
     {
         MultiplyAtomic( A , x , r , threads , &partition[0] );
-#ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
+#pragma omp parallel for num_threads( threads ) schedule( static )
         for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] = _b[i] - _r[i];
     }
     double delta_new = 0 , delta_0;
@@ -728,38 +761,30 @@ int SparseSymmetricMatrix< T >::SolveCGAtomic( const SparseSymmetricMatrix< T >&
         double dDotQ = 0;
         for( int i=0 ; i<dim ; i++ ) dDotQ += _d[i] * _q[i];
         T2 alpha = T2( delta_new / dDotQ );
-#ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
+#pragma omp parallel for num_threads( threads ) schedule( static )
         for( int i=0 ; i<dim ; i++ ) _x[i] += _d[i] * alpha;
         if( (ii%50)==(50-1) )
         {
             r.Resize( dim );
             if( solveNormal ) MultiplyAtomic( A , x , temp , threads , &partition[0] ) , MultiplyAtomic( A , temp , r , threads , &partition[0] );
             else              MultiplyAtomic( A , x , r , threads , &partition[0] );
-#ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
+#pragma omp parallel for num_threads( threads ) schedule( static )
             for( int i=0 ; i<dim ; i++ ) _r[i] = _b[i] - _r[i];
         }
         else
-#ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
+#pragma omp parallel for num_threads( threads ) schedule( static )
             for( int i=0 ; i<dim ; i++ ) _r[i] -= _q[i] * alpha;
 
         double delta_old = delta_new;
         delta_new = 0;
         for( size_t i=0 ; i<dim ; i++ ) delta_new += _r[i] * _r[i];
         T2 beta = T2( delta_new / delta_old );
-#ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads ) schedule( static )
-#endif
+#pragma omp parallel for num_threads( threads ) schedule( static )
         for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] + _d[i] * beta;
     }
     return ii;
 }
-#endif  // (ELISE_windows)||(!ELISE_MinGW)
+#endif // WIN32
 template< class T >
 template< class T2 >
 int SparseSymmetricMatrix< T >::SolveCG( const SparseSymmetricMatrix<T>& A , const Vector<T2>& b , int iters , Vector<T2>& x , MapReduceVector< T2 >& scratch , T2 eps , int reset , bool addDCTerm , bool solveNormal )
@@ -862,7 +887,7 @@ int SparseSymmetricMatrix< T >::SolveCG( const SparseSymmetricMatrix<T>& A , con
     {
         A.Multiply( x , temp , scratch , addDCTerm ) , A.Multiply( temp , r , scratch , addDCTerm ) , A.Multiply( b , temp , scratch , addDCTerm );
 #ifdef USE_OPEN_MP
-#pragma omp parallel for num_threads( threads ) reduction( + : delta_new )
+    #pragma omp parallel for num_threads( threads ) reduction( + : delta_new )
 #endif
         for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] = temp[i] - _r[i] , delta_new += _r[i] * _r[i];
     }
@@ -870,7 +895,7 @@ int SparseSymmetricMatrix< T >::SolveCG( const SparseSymmetricMatrix<T>& A , con
     {
          A.Multiply( x , r , scratch , addDCTerm );
 #ifdef USE_OPEN_MP
-#pragma omp parallel for num_threads( threads )  reduction ( + : delta_new )
+    #pragma omp parallel for num_threads( threads )  reduction ( + : delta_new )
 #endif
         for( int i=0 ; i<dim ; i++ ) _d[i] = _r[i] = _b[i] - _r[i] , delta_new += _r[i] * _r[i];
     }
@@ -1138,24 +1163,16 @@ int SparseMatrix<T>::SolveGS( const SparseMatrix<T>& M , const Vector<T2>& diago
 #undef ITERATE
     return M.rows;
 }
-
 template<class T>
 template<class T2>
 int SparseMatrix<T>::SolveGS( const std::vector< std::vector< int > >& mcIndices , const SparseMatrix<T>& M , const Vector<T2>& diagonal , const Vector<T2>& b , Vector<T2>& x , bool forward , int threads , int offset )
 {
     int sum=0;
+
 #ifdef _WIN32
-#ifdef USE_OPEN_MP
-    #define SetOMPParallel __pragma( omp parallel for num_threads( threads ) )
-#else
-    #define SetOMPParallel
-#endif
+#define SetOMPParallel __pragma( omp parallel for num_threads( threads ) )
 #else // !_WIN32
-#ifdef USE_OPEN_MP
-    #define SetOMPParallel _Pragma( "omp parallel for num_threads( threads )" )
-#else
-    #define SetOMPParallel
-#endif
+#define SetOMPParallel _Pragma( "omp parallel for num_threads( threads )" )
 #endif // _WIN32
 #if ZERO_TESTING_JACOBI
 #define ITERATE( indices )                                                        \
@@ -1325,17 +1342,9 @@ int SparseSymmetricMatrix<T>::SolveGS( const std::vector< std::vector< int > >& 
     M.Multiply( x , Mx , scratch );
     dx.SetZero();
 #ifdef _WIN32
-#ifdef USE_OPEN_MP
-    #define SetOMPParallel __pragma( omp parallel for num_threads( scratch.threads() ) )
-#else
-    #define SetOMPParallel
-#endif
+#define SetOMPParallel __pragma( omp parallel for num_threads( scratch.threads() ) )
 #else // !_WIN32
-#ifdef USE_OPEN_MP
-    #define SetOMPParallel _Pragma( "omp parallel for num_threads( scratch.threads() )" )
-#else
-    #define SetOMPParallel
-#endif
+#define SetOMPParallel _Pragma( "omp parallel for num_threads( scratch.threads() )" )
 #endif // _WIN32
 #if ZERO_TESTING_JACOBI
 #define ITERATE( indices )                                                        \
@@ -1448,10 +1457,3 @@ void SparseSymmetricMatrix< T >::getDiagonal( Vector< T2 >& diagonal , int threa
         diagonal[i] = d * T2(2);
     }
 }
-
-#ifdef WIN32
-#else
-	#ifndef __APPLE__
-		#pragma GCC diagnostic pop
-	#endif
-#endif

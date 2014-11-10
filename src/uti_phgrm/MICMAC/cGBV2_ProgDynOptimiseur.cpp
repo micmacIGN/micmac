@@ -501,10 +501,10 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
                     aCF = 0;
                 }
 
-                #ifdef CUDA_ENABLED
+                #ifdef CUDA_ENBLED
 						 if(mHasMaskAuto)
 							  IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
-                #endif
+					#endif
         }
     }
     //nvtxRangePop();
@@ -971,7 +971,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 /*
         Rect zone(0,0,mSz.x,mSz.y);
         uint2   pTer;
-        uint    maxITSPI = 64;
+        uint    maxITSPI = 32;
 
         for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
         {
@@ -979,10 +979,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
             {
 
                 int2 curPT          = make_int2(pTer);
+                uint finalDefCor    = IGpuOpt._FinalDefCor[pTer];
 
                 uint minCOR = 10000;
 
-                if(!aTMask.getOK(Pt2di(pTer.x,pTer.y)))
+                if(finalDefCor <= minCOR )
                 {
                     int zMin    = 1e9;
                     bool findZ  = false;
@@ -1001,7 +1002,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
                         for (int i = 0; i < vec; ++i,curPT += tr)
                         {
-                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] >= ((float)minCOR*2.0f))
+                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] >= ((float)minCOR*3.0f))
                             {
                                 zMin = min(zMin,mDataImRes[0][curPT.y][curPT.x]);
                                 zMax = max(zMax,mDataImRes[0][curPT.y][curPT.x]);
@@ -1015,10 +1016,11 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
                         iteSpi++;
                     }
-                    //mDataImRes[0][pTer.y][pTer.x] = zMin;
-                    //IGpuOpt._FinalDefCor[pTer] = 30000;
+
                     if(findZ) /// TODO!!!! : costinit a defcor si minimum !!!!
-                        mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
+                        mDataImRes[0][pTer.y][pTer.x] = zMin;
+                        //IGpuOpt._FinalDefCor[pTer] = 30000;
+                        // mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
 
                 }
 
