@@ -722,6 +722,8 @@ int Sake_main(int argc,char ** argv);
     int Dimap2Grid_main(int argc, char **argv);
   int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
   int ServiceGeoSud_Ortho_main(int argc, char **argv);
+  int ServiceGeoSud_GeoSud_main(int argc, char **argv);
+  int ServiceGeoSud_Surf_main(int argc, char **argv);
 
 int  CalcAutoCorrel_main(int argc,char ** argv);
 
