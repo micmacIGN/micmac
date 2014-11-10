@@ -1,0 +1,472 @@
+Merge Cloud : => PRISE EN COMPTE DE LA RESOLUTION , pour l'instant pas fait
+
+=================================
+BUG sur Tapioca Boudha 
+
+
+EVOLUTIONS :
+
+  *# Compensation sur des lignes 3D
+  * Cox Roy accesible ds Malt  + SzRec 
+  * Generation des orientation d'ortho par image
+  * Masq Glob dans Malt
+  * ImMinMax dans Tapas
+  * EcMax dans Tapas
+  * dir Horizontal autom dans RepLocBascule
+  * Focs dans ChImSec, AperiCloud
+  * Export NuageUnAnam dans ortho cyl
+  * Quote des arguments 
+  * AperiCloud : couleur des cams, possible faire que cam ou que pts
+  * Dans SaisieAppuisInit : exporter tous les points 3D (correc de bug, avant n'exportait que les images courantes)
+  * SetHom dans Tapas (a completer ...)
+  * Dans CmpIm options pour traiter les MNT (et diff en coul)
+  * Correction d'un bug dans ChSysCo lie +ou- a la courbure de terre...
+  * Amelioration dans ChSysCo de la precision des orientation lorsque generees avec ForceRot=true
+
+  * Plan 3D robuste
+
+  * Dans NewTapas :
+  * remise contrainte rigie + viscosite faible + viscosite sur le
+
+  * Modeles additionnels dans Tapas (AddPol et AddFour ) + les options dans NewTapas
+  * GCPCtrl
+  * OriExport
+  * Init11Param_Main
+
+  * Masq 3D + util
+  * Gestion du bras de levier en GPS
+
+  *  Bug Ortho ESA
+  * Correction autom auto rotation sur jpg
+
+Torsion de bande : FAITS
+
+  1- Supprimer les fichiers inclus dans Apero-Glob (New) pour faciliter maintenance et evol
+  2- Remettre une contrainte rigide et passer du SLM GLOB tres faible, pas SectionCompens
+  3- Ajouter indicateur d'evolution su Centres, Rotations, (calib ?)
+  4- Ponderer le LVM en fonction des indicateurs ...
+  5- Mettre des iteration jusqu'à stabilité de ces indic ....
+
+Voir i on etend a calib ? Et a Pts3D ??????
+
+
+A faire ("Bug") :
+
+A voir si ImRef2Capteur , qui pose pb dans SaisieAppui peut pas être change autom si detecte taille incohe
+
+
+
+Progr MM-Dev :
+
+   * Dans Apero ajouter contrainte sur blic rigide
+   * Apero et MicMac en mode XML
+
+
+A DOCUMENTER  :
+XifGps2Xml
+HomolFilterMasq
+Generere un base des meta donnees (un fichier par image dans MTD);
+
+Mineure :
+
+  Im2XYZ
+point absent
+Correc resol capteur
+
+BUG :
+
+   Dans SaisieAppuiInit : si on reload des subset different, l'export 3D est perdu pour
+les point absents (pas d'image, donc sans doute pas loade ...)
+
+================================================================
+
+A Faire :  
+
+
+    Lancee a chaque commande importante ....
+
+Bascule en relvet ds l'espace
+
+
+================================================================
+
+
+Recherche auto : faire les cible en coins (UAV/Turin) :
+                  
+
+
+
+
+BUG non deterministe ??? dans Tapas signale DIAS
+
+tfw dans les orthos, y compris indiv
+txt ds campari.
+Image les plus récentes dans SaisiAppui
+
+PannelImage : nom (numero de photos)
+
+Triangle trop plat dans OriConvert Solution Initiale....
+Bug Origine dans Bascule
+
+WPK en export 
+
+BUGS :
+
+bool accepte yes !!!
+
+
+Saisie :
+  2- Image Globale de Saisie 
+  6- Bug Serge : OK ??!!! Mais de toute facon alerter dqp si pas de plan ....
+
+  Si Masque TA existe et incompatible : genere bug
+
+  2 amélio à voir dans Mail Ruedi.
+
+Nouveaux outils :
+
+  Dans Malt MASTR = AUTO
+       MasqIm
+
+
+  Interf Graphique pour SaisieMasq 
+
+  Tapioca  avec DIGEO
+
+  MM By Pair 
+  Create EPIP
+
+  Satur Seuil ds Porto/Tawny
+
+  Clip Chantier
+
+  Equi dans Malt
+
+   CPP_HomFilterMasq.cpp
+
+   
+
+
+  Environnement MicMac
+
+  MM-PxTransv.xml en outil simplifie + Push Broo
+  Exemple EDF en outil non simplifie
+
+ Incidence Max dans Malt       
+
+  Orient from GPS : solution initiale + compensation ds campari. + Xif extarct
+
+  StatIm
+
+  Semi-Big Tiff
+
+   Ori2Xml => Format IGN
+
+   Calib Per Im (CPI) ds les outil simplifie Campari & GCPBas
+
+  MNE urbain en chaine simplifiee ??,
+
+   Correction bugs dans tfw et 4 canaux (Greg).
+
+   float => double dans les ply ....
+
+  Rajouter un critere de Scale Variation, melange au B/H , dans le choix des "meilleures" image secondaire,
+(par ex un truc basic comme ratio des distance -1 pondere)
+
+
+
+   
+
+Corriger Tapas RadialBasic "R.*.JPG" Out=All-Rel Incal=Sample4Calib-Rel dans cmd_UAS_Grand-Leez.txt 
+
+
+
+
+
+
+=====================================================
+Prochaine lettre :
+
+ * Ori convert  Doc Grand Leez Centre Bascule PannelIm
+
+ * Use Case 2D ; refernce TOSCA/CNES IPGP ...
+
+ * Drunk
+
+ * ChImSec ,  Initial +? Auto
+
+ * Chapter : interactive tool
+
+ * :
+
+ * Fichier Raw
+ 
+ * Simplification des Ori-All
+
+=====================================================
+
+InCal : si aucune calibration trouvee, insulter comme il se doit
+
+Probleme homogeneite Resol & Focal dans ChImSec
+paralleliisation des devlt tiff
+PasIsPixel en Geom Fais-Z  (et Fais-Prof ???)
+NKS & Tile_0_0 : pour que l'utilisateur puisse importer ses mosaique sans les nommer
+
+
+
+===============================================================
+Bascule sur des images quasi panoramiques : probleme stabité intersection de faisceau.
+
+
+===============================================================
+
+
+AMELIORER MESSAGE D'ERREUR SUR PAS ASSEZ DE POINTS DS BASCULE
+
+=========================================
+
+
+=============================
+Malt, géométrie image, pouvoir estimer le plan sur un repere cartesien (comme OrthoCyl)
+
+
+Ajouter Test sur fichiers Raw.
+
+=============================
+
+
+
+Documenter :
+
+   mm3d AperoChImSecMM ".*PEF" All
+
+MMPyram
+MMInitialModel
+nouvelle inteface mm3d
+portage windows
+Campari
+Campari
+mm3d-LockFile.txt
+CenterBascule
+
+
+Voir pour les sift comme masques
+
+Systeme carto Mini Cuxh
+Bascule Center
+conversio ori
+conversion app
+
+TestKey
+
+=============================
+
+-1- Calcul des Moyenne Ecart Type
+
+=============================
+
+EVOL :
+
+    windows
+    mm3d
+    lock
+
+==========================================
+
+EGYPTE :
+
+-1- Recalibration de tous les objectifs
+-2- Détermination des heures de "rasances" pour les principaux points de vue
+-3- Fixer les conventions de nomage  (Plan, masq ...), et de renommage des images (par la focale entre autre);
+
+       DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE
+
+include/XML_MicMac:qBug Reaff Chang Im Saisie , le corriger par force reaaf a DeZoom avant change im
+Reaff : cliquer sur les points pour zoomer dezoomer en auto
+Autom RatioAttrCarte
+SEL : tourner sans source
+MMUserEnvironment - Nb Process
+
+==========================================
+Formation :
+   italien francophone
+   paul lopez, thales ...
+
+==========================================
+
+PIPELINE ALL AUTO :
+
+[1]   Modifier AperoChImSec pour que l'on puisse avoir plus de 2 images dans une acquisition linéaire, sinon cela limite la redondance.
+
+Par exemple :
+
+     - on donne chaque position K  un crière de qualité intrinsèque Q(k) , lié au B/H (en vérifiant que la formule évite la stéréo avan/arrière)
+
+     - on donne a chaque couple un critère de redondance basée par exemple sur des gaussienne assymétrique en Teta et Phi  R(K,J)
+
+     - Pour une famille K1,K2, le gaint de chaque K est Q(K) / (1+ Sigma(R(K,J)));
+
+
+=> Le rattio RatioStereoVert peut eliminer bcp de couple en epipolaire, il faudrait que dans ce cas on repasse sur de la geometrie image "normale" ?
+
+[2] Si on fait de la multi corrélation ? Il faut gérer une géométriequi tienne compte des correction d'epipolaire, faisable à la voléé ?
+
+
+=====================================================
+
+Pour option Deformation non lineaire dans GCP Bascule :
+
+Dans Apero/ Basculement.cpp :
+
+   void cAppliApero::BasculePoints
+
+   On recupere les points 3D avant et apres la bascule.
+
+   Point d'entree pour faire une transfo non  lineaire
+
+Option Affine Pose :
+
+     void AffinePose(ElCamera & aCam,const std::vector<Pt2dr> & aVIm,const std::vector<Pt3dr> & aVPts) dans cEq12Param.cpp
+
+Appel depuis ChSys :
+
+   aChCo->ChangCoordCamera   // Apero/cExport.cpp
+   ElCamera::ChangeSys
+
+
+=====================================================
+
+Pour eviter les trous restants dans MMByP (par ex le boule de la fontaine dans exo forca) :
+
+   - on lance le calcule MMInitialModele en :
+       - mode non match
+       - on clip avec le masq 3D
+       - on filtre les point par le filtre qui enlever les points fuyants
+       - on bascule dans chaque geomn un certain nombre de voisin, ne prenant les min-max
+
+   - grace a cette enveloppe; on peut lancer a assez haut resolution de MMByP ?
+
+  
+=====================================================
+
+Colab ML :
+
+  * basic synergie du pipeline
+  * utiliser ML comme interface graphique (saisie masq3D, saisie graphe camera,remove camera ...)
+  * getting money together in europe presenting a global coherent pipeline
+  * using meshlab alignment tools
+  * correction radiometrique/ aspect visuel ; ombrage rasant ....
+
+=====================================================
+
+Program semaine codage MicMac :
+
+-A- 1 Journee  "prise en main ", objectif :
+
+     *  creer un nouvelle commande, passage d'argument a des commandes, aux fichier XML;
+     *  lire-ecrire du XML, 
+     *  manipulation des camera (extrinseque intrinseque)
+
+=> Exo : conversion d'un modele de camera a un autre (exemple on a du Fraser , on veut du RadialStd en minisant les erreurs);
+Démarche :
+    - avec la caméra d'entrée on crée des points d'appuis dense;
+    - on lance une commande Apero  qui permet d'optimser la caméra de sortie:
+
+Cette journee permet de se remettre dans le bain, l'essentiel de la "théorie" a déjà été vu
+dans les exercices.
+
+
+-B-  1 a 2 Jours : pour apprendre a rajouter une observation dans le moteur de compensation;
+
+    Exemple d'un bloc de camera rigid
+
+-C- (en option suivant avancee de B) : apprendre a manipuler la strutcture de carte de profondeur representant un nuage de point;
+
+    Exo : basculement d'une carte sur l'autre a partir de point de liasons;
+
+
+-D- Apprendre a modifier le noyau de mise en correspondance :
+
+    Exo : a definir.
+
+-E- Utiliser la librairie sous forme fonctionnelle, ajouter un filtre compile
+
+    
+
+======================================================
+
+Apres Merge Cloud :
+
+
+-1- OPtion quick : match image multi correl, dans masq 3D, avec masq / image.
+
+   Avantage : super rapide et basique.
+
+============== PROJET INTERFACE MICMAC ========================================
+
+    **  Critere de developpement   **
+
+
+MicMac est un produit qui évolue, autant que faire se peu, il est important que le travail soit suffisement bien structué pour que l'on puisse intégrer des amélioration future. 
+
+Exemple : pour l'instant MicMac founit des nuage de points. Il est possible assez facilement de fournir des meshes si le besoin émerge comme priorité. Du point de vue de l'interaction utilisateur il n'y a pas de différence entre un process qui transforme un ensemble de photo en un nuage de point et un process qui transforme un ensemle de photo en un mesh.
+
+Il est important que la conception soit suffisement generique pour intégrer facilement ces évolutions futures. Cela peut par exemple se faire en associant à chaque bloc fonctionnel sans interaction, une commande MicMac spécifique qui pourra par la suite évoluer.
+
+    **  Usecase   **
+
+Critères :  
+
+    * A-se démarquer des autres 
+    * B-nécessiter peu d'interface, et des interface simple à écrire;
+    * C-etre valorisant pour MicMac ;résultat "tape à l'oeil" en terle de com)
+         C1=> grand public
+         C2=> professionnels
+    * D-que les contrainte de  prise de vue soient suffisement simple pour qu'il y ait peu d'échec lors du traitement;
+    * E- necessiter le moins possible d'adaptation MicMac bloquante à court terme.
+
+Notation 0=> pauvre, 1=> moyen , 2 => Bon 3=> très bon
+
+-----------USECASE 1- Le statuaire ----------
+
+Synopsis : A partir d'une prise de vue peu structuré reconstituer un nuage de points (optionnelement  un mesh dans évolution future);
+
+A=>0  , B=>1 , C1=>3,C2=>2 , D=> 1
+
+Sans doute le moins orginal, mais il "faut" l'avoir car c'est la première vitrine.
+
+Interaction :
+    * modèle de caméra (optionnel => FraserBasic par défaut)
+    * masque 3D 
+
+L'inconvénient est que la masque 3D intervient en milieu de processus. Même en pratique il est dommage de s'en priver (pertes de beaucoup de temps et baisse de qualité) on peut envisager de le rendre optionnel, et de réfléchir à plus long terme sur des options de calcul automatique (forcément un peu aléatoire).
+
+    
+-----------USECASE 2- l'ortho-photo de facade ----------
+
+Synopsis : A partir d'une prise terrestre, générer une ortho photo de facade. Adapter au cas du déroulé cylindrique.
+
+Interaction :
+   * donnée de redressement (masque, ligne, etc ...)
+   * ou point d'appuis;
+
+
+-----------USECASE 3-  Mise en valeur de bas relief ----------
+
+Genre "de la Vaissière" ou "Roger Jacques".
+
+Interaction :
+
+    * donnée de redressement (masque)
+    * paramètre de contraste
+
+
+
+
+
+
+
+
+
+
+
