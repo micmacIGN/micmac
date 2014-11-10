@@ -25,7 +25,7 @@ template<int TexSel> __global__ void projectionImage( HDParamCorrel HdPc, float*
 
     const uint2 ptHTer = make_uint2(blockIdx) *  blockDim.x + make_uint2(threadIdx);
 
-    if (oSE(ptHTer,HdPc.dimDTer)) return;
+    if (oSE(ptHTer,HdPc.dimHaloTer)) return;
 
     const ushort IdLayer = blockDim.z * blockIdx.z + threadIdx.z;
 
@@ -33,9 +33,9 @@ template<int TexSel> __global__ void projectionImage( HDParamCorrel HdPc, float*
 
     const Rect  zoneImage = pRect[IdLayer];
 
-    float* localImages = projImages + IdLayer * size(HdPc.dimDTer);
+    float* localImages = projImages + IdLayer * size(HdPc.dimHaloTer);
 
-    localImages[to1D(ptHTer,HdPc.dimDTer)] = (oI(ptProj,0)|| oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))) ? 1.f : GetImageValue(ptProj,threadIdx.z) / 2048.f;
+    localImages[to1D(ptHTer,HdPc.dimHaloTer)] = (oI(ptProj,0)|| oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))) ? 1.f : GetImageValue(ptProj,threadIdx.z) / 2048.f;
 
 }
 
@@ -44,14 +44,14 @@ extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<floa
 
     dim3	threads( BLOCKDIM / 2, BLOCKDIM /2, param.invPC.nbImages); // on divise par deux car on explose le nombre de threads par block
     uint2	thd2D		= make_uint2(threads);
-    uint2	block2D		= iDivUp(param.HdPc.dimDTer,thd2D);
+    uint2	block2D		= iDivUp(param.HdPc.dimHaloTer,thd2D);
     dim3	blocks(block2D.x , block2D.y, param.ZCInter);
 
-    DeviImagesProj.ReallocIfDim(param.HdPc.dimDTer,param.ZCInter*param.invPC.nbImages);
+    DeviImagesProj.ReallocIfDim(param.HdPc.dimHaloTer,param.ZCInter*param.invPC.nbImages);
 
     CuHostData3D<float>  hostImagesProj;
 
-    hostImagesProj.ReallocIfDim(param.HdPc.dimDTer,param.ZCInter*param.invPC.nbImages);
+    hostImagesProj.ReallocIfDim(param.HdPc.dimHaloTer,param.ZCInter*param.invPC.nbImages);
 
 
     projectionImage<0><<<blocks, threads>>>(param.HdPc,DeviImagesProj.pData(),pRect);
@@ -86,64 +86,54 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
   extern __shared__ float cacheImg[];
 
   // Coordonnées du terrain global avec bordure // __umul24!!!! A voir
+  const uint2 ptHaloTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
 
-  const uint2 ptHTer = make_uint2(blockIdx) * nbActThrd + make_uint2(threadIdx);
+  // Si le point est hors du terrain, nous sortons du kernel
+  if (oSE(ptHaloTer,HdPc.dimHaloTer)  ) return;
 
-  // Si le processus est hors du terrain, nous sortons du kernel
+  // Obtenir la projection du point dans l'image
+  const float2 ptProj   = GetProjection<TexSel>(ptHaloTer,invPc.sampProj,blockIdx.z);
 
-  if (oSE(ptHTer,HdPc.dimDTer)  ) return;
-
-  const float2 ptProj   = GetProjection<TexSel>(ptHTer,invPc.sampProj,blockIdx.z);
-// DEBUT AJOUT 2014
+  // DEBUT 2014 || taille de l'image
   const Rect  zoneImage = pRect[blockIdx.z];
 
-  uint pitZ,idImg,piCa;
+  uint pitZ,idImg,pitCach;
 
-  if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.pt1.x || ptProj.y >= (float)zoneImage.pt1.y /*oSE( ptHTer, make_uint2(zoneImage.pt1)) || oI(ptHTer,make_uint2(zoneImage.pt0))*/) // retirer le 9 decembre 2013 à verifier
-  {
-      //cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = -1.f;
+  // Si la projection est en dehors de l'image on sort
+  if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.pt1.x || ptProj.y >= (float)zoneImage.pt1.y)
       return;
-  }// FIN AJOUT 2014
-  else
-  {
-      pitZ  = blockIdx.z / invPc.nbImages;
 
-      piCa  = pitZ * invPc.nbImages;
+  // Phase : obtention de la valeur dans l'image
 
-      idImg  = blockIdx.z - piCa; // ID image courante
+  pitZ      = blockIdx.z / invPc.nbImages;
+  pitCach   = pitZ * invPc.nbImages;
+  idImg     = blockIdx.z - pitCach; // ID image courante
 
-      cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,idImg);
-
-  }
+  cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,idImg);
 
   __syncthreads();
 
-  const int2 ptTer = make_int2(ptHTer) - make_int2(invPc.rayVig);
+  // Point terrain local
+  const int2 ptTer = make_int2(ptHaloTer) - make_int2(invPc.rayVig);
 
   // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 
-  // Simplifier!!!
-  // Sortir si threard inactif et si en dehors du terrain
+
+  // Sortir si threard inactif et si en dehors du terrain (à simplifier)
   if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer,0))
     return;
 
-  // DEBUT AJOUT 2014 // TODO A SIMPLIFIER --> peut etre simplifier avec la zone terrain!
-  // Sortir si endehors de
- // if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptTer,zoneImage.pt0))
-  //if ( oSE( ptHTer + invPc.rayVig.x , make_uint2(zoneImage.pt1)) || oI(ptHTer - invPc.rayVig.x ,make_uint2(zoneImage.pt0)))
-      //return;
 
+  // Faux mais fait le job! en limite d'image
   if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y))
       return;
-  // FIN AJOUT 2014
 
-  // INCORRECT !!! TODO
-  // COM 6 mars 2014
+  // Point terrain global
   int2 coorTer = ptTer + HdPc.rTer.pt0;
+
   if(tex2D(TexS_MaskGlobal, coorTer.x, coorTer.y) == 0) return;
 
   if(tex2DLayered(TexL_MaskImages, coorTer.x, coorTer.y,idImg) == 0) return;
-
 
   const short2 c0	= make_short2(threadIdx) - invPc.rayVig;
   const short2 c1	= make_short2(threadIdx) + invPc.rayVig;
@@ -155,17 +145,14 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
   #pragma unroll // ATTENTION PRAGMA FAIT AUGMENTER LA quantité MEMOIRE des registres!!!
   for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
   {
-        //const int pic = pt.y*BLOCKDIM;
-        float* cImg    = cacheImg +  pt.y*BLOCKDIM;
+
+      float* cImg    = cacheImg +  pt.y*BLOCKDIM;
       #pragma unroll
       for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
-          const float val = cImg[pt.x];	// Valeur de l'image
-
-          //if (val ==  invPc.floatDefault) return;
-          //if (val < 0 ) return;// TODO MASQIMAGE
-          aSV  += val;          // Somme des valeurs de l'image cte
-          aSVV += (val*val);	// Somme des carrés des vals image cte
+          const float val = cImg[pt.x];     // Valeur de l'image
+          aSV  += val;                      // Somme des valeurs de l'image cte
+          aSVV += (val*val);                // Somme des carrés des vals image cte
       }
   }
 
@@ -183,11 +170,11 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   const ushort iCla = ClassEqui[idImg].x;
 
-  const ushort pCla = ClassEqui[iCla].y; 
+  const ushort pCla = ClassEqui[iCla].y;
 
   const int  idN    = (pitZ * invPc.nbClass + iCla ) * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
 
-  const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + piCa + pCla;
+  const uint iCa    = atomicAdd( &dev_NbImgOk[idN], 1U) + pitCach + pCla;
 
   float* cache      = cachVig + (iCa * HdPc.sizeCach) + ptTer.x * invPc.dimVig.x - c0.x + (pitchCachY - c0.y)* HdPc.dimCach.x;
 
@@ -213,7 +200,7 @@ __global__ void getValueImagesKernel(  ushort2 *ClassEqui, float* cuValImage, Re
 
     // Si le processus est hors du terrain, nous sortons du kernel
 
-    if (oSE(ptHTer,HdPc.dimDTer)  ) return;
+    if (oSE(ptHTer,HdPc.dimHaloTer)  ) return;
 
     const float2 ptProj   = GetProjection<0>(ptHTer,invPc.sampProj,blockIdx.z);
   // DEBUT AJOUT 2014
@@ -264,7 +251,7 @@ extern "C" void	 LaunchKernelGetValueImages(pCorGpu &param,SData2Correl &data2co
     dim3	threads( BLOCKDIM, BLOCKDIM, 1);
     uint2	thd2D		= make_uint2(threads);
     uint2	nbActThrd	= thd2D - 2 * param.invPC.rayVig;
-    uint2	block2D		= iDivUp(param.HdPc.dimDTer,nbActThrd);
+    uint2	block2D		= iDivUp(param.HdPc.dimHaloTer,nbActThrd);
     dim3	blocks(block2D.x , block2D.y, param.invPC.nbImages * param.ZCInter);
 
     CuHostData3D<float>     hoValImage;
@@ -293,7 +280,7 @@ extern "C" void	 LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu
     dim3	threads( BLOCKDIM, BLOCKDIM, 1);
     uint2	thd2D		= make_uint2(threads);
     uint2	nbActThrd	= thd2D - 2 * param.invPC.rayVig;
-    uint2	block2D		= iDivUp(param.HdPc.dimDTer,nbActThrd);
+    uint2	block2D		= iDivUp(param.HdPc.dimHaloTer,nbActThrd);
     dim3	blocks(block2D.x , block2D.y, param.invPC.nbImages * param.ZCInter);
 
 //    CuDeviceData3D<float>       DeviImagesProj;
